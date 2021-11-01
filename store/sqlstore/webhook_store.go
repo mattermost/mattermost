@@ -99,20 +99,14 @@ func (s SqlWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) (*model.In
 func (s SqlWebhookStore) UpdateIncoming(hook *model.IncomingWebhook) (*model.IncomingWebhook, error) {
 	hook.UpdateAt = model.GetMillis()
 
-	res, err := s.GetMasterX().NamedExec(`UPDATE IncomingWebhooks SET
-			UpdateAt=:UpdateAt, ChannelId=:ChannelId, TeamId=:TeamId, DisplayName=:DisplayName,
+	_, err := s.GetMasterX().NamedExec(`UPDATE IncomingWebhooks SET
+			CreateAt=:CreateAt, UpdateAt=:UpdateAt, DeleteAt=:DeleteAt, ChannelId=:ChannelId, TeamId=:TeamId, DisplayName=:DisplayName,
 			Description=:Description, Username=:Username, IconURL=:IconURL, ChannelLocked=:ChannelLocked
 			WHERE Id=:Id`, hook)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update IncomingWebhook with id=%s", hook.Id)
 	}
-	count, err := res.RowsAffected()
-	if err != nil {
-		return nil, errors.Wrap(err, "error while getting rows_affected")
-	}
-	if count > 1 {
-		return nil, store.NewErrInvalidInput("IncomingWebhook", "Id", hook.Id)
-	}
+
 	return hook, nil
 }
 
