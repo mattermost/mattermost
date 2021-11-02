@@ -21,3 +21,18 @@ SET @preparedStatement = (SELECT IF(
     'ALTER TABLE OAuthAuthData MODIFY State text;',
     'SELECT 1'
 ));
+
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+        WHERE table_name = 'OAuthAuthData'
+        AND table_schema = DATABASE()
+        AND index_name = 'idx_oauthauthdata_client_id'
+    ) > 0,
+    'DROP INDEX idx_oauthauthdata_client_id ON OAuthAuthData;',
+    'SELECT 1'
+));
+
+PREPARE removeIndexIfExists FROM @preparedStatement;
+EXECUTE removeIndexIfExists;
+DEALLOCATE PREPARE removeIndexIfExists;

@@ -32,3 +32,5 @@ ALTER TABLE oauthaccessdata DROP COLUMN IF EXISTS authcode;
 ALTER TABLE oauthaccessdata ADD COLUMN IF NOT EXISTS scope VARCHAR(128) DEFAULT 'user';
 
 DROP INDEX IF EXISTS clientid_2;
+
+DROP INDEX IF EXISTS idx_oauthaccessdata_client_id;
