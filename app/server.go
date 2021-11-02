@@ -1755,7 +1755,7 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
-	if *license.Features.Cloud { {
+	if *license.Features.Cloud {
 		mlog.Debug("Skipping license expiration check for Cloud")
 		return
 	}
