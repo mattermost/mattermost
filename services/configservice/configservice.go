@@ -4,8 +4,6 @@
 package configservice
 
 import (
-	"crypto/ecdsa"
-
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
@@ -14,5 +12,4 @@ type ConfigService interface {
 	Config() *model.Config
 	AddConfigListener(func(old, current *model.Config)) string
 	RemoveConfigListener(string)
-	AsymmetricSigningKey() *ecdsa.PrivateKey
 }

@@ -4193,7 +4193,7 @@ func groupTestPermittedSyncableAdminsChannel(t *testing.T, ss store.Store) {
 	require.ElementsMatch(t, []string{user1.Id, user2.Id, user3.Id}, actualUserIDs)
 
 	// deleted group member should not be included
-	ss.Group().DeleteMember(group1.Id, user2.Id)
+	_, err = ss.Group().DeleteMember(group1.Id, user2.Id)
 	require.NoError(t, err)
 	actualUserIDs, err = ss.Group().PermittedSyncableAdmins(channel.Id, model.GroupSyncableTypeChannel)
 	require.NoError(t, err)

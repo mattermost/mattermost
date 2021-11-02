@@ -210,7 +210,7 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 }
 
 func validateSidebarCategory(c *Context, teamId, userId string, category *model.SidebarCategoryWithChannels) *model.AppError {
-	channels, err := c.App.GetChannelsForUser(teamId, userId, true, 0)
+	channels, err := c.App.GetChannelsForTeamForUser(teamId, userId, true, 0)
 	if err != nil {
 		return model.NewAppError("validateSidebarCategory", "api.invalid_channel", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -221,7 +221,7 @@ func validateSidebarCategory(c *Context, teamId, userId string, category *model.
 }
 
 func validateSidebarCategories(c *Context, teamId, userId string, categories []*model.SidebarCategoryWithChannels) *model.AppError {
-	channels, err := c.App.GetChannelsForUser(teamId, userId, true, 0)
+	channels, err := c.App.GetChannelsForTeamForUser(teamId, userId, true, 0)
 	if err != nil {
 		return model.NewAppError("validateSidebarCategory", "api.invalid_channel", nil, err.Error(), http.StatusBadRequest)
 	}
