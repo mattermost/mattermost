@@ -9,9 +9,11 @@ import (
 	"os"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost-server/v6/store/storetest"
+	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -45,12 +47,20 @@ func TestBleveIndexer(t *testing.T) {
 			},
 		}
 
+		jobServer := &jobs.JobServer{
+			Store: mockStore,
+			ConfigService: &testutils.StaticConfigService{
+				Cfg: cfg,
+			},
+		}
+
 		bleveEngine := bleveengine.NewBleveEngine(cfg)
 		aErr := bleveEngine.Start()
 		require.Nil(t, aErr)
 
 		worker := &BleveIndexerWorker{
-			engine: bleveEngine,
+			jobServer: jobServer,
+			engine:    bleveEngine,
 		}
 
 		worker.DoJob(job)
