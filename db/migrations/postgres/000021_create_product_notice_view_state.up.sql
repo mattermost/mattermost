@@ -8,3 +8,6 @@ CREATE TABLE IF NOT EXISTS productnoticeviewstate (
 
 CREATE INDEX IF NOT EXISTS idx_notice_views_notice_id ON productnoticeviewstate(noticeid);
 CREATE INDEX IF NOT EXISTS idx_notice_views_timestamp ON productnoticeviewstate("timestamp");
+
+DROP INDEX IF EXISTS idx_notice_views_user_id;
+DROP INDEX IF EXISTS idx_notice_views_user_notice;

@@ -47,3 +47,5 @@ BEGIN
         AND name = preference.name;
     END LOOP;
 END rename_solarized_theme $$;
+
+DROP INDEX IF EXISTS idx_preferences_user_id;

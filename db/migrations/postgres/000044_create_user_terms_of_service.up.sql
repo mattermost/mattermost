@@ -23,3 +23,5 @@ BEGIN
         AND acceptedtermsofserviceid IS NOT NULL;
     END IF;
 END do_migrate_to_usertermsofservice_table $$;
+
+DROP INDEX IF EXISTS idx_user_terms_of_service_user_id;

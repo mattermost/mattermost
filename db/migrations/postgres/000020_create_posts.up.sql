@@ -32,3 +32,5 @@ CREATE INDEX IF NOT EXISTS idx_posts_message_txt ON posts USING gin(to_tsvector(
 CREATE INDEX IF NOT EXISTS idx_posts_hashtags_txt ON posts USING gin(to_tsvector('english', hashtags));
 
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS remoteid VARCHAR(26);
+
+DROP INDEX IF EXISTS idx_posts_channel_id;
