@@ -164,8 +164,7 @@ ifeq ("darwin_arm64","$(CURRENT_PACKAGE_ARCH)")
 else ifeq ("linux_arm64","$(CURRENT_PACKAGE_ARCH)")
 	echo "No plugins or mmctl yet for $(CURRENT_PACKAGE_ARCH) platform, skipping..."
 else
-	#Download MMCTL for $(MMCTL_PLATFORM)
-	scripts/download_mmctl_release.sh $(MMCTL_PLATFORM) $(DIST_PATH_GENERIC)/bin
+	tar xf ../mmctl/build/$(CURRENT_PACKAGE_ARCH).tar -C $(DIST_PATH_GENERIC)/bin
 	@# Prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
 		ARCH=$(PLUGIN_ARCH); \
@@ -228,8 +227,7 @@ ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
 else
 	cp $(GOBIN)/windows_amd64/mattermost.exe $(DIST_PATH_WIN)/bin # from cross-compiled bin dir
 endif
-	#Download MMCTL for Windows
-	scripts/download_mmctl_release.sh "Windows" $(DIST_PATH_WIN)/bin
+	unzip -o ../mmctl/build/windows_amd64.zip -d $(DIST_PATH_WIN)/bin
 	@# Prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
 		ARCH="windows-amd64"; \
