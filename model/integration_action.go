@@ -511,7 +511,7 @@ func (d Dialog) IsValid() error {
 	}
 
 	if d.IconURL != "" && !IsValidHTTPURL(d.IconURL) {
-		return errors.New(" icon url is invalid")
+		return errors.New("icon url is invalid")
 	}
 
 	if len(d.Elements) > 5 {
