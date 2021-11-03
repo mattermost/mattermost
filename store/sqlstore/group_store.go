@@ -24,27 +24,27 @@ const (
 
 type groupTeam struct {
 	model.GroupSyncable
-	TeamId string `db:"TeamId"`
+	TeamId string
 }
 
 type groupChannel struct {
 	model.GroupSyncable
-	ChannelId string `db:"ChannelId"`
+	ChannelId string
 }
 
 type groupTeamJoin struct {
 	groupTeam
-	TeamDisplayName string `db:"TeamDisplayName"`
-	TeamType        string `db:"TeamType"`
+	TeamDisplayName string
+	TeamType        string
 }
 
 type groupChannelJoin struct {
 	groupChannel
-	ChannelDisplayName string `db:"ChannelDisplayName"`
-	TeamDisplayName    string `db:"TeamDisplayName"`
-	TeamType           string `db:"TeamType"`
-	ChannelType        string `db:"ChannelType"`
-	TeamID             string `db:"TeamId"`
+	ChannelDisplayName string
+	TeamDisplayName    string
+	TeamType           string
+	ChannelType        string
+	TeamId             string
 }
 
 type SqlGroupStore struct {
@@ -103,7 +103,10 @@ func (s *SqlGroupStore) Create(group *model.Group) (*model.Group, error) {
 	group.CreateAt = model.GetMillis()
 	group.UpdateAt = group.CreateAt
 
-	if err := s.GetMaster().Insert(group); err != nil {
+	if _, err := s.GetMasterX().NamedExec(`INSERT INTO UserGroups
+		(Id, Name, DisplayName, Description, Source, RemoteId, CreateAt, UpdateAt, DeleteAt, AllowReference)
+		VALUES
+		(:Id, :Name, :DisplayName, :Description, :Source, :RemoteId, :CreateAt, :UpdateAt, :DeleteAt, :AllowReference)`, group); err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "groups_name_key"}) {
 			return nil, errors.Wrapf(err, "Group with name %s already exists", *group.Name)
 		}
@@ -114,68 +117,67 @@ func (s *SqlGroupStore) Create(group *model.Group) (*model.Group, error) {
 }
 
 func (s *SqlGroupStore) Get(groupId string) (*model.Group, error) {
-	var group *model.Group
-	if err := s.GetReplica().SelectOne(&group, "SELECT * from UserGroups WHERE Id = :Id", map[string]interface{}{"Id": groupId}); err != nil {
+	var group model.Group
+	if err := s.GetReplicaX().Get(&group, "SELECT * from UserGroups WHERE Id = ?", groupId); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Group", groupId)
 		}
 		return nil, errors.Wrapf(err, "failed to get Group with id=%s", groupId)
 	}
 
-	return group, nil
+	return &group, nil
 }
 
 func (s *SqlGroupStore) GetByName(name string, opts model.GroupSearchOpts) (*model.Group, error) {
-	var group *model.Group
+	var group model.Group
 	query := s.getQueryBuilder().Select("*").From("UserGroups").Where(sq.Eq{"Name": name})
 	if opts.FilterAllowReference {
 		query = query.Where("AllowReference = true")
 	}
 
 	queryString, args, err := query.ToSql()
-
 	if err != nil {
 		return nil, errors.Wrap(err, "get_by_name_tosql")
 	}
-	if err := s.GetReplica().SelectOne(&group, queryString, args...); err != nil {
+	if err := s.GetReplicaX().Get(&group, queryString, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Group", fmt.Sprintf("name=%s", name))
 		}
 		return nil, errors.Wrapf(err, "failed to get Group with name=%s", name)
 	}
 
-	return group, nil
+	return &group, nil
 }
 
 func (s *SqlGroupStore) GetByIDs(groupIDs []string) ([]*model.Group, error) {
-	var groups []*model.Group
+	groups := []*model.Group{}
 	query := s.getQueryBuilder().Select("*").From("UserGroups").Where(sq.Eq{"Id": groupIDs})
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "get_by_ids_tosql")
 	}
-	if _, err := s.GetReplica().Select(&groups, queryString, args...); err != nil {
+	if err := s.GetReplicaX().Select(&groups, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Groups by ids")
 	}
 	return groups, nil
 }
 
 func (s *SqlGroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, error) {
-	var group *model.Group
-	if err := s.GetReplica().SelectOne(&group, "SELECT * from UserGroups WHERE RemoteId = :RemoteId AND Source = :Source", map[string]interface{}{"RemoteId": remoteID, "Source": groupSource}); err != nil {
+	var group model.Group
+	if err := s.GetReplicaX().Get(&group, "SELECT * from UserGroups WHERE RemoteId = ? AND Source = ?", remoteID, groupSource); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Group", fmt.Sprintf("remoteId=%s", remoteID))
 		}
 		return nil, errors.Wrapf(err, "failed to get Group with remoteId=%s", remoteID)
 	}
 
-	return group, nil
+	return &group, nil
 }
 
 func (s *SqlGroupStore) GetAllBySource(groupSource model.GroupSource) ([]*model.Group, error) {
-	var groups []*model.Group
+	groups := []*model.Group{}
 
-	if _, err := s.GetReplica().Select(&groups, "SELECT * from UserGroups WHERE DeleteAt = 0 AND Source = :Source", map[string]interface{}{"Source": groupSource}); err != nil {
+	if err := s.GetReplicaX().Select(&groups, "SELECT * from UserGroups WHERE DeleteAt = 0 AND Source = ?", groupSource); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Groups by groupSource=%v", groupSource)
 	}
 
@@ -183,7 +185,7 @@ func (s *SqlGroupStore) GetAllBySource(groupSource model.GroupSource) ([]*model.
 }
 
 func (s *SqlGroupStore) GetByUser(userId string) ([]*model.Group, error) {
-	var groups []*model.Group
+	groups := []*model.Group{}
 
 	query := `
 		SELECT
@@ -193,9 +195,9 @@ func (s *SqlGroupStore) GetByUser(userId string) ([]*model.Group, error) {
 			JOIN UserGroups ON UserGroups.Id = GroupMembers.GroupId
 		WHERE
 			GroupMembers.DeleteAt = 0
-			AND UserId = :UserId`
+			AND UserId = ?`
 
-	if _, err := s.GetReplica().Select(&groups, query, map[string]interface{}{"UserId": userId}); err != nil {
+	if err := s.GetReplicaX().Select(&groups, query, userId); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Groups with userId=%s", userId)
 	}
 
@@ -203,8 +205,8 @@ func (s *SqlGroupStore) GetByUser(userId string) ([]*model.Group, error) {
 }
 
 func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, error) {
-	var retrievedGroup *model.Group
-	if err := s.GetReplica().SelectOne(&retrievedGroup, "SELECT * FROM UserGroups WHERE Id = :Id", map[string]interface{}{"Id": group.Id}); err != nil {
+	var retrievedGroup model.Group
+	if err := s.GetReplicaX().Get(&retrievedGroup, "SELECT * FROM UserGroups WHERE Id = ?", group.Id); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Group", group.Id)
 		}
@@ -224,13 +226,17 @@ func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, error) {
 		return nil, err
 	}
 
-	rowsChanged, err := s.GetMaster().Update(group)
+	res, err := s.GetMasterX().NamedExec(`UPDATE UserGroups
+		SET Name=:Name, DisplayName=:DisplayName, Description=:Description, Source=:Source,
+		RemoteId=:RemoteId, CreateAt=:CreateAt, UpdateAt=:UpdateAt, DeleteAt=:DeleteAt, AllowReference=:AllowReference
+		WHERE Id=:Id`, group)
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "groups_name_key"}) {
 			return nil, errors.Wrapf(err, "Group with name %s already exists", *group.Name)
 		}
 		return nil, errors.Wrap(err, "failed to update Group")
 	}
+	rowsChanged, _ := res.RowsAffected()
 	if rowsChanged > 1 {
 		return nil, errors.Wrapf(err, "multiple Groups were update: %d", rowsChanged)
 	}
@@ -239,8 +245,8 @@ func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, error) {
 }
 
 func (s *SqlGroupStore) Delete(groupID string) (*model.Group, error) {
-	var group *model.Group
-	if err := s.GetReplica().SelectOne(&group, "SELECT * from UserGroups WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": groupID}); err != nil {
+	var group model.Group
+	if err := s.GetReplicaX().Get(&group, "SELECT * from UserGroups WHERE Id = ? AND DeleteAt = 0", groupID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Group", groupID)
 		}
@@ -248,18 +254,17 @@ func (s *SqlGroupStore) Delete(groupID string) (*model.Group, error) {
 	}
 
 	time := model.GetMillis()
-	group.DeleteAt = time
-	group.UpdateAt = time
-
-	if _, err := s.GetMaster().Update(group); err != nil {
+	if _, err := s.GetMasterX().Exec(`UPDATE UserGroups
+		SET DeleteAt=?, UpdateAt=?
+		WHERE Id=? AND DeleteAt=0`, time, time, groupID); err != nil {
 		return nil, errors.Wrapf(err, "failed to update Group with id=%s", groupID)
 	}
 
-	return group, nil
+	return &group, nil
 }
 
 func (s *SqlGroupStore) GetMemberUsers(groupID string) ([]*model.User, error) {
-	var groupMembers []*model.User
+	groupMembers := []*model.User{}
 
 	query := `
 		SELECT
@@ -270,9 +275,9 @@ func (s *SqlGroupStore) GetMemberUsers(groupID string) ([]*model.User, error) {
 		WHERE
 			GroupMembers.DeleteAt = 0
 			AND Users.DeleteAt = 0
-			AND GroupId = :GroupId`
+			AND GroupId = ?`
 
-	if _, err := s.GetReplica().Select(&groupMembers, query, map[string]interface{}{"GroupId": groupID}); err != nil {
+	if err := s.GetReplicaX().Select(&groupMembers, query, groupID); err != nil {
 		return nil, errors.Wrapf(err, "failed to find member Users for Group with id=%s", groupID)
 	}
 
@@ -280,7 +285,7 @@ func (s *SqlGroupStore) GetMemberUsers(groupID string) ([]*model.User, error) {
 }
 
 func (s *SqlGroupStore) GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error) {
-	var groupMembers []*model.User
+	groupMembers := []*model.User{}
 
 	query := `
 		SELECT
@@ -291,15 +296,15 @@ func (s *SqlGroupStore) GetMemberUsersPage(groupID string, page int, perPage int
 		WHERE
 			GroupMembers.DeleteAt = 0
 			AND Users.DeleteAt = 0
-			AND GroupId = :GroupId
+			AND GroupId = ?
 		ORDER BY
 			GroupMembers.CreateAt DESC
 		LIMIT
-			:Limit
+			?
 		OFFSET
-			:Offset`
+			?`
 
-	if _, err := s.GetReplica().Select(&groupMembers, query, map[string]interface{}{"GroupId": groupID, "Limit": perPage, "Offset": page * perPage}); err != nil {
+	if err := s.GetReplicaX().Select(&groupMembers, query, groupID, perPage, page*perPage); err != nil {
 		return nil, errors.Wrapf(err, "failed to find member Users for Group with id=%s", groupID)
 	}
 
@@ -314,10 +319,11 @@ func (s *SqlGroupStore) GetMemberCount(groupID string) (int64, error) {
 			GroupMembers
 			JOIN Users ON Users.Id = GroupMembers.UserId
 		WHERE
-			GroupMembers.GroupId = :GroupId
+			GroupMembers.GroupId = ?
 			AND Users.DeleteAt = 0`
 
-	count, err := s.GetReplica().SelectInt(query, map[string]interface{}{"GroupId": groupID})
+	var count int64
+	err := s.GetReplicaX().Get(&count, query, groupID)
 	if err != nil {
 		return int64(0), errors.Wrapf(err, "failed to count member Users for Group with id=%s", groupID)
 	}
@@ -326,7 +332,7 @@ func (s *SqlGroupStore) GetMemberCount(groupID string) (int64, error) {
 }
 
 func (s *SqlGroupStore) GetMemberUsersInTeam(groupID string, teamID string) ([]*model.User, error) {
-	var groupMembers []*model.User
+	groupMembers := []*model.User{}
 
 	query := `
 		SELECT
@@ -335,11 +341,11 @@ func (s *SqlGroupStore) GetMemberUsersInTeam(groupID string, teamID string) ([]*
 			GroupMembers
 			JOIN Users ON Users.Id = GroupMembers.UserId
 		WHERE
-			GroupId = :GroupId
+			GroupId = ?
 			AND GroupMembers.UserId IN (
 				SELECT TeamMembers.UserId
 				FROM TeamMembers
-				JOIN Teams ON Teams.Id = :TeamId
+				JOIN Teams ON Teams.Id = ?
 				WHERE TeamMembers.TeamId = Teams.Id
 				AND TeamMembers.DeleteAt = 0
 			)
@@ -347,7 +353,7 @@ func (s *SqlGroupStore) GetMemberUsersInTeam(groupID string, teamID string) ([]*
 			AND Users.DeleteAt = 0
 		`
 
-	if _, err := s.GetReplica().Select(&groupMembers, query, map[string]interface{}{"GroupId": groupID, "TeamId": teamID}); err != nil {
+	if err := s.GetReplicaX().Select(&groupMembers, query, groupID, teamID); err != nil {
 		return nil, errors.Wrapf(err, "failed to member Users for groupId=%s and teamId=%s", groupID, teamID)
 	}
 
@@ -355,7 +361,7 @@ func (s *SqlGroupStore) GetMemberUsersInTeam(groupID string, teamID string) ([]*
 }
 
 func (s *SqlGroupStore) GetMemberUsersNotInChannel(groupID string, channelID string) ([]*model.User, error) {
-	var groupMembers []*model.User
+	groupMembers := []*model.User{}
 
 	query := `
 		SELECT
@@ -364,16 +370,16 @@ func (s *SqlGroupStore) GetMemberUsersNotInChannel(groupID string, channelID str
 			GroupMembers
 			JOIN Users ON Users.Id = GroupMembers.UserId
 		WHERE
-			GroupId = :GroupId
+			GroupId = ?
 			AND GroupMembers.UserId NOT IN (
 				SELECT ChannelMembers.UserId
 				FROM ChannelMembers
-				WHERE ChannelMembers.ChannelId = :ChannelId
+				WHERE ChannelMembers.ChannelId = ?
 			)
 			AND GroupMembers.UserId IN (
 				SELECT TeamMembers.UserId
 				FROM TeamMembers
-				JOIN Channels ON Channels.Id = :ChannelId
+				JOIN Channels ON Channels.Id = ?
 				JOIN Teams ON Teams.Id = Channels.TeamId
 				WHERE TeamMembers.TeamId = Teams.Id
 				AND TeamMembers.DeleteAt = 0
@@ -382,7 +388,7 @@ func (s *SqlGroupStore) GetMemberUsersNotInChannel(groupID string, channelID str
 			AND Users.DeleteAt = 0
 		`
 
-	if _, err := s.GetReplica().Select(&groupMembers, query, map[string]interface{}{"GroupId": groupID, "ChannelId": channelID}); err != nil {
+	if err := s.GetReplicaX().Select(&groupMembers, query, groupID, channelID, channelID); err != nil {
 		return nil, errors.Wrapf(err, "failed to member Users for groupId=%s and channelId!=%s", groupID, channelID)
 	}
 
@@ -401,8 +407,8 @@ func (s *SqlGroupStore) UpsertMember(groupID string, userID string) (*model.Grou
 		return nil, err
 	}
 
-	var retrievedGroup *model.Group
-	if err := s.GetReplica().SelectOne(&retrievedGroup, "SELECT * FROM UserGroups WHERE Id = :Id", map[string]interface{}{"Id": groupID}); err != nil {
+	var retrievedGroup model.Group
+	if err := s.GetReplicaX().Get(&retrievedGroup, "SELECT * FROM UserGroups WHERE Id = ?", groupID); err != nil {
 		return nil, errors.Wrapf(err, "failed to get UserGroup with groupId=%s and userId=%s", groupID, userID)
 	}
 
@@ -422,15 +428,15 @@ func (s *SqlGroupStore) UpsertMember(groupID string, userID string) (*model.Grou
 		return nil, errors.Wrap(err, "failed to generate sqlquery")
 	}
 
-	if _, err = s.GetMaster().Exec(queryString, args...); err != nil {
+	if _, err = s.GetMasterX().Exec(queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to save GroupMember")
 	}
 	return member, nil
 }
 
 func (s *SqlGroupStore) DeleteMember(groupID string, userID string) (*model.GroupMember, error) {
-	var retrievedMember *model.GroupMember
-	if err := s.GetReplica().SelectOne(&retrievedMember, "SELECT * FROM GroupMembers WHERE GroupId = :GroupId AND UserId = :UserId AND DeleteAt = 0", map[string]interface{}{"GroupId": groupID, "UserId": userID}); err != nil {
+	var retrievedMember model.GroupMember
+	if err := s.GetReplicaX().Get(&retrievedMember, "SELECT * FROM GroupMembers WHERE GroupId = ? AND UserId = ? AND DeleteAt = 0", groupID, userID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("GroupMember", fmt.Sprintf("groupId=%s, userId=%s", groupID, userID))
 		}
@@ -439,15 +445,19 @@ func (s *SqlGroupStore) DeleteMember(groupID string, userID string) (*model.Grou
 
 	retrievedMember.DeleteAt = model.GetMillis()
 
-	if _, err := s.GetMaster().Update(retrievedMember); err != nil {
+	if _, err := s.GetMasterX().NamedExec(`UPDATE GroupMembers
+		SET DeleteAt=:DeleteAt
+		WHERE GroupId=:GroupId
+		AND UserId=:UserId
+		AND DeleteAt=0`, retrievedMember); err != nil {
 		return nil, errors.Wrapf(err, "failed to update GroupMember with groupId=%s and userId=%s", groupID, userID)
 	}
 
-	return retrievedMember, nil
+	return &retrievedMember, nil
 }
 
 func (s *SqlGroupStore) PermanentDeleteMembersByUser(userId string) error {
-	if _, err := s.GetMaster().Exec("DELETE FROM GroupMembers WHERE UserId = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
+	if _, err := s.GetMasterX().Exec("DELETE FROM GroupMembers WHERE UserId = ?", userId); err != nil {
 		return errors.Wrapf(err, "failed to permanent delete GroupMember with userId=%s", userId)
 	}
 	return nil
@@ -471,14 +481,20 @@ func (s *SqlGroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) 
 			return nil, err
 		}
 
-		insertErr = s.GetMaster().Insert(groupSyncableToGroupTeam(groupSyncable))
+		_, insertErr = s.GetMasterX().NamedExec(`INSERT INTO GroupTeams
+			(GroupId, AutoAdd, SchemeAdmin, CreateAt, DeleteAt, UpdateAt, TeamId)
+			VALUES
+			(:GroupId, :AutoAdd, :SchemeAdmin, :CreateAt, :DeleteAt, :UpdateAt, :TeamId)`, groupSyncableToGroupTeam(groupSyncable))
 	case model.GroupSyncableTypeChannel:
 		var channel *model.Channel
 		channel, err := s.Channel().Get(groupSyncable.SyncableId, false)
 		if err != nil {
 			return nil, err
 		}
-		insertErr = s.GetMaster().Insert(groupSyncableToGroupChannel(groupSyncable))
+		_, insertErr = s.GetMasterX().NamedExec(`INSERT INTO GroupChannels
+			(GroupId, AutoAdd, SchemeAdmin, CreateAt, DeleteAt, UpdateAt, ChannelId)
+			VALUES
+			(:GroupId, :AutoAdd, :SchemeAdmin, :CreateAt, :DeleteAt, :UpdateAt, :ChannelId)`, groupSyncableToGroupChannel(groupSyncable))
 		groupSyncable.TeamID = channel.TeamId
 	default:
 		return nil, fmt.Errorf("invalid GroupSyncableType: %s", groupSyncable.Type)
@@ -509,9 +525,13 @@ func (s *SqlGroupStore) getGroupSyncable(groupID string, syncableID string, sync
 
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		result, err = s.GetReplica().Get(groupTeam{}, groupID, syncableID)
+		var team groupTeam
+		err = s.GetReplicaX().Get(&team, `SELECT * FROM GroupTeams WHERE GroupId=? AND TeamId=?`, groupID, syncableID)
+		result = &team
 	case model.GroupSyncableTypeChannel:
-		result, err = s.GetReplica().Get(groupChannel{}, groupID, syncableID)
+		var ch groupChannel
+		err = s.GetReplicaX().Get(&ch, `SELECT * FROM GroupChannels WHERE GroupId=? AND ChannelId=?`, groupID, syncableID)
+		result = &ch
 	}
 
 	if err != nil {
@@ -550,8 +570,6 @@ func (s *SqlGroupStore) getGroupSyncable(groupID string, syncableID string, sync
 }
 
 func (s *SqlGroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, error) {
-	args := map[string]interface{}{"GroupId": groupID}
-
 	groupSyncables := []*model.GroupSyncable{}
 
 	switch syncableType {
@@ -565,10 +583,10 @@ func (s *SqlGroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableTy
 				GroupTeams
 				JOIN Teams ON Teams.Id = GroupTeams.TeamId
 			WHERE
-				GroupId = :GroupId AND GroupTeams.DeleteAt = 0`
+				GroupId = ? AND GroupTeams.DeleteAt = 0`
 
 		results := []*groupTeamJoin{}
-		_, err := s.GetReplica().Select(&results, sqlQuery, args)
+		err := s.GetReplicaX().Select(&results, sqlQuery, groupID)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to find GroupTeams with groupId=%s", groupID)
 		}
@@ -601,10 +619,10 @@ func (s *SqlGroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableTy
 				JOIN Channels ON Channels.Id = GroupChannels.ChannelId
 				JOIN Teams ON Teams.Id = Channels.TeamId
 			WHERE
-				GroupId = :GroupId AND GroupChannels.DeleteAt = 0`
+				GroupId = ? AND GroupChannels.DeleteAt = 0`
 
 		results := []*groupChannelJoin{}
-		_, err := s.GetReplica().Select(&results, sqlQuery, args)
+		err := s.GetReplicaX().Select(&results, sqlQuery, groupID)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to find GroupChannels with groupId=%s", groupID)
 		}
@@ -655,7 +673,10 @@ func (s *SqlGroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) 
 
 	switch groupSyncable.Type {
 	case model.GroupSyncableTypeTeam:
-		_, err = s.GetMaster().Update(groupSyncableToGroupTeam(groupSyncable))
+		_, err = s.GetMasterX().NamedExec(`UPDATE GroupTeams
+			SET AutoAdd=:AutoAdd, SchemeAdmin=:SchemeAdmin, CreateAt=:CreateAt,
+				DeleteAt=:DeleteAt, UpdateAt=:UpdateAt
+			WHERE GroupId=:GroupId AND TeamId=:TeamId`, groupSyncableToGroupTeam(groupSyncable))
 	case model.GroupSyncableTypeChannel:
 		// We need to get the TeamId so redux can manage channels when teams are unlinked
 		var channel *model.Channel
@@ -664,7 +685,10 @@ func (s *SqlGroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) 
 			return nil, channelErr
 		}
 
-		_, err = s.GetMaster().Update(groupSyncableToGroupChannel(groupSyncable))
+		_, err = s.GetMasterX().NamedExec(`UPDATE GroupChannels
+			SET AutoAdd=:AutoAdd, SchemeAdmin=:SchemeAdmin, CreateAt=:CreateAt,
+				DeleteAt=:DeleteAt, UpdateAt=:UpdateAt
+			WHERE GroupId=:GroupId AND ChannelId=:ChannelId`, groupSyncableToGroupChannel(groupSyncable))
 
 		groupSyncable.TeamID = channel.TeamId
 	default:
@@ -697,9 +721,15 @@ func (s *SqlGroupStore) DeleteGroupSyncable(groupID string, syncableID string, s
 
 	switch groupSyncable.Type {
 	case model.GroupSyncableTypeTeam:
-		_, err = s.GetMaster().Update(groupSyncableToGroupTeam(groupSyncable))
+		_, err = s.GetMasterX().NamedExec(`UPDATE GroupTeams
+			SET AutoAdd=:AutoAdd, SchemeAdmin=:SchemeAdmin, CreateAt=:CreateAt,
+				DeleteAt=:DeleteAt, UpdateAt=:UpdateAt
+			WHERE GroupId=:GroupId AND TeamId=:TeamId`, groupSyncableToGroupTeam(groupSyncable))
 	case model.GroupSyncableTypeChannel:
-		_, err = s.GetMaster().Update(groupSyncableToGroupChannel(groupSyncable))
+		_, err = s.GetMasterX().NamedExec(`UPDATE GroupChannels
+			SET AutoAdd=:AutoAdd, SchemeAdmin=:SchemeAdmin, CreateAt=:CreateAt,
+				DeleteAt=:DeleteAt, UpdateAt=:UpdateAt
+			WHERE GroupId=:GroupId AND ChannelId=:ChannelId`, groupSyncableToGroupChannel(groupSyncable))
 	default:
 		return nil, fmt.Errorf("invalid GroupSyncableType: %s", groupSyncable.Type)
 	}
@@ -712,7 +742,7 @@ func (s *SqlGroupStore) DeleteGroupSyncable(groupID string, syncableID string, s
 }
 
 func (s *SqlGroupStore) TeamMembersToAdd(since int64, teamID *string, includeRemovedMembers bool) ([]*model.UserTeamIDPair, error) {
-	builder := s.getQueryBuilder().Select("GroupMembers.UserId", "GroupTeams.TeamId").
+	builder := s.getQueryBuilder().Select("GroupMembers.UserId UserID", "GroupTeams.TeamId TeamID").
 		From("GroupMembers").
 		Join("GroupTeams ON GroupTeams.GroupId = GroupMembers.GroupId").
 		Join("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
@@ -743,9 +773,9 @@ func (s *SqlGroupStore) TeamMembersToAdd(since int64, teamID *string, includeRem
 		return nil, errors.Wrap(err, "team_members_to_add_tosql")
 	}
 
-	var teamMembers []*model.UserTeamIDPair
+	teamMembers := []*model.UserTeamIDPair{}
 
-	_, err = s.GetMaster().Select(&teamMembers, query, params...)
+	err = s.GetMasterX().Select(&teamMembers, query, params...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find UserTeamIDPairs")
 	}
@@ -754,7 +784,7 @@ func (s *SqlGroupStore) TeamMembersToAdd(since int64, teamID *string, includeRem
 }
 
 func (s *SqlGroupStore) ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, error) {
-	builder := s.getQueryBuilder().Select("GroupMembers.UserId", "GroupChannels.ChannelId").
+	builder := s.getQueryBuilder().Select("GroupMembers.UserId UserID", "GroupChannels.ChannelId ChannelID").
 		From("GroupMembers").
 		Join("GroupChannels ON GroupChannels.GroupId = GroupMembers.GroupId").
 		Join("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
@@ -788,9 +818,9 @@ func (s *SqlGroupStore) ChannelMembersToAdd(since int64, channelID *string, incl
 		return nil, errors.Wrap(err, "channel_members_to_add_tosql")
 	}
 
-	var channelMembers []*model.UserChannelIDPair
+	channelMembers := []*model.UserChannelIDPair{}
 
-	_, err = s.GetMaster().Select(&channelMembers, query, params...)
+	err = s.GetMasterX().Select(&channelMembers, query, params...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find UserChannelIDPairs")
 	}
@@ -859,9 +889,9 @@ func (s *SqlGroupStore) TeamMembersToRemove(teamID *string) ([]*model.TeamMember
 		return nil, errors.Wrap(err, "team_members_to_remove_tosql")
 	}
 
-	var teamMembers []*model.TeamMember
+	teamMembers := []*model.TeamMember{}
 
-	_, err = s.GetReplica().Select(&teamMembers, query, params...)
+	err = s.GetReplicaX().Select(&teamMembers, query, params...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find TeamMembers")
 	}
@@ -877,12 +907,105 @@ func (s *SqlGroupStore) CountGroupsByChannel(channelId string, opts model.GroupS
 		return int64(0), errors.Wrap(err, "count_groups_by_channel_tosql")
 	}
 
-	count, err := s.GetReplica().SelectInt(countQueryString, args...)
+	var count int64
+	err = s.GetReplicaX().Get(&count, countQueryString, args...)
 	if err != nil {
 		return int64(0), errors.Wrapf(err, "failed to count Groups by channel with channelId=%s", channelId)
 	}
 
 	return count, nil
+}
+
+type group struct {
+	Id             string
+	Name           *string
+	DisplayName    string
+	Description    string
+	Source         model.GroupSource
+	RemoteId       string
+	CreateAt       int64
+	UpdateAt       int64
+	DeleteAt       int64
+	HasSyncables   bool
+	MemberCount    *int
+	AllowReference bool
+}
+
+func (g group) ToModel() *model.Group {
+	return &model.Group{
+		Id:             g.Id,
+		Name:           g.Name,
+		DisplayName:    g.DisplayName,
+		Description:    g.Description,
+		Source:         g.Source,
+		RemoteId:       g.RemoteId,
+		CreateAt:       g.CreateAt,
+		UpdateAt:       g.UpdateAt,
+		DeleteAt:       g.DeleteAt,
+		HasSyncables:   g.HasSyncables,
+		AllowReference: g.AllowReference,
+		MemberCount:    g.MemberCount,
+	}
+}
+
+type groups []*group
+
+func (groups groups) ToModel() []*model.Group {
+	res := make([]*model.Group, 0, len(groups))
+	for _, g := range groups {
+		res = append(res, g.ToModel())
+	}
+	return res
+}
+
+type groupWithSchemeAdmin struct {
+	group
+	SyncableSchemeAdmin *bool
+}
+
+func (g groupWithSchemeAdmin) ToModel() *model.GroupWithSchemeAdmin {
+	if g.SyncableSchemeAdmin == nil {
+		g.SyncableSchemeAdmin = model.NewBool(false)
+	}
+	res := &model.GroupWithSchemeAdmin{
+		Group:       *g.group.ToModel(),
+		SchemeAdmin: g.SyncableSchemeAdmin,
+	}
+	return res
+}
+
+type groupsWithSchemeAdmin []*groupWithSchemeAdmin
+
+func (groups groupsWithSchemeAdmin) ToModel() []*model.GroupWithSchemeAdmin {
+	res := make([]*model.GroupWithSchemeAdmin, 0, len(groups))
+	for _, g := range groups {
+		res = append(res, g.ToModel())
+	}
+	return res
+}
+
+type groupAssociatedToChannelWithSchemeAdmin struct {
+	groupWithSchemeAdmin
+	ChannelId string
+}
+
+func (g groupAssociatedToChannelWithSchemeAdmin) ToModel() *model.GroupsAssociatedToChannelWithSchemeAdmin {
+	withSchemeAdmin := g.groupWithSchemeAdmin.ToModel()
+	return &model.GroupsAssociatedToChannelWithSchemeAdmin{
+		ChannelId:   g.ChannelId,
+		SchemeAdmin: withSchemeAdmin.SchemeAdmin,
+		Group:       withSchemeAdmin.Group,
+	}
+}
+
+type groupsAssociatedToChannelWithSchemeAdmin []groupAssociatedToChannelWithSchemeAdmin
+
+func (groups groupsAssociatedToChannelWithSchemeAdmin) ToModel() []*model.GroupsAssociatedToChannelWithSchemeAdmin {
+	res := make([]*model.GroupsAssociatedToChannelWithSchemeAdmin, 0, len(groups))
+	for _, g := range groups {
+		res = append(res, g.ToModel())
+	}
+	return res
 }
 
 func (s *SqlGroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, error) {
@@ -898,14 +1021,13 @@ func (s *SqlGroupStore) GetGroupsByChannel(channelId string, opts model.GroupSea
 		return nil, errors.Wrap(err, "get_groups_by_channel_tosql")
 	}
 
-	var groups []*model.GroupWithSchemeAdmin
-
-	_, err = s.GetReplica().Select(&groups, queryString, args...)
+	groups := groupsWithSchemeAdmin{}
+	err = s.GetReplicaX().Select(&groups, queryString, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Groups with channelId=%s", channelId)
 	}
 
-	return groups, nil
+	return groups.ToModel(), nil
 }
 
 func (s *SqlGroupStore) ChannelMembersToRemove(channelID *string) ([]*model.ChannelMember, error) {
@@ -961,9 +1083,9 @@ func (s *SqlGroupStore) ChannelMembersToRemove(channelID *string) ([]*model.Chan
 		return nil, errors.Wrap(err, "channel_members_to_remove_tosql")
 	}
 
-	var channelMembers []*model.ChannelMember
+	channelMembers := []*model.ChannelMember{}
 
-	_, err = s.GetReplica().Select(&channelMembers, query, params...)
+	err = s.GetReplicaX().Select(&channelMembers, query, params...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find ChannelMembers")
 	}
@@ -1092,7 +1214,8 @@ func (s *SqlGroupStore) CountGroupsByTeam(teamId string, opts model.GroupSearchO
 		return int64(0), errors.Wrap(err, "count_groups_by_team_tosql")
 	}
 
-	count, err := s.GetReplica().SelectInt(countQueryString, args...)
+	var count int64
+	err = s.GetReplicaX().Get(&count, countQueryString, args...)
 	if err != nil {
 		return int64(0), errors.Wrapf(err, "failed to count Groups with teamId=%s", teamId)
 	}
@@ -1113,14 +1236,13 @@ func (s *SqlGroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpt
 		return nil, errors.Wrap(err, "get_groups_by_team_tosql")
 	}
 
-	var groups []*model.GroupWithSchemeAdmin
-
-	_, err = s.GetReplica().Select(&groups, queryString, args...)
+	groups := groupsWithSchemeAdmin{}
+	err = s.GetReplicaX().Select(&groups, queryString, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Groups with teamId=%s", teamId)
 	}
 
-	return groups, nil
+	return groups.ToModel(), nil
 }
 
 func (s *SqlGroupStore) GetGroupsAssociatedToChannelsByTeam(teamId string, opts model.GroupSearchOpts) (map[string][]*model.GroupWithSchemeAdmin, error) {
@@ -1136,23 +1258,21 @@ func (s *SqlGroupStore) GetGroupsAssociatedToChannelsByTeam(teamId string, opts 
 		return nil, errors.Wrap(err, "get_groups_associated_to_channel_by_team_tosql")
 	}
 
-	var tgroups []*model.GroupsAssociatedToChannelWithSchemeAdmin
+	tgroups := groupsAssociatedToChannelWithSchemeAdmin{}
 
-	_, err = s.GetReplica().Select(&tgroups, queryString, args...)
+	err = s.GetReplicaX().Select(&tgroups, queryString, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Groups with teamId=%s", teamId)
 	}
 
 	groups := map[string][]*model.GroupWithSchemeAdmin{}
 	for _, tgroup := range tgroups {
-		var group = model.GroupWithSchemeAdmin{}
-		group.Group = tgroup.Group
-		group.SchemeAdmin = tgroup.SchemeAdmin
+		group := tgroup.groupWithSchemeAdmin.ToModel()
 
 		if val, ok := groups[tgroup.ChannelId]; ok {
-			groups[tgroup.ChannelId] = append(val, &group)
+			groups[tgroup.ChannelId] = append(val, group)
 		} else {
-			groups[tgroup.ChannelId] = []*model.GroupWithSchemeAdmin{&group}
+			groups[tgroup.ChannelId] = []*model.GroupWithSchemeAdmin{group}
 		}
 	}
 
@@ -1160,7 +1280,7 @@ func (s *SqlGroupStore) GetGroupsAssociatedToChannelsByTeam(teamId string, opts 
 }
 
 func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, error) {
-	var groups []*model.Group
+	groupsVar := groups{}
 
 	groupsQuery := s.getQueryBuilder().Select("g.*")
 
@@ -1270,11 +1390,11 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 		return nil, errors.Wrap(err, "get_groups_tosql")
 	}
 
-	if _, err = s.GetReplica().Select(&groups, queryString, args...); err != nil {
+	if err = s.GetReplicaX().Select(&groupsVar, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Groups")
 	}
 
-	return groups, nil
+	return groupsVar.ToModel(), nil
 }
 
 func (s *SqlGroupStore) teamMembersMinusGroupMembersQuery(teamID string, groupIDs []string, isCount bool) sq.SelectBuilder {
@@ -1283,7 +1403,7 @@ func (s *SqlGroupStore) teamMembersMinusGroupMembersQuery(teamID string, groupID
 	if isCount {
 		selectStr = "count(DISTINCT Users.Id)"
 	} else {
-		tmpl := "Users.*, coalesce(TeamMembers.SchemeGuest, false), TeamMembers.SchemeAdmin, TeamMembers.SchemeUser, %s AS GroupIDs"
+		tmpl := "Users.*, coalesce(TeamMembers.SchemeGuest, false) SchemeGuest, TeamMembers.SchemeAdmin, TeamMembers.SchemeUser, %s AS GroupIDs"
 		if s.DriverName() == model.DatabaseDriverMysql {
 			selectStr = fmt.Sprintf(tmpl, "group_concat(UserGroups.Id)")
 		} else {
@@ -1331,8 +1451,8 @@ func (s *SqlGroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []s
 		return nil, errors.Wrap(err, "team_members_minus_group_members")
 	}
 
-	var users []*model.UserWithGroups
-	if _, err = s.GetReplica().Select(&users, queryString, args...); err != nil {
+	users := []*model.UserWithGroups{}
+	if err = s.GetReplicaX().Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find UserWithGroups")
 	}
 
@@ -1348,7 +1468,7 @@ func (s *SqlGroupStore) CountTeamMembersMinusGroupMembers(teamID string, groupID
 	}
 
 	var count int64
-	if count, err = s.GetReplica().SelectInt(queryString, args...); err != nil {
+	if err := s.GetReplicaX().Get(&count, queryString, args...); err != nil {
 		return 0, errors.Wrap(err, "failed to count TeamMembers minus GroupMembers")
 	}
 
@@ -1361,7 +1481,7 @@ func (s *SqlGroupStore) channelMembersMinusGroupMembersQuery(channelID string, g
 	if isCount {
 		selectStr = "count(DISTINCT Users.Id)"
 	} else {
-		tmpl := "Users.*, coalesce(ChannelMembers.SchemeGuest, false), ChannelMembers.SchemeAdmin, ChannelMembers.SchemeUser, %s AS GroupIDs"
+		tmpl := "Users.*, coalesce(ChannelMembers.SchemeGuest, false) SchemeGuest, ChannelMembers.SchemeAdmin, ChannelMembers.SchemeUser, %s AS GroupIDs"
 		if s.DriverName() == model.DatabaseDriverMysql {
 			selectStr = fmt.Sprintf(tmpl, "group_concat(UserGroups.Id)")
 		} else {
@@ -1408,8 +1528,8 @@ func (s *SqlGroupStore) ChannelMembersMinusGroupMembers(channelID string, groupI
 		return nil, errors.Wrap(err, "channel_members_minus_group_members_tosql")
 	}
 
-	var users []*model.UserWithGroups
-	if _, err = s.GetReplica().Select(&users, queryString, args...); err != nil {
+	users := []*model.UserWithGroups{}
+	if err = s.GetReplicaX().Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find UserWithGroups")
 	}
 
@@ -1425,7 +1545,7 @@ func (s *SqlGroupStore) CountChannelMembersMinusGroupMembers(channelID string, g
 	}
 
 	var count int64
-	if count, err = s.GetReplica().SelectInt(queryString, args...); err != nil {
+	if err := s.GetReplicaX().Get(&count, queryString, args...); err != nil {
 		return 0, errors.Wrap(err, "failed to count ChannelMembers")
 	}
 
@@ -1443,13 +1563,13 @@ func (s *SqlGroupStore) AdminRoleGroupsForSyncableMember(userID, syncableID stri
 		INNER JOIN
 			Group%[1]ss ON Group%[1]ss.GroupId = GroupMembers.GroupId
 		WHERE
-			GroupMembers.UserId = :UserId
+			GroupMembers.UserId = ?
 			AND GroupMembers.DeleteAt = 0
-			AND %[1]sId = :%[1]sId
+			AND %[1]sId = ?
 			AND Group%[1]ss.DeleteAt = 0
 			AND Group%[1]ss.SchemeAdmin = TRUE`, syncableType)
 
-	_, err := s.GetReplica().Select(&groupIds, query, map[string]interface{}{"UserId": userID, fmt.Sprintf("%sId", syncableType): syncableID})
+	err := s.GetReplicaX().Select(&groupIds, query, userID, syncableID)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Group ids")
 	}
@@ -1468,7 +1588,7 @@ func (s *SqlGroupStore) PermittedSyncableAdmins(syncableID string, syncableType 
 	}
 
 	var userIDs []string
-	if _, err = s.GetMaster().Select(&userIDs, query, args...); err != nil {
+	if err = s.GetMasterX().Select(&userIDs, query, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find User ids")
 	}
 
@@ -1515,7 +1635,8 @@ func (s *SqlGroupStore) countTableWithSelectAndWhere(selectStr, tableName string
 		return 0, errors.Wrap(err, "count_table_with_select_and_where_tosql")
 	}
 
-	count, err := s.GetReplica().SelectInt(sql, args...)
+	var count int64
+	err = s.GetReplicaX().Get(&count, sql, args...)
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to count from table %s", tableName)
 	}

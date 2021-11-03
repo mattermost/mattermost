@@ -19,14 +19,14 @@ const (
 func (a *App) NotifySessionsExpired() *model.AppError {
 	if *a.Config().EmailSettings.SendPushNotifications {
 		pushServer := *a.Config().EmailSettings.PushNotificationServer
-		if license := a.srv.License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
+		if license := a.ch.srv.License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
 			mlog.Warn("Push notifications are disabled. Go to System Console > Notifications > Mobile Push to enable them.")
 			return nil
 		}
 	}
 
 	// Get all mobile sessions that expired within the last hour.
-	sessions, err := a.srv.Store.Session().GetSessionsExpired(OneHourMillis, true, true)
+	sessions, err := a.ch.srv.Store.Session().GetSessionsExpired(OneHourMillis, true, true)
 	if err != nil {
 		return model.NewAppError("NotifySessionsExpired", "app.session.analytics_session_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -66,7 +66,7 @@ func (a *App) NotifySessionsExpired() *model.AppError {
 			a.Metrics().IncrementPostSentPush()
 		}
 
-		err = a.srv.Store.Session().UpdateExpiredNotify(session.Id, true)
+		err = a.ch.srv.Store.Session().UpdateExpiredNotify(session.Id, true)
 		if err != nil {
 			mlog.Error("Failed to update ExpiredNotify flag", mlog.String("sessionid", session.Id), mlog.Err(err))
 		}
