@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -14,7 +15,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
 )
 
 func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
@@ -445,6 +449,24 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		_, _, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "oauth.gitlab.tos.error", err.Id)
+	})
+
+	t.Run("with error in GetSSOSettings", func(t *testing.T) {
+		th := setup(t, true, true, true, "")
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.OpenIdSettings.Enable = true
+		})
+
+		providerMock := &mocks.OauthProvider{}
+		providerMock.On("GetSSOSettings", mock.Anything, model.SERVICE_OPENID).Return(nil, errors.New("error"))
+		einterfaces.RegisterOauthProvider(model.SERVICE_OPENID, providerMock)
+
+		_, _, _, _, err := th.App.AuthorizeOAuthUser(nil, nil, model.SERVICE_OPENID, "", "", "")
+		require.NotNil(t, err)
+		assert.Equal(t, "api.user.get_authorization_code.endpoint.app_error", err.Id)
+
 	})
 
 	t.Run("enabled and properly configured", func(t *testing.T) {
