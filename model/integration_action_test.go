@@ -8,7 +8,8 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/base64"
-	"fmt"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -163,43 +164,165 @@ type validable interface {
 
 type validableTestCase struct {
 	name      string
+	errorMsg  string
 	validable validable
 	hasError  bool
 }
 
-func TestOpenDialogRequestIsValid(t *testing.T) {
-	validDialog := Dialog{CallbackId: "callback id", Title: "Test", IntroductionText: "introduction"}
-	invalidDialog := Dialog{}
+func makeTestOpenDialogRequest(t *testing.T, odrIn OpenDialogRequest, dependencies ...string) *OpenDialogRequest {
+	t.Helper()
 
+	odr := &OpenDialogRequest{
+		TriggerId: "trigger id",
+		URL:       "http://mattermost.com",
+		Dialog:    makeTestDialog(t, Dialog{}),
+	}
+
+	for _, field := range dependencies {
+		require.Contains(t, []string{"TriggerId", "URL", "Dialog"}, field)
+
+		switch field {
+		case "TriggerId":
+			odr.TriggerId = odrIn.TriggerId
+		case "URL":
+			odr.URL = odrIn.URL
+		case "Dialog":
+			odr.Dialog = odrIn.Dialog
+		}
+	}
+
+	return odr
+}
+
+func makeTestDialog(t *testing.T, dialogIn Dialog, dependencies ...string) Dialog {
+	t.Helper()
+
+	dialog := Dialog{
+		CallbackId:       "callbackid",
+		Title:            "title",
+		IntroductionText: "intro text",
+		IconURL:          "http://mattermost.com/icon.svg",
+		Elements:         makeDialogElementArray(t, 1, "text", DialogElement{}),
+	}
+
+	for _, field := range dependencies {
+		require.Contains(t, []string{"CallbackId", "Title", "IntroductionText", "IconURL", "Elements"}, field)
+
+		switch field {
+		case "CallbackId":
+			dialog.CallbackId = dialogIn.CallbackId
+		case "Title":
+			dialog.Title = dialogIn.Title
+		case "IntroductionText":
+			dialog.IntroductionText = dialogIn.IntroductionText
+		case "IconURL":
+			dialog.IconURL = dialogIn.IconURL
+		case "Elements":
+			dialog.Elements = dialogIn.Elements
+		}
+	}
+
+	return dialog
+}
+
+func makeDialogElementArray(t *testing.T, nb int, kind string, elementIn DialogElement, dependencies ...string) (elements []DialogElement) {
+	t.Helper()
+
+	for i := 0; i < nb; i++ {
+		element := makeDialogElement(t, kind, elementIn, dependencies...)
+		element.Name = strings.Replace(element.Name, "{idx}", strconv.Itoa(i), -1)
+		elements = append(elements, element)
+	}
+	return elements
+}
+
+func makeDialogElement(t *testing.T, kind string, elementIn DialogElement, dependencies ...string) (elements DialogElement) {
+	t.Helper()
+
+	require.Contains(t, []string{"text", "textarea", "radio", "checkbox", "select"}, kind)
+
+	var element DialogElement
+	switch kind {
+	case "text":
+		element = DialogElement{DisplayName: "display", Name: "name", Type: "text", SubType: "password", Default: "default", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 1, MaxLength: 150}
+	case "textarea":
+		element = DialogElement{DisplayName: "display", Name: "name", Type: "textarea", SubType: "password", Default: "default", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 1, MaxLength: 150}
+	case "radio":
+		element = DialogElement{DisplayName: "display", Name: "name", Type: "radio", Default: "option 1", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 1, MaxLength: 150, DataSource: "", Options: []*PostActionOptions{{Text: "Option 1", Value: "option 1"}, {Text: "Option 2", Value: "option 2"}}}
+	case "checkbox":
+		element = DialogElement{DisplayName: "display", Name: "name", Type: "bool", Default: "true", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 1, MaxLength: 150}
+	case "select":
+		element = DialogElement{DisplayName: "display", Name: "name", Type: "select", Default: "option", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 1, MaxLength: 150, DataSource: "users"}
+	}
+
+	for _, field := range dependencies {
+		require.Contains(t, []string{
+			"DisplayName",
+			"Name",
+			"Type",
+			"SubType",
+			"Default",
+			"Placeholder",
+			"HelpText",
+			"Optional",
+			"MinLength",
+			"MaxLength",
+			"DataSource",
+			"Options"}, field)
+
+		switch field {
+		case "DisplayName":
+			element.DisplayName = elementIn.DisplayName
+		case "Name":
+			element.Name = elementIn.Name
+		case "Type":
+			element.Type = elementIn.Type
+		case "SubType":
+			element.SubType = elementIn.SubType
+		case "Default":
+			element.Default = elementIn.Default
+		case "Placeholder":
+			element.Placeholder = elementIn.Placeholder
+		case "HelpText":
+			element.HelpText = elementIn.HelpText
+		case "Optional":
+			element.Optional = elementIn.Optional
+		case "MinLength":
+			element.MinLength = elementIn.MinLength
+		case "MaxLength":
+			element.MaxLength = elementIn.MaxLength
+		case "DataSource":
+			element.DataSource = elementIn.DataSource
+		case "Options":
+			element.Options = elementIn.Options
+		}
+	}
+
+	return element
+}
+
+func TestOpenDialogRequestIsValid(t *testing.T) {
 	testCases := []validableTestCase{
-		{name: "trigger id empty", validable: &OpenDialogRequest{TriggerId: "", URL: "http://mattermost.com", Dialog: validDialog}, hasError: true},
-		{name: "url empty", validable: &OpenDialogRequest{TriggerId: "trigger id", URL: "", Dialog: validDialog}, hasError: true},
-		{name: "url malformed", validable: &OpenDialogRequest{TriggerId: "trigger id", URL: "mattermost.com", Dialog: validDialog}, hasError: true},
-		{name: "invalid dialog", validable: &OpenDialogRequest{TriggerId: "trigger id", URL: "http://mattermost.com", Dialog: invalidDialog}, hasError: true},
-		{name: "all valid", validable: &OpenDialogRequest{TriggerId: "trigger id", URL: "http://mattermost.com", Dialog: validDialog}, hasError: false},
+		{name: "trigger_id is empty", validable: makeTestOpenDialogRequest(t, OpenDialogRequest{TriggerId: ""}, "TriggerId"), hasError: true},
+		{name: "url is empty", validable: makeTestOpenDialogRequest(t, OpenDialogRequest{URL: ""}, "URL"), hasError: true},
+		{name: "url is invalid", validable: makeTestOpenDialogRequest(t, OpenDialogRequest{URL: "mattermost.com"}, "URL"), hasError: true},
+		{name: "dialog is invalid: callback id is empty", validable: makeTestOpenDialogRequest(t, OpenDialogRequest{Dialog: Dialog{}}, "Dialog"), hasError: true},
+		{name: "all valid", validable: makeTestOpenDialogRequest(t, OpenDialogRequest{}), hasError: false},
 	}
 
 	validableTestcasesRun(t, testCases)
 }
 
 func TestDialogIsValid(t *testing.T) {
-	makeValidDialogElementArray := func(nb int) (elements []DialogElement) {
-		for i := 0; i < nb; i++ {
-			elements = append(elements, DialogElement{DisplayName: "display", Name: fmt.Sprintf("Name %d", i), Type: "text", SubType: "password", Default: "default", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 1, MaxLength: 150, DataSource: "", Options: nil})
-		}
-		return elements
-	}
-	invalidDialogElement := DialogElement{}
-
 	testCases := []validableTestCase{
-		{name: "callback id empty", validable: Dialog{CallbackId: "", Title: "title", IntroductionText: "intro text", IconURL: "http://mattermost.com/icon.svg", Elements: makeValidDialogElementArray(1)}, hasError: true},
-		{name: "title empty", validable: Dialog{CallbackId: "callbackid", Title: "", IntroductionText: "intro text", IconURL: "http://mattermost.com/icon.svg", Elements: makeValidDialogElementArray(1)}, hasError: true},
-		{name: "title too long", validable: Dialog{CallbackId: "callbackid", Title: "ABCDEFGHIJKLMNOPQRSTUVWXYZ", IntroductionText: "intro text", IconURL: "http://mattermost.com/icon.svg", Elements: makeValidDialogElementArray(1)}, hasError: true},
-		{name: "icon url invalid", validable: Dialog{CallbackId: "callbackid", Title: "title", IntroductionText: "intro text", IconURL: "mattermost.com/icon.svg", Elements: makeValidDialogElementArray(1)}, hasError: true},
-		{name: "two elements with same name", validable: Dialog{CallbackId: "callbackid", Title: "title", IntroductionText: "intro text", IconURL: "http://mattermost.com/icon.svg", Elements: []DialogElement{{Name: "same name", DisplayName: "Display", Type: "text", MaxLength: 5}, {Name: "same name", DisplayName: "Display", Type: "text", MaxLength: 5}}}, hasError: true},
-		{name: "too many elements", validable: Dialog{CallbackId: "callbackid", Title: "title", IntroductionText: "intro text", IconURL: "http://mattermost.com/icon.svg", Elements: makeValidDialogElementArray(6)}, hasError: true},
-		{name: "invalid element", validable: Dialog{CallbackId: "callbackid", Title: "title", IntroductionText: "intro text", IconURL: "http://mattermost.com/icon.svg", Elements: []DialogElement{invalidDialogElement}}, hasError: true},
-		{name: "all valid", validable: Dialog{CallbackId: "callbackid", Title: "title", IntroductionText: "intro text", IconURL: "http://mattermost.com/icon.svg", Elements: makeValidDialogElementArray(1)}, hasError: false},
+		{name: "callback id is empty", validable: makeTestDialog(t, Dialog{CallbackId: ""}, "CallbackId"), hasError: true},
+		{name: "title is empty", validable: makeTestDialog(t, Dialog{Title: ""}, "Title"), hasError: true},
+		{name: "title is too long, max:24", validable: makeTestDialog(t, Dialog{Title: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"}, "Title"), hasError: true},
+		{name: "icon url is invalid", validable: makeTestDialog(t, Dialog{IconURL: "mattermost.com/icon.png"}, "IconURL"), hasError: true},
+		{name: "element name 'same name' is duplicate", validable: makeTestDialog(t, Dialog{Elements: makeDialogElementArray(t, 2, "text", DialogElement{Name: "same name"}, "Name")}, "Elements"), hasError: true},
+		{name: "too many elements provided, max:5", validable: makeTestDialog(t, Dialog{Elements: makeDialogElementArray(t, 6, "text", DialogElement{Name: "Name {idx}"}, "Name")}, "Elements"), hasError: true},
+		{name: "element '' is not valid: display name is empty", validable: makeTestDialog(t, Dialog{Elements: []DialogElement{{}}}, "Elements"), hasError: true},
+		{name: "valid dialog", validable: makeTestDialog(t, Dialog{}), hasError: false},
 	}
 
 	validableTestcasesRun(t, testCases)
@@ -216,45 +339,45 @@ func TestDialogElementIsValid(t *testing.T) {
 
 	testCases := []validableTestCase{
 		// general
-		{name: "general: DisplayName empty", validable: DialogElement{DisplayName: "", Name: "name", Type: "text", SubType: "password", Default: "default", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 0, MaxLength: 3000, DataSource: "", Options: nil}, hasError: true},
-		{name: "general: DisplayName too big", validable: DialogElement{DisplayName: genLongString(5000), Name: "name", Type: "text", SubType: "password", Default: "default", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 0, MaxLength: 3000, DataSource: "", Options: nil}, hasError: true},
-		{name: "general: name Empty", validable: DialogElement{DisplayName: "display", Name: "", Type: "text", SubType: "password", Default: "default", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 0, MaxLength: 3000, DataSource: "", Options: nil}, hasError: true},
-		{name: "general: name too big", validable: DialogElement{DisplayName: "display", Name: genLongString(5000), Type: "text", SubType: "password", Default: "default", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 0, MaxLength: 3000, DataSource: "", Options: nil}, hasError: true},
-		{name: "general: help text too big", validable: DialogElement{DisplayName: "display", Name: "name", Type: "text", SubType: "password", Default: "default", Placeholder: "placeholder", HelpText: genLongString(5000), Optional: false, MinLength: 0, MaxLength: 3000, DataSource: "", Options: nil}, hasError: true},
-		{name: "general: type empty", validable: DialogElement{DisplayName: "display", Name: "name", Type: "", SubType: "password", Default: "default", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 0, MaxLength: 3000, DataSource: "", Options: nil}, hasError: true},
-		{name: "general: unknown type", validable: DialogElement{DisplayName: "display", Name: "name", Type: "unknown", SubType: "password", Default: "default", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 0, MaxLength: 3000, DataSource: "", Options: nil}, hasError: true},
+		{name: "general: DisplayName empty", errorMsg: "display name is empty", validable: makeDialogElement(t, "text", DialogElement{DisplayName: ""}, "DisplayName"), hasError: true},
+		{name: "general: DisplayName too big", errorMsg: "display name is too long, max:24", validable: makeDialogElement(t, "text", DialogElement{DisplayName: genLongString(25)}, "DisplayName"), hasError: true},
+		{name: "general: name Empty", errorMsg: "name is empty", validable: makeDialogElement(t, "text", DialogElement{Name: ""}, "Name"), hasError: true},
+		{name: "general: name too big", errorMsg: "name is too long, max:300", validable: makeDialogElement(t, "text", DialogElement{Name: genLongString(301)}, "Name"), hasError: true},
+		{name: "general: help text too big", errorMsg: "help text is too long, max:150", validable: makeDialogElement(t, "text", DialogElement{HelpText: genLongString(151)}, "HelpText"), hasError: true},
+		{name: "general: type empty", errorMsg: "'' is not a valid type", validable: makeDialogElement(t, "text", DialogElement{Type: ""}, "Type"), hasError: true},
+		{name: "general: unknown type", errorMsg: "'unknown' is not a valid type", validable: makeDialogElement(t, "text", DialogElement{Type: "unknown"}, "Type"), hasError: true},
 		// Text
-		{name: "text: unknown subtype", validable: DialogElement{DisplayName: "display", Name: "name", Type: "text", SubType: "unknown", Default: "default", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 0, MaxLength: 150, DataSource: "", Options: nil}, hasError: true},
-		{name: "text: min negative", validable: DialogElement{DisplayName: "display", Name: "name", Type: "text", SubType: "password", Default: "default", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: -1, MaxLength: 150, DataSource: "", Options: nil}, hasError: true},
-		{name: "text: max lower than min", validable: DialogElement{DisplayName: "display", Name: "name", Type: "text", SubType: "password", Default: "default", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 5, MaxLength: 4, DataSource: "", Options: nil}, hasError: true},
-		{name: "text: default too big", validable: DialogElement{DisplayName: "display", Name: "name", Type: "text", SubType: "password", Default: "default", Placeholder: "pla", HelpText: "help text", Optional: false, MinLength: 1, MaxLength: 4, DataSource: "", Options: nil}, hasError: true},
-		{name: "text: placeholder too big", validable: DialogElement{DisplayName: "display", Name: "name", Type: "text", SubType: "password", Default: "def", Placeholder: genLongString(151), HelpText: "help text", Optional: false, MinLength: 1, MaxLength: 4, DataSource: "", Options: nil}, hasError: true},
-		{name: "text: valid", validable: DialogElement{DisplayName: "display", Name: "name", Type: "text", SubType: "password", Default: "default", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 1, MaxLength: 150, DataSource: "", Options: nil}, hasError: false},
+		{name: "text: unknown subtype", errorMsg: "'unknown' is not a valid subtype", validable: makeDialogElement(t, "text", DialogElement{SubType: "unknown"}, "SubType"), hasError: true},
+		{name: "text: min negative", errorMsg: "min length must be at least 0", validable: makeDialogElement(t, "text", DialogElement{MinLength: -1}, "MinLength"), hasError: true},
+		{name: "text: max lower than min", errorMsg: "max length must be greater than min length", validable: makeDialogElement(t, "text", DialogElement{MaxLength: 1, MinLength: 2}, "MaxLength", "MinLength"), hasError: true},
+		{name: "text: default too big", errorMsg: "default can't be bigger than max length", validable: makeDialogElement(t, "text", DialogElement{Default: "", MaxLength: 5}, "Default", "MaxLength"), hasError: true},
+		{name: "text: placeholder too big", errorMsg: "placeholder too long, max:150", validable: makeDialogElement(t, "text", DialogElement{Placeholder: genLongString(151)}, "Placeholder"), hasError: true},
+		{name: "text: valid", validable: makeDialogElement(t, "text", DialogElement{}), hasError: false},
 		// Textarea
-		{name: "textarea: unknown subtype", validable: DialogElement{DisplayName: "display", Name: "name", Type: "textarea", SubType: "unknown", Default: "default", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 0, MaxLength: 150, DataSource: "", Options: nil}, hasError: true},
-		{name: "textarea: min negative", validable: DialogElement{DisplayName: "display", Name: "name", Type: "textarea", SubType: "password", Default: "default", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: -1, MaxLength: 150, DataSource: "", Options: nil}, hasError: true},
-		{name: "textarea: max lower than min", validable: DialogElement{DisplayName: "display", Name: "name", Type: "textarea", SubType: "password", Default: "default", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 5, MaxLength: 4, DataSource: "", Options: nil}, hasError: true},
-		{name: "textarea: default too big", validable: DialogElement{DisplayName: "display", Name: "name", Type: "textarea", SubType: "password", Default: "default", Placeholder: "pla", HelpText: "help text", Optional: false, MinLength: 1, MaxLength: 4, DataSource: "", Options: nil}, hasError: true},
-		{name: "textarea: placeholder too big", validable: DialogElement{DisplayName: "display", Name: "name", Type: "textarea", SubType: "password", Default: "def", Placeholder: genLongString(3001), HelpText: "help text", Optional: false, MinLength: 1, MaxLength: 4, DataSource: "", Options: nil}, hasError: true},
-		{name: "textarea: valid", validable: DialogElement{DisplayName: "display", Name: "name", Type: "textarea", SubType: "password", Default: "default", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 1, MaxLength: 150, DataSource: "", Options: nil}, hasError: false},
+		{name: "textarea: unknown subtype", errorMsg: "'unknown' is not a valid subtype", validable: makeDialogElement(t, "textarea", DialogElement{SubType: "unknown"}, "SubType"), hasError: true},
+		{name: "textarea: min negative", errorMsg: "min length must be at least 0", validable: makeDialogElement(t, "textarea", DialogElement{MinLength: -1}, "MinLength"), hasError: true},
+		{name: "textarea: max lower than min", errorMsg: "max length must be greater than min length", validable: makeDialogElement(t, "textarea", DialogElement{MaxLength: 1, MinLength: 2}, "MaxLength", "MinLength"), hasError: true},
+		{name: "textarea: default too big", errorMsg: "default can't be bigger than max length", validable: makeDialogElement(t, "textarea", DialogElement{Default: "abcdef", MaxLength: 5}, "Default", "MaxLength"), hasError: true},
+		{name: "textarea: placeholder too big", errorMsg: "placeholder too long, max:3000", validable: makeDialogElement(t, "textarea", DialogElement{Placeholder: genLongString(3001)}, "Placeholder"), hasError: true},
+		{name: "textarea: valid", validable: makeDialogElement(t, "textarea", DialogElement{}), hasError: false},
 		// Select
-		{name: "select: no datasource or options", validable: DialogElement{DisplayName: "display", Name: "name", Type: "select", Default: "", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 1, MaxLength: 150, DataSource: "", Options: nil}, hasError: true},
-		{name: "select: wrong datasource", validable: DialogElement{DisplayName: "display", Name: "name", Type: "select", Default: "", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 1, MaxLength: 150, DataSource: "invalid", Options: nil}, hasError: true},
-		{name: "select: default not in options", validable: DialogElement{DisplayName: "display", Name: "name", Type: "select", Default: "not_option", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 1, MaxLength: 150, DataSource: "", Options: []*PostActionOptions{{Text: "Option", Value: "option"}}}, hasError: true},
-		{name: "select: default too big", validable: DialogElement{DisplayName: "display", Name: "name", Type: "select", Default: genLongString(3001), Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 1, MaxLength: 150, DataSource: "users", Options: nil}, hasError: true},
-		{name: "select: placeholder too big", validable: DialogElement{DisplayName: "display", Name: "name", Type: "select", Default: "", Placeholder: genLongString(3001), HelpText: "help text", Optional: false, MinLength: 1, MaxLength: 150, DataSource: "users", Options: nil}, hasError: true},
-		{name: "select: valid using options", validable: DialogElement{DisplayName: "display", Name: "name", Type: "select", Default: "option", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 1, MaxLength: 150, DataSource: "", Options: []*PostActionOptions{{Text: "Option", Value: "option"}}}, hasError: false},
-		{name: "select: valid using datasource", validable: DialogElement{DisplayName: "display", Name: "name", Type: "select", Default: "", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 1, MaxLength: 150, DataSource: "users", Options: nil}, hasError: false},
+		{name: "select: no datasource or options", errorMsg: "neither data source or options has been given", validable: makeDialogElement(t, "select", DialogElement{DataSource: "", Options: nil}, "DataSource", "Options"), hasError: true},
+		{name: "select: wrong datasource", errorMsg: "data source must be 'users' or 'channels'", validable: makeDialogElement(t, "select", DialogElement{DataSource: "unknown"}, "DataSource"), hasError: true},
+		{name: "select: default not in options", errorMsg: "default value 'not_option' is not in the options", validable: makeDialogElement(t, "select", DialogElement{DataSource: "", Default: "not_option", Options: []*PostActionOptions{{Text: "Option 1", Value: "option 1"}, {Text: "Option 2", Value: "option 2"}}}, "DataSource", "Default", "Options"), hasError: true},
+		{name: "select: default too big", errorMsg: "default too long, max:3000", validable: makeDialogElement(t, "select", DialogElement{Default: genLongString(3001), Options: []*PostActionOptions{{Text: "Option 1", Value: genLongString(3001)}, {Text: "Option 2", Value: "option 2"}}}, "Default", "Options"), hasError: true},
+		{name: "select: placeholder too big", errorMsg: "placeholder too long, max:3000", validable: makeDialogElement(t, "select", DialogElement{Placeholder: genLongString(3001)}, "Placeholder"), hasError: true},
+		{name: "select: valid using options", validable: makeDialogElement(t, "select", DialogElement{Options: []*PostActionOptions{{Text: "Option 1", Value: "option 1"}, {Text: "Option 2", Value: "option 2"}}, Default: "Option 1"}, "Options", "Default"), hasError: false},
+		{name: "select: valid using datasource", validable: makeDialogElement(t, "select", DialogElement{DataSource: "users"}, "DataSource"), hasError: false},
 		// Checkbox
-		{name: "checkbox: default not true or false", validable: DialogElement{DisplayName: "display", Name: "name", Type: "bool", Default: "none", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 1, MaxLength: 150, DataSource: "", Options: nil}, hasError: true},
-		{name: "checkbox: placeholder too big", validable: DialogElement{DisplayName: "display", Name: "name", Type: "bool", Default: "", Placeholder: genLongString(151), HelpText: "help text", Optional: false, MinLength: 1, MaxLength: 150, DataSource: "", Options: nil}, hasError: true},
-		{name: "checkbox: valid", validable: DialogElement{DisplayName: "display", Name: "name", Type: "bool", Default: "true", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 1, MaxLength: 150, DataSource: "", Options: nil}, hasError: false},
+		{name: "checkbox: default not true or false", errorMsg: "default must be 'true' or 'false'", validable: makeDialogElement(t, "checkbox", DialogElement{Default: "maybe"}, "Default"), hasError: true},
+		{name: "checkbox: placeholder too big", errorMsg: "placeholder too long, max:150", validable: makeDialogElement(t, "checkbox", DialogElement{Placeholder: genLongString(515)}, "Placeholder"), hasError: true},
+		{name: "checkbox: valid", validable: makeDialogElement(t, "checkbox", DialogElement{}), hasError: false},
 		// Radio
-		{name: "radio: no options", validable: DialogElement{DisplayName: "display", Name: "name", Type: "radio", Default: "", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 1, MaxLength: 150, DataSource: "", Options: nil}, hasError: true},
-		{name: "radio: not enough options", validable: DialogElement{DisplayName: "display", Name: "name", Type: "radio", Default: "", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 1, MaxLength: 150, DataSource: "", Options: []*PostActionOptions{{Text: "Option 1", Value: "option 1"}}}, hasError: true},
-		{name: "radio: default not in options", validable: DialogElement{DisplayName: "display", Name: "name", Type: "radio", Default: "option 3", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 1, MaxLength: 150, DataSource: "", Options: []*PostActionOptions{{Text: "Option 1", Value: "option 1"}, {Text: "Option 2", Value: "option 2"}}}, hasError: true},
-		{name: "radio: placeholder too big", validable: DialogElement{DisplayName: "display", Name: "name", Type: "radio", Default: "", Placeholder: genLongString(151), HelpText: "help text", Optional: false, MinLength: 1, MaxLength: 150, DataSource: "", Options: []*PostActionOptions{{Text: "Option 1", Value: "option 1"}, {Text: "Option 2", Value: "option 2"}}}, hasError: true},
-		{name: "radio: valid", validable: DialogElement{DisplayName: "display", Name: "name", Type: "radio", Default: "option 1", Placeholder: "placeholder", HelpText: "help text", Optional: false, MinLength: 1, MaxLength: 150, DataSource: "", Options: []*PostActionOptions{{Text: "Option 1", Value: "option 1"}, {Text: "Option 2", Value: "option 2"}}}, hasError: false},
+		{name: "radio: no options", errorMsg: "options must have at least 2 elements", validable: makeDialogElement(t, "radio", DialogElement{Options: nil}, "Options"), hasError: true},
+		{name: "radio: not enough options", errorMsg: "options must have at least 2 elements", validable: makeDialogElement(t, "radio", DialogElement{Options: []*PostActionOptions{{Value: "option 1", Text: "Option 1"}}}, "Options"), hasError: true},
+		{name: "radio: default not in options", errorMsg: "default value 'option 3' is not in the options", validable: makeDialogElement(t, "radio", DialogElement{Default: "option 3"}, "Default"), hasError: true},
+		{name: "radio: placeholder too big", errorMsg: "placeholder too long, max:150", validable: makeDialogElement(t, "radio", DialogElement{Placeholder: genLongString(151)}, "Placeholder"), hasError: true},
+		{name: "radio: valid", validable: makeDialogElement(t, "radio", DialogElement{}), hasError: false},
 	}
 
 	validableTestcasesRun(t, testCases)
@@ -264,9 +387,13 @@ func validableTestcasesRun(t *testing.T, testCases []validableTestCase) {
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			result := testCase.validable.IsValid()
-			t.Logf("result: %v", result)
 			if testCase.hasError {
 				require.Error(t, result)
+				errorMsg := testCase.name
+				if testCase.errorMsg != "" {
+					errorMsg = testCase.errorMsg
+				}
+				require.Equal(t, errorMsg, result.Error())
 				return
 			}
 			require.NoError(t, result)
