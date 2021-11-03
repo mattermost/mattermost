@@ -208,6 +208,8 @@ func (s *Server) initPlugins(c *request.Context, pluginDir, webappPluginDir stri
 	s.PluginsEnvironment = env
 	s.PluginsLock.Unlock()
 
+	s.PluginsEnvironment.TogglePluginHealthCheckJob(*s.Config().PluginSettings.EnableHealthCheck)
+
 	if err := s.syncPlugins(); err != nil {
 		mlog.Error("Failed to sync plugins from the file store", mlog.Err(err))
 	}
@@ -327,7 +329,10 @@ func (s *Server) syncPlugins() *model.AppError {
 }
 
 func (s *Server) ShutDownPlugins() {
-	pluginsEnvironment := s.GetPluginsEnvironment()
+	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
+	s.PluginsLock.RLock()
+	pluginsEnvironment := s.PluginsEnvironment
+	s.PluginsLock.RUnlock()
 	if pluginsEnvironment == nil {
 		return
 	}
