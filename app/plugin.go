@@ -180,6 +180,7 @@ func (s *Server) initPlugins(c *request.Context, pluginDir, webappPluginDir stri
 	s.PluginsLock.RUnlock()
 	if pluginsEnvironment != nil || !*s.Config().PluginSettings.Enable {
 		s.syncPluginsActiveState()
+		pluginsEnvironment.TogglePluginHealthCheckJob(*s.Config().PluginSettings.EnableHealthCheck)
 		return
 	}
 
