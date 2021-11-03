@@ -350,7 +350,7 @@ func TestDialogElementIsValid(t *testing.T) {
 		{name: "text: unknown subtype", errorMsg: "'unknown' is not a valid subtype", validable: makeDialogElement(t, "text", DialogElement{SubType: "unknown"}, "SubType"), hasError: true},
 		{name: "text: min negative", errorMsg: "min length must be at least 0", validable: makeDialogElement(t, "text", DialogElement{MinLength: -1}, "MinLength"), hasError: true},
 		{name: "text: max lower than min", errorMsg: "max length must be greater than min length", validable: makeDialogElement(t, "text", DialogElement{MaxLength: 1, MinLength: 2}, "MaxLength", "MinLength"), hasError: true},
-		{name: "text: default too big", errorMsg: "default can't be bigger than max length", validable: makeDialogElement(t, "text", DialogElement{Default: "", MaxLength: 5}, "Default", "MaxLength"), hasError: true},
+		{name: "text: default too big", errorMsg: "default can't be bigger than max length", validable: makeDialogElement(t, "text", DialogElement{Default: "abcdef", MaxLength: 5}, "Default", "MaxLength"), hasError: true},
 		{name: "text: placeholder too big", errorMsg: "placeholder too long, max:150", validable: makeDialogElement(t, "text", DialogElement{Placeholder: genLongString(151)}, "Placeholder"), hasError: true},
 		{name: "text: valid", validable: makeDialogElement(t, "text", DialogElement{}), hasError: false},
 		// Textarea
