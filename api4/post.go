@@ -19,7 +19,7 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Posts.Handle("", api.APISessionRequired(createPost)).Methods("POST")
 	api.BaseRoutes.Post.Handle("", api.APISessionRequired(getPost)).Methods("GET")
 	api.BaseRoutes.Post.Handle("", api.APISessionRequired(deletePost)).Methods("DELETE")
-	api.BaseRoutes.Posts.Handle("/ids", api.APISessionRequired(getPosts)).Methods("POST")
+	api.BaseRoutes.Posts.Handle("/ids", api.APISessionRequired(getPostsByIds)).Methods("POST")
 	api.BaseRoutes.Posts.Handle("/ephemeral", api.APISessionRequired(createEphemeralPost)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/thread", api.APISessionRequired(getPostThread)).Methods("GET")
 	api.BaseRoutes.Post.Handle("/files/info", api.APISessionRequired(getFileInfosForPost)).Methods("GET")
@@ -397,7 +397,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getPosts(c *Context, w http.ResponseWriter, r *http.Request) {
+func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	var postIDs []string
 
 	json.NewDecoder(r.Body).Decode(&postIDs)
@@ -406,17 +406,13 @@ func getPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var posts []*model.Post
+	var posts = []*model.Post{}
 
 	for _, postID := range postIDs {
 		post, err := c.App.GetSinglePost(postID)
 		if err != nil {
-			if err.StatusCode == http.StatusNotFound {
-				continue
-			} else {
-				c.Err = err
-				return
-			}
+			c.Err = err
+			return
 		}
 
 		channel, err := c.App.GetChannel(post.ChannelId)
@@ -435,20 +431,19 @@ func getPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		post = c.App.PreparePostForClient(post, false, false)//, c.AppContext.Session().UserId)
+		post = c.App.PreparePostForClient(post, false, false)
 
 		posts = append(posts, post)
 	}
 
 	b, err := json.Marshal(posts)
 	if err != nil {
-		c.Err = model.NewAppError("getPosts", "api.post.search_posts.invalid_body.app_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("getPostsByIds", "api.post.search_posts.invalid_body.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	w.Write(b)
 }
-
 
 func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 	c.RequirePostId()
