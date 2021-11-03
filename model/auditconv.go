@@ -4,6 +4,8 @@
 package model
 
 import (
+	"strings"
+
 	"github.com/francoispqt/gojay"
 )
 
@@ -268,7 +270,10 @@ func newAuditCommandArgs(ca *CommandArgs) auditCommandArgs {
 		cmdargs.ChannelID = ca.ChannelId
 		cmdargs.TeamID = ca.TeamId
 		cmdargs.TriggerID = ca.TriggerId
-		cmdargs.Command = ca.Command
+		cmdFields := strings.Fields(ca.Command)
+		if len(cmdFields) > 0 {
+			cmdargs.Command = cmdFields[0]
+		}
 	}
 	return cmdargs
 }
