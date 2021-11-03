@@ -54,7 +54,7 @@ func TestBleveIndexer(t *testing.T) {
 			},
 		}
 
-		bleveEngine := bleveengine.NewBleveEngine(cfg, jobServer)
+		bleveEngine := bleveengine.NewBleveEngine(cfg)
 		aErr := bleveEngine.Start()
 		require.Nil(t, aErr)
 
