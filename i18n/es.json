@@ -1789,7 +1789,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "Para cambiar tus preferencias de notificaciones, inicia sesión en tu equipo y dirigete a Configurar Cuenta > Notificaciones."
+    "translation": "Para cambiar tus preferencias de notificaciones, inicia sesión en su equipo y vaya a Configurar Cuenta > Notificaciones."
   },
   {
     "id": "api.templates.email_info1",
@@ -8025,7 +8025,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " y vaya a Configuración de la cuenta > Notificaciones"
+    "translation": " y vaya a Configuración > Notificaciones"
   },
   {
     "id": "app.notification.body.thread_gm.subTitle",
@@ -9250,5 +9250,17 @@
   {
     "id": "model.user.is_valid.roles_limit.app_error",
     "translation": "Roles de usuario no válidos con más de {{.Limit}} caracteres."
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "No se han podido obtener todos los miembros del equipo"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "No se han podido obtener todos los miembros del canal"
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "La dirección de correo electrónico del token no coincide con la de los datos del usuario."
   }
 ]

@@ -9258,5 +9258,13 @@
   {
     "id": "api.user.create_user.bad_token_email_data.app_error",
     "translation": "Adres e-mail w tokenie nie zgadza się z adresem w danych użytkownika."
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "Nie udało się zebrać wszystkich członków zespołu"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "Nie udało się zebrać wszystkich członków kanału"
   }
 ]

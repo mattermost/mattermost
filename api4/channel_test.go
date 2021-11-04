@@ -182,8 +182,14 @@ func TestUpdateChannel(t *testing.T) {
 	require.Equal(t, private.Header, newPrivateChannel.Header, "Update failed for Header in private channel")
 	require.Equal(t, private.Purpose, newPrivateChannel.Purpose, "Update failed for Purpose in private channel")
 
-	// Test that changing the type fails and returns error
+	//Test updating default channel's name and returns error
+	defaultChannel, _ := th.App.GetChannelByName(model.DefaultChannelName, team.Id, false)
+	defaultChannel.Name = "testing"
+	_, resp, err = client.UpdateChannel(defaultChannel)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
 
+	// Test that changing the type fails and returns error
 	private.Type = model.ChannelTypeOpen
 	_, resp, err = client.UpdateChannel(private)
 	require.Error(t, err)
@@ -250,6 +256,7 @@ func TestPatchChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
+	team := th.BasicTeam
 
 	patch := &model.ChannelPatch{
 		Name:        new(string),
@@ -276,6 +283,16 @@ func TestPatchChannel(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, oldName, channel.Name, "should not have updated")
+
+	//Test updating default channel's name and returns error
+	defaultChannel, _ := th.App.GetChannelByName(model.DefaultChannelName, team.Id, false)
+	defaultChannelPatch := &model.ChannelPatch{
+		Name: new(string),
+	}
+	*defaultChannelPatch.Name = "testing"
+	_, resp, err := client.PatchChannel(defaultChannel.Id, defaultChannelPatch)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
 
 	// Test GroupConstrained flag
 	patch.GroupConstrained = model.NewBool(true)
