@@ -339,8 +339,8 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// -------------------------------------------------------------------------
 	// Everything below this is not order sensitive and safe to be moved around.
-	// If you are adding a new field that needs to be initialized, please add below
-	// this.
+	// If you are adding a new field that is non-channels specific, please add
+	// below this. Otherwise, please add it to Channels struct in app/channels.go.
 	// -------------------------------------------------------------------------
 
 	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry {
