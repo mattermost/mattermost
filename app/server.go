@@ -347,7 +347,7 @@ func NewServer(options ...Option) (*Server, error) {
 		if strings.Contains(SentryDSN, "placeholder") {
 			mlog.Warn("Sentry reporting is enabled, but SENTRY_DSN is not set. Disabling reporting.")
 		} else {
-			if err := sentry.Init(sentry.ClientOptions{
+			if err2 := sentry.Init(sentry.ClientOptions{
 				Dsn:              SentryDSN,
 				Release:          model.BuildHash,
 				AttachStacktrace: true,
@@ -361,24 +361,24 @@ func NewServer(options ...Option) (*Server, error) {
 					}
 					return event
 				},
-			}); err != nil {
-				mlog.Warn("Sentry could not be initiated, probably bad DSN?", mlog.Err(err))
+			}); err2 != nil {
+				mlog.Warn("Sentry could not be initiated, probably bad DSN?", mlog.Err(err2))
 			}
 		}
 	}
 
 	if *s.Config().ServiceSettings.EnableOpenTracing {
-		tracer, err := tracing.New()
-		if err != nil {
-			return nil, err
+		tracer, err2 := tracing.New()
+		if err2 != nil {
+			return nil, err2
 		}
 		s.tracer = tracer
 	}
 
 	s.pushNotificationClient = s.httpService.MakeClient(true)
 
-	if err := utils.TranslationsPreInit(); err != nil {
-		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
+	if err2 := utils.TranslationsPreInit(); err2 != nil {
+		return nil, errors.Wrapf(err2, "unable to load Mattermost translation files")
 	}
 	model.AppErrorInit(i18n.T)
 
