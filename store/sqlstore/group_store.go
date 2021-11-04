@@ -545,7 +545,7 @@ func (s *SqlGroupStore) DeleteMember(groupID string, userID string) (*model.Grou
 	if err != nil {
 		return nil, err
 	}
-	if _, err = s.GetMasterX().NamedExec(query, args...); err != nil {
+	if _, err = s.GetMasterX().Exec(query, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to update GroupMember with groupId=%s and userId=%s", groupID, userID)
 	}
 
