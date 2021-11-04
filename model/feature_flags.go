@@ -61,7 +61,7 @@ type FeatureFlags struct {
 	// A/B test for the add members to channel button, possible values = ("top", "bottom")
 	AddMembersToChannel string
 
-	// Enable different treatments for first time users, possible values = ("none", "lightbox" "lightbox_slider")
+	// Enable different treatments for first time users, possible values = ("none", "slider")
 	InviteToTeam string
 }
 
