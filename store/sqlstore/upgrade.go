@@ -17,7 +17,8 @@ import (
 )
 
 const (
-	CurrentSchemaVersion   = Version600
+	CurrentSchemaVersion   = Version610
+	Version620             = "6.2.0"
 	Version610             = "6.1.0"
 	Version600             = "6.0.0"
 	Version5390            = "5.39.0"
@@ -216,6 +217,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion539(sqlStore)
 	upgradeDatabaseToVersion600(sqlStore)
 	upgradeDatabaseToVersion610(sqlStore)
+	upgradeDatabaseToVersion620(sqlStore)
 
 	return nil
 }
@@ -1126,8 +1128,8 @@ func rootCountMigration(sqlStore *SqlStore) {
 		mlog.Error("Error updating ChannelId in Threads table", mlog.Err(err))
 	}
 	sqlStore.CreateColumnIfNotExists("Channels", "TotalMsgCountRoot", "bigint", "bigint", "0")
-	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "LastRootPostAt", "bigint", "bigint")
-	defer sqlStore.RemoveColumnIfExists("Channels", "LastRootPostAt")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "LastRootAt", "bigint", "bigint")
+	defer sqlStore.RemoveColumnIfExists("Channels", "LastRootAt")
 
 	sqlStore.CreateColumnIfNotExists("ChannelMembers", "MsgCountRoot", "bigint", "bigint", "0")
 	sqlStore.AlterDefaultIfColumnExists("ChannelMembers", "MsgCountRoot", model.NewString("0"), model.NewString("0"))
@@ -1143,28 +1145,28 @@ func rootCountMigration(sqlStore *SqlStore) {
 		WHERE Posts.RootId = ''
 		GROUP BY Channels.Id
 	`
-	channelsCTE := "SELECT TotalMsgCountRoot, Id, LastRootPostAt from Channels"
+	channelsCTE := "SELECT TotalMsgCountRoot, Id, LastRootAt from Channels"
 	updateChannels := `
 		WITH q AS (` + totalMsgCountRootCTE + `)
-		UPDATE Channels SET TotalMsgCountRoot = q.newcount, LastRootPostAt=q.lastpost
+		UPDATE Channels SET TotalMsgCountRoot = q.newcount, LastRootAt=q.lastpost
 		FROM q where q.channelid=Channels.Id;
 	`
 	updateChannelMembers := `
 		WITH q as (` + channelsCTE + `)
 		UPDATE ChannelMembers CM SET MsgCountRoot=TotalMsgCountRoot
-		FROM q WHERE q.id=CM.ChannelId AND LastViewedAt >= q.lastrootpostat;
+		FROM q WHERE q.id=CM.ChannelId AND LastViewedAt >= q.lastrootat;
 	`
 	if sqlStore.DriverName() == model.DatabaseDriverMysql {
 		updateChannels = `
 			UPDATE Channels
 			INNER Join (` + totalMsgCountRootCTE + `) as q
 			ON q.channelid=Channels.Id
-			SET TotalMsgCountRoot = q.newcount, LastRootPostAt=q.lastpost;
+			SET TotalMsgCountRoot = q.newcount, LastRootAt=q.lastpost;
 		`
 		updateChannelMembers = `
 			UPDATE ChannelMembers CM
 			INNER JOIN (` + channelsCTE + `) as q
-			ON q.id=CM.ChannelId and LastViewedAt >= q.lastrootpostat
+			ON q.id=CM.ChannelId and LastViewedAt >= q.lastrootat
 			SET MsgCountRoot=TotalMsgCountRoot
 			`
 	}
@@ -1301,7 +1303,6 @@ func upgradeDatabaseToVersion539(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5390, Version600) {
-
 		sqlStore.GetMaster().ExecNoTimeout("UPDATE Posts SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
 		if sqlStore.DriverName() == model.DatabaseDriverMysql {
 			if sqlStore.DoesColumnExist("Posts", "ParentId") {
@@ -1323,6 +1324,16 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 		sqlStore.AlterColumnTypeIfExists("Threads", "Participants", "JSON", "jsonb")
 		sqlStore.AlterColumnTypeIfExists("Users", "Props", "JSON", "jsonb")
 		sqlStore.AlterColumnTypeIfExists("Users", "NotifyProps", "JSON", "jsonb")
+		info, err := sqlStore.GetColumnInfo("Users", "Timezone")
+		if err != nil {
+			mlog.Error("Error getting column info",
+				mlog.String("table", "Users"),
+				mlog.String("column", "Timezone"),
+				mlog.Err(err),
+			)
+		} else if info.DefaultValue != "" {
+			sqlStore.RemoveDefaultIfColumnExists("Users", "Timezone")
+		}
 		sqlStore.AlterColumnTypeIfExists("Users", "Timezone", "JSON", "jsonb")
 
 		sqlStore.GetMaster().ExecNoTimeout("UPDATE CommandWebhooks SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
@@ -1350,13 +1361,58 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 }
 
 func upgradeDatabaseToVersion610(sqlStore *SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, Version600, Version610) {
+	if shouldPerformUpgrade(sqlStore, Version600, Version610) {
 
-	sqlStore.AlterColumnTypeIfExists("Sessions", "Roles", "text", "varchar(256)")
-	sqlStore.AlterColumnTypeIfExists("ChannelMembers", "Roles", "text", "varchar(256)")
-	sqlStore.AlterColumnTypeIfExists("TeamMembers", "Roles", "text", "varchar(256)")
-	sqlStore.CreateCompositeIndexIfNotExists("idx_jobs_status_type", "Jobs", []string{"Status", "Type"})
+		sqlStore.AlterColumnTypeIfExists("Sessions", "Roles", "text", "varchar(256)")
+		sqlStore.AlterColumnTypeIfExists("ChannelMembers", "Roles", "text", "varchar(256)")
+		sqlStore.AlterColumnTypeIfExists("TeamMembers", "Roles", "text", "varchar(256)")
+		sqlStore.CreateCompositeIndexIfNotExists("idx_jobs_status_type", "Jobs", []string{"Status", "Type"})
 
-	// saveSchemaVersion(sqlStore, Version610)
+		forceIndex := ""
+		if sqlStore.DriverName() == model.DatabaseDriverMysql {
+			forceIndex = "FORCE INDEX(idx_posts_channel_id_update_at)"
+		}
+
+		lastRootPostAtExists := sqlStore.DoesColumnExist("Channels", "LastRootPostAt")
+		sqlStore.CreateColumnIfNotExists("Channels", "LastRootPostAt", "bigint", "bigint", "0")
+
+		lastRootPostAtCTE := `
+		SELECT Channels.Id channelid, COALESCE(MAX(Posts.CreateAt), 0) as lastrootpost
+		FROM Channels
+		LEFT JOIN Posts ` + forceIndex + ` ON Channels.Id = Posts.ChannelId
+		WHERE Posts.RootId = ''
+		GROUP BY Channels.Id
+	`
+
+		updateChannels := `
+		WITH q AS (` + lastRootPostAtCTE + `)
+		UPDATE Channels SET LastRootPostAt=q.lastrootpost
+		FROM q where q.channelid=Channels.Id;
+	`
+
+		if sqlStore.DriverName() == model.DatabaseDriverMysql {
+			updateChannels = `
+			UPDATE Channels
+			INNER Join (` + lastRootPostAtCTE + `) as q
+			ON q.channelid=Channels.Id
+			SET LastRootPostAt=lastrootpost;
+		`
+		}
+
+		if !lastRootPostAtExists {
+			if _, err := sqlStore.GetMaster().ExecNoTimeout(updateChannels); err != nil {
+				mlog.Error("Error updating Channels table", mlog.Err(err))
+			}
+		}
+
+		saveSchemaVersion(sqlStore, Version610)
+	}
+}
+
+func upgradeDatabaseToVersion620(sqlStore *SqlStore) {
+	// TODO: uncomment when the time arrive to upgrade the DB for 6.2
+	// if shouldPerformUpgrade(sqlStore, Version610, Version620) {
+
+	// 	saveSchemaVersion(sqlStore, Version620)
 	// }
 }

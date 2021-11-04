@@ -40,6 +40,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/featureflag"
 	"github.com/mattermost/mattermost-server/v6/app/imaging"
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/app/teams"
 	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/config"
@@ -50,7 +51,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/services/awsmeter"
 	"github.com/mattermost/mattermost-server/v6/services/cache"
 	"github.com/mattermost/mattermost-server/v6/services/httpservice"
-	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v6/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine/bleveengine"
@@ -117,6 +117,7 @@ type Server struct {
 	hubs     []*Hub
 	hashSeed maphash.Seed
 
+	httpService            httpservice.HTTPService
 	PushNotificationsHub   PushNotificationsHub
 	pushNotificationClient *http.Client // TODO: move this to it's own package
 
@@ -136,6 +137,7 @@ type Server struct {
 	htmlTemplateWatcher     *templates.Container
 	seenPendingPostIdsCache cache.Cache
 	statusCache             cache.Cache
+	openGraphDataCache      cache.Cache
 	configListenerId        string
 	licenseListenerId       string
 	clusterLeaderListenerId string
@@ -148,21 +150,15 @@ type Server struct {
 	pluginCommands     []*PluginCommand
 	pluginCommandsLock sync.RWMutex
 
-	asymmetricSigningKey atomic.Value
-	clientConfig         atomic.Value
-	clientConfigHash     atomic.Value
-	limitedClientConfig  atomic.Value
-
 	telemetryService *telemetry.TelemetryService
 	userService      *users.UserService
+	teamService      *teams.TeamService
 
 	serviceMux           sync.RWMutex
 	remoteClusterService remotecluster.RemoteClusterServiceIFace
 	sharedChannelService SharedChannelServiceIFace
 
 	phase2PermissionsMigrationComplete bool
-
-	ImageProxy *imageproxy.ImageProxy
 
 	Audit            *audit.Audit
 	Log              *mlog.Logger
@@ -265,6 +261,8 @@ func NewServer(options ...Option) (*Server, error) {
 	// This is called after initLogging() to avoid a race condition.
 	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
 
+	s.httpService = httpservice.MakeHTTPService(s)
+
 	// Initialize products
 	for name, initializer := range products {
 		prod, err := initializer(s)
@@ -277,8 +275,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
-	app := New(ServerConnector(s.Channels()))
-	app.HubStart()
+	s.HubStart()
 
 	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry {
 		if strings.Contains(SentryDSN, "placeholder") {
@@ -312,17 +309,15 @@ func NewServer(options ...Option) (*Server, error) {
 		s.tracer = tracer
 	}
 
-	s.pushNotificationClient = s.Channels().HTTPService().MakeClient(true)
-
-	s.ImageProxy = imageproxy.MakeImageProxy(s, s.HTTPService(), s.Log)
+	s.pushNotificationClient = s.httpService.MakeClient(true)
 
 	if err := utils.TranslationsPreInit(); err != nil {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 	model.AppErrorInit(i18n.T)
 
-	searchEngine := searchengine.NewBroker(s.Config(), s.Jobs)
-	bleveEngine := bleveengine.NewBleveEngine(s.Config(), s.Jobs)
+	searchEngine := searchengine.NewBroker(s.Config())
+	bleveEngine := bleveengine.NewBleveEngine(s.Config())
 	if err := bleveEngine.Start(); err != nil {
 		return nil, err
 	}
@@ -348,6 +343,11 @@ func NewServer(options ...Option) (*Server, error) {
 		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create status cache")
+	}
+	if s.openGraphDataCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
+		Size: openGraphMetadataCacheSize,
+	}); err != nil {
+		return nil, errors.Wrap(err, "Unable to create opengraphdata cache")
 	}
 
 	s.createPushNotificationsHub()
@@ -428,18 +428,38 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to create users service")
 	}
 
+	s.teamService, err = teams.New(teams.ServiceConfig{
+		TeamStore:    s.Store.Team(),
+		ChannelStore: s.Store.Channel(),
+		GroupStore:   s.Store.Group(),
+		Users:        s.userService,
+		WebHub:       s,
+		ConfigFn:     s.Config,
+		LicenseFn:    s.License,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to create teams service")
+	}
+
 	s.configListenerId = s.AddConfigListener(func(_, _ *model.Config) {
-		s.configOrLicenseListener()
+		ch := s.Channels()
+		ch.regenerateClientConfig()
 
 		message := model.NewWebSocketEvent(model.WebsocketEventConfigChanged, "", "", "", nil)
 
-		message.Add("config", s.ClientConfigWithComputed())
+		appInstance := New(ServerConnector(ch))
+		message.Add("config", appInstance.ClientConfigWithComputed())
 		s.Go(func() {
 			s.Publish(message)
 		})
+
+		if err = s.initLogging(); err != nil {
+			mlog.Error("Error re-configuring logging after config change", mlog.Err(err))
+			return
+		}
 	})
 	s.licenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
-		s.configOrLicenseListener()
+		s.Channels().regenerateClientConfig()
 
 		message := model.NewWebSocketEvent(model.WebsocketEventLicenseChanged, "", "", "", nil)
 		message.Add("license", s.GetSanitizedClientLicense())
@@ -448,14 +468,6 @@ func NewServer(options ...Option) (*Server, error) {
 		})
 
 	})
-
-	// This enterprise init should happen after the store is set
-	// but we don't want to move the s.initEnterprise() call because
-	// we had side-effects with that in the past and needs further
-	// investigation
-	if cloudInterface != nil {
-		s.Cloud = cloudInterface(s)
-	}
 
 	s.telemetryService = telemetry.New(s, s.Store, s.SearchEngine, s.Log)
 
@@ -493,10 +505,6 @@ func NewServer(options ...Option) (*Server, error) {
 		s.Cluster.StartInterNodeCommunication()
 	}
 
-	if err = s.ensureAsymmetricSigningKey(); err != nil {
-		return nil, errors.Wrapf(err, "unable to ensure asymmetric signing key")
-	}
-
 	if err = s.ensurePostActionCookieSecret(); err != nil {
 		return nil, errors.Wrapf(err, "unable to ensure PostAction cookie secret")
 	}
@@ -508,8 +516,6 @@ func NewServer(options ...Option) (*Server, error) {
 	if err = s.ensureFirstServerRunTimestamp(); err != nil {
 		return nil, errors.Wrapf(err, "unable to ensure first run timestamp")
 	}
-
-	s.regenerateClientConfig()
 
 	subpath, err := utils.GetSubpathFromConfig(s.Config())
 	if err != nil {
@@ -532,7 +538,6 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.WebSocketRouter = &WebSocketRouter{
 		handlers: make(map[string]webSocketHandler),
-		app:      app,
 	}
 
 	mailConfig := s.MailServiceConfig()
@@ -564,20 +569,6 @@ func NewServer(options ...Option) (*Server, error) {
 	// Start email batching because it's not like the other jobs
 	s.AddConfigListener(func(_, _ *model.Config) {
 		s.EmailService.InitEmailBatching()
-	})
-
-	// Start plugin health check job
-	pluginsEnvironment := s.PluginsEnvironment
-	if pluginsEnvironment != nil {
-		pluginsEnvironment.InitPluginHealthCheckJob(*s.Config().PluginSettings.Enable && *s.Config().PluginSettings.EnableHealthCheck)
-	}
-	s.AddConfigListener(func(_, c *model.Config) {
-		s.PluginsLock.RLock()
-		pluginsEnvironment := s.PluginsEnvironment
-		s.PluginsLock.RUnlock()
-		if pluginsEnvironment != nil {
-			pluginsEnvironment.InitPluginHealthCheckJob(*s.Config().PluginSettings.Enable && *c.PluginSettings.EnableHealthCheck)
-		}
 	})
 
 	logCurrentVersion := fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise)
@@ -655,7 +646,8 @@ func NewServer(options ...Option) (*Server, error) {
 	// if enabled - perform initial product notices fetch
 	if *s.Config().AnnouncementSettings.AdminNoticesEnabled || *s.Config().AnnouncementSettings.UserNoticesEnabled {
 		go func() {
-			if err := app.UpdateProductNotices(); err != nil {
+			appInstance := New(ServerConnector(s.Channels()))
+			if err := appInstance.UpdateProductNotices(); err != nil {
 				mlog.Warn("Failied to perform initial product notices fetch", mlog.Err(err))
 			}
 		}()
@@ -667,8 +659,9 @@ func NewServer(options ...Option) (*Server, error) {
 
 	c := request.EmptyContext()
 	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
+		appInstance := New(ServerConnector(s.Channels()))
 		if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
-			if appErr := app.DeactivateGuests(c); appErr != nil {
+			if appErr := appInstance.DeactivateGuests(c); appErr != nil {
 				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 			}
 		}
@@ -676,16 +669,18 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// Disable active guest accounts on first run if guest accounts are disabled
 	if !*s.Config().GuestAccountsSettings.Enable {
-		if appErr := app.DeactivateGuests(c); appErr != nil {
+		appInstance := New(ServerConnector(s.Channels()))
+		if appErr := appInstance.DeactivateGuests(c); appErr != nil {
 			mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 		}
 	}
 
 	if s.runEssentialJobs {
 		s.Go(func() {
+			appInstance := New(ServerConnector(s.Channels()))
 			s.runLicenseExpirationCheckJob()
-			runCheckAdminSupportStatusJob(app, c)
-			runDNDStatusExpireJob(app)
+			runCheckAdminSupportStatusJob(appInstance, c)
+			runDNDStatusExpireJob(appInstance)
 		})
 		s.runJobs()
 	}
@@ -703,12 +698,13 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	})
 
+	// Dump the image cache if the proxy settings have changed. (need switch URLs to the correct proxy)
 	s.AddConfigListener(func(oldCfg, newCfg *model.Config) {
-		if !oldCfg.FeatureFlags.TimedDND && newCfg.FeatureFlags.TimedDND {
-			runDNDStatusExpireJob(app)
-		}
-		if oldCfg.FeatureFlags.TimedDND && !newCfg.FeatureFlags.TimedDND {
-			stopDNDStatusExpireJob(app)
+		if (oldCfg.ImageProxySettings.Enable != newCfg.ImageProxySettings.Enable) ||
+			(oldCfg.ImageProxySettings.ImageProxyType != newCfg.ImageProxySettings.ImageProxyType) ||
+			(oldCfg.ImageProxySettings.RemoteImageProxyURL != newCfg.ImageProxySettings.RemoteImageProxyURL) ||
+			(oldCfg.ImageProxySettings.RemoteImageProxyOptions != newCfg.ImageProxySettings.RemoteImageProxyOptions) {
+			s.openGraphDataCache.Purge()
 		}
 	})
 
@@ -755,6 +751,9 @@ func (s *Server) runJobs() {
 	})
 	s.Go(func() {
 		runSessionCleanupJob(s)
+	})
+	s.Go(func() {
+		runJobsCleanupJob(s)
 	})
 	s.Go(func() {
 		runTokenCleanupJob(s)
@@ -892,7 +891,7 @@ func (s *Server) removeUnlicensedLogTargets(license *model.License) {
 	})
 }
 
-func (s *Server) startInterClusterServices(license *model.License, app *App) error {
+func (s *Server) startInterClusterServices(license *model.License) error {
 	if license == nil {
 		mlog.Debug("No license provided; Remote Cluster services disabled")
 		return nil
@@ -941,7 +940,8 @@ func (s *Server) startInterClusterServices(license *model.License, app *App) err
 		return nil
 	}
 
-	scs, err := sharedchannel.NewSharedChannelService(s, app)
+	appInstance := New(ServerConnector(s.Channels()))
+	scs, err := sharedchannel.NewSharedChannelService(s, appInstance)
 	if err != nil {
 		return err
 	}
@@ -1402,7 +1402,7 @@ func (s *Server) Start() error {
 		}
 	}
 
-	if err := s.startInterClusterServices(s.License(), s.WebSocketRouter.app); err != nil {
+	if err := s.startInterClusterServices(s.License()); err != nil {
 		mlog.Error("Error starting inter-cluster services", mlog.Err(err))
 	}
 
@@ -1500,6 +1500,13 @@ func runSessionCleanupJob(s *Server) {
 	}, time.Hour*24)
 }
 
+func runJobsCleanupJob(s *Server) {
+	doJobsCleanup(s)
+	model.CreateRecurringTask("Job Cleanup", func() {
+		doJobsCleanup(s)
+	}, time.Hour*24)
+}
+
 func (s *Server) runLicenseExpirationCheckJob() {
 	s.doLicenseExpirationCheck()
 	model.CreateRecurringTask("License Expiration Check", func() {
@@ -1545,6 +1552,7 @@ func doCommandWebhookCleanup(s *Server) {
 
 const (
 	sessionsCleanupBatchSize = 1000
+	jobsCleanupBatchSize     = 1000
 )
 
 func doSessionCleanup(s *Server) {
@@ -1552,6 +1560,20 @@ func doSessionCleanup(s *Server) {
 	err := s.Store.Session().Cleanup(model.GetMillis(), sessionsCleanupBatchSize)
 	if err != nil {
 		mlog.Warn("Error while cleaning up sessions", mlog.Err(err))
+	}
+}
+
+func doJobsCleanup(s *Server) {
+	if *s.Config().JobSettings.CleanupJobsThresholdDays < 0 {
+		return
+	}
+	mlog.Debug("Cleaning up jobs store.")
+
+	dur := time.Duration(*s.Config().JobSettings.CleanupJobsThresholdDays) * time.Hour * 24
+	expiry := model.GetMillisForTime(time.Now().Add(-dur))
+	err := s.Store.Job().Cleanup(expiry, jobsCleanupBatchSize)
+	if err != nil {
+		mlog.Warn("Error while cleaning up jobs", mlog.Err(err))
 	}
 }
 
@@ -1874,12 +1896,8 @@ func (s *Server) ClusterHealthScore() int {
 	return s.Cluster.HealthScore()
 }
 
-func (s *Server) configOrLicenseListener() {
-	s.regenerateClientConfig()
-}
-
-func (s *Server) ClientConfigHash() string {
-	return s.clientConfigHash.Load().(string)
+func (ch *Channels) ClientConfigHash() string {
+	return ch.clientConfigHash.Load().(string)
 }
 
 func (s *Server) initJobs() {
@@ -1960,7 +1978,7 @@ func (s *Server) TelemetryId() string {
 }
 
 func (s *Server) HTTPService() httpservice.HTTPService {
-	return s.Channels().HTTPService()
+	return s.httpService
 }
 
 func (s *Server) SetLog(l *mlog.Logger) {
@@ -2276,9 +2294,6 @@ func cancelDNDStatusExpirationRecurringTask(a *App) {
 }
 
 func runDNDStatusExpireJob(a *App) {
-	if !a.Config().FeatureFlags.TimedDND {
-		return
-	}
 	if a.IsLeader() {
 		createDNDStatusExpirationRecurringTask(a)
 	}
@@ -2290,10 +2305,4 @@ func runDNDStatusExpireJob(a *App) {
 			cancelDNDStatusExpirationRecurringTask(a)
 		}
 	})
-}
-
-func stopDNDStatusExpireJob(a *App) {
-	if a.IsLeader() {
-		cancelDNDStatusExpirationRecurringTask(a)
-	}
 }

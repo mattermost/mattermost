@@ -1793,7 +1793,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "Aby zmienić ustawienia powiadomień, zaloguj się na stronę zespołu i przejdź w Ustawienia konta > powiadomienia."
+    "translation": "Aby zmienić ustawienia powiadomień, zaloguj się na stronę zespołu i przejdź w Ustawienia > Powiadomienia."
   },
   {
     "id": "api.templates.email_info1",
@@ -9085,7 +9085,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " i przejdź do Ustawienia Konta > Powiadomienia"
+    "translation": " i przejdź do Ustawienia > Powiadomienia"
   },
   {
     "id": "app.notification.body.thread_gm.subTitle",
@@ -9254,5 +9254,17 @@
   {
     "id": "app.email.no_rate_limiter.app_error",
     "translation": "Ogranicznik nie jest ustawiony."
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "Adres e-mail w tokenie nie zgadza się z adresem w danych użytkownika."
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "Nie udało się zebrać wszystkich członków zespołu"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "Nie udało się zebrać wszystkich członków kanału"
   }
 ]
