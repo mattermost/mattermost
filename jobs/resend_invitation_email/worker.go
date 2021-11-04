@@ -90,24 +90,15 @@ func (rseworker *ResendInvitationEmailWorker) DoJob_24(job *model.Job) {
 
 func (rseworker *ResendInvitationEmailWorker) DoJob_24_48(job *model.Job) {
 	elapsedTimeSinceSchedule, DurationInMillis_24, DurationInMillis_48, _ := rseworker.GetDurations(job)
-	systemValue, sysValErr := rseworker.App.Srv().Store.System().GetByName(model.NumberOfInviteEmailsSent)
-	if sysValErr != nil {
-		if _, ok := sysValErr.(*store.ErrNotFound); !ok {
-			mlog.Error("An error occurred while getting NUMBER_OF_INVITE_EMAILS_SENT from system store", mlog.String("worker", rseworker.name), mlog.Err(sysValErr))
-			return
-		}
-	}
-	if (elapsedTimeSinceSchedule > DurationInMillis_24) && (elapsedTimeSinceSchedule < DurationInMillis_48) && (systemValue.Value == "0") {
-		rseworker.ResendEmails(job)
-		rseworker.setNumResendEmailSent("1")
-	} else if elapsedTimeSinceSchedule > DurationInMillis_48 {
-		rseworker.ResendEmails(job)
-		rseworker.TearDown(job)
-	}
+	rseworker.Execute(job, elapsedTimeSinceSchedule, DurationInMillis_24, DurationInMillis_48)
 }
 
 func (rseworker *ResendInvitationEmailWorker) DoJob_24_72(job *model.Job) {
 	elapsedTimeSinceSchedule, DurationInMillis_24, _, DurationInMillis_72 := rseworker.GetDurations(job)
+	rseworker.Execute(job, elapsedTimeSinceSchedule, DurationInMillis_24, DurationInMillis_72)
+}
+
+func (rseworker *ResendInvitationEmailWorker) Execute(job *model.Job, elapsedTimeSinceSchedule, firstDuration, secondDuration int64) {
 	systemValue, sysValErr := rseworker.App.Srv().Store.System().GetByName(model.NumberOfInviteEmailsSent)
 	if sysValErr != nil {
 		if _, ok := sysValErr.(*store.ErrNotFound); !ok {
@@ -115,10 +106,11 @@ func (rseworker *ResendInvitationEmailWorker) DoJob_24_72(job *model.Job) {
 			return
 		}
 	}
-	if (elapsedTimeSinceSchedule > DurationInMillis_24) && (elapsedTimeSinceSchedule < DurationInMillis_72) && (systemValue.Value == "0") {
+
+	if (elapsedTimeSinceSchedule > firstDuration) && (elapsedTimeSinceSchedule < secondDuration) && (systemValue.Value == "0") {
 		rseworker.ResendEmails(job)
 		rseworker.setNumResendEmailSent("1")
-	} else if elapsedTimeSinceSchedule > DurationInMillis_72 {
+	} else if elapsedTimeSinceSchedule > secondDuration {
 		rseworker.ResendEmails(job)
 		rseworker.TearDown(job)
 	}
