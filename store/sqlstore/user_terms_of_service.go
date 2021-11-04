@@ -36,7 +36,7 @@ func (s SqlUserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOf
 	query := `
 		SELECT * 
 		FROM UserTermsOfService 
-		WHERE UserId = ?"
+		WHERE UserId = ?
 	`
 	if err := s.GetReplicaX().Get(&userTermsOfService, query, userId); err != nil {
 		if err == sql.ErrNoRows {
@@ -57,8 +57,8 @@ func (s SqlUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfSe
 
 	query := `
 		UPDATE UserTermsOfService
-		SET UserId=:UserId, TermsOfServiceId=:TermsOfServiceId, CreateAt=:CreateAt
-		WHERE UserId=:UserId AND TermsOfServiceId=:TermsOfServiceId
+		SET UserId = :UserId, TermsOfServiceId = :TermsOfServiceId, CreateAt = :CreateAt
+		WHERE UserId = :UserId AND TermsOfServiceId = :TermsOfServiceId
 	`
 	result, err := s.GetMasterX().NamedExec(query, userTermsOfService)
 	if err != nil {
