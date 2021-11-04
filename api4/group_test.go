@@ -139,21 +139,31 @@ func TestDeleteGroup(t *testing.T) {
 
 	_, response, err := th.Client.DeleteGroup(g.Id)
 	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
+	CheckForbiddenStatus(t, response)
 
-	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
-
+	th.AddPermissionToRole(model.PermissionCustomGroupDelete.Id, model.SystemUserRoleId)
 	_, response, err = th.Client.DeleteGroup(g.Id)
-	require.NoError(t, err)
-	CheckOKStatus(t, response)
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, response)
 
 	_, response, err = th.Client.DeleteGroup(g.Id)
 	require.Error(t, err)
-	CheckNotFoundStatus(t, response)
+	CheckNotImplementedStatus(t, response)
 
 	_, response, err = th.Client.DeleteGroup("wertyuijhbgvfcde")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
+
+	validGroup, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + model.NewId(),
+		Name:        model.NewString("name" + model.NewId()),
+		Source:      model.GroupSourceCustom,
+	})
+	assert.Nil(t, appErr)
+
+	_, response, err = th.Client.DeleteGroup(validGroup.Id)
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
 }
 func TestPatchGroup(t *testing.T) {
 	th := Setup(t)
