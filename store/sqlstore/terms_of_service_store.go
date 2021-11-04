@@ -85,7 +85,6 @@ func (s SqlTermsOfServiceStore) Get(id string, allowFromCache bool) (*model.Term
 		Select("*").
 		From("TermsOfService").
 		Where("id = ?").
-		Limit(uint64(1)).
 		ToSql()
 
 	if err != nil {
