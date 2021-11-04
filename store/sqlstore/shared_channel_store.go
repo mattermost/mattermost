@@ -372,16 +372,18 @@ func (s SqlSharedChannelStore) UpdateRemote(remote *model.SharedChannelRemote) (
 	}
 
 	query, args, err := s.getQueryBuilder().Update("SharedChannelRemotes").
-		Set("Id", remote.Id).
-		Set("ChannelId", remote.ChannelId).
 		Set("CreatorId", remote.CreatorId).
 		Set("CreateAt", remote.CreateAt).
 		Set("UpdateAt", remote.UpdateAt).
 		Set("IsInviteAccepted", remote.IsInviteAccepted).
 		Set("IsInviteConfirmed", remote.IsInviteConfirmed).
+		Set("RemoteId", remote.RemoteId).
 		Set("LastPostUpdateAt", remote.LastPostUpdateAt).
 		Set("LastPostId", remote.LastPostId).
-		Where(sq.Eq{"RemoteId": remote.RemoteId}).
+		Where(sq.And{
+			sq.Eq{"Id": remote.Id},
+			sq.Eq{"ChannelId": remote.ChannelId},
+		}).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrapf(err, "updatesharedchannelremote_tosql")
