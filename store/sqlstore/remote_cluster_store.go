@@ -94,7 +94,7 @@ func (s sqlRemoteClusterStore) Get(remoteId string) (*model.RemoteCluster, error
 	}
 
 	var rc model.RemoteCluster
-	if err := s.GetReplica().SelectOne(&rc, queryString, args...); err != nil {
+	if err := s.GetReplicaX().Get(&rc, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find RemoteCluster")
 	}
 	return &rc, nil
@@ -140,7 +140,7 @@ func (s sqlRemoteClusterStore) GetAll(filter model.RemoteClusterQueryFilter) ([]
 	}
 
 	var list []*model.RemoteCluster
-	if _, err := s.GetReplica().Select(&list, queryString, args...); err != nil {
+	if err := s.GetReplicaX().Select(&list, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find RemoteClusters")
 	}
 	return list, nil
