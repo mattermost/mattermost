@@ -9257,5 +9257,13 @@
   {
     "id": "api.user.create_user.bad_token_email_data.app_error",
     "translation": "Kod içindeki e-posta adresi kullanıcı verileri içindeki ile aynı değil."
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "Tüm takım üyeleri alınamadı"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "Tüm kanal üyeleri alınamadı"
   }
 ]
