@@ -1761,6 +1761,11 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
+	if *license.Features.Cloud {
+		mlog.Debug("Skipping license expiration check for Cloud")
+		return
+	}
+
 	users, err := s.Store.User().GetSystemAdminProfiles()
 	if err != nil {
 		mlog.Error("Failed to get system admins for license expired message from Mattermost.")
