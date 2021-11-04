@@ -571,20 +571,6 @@ func NewServer(options ...Option) (*Server, error) {
 		s.EmailService.InitEmailBatching()
 	})
 
-	// Start plugin health check job
-	pluginsEnvironment := s.PluginsEnvironment
-	if pluginsEnvironment != nil {
-		pluginsEnvironment.InitPluginHealthCheckJob(*s.Config().PluginSettings.Enable && *s.Config().PluginSettings.EnableHealthCheck)
-	}
-	s.AddConfigListener(func(_, c *model.Config) {
-		s.PluginsLock.RLock()
-		pluginsEnvironment := s.PluginsEnvironment
-		s.PluginsLock.RUnlock()
-		if pluginsEnvironment != nil {
-			pluginsEnvironment.InitPluginHealthCheckJob(*s.Config().PluginSettings.Enable && *c.PluginSettings.EnableHealthCheck)
-		}
-	})
-
 	logCurrentVersion := fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise)
 	mlog.Info(
 		logCurrentVersion,
