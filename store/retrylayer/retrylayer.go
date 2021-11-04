@@ -4115,6 +4115,7 @@ func (s *RetryLayerGroupStore) CreateWithUserIds(group *model.GroupWithUserIds) 
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
 		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
 
 }
@@ -4198,6 +4199,7 @@ func (s *RetryLayerGroupStore) DeleteMembers(groupID string, userIDs []string) (
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
 		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
 
 }
@@ -4459,6 +4461,27 @@ func (s *RetryLayerGroupStore) GetGroupsByTeam(teamID string, opts model.GroupSe
 	tries := 0
 	for {
 		result, err := s.GroupStore.GetGroupsByTeam(teamID, opts)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerGroupStore) GetMember(groupID string, userID string) (*model.GroupMember, error) {
+
+	tries := 0
+	for {
+		result, err := s.GroupStore.GetMember(groupID, userID)
 		if err == nil {
 			return result, nil
 		}
@@ -4869,6 +4892,7 @@ func (s *RetryLayerGroupStore) UpsertMembers(groupID string, userIDs []string) (
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
 		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
 
 }
@@ -12218,6 +12242,7 @@ func (s *RetryLayerUserStore) SearchNotInGroup(groupID string, term string, opti
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
 		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
 
 }

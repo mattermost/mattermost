@@ -1367,8 +1367,6 @@ func upgradeDatabaseToVersion610(sqlStore *SqlStore) {
 		sqlStore.AlterColumnTypeIfExists("ChannelMembers", "Roles", "text", "varchar(256)")
 		sqlStore.AlterColumnTypeIfExists("TeamMembers", "Roles", "text", "varchar(256)")
 		sqlStore.CreateCompositeIndexIfNotExists("idx_jobs_status_type", "Jobs", []string{"Status", "Type"})
-		sqlStore.CreateColumnIfNotExistsNoDefault("GroupMembers", "SchemeUser", "boolean", "boolean")
-		sqlStore.CreateColumnIfNotExistsNoDefault("GroupMembers", "SchemeAdmin", "boolean", "boolean")
 
 		forceIndex := ""
 		if sqlStore.DriverName() == model.DatabaseDriverMysql {

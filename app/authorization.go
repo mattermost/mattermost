@@ -5,6 +5,7 @@ package app
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 	"strings"
 
@@ -85,6 +86,25 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelID str
 		return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
 	}
 
+	return a.SessionHasPermissionTo(session, permission)
+}
+
+func (a *App) SessionHasPermissionToGroup(session model.Session, groupID string, permission *model.Permission) bool {
+	groupMember, err := a.Srv().Store.Group().GetMember(groupID, session.UserId)
+	if err != nil && err != sql.ErrNoRows {
+		// to be safe reject access if there's an error
+		return false
+	}
+
+	// each member of a group is implicitly considered to have the 'custom_group_user' role in that group, so if the user is a member of the
+	// group and custom_group_user on their system has the requested permission then return true
+	if groupMember != nil && a.RolesGrantPermission([]string{model.CustomGroupUserRoleId}, permission.Id) {
+		return true
+	}
+
+	// Not implemented: group-override schemes.
+
+	// ...otherwise check their system roles to see if they have the requested permission system-wide
 	return a.SessionHasPermissionTo(session, permission)
 }
 

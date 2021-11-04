@@ -339,7 +339,7 @@ var PermissionManageSystem *Permission
 
 var PermissionCreateCustomGroup *Permission
 var PermissionCustomGroupManageMembers *Permission
-var PermissionCustomGroupRename *Permission
+var PermissionCustomGroupEdit *Permission
 var PermissionCustomGroupDelete *Permission
 
 var AllPermissions []*Permission
@@ -1902,9 +1902,9 @@ func initializePermissions() {
 	}
 
 	PermissionCreateCustomGroup = &Permission{
-		"create_group",
-		"authentication.permissions.custom_group_manage_members.name",
-		"authentication.permissions.custom_group_manage_members.description",
+		"create_custom_group",
+		"authentication.permissions.create_custom_group.name",
+		"authentication.permissions.create_custom_group.description",
 		PermissionScopeSystem,
 	}
 
@@ -1915,10 +1915,10 @@ func initializePermissions() {
 		PermissionScopeGroup,
 	}
 
-	PermissionCustomGroupRename = &Permission{
-		"custom_group_rename",
-		"authentication.permissions.custom_group_rename.name",
-		"authentication.permissions.custom_group_rename.description",
+	PermissionCustomGroupEdit = &Permission{
+		"custom_group_edit",
+		"authentication.permissions.custom_group_edit.name",
+		"authentication.permissions.custom_group_edit.description",
 		PermissionScopeGroup,
 	}
 
@@ -2176,7 +2176,7 @@ func initializePermissions() {
 
 	GroupScopedPermissions := []*Permission{
 		PermissionCustomGroupManageMembers,
-		PermissionCustomGroupRename,
+		PermissionCustomGroupEdit,
 		PermissionCustomGroupDelete,
 	}
 

@@ -3627,6 +3627,22 @@ func (s *TimerLayerGroupStore) GetGroupsByTeam(teamID string, opts model.GroupSe
 	return result, err
 }
 
+func (s *TimerLayerGroupStore) GetMember(groupID string, userID string) (*model.GroupMember, error) {
+	start := timemodule.Now()
+
+	result, err := s.GroupStore.GetMember(groupID, userID)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.GetMember", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerGroupStore) GetMemberCount(groupID string) (int64, error) {
 	start := timemodule.Now()
 

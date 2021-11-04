@@ -44,7 +44,6 @@ func init() {
 		ChannelAdminRoleId,
 
 		CustomGroupUserRoleId,
-		CustomGroupAdminRoleId,
 	}, NewSystemRoleIDs...)
 
 	// When updating the values here, the values in mattermost-redux must also be updated.
@@ -366,8 +365,7 @@ const (
 	ChannelUserRoleId  = "channel_user"
 	ChannelAdminRoleId = "channel_admin"
 
-	CustomGroupUserRoleId  = "custom_group_user"
-	CustomGroupAdminRoleId = "custom_group_admin"
+	CustomGroupUserRoleId = "custom_group_user"
 
 	RoleNameMaxLength        = 64
 	RoleDisplayNameMaxLength = 128
@@ -685,16 +683,9 @@ func MakeDefaultRoles() map[string]*Role {
 		Name:        CustomGroupUserRoleId,
 		DisplayName: fmt.Sprintf("authentication.roles.%s.name", CustomGroupUserRoleId),
 		Description: fmt.Sprintf("authentication.roles.%s.description", CustomGroupUserRoleId),
-		Permissions: []string{},
-	}
-
-	roles[CustomGroupAdminRoleId] = &Role{
-		Name:        CustomGroupAdminRoleId,
-		DisplayName: fmt.Sprintf("authentication.roles.%s.name", CustomGroupAdminRoleId),
-		Description: fmt.Sprintf("authentication.roles.%s.description", CustomGroupAdminRoleId),
 		Permissions: []string{
 			PermissionCustomGroupManageMembers.Id,
-			PermissionCustomGroupRename.Id,
+			PermissionCustomGroupEdit.Id,
 			PermissionCustomGroupDelete.Id,
 		},
 	}
