@@ -716,24 +716,19 @@ func (a *App) publishWebsocketEventForPermalinkPost(post *model.Post, message *m
 		return false, err
 	}
 
-	previewedChannel, err := a.GetChannel(previewedPost.ChannelId)
-	if err != nil {
-		if err.StatusCode == http.StatusNotFound {
-			mlog.Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
-			return false, nil
-		}
-		return false, err
-	}
-
 	channelMembers, err := a.GetChannelMembersPage(post.ChannelId, 0, 10000000)
 	if err != nil {
 		return false, err
 	}
 
 	for _, cm := range channelMembers {
-		postForUser := post.Clone()
-		if !a.HasPermissionToReadChannel(cm.UserId, previewedChannel) {
-			postForUser.Metadata.Embeds[0].Data = nil
+		postForUser, err := a.SanitizePostMetadataForUser(post, cm.UserId)
+		if err != nil {
+			if err.StatusCode == http.StatusNotFound {
+				mlog.Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
+				return false, nil
+			}
+			return false, err
 		}
 		messageCopy := message.Copy()
 		broadcastCopy := messageCopy.GetBroadcast()
