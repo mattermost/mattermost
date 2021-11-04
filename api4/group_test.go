@@ -77,14 +77,6 @@ func TestCreateGroup(t *testing.T) {
 		Description: "description_" + id,
 	}
 
-	_, response, err := th.Client.CreateGroup(g)
-	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
-
-	_, response, err = th.SystemAdminClient.CreateGroup(g)
-	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
-
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
 	group, _, err := th.SystemAdminClient.CreateGroup(g)
@@ -103,9 +95,27 @@ func TestCreateGroup(t *testing.T) {
 		Description: "description_" + id,
 	}
 
-	_, response, err = th.SystemAdminClient.CreateGroup(gbroken)
+	_, response, err := th.SystemAdminClient.CreateGroup(gbroken)
 	require.Error(t, err)
-	CheckBadRequestStatus(t, response)
+	CheckNotImplementedStatus(t, response)
+
+	validGroup := &model.Group{
+		DisplayName: "dn_" + model.NewId(),
+		Name:        model.NewString("name" + model.NewId()),
+		Source:      model.GroupSourceCustom,
+	}
+
+	th.RemovePermissionFromRole(model.PermissionCreateCustomGroup.Id, model.SystemAdminRoleId)
+	th.RemovePermissionFromRole(model.PermissionCreateCustomGroup.Id, model.SystemUserRoleId)
+	defer th.AddPermissionToRole(model.PermissionCreateCustomGroup.Id, model.SystemUserRoleId)
+	_, response, err = th.SystemAdminClient.CreateGroup(validGroup)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, response)
+
+	th.AddPermissionToRole(model.PermissionCreateCustomGroup.Id, model.SystemAdminRoleId)
+	_, response, err = th.SystemAdminClient.CreateGroup(validGroup)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, response)
 
 	th.SystemAdminClient.Logout()
 	_, response, err = th.SystemAdminClient.CreateGroup(g)
