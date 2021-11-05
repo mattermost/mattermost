@@ -32,7 +32,7 @@ func (s SqlUserTermsOfServiceStore) createIndexesIfNotExists() {
 }
 
 func (s SqlUserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfService, error) {
-	var userTermsOfService *model.UserTermsOfService
+	var userTermsOfService model.UserTermsOfService
 	query := `
 		SELECT * 
 		FROM UserTermsOfService 
@@ -46,7 +46,7 @@ func (s SqlUserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOf
 		return nil, errors.Wrapf(err, "failed to get UserTermsOfService with userId=%s", userId)
 	}
 
-	return userTermsOfService, nil
+	return &userTermsOfService, nil
 }
 
 func (s SqlUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfService) (*model.UserTermsOfService, error) {
@@ -60,7 +60,7 @@ func (s SqlUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfSe
 		SET UserId = :UserId, TermsOfServiceId = :TermsOfServiceId, CreateAt = :CreateAt
 		WHERE UserId = :UserId AND TermsOfServiceId = :TermsOfServiceId
 	`
-	result, err := s.GetMasterX().NamedExec(query, userTermsOfService)
+	result, err := s.GetMasterX().NamedExec(query, *userTermsOfService)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update UserTermsOfService with userId=%s and termsOfServiceId=%s", userTermsOfService.UserId, userTermsOfService.TermsOfServiceId)
 	}
