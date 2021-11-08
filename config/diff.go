@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type ConfigDiffs []ConfigDiff
@@ -32,10 +32,10 @@ var configSensitivePaths = map[string]bool{
 	"Office365Settings.Secret":                               true,
 	"OpenIdSettings.Secret":                                  true,
 	"ElasticsearchSettings.Password":                         true,
-	"MessageExportSettings.GlobalRelaySettings.SmtpUsername": true,
-	"MessageExportSettings.GlobalRelaySettings.SmtpPassword": true,
+	"MessageExportSettings.GlobalRelaySettings.SMTPUsername": true,
+	"MessageExportSettings.GlobalRelaySettings.SMTPPassword": true,
 	"MessageExportSettings.GlobalRelaySettings.EmailAddress": true,
-	"ServiceSettings.GfycatApiSecret":                        true,
+	"ServiceSettings.GfycatAPISecret":                        true,
 	"ServiceSettings.SplitKey":                               true,
 	"PluginSettings.Plugins":                                 true,
 }
@@ -63,8 +63,8 @@ func (cd ConfigDiffs) Sanitize() ConfigDiffs {
 
 	for i := range cd {
 		if configSensitivePaths[cd[i].Path] {
-			cd[i].BaseVal = model.FAKE_SETTING
-			cd[i].ActualVal = model.FAKE_SETTING
+			cd[i].BaseVal = model.FakeSetting
+			cd[i].ActualVal = model.FakeSetting
 		}
 	}
 

@@ -7,10 +7,11 @@ import (
 	"encoding/json"
 	"io"
 
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
-func slackParseChannels(data io.Reader, channelType string) ([]slackChannel, error) {
+func slackParseChannels(data io.Reader, channelType model.ChannelType) ([]slackChannel, error) {
 	decoder := json.NewDecoder(data)
 
 	var channels []slackChannel

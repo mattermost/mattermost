@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 // Test for MM-13598 where an invalid integration URL was causing a crash
@@ -29,8 +29,9 @@ func TestPostActionInvalidURL(t *testing.T) {
 	})
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		request := model.PostActionIntegrationRequestFromJson(r.Body)
-		assert.NotNil(t, request)
+		var request model.PostActionIntegrationRequest
+		jsonErr := json.NewDecoder(r.Body).Decode(&request)
+		assert.NoError(t, jsonErr)
 	}))
 	defer ts.Close()
 
@@ -155,14 +156,15 @@ func TestPostAction(t *testing.T) {
 			})
 
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				request := model.PostActionIntegrationRequestFromJson(r.Body)
-				assert.NotNil(t, request)
+				var request model.PostActionIntegrationRequest
+				jsonErr := json.NewDecoder(r.Body).Decode(&request)
+				assert.NoError(t, jsonErr)
 
 				assert.Equal(t, request.UserId, th.BasicUser.Id)
 				assert.Equal(t, request.UserName, th.BasicUser.Username)
 				assert.Equal(t, request.ChannelId, channel.Id)
 				assert.Equal(t, request.ChannelName, channel.Name)
-				if channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP {
+				if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
 					assert.Empty(t, request.TeamId)
 					assert.Empty(t, request.TeamName)
 				} else {
@@ -170,7 +172,7 @@ func TestPostAction(t *testing.T) {
 					assert.Equal(t, request.TeamName, th.BasicTeam.Name)
 				}
 				assert.True(t, request.TriggerId != "")
-				if request.Type == model.POST_ACTION_TYPE_SELECT {
+				if request.Type == model.PostActionTypeSelect {
 					assert.Equal(t, request.DataSource, "some_source")
 					assert.Equal(t, request.Context["selected_option"], "selected")
 				} else {
@@ -238,7 +240,7 @@ func TestPostAction(t *testing.T) {
 										URL: ts.URL,
 									},
 									Name:       "action",
-									Type:       model.POST_ACTION_TYPE_SELECT,
+									Type:       model.PostActionTypeSelect,
 									DataSource: "some_source",
 								},
 							},
@@ -410,8 +412,9 @@ func TestPostActionProps(t *testing.T) {
 	})
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		request := model.PostActionIntegrationRequestFromJson(r.Body)
-		assert.NotNil(t, request)
+		var request model.PostActionIntegrationRequest
+		jsonErr := json.NewDecoder(r.Body).Decode(&request)
+		assert.NoError(t, jsonErr)
 
 		fmt.Fprintf(w, `{
 			"update": {
@@ -530,14 +533,16 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	setupPluginApiTest(t,
+	setupPluginAPITest(t,
 		`
 		package main
 
 		import (
 			"net/http"
-			"github.com/mattermost/mattermost-server/v5/plugin"
-			"github.com/mattermost/mattermost-server/v5/model"
+			"encoding/json"
+
+			"github.com/mattermost/mattermost-server/v6/plugin"
+			"github.com/mattermost/mattermost-server/v6/model"
 		)
 
 		type MyPlugin struct {
@@ -553,13 +558,14 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 				Errors: map[string]string{"name1": errReply},
 			}
 			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write(response.ToJson())
+			responseJSON, _ := json.Marshal(response)
+			_, _ = w.Write(responseJSON)
 		}
 
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
+		`, `{"id": "myplugin", "server": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
 
 	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
 	require.NoError(t, err2)
@@ -606,8 +612,9 @@ func TestPostActionRelativeURL(t *testing.T) {
 	defer th.TearDown()
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		request := model.PostActionIntegrationRequestFromJson(r.Body)
-		assert.NotNil(t, request)
+		var request model.PostActionIntegrationRequest
+		jsonErr := json.NewDecoder(r.Body).Decode(&request)
+		assert.NoError(t, jsonErr)
 		fmt.Fprintf(w, `{"post": {"message": "updated"}, "ephemeral_text": "foo"}`)
 	}))
 	defer ts.Close()
@@ -818,14 +825,16 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	setupPluginApiTest(t,
+	setupPluginAPITest(t,
 		`
 		package main
 
 		import (
 			"net/http"
-			"github.com/mattermost/mattermost-server/v5/plugin"
-			"github.com/mattermost/mattermost-server/v5/model"
+			"encoding/json" 
+
+			"github.com/mattermost/mattermost-server/v6/plugin"
+			"github.com/mattermost/mattermost-server/v6/model"
 		)
 
 		type MyPlugin struct {
@@ -835,13 +844,14 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 		func (p *MyPlugin) 	ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
 			response := &model.PostActionIntegrationResponse{}
 			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write(response.ToJson())
+			responseJSON, _ := json.Marshal(response)
+			_, _ = w.Write(responseJSON)
 		}
 
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
+		`, `{"id": "myplugin", "server": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
 
 	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
 	require.NoError(t, err2)
@@ -1016,7 +1026,7 @@ func TestDoPluginRequest(t *testing.T) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
-	setupPluginApiTest(t,
+	setupPluginAPITest(t,
 		`
 		package main
 
@@ -1025,7 +1035,7 @@ func TestDoPluginRequest(t *testing.T) {
 			"reflect"
 			"sort"
 
-			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v6/plugin"
 		)
 
 		type MyPlugin struct {
@@ -1060,7 +1070,7 @@ func TestDoPluginRequest(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
+		`, `{"id": "myplugin", "server": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
 
 	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
 	require.NoError(t, err2)

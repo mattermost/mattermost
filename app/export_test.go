@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -14,9 +15,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 func TestReactionsOfPost(t *testing.T) {
@@ -52,26 +53,26 @@ func TestExportUserNotifyProps(t *testing.T) {
 	defer th.TearDown()
 
 	userNotifyProps := model.StringMap{
-		model.DESKTOP_NOTIFY_PROP:          model.USER_NOTIFY_ALL,
-		model.DESKTOP_SOUND_NOTIFY_PROP:    "true",
-		model.EMAIL_NOTIFY_PROP:            "true",
-		model.PUSH_NOTIFY_PROP:             model.USER_NOTIFY_ALL,
-		model.PUSH_STATUS_NOTIFY_PROP:      model.STATUS_ONLINE,
-		model.CHANNEL_MENTIONS_NOTIFY_PROP: "true",
-		model.COMMENTS_NOTIFY_PROP:         model.COMMENTS_NOTIFY_ROOT,
-		model.MENTION_KEYS_NOTIFY_PROP:     "valid,misc",
+		model.DesktopNotifyProp:         model.UserNotifyAll,
+		model.DesktopSoundNotifyProp:    "true",
+		model.EmailNotifyProp:           "true",
+		model.PushNotifyProp:            model.UserNotifyAll,
+		model.PushStatusNotifyProp:      model.StatusOnline,
+		model.ChannelMentionsNotifyProp: "true",
+		model.CommentsNotifyProp:        model.CommentsNotifyRoot,
+		model.MentionKeysNotifyProp:     "valid,misc",
 	}
 
 	exportNotifyProps := th.App.buildUserNotifyProps(userNotifyProps)
 
-	require.Equal(t, userNotifyProps[model.DESKTOP_NOTIFY_PROP], *exportNotifyProps.Desktop)
-	require.Equal(t, userNotifyProps[model.DESKTOP_SOUND_NOTIFY_PROP], *exportNotifyProps.DesktopSound)
-	require.Equal(t, userNotifyProps[model.EMAIL_NOTIFY_PROP], *exportNotifyProps.Email)
-	require.Equal(t, userNotifyProps[model.PUSH_NOTIFY_PROP], *exportNotifyProps.Mobile)
-	require.Equal(t, userNotifyProps[model.PUSH_STATUS_NOTIFY_PROP], *exportNotifyProps.MobilePushStatus)
-	require.Equal(t, userNotifyProps[model.CHANNEL_MENTIONS_NOTIFY_PROP], *exportNotifyProps.ChannelTrigger)
-	require.Equal(t, userNotifyProps[model.COMMENTS_NOTIFY_PROP], *exportNotifyProps.CommentsTrigger)
-	require.Equal(t, userNotifyProps[model.MENTION_KEYS_NOTIFY_PROP], *exportNotifyProps.MentionKeys)
+	require.Equal(t, userNotifyProps[model.DesktopNotifyProp], *exportNotifyProps.Desktop)
+	require.Equal(t, userNotifyProps[model.DesktopSoundNotifyProp], *exportNotifyProps.DesktopSound)
+	require.Equal(t, userNotifyProps[model.EmailNotifyProp], *exportNotifyProps.Email)
+	require.Equal(t, userNotifyProps[model.PushNotifyProp], *exportNotifyProps.Mobile)
+	require.Equal(t, userNotifyProps[model.PushStatusNotifyProp], *exportNotifyProps.MobilePushStatus)
+	require.Equal(t, userNotifyProps[model.ChannelMentionsNotifyProp], *exportNotifyProps.ChannelTrigger)
+	require.Equal(t, userNotifyProps[model.CommentsNotifyProp], *exportNotifyProps.CommentsTrigger)
+	require.Equal(t, userNotifyProps[model.MentionKeysNotifyProp], *exportNotifyProps.MentionKeys)
 }
 
 func TestExportUserChannels(t *testing.T) {
@@ -82,18 +83,18 @@ func TestExportUserChannels(t *testing.T) {
 	team := th.BasicTeam
 	channelName := channel.Name
 	notifyProps := model.StringMap{
-		model.DESKTOP_NOTIFY_PROP: model.USER_NOTIFY_ALL,
-		model.PUSH_NOTIFY_PROP:    model.USER_NOTIFY_NONE,
+		model.DesktopNotifyProp: model.UserNotifyAll,
+		model.PushNotifyProp:    model.UserNotifyNone,
 	}
 	preference := model.Preference{
 		UserId:   user.Id,
-		Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+		Category: model.PreferenceCategoryFavoriteChannel,
 		Name:     channel.Id,
 		Value:    "true",
 	}
 	var preferences model.Preferences
 	preferences = append(preferences, preference)
-	err := th.App.Srv().Store.Preference().Save(&preferences)
+	err := th.App.Srv().Store.Preference().Save(preferences)
 	require.NoError(t, err)
 
 	th.App.UpdateChannelMemberNotifyProps(notifyProps, channel.Id, user.Id)
@@ -637,4 +638,68 @@ func TestBulkExport(t *testing.T) {
 
 	appErr, _ = th.App.BulkImportWithPath(th.Context, jsonFile, nil, false, 1, filepath.Join(dir, "data"))
 	require.Nil(t, appErr)
+}
+
+func TestBuildPostReplies(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	createPostWithAttachments := func(th *TestHelper, n int, rootID string) *model.Post {
+		var fileIDs []string
+		for i := 0; i < n; i++ {
+			info, err := th.App.Srv().Store.FileInfo().Save(&model.FileInfo{
+				CreatorId: th.BasicUser.Id,
+				Name:      fmt.Sprintf("file%d", i),
+				Path:      fmt.Sprintf("/data/file%d", i),
+			})
+			require.NoError(t, err)
+			fileIDs = append(fileIDs, info.Id)
+		}
+
+		post, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, RootId: rootID, FileIds: fileIDs}, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		return post
+	}
+
+	t.Run("basic post", func(t *testing.T) {
+		data, attachments, err := th.App.buildPostReplies(th.BasicPost.Id, true)
+		require.Nil(t, err)
+		require.Empty(t, data)
+		require.Empty(t, attachments)
+	})
+
+	t.Run("root post with attachments and no replies", func(t *testing.T) {
+		post := createPostWithAttachments(th, 5, "")
+		data, attachments, err := th.App.buildPostReplies(post.Id, true)
+		require.Nil(t, err)
+		require.Empty(t, data)
+		require.Empty(t, attachments)
+	})
+
+	t.Run("root post with attachments and a reply", func(t *testing.T) {
+		post := createPostWithAttachments(th, 5, "")
+		createPostWithAttachments(th, 0, post.Id)
+		data, attachments, err := th.App.buildPostReplies(post.Id, true)
+		require.Nil(t, err)
+		require.Len(t, data, 1)
+		require.Empty(t, attachments)
+	})
+
+	t.Run("root post with attachments and multiple replies with attachments", func(t *testing.T) {
+		post := createPostWithAttachments(th, 5, "")
+		reply1 := createPostWithAttachments(th, 2, post.Id)
+		reply2 := createPostWithAttachments(th, 3, post.Id)
+		data, attachments, err := th.App.buildPostReplies(post.Id, true)
+		require.Nil(t, err)
+		require.Len(t, data, 2)
+		require.Len(t, attachments, 5)
+		if reply1.Id < reply2.Id {
+			require.Len(t, *data[0].Attachments, 2)
+			require.Len(t, *data[1].Attachments, 3)
+		} else {
+			require.Len(t, *data[1].Attachments, 2)
+			require.Len(t, *data[0].Attachments, 3)
+		}
+	})
 }

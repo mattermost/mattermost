@@ -148,14 +148,6 @@
     "translation": "此頻道已轉為私人頻道。"
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "預設頻道不能轉換為私人頻道。"
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "要求轉換的頻道已為私人頻道。"
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "必須使用 createDirectChannel API 服務來建立直接訊息頻道"
   },
@@ -1316,16 +1308,8 @@
     "translation": "RootId 參數的 ChannelId 無效"
   },
   {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "無效的 ParentId 參數"
-  },
-  {
     "id": "api.post.create_post.root_id.app_error",
     "translation": "無效的 RootId 參數"
-  },
-  {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "此頻道唯讀。只有具有權限的成員能在此發布訊息。"
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
@@ -1382,10 +1366,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "無法更新已刪除頻道的訊息。"
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "此頻道唯讀。只有具有權限的成員能在此釘選或取消釘選訊息。"
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1466,10 +1446,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "無法為其他使用者儲存互動。"
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "唯讀頻道無法跟訊息互動。"
   },
   {
     "id": "api.restricted_system_admin",
@@ -3016,10 +2992,6 @@
     "translation": "無法寫入圖片檔案至儲存空間。請檢查連線並重新嘗試。"
   },
   {
-    "id": "cli.license.critical",
-    "translation": "功能需要升級至企業版並加入授權碼。請聯絡系統管理員。"
-  },
-  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "無法取得使用者"
   },
@@ -3716,10 +3688,6 @@
     "translation": "無效的命令 Hook ID"
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "無效的上層 ID"
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "無效的根 ID"
   },
@@ -4404,20 +4372,12 @@
     "translation": "無效的原始 ID"
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "無效的上層 ID"
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "無效的屬性"
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "無效的根 ID"
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "若上層 ID 已設定則根 ID 也必須設定否則無效"
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -5128,10 +5088,6 @@
     "translation": "無法建立 zip 檔案。"
   },
   {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "該外寄 Webhook 已被刪除，但建立新的 Webhook 時發生錯誤。"
-  },
-  {
     "id": "bleveengine.stop_user_index.error",
     "translation": "關閉使用者索引失敗。"
   },
@@ -5752,10 +5708,6 @@
     "translation": "下載模組時錯誤。"
   },
   {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "開啟公鑰檔案時發生錯誤"
-  },
-  {
     "id": "api.license.remove_expired_license.failed.error",
     "translation": "發送停用帳號郵件時失敗"
   },
@@ -5918,10 +5870,6 @@
   {
     "id": "api.admin.delete_brand_image.storage.not_found",
     "translation": "無法刪除品牌圖片，沒有找到檔案。"
-  },
-  {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "永久批次刪除回應時遇到錯誤"
   },
   {
     "id": "app.reaction.save.save.app_error",
@@ -6138,10 +6086,6 @@
   {
     "id": "ent.elasticsearch.delete_channel_posts.error",
     "translation": "刪除頻道訊息失敗"
-  },
-  {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "清除紀錄失敗。"
   },
   {
     "id": "ent.cluster.timeout.error",
@@ -6382,10 +6326,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "取得規範報告時遇到錯誤"
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "永久批次清除標記時遇到錯誤"
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6714,10 +6654,6 @@
   {
     "id": "app.job.get.app_error",
     "translation": "無法取得工作"
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "永久批次刪除檔案資訊時遇到錯誤"
   },
   {
     "id": "app.file_info.save.app_error",
@@ -7358,10 +7294,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "無法取得文章以建立索引"
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "永久批次刪除訊息時遇到錯誤"
   },
   {
     "id": "app.post.search.app_error",

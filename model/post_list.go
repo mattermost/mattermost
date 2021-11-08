@@ -5,7 +5,6 @@ package model
 
 import (
 	"encoding/json"
-	"io"
 	"sort"
 )
 
@@ -22,6 +21,23 @@ func NewPostList() *PostList {
 		Posts:      make(map[string]*Post),
 		NextPostId: "",
 		PrevPostId: "",
+	}
+}
+
+func (o *PostList) Clone() *PostList {
+	orderCopy := make([]string, len(o.Order))
+	postsCopy := make(map[string]*Post)
+	for i, v := range o.Order {
+		orderCopy[i] = v
+	}
+	for k, v := range o.Posts {
+		postsCopy[k] = v.Clone()
+	}
+	return &PostList{
+		Order:      orderCopy,
+		Posts:      postsCopy,
+		NextPostId: o.NextPostId,
+		PrevPostId: o.PrevPostId,
 	}
 }
 
@@ -57,14 +73,11 @@ func (o *PostList) StripActionIntegrations() {
 	}
 }
 
-func (o *PostList) ToJson() string {
+func (o *PostList) ToJSON() (string, error) {
 	copy := *o
 	copy.StripActionIntegrations()
 	b, err := json.Marshal(&copy)
-	if err != nil {
-		return ""
-	}
-	return string(b)
+	return string(b), err
 }
 
 func (o *PostList) MakeNonNil() {
@@ -161,10 +174,4 @@ func (o *PostList) IsChannelId(channelId string) bool {
 	}
 
 	return true
-}
-
-func PostListFromJson(data io.Reader) *PostList {
-	var o *PostList
-	json.NewDecoder(data).Decode(&o)
-	return o
 }

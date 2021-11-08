@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestCreateDefaultMemberships(t *testing.T) {
@@ -21,7 +21,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		DisplayName: "Singers",
 		Name:        "zz" + model.NewId(),
 		Email:       "singers@test.com",
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	})
 	if err != nil {
 		t.Errorf("test team not created: %s", err.Error())
@@ -31,7 +31,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		DisplayName: "Nerds",
 		Name:        "zz" + model.NewId(),
 		Email:       "nerds@test.com",
-		Type:        model.TEAM_INVITE,
+		Type:        model.TeamInvite,
 	})
 	if err != nil {
 		t.Errorf("test team not created: %s", err.Error())
@@ -41,7 +41,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		TeamId:      singersTeam.Id,
 		DisplayName: "Practices",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}, false)
 	if err != nil {
 		t.Errorf("test channel not created: %s", err.Error())
@@ -51,7 +51,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		TeamId:      singersTeam.Id,
 		DisplayName: "Experiments",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}, false)
 	if err != nil {
 		t.Errorf("test channel not created: %s", err.Error())
@@ -169,7 +169,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 
 	// update AutoAdd to true
 	scienceTeamGroupSyncable.AutoAdd = true
-	scienceTeamGroupSyncable, err = th.App.UpdateGroupSyncable(scienceTeamGroupSyncable)
+	_, err = th.App.UpdateGroupSyncable(scienceTeamGroupSyncable)
 	if err != nil {
 		t.Errorf("error updating group syncable: %s", err.Error())
 	}
@@ -347,7 +347,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 			Name:           "restricted" + model.NewId(),
 			Email:          "restricted@mattermost.org",
 			AllowedDomains: "mattermost.org",
-			Type:           model.TEAM_OPEN,
+			Type:           model.TeamOpen,
 		})
 		require.Nil(t, err)
 		_, err = th.App.UpsertGroupSyncable(model.NewGroupTeam(scienceGroup.Id, restrictedTeam.Id, true))
@@ -357,7 +357,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 			TeamId:      restrictedTeam.Id,
 			DisplayName: "Restricted",
 			Name:        "restricted" + model.NewId(),
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 		}, false)
 		require.Nil(t, err)
 		_, err = th.App.UpsertGroupSyncable(model.NewGroupChannel(scienceGroup.Id, restrictedChannel.Id, true))
@@ -440,8 +440,8 @@ func TestDeleteGroupMemberships(t *testing.T) {
 
 	cmembers, err := th.App.GetChannelMembersPage(channel.Id, 0, 99)
 	require.Nil(t, err)
-	require.Len(t, (*cmembers), 1)
-	require.Equal(t, th.SystemAdminUser.Id, (*cmembers)[0].UserId)
+	require.Len(t, cmembers, 1)
+	require.Equal(t, th.SystemAdminUser.Id, cmembers[0].UserId)
 }
 
 func TestSyncSyncableRoles(t *testing.T) {

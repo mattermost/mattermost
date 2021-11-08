@@ -4,17 +4,17 @@
 package slashcommands
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 const (
 	UserPassword         = "Usr@MMTest123"
-	ChannelType          = model.CHANNEL_OPEN
+	ChannelType          = model.ChannelTypeOpen
 	BTestTeamDisplayName = "TestTeam"
 	BTestTeamName        = "z-z-testdomaina"
 	BTestTeamEmail       = "test@nowhere.com"
-	BTestTeamType        = model.TEAM_OPEN
+	BTestTeamType        = model.TeamOpen
 	BTestUserName        = "Mr. Testing Tester"
 	BTestUserEmail       = "success+ttester@simulator.amazonses.com"
 	BTestUserPassword    = "passwd"

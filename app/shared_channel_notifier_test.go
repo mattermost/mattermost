@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestServerSyncSharedChannelHandler(t *testing.T) {
@@ -33,7 +33,7 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 		th.App.srv.SetSharedChannelSyncService(mockService)
 		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
 
-		websocketEvent := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ADDED_TO_TEAM, model.NewId(), channel.Id, "", nil)
+		websocketEvent := model.NewWebSocketEvent(model.WebsocketEventAddedToTeam, model.NewId(), channel.Id, "", nil)
 
 		th.App.srv.SharedChannelSyncHandler(websocketEvent)
 		assert.Empty(t, mockService.channelNotifications)
@@ -47,7 +47,7 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 		mockService.active = true
 		th.App.srv.SetSharedChannelSyncService(mockService)
 
-		websocketEvent := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POSTED, model.NewId(), model.NewId(), "", nil)
+		websocketEvent := model.NewWebSocketEvent(model.WebsocketEventPosted, model.NewId(), model.NewId(), "", nil)
 
 		th.App.srv.SharedChannelSyncHandler(websocketEvent)
 		assert.Empty(t, mockService.channelNotifications)
@@ -62,7 +62,7 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 		th.App.srv.SetSharedChannelSyncService(mockService)
 
 		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
-		websocketEvent := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POSTED, model.NewId(), channel.Id, "", nil)
+		websocketEvent := model.NewWebSocketEvent(model.WebsocketEventPosted, model.NewId(), channel.Id, "", nil)
 
 		th.App.srv.SharedChannelSyncHandler(websocketEvent)
 		assert.Len(t, mockService.channelNotifications, 1)

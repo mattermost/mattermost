@@ -12,8 +12,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 func TestImportValidateSchemeImportData(t *testing.T) {
@@ -357,11 +357,12 @@ func TestImportValidateTeamImportData(t *testing.T) {
 func TestImportValidateChannelImportData(t *testing.T) {
 
 	// Test with minimum required valid properties.
+	chanTypeOpen := model.ChannelTypeOpen
 	data := ChannelImportData{
 		Team:        ptrStr("teamname"),
 		Name:        ptrStr("channelname"),
 		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		Type:        &chanTypeOpen,
 	}
 	err := validateChannelImportData(&data)
 	require.Nil(t, err, "Validation failed but should have been valid.")
@@ -370,7 +371,7 @@ func TestImportValidateChannelImportData(t *testing.T) {
 	data = ChannelImportData{
 		Name:        ptrStr("channelname"),
 		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		Type:        &chanTypeOpen,
 	}
 	err = validateChannelImportData(&data)
 	require.NotNil(t, err, "Should have failed due to missing team.")
@@ -379,7 +380,7 @@ func TestImportValidateChannelImportData(t *testing.T) {
 	data = ChannelImportData{
 		Team:        ptrStr("teamname"),
 		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		Type:        &chanTypeOpen,
 	}
 	err = validateChannelImportData(&data)
 	require.NotNil(t, err, "Should have failed due to missing name.")
@@ -400,7 +401,7 @@ func TestImportValidateChannelImportData(t *testing.T) {
 	data = ChannelImportData{
 		Team: ptrStr("teamname"),
 		Name: ptrStr("channelname"),
-		Type: ptrStr("O"),
+		Type: &chanTypeOpen,
 	}
 	err = validateChannelImportData(&data)
 	require.NotNil(t, err, "Should have failed due to missing display_name.")
@@ -422,11 +423,13 @@ func TestImportValidateChannelImportData(t *testing.T) {
 	err = validateChannelImportData(&data)
 	require.NotNil(t, err, "Should have failed due to missing type.")
 
-	data.Type = ptrStr("A")
+	invalidType := model.ChannelType("A")
+	data.Type = &invalidType
 	err = validateChannelImportData(&data)
 	require.NotNil(t, err, "Should have failed due to invalid type.")
 
-	data.Type = ptrStr("P")
+	chanTypePr := model.ChannelTypePrivate
+	data.Type = &chanTypePr
 	err = validateChannelImportData(&data)
 	require.Nil(t, err, "Should have succeeded with valid type.")
 
@@ -435,7 +438,7 @@ func TestImportValidateChannelImportData(t *testing.T) {
 		Team:        ptrStr("teamname"),
 		Name:        ptrStr("channelname"),
 		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		Type:        &chanTypeOpen,
 		Header:      ptrStr("Channel Header Here"),
 		Purpose:     ptrStr("Channel Purpose Here"),
 	}
@@ -586,7 +589,7 @@ func TestImportValidateUserImportData(t *testing.T) {
 	data.NotifyProps.Desktop = ptrStr("invalid")
 	checkError(t, validateUserImportData(&data))
 
-	data.NotifyProps.Desktop = ptrStr(model.USER_NOTIFY_ALL)
+	data.NotifyProps.Desktop = ptrStr(model.UserNotifyAll)
 	data.NotifyProps.DesktopSound = ptrStr("invalid")
 	checkError(t, validateUserImportData(&data))
 
@@ -598,11 +601,11 @@ func TestImportValidateUserImportData(t *testing.T) {
 	data.NotifyProps.Mobile = ptrStr("invalid")
 	checkError(t, validateUserImportData(&data))
 
-	data.NotifyProps.Mobile = ptrStr(model.USER_NOTIFY_ALL)
+	data.NotifyProps.Mobile = ptrStr(model.UserNotifyAll)
 	data.NotifyProps.MobilePushStatus = ptrStr("invalid")
 	checkError(t, validateUserImportData(&data))
 
-	data.NotifyProps.MobilePushStatus = ptrStr(model.STATUS_ONLINE)
+	data.NotifyProps.MobilePushStatus = ptrStr(model.StatusOnline)
 	data.NotifyProps.ChannelTrigger = ptrStr("invalid")
 	checkError(t, validateUserImportData(&data))
 
@@ -610,7 +613,7 @@ func TestImportValidateUserImportData(t *testing.T) {
 	data.NotifyProps.CommentsTrigger = ptrStr("invalid")
 	checkError(t, validateUserImportData(&data))
 
-	data.NotifyProps.CommentsTrigger = ptrStr(model.COMMENTS_NOTIFY_ROOT)
+	data.NotifyProps.CommentsTrigger = ptrStr(model.CommentsNotifyRoot)
 	data.NotifyProps.MentionKeys = ptrStr("valid")
 	checkNoError(t, validateUserImportData(&data))
 
@@ -1013,7 +1016,7 @@ func TestImportValidatePostImportData(t *testing.T) {
 
 	t.Run("Test with props too large", func(t *testing.T) {
 		props := model.StringInterface{
-			"attachment": strings.Repeat("a", model.POST_PROPS_MAX_RUNES),
+			"attachment": strings.Repeat("a", model.PostPropsMaxRunes),
 		}
 
 		data := PostImportData{

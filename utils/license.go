@@ -9,17 +9,17 @@ import (
 	"crypto/sha512"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/json"
 	"encoding/pem"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 var publicKey []byte = []byte(`-----BEGIN PUBLIC KEY-----
@@ -51,11 +51,15 @@ type LicenseValidatorImpl struct {
 func (l *LicenseValidatorImpl) LicenseFromBytes(licenseBytes []byte) (*model.License, *model.AppError) {
 	success, licenseStr := l.ValidateLicense(licenseBytes)
 	if !success {
-		return nil, model.NewAppError("LicenseFromBytes", model.INVALID_LICENSE_ERROR, nil, "", http.StatusBadRequest)
+		return nil, model.NewAppError("LicenseFromBytes", model.InvalidLicenseError, nil, "", http.StatusBadRequest)
 	}
 
-	license := model.LicenseFromJson(strings.NewReader(licenseStr))
-	return license, nil
+	var license model.License
+	if jsonErr := json.Unmarshal([]byte(licenseStr), &license); jsonErr != nil {
+		return nil, model.NewAppError("LicenseFromBytes", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+
+	return &license, nil
 }
 
 func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (bool, string) {
@@ -119,7 +123,14 @@ func GetAndValidateLicenseFileFromDisk(location string) (*model.License, []byte)
 		mlog.Error("Found license key at %v but it appears to be invalid.", mlog.String("filename", fileName))
 		return nil, nil
 	}
-	return model.LicenseFromJson(strings.NewReader(licenseStr)), licenseBytes
+
+	var license model.License
+	if jsonErr := json.Unmarshal([]byte(licenseStr), &license); jsonErr != nil {
+		mlog.Error("Failed to decode license from JSON", mlog.Err(jsonErr))
+		return nil, nil
+	}
+
+	return &license, licenseBytes
 }
 
 func GetLicenseFileFromDisk(fileName string) []byte {

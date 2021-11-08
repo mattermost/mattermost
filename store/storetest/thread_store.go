@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func TestThreadStore(t *testing.T, ss store.Store, s SqlStore) {
@@ -39,7 +39,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 
 		c, err2 := ss.Channel().Save(&model.Channel{
 			DisplayName: model.NewId(),
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 			Name:        model.NewId(),
 		}, 999)
 		require.NoError(t, err2)
@@ -231,7 +231,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		thread1, err := ss.Thread().Get(newPosts1[0].Id)
 		require.NoError(t, err)
 		require.EqualValues(t, thread1.ReplyCount, 1)
-		require.Len(t, thread1.Participants, 2)
+		require.Len(t, thread1.Participants, 1)
 
 		err = ss.Post().PermanentDeleteByUser(rootPost.UserId)
 		require.NoError(t, err)
@@ -330,11 +330,16 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 			IncrementMentions:     false,
 			UpdateFollowing:       true,
 			UpdateViewedTimestamp: false,
-			UpdateParticipants:    false,
+			UpdateParticipants:    true,
 		}
 		tm, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
 		require.NoError(t, e)
 		require.Equal(t, int64(0), tm.LastViewed)
+
+		// No update since array has same elements.
+		th, e := ss.Thread().Get(newPosts[0].Id)
+		require.NoError(t, e)
+		assert.ElementsMatch(t, model.StringArray{newPosts[0].UserId, newPosts[1].UserId}, th.Participants)
 
 		opts.UpdateViewedTimestamp = true
 		_, e = ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
@@ -342,6 +347,13 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		m2, err2 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
 		require.NoError(t, err2)
 		require.Greater(t, m2.LastViewed, int64(0))
+
+		// Adding a new participant
+		_, e = ss.Thread().MaintainMembership("newuser", newPosts[0].Id, opts)
+		require.NoError(t, e)
+		th, e = ss.Thread().Get(newPosts[0].Id)
+		require.NoError(t, e)
+		assert.ElementsMatch(t, model.StringArray{newPosts[0].UserId, newPosts[1].UserId, "newuser"}, th.Participants)
 	})
 
 	t.Run("Thread membership 'viewed' timestamp is updated properly for new membership", func(t *testing.T) {
@@ -443,7 +455,6 @@ func threadStoreCreateReply(t *testing.T, ss store.Store, channelID, postID stri
 		UserId:    model.NewId(),
 		CreateAt:  createAt,
 		RootId:    postID,
-		ParentId:  postID,
 	})
 	require.NoError(t, err)
 	return reply
@@ -455,14 +466,14 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, ss st
 		DisplayName: "DisplayName",
 		Name:        "team" + model.NewId(),
 		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	})
 	require.NoError(t, err)
 	channel, err := ss.Channel().Save(&model.Channel{
 		TeamId:      team.Id,
 		DisplayName: "DisplayName",
 		Name:        "channel" + model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
 
@@ -544,14 +555,14 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 		DisplayName: "DisplayName",
 		Name:        "team" + model.NewId(),
 		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	})
 	require.NoError(t, err)
 	channel, err := ss.Channel().Save(&model.Channel{
 		TeamId:      team.Id,
 		DisplayName: "DisplayName",
 		Name:        "channel" + model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
 	post, err := ss.Post().Save(&model.Post{

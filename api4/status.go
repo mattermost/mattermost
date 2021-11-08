@@ -4,22 +4,24 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitStatus() {
-	api.BaseRoutes.User.Handle("/status", api.ApiSessionRequired(getUserStatus)).Methods("GET")
-	api.BaseRoutes.Users.Handle("/status/ids", api.ApiSessionRequired(getUserStatusesByIds)).Methods("POST")
-	api.BaseRoutes.User.Handle("/status", api.ApiSessionRequired(updateUserStatus)).Methods("PUT")
-	api.BaseRoutes.User.Handle("/status/custom", api.ApiSessionRequired(updateUserCustomStatus)).Methods("PUT")
-	api.BaseRoutes.User.Handle("/status/custom", api.ApiSessionRequired(removeUserCustomStatus)).Methods("DELETE")
+	api.BaseRoutes.User.Handle("/status", api.APISessionRequired(getUserStatus)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/status/ids", api.APISessionRequired(getUserStatusesByIds)).Methods("POST")
+	api.BaseRoutes.User.Handle("/status", api.APISessionRequired(updateUserStatus)).Methods("PUT")
+	api.BaseRoutes.User.Handle("/status/custom", api.APISessionRequired(updateUserCustomStatus)).Methods("PUT")
+	api.BaseRoutes.User.Handle("/status/custom", api.APISessionRequired(removeUserCustomStatus)).Methods("DELETE")
 
 	// Both these handlers are for removing the recent custom status but the one with the POST method should be preferred
 	// as DELETE method doesn't support request body in the mobile app.
-	api.BaseRoutes.User.Handle("/status/custom/recent", api.ApiSessionRequired(removeUserRecentCustomStatus)).Methods("DELETE")
-	api.BaseRoutes.User.Handle("/status/custom/recent/delete", api.ApiSessionRequired(removeUserRecentCustomStatus)).Methods("POST")
+	api.BaseRoutes.User.Handle("/status/custom/recent", api.APISessionRequired(removeUserRecentCustomStatus)).Methods("DELETE")
+	api.BaseRoutes.User.Handle("/status/custom/recent/delete", api.APISessionRequired(removeUserRecentCustomStatus)).Methods("POST")
 }
 
 func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -41,11 +43,13 @@ func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(statusMap[0].ToJson()))
+	if err := json.NewEncoder(w).Encode(statusMap[0]); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds := model.ArrayFromJson(r.Body)
+	userIds := model.ArrayFromJSON(r.Body)
 
 	if len(userIds) == 0 {
 		c.SetInvalidParam("user_ids")
@@ -60,14 +64,18 @@ func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// No permission check required
-
-	statusMap, err := c.App.GetUserStatusesByIds(userIds)
+	statuses, err := c.App.GetUserStatusesByIds(userIds)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	w.Write([]byte(model.StatusListToJson(statusMap)))
+	js, jsonErr := json.Marshal(statuses)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getUserStatusesByIds", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(js)
 }
 
 func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -76,8 +84,8 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status := model.StatusFromJson(r.Body)
-	if status == nil {
+	var status model.Status
+	if jsonErr := json.NewDecoder(r.Body).Decode(&status); jsonErr != nil {
 		c.SetInvalidParam("status")
 		return
 	}
@@ -89,12 +97,12 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
 	currentStatus, err := c.App.GetStatus(c.Params.UserId)
-	if err == nil && currentStatus.Status == model.STATUS_OUT_OF_OFFICE && status.Status != model.STATUS_OUT_OF_OFFICE {
+	if err == nil && currentStatus.Status == model.StatusOutOfOffice && status.Status != model.StatusOutOfOffice {
 		c.App.DisableAutoResponder(c.Params.UserId, c.IsSystemAdmin())
 	}
 
@@ -130,19 +138,20 @@ func updateUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	customStatus := model.CustomStatusFromJson(r.Body)
-	if customStatus == nil || (customStatus.Emoji == "" && customStatus.Text == "") || !customStatus.AreDurationAndExpirationTimeValid() {
+	var customStatus model.CustomStatus
+	jsonErr := json.NewDecoder(r.Body).Decode(&customStatus)
+	if jsonErr != nil || (customStatus.Emoji == "" && customStatus.Text == "") || !customStatus.AreDurationAndExpirationTimeValid() {
 		c.SetInvalidParam("custom_status")
 		return
 	}
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
 	customStatus.PreSave()
-	err := c.App.SetCustomStatus(c.Params.UserId, customStatus)
+	err := c.App.SetCustomStatus(c.Params.UserId, &customStatus)
 	if err != nil {
 		c.Err = err
 		return
@@ -163,7 +172,7 @@ func removeUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
@@ -186,18 +195,18 @@ func removeUserRecentCustomStatus(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	recentCustomStatus := model.CustomStatusFromJson(r.Body)
-	if recentCustomStatus == nil {
+	var recentCustomStatus model.CustomStatus
+	if jsonErr := json.NewDecoder(r.Body).Decode(&recentCustomStatus); jsonErr != nil {
 		c.SetInvalidParam("recent_custom_status")
 		return
 	}
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
-	if err := c.App.RemoveRecentCustomStatus(c.Params.UserId, recentCustomStatus); err != nil {
+	if err := c.App.RemoveRecentCustomStatus(c.Params.UserId, &recentCustomStatus); err != nil {
 		c.Err = err
 		return
 	}

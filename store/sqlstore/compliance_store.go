@@ -9,8 +9,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SqlComplianceStore struct {
@@ -134,7 +134,6 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 			Posts.UpdateAt AS PostUpdateAt,
 			Posts.DeleteAt AS PostDeleteAt,
 			Posts.RootId AS PostRootId,
-			Posts.ParentId AS PostParentId,
 			Posts.OriginalId AS PostOriginalId,
 			Posts.Message AS PostMessage,
 			Posts.Type AS PostType,
@@ -197,7 +196,6 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 			Posts.UpdateAt AS PostUpdateAt,
 			Posts.DeleteAt AS PostDeleteAt,
 			Posts.RootId AS PostRootId,
-			Posts.ParentId AS PostParentId,
 			Posts.OriginalId AS PostOriginalId,
 			Posts.Message AS PostMessage,
 			Posts.Type AS PostType,

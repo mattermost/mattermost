@@ -15,9 +15,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func TestGroupStore(t *testing.T, ss store.Store) {
@@ -702,7 +702,7 @@ func testGroupGetMemberUsersInTeam(t *testing.T, ss store.Store) {
 		CompanyName: "Some company name",
 		Name:        "z-z-" + model.NewId() + "a",
 		Email:       "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	}
 	team, err := ss.Team().Save(team)
 	require.NoError(t, err)
@@ -788,7 +788,7 @@ func testGroupGetMemberUsersNotInChannel(t *testing.T, ss store.Store) {
 		CompanyName: "Some company name",
 		Name:        "z-z-" + model.NewId() + "a",
 		Email:       "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	}
 	team, err := ss.Team().Save(team)
 	require.NoError(t, err)
@@ -839,7 +839,7 @@ func testGroupGetMemberUsersNotInChannel(t *testing.T, ss store.Store) {
 		TeamId:      team.Id,
 		DisplayName: "Channel",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN, // Query does not look at type so this shouldn't matter.
+		Type:        model.ChannelTypeOpen, // Query does not look at type so this shouldn't matter.
 	}
 	channel, nErr := ss.Channel().Save(channel, 9999)
 	require.NoError(t, nErr)
@@ -967,12 +967,14 @@ func testUpsertMember(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	groupMembers, err := ss.Group().GetMemberUsers(group.Id)
+	require.NoError(t, err)
 	beforeRestoreCount := len(groupMembers)
 
 	_, err = ss.Group().UpsertMember(group.Id, user.Id)
 	require.NoError(t, err)
 
 	groupMembers, err = ss.Group().GetMemberUsers(group.Id)
+	require.NoError(t, err)
 	afterRestoreCount := len(groupMembers)
 
 	require.Equal(t, beforeRestoreCount+1, afterRestoreCount)
@@ -1085,7 +1087,7 @@ func testCreateGroupSyncable(t *testing.T, ss store.Store) {
 		InviteId:        "inviteid0",
 		Name:            "z-z-" + model.NewId() + "a",
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TEAM_OPEN,
+		Type:            model.TeamOpen,
 	}
 	team, nErr := ss.Team().Save(t1)
 	require.NoError(t, nErr)
@@ -1122,7 +1124,7 @@ func testGetGroupSyncable(t *testing.T, ss store.Store) {
 		InviteId:        "inviteid0",
 		Name:            "z-z-" + model.NewId() + "a",
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TEAM_OPEN,
+		Type:            model.TeamOpen,
 	}
 	team, nErr := ss.Team().Save(t1)
 	require.NoError(t, nErr)
@@ -1170,7 +1172,7 @@ func testGetAllGroupSyncablesByGroup(t *testing.T, ss store.Store) {
 			InviteId:        "inviteid0",
 			Name:            "z-z-" + model.NewId() + "a",
 			Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-			Type:            model.TEAM_OPEN,
+			Type:            model.TeamOpen,
 		}
 		var team *model.Team
 		team, nErr := ss.Team().Save(t1)
@@ -1222,7 +1224,7 @@ func testUpdateGroupSyncable(t *testing.T, ss store.Store) {
 		InviteId:        "inviteid0",
 		Name:            "z-z-" + model.NewId() + "a",
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TEAM_OPEN,
+		Type:            model.TeamOpen,
 	}
 	team, nErr := ss.Team().Save(t1)
 	require.NoError(t, nErr)
@@ -1290,7 +1292,7 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 		InviteId:        "inviteid0",
 		Name:            "z-z-" + model.NewId() + "a",
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TEAM_OPEN,
+		Type:            model.TeamOpen,
 	}
 	team, nErr := ss.Team().Save(t1)
 	require.NoError(t, nErr)
@@ -1357,7 +1359,7 @@ func testTeamMembersToAdd(t *testing.T, ss store.Store) {
 		InviteId:        "inviteid0",
 		Name:            "z-z-" + model.NewId() + "a",
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TEAM_OPEN,
+		Type:            model.TeamOpen,
 	}
 	team, nErr = ss.Team().Save(team)
 	require.NoError(t, nErr)
@@ -1558,7 +1560,7 @@ func testTeamMembersToAddSingleTeam(t *testing.T, ss store.Store) {
 		InviteId:        "inviteid0",
 		Name:            "z-z-" + model.NewId() + "a",
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TEAM_OPEN,
+		Type:            model.TeamOpen,
 	}
 	team1, nErr = ss.Team().Save(team1)
 	require.NoError(t, nErr)
@@ -1571,7 +1573,7 @@ func testTeamMembersToAddSingleTeam(t *testing.T, ss store.Store) {
 		InviteId:        "inviteid0",
 		Name:            "z-z-" + model.NewId() + "a",
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TEAM_OPEN,
+		Type:            model.TeamOpen,
 	}
 	team2, nErr = ss.Team().Save(team2)
 	require.NoError(t, nErr)
@@ -1622,7 +1624,7 @@ func testChannelMembersToAdd(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "A Name",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN, // Query does not look at type so this shouldn't matter.
+		Type:        model.ChannelTypeOpen, // Query does not look at type so this shouldn't matter.
 	}
 	channel, nErr = ss.Channel().Save(channel, 9999)
 	require.NoError(t, nErr)
@@ -1820,7 +1822,7 @@ func testChannelMembersToAddSingleChannel(t *testing.T, ss store.Store) {
 	channel1 := &model.Channel{
 		DisplayName: "Name",
 		Name:        "z-z-" + model.NewId() + "a",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel1, nErr = ss.Channel().Save(channel1, 999)
 	require.NoError(t, nErr)
@@ -1828,7 +1830,7 @@ func testChannelMembersToAddSingleChannel(t *testing.T, ss store.Store) {
 	channel2 := &model.Channel{
 		DisplayName: "Name",
 		Name:        "z-z-" + model.NewId() + "a",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel2, nErr = ss.Channel().Save(channel2, 999)
 	require.NoError(t, nErr)
@@ -1957,7 +1959,7 @@ func testTeamMembersToRemoveSingleTeam(t *testing.T, ss store.Store) {
 		InviteId:         "inviteid0",
 		Name:             "z-z-" + model.NewId() + "a",
 		Email:            "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:             model.TEAM_OPEN,
+		Type:             model.TeamOpen,
 		GroupConstrained: model.NewBool(true),
 	}
 	team1, nErr := ss.Team().Save(team1)
@@ -1971,7 +1973,7 @@ func testTeamMembersToRemoveSingleTeam(t *testing.T, ss store.Store) {
 		InviteId:         "inviteid0",
 		Name:             "z-z-" + model.NewId() + "a",
 		Email:            "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:             model.TEAM_OPEN,
+		Type:             model.TeamOpen,
 		GroupConstrained: model.NewBool(true),
 	}
 	team2, nErr = ss.Team().Save(team2)
@@ -2104,7 +2106,7 @@ func testChannelMembersToRemoveSingleChannel(t *testing.T, ss store.Store) {
 	channel1 := &model.Channel{
 		DisplayName:      "Name",
 		Name:             "z-z-" + model.NewId() + "a",
-		Type:             model.CHANNEL_OPEN,
+		Type:             model.ChannelTypeOpen,
 		GroupConstrained: model.NewBool(true),
 	}
 	channel1, nErr := ss.Channel().Save(channel1, 999)
@@ -2113,7 +2115,7 @@ func testChannelMembersToRemoveSingleChannel(t *testing.T, ss store.Store) {
 	channel2 := &model.Channel{
 		DisplayName:      "Name",
 		Name:             "z-z-" + model.NewId() + "a",
-		Type:             model.CHANNEL_OPEN,
+		Type:             model.ChannelTypeOpen,
 		GroupConstrained: model.NewBool(true),
 	}
 	channel2, nErr = ss.Channel().Save(channel2, 999)
@@ -2206,7 +2208,7 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 		TeamId:           model.NewId(),
 		DisplayName:      "A Name",
 		Name:             model.NewId(),
-		Type:             model.CHANNEL_PRIVATE,
+		Type:             model.ChannelTypePrivate,
 		GroupConstrained: model.NewBool(true),
 	}
 	channelConstrained, nErr = ss.Channel().Save(channelConstrained, 9999)
@@ -2216,7 +2218,7 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 		TeamId:      model.NewId(),
 		DisplayName: "A Name",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	channelUnconstrained, nErr = ss.Channel().Save(channelUnconstrained, 9999)
 	require.NoError(t, nErr)
@@ -2230,7 +2232,7 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 		InviteId:         "inviteid0",
 		Name:             "z-z-" + model.NewId() + "a",
 		Email:            "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:             model.TEAM_INVITE,
+		Type:             model.TeamInvite,
 		GroupConstrained: model.NewBool(true),
 	}
 	teamConstrained, nErr = ss.Team().Save(teamConstrained)
@@ -2244,7 +2246,7 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 		InviteId:        "inviteid1",
 		Name:            "z-z-" + model.NewId() + "a",
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TEAM_INVITE,
+		Type:            model.TeamInvite,
 	}
 	teamUnconstrained, nErr = ss.Team().Save(teamUnconstrained)
 	require.NoError(t, nErr)
@@ -2318,7 +2320,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Channel1",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel1, err := ss.Channel().Save(channel1, 9999)
 	require.NoError(t, err)
@@ -2368,7 +2370,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Channel2",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel2, nErr := ss.Channel().Save(channel2, 9999)
 	require.NoError(t, nErr)
@@ -2556,7 +2558,7 @@ func testGetGroupsAssociatedToChannelsByTeam(t *testing.T, ss store.Store) {
 		InviteId:        model.NewId(),
 		Name:            "zz" + model.NewId(),
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TEAM_OPEN,
+		Type:            model.TeamOpen,
 	}
 	team1, errt := ss.Team().Save(team1)
 	require.NoError(t, errt)
@@ -2566,7 +2568,7 @@ func testGetGroupsAssociatedToChannelsByTeam(t *testing.T, ss store.Store) {
 		TeamId:      team1.Id,
 		DisplayName: "Channel1",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel1, err := ss.Channel().Save(channel1, 9999)
 	require.NoError(t, err)
@@ -2616,7 +2618,7 @@ func testGetGroupsAssociatedToChannelsByTeam(t *testing.T, ss store.Store) {
 		TeamId:      team1.Id,
 		DisplayName: "Channel2",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel2, err = ss.Channel().Save(channel2, 9999)
 	require.NoError(t, err)
@@ -2799,7 +2801,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 		InviteId:        model.NewId(),
 		Name:            "zz" + model.NewId(),
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TEAM_OPEN,
+		Type:            model.TeamOpen,
 	}
 	team1, err := ss.Team().Save(team1)
 	require.NoError(t, err)
@@ -2853,7 +2855,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 		InviteId:        model.NewId(),
 		Name:            "zz" + model.NewId(),
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TEAM_INVITE,
+		Type:            model.TeamInvite,
 	}
 	team2, err = ss.Team().Save(team2)
 	require.NoError(t, err)
@@ -3045,7 +3047,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 		InviteId:         model.NewId(),
 		Name:             "zz" + model.NewId(),
 		Email:            "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:             model.TEAM_OPEN,
+		Type:             model.TeamOpen,
 		GroupConstrained: model.NewBool(true),
 	}
 	team1, err := ss.Team().Save(team1)
@@ -3058,7 +3060,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Channel1",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	channel1, nErr := ss.Channel().Save(channel1, 9999)
 	require.NoError(t, nErr)
@@ -3112,7 +3114,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 		InviteId:        model.NewId(),
 		Name:            "zz" + model.NewId(),
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TEAM_INVITE,
+		Type:            model.TeamInvite,
 	}
 	team2, err = ss.Team().Save(team2)
 	require.NoError(t, err)
@@ -3122,7 +3124,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Channel2",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	channel2, nErr = ss.Channel().Save(channel2, 9999)
 	require.NoError(t, nErr)
@@ -3132,7 +3134,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 		TeamId:      team1.Id,
 		DisplayName: "Channel3",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	channel3, nErr = ss.Channel().Save(channel3, 9999)
 	require.NoError(t, nErr)
@@ -3216,7 +3218,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 		InviteId:        model.NewId(),
 		Name:            "zz" + model.NewId(),
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TEAM_INVITE,
+		Type:            model.TeamInvite,
 	}
 	team3, err = ss.Team().Save(team3)
 	require.NoError(t, err)
@@ -3225,7 +3227,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 		TeamId:      team3.Id,
 		DisplayName: "Channel4",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	channel4, nErr = ss.Channel().Save(channel4, 9999)
 	require.NoError(t, nErr)
@@ -3475,7 +3477,7 @@ func testTeamMembersMinusGroupMembers(t *testing.T, ss store.Store) {
 		InviteId:         model.NewId(),
 		Name:             "zz" + model.NewId(),
 		Email:            model.NewId() + "@simulator.amazonses.com",
-		Type:             model.TEAM_OPEN,
+		Type:             model.TeamOpen,
 		GroupConstrained: model.NewBool(true),
 	}
 	team, err := ss.Team().Save(team)
@@ -3627,7 +3629,7 @@ func testChannelMembersMinusGroupMembers(t *testing.T, ss store.Store) {
 		TeamId:           model.NewId(),
 		DisplayName:      "A Name",
 		Name:             model.NewId(),
-		Type:             model.CHANNEL_PRIVATE,
+		Type:             model.ChannelTypePrivate,
 		GroupConstrained: model.NewBool(true),
 	}
 	channel, err := ss.Channel().Save(channel, 9999)
@@ -3855,7 +3857,7 @@ func groupTestAdminRoleGroupsForSyncableMemberChannel(t *testing.T, ss store.Sto
 		TeamId:      model.NewId(),
 		DisplayName: "A Name",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel, nErr := ss.Channel().Save(channel, 9999)
 	require.NoError(t, nErr)
@@ -3942,7 +3944,7 @@ func groupTestAdminRoleGroupsForSyncableMemberTeam(t *testing.T, ss store.Store)
 	team := &model.Team{
 		DisplayName: "A Name",
 		Name:        "zz" + model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.TeamOpen,
 	}
 	team, nErr := ss.Team().Save(team)
 	require.NoError(t, nErr)
@@ -4045,7 +4047,7 @@ func groupTestPermittedSyncableAdminsTeam(t *testing.T, ss store.Store) {
 	team := &model.Team{
 		DisplayName: "A Name",
 		Name:        "zz" + model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.TeamOpen,
 	}
 	team, nErr := ss.Team().Save(team)
 	require.NoError(t, nErr)
@@ -4152,7 +4154,7 @@ func groupTestPermittedSyncableAdminsChannel(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "A Name",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel, nErr := ss.Channel().Save(channel, 9999)
 	require.NoError(t, nErr)
@@ -4214,7 +4216,7 @@ func groupTestpUpdateMembersRoleTeam(t *testing.T, ss store.Store) {
 		InviteId:        "inviteid0",
 		Name:            "z-z-" + model.NewId() + "a",
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TEAM_OPEN,
+		Type:            model.TeamOpen,
 	}
 	team, err := ss.Team().Save(team)
 	require.NoError(t, err)
@@ -4314,7 +4316,7 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "A Name",
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN, // Query does not look at type so this shouldn't matter.
+		Type:        model.ChannelTypeOpen, // Query does not look at type so this shouldn't matter.
 	}
 	channel, err := ss.Channel().Save(channel, 9999)
 	require.NoError(t, err)
@@ -4399,9 +4401,9 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, ss store.Store) {
 			members, err := ss.Channel().GetMembers(channel.Id, 0, 100)
 			require.NoError(t, err)
 
-			require.GreaterOrEqual(t, len(*members), 4) // sanity check for channel membership
+			require.GreaterOrEqual(t, len(members), 4) // sanity check for channel membership
 
-			for _, member := range *members {
+			for _, member := range members {
 				if utils.StringInSlice(member.UserId, tt.inUserIDs) {
 					require.True(t, member.SchemeAdmin)
 				} else {
@@ -4455,7 +4457,7 @@ func groupTestGroupTeamCount(t *testing.T, ss store.Store) {
 		InviteId:        model.NewId(),
 		Name:            "zz" + model.NewId(),
 		Email:           model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TEAM_OPEN,
+		Type:            model.TeamOpen,
 	})
 	require.NoError(t, err)
 	defer ss.Team().PermanentDelete(team.Id)
@@ -4500,7 +4502,7 @@ func groupTestGroupChannelCount(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}, 9999)
 	require.NoError(t, err)
 	defer ss.Channel().Delete(channel.Id, 0)

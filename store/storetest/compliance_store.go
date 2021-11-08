@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func cleanupStoreState(t *testing.T, ss store.Store) {
@@ -31,7 +31,7 @@ func cleanupStoreState(t *testing.T, ss store.Store) {
 	//remove existing channels
 	allChannels, nErr := ss.Channel().GetAllChannels(0, 100000, store.ChannelSearchOpts{IncludeDeleted: true})
 	require.NoError(t, nErr, "error cleaning all test channels", nErr)
-	for _, channel := range *allChannels {
+	for _, channel := range allChannels {
 		nErr = ss.Channel().PermanentDelete(channel.Id)
 		require.NoError(t, nErr, "failed cleaning up test channel %s", channel.Id)
 	}
@@ -60,28 +60,28 @@ func TestComplianceStore(t *testing.T, ss store.Store) {
 }
 
 func testComplianceStore(t *testing.T, ss store.Store) {
-	compliance1 := &model.Compliance{Desc: "Audit for federal subpoena case #22443", UserId: model.NewId(), Status: model.COMPLIANCE_STATUS_FAILED, StartAt: model.GetMillis() - 1, EndAt: model.GetMillis() + 1, Type: model.COMPLIANCE_TYPE_ADHOC}
+	compliance1 := &model.Compliance{Desc: "Audit for federal subpoena case #22443", UserId: model.NewId(), Status: model.ComplianceStatusFailed, StartAt: model.GetMillis() - 1, EndAt: model.GetMillis() + 1, Type: model.ComplianceTypeAdhoc}
 	_, err := ss.Compliance().Save(compliance1)
 	require.NoError(t, err)
 	time.Sleep(100 * time.Millisecond)
 
-	compliance2 := &model.Compliance{Desc: "Audit for federal subpoena case #11458", UserId: model.NewId(), Status: model.COMPLIANCE_STATUS_RUNNING, StartAt: model.GetMillis() - 1, EndAt: model.GetMillis() + 1, Type: model.COMPLIANCE_TYPE_ADHOC}
+	compliance2 := &model.Compliance{Desc: "Audit for federal subpoena case #11458", UserId: model.NewId(), Status: model.ComplianceStatusRunning, StartAt: model.GetMillis() - 1, EndAt: model.GetMillis() + 1, Type: model.ComplianceTypeAdhoc}
 	_, err = ss.Compliance().Save(compliance2)
 	require.NoError(t, err)
 	time.Sleep(100 * time.Millisecond)
 
 	compliances, _ := ss.Compliance().GetAll(0, 1000)
 
-	require.Equal(t, model.COMPLIANCE_STATUS_RUNNING, compliances[0].Status)
+	require.Equal(t, model.ComplianceStatusRunning, compliances[0].Status)
 	require.Equal(t, compliance2.Id, compliances[0].Id)
 
-	compliance2.Status = model.COMPLIANCE_STATUS_FAILED
+	compliance2.Status = model.ComplianceStatusFailed
 	_, err = ss.Compliance().Update(compliance2)
 	require.NoError(t, err)
 
 	compliances, _ = ss.Compliance().GetAll(0, 1000)
 
-	require.Equal(t, model.COMPLIANCE_STATUS_FAILED, compliances[0].Status)
+	require.Equal(t, model.ComplianceStatusFailed, compliances[0].Status)
 	require.Equal(t, compliance2.Id, compliances[0].Id)
 
 	compliances, _ = ss.Compliance().GetAll(0, 1)
@@ -106,7 +106,7 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 	t1.DisplayName = "DisplayName"
 	t1.Name = "zz" + model.NewId() + "b"
 	t1.Email = MakeEmail()
-	t1.Type = model.TEAM_OPEN
+	t1.Type = model.TeamOpen
 	t1, err := ss.Team().Save(t1)
 	require.NoError(t, err)
 
@@ -130,7 +130,7 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 	c1.TeamId = t1.Id
 	c1.DisplayName = "Channel2"
 	c1.Name = "zz" + model.NewId() + "b"
-	c1.Type = model.CHANNEL_OPEN
+	c1.Type = model.ChannelTypeOpen
 	c1, nErr = ss.Channel().Save(c1, -1)
 	require.NoError(t, nErr)
 
@@ -235,7 +235,7 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 	t1.DisplayName = "DisplayName"
 	t1.Name = "zz" + model.NewId() + "b"
 	t1.Email = MakeEmail()
-	t1.Type = model.TEAM_OPEN
+	t1.Type = model.TeamOpen
 	t1, err := ss.Team().Save(t1)
 	require.NoError(t, err)
 
@@ -259,7 +259,7 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 	c1.TeamId = t1.Id
 	c1.DisplayName = "Channel2"
 	c1.Name = "zz" + model.NewId() + "b"
-	c1.Type = model.CHANNEL_OPEN
+	c1.Type = model.ChannelTypeOpen
 	c1, nErr = ss.Channel().Save(c1, -1)
 	require.NoError(t, nErr)
 
@@ -357,7 +357,7 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 			post.UserId = u1.Id
 			post.CreateAt = createAt
 			post.Message = "zz" + model.NewId() + "b"
-			post, nErr = ss.Post().Save(post)
+			_, nErr = ss.Post().Save(post)
 			require.NoError(t, nErr)
 		}
 
@@ -403,7 +403,7 @@ func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 		DisplayName: "DisplayName",
 		Name:        "zz" + model.NewId() + "b",
 		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	}
 	team, err = ss.Team().Save(team)
 	require.NoError(t, err)
@@ -438,7 +438,7 @@ func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 		TeamId:      team.Id,
 		Name:        model.NewId(),
 		DisplayName: "Public Channel",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel, nErr = ss.Channel().Save(channel, -1)
 	require.NoError(t, nErr)
@@ -507,7 +507,7 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 		DisplayName: "DisplayName",
 		Name:        "zz" + model.NewId() + "b",
 		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	}
 	team, err = ss.Team().Save(team)
 	require.NoError(t, err)
@@ -542,7 +542,7 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 		TeamId:      team.Id,
 		Name:        model.NewId(),
 		DisplayName: "Private Channel",
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	channel, nErr = ss.Channel().Save(channel, -1)
 	require.NoError(t, nErr)
@@ -613,7 +613,7 @@ func testMessageExportDirectMessageChannel(t *testing.T, ss store.Store) {
 		DisplayName: "DisplayName",
 		Name:        "zz" + model.NewId() + "b",
 		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	}
 	team, err = ss.Team().Save(team)
 	require.NoError(t, err)
@@ -694,7 +694,7 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 		DisplayName: "DisplayName",
 		Name:        "zz" + model.NewId() + "b",
 		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	}
 	team, err = ss.Team().Save(team)
 	require.NoError(t, err)
@@ -740,7 +740,7 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 	groupMessageChannel := &model.Channel{
 		TeamId: team.Id,
 		Name:   model.NewId(),
-		Type:   model.CHANNEL_GROUP,
+		Type:   model.ChannelTypeGroup,
 	}
 	groupMessageChannel, nErr = ss.Channel().Save(groupMessageChannel, -1)
 	require.NoError(t, nErr)
@@ -791,7 +791,7 @@ func testEditExportMessage(t *testing.T, ss store.Store) {
 		DisplayName: "DisplayName",
 		Name:        "zz" + model.NewId() + "b",
 		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	}
 	team, err = ss.Team().Save(team)
 	require.NoError(t, err)
@@ -814,7 +814,7 @@ func testEditExportMessage(t *testing.T, ss store.Store) {
 		TeamId:      team.Id,
 		Name:        model.NewId(),
 		DisplayName: "Public Channel",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel, nErr = ss.Channel().Save(channel, -1)
 	require.NoError(t, nErr)
@@ -883,7 +883,7 @@ func testEditAfterExportMessage(t *testing.T, ss store.Store) {
 		DisplayName: "DisplayName",
 		Name:        "zz" + model.NewId() + "b",
 		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	}
 	team, err = ss.Team().Save(team)
 	require.NoError(t, err)
@@ -906,7 +906,7 @@ func testEditAfterExportMessage(t *testing.T, ss store.Store) {
 		TeamId:      team.Id,
 		Name:        model.NewId(),
 		DisplayName: "Public Channel",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel, nErr = ss.Channel().Save(channel, -1)
 	require.NoError(t, nErr)
@@ -994,7 +994,7 @@ func testDeleteExportMessage(t *testing.T, ss store.Store) {
 		DisplayName: "DisplayName",
 		Name:        "zz" + model.NewId() + "b",
 		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	}
 	team, err = ss.Team().Save(team)
 	require.NoError(t, err)
@@ -1017,7 +1017,7 @@ func testDeleteExportMessage(t *testing.T, ss store.Store) {
 		TeamId:      team.Id,
 		Name:        model.NewId(),
 		DisplayName: "Public Channel",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel, nErr = ss.Channel().Save(channel, -1)
 	require.NoError(t, nErr)
@@ -1054,7 +1054,7 @@ func testDeleteExportMessage(t *testing.T, ss store.Store) {
 	e := json.Unmarshal([]byte(*v.PostProps), &props)
 	require.NoError(t, e)
 
-	_, ok := props[model.POST_PROPS_DELETE_BY]
+	_, ok := props[model.PostPropsDeleteBy]
 	assert.True(t, ok)
 
 	assert.Equal(t, post1.Message, *v.PostMessage)
@@ -1079,7 +1079,7 @@ func testDeleteAfterExportMessage(t *testing.T, ss store.Store) {
 		DisplayName: "DisplayName",
 		Name:        "zz" + model.NewId() + "b",
 		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	}
 	team, err = ss.Team().Save(team)
 	require.NoError(t, err)
@@ -1102,7 +1102,7 @@ func testDeleteAfterExportMessage(t *testing.T, ss store.Store) {
 		TeamId:      team.Id,
 		Name:        model.NewId(),
 		DisplayName: "Public Channel",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel, nErr = ss.Channel().Save(channel, -1)
 	require.NoError(t, nErr)
@@ -1157,7 +1157,7 @@ func testDeleteAfterExportMessage(t *testing.T, ss store.Store) {
 	e := json.Unmarshal([]byte(*v.PostProps), &props)
 	require.NoError(t, e)
 
-	_, ok := props[model.POST_PROPS_DELETE_BY]
+	_, ok := props[model.PostPropsDeleteBy]
 	assert.True(t, ok)
 
 	assert.Equal(t, post1.Message, *v.PostMessage)

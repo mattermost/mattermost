@@ -6,7 +6,7 @@ package app
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 // GetPluginStatus returns the status for a plugin installed on this server.
@@ -99,7 +99,7 @@ func (s *Server) notifyPluginStatusesChanged() error {
 	}
 
 	// Notify any system admins.
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_STATUSES_CHANGED, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventPluginStatusesChanged, "", "", "", nil)
 	message.Add("plugin_statuses", pluginStatuses)
 	message.GetBroadcast().ContainsSensitiveData = true
 	s.Publish(message)

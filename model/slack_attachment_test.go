@@ -17,7 +17,7 @@ func TestParseSlackAttachment(t *testing.T) {
 		ParseSlackAttachment(post, attachments)
 
 		expectedPost := &Post{
-			Type: POST_SLACK_ATTACHMENT,
+			Type: PostTypeSlackAttachment,
 			Props: map[string]interface{}{
 				"attachments": []*SlackAttachment{},
 			},
@@ -34,7 +34,7 @@ func TestParseSlackAttachment(t *testing.T) {
 		ParseSlackAttachment(post, attachments)
 
 		expectedPost := &Post{
-			Type: POST_SLACK_ATTACHMENT,
+			Type: PostTypeSlackAttachment,
 			Props: map[string]interface{}{
 				"attachments": []*SlackAttachment{},
 			},

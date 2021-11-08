@@ -6,7 +6,7 @@ package config
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/stretchr/testify/require"
 )
@@ -153,8 +153,8 @@ func TestDiffSanitized(t *testing.T) {
 			ConfigDiffs{
 				{
 					Path:      "LdapSettings.BindPassword",
-					BaseVal:   model.FAKE_SETTING,
-					ActualVal: model.FAKE_SETTING,
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
 				},
 			},
 			"",
@@ -174,8 +174,8 @@ func TestDiffSanitized(t *testing.T) {
 			ConfigDiffs{
 				{
 					Path:      "FileSettings.PublicLinkSalt",
-					BaseVal:   model.FAKE_SETTING,
-					ActualVal: model.FAKE_SETTING,
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
 				},
 			},
 			"",
@@ -195,8 +195,8 @@ func TestDiffSanitized(t *testing.T) {
 			ConfigDiffs{
 				{
 					Path:      "FileSettings.AmazonS3SecretAccessKey",
-					BaseVal:   model.FAKE_SETTING,
-					ActualVal: model.FAKE_SETTING,
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
 				},
 			},
 			"",
@@ -216,8 +216,8 @@ func TestDiffSanitized(t *testing.T) {
 			ConfigDiffs{
 				{
 					Path:      "SqlSettings.DataSource",
-					BaseVal:   model.FAKE_SETTING,
-					ActualVal: model.FAKE_SETTING,
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
 				},
 			},
 			"",
@@ -237,8 +237,8 @@ func TestDiffSanitized(t *testing.T) {
 			ConfigDiffs{
 				{
 					Path:      "SqlSettings.AtRestEncryptKey",
-					BaseVal:   model.FAKE_SETTING,
-					ActualVal: model.FAKE_SETTING,
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
 				},
 			},
 			"",
@@ -265,8 +265,8 @@ func TestDiffSanitized(t *testing.T) {
 			ConfigDiffs{
 				{
 					Path:      "SqlSettings.DataSourceReplicas",
-					BaseVal:   model.FAKE_SETTING,
-					ActualVal: model.FAKE_SETTING,
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
 				},
 			},
 			"",
@@ -293,8 +293,8 @@ func TestDiffSanitized(t *testing.T) {
 			ConfigDiffs{
 				{
 					Path:      "SqlSettings.DataSourceSearchReplicas",
-					BaseVal:   model.FAKE_SETTING,
-					ActualVal: model.FAKE_SETTING,
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
 				},
 			},
 			"",
@@ -314,8 +314,8 @@ func TestDiffSanitized(t *testing.T) {
 			ConfigDiffs{
 				{
 					Path:      "EmailSettings.SMTPPassword",
-					BaseVal:   model.FAKE_SETTING,
-					ActualVal: model.FAKE_SETTING,
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
 				},
 			},
 			"",
@@ -335,8 +335,8 @@ func TestDiffSanitized(t *testing.T) {
 			ConfigDiffs{
 				{
 					Path:      "GitLabSettings.Secret",
-					BaseVal:   model.FAKE_SETTING,
-					ActualVal: model.FAKE_SETTING,
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
 				},
 			},
 			"",
@@ -356,8 +356,8 @@ func TestDiffSanitized(t *testing.T) {
 			ConfigDiffs{
 				{
 					Path:      "GoogleSettings.Secret",
-					BaseVal:   model.FAKE_SETTING,
-					ActualVal: model.FAKE_SETTING,
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
 				},
 			},
 			"",
@@ -377,8 +377,8 @@ func TestDiffSanitized(t *testing.T) {
 			ConfigDiffs{
 				{
 					Path:      "Office365Settings.Secret",
-					BaseVal:   model.FAKE_SETTING,
-					ActualVal: model.FAKE_SETTING,
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
 				},
 			},
 			"",
@@ -398,8 +398,8 @@ func TestDiffSanitized(t *testing.T) {
 			ConfigDiffs{
 				{
 					Path:      "OpenIdSettings.Secret",
-					BaseVal:   model.FAKE_SETTING,
-					ActualVal: model.FAKE_SETTING,
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
 				},
 			},
 			"",
@@ -419,8 +419,8 @@ func TestDiffSanitized(t *testing.T) {
 			ConfigDiffs{
 				{
 					Path:      "ElasticsearchSettings.Password",
-					BaseVal:   model.FAKE_SETTING,
-					ActualVal: model.FAKE_SETTING,
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
 				},
 			},
 			"",
@@ -430,8 +430,8 @@ func TestDiffSanitized(t *testing.T) {
 			func() *model.Config {
 				cfg := defaultConfigGen()
 				cfg.MessageExportSettings.GlobalRelaySettings = &model.GlobalRelayMessageExportSettings{
-					SmtpUsername: model.NewString("base"),
-					SmtpPassword: model.NewString("base"),
+					SMTPUsername: model.NewString("base"),
+					SMTPPassword: model.NewString("base"),
 					EmailAddress: model.NewString("base"),
 				}
 				return cfg
@@ -439,48 +439,48 @@ func TestDiffSanitized(t *testing.T) {
 			func() *model.Config {
 				cfg := defaultConfigGen()
 				cfg.MessageExportSettings.GlobalRelaySettings = &model.GlobalRelayMessageExportSettings{
-					SmtpUsername: model.NewString("actual"),
-					SmtpPassword: model.NewString("actual"),
+					SMTPUsername: model.NewString("actual"),
+					SMTPPassword: model.NewString("actual"),
 					EmailAddress: model.NewString("actual"),
 				}
 				return cfg
 			}(),
 			ConfigDiffs{
 				{
-					Path:      "MessageExportSettings.GlobalRelaySettings.SmtpUsername",
-					BaseVal:   model.FAKE_SETTING,
-					ActualVal: model.FAKE_SETTING,
+					Path:      "MessageExportSettings.GlobalRelaySettings.SMTPUsername",
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
 				},
 				{
-					Path:      "MessageExportSettings.GlobalRelaySettings.SmtpPassword",
-					BaseVal:   model.FAKE_SETTING,
-					ActualVal: model.FAKE_SETTING,
+					Path:      "MessageExportSettings.GlobalRelaySettings.SMTPPassword",
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
 				},
 				{
 					Path:      "MessageExportSettings.GlobalRelaySettings.EmailAddress",
-					BaseVal:   model.FAKE_SETTING,
-					ActualVal: model.FAKE_SETTING,
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
 				},
 			},
 			"",
 		},
 		{
-			"sensitive ServiceSettings.GfycatApiSecret",
+			"sensitive ServiceSettings.GfycatAPISecret",
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.ServiceSettings.GfycatApiSecret = model.NewString("base")
+				cfg.ServiceSettings.GfycatAPISecret = model.NewString("base")
 				return cfg
 			}(),
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.ServiceSettings.GfycatApiSecret = model.NewString("actual")
+				cfg.ServiceSettings.GfycatAPISecret = model.NewString("actual")
 				return cfg
 			}(),
 			ConfigDiffs{
 				{
-					Path:      "ServiceSettings.GfycatApiSecret",
-					BaseVal:   model.FAKE_SETTING,
-					ActualVal: model.FAKE_SETTING,
+					Path:      "ServiceSettings.GfycatAPISecret",
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
 				},
 			},
 			"",
@@ -500,8 +500,8 @@ func TestDiffSanitized(t *testing.T) {
 			ConfigDiffs{
 				{
 					Path:      "ServiceSettings.SplitKey",
-					BaseVal:   model.FAKE_SETTING,
-					ActualVal: model.FAKE_SETTING,
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
 				},
 			},
 			"",
@@ -521,8 +521,8 @@ func TestDiffSanitized(t *testing.T) {
 			ConfigDiffs{
 				{
 					Path:      "PluginSettings.Plugins",
-					BaseVal:   model.FAKE_SETTING,
-					ActualVal: model.FAKE_SETTING,
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
 				},
 			},
 			"",
@@ -807,6 +807,12 @@ func TestDiff(t *testing.T) {
 						"com.mattermost.nps": {
 							Enable: !defaultConfigGen().PluginSettings.PluginStates["com.mattermost.nps"].Enable,
 						},
+						"focalboard": {
+							Enable: true,
+						},
+						"playbooks": {
+							Enable: true,
+						},
 					},
 				},
 			},
@@ -833,6 +839,12 @@ func TestDiff(t *testing.T) {
 						"com.mattermost.newplugin": {
 							Enable: true,
 						},
+						"focalboard": {
+							Enable: true,
+						},
+						"playbooks": {
+							Enable: true,
+						},
 					},
 				},
 			},
@@ -850,9 +862,14 @@ func TestDiff(t *testing.T) {
 				{
 					Path:    "PluginSettings.PluginStates",
 					BaseVal: defaultConfigGen().PluginSettings.PluginStates,
-					ActualVal: func() interface{} {
-						return map[string]*model.PluginState{}
-					}(),
+					ActualVal: map[string]*model.PluginState{
+						"focalboard": {
+							Enable: true,
+						},
+						"playbooks": {
+							Enable: true,
+						},
+					},
 				},
 			},
 			"",

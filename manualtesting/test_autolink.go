@@ -4,10 +4,11 @@
 package manualtesting
 
 import (
+	"errors"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const linkPostText = `
@@ -23,14 +24,20 @@ https://medium.com/@slackhq/11-useful-tips-for-getting-the-most-of-slack-5dfb3d1
 
 func testAutoLink(env TestEnvironment) *model.AppError {
 	mlog.Info("Manual Auto Link Test")
-	channelID, err := getChannelID(env.Context.App, model.DEFAULT_CHANNEL, env.CreatedTeamID, env.CreatedUserID)
-	if !err {
+	channelID, ok := getChannelID(env.Context.App, model.DefaultChannelName, env.CreatedTeamID, env.CreatedUserID)
+	if !ok {
 		return model.NewAppError("/manualtest", "manaultesting.test_autolink.unable.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	post := &model.Post{
 		ChannelId: channelID,
 		Message:   linkPostText}
-	_, resp := env.Client.CreatePost(post)
-	return resp.Error
+	_, _, err := env.Client.CreatePost(post)
+
+	var appErr *model.AppError
+	if ok = errors.As(err, &appErr); !ok {
+		appErr = model.NewAppError("/manualtest", "manaultesting.test_autolink.unable.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	return appErr
 }

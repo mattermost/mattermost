@@ -5,18 +5,17 @@ package sqlstore
 
 import (
 	"database/sql"
-	"os"
-	"time"
 
 	"github.com/blang/semver"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
-	CurrentSchemaVersion   = Version5390
+	CurrentSchemaVersion   = Version600
+	Version600             = "6.0.0"
 	Version5390            = "5.39.0"
 	Version5380            = "5.38.0"
 	Version5370            = "5.37.0"
@@ -211,15 +210,14 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion537(sqlStore)
 	upgradeDatabaseToVersion538(sqlStore)
 	upgradeDatabaseToVersion539(sqlStore)
+	upgradeDatabaseToVersion600(sqlStore)
 
 	return nil
 }
 
 func saveSchemaVersion(sqlStore *SqlStore, version string) {
 	if err := sqlStore.System().SaveOrUpdate(&model.System{Name: "Version", Value: version}); err != nil {
-		mlog.Critical(err.Error())
-		time.Sleep(time.Second)
-		os.Exit(ExitVersionSave)
+		mlog.Fatal(err.Error())
 	}
 
 	mlog.Warn("The database schema version has been upgraded", mlog.String("version", version))
@@ -262,16 +260,14 @@ func upgradeDatabaseToVersion32(sqlStore *SqlStore) {
 }
 
 func themeMigrationFailed(err error) {
-	mlog.Critical("Failed to migrate User.ThemeProps to Preferences table", mlog.Err(err))
-	time.Sleep(time.Second)
-	os.Exit(ExitThemeMigration)
+	mlog.Fatal("Failed to migrate User.ThemeProps to Preferences table", mlog.Err(err))
 }
 
 func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version320, Version330) {
 		if sqlStore.DoesColumnExist("Users", "ThemeProps") {
 			params := map[string]interface{}{
-				"Category": model.PREFERENCE_CATEGORY_THEME,
+				"Category": model.PreferenceCategoryTheme,
 				"Name":     "",
 			}
 
@@ -286,7 +282,7 @@ func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 				`INSERT INTO
 					Preferences(UserId, Category, Name, Value)
 				SELECT
-					Id, '`+model.PREFERENCE_CATEGORY_THEME+`', '', ThemeProps
+					Id, '`+model.PreferenceCategoryTheme+`', '', ThemeProps
 				FROM
 					Users
 				WHERE
@@ -529,7 +525,7 @@ func upgradeDatabaseToVersion58(sqlStore *SqlStore) {
 		sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "Description", "text", "VARCHAR(500)")
 		sqlStore.AlterColumnTypeIfExists("OutgoingWebhooks", "IconURL", "text", "VARCHAR(1024)")
 		sqlStore.RemoveDefaultIfColumnExists("OutgoingWebhooks", "Username")
-		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		if sqlStore.DriverName() == model.DatabaseDriverPostgres {
 			sqlStore.RemoveDefaultIfColumnExists("OutgoingWebhooks", "IconURL")
 		}
 		sqlStore.AlterDefaultIfColumnExists("OutgoingWebhooks", "Username", model.NewString("NULL"), nil)
@@ -683,8 +679,7 @@ func upgradeDatabaseToVersion527(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion528(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5270, Version5280) {
 		if err := precheckMigrationToVersion528(sqlStore); err != nil {
-			mlog.Critical("Error upgrading DB schema to 5.28.0", mlog.Err(err))
-			os.Exit(ExitGenericFailure)
+			mlog.Fatal("Error upgrading DB schema to 5.28.0", mlog.Err(err))
 		}
 
 		sqlStore.AlterColumnTypeIfExists("Teams", "Type", "VARCHAR(255)", "VARCHAR(255)")
@@ -753,6 +748,8 @@ func upgradeDatabaseToVersion531(sqlStore *SqlStore) {
 	}
 }
 
+const RemoteClusterSiteURLUniqueIndex = "remote_clusters_site_url_unique"
+
 func hasMissingMigrationsVersion532(sqlStore *SqlStore) bool {
 	scIdInfo, err := sqlStore.GetColumnInfo("Posts", "FileIds")
 	if err != nil {
@@ -764,7 +761,7 @@ func hasMissingMigrationsVersion532(sqlStore *SqlStore) bool {
 		return true
 	}
 
-	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if sqlStore.DriverName() == model.DatabaseDriverPostgres {
 		if !sqlStore.IsVarchar(scIdInfo.DataType) || scIdInfo.CharMaximumLength != 300 {
 			return true
 		}
@@ -777,7 +774,7 @@ func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
 	if hasMissingMigrationsVersion532(sqlStore) {
 		// this migration was reverted on MySQL due to performance reasons. Doing
 		// it only on PostgreSQL for the time being.
-		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		if sqlStore.DriverName() == model.DatabaseDriverPostgres {
 			// allow 10 files per post
 			sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
 		}
@@ -854,7 +851,7 @@ func fixCRTThreadCountsAndUnreads(sqlStore *SqlStore) {
 		UPDATE ThreadMemberships set LastViewed = q.CM_LastViewedAt + 1, UnreadMentions = 0, LastUpdated = :Now
 		FROM q WHERE ThreadMemberships.Postid = q.PostId AND ThreadMemberships.UserId = q.UserId
 	`
-	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if sqlStore.DriverName() == model.DatabaseDriverMysql {
 		updateThreadMembershipQuery = `
 			UPDATE ThreadMemberships
 			INNER JOIN (` + threadMembershipsCTE + `) as q
@@ -888,7 +885,7 @@ func fixCRTChannelMembershipCounts(sqlStore *SqlStore) {
 		WHERE ChannelMembers.Channelid = Channels.Id AND ChannelMembers.LastViewedAt >= Channels.LastPostAt;
 	`
 
-	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if sqlStore.DriverName() == model.DatabaseDriverMysql {
 		channelMembershipsCountsAndMentions = `
 			UPDATE ChannelMembers
 			INNER JOIN Channels on Channels.Id = ChannelMembers.ChannelId
@@ -910,4 +907,201 @@ func upgradeDatabaseToVersion539(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5380, Version5390) {
 		saveSchemaVersion(sqlStore, Version5390)
 	}
+}
+
+func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
+	if hasMissingMigrationsVersion600(sqlStore) {
+		sqlStore.GetMaster().ExecNoTimeout("UPDATE Posts SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
+		if sqlStore.DriverName() == model.DatabaseDriverMysql {
+			if sqlStore.DoesColumnExist("Posts", "ParentId") {
+				sqlStore.GetMaster().ExecNoTimeout("ALTER TABLE Posts MODIFY COLUMN FileIds text, MODIFY COLUMN Props JSON, DROP COLUMN ParentId")
+			} else {
+				sqlStore.GetMaster().ExecNoTimeout("ALTER TABLE Posts MODIFY COLUMN FileIds text, MODIFY COLUMN Props JSON")
+			}
+		} else {
+			sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
+			sqlStore.AlterColumnTypeIfExists("Posts", "Props", "JSON", "jsonb")
+			sqlStore.RemoveColumnIfExists("Posts", "ParentId")
+		}
+
+		sqlStore.AlterColumnTypeIfExists("ChannelMembers", "NotifyProps", "JSON", "jsonb")
+		sqlStore.AlterColumnTypeIfExists("Jobs", "Data", "JSON", "jsonb")
+		sqlStore.AlterColumnTypeIfExists("LinkMetadata", "Data", "JSON", "jsonb")
+
+		sqlStore.AlterColumnTypeIfExists("Sessions", "Props", "JSON", "jsonb")
+		sqlStore.AlterColumnTypeIfExists("Threads", "Participants", "JSON", "jsonb")
+		sqlStore.AlterColumnTypeIfExists("Users", "Props", "JSON", "jsonb")
+		sqlStore.AlterColumnTypeIfExists("Users", "NotifyProps", "JSON", "jsonb")
+		info, err := sqlStore.GetColumnInfo("Users", "Timezone")
+		if err != nil {
+			mlog.Error("Error getting column info",
+				mlog.String("table", "Users"),
+				mlog.String("column", "Timezone"),
+				mlog.Err(err),
+			)
+		} else if info.DefaultValue != "" {
+			sqlStore.RemoveDefaultIfColumnExists("Users", "Timezone")
+		}
+		sqlStore.AlterColumnTypeIfExists("Users", "Timezone", "JSON", "jsonb")
+
+		sqlStore.GetMaster().ExecNoTimeout("UPDATE CommandWebhooks SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
+		sqlStore.RemoveColumnIfExists("CommandWebhooks", "ParentId")
+
+		sqlStore.CreateCompositeIndexIfNotExists("idx_posts_root_id_delete_at", "Posts", []string{"RootId", "DeleteAt"})
+		sqlStore.RemoveIndexIfExists("idx_posts_root_id", "Posts")
+
+		sqlStore.CreateCompositeIndexIfNotExists("idx_channels_team_id_display_name", "Channels", []string{"TeamId", "DisplayName"})
+		sqlStore.CreateCompositeIndexIfNotExists("idx_channels_team_id_type", "Channels", []string{"TeamId", "Type"})
+		sqlStore.RemoveIndexIfExists("idx_channels_team_id", "Channels")
+
+		sqlStore.CreateCompositeIndexIfNotExists("idx_threads_channel_id_last_reply_at", "Threads", []string{"ChannelId", "LastReplyAt"})
+		sqlStore.RemoveIndexIfExists("idx_threads_channel_id", "Threads")
+
+		sqlStore.CreateCompositeIndexIfNotExists("idx_channelmembers_user_id_channel_id_last_viewed_at", "ChannelMembers", []string{"UserId", "ChannelId", "LastViewedAt"})
+		sqlStore.CreateCompositeIndexIfNotExists("idx_channelmembers_channel_id_scheme_guest_user_id", "ChannelMembers", []string{"ChannelId", "SchemeGuest", "UserId"})
+		sqlStore.RemoveIndexIfExists("idx_channelmembers_user_id", "ChannelMembers")
+
+		sqlStore.CreateCompositeIndexIfNotExists("idx_status_status_dndendtime", "Status", []string{"Status", "DNDEndTime"})
+		sqlStore.RemoveIndexIfExists("idx_status_status", "Status")
+	}
+
+	if shouldPerformUpgrade(sqlStore, Version5390, Version600) {
+		saveSchemaVersion(sqlStore, Version600)
+	}
+}
+
+func hasMissingMigrationsVersion600(sqlStore *SqlStore) bool {
+	jsonBFn := func(tableName, columnName string) bool {
+		info, err := sqlStore.GetColumnInfo(tableName, columnName)
+		if err != nil {
+			mlog.Error("Error getting column info for migration check",
+				mlog.String("table", tableName),
+				mlog.String("column", columnName),
+				mlog.Err(err),
+			)
+			return true
+		}
+
+		if sqlStore.DriverName() == model.DatabaseDriverPostgres {
+			if info.DataType != "jsonb" {
+				return true
+			}
+		} else if sqlStore.DriverName() == model.DatabaseDriverMysql {
+			jsonType := "JSON"
+			// JSON is aliased as LONGTEXT for MariaDB.
+			// https://mariadb.com/kb/en/json-data-type/
+			if ok, err := sqlStore.isMariaDB(); ok {
+				jsonType = "longtext"
+			} else if err != nil {
+				mlog.Warn("Error checking db type", mlog.Err(err))
+			}
+
+			if info.DataType != jsonType {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	if jsonBFn("ChannelMembers", "NotifyProps") {
+		return true
+	}
+	if jsonBFn("Jobs", "Data") {
+		return true
+	}
+	if jsonBFn("LinkMetadata", "Data") {
+		return true
+	}
+	if jsonBFn("Posts", "Props") {
+		return true
+	}
+	if jsonBFn("Sessions", "Props") {
+		return true
+	}
+	if jsonBFn("Threads", "Participants") {
+		return true
+	}
+	if jsonBFn("Users", "Props") {
+		return true
+	}
+	if jsonBFn("Users", "NotifyProps") {
+		return true
+	}
+	if jsonBFn("Users", "Timezone") {
+		return true
+	}
+
+	if sqlStore.DoesColumnExist("Posts", "ParentId") {
+		return true
+	}
+	if sqlStore.DoesColumnExist("CommandWebhooks", "ParentId") {
+		return true
+	}
+
+	scIdInfo, err := sqlStore.GetColumnInfo("Posts", "FileIds")
+	if err != nil {
+		mlog.Error("Error getting column info for migration check",
+			mlog.String("table", "Posts"),
+			mlog.String("column", "FileIds"),
+			mlog.Err(err),
+		)
+		return true
+	}
+
+	if sqlStore.DriverName() == model.DatabaseDriverPostgres {
+		if !sqlStore.IsVarchar(scIdInfo.DataType) || scIdInfo.CharMaximumLength != 300 {
+			return true
+		}
+	}
+
+	if sqlStore.DoesIndexExist("idx_posts_root_id", "Posts") {
+		return true
+	}
+
+	if !sqlStore.DoesIndexExist("idx_posts_root_id_delete_at", "Posts") {
+		return true
+	}
+
+	if sqlStore.DoesIndexExist("idx_channels_team_id", "Channels") {
+		return true
+	}
+
+	if !sqlStore.DoesIndexExist("idx_channels_team_id_display_name", "Channels") {
+		return true
+	}
+
+	if !sqlStore.DoesIndexExist("idx_channels_team_id_type", "Channels") {
+		return true
+	}
+
+	if sqlStore.DoesIndexExist("idx_threads_channel_id", "Threads") {
+		return true
+	}
+
+	if !sqlStore.DoesIndexExist("idx_threads_channel_id_last_reply_at", "Threads") {
+		return true
+	}
+
+	if sqlStore.DoesIndexExist("idx_channelmembers_user_id", "ChannelMembers") {
+		return true
+	}
+
+	if !sqlStore.DoesIndexExist("idx_channelmembers_user_id_channel_id_last_viewed_at", "ChannelMembers") {
+		return true
+	}
+
+	if !sqlStore.DoesIndexExist("idx_channelmembers_channel_id_scheme_guest_user_id", "ChannelMembers") {
+		return true
+	}
+
+	if sqlStore.DoesIndexExist("idx_status_status", "Status") {
+		return true
+	}
+
+	if !sqlStore.DoesIndexExist("idx_status_status_dndendtime", "Status") {
+		return true
+	}
+
+	return false
 }

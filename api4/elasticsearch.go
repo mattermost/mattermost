@@ -6,25 +6,25 @@ package api4
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func (api *API) InitElasticsearch() {
-	api.BaseRoutes.Elasticsearch.Handle("/test", api.ApiSessionRequired(testElasticsearch)).Methods("POST")
-	api.BaseRoutes.Elasticsearch.Handle("/purge_indexes", api.ApiSessionRequired(purgeElasticsearchIndexes)).Methods("POST")
+	api.BaseRoutes.Elasticsearch.Handle("/test", api.APISessionRequired(testElasticsearch)).Methods("POST")
+	api.BaseRoutes.Elasticsearch.Handle("/purge_indexes", api.APISessionRequired(purgeElasticsearchIndexes)).Methods("POST")
 }
 
 func testElasticsearch(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJson(r.Body)
+	cfg := model.ConfigFromJSON(r.Body)
 	if cfg == nil {
 		cfg = c.App.Config()
 	}
 
 	// PERMISSION_TEST_ELASTICSEARCH is an ancillary permission of PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_ELASTICSEARCH,
 	// which should prevent read-only managers from password sniffing
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_TEST_ELASTICSEARCH) {
-		c.SetPermissionError(model.PERMISSION_TEST_ELASTICSEARCH)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestElasticsearch) {
+		c.SetPermissionError(model.PermissionTestElasticsearch)
 		return
 	}
 
@@ -45,8 +45,8 @@ func purgeElasticsearchIndexes(c *Context, w http.ResponseWriter, r *http.Reques
 	auditRec := c.MakeAuditRecord("purgeElasticsearchIndexes", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_PURGE_ELASTICSEARCH_INDEXES) {
-		c.SetPermissionError(model.PERMISSION_PURGE_ELASTICSEARCH_INDEXES)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionPurgeElasticsearchIndexes) {
+		c.SetPermissionError(model.PermissionPurgeElasticsearchIndexes)
 		return
 	}
 

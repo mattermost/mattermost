@@ -6,23 +6,23 @@ package einterfaces
 import (
 	"io"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
-type OauthProvider interface {
-	GetUserFromJson(data io.Reader, tokenUser *model.User) (*model.User, error)
+type OAuthProvider interface {
+	GetUserFromJSON(data io.Reader, tokenUser *model.User) (*model.User, error)
 	GetSSOSettings(config *model.Config, service string) (*model.SSOSettings, error)
 	GetUserFromIdToken(idToken string) (*model.User, error)
 	IsSameUser(dbUser, oAuthUser *model.User) bool
 }
 
-var oauthProviders = make(map[string]OauthProvider)
+var oauthProviders = make(map[string]OAuthProvider)
 
-func RegisterOauthProvider(name string, newProvider OauthProvider) {
+func RegisterOAuthProvider(name string, newProvider OAuthProvider) {
 	oauthProviders[name] = newProvider
 }
 
-func GetOauthProvider(name string) OauthProvider {
+func GetOAuthProvider(name string) OAuthProvider {
 	provider, ok := oauthProviders[name]
 	if ok {
 		return provider

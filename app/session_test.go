@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
@@ -64,7 +64,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	session = &model.Session{
 		UserId: model.NewId(),
 	}
-	session.AddProp(model.SESSION_PROP_TYPE, model.SESSION_TYPE_USER_ACCESS_TOKEN)
+	session.AddProp(model.SessionPropType, model.SessionTypeUserAccessToken)
 
 	session, _ = th.App.CreateSession(session)
 	time = session.LastActivityAt - (1000 * 60 * 6)
@@ -103,48 +103,48 @@ func TestUpdateSessionOnPromoteDemote(t *testing.T) {
 	t.Run("Promote Guest to User updates the session", func(t *testing.T) {
 		guest := th.CreateGuest()
 
-		session, err := th.App.CreateSession(&model.Session{UserId: guest.Id, Props: model.StringMap{model.SESSION_PROP_IS_GUEST: "true"}})
+		session, err := th.App.CreateSession(&model.Session{UserId: guest.Id, Props: model.StringMap{model.SessionPropIsGuest: "true"}})
 		require.Nil(t, err)
 
 		rsession, err := th.App.GetSession(session.Token)
 		require.Nil(t, err)
-		assert.Equal(t, "true", rsession.Props[model.SESSION_PROP_IS_GUEST])
+		assert.Equal(t, "true", rsession.Props[model.SessionPropIsGuest])
 
 		err = th.App.PromoteGuestToUser(th.Context, guest, th.BasicUser.Id)
 		require.Nil(t, err)
 
 		rsession, err = th.App.GetSession(session.Token)
 		require.Nil(t, err)
-		assert.Equal(t, "false", rsession.Props[model.SESSION_PROP_IS_GUEST])
+		assert.Equal(t, "false", rsession.Props[model.SessionPropIsGuest])
 
 		th.App.ClearSessionCacheForUser(session.UserId)
 
 		rsession, err = th.App.GetSession(session.Token)
 		require.Nil(t, err)
-		assert.Equal(t, "false", rsession.Props[model.SESSION_PROP_IS_GUEST])
+		assert.Equal(t, "false", rsession.Props[model.SessionPropIsGuest])
 	})
 
 	t.Run("Demote User to Guest updates the session", func(t *testing.T) {
 		user := th.CreateUser()
 
-		session, err := th.App.CreateSession(&model.Session{UserId: user.Id, Props: model.StringMap{model.SESSION_PROP_IS_GUEST: "false"}})
+		session, err := th.App.CreateSession(&model.Session{UserId: user.Id, Props: model.StringMap{model.SessionPropIsGuest: "false"}})
 		require.Nil(t, err)
 
 		rsession, err := th.App.GetSession(session.Token)
 		require.Nil(t, err)
-		assert.Equal(t, "false", rsession.Props[model.SESSION_PROP_IS_GUEST])
+		assert.Equal(t, "false", rsession.Props[model.SessionPropIsGuest])
 
 		err = th.App.DemoteUserToGuest(user)
 		require.Nil(t, err)
 
 		rsession, err = th.App.GetSession(session.Token)
 		require.Nil(t, err)
-		assert.Equal(t, "true", rsession.Props[model.SESSION_PROP_IS_GUEST])
+		assert.Equal(t, "true", rsession.Props[model.SessionPropIsGuest])
 
 		th.App.ClearSessionCacheForUser(session.UserId)
 		rsession, err = th.App.GetSession(session.Token)
 		require.Nil(t, err)
-		assert.Equal(t, "true", rsession.Props[model.SESSION_PROP_IS_GUEST])
+		assert.Equal(t, "true", rsession.Props[model.SessionPropIsGuest])
 	})
 }
 
@@ -175,7 +175,7 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 		session := &model.Session{
 			UserId: model.NewId(),
 			Props: map[string]string{
-				model.USER_AUTH_SERVICE_IS_MOBILE: "true",
+				model.UserAuthServiceIsMobile: "true",
 			},
 		}
 		session, err := th.App.CreateSession(session)
@@ -189,8 +189,8 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 		session := &model.Session{
 			UserId: model.NewId(),
 			Props: map[string]string{
-				model.USER_AUTH_SERVICE_IS_MOBILE: "true",
-				model.USER_AUTH_SERVICE_IS_SAML:   "true",
+				model.UserAuthServiceIsMobile: "true",
+				model.UserAuthServiceIsSaml:   "true",
 			},
 		}
 		session, err := th.App.CreateSession(session)
@@ -204,7 +204,7 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 		session := &model.Session{
 			UserId: model.NewId(),
 			Props: map[string]string{
-				model.USER_AUTH_SERVICE_IS_OAUTH: "true",
+				model.UserAuthServiceIsOAuth: "true",
 			},
 		}
 		session, err := th.App.CreateSession(session)
@@ -218,7 +218,7 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 		session := &model.Session{
 			UserId: model.NewId(),
 			Props: map[string]string{
-				model.USER_AUTH_SERVICE_IS_SAML: "true",
+				model.UserAuthServiceIsSaml: "true",
 			}}
 		session, err := th.App.CreateSession(session)
 		require.Nil(t, err)

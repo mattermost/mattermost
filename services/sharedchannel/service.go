@@ -10,12 +10,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
-	"github.com/mattermost/mattermost-server/v5/shared/filestore"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/remotecluster"
+	"github.com/mattermost/mattermost-server/v6/shared/filestore"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 const (
@@ -211,8 +211,8 @@ func (scs *Service) pause() {
 
 // Makes the remote channel to be read-only(announcement mode, only admins can create posts and reactions).
 func (scs *Service) makeChannelReadOnly(channel *model.Channel) *model.AppError {
-	createPostPermission := model.ChannelModeratedPermissionsMap[model.PERMISSION_CREATE_POST.Id]
-	createReactionPermission := model.ChannelModeratedPermissionsMap[model.PERMISSION_ADD_REACTION.Id]
+	createPostPermission := model.ChannelModeratedPermissionsMap[model.PermissionCreatePost.Id]
+	createReactionPermission := model.ChannelModeratedPermissionsMap[model.PermissionAddReaction.Id]
 	updateMap := model.ChannelModeratedRolesPatch{
 		Guests:  model.NewBool(false),
 		Members: model.NewBool(false),

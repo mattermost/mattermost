@@ -12,12 +12,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/jobs"
-	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/jobs"
+	tjobs "github.com/mattermost/mattermost-server/v6/jobs/interfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func init() {
@@ -162,7 +162,7 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 	}
 
 	// do the actual import.
-	appErr, lineNumber := w.app.BulkImport(w.appContext, jsonFile, importZipReader, false, runtime.NumCPU())
+	appErr, lineNumber := w.app.BulkImportWithPath(w.appContext, jsonFile, importZipReader, false, runtime.NumCPU(), app.ExportDataDir)
 	if appErr != nil {
 		job.Data["line_number"] = strconv.Itoa(lineNumber)
 		w.setJobError(job, appErr)

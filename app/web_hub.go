@@ -11,8 +11,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
@@ -168,18 +168,22 @@ func (s *Server) Publish(message *model.WebSocketEvent) {
 	s.PublishSkipClusterSend(message)
 
 	if s.Cluster != nil {
+		data, err := message.ToJSON()
+		if err != nil {
+			mlog.Warn("Failed to encode message to JSON", mlog.Err(err))
+		}
 		cm := &model.ClusterMessage{
-			Event:    model.CLUSTER_EVENT_PUBLISH,
-			SendType: model.CLUSTER_SEND_BEST_EFFORT,
-			Data:     message.ToJson(),
+			Event:    model.ClusterEventPublish,
+			SendType: model.ClusterSendBestEffort,
+			Data:     data,
 		}
 
-		if message.EventType() == model.WEBSOCKET_EVENT_POSTED ||
-			message.EventType() == model.WEBSOCKET_EVENT_POST_EDITED ||
-			message.EventType() == model.WEBSOCKET_EVENT_DIRECT_ADDED ||
-			message.EventType() == model.WEBSOCKET_EVENT_GROUP_ADDED ||
-			message.EventType() == model.WEBSOCKET_EVENT_ADDED_TO_TEAM {
-			cm.SendType = model.CLUSTER_SEND_RELIABLE
+		if message.EventType() == model.WebsocketEventPosted ||
+			message.EventType() == model.WebsocketEventPostEdited ||
+			message.EventType() == model.WebsocketEventDirectAdded ||
+			message.EventType() == model.WebsocketEventGroupAdded ||
+			message.EventType() == model.WebsocketEventAddedToTeam {
+			cm.SendType = model.ClusterSendReliable
 		}
 
 		s.Cluster.SendClusterMessage(cm)
@@ -212,8 +216,8 @@ func (a *App) invalidateCacheForChannel(channel *model.Channel) {
 
 	if a.Cluster() != nil {
 		nameMsg := &model.ClusterMessage{
-			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_BY_NAME,
-			SendType: model.CLUSTER_SEND_BEST_EFFORT,
+			Event:    model.ClusterEventInvalidateCacheForChannelByName,
+			SendType: model.ClusterSendBestEffort,
 			Props:    make(map[string]string),
 		}
 
@@ -239,9 +243,9 @@ func (a *App) invalidateCacheForChannelMembersNotifyProps(channelID string) {
 
 	if a.Cluster() != nil {
 		msg := &model.ClusterMessage{
-			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBERS_NOTIFY_PROPS,
-			SendType: model.CLUSTER_SEND_BEST_EFFORT,
-			Data:     channelID,
+			Event:    model.ClusterEventInvalidateCacheForChannelMembersNotifyProps,
+			SendType: model.ClusterSendBestEffort,
+			Data:     []byte(channelID),
 		}
 		a.Cluster().SendClusterMessage(msg)
 	}
@@ -264,9 +268,9 @@ func (a *App) invalidateCacheForUserTeams(userID string) {
 
 	if a.Cluster() != nil {
 		msg := &model.ClusterMessage{
-			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_USER_TEAMS,
-			SendType: model.CLUSTER_SEND_BEST_EFFORT,
-			Data:     userID,
+			Event:    model.ClusterEventInvalidateCacheForUserTeams,
+			SendType: model.ClusterSendBestEffort,
+			Data:     []byte(userID),
 		}
 		a.Cluster().SendClusterMessage(msg)
 	}

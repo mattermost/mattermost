@@ -7,7 +7,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -52,12 +52,12 @@ func IsPasswordValidWithSettings(password string, settings *model.PasswordSettin
 	id := "model.user.is_valid.pwd"
 	isError := false
 
-	if len(password) < *settings.MinimumLength || len(password) > model.PASSWORD_MAXIMUM_LENGTH {
+	if len(password) < *settings.MinimumLength || len(password) > model.PasswordMaximumLength {
 		isError = true
 	}
 
 	if *settings.Lowercase {
-		if !strings.ContainsAny(password, model.LOWERCASE_LETTERS) {
+		if !strings.ContainsAny(password, model.LowercaseLetters) {
 			isError = true
 		}
 
@@ -65,7 +65,7 @@ func IsPasswordValidWithSettings(password string, settings *model.PasswordSettin
 	}
 
 	if *settings.Uppercase {
-		if !strings.ContainsAny(password, model.UPPERCASE_LETTERS) {
+		if !strings.ContainsAny(password, model.UppercaseLetters) {
 			isError = true
 		}
 

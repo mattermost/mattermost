@@ -14,10 +14,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/timezones"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/timezones"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
 func TestGetDirectMessageNotificationEmailSubject(t *testing.T) {
@@ -38,7 +38,7 @@ func TestGetGroupMessageNotificationEmailSubjectFull(t *testing.T) {
 		CreateAt: 1501804801000,
 	}
 	translateFunc := i18n.GetUserTranslations("en")
-	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	emailNotificationContentsType := model.EmailNotificationContentsFull
 	subject := getGroupMessageNotificationEmailSubject(user, post, translateFunc, "http://localhost:8065", "sender", emailNotificationContentsType, true)
 	require.Regexp(t, regexp.MustCompile("^"+regexp.QuoteMeta(expectedPrefix)), subject, fmt.Sprintf("Expected subject line prefix '%s', got %s", expectedPrefix, subject))
 }
@@ -50,7 +50,7 @@ func TestGetGroupMessageNotificationEmailSubjectGeneric(t *testing.T) {
 		CreateAt: 1501804801000,
 	}
 	translateFunc := i18n.GetUserTranslations("en")
-	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_GENERIC
+	emailNotificationContentsType := model.EmailNotificationContentsGeneric
 	subject := getGroupMessageNotificationEmailSubject(user, post, translateFunc, "http://localhost:8065", "sender", emailNotificationContentsType, true)
 	require.Regexp(t, regexp.MustCompile("^"+regexp.QuoteMeta(expectedPrefix)), subject, fmt.Sprintf("Expected subject line prefix '%s', got %s", expectedPrefix, subject))
 }
@@ -76,13 +76,13 @@ func TestGetNotificationEmailBodyFullNotificationPublicChannel(t *testing.T) {
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"
 	teamName := "testteam"
 	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	emailNotificationContentsType := model.EmailNotificationContentsFull
 	translateFunc := i18n.GetUserTranslations("en")
 
 	storeMock := th.App.Srv().Store.(*mocks.Store)
@@ -107,13 +107,13 @@ func TestGetNotificationEmailBodyFullNotificationGroupChannel(t *testing.T) {
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.CHANNEL_GROUP,
+		Type:        model.ChannelTypeGroup,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"
 	teamName := "testteam"
 	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	emailNotificationContentsType := model.EmailNotificationContentsFull
 	translateFunc := i18n.GetUserTranslations("en")
 
 	storeMock := th.App.Srv().Store.(*mocks.Store)
@@ -138,13 +138,13 @@ func TestGetNotificationEmailBodyFullNotificationPrivateChannel(t *testing.T) {
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"
 	teamName := "testteam"
 	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	emailNotificationContentsType := model.EmailNotificationContentsFull
 	translateFunc := i18n.GetUserTranslations("en")
 
 	storeMock := th.App.Srv().Store.(*mocks.Store)
@@ -169,13 +169,13 @@ func TestGetNotificationEmailBodyFullNotificationDirectChannel(t *testing.T) {
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.CHANNEL_DIRECT,
+		Type:        model.ChannelTypeDirect,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"
 	teamName := "testteam"
 	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	emailNotificationContentsType := model.EmailNotificationContentsFull
 	translateFunc := i18n.GetUserTranslations("en")
 
 	storeMock := th.App.Srv().Store.(*mocks.Store)
@@ -204,13 +204,13 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeWithTimezone(t *testi
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.CHANNEL_DIRECT,
+		Type:        model.ChannelTypeDirect,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"
 	teamName := "testteam"
 	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	emailNotificationContentsType := model.EmailNotificationContentsFull
 	translateFunc := i18n.GetUserTranslations("en")
 
 	storeMock := th.App.Srv().Store.(*mocks.Store)
@@ -238,13 +238,13 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeNoTimezone(t *testing
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.CHANNEL_DIRECT,
+		Type:        model.ChannelTypeDirect,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"
 	teamName := "testteam"
 	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	emailNotificationContentsType := model.EmailNotificationContentsFull
 	translateFunc := i18n.GetUserTranslations("en")
 
 	storeMock := th.App.Srv().Store.(*mocks.Store)
@@ -256,10 +256,6 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeNoTimezone(t *testing
 	zone, _ := tm.Zone()
 
 	formattedTime := formattedPostTime{
-		Time:     tm,
-		Year:     fmt.Sprintf("%d", tm.Year()),
-		Month:    translateFunc(tm.Month().String()),
-		Day:      fmt.Sprintf("%d", tm.Day()),
 		Hour:     fmt.Sprintf("%02d", tm.Hour()),
 		Minute:   fmt.Sprintf("%02d", tm.Minute()),
 		TimeZone: zone,
@@ -291,13 +287,13 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime12Hour(t *testing.T) 
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.CHANNEL_DIRECT,
+		Type:        model.ChannelTypeDirect,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"
 	teamName := "testteam"
 	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	emailNotificationContentsType := model.EmailNotificationContentsFull
 	translateFunc := i18n.GetUserTranslations("en")
 
 	storeMock := th.App.Srv().Store.(*mocks.Store)
@@ -324,13 +320,13 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime24Hour(t *testing.T) 
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.CHANNEL_DIRECT,
+		Type:        model.ChannelTypeDirect,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"
 	teamName := "testteam"
 	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	emailNotificationContentsType := model.EmailNotificationContentsFull
 	translateFunc := i18n.GetUserTranslations("en")
 
 	storeMock := th.App.Srv().Store.(*mocks.Store)
@@ -354,13 +350,13 @@ func TestGetNotificationEmailBodyGenericNotificationPublicChannel(t *testing.T) 
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"
 	teamName := "testteam"
 	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_GENERIC
+	emailNotificationContentsType := model.EmailNotificationContentsGeneric
 	translateFunc := i18n.GetUserTranslations("en")
 
 	storeMock := th.App.Srv().Store.(*mocks.Store)
@@ -384,13 +380,13 @@ func TestGetNotificationEmailBodyGenericNotificationGroupChannel(t *testing.T) {
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.CHANNEL_GROUP,
+		Type:        model.ChannelTypeGroup,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"
 	teamName := "testteam"
 	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_GENERIC
+	emailNotificationContentsType := model.EmailNotificationContentsGeneric
 	translateFunc := i18n.GetUserTranslations("en")
 
 	storeMock := th.App.Srv().Store.(*mocks.Store)
@@ -414,13 +410,13 @@ func TestGetNotificationEmailBodyGenericNotificationPrivateChannel(t *testing.T)
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"
 	teamName := "testteam"
 	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_GENERIC
+	emailNotificationContentsType := model.EmailNotificationContentsGeneric
 	translateFunc := i18n.GetUserTranslations("en")
 
 	storeMock := th.App.Srv().Store.(*mocks.Store)
@@ -444,13 +440,13 @@ func TestGetNotificationEmailBodyGenericNotificationDirectChannel(t *testing.T) 
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.CHANNEL_DIRECT,
+		Type:        model.ChannelTypeDirect,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"
 	teamName := "testteam"
 	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_GENERIC
+	emailNotificationContentsType := model.EmailNotificationContentsGeneric
 	translateFunc := i18n.GetUserTranslations("en")
 
 	storeMock := th.App.Srv().Store.(*mocks.Store)
@@ -470,7 +466,7 @@ func TestGetNotificationEmailEscapingChars(t *testing.T) {
 
 	ch := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channelName := "ChannelName"
 	recipient := &model.User{}
@@ -482,7 +478,7 @@ func TestGetNotificationEmailEscapingChars(t *testing.T) {
 	senderName := "sender"
 	teamName := "testteam"
 	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	emailNotificationContentsType := model.EmailNotificationContentsFull
 	translateFunc := i18n.GetUserTranslations("en")
 
 	storeMock := th.App.Srv().Store.(*mocks.Store)
@@ -505,7 +501,7 @@ func TestGetNotificationEmailBodyPublicChannelMention(t *testing.T) {
 	ch := &model.Channel{
 		Name:        "channelname",
 		DisplayName: "ChannelName",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	id := model.NewId()
 	recipient := &model.User{
@@ -522,7 +518,7 @@ func TestGetNotificationEmailBodyPublicChannelMention(t *testing.T) {
 	senderName := "user1"
 	teamName := "testteam"
 	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	emailNotificationContentsType := model.EmailNotificationContentsFull
 	translateFunc := i18n.GetUserTranslations("en")
 
 	storeMock := th.App.Srv().Store.(*mocks.Store)
@@ -551,7 +547,7 @@ func TestGetNotificationEmailBodyMultiPublicChannelMention(t *testing.T) {
 		Id:          model.NewId(),
 		Name:        "channelnameone",
 		DisplayName: "ChannelName",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	mention := "~" + ch.Name
 
@@ -559,7 +555,7 @@ func TestGetNotificationEmailBodyMultiPublicChannelMention(t *testing.T) {
 		Id:          model.NewId(),
 		Name:        "channelnametwo",
 		DisplayName: "ChannelName2",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	mention2 := "~" + ch2.Name
 
@@ -567,7 +563,7 @@ func TestGetNotificationEmailBodyMultiPublicChannelMention(t *testing.T) {
 		Id:          model.NewId(),
 		Name:        "channelnamethree",
 		DisplayName: "ChannelName3",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	mention3 := "~" + ch3.Name
 
@@ -588,7 +584,7 @@ func TestGetNotificationEmailBodyMultiPublicChannelMention(t *testing.T) {
 	senderName := "user1"
 	teamName := "testteam"
 	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	emailNotificationContentsType := model.EmailNotificationContentsFull
 	translateFunc := i18n.GetUserTranslations("en")
 
 	storeMock := th.App.Srv().Store.(*mocks.Store)
@@ -620,7 +616,7 @@ func TestGetNotificationEmailBodyPrivateChannelMention(t *testing.T) {
 	ch := &model.Channel{
 		Name:        "channelname",
 		DisplayName: "ChannelName",
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	id := model.NewId()
 	recipient := &model.User{
@@ -637,7 +633,7 @@ func TestGetNotificationEmailBodyPrivateChannelMention(t *testing.T) {
 	senderName := "user1"
 	teamName := "testteam"
 	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	emailNotificationContentsType := model.EmailNotificationContentsFull
 	translateFunc := i18n.GetUserTranslations("en")
 
 	storeMock := th.App.Srv().Store.(*mocks.Store)
@@ -665,7 +661,7 @@ func TestGenerateHyperlinkForChannelsPublic(t *testing.T) {
 	ch := &model.Channel{
 		Name:        "channelname",
 		DisplayName: "ChannelName",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	message := "This is the message "
 	mention := "~" + ch.Name
@@ -697,7 +693,7 @@ func TestGenerateHyperlinkForChannelsMultiPublic(t *testing.T) {
 		Id:          model.NewId(),
 		Name:        "channelnameone",
 		DisplayName: "ChannelName",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	mention := "~" + ch.Name
 
@@ -705,7 +701,7 @@ func TestGenerateHyperlinkForChannelsMultiPublic(t *testing.T) {
 		Id:          model.NewId(),
 		Name:        "channelnametwo",
 		DisplayName: "ChannelName2",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	mention2 := "~" + ch2.Name
 
@@ -713,7 +709,7 @@ func TestGenerateHyperlinkForChannelsMultiPublic(t *testing.T) {
 		Id:          model.NewId(),
 		Name:        "channelnamethree",
 		DisplayName: "ChannelName3",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	mention3 := "~" + ch3.Name
 
@@ -750,7 +746,7 @@ func TestGenerateHyperlinkForChannelsPrivate(t *testing.T) {
 	ch := &model.Channel{
 		Name:        "channelname",
 		DisplayName: "ChannelName",
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 	}
 	message := "This is the message ~" + ch.Name
 
@@ -781,13 +777,13 @@ func TestLandingLink(t *testing.T) {
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"
 	teamName := "testteam"
 	teamURL := "http://localhost:8065/landing#/testteam"
-	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	emailNotificationContentsType := model.EmailNotificationContentsFull
 	translateFunc := i18n.GetUserTranslations("en")
 
 	storeMock := th.App.Srv().Store.(*mocks.Store)
@@ -811,13 +807,13 @@ func TestLandingLinkPermalink(t *testing.T) {
 	}
 	channel := &model.Channel{
 		DisplayName: "ChannelName",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channelName := "ChannelName"
 	senderName := "sender"
 	teamName := "testteam"
 	teamURL := "http://localhost:8065/landing#/testteam"
-	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	emailNotificationContentsType := model.EmailNotificationContentsFull
 	translateFunc := i18n.GetUserTranslations("en")
 
 	storeMock := th.App.Srv().Store.(*mocks.Store)

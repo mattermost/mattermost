@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 package jobs
 
-import "github.com/mattermost/mattermost-server/v5/model"
+import "github.com/mattermost/mattermost-server/v6/model"
 
 // ResendInvitationEmailJobInterface defines the interface for the job to resend invitation emails
 type ResendInvitationEmailJobInterface interface {

@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 var searchChannelStoreTests = []searchTest{
@@ -76,7 +76,7 @@ func TestSearchChannelStore(t *testing.T, s store.Store, testEngine *SearchTestE
 }
 
 func testAutocompleteChannelByName(t *testing.T, th *SearchTestHelper) {
-	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "Channel Alternate", "Channel Alternate", model.CHANNEL_OPEN, false)
+	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "Channel Alternate", "Channel Alternate", model.ChannelTypeOpen, false)
 	require.NoError(t, err)
 	defer th.deleteChannel(alternate)
 	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "channel-a", false)
@@ -85,7 +85,7 @@ func testAutocompleteChannelByName(t *testing.T, th *SearchTestHelper) {
 }
 
 func testAutocompleteChannelByDisplayName(t *testing.T, th *SearchTestHelper) {
-	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "ChannelAlternate", "", model.CHANNEL_OPEN, false)
+	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "ChannelAlternate", "", model.ChannelTypeOpen, false)
 	require.NoError(t, err)
 	defer th.deleteChannel(alternate)
 	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "ChannelA", false)
@@ -94,7 +94,7 @@ func testAutocompleteChannelByDisplayName(t *testing.T, th *SearchTestHelper) {
 }
 
 func testAutocompleteChannelByNameSplittedWithDashChar(t *testing.T, th *SearchTestHelper) {
-	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "ChannelAlternate", "", model.CHANNEL_OPEN, false)
+	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "ChannelAlternate", "", model.ChannelTypeOpen, false)
 	require.NoError(t, err)
 	defer th.deleteChannel(alternate)
 	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "channel-a", false)
@@ -103,7 +103,7 @@ func testAutocompleteChannelByNameSplittedWithDashChar(t *testing.T, th *SearchT
 }
 
 func testAutocompleteChannelByNameSplittedWithUnderscoreChar(t *testing.T, th *SearchTestHelper) {
-	alternate, err := th.createChannel(th.Team.Id, "channel_alternate", "ChannelAlternate", "", model.CHANNEL_OPEN, false)
+	alternate, err := th.createChannel(th.Team.Id, "channel_alternate", "ChannelAlternate", "", model.ChannelTypeOpen, false)
 	require.NoError(t, err)
 	defer th.deleteChannel(alternate)
 	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "channel_a", false)
@@ -112,7 +112,7 @@ func testAutocompleteChannelByNameSplittedWithUnderscoreChar(t *testing.T, th *S
 }
 
 func testAutocompleteChannelByDisplayNameSplittedByWhitespaces(t *testing.T, th *SearchTestHelper) {
-	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "Channel Alternate", "", model.CHANNEL_OPEN, false)
+	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "Channel Alternate", "", model.ChannelTypeOpen, false)
 	require.NoError(t, err)
 
 	defer th.deleteChannel(alternate)
@@ -121,9 +121,9 @@ func testAutocompleteChannelByDisplayNameSplittedByWhitespaces(t *testing.T, th 
 	th.checkChannelIdsMatch(t, []string{alternate.Id}, res)
 }
 func testAutocompleteAllChannelsIfTermIsEmpty(t *testing.T, th *SearchTestHelper) {
-	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "Channel Alternate", "", model.CHANNEL_OPEN, false)
+	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "Channel Alternate", "", model.ChannelTypeOpen, false)
 	require.NoError(t, err)
-	other, err := th.createChannel(th.Team.Id, "other-channel", "Other Channel", "", model.CHANNEL_OPEN, false)
+	other, err := th.createChannel(th.Team.Id, "other-channel", "Other Channel", "", model.ChannelTypeOpen, false)
 	require.NoError(t, err)
 	defer th.deleteChannel(alternate)
 	defer th.deleteChannel(other)
@@ -133,7 +133,7 @@ func testAutocompleteAllChannelsIfTermIsEmpty(t *testing.T, th *SearchTestHelper
 }
 
 func testSearchChannelsInCaseInsensitiveManner(t *testing.T, th *SearchTestHelper) {
-	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "ChannelAlternate", "", model.CHANNEL_OPEN, false)
+	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "ChannelAlternate", "", model.ChannelTypeOpen, false)
 	require.NoError(t, err)
 	defer th.deleteChannel(alternate)
 	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "channela", false)
@@ -145,7 +145,7 @@ func testSearchChannelsInCaseInsensitiveManner(t *testing.T, th *SearchTestHelpe
 }
 
 func testSearchOnlyPublicChannels(t *testing.T, th *SearchTestHelper) {
-	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "ChannelAlternate", "", model.CHANNEL_PRIVATE, false)
+	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "ChannelAlternate", "", model.ChannelTypePrivate, false)
 	require.NoError(t, err)
 	defer th.deleteChannel(alternate)
 	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "channel-a", false)
@@ -154,7 +154,7 @@ func testSearchOnlyPublicChannels(t *testing.T, th *SearchTestHelper) {
 }
 
 func testSearchShouldSupportHavingHyphenAsLastCharacter(t *testing.T, th *SearchTestHelper) {
-	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "ChannelAlternate", "", model.CHANNEL_OPEN, false)
+	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "ChannelAlternate", "", model.ChannelTypeOpen, false)
 	require.NoError(t, err)
 	defer th.deleteChannel(alternate)
 	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "channel-", false)

@@ -4,28 +4,10 @@
 package model
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
-
-func TestUserAccessTokenJson(t *testing.T) {
-	a1 := UserAccessToken{}
-	a1.UserId = NewId()
-	a1.Token = NewId()
-
-	json := a1.ToJson()
-	ra1 := UserAccessTokenFromJson(strings.NewReader(json))
-
-	require.Equal(t, a1.Token, ra1.Token, "tokens didn't match")
-
-	tokens := []*UserAccessToken{&a1}
-	json = UserAccessTokenListToJson(tokens)
-	tokens = UserAccessTokenListFromJson(strings.NewReader(json))
-
-	require.Equal(t, tokens[0].Token, ra1.Token, "tokens didn't match")
-}
 
 func TestUserAccessTokenIsValid(t *testing.T) {
 	ad := UserAccessToken{}

@@ -125,12 +125,3 @@ func PluginRequestFromReader(reader io.Reader) (*InstallMarketplacePluginRequest
 	}
 	return r, nil
 }
-
-// ToJson method will return json from plugin request.
-func (r *InstallMarketplacePluginRequest) ToJson() (string, error) {
-	b, err := json.Marshal(r)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
-}

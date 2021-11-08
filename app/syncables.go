@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 // createDefaultChannelMemberships adds users to channels based on their group memberships and how those groups are
@@ -236,7 +236,7 @@ func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSynca
 func (a *App) SyncRolesAndMembership(c *request.Context, syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool) {
 	a.SyncSyncableRoles(syncableID, syncableType)
 
-	lastJob, _ := a.Srv().Store.Job().GetNewestJobByStatusAndType(model.JOB_STATUS_SUCCESS, model.JOB_TYPE_LDAP_SYNC)
+	lastJob, _ := a.Srv().Store.Job().GetNewestJobByStatusAndType(model.JobStatusSuccess, model.JobTypeLdapSync)
 	var since int64
 	if lastJob != nil {
 		since = lastJob.StartAt

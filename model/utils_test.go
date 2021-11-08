@@ -73,15 +73,15 @@ func TestPadDateStringZeros(t *testing.T) {
 
 func TestAppError(t *testing.T) {
 	err := NewAppError("TestAppError", "message", nil, "", http.StatusInternalServerError)
-	json := err.ToJson()
-	rerr := AppErrorFromJson(strings.NewReader(json))
+	json := err.ToJSON()
+	rerr := AppErrorFromJSON(strings.NewReader(json))
 	require.Equal(t, err.Message, rerr.Message)
 
 	t.Log(err.Error())
 }
 
 func TestAppErrorJunk(t *testing.T) {
-	rerr := AppErrorFromJson(strings.NewReader("<html><body>This is a broken test</body></html>"))
+	rerr := AppErrorFromJSON(strings.NewReader("<html><body>This is a broken test</body></html>"))
 	require.Equal(t, "body: <html><body>This is a broken test</body></html>", rerr.DetailedError)
 }
 
@@ -100,13 +100,13 @@ func TestMapJson(t *testing.T) {
 
 	m := make(map[string]string)
 	m["id"] = "test_id"
-	json := MapToJson(m)
+	json := MapToJSON(m)
 
-	rm := MapFromJson(strings.NewReader(json))
+	rm := MapFromJSON(strings.NewReader(json))
 
 	require.Equal(t, rm["id"], "test_id", "map should be valid")
 
-	rm2 := MapFromJson(strings.NewReader(""))
+	rm2 := MapFromJSON(strings.NewReader(""))
 	require.LessOrEqual(t, len(rm2), 0, "make should be ivalid")
 }
 
@@ -338,13 +338,13 @@ func TestIsValidAlphaNum(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		actual := IsValidAlphaNum(tc.Input)
+		actual := isValidAlphaNum(tc.Input)
 		require.Equalf(t, actual, tc.Result, "case: %v\tshould returned: %#v", tc, tc.Result)
 	}
 }
 
-func TestGetServerIpAddress(t *testing.T) {
-	require.NotEmpty(t, GetServerIpAddress(""), "Should find local ip address")
+func TestGetServerIPAddress(t *testing.T) {
+	require.NotEmpty(t, GetServerIPAddress(""), "Should find local ip address")
 }
 
 func TestIsValidAlphaNumHyphenUnderscore(t *testing.T) {
@@ -855,7 +855,7 @@ func TestSanitizeUnicode(t *testing.T) {
 	}
 }
 
-func TestIsValidHttpUrl(t *testing.T) {
+func TestIsValidHTTPURL(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
@@ -940,12 +940,12 @@ func TestIsValidHttpUrl(t *testing.T) {
 			}()
 
 			t.Parallel()
-			require.Equal(t, testCase.Expected, IsValidHttpUrl(testCase.Value))
+			require.Equal(t, testCase.Expected, IsValidHTTPURL(testCase.Value))
 		})
 	}
 }
 
-func TestUniqueStrings(t *testing.T) {
+func TestRemoveDuplicateStrings(t *testing.T) {
 	cases := []struct {
 		Input  []string
 		Result []string
@@ -973,7 +973,7 @@ func TestUniqueStrings(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		actual := UniqueStrings(tc.Input)
+		actual := RemoveDuplicateStrings(tc.Input)
 		require.Equalf(t, actual, tc.Result, "case: %v\tshould returned: %#v", tc, tc.Result)
 	}
 }

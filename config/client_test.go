@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestGetClientConfig(t *testing.T) {
@@ -25,7 +25,7 @@ func TestGetClientConfig(t *testing.T) {
 			"unlicensed",
 			&model.Config{
 				EmailSettings: model.EmailSettings{
-					EmailNotificationContentsType: model.NewString(model.EMAIL_NOTIFICATION_CONTENTS_FULL),
+					EmailNotificationContentsType: model.NewString(model.EmailNotificationContentsFull),
 				},
 				ThemeSettings: model.ThemeSettings{
 					// Ignored, since not licensed.
@@ -53,7 +53,7 @@ func TestGetClientConfig(t *testing.T) {
 			"licensed, but not for theme management",
 			&model.Config{
 				EmailSettings: model.EmailSettings{
-					EmailNotificationContentsType: model.NewString(model.EMAIL_NOTIFICATION_CONTENTS_FULL),
+					EmailNotificationContentsType: model.NewString(model.EmailNotificationContentsFull),
 				},
 				ThemeSettings: model.ThemeSettings{
 					// Ignored, since not licensed.
@@ -76,7 +76,7 @@ func TestGetClientConfig(t *testing.T) {
 			"licensed for theme management",
 			&model.Config{
 				EmailSettings: model.EmailSettings{
-					EmailNotificationContentsType: model.NewString(model.EMAIL_NOTIFICATION_CONTENTS_FULL),
+					EmailNotificationContentsType: model.NewString(model.EmailNotificationContentsFull),
 				},
 				ThemeSettings: model.ThemeSettings{
 					AllowCustomThemes: model.NewBool(false),
@@ -112,37 +112,10 @@ func TestGetClientConfig(t *testing.T) {
 			},
 		},
 		{
-			"experimental channel organization enabled",
-			&model.Config{
-				ServiceSettings: model.ServiceSettings{
-					ExperimentalChannelOrganization: model.NewBool(true),
-				},
-			},
-			"tag1",
-			nil,
-			map[string]string{
-				"ExperimentalChannelOrganization": "true",
-			},
-		},
-		{
-			"experimental channel organization disabled, but experimental group unread channels on",
-			&model.Config{
-				ServiceSettings: model.ServiceSettings{
-					ExperimentalChannelOrganization: model.NewBool(false),
-					ExperimentalGroupUnreadChannels: model.NewString(model.GROUP_UNREAD_CHANNELS_DEFAULT_ON),
-				},
-			},
-			"tag1",
-			nil,
-			map[string]string{
-				"ExperimentalChannelOrganization": "true",
-			},
-		},
-		{
 			"default marketplace",
 			&model.Config{
 				PluginSettings: model.PluginSettings{
-					MarketplaceUrl: model.NewString(model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL),
+					MarketplaceURL: model.NewString(model.PluginSettingsDefaultMarketplaceURL),
 				},
 			},
 			"tag1",
@@ -155,7 +128,7 @@ func TestGetClientConfig(t *testing.T) {
 			"non-default marketplace",
 			&model.Config{
 				PluginSettings: model.PluginSettings{
-					MarketplaceUrl: model.NewString("http://example.com"),
+					MarketplaceURL: model.NewString("http://example.com"),
 				},
 			},
 			"tag1",
@@ -213,7 +186,7 @@ func TestGetLimitedClientConfig(t *testing.T) {
 			"unlicensed",
 			&model.Config{
 				EmailSettings: model.EmailSettings{
-					EmailNotificationContentsType: model.NewString(model.EMAIL_NOTIFICATION_CONTENTS_FULL),
+					EmailNotificationContentsType: model.NewString(model.EmailNotificationContentsFull),
 				},
 				ThemeSettings: model.ThemeSettings{
 					// Ignored, since not licensed.

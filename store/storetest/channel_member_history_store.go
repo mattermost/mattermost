@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func TestChannelMemberHistoryStore(t *testing.T, ss store.Store) {
@@ -30,7 +30,7 @@ func testLogJoinEvent(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel, err := ss.Channel().Save(&ch, -1)
 	require.NoError(t, err)
@@ -56,7 +56,7 @@ func testLogLeaveEvent(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel, err := ss.Channel().Save(&ch, -1)
 	require.NoError(t, err)
@@ -85,7 +85,7 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel, err := ss.Channel().Save(ch, -1)
 	require.NoError(t, err)
@@ -181,7 +181,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel, err := ss.Channel().Save(channel, -1)
 	require.NoError(t, err)
@@ -293,7 +293,7 @@ func testPermanentDeleteBatch(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel, err := ss.Channel().Save(channel, -1)
 	require.NoError(t, err)
@@ -353,14 +353,14 @@ func testPermanentDeleteBatchForRetentionPolicies(t *testing.T, ss store.Store) 
 		DisplayName: "DisplayName",
 		Name:        "team" + model.NewId(),
 		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	})
 	require.NoError(t, err)
 	channel, err := ss.Channel().Save(&model.Channel{
 		TeamId:      team.Id,
 		DisplayName: "DisplayName",
 		Name:        "channel" + model.NewId(),
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
 	userID := model.NewId()

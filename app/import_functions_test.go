@@ -15,9 +15,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 func TestImportImportScheme(t *testing.T) {
@@ -25,10 +25,10 @@ func TestImportImportScheme(t *testing.T) {
 	defer th.TearDown()
 
 	// Mark the phase 2 permissions migration as completed.
-	th.App.Srv().Store.System().Save(&model.System{Name: model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, Value: "true"})
+	th.App.Srv().Store.System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 
 	defer func() {
-		th.App.Srv().Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
+		th.App.Srv().Store.System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
 	}()
 
 	// Try importing an invalid scheme in dryRun mode.
@@ -220,10 +220,10 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	defer th.TearDown()
 
 	// Mark the phase 2 permissions migration as completed.
-	th.App.Srv().Store.System().Save(&model.System{Name: model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, Value: "true"})
+	th.App.Srv().Store.System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 
 	defer func() {
-		th.App.Srv().Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
+		th.App.Srv().Store.System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
 	}()
 
 	// Try importing an invalid scheme in dryRun mode.
@@ -496,10 +496,10 @@ func TestImportImportTeam(t *testing.T) {
 	defer th.TearDown()
 
 	// Mark the phase 2 permissions migration as completed.
-	th.App.Srv().Store.System().Save(&model.System{Name: model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, Value: "true"})
+	th.App.Srv().Store.System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 
 	defer func() {
-		th.App.Srv().Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
+		th.App.Srv().Store.System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
 	}()
 
 	scheme1 := th.SetupTeamScheme()
@@ -586,10 +586,10 @@ func TestImportImportChannel(t *testing.T) {
 	defer th.TearDown()
 
 	// Mark the phase 2 permissions migration as completed.
-	th.App.Srv().Store.System().Save(&model.System{Name: model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, Value: "true"})
+	th.App.Srv().Store.System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 
 	defer func() {
-		th.App.Srv().Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
+		th.App.Srv().Store.System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
 	}()
 
 	scheme1 := th.SetupChannelScheme()
@@ -606,14 +606,15 @@ func TestImportImportChannel(t *testing.T) {
 	require.Nil(t, err, "Failed to get team from database.")
 
 	// Check how many channels are in the database.
-	channelCount, nErr := th.App.Srv().Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN)
+	channelCount, nErr := th.App.Srv().Store.Channel().AnalyticsTypeCount("", model.ChannelTypeOpen)
 	require.NoError(t, nErr, "Failed to get team count.")
 
 	// Do an invalid channel in dry-run mode.
+	chanOpen := model.ChannelTypeOpen
 	data := ChannelImportData{
 		Team:        &teamName,
 		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		Type:        &chanOpen,
 		Header:      ptrStr("Channe Header"),
 		Purpose:     ptrStr("Channel Purpose"),
 		Scheme:      &scheme1.Name,
@@ -678,8 +679,9 @@ func TestImportImportChannel(t *testing.T) {
 	assert.Equal(t, scheme1.Id, *channel.SchemeId)
 
 	// Alter all the fields of that channel.
+	cTypePr := model.ChannelTypePrivate
 	data.DisplayName = ptrStr("Chaned Disp Name")
-	data.Type = ptrStr(model.CHANNEL_PRIVATE)
+	data.Type = &cTypePr
 	data.Header = ptrStr("New Header")
 	data.Purpose = ptrStr("New Purpose")
 	data.Scheme = &scheme2.Name
@@ -874,11 +876,12 @@ func TestImportImportUser(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get team from database.")
 
 	channelName := model.NewId()
+	chanTypeOpen := model.ChannelTypeOpen
 	th.App.importChannel(th.Context, &ChannelImportData{
 		Team:        &teamName,
 		Name:        &channelName,
 		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		Type:        &chanTypeOpen,
 	}, false)
 	channel, appErr := th.App.GetChannelByName(channelName, team.Id, false)
 	require.Nil(t, appErr, "Failed to get channel from database.")
@@ -1088,9 +1091,9 @@ func TestImportImportUser(t *testing.T) {
 	channelMember, appErr := th.App.GetChannelMember(context.Background(), channel.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get channel member from database.")
 	assert.Equal(t, "channel_user", channelMember.Roles)
-	assert.Equal(t, "default", channelMember.NotifyProps[model.DESKTOP_NOTIFY_PROP])
-	assert.Equal(t, "default", channelMember.NotifyProps[model.PUSH_NOTIFY_PROP])
-	assert.Equal(t, "all", channelMember.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP])
+	assert.Equal(t, "default", channelMember.NotifyProps[model.DesktopNotifyProp])
+	assert.Equal(t, "default", channelMember.NotifyProps[model.PushNotifyProp])
+	assert.Equal(t, "all", channelMember.NotifyProps[model.MarkUnreadNotifyProp])
 
 	// Test with the properties of the team and channel membership changed.
 	data.Teams = &[]UserTeamImportData{
@@ -1103,9 +1106,9 @@ func TestImportImportUser(t *testing.T) {
 					Name:  &channelName,
 					Roles: ptrStr("channel_user channel_admin"),
 					NotifyProps: &UserChannelNotifyPropsImportData{
-						Desktop:    ptrStr(model.USER_NOTIFY_MENTION),
-						Mobile:     ptrStr(model.USER_NOTIFY_MENTION),
-						MarkUnread: ptrStr(model.USER_NOTIFY_MENTION),
+						Desktop:    ptrStr(model.UserNotifyMention),
+						Mobile:     ptrStr(model.UserNotifyMention),
+						MarkUnread: ptrStr(model.UserNotifyMention),
 					},
 					Favorite: ptrBool(true),
 				},
@@ -1123,12 +1126,12 @@ func TestImportImportUser(t *testing.T) {
 	channelMember, appErr = th.App.GetChannelMember(context.Background(), channel.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get channel member Desktop from database.")
 	assert.Equal(t, "channel_user channel_admin", channelMember.Roles)
-	assert.Equal(t, model.USER_NOTIFY_MENTION, channelMember.NotifyProps[model.DESKTOP_NOTIFY_PROP])
-	assert.Equal(t, model.USER_NOTIFY_MENTION, channelMember.NotifyProps[model.PUSH_NOTIFY_PROP])
-	assert.Equal(t, model.USER_NOTIFY_MENTION, channelMember.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP])
+	assert.Equal(t, model.UserNotifyMention, channelMember.NotifyProps[model.DesktopNotifyProp])
+	assert.Equal(t, model.UserNotifyMention, channelMember.NotifyProps[model.PushNotifyProp])
+	assert.Equal(t, model.UserNotifyMention, channelMember.NotifyProps[model.MarkUnreadNotifyProp])
 
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id, "true")
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_THEME, team.Id, *(*data.Teams)[0].Theme)
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryFavoriteChannel, channel.Id, "true")
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryTheme, team.Id, *(*data.Teams)[0].Theme)
 
 	// No more new member objects.
 	tmc, appErr = th.App.GetTeamMembers(team.Id, 0, 1000, nil)
@@ -1162,16 +1165,16 @@ func TestImportImportUser(t *testing.T) {
 	user, appErr = th.App.GetUserByUsername(username)
 	require.Nil(t, appErr, "Failed to get user from database.")
 
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_THEME, "", *data.Theme)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_USE_MILITARY_TIME, *data.UseMilitaryTime)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSE_SETTING, *data.CollapsePreviews)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_MESSAGE_DISPLAY, *data.MessageDisplay)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_CHANNEL_DISPLAY_MODE, *data.ChannelDisplayMode)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, user.Id, *data.TutorialStep)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "feature_enabled_markdown_preview", *data.UseMarkdownPreview)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "formatting", *data.UseFormatting)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_SIDEBAR_SETTINGS, "show_unread_section", *data.ShowUnreadSection)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL, "30")
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryTheme, "", *data.Theme)
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameUseMilitaryTime, *data.UseMilitaryTime)
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapseSetting, *data.CollapsePreviews)
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameMessageDisplay, *data.MessageDisplay)
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameChannelDisplayMode, *data.ChannelDisplayMode)
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryTutorialSteps, user.Id, *data.TutorialStep)
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "feature_enabled_markdown_preview", *data.UseMarkdownPreview)
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "formatting", *data.UseFormatting)
+	checkPreference(t, th.App, user.Id, model.PreferenceCategorySidebarSettings, "show_unread_section", *data.ShowUnreadSection)
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryNotifications, model.PreferenceNameEmailInterval, "30")
 
 	// Change those preferences.
 	data = UserImportData{
@@ -1189,23 +1192,23 @@ func TestImportImportUser(t *testing.T) {
 	assert.Nil(t, appErr)
 
 	// Check their values again.
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_THEME, "", *data.Theme)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_USE_MILITARY_TIME, *data.UseMilitaryTime)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSE_SETTING, *data.CollapsePreviews)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_MESSAGE_DISPLAY, *data.MessageDisplay)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_CHANNEL_DISPLAY_MODE, *data.ChannelDisplayMode)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, user.Id, *data.TutorialStep)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL, "3600")
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryTheme, "", *data.Theme)
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameUseMilitaryTime, *data.UseMilitaryTime)
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapseSetting, *data.CollapsePreviews)
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameMessageDisplay, *data.MessageDisplay)
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameChannelDisplayMode, *data.ChannelDisplayMode)
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryTutorialSteps, user.Id, *data.TutorialStep)
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryNotifications, model.PreferenceNameEmailInterval, "3600")
 
 	// Set Notify Without mention keys
 	data.NotifyProps = &UserNotifyPropsImportData{
-		Desktop:          ptrStr(model.USER_NOTIFY_ALL),
+		Desktop:          ptrStr(model.UserNotifyAll),
 		DesktopSound:     ptrStr("true"),
 		Email:            ptrStr("true"),
-		Mobile:           ptrStr(model.USER_NOTIFY_ALL),
-		MobilePushStatus: ptrStr(model.STATUS_ONLINE),
+		Mobile:           ptrStr(model.UserNotifyAll),
+		MobilePushStatus: ptrStr(model.StatusOnline),
 		ChannelTrigger:   ptrStr("true"),
-		CommentsTrigger:  ptrStr(model.COMMENTS_NOTIFY_ROOT),
+		CommentsTrigger:  ptrStr(model.CommentsNotifyRoot),
 	}
 	appErr = th.App.importUser(&data, false)
 	assert.Nil(t, appErr)
@@ -1213,24 +1216,24 @@ func TestImportImportUser(t *testing.T) {
 	user, appErr = th.App.GetUserByUsername(username)
 	require.Nil(t, appErr, "Failed to get user from database.")
 
-	checkNotifyProp(t, user, model.DESKTOP_NOTIFY_PROP, model.USER_NOTIFY_ALL)
-	checkNotifyProp(t, user, model.DESKTOP_SOUND_NOTIFY_PROP, "true")
-	checkNotifyProp(t, user, model.EMAIL_NOTIFY_PROP, "true")
-	checkNotifyProp(t, user, model.PUSH_NOTIFY_PROP, model.USER_NOTIFY_ALL)
-	checkNotifyProp(t, user, model.PUSH_STATUS_NOTIFY_PROP, model.STATUS_ONLINE)
-	checkNotifyProp(t, user, model.CHANNEL_MENTIONS_NOTIFY_PROP, "true")
-	checkNotifyProp(t, user, model.COMMENTS_NOTIFY_PROP, model.COMMENTS_NOTIFY_ROOT)
-	checkNotifyProp(t, user, model.MENTION_KEYS_NOTIFY_PROP, "")
+	checkNotifyProp(t, user, model.DesktopNotifyProp, model.UserNotifyAll)
+	checkNotifyProp(t, user, model.DesktopSoundNotifyProp, "true")
+	checkNotifyProp(t, user, model.EmailNotifyProp, "true")
+	checkNotifyProp(t, user, model.PushNotifyProp, model.UserNotifyAll)
+	checkNotifyProp(t, user, model.PushStatusNotifyProp, model.StatusOnline)
+	checkNotifyProp(t, user, model.ChannelMentionsNotifyProp, "true")
+	checkNotifyProp(t, user, model.CommentsNotifyProp, model.CommentsNotifyRoot)
+	checkNotifyProp(t, user, model.MentionKeysNotifyProp, "")
 
 	// Set Notify Props with Mention keys
 	data.NotifyProps = &UserNotifyPropsImportData{
-		Desktop:          ptrStr(model.USER_NOTIFY_ALL),
+		Desktop:          ptrStr(model.UserNotifyAll),
 		DesktopSound:     ptrStr("true"),
 		Email:            ptrStr("true"),
-		Mobile:           ptrStr(model.USER_NOTIFY_ALL),
-		MobilePushStatus: ptrStr(model.STATUS_ONLINE),
+		Mobile:           ptrStr(model.UserNotifyAll),
+		MobilePushStatus: ptrStr(model.StatusOnline),
 		ChannelTrigger:   ptrStr("true"),
-		CommentsTrigger:  ptrStr(model.COMMENTS_NOTIFY_ROOT),
+		CommentsTrigger:  ptrStr(model.CommentsNotifyRoot),
 		MentionKeys:      ptrStr("valid,misc"),
 	}
 	appErr = th.App.importUser(&data, false)
@@ -1239,24 +1242,24 @@ func TestImportImportUser(t *testing.T) {
 	user, appErr = th.App.GetUserByUsername(username)
 	require.Nil(t, appErr, "Failed to get user from database.")
 
-	checkNotifyProp(t, user, model.DESKTOP_NOTIFY_PROP, model.USER_NOTIFY_ALL)
-	checkNotifyProp(t, user, model.DESKTOP_SOUND_NOTIFY_PROP, "true")
-	checkNotifyProp(t, user, model.EMAIL_NOTIFY_PROP, "true")
-	checkNotifyProp(t, user, model.PUSH_NOTIFY_PROP, model.USER_NOTIFY_ALL)
-	checkNotifyProp(t, user, model.PUSH_STATUS_NOTIFY_PROP, model.STATUS_ONLINE)
-	checkNotifyProp(t, user, model.CHANNEL_MENTIONS_NOTIFY_PROP, "true")
-	checkNotifyProp(t, user, model.COMMENTS_NOTIFY_PROP, model.COMMENTS_NOTIFY_ROOT)
-	checkNotifyProp(t, user, model.MENTION_KEYS_NOTIFY_PROP, "valid,misc")
+	checkNotifyProp(t, user, model.DesktopNotifyProp, model.UserNotifyAll)
+	checkNotifyProp(t, user, model.DesktopSoundNotifyProp, "true")
+	checkNotifyProp(t, user, model.EmailNotifyProp, "true")
+	checkNotifyProp(t, user, model.PushNotifyProp, model.UserNotifyAll)
+	checkNotifyProp(t, user, model.PushStatusNotifyProp, model.StatusOnline)
+	checkNotifyProp(t, user, model.ChannelMentionsNotifyProp, "true")
+	checkNotifyProp(t, user, model.CommentsNotifyProp, model.CommentsNotifyRoot)
+	checkNotifyProp(t, user, model.MentionKeysNotifyProp, "valid,misc")
 
 	// Change Notify Props with mention keys
 	data.NotifyProps = &UserNotifyPropsImportData{
-		Desktop:          ptrStr(model.USER_NOTIFY_MENTION),
+		Desktop:          ptrStr(model.UserNotifyMention),
 		DesktopSound:     ptrStr("false"),
 		Email:            ptrStr("false"),
-		Mobile:           ptrStr(model.USER_NOTIFY_NONE),
-		MobilePushStatus: ptrStr(model.STATUS_AWAY),
+		Mobile:           ptrStr(model.UserNotifyNone),
+		MobilePushStatus: ptrStr(model.StatusAway),
 		ChannelTrigger:   ptrStr("false"),
-		CommentsTrigger:  ptrStr(model.COMMENTS_NOTIFY_ANY),
+		CommentsTrigger:  ptrStr(model.CommentsNotifyAny),
 		MentionKeys:      ptrStr("misc"),
 	}
 	appErr = th.App.importUser(&data, false)
@@ -1265,24 +1268,24 @@ func TestImportImportUser(t *testing.T) {
 	user, appErr = th.App.GetUserByUsername(username)
 	require.Nil(t, appErr, "Failed to get user from database.")
 
-	checkNotifyProp(t, user, model.DESKTOP_NOTIFY_PROP, model.USER_NOTIFY_MENTION)
-	checkNotifyProp(t, user, model.DESKTOP_SOUND_NOTIFY_PROP, "false")
-	checkNotifyProp(t, user, model.EMAIL_NOTIFY_PROP, "false")
-	checkNotifyProp(t, user, model.PUSH_NOTIFY_PROP, model.USER_NOTIFY_NONE)
-	checkNotifyProp(t, user, model.PUSH_STATUS_NOTIFY_PROP, model.STATUS_AWAY)
-	checkNotifyProp(t, user, model.CHANNEL_MENTIONS_NOTIFY_PROP, "false")
-	checkNotifyProp(t, user, model.COMMENTS_NOTIFY_PROP, model.COMMENTS_NOTIFY_ANY)
-	checkNotifyProp(t, user, model.MENTION_KEYS_NOTIFY_PROP, "misc")
+	checkNotifyProp(t, user, model.DesktopNotifyProp, model.UserNotifyMention)
+	checkNotifyProp(t, user, model.DesktopSoundNotifyProp, "false")
+	checkNotifyProp(t, user, model.EmailNotifyProp, "false")
+	checkNotifyProp(t, user, model.PushNotifyProp, model.UserNotifyNone)
+	checkNotifyProp(t, user, model.PushStatusNotifyProp, model.StatusAway)
+	checkNotifyProp(t, user, model.ChannelMentionsNotifyProp, "false")
+	checkNotifyProp(t, user, model.CommentsNotifyProp, model.CommentsNotifyAny)
+	checkNotifyProp(t, user, model.MentionKeysNotifyProp, "misc")
 
 	// Change Notify Props without mention keys
 	data.NotifyProps = &UserNotifyPropsImportData{
-		Desktop:          ptrStr(model.USER_NOTIFY_MENTION),
+		Desktop:          ptrStr(model.UserNotifyMention),
 		DesktopSound:     ptrStr("false"),
 		Email:            ptrStr("false"),
-		Mobile:           ptrStr(model.USER_NOTIFY_NONE),
-		MobilePushStatus: ptrStr(model.STATUS_AWAY),
+		Mobile:           ptrStr(model.UserNotifyNone),
+		MobilePushStatus: ptrStr(model.StatusAway),
 		ChannelTrigger:   ptrStr("false"),
-		CommentsTrigger:  ptrStr(model.COMMENTS_NOTIFY_ANY),
+		CommentsTrigger:  ptrStr(model.CommentsNotifyAny),
 	}
 	appErr = th.App.importUser(&data, false)
 	assert.Nil(t, appErr)
@@ -1290,14 +1293,14 @@ func TestImportImportUser(t *testing.T) {
 	user, appErr = th.App.GetUserByUsername(username)
 	require.Nil(t, appErr, "Failed to get user from database.")
 
-	checkNotifyProp(t, user, model.DESKTOP_NOTIFY_PROP, model.USER_NOTIFY_MENTION)
-	checkNotifyProp(t, user, model.DESKTOP_SOUND_NOTIFY_PROP, "false")
-	checkNotifyProp(t, user, model.EMAIL_NOTIFY_PROP, "false")
-	checkNotifyProp(t, user, model.PUSH_NOTIFY_PROP, model.USER_NOTIFY_NONE)
-	checkNotifyProp(t, user, model.PUSH_STATUS_NOTIFY_PROP, model.STATUS_AWAY)
-	checkNotifyProp(t, user, model.CHANNEL_MENTIONS_NOTIFY_PROP, "false")
-	checkNotifyProp(t, user, model.COMMENTS_NOTIFY_PROP, model.COMMENTS_NOTIFY_ANY)
-	checkNotifyProp(t, user, model.MENTION_KEYS_NOTIFY_PROP, "misc")
+	checkNotifyProp(t, user, model.DesktopNotifyProp, model.UserNotifyMention)
+	checkNotifyProp(t, user, model.DesktopSoundNotifyProp, "false")
+	checkNotifyProp(t, user, model.EmailNotifyProp, "false")
+	checkNotifyProp(t, user, model.PushNotifyProp, model.UserNotifyNone)
+	checkNotifyProp(t, user, model.PushStatusNotifyProp, model.StatusAway)
+	checkNotifyProp(t, user, model.ChannelMentionsNotifyProp, "false")
+	checkNotifyProp(t, user, model.CommentsNotifyProp, model.CommentsNotifyAny)
+	checkNotifyProp(t, user, model.MentionKeysNotifyProp, "misc")
 
 	// Check Notify Props get set on *create* user.
 	username = model.NewId()
@@ -1306,13 +1309,13 @@ func TestImportImportUser(t *testing.T) {
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}
 	data.NotifyProps = &UserNotifyPropsImportData{
-		Desktop:          ptrStr(model.USER_NOTIFY_MENTION),
+		Desktop:          ptrStr(model.UserNotifyMention),
 		DesktopSound:     ptrStr("false"),
 		Email:            ptrStr("false"),
-		Mobile:           ptrStr(model.USER_NOTIFY_NONE),
-		MobilePushStatus: ptrStr(model.STATUS_AWAY),
+		Mobile:           ptrStr(model.UserNotifyNone),
+		MobilePushStatus: ptrStr(model.StatusAway),
 		ChannelTrigger:   ptrStr("false"),
-		CommentsTrigger:  ptrStr(model.COMMENTS_NOTIFY_ANY),
+		CommentsTrigger:  ptrStr(model.CommentsNotifyAny),
 		MentionKeys:      ptrStr("misc"),
 	}
 
@@ -1322,24 +1325,24 @@ func TestImportImportUser(t *testing.T) {
 	user, appErr = th.App.GetUserByUsername(username)
 	require.Nil(t, appErr, "Failed to get user from database.")
 
-	checkNotifyProp(t, user, model.DESKTOP_NOTIFY_PROP, model.USER_NOTIFY_MENTION)
-	checkNotifyProp(t, user, model.DESKTOP_SOUND_NOTIFY_PROP, "false")
-	checkNotifyProp(t, user, model.EMAIL_NOTIFY_PROP, "false")
-	checkNotifyProp(t, user, model.PUSH_NOTIFY_PROP, model.USER_NOTIFY_NONE)
-	checkNotifyProp(t, user, model.PUSH_STATUS_NOTIFY_PROP, model.STATUS_AWAY)
-	checkNotifyProp(t, user, model.CHANNEL_MENTIONS_NOTIFY_PROP, "false")
-	checkNotifyProp(t, user, model.COMMENTS_NOTIFY_PROP, model.COMMENTS_NOTIFY_ANY)
-	checkNotifyProp(t, user, model.MENTION_KEYS_NOTIFY_PROP, "misc")
+	checkNotifyProp(t, user, model.DesktopNotifyProp, model.UserNotifyMention)
+	checkNotifyProp(t, user, model.DesktopSoundNotifyProp, "false")
+	checkNotifyProp(t, user, model.EmailNotifyProp, "false")
+	checkNotifyProp(t, user, model.PushNotifyProp, model.UserNotifyNone)
+	checkNotifyProp(t, user, model.PushStatusNotifyProp, model.StatusAway)
+	checkNotifyProp(t, user, model.ChannelMentionsNotifyProp, "false")
+	checkNotifyProp(t, user, model.CommentsNotifyProp, model.CommentsNotifyAny)
+	checkNotifyProp(t, user, model.MentionKeysNotifyProp, "misc")
 
 	// Test importing a user with roles set to a team and a channel which are affected by an override scheme.
 	// The import subsystem should translate `channel_admin/channel_user/team_admin/team_user`
 	// to the appropriate scheme-managed-role booleans.
 
 	// Mark the phase 2 permissions migration as completed.
-	th.App.Srv().Store.System().Save(&model.System{Name: model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, Value: "true"})
+	th.App.Srv().Store.System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 
 	defer func() {
-		th.App.Srv().Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
+		th.App.Srv().Store.System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
 	}()
 
 	teamSchemeData := &SchemeImportData{
@@ -1396,7 +1399,7 @@ func TestImportImportUser(t *testing.T) {
 		Team:        &teamName,
 		Name:        ptrStr(model.NewId()),
 		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		Type:        &chanTypeOpen,
 		Header:      ptrStr("Channe Header"),
 		Purpose:     ptrStr("Channel Purpose"),
 	}
@@ -1596,7 +1599,7 @@ func TestImportUserTeams(t *testing.T) {
 			data: &[]UserTeamImportData{
 				{
 					Name:  &th.BasicTeam.Name,
-					Roles: model.NewString(model.TEAM_ADMIN_ROLE_ID),
+					Roles: model.NewString(model.TeamAdminRoleId),
 				},
 			},
 			expectedError:         false,
@@ -1640,7 +1643,7 @@ func TestImportUserTeams(t *testing.T) {
 					Name: &th.BasicTeam.Name,
 					Channels: &[]UserChannelImportData{
 						{
-							Name: ptrStr(model.DEFAULT_CHANNEL),
+							Name: ptrStr(model.DefaultChannelName),
 						},
 					},
 				},
@@ -1720,7 +1723,7 @@ func TestImportUserTeams(t *testing.T) {
 					require.Equal(t, tc.expectedExplicitRoles, teamMembers[0].ExplicitRoles, "Not matching expected explicit roles")
 					require.Equal(t, tc.expectedRoles, teamMembers[0].Roles, "not matching expected roles")
 					if tc.expectedTheme != "" {
-						pref, prefErr := th.App.Srv().Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_THEME, teamMembers[0].TeamId)
+						pref, prefErr := th.App.Srv().Store.Preference().Get(user.Id, model.PreferenceCategoryTheme, teamMembers[0].TeamId)
 						require.NoError(t, prefErr)
 						require.Equal(t, tc.expectedTheme, pref.Value)
 					}
@@ -1730,7 +1733,7 @@ func TestImportUserTeams(t *testing.T) {
 				for _, teamMember := range teamMembers {
 					channelMembers, err := th.App.Srv().Store.Channel().GetMembersForUser(teamMember.TeamId, user.Id)
 					require.NoError(t, err)
-					totalMembers += len(*channelMembers)
+					totalMembers += len(channelMembers)
 				}
 				require.Equal(t, tc.expectedUserChannels, totalMembers)
 			}
@@ -1816,7 +1819,7 @@ func TestImportUserChannels(t *testing.T) {
 			data: &[]UserChannelImportData{
 				{
 					Name:  &th.BasicChannel.Name,
-					Roles: model.NewString(model.CHANNEL_ADMIN_ROLE_ID),
+					Roles: model.NewString(model.ChannelAdminRoleId),
 				},
 			},
 			expectedError:         false,
@@ -1868,15 +1871,15 @@ func TestImportUserChannels(t *testing.T) {
 				}
 				channelMembers, err := th.App.Srv().Store.Channel().GetMembersForUser(th.BasicTeam.Id, user.Id)
 				require.NoError(t, err)
-				require.Len(t, *channelMembers, tc.expectedUserChannels)
+				require.Len(t, channelMembers, tc.expectedUserChannels)
 				if tc.expectedUserChannels == 1 {
-					channelMember := (*channelMembers)[0]
+					channelMember := channelMembers[0]
 					require.Equal(t, tc.expectedExplicitRoles, channelMember.ExplicitRoles, "Not matching expected explicit roles")
 					require.Equal(t, tc.expectedRoles, channelMember.Roles, "not matching expected roles")
 					if tc.expectedNotifyProps != nil {
-						require.Equal(t, *tc.expectedNotifyProps.Desktop, channelMember.NotifyProps[model.DESKTOP_NOTIFY_PROP])
-						require.Equal(t, *tc.expectedNotifyProps.Mobile, channelMember.NotifyProps[model.PUSH_NOTIFY_PROP])
-						require.Equal(t, *tc.expectedNotifyProps.MarkUnread, channelMember.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP])
+						require.Equal(t, *tc.expectedNotifyProps.Desktop, channelMember.NotifyProps[model.DesktopNotifyProp])
+						require.Equal(t, *tc.expectedNotifyProps.Mobile, channelMember.NotifyProps[model.PushNotifyProp])
+						require.Equal(t, *tc.expectedNotifyProps.MarkUnread, channelMember.NotifyProps[model.MarkUnreadNotifyProp])
 					}
 				}
 			}
@@ -1904,7 +1907,7 @@ func TestImportUserDefaultNotifyProps(t *testing.T) {
 	require.Nil(t, err)
 
 	// Check the value of the notify prop we specified explicitly in the import data.
-	val, ok := user.NotifyProps[model.EMAIL_NOTIFY_PROP]
+	val, ok := user.NotifyProps[model.EmailNotifyProp]
 	assert.True(t, ok)
 	assert.Equal(t, "false", val)
 
@@ -1913,7 +1916,7 @@ func TestImportUserDefaultNotifyProps(t *testing.T) {
 	comparisonUser.SetDefaultNotifications()
 
 	for key, expectedValue := range comparisonUser.NotifyProps {
-		if key == model.EMAIL_NOTIFY_PROP {
+		if key == model.EmailNotifyProp {
 			continue
 		}
 
@@ -1939,11 +1942,12 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 
 	// Create a Channel.
 	channelName := model.NewId()
+	chanTypeOpen := model.ChannelTypeOpen
 	th.App.importChannel(th.Context, &ChannelImportData{
 		Team:        &teamName,
 		Name:        &channelName,
 		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		Type:        &chanTypeOpen,
 	}, false)
 	channel, err := th.App.GetChannelByName(channelName, team.Id, false)
 	require.Nil(t, err, "Failed to get channel from database.")
@@ -2239,8 +2243,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	postBool = post.Message != *data.Post.Message || post.CreateAt != *data.Post.CreateAt || post.UserId != user.Id
 	require.False(t, postBool, "Post properties not as expected")
 
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
-	checkPreference(t, th.App, user2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryFlaggedPost, post.Id, "true")
+	checkPreference(t, th.App, user2.Id, model.PreferenceCategoryFlaggedPost, post.Id, "true")
 
 	// Post with reaction.
 	reactionPostTime := hashtagTime + 2
@@ -2418,7 +2422,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		Team:        &teamName2,
 		Name:        &channelName,
 		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		Type:        &chanTypeOpen,
 	}, false)
 	_, err = th.App.GetChannelByName(channelName, team2.Id, false)
 	require.Nil(t, err, "Failed to get channel from database.")
@@ -2477,11 +2481,12 @@ func TestImportImportPost(t *testing.T) {
 
 	// Create a Channel.
 	channelName := model.NewId()
+	chanTypeOpen := model.ChannelTypeOpen
 	th.App.importChannel(th.Context, &ChannelImportData{
 		Team:        &teamName,
 		Name:        &channelName,
 		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		Type:        &chanTypeOpen,
 	}, false)
 	channel, appErr := th.App.GetChannelByName(channelName, team.Id, false)
 	require.Nil(t, appErr, "Failed to get channel from database.")
@@ -2785,8 +2790,8 @@ func TestImportImportPost(t *testing.T) {
 		postBool := post.Message != *data.Post.Message || post.CreateAt != *data.Post.CreateAt || post.UserId != user.Id
 		require.False(t, postBool, "Post properties not as expected")
 
-		checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
-		checkPreference(t, th.App, user2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+		checkPreference(t, th.App, user.Id, model.PreferenceCategoryFlaggedPost, post.Id, "true")
+		checkPreference(t, th.App, user2.Id, model.PreferenceCategoryFlaggedPost, post.Id, "true")
 	})
 
 	t.Run("Post with reaction", func(t *testing.T) {
@@ -2959,10 +2964,10 @@ func TestImportImportDirectChannel(t *testing.T) {
 	defer th.TearDown()
 
 	// Check how many channels are in the database.
-	directChannelCount, err := th.App.Srv().Store.Channel().AnalyticsTypeCount("", model.CHANNEL_DIRECT)
+	directChannelCount, err := th.App.Srv().Store.Channel().AnalyticsTypeCount("", model.ChannelTypeDirect)
 	require.NoError(t, err, "Failed to get direct channel count.")
 
-	groupChannelCount, err := th.App.Srv().Store.Channel().AnalyticsTypeCount("", model.CHANNEL_GROUP)
+	groupChannelCount, err := th.App.Srv().Store.Channel().AnalyticsTypeCount("", model.ChannelTypeGroup)
 	require.NoError(t, err, "Failed to get group channel count.")
 
 	// Do an invalid channel in dry-run mode.
@@ -2976,8 +2981,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.Error(t, err)
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount)
-	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
+	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount)
+	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
 	// Do a valid DIRECT channel with a nonexistent member in dry-run mode.
 	data.Members = &[]string{
@@ -2988,8 +2993,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount)
-	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
+	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount)
+	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
 	// Do a valid GROUP channel with a nonexistent member in dry-run mode.
 	data.Members = &[]string{
@@ -3001,8 +3006,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount)
-	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
+	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount)
+	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
 	// Do an invalid channel in apply mode.
 	data.Members = &[]string{
@@ -3012,8 +3017,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.Error(t, err)
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount)
-	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
+	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount)
+	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
 	// Do a valid DIRECT channel.
 	data.Members = &[]string{
@@ -3024,16 +3029,16 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Check that one more DIRECT channel is in the DB.
-	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
+	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
 	// Do the same DIRECT channel again.
 	appErr = th.App.importDirectChannel(&data, false)
 	require.Nil(t, appErr)
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
+	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
 	// Update the channel's HEADER
 	data.Header = ptrStr("New Channel Header 2")
@@ -3041,8 +3046,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
+	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
 	// Get the channel to check that the header was updated.
 	channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
@@ -3061,8 +3066,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.NotNil(t, appErr)
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
+	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
 	// Do a valid GROUP channel.
 	data.Members = &[]string{
@@ -3074,16 +3079,16 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Check that one more GROUP channel is in the DB.
-	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount+1)
+	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount+1)
 
 	// Do the same DIRECT channel again.
 	appErr = th.App.importDirectChannel(&data, false)
 	require.Nil(t, appErr)
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount+1)
+	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount+1)
 
 	// Update the channel's HEADER
 	data.Header = ptrStr("New Channel Header 3")
@@ -3091,8 +3096,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount+1)
+	AssertChannelCount(t, th.App, model.ChannelTypeDirect, directChannelCount+1)
+	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount+1)
 
 	// Get the channel to check that the header was updated.
 	userIDs := []string{
@@ -3118,8 +3123,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 
 	channel, appErr = th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
 	require.Nil(t, appErr)
-	checkPreference(t, th.App, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id, "true")
-	checkPreference(t, th.App, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id, "true")
+	checkPreference(t, th.App, th.BasicUser.Id, model.PreferenceCategoryFavoriteChannel, channel.Id, "true")
+	checkPreference(t, th.App, th.BasicUser2.Id, model.PreferenceCategoryFavoriteChannel, channel.Id, "true")
 }
 
 func TestImportImportDirectPost(t *testing.T) {
@@ -3376,8 +3381,8 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.Len(t, posts, 1)
 
 		post := posts[0]
-		checkPreference(t, th.App, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
-		checkPreference(t, th.App, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+		checkPreference(t, th.App, th.BasicUser.Id, model.PreferenceCategoryFlaggedPost, post.Id, "true")
+		checkPreference(t, th.App, th.BasicUser2.Id, model.PreferenceCategoryFlaggedPost, post.Id, "true")
 	})
 
 	// ------------------ Group Channel -------------------------
@@ -3649,8 +3654,8 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.Len(t, posts, 1)
 
 		post := posts[0]
-		checkPreference(t, th.App, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
-		checkPreference(t, th.App, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+		checkPreference(t, th.App, th.BasicUser.Id, model.PreferenceCategoryFlaggedPost, post.Id, "true")
+		checkPreference(t, th.App, th.BasicUser2.Id, model.PreferenceCategoryFlaggedPost, post.Id, "true")
 	})
 
 	t.Run("Post with reaction", func(t *testing.T) {
@@ -3920,11 +3925,12 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 
 	// Create a Channel.
 	channelName := model.NewId()
+	chanTypeOpen := model.ChannelTypeOpen
 	th.App.importChannel(th.Context, &ChannelImportData{
 		Team:        &teamName,
 		Name:        &channelName,
 		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		Type:        &chanTypeOpen,
 	}, false)
 	_, appErr = th.App.GetChannelByName(channelName, team.Id, false)
 	require.Nil(t, appErr, "Failed to get channel from database.")
@@ -4195,11 +4201,12 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 
 	// Create a Channel.
 	channelName := model.NewId()
+	chanTypeOpen := model.ChannelTypeOpen
 	th.App.importChannel(th.Context, &ChannelImportData{
 		Team:        &teamName,
 		Name:        &channelName,
 		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		Type:        &chanTypeOpen,
 	}, false)
 	_, appErr = th.App.GetChannelByName(channelName, team.Id, false)
 	require.Nil(t, appErr, "Failed to get channel from database.")

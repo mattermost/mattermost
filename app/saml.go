@@ -13,7 +13,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 const (
@@ -178,17 +178,17 @@ func (a *App) GetSamlCertificateStatus() *model.SamlCertificateStatus {
 	return status
 }
 
-func (a *App) GetSamlMetadataFromIdp(idpMetadataUrl string) (*model.SamlMetadataResponse, *model.AppError) {
+func (a *App) GetSamlMetadataFromIdp(idpMetadataURL string) (*model.SamlMetadataResponse, *model.AppError) {
 	if a.Saml() == nil {
 		err := model.NewAppError("GetSamlMetadataFromIdp", "api.admin.saml.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return nil, err
 	}
 
-	if !strings.HasPrefix(idpMetadataUrl, "http://") && !strings.HasPrefix(idpMetadataUrl, "https://") {
-		idpMetadataUrl = "https://" + idpMetadataUrl
+	if !strings.HasPrefix(idpMetadataURL, "http://") && !strings.HasPrefix(idpMetadataURL, "https://") {
+		idpMetadataURL = "https://" + idpMetadataURL
 	}
 
-	idpMetadataRaw, err := a.FetchSamlMetadataFromIdp(idpMetadataUrl)
+	idpMetadataRaw, err := a.FetchSamlMetadataFromIdp(idpMetadataURL)
 	if err != nil {
 		return nil, err
 	}
@@ -228,7 +228,7 @@ func (a *App) BuildSamlMetadataObject(idpMetadata []byte) (*model.SamlMetadataRe
 	}
 
 	data := &model.SamlMetadataResponse{}
-	data.IdpDescriptorUrl = entityDescriptor.EntityID
+	data.IdpDescriptorURL = entityDescriptor.EntityID
 
 	if entityDescriptor.IDPSSODescriptors == nil || len(entityDescriptor.IDPSSODescriptors) == 0 {
 		err := model.NewAppError("BuildSamlMetadataObject", "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error", nil, "", http.StatusInternalServerError)
@@ -241,7 +241,7 @@ func (a *App) BuildSamlMetadataObject(idpMetadata []byte) (*model.SamlMetadataRe
 		return nil, err
 	}
 
-	data.IdpUrl = idpSSODescriptor.SingleSignOnServices[0].Location
+	data.IdpURL = idpSSODescriptor.SingleSignOnServices[0].Location
 	if idpSSODescriptor.SSODescriptor.RoleDescriptor.KeyDescriptors == nil || len(idpSSODescriptor.SSODescriptor.RoleDescriptor.KeyDescriptors) == 0 {
 		err := model.NewAppError("BuildSamlMetadataObject", "api.admin.saml.invalid_xml_missing_keydescriptor.app_error", nil, "", http.StatusInternalServerError)
 		return nil, err
@@ -288,7 +288,7 @@ func (a *App) ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, userIDs
 		appErr = model.NewAppError("ResetAuthDataToEmail", "api.admin.saml.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
-	numAffected, err := a.srv.Store.User().ResetAuthDataToEmailForUsers(model.USER_AUTH_SERVICE_SAML, userIDs, includeDeleted, dryRun)
+	numAffected, err := a.srv.Store.User().ResetAuthDataToEmailForUsers(model.UserAuthServiceSaml, userIDs, includeDeleted, dryRun)
 	if err != nil {
 		appErr = model.NewAppError("ResetAuthDataToEmail", "api.admin.saml.failure_reset_authdata_to_email.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return

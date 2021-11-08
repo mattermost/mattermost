@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -223,14 +223,14 @@ func testEmojiGetList(t *testing.T, ss store.Store) {
 		require.Truef(t, found, "failed to get emoji with id %v", emoji.Id)
 	}
 
-	remojis, err := ss.Emoji().GetList(0, 3, model.EMOJI_SORT_BY_NAME)
+	remojis, err := ss.Emoji().GetList(0, 3, model.EmojiSortByName)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(remojis))
 	assert.Equal(t, emojis[0].Name, remojis[0].Name)
 	assert.Equal(t, emojis[1].Name, remojis[1].Name)
 	assert.Equal(t, emojis[2].Name, remojis[2].Name)
 
-	remojis, err = ss.Emoji().GetList(1, 2, model.EMOJI_SORT_BY_NAME)
+	remojis, err = ss.Emoji().GetList(1, 2, model.EmojiSortByName)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(remojis))
 	assert.Equal(t, emojis[1].Name, remojis[0].Name)

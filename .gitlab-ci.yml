@@ -7,7 +7,7 @@ stages:
 
 include:
   - project: mattermost/ci/mattermost-server
-    ref: release-5.39
+    ref: release-6.0
     file: private.yml
 
 variables:
@@ -122,6 +122,9 @@ test-schema-mysql:
   script:
     - export COMPOSE_PROJECT_NAME="${CI_PIPELINE_IID}schemamysql"
     - time cat .gitlab-ci/scripts/test-schema/mysql.sh | /bin/bash
+  artifacts:
+    paths:
+      - build/logs
   tags:
     - k8s-memory
   rules:
@@ -146,6 +149,9 @@ test-schema-postgres:
   script:
     - export COMPOSE_PROJECT_NAME="${CI_PIPELINE_IID}schemapostgres"
     - time cat .gitlab-ci/scripts/test-schema/postgres.sh | /bin/bash
+  artifacts:
+    paths:
+      - build/logs
   tags:
     - k8s-memory
   rules:

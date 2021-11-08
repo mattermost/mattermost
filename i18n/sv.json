@@ -65,7 +65,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.9+"
+    "translation": "macOS 10.14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -73,7 +73,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 60+"
+    "translation": "Version 78+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -81,7 +81,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 61+"
+    "translation": "Version 89+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -768,10 +768,6 @@
     "translation": "Ogiltigt root-id."
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Ogiltigt parent-id."
-  },
-  {
     "id": "model.command_hook.id.app_error",
     "translation": "Ogiltigt command hook id."
   },
@@ -1106,14 +1102,6 @@
   {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Kunde inte hämta användare."
-  },
-  {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "Den utgående webhooken är raderad men av någon outgrundlig anledning går det inte att skapa en ny."
-  },
-  {
-    "id": "cli.license.critical",
-    "translation": "Funktionen kräver en uppgradering till Enterpriseversionen och tillhörande licensnyckel. Kontakta din systemadministratör."
   },
   {
     "id": "brand.save_brand_image.save_image.app_error",
@@ -1625,7 +1613,7 @@
   },
   {
     "id": "model.team.is_valid.invite_id.app_error",
-    "translation": "Ogiltigt inbjudans-id."
+    "translation": "Ogiltigt inbjudnings-id."
   },
   {
     "id": "model.team.is_valid.id.app_error",
@@ -1708,20 +1696,12 @@
     "translation": "Ogiltig typ."
   },
   {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Ogiltigt root ID. Root ID måste anges om parent ID anges."
-  },
-  {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Ogiltigt root-id."
   },
   {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Ogiltig props."
-  },
-  {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Ogiltigt parent-id."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
@@ -1745,7 +1725,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Ogiltiga fil-id. Notera begränsningen av maximalt 5 filer. För att ladda upp fler filer, posta fler meddelanden."
+    "translation": "Ogiltiga fil-id. Notera begränsningen av maximalt 10 filer. För att ladda upp fler filer, posta fler meddelanden."
   },
   {
     "id": "model.post.is_valid.create_at.app_error",
@@ -3304,28 +3284,8 @@
     "translation": "Elasticsearch aggregator worker misslyckades med att skapa indexeringsjobbet"
   },
   {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Ett fel uppstod när batchen av reaktioner skulle raderas."
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Ett fel uppstod när batchen av meddelanden skulle raderas."
-  },
-  {
     "id": "ent.data_retention.generic.license.error",
     "translation": "Din licens ger inte stöd för datalagring."
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Ett fel uppstod när batchen av flaggor skulle rensas."
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Ett fel uppstod när batchen av filinformation skulle raderas."
-  },
-  {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Misslyckades att rensa posterna."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -5924,16 +5884,8 @@
     "translation": "Fel vid skapande av meddelande."
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Kanalen är read-only. Användare med behörighet kan posta."
-  },
-  {
     "id": "api.post.create_post.root_id.app_error",
     "translation": "Ogiltig RootId-parameter."
-  },
-  {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Felaktig ParentId-parameter."
   },
   {
     "id": "api.post.create_post.channel_root_id.app_error",
@@ -5982,10 +5934,6 @@
   {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "Ett fel inträffade när tillägget skulle laddas ner."
-  },
-  {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Ett fel uppstod när den publika nyckel-filen skulle öppnas."
   },
   {
     "id": "api.outgoing_webhook.disabled.app_error",
@@ -6097,7 +6045,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "rangeringsfel"
+    "translation": "Misslyckades att arrangera."
   },
   {
     "id": "api.license.request_trial_license.no-site-url.app_error",
@@ -7426,10 +7374,6 @@
     "translation": "Denna åtgärd är förbjuden för en begränsad systemadministratör."
   },
   {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Det går inte att kommentera meddelanden i en read-only kanal."
-  },
-  {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Du kan inte spara en kommentar för en annan användare."
   },
@@ -7548,10 +7492,6 @@
   {
     "id": "api.post.search_posts.invalid_body.app_error",
     "translation": "Kunde inte tolka förfrågan."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Kanalen är endast läsbar. Bara användare med behörighet kan posta."
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -7878,14 +7818,6 @@
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Måste använda createDirectChannel API tjänst för direktmeddelande skapande av kanaler."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "Kanalen är redan konverterad till en privat kanal."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "Denna standardkanal kan inte konverteras till en privat kanal."
   },
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",
@@ -9042,8 +8974,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.title",
     "translation": {
-      "one": "{{ .SenderName }} skickade ett nytt meddelande",
-      "other": "{{ .SenderName }} och {{.Count}} andra har skickat nya meddelanden"
+      "one": "Du har ett nytt meddelande",
+      "other": "Du har nya meddelanden"
     }
   },
   {
@@ -9233,5 +9165,77 @@
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
     "translation": "Misslyckades med att skicka e-postmeddelanden för förnyelse av licensen"
+  },
+  {
+    "id": "app.user.store_is_empty.app_error",
+    "translation": "Kontrollen av tomt användarlagring misslyckades."
+  },
+  {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}} svarade i en tråd"
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads",
+    "translation": "Svara i {{.channelName}}"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
+    "translation": " svarade i en tråd du följer."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "ThreadAutoFollow måste aktiveras för att CollapsedThreads ska vara tillgängligt"
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Misslyckades med att ladda om konfigurationen."
+  },
+  {
+    "id": "app.post.marshal.app_error",
+    "translation": "Misslyckades att arrangera meddelandet."
+  },
+  {
+    "id": "api.unmarshal_error",
+    "translation": "Misslyckades att återskapa."
+  },
+  {
+    "id": "app.notification.body.thread_gm.subTitle",
+    "translation": "Medan du var frånvarande, {{.SenderName}} svarade i en tråd i din grupp."
+  },
+  {
+    "id": "app.notification.body.thread_dm.subTitle",
+    "translation": "Medan du var frånvarande, {{.SenderName}} svarade i en tråd bland dina direktmeddelanden."
+  },
+  {
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": "Medan du var frånvarande, {{.SenderName}} svarade i en tråd du följer i {{.ChannelName}}."
+  },
+  {
+    "id": "app.notification.body.thread_channel.subTitle",
+    "translation": "Medan du var frånvarande, {{.SenderName}} svarade i en tråd du följer."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads_dm",
+    "translation": "Svarade i ett direktmeddelande"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
+    "translation": " svarade i en tråd."
+  },
+  {
+    "id": "app.import.bulk_import.process_attachments.error",
+    "translation": "Fel vid bulkimport av bifogade filer."
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "Ogiltigt UserId-fält för sessionen."
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "Ogiltigt Id-fält för sessionen."
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "Ogiltigt CreateAt-fält för sessionen."
   }
 ]

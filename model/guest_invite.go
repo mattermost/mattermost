@@ -4,8 +4,6 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
 	"net/http"
 )
 
@@ -23,7 +21,7 @@ func (i *GuestsInvite) IsValid() *AppError {
 	}
 
 	for _, email := range i.Emails {
-		if len(email) > USER_EMAIL_MAX_LENGTH || email == "" || !IsValidEmail(email) {
+		if len(email) > UserEmailMaxLength || email == "" || !IsValidEmail(email) {
 			return NewAppError("GuestsInvite.IsValid", "model.guest.is_valid.email.app_error", nil, "email="+email, http.StatusBadRequest)
 		}
 	}
@@ -38,16 +36,4 @@ func (i *GuestsInvite) IsValid() *AppError {
 		}
 	}
 	return nil
-}
-
-// GuestsInviteFromJson will decode the input and return a GuestsInvite
-func GuestsInviteFromJson(data io.Reader) *GuestsInvite {
-	var i *GuestsInvite
-	json.NewDecoder(data).Decode(&i)
-	return i
-}
-
-func (i *GuestsInvite) ToJson() string {
-	b, _ := json.Marshal(i)
-	return string(b)
 }

@@ -4,7 +4,8 @@
 package einterfaces
 
 import (
-	"github.com/mattermost/logr"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type MetricsInterface interface {
@@ -17,12 +18,12 @@ type MetricsInterface interface {
 	IncrementPostBroadcast()
 	IncrementPostFileAttachment(count int)
 
-	IncrementHttpRequest()
-	IncrementHttpError()
+	IncrementHTTPRequest()
+	IncrementHTTPError()
 
 	IncrementClusterRequest()
 	ObserveClusterRequestDuration(elapsed float64)
-	IncrementClusterEventType(eventType string)
+	IncrementClusterEventType(eventType model.ClusterEvent)
 
 	IncrementLogin()
 	IncrementLoginFail()
@@ -53,7 +54,7 @@ type MetricsInterface interface {
 	IncrementFilesSearchCounter()
 	ObserveFilesSearchDuration(elapsed float64)
 	ObserveStoreMethodDuration(method, success string, elapsed float64)
-	ObserveApiEndpointDuration(endpoint, method, statusCode string, elapsed float64)
+	ObserveAPIEndpointDuration(endpoint, method, statusCode string, elapsed float64)
 	IncrementPostIndexCounter()
 	IncrementFileIndexCounter()
 	IncrementUserIndexCounter()
@@ -62,10 +63,10 @@ type MetricsInterface interface {
 	ObservePluginHookDuration(pluginID, hookName string, success bool, elapsed float64)
 	ObservePluginMultiHookIterationDuration(pluginID string, elapsed float64)
 	ObservePluginMultiHookDuration(elapsed float64)
-	ObservePluginApiDuration(pluginID, apiName string, success bool, elapsed float64)
+	ObservePluginAPIDuration(pluginID, apiName string, success bool, elapsed float64)
 
 	ObserveEnabledUsers(users int64)
-	GetLoggerMetricsCollector() logr.MetricsCollector
+	GetLoggerMetricsCollector() mlog.MetricsCollector
 
 	IncrementRemoteClusterMsgSentCounter(remoteID string)
 	IncrementRemoteClusterMsgReceivedCounter(remoteID string)

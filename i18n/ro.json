@@ -148,14 +148,6 @@
     "translation": "Acest canal a fost transformat într-un canal privat."
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "Acest canal implicit nu poate fi convertit într-un canal privat."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "Canalul solicitat pentru conversie este deja un canal privat."
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Trebuie să utilizeze serviciul API createDirectChannel pentru crearea directă a canalelor de mesaje."
   },
@@ -1320,16 +1312,8 @@
     "translation": "ChannelId invalid pentru parametrul RootId."
   },
   {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Parametru invalid de ParentId."
-  },
-  {
     "id": "api.post.create_post.root_id.app_error",
     "translation": "Parametru invalid de RootId."
-  },
-  {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Acest canal este doar-în-citire. Doar membrii cu permisiunea de a putea posta aici."
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
@@ -1390,10 +1374,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Nu se poate actualiza o postare într-un canal șters."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Acest canal este numai pentru citire. Numai membrii cu permisiune pot fixa sau debloca posturile aici."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1474,10 +1454,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Nu puteți salva reacția pentru celălalt utilizator."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Reacționarea la postări nu este posibilă în canalele read-only."
   },
   {
     "id": "api.restricted_system_admin",
@@ -3024,10 +3000,6 @@
     "translation": "Imposibil de scris fișierul imagine în memoria de stocare a fișierelor. Verificați conexiunea și încercați din nou."
   },
   {
-    "id": "cli.license.critical",
-    "translation": "Caracteristică necesită un upgrade la Enterprise Edition şi includerea de o cheie de licenţă. Vă rugăm să contactaţi administratorul de sistem."
-  },
-  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Imposibilitatea de a obţine utilizatorii."
   },
@@ -3724,10 +3696,6 @@
     "translation": "Id de cârlig comandă."
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Părinte invalid id."
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "Identitate root invalidă."
   },
@@ -4412,20 +4380,12 @@
     "translation": "Identitatea originala invalidă."
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Părinte invalid id."
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Recuzită invalidă."
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Identitatea root invalidă."
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Trebuie setat ID invalid root dacă mamă ID set."
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -5136,10 +5096,6 @@
     "translation": "Imposibil de creat fișierul zip"
   },
   {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "Webhook-ul de ieșire este șters, dar nu poate crea unul nou din cauza unor erori."
-  },
-  {
     "id": "bleveengine.stop_user_index.error",
     "translation": "Eroare la închiderea indexului utilizatorului."
   },
@@ -5760,10 +5716,6 @@
     "translation": "A apărut o eroare la descărcarea pluginului."
   },
   {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "A apărut o eroare la deschiderea fișierului cu cheie publică."
-  },
-  {
     "id": "api.license.remove_expired_license.failed.error",
     "translation": "Eroare la trimiterea cu succes a e-mailului de licență dezactivat."
   },
@@ -5940,10 +5892,6 @@
     "translation": "Eroarea de a primi utilizatorii pe canal în perioada specificată."
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Eroare la ștergerea înregistrărilor."
-  },
-  {
     "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
     "translation": "Identificatorul furnizorului de servicii este necesar"
   },
@@ -5954,10 +5902,6 @@
   {
     "id": "ent.elasticsearch.delete_channel_posts.error",
     "translation": "Nu a reușit să ștergi postările canalului"
-  },
-  {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Am intalnit o eroare permanent a şterge lotul de reacţii."
   },
   {
     "id": "ent.cluster.timeout.error",
@@ -6436,10 +6380,6 @@
     "translation": "Am intalnit o eroare regăsirea rapoarte de conformitate."
   },
   {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Am întâlnit o eroare la curățarea lotului de steaguri."
-  },
-  {
     "id": "app.preference.save.updating.app_error",
     "translation": "Am întâlnit o eroare la actualizarea preferințelor."
   },
@@ -6794,10 +6734,6 @@
   {
     "id": "app.job.get.app_error",
     "translation": "Imposibil de obținut lucrarea."
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Am întâlnit o eroare ștergând definitiv lotul de informații despre fișiere."
   },
   {
     "id": "app.file_info.save.app_error",
@@ -7202,10 +7138,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "Imposibil de obținut lotul de postări pentru indexare."
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Am întâmpinat o eroare la ștergerea definitivă a lotului de postări."
   },
   {
     "id": "app.post.overwrite.app_error",

@@ -11,10 +11,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
 func handlerForHTTPErrors(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -126,7 +126,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	session := &model.Session{
 		UserId:   th.BasicUser.Id,
 		CreateAt: model.GetMillis(),
-		Roles:    model.SYSTEM_USER_ROLE_ID,
+		Roles:    model.SystemUserRoleId,
 		IsOAuth:  false,
 	}
 	session.GenerateCSRF()
@@ -148,15 +148,15 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	}
 
 	cookie := &http.Cookie{
-		Name:  model.SESSION_COOKIE_USER,
+		Name:  model.SessionCookieUser,
 		Value: th.BasicUser.Username,
 	}
 	cookie2 := &http.Cookie{
-		Name:  model.SESSION_COOKIE_TOKEN,
+		Name:  model.SessionCookieToken,
 		Value: session.Token,
 	}
 	cookie3 := &http.Cookie{
-		Name:  model.SESSION_COOKIE_CSRF,
+		Name:  model.SessionCookieCsrf,
 		Value: session.GetCSRF(),
 	}
 
@@ -166,7 +166,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	request.AddCookie(cookie)
 	request.AddCookie(cookie2)
 	request.AddCookie(cookie3)
-	request.Header.Add(model.HEADER_CSRF_TOKEN, session.GetCSRF())
+	request.Header.Add(model.HeaderCsrfToken, session.GetCSRF())
 	response := httptest.NewRecorder()
 	handler.ServeHTTP(response, request)
 
@@ -196,7 +196,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	request.AddCookie(cookie)
 	request.AddCookie(cookie2)
 	request.AddCookie(cookie3)
-	request.Header.Add(model.HEADER_REQUESTED_WITH, model.HEADER_REQUESTED_WITH_XML)
+	request.Header.Add(model.HeaderRequestedWith, model.HeaderRequestedWithXML)
 	response = httptest.NewRecorder()
 	handler.ServeHTTP(response, request)
 
@@ -233,7 +233,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	request.AddCookie(cookie)
 	request.AddCookie(cookie2)
 	request.AddCookie(cookie3)
-	request.Header.Add(model.HEADER_CSRF_TOKEN, session.GetCSRF())
+	request.Header.Add(model.HeaderCsrfToken, session.GetCSRF())
 	response = httptest.NewRecorder()
 	handlerNoSession.ServeHTTP(response, request)
 
@@ -392,7 +392,7 @@ func TestHandlerServeInvalidToken(t *testing.T) {
 			}
 
 			cookie := &http.Cookie{
-				Name:  model.SESSION_COOKIE_TOKEN,
+				Name:  model.SessionCookieToken,
 				Value: "invalid",
 			}
 
@@ -426,7 +426,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
-		r.Header.Set(model.HEADER_CSRF_TOKEN, token)
+		r.Header.Set(model.HeaderCsrfToken, token)
 		session := &model.Session{
 			Props: map[string]string{
 				"csrf": token,
@@ -458,7 +458,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
-		r.Header.Set(model.HEADER_REQUESTED_WITH, model.HEADER_REQUESTED_WITH_XML)
+		r.Header.Set(model.HeaderRequestedWith, model.HeaderRequestedWithXML)
 		session := &model.Session{
 			Props: map[string]string{
 				"csrf": token,
@@ -508,7 +508,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
-		r.Header.Set(model.HEADER_REQUESTED_WITH, model.HEADER_REQUESTED_WITH_XML)
+		r.Header.Set(model.HeaderRequestedWith, model.HeaderRequestedWithXML)
 		session := &model.Session{
 			Props: map[string]string{
 				"csrf": token,
@@ -629,7 +629,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
-		r.Header.Set(model.HEADER_CSRF_TOKEN, token)
+		r.Header.Set(model.HeaderCsrfToken, token)
 
 		checked, passed := h.checkCSRFToken(c, r, token, tokenLocation, nil)
 
@@ -655,7 +655,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
-		r.Header.Set(model.HEADER_CSRF_TOKEN, token)
+		r.Header.Set(model.HeaderCsrfToken, token)
 		session := &model.Session{
 			Props: map[string]string{
 				"csrf": token,

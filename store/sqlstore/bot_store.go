@@ -10,9 +10,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 // bot is a subset of the model.Bot type, omitting the model.User fields.
@@ -57,7 +57,7 @@ func newSqlBotStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) st
 		table := db.AddTableWithName(bot{}, "Bots").SetKeys(false, "UserId")
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("Description").SetMaxSize(1024)
-		table.ColMap("OwnerId").SetMaxSize(model.BOT_CREATOR_ID_MAX_RUNES)
+		table.ColMap("OwnerId").SetMaxSize(model.BotCreatorIdMaxRunes)
 	}
 
 	return us

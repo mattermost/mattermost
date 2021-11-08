@@ -148,14 +148,6 @@
     "translation": "이 채널은 비공개 채널로 변경되었습니다."
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "기본 채널은 비공개 채널로 변환할 수 없습니다."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "변환하기 위해 요청 된 채널은 이미 개인 채널입니다."
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "개인 메시지 채널을 만들기 위해서는 반드시 createDirectChannel API 서비스를 이용해야 함"
   },
@@ -1316,16 +1308,8 @@
     "translation": "루트 아이디 매개변수의 잘못된 채널 아이디입니다."
   },
   {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "잘못된 ParentId 매개변수입니다"
-  },
-  {
     "id": "api.post.create_post.root_id.app_error",
     "translation": "잘못된 RootId 매개변수입니다"
-  },
-  {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "이 채널은 읽기 전용입니다. 권한을 가진 사용자들만 게시할 수 있습니다."
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
@@ -1382,10 +1366,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "이 채널은 읽기 전용입니다. 권한을 가진 사용자들만 게시할 수 있습니다."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1466,10 +1446,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "타 사용자에 대한 리액션 저장을 할 수 없습니다."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "읽기 전용 채널에서는 메시지에 응답할 수 없습니다."
   },
   {
     "id": "api.restricted_system_admin",
@@ -3016,10 +2992,6 @@
     "translation": "Unable to write the image file to your file storage. Please check your connection and try again."
   },
   {
-    "id": "cli.license.critical",
-    "translation": "Feature requires an upgrade to Enterprise Edition and the inclusion of a license key. Please contact your System Administrator."
-  },
-  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "내용을 가져올수 없습니다."
   },
@@ -3716,10 +3688,6 @@
     "translation": "Invalid command hook id"
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "잘못된 Parent Id 입니다."
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "잘못된 루트 아이디입니다."
   },
@@ -4404,20 +4372,12 @@
     "translation": "Invalid original id"
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "잘못된 Parent Id 입니다."
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "잘못된 프로퍼티입니다."
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "잘못된 루트 아이디입니다."
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Invalid root id must be set if parent id set"
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -5128,10 +5088,6 @@
     "translation": "eml 파일을 생성할 수 없습니다."
   },
   {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "나가는 웹훅이 삭제되었지만, 오류가 발생해서 새 웹훅을 생성할 수 없습니다."
-  },
-  {
     "id": "bleveengine.stop_user_index.error",
     "translation": "Failed to close user index."
   },
@@ -5748,10 +5704,6 @@
     "translation": "플러그인을 다운로드하는 동안 오류가 발생하였습니다."
   },
   {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "공개 키 파일을 여는 동안 오류가 발생함"
-  },
-  {
     "id": "api.license.remove_expired_license.failed.error",
     "translation": "라이선스 비활성화 전자우편을 성공적으로 발송하지 못했습니다."
   },
@@ -5914,10 +5866,6 @@
   {
     "id": "api.admin.delete_brand_image.storage.not_found",
     "translation": "브랜드 이미지 파일을 찾을 수 없어 삭제 할 수 없습니다."
-  },
-  {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "We encountered an error permanently deleting the batch of reactions"
   },
   {
     "id": "app.reaction.save.save.app_error",
@@ -6134,10 +6082,6 @@
   {
     "id": "ent.get_users_in_channel_during",
     "translation": "지정된 기간 동안의 채널 사용자들을 가져오지 못했습니다."
-  },
-  {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "레코드를 제거하지 못했습니다."
   },
   {
     "id": "app.emoji.create.internal_error",
@@ -6416,10 +6360,6 @@
     "translation": "이 작업을 다운로드할 수 없음"
   },
   {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "중요 메시지들의 일괄 정리 중에 오류가 발생했습니다."
-  },
-  {
     "id": "app.preference.save.updating.app_error",
     "translation": "설정을 갱신하는 중에 오류가 발생했습니다."
   },
@@ -6686,10 +6626,6 @@
   {
     "id": "app.job.get.app_error",
     "translation": "작업을 가져올 수 없습니다."
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "파일 정보를 배치를 영구적으로 삭제하는 중 오류가 발생했습니다."
   },
   {
     "id": "app.file_info.save.app_error",
@@ -7074,10 +7010,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "색인을 위한 게시글 배치를 가져올 수 없습니다."
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "파일 정보 배치를 영구적으로 삭제하는 중 오류가 발생함"
   },
   {
     "id": "app.post.overwrite.app_error",

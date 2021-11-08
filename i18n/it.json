@@ -148,14 +148,6 @@
     "translation": "Questo canale è stato convertito in un Canale Privato."
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "Questo canale predefinito non può essere convertito in un canale privato."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "Il canale da convertire è già un canale privato."
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Bisogna usare il servizio createDirectChannel API per la creazione dei messaggi diretti nel canale."
   },
@@ -1318,16 +1310,8 @@
     "translation": "ChannelId non valido per il parametro RootId."
   },
   {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Parametro ParentId non valido."
-  },
-  {
     "id": "api.post.create_post.root_id.app_error",
     "translation": "Parametro RooId non valido."
-  },
-  {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Il canale è in sola lettura. Solo i membri con i permessi corretti possono pubblicare qui."
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
@@ -1386,10 +1370,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Impossibile aggiornare una pubblicazione in un canale eliminato."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Il canale è in sola lettura. Solo i membri con i permessi corretti possono bloccare o sbloccare le pubblicazioni in questo canale."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1470,10 +1450,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Non puoi salvare le reazioni di un altro utente."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Non è possibile reagire alle pubblicazioni nei canali in sola lettura."
   },
   {
     "id": "api.restricted_system_admin",
@@ -3020,10 +2996,6 @@
     "translation": "Impossibile scrivere l'immagine nell'archivio file. Controllare la connessione e riprovare."
   },
   {
-    "id": "cli.license.critical",
-    "translation": "Questa opzione richiede una licenza Enterprise Edition valida. Per favore contatta il tuo Amministratore di Sistema."
-  },
-  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Impossibile recuperare gli utenti."
   },
@@ -3720,10 +3692,6 @@
     "translation": "Id comando hook non valido."
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Id genitore non valido."
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "Id radice non valido."
   },
@@ -4408,20 +4376,12 @@
     "translation": "Id originale non valido."
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Id genitore non valido."
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Proprietà invalide."
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Id radice non valido."
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Non valido l'ID root deve essere specificato se l'ID padre è presente."
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -5444,10 +5404,6 @@
     "translation": "La ricerca non è stata completata."
   },
   {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "Il webhook in uscita è cancellato ma non è possibile crearne uno nuovo a causa di un errore."
-  },
-  {
     "id": "ent.compliance.csv.metadata.json.zipfile.appError",
     "translation": "Impossibile creare il file zip"
   },
@@ -5678,10 +5634,6 @@
   {
     "id": "api.ldap_groups.existing_user_name_error",
     "translation": "il nome di questo gruppo esiste già come nome utente"
-  },
-  {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Si è verificato un errore durante l'apertura del file di chiave pubblica."
   },
   {
     "id": "api.plugin.install.download_failed.app_error",
@@ -6036,10 +5988,6 @@
     "translation": "Impossibile spostare i canali di gruppo o di messaggi diretti"
   },
   {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Si è verificato un errore durante la cancellazione delle reazioni"
-  },
-  {
     "id": "app.reaction.save.save.app_error",
     "translation": "Impossibile salvare la reazione"
   },
@@ -6248,10 +6196,6 @@
     "translation": "Impossibile trovare gli utenti del canale durante il momento specificato"
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Impossibile cancellare i record"
-  },
-  {
     "id": "app.user_access_token.update_token_enable.app_error",
     "translation": "Impossibile attivare il token di accesso."
   },
@@ -6406,10 +6350,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "Non è stato possibile recuperare i rapporti di compliance."
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Si è verificato un errore pulendo i flag"
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6760,10 +6700,6 @@
     "translation": "Impossibile ottenere il lavoro"
   },
   {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Si è verificato un errore durante la cancellazione delle informazioni sui file"
-  },
-  {
     "id": "app.file_info.save.app_error",
     "translation": "Impossibile salvare le informazioni sul file"
   },
@@ -6822,10 +6758,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "Impossibile trovare la coda delle pubblicazioni da indicizzare"
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Si è verifcato un errore durante la cancellazione delle pubblicazioni"
   },
   {
     "id": "app.post.overwrite.app_error",

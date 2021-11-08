@@ -13,10 +13,10 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SqlFileInfoStore struct {
@@ -197,7 +197,7 @@ func (fs SqlFileInfoStore) GetWithOptions(page, perPage int, opt *model.GetFileI
 	}
 
 	if opt.SortBy == "" {
-		opt.SortBy = model.FILEINFO_SORT_BY_CREATED
+		opt.SortBy = model.FileinfoSortByCreated
 	}
 	sortDirection := "ASC"
 	if opt.SortDescending {
@@ -205,9 +205,9 @@ func (fs SqlFileInfoStore) GetWithOptions(page, perPage int, opt *model.GetFileI
 	}
 
 	switch opt.SortBy {
-	case model.FILEINFO_SORT_BY_CREATED:
+	case model.FileinfoSortByCreated:
 		query = query.OrderBy("FileInfo.CreateAt " + sortDirection)
-	case model.FILEINFO_SORT_BY_SIZE:
+	case model.FileinfoSortBySize:
 		query = query.OrderBy("FileInfo.Size " + sortDirection)
 	default:
 		return nil, store.NewErrInvalidInput("FileInfo", "<sortOption>", opt.SortBy)
@@ -515,7 +515,7 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 
 		if terms == "" && excludedTerms == "" {
 			// we've already confirmed that we have a channel or user to search for
-		} else if fs.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		} else if fs.DriverName() == model.DatabaseDriverPostgres {
 			// Parse text for wildcards
 			if wildcard, err := regexp.Compile(`\*($| )`); err == nil {
 				terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
@@ -539,7 +539,7 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 				sq.Expr("to_tsvector('english', Translate(FileInfo.Name, '.,-', '   ')) @@  to_tsquery('english', ?)", queryTerms),
 				sq.Expr("to_tsvector('english', FileInfo.Content) @@  to_tsquery('english', ?)", queryTerms),
 			})
-		} else if fs.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		} else if fs.DriverName() == model.DatabaseDriverMysql {
 			var err error
 			terms, err = removeMysqlStopWordsFromTerms(terms)
 			if err != nil {

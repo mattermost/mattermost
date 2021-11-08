@@ -11,9 +11,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func TestSendNotifications(t *testing.T) {
@@ -26,8 +26,8 @@ func TestSendNotifications(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   "@" + th.BasicUser2.Username,
-		Type:      model.POST_ADD_TO_CHANNEL,
-		Props:     map[string]interface{}{model.POST_PROPS_ADDED_USER_ID: "junk"},
+		Type:      model.PostTypeAddToChannel,
+		Props:     map[string]interface{}{model.PostPropsAddedUserId: "junk"},
 	}, true)
 	require.Nil(t, appErr)
 
@@ -103,14 +103,14 @@ func TestSendNotifications(t *testing.T) {
 			require.False(t, utils.StringInSlice(user.Id, mentions))
 		}
 
-		th.BasicUser.NotifyProps[model.COMMENTS_NOTIFY_PROP] = model.COMMENTS_NOTIFY_ANY
+		th.BasicUser.NotifyProps[model.CommentsNotifyProp] = model.CommentsNotifyAny
 		th.BasicUser, appErr = th.App.UpdateUser(th.BasicUser, false)
 		require.Nil(t, appErr)
 		t.Run("user wants notifications on all comments", func(t *testing.T) {
 			testUserNotNotified(t, th.BasicUser)
 		})
 
-		th.BasicUser.NotifyProps[model.COMMENTS_NOTIFY_PROP] = model.COMMENTS_NOTIFY_ROOT
+		th.BasicUser.NotifyProps[model.CommentsNotifyProp] = model.CommentsNotifyRoot
 		th.BasicUser, appErr = th.App.UpdateUser(th.BasicUser, false)
 		require.Nil(t, appErr)
 		t.Run("user wants notifications on root comment", func(t *testing.T) {
@@ -135,8 +135,8 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   "@channel",
-		Type:      model.POST_ADD_TO_CHANNEL,
-		Props:     map[string]interface{}{model.POST_PROPS_ADDED_USER_ID: "junk"},
+		Type:      model.PostTypeAddToChannel,
+		Props:     map[string]interface{}{model.PostPropsAddedUserId: "junk"},
 	}, true)
 	require.Nil(t, appErr1)
 
@@ -155,8 +155,8 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   "@channel",
-		Type:      model.POST_ADD_TO_CHANNEL,
-		Props:     map[string]interface{}{model.POST_PROPS_ADDED_USER_ID: "junk"},
+		Type:      model.PostTypeAddToChannel,
+		Props:     map[string]interface{}{model.PostPropsAddedUserId: "junk"},
 	}, true)
 	require.Nil(t, appErr1)
 
@@ -249,7 +249,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 
 	t.Run("should not return results for a system message", func(t *testing.T) {
 		post := &model.Post{
-			Type: model.POST_ADD_REMOVE,
+			Type: model.PostTypeAddRemove,
 		}
 		potentialMentions := []string{user2.Username, user3.Username}
 
@@ -263,7 +263,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 	t.Run("should not return results for a direct message", func(t *testing.T) {
 		post := &model.Post{}
 		directChannel := &model.Channel{
-			Type: model.CHANNEL_DIRECT,
+			Type: model.ChannelTypeDirect,
 		}
 		potentialMentions := []string{user2.Username, user3.Username}
 
@@ -277,7 +277,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 	t.Run("should not return results for a group message", func(t *testing.T) {
 		post := &model.Post{}
 		groupChannel := &model.Channel{
-			Type: model.CHANNEL_GROUP,
+			Type: model.ChannelTypeGroup,
 		}
 		potentialMentions := []string{user2.Username, user3.Username}
 
@@ -1016,13 +1016,13 @@ func TestAllowChannelMentions(t *testing.T) {
 	})
 
 	t.Run("should return false for a channel header post", func(t *testing.T) {
-		headerChangePost := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id, Type: model.POST_HEADER_CHANGE}
+		headerChangePost := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id, Type: model.PostTypeHeaderChange}
 		allowChannelMentions := th.App.allowChannelMentions(headerChangePost, 5)
 		assert.False(t, allowChannelMentions)
 	})
 
 	t.Run("should return false for a channel purpose post", func(t *testing.T) {
-		purposeChangePost := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id, Type: model.POST_PURPOSE_CHANGE}
+		purposeChangePost := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id, Type: model.PostTypePurposeChange}
 		allowChannelMentions := th.App.allowChannelMentions(purposeChangePost, 5)
 		assert.False(t, allowChannelMentions)
 	})
@@ -1033,10 +1033,10 @@ func TestAllowChannelMentions(t *testing.T) {
 	})
 
 	t.Run("should return false for a post where the post user does not have USE_CHANNEL_MENTIONS permission", func(t *testing.T) {
-		defer th.AddPermissionToRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
-		defer th.AddPermissionToRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_ADMIN_ROLE_ID)
-		th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
-		th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_ADMIN_ROLE_ID)
+		defer th.AddPermissionToRole(model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
+		th.RemovePermissionFromRole(model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
 		allowChannelMentions := th.App.allowChannelMentions(post, 5)
 		assert.False(t, allowChannelMentions)
 	})
@@ -1061,24 +1061,24 @@ func TestAllowGroupMentions(t *testing.T) {
 	})
 
 	t.Run("should return false for a channel header post", func(t *testing.T) {
-		headerChangePost := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id, Type: model.POST_HEADER_CHANGE}
+		headerChangePost := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id, Type: model.PostTypeHeaderChange}
 		allowGroupMentions := th.App.allowGroupMentions(headerChangePost)
 		assert.False(t, allowGroupMentions)
 	})
 
 	t.Run("should return false for a channel purpose post", func(t *testing.T) {
-		purposeChangePost := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id, Type: model.POST_PURPOSE_CHANGE}
+		purposeChangePost := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id, Type: model.PostTypePurposeChange}
 		allowGroupMentions := th.App.allowGroupMentions(purposeChangePost)
 		assert.False(t, allowGroupMentions)
 	})
 
 	t.Run("should return false for a post where the post user does not have USE_GROUP_MENTIONS permission", func(t *testing.T) {
 		defer func() {
-			th.AddPermissionToRole(model.PERMISSION_USE_GROUP_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
-			th.AddPermissionToRole(model.PERMISSION_USE_GROUP_MENTIONS.Id, model.CHANNEL_ADMIN_ROLE_ID)
+			th.AddPermissionToRole(model.PermissionUseGroupMentions.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(model.PermissionUseGroupMentions.Id, model.ChannelAdminRoleId)
 		}()
-		th.RemovePermissionFromRole(model.PERMISSION_USE_GROUP_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
-		th.RemovePermissionFromRole(model.PERMISSION_USE_GROUP_MENTIONS.Id, model.CHANNEL_ADMIN_ROLE_ID)
+		th.RemovePermissionFromRole(model.PermissionUseGroupMentions.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(model.PermissionUseGroupMentions.Id, model.ChannelAdminRoleId)
 		allowGroupMentions := th.App.allowGroupMentions(post)
 		assert.False(t, allowGroupMentions)
 	})
@@ -1100,7 +1100,7 @@ func TestGetMentionKeywords(t *testing.T) {
 
 	channelMemberNotifyPropsMap1Off := map[string]model.StringMap{
 		user1.Id: {
-			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_OFF,
+			"ignore_channel_mentions": model.IgnoreChannelMentionsOff,
 		},
 	}
 
@@ -1130,7 +1130,7 @@ func TestGetMentionKeywords(t *testing.T) {
 
 	channelMemberNotifyPropsMap2Off := map[string]model.StringMap{
 		user2.Id: {
-			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_OFF,
+			"ignore_channel_mentions": model.IgnoreChannelMentionsOff,
 		},
 	}
 
@@ -1155,7 +1155,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	// Channel-wide mentions are not ignored on channel level
 	channelMemberNotifyPropsMap3Off := map[string]model.StringMap{
 		user3.Id: {
-			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_OFF,
+			"ignore_channel_mentions": model.IgnoreChannelMentionsOff,
 		},
 	}
 	profiles = map[string]*model.User{user3.Id: user3}
@@ -1171,7 +1171,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	// Channel member notify props is set to default
 	channelMemberNotifyPropsMapDefault := map[string]model.StringMap{
 		user3.Id: {
-			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_DEFAULT,
+			"ignore_channel_mentions": model.IgnoreChannelMentionsDefault,
 		},
 	}
 	profiles = map[string]*model.User{user3.Id: user3}
@@ -1199,7 +1199,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	// Channel-wide mentions are ignored channel level
 	channelMemberNotifyPropsMap3On := map[string]model.StringMap{
 		user3.Id: {
-			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_ON,
+			"ignore_channel_mentions": model.IgnoreChannelMentionsOn,
 		},
 	}
 	mentions = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap3On)
@@ -1220,7 +1220,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	// Channel-wide mentions are not ignored on channel level
 	channelMemberNotifyPropsMap4Off := map[string]model.StringMap{
 		user4.Id: {
-			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_OFF,
+			"ignore_channel_mentions": model.IgnoreChannelMentionsOff,
 		},
 	}
 
@@ -1249,7 +1249,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	// Channel-wide mentions are ignored on channel level
 	channelMemberNotifyPropsMap4On := map[string]model.StringMap{
 		user4.Id: {
-			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_ON,
+			"ignore_channel_mentions": model.IgnoreChannelMentionsOn,
 		},
 	}
 	mentions = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap4On)
@@ -1295,16 +1295,16 @@ func TestGetMentionKeywords(t *testing.T) {
 	// Channel-wide mentions are not ignored on channel level for all users
 	channelMemberNotifyPropsMap5Off := map[string]model.StringMap{
 		user1.Id: {
-			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_OFF,
+			"ignore_channel_mentions": model.IgnoreChannelMentionsOff,
 		},
 		user2.Id: {
-			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_OFF,
+			"ignore_channel_mentions": model.IgnoreChannelMentionsOff,
 		},
 		user3.Id: {
-			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_OFF,
+			"ignore_channel_mentions": model.IgnoreChannelMentionsOff,
 		},
 		user4.Id: {
-			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_OFF,
+			"ignore_channel_mentions": model.IgnoreChannelMentionsOff,
 		},
 	}
 	mentions = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap5Off)
@@ -1393,7 +1393,7 @@ func TestGetMentionKeywords(t *testing.T) {
 
 	channelMemberNotifyPropsMapEmptyOff := map[string]model.StringMap{
 		userNoMentionKeys.Id: {
-			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_OFF,
+			"ignore_channel_mentions": model.IgnoreChannelMentionsOff,
 		},
 	}
 
@@ -1424,7 +1424,7 @@ func TestAddMentionKeywordsForUser(t *testing.T) {
 			Id:       model.NewId(),
 			Username: "user",
 			NotifyProps: map[string]string{
-				model.MENTION_KEYS_NOTIFY_PROP: "apple,BANANA,OrAnGe",
+				model.MentionKeysNotifyProp: "apple,BANANA,OrAnGe",
 			},
 		}
 		channelNotifyProps := map[string]string{}
@@ -1442,7 +1442,7 @@ func TestAddMentionKeywordsForUser(t *testing.T) {
 			Id:       model.NewId(),
 			Username: "user",
 			NotifyProps: map[string]string{
-				model.MENTION_KEYS_NOTIFY_PROP: ",,",
+				model.MentionKeysNotifyProp: ",,",
 			},
 		}
 		channelNotifyProps := map[string]string{}
@@ -1460,7 +1460,7 @@ func TestAddMentionKeywordsForUser(t *testing.T) {
 			FirstName: "William",
 			LastName:  "Robert",
 			NotifyProps: map[string]string{
-				model.FIRST_NAME_NOTIFY_PROP: "true",
+				model.FirstNameNotifyProp: "true",
 			},
 		}
 		channelNotifyProps := map[string]string{}
@@ -1480,7 +1480,7 @@ func TestAddMentionKeywordsForUser(t *testing.T) {
 			FirstName: "",
 			LastName:  "Robert",
 			NotifyProps: map[string]string{
-				model.FIRST_NAME_NOTIFY_PROP: "true",
+				model.FirstNameNotifyProp: "true",
 			},
 		}
 		channelNotifyProps := map[string]string{}
@@ -1498,7 +1498,7 @@ func TestAddMentionKeywordsForUser(t *testing.T) {
 			FirstName: "William",
 			LastName:  "Robert",
 			NotifyProps: map[string]string{
-				model.FIRST_NAME_NOTIFY_PROP: "false",
+				model.FirstNameNotifyProp: "false",
 			},
 		}
 		channelNotifyProps := map[string]string{}
@@ -1516,12 +1516,12 @@ func TestAddMentionKeywordsForUser(t *testing.T) {
 			Id:       model.NewId(),
 			Username: "user",
 			NotifyProps: map[string]string{
-				model.CHANNEL_MENTIONS_NOTIFY_PROP: "true",
+				model.ChannelMentionsNotifyProp: "true",
 			},
 		}
 		channelNotifyProps := map[string]string{}
 		status := &model.Status{
-			Status: model.STATUS_ONLINE,
+			Status: model.StatusOnline,
 		}
 
 		keywords := map[string][]string{}
@@ -1537,12 +1537,12 @@ func TestAddMentionKeywordsForUser(t *testing.T) {
 			Id:       model.NewId(),
 			Username: "user",
 			NotifyProps: map[string]string{
-				model.CHANNEL_MENTIONS_NOTIFY_PROP: "true",
+				model.ChannelMentionsNotifyProp: "true",
 			},
 		}
 		channelNotifyProps := map[string]string{}
 		status := &model.Status{
-			Status: model.STATUS_ONLINE,
+			Status: model.StatusOnline,
 		}
 
 		keywords := map[string][]string{}
@@ -1558,12 +1558,12 @@ func TestAddMentionKeywordsForUser(t *testing.T) {
 			Id:       model.NewId(),
 			Username: "user",
 			NotifyProps: map[string]string{
-				model.CHANNEL_MENTIONS_NOTIFY_PROP: "false",
+				model.ChannelMentionsNotifyProp: "false",
 			},
 		}
 		channelNotifyProps := map[string]string{}
 		status := &model.Status{
-			Status: model.STATUS_ONLINE,
+			Status: model.StatusOnline,
 		}
 
 		keywords := map[string][]string{}
@@ -1579,14 +1579,14 @@ func TestAddMentionKeywordsForUser(t *testing.T) {
 			Id:       model.NewId(),
 			Username: "user",
 			NotifyProps: map[string]string{
-				model.CHANNEL_MENTIONS_NOTIFY_PROP: "true",
+				model.ChannelMentionsNotifyProp: "true",
 			},
 		}
 		channelNotifyProps := map[string]string{
-			model.IGNORE_CHANNEL_MENTIONS_NOTIFY_PROP: model.IGNORE_CHANNEL_MENTIONS_ON,
+			model.IgnoreChannelMentionsNotifyProp: model.IgnoreChannelMentionsOn,
 		}
 		status := &model.Status{
-			Status: model.STATUS_ONLINE,
+			Status: model.StatusOnline,
 		}
 
 		keywords := map[string][]string{}
@@ -1602,15 +1602,15 @@ func TestAddMentionKeywordsForUser(t *testing.T) {
 			Id:       model.NewId(),
 			Username: "user",
 			NotifyProps: map[string]string{
-				model.CHANNEL_MENTIONS_NOTIFY_PROP: "true",
+				model.ChannelMentionsNotifyProp: "true",
 			},
 		}
 		channelNotifyProps := map[string]string{
-			model.MARK_UNREAD_NOTIFY_PROP:             model.USER_NOTIFY_MENTION,
-			model.IGNORE_CHANNEL_MENTIONS_NOTIFY_PROP: model.IGNORE_CHANNEL_MENTIONS_DEFAULT,
+			model.MarkUnreadNotifyProp:            model.UserNotifyMention,
+			model.IgnoreChannelMentionsNotifyProp: model.IgnoreChannelMentionsDefault,
 		}
 		status := &model.Status{
-			Status: model.STATUS_ONLINE,
+			Status: model.StatusOnline,
 		}
 
 		keywords := map[string][]string{}
@@ -1626,12 +1626,12 @@ func TestAddMentionKeywordsForUser(t *testing.T) {
 			Id:       model.NewId(),
 			Username: "user",
 			NotifyProps: map[string]string{
-				model.CHANNEL_MENTIONS_NOTIFY_PROP: "true",
+				model.ChannelMentionsNotifyProp: "true",
 			},
 		}
 		channelNotifyProps := map[string]string{}
 		status := &model.Status{
-			Status: model.STATUS_AWAY,
+			Status: model.StatusAway,
 		}
 
 		keywords := map[string][]string{}
@@ -1647,14 +1647,14 @@ func TestAddMentionKeywordsForUser(t *testing.T) {
 			Id:       model.NewId(),
 			Username: "user1",
 			NotifyProps: map[string]string{
-				model.CHANNEL_MENTIONS_NOTIFY_PROP: "true",
+				model.ChannelMentionsNotifyProp: "true",
 			},
 		}
 		user2 := &model.User{
 			Id:       model.NewId(),
 			Username: "user2",
 			NotifyProps: map[string]string{
-				model.CHANNEL_MENTIONS_NOTIFY_PROP: "true",
+				model.ChannelMentionsNotifyProp: "true",
 			},
 		}
 
@@ -1719,50 +1719,50 @@ func TestPostNotificationGetChannelName(t *testing.T) {
 		expected    string
 	}{
 		"regular channel": {
-			channel:  &model.Channel{Type: model.CHANNEL_OPEN, Name: "channel", DisplayName: "My Channel"},
+			channel:  &model.Channel{Type: model.ChannelTypeOpen, Name: "channel", DisplayName: "My Channel"},
 			expected: "My Channel",
 		},
 		"direct channel, unspecified": {
-			channel:  &model.Channel{Type: model.CHANNEL_DIRECT},
+			channel:  &model.Channel{Type: model.ChannelTypeDirect},
 			expected: "@sender",
 		},
 		"direct channel, username": {
-			channel:    &model.Channel{Type: model.CHANNEL_DIRECT},
-			nameFormat: model.SHOW_USERNAME,
+			channel:    &model.Channel{Type: model.ChannelTypeDirect},
+			nameFormat: model.ShowUsername,
 			expected:   "@sender",
 		},
 		"direct channel, full name": {
-			channel:    &model.Channel{Type: model.CHANNEL_DIRECT},
-			nameFormat: model.SHOW_FULLNAME,
+			channel:    &model.Channel{Type: model.ChannelTypeDirect},
+			nameFormat: model.ShowFullName,
 			expected:   "Sender Sender",
 		},
 		"direct channel, nickname": {
-			channel:    &model.Channel{Type: model.CHANNEL_DIRECT},
-			nameFormat: model.SHOW_NICKNAME_FULLNAME,
+			channel:    &model.Channel{Type: model.ChannelTypeDirect},
+			nameFormat: model.ShowNicknameFullName,
 			expected:   "Sender",
 		},
 		"group channel, unspecified": {
-			channel:  &model.Channel{Type: model.CHANNEL_GROUP},
+			channel:  &model.Channel{Type: model.ChannelTypeGroup},
 			expected: "other, sender",
 		},
 		"group channel, username": {
-			channel:    &model.Channel{Type: model.CHANNEL_GROUP},
-			nameFormat: model.SHOW_USERNAME,
+			channel:    &model.Channel{Type: model.ChannelTypeGroup},
+			nameFormat: model.ShowUsername,
 			expected:   "other, sender",
 		},
 		"group channel, full name": {
-			channel:    &model.Channel{Type: model.CHANNEL_GROUP},
-			nameFormat: model.SHOW_FULLNAME,
+			channel:    &model.Channel{Type: model.ChannelTypeGroup},
+			nameFormat: model.ShowFullName,
 			expected:   "Other Other, Sender Sender",
 		},
 		"group channel, nickname": {
-			channel:    &model.Channel{Type: model.CHANNEL_GROUP},
-			nameFormat: model.SHOW_NICKNAME_FULLNAME,
+			channel:    &model.Channel{Type: model.ChannelTypeGroup},
+			nameFormat: model.ShowNicknameFullName,
 			expected:   "Other, Sender",
 		},
 		"group channel, not excluding current user": {
-			channel:     &model.Channel{Type: model.CHANNEL_GROUP},
-			nameFormat:  model.SHOW_NICKNAME_FULLNAME,
+			channel:     &model.Channel{Type: model.ChannelTypeGroup},
+			nameFormat:  model.ShowNicknameFullName,
 			expected:    "Other, Sender",
 			recipientId: "",
 		},
@@ -1788,7 +1788,7 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	defaultChannel := &model.Channel{Type: model.CHANNEL_OPEN}
+	defaultChannel := &model.Channel{Type: model.ChannelTypeOpen}
 	defaultPost := &model.Post{Props: model.StringInterface{}}
 	sender := &model.User{Id: model.NewId(), Username: "sender", FirstName: "Sender", LastName: "Sender", Nickname: "Sender"}
 
@@ -1824,19 +1824,19 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 			expected: "@" + sender.Username,
 		},
 		"name format username": {
-			nameFormat: model.SHOW_USERNAME,
+			nameFormat: model.ShowUsername,
 			expected:   "@" + sender.Username,
 		},
 		"name format full name": {
-			nameFormat: model.SHOW_FULLNAME,
+			nameFormat: model.ShowFullName,
 			expected:   sender.FirstName + " " + sender.LastName,
 		},
 		"name format nickname": {
-			nameFormat: model.SHOW_NICKNAME_FULLNAME,
+			nameFormat: model.ShowNicknameFullName,
 			expected:   sender.Nickname,
 		},
 		"system message": {
-			post:     &model.Post{Type: model.POST_SYSTEM_MESSAGE_PREFIX + "custom"},
+			post:     &model.Post{Type: model.PostSystemMessagePrefix + "custom"},
 			expected: i18n.T("system.message.name"),
 		},
 		"overridden username": {
@@ -1845,7 +1845,7 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 			expected:       overriddenPost.GetProp("override_username").(string),
 		},
 		"overridden username, direct channel": {
-			channel:        &model.Channel{Type: model.CHANNEL_DIRECT},
+			channel:        &model.Channel{Type: model.ChannelTypeDirect},
 			post:           overriddenPost,
 			allowOverrides: true,
 			expected:       "@" + sender.Username,
@@ -2318,19 +2318,19 @@ func TestGetNotificationNameFormat(t *testing.T) {
 	t.Run("show full name on", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PrivacySettings.ShowFullName = true
-			*cfg.TeamSettings.TeammateNameDisplay = model.SHOW_FULLNAME
+			*cfg.TeamSettings.TeammateNameDisplay = model.ShowFullName
 		})
 
-		assert.Equal(t, model.SHOW_FULLNAME, th.App.GetNotificationNameFormat(th.BasicUser))
+		assert.Equal(t, model.ShowFullName, th.App.GetNotificationNameFormat(th.BasicUser))
 	})
 
 	t.Run("show full name off", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PrivacySettings.ShowFullName = false
-			*cfg.TeamSettings.TeammateNameDisplay = model.SHOW_FULLNAME
+			*cfg.TeamSettings.TeammateNameDisplay = model.ShowFullName
 		})
 
-		assert.Equal(t, model.SHOW_USERNAME, th.App.GetNotificationNameFormat(th.BasicUser))
+		assert.Equal(t, model.ShowUsername, th.App.GetNotificationNameFormat(th.BasicUser))
 	})
 }
 
@@ -2344,8 +2344,8 @@ func TestUserAllowsEmail(t *testing.T) {
 		th.App.SetStatusOffline(user.Id, true)
 
 		channelMemberNotificationProps := model.StringMap{
-			model.EMAIL_NOTIFY_PROP:       model.CHANNEL_NOTIFY_DEFAULT,
-			model.MARK_UNREAD_NOTIFY_PROP: model.CHANNEL_MARK_UNREAD_ALL,
+			model.EmailNotifyProp:      model.ChannelNotifyDefault,
+			model.MarkUnreadNotifyProp: model.ChannelMarkUnreadAll,
 		}
 
 		assert.True(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: "some-post-type"}))
@@ -2357,8 +2357,8 @@ func TestUserAllowsEmail(t *testing.T) {
 		th.App.SetStatusOnline(user.Id, true)
 
 		channelMemberNotificationProps := model.StringMap{
-			model.EMAIL_NOTIFY_PROP:       model.CHANNEL_NOTIFY_DEFAULT,
-			model.MARK_UNREAD_NOTIFY_PROP: model.CHANNEL_MARK_UNREAD_ALL,
+			model.EmailNotifyProp:      model.ChannelNotifyDefault,
+			model.MarkUnreadNotifyProp: model.ChannelMarkUnreadAll,
 		}
 
 		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: "some-post-type"}))
@@ -2370,8 +2370,8 @@ func TestUserAllowsEmail(t *testing.T) {
 		th.App.SetStatusOffline(user.Id, true)
 
 		channelMemberNotificationProps := model.StringMap{
-			model.EMAIL_NOTIFY_PROP:       "false",
-			model.MARK_UNREAD_NOTIFY_PROP: model.CHANNEL_MARK_UNREAD_ALL,
+			model.EmailNotifyProp:      "false",
+			model.MarkUnreadNotifyProp: model.ChannelMarkUnreadAll,
 		}
 
 		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: "some-post-type"}))
@@ -2383,8 +2383,8 @@ func TestUserAllowsEmail(t *testing.T) {
 		th.App.SetStatusOffline(user.Id, true)
 
 		channelMemberNotificationProps := model.StringMap{
-			model.EMAIL_NOTIFY_PROP:       model.CHANNEL_NOTIFY_DEFAULT,
-			model.MARK_UNREAD_NOTIFY_PROP: model.CHANNEL_MARK_UNREAD_MENTION,
+			model.EmailNotifyProp:      model.ChannelNotifyDefault,
+			model.MarkUnreadNotifyProp: model.ChannelMarkUnreadMention,
 		}
 
 		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: "some-post-type"}))
@@ -2396,11 +2396,11 @@ func TestUserAllowsEmail(t *testing.T) {
 		th.App.SetStatusOffline(user.Id, true)
 
 		channelMemberNotificationProps := model.StringMap{
-			model.EMAIL_NOTIFY_PROP:       model.CHANNEL_NOTIFY_DEFAULT,
-			model.MARK_UNREAD_NOTIFY_PROP: model.CHANNEL_MARK_UNREAD_ALL,
+			model.EmailNotifyProp:      model.ChannelNotifyDefault,
+			model.MarkUnreadNotifyProp: model.ChannelMarkUnreadAll,
 		}
 
-		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: model.POST_AUTO_RESPONDER}))
+		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: model.PostTypeAutoResponder}))
 	})
 
 	t.Run("should return false in case the status is STATUS_OUT_OF_OFFICE", func(t *testing.T) {
@@ -2409,11 +2409,11 @@ func TestUserAllowsEmail(t *testing.T) {
 		th.App.SetStatusOutOfOffice(user.Id)
 
 		channelMemberNotificationProps := model.StringMap{
-			model.EMAIL_NOTIFY_PROP:       model.CHANNEL_NOTIFY_DEFAULT,
-			model.MARK_UNREAD_NOTIFY_PROP: model.CHANNEL_MARK_UNREAD_ALL,
+			model.EmailNotifyProp:      model.ChannelNotifyDefault,
+			model.MarkUnreadNotifyProp: model.ChannelMarkUnreadAll,
 		}
 
-		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: model.POST_AUTO_RESPONDER}))
+		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: model.PostTypeAutoResponder}))
 	})
 
 	t.Run("should return false in case the status is STATUS_ONLINE", func(t *testing.T) {
@@ -2422,11 +2422,11 @@ func TestUserAllowsEmail(t *testing.T) {
 		th.App.SetStatusDoNotDisturb(user.Id)
 
 		channelMemberNotificationProps := model.StringMap{
-			model.EMAIL_NOTIFY_PROP:       model.CHANNEL_NOTIFY_DEFAULT,
-			model.MARK_UNREAD_NOTIFY_PROP: model.CHANNEL_MARK_UNREAD_ALL,
+			model.EmailNotifyProp:      model.ChannelNotifyDefault,
+			model.MarkUnreadNotifyProp: model.ChannelMarkUnreadAll,
 		}
 
-		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: model.POST_AUTO_RESPONDER}))
+		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: model.PostTypeAutoResponder}))
 	})
 
 }
@@ -2507,13 +2507,13 @@ func TestInsertGroupMentions(t *testing.T) {
 		mentions := &ExplicitMentions{}
 		emptyProfileMap := make(map[string]*model.User)
 
-		groupChannel := &model.Channel{Type: model.CHANNEL_GROUP}
+		groupChannel := &model.Channel{Type: model.ChannelTypeGroup}
 		usersMentioned, _ := th.App.insertGroupMentions(group, groupChannel, emptyProfileMap, mentions)
 		// Ensure group channel with no group members mentioned always returns true
 		require.Equal(t, usersMentioned, true)
 		require.Equal(t, len(mentions.Mentions), 0)
 
-		directChannel := &model.Channel{Type: model.CHANNEL_DIRECT}
+		directChannel := &model.Channel{Type: model.ChannelTypeDirect}
 		usersMentioned, _ = th.App.insertGroupMentions(group, directChannel, emptyProfileMap, mentions)
 		// Ensure direct channel with no group members mentioned always returns true
 		require.Equal(t, usersMentioned, true)
@@ -2648,15 +2648,15 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 		// Enable "Trigger notifications on messages in
 		// reply threads that I start or participate in"
 		// for the second user
-		oldValue := th.BasicUser2.NotifyProps[model.COMMENTS_NOTIFY_PROP]
+		oldValue := th.BasicUser2.NotifyProps[model.CommentsNotifyProp]
 		newNotifyProps := th.BasicUser2.NotifyProps
-		newNotifyProps[model.COMMENTS_NOTIFY_PROP] = model.COMMENTS_NOTIFY_ANY
+		newNotifyProps[model.CommentsNotifyProp] = model.CommentsNotifyAny
 		u2, appErr := th.App.PatchUser(th.BasicUser2.Id, &model.UserPatch{NotifyProps: newNotifyProps}, false)
 		require.Nil(t, appErr)
-		require.Equal(t, model.COMMENTS_NOTIFY_ANY, u2.NotifyProps[model.COMMENTS_NOTIFY_PROP])
+		require.Equal(t, model.CommentsNotifyAny, u2.NotifyProps[model.CommentsNotifyProp])
 		defer func() {
 			newNotifyProps := th.BasicUser2.NotifyProps
-			newNotifyProps[model.COMMENTS_NOTIFY_PROP] = oldValue
+			newNotifyProps[model.CommentsNotifyProp] = oldValue
 			_, nAppErr := th.App.PatchUser(th.BasicUser2.Id, &model.UserPatch{NotifyProps: newNotifyProps}, false)
 			require.Nil(t, nAppErr)
 		}()
@@ -2666,7 +2666,7 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 		defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ThreadAutoFollow = true
-			*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+			*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
 		})
 
 		rootPost := &model.Post{
@@ -2712,7 +2712,7 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ThreadAutoFollow = true
-			*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+			*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
 		})
 
 		user := th.BasicUser

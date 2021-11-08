@@ -16,8 +16,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/httpservice"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/httpservice"
 )
 
 type InfiniteReader struct {
@@ -41,7 +41,7 @@ func TestMoveCommand(t *testing.T) {
 
 	command := &model.Command{}
 	command.CreatorId = model.NewId()
-	command.Method = model.COMMAND_METHOD_POST
+	command.Method = model.CommandMethodPost
 	command.TeamId = sourceTeam.Id
 	command.URL = "http://nowhere.com/"
 	command.Trigger = "trigger1"
@@ -74,7 +74,7 @@ func TestCreateCommandPost(t *testing.T) {
 	post := &model.Post{
 		ChannelId: th.BasicChannel.Id,
 		UserId:    th.BasicUser.Id,
-		Type:      model.POST_SYSTEM_GENERIC,
+		Type:      model.PostTypeSystemGeneric,
 	}
 
 	resp := &model.CommandResponse{
@@ -145,12 +145,11 @@ func TestHandleCommandResponsePost(t *testing.T) {
 		TeamId:    th.BasicTeam.Id,
 		UserId:    th.BasicUser.Id,
 		RootId:    "",
-		ParentId:  "",
 	}
 
 	resp := &model.CommandResponse{
-		Type:         model.POST_DEFAULT,
-		ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL,
+		Type:         model.PostTypeDefault,
+		ResponseType: model.CommandResponseTypeInChannel,
 		Props:        model.StringInterface{"some_key": "some value"},
 		Text:         "some message",
 	}
@@ -161,7 +160,6 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, args.ChannelId, post.ChannelId)
 	assert.Equal(t, args.RootId, post.RootId)
-	assert.Equal(t, args.ParentId, post.ParentId)
 	assert.Equal(t, args.UserId, post.UserId)
 	assert.Equal(t, resp.Type, post.Type)
 	assert.Equal(t, resp.Props, post.GetProps())
@@ -267,7 +265,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	channel = th.createPrivateChannel(th.BasicTeam)
 	resp.ChannelId = channel.Id
 	args.UserId = th.BasicUser2.Id
-	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
+	_, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
 
 	require.NotNil(t, err)
 	require.Equal(t, err.Id, "api.command.command_post.forbidden.app_error")
@@ -306,7 +304,7 @@ func TestHandleCommandResponse(t *testing.T) {
 
 	resp := &model.CommandResponse{
 		Text: "message 1",
-		Type: model.POST_SYSTEM_GENERIC,
+		Type: model.PostTypeSystemGeneric,
 	}
 
 	builtIn := true
@@ -329,7 +327,7 @@ func TestHandleCommandResponse(t *testing.T) {
 				Text: "message 2",
 			},
 			{
-				Type: model.POST_SYSTEM_GENERIC,
+				Type: model.PostTypeSystemGeneric,
 				Text: "message 3",
 			},
 		},

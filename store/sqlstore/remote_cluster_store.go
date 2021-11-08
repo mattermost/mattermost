@@ -10,11 +10,9 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
-
-const RemoteClusterSiteURLUniqueIndex = "remote_clusters_site_url_unique"
 
 type sqlRemoteClusterStore struct {
 	*SqlStore
@@ -178,7 +176,4 @@ func (s sqlRemoteClusterStore) SetLastPingAt(remoteClusterId string) error {
 		return errors.Wrap(err, "failed to update RemoteCluster")
 	}
 	return nil
-}
-
-func (s *sqlRemoteClusterStore) createIndexesIfNotExists() {
 }

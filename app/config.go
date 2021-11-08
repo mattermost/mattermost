@@ -20,11 +20,11 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mail"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mail"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 const (
@@ -116,7 +116,7 @@ func (s *Server) ensurePostActionCookieSecret() error {
 
 	var secret *model.SystemPostActionCookieSecret
 
-	value, err := s.Store.System().GetByName(model.SYSTEM_POST_ACTION_COOKIE_SECRET)
+	value, err := s.Store.System().GetByName(model.SystemPostActionCookieSecretKey)
 	if err == nil {
 		if err := json.Unmarshal([]byte(value.Value), &secret); err != nil {
 			return err
@@ -134,7 +134,7 @@ func (s *Server) ensurePostActionCookieSecret() error {
 		}
 
 		system := &model.System{
-			Name: model.SYSTEM_POST_ACTION_COOKIE_SECRET,
+			Name: model.SystemPostActionCookieSecretKey,
 		}
 		v, err := json.Marshal(newSecret)
 		if err != nil {
@@ -152,7 +152,7 @@ func (s *Server) ensurePostActionCookieSecret() error {
 	// If we weren't able to save a new key above, another server must have beat us to it. Get the
 	// key from the database, and if that fails, error out.
 	if secret == nil {
-		value, err := s.Store.System().GetByName(model.SYSTEM_POST_ACTION_COOKIE_SECRET)
+		value, err := s.Store.System().GetByName(model.SystemPostActionCookieSecretKey)
 		if err != nil {
 			return err
 		}
@@ -175,7 +175,7 @@ func (s *Server) ensureAsymmetricSigningKey() error {
 
 	var key *model.SystemAsymmetricSigningKey
 
-	value, err := s.Store.System().GetByName(model.SYSTEM_ASYMMETRIC_SIGNING_KEY)
+	value, err := s.Store.System().GetByName(model.SystemAsymmetricSigningKeyKey)
 	if err == nil {
 		if err := json.Unmarshal([]byte(value.Value), &key); err != nil {
 			return err
@@ -197,7 +197,7 @@ func (s *Server) ensureAsymmetricSigningKey() error {
 			},
 		}
 		system := &model.System{
-			Name: model.SYSTEM_ASYMMETRIC_SIGNING_KEY,
+			Name: model.SystemAsymmetricSigningKeyKey,
 		}
 		v, err := json.Marshal(newKey)
 		if err != nil {
@@ -215,7 +215,7 @@ func (s *Server) ensureAsymmetricSigningKey() error {
 	// If we weren't able to save a new key above, another server must have beat us to it. Get the
 	// key from the database, and if that fails, error out.
 	if key == nil {
-		value, err := s.Store.System().GetByName(model.SYSTEM_ASYMMETRIC_SIGNING_KEY)
+		value, err := s.Store.System().GetByName(model.SystemAsymmetricSigningKeyKey)
 		if err != nil {
 			return err
 		}
@@ -259,7 +259,7 @@ func (s *Server) ensureInstallationDate() error {
 	}
 
 	if err := s.Store.System().SaveOrUpdate(&model.System{
-		Name:  model.SYSTEM_INSTALLATION_DATE_KEY,
+		Name:  model.SystemInstallationDateKey,
 		Value: strconv.FormatInt(installationDate, 10),
 	}); err != nil {
 		return err
@@ -274,7 +274,7 @@ func (s *Server) ensureFirstServerRunTimestamp() error {
 	}
 
 	if err := s.Store.System().SaveOrUpdate(&model.System{
-		Name:  model.SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY,
+		Name:  model.SystemFirstServerRunTimestampKey,
 		Value: strconv.FormatInt(utils.MillisFromTime(time.Now()), 10),
 	}); err != nil {
 		return err

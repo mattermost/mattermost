@@ -10,19 +10,84 @@ import (
 	"image/color"
 	"image/draw"
 	"image/png"
+	"io"
 	"io/ioutil"
+	"path"
 	"path/filepath"
 	"strings"
 
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/filestore"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 const (
 	imageProfilePixelDimension = 128
 )
+
+func (us *UserService) GetProfileImage(user *model.User) ([]byte, bool, error) {
+	if *us.config().FileSettings.DriverName == "" {
+		img, err := us.GetDefaultProfileImage(user)
+		if err != nil {
+			return nil, false, err
+		}
+		return img, false, nil
+	}
+
+	path := path.Join("users", user.Id, "profile.png")
+	data, err := us.ReadFile(path)
+	if err != nil {
+		img, appErr := us.GetDefaultProfileImage(user)
+		if appErr != nil {
+			return nil, false, appErr
+		}
+
+		if user.LastPictureUpdate == 0 {
+			if _, err := us.writeFile(bytes.NewReader(img), path); err != nil {
+				return nil, false, err
+			}
+		}
+		return img, true, nil
+	}
+
+	return data, false, nil
+}
+
+func (us *UserService) FileBackend() (filestore.FileBackend, error) {
+	license := us.license()
+	backend, err := filestore.NewFileBackend(us.config().FileSettings.ToFileBackendSettings(license != nil && *license.Features.Compliance))
+	if err != nil {
+		return nil, err
+	}
+	return backend, nil
+}
+
+func (us *UserService) ReadFile(path string) ([]byte, error) {
+	backend, err := us.FileBackend()
+	if err != nil {
+		return nil, err
+	}
+	result, nErr := backend.ReadFile(path)
+	if nErr != nil {
+		return nil, nErr
+	}
+	return result, nil
+}
+
+func (us *UserService) writeFile(fr io.Reader, path string) (int64, error) {
+	backend, err := us.FileBackend()
+	if err != nil {
+		return 0, err
+	}
+
+	result, nErr := backend.WriteFile(fr, path)
+	if nErr != nil {
+		return result, nErr
+	}
+	return result, nil
+}
 
 func (us *UserService) GetDefaultProfileImage(user *model.User) ([]byte, error) {
 	if user.IsBot {

@@ -10,11 +10,11 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/users"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/users"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppError) {
@@ -41,7 +41,7 @@ func (a *App) GetCloudSession(token string) (*model.Session, *model.AppError) {
 			IsOAuth: false,
 		}
 
-		session.AddProp(model.SESSION_PROP_TYPE, model.SESSION_TYPE_CLOUD_KEY)
+		session.AddProp(model.SessionPropType, model.SessionTypeCloudKey)
 		return session, nil
 	}
 	return nil, model.NewAppError("GetCloudSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": ""}, "The provided token is invalid", http.StatusUnauthorized)
@@ -56,7 +56,7 @@ func (a *App) GetRemoteClusterSession(token string, remoteId string) (*model.Ses
 			IsOAuth: false,
 		}
 
-		session.AddProp(model.SESSION_PROP_TYPE, model.SESSION_TYPE_REMOTECLUSTER_TOKEN)
+		session.AddProp(model.SessionPropType, model.SessionTypeRemoteclusterToken)
 		return session, nil
 	}
 	return nil, model.NewAppError("GetRemoteClusterSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": ""}, "The provided token is invalid", http.StatusUnauthorized)
@@ -98,7 +98,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 
 	if *a.Config().ServiceSettings.SessionIdleTimeoutInMinutes > 0 &&
 		!session.IsOAuth && !session.IsMobileApp() &&
-		session.Props[model.SESSION_PROP_TYPE] != model.SESSION_TYPE_USER_ACCESS_TOKEN &&
+		session.Props[model.SessionPropType] != model.SessionTypeUserAccessToken &&
 		!*a.Config().ServiceSettings.ExtendSessionLengthWithActivity {
 
 		timeout := int64(*a.Config().ServiceSettings.SessionIdleTimeoutInMinutes) * 1000 * 60
@@ -239,7 +239,7 @@ func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
 
 	a.UpdateWebConnUserActivity(session, now)
 
-	if now-session.LastActivityAt < model.SESSION_ACTIVITY_TIMEOUT {
+	if now-session.LastActivityAt < model.SessionActivityTimeout {
 		return
 	}
 
@@ -362,7 +362,7 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 
 	// Don't send emails to bot users.
 	if !user.IsBot {
-		if err := a.Srv().EmailService.sendUserAccessTokenAddedEmail(user.Email, user.Locale, a.GetSiteURL()); err != nil {
+		if err := a.Srv().EmailService.SendUserAccessTokenAddedEmail(user.Email, user.Locale, a.GetSiteURL()); err != nil {
 			a.Log().Error("Unable to send user access token added email", mlog.Err(err), mlog.String("user_id", user.Id))
 		}
 	}
@@ -407,17 +407,17 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 		IsOAuth: false,
 	}
 
-	session.AddProp(model.SESSION_PROP_USER_ACCESS_TOKEN_ID, token.Id)
-	session.AddProp(model.SESSION_PROP_TYPE, model.SESSION_TYPE_USER_ACCESS_TOKEN)
+	session.AddProp(model.SessionPropUserAccessTokenId, token.Id)
+	session.AddProp(model.SessionPropType, model.SessionTypeUserAccessToken)
 	if user.IsBot {
-		session.AddProp(model.SESSION_PROP_IS_BOT, model.SESSION_PROP_IS_BOT_VALUE)
+		session.AddProp(model.SessionPropIsBot, model.SessionPropIsBotValue)
 	}
 	if user.IsGuest() {
-		session.AddProp(model.SESSION_PROP_IS_GUEST, "true")
+		session.AddProp(model.SessionPropIsGuest, "true")
 	} else {
-		session.AddProp(model.SESSION_PROP_IS_GUEST, "false")
+		session.AddProp(model.SessionPropIsGuest, "false")
 	}
-	a.srv.userService.SetSessionExpireInDays(session, model.SESSION_USER_ACCESS_TOKEN_EXPIRY)
+	a.srv.userService.SetSessionExpireInDays(session, model.SessionUserAccessTokenExpiry)
 
 	session, nErr = a.Srv().Store.Session().Save(session)
 	if nErr != nil {

@@ -7,16 +7,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
-	"mime/multipart"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/app/imaging"
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 // CreateBot creates the given bot and corresponding user.
@@ -76,7 +73,7 @@ func (a *App) CreateBot(c *request.Context, bot *model.Bot) (*model.Bot, *model.
 
 		T := i18n.GetUserTranslations(ownerUser.Locale)
 		botAddPost := &model.Post{
-			Type:      model.POST_ADD_BOT_TEAMS_CHANNELS,
+			Type:      model.PostTypeAddBotTeamsChannels,
 			UserId:    savedBot.UserId,
 			ChannelId: channel.Id,
 			Message:   T("api.bot.teams_channels.add_message_mobile"),
@@ -95,7 +92,7 @@ func (a *App) GetWarnMetricsBot() (*model.Bot, *model.AppError) {
 	userOptions := &model.UserGetOptions{
 		Page:     0,
 		PerPage:  perPage,
-		Role:     model.SYSTEM_ADMIN_ROLE_ID,
+		Role:     model.SystemAdminRoleId,
 		Inactive: false,
 	}
 
@@ -110,7 +107,7 @@ func (a *App) GetWarnMetricsBot() (*model.Bot, *model.AppError) {
 
 	T := i18n.GetUserTranslations(sysAdminList[0].Locale)
 	warnMetricsBot := &model.Bot{
-		Username:    model.BOT_WARN_METRIC_BOT_USERNAME,
+		Username:    model.BotWarnMetricBotUsername,
 		DisplayName: T("app.system.warn_metric.bot_displayname"),
 		Description: "",
 		OwnerId:     sysAdminList[0].Id,
@@ -124,7 +121,7 @@ func (a *App) GetSystemBot() (*model.Bot, *model.AppError) {
 	userOptions := &model.UserGetOptions{
 		Page:     0,
 		PerPage:  perPage,
-		Role:     model.SYSTEM_ADMIN_ROLE_ID,
+		Role:     model.SystemAdminRoleId,
 		Inactive: false,
 	}
 
@@ -139,7 +136,7 @@ func (a *App) GetSystemBot() (*model.Bot, *model.AppError) {
 
 	T := i18n.GetUserTranslations(sysAdminList[0].Locale)
 	systemBot := &model.Bot{
-		Username:    model.BOT_SYSTEM_BOT_USERNAME,
+		Username:    model.BotSystemBotUsername,
 		DisplayName: T("app.system.system_bot.bot_displayname"),
 		Description: "",
 		OwnerId:     sysAdminList[0].Id,
@@ -477,7 +474,7 @@ func (a *App) notifySysadminsBotOwnerDeactivated(c *request.Context, userID stri
 	userOptions := &model.UserGetOptions{
 		Page:     0,
 		PerPage:  perPage,
-		Role:     model.SYSTEM_ADMIN_ROLE_ID,
+		Role:     model.SystemAdminRoleId,
 		Inactive: false,
 	}
 	// get sysadmins
@@ -514,7 +511,7 @@ func (a *App) notifySysadminsBotOwnerDeactivated(c *request.Context, userID stri
 			UserId:    sysAdmin.Id,
 			ChannelId: channel.Id,
 			Message:   a.getDisableBotSysadminMessage(user, userBots),
-			Type:      model.POST_SYSTEM_GENERIC,
+			Type:      model.PostTypeSystemGeneric,
 		}
 
 		_, appErr = a.CreatePost(c, post, channel, false, true)
@@ -567,104 +564,4 @@ func (a *App) ConvertUserToBot(user *model.User) (*model.Bot, *model.AppError) {
 		}
 	}
 	return bot, nil
-}
-
-// SetBotIconImageFromMultiPartFile sets LHS icon for a bot.
-func (a *App) SetBotIconImageFromMultiPartFile(botUserId string, imageData *multipart.FileHeader) *model.AppError {
-	file, err := imageData.Open()
-	if err != nil {
-		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.open.app_error", nil, err.Error(), http.StatusBadRequest)
-	}
-	defer file.Close()
-
-	file.Seek(0, 0)
-	return a.SetBotIconImage(botUserId, file)
-}
-
-// SetBotIconImage sets LHS icon for a bot.
-func (a *App) SetBotIconImage(botUserId string, file io.ReadSeeker) *model.AppError {
-	bot, err := a.GetBot(botUserId, true)
-	if err != nil {
-		return err
-	}
-
-	if _, err := imaging.ParseSVG(file); err != nil {
-		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.parse.app_error", nil, err.Error(), http.StatusBadRequest)
-	}
-
-	// Set icon
-	file.Seek(0, 0)
-	if _, err = a.WriteFile(file, getBotIconPath(botUserId)); err != nil {
-		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	bot.LastIconUpdate = model.GetMillis()
-	if _, err := a.Srv().Store.Bot().Update(bot); err != nil {
-		var nfErr *store.ErrNotFound
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &nfErr):
-			return model.MakeBotNotFoundError(nfErr.ID)
-		case errors.As(err, &appErr): // in case we haven't converted to plain error.
-			return appErr
-		default: // last fallback in case it doesn't map to an existing app error.
-			return model.NewAppError("SetBotIconImage", "app.bot.patchbot.internal_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-	}
-	a.invalidateUserCacheAndPublish(botUserId)
-
-	return nil
-}
-
-// DeleteBotIconImage deletes LHS icon for a bot.
-func (a *App) DeleteBotIconImage(botUserId string) *model.AppError {
-	bot, err := a.GetBot(botUserId, true)
-	if err != nil {
-		return err
-	}
-
-	// Delete icon
-	if err = a.RemoveFile(getBotIconPath(botUserId)); err != nil {
-		return model.NewAppError("DeleteBotIconImage", "api.bot.delete_bot_icon_image.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	if nErr := a.Srv().Store.User().UpdateLastPictureUpdate(botUserId); nErr != nil {
-		mlog.Warn(nErr.Error())
-	}
-
-	bot.LastIconUpdate = int64(0)
-	if _, err := a.Srv().Store.Bot().Update(bot); err != nil {
-		var nfErr *store.ErrNotFound
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &nfErr):
-			return model.MakeBotNotFoundError(nfErr.ID)
-		case errors.As(err, &appErr): // in case we haven't converted to plain error.
-			return appErr
-		default: // last fallback in case it doesn't map to an existing app error.
-			return model.NewAppError("DeleteBotIconImage", "app.bot.patchbot.internal_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-	}
-
-	a.invalidateUserCacheAndPublish(botUserId)
-
-	return nil
-}
-
-// GetBotIconImage retrieves LHS icon for a bot.
-func (a *App) GetBotIconImage(botUserId string) ([]byte, *model.AppError) {
-	if _, err := a.GetBot(botUserId, true); err != nil {
-		return nil, err
-	}
-
-	data, err := a.ReadFile(getBotIconPath(botUserId))
-	if err != nil {
-		return nil, model.NewAppError("GetBotIconImage", "api.bot.get_bot_icon_image.read.app_error", nil, err.Error(), http.StatusNotFound)
-	}
-
-	return data, nil
-}
-
-func getBotIconPath(botUserId string) string {
-	return fmt.Sprintf("bots/%v/icon.svg", botUserId)
 }

@@ -8,11 +8,13 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mfa"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mfa"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
+
+	"github.com/pkg/errors"
 )
 
 type UserCreateOptions struct {
@@ -26,9 +28,9 @@ func (us *UserService) CreateUser(user *model.User, opts UserCreateOptions) (*mo
 		return us.createUser(user)
 	}
 
-	user.Roles = model.SYSTEM_USER_ROLE_ID
+	user.Roles = model.SystemUserRoleId
 	if opts.Guest {
-		user.Roles = model.SYSTEM_GUEST_ROLE_ID
+		user.Roles = model.SystemGuestRoleId
 	}
 
 	if !user.IsLDAPUser() && !user.IsSAMLUser() && !user.IsGuest() && !CheckUserDomain(user, *us.config().TeamSettings.RestrictCreationToDomains) {
@@ -41,12 +43,10 @@ func (us *UserService) CreateUser(user *model.User, opts UserCreateOptions) (*mo
 
 	// Below is a special case where the first user in the entire
 	// system is granted the system_admin role
-	count, err := us.store.Count(model.UserCountOptions{IncludeDeleted: true})
-	if err != nil {
-		return nil, UserCountError
-	}
-	if count <= 0 {
-		user.Roles = model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID
+	if ok, err := us.store.IsEmpty(true); err != nil {
+		return nil, errors.Wrap(UserStoreIsEmptyError, err.Error())
+	} else if ok {
+		user.Roles = model.SystemAdminRoleId + " " + model.SystemUserRoleId
 	}
 
 	if _, ok := i18n.GetSupportedLocales()[user.Locale]; !ok {
@@ -193,6 +193,10 @@ func (us *UserService) UpdateUser(user *model.User, allowRoleUpdate bool) (*mode
 	return us.store.Update(user, allowRoleUpdate)
 }
 
+func (us *UserService) UpdateUserNotifyProps(userID string, props map[string]string) error {
+	return us.store.UpdateNotifyProps(userID, props)
+}
+
 func (us *UserService) DeactivateAllGuests() ([]string, error) {
 	users, err := us.store.DeactivateGuests()
 	if err != nil {
@@ -214,9 +218,9 @@ func (us *UserService) InvalidateCacheForUser(userID string) {
 
 	if us.cluster != nil {
 		msg := &model.ClusterMessage{
-			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_USER,
-			SendType: model.CLUSTER_SEND_BEST_EFFORT,
-			Data:     userID,
+			Event:    model.ClusterEventInvalidateCacheForUser,
+			SendType: model.ClusterSendBestEffort,
+			Data:     []byte(userID),
 		}
 		us.cluster.SendClusterMessage(msg)
 	}
@@ -241,4 +245,12 @@ func (us *UserService) ActivateMfa(user *model.User, token string) error {
 
 func (us *UserService) DeactivateMfa(user *model.User) error {
 	return mfa.New(us.store).Deactivate(user.Id)
+}
+
+func (us *UserService) PromoteGuestToUser(user *model.User) error {
+	return us.store.PromoteGuestToUser(user.Id)
+}
+
+func (us *UserService) DemoteUserToGuest(user *model.User) (*model.User, error) {
+	return us.store.DemoteUserToGuest(user.Id)
 }

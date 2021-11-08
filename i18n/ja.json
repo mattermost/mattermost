@@ -137,7 +137,7 @@
   },
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
-    "translation": "この種類のチャンネルにはユーザーを追加することはできません。"
+    "translation": "この種別のチャンネルにはユーザーを追加することはできません。"
   },
   {
     "id": "api.channel.change_channel_privacy.private_to_public",
@@ -146,14 +146,6 @@
   {
     "id": "api.channel.change_channel_privacy.public_to_private",
     "translation": "このチャンネルは非公開チャンネルに変更されました。"
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "このデフォルトチャンネルは非公開チャンネルに変更できません。"
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "変更しようとしているチャンネルはすでに非公開チャンネルです。"
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -1181,7 +1173,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "変換エラー"
+    "translation": "変換できませんでした。"
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1316,16 +1308,8 @@
     "translation": "RootIdパラメーターのChannelIdが不正です。"
   },
   {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "ParentIdパラメーターが不正です。"
-  },
-  {
     "id": "api.post.create_post.root_id.app_error",
     "translation": "RootIdパラメーターが不正です。"
-  },
-  {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "このチャンネルは読み取り専用です。権限のあるメンバーのみがここに投稿できます。"
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
@@ -1382,10 +1366,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "削除されたチャンネルの投稿は更新できません。"
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "このチャンネルは読み取り専用です。権限のあるメンバーのみがこのチャンネルの投稿をピン留めできます。"
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1466,10 +1446,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "他のユーザーのリアクションを保存することはできません。"
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "読み取り専用チャンネルで投稿へリアクションすることはできません。"
   },
   {
     "id": "api.restricted_system_admin",
@@ -2541,7 +2517,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.type_invalid.error",
-    "translation": "チャンネルの種類が不正です。"
+    "translation": "チャンネル種別が不正です。"
   },
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",
@@ -3014,10 +2990,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "ファイルストレージに画像ファイルを書き込めません。接続を確認し、再度実行してください。"
-  },
-  {
-    "id": "cli.license.critical",
-    "translation": "この機能はEnterprise Editionへのアップグレードとライセンスキーを要求しています。システム管理者に連絡してください。"
   },
   {
     "id": "ent.account_migration.get_all_failed",
@@ -3716,10 +3688,6 @@
     "translation": "不正なコマンドフックIDです。"
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "不正な親IDです。"
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "不正なルートIDです。"
   },
@@ -4381,7 +4349,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "ファイルIDが不正です。アップロードは最大5ファイルまでに制限されています。それ以上のファイルをアップロードするには追加の投稿を行ってください。"
+    "translation": "ファイルIDが不正です。アップロードは最大10ファイルまでに制限されています。それ以上のファイルをアップロードするには追加の投稿を行ってください。"
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4404,20 +4372,12 @@
     "translation": "不正なオリジナルIDです。"
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "不正な親IDです。"
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "不正な設定値です。"
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "不正なルートIDです。"
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "親IDが設定されている場合、無効なルートIDが設定されていなければなりません。"
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -4817,7 +4777,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.9+"
+    "translation": "macOS 10.14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -4825,7 +4785,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 60+"
+    "translation": "Version 78+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -4833,7 +4793,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 61+"
+    "translation": "Version 89+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5126,10 +5086,6 @@
   {
     "id": "ent.compliance.csv.metadata.json.zipfile.appError",
     "translation": "zipファイルを作成できません"
-  },
-  {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "外向きのウェブフッは削除されましたが、エラーにより新しいウェブフックを作成できませんでした。"
   },
   {
     "id": "bleveengine.stop_user_index.error",
@@ -5752,10 +5708,6 @@
     "translation": "プラグインをダウンロードする際にエラーが発生しました。"
   },
   {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "公開鍵ファイルを開く際にエラーが発生しました。"
-  },
-  {
     "id": "api.license.remove_expired_license.failed.error",
     "translation": "無効化されたライセンスへの電子メールを送信できませんでした。"
   },
@@ -5833,7 +5785,7 @@
   },
   {
     "id": "api.channel.remove_user_from_channel.app_error",
-    "translation": "この種類のチャンネルからユーザーを削除することはできません。"
+    "translation": "この種別のチャンネルからユーザーを削除することはできません。"
   },
   {
     "id": "api.channel.remove_members.denied",
@@ -5930,10 +5882,6 @@
   {
     "id": "ent.elasticsearch.delete_channel_posts.error",
     "translation": "チャンネル投稿を削除できませんでした"
-  },
-  {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "リアクションの一括削除中にエラーが発生しました。"
   },
   {
     "id": "ent.cluster.timeout.error",
@@ -6228,10 +6176,6 @@
     "translation": "指定日時内のチャンネル内ユーザーを取得できませんでした。"
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "記録を破棄できませんでした。"
-  },
-  {
     "id": "app.command.listautocompletecommands.internal_error",
     "translation": "自動補完コマンドのリストを表示できませんでした。"
   },
@@ -6318,10 +6262,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "コンプライアンスリポートを取得する際にエラーが発生しました。"
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "複数のフラグをクリーンアップする際にエラーが発生しました。"
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6740,10 +6680,6 @@
     "translation": "ジョブを取得できませんでした。"
   },
   {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "複数のファイル情報を完全に削除する際にエラーが発生しました。"
-  },
-  {
     "id": "app.file_info.save.app_error",
     "translation": "ファイル情報を保存できませんでした。"
   },
@@ -6913,7 +6849,7 @@
   },
   {
     "id": "app.channel.analytics_type_count.app_error",
-    "translation": "チャンネル形式数を取得できませんでした。"
+    "translation": "チャンネル種別数を取得できませんでした。"
   },
   {
     "id": "api.upgrade_to_enterprise_status.signature.app_error",
@@ -7522,10 +7458,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "インデックス付与のための投稿のバッチ処理を取得できませんでした。"
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "複数の投稿を完全に削除する際にエラーが発生しました。"
   },
   {
     "id": "app.post.search.app_error",
@@ -9232,5 +9164,89 @@
   {
     "id": "app.user.store_is_empty.app_error",
     "translation": "ユーザーストアが空であるかどうか確認できませんでした。"
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "スレッドの折り畳み機能を有効にするには、ThreadAutoFollowが有効である必要があります"
+  },
+  {
+    "id": "app.post.marshal.app_error",
+    "translation": "投稿を変換できませんでした。"
+  },
+  {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}} がスレッドへ返信しました"
+  },
+  {
+    "id": "api.unmarshal_error",
+    "translation": "復元できませんでした。"
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads",
+    "translation": "スレッドへの返信"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
+    "translation": " フォローしているスレッドへコメントがありました。"
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "設定をリロードできませんでした。"
+  },
+  {
+    "id": "app.notification.body.thread_channel.subTitle",
+    "translation": "あなたが離席中に、あなたがフォローしているスレッドへ {{.SenderName}} が返信しました。"
+  },
+  {
+    "id": "app.notification.body.thread_gm.subTitle",
+    "translation": "あなたが離席中に、{{.SenderName}}があなたのグループのスレッドに返信しました。"
+  },
+  {
+    "id": "app.notification.body.thread_dm.subTitle",
+    "translation": "あなたが離席中に、{{.SenderName}} がダイレクトメッセージのスレッドに返信しました。"
+  },
+  {
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": "あなたが離席中に、{{.ChannelName}} であなたがフォローしているスレッドに {{.SenderName}} が返信しました。"
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads_dm",
+    "translation": "ダイレクトメッセージへ返信する"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
+    "translation": " がスレッドへ返信しました。"
+  },
+  {
+    "id": "app.import.bulk_import.process_attachments.error",
+    "translation": "添付ファイルの一括インポート中にエラーが発生しました。"
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "{{.Limit}}文字以上の不正なユーザーの役割です。"
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "{{.Limit}} 文字より長い不正なチームメンバーの役割です。"
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "セッションのUserIdフィールドが無効です。"
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "{{.Limit}} 文字より長い不正なチャンネルメンバーの役割です。"
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "{{.Limit}}文字以上の不正なセッションロールです。"
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "セッションのIdフィールドが無効です。"
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "セッションのCreateAtフィールドが無効です。"
   }
 ]

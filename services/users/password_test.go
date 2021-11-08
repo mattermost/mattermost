@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestComparePassword(t *testing.T) {
@@ -37,7 +37,7 @@ func TestIsPasswordValidWithSettings(t *testing.T) {
 			},
 		},
 		"Long": {
-			Password: strings.Repeat("x", model.PASSWORD_MAXIMUM_LENGTH),
+			Password: strings.Repeat("x", model.PasswordMaximumLength),
 			Settings: &model.PasswordSettings{
 				Lowercase: model.NewBool(false),
 				Uppercase: model.NewBool(false),
@@ -57,7 +57,7 @@ func TestIsPasswordValidWithSettings(t *testing.T) {
 			ExpectedError: "model.user.is_valid.pwd.app_error",
 		},
 		"TooLong": {
-			Password: strings.Repeat("x", model.PASSWORD_MAXIMUM_LENGTH+1),
+			Password: strings.Repeat("x", model.PasswordMaximumLength+1),
 			Settings: &model.PasswordSettings{
 				Lowercase: model.NewBool(false),
 				Uppercase: model.NewBool(false),

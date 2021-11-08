@@ -7,10 +7,10 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 type TestEnvironment struct {
@@ -77,14 +77,14 @@ func CreateTestEnvironmentInTeam(a *app.App, c *request.Context, client *model.C
 	// Have every user join every channel
 	for _, user := range users {
 		for _, channel := range channels {
-			_, resp := client.LoginById(user.Id, UserPassword)
-			if resp.Error != nil {
-				return TeamEnvironment{}, resp.Error
+			_, _, err := client.LoginById(user.Id, UserPassword)
+			if err != nil {
+				return TeamEnvironment{}, err
 			}
 
-			_, resp = client.AddChannelMember(channel.Id, user.Id)
-			if resp.Error != nil {
-				return TeamEnvironment{}, resp.Error
+			_, _, err = client.AddChannelMember(channel.Id, user.Id)
+			if err != nil {
+				return TeamEnvironment{}, err
 			}
 		}
 	}
@@ -93,9 +93,9 @@ func CreateTestEnvironmentInTeam(a *app.App, c *request.Context, client *model.C
 	numImages := utils.RandIntFromRange(rangePosts) / 4
 	for j := 0; j < numPosts; j++ {
 		user := users[utils.RandIntFromRange(utils.Range{Begin: 0, End: len(users) - 1})]
-		_, resp := client.LoginById(user.Id, UserPassword)
-		if resp.Error != nil {
-			return TeamEnvironment{}, resp.Error
+		_, _, err := client.LoginById(user.Id, UserPassword)
+		if err != nil {
+			return TeamEnvironment{}, err
 		}
 
 		for i, channel := range channels {

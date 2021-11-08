@@ -5,19 +5,19 @@ package app
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/jobs"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/jobs"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 const (
@@ -68,7 +68,7 @@ func (s *Server) LoadLicense() {
 	licenseId := ""
 	props, nErr := s.Store.System().Get()
 	if nErr == nil {
-		licenseId = props[model.SYSTEM_ACTIVE_LICENSE_ID]
+		licenseId = props[model.SystemActiveLicenseId]
 	}
 
 	if !model.IsValidId(licenseId) {
@@ -98,9 +98,13 @@ func (s *Server) LoadLicense() {
 func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError) {
 	success, licenseStr := utils.LicenseValidator.ValidateLicense(licenseBytes)
 	if !success {
-		return nil, model.NewAppError("addLicense", model.INVALID_LICENSE_ERROR, nil, "", http.StatusBadRequest)
+		return nil, model.NewAppError("addLicense", model.InvalidLicenseError, nil, "", http.StatusBadRequest)
 	}
-	license := model.LicenseFromJson(strings.NewReader(licenseStr))
+
+	var license model.License
+	if jsonErr := json.Unmarshal([]byte(licenseStr), &license); jsonErr != nil {
+		return nil, model.NewAppError("addLicense", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 
 	uniqueUserCount, err := s.Store.User().Count(model.UserCountOptions{})
 	if err != nil {
@@ -111,12 +115,12 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 		return nil, model.NewAppError("addLicense", "api.license.add_license.unique_users.app_error", map[string]interface{}{"Users": *license.Features.Users, "Count": uniqueUserCount}, "", http.StatusBadRequest)
 	}
 
-	if license != nil && license.IsExpired() {
-		return nil, model.NewAppError("addLicense", model.EXPIRED_LICENSE_ERROR, nil, "", http.StatusBadRequest)
+	if license.IsExpired() {
+		return nil, model.NewAppError("addLicense", model.ExpiredLicenseError, nil, "", http.StatusBadRequest)
 	}
 
-	if ok := s.SetLicense(license); !ok {
-		return nil, model.NewAppError("addLicense", model.EXPIRED_LICENSE_ERROR, nil, "", http.StatusBadRequest)
+	if ok := s.SetLicense(&license); !ok {
+		return nil, model.NewAppError("addLicense", model.ExpiredLicenseError, nil, "", http.StatusBadRequest)
 	}
 
 	record := &model.LicenseRecord{}
@@ -136,7 +140,7 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 	}
 
 	sysVar := &model.System{}
-	sysVar.Name = model.SYSTEM_ACTIVE_LICENSE_ID
+	sysVar.Name = model.SystemActiveLicenseId
 	sysVar.Value = license.Id
 	if err := s.Store.System().SaveOrUpdate(sysVar); err != nil {
 		s.RemoveLicense()
@@ -165,7 +169,7 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 		}
 	}
 
-	return license, nil
+	return &license, nil
 }
 
 func (s *Server) SetLicense(license *model.License) bool {
@@ -196,8 +200,12 @@ func (s *Server) SetLicense(license *model.License) bool {
 
 func (s *Server) ValidateAndSetLicenseBytes(b []byte) bool {
 	if success, licenseStr := utils.LicenseValidator.ValidateLicense(b); success {
-		license := model.LicenseFromJson(strings.NewReader(licenseStr))
-		s.SetLicense(license)
+		var license model.License
+		if jsonErr := json.Unmarshal([]byte(licenseStr), &license); jsonErr != nil {
+			mlog.Warn("Failed to decode license from JSON", mlog.Err(jsonErr))
+			return false
+		}
+		s.SetLicense(&license)
 		return true
 	}
 
@@ -221,10 +229,10 @@ func (s *Server) RemoveLicense() *model.AppError {
 		return nil
 	}
 
-	mlog.Info("Remove license.", mlog.String("id", model.SYSTEM_ACTIVE_LICENSE_ID))
+	mlog.Info("Remove license.", mlog.String("id", model.SystemActiveLicenseId))
 
 	sysVar := &model.System{}
-	sysVar.Name = model.SYSTEM_ACTIVE_LICENSE_ID
+	sysVar.Name = model.SystemActiveLicenseId
 	sysVar.Value = ""
 
 	if err := s.Store.System().SaveOrUpdate(sysVar); err != nil {
@@ -254,7 +262,12 @@ func (s *Server) GetSanitizedClientLicense() map[string]string {
 
 // RequestTrialLicense request a trial license from the mattermost official license server
 func (s *Server) RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *model.AppError {
-	resp, err := http.Post(requestTrialURL, "application/json", bytes.NewBuffer([]byte(trialRequest.ToJson())))
+	trialRequestJSON, jsonErr := json.Marshal(trialRequest)
+	if jsonErr != nil {
+		return model.NewAppError("RequestTrialLicense", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+
+	resp, err := http.Post(requestTrialURL, "application/json", bytes.NewBuffer(trialRequestJSON))
 	if err != nil {
 		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -265,7 +278,8 @@ func (s *Server) RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *m
 			fmt.Sprintf("Unexpected HTTP status code %q returned by server", resp.Status), http.StatusInternalServerError)
 	}
 
-	licenseResponse := model.MapFromJson(resp.Body)
+	licenseResponse := model.MapFromJSON(resp.Body)
+
 	if _, ok := licenseResponse["license"]; !ok {
 		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.app_error", nil, licenseResponse["message"], http.StatusBadRequest)
 	}
@@ -286,7 +300,7 @@ func (s *Server) GenerateRenewalToken(expiration time.Duration) (string, *model.
 	license := s.License()
 	if license == nil {
 		// Clean renewal token if there is no license present
-		if _, err := s.Store.System().PermanentDeleteByName(model.SYSTEM_LICENSE_RENEWAL_TOKEN); err != nil {
+		if _, err := s.Store.System().PermanentDeleteByName(model.SystemLicenseRenewalToken); err != nil {
 			mlog.Warn("error removing the renewal token", mlog.Err(err))
 		}
 		return "", model.NewAppError("GenerateRenewalToken", "app.license.generate_renewal_token.no_license", nil, "", http.StatusBadRequest)
@@ -296,7 +310,7 @@ func (s *Server) GenerateRenewalToken(expiration time.Duration) (string, *model.
 		return "", model.NewAppError("GenerateRenewalToken", "app.license.generate_renewal_token.bad_license", nil, "", http.StatusBadRequest)
 	}
 
-	currentToken, _ := s.Store.System().GetByName(model.SYSTEM_LICENSE_RENEWAL_TOKEN)
+	currentToken, _ := s.Store.System().GetByName(model.SystemLicenseRenewalToken)
 	if currentToken != nil {
 		tokenIsValid, err := s.renewalTokenValid(currentToken.Value, license.Customer.Email)
 		if err != nil {
@@ -328,7 +342,7 @@ func (s *Server) GenerateRenewalToken(expiration time.Duration) (string, *model.
 		return "", model.NewAppError("GenerateRenewalToken", "app.license.generate_renewal_token.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	err = s.Store.System().SaveOrUpdate(&model.System{
-		Name:  model.SYSTEM_LICENSE_RENEWAL_TOKEN,
+		Name:  model.SystemLicenseRenewalToken,
 		Value: tokenString,
 	})
 	if err != nil {

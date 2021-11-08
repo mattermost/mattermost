@@ -5,7 +5,7 @@
 package mocks
 
 import (
-	model "github.com/mattermost/mattermost-server/v5/model"
+	model "github.com/mattermost/mattermost-server/v6/model"
 	mock "github.com/stretchr/testify/mock"
 
 	time "time"
@@ -426,11 +426,11 @@ func (_m *SearchEngineInterface) SearchChannels(teamId string, term string) ([]s
 }
 
 // SearchFiles provides a mock function with given fields: channels, searchParams, page, perPage
-func (_m *SearchEngineInterface) SearchFiles(channels *model.ChannelList, searchParams []*model.SearchParams, page int, perPage int) ([]string, *model.AppError) {
+func (_m *SearchEngineInterface) SearchFiles(channels model.ChannelList, searchParams []*model.SearchParams, page int, perPage int) ([]string, *model.AppError) {
 	ret := _m.Called(channels, searchParams, page, perPage)
 
 	var r0 []string
-	if rf, ok := ret.Get(0).(func(*model.ChannelList, []*model.SearchParams, int, int) []string); ok {
+	if rf, ok := ret.Get(0).(func(model.ChannelList, []*model.SearchParams, int, int) []string); ok {
 		r0 = rf(channels, searchParams, page, perPage)
 	} else {
 		if ret.Get(0) != nil {
@@ -439,7 +439,7 @@ func (_m *SearchEngineInterface) SearchFiles(channels *model.ChannelList, search
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.ChannelList, []*model.SearchParams, int, int) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(model.ChannelList, []*model.SearchParams, int, int) *model.AppError); ok {
 		r1 = rf(channels, searchParams, page, perPage)
 	} else {
 		if ret.Get(1) != nil {
@@ -451,11 +451,11 @@ func (_m *SearchEngineInterface) SearchFiles(channels *model.ChannelList, search
 }
 
 // SearchPosts provides a mock function with given fields: channels, searchParams, page, perPage
-func (_m *SearchEngineInterface) SearchPosts(channels *model.ChannelList, searchParams []*model.SearchParams, page int, perPage int) ([]string, model.PostSearchMatches, *model.AppError) {
+func (_m *SearchEngineInterface) SearchPosts(channels model.ChannelList, searchParams []*model.SearchParams, page int, perPage int) ([]string, model.PostSearchMatches, *model.AppError) {
 	ret := _m.Called(channels, searchParams, page, perPage)
 
 	var r0 []string
-	if rf, ok := ret.Get(0).(func(*model.ChannelList, []*model.SearchParams, int, int) []string); ok {
+	if rf, ok := ret.Get(0).(func(model.ChannelList, []*model.SearchParams, int, int) []string); ok {
 		r0 = rf(channels, searchParams, page, perPage)
 	} else {
 		if ret.Get(0) != nil {
@@ -464,7 +464,7 @@ func (_m *SearchEngineInterface) SearchPosts(channels *model.ChannelList, search
 	}
 
 	var r1 model.PostSearchMatches
-	if rf, ok := ret.Get(1).(func(*model.ChannelList, []*model.SearchParams, int, int) model.PostSearchMatches); ok {
+	if rf, ok := ret.Get(1).(func(model.ChannelList, []*model.SearchParams, int, int) model.PostSearchMatches); ok {
 		r1 = rf(channels, searchParams, page, perPage)
 	} else {
 		if ret.Get(1) != nil {
@@ -473,7 +473,7 @@ func (_m *SearchEngineInterface) SearchPosts(channels *model.ChannelList, search
 	}
 
 	var r2 *model.AppError
-	if rf, ok := ret.Get(2).(func(*model.ChannelList, []*model.SearchParams, int, int) *model.AppError); ok {
+	if rf, ok := ret.Get(2).(func(model.ChannelList, []*model.SearchParams, int, int) *model.AppError); ok {
 		r2 = rf(channels, searchParams, page, perPage)
 	} else {
 		if ret.Get(2) != nil {

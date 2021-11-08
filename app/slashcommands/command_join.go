@@ -6,10 +6,10 @@ package slashcommands
 import (
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 )
 
 type JoinProvider struct {
@@ -46,33 +46,33 @@ func (*JoinProvider) DoCommand(a *app.App, c *request.Context, args *model.Comma
 
 	channel, err := a.Srv().Store.Channel().GetByName(args.TeamId, channelName, true)
 	if err != nil {
-		return &model.CommandResponse{Text: args.T("api.command_join.list.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_join.list.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
 	if channel.Name != channelName {
-		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command_join.missing.app_error")}
+		return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command_join.missing.app_error")}
 	}
 
 	switch channel.Type {
-	case model.CHANNEL_OPEN:
-		if !a.HasPermissionToChannel(args.UserId, channel.Id, model.PERMISSION_JOIN_PUBLIC_CHANNELS) {
-			return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	case model.ChannelTypeOpen:
+		if !a.HasPermissionToChannel(args.UserId, channel.Id, model.PermissionJoinPublicChannels) {
+			return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
-	case model.CHANNEL_PRIVATE:
-		if !a.HasPermissionToChannel(args.UserId, channel.Id, model.PERMISSION_READ_CHANNEL) {
-			return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	case model.ChannelTypePrivate:
+		if !a.HasPermissionToChannel(args.UserId, channel.Id, model.PermissionReadChannel) {
+			return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
 	default:
-		return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
 	if appErr := a.JoinChannel(c, channel, args.UserId); appErr != nil {
-		return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
 	team, appErr := a.GetTeam(channel.TeamId)
 	if appErr != nil {
-		return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
 	return &model.CommandResponse{GotoLocation: args.SiteURL + "/" + team.Name + "/channels/" + channel.Name}

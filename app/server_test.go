@@ -24,12 +24,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/filestore"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store/storetest"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/users"
+	"github.com/mattermost/mattermost-server/v6/shared/filestore"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store/storetest"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 func newServerWithConfig(t *testing.T, f func(cfg *model.Config)) (*Server, error) {
@@ -66,10 +67,10 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 	cfg.SetDefaults()
 	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
 	if driverName == "" {
-		driverName = model.DATABASE_DRIVER_POSTGRES
+		driverName = model.DatabaseDriverPostgres
 	}
 	dsn := ""
-	if driverName == model.DATABASE_DRIVER_POSTGRES {
+	if driverName == model.DatabaseDriverPostgres {
 		dsn = os.Getenv("TEST_DATABASE_POSTGRESQL_DSN")
 	} else {
 		dsn = os.Getenv("TEST_DATABASE_MYSQL_DSN")
@@ -172,9 +173,9 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 		server.configStore = store
 		server.UpdateConfig(func(cfg *model.Config) {
 			cfg.FileSettings = model.FileSettings{
-				DriverName:              model.NewString(model.IMAGE_DRIVER_S3),
-				AmazonS3AccessKeyId:     model.NewString(model.MINIO_ACCESS_KEY),
-				AmazonS3SecretAccessKey: model.NewString(model.MINIO_SECRET_KEY),
+				DriverName:              model.NewString(model.ImageDriverS3),
+				AmazonS3AccessKeyId:     model.NewString(model.MinioAccessKey),
+				AmazonS3SecretAccessKey: model.NewString(model.MinioSecretKey),
 				AmazonS3Bucket:          model.NewString("nosuchbucket"),
 				AmazonS3Endpoint:        model.NewString(s3Endpoint),
 				AmazonS3Region:          model.NewString(""),
@@ -515,29 +516,29 @@ func checkEndpoint(t *testing.T, client *http.Client, url string) error {
 }
 
 func TestPanicLog(t *testing.T) {
-	// Creating a temp file to collect logs
-	tmpfile, err := ioutil.TempFile("", "mlog")
-	if err != nil {
-		require.NoError(t, err)
-	}
-
+	// Creating a temp dir for log
+	tmpDir, err := os.MkdirTemp("", "mlog-test")
+	require.NoError(t, err, "cannot create tmp dir for log file")
 	defer func() {
-		require.NoError(t, tmpfile.Close())
-		require.NoError(t, os.Remove(tmpfile.Name()))
+		err2 := os.RemoveAll(tmpDir)
+		assert.NoError(t, err2)
 	}()
 
-	// This test requires Zap file target for now.
-	mlog.EnableZap()
-	defer mlog.DisableZap()
-
 	// Creating logger to log to console and temp file
-	logger := mlog.NewLogger(&mlog.LoggerConfiguration{
-		EnableConsole: true,
-		ConsoleJson:   true,
-		EnableFile:    true,
-		FileLocation:  tmpfile.Name(),
-		FileLevel:     mlog.LevelInfo,
-	})
+	logger, _ := mlog.NewLogger()
+
+	logSettings := model.NewLogSettings()
+	logSettings.EnableConsole = model.NewBool(true)
+	logSettings.ConsoleJson = model.NewBool(true)
+	logSettings.EnableFile = model.NewBool(true)
+	logSettings.FileLocation = &tmpDir
+	logSettings.FileLevel = &mlog.LvlInfo.Name
+
+	cfg, err := config.MloggerConfigFromLoggerConfig(logSettings, nil, config.GetLogFileLocation)
+	require.NoError(t, err)
+	err = logger.ConfigureTargets(cfg)
+	require.NoError(t, err)
+	logger.LockConfiguration()
 
 	// Creating a server with logger
 	s, err := NewServer(SetLogger(logger))
@@ -566,16 +567,22 @@ func TestPanicLog(t *testing.T) {
 
 	client := &http.Client{Transport: tr}
 	client.Get("https://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
+
+	err = logger.Flush()
+	assert.NoError(t, err, "flush should succeed")
 	s.Shutdown()
 
 	// Checking whether panic was logged
 	var panicLogged = false
 	var infoLogged = false
 
-	_, err = tmpfile.Seek(0, 0)
+	logFile, err := os.Open(config.GetLogFileLocation(tmpDir))
+	require.NoError(t, err, "cannot open log file")
+
+	_, err = logFile.Seek(0, 0)
 	require.NoError(t, err)
 
-	scanner := bufio.NewScanner(tmpfile)
+	scanner := bufio.NewScanner(logFile)
 	for scanner.Scan() {
 		if !infoLogged && strings.Contains(scanner.Text(), "inside panic handler") {
 			infoLogged = true
@@ -707,7 +714,7 @@ func TestAdminAdvisor(t *testing.T) {
 		Username:    "vader" + model.NewId(),
 		Password:    "passwd1",
 		AuthService: "",
-		Roles:       model.SYSTEM_ADMIN_ROLE_ID,
+		Roles:       model.SystemAdminRoleId,
 	}
 	ruser, err := th.App.CreateUser(th.Context, &user)
 	assert.Nil(t, err, "User should be created")
@@ -716,7 +723,7 @@ func TestAdminAdvisor(t *testing.T) {
 	t.Run("Should notify admin of un-configured support email", func(t *testing.T) {
 		doCheckAdminSupportStatus(th.App, th.Context)
 
-		bot, err := th.App.GetUserByUsername(model.BOT_WARN_METRIC_BOT_USERNAME)
+		bot, err := th.App.GetUserByUsername(model.BotWarnMetricBotUsername)
 		assert.NotNil(t, bot, "Bot should have been created now")
 		assert.Nil(t, err, "No error should be generated")
 
@@ -731,7 +738,7 @@ func TestAdminAdvisor(t *testing.T) {
 			m.SupportSettings.SupportEmail = &email
 		})
 
-		bot, err := th.App.GetUserByUsername(model.BOT_WARN_METRIC_BOT_USERNAME)
+		bot, err := th.App.GetUserByUsername(model.BotWarnMetricBotUsername)
 		assert.NotNil(t, bot, "Bot should be already created")
 		assert.Nil(t, err, "No error should be generated")
 
@@ -751,5 +758,35 @@ func TestAdminAdvisor(t *testing.T) {
 		posts, err := th.App.GetPosts(channel.Id, 0, 100)
 		assert.Nil(t, err, "No error should be generated")
 		assert.Equal(t, 0, len(posts.Posts))
+	})
+
+	t.Run("Should not break in case of many sysadmins", func(t *testing.T) {
+		var userList []*model.User
+		for i := 0; i < 50; i++ {
+			user := model.User{
+				Email:       strings.ToLower(NewTestId()) + "success+test@example.com",
+				Nickname:    "Admin",
+				Username:    "admin" + NewTestId(),
+				Password:    "password",
+				AuthService: "",
+				Roles:       model.SystemAdminRoleId + " " + model.SystemUserRoleId,
+			}
+			ruser, err := th.App.srv.userService.CreateUser(&user, users.UserCreateOptions{FromImport: true})
+			assert.NoError(t, err, "User should be created")
+			userList = append(userList, ruser)
+			defer th.App.PermanentDeleteUser(th.Context, ruser)
+		}
+
+		th.App.notifyAdminsOfWarnMetricStatus(th.Context, model.SystemMetricSupportEmailNotConfigured, true)
+
+		bot, err := th.App.GetUserByUsername(model.BotWarnMetricBotUsername)
+		assert.NotNil(t, bot, "Bot should have been created now")
+		assert.Nil(t, err, "No error should be generated")
+
+		for _, user := range userList {
+			channel, err := th.App.getDirectChannel(bot.Id, user.Id)
+			assert.NotNil(t, channel, "DM channel should exist between Admin Advisor and system admin")
+			assert.Nil(t, err, "No error should be generated")
+		}
 	})
 }

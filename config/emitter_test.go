@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func TestEmitter(t *testing.T) {
@@ -56,18 +56,18 @@ func TestEmitter(t *testing.T) {
 func TestLogSrcEmitter(t *testing.T) {
 	var e logSrcEmitter
 
-	expectedOldCfg := make(mlog.LogTargetCfg)
-	expectedNewCfg := make(mlog.LogTargetCfg)
+	expectedOldCfg := make(mlog.LoggerConfiguration)
+	expectedNewCfg := make(mlog.LoggerConfiguration)
 
 	listener1 := false
-	id1 := e.AddListener(func(oldCfg, newCfg mlog.LogTargetCfg) {
+	id1 := e.AddListener(func(oldCfg, newCfg mlog.LoggerConfiguration) {
 		assert.Equal(t, expectedOldCfg, oldCfg)
 		assert.Equal(t, expectedNewCfg, newCfg)
 		listener1 = true
 	})
 
 	listener2 := false
-	id2 := e.AddListener(func(oldCfg, newCfg mlog.LogTargetCfg) {
+	id2 := e.AddListener(func(oldCfg, newCfg mlog.LoggerConfiguration) {
 		assert.Equal(t, expectedOldCfg, oldCfg)
 		assert.Equal(t, expectedNewCfg, newCfg)
 		listener2 = true

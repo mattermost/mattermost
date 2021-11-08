@@ -48,10 +48,10 @@ import (
 	"github.com/blang/semver"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/filestore"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/filestore"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 // managedPluginFileName is the file name of the flag file that marks
@@ -170,7 +170,7 @@ func (s *Server) installPlugin(pluginFile, signature io.ReadSeeker, installation
 	}
 
 	s.notifyClusterPluginEvent(
-		model.CLUSTER_EVENT_INSTALL_PLUGIN,
+		model.ClusterEventInstallPlugin,
 		model.PluginEventData{
 			Id: manifest.Id,
 		},
@@ -444,7 +444,7 @@ func (s *Server) removePlugin(id string) *model.AppError {
 	}
 
 	s.notifyClusterPluginEvent(
-		model.CLUSTER_EVENT_REMOVE_PLUGIN,
+		model.ClusterEventRemovePlugin,
 		model.PluginEventData{
 			Id: id,
 		},

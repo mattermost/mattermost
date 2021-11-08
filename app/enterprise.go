@@ -4,12 +4,12 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	ejobs "github.com/mattermost/mattermost-server/v5/einterfaces/jobs"
-	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/searchengine"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	ejobs "github.com/mattermost/mattermost-server/v6/einterfaces/jobs"
+	tjobs "github.com/mattermost/mattermost-server/v6/jobs/interfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/searchengine"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 var accountMigrationInterface func(*Server) einterfaces.AccountMigrationInterface
@@ -137,6 +137,12 @@ var jobsExportDeleteInterface func(*Server) tjobs.ExportDeleteInterface
 
 func RegisterJobsExportDeleteInterface(f func(*Server) tjobs.ExportDeleteInterface) {
 	jobsExportDeleteInterface = f
+}
+
+var jobsExtractContentInterface func(*Server) tjobs.ExtractContentInterface
+
+func RegisterJobsExtractContentInterface(f func(*Server) tjobs.ExtractContentInterface) {
+	jobsExtractContentInterface = f
 }
 
 var productNoticesJobInterface func(*Server) tjobs.ProductNoticesJobInterface

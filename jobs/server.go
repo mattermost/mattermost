@@ -6,12 +6,12 @@ package jobs
 import (
 	"sync"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	ejobs "github.com/mattermost/mattermost-server/v5/einterfaces/jobs"
-	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/configservice"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	ejobs "github.com/mattermost/mattermost-server/v6/einterfaces/jobs"
+	tjobs "github.com/mattermost/mattermost-server/v6/jobs/interfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/configservice"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type JobServer struct {
@@ -36,6 +36,7 @@ type JobServer struct {
 	ExportDelete            tjobs.ExportDeleteInterface
 	Cloud                   ejobs.CloudJobInterface
 	ResendInvitationEmails  ejobs.ResendInvitationEmailJobInterface
+	ExtractContent          tjobs.ExtractContentInterface
 
 	// mut is used to protect the following fields from concurrent access.
 	mut        sync.Mutex

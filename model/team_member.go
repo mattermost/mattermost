@@ -4,9 +4,7 @@
 package model
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 )
@@ -71,34 +69,6 @@ type TeamMembersGetOptions struct {
 	ViewRestrictions *ViewUsersRestrictions
 }
 
-func (o *TeamMember) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func (o *TeamUnread) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func TeamMemberFromJson(data io.Reader) *TeamMember {
-	var o *TeamMember
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func TeamUnreadFromJson(data io.Reader) *TeamUnread {
-	var o *TeamUnread
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func EmailInviteWithErrorFromJson(data io.Reader) []*EmailInviteWithError {
-	var o []*EmailInviteWithError
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
 func EmailInviteWithErrorToEmails(o []*EmailInviteWithError) []string {
 	var ret []string
 	for _, o := range o {
@@ -107,14 +77,6 @@ func EmailInviteWithErrorToEmails(o []*EmailInviteWithError) []string {
 		}
 	}
 	return ret
-}
-
-func EmailInviteWithErrorToJson(o []*EmailInviteWithError) string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return "[]"
-	}
-	return string(b)
 }
 
 func EmailInviteWithErrorToString(o *EmailInviteWithError) string {
@@ -131,50 +93,8 @@ func TeamMembersWithErrorToTeamMembers(o []*TeamMemberWithError) []*TeamMember {
 	return ret
 }
 
-func TeamMembersWithErrorToJson(o []*TeamMemberWithError) string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return "[]"
-	}
-	return string(b)
-}
-
 func TeamMemberWithErrorToString(o *TeamMemberWithError) string {
 	return fmt.Sprintf("%s:%s", o.UserId, o.Error.Error())
-}
-
-func TeamMembersWithErrorFromJson(data io.Reader) []*TeamMemberWithError {
-	var o []*TeamMemberWithError
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func TeamMembersToJson(o []*TeamMember) string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return "[]"
-	}
-	return string(b)
-}
-
-func TeamMembersFromJson(data io.Reader) []*TeamMember {
-	var o []*TeamMember
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func TeamsUnreadToJson(o []*TeamUnread) string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return "[]"
-	}
-	return string(b)
-}
-
-func TeamsUnreadFromJson(data io.Reader) []*TeamUnread {
-	var o []*TeamUnread
-	json.NewDecoder(data).Decode(&o)
-	return o
 }
 
 func (o *TeamMember) IsValid() *AppError {
