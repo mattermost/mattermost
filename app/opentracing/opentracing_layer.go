@@ -7228,28 +7228,6 @@ func (a *OpenTracingAppLayer) GetPluginKey(pluginID string, key string) ([]byte,
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetPluginPublicKeyFiles() ([]string, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPluginPublicKeyFiles")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetPluginPublicKeyFiles()
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
 func (a *OpenTracingAppLayer) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPluginStatus")
@@ -11030,6 +11008,23 @@ func (a *OpenTracingAppLayer) LeaveTeam(c *request.Context, team *model.Team, us
 		span.LogFields(spanlog.Error(resultVar0))
 		ext.Error.Set(span, true)
 	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) License() *model.License {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.License")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.License()
 
 	return resultVar0
 }

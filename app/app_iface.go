@@ -177,8 +177,6 @@ type AppIface interface {
 	// GetMarketplacePlugins returns a list of plugins from the marketplace-server,
 	// and plugins that are installed locally.
 	GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError)
-	// GetPluginPublicKeyFiles returns all public keys listed in the config.
-	GetPluginPublicKeyFiles() ([]string, *model.AppError)
 	// GetPluginStatus returns the status for a plugin installed on this server.
 	GetPluginStatus(id string) (*model.PluginStatus, *model.AppError)
 	// GetPluginStatuses returns the status for plugins installed on this server.
@@ -828,6 +826,7 @@ type AppIface interface {
 	Ldap() einterfaces.LdapInterface
 	LeaveChannel(c *request.Context, channelID string, userID string) *model.AppError
 	LeaveTeam(c *request.Context, team *model.Team, user *model.User, requestorId string) *model.AppError
+	License() *model.License
 	LimitedClientConfig() map[string]string
 	ListAllCommands(teamID string, T i18n.TranslateFunc) ([]*model.Command, *model.AppError)
 	ListDirectory(path string) ([]string, *model.AppError)
