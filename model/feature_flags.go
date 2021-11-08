@@ -44,9 +44,6 @@ type FeatureFlags struct {
 	// Enable different treatments for first time users, possible values = ("none", "tour_point", "around_input")
 	PrewrittenMessages string
 
-	// Enable different treatments for first time users, possible values = ("none", "tips_and_next_steps")
-	DownloadAppsCTA string
-
 	// Determine whether when a user gets created, they'll have noisy notifications e.g. Send desktop notifications for all activity
 	NewAccountNoisy bool
 	// Enable Boards Unfurl Preview
@@ -57,6 +54,12 @@ type FeatureFlags struct {
 
 	// Start A/B tour tips automatically, possible values = ("none", "auto")
 	AutoTour string
+
+	// A dash separated list for feature flags to turn on for Boards
+	BoardsFeatureFlags string
+
+	// A/B test for the add members to channel button, possible values = ("top", "bottom")
+	AddMembersToChannel string
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -72,11 +75,12 @@ func (f *FeatureFlags) SetDefaults() {
 	f.GlobalHeader = true
 	f.AddChannelButton = "by_team_name"
 	f.PrewrittenMessages = "tour_point"
-	f.DownloadAppsCTA = "tips_and_next_steps"
 	f.NewAccountNoisy = false
 	f.BoardsUnfurl = true
 	f.CallsMobile = false
 	f.AutoTour = "none"
+	f.BoardsFeatureFlags = ""
+	f.AddMembersToChannel = "top"
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

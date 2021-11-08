@@ -3100,6 +3100,24 @@ func (c *Client4) GetChannelsForTeamAndUserWithLastDeleteAt(teamId, userId strin
 	return ch, BuildResponse(r), nil
 }
 
+// GetChannelsForUserWithLastDeleteAt returns a list channels for a user, additionally filtered with lastDeleteAt.
+func (c *Client4) GetChannelsForUserWithLastDeleteAt(userID string, lastDeleteAt int) ([]*Channel, *Response, error) {
+	route := fmt.Sprintf(c.userRoute(userID) + "/channels")
+	route += fmt.Sprintf("?last_delete_at=%d", lastDeleteAt)
+	r, err := c.DoAPIGet(route, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var ch []*Channel
+	err = json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("GetChannelsForUserWithLastDeleteAt", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return ch, BuildResponse(r), nil
+}
+
 // SearchChannels returns the channels on a team matching the provided search term.
 func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) ([]*Channel, *Response, error) {
 	searchJSON, jsonErr := json.Marshal(search)
@@ -3156,6 +3174,29 @@ func (c *Client4) SearchAllChannels(search *ChannelSearch) (ChannelListWithTeamD
 	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("SearchAllChannels", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return ch, BuildResponse(r), nil
+}
+
+// SearchAllChannelsForUser search in all the channels for a regular user.
+func (c *Client4) SearchAllChannelsForUser(term string) (ChannelListWithTeamData, *Response, error) {
+	search := &ChannelSearch{
+		Term: term,
+	}
+	searchJSON, jsonErr := json.Marshal(search)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("SearchAllChannelsForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.DoAPIPost(c.channelsRoute()+"/search?system_console=false", string(searchJSON))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var ch ChannelListWithTeamData
+	err = json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("SearchAllChannelsForUser", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return ch, BuildResponse(r), nil
 }
@@ -3304,7 +3345,7 @@ func (c *Client4) GetChannelByNameForTeamNameIncludeDeleted(channelName, teamNam
 	return ch, BuildResponse(r), nil
 }
 
-// GetChannelMembers gets a page of channel members.
+// GetChannelMembers gets a page of channel members specific to a channel.
 func (c *Client4) GetChannelMembers(channelId string, page, perPage int, etag string) (ChannelMembers, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
 	r, err := c.DoAPIGet(c.channelMembersRoute(channelId)+query, etag)
@@ -3317,6 +3358,23 @@ func (c *Client4) GetChannelMembers(channelId string, page, perPage int, etag st
 	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetChannelMembers", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return ch, BuildResponse(r), nil
+}
+
+// GetChannelMembersWithTeamData gets a page of all channel members for a user.
+func (c *Client4) GetChannelMembersWithTeamData(userID string, page, perPage int) (ChannelMembersWithTeamData, *Response, error) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	r, err := c.DoAPIGet(c.userRoute(userID)+"/channel_members"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var ch ChannelMembersWithTeamData
+	err = json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("GetChannelMembersWithTeamData", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return ch, BuildResponse(r), nil
 }

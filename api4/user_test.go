@@ -5443,6 +5443,19 @@ func TestConvertUserToBot(t *testing.T) {
 	})
 }
 
+func TestGetChannelMembersWithTeamData(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	channels, resp, err := th.Client.GetChannelMembersWithTeamData(th.BasicUser.Id, 0, 5)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	assert.Len(t, channels, 5)
+	for _, ch := range channels {
+		assert.Equal(t, th.BasicTeam.DisplayName, ch.TeamDisplayName)
+	}
+}
+
 func TestMigrateAuthToLDAP(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

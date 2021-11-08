@@ -133,6 +133,9 @@ func (a *App) ImageProxy() *imageproxy.ImageProxy {
 func (a *App) Timezones() *timezones.Timezones {
 	return a.ch.srv.timezones
 }
+func (a *App) License() *model.License {
+	return a.Srv().License()
+}
 
 func (a *App) DBHealthCheckWrite() error {
 	currentTime := strconv.FormatInt(time.Now().Unix(), 10)
