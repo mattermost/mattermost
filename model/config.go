@@ -2615,8 +2615,8 @@ func (s *DataRetentionSettings) SetDefaults() {
 }
 
 type JobSettings struct {
-	RunJobs                  *bool `access:"write_restrictable,cloud_restrictable"` // telemetry:none
-	RunScheduler             *bool `access:"write_restrictable,cloud_restrictable"` // telemetry:none
+	RunJobs                  *bool `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	RunScheduler             *bool `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	CleanupJobsThresholdDays *int  `access:"write_restrictable,cloud_restrictable"`
 }
 
