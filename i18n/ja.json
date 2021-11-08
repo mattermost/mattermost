@@ -9246,5 +9246,17 @@
   {
     "id": "model.session.is_valid.create_at.app_error",
     "translation": "セッションのCreateAtフィールドが無効です。"
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "トークンの電子メールアドレスがユーザーデータのものと一致しません。"
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "すべてのチームメンバーを取得できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "すべてのチャンネルメンバーを取得できませんでした"
   }
 ]

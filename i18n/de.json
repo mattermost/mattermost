@@ -9264,6 +9264,10 @@
   },
   {
     "id": "ent.elasticsearch.getAllChannelMembers.error",
-    "translation": "Es konnten nicht alle Kanalmitglieder ermittelt werden"
+    "translation": "Nicht alle Kanalmitglieder konnten ermittelt werden"
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "NIcht alle Rollen konnten abgerufen werden."
   }
 ]
