@@ -9,10 +9,10 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
-func (s *Server) notifyClusterPluginEvent(event model.ClusterEvent, data model.PluginEventData) {
+func (ch *Channels) notifyClusterPluginEvent(event model.ClusterEvent, data model.PluginEventData) {
 	buf, _ := json.Marshal(data)
-	if s.Cluster != nil {
-		s.Cluster.SendClusterMessage(&model.ClusterMessage{
+	if ch.srv.Cluster != nil {
+		ch.srv.Cluster.SendClusterMessage(&model.ClusterMessage{
 			Event:            event,
 			SendType:         model.ClusterSendReliable,
 			WaitForAllToSend: true,
