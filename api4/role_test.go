@@ -15,6 +15,28 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
+func TestGetAllRoles(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	roles, err := th.App.Srv().Store.Role().GetAll()
+	require.NoError(t, err)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		received, resp, err := client.GetAllRoles()
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		assert.EqualValues(t, received, roles)
+	})
+
+	t.Run("NormalClient", func(t *testing.T) {
+		_, resp, err := th.Client.GetAllRoles()
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+}
+
 func TestGetRole(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
