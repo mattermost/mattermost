@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type Sample struct {
@@ -50,6 +51,48 @@ func TestAuditModelTypeConv(t *testing.T) {
 			if !tt.wantConverted {
 				assert.Equal(t, tt.wantNewVal, gotNewVal)
 			}
+		})
+	}
+}
+
+func TestAuditModelTypeConvCommandArgs(t *testing.T) {
+	tcs := []struct {
+		name            string
+		input           CommandArgs
+		expectedCommand string
+	}{
+		{
+			name:            "empty input",
+			input:           CommandArgs{},
+			expectedCommand: "",
+		},
+		{
+			name: "no arguments",
+			input: CommandArgs{
+				Command: "/command",
+			},
+			expectedCommand: "/command",
+		},
+		{
+			name: "some arguments",
+			input: CommandArgs{
+				Command: "/command --test test --test2 test",
+			},
+			expectedCommand: "/command",
+		},
+		{
+			name: "with multiple spaces and tabs",
+			input: CommandArgs{
+				Command: "/command		--test test --test2 test",
+			},
+			expectedCommand: "/command",
+		},
+	}
+
+	for _, tc := range tcs {
+		t.Run(tc.name, func(t *testing.T) {
+			args := newAuditCommandArgs(&tc.input)
+			require.Equal(t, tc.expectedCommand, args.Command)
 		})
 	}
 }
