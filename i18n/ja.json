@@ -1785,7 +1785,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "通知設定を変更するには、チームにログインしアカウント設定から通知を選択してください。"
+    "translation": "通知設定を変更するには、チームにログインし設定から通知を選択してください。"
   },
   {
     "id": "api.templates.email_info1",
@@ -2857,7 +2857,7 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} @{{.SenderDisplayName}} からの新しいダイレクトメッセージ"
+    "translation": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} {{.SenderDisplayName}} からの新しいダイレクトメッセージ"
   },
   {
     "id": "app.notification.subject.group_message.full",
@@ -8441,7 +8441,7 @@
   },
   {
     "id": "api.templates.invite_body_footer.learn_more",
-    "translation": "詳しく知る"
+    "translation": "さらに詳しく"
   },
   {
     "id": "api.templates.invite_body_footer.info",
@@ -8981,7 +8981,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " 、アカウント設定 > 通知 へ移動してください"
+    "translation": " 、設定 > 通知 へ移動してください"
   },
   {
     "id": "app.notification.body.mention.title",
@@ -9246,5 +9246,9 @@
   {
     "id": "model.session.is_valid.create_at.app_error",
     "translation": "セッションのCreateAtフィールドが無効です。"
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "トークンの電子メールアドレスがユーザーデータのものと一致しません。"
   }
 ]

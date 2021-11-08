@@ -1789,7 +1789,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "Om je notificatie instellingen te wijzigen moet je inloggen op je team site en ga naar Account Instellingen > Notificaties."
+    "translation": "Om je notificatie instellingen te wijzigen moet je inloggen op je team site en ga naar Instellingen > Notificaties."
   },
   {
     "id": "api.templates.email_info1",
@@ -8981,7 +8981,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " en ga naar Accountinstellingen > Meldingen"
+    "translation": " en ga naar Instellingen > Meldingen"
   },
   {
     "id": "app.notification.body.mention.title",
@@ -9233,5 +9233,37 @@
   {
     "id": "model.channel_member.is_valid.roles_limit.app_error",
     "translation": "Ongeldige kanaallidrol langer dan {{.Limit}} karakters."
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "Ongeldige gebruikersrollen langer dan {{.Limit}} tekens."
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "Ongeldig teamlid rollen langer dan {{.Limit}} tekens."
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "Ongeldig veld UserId voor sessie."
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "Ongeldige sessierollen langer dan {{.Limit}} tekens."
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "Ongeldig Id-veld voor sessie."
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "Het e-mailadres in het token komt niet overeen met dat in de gebruikersgegevens."
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "Het is niet gelukt om alle teamleden te verkrijgen"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "Mislukt om alle kanaalleden te verkrijgen"
   }
 ]

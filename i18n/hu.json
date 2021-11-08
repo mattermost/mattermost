@@ -5781,7 +5781,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "Az értesítés beállítások módosításához jelentkezzen be a csapat oldalára és menjen a Fiók beállítások > Értesítésekbe."
+    "translation": "Az értesítés beállítások módosításához jelentkezzen be a csapat oldalára és menjen a Beállítások > Értesítések menübe."
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -8905,7 +8905,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " és lépjen a Fiókbeállítások> Értesítések menüpontba"
+    "translation": " és lépjen a Beállítások > Értesítések menübe"
   },
   {
     "id": "app.notification.body.mention.title",
@@ -9246,5 +9246,21 @@
   {
     "id": "model.session.is_valid.create_at.app_error",
     "translation": "Érvénytelen CreateAt mező a munkamenethez."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.title",
+    "translation": "Önnek új üzenetei vannak"
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "A tokenben szereplő e-mail cím nem egyezik a felhasználói adatokban szereplővel."
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "Nem sikerült lekérni a csapat összes tagját"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "Nem sikerült lekérni a csatorna összes tagját"
   }
 ]

@@ -1789,7 +1789,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "Um ihre Benachrichtigungseinstellungen zu ändern, melden Sie sich an ihrer Team-Site an und wählen dann Kontoeinstellungen > Benachrichtigungen."
+    "translation": "Um ihre Benachrichtigungseinstellungen zu ändern, melden Sie sich an ihrer Team-Site an und wählen dann Einstellungen > Benachrichtigungen."
   },
   {
     "id": "api.templates.email_info1",
@@ -8656,7 +8656,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " und gehen Sie zu Kontoeinstellungen > Benachrichtigungen"
+    "translation": " und gehen Sie zu Einstellungen > Benachrichtigungen"
   },
   {
     "id": "app.notification.body.mention.title",
@@ -9253,5 +9253,17 @@
   {
     "id": "model.channel_member.is_valid.roles_limit.app_error",
     "translation": "Ungültige Kanalmitgliederrollen mit mehr als {{.Limit}} Zeichen."
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "Die Email-Adresse im Token stimmt nicht mit der in den Benutzerdaten überein."
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "Nicht alle Teammitglieder konnten ermittelt werden"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "Nicht alle Kanalmitglieder konnten ermittelt werden"
   }
 ]
