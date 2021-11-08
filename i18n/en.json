@@ -3268,6 +3268,10 @@
     "translation": "{{ .SenderName }} invited you to join the {{ .TeamDisplayName }} team."
   },
   {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "Reminder"
+  },
+  {
     "id": "api.templates.invite_body_footer.info",
     "translation": "Mattermost is a flexible, open source messaging platform that enables secure team collaboration."
   },

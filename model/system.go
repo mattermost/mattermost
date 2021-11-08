@@ -37,7 +37,6 @@ const (
 	UserLimitOverageCycleEndDate           = "UserLimitOverageCycleEndDate"
 	OverUserLimitForgivenCount             = "OverUserLimitForgivenCount"
 	OverUserLimitLastEmailSent             = "OverUserLimitLastEmailSent"
-	NumberOfInviteEmailsSent               = "NumberOfInviteEmailsSent"
 )
 
 const (
