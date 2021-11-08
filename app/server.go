@@ -1073,7 +1073,7 @@ func (s *Server) Shutdown() {
 	mlog.Info("Server stopped")
 
 	// Stop products.
-	// This needs to happen at last because products are dependent
+	// This needs to happen last because products are dependent
 	// on parent services.
 	for name, product := range s.products {
 		if err2 := product.Stop(); err2 != nil {
@@ -1190,7 +1190,7 @@ func stripPort(hostport string) string {
 
 func (s *Server) Start() error {
 	// Start products.
-	// This needs to happen before because products are dependent on main server.
+	// This needs to happen before because products are dependent on the HTTP server.
 	for name, product := range s.products {
 		if err := product.Start(); err != nil {
 			return errors.Wrapf(err, "Unable to start %s", name)
