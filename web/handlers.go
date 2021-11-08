@@ -185,6 +185,15 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
+		if model.BuildNumber == "dev" {
+			if !strings.Contains(devCSP, "unsafe-eval") {
+				devCSP += " 'unsafe-eval'"
+			}
+			if !strings.Contains(devCSP, "unsafe-inline") {
+				devCSP += " 'unsafe-inline'"
+			}
+		}
+
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
 		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
 			"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com%s%s%s",
