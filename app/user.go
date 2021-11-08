@@ -2340,7 +2340,7 @@ func (a *App) UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID
 	}
 
 	// Clear if user has read the messages
-	if thread.UnreadReplies == 0 && a.isCRTEnabledForUser(userID) {
+	if thread.UnreadReplies == 0 && a.IsCRTEnabledForUser(userID) {
 		a.clearPushNotification(currentSessionId, userID, post.ChannelId, threadID)
 	}
 

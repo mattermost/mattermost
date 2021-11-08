@@ -226,7 +226,7 @@ func (a *App) clearPushNotificationSync(currentSessionId, userID, channelID, roo
 		RootId:           rootID,
 		ContentAvailable: 1,
 		Badge:            0,
-		IsCRTEnabled:     a.isCRTEnabledForUser(userID),
+		IsCRTEnabled:     a.IsCRTEnabledForUser(userID),
 	}
 
 	unreadCount, err := a.Srv().Store.User().GetUnreadCount(userID)
@@ -574,7 +574,7 @@ func (a *App) buildIdLoadedPushNotificationMessage(channel *model.Channel, post 
 		PostId:       post.Id,
 		ChannelId:    post.ChannelId,
 		RootId:       post.RootId,
-		IsCRTEnabled: a.isCRTEnabledForUser(user.Id),
+		IsCRTEnabled: a.IsCRTEnabledForUser(user.Id),
 		Category:     model.CategoryCanReply,
 		Version:      model.PushMessageV2,
 		TeamId:       channel.TeamId,
@@ -609,7 +609,7 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 		msg.ChannelName = channelName
 	}
 
-	if a.isCRTEnabledForUser(user.Id) {
+	if a.IsCRTEnabledForUser(user.Id) {
 		msg.IsCRTEnabled = true
 		if post.RootId != "" {
 			if contentsConfig != model.GenericNoChannelNotification {

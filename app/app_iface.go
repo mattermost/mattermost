@@ -815,6 +815,7 @@ type AppIface interface {
 	InviteGuestsToChannelsGracefully(teamID string, guestsInvite *model.GuestsInvite, senderId string) ([]*model.EmailInviteWithError, *model.AppError)
 	InviteNewUsersToTeam(emailList []string, teamID, senderId string) *model.AppError
 	InviteNewUsersToTeamGracefully(emailList []string, teamID, senderId string) ([]*model.EmailInviteWithError, *model.AppError)
+	IsCRTEnabledForUser(userID string) bool
 	IsFirstUserAccount() bool
 	IsLeader() bool
 	IsPasswordValid(password string) *model.AppError

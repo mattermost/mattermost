@@ -2493,7 +2493,7 @@ func (a *App) UpdateChannelLastViewedAt(channelIDs []string, userID string) *mod
 	return nil
 }
 
-func (a *App) isCRTEnabledForUser(userID string) bool {
+func (a *App) IsCRTEnabledForUser(userID string) bool {
 	if *a.Config().ServiceSettings.CollapsedThreads == model.CollapsedThreadsDisabled {
 		return false
 	}
@@ -2507,7 +2507,7 @@ func (a *App) isCRTEnabledForUser(userID string) bool {
 
 // MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
 func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapsedThreadsSupported, followThread bool) (*model.ChannelUnreadAt, *model.AppError) {
-	if !collapsedThreadsSupported || !a.isCRTEnabledForUser(userID) {
+	if !collapsedThreadsSupported || !a.IsCRTEnabledForUser(userID) {
 		return a.markChannelAsUnreadFromPostCRTUnsupported(postID, userID)
 	}
 	post, err := a.GetSinglePost(postID)
@@ -2692,7 +2692,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID st
 	a.sanitizeProfiles(thread.Participants, false)
 	thread.Post.SanitizeProps()
 
-	if a.isCRTEnabledForUser(userID) {
+	if a.IsCRTEnabledForUser(userID) {
 		payload, jsonErr := json.Marshal(thread)
 		if jsonErr != nil {
 			mlog.Warn("Failed to encode thread to JSON")
@@ -2912,12 +2912,12 @@ func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSe
 		a.clearPushNotification(currentSessionId, userID, channelID, "")
 	}
 
-	if !collapsedThreadsSupported || !a.isCRTEnabledForUser(userID) {
+	if !collapsedThreadsSupported || !a.IsCRTEnabledForUser(userID) {
 		if err := a.Srv().Store.Thread().MarkAllAsReadInChannels(userID, channelIDs); err != nil {
 			return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
-		if a.isCRTEnabledForUser(userID) {
+		if a.IsCRTEnabledForUser(userID) {
 			timestamp := model.GetMillis()
 			for _, channelID := range channelIDs {
 				message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, "", channelID, userID, nil)
