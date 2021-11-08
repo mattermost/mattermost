@@ -444,6 +444,33 @@ func (s *SqlGroupStore) GetMemberUsersPage(groupID string, page int, perPage int
 	return groupMembers, nil
 }
 
+func (s *SqlGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error) {
+	groupMembers := []*model.User{}
+
+	query := `
+	SELECT 
+		Users.*
+	FROM
+		Users
+	LEFT JOIN 
+		GroupMembers ON (GroupMembers.UserId = Users.Id AND GroupMembers.GroupId = ?)
+	WHERE
+		Users.DeleteAt = 0
+		AND ( GroupMembers.UserId IS NULL OR GroupMembers.DeleteAt != 0)
+	ORDER BY
+		GroupMembers.CreateAt DESC
+	LIMIT
+		?
+	OFFSET
+		?`
+
+	if err := s.GetReplicaX().Select(&groupMembers, query, groupID, perPage, page*perPage); err != nil {
+		return nil, errors.Wrapf(err, "failed to find member Users for Group with id=%s", groupID)
+	}
+
+	return groupMembers, nil
+}
+
 func (s *SqlGroupStore) GetMemberCount(groupID string) (int64, error) {
 	query := `
 		SELECT
@@ -1018,7 +1045,7 @@ type group struct {
 	DisplayName    string
 	Description    string
 	Source         model.GroupSource
-	RemoteId       string
+	RemoteId       *string
 	CreateAt       int64
 	UpdateAt       int64
 	DeleteAt       int64

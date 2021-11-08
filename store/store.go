@@ -782,6 +782,8 @@ type GroupStore interface {
 	GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error)
 	GetMemberCount(groupID string) (int64, error)
 
+	GetNonMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error)
+
 	GetMemberUsersInTeam(groupID string, teamID string) ([]*model.User, error)
 	GetMemberUsersNotInChannel(groupID string, channelID string) ([]*model.User, error)
 

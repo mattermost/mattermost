@@ -761,6 +761,29 @@ func (_m *GroupStore) GetMemberUsersPage(groupID string, page int, perPage int) 
 	return r0, r1
 }
 
+// GetNonMemberUsersPage provides a mock function with given fields: groupID, page, perPage
+func (_m *GroupStore) GetNonMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error) {
+	ret := _m.Called(groupID, page, perPage)
+
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.User); ok {
+		r0 = rf(groupID, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
+		r1 = rf(groupID, page, perPage)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GroupChannelCount provides a mock function with given fields:
 func (_m *GroupStore) GroupChannelCount() (int64, error) {
 	ret := _m.Called()

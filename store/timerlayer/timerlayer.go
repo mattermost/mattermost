@@ -3707,6 +3707,22 @@ func (s *TimerLayerGroupStore) GetMemberUsersPage(groupID string, page int, perP
 	return result, err
 }
 
+func (s *TimerLayerGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error) {
+	start := timemodule.Now()
+
+	result, err := s.GroupStore.GetNonMemberUsersPage(groupID, page, perPage)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.GetNonMemberUsersPage", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerGroupStore) GroupChannelCount() (int64, error) {
 	start := timemodule.Now()
 
