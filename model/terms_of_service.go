@@ -4,9 +4,7 @@
 package model
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"unicode/utf8"
 )
@@ -36,17 +34,6 @@ func (t *TermsOfService) IsValid() *AppError {
 	}
 
 	return nil
-}
-
-func (t *TermsOfService) ToJson() string {
-	b, _ := json.Marshal(t)
-	return string(b)
-}
-
-func TermsOfServiceFromJson(data io.Reader) *TermsOfService {
-	var termsOfService *TermsOfService
-	json.NewDecoder(data).Decode(&termsOfService)
-	return termsOfService
 }
 
 func InvalidTermsOfServiceError(fieldName string, termsOfServiceId string) *AppError {

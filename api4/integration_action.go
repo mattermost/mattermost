@@ -23,10 +23,8 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	actionRequest := model.DoPostActionRequestFromJson(r.Body)
-	if actionRequest == nil {
-		actionRequest = &model.DoPostActionRequest{}
-	}
+	var actionRequest model.DoPostActionRequest
+	json.NewDecoder(r.Body).Decode(&actionRequest)
 
 	var cookie *model.PostActionCookie
 	if actionRequest.Cookie != "" {

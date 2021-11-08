@@ -14,7 +14,7 @@ type ExpiryNotifyJobInterfaceImpl struct {
 
 func init() {
 	app.RegisterJobsExpiryNotifyJobInterface(func(s *app.Server) tjobs.ExpiryNotifyJobInterface {
-		a := app.New(app.ServerConnector(s))
+		a := app.New(app.ServerConnector(s.Channels()))
 		return &ExpiryNotifyJobInterfaceImpl{a}
 	})
 }

@@ -1312,10 +1312,6 @@
     "translation": "無效的 RootId 參數"
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "此頻道唯讀。只有具有權限的成員能在此發布訊息。"
-  },
-  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "建立訊息時遇到錯誤"
   },
@@ -1370,10 +1366,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "無法更新已刪除頻道的訊息。"
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "此頻道唯讀。只有具有權限的成員能在此釘選或取消釘選訊息。"
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1454,10 +1446,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "無法為其他使用者儲存互動。"
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "唯讀頻道無法跟訊息互動。"
   },
   {
     "id": "api.restricted_system_admin",

@@ -48,7 +48,7 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		clientLicense = c.App.Srv().GetSanitizedClientLicense()
 	}
 
-	w.Write([]byte(model.MapToJson(clientLicense)))
+	w.Write([]byte(model.MapToJSON(clientLicense)))
 }
 
 func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -302,5 +302,5 @@ func getPrevTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		clientLicense = utils.GetSanitizedClientLicense(utils.GetClientLicense(license))
 	}
 
-	w.Write([]byte(model.MapToJson(clientLicense)))
+	w.Write([]byte(model.MapToJSON(clientLicense)))
 }

@@ -4,8 +4,6 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
 	"math/big"
 )
 
@@ -56,17 +54,6 @@ type System struct {
 	Value string `json:"value"`
 }
 
-func (o *System) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func SystemFromJson(data io.Reader) *System {
-	var o *System
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
 type SystemPostActionCookieSecret struct {
 	Secret []byte `json:"key,omitempty"`
 }
@@ -103,17 +90,6 @@ type SupportPacket struct {
 type FileData struct {
 	Filename string
 	Body     []byte
-}
-
-func (sbs *ServerBusyState) ToJson() string {
-	b, _ := json.Marshal(sbs)
-	return string(b)
-}
-
-func ServerBusyStateFromJson(r io.Reader) *ServerBusyState {
-	var sbs *ServerBusyState
-	json.NewDecoder(r).Decode(&sbs)
-	return sbs
 }
 
 var WarnMetricsTable = map[string]WarnMetric{
@@ -201,35 +177,6 @@ type WarnMetricStatus struct {
 	StoreStatus string `json:"store_status,omitempty"`
 }
 
-func (wms *WarnMetricStatus) ToJson() string {
-	b, _ := json.Marshal(wms)
-	return string(b)
-}
-
-func WarnMetricStatusFromJson(data io.Reader) *WarnMetricStatus {
-	var o WarnMetricStatus
-	if err := json.NewDecoder(data).Decode(&o); err != nil {
-		return nil
-	}
-	return &o
-}
-
-func MapWarnMetricStatusToJson(o map[string]*WarnMetricStatus) string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
 type SendWarnMetricAck struct {
 	ForceAck bool `json:"forceAck"`
-}
-
-func (swma *SendWarnMetricAck) ToJson() string {
-	b, _ := json.Marshal(swma)
-	return string(b)
-}
-
-func SendWarnMetricAckFromJson(r io.Reader) *SendWarnMetricAck {
-	var swma *SendWarnMetricAck
-	json.NewDecoder(r).Decode(&swma)
-	return swma
 }

@@ -2,6 +2,7 @@
 logs
 .DS_Store
 node_modules
+/data
 /dist
 /webapp/dist
 jobserver

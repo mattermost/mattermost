@@ -10,7 +10,7 @@ import (
 )
 
 type OAuthProvider interface {
-	GetUserFromJson(data io.Reader, tokenUser *model.User) (*model.User, error)
+	GetUserFromJSON(data io.Reader, tokenUser *model.User) (*model.User, error)
 	GetSSOSettings(config *model.Config, service string) (*model.SSOSettings, error)
 	GetUserFromIdToken(idToken string) (*model.User, error)
 	IsSameUser(dbUser, oAuthUser *model.User) bool

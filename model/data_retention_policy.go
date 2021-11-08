@@ -3,11 +3,6 @@
 
 package model
 
-import (
-	"encoding/json"
-	"io"
-)
-
 type GlobalRetentionPolicy struct {
 	MessageDeletionEnabled bool  `json:"message_deletion_enabled"`
 	FileDeletionEnabled    bool  `json:"file_deletion_enabled"`
@@ -72,61 +67,4 @@ type RetentionPolicyCursor struct {
 	ChannelPoliciesDone bool
 	TeamPoliciesDone    bool
 	GlobalPoliciesDone  bool
-}
-
-func (rp *GlobalRetentionPolicy) ToJson() []byte {
-	b, _ := json.Marshal(rp)
-	return b
-}
-
-func GlobalRetentionPolicyFromJson(data io.Reader) *GlobalRetentionPolicy {
-	var grp *GlobalRetentionPolicy
-	json.NewDecoder(data).Decode(&grp)
-	return grp
-}
-
-func RetentionPolicyWithTeamAndChannelCountsFromJson(data io.Reader) (*RetentionPolicyWithTeamAndChannelCounts, error) {
-	var rp RetentionPolicyWithTeamAndChannelCounts
-	err := json.NewDecoder(data).Decode(&rp)
-	return &rp, err
-}
-
-func (rp *RetentionPolicyWithTeamAndChannelCounts) ToJson() []byte {
-	b, _ := json.Marshal(rp)
-	return b
-}
-
-func RetentionPolicyWithTeamAndChannelCountsListFromJson(data io.Reader) (*RetentionPolicyWithTeamAndChannelCountsList, error) {
-	var rpList *RetentionPolicyWithTeamAndChannelCountsList
-	err := json.NewDecoder(data).Decode(&rpList)
-	if err != nil {
-		return nil, err
-	}
-	return rpList, nil
-}
-
-func (rpList *RetentionPolicyWithTeamAndChannelCountsList) ToJson() []byte {
-	b, _ := json.Marshal(rpList)
-	return b
-}
-
-func RetentionPolicyWithTeamAndChannelIdsFromJson(data io.Reader) (*RetentionPolicyWithTeamAndChannelIDs, error) {
-	var rp *RetentionPolicyWithTeamAndChannelIDs
-	err := json.NewDecoder(data).Decode(&rp)
-	return rp, err
-}
-
-func (rp *RetentionPolicyWithTeamAndChannelIDs) ToJson() []byte {
-	b, _ := json.Marshal(rp)
-	return b
-}
-
-func (lst *RetentionPolicyForTeamList) ToJson() []byte {
-	b, _ := json.Marshal(lst)
-	return b
-}
-
-func (lst *RetentionPolicyForChannelList) ToJson() []byte {
-	b, _ := json.Marshal(lst)
-	return b
 }

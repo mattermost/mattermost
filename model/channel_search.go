@@ -3,10 +3,6 @@
 
 package model
 
-import (
-	"encoding/json"
-)
-
 const ChannelSearchDefaultLimit = 50
 
 type ChannelSearch struct {
@@ -23,10 +19,4 @@ type ChannelSearch struct {
 	Deleted                  bool     `json:"deleted"`
 	Page                     *int     `json:"page,omitempty"`
 	PerPage                  *int     `json:"per_page,omitempty"`
-}
-
-// ToJson convert a Channel to a json string
-func (c *ChannelSearch) ToJson() string {
-	b, _ := json.Marshal(c)
-	return string(b)
 }

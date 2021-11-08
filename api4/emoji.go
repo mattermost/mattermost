@@ -8,7 +8,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/audit"
@@ -83,15 +82,15 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emoji := model.EmojiFromJson(strings.NewReader(props["emoji"][0]))
-	if emoji == nil {
+	var emoji model.Emoji
+	if jsonErr := json.Unmarshal([]byte(props["emoji"][0]), &emoji); jsonErr != nil {
 		c.SetInvalidParam("emoji")
 		return
 	}
 
 	auditRec.AddMeta("emoji", emoji)
 
-	newEmoji, err := c.App.CreateEmoji(c.AppContext.Session().UserId, emoji, m)
+	newEmoji, err := c.App.CreateEmoji(c.AppContext.Session().UserId, &emoji, m)
 	if err != nil {
 		c.Err = err
 		return
@@ -255,8 +254,8 @@ func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func searchEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
-	emojiSearch := model.EmojiSearchFromJson(r.Body)
-	if emojiSearch == nil {
+	var emojiSearch model.EmojiSearch
+	if jsonErr := json.NewDecoder(r.Body).Decode(&emojiSearch); jsonErr != nil {
 		c.SetInvalidParam("term")
 		return
 	}

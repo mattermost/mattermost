@@ -6,8 +6,6 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
 )
 
@@ -156,20 +154,6 @@ type UserTeamIDPair struct {
 type UserChannelIDPair struct {
 	UserID    string
 	ChannelID string
-}
-
-func GroupSyncableFromJson(data io.Reader) *GroupSyncable {
-	groupSyncable := &GroupSyncable{}
-	bodyBytes, _ := ioutil.ReadAll(data)
-	json.Unmarshal(bodyBytes, groupSyncable)
-	return groupSyncable
-}
-
-func GroupSyncablesFromJson(data io.Reader) []*GroupSyncable {
-	groupSyncables := []*GroupSyncable{}
-	bodyBytes, _ := ioutil.ReadAll(data)
-	json.Unmarshal(bodyBytes, &groupSyncables)
-	return groupSyncables
 }
 
 func NewGroupTeam(groupID, teamID string, autoAdd bool) *GroupSyncable {

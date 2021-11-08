@@ -4,10 +4,12 @@
 package app
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
@@ -97,7 +99,11 @@ func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
 
 	if err == nil {
 		messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil)
-		messageWs.Add("group", updatedGroup.ToJson())
+		groupJSON, jsonErr := json.Marshal(updatedGroup)
+		if jsonErr != nil {
+			mlog.Warn("Failed to encode group to JSON", mlog.Err(jsonErr))
+		}
+		messageWs.Add("group", string(groupJSON))
 		a.Publish(messageWs)
 	}
 
@@ -122,7 +128,11 @@ func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 
 	if err == nil {
 		messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil)
-		messageWs.Add("group", deletedGroup.ToJson())
+		groupJSON, jsonErr := json.Marshal(deletedGroup)
+		if jsonErr != nil {
+			mlog.Warn("Failed to encode group to JSON", mlog.Err(jsonErr))
+		}
+		messageWs.Add("group", string(groupJSON))
 		a.Publish(messageWs)
 	}
 

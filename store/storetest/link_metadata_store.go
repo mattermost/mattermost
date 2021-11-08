@@ -40,7 +40,6 @@ func testLinkMetadataStoreSave(t *testing.T, ss store.Store) {
 		}
 
 		linkMetadata, err := ss.LinkMetadata().Save(metadata)
-
 		require.NoError(t, err)
 		assert.Equal(t, *metadata, *linkMetadata)
 	})

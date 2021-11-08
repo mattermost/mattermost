@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"encoding/json"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
@@ -12,15 +13,23 @@ import (
 )
 
 func (s *Server) clusterInstallPluginHandler(msg *model.ClusterMessage) {
-	s.installPluginFromData(model.PluginEventDataFromJson(bytes.NewReader(msg.Data)))
+	var data model.PluginEventData
+	if jsonErr := json.Unmarshal(msg.Data, &data); jsonErr != nil {
+		mlog.Warn("Failed to decode from JSON", mlog.Err(jsonErr))
+	}
+	s.Channels().installPluginFromData(data)
 }
 
 func (s *Server) clusterRemovePluginHandler(msg *model.ClusterMessage) {
-	s.removePluginFromData(model.PluginEventDataFromJson(bytes.NewReader(msg.Data)))
+	var data model.PluginEventData
+	if jsonErr := json.Unmarshal(msg.Data, &data); jsonErr != nil {
+		mlog.Warn("Failed to decode from JSON", mlog.Err(jsonErr))
+	}
+	s.Channels().removePluginFromData(data)
 }
 
 func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
-	env := s.GetPluginsEnvironment()
+	env := s.Channels().GetPluginsEnvironment()
 	if env == nil {
 		return
 	}
@@ -69,15 +78,19 @@ func (s *Server) registerClusterHandlers() {
 }
 
 func (s *Server) clusterPublishHandler(msg *model.ClusterMessage) {
-	event := model.WebSocketEventFromJson(bytes.NewReader(msg.Data))
-	if event == nil {
+	event, err := model.WebSocketEventFromJSON(bytes.NewReader(msg.Data))
+	if err != nil {
+		mlog.Warn("Failed to decode event from JSON", mlog.Err(err))
 		return
 	}
 	s.PublishSkipClusterSend(event)
 }
 
 func (s *Server) clusterUpdateStatusHandler(msg *model.ClusterMessage) {
-	status := model.StatusFromJson(bytes.NewReader(msg.Data))
+	var status model.Status
+	if jsonErr := json.Unmarshal(msg.Data, &status); jsonErr != nil {
+		mlog.Warn("Failed to decode status from JSON")
+	}
 	s.statusCache.Set(status.UserId, status)
 }
 
@@ -120,7 +133,11 @@ func (s *Server) clusterClearSessionCacheForAllUsersHandler(msg *model.ClusterMe
 }
 
 func (s *Server) clusterBusyStateChgHandler(msg *model.ClusterMessage) {
-	s.serverBusyStateChanged(model.ServerBusyStateFromJson(bytes.NewReader(msg.Data)))
+	var sbs model.ServerBusyState
+	if jsonErr := json.Unmarshal(msg.Data, &sbs); jsonErr != nil {
+		mlog.Warn("Failed to decode server busy state from JSON", mlog.Err(jsonErr))
+	}
+	s.serverBusyStateChanged(&sbs)
 }
 
 func (s *Server) invalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelID string) {

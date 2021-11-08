@@ -1173,7 +1173,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "编码错误"
+    "translation": "编码失败。"
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1312,10 +1312,6 @@
     "translation": "无效的 RootId 参数。"
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "此频道为只读。只有拥有权限的成员可以发布消息。"
-  },
-  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "创建消息时出错。"
   },
@@ -1370,10 +1366,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "无法在已删除的频道更新消息。"
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "此频道为只读。只有拥有权限的成员可以标注或取消标注消息。"
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1454,10 +1446,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "您不能保存其他用户的互动。"
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "只读频道无法发互动。"
   },
   {
     "id": "api.restricted_system_admin",
@@ -1797,7 +1785,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "要更改您的通知偏好设定，登录到您的团队站点后至帐号设置 > 通知。"
+    "translation": "要更改您的通知偏好设定，登录到您的团队站点后并转至设置 > 通知。"
   },
   {
     "id": "api.templates.email_info1",
@@ -5877,7 +5865,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.9+"
+    "translation": "macOS 10.14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -5885,7 +5873,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "版本 60+"
+    "translation": "版本 78+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -5893,7 +5881,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "版本 61+"
+    "translation": "版本 89+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -8869,9 +8857,7 @@
   },
   {
     "id": "api.email_batching.send_batched_email_notification.title",
-    "translation": {
-      "other": "{{ .SenderName }} 和 {{.Count}} 其他人向您发送了新消息"
-    }
+    "translation": "你有新消息"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.time",
@@ -9051,7 +9037,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " 并至账户设定 > 通知"
+    "translation": " 并转至设定 > 通知"
   },
   {
     "id": "app.notification.body.mention.title",
@@ -9143,7 +9129,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}，您对 Mattermost 专业云的 14 天试用将于 3 天后于 {{.TrialEnd}} 结束。请添加您的付款信息，以确保您的团队可以继续享受专业云的好处。"
+    "translation": "{{.Name}}，您的 Mattermost 14 天试用将于 3 天后于 {{.TrialEnd}} 结束。请添加您的付款信息，以确保您的团队可以继续享受 Mattermost 云的好处。"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
@@ -9182,15 +9168,95 @@
     "translation": "{{.SenderName}}回复了主题"
   },
   {
-    "id": "app.notification.body.thread.subTitle",
-    "translation": "您离开时，{{.SenderName}}回复了您关注的主题。"
-  },
-  {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
-    "translation": " 在您关注的主题发布了评论。"
+    "translation": " 回复了您关注的主题。"
   },
   {
     "id": "api.push_notification.title.collapsed_threads",
-    "translation": "回复主题"
+    "translation": "在{{.channelName}}回复"
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads_dm",
+    "translation": "在私信中回复"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
+    "translation": " 回复了主题。"
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "重加载配置失败。"
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "ThreadAutoFollow 必须为 true 才能启用 CollapsedThreads"
+  },
+  {
+    "id": "app.post.marshal.app_error",
+    "translation": "编码消息失败。"
+  },
+  {
+    "id": "app.notification.body.thread_gm.subTitle",
+    "translation": "当您不在时，{{.SenderName}} 回复了您群组中的一个主题。"
+  },
+  {
+    "id": "app.notification.body.thread_dm.subTitle",
+    "translation": "当您不在时，{{.SenderName}} 回复了您的私信。"
+  },
+  {
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": "当您不在时，{{.SenderName}} 在 {{.ChannelName}} 回复了您关注的话题。"
+  },
+  {
+    "id": "app.notification.body.thread_channel.subTitle",
+    "translation": "当您不在时，{{.SenderName}} 回复了您关注的话题。"
+  },
+  {
+    "id": "app.import.bulk_import.process_attachments.error",
+    "translation": "处理批量导入附件时出错。"
+  },
+  {
+    "id": "api.unmarshal_error",
+    "translation": "解码失败。"
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "无效的用户角色，超过 {{.Limit}} 个字符。"
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "无效的团队成员角色，超过 {{.Limit}} 个字符。"
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "无效的会话 UserId 字段。"
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "无效的会话角色，超过 {{.Limit}} 个字符。"
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "无效的会话 Id 字段。"
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "无效的会话 CreateAt 字段。"
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "无效频道成员角色，长度超过 {{.Limit}} 个字符的。"
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "令牌中的电子邮件与用户数据中的电子邮件不一致。"
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "获取所有团队成员失败"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "获取所有频道成员失败"
   }
 ]

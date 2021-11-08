@@ -4,7 +4,6 @@
 package model
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -64,12 +63,8 @@ func (b *Bot) Clone() *Bot {
 	return &copy
 }
 
-// IsValid validates the bot and returns an error if it isn't configured correctly.
-func (b *Bot) IsValid() *AppError {
-	if !IsValidId(b.UserId) {
-		return NewAppError("Bot.IsValid", "model.bot.is_valid.user_id.app_error", b.Trace(), "", http.StatusBadRequest)
-	}
-
+// IsValidCreate validates bot for Create call. This skips validations of fields that are auto-filled on Create
+func (b *Bot) IsValidCreate() *AppError {
 	if !IsValidUsername(b.Username) {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.username.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
@@ -86,6 +81,15 @@ func (b *Bot) IsValid() *AppError {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.creator_id.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
 
+	return nil
+}
+
+// IsValid validates the bot and returns an error if it isn't configured correctly.
+func (b *Bot) IsValid() *AppError {
+	if !IsValidId(b.UserId) {
+		return NewAppError("Bot.IsValid", "model.bot.is_valid.user_id.app_error", b.Trace(), "", http.StatusBadRequest)
+	}
+
 	if b.CreateAt == 0 {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.create_at.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
@@ -93,8 +97,7 @@ func (b *Bot) IsValid() *AppError {
 	if b.UpdateAt == 0 {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.update_at.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
-
-	return nil
+	return b.IsValidCreate()
 }
 
 // PreSave should be run before saving a new bot to the database.
@@ -112,12 +115,6 @@ func (b *Bot) PreUpdate() {
 // Etag generates an etag for caching.
 func (b *Bot) Etag() string {
 	return Etag(b.UserId, b.UpdateAt)
-}
-
-// ToJson serializes the bot to json.
-func (b *Bot) ToJson() []byte {
-	data, _ := json.Marshal(b)
-	return data
 }
 
 // Patch modifies an existing bot with optional fields from the given patch.
@@ -154,16 +151,6 @@ func (b *Bot) WouldPatch(patch *BotPatch) bool {
 	return false
 }
 
-// ToJson serializes the bot patch to json.
-func (b *BotPatch) ToJson() []byte {
-	data, err := json.Marshal(b)
-	if err != nil {
-		return nil
-	}
-
-	return data
-}
-
 // UserFromBot returns a user model describing the bot fields stored in the User store.
 func UserFromBot(b *Bot) *User {
 	return &User{
@@ -183,12 +170,6 @@ func BotFromUser(u *User) *Bot {
 		Username:    u.Username,
 		DisplayName: u.GetDisplayName(ShowUsername),
 	}
-}
-
-// ToJson serializes a list of bots to json.
-func (l *BotList) ToJson() []byte {
-	b, _ := json.Marshal(l)
-	return b
 }
 
 // Etag computes the etag for a list of bots.

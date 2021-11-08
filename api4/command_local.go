@@ -23,8 +23,8 @@ func (api *API) InitCommandLocal() {
 }
 
 func localCreateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
-	cmd := model.CommandFromJson(r.Body)
-	if cmd == nil {
+	var cmd model.Command
+	if jsonErr := json.NewDecoder(r.Body).Decode(&cmd); jsonErr != nil {
 		c.SetInvalidParam("command")
 		return
 	}
@@ -33,7 +33,7 @@ func localCreateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	rcmd, err := c.App.CreateCommand(cmd)
+	rcmd, err := c.App.CreateCommand(&cmd)
 	if err != nil {
 		c.Err = err
 		return

@@ -867,8 +867,8 @@ func (_m *PostStore) Search(teamID string, userID string, params *model.SearchPa
 	return r0, r1
 }
 
-// SearchPostsInTeamForUser provides a mock function with given fields: paramsList, userID, teamID, page, perPage
-func (_m *PostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.PostSearchResults, error) {
+// SearchPostsForUser provides a mock function with given fields: paramsList, userID, teamID, page, perPage
+func (_m *PostStore) SearchPostsForUser(paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.PostSearchResults, error) {
 	ret := _m.Called(paramsList, userID, teamID, page, perPage)
 
 	var r0 *model.PostSearchResults

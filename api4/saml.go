@@ -242,7 +242,7 @@ func getSamlMetadataFromIdp(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 	url := props["saml_metadata_url"]
 	if url == "" {
 		c.SetInvalidParam("saml_metadata_url")

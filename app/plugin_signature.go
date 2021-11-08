@@ -11,22 +11,13 @@ import (
 	"path/filepath"
 
 	"github.com/pkg/errors"
-	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/armor"
+	"golang.org/x/crypto/openpgp"       //nolint:staticcheck
+	"golang.org/x/crypto/openpgp/armor" //nolint:staticcheck
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
-
-// GetPluginPublicKeyFiles returns all public keys listed in the config.
-func (a *App) GetPluginPublicKeyFiles() ([]string, *model.AppError) {
-	return a.Srv().getPluginPublicKeyFiles()
-}
-
-func (s *Server) getPluginPublicKeyFiles() ([]string, *model.AppError) {
-	return s.Config().PluginSettings.SignaturePublicKeyFiles, nil
-}
 
 // GetPublicKey will return the actual public key saved in the `name` file.
 func (a *App) GetPublicKey(name string) ([]byte, *model.AppError) {
@@ -83,19 +74,16 @@ func (a *App) DeletePublicKey(name string) *model.AppError {
 
 // VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.
 func (a *App) VerifyPlugin(plugin, signature io.ReadSeeker) *model.AppError {
-	return a.Srv().verifyPlugin(plugin, signature)
+	return a.ch.verifyPlugin(plugin, signature)
 }
 
-func (s *Server) verifyPlugin(plugin, signature io.ReadSeeker) *model.AppError {
+func (ch *Channels) verifyPlugin(plugin, signature io.ReadSeeker) *model.AppError {
 	if err := verifySignature(bytes.NewReader(mattermostPluginPublicKey), plugin, signature); err == nil {
 		return nil
 	}
-	publicKeys, appErr := s.getPluginPublicKeyFiles()
-	if appErr != nil {
-		return appErr
-	}
+	publicKeys := ch.srv.Config().PluginSettings.SignaturePublicKeyFiles
 	for _, pk := range publicKeys {
-		pkBytes, appErr := s.getPublicKey(pk)
+		pkBytes, appErr := ch.srv.getPublicKey(pk)
 		if appErr != nil {
 			mlog.Warn("Unable to get public key for ", mlog.String("filename", pk))
 			continue

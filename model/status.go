@@ -5,7 +5,6 @@ package model
 
 import (
 	"encoding/json"
-	"io"
 )
 
 const (
@@ -29,41 +28,19 @@ type Status struct {
 	PrevStatus     string `json:"-"`
 }
 
-func (o *Status) ToJson() string {
-	oCopy := *o
-	oCopy.ActiveChannel = ""
-	b, _ := json.Marshal(oCopy)
-	return string(b)
+func (s *Status) ToJSON() ([]byte, error) {
+	sCopy := *s
+	sCopy.ActiveChannel = ""
+	return json.Marshal(sCopy)
 }
 
-func (o *Status) ToClusterJson() string {
-	oCopy := *o
-	b, _ := json.Marshal(oCopy)
-	return string(b)
-}
-
-func StatusFromJson(data io.Reader) *Status {
-	var o *Status
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func StatusListToJson(u []*Status) string {
-	uCopy := make([]Status, len(u))
+func StatusListToJSON(u []*Status) ([]byte, error) {
+	list := make([]Status, len(u))
 	for i, s := range u {
-		sCopy := *s
-		sCopy.ActiveChannel = ""
-		uCopy[i] = sCopy
+		list[i] = *s
+		list[i].ActiveChannel = ""
 	}
-
-	b, _ := json.Marshal(uCopy)
-	return string(b)
-}
-
-func StatusListFromJson(data io.Reader) []*Status {
-	var statuses []*Status
-	json.NewDecoder(data).Decode(&statuses)
-	return statuses
+	return json.Marshal(list)
 }
 
 func StatusMapToInterfaceMap(statusMap map[string]*Status) map[string]interface{} {

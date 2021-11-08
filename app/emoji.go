@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"image"
@@ -78,7 +79,11 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventEmojiAdded, "", "", "", nil)
-	message.Add("emoji", emoji.ToJson())
+	emojiJSON, jsonErr := json.Marshal(emoji)
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode emoji to JSON", mlog.Err(jsonErr))
+	}
+	message.Add("emoji", string(emojiJSON))
 	a.Publish(message)
 	return emoji, nil
 }

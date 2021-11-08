@@ -4,9 +4,6 @@
 package model
 
 import (
-	"encoding/json"
-	"errors"
-	"io"
 	"strings"
 )
 
@@ -70,49 +67,16 @@ type PushNotification struct {
 	IsIdLoaded       bool   `json:"is_id_loaded"`
 }
 
-func (pn *PushNotification) ToJson() string {
-	b, _ := json.Marshal(pn)
-	return string(b)
-}
-
 func (pn *PushNotification) DeepCopy() *PushNotification {
 	copy := *pn
 	return &copy
 }
 
 func (pn *PushNotification) SetDeviceIdAndPlatform(deviceId string) {
-
 	index := strings.Index(deviceId, ":")
 
 	if index > -1 {
 		pn.Platform = deviceId[:index]
 		pn.DeviceId = deviceId[index+1:]
 	}
-}
-
-func PushNotificationFromJson(data io.Reader) (*PushNotification, error) {
-	if data == nil {
-		return nil, errors.New("push notification data can't be nil")
-	}
-	var pn *PushNotification
-	if err := json.NewDecoder(data).Decode(&pn); err != nil {
-		return nil, err
-	}
-	return pn, nil
-}
-
-func PushNotificationAckFromJson(data io.Reader) (*PushNotificationAck, error) {
-	if data == nil {
-		return nil, errors.New("push notification data can't be nil")
-	}
-	var ack *PushNotificationAck
-	if err := json.NewDecoder(data).Decode(&ack); err != nil {
-		return nil, err
-	}
-	return ack, nil
-}
-
-func (ack *PushNotificationAck) ToJson() string {
-	b, _ := json.Marshal(ack)
-	return string(b)
 }

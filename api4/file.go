@@ -575,7 +575,7 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	auditRec.AddMeta("link", link)
 
-	w.Write([]byte(model.MapToJson(resp)))
+	w.Write([]byte(model.MapToJSON(resp)))
 }
 
 func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -745,7 +745,8 @@ func searchFiles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	params, jsonErr := model.SearchParameterFromJson(r.Body)
+	var params model.SearchParameter
+	jsonErr := json.NewDecoder(r.Body).Decode(&params)
 	if jsonErr != nil {
 		c.Err = model.NewAppError("searchFiles", "api.post.search_files.invalid_body.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
 		return

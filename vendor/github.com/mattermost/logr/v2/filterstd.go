@@ -11,6 +11,7 @@ type StdFilter struct {
 // is enabled for this filter.
 func (lt StdFilter) GetEnabledLevel(level Level) (Level, bool) {
 	enabled := level.ID <= lt.Lvl.ID
+	stackTrace := level.ID <= lt.Stacktrace.ID
 	var levelEnabled Level
 
 	if enabled {
@@ -33,6 +34,11 @@ func (lt StdFilter) GetEnabledLevel(level Level) (Level, bool) {
 			levelEnabled = level
 		}
 	}
+
+	if stackTrace {
+		levelEnabled.Stacktrace = true
+	}
+
 	return levelEnabled, enabled
 }
 

@@ -29,20 +29,37 @@ type FeatureFlags struct {
 	AppsEnabled bool
 
 	// Feature flags to control plugin versions
-	PluginIncidentManagement string `plugin_id:"com.mattermost.plugin-incident-management"`
-	PluginApps               string `plugin_id:"com.mattermost.apps"`
-	PluginFocalboard         string `plugin_id:"focalboard"`
-
-	// Enable timed dnd support for user status
-	TimedDND bool
+	PluginPlaybooks  string `plugin_id:"playbooks"`
+	PluginApps       string `plugin_id:"com.mattermost.apps"`
+	PluginFocalboard string `plugin_id:"focalboard"`
 
 	PermalinkPreviews bool
 
 	// Enable the Global Header
 	GlobalHeader bool
 
-	// Enable the Invite Members button on the left panel, possible values = ("none", "sticky", "lhs_button", "user_icon")
-	InviteMembersButton string
+	// Enable different team menu button treatments, possible values = ("none", "by_team_name", "inverted_sidebar_bg_color")
+	AddChannelButton string
+
+	// Enable different treatments for first time users, possible values = ("none", "tour_point", "around_input")
+	PrewrittenMessages string
+
+	// Determine whether when a user gets created, they'll have noisy notifications e.g. Send desktop notifications for all activity
+	NewAccountNoisy bool
+	// Enable Boards Unfurl Preview
+	BoardsUnfurl bool
+
+	// Enable Calls plugin support in the mobile app
+	CallsMobile bool
+
+	// Start A/B tour tips automatically, possible values = ("none", "auto")
+	AutoTour string
+
+	// A dash separated list for feature flags to turn on for Boards
+	BoardsFeatureFlags string
+
+	// A/B test for the add members to channel button, possible values = ("top", "bottom")
+	AddMembersToChannel string
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -52,13 +69,18 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CollapsedThreads = true
 	f.EnableRemoteClusterService = false
 	f.AppsEnabled = false
-	f.PluginIncidentManagement = "1.16.1"
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
-	f.TimedDND = false
 	f.PermalinkPreviews = true
-	f.GlobalHeader = false
-	f.InviteMembersButton = "none"
+	f.GlobalHeader = true
+	f.AddChannelButton = "by_team_name"
+	f.PrewrittenMessages = "tour_point"
+	f.NewAccountNoisy = false
+	f.BoardsUnfurl = true
+	f.CallsMobile = false
+	f.AutoTour = "none"
+	f.BoardsFeatureFlags = ""
+	f.AddMembersToChannel = "top"
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

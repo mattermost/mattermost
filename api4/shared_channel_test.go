@@ -64,9 +64,21 @@ func TestGetAllSharedChannels(t *testing.T) {
 	})
 
 	t.Run("get shared channels for invalid team", func(t *testing.T) {
-		channels, _, err := th.Client.GetAllSharedChannels(model.NewId(), 0, 100)
+		_, _, err := th.Client.GetAllSharedChannels(model.NewId(), 0, 100)
+		require.Error(t, err)
+	})
+
+	t.Run("get shared channels, user not member of team", func(t *testing.T) {
+		team := &model.Team{
+			DisplayName: "tteam",
+			Name:        GenerateTestTeamName(),
+			Type:        model.TeamOpen,
+		}
+		team, _, err := th.SystemAdminClient.CreateTeam(team)
 		require.NoError(t, err)
-		assert.Empty(t, channels)
+
+		_, _, err = th.Client.GetAllSharedChannels(team.Id, 0, 100)
+		require.Error(t, err)
 	})
 }
 

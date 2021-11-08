@@ -126,7 +126,7 @@ func testTeamStoreGet(t *testing.T, ss store.Store) {
 
 	r1, err := ss.Team().Get(o1.Id)
 	require.NoError(t, err)
-	require.Equal(t, r1.ToJson(), o1.ToJson())
+	require.Equal(t, r1, &o1)
 
 	_, err = ss.Team().Get("")
 	require.Error(t, err, "Missing id should have failed")

@@ -5,6 +5,7 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -136,7 +137,7 @@ func (b *Busy) ClusterEventChanged(sbs *model.ServerBusyState) {
 	}
 }
 
-func (b *Busy) ToJson() string {
+func (b *Busy) ToJSON() ([]byte, error) {
 	b.mux.RLock()
 	defer b.mux.RUnlock()
 
@@ -145,5 +146,10 @@ func (b *Busy) ToJson() string {
 		Expires:   b.expires.Unix(),
 		ExpiresTS: b.expires.UTC().Format(TimestampFormat),
 	}
-	return sbs.ToJson()
+	sbsJSON, jsonErr := json.Marshal(sbs)
+	if jsonErr != nil {
+		return []byte{}, fmt.Errorf("failed to encode server busy state to JSON: %w", jsonErr)
+	}
+
+	return sbsJSON, nil
 }

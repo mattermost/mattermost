@@ -4,6 +4,7 @@
 package remotecluster
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -37,7 +38,8 @@ func TestPing(t *testing.T) {
 			defer w.WriteHeader(200)
 			atomic.AddInt32(&countWebReq, 1)
 
-			frame, err := model.RemoteClusterFrameFromJSON(r.Body)
+			var frame model.RemoteClusterFrame
+			err := json.NewDecoder(r.Body).Decode(&frame)
 			if err != nil {
 				merr.Append(err)
 				return
@@ -47,7 +49,8 @@ func TestPing(t *testing.T) {
 				return
 			}
 
-			ping, err := model.RemoteClusterPingFromRawJSON(frame.Msg.Payload)
+			var ping model.RemoteClusterPing
+			err = json.Unmarshal(frame.Msg.Payload, &ping)
 			if err != nil {
 				merr.Append(err)
 				return
@@ -93,11 +96,13 @@ func TestPing(t *testing.T) {
 			defer wg.Done()
 			atomic.AddInt32(&countWebReq, 1)
 
-			frame, err := model.RemoteClusterFrameFromJSON(r.Body)
+			var frame model.RemoteClusterFrame
+			err := json.NewDecoder(r.Body).Decode(&frame)
 			if err != nil {
 				merr.Append(err)
 			}
-			ping, err := model.RemoteClusterPingFromRawJSON(frame.Msg.Payload)
+			var ping model.RemoteClusterPing
+			err = json.Unmarshal(frame.Msg.Payload, &ping)
 			if err != nil {
 				merr.Append(err)
 			}

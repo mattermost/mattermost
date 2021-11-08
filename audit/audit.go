@@ -61,7 +61,7 @@ func (a *Audit) Log(level mlog.Level, path string, evt string, status string, us
 
 // Configure sets zero or more target to output audit logs to.
 func (a *Audit) Configure(cfg mlog.LoggerConfiguration) error {
-	return a.logger.ConfigureTargets(cfg)
+	return a.logger.ConfigureTargets(cfg, nil)
 }
 
 // Flush attempts to write all queued audit records to all targets.

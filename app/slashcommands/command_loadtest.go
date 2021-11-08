@@ -4,6 +4,7 @@
 package slashcommands
 
 import (
+	"encoding/json"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -542,8 +543,8 @@ func (*LoadTestProvider) JsonCommand(a *app.App, c *request.Context, args *model
 		r.Body.Close()
 	}()
 
-	post := model.PostFromJson(r.Body)
-	if post == nil {
+	var post model.Post
+	if jsonErr := json.NewDecoder(r.Body).Decode(&post); jsonErr != nil {
 		return &model.CommandResponse{Text: "Unable to decode post", ResponseType: model.CommandResponseTypeEphemeral}, errors.Errorf("could not decode post from json")
 	}
 	post.ChannelId = args.ChannelId
@@ -552,7 +553,7 @@ func (*LoadTestProvider) JsonCommand(a *app.App, c *request.Context, args *model
 		post.Message = message
 	}
 
-	if _, err := a.CreatePostMissingChannel(c, post, false); err != nil {
+	if _, err := a.CreatePostMissingChannel(c, &post, false); err != nil {
 		return &model.CommandResponse{Text: "Unable to create post", ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
 

@@ -76,11 +76,11 @@ func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("")
 
-	w.Write([]byte(model.MapToJson(map[string]string{"redirect": redirectURL})))
+	w.Write([]byte(model.MapToJSON(map[string]string{"redirect": redirectURL})))
 }
 
 func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
-	requestData := model.MapFromJson(r.Body)
+	requestData := model.MapFromJSON(r.Body)
 	clientId := requestData["client_id"]
 
 	if !model.IsValidId(clientId) {

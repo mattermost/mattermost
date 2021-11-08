@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
@@ -277,7 +278,10 @@ func (a *App) getDynamicListArgument(c *request.Context, commandArgs *model.Comm
 		return false, parsed, toBeParsed, []model.AutocompleteSuggestion{}
 	}
 
-	listItems := model.AutocompleteStaticListItemsFromJSON(resp.Body)
+	var listItems []model.AutocompleteListItem
+	if jsonErr := json.NewDecoder(resp.Body).Decode(&listItems); jsonErr != nil {
+		mlog.Warn("Failed to decode from JSON", mlog.Err(jsonErr))
+	}
 
 	return parseListItems(listItems, parsed, toBeParsed)
 }

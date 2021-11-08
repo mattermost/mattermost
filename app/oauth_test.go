@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -14,7 +15,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
 )
 
 func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
@@ -107,7 +111,7 @@ func TestOAuthDeleteApp(t *testing.T) {
 	session.Token = model.NewId()
 	session.Roles = model.SystemUserRoleId
 	session.IsOAuth = true
-	th.App.srv.userService.SetSessionExpireInDays(session, 1)
+	th.App.ch.srv.userService.SetSessionExpireInDays(session, 1)
 
 	session, _ = th.App.CreateSession(session)
 
@@ -152,7 +156,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 	}
 
 	makeState := func(token *model.Token) string {
-		return base64.StdEncoding.EncodeToString([]byte(model.MapToJson(map[string]string{
+		return base64.StdEncoding.EncodeToString([]byte(model.MapToJSON(map[string]string{
 			"token": token.Token,
 		})))
 	}
@@ -199,7 +203,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		th := setup(t, true, true, true, "")
 		defer th.TearDown()
 
-		state := base64.StdEncoding.EncodeToString([]byte(model.MapToJson(map[string]string{
+		state := base64.StdEncoding.EncodeToString([]byte(model.MapToJSON(map[string]string{
 			"token": model.NewId(),
 		})))
 
@@ -235,7 +239,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		token, err := th.App.CreateOAuthStateToken(generateOAuthStateTokenExtra(email, action, cookie))
 		require.Nil(t, err)
 
-		state := base64.StdEncoding.EncodeToString([]byte(model.MapToJson(map[string]string{
+		state := base64.StdEncoding.EncodeToString([]byte(model.MapToJSON(map[string]string{
 			"action": action,
 			"email":  email,
 			"token":  token.Token,
@@ -447,6 +451,24 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		assert.Equal(t, "oauth.gitlab.tos.error", err.Id)
 	})
 
+	t.Run("with error in GetSSOSettings", func(t *testing.T) {
+		th := setup(t, true, true, true, "")
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.OpenIdSettings.Enable = true
+		})
+
+		providerMock := &mocks.OAuthProvider{}
+		providerMock.On("GetSSOSettings", mock.Anything, model.ServiceOpenid).Return(nil, errors.New("error"))
+		einterfaces.RegisterOAuthProvider(model.ServiceOpenid, providerMock)
+
+		_, _, _, _, err := th.App.AuthorizeOAuthUser(nil, nil, model.ServiceOpenid, "", "", "")
+		require.NotNil(t, err)
+		assert.Equal(t, "api.user.get_authorization_code.endpoint.app_error", err.Id)
+
+	})
+
 	t.Run("enabled and properly configured", func(t *testing.T) {
 		testCases := []struct {
 			Description                   string
@@ -489,7 +511,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 					"team_id": model.NewId(),
 					"token":   makeToken(th, cookie).Token,
 				}
-				state := base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
+				state := base64.StdEncoding.EncodeToString([]byte(model.MapToJSON(stateProps)))
 
 				recorder := httptest.ResponseRecorder{}
 				body, receivedTeamId, receivedStateProps, _, err := th.App.AuthorizeOAuthUser(&recorder, request, model.ServiceGitlab, "", state, "")
