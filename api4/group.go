@@ -153,7 +153,12 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !group.AllowReference {
-		c.Err = model.NewAppError("createGroup", "", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("createGroup", "api.custom_groups.must_be_referencable", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if group.RemoteId != nil {
+		c.Err = model.NewAppError("createGroup", "api.custom_groups.no_remote_id", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -206,6 +211,11 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	var groupPatch model.GroupPatch
 	if jsonErr := json.NewDecoder(r.Body).Decode(&groupPatch); jsonErr != nil {
 		c.SetInvalidParam("group")
+		return
+	}
+
+	if group.Source == model.GroupSourceCustom && groupPatch.AllowReference != nil && !*groupPatch.AllowReference {
+		c.Err = model.NewAppError("Api4.patchGroup", "api.custom_groups.must_be_referencable", nil, "", http.StatusBadRequest)
 		return
 	}
 

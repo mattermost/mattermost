@@ -133,6 +133,17 @@ func TestCreateGroup(t *testing.T) {
 	require.NoError(t, err)
 	CheckCreatedStatus(t, response)
 
+	customGroupWithRemoteID := &model.Group{
+		DisplayName:    "dn_" + model.NewId(),
+		Name:           model.NewString("name" + model.NewId()),
+		Source:         model.GroupSourceCustom,
+		AllowReference: true,
+		RemoteId:       model.NewString(model.NewId()),
+	}
+	_, response, err = th.SystemAdminClient.CreateGroup(customGroupWithRemoteID)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
+
 	th.SystemAdminClient.Logout()
 	_, response, err = th.SystemAdminClient.CreateGroup(g)
 	require.Error(t, err)
@@ -195,6 +206,14 @@ func TestPatchGroup(t *testing.T) {
 	})
 	assert.Nil(t, appErr)
 
+	g2, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName:    "dn_" + model.NewId(),
+		Name:           model.NewString("name" + model.NewId()),
+		Source:         model.GroupSourceCustom,
+		AllowReference: true,
+	})
+	assert.Nil(t, appErr)
+
 	updateFmt := "%s_updated"
 
 	newName := fmt.Sprintf(updateFmt, *g.Name)
@@ -245,6 +264,23 @@ func TestPatchGroup(t *testing.T) {
 	_, response, err = th.SystemAdminClient.PatchGroup(model.NewId(), gp)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, response)
+
+	_, response, err = th.SystemAdminClient.PatchGroup(g2.Id, &model.GroupPatch{
+		Name:           model.NewString(model.NewId()),
+		DisplayName:    model.NewString("foo"),
+		AllowReference: model.NewBool(false),
+	})
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
+
+	// ensure that omitting the AllowReference field from the patch doesn't patch it to false
+	patchedG2, response, err := th.SystemAdminClient.PatchGroup(g2.Id, &model.GroupPatch{
+		Name:        model.NewString(model.NewId()),
+		DisplayName: model.NewString("foo"),
+	})
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
+	require.Equal(t, true, patchedG2.AllowReference)
 
 	th.SystemAdminClient.Logout()
 	_, response, err = th.SystemAdminClient.PatchGroup(group.Id, gp)
