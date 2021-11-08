@@ -1130,10 +1130,13 @@ func TestGetEmojiNamesForPost(t *testing.T) {
 								},
 							},
 						},
+						{
+							Title: "This is the title: :emoji5:",
+						},
 					},
 				},
 			},
-			Expected: []string{"emoji1", "emoji2", "emoji3", "emoji4"},
+			Expected: []string{"emoji1", "emoji2", "emoji3", "emoji4", "emoji5"},
 		},
 		{
 			Description: "with duplicates",

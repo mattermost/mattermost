@@ -1799,6 +1799,20 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 		},
 	}
 
+	overriddenPost2 := &model.Post{
+		Props: model.StringInterface{
+			"override_username": nil,
+			"from_webhook":      "true",
+		},
+	}
+
+	overriddenPost3 := &model.Post{
+		Props: model.StringInterface{
+			"override_username": 10,
+			"from_webhook":      "true",
+		},
+	}
+
 	for name, testCase := range map[string]struct {
 		channel        *model.Channel
 		post           *model.Post
@@ -1839,6 +1853,16 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 		"overridden username, overrides disabled": {
 			post:           overriddenPost,
 			allowOverrides: false,
+			expected:       "@" + sender.Username,
+		},
+		"nil override_username": {
+			post:           overriddenPost2,
+			allowOverrides: true,
+			expected:       "@" + sender.Username,
+		},
+		"integer override_username": {
+			post:           overriddenPost3,
+			allowOverrides: true,
 			expected:       "@" + sender.Username,
 		},
 	} {
@@ -2680,5 +2704,48 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 		require.Equal(t, int64(0), thread.UnreadMentions)
 		// Then: last post is still marked as unread
 		require.Equal(t, int64(1), thread.UnreadReplies)
+	})
+
+	t.Run("Replies to post created by webhook should not auto-follow webhook creator", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ThreadAutoFollow = true
+			*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+		})
+
+		user := th.BasicUser
+
+		rootPost := &model.Post{
+			UserId:    user.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "a message",
+			Props:     model.StringInterface{"from_webhook": "true", "override_username": "a bot"},
+		}
+
+		rootPost, appErr := th.App.CreatePostMissingChannel(th.Context, rootPost, false)
+		require.Nil(t, appErr)
+
+		childPost := &model.Post{
+			UserId:    th.BasicUser2.Id,
+			ChannelId: th.BasicChannel.Id,
+			RootId:    rootPost.Id,
+			Message:   "a reply",
+		}
+		childPost, appErr = th.App.CreatePostMissingChannel(th.Context, childPost, false)
+		require.Nil(t, appErr)
+
+		postList := model.PostList{
+			Order: []string{rootPost.Id, childPost.Id},
+			Posts: map[string]*model.Post{rootPost.Id: rootPost, childPost.Id: childPost},
+		}
+		mentions, err := th.App.SendNotifications(childPost, th.BasicTeam, th.BasicChannel, th.BasicUser2, &postList, true)
+		require.NoError(t, err)
+		assert.False(t, utils.StringInSlice(user.Id, mentions))
+
+		membership, err := th.App.GetThreadMembershipForUser(user.Id, rootPost.Id)
+		assert.Error(t, err)
+		assert.Nil(t, membership)
 	})
 }

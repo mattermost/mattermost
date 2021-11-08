@@ -150,7 +150,7 @@ func TestExtract(t *testing.T) {
 		require.Equal(t, "", text)
 	})
 
-	t.Run("Wrong extension", func(t *testing.T) {
+	t.Run("Wrong docx extension", func(t *testing.T) {
 		data, err := testutils.ReadTestFile("sample-doc.pdf")
 		require.NoError(t, err)
 		text, err := Extract("sample-doc.docx", bytes.NewReader(data), ExtractSettings{})

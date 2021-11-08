@@ -270,6 +270,10 @@ func getEmojiNamesForPost(post *model.Post, reactions []*model.Reaction) []strin
 
 	// Post attachments
 	for _, attachment := range post.Attachments() {
+		if attachment.Title != "" {
+			names = append(names, getEmojiNamesForString(attachment.Title)...)
+		}
+
 		if attachment.Text != "" {
 			names = append(names, getEmojiNamesForString(attachment.Text)...)
 		}
@@ -279,6 +283,9 @@ func getEmojiNamesForPost(post *model.Post, reactions []*model.Reaction) []strin
 		}
 
 		for _, field := range attachment.Fields {
+			if field == nil {
+				continue
+			}
 			if value, ok := field.Value.(string); ok {
 				names = append(names, getEmojiNamesForString(value)...)
 			}
@@ -357,6 +364,9 @@ func (a *App) getImagesInMessageAttachments(post *model.Post) []string {
 		images = append(images, imagesInPretext...)
 
 		for _, field := range attachment.Fields {
+			if field == nil {
+				continue
+			}
 			if value, ok := field.Value.(string); ok {
 				_, imagesInFieldValue := a.getFirstLinkAndImages(value)
 				images = append(images, imagesInFieldValue...)

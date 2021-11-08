@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -258,8 +259,13 @@ func (s *Server) RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *m
 		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 	defer resp.Body.Close()
-	licenseResponse := model.MapFromJson(resp.Body)
 
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.app_error", nil,
+			fmt.Sprintf("Unexpected HTTP status code %q returned by server", resp.Status), http.StatusInternalServerError)
+	}
+
+	licenseResponse := model.MapFromJson(resp.Body)
 	if _, ok := licenseResponse["license"]; !ok {
 		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.app_error", nil, licenseResponse["message"], http.StatusBadRequest)
 	}

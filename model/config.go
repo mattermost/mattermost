@@ -3687,6 +3687,10 @@ func (s *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.group_unread_channels.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if *s.CollapsedThreads != COLLAPSED_THREADS_DISABLED && !*s.ThreadAutoFollow {
+		return NewAppError("Config.IsValid", "model.config.is_valid.collapsed_threads.autofollow.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if *s.CollapsedThreads != COLLAPSED_THREADS_DISABLED &&
 		*s.CollapsedThreads != COLLAPSED_THREADS_DEFAULT_ON &&
 		*s.CollapsedThreads != COLLAPSED_THREADS_DEFAULT_OFF {
@@ -3870,9 +3874,11 @@ func (o *Config) Sanitize() {
 		*o.LdapSettings.BindPassword = FAKE_SETTING
 	}
 
-	*o.FileSettings.PublicLinkSalt = FAKE_SETTING
+	if o.FileSettings.PublicLinkSalt != nil {
+		*o.FileSettings.PublicLinkSalt = FAKE_SETTING
+	}
 
-	if *o.FileSettings.AmazonS3SecretAccessKey != "" {
+	if o.FileSettings.AmazonS3SecretAccessKey != nil && *o.FileSettings.AmazonS3SecretAccessKey != "" {
 		*o.FileSettings.AmazonS3SecretAccessKey = FAKE_SETTING
 	}
 
@@ -3880,7 +3886,7 @@ func (o *Config) Sanitize() {
 		*o.EmailSettings.SMTPPassword = FAKE_SETTING
 	}
 
-	if *o.GitLabSettings.Secret != "" {
+	if o.GitLabSettings.Secret != nil && *o.GitLabSettings.Secret != "" {
 		*o.GitLabSettings.Secret = FAKE_SETTING
 	}
 
@@ -3896,10 +3902,17 @@ func (o *Config) Sanitize() {
 		*o.OpenIdSettings.Secret = FAKE_SETTING
 	}
 
-	*o.SqlSettings.DataSource = FAKE_SETTING
-	*o.SqlSettings.AtRestEncryptKey = FAKE_SETTING
+	if o.SqlSettings.DataSource != nil {
+		*o.SqlSettings.DataSource = FAKE_SETTING
+	}
 
-	*o.ElasticsearchSettings.Password = FAKE_SETTING
+	if o.SqlSettings.AtRestEncryptKey != nil {
+		*o.SqlSettings.AtRestEncryptKey = FAKE_SETTING
+	}
+
+	if o.ElasticsearchSettings.Password != nil {
+		*o.ElasticsearchSettings.Password = FAKE_SETTING
+	}
 
 	for i := range o.SqlSettings.DataSourceReplicas {
 		o.SqlSettings.DataSourceReplicas[i] = FAKE_SETTING
@@ -3909,7 +3922,9 @@ func (o *Config) Sanitize() {
 		o.SqlSettings.DataSourceSearchReplicas[i] = FAKE_SETTING
 	}
 
-	if o.MessageExportSettings.GlobalRelaySettings.SmtpPassword != nil && *o.MessageExportSettings.GlobalRelaySettings.SmtpPassword != "" {
+	if o.MessageExportSettings.GlobalRelaySettings != nil &&
+		o.MessageExportSettings.GlobalRelaySettings.SmtpPassword != nil &&
+		*o.MessageExportSettings.GlobalRelaySettings.SmtpPassword != "" {
 		*o.MessageExportSettings.GlobalRelaySettings.SmtpPassword = FAKE_SETTING
 	}
 
@@ -3917,7 +3932,9 @@ func (o *Config) Sanitize() {
 		*o.ServiceSettings.GfycatApiSecret = FAKE_SETTING
 	}
 
-	*o.ServiceSettings.SplitKey = FAKE_SETTING
+	if o.ServiceSettings.SplitKey != nil {
+		*o.ServiceSettings.SplitKey = FAKE_SETTING
+	}
 }
 
 // structToMapFilteredByTag converts a struct into a map removing those fields that has the tag passed

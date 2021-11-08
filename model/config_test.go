@@ -1467,3 +1467,29 @@ func TestConfigExportSettingsIsValid(t *testing.T) {
 	require.NotNil(t, err)
 	require.Equal(t, "model.config.is_valid.export.retention_days_too_low.app_error", err.Id)
 }
+
+func TestConfigServiceSettingsIsValid(t *testing.T) {
+	cfg := Config{}
+	cfg.SetDefaults()
+
+	err := cfg.ServiceSettings.isValid()
+	require.Nil(t, err)
+
+	*cfg.ServiceSettings.CollapsedThreads = COLLAPSED_THREADS_DISABLED
+	err = cfg.ServiceSettings.isValid()
+	require.Nil(t, err)
+
+	*cfg.ServiceSettings.ThreadAutoFollow = false
+	err = cfg.ServiceSettings.isValid()
+	require.Nil(t, err)
+
+	*cfg.ServiceSettings.CollapsedThreads = COLLAPSED_THREADS_DEFAULT_OFF
+	err = cfg.ServiceSettings.isValid()
+	require.NotNil(t, err)
+	require.Equal(t, "model.config.is_valid.collapsed_threads.autofollow.app_error", err.Id)
+
+	*cfg.ServiceSettings.CollapsedThreads = COLLAPSED_THREADS_DEFAULT_ON
+	err = cfg.ServiceSettings.isValid()
+	require.NotNil(t, err)
+	require.Equal(t, "model.config.is_valid.collapsed_threads.autofollow.app_error", err.Id)
+}

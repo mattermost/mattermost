@@ -192,7 +192,7 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 		Set("PrevStatus", model.STATUS_DND).
 		Set("DNDEndTime", 0).
 		Set("Manual", false).
-		Suffix("RETURNING UserId, Status, Manual, LastActivityAt, DNDEndTime, PrevStatus").
+		Suffix("RETURNING *").
 		ToSql()
 
 	if err != nil {
