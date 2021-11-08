@@ -861,6 +861,8 @@ type GroupStore interface {
 
 	UpsertMembers(groupID string, userIDs []string) ([]*model.GroupMember, error)
 	DeleteMembers(groupID string, userIDs []string) ([]*model.GroupMember, error)
+
+	GetMember(groupID string, userID string) (*model.GroupMember, error)
 }
 
 type LinkMetadataStore interface {

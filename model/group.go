@@ -74,6 +74,8 @@ type GroupPatch struct {
 	DisplayName    *string `json:"display_name"`
 	Description    *string `json:"description"`
 	AllowReference *bool   `json:"allow_reference"`
+	// For security reasons (including preventing unintended LDAP group synchronization) do no allow a Group's RemoteId or Source field to be
+	// included in patches.
 }
 
 type LdapGroupSearchOpts struct {

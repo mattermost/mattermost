@@ -89,7 +89,7 @@ func (api *API) InitGroup() {
 
 	// DELETE /api/v4/groups/:group_id/members
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members",
-		api.APISessionRequired(deleteGroupMembers)).Methods("DElETE")
+		api.APISessionRequired(deleteGroupMembers)).Methods("DELETE")
 }
 
 func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -124,9 +124,14 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateCustomGroup) {
+		c.SetPermissionError(model.PermissionCreateCustomGroup)
+		return
+	}
+
 	var group *model.GroupWithUserIds
 	if jsonErr := json.NewDecoder(r.Body).Decode(&group); jsonErr != nil {
-		c.SetInvalidParam("createGroup")
+		c.SetInvalidParam("group")
 		return
 	}
 
@@ -143,11 +148,19 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !sourceCreationAllowed {
-		c.Err = model.NewAppError("GetGroup", "app.group.crud_permission", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("createGroup", "app.group.crud_permission", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	// Permissions and license stuff here
+	if !group.AllowReference {
+		c.Err = model.NewAppError("createGroup", "api.custom_groups.must_be_referencable", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if group.RemoteId != nil {
+		c.Err = model.NewAppError("createGroup", "api.custom_groups.no_remote_id", nil, "", http.StatusBadRequest)
+		return
+	}
 
 	newGroup, err := c.App.CreateGroupWithUserIds(group)
 	if err != nil {
@@ -172,30 +185,42 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	group, err := c.App.GetGroup(c.Params.GroupId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if group.Source == model.GroupSourceCustom {
+		if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionCustomGroupEdit) {
+			c.SetPermissionError(model.PermissionCustomGroupEdit)
+			return
+		}
+	} else {
+		if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
+			c.Err = model.NewAppError("Api4.patchGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+			return
+		}
+
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
+			c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementGroups)
+			return
+		}
+	}
+
 	var groupPatch model.GroupPatch
 	if jsonErr := json.NewDecoder(r.Body).Decode(&groupPatch); jsonErr != nil {
 		c.SetInvalidParam("group")
 		return
 	}
 
+	if group.Source == model.GroupSourceCustom && groupPatch.AllowReference != nil && !*groupPatch.AllowReference {
+		c.Err = model.NewAppError("Api4.patchGroup", "api.custom_groups.must_be_referencable", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	auditRec := c.MakeAuditRecord("patchGroup", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
-		c.Err = model.NewAppError("Api4.patchGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
-		c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementGroups)
-		return
-	}
-
-	group, err := c.App.GetGroup(c.Params.GroupId)
-	if err != nil {
-		c.Err = err
-		return
-	}
 	auditRec.AddMeta("group", group)
 
 	if groupPatch.AllowReference != nil && *groupPatch.AllowReference {
@@ -561,14 +586,22 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
-		c.Err = model.NewAppError("Api4.getGroupMembers", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+	group, err := c.App.GetGroup(c.Params.GroupId)
+	if err != nil {
+		c.Err = err
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
-		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementGroups)
-		return
+	if group.Source != model.GroupSourceCustom {
+		if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
+			c.Err = model.NewAppError("Api4.getGroupMembers", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+			return
+		}
+
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
+			c.SetPermissionError(model.PermissionSysconsoleReadUserManagementGroups)
+			return
+		}
 	}
 
 	members, count, err := c.App.GetGroupMemberUsersPage(c.Params.GroupId, c.Params.Page, c.Params.PerPage)
@@ -881,17 +914,20 @@ func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deleteGroup", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("group_id", c.Params.GroupId)
-
-	// PERMISSION CHECK FOR DELETING
+	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionCustomGroupDelete) {
+		c.SetPermissionError(model.PermissionCustomGroupDelete)
+		return
+	}
 
 	err := c.App.SourceHasCRUDPermissions(c.Params.GroupId)
 	if err != nil {
 		c.Err = err
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("deleteGroup", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("group_id", c.Params.GroupId)
 
 	_, err = c.App.DeleteGroup(c.Params.GroupId)
 	if err != nil {
@@ -910,15 +946,20 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var newMembers *model.GroupModifyMembers
-	if jsonErr := json.NewDecoder(r.Body).Decode(&newMembers); jsonErr != nil {
-		c.SetInvalidParam("addGroupMembers")
+	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionCustomGroupManageMembers) {
+		c.SetPermissionError(model.PermissionCustomGroupManageMembers)
 		return
 	}
 
 	err := c.App.SourceHasCRUDPermissions(c.Params.GroupId)
 	if err != nil {
 		c.Err = err
+		return
+	}
+
+	var newMembers *model.GroupModifyMembers
+	if jsonErr := json.NewDecoder(r.Body).Decode(&newMembers); jsonErr != nil {
+		c.SetInvalidParam("addGroupMembers")
 		return
 	}
 
@@ -946,6 +987,11 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireGroupId()
 	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionCustomGroupDelete) {
+		c.SetPermissionError(model.PermissionCustomGroupDelete)
 		return
 	}
 

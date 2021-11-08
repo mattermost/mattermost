@@ -396,6 +396,27 @@ func (s *SqlGroupStore) Delete(groupID string) (*model.Group, error) {
 	return &group, nil
 }
 
+func (s *SqlGroupStore) GetMember(groupID, userID string) (*model.GroupMember, error) {
+	query, args, err := s.getQueryBuilder().
+		Select("*").
+		From("GroupMembers").
+		Where(sq.Eq{"UserId": userID}).
+		Where(sq.Eq{"GroupId": groupID}).
+		Where(sq.Eq{"DeleteAt": 0}).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_member_query")
+	}
+
+	var groupMember *model.GroupMember
+	err = s.GetMaster().SelectOne(&groupMember, query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return groupMember, nil
+}
+
 func (s *SqlGroupStore) GetMemberUsers(groupID string) ([]*model.User, error) {
 	groupMembers := []*model.User{}
 
@@ -1061,7 +1082,7 @@ func (g group) ToModel() *model.Group {
 		DisplayName:    g.DisplayName,
 		Description:    g.Description,
 		Source:         g.Source,
-		RemoteId:       g.RemoteId,
+		RemoteId:       &g.RemoteId,
 		CreateAt:       g.CreateAt,
 		UpdateAt:       g.UpdateAt,
 		DeleteAt:       g.DeleteAt,
@@ -1799,20 +1820,18 @@ func (s *SqlGroupStore) buildUpsertMembersQuery(groupID string, userIDs []string
 
 	builder := s.getQueryBuilder().
 		Insert("GroupMembers").
-		Columns("GroupId", "UserId", "CreateAt", "DeleteAt", "SchemeUser", "SchemeAdmin")
+		Columns("GroupId", "UserId", "CreateAt", "DeleteAt")
 
 	members = make([]*model.GroupMember, 0, len(userIDs))
 	createAt := model.GetMillis()
 	for _, userId := range userIDs {
 		member := &model.GroupMember{
-			GroupId:     groupID,
-			UserId:      userId,
-			CreateAt:    createAt,
-			DeleteAt:    0,
-			SchemeUser:  false,
-			SchemeAdmin: false,
+			GroupId:  groupID,
+			UserId:   userId,
+			CreateAt: createAt,
+			DeleteAt: 0,
 		}
-		builder = builder.Values(member.GroupId, member.UserId, member.CreateAt, member.DeleteAt, member.SchemeUser, member.SchemeAdmin)
+		builder = builder.Values(member.GroupId, member.UserId, member.CreateAt, member.DeleteAt)
 		members = append(members, member)
 	}
 

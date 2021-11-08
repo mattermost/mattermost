@@ -1866,6 +1866,14 @@
     "translation": "The job type you are trying to download is not supported at the moment"
   },
   {
+    "id": "api.custom_groups.must_be_referencable",
+    "translation": "allow_reference must be 'true' for custom groups"
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id must be blank for custom group"
+  },
+  {
     "id": "api.ldap_group.not_found",
     "translation": "ldap group not found"
   },
@@ -5918,6 +5926,10 @@
   {
     "id": "app.role.get.app_error",
     "translation": "Unable to get role."
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "Unable to get all the roles."
   },
   {
     "id": "app.role.get_by_name.app_error",

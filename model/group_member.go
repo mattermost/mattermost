@@ -6,12 +6,10 @@ package model
 import "net/http"
 
 type GroupMember struct {
-	GroupId     string `json:"group_id"`
-	UserId      string `json:"user_id"`
-	CreateAt    int64  `json:"create_at"`
-	DeleteAt    int64  `json:"delete_at"`
-	SchemeUser  bool   `json:"scheme_user"`
-	SchemeAdmin bool   `json:"scheme_admin"`
+	GroupId  string `json:"group_id"`
+	UserId   string `json:"user_id"`
+	CreateAt int64  `json:"create_at"`
+	DeleteAt int64  `json:"delete_at"`
 }
 
 func (gm *GroupMember) IsValid() *AppError {

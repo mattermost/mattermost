@@ -71,19 +71,12 @@ func TestCreateGroup(t *testing.T) {
 
 	id := model.NewId()
 	g := &model.Group{
-		DisplayName: "dn_" + id,
-		Name:        model.NewString("name" + id),
-		Source:      model.GroupSourceCustom,
-		Description: "description_" + id,
+		DisplayName:    "dn_" + id,
+		Name:           model.NewString("name" + id),
+		Source:         model.GroupSourceCustom,
+		Description:    "description_" + id,
+		AllowReference: true,
 	}
-
-	_, response, err := th.Client.CreateGroup(g)
-	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
-
-	_, response, err = th.SystemAdminClient.CreateGroup(g)
-	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
@@ -103,7 +96,51 @@ func TestCreateGroup(t *testing.T) {
 		Description: "description_" + id,
 	}
 
-	_, response, err = th.SystemAdminClient.CreateGroup(gbroken)
+	_, response, err := th.SystemAdminClient.CreateGroup(gbroken)
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, response)
+
+	validGroup := &model.Group{
+		DisplayName:    "dn_" + model.NewId(),
+		Name:           model.NewString("name" + model.NewId()),
+		Source:         model.GroupSourceCustom,
+		AllowReference: true,
+	}
+
+	th.RemovePermissionFromRole(model.PermissionCreateCustomGroup.Id, model.SystemAdminRoleId)
+	th.RemovePermissionFromRole(model.PermissionCreateCustomGroup.Id, model.SystemUserRoleId)
+	defer th.AddPermissionToRole(model.PermissionCreateCustomGroup.Id, model.SystemUserRoleId)
+	_, response, err = th.SystemAdminClient.CreateGroup(validGroup)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, response)
+
+	th.AddPermissionToRole(model.PermissionCreateCustomGroup.Id, model.SystemAdminRoleId)
+	_, response, err = th.SystemAdminClient.CreateGroup(validGroup)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, response)
+
+	unReferenceableCustomGroup := &model.Group{
+		DisplayName:    "dn_" + model.NewId(),
+		Name:           model.NewString("name" + model.NewId()),
+		Source:         model.GroupSourceCustom,
+		AllowReference: false,
+	}
+	_, response, err = th.SystemAdminClient.CreateGroup(unReferenceableCustomGroup)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
+	unReferenceableCustomGroup.AllowReference = true
+	_, response, err = th.SystemAdminClient.CreateGroup(unReferenceableCustomGroup)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, response)
+
+	customGroupWithRemoteID := &model.Group{
+		DisplayName:    "dn_" + model.NewId(),
+		Name:           model.NewString("name" + model.NewId()),
+		Source:         model.GroupSourceCustom,
+		AllowReference: true,
+		RemoteId:       model.NewString(model.NewId()),
+	}
+	_, response, err = th.SystemAdminClient.CreateGroup(customGroupWithRemoteID)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
@@ -129,21 +166,31 @@ func TestDeleteGroup(t *testing.T) {
 
 	_, response, err := th.Client.DeleteGroup(g.Id)
 	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
+	CheckForbiddenStatus(t, response)
 
-	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
-
+	th.AddPermissionToRole(model.PermissionCustomGroupDelete.Id, model.SystemUserRoleId)
 	_, response, err = th.Client.DeleteGroup(g.Id)
-	require.NoError(t, err)
-	CheckOKStatus(t, response)
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, response)
 
 	_, response, err = th.Client.DeleteGroup(g.Id)
 	require.Error(t, err)
-	CheckNotFoundStatus(t, response)
+	CheckNotImplementedStatus(t, response)
 
 	_, response, err = th.Client.DeleteGroup("wertyuijhbgvfcde")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
+
+	validGroup, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + model.NewId(),
+		Name:        model.NewString("name" + model.NewId()),
+		Source:      model.GroupSourceCustom,
+	})
+	assert.Nil(t, appErr)
+
+	_, response, err = th.Client.DeleteGroup(validGroup.Id)
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
 }
 func TestPatchGroup(t *testing.T) {
 	th := Setup(t)
@@ -156,6 +203,14 @@ func TestPatchGroup(t *testing.T) {
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewString(model.NewId()),
+	})
+	assert.Nil(t, appErr)
+
+	g2, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName:    "dn_" + model.NewId(),
+		Name:           model.NewString("name" + model.NewId()),
+		Source:         model.GroupSourceCustom,
+		AllowReference: true,
 	})
 	assert.Nil(t, appErr)
 
@@ -209,6 +264,23 @@ func TestPatchGroup(t *testing.T) {
 	_, response, err = th.SystemAdminClient.PatchGroup(model.NewId(), gp)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, response)
+
+	_, response, err = th.SystemAdminClient.PatchGroup(g2.Id, &model.GroupPatch{
+		Name:           model.NewString(model.NewId()),
+		DisplayName:    model.NewString("foo"),
+		AllowReference: model.NewBool(false),
+	})
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
+
+	// ensure that omitting the AllowReference field from the patch doesn't patch it to false
+	patchedG2, response, err := th.SystemAdminClient.PatchGroup(g2.Id, &model.GroupPatch{
+		Name:        model.NewString(model.NewId()),
+		DisplayName: model.NewString("foo"),
+	})
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
+	require.Equal(t, true, patchedG2.AllowReference)
 
 	th.SystemAdminClient.Logout()
 	_, response, err = th.SystemAdminClient.PatchGroup(group.Id, gp)
