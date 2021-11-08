@@ -71,10 +71,11 @@ func TestCreateGroup(t *testing.T) {
 
 	id := model.NewId()
 	g := &model.Group{
-		DisplayName: "dn_" + id,
-		Name:        model.NewString("name" + id),
-		Source:      model.GroupSourceCustom,
-		Description: "description_" + id,
+		DisplayName:    "dn_" + id,
+		Name:           model.NewString("name" + id),
+		Source:         model.GroupSourceCustom,
+		Description:    "description_" + id,
+		AllowReference: true,
 	}
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
@@ -100,9 +101,10 @@ func TestCreateGroup(t *testing.T) {
 	CheckNotImplementedStatus(t, response)
 
 	validGroup := &model.Group{
-		DisplayName: "dn_" + model.NewId(),
-		Name:        model.NewString("name" + model.NewId()),
-		Source:      model.GroupSourceCustom,
+		DisplayName:    "dn_" + model.NewId(),
+		Name:           model.NewString("name" + model.NewId()),
+		Source:         model.GroupSourceCustom,
+		AllowReference: true,
 	}
 
 	th.RemovePermissionFromRole(model.PermissionCreateCustomGroup.Id, model.SystemAdminRoleId)
@@ -114,6 +116,20 @@ func TestCreateGroup(t *testing.T) {
 
 	th.AddPermissionToRole(model.PermissionCreateCustomGroup.Id, model.SystemAdminRoleId)
 	_, response, err = th.SystemAdminClient.CreateGroup(validGroup)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, response)
+
+	unReferenceableCustomGroup := &model.Group{
+		DisplayName:    "dn_" + model.NewId(),
+		Name:           model.NewString("name" + model.NewId()),
+		Source:         model.GroupSourceCustom,
+		AllowReference: false,
+	}
+	_, response, err = th.SystemAdminClient.CreateGroup(unReferenceableCustomGroup)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
+	unReferenceableCustomGroup.AllowReference = true
+	_, response, err = th.SystemAdminClient.CreateGroup(unReferenceableCustomGroup)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, response)
 

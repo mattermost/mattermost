@@ -131,7 +131,7 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var group *model.GroupWithUserIds
 	if jsonErr := json.NewDecoder(r.Body).Decode(&group); jsonErr != nil {
-		c.SetInvalidParam("createGroup")
+		c.SetInvalidParam("group")
 		return
 	}
 
@@ -148,7 +148,12 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !sourceCreationAllowed {
-		c.Err = model.NewAppError("GetGroup", "app.group.crud_permission", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("createGroup", "app.group.crud_permission", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !group.AllowReference {
+		c.Err = model.NewAppError("createGroup", "", nil, "", http.StatusBadRequest)
 		return
 	}
 
