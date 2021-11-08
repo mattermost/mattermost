@@ -305,7 +305,6 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 	testCases := []validableTestCase{
 		{name: "trigger_id is empty", validable: makeTestOpenDialogRequest(t, OpenDialogRequest{TriggerId: ""}, "TriggerId"), hasError: true},
 		{name: "url is empty", validable: makeTestOpenDialogRequest(t, OpenDialogRequest{URL: ""}, "URL"), hasError: true},
-		{name: "url is invalid", validable: makeTestOpenDialogRequest(t, OpenDialogRequest{URL: "mattermost.com"}, "URL"), hasError: true},
 		{name: "dialog is invalid: callback id is empty", validable: makeTestOpenDialogRequest(t, OpenDialogRequest{Dialog: Dialog{}}, "Dialog"), hasError: true},
 		{name: "all valid", validable: makeTestOpenDialogRequest(t, OpenDialogRequest{}), hasError: false},
 	}

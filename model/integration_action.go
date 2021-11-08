@@ -489,10 +489,6 @@ func (r *OpenDialogRequest) IsValid() error {
 		return errors.New("url is empty")
 	}
 
-	if !IsValidHTTPURL(r.URL) {
-		return errors.New("url is invalid")
-	}
-
 	return errors.Wrap(r.Dialog.IsValid(), "dialog is invalid")
 }
 
