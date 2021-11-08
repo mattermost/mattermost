@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
@@ -88,11 +89,14 @@ func (s SqlTermsOfServiceStore) Get(id string, allowFromCache bool) (*model.Term
 		ToSql()
 
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "terms_of_service_to_sql")
 	}
 
 	err = s.GetReplicaX().Get(&termsOfService, queryString, id)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("TermsOfService", "id")
+		}
 		return nil, errors.Wrapf(err, "could not find TermsOfService with id=%s", id)
 	}
 	return &termsOfService, nil
