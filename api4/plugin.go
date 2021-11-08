@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	MaximumPluginFileSize = 50 * 1024 * 1024
+	MaximumPluginFileSize = 75 * 1024 * 1024
 )
 
 func (api *API) InitPlugin() {
