@@ -80,11 +80,19 @@ func (s sqlRemoteClusterStore) Update(remoteCluster *model.RemoteCluster) (*mode
 	}
 
 	query := `UPDATE RemoteClusters
-			  SET Name = :Name
-			  SET DisplayName = :DisplayName
-			  SET SiteURL = :SiteURL
-			  SET Topics = :Topics
+			  SET Name = :Name,
+			  Token = :Token,
+			  RemoteToken = :RemoteToken,
+			  CreatorId = :CreatorId,
+			  DisplayName = :DisplayName,
+			  SiteURL = :SiteURL,
+			  Topics = :Topics
 			  WHERE	RemoteId = :RemoteId`
+
+	err := s.ValidSiteURL(*remoteCluster)
+	if err != nil {
+		return nil, err
+	}
 
 	if _, err := s.GetMasterX().NamedExec(query, remoteCluster); err != nil {
 		return nil, errors.Wrap(err, "failed to update RemoteCluster")
@@ -220,4 +228,28 @@ func (s *sqlRemoteClusterStore) createIndexesIfNotExists() {
 		uniquenessColumns = []string{"RemoteTeamId", "SiteUrl(168)"}
 	}
 	s.CreateUniqueCompositeIndexIfNotExists(RemoteClusterSiteURLUniqueIndex, "RemoteClusters", uniquenessColumns)
+}
+
+func (s sqlRemoteClusterStore) ValidSiteURL(rc model.RemoteCluster) error {
+	var destination []model.RemoteCluster
+
+	query := s.getQueryBuilder().
+		Select("*").
+		From("RemoteClusters").
+		Where("SiteURL = ? AND RemoteTeamId = ? AND RemoteId <> ?")
+
+	queryString, _, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	err = s.GetMasterX().Select(&destination, queryString, rc.SiteURL, rc.RemoteTeamId, rc.RemoteId)
+	if err != nil {
+		return err
+	}
+	if len(destination) > 0 {
+		return errors.New("Secure connection with the same url already exists.")
+	}
+
+	return nil
 }
