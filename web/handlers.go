@@ -178,7 +178,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		devCSP := ""
 		// Add flags like unsafe-eval and unsafe-inline for debugging during development
-		for _, devFlagKeyValue := range c.App.Config().ServiceSettings.DeveloperFlags {
+		for _, devFlagKeyValue := range strings.Split(*c.App.Config().ServiceSettings.DeveloperFlags, ",") {
 			if strings.Contains(devFlagKeyValue, "true") {
 				devFlag := strings.Split(devFlagKeyValue, "=")[0]
 				devCSP += fmt.Sprintf(" '%s'", devFlag)
