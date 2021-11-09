@@ -4821,6 +4821,20 @@ func groupTestGroupChannelCount(t *testing.T, ss store.Store) {
 }
 
 func groupTestGroupMemberCount(t *testing.T, ss store.Store) {
+	user := &model.User{
+		Email:    fmt.Sprintf("test.%s@localhost", model.NewId()),
+		Username: model.NewId(),
+	}
+	user, err := ss.User().Save(user)
+	require.NoError(t, err)
+
+	user2 := &model.User{
+		Email:    fmt.Sprintf("test.%s@localhost", model.NewId()),
+		Username: model.NewId(),
+	}
+	user2, err = ss.User().Save(user2)
+	require.NoError(t, err)
+
 	group, err := ss.Group().Create(&model.Group{
 		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
@@ -4830,7 +4844,7 @@ func groupTestGroupMemberCount(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	defer ss.Group().Delete(group.Id)
 
-	member1, err := ss.Group().UpsertMember(group.Id, model.NewId())
+	member1, err := ss.Group().UpsertMember(group.Id, user.Id)
 	require.NoError(t, err)
 	defer ss.Group().DeleteMember(group.Id, member1.UserId)
 
@@ -4838,7 +4852,7 @@ func groupTestGroupMemberCount(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, count, int64(1))
 
-	member2, err := ss.Group().UpsertMember(group.Id, model.NewId())
+	member2, err := ss.Group().UpsertMember(group.Id, user2.Id)
 	require.NoError(t, err)
 	defer ss.Group().DeleteMember(group.Id, member2.UserId)
 
@@ -4866,7 +4880,21 @@ func groupTestDistinctGroupMemberCount(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	defer ss.Group().Delete(group2.Id)
 
-	member1, err := ss.Group().UpsertMember(group1.Id, model.NewId())
+	user := &model.User{
+		Email:    fmt.Sprintf("test.%s@localhost", model.NewId()),
+		Username: model.NewId(),
+	}
+	user, err = ss.User().Save(user)
+	require.NoError(t, err)
+
+	user2 := &model.User{
+		Email:    fmt.Sprintf("test.%s@localhost", model.NewId()),
+		Username: model.NewId(),
+	}
+	user2, err = ss.User().Save(user2)
+	require.NoError(t, err)
+
+	member1, err := ss.Group().UpsertMember(group1.Id, user.Id)
 	require.NoError(t, err)
 	defer ss.Group().DeleteMember(group1.Id, member1.UserId)
 
@@ -4874,7 +4902,7 @@ func groupTestDistinctGroupMemberCount(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, count, int64(1))
 
-	member2, err := ss.Group().UpsertMember(group1.Id, model.NewId())
+	member2, err := ss.Group().UpsertMember(group1.Id, user2.Id)
 	require.NoError(t, err)
 	defer ss.Group().DeleteMember(group1.Id, member2.UserId)
 

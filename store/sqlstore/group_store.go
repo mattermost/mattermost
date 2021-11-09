@@ -214,9 +214,9 @@ func (s *SqlGroupStore) buildInsertGroupUsersQuery(groupId string, userIds []str
 	if len(userIds) > 0 {
 		builder := s.getQueryBuilder().
 			Insert("GroupMembers").
-			Columns("GroupId", "UserId", "CreateAt", "DeleteAt", "SchemeUser", "SchemeAdmin")
+			Columns("GroupId", "UserId", "CreateAt", "DeleteAt")
 		for _, userId := range userIds {
-			builder = builder.Values(groupId, userId, model.GetMillis(), 0, false, false)
+			builder = builder.Values(groupId, userId, model.GetMillis(), 0)
 		}
 		query, args, err = builder.ToSql()
 	}
