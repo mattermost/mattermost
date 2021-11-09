@@ -293,8 +293,7 @@ func testGroupCreateWithUserIds(t *testing.T, ss store.Store) {
 		RemoteId:    model.NewString(model.NewId()),
 	}
 	guids5 := &model.GroupWithUserIds{
-		Group:   *g5,
-		UserIds: []string{user1.Id},
+		Group: *g5,
 	}
 	require.Nil(t, guids5.IsValidForCreate())
 
@@ -322,8 +321,7 @@ func testGroupCreateWithUserIds(t *testing.T, ss store.Store) {
 		RemoteId:    model.NewString(model.NewId()),
 	}
 	guids6 := &model.GroupWithUserIds{
-		Group:   *g6,
-		UserIds: []string{user1.Id},
+		Group: *g6,
 	}
 	require.Equal(t, guids6.IsValidForCreate().Id, "model.group.source.app_error")
 
@@ -336,8 +334,7 @@ func testGroupCreateWithUserIds(t *testing.T, ss store.Store) {
 		RemoteId:    model.NewString(model.NewId()),
 	}
 	guids7 := &model.GroupWithUserIds{
-		Group:   *g7,
-		UserIds: []string{user1.Id},
+		Group: *g7,
 	}
 	require.Equal(t, guids7.IsValidForCreate().Id, "model.group.name.invalid_chars.app_error")
 
