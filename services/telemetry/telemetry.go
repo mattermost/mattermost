@@ -757,12 +757,13 @@ func (ts *TelemetryService) trackConfig() {
 	ts.trackPluginConfig(cfg, model.PluginSettingsDefaultMarketplaceURL)
 
 	ts.sendTelemetry(TrackConfigDataRetention, map[string]interface{}{
-		"enable_message_deletion": *cfg.DataRetentionSettings.EnableMessageDeletion,
-		"enable_file_deletion":    *cfg.DataRetentionSettings.EnableFileDeletion,
-		"message_retention_days":  *cfg.DataRetentionSettings.MessageRetentionDays,
-		"file_retention_days":     *cfg.DataRetentionSettings.FileRetentionDays,
-		"deletion_job_start_time": *cfg.DataRetentionSettings.DeletionJobStartTime,
-		"batch_size":              *cfg.DataRetentionSettings.BatchSize,
+		"enable_message_deletion":     *cfg.DataRetentionSettings.EnableMessageDeletion,
+		"enable_file_deletion":        *cfg.DataRetentionSettings.EnableFileDeletion,
+		"message_retention_days":      *cfg.DataRetentionSettings.MessageRetentionDays,
+		"file_retention_days":         *cfg.DataRetentionSettings.FileRetentionDays,
+		"deletion_job_start_time":     *cfg.DataRetentionSettings.DeletionJobStartTime,
+		"batch_size":                  *cfg.DataRetentionSettings.BatchSize,
+		"cleanup_jobs_threshold_days": *cfg.JobSettings.CleanupJobsThresholdDays,
 	})
 
 	ts.sendTelemetry(TrackConfigMessageExport, map[string]interface{}{

@@ -5189,7 +5189,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "För att ändra dina notifieringsinställningar, logga in på din grupps sida och gå till Kontoinställningar > Notifieringar."
+    "translation": "För att ändra dina notifieringsinställningar, logga in på din grupps sida och gå till Inställningar > Notifieringar."
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -9000,7 +9000,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " och gå till Kontoinställningar > Notifieringar"
+    "translation": " och gå till Inställningar > Notifieringar"
   },
   {
     "id": "app.notification.body.mention.title",
@@ -9257,5 +9257,13 @@
   {
     "id": "api.user.create_user.bad_token_email_data.app_error",
     "translation": "Mejladressen i tokenet stämmer inte med mejladressen i användardata."
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "Misslyckades att hämta alla teammedlemmar"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "Misslyckades att hämta alla kanalmedlemmar"
   }
 ]
