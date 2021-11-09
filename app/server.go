@@ -491,6 +491,20 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.setupFeatureFlags()
 
+	var imgErr error
+	s.imgDecoder, imgErr = imaging.NewDecoder(imaging.DecoderOptions{
+		ConcurrencyLevel: runtime.NumCPU(),
+	})
+	if imgErr != nil {
+		return nil, errors.Wrap(imgErr, "failed to create image decoder")
+	}
+	s.imgEncoder, imgErr = imaging.NewEncoder(imaging.EncoderOptions{
+		ConcurrencyLevel: runtime.NumCPU(),
+	})
+	if imgErr != nil {
+		return nil, errors.Wrap(imgErr, "failed to create image encoder")
+	}
+
 	s.initJobs()
 
 	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
@@ -699,20 +713,6 @@ func NewServer(options ...Option) (*Server, error) {
 			s.openGraphDataCache.Purge()
 		}
 	})
-
-	var imgErr error
-	s.imgDecoder, imgErr = imaging.NewDecoder(imaging.DecoderOptions{
-		ConcurrencyLevel: runtime.NumCPU(),
-	})
-	if imgErr != nil {
-		return nil, errors.Wrap(imgErr, "failed to create image decoder")
-	}
-	s.imgEncoder, imgErr = imaging.NewEncoder(imaging.EncoderOptions{
-		ConcurrencyLevel: runtime.NumCPU(),
-	})
-	if imgErr != nil {
-		return nil, errors.Wrap(imgErr, "failed to create image encoder")
-	}
 
 	return s, nil
 }
