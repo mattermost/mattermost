@@ -212,6 +212,14 @@ func (a *App) GetGroupMemberUsersPage(groupID string, page int, perPage int) ([]
 	}
 	return members, int(count), nil
 }
+func (a *App) GetUsersNotInGroupPage(groupID string, page int, perPage int) ([]*model.User, *model.AppError) {
+	members, err := a.Srv().Store.Group().GetNonMemberUsersPage(groupID, page, perPage)
+	if err != nil {
+		return nil, model.NewAppError("GetUsersNotInGroupPage", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return members, nil
+}
 
 func (a *App) UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
 	groupMember, err := a.Srv().Store.Group().UpsertMember(groupID, userID)
