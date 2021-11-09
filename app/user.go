@@ -1717,7 +1717,7 @@ func (a *App) SearchUsers(props *model.UserSearch, options *model.UserSearchOpti
 		return a.SearchUsersInGroup(props.InGroupId, props.Term, options)
 	}
 	if props.NotInGroupId != "" {
-		return a.SearchUsersNotInGroup(props.InGroupId, props.Term, options)
+		return a.SearchUsersNotInGroup(props.NotInGroupId, props.Term, options)
 	}
 	return a.SearchUsersInTeam(props.TeamId, props.Term, options)
 }
