@@ -719,7 +719,7 @@ func TestGetOutgoingWebhook(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		nonExistentHook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id}
+		nonExistentHook := &model.OutgoingWebhook{}
 		_, resp, err = client.GetOutgoingWebhook(nonExistentHook.Id)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
