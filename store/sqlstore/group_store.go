@@ -1082,7 +1082,7 @@ func (g group) ToModel() *model.Group {
 		DisplayName:    g.DisplayName,
 		Description:    g.Description,
 		Source:         g.Source,
-		RemoteId:       &g.RemoteId,
+		RemoteId:       g.RemoteId,
 		CreateAt:       g.CreateAt,
 		UpdateAt:       g.UpdateAt,
 		DeleteAt:       g.DeleteAt,
