@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"reflect"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -176,22 +177,53 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking
 		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
 
-		devCSP := ""
-		// Add flags like unsafe-eval and unsafe-inline for debugging during development
-		for _, devFlagKeyValue := range strings.Split(*c.App.Config().ServiceSettings.DeveloperFlags, ",") {
-			if strings.Contains(devFlagKeyValue, "true") {
-				devFlag := strings.Split(devFlagKeyValue, "=")[0]
-				devCSP += fmt.Sprintf(" '%s'", devFlag)
+		// Add unsafe-eval to the content security policy for faster source maps in development mode
+		devCSPMap := make(map[string]bool)
+		if model.BuildNumber == "dev" {
+			devCSPMap["unsafe-eval"] = true
+		}
+
+		// Add unsafe-inline to unlock extensions like React & Redux DevTools in Firefox
+		// see https://github.com/reduxjs/redux-devtools/issues/380
+		if model.BuildNumber == "dev" {
+			devCSPMap["unsafe-inline"] = true
+		}
+
+		// Add supported flags for debugging during development, even if not on a dev build.
+		for _, devFlagKeyValueStr := range strings.Split(*c.App.Config().ServiceSettings.DeveloperFlags, ",") {
+			devFlagKeyValueSplit := strings.SplitN(devFlagKeyValueStr, "=", 2)
+			if len(devFlagKeyValueSplit) != 2 {
+				c.Logger.Warn("Unable to parse developer flag", mlog.String("developer_flag", devFlagKeyValueStr))
+				continue
+			}
+			devFlagKey := devFlagKeyValueSplit[0]
+			devFlagValue := devFlagKeyValueSplit[1]
+
+			// Ignore disabled keys
+			if devFlagValue != "true" {
+				continue
+			}
+
+			// Honour only supported keys
+			switch devFlagKey {
+			case "unsafe-eval", "unsafe-inline":
+				devCSPMap[devFlagKey] = true
+			default:
+				c.Logger.Warn("Unrecognized developer flag", mlog.String("developer_flag", devFlagKeyValueStr))
 			}
 		}
 
-		if model.BuildNumber == "dev" {
-			if !strings.Contains(devCSP, "unsafe-eval") {
-				devCSP += " 'unsafe-eval'"
-			}
-			if !strings.Contains(devCSP, "unsafe-inline") {
-				devCSP += " 'unsafe-inline'"
-			}
+		// Build a slice for sorting
+		var devCSPKeys []string
+		for key := range devCSPMap {
+			devCSPKeys = append(devCSPKeys, key)
+		}
+		sort.Strings(devCSPKeys)
+
+		// Build a string fomatted for appending
+		var devCSP string
+		for _, key := range devCSPKeys {
+			devCSP += fmt.Sprintf(" '%s'", key)
 		}
 
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
