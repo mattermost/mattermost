@@ -1280,7 +1280,8 @@ func TestGetGroupStats(t *testing.T) {
 	})
 
 	t.Run("Returns stats for a group with no members", func(t *testing.T) {
-		stats, _, _ := th.SystemAdminClient.GetGroupStats(group.Id)
+		stats, _, err := th.SystemAdminClient.GetGroupStats(group.Id)
+		require.NoError(t, err)
 		assert.Equal(t, stats.GroupID, group.Id)
 		assert.Equal(t, stats.TotalMemberCount, int64(0))
 	})

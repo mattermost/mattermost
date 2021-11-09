@@ -500,7 +500,7 @@ func (s *SqlGroupStore) GetMemberCount(groupID string) (int64, error) {
 			GroupMembers
 			JOIN Users ON Users.Id = GroupMembers.UserId
 		WHERE
-			GroupMembers.GroupId = :GroupId
+			GroupMembers.GroupId = ?
 			AND Users.DeleteAt = 0
 			AND GroupMembers.DeleteAt = 0`
 
