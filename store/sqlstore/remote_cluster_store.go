@@ -43,29 +43,11 @@ func (s sqlRemoteClusterStore) Save(remoteCluster *model.RemoteCluster) (*model.
 	}
 
 	query := `INSERT INTO RemoteClusters
-				(RemoteId,
-				RemoteTeamId,
-				Name,
-				DisplayName,
-				SiteURL,
-				CreateAt,
-				LastPingAt,
-				Token,
-				RemoteToken,
-				Topics,
-				CreatorId)
+				(RemoteId, RemoteTeamId, Name, DisplayName, SiteURL, CreateAt,
+				LastPingAt, Token, RemoteToken, Topics, CreatorId)
 				VALUES
-				(:RemoteId,
-				:RemoteTeamId,
-				:Name,
-				:DisplayName,
-				:SiteURL,
-				:CreateAt,
-				:LastPingAt,
-				:Token,
-				:RemoteToken,
-				:Topics,
-				:CreatorId)`
+				(:RemoteId, :RemoteTeamId, :Name, :DisplayName, :SiteURL, :CreateAt,
+				:LastPingAt, :Token, :RemoteToken, :Topics, :CreatorId)`
 
 	if _, err := s.GetMasterX().NamedExec(query, remoteCluster); err != nil {
 		return nil, errors.Wrap(err, "failed to save RemoteCluster")
@@ -80,14 +62,13 @@ func (s sqlRemoteClusterStore) Update(remoteCluster *model.RemoteCluster) (*mode
 	}
 
 	query := `UPDATE RemoteClusters
-			  SET Name = :Name,
-			  Token = :Token,
+			  SET Token = :Token,
 			  RemoteToken = :RemoteToken,
 			  CreatorId = :CreatorId,
 			  DisplayName = :DisplayName,
 			  SiteURL = :SiteURL,
 			  Topics = :Topics
-			  WHERE	RemoteId = :RemoteId`
+			  WHERE	RemoteId = :RemoteId AND Name = :Name`
 
 	err := s.ValidSiteURL(*remoteCluster)
 	if err != nil {
@@ -179,7 +160,7 @@ func (s sqlRemoteClusterStore) GetAll(filter model.RemoteClusterQueryFilter) ([]
 		return nil, errors.Wrap(err, "remote_cluster_getall_tosql")
 	}
 
-	var list []*model.RemoteCluster
+	list := []*model.RemoteCluster{}
 	if err := s.GetReplicaX().Select(&list, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find RemoteClusters")
 	}
