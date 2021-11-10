@@ -418,7 +418,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.EnableDeveloper = NewBool(false)
 	}
 
-	if !*s.EnableDeveloper || s.DeveloperFlags == nil {
+	if s.DeveloperFlags == nil {
 		s.DeveloperFlags = NewString("")
 	}
 
