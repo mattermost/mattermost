@@ -9354,5 +9354,13 @@
   {
     "id": "api.command_custom_status.clear.app_error",
     "translation": ""
+  },
+  {
+    "id": "Channels",
+    "translation": ""
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": ""
   }
 ]
