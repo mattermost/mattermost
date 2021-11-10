@@ -28,6 +28,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v6/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine"
+	"github.com/mattermost/mattermost-server/v6/services/telemetry"
 	"github.com/mattermost/mattermost-server/v6/services/timezones"
 	"github.com/mattermost/mattermost-server/v6/services/tracing"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
@@ -9244,6 +9245,23 @@ func (a *OpenTracingAppLayer) GetTeamsUnreadForUser(excludeTeamId string, userID
 	}
 
 	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) GetTelemetryService() *telemetry.TelemetryService {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTelemetryService")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.GetTelemetryService()
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) GetTermsOfService(id string) (*model.TermsOfService, *model.AppError) {
