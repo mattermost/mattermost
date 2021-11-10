@@ -1315,7 +1315,7 @@ func (a *App) InviteNewUsersToTeamGracefully(emailList []string, teamID, senderI
 		inviteListWithErrors = append(inviteListWithErrors, invite)
 	}
 
-	reminderData := new(model.TeamInviteReminderData)
+	var reminderData *model.TeamInviteReminderData
 	if reminderInterval != "" {
 		reminderData = &model.TeamInviteReminderData{Interval: reminderInterval}
 	}
