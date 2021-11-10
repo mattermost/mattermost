@@ -25,10 +25,10 @@ type FeatureFlags struct {
 	// Enable the remote cluster service for shared channels.
 	EnableRemoteClusterService bool
 
-	// Toggle the Apps framework functionalities both in server and client side
+	// AppsEnabled toggles the Apps framework functionalities both in server and client side
 	AppsEnabled bool
 
-	// Toggle the App Bar component on client side
+	// AppBarEnabled toggles the App Bar component on client side
 	AppBarEnabled bool
 
 	// Feature flags to control plugin versions
