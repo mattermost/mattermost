@@ -194,10 +194,6 @@ func (ss Scopes) IsSuperset(ss2 Scopes) bool {
 
 // Normalize removes all repeated scopes from a list of Scopes.
 func (ss Scopes) Normalize() Scopes {
-	if ss == nil {
-		return nil
-	}
-
 	if len(ss) == 0 {
 		return ss
 	}
