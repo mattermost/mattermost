@@ -83,7 +83,7 @@ func (rseworker *ResendInvitationEmailWorker) DoJob(job *model.Job) {
 func (rseworker *ResendInvitationEmailWorker) DoJob_24(job *model.Job) {
 	elapsedTimeSinceSchedule, DurationInMillis_24, _, _ := rseworker.GetDurations(job)
 	if elapsedTimeSinceSchedule > DurationInMillis_24 {
-		rseworker.ResendEmails(job)
+		rseworker.ResendEmails(job, "24")
 		rseworker.TearDown(job)
 	}
 }
@@ -110,10 +110,10 @@ func (rseworker *ResendInvitationEmailWorker) Execute(job *model.Job, elapsedTim
 	}
 
 	if (elapsedTimeSinceSchedule > firstDuration) && (systemValue.Value == "0") {
-		rseworker.ResendEmails(job)
+		rseworker.ResendEmails(job, "48")
 		rseworker.setNumResendEmailSent(job, "1")
 	} else if elapsedTimeSinceSchedule > secondDuration {
-		rseworker.ResendEmails(job)
+		rseworker.ResendEmails(job, "72")
 		rseworker.TearDown(job)
 	}
 }
@@ -212,7 +212,7 @@ func (rseworker *ResendInvitationEmailWorker) TearDown(job *model.Job) {
 	rseworker.setJobSuccess(job)
 }
 
-func (rseworker *ResendInvitationEmailWorker) ResendEmails(job *model.Job) {
+func (rseworker *ResendInvitationEmailWorker) ResendEmails(job *model.Job, interval string) {
 	teamID := job.Data["teamID"]
 	emailListData := job.Data["emailList"]
 
@@ -225,7 +225,7 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(job *model.Job) {
 
 	emailList = rseworker.removeAlreadyJoined(teamID, emailList)
 
-	_, appErr := rseworker.App.InviteNewUsersToTeamGracefully(emailList, teamID, job.Data["senderID"], true)
+	_, appErr := rseworker.App.InviteNewUsersToTeamGracefully(emailList, teamID, job.Data["senderID"], interval)
 	if appErr != nil {
 		mlog.Error("Worker: Failed to send emails", mlog.String("worker", rseworker.name), mlog.String("job_id", job.Id), mlog.String("error", appErr.Error()))
 		rseworker.setJobError(job, appErr)
