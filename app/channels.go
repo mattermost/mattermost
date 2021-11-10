@@ -4,9 +4,12 @@
 package app
 
 import (
+	"sync"
 	"sync/atomic"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
 	"github.com/pkg/errors"
 )
@@ -14,6 +17,10 @@ import (
 // Channels contains all channels related state.
 type Channels struct {
 	srv *Server
+
+	pluginsEnvironment     *plugin.Environment
+	pluginConfigListenerID string
+	pluginsLock            sync.RWMutex
 
 	imageProxy *imageproxy.ImageProxy
 
@@ -44,12 +51,33 @@ func NewChannels(s *Server) (*Channels, error) {
 }
 
 func (ch *Channels) Start() error {
+	// Start plugins
+	ctx := request.EmptyContext()
+	ch.initPlugins(ctx, *ch.srv.Config().PluginSettings.Directory, *ch.srv.Config().PluginSettings.ClientDirectory)
+
+	ch.AddConfigListener(func(prevCfg, cfg *model.Config) {
+		if *cfg.PluginSettings.Enable {
+			ch.initPlugins(ctx, *cfg.PluginSettings.Directory, *ch.srv.Config().PluginSettings.ClientDirectory)
+		} else {
+			ch.ShutDownPlugins()
+		}
+	})
+
 	if err := ch.ensureAsymmetricSigningKey(); err != nil {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
 	}
 	return nil
 }
 
-func (*Channels) Stop() error {
+func (ch *Channels) Stop() error {
+	ch.ShutDownPlugins()
 	return nil
+}
+
+func (ch *Channels) AddConfigListener(listener func(*model.Config, *model.Config)) string {
+	return ch.srv.AddConfigListener(listener)
+}
+
+func (ch *Channels) RemoveConfigListener(id string) {
+	ch.srv.RemoveConfigListener(id)
 }
