@@ -14,7 +14,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/services/httpservice"
 	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine"
-	"github.com/mattermost/mattermost-server/v6/services/telemetry"
 	"github.com/mattermost/mattermost-server/v6/services/timezones"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/shared/templates"
@@ -84,9 +83,6 @@ func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
 
 func (a *App) Srv() *Server {
 	return a.ch.srv
-}
-func (a *App) GetTelemetryService() *telemetry.TelemetryService {
-	return a.ch.srv.telemetryService
 }
 func (a *App) Log() *mlog.Logger {
 	return a.ch.srv.Log
