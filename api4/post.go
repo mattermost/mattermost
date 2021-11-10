@@ -398,22 +398,22 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	var postIDs []string
+	postIDs := model.ArrayFromJSON(r.Body)
 
-	json.NewDecoder(r.Body).Decode(&postIDs)
-	if postIDs == nil {
+	if len(postIDs) == 0 {
 		c.SetInvalidParam("post_ids")
+		return
+	}
+
+	postsList, err := c.App.GetPostsByIds(postIDs)
+	if err != nil {
+		c.Err = err
 		return
 	}
 
 	var posts = []*model.Post{}
 
-	for _, postID := range postIDs {
-		post, err := c.App.GetSinglePost(postID)
-		if err != nil {
-			c.Err = err
-			return
-		}
+	for _, post := range postsList {
 
 		channel, err := c.App.GetChannel(post.ChannelId)
 		if err != nil {
@@ -436,9 +436,9 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		posts = append(posts, post)
 	}
 
-	b, err := json.Marshal(posts)
-	if err != nil {
-		c.Err = model.NewAppError("getPostsByIds", "api.post.search_posts.invalid_body.app_error", nil, err.Error(), http.StatusBadRequest)
+	b, jsonErr := json.Marshal(posts)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getPostsByIds", "api.post.search_posts.invalid_body.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
 		return
 	}
 
