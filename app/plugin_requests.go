@@ -22,7 +22,7 @@ import (
 )
 
 func (s *Server) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
-	pluginsEnvironment := s.GetPluginsEnvironment()
+	pluginsEnvironment := s.Channels().GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		err := model.NewAppError("ServePluginRequest", "app.plugin.disabled.app_error", nil, "Enable plugins to serve plugin requests", http.StatusNotImplemented)
 		s.Log.Error(err.Error())
@@ -47,7 +47,7 @@ func (s *Server) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string) {
-	pluginsEnvironment := a.GetPluginsEnvironment()
+	pluginsEnvironment := a.ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		err := model.NewAppError("ServeInterPluginRequest", "app.plugin.disabled.app_error", nil, "Plugin environment not found.", http.StatusNotImplemented)
 		a.Log().Error(err.Error())
@@ -91,7 +91,7 @@ func (s *Server) ServePluginPublicRequest(w http.ResponseWriter, r *http.Request
 	vars := mux.Vars(r)
 	pluginID := vars["plugin_id"]
 
-	pluginsEnv := s.GetPluginsEnvironment()
+	pluginsEnv := s.Channels().GetPluginsEnvironment()
 
 	// Check if someone has nullified the pluginsEnv in the meantime
 	if pluginsEnv == nil {
