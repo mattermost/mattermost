@@ -1405,7 +1405,7 @@ func TestAddMembersToGroup(t *testing.T) {
 		UserIds: []string{user1.Id, user2.Id},
 	}
 
-	groupMembers, response, upsertErr := th.Client.UpsertGroupMembers(group.Id, members)
+	groupMembers, response, upsertErr := th.SystemAdminClient.UpsertGroupMembers(group.Id, members)
 	require.NoError(t, upsertErr)
 	CheckOKStatus(t, response)
 
@@ -1426,7 +1426,7 @@ func TestAddMembersToGroup(t *testing.T) {
 		UserIds: []string{"abc123"},
 	}
 
-	_, response, upsertErr = th.Client.UpsertGroupMembers(group.Id, invalidMembers)
+	_, response, upsertErr = th.SystemAdminClient.UpsertGroupMembers(group.Id, invalidMembers)
 	require.Error(t, upsertErr)
 	CheckInternalErrorStatus(t, response)
 
@@ -1441,7 +1441,7 @@ func TestAddMembersToGroup(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	_, response, upsertErr = th.Client.UpsertGroupMembers(ldapGroup.Id, members)
+	_, response, upsertErr = th.SystemAdminClient.UpsertGroupMembers(ldapGroup.Id, members)
 
 	require.Error(t, upsertErr)
 	CheckNotImplementedStatus(t, response)
