@@ -388,7 +388,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com 'unsafe-eval' 'unsafe-inline'"}, response.Header()["Content-Security-Policy"])
 	})
 
-	t.Run("dev flags, disable developer mode", func(t *testing.T) {
+	t.Run("dev flags", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
 
@@ -399,40 +399,6 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		}()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.EnableDeveloper = false
-			*cfg.ServiceSettings.DeveloperFlags = "unsafe-inline=true,unsafe-eval=true"
-		})
-
-		web := New(th.Server)
-
-		handler := Handler{
-			Srv:            web.srv,
-			HandleFunc:     handlerForCSPHeader,
-			RequireSession: false,
-			TrustRequester: false,
-			RequireMfa:     false,
-			IsStatic:       true,
-		}
-
-		request := httptest.NewRequest("POST", "/", nil)
-		response := httptest.NewRecorder()
-		handler.ServeHTTP(response, request)
-		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com"}, response.Header()["Content-Security-Policy"])
-	})
-
-	t.Run("dev flags, enable developer mode", func(t *testing.T) {
-		th := Setup(t)
-		defer th.TearDown()
-
-		oldBuildNumber := model.BuildNumber
-		model.BuildNumber = "0"
-		defer func() {
-			model.BuildNumber = oldBuildNumber
-		}()
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.EnableDeveloper = true
 			*cfg.ServiceSettings.DeveloperFlags = "unsafe-inline=true,unsafe-eval=true"
 		})
 
