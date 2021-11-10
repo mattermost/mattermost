@@ -69,7 +69,7 @@ SET @preparedStatement = (SELECT IF(
         AND column_name = 'Position'
     ) > 0,
     'SELECT 1',
-    'ALTER TABLE Users ADD Position varchar(128);'
+    'ALTER TABLE Users ADD Position varchar(128) DEFAULT NULL;'
 ));
 
 PREPARE alterIfNotExists FROM @preparedStatement;

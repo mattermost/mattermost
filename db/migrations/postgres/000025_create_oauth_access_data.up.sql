@@ -7,9 +7,9 @@ CREATE TABLE IF NOT EXISTS oauthaccessdata (
 
 CREATE INDEX IF NOT EXISTS idx_oauthaccessdata_refresh_token ON oauthaccessdata (refreshtoken);
 
-ALTER TABLE oauthaccessdata ADD COLUMN IF NOT EXISTS clientid VARCHAR(26) DEFAULT '';
+ALTER TABLE oauthaccessdata ADD COLUMN IF NOT EXISTS clientid VARCHAR(26);
 
-ALTER TABLE oauthaccessdata ADD COLUMN IF NOT EXISTS userid VARCHAR(26) DEFAULT '';
+ALTER TABLE oauthaccessdata ADD COLUMN IF NOT EXISTS userid VARCHAR(26);
 CREATE INDEX IF NOT EXISTS idx_oauthaccessdata_user_id ON oauthaccessdata (userid);
 
 DO $$
@@ -24,12 +24,12 @@ BEGIN
     END IF;
 END $$;
 
-ALTER TABLE oauthaccessdata ADD COLUMN IF NOT EXISTS expiresat bigint DEFAULT 0;
+ALTER TABLE oauthaccessdata ADD COLUMN IF NOT EXISTS expiresat bigint;
 
 DROP INDEX IF EXISTS idx_oauthaccessdata_auth_code;
 ALTER TABLE oauthaccessdata DROP COLUMN IF EXISTS authcode;
 
-ALTER TABLE oauthaccessdata ADD COLUMN IF NOT EXISTS scope VARCHAR(128) DEFAULT 'user';
+ALTER TABLE oauthaccessdata ADD COLUMN IF NOT EXISTS scope VARCHAR(128);
 
 DROP INDEX IF EXISTS clientid_2;
 

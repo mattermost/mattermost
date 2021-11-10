@@ -15,10 +15,10 @@ CREATE TABLE IF NOT EXISTS posts (
     filenames VARCHAR(4000)
 );
 
-ALTER TABLE posts ADD COLUMN IF NOT EXISTS fileids VARCHAR(300) default '[]';
-ALTER TABLE posts ADD COLUMN IF NOT EXISTS hasreactions boolean default false;
-ALTER TABLE posts ADD COLUMN IF NOT EXISTS editat bigint default 0;
-ALTER TABLE posts ADD COLUMN IF NOT EXISTS ispinned boolean default false;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS fileids VARCHAR(300);
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS hasreactions boolean;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS editat bigint;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS ispinned boolean;
 
 CREATE INDEX IF NOT EXISTS idx_posts_update_at ON posts(updateat);
 CREATE INDEX IF NOT EXISTS idx_posts_create_at ON posts(createat);

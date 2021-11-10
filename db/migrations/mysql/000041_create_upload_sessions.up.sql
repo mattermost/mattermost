@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS UploadSessions (
     CreateAt bigint(20) DEFAULT NULL,
     UserId varchar(26) DEFAULT NULL,
     ChannelId varchar(26) DEFAULT NULL,
-    Filename varchar(256) DEFAULT NULL,
+    Filename text,
     Path text,
     FileSize bigint(20) DEFAULT NULL,
     FileOffset bigint(20) DEFAULT NULL,
@@ -64,7 +64,7 @@ SET @preparedStatement = (SELECT IF(
         AND column_name = 'RemoteId'
     ) > 0,
     'SELECT 1',
-    'ALTER TABLE UploadSessions ADD RemoteId varchar(26) DEFAULT "";'
+    'ALTER TABLE UploadSessions ADD RemoteId varchar(26) DEFAULT NULL;'
 ));
 
 PREPARE alterIfNotExists FROM @preparedStatement;
@@ -79,7 +79,7 @@ SET @preparedStatement = (SELECT IF(
         AND column_name = 'ReqFileId'
     ) > 0,
     'SELECT 1',
-    'ALTER TABLE UploadSessions ADD ReqFileId varchar(26) DEFAULT "";'
+    'ALTER TABLE UploadSessions ADD ReqFileId varchar(26) DEFAULT NULL;'
 ));
 
 PREPARE alterIfNotExists FROM @preparedStatement;

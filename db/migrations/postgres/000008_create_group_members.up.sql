@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS groupmembers (
     groupid VARCHAR(26),
-    userid VARCHAR(64),
+    userid VARCHAR(26),
     createat bigint,
     deleteat bigint,
     PRIMARY KEY(groupid, userid)

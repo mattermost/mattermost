@@ -15,7 +15,7 @@ SET @preparedStatement = (SELECT IF(
         AND column_name = 'UnreadMentions'
     ) > 0,
     'SELECT 1',
-    'ALTER TABLE ThreadMemberships ADD UnreadMentions bigint(20) DEFAULT 0;'
+    'ALTER TABLE ThreadMemberships ADD UnreadMentions bigint(20) DEFAULT NULL;'
 ));
 
 PREPARE alterIfNotExists FROM @preparedStatement;

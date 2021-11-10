@@ -1,14 +1,13 @@
 CREATE TABLE IF NOT EXISTS sharedchannelusers (
     id varchar(26) NOT NULL,
     userid varchar(26),
-    channelid varchar(26),
     remoteid varchar(26),
     createat bigint,
     lastsyncat bigint,
     PRIMARY KEY (id)
 );
 
-ALTER TABLE sharedchannelusers ADD COLUMN IF NOT EXISTS channelid varchar(26) DEFAULT '';
+ALTER TABLE sharedchannelusers ADD COLUMN IF NOT EXISTS channelid varchar(26);
 
 DO $$
 BEGIN
@@ -23,3 +22,5 @@ BEGIN
 END $$;
 
 DROP INDEX IF EXISTS idx_sharedchannelusers_user_id;
+
+CREATE INDEX IF NOT EXISTS idx_sharedchannelusers_remote_id ON sharedchannelusers(remoteid);

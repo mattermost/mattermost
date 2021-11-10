@@ -13,7 +13,7 @@ SET @preparedStatement = (SELECT IF(
         AND column_name = 'Manual'
     ) > 0,
     'SELECT 1',
-    'ALTER TABLE Status ADD COLUMN Manual tinyint(1) DEFAULT 0;'
+    'ALTER TABLE Status ADD COLUMN Manual tinyint(1) DEFAULT NULL;'
 ));
 
 PREPARE alterIfNotExists FROM @preparedStatement;

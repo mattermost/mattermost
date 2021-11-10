@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS groupteams (
     groupid VARCHAR(26),
     autoadd boolean,
-    schemeadmin boolean default false,
+    schemeadmin boolean,
     createat bigint,
     deleteat bigint,
     updateat bigint,

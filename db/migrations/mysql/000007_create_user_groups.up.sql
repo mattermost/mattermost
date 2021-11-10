@@ -4,14 +4,14 @@ CREATE TABLE IF NOT EXISTS UserGroups (
     DisplayName varchar(128) DEFAULT NULL,
     Description text,
     Source varchar(64) DEFAULT NULL,
-    RemoteId varchar(64) DEFAULT NULL,
+    RemoteId varchar(48) DEFAULT NULL,
     CreateAt bigint(20) DEFAULT NULL,
     UpdateAt bigint(20) DEFAULT NULL,
     DeleteAt bigint(20) DEFAULT NULL,
-    AllowReference tinyint(1) DEFAULT 0,
+    AllowReference tinyint(1) DEFAULT NULL,
     PRIMARY KEY (Id),
     UNIQUE KEY Name (Name),
-    UNIQUE KEY usergroups_source_remoteid_key (Source, RemoteId),
+    UNIQUE KEY Source (Source, RemoteId),
     KEY idx_usergroups_remote_id (RemoteId),
     KEY idx_usergroups_delete_at (DeleteAt)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -24,7 +24,7 @@ SET @preparedStatement = (SELECT IF(
         AND column_name = 'AllowReference'
     ) > 0,
     'SELECT 1',
-    'ALTER TABLE UserGroups ADD AllowReference tinyint(1) DEFAULT 0;'
+    'ALTER TABLE UserGroups ADD AllowReference tinyint(1) DEFAULT NULL;'
 ));
 
 PREPARE alterIfNotExists FROM @preparedStatement;

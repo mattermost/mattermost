@@ -25,7 +25,7 @@ CREATE INDEX IF NOT EXISTS idx_channels_update_at ON channels (updateat);
 CREATE INDEX IF NOT EXISTS idx_channels_team_id ON channels (teamid);
 CREATE INDEX IF NOT EXISTS idx_channels_delete_at ON channels (deleteat);
 CREATE INDEX IF NOT EXISTS idx_channels_create_at ON channels (createat);
-CREATE INDEX IF NOT EXISTS idx_channel_search_txt ON channels (name, displayname, purpose);
+CREATE INDEX IF NOT EXISTS idx_channel_search_txt ON channels using gin (to_tsvector('english'::regconfig, (((((name)::text || ' '::text) || (displayname)::text) || ' '::text) || (purpose)::text)));
 
 DO $$
 <<modify_column_type_if_type_is_different>>

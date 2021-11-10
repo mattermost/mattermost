@@ -34,7 +34,7 @@ SET @preparedStatement = (SELECT IF(
         AND column_name = 'IsTrusted'
     ) > 0,
     'SELECT 1',
-    'ALTER TABLE OAuthApps ADD IsTrusted tinyint(1) DEFAULT 0;'
+    'ALTER TABLE OAuthApps ADD IsTrusted tinyint(1) DEFAULT NULL;'
 ));
 
 PREPARE alterIfNotExists FROM @preparedStatement;
@@ -49,7 +49,7 @@ SET @preparedStatement = (SELECT IF(
         AND column_name = 'IconURL'
     ) > 0,
     'SELECT 1',
-    'ALTER TABLE OAuthApps ADD IconURL varchar(512) DEFAULT "";'
+    'ALTER TABLE OAuthApps ADD IconURL text;'
 ));
 
 PREPARE alterIfNotExists FROM @preparedStatement;

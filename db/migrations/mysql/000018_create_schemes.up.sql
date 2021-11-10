@@ -113,7 +113,7 @@ SET @preparedStatement = (SELECT IF(
         AND index_name = 'idx_schemes_channel_admin_role'
     ) > 0,
     'SELECT 1',
-    'CREATE INDEX idx_schemes_channel_admin_role ON Schemes(DefaultTeamAdminRole);'
+    'CREATE INDEX idx_schemes_channel_admin_role ON Schemes(DefaultChannelAdminRole);'
 ));
 
 PREPARE createIndexIfNotExists FROM @preparedStatement;

@@ -50,7 +50,7 @@ SET @preparedStatement = (SELECT IF(
         AND column_name = 'ChannelLocked'
     ) > 0,
     'SELECT 1',
-    'ALTER TABLE IncomingWebhooks ADD ChannelLocked tinyint(1) DEFAULT 0;'
+    'ALTER TABLE IncomingWebhooks ADD ChannelLocked tinyint(1) DEFAULT NULL;'
 ));
 
 PREPARE alterIfNotExists FROM @preparedStatement;
