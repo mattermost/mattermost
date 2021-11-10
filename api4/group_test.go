@@ -1475,7 +1475,7 @@ func TestDeleteMembersFromGroup(t *testing.T) {
 		UserIds: []string{user1.Id},
 	}
 
-	groupMembers, response, deleteErr := th.Client.DeleteGroupMembers(group.Id, members)
+	groupMembers, response, deleteErr := th.SystemAdminClient.DeleteGroupMembers(group.Id, members)
 	require.NoError(t, deleteErr)
 	CheckOKStatus(t, response)
 
@@ -1498,7 +1498,7 @@ func TestDeleteMembersFromGroup(t *testing.T) {
 		UserIds: []string{"abc123"},
 	}
 
-	_, response, deleteErr = th.Client.DeleteGroupMembers(group.Id, invalidMembers)
+	_, response, deleteErr = th.SystemAdminClient.DeleteGroupMembers(group.Id, invalidMembers)
 	require.Error(t, deleteErr)
 	CheckInternalErrorStatus(t, response)
 
@@ -1517,7 +1517,7 @@ func TestDeleteMembersFromGroup(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	_, response, deleteErr = th.Client.DeleteGroupMembers(ldapGroup.Id, members)
+	_, response, deleteErr = th.SystemAdminClient.DeleteGroupMembers(ldapGroup.Id, members)
 
 	require.Error(t, deleteErr)
 	CheckNotImplementedStatus(t, response)
