@@ -129,8 +129,6 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	s[model.STATUS] = model.StatusOk
 	s["AndroidLatestVersion"] = reqs.AndroidLatestVersion
 	s["AndroidMinVersion"] = reqs.AndroidMinVersion
-	s["DesktopLatestVersion"] = reqs.DesktopLatestVersion
-	s["DesktopMinVersion"] = reqs.DesktopMinVersion
 	s["IosLatestVersion"] = reqs.IosLatestVersion
 	s["IosMinVersion"] = reqs.IosMinVersion
 

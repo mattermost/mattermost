@@ -1978,8 +1978,6 @@ func (s *TeamSettings) SetDefaults() {
 type ClientRequirements struct {
 	AndroidLatestVersion string `access:"write_restrictable,cloud_restrictable"`
 	AndroidMinVersion    string `access:"write_restrictable,cloud_restrictable"`
-	DesktopLatestVersion string `access:"write_restrictable,cloud_restrictable"`
-	DesktopMinVersion    string `access:"write_restrictable,cloud_restrictable"`
 	IosLatestVersion     string `access:"write_restrictable,cloud_restrictable"`
 	IosMinVersion        string `access:"write_restrictable,cloud_restrictable"`
 }
