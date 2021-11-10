@@ -43,10 +43,10 @@ CREATE TABLE public.bots (
     userid character varying(26) NOT NULL,
     description character varying(1024),
     ownerid character varying(190),
-    lasticonupdate bigint,
     createat bigint,
     updateat bigint,
-    deleteat bigint
+    deleteat bigint,
+    lasticonupdate bigint
 );
 
 
@@ -368,11 +368,11 @@ ALTER TABLE public.linkmetadata OWNER TO mmuser;
 --
 
 CREATE TABLE public.oauthaccessdata (
-    clientid character varying(26),
-    userid character varying(26),
     token character varying(26) NOT NULL,
     refreshtoken character varying(26),
     redirecturi character varying(256),
+    clientid character varying(26),
+    userid character varying(26),
     expiresat bigint,
     scope character varying(128)
 );
@@ -392,10 +392,10 @@ CREATE TABLE public.oauthapps (
     clientsecret character varying(128),
     name character varying(64),
     description character varying(512),
-    iconurl character varying(512),
     callbackurls character varying(1024),
     homepage character varying(256),
-    istrusted boolean
+    istrusted boolean,
+    iconurl character varying(512)
 );
 
 
@@ -433,13 +433,13 @@ CREATE TABLE public.outgoingwebhooks (
     channelid character varying(26),
     teamid character varying(26),
     triggerwords character varying(1024),
-    triggerwhen integer,
     callbackurls character varying(1024),
     displayname character varying(64),
-    description character varying(500),
     contenttype character varying(128),
+    triggerwhen integer,
     username character varying(64),
-    iconurl character varying(1024)
+    iconurl character varying(1024),
+    description character varying(500)
 );
 
 
@@ -467,9 +467,7 @@ CREATE TABLE public.posts (
     id character varying(26) NOT NULL,
     createat bigint,
     updateat bigint,
-    editat bigint,
     deleteat bigint,
-    ispinned boolean,
     userid character varying(26),
     channelid character varying(26),
     rootid character varying(26),
@@ -481,6 +479,8 @@ CREATE TABLE public.posts (
     filenames character varying(4000),
     fileids character varying(300),
     hasreactions boolean,
+    editat bigint,
+    ispinned boolean,
     remoteid character varying(26)
 );
 
@@ -677,8 +677,8 @@ CREATE TABLE public.sessions (
     deviceid character varying(512),
     roles character varying(64),
     isoauth boolean,
-    expirednotify boolean,
-    props jsonb
+    props jsonb,
+    expirednotify boolean
 );
 
 
@@ -748,10 +748,10 @@ ALTER TABLE public.sharedchannels OWNER TO mmuser;
 CREATE TABLE public.sharedchannelusers (
     id character varying(26) NOT NULL,
     userid character varying(26),
-    channelid character varying(26),
     remoteid character varying(26),
     createat bigint,
-    lastsyncat bigint
+    lastsyncat bigint,
+    channelid character varying(26)
 );
 
 
@@ -797,8 +797,8 @@ ALTER TABLE public.sidebarchannels OWNER TO mmuser;
 CREATE TABLE public.status (
     userid character varying(26) NOT NULL,
     status character varying(32),
-    manual boolean,
     lastactivityat bigint,
+    manual boolean,
     dndendtime bigint,
     prevstatus character varying(32)
 );
@@ -897,10 +897,10 @@ ALTER TABLE public.threadmemberships OWNER TO mmuser;
 
 CREATE TABLE public.threads (
     postid character varying(26) NOT NULL,
-    channelid character varying(26),
     replycount bigint,
     lastreplyat bigint,
-    participants jsonb
+    participants jsonb,
+    channelid character varying(26)
 );
 
 
@@ -994,7 +994,6 @@ CREATE TABLE public.users (
     nickname character varying(64),
     firstname character varying(64),
     lastname character varying(64),
-    "position" character varying(128),
     roles character varying(256),
     allowmarketing boolean,
     props jsonb,
@@ -1003,9 +1002,10 @@ CREATE TABLE public.users (
     lastpictureupdate bigint,
     failedattempts integer,
     locale character varying(5),
-    timezone jsonb,
     mfaactive boolean,
     mfasecret character varying(128),
+    "position" character varying(128),
+    timezone jsonb,
     remoteid character varying(26)
 );
 
@@ -2242,7 +2242,7 @@ CREATE INDEX idx_uploadsessions_create_at ON public.uploadsessions USING btree (
 -- Name: idx_uploadsessions_user_id; Type: INDEX; Schema: public; Owner: mmuser
 --
 
-CREATE INDEX idx_uploadsessions_user_id ON public.uploadsessions USING btree (type);
+CREATE INDEX idx_uploadsessions_user_id ON public.uploadsessions USING btree (userid);
 
 
 --
