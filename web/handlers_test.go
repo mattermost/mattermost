@@ -400,16 +400,13 @@ func TestGenerateDevCSP(t *testing.T) {
 		defer func() {
 			model.BuildNumber = oldBuildNumber
 		}()
-		handler := Handler{
-			RequireSession: false,
-			TrustRequester: false,
-		}
 		c := &Context{
 			App:        th.App,
 			AppContext: th.Context,
+			Logger:     th.App.Log(),
 		}
 
-		devCSP := handler.generateDevCSP(*c)
+		devCSP := GenerateDevCSP(*c)
 
 		assert.Equal(t, " 'unsafe-eval' 'unsafe-inline'", devCSP)
 
@@ -428,16 +425,13 @@ func TestGenerateDevCSP(t *testing.T) {
 			*cfg.ServiceSettings.DeveloperFlags = "unsafe-inline=true,unsafe-eval=true"
 		})
 
-		handler := Handler{
-			RequireSession: false,
-			TrustRequester: false,
-		}
 		c := &Context{
 			App:        th.App,
 			AppContext: th.Context,
+			Logger:     th.App.Log(),
 		}
 
-		devCSP := handler.generateDevCSP(*c)
+		devCSP := GenerateDevCSP(*c)
 
 		assert.Equal(t, " 'unsafe-eval' 'unsafe-inline'", devCSP)
 	})
@@ -456,16 +450,13 @@ func TestGenerateDevCSP(t *testing.T) {
 			*cfg.ServiceSettings.DeveloperFlags = "unsafe-inline=false,unsafe-eval=true"
 		})
 
-		handler := Handler{
-			RequireSession: false,
-			TrustRequester: false,
-		}
 		c := &Context{
 			App:        th.App,
 			AppContext: th.Context,
+			Logger:     th.App.Log(),
 		}
 
-		devCSP := handler.generateDevCSP(*c)
+		devCSP := GenerateDevCSP(*c)
 
 		assert.Equal(t, " 'unsafe-eval'", devCSP)
 	})
@@ -484,16 +475,13 @@ func TestGenerateDevCSP(t *testing.T) {
 			*cfg.ServiceSettings.DeveloperFlags = "unknown=true,unsafe-inline=false,unsafe-eval=true"
 		})
 
-		handler := Handler{
-			RequireSession: false,
-			TrustRequester: false,
-		}
 		c := &Context{
 			App:        th.App,
 			AppContext: th.Context,
+			Logger:     th.App.Log(),
 		}
 
-		devCSP := handler.generateDevCSP(*c)
+		devCSP := GenerateDevCSP(*c)
 
 		assert.Equal(t, " 'unsafe-eval'", devCSP)
 	})
