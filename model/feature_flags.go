@@ -25,8 +25,11 @@ type FeatureFlags struct {
 	// Enable the remote cluster service for shared channels.
 	EnableRemoteClusterService bool
 
-	// AppsEnabled toggle the Apps framework functionalities both in server and client side
+	// AppsEnabled toggles the Apps framework functionalities both in server and client side
 	AppsEnabled bool
+
+	// AppBarEnabled toggles the App Bar component on client side
+	AppBarEnabled bool
 
 	// Feature flags to control plugin versions
 	PluginPlaybooks  string `plugin_id:"playbooks"`
@@ -43,9 +46,6 @@ type FeatureFlags struct {
 
 	// Enable different treatments for first time users, possible values = ("none", "tour_point", "around_input")
 	PrewrittenMessages string
-
-	// Enable different treatments for first time users, possible values = ("none", "tips_and_next_steps")
-	DownloadAppsCTA string
 
 	// Determine whether when a user gets created, they'll have noisy notifications e.g. Send desktop notifications for all activity
 	NewAccountNoisy bool
@@ -72,13 +72,13 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CollapsedThreads = true
 	f.EnableRemoteClusterService = false
 	f.AppsEnabled = false
+	f.AppBarEnabled = false
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
 	f.PermalinkPreviews = true
 	f.GlobalHeader = true
 	f.AddChannelButton = "by_team_name"
 	f.PrewrittenMessages = "tour_point"
-	f.DownloadAppsCTA = "tips_and_next_steps"
 	f.NewAccountNoisy = false
 	f.BoardsUnfurl = true
 	f.CallsMobile = false

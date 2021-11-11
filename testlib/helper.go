@@ -102,7 +102,7 @@ func (h *MainHelper) setupStore(withReadReplica bool) {
 	config := &model.Config{}
 	config.SetDefaults()
 
-	h.SearchEngine = searchengine.NewBroker(config, nil)
+	h.SearchEngine = searchengine.NewBroker(config)
 	h.ClusterInterface = &FakeClusterInterface{}
 	h.SQLStore = sqlstore.New(*h.Settings, nil)
 	h.Store = searchlayer.NewSearchLayer(&TestStore{

@@ -2615,8 +2615,8 @@ func (s *DataRetentionSettings) SetDefaults() {
 }
 
 type JobSettings struct {
-	RunJobs                  *bool `access:"write_restrictable,cloud_restrictable"`
-	RunScheduler             *bool `access:"write_restrictable,cloud_restrictable"`
+	RunJobs                  *bool `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	RunScheduler             *bool `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	CleanupJobsThresholdDays *int  `access:"write_restrictable,cloud_restrictable"`
 }
 
@@ -3025,7 +3025,7 @@ type Config struct {
 	BleveSettings             BleveSettings
 	DataRetentionSettings     DataRetentionSettings
 	MessageExportSettings     MessageExportSettings
-	JobSettings               JobSettings // telemetry: none
+	JobSettings               JobSettings
 	PluginSettings            PluginSettings
 	DisplaySettings           DisplaySettings
 	GuestAccountsSettings     GuestAccountsSettings
@@ -3746,9 +3746,11 @@ func (o *Config) Sanitize() {
 		*o.LdapSettings.BindPassword = FakeSetting
 	}
 
-	*o.FileSettings.PublicLinkSalt = FakeSetting
+	if o.FileSettings.PublicLinkSalt != nil {
+		*o.FileSettings.PublicLinkSalt = FakeSetting
+	}
 
-	if *o.FileSettings.AmazonS3SecretAccessKey != "" {
+	if o.FileSettings.AmazonS3SecretAccessKey != nil && *o.FileSettings.AmazonS3SecretAccessKey != "" {
 		*o.FileSettings.AmazonS3SecretAccessKey = FakeSetting
 	}
 
@@ -3756,7 +3758,7 @@ func (o *Config) Sanitize() {
 		*o.EmailSettings.SMTPPassword = FakeSetting
 	}
 
-	if *o.GitLabSettings.Secret != "" {
+	if o.GitLabSettings.Secret != nil && *o.GitLabSettings.Secret != "" {
 		*o.GitLabSettings.Secret = FakeSetting
 	}
 
@@ -3772,10 +3774,17 @@ func (o *Config) Sanitize() {
 		*o.OpenIdSettings.Secret = FakeSetting
 	}
 
-	*o.SqlSettings.DataSource = FakeSetting
-	*o.SqlSettings.AtRestEncryptKey = FakeSetting
+	if o.SqlSettings.DataSource != nil {
+		*o.SqlSettings.DataSource = FakeSetting
+	}
 
-	*o.ElasticsearchSettings.Password = FakeSetting
+	if o.SqlSettings.AtRestEncryptKey != nil {
+		*o.SqlSettings.AtRestEncryptKey = FakeSetting
+	}
+
+	if o.ElasticsearchSettings.Password != nil {
+		*o.ElasticsearchSettings.Password = FakeSetting
+	}
 
 	for i := range o.SqlSettings.DataSourceReplicas {
 		o.SqlSettings.DataSourceReplicas[i] = FakeSetting
@@ -3785,7 +3794,9 @@ func (o *Config) Sanitize() {
 		o.SqlSettings.DataSourceSearchReplicas[i] = FakeSetting
 	}
 
-	if o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != nil && *o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != "" {
+	if o.MessageExportSettings.GlobalRelaySettings != nil &&
+		o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != nil &&
+		*o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != "" {
 		*o.MessageExportSettings.GlobalRelaySettings.SMTPPassword = FakeSetting
 	}
 
@@ -3793,7 +3804,9 @@ func (o *Config) Sanitize() {
 		*o.ServiceSettings.GfycatAPISecret = FakeSetting
 	}
 
-	*o.ServiceSettings.SplitKey = FakeSetting
+	if o.ServiceSettings.SplitKey != nil {
+		*o.ServiceSettings.SplitKey = FakeSetting
+	}
 }
 
 // structToMapFilteredByTag converts a struct into a map removing those fields that has the tag passed
