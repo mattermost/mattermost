@@ -388,7 +388,33 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com 'unsafe-eval' 'unsafe-inline'"}, response.Header()["Content-Security-Policy"])
 	})
 
-	t.Run("dev flags", func(t *testing.T) {
+}
+
+func TestGenerateDevCSP(t *testing.T) {
+	t.Run("dev mode", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		oldBuildNumber := model.BuildNumber
+		model.BuildNumber = "dev"
+		defer func() {
+			model.BuildNumber = oldBuildNumber
+		}()
+		handler := Handler{
+			RequireSession: false,
+			TrustRequester: false,
+		}
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+		}
+
+		devCSP := handler.generateDevCSP(*c)
+
+		assert.Equal(t, " 'unsafe-eval' 'unsafe-inline'", devCSP)
+
+	})
+	t.Run("allowed dev flags", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
 
@@ -402,25 +428,21 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 			*cfg.ServiceSettings.DeveloperFlags = "unsafe-inline=true,unsafe-eval=true"
 		})
 
-		web := New(th.Server)
-
 		handler := Handler{
-			Srv:            web.srv,
-			HandleFunc:     handlerForCSPHeader,
 			RequireSession: false,
 			TrustRequester: false,
-			RequireMfa:     false,
-			IsStatic:       true,
+		}
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
 		}
 
-		request := httptest.NewRequest("POST", "/", nil)
-		response := httptest.NewRecorder()
-		handler.ServeHTTP(response, request)
-		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com 'unsafe-eval' 'unsafe-inline'"}, response.Header()["Content-Security-Policy"])
+		devCSP := handler.generateDevCSP(*c)
+
+		assert.Equal(t, " 'unsafe-eval' 'unsafe-inline'", devCSP)
 	})
 
-	t.Run("partial dev flags, enable developer mode", func(t *testing.T) {
+	t.Run("partial dev flags", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
 
@@ -431,26 +453,21 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		}()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.EnableDeveloper = true
 			*cfg.ServiceSettings.DeveloperFlags = "unsafe-inline=false,unsafe-eval=true"
 		})
 
-		web := New(th.Server)
-
 		handler := Handler{
-			Srv:            web.srv,
-			HandleFunc:     handlerForCSPHeader,
 			RequireSession: false,
 			TrustRequester: false,
-			RequireMfa:     false,
-			IsStatic:       true,
+		}
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
 		}
 
-		request := httptest.NewRequest("POST", "/", nil)
-		response := httptest.NewRecorder()
-		handler.ServeHTTP(response, request)
-		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com 'unsafe-eval'"}, response.Header()["Content-Security-Policy"])
+		devCSP := handler.generateDevCSP(*c)
+
+		assert.Equal(t, " 'unsafe-eval'", devCSP)
 	})
 
 	t.Run("unknown dev flags", func(t *testing.T) {
@@ -464,26 +481,21 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		}()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.EnableDeveloper = true
-			*cfg.ServiceSettings.DeveloperFlags = "unknown=true,unsafe-inline=true,unsafe-eval=false"
+			*cfg.ServiceSettings.DeveloperFlags = "unknown=true,unsafe-inline=false,unsafe-eval=true"
 		})
 
-		web := New(th.Server)
-
 		handler := Handler{
-			Srv:            web.srv,
-			HandleFunc:     handlerForCSPHeader,
 			RequireSession: false,
 			TrustRequester: false,
-			RequireMfa:     false,
-			IsStatic:       true,
+		}
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
 		}
 
-		request := httptest.NewRequest("POST", "/", nil)
-		response := httptest.NewRecorder()
-		handler.ServeHTTP(response, request)
-		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com 'unsafe-inline'"}, response.Header()["Content-Security-Policy"])
+		devCSP := handler.generateDevCSP(*c)
+
+		assert.Equal(t, " 'unsafe-eval'", devCSP)
 	})
 }
 
