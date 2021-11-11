@@ -797,8 +797,8 @@ ALTER TABLE public.sidebarchannels OWNER TO mmuser;
 CREATE TABLE public.status (
     userid character varying(26) NOT NULL,
     status character varying(32),
-    lastactivityat bigint,
     manual boolean,
+    lastactivityat bigint,
     dndendtime bigint,
     prevstatus character varying(32)
 );

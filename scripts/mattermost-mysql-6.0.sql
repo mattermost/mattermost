@@ -906,8 +906,8 @@ CREATE TABLE `SidebarChannels` (
 CREATE TABLE `Status` (
   `UserId` varchar(26) NOT NULL,
   `Status` varchar(32) DEFAULT NULL,
-  `LastActivityAt` bigint(20) DEFAULT NULL,
   `Manual` tinyint(1) DEFAULT NULL,
+  `LastActivityAt` bigint(20) DEFAULT NULL,
   `DNDEndTime` bigint(20) DEFAULT NULL,
   `PrevStatus` varchar(32) DEFAULT NULL,
   PRIMARY KEY (`UserId`),
