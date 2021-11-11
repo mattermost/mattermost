@@ -711,8 +711,8 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 	}
 
 	path, _ := fileutils.FindDir("tests")
-	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
-	require.NoError(t, err)
+	tarData, readErr := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+	require.NoError(t, readErr)
 
 	t.Run("marketplace client returns not-installed plugin", func(t *testing.T) {
 		th := Setup(t)
@@ -876,7 +876,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			res.WriteHeader(http.StatusOK)
 			var out []byte
-			out, err = json.Marshal(allPlugins)
+			out, err := json.Marshal(allPlugins)
 			require.NoError(t, err)
 			res.Write(out)
 		}))
