@@ -653,21 +653,6 @@ func (i *hubConnectionIndex) All() map[*WebConn]int {
 	return i.byConnection
 }
 
-// GetInactiveByConnectionID returns an inactive connection for the given
-// userID and connectionID.
-func (i *hubConnectionIndex) GetInactiveByConnectionID(userID, connectionID string) *WebConn {
-	// To handle empty sessions.
-	if userID == "" {
-		return nil
-	}
-	for _, conn := range i.ForUser(userID) {
-		if conn.GetConnectionID() == connectionID && !conn.active {
-			return conn
-		}
-	}
-	return nil
-}
-
 // RemoveInactiveByConnectionID removes an inactive connection for the given
 // userID and connectionID.
 func (i *hubConnectionIndex) RemoveInactiveByConnectionID(userID, connectionID string) *WebConn {
