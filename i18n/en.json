@@ -1567,6 +1567,10 @@
     "translation": "Failed to delete the recent status. Please try adding the status first or contact your system administrator for details."
   },
   {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Failed to update the custom status. Please add either emoji or custom text status or both."
+  },
+  {
     "id": "api.email.send_warn_metric_ack.failure.app_error",
     "translation": "Failure to send admin acknowledgment email"
   },
@@ -5914,6 +5918,10 @@
   {
     "id": "app.role.get.app_error",
     "translation": "Unable to get role."
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "Unable to get all the roles."
   },
   {
     "id": "app.role.get_by_name.app_error",
