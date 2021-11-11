@@ -8,15 +8,19 @@ import (
 	"sync/atomic"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/pkg/errors"
 )
 
 // Channels contains all channels related state.
 type Channels struct {
 	srv *Server
+
+	postActionCookieSecret []byte
 
 	pluginCommandsLock     sync.RWMutex
 	pluginCommands         []*PluginCommand
@@ -37,6 +41,13 @@ type Channels struct {
 	cachedDBMSVersion string
 	// previously fetched notices
 	cachedNotices model.ProductNotices
+
+	AccountMigration einterfaces.AccountMigrationInterface
+	Compliance       einterfaces.ComplianceInterface
+	DataRetention    einterfaces.DataRetentionInterface
+	Ldap             einterfaces.LdapInterface
+	MessageExport    einterfaces.MessageExportInterface
+	Saml             einterfaces.SamlInterface
 }
 
 func init() {
@@ -49,6 +60,37 @@ func NewChannels(s *Server) (*Channels, error) {
 	ch := &Channels{
 		srv:        s,
 		imageProxy: imageproxy.MakeImageProxy(s, s.httpService, s.Log),
+	}
+	// We are passing a partially filled Channels struct so that the enterprise
+	// methods can have access to app methods.
+	// Otherwise, passing server would mean it has to call s.Channels(),
+	// which would be nil at this point.
+	if complianceInterface != nil {
+		ch.Compliance = complianceInterface(New(ServerConnector(ch)))
+	}
+	if messageExportInterface != nil {
+		ch.MessageExport = messageExportInterface(New(ServerConnector(ch)))
+	}
+	if dataRetentionInterface != nil {
+		ch.DataRetention = dataRetentionInterface(New(ServerConnector(ch)))
+	}
+	if accountMigrationInterface != nil {
+		ch.AccountMigration = accountMigrationInterface(New(ServerConnector(ch)))
+	}
+	if ldapInterface != nil {
+		ch.Ldap = ldapInterface(New(ServerConnector(ch)))
+	}
+	if samlInterfaceNew != nil {
+		mlog.Debug("Loading SAML2 library")
+		ch.Saml = samlInterfaceNew(New(ServerConnector(ch)))
+		if err := ch.Saml.ConfigureSP(); err != nil {
+			mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+		}
+		ch.AddConfigListener(func(_, cfg *model.Config) {
+			if err := ch.Saml.ConfigureSP(); err != nil {
+				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+			}
+		})
 	}
 	// Setup routes.
 	pluginsRoute := ch.srv.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
@@ -74,6 +116,10 @@ func (ch *Channels) Start() error {
 
 	if err := ch.ensureAsymmetricSigningKey(); err != nil {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
+	}
+
+	if err := ch.ensurePostActionCookieSecret(); err != nil {
+		return errors.Wrapf(err, "unable to ensure PostAction cookie secret")
 	}
 	return nil
 }
