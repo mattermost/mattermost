@@ -86,7 +86,7 @@ type Handler struct {
 	cspShaDirective string
 }
 
-func GenerateDevCSP(c Context) string {
+func generateDevCSP(c Context) string {
 	// Add unsafe-eval to the content security policy for faster source maps in development mode
 	devCSPMap := make(map[string]bool)
 	if model.BuildNumber == "dev" {
@@ -125,7 +125,7 @@ func GenerateDevCSP(c Context) string {
 	var devCSP string
 	supportedCSPFlags := []string{"unsafe-eval", "unsafe-inline"}
 	for _, devCSPFlag := range supportedCSPFlags {
-		if _, ok := devCSPMap[devCSPFlag]; ok {
+		if devCSPMap[devCSPFlag] {
 			devCSP += fmt.Sprintf(" '%s'", devCSPFlag)
 		}
 	}
@@ -223,7 +223,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking
 		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
 
-		devCSP := GenerateDevCSP(*c)
+		devCSP := generateDevCSP(*c)
 
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
 		w.Header().Set("Content-Security-Policy", fmt.Sprintf(

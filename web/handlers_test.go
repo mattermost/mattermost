@@ -406,7 +406,7 @@ func TestGenerateDevCSP(t *testing.T) {
 			Logger:     th.App.Log(),
 		}
 
-		devCSP := GenerateDevCSP(*c)
+		devCSP := generateDevCSP(*c)
 
 		assert.Equal(t, " 'unsafe-eval' 'unsafe-inline'", devCSP)
 
@@ -431,7 +431,7 @@ func TestGenerateDevCSP(t *testing.T) {
 			Logger:     th.App.Log(),
 		}
 
-		devCSP := GenerateDevCSP(*c)
+		devCSP := generateDevCSP(*c)
 
 		assert.Equal(t, " 'unsafe-eval' 'unsafe-inline'", devCSP)
 	})
@@ -456,7 +456,7 @@ func TestGenerateDevCSP(t *testing.T) {
 			Logger:     th.App.Log(),
 		}
 
-		devCSP := GenerateDevCSP(*c)
+		devCSP := generateDevCSP(*c)
 
 		assert.Equal(t, " 'unsafe-eval'", devCSP)
 	})
@@ -481,7 +481,7 @@ func TestGenerateDevCSP(t *testing.T) {
 			Logger:     th.App.Log(),
 		}
 
-		devCSP := GenerateDevCSP(*c)
+		devCSP := generateDevCSP(*c)
 
 		assert.Equal(t, " 'unsafe-eval'", devCSP)
 	})
