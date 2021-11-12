@@ -63,6 +63,9 @@ type FeatureFlags struct {
 
 	// A/B test for the add members to channel button, possible values = ("top", "bottom")
 	AddMembersToChannel string
+
+	// A/B test for whether radio buttons or toggle button is more effective in in-screen invite to team modal ("none", "toggle")
+	InviteToTeam string
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -85,6 +88,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AutoTour = "none"
 	f.BoardsFeatureFlags = ""
 	f.AddMembersToChannel = "top"
+	f.InviteToTeam = "none"
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
