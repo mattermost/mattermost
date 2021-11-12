@@ -2437,6 +2437,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 
 	// Check the reply values.
 	replies, nErr = th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, replyTime)
+	assert.NoError(t, nErr, "Expected success.")
 	reply = replies[0]
 	replyBool = reply.Type != *(*data.Post.Replies)[0].Type || reply.Message != *(*data.Post.Replies)[0].Message || reply.CreateAt != *(*data.Post.Replies)[0].CreateAt || reply.EditAt != *(*data.Post.Replies)[0].EditAt || reply.UserId != user.Id
 	require.False(t, replyBool, "Post properties not as expected")
