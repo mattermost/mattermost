@@ -257,20 +257,6 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, err.Error(), http.StatusInternalServerError)
 					return
 				}
-				membershipsMutex.Lock()
-				participantMemberships[userID] = threadMembership
-				membershipsMutex.Unlock()
-
-				followersMutex.Lock()
-				// add new followers to existing followers
-				if threadMembership.Following && !followers.Contains(userID) {
-					followers = append(followers, userID)
-				}
-				followersMutex.Unlock()
-
-				membershipsMutex.Lock()
-				participantMemberships[userID] = threadMembership
-				membershipsMutex.Unlock()
 
 				followersMutex.Lock()
 				// add new followers to existing followers

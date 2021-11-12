@@ -146,8 +146,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			mlog.String("method", r.Method),
 			mlog.String("url", r.URL.Path),
 			mlog.String("request_id", requestID),
-			mlog.String("host", r.Host),
-			mlog.String("scheme", r.Header.Get(model.HeaderForwardedProto)),
 		}
 		// Websockets are returning status code 0 to requests after closing the socket
 		if statusCode != "0" {
@@ -205,7 +203,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// do not get cut off.
 	r.Body = http.MaxBytesReader(w, r.Body, *c.App.Config().FileSettings.MaxFileSize+bytes.MinRead)
 
-	siteURLHeader := *c.App.Config().ServiceSettings.SiteURL
+	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
+	siteURLHeader := app.GetProtocol(r) + "://" + r.Host + subpath
 	c.SetSiteURLHeader(siteURLHeader)
 
 	w.Header().Set(model.HeaderRequestId, c.AppContext.RequestId())

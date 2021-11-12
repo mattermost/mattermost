@@ -13,7 +13,6 @@ import (
 )
 
 func TestCreateDefaultMemberships(t *testing.T) {
-	t.Skip("MM-36909")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

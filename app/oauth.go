@@ -825,8 +825,6 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 
 	teamID := stateProps["team_id"]
 
-	mlog.Debug("OAuth redirect uri: " + redirectURI)
-
 	p := url.Values{}
 	p.Set("client_id", *sso.Id)
 	p.Set("client_secret", *sso.Secret)
