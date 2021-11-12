@@ -394,7 +394,6 @@ func (a *App) IsUserAway(lastActivityAt int64) bool {
 // UpdateDNDStatusOfUsers is a recurring task which is started when server starts
 // which unsets dnd status of users if needed and saves and broadcasts it
 func (a *App) UpdateDNDStatusOfUsers() {
-	mlog.Debug("UpdateDNDStatusOfUsers: scheduled run started")
 	statuses, err := a.UpdateExpiredDNDStatuses()
 	if err != nil {
 		mlog.Warn("Failed to fetch dnd statues from store", mlog.String("err", err.Error()))
@@ -407,6 +406,10 @@ func (a *App) UpdateDNDStatusOfUsers() {
 }
 
 func (a *App) SetCustomStatus(userID string, cs *model.CustomStatus) *model.AppError {
+	if cs == nil || (cs.Emoji == "" && cs.Text == "") {
+		return model.NewAppError("SetCustomStatus", "api.custom_status.set_custom_statuses.update.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	user, err := a.GetUser(userID)
 	if err != nil {
 		return err
@@ -438,6 +441,15 @@ func (a *App) RemoveCustomStatus(userID string) *model.AppError {
 	}
 
 	return nil
+}
+
+func (a *App) GetCustomStatus(userID string) (*model.CustomStatus, *model.AppError) {
+	user, err := a.GetUser(userID)
+	if err != nil {
+		return &model.CustomStatus{}, err
+	}
+
+	return user.GetCustomStatus(), nil
 }
 
 func (a *App) addRecentCustomStatus(userID string, status *model.CustomStatus) *model.AppError {

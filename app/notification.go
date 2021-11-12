@@ -272,6 +272,17 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				participantMemberships[userID] = threadMembership
 				membershipsMutex.Unlock()
 
+				followersMutex.Lock()
+				// add new followers to existing followers
+				if threadMembership.Following && !followers.Contains(userID) {
+					followers = append(followers, userID)
+				}
+				followersMutex.Unlock()
+
+				membershipsMutex.Lock()
+				participantMemberships[userID] = threadMembership
+				membershipsMutex.Unlock()
+
 				mac <- nil
 			}(id)
 			mentionAutofollowChans = append(mentionAutofollowChans, mac)
@@ -293,6 +304,32 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		updateMentionChans = append(updateMentionChans, umc)
 	}
 
+	// Make sure all mention updates are complete to prevent race conditions.
+	// Probably better to batch these DB updates in the future
+	// MUST be completed before push notifications send
+	for _, umc := range updateMentionChans {
+		if err := <-umc; err != nil {
+			mlog.Warn(
+				"Failed to update mention count",
+				mlog.String("post_id", post.Id),
+				mlog.String("channel_id", post.ChannelId),
+				mlog.Err(err),
+			)
+		}
+	}
+
+	// Log the problems that might have occurred while auto following the thread
+	for _, mac := range mentionAutofollowChans {
+		if err := <-mac; err != nil {
+			mlog.Warn(
+				"Failed to update thread autofollow from mention",
+				mlog.String("post_id", post.Id),
+				mlog.String("channel_id", post.ChannelId),
+				mlog.Err(err),
+			)
+		}
+	}
+
 	notificationsForCRT := &CRTNotifiers{}
 	if isCRTAllowed && post.RootId != "" {
 		for _, uid := range followers {
@@ -306,7 +343,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			}
 
 			// add user id to notificationsForCRT depending on threads notify props
-			notificationsForCRT.addUserToNotify(profile, mentions)
+			notificationsForCRT.addFollowerToNotify(profile, mentions, channelMemberNotifyPropsMap[profile.Id], channel)
 		}
 	}
 
@@ -382,31 +419,6 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 	}
 
-	// Make sure all mention updates are complete to prevent race
-	// Probably better to batch these DB updates in the future
-	// MUST be completed before push notifications send
-	for _, umc := range updateMentionChans {
-		if err := <-umc; err != nil {
-			mlog.Warn(
-				"Failed to update mention count",
-				mlog.String("post_id", post.Id),
-				mlog.String("channel_id", post.ChannelId),
-				mlog.Err(err),
-			)
-		}
-	}
-
-	// Log the problems that might have occurred while auto following the thread
-	for _, mac := range mentionAutofollowChans {
-		if err := <-mac; err != nil {
-			mlog.Warn(
-				"Failed to update thread autofollow from mention",
-				mlog.String("post_id", post.Id),
-				mlog.String("channel_id", post.ChannelId),
-				mlog.Err(err),
-			)
-		}
-	}
 	sendPushNotifications := false
 	if *a.Config().EmailSettings.SendPushNotifications {
 		pushServer := *a.Config().EmailSettings.PushNotificationServer
@@ -1335,28 +1347,85 @@ type CRTNotifiers struct {
 	Push model.StringArray
 }
 
-func (c *CRTNotifiers) addUserToNotify(user *model.User, mentions *ExplicitMentions) {
-	// user notify props
+func (c *CRTNotifiers) addFollowerToNotify(user *model.User, mentions *ExplicitMentions, channelMemberNotificationProps model.StringMap, channel *model.Channel) {
+	_, userWasMentioned := mentions.Mentions[user.Id]
+	notifyDesktop, notifyPush, notifyEmail := shouldUserNotifyCRT(user, userWasMentioned)
+	notifyChannelDesktop, notifyChannelPush := shouldChannelMemberNotifyCRT(channelMemberNotificationProps, userWasMentioned)
+
+	// respect the user global notify props when there are no channel specific ones (default)
+	// otherwise respect the channel member's notify props
+	if (channelMemberNotificationProps[model.DesktopNotifyProp] == model.ChannelNotifyDefault && notifyDesktop) || notifyChannelDesktop {
+		c.Desktop = append(c.Desktop, user.Id)
+	}
+
+	if notifyEmail {
+		c.Email = append(c.Email, user.Id)
+	}
+
+	// respect the user global notify props when there are no channel specific ones (default)
+	// otherwise respect the channel member's notify props
+	if (channelMemberNotificationProps[model.PushNotifyProp] == model.ChannelNotifyDefault && notifyPush) || notifyChannelPush {
+		c.Push = append(c.Push, user.Id)
+	}
+}
+
+// user global settings check for desktop, email, and push notifications
+func shouldUserNotifyCRT(user *model.User, isMentioned bool) (notifyDesktop, notifyPush, notifyEmail bool) {
+	notifyDesktop = false
+	notifyPush = false
+	notifyEmail = false
+
 	desktop := user.NotifyProps[model.DesktopNotifyProp]
 	push := user.NotifyProps[model.PushNotifyProp]
 	shouldEmail := user.NotifyProps[model.EmailNotifyProp] == "true"
 
-	// user thread notify props
 	desktopThreads := user.NotifyProps[model.DesktopThreadsNotifyProp]
 	emailThreads := user.NotifyProps[model.EmailThreadsNotifyProp]
 	pushThreads := user.NotifyProps[model.PushThreadsNotifyProp]
 
-	_, userWasMentioned := mentions.Mentions[user.Id]
-
-	if desktop != model.UserNotifyNone && (userWasMentioned || desktopThreads == model.UserNotifyAll || desktop == model.UserNotifyAll) {
-		c.Desktop = append(c.Desktop, user.Id)
+	// user should be notified via desktop notification in the case the notify prop is not set as no notify
+	// and either the user was mentioned or the CRT notify prop for desktop is set to all
+	if desktop != model.UserNotifyNone && (isMentioned || desktopThreads == model.UserNotifyAll || desktop == model.UserNotifyAll) {
+		notifyDesktop = true
 	}
 
-	if shouldEmail && (userWasMentioned || emailThreads == model.UserNotifyAll) {
-		c.Email = append(c.Email, user.Id)
+	// user should be notified via email when emailing is enabled and
+	// either the user was mentioned, or the CRT notify prop for email is set to all
+	if shouldEmail && (isMentioned || emailThreads == model.UserNotifyAll) {
+		notifyEmail = true
 	}
 
-	if push != model.UserNotifyNone && (userWasMentioned || pushThreads == model.UserNotifyAll || push == model.UserNotifyAll) {
-		c.Push = append(c.Push, user.Id)
+	// user should be notified via push in the case the notify prop is not set as no notify
+	// and either the user was mentioned or the CRT push notify prop is set to all
+	if push != model.UserNotifyNone && (isMentioned || pushThreads == model.UserNotifyAll || push == model.UserNotifyAll) {
+		notifyPush = true
 	}
+
+	return
+}
+
+// channel specific settings check for desktop and push notifications
+func shouldChannelMemberNotifyCRT(notifyProps model.StringMap, isMentioned bool) (notifyDesktop, notifyPush bool) {
+	notifyDesktop = false
+	notifyPush = false
+
+	desktop := notifyProps[model.DesktopNotifyProp]
+	push := notifyProps[model.PushNotifyProp]
+
+	desktopThreads := notifyProps[model.DesktopThreadsNotifyProp]
+	pushThreads := notifyProps[model.PushThreadsNotifyProp]
+
+	// user should be notified via desktop notification in the case the notify prop is not set as no notify or default
+	// and either the user was mentioned or the CRT notify prop for desktop is set to all
+	if desktop != model.ChannelNotifyDefault && desktop != model.ChannelNotifyNone && (isMentioned || desktopThreads == model.ChannelNotifyAll || desktop == model.ChannelNotifyAll) {
+		notifyDesktop = true
+	}
+
+	// user should be notified via push in the case the notify prop is not set as no notify or default
+	// and either the user was mentioned or the CRT push notify prop is set to all
+	if push != model.ChannelNotifyDefault && push != model.ChannelNotifyNone && (isMentioned || pushThreads == model.ChannelNotifyAll || push == model.ChannelNotifyAll) {
+		notifyPush = true
+	}
+
+	return
 }

@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/blevesearch/bleve"
-	"github.com/blevesearch/bleve/search/query"
+	"github.com/blevesearch/bleve/v2"
+	"github.com/blevesearch/bleve/v2/search/query"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -303,21 +303,59 @@ func (b *BleveEngine) DeletePost(post *model.Post) *model.AppError {
 	return nil
 }
 
-func (b *BleveEngine) IndexChannel(channel *model.Channel) *model.AppError {
+func (b *BleveEngine) IndexChannel(channel *model.Channel, userIDs, teamMemberIDs []string) *model.AppError {
 	b.Mutex.RLock()
 	defer b.Mutex.RUnlock()
 
-	blvChannel := BLVChannelFromChannel(channel)
+	blvChannel := BLVChannelFromChannel(channel, userIDs, teamMemberIDs)
 	if err := b.ChannelIndex.Index(blvChannel.Id, blvChannel); err != nil {
 		return model.NewAppError("Bleveengine.IndexChannel", "bleveengine.index_channel.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
 }
 
-func (b *BleveEngine) SearchChannels(teamId, term string) ([]string, *model.AppError) {
-	teamIdQ := bleve.NewTermQuery(teamId)
-	teamIdQ.SetField("TeamId")
-	queries := []query.Query{teamIdQ}
+func (b *BleveEngine) SearchChannels(teamId, userID, term string) ([]string, *model.AppError) {
+	// This query essentially boils down to (if teamID is passed):
+	// match teamID == <>
+	// AND
+	// match term == <>
+	// AND
+	// match (channelType != 'P' || (<> in userIDs && channelType == 'P'))
+
+	// (or if teamID is not passed)
+	// <> in teamMemberIds
+	// AND
+	// match term == <>
+	// AND
+	// match (channelType != 'P' || (<> in userIDs && channelType == 'P'))
+
+	queries := []query.Query{}
+	if teamId != "" {
+		teamIdQ := bleve.NewTermQuery(teamId)
+		teamIdQ.SetField("TeamId")
+		queries = append(queries, teamIdQ)
+	} else {
+		teamMemberQ := bleve.NewTermQuery(userID)
+		teamMemberQ.SetField("TeamMemberIDs")
+		queries = append(queries, teamMemberQ)
+	}
+
+	boolNotPrivate := bleve.NewBooleanQuery()
+	privateQ := bleve.NewTermQuery(string(model.ChannelTypePrivate))
+	privateQ.SetField("Type")
+	boolNotPrivate.AddMustNot(privateQ)
+
+	userQ := bleve.NewBooleanQuery()
+	userIDQ := bleve.NewTermQuery(userID)
+	userIDQ.SetField("UserIDs")
+	userQ.AddMust(userIDQ)
+	userQ.AddMust(privateQ)
+
+	channelTypeQ := bleve.NewDisjunctionQuery()
+	channelTypeQ.AddQuery(boolNotPrivate)
+	channelTypeQ.AddQuery(userQ) // userID && 'p'
+
+	queries = append(queries, channelTypeQ)
 
 	if term != "" {
 		nameSuggestQ := bleve.NewPrefixQuery(strings.ToLower(term))

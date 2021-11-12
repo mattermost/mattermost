@@ -27,7 +27,8 @@ func (api *API) InitPost() {
 
 	api.BaseRoutes.ChannelForUser.Handle("/posts/unread", api.APISessionRequired(getPostsForChannelAroundLastUnread)).Methods("GET")
 
-	api.BaseRoutes.Team.Handle("/posts/search", api.APISessionRequiredDisableWhenBusy(searchPosts)).Methods("POST")
+	api.BaseRoutes.Team.Handle("/posts/search", api.APISessionRequiredDisableWhenBusy(searchPostsInTeam)).Methods("POST")
+	api.BaseRoutes.Posts.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchPostsInAllTeams)).Methods("POST")
 	api.BaseRoutes.Post.Handle("", api.APISessionRequired(updatePost)).Methods("PUT")
 	api.BaseRoutes.Post.Handle("/patch", api.APISessionRequired(patchPost)).Methods("PUT")
 	api.BaseRoutes.PostForUser.Handle("/set_unread", api.APISessionRequired(setPostUnread)).Methods("POST")
@@ -41,6 +42,9 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("post")
 		return
 	}
+
+	// Strip away delete_at if passed
+	post.DeleteAt = 0
 
 	post.UserId = c.AppContext.Session().UserId
 
@@ -473,7 +477,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
+func searchPostsInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -484,6 +488,14 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	searchPosts(c, w, r, c.Params.TeamId)
+}
+
+func searchPostsInAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
+	searchPosts(c, w, r, "")
+}
+
+func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId string) {
 	var params model.SearchParameter
 	if jsonErr := json.NewDecoder(r.Body).Decode(&params); jsonErr != nil {
 		c.Err = model.NewAppError("searchPosts", "api.post.search_posts.invalid_body.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
@@ -523,7 +535,7 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	startTime := time.Now()
 
-	results, err := c.App.SearchPostsInTeamForUser(c.AppContext, terms, c.AppContext.Session().UserId, c.Params.TeamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
+	results, err := c.App.SearchPostsForUser(c.AppContext, terms, c.AppContext.Session().UserId, teamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
 
 	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
 	metrics := c.App.Metrics()

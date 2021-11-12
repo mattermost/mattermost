@@ -223,6 +223,16 @@ func (c Client) copyObjectDo(ctx context.Context, srcBucket, srcObject, destBuck
 	if dstOpts.Internal.ReplicationRequest {
 		headers.Set(minIOBucketReplicationRequest, "")
 	}
+	if !dstOpts.Internal.LegalholdTimestamp.IsZero() {
+		headers.Set(minIOBucketReplicationObjectLegalHoldTimestamp, dstOpts.Internal.LegalholdTimestamp.Format(time.RFC3339Nano))
+	}
+	if !dstOpts.Internal.RetentionTimestamp.IsZero() {
+		headers.Set(minIOBucketReplicationObjectRetentionTimestamp, dstOpts.Internal.RetentionTimestamp.Format(time.RFC3339Nano))
+	}
+	if !dstOpts.Internal.TaggingTimestamp.IsZero() {
+		headers.Set(minIOBucketReplicationTaggingTimestamp, dstOpts.Internal.TaggingTimestamp.Format(time.RFC3339Nano))
+	}
+
 	if len(dstOpts.UserTags) != 0 {
 		headers.Set(amzTaggingHeader, s3utils.TagEncode(dstOpts.UserTags))
 	}
@@ -513,7 +523,7 @@ func (c Client) ComposeObject(ctx context.Context, dst CopyDestOptions, srcs ...
 
 	// 4. Make final complete-multipart request.
 	uploadInfo, err := c.completeMultipartUpload(ctx, dst.Bucket, dst.Object, uploadID,
-		completeMultipartUpload{Parts: objParts})
+		completeMultipartUpload{Parts: objParts}, PutObjectOptions{})
 	if err != nil {
 		return UploadInfo{}, err
 	}

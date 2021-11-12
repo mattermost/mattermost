@@ -172,7 +172,7 @@ func (a *App) NewWebConn(cfg *WebConnConfig) *WebConn {
 		cfg.activeQueue = make(chan model.WebSocketMessage, sendQueueSize)
 	}
 
-	if cfg.deadQueue == nil && *a.srv.Config().ServiceSettings.EnableReliableWebSockets {
+	if cfg.deadQueue == nil && *a.ch.srv.Config().ServiceSettings.EnableReliableWebSockets {
 		cfg.deadQueue = make([]*model.WebSocketEvent, deadQueueSize)
 	}
 
@@ -287,7 +287,7 @@ func (wc *WebConn) SetSession(v *model.Session) {
 // Pump starts the WebConn instance. After this, the websocket
 // is ready to send/receive messages.
 func (wc *WebConn) Pump() {
-	defer wc.App.srv.userService.ReturnSessionToPool(wc.GetSession())
+	defer wc.App.Srv().userService.ReturnSessionToPool(wc.GetSession())
 
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -365,7 +365,7 @@ func (wc *WebConn) writePump() {
 		wc.WebSocket.Close()
 	}()
 
-	if *wc.App.srv.Config().ServiceSettings.EnableReliableWebSockets && wc.Sequence != 0 {
+	if *wc.App.Srv().Config().ServiceSettings.EnableReliableWebSockets && wc.Sequence != 0 {
 		if ok, index := wc.isInDeadQueue(wc.Sequence); ok {
 			if err := wc.drainDeadQueue(index); err != nil {
 				wc.logSocketErr("websocket.drainDeadQueue", err)
@@ -462,7 +462,7 @@ func (wc *WebConn) writePump() {
 				mlog.Warn("websocket.full", logData...)
 			}
 
-			if *wc.App.srv.Config().ServiceSettings.EnableReliableWebSockets &&
+			if *wc.App.Srv().Config().ServiceSettings.EnableReliableWebSockets &&
 				evtOk {
 				wc.addToDeadQueue(evt)
 			}
@@ -728,7 +728,7 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 		}
 
 		if wc.allChannelMembers == nil {
-			result, err := wc.App.Srv().Store.Channel().GetAllChannelMembersForUser(wc.UserId, true, false)
+			result, err := wc.App.Srv().Store.Channel().GetAllChannelMembersForUser(wc.UserId, false, false)
 			if err != nil {
 				mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
 				return false

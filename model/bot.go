@@ -63,12 +63,8 @@ func (b *Bot) Clone() *Bot {
 	return &copy
 }
 
-// IsValid validates the bot and returns an error if it isn't configured correctly.
-func (b *Bot) IsValid() *AppError {
-	if !IsValidId(b.UserId) {
-		return NewAppError("Bot.IsValid", "model.bot.is_valid.user_id.app_error", b.Trace(), "", http.StatusBadRequest)
-	}
-
+// IsValidCreate validates bot for Create call. This skips validations of fields that are auto-filled on Create
+func (b *Bot) IsValidCreate() *AppError {
 	if !IsValidUsername(b.Username) {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.username.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
@@ -85,6 +81,15 @@ func (b *Bot) IsValid() *AppError {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.creator_id.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
 
+	return nil
+}
+
+// IsValid validates the bot and returns an error if it isn't configured correctly.
+func (b *Bot) IsValid() *AppError {
+	if !IsValidId(b.UserId) {
+		return NewAppError("Bot.IsValid", "model.bot.is_valid.user_id.app_error", b.Trace(), "", http.StatusBadRequest)
+	}
+
 	if b.CreateAt == 0 {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.create_at.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
@@ -92,8 +97,7 @@ func (b *Bot) IsValid() *AppError {
 	if b.UpdateAt == 0 {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.update_at.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
-
-	return nil
+	return b.IsValidCreate()
 }
 
 // PreSave should be run before saving a new bot to the database.

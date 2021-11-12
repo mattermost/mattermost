@@ -58,7 +58,7 @@ services:
       - elasticsearch
       - prometheus
       - grafana
-    command: postgres:5432 mysql:3306 minio:9000 inbucket:10080 openldap:389 elasticsearch:9200 prometheus:9090 grafana:3000
+    command: postgres:5432 mysql:3306 minio:9000 inbucket:9001 openldap:389 elasticsearch:9200 prometheus:9090 grafana:3000
 
 networks:
   mm-test:

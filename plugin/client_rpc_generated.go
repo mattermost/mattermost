@@ -980,6 +980,33 @@ func (s *apiRPCServer) GetLicense(args *Z_GetLicenseArgs, returns *Z_GetLicenseR
 	return nil
 }
 
+type Z_IsEnterpriseReadyArgs struct {
+}
+
+type Z_IsEnterpriseReadyReturns struct {
+	A bool
+}
+
+func (g *apiRPCClient) IsEnterpriseReady() bool {
+	_args := &Z_IsEnterpriseReadyArgs{}
+	_returns := &Z_IsEnterpriseReadyReturns{}
+	if err := g.client.Call("Plugin.IsEnterpriseReady", _args, _returns); err != nil {
+		log.Printf("RPC call to IsEnterpriseReady API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) IsEnterpriseReady(args *Z_IsEnterpriseReadyArgs, returns *Z_IsEnterpriseReadyReturns) error {
+	if hook, ok := s.impl.(interface {
+		IsEnterpriseReady() bool
+	}); ok {
+		returns.A = hook.IsEnterpriseReady()
+	} else {
+		return encodableError(fmt.Errorf("API IsEnterpriseReady called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetServerVersionArgs struct {
 }
 
@@ -1724,6 +1751,63 @@ func (s *apiRPCServer) UpdateUserActive(args *Z_UpdateUserActiveArgs, returns *Z
 		returns.A = hook.UpdateUserActive(args.A, args.B)
 	} else {
 		return encodableError(fmt.Errorf("API UpdateUserActive called but not implemented."))
+	}
+	return nil
+}
+
+type Z_UpdateUserCustomStatusArgs struct {
+	A string
+	B *model.CustomStatus
+}
+
+type Z_UpdateUserCustomStatusReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus) *model.AppError {
+	_args := &Z_UpdateUserCustomStatusArgs{userID, customStatus}
+	_returns := &Z_UpdateUserCustomStatusReturns{}
+	if err := g.client.Call("Plugin.UpdateUserCustomStatus", _args, _returns); err != nil {
+		log.Printf("RPC call to UpdateUserCustomStatus API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) UpdateUserCustomStatus(args *Z_UpdateUserCustomStatusArgs, returns *Z_UpdateUserCustomStatusReturns) error {
+	if hook, ok := s.impl.(interface {
+		UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus) *model.AppError
+	}); ok {
+		returns.A = hook.UpdateUserCustomStatus(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API UpdateUserCustomStatus called but not implemented."))
+	}
+	return nil
+}
+
+type Z_RemoveUserCustomStatusArgs struct {
+	A string
+}
+
+type Z_RemoveUserCustomStatusReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) RemoveUserCustomStatus(userID string) *model.AppError {
+	_args := &Z_RemoveUserCustomStatusArgs{userID}
+	_returns := &Z_RemoveUserCustomStatusReturns{}
+	if err := g.client.Call("Plugin.RemoveUserCustomStatus", _args, _returns); err != nil {
+		log.Printf("RPC call to RemoveUserCustomStatus API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RemoveUserCustomStatus(args *Z_RemoveUserCustomStatusArgs, returns *Z_RemoveUserCustomStatusReturns) error {
+	if hook, ok := s.impl.(interface {
+		RemoveUserCustomStatus(userID string) *model.AppError
+	}); ok {
+		returns.A = hook.RemoveUserCustomStatus(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API RemoveUserCustomStatus called but not implemented."))
 	}
 	return nil
 }

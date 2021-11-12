@@ -283,7 +283,7 @@ component must be enclosed in square brackets.
 The custom EC2 IMDS endpoint can also be specified via the Session options.
 
   sess, err := session.NewSessionWithOptions(session.Options{
-      EC2IMDSEndpoint: "http://[::1]",
+      EC2MetadataEndpoint: "http://[::1]",
   })
 */
 package session

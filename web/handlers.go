@@ -41,7 +41,7 @@ func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string
 
 func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	return &Handler{
-		App:            w.app,
+		Srv:            w.srv,
 		HandleFunc:     h,
 		HandlerName:    GetHandlerName(h),
 		RequireSession: false,
@@ -55,10 +55,10 @@ func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	// Determine the CSP SHA directive needed for subpath support, if any. This value is fixed
 	// on server start and intentionally requires a restart to take effect.
-	subpath, _ := utils.GetSubpathFromConfig(w.app.Config())
+	subpath, _ := utils.GetSubpathFromConfig(w.srv.Config())
 
 	return &Handler{
-		App:            w.app,
+		Srv:            w.srv,
 		HandleFunc:     h,
 		HandlerName:    GetHandlerName(h),
 		RequireSession: false,
@@ -71,7 +71,7 @@ func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Reque
 }
 
 type Handler struct {
-	App                       app.AppIface
+	Srv                       *app.Server
 	HandleFunc                func(*Context, http.ResponseWriter, *http.Request)
 	HandlerName               string
 	RequireSession            bool
@@ -86,9 +86,58 @@ type Handler struct {
 	cspShaDirective string
 }
 
+func generateDevCSP(c Context) string {
+	// Add unsafe-eval to the content security policy for faster source maps in development mode
+	devCSPMap := make(map[string]bool)
+	if model.BuildNumber == "dev" {
+		devCSPMap["unsafe-eval"] = true
+	}
+
+	// Add unsafe-inline to unlock extensions like React & Redux DevTools in Firefox
+	// see https://github.com/reduxjs/redux-devtools/issues/380
+	if model.BuildNumber == "dev" {
+		devCSPMap["unsafe-inline"] = true
+	}
+
+	// Add supported flags for debugging during development, even if not on a dev build.
+	for _, devFlagKVStr := range strings.Split(*c.App.Config().ServiceSettings.DeveloperFlags, ",") {
+		devFlagKVSplit := strings.SplitN(devFlagKVStr, "=", 2)
+		if len(devFlagKVSplit) != 2 {
+			c.Logger.Warn("Unable to parse developer flag", mlog.String("developer_flag", devFlagKVStr))
+			continue
+		}
+		devFlagKey := devFlagKVSplit[0]
+		devFlagValue := devFlagKVSplit[1]
+
+		// Ignore disabled keys
+		if devFlagValue != "true" {
+			continue
+		}
+
+		// Honour only supported keys
+		switch devFlagKey {
+		case "unsafe-eval", "unsafe-inline":
+			devCSPMap[devFlagKey] = true
+		default:
+			c.Logger.Warn("Unrecognized developer flag", mlog.String("developer_flag", devFlagKVStr))
+		}
+	}
+	var devCSP string
+	supportedCSPFlags := []string{"unsafe-eval", "unsafe-inline"}
+	for _, devCSPFlag := range supportedCSPFlags {
+		if devCSPMap[devCSPFlag] {
+			devCSP += fmt.Sprintf(" '%s'", devCSPFlag)
+		}
+	}
+
+	return devCSP
+}
+
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w = newWrappedWriter(w)
 	now := time.Now()
+
+	appInstance := app.New(app.ServerConnector(h.Srv.Channels()))
 
 	requestID := model.NewId()
 	var statusCode string
@@ -109,7 +158,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	c := &Context{
 		AppContext: &request.Context{},
-		App:        h.App,
+		App:        appInstance,
 	}
 
 	t, _ := i18n.GetTranslationsAndLocaleFromRequest(r)
@@ -175,17 +224,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking
 		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
 
-		// Add unsafe-eval to the content security policy for faster source maps in development mode
-		devCSP := ""
-		if model.BuildNumber == "dev" {
-			devCSP += " 'unsafe-eval'"
-		}
-
-		// Add unsafe-inline to unlock extensions like React & Redux DevTools in Firefox
-		// see https://github.com/reduxjs/redux-devtools/issues/380
-		if model.BuildNumber == "dev" {
-			devCSP += " 'unsafe-inline'"
-		}
+		devCSP := generateDevCSP(*c)
 
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
 		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
@@ -395,7 +434,7 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 // granted.
 func (w *Web) APIHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &Handler{
-		App:            w.app,
+		Srv:            w.srv,
 		HandleFunc:     h,
 		HandlerName:    GetHandlerName(h),
 		RequireSession: false,
@@ -404,7 +443,7 @@ func (w *Web) APIHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *w.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -415,7 +454,7 @@ func (w *Web) APIHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 // websocket.
 func (w *Web) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &Handler{
-		App:            w.app,
+		Srv:            w.srv,
 		HandleFunc:     h,
 		HandlerName:    GetHandlerName(h),
 		RequireSession: false,
@@ -424,7 +463,7 @@ func (w *Web) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *ht
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *w.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -434,7 +473,7 @@ func (w *Web) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *ht
 // be granted.
 func (w *Web) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &Handler{
-		App:            w.app,
+		Srv:            w.srv,
 		HandleFunc:     h,
 		HandlerName:    GetHandlerName(h),
 		RequireSession: true,
@@ -443,7 +482,7 @@ func (w *Web) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Req
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *w.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler

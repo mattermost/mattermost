@@ -19,25 +19,36 @@ package minio
 
 import (
 	"context"
+	"encoding/xml"
 	"net/http"
 	"net/url"
 )
 
+// Grantee represents the person being granted permissions.
+type Grantee struct {
+	XMLName     xml.Name `xml:"Grantee"`
+	ID          string   `xml:"ID"`
+	DisplayName string   `xml:"DisplayName"`
+	URI         string   `xml:"URI"`
+}
+
+// Grant holds grant information
+type Grant struct {
+	XMLName    xml.Name `xml:"Grant"`
+	Grantee    Grantee
+	Permission string `xml:"Permission"`
+}
+
+// AccessControlList contains the set of grantees and the permissions assigned to each grantee.
+type AccessControlList struct {
+	XMLName    xml.Name `xml:"AccessControlList"`
+	Grant      []Grant
+	Permission string `xml:"Permission"`
+}
+
 type accessControlPolicy struct {
-	Owner struct {
-		ID          string `xml:"ID"`
-		DisplayName string `xml:"DisplayName"`
-	} `xml:"Owner"`
-	AccessControlList struct {
-		Grant []struct {
-			Grantee struct {
-				ID          string `xml:"ID"`
-				DisplayName string `xml:"DisplayName"`
-				URI         string `xml:"URI"`
-			} `xml:"Grantee"`
-			Permission string `xml:"Permission"`
-		} `xml:"Grant"`
-	} `xml:"AccessControlList"`
+	Owner
+	AccessControlList
 }
 
 // GetObjectACL get object ACLs

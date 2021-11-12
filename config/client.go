@@ -46,6 +46,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnableSVGs"] = strconv.FormatBool(*c.ServiceSettings.EnableSVGs)
 	props["EnableMarketplace"] = strconv.FormatBool(*c.PluginSettings.EnableMarketplace)
 	props["EnableLatex"] = strconv.FormatBool(*c.ServiceSettings.EnableLatex)
+	props["EnableInlineLatex"] = strconv.FormatBool(*c.ServiceSettings.EnableInlineLatex)
 	props["ExtendSessionLengthWithActivity"] = strconv.FormatBool(*c.ServiceSettings.ExtendSessionLengthWithActivity)
 	props["ManagedResourcePaths"] = *c.ServiceSettings.ManagedResourcePaths
 
@@ -124,7 +125,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["DataRetentionMessageRetentionDays"] = "0"
 	props["DataRetentionEnableFileDeletion"] = "false"
 	props["DataRetentionFileRetentionDays"] = "0"
-	props["CWSUrl"] = ""
+	props["CWSURL"] = ""
 
 	props["CustomUrlSchemes"] = strings.Join(c.DisplaySettings.CustomURLSchemes, ",")
 	props["IsDefaultMarketplace"] = strconv.FormatBool(*c.PluginSettings.MarketplaceURL == model.PluginSettingsDefaultMarketplaceURL)
@@ -191,7 +192,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 		}
 
 		if *license.Features.Cloud {
-			props["CWSUrl"] = *c.CloudSettings.CWSURL
+			props["CWSURL"] = *c.CloudSettings.CWSURL
 		}
 
 		if *license.Features.SharedChannels {
@@ -228,8 +229,6 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 
 	props["AndroidLatestVersion"] = c.ClientRequirements.AndroidLatestVersion
 	props["AndroidMinVersion"] = c.ClientRequirements.AndroidMinVersion
-	props["DesktopLatestVersion"] = c.ClientRequirements.DesktopLatestVersion
-	props["DesktopMinVersion"] = c.ClientRequirements.DesktopMinVersion
 	props["IosLatestVersion"] = c.ClientRequirements.IosLatestVersion
 	props["IosMinVersion"] = c.ClientRequirements.IosMinVersion
 
@@ -295,7 +294,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["EnableSignUpWithOpenId"] = "false"
 	props["OpenIdButtonText"] = ""
 	props["OpenIdButtonColor"] = ""
-	props["CWSUrl"] = ""
+	props["CWSURL"] = ""
 	props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
 	props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
 	props["CustomDescriptionText"] = *c.TeamSettings.CustomDescriptionText

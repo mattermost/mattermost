@@ -234,13 +234,13 @@ func (_m *SearchEngineInterface) GetVersion() int {
 	return r0
 }
 
-// IndexChannel provides a mock function with given fields: channel
-func (_m *SearchEngineInterface) IndexChannel(channel *model.Channel) *model.AppError {
-	ret := _m.Called(channel)
+// IndexChannel provides a mock function with given fields: channel, userIDs, teamMemberIDs
+func (_m *SearchEngineInterface) IndexChannel(channel *model.Channel, userIDs []string, teamMemberIDs []string) *model.AppError {
+	ret := _m.Called(channel, userIDs, teamMemberIDs)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*model.Channel) *model.AppError); ok {
-		r0 = rf(channel)
+	if rf, ok := ret.Get(0).(func(*model.Channel, []string, []string) *model.AppError); ok {
+		r0 = rf(channel, userIDs, teamMemberIDs)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -400,13 +400,13 @@ func (_m *SearchEngineInterface) RefreshIndexes() *model.AppError {
 	return r0
 }
 
-// SearchChannels provides a mock function with given fields: teamId, term
-func (_m *SearchEngineInterface) SearchChannels(teamId string, term string) ([]string, *model.AppError) {
-	ret := _m.Called(teamId, term)
+// SearchChannels provides a mock function with given fields: teamId, userID, term
+func (_m *SearchEngineInterface) SearchChannels(teamId string, userID string, term string) ([]string, *model.AppError) {
+	ret := _m.Called(teamId, userID, term)
 
 	var r0 []string
-	if rf, ok := ret.Get(0).(func(string, string) []string); ok {
-		r0 = rf(teamId, term)
+	if rf, ok := ret.Get(0).(func(string, string, string) []string); ok {
+		r0 = rf(teamId, userID, term)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
@@ -414,8 +414,8 @@ func (_m *SearchEngineInterface) SearchChannels(teamId string, term string) ([]s
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
-		r1 = rf(teamId, term)
+	if rf, ok := ret.Get(1).(func(string, string, string) *model.AppError); ok {
+		r1 = rf(teamId, userID, term)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

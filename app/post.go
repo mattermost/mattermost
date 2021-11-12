@@ -266,6 +266,11 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 		}
 	}
 
+	// Pre-fill the CreateAt field for link previews to get the correct timestamp.
+	if post.CreateAt == 0 {
+		post.CreateAt = model.GetMillis()
+	}
+
 	post = a.getEmbedsAndImages(post, true)
 	previewPost := post.GetPreviewPost()
 	if previewPost != nil {
@@ -1145,11 +1150,13 @@ func (a *App) DeletePost(postID, deleteByID string) (*model.Post, *model.AppErro
 	adminMessage.GetBroadcast().ContainsSensitiveData = true
 	a.Publish(adminMessage)
 
+	if len(post.FileIds) > 0 {
+		a.Srv().Go(func() {
+			a.deletePostFiles(post.Id)
+		})
+	}
 	a.Srv().Go(func() {
-		a.DeletePostFiles(post)
-	})
-	a.Srv().Go(func() {
-		a.DeleteFlaggedPosts(post.Id)
+		a.deleteFlaggedPosts(post.Id)
 	})
 
 	a.invalidateCacheForChannelPosts(post.ChannelId)
@@ -1157,20 +1164,16 @@ func (a *App) DeletePost(postID, deleteByID string) (*model.Post, *model.AppErro
 	return post, nil
 }
 
-func (a *App) DeleteFlaggedPosts(postID string) {
+func (a *App) deleteFlaggedPosts(postID string) {
 	if err := a.Srv().Store.Preference().DeleteCategoryAndName(model.PreferenceCategoryFlaggedPost, postID); err != nil {
 		mlog.Warn("Unable to delete flagged post preference when deleting post.", mlog.Err(err))
 		return
 	}
 }
 
-func (a *App) DeletePostFiles(post *model.Post) {
-	if len(post.FileIds) == 0 {
-		return
-	}
-
-	if _, err := a.Srv().Store.FileInfo().DeleteForPost(post.Id); err != nil {
-		mlog.Warn("Encountered error when deleting files for post", mlog.String("post_id", post.Id), mlog.Err(err))
+func (a *App) deletePostFiles(postID string) {
+	if _, err := a.Srv().Store.FileInfo().DeleteForPost(postID); err != nil {
+		mlog.Warn("Encountered error when deleting files for post", mlog.String("post_id", postID), mlog.Err(err))
 	}
 }
 
@@ -1281,13 +1284,13 @@ func (a *App) SearchPostsInTeam(teamID string, paramsList []*model.SearchParams)
 	})
 }
 
-func (a *App) SearchPostsInTeamForUser(c *request.Context, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
+func (a *App) SearchPostsForUser(c *request.Context, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
 	var postSearchResults *model.PostSearchResults
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
 	if !*a.Config().ServiceSettings.EnablePostSearch {
-		return nil, model.NewAppError("SearchPostsInTeamForUser", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamID, userID), http.StatusNotImplemented)
+		return nil, model.NewAppError("SearchPostsForUser", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamID, userID), http.StatusNotImplemented)
 	}
 
 	finalParamsList := []*model.SearchParams{}
@@ -1314,14 +1317,14 @@ func (a *App) SearchPostsInTeamForUser(c *request.Context, terms string, userID 
 		return model.MakePostSearchResults(model.NewPostList(), nil), nil
 	}
 
-	postSearchResults, nErr := a.Srv().Store.Post().SearchPostsInTeamForUser(finalParamsList, userID, teamID, page, perPage)
+	postSearchResults, nErr := a.Srv().Store.Post().SearchPostsForUser(finalParamsList, userID, teamID, page, perPage)
 	if nErr != nil {
 		var appErr *model.AppError
 		switch {
 		case errors.As(nErr, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("SearchPostsInTeamForUser", "app.post.search.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("SearchPostsForUser", "app.post.search.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -1405,7 +1408,7 @@ func (a *App) ImageProxyAdder() func(string) string {
 	}
 
 	return func(url string) string {
-		return a.Srv().ImageProxy.GetProxiedImageURL(url)
+		return a.ImageProxy().GetProxiedImageURL(url)
 	}
 }
 
@@ -1415,7 +1418,7 @@ func (a *App) ImageProxyRemover() (f func(string) string) {
 	}
 
 	return func(url string) string {
-		return a.Srv().ImageProxy.GetUnproxiedImageURL(url)
+		return a.ImageProxy().GetUnproxiedImageURL(url)
 	}
 }
 
