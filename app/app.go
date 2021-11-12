@@ -81,6 +81,9 @@ func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
 	return value, nil
 }
 
+func (a *App) Channels() *Channels {
+	return a.ch
+}
 func (a *App) Srv() *Server {
 	return a.ch.srv
 }

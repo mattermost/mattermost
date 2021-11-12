@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -1381,6 +1382,7 @@ func TestPushNotificationRace(t *testing.T) {
 		configStore: memoryStore,
 		Store:       mockStore,
 		products:    make(map[string]Product),
+		Router:      mux.NewRouter(),
 	}
 	ch, err := NewChannels(s)
 	require.NoError(t, err)
