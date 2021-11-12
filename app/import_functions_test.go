@@ -2291,6 +2291,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	// Post with reply.
 	replyPostTime := hashtagTime + 4
 	replyTime := hashtagTime + 5
+	replyEditTime := hashtagTime + 6
 	data = LineImportWorkerData{
 		LineImportData{
 			Post: &PostImportData{
@@ -2408,6 +2409,38 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 
 	AssertAllPostsCount(t, th.App, initialPostCount, 11, team.Id)
 
+	// Create new reply with type and edit_at for existing post with replies.
+	data = LineImportWorkerData{
+		LineImportData{
+			Post: &PostImportData{
+				Team:     &teamName,
+				Channel:  &channelName,
+				User:     &user2.Username,
+				Message:  ptrStr("Message with reply"),
+				CreateAt: &replyPostTime,
+				Replies: &[]ReplyImportData{{
+					User:     &username,
+					Type:     ptrStr(model.PostTypeSystemGeneric),
+					Message:  ptrStr("Message reply 3"),
+					CreateAt: &replyTime,
+					EditAt:   &replyEditTime,
+				}},
+			},
+		},
+		1,
+	}
+	errLine, err = th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
+	assert.Nil(t, err, "Expected success.")
+	assert.Equal(t, 0, errLine)
+
+	AssertAllPostsCount(t, th.App, initialPostCount, 12, team.Id)
+
+	// Check the reply values.
+	replies, nErr = th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, replyTime)
+	reply = replies[0]
+	replyBool = reply.Type != *(*data.Post.Replies)[0].Type || reply.Message != *(*data.Post.Replies)[0].Message || reply.CreateAt != *(*data.Post.Replies)[0].CreateAt || reply.EditAt != *(*data.Post.Replies)[0].EditAt || reply.UserId != user.Id
+	require.False(t, replyBool, "Post properties not as expected")
+
 	// Create another Team.
 	teamName2 := model.NewRandomTeamName()
 	th.App.importTeam(th.Context, &TeamImportData{
@@ -2463,7 +2496,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 
 	// Posts should be added to the right team
 	AssertAllPostsCount(t, th.App, initialPostCountForTeam2, 1, team2.Id)
-	AssertAllPostsCount(t, th.App, initialPostCount, 12, team.Id)
+	AssertAllPostsCount(t, th.App, initialPostCount, 13, team.Id)
 }
 
 func TestImportImportPost(t *testing.T) {
@@ -3950,9 +3983,10 @@ func TestImportImportDirectPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 10, "")
 	})
 
-	t.Run("Create new reply for existing post with replies", func(t *testing.T) {
-		replyPostTime := ptrInt64(initialDate + 25)
-		replyTime := ptrInt64(initialDate + 29)
+	t.Run("Post with reply having non-empty type and edit_at", func(t *testing.T) {
+		replyPostTime := ptrInt64(initialDate + 29)
+		replyTime := ptrInt64(initialDate + 30)
+		replyEditTime := ptrInt64(initialDate + 31)
 		data := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
@@ -3966,8 +4000,10 @@ func TestImportImportDirectPost(t *testing.T) {
 					CreateAt: replyPostTime,
 					Replies: &[]ReplyImportData{{
 						User:     ptrStr(th.BasicUser.Username),
+						Type:     ptrStr(model.PostTypeSystemGeneric),
 						Message:  ptrStr("Message reply 2"),
 						CreateAt: replyTime,
+						EditAt:   replyEditTime,
 					}},
 				},
 			},
@@ -3977,7 +4013,17 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
-		AssertAllPostsCount(t, th.App, initialPostCount, 11, "")
+		AssertAllPostsCount(t, th.App, initialPostCount, 12, "")
+
+		// Check the reply values.
+		replies, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, *replyTime)
+		require.NoError(t, nErr)
+
+		require.Len(t, replies, 1, "Unexpected number of posts found.")
+
+		reply := replies[0]
+		replyBool := reply.Type != *(*data.DirectPost.Replies)[0].Type || reply.Message != *(*data.DirectPost.Replies)[0].Message || reply.CreateAt != *(*data.DirectPost.Replies)[0].CreateAt || reply.EditAt != *(*data.DirectPost.Replies)[0].EditAt || reply.UserId != th.BasicUser2.Id
+		require.False(t, replyBool, "Post properties not as expected")
 	})
 }
 

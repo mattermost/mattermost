@@ -186,8 +186,10 @@ func ImportLineForDirectPost(post *model.DirectPostForExport) *LineImportData {
 func ImportReplyFromPost(post *model.ReplyForExport) *ReplyImportData {
 	return &ReplyImportData{
 		User:     &post.Username,
+		Type:     &post.Type,
 		Message:  &post.Message,
 		CreateAt: &post.CreateAt,
+		EditAt:   &post.EditAt,
 	}
 }
 

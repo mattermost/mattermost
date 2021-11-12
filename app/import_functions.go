@@ -1118,6 +1118,12 @@ func (a *App) importReplies(c *request.Context, data []ReplyImportData, post *mo
 		reply.RootId = post.Id
 		reply.Message = *replyData.Message
 		reply.CreateAt = *replyData.CreateAt
+		if replyData.Type != nil {
+			reply.Type = *replyData.Type
+		}
+		if replyData.EditAt != nil {
+			reply.EditAt = *replyData.EditAt
+		}
 
 		fileIDs := a.uploadAttachments(c, replyData.Attachments, reply, teamID)
 		for _, fileID := range reply.FileIds {

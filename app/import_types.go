@@ -124,8 +124,10 @@ type ReactionImportData struct {
 type ReplyImportData struct {
 	User *string `json:"user"`
 
+	Type     *string `json:"type"`
 	Message  *string `json:"message"`
 	CreateAt *int64  `json:"create_at"`
+	EditAt   *int64  `json:"edit_at"`
 
 	FlaggedBy   *[]string               `json:"flagged_by,omitempty"`
 	Reactions   *[]ReactionImportData   `json:"reactions,omitempty"`
