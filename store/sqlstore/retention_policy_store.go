@@ -722,23 +722,33 @@ func (s *SqlRetentionPolicyStore) DeleteOrphanedRows(limit int) (deleted int64, 
 	return
 }
 
-func (s *SqlRetentionPolicyStore) GetTeamPoliciesForUser(userID string, offset, limit int) (policies []*model.RetentionPolicyForTeam, err error) {
-	const query = `
-	SELECT Teams.Id, RetentionPolicies.PostDuration
-	FROM Users
-	INNER JOIN TeamMembers ON Users.Id = TeamMembers.UserId
-	INNER JOIN Teams ON TeamMembers.TeamId = Teams.Id
-	INNER JOIN RetentionPoliciesTeams ON Teams.Id = RetentionPoliciesTeams.TeamId
-	INNER JOIN RetentionPolicies ON RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id
-	WHERE Users.Id = :UserId
-		AND TeamMembers.DeleteAt = 0
-		AND Teams.DeleteAt = 0
-	ORDER BY Teams.Id
-	LIMIT :Limit
-	OFFSET :Offset`
-	props := map[string]interface{}{"UserId": userID, "Limit": limit, "Offset": offset}
-	_, err = s.GetReplica().Select(&policies, query, props)
-	return
+func (s *SqlRetentionPolicyStore) GetTeamPoliciesForUser(userID string, offset, limit int) ([]*model.RetentionPolicyForTeam, error) {
+	query := s.getQueryBuilder().
+		Select("Teams.Id, RetentionPolicies.PostDuration").
+		From("Users").
+		InnerJoin("TeamMembers ON Users.Id = TeamMembers.UserId").
+		InnerJoin("Teams ON TeamMembers.TeamId = Teams.Id").
+		InnerJoin("RetentionPoliciesTeams ON Teams.Id = RetentionPoliciesTeams.TeamId").
+		InnerJoin("RetentionPolicies ON RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id").
+		Where(
+			sq.And{
+				sq.Eq{"Users.Id": userID},
+				sq.Eq{"TeamMembers.DeleteAt": int(0)},
+				sq.Eq{"Teams.DeleteAt": int(0)},
+			},
+		).OrderBy("Teams.Id").Limit(uint64(limit)).Offset(uint64(offset))
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "team_policies_for_user_tosql")
+	}
+
+	var policies []*model.RetentionPolicyForTeam
+	if err := s.GetReplicaX().Select(&policies, queryString, args...); err != nil {
+		return policies, errors.Wrap(err, "failed to find Users")
+	}
+
+	return policies, nil
 }
 
 func (s *SqlRetentionPolicyStore) GetTeamPoliciesCountForUser(userID string) (int64, error) {
