@@ -752,18 +752,32 @@ func (s *SqlRetentionPolicyStore) GetTeamPoliciesForUser(userID string, offset, 
 }
 
 func (s *SqlRetentionPolicyStore) GetTeamPoliciesCountForUser(userID string) (int64, error) {
-	const query = `
-	SELECT COUNT(*)
-	FROM Users
-	INNER JOIN TeamMembers ON Users.Id = TeamMembers.UserId
-	INNER JOIN Teams ON TeamMembers.TeamId = Teams.Id
-	INNER JOIN RetentionPoliciesTeams ON Teams.Id = RetentionPoliciesTeams.TeamId
-	INNER JOIN RetentionPolicies ON RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id
-	WHERE Users.Id = :UserId
-		AND TeamMembers.DeleteAt = 0
-		AND Teams.DeleteAt = 0`
-	props := map[string]interface{}{"UserId": userID}
-	return s.GetReplica().SelectInt(query, props)
+	query := s.getQueryBuilder().
+		Select("Count(*)").
+		From("Users").
+		InnerJoin("TeamMembers ON Users.Id = TeamMembers.UserId").
+		InnerJoin("Teams ON TeamMembers.TeamId = Teams.Id").
+		InnerJoin("RetentionPoliciesTeams ON Teams.Id = RetentionPoliciesTeams.TeamId").
+		InnerJoin("RetentionPolicies ON RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id").
+		Where(
+			sq.And{
+				sq.Eq{"Users.Id": userID},
+				sq.Eq{"TeamMembers.DeleteAt": int(0)},
+				sq.Eq{"Teams.DeleteAt": int(0)},
+			},
+		)
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return 0, errors.Wrap(err, "team_policies_count_for_user_tosql")
+	}
+
+	var count int64
+	if err := s.GetReplicaX().Get(&count, queryString, args...); err != nil {
+		return 0, errors.Wrap(err, "failed to count TeamPoliciesCountForUser")
+	}
+
+	return count, nil
 }
 
 func (s *SqlRetentionPolicyStore) GetChannelPoliciesForUser(userID string, offset, limit int) (policies []*model.RetentionPolicyForChannel, err error) {
