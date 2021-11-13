@@ -422,7 +422,13 @@ func (s *SqlRetentionPolicyStore) GetAll(offset, limit int) (policies []*model.R
 }
 
 func (s *SqlRetentionPolicyStore) GetCount() (int64, error) {
-	return s.GetReplica().SelectInt("SELECT COUNT(*) FROM RetentionPolicies")
+	var count int64
+	err := s.GetReplicaX().Get(&count, "SELECT COUNT(*) FROM RetentionPolicies")
+	if err != nil {
+		return count, err
+	}
+
+	return count, nil
 }
 
 func (s *SqlRetentionPolicyStore) Delete(id string) error {
