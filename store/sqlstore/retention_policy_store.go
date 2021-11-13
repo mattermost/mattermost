@@ -432,19 +432,27 @@ func (s *SqlRetentionPolicyStore) GetCount() (int64, error) {
 }
 
 func (s *SqlRetentionPolicyStore) Delete(id string) error {
-	builder := s.getQueryBuilder().
+	query := s.getQueryBuilder().
 		Delete("RetentionPolicies").
 		Where(sq.Eq{"Id": id})
-	result, err := builder.RunWith(s.GetMaster()).Exec()
+
+	queryString, args, err := query.ToSql()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "retention_policies_tosql")
 	}
-	numRowsAffected, err := result.RowsAffected()
+
+	sqlResult, err := s.GetMasterX().Exec(queryString, args...)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to permanent delete retention policy with id=%s", id)
+	}
+
+	numRowsAffected, err := sqlResult.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "unable to get rows affected")
 	} else if numRowsAffected == 0 {
 		return errors.New("policy not found")
 	}
+
 	return nil
 }
 
