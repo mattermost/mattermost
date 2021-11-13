@@ -11,7 +11,6 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
-	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
@@ -59,7 +58,7 @@ func (s *SqlRetentionPolicyStore) createIndexesIfNotExists() {
 
 // executePossiblyEmptyQuery only executes the query if it is non-empty. This helps avoid
 // having to check for MySQL, which, unlike Postgres, does not allow empty queries.
-func executePossiblyEmptyQuery(txn *gorp.Transaction, query string, args ...interface{}) (sql.Result, error) {
+func executePossiblyEmptyQuery(txn *sqlxTxWrapper, query string, args ...interface{}) (sql.Result, error) {
 	if query == "" {
 		return nil, nil
 	}
@@ -100,13 +99,16 @@ func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndC
 		return nil, err
 	}
 
-	policySelectQuery, policySelectProps := s.buildGetPolicyQuery(policy.ID)
-
-	txn, err := s.GetMaster().Begin()
+	queryString, args, err := s.buildGetPolicyQuery(policy.ID)
 	if err != nil {
 		return nil, err
 	}
-	defer finalizeTransaction(txn)
+
+	txn, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return nil, err
+	}
+	defer finalizeTransactionX(txn)
 	// Create a new policy in RetentionPolicies
 	if _, err = txn.Exec(policyInsertQuery, policyInsertArgs...); err != nil {
 		return nil, err
@@ -121,7 +123,7 @@ func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndC
 	}
 	// Select the new policy (with team/channel counts) which we just created
 	var newPolicy model.RetentionPolicyWithTeamAndChannelCounts
-	if err = txn.SelectOne(&newPolicy, policySelectQuery, policySelectProps); err != nil {
+	if err = txn.Get(&newPolicy, queryString, args...); err != nil {
 		return nil, err
 	}
 	if err = txn.Commit(); err != nil {
