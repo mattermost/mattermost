@@ -511,13 +511,20 @@ func (s *SqlRetentionPolicyStore) AddChannels(policyId string, channelIds []stri
 	if err := s.checkChannelsExist(channelIds); err != nil {
 		return err
 	}
-	builder := s.getQueryBuilder().
+	query := s.getQueryBuilder().
 		Insert("RetentionPoliciesChannels").
 		Columns("policyId", "channelId")
+
 	for _, channelId := range channelIds {
-		builder = builder.Values(policyId, channelId)
+		query = query.Values(policyId, channelId)
 	}
-	_, err := builder.RunWith(s.GetMaster()).Exec()
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "retention_policies_channels_tosql")
+	}
+
+	_, err = s.GetMasterX().Exec(queryString, args...)
 	if err != nil {
 		switch dbErr := err.(type) {
 		case *pq.Error:
@@ -530,7 +537,8 @@ func (s *SqlRetentionPolicyStore) AddChannels(policyId string, channelIds []stri
 			}
 		}
 	}
-	return err
+
+	return nil
 }
 
 func (s *SqlRetentionPolicyStore) RemoveChannels(policyId string, channelIds []string) error {
