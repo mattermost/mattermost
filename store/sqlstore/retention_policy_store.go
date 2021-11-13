@@ -341,44 +341,62 @@ func (s *SqlRetentionPolicyStore) buildGetPolicyQuery(id string) (query string, 
 // buildGetPoliciesQuery builds a query to select information for the policy with the specified
 // ID, or, if `id` is the empty string, from all policies. The results returned will be sorted by
 // policy display name and ID.
-func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset, limit int) (query string, props map[string]interface{}) {
-	props = map[string]interface{}{"Offset": offset, "Limit": limit}
-	whereIdEqualsPolicyId := ""
+func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset, limit int) (string, []interface{}, error) {
+	rpcSubQuery := s.getQueryBuilder().
+		Select("RetentionPolicies.Id, COUNT(RetentionPoliciesChannels.ChannelId) AS Count").
+		From("RetentionPolicies").
+		LeftJoin("RetentionPoliciesChannels ON RetentionPolicies.Id = RetentionPoliciesChannels.PolicyId").
+		GroupBy("RetentionPolicies.Id").
+		OrderBy("RetentionPolicies.DisplayName, RetentionPolicies.Id").
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
+
 	if id != "" {
-		whereIdEqualsPolicyId = "WHERE RetentionPolicies.Id = :PolicyId"
-		props["PolicyId"] = id
+		rpcSubQuery = rpcSubQuery.Where(sq.Eq{"RetentionPolicies.Id": id})
 	}
-	query = `
-	SELECT RetentionPolicies.Id,
-	       RetentionPolicies.DisplayName,
-	       RetentionPolicies.PostDuration,
-	       A.Count AS ChannelCount,
-	       B.Count AS TeamCount
-	FROM RetentionPolicies
-	INNER JOIN (
-		SELECT RetentionPolicies.Id,
-		       COUNT(RetentionPoliciesChannels.ChannelId) AS Count
-		FROM RetentionPolicies
-		LEFT JOIN RetentionPoliciesChannels ON RetentionPolicies.Id = RetentionPoliciesChannels.PolicyId
-		` + whereIdEqualsPolicyId + `
-		GROUP BY RetentionPolicies.Id
-		ORDER BY RetentionPolicies.DisplayName, RetentionPolicies.Id
-		LIMIT :Limit
-		OFFSET :Offset
-	) AS A ON RetentionPolicies.Id = A.Id
-	INNER JOIN (
-		SELECT RetentionPolicies.Id,
-		       COUNT(RetentionPoliciesTeams.TeamId) AS Count
-		FROM RetentionPolicies
-		LEFT JOIN RetentionPoliciesTeams ON RetentionPolicies.Id = RetentionPoliciesTeams.PolicyId
-		` + whereIdEqualsPolicyId + `
-		GROUP BY RetentionPolicies.Id
-		ORDER BY RetentionPolicies.DisplayName, RetentionPolicies.Id
-		LIMIT :Limit
-		OFFSET :Offset
-	) AS B ON RetentionPolicies.Id = B.Id
-	ORDER BY RetentionPolicies.DisplayName, RetentionPolicies.Id`
-	return
+
+	rpcSubQueryString, args, err := rpcSubQuery.ToSql()
+	if err != nil {
+		return "", nil, errors.Wrap(err, "retention_policies_tosql")
+	}
+
+	rptSubQuery := s.getQueryBuilder().
+		Select("RetentionPolicies.Id, COUNT(RetentionPoliciesTeams.TeamId) AS Count").
+		From("RetentionPolicies").
+		LeftJoin("RetentionPoliciesTeams ON RetentionPolicies.Id = RetentionPoliciesTeams.PolicyId").
+		GroupBy("RetentionPolicies.Id").
+		OrderBy("RetentionPolicies.DisplayName, RetentionPolicies.Id").
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
+
+	if id != "" {
+		rptSubQuery = rptSubQuery.Where(sq.Eq{"RetentionPolicies.Id": id})
+	}
+
+	rptSubQueryString, _, err := rptSubQuery.ToSql()
+	if err != nil {
+		return "", nil, errors.Wrap(err, "retention_policies_tosql")
+	}
+
+	query := s.getQueryBuilder().
+		Select(`
+		  RetentionPolicies.Id,
+			RetentionPolicies.DisplayName,
+			RetentionPolicies.PostDuration,
+		  A.Count AS ChannelCount,
+			B.Count AS TeamCount
+	  `).
+		From("RetentionPolicies").
+		InnerJoin(`(` + rpcSubQueryString + `) AS A ON RetentionPolicies.Id = A.Id`).
+		InnerJoin(`(` + rptSubQueryString + `) AS B ON RetentionPolicies.Id = B.Id`).
+		OrderBy("RetentionPolicies.DisplayName, RetentionPolicies.Id")
+
+	queryString, _, err := query.ToSql()
+	if err != nil {
+		return "", nil, errors.Wrap(err, "retention_policies_tosql")
+	}
+
+	return queryString, args, nil
 }
 
 func (s *SqlRetentionPolicyStore) Get(id string) (*model.RetentionPolicyWithTeamAndChannelCounts, error) {
