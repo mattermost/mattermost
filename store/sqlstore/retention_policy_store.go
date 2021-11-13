@@ -413,8 +413,11 @@ func (s *SqlRetentionPolicyStore) Get(id string) (*model.RetentionPolicyWithTeam
 }
 
 func (s *SqlRetentionPolicyStore) GetAll(offset, limit int) (policies []*model.RetentionPolicyWithTeamAndChannelCounts, err error) {
-	query, props := s.buildGetPoliciesQuery("", offset, limit)
-	_, err = s.GetReplica().Select(&policies, query, props)
+	queryString, args, err := s.buildGetPoliciesQuery("", offset, limit)
+	if err != nil {
+		return
+	}
+	err = s.GetReplicaX().Select(&policies, queryString, args...)
 	return
 }
 
