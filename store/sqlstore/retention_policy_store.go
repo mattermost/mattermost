@@ -485,13 +485,23 @@ func (s *SqlRetentionPolicyStore) GetChannels(policyId string, offset, limit int
 }
 
 func (s *SqlRetentionPolicyStore) GetChannelsCount(policyId string) (int64, error) {
-	const query = `
-	SELECT COUNT(*)
-	FROM RetentionPolicies
-	INNER JOIN RetentionPoliciesChannels ON RetentionPolicies.Id = RetentionPoliciesChannels.PolicyId
-	WHERE RetentionPolicies.Id = :PolicyId`
-	props := map[string]interface{}{"PolicyId": policyId}
-	return s.GetReplica().SelectInt(query, props)
+	query := s.getQueryBuilder().
+		Select("Count(*)").
+		From("RetentionPolicies").
+		InnerJoin("RetentionPoliciesChannels ON RetentionPolicies.Id = RetentionPoliciesChannels.PolicyId").
+		Where(sq.Eq{"RetentionPolicies.Id": policyId})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return 0, errors.Wrap(err, "retention_policies_tosql")
+	}
+
+	var count int64
+	if err := s.GetReplicaX().Get(&count, queryString, args...); err != nil {
+		return 0, errors.Wrap(err, "failed to count RetentionPolicies")
+	}
+
+	return count, nil
 }
 
 func (s *SqlRetentionPolicyStore) AddChannels(policyId string, channelIds []string) error {
