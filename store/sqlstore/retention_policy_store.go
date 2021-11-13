@@ -808,17 +808,31 @@ func (s *SqlRetentionPolicyStore) GetChannelPoliciesForUser(userID string, offse
 }
 
 func (s *SqlRetentionPolicyStore) GetChannelPoliciesCountForUser(userID string) (int64, error) {
-	const query = `
-	SELECT COUNT(*)
-	FROM Users
-	INNER JOIN ChannelMembers ON Users.Id = ChannelMembers.UserId
-	INNER JOIN Channels ON ChannelMembers.ChannelId = Channels.Id
-	INNER JOIN RetentionPoliciesChannels ON Channels.Id = RetentionPoliciesChannels.ChannelId
-	INNER JOIN RetentionPolicies ON RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id
-	WHERE Users.Id = :UserId
-		AND Channels.DeleteAt = 0`
-	props := map[string]interface{}{"UserId": userID}
-	return s.GetReplica().SelectInt(query, props)
+	query := s.getQueryBuilder().
+		Select("Count(*)").
+		From("Users").
+		InnerJoin("ChannelMembers ON Users.Id = ChannelMembers.UserId").
+		InnerJoin("Channels ON ChannelMembers.ChannelId = Channels.Id").
+		InnerJoin("RetentionPoliciesChannels ON Channels.Id = RetentionPoliciesChannels.ChannelId").
+		InnerJoin("RetentionPolicies ON RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id").
+		Where(
+			sq.And{
+				sq.Eq{"Users.Id": userID},
+				sq.Eq{"Channels.DeleteAt": int(0)},
+			},
+		)
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return 0, errors.Wrap(err, "channel_policies_count_users_tosql")
+	}
+
+	var count int64
+	if err := s.GetReplicaX().Get(&count, queryString, args...); err != nil {
+		return 0, errors.Wrap(err, "failed to count ChannelPoliciesCountForUser")
+	}
+
+	return count, nil
 }
 
 // RetentionPolicyBatchDeletionInfo gives information on how to delete records
