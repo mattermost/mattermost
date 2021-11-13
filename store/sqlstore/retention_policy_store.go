@@ -400,9 +400,13 @@ func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset, limit
 }
 
 func (s *SqlRetentionPolicyStore) Get(id string) (*model.RetentionPolicyWithTeamAndChannelCounts, error) {
-	query, props := s.buildGetPolicyQuery(id)
+	queryString, args, err := s.buildGetPolicyQuery(id)
+	if err != nil {
+		return nil, err
+	}
+
 	var policy model.RetentionPolicyWithTeamAndChannelCounts
-	if err := s.GetReplica().SelectOne(&policy, query, props); err != nil {
+	if err := s.GetReplicaX().Get(&policy, queryString, args...); err != nil {
 		return nil, err
 	}
 	return &policy, nil
