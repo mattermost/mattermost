@@ -637,14 +637,23 @@ func (s *SqlRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string)
 	if len(teamIds) == 0 {
 		return nil
 	}
-	builder := s.getQueryBuilder().
+	query := s.getQueryBuilder().
 		Delete("RetentionPoliciesTeams").
 		Where(sq.And{
 			sq.Eq{"PolicyId": policyId},
 			sq.Eq{"TeamId": teamIds},
 		})
-	_, err := builder.RunWith(s.GetMaster()).Exec()
-	return err
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "retention_policies_teams_tosql")
+	}
+
+	if _, err := s.GetMasterX().Exec(queryString, args...); err != nil {
+		return errors.Wrapf(err, "unable to permanent delete retention policies teams with policyid=%s", policyId)
+	}
+
+	return nil
 }
 
 // DeleteOrphanedRows removes entries from RetentionPoliciesChannels and RetentionPoliciesTeams
