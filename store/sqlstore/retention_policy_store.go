@@ -614,14 +614,23 @@ func (s *SqlRetentionPolicyStore) AddTeams(policyId string, teamIds []string) er
 	if err := s.checkTeamsExist(teamIds); err != nil {
 		return err
 	}
-	builder := s.getQueryBuilder().
+	query := s.getQueryBuilder().
 		Insert("RetentionPoliciesTeams").
 		Columns("PolicyId", "TeamId")
 	for _, teamId := range teamIds {
-		builder = builder.Values(policyId, teamId)
+		query = query.Values(policyId, teamId)
 	}
-	_, err := builder.RunWith(s.GetMaster()).Exec()
-	return err
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "retention_policies_teams_tosql")
+	}
+
+	if _, err := s.GetMasterX().Exec(queryString, args...); err != nil {
+		return errors.Wrap(err, "failed to insert retention policies teams")
+	}
+
+	return nil
 }
 
 func (s *SqlRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string) error {
