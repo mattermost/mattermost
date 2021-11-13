@@ -994,11 +994,11 @@ func genericRetentionPoliciesDeletion(
 		` + query + `
 		) AS A ON ` + joinClause
 	}
-	result, err := s.GetMaster().Exec(query, args...)
+	sqlResult, err := s.GetMasterX().Exec(query, args...)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to delete "+r.Table)
 	}
-	rowsAffected, err = result.RowsAffected()
+	rowsAffected, err = sqlResult.RowsAffected()
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to get rows affected for "+r.Table)
 	}
