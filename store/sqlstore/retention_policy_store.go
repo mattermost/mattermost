@@ -660,26 +660,49 @@ func (s *SqlRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string)
 // where a channel or team no longer exists.
 func (s *SqlRetentionPolicyStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
 	// We need the extra level of nesting to deal with MySQL's locking
-	const rpcDeleteQuery = `
-	DELETE FROM RetentionPoliciesChannels WHERE ChannelId IN (
-		SELECT * FROM (
-			SELECT ChannelId FROM RetentionPoliciesChannels
-			LEFT JOIN Channels ON RetentionPoliciesChannels.ChannelId = Channels.Id
-			WHERE Channels.Id IS NULL
-			LIMIT :Limit
-		) AS A
-	)`
-	const rptDeleteQuery = `
-	DELETE FROM RetentionPoliciesTeams WHERE TeamId IN (
-		SELECT * FROM (
-			SELECT TeamId FROM RetentionPoliciesTeams
-			LEFT JOIN Teams ON RetentionPoliciesTeams.TeamId = Teams.Id
-			WHERE Teams.Id IS NULL
-			LIMIT :Limit
-		) AS A
-	)`
-	props := map[string]interface{}{"Limit": limit}
-	result, err := s.GetMaster().Exec(rpcDeleteQuery, props)
+	rpcSubQuery := s.getQueryBuilder().
+		Select("ChannelId").
+		From("RetentionPoliciesChannels").
+		LeftJoin("Channels ON RetentionPoliciesChannels.ChannelId = Channels.Id").
+		Where("Channels.Id IS NULL").
+		Limit(uint64(limit))
+
+	rpcSubQueryString, rpcArgs, err := rpcSubQuery.ToSql()
+	if err != nil {
+		return int64(0), errors.Wrap(err, "retention_policies_channels_tosql")
+	}
+
+	rpcDeleteQuery, _, err := s.getQueryBuilder().
+		Delete("RetentionPoliciesChannels").
+		Where(`ChannelId IN (SELECT * FROM (` + rpcSubQueryString + `) AS A)`).
+		ToSql()
+
+	if err != nil {
+		return int64(0), errors.Wrap(err, "retention_policies_channels_tosql")
+	}
+
+	rptSubQuery := s.getQueryBuilder().
+		Select("TeamId").
+		From("RetentionPoliciesTeams").
+		LeftJoin("Teams ON RetentionPoliciesTeams.TeamId = Teams.Id").
+		Where("Teams.Id IS NULL").
+		Limit(uint64(limit))
+
+	rptSubQueryString, rptArgs, err := rptSubQuery.ToSql()
+	if err != nil {
+		return int64(0), errors.Wrap(err, "retention_policies_teams_tosql")
+	}
+
+	rptDeleteQuery, _, err := s.getQueryBuilder().
+		Delete("RetentionPoliciesTeams").
+		Where(`TeamId IN (SELECT * FROM (` + rptSubQueryString + `) AS A)`).
+		ToSql()
+
+	if err != nil {
+		return int64(0), errors.Wrap(err, "retention_policies_teams_tosql")
+	}
+
+	result, err := s.GetMasterX().Exec(rpcDeleteQuery, rpcArgs...)
 	if err != nil {
 		return
 	}
@@ -687,7 +710,7 @@ func (s *SqlRetentionPolicyStore) DeleteOrphanedRows(limit int) (deleted int64, 
 	if err != nil {
 		return
 	}
-	result, err = s.GetMaster().Exec(rptDeleteQuery, props)
+	result, err = s.GetMasterX().Exec(rptDeleteQuery, rptArgs...)
 	if err != nil {
 		return
 	}
