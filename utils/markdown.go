@@ -141,7 +141,7 @@ func (r *notificationRenderer) renderText(w util.BufWriter, source []byte, node 
 
 func (r *notificationRenderer) renderTextBlock(w util.BufWriter, _ []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if !entering {
-		if node.FirstChild() != nil {
+		if _, ok := node.NextSibling().(ast.Node); ok && node.FirstChild() != nil {
 			_ = w.WriteByte(' ')
 		}
 	}
