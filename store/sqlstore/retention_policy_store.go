@@ -334,7 +334,7 @@ func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndC
 	return &newPolicy, nil
 }
 
-func (s *SqlRetentionPolicyStore) buildGetPolicyQuery(id string) (query string, props map[string]interface{}) {
+func (s *SqlRetentionPolicyStore) buildGetPolicyQuery(id string) (string, []interface{}, error) {
 	return s.buildGetPoliciesQuery(id, 0, 1)
 }
 
