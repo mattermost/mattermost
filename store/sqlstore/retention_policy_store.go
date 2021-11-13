@@ -174,7 +174,7 @@ func (s *SqlRetentionPolicyStore) checkChannelsExist(channelIDs []string) error 
 			return err
 		}
 		var rows []*string
-		_, err = s.GetReplica().Select(&rows, channelsSelectQuery, channelsSelectArgs...)
+		err = s.GetReplicaX().Select(&rows, channelsSelectQuery, channelsSelectArgs...)
 		if err != nil {
 			return err
 		}
