@@ -293,13 +293,16 @@ func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndC
 		}
 	}
 
-	policySelectQuery, policySelectProps := s.buildGetPolicyQuery(patch.ID)
-
-	txn, err := s.GetMaster().Begin()
+	queryString, args, err := s.buildGetPolicyQuery(patch.ID)
 	if err != nil {
 		return nil, err
 	}
-	defer finalizeTransaction(txn)
+
+	txn, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return nil, err
+	}
+	defer finalizeTransactionX(txn)
 	// Update the fields of the policy in RetentionPolicies
 	if _, err = executePossiblyEmptyQuery(txn, policyUpdateQuery, policyUpdateArgs...); err != nil {
 		return nil, err
@@ -322,7 +325,7 @@ func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndC
 	}
 	// Select the policy which we just updated
 	var newPolicy model.RetentionPolicyWithTeamAndChannelCounts
-	if err = txn.SelectOne(&newPolicy, policySelectQuery, policySelectProps); err != nil {
+	if err = txn.Get(&newPolicy, queryString, args...); err != nil {
 		return nil, err
 	}
 	if err = txn.Commit(); err != nil {
