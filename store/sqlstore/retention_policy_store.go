@@ -545,14 +545,23 @@ func (s *SqlRetentionPolicyStore) RemoveChannels(policyId string, channelIds []s
 	if len(channelIds) == 0 {
 		return nil
 	}
-	builder := s.getQueryBuilder().
+	query := s.getQueryBuilder().
 		Delete("RetentionPoliciesChannels").
 		Where(sq.And{
 			sq.Eq{"PolicyId": policyId},
 			sq.Eq{"ChannelId": channelIds},
 		})
-	_, err := builder.RunWith(s.GetMaster()).Exec()
-	return err
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "retention_policies_channels_tosql")
+	}
+
+	if _, err := s.GetMasterX().Exec(queryString, args...); err != nil {
+		return errors.Wrapf(err, "failed to permanent delete retention policy channels with policyid=%s", policyId)
+	}
+
+	return nil
 }
 
 func (s *SqlRetentionPolicyStore) GetTeams(policyId string, offset, limit int) (teams []*model.Team, err error) {
