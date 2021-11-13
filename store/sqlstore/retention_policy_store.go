@@ -456,25 +456,32 @@ func (s *SqlRetentionPolicyStore) Delete(id string) error {
 	return nil
 }
 
-func (s *SqlRetentionPolicyStore) GetChannels(policyId string, offset, limit int) (channels model.ChannelListWithTeamData, err error) {
-	const query = `
-	SELECT Channels.*,
-	       Teams.DisplayName AS TeamDisplayName,
-	       Teams.Name AS TeamName,
-	       Teams.UpdateAt AS TeamUpdateAt
-	FROM RetentionPoliciesChannels
-	INNER JOIN Channels ON RetentionPoliciesChannels.ChannelId = Channels.Id
-	INNER JOIN Teams ON Channels.TeamId = Teams.Id
-	WHERE RetentionPoliciesChannels.PolicyId = :PolicyId
-	ORDER BY Channels.DisplayName, Channels.Id
-	LIMIT :Limit
-	OFFSET :Offset`
-	props := map[string]interface{}{"PolicyId": policyId, "Limit": limit, "Offset": offset}
-	_, err = s.GetReplica().Select(&channels, query, props)
+func (s *SqlRetentionPolicyStore) GetChannels(policyId string, offset, limit int) (model.ChannelListWithTeamData, error) {
+	query := s.getQueryBuilder().Select(`Channels.*, Teams.DisplayName AS TeamDisplayName,
+	  Teams.Name AS TeamName,Teams.UpdateAt AS TeamUpdateAt`).
+		From("RetentionPoliciesChannels").
+		InnerJoin("Channels ON RetentionPoliciesChannels.ChannelId = Channels.Id").
+		InnerJoin("JOIN Teams ON Channels.TeamId = Teams.Id").
+		Where(sq.Eq{"RetentionPoliciesChannels.PolicyId": policyId}).
+		OrderBy("Channels.DisplayName, Channels.Id").
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "retention_policies_channels_tosql")
+	}
+
+	var channels model.ChannelListWithTeamData
+	if err := s.GetReplicaX().Select(&channels, queryString, args...); err != nil {
+		return channels, errors.Wrap(err, "failed to find RetentionPoliciesChannels")
+	}
+
 	for _, channel := range channels {
 		channel.PolicyID = model.NewString(policyId)
 	}
-	return
+
+	return channels, nil
 }
 
 func (s *SqlRetentionPolicyStore) GetChannelsCount(policyId string) (int64, error) {
