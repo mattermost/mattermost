@@ -143,7 +143,7 @@ func (s *SqlRetentionPolicyStore) checkTeamsExist(teamIDs []string) error {
 			return err
 		}
 		var rows []*string
-		_, err = s.GetReplica().Select(&rows, teamsSelectQuery, teamsSelectArgs...)
+		err = s.GetReplicaX().Select(&rows, teamsSelectQuery, teamsSelectArgs...)
 		if err != nil {
 			return err
 		}
