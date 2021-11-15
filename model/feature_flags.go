@@ -44,9 +44,6 @@ type FeatureFlags struct {
 	// Enable different team menu button treatments, possible values = ("none", "by_team_name", "inverted_sidebar_bg_color")
 	AddChannelButton string
 
-	// Enable different treatments for first time users, possible values = ("none", "tour_point", "around_input")
-	PrewrittenMessages string
-
 	// Determine whether when a user gets created, they'll have noisy notifications e.g. Send desktop notifications for all activity
 	NewAccountNoisy bool
 	// Enable Boards Unfurl Preview
@@ -81,7 +78,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PermalinkPreviews = true
 	f.GlobalHeader = true
 	f.AddChannelButton = "by_team_name"
-	f.PrewrittenMessages = "tour_point"
 	f.NewAccountNoisy = false
 	f.BoardsUnfurl = true
 	f.CallsMobile = false
