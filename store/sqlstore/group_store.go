@@ -1792,9 +1792,9 @@ func (s *SqlGroupStore) UpsertMembers(groupID string, userIDs []string) ([]*mode
 }
 
 func (s *SqlGroupStore) buildUpsertMembersQuery(groupID string, userIDs []string) (members []*model.GroupMember, query string, args []interface{}, err error) {
-	var retrievedGroup *model.Group
+	var retrievedGroup model.Group
 	// Check Group exists
-	if err = s.GetReplica().SelectOne(&retrievedGroup, "SELECT * FROM UserGroups WHERE Id = :Id", map[string]interface{}{"Id": groupID}); err != nil {
+	if err = s.GetReplicaX().Get(&retrievedGroup, "SELECT * FROM UserGroups WHERE Id = ?", groupID); err != nil {
 		err = errors.Wrapf(err, "failed to get UserGroup with groupId=%s", groupID)
 		return
 	}
@@ -1857,7 +1857,7 @@ func (s *SqlGroupStore) buildDeleteMembersQuery(groupID string, userIDs []string
 		return
 	}
 
-	_, err = s.GetReplica().Select(&members, membersSelectQuery, membersSelectArgs...)
+	err = s.GetReplicaX().Select(&members, membersSelectQuery, membersSelectArgs...)
 	if err != nil {
 		return
 	}
