@@ -289,6 +289,10 @@ func getMarketplacePlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadPlugins) {
+		filter.LocalOnly = true
+	}
+
 	plugins, appErr := c.App.GetMarketplacePlugins(filter)
 	if appErr != nil {
 		c.Err = appErr

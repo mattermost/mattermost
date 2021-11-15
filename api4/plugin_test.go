@@ -837,6 +837,30 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 			*cfg.PluginSettings.EnableMarketplace = true
 		})
 
+		pluginDir := *th.App.Config().PluginSettings.Directory
+
+		saveManifest := func(m *model.Manifest, name string) error {
+			b, err := json.Marshal(m)
+			if err != nil {
+				return err
+			}
+
+			dir := filepath.Join(pluginDir, name)
+			fname := filepath.Join(dir, "plugin.json")
+
+			err = os.Mkdir(dir, 0770)
+			if err != nil {
+				return err
+			}
+
+			err = os.WriteFile(fname, b, 0600)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		}
+
 		serverOnlyPlugin := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
 				Manifest: &model.Manifest{
@@ -870,7 +894,10 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 			},
 		}
 
-		expectedPlugins := []*model.MarketplacePlugin{serverAndWebappPlugin, webappOnlyPlugin}
+		require.NoError(t, saveManifest(serverOnlyPlugin.Manifest, "server-only"))
+		require.NoError(t, saveManifest(webappOnlyPlugin.Manifest, "webapp-only"))
+		require.NoError(t, saveManifest(serverAndWebappPlugin.Manifest, "server-and-webapp"))
+
 		allPlugins := []*model.MarketplacePlugin{serverAndWebappPlugin, serverOnlyPlugin, webappOnlyPlugin}
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -891,7 +918,10 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 
 		plugins, _, err = th.Client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
 		require.NoError(t, err)
-		require.Equal(t, expectedPlugins, plugins)
+
+		require.Len(t, plugins, 2)
+		require.Equal(t, "server-and-webapp", plugins[0].Manifest.Id)
+		require.Equal(t, "webapp-only", plugins[1].Manifest.Id)
 	})
 }
 
