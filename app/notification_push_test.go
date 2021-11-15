@@ -677,6 +677,12 @@ func TestGetPushNotificationMessage(t *testing.T) {
 			ChannelType:       model.ChannelTypeDirect,
 			ExpectedMessage:   "this is a message",
 		},
+		"full message, direct message channel, commented on CRT enabled thread": {
+			Message:           "this is a message",
+			replyToThreadType: model.CommentsNotifyCRT,
+			ChannelType:       model.ChannelTypeDirect,
+			ExpectedMessage:   "user: this is a message",
+		},
 		"generic message with channel, public channel, no mention": {
 			Message:                  "this is a message",
 			PushNotificationContents: model.GenericNotification,
