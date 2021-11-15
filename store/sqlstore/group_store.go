@@ -1784,7 +1784,7 @@ func (s *SqlGroupStore) UpsertMembers(groupID string, userIDs []string) ([]*mode
 		return nil, err
 	}
 
-	if _, err = s.GetMaster().Exec(query, args...); err != nil {
+	if _, err = s.GetMasterX().Exec(query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to save GroupMember")
 	}
 
@@ -1837,7 +1837,7 @@ func (s *SqlGroupStore) DeleteMembers(groupID string, userIDs []string) ([]*mode
 		return nil, err
 	}
 
-	if _, err = s.GetMaster().Exec(query, args...); err != nil {
+	if _, err = s.GetMasterX().Exec(query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to delete GroupMembers")
 	}
 	return members, err
