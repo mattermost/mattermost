@@ -463,8 +463,6 @@ func (ts *TelemetryService) trackConfig() {
 	ts.SendTelemetry(TrackConfigClientReq, map[string]interface{}{
 		"android_latest_version": cfg.ClientRequirements.AndroidLatestVersion,
 		"android_min_version":    cfg.ClientRequirements.AndroidMinVersion,
-		"desktop_latest_version": cfg.ClientRequirements.DesktopLatestVersion,
-		"desktop_min_version":    cfg.ClientRequirements.DesktopMinVersion,
 		"ios_latest_version":     cfg.ClientRequirements.IosLatestVersion,
 		"ios_min_version":        cfg.ClientRequirements.IosMinVersion,
 	})
