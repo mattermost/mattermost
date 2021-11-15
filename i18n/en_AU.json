@@ -9265,5 +9265,13 @@
   {
     "id": "ent.elasticsearch.getAllChannelMembers.error",
     "translation": "Failed to retrieve all channel members"
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "Unable to retrieve all roles."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Failed to update the custom status. Please add either emoji, custom status text or both."
   }
 ]
