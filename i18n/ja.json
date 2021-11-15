@@ -9258,5 +9258,9 @@
   {
     "id": "ent.elasticsearch.getAllChannelMembers.error",
     "translation": "すべてのチャンネルメンバーを取得できませんでした"
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "カスタムステータスを更新できませんでした。絵文字とテキストステータスのどちらかまたは両方を指定してください。"
   }
 ]
