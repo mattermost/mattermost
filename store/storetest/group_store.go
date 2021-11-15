@@ -5018,14 +5018,15 @@ func groupTestGetNonMemberUsersPage(t *testing.T, ss store.Store) {
 
 	users, err := ss.Group().GetNonMemberUsersPage(group.Id, 0, 1000)
 	require.NoError(t, err)
-	require.Len(t, users, 2)
+
+	originalLen := len(users)
 
 	_, err = ss.Group().UpsertMember(group.Id, user1.Id)
 	require.NoError(t, err)
 
 	users, err = ss.Group().GetNonMemberUsersPage(group.Id, 0, 1000)
 	require.NoError(t, err)
-	require.Len(t, users, 1)
+	require.Len(t, users, originalLen-1)
 
 	users, err = ss.Group().GetNonMemberUsersPage(model.NewId(), 0, 1000)
 	require.Error(t, err)
