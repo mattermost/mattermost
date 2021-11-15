@@ -1322,16 +1322,21 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		// we then manually schedule the job
-		_, e := c.App.Srv().Jobs.CreateJob(model.JobTypeResendInvitationEmail, jobData)
+		j, e := c.App.Srv().Jobs.CreateJob(model.JobTypeResendInvitationEmail, jobData)
 		if e != nil {
 			c.Err = model.NewAppError("Api4.inviteUsersToTeam", e.Id, nil, e.Error(), e.StatusCode)
 			return
 		}
 
+		sysVar := &model.System{Name: j.Id, Value: "0"}
+		if sysValErr := c.App.Srv().Store.System().SaveOrUpdate(sysVar); sysValErr != nil {
+			mlog.Warn("Error while saving system value", mlog.Err(sysValErr))
+		}
+
 		var invitesWithError []*model.EmailInviteWithError
 		var err *model.AppError
 		if emailList != nil {
-			invitesWithError, err = c.App.InviteNewUsersToTeamGracefully(emailList, c.Params.TeamId, c.AppContext.Session().UserId)
+			invitesWithError, err = c.App.InviteNewUsersToTeamGracefully(emailList, c.Params.TeamId, c.AppContext.Session().UserId, "")
 		}
 
 		if len(invitesOverLimit) > 0 {

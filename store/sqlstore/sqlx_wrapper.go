@@ -48,6 +48,15 @@ func (w *sqlxDBWrapper) Beginx() (*sqlxTxWrapper, error) {
 	return newSqlxTxWrapper(tx, w.queryTimeout, w.trace), nil
 }
 
+func (w *sqlxDBWrapper) BeginXWithIsolation(opts *sql.TxOptions) (*sqlxTxWrapper, error) {
+	tx, err := w.DB.BeginTxx(context.Background(), opts)
+	if err != nil {
+		return nil, err
+	}
+
+	return newSqlxTxWrapper(tx, w.queryTimeout, w.trace), nil
+}
+
 func (w *sqlxDBWrapper) Get(dest interface{}, query string, args ...interface{}) error {
 	query = w.DB.Rebind(query)
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
