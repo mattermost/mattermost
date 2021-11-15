@@ -10,6 +10,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx/reflectx"
 	"github.com/lib/pq"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -123,6 +124,13 @@ func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndC
 	}
 	// Select the new policy (with team/channel counts) which we just created
 	var newPolicy model.RetentionPolicyWithTeamAndChannelCounts
+
+	txn.Mapper = reflectx.NewMapperTagFunc(
+		"db",
+		func(s string) string { return strings.ToLower(s) },
+		func(s string) string { return strings.ToLower(s) },
+	)
+
 	if err = txn.Get(&newPolicy, queryString, args...); err != nil {
 		return nil, err
 	}
