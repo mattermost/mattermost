@@ -3255,9 +3255,9 @@ func TestImportImportDirectPost(t *testing.T) {
 	require.NoError(t, err)
 	initialPostCount := result
 	initialDate := model.GetMillis()
-	posttypeDate := initialDate + 2
-	editatCreateDate := initialDate + 3
-	editatEditDate := initialDate + 4
+	posttypeDate := initialDate + 3
+	editatCreateDate := initialDate + 4
+	editatEditDate := initialDate + 5
 
 	t.Run("Try adding an invalid post in dry run mode", func(t *testing.T) {
 		data := LineImportWorkerData{
@@ -3479,6 +3479,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
+		AssertAllPostsCount(t, th.App, initialPostCount, 5, "")
 
 		// Check the post values.
 		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
@@ -3509,7 +3510,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 5, "")
+		AssertAllPostsCount(t, th.App, initialPostCount, 6, "")
 
 		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
 		require.NoError(t, nErr)
@@ -3541,7 +3542,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 6, "")
+		AssertAllPostsCount(t, th.App, initialPostCount, 7, "")
 
 		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
 		require.NoError(t, nErr)
@@ -4023,7 +4024,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.Len(t, replies, 1, "Unexpected number of posts found.")
 
 		reply := replies[0]
-		replyBool := reply.Type != *(*data.DirectPost.Replies)[0].Type || reply.Message != *(*data.DirectPost.Replies)[0].Message || reply.CreateAt != *(*data.DirectPost.Replies)[0].CreateAt || reply.EditAt != *(*data.DirectPost.Replies)[0].EditAt || reply.UserId != th.BasicUser2.Id
+		replyBool := reply.Type != *(*data.DirectPost.Replies)[0].Type || reply.Message != *(*data.DirectPost.Replies)[0].Message || reply.CreateAt != *(*data.DirectPost.Replies)[0].CreateAt || reply.EditAt != *(*data.DirectPost.Replies)[0].EditAt || reply.UserId != th.BasicUser.Id
 		require.False(t, replyBool, "Post properties not as expected")
 	})
 }
