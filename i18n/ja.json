@@ -9262,9 +9262,5 @@
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
     "translation": "カスタムステータスを更新できませんでした。絵文字とテキストステータスのどちらかまたは両方を指定してください。"
-  },
-  {
-    "id": "app.user.get_thread_count_for_user.app_error",
-    "translation": "そのユーザーのスレッド数を取得できませんでした。"
   }
 ]
