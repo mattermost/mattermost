@@ -1413,6 +1413,7 @@ func upgradeDatabaseToVersion620(sqlStore *SqlStore) {
 	// TODO: uncomment when the time arrive to upgrade the DB for 6.2
 	// if shouldPerformUpgrade(sqlStore, Version610, Version620) {
 
-	// 	saveSchemaVersion(sqlStore, Version620)
+	sqlStore.AlterColumnTypeIfExists("PluginKeyValueStore", "PKey", "VARCHAR(150)", "VARCHAR(150)")
+	//saveSchemaVersion(sqlStore, Version620)
 	// }
 }
