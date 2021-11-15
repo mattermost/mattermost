@@ -9262,5 +9262,21 @@
   {
     "id": "ent.elasticsearch.getAllChannelMembers.error",
     "translation": "Nem sikerült lekérni a csatorna összes tagját"
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "Nem sikerült lekérni az összes szerepkört."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Nem sikerült frissíteni az egyéni állapotot. Kérem adjon hozzá vagy emojit vagy egyéni állapot szöveget vagy mindkettőt."
+  },
+  {
+    "id": "app.user.get_thread_count_for_user.app_error",
+    "translation": "Nem sikerült lekérni a felhasználó üzenet szálainak számát."
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "Emlékeztető"
   }
 ]
