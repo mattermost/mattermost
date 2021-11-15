@@ -9257,5 +9257,13 @@
   {
     "id": "api.user.create_user.bad_token_email_data.app_error",
     "translation": "Mejladressen i tokenet stämmer inte med mejladressen i användardata."
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "Misslyckades att hämta alla teammedlemmar"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "Misslyckades att hämta alla kanalmedlemmar"
   }
 ]
