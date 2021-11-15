@@ -229,8 +229,6 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 
 	props["AndroidLatestVersion"] = c.ClientRequirements.AndroidLatestVersion
 	props["AndroidMinVersion"] = c.ClientRequirements.AndroidMinVersion
-	props["DesktopLatestVersion"] = c.ClientRequirements.DesktopLatestVersion
-	props["DesktopMinVersion"] = c.ClientRequirements.DesktopMinVersion
 	props["IosLatestVersion"] = c.ClientRequirements.IosLatestVersion
 	props["IosMinVersion"] = c.ClientRequirements.IosMinVersion
 
