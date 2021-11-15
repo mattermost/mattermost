@@ -149,13 +149,20 @@ func (s *SqlGroupStore) CreateWithUserIds(group *model.GroupWithUserIds) (*model
 		return nil, err
 	}
 
-	groupSelectQuery, groupSelectProps := s.buildGetGroupQuery(group.Id, 0, 1)
+	query, params, err := s.getQueryBuilder().
+		Select("UserGroups.*, A.Count AS MemberCount").
+		From("UserGroups").
+		InnerJoin("(SELECT UserGroups.Id, COUNT(GroupMembers.UserId) AS Count FROM UserGroups LEFT JOIN GroupMembers ON UserGroups.Id = GroupMembers.GroupId WHERE UserGroups.Id = ? GROUP BY UserGroups.Id ORDER BY UserGroups.DisplayName, UserGroups.Id LIMIT ? OFFSET ?) AS A ON UserGroups.Id = A.Id", group.Id, 1, 0).
+		OrderBy("UserGroups.CreateAt DESC").ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "create_with_user_ids_to_sql")
+	}
 
-	txn, err := s.GetMaster().Begin()
+	txn, err := s.GetMasterX().Begin()
 	if err != nil {
 		return nil, err
 	}
-	defer finalizeTransaction(txn)
+	defer txn.Commit()
 	// Create a new usergroup
 	if _, err = txn.Exec(groupInsertQuery, groupInsertArgs...); err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "groups_name_key"}) {
@@ -164,19 +171,21 @@ func (s *SqlGroupStore) CreateWithUserIds(group *model.GroupWithUserIds) (*model
 		return nil, errors.Wrap(err, "failed to save Group")
 	}
 	// Insert the Group Members
-	if _, err = executePossiblyEmptyQuery(txn, usersInsertQuery, usersInsertArgs...); err != nil {
+	_, err = txn.Exec(usersInsertQuery, usersInsertArgs...)
+	if err != nil {
 		return nil, err
 	}
 
 	// Get the new Group along with the member count
-	var newGroup model.Group
-	if err = txn.SelectOne(&newGroup, groupSelectQuery, groupSelectProps); err != nil {
+	var g model.Group
+	row := txn.QueryRow(query, params...)
+	if err := row.Scan(&g.Id, &g.Name, &g.DisplayName, &g.Description, &g.Source, &g.RemoteId, &g.CreateAt, &g.UpdateAt, &g.DeleteAt, &g.AllowReference, &g.MemberCount); err != nil {
 		return nil, err
 	}
 	if err = txn.Commit(); err != nil {
 		return nil, err
 	}
-	return &newGroup, nil
+	return &g, nil
 }
 
 func (s *SqlGroupStore) checkUsersExist(userIDs []string) error {
@@ -190,7 +199,7 @@ func (s *SqlGroupStore) checkUsersExist(userIDs []string) error {
 			return err
 		}
 		var rows []*string
-		_, err = s.GetReplica().Select(&rows, usersSelectQuery, usersSelectArgs...)
+		err = s.GetReplicaX().Select(&rows, usersSelectQuery, usersSelectArgs...)
 		if err != nil {
 			return err
 		}
@@ -220,32 +229,6 @@ func (s *SqlGroupStore) buildInsertGroupUsersQuery(groupId string, userIds []str
 		}
 		query, args, err = builder.ToSql()
 	}
-	return
-}
-
-func (s *SqlGroupStore) buildGetGroupQuery(id string, offset, limit int) (query string, props map[string]interface{}) {
-	props = map[string]interface{}{"Offset": offset, "Limit": limit}
-	whereIdEqualsPolicyId := ""
-	if id != "" {
-		whereIdEqualsPolicyId = "WHERE UserGroups.Id = :GroupId"
-		props["GroupId"] = id
-	}
-	query = `
-	SELECT UserGroups.*,
-	       A.Count AS MemberCount
-	FROM UserGroups
-	INNER JOIN (
-		SELECT UserGroups.Id,
-		       COUNT(GroupMembers.UserId) AS Count
-		FROM UserGroups
-		LEFT JOIN GroupMembers ON UserGroups.Id = GroupMembers.GroupId
-		` + whereIdEqualsPolicyId + `
-		GROUP BY UserGroups.Id
-		ORDER BY UserGroups.DisplayName, UserGroups.Id
-		LIMIT :Limit
-		OFFSET :Offset
-	) AS A ON UserGroups.Id = A.Id
-	ORDER BY UserGroups.CreateAt DESC`
 	return
 }
 
