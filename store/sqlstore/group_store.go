@@ -450,6 +450,10 @@ func (s *SqlGroupStore) GetMemberUsersPage(groupID string, page int, perPage int
 func (s *SqlGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error) {
 	groupMembers := []*model.User{}
 
+	if err := s.GetReplicaX().Get(&model.Group{}, "SELECT * FROM UserGroups WHERE Id = ?", groupID); err != nil {
+		return nil, errors.Wrap(err, "GetNonMemberUsersPage")
+	}
+
 	query := `
 	SELECT 
 		Users.*
