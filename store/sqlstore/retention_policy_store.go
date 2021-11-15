@@ -10,7 +10,6 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/go-sql-driver/mysql"
-	"github.com/jmoiron/sqlx/reflectx"
 	"github.com/lib/pq"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -124,12 +123,6 @@ func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndC
 	}
 	// Select the new policy (with team/channel counts) which we just created
 	var newPolicy model.RetentionPolicyWithTeamAndChannelCounts
-
-	txn.Mapper = reflectx.NewMapperTagFunc(
-		"db",
-		func(s string) string { return strings.ToLower(s) },
-		func(s string) string { return strings.ToLower(s) },
-	)
 
 	if err = txn.Get(&newPolicy, queryString, args...); err != nil {
 		return nil, err
@@ -388,7 +381,7 @@ func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset, limit
 
 	query := s.getQueryBuilder().
 		Select(`
-		  RetentionPolicies.Id,
+		  RetentionPolicies.Id as "Id",
 			RetentionPolicies.DisplayName,
 			RetentionPolicies.PostDuration,
 		  A.Count AS ChannelCount,
@@ -402,6 +395,10 @@ func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset, limit
 	queryString, _, err := query.ToSql()
 	if err != nil {
 		return "", nil, errors.Wrap(err, "retention_policies_tosql")
+	}
+
+	if s.DriverName() == model.DatabaseDriverMysql {
+		args = append(args, args...)
 	}
 
 	return queryString, args, nil
@@ -469,7 +466,7 @@ func (s *SqlRetentionPolicyStore) GetChannels(policyId string, offset, limit int
 	  Teams.Name AS TeamName,Teams.UpdateAt AS TeamUpdateAt`).
 		From("RetentionPoliciesChannels").
 		InnerJoin("Channels ON RetentionPoliciesChannels.ChannelId = Channels.Id").
-		InnerJoin("JOIN Teams ON Channels.TeamId = Teams.Id").
+		InnerJoin("Teams ON Channels.TeamId = Teams.Id").
 		Where(sq.Eq{"RetentionPoliciesChannels.PolicyId": policyId}).
 		OrderBy("Channels.DisplayName, Channels.Id").
 		Limit(uint64(limit)).
@@ -732,7 +729,7 @@ func (s *SqlRetentionPolicyStore) DeleteOrphanedRows(limit int) (deleted int64, 
 
 func (s *SqlRetentionPolicyStore) GetTeamPoliciesForUser(userID string, offset, limit int) ([]*model.RetentionPolicyForTeam, error) {
 	query := s.getQueryBuilder().
-		Select("Teams.Id, RetentionPolicies.PostDuration").
+		Select(`Teams.Id AS "Id", RetentionPolicies.PostDuration`).
 		From("Users").
 		InnerJoin("TeamMembers ON Users.Id = TeamMembers.UserId").
 		InnerJoin("Teams ON TeamMembers.TeamId = Teams.Id").
@@ -790,7 +787,7 @@ func (s *SqlRetentionPolicyStore) GetTeamPoliciesCountForUser(userID string) (in
 
 func (s *SqlRetentionPolicyStore) GetChannelPoliciesForUser(userID string, offset, limit int) (policies []*model.RetentionPolicyForChannel, err error) {
 	query := s.getQueryBuilder().
-		Select("Channels.Id, RetentionPolicies.PostDuration").
+		Select(`Channels.Id as "Id", RetentionPolicies.PostDuration`).
 		From("Users").
 		InnerJoin("ChannelMembers ON Users.Id = ChannelMembers.UserId").
 		InnerJoin("Channels ON ChannelMembers.ChannelId = Channels.Id").
@@ -798,7 +795,7 @@ func (s *SqlRetentionPolicyStore) GetChannelPoliciesForUser(userID string, offse
 		InnerJoin("RetentionPolicies ON RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id").
 		Where(
 			sq.And{
-				sq.Eq{"Userd.Id": userID},
+				sq.Eq{"Users.Id": userID},
 				sq.Eq{"Channels.DeleteAt": int(0)},
 			},
 		).OrderBy("Channels.Id").Limit(uint64(limit)).Offset(uint64(offset))
