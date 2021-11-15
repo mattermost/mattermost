@@ -87,6 +87,8 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 	t.Run("GroupMemberCount", func(t *testing.T) { groupTestGroupMemberCount(t, ss) })
 	t.Run("DistinctGroupMemberCount", func(t *testing.T) { groupTestDistinctGroupMemberCount(t, ss) })
 	t.Run("GroupCountWithAllowReference", func(t *testing.T) { groupTestGroupCountWithAllowReference(t, ss) })
+
+	t.Run("GetMember", func(t *testing.T) { groupTestGetMember(t, ss) })
 }
 
 func testGroupStoreCreate(t *testing.T, ss store.Store) {
@@ -4949,4 +4951,42 @@ func groupTestGroupCountWithAllowReference(t *testing.T, ss store.Store) {
 	countAfter, err := ss.Group().GroupCountWithAllowReference()
 	require.NoError(t, err)
 	require.Greater(t, countAfter, count)
+}
+
+func groupTestGetMember(t *testing.T, ss store.Store) {
+	// Save a group
+	g1 := &model.Group{
+		Name:        model.NewString(model.NewId()),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewString(model.NewId()),
+	}
+	group, err := ss.Group().Create(g1)
+	require.NoError(t, err)
+
+	u1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user1, nErr := ss.User().Save(u1)
+	require.NoError(t, nErr)
+
+	u2 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user2, nErr := ss.User().Save(u2)
+	require.NoError(t, nErr)
+
+	_, err = ss.Group().UpsertMember(group.Id, user1.Id)
+	require.NoError(t, err)
+
+	member, err := ss.Group().GetMember(g1.Id, u1.Id)
+	require.NoError(t, err)
+	require.NotNil(t, member)
+
+	member, err = ss.Group().GetMember(g1.Id, user2.Id)
+	require.Error(t, err)
+	require.Nil(t, member)
 }

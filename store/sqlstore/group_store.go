@@ -390,14 +390,13 @@ func (s *SqlGroupStore) GetMember(groupID, userID string) (*model.GroupMember, e
 	if err != nil {
 		return nil, errors.Wrap(err, "get_member_query")
 	}
-
-	var groupMember *model.GroupMember
-	err = s.GetMaster().SelectOne(&groupMember, query, args...)
+	var groupMember model.GroupMember
+	err = s.GetMasterX().Get(&groupMember, query, args...)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "GetMember")
 	}
 
-	return groupMember, nil
+	return &groupMember, nil
 }
 
 func (s *SqlGroupStore) GetMemberUsers(groupID string) ([]*model.User, error) {
