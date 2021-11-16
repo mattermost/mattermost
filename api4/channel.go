@@ -339,7 +339,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if oldChannel.Name == model.DefaultChannelName {
-		if *patch.Name != "" && *patch.Name != oldChannel.Name {
+		if patch.Name != nil && *patch.Name != oldChannel.Name {
 			c.Err = model.NewAppError("patchChannel", "api.channel.update_channel.tried.app_error", map[string]interface{}{"Channel": model.DefaultChannelName}, "", http.StatusBadRequest)
 			return
 		}
