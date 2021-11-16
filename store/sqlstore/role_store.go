@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -104,11 +103,11 @@ func (s *SqlRoleStore) Save(role *model.Role) (*model.Role, error) {
 	}
 
 	if role.Id == "" {
-		transaction, err := s.GetMaster().Begin()
+		transaction, err := s.GetMasterX().Beginx()
 		if err != nil {
 			return nil, errors.Wrap(err, "begin_transaction")
 		}
-		defer finalizeTransaction(transaction)
+		defer finalizeTransactionX(transaction)
 		createdRole, err := s.createRole(role, transaction)
 		if err != nil {
 			_ = transaction.Rollback()
@@ -130,7 +129,7 @@ func (s *SqlRoleStore) Save(role *model.Role) (*model.Role, error) {
 	return dbRole.ToModel(), nil
 }
 
-func (s *SqlRoleStore) createRole(role *model.Role, transaction *gorp.Transaction) (*model.Role, error) {
+func (s *SqlRoleStore) createRole(role *model.Role, transaction *sqlxTxWrapper) (*model.Role, error) {
 	// Check the role is valid before proceeding.
 	if !role.IsValidWithoutId() {
 		return nil, store.NewErrInvalidInput("Role", "<any>", fmt.Sprintf("%v", role))
@@ -142,7 +141,10 @@ func (s *SqlRoleStore) createRole(role *model.Role, transaction *gorp.Transactio
 	dbRole.CreateAt = model.GetMillis()
 	dbRole.UpdateAt = dbRole.CreateAt
 
-	if err := transaction.Insert(dbRole); err != nil {
+	if _, err := transaction.NamedExec(`INSERT INTO Roles
+		(Id, Name, DisplayName, Description, Permissions, CreateAt, UpdateAt, DeleteAt, SchemeManaged, BuiltIn)
+		VALUES
+		(:Id, :Name, :DisplayName, :Description, :Permissions, :CreateAt, :UpdateAt, :DeleteAt, :SchemeManaged, :BuiltIn)`, dbRole); err != nil {
 		return nil, errors.Wrap(err, "failed to save Role")
 	}
 

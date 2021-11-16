@@ -417,7 +417,7 @@ func TestRudderTelemetry(t *testing.T) {
 
 	t.Run("Send", func(t *testing.T) {
 		testValue := "test-send-value-6789"
-		telemetryService.sendTelemetry("Testing Telemetry", map[string]interface{}{
+		telemetryService.SendTelemetry("Testing Telemetry", map[string]interface{}{
 			"hey": testValue,
 		})
 		select {
