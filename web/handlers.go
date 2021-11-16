@@ -86,6 +86,53 @@ type Handler struct {
 	cspShaDirective string
 }
 
+func generateDevCSP(c Context) string {
+	// Add unsafe-eval to the content security policy for faster source maps in development mode
+	devCSPMap := make(map[string]bool)
+	if model.BuildNumber == "dev" {
+		devCSPMap["unsafe-eval"] = true
+	}
+
+	// Add unsafe-inline to unlock extensions like React & Redux DevTools in Firefox
+	// see https://github.com/reduxjs/redux-devtools/issues/380
+	if model.BuildNumber == "dev" {
+		devCSPMap["unsafe-inline"] = true
+	}
+
+	// Add supported flags for debugging during development, even if not on a dev build.
+	for _, devFlagKVStr := range strings.Split(*c.App.Config().ServiceSettings.DeveloperFlags, ",") {
+		devFlagKVSplit := strings.SplitN(devFlagKVStr, "=", 2)
+		if len(devFlagKVSplit) != 2 {
+			c.Logger.Warn("Unable to parse developer flag", mlog.String("developer_flag", devFlagKVStr))
+			continue
+		}
+		devFlagKey := devFlagKVSplit[0]
+		devFlagValue := devFlagKVSplit[1]
+
+		// Ignore disabled keys
+		if devFlagValue != "true" {
+			continue
+		}
+
+		// Honour only supported keys
+		switch devFlagKey {
+		case "unsafe-eval", "unsafe-inline":
+			devCSPMap[devFlagKey] = true
+		default:
+			c.Logger.Warn("Unrecognized developer flag", mlog.String("developer_flag", devFlagKVStr))
+		}
+	}
+	var devCSP string
+	supportedCSPFlags := []string{"unsafe-eval", "unsafe-inline"}
+	for _, devCSPFlag := range supportedCSPFlags {
+		if devCSPMap[devCSPFlag] {
+			devCSP += fmt.Sprintf(" '%s'", devCSPFlag)
+		}
+	}
+
+	return devCSP
+}
+
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w = newWrappedWriter(w)
 	now := time.Now()
@@ -177,17 +224,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking
 		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
 
-		// Add unsafe-eval to the content security policy for faster source maps in development mode
-		devCSP := ""
-		if model.BuildNumber == "dev" {
-			devCSP += " 'unsafe-eval'"
-		}
-
-		// Add unsafe-inline to unlock extensions like React & Redux DevTools in Firefox
-		// see https://github.com/reduxjs/redux-devtools/issues/380
-		if model.BuildNumber == "dev" {
-			devCSP += " 'unsafe-inline'"
-		}
+		devCSP := generateDevCSP(*c)
 
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
 		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
