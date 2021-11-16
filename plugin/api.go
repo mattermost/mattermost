@@ -44,11 +44,6 @@ type API interface {
 	// Minimum server version: 5.26
 	ExecuteSlashCommand(commandArgs *model.CommandArgs) (*model.CommandResponse, error)
 
-	// GetSession returns the session object for the Session ID
-	//
-	// Minimum server version: 5.2
-	GetSession(sessionID string) (*model.Session, *model.AppError)
-
 	// GetConfig fetches the currently persisted config
 	//
 	// @tag Configuration
@@ -191,6 +186,30 @@ type API interface {
 	// @tag Preference
 	// Minimum server version: 5.26
 	DeletePreferencesForUser(userID string, preferences []model.Preference) *model.AppError
+
+	// GetSession returns the session object for the Session ID
+	//
+	//
+	// Minimum server version: 5.2
+	GetSession(sessionID string) (*model.Session, *model.AppError)
+
+	// CreateSession creates a new user session.
+	//
+	// @tag User
+	// Minimum server version: 6.2
+	CreateSession(session *model.Session) (*model.Session, *model.AppError)
+
+	// ExtendSessionExpiry extends the duration of an existing session.
+	//
+	// @tag User
+	// Minimum server version: 6.2
+	ExtendSessionExpiry(sessionID string, newExpiry int64) *model.AppError
+
+	// RevokeSession revokes an existing user session.
+	//
+	// @tag User
+	// Minimum server version: 6.2
+	RevokeSession(sessionID string) *model.AppError
 
 	// CreateUserAccessToken creates a new access token.
 	// @tag User
