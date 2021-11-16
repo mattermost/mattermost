@@ -179,7 +179,7 @@ func (s *SqlGroupStore) CreateWithUserIds(group *model.GroupWithUserIds) (*model
 	// Get the new Group along with the member count
 	var g model.Group
 	row := txn.QueryRow(query, params...)
-	if err := row.Scan(&g.Id, &g.Name, &g.DisplayName, &g.Description, &g.Source, &g.RemoteId, &g.CreateAt, &g.UpdateAt, &g.DeleteAt, &g.AllowReference, &g.MemberCount); err != nil {
+	if err = row.Scan(&g.Id, &g.Name, &g.DisplayName, &g.Description, &g.Source, &g.RemoteId, &g.CreateAt, &g.UpdateAt, &g.DeleteAt, &g.AllowReference, &g.MemberCount); err != nil {
 		return nil, err
 	}
 	if err = txn.Commit(); err != nil {
