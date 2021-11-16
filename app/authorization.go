@@ -6,6 +6,7 @@ package app
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"net/http"
 	"strings"
 
@@ -91,8 +92,8 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelID str
 
 func (a *App) SessionHasPermissionToGroup(session model.Session, groupID string, permission *model.Permission) bool {
 	groupMember, err := a.Srv().Store.Group().GetMember(groupID, session.UserId)
-	if err != nil && err != sql.ErrNoRows {
-		// to be safe reject access if there's an error
+	// don't reject immediately on ErrNoRows error because there's further authz logic below for non-groupmembers
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return false
 	}
 
