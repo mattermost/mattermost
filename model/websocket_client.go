@@ -6,6 +6,7 @@ package model
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"sync/atomic"
 	"time"
@@ -65,10 +66,26 @@ func NewWebSocketClient(url, authToken string) (*WebSocketClient, error) {
 	return NewWebSocketClientWithDialer(websocket.DefaultDialer, url, authToken)
 }
 
+func NewReliableWebSocketClientWithDialer(dialer *websocket.Dialer, url, authToken, connID string, seqNo int, withAuthHeader bool) (*WebSocketClient, error) {
+	connectURL := url + APIURLSuffix + "/websocket" + fmt.Sprintf("?connection_id=%s&sequence_number=%d", connID, seqNo)
+	var header http.Header
+	if withAuthHeader {
+		header = http.Header{
+			"Authorization": []string{"Bearer " + authToken},
+		}
+	}
+
+	return makeClient(dialer, url, connectURL, authToken, header)
+}
+
 // NewWebSocketClientWithDialer constructs a new WebSocket client with convenience
 // methods for talking to the server using a custom dialer.
 func NewWebSocketClientWithDialer(dialer *websocket.Dialer, url, authToken string) (*WebSocketClient, error) {
-	conn, _, err := dialer.Dial(url+APIURLSuffix+"/websocket", nil)
+	return makeClient(dialer, url, url+APIURLSuffix+"/websocket", authToken, nil)
+}
+
+func makeClient(dialer *websocket.Dialer, url, connectURL, authToken string, header http.Header) (*WebSocketClient, error) {
+	conn, _, err := dialer.Dial(connectURL, header)
 	if err != nil {
 		return nil, NewAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -76,7 +93,7 @@ func NewWebSocketClientWithDialer(dialer *websocket.Dialer, url, authToken strin
 	client := &WebSocketClient{
 		URL:                url,
 		APIURL:             url + APIURLSuffix,
-		ConnectURL:         url + APIURLSuffix + "/websocket",
+		ConnectURL:         connectURL,
 		Conn:               conn,
 		AuthToken:          authToken,
 		Sequence:           1,

@@ -56,8 +56,6 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		conn.SetSessionToken(session.Token)
 		conn.UserId = session.UserId
 
-		// TODO: Same logic to reconnect queue as api4/websocket.go
-
 		conn.App.HubRegister(conn)
 
 		conn.App.Srv().Go(func() {
