@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -397,6 +398,7 @@ func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset, limit
 		return "", nil, errors.Wrap(err, "retention_policies_tosql")
 	}
 
+	// MySQL does not support positional params, so we add one param for each WHERE clause.
 	if s.DriverName() == model.DatabaseDriverMysql {
 		args = append(args, args...)
 	}
@@ -661,48 +663,40 @@ func (s *SqlRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string)
 	return nil
 }
 
+func subQueryIN(property string, query sq.SelectBuilder) sq.Sqlizer {
+	queryString, args, _ := query.ToSql()
+	subQuery := fmt.Sprintf("%s IN (SELECT * FROM (%s) AS A)", property, queryString)
+	return sq.Expr(subQuery, args...)
+}
+
 // DeleteOrphanedRows removes entries from RetentionPoliciesChannels and RetentionPoliciesTeams
 // where a channel or team no longer exists.
 func (s *SqlRetentionPolicyStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
 	// We need the extra level of nesting to deal with MySQL's locking
-	rpcSubQuery := s.getQueryBuilder().
-		Select("ChannelId").
+	rpcSubQuery := sq.Select("ChannelId").
 		From("RetentionPoliciesChannels").
 		LeftJoin("Channels ON RetentionPoliciesChannels.ChannelId = Channels.Id").
 		Where("Channels.Id IS NULL").
 		Limit(uint64(limit))
 
-	rpcSubQueryString, rpcArgs, err := rpcSubQuery.ToSql()
-	if err != nil {
-		return int64(0), errors.Wrap(err, "retention_policies_channels_tosql")
-	}
-
-	rpcDeleteQuery, _, err := s.getQueryBuilder().
+	rpcDeleteQuery, rpcArgs, err := s.getQueryBuilder().
 		Delete("RetentionPoliciesChannels").
-		Where(`ChannelId IN (SELECT * FROM (` + rpcSubQueryString + `) AS A)`).
+		Where(subQueryIN("ChannelId", rpcSubQuery)).
 		ToSql()
-
 	if err != nil {
 		return int64(0), errors.Wrap(err, "retention_policies_channels_tosql")
 	}
 
-	rptSubQuery := s.getQueryBuilder().
-		Select("TeamId").
+	rptSubQuery := sq.Select("TeamId").
 		From("RetentionPoliciesTeams").
 		LeftJoin("Teams ON RetentionPoliciesTeams.TeamId = Teams.Id").
 		Where("Teams.Id IS NULL").
 		Limit(uint64(limit))
 
-	rptSubQueryString, rptArgs, err := rptSubQuery.ToSql()
-	if err != nil {
-		return int64(0), errors.Wrap(err, "retention_policies_teams_tosql")
-	}
-
-	rptDeleteQuery, _, err := s.getQueryBuilder().
+	rptDeleteQuery, rptArgs, err := s.getQueryBuilder().
 		Delete("RetentionPoliciesTeams").
-		Where(`TeamId IN (SELECT * FROM (` + rptSubQueryString + `) AS A)`).
+		Where(subQueryIN("TeamId", rptSubQuery)).
 		ToSql()
-
 	if err != nil {
 		return int64(0), errors.Wrap(err, "retention_policies_teams_tosql")
 	}
