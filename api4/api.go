@@ -132,6 +132,8 @@ type Routes struct {
 	SharedChannels *mux.Router // 'api/v4/sharedchannels'
 
 	Permissions *mux.Router // 'api/v4/permissions'
+
+	InitialLoad *mux.Router // 'api/v4/permissions'
 }
 
 type API struct {
@@ -292,6 +294,7 @@ func Init(srv *app.Server) *API {
 	api.InitSharedChannels()
 	api.InitPermissions()
 	api.InitExport()
+	api.InitInitialLoad()
 
 	srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 
