@@ -14,7 +14,7 @@ import (
 )
 
 func (a *App) SourceHasCRUDPermissions(id string) *model.AppError {
-	group, err := a.GetGroup(id)
+	group, err := a.GetGroup(id, nil)
 
 	if err != nil {
 		return err
@@ -28,7 +28,7 @@ func (a *App) SourceHasCRUDPermissions(id string) *model.AppError {
 	return model.NewAppError("GetGroup", "app.group.crud_permission", nil, "", http.StatusNotImplemented)
 }
 
-func (a *App) GetGroup(id string) (*model.Group, *model.AppError) {
+func (a *App) GetGroup(id string, opts *model.GetGroupOpts) (*model.Group, *model.AppError) {
 	group, err := a.Srv().Store.Group().Get(id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -38,6 +38,15 @@ func (a *App) GetGroup(id string) (*model.Group, *model.AppError) {
 		default:
 			return nil, model.NewAppError("GetGroup", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 		}
+	}
+
+	if opts != nil && opts.IncludeMemberCount {
+		memberCount, err := a.Srv().Store.Group().GetMemberCount(id)
+		if err != nil {
+			return nil, model.NewAppError("GetGroup", "app.member_count", nil, err.Error(), http.StatusInternalServerError)
+		}
+		memberCountInt := int(memberCount)
+		group.MemberCount = &memberCountInt
 	}
 
 	return group, nil

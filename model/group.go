@@ -101,6 +101,10 @@ type GroupSearchOpts struct {
 	FilterParentTeamPermitted bool
 }
 
+type GetGroupOpts struct {
+	IncludeMemberCount bool
+}
+
 type PageOpts struct {
 	Page    int
 	PerPage int

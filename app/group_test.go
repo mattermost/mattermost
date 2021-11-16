@@ -17,13 +17,21 @@ func TestGetGroup(t *testing.T) {
 	defer th.TearDown()
 	group := th.CreateGroup()
 
-	group, err := th.App.GetGroup(group.Id)
+	group, err := th.App.GetGroup(group.Id, nil)
 	require.Nil(t, err)
 	require.NotNil(t, group)
 
-	group, err = th.App.GetGroup(model.NewId())
+	nilGroup, err := th.App.GetGroup(model.NewId(), nil)
 	require.NotNil(t, err)
-	require.Nil(t, group)
+	require.Nil(t, nilGroup)
+
+	group, err = th.App.GetGroup(group.Id, &model.GetGroupOpts{IncludeMemberCount: false})
+	require.Nil(t, err)
+	require.Nil(t, group.MemberCount)
+
+	group, err = th.App.GetGroup(group.Id, &model.GetGroupOpts{IncludeMemberCount: true})
+	require.Nil(t, err)
+	require.NotNil(t, group.MemberCount)
 }
 
 func TestGetGroupByRemoteID(t *testing.T) {

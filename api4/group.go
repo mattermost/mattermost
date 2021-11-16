@@ -108,7 +108,9 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, err := c.App.GetGroup(c.Params.GroupId)
+	group, err := c.App.GetGroup(c.Params.GroupId, &model.GetGroupOpts{
+		IncludeMemberCount: *&c.Params.IncludeMemberCount,
+	})
 	if err != nil {
 		c.Err = err
 		return
