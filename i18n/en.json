@@ -5984,6 +5984,10 @@
     "translation": "Unable to count the sessions."
   },
   {
+    "id": "app.session.extend_session_expiry.app_error",
+    "translation": "Unable to extend session length"
+  },
+  {
     "id": "app.session.get.app_error",
     "translation": "We encountered an error finding the session."
   },
