@@ -143,7 +143,7 @@ func (s *SqlRetentionPolicyStore) checkTeamsExist(teamIDs []string) error {
 		if err != nil {
 			return err
 		}
-		var rows []*string
+		rows := []*string{}
 		err = s.GetReplicaX().Select(&rows, teamsSelectQuery, teamsSelectArgs...)
 		if err != nil {
 			return err
@@ -174,7 +174,7 @@ func (s *SqlRetentionPolicyStore) checkChannelsExist(channelIDs []string) error 
 		if err != nil {
 			return err
 		}
-		var rows []*string
+		rows := []*string{}
 		err = s.GetReplicaX().Select(&rows, channelsSelectQuery, channelsSelectArgs...)
 		if err != nil {
 			return err
@@ -381,10 +381,10 @@ func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset, limit
 
 	query := s.getQueryBuilder().
 		Select(`
-		  RetentionPolicies.Id as "Id",
+			RetentionPolicies.Id as "Id",
 			RetentionPolicies.DisplayName,
 			RetentionPolicies.PostDuration,
-		  A.Count AS ChannelCount,
+			A.Count AS ChannelCount,
 			B.Count AS TeamCount
 	  `).
 		From("RetentionPolicies").
@@ -477,7 +477,7 @@ func (s *SqlRetentionPolicyStore) GetChannels(policyId string, offset, limit int
 		return nil, errors.Wrap(err, "retention_policies_channels_tosql")
 	}
 
-	var channels model.ChannelListWithTeamData
+	channels := model.ChannelListWithTeamData{}
 	if err := s.GetReplicaX().Select(&channels, queryString, args...); err != nil {
 		return channels, errors.Wrap(err, "failed to find RetentionPoliciesChannels")
 	}
@@ -584,7 +584,7 @@ func (s *SqlRetentionPolicyStore) GetTeams(policyId string, offset, limit int) (
 		return nil, errors.Wrap(err, "retention_policies_teams_tosql")
 	}
 
-	var teams []*model.Team
+	teams := []*model.Team{}
 	if err = s.GetReplicaX().Select(&teams, queryString, args...); err != nil {
 		return teams, errors.Wrap(err, "failed to find Teams")
 	}
@@ -738,17 +738,20 @@ func (s *SqlRetentionPolicyStore) GetTeamPoliciesForUser(userID string, offset, 
 		Where(
 			sq.And{
 				sq.Eq{"Users.Id": userID},
-				sq.Eq{"TeamMembers.DeleteAt": int(0)},
-				sq.Eq{"Teams.DeleteAt": int(0)},
+				sq.Eq{"TeamMembers.DeleteAt": 0},
+				sq.Eq{"Teams.DeleteAt": 0},
 			},
-		).OrderBy("Teams.Id").Limit(uint64(limit)).Offset(uint64(offset))
+		).
+		OrderBy("Teams.Id").
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "team_policies_for_user_tosql")
 	}
 
-	var policies []*model.RetentionPolicyForTeam
+	policies := []*model.RetentionPolicyForTeam{}
 	if err := s.GetReplicaX().Select(&policies, queryString, args...); err != nil {
 		return policies, errors.Wrap(err, "failed to find Users")
 	}
@@ -767,8 +770,8 @@ func (s *SqlRetentionPolicyStore) GetTeamPoliciesCountForUser(userID string) (in
 		Where(
 			sq.And{
 				sq.Eq{"Users.Id": userID},
-				sq.Eq{"TeamMembers.DeleteAt": int(0)},
-				sq.Eq{"Teams.DeleteAt": int(0)},
+				sq.Eq{"TeamMembers.DeleteAt": 0},
+				sq.Eq{"Teams.DeleteAt": 0},
 			},
 		)
 
@@ -785,7 +788,7 @@ func (s *SqlRetentionPolicyStore) GetTeamPoliciesCountForUser(userID string) (in
 	return count, nil
 }
 
-func (s *SqlRetentionPolicyStore) GetChannelPoliciesForUser(userID string, offset, limit int) (policies []*model.RetentionPolicyForChannel, err error) {
+func (s *SqlRetentionPolicyStore) GetChannelPoliciesForUser(userID string, offset, limit int) ([]*model.RetentionPolicyForChannel, error) {
 	query := s.getQueryBuilder().
 		Select(`Channels.Id as "Id", RetentionPolicies.PostDuration`).
 		From("Users").
@@ -796,20 +799,24 @@ func (s *SqlRetentionPolicyStore) GetChannelPoliciesForUser(userID string, offse
 		Where(
 			sq.And{
 				sq.Eq{"Users.Id": userID},
-				sq.Eq{"Channels.DeleteAt": int(0)},
+				sq.Eq{"Channels.DeleteAt": 0},
 			},
-		).OrderBy("Channels.Id").Limit(uint64(limit)).Offset(uint64(offset))
+		).
+		OrderBy("Channels.Id").
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "channel_policies_for_user_tosql")
 	}
 
+	policies := []*model.RetentionPolicyForChannel{}
 	if err := s.GetReplicaX().Select(&policies, queryString, args...); err != nil {
-		return policies, errors.Wrap(err, "failed to find Users")
+		return nil, errors.Wrap(err, "failed to find Users")
 	}
 
-	return
+	return policies, nil
 }
 
 func (s *SqlRetentionPolicyStore) GetChannelPoliciesCountForUser(userID string) (int64, error) {
@@ -823,7 +830,7 @@ func (s *SqlRetentionPolicyStore) GetChannelPoliciesCountForUser(userID string) 
 		Where(
 			sq.And{
 				sq.Eq{"Users.Id": userID},
-				sq.Eq{"Channels.DeleteAt": int(0)},
+				sq.Eq{"Channels.DeleteAt": 0},
 			},
 		)
 
@@ -999,11 +1006,11 @@ func genericRetentionPoliciesDeletion(
 		` + query + `
 		) AS A ON ` + joinClause
 	}
-	sqlResult, err := s.GetMasterX().Exec(query, args...)
+	result, err := s.GetMasterX().Exec(query, args...)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to delete "+r.Table)
 	}
-	rowsAffected, err = sqlResult.RowsAffected()
+	rowsAffected, err = result.RowsAffected()
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to get rows affected for "+r.Table)
 	}
