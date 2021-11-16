@@ -9269,5 +9269,17 @@
   {
     "id": "app.role.get_all.app_error",
     "translation": "NIcht alle Rollen konnten abgerufen werden."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Eigener Status konnte nicht aktualisiert werden. Bitte ein Emojis oder einen Text oder beides hinzufügen."
+  },
+  {
+    "id": "app.user.get_thread_count_for_user.app_error",
+    "translation": "Konnten Anzahl der Unterhaltungen des Benutzers nicht holen."
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "Erinnerung"
   }
 ]
