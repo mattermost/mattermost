@@ -266,6 +266,31 @@ func (_m *API) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
 	return r0, r1
 }
 
+// CreateSession provides a mock function with given fields: session
+func (_m *API) CreateSession(session *model.Session) (*model.Session, *model.AppError) {
+	ret := _m.Called(session)
+
+	var r0 *model.Session
+	if rf, ok := ret.Get(0).(func(*model.Session) *model.Session); ok {
+		r0 = rf(session)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Session)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.Session) *model.AppError); ok {
+		r1 = rf(session)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // CreateTeam provides a mock function with given fields: team
 func (_m *API) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	ret := _m.Called(team)
@@ -616,6 +641,22 @@ func (_m *API) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*model.Comma
 	}
 
 	return r0, r1
+}
+
+// ExtendSessionExpiry provides a mock function with given fields: sessionID, newExpiry
+func (_m *API) ExtendSessionExpiry(sessionID string, newExpiry int64) *model.AppError {
+	ret := _m.Called(sessionID, newExpiry)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, int64) *model.AppError); ok {
+		r0 = rf(sessionID, newExpiry)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
 }
 
 // GetBot provides a mock function with given fields: botUserId, includeDeleted
@@ -2941,6 +2982,22 @@ func (_m *API) RequestTrialLicense(requesterID string, users int, termsAccepted 
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(string, int, bool, bool) *model.AppError); ok {
 		r0 = rf(requesterID, users, termsAccepted, receiveEmailsAccepted)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// RevokeSession provides a mock function with given fields: sessionID
+func (_m *API) RevokeSession(sessionID string) *model.AppError {
+	ret := _m.Called(sessionID)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(sessionID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
