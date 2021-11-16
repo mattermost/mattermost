@@ -81,6 +81,9 @@ func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
 	return value, nil
 }
 
+func (a *App) Channels() *Channels {
+	return a.ch
+}
 func (a *App) Srv() *Server {
 	return a.ch.srv
 }
@@ -132,6 +135,9 @@ func (a *App) ImageProxy() *imageproxy.ImageProxy {
 }
 func (a *App) Timezones() *timezones.Timezones {
 	return a.ch.srv.timezones
+}
+func (a *App) License() *model.License {
+	return a.Srv().License()
 }
 
 func (a *App) DBHealthCheckWrite() error {
