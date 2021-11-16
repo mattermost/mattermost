@@ -1567,6 +1567,10 @@
     "translation": "Failed to delete the recent status. Please try adding the status first or contact your system administrator for details."
   },
   {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Failed to update the custom status. Please add either emoji or custom text status or both."
+  },
+  {
     "id": "api.email.send_warn_metric_ack.failure.app_error",
     "translation": "Failure to send admin acknowledgment email"
   },
@@ -3262,6 +3266,10 @@
   {
     "id": "api.templates.invite_body.title",
     "translation": "{{ .SenderName }} invited you to join the {{ .TeamDisplayName }} team."
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "Reminder"
   },
   {
     "id": "api.templates.invite_body_footer.info",
@@ -5916,6 +5924,10 @@
     "translation": "Unable to get role."
   },
   {
+    "id": "app.role.get_all.app_error",
+    "translation": "Unable to get all the roles."
+  },
+  {
     "id": "app.role.get_by_name.app_error",
     "translation": "Unable to get role."
   },
@@ -6362,6 +6374,10 @@
   {
     "id": "app.user.get_recently_active_users.app_error",
     "translation": "We encountered an error while finding the recently active users."
+  },
+  {
+    "id": "app.user.get_thread_count_for_user.app_error",
+    "translation": "We could not get thread count for the user."
   },
   {
     "id": "app.user.get_thread_membership_for_user.app_error",
