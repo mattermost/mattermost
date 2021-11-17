@@ -306,6 +306,14 @@ func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) bool {
 	return true
 }
 
+func (a *App) extendSessionExpiry(sessionID string, newExpiry int64) *model.AppError {
+	if err := a.Srv().Store.Session().UpdateExpiresAt(sessionID, newExpiry); err != nil {
+		return model.NewAppError("ExtendSessionExpiry", "app.session.extend_session_expiry.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
 // GetSessionLengthInMillis returns the session length, in milliseconds,
 // based on the type of session (Mobile, SSO, Web/LDAP).
 func (a *App) GetSessionLengthInMillis(session *model.Session) int64 {

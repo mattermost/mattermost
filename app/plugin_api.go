@@ -90,16 +90,6 @@ func (api *PluginAPI) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*mode
 	return response, nil
 }
 
-func (api *PluginAPI) GetSession(sessionID string) (*model.Session, *model.AppError) {
-	session, err := api.app.GetSessionById(sessionID)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return session, nil
-}
-
 func (api *PluginAPI) GetConfig() *model.Config {
 	return api.app.GetSanitizedConfig()
 }
@@ -288,6 +278,22 @@ func (api *PluginAPI) UpdatePreferencesForUser(userID string, preferences []mode
 
 func (api *PluginAPI) DeletePreferencesForUser(userID string, preferences []model.Preference) *model.AppError {
 	return api.app.DeletePreferences(userID, preferences)
+}
+
+func (api *PluginAPI) GetSession(sessionID string) (*model.Session, *model.AppError) {
+	return api.app.GetSessionById(sessionID)
+}
+
+func (api *PluginAPI) CreateSession(session *model.Session) (*model.Session, *model.AppError) {
+	return api.app.CreateSession(session)
+}
+
+func (api *PluginAPI) ExtendSessionExpiry(sessionID string, expiresAt int64) *model.AppError {
+	return api.app.extendSessionExpiry(sessionID, expiresAt)
+}
+
+func (api *PluginAPI) RevokeSession(sessionID string) *model.AppError {
+	return api.app.RevokeSessionById(sessionID)
 }
 
 func (api *PluginAPI) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
