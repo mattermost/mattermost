@@ -62,15 +62,11 @@ func (a *App) GetPluginsEnvironment() *plugin.Environment {
 	return a.ch.GetPluginsEnvironment()
 }
 
-func (a *App) SetPluginsEnvironment(pluginsEnvironment *plugin.Environment) {
-	a.ch.pluginsLock.Lock()
-	defer a.ch.pluginsLock.Unlock()
+func (ch *Channels) SetPluginsEnvironment(pluginsEnvironment *plugin.Environment) {
+	ch.pluginsLock.Lock()
+	defer ch.pluginsLock.Unlock()
 
-	a.ch.pluginsEnvironment = pluginsEnvironment
-}
-
-func (a *App) SyncPluginsActiveState() {
-	a.ch.syncPluginsActiveState()
+	ch.pluginsEnvironment = pluginsEnvironment
 }
 
 func (ch *Channels) syncPluginsActiveState() {
@@ -452,7 +448,7 @@ func (ch *Channels) disablePlugin(id string) *model.AppError {
 	ch.srv.UpdateConfig(func(cfg *model.Config) {
 		cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: false}
 	})
-	ch.srv.unregisterPluginCommands(id)
+	ch.unregisterPluginCommands(id)
 
 	// This call will implicitly invoke SyncPluginsActiveState which will deactivate disabled plugins.
 	if _, _, err := ch.srv.SaveConfig(ch.srv.Config(), true); err != nil {
@@ -994,7 +990,7 @@ func (ch *Channels) installFeatureFlagPlugins() {
 				}
 			}
 
-			_, err := ch.installMarketplacePlugin(&model.InstallMarketplacePluginRequest{
+			_, err := ch.InstallMarketplacePlugin(&model.InstallMarketplacePluginRequest{
 				Id:      pluginID,
 				Version: version,
 			})

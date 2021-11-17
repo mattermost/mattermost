@@ -151,7 +151,7 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 	}
 	auditRec.AddMeta("plugin_id", pluginRequest.Id)
 
-	manifest, appErr := c.App.InstallMarketplacePlugin(pluginRequest)
+	manifest, appErr := c.App.Channels().InstallMarketplacePlugin(pluginRequest)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -231,7 +231,7 @@ func removePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.RemovePlugin(c.Params.PluginId)
+	err := c.App.Channels().RemovePlugin(c.Params.PluginId)
 	if err != nil {
 		c.Err = err
 		return

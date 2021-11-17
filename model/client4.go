@@ -6154,6 +6154,44 @@ func (c *Client4) UpdateUserStatus(userId string, userStatus *Status) (*Status, 
 	return &s, BuildResponse(r), nil
 }
 
+// UpdateUserCustomStatus sets a user's custom status based on the provided user id string.
+func (c *Client4) UpdateUserCustomStatus(userId string, userCustomStatus *CustomStatus) (*CustomStatus, *Response, error) {
+	buf, err := json.Marshal(userCustomStatus)
+	if err != nil {
+		return nil, nil, NewAppError("UpdateUserCustomStatus", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.DoAPIPutBytes(c.userStatusRoute(userId)+"/custom", buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var s CustomStatus
+	if jsonErr := json.NewDecoder(r.Body).Decode(&s); jsonErr != nil {
+		return nil, nil, NewAppError("UpdateUserCustomStatus", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &s, BuildResponse(r), nil
+}
+
+// RemoveUserCustomStatus remove a user's custom status based on the provided user id string.
+func (c *Client4) RemoveUserCustomStatus(userId string) (*Response, error) {
+	r, err := c.DoAPIDelete(c.userStatusRoute(userId) + "/custom")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// RemoveRecentUserCustomStatus remove a recent user's custom status based on the provided user id string.
+func (c *Client4) RemoveRecentUserCustomStatus(userId string) (*Response, error) {
+	r, err := c.DoAPIDelete(c.userStatusRoute(userId) + "/custom/recent")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // Emoji Section
 
 // CreateEmoji will save an emoji to the server if the current user has permission
