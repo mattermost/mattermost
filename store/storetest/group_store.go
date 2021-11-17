@@ -3480,6 +3480,9 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	_, err = ss.Group().UpsertMember(group1.Id, user2.Id)
 	require.NoError(t, err)
 
+	_, err = ss.Group().UpsertMember(group2.Id, user2.Id)
+	require.NoError(t, err)
+
 	_, err = ss.Group().UpsertMember(deletedGroup.Id, user1.Id)
 	require.NoError(t, err)
 
@@ -3730,6 +3733,33 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			PerPage: 100,
 			Resultf: func(groups []*model.Group) bool {
 				return len(groups) > 0
+			},
+		},
+		{
+			Name:    "Filter by group member",
+			Opts:    model.GroupSearchOpts{FilterHasMember: user1.Id},
+			Page:    0,
+			PerPage: 100,
+			Resultf: func(groups []*model.Group) bool {
+				return len(groups) == 1 && groups[0].Id == group1.Id
+			},
+		},
+		{
+			Name:    "Filter by non-existent group member",
+			Opts:    model.GroupSearchOpts{FilterHasMember: model.NewId()},
+			Page:    0,
+			PerPage: 100,
+			Resultf: func(groups []*model.Group) bool {
+				return len(groups) == 0
+			},
+		},
+		{
+			Name:    "Filter by non-member member",
+			Opts:    model.GroupSearchOpts{FilterHasMember: user2.Id},
+			Page:    0,
+			PerPage: 100,
+			Resultf: func(groups []*model.Group) bool {
+				return len(groups) == 2
 			},
 		},
 	}

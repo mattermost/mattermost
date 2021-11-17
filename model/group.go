@@ -99,6 +99,10 @@ type GroupSearchOpts struct {
 	// If the parent team is not group-constrained or if NotAssociatedToChannel
 	// is not set then this option is ignored.
 	FilterParentTeamPermitted bool
+
+	// FilterHasMember filters the groups to the intersect of the
+	// set returned by the query and those that have the given user as a member.
+	FilterHasMember string
 }
 
 type GetGroupOpts struct {

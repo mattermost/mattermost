@@ -88,6 +88,7 @@ type Params struct {
 	ExportName                string
 	ExcludePolicyConstrained  bool
 	GroupSource               model.GroupSource
+	FilterHasMember           string
 
 	// Cloud
 	InvoiceId string
@@ -376,6 +377,8 @@ func ParamsFromRequest(r *http.Request) *Params {
 			params.GroupSource = model.GroupSourceLdap
 		}
 	}
+
+	params.FilterHasMember = query.Get("filter_has_member")
 
 	return params
 }

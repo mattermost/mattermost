@@ -1420,6 +1420,12 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers LEFT JOIN Users ON Users.Id = GroupMembers.UserId WHERE GroupMembers.DeleteAt = 0 AND Users.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = g.Id")
 	}
 
+	if opts.FilterHasMember != "" {
+		groupsQuery = groupsQuery.
+			LeftJoin("GroupMembers ON GroupMembers.GroupId = g.Id").
+			Where("GroupMembers.UserId = ?", opts.FilterHasMember)
+	}
+
 	groupsQuery = groupsQuery.
 		From("UserGroups g").
 		OrderBy("g.DisplayName")

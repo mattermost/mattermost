@@ -854,6 +854,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		FilterAllowReference:      c.Params.FilterAllowReference,
 		FilterParentTeamPermitted: c.Params.FilterParentTeamPermitted,
 		Source:                    c.Params.GroupSource,
+		FilterHasMember:           c.Params.FilterHasMember,
 	}
 
 	if teamID != "" {
