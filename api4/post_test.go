@@ -2727,20 +2727,15 @@ func TestGetPostsByIds(t *testing.T) {
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
 	require.Len(t, posts, 2, "wrong number returned")
-	require.Equal(t, posts[0].Id, post1.Id)
-	require.Equal(t, posts[1].Id, post2.Id)
+	require.Equal(t, posts[0].Id, post2.Id)
+	require.Equal(t, posts[1].Id, post1.Id)
 
-	posts, response, err = client.GetPostsByIds([]string{})
-	require.NoError(t, err)
-	CheckOKStatus(t, response)
-	require.Len(t, posts, 0, "wrong number returned")
-
-	posts, response, err = client.GetPostsByIds([]string{})
-	require.NoError(t, err)
-	CheckOKStatus(t, response)
-	require.Len(t, posts, 0, "wrong number returned")
-
-	_, response, err = client.GetPostsByIds([]string{"abc123"})
+	_, response, err = client.GetPostsByIds([]string{})
 	require.Error(t, err)
-	CheckNotFoundStatus(t, response)
+	CheckBadRequestStatus(t, response)
+
+	posts, response, err = client.GetPostsByIds([]string{"abc123"})
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
+	require.Len(t, posts, 0, "wrong number returned")
 }
