@@ -106,10 +106,10 @@
 // mysql/000052_create_public_channels.up.sql
 // mysql/000053_create_retention_policies.down.sql
 // mysql/000053_create_retention_policies.up.sql
-// mysql/000054_upgrade_posts_v6.0.down.sql
-// mysql/000054_upgrade_posts_v6.0.up.sql
-// mysql/000055_upgrade_channelmembers_v6.0.down.sql
-// mysql/000055_upgrade_channelmembers_v6.0.up.sql
+// mysql/000054_create_crt_channelmembership_count.down.sql
+// mysql/000054_create_crt_channelmembership_count.up.sql
+// mysql/000055_create_crt_thread_count_and_unreads.down.sql
+// mysql/000055_create_crt_thread_count_and_unreads.up.sql
 // mysql/000056_upgrade_channels_v6.0.down.sql
 // mysql/000056_upgrade_channels_v6.0.up.sql
 // mysql/000057_upgrade_command_webhooks_v6.0.down.sql
@@ -130,16 +130,20 @@
 // mysql/000064_upgrade_status_v6.0.up.sql
 // mysql/000065_upgrade_groupchannels_v6.0.down.sql
 // mysql/000065_upgrade_groupchannels_v6.0.up.sql
-// mysql/000066_upgrade_sessions_v6.1.down.sql
-// mysql/000066_upgrade_sessions_v6.1.up.sql
-// mysql/000067_upgrade_channelmembers_v6.1.down.sql
-// mysql/000067_upgrade_channelmembers_v6.1.up.sql
+// mysql/000066_upgrade_posts_v6.0.down.sql
+// mysql/000066_upgrade_posts_v6.0.up.sql
+// mysql/000067_upgrade_channelmembers_v6.0.down.sql
+// mysql/000067_upgrade_channelmembers_v6.0.up.sql
 // mysql/000068_upgrade_teammembers_v6.1.down.sql
 // mysql/000068_upgrade_teammembers_v6.1.up.sql
 // mysql/000069_upgrade_jobs_v6.1.down.sql
 // mysql/000069_upgrade_jobs_v6.1.up.sql
 // mysql/000070_upgrade_cte_v6.1.down.sql
 // mysql/000070_upgrade_cte_v6.1.up.sql
+// mysql/000071_upgrade_sessions_v6.1.down.sql
+// mysql/000071_upgrade_sessions_v6.1.up.sql
+// mysql/000072_upgrade_channelmembers_v6.1.down.sql
+// mysql/000072_upgrade_channelmembers_v6.1.up.sql
 // postgres/000001_create_teams.down.sql
 // postgres/000001_create_teams.up.sql
 // postgres/000002_create_team_members.down.sql
@@ -246,8 +250,12 @@
 // postgres/000052_create_public_channels.up.sql
 // postgres/000053_create_retention_policies.down.sql
 // postgres/000053_create_retention_policies.up.sql
+// postgres/000054_create_crt_channelmembership_count.down.sql
+// postgres/000054_create_crt_channelmembership_count.up.sql
 // postgres/000054_upgrade_posts_v6.0.down.sql
 // postgres/000054_upgrade_posts_v6.0.up.sql
+// postgres/000055_create_crt_thread_count_and_unreads.down.sql
+// postgres/000055_create_crt_thread_count_and_unreads.up.sql
 // postgres/000055_upgrade_channelmembers_v6.0.down.sql
 // postgres/000055_upgrade_channelmembers_v6.0.up.sql
 // postgres/000056_upgrade_channels_v6.0.down.sql
@@ -2476,82 +2484,82 @@ func mysql000053_create_retention_policiesUpSql() (*asset, error) {
 	return a, nil
 }
 
-var _mysql000054_upgrade_posts_v60DownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xdc\x95\x41\x8b\x9c\x40\x10\x85\xef\xfe\x8a\xca\x49\x0d\x21\x24\x39\xe4\x22\x13\xd2\xab\x25\xdb\xe0\xa8\x68\x4b\x36\x27\xe9\x8c\x15\x56\x50\x5b\xda\xce\x32\xf9\xf7\xc1\xd1\xb8\xcc\x8c\x9b\xcc\x65\x60\x19\x0f\xa2\xf8\xde\xf3\x51\x1f\x4d\xe5\x28\xe0\x6b\xaf\xa9\x97\x9a\xaa\xdc\x48\x43\x2d\x75\x06\x36\xe0\xe4\x18\xa1\x2f\x80\x87\x8e\x05\x00\x30\xdd\xc7\x6b\xfe\xe0\x27\x45\x2c\x9c\xb7\x2e\x84\x59\xb2\x05\x1e\x87\x49\xb6\x65\x82\x27\x71\x99\xfb\xf7\xb8\x65\xef\x73\xc1\x04\xcf\x05\xf7\xf3\xc5\xfa\xed\x1e\x33\x04\x23\x7f\x34\x54\x76\xb2\x25\xd8\x80\x9d\xaa\xc1\x0c\xf6\x22\x61\x71\x30\x0b\x86\xdd\x23\xb5\x12\x36\x10\x30\xc1\xee\x58\x8e\x8e\x7b\xa4\xaa\xbb\x8a\xf6\x4b\x4c\x5d\xed\xcb\x7e\x8c\x2a\xb5\x52\xa6\xac\xab\x29\xd2\x85\x2f\xf0\xe1\xdd\xe1\xd1\x9e\x8b\x7f\xb4\xe7\x77\x3f\x43\x26\x10\x78\x1c\xe0\x03\x9c\xf9\x21\x89\xe1\xd0\xcd\xc9\x94\x32\xbc\x72\x3d\xdb\x72\x5d\xcf\xb2\xd2\x0c\x53\x96\x21\xec\x34\x49\x43\x7c\x6c\xc1\x7f\xc6\xca\xe0\xbe\x1e\xcc\x30\x8d\xe3\x7c\xa4\x9e\x85\x0f\xe8\x17\xe2\x25\x9f\x67\x05\xc8\xa2\x28\xf1\xc7\x4a\xff\xfe\x85\x67\x59\xb7\x8b\xad\xac\xa8\x21\x43\xa5\x34\xe7\x00\x83\x2c\x49\x5f\xc2\xf5\xec\x5b\xc0\x79\xf6\x29\xf8\x63\x80\x9a\x5a\xf5\xf4\x77\xba\x97\xd2\x5b\x31\xad\xa2\x5b\xd5\x5d\x93\x9b\x9f\x44\xc5\x36\xbe\x12\xb4\x9d\x6a\x7e\xb5\xdd\x73\x8e\x56\xfd\x49\xce\xac\x30\xbf\x7b\x82\x37\x1b\xb0\x0d\xed\x57\x08\xb2\x48\x60\x06\x82\xdd\x45\x38\x31\x82\x6d\x12\xf0\xf0\x3b\x4c\xed\xe1\x10\x0c\xa3\xf7\x7f\xf0\x64\x63\x48\x5f\x8e\xed\x48\xbe\x0a\xec\x44\x71\x33\xac\xc2\xba\x21\x5e\x5d\x85\xd6\x1c\xfd\x3a\x78\xdd\x08\xae\x54\x6a\xea\x0c\xbf\x60\x7d\x9d\xd3\x61\x41\xb0\x1c\xa4\x39\x06\x9e\xa4\xde\x3d\x4a\xed\x7c\xfa\xec\x42\x80\x21\x2b\x22\x01\x71\x11\x45\xa7\xdb\xec\xda\x7c\xfe\x04\x00\x00\xff\xff\x60\x5c\x97\x0c\x69\x08\x00\x00")
+var _mysql000054_create_crt_channelmembership_countDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x9c\x90\x3d\x4b\xc4\x40\x14\x45\xeb\xf7\x7e\xc5\xeb\x36\xb1\xb2\x1f\x14\xd6\x37\x37\xee\x40\x32\x59\x26\xb3\x68\x1b\x61\x70\x03\xf9\x22\x19\x0b\xff\xbd\xd8\x59\x28\x8a\xfd\xbd\xe7\xc0\xd1\x80\x63\x84\x9c\x43\xab\xb0\x97\x00\xd1\x31\xf5\x9b\x86\xa8\xd7\x7e\x9e\xd3\xd8\xa4\xe9\x25\x6d\xfb\x75\x58\x75\x79\x9b\xf3\x2e\x45\xc9\x0f\x78\x74\x9e\xc9\x55\x45\xc1\x44\x1d\x6a\x68\x64\x22\xd2\xf6\xe2\x63\x71\x53\x4a\x15\xda\x46\xba\xf7\x3d\xa7\x69\x67\xa2\xa7\x13\x02\x3e\x07\xbe\x9f\x92\xdc\xc9\xe1\x67\x7c\x33\xbc\x6e\x7d\x1e\x96\x59\x97\x69\x1d\x53\x4e\x87\x52\xee\xe5\xb6\x94\x78\x82\x67\x22\x8b\x1a\x11\xdf\x0a\xe4\x3f\x74\xc3\x04\x6f\xc5\x55\x86\xe1\xad\x61\xd6\x63\x5d\xff\xa1\x81\x61\xb6\xa1\x3d\x7f\xe9\xe6\x2a\xc1\xb3\xeb\x62\xf7\xdb\xdb\x7c\x04\x00\x00\xff\xff\xb2\x1c\xd8\xed\x73\x01\x00\x00")
 
-func mysql000054_upgrade_posts_v60DownSqlBytes() ([]byte, error) {
+func mysql000054_create_crt_channelmembership_countDownSqlBytes() ([]byte, error) {
 	return bindataRead(
-		_mysql000054_upgrade_posts_v60DownSql,
-		"mysql/000054_upgrade_posts_v6.0.down.sql",
+		_mysql000054_create_crt_channelmembership_countDownSql,
+		"mysql/000054_create_crt_channelmembership_count.down.sql",
 	)
 }
 
-func mysql000054_upgrade_posts_v60DownSql() (*asset, error) {
-	bytes, err := mysql000054_upgrade_posts_v60DownSqlBytes()
+func mysql000054_create_crt_channelmembership_countDownSql() (*asset, error) {
+	bytes, err := mysql000054_create_crt_channelmembership_countDownSqlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "mysql/000054_upgrade_posts_v6.0.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "mysql/000054_create_crt_channelmembership_count.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _mysql000054_upgrade_posts_v60UpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xec\x95\x41\x8f\xd3\x3e\x10\xc5\xef\xfe\x14\xf3\x3f\x25\xf9\x6b\x85\xe0\x1c\x15\xe1\x4d\x26\xd4\x28\xb1\xa3\xc4\x15\xe5\x14\x85\xc6\x0b\x91\xda\xa6\x4a\x0d\x2a\xdf\x1e\xd9\x4e\x5b\xc8\xa6\xb4\x48\x70\xa9\xc8\x61\xb7\xa9\x67\x5e\xdf\xbc\x9f\x2d\x47\x05\x52\x89\x90\x17\x22\xc2\x78\x51\x20\x64\xed\xa7\xbe\xd6\xaa\xe8\x3a\xcd\x9a\x2a\xef\xf6\x7a\x0f\x7e\x00\x8f\xf8\x96\x71\x88\x31\x4a\x69\x81\x90\xd7\xbd\xda\x9a\x75\x5c\xb2\x52\x02\xe3\x32\x24\x25\xa6\x18\x49\x88\xc4\x82\x4b\xff\xff\x80\x24\x85\xc8\x80\xf1\x44\x14\x19\x95\x4c\xf0\xaa\x8c\xe6\x98\xd1\x17\x91\x48\x17\x19\x2f\xc9\xfb\x39\x16\x08\x92\x3e\xa6\x58\x71\x9a\x21\xcc\xc0\xb3\x3f\xe7\x11\x00\xca\x63\xd0\xf5\xc7\xb5\xaa\xf6\xab\xcf\x6a\x53\xc3\x0c\x62\x2a\xe9\x23\x2d\xd1\x0f\x86\x75\x27\x74\xee\x1d\x3c\x79\xc6\x8e\x18\x59\x0c\x09\x4b\xfc\x91\xeb\xd7\xf0\x32\x00\x39\x47\x4e\x00\x00\x16\x79\x6c\x83\xb0\x03\x97\x28\xc1\x25\x00\xb3\x93\x12\x38\xc7\xa7\xef\x3d\xcf\xda\x18\xde\xff\x3b\x17\x86\x04\x79\x0c\x2c\xb1\xff\x43\x42\x22\x9a\xa6\x17\x72\x0d\x49\x5c\x88\xfc\x87\xf8\x59\x02\xd6\x5d\x39\xd5\x10\x12\x62\x9c\xbd\xd9\xf5\x6a\x57\xf7\xaa\x29\x75\xad\xd5\x46\x6d\x35\xcc\xc0\x1f\xf2\x67\x89\x6f\xe7\x71\x7f\xcd\x33\x02\x03\xd7\xc0\x1c\xfb\xdc\xb8\x8e\xc2\xb6\xde\xa8\x9f\x00\xb9\xe7\x1a\xa6\x73\xd5\xaa\x5b\x7f\xd9\x6c\xcf\x3a\x47\x58\xb6\x28\x30\x2c\x1e\xec\x47\x8f\xa6\x12\x0b\xb7\x2d\x06\x18\x36\x21\x67\xee\x1c\xb1\x37\x94\x0f\xc3\xbd\xf2\x48\x10\x84\x84\xe4\x05\xe6\x66\x83\xd6\x6b\xad\x7a\xf6\x84\x87\xd6\x28\xd8\x89\x9f\xa7\x16\x12\x5c\x62\xb4\x90\xa3\xf2\x90\xc4\x48\xd3\x54\x44\xee\x60\x4c\x08\xde\x0f\x87\xa4\x5d\x2b\xd6\x8c\x94\x86\x1a\xfd\x6d\xa7\xcc\xb6\xf6\xb4\x3a\xe8\x5b\x40\x65\x22\x66\xc9\x87\x23\xaa\x41\x1a\x4c\xf7\x3f\x5c\x7f\xe8\xd8\xf4\xdd\xee\x0a\xac\x77\xa5\xe0\xbf\x0f\xcb\x0a\x83\xe9\xbd\x67\x54\xa5\xa4\x92\x95\x92\x45\x7f\x89\x56\xbb\x6d\xd4\xe1\x24\xd3\x36\x87\x6a\x67\xa4\xaa\xbe\xeb\x74\xd5\x36\x55\xa3\xd6\x4a\xab\xaa\x9e\x38\x4d\xa7\xb4\x87\xf7\xe1\x5e\x66\x3c\xc6\x25\xfc\x42\x09\x04\x77\x40\x7d\x77\x51\x3c\x40\x6c\x97\xa8\x0e\xc2\x11\xb9\x55\xaf\x6a\xad\x98\xf1\xc8\x9e\x78\xa7\x6f\x45\x38\xdd\x37\xc9\xf2\x52\xe9\x1d\x43\x7d\x8e\xd2\xde\x57\x17\xc0\x9d\x70\x5d\x3b\x66\xbd\xda\x74\x5f\x8f\x49\xde\x4a\x6a\xa2\x69\x12\xd3\x64\xdd\xf7\x00\x00\x00\xff\xff\xec\x69\x8c\x62\x0a\x0a\x00\x00")
+var _mysql000054_create_crt_channelmembership_countUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x94\x92\x5d\x6f\x9b\x30\x14\x86\xaf\xed\x5f\x71\xee\x02\x51\x94\x66\xda\x25\xca\x24\x06\xce\xea\x29\x98\xc8\x98\xb6\x77\x93\xd7\x9c\x24\x48\x01\x47\xd8\x69\xb7\x7f\x3f\x19\x92\x16\xaa\x7d\xf5\x0e\xbf\xcf\x7b\x3e\x38\xe7\xdc\x4c\x61\x57\xfd\x48\xa4\x4a\x0e\xba\x69\xf0\x98\x61\xfd\x1d\x5b\x7b\xa8\x4e\x89\x39\x37\xce\x7a\x8a\x16\xdc\x01\xe1\xb1\x77\xc0\x63\x07\x66\x50\xcd\x71\xde\x01\x67\x9c\x3e\x42\x8d\xd6\xea\x3d\xf6\x78\x46\x7b\xb1\x35\xc6\xbd\x21\x50\x63\xe3\x2a\xd3\x5c\x9f\xba\xd9\x8e\x25\xa8\x9a\x51\x9c\x85\x9d\x69\xe1\x6c\xb1\xb5\xf4\xf9\x60\xe0\xa0\x9f\x10\x9e\x2a\x7c\xc6\xed\xa8\x2f\xbd\x73\xd8\x76\xca\x51\x5b\x07\x27\x63\xbb\x54\x43\xcb\xf4\x86\xd2\x44\xb2\x58\x31\xd8\xc8\x3c\x61\x69\x29\x19\x64\xd5\xbe\xd5\x0e\xff\x32\x83\x20\xa4\x9f\xd9\x17\x2e\x28\xe1\xab\x80\x12\x52\xb0\x35\x4b\x14\x25\x84\xb0\x07\x5e\xa8\x02\xbc\x38\x50\xc9\x14\x56\x32\xcf\xa0\xf8\x69\x1d\xd6\xd6\x4b\xf7\xb7\x4c\xb2\x8e\x09\x5d\x23\x2c\x61\xf2\xe7\x7a\x7d\x43\x95\x69\x12\x53\x9f\x8e\xe8\x70\x12\xc2\x12\x16\x21\xa8\x5b\x26\x28\x21\xe5\x26\x8d\x55\x97\x6c\x9c\xc0\x2b\x5c\x08\x26\xe1\x6b\xce\x05\x5c\xa0\x85\xfc\xf5\x7b\xce\xb7\xb0\x84\x71\xd8\xfc\xf2\xe4\x5b\x28\x58\xdf\x7f\xd6\xef\xa3\x6b\xc7\x97\x9e\xc1\x50\x91\x7e\x39\xbd\x6a\xf7\x57\xcf\x4b\x05\xe5\x17\x7f\x05\xaf\x96\x4b\xd0\xef\x6d\x1e\xce\x60\xad\xad\x2b\x4f\x5b\xed\x30\xf6\xd6\x6e\xa8\xc3\xa9\x92\xa0\x7f\x80\xcc\x4b\x91\x06\xa5\xe0\x0f\xdf\x14\xcf\x58\xa1\xe2\x6c\x13\x88\xfc\x3e\xf8\x18\x86\xd3\x0f\x8b\xc5\x22\x0c\x43\xfa\x32\xf2\x37\x7f\xeb\xab\xdc\x75\xd7\x13\x3b\xf8\x34\xe8\xc8\x83\x8d\xb1\x2e\x76\x11\xf5\x83\x2c\x98\x54\xc0\x85\xca\x87\x7b\xbc\x8b\xd7\x25\x2b\x82\x77\x6d\x6f\x06\x13\xd7\x9e\x71\x12\x46\x94\x30\x91\x02\x5f\x45\x94\x89\x34\xa2\x24\x89\xd7\xeb\xff\xba\xbf\x88\x92\x54\xe6\x9b\xc1\xd5\xf2\x15\x5c\x8e\xef\x9f\xf1\x11\xfd\x15\x00\x00\xff\xff\x67\x5c\xd0\x5b\xe6\x03\x00\x00")
 
-func mysql000054_upgrade_posts_v60UpSqlBytes() ([]byte, error) {
+func mysql000054_create_crt_channelmembership_countUpSqlBytes() ([]byte, error) {
 	return bindataRead(
-		_mysql000054_upgrade_posts_v60UpSql,
-		"mysql/000054_upgrade_posts_v6.0.up.sql",
+		_mysql000054_create_crt_channelmembership_countUpSql,
+		"mysql/000054_create_crt_channelmembership_count.up.sql",
 	)
 }
 
-func mysql000054_upgrade_posts_v60UpSql() (*asset, error) {
-	bytes, err := mysql000054_upgrade_posts_v60UpSqlBytes()
+func mysql000054_create_crt_channelmembership_countUpSql() (*asset, error) {
+	bytes, err := mysql000054_create_crt_channelmembership_countUpSqlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "mysql/000054_upgrade_posts_v6.0.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "mysql/000054_create_crt_channelmembership_count.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _mysql000055_upgrade_channelmembers_v60DownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xe4\x93\x4f\x6f\x9b\x4c\x10\x87\xef\x7c\x8a\x79\x4f\xc0\xab\xaa\x6a\xcf\xc8\x55\x37\x30\x56\x56\x82\x5d\x0b\xd6\x6a\x7a\x5a\x6d\xcc\xa4\x41\xe2\x8f\xb5\xac\x53\xe7\xdb\x57\x2e\x04\xc5\x36\xad\x93\x43\x0e\x55\x38\x20\x56\xfc\xe6\x59\xcd\x3c\x1a\xaf\x40\x05\x5f\xb7\x96\xb6\xc6\x52\x59\x38\xe3\xa8\xa1\xd6\xc1\x02\x82\x02\x53\x8c\x15\xf0\x65\xe0\x01\x00\x0c\xef\xc3\x33\xfe\x88\xe5\x5a\xa8\xe0\xff\x10\x96\xb9\xcc\x80\x8b\xa5\xcc\x33\xa6\xb8\x14\xba\x88\xaf\x31\x63\x1f\x0b\xc5\x14\x2f\x14\x8f\x8b\xa9\xf4\xdb\x35\xe6\x08\xce\xdc\xd6\xa4\x5b\xd3\x10\x2c\xc0\x8f\xef\x4d\xdb\x52\x9d\x51\x73\x4b\xb6\xf7\xa7\x2c\x13\xc9\x98\xec\x37\xf7\xd4\x18\x58\x40\xc2\x14\xbb\x62\x05\x06\xe1\x51\xaa\x6a\x4b\xda\x4f\xbc\xaa\xdc\xeb\xcd\xc0\x6c\x06\xe6\xd3\x51\x57\xe5\xc0\x22\xfd\x63\x47\xbd\xd3\xbb\x9e\xac\xae\xca\xe1\xce\x10\xbe\xc0\xa7\x0f\xbf\x3f\xfd\x24\x97\x2b\xe0\x22\xc1\x1b\x78\x3d\x0e\xa4\x80\xe3\xa6\x22\x7f\xe4\x8e\xa3\xfb\xec\x7b\x61\x18\x79\xde\x2a\xc7\x15\xcb\x11\x2c\x35\xdd\x03\xf1\x43\x1b\xfc\x0e\xf7\x55\xef\xfa\x61\xaa\xe7\x66\x22\x0f\x6f\x30\x5e\xab\xd9\xa2\xc8\x4b\x90\xa5\xa9\x8c\x99\x42\xf8\x0b\x3c\xf2\xbc\xf7\x21\x7e\x34\xf2\xdc\x58\x6d\x7a\xa7\x1f\x2a\xfa\x49\xa5\x36\xee\xb5\xea\x2f\x02\xff\x09\xf9\xef\xc9\xfd\xb9\xe1\xc9\xc3\x78\x8e\x73\x3c\x8c\xec\x92\xf3\x73\xb3\xc1\xba\x27\xcb\xcb\x30\x3a\x31\xba\xb1\x64\xdc\xd3\xd0\x45\xe7\x5e\x2a\x75\xbe\x6e\xd6\xeb\x9f\xa2\x6f\xa9\x36\x96\xe9\x3a\x13\x6f\xed\x75\xd3\xd5\xbb\xa6\x9d\x80\xa2\x73\xd5\xdd\xe3\xca\x76\xdb\x13\xda\x98\x73\x8f\x5b\x82\xff\x16\xe0\x3b\xda\xcf\x6c\x33\x4b\x15\xe6\xa0\xd8\x55\x8a\x27\xf2\x20\x93\x09\x5f\x7e\x87\xa1\x2b\x78\x76\x0f\x1c\x50\x97\xb6\xd6\xd4\x8e\xec\xcb\xf7\xf5\x28\x3e\x6b\xf4\x24\xf1\x2b\x00\x00\xff\xff\x4c\x83\xdd\x70\x99\x07\x00\x00")
+var _mysql000055_create_crt_thread_count_and_unreadsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x9c\xd0\xb1\x4a\xc4\x40\x10\xc6\xf1\x7a\xe6\x29\xa6\xbb\xc4\xca\x7e\x51\x88\xb3\x5f\xbc\x85\xdc\xe6\xd8\x4c\xd0\x36\x70\x8b\x1e\x5c\x12\x49\x62\xe1\xdb\xcb\x75\x16\xca\x81\xe5\xc0\x7c\xbf\xe2\xaf\x09\x95\x41\x8e\xa9\x55\xf8\x3e\x41\xf4\x92\x87\x45\x93\xd9\xfb\x92\x87\x93\xce\x9f\xd3\xb6\x56\xd3\xa9\x9f\xae\xe7\x2a\x45\xc9\x4f\x78\x0e\x91\x29\xd4\x45\xc1\x44\x1d\x1a\xa8\x31\x11\x69\xdb\x47\x2b\xee\x4a\xa9\x53\x7b\x90\xee\x6b\xdd\xf2\xb8\x32\xd1\xcb\x1e\x09\xd7\x87\x38\x8c\x59\x1e\x64\xf7\xa7\x7e\x38\xbf\x2d\xc3\x76\x9e\x27\x9d\xc7\x8f\x4b\xde\xf2\xae\x94\x47\xb9\x2f\xc5\xf6\x88\x4c\xe4\xd1\xc0\xf0\xab\x2f\xff\xc0\x1d\x13\xa2\x97\x50\x3b\x46\xf4\x8e\x59\xab\xa6\xb9\x1d\xc0\x31\xfb\xd4\x1e\x7f\x34\x0b\xb5\xe0\x35\x74\xd6\xdd\x18\x3b\xfe\x0e\x00\x00\xff\xff\x13\xfc\x45\xcb\x6f\x01\x00\x00")
 
-func mysql000055_upgrade_channelmembers_v60DownSqlBytes() ([]byte, error) {
+func mysql000055_create_crt_thread_count_and_unreadsDownSqlBytes() ([]byte, error) {
 	return bindataRead(
-		_mysql000055_upgrade_channelmembers_v60DownSql,
-		"mysql/000055_upgrade_channelmembers_v6.0.down.sql",
+		_mysql000055_create_crt_thread_count_and_unreadsDownSql,
+		"mysql/000055_create_crt_thread_count_and_unreads.down.sql",
 	)
 }
 
-func mysql000055_upgrade_channelmembers_v60DownSql() (*asset, error) {
-	bytes, err := mysql000055_upgrade_channelmembers_v60DownSqlBytes()
+func mysql000055_create_crt_thread_count_and_unreadsDownSql() (*asset, error) {
+	bytes, err := mysql000055_create_crt_thread_count_and_unreadsDownSqlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "mysql/000055_upgrade_channelmembers_v6.0.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "mysql/000055_create_crt_thread_count_and_unreads.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _mysql000055_upgrade_channelmembers_v60UpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xe4\x94\x5f\x6f\x9b\x3c\x18\xc5\xef\xf9\x14\xcf\x7b\x05\xbc\x8a\xa6\xed\x1a\x65\x9a\x0b\xce\xea\x09\xec\x08\x3b\x5b\x77\x85\xdc\xf0\x74\x45\xe2\x4f\x84\x9d\x2e\xfd\xf6\x13\x81\xa0\x34\x21\x4a\x77\x51\x69\x52\x73\x11\x39\xce\x39\xc7\xe6\xf9\x1d\x21\xa9\x82\x2f\x9b\x16\x37\xba\xc5\x5c\x5a\x6d\xb1\xc2\xda\xc2\x1c\x3c\x49\x63\x1a\x2a\x60\x0b\xcf\x01\x00\xe8\xbf\xbb\xcf\xf0\x47\x28\x56\x5c\x79\xff\xfb\xb0\x48\x45\x02\x8c\x2f\x44\x9a\x10\xc5\x04\xcf\x64\x78\x4b\x13\xf2\x21\x14\xf1\x2a\xe1\x72\xf4\xfd\xb8\xa5\x29\x05\xab\xef\x4b\xcc\x6a\x5d\x21\xcc\xc1\x0d\x1f\x75\x5d\x63\x99\x60\x75\x8f\xad\x71\x47\x2d\xe1\xd1\xa0\x34\xeb\x47\xac\x34\xcc\x21\x22\x8a\xdc\x10\x49\x3d\xff\x85\x6a\xdd\x94\xdb\xaa\x1e\x03\x79\x63\x8b\x87\xe7\x65\xdb\x6c\x4e\xd2\x06\x9d\x7d\xde\x20\xfc\x37\x07\xf7\x9b\x14\xbc\x57\xf8\xf0\x19\x3e\xce\xf6\x4b\x97\xc4\x8a\xa6\xa0\xc8\x4d\x4c\xe1\xe5\xdd\x20\x11\x11\x5b\xfc\x84\xfe\xa9\xe0\xe8\x1c\xe8\xa2\x02\x77\x48\x18\xa6\xf3\xc9\x75\x7c\x3f\x70\x9c\x65\x4a\x97\x24\xa5\xa0\x4b\x8b\x2d\x7b\xa0\xbb\xc2\x58\xd3\x8f\xec\x7c\xec\x81\x43\xef\x68\xb8\x52\x27\xf2\xc0\x89\x28\x89\x63\x11\x12\x45\x61\x32\x30\x70\x9c\x37\x04\x29\x15\x51\x4c\x2a\x16\xbe\x35\xcb\xa2\xce\x71\x37\xe6\x15\xf9\x2e\x5b\xf7\x99\x55\x9f\x99\x6d\x0d\xb6\x59\x91\x9f\x73\x8b\x52\xb1\x04\xc6\x23\x7a\x07\x97\x6d\x20\xf8\x09\xd4\x6b\xd4\x5a\xac\x9a\x27\x64\xdd\xb5\x5e\xcf\x6e\xc2\x34\x49\x70\x52\xf7\xae\x38\x1e\xb6\xbb\x65\xa9\x8d\xcd\x9e\x0a\xfc\x8d\x79\xa6\xed\x39\xe1\x91\xd0\xf0\x3b\x4c\x69\x37\xcc\x6b\xcc\x2f\x1f\x71\xde\x06\x6f\x65\xb0\x65\xf9\xec\xb0\xdd\x2d\x63\x6d\xec\xf7\xbd\x85\x58\x3f\x38\xa9\xc7\xba\x45\x6d\x0f\x04\x79\x63\x5f\xdb\x90\x69\xdf\x64\x49\x2e\x49\xdf\x47\x4f\x8e\xe0\xed\xb3\x30\xfb\xb5\x45\x63\x2f\xbf\x07\xfe\xb6\x25\x57\x0e\x98\xe8\xc8\x51\x37\xe4\xde\xf1\xb5\x33\xcc\xa0\xef\xce\xbf\x54\x91\x3f\x01\x00\x00\xff\xff\x95\x94\x97\x14\xdb\x07\x00\x00")
+var _mysql000055_create_crt_thread_count_and_unreadsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x94\x53\x4f\x73\x9b\x3e\x14\x3c\xa3\x4f\xb1\x37\x83\x7f\x1e\xc7\x99\xdf\xd1\xf5\x81\x82\xdc\xd0\x31\xc2\xc3\x9f\x24\xb7\x8c\x1a\x94\xc0\xd4\x80\x23\x29\x4d\xd3\x4f\xdf\x11\x02\xd7\x71\xea\x69\x7b\xd3\x3e\xed\x7b\xbb\x5a\x49\x17\x53\x3c\xd4\xdf\x83\x34\xcf\x2b\x29\x78\x19\x74\xcf\xad\x56\x7e\x5b\x16\xad\x81\x0a\x31\x97\x5f\x15\x74\x65\x11\x57\x30\x0b\x3c\x74\x12\xcf\x4a\x48\x85\x97\x4a\x48\x01\x5d\x09\xec\xb8\xd2\x44\x8a\xfd\xee\x15\xba\x6e\x04\xba\x87\xbe\x6c\x5b\x51\x2b\x08\x2e\x77\xb5\x90\xd0\x15\x6f\xed\x96\xa1\x99\x85\x19\x85\x6f\xb5\x78\x11\x65\x8f\xef\x2b\xde\xb6\x62\x37\x27\x46\xbd\x6e\x1f\xc1\xc7\x31\x8d\xe0\xad\x82\x12\x5a\x9b\xb2\xe1\x36\xa2\xd5\x75\xd7\xe2\xde\x38\x87\xee\xf0\x43\xc8\x0e\xbc\x2d\x8f\x59\xc4\x98\x1b\x15\xb8\x3e\x31\x78\x30\xc9\xd5\xe1\x24\x27\x64\x32\x90\x07\x67\x98\x5e\x10\x12\xa4\xd4\xcf\x29\xb6\x69\x12\xd0\xb0\x48\x29\xe2\xfa\x51\x72\x2d\xce\x87\xe9\x7a\xe4\x23\xfd\x14\x31\xe2\x44\x6b\x37\xa3\x1b\x1a\xe4\xa0\xb7\x51\x96\x67\x23\x9a\x62\x9d\x26\x31\xb2\x57\xa5\x45\xa3\x70\x73\x45\x53\x0a\xc6\x1b\x81\x15\x26\x67\x07\x5b\xe1\xba\x6b\x83\xae\xd9\xef\x84\x16\x13\x0f\x2b\x2c\x3c\xe4\x57\x94\x11\xc7\x29\xb6\xa1\x9f\x53\xe2\x38\x8e\xed\x8f\x45\xf3\x45\x48\x55\xd5\x7b\x65\x8a\x11\x63\x34\xc5\xe7\x24\x62\x70\x0d\x76\xac\x99\x7e\xe9\x6c\x3b\xa5\xa3\x72\x66\x41\xa1\x84\x3c\x80\xc0\x66\x31\x0c\x9b\x6f\xb8\xd2\xd7\x7d\x68\xbe\x86\x9f\x21\x88\xef\x8e\x4b\x43\x93\x35\x60\xd9\xa9\x79\x2c\xbe\xee\x37\xcc\xb1\xdf\x30\x2c\x38\xb2\xf6\x56\x0e\xc9\x69\x65\x3e\xc0\xa8\xc4\x0a\xa3\xcc\xa1\xd6\x8f\xeb\xe3\x3c\xeb\x03\x1f\x56\xa7\x23\x8f\x0f\xe0\x99\x43\x3d\x19\xdd\x77\x21\xce\x4d\x48\xb5\xd1\x7d\x9a\xdb\xbc\x7a\x11\x9f\x85\xbf\xe1\xda\x0c\x7b\xee\xb0\xcc\x68\x8e\x5f\x4a\xfd\xce\x49\x78\xf8\x0f\x97\x33\xd8\xdb\x8e\xed\x83\x57\xe6\x86\x67\x7d\x5f\xb1\x2f\xb9\xee\x1b\xdf\x5f\xdf\xf8\xb0\xd2\xa4\x60\xa1\x5b\xb0\xe8\xf6\x2e\x8f\x62\x9a\xe5\x7e\xbc\x75\x59\x72\xe3\xfe\xef\x79\xd3\xcb\xc5\x62\xe1\x79\xde\x92\x98\xc0\x33\x9a\xe6\x88\x58\x9e\x8c\xaf\xd0\x0c\xba\xf6\x37\x05\xcd\xdc\x7f\x79\x82\x33\x4c\xb4\x7c\x16\x13\x33\x96\xb2\x10\xd1\x7a\x49\x28\x0b\x97\xc4\x09\xfc\xcd\xe6\x6f\x3e\xcb\x92\x38\x61\x9a\x6c\x8f\x7e\x58\xb4\x1e\xfe\xcb\x1f\xdb\x97\xe4\x67\x00\x00\x00\xff\xff\x0e\x01\x6e\x8f\xda\x04\x00\x00")
 
-func mysql000055_upgrade_channelmembers_v60UpSqlBytes() ([]byte, error) {
+func mysql000055_create_crt_thread_count_and_unreadsUpSqlBytes() ([]byte, error) {
 	return bindataRead(
-		_mysql000055_upgrade_channelmembers_v60UpSql,
-		"mysql/000055_upgrade_channelmembers_v6.0.up.sql",
+		_mysql000055_create_crt_thread_count_and_unreadsUpSql,
+		"mysql/000055_create_crt_thread_count_and_unreads.up.sql",
 	)
 }
 
-func mysql000055_upgrade_channelmembers_v60UpSql() (*asset, error) {
-	bytes, err := mysql000055_upgrade_channelmembers_v60UpSqlBytes()
+func mysql000055_create_crt_thread_count_and_unreadsUpSql() (*asset, error) {
+	bytes, err := mysql000055_create_crt_thread_count_and_unreadsUpSqlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "mysql/000055_upgrade_channelmembers_v6.0.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "mysql/000055_create_crt_thread_count_and_unreads.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -2956,82 +2964,82 @@ func mysql000065_upgrade_groupchannels_v60UpSql() (*asset, error) {
 	return a, nil
 }
 
-var _mysql000066_upgrade_sessions_v61DownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x90\x51\x4b\xf3\x30\x18\x85\xef\xf3\x2b\xce\x77\xd5\xf6\x43\x44\x41\xbc\x29\x15\xb3\xf6\x2d\x2b\xa4\xcd\x48\x32\xd4\xab\x11\x67\x64\x83\xb6\x1b\x4d\x14\xfd\xf7\xe2\x5a\x87\x4e\x73\x11\x02\x79\xce\x93\xbc\x47\x93\xc1\xed\x7e\x70\x7b\x3b\xb8\x27\x1d\x6c\x70\x9d\xeb\x03\x32\xc4\x9a\x04\xe5\x06\x55\x19\x33\x00\x18\xf7\xcf\x35\x5d\xe4\x72\xd9\x98\xf8\x7f\x82\x52\xc9\x1a\x55\x53\x4a\x55\x73\x53\xc9\x66\xa5\xf3\x39\xd5\xfc\x3c\x97\x62\x59\x37\xfa\x98\xbb\x9b\x93\x22\x04\xfb\xd8\xba\x55\x6f\x3b\x87\x0c\x91\x76\xde\x6f\x77\xbd\x8f\x8e\x14\x6f\x8a\x89\xf1\xeb\x8d\xeb\x2c\x32\x14\xdc\xf0\x19\xd7\x14\x27\x3f\xa8\xf5\xae\x7d\xe9\xfa\xa3\x4a\xed\x5a\x77\xe2\x99\x88\xf0\xbe\x77\xf8\x97\x21\x7a\xb5\xc3\x7a\x63\x87\xf8\xfa\x2a\x19\xc1\x04\x37\xb8\x38\x3b\x1c\x23\x2e\x0c\x29\x18\x3e\x13\x84\xaf\x6f\xa1\x96\x45\x55\x3e\x60\x1c\x05\x87\x27\xf0\xcd\x92\x46\x53\x78\xea\xe4\x32\x62\x49\x92\x32\xb6\x50\xb4\xe0\x8a\x60\xdb\xe0\x86\xea\x99\xde\xb6\x3e\xf8\xb1\xa8\xdf\x65\xa7\x8c\xee\x29\x5f\x9a\x13\x3c\x65\x05\x71\x21\x64\xce\x0d\xe1\x4f\x61\xca\x3e\x02\x00\x00\xff\xff\x1d\xf2\x59\x89\xbe\x01\x00\x00")
+var _mysql000066_upgrade_posts_v60DownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xdc\x95\x41\x8b\x9c\x40\x10\x85\xef\xfe\x8a\xca\x49\x0d\x21\x24\x39\xe4\x22\x13\xd2\xab\x25\xdb\xe0\xa8\x68\x4b\x36\x27\xe9\x8c\x15\x56\x50\x5b\xda\xce\x32\xf9\xf7\xc1\xd1\xb8\xcc\x8c\x9b\xcc\x65\x60\x19\x0f\xa2\xf8\xde\xf3\x51\x1f\x4d\xe5\x28\xe0\x6b\xaf\xa9\x97\x9a\xaa\xdc\x48\x43\x2d\x75\x06\x36\xe0\xe4\x18\xa1\x2f\x80\x87\x8e\x05\x00\x30\xdd\xc7\x6b\xfe\xe0\x27\x45\x2c\x9c\xb7\x2e\x84\x59\xb2\x05\x1e\x87\x49\xb6\x65\x82\x27\x71\x99\xfb\xf7\xb8\x65\xef\x73\xc1\x04\xcf\x05\xf7\xf3\xc5\xfa\xed\x1e\x33\x04\x23\x7f\x34\x54\x76\xb2\x25\xd8\x80\x9d\xaa\xc1\x0c\xf6\x22\x61\x71\x30\x0b\x86\xdd\x23\xb5\x12\x36\x10\x30\xc1\xee\x58\x8e\x8e\x7b\xa4\xaa\xbb\x8a\xf6\x4b\x4c\x5d\xed\xcb\x7e\x8c\x2a\xb5\x52\xa6\xac\xab\x29\xd2\x85\x2f\xf0\xe1\xdd\xe1\xd1\x9e\x8b\x7f\xb4\xe7\x77\x3f\x43\x26\x10\x78\x1c\xe0\x03\x9c\xf9\x21\x89\xe1\xd0\xcd\xc9\x94\x32\xbc\x72\x3d\xdb\x72\x5d\xcf\xb2\xd2\x0c\x53\x96\x21\xec\x34\x49\x43\x7c\x6c\xc1\x7f\xc6\xca\xe0\xbe\x1e\xcc\x30\x8d\xe3\x7c\xa4\x9e\x85\x0f\xe8\x17\xe2\x25\x9f\x67\x05\xc8\xa2\x28\xf1\xc7\x4a\xff\xfe\x85\x67\x59\xb7\x8b\xad\xac\xa8\x21\x43\xa5\x34\xe7\x00\x83\x2c\x49\x5f\xc2\xf5\xec\x5b\xc0\x79\xf6\x29\xf8\x63\x80\x9a\x5a\xf5\xf4\x77\xba\x97\xd2\x5b\x31\xad\xa2\x5b\xd5\x5d\x93\x9b\x9f\x44\xc5\x36\xbe\x12\xb4\x9d\x6a\x7e\xb5\xdd\x73\x8e\x56\xfd\x49\xce\xac\x30\xbf\x7b\x82\x37\x1b\xb0\x0d\xed\x57\x08\xb2\x48\x60\x06\x82\xdd\x45\x38\x31\x82\x6d\x12\xf0\xf0\x3b\x4c\xed\xe1\x10\x0c\xa3\xf7\x7f\xf0\x64\x63\x48\x5f\x8e\xed\x48\xbe\x0a\xec\x44\x71\x33\xac\xc2\xba\x21\x5e\x5d\x85\xd6\x1c\xfd\x3a\x78\xdd\x08\xae\x54\x6a\xea\x0c\xbf\x60\x7d\x9d\xd3\x61\x41\xb0\x1c\xa4\x39\x06\x9e\xa4\xde\x3d\x4a\xed\x7c\xfa\xec\x42\x80\x21\x2b\x22\x01\x71\x11\x45\xa7\xdb\xec\xda\x7c\xfe\x04\x00\x00\xff\xff\x60\x5c\x97\x0c\x69\x08\x00\x00")
 
-func mysql000066_upgrade_sessions_v61DownSqlBytes() ([]byte, error) {
+func mysql000066_upgrade_posts_v60DownSqlBytes() ([]byte, error) {
 	return bindataRead(
-		_mysql000066_upgrade_sessions_v61DownSql,
-		"mysql/000066_upgrade_sessions_v6.1.down.sql",
+		_mysql000066_upgrade_posts_v60DownSql,
+		"mysql/000066_upgrade_posts_v6.0.down.sql",
 	)
 }
 
-func mysql000066_upgrade_sessions_v61DownSql() (*asset, error) {
-	bytes, err := mysql000066_upgrade_sessions_v61DownSqlBytes()
+func mysql000066_upgrade_posts_v60DownSql() (*asset, error) {
+	bytes, err := mysql000066_upgrade_posts_v60DownSqlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "mysql/000066_upgrade_sessions_v6.1.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "mysql/000066_upgrade_posts_v6.0.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _mysql000066_upgrade_sessions_v61UpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x90\x51\x4b\xc3\x30\x14\x85\xdf\xf3\x2b\x8e\x4f\x6d\x45\x44\x9f\x4b\xc5\xac\xbd\x65\x85\xb6\x19\x49\x86\xfa\x34\xe2\xbc\xe2\xa0\xed\xc6\x12\x61\xfe\x7b\xd9\x5a\x07\x4e\xf3\x10\x02\xf9\xce\xc7\xbd\xc7\x90\xc5\xe3\x6e\xcf\x3b\xb7\xe7\x37\x13\x5c\xe0\x9e\x87\x80\x0c\xb1\xa1\x9a\x72\x8b\xaa\x8c\x05\x00\x8c\xf7\xf1\x4c\x1f\xb9\x5a\xb6\x36\xbe\x4e\x50\x6a\xd5\xa0\x6a\x4b\xa5\x1b\x69\x2b\xd5\xae\x4c\x3e\xa7\x46\xde\xe6\xaa\x5e\x36\xad\x39\xe7\x9e\xe6\xa4\x09\xc1\xbd\x76\xbc\x1a\x5c\xcf\xc8\x10\x19\xf6\x7e\xb3\x1d\x7c\x74\xa6\x64\x5b\x4c\x8c\x5f\x7f\x70\xef\x90\xa1\x90\x56\xce\xa4\xa1\x38\xf9\x45\xad\xb7\xdd\x67\x3f\x9c\x55\x7a\xdb\xf1\x85\x67\x22\xc2\xd7\x8e\x71\x95\x21\x0a\x7c\x08\x23\x91\xe0\x01\x77\x37\xa7\x67\x24\x6b\x4b\x1a\x56\xce\x6a\xc2\xcf\x3c\x68\x54\x51\x95\x2f\x18\x77\xc0\xc9\x8d\x63\x3c\x8d\xa6\xd4\xd4\xc2\x7d\x24\x92\x24\x15\x62\xa1\x69\x21\x35\xc1\x75\x81\xf7\xd5\x3b\x1d\x36\x3e\xf8\xb1\x9a\xbf\xf5\xa6\x82\x9e\x29\x5f\xda\x0b\x3c\x15\x05\xc9\xba\x56\xb9\xb4\x84\x7f\x85\xa9\xf8\x0e\x00\x00\xff\xff\xd9\x62\xc0\xf7\xb0\x01\x00\x00")
+var _mysql000066_upgrade_posts_v60UpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xec\x95\x41\x8f\xd3\x3e\x10\xc5\xef\xfe\x14\xf3\x3f\x25\xf9\x6b\x85\xe0\x1c\x15\xe1\x4d\x26\xd4\x28\xb1\xa3\xc4\x15\xe5\x14\x85\xc6\x0b\x91\xda\xa6\x4a\x0d\x2a\xdf\x1e\xd9\x4e\x5b\xc8\xa6\xb4\x48\x70\xa9\xc8\x61\xb7\xa9\x67\x5e\xdf\xbc\x9f\x2d\x47\x05\x52\x89\x90\x17\x22\xc2\x78\x51\x20\x64\xed\xa7\xbe\xd6\xaa\xe8\x3a\xcd\x9a\x2a\xef\xf6\x7a\x0f\x7e\x00\x8f\xf8\x96\x71\x88\x31\x4a\x69\x81\x90\xd7\xbd\xda\x9a\x75\x5c\xb2\x52\x02\xe3\x32\x24\x25\xa6\x18\x49\x88\xc4\x82\x4b\xff\xff\x80\x24\x85\xc8\x80\xf1\x44\x14\x19\x95\x4c\xf0\xaa\x8c\xe6\x98\xd1\x17\x91\x48\x17\x19\x2f\xc9\xfb\x39\x16\x08\x92\x3e\xa6\x58\x71\x9a\x21\xcc\xc0\xb3\x3f\xe7\x11\x00\xca\x63\xd0\xf5\xc7\xb5\xaa\xf6\xab\xcf\x6a\x53\xc3\x0c\x62\x2a\xe9\x23\x2d\xd1\x0f\x86\x75\x27\x74\xee\x1d\x3c\x79\xc6\x8e\x18\x59\x0c\x09\x4b\xfc\x91\xeb\xd7\xf0\x32\x00\x39\x47\x4e\x00\x00\x16\x79\x6c\x83\xb0\x03\x97\x28\xc1\x25\x00\xb3\x93\x12\x38\xc7\xa7\xef\x3d\xcf\xda\x18\xde\xff\x3b\x17\x86\x04\x79\x0c\x2c\xb1\xff\x43\x42\x22\x9a\xa6\x17\x72\x0d\x49\x5c\x88\xfc\x87\xf8\x59\x02\xd6\x5d\x39\xd5\x10\x12\x62\x9c\xbd\xd9\xf5\x6a\x57\xf7\xaa\x29\x75\xad\xd5\x46\x6d\x35\xcc\xc0\x1f\xf2\x67\x89\x6f\xe7\x71\x7f\xcd\x33\x02\x03\xd7\xc0\x1c\xfb\xdc\xb8\x8e\xc2\xb6\xde\xa8\x9f\x00\xb9\xe7\x1a\xa6\x73\xd5\xaa\x5b\x7f\xd9\x6c\xcf\x3a\x47\x58\xb6\x28\x30\x2c\x1e\xec\x47\x8f\xa6\x12\x0b\xb7\x2d\x06\x18\x36\x21\x67\xee\x1c\xb1\x37\x94\x0f\xc3\xbd\xf2\x48\x10\x84\x84\xe4\x05\xe6\x66\x83\xd6\x6b\xad\x7a\xf6\x84\x87\xd6\x28\xd8\x89\x9f\xa7\x16\x12\x5c\x62\xb4\x90\xa3\xf2\x90\xc4\x48\xd3\x54\x44\xee\x60\x4c\x08\xde\x0f\x87\xa4\x5d\x2b\xd6\x8c\x94\x86\x1a\xfd\x6d\xa7\xcc\xb6\xf6\xb4\x3a\xe8\x5b\x40\x65\x22\x66\xc9\x87\x23\xaa\x41\x1a\x4c\xf7\x3f\x5c\x7f\xe8\xd8\xf4\xdd\xee\x0a\xac\x77\xa5\xe0\xbf\x0f\xcb\x0a\x83\xe9\xbd\x67\x54\xa5\xa4\x92\x95\x92\x45\x7f\x89\x56\xbb\x6d\xd4\xe1\x24\xd3\x36\x87\x6a\x67\xa4\xaa\xbe\xeb\x74\xd5\x36\x55\xa3\xd6\x4a\xab\xaa\x9e\x38\x4d\xa7\xb4\x87\xf7\xe1\x5e\x66\x3c\xc6\x25\xfc\x42\x09\x04\x77\x40\x7d\x77\x51\x3c\x40\x6c\x97\xa8\x0e\xc2\x11\xb9\x55\xaf\x6a\xad\x98\xf1\xc8\x9e\x78\xa7\x6f\x45\x38\xdd\x37\xc9\xf2\x52\xe9\x1d\x43\x7d\x8e\xd2\xde\x57\x17\xc0\x9d\x70\x5d\x3b\x66\xbd\xda\x74\x5f\x8f\x49\xde\x4a\x6a\xa2\x69\x12\xd3\x64\xdd\xf7\x00\x00\x00\xff\xff\xec\x69\x8c\x62\x0a\x0a\x00\x00")
 
-func mysql000066_upgrade_sessions_v61UpSqlBytes() ([]byte, error) {
+func mysql000066_upgrade_posts_v60UpSqlBytes() ([]byte, error) {
 	return bindataRead(
-		_mysql000066_upgrade_sessions_v61UpSql,
-		"mysql/000066_upgrade_sessions_v6.1.up.sql",
+		_mysql000066_upgrade_posts_v60UpSql,
+		"mysql/000066_upgrade_posts_v6.0.up.sql",
 	)
 }
 
-func mysql000066_upgrade_sessions_v61UpSql() (*asset, error) {
-	bytes, err := mysql000066_upgrade_sessions_v61UpSqlBytes()
+func mysql000066_upgrade_posts_v60UpSql() (*asset, error) {
+	bytes, err := mysql000066_upgrade_posts_v60UpSqlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "mysql/000066_upgrade_sessions_v6.1.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "mysql/000066_upgrade_posts_v6.0.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _mysql000067_upgrade_channelmembers_v61DownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x90\x51\x4b\xf3\x30\x14\x86\xef\xf3\x2b\xde\xef\xaa\xed\x87\x88\x82\x78\x53\x2a\x66\xe9\x29\x2b\xb4\xcd\x48\x33\xd4\xab\x91\xcd\x23\x13\xda\x6e\xb4\x51\xf4\xdf\x8b\x6b\x19\x6e\x9a\x8b\x10\xc8\x73\x9e\x73\xce\x5b\x93\xc5\xfd\xbe\xe7\xbd\xeb\xf9\xb9\xf6\xce\x73\xcb\x9d\x47\x82\xb0\xa6\x82\x94\x45\x9e\x85\x02\x00\xc6\xfb\xfb\x4c\x1f\x4a\x2f\x2b\x1b\xfe\x8f\x90\x19\x5d\x22\xaf\x32\x6d\x4a\x69\x73\x5d\xad\x6a\x35\xa7\x52\x5e\x2a\x5d\x2c\xcb\xaa\x3e\xd6\x3d\xcc\xc9\x10\xbc\x5b\x37\xbc\xea\x5c\xcb\x48\x10\xa8\xad\xeb\x3a\x6e\x4a\x6e\xd7\xdc\x0f\xc1\x91\x95\x55\x3a\x91\xc3\x66\xcb\xad\x43\x82\x54\x5a\x39\x93\x35\x85\xd1\x09\xb5\xd9\x35\x6f\x6d\x77\x14\x9a\x5d\xc3\x67\x9e\x89\xf0\x9f\x7b\xc6\xbf\x04\xc1\xbb\xeb\x37\x5b\xd7\x87\xb7\x37\xd1\x08\x46\xb8\xc3\xd5\xc5\xe1\x19\xc8\xc2\x92\x81\x95\xb3\x82\x70\x3a\x1c\x4a\x9d\xe6\xd9\x13\xc6\xb5\x70\x68\x84\x1f\xae\x38\x98\x14\x53\x3e\xd7\x81\x88\xa2\x58\x88\x85\xa1\x85\x34\x04\xd7\x78\xee\xf3\x17\xfa\x78\x1d\xfc\x30\x86\xf6\x3b\xf8\x58\xd0\x23\xa9\xa5\x3d\xc3\x63\x91\x92\x2c\x0a\xad\xa4\x25\xfc\x29\x8c\xc5\x57\x00\x00\x00\xff\xff\x6f\xc8\x1f\xad\xca\x01\x00\x00")
+var _mysql000067_upgrade_channelmembers_v60DownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xe4\x93\x4f\x6f\x9b\x4c\x10\x87\xef\x7c\x8a\x79\x4f\xc0\xab\xaa\x6a\xcf\xc8\x55\x37\x30\x56\x56\x82\x5d\x0b\xd6\x6a\x7a\x5a\x6d\xcc\xa4\x41\xe2\x8f\xb5\xac\x53\xe7\xdb\x57\x2e\x04\xc5\x36\xad\x93\x43\x0e\x55\x38\x20\x56\xfc\xe6\x59\xcd\x3c\x1a\xaf\x40\x05\x5f\xb7\x96\xb6\xc6\x52\x59\x38\xe3\xa8\xa1\xd6\xc1\x02\x82\x02\x53\x8c\x15\xf0\x65\xe0\x01\x00\x0c\xef\xc3\x33\xfe\x88\xe5\x5a\xa8\xe0\xff\x10\x96\xb9\xcc\x80\x8b\xa5\xcc\x33\xa6\xb8\x14\xba\x88\xaf\x31\x63\x1f\x0b\xc5\x14\x2f\x14\x8f\x8b\xa9\xf4\xdb\x35\xe6\x08\xce\xdc\xd6\xa4\x5b\xd3\x10\x2c\xc0\x8f\xef\x4d\xdb\x52\x9d\x51\x73\x4b\xb6\xf7\xa7\x2c\x13\xc9\x98\xec\x37\xf7\xd4\x18\x58\x40\xc2\x14\xbb\x62\x05\x06\xe1\x51\xaa\x6a\x4b\xda\x4f\xbc\xaa\xdc\xeb\xcd\xc0\x6c\x06\xe6\xd3\x51\x57\xe5\xc0\x22\xfd\x63\x47\xbd\xd3\xbb\x9e\xac\xae\xca\xe1\xce\x10\xbe\xc0\xa7\x0f\xbf\x3f\xfd\x24\x97\x2b\xe0\x22\xc1\x1b\x78\x3d\x0e\xa4\x80\xe3\xa6\x22\x7f\xe4\x8e\xa3\xfb\xec\x7b\x61\x18\x79\xde\x2a\xc7\x15\xcb\x11\x2c\x35\xdd\x03\xf1\x43\x1b\xfc\x0e\xf7\x55\xef\xfa\x61\xaa\xe7\x66\x22\x0f\x6f\x30\x5e\xab\xd9\xa2\xc8\x4b\x90\xa5\xa9\x8c\x99\x42\xf8\x0b\x3c\xf2\xbc\xf7\x21\x7e\x34\xf2\xdc\x58\x6d\x7a\xa7\x1f\x2a\xfa\x49\xa5\x36\xee\xb5\xea\x2f\x02\xff\x09\xf9\xef\xc9\xfd\xb9\xe1\xc9\xc3\x78\x8e\x73\x3c\x8c\xec\x92\xf3\x73\xb3\xc1\xba\x27\xcb\xcb\x30\x3a\x31\xba\xb1\x64\xdc\xd3\xd0\x45\xe7\x5e\x2a\x75\xbe\x6e\xd6\xeb\x9f\xa2\x6f\xa9\x36\x96\xe9\x3a\x13\x6f\xed\x75\xd3\xd5\xbb\xa6\x9d\x80\xa2\x73\xd5\xdd\xe3\xca\x76\xdb\x13\xda\x98\x73\x8f\x5b\x82\xff\x16\xe0\x3b\xda\xcf\x6c\x33\x4b\x15\xe6\xa0\xd8\x55\x8a\x27\xf2\x20\x93\x09\x5f\x7e\x87\xa1\x2b\x78\x76\x0f\x1c\x50\x97\xb6\xd6\xd4\x8e\xec\xcb\xf7\xf5\x28\x3e\x6b\xf4\x24\xf1\x2b\x00\x00\xff\xff\x4c\x83\xdd\x70\x99\x07\x00\x00")
 
-func mysql000067_upgrade_channelmembers_v61DownSqlBytes() ([]byte, error) {
+func mysql000067_upgrade_channelmembers_v60DownSqlBytes() ([]byte, error) {
 	return bindataRead(
-		_mysql000067_upgrade_channelmembers_v61DownSql,
-		"mysql/000067_upgrade_channelmembers_v6.1.down.sql",
+		_mysql000067_upgrade_channelmembers_v60DownSql,
+		"mysql/000067_upgrade_channelmembers_v6.0.down.sql",
 	)
 }
 
-func mysql000067_upgrade_channelmembers_v61DownSql() (*asset, error) {
-	bytes, err := mysql000067_upgrade_channelmembers_v61DownSqlBytes()
+func mysql000067_upgrade_channelmembers_v60DownSql() (*asset, error) {
+	bytes, err := mysql000067_upgrade_channelmembers_v60DownSqlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "mysql/000067_upgrade_channelmembers_v6.1.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "mysql/000067_upgrade_channelmembers_v6.0.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _mysql000067_upgrade_channelmembers_v61UpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x90\x51\x6b\xb3\x30\x14\x86\xef\xf3\x2b\xde\xef\x4a\xfd\x18\x63\xbb\x16\xc7\xd2\x78\xa4\x82\x9a\x12\x53\xb6\x5d\x95\xb4\x3b\xa3\x03\xb5\x45\x33\xe8\xfe\xfd\x68\x15\xa1\xdd\x72\x11\x02\x79\xde\x27\x39\x6f\x4d\x16\xcf\xc7\x9e\x8f\xae\xe7\xf7\xda\x3b\xcf\x2d\x77\x1e\x09\xc2\x9a\x0a\x52\x16\x79\x16\x0a\x00\x18\xf7\xf3\x9a\x2e\x94\x5e\x57\x36\xfc\x1f\x21\x33\xba\x44\x5e\x65\xda\x94\xd2\xe6\xba\xda\xd4\x6a\x49\xa5\xbc\x57\xba\x58\x97\x55\x3d\xe7\x5e\x96\x64\x08\xde\x6d\x1b\xde\x74\xae\x65\x24\x08\xd4\xde\x75\x1d\x37\x25\xb7\x5b\xee\x87\x60\x66\x65\x95\x4e\xe4\xb0\xdb\x73\xeb\x90\x20\x95\x56\x2e\x64\x4d\x61\x74\x45\xed\x0e\xcd\x57\xdb\xcd\x42\x73\x68\xf8\xc6\x33\x11\xfe\xfb\xc8\xf8\x97\x20\xf0\x7c\xf2\x23\x11\xe1\x09\x0f\x77\x97\x63\x20\x0b\x4b\x06\x56\x2e\x0a\xc2\xf5\xaf\x50\xea\x34\xcf\xde\x30\xce\x83\xcb\x0b\x38\x4b\xe2\x60\xca\x4e\x8d\x3c\x06\x22\x8a\x62\x21\x56\x86\x56\xd2\x10\x5c\xe3\xb9\xcf\x3f\xe8\xf4\x39\xf8\x61\xac\xe9\x77\xd5\xb1\xa0\x57\x52\x6b\x7b\x83\xc7\x22\x25\x59\x14\x5a\x49\x4b\xf8\x53\x18\x8b\x9f\x00\x00\x00\xff\xff\x6e\x89\x90\x9b\xbc\x01\x00\x00")
+var _mysql000067_upgrade_channelmembers_v60UpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xe4\x94\x5f\x6f\x9b\x3c\x18\xc5\xef\xf9\x14\xcf\x7b\x05\xbc\x8a\xa6\xed\x1a\x65\x9a\x0b\xce\xea\x09\xec\x08\x3b\x5b\x77\x85\xdc\xf0\x74\x45\xe2\x4f\x84\x9d\x2e\xfd\xf6\x13\x81\xa0\x34\x21\x4a\x77\x51\x69\x52\x73\x11\x39\xce\x39\xc7\xe6\xf9\x1d\x21\xa9\x82\x2f\x9b\x16\x37\xba\xc5\x5c\x5a\x6d\xb1\xc2\xda\xc2\x1c\x3c\x49\x63\x1a\x2a\x60\x0b\xcf\x01\x00\xe8\xbf\xbb\xcf\xf0\x47\x28\x56\x5c\x79\xff\xfb\xb0\x48\x45\x02\x8c\x2f\x44\x9a\x10\xc5\x04\xcf\x64\x78\x4b\x13\xf2\x21\x14\xf1\x2a\xe1\x72\xf4\xfd\xb8\xa5\x29\x05\xab\xef\x4b\xcc\x6a\x5d\x21\xcc\xc1\x0d\x1f\x75\x5d\x63\x99\x60\x75\x8f\xad\x71\x47\x2d\xe1\xd1\xa0\x34\xeb\x47\xac\x34\xcc\x21\x22\x8a\xdc\x10\x49\x3d\xff\x85\x6a\xdd\x94\xdb\xaa\x1e\x03\x79\x63\x8b\x87\xe7\x65\xdb\x6c\x4e\xd2\x06\x9d\x7d\xde\x20\xfc\x37\x07\xf7\x9b\x14\xbc\x57\xf8\xf0\x19\x3e\xce\xf6\x4b\x97\xc4\x8a\xa6\xa0\xc8\x4d\x4c\xe1\xe5\xdd\x20\x11\x11\x5b\xfc\x84\xfe\xa9\xe0\xe8\x1c\xe8\xa2\x02\x77\x48\x18\xa6\xf3\xc9\x75\x7c\x3f\x70\x9c\x65\x4a\x97\x24\xa5\xa0\x4b\x8b\x2d\x7b\xa0\xbb\xc2\x58\xd3\x8f\xec\x7c\xec\x81\x43\xef\x68\xb8\x52\x27\xf2\xc0\x89\x28\x89\x63\x11\x12\x45\x61\x32\x30\x70\x9c\x37\x04\x29\x15\x51\x4c\x2a\x16\xbe\x35\xcb\xa2\xce\x71\x37\xe6\x15\xf9\x2e\x5b\xf7\x99\x55\x9f\x99\x6d\x0d\xb6\x59\x91\x9f\x73\x8b\x52\xb1\x04\xc6\x23\x7a\x07\x97\x6d\x20\xf8\x09\xd4\x6b\xd4\x5a\xac\x9a\x27\x64\xdd\xb5\x5e\xcf\x6e\xc2\x34\x49\x70\x52\xf7\xae\x38\x1e\xb6\xbb\x65\xa9\x8d\xcd\x9e\x0a\xfc\x8d\x79\xa6\xed\x39\xe1\x91\xd0\xf0\x3b\x4c\x69\x37\xcc\x6b\xcc\x2f\x1f\x71\xde\x06\x6f\x65\xb0\x65\xf9\xec\xb0\xdd\x2d\x63\x6d\xec\xf7\xbd\x85\x58\x3f\x38\xa9\xc7\xba\x45\x6d\x0f\x04\x79\x63\x5f\xdb\x90\x69\xdf\x64\x49\x2e\x49\xdf\x47\x4f\x8e\xe0\xed\xb3\x30\xfb\xb5\x45\x63\x2f\xbf\x07\xfe\xb6\x25\x57\x0e\x98\xe8\xc8\x51\x37\xe4\xde\xf1\xb5\x33\xcc\xa0\xef\xce\xbf\x54\x91\x3f\x01\x00\x00\xff\xff\x95\x94\x97\x14\xdb\x07\x00\x00")
 
-func mysql000067_upgrade_channelmembers_v61UpSqlBytes() ([]byte, error) {
+func mysql000067_upgrade_channelmembers_v60UpSqlBytes() ([]byte, error) {
 	return bindataRead(
-		_mysql000067_upgrade_channelmembers_v61UpSql,
-		"mysql/000067_upgrade_channelmembers_v6.1.up.sql",
+		_mysql000067_upgrade_channelmembers_v60UpSql,
+		"mysql/000067_upgrade_channelmembers_v6.0.up.sql",
 	)
 }
 
-func mysql000067_upgrade_channelmembers_v61UpSql() (*asset, error) {
-	bytes, err := mysql000067_upgrade_channelmembers_v61UpSqlBytes()
+func mysql000067_upgrade_channelmembers_v60UpSql() (*asset, error) {
+	bytes, err := mysql000067_upgrade_channelmembers_v60UpSqlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "mysql/000067_upgrade_channelmembers_v6.1.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "mysql/000067_upgrade_channelmembers_v6.0.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -3152,6 +3160,86 @@ func mysql000070_upgrade_cte_v61UpSql() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "mysql/000070_upgrade_cte_v6.1.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000071_upgrade_sessions_v61DownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x90\x51\x4b\xf3\x30\x18\x85\xef\xf3\x2b\xce\x77\xd5\xf6\x43\x44\x41\xbc\x29\x15\xb3\xf6\x2d\x2b\xa4\xcd\x48\x32\xd4\xab\x11\x67\x64\x83\xb6\x1b\x4d\x14\xfd\xf7\xe2\x5a\x87\x4e\x73\x11\x02\x79\xce\x93\xbc\x47\x93\xc1\xed\x7e\x70\x7b\x3b\xb8\x27\x1d\x6c\x70\x9d\xeb\x03\x32\xc4\x9a\x04\xe5\x06\x55\x19\x33\x00\x18\xf7\xcf\x35\x5d\xe4\x72\xd9\x98\xf8\x7f\x82\x52\xc9\x1a\x55\x53\x4a\x55\x73\x53\xc9\x66\xa5\xf3\x39\xd5\xfc\x3c\x97\x62\x59\x37\xfa\x98\xbb\x9b\x93\x22\x04\xfb\xd8\xba\x55\x6f\x3b\x87\x0c\x91\x76\xde\x6f\x77\xbd\x8f\x8e\x14\x6f\x8a\x89\xf1\xeb\x8d\xeb\x2c\x32\x14\xdc\xf0\x19\xd7\x14\x27\x3f\xa8\xf5\xae\x7d\xe9\xfa\xa3\x4a\xed\x5a\x77\xe2\x99\x88\xf0\xbe\x77\xf8\x97\x21\x7a\xb5\xc3\x7a\x63\x87\xf8\xfa\x2a\x19\xc1\x04\x37\xb8\x38\x3b\x1c\x23\x2e\x0c\x29\x18\x3e\x13\x84\xaf\x6f\xa1\x96\x45\x55\x3e\x60\x1c\x05\x87\x27\xf0\xcd\x92\x46\x53\x78\xea\xe4\x32\x62\x49\x92\x32\xb6\x50\xb4\xe0\x8a\x60\xdb\xe0\x86\xea\x99\xde\xb6\x3e\xf8\xb1\xa8\xdf\x65\xa7\x8c\xee\x29\x5f\x9a\x13\x3c\x65\x05\x71\x21\x64\xce\x0d\xe1\x4f\x61\xca\x3e\x02\x00\x00\xff\xff\x1d\xf2\x59\x89\xbe\x01\x00\x00")
+
+func mysql000071_upgrade_sessions_v61DownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000071_upgrade_sessions_v61DownSql,
+		"mysql/000071_upgrade_sessions_v6.1.down.sql",
+	)
+}
+
+func mysql000071_upgrade_sessions_v61DownSql() (*asset, error) {
+	bytes, err := mysql000071_upgrade_sessions_v61DownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000071_upgrade_sessions_v6.1.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000071_upgrade_sessions_v61UpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x90\x51\x4b\xc3\x30\x14\x85\xdf\xf3\x2b\x8e\x4f\x6d\x45\x44\x9f\x4b\xc5\xac\xbd\x65\x85\xb6\x19\x49\x86\xfa\x34\xe2\xbc\xe2\xa0\xed\xc6\x12\x61\xfe\x7b\xd9\x5a\x07\x4e\xf3\x10\x02\xf9\xce\xc7\xbd\xc7\x90\xc5\xe3\x6e\xcf\x3b\xb7\xe7\x37\x13\x5c\xe0\x9e\x87\x80\x0c\xb1\xa1\x9a\x72\x8b\xaa\x8c\x05\x00\x8c\xf7\xf1\x4c\x1f\xb9\x5a\xb6\x36\xbe\x4e\x50\x6a\xd5\xa0\x6a\x4b\xa5\x1b\x69\x2b\xd5\xae\x4c\x3e\xa7\x46\xde\xe6\xaa\x5e\x36\xad\x39\xe7\x9e\xe6\xa4\x09\xc1\xbd\x76\xbc\x1a\x5c\xcf\xc8\x10\x19\xf6\x7e\xb3\x1d\x7c\x74\xa6\x64\x5b\x4c\x8c\x5f\x7f\x70\xef\x90\xa1\x90\x56\xce\xa4\xa1\x38\xf9\x45\xad\xb7\xdd\x67\x3f\x9c\x55\x7a\xdb\xf1\x85\x67\x22\xc2\xd7\x8e\x71\x95\x21\x0a\x7c\x08\x23\x91\xe0\x01\x77\x37\xa7\x67\x24\x6b\x4b\x1a\x56\xce\x6a\xc2\xcf\x3c\x68\x54\x51\x95\x2f\x18\x77\xc0\xc9\x8d\x63\x3c\x8d\xa6\xd4\xd4\xc2\x7d\x24\x92\x24\x15\x62\xa1\x69\x21\x35\xc1\x75\x81\xf7\xd5\x3b\x1d\x36\x3e\xf8\xb1\x9a\xbf\xf5\xa6\x82\x9e\x29\x5f\xda\x0b\x3c\x15\x05\xc9\xba\x56\xb9\xb4\x84\x7f\x85\xa9\xf8\x0e\x00\x00\xff\xff\xd9\x62\xc0\xf7\xb0\x01\x00\x00")
+
+func mysql000071_upgrade_sessions_v61UpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000071_upgrade_sessions_v61UpSql,
+		"mysql/000071_upgrade_sessions_v6.1.up.sql",
+	)
+}
+
+func mysql000071_upgrade_sessions_v61UpSql() (*asset, error) {
+	bytes, err := mysql000071_upgrade_sessions_v61UpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000071_upgrade_sessions_v6.1.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000072_upgrade_channelmembers_v61DownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x90\x51\x4b\xf3\x30\x14\x86\xef\xf3\x2b\xde\xef\xaa\xed\x87\x88\x82\x78\x53\x2a\x66\xe9\x29\x2b\xb4\xcd\x48\x33\xd4\xab\x91\xcd\x23\x13\xda\x6e\xb4\x51\xf4\xdf\x8b\x6b\x19\x6e\x9a\x8b\x10\xc8\x73\x9e\x73\xce\x5b\x93\xc5\xfd\xbe\xe7\xbd\xeb\xf9\xb9\xf6\xce\x73\xcb\x9d\x47\x82\xb0\xa6\x82\x94\x45\x9e\x85\x02\x00\xc6\xfb\xfb\x4c\x1f\x4a\x2f\x2b\x1b\xfe\x8f\x90\x19\x5d\x22\xaf\x32\x6d\x4a\x69\x73\x5d\xad\x6a\x35\xa7\x52\x5e\x2a\x5d\x2c\xcb\xaa\x3e\xd6\x3d\xcc\xc9\x10\xbc\x5b\x37\xbc\xea\x5c\xcb\x48\x10\xa8\xad\xeb\x3a\x6e\x4a\x6e\xd7\xdc\x0f\xc1\x91\x95\x55\x3a\x91\xc3\x66\xcb\xad\x43\x82\x54\x5a\x39\x93\x35\x85\xd1\x09\xb5\xd9\x35\x6f\x6d\x77\x14\x9a\x5d\xc3\x67\x9e\x89\xf0\x9f\x7b\xc6\xbf\x04\xc1\xbb\xeb\x37\x5b\xd7\x87\xb7\x37\xd1\x08\x46\xb8\xc3\xd5\xc5\xe1\x19\xc8\xc2\x92\x81\x95\xb3\x82\x70\x3a\x1c\x4a\x9d\xe6\xd9\x13\xc6\xb5\x70\x68\x84\x1f\xae\x38\x98\x14\x53\x3e\xd7\x81\x88\xa2\x58\x88\x85\xa1\x85\x34\x04\xd7\x78\xee\xf3\x17\xfa\x78\x1d\xfc\x30\x86\xf6\x3b\xf8\x58\xd0\x23\xa9\xa5\x3d\xc3\x63\x91\x92\x2c\x0a\xad\xa4\x25\xfc\x29\x8c\xc5\x57\x00\x00\x00\xff\xff\x6f\xc8\x1f\xad\xca\x01\x00\x00")
+
+func mysql000072_upgrade_channelmembers_v61DownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000072_upgrade_channelmembers_v61DownSql,
+		"mysql/000072_upgrade_channelmembers_v6.1.down.sql",
+	)
+}
+
+func mysql000072_upgrade_channelmembers_v61DownSql() (*asset, error) {
+	bytes, err := mysql000072_upgrade_channelmembers_v61DownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000072_upgrade_channelmembers_v6.1.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000072_upgrade_channelmembers_v61UpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x90\x51\x6b\xb3\x30\x14\x86\xef\xf3\x2b\xde\xef\x4a\xfd\x18\x63\xbb\x16\xc7\xd2\x78\xa4\x82\x9a\x12\x53\xb6\x5d\x95\xb4\x3b\xa3\x03\xb5\x45\x33\xe8\xfe\xfd\x68\x15\xa1\xdd\x72\x11\x02\x79\xde\x27\x39\x6f\x4d\x16\xcf\xc7\x9e\x8f\xae\xe7\xf7\xda\x3b\xcf\x2d\x77\x1e\x09\xc2\x9a\x0a\x52\x16\x79\x16\x0a\x00\x18\xf7\xf3\x9a\x2e\x94\x5e\x57\x36\xfc\x1f\x21\x33\xba\x44\x5e\x65\xda\x94\xd2\xe6\xba\xda\xd4\x6a\x49\xa5\xbc\x57\xba\x58\x97\x55\x3d\xe7\x5e\x96\x64\x08\xde\x6d\x1b\xde\x74\xae\x65\x24\x08\xd4\xde\x75\x1d\x37\x25\xb7\x5b\xee\x87\x60\x66\x65\x95\x4e\xe4\xb0\xdb\x73\xeb\x90\x20\x95\x56\x2e\x64\x4d\x61\x74\x45\xed\x0e\xcd\x57\xdb\xcd\x42\x73\x68\xf8\xc6\x33\x11\xfe\xfb\xc8\xf8\x97\x20\xf0\x7c\xf2\x23\x11\xe1\x09\x0f\x77\x97\x63\x20\x0b\x4b\x06\x56\x2e\x0a\xc2\xf5\xaf\x50\xea\x34\xcf\xde\x30\xce\x83\xcb\x0b\x38\x4b\xe2\x60\xca\x4e\x8d\x3c\x06\x22\x8a\x62\x21\x56\x86\x56\xd2\x10\x5c\xe3\xb9\xcf\x3f\xe8\xf4\x39\xf8\x61\xac\xe9\x77\xd5\xb1\xa0\x57\x52\x6b\x7b\x83\xc7\x22\x25\x59\x14\x5a\x49\x4b\xf8\x53\x18\x8b\x9f\x00\x00\x00\xff\xff\x6e\x89\x90\x9b\xbc\x01\x00\x00")
+
+func mysql000072_upgrade_channelmembers_v61UpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000072_upgrade_channelmembers_v61UpSql,
+		"mysql/000072_upgrade_channelmembers_v6.1.up.sql",
+	)
+}
+
+func mysql000072_upgrade_channelmembers_v61UpSql() (*asset, error) {
+	bytes, err := mysql000072_upgrade_channelmembers_v61UpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000072_upgrade_channelmembers_v6.1.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -5276,6 +5364,46 @@ func postgres000053_create_retention_policiesUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _postgres000054_create_crt_channelmembership_countDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x9c\xcf\x31\x4b\xc4\x30\x14\xc0\xf1\xf9\xbd\x4f\xf1\x86\xc2\xb5\x4e\xee\x3d\x3b\x98\xbe\x7a\x85\x6b\x0a\x35\xe2\x58\x62\x78\x78\x85\x26\x3d\x92\x38\xf8\xed\x45\x0b\x82\x93\x70\xd3\x7f\xfb\xc1\xbf\x1d\xa9\x28\x10\x8e\x47\x72\xab\xd8\x38\xbb\x98\x67\x77\xb1\x21\xc8\xea\xc5\xbf\x49\x4c\x97\xe5\x3a\xbb\xed\x23\xe4\x44\x4d\x83\x8f\xfc\xd4\x6b\x84\xbe\x2b\x4b\x04\x78\xe6\x33\x2b\x83\x00\xa0\xc6\x17\x6d\xca\xbb\x0a\x01\xba\x69\x1c\x28\x7d\xa6\x2c\x3e\x21\xbc\x9e\x78\x62\x04\xd0\xd6\x0b\x3d\xd0\x41\x4d\x46\xed\xfe\xf0\xeb\xab\x1f\x7e\x58\xde\xa3\xcd\xcb\x16\xd4\xe6\xaf\xab\x64\x39\x54\xd4\xd0\x7d\x45\xe6\xc4\x1a\x01\x5a\x3e\xb3\x61\xfa\xcb\xef\x3e\xdd\xa2\xd7\x08\xac\x5b\xea\xbb\x1a\xbf\xfb\xff\x3f\x16\x45\x8d\x5f\x01\x00\x00\xff\xff\x30\x8d\x76\x0c\x31\x01\x00\x00")
+
+func postgres000054_create_crt_channelmembership_countDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000054_create_crt_channelmembership_countDownSql,
+		"postgres/000054_create_crt_channelmembership_count.down.sql",
+	)
+}
+
+func postgres000054_create_crt_channelmembership_countDownSql() (*asset, error) {
+	bytes, err := postgres000054_create_crt_channelmembership_countDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000054_create_crt_channelmembership_count.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _postgres000054_create_crt_channelmembership_countUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x94\x52\xc1\x6e\xe2\x30\x10\x3d\x8f\xbf\x62\x0e\x48\x24\x08\x51\xf6\x5a\x5a\xa4\x6c\x30\xdb\x48\x10\x2a\x08\xdd\x23\x72\x61\x20\x96\x88\x8d\xe2\xa1\x74\xff\x7e\x65\x43\x2a\x40\xbb\xd2\xee\xc9\x9a\x79\xef\x8d\x9f\xdf\xf8\xa1\x83\x5b\xfd\x99\xce\x8b\xb4\x54\xc6\xd0\x7e\x4a\xd5\x3b\xd5\xae\xd4\x87\xd4\x1e\x0d\x3b\x8f\x92\x43\x2e\x09\xd7\x67\x06\xae\x03\xd0\x45\xdd\xa3\x5e\x00\xd8\xb2\xda\x63\x45\xce\xa9\x1d\x9d\xe1\xae\x38\x37\x6b\x6b\xf9\x0e\xc1\x8a\x0c\x6b\x6b\x9a\x52\x99\xcd\x6d\x0b\xb5\xb9\xd1\x39\xdc\xda\x1a\x8f\x8e\x6a\x27\x4e\xa5\xc5\x52\x7d\x10\x7e\x68\x3a\xd1\xe6\xc6\x97\xda\x32\xd5\xa1\xb3\x57\x8e\xf1\x60\x5d\x18\x75\x4d\xe9\x3c\x88\xd1\x0c\x5b\x2d\x01\x4f\x4f\x58\xe9\x5d\xad\x98\x56\xeb\x9a\x57\x17\x42\xf5\xf5\xfa\xd5\xf9\x95\x38\x1c\x8a\xef\xf2\x47\x96\x0b\xc8\xc6\x51\x24\x00\x16\x72\x22\xd3\x42\x00\x40\x3a\x5b\xe6\x45\xd4\x89\x05\xc0\x78\x3e\x9b\xa2\xfb\xe5\x98\x2a\x27\xe0\xe7\x8b\x9c\x4b\x01\x90\xab\x8a\xf0\x19\xdb\x7f\x4f\x77\x1a\x2c\x68\x6b\x52\x5b\x1d\xf6\xc4\xd4\x8e\xf1\x19\xfb\x31\x16\x2f\x32\x17\x00\xcb\xd7\x51\x52\xc8\x70\xd9\xcd\x80\xe0\x23\x98\x98\x9e\x93\x0b\xe3\xbc\xb4\x7b\xdf\x9c\xfb\x24\xbf\x00\xb7\x6b\x98\x97\x81\xae\x57\xf8\x45\x35\xc0\x0d\xeb\x22\xfd\x33\xd3\x83\x81\x3d\x51\x8e\x97\x87\x8d\x62\x4a\x3c\xdb\x67\x74\x9d\x12\x40\x44\x9f\x5c\xab\x35\x47\x74\xb0\xeb\x12\x43\x56\xc6\x9e\xa2\x38\xc6\x0e\x7e\xeb\xf7\xfb\xf1\xe3\xe3\xbb\xde\x69\xc3\x3e\xca\x90\x65\x10\x36\xf7\xfa\xa2\x89\xf4\x3e\x88\xde\xa5\xd4\x9b\x6b\xa3\xd9\x26\x50\x93\x7c\x84\x77\x74\x6f\xf6\x2d\x7c\x9d\x84\x71\x78\x25\xf1\xc0\xab\x75\x9c\xf0\x40\x00\x64\xf9\x42\xce\x0b\xcc\xf2\x62\x86\x8b\x66\xad\x00\x6f\xc9\x64\x29\x17\xd1\x7f\x2d\xb4\x8b\x6d\xae\x8f\xd4\x8e\x07\x02\x64\x3e\xc2\x6c\x3c\x10\xfe\xfc\x97\xdf\x27\x5a\xad\x81\xf8\x1d\x00\x00\xff\xff\x85\xcd\xa2\x97\xa2\x03\x00\x00")
+
+func postgres000054_create_crt_channelmembership_countUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000054_create_crt_channelmembership_countUpSql,
+		"postgres/000054_create_crt_channelmembership_count.up.sql",
+	)
+}
+
+func postgres000054_create_crt_channelmembership_countUpSql() (*asset, error) {
+	bytes, err := postgres000054_create_crt_channelmembership_countUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000054_create_crt_channelmembership_count.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _postgres000054_upgrade_posts_v60DownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x84\xce\xc1\x8a\xc2\x30\x14\x85\xe1\x7d\x9e\xe2\x2e\xdb\x5d\x99\x81\x61\xa0\xab\xd8\x5c\xa1\x50\x93\xd2\x46\xa8\xab\x10\x4c\xc4\x40\x31\x21\x0d\xe2\xe3\x8b\x55\x14\x8a\xe2\xf6\xc0\xf7\x73\xaa\x0e\xa9\x44\xa8\x39\xc3\x01\xea\x35\x70\x21\x01\x87\xba\x97\x3d\x38\x73\x51\xc1\x4f\x69\x52\xd1\xfb\xa4\x9c\x01\xc1\x61\x1e\xb2\xdb\xe0\x4c\x5e\x12\xc2\x3a\xd1\xbe\xf4\x27\xa9\x8c\x1d\x6d\xb2\x4a\xa7\x92\x10\xda\x48\xec\x40\xd2\x55\x83\xf7\x1c\x50\xc6\xa0\x12\xcd\x76\xc3\x17\x17\x82\x8e\xf6\x94\x9c\x81\xb3\x8e\xfb\xa3\x8e\xd9\xcf\x5f\x5e\xbe\x0b\xcc\xcb\x23\x11\xa2\x0f\x13\xc8\x5d\x8b\x4f\xf6\x5f\x14\xc5\x77\x78\x70\xa3\x75\x66\x41\x7f\x67\x79\x0d\x00\x00\xff\xff\x6c\x1b\x85\x90\x27\x01\x00\x00")
 
 func postgres000054_upgrade_posts_v60DownSqlBytes() ([]byte, error) {
@@ -5312,6 +5440,46 @@ func postgres000054_upgrade_posts_v60UpSql() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "postgres/000054_upgrade_posts_v6.0.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _postgres000055_create_crt_thread_count_and_unreadsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x9c\xcf\x31\x6b\x85\x30\x14\x05\xe0\xf9\xde\x5f\x71\x87\xc0\xd3\x4e\xdd\x7d\x15\xda\x78\xed\x13\xde\x8b\x60\xf3\xe8\x18\x82\x86\x56\xd0\x58\x92\x38\xf4\xdf\x17\x75\xea\x56\x3a\x1d\x38\xc3\x77\x38\x55\x4b\x42\x20\x9c\xcf\xd4\x4f\xce\x06\xd3\x87\x64\xd2\x67\x70\x76\x30\xfd\xb2\xfa\x14\x8d\xf5\x83\x59\xfd\xd6\x44\x2a\x4b\x7c\xe1\xd7\x46\x21\x34\x75\x96\x21\xc0\x1b\x5f\x59\x6a\x04\x00\xd9\xde\x95\xce\x1e\x72\x04\xa8\xbb\xf6\x46\xf1\x3b\x26\x37\x47\x84\xf7\x0b\x77\x8c\x00\xca\xce\x8e\x9e\xe8\x24\x3b\xad\xf7\x01\xb9\xfb\xcf\x7e\xb8\x1f\xfa\x6d\xfc\x08\x36\x8d\x8b\x97\xcb\xfc\x35\xb9\xe4\x4e\x39\x95\xf4\x98\x93\xbe\xb0\x42\x80\x8a\xaf\xac\x99\x7e\xeb\x07\x4f\xff\xc0\x0b\x04\x56\x15\x35\x75\x81\x5b\xfe\xe1\x3e\x0a\x51\xe0\x4f\x00\x00\x00\xff\xff\x84\x40\x69\x7b\x31\x01\x00\x00")
+
+func postgres000055_create_crt_thread_count_and_unreadsDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000055_create_crt_thread_count_and_unreadsDownSql,
+		"postgres/000055_create_crt_thread_count_and_unreads.down.sql",
+	)
+}
+
+func postgres000055_create_crt_thread_count_and_unreadsDownSql() (*asset, error) {
+	bytes, err := postgres000055_create_crt_thread_count_and_unreadsDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000055_create_crt_thread_count_and_unreads.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _postgres000055_create_crt_thread_count_and_unreadsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x94\x53\xd1\x4e\xe3\x4a\x0c\x7d\x1e\x7f\xc5\x79\xa8\xd4\xa4\xb7\x2a\xe5\x15\x28\x52\x6e\x1a\x2e\xb9\xa2\x29\x6a\x53\x78\xac\x86\xc6\x90\x68\x9b\x49\x99\x99\x2e\xb0\x5f\xbf\x9a\x4c\x0b\xa5\xec\x4a\xbb\x4f\xb1\x3d\xc7\xf6\xb1\x8f\x73\xd2\xc3\x63\xf5\x1a\xcf\xf2\xbc\xd4\x2c\x8b\xb8\xd9\x2a\x6b\x22\x55\x2c\x94\x73\x0d\x26\x52\x7f\x33\xb0\xa5\xf7\xa4\x81\x33\xf0\xd8\x68\x6c\x0d\x6b\x83\x97\x92\x35\xc3\x96\x8c\xb5\x34\x96\x34\x6f\xd6\x6f\xb0\x55\xcd\x68\x1e\xdb\xb0\x4f\x45\x65\xc0\x52\xaf\x2b\xd6\xb0\xa5\x54\xfe\xc9\xc1\x9c\xe1\x4a\xe1\x7b\xc5\x2f\x5c\xb4\xfe\xaa\x94\x4a\xf1\x7a\x40\xae\x7b\xa5\x9e\x20\xf7\x65\x6a\x96\xca\xc0\xb0\xb5\x2e\xec\xb0\x35\x2b\x5b\x35\x0a\x2b\xc7\x1c\xb6\xc1\x0f\xd6\x0d\xa4\x2a\x0e\x51\xe4\xc8\xed\x3b\x48\x7b\x44\xf0\x9d\xa4\x34\xef\x93\x1c\x81\x69\x07\xde\x31\x43\xef\x84\xc6\x53\x74\x3a\x24\x2e\x2e\x50\x57\x4f\x5a\x5a\x5e\xae\xb4\x5d\xfa\x4a\xcb\x96\x8d\x59\x4a\x55\x2c\xb7\xbb\x4d\x5e\x5e\xd2\xbf\xc9\x7f\x69\x46\x22\xbd\x0a\x02\x12\x62\x9e\xdc\x24\x71\x4e\x42\x88\x78\xba\xc8\xf2\xa0\x17\x92\x10\x57\xb3\xe9\x04\xe6\xcd\x58\xae\x0d\x89\xfb\xeb\x64\x96\x90\x10\x99\xac\x19\x23\x74\x7f\xab\xd3\xa4\xa5\x50\x35\x2a\x6e\xea\xcd\x9a\x2d\x77\x43\x8c\x30\x0c\x91\x5f\x27\x19\x09\x71\x9f\xe6\xd7\x78\x46\x34\x87\xeb\x7c\xd0\x5a\xdc\x36\xc6\xa6\x45\xbf\xb5\x17\x86\xf5\xde\x8e\xfd\xa4\x13\xae\x1f\x58\x9b\xc1\x8d\x34\xf6\xae\x5d\x49\x64\x5d\x99\x78\xb2\x3c\x0c\xf9\x1c\xcf\xcd\x83\x67\xee\x12\x22\xeb\xe2\x6e\xa6\xc3\xf7\xd6\x4e\xb3\x2c\x99\xe1\xff\x69\x9a\xe1\x73\x2b\x4c\x8f\x23\x83\x9d\x9b\x16\x18\x61\xdf\xe3\x3d\xe6\xaa\xed\xf7\xf4\x4b\x0a\xb8\x18\x1d\x17\x3c\xa4\x4e\x21\x2d\x6e\xc7\x51\x9e\xd0\x2e\x79\x07\x2a\xab\x8d\xa1\x79\x92\x93\xf8\x40\x63\x84\xe7\xc1\xd1\xe8\xf8\x07\xa7\x7d\x12\x5e\x88\x89\xbf\x46\xe3\x96\xdf\xf7\x99\x8b\x4d\x21\x6d\x9b\xfa\x59\xf4\x80\x5f\xad\x96\x2b\x1b\xf0\xa6\x59\x95\x68\x85\x57\xcd\x4b\x10\x86\xe8\xe1\x74\x38\x1c\x86\x67\x67\x0f\xd5\x53\xa5\x6c\x48\xfb\x15\x3e\x7f\x9c\xc4\x17\xae\x03\xa7\x64\xe5\x29\x7a\x51\x49\x88\x28\x1b\xe3\x2b\xd2\xeb\xdc\x22\xbd\x79\x4e\x22\xcd\xe6\xc9\x2c\x47\x9a\xe5\xd3\x8f\xfb\x13\x77\xd1\xcd\x22\x99\x07\x7f\x73\x78\x7d\x74\xad\xde\x72\x37\x3c\xa7\x24\x1b\x23\xbd\xf2\xdf\x3f\xfa\x49\xa8\xd3\x39\xa7\x9f\x01\x00\x00\xff\xff\x21\x3b\xb1\x77\x93\x04\x00\x00")
+
+func postgres000055_create_crt_thread_count_and_unreadsUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000055_create_crt_thread_count_and_unreadsUpSql,
+		"postgres/000055_create_crt_thread_count_and_unreads.up.sql",
+	)
+}
+
+func postgres000055_create_crt_thread_count_and_unreadsUpSql() (*asset, error) {
+	bytes, err := postgres000055_create_crt_thread_count_and_unreadsUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000055_create_crt_thread_count_and_unreads.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -6008,286 +6176,294 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"mysql/000001_create_teams.down.sql":                        mysql000001_create_teamsDownSql,
-	"mysql/000001_create_teams.up.sql":                          mysql000001_create_teamsUpSql,
-	"mysql/000002_create_team_members.down.sql":                 mysql000002_create_team_membersDownSql,
-	"mysql/000002_create_team_members.up.sql":                   mysql000002_create_team_membersUpSql,
-	"mysql/000003_create_cluster_discovery.down.sql":            mysql000003_create_cluster_discoveryDownSql,
-	"mysql/000003_create_cluster_discovery.up.sql":              mysql000003_create_cluster_discoveryUpSql,
-	"mysql/000004_create_command_webhooks.down.sql":             mysql000004_create_command_webhooksDownSql,
-	"mysql/000004_create_command_webhooks.up.sql":               mysql000004_create_command_webhooksUpSql,
-	"mysql/000005_create_compliances.down.sql":                  mysql000005_create_compliancesDownSql,
-	"mysql/000005_create_compliances.up.sql":                    mysql000005_create_compliancesUpSql,
-	"mysql/000006_create_emojis.down.sql":                       mysql000006_create_emojisDownSql,
-	"mysql/000006_create_emojis.up.sql":                         mysql000006_create_emojisUpSql,
-	"mysql/000007_create_user_groups.down.sql":                  mysql000007_create_user_groupsDownSql,
-	"mysql/000007_create_user_groups.up.sql":                    mysql000007_create_user_groupsUpSql,
-	"mysql/000008_create_group_members.down.sql":                mysql000008_create_group_membersDownSql,
-	"mysql/000008_create_group_members.up.sql":                  mysql000008_create_group_membersUpSql,
-	"mysql/000009_create_group_teams.down.sql":                  mysql000009_create_group_teamsDownSql,
-	"mysql/000009_create_group_teams.up.sql":                    mysql000009_create_group_teamsUpSql,
-	"mysql/000010_create_group_channels.down.sql":               mysql000010_create_group_channelsDownSql,
-	"mysql/000010_create_group_channels.up.sql":                 mysql000010_create_group_channelsUpSql,
-	"mysql/000011_create_link_metadata.down.sql":                mysql000011_create_link_metadataDownSql,
-	"mysql/000011_create_link_metadata.up.sql":                  mysql000011_create_link_metadataUpSql,
-	"mysql/000012_create_commands.down.sql":                     mysql000012_create_commandsDownSql,
-	"mysql/000012_create_commands.up.sql":                       mysql000012_create_commandsUpSql,
-	"mysql/000013_create_incoming_webhooks.down.sql":            mysql000013_create_incoming_webhooksDownSql,
-	"mysql/000013_create_incoming_webhooks.up.sql":              mysql000013_create_incoming_webhooksUpSql,
-	"mysql/000014_create_outgoing_webhooks.down.sql":            mysql000014_create_outgoing_webhooksDownSql,
-	"mysql/000014_create_outgoing_webhooks.up.sql":              mysql000014_create_outgoing_webhooksUpSql,
-	"mysql/000015_create_systems.down.sql":                      mysql000015_create_systemsDownSql,
-	"mysql/000015_create_systems.up.sql":                        mysql000015_create_systemsUpSql,
-	"mysql/000016_create_reactions.down.sql":                    mysql000016_create_reactionsDownSql,
-	"mysql/000016_create_reactions.up.sql":                      mysql000016_create_reactionsUpSql,
-	"mysql/000017_create_roles.down.sql":                        mysql000017_create_rolesDownSql,
-	"mysql/000017_create_roles.up.sql":                          mysql000017_create_rolesUpSql,
-	"mysql/000018_create_schemes.down.sql":                      mysql000018_create_schemesDownSql,
-	"mysql/000018_create_schemes.up.sql":                        mysql000018_create_schemesUpSql,
-	"mysql/000019_create_licenses.down.sql":                     mysql000019_create_licensesDownSql,
-	"mysql/000019_create_licenses.up.sql":                       mysql000019_create_licensesUpSql,
-	"mysql/000020_create_posts.down.sql":                        mysql000020_create_postsDownSql,
-	"mysql/000020_create_posts.up.sql":                          mysql000020_create_postsUpSql,
-	"mysql/000021_create_product_notice_view_state.down.sql":    mysql000021_create_product_notice_view_stateDownSql,
-	"mysql/000021_create_product_notice_view_state.up.sql":      mysql000021_create_product_notice_view_stateUpSql,
-	"mysql/000022_create_sessions.down.sql":                     mysql000022_create_sessionsDownSql,
-	"mysql/000022_create_sessions.up.sql":                       mysql000022_create_sessionsUpSql,
-	"mysql/000023_create_terms_of_service.down.sql":             mysql000023_create_terms_of_serviceDownSql,
-	"mysql/000023_create_terms_of_service.up.sql":               mysql000023_create_terms_of_serviceUpSql,
-	"mysql/000024_create_audits.down.sql":                       mysql000024_create_auditsDownSql,
-	"mysql/000024_create_audits.up.sql":                         mysql000024_create_auditsUpSql,
-	"mysql/000025_create_oauth_access_data.down.sql":            mysql000025_create_oauth_access_dataDownSql,
-	"mysql/000025_create_oauth_access_data.up.sql":              mysql000025_create_oauth_access_dataUpSql,
-	"mysql/000026_create_preferences.down.sql":                  mysql000026_create_preferencesDownSql,
-	"mysql/000026_create_preferences.up.sql":                    mysql000026_create_preferencesUpSql,
-	"mysql/000027_create_status.down.sql":                       mysql000027_create_statusDownSql,
-	"mysql/000027_create_status.up.sql":                         mysql000027_create_statusUpSql,
-	"mysql/000028_create_tokens.down.sql":                       mysql000028_create_tokensDownSql,
-	"mysql/000028_create_tokens.up.sql":                         mysql000028_create_tokensUpSql,
-	"mysql/000029_create_bots.down.sql":                         mysql000029_create_botsDownSql,
-	"mysql/000029_create_bots.up.sql":                           mysql000029_create_botsUpSql,
-	"mysql/000030_create_user_access_tokens.down.sql":           mysql000030_create_user_access_tokensDownSql,
-	"mysql/000030_create_user_access_tokens.up.sql":             mysql000030_create_user_access_tokensUpSql,
-	"mysql/000031_create_remote_clusters.down.sql":              mysql000031_create_remote_clustersDownSql,
-	"mysql/000031_create_remote_clusters.up.sql":                mysql000031_create_remote_clustersUpSql,
-	"mysql/000032_create_sharedchannels.down.sql":               mysql000032_create_sharedchannelsDownSql,
-	"mysql/000032_create_sharedchannels.up.sql":                 mysql000032_create_sharedchannelsUpSql,
-	"mysql/000033_create_sidebar_channels.down.sql":             mysql000033_create_sidebar_channelsDownSql,
-	"mysql/000033_create_sidebar_channels.up.sql":               mysql000033_create_sidebar_channelsUpSql,
-	"mysql/000034_create_oauthauthdata.down.sql":                mysql000034_create_oauthauthdataDownSql,
-	"mysql/000034_create_oauthauthdata.up.sql":                  mysql000034_create_oauthauthdataUpSql,
-	"mysql/000035_create_sharedchannelattachments.down.sql":     mysql000035_create_sharedchannelattachmentsDownSql,
-	"mysql/000035_create_sharedchannelattachments.up.sql":       mysql000035_create_sharedchannelattachmentsUpSql,
-	"mysql/000036_create_sharedchannelusers.down.sql":           mysql000036_create_sharedchannelusersDownSql,
-	"mysql/000036_create_sharedchannelusers.up.sql":             mysql000036_create_sharedchannelusersUpSql,
-	"mysql/000037_create_sharedchannelremotes.down.sql":         mysql000037_create_sharedchannelremotesDownSql,
-	"mysql/000037_create_sharedchannelremotes.up.sql":           mysql000037_create_sharedchannelremotesUpSql,
-	"mysql/000038_create_jobs.down.sql":                         mysql000038_create_jobsDownSql,
-	"mysql/000038_create_jobs.up.sql":                           mysql000038_create_jobsUpSql,
-	"mysql/000039_create_channel_member_history.down.sql":       mysql000039_create_channel_member_historyDownSql,
-	"mysql/000039_create_channel_member_history.up.sql":         mysql000039_create_channel_member_historyUpSql,
-	"mysql/000040_create_sidebar_categories.down.sql":           mysql000040_create_sidebar_categoriesDownSql,
-	"mysql/000040_create_sidebar_categories.up.sql":             mysql000040_create_sidebar_categoriesUpSql,
-	"mysql/000041_create_upload_sessions.down.sql":              mysql000041_create_upload_sessionsDownSql,
-	"mysql/000041_create_upload_sessions.up.sql":                mysql000041_create_upload_sessionsUpSql,
-	"mysql/000042_create_threads.down.sql":                      mysql000042_create_threadsDownSql,
-	"mysql/000042_create_threads.up.sql":                        mysql000042_create_threadsUpSql,
-	"mysql/000043_thread_memberships.down.sql":                  mysql000043_thread_membershipsDownSql,
-	"mysql/000043_thread_memberships.up.sql":                    mysql000043_thread_membershipsUpSql,
-	"mysql/000044_create_user_terms_of_service.down.sql":        mysql000044_create_user_terms_of_serviceDownSql,
-	"mysql/000044_create_user_terms_of_service.up.sql":          mysql000044_create_user_terms_of_serviceUpSql,
-	"mysql/000045_create_plugin_key_value_store.down.sql":       mysql000045_create_plugin_key_value_storeDownSql,
-	"mysql/000045_create_plugin_key_value_store.up.sql":         mysql000045_create_plugin_key_value_storeUpSql,
-	"mysql/000046_create_users.down.sql":                        mysql000046_create_usersDownSql,
-	"mysql/000046_create_users.up.sql":                          mysql000046_create_usersUpSql,
-	"mysql/000047_create_file_info.down.sql":                    mysql000047_create_file_infoDownSql,
-	"mysql/000047_create_file_info.up.sql":                      mysql000047_create_file_infoUpSql,
-	"mysql/000048_create_oauth_apps.down.sql":                   mysql000048_create_oauth_appsDownSql,
-	"mysql/000048_create_oauth_apps.up.sql":                     mysql000048_create_oauth_appsUpSql,
-	"mysql/000049_create_channels.down.sql":                     mysql000049_create_channelsDownSql,
-	"mysql/000049_create_channels.up.sql":                       mysql000049_create_channelsUpSql,
-	"mysql/000050_create_channelmembers.down.sql":               mysql000050_create_channelmembersDownSql,
-	"mysql/000050_create_channelmembers.up.sql":                 mysql000050_create_channelmembersUpSql,
-	"mysql/000051_create_msg_root_count.down.sql":               mysql000051_create_msg_root_countDownSql,
-	"mysql/000051_create_msg_root_count.up.sql":                 mysql000051_create_msg_root_countUpSql,
-	"mysql/000052_create_public_channels.down.sql":              mysql000052_create_public_channelsDownSql,
-	"mysql/000052_create_public_channels.up.sql":                mysql000052_create_public_channelsUpSql,
-	"mysql/000053_create_retention_policies.down.sql":           mysql000053_create_retention_policiesDownSql,
-	"mysql/000053_create_retention_policies.up.sql":             mysql000053_create_retention_policiesUpSql,
-	"mysql/000054_upgrade_posts_v6.0.down.sql":                  mysql000054_upgrade_posts_v60DownSql,
-	"mysql/000054_upgrade_posts_v6.0.up.sql":                    mysql000054_upgrade_posts_v60UpSql,
-	"mysql/000055_upgrade_channelmembers_v6.0.down.sql":         mysql000055_upgrade_channelmembers_v60DownSql,
-	"mysql/000055_upgrade_channelmembers_v6.0.up.sql":           mysql000055_upgrade_channelmembers_v60UpSql,
-	"mysql/000056_upgrade_channels_v6.0.down.sql":               mysql000056_upgrade_channels_v60DownSql,
-	"mysql/000056_upgrade_channels_v6.0.up.sql":                 mysql000056_upgrade_channels_v60UpSql,
-	"mysql/000057_upgrade_command_webhooks_v6.0.down.sql":       mysql000057_upgrade_command_webhooks_v60DownSql,
-	"mysql/000057_upgrade_command_webhooks_v6.0.up.sql":         mysql000057_upgrade_command_webhooks_v60UpSql,
-	"mysql/000058_upgrade_commands_v6.0.down.sql":               mysql000058_upgrade_commands_v60DownSql,
-	"mysql/000058_upgrade_commands_v6.0.up.sql":                 mysql000058_upgrade_commands_v60UpSql,
-	"mysql/000059_upgrade_users_v6.0.down.sql":                  mysql000059_upgrade_users_v60DownSql,
-	"mysql/000059_upgrade_users_v6.0.up.sql":                    mysql000059_upgrade_users_v60UpSql,
-	"mysql/000060_upgrade_jobs_v6.0.down.sql":                   mysql000060_upgrade_jobs_v60DownSql,
-	"mysql/000060_upgrade_jobs_v6.0.up.sql":                     mysql000060_upgrade_jobs_v60UpSql,
-	"mysql/000061_upgrade_link_metadata_v6.0.down.sql":          mysql000061_upgrade_link_metadata_v60DownSql,
-	"mysql/000061_upgrade_link_metadata_v6.0.up.sql":            mysql000061_upgrade_link_metadata_v60UpSql,
-	"mysql/000062_upgrade_sessions_v6.0.down.sql":               mysql000062_upgrade_sessions_v60DownSql,
-	"mysql/000062_upgrade_sessions_v6.0.up.sql":                 mysql000062_upgrade_sessions_v60UpSql,
-	"mysql/000063_upgrade_threads_v6.0.down.sql":                mysql000063_upgrade_threads_v60DownSql,
-	"mysql/000063_upgrade_threads_v6.0.up.sql":                  mysql000063_upgrade_threads_v60UpSql,
-	"mysql/000064_upgrade_status_v6.0.down.sql":                 mysql000064_upgrade_status_v60DownSql,
-	"mysql/000064_upgrade_status_v6.0.up.sql":                   mysql000064_upgrade_status_v60UpSql,
-	"mysql/000065_upgrade_groupchannels_v6.0.down.sql":          mysql000065_upgrade_groupchannels_v60DownSql,
-	"mysql/000065_upgrade_groupchannels_v6.0.up.sql":            mysql000065_upgrade_groupchannels_v60UpSql,
-	"mysql/000066_upgrade_sessions_v6.1.down.sql":               mysql000066_upgrade_sessions_v61DownSql,
-	"mysql/000066_upgrade_sessions_v6.1.up.sql":                 mysql000066_upgrade_sessions_v61UpSql,
-	"mysql/000067_upgrade_channelmembers_v6.1.down.sql":         mysql000067_upgrade_channelmembers_v61DownSql,
-	"mysql/000067_upgrade_channelmembers_v6.1.up.sql":           mysql000067_upgrade_channelmembers_v61UpSql,
-	"mysql/000068_upgrade_teammembers_v6.1.down.sql":            mysql000068_upgrade_teammembers_v61DownSql,
-	"mysql/000068_upgrade_teammembers_v6.1.up.sql":              mysql000068_upgrade_teammembers_v61UpSql,
-	"mysql/000069_upgrade_jobs_v6.1.down.sql":                   mysql000069_upgrade_jobs_v61DownSql,
-	"mysql/000069_upgrade_jobs_v6.1.up.sql":                     mysql000069_upgrade_jobs_v61UpSql,
-	"mysql/000070_upgrade_cte_v6.1.down.sql":                    mysql000070_upgrade_cte_v61DownSql,
-	"mysql/000070_upgrade_cte_v6.1.up.sql":                      mysql000070_upgrade_cte_v61UpSql,
-	"postgres/000001_create_teams.down.sql":                     postgres000001_create_teamsDownSql,
-	"postgres/000001_create_teams.up.sql":                       postgres000001_create_teamsUpSql,
-	"postgres/000002_create_team_members.down.sql":              postgres000002_create_team_membersDownSql,
-	"postgres/000002_create_team_members.up.sql":                postgres000002_create_team_membersUpSql,
-	"postgres/000003_create_cluster_discovery.down.sql":         postgres000003_create_cluster_discoveryDownSql,
-	"postgres/000003_create_cluster_discovery.up.sql":           postgres000003_create_cluster_discoveryUpSql,
-	"postgres/000004_create_command_webhooks.down.sql":          postgres000004_create_command_webhooksDownSql,
-	"postgres/000004_create_command_webhooks.up.sql":            postgres000004_create_command_webhooksUpSql,
-	"postgres/000005_create_compliances.down.sql":               postgres000005_create_compliancesDownSql,
-	"postgres/000005_create_compliances.up.sql":                 postgres000005_create_compliancesUpSql,
-	"postgres/000006_create_emojis.down.sql":                    postgres000006_create_emojisDownSql,
-	"postgres/000006_create_emojis.up.sql":                      postgres000006_create_emojisUpSql,
-	"postgres/000007_create_user_groups.down.sql":               postgres000007_create_user_groupsDownSql,
-	"postgres/000007_create_user_groups.up.sql":                 postgres000007_create_user_groupsUpSql,
-	"postgres/000008_create_group_members.down.sql":             postgres000008_create_group_membersDownSql,
-	"postgres/000008_create_group_members.up.sql":               postgres000008_create_group_membersUpSql,
-	"postgres/000009_create_group_teams.down.sql":               postgres000009_create_group_teamsDownSql,
-	"postgres/000009_create_group_teams.up.sql":                 postgres000009_create_group_teamsUpSql,
-	"postgres/000010_create_group_channels.down.sql":            postgres000010_create_group_channelsDownSql,
-	"postgres/000010_create_group_channels.up.sql":              postgres000010_create_group_channelsUpSql,
-	"postgres/000011_create_link_metadata.down.sql":             postgres000011_create_link_metadataDownSql,
-	"postgres/000011_create_link_metadata.up.sql":               postgres000011_create_link_metadataUpSql,
-	"postgres/000012_create_commands.down.sql":                  postgres000012_create_commandsDownSql,
-	"postgres/000012_create_commands.up.sql":                    postgres000012_create_commandsUpSql,
-	"postgres/000013_create_incoming_webhooks.down.sql":         postgres000013_create_incoming_webhooksDownSql,
-	"postgres/000013_create_incoming_webhooks.up.sql":           postgres000013_create_incoming_webhooksUpSql,
-	"postgres/000014_create_outgoing_webhooks.down.sql":         postgres000014_create_outgoing_webhooksDownSql,
-	"postgres/000014_create_outgoing_webhooks.up.sql":           postgres000014_create_outgoing_webhooksUpSql,
-	"postgres/000015_create_systems.down.sql":                   postgres000015_create_systemsDownSql,
-	"postgres/000015_create_systems.up.sql":                     postgres000015_create_systemsUpSql,
-	"postgres/000016_create_reactions.down.sql":                 postgres000016_create_reactionsDownSql,
-	"postgres/000016_create_reactions.up.sql":                   postgres000016_create_reactionsUpSql,
-	"postgres/000017_create_roles.down.sql":                     postgres000017_create_rolesDownSql,
-	"postgres/000017_create_roles.up.sql":                       postgres000017_create_rolesUpSql,
-	"postgres/000018_create_schemes.down.sql":                   postgres000018_create_schemesDownSql,
-	"postgres/000018_create_schemes.up.sql":                     postgres000018_create_schemesUpSql,
-	"postgres/000019_create_licenses.down.sql":                  postgres000019_create_licensesDownSql,
-	"postgres/000019_create_licenses.up.sql":                    postgres000019_create_licensesUpSql,
-	"postgres/000020_create_posts.down.sql":                     postgres000020_create_postsDownSql,
-	"postgres/000020_create_posts.up.sql":                       postgres000020_create_postsUpSql,
-	"postgres/000021_create_product_notice_view_state.down.sql": postgres000021_create_product_notice_view_stateDownSql,
-	"postgres/000021_create_product_notice_view_state.up.sql":   postgres000021_create_product_notice_view_stateUpSql,
-	"postgres/000022_create_sessions.down.sql":                  postgres000022_create_sessionsDownSql,
-	"postgres/000022_create_sessions.up.sql":                    postgres000022_create_sessionsUpSql,
-	"postgres/000023_create_terms_of_service.down.sql":          postgres000023_create_terms_of_serviceDownSql,
-	"postgres/000023_create_terms_of_service.up.sql":            postgres000023_create_terms_of_serviceUpSql,
-	"postgres/000024_create_audits.down.sql":                    postgres000024_create_auditsDownSql,
-	"postgres/000024_create_audits.up.sql":                      postgres000024_create_auditsUpSql,
-	"postgres/000025_create_oauth_access_data.down.sql":         postgres000025_create_oauth_access_dataDownSql,
-	"postgres/000025_create_oauth_access_data.up.sql":           postgres000025_create_oauth_access_dataUpSql,
-	"postgres/000026_create_preferences.down.sql":               postgres000026_create_preferencesDownSql,
-	"postgres/000026_create_preferences.up.sql":                 postgres000026_create_preferencesUpSql,
-	"postgres/000027_create_status.down.sql":                    postgres000027_create_statusDownSql,
-	"postgres/000027_create_status.up.sql":                      postgres000027_create_statusUpSql,
-	"postgres/000028_create_tokens.down.sql":                    postgres000028_create_tokensDownSql,
-	"postgres/000028_create_tokens.up.sql":                      postgres000028_create_tokensUpSql,
-	"postgres/000029_create_bots.down.sql":                      postgres000029_create_botsDownSql,
-	"postgres/000029_create_bots.up.sql":                        postgres000029_create_botsUpSql,
-	"postgres/000030_create_user_access_tokens.down.sql":        postgres000030_create_user_access_tokensDownSql,
-	"postgres/000030_create_user_access_tokens.up.sql":          postgres000030_create_user_access_tokensUpSql,
-	"postgres/000031_create_remote_clusters.down.sql":           postgres000031_create_remote_clustersDownSql,
-	"postgres/000031_create_remote_clusters.up.sql":             postgres000031_create_remote_clustersUpSql,
-	"postgres/000032_create_sharedchannels.down.sql":            postgres000032_create_sharedchannelsDownSql,
-	"postgres/000032_create_sharedchannels.up.sql":              postgres000032_create_sharedchannelsUpSql,
-	"postgres/000033_create_sidebar_channels.down.sql":          postgres000033_create_sidebar_channelsDownSql,
-	"postgres/000033_create_sidebar_channels.up.sql":            postgres000033_create_sidebar_channelsUpSql,
-	"postgres/000034_create_oauthauthdata.down.sql":             postgres000034_create_oauthauthdataDownSql,
-	"postgres/000034_create_oauthauthdata.up.sql":               postgres000034_create_oauthauthdataUpSql,
-	"postgres/000035_create_sharedchannelattachments.down.sql":  postgres000035_create_sharedchannelattachmentsDownSql,
-	"postgres/000035_create_sharedchannelattachments.up.sql":    postgres000035_create_sharedchannelattachmentsUpSql,
-	"postgres/000036_create_sharedchannelusers.down.sql":        postgres000036_create_sharedchannelusersDownSql,
-	"postgres/000036_create_sharedchannelusers.up.sql":          postgres000036_create_sharedchannelusersUpSql,
-	"postgres/000037_create_sharedchannelremotes.down.sql":      postgres000037_create_sharedchannelremotesDownSql,
-	"postgres/000037_create_sharedchannelremotes.up.sql":        postgres000037_create_sharedchannelremotesUpSql,
-	"postgres/000038_create_jobs.down.sql":                      postgres000038_create_jobsDownSql,
-	"postgres/000038_create_jobs.up.sql":                        postgres000038_create_jobsUpSql,
-	"postgres/000039_create_channel_member_history.down.sql":    postgres000039_create_channel_member_historyDownSql,
-	"postgres/000039_create_channel_member_history.up.sql":      postgres000039_create_channel_member_historyUpSql,
-	"postgres/000040_create_sidebar_categories.down.sql":        postgres000040_create_sidebar_categoriesDownSql,
-	"postgres/000040_create_sidebar_categories.up.sql":          postgres000040_create_sidebar_categoriesUpSql,
-	"postgres/000041_create_upload_sessions.down.sql":           postgres000041_create_upload_sessionsDownSql,
-	"postgres/000041_create_upload_sessions.up.sql":             postgres000041_create_upload_sessionsUpSql,
-	"postgres/000042_create_threads.down.sql":                   postgres000042_create_threadsDownSql,
-	"postgres/000042_create_threads.up.sql":                     postgres000042_create_threadsUpSql,
-	"postgres/000043_thread_memberships.down.sql":               postgres000043_thread_membershipsDownSql,
-	"postgres/000043_thread_memberships.up.sql":                 postgres000043_thread_membershipsUpSql,
-	"postgres/000044_create_user_terms_of_service.down.sql":     postgres000044_create_user_terms_of_serviceDownSql,
-	"postgres/000044_create_user_terms_of_service.up.sql":       postgres000044_create_user_terms_of_serviceUpSql,
-	"postgres/000045_create_plugin_key_value_store.down.sql":    postgres000045_create_plugin_key_value_storeDownSql,
-	"postgres/000045_create_plugin_key_value_store.up.sql":      postgres000045_create_plugin_key_value_storeUpSql,
-	"postgres/000046_create_users.down.sql":                     postgres000046_create_usersDownSql,
-	"postgres/000046_create_users.up.sql":                       postgres000046_create_usersUpSql,
-	"postgres/000047_create_file_info.down.sql":                 postgres000047_create_file_infoDownSql,
-	"postgres/000047_create_file_info.up.sql":                   postgres000047_create_file_infoUpSql,
-	"postgres/000048_create_oauth_apps.down.sql":                postgres000048_create_oauth_appsDownSql,
-	"postgres/000048_create_oauth_apps.up.sql":                  postgres000048_create_oauth_appsUpSql,
-	"postgres/000049_create_channels.down.sql":                  postgres000049_create_channelsDownSql,
-	"postgres/000049_create_channels.up.sql":                    postgres000049_create_channelsUpSql,
-	"postgres/000050_create_channelmembers.down.sql":            postgres000050_create_channelmembersDownSql,
-	"postgres/000050_create_channelmembers.up.sql":              postgres000050_create_channelmembersUpSql,
-	"postgres/000051_create_msg_root_count.down.sql":            postgres000051_create_msg_root_countDownSql,
-	"postgres/000051_create_msg_root_count.up.sql":              postgres000051_create_msg_root_countUpSql,
-	"postgres/000052_create_public_channels.down.sql":           postgres000052_create_public_channelsDownSql,
-	"postgres/000052_create_public_channels.up.sql":             postgres000052_create_public_channelsUpSql,
-	"postgres/000053_create_retention_policies.down.sql":        postgres000053_create_retention_policiesDownSql,
-	"postgres/000053_create_retention_policies.up.sql":          postgres000053_create_retention_policiesUpSql,
-	"postgres/000054_upgrade_posts_v6.0.down.sql":               postgres000054_upgrade_posts_v60DownSql,
-	"postgres/000054_upgrade_posts_v6.0.up.sql":                 postgres000054_upgrade_posts_v60UpSql,
-	"postgres/000055_upgrade_channelmembers_v6.0.down.sql":      postgres000055_upgrade_channelmembers_v60DownSql,
-	"postgres/000055_upgrade_channelmembers_v6.0.up.sql":        postgres000055_upgrade_channelmembers_v60UpSql,
-	"postgres/000056_upgrade_channels_v6.0.down.sql":            postgres000056_upgrade_channels_v60DownSql,
-	"postgres/000056_upgrade_channels_v6.0.up.sql":              postgres000056_upgrade_channels_v60UpSql,
-	"postgres/000057_upgrade_command_webhooks_v6.0.down.sql":    postgres000057_upgrade_command_webhooks_v60DownSql,
-	"postgres/000057_upgrade_command_webhooks_v6.0.up.sql":      postgres000057_upgrade_command_webhooks_v60UpSql,
-	"postgres/000058_upgrade_commands_v6.0.down.sql":            postgres000058_upgrade_commands_v60DownSql,
-	"postgres/000058_upgrade_commands_v6.0.up.sql":              postgres000058_upgrade_commands_v60UpSql,
-	"postgres/000059_upgrade_users_v6.0.down.sql":               postgres000059_upgrade_users_v60DownSql,
-	"postgres/000059_upgrade_users_v6.0.up.sql":                 postgres000059_upgrade_users_v60UpSql,
-	"postgres/000060_upgrade_jobs_v6.0.down.sql":                postgres000060_upgrade_jobs_v60DownSql,
-	"postgres/000060_upgrade_jobs_v6.0.up.sql":                  postgres000060_upgrade_jobs_v60UpSql,
-	"postgres/000061_upgrade_link_metadata_v6.0.down.sql":       postgres000061_upgrade_link_metadata_v60DownSql,
-	"postgres/000061_upgrade_link_metadata_v6.0.up.sql":         postgres000061_upgrade_link_metadata_v60UpSql,
-	"postgres/000062_upgrade_sessions_v6.0.down.sql":            postgres000062_upgrade_sessions_v60DownSql,
-	"postgres/000062_upgrade_sessions_v6.0.up.sql":              postgres000062_upgrade_sessions_v60UpSql,
-	"postgres/000063_upgrade_threads_v6.0.down.sql":             postgres000063_upgrade_threads_v60DownSql,
-	"postgres/000063_upgrade_threads_v6.0.up.sql":               postgres000063_upgrade_threads_v60UpSql,
-	"postgres/000064_upgrade_status_v6.0.down.sql":              postgres000064_upgrade_status_v60DownSql,
-	"postgres/000064_upgrade_status_v6.0.up.sql":                postgres000064_upgrade_status_v60UpSql,
-	"postgres/000065_upgrade_groupchannels_v6.0.down.sql":       postgres000065_upgrade_groupchannels_v60DownSql,
-	"postgres/000065_upgrade_groupchannels_v6.0.up.sql":         postgres000065_upgrade_groupchannels_v60UpSql,
-	"postgres/000066_upgrade_sessions_v6.1.down.sql":            postgres000066_upgrade_sessions_v61DownSql,
-	"postgres/000066_upgrade_sessions_v6.1.up.sql":              postgres000066_upgrade_sessions_v61UpSql,
-	"postgres/000067_upgrade_channelmembers_v6.1.down.sql":      postgres000067_upgrade_channelmembers_v61DownSql,
-	"postgres/000067_upgrade_channelmembers_v6.1.up.sql":        postgres000067_upgrade_channelmembers_v61UpSql,
-	"postgres/000068_upgrade_teammembers_v6.1.down.sql":         postgres000068_upgrade_teammembers_v61DownSql,
-	"postgres/000068_upgrade_teammembers_v6.1.up.sql":           postgres000068_upgrade_teammembers_v61UpSql,
-	"postgres/000069_upgrade_jobs_v6.1.down.sql":                postgres000069_upgrade_jobs_v61DownSql,
-	"postgres/000069_upgrade_jobs_v6.1.up.sql":                  postgres000069_upgrade_jobs_v61UpSql,
-	"postgres/000070_upgrade_cte_v6.1.down.sql":                 postgres000070_upgrade_cte_v61DownSql,
-	"postgres/000070_upgrade_cte_v6.1.up.sql":                   postgres000070_upgrade_cte_v61UpSql,
+	"mysql/000001_create_teams.down.sql":                           mysql000001_create_teamsDownSql,
+	"mysql/000001_create_teams.up.sql":                             mysql000001_create_teamsUpSql,
+	"mysql/000002_create_team_members.down.sql":                    mysql000002_create_team_membersDownSql,
+	"mysql/000002_create_team_members.up.sql":                      mysql000002_create_team_membersUpSql,
+	"mysql/000003_create_cluster_discovery.down.sql":               mysql000003_create_cluster_discoveryDownSql,
+	"mysql/000003_create_cluster_discovery.up.sql":                 mysql000003_create_cluster_discoveryUpSql,
+	"mysql/000004_create_command_webhooks.down.sql":                mysql000004_create_command_webhooksDownSql,
+	"mysql/000004_create_command_webhooks.up.sql":                  mysql000004_create_command_webhooksUpSql,
+	"mysql/000005_create_compliances.down.sql":                     mysql000005_create_compliancesDownSql,
+	"mysql/000005_create_compliances.up.sql":                       mysql000005_create_compliancesUpSql,
+	"mysql/000006_create_emojis.down.sql":                          mysql000006_create_emojisDownSql,
+	"mysql/000006_create_emojis.up.sql":                            mysql000006_create_emojisUpSql,
+	"mysql/000007_create_user_groups.down.sql":                     mysql000007_create_user_groupsDownSql,
+	"mysql/000007_create_user_groups.up.sql":                       mysql000007_create_user_groupsUpSql,
+	"mysql/000008_create_group_members.down.sql":                   mysql000008_create_group_membersDownSql,
+	"mysql/000008_create_group_members.up.sql":                     mysql000008_create_group_membersUpSql,
+	"mysql/000009_create_group_teams.down.sql":                     mysql000009_create_group_teamsDownSql,
+	"mysql/000009_create_group_teams.up.sql":                       mysql000009_create_group_teamsUpSql,
+	"mysql/000010_create_group_channels.down.sql":                  mysql000010_create_group_channelsDownSql,
+	"mysql/000010_create_group_channels.up.sql":                    mysql000010_create_group_channelsUpSql,
+	"mysql/000011_create_link_metadata.down.sql":                   mysql000011_create_link_metadataDownSql,
+	"mysql/000011_create_link_metadata.up.sql":                     mysql000011_create_link_metadataUpSql,
+	"mysql/000012_create_commands.down.sql":                        mysql000012_create_commandsDownSql,
+	"mysql/000012_create_commands.up.sql":                          mysql000012_create_commandsUpSql,
+	"mysql/000013_create_incoming_webhooks.down.sql":               mysql000013_create_incoming_webhooksDownSql,
+	"mysql/000013_create_incoming_webhooks.up.sql":                 mysql000013_create_incoming_webhooksUpSql,
+	"mysql/000014_create_outgoing_webhooks.down.sql":               mysql000014_create_outgoing_webhooksDownSql,
+	"mysql/000014_create_outgoing_webhooks.up.sql":                 mysql000014_create_outgoing_webhooksUpSql,
+	"mysql/000015_create_systems.down.sql":                         mysql000015_create_systemsDownSql,
+	"mysql/000015_create_systems.up.sql":                           mysql000015_create_systemsUpSql,
+	"mysql/000016_create_reactions.down.sql":                       mysql000016_create_reactionsDownSql,
+	"mysql/000016_create_reactions.up.sql":                         mysql000016_create_reactionsUpSql,
+	"mysql/000017_create_roles.down.sql":                           mysql000017_create_rolesDownSql,
+	"mysql/000017_create_roles.up.sql":                             mysql000017_create_rolesUpSql,
+	"mysql/000018_create_schemes.down.sql":                         mysql000018_create_schemesDownSql,
+	"mysql/000018_create_schemes.up.sql":                           mysql000018_create_schemesUpSql,
+	"mysql/000019_create_licenses.down.sql":                        mysql000019_create_licensesDownSql,
+	"mysql/000019_create_licenses.up.sql":                          mysql000019_create_licensesUpSql,
+	"mysql/000020_create_posts.down.sql":                           mysql000020_create_postsDownSql,
+	"mysql/000020_create_posts.up.sql":                             mysql000020_create_postsUpSql,
+	"mysql/000021_create_product_notice_view_state.down.sql":       mysql000021_create_product_notice_view_stateDownSql,
+	"mysql/000021_create_product_notice_view_state.up.sql":         mysql000021_create_product_notice_view_stateUpSql,
+	"mysql/000022_create_sessions.down.sql":                        mysql000022_create_sessionsDownSql,
+	"mysql/000022_create_sessions.up.sql":                          mysql000022_create_sessionsUpSql,
+	"mysql/000023_create_terms_of_service.down.sql":                mysql000023_create_terms_of_serviceDownSql,
+	"mysql/000023_create_terms_of_service.up.sql":                  mysql000023_create_terms_of_serviceUpSql,
+	"mysql/000024_create_audits.down.sql":                          mysql000024_create_auditsDownSql,
+	"mysql/000024_create_audits.up.sql":                            mysql000024_create_auditsUpSql,
+	"mysql/000025_create_oauth_access_data.down.sql":               mysql000025_create_oauth_access_dataDownSql,
+	"mysql/000025_create_oauth_access_data.up.sql":                 mysql000025_create_oauth_access_dataUpSql,
+	"mysql/000026_create_preferences.down.sql":                     mysql000026_create_preferencesDownSql,
+	"mysql/000026_create_preferences.up.sql":                       mysql000026_create_preferencesUpSql,
+	"mysql/000027_create_status.down.sql":                          mysql000027_create_statusDownSql,
+	"mysql/000027_create_status.up.sql":                            mysql000027_create_statusUpSql,
+	"mysql/000028_create_tokens.down.sql":                          mysql000028_create_tokensDownSql,
+	"mysql/000028_create_tokens.up.sql":                            mysql000028_create_tokensUpSql,
+	"mysql/000029_create_bots.down.sql":                            mysql000029_create_botsDownSql,
+	"mysql/000029_create_bots.up.sql":                              mysql000029_create_botsUpSql,
+	"mysql/000030_create_user_access_tokens.down.sql":              mysql000030_create_user_access_tokensDownSql,
+	"mysql/000030_create_user_access_tokens.up.sql":                mysql000030_create_user_access_tokensUpSql,
+	"mysql/000031_create_remote_clusters.down.sql":                 mysql000031_create_remote_clustersDownSql,
+	"mysql/000031_create_remote_clusters.up.sql":                   mysql000031_create_remote_clustersUpSql,
+	"mysql/000032_create_sharedchannels.down.sql":                  mysql000032_create_sharedchannelsDownSql,
+	"mysql/000032_create_sharedchannels.up.sql":                    mysql000032_create_sharedchannelsUpSql,
+	"mysql/000033_create_sidebar_channels.down.sql":                mysql000033_create_sidebar_channelsDownSql,
+	"mysql/000033_create_sidebar_channels.up.sql":                  mysql000033_create_sidebar_channelsUpSql,
+	"mysql/000034_create_oauthauthdata.down.sql":                   mysql000034_create_oauthauthdataDownSql,
+	"mysql/000034_create_oauthauthdata.up.sql":                     mysql000034_create_oauthauthdataUpSql,
+	"mysql/000035_create_sharedchannelattachments.down.sql":        mysql000035_create_sharedchannelattachmentsDownSql,
+	"mysql/000035_create_sharedchannelattachments.up.sql":          mysql000035_create_sharedchannelattachmentsUpSql,
+	"mysql/000036_create_sharedchannelusers.down.sql":              mysql000036_create_sharedchannelusersDownSql,
+	"mysql/000036_create_sharedchannelusers.up.sql":                mysql000036_create_sharedchannelusersUpSql,
+	"mysql/000037_create_sharedchannelremotes.down.sql":            mysql000037_create_sharedchannelremotesDownSql,
+	"mysql/000037_create_sharedchannelremotes.up.sql":              mysql000037_create_sharedchannelremotesUpSql,
+	"mysql/000038_create_jobs.down.sql":                            mysql000038_create_jobsDownSql,
+	"mysql/000038_create_jobs.up.sql":                              mysql000038_create_jobsUpSql,
+	"mysql/000039_create_channel_member_history.down.sql":          mysql000039_create_channel_member_historyDownSql,
+	"mysql/000039_create_channel_member_history.up.sql":            mysql000039_create_channel_member_historyUpSql,
+	"mysql/000040_create_sidebar_categories.down.sql":              mysql000040_create_sidebar_categoriesDownSql,
+	"mysql/000040_create_sidebar_categories.up.sql":                mysql000040_create_sidebar_categoriesUpSql,
+	"mysql/000041_create_upload_sessions.down.sql":                 mysql000041_create_upload_sessionsDownSql,
+	"mysql/000041_create_upload_sessions.up.sql":                   mysql000041_create_upload_sessionsUpSql,
+	"mysql/000042_create_threads.down.sql":                         mysql000042_create_threadsDownSql,
+	"mysql/000042_create_threads.up.sql":                           mysql000042_create_threadsUpSql,
+	"mysql/000043_thread_memberships.down.sql":                     mysql000043_thread_membershipsDownSql,
+	"mysql/000043_thread_memberships.up.sql":                       mysql000043_thread_membershipsUpSql,
+	"mysql/000044_create_user_terms_of_service.down.sql":           mysql000044_create_user_terms_of_serviceDownSql,
+	"mysql/000044_create_user_terms_of_service.up.sql":             mysql000044_create_user_terms_of_serviceUpSql,
+	"mysql/000045_create_plugin_key_value_store.down.sql":          mysql000045_create_plugin_key_value_storeDownSql,
+	"mysql/000045_create_plugin_key_value_store.up.sql":            mysql000045_create_plugin_key_value_storeUpSql,
+	"mysql/000046_create_users.down.sql":                           mysql000046_create_usersDownSql,
+	"mysql/000046_create_users.up.sql":                             mysql000046_create_usersUpSql,
+	"mysql/000047_create_file_info.down.sql":                       mysql000047_create_file_infoDownSql,
+	"mysql/000047_create_file_info.up.sql":                         mysql000047_create_file_infoUpSql,
+	"mysql/000048_create_oauth_apps.down.sql":                      mysql000048_create_oauth_appsDownSql,
+	"mysql/000048_create_oauth_apps.up.sql":                        mysql000048_create_oauth_appsUpSql,
+	"mysql/000049_create_channels.down.sql":                        mysql000049_create_channelsDownSql,
+	"mysql/000049_create_channels.up.sql":                          mysql000049_create_channelsUpSql,
+	"mysql/000050_create_channelmembers.down.sql":                  mysql000050_create_channelmembersDownSql,
+	"mysql/000050_create_channelmembers.up.sql":                    mysql000050_create_channelmembersUpSql,
+	"mysql/000051_create_msg_root_count.down.sql":                  mysql000051_create_msg_root_countDownSql,
+	"mysql/000051_create_msg_root_count.up.sql":                    mysql000051_create_msg_root_countUpSql,
+	"mysql/000052_create_public_channels.down.sql":                 mysql000052_create_public_channelsDownSql,
+	"mysql/000052_create_public_channels.up.sql":                   mysql000052_create_public_channelsUpSql,
+	"mysql/000053_create_retention_policies.down.sql":              mysql000053_create_retention_policiesDownSql,
+	"mysql/000053_create_retention_policies.up.sql":                mysql000053_create_retention_policiesUpSql,
+	"mysql/000054_create_crt_channelmembership_count.down.sql":     mysql000054_create_crt_channelmembership_countDownSql,
+	"mysql/000054_create_crt_channelmembership_count.up.sql":       mysql000054_create_crt_channelmembership_countUpSql,
+	"mysql/000055_create_crt_thread_count_and_unreads.down.sql":    mysql000055_create_crt_thread_count_and_unreadsDownSql,
+	"mysql/000055_create_crt_thread_count_and_unreads.up.sql":      mysql000055_create_crt_thread_count_and_unreadsUpSql,
+	"mysql/000056_upgrade_channels_v6.0.down.sql":                  mysql000056_upgrade_channels_v60DownSql,
+	"mysql/000056_upgrade_channels_v6.0.up.sql":                    mysql000056_upgrade_channels_v60UpSql,
+	"mysql/000057_upgrade_command_webhooks_v6.0.down.sql":          mysql000057_upgrade_command_webhooks_v60DownSql,
+	"mysql/000057_upgrade_command_webhooks_v6.0.up.sql":            mysql000057_upgrade_command_webhooks_v60UpSql,
+	"mysql/000058_upgrade_commands_v6.0.down.sql":                  mysql000058_upgrade_commands_v60DownSql,
+	"mysql/000058_upgrade_commands_v6.0.up.sql":                    mysql000058_upgrade_commands_v60UpSql,
+	"mysql/000059_upgrade_users_v6.0.down.sql":                     mysql000059_upgrade_users_v60DownSql,
+	"mysql/000059_upgrade_users_v6.0.up.sql":                       mysql000059_upgrade_users_v60UpSql,
+	"mysql/000060_upgrade_jobs_v6.0.down.sql":                      mysql000060_upgrade_jobs_v60DownSql,
+	"mysql/000060_upgrade_jobs_v6.0.up.sql":                        mysql000060_upgrade_jobs_v60UpSql,
+	"mysql/000061_upgrade_link_metadata_v6.0.down.sql":             mysql000061_upgrade_link_metadata_v60DownSql,
+	"mysql/000061_upgrade_link_metadata_v6.0.up.sql":               mysql000061_upgrade_link_metadata_v60UpSql,
+	"mysql/000062_upgrade_sessions_v6.0.down.sql":                  mysql000062_upgrade_sessions_v60DownSql,
+	"mysql/000062_upgrade_sessions_v6.0.up.sql":                    mysql000062_upgrade_sessions_v60UpSql,
+	"mysql/000063_upgrade_threads_v6.0.down.sql":                   mysql000063_upgrade_threads_v60DownSql,
+	"mysql/000063_upgrade_threads_v6.0.up.sql":                     mysql000063_upgrade_threads_v60UpSql,
+	"mysql/000064_upgrade_status_v6.0.down.sql":                    mysql000064_upgrade_status_v60DownSql,
+	"mysql/000064_upgrade_status_v6.0.up.sql":                      mysql000064_upgrade_status_v60UpSql,
+	"mysql/000065_upgrade_groupchannels_v6.0.down.sql":             mysql000065_upgrade_groupchannels_v60DownSql,
+	"mysql/000065_upgrade_groupchannels_v6.0.up.sql":               mysql000065_upgrade_groupchannels_v60UpSql,
+	"mysql/000066_upgrade_posts_v6.0.down.sql":                     mysql000066_upgrade_posts_v60DownSql,
+	"mysql/000066_upgrade_posts_v6.0.up.sql":                       mysql000066_upgrade_posts_v60UpSql,
+	"mysql/000067_upgrade_channelmembers_v6.0.down.sql":            mysql000067_upgrade_channelmembers_v60DownSql,
+	"mysql/000067_upgrade_channelmembers_v6.0.up.sql":              mysql000067_upgrade_channelmembers_v60UpSql,
+	"mysql/000068_upgrade_teammembers_v6.1.down.sql":               mysql000068_upgrade_teammembers_v61DownSql,
+	"mysql/000068_upgrade_teammembers_v6.1.up.sql":                 mysql000068_upgrade_teammembers_v61UpSql,
+	"mysql/000069_upgrade_jobs_v6.1.down.sql":                      mysql000069_upgrade_jobs_v61DownSql,
+	"mysql/000069_upgrade_jobs_v6.1.up.sql":                        mysql000069_upgrade_jobs_v61UpSql,
+	"mysql/000070_upgrade_cte_v6.1.down.sql":                       mysql000070_upgrade_cte_v61DownSql,
+	"mysql/000070_upgrade_cte_v6.1.up.sql":                         mysql000070_upgrade_cte_v61UpSql,
+	"mysql/000071_upgrade_sessions_v6.1.down.sql":                  mysql000071_upgrade_sessions_v61DownSql,
+	"mysql/000071_upgrade_sessions_v6.1.up.sql":                    mysql000071_upgrade_sessions_v61UpSql,
+	"mysql/000072_upgrade_channelmembers_v6.1.down.sql":            mysql000072_upgrade_channelmembers_v61DownSql,
+	"mysql/000072_upgrade_channelmembers_v6.1.up.sql":              mysql000072_upgrade_channelmembers_v61UpSql,
+	"postgres/000001_create_teams.down.sql":                        postgres000001_create_teamsDownSql,
+	"postgres/000001_create_teams.up.sql":                          postgres000001_create_teamsUpSql,
+	"postgres/000002_create_team_members.down.sql":                 postgres000002_create_team_membersDownSql,
+	"postgres/000002_create_team_members.up.sql":                   postgres000002_create_team_membersUpSql,
+	"postgres/000003_create_cluster_discovery.down.sql":            postgres000003_create_cluster_discoveryDownSql,
+	"postgres/000003_create_cluster_discovery.up.sql":              postgres000003_create_cluster_discoveryUpSql,
+	"postgres/000004_create_command_webhooks.down.sql":             postgres000004_create_command_webhooksDownSql,
+	"postgres/000004_create_command_webhooks.up.sql":               postgres000004_create_command_webhooksUpSql,
+	"postgres/000005_create_compliances.down.sql":                  postgres000005_create_compliancesDownSql,
+	"postgres/000005_create_compliances.up.sql":                    postgres000005_create_compliancesUpSql,
+	"postgres/000006_create_emojis.down.sql":                       postgres000006_create_emojisDownSql,
+	"postgres/000006_create_emojis.up.sql":                         postgres000006_create_emojisUpSql,
+	"postgres/000007_create_user_groups.down.sql":                  postgres000007_create_user_groupsDownSql,
+	"postgres/000007_create_user_groups.up.sql":                    postgres000007_create_user_groupsUpSql,
+	"postgres/000008_create_group_members.down.sql":                postgres000008_create_group_membersDownSql,
+	"postgres/000008_create_group_members.up.sql":                  postgres000008_create_group_membersUpSql,
+	"postgres/000009_create_group_teams.down.sql":                  postgres000009_create_group_teamsDownSql,
+	"postgres/000009_create_group_teams.up.sql":                    postgres000009_create_group_teamsUpSql,
+	"postgres/000010_create_group_channels.down.sql":               postgres000010_create_group_channelsDownSql,
+	"postgres/000010_create_group_channels.up.sql":                 postgres000010_create_group_channelsUpSql,
+	"postgres/000011_create_link_metadata.down.sql":                postgres000011_create_link_metadataDownSql,
+	"postgres/000011_create_link_metadata.up.sql":                  postgres000011_create_link_metadataUpSql,
+	"postgres/000012_create_commands.down.sql":                     postgres000012_create_commandsDownSql,
+	"postgres/000012_create_commands.up.sql":                       postgres000012_create_commandsUpSql,
+	"postgres/000013_create_incoming_webhooks.down.sql":            postgres000013_create_incoming_webhooksDownSql,
+	"postgres/000013_create_incoming_webhooks.up.sql":              postgres000013_create_incoming_webhooksUpSql,
+	"postgres/000014_create_outgoing_webhooks.down.sql":            postgres000014_create_outgoing_webhooksDownSql,
+	"postgres/000014_create_outgoing_webhooks.up.sql":              postgres000014_create_outgoing_webhooksUpSql,
+	"postgres/000015_create_systems.down.sql":                      postgres000015_create_systemsDownSql,
+	"postgres/000015_create_systems.up.sql":                        postgres000015_create_systemsUpSql,
+	"postgres/000016_create_reactions.down.sql":                    postgres000016_create_reactionsDownSql,
+	"postgres/000016_create_reactions.up.sql":                      postgres000016_create_reactionsUpSql,
+	"postgres/000017_create_roles.down.sql":                        postgres000017_create_rolesDownSql,
+	"postgres/000017_create_roles.up.sql":                          postgres000017_create_rolesUpSql,
+	"postgres/000018_create_schemes.down.sql":                      postgres000018_create_schemesDownSql,
+	"postgres/000018_create_schemes.up.sql":                        postgres000018_create_schemesUpSql,
+	"postgres/000019_create_licenses.down.sql":                     postgres000019_create_licensesDownSql,
+	"postgres/000019_create_licenses.up.sql":                       postgres000019_create_licensesUpSql,
+	"postgres/000020_create_posts.down.sql":                        postgres000020_create_postsDownSql,
+	"postgres/000020_create_posts.up.sql":                          postgres000020_create_postsUpSql,
+	"postgres/000021_create_product_notice_view_state.down.sql":    postgres000021_create_product_notice_view_stateDownSql,
+	"postgres/000021_create_product_notice_view_state.up.sql":      postgres000021_create_product_notice_view_stateUpSql,
+	"postgres/000022_create_sessions.down.sql":                     postgres000022_create_sessionsDownSql,
+	"postgres/000022_create_sessions.up.sql":                       postgres000022_create_sessionsUpSql,
+	"postgres/000023_create_terms_of_service.down.sql":             postgres000023_create_terms_of_serviceDownSql,
+	"postgres/000023_create_terms_of_service.up.sql":               postgres000023_create_terms_of_serviceUpSql,
+	"postgres/000024_create_audits.down.sql":                       postgres000024_create_auditsDownSql,
+	"postgres/000024_create_audits.up.sql":                         postgres000024_create_auditsUpSql,
+	"postgres/000025_create_oauth_access_data.down.sql":            postgres000025_create_oauth_access_dataDownSql,
+	"postgres/000025_create_oauth_access_data.up.sql":              postgres000025_create_oauth_access_dataUpSql,
+	"postgres/000026_create_preferences.down.sql":                  postgres000026_create_preferencesDownSql,
+	"postgres/000026_create_preferences.up.sql":                    postgres000026_create_preferencesUpSql,
+	"postgres/000027_create_status.down.sql":                       postgres000027_create_statusDownSql,
+	"postgres/000027_create_status.up.sql":                         postgres000027_create_statusUpSql,
+	"postgres/000028_create_tokens.down.sql":                       postgres000028_create_tokensDownSql,
+	"postgres/000028_create_tokens.up.sql":                         postgres000028_create_tokensUpSql,
+	"postgres/000029_create_bots.down.sql":                         postgres000029_create_botsDownSql,
+	"postgres/000029_create_bots.up.sql":                           postgres000029_create_botsUpSql,
+	"postgres/000030_create_user_access_tokens.down.sql":           postgres000030_create_user_access_tokensDownSql,
+	"postgres/000030_create_user_access_tokens.up.sql":             postgres000030_create_user_access_tokensUpSql,
+	"postgres/000031_create_remote_clusters.down.sql":              postgres000031_create_remote_clustersDownSql,
+	"postgres/000031_create_remote_clusters.up.sql":                postgres000031_create_remote_clustersUpSql,
+	"postgres/000032_create_sharedchannels.down.sql":               postgres000032_create_sharedchannelsDownSql,
+	"postgres/000032_create_sharedchannels.up.sql":                 postgres000032_create_sharedchannelsUpSql,
+	"postgres/000033_create_sidebar_channels.down.sql":             postgres000033_create_sidebar_channelsDownSql,
+	"postgres/000033_create_sidebar_channels.up.sql":               postgres000033_create_sidebar_channelsUpSql,
+	"postgres/000034_create_oauthauthdata.down.sql":                postgres000034_create_oauthauthdataDownSql,
+	"postgres/000034_create_oauthauthdata.up.sql":                  postgres000034_create_oauthauthdataUpSql,
+	"postgres/000035_create_sharedchannelattachments.down.sql":     postgres000035_create_sharedchannelattachmentsDownSql,
+	"postgres/000035_create_sharedchannelattachments.up.sql":       postgres000035_create_sharedchannelattachmentsUpSql,
+	"postgres/000036_create_sharedchannelusers.down.sql":           postgres000036_create_sharedchannelusersDownSql,
+	"postgres/000036_create_sharedchannelusers.up.sql":             postgres000036_create_sharedchannelusersUpSql,
+	"postgres/000037_create_sharedchannelremotes.down.sql":         postgres000037_create_sharedchannelremotesDownSql,
+	"postgres/000037_create_sharedchannelremotes.up.sql":           postgres000037_create_sharedchannelremotesUpSql,
+	"postgres/000038_create_jobs.down.sql":                         postgres000038_create_jobsDownSql,
+	"postgres/000038_create_jobs.up.sql":                           postgres000038_create_jobsUpSql,
+	"postgres/000039_create_channel_member_history.down.sql":       postgres000039_create_channel_member_historyDownSql,
+	"postgres/000039_create_channel_member_history.up.sql":         postgres000039_create_channel_member_historyUpSql,
+	"postgres/000040_create_sidebar_categories.down.sql":           postgres000040_create_sidebar_categoriesDownSql,
+	"postgres/000040_create_sidebar_categories.up.sql":             postgres000040_create_sidebar_categoriesUpSql,
+	"postgres/000041_create_upload_sessions.down.sql":              postgres000041_create_upload_sessionsDownSql,
+	"postgres/000041_create_upload_sessions.up.sql":                postgres000041_create_upload_sessionsUpSql,
+	"postgres/000042_create_threads.down.sql":                      postgres000042_create_threadsDownSql,
+	"postgres/000042_create_threads.up.sql":                        postgres000042_create_threadsUpSql,
+	"postgres/000043_thread_memberships.down.sql":                  postgres000043_thread_membershipsDownSql,
+	"postgres/000043_thread_memberships.up.sql":                    postgres000043_thread_membershipsUpSql,
+	"postgres/000044_create_user_terms_of_service.down.sql":        postgres000044_create_user_terms_of_serviceDownSql,
+	"postgres/000044_create_user_terms_of_service.up.sql":          postgres000044_create_user_terms_of_serviceUpSql,
+	"postgres/000045_create_plugin_key_value_store.down.sql":       postgres000045_create_plugin_key_value_storeDownSql,
+	"postgres/000045_create_plugin_key_value_store.up.sql":         postgres000045_create_plugin_key_value_storeUpSql,
+	"postgres/000046_create_users.down.sql":                        postgres000046_create_usersDownSql,
+	"postgres/000046_create_users.up.sql":                          postgres000046_create_usersUpSql,
+	"postgres/000047_create_file_info.down.sql":                    postgres000047_create_file_infoDownSql,
+	"postgres/000047_create_file_info.up.sql":                      postgres000047_create_file_infoUpSql,
+	"postgres/000048_create_oauth_apps.down.sql":                   postgres000048_create_oauth_appsDownSql,
+	"postgres/000048_create_oauth_apps.up.sql":                     postgres000048_create_oauth_appsUpSql,
+	"postgres/000049_create_channels.down.sql":                     postgres000049_create_channelsDownSql,
+	"postgres/000049_create_channels.up.sql":                       postgres000049_create_channelsUpSql,
+	"postgres/000050_create_channelmembers.down.sql":               postgres000050_create_channelmembersDownSql,
+	"postgres/000050_create_channelmembers.up.sql":                 postgres000050_create_channelmembersUpSql,
+	"postgres/000051_create_msg_root_count.down.sql":               postgres000051_create_msg_root_countDownSql,
+	"postgres/000051_create_msg_root_count.up.sql":                 postgres000051_create_msg_root_countUpSql,
+	"postgres/000052_create_public_channels.down.sql":              postgres000052_create_public_channelsDownSql,
+	"postgres/000052_create_public_channels.up.sql":                postgres000052_create_public_channelsUpSql,
+	"postgres/000053_create_retention_policies.down.sql":           postgres000053_create_retention_policiesDownSql,
+	"postgres/000053_create_retention_policies.up.sql":             postgres000053_create_retention_policiesUpSql,
+	"postgres/000054_create_crt_channelmembership_count.down.sql":  postgres000054_create_crt_channelmembership_countDownSql,
+	"postgres/000054_create_crt_channelmembership_count.up.sql":    postgres000054_create_crt_channelmembership_countUpSql,
+	"postgres/000054_upgrade_posts_v6.0.down.sql":                  postgres000054_upgrade_posts_v60DownSql,
+	"postgres/000054_upgrade_posts_v6.0.up.sql":                    postgres000054_upgrade_posts_v60UpSql,
+	"postgres/000055_create_crt_thread_count_and_unreads.down.sql": postgres000055_create_crt_thread_count_and_unreadsDownSql,
+	"postgres/000055_create_crt_thread_count_and_unreads.up.sql":   postgres000055_create_crt_thread_count_and_unreadsUpSql,
+	"postgres/000055_upgrade_channelmembers_v6.0.down.sql":         postgres000055_upgrade_channelmembers_v60DownSql,
+	"postgres/000055_upgrade_channelmembers_v6.0.up.sql":           postgres000055_upgrade_channelmembers_v60UpSql,
+	"postgres/000056_upgrade_channels_v6.0.down.sql":               postgres000056_upgrade_channels_v60DownSql,
+	"postgres/000056_upgrade_channels_v6.0.up.sql":                 postgres000056_upgrade_channels_v60UpSql,
+	"postgres/000057_upgrade_command_webhooks_v6.0.down.sql":       postgres000057_upgrade_command_webhooks_v60DownSql,
+	"postgres/000057_upgrade_command_webhooks_v6.0.up.sql":         postgres000057_upgrade_command_webhooks_v60UpSql,
+	"postgres/000058_upgrade_commands_v6.0.down.sql":               postgres000058_upgrade_commands_v60DownSql,
+	"postgres/000058_upgrade_commands_v6.0.up.sql":                 postgres000058_upgrade_commands_v60UpSql,
+	"postgres/000059_upgrade_users_v6.0.down.sql":                  postgres000059_upgrade_users_v60DownSql,
+	"postgres/000059_upgrade_users_v6.0.up.sql":                    postgres000059_upgrade_users_v60UpSql,
+	"postgres/000060_upgrade_jobs_v6.0.down.sql":                   postgres000060_upgrade_jobs_v60DownSql,
+	"postgres/000060_upgrade_jobs_v6.0.up.sql":                     postgres000060_upgrade_jobs_v60UpSql,
+	"postgres/000061_upgrade_link_metadata_v6.0.down.sql":          postgres000061_upgrade_link_metadata_v60DownSql,
+	"postgres/000061_upgrade_link_metadata_v6.0.up.sql":            postgres000061_upgrade_link_metadata_v60UpSql,
+	"postgres/000062_upgrade_sessions_v6.0.down.sql":               postgres000062_upgrade_sessions_v60DownSql,
+	"postgres/000062_upgrade_sessions_v6.0.up.sql":                 postgres000062_upgrade_sessions_v60UpSql,
+	"postgres/000063_upgrade_threads_v6.0.down.sql":                postgres000063_upgrade_threads_v60DownSql,
+	"postgres/000063_upgrade_threads_v6.0.up.sql":                  postgres000063_upgrade_threads_v60UpSql,
+	"postgres/000064_upgrade_status_v6.0.down.sql":                 postgres000064_upgrade_status_v60DownSql,
+	"postgres/000064_upgrade_status_v6.0.up.sql":                   postgres000064_upgrade_status_v60UpSql,
+	"postgres/000065_upgrade_groupchannels_v6.0.down.sql":          postgres000065_upgrade_groupchannels_v60DownSql,
+	"postgres/000065_upgrade_groupchannels_v6.0.up.sql":            postgres000065_upgrade_groupchannels_v60UpSql,
+	"postgres/000066_upgrade_sessions_v6.1.down.sql":               postgres000066_upgrade_sessions_v61DownSql,
+	"postgres/000066_upgrade_sessions_v6.1.up.sql":                 postgres000066_upgrade_sessions_v61UpSql,
+	"postgres/000067_upgrade_channelmembers_v6.1.down.sql":         postgres000067_upgrade_channelmembers_v61DownSql,
+	"postgres/000067_upgrade_channelmembers_v6.1.up.sql":           postgres000067_upgrade_channelmembers_v61UpSql,
+	"postgres/000068_upgrade_teammembers_v6.1.down.sql":            postgres000068_upgrade_teammembers_v61DownSql,
+	"postgres/000068_upgrade_teammembers_v6.1.up.sql":              postgres000068_upgrade_teammembers_v61UpSql,
+	"postgres/000069_upgrade_jobs_v6.1.down.sql":                   postgres000069_upgrade_jobs_v61DownSql,
+	"postgres/000069_upgrade_jobs_v6.1.up.sql":                     postgres000069_upgrade_jobs_v61UpSql,
+	"postgres/000070_upgrade_cte_v6.1.down.sql":                    postgres000070_upgrade_cte_v61DownSql,
+	"postgres/000070_upgrade_cte_v6.1.up.sql":                      postgres000070_upgrade_cte_v61UpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -6332,288 +6508,296 @@ type bintree struct {
 
 var _bintree = &bintree{nil, map[string]*bintree{
 	"mysql": &bintree{nil, map[string]*bintree{
-		"000001_create_teams.down.sql":                     &bintree{mysql000001_create_teamsDownSql, map[string]*bintree{}},
-		"000001_create_teams.up.sql":                       &bintree{mysql000001_create_teamsUpSql, map[string]*bintree{}},
-		"000002_create_team_members.down.sql":              &bintree{mysql000002_create_team_membersDownSql, map[string]*bintree{}},
-		"000002_create_team_members.up.sql":                &bintree{mysql000002_create_team_membersUpSql, map[string]*bintree{}},
-		"000003_create_cluster_discovery.down.sql":         &bintree{mysql000003_create_cluster_discoveryDownSql, map[string]*bintree{}},
-		"000003_create_cluster_discovery.up.sql":           &bintree{mysql000003_create_cluster_discoveryUpSql, map[string]*bintree{}},
-		"000004_create_command_webhooks.down.sql":          &bintree{mysql000004_create_command_webhooksDownSql, map[string]*bintree{}},
-		"000004_create_command_webhooks.up.sql":            &bintree{mysql000004_create_command_webhooksUpSql, map[string]*bintree{}},
-		"000005_create_compliances.down.sql":               &bintree{mysql000005_create_compliancesDownSql, map[string]*bintree{}},
-		"000005_create_compliances.up.sql":                 &bintree{mysql000005_create_compliancesUpSql, map[string]*bintree{}},
-		"000006_create_emojis.down.sql":                    &bintree{mysql000006_create_emojisDownSql, map[string]*bintree{}},
-		"000006_create_emojis.up.sql":                      &bintree{mysql000006_create_emojisUpSql, map[string]*bintree{}},
-		"000007_create_user_groups.down.sql":               &bintree{mysql000007_create_user_groupsDownSql, map[string]*bintree{}},
-		"000007_create_user_groups.up.sql":                 &bintree{mysql000007_create_user_groupsUpSql, map[string]*bintree{}},
-		"000008_create_group_members.down.sql":             &bintree{mysql000008_create_group_membersDownSql, map[string]*bintree{}},
-		"000008_create_group_members.up.sql":               &bintree{mysql000008_create_group_membersUpSql, map[string]*bintree{}},
-		"000009_create_group_teams.down.sql":               &bintree{mysql000009_create_group_teamsDownSql, map[string]*bintree{}},
-		"000009_create_group_teams.up.sql":                 &bintree{mysql000009_create_group_teamsUpSql, map[string]*bintree{}},
-		"000010_create_group_channels.down.sql":            &bintree{mysql000010_create_group_channelsDownSql, map[string]*bintree{}},
-		"000010_create_group_channels.up.sql":              &bintree{mysql000010_create_group_channelsUpSql, map[string]*bintree{}},
-		"000011_create_link_metadata.down.sql":             &bintree{mysql000011_create_link_metadataDownSql, map[string]*bintree{}},
-		"000011_create_link_metadata.up.sql":               &bintree{mysql000011_create_link_metadataUpSql, map[string]*bintree{}},
-		"000012_create_commands.down.sql":                  &bintree{mysql000012_create_commandsDownSql, map[string]*bintree{}},
-		"000012_create_commands.up.sql":                    &bintree{mysql000012_create_commandsUpSql, map[string]*bintree{}},
-		"000013_create_incoming_webhooks.down.sql":         &bintree{mysql000013_create_incoming_webhooksDownSql, map[string]*bintree{}},
-		"000013_create_incoming_webhooks.up.sql":           &bintree{mysql000013_create_incoming_webhooksUpSql, map[string]*bintree{}},
-		"000014_create_outgoing_webhooks.down.sql":         &bintree{mysql000014_create_outgoing_webhooksDownSql, map[string]*bintree{}},
-		"000014_create_outgoing_webhooks.up.sql":           &bintree{mysql000014_create_outgoing_webhooksUpSql, map[string]*bintree{}},
-		"000015_create_systems.down.sql":                   &bintree{mysql000015_create_systemsDownSql, map[string]*bintree{}},
-		"000015_create_systems.up.sql":                     &bintree{mysql000015_create_systemsUpSql, map[string]*bintree{}},
-		"000016_create_reactions.down.sql":                 &bintree{mysql000016_create_reactionsDownSql, map[string]*bintree{}},
-		"000016_create_reactions.up.sql":                   &bintree{mysql000016_create_reactionsUpSql, map[string]*bintree{}},
-		"000017_create_roles.down.sql":                     &bintree{mysql000017_create_rolesDownSql, map[string]*bintree{}},
-		"000017_create_roles.up.sql":                       &bintree{mysql000017_create_rolesUpSql, map[string]*bintree{}},
-		"000018_create_schemes.down.sql":                   &bintree{mysql000018_create_schemesDownSql, map[string]*bintree{}},
-		"000018_create_schemes.up.sql":                     &bintree{mysql000018_create_schemesUpSql, map[string]*bintree{}},
-		"000019_create_licenses.down.sql":                  &bintree{mysql000019_create_licensesDownSql, map[string]*bintree{}},
-		"000019_create_licenses.up.sql":                    &bintree{mysql000019_create_licensesUpSql, map[string]*bintree{}},
-		"000020_create_posts.down.sql":                     &bintree{mysql000020_create_postsDownSql, map[string]*bintree{}},
-		"000020_create_posts.up.sql":                       &bintree{mysql000020_create_postsUpSql, map[string]*bintree{}},
-		"000021_create_product_notice_view_state.down.sql": &bintree{mysql000021_create_product_notice_view_stateDownSql, map[string]*bintree{}},
-		"000021_create_product_notice_view_state.up.sql":   &bintree{mysql000021_create_product_notice_view_stateUpSql, map[string]*bintree{}},
-		"000022_create_sessions.down.sql":                  &bintree{mysql000022_create_sessionsDownSql, map[string]*bintree{}},
-		"000022_create_sessions.up.sql":                    &bintree{mysql000022_create_sessionsUpSql, map[string]*bintree{}},
-		"000023_create_terms_of_service.down.sql":          &bintree{mysql000023_create_terms_of_serviceDownSql, map[string]*bintree{}},
-		"000023_create_terms_of_service.up.sql":            &bintree{mysql000023_create_terms_of_serviceUpSql, map[string]*bintree{}},
-		"000024_create_audits.down.sql":                    &bintree{mysql000024_create_auditsDownSql, map[string]*bintree{}},
-		"000024_create_audits.up.sql":                      &bintree{mysql000024_create_auditsUpSql, map[string]*bintree{}},
-		"000025_create_oauth_access_data.down.sql":         &bintree{mysql000025_create_oauth_access_dataDownSql, map[string]*bintree{}},
-		"000025_create_oauth_access_data.up.sql":           &bintree{mysql000025_create_oauth_access_dataUpSql, map[string]*bintree{}},
-		"000026_create_preferences.down.sql":               &bintree{mysql000026_create_preferencesDownSql, map[string]*bintree{}},
-		"000026_create_preferences.up.sql":                 &bintree{mysql000026_create_preferencesUpSql, map[string]*bintree{}},
-		"000027_create_status.down.sql":                    &bintree{mysql000027_create_statusDownSql, map[string]*bintree{}},
-		"000027_create_status.up.sql":                      &bintree{mysql000027_create_statusUpSql, map[string]*bintree{}},
-		"000028_create_tokens.down.sql":                    &bintree{mysql000028_create_tokensDownSql, map[string]*bintree{}},
-		"000028_create_tokens.up.sql":                      &bintree{mysql000028_create_tokensUpSql, map[string]*bintree{}},
-		"000029_create_bots.down.sql":                      &bintree{mysql000029_create_botsDownSql, map[string]*bintree{}},
-		"000029_create_bots.up.sql":                        &bintree{mysql000029_create_botsUpSql, map[string]*bintree{}},
-		"000030_create_user_access_tokens.down.sql":        &bintree{mysql000030_create_user_access_tokensDownSql, map[string]*bintree{}},
-		"000030_create_user_access_tokens.up.sql":          &bintree{mysql000030_create_user_access_tokensUpSql, map[string]*bintree{}},
-		"000031_create_remote_clusters.down.sql":           &bintree{mysql000031_create_remote_clustersDownSql, map[string]*bintree{}},
-		"000031_create_remote_clusters.up.sql":             &bintree{mysql000031_create_remote_clustersUpSql, map[string]*bintree{}},
-		"000032_create_sharedchannels.down.sql":            &bintree{mysql000032_create_sharedchannelsDownSql, map[string]*bintree{}},
-		"000032_create_sharedchannels.up.sql":              &bintree{mysql000032_create_sharedchannelsUpSql, map[string]*bintree{}},
-		"000033_create_sidebar_channels.down.sql":          &bintree{mysql000033_create_sidebar_channelsDownSql, map[string]*bintree{}},
-		"000033_create_sidebar_channels.up.sql":            &bintree{mysql000033_create_sidebar_channelsUpSql, map[string]*bintree{}},
-		"000034_create_oauthauthdata.down.sql":             &bintree{mysql000034_create_oauthauthdataDownSql, map[string]*bintree{}},
-		"000034_create_oauthauthdata.up.sql":               &bintree{mysql000034_create_oauthauthdataUpSql, map[string]*bintree{}},
-		"000035_create_sharedchannelattachments.down.sql":  &bintree{mysql000035_create_sharedchannelattachmentsDownSql, map[string]*bintree{}},
-		"000035_create_sharedchannelattachments.up.sql":    &bintree{mysql000035_create_sharedchannelattachmentsUpSql, map[string]*bintree{}},
-		"000036_create_sharedchannelusers.down.sql":        &bintree{mysql000036_create_sharedchannelusersDownSql, map[string]*bintree{}},
-		"000036_create_sharedchannelusers.up.sql":          &bintree{mysql000036_create_sharedchannelusersUpSql, map[string]*bintree{}},
-		"000037_create_sharedchannelremotes.down.sql":      &bintree{mysql000037_create_sharedchannelremotesDownSql, map[string]*bintree{}},
-		"000037_create_sharedchannelremotes.up.sql":        &bintree{mysql000037_create_sharedchannelremotesUpSql, map[string]*bintree{}},
-		"000038_create_jobs.down.sql":                      &bintree{mysql000038_create_jobsDownSql, map[string]*bintree{}},
-		"000038_create_jobs.up.sql":                        &bintree{mysql000038_create_jobsUpSql, map[string]*bintree{}},
-		"000039_create_channel_member_history.down.sql":    &bintree{mysql000039_create_channel_member_historyDownSql, map[string]*bintree{}},
-		"000039_create_channel_member_history.up.sql":      &bintree{mysql000039_create_channel_member_historyUpSql, map[string]*bintree{}},
-		"000040_create_sidebar_categories.down.sql":        &bintree{mysql000040_create_sidebar_categoriesDownSql, map[string]*bintree{}},
-		"000040_create_sidebar_categories.up.sql":          &bintree{mysql000040_create_sidebar_categoriesUpSql, map[string]*bintree{}},
-		"000041_create_upload_sessions.down.sql":           &bintree{mysql000041_create_upload_sessionsDownSql, map[string]*bintree{}},
-		"000041_create_upload_sessions.up.sql":             &bintree{mysql000041_create_upload_sessionsUpSql, map[string]*bintree{}},
-		"000042_create_threads.down.sql":                   &bintree{mysql000042_create_threadsDownSql, map[string]*bintree{}},
-		"000042_create_threads.up.sql":                     &bintree{mysql000042_create_threadsUpSql, map[string]*bintree{}},
-		"000043_thread_memberships.down.sql":               &bintree{mysql000043_thread_membershipsDownSql, map[string]*bintree{}},
-		"000043_thread_memberships.up.sql":                 &bintree{mysql000043_thread_membershipsUpSql, map[string]*bintree{}},
-		"000044_create_user_terms_of_service.down.sql":     &bintree{mysql000044_create_user_terms_of_serviceDownSql, map[string]*bintree{}},
-		"000044_create_user_terms_of_service.up.sql":       &bintree{mysql000044_create_user_terms_of_serviceUpSql, map[string]*bintree{}},
-		"000045_create_plugin_key_value_store.down.sql":    &bintree{mysql000045_create_plugin_key_value_storeDownSql, map[string]*bintree{}},
-		"000045_create_plugin_key_value_store.up.sql":      &bintree{mysql000045_create_plugin_key_value_storeUpSql, map[string]*bintree{}},
-		"000046_create_users.down.sql":                     &bintree{mysql000046_create_usersDownSql, map[string]*bintree{}},
-		"000046_create_users.up.sql":                       &bintree{mysql000046_create_usersUpSql, map[string]*bintree{}},
-		"000047_create_file_info.down.sql":                 &bintree{mysql000047_create_file_infoDownSql, map[string]*bintree{}},
-		"000047_create_file_info.up.sql":                   &bintree{mysql000047_create_file_infoUpSql, map[string]*bintree{}},
-		"000048_create_oauth_apps.down.sql":                &bintree{mysql000048_create_oauth_appsDownSql, map[string]*bintree{}},
-		"000048_create_oauth_apps.up.sql":                  &bintree{mysql000048_create_oauth_appsUpSql, map[string]*bintree{}},
-		"000049_create_channels.down.sql":                  &bintree{mysql000049_create_channelsDownSql, map[string]*bintree{}},
-		"000049_create_channels.up.sql":                    &bintree{mysql000049_create_channelsUpSql, map[string]*bintree{}},
-		"000050_create_channelmembers.down.sql":            &bintree{mysql000050_create_channelmembersDownSql, map[string]*bintree{}},
-		"000050_create_channelmembers.up.sql":              &bintree{mysql000050_create_channelmembersUpSql, map[string]*bintree{}},
-		"000051_create_msg_root_count.down.sql":            &bintree{mysql000051_create_msg_root_countDownSql, map[string]*bintree{}},
-		"000051_create_msg_root_count.up.sql":              &bintree{mysql000051_create_msg_root_countUpSql, map[string]*bintree{}},
-		"000052_create_public_channels.down.sql":           &bintree{mysql000052_create_public_channelsDownSql, map[string]*bintree{}},
-		"000052_create_public_channels.up.sql":             &bintree{mysql000052_create_public_channelsUpSql, map[string]*bintree{}},
-		"000053_create_retention_policies.down.sql":        &bintree{mysql000053_create_retention_policiesDownSql, map[string]*bintree{}},
-		"000053_create_retention_policies.up.sql":          &bintree{mysql000053_create_retention_policiesUpSql, map[string]*bintree{}},
-		"000054_upgrade_posts_v6.0.down.sql":               &bintree{mysql000054_upgrade_posts_v60DownSql, map[string]*bintree{}},
-		"000054_upgrade_posts_v6.0.up.sql":                 &bintree{mysql000054_upgrade_posts_v60UpSql, map[string]*bintree{}},
-		"000055_upgrade_channelmembers_v6.0.down.sql":      &bintree{mysql000055_upgrade_channelmembers_v60DownSql, map[string]*bintree{}},
-		"000055_upgrade_channelmembers_v6.0.up.sql":        &bintree{mysql000055_upgrade_channelmembers_v60UpSql, map[string]*bintree{}},
-		"000056_upgrade_channels_v6.0.down.sql":            &bintree{mysql000056_upgrade_channels_v60DownSql, map[string]*bintree{}},
-		"000056_upgrade_channels_v6.0.up.sql":              &bintree{mysql000056_upgrade_channels_v60UpSql, map[string]*bintree{}},
-		"000057_upgrade_command_webhooks_v6.0.down.sql":    &bintree{mysql000057_upgrade_command_webhooks_v60DownSql, map[string]*bintree{}},
-		"000057_upgrade_command_webhooks_v6.0.up.sql":      &bintree{mysql000057_upgrade_command_webhooks_v60UpSql, map[string]*bintree{}},
-		"000058_upgrade_commands_v6.0.down.sql":            &bintree{mysql000058_upgrade_commands_v60DownSql, map[string]*bintree{}},
-		"000058_upgrade_commands_v6.0.up.sql":              &bintree{mysql000058_upgrade_commands_v60UpSql, map[string]*bintree{}},
-		"000059_upgrade_users_v6.0.down.sql":               &bintree{mysql000059_upgrade_users_v60DownSql, map[string]*bintree{}},
-		"000059_upgrade_users_v6.0.up.sql":                 &bintree{mysql000059_upgrade_users_v60UpSql, map[string]*bintree{}},
-		"000060_upgrade_jobs_v6.0.down.sql":                &bintree{mysql000060_upgrade_jobs_v60DownSql, map[string]*bintree{}},
-		"000060_upgrade_jobs_v6.0.up.sql":                  &bintree{mysql000060_upgrade_jobs_v60UpSql, map[string]*bintree{}},
-		"000061_upgrade_link_metadata_v6.0.down.sql":       &bintree{mysql000061_upgrade_link_metadata_v60DownSql, map[string]*bintree{}},
-		"000061_upgrade_link_metadata_v6.0.up.sql":         &bintree{mysql000061_upgrade_link_metadata_v60UpSql, map[string]*bintree{}},
-		"000062_upgrade_sessions_v6.0.down.sql":            &bintree{mysql000062_upgrade_sessions_v60DownSql, map[string]*bintree{}},
-		"000062_upgrade_sessions_v6.0.up.sql":              &bintree{mysql000062_upgrade_sessions_v60UpSql, map[string]*bintree{}},
-		"000063_upgrade_threads_v6.0.down.sql":             &bintree{mysql000063_upgrade_threads_v60DownSql, map[string]*bintree{}},
-		"000063_upgrade_threads_v6.0.up.sql":               &bintree{mysql000063_upgrade_threads_v60UpSql, map[string]*bintree{}},
-		"000064_upgrade_status_v6.0.down.sql":              &bintree{mysql000064_upgrade_status_v60DownSql, map[string]*bintree{}},
-		"000064_upgrade_status_v6.0.up.sql":                &bintree{mysql000064_upgrade_status_v60UpSql, map[string]*bintree{}},
-		"000065_upgrade_groupchannels_v6.0.down.sql":       &bintree{mysql000065_upgrade_groupchannels_v60DownSql, map[string]*bintree{}},
-		"000065_upgrade_groupchannels_v6.0.up.sql":         &bintree{mysql000065_upgrade_groupchannels_v60UpSql, map[string]*bintree{}},
-		"000066_upgrade_sessions_v6.1.down.sql":            &bintree{mysql000066_upgrade_sessions_v61DownSql, map[string]*bintree{}},
-		"000066_upgrade_sessions_v6.1.up.sql":              &bintree{mysql000066_upgrade_sessions_v61UpSql, map[string]*bintree{}},
-		"000067_upgrade_channelmembers_v6.1.down.sql":      &bintree{mysql000067_upgrade_channelmembers_v61DownSql, map[string]*bintree{}},
-		"000067_upgrade_channelmembers_v6.1.up.sql":        &bintree{mysql000067_upgrade_channelmembers_v61UpSql, map[string]*bintree{}},
-		"000068_upgrade_teammembers_v6.1.down.sql":         &bintree{mysql000068_upgrade_teammembers_v61DownSql, map[string]*bintree{}},
-		"000068_upgrade_teammembers_v6.1.up.sql":           &bintree{mysql000068_upgrade_teammembers_v61UpSql, map[string]*bintree{}},
-		"000069_upgrade_jobs_v6.1.down.sql":                &bintree{mysql000069_upgrade_jobs_v61DownSql, map[string]*bintree{}},
-		"000069_upgrade_jobs_v6.1.up.sql":                  &bintree{mysql000069_upgrade_jobs_v61UpSql, map[string]*bintree{}},
-		"000070_upgrade_cte_v6.1.down.sql":                 &bintree{mysql000070_upgrade_cte_v61DownSql, map[string]*bintree{}},
-		"000070_upgrade_cte_v6.1.up.sql":                   &bintree{mysql000070_upgrade_cte_v61UpSql, map[string]*bintree{}},
+		"000001_create_teams.down.sql":                        &bintree{mysql000001_create_teamsDownSql, map[string]*bintree{}},
+		"000001_create_teams.up.sql":                          &bintree{mysql000001_create_teamsUpSql, map[string]*bintree{}},
+		"000002_create_team_members.down.sql":                 &bintree{mysql000002_create_team_membersDownSql, map[string]*bintree{}},
+		"000002_create_team_members.up.sql":                   &bintree{mysql000002_create_team_membersUpSql, map[string]*bintree{}},
+		"000003_create_cluster_discovery.down.sql":            &bintree{mysql000003_create_cluster_discoveryDownSql, map[string]*bintree{}},
+		"000003_create_cluster_discovery.up.sql":              &bintree{mysql000003_create_cluster_discoveryUpSql, map[string]*bintree{}},
+		"000004_create_command_webhooks.down.sql":             &bintree{mysql000004_create_command_webhooksDownSql, map[string]*bintree{}},
+		"000004_create_command_webhooks.up.sql":               &bintree{mysql000004_create_command_webhooksUpSql, map[string]*bintree{}},
+		"000005_create_compliances.down.sql":                  &bintree{mysql000005_create_compliancesDownSql, map[string]*bintree{}},
+		"000005_create_compliances.up.sql":                    &bintree{mysql000005_create_compliancesUpSql, map[string]*bintree{}},
+		"000006_create_emojis.down.sql":                       &bintree{mysql000006_create_emojisDownSql, map[string]*bintree{}},
+		"000006_create_emojis.up.sql":                         &bintree{mysql000006_create_emojisUpSql, map[string]*bintree{}},
+		"000007_create_user_groups.down.sql":                  &bintree{mysql000007_create_user_groupsDownSql, map[string]*bintree{}},
+		"000007_create_user_groups.up.sql":                    &bintree{mysql000007_create_user_groupsUpSql, map[string]*bintree{}},
+		"000008_create_group_members.down.sql":                &bintree{mysql000008_create_group_membersDownSql, map[string]*bintree{}},
+		"000008_create_group_members.up.sql":                  &bintree{mysql000008_create_group_membersUpSql, map[string]*bintree{}},
+		"000009_create_group_teams.down.sql":                  &bintree{mysql000009_create_group_teamsDownSql, map[string]*bintree{}},
+		"000009_create_group_teams.up.sql":                    &bintree{mysql000009_create_group_teamsUpSql, map[string]*bintree{}},
+		"000010_create_group_channels.down.sql":               &bintree{mysql000010_create_group_channelsDownSql, map[string]*bintree{}},
+		"000010_create_group_channels.up.sql":                 &bintree{mysql000010_create_group_channelsUpSql, map[string]*bintree{}},
+		"000011_create_link_metadata.down.sql":                &bintree{mysql000011_create_link_metadataDownSql, map[string]*bintree{}},
+		"000011_create_link_metadata.up.sql":                  &bintree{mysql000011_create_link_metadataUpSql, map[string]*bintree{}},
+		"000012_create_commands.down.sql":                     &bintree{mysql000012_create_commandsDownSql, map[string]*bintree{}},
+		"000012_create_commands.up.sql":                       &bintree{mysql000012_create_commandsUpSql, map[string]*bintree{}},
+		"000013_create_incoming_webhooks.down.sql":            &bintree{mysql000013_create_incoming_webhooksDownSql, map[string]*bintree{}},
+		"000013_create_incoming_webhooks.up.sql":              &bintree{mysql000013_create_incoming_webhooksUpSql, map[string]*bintree{}},
+		"000014_create_outgoing_webhooks.down.sql":            &bintree{mysql000014_create_outgoing_webhooksDownSql, map[string]*bintree{}},
+		"000014_create_outgoing_webhooks.up.sql":              &bintree{mysql000014_create_outgoing_webhooksUpSql, map[string]*bintree{}},
+		"000015_create_systems.down.sql":                      &bintree{mysql000015_create_systemsDownSql, map[string]*bintree{}},
+		"000015_create_systems.up.sql":                        &bintree{mysql000015_create_systemsUpSql, map[string]*bintree{}},
+		"000016_create_reactions.down.sql":                    &bintree{mysql000016_create_reactionsDownSql, map[string]*bintree{}},
+		"000016_create_reactions.up.sql":                      &bintree{mysql000016_create_reactionsUpSql, map[string]*bintree{}},
+		"000017_create_roles.down.sql":                        &bintree{mysql000017_create_rolesDownSql, map[string]*bintree{}},
+		"000017_create_roles.up.sql":                          &bintree{mysql000017_create_rolesUpSql, map[string]*bintree{}},
+		"000018_create_schemes.down.sql":                      &bintree{mysql000018_create_schemesDownSql, map[string]*bintree{}},
+		"000018_create_schemes.up.sql":                        &bintree{mysql000018_create_schemesUpSql, map[string]*bintree{}},
+		"000019_create_licenses.down.sql":                     &bintree{mysql000019_create_licensesDownSql, map[string]*bintree{}},
+		"000019_create_licenses.up.sql":                       &bintree{mysql000019_create_licensesUpSql, map[string]*bintree{}},
+		"000020_create_posts.down.sql":                        &bintree{mysql000020_create_postsDownSql, map[string]*bintree{}},
+		"000020_create_posts.up.sql":                          &bintree{mysql000020_create_postsUpSql, map[string]*bintree{}},
+		"000021_create_product_notice_view_state.down.sql":    &bintree{mysql000021_create_product_notice_view_stateDownSql, map[string]*bintree{}},
+		"000021_create_product_notice_view_state.up.sql":      &bintree{mysql000021_create_product_notice_view_stateUpSql, map[string]*bintree{}},
+		"000022_create_sessions.down.sql":                     &bintree{mysql000022_create_sessionsDownSql, map[string]*bintree{}},
+		"000022_create_sessions.up.sql":                       &bintree{mysql000022_create_sessionsUpSql, map[string]*bintree{}},
+		"000023_create_terms_of_service.down.sql":             &bintree{mysql000023_create_terms_of_serviceDownSql, map[string]*bintree{}},
+		"000023_create_terms_of_service.up.sql":               &bintree{mysql000023_create_terms_of_serviceUpSql, map[string]*bintree{}},
+		"000024_create_audits.down.sql":                       &bintree{mysql000024_create_auditsDownSql, map[string]*bintree{}},
+		"000024_create_audits.up.sql":                         &bintree{mysql000024_create_auditsUpSql, map[string]*bintree{}},
+		"000025_create_oauth_access_data.down.sql":            &bintree{mysql000025_create_oauth_access_dataDownSql, map[string]*bintree{}},
+		"000025_create_oauth_access_data.up.sql":              &bintree{mysql000025_create_oauth_access_dataUpSql, map[string]*bintree{}},
+		"000026_create_preferences.down.sql":                  &bintree{mysql000026_create_preferencesDownSql, map[string]*bintree{}},
+		"000026_create_preferences.up.sql":                    &bintree{mysql000026_create_preferencesUpSql, map[string]*bintree{}},
+		"000027_create_status.down.sql":                       &bintree{mysql000027_create_statusDownSql, map[string]*bintree{}},
+		"000027_create_status.up.sql":                         &bintree{mysql000027_create_statusUpSql, map[string]*bintree{}},
+		"000028_create_tokens.down.sql":                       &bintree{mysql000028_create_tokensDownSql, map[string]*bintree{}},
+		"000028_create_tokens.up.sql":                         &bintree{mysql000028_create_tokensUpSql, map[string]*bintree{}},
+		"000029_create_bots.down.sql":                         &bintree{mysql000029_create_botsDownSql, map[string]*bintree{}},
+		"000029_create_bots.up.sql":                           &bintree{mysql000029_create_botsUpSql, map[string]*bintree{}},
+		"000030_create_user_access_tokens.down.sql":           &bintree{mysql000030_create_user_access_tokensDownSql, map[string]*bintree{}},
+		"000030_create_user_access_tokens.up.sql":             &bintree{mysql000030_create_user_access_tokensUpSql, map[string]*bintree{}},
+		"000031_create_remote_clusters.down.sql":              &bintree{mysql000031_create_remote_clustersDownSql, map[string]*bintree{}},
+		"000031_create_remote_clusters.up.sql":                &bintree{mysql000031_create_remote_clustersUpSql, map[string]*bintree{}},
+		"000032_create_sharedchannels.down.sql":               &bintree{mysql000032_create_sharedchannelsDownSql, map[string]*bintree{}},
+		"000032_create_sharedchannels.up.sql":                 &bintree{mysql000032_create_sharedchannelsUpSql, map[string]*bintree{}},
+		"000033_create_sidebar_channels.down.sql":             &bintree{mysql000033_create_sidebar_channelsDownSql, map[string]*bintree{}},
+		"000033_create_sidebar_channels.up.sql":               &bintree{mysql000033_create_sidebar_channelsUpSql, map[string]*bintree{}},
+		"000034_create_oauthauthdata.down.sql":                &bintree{mysql000034_create_oauthauthdataDownSql, map[string]*bintree{}},
+		"000034_create_oauthauthdata.up.sql":                  &bintree{mysql000034_create_oauthauthdataUpSql, map[string]*bintree{}},
+		"000035_create_sharedchannelattachments.down.sql":     &bintree{mysql000035_create_sharedchannelattachmentsDownSql, map[string]*bintree{}},
+		"000035_create_sharedchannelattachments.up.sql":       &bintree{mysql000035_create_sharedchannelattachmentsUpSql, map[string]*bintree{}},
+		"000036_create_sharedchannelusers.down.sql":           &bintree{mysql000036_create_sharedchannelusersDownSql, map[string]*bintree{}},
+		"000036_create_sharedchannelusers.up.sql":             &bintree{mysql000036_create_sharedchannelusersUpSql, map[string]*bintree{}},
+		"000037_create_sharedchannelremotes.down.sql":         &bintree{mysql000037_create_sharedchannelremotesDownSql, map[string]*bintree{}},
+		"000037_create_sharedchannelremotes.up.sql":           &bintree{mysql000037_create_sharedchannelremotesUpSql, map[string]*bintree{}},
+		"000038_create_jobs.down.sql":                         &bintree{mysql000038_create_jobsDownSql, map[string]*bintree{}},
+		"000038_create_jobs.up.sql":                           &bintree{mysql000038_create_jobsUpSql, map[string]*bintree{}},
+		"000039_create_channel_member_history.down.sql":       &bintree{mysql000039_create_channel_member_historyDownSql, map[string]*bintree{}},
+		"000039_create_channel_member_history.up.sql":         &bintree{mysql000039_create_channel_member_historyUpSql, map[string]*bintree{}},
+		"000040_create_sidebar_categories.down.sql":           &bintree{mysql000040_create_sidebar_categoriesDownSql, map[string]*bintree{}},
+		"000040_create_sidebar_categories.up.sql":             &bintree{mysql000040_create_sidebar_categoriesUpSql, map[string]*bintree{}},
+		"000041_create_upload_sessions.down.sql":              &bintree{mysql000041_create_upload_sessionsDownSql, map[string]*bintree{}},
+		"000041_create_upload_sessions.up.sql":                &bintree{mysql000041_create_upload_sessionsUpSql, map[string]*bintree{}},
+		"000042_create_threads.down.sql":                      &bintree{mysql000042_create_threadsDownSql, map[string]*bintree{}},
+		"000042_create_threads.up.sql":                        &bintree{mysql000042_create_threadsUpSql, map[string]*bintree{}},
+		"000043_thread_memberships.down.sql":                  &bintree{mysql000043_thread_membershipsDownSql, map[string]*bintree{}},
+		"000043_thread_memberships.up.sql":                    &bintree{mysql000043_thread_membershipsUpSql, map[string]*bintree{}},
+		"000044_create_user_terms_of_service.down.sql":        &bintree{mysql000044_create_user_terms_of_serviceDownSql, map[string]*bintree{}},
+		"000044_create_user_terms_of_service.up.sql":          &bintree{mysql000044_create_user_terms_of_serviceUpSql, map[string]*bintree{}},
+		"000045_create_plugin_key_value_store.down.sql":       &bintree{mysql000045_create_plugin_key_value_storeDownSql, map[string]*bintree{}},
+		"000045_create_plugin_key_value_store.up.sql":         &bintree{mysql000045_create_plugin_key_value_storeUpSql, map[string]*bintree{}},
+		"000046_create_users.down.sql":                        &bintree{mysql000046_create_usersDownSql, map[string]*bintree{}},
+		"000046_create_users.up.sql":                          &bintree{mysql000046_create_usersUpSql, map[string]*bintree{}},
+		"000047_create_file_info.down.sql":                    &bintree{mysql000047_create_file_infoDownSql, map[string]*bintree{}},
+		"000047_create_file_info.up.sql":                      &bintree{mysql000047_create_file_infoUpSql, map[string]*bintree{}},
+		"000048_create_oauth_apps.down.sql":                   &bintree{mysql000048_create_oauth_appsDownSql, map[string]*bintree{}},
+		"000048_create_oauth_apps.up.sql":                     &bintree{mysql000048_create_oauth_appsUpSql, map[string]*bintree{}},
+		"000049_create_channels.down.sql":                     &bintree{mysql000049_create_channelsDownSql, map[string]*bintree{}},
+		"000049_create_channels.up.sql":                       &bintree{mysql000049_create_channelsUpSql, map[string]*bintree{}},
+		"000050_create_channelmembers.down.sql":               &bintree{mysql000050_create_channelmembersDownSql, map[string]*bintree{}},
+		"000050_create_channelmembers.up.sql":                 &bintree{mysql000050_create_channelmembersUpSql, map[string]*bintree{}},
+		"000051_create_msg_root_count.down.sql":               &bintree{mysql000051_create_msg_root_countDownSql, map[string]*bintree{}},
+		"000051_create_msg_root_count.up.sql":                 &bintree{mysql000051_create_msg_root_countUpSql, map[string]*bintree{}},
+		"000052_create_public_channels.down.sql":              &bintree{mysql000052_create_public_channelsDownSql, map[string]*bintree{}},
+		"000052_create_public_channels.up.sql":                &bintree{mysql000052_create_public_channelsUpSql, map[string]*bintree{}},
+		"000053_create_retention_policies.down.sql":           &bintree{mysql000053_create_retention_policiesDownSql, map[string]*bintree{}},
+		"000053_create_retention_policies.up.sql":             &bintree{mysql000053_create_retention_policiesUpSql, map[string]*bintree{}},
+		"000054_create_crt_channelmembership_count.down.sql":  &bintree{mysql000054_create_crt_channelmembership_countDownSql, map[string]*bintree{}},
+		"000054_create_crt_channelmembership_count.up.sql":    &bintree{mysql000054_create_crt_channelmembership_countUpSql, map[string]*bintree{}},
+		"000055_create_crt_thread_count_and_unreads.down.sql": &bintree{mysql000055_create_crt_thread_count_and_unreadsDownSql, map[string]*bintree{}},
+		"000055_create_crt_thread_count_and_unreads.up.sql":   &bintree{mysql000055_create_crt_thread_count_and_unreadsUpSql, map[string]*bintree{}},
+		"000056_upgrade_channels_v6.0.down.sql":               &bintree{mysql000056_upgrade_channels_v60DownSql, map[string]*bintree{}},
+		"000056_upgrade_channels_v6.0.up.sql":                 &bintree{mysql000056_upgrade_channels_v60UpSql, map[string]*bintree{}},
+		"000057_upgrade_command_webhooks_v6.0.down.sql":       &bintree{mysql000057_upgrade_command_webhooks_v60DownSql, map[string]*bintree{}},
+		"000057_upgrade_command_webhooks_v6.0.up.sql":         &bintree{mysql000057_upgrade_command_webhooks_v60UpSql, map[string]*bintree{}},
+		"000058_upgrade_commands_v6.0.down.sql":               &bintree{mysql000058_upgrade_commands_v60DownSql, map[string]*bintree{}},
+		"000058_upgrade_commands_v6.0.up.sql":                 &bintree{mysql000058_upgrade_commands_v60UpSql, map[string]*bintree{}},
+		"000059_upgrade_users_v6.0.down.sql":                  &bintree{mysql000059_upgrade_users_v60DownSql, map[string]*bintree{}},
+		"000059_upgrade_users_v6.0.up.sql":                    &bintree{mysql000059_upgrade_users_v60UpSql, map[string]*bintree{}},
+		"000060_upgrade_jobs_v6.0.down.sql":                   &bintree{mysql000060_upgrade_jobs_v60DownSql, map[string]*bintree{}},
+		"000060_upgrade_jobs_v6.0.up.sql":                     &bintree{mysql000060_upgrade_jobs_v60UpSql, map[string]*bintree{}},
+		"000061_upgrade_link_metadata_v6.0.down.sql":          &bintree{mysql000061_upgrade_link_metadata_v60DownSql, map[string]*bintree{}},
+		"000061_upgrade_link_metadata_v6.0.up.sql":            &bintree{mysql000061_upgrade_link_metadata_v60UpSql, map[string]*bintree{}},
+		"000062_upgrade_sessions_v6.0.down.sql":               &bintree{mysql000062_upgrade_sessions_v60DownSql, map[string]*bintree{}},
+		"000062_upgrade_sessions_v6.0.up.sql":                 &bintree{mysql000062_upgrade_sessions_v60UpSql, map[string]*bintree{}},
+		"000063_upgrade_threads_v6.0.down.sql":                &bintree{mysql000063_upgrade_threads_v60DownSql, map[string]*bintree{}},
+		"000063_upgrade_threads_v6.0.up.sql":                  &bintree{mysql000063_upgrade_threads_v60UpSql, map[string]*bintree{}},
+		"000064_upgrade_status_v6.0.down.sql":                 &bintree{mysql000064_upgrade_status_v60DownSql, map[string]*bintree{}},
+		"000064_upgrade_status_v6.0.up.sql":                   &bintree{mysql000064_upgrade_status_v60UpSql, map[string]*bintree{}},
+		"000065_upgrade_groupchannels_v6.0.down.sql":          &bintree{mysql000065_upgrade_groupchannels_v60DownSql, map[string]*bintree{}},
+		"000065_upgrade_groupchannels_v6.0.up.sql":            &bintree{mysql000065_upgrade_groupchannels_v60UpSql, map[string]*bintree{}},
+		"000066_upgrade_posts_v6.0.down.sql":                  &bintree{mysql000066_upgrade_posts_v60DownSql, map[string]*bintree{}},
+		"000066_upgrade_posts_v6.0.up.sql":                    &bintree{mysql000066_upgrade_posts_v60UpSql, map[string]*bintree{}},
+		"000067_upgrade_channelmembers_v6.0.down.sql":         &bintree{mysql000067_upgrade_channelmembers_v60DownSql, map[string]*bintree{}},
+		"000067_upgrade_channelmembers_v6.0.up.sql":           &bintree{mysql000067_upgrade_channelmembers_v60UpSql, map[string]*bintree{}},
+		"000068_upgrade_teammembers_v6.1.down.sql":            &bintree{mysql000068_upgrade_teammembers_v61DownSql, map[string]*bintree{}},
+		"000068_upgrade_teammembers_v6.1.up.sql":              &bintree{mysql000068_upgrade_teammembers_v61UpSql, map[string]*bintree{}},
+		"000069_upgrade_jobs_v6.1.down.sql":                   &bintree{mysql000069_upgrade_jobs_v61DownSql, map[string]*bintree{}},
+		"000069_upgrade_jobs_v6.1.up.sql":                     &bintree{mysql000069_upgrade_jobs_v61UpSql, map[string]*bintree{}},
+		"000070_upgrade_cte_v6.1.down.sql":                    &bintree{mysql000070_upgrade_cte_v61DownSql, map[string]*bintree{}},
+		"000070_upgrade_cte_v6.1.up.sql":                      &bintree{mysql000070_upgrade_cte_v61UpSql, map[string]*bintree{}},
+		"000071_upgrade_sessions_v6.1.down.sql":               &bintree{mysql000071_upgrade_sessions_v61DownSql, map[string]*bintree{}},
+		"000071_upgrade_sessions_v6.1.up.sql":                 &bintree{mysql000071_upgrade_sessions_v61UpSql, map[string]*bintree{}},
+		"000072_upgrade_channelmembers_v6.1.down.sql":         &bintree{mysql000072_upgrade_channelmembers_v61DownSql, map[string]*bintree{}},
+		"000072_upgrade_channelmembers_v6.1.up.sql":           &bintree{mysql000072_upgrade_channelmembers_v61UpSql, map[string]*bintree{}},
 	}},
 	"postgres": &bintree{nil, map[string]*bintree{
-		"000001_create_teams.down.sql":                     &bintree{postgres000001_create_teamsDownSql, map[string]*bintree{}},
-		"000001_create_teams.up.sql":                       &bintree{postgres000001_create_teamsUpSql, map[string]*bintree{}},
-		"000002_create_team_members.down.sql":              &bintree{postgres000002_create_team_membersDownSql, map[string]*bintree{}},
-		"000002_create_team_members.up.sql":                &bintree{postgres000002_create_team_membersUpSql, map[string]*bintree{}},
-		"000003_create_cluster_discovery.down.sql":         &bintree{postgres000003_create_cluster_discoveryDownSql, map[string]*bintree{}},
-		"000003_create_cluster_discovery.up.sql":           &bintree{postgres000003_create_cluster_discoveryUpSql, map[string]*bintree{}},
-		"000004_create_command_webhooks.down.sql":          &bintree{postgres000004_create_command_webhooksDownSql, map[string]*bintree{}},
-		"000004_create_command_webhooks.up.sql":            &bintree{postgres000004_create_command_webhooksUpSql, map[string]*bintree{}},
-		"000005_create_compliances.down.sql":               &bintree{postgres000005_create_compliancesDownSql, map[string]*bintree{}},
-		"000005_create_compliances.up.sql":                 &bintree{postgres000005_create_compliancesUpSql, map[string]*bintree{}},
-		"000006_create_emojis.down.sql":                    &bintree{postgres000006_create_emojisDownSql, map[string]*bintree{}},
-		"000006_create_emojis.up.sql":                      &bintree{postgres000006_create_emojisUpSql, map[string]*bintree{}},
-		"000007_create_user_groups.down.sql":               &bintree{postgres000007_create_user_groupsDownSql, map[string]*bintree{}},
-		"000007_create_user_groups.up.sql":                 &bintree{postgres000007_create_user_groupsUpSql, map[string]*bintree{}},
-		"000008_create_group_members.down.sql":             &bintree{postgres000008_create_group_membersDownSql, map[string]*bintree{}},
-		"000008_create_group_members.up.sql":               &bintree{postgres000008_create_group_membersUpSql, map[string]*bintree{}},
-		"000009_create_group_teams.down.sql":               &bintree{postgres000009_create_group_teamsDownSql, map[string]*bintree{}},
-		"000009_create_group_teams.up.sql":                 &bintree{postgres000009_create_group_teamsUpSql, map[string]*bintree{}},
-		"000010_create_group_channels.down.sql":            &bintree{postgres000010_create_group_channelsDownSql, map[string]*bintree{}},
-		"000010_create_group_channels.up.sql":              &bintree{postgres000010_create_group_channelsUpSql, map[string]*bintree{}},
-		"000011_create_link_metadata.down.sql":             &bintree{postgres000011_create_link_metadataDownSql, map[string]*bintree{}},
-		"000011_create_link_metadata.up.sql":               &bintree{postgres000011_create_link_metadataUpSql, map[string]*bintree{}},
-		"000012_create_commands.down.sql":                  &bintree{postgres000012_create_commandsDownSql, map[string]*bintree{}},
-		"000012_create_commands.up.sql":                    &bintree{postgres000012_create_commandsUpSql, map[string]*bintree{}},
-		"000013_create_incoming_webhooks.down.sql":         &bintree{postgres000013_create_incoming_webhooksDownSql, map[string]*bintree{}},
-		"000013_create_incoming_webhooks.up.sql":           &bintree{postgres000013_create_incoming_webhooksUpSql, map[string]*bintree{}},
-		"000014_create_outgoing_webhooks.down.sql":         &bintree{postgres000014_create_outgoing_webhooksDownSql, map[string]*bintree{}},
-		"000014_create_outgoing_webhooks.up.sql":           &bintree{postgres000014_create_outgoing_webhooksUpSql, map[string]*bintree{}},
-		"000015_create_systems.down.sql":                   &bintree{postgres000015_create_systemsDownSql, map[string]*bintree{}},
-		"000015_create_systems.up.sql":                     &bintree{postgres000015_create_systemsUpSql, map[string]*bintree{}},
-		"000016_create_reactions.down.sql":                 &bintree{postgres000016_create_reactionsDownSql, map[string]*bintree{}},
-		"000016_create_reactions.up.sql":                   &bintree{postgres000016_create_reactionsUpSql, map[string]*bintree{}},
-		"000017_create_roles.down.sql":                     &bintree{postgres000017_create_rolesDownSql, map[string]*bintree{}},
-		"000017_create_roles.up.sql":                       &bintree{postgres000017_create_rolesUpSql, map[string]*bintree{}},
-		"000018_create_schemes.down.sql":                   &bintree{postgres000018_create_schemesDownSql, map[string]*bintree{}},
-		"000018_create_schemes.up.sql":                     &bintree{postgres000018_create_schemesUpSql, map[string]*bintree{}},
-		"000019_create_licenses.down.sql":                  &bintree{postgres000019_create_licensesDownSql, map[string]*bintree{}},
-		"000019_create_licenses.up.sql":                    &bintree{postgres000019_create_licensesUpSql, map[string]*bintree{}},
-		"000020_create_posts.down.sql":                     &bintree{postgres000020_create_postsDownSql, map[string]*bintree{}},
-		"000020_create_posts.up.sql":                       &bintree{postgres000020_create_postsUpSql, map[string]*bintree{}},
-		"000021_create_product_notice_view_state.down.sql": &bintree{postgres000021_create_product_notice_view_stateDownSql, map[string]*bintree{}},
-		"000021_create_product_notice_view_state.up.sql":   &bintree{postgres000021_create_product_notice_view_stateUpSql, map[string]*bintree{}},
-		"000022_create_sessions.down.sql":                  &bintree{postgres000022_create_sessionsDownSql, map[string]*bintree{}},
-		"000022_create_sessions.up.sql":                    &bintree{postgres000022_create_sessionsUpSql, map[string]*bintree{}},
-		"000023_create_terms_of_service.down.sql":          &bintree{postgres000023_create_terms_of_serviceDownSql, map[string]*bintree{}},
-		"000023_create_terms_of_service.up.sql":            &bintree{postgres000023_create_terms_of_serviceUpSql, map[string]*bintree{}},
-		"000024_create_audits.down.sql":                    &bintree{postgres000024_create_auditsDownSql, map[string]*bintree{}},
-		"000024_create_audits.up.sql":                      &bintree{postgres000024_create_auditsUpSql, map[string]*bintree{}},
-		"000025_create_oauth_access_data.down.sql":         &bintree{postgres000025_create_oauth_access_dataDownSql, map[string]*bintree{}},
-		"000025_create_oauth_access_data.up.sql":           &bintree{postgres000025_create_oauth_access_dataUpSql, map[string]*bintree{}},
-		"000026_create_preferences.down.sql":               &bintree{postgres000026_create_preferencesDownSql, map[string]*bintree{}},
-		"000026_create_preferences.up.sql":                 &bintree{postgres000026_create_preferencesUpSql, map[string]*bintree{}},
-		"000027_create_status.down.sql":                    &bintree{postgres000027_create_statusDownSql, map[string]*bintree{}},
-		"000027_create_status.up.sql":                      &bintree{postgres000027_create_statusUpSql, map[string]*bintree{}},
-		"000028_create_tokens.down.sql":                    &bintree{postgres000028_create_tokensDownSql, map[string]*bintree{}},
-		"000028_create_tokens.up.sql":                      &bintree{postgres000028_create_tokensUpSql, map[string]*bintree{}},
-		"000029_create_bots.down.sql":                      &bintree{postgres000029_create_botsDownSql, map[string]*bintree{}},
-		"000029_create_bots.up.sql":                        &bintree{postgres000029_create_botsUpSql, map[string]*bintree{}},
-		"000030_create_user_access_tokens.down.sql":        &bintree{postgres000030_create_user_access_tokensDownSql, map[string]*bintree{}},
-		"000030_create_user_access_tokens.up.sql":          &bintree{postgres000030_create_user_access_tokensUpSql, map[string]*bintree{}},
-		"000031_create_remote_clusters.down.sql":           &bintree{postgres000031_create_remote_clustersDownSql, map[string]*bintree{}},
-		"000031_create_remote_clusters.up.sql":             &bintree{postgres000031_create_remote_clustersUpSql, map[string]*bintree{}},
-		"000032_create_sharedchannels.down.sql":            &bintree{postgres000032_create_sharedchannelsDownSql, map[string]*bintree{}},
-		"000032_create_sharedchannels.up.sql":              &bintree{postgres000032_create_sharedchannelsUpSql, map[string]*bintree{}},
-		"000033_create_sidebar_channels.down.sql":          &bintree{postgres000033_create_sidebar_channelsDownSql, map[string]*bintree{}},
-		"000033_create_sidebar_channels.up.sql":            &bintree{postgres000033_create_sidebar_channelsUpSql, map[string]*bintree{}},
-		"000034_create_oauthauthdata.down.sql":             &bintree{postgres000034_create_oauthauthdataDownSql, map[string]*bintree{}},
-		"000034_create_oauthauthdata.up.sql":               &bintree{postgres000034_create_oauthauthdataUpSql, map[string]*bintree{}},
-		"000035_create_sharedchannelattachments.down.sql":  &bintree{postgres000035_create_sharedchannelattachmentsDownSql, map[string]*bintree{}},
-		"000035_create_sharedchannelattachments.up.sql":    &bintree{postgres000035_create_sharedchannelattachmentsUpSql, map[string]*bintree{}},
-		"000036_create_sharedchannelusers.down.sql":        &bintree{postgres000036_create_sharedchannelusersDownSql, map[string]*bintree{}},
-		"000036_create_sharedchannelusers.up.sql":          &bintree{postgres000036_create_sharedchannelusersUpSql, map[string]*bintree{}},
-		"000037_create_sharedchannelremotes.down.sql":      &bintree{postgres000037_create_sharedchannelremotesDownSql, map[string]*bintree{}},
-		"000037_create_sharedchannelremotes.up.sql":        &bintree{postgres000037_create_sharedchannelremotesUpSql, map[string]*bintree{}},
-		"000038_create_jobs.down.sql":                      &bintree{postgres000038_create_jobsDownSql, map[string]*bintree{}},
-		"000038_create_jobs.up.sql":                        &bintree{postgres000038_create_jobsUpSql, map[string]*bintree{}},
-		"000039_create_channel_member_history.down.sql":    &bintree{postgres000039_create_channel_member_historyDownSql, map[string]*bintree{}},
-		"000039_create_channel_member_history.up.sql":      &bintree{postgres000039_create_channel_member_historyUpSql, map[string]*bintree{}},
-		"000040_create_sidebar_categories.down.sql":        &bintree{postgres000040_create_sidebar_categoriesDownSql, map[string]*bintree{}},
-		"000040_create_sidebar_categories.up.sql":          &bintree{postgres000040_create_sidebar_categoriesUpSql, map[string]*bintree{}},
-		"000041_create_upload_sessions.down.sql":           &bintree{postgres000041_create_upload_sessionsDownSql, map[string]*bintree{}},
-		"000041_create_upload_sessions.up.sql":             &bintree{postgres000041_create_upload_sessionsUpSql, map[string]*bintree{}},
-		"000042_create_threads.down.sql":                   &bintree{postgres000042_create_threadsDownSql, map[string]*bintree{}},
-		"000042_create_threads.up.sql":                     &bintree{postgres000042_create_threadsUpSql, map[string]*bintree{}},
-		"000043_thread_memberships.down.sql":               &bintree{postgres000043_thread_membershipsDownSql, map[string]*bintree{}},
-		"000043_thread_memberships.up.sql":                 &bintree{postgres000043_thread_membershipsUpSql, map[string]*bintree{}},
-		"000044_create_user_terms_of_service.down.sql":     &bintree{postgres000044_create_user_terms_of_serviceDownSql, map[string]*bintree{}},
-		"000044_create_user_terms_of_service.up.sql":       &bintree{postgres000044_create_user_terms_of_serviceUpSql, map[string]*bintree{}},
-		"000045_create_plugin_key_value_store.down.sql":    &bintree{postgres000045_create_plugin_key_value_storeDownSql, map[string]*bintree{}},
-		"000045_create_plugin_key_value_store.up.sql":      &bintree{postgres000045_create_plugin_key_value_storeUpSql, map[string]*bintree{}},
-		"000046_create_users.down.sql":                     &bintree{postgres000046_create_usersDownSql, map[string]*bintree{}},
-		"000046_create_users.up.sql":                       &bintree{postgres000046_create_usersUpSql, map[string]*bintree{}},
-		"000047_create_file_info.down.sql":                 &bintree{postgres000047_create_file_infoDownSql, map[string]*bintree{}},
-		"000047_create_file_info.up.sql":                   &bintree{postgres000047_create_file_infoUpSql, map[string]*bintree{}},
-		"000048_create_oauth_apps.down.sql":                &bintree{postgres000048_create_oauth_appsDownSql, map[string]*bintree{}},
-		"000048_create_oauth_apps.up.sql":                  &bintree{postgres000048_create_oauth_appsUpSql, map[string]*bintree{}},
-		"000049_create_channels.down.sql":                  &bintree{postgres000049_create_channelsDownSql, map[string]*bintree{}},
-		"000049_create_channels.up.sql":                    &bintree{postgres000049_create_channelsUpSql, map[string]*bintree{}},
-		"000050_create_channelmembers.down.sql":            &bintree{postgres000050_create_channelmembersDownSql, map[string]*bintree{}},
-		"000050_create_channelmembers.up.sql":              &bintree{postgres000050_create_channelmembersUpSql, map[string]*bintree{}},
-		"000051_create_msg_root_count.down.sql":            &bintree{postgres000051_create_msg_root_countDownSql, map[string]*bintree{}},
-		"000051_create_msg_root_count.up.sql":              &bintree{postgres000051_create_msg_root_countUpSql, map[string]*bintree{}},
-		"000052_create_public_channels.down.sql":           &bintree{postgres000052_create_public_channelsDownSql, map[string]*bintree{}},
-		"000052_create_public_channels.up.sql":             &bintree{postgres000052_create_public_channelsUpSql, map[string]*bintree{}},
-		"000053_create_retention_policies.down.sql":        &bintree{postgres000053_create_retention_policiesDownSql, map[string]*bintree{}},
-		"000053_create_retention_policies.up.sql":          &bintree{postgres000053_create_retention_policiesUpSql, map[string]*bintree{}},
-		"000054_upgrade_posts_v6.0.down.sql":               &bintree{postgres000054_upgrade_posts_v60DownSql, map[string]*bintree{}},
-		"000054_upgrade_posts_v6.0.up.sql":                 &bintree{postgres000054_upgrade_posts_v60UpSql, map[string]*bintree{}},
-		"000055_upgrade_channelmembers_v6.0.down.sql":      &bintree{postgres000055_upgrade_channelmembers_v60DownSql, map[string]*bintree{}},
-		"000055_upgrade_channelmembers_v6.0.up.sql":        &bintree{postgres000055_upgrade_channelmembers_v60UpSql, map[string]*bintree{}},
-		"000056_upgrade_channels_v6.0.down.sql":            &bintree{postgres000056_upgrade_channels_v60DownSql, map[string]*bintree{}},
-		"000056_upgrade_channels_v6.0.up.sql":              &bintree{postgres000056_upgrade_channels_v60UpSql, map[string]*bintree{}},
-		"000057_upgrade_command_webhooks_v6.0.down.sql":    &bintree{postgres000057_upgrade_command_webhooks_v60DownSql, map[string]*bintree{}},
-		"000057_upgrade_command_webhooks_v6.0.up.sql":      &bintree{postgres000057_upgrade_command_webhooks_v60UpSql, map[string]*bintree{}},
-		"000058_upgrade_commands_v6.0.down.sql":            &bintree{postgres000058_upgrade_commands_v60DownSql, map[string]*bintree{}},
-		"000058_upgrade_commands_v6.0.up.sql":              &bintree{postgres000058_upgrade_commands_v60UpSql, map[string]*bintree{}},
-		"000059_upgrade_users_v6.0.down.sql":               &bintree{postgres000059_upgrade_users_v60DownSql, map[string]*bintree{}},
-		"000059_upgrade_users_v6.0.up.sql":                 &bintree{postgres000059_upgrade_users_v60UpSql, map[string]*bintree{}},
-		"000060_upgrade_jobs_v6.0.down.sql":                &bintree{postgres000060_upgrade_jobs_v60DownSql, map[string]*bintree{}},
-		"000060_upgrade_jobs_v6.0.up.sql":                  &bintree{postgres000060_upgrade_jobs_v60UpSql, map[string]*bintree{}},
-		"000061_upgrade_link_metadata_v6.0.down.sql":       &bintree{postgres000061_upgrade_link_metadata_v60DownSql, map[string]*bintree{}},
-		"000061_upgrade_link_metadata_v6.0.up.sql":         &bintree{postgres000061_upgrade_link_metadata_v60UpSql, map[string]*bintree{}},
-		"000062_upgrade_sessions_v6.0.down.sql":            &bintree{postgres000062_upgrade_sessions_v60DownSql, map[string]*bintree{}},
-		"000062_upgrade_sessions_v6.0.up.sql":              &bintree{postgres000062_upgrade_sessions_v60UpSql, map[string]*bintree{}},
-		"000063_upgrade_threads_v6.0.down.sql":             &bintree{postgres000063_upgrade_threads_v60DownSql, map[string]*bintree{}},
-		"000063_upgrade_threads_v6.0.up.sql":               &bintree{postgres000063_upgrade_threads_v60UpSql, map[string]*bintree{}},
-		"000064_upgrade_status_v6.0.down.sql":              &bintree{postgres000064_upgrade_status_v60DownSql, map[string]*bintree{}},
-		"000064_upgrade_status_v6.0.up.sql":                &bintree{postgres000064_upgrade_status_v60UpSql, map[string]*bintree{}},
-		"000065_upgrade_groupchannels_v6.0.down.sql":       &bintree{postgres000065_upgrade_groupchannels_v60DownSql, map[string]*bintree{}},
-		"000065_upgrade_groupchannels_v6.0.up.sql":         &bintree{postgres000065_upgrade_groupchannels_v60UpSql, map[string]*bintree{}},
-		"000066_upgrade_sessions_v6.1.down.sql":            &bintree{postgres000066_upgrade_sessions_v61DownSql, map[string]*bintree{}},
-		"000066_upgrade_sessions_v6.1.up.sql":              &bintree{postgres000066_upgrade_sessions_v61UpSql, map[string]*bintree{}},
-		"000067_upgrade_channelmembers_v6.1.down.sql":      &bintree{postgres000067_upgrade_channelmembers_v61DownSql, map[string]*bintree{}},
-		"000067_upgrade_channelmembers_v6.1.up.sql":        &bintree{postgres000067_upgrade_channelmembers_v61UpSql, map[string]*bintree{}},
-		"000068_upgrade_teammembers_v6.1.down.sql":         &bintree{postgres000068_upgrade_teammembers_v61DownSql, map[string]*bintree{}},
-		"000068_upgrade_teammembers_v6.1.up.sql":           &bintree{postgres000068_upgrade_teammembers_v61UpSql, map[string]*bintree{}},
-		"000069_upgrade_jobs_v6.1.down.sql":                &bintree{postgres000069_upgrade_jobs_v61DownSql, map[string]*bintree{}},
-		"000069_upgrade_jobs_v6.1.up.sql":                  &bintree{postgres000069_upgrade_jobs_v61UpSql, map[string]*bintree{}},
-		"000070_upgrade_cte_v6.1.down.sql":                 &bintree{postgres000070_upgrade_cte_v61DownSql, map[string]*bintree{}},
-		"000070_upgrade_cte_v6.1.up.sql":                   &bintree{postgres000070_upgrade_cte_v61UpSql, map[string]*bintree{}},
+		"000001_create_teams.down.sql":                        &bintree{postgres000001_create_teamsDownSql, map[string]*bintree{}},
+		"000001_create_teams.up.sql":                          &bintree{postgres000001_create_teamsUpSql, map[string]*bintree{}},
+		"000002_create_team_members.down.sql":                 &bintree{postgres000002_create_team_membersDownSql, map[string]*bintree{}},
+		"000002_create_team_members.up.sql":                   &bintree{postgres000002_create_team_membersUpSql, map[string]*bintree{}},
+		"000003_create_cluster_discovery.down.sql":            &bintree{postgres000003_create_cluster_discoveryDownSql, map[string]*bintree{}},
+		"000003_create_cluster_discovery.up.sql":              &bintree{postgres000003_create_cluster_discoveryUpSql, map[string]*bintree{}},
+		"000004_create_command_webhooks.down.sql":             &bintree{postgres000004_create_command_webhooksDownSql, map[string]*bintree{}},
+		"000004_create_command_webhooks.up.sql":               &bintree{postgres000004_create_command_webhooksUpSql, map[string]*bintree{}},
+		"000005_create_compliances.down.sql":                  &bintree{postgres000005_create_compliancesDownSql, map[string]*bintree{}},
+		"000005_create_compliances.up.sql":                    &bintree{postgres000005_create_compliancesUpSql, map[string]*bintree{}},
+		"000006_create_emojis.down.sql":                       &bintree{postgres000006_create_emojisDownSql, map[string]*bintree{}},
+		"000006_create_emojis.up.sql":                         &bintree{postgres000006_create_emojisUpSql, map[string]*bintree{}},
+		"000007_create_user_groups.down.sql":                  &bintree{postgres000007_create_user_groupsDownSql, map[string]*bintree{}},
+		"000007_create_user_groups.up.sql":                    &bintree{postgres000007_create_user_groupsUpSql, map[string]*bintree{}},
+		"000008_create_group_members.down.sql":                &bintree{postgres000008_create_group_membersDownSql, map[string]*bintree{}},
+		"000008_create_group_members.up.sql":                  &bintree{postgres000008_create_group_membersUpSql, map[string]*bintree{}},
+		"000009_create_group_teams.down.sql":                  &bintree{postgres000009_create_group_teamsDownSql, map[string]*bintree{}},
+		"000009_create_group_teams.up.sql":                    &bintree{postgres000009_create_group_teamsUpSql, map[string]*bintree{}},
+		"000010_create_group_channels.down.sql":               &bintree{postgres000010_create_group_channelsDownSql, map[string]*bintree{}},
+		"000010_create_group_channels.up.sql":                 &bintree{postgres000010_create_group_channelsUpSql, map[string]*bintree{}},
+		"000011_create_link_metadata.down.sql":                &bintree{postgres000011_create_link_metadataDownSql, map[string]*bintree{}},
+		"000011_create_link_metadata.up.sql":                  &bintree{postgres000011_create_link_metadataUpSql, map[string]*bintree{}},
+		"000012_create_commands.down.sql":                     &bintree{postgres000012_create_commandsDownSql, map[string]*bintree{}},
+		"000012_create_commands.up.sql":                       &bintree{postgres000012_create_commandsUpSql, map[string]*bintree{}},
+		"000013_create_incoming_webhooks.down.sql":            &bintree{postgres000013_create_incoming_webhooksDownSql, map[string]*bintree{}},
+		"000013_create_incoming_webhooks.up.sql":              &bintree{postgres000013_create_incoming_webhooksUpSql, map[string]*bintree{}},
+		"000014_create_outgoing_webhooks.down.sql":            &bintree{postgres000014_create_outgoing_webhooksDownSql, map[string]*bintree{}},
+		"000014_create_outgoing_webhooks.up.sql":              &bintree{postgres000014_create_outgoing_webhooksUpSql, map[string]*bintree{}},
+		"000015_create_systems.down.sql":                      &bintree{postgres000015_create_systemsDownSql, map[string]*bintree{}},
+		"000015_create_systems.up.sql":                        &bintree{postgres000015_create_systemsUpSql, map[string]*bintree{}},
+		"000016_create_reactions.down.sql":                    &bintree{postgres000016_create_reactionsDownSql, map[string]*bintree{}},
+		"000016_create_reactions.up.sql":                      &bintree{postgres000016_create_reactionsUpSql, map[string]*bintree{}},
+		"000017_create_roles.down.sql":                        &bintree{postgres000017_create_rolesDownSql, map[string]*bintree{}},
+		"000017_create_roles.up.sql":                          &bintree{postgres000017_create_rolesUpSql, map[string]*bintree{}},
+		"000018_create_schemes.down.sql":                      &bintree{postgres000018_create_schemesDownSql, map[string]*bintree{}},
+		"000018_create_schemes.up.sql":                        &bintree{postgres000018_create_schemesUpSql, map[string]*bintree{}},
+		"000019_create_licenses.down.sql":                     &bintree{postgres000019_create_licensesDownSql, map[string]*bintree{}},
+		"000019_create_licenses.up.sql":                       &bintree{postgres000019_create_licensesUpSql, map[string]*bintree{}},
+		"000020_create_posts.down.sql":                        &bintree{postgres000020_create_postsDownSql, map[string]*bintree{}},
+		"000020_create_posts.up.sql":                          &bintree{postgres000020_create_postsUpSql, map[string]*bintree{}},
+		"000021_create_product_notice_view_state.down.sql":    &bintree{postgres000021_create_product_notice_view_stateDownSql, map[string]*bintree{}},
+		"000021_create_product_notice_view_state.up.sql":      &bintree{postgres000021_create_product_notice_view_stateUpSql, map[string]*bintree{}},
+		"000022_create_sessions.down.sql":                     &bintree{postgres000022_create_sessionsDownSql, map[string]*bintree{}},
+		"000022_create_sessions.up.sql":                       &bintree{postgres000022_create_sessionsUpSql, map[string]*bintree{}},
+		"000023_create_terms_of_service.down.sql":             &bintree{postgres000023_create_terms_of_serviceDownSql, map[string]*bintree{}},
+		"000023_create_terms_of_service.up.sql":               &bintree{postgres000023_create_terms_of_serviceUpSql, map[string]*bintree{}},
+		"000024_create_audits.down.sql":                       &bintree{postgres000024_create_auditsDownSql, map[string]*bintree{}},
+		"000024_create_audits.up.sql":                         &bintree{postgres000024_create_auditsUpSql, map[string]*bintree{}},
+		"000025_create_oauth_access_data.down.sql":            &bintree{postgres000025_create_oauth_access_dataDownSql, map[string]*bintree{}},
+		"000025_create_oauth_access_data.up.sql":              &bintree{postgres000025_create_oauth_access_dataUpSql, map[string]*bintree{}},
+		"000026_create_preferences.down.sql":                  &bintree{postgres000026_create_preferencesDownSql, map[string]*bintree{}},
+		"000026_create_preferences.up.sql":                    &bintree{postgres000026_create_preferencesUpSql, map[string]*bintree{}},
+		"000027_create_status.down.sql":                       &bintree{postgres000027_create_statusDownSql, map[string]*bintree{}},
+		"000027_create_status.up.sql":                         &bintree{postgres000027_create_statusUpSql, map[string]*bintree{}},
+		"000028_create_tokens.down.sql":                       &bintree{postgres000028_create_tokensDownSql, map[string]*bintree{}},
+		"000028_create_tokens.up.sql":                         &bintree{postgres000028_create_tokensUpSql, map[string]*bintree{}},
+		"000029_create_bots.down.sql":                         &bintree{postgres000029_create_botsDownSql, map[string]*bintree{}},
+		"000029_create_bots.up.sql":                           &bintree{postgres000029_create_botsUpSql, map[string]*bintree{}},
+		"000030_create_user_access_tokens.down.sql":           &bintree{postgres000030_create_user_access_tokensDownSql, map[string]*bintree{}},
+		"000030_create_user_access_tokens.up.sql":             &bintree{postgres000030_create_user_access_tokensUpSql, map[string]*bintree{}},
+		"000031_create_remote_clusters.down.sql":              &bintree{postgres000031_create_remote_clustersDownSql, map[string]*bintree{}},
+		"000031_create_remote_clusters.up.sql":                &bintree{postgres000031_create_remote_clustersUpSql, map[string]*bintree{}},
+		"000032_create_sharedchannels.down.sql":               &bintree{postgres000032_create_sharedchannelsDownSql, map[string]*bintree{}},
+		"000032_create_sharedchannels.up.sql":                 &bintree{postgres000032_create_sharedchannelsUpSql, map[string]*bintree{}},
+		"000033_create_sidebar_channels.down.sql":             &bintree{postgres000033_create_sidebar_channelsDownSql, map[string]*bintree{}},
+		"000033_create_sidebar_channels.up.sql":               &bintree{postgres000033_create_sidebar_channelsUpSql, map[string]*bintree{}},
+		"000034_create_oauthauthdata.down.sql":                &bintree{postgres000034_create_oauthauthdataDownSql, map[string]*bintree{}},
+		"000034_create_oauthauthdata.up.sql":                  &bintree{postgres000034_create_oauthauthdataUpSql, map[string]*bintree{}},
+		"000035_create_sharedchannelattachments.down.sql":     &bintree{postgres000035_create_sharedchannelattachmentsDownSql, map[string]*bintree{}},
+		"000035_create_sharedchannelattachments.up.sql":       &bintree{postgres000035_create_sharedchannelattachmentsUpSql, map[string]*bintree{}},
+		"000036_create_sharedchannelusers.down.sql":           &bintree{postgres000036_create_sharedchannelusersDownSql, map[string]*bintree{}},
+		"000036_create_sharedchannelusers.up.sql":             &bintree{postgres000036_create_sharedchannelusersUpSql, map[string]*bintree{}},
+		"000037_create_sharedchannelremotes.down.sql":         &bintree{postgres000037_create_sharedchannelremotesDownSql, map[string]*bintree{}},
+		"000037_create_sharedchannelremotes.up.sql":           &bintree{postgres000037_create_sharedchannelremotesUpSql, map[string]*bintree{}},
+		"000038_create_jobs.down.sql":                         &bintree{postgres000038_create_jobsDownSql, map[string]*bintree{}},
+		"000038_create_jobs.up.sql":                           &bintree{postgres000038_create_jobsUpSql, map[string]*bintree{}},
+		"000039_create_channel_member_history.down.sql":       &bintree{postgres000039_create_channel_member_historyDownSql, map[string]*bintree{}},
+		"000039_create_channel_member_history.up.sql":         &bintree{postgres000039_create_channel_member_historyUpSql, map[string]*bintree{}},
+		"000040_create_sidebar_categories.down.sql":           &bintree{postgres000040_create_sidebar_categoriesDownSql, map[string]*bintree{}},
+		"000040_create_sidebar_categories.up.sql":             &bintree{postgres000040_create_sidebar_categoriesUpSql, map[string]*bintree{}},
+		"000041_create_upload_sessions.down.sql":              &bintree{postgres000041_create_upload_sessionsDownSql, map[string]*bintree{}},
+		"000041_create_upload_sessions.up.sql":                &bintree{postgres000041_create_upload_sessionsUpSql, map[string]*bintree{}},
+		"000042_create_threads.down.sql":                      &bintree{postgres000042_create_threadsDownSql, map[string]*bintree{}},
+		"000042_create_threads.up.sql":                        &bintree{postgres000042_create_threadsUpSql, map[string]*bintree{}},
+		"000043_thread_memberships.down.sql":                  &bintree{postgres000043_thread_membershipsDownSql, map[string]*bintree{}},
+		"000043_thread_memberships.up.sql":                    &bintree{postgres000043_thread_membershipsUpSql, map[string]*bintree{}},
+		"000044_create_user_terms_of_service.down.sql":        &bintree{postgres000044_create_user_terms_of_serviceDownSql, map[string]*bintree{}},
+		"000044_create_user_terms_of_service.up.sql":          &bintree{postgres000044_create_user_terms_of_serviceUpSql, map[string]*bintree{}},
+		"000045_create_plugin_key_value_store.down.sql":       &bintree{postgres000045_create_plugin_key_value_storeDownSql, map[string]*bintree{}},
+		"000045_create_plugin_key_value_store.up.sql":         &bintree{postgres000045_create_plugin_key_value_storeUpSql, map[string]*bintree{}},
+		"000046_create_users.down.sql":                        &bintree{postgres000046_create_usersDownSql, map[string]*bintree{}},
+		"000046_create_users.up.sql":                          &bintree{postgres000046_create_usersUpSql, map[string]*bintree{}},
+		"000047_create_file_info.down.sql":                    &bintree{postgres000047_create_file_infoDownSql, map[string]*bintree{}},
+		"000047_create_file_info.up.sql":                      &bintree{postgres000047_create_file_infoUpSql, map[string]*bintree{}},
+		"000048_create_oauth_apps.down.sql":                   &bintree{postgres000048_create_oauth_appsDownSql, map[string]*bintree{}},
+		"000048_create_oauth_apps.up.sql":                     &bintree{postgres000048_create_oauth_appsUpSql, map[string]*bintree{}},
+		"000049_create_channels.down.sql":                     &bintree{postgres000049_create_channelsDownSql, map[string]*bintree{}},
+		"000049_create_channels.up.sql":                       &bintree{postgres000049_create_channelsUpSql, map[string]*bintree{}},
+		"000050_create_channelmembers.down.sql":               &bintree{postgres000050_create_channelmembersDownSql, map[string]*bintree{}},
+		"000050_create_channelmembers.up.sql":                 &bintree{postgres000050_create_channelmembersUpSql, map[string]*bintree{}},
+		"000051_create_msg_root_count.down.sql":               &bintree{postgres000051_create_msg_root_countDownSql, map[string]*bintree{}},
+		"000051_create_msg_root_count.up.sql":                 &bintree{postgres000051_create_msg_root_countUpSql, map[string]*bintree{}},
+		"000052_create_public_channels.down.sql":              &bintree{postgres000052_create_public_channelsDownSql, map[string]*bintree{}},
+		"000052_create_public_channels.up.sql":                &bintree{postgres000052_create_public_channelsUpSql, map[string]*bintree{}},
+		"000053_create_retention_policies.down.sql":           &bintree{postgres000053_create_retention_policiesDownSql, map[string]*bintree{}},
+		"000053_create_retention_policies.up.sql":             &bintree{postgres000053_create_retention_policiesUpSql, map[string]*bintree{}},
+		"000054_create_crt_channelmembership_count.down.sql":  &bintree{postgres000054_create_crt_channelmembership_countDownSql, map[string]*bintree{}},
+		"000054_create_crt_channelmembership_count.up.sql":    &bintree{postgres000054_create_crt_channelmembership_countUpSql, map[string]*bintree{}},
+		"000054_upgrade_posts_v6.0.down.sql":                  &bintree{postgres000054_upgrade_posts_v60DownSql, map[string]*bintree{}},
+		"000054_upgrade_posts_v6.0.up.sql":                    &bintree{postgres000054_upgrade_posts_v60UpSql, map[string]*bintree{}},
+		"000055_create_crt_thread_count_and_unreads.down.sql": &bintree{postgres000055_create_crt_thread_count_and_unreadsDownSql, map[string]*bintree{}},
+		"000055_create_crt_thread_count_and_unreads.up.sql":   &bintree{postgres000055_create_crt_thread_count_and_unreadsUpSql, map[string]*bintree{}},
+		"000055_upgrade_channelmembers_v6.0.down.sql":         &bintree{postgres000055_upgrade_channelmembers_v60DownSql, map[string]*bintree{}},
+		"000055_upgrade_channelmembers_v6.0.up.sql":           &bintree{postgres000055_upgrade_channelmembers_v60UpSql, map[string]*bintree{}},
+		"000056_upgrade_channels_v6.0.down.sql":               &bintree{postgres000056_upgrade_channels_v60DownSql, map[string]*bintree{}},
+		"000056_upgrade_channels_v6.0.up.sql":                 &bintree{postgres000056_upgrade_channels_v60UpSql, map[string]*bintree{}},
+		"000057_upgrade_command_webhooks_v6.0.down.sql":       &bintree{postgres000057_upgrade_command_webhooks_v60DownSql, map[string]*bintree{}},
+		"000057_upgrade_command_webhooks_v6.0.up.sql":         &bintree{postgres000057_upgrade_command_webhooks_v60UpSql, map[string]*bintree{}},
+		"000058_upgrade_commands_v6.0.down.sql":               &bintree{postgres000058_upgrade_commands_v60DownSql, map[string]*bintree{}},
+		"000058_upgrade_commands_v6.0.up.sql":                 &bintree{postgres000058_upgrade_commands_v60UpSql, map[string]*bintree{}},
+		"000059_upgrade_users_v6.0.down.sql":                  &bintree{postgres000059_upgrade_users_v60DownSql, map[string]*bintree{}},
+		"000059_upgrade_users_v6.0.up.sql":                    &bintree{postgres000059_upgrade_users_v60UpSql, map[string]*bintree{}},
+		"000060_upgrade_jobs_v6.0.down.sql":                   &bintree{postgres000060_upgrade_jobs_v60DownSql, map[string]*bintree{}},
+		"000060_upgrade_jobs_v6.0.up.sql":                     &bintree{postgres000060_upgrade_jobs_v60UpSql, map[string]*bintree{}},
+		"000061_upgrade_link_metadata_v6.0.down.sql":          &bintree{postgres000061_upgrade_link_metadata_v60DownSql, map[string]*bintree{}},
+		"000061_upgrade_link_metadata_v6.0.up.sql":            &bintree{postgres000061_upgrade_link_metadata_v60UpSql, map[string]*bintree{}},
+		"000062_upgrade_sessions_v6.0.down.sql":               &bintree{postgres000062_upgrade_sessions_v60DownSql, map[string]*bintree{}},
+		"000062_upgrade_sessions_v6.0.up.sql":                 &bintree{postgres000062_upgrade_sessions_v60UpSql, map[string]*bintree{}},
+		"000063_upgrade_threads_v6.0.down.sql":                &bintree{postgres000063_upgrade_threads_v60DownSql, map[string]*bintree{}},
+		"000063_upgrade_threads_v6.0.up.sql":                  &bintree{postgres000063_upgrade_threads_v60UpSql, map[string]*bintree{}},
+		"000064_upgrade_status_v6.0.down.sql":                 &bintree{postgres000064_upgrade_status_v60DownSql, map[string]*bintree{}},
+		"000064_upgrade_status_v6.0.up.sql":                   &bintree{postgres000064_upgrade_status_v60UpSql, map[string]*bintree{}},
+		"000065_upgrade_groupchannels_v6.0.down.sql":          &bintree{postgres000065_upgrade_groupchannels_v60DownSql, map[string]*bintree{}},
+		"000065_upgrade_groupchannels_v6.0.up.sql":            &bintree{postgres000065_upgrade_groupchannels_v60UpSql, map[string]*bintree{}},
+		"000066_upgrade_sessions_v6.1.down.sql":               &bintree{postgres000066_upgrade_sessions_v61DownSql, map[string]*bintree{}},
+		"000066_upgrade_sessions_v6.1.up.sql":                 &bintree{postgres000066_upgrade_sessions_v61UpSql, map[string]*bintree{}},
+		"000067_upgrade_channelmembers_v6.1.down.sql":         &bintree{postgres000067_upgrade_channelmembers_v61DownSql, map[string]*bintree{}},
+		"000067_upgrade_channelmembers_v6.1.up.sql":           &bintree{postgres000067_upgrade_channelmembers_v61UpSql, map[string]*bintree{}},
+		"000068_upgrade_teammembers_v6.1.down.sql":            &bintree{postgres000068_upgrade_teammembers_v61DownSql, map[string]*bintree{}},
+		"000068_upgrade_teammembers_v6.1.up.sql":              &bintree{postgres000068_upgrade_teammembers_v61UpSql, map[string]*bintree{}},
+		"000069_upgrade_jobs_v6.1.down.sql":                   &bintree{postgres000069_upgrade_jobs_v61DownSql, map[string]*bintree{}},
+		"000069_upgrade_jobs_v6.1.up.sql":                     &bintree{postgres000069_upgrade_jobs_v61UpSql, map[string]*bintree{}},
+		"000070_upgrade_cte_v6.1.down.sql":                    &bintree{postgres000070_upgrade_cte_v61DownSql, map[string]*bintree{}},
+		"000070_upgrade_cte_v6.1.up.sql":                      &bintree{postgres000070_upgrade_cte_v61UpSql, map[string]*bintree{}},
 	}},
 }}
 
