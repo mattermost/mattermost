@@ -37,7 +37,7 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 	env, err := plugin.NewEnvironment(apiFunc, NewDriverImpl(app.Srv()), pluginDir, webappPluginDir, app.Log(), nil)
 	require.NoError(t, err)
 
-	app.SetPluginsEnvironment(env)
+	app.ch.SetPluginsEnvironment(env)
 	pluginIDs := []string{}
 	activationErrors := []error{}
 	for _, code := range pluginCode {
@@ -1048,7 +1048,7 @@ func TestHookMetrics(t *testing.T) {
 		env, err := plugin.NewEnvironment(th.NewPluginAPI, NewDriverImpl(th.Server), pluginDir, webappPluginDir, th.App.Log(), metricsMock)
 		require.NoError(t, err)
 
-		th.App.SetPluginsEnvironment(env)
+		th.App.ch.SetPluginsEnvironment(env)
 
 		pluginID := model.NewId()
 		backend := filepath.Join(pluginDir, pluginID, "backend.exe")

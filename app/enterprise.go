@@ -244,4 +244,7 @@ func (s *Server) initEnterprise() {
 			}
 		})
 	}
+	if cloudInterface != nil {
+		s.Cloud = cloudInterface(s)
+	}
 }
