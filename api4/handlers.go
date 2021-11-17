@@ -17,12 +17,7 @@ type Context = web.Context
 // APIHandler provides a handler for API endpoints which do not require the user to be logged in order for access to be
 // granted.
 func (api *API) APIHandler(h func(*Context, http.ResponseWriter, *http.Request), scopes ...model.Scope) http.Handler {
-	handlerScopes := scopes
-	if len(scopes) == 0 {
-		handlerScopes = model.ScopeDeny()
-	} else if scopes[0] == model.ScopeNoScope {
-		handlerScopes = model.ScopeAllow()
-	}
+	handlerScopes := scopeFromArgs(scopes)
 	handler := &web.Handler{
 		Srv:            api.srv,
 		HandleFunc:     h,
@@ -43,12 +38,7 @@ func (api *API) APIHandler(h func(*Context, http.ResponseWriter, *http.Request),
 // APISessionRequired provides a handler for API endpoints which require the user to be logged in in order for access to
 // be granted.
 func (api *API) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Request), scopes ...model.Scope) http.Handler {
-	handlerScopes := scopes
-	if len(scopes) == 0 {
-		handlerScopes = model.ScopeDeny()
-	} else if scopes[0] == model.ScopeNoScope {
-		handlerScopes = model.ScopeAllow()
-	}
+	handlerScopes := scopeFromArgs(scopes)
 	handler := &web.Handler{
 		Srv:            api.srv,
 		HandleFunc:     h,
@@ -154,12 +144,7 @@ func (api *API) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *
 // APISessionRequiredTrustRequester provides a handler for API endpoints which do require the user to be logged in and
 // are allowed to be requested directly rather than via javascript/XMLHttpRequest, such as emoji or file uploads.
 func (api *API) APISessionRequiredTrustRequester(h func(*Context, http.ResponseWriter, *http.Request), scopes ...model.Scope) http.Handler {
-	handlerScopes := scopes
-	if len(scopes) == 0 {
-		handlerScopes = model.ScopeDeny()
-	} else if scopes[0] == model.ScopeNoScope {
-		handlerScopes = model.ScopeAllow()
-	}
+	handlerScopes := scopeFromArgs(scopes)
 	handler := &web.Handler{
 		Srv:            api.srv,
 		HandleFunc:     h,
@@ -181,12 +166,7 @@ func (api *API) APISessionRequiredTrustRequester(h func(*Context, http.ResponseW
 // DisableWhenBusy provides a handler for API endpoints which should be disabled when the server is under load,
 // responding with HTTP 503 (Service Unavailable).
 func (api *API) APISessionRequiredDisableWhenBusy(h func(*Context, http.ResponseWriter, *http.Request), scopes ...model.Scope) http.Handler {
-	handlerScopes := scopes
-	if len(scopes) == 0 {
-		handlerScopes = model.ScopeDeny()
-	} else if scopes[0] == model.ScopeNoScope {
-		handlerScopes = model.ScopeAllow()
-	}
+	handlerScopes := scopeFromArgs(scopes)
 	handler := &web.Handler{
 		Srv:             api.srv,
 		HandleFunc:      h,
@@ -226,4 +206,14 @@ func (api *API) APILocal(h func(*Context, http.ResponseWriter, *http.Request)) h
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
+}
+
+func scopeFromArgs(scopes []model.Scope) []model.Scope {
+	handlerScopes := scopes
+	if len(scopes) == 0 {
+		handlerScopes = model.ScopeDeny()
+	} else if scopes[0] == model.ScopeNoScope {
+		handlerScopes = model.ScopeAllow()
+	}
+	return handlerScopes
 }
