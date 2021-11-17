@@ -1145,6 +1145,7 @@ func (s *RetryLayerChannelStore) GetCRTUnfixedChannelMembershipsAfter(channelID 
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
 		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
 
 }
@@ -6421,6 +6422,7 @@ func (s *RetryLayerPostStore) GetUniquePostTypesSince(channelId string, timestam
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
 		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
 
 }
