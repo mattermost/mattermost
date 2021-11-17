@@ -316,10 +316,6 @@ func TestHubConnIndexInactive(t *testing.T) {
 	connIndex.Add(wc2)
 	connIndex.Add(wc3)
 
-	assert.Nil(t, connIndex.GetInactiveByConnectionID(wc2.UserId, "conn2"))
-	assert.NotNil(t, connIndex.GetInactiveByConnectionID(wc2.UserId, "conn3"))
-	assert.Nil(t, connIndex.GetInactiveByConnectionID(wc1.UserId, "conn3"))
-
 	assert.Nil(t, connIndex.RemoveInactiveByConnectionID(wc2.UserId, "conn2"))
 	assert.NotNil(t, connIndex.RemoveInactiveByConnectionID(wc2.UserId, "conn3"))
 	assert.Nil(t, connIndex.RemoveInactiveByConnectionID(wc1.UserId, "conn3"))

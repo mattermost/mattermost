@@ -10765,7 +10765,7 @@ func (a *OpenTracingAppLayer) InviteNewUsersToTeam(emailList []string, teamID st
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) InviteNewUsersToTeamGracefully(emailList []string, teamID string, senderId string) ([]*model.EmailInviteWithError, *model.AppError) {
+func (a *OpenTracingAppLayer) InviteNewUsersToTeamGracefully(emailList []string, teamID string, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InviteNewUsersToTeamGracefully")
 
@@ -10777,7 +10777,7 @@ func (a *OpenTracingAppLayer) InviteNewUsersToTeamGracefully(emailList []string,
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.InviteNewUsersToTeamGracefully(emailList, teamID, senderId)
+	resultVar0, resultVar1 := a.app.InviteNewUsersToTeamGracefully(emailList, teamID, senderId, reminderInterval)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -10785,6 +10785,23 @@ func (a *OpenTracingAppLayer) InviteNewUsersToTeamGracefully(emailList []string,
 	}
 
 	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) IsCRTEnabledForUser(userID string) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsCRTEnabledForUser")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.IsCRTEnabledForUser(userID)
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) IsFirstUserAccount() bool {
@@ -16580,7 +16597,7 @@ func (a *OpenTracingAppLayer) UpdateThreadFollowForUser(userID string, teamID st
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) UpdateThreadReadForUser(userID string, teamID string, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdateThreadReadForUser(currentSessionId string, userID string, teamID string, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateThreadReadForUser")
 
@@ -16592,7 +16609,7 @@ func (a *OpenTracingAppLayer) UpdateThreadReadForUser(userID string, teamID stri
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UpdateThreadReadForUser(userID, teamID, threadID, timestamp)
+	resultVar0, resultVar1 := a.app.UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID, timestamp)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
