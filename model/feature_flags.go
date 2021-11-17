@@ -91,7 +91,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AutoTour = "none"
 	f.BoardsFeatureFlags = ""
 	f.AddMembersToChannel = "top"
-	f.GuidedChannelCreation = true
+	f.GuidedChannelCreation = false
 	f.ResendInviteEmailInterval = ""
 	f.InviteToTeam = "none"
 }
