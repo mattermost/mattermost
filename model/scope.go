@@ -22,6 +22,7 @@ const (
 	ScopeFilesRead    Scope = "files:read"
 	ScopeFilesWrite   Scope = "files:write"
 	ScopeSearchPosts  Scope = "search:post"
+	ScopeNoScope      Scope = ""
 
 	PluginScopePrefix         = "plugin:"
 	PluginSpecificScopePrefix = "pluginscope:"

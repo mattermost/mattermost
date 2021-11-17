@@ -11,7 +11,7 @@ import (
 )
 
 func (api *API) InitOpenGraph() {
-	api.BaseRoutes.OpenGraph.Handle("", api.APISessionRequiredWithDenyScope(getOpenGraphMetadata)).Methods("POST")
+	api.BaseRoutes.OpenGraph.Handle("", api.APISessionRequired(getOpenGraphMetadata)).Methods("POST")
 }
 
 func getOpenGraphMetadata(c *Context, w http.ResponseWriter, r *http.Request) {

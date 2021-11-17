@@ -18,28 +18,28 @@ import (
 
 func (api *API) InitCloud() {
 	// GET /api/v4/cloud/products
-	api.BaseRoutes.Cloud.Handle("/products", api.APISessionRequiredWithDenyScope(getCloudProducts)).Methods("GET")
+	api.BaseRoutes.Cloud.Handle("/products", api.APISessionRequired(getCloudProducts)).Methods("GET")
 
 	// POST /api/v4/cloud/payment
 	// POST /api/v4/cloud/payment/confirm
-	api.BaseRoutes.Cloud.Handle("/payment", api.APISessionRequiredWithDenyScope(createCustomerPayment)).Methods("POST")
-	api.BaseRoutes.Cloud.Handle("/payment/confirm", api.APISessionRequiredWithDenyScope(confirmCustomerPayment)).Methods("POST")
+	api.BaseRoutes.Cloud.Handle("/payment", api.APISessionRequired(createCustomerPayment)).Methods("POST")
+	api.BaseRoutes.Cloud.Handle("/payment/confirm", api.APISessionRequired(confirmCustomerPayment)).Methods("POST")
 
 	// GET /api/v4/cloud/customer
 	// PUT /api/v4/cloud/customer
 	// PUT /api/v4/cloud/customer/address
-	api.BaseRoutes.Cloud.Handle("/customer", api.APISessionRequiredWithDenyScope(getCloudCustomer)).Methods("GET")
-	api.BaseRoutes.Cloud.Handle("/customer", api.APISessionRequiredWithDenyScope(updateCloudCustomer)).Methods("PUT")
-	api.BaseRoutes.Cloud.Handle("/customer/address", api.APISessionRequiredWithDenyScope(updateCloudCustomerAddress)).Methods("PUT")
+	api.BaseRoutes.Cloud.Handle("/customer", api.APISessionRequired(getCloudCustomer)).Methods("GET")
+	api.BaseRoutes.Cloud.Handle("/customer", api.APISessionRequired(updateCloudCustomer)).Methods("PUT")
+	api.BaseRoutes.Cloud.Handle("/customer/address", api.APISessionRequired(updateCloudCustomerAddress)).Methods("PUT")
 
 	// GET /api/v4/cloud/subscription
-	api.BaseRoutes.Cloud.Handle("/subscription", api.APISessionRequiredWithDenyScope(getSubscription)).Methods("GET")
-	api.BaseRoutes.Cloud.Handle("/subscription/invoices", api.APISessionRequiredWithDenyScope(getInvoicesForSubscription)).Methods("GET")
-	api.BaseRoutes.Cloud.Handle("/subscription/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf", api.APISessionRequiredWithDenyScope(getSubscriptionInvoicePDF)).Methods("GET")
-	api.BaseRoutes.Cloud.Handle("/subscription/limitreached/invite", api.APISessionRequiredWithDenyScope(sendAdminUpgradeRequestEmail)).Methods("POST")
-	api.BaseRoutes.Cloud.Handle("/subscription/limitreached/join", api.APIHandler(sendAdminUpgradeRequestEmailOnJoin)).Methods("POST")
-	api.BaseRoutes.Cloud.Handle("/subscription/stats", api.APIHandler(getSubscriptionStats)).Methods("GET")
-	api.BaseRoutes.Cloud.Handle("/subscription", api.APISessionRequiredWithDenyScope(changeSubscription)).Methods("PUT")
+	api.BaseRoutes.Cloud.Handle("/subscription", api.APISessionRequired(getSubscription)).Methods("GET")
+	api.BaseRoutes.Cloud.Handle("/subscription/invoices", api.APISessionRequired(getInvoicesForSubscription)).Methods("GET")
+	api.BaseRoutes.Cloud.Handle("/subscription/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf", api.APISessionRequired(getSubscriptionInvoicePDF)).Methods("GET")
+	api.BaseRoutes.Cloud.Handle("/subscription/limitreached/invite", api.APISessionRequired(sendAdminUpgradeRequestEmail)).Methods("POST")
+	api.BaseRoutes.Cloud.Handle("/subscription/limitreached/join", api.APIHandler(sendAdminUpgradeRequestEmailOnJoin, model.ScopeNoScope)).Methods("POST")
+	api.BaseRoutes.Cloud.Handle("/subscription/stats", api.APIHandler(getSubscriptionStats, model.ScopeNoScope)).Methods("GET")
+	api.BaseRoutes.Cloud.Handle("/subscription", api.APISessionRequired(changeSubscription)).Methods("PUT")
 
 	// POST /api/v4/cloud/webhook
 	api.BaseRoutes.Cloud.Handle("/webhook", api.CloudAPIKeyRequired(handleCWSWebhook)).Methods("POST")

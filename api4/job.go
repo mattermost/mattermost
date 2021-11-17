@@ -16,12 +16,12 @@ import (
 )
 
 func (api *API) InitJob() {
-	api.BaseRoutes.Jobs.Handle("", api.APISessionRequiredWithDenyScope(getJobs)).Methods("GET")
-	api.BaseRoutes.Jobs.Handle("", api.APISessionRequiredWithDenyScope(createJob)).Methods("POST")
-	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}", api.APISessionRequiredWithDenyScope(getJob)).Methods("GET")
-	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/download", api.APISessionRequiredTrustRequester(downloadJob, model.ScopeDeny())).Methods("GET")
-	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/cancel", api.APISessionRequiredWithDenyScope(cancelJob)).Methods("POST")
-	api.BaseRoutes.Jobs.Handle("/type/{job_type:[A-Za-z0-9_-]+}", api.APISessionRequiredWithDenyScope(getJobsByType)).Methods("GET")
+	api.BaseRoutes.Jobs.Handle("", api.APISessionRequired(getJobs)).Methods("GET")
+	api.BaseRoutes.Jobs.Handle("", api.APISessionRequired(createJob)).Methods("POST")
+	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}", api.APISessionRequired(getJob)).Methods("GET")
+	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/download", api.APISessionRequiredTrustRequester(downloadJob)).Methods("GET")
+	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/cancel", api.APISessionRequired(cancelJob)).Methods("POST")
+	api.BaseRoutes.Jobs.Handle("/type/{job_type:[A-Za-z0-9_-]+}", api.APISessionRequired(getJobsByType)).Methods("GET")
 }
 
 func getJob(c *Context, w http.ResponseWriter, r *http.Request) {

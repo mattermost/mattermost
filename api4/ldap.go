@@ -20,24 +20,24 @@ type mixedUnlinkedGroup struct {
 }
 
 func (api *API) InitLdap() {
-	api.BaseRoutes.LDAP.Handle("/sync", api.APISessionRequiredWithDenyScope(syncLdap)).Methods("POST")
-	api.BaseRoutes.LDAP.Handle("/test", api.APISessionRequiredWithDenyScope(testLdap)).Methods("POST")
-	api.BaseRoutes.LDAP.Handle("/migrateid", api.APISessionRequiredWithDenyScope(migrateIdLdap)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle("/sync", api.APISessionRequired(syncLdap)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle("/test", api.APISessionRequired(testLdap)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle("/migrateid", api.APISessionRequired(migrateIdLdap)).Methods("POST")
 
 	// GET /api/v4/ldap/groups?page=0&per_page=1000
-	api.BaseRoutes.LDAP.Handle("/groups", api.APISessionRequiredWithDenyScope(getLdapGroups)).Methods("GET")
+	api.BaseRoutes.LDAP.Handle("/groups", api.APISessionRequired(getLdapGroups)).Methods("GET")
 
 	// POST /api/v4/ldap/groups/:remote_id/link
-	api.BaseRoutes.LDAP.Handle(`/groups/{remote_id}/link`, api.APISessionRequiredWithDenyScope(linkLdapGroup)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle(`/groups/{remote_id}/link`, api.APISessionRequired(linkLdapGroup)).Methods("POST")
 
 	// DELETE /api/v4/ldap/groups/:remote_id/link
-	api.BaseRoutes.LDAP.Handle(`/groups/{remote_id}/link`, api.APISessionRequiredWithDenyScope(unlinkLdapGroup)).Methods("DELETE")
+	api.BaseRoutes.LDAP.Handle(`/groups/{remote_id}/link`, api.APISessionRequired(unlinkLdapGroup)).Methods("DELETE")
 
-	api.BaseRoutes.LDAP.Handle("/certificate/public", api.APISessionRequiredWithDenyScope(addLdapPublicCertificate)).Methods("POST")
-	api.BaseRoutes.LDAP.Handle("/certificate/private", api.APISessionRequiredWithDenyScope(addLdapPrivateCertificate)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle("/certificate/public", api.APISessionRequired(addLdapPublicCertificate)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle("/certificate/private", api.APISessionRequired(addLdapPrivateCertificate)).Methods("POST")
 
-	api.BaseRoutes.LDAP.Handle("/certificate/public", api.APISessionRequiredWithDenyScope(removeLdapPublicCertificate)).Methods("DELETE")
-	api.BaseRoutes.LDAP.Handle("/certificate/private", api.APISessionRequiredWithDenyScope(removeLdapPrivateCertificate)).Methods("DELETE")
+	api.BaseRoutes.LDAP.Handle("/certificate/public", api.APISessionRequired(removeLdapPublicCertificate)).Methods("DELETE")
+	api.BaseRoutes.LDAP.Handle("/certificate/private", api.APISessionRequired(removeLdapPrivateCertificate)).Methods("DELETE")
 
 }
 

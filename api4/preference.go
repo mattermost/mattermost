@@ -13,11 +13,11 @@ import (
 )
 
 func (api *API) InitPreference() {
-	api.BaseRoutes.Preferences.Handle("", api.APISessionRequiredWithDenyScope(getPreferences)).Methods("GET")
-	api.BaseRoutes.Preferences.Handle("", api.APISessionRequiredWithDenyScope(updatePreferences)).Methods("PUT")
-	api.BaseRoutes.Preferences.Handle("/delete", api.APISessionRequiredWithDenyScope(deletePreferences)).Methods("POST")
-	api.BaseRoutes.Preferences.Handle("/{category:[A-Za-z0-9_]+}", api.APISessionRequiredWithDenyScope(getPreferencesByCategory)).Methods("GET")
-	api.BaseRoutes.Preferences.Handle("/{category:[A-Za-z0-9_]+}/name/{preference_name:[A-Za-z0-9_]+}", api.APISessionRequiredWithDenyScope(getPreferenceByCategoryAndName)).Methods("GET")
+	api.BaseRoutes.Preferences.Handle("", api.APISessionRequired(getPreferences)).Methods("GET")
+	api.BaseRoutes.Preferences.Handle("", api.APISessionRequired(updatePreferences)).Methods("PUT")
+	api.BaseRoutes.Preferences.Handle("/delete", api.APISessionRequired(deletePreferences)).Methods("POST")
+	api.BaseRoutes.Preferences.Handle("/{category:[A-Za-z0-9_]+}", api.APISessionRequired(getPreferencesByCategory)).Methods("GET")
+	api.BaseRoutes.Preferences.Handle("/{category:[A-Za-z0-9_]+}/name/{preference_name:[A-Za-z0-9_]+}", api.APISessionRequired(getPreferenceByCategoryAndName)).Methods("GET")
 }
 
 func getPreferences(c *Context, w http.ResponseWriter, r *http.Request) {

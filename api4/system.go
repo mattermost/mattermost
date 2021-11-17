@@ -35,39 +35,39 @@ var redirectLocationDataCache = cache.NewLRU(cache.LRUOptions{
 })
 
 func (api *API) InitSystem() {
-	api.BaseRoutes.System.Handle("/ping", api.APIHandler(getSystemPing)).Methods("GET")
+	api.BaseRoutes.System.Handle("/ping", api.APIHandler(getSystemPing, model.ScopeNoScope)).Methods("GET")
 
-	api.BaseRoutes.System.Handle("/timezones", api.APISessionRequiredWithDenyScope(getSupportedTimezones)).Methods("GET")
+	api.BaseRoutes.System.Handle("/timezones", api.APISessionRequired(getSupportedTimezones)).Methods("GET")
 
-	api.BaseRoutes.APIRoot.Handle("/audits", api.APISessionRequiredWithDenyScope(getAudits)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/email/test", api.APISessionRequiredWithDenyScope(testEmail)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/site_url/test", api.APISessionRequiredWithDenyScope(testSiteURL)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/file/s3_test", api.APISessionRequiredWithDenyScope(testS3)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/database/recycle", api.APISessionRequiredWithDenyScope(databaseRecycle)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/caches/invalidate", api.APISessionRequiredWithDenyScope(invalidateCaches)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/audits", api.APISessionRequired(getAudits)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/email/test", api.APISessionRequired(testEmail)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/site_url/test", api.APISessionRequired(testSiteURL)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/file/s3_test", api.APISessionRequired(testS3)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/database/recycle", api.APISessionRequired(databaseRecycle)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/caches/invalidate", api.APISessionRequired(invalidateCaches)).Methods("POST")
 
-	api.BaseRoutes.APIRoot.Handle("/logs", api.APISessionRequiredWithDenyScope(getLogs)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/logs", api.APIHandler(postLog)).Methods("POST") // Scopes handled at postLog
+	api.BaseRoutes.APIRoot.Handle("/logs", api.APISessionRequired(getLogs)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/logs", api.APIHandler(postLog, model.ScopeNoScope)).Methods("POST") // Scopes handled at postLog
 
-	api.BaseRoutes.APIRoot.Handle("/analytics/old", api.APISessionRequiredWithDenyScope(getAnalytics)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/analytics/old", api.APISessionRequired(getAnalytics)).Methods("GET")
 
-	api.BaseRoutes.APIRoot.Handle("/redirect_location", api.APISessionRequiredTrustRequester(getRedirectLocation, model.ScopeDeny())).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/redirect_location", api.APISessionRequiredTrustRequester(getRedirectLocation)).Methods("GET")
 
-	api.BaseRoutes.APIRoot.Handle("/notifications/ack", api.APISessionRequiredWithDenyScope(pushNotificationAck)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/notifications/ack", api.APISessionRequired(pushNotificationAck)).Methods("POST")
 
-	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APISessionRequiredWithDenyScope(setServerBusy)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APISessionRequiredWithDenyScope(getServerBusyExpires)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APISessionRequiredWithDenyScope(clearServerBusy)).Methods("DELETE")
-	api.BaseRoutes.APIRoot.Handle("/upgrade_to_enterprise", api.APISessionRequiredWithDenyScope(upgradeToEnterprise)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/upgrade_to_enterprise/status", api.APISessionRequiredWithDenyScope(upgradeToEnterpriseStatus)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/restart", api.APISessionRequiredWithDenyScope(restart)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/warn_metrics/status", api.APISessionRequiredWithDenyScope(getWarnMetricsStatus)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/warn_metrics/ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.APISessionRequiredWithDenyScope(sendWarnMetricAckEmail)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/warn_metrics/trial-license-ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.APISessionRequiredWithDenyScope(requestTrialLicenseAndAckWarnMetric)).Methods("POST")
-	api.BaseRoutes.System.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.APISessionRequiredWithDenyScope(getProductNotices)).Methods("GET")
-	api.BaseRoutes.System.Handle("/notices/view", api.APISessionRequiredWithDenyScope(updateViewedProductNotices)).Methods("PUT")
+	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APISessionRequired(setServerBusy)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APISessionRequired(getServerBusyExpires)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APISessionRequired(clearServerBusy)).Methods("DELETE")
+	api.BaseRoutes.APIRoot.Handle("/upgrade_to_enterprise", api.APISessionRequired(upgradeToEnterprise)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/upgrade_to_enterprise/status", api.APISessionRequired(upgradeToEnterpriseStatus)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/restart", api.APISessionRequired(restart)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/warn_metrics/status", api.APISessionRequired(getWarnMetricsStatus)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/warn_metrics/ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.APISessionRequired(sendWarnMetricAckEmail)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/warn_metrics/trial-license-ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.APISessionRequired(requestTrialLicenseAndAckWarnMetric)).Methods("POST")
+	api.BaseRoutes.System.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getProductNotices)).Methods("GET")
+	api.BaseRoutes.System.Handle("/notices/view", api.APISessionRequired(updateViewedProductNotices)).Methods("PUT")
 
-	api.BaseRoutes.System.Handle("/support_packet", api.APISessionRequiredWithDenyScope(generateSupportPacket)).Methods("GET")
+	api.BaseRoutes.System.Handle("/support_packet", api.APISessionRequired(generateSupportPacket)).Methods("GET")
 }
 
 func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
