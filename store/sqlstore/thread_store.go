@@ -460,7 +460,9 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 				break
 			}
 		}
-		participants = append(participants, participant)
+		if participant != nil {
+			participants = append(participants, participant)
+		}
 	}
 
 	result := &model.ThreadResponse{
