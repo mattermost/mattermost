@@ -8,7 +8,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/blevesearch/bleve"
+	"github.com/blevesearch/bleve/v2"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
@@ -60,10 +60,10 @@ func (s *BleveEngineTestSuite) setupStore() {
 	cfg.BleveSettings.IndexDir = model.NewString(s.IndexDir)
 	cfg.SqlSettings.DisableDatabaseSearch = model.NewBool(true)
 
-	s.SearchEngine = searchengine.NewBroker(cfg, nil)
+	s.SearchEngine = searchengine.NewBroker(cfg)
 	s.Store = searchlayer.NewSearchLayer(&testlib.TestStore{Store: s.SQLStore}, s.SearchEngine, cfg)
 
-	s.BleveEngine = NewBleveEngine(cfg, nil)
+	s.BleveEngine = NewBleveEngine(cfg)
 	s.BleveEngine.indexSync = true
 	s.SearchEngine.RegisterBleveEngine(s.BleveEngine)
 	if err := s.BleveEngine.Start(); err != nil {
@@ -124,7 +124,7 @@ func (s *BleveEngineTestSuite) TestDeleteChannelPosts() {
 
 		doc, err := s.BleveEngine.PostIndex.Document(postToAvoid.Id)
 		require.NoError(s.T(), err)
-		require.Equal(s.T(), postToAvoid.Id, doc.ID)
+		require.Equal(s.T(), postToAvoid.Id, doc.ID())
 		numberDocs, err := s.BleveEngine.PostIndex.DocCount()
 		require.NoError(s.T(), err)
 		require.Equal(s.T(), 1, int(numberDocs))
@@ -170,7 +170,7 @@ func (s *BleveEngineTestSuite) TestDeleteUserPosts() {
 
 		doc, err := s.BleveEngine.PostIndex.Document(postToAvoid.Id)
 		require.NoError(s.T(), err)
-		require.Equal(s.T(), postToAvoid.Id, doc.ID)
+		require.Equal(s.T(), postToAvoid.Id, doc.ID())
 		numberDocs, err := s.BleveEngine.PostIndex.DocCount()
 		require.NoError(s.T(), err)
 		require.Equal(s.T(), 1, int(numberDocs))
@@ -220,7 +220,7 @@ func (s *BleveEngineTestSuite) TestDeletePosts() {
 
 	doc, err := s.BleveEngine.PostIndex.Document(postToAvoid.Id)
 	require.NoError(s.T(), err)
-	require.Equal(s.T(), postToAvoid.Id, doc.ID)
+	require.Equal(s.T(), postToAvoid.Id, doc.ID())
 	numberDocs, err := s.BleveEngine.PostIndex.DocCount()
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), 1, int(numberDocs))

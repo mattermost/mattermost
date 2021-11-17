@@ -12,12 +12,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/blevesearch/bleve"
-	"github.com/blevesearch/bleve/analysis/analyzer/keyword"
-	"github.com/blevesearch/bleve/analysis/analyzer/standard"
-	"github.com/blevesearch/bleve/mapping"
+	"github.com/blevesearch/bleve/v2"
+	"github.com/blevesearch/bleve/v2/analysis/analyzer/keyword"
+	"github.com/blevesearch/bleve/v2/analysis/analyzer/standard"
+	"github.com/blevesearch/bleve/v2/mapping"
 
-	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
@@ -38,7 +37,6 @@ type BleveEngine struct {
 	Mutex        sync.RWMutex
 	ready        int32
 	cfg          *model.Config
-	jobServer    *jobs.JobServer
 	indexSync    bool
 }
 
@@ -59,8 +57,11 @@ func init() {
 func getChannelIndexMapping() *mapping.IndexMappingImpl {
 	channelMapping := bleve.NewDocumentMapping()
 	channelMapping.AddFieldMappingsAt("Id", keywordMapping)
+	channelMapping.AddFieldMappingsAt("Type", keywordMapping)
 	channelMapping.AddFieldMappingsAt("TeamId", keywordMapping)
 	channelMapping.AddFieldMappingsAt("NameSuggest", keywordMapping)
+	channelMapping.AddFieldMappingsAt("UserIDs", keywordMapping)
+	channelMapping.AddFieldMappingsAt("TeamMemberIDs", keywordMapping)
 
 	indexMapping := bleve.NewIndexMapping()
 	indexMapping.AddDocumentMapping("_default", channelMapping)
@@ -117,10 +118,9 @@ func getUserIndexMapping() *mapping.IndexMappingImpl {
 	return indexMapping
 }
 
-func NewBleveEngine(cfg *model.Config, jobServer *jobs.JobServer) *BleveEngine {
+func NewBleveEngine(cfg *model.Config) *BleveEngine {
 	return &BleveEngine{
-		cfg:       cfg,
-		jobServer: jobServer,
+		cfg: cfg,
 	}
 }
 
@@ -134,7 +134,10 @@ func (b *BleveEngine) createOrOpenIndex(indexName string, mapping *mapping.Index
 		return index, nil
 	}
 
-	index, err := bleve.New(indexPath, mapping)
+	index, err := bleve.NewUsing(indexPath, mapping, "scorch", "scorch", map[string]interface{}{
+		"forceSegmentType":    "zap",
+		"forceSegmentVersion": 15,
+	})
 	if err != nil {
 		return nil, err
 	}

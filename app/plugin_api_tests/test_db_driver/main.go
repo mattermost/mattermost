@@ -29,13 +29,17 @@ func (p *MyPlugin) OnConfigurationChange() error {
 }
 
 func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model.Post, string) {
-	store := sqlstore.New(p.API.GetUnsanitizedConfig().SqlSettings, nil)
+	settings := p.API.GetUnsanitizedConfig().SqlSettings
+	settings.Trace = model.NewBool(false)
+	store := sqlstore.New(settings, nil)
 	store.GetMaster().Db.Close()
 
 	for _, isMaster := range []bool{true, false} {
 		// We replace the master DB with master and replica both just to make
 		// gorp APIs work.
-		store.GetMaster().Db = sql.OpenDB(driver.NewConnector(p.Driver, isMaster))
+		handle := sql.OpenDB(driver.NewConnector(p.Driver, isMaster))
+		store.GetMaster().Db = handle
+		store.SetMasterX(handle)
 
 		// Testing with a handful of stores
 		storetest.TestPostStore(p.t, store, store)

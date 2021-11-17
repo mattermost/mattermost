@@ -15,8 +15,8 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/services/users"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
@@ -66,7 +66,7 @@ func TestHubStopWithMultipleConnections(t *testing.T) {
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
 
-	th.App.HubStart()
+	th.Server.HubStart()
 	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
 	wc2 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
 	wc3 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
@@ -84,12 +84,12 @@ func TestHubStopRaceCondition(t *testing.T) {
 	// So we just use this quick hack for the test.
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 
-	th.App.HubStart()
+	th.Server.HubStart()
 	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
 	defer wc1.Close()
 
 	hub := th.App.Srv().hubs[0]
-	th.App.HubStop()
+	th.Server.HubStop()
 
 	done := make(chan bool)
 	go func() {
@@ -165,13 +165,13 @@ func TestHubSessionRevokeRace(t *testing.T) {
 		UserStore:    &mockUserStore,
 		SessionStore: &mockSessionStore,
 		OAuthStore:   &mockOAuthStore,
-		ConfigFn:     th.App.srv.Config,
+		ConfigFn:     th.App.ch.srv.Config,
 		Metrics:      th.App.Metrics(),
 		Cluster:      th.App.Cluster(),
-		LicenseFn:    th.App.srv.License,
+		LicenseFn:    th.App.ch.srv.License,
 	})
 	require.NoError(t, err)
-	th.App.srv.userService = userService
+	th.App.ch.srv.userService = userService
 
 	// This needs to be false for the condition to trigger
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -189,7 +189,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	time.Sleep(time.Second)
 	// We override the LastActivityAt which happens in NewWebConn.
 	// This is needed to call RevokeSessionById which triggers the race.
-	th.App.srv.userService.AddSessionToCache(sess1)
+	th.App.ch.srv.userService.AddSessionToCache(sess1)
 
 	go func() {
 		for i := 0; i <= broadcastQueueSize; i++ {
@@ -347,7 +347,7 @@ func TestHubIsRegistered(t *testing.T) {
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
 
-	th.App.HubStart()
+	th.Server.HubStart()
 	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
 	wc2 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
 	wc3 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
@@ -418,7 +418,7 @@ func BenchmarkGetHubForUserId(b *testing.B) {
 	th := Setup(b).InitBasic()
 	defer th.TearDown()
 
-	th.App.HubStart()
+	th.Server.HubStart()
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

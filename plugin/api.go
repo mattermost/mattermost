@@ -92,6 +92,12 @@ type API interface {
 	// Minimum server version: 5.10
 	GetLicense() *model.License
 
+	// IsEnterpriseReady returns true if the Mattermost server is configured as Enterprise Ready.
+	//
+	// @tag Server
+	// Minimum server version: 5.10
+	IsEnterpriseReady() bool
+
 	// GetServerVersion return the current Mattermost server version
 	//
 	// @tag Server
@@ -250,6 +256,19 @@ type API interface {
 	// @tag User
 	// Minimum server version: 5.8
 	UpdateUserActive(userID string, active bool) *model.AppError
+
+	// UpdateUserCustomStatus will set a user's custom status until the user, or another integration/plugin, clear it or update the custom status.
+	// The custom status have two parameters: emoji icon and custom text.
+	//
+	// @tag User
+	// Minimum server version: 5.36
+	UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus) *model.AppError
+
+	// RemoveUserCustomStatus will remove a user's custom status.
+	//
+	// @tag User
+	// Minimum server version: 5.36
+	RemoveUserCustomStatus(userID string) *model.AppError
 
 	// GetUsersInChannel returns a page of users in a channel. Page counting starts at 0.
 	// The sortBy parameter can be: "username" or "status".

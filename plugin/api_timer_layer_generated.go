@@ -112,6 +112,13 @@ func (api *apiTimerLayer) GetLicense() *model.License {
 	return _returnsA
 }
 
+func (api *apiTimerLayer) IsEnterpriseReady() bool {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.IsEnterpriseReady()
+	api.recordTime(startTime, "IsEnterpriseReady", true)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) GetServerVersion() string {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.GetServerVersion()
@@ -291,6 +298,20 @@ func (api *apiTimerLayer) UpdateUserActive(userID string, active bool) *model.Ap
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.UpdateUserActive(userID, active)
 	api.recordTime(startTime, "UpdateUserActive", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.UpdateUserCustomStatus(userID, customStatus)
+	api.recordTime(startTime, "UpdateUserCustomStatus", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RemoveUserCustomStatus(userID string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RemoveUserCustomStatus(userID)
+	api.recordTime(startTime, "RemoveUserCustomStatus", _returnsA == nil)
 	return _returnsA
 }
 

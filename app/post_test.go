@@ -469,7 +469,7 @@ func TestImageProxy(t *testing.T) {
 		*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 	})
 
-	th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
+	th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
 
 	for name, tc := range map[string]struct {
 		ProxyType              string
@@ -606,8 +606,10 @@ func TestMaxPostSize(t *testing.T) {
 			mockStore.PostStore.On("GetMaxPostSize").Return(testCase.StoreMaxPostSize)
 
 			app := App{
-				srv: &Server{
-					Store: mockStore,
+				ch: &Channels{
+					srv: &Server{
+						Store: mockStore,
+					},
 				},
 			}
 
@@ -684,7 +686,7 @@ func TestCreatePost(t *testing.T) {
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 		})
 
-		th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
+		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
 
 		imageURL := "http://mydomain.com/myimage"
 		proxiedImageURL := "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage"
@@ -839,7 +841,7 @@ func TestPatchPost(t *testing.T) {
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 		})
 
-		th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
+		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
 
 		imageURL := "http://mydomain.com/myimage"
 		proxiedImageURL := "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage"
@@ -1132,7 +1134,7 @@ func TestUpdatePost(t *testing.T) {
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 		})
 
-		th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
+		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
 
 		imageURL := "http://mydomain.com/myimage"
 		proxiedImageURL := "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage"
@@ -1195,7 +1197,7 @@ func TestUpdatePost(t *testing.T) {
 	})
 }
 
-func TestSearchPostsInTeamForUser(t *testing.T) {
+func TestSearchPostsForUser(t *testing.T) {
 	perPage := 5
 	searchTerm := "searchTerm"
 
@@ -1237,7 +1239,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 
 		page := 0
 
-		results, err := th.App.SearchPostsInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		assert.Nil(t, err)
 		assert.Equal(t, []string{
@@ -1257,7 +1259,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 
 		page := 1
 
-		results, err := th.App.SearchPostsInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		assert.Nil(t, err)
 		assert.Equal(t, []string{}, results.Order)
@@ -1287,7 +1289,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchPostsInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		assert.Nil(t, err)
 		assert.Equal(t, resultsPage, results.Order)
@@ -1315,7 +1317,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchPostsInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		assert.Nil(t, err)
 		assert.Equal(t, resultsPage, results.Order)
@@ -1339,7 +1341,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchPostsInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		assert.Nil(t, err)
 		assert.Equal(t, []string{
@@ -1371,7 +1373,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchPostsInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		assert.Nil(t, err)
 		assert.Equal(t, []string{}, results.Order)
@@ -2360,7 +2362,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		defer th.TearDown()
 
 		remoteClusterService := NewMockSharedChannelService(nil)
-		th.App.srv.sharedChannelService = remoteClusterService
+		th.App.ch.srv.sharedChannelService = remoteClusterService
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Cluster = testCluster
 
@@ -2384,7 +2386,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		defer th.TearDown()
 
 		remoteClusterService := NewMockSharedChannelService(nil)
-		th.App.srv.sharedChannelService = remoteClusterService
+		th.App.ch.srv.sharedChannelService = remoteClusterService
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Cluster = testCluster
 
@@ -2412,7 +2414,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		defer th.TearDown()
 
 		remoteClusterService := NewMockSharedChannelService(nil)
-		th.App.srv.sharedChannelService = remoteClusterService
+		th.App.ch.srv.sharedChannelService = remoteClusterService
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Cluster = testCluster
 

@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -1380,8 +1381,14 @@ func TestPushNotificationRace(t *testing.T) {
 	s := &Server{
 		configStore: memoryStore,
 		Store:       mockStore,
+		products:    make(map[string]Product),
+		Router:      mux.NewRouter(),
 	}
-	app := New(ServerConnector(s))
+	ch, err := NewChannels(s)
+	require.NoError(t, err)
+	s.products["channels"] = ch
+
+	app := New(ServerConnector(s.Channels()))
 	require.NotPanics(t, func() {
 		s.createPushNotificationsHub()
 

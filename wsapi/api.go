@@ -13,7 +13,7 @@ type API struct {
 }
 
 func Init(s *app.Server) {
-	a := app.New(app.ServerConnector(s))
+	a := app.New(app.ServerConnector(s.Channels()))
 	api := &API{
 		App:    a,
 		Router: s.WebSocketRouter,

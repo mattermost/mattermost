@@ -421,7 +421,7 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Error al actualizar el canal actual."
+    "translation": "Error al actualizar la cabecera del canal."
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
@@ -1175,7 +1175,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "error de formato"
+    "translation": "Error al procesar."
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1789,7 +1789,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "Para cambiar tus preferencias de notificaciones, inicia sesión en tu equipo y dirigete a Configurar Cuenta > Notificaciones."
+    "translation": "Para cambiar tus preferencias de notificaciones, inicia sesión en su equipo y vaya a Configurar Cuenta > Notificaciones."
   },
   {
     "id": "api.templates.email_info1",
@@ -8025,7 +8025,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " y vaya a Configuración de la cuenta > Notificaciones"
+    "translation": " y vaya a Configuración > Notificaciones"
   },
   {
     "id": "app.notification.body.thread_gm.subTitle",
@@ -8389,7 +8389,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, su prueba de 14 días de Mattermost Cloud Professional finaliza en 3 días, en {{.TrialEnd}}. Por favor, añada su información de pago para garantizar que su equipo pueda seguir disfrutando de los beneficios de Cloud Professional."
+    "translation": "{{.Name}}, su prueba de 14 días de Mattermost finaliza en 3 días, en {{.TrialEnd}}. Por favor, añada su información de pago para garantizar que su equipo pueda seguir disfrutando de los beneficios de Mattermost Cloud."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -9250,5 +9250,17 @@
   {
     "id": "model.user.is_valid.roles_limit.app_error",
     "translation": "Roles de usuario no válidos con más de {{.Limit}} caracteres."
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "No se han podido obtener todos los miembros del equipo"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "No se han podido obtener todos los miembros del canal"
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "La dirección de correo electrónico del token no coincide con la de los datos del usuario."
   }
 ]

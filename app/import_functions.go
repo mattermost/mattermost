@@ -17,8 +17,9 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/app/teams"
+	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/services/users"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/utils"
@@ -209,8 +210,17 @@ func (a *App) importTeam(c *request.Context, data *TeamImportData, dryRun bool) 
 			return err
 		}
 	} else {
-		if _, err := a.updateTeamUnsanitized(team); err != nil {
-			return err
+		if _, err := a.ch.srv.teamService.UpdateTeam(team, teams.UpdateOptions{Imported: true}); err != nil {
+			var invErr *store.ErrInvalidInput
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(err, &nfErr):
+				return model.NewAppError("BulkImport", "app.team.get.find.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			case errors.As(err, &invErr):
+				return model.NewAppError("BulkImport", "app.team.update.find.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			default:
+				return model.NewAppError("BulkImport", "app.team.update.updating.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
 		}
 	}
 
@@ -485,7 +495,7 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 	var savedUser *model.User
 	var err error
 	if user.Id == "" {
-		if savedUser, err = a.srv.userService.CreateUser(user, users.UserCreateOptions{FromImport: true}); err != nil {
+		if savedUser, err = a.ch.srv.userService.CreateUser(user, users.UserCreateOptions{FromImport: true}); err != nil {
 			var appErr *model.AppError
 			var invErr *store.ErrInvalidInput
 			switch {
@@ -1109,10 +1119,7 @@ func (a *App) importReplies(c *request.Context, data []ReplyImportData, post *mo
 		reply.Message = *replyData.Message
 		reply.CreateAt = *replyData.CreateAt
 
-		fileIDs, err := a.uploadAttachments(c, replyData.Attachments, reply, teamID)
-		if err != nil {
-			return err
-		}
+		fileIDs := a.uploadAttachments(c, replyData.Attachments, reply, teamID)
 		for _, fileID := range reply.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
 				a.Srv().Store.FileInfo().PermanentDelete(fileID)
@@ -1389,10 +1396,7 @@ func (a *App) importMultiplePostLines(c *request.Context, lines []LineImportWork
 			post.Props = *line.Post.Props
 		}
 
-		fileIDs, appErr := a.uploadAttachments(c, line.Post.Attachments, post, team.Id)
-		if appErr != nil {
-			return line.LineNumber, appErr
-		}
+		fileIDs := a.uploadAttachments(c, line.Post.Attachments, post, team.Id)
 		for _, fileID := range post.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
 				a.Srv().Store.FileInfo().PermanentDelete(fileID)
@@ -1491,20 +1495,29 @@ func (a *App) importMultiplePostLines(c *request.Context, lines []LineImportWork
 }
 
 // uploadAttachments imports new attachments and returns current attachments of the post as a map
-func (a *App) uploadAttachments(c *request.Context, attachments *[]AttachmentImportData, post *model.Post, teamID string) (map[string]bool, *model.AppError) {
+func (a *App) uploadAttachments(c *request.Context, attachments *[]AttachmentImportData, post *model.Post, teamID string) map[string]bool {
 	if attachments == nil {
-		return nil, nil
+		return nil
 	}
 	fileIDs := make(map[string]bool)
 	for _, attachment := range *attachments {
 		attachment := attachment
 		fileInfo, err := a.importAttachment(c, &attachment, post, teamID)
 		if err != nil {
-			return nil, err
+			if attachment.Path != nil {
+				mlog.Warn(
+					"failed to import attachment",
+					mlog.String("path", *attachment.Path),
+					mlog.String("error", err.Error()))
+			} else {
+				mlog.Warn("failed to import attachment; path was nil",
+					mlog.String("error", err.Error()))
+			}
+			continue
 		}
 		fileIDs[fileInfo.Id] = true
 	}
-	return fileIDs, nil
+	return fileIDs
 }
 
 func (a *App) updateFileInfoWithPostId(post *model.Post) {
@@ -1685,10 +1698,7 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 			post.Props = *line.DirectPost.Props
 		}
 
-		fileIDs, err := a.uploadAttachments(c, line.DirectPost.Attachments, post, "noteam")
-		if err != nil {
-			return line.LineNumber, err
-		}
+		fileIDs := a.uploadAttachments(c, line.DirectPost.Attachments, post, "noteam")
 		for _, fileID := range post.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
 				a.Srv().Store.FileInfo().PermanentDelete(fileID)

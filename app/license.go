@@ -21,11 +21,12 @@ import (
 )
 
 const (
-	requestTrialURL           = "https://customers.mattermost.com/api/v1/trials"
 	LicenseEnv                = "MM_LICENSE"
 	LicenseRenewalURL         = "https://customers.mattermost.com/subscribe/renew"
 	JWTDefaultTokenExpiration = 7 * 24 * time.Hour // 7 days of expiration
 )
+
+var RequestTrialURL = "https://customers.mattermost.com/api/v1/trials"
 
 // JWTClaims custom JWT claims with the needed information for the
 // renewal process
@@ -267,7 +268,7 @@ func (s *Server) RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *m
 		return model.NewAppError("RequestTrialLicense", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
 
-	resp, err := http.Post(requestTrialURL, "application/json", bytes.NewBuffer(trialRequestJSON))
+	resp, err := http.Post(RequestTrialURL, "application/json", bytes.NewBuffer(trialRequestJSON))
 	if err != nil {
 		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.app_error", nil, err.Error(), http.StatusBadRequest)
 	}

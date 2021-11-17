@@ -1789,7 +1789,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "Bildirim ayarlarınızı değiştirmek için, takım sitenizde oturum açarak Hesap ayarları > Bildirimler bölümüne gidin."
+    "translation": "Bildirim ayarlarınızı değiştirmek için, takım sitenizde oturum açarak Ayarlar > Bildirimler bölümüne gidin."
   },
   {
     "id": "api.templates.email_info1",
@@ -4825,7 +4825,7 @@
   },
   {
     "id": "app.plugin.marketplace_client.failed_to_fetch",
-    "translation": "Mağaza sunucusundan uygulama ekleri alınamadı."
+    "translation": "Uygulama ekleri mağaza sunucusundan alınamadı."
   },
   {
     "id": "app.plugin.marketplace_plugin_request.app_error",
@@ -4849,7 +4849,7 @@
   },
   {
     "id": "app.plugin.restart.app_error",
-    "translation": "Yükseltme işlemi sırasında uygulama eki yeniden başlatılamadı."
+    "translation": "Uygulama eki yükseltme işlemi sırasında yeniden başlatılamadı."
   },
   {
     "id": "app.plugin.signature_decode.app_error",
@@ -4861,7 +4861,7 @@
   },
   {
     "id": "app.plugin.sync.list_filestore.app_error",
-    "translation": "Dosya depolama alanındaki uygulama eki klasöründeki dosyalar okunurken sorun çıktı."
+    "translation": "Dosya depolama alanında uygulama eki klasöründeki dosyalar okunurken sorun çıktı."
   },
   {
     "id": "app.plugin.sync.read_local_folder.app_error",
@@ -8757,7 +8757,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, 14 günlük Mattermost Cloud Professional deneme süreniz 3 gün sonra {{.TrialEnd}} tarihinde sona erecek. Ekibinizin Cloud Professional özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi ekleyebilirsiniz."
+    "translation": "{{.Name}}, 14 günlük Mattermost deneme süreniz 3 gün sonra {{.TrialEnd}} tarihinde sona erecek. Ekibinizin Mattermost Cloud özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi ekleyebilirsiniz."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -8981,7 +8981,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " ve Hesap ayarları > Bildirimler bölümüne gidin"
+    "translation": " ve Ayarlar > Bildirimler bölümüne gidin"
   },
   {
     "id": "app.notification.body.mention.title",
@@ -9014,8 +9014,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.title",
     "translation": {
-      "one": "{{ .SenderName }} size yeni bir ileti göndermiş",
-      "other": "{{ .SenderName }} ve {{.Count}} diğer kişi size yeni iletiler göndermiş"
+      "one": "Yeni bir iletiniz var",
+      "other": "Yeni iletileriniz var"
     }
   },
   {
@@ -9253,5 +9253,17 @@
   {
     "id": "model.channel_member.is_valid.roles_limit.app_error",
     "translation": "Kanal üyesi rolleri geçersiz {{.Limit}} karakterden uzun."
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "Kod içindeki e-posta adresi kullanıcı verileri içindeki ile aynı değil."
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "Tüm takım üyeleri alınamadı"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "Tüm kanal üyeleri alınamadı"
   }
 ]

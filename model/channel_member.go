@@ -60,7 +60,18 @@ type ChannelMember struct {
 	ExplicitRoles    string    `json:"explicit_roles"`
 }
 
+// ChannelMemberWithTeamData contains ChannelMember appended with extra team information
+// as well.
+type ChannelMemberWithTeamData struct {
+	ChannelMember
+	TeamDisplayName string `json:"team_display_name"`
+	TeamName        string `json:"team_name"`
+	TeamUpdateAt    int64  `json:"team_update_at"`
+}
+
 type ChannelMembers []ChannelMember
+
+type ChannelMembersWithTeamData []ChannelMemberWithTeamData
 
 type ChannelMemberForExport struct {
 	ChannelMember
@@ -69,7 +80,6 @@ type ChannelMemberForExport struct {
 }
 
 func (o *ChannelMember) IsValid() *AppError {
-
 	if !IsValidId(o.ChannelId) {
 		return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.channel_id.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -104,6 +114,11 @@ func (o *ChannelMember) IsValid() *AppError {
 		if len(ignoreChannelMentions) > 40 || !IsIgnoreChannelMentionsValid(ignoreChannelMentions) {
 			return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.ignore_channel_mentions_value.app_error", nil, "ignore_channel_mentions="+ignoreChannelMentions, http.StatusBadRequest)
 		}
+	}
+
+	if len(o.Roles) > UserRolesMaxLength {
+		return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.roles_limit.app_error",
+			map[string]interface{}{"Limit": UserRolesMaxLength}, "", http.StatusBadRequest)
 	}
 
 	return nil

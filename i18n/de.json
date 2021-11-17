@@ -6133,7 +6133,7 @@
   },
   {
     "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "SMTP-Server wird benötigt"
+    "translation": "SMTP-Server benötigt"
   },
   {
     "id": "api.emoji.create.internal_error",
@@ -7369,7 +7369,7 @@
   },
   {
     "id": "api.file.file_mod_time.app_error",
-    "translation": "Kann den letzten Änderungszeitpunkt der Datei nicht holen."
+    "translation": "Kann den letzten Änderungszeitpunkt der Datei nicht ermitteln."
   },
   {
     "id": "api.file.file_exists.app_error",
@@ -7394,8 +7394,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.title",
     "translation": {
-      "one": "{{ .SenderName }} sendete Ihnen neue Nachrichten",
-      "other": "{{ .SenderName }} und {{.Count}} andere sendeten Ihnen neue Nachrichten"
+      "one": "Sie haben eine neue Nachricht",
+      "other": "Sie haben neue Nachrichten"
     }
   },
   {
@@ -8032,7 +8032,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, ihr 14-tägiger freier Test von Mattermost Cloud Professional endet in 3 Tagen, am {{.TrialEnd}}. Bitte fügen Sie Ihre Bezahlinformationen hinzu, um sicherzustellen, dass Ihr Team weiterhin die Vorteile von Cloud Professional genießen kann."
+    "translation": "{{.Name}}, ihr 14-tägiger freier Test von Mattermost endet in 3 Tagen, am {{.TrialEnd}}. Bitte fügen Sie Ihre Bezahlinformationen hinzu, um sicherzustellen, dass Ihr Team weiterhin die Vorteile von Mattermost Cloud genießen kann."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -9253,5 +9253,21 @@
   {
     "id": "model.channel_member.is_valid.roles_limit.app_error",
     "translation": "Ungültige Kanalmitgliederrollen mit mehr als {{.Limit}} Zeichen."
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "Die Email-Adresse im Token stimmt nicht mit der in den Benutzerdaten überein."
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "Nicht alle Teammitglieder konnten ermittelt werden"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "Nicht alle Kanalmitglieder konnten ermittelt werden"
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "NIcht alle Rollen konnten abgerufen werden."
   }
 ]

@@ -19,9 +19,9 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/services/users"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
@@ -371,7 +371,7 @@ func (a *App) newSession(appName string, user *model.User) (*model.Session, *mod
 	// Set new token an session
 	session := &model.Session{UserId: user.Id, Roles: user.Roles, IsOAuth: true}
 	session.GenerateCSRF()
-	a.srv.userService.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthSSOInDays)
+	a.ch.srv.userService.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthSSOInDays)
 	session.AddProp(model.SessionPropPlatform, appName)
 	session.AddProp(model.SessionPropOs, "OAuth2")
 	session.AddProp(model.SessionPropBrowser, "OAuth2")
@@ -381,7 +381,7 @@ func (a *App) newSession(appName string, user *model.User) (*model.Session, *mod
 		return nil, model.NewAppError("newSession", "api.oauth.get_access_token.internal_session.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	a.srv.userService.AddSessionToCache(session)
+	a.ch.srv.userService.AddSessionToCache(session)
 
 	return session, nil
 }
@@ -520,7 +520,7 @@ func (a *App) RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *m
 }
 
 func (a *App) RevokeAccessToken(token string) *model.AppError {
-	if err := a.srv.userService.RevokeAccessToken(token); err != nil {
+	if err := a.ch.srv.userService.RevokeAccessToken(token); err != nil {
 		switch {
 		case errors.Is(err, users.GetTokenError):
 			return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.get.app_error", nil, err.Error(), http.StatusBadRequest)
@@ -824,8 +824,6 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	http.SetCookie(w, httpCookie)
 
 	teamID := stateProps["team_id"]
-
-	mlog.Debug("OAuth redirect uri: " + redirectURI)
 
 	p := url.Values{}
 	p.Set("client_id", *sso.Id)

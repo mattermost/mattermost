@@ -6,6 +6,7 @@ package model
 import (
 	"bytes"
 	"crypto/rand"
+	"database/sql/driver"
 	"encoding/base32"
 	"encoding/json"
 	"fmt"
@@ -24,6 +25,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/pborman/uuid"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -70,6 +72,49 @@ func (sa StringArray) Equals(input StringArray) bool {
 	}
 
 	return true
+}
+
+// Value converts StringArray to database value
+func (sa StringArray) Value() (driver.Value, error) {
+	return json.Marshal(sa)
+}
+
+// Scan converts database column value to StringArray
+func (sa *StringArray) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+
+	buf, ok := value.([]byte)
+	if ok {
+		return json.Unmarshal(buf, sa)
+	}
+
+	str, ok := value.(string)
+	if ok {
+		return json.Unmarshal([]byte(str), sa)
+	}
+
+	return errors.New("received value is neither a byte slice nor string")
+}
+
+// Scan converts database column value to StringMap
+func (m *StringMap) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+
+	buf, ok := value.([]byte)
+	if ok {
+		return json.Unmarshal(buf, m)
+	}
+
+	str, ok := value.(string)
+	if ok {
+		return json.Unmarshal([]byte(str), m)
+	}
+
+	return errors.New("received value is neither a byte slice nor string")
 }
 
 var translateFunc i18n.TranslateFunc

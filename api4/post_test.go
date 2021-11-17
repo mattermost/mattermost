@@ -35,7 +35,7 @@ func TestCreatePost(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a", Props: model.StringInterface{model.PropsAddChannelMember: "no good"}}
+	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a", Props: model.StringInterface{model.PropsAddChannelMember: "no good"}, DeleteAt: 101}
 
 	rpost, resp, err2 := client.CreatePost(post)
 	require.NoError(t, err2)
@@ -46,6 +46,7 @@ func TestCreatePost(t *testing.T) {
 	require.Empty(t, rpost.FileIds)
 	require.Equal(t, 0, int(rpost.EditAt), "newly created post shouldn't have EditAt set")
 	require.Nil(t, rpost.GetProp(model.PropsAddChannelMember), "newly created post shouldn't have Props['add_channel_member'] set")
+	require.Equal(t, 0, int(rpost.DeleteAt), "newly created post shouldn't have DeleteAt set")
 
 	post.RootId = rpost.Id
 	_, _, err2 = client.CreatePost(post)
@@ -601,7 +602,7 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	api := Init(th.App, th.Server.Router)
+	api := Init(th.Server)
 	session, _ := th.App.GetSession(th.Client.AuthToken)
 
 	cli := th.CreateClient()
@@ -2201,10 +2202,27 @@ func TestSearchPosts(t *testing.T) {
 	_ = th.CreateMessagePostWithClient(th.Client, archivedChannel, "#hashtag for post3")
 	th.Client.DeleteChannel(archivedChannel.Id)
 
+	otherTeam := th.CreateTeam()
+	channelInOtherTeam := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, otherTeam.Id)
+	_ = th.AddUserToChannel(th.BasicUser, channelInOtherTeam)
+	_ = th.CreateMessagePostWithClient(th.Client, channelInOtherTeam, "search for post 5")
+
 	terms := "search"
 	isOrSearch := false
 	timezoneOffset := 5
 	searchParams := model.SearchParameter{
+		Terms:          &terms,
+		IsOrSearch:     &isOrSearch,
+		TimeZoneOffset: &timezoneOffset,
+	}
+	allTeamsPosts, _, err := client.SearchPostsWithParams("", &searchParams)
+	require.NoError(t, err)
+	require.Len(t, allTeamsPosts.Order, 4, "wrong search along multiple teams")
+
+	terms = "search"
+	isOrSearch = false
+	timezoneOffset = 5
+	searchParams = model.SearchParameter{
 		Terms:          &terms,
 		IsOrSearch:     &isOrSearch,
 		TimeZoneOffset: &timezoneOffset,

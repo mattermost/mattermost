@@ -2388,6 +2388,20 @@ func (_m *API) InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *mo
 	return r0, r1
 }
 
+// IsEnterpriseReady provides a mock function with given fields:
+func (_m *API) IsEnterpriseReady() bool {
+	ret := _m.Called()
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // KVCompareAndDelete provides a mock function with given fields: key, oldValue
 func (_m *API) KVCompareAndDelete(key string, oldValue []byte) (bool, *model.AppError) {
 	ret := _m.Called(key, oldValue)
@@ -2895,6 +2909,22 @@ func (_m *API) RemoveTeamIcon(teamID string) *model.AppError {
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
 		r0 = rf(teamID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// RemoveUserCustomStatus provides a mock function with given fields: userID
+func (_m *API) RemoveUserCustomStatus(userID string) *model.AppError {
+	ret := _m.Called(userID)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -3508,6 +3538,22 @@ func (_m *API) UpdateUserActive(userID string, active bool) *model.AppError {
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(string, bool) *model.AppError); ok {
 		r0 = rf(userID, active)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// UpdateUserCustomStatus provides a mock function with given fields: userID, customStatus
+func (_m *API) UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus) *model.AppError {
+	ret := _m.Called(userID, customStatus)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, *model.CustomStatus) *model.AppError); ok {
+		r0 = rf(userID, customStatus)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
