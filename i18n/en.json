@@ -5480,6 +5480,10 @@
     "translation": "No license present"
   },
   {
+    "id": "app.member_count",
+    "translation": "error retrieving member count"
+  },
+  {
     "id": "app.notification.body.dm.subTitle",
     "translation": "While you were away, {{.SenderName}} sent you a new Direct Message."
   },
