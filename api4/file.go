@@ -483,12 +483,13 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	auditRec.AddMeta("file", info)
+
 	if info.DeleteAt != 0 {
 		c.Err = model.NewAppError("getFile", "api.file.get_file.no_file.app_error", nil, "file_id="+info.Id, http.StatusNotFound)
 		return
 	}
-
-	auditRec.AddMeta("file", info)
 
 	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PermissionReadChannel) {
 		c.SetPermissionError(model.PermissionReadChannel)
