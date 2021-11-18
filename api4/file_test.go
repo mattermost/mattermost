@@ -1246,3 +1246,33 @@ func TestSearchFiles(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
+
+func TestGetDeletedFiles(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+	channel := th.BasicChannel
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = model.NewRandomString(32) })
+
+	data, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
+
+	fileResp, _, err := client.UploadFile(data, channel.Id, "test.png")
+	require.NoError(t, err)
+
+	fileId := fileResp.FileInfos[0].Id
+	postWithFiles, _, err := client.CreatePost(&model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   "with files",
+		FileIds:   model.StringArray{fileId},
+	})
+	require.NoError(t, err)
+
+	client.DeletePost(postWithFiles.Id)
+
+	_, resp, err := client.GetFile(fileId)
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+}
