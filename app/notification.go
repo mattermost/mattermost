@@ -186,7 +186,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				channelMemberNotifyPropsMap[profile.Id][model.PushNotifyProp] == model.ChannelNotifyAll) &&
 				(post.UserId != profile.Id || post.GetProp("from_webhook") == "true") &&
 				!post.IsSystemMessage() &&
-				!(a.isCRTEnabledForUser(profile.Id) && post.RootId != "") {
+				!(a.IsCRTEnabledForUser(profile.Id) && post.RootId != "") {
 				allActivityPushUserIds = append(allActivityPushUserIds, profile.Id)
 			}
 		}
@@ -320,7 +320,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	if isCRTAllowed && post.RootId != "" {
 		for _, uid := range followers {
 			profile := profileMap[uid]
-			if profile == nil || !a.isCRTEnabledForUser(uid) {
+			if profile == nil || !a.IsCRTEnabledForUser(uid) {
 				continue
 			}
 
@@ -580,7 +580,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			if profileMap[uid] == nil {
 				continue
 			}
-			if a.isCRTEnabledForUser(uid) {
+			if a.IsCRTEnabledForUser(uid) {
 				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, team.Id, "", uid, nil)
 				threadMembership := participantMemberships[uid]
 				if threadMembership == nil {
@@ -625,7 +625,7 @@ func (a *App) userAllowsEmail(user *model.User, channelMemberNotificationProps m
 	userAllowsEmails := user.NotifyProps[model.EmailNotifyProp] != "false"
 
 	// if CRT is ON for user and the post is a reply disregard the channelEmail setting
-	if channelEmail, ok := channelMemberNotificationProps[model.EmailNotifyProp]; ok && !(a.isCRTEnabledForUser(user.Id) && post.RootId != "") {
+	if channelEmail, ok := channelMemberNotificationProps[model.EmailNotifyProp]; ok && !(a.IsCRTEnabledForUser(user.Id) && post.RootId != "") {
 		if channelEmail != model.ChannelNotifyDefault {
 			userAllowsEmails = channelEmail != "false"
 		}

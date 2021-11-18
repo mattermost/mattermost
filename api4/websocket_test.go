@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -197,6 +198,44 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 	require.Error(t, err, "Should have errored because Origin does not match host! SECURITY ISSUE!")
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowCorsFrom = "" })
+}
+
+func TestWebSocketReconnectRace(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableReliableWebSockets = true
+	})
+
+	WebSocketClient, err := th.CreateWebSocketClient()
+	require.NoError(t, err)
+	defer WebSocketClient.Close()
+	WebSocketClient.Listen()
+
+	ev := <-WebSocketClient.EventChannel
+	require.Equal(t, model.WebsocketEventHello, ev.EventType())
+	evData := ev.GetData()
+	connID := evData["connection_id"].(string)
+	seq := int(ev.GetSequence())
+
+	var wg sync.WaitGroup
+	n := 10
+	wg.Add(n)
+
+	WebSocketClient.Close()
+
+	for i := 0; i < n; i++ {
+		go func() {
+			defer wg.Done()
+			ws, err := th.CreateReliableWebSocketClient(connID, seq+1)
+			require.NoError(t, err)
+			defer ws.Close()
+			ws.Listen()
+		}()
+	}
+
+	wg.Wait()
 }
 
 func TestWebSocketStatuses(t *testing.T) {

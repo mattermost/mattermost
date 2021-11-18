@@ -61,10 +61,6 @@ const managedPluginFileName = ".filestore"
 // fileStorePluginFolder is the folder name in the file store of the plugin bundles installed.
 const fileStorePluginFolder = "plugins"
 
-func (a *App) InstallPluginFromData(data model.PluginEventData) {
-	a.ch.installPluginFromData(data)
-}
-
 func (ch *Channels) installPluginFromData(data model.PluginEventData) {
 	mlog.Debug("Installing plugin as per cluster message", mlog.String("plugin_id", data.Id))
 
@@ -111,10 +107,6 @@ func (ch *Channels) installPluginFromData(data model.PluginEventData) {
 	}
 }
 
-func (a *App) RemovePluginFromData(data model.PluginEventData) {
-	a.ch.removePluginFromData(data)
-}
-
 func (ch *Channels) removePluginFromData(data model.PluginEventData) {
 	mlog.Debug("Removing plugin as per cluster message", mlog.String("plugin_id", data.Id))
 
@@ -128,10 +120,6 @@ func (ch *Channels) removePluginFromData(data model.PluginEventData) {
 }
 
 // InstallPluginWithSignature verifies and installs plugin.
-func (a *App) InstallPluginWithSignature(pluginFile, signature io.ReadSeeker) (*model.Manifest, *model.AppError) {
-	return a.ch.installPluginWithSignature(pluginFile, signature)
-}
-
 func (ch *Channels) installPluginWithSignature(pluginFile, signature io.ReadSeeker) (*model.Manifest, *model.AppError) {
 	return ch.installPlugin(pluginFile, signature, installPluginLocallyAlways)
 }
@@ -189,11 +177,7 @@ func (ch *Channels) installPlugin(pluginFile, signature io.ReadSeeker, installat
 
 // InstallMarketplacePlugin installs a plugin listed in the marketplace server. It will get the plugin bundle
 // from the prepackaged folder, if available, or remotely if EnableRemoteMarketplace is true.
-func (a *App) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRequest) (*model.Manifest, *model.AppError) {
-	return a.ch.installMarketplacePlugin(request)
-}
-
-func (ch *Channels) installMarketplacePlugin(request *model.InstallMarketplacePluginRequest) (*model.Manifest, *model.AppError) {
+func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRequest) (*model.Manifest, *model.AppError) {
 	var pluginFile, signatureFile io.ReadSeeker
 
 	prepackagedPlugin, appErr := ch.getPrepackagedPlugin(request.Id, request.Version)
@@ -256,10 +240,6 @@ const (
 	// installPluginLocallyAlways unconditionally installs the given plugin locally only, clobbering any existing plugin with the same id.
 	installPluginLocallyAlways
 )
-
-func (a *App) installPluginLocally(pluginFile, signature io.ReadSeeker, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
-	return a.ch.installPluginLocally(pluginFile, signature, installationStrategy)
-}
 
 func (ch *Channels) installPluginLocally(pluginFile, signature io.ReadSeeker, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
 	pluginsEnvironment := ch.GetPluginsEnvironment()
@@ -412,11 +392,7 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 	return manifest, nil
 }
 
-func (a *App) RemovePlugin(id string) *model.AppError {
-	return a.ch.removePlugin(id)
-}
-
-func (ch *Channels) removePlugin(id string) *model.AppError {
+func (ch *Channels) RemovePlugin(id string) *model.AppError {
 	// Disable plugin before removal to make sure this
 	// plugin remains disabled on re-install.
 	if err := ch.disablePlugin(id); err != nil {
@@ -457,10 +433,6 @@ func (ch *Channels) removePlugin(id string) *model.AppError {
 	return nil
 }
 
-func (a *App) removePluginLocally(id string) *model.AppError {
-	return a.ch.removePluginLocally(id)
-}
-
 func (ch *Channels) removePluginLocally(id string) *model.AppError {
 	pluginsEnvironment := ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
@@ -488,7 +460,7 @@ func (ch *Channels) removePluginLocally(id string) *model.AppError {
 
 	pluginsEnvironment.Deactivate(id)
 	pluginsEnvironment.RemovePlugin(id)
-	ch.srv.unregisterPluginCommands(id)
+	ch.unregisterPluginCommands(id)
 
 	if err := os.RemoveAll(pluginPath); err != nil {
 		return model.NewAppError("removePlugin", "app.plugin.remove.app_error", nil, err.Error(), http.StatusInternalServerError)
