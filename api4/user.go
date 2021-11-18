@@ -784,6 +784,19 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
+
+		if !*c.App.Config().TeamSettings.ExperimentalViewArchivedChannels {
+			channel, appErr := c.App.GetChannel(inChannelId)
+			if appErr != nil {
+				c.Err = appErr
+				return
+			}
+			if channel.DeleteAt != 0 {
+				c.Err = model.NewAppError("Api4.getUsersInChannel", "api.user.view_archived_channels.get_users_in_channel.app_error", nil, "", http.StatusForbidden)
+				return
+			}
+		}
+
 		if sort == "status" {
 			profiles, err = c.App.GetUsersInChannelPageByStatus(userGetOptions, c.IsSystemAdmin())
 		} else {
