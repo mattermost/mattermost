@@ -252,6 +252,7 @@ func Init(srv *app.Server) *API {
 	api.BaseRoutes.SharedChannels = api.BaseRoutes.APIRoot.PathPrefix("/sharedchannels").Subrouter()
 
 	api.BaseRoutes.Permissions = api.BaseRoutes.APIRoot.PathPrefix("/permissions").Subrouter()
+	api.BaseRoutes.InitialLoad = api.BaseRoutes.APIRoot.PathPrefix("/initial_load").Subrouter()
 
 	api.InitUser()
 	api.InitBot()

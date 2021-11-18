@@ -4,11 +4,14 @@
 package model
 
 type InitialLoad struct {
-	User        *User             `json:"user"`
-	TeamMembers []*TeamMember     `json:"team_members"`
-	Teams       []*Team           `json:"teams"`
-	Preferences Preferences       `json:"preferences"`
-	ClientCfg   map[string]string `json:"client_cfg"`
-	LicenseCfg  map[string]string `json:"license_cfg"`
-	NoAccounts  bool              `json:"no_accounts"`
+	Config             map[string]string                    `json:"config"`
+	License            map[string]string                    `json:"license"`
+	User               *User                                `json:"user"`
+	UserPreferences    *Preferences                         `json:"user_preferences"`
+	TeamMemberships    []*TeamMember                        `json:"team_memberships"`
+	Teams              []*Team                              `json:"teams"`
+	ChannelMemberships []ChannelMember                      `json:"channel_memberships"`
+	Channels           []*Channel                           `json:"channles"`
+	SidebarCategories  map[string]*OrderedSidebarCategories `json:"sidebar_categories"`
+	Roles              []*Role                              `json:"roles"`
 }
