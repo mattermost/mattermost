@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	LogRotateSize           = 10000
+	LogRotateSize           = 100
 	LogCompress             = true
 	LogRotateMaxAge         = 0
 	LogRotateMaxBackups     = 0
