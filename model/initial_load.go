@@ -11,7 +11,7 @@ type InitialLoad struct {
 	TeamMemberships    []*TeamMember                        `json:"team_memberships"`
 	Teams              []*Team                              `json:"teams"`
 	ChannelMemberships []*ChannelMember                     `json:"channel_memberships"`
-	Channels           []*Channel                           `json:"channles"`
+	Channels           []*Channel                           `json:"channels"`
 	SidebarCategories  map[string]*OrderedSidebarCategories `json:"sidebar_categories"`
 	Roles              []*Role                              `json:"roles"`
 }
