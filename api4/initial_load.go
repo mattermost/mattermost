@@ -2,11 +2,14 @@ package api4
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"sort"
 	"strings"
 	"sync"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func (api *API) InitInitialLoad() {
@@ -112,6 +115,16 @@ func initialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 		data.Channels = channels
 	}()
 
+	displaySettingValue := data.Config["TeammateNameDisplay"]
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		displaySetting, _ := c.App.GetPreferenceByCategoryAndNameForUser(userID, "display_settings", "name_format")
+		if displaySetting != nil {
+			displaySettingValue = displaySetting.Value
+		}
+	}()
+
 	wg.Wait()
 	if userError != nil {
 		c.Err = userError
@@ -161,96 +174,109 @@ func initialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 		roleNames = roleNames + " " + channelMember.Roles
 	}
 
-	// displaySetting, _ := c.App.GetPreferenceByCategoryAndNameForUser(userID, "display_settings", "name_format")
-	// displaySettingValue := data.Config["TeammateNameDisplay"]
-	// if displaySetting != nil {
-	// 	displaySettingValue = displaySetting.Value
-	// }
+	usersToGet := []string{}
+	membersByChannel := map[string][]*model.ChannelMember{}
 
-	// // TODO: Make it database efficiient
-	// for _, channelMember := range data.ChannelMemberships {
-	// 	if channel.Type == model.ChannelTypeDirect {
-	// 		dmMembers, err := c.App.GetChannelMembersPage(channelMember.ChannelId, 0, 2)
-	// 		if err != nil {
-	// 			c.Err = err
-	// 			return
-	// 		}
-	// 		if len(dmMembers) != 2 && !(len(dmMembers) == 1 && dmMembers[0].UserId == userID) {
-	// 			c.Err = model.NewAppError("initialLoad", "api.too_few_dm_members", nil, "", http.StatusInternalServerError)
-	// 			return
-	// 		}
+	// TODO: Make it database efficiient
+	for _, channel := range data.Channels {
+		if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
+			cMembers, err := c.App.GetChannelMembersPage(channel.Id, 0, 100000000000)
+			if err != nil {
+				c.Err = err
+				return
+			}
+			membersByChannel[channel.Id] = []*model.ChannelMember{}
+			for _, cMember := range cMembers {
+				newMember := cMember
+				usersToGet = append(usersToGet, cMember.UserId)
+				membersByChannel[channel.Id] = append(membersByChannel[channel.Id], &newMember)
+			}
+		}
+	}
 
-	// 		dmMember := dmMembers[0]
-	// 		if len(dmMembers) > 1 && dmMembers[0].UserId == userID {
-	// 			dmMember = dmMembers[1]
-	// 		}
-	// 		teammate, err := c.App.GetUser(dmMember.UserId)
-	// 		if err != nil {
-	// 			c.Err = err
-	// 			return
-	// 		}
-	// 		if displaySettingValue == "nickname_full_name" {
-	// 			channel.DisplayName = teammate.Nickname
-	// 			if channel.DisplayName == "" {
-	// 				channel.DisplayName = teammate.GetFullName()
-	// 			}
-	// 			if channel.DisplayName == "" {
-	// 				channel.DisplayName = teammate.Username
-	// 			}
-	// 		} else if displaySettingValue == "full_name" {
-	// 			channel.DisplayName = teammate.GetFullName()
-	// 			if channel.DisplayName == "" {
-	// 				channel.DisplayName = teammate.Username
-	// 			}
-	// 		} else if displaySettingValue == "username" {
-	// 			channel.DisplayName = teammate.Username
-	// 		} else {
-	// 			channel.DisplayName = teammate.Username
-	// 		}
-	// 	}
-	// 	if channel.Type == model.ChannelTypeGroup {
-	// 		gmMembers, err := c.App.GetChannelMembersPage(channelMember.ChannelId, 0, 8)
-	// 		if err != nil {
-	// 			c.Err = err
-	// 			return
-	// 		}
+	options := &store.UserGetByIdsOpts{
+		IsAdmin: c.IsSystemAdmin(),
+	}
 
-	// 		displayNames := []string{}
-	// 		for _, gmMember := range gmMembers {
-	// 			if gmMember.UserId == userID {
-	// 				continue
-	// 			}
-	// 			// TODO: This is duplicated code
-	// 			teammate, err := c.App.GetUser(gmMember.UserId)
-	// 			if err != nil {
-	// 				c.Err = err
-	// 				return
-	// 			}
-	// 			displayName := ""
-	// 			if displaySettingValue == "nickname_full_name" {
-	// 				displayName = teammate.Nickname
-	// 				if displayName == "" {
-	// 					displayName = teammate.GetFullName()
-	// 				}
-	// 				if displayName == "" {
-	// 					displayName = teammate.Username
-	// 				}
-	// 			} else if displaySettingValue == "full_name" {
-	// 				displayName = teammate.GetFullName()
-	// 				if displayName == "" {
-	// 					displayName = teammate.Username
-	// 				}
-	// 			} else if displaySettingValue == "username" {
-	// 				displayName = teammate.Username
-	// 			} else {
-	// 				displayName = teammate.Username
-	// 			}
-	// 			displayNames = append(displayNames, displayName)
-	// 		}
-	// 		sort.Strings(displayNames)
-	// 		channel.DisplayName = strings.Join(displayNames, ", ")
-	// 	}
-	// }
+	restrictions, err := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	options.ViewRestrictions = restrictions
+
+	teammates, err := c.App.GetUsersByIds(usersToGet, options)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	teamMatesById := map[string]*model.User{}
+	for _, teammate := range teammates {
+		teamMatesById[teammate.Id] = teammate
+	}
+
+	for _, channel := range data.Channels {
+		if channel.Type == model.ChannelTypeDirect {
+			teammate := teamMatesById[membersByChannel[channel.Id][0].UserId]
+			if teammate.Id == userID && len(membersByChannel[channel.Id]) > 1 {
+				teammate = teamMatesById[membersByChannel[channel.Id][1].UserId]
+			}
+			if displaySettingValue == "nickname_full_name" {
+				channel.DisplayName = teammate.Nickname
+				if channel.DisplayName == "" {
+					channel.DisplayName = teammate.GetFullName()
+				}
+				if channel.DisplayName == "" {
+					channel.DisplayName = teammate.Username
+				}
+			} else if displaySettingValue == "full_name" {
+				channel.DisplayName = teammate.GetFullName()
+				if channel.DisplayName == "" {
+					channel.DisplayName = teammate.Username
+				}
+			} else if displaySettingValue == "username" {
+				channel.DisplayName = teammate.Username
+			} else {
+				channel.DisplayName = teammate.Username
+			}
+		}
+
+		if channel.Type == model.ChannelTypeGroup {
+			displayNames := []string{}
+			for _, gmMember := range membersByChannel[channel.Id] {
+				if gmMember.UserId == userID {
+					continue
+				}
+				fmt.Println(gmMember.UserId)
+				// TODO: This is duplicated code
+				teammate := teamMatesById[gmMember.UserId]
+				fmt.Println(teammate.Username)
+				displayName := ""
+				if displaySettingValue == "nickname_full_name" {
+					displayName = teammate.Nickname
+					if displayName == "" {
+						displayName = teammate.GetFullName()
+					}
+					if displayName == "" {
+						displayName = teammate.Username
+					}
+				} else if displaySettingValue == "full_name" {
+					displayName = teammate.GetFullName()
+					if displayName == "" {
+						displayName = teammate.Username
+					}
+				} else if displaySettingValue == "username" {
+					displayName = teammate.Username
+				} else {
+					displayName = teammate.Username
+				}
+				displayNames = append(displayNames, displayName)
+			}
+			sort.Strings(displayNames)
+			channel.DisplayName = strings.Join(displayNames, ", ")
+		}
+	}
 
 	roles, err := c.App.GetRolesByNames(strings.Split(roleNames, " "))
 	if err != nil {
