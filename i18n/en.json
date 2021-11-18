@@ -1718,6 +1718,10 @@
     "translation": "Unable to get the file size."
   },
   {
+    "id": "api.file.get_file.no_file.app_error",
+    "translation": "File not found"
+  },
+  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "The public link does not appear to be valid."
   },
