@@ -30,6 +30,12 @@ func RegisterComplianceInterface(f func(*Server) einterfaces.ComplianceInterface
 	complianceInterface = f
 }
 
+var fixCRTChannelUnreadsJobInterface func(*Server) tjobs.FixCRTChannelUnreadsJobInterface
+
+func RegisterFixCRTChannelUnreadsJobInterface(f func(*Server) tjobs.FixCRTChannelUnreadsJobInterface) {
+	fixCRTChannelUnreadsJobInterface = f
+}
+
 var dataRetentionInterface func(*Server) einterfaces.DataRetentionInterface
 
 func RegisterDataRetentionInterface(f func(*Server) einterfaces.DataRetentionInterface) {

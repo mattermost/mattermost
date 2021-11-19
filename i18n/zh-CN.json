@@ -1785,7 +1785,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "要更改您的通知偏好设定，登录到您的团队站点后至帐号设置 > 通知。"
+    "translation": "要更改您的通知偏好设定，登录到您的团队站点后并转至设置 > 通知。"
   },
   {
     "id": "api.templates.email_info1",
@@ -9037,7 +9037,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " 并至账户设定 > 通知"
+    "translation": " 并转至设定 > 通知"
   },
   {
     "id": "app.notification.body.mention.title",
@@ -9246,5 +9246,17 @@
   {
     "id": "model.channel_member.is_valid.roles_limit.app_error",
     "translation": "无效频道成员角色，长度超过 {{.Limit}} 个字符的。"
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "令牌中的电子邮件与用户数据中的电子邮件不一致。"
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "获取所有团队成员失败"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "获取所有频道成员失败"
   }
 ]

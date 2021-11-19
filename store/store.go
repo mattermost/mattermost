@@ -179,6 +179,8 @@ type ChannelStore interface {
 	GetDeletedByName(team_id string, name string) (*model.Channel, error)
 	GetDeleted(team_id string, offset int, limit int, userID string) (model.ChannelList, error)
 	GetChannels(teamID string, userID string, includeDeleted bool, lastDeleteAt int) (model.ChannelList, error)
+	GetChannelsByUser(userID string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, error)
+	GetAllChannelMembersById(id string) ([]string, error)
 	GetAllChannels(page, perPage int, opts ChannelSearchOpts) (model.ChannelListWithTeamData, error)
 	GetAllChannelsCount(opts ChannelSearchOpts) (int64, error)
 	GetMoreChannels(teamID string, userID string, offset int, limit int) (model.ChannelList, error)
@@ -189,6 +191,7 @@ type ChannelStore interface {
 	GetTeamChannels(teamID string) (model.ChannelList, error)
 	GetAll(teamID string) ([]*model.Channel, error)
 	GetChannelsByIds(channelIds []string, includeDeleted bool) ([]*model.Channel, error)
+	GetChannelsWithTeamDataByIds(channelIds []string, includeDeleted bool) ([]*model.ChannelWithTeamData, error)
 	GetForPost(postID string) (*model.Channel, error)
 	SaveMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error)
 	SaveMember(member *model.ChannelMember) (*model.ChannelMember, error)
@@ -225,8 +228,10 @@ type ChannelStore interface {
 	IncrementMentionCount(channelID string, userID string, updateThreads, isRoot bool) error
 	AnalyticsTypeCount(teamID string, channelType model.ChannelType) (int64, error)
 	GetMembersForUser(teamID string, userID string) (model.ChannelMembers, error)
-	GetMembersForUserWithPagination(teamID, userID string, page, perPage int) (model.ChannelMembers, error)
-	AutocompleteInTeam(teamID string, term string, includeDeleted bool) (model.ChannelList, error)
+	GetTeamMembersForChannel(channelID string) ([]string, error)
+	GetMembersForUserWithPagination(userID string, page, perPage int) (model.ChannelMembersWithTeamData, error)
+	Autocomplete(userID, term string, includeDeleted bool) (model.ChannelListWithTeamData, error)
+	AutocompleteInTeam(teamID, userID, term string, includeDeleted bool) (model.ChannelList, error)
 	AutocompleteInTeamForSearch(teamID string, userID string, term string, includeDeleted bool) (model.ChannelList, error)
 	SearchAllChannels(term string, opts ChannelSearchOpts) (model.ChannelListWithTeamData, int64, error)
 	SearchInTeam(teamID string, term string, includeDeleted bool) (model.ChannelList, error)
@@ -271,6 +276,9 @@ type ChannelStore interface {
 	SetShared(channelId string, shared bool) error
 	// GetTeamForChannel returns the team for a given channelID.
 	GetTeamForChannel(channelID string) (*model.Team, error)
+
+	//GetCRTUnfixedChannelMembershipsAfter gets CRT unfixed channel memberships after the given channelID and userID
+	GetCRTUnfixedChannelMembershipsAfter(channelID string, userID string, count int) ([]model.ChannelMember, error)
 }
 
 type ChannelMemberHistoryStore interface {
@@ -354,6 +362,9 @@ type PostStore interface {
 	GetOldestEntityCreationTime() (int64, error)
 	HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error)
 	GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor, limit int) ([]*model.Post, model.GetPostsSinceForSyncCursor, error)
+
+	// GetUniquePostTypesSince returns the unique post types in a channel after the given timestamp
+	GetUniquePostTypesSince(channelId string, timestamp int64) ([]string, error)
 }
 
 type UserStore interface {

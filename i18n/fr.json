@@ -1789,7 +1789,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "Pour modifier vos préférences de notification, connectez-vous à votre équipe et allez dans Paramètres du compte > Notifications."
+    "translation": "Pour modifier vos préférences de notification, connectez-vous à votre équipe et allez dans Paramètres > Notifications."
   },
   {
     "id": "api.templates.email_info1",
@@ -7617,7 +7617,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " et allez dans Paramètres du compte > Notifications"
+    "translation": " et allez dans Paramètres > Notifications"
   },
   {
     "id": "app.notification.body.mention.title",

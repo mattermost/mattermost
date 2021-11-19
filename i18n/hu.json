@@ -149,15 +149,15 @@
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "Az üzenetmegőrzésnek legalább egy napnak vagy hosszabbnak kell lennie."
+    "translation": "Az üzenet megőrzésnek legalább egy napnak kell lennie."
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "A fájlmegőrzésnek legalább egy napnak vagy hosszabbnak kell lennie."
+    "translation": "A fájl megőrzésnek legalább egy napnak kell lennie."
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
-    "translation": "Az adatmegőrzési munka kezdési időpontjának 24 órás időbélyegzőnek kell lennie HH:MM formátumban."
+    "translation": "Az adatmegőrzési feladat indítási időpontjának 24 órás időbélyegzőnek kell lennie HH:MM formátumban."
   },
   {
     "id": "model.config.is_valid.collapsed_threads.app_error",
@@ -5781,7 +5781,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "Az értesítés beállítások módosításához jelentkezzen be a csapat oldalára és menjen a Fiók beállítások > Értesítésekbe."
+    "translation": "Az értesítés beállítások módosításához jelentkezzen be a csapat oldalára és menjen a Beállítások > Értesítések menübe."
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -8905,7 +8905,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " és lépjen a Fiókbeállítások> Értesítések menüpontba"
+    "translation": " és lépjen a Beállítások > Értesítések menübe"
   },
   {
     "id": "app.notification.body.mention.title",
@@ -9254,5 +9254,29 @@
   {
     "id": "api.user.create_user.bad_token_email_data.app_error",
     "translation": "A tokenben szereplő e-mail cím nem egyezik a felhasználói adatokban szereplővel."
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "Nem sikerült lekérni a csapat összes tagját"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "Nem sikerült lekérni a csatorna összes tagját"
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "Nem sikerült lekérni az összes szerepkört."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Nem sikerült frissíteni az egyéni állapotot. Kérem adjon hozzá vagy emojit vagy egyéni állapot szöveget vagy mindkettőt."
+  },
+  {
+    "id": "app.user.get_thread_count_for_user.app_error",
+    "translation": "Nem sikerült lekérni a felhasználó üzenet szálainak számát."
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "Emlékeztető"
   }
 ]

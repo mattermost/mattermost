@@ -502,26 +502,64 @@ func testPostStoreGet(t *testing.T, ss store.Store) {
 }
 
 func testPostStoreGetForThread(t *testing.T, ss store.Store) {
-	o1 := &model.Post{ChannelId: model.NewId(), UserId: model.NewId(), Message: NewTestId()}
-	o1, err := ss.Post().Save(o1)
-	require.NoError(t, err)
-	_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
-	require.NoError(t, err)
+	t.Run("Post thread is followed", func(t *testing.T) {
+		o1 := &model.Post{ChannelId: model.NewId(), UserId: model.NewId(), Message: NewTestId()}
+		o1, err := ss.Post().Save(o1)
+		require.NoError(t, err)
+		_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
+		require.NoError(t, err)
 
-	threadMembership := &model.ThreadMembership{
-		PostId:         o1.Id,
-		UserId:         o1.UserId,
-		Following:      true,
-		LastViewed:     0,
-		LastUpdated:    0,
-		UnreadMentions: 0,
-	}
-	_, err = ss.Thread().SaveMembership(threadMembership)
-	require.NoError(t, err)
-	r1, err := ss.Post().Get(context.Background(), o1.Id, false, true, false, o1.UserId)
-	require.NoError(t, err)
-	require.Equal(t, r1.Posts[o1.Id].CreateAt, o1.CreateAt, "invalid returned post")
-	require.True(t, *r1.Posts[o1.Id].IsFollowing)
+		threadMembership := &model.ThreadMembership{
+			PostId:         o1.Id,
+			UserId:         o1.UserId,
+			Following:      true,
+			LastViewed:     0,
+			LastUpdated:    0,
+			UnreadMentions: 0,
+		}
+		_, err = ss.Thread().SaveMembership(threadMembership)
+		require.NoError(t, err)
+		r1, err := ss.Post().Get(context.Background(), o1.Id, false, true, false, o1.UserId)
+		require.NoError(t, err)
+		require.Equal(t, r1.Posts[o1.Id].CreateAt, o1.CreateAt, "invalid returned post")
+		require.True(t, *r1.Posts[o1.Id].IsFollowing)
+	})
+
+	t.Run("Post thread is explicitly not followed", func(t *testing.T) {
+		o1 := &model.Post{ChannelId: model.NewId(), UserId: model.NewId(), Message: NewTestId()}
+		o1, err := ss.Post().Save(o1)
+		require.NoError(t, err)
+		_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
+		require.NoError(t, err)
+
+		threadMembership := &model.ThreadMembership{
+			PostId:         o1.Id,
+			UserId:         o1.UserId,
+			Following:      false,
+			LastViewed:     0,
+			LastUpdated:    0,
+			UnreadMentions: 0,
+		}
+		_, err = ss.Thread().SaveMembership(threadMembership)
+		require.NoError(t, err)
+		r1, err := ss.Post().Get(context.Background(), o1.Id, false, true, false, o1.UserId)
+		require.NoError(t, err)
+		require.Equal(t, r1.Posts[o1.Id].CreateAt, o1.CreateAt, "invalid returned post")
+		require.False(t, *r1.Posts[o1.Id].IsFollowing)
+	})
+
+	t.Run("Post threadmembership does not exist", func(t *testing.T) {
+		o1 := &model.Post{ChannelId: model.NewId(), UserId: model.NewId(), Message: NewTestId()}
+		o1, err := ss.Post().Save(o1)
+		require.NoError(t, err)
+		_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
+		require.NoError(t, err)
+
+		r1, err := ss.Post().Get(context.Background(), o1.Id, false, true, false, o1.UserId)
+		require.NoError(t, err)
+		require.Equal(t, r1.Posts[o1.Id].CreateAt, o1.CreateAt, "invalid returned post")
+		require.Nil(t, r1.Posts[o1.Id].IsFollowing)
+	})
 }
 
 func testPostStoreGetSingle(t *testing.T, ss store.Store) {

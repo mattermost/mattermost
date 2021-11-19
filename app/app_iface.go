@@ -177,8 +177,6 @@ type AppIface interface {
 	// GetMarketplacePlugins returns a list of plugins from the marketplace-server,
 	// and plugins that are installed locally.
 	GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError)
-	// GetPluginPublicKeyFiles returns all public keys listed in the config.
-	GetPluginPublicKeyFiles() ([]string, *model.AppError)
 	// GetPluginStatus returns the status for a plugin installed on this server.
 	GetPluginStatus(id string) (*model.PluginStatus, *model.AppError)
 	// GetPluginStatuses returns the status for plugins installed on this server.
@@ -214,13 +212,8 @@ type AppIface interface {
 	HubRegister(webConn *WebConn)
 	// HubUnregister unregisters a connection from a hub.
 	HubUnregister(webConn *WebConn)
-	// InstallMarketplacePlugin installs a plugin listed in the marketplace server. It will get the plugin bundle
-	// from the prepackaged folder, if available, or remotely if EnableRemoteMarketplace is true.
-	InstallMarketplacePlugin(request *model.InstallMarketplacePluginRequest) (*model.Manifest, *model.AppError)
 	// InstallPlugin unpacks and installs a plugin but does not enable or activate it.
 	InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError)
-	// InstallPluginWithSignature verifies and installs plugin.
-	InstallPluginWithSignature(pluginFile, signature io.ReadSeeker) (*model.Manifest, *model.AppError)
 	// LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
 	LimitedClientConfigWithComputed() map[string]string
 	// LogAuditRec logs an audit record using default LvlAuditCLI.
@@ -402,8 +395,9 @@ type AppIface interface {
 	AttachSessionCookies(c *request.Context, w http.ResponseWriter, r *http.Request)
 	AuthenticateUserForLogin(c *request.Context, id, loginId, password, mfaToken, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError)
 	AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service, code, state, redirectURI string) (io.ReadCloser, string, map[string]string, *model.User, *model.AppError)
-	AutocompleteChannels(teamID string, term string) (model.ChannelList, *model.AppError)
+	AutocompleteChannels(userID, term string) (model.ChannelListWithTeamData, *model.AppError)
 	AutocompleteChannelsForSearch(teamID string, userID string, term string) (model.ChannelList, *model.AppError)
+	AutocompleteChannelsForTeam(teamID, userID, term string) (model.ChannelList, *model.AppError)
 	AutocompleteUsersInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError)
 	AutocompleteUsersInTeam(teamID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInTeam, *model.AppError)
 	BroadcastStatus(status *model.Status)
@@ -415,6 +409,7 @@ type AppIface interface {
 	BulkImportWithPath(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int)
 	CancelJob(jobId string) *model.AppError
 	ChannelMembersToRemove(teamID *string) ([]*model.ChannelMember, *model.AppError)
+	Channels() *Channels
 	CheckAndSendUserLimitWarningEmails(c *request.Context) *model.AppError
 	CheckCanInviteToSharedChannel(channelId string) error
 	CheckCloudAccountAtLimit() (bool, *model.AppError)
@@ -544,6 +539,7 @@ type AppIface interface {
 	GetAllPrivateTeams() ([]*model.Team, *model.AppError)
 	GetAllPublicTeams() ([]*model.Team, *model.AppError)
 	GetAllRemoteClusters(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, *model.AppError)
+	GetAllRoles() ([]*model.Role, *model.AppError)
 	GetAllStatuses() map[string]*model.Status
 	GetAllTeams() ([]*model.Team, *model.AppError)
 	GetAllTeamsPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, *model.AppError)
@@ -564,9 +560,10 @@ type AppIface interface {
 	GetChannelMemberCount(channelID string) (int64, *model.AppError)
 	GetChannelMembersByIds(channelID string, userIDs []string) (model.ChannelMembers, *model.AppError)
 	GetChannelMembersForUser(teamID string, userID string) (model.ChannelMembers, *model.AppError)
-	GetChannelMembersForUserWithPagination(teamID, userID string, page, perPage int) ([]*model.ChannelMember, *model.AppError)
+	GetChannelMembersForUserWithPagination(userID string, page, perPage int) ([]*model.ChannelMember, *model.AppError)
 	GetChannelMembersPage(channelID string, page, perPage int) (model.ChannelMembers, *model.AppError)
 	GetChannelMembersTimezones(channelID string) ([]string, *model.AppError)
+	GetChannelMembersWithTeamDataForUserWithPagination(userID string, page, perPage int) (model.ChannelMembersWithTeamData, *model.AppError)
 	GetChannelPinnedPostCount(channelID string) (int64, *model.AppError)
 	GetChannelPoliciesForUser(userID string, offset, limit int) (*model.RetentionPolicyForChannelList, *model.AppError)
 	GetChannelUnread(channelID, userID string) (*model.ChannelUnread, *model.AppError)
@@ -574,7 +571,8 @@ type AppIface interface {
 	GetChannelsForRetentionPolicy(policyID string, offset, limit int) (*model.ChannelsWithCount, *model.AppError)
 	GetChannelsForScheme(scheme *model.Scheme, offset int, limit int) (model.ChannelList, *model.AppError)
 	GetChannelsForSchemePage(scheme *model.Scheme, page int, perPage int) (model.ChannelList, *model.AppError)
-	GetChannelsForUser(teamID string, userID string, includeDeleted bool, lastDeleteAt int) (model.ChannelList, *model.AppError)
+	GetChannelsForTeamForUser(teamID string, userID string, includeDeleted bool, lastDeleteAt int) (model.ChannelList, *model.AppError)
+	GetChannelsForUser(userID string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, *model.AppError)
 	GetChannelsUserNotIn(teamID string, userID string, offset int, limit int) (model.ChannelList, *model.AppError)
 	GetCloudSession(token string) (*model.Session, *model.AppError)
 	GetClusterId() string
@@ -585,6 +583,7 @@ type AppIface interface {
 	GetComplianceReport(reportId string) (*model.Compliance, *model.AppError)
 	GetComplianceReports(page, perPage int) (model.Compliances, *model.AppError)
 	GetCookieDomain() string
+	GetCustomStatus(userID string) (*model.CustomStatus, *model.AppError)
 	GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError)
 	GetDeletedChannels(teamID string, offset int, limit int, userID string) (model.ChannelList, *model.AppError)
 	GetEmoji(emojiId string) (*model.Emoji, *model.AppError)
@@ -806,13 +805,13 @@ type AppIface interface {
 	ImageProxyRemover() (f func(string) string)
 	ImportPermissions(jsonl io.Reader) error
 	InitPlugins(c *request.Context, pluginDir, webappPluginDir string)
-	InstallPluginFromData(data model.PluginEventData)
 	InvalidateAllEmailInvites() *model.AppError
 	InvalidateCacheForUser(userID string)
 	InviteGuestsToChannels(teamID string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError
 	InviteGuestsToChannelsGracefully(teamID string, guestsInvite *model.GuestsInvite, senderId string) ([]*model.EmailInviteWithError, *model.AppError)
 	InviteNewUsersToTeam(emailList []string, teamID, senderId string) *model.AppError
-	InviteNewUsersToTeamGracefully(emailList []string, teamID, senderId string) ([]*model.EmailInviteWithError, *model.AppError)
+	InviteNewUsersToTeamGracefully(emailList []string, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError)
+	IsCRTEnabledForUser(userID string) bool
 	IsFirstUserAccount() bool
 	IsLeader() bool
 	IsPasswordValid(password string) *model.AppError
@@ -825,6 +824,7 @@ type AppIface interface {
 	Ldap() einterfaces.LdapInterface
 	LeaveChannel(c *request.Context, channelID string, userID string) *model.AppError
 	LeaveTeam(c *request.Context, team *model.Team, user *model.User, requestorId string) *model.AppError
+	License() *model.License
 	LimitedClientConfig() map[string]string
 	ListAllCommands(teamID string, T i18n.TranslateFunc) ([]*model.Command, *model.AppError)
 	ListDirectory(path string) ([]string, *model.AppError)
@@ -895,8 +895,6 @@ type AppIface interface {
 	RemoveFile(path string) *model.AppError
 	RemoveLdapPrivateCertificate() *model.AppError
 	RemoveLdapPublicCertificate() *model.AppError
-	RemovePlugin(id string) *model.AppError
-	RemovePluginFromData(data model.PluginEventData)
 	RemoveRecentCustomStatus(userID string, status *model.CustomStatus) *model.AppError
 	RemoveSamlIdpCertificate() *model.AppError
 	RemoveSamlPrivateCertificate() *model.AppError
@@ -986,7 +984,6 @@ type AppIface interface {
 	SetPluginKey(pluginID string, key string, value []byte) *model.AppError
 	SetPluginKeyWithExpiry(pluginID string, key string, value []byte, expireInSeconds int64) *model.AppError
 	SetPluginKeyWithOptions(pluginID string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError)
-	SetPluginsEnvironment(pluginsEnvironment *plugin.Environment)
 	SetProfileImage(userID string, imageData *multipart.FileHeader) *model.AppError
 	SetProfileImageFromFile(userID string, file io.Reader) *model.AppError
 	SetProfileImageFromMultiPartFile(userID string, file multipart.File) *model.AppError
@@ -1010,7 +1007,6 @@ type AppIface interface {
 	SwitchEmailToOAuth(w http.ResponseWriter, r *http.Request, email, password, code, service string) (string, *model.AppError)
 	SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (string, *model.AppError)
 	SwitchOAuthToEmail(email, password, requesterId string) (string, *model.AppError)
-	SyncPluginsActiveState()
 	TeamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.AppError)
 	TelemetryId() string
 	TestElasticsearch(cfg *model.Config) *model.AppError
@@ -1024,7 +1020,6 @@ type AppIface interface {
 	TotalWebsocketConnections() int
 	TriggerWebhook(c *request.Context, payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel)
 	UnregisterPluginCommand(pluginID, teamID, trigger string)
-	UnregisterPluginCommands(pluginID string)
 	UpdateActive(c *request.Context, user *model.User, active bool) (*model.User, *model.AppError)
 	UpdateChannelLastViewedAt(channelIDs []string, userID string) *model.AppError
 	UpdateChannelMemberNotifyProps(data map[string]string, channelID string, userID string) (*model.ChannelMember, *model.AppError)
@@ -1066,7 +1061,7 @@ type AppIface interface {
 	UpdateTeamPrivacy(teamID string, teamType string, allowOpenInvite bool) *model.AppError
 	UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError)
 	UpdateThreadFollowForUser(userID, teamID, threadID string, state bool) *model.AppError
-	UpdateThreadReadForUser(userID, teamID, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError)
+	UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError)
 	UpdateThreadsReadForUser(userID, teamID string) *model.AppError
 	UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError)
 	UpdateUserActive(c *request.Context, userID string, active bool) *model.AppError

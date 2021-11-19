@@ -4,6 +4,8 @@
 package model
 
 import (
+	"strings"
+
 	"github.com/francoispqt/gojay"
 )
 
@@ -25,6 +27,10 @@ func AuditModelTypeConv(val interface{}) (newVal interface{}, converted bool) {
 		return newAuditUser(v), true
 	case User:
 		return newAuditUser(&v), true
+	case *UserPatch:
+		return newAuditUserPatch(v), true
+	case UserPatch:
+		return newAuditUserPatch(&v), true
 	case *Command:
 		return newAuditCommand(v), true
 	case Command:
@@ -168,6 +174,21 @@ func newAuditUser(u *User) auditUser {
 	return user
 }
 
+type auditUserPatch struct {
+	Name string
+}
+
+// newAuditUserPatch creates a simplified representation of UserPatch for output to audit log.
+func newAuditUserPatch(up *UserPatch) auditUserPatch {
+	var userPatch auditUserPatch
+	if up != nil {
+		if up.Username != nil {
+			userPatch.Name = *up.Username
+		}
+	}
+	return userPatch
+}
+
 func (u auditUser) MarshalJSONObject(enc *gojay.Encoder) {
 	enc.StringKey("id", u.ID)
 	enc.StringKey("name", u.Name)
@@ -249,7 +270,10 @@ func newAuditCommandArgs(ca *CommandArgs) auditCommandArgs {
 		cmdargs.ChannelID = ca.ChannelId
 		cmdargs.TeamID = ca.TeamId
 		cmdargs.TriggerID = ca.TriggerId
-		cmdargs.Command = ca.Command
+		cmdFields := strings.Fields(ca.Command)
+		if len(cmdFields) > 0 {
+			cmdargs.Command = cmdFields[0]
+		}
 	}
 	return cmdargs
 }

@@ -9257,5 +9257,29 @@
   {
     "id": "api.user.create_user.bad_token_email_data.app_error",
     "translation": "Die Email-Adresse im Token stimmt nicht mit der in den Benutzerdaten überein."
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "Nicht alle Teammitglieder konnten ermittelt werden"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "Nicht alle Kanalmitglieder konnten ermittelt werden"
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "NIcht alle Rollen konnten abgerufen werden."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Eigener Status konnte nicht aktualisiert werden. Bitte ein Emojis oder einen Text oder beides hinzufügen."
+  },
+  {
+    "id": "app.user.get_thread_count_for_user.app_error",
+    "translation": "Konnten Anzahl der Unterhaltungen des Benutzers nicht holen."
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "Erinnerung"
   }
 ]

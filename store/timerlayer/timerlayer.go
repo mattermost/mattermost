@@ -550,10 +550,26 @@ func (s *TimerLayerChannelStore) AnalyticsTypeCount(teamID string, channelType m
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) AutocompleteInTeam(teamID string, term string, includeDeleted bool) (model.ChannelList, error) {
+func (s *TimerLayerChannelStore) Autocomplete(userID string, term string, includeDeleted bool) (model.ChannelListWithTeamData, error) {
 	start := timemodule.Now()
 
-	result, err := s.ChannelStore.AutocompleteInTeam(teamID, term, includeDeleted)
+	result, err := s.ChannelStore.Autocomplete(userID, term, includeDeleted)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.Autocomplete", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) AutocompleteInTeam(teamID string, userID string, term string, includeDeleted bool) (model.ChannelList, error) {
+	start := timemodule.Now()
+
+	result, err := s.ChannelStore.AutocompleteInTeam(teamID, userID, term, includeDeleted)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -773,6 +789,22 @@ func (s *TimerLayerChannelStore) GetAll(teamID string) ([]*model.Channel, error)
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) GetAllChannelMembersById(id string) ([]string, error) {
+	start := timemodule.Now()
+
+	result, err := s.ChannelStore.GetAllChannelMembersById(id)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetAllChannelMembersById", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) GetAllChannelMembersForUser(userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error) {
 	start := timemodule.Now()
 
@@ -917,6 +949,22 @@ func (s *TimerLayerChannelStore) GetByNames(team_id string, names []string, allo
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) GetCRTUnfixedChannelMembershipsAfter(channelID string, userID string, count int) ([]model.ChannelMember, error) {
+	start := timemodule.Now()
+
+	result, err := s.ChannelStore.GetCRTUnfixedChannelMembershipsAfter(channelID, userID, count)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetCRTUnfixedChannelMembershipsAfter", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) GetChannelCounts(teamID string, userID string) (*model.ChannelCounts, error) {
 	start := timemodule.Now()
 
@@ -1041,6 +1089,38 @@ func (s *TimerLayerChannelStore) GetChannelsByScheme(schemeID string, offset int
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetChannelsByScheme", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) GetChannelsByUser(userID string, includeDeleted bool, lastDeleteAt int, pageSize int, fromChannelID string) (model.ChannelList, error) {
+	start := timemodule.Now()
+
+	result, err := s.ChannelStore.GetChannelsByUser(userID, includeDeleted, lastDeleteAt, pageSize, fromChannelID)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetChannelsByUser", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) GetChannelsWithTeamDataByIds(channelIds []string, includeDeleted bool) ([]*model.ChannelWithTeamData, error) {
+	start := timemodule.Now()
+
+	result, err := s.ChannelStore.GetChannelsWithTeamDataByIds(channelIds, includeDeleted)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetChannelsWithTeamDataByIds", success, elapsed)
 	}
 	return result, err
 }
@@ -1269,10 +1349,10 @@ func (s *TimerLayerChannelStore) GetMembersForUser(teamID string, userID string)
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetMembersForUserWithPagination(teamID string, userID string, page int, perPage int) (model.ChannelMembers, error) {
+func (s *TimerLayerChannelStore) GetMembersForUserWithPagination(userID string, page int, perPage int) (model.ChannelMembersWithTeamData, error) {
 	start := timemodule.Now()
 
-	result, err := s.ChannelStore.GetMembersForUserWithPagination(teamID, userID, page, perPage)
+	result, err := s.ChannelStore.GetMembersForUserWithPagination(userID, page, perPage)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -1457,6 +1537,22 @@ func (s *TimerLayerChannelStore) GetTeamForChannel(channelID string) (*model.Tea
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetTeamForChannel", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) GetTeamMembersForChannel(channelID string) ([]string, error) {
+	start := timemodule.Now()
+
+	result, err := s.ChannelStore.GetTeamMembersForChannel(channelID)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetTeamMembersForChannel", success, elapsed)
 	}
 	return result, err
 }
@@ -5030,6 +5126,22 @@ func (s *TimerLayerPostStore) GetSingle(id string, inclDeleted bool) (*model.Pos
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetSingle", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPostStore) GetUniquePostTypesSince(channelId string, timestamp int64) ([]string, error) {
+	start := timemodule.Now()
+
+	result, err := s.PostStore.GetUniquePostTypesSince(channelId, timestamp)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetUniquePostTypesSince", success, elapsed)
 	}
 	return result, err
 }

@@ -179,7 +179,7 @@ func TestEnsureTelemetryID(t *testing.T) {
 
 		testLogger, _ := mlog.NewLogger()
 
-		telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg, nil), testLogger)
+		telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg), testLogger)
 		assert.Equal(t, "test", telemetryService.TelemetryID)
 
 		telemetryService.ensureTelemetryID()
@@ -212,7 +212,7 @@ func TestEnsureTelemetryID(t *testing.T) {
 
 		testLogger, _ := mlog.NewLogger()
 
-		telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg, nil), testLogger)
+		telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg), testLogger)
 		assert.Equal(t, generatedID, telemetryService.TelemetryID)
 	})
 
@@ -232,7 +232,7 @@ func TestEnsureTelemetryID(t *testing.T) {
 
 		testLogger, _ := mlog.NewLogger()
 
-		telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg, nil), testLogger)
+		telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg), testLogger)
 		assert.Equal(t, "", telemetryService.TelemetryID)
 	})
 }
@@ -357,7 +357,7 @@ func TestRudderTelemetry(t *testing.T) {
 	}
 	defer testLogger.Shutdown()
 
-	telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg, nil), testLogger)
+	telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg), testLogger)
 	telemetryService.TelemetryID = telemetryID
 	telemetryService.rudderClient = nil
 	telemetryService.initRudder(server.URL, RudderKey)
@@ -417,7 +417,7 @@ func TestRudderTelemetry(t *testing.T) {
 
 	t.Run("Send", func(t *testing.T) {
 		testValue := "test-send-value-6789"
-		telemetryService.sendTelemetry("Testing Telemetry", map[string]interface{}{
+		telemetryService.SendTelemetry("Testing Telemetry", map[string]interface{}{
 			"hey": testValue,
 		})
 		select {

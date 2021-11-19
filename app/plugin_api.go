@@ -90,16 +90,6 @@ func (api *PluginAPI) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*mode
 	return response, nil
 }
 
-func (api *PluginAPI) GetSession(sessionID string) (*model.Session, *model.AppError) {
-	session, err := api.app.GetSessionById(sessionID)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return session, nil
-}
-
 func (api *PluginAPI) GetConfig() *model.Config {
 	return api.app.GetSanitizedConfig()
 }
@@ -290,6 +280,22 @@ func (api *PluginAPI) DeletePreferencesForUser(userID string, preferences []mode
 	return api.app.DeletePreferences(userID, preferences)
 }
 
+func (api *PluginAPI) GetSession(sessionID string) (*model.Session, *model.AppError) {
+	return api.app.GetSessionById(sessionID)
+}
+
+func (api *PluginAPI) CreateSession(session *model.Session) (*model.Session, *model.AppError) {
+	return api.app.CreateSession(session)
+}
+
+func (api *PluginAPI) ExtendSessionExpiry(sessionID string, expiresAt int64) *model.AppError {
+	return api.app.extendSessionExpiry(sessionID, expiresAt)
+}
+
+func (api *PluginAPI) RevokeSession(sessionID string) *model.AppError {
+	return api.app.RevokeSessionById(sessionID)
+}
+
 func (api *PluginAPI) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
 	return api.app.CreateUserAccessToken(token)
 }
@@ -342,6 +348,18 @@ func (api *PluginAPI) SetUserStatusTimedDND(userID string, endTime int64) (*mode
 	// FIXME: make SetStatusDoNotDisturbTimed return updated status
 	api.app.SetStatusDoNotDisturbTimed(userID, endTime)
 	return api.app.GetStatus(userID)
+}
+
+func (api *PluginAPI) UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus) *model.AppError {
+	return api.app.SetCustomStatus(userID, customStatus)
+}
+
+func (api *PluginAPI) RemoveUserCustomStatus(userID string) *model.AppError {
+	return api.app.RemoveCustomStatus(userID)
+}
+
+func (api *PluginAPI) GetUserCustomStatus(userID string) (*model.CustomStatus, *model.AppError) {
+	return api.app.GetCustomStatus(userID)
 }
 
 func (api *PluginAPI) GetUsersInChannel(channelID, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
@@ -419,7 +437,7 @@ func (api *PluginAPI) GetChannelByNameForTeamName(teamName, channelName string, 
 }
 
 func (api *PluginAPI) GetChannelsForTeamForUser(teamID, userID string, includeDeleted bool) ([]*model.Channel, *model.AppError) {
-	channels, err := api.app.GetChannelsForUser(teamID, userID, includeDeleted, 0)
+	channels, err := api.app.GetChannelsForTeamForUser(teamID, userID, includeDeleted, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -557,8 +575,10 @@ func (api *PluginAPI) GetChannelMembersByIds(channelID string, userIDs []string)
 	return api.app.GetChannelMembersByIds(channelID, userIDs)
 }
 
-func (api *PluginAPI) GetChannelMembersForUser(teamID, userID string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
-	return api.app.GetChannelMembersForUserWithPagination(teamID, userID, page, perPage)
+func (api *PluginAPI) GetChannelMembersForUser(_, userID string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
+	// The team ID parameter was never used in the SQL query.
+	// But we keep this to maintain compatibility.
+	return api.app.GetChannelMembersForUserWithPagination(userID, page, perPage)
 }
 
 func (api *PluginAPI) UpdateChannelMemberRoles(channelID, userID, newRoles string) (*model.ChannelMember, *model.AppError) {
@@ -818,7 +838,7 @@ func (api *PluginAPI) DisablePlugin(id string) *model.AppError {
 }
 
 func (api *PluginAPI) RemovePlugin(id string) *model.AppError {
-	return api.app.RemovePlugin(id)
+	return api.app.Channels().RemovePlugin(id)
 }
 
 func (api *PluginAPI) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
