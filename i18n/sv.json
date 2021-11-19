@@ -9257,5 +9257,21 @@
   {
     "id": "api.user.create_user.bad_token_email_data.app_error",
     "translation": "Mejladressen i tokenet stämmer inte med mejladressen i användardata."
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "Misslyckades att hämta alla teammedlemmar"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "Misslyckades att hämta alla kanalmedlemmar"
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "Kunde inte hämta alla roller."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Misslyckades att uppdatera anpassad status. Lägg till emoij och/eller egen statustext."
   }
 ]

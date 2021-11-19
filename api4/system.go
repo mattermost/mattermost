@@ -129,8 +129,6 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	s[model.STATUS] = model.StatusOk
 	s["AndroidLatestVersion"] = reqs.AndroidLatestVersion
 	s["AndroidMinVersion"] = reqs.AndroidMinVersion
-	s["DesktopLatestVersion"] = reqs.DesktopLatestVersion
-	s["DesktopMinVersion"] = reqs.DesktopMinVersion
 	s["IosLatestVersion"] = reqs.IosLatestVersion
 	s["IosMinVersion"] = reqs.IosMinVersion
 
@@ -513,11 +511,6 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, appErr := c.App.GetPostIfAuthorized(ack.PostId, c.AppContext.Session()); appErr != nil {
-		c.Err = appErr
-		return
-	}
-
 	if !*c.App.Config().EmailSettings.SendPushNotifications {
 		c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
@@ -535,21 +528,28 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 			)
 		}
 
-		notificationInterface := c.App.Notification()
+		// Return post data only when PostId is passed.
+		if ack.PostId != "" && ack.NotificationType == model.PushTypeMessage {
+			if _, appErr := c.App.GetPostIfAuthorized(ack.PostId, c.AppContext.Session()); appErr != nil {
+				c.Err = appErr
+				return
+			}
 
-		if notificationInterface == nil {
-			c.Err = model.NewAppError("pushNotificationAck", "api.system.id_loaded.not_available.app_error", nil, "", http.StatusFound)
-			return
-		}
+			notificationInterface := c.App.Notification()
 
-		msg, appError := notificationInterface.GetNotificationMessage(&ack, c.AppContext.Session().UserId)
-		if appError != nil {
-			c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.id_loaded.fetch.app_error", nil, appError.Error(), http.StatusInternalServerError)
-			return
-		}
+			if notificationInterface == nil {
+				c.Err = model.NewAppError("pushNotificationAck", "api.system.id_loaded.not_available.app_error", nil, "", http.StatusFound)
+				return
+			}
 
-		if err2 := json.NewEncoder(w).Encode(msg); err2 != nil {
-			mlog.Warn("Error while writing response", mlog.Err(err2))
+			msg, appError := notificationInterface.GetNotificationMessage(&ack, c.AppContext.Session().UserId)
+			if appError != nil {
+				c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.id_loaded.fetch.app_error", nil, appError.Error(), http.StatusInternalServerError)
+				return
+			}
+			if err2 := json.NewEncoder(w).Encode(msg); err2 != nil {
+				mlog.Warn("Error while writing response", mlog.Err(err2))
+			}
 		}
 
 		return

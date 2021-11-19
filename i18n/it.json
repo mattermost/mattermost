@@ -1175,7 +1175,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "errore raccolta"
+    "translation": "Errore nella raccolta."
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1817,7 +1817,7 @@
   },
   {
     "id": "api.templates.invite_body.title",
-    "translation": "Sei stato invitato"
+    "translation": "{{ .SenderName }} ti ha invitato ad unirti alla squadra {{ .TeamDisplayName }}."
   },
   {
     "id": "api.templates.invite_subject",
@@ -6753,7 +6753,7 @@
   },
   {
     "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Forza Autenticazione Multifattore:"
+    "translation": "Forza Autenticazione Multifattore"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
@@ -7126,5 +7126,45 @@
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Impossibile recuperare i membri del canale"
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "La tua licenza non supporta le richieste di cloud."
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "Errore nell'ottenere l'abbonamento al cloud."
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "Impossibile ottenere le email degli amministratori di sistema."
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "L'evento webhook non è stato gestito. Manca oppure non è valido."
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "Errore interno durante la richiesta della cloud api."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Errore nell'invalidazione della cache"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "Un canale diretto non può essere creato tra questi utenti perché non condividono alcun team in comune."
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Ritorna a {{.SiteName}}"
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Impossibile azzerare il campo AuthData all'Email."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP non è disponibile."
   }
 ]
