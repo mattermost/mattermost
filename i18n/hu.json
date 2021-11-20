@@ -9278,5 +9278,25 @@
   {
     "id": "api.templates.invite_body.title.reminder",
     "translation": "Emlékeztető"
+  },
+  {
+    "id": "app.session.extend_session_expiry.app_error",
+    "translation": "Nem tudom megnövelni a munkamenet hosszát"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.mark_channel_as_read",
+    "translation": "Nem sikerült a csatorna olvasottra állítása"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.kill_orphan_jobs",
+    "translation": "Árván maradt feladatok kilövése"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.get_post_types",
+    "translation": "Nem sikerült megszerezni az egyedi bejegyzés típusokat"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.get_bad_channel_memberships",
+    "translation": "Nem sikerült a csatorna rossz tagi listájának megszerzése"
   }
 ]
