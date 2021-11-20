@@ -9273,5 +9273,33 @@
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
     "translation": "Failed to update the custom status. Please add either emoji, custom status text or both."
+  },
+  {
+    "id": "app.user.get_thread_count_for_user.app_error",
+    "translation": "Unable to retrieve user thread count."
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "Reminder"
+  },
+  {
+    "id": "app.session.extend_session_expiry.app_error",
+    "translation": "Unable to extend session length"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.mark_channel_as_read",
+    "translation": "Failed to mark channel as read"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.kill_orphan_jobs",
+    "translation": "Ending processes of orphaned jobs"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.get_post_types",
+    "translation": "Failed to retrieve unique post types"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.get_bad_channel_memberships",
+    "translation": "Failed to retrieve bad channel memberships"
   }
 ]
