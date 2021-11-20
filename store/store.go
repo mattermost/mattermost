@@ -279,6 +279,7 @@ type ChannelStore interface {
 
 	//GetCRTUnfixedChannelMembershipsAfter gets CRT unfixed channel memberships after the given channelID and userID
 	GetCRTUnfixedChannelMembershipsAfter(channelID string, userID string, count int) ([]model.ChannelMember, error)
+	GetDmAndGmToDisplayNameMap(userID string, displaySetting string) (map[string]string, error)
 }
 
 type ChannelMemberHistoryStore interface {

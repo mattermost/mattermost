@@ -48,7 +48,7 @@ func initialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	initialLoadData, err := c.App.GetInitialLoadData(config, license, c.IsSystemAdmin(), restrictions, userID)
+	initialLoadData, err := c.App.GetInitialLoadData(config, license, c.IsSystemAdmin(), restrictions, userID, 0)
 	if err != nil {
 		c.Err = err
 		return

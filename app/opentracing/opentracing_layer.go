@@ -6380,7 +6380,7 @@ func (a *OpenTracingAppLayer) GetIncomingWebhooksPageByUser(userID string, page 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetInitialLoadData(config map[string]string, license map[string]string, isAdmin bool, restrictions *model.ViewUsersRestrictions, userID string) (*model.InitialLoad, *model.AppError) {
+func (a *OpenTracingAppLayer) GetInitialLoadData(config map[string]string, license map[string]string, isAdmin bool, restrictions *model.ViewUsersRestrictions, userID string, since int64) (*model.InitialLoad, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetInitialLoadData")
 
@@ -6392,7 +6392,7 @@ func (a *OpenTracingAppLayer) GetInitialLoadData(config map[string]string, licen
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetInitialLoadData(config, license, isAdmin, restrictions, userID)
+	resultVar0, resultVar1 := a.app.GetInitialLoadData(config, license, isAdmin, restrictions, userID, since)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

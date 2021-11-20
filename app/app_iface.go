@@ -621,7 +621,7 @@ type AppIface interface {
 	GetIncomingWebhooksForTeamPageByUser(teamID string, userID string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError)
 	GetIncomingWebhooksPage(page, perPage int) ([]*model.IncomingWebhook, *model.AppError)
 	GetIncomingWebhooksPageByUser(userID string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError)
-	GetInitialLoadData(config map[string]string, license map[string]string, isAdmin bool, restrictions *model.ViewUsersRestrictions, userID string) (*model.InitialLoad, *model.AppError)
+	GetInitialLoadData(config map[string]string, license map[string]string, isAdmin bool, restrictions *model.ViewUsersRestrictions, userID string, since int64) (*model.InitialLoad, *model.AppError)
 	GetJob(id string) (*model.Job, *model.AppError)
 	GetJobs(offset int, limit int) ([]*model.Job, *model.AppError)
 	GetJobsByType(jobType string, offset int, limit int) ([]*model.Job, *model.AppError)

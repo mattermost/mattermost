@@ -881,6 +881,29 @@ func (_m *ChannelStore) GetDeletedByName(team_id string, name string) (*model.Ch
 	return r0, r1
 }
 
+// GetDmAndGmToDisplayNameMap provides a mock function with given fields: userID, displaySetting
+func (_m *ChannelStore) GetDmAndGmToDisplayNameMap(userID string, displaySetting string) (map[string]string, error) {
+	ret := _m.Called(userID, displaySetting)
+
+	var r0 map[string]string
+	if rf, ok := ret.Get(0).(func(string, string) map[string]string); ok {
+		r0 = rf(userID, displaySetting)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]string)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(userID, displaySetting)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetForPost provides a mock function with given fields: postID
 func (_m *ChannelStore) GetForPost(postID string) (*model.Channel, error) {
 	ret := _m.Called(postID)

@@ -3782,3 +3782,74 @@ func (s SqlChannelStore) GetCRTUnfixedChannelMembershipsAfter(channelID, userID 
 	}
 	return cms, nil
 }
+
+func (s SqlChannelStore) GetDmAndGmToDisplayNameMap(userID string, displaySetting string) (map[string]string, error) {
+	queryResults := []struct {
+		model.User
+		ChannelId string
+	}{}
+
+	query := s.getQueryBuilder().
+		Select("Channels.Id as ChannelId, Users.Id, Users.FirstName, Users.LastName, Users.Nickname, Users.Username").
+		From("ChannelMembers as MyMemberships").
+		Join("Channels ON MyMemberships.ChannelId = Channels.Id").
+		Join("ChannelMembers ON ChannelMembers.ChannelId = Channels.Id").
+		Join("Users ON ChannelMembers.UserId = Users.Id").
+		Where(sq.Or{sq.Eq{"Channels.Type": model.ChannelTypeDirect}, sq.Eq{"Channels.type": model.ChannelTypeGroup}}).
+		Where(sq.Eq{"MyMemberships.UserId": userID, "Channels.DeleteAt": 0})
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "dm_gm_names_tosql")
+	}
+
+	fmt.Println(sql, args)
+	if _, err = s.GetReplica().Select(&queryResults, sql, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to find channels display name")
+	}
+
+	userNames := map[string]string{}
+	usersPerChannel := map[string][]string{}
+	for _, queryResult := range queryResults {
+		displayName := ""
+		if displaySetting == "nickname_full_name" {
+			displayName = queryResult.Nickname
+			if displayName == "" {
+				displayName = queryResult.GetFullName()
+			}
+			if displayName == "" {
+				displayName = queryResult.Username
+			}
+		} else if displaySetting == "full_name" {
+			displayName = queryResult.GetFullName()
+			if displayName == "" {
+				displayName = queryResult.Username
+			}
+		} else if displaySetting == "username" {
+			displayName = queryResult.Username
+		} else {
+			displayName = queryResult.Username
+		}
+		userNames[queryResult.Id] = displayName
+		usersPerChannel[queryResult.ChannelId] = append(usersPerChannel[queryResult.ChannelId], queryResult.Id)
+	}
+
+	result := map[string]string{}
+	for channelId, users := range usersPerChannel {
+		if len(users) == 1 {
+			result[channelId] = userNames[users[0]]
+			continue
+		}
+
+		displayNames := []string{}
+		for _, u := range users {
+			if u != userID {
+				displayNames = append(displayNames, userNames[u])
+			}
+		}
+		sort.Strings(displayNames)
+		result[channelId] = strings.Join(displayNames, ", ")
+	}
+
+	return result, nil
+}
