@@ -342,7 +342,7 @@ func TestServePluginRequest(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/plugins/foo/bar", nil)
-	th.App.ch.srv.ServePluginRequest(w, r)
+	th.App.ch.ServePluginRequest(w, r)
 	assert.Equal(t, http.StatusNotImplemented, w.Result().StatusCode)
 }
 
@@ -386,7 +386,7 @@ func TestPrivateServePluginRequest(t *testing.T) {
 
 			request = mux.SetURLVars(request, map[string]string{"plugin_id": "id"})
 
-			th.App.ch.srv.servePluginRequest(recorder, request, handler)
+			th.App.ch.servePluginRequest(recorder, request, handler)
 		})
 	}
 
@@ -409,7 +409,7 @@ func TestHandlePluginRequest(t *testing.T) {
 	var assertions func(*http.Request)
 	router := mux.NewRouter()
 	router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/{anything:.*}", func(_ http.ResponseWriter, r *http.Request) {
-		th.App.ch.srv.servePluginRequest(nil, r, func(_ *plugin.Context, _ http.ResponseWriter, r *http.Request) {
+		th.App.ch.servePluginRequest(nil, r, func(_ *plugin.Context, _ http.ResponseWriter, r *http.Request) {
 			assertions(r)
 		})
 	})
@@ -621,7 +621,7 @@ func TestPluginSync(t *testing.T) {
 				appErr = th.App.DeletePublicKey("pub_key")
 				checkNoError(t, appErr)
 
-				appErr = th.App.RemovePlugin("testplugin")
+				appErr = th.App.ch.RemovePlugin("testplugin")
 				checkNoError(t, appErr)
 			})
 		})
@@ -758,7 +758,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, pluginBytes)
 
-		manifest, appErr := th.App.installPluginLocally(bytes.NewReader(pluginBytes), nil, installPluginLocallyAlways)
+		manifest, appErr := th.App.ch.installPluginLocally(bytes.NewReader(pluginBytes), nil, installPluginLocallyAlways)
 		require.Nil(t, appErr)
 		require.Equal(t, "testplugin", manifest.Id)
 
@@ -785,7 +785,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.Len(t, pluginStatus, 1)
 		require.Equal(t, pluginStatus[0].PluginId, "testplugin")
 
-		appErr = th.App.RemovePlugin("testplugin")
+		appErr = th.App.ch.RemovePlugin("testplugin")
 		checkNoError(t, appErr)
 
 		pluginStatus, err = env.Statuses()
@@ -866,7 +866,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, pluginBytes)
 
-		manifest, appErr := th.App.installPluginLocally(bytes.NewReader(pluginBytes), nil, installPluginLocallyAlways)
+		manifest, appErr := th.App.ch.installPluginLocally(bytes.NewReader(pluginBytes), nil, installPluginLocallyAlways)
 		require.Nil(t, appErr)
 		require.Equal(t, "testplugin", manifest.Id)
 
@@ -896,7 +896,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.Len(t, pluginStatus, 1)
 		require.Equal(t, pluginStatus[0].PluginId, "testplugin")
 
-		appErr = th.App.RemovePlugin("testplugin")
+		appErr = th.App.ch.RemovePlugin("testplugin")
 		checkNoError(t, appErr)
 
 		pluginStatus, err = env.Statuses()

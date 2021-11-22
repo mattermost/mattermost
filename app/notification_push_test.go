@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -676,6 +677,12 @@ func TestGetPushNotificationMessage(t *testing.T) {
 			ChannelType:       model.ChannelTypeDirect,
 			ExpectedMessage:   "this is a message",
 		},
+		"full message, direct message channel, commented on CRT enabled thread": {
+			Message:           "this is a message",
+			replyToThreadType: model.CommentsNotifyCRT,
+			ChannelType:       model.ChannelTypeDirect,
+			ExpectedMessage:   "user: this is a message",
+		},
 		"generic message with channel, public channel, no mention": {
 			Message:                  "this is a message",
 			PushNotificationContents: model.GenericNotification,
@@ -1148,13 +1155,31 @@ func TestClearPushNotificationSync(t *testing.T) {
 		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
 	})
 
-	err := th.App.clearPushNotificationSync(sess1.Id, "user1", "channel1")
+	err := th.App.clearPushNotificationSync(sess1.Id, "user1", "channel1", "")
 	require.Nil(t, err)
 	// Server side verification.
 	// We verify that 1 request has been sent, and also check the message contents.
 	require.Equal(t, 1, handler.numReqs())
 	assert.Equal(t, "channel1", handler.notifications()[0].ChannelId)
 	assert.Equal(t, model.PushTypeClear, handler.notifications()[0].Type)
+
+	// When CRT is enabled, Send badge count adding both "User unreads" + "User thread mentions"
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+	})
+
+	mockPreferenceStore := mocks.PreferenceStore{}
+	mockPreferenceStore.On("Get", mock.AnythingOfType("string"), model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled).Return(&model.Preference{Value: "on"}, nil)
+	mockStore.On("Preference").Return(&mockPreferenceStore)
+
+	mockThreadStore := mocks.ThreadStore{}
+	mockThreadStore.On("GetThreadsForUser", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.Anything).Return(&model.Threads{TotalUnreadMentions: 3}, nil)
+	mockStore.On("Thread").Return(&mockThreadStore)
+
+	err = th.App.clearPushNotificationSync(sess1.Id, "user1", "channel1", "")
+	require.Nil(t, err)
+	assert.Equal(t, handler.notifications()[1].Badge, 4)
 }
 
 func TestUpdateMobileAppBadgeSync(t *testing.T) {
@@ -1336,7 +1361,7 @@ func TestAllPushNotifications(t *testing.T) {
 		case 2:
 			go func(sessID, userID string) {
 				defer wg.Done()
-				th.App.clearPushNotification(sessID, userID, th.BasicChannel.Id)
+				th.App.clearPushNotification(sessID, userID, th.BasicChannel.Id, "")
 			}(data.session.Id, data.user.Id)
 		}
 	}
@@ -1381,6 +1406,7 @@ func TestPushNotificationRace(t *testing.T) {
 		configStore: memoryStore,
 		Store:       mockStore,
 		products:    make(map[string]Product),
+		Router:      mux.NewRouter(),
 	}
 	ch, err := NewChannels(s)
 	require.NoError(t, err)
@@ -1394,7 +1420,7 @@ func TestPushNotificationRace(t *testing.T) {
 
 		// Now we start sending messages after the PN hub is shut down.
 		// We test all 3 notification types.
-		app.clearPushNotification("currentSessionId", "userId", "channelId")
+		app.clearPushNotification("currentSessionId", "userId", "channelId", "")
 
 		app.UpdateMobileAppBadge("userId")
 
@@ -1563,7 +1589,7 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 			case 2:
 				go func(sessID, userID string) {
 					defer wg.Done()
-					th.App.clearPushNotification(sessID, userID, ch.Id)
+					th.App.clearPushNotification(sessID, userID, ch.Id, "")
 				}(data.session.Id, data.user.Id)
 			}
 		}

@@ -66,7 +66,7 @@ func (a *App) CreatePostAsUser(c *request.Context, post *model.Post, currentSess
 	// the post is NOT a reply post with CRT enabled
 	_, fromWebhook := post.GetProps()["from_webhook"]
 	_, fromBot := post.GetProps()["from_bot"]
-	isCRTReply := post.RootId != "" && a.isCRTEnabledForUser(post.UserId)
+	isCRTReply := post.RootId != "" && a.IsCRTEnabledForUser(post.UserId)
 	if !fromWebhook && !fromBot && !isCRTReply {
 		if _, err := a.MarkChannelsAsViewed([]string{post.ChannelId}, post.UserId, currentSessionId, true); err != nil {
 			mlog.Warn(
@@ -735,7 +735,9 @@ func (a *App) publishWebsocketEventForPermalinkPost(post *model.Post, message *m
 			}
 			return false, err
 		}
-		messageCopy := message.Copy()
+		// Using DeepCopy here to avoid a race condition
+		// between publishing the event and setting the "post" data value below.
+		messageCopy := message.DeepCopy()
 		broadcastCopy := messageCopy.GetBroadcast()
 		broadcastCopy.UserId = cm.UserId
 		messageCopy.SetBroadcast(broadcastCopy)
