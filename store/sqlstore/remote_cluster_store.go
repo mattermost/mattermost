@@ -63,6 +63,9 @@ func (s sqlRemoteClusterStore) Update(remoteCluster *model.RemoteCluster) (*mode
 
 	query := `UPDATE RemoteClusters
 			  SET Token = :Token,
+			  RemoteTeamId = :RemoteTeamId,
+			  CreateAt = :CreateAt,
+              LastPingAt = :LastPingAt,
 			  RemoteToken = :RemoteToken,
 			  CreatorId = :CreatorId,
 			  DisplayName = :DisplayName,
