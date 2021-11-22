@@ -17,9 +17,9 @@ SET @preparedStatement = (SELECT IF(
         SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
         WHERE table_name = 'IncomingWebhooks'
         AND table_schema = DATABASE()
-        AND column_name = 'UserName'
+        AND column_name = 'Username'
     ) > 0,
-    'ALTER TABLE IncomingWebhooks MODIFY UserName VARCHAR(255);',
+    'ALTER TABLE IncomingWebhooks MODIFY Username VARCHAR(255);',
     'SELECT 1'
 ));
 
