@@ -1191,3 +1191,8 @@ func (api *PluginAPI) RequestTrialLicense(requesterID string, users int, termsAc
 
 	return api.app.Srv().RequestTrialLicense(trialLicenseRequest)
 }
+
+// IsClusterLeader check if the current node is an HA cluster leader
+func (api *PluginAPI) IsClusterLeader() bool {
+	return api.app.Srv().IsLeader()
+}

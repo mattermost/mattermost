@@ -1218,3 +1218,10 @@ func (api *apiTimerLayer) RequestTrialLicense(requesterID string, users int, ter
 	api.recordTime(startTime, "RequestTrialLicense", _returnsA == nil)
 	return _returnsA
 }
+
+func (api *apiTimerLayer) IsClusterLeader() bool {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.IsClusterLeader()
+	api.recordTime(startTime, "IsClusterLeader", true)
+	return _returnsA
+}

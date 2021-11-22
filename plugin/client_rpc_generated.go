@@ -669,6 +669,39 @@ func (s *hooksRPCServer) WebSocketMessageHasBeenPosted(args *Z_WebSocketMessageH
 	return nil
 }
 
+func init() {
+	hookNameToId["OnClusterLeaderChanged"] = OnClusterLeaderChangedID
+}
+
+type Z_OnClusterLeaderChangedArgs struct {
+	A bool
+}
+
+type Z_OnClusterLeaderChangedReturns struct {
+}
+
+func (g *hooksRPCClient) OnClusterLeaderChanged(isLeader bool) {
+	_args := &Z_OnClusterLeaderChangedArgs{isLeader}
+	_returns := &Z_OnClusterLeaderChangedReturns{}
+	if g.implemented[OnClusterLeaderChangedID] {
+		if err := g.client.Call("Plugin.OnClusterLeaderChanged", _args, _returns); err != nil {
+			g.log.Error("RPC call OnClusterLeaderChanged to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) OnClusterLeaderChanged(args *Z_OnClusterLeaderChangedArgs, returns *Z_OnClusterLeaderChangedReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnClusterLeaderChanged(isLeader bool)
+	}); ok {
+		hook.OnClusterLeaderChanged(args.A)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnClusterLeaderChanged called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }
@@ -5479,6 +5512,33 @@ func (s *apiRPCServer) RequestTrialLicense(args *Z_RequestTrialLicenseArgs, retu
 		returns.A = hook.RequestTrialLicense(args.A, args.B, args.C, args.D)
 	} else {
 		return encodableError(fmt.Errorf("API RequestTrialLicense called but not implemented."))
+	}
+	return nil
+}
+
+type Z_IsClusterLeaderArgs struct {
+}
+
+type Z_IsClusterLeaderReturns struct {
+	A bool
+}
+
+func (g *apiRPCClient) IsClusterLeader() bool {
+	_args := &Z_IsClusterLeaderArgs{}
+	_returns := &Z_IsClusterLeaderReturns{}
+	if err := g.client.Call("Plugin.IsClusterLeader", _args, _returns); err != nil {
+		log.Printf("RPC call to IsClusterLeader API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) IsClusterLeader(args *Z_IsClusterLeaderArgs, returns *Z_IsClusterLeaderReturns) error {
+	if hook, ok := s.impl.(interface {
+		IsClusterLeader() bool
+	}); ok {
+		returns.A = hook.IsClusterLeader()
+	} else {
+		return encodableError(fmt.Errorf("API IsClusterLeader called but not implemented."))
 	}
 	return nil
 }

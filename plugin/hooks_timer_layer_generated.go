@@ -186,3 +186,9 @@ func (hooks *hooksTimerLayer) WebSocketMessageHasBeenPosted(webConnID, userID st
 	hooks.hooksImpl.WebSocketMessageHasBeenPosted(webConnID, userID, req)
 	hooks.recordTime(startTime, "WebSocketMessageHasBeenPosted", true)
 }
+
+func (hooks *hooksTimerLayer) OnClusterLeaderChanged(isLeader bool) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.OnClusterLeaderChanged(isLeader)
+	hooks.recordTime(startTime, "OnClusterLeaderChanged", true)
+}

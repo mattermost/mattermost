@@ -1142,6 +1142,11 @@ type API interface {
 	//
 	// Minimum server version: 5.36
 	RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError
+
+	// IsClusterLeader check if the current node is an HA cluster leader
+	//
+	// Minimum server version: 6.2
+	IsClusterLeader() bool
 }
 
 var handshake = plugin.HandshakeConfig{

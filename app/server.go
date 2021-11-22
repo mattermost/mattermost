@@ -47,6 +47,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/services/awsmeter"
 	"github.com/mattermost/mattermost-server/v6/services/cache"
 	"github.com/mattermost/mattermost-server/v6/services/httpservice"
@@ -511,11 +512,19 @@ func NewServer(options ...Option) (*Server, error) {
 	s.initJobs()
 
 	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
+
 		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.IsLeader()))
 		if s.Jobs != nil {
 			s.Jobs.HandleClusterLeaderChange(s.IsLeader())
 		}
 		s.setupFeatureFlags()
+
+		env := s.Channels().GetPluginsEnvironment()
+		env.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			hooks.OnClusterLeaderChanged(s.IsLeader())
+			return true
+		}, plugin.OnClusterLeaderChangedID)
+
 	})
 
 	if s.joinCluster && s.Cluster != nil {

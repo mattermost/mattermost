@@ -39,6 +39,7 @@ const (
 	OnWebSocketConnectID            = 21
 	OnWebSocketDisconnectID         = 22
 	WebSocketMessageHasBeenPostedID = 23
+	OnClusterLeaderChangedID        = 24
 	TotalHooksID                    = iota
 )
 
@@ -243,4 +244,9 @@ type Hooks interface {
 	//
 	// Minimum server version: 6.0
 	WebSocketMessageHasBeenPosted(webConnID, userID string, req *model.WebSocketRequest)
+
+	// OnClusterLeaderChange is invoked when the cluster leader changed
+	//
+	// Minimum server version: 6.2
+	OnClusterLeaderChanged(isLeader bool)
 }
