@@ -676,11 +676,15 @@ func (s *SqlPostStore) GetEtag(channelId string, allowFromCache, collapsedThread
 }
 
 func (s *SqlPostStore) Delete(postID string, time int64, deleteByID string) error {
-	var err error
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransaction(transaction)
 
 	ids := postIds{}
 	// TODO: change this to later delete thread directly from postID
-	err = s.GetReplica().SelectOne(&ids, "SELECT RootId, UserId FROM Posts WHERE Id = :Id", map[string]interface{}{"Id": postID})
+	err = transaction.SelectOne(&ids, "SELECT RootId, UserId FROM Posts WHERE Id = :Id", map[string]interface{}{"Id": postID})
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return store.NewErrNotFound("Post", postID)
@@ -689,20 +693,18 @@ func (s *SqlPostStore) Delete(postID string, time int64, deleteByID string) erro
 		return errors.Wrapf(err, "failed to delete Post with id=%s", postID)
 	}
 
-	err = s.cleanupThreads(postID, ids.RootId, false, ids.UserId)
-
 	if err != nil {
 		return errors.Wrapf(err, "failed to cleanup Thread with postid=%s", ids.RootId)
 	}
 
 	if s.DriverName() == model.DatabaseDriverPostgres {
-		_, err = s.GetMaster().Exec(`UPDATE Posts
+		_, err = transaction.Exec(`UPDATE Posts
 			SET DeleteAt = $1,
 				UpdateAt = $1,
 				Props = jsonb_set(Props, $2, $3)
 			WHERE Id = $4 OR RootId = $4`, time, jsonKeyPath(model.PostPropsDeleteBy), jsonStringVal(deleteByID), postID)
 	} else {
-		_, err = s.GetMaster().Exec(`UPDATE Posts
+		_, err = transaction.Exec(`UPDATE Posts
 			SET DeleteAt = ?,
 			UpdateAt = ?,
 			Props = JSON_SET(Props, ?, ?)
@@ -713,21 +715,37 @@ func (s *SqlPostStore) Delete(postID string, time int64, deleteByID string) erro
 		return errors.Wrap(err, "failed to update Posts")
 	}
 
+	err = s.cleanupThreads(transaction, postID, ids.RootId, false, ids.UserId)
+
+	if err = transaction.Commit(); err != nil {
+		return errors.Wrap(err, "commit_transaction")
+	}
+
 	return nil
 }
 
 func (s *SqlPostStore) permanentDelete(postId string) error {
 	var post model.Post
-	err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id", map[string]interface{}{"Id": postId})
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransaction(transaction)
+
+	err = transaction.SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id", map[string]interface{}{"Id": postId})
 	if err != nil && err != sql.ErrNoRows {
 		return errors.Wrapf(err, "failed to get Post with id=%s", postId)
 	}
-	if err = s.cleanupThreads(post.Id, post.RootId, true, post.UserId); err != nil {
+	if err = s.permanentDeleteThreads(transaction, post.Id); err != nil {
 		return errors.Wrapf(err, "failed to cleanup threads for Post with id=%s", postId)
 	}
 
-	if _, err = s.GetMaster().Exec("DELETE FROM Posts WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"Id": postId, "RootId": postId}); err != nil {
+	if _, err = transaction.Exec("DELETE FROM Posts WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"Id": postId, "RootId": postId}); err != nil {
 		return errors.Wrapf(err, "failed to delete Post with id=%s", postId)
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return errors.Wrap(err, "commit_transaction")
 	}
 
 	return nil
@@ -741,21 +759,33 @@ type postIds struct {
 
 func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) error {
 	results := []postIds{}
-	_, err := s.GetMaster().Select(&results, "Select Id, RootId FROM Posts WHERE UserId = :UserId AND RootId != ''", map[string]interface{}{"UserId": userId})
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransaction(transaction)
+
+	_, err = transaction.Select(&results, "Select Id, RootId FROM Posts WHERE UserId = :UserId AND RootId != ''", map[string]interface{}{"UserId": userId})
 	if err != nil {
 		return errors.Wrapf(err, "failed to fetch Posts with userId=%s", userId)
 	}
 
+	_, err = transaction.Exec("DELETE FROM Posts WHERE UserId = :UserId AND RootId != ''", map[string]interface{}{"UserId": userId})
+
+	if err != nil {
+		return errors.Wrapf(err, "failed to delete Posts with userId=%s", userId)
+	}
+
 	for _, ids := range results {
-		if err = s.cleanupThreads(ids.Id, ids.RootId, true, userId); err != nil {
+		if err = s.cleanupThreads(transaction, ids.Id, ids.RootId, true, userId); err != nil {
 			return err
 		}
 	}
 
-	_, err = s.GetMaster().Exec("DELETE FROM Posts WHERE UserId = :UserId AND RootId != ''", map[string]interface{}{"UserId": userId})
-	if err != nil {
-		return errors.Wrapf(err, "failed to delete Posts with userId=%s", userId)
+	if err = transaction.Commit(); err != nil {
+		return errors.Wrap(err, "commit_transaction")
 	}
+
 	return nil
 }
 
@@ -796,21 +826,32 @@ func (s *SqlPostStore) PermanentDeleteByUser(userId string) error {
 }
 
 func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) error {
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransaction(transaction)
+
 	results := []postIds{}
-	_, err := s.GetMaster().Select(&results, "SELECT Id, RootId, UserId FROM Posts WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId})
+	_, err = transaction.Select(&results, "SELECT Id, RootId, UserId FROM Posts WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId})
 	if err != nil {
 		return errors.Wrapf(err, "failed to fetch Posts with channelId=%s", channelId)
 	}
 
 	for _, ids := range results {
-		if err = s.cleanupThreads(ids.Id, ids.RootId, true, ids.UserId); err != nil {
+		if err = s.permanentDeleteThreads(transaction, ids.Id); err != nil {
 			return err
 		}
 	}
 
-	if _, err := s.GetMaster().Exec("DELETE FROM Posts WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId}); err != nil {
+	if _, err := transaction.Exec("DELETE FROM Posts WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId}); err != nil {
 		return errors.Wrapf(err, "failed to delete Posts with channelId=%s", channelId)
 	}
+
+	if err = transaction.Commit(); err != nil {
+		return errors.Wrap(err, "commit_transaction")
+	}
+
 	return nil
 }
 
@@ -2381,16 +2422,21 @@ func (s *SqlPostStore) GetOldestEntityCreationTime() (int64, error) {
 	return oldest, nil
 }
 
-func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool, userId string) error {
-	if permanent {
-		if _, err := s.GetMaster().Exec("DELETE FROM Threads WHERE PostId = :Id", map[string]interface{}{"Id": postId}); err != nil {
-			return errors.Wrap(err, "failed to delete Threads")
-		}
-		if _, err := s.GetMaster().Exec("DELETE FROM ThreadMemberships WHERE PostId = :Id", map[string]interface{}{"Id": postId}); err != nil {
-			return errors.Wrap(err, "failed to delete ThreadMemberships")
-		}
-		return nil
+func (s *SqlPostStore) permanentDeleteThreads(transaction *gorp.Transaction, postId string) error {
+	if _, err := transaction.Exec("DELETE FROM Threads WHERE PostId = :Id", map[string]interface{}{"Id": postId}); err != nil {
+		return errors.Wrap(err, "failed to delete Threads")
 	}
+	if _, err := transaction.Exec("DELETE FROM ThreadMemberships WHERE PostId = :Id", map[string]interface{}{"Id": postId}); err != nil {
+		return errors.Wrap(err, "failed to delete ThreadMemberships")
+	}
+	return nil
+}
+
+func (s *SqlPostStore) cleanupThreads(transaction *gorp.Transaction, postId, rootId string, permanent bool, userId string) error {
+	if permanent && rootId == "" {
+		return s.permanentDeleteThreads(transaction, postId)
+	}
+
 	if rootId != "" {
 		queryString, args, err := s.getQueryBuilder().
 			Select("COUNT(Id)").
@@ -2406,7 +2452,7 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool, use
 			return errors.Wrap(err, "failed to create SQL query to count user's posts")
 		}
 
-		count, err := s.GetReplica().SelectInt(queryString, args...)
+		count, err := transaction.SelectInt(queryString, args...)
 
 		if err != nil {
 			return errors.Wrap(err, "failed to count user's posts in thread")
@@ -2414,7 +2460,7 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool, use
 
 		updateQuery := s.getQueryBuilder().Update("Threads")
 
-		if count == 1 {
+		if count == 0 {
 			if s.DriverName() == model.DatabaseDriverPostgres {
 				updateQuery = updateQuery.Set("Participants", sq.Expr("Participants - ?", userId))
 			} else {
@@ -2439,7 +2485,7 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool, use
 			return errors.Wrap(err, "failed to create SQL query to update thread")
 		}
 
-		_, err = s.GetMaster().Exec(updateQueryString, updateArgs...)
+		_, err = transaction.Exec(updateQueryString, updateArgs...)
 
 		if err != nil {
 			return errors.Wrap(err, "failed to update Threads")
