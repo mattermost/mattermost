@@ -693,10 +693,6 @@ func (s *SqlPostStore) Delete(postID string, time int64, deleteByID string) erro
 		return errors.Wrapf(err, "failed to delete Post with id=%s", postID)
 	}
 
-	if err != nil {
-		return errors.Wrapf(err, "failed to cleanup Thread with postid=%s", ids.RootId)
-	}
-
 	if s.DriverName() == model.DatabaseDriverPostgres {
 		_, err = transaction.Exec(`UPDATE Posts
 			SET DeleteAt = $1,
@@ -716,6 +712,10 @@ func (s *SqlPostStore) Delete(postID string, time int64, deleteByID string) erro
 	}
 
 	err = s.cleanupThreads(transaction, postID, ids.RootId, false, ids.UserId)
+
+	if err != nil {
+		return errors.Wrapf(err, "failed to cleanup Thread with postid=%s", ids.RootId)
+	}
 
 	if err = transaction.Commit(); err != nil {
 		return errors.Wrap(err, "commit_transaction")
@@ -844,7 +844,7 @@ func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) error {
 		}
 	}
 
-	if _, err := transaction.Exec("DELETE FROM Posts WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId}); err != nil {
+	if _, err = transaction.Exec("DELETE FROM Posts WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId}); err != nil {
 		return errors.Wrapf(err, "failed to delete Posts with channelId=%s", channelId)
 	}
 
@@ -2464,12 +2464,10 @@ func (s *SqlPostStore) cleanupThreads(transaction *gorp.Transaction, postId, roo
 			if s.DriverName() == model.DatabaseDriverPostgres {
 				updateQuery = updateQuery.Set("Participants", sq.Expr("Participants - ?", userId))
 			} else {
-				// The .Where is because JSON_REMOVE returns null if the element to remove wasn't present
 				updateQuery = updateQuery.
 					Set("Participants", sq.Expr(
-						`JSON_REMOVE(Participants, JSON_UNQUOTE(JSON_SEARCH(Participants, 'one', ?)))`, userId,
-					)).
-					Where(sq.Expr(`JSON_CONTAINS(Participants, ?)`, strconv.Quote(userId)))
+						`IFNULL(JSON_REMOVE(Participants, JSON_UNQUOTE(JSON_SEARCH(Participants, 'one', ?))), Participants)`, userId,
+					))
 			}
 		}
 
