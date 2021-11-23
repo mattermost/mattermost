@@ -187,6 +187,8 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	require.NoError(t, s.Start())
+
 	// ensure that a new bucket was created
 	backend, appErr := s.FileBackend()
 	require.Nil(t, appErr)
