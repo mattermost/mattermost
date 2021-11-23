@@ -26,10 +26,6 @@ var allGroupSources = []GroupSource{
 	GroupSourceCustom,
 }
 
-var GroupSourcesAllowCRUDEndpoints = []GroupSource{
-	GroupSourceCustom,
-}
-
 var groupSourcesRequiringRemoteID = []GroupSource{
 	GroupSourceLdap,
 }

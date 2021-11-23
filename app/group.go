@@ -15,17 +15,15 @@ import (
 
 func (a *App) SourceHasCRUDPermissions(id string) *model.AppError {
 	group, err := a.GetGroup(id, nil)
-
 	if err != nil {
 		return err
 	}
 
-	for _, groupSource := range model.GroupSourcesAllowCRUDEndpoints {
-		if groupSource == group.Source {
-			return nil
-		}
+	if group.Source != model.GroupSourceCustom {
+		return model.NewAppError("SourceHasCRUDPermissions", "app.group.crud_permission", nil, "", http.StatusNotImplemented)
 	}
-	return model.NewAppError("GetGroup", "app.group.crud_permission", nil, "", http.StatusNotImplemented)
+
+	return nil
 }
 
 func (a *App) GetGroup(id string, opts *model.GetGroupOpts) (*model.Group, *model.AppError) {

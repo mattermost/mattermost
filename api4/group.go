@@ -141,15 +141,7 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("group", group)
 
-	var sourceCreationAllowed = false
-
-	for _, groupSource := range model.GroupSourcesAllowCRUDEndpoints {
-		if groupSource == group.Source {
-			sourceCreationAllowed = true
-		}
-	}
-
-	if !sourceCreationAllowed {
+	if group.Source != model.GroupSourceCustom {
 		c.Err = model.NewAppError("createGroup", "app.group.crud_permission", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -165,7 +157,6 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	newGroup, err := c.App.CreateGroupWithUserIds(group)
-	if err != nil {
 		c.Err = err
 		return
 	}
