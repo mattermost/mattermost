@@ -7,7 +7,9 @@ import (
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	ejobs "github.com/mattermost/mattermost-server/v6/einterfaces/jobs"
 	tjobs "github.com/mattermost/mattermost-server/v6/jobs/interfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface
@@ -149,9 +151,9 @@ func RegisterProductNoticesJobInterface(f func(*Server) tjobs.ProductNoticesJobI
 	productNoticesJobInterface = f
 }
 
-var ldapInterface func(*App) einterfaces.LdapInterface
+var ldapInterface func(*Server) einterfaces.LdapInterface
 
-func RegisterLdapInterface(f func(*App) einterfaces.LdapInterface) {
+func RegisterLdapInterface(f func(*Server) einterfaces.LdapInterface) {
 	ldapInterface = f
 }
 
@@ -173,9 +175,9 @@ func RegisterMetricsInterface(f func(*Server) einterfaces.MetricsInterface) {
 	metricsInterface = f
 }
 
-var samlInterfaceNew func(*App) einterfaces.SamlInterface
+var samlInterfaceNew func(*Server) einterfaces.SamlInterface
 
-func RegisterNewSamlInterface(f func(*App) einterfaces.SamlInterface) {
+func RegisterNewSamlInterface(f func(*Server) einterfaces.SamlInterface) {
 	samlInterfaceNew = f
 }
 
@@ -207,8 +209,25 @@ func (s *Server) initEnterprise() {
 		s.LicenseManager = licenseInterface(s)
 	}
 
+	if ldapInterface != nil {
+		s.Ldap = ldapInterface(s)
+	}
+
 	if notificationInterface != nil {
 		s.Notification = notificationInterface(s)
+	}
+
+	if samlInterfaceNew != nil {
+		mlog.Debug("Loading SAML2 library")
+		s.Saml = samlInterfaceNew(s)
+		if err := s.Saml.ConfigureSP(); err != nil {
+			mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+		}
+		s.AddConfigListener(func(_, cfg *model.Config) {
+			if err := s.Saml.ConfigureSP(); err != nil {
+				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+			}
+		})
 	}
 
 	if cloudInterface != nil {

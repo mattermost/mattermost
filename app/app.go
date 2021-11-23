@@ -110,7 +110,7 @@ func (a *App) SearchEngine() *searchengine.Broker {
 	return a.ch.srv.SearchEngine
 }
 func (a *App) Ldap() einterfaces.LdapInterface {
-	return a.ch.Ldap
+	return a.ch.srv.Ldap
 }
 func (a *App) MessageExport() einterfaces.MessageExportInterface {
 	return a.ch.MessageExport
@@ -122,7 +122,7 @@ func (a *App) Notification() einterfaces.NotificationInterface {
 	return a.ch.srv.Notification
 }
 func (a *App) Saml() einterfaces.SamlInterface {
-	return a.ch.Saml
+	return a.ch.srv.Saml
 }
 func (a *App) Cloud() einterfaces.CloudInterface {
 	return a.ch.srv.Cloud

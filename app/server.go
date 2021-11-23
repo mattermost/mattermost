@@ -167,6 +167,8 @@ type Server struct {
 	Metrics        einterfaces.MetricsInterface
 	Notification   einterfaces.NotificationInterface
 	LicenseManager einterfaces.LicenseInterface
+	Saml           einterfaces.SamlInterface
+	Ldap           einterfaces.LdapInterface
 
 	CacheProvider cache.Provider
 
@@ -2158,7 +2160,7 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
 	}
 
 	// Here we are getting information regarding LDAP
-	ldapInterface := a.ch.Ldap
+	ldapInterface := a.ch.srv.Ldap
 	var vendorName, vendorVersion string
 	if ldapInterface != nil {
 		vendorName, vendorVersion = ldapInterface.GetVendorNameAndVendorVersion()

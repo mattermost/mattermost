@@ -12,7 +12,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/pkg/errors"
 )
 
@@ -45,9 +44,7 @@ type Channels struct {
 	AccountMigration einterfaces.AccountMigrationInterface
 	Compliance       einterfaces.ComplianceInterface
 	DataRetention    einterfaces.DataRetentionInterface
-	Ldap             einterfaces.LdapInterface
 	MessageExport    einterfaces.MessageExportInterface
-	Saml             einterfaces.SamlInterface
 }
 
 func init() {
@@ -77,21 +74,7 @@ func NewChannels(s *Server) (*Channels, error) {
 	if accountMigrationInterface != nil {
 		ch.AccountMigration = accountMigrationInterface(New(ServerConnector(ch)))
 	}
-	if ldapInterface != nil {
-		ch.Ldap = ldapInterface(New(ServerConnector(ch)))
-	}
-	if samlInterfaceNew != nil {
-		mlog.Debug("Loading SAML2 library")
-		ch.Saml = samlInterfaceNew(New(ServerConnector(ch)))
-		if err := ch.Saml.ConfigureSP(); err != nil {
-			mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
-		}
-		ch.AddConfigListener(func(_, cfg *model.Config) {
-			if err := ch.Saml.ConfigureSP(); err != nil {
-				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
-			}
-		})
-	}
+
 	// Setup routes.
 	pluginsRoute := ch.srv.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
 	pluginsRoute.HandleFunc("", ch.ServePluginRequest)
