@@ -142,9 +142,6 @@ type Server struct {
 	configStore             *config.Store
 	postActionCookieSecret  []byte
 
-	pluginCommands     []*PluginCommand
-	pluginCommandsLock sync.RWMutex
-
 	telemetryService *telemetry.TelemetryService
 	userService      *users.UserService
 	teamService      *teams.TeamService
@@ -213,6 +210,7 @@ func NewServer(options ...Option) (*Server, error) {
 		licenseListeners:    map[string]func(*model.License, *model.License){},
 		hashSeed:            maphash.MakeSeed(),
 		uploadLockMap:       map[string]bool{},
+		timezones:           timezones.New(),
 		products:            make(map[string]Product),
 	}
 
@@ -245,6 +243,12 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.Error("Could not initiate logging", mlog.Err(err))
 	}
 
+	subpath, err := utils.GetSubpathFromConfig(s.Config())
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse SiteURL subpath")
+	}
+	s.Router = s.RootRouter.PathPrefix(subpath).Subrouter()
+
 	// This is called after initLogging() to avoid a race condition.
 	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
 
@@ -253,9 +257,9 @@ func NewServer(options ...Option) (*Server, error) {
 	// Step 3: Initialize products.
 	// Depends on s.httpService.
 	for name, initializer := range products {
-		prod, err := initializer(s)
-		if err != nil {
-			return nil, errors.Wrapf(err, "error initializing product: %s", name)
+		prod, err2 := initializer(s)
+		if err2 != nil {
+			return nil, errors.Wrapf(err2, "error initializing product: %s", name)
 		}
 
 		s.products[name] = prod
@@ -280,8 +284,8 @@ func NewServer(options ...Option) (*Server, error) {
 	// At the moment we only have this implementation
 	// in the future the cache provider will be built based on the loaded config
 	s.CacheProvider = cache.NewProvider()
-	if err := s.CacheProvider.Connect(); err != nil {
-		return nil, errors.Wrapf(err, "Unable to connect to cache provider")
+	if err2 := s.CacheProvider.Connect(); err2 != nil {
+		return nil, errors.Wrapf(err2, "Unable to connect to cache provider")
 	}
 
 	// It is important to initialize the hub only after the global logger is set
@@ -326,7 +330,6 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
-	var err error
 	s.Store, err = s.newStore()
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot create store")
@@ -532,17 +535,6 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to ensure first run timestamp")
 	}
 
-	subpath, err := utils.GetSubpathFromConfig(s.Config())
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse SiteURL subpath")
-	}
-	s.Router = s.RootRouter.PathPrefix(subpath).Subrouter()
-
-	pluginsRoute := s.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
-	pluginsRoute.HandleFunc("", s.ServePluginRequest)
-	pluginsRoute.HandleFunc("/public/{public_file:.*}", s.ServePluginPublicRequest)
-	pluginsRoute.HandleFunc("/{anything:.*}", s.ServePluginRequest)
-
 	// If configured with a subpath, redirect 404s at the root back into the subpath.
 	if subpath != "/" {
 		s.RootRouter.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -580,7 +572,6 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
-	s.timezones = timezones.New()
 	// Start email batching because it's not like the other jobs
 	s.AddConfigListener(func(_, _ *model.Config) {
 		s.EmailService.InitEmailBatching()
@@ -1976,6 +1967,10 @@ func (s *Server) initJobs() {
 
 	if jobsExtractContentInterface != nil {
 		s.Jobs.ExtractContent = jobsExtractContentInterface(s)
+	}
+
+	if fixCRTChannelUnreadsJobInterface != nil {
+		s.Jobs.FixCRTChannelUnreads = fixCRTChannelUnreadsJobInterface(s)
 	}
 
 	s.Jobs.InitWorkers()
