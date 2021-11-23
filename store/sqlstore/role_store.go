@@ -165,7 +165,7 @@ func (s *SqlRoleStore) createRole(role *model.Role, transaction *sqlxTxWrapper) 
 }
 
 func (s *SqlRoleStore) Get(roleId string) (*model.Role, error) {
-	var dbRole Role
+	dbRole := Role{}
 
 	if err := s.GetReplicaX().Get(&dbRole, "SELECT * from Roles WHERE Id = ?", roleId); err != nil {
 		if err == sql.ErrNoRows {
@@ -178,13 +178,13 @@ func (s *SqlRoleStore) Get(roleId string) (*model.Role, error) {
 }
 
 func (s *SqlRoleStore) GetAll() ([]*model.Role, error) {
-	var dbRoles []Role
+	dbRoles := []Role{}
 
 	if err := s.GetReplicaX().Select(&dbRoles, "SELECT * from Roles"); err != nil {
 		return nil, errors.Wrap(err, "failed to find Roles")
 	}
 
-	var roles []*model.Role
+	roles := []*model.Role{}
 	for _, dbRole := range dbRoles {
 		roles = append(roles, dbRole.ToModel())
 	}
@@ -192,7 +192,7 @@ func (s *SqlRoleStore) GetAll() ([]*model.Role, error) {
 }
 
 func (s *SqlRoleStore) GetByName(ctx context.Context, name string) (*model.Role, error) {
-	var dbRole Role
+	dbRole := Role{}
 	if err := s.DBXFromContext(ctx).Get(&dbRole, "SELECT * from Roles WHERE Name = ?", name); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Role", fmt.Sprintf("name=%s", name))
@@ -222,10 +222,10 @@ func (s *SqlRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 		return nil, errors.Wrap(err, "failed to find Roles")
 	}
 
-	var roles []*model.Role
+	roles := []*model.Role{}
 	defer rows.Close()
 	for rows.Next() {
-		var role Role
+		role := Role{}
 		err = rows.Scan(
 			&role.Id, &role.Name, &role.DisplayName, &role.Description,
 			&role.CreateAt, &role.UpdateAt, &role.DeleteAt, &role.Permissions,
@@ -244,7 +244,7 @@ func (s *SqlRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 
 func (s *SqlRoleStore) Delete(roleId string) (*model.Role, error) {
 	// Get the role.
-	var role Role
+	role := Role{}
 	if err := s.GetReplicaX().Get(&role, "SELECT * from Roles WHERE Id = ?", roleId); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Role", roleId)
@@ -362,7 +362,7 @@ func (s *SqlRoleStore) channelHigherScopedPermissionsQuery(roleNames []string) s
 func (s *SqlRoleStore) ChannelHigherScopedPermissions(roleNames []string) (map[string]*model.RolePermissions, error) {
 	query := s.channelHigherScopedPermissionsQuery(roleNames)
 
-	var rolesPermissions []*channelRolesPermissions
+	rolesPermissions := []*channelRolesPermissions{}
 	if err := s.GetReplicaX().Select(&rolesPermissions, query); err != nil {
 		return nil, errors.Wrap(err, "failed to find RolePermissions")
 	}
@@ -392,12 +392,12 @@ func (s *SqlRoleStore) AllChannelSchemeRoles() ([]*model.Role, error) {
 		return nil, errors.Wrap(err, "role_tosql")
 	}
 
-	var dbRoles []*Role
+	dbRoles := []*Role{}
 	if err = s.GetReplicaX().Select(&dbRoles, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Roles")
 	}
 
-	var roles []*model.Role
+	roles := []*model.Role{}
 	for _, dbRole := range dbRoles {
 		roles = append(roles, dbRole.ToModel())
 	}
@@ -429,12 +429,12 @@ func (s *SqlRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*model.Role
 		return nil, errors.Wrap(err, "role_tosql")
 	}
 
-	var dbRoles []*Role
+	dbRoles := []*Role{}
 	if err = s.GetReplicaX().Select(&dbRoles, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Roles")
 	}
 
-	var roles []*model.Role
+	roles := []*model.Role{}
 	for _, dbRole := range dbRoles {
 		roles = append(roles, dbRole.ToModel())
 	}
