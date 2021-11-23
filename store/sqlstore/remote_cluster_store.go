@@ -62,16 +62,16 @@ func (s sqlRemoteClusterStore) Update(remoteCluster *model.RemoteCluster) (*mode
 	}
 
 	query := `UPDATE RemoteClusters
-			  SET Token = :Token,
-			  RemoteTeamId = :RemoteTeamId,
-			  CreateAt = :CreateAt,
-              LastPingAt = :LastPingAt,
-			  RemoteToken = :RemoteToken,
-			  CreatorId = :CreatorId,
-			  DisplayName = :DisplayName,
-			  SiteURL = :SiteURL,
-			  Topics = :Topics
-			  WHERE	RemoteId = :RemoteId AND Name = :Name`
+			SET Token = :Token,
+			RemoteTeamId = :RemoteTeamId,
+			CreateAt = :CreateAt,
+			LastPingAt = :LastPingAt,
+			RemoteToken = :RemoteToken,
+			CreatorId = :CreatorId,
+			DisplayName = :DisplayName,
+			SiteURL = :SiteURL,
+			Topics = :Topics
+			WHERE RemoteId = :RemoteId AND Name = :Name`
 
 	if _, err := s.GetMasterX().NamedExec(query, remoteCluster); err != nil {
 		return nil, errors.Wrap(err, "failed to update RemoteCluster")
