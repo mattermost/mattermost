@@ -14,9 +14,9 @@ type TokenStore struct {
 	mock.Mock
 }
 
-// Cleanup provides a mock function with given fields: expireTime
-func (_m *TokenStore) Cleanup(expireTime int64) {
-	_m.Called(expireTime)
+// Cleanup provides a mock function with given fields: expiryTime
+func (_m *TokenStore) Cleanup(expiryTime int64) {
+	_m.Called(expiryTime)
 }
 
 // Delete provides a mock function with given fields: token

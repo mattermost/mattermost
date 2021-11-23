@@ -74,10 +74,8 @@ func (s SqlTokenStore) GetByToken(tokenString string) (*model.Token, error) {
 	return &token, nil
 }
 
-func (s SqlTokenStore) Cleanup(expireTime int64) {
-	mlog.Debug("Cleaning up token store.")
-
-	if _, err := s.GetMasterX().Exec("DELETE FROM Tokens WHERE CreateAt < ?", expireTime); err != nil {
+func (s SqlTokenStore) Cleanup(expiryTime int64) {
+	if _, err := s.GetMasterX().Exec("DELETE FROM Tokens WHERE CreateAt < ?", expiryTime); err != nil {
 		mlog.Error("Unable to cleanup token store.")
 	}
 }
