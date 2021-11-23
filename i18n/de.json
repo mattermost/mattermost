@@ -9265,5 +9265,41 @@
   {
     "id": "ent.elasticsearch.getAllChannelMembers.error",
     "translation": "Nicht alle Kanalmitglieder konnten ermittelt werden"
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "NIcht alle Rollen konnten abgerufen werden."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Eigener Status konnte nicht aktualisiert werden. Bitte ein Emojis oder einen Text oder beides hinzufügen."
+  },
+  {
+    "id": "app.user.get_thread_count_for_user.app_error",
+    "translation": "Konnten Anzahl der Unterhaltungen des Benutzers nicht holen."
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "Erinnerung"
+  },
+  {
+    "id": "app.session.extend_session_expiry.app_error",
+    "translation": "Kann Sitzungsdauer nicht verlängern"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.mark_channel_as_read",
+    "translation": "Konnte Kanal nicht als gelesen markieren"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.kill_orphan_jobs",
+    "translation": "Beende verwaiste Jobs"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.get_post_types",
+    "translation": "Konnte keine eindeutigen POST Typen holen"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.get_bad_channel_memberships",
+    "translation": "Konnte keine schlechten Kanalmitgliedschaften holen"
   }
 ]

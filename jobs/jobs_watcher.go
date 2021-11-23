@@ -198,6 +198,13 @@ func (watcher *Watcher) PollAndNotify() {
 				default:
 				}
 			}
+		} else if job.Type == model.JobTypeFixChannelUnreadsForCRT {
+			if watcher.workers.FixCRTChannelUnreads != nil {
+				select {
+				case watcher.workers.FixCRTChannelUnreads.JobChannel() <- *job:
+				default:
+				}
+			}
 		}
 	}
 }

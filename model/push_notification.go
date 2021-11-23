@@ -64,6 +64,7 @@ type PushNotification struct {
 	OverrideIconURL  string `json:"override_icon_url,omitempty"`
 	FromWebhook      string `json:"from_webhook,omitempty"`
 	Version          string `json:"version,omitempty"`
+	IsCRTEnabled     bool   `json:"is_crt_enabled"`
 	IsIdLoaded       bool   `json:"is_id_loaded"`
 }
 

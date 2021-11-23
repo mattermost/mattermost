@@ -451,6 +451,25 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, int64(0), th.UnreadReplies)
 	})
+
+	t.Run("Empty participantID should not appear in thread response", func(t *testing.T) {
+		newPosts := makeSomePosts()
+		opts := store.ThreadMembershipOpts{
+			Following:             true,
+			IncrementMentions:     false,
+			UpdateFollowing:       true,
+			UpdateViewedTimestamp: false,
+			UpdateParticipants:    true,
+		}
+		m, err := ss.Thread().MaintainMembership("", newPosts[0].Id, opts)
+		require.NoError(t, err)
+		m.UserId = newPosts[0].UserId
+		th, err := ss.Thread().GetThreadForUser("", m, true)
+		require.NoError(t, err)
+		for _, user := range th.Participants {
+			require.NotNil(t, user)
+		}
+	})
 }
 
 func testThreadSQLOperations(t *testing.T, ss store.Store, s SqlStore) {
