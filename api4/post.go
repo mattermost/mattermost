@@ -405,6 +405,11 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(postIDs) > 1000 {
+		c.Err = model.NewAppError("getPostsByIds", "api.post.posts_by_ids.invalid_body.request_error", map[string]interface{}{"MaxLength": 1000}, "", http.StatusBadRequest)
+		return
+	}
+
 	postsList, err := c.App.GetPostsByIds(postIDs)
 	if err != nil {
 		c.Err = err
@@ -412,13 +417,19 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var posts = []*model.Post{}
+	channelMap := make(map[string]*model.Channel)
 
 	for _, post := range postsList {
-
-		channel, err := c.App.GetChannel(post.ChannelId)
-		if err != nil {
-			c.Err = err
-			return
+		var channel *model.Channel
+		if val, ok := channelMap[post.ChannelId]; ok {
+			channel = val
+		} else {
+			channel, err = c.App.GetChannel(post.ChannelId)
+			if err != nil {
+				c.Err = err
+				return
+			}
+			channelMap[channel.Id] = channel
 		}
 
 		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channel.Id, model.PermissionReadChannel) {
@@ -436,13 +447,9 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		posts = append(posts, post)
 	}
 
-	b, jsonErr := json.Marshal(posts)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getPostsByIds", "api.post.search_posts.invalid_body.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
-		return
+	if err := json.NewEncoder(w).Encode(posts); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
-
-	w.Write(b)
 }
 
 func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {

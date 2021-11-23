@@ -2720,8 +2720,6 @@ func TestGetPostsByIds(t *testing.T) {
 
 	post1 := th.CreatePost()
 	post2 := th.CreatePost()
-	// post3 := th.CreatePost()
-	// post4 := th.CreatePost()
 
 	posts, response, err := client.GetPostsByIds([]string{post1.Id, post2.Id})
 	require.NoError(t, err)
@@ -2734,8 +2732,7 @@ func TestGetPostsByIds(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
-	posts, response, err = client.GetPostsByIds([]string{"abc123"})
-	require.NoError(t, err)
-	CheckOKStatus(t, response)
-	require.Len(t, posts, 0, "wrong number returned")
+	_, response, err = client.GetPostsByIds([]string{"abc123"})
+	require.Error(t, err)
+	CheckNotFoundStatus(t, response)
 }

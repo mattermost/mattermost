@@ -2216,6 +2216,10 @@
     "translation": "Can not update a post in a deleted channel."
   },
   {
+    "id": "api.post.posts_by_ids.invalid_body.request_error",
+    "translation": "The number of Post IDs received has exceeded the maximum size of {{.MaxLength}}"
+  },
+  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Unable to parse the request body."
   },
