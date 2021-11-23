@@ -225,7 +225,7 @@ func (s *SqlRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 	roles := []*model.Role{}
 	defer rows.Close()
 	for rows.Next() {
-		role := Role{}
+		var role Role
 		err = rows.Scan(
 			&role.Id, &role.Name, &role.DisplayName, &role.Description,
 			&role.CreateAt, &role.UpdateAt, &role.DeleteAt, &role.Permissions,
@@ -244,7 +244,7 @@ func (s *SqlRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 
 func (s *SqlRoleStore) Delete(roleId string) (*model.Role, error) {
 	// Get the role.
-	role := Role{}
+	var role *Role
 	if err := s.GetReplicaX().Get(&role, "SELECT * from Roles WHERE Id = ?", roleId); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Role", roleId)
