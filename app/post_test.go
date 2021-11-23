@@ -826,6 +826,56 @@ func TestCreatePost(t *testing.T) {
 
 		require.EqualValues(t, int64(1), val)
 	})
+
+	t.Run("MM-40016 should not panic with `concurrent map read and map write`", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		channelForPreview := th.CreateChannel(th.BasicTeam)
+
+		for i := 0; i < 20; i++ {
+			user := th.CreateUser()
+			th.LinkUserToTeam(user, th.BasicTeam)
+			th.AddUserToChannel(user, channelForPreview)
+		}
+
+		referencedPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "hello world",
+			UserId:    th.BasicUser.Id,
+		}
+		referencedPost, err := th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, false, false)
+		require.Nil(t, err)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://example.com"
+			*cfg.ServiceSettings.EnablePermalinkPreviews = true
+		})
+
+		permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
+
+		previewPost := &model.Post{
+			ChannelId: channelForPreview.Id,
+			Message:   permalink,
+			UserId:    th.BasicUser.Id,
+		}
+
+		previewPost, err = th.App.CreatePost(th.Context, previewPost, channelForPreview, false, false)
+		require.Nil(t, err)
+
+		n := 1000
+		var wg sync.WaitGroup
+		wg.Add(n)
+		for i := 0; i < n; i++ {
+			go func() {
+				defer wg.Done()
+				post := previewPost.Clone()
+				th.App.UpdatePost(th.Context, post, false)
+			}()
+		}
+
+		wg.Wait()
+	})
 }
 
 func TestPatchPost(t *testing.T) {
@@ -997,7 +1047,6 @@ func TestCreatePostAsUser(t *testing.T) {
 	t.Run("logs warning for user not in channel", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
-
 		user := th.CreateUser()
 		th.LinkUserToTeam(user, th.BasicTeam)
 
