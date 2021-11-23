@@ -433,11 +433,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channel.Id, model.PermissionReadChannel) {
-			if channel.Type == model.ChannelTypeOpen {
-				if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) {
-					continue
-				}
-			} else {
+			if channel.Type != model.ChannelTypeOpen || (channel.Type == model.ChannelTypeOpen && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel)) {
 				continue
 			}
 		}
