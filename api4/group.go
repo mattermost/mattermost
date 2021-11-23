@@ -157,6 +157,7 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	newGroup, err := c.App.CreateGroupWithUserIds(group)
+	if err != nil {
 		c.Err = err
 		return
 	}
