@@ -144,6 +144,22 @@ func (scheme *Scheme) IsValidForCreate() bool {
 		if !IsValidRoleName(scheme.DefaultTeamGuestRole) {
 			return false
 		}
+
+		if !IsValidRoleName(scheme.DefaultPlaybookAdminRole) {
+			return false
+		}
+
+		if !IsValidRoleName(scheme.DefaultPlaybookMemberRole) {
+			return false
+		}
+
+		if !IsValidRoleName(scheme.DefaultRunAdminRole) {
+			return false
+		}
+
+		if !IsValidRoleName(scheme.DefaultRunMemberRole) {
+			return false
+		}
 	}
 
 	if scheme.Scope == SchemeScopeChannel {
@@ -156,26 +172,6 @@ func (scheme *Scheme) IsValidForCreate() bool {
 		}
 
 		if scheme.DefaultTeamGuestRole != "" {
-			return false
-		}
-	}
-
-	if scheme.Scope == SchemeScopePlaybook {
-		if !IsValidRoleName(scheme.DefaultPlaybookAdminRole) {
-			return false
-		}
-
-		if !IsValidRoleName(scheme.DefaultPlaybookMemberRole) {
-			return false
-		}
-	}
-
-	if scheme.Scope == SchemeScopeRun {
-		if !IsValidRoleName(scheme.DefaultRunAdminRole) {
-			return false
-		}
-
-		if !IsValidRoleName(scheme.DefaultRunMemberRole) {
 			return false
 		}
 	}
