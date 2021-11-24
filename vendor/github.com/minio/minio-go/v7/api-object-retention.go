@@ -63,7 +63,7 @@ type PutObjectRetentionOptions struct {
 }
 
 // PutObjectRetention sets object retention for a given object and versionID.
-func (c Client) PutObjectRetention(ctx context.Context, bucketName, objectName string, opts PutObjectRetentionOptions) error {
+func (c *Client) PutObjectRetention(ctx context.Context, bucketName, objectName string, opts PutObjectRetentionOptions) error {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return err
@@ -126,7 +126,7 @@ func (c Client) PutObjectRetention(ctx context.Context, bucketName, objectName s
 }
 
 // GetObjectRetention gets retention of given object.
-func (c Client) GetObjectRetention(ctx context.Context, bucketName, objectName, versionID string) (mode *RetentionMode, retainUntilDate *time.Time, err error) {
+func (c *Client) GetObjectRetention(ctx context.Context, bucketName, objectName, versionID string) (mode *RetentionMode, retainUntilDate *time.Time, err error) {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return nil, nil, err
