@@ -118,6 +118,7 @@ func (rseworker *ResendInvitationEmailWorker) Execute(job *model.Job, elapsedTim
 	}
 }
 
+// change
 func (rseworker *ResendInvitationEmailWorker) setJobSuccess(job *model.Job) {
 	if err := rseworker.App.Srv().Jobs.SetJobSuccess(job); err != nil {
 		mlog.Error("Worker: Failed to set success for job", mlog.String("worker", rseworker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
