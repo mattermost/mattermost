@@ -132,7 +132,7 @@ const csKey = csKeyType("grpc.internal.resolver.configSelector")
 // SetConfigSelector sets the config selector in state and returns the new
 // state.
 func SetConfigSelector(state resolver.State, cs ConfigSelector) resolver.State {
-	state.Attributes = state.Attributes.WithValues(csKey, cs)
+	state.Attributes = state.Attributes.WithValue(csKey, cs)
 	return state
 }
 

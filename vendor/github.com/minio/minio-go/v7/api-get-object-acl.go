@@ -52,7 +52,7 @@ type accessControlPolicy struct {
 }
 
 // GetObjectACL get object ACLs
-func (c Client) GetObjectACL(ctx context.Context, bucketName, objectName string) (*ObjectInfo, error) {
+func (c *Client) GetObjectACL(ctx context.Context, bucketName, objectName string) (*ObjectInfo, error) {
 	resp, err := c.executeMethod(ctx, http.MethodGet, requestMetadata{
 		bucketName: bucketName,
 		objectName: objectName,
@@ -75,7 +75,7 @@ func (c Client) GetObjectACL(ctx context.Context, bucketName, objectName string)
 		return nil, err
 	}
 
-	objInfo, err := c.statObject(ctx, bucketName, objectName, StatObjectOptions{})
+	objInfo, err := c.StatObject(ctx, bucketName, objectName, StatObjectOptions{})
 	if err != nil {
 		return nil, err
 	}

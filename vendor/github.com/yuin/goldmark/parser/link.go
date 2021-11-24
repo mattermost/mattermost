@@ -140,7 +140,7 @@ func (s *linkParser) Parse(parent ast.Node, block text.Reader, pc Context) ast.N
 	}
 	block.Advance(1)
 	removeLinkLabelState(pc, last)
-	if s.containsLink(last) { // a link in a link text is not allowed
+	if !last.IsImage && s.containsLink(last) { // a link in a link text is not allowed
 		ast.MergeOrReplaceTextSegment(last.Parent(), last, last.Segment)
 		return nil
 	}
@@ -182,13 +182,15 @@ func (s *linkParser) Parse(parent ast.Node, block text.Reader, pc Context) ast.N
 	return link
 }
 
-func (s *linkParser) containsLink(last *linkLabelState) bool {
-	if last.IsImage {
+func (s *linkParser) containsLink(n ast.Node) bool {
+	if n == nil {
 		return false
 	}
-	var c ast.Node
-	for c = last; c != nil; c = c.NextSibling() {
+	for c := n; c != nil; c = c.NextSibling() {
 		if _, ok := c.(*ast.Link); ok {
+			return true
+		}
+		if s.containsLink(c.FirstChild()) {
 			return true
 		}
 	}

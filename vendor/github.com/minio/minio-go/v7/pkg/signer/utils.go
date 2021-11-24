@@ -44,6 +44,10 @@ func sumHMAC(key []byte, data []byte) []byte {
 
 // getHostAddr returns host header if available, otherwise returns host from URL
 func getHostAddr(req *http.Request) string {
+	host := req.Header.Get("host")
+	if host != "" && req.Host != host {
+		return host
+	}
 	if req.Host != "" {
 		return req.Host
 	}
