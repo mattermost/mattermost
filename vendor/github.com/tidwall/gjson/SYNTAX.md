@@ -236,6 +236,8 @@ There are currently the following built-in modifiers:
 - `@valid`: Ensure the json document is valid.
 - `@flatten`: Flattens an array.
 - `@join`: Joins multiple objects into a single object.
+- `@keys`: Returns an array of keys for an object.
+- `@values`: Returns an array of values for an object.
 
 #### Modifier arguments
 

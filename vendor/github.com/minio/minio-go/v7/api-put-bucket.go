@@ -26,8 +26,8 @@ import (
 	"github.com/minio/minio-go/v7/pkg/s3utils"
 )
 
-/// Bucket operations
-func (c Client) makeBucket(ctx context.Context, bucketName string, opts MakeBucketOptions) (err error) {
+// Bucket operations
+func (c *Client) makeBucket(ctx context.Context, bucketName string, opts MakeBucketOptions) (err error) {
 	// Validate the input arguments.
 	if err := s3utils.CheckValidBucketNameStrict(bucketName); err != nil {
 		return err
@@ -42,7 +42,7 @@ func (c Client) makeBucket(ctx context.Context, bucketName string, opts MakeBuck
 	return err
 }
 
-func (c Client) doMakeBucket(ctx context.Context, bucketName string, location string, objectLockEnabled bool) (err error) {
+func (c *Client) doMakeBucket(ctx context.Context, bucketName string, location string, objectLockEnabled bool) (err error) {
 	defer func() {
 		// Save the location into cache on a successful makeBucket response.
 		if err == nil {
@@ -118,6 +118,6 @@ type MakeBucketOptions struct {
 //
 // For Amazon S3 for more supported regions - http://docs.aws.amazon.com/general/latest/gr/rande.html
 // For Google Cloud Storage for more supported regions - https://cloud.google.com/storage/docs/bucket-locations
-func (c Client) MakeBucket(ctx context.Context, bucketName string, opts MakeBucketOptions) (err error) {
+func (c *Client) MakeBucket(ctx context.Context, bucketName string, opts MakeBucketOptions) (err error) {
 	return c.makeBucket(ctx, bucketName, opts)
 }

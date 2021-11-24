@@ -200,6 +200,8 @@ There are currently the following built-in modifiers:
 - `@valid`: Ensure the json document is valid.
 - `@flatten`: Flattens an array.
 - `@join`: Joins multiple objects into a single object.
+- `@keys`: Returns an array of keys for an object.
+- `@values`: Returns an array of values for an object.
 
 ### Modifier arguments
 
@@ -434,14 +436,15 @@ Benchmarks of GJSON alongside [encoding/json](https://golang.org/pkg/encoding/js
 and [json-iterator](https://github.com/json-iterator/go)
 
 ```
-BenchmarkGJSONGet-8                  3000000        372 ns/op          0 B/op         0 allocs/op
-BenchmarkGJSONUnmarshalMap-8          900000       4154 ns/op       1920 B/op        26 allocs/op
-BenchmarkJSONUnmarshalMap-8           600000       9019 ns/op       3048 B/op        69 allocs/op
-BenchmarkJSONDecoder-8                300000      14120 ns/op       4224 B/op       184 allocs/op
-BenchmarkFFJSONLexer-8               1500000       3111 ns/op        896 B/op         8 allocs/op
-BenchmarkEasyJSONLexer-8             3000000        887 ns/op        613 B/op         6 allocs/op
-BenchmarkJSONParserGet-8             3000000        499 ns/op         21 B/op         0 allocs/op
-BenchmarkJSONIterator-8              3000000        812 ns/op        544 B/op         9 allocs/op
+BenchmarkGJSONGet-16                11644512       311 ns/op       0 B/op	       0 allocs/op
+BenchmarkGJSONUnmarshalMap-16        1122678      3094 ns/op    1920 B/op	      26 allocs/op
+BenchmarkJSONUnmarshalMap-16          516681      6810 ns/op    2944 B/op	      69 allocs/op
+BenchmarkJSONUnmarshalStruct-16       697053      5400 ns/op     928 B/op	      13 allocs/op
+BenchmarkJSONDecoder-16               330450     10217 ns/op    3845 B/op	     160 allocs/op
+BenchmarkFFJSONLexer-16              1424979      2585 ns/op     880 B/op	       8 allocs/op
+BenchmarkEasyJSONLexer-16            3000000       729 ns/op     501 B/op	       5 allocs/op
+BenchmarkJSONParserGet-16            3000000       366 ns/op      21 B/op	       0 allocs/op
+BenchmarkJSONIterator-16             3000000       869 ns/op     693 B/op	      14 allocs/op
 ```
 
 JSON document used:
@@ -482,4 +485,4 @@ widget.image.hOffset
 widget.text.onMouseUp
 ```
 
-*These benchmarks were run on a MacBook Pro 15" 2.8 GHz Intel Core i7 using Go 1.8 and can be found [here](https://github.com/tidwall/gjson-benchmarks).*
+*These benchmarks were run on a MacBook Pro 16" 2.4 GHz Intel Core i9 using Go 1.17 and can be found [here](https://github.com/tidwall/gjson-benchmarks).*
