@@ -131,6 +131,14 @@ func (a *App) CreateGroupWithUserIds(group *model.GroupWithUserIds) (*model.Grou
 		}
 	}
 
+	messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil)
+	groupJSON, jsonErr := json.Marshal(newGroup)
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode group to JSON", mlog.Err(jsonErr))
+	}
+	messageWs.Add("group", string(groupJSON))
+	a.Publish(messageWs)
+
 	return newGroup, nil
 }
 
