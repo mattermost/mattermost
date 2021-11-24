@@ -856,6 +856,21 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 	o4, err = ss.Post().Save(o4)
 	require.NoError(t, err)
 
+	o5 := &model.Post{}
+	o5.ChannelId = o3.ChannelId
+	o5.UserId = model.NewId()
+	o5.Message = NewTestId()
+	o5, err = ss.Post().Save(o5)
+	require.NoError(t, err)
+
+	o6 := &model.Post{}
+	o6.ChannelId = o3.ChannelId
+	o6.RootId = o5.Id
+	o6.UserId = model.NewId()
+	o6.Message = NewTestId()
+	o6, err = ss.Post().Save(o6)
+	require.NoError(t, err)
+
 	var thread *model.Thread
 	thread, err = ss.Thread().Get(o1.Id)
 	require.NoError(t, err)
@@ -878,13 +893,26 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Get(context.Background(), o2.Id, false, false, false, "")
 	require.Error(t, err, "Deleted id should have failed")
 
+	thread, err = ss.Thread().Get(o5.Id)
+	require.NoError(t, err)
+	require.NotEmpty(t, thread)
+
 	err = ss.Post().PermanentDeleteByChannel(o3.ChannelId)
 	require.NoError(t, err)
+
+	thread, err = ss.Thread().Get(o5.Id)
+	require.Nil(t, thread)
 
 	_, err = ss.Post().Get(context.Background(), o3.Id, false, false, false, "")
 	require.Error(t, err, "Deleted id should have failed")
 
 	_, err = ss.Post().Get(context.Background(), o4.Id, false, false, false, "")
+	require.Error(t, err, "Deleted id should have failed")
+
+	_, err = ss.Post().Get(context.Background(), o5.Id, false, false, false, "")
+	require.Error(t, err, "Deleted id should have failed")
+
+	_, err = ss.Post().Get(context.Background(), o6.Id, false, false, false, "")
 	require.Error(t, err, "Deleted id should have failed")
 }
 
