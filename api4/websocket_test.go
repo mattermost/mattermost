@@ -204,10 +204,6 @@ func TestWebSocketReconnectRace(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.EnableReliableWebSockets = true
-	})
-
 	WebSocketClient, err := th.CreateWebSocketClient()
 	require.NoError(t, err)
 	defer WebSocketClient.Close()
