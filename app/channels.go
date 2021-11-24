@@ -18,9 +18,11 @@ import (
 type Channels struct {
 	srv *Server
 
+	pluginCommandsLock     sync.RWMutex
+	pluginCommands         []*PluginCommand
+	pluginsLock            sync.RWMutex
 	pluginsEnvironment     *plugin.Environment
 	pluginConfigListenerID string
-	pluginsLock            sync.RWMutex
 
 	imageProxy *imageproxy.ImageProxy
 
@@ -44,10 +46,17 @@ func init() {
 }
 
 func NewChannels(s *Server) (*Channels, error) {
-	return &Channels{
+	ch := &Channels{
 		srv:        s,
 		imageProxy: imageproxy.MakeImageProxy(s, s.httpService, s.Log),
-	}, nil
+	}
+	// Setup routes.
+	pluginsRoute := ch.srv.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
+	pluginsRoute.HandleFunc("", ch.ServePluginRequest)
+	pluginsRoute.HandleFunc("/public/{public_file:.*}", ch.ServePluginPublicRequest)
+	pluginsRoute.HandleFunc("/{anything:.*}", ch.ServePluginRequest)
+
+	return ch, nil
 }
 
 func (ch *Channels) Start() error {

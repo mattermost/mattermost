@@ -187,6 +187,16 @@ func (b UpdateBuilder) ToSql() (string, []interface{}, error) {
 	return data.ToSql()
 }
 
+// MustSql builds the query into a SQL string and bound args.
+// It panics if there are any errors.
+func (b UpdateBuilder) MustSql() (string, []interface{}) {
+	sql, args, err := b.ToSql()
+	if err != nil {
+		panic(err)
+	}
+	return sql, args
+}
+
 // Prefix adds an expression to the beginning of the query
 func (b UpdateBuilder) Prefix(sql string, args ...interface{}) UpdateBuilder {
 	return b.PrefixExpr(Expr(sql, args...))

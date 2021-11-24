@@ -70,7 +70,7 @@ func TestSendInviteEmails(t *testing.T) {
 	t.Run("SendInviteEmails", func(t *testing.T) {
 		mail.DeleteMailBox(emailTo)
 
-		err := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver")
+		err := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil)
 		require.NoError(t, err)
 
 		verifyMailbox(t)

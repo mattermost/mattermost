@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	LogRotateSize           = 10000
+	LogRotateSizeMB         = 100
 	LogCompress             = true
 	LogRotateMaxAge         = 0
 	LogRotateMaxBackups     = 0
@@ -211,6 +211,6 @@ func makePlainFormatOptions(enableColor bool) json.RawMessage {
 
 func makeFileOptions(filename string) json.RawMessage {
 	str := fmt.Sprintf(`{"filename": "%s", "max_size": %d, "max_age": %d, "max_backups": %d, "compress": %t}`,
-		filename, LogRotateSize, LogRotateMaxAge, LogRotateMaxBackups, LogCompress)
+		filename, LogRotateSizeMB, LogRotateMaxAge, LogRotateMaxBackups, LogCompress)
 	return json.RawMessage(str)
 }

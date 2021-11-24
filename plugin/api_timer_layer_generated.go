@@ -56,13 +56,6 @@ func (api *apiTimerLayer) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetSession(sessionID string) (*model.Session, *model.AppError) {
-	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetSession(sessionID)
-	api.recordTime(startTime, "GetSession", _returnsB == nil)
-	return _returnsA, _returnsB
-}
-
 func (api *apiTimerLayer) GetConfig() *model.Config {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.GetConfig()
@@ -221,6 +214,34 @@ func (api *apiTimerLayer) DeletePreferencesForUser(userID string, preferences []
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.DeletePreferencesForUser(userID, preferences)
 	api.recordTime(startTime, "DeletePreferencesForUser", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) GetSession(sessionID string) (*model.Session, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetSession(sessionID)
+	api.recordTime(startTime, "GetSession", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) CreateSession(session *model.Session) (*model.Session, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CreateSession(session)
+	api.recordTime(startTime, "CreateSession", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) ExtendSessionExpiry(sessionID string, newExpiry int64) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.ExtendSessionExpiry(sessionID, newExpiry)
+	api.recordTime(startTime, "ExtendSessionExpiry", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RevokeSession(sessionID string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RevokeSession(sessionID)
+	api.recordTime(startTime, "RevokeSession", _returnsA == nil)
 	return _returnsA
 }
 
