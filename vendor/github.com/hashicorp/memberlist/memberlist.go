@@ -187,6 +187,17 @@ func newMemberlist(conf *Config) (*Memberlist, error) {
 		nodeAwareTransport = &shimNodeAwareTransport{transport}
 	}
 
+	if len(conf.Label) > LabelMaxSize {
+		return nil, fmt.Errorf("could not use %q as a label: too long", conf.Label)
+	}
+
+	if conf.Label != "" {
+		nodeAwareTransport = &labelWrappedTransport{
+			label:              conf.Label,
+			NodeAwareTransport: nodeAwareTransport,
+		}
+	}
+
 	m := &Memberlist{
 		config:               conf,
 		shutdownCh:           make(chan struct{}),
@@ -262,7 +273,7 @@ func (m *Memberlist) Join(existing []string) (int, error) {
 			hp := joinHostPort(addr.ip.String(), addr.port)
 			a := Address{Addr: hp, Name: addr.nodeName}
 			if err := m.pushPullNode(a, true); err != nil {
-				err = fmt.Errorf("Failed to join %s: %v", addr.ip, err)
+				err = fmt.Errorf("Failed to join %s: %v", a.Addr, err)
 				errs = multierror.Append(errs, err)
 				m.logger.Printf("[DEBUG] memberlist: %v", err)
 				continue

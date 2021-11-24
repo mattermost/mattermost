@@ -121,8 +121,8 @@ func (l *ListVersionsResult) UnmarshalXML(d *xml.Decoder, start xml.StartElement
 			return err
 		}
 
-		switch se := t.(type) {
-		case xml.StartElement:
+		se, ok := t.(xml.StartElement)
+		if ok {
 			tagName := se.Name.Local
 			switch tagName {
 			case "Name", "Prefix",

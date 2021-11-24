@@ -87,8 +87,14 @@ func (b *fencedCodeBlockParser) Continue(node ast.Node, reader text.Reader, pc C
 			return Close
 		}
 	}
-	pos, padding := util.DedentPositionPadding(line, reader.LineOffset(), segment.Padding, fdata.indent)
-
+	pos, padding := util.IndentPositionPadding(line, reader.LineOffset(), segment.Padding, fdata.indent)
+	if pos < 0 {
+		pos = util.FirstNonSpacePosition(line)
+		if pos < 0 {
+			pos = 0
+		}
+		padding = 0
+	}
 	seg := text.NewSegmentPadding(segment.Start+pos, segment.Stop, padding)
 	// if code block line starts with a tab, keep a tab as it is.
 	if padding != 0 {

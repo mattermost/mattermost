@@ -37,7 +37,7 @@ import (
 	"github.com/minio/minio-go/v7/pkg/s3utils"
 )
 
-func (c Client) putObjectMultipart(ctx context.Context, bucketName, objectName string, reader io.Reader, size int64,
+func (c *Client) putObjectMultipart(ctx context.Context, bucketName, objectName string, reader io.Reader, size int64,
 	opts PutObjectOptions) (info UploadInfo, err error) {
 	info, err = c.putObjectMultipartNoStream(ctx, bucketName, objectName, reader, opts)
 	if err != nil {
@@ -56,7 +56,7 @@ func (c Client) putObjectMultipart(ctx context.Context, bucketName, objectName s
 	return info, err
 }
 
-func (c Client) putObjectMultipartNoStream(ctx context.Context, bucketName, objectName string, reader io.Reader, opts PutObjectOptions) (info UploadInfo, err error) {
+func (c *Client) putObjectMultipartNoStream(ctx context.Context, bucketName, objectName string, reader io.Reader, opts PutObjectOptions) (info UploadInfo, err error) {
 	// Input validation.
 	if err = s3utils.CheckValidBucketName(bucketName); err != nil {
 		return UploadInfo{}, err
@@ -186,7 +186,7 @@ func (c Client) putObjectMultipartNoStream(ctx context.Context, bucketName, obje
 }
 
 // initiateMultipartUpload - Initiates a multipart upload and returns an upload ID.
-func (c Client) initiateMultipartUpload(ctx context.Context, bucketName, objectName string, opts PutObjectOptions) (initiateMultipartUploadResult, error) {
+func (c *Client) initiateMultipartUpload(ctx context.Context, bucketName, objectName string, opts PutObjectOptions) (initiateMultipartUploadResult, error) {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return initiateMultipartUploadResult{}, err
@@ -200,8 +200,10 @@ func (c Client) initiateMultipartUpload(ctx context.Context, bucketName, objectN
 	urlValues.Set("uploads", "")
 
 	if opts.Internal.SourceVersionID != "" {
-		if _, err := uuid.Parse(opts.Internal.SourceVersionID); err != nil {
-			return initiateMultipartUploadResult{}, errInvalidArgument(err.Error())
+		if opts.Internal.SourceVersionID != nullVersionID {
+			if _, err := uuid.Parse(opts.Internal.SourceVersionID); err != nil {
+				return initiateMultipartUploadResult{}, errInvalidArgument(err.Error())
+			}
 		}
 		urlValues.Set("versionId", opts.Internal.SourceVersionID)
 	}
@@ -237,7 +239,7 @@ func (c Client) initiateMultipartUpload(ctx context.Context, bucketName, objectN
 }
 
 // uploadPart - Uploads a part in a multipart upload.
-func (c Client) uploadPart(ctx context.Context, bucketName, objectName, uploadID string, reader io.Reader,
+func (c *Client) uploadPart(ctx context.Context, bucketName, objectName, uploadID string, reader io.Reader,
 	partNumber int, md5Base64, sha256Hex string, size int64, sse encrypt.ServerSide) (ObjectPart, error) {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
@@ -308,7 +310,7 @@ func (c Client) uploadPart(ctx context.Context, bucketName, objectName, uploadID
 }
 
 // completeMultipartUpload - Completes a multipart upload by assembling previously uploaded parts.
-func (c Client) completeMultipartUpload(ctx context.Context, bucketName, objectName, uploadID string,
+func (c *Client) completeMultipartUpload(ctx context.Context, bucketName, objectName, uploadID string,
 	complete completeMultipartUpload, opts PutObjectOptions) (UploadInfo, error) {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {

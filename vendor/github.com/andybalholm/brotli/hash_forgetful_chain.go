@@ -110,8 +110,7 @@ func (h *hashForgetfulChain) Prepare(one_shot bool, input_size uint, data []byte
 func (h *hashForgetfulChain) Store(data []byte, mask uint, ix uint) {
 	var key uint = h.HashBytes(data[ix&mask:])
 	var bank uint = key & (h.numBanks - 1)
-	var idx uint
-	idx = uint(h.free_slot_idx[bank]) & ((1 << h.bankBits) - 1)
+	idx := uint(h.free_slot_idx[bank]) & ((1 << h.bankBits) - 1)
 	h.free_slot_idx[bank]++
 	var delta uint = ix - uint(h.addr[key])
 	h.tiny_hash[uint16(ix)] = byte(key)
