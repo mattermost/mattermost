@@ -109,7 +109,7 @@ func (rseworker *ResendInvitationEmailWorker) Execute(job *model.Job, elapsedTim
 		}
 	}
 
-	if (elapsedTimeSinceSchedule > firstDuration) && (systemValue.Value == "0") {
+	if (elapsedTimeSinceSchedule > firstDuration) && (systemValue == nil || (systemValue != nil && systemValue.Value == "0")) {
 		rseworker.ResendEmails(job, "48")
 		rseworker.setNumResendEmailSent(job, "1")
 	} else if elapsedTimeSinceSchedule > secondDuration {
@@ -192,7 +192,7 @@ func (rseworker *ResendInvitationEmailWorker) GetDurations(job *model.Job) (int6
 	duration_48 := os.Getenv("MM_RESEND_INVITATION_EMAIL_JOB_DURATION_48")
 	DurationInMillis_48, parseError := strconv.ParseInt(duration_48, 10, 64)
 	if parseError != nil {
-		// default to 48 hours
+
 		DurationInMillis_48 = FourtyEightHoursInMillis
 	}
 
