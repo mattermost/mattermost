@@ -188,7 +188,7 @@ func (rseworker *ResendInvitationEmailWorker) GetDurations(job *model.Job) (int6
 		// default to 24 hours
 		DurationInMillis_24 = TwentyFourHoursInMillis
 	}
-
+	// random comment
 	duration_48 := os.Getenv("MM_RESEND_INVITATION_EMAIL_JOB_DURATION_48")
 	DurationInMillis_48, parseError := strconv.ParseInt(duration_48, 10, 64)
 	if parseError != nil {
