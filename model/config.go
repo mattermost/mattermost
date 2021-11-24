@@ -126,7 +126,7 @@ const (
 
 	EmailSettingsDefaultFeedbackOrganization = ""
 
-	SupportSettingsDefaultTermsOfServiceLink = "https://mattermost.com/terms-of-service/"
+	SupportSettingsDefaultTermsOfServiceLink = "https://mattermost.com/terms-of-use/"
 	SupportSettingsDefaultPrivacyPolicyLink  = "https://mattermost.com/privacy-policy/"
 	SupportSettingsDefaultAboutLink          = "https://about.mattermost.com/default-about/"
 	SupportSettingsDefaultHelpLink           = "https://about.mattermost.com/default-help/"
