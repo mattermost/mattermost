@@ -125,6 +125,9 @@ type File struct {
 type FileInfo struct {
 	os.FileInfo
 	CustomName string
+	// Stores path to the source.
+	// Used when reading a symlink.
+	SourcePath string
 }
 
 // Name returns fi.CustomName if not empty;

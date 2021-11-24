@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -792,6 +793,20 @@ func mergeConfigSrcs(cfg, userCfg *aws.Config,
 		cfg.S3UseARNRegion = &sharedCfg.S3UseARNRegion
 	}
 
+	for _, v := range []endpoints.DualStackEndpointState{userCfg.UseDualStackEndpoint, envCfg.UseDualStackEndpoint, sharedCfg.UseDualStackEndpoint} {
+		if v != endpoints.DualStackEndpointStateUnset {
+			cfg.UseDualStackEndpoint = v
+			break
+		}
+	}
+
+	for _, v := range []endpoints.FIPSEndpointState{userCfg.UseFIPSEndpoint, envCfg.UseFIPSEndpoint, sharedCfg.UseFIPSEndpoint} {
+		if v != endpoints.FIPSEndpointStateUnset {
+			cfg.UseFIPSEndpoint = v
+			break
+		}
+	}
+
 	return nil
 }
 
@@ -845,8 +860,10 @@ func (s *Session) Copy(cfgs ...*aws.Config) *Session {
 func (s *Session) ClientConfig(service string, cfgs ...*aws.Config) client.Config {
 	s = s.Copy(cfgs...)
 
+	resolvedRegion := normalizeRegion(s.Config)
+
 	region := aws.StringValue(s.Config.Region)
-	resolved, err := s.resolveEndpoint(service, region, s.Config)
+	resolved, err := s.resolveEndpoint(service, region, resolvedRegion, s.Config)
 	if err != nil {
 		s.Handlers.Validate.PushBack(func(r *request.Request) {
 			if len(r.ClientInfo.Endpoint) != 0 {
@@ -867,12 +884,13 @@ func (s *Session) ClientConfig(service string, cfgs ...*aws.Config) client.Confi
 		SigningRegion:      resolved.SigningRegion,
 		SigningNameDerived: resolved.SigningNameDerived,
 		SigningName:        resolved.SigningName,
+		ResolvedRegion:     resolvedRegion,
 	}
 }
 
 const ec2MetadataServiceID = "ec2metadata"
 
-func (s *Session) resolveEndpoint(service, region string, cfg *aws.Config) (endpoints.ResolvedEndpoint, error) {
+func (s *Session) resolveEndpoint(service, region, resolvedRegion string, cfg *aws.Config) (endpoints.ResolvedEndpoint, error) {
 
 	if ep := aws.StringValue(cfg.Endpoint); len(ep) != 0 {
 		return endpoints.ResolvedEndpoint{
@@ -884,7 +902,12 @@ func (s *Session) resolveEndpoint(service, region string, cfg *aws.Config) (endp
 	resolved, err := cfg.EndpointResolver.EndpointFor(service, region,
 		func(opt *endpoints.Options) {
 			opt.DisableSSL = aws.BoolValue(cfg.DisableSSL)
+
 			opt.UseDualStack = aws.BoolValue(cfg.UseDualStack)
+			opt.UseDualStackEndpoint = cfg.UseDualStackEndpoint
+
+			opt.UseFIPSEndpoint = cfg.UseFIPSEndpoint
+
 			// Support for STSRegionalEndpoint where the STSRegionalEndpoint is
 			// provided in envConfig or sharedConfig with envConfig getting
 			// precedence.
@@ -898,6 +921,11 @@ func (s *Session) resolveEndpoint(service, region string, cfg *aws.Config) (endp
 			// Support the condition where the service is modeled but its
 			// endpoint metadata is not available.
 			opt.ResolveUnknownService = true
+
+			opt.ResolvedRegion = resolvedRegion
+
+			opt.Logger = cfg.Logger
+			opt.LogDeprecated = cfg.LogLevel.Matches(aws.LogDebugWithDeprecated)
 		},
 	)
 	if err != nil {
@@ -913,6 +941,8 @@ func (s *Session) resolveEndpoint(service, region string, cfg *aws.Config) (endp
 func (s *Session) ClientConfigNoResolveEndpoint(cfgs ...*aws.Config) client.Config {
 	s = s.Copy(cfgs...)
 
+	resolvedRegion := normalizeRegion(s.Config)
+
 	var resolved endpoints.ResolvedEndpoint
 	if ep := aws.StringValue(s.Config.Endpoint); len(ep) > 0 {
 		resolved.URL = endpoints.AddScheme(ep, aws.BoolValue(s.Config.DisableSSL))
@@ -926,6 +956,7 @@ func (s *Session) ClientConfigNoResolveEndpoint(cfgs ...*aws.Config) client.Conf
 		SigningRegion:      resolved.SigningRegion,
 		SigningNameDerived: resolved.SigningNameDerived,
 		SigningName:        resolved.SigningName,
+		ResolvedRegion:     resolvedRegion,
 	}
 }
 
@@ -938,4 +969,24 @@ func (s *Session) logDeprecatedNewSessionError(msg string, err error, cfgs []*aw
 	s.Handlers.Validate.PushBack(func(r *request.Request) {
 		r.Error = err
 	})
+}
+
+// normalizeRegion resolves / normalizes the configured region (converts pseudo fips regions), and modifies the provided
+// config to have the equivalent options for resolution and returns the resolved region name.
+func normalizeRegion(cfg *aws.Config) (resolved string) {
+	const fipsInfix = "-fips-"
+	const fipsPrefix = "-fips"
+	const fipsSuffix = "fips-"
+
+	region := aws.StringValue(cfg.Region)
+
+	if strings.Contains(region, fipsInfix) ||
+		strings.Contains(region, fipsPrefix) ||
+		strings.Contains(region, fipsSuffix) {
+		resolved = strings.Replace(strings.Replace(strings.Replace(
+			region, fipsInfix, "-", -1), fipsPrefix, "", -1), fipsSuffix, "", -1)
+		cfg.UseFIPSEndpoint = endpoints.FIPSEndpointStateEnabled
+	}
+
+	return resolved
 }

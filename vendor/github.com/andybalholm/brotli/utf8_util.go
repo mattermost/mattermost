@@ -58,8 +58,7 @@ func isMostlyUTF8(data []byte, pos uint, mask uint, length uint, min_fraction fl
 	var i uint = 0
 	for i < length {
 		var symbol int
-		var current_data []byte
-		current_data = data[(pos+i)&mask:]
+		current_data := data[(pos+i)&mask:]
 		var bytes_read uint = parseAsUTF8(&symbol, current_data, length-i)
 		i += bytes_read
 		if symbol < 0x110000 {

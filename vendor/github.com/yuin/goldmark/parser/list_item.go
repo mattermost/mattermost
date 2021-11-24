@@ -17,9 +17,6 @@ func NewListItemParser() BlockParser {
 	return defaultListItemParser
 }
 
-var skipListParser = NewContextKey()
-var skipListParserValue interface{} = true
-
 func (b *listItemParser) Trigger() []byte {
 	return []byte{'-', '+', '*', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'}
 }
@@ -38,9 +35,12 @@ func (b *listItemParser) Open(parent ast.Node, reader text.Reader, pc Context) (
 	if match[1]-offset > 3 {
 		return nil, NoChildren
 	}
+
+	pc.Set(emptyListItemWithBlankLines, nil)
+
 	itemOffset := calcListOffset(line, match)
 	node := ast.NewListItem(match[3] + itemOffset)
-	if match[4] < 0 || match[5]-match[4] == 1 {
+	if match[4] < 0 || util.IsBlank(line[match[4]:match[5]]) {
 		return node, NoChildren
 	}
 
@@ -54,19 +54,22 @@ func (b *listItemParser) Continue(node ast.Node, reader text.Reader, pc Context)
 	line, _ := reader.PeekLine()
 	if util.IsBlank(line) {
 		reader.Advance(len(line) - 1)
-
 		return Continue | HasChildren
 	}
 
-	indent, _ := util.IndentWidth(line, reader.LineOffset())
 	offset := lastOffset(node.Parent())
-	if indent < offset && indent < 4 {
+	isEmpty := node.ChildCount() == 0
+	indent, _ := util.IndentWidth(line, reader.LineOffset())
+	if (isEmpty || indent < offset) && indent < 4 {
 		_, typ := matchesListItem(line, true)
 		// new list item found
 		if typ != notList {
-			pc.Set(skipListParser, skipListParserValue)
+			pc.Set(skipListParserKey, listItemFlagValue)
+			return Close
 		}
-		return Close
+		if !isEmpty {
+			return Close
+		}
 	}
 	pos, padding := util.IndentPosition(line, reader.LineOffset(), offset)
 	reader.AdvanceAndSetPadding(pos, padding)

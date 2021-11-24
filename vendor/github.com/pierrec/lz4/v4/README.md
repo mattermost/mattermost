@@ -87,4 +87,6 @@ Thanks to all [contributors](https://github.com/pierrec/lz4/graphs/contributors)
 
 Special thanks to [@Zariel](https://github.com/Zariel) for his asm implementation of the decoder.
 
+Special thanks to [@greatroar](https://github.com/greatroar) for his work on the asm implementations of the decoder for amd64 and arm64.
+
 Special thanks to [@klauspost](https://github.com/klauspost) for his work on optimizing the code.
