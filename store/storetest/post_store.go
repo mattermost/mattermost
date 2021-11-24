@@ -901,6 +901,7 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	thread, err = ss.Thread().Get(o5.Id)
+	require.NoError(t, err)
 	require.Nil(t, thread)
 
 	_, err = ss.Post().Get(context.Background(), o3.Id, false, false, false, "")
