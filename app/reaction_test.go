@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/testlib"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/testlib"
 )
 
 func TestSharedChannelSyncForReactionActions(t *testing.T) {
@@ -18,7 +18,7 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 		th := Setup(t).InitBasic()
 
 		sharedChannelService := NewMockSharedChannelService(nil)
-		th.App.srv.sharedChannelService = sharedChannelService
+		th.App.ch.srv.sharedChannelService = sharedChannelService
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Cluster = testCluster
 
@@ -53,7 +53,7 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 		th := Setup(t).InitBasic()
 
 		sharedChannelService := NewMockSharedChannelService(nil)
-		th.App.srv.sharedChannelService = sharedChannelService
+		th.App.ch.srv.sharedChannelService = sharedChannelService
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Cluster = testCluster
 

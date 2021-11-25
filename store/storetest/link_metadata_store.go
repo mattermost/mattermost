@@ -12,8 +12,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 // These tests are ran on the same store instance, so this provides easier unique, valid timestamps
@@ -35,12 +35,11 @@ func testLinkMetadataStoreSave(t *testing.T, ss store.Store) {
 		metadata := &model.LinkMetadata{
 			URL:       "http://example.com",
 			Timestamp: getNextLinkMetadataTimestamp(),
-			Type:      model.LINK_METADATA_TYPE_IMAGE,
+			Type:      model.LinkMetadataTypeImage,
 			Data:      &model.PostImage{},
 		}
 
 		linkMetadata, err := ss.LinkMetadata().Save(metadata)
-
 		require.NoError(t, err)
 		assert.Equal(t, *metadata, *linkMetadata)
 	})
@@ -62,7 +61,7 @@ func testLinkMetadataStoreSave(t *testing.T, ss store.Store) {
 		metadata := &model.LinkMetadata{
 			URL:       "http://example.com",
 			Timestamp: getNextLinkMetadataTimestamp(),
-			Type:      model.LINK_METADATA_TYPE_IMAGE,
+			Type:      model.LinkMetadataTypeImage,
 			Data:      &model.PostImage{},
 		}
 
@@ -81,7 +80,7 @@ func testLinkMetadataStoreSave(t *testing.T, ss store.Store) {
 		metadata := &model.LinkMetadata{
 			URL:       "http://example.com",
 			Timestamp: getNextLinkMetadataTimestamp(),
-			Type:      model.LINK_METADATA_TYPE_IMAGE,
+			Type:      model.LinkMetadataTypeImage,
 			Data:      &model.PostImage{},
 		}
 
@@ -100,7 +99,7 @@ func testLinkMetadataStoreSave(t *testing.T, ss store.Store) {
 		metadata := &model.LinkMetadata{
 			URL:       "http://example.com",
 			Timestamp: getNextLinkMetadataTimestamp(),
-			Type:      model.LINK_METADATA_TYPE_IMAGE,
+			Type:      model.LinkMetadataTypeImage,
 			Data:      &model.PostImage{},
 		}
 
@@ -126,7 +125,7 @@ func testLinkMetadataStoreGet(t *testing.T, ss store.Store) {
 		metadata := &model.LinkMetadata{
 			URL:       "http://example.com",
 			Timestamp: getNextLinkMetadataTimestamp(),
-			Type:      model.LINK_METADATA_TYPE_IMAGE,
+			Type:      model.LinkMetadataTypeImage,
 			Data:      &model.PostImage{},
 		}
 
@@ -144,7 +143,7 @@ func testLinkMetadataStoreGet(t *testing.T, ss store.Store) {
 		metadata := &model.LinkMetadata{
 			URL:       "http://example.com",
 			Timestamp: getNextLinkMetadataTimestamp(),
-			Type:      model.LINK_METADATA_TYPE_IMAGE,
+			Type:      model.LinkMetadataTypeImage,
 			Data:      &model.PostImage{},
 		}
 
@@ -162,7 +161,7 @@ func testLinkMetadataStoreGet(t *testing.T, ss store.Store) {
 		metadata := &model.LinkMetadata{
 			URL:       "http://example.com",
 			Timestamp: getNextLinkMetadataTimestamp(),
-			Type:      model.LINK_METADATA_TYPE_IMAGE,
+			Type:      model.LinkMetadataTypeImage,
 			Data:      &model.PostImage{},
 		}
 
@@ -182,7 +181,7 @@ func testLinkMetadataStoreTypes(t *testing.T, ss store.Store) {
 		metadata := &model.LinkMetadata{
 			URL:       "http://example.com",
 			Timestamp: getNextLinkMetadataTimestamp(),
-			Type:      model.LINK_METADATA_TYPE_IMAGE,
+			Type:      model.LinkMetadataTypeImage,
 			Data: &model.PostImage{
 				Width:  123,
 				Height: 456,
@@ -215,7 +214,7 @@ func testLinkMetadataStoreTypes(t *testing.T, ss store.Store) {
 		metadata := &model.LinkMetadata{
 			URL:       "http://example.com",
 			Timestamp: getNextLinkMetadataTimestamp(),
-			Type:      model.LINK_METADATA_TYPE_OPENGRAPH,
+			Type:      model.LinkMetadataTypeOpengraph,
 			Data:      og,
 		}
 
@@ -236,7 +235,7 @@ func testLinkMetadataStoreTypes(t *testing.T, ss store.Store) {
 		metadata := &model.LinkMetadata{
 			URL:       "http://example.com",
 			Timestamp: getNextLinkMetadataTimestamp(),
-			Type:      model.LINK_METADATA_TYPE_NONE,
+			Type:      model.LinkMetadataTypeNone,
 			Data:      nil,
 		}
 

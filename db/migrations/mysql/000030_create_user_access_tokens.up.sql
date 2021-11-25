@@ -15,7 +15,7 @@ SET @preparedStatement = (SELECT IF(
         AND column_name = 'IsActive'
     ) > 0,
     'SELECT 1',
-    'ALTER TABLE UserAccessTokens ADD COLUMN IsActive tinyint(1) DEFAULT 1;'
+    'ALTER TABLE UserAccessTokens ADD COLUMN IsActive tinyint(1) DEFAULT NULL;'
 ));
 
 PREPARE alterNotIfExists FROM @preparedStatement;

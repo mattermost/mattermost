@@ -183,7 +183,7 @@ func getInbucketHost() (host string) {
 
 	inbucket_port := os.Getenv("CI_INBUCKET_PORT")
 	if inbucket_port == "" {
-		inbucket_port = "10080"
+		inbucket_port = "9001"
 	}
 	return fmt.Sprintf("http://%s:%s", inbucket_host, inbucket_port)
 }

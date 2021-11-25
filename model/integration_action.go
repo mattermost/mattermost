@@ -22,9 +22,9 @@ import (
 )
 
 const (
-	POST_ACTION_TYPE_BUTTON                         = "button"
-	POST_ACTION_TYPE_SELECT                         = "select"
-	INTERACTIVE_DIALOG_TRIGGER_TIMEOUT_MILLISECONDS = 3000
+	PostActionTypeButton                        = "button"
+	PostActionTypeSelect                        = "select"
+	InteractiveDialogTriggerTimeoutMilliseconds = 3000
 )
 
 var PostActionRetainPropKeys = []string{"from_webhook", "override_username", "override_icon_url"}
@@ -115,6 +115,14 @@ func (p *PostAction) Equals(input *PostAction) bool {
 	}
 
 	// Compare PostActionIntegration
+
+	// If input is nil, then return true if original is also nil.
+	// Else return false.
+	if input.Integration == nil {
+		return p.Integration == nil
+	}
+
+	// Both are unequal and not nil.
 	if p.Integration.URL != input.Integration.URL {
 		return false
 	}
@@ -289,8 +297,8 @@ func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey) (string, st
 	timestamp, _ := strconv.ParseInt(timestampStr, 10, 64)
 
 	now := GetMillis()
-	if now-timestamp > INTERACTIVE_DIALOG_TRIGGER_TIMEOUT_MILLISECONDS {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.expired", map[string]interface{}{"Seconds": INTERACTIVE_DIALOG_TRIGGER_TIMEOUT_MILLISECONDS / 1000}, "", http.StatusBadRequest)
+	if now-timestamp > InteractiveDialogTriggerTimeoutMilliseconds {
+		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.expired", map[string]interface{}{"Seconds": InteractiveDialogTriggerTimeoutMilliseconds / 1000}, "", http.StatusBadRequest)
 	}
 
 	signature, err := base64.StdEncoding.DecodeString(split[3])
@@ -321,62 +329,6 @@ func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey) (string, st
 
 func (r *OpenDialogRequest) DecodeAndVerifyTriggerId(s *ecdsa.PrivateKey) (string, string, *AppError) {
 	return DecodeAndVerifyTriggerId(r.TriggerId, s)
-}
-
-func (r *PostActionIntegrationRequest) ToJson() []byte {
-	b, _ := json.Marshal(r)
-	return b
-}
-
-func PostActionIntegrationRequestFromJson(data io.Reader) *PostActionIntegrationRequest {
-	var o *PostActionIntegrationRequest
-	err := json.NewDecoder(data).Decode(&o)
-	if err != nil {
-		return nil
-	}
-	return o
-}
-
-func (r *PostActionIntegrationResponse) ToJson() []byte {
-	b, _ := json.Marshal(r)
-	return b
-}
-
-func PostActionIntegrationResponseFromJson(data io.Reader) *PostActionIntegrationResponse {
-	var o *PostActionIntegrationResponse
-	err := json.NewDecoder(data).Decode(&o)
-	if err != nil {
-		return nil
-	}
-	return o
-}
-
-func SubmitDialogRequestFromJson(data io.Reader) *SubmitDialogRequest {
-	var o *SubmitDialogRequest
-	err := json.NewDecoder(data).Decode(&o)
-	if err != nil {
-		return nil
-	}
-	return o
-}
-
-func (r *SubmitDialogRequest) ToJson() []byte {
-	b, _ := json.Marshal(r)
-	return b
-}
-
-func SubmitDialogResponseFromJson(data io.Reader) *SubmitDialogResponse {
-	var o *SubmitDialogResponse
-	err := json.NewDecoder(data).Decode(&o)
-	if err != nil {
-		return nil
-	}
-	return o
-}
-
-func (r *SubmitDialogResponse) ToJson() []byte {
-	b, _ := json.Marshal(r)
-	return b
 }
 
 func (o *Post) StripActionIntegrations() {
@@ -523,10 +475,4 @@ func DecryptPostActionCookie(encoded string, secret []byte) (string, error) {
 	}
 
 	return string(plain), nil
-}
-
-func DoPostActionRequestFromJson(data io.Reader) *DoPostActionRequest {
-	var o *DoPostActionRequest
-	json.NewDecoder(data).Decode(&o)
-	return o
 }

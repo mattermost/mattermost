@@ -8,14 +8,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestHelpCommand(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	Client := th.Client
+	client := th.Client
 	channel := th.BasicChannel
 
 	HelpLink := *th.App.Config().SupportSettings.HelpLink
@@ -24,12 +24,12 @@ func TestHelpCommand(t *testing.T) {
 	}()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.SupportSettings.HelpLink = "" })
-	rs1, _ := Client.ExecuteCommand(channel.Id, "/help ")
-	assert.Equal(t, rs1.GotoLocation, model.SUPPORT_SETTINGS_DEFAULT_HELP_LINK, "failed to default help link")
+	rs1, _, _ := client.ExecuteCommand(channel.Id, "/help ")
+	assert.Equal(t, rs1.GotoLocation, model.SupportSettingsDefaultHelpLink, "failed to default help link")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.SupportSettings.HelpLink = "https://docs.mattermost.com/guides/user.html"
 	})
-	rs2, _ := Client.ExecuteCommand(channel.Id, "/help ")
+	rs2, _, _ := client.ExecuteCommand(channel.Id, "/help ")
 	assert.Equal(t, rs2.GotoLocation, "https://docs.mattermost.com/guides/user.html", "failed to help link")
 }

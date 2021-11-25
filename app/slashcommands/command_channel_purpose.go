@@ -4,10 +4,10 @@
 package slashcommands
 
 import (
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 )
 
 type PurposeProvider struct {
@@ -40,36 +40,36 @@ func (*PurposeProvider) DoCommand(a *app.App, c *request.Context, args *model.Co
 	if err != nil {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_channel_purpose.channel.app_error"),
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
 
 	switch channel.Type {
-	case model.CHANNEL_OPEN:
-		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES) {
+	case model.ChannelTypeOpen:
+		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PermissionManagePublicChannelProperties) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_purpose.permission.app_error"),
-				ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
-	case model.CHANNEL_PRIVATE:
-		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES) {
+	case model.ChannelTypePrivate:
+		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PermissionManagePrivateChannelProperties) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_purpose.permission.app_error"),
-				ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
 	default:
 		return &model.CommandResponse{
 			Text:         args.T("api.command_channel_purpose.direct_group.app_error"),
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
 
 	if message == "" {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_channel_purpose.message.app_error"),
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
 
@@ -83,13 +83,13 @@ func (*PurposeProvider) DoCommand(a *app.App, c *request.Context, args *model.Co
 		text := args.T("api.command_channel_purpose.update_channel.app_error")
 		if err.Id == "model.channel.is_valid.purpose.app_error" {
 			text = args.T("api.command_channel_purpose.update_channel.max_length", map[string]interface{}{
-				"MaxLength": model.CHANNEL_PURPOSE_MAX_RUNES,
+				"MaxLength": model.ChannelPurposeMaxRunes,
 			})
 		}
 
 		return &model.CommandResponse{
 			Text:         text,
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
 

@@ -10,8 +10,8 @@ import (
 	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 // dbSelecter is an interface used to enable some internal store methods to
@@ -157,7 +157,7 @@ func (s SqlChannelStore) migrateFavoritesToSidebarT(transaction *gorp.Transactio
 		Join("ChannelMembers on Preferences.Name = ChannelMembers.ChannelId and Preferences.UserId = ChannelMembers.UserId").
 		Where(sq.Eq{
 			"Preferences.UserId":   userId,
-			"Preferences.Category": model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+			"Preferences.Category": model.PreferenceCategoryFavoriteChannel,
 			"Preferences.Value":    "true",
 		}).
 		Where(sq.Or{
@@ -203,7 +203,7 @@ func (s SqlChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string, ru
 		Select("Preferences.UserId", "Preferences.Name AS ChannelId", "SidebarCategories.Id AS CategoryId").
 		From("Preferences").
 		Where(sq.And{
-			sq.Eq{"Preferences.Category": model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL},
+			sq.Eq{"Preferences.Category": model.PreferenceCategoryFavoriteChannel},
 			sq.NotEq{"Preferences.Value": "false"},
 			sq.NotEq{"SidebarCategories.Id": nil},
 			sq.Gt{"Preferences.UserId": lastUserId},
@@ -288,7 +288,7 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 
 		// Remove any channels from their previous categories and add them to the new one
 		var deleteQuery string
-		if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		if s.DriverName() == model.DatabaseDriverMysql {
 			deleteQuery = `
 				DELETE
 					SidebarChannels
@@ -378,11 +378,11 @@ func (s SqlChannelStore) completePopulatingCategoryChannelsT(db dbSelecter, cate
 	var channelTypeFilter sq.Sqlizer
 	if category.Type == model.SidebarCategoryDirectMessages {
 		// any DM/GM channels that aren't in any category should be returned as part of the Direct Messages category
-		channelTypeFilter = sq.Eq{"Channels.Type": []string{model.CHANNEL_DIRECT, model.CHANNEL_GROUP}}
+		channelTypeFilter = sq.Eq{"Channels.Type": []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}}
 	} else if category.Type == model.SidebarCategoryChannels {
 		// any public/private channels that are on the current team and aren't in any category should be returned as part of the Channels category
 		channelTypeFilter = sq.And{
-			sq.Eq{"Channels.Type": []string{model.CHANNEL_OPEN, model.CHANNEL_PRIVATE}},
+			sq.Eq{"Channels.Type": []model.ChannelType{model.ChannelTypeOpen, model.ChannelTypePrivate}},
 			sq.Eq{"Channels.TeamId": category.TeamId},
 		}
 	}
@@ -705,7 +705,7 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 				sq.Eq{
 					"UserId":   userId,
 					"Name":     originalCategory.Channels,
-					"Category": model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+					"Category": model.PreferenceCategoryFavoriteChannel,
 				},
 			).ToSql()
 
@@ -720,7 +720,7 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 				if err = s.Preference().(*SqlPreferenceStore).save(transaction, &model.Preference{
 					Name:     channelID,
 					UserId:   userId,
-					Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+					Category: model.PreferenceCategoryFavoriteChannel,
 					Value:    "true",
 				}); err != nil {
 					return nil, nil, errors.Wrap(err, "failed to save Preference")
@@ -732,7 +732,7 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 				sq.Eq{
 					"UserId":   userId,
 					"Name":     category.Channels,
-					"Category": model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+					"Category": model.PreferenceCategoryFavoriteChannel,
 				},
 			).ToSql()
 			if nErr != nil {
@@ -767,17 +767,17 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 
 // UpdateSidebarChannelsByPreferences is called when the Preference table is being updated to keep SidebarCategories in sync
 // At the moment, it's only handling Favorites and NOT DMs/GMs (those will be handled client side)
-func (s SqlChannelStore) UpdateSidebarChannelsByPreferences(preferences *model.Preferences) error {
+func (s SqlChannelStore) UpdateSidebarChannelsByPreferences(preferences model.Preferences) error {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "UpdateSidebarChannelsByPreferences: begin_transaction")
 	}
 	defer finalizeTransaction(transaction)
 
-	for _, preference := range *preferences {
+	for _, preference := range preferences {
 		preference := preference
 
-		if preference.Category != model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL {
+		if preference.Category != model.PreferenceCategoryFavoriteChannel {
 			continue
 		}
 
@@ -801,7 +801,7 @@ func (s SqlChannelStore) UpdateSidebarChannelsByPreferences(preferences *model.P
 }
 
 func (s SqlChannelStore) removeSidebarEntriesForPreferenceT(transaction *gorp.Transaction, preference *model.Preference) error {
-	if preference.Category != model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL {
+	if preference.Category != model.PreferenceCategoryFavoriteChannel {
 		return nil
 	}
 
@@ -813,7 +813,7 @@ func (s SqlChannelStore) removeSidebarEntriesForPreferenceT(transaction *gorp.Tr
 		"CategoryType": model.SidebarCategoryFavorites,
 	}
 	var query string
-	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if s.DriverName() == model.DatabaseDriverMysql {
 		query = `
 			DELETE
 				SidebarChannels
@@ -846,7 +846,7 @@ func (s SqlChannelStore) removeSidebarEntriesForPreferenceT(transaction *gorp.Tr
 }
 
 func (s SqlChannelStore) addChannelToFavoritesCategoryT(transaction *gorp.Transaction, preference *model.Preference) error {
-	if preference.Category != model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL {
+	if preference.Category != model.PreferenceCategoryFavoriteChannel {
 		return nil
 	}
 
@@ -918,17 +918,17 @@ func (s SqlChannelStore) addChannelToFavoritesCategoryT(transaction *gorp.Transa
 
 // DeleteSidebarChannelsByPreferences is called when the Preference table is being updated to keep SidebarCategories in sync
 // At the moment, it's only handling Favorites and NOT DMs/GMs (those will be handled client side)
-func (s SqlChannelStore) DeleteSidebarChannelsByPreferences(preferences *model.Preferences) error {
+func (s SqlChannelStore) DeleteSidebarChannelsByPreferences(preferences model.Preferences) error {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "DeleteSidebarChannelsByPreferences: begin_transaction")
 	}
 	defer finalizeTransaction(transaction)
 
-	for _, preference := range *preferences {
+	for _, preference := range preferences {
 		preference := preference
 
-		if preference.Category != model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL {
+		if preference.Category != model.PreferenceCategoryFavoriteChannel {
 			continue
 		}
 
@@ -961,7 +961,7 @@ func (s SqlChannelStore) ClearSidebarOnTeamLeave(userId, teamId string) error {
 	}
 
 	var deleteQuery string
-	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if s.DriverName() == model.DatabaseDriverMysql {
 		deleteQuery = "DELETE SidebarChannels FROM SidebarChannels LEFT JOIN SidebarCategories ON SidebarCategories.Id = SidebarChannels.CategoryId WHERE SidebarCategories.TeamId=:TeamId AND SidebarCategories.UserId=:UserId"
 	} else {
 		deleteQuery = `

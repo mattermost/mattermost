@@ -4,9 +4,7 @@
 package model
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"regexp"
 	"strings"
@@ -14,15 +12,15 @@ import (
 )
 
 const (
-	TEAM_OPEN                       = "O"
-	TEAM_INVITE                     = "I"
-	TEAM_ALLOWED_DOMAINS_MAX_LENGTH = 500
-	TEAM_COMPANY_NAME_MAX_LENGTH    = 64
-	TEAM_DESCRIPTION_MAX_LENGTH     = 255
-	TEAM_DISPLAY_NAME_MAX_RUNES     = 64
-	TEAM_EMAIL_MAX_LENGTH           = 128
-	TEAM_NAME_MAX_LENGTH            = 64
-	TEAM_NAME_MIN_LENGTH            = 2
+	TeamOpen                    = "O"
+	TeamInvite                  = "I"
+	TeamAllowedDomainsMaxLength = 500
+	TeamCompanyNameMaxLength    = 64
+	TeamDescriptionMaxLength    = 255
+	TeamDisplayNameMaxRunes     = 64
+	TeamEmailMaxLength          = 128
+	TeamNameMaxLength           = 64
+	TeamNameMinLength           = 2
 )
 
 type Team struct {
@@ -68,12 +66,6 @@ type TeamsWithCount struct {
 	TotalCount int64   `json:"total_count"`
 }
 
-func InvitesFromJson(data io.Reader) *Invites {
-	var o *Invites
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
 func (o *Invites) ToEmailList() []string {
 	emailList := make([]string, len(o.Invites))
 	for _, invite := range o.Invites {
@@ -82,61 +74,11 @@ func (o *Invites) ToEmailList() []string {
 	return emailList
 }
 
-func (o *Invites) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func (o *Team) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func TeamFromJson(data io.Reader) *Team {
-	var o *Team
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func TeamMapToJson(u map[string]*Team) string {
-	b, _ := json.Marshal(u)
-	return string(b)
-}
-
-func TeamMapFromJson(data io.Reader) map[string]*Team {
-	var teams map[string]*Team
-	json.NewDecoder(data).Decode(&teams)
-	return teams
-}
-
-func TeamListToJson(t []*Team) string {
-	b, _ := json.Marshal(t)
-	return string(b)
-}
-
-func TeamsWithCountToJson(tlc *TeamsWithCount) []byte {
-	b, _ := json.Marshal(tlc)
-	return b
-}
-
-func TeamsWithCountFromJson(data io.Reader) *TeamsWithCount {
-	var twc *TeamsWithCount
-	json.NewDecoder(data).Decode(&twc)
-	return twc
-}
-
-func TeamListFromJson(data io.Reader) []*Team {
-	var teams []*Team
-	json.NewDecoder(data).Decode(&teams)
-	return teams
-}
-
 func (o *Team) Etag() string {
 	return Etag(o.Id, o.UpdateAt)
 }
 
 func (o *Team) IsValid() *AppError {
-
 	if !IsValidId(o.Id) {
 		return NewAppError("Team.IsValid", "model.team.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -149,7 +91,7 @@ func (o *Team) IsValid() *AppError {
 		return NewAppError("Team.IsValid", "model.team.is_valid.update_at.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if len(o.Email) > TEAM_EMAIL_MAX_LENGTH {
+	if len(o.Email) > TeamEmailMaxLength {
 		return NewAppError("Team.IsValid", "model.team.is_valid.email.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -157,15 +99,15 @@ func (o *Team) IsValid() *AppError {
 		return NewAppError("Team.IsValid", "model.team.is_valid.email.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(o.DisplayName) == 0 || utf8.RuneCountInString(o.DisplayName) > TEAM_DISPLAY_NAME_MAX_RUNES {
+	if utf8.RuneCountInString(o.DisplayName) == 0 || utf8.RuneCountInString(o.DisplayName) > TeamDisplayNameMaxRunes {
 		return NewAppError("Team.IsValid", "model.team.is_valid.name.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if len(o.Name) > TEAM_NAME_MAX_LENGTH {
+	if len(o.Name) > TeamNameMaxLength {
 		return NewAppError("Team.IsValid", "model.team.is_valid.url.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if len(o.Description) > TEAM_DESCRIPTION_MAX_LENGTH {
+	if len(o.Description) > TeamDescriptionMaxLength {
 		return NewAppError("Team.IsValid", "model.team.is_valid.description.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -181,15 +123,15 @@ func (o *Team) IsValid() *AppError {
 		return NewAppError("Team.IsValid", "model.team.is_valid.characters.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if !(o.Type == TEAM_OPEN || o.Type == TEAM_INVITE) {
+	if !(o.Type == TeamOpen || o.Type == TeamInvite) {
 		return NewAppError("Team.IsValid", "model.team.is_valid.type.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if len(o.CompanyName) > TEAM_COMPANY_NAME_MAX_LENGTH {
+	if len(o.CompanyName) > TeamCompanyNameMaxLength {
 		return NewAppError("Team.IsValid", "model.team.is_valid.company.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if len(o.AllowedDomains) > TEAM_ALLOWED_DOMAINS_MAX_LENGTH {
+	if len(o.AllowedDomains) > TeamAllowedDomainsMaxLength {
 		return NewAppError("Team.IsValid", "model.team.is_valid.domains.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -235,11 +177,11 @@ func IsReservedTeamName(s string) bool {
 }
 
 func IsValidTeamName(s string) bool {
-	if !IsValidAlphaNum(s) {
+	if !isValidAlphaNum(s) {
 		return false
 	}
 
-	if len(s) < TEAM_NAME_MIN_LENGTH {
+	if len(s) < TeamNameMinLength {
 		return false
 	}
 
@@ -308,24 +250,4 @@ func (o *Team) Patch(patch *TeamPatch) {
 
 func (o *Team) IsGroupConstrained() bool {
 	return o.GroupConstrained != nil && *o.GroupConstrained
-}
-
-func (t *TeamPatch) ToJson() string {
-	b, err := json.Marshal(t)
-	if err != nil {
-		return ""
-	}
-
-	return string(b)
-}
-
-func TeamPatchFromJson(data io.Reader) *TeamPatch {
-	decoder := json.NewDecoder(data)
-	var team TeamPatch
-	err := decoder.Decode(&team)
-	if err != nil {
-		return nil
-	}
-
-	return &team
 }

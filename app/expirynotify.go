@@ -6,9 +6,9 @@ package app
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
@@ -19,21 +19,21 @@ const (
 func (a *App) NotifySessionsExpired() *model.AppError {
 	if *a.Config().EmailSettings.SendPushNotifications {
 		pushServer := *a.Config().EmailSettings.PushNotificationServer
-		if license := a.srv.License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
+		if license := a.ch.srv.License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
 			mlog.Warn("Push notifications are disabled. Go to System Console > Notifications > Mobile Push to enable them.")
 			return nil
 		}
 	}
 
 	// Get all mobile sessions that expired within the last hour.
-	sessions, err := a.srv.Store.Session().GetSessionsExpired(OneHourMillis, true, true)
+	sessions, err := a.ch.srv.Store.Session().GetSessionsExpired(OneHourMillis, true, true)
 	if err != nil {
 		return model.NewAppError("NotifySessionsExpired", "app.session.analytics_session_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	msg := &model.PushNotification{
-		Version: model.PUSH_MESSAGE_V2,
-		Type:    model.PUSH_TYPE_SESSION,
+		Version: model.PushMessageV2,
+		Type:    model.PushTypeSession,
 	}
 
 	for _, session := range sessions {
@@ -59,14 +59,14 @@ func (a *App) NotifySessionsExpired() *model.AppError {
 			mlog.String("type", tmpMessage.Type),
 			mlog.String("userId", session.UserId),
 			mlog.String("deviceId", tmpMessage.DeviceId),
-			mlog.String("status", model.PUSH_SEND_SUCCESS),
+			mlog.String("status", model.PushSendSuccess),
 		)
 
 		if a.Metrics() != nil {
 			a.Metrics().IncrementPostSentPush()
 		}
 
-		err = a.srv.Store.Session().UpdateExpiredNotify(session.Id, true)
+		err = a.ch.srv.Store.Session().UpdateExpiredNotify(session.Id, true)
 		if err != nil {
 			mlog.Error("Failed to update ExpiredNotify flag", mlog.String("sessionid", session.Id), mlog.Err(err))
 		}
@@ -75,7 +75,7 @@ func (a *App) NotifySessionsExpired() *model.AppError {
 }
 
 func (a *App) getSessionExpiredPushMessage(session *model.Session) string {
-	locale := model.DEFAULT_LOCALE
+	locale := model.DefaultLocale
 	user, err := a.GetUser(session.UserId)
 	if err == nil {
 		locale = user.Locale

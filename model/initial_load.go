@@ -3,11 +3,6 @@
 
 package model
 
-import (
-	"encoding/json"
-	"io"
-)
-
 type InitialLoad struct {
 	User        *User             `json:"user"`
 	TeamMembers []*TeamMember     `json:"team_members"`
@@ -16,15 +11,4 @@ type InitialLoad struct {
 	ClientCfg   map[string]string `json:"client_cfg"`
 	LicenseCfg  map[string]string `json:"license_cfg"`
 	NoAccounts  bool              `json:"no_accounts"`
-}
-
-func (il *InitialLoad) ToJson() string {
-	b, _ := json.Marshal(il)
-	return string(b)
-}
-
-func InitialLoadFromJson(data io.Reader) *InitialLoad {
-	var il *InitialLoad
-	json.NewDecoder(data).Decode(&il)
-	return il
 }

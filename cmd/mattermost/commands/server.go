@@ -15,14 +15,14 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/v5/api4"
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/manualtesting"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/mattermost/mattermost-server/v5/web"
-	"github.com/mattermost/mattermost-server/v5/wsapi"
+	"github.com/mattermost/mattermost-server/v6/api4"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/manualtesting"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
+	"github.com/mattermost/mattermost-server/v6/web"
+	"github.com/mattermost/mattermost-server/v6/wsapi"
 )
 
 var serverCmd = &cobra.Command{
@@ -93,17 +93,14 @@ func runServer(configStore *config.Store, interruptChan chan os.Signal) error {
 		}
 	}()
 
-	a := app.New(app.ServerConnector(server))
-	api := api4.Init(a, server.Router)
-
+	api := api4.Init(server)
 	wsapi.Init(server)
-	web.New(a, server.Router)
-	api4.InitLocal(a, server.LocalRouter)
+	web.New(server)
 
-	serverErr := server.Start()
-	if serverErr != nil {
-		mlog.Critical(serverErr.Error())
-		return serverErr
+	err = server.Start()
+	if err != nil {
+		mlog.Critical(err.Error())
+		return err
 	}
 
 	// If we allow testing then listen for manual testing URL hits

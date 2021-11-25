@@ -14,10 +14,10 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 var ErrNotFound = errors.New("Item not found")
@@ -332,9 +332,7 @@ func (env *Environment) RestartPlugin(id string) error {
 
 // Shutdown deactivates all plugins and gracefully shuts down the environment.
 func (env *Environment) Shutdown() {
-	if env.pluginHealthCheckJob != nil {
-		env.pluginHealthCheckJob.Cancel()
-	}
+	env.TogglePluginHealthCheckJob(false)
 
 	var wg sync.WaitGroup
 	env.registeredPlugins.Range(func(key, value interface{}) bool {
@@ -507,8 +505,8 @@ func newRegisteredPlugin(bundle *model.BundleInfo) registeredPlugin {
 	return registeredPlugin{State: state, BundleInfo: bundle}
 }
 
-// InitPluginHealthCheckJob starts a new job if one is not running and is set to enabled, or kills an existing one if set to disabled.
-func (env *Environment) InitPluginHealthCheckJob(enable bool) {
+// TogglePluginHealthCheckJob starts a new job if one is not running and is set to enabled, or kills an existing one if set to disabled.
+func (env *Environment) TogglePluginHealthCheckJob(enable bool) {
 	// Config is set to enable. No job exists, start a new job.
 	if enable && env.pluginHealthCheckJob == nil {
 		mlog.Debug("Enabling plugin health check job", mlog.Duration("interval_s", HealthCheckInterval))

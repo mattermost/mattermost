@@ -11,16 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSharedChannelJson(t *testing.T) {
-	o := SharedChannel{ChannelId: NewId(), ShareName: NewId()}
-	json := o.ToJson()
-	ro, err := SharedChannelFromJson(strings.NewReader(json))
-
-	require.NoError(t, err)
-	require.Equal(t, o.ChannelId, ro.ChannelId)
-	require.Equal(t, o.ShareName, ro.ShareName)
-}
-
 func TestSharedChannelIsValid(t *testing.T) {
 	id := NewId()
 	now := GetMillis()
@@ -73,14 +63,4 @@ func TestSharedChannelPreUpdate(t *testing.T) {
 	o.PreUpdate()
 
 	require.GreaterOrEqual(t, o.UpdateAt, now)
-}
-
-func TestSharedChannelRemoteJson(t *testing.T) {
-	o := SharedChannelRemote{Id: NewId(), ChannelId: NewId()}
-	json := o.ToJson()
-	ro, err := SharedChannelRemoteFromJson(strings.NewReader(json))
-
-	require.NoError(t, err)
-	require.Equal(t, o.Id, ro.Id)
-	require.Equal(t, o.ChannelId, ro.ChannelId)
 }

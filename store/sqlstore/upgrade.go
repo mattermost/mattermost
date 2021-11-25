@@ -5,18 +5,20 @@ package sqlstore
 
 import (
 	"database/sql"
-	"os"
-	"time"
 
 	"github.com/blang/semver"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
-	CurrentSchemaVersion   = Version5380
+	CurrentSchemaVersion   = Version610
+	Version620             = "6.2.0"
+	Version610             = "6.1.0"
+	Version600             = "6.0.0"
+	Version5390            = "5.39.0"
 	Version5380            = "5.38.0"
 	Version5370            = "5.37.0"
 	Version5360            = "5.36.0"
@@ -209,15 +211,17 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion536(sqlStore)
 	upgradeDatabaseToVersion537(sqlStore)
 	upgradeDatabaseToVersion538(sqlStore)
+	upgradeDatabaseToVersion539(sqlStore)
+	upgradeDatabaseToVersion600(sqlStore)
+	upgradeDatabaseToVersion610(sqlStore)
+	upgradeDatabaseToVersion620(sqlStore)
 
 	return nil
 }
 
 func saveSchemaVersion(sqlStore *SqlStore, version string) {
 	if err := sqlStore.System().SaveOrUpdate(&model.System{Name: "Version", Value: version}); err != nil {
-		mlog.Critical(err.Error())
-		time.Sleep(time.Second)
-		os.Exit(ExitVersionSave)
+		mlog.Fatal(err.Error())
 	}
 
 	mlog.Warn("The database schema version has been upgraded", mlog.String("version", version))
@@ -260,16 +264,14 @@ func upgradeDatabaseToVersion32(sqlStore *SqlStore) {
 }
 
 func themeMigrationFailed(err error) {
-	mlog.Critical("Failed to migrate User.ThemeProps to Preferences table", mlog.Err(err))
-	time.Sleep(time.Second)
-	os.Exit(ExitThemeMigration)
+	mlog.Fatal("Failed to migrate User.ThemeProps to Preferences table", mlog.Err(err))
 }
 
 func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version320, Version330) {
 		if sqlStore.DoesColumnExist("Users", "ThemeProps") {
 			params := map[string]interface{}{
-				"Category": model.PREFERENCE_CATEGORY_THEME,
+				"Category": model.PreferenceCategoryTheme,
 				"Name":     "",
 			}
 
@@ -284,7 +286,7 @@ func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 				`INSERT INTO
 					Preferences(UserId, Category, Name, Value)
 				SELECT
-					Id, '`+model.PREFERENCE_CATEGORY_THEME+`', '', ThemeProps
+					Id, '`+model.PreferenceCategoryTheme+`', '', ThemeProps
 				FROM
 					Users
 				WHERE
@@ -527,7 +529,7 @@ func upgradeDatabaseToVersion58(sqlStore *SqlStore) {
 		sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "Description", "text", "VARCHAR(500)")
 		sqlStore.AlterColumnTypeIfExists("OutgoingWebhooks", "IconURL", "text", "VARCHAR(1024)")
 		sqlStore.RemoveDefaultIfColumnExists("OutgoingWebhooks", "Username")
-		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		if sqlStore.DriverName() == model.DatabaseDriverPostgres {
 			sqlStore.RemoveDefaultIfColumnExists("OutgoingWebhooks", "IconURL")
 		}
 		sqlStore.AlterDefaultIfColumnExists("OutgoingWebhooks", "Username", model.NewString("NULL"), nil)
@@ -681,8 +683,7 @@ func upgradeDatabaseToVersion527(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion528(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5270, Version5280) {
 		if err := precheckMigrationToVersion528(sqlStore); err != nil {
-			mlog.Critical("Error upgrading DB schema to 5.28.0", mlog.Err(err))
-			os.Exit(ExitGenericFailure)
+			mlog.Fatal("Error upgrading DB schema to 5.28.0", mlog.Err(err))
 		}
 
 		sqlStore.AlterColumnTypeIfExists("Teams", "Type", "VARCHAR(255)", "VARCHAR(255)")
@@ -751,6 +752,8 @@ func upgradeDatabaseToVersion531(sqlStore *SqlStore) {
 	}
 }
 
+const RemoteClusterSiteURLUniqueIndex = "remote_clusters_site_url_unique"
+
 func hasMissingMigrationsVersion532(sqlStore *SqlStore) bool {
 	scIdInfo, err := sqlStore.GetColumnInfo("Posts", "FileIds")
 	if err != nil {
@@ -762,22 +765,10 @@ func hasMissingMigrationsVersion532(sqlStore *SqlStore) bool {
 		return true
 	}
 
-	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if sqlStore.DriverName() == model.DatabaseDriverPostgres {
 		if !sqlStore.IsVarchar(scIdInfo.DataType) || scIdInfo.CharMaximumLength != 300 {
 			return true
 		}
-	}
-
-	if !sqlStore.DoesColumnExist("ThreadMemberships", "UnreadMentions") {
-		return true
-	}
-
-	if !sqlStore.DoesColumnExist("Reactions", "UpdateAt") {
-		return true
-	}
-
-	if !sqlStore.DoesColumnExist("Reactions", "DeleteAt") {
-		return true
 	}
 
 	return false
@@ -787,7 +778,7 @@ func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
 	if hasMissingMigrationsVersion532(sqlStore) {
 		// this migration was reverted on MySQL due to performance reasons. Doing
 		// it only on PostgreSQL for the time being.
-		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		if sqlStore.DriverName() == model.DatabaseDriverPostgres {
 			// allow 10 files per post
 			sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
 		}
@@ -837,4 +828,30 @@ func upgradeDatabaseToVersion538(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5370, Version5380) {
 		saveSchemaVersion(sqlStore, Version5380)
 	}
+}
+
+func upgradeDatabaseToVersion539(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, Version5380, Version5390) {
+		saveSchemaVersion(sqlStore, Version5390)
+	}
+}
+
+func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, Version5390, Version600) {
+		saveSchemaVersion(sqlStore, Version600)
+	}
+}
+
+func upgradeDatabaseToVersion610(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, Version600, Version610) {
+		saveSchemaVersion(sqlStore, Version610)
+	}
+}
+
+func upgradeDatabaseToVersion620(sqlStore *SqlStore) {
+	// TODO: uncomment when the time arrive to upgrade the DB for 6.2
+	// if shouldPerformUpgrade(sqlStore, Version610, Version620) {
+
+	// 	saveSchemaVersion(sqlStore, Version620)
+	// }
 }

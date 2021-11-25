@@ -7,6 +7,7 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
+	"encoding/json"
 	"io"
 	"os"
 	"path/filepath"
@@ -16,8 +17,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 type nilReadSeeker struct {
@@ -72,7 +73,7 @@ func TestInstallPluginLocally(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
 
-		actualManifest, appErr := th.App.installPluginLocally(&nilReadSeeker{}, nil, installPluginLocallyOnlyIfNew)
+		actualManifest, appErr := th.App.ch.installPluginLocally(&nilReadSeeker{}, nil, installPluginLocallyOnlyIfNew)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.plugin.extract.app_error", appErr.Id, appErr.Error())
 		require.Nil(t, actualManifest)
@@ -86,7 +87,7 @@ func TestInstallPluginLocally(t *testing.T) {
 			{"test", "test file"},
 		})
 
-		actualManifest, appErr := th.App.installPluginLocally(reader, nil, installPluginLocallyOnlyIfNew)
+		actualManifest, appErr := th.App.ch.installPluginLocally(reader, nil, installPluginLocallyOnlyIfNew)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.plugin.manifest.app_error", appErr.Id, appErr.Error())
 		require.Nil(t, actualManifest)
@@ -99,11 +100,13 @@ func TestInstallPluginLocally(t *testing.T) {
 			Id:      id,
 			Version: version,
 		}
+		manifestJSON, jsonErr := json.Marshal(manifest)
+		require.NoError(t, jsonErr)
 		reader := makeInMemoryGzipTarFile(t, []testFile{
-			{"plugin.json", manifest.ToJson()},
+			{"plugin.json", string(manifestJSON)},
 		})
 
-		actualManifest, appError := th.App.installPluginLocally(reader, nil, installationStrategy)
+		actualManifest, appError := th.App.ch.installPluginLocally(reader, nil, installationStrategy)
 		if actualManifest != nil {
 			require.Equal(t, manifest, actualManifest)
 		}
@@ -131,7 +134,7 @@ func TestInstallPluginLocally(t *testing.T) {
 		require.NoError(t, err)
 
 		for _, bundleInfo := range bundleInfos {
-			err := th.App.removePluginLocally(bundleInfo.Manifest.Id)
+			err := th.App.ch.removePluginLocally(bundleInfo.Manifest.Id)
 			require.Nilf(t, err, "failed to remove existing plugin %s", bundleInfo.Manifest.Id)
 		}
 	}

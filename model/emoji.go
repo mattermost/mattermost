@@ -4,21 +4,17 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
 	"net/http"
 	"regexp"
 	"sort"
 )
 
 const (
-	EMOJI_NAME_MAX_LENGTH = 64
-	EMOJI_SORT_BY_NAME    = "name"
+	EmojiNameMaxLength = 64
+	EmojiSortByName    = "name"
 )
 
-var EMOJI_PATTERN = regexp.MustCompile(`:[a-zA-Z0-9_+-]+:`)
-
-var ReverseSystemEmojisMap = makeReverseEmojiMap()
+var EmojiPattern = regexp.MustCompile(`:[a-zA-Z0-9_+-]+:`)
 
 type Emoji struct {
 	Id        string `json:"id"`
@@ -51,8 +47,10 @@ func makeReverseEmojiMap() map[string][]string {
 	return reverseEmojiMap
 }
 
+var reverseSystemEmojisMap = makeReverseEmojiMap()
+
 func GetEmojiNameFromUnicode(unicode string) (emojiName string, count int) {
-	if emojiNames, found := ReverseSystemEmojisMap[unicode]; found {
+	if emojiNames, found := reverseSystemEmojisMap[unicode]; found {
 		return emojiNames[0], len(emojiNames)
 	}
 
@@ -80,7 +78,7 @@ func (emoji *Emoji) IsValid() *AppError {
 }
 
 func IsValidEmojiName(name string) *AppError {
-	if name == "" || len(name) > EMOJI_NAME_MAX_LENGTH || !IsValidAlphaNumHyphenUnderscorePlus(name) || inSystemEmoji(name) {
+	if name == "" || len(name) > EmojiNameMaxLength || !IsValidAlphaNumHyphenUnderscorePlus(name) || inSystemEmoji(name) {
 		return NewAppError("Emoji.IsValid", "model.emoji.name.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -94,26 +92,4 @@ func (emoji *Emoji) PreSave() {
 
 	emoji.CreateAt = GetMillis()
 	emoji.UpdateAt = emoji.CreateAt
-}
-
-func (emoji *Emoji) ToJson() string {
-	b, _ := json.Marshal(emoji)
-	return string(b)
-}
-
-func EmojiFromJson(data io.Reader) *Emoji {
-	var emoji *Emoji
-	json.NewDecoder(data).Decode(&emoji)
-	return emoji
-}
-
-func EmojiListToJson(emojiList []*Emoji) string {
-	b, _ := json.Marshal(emojiList)
-	return string(b)
-}
-
-func EmojiListFromJson(data io.Reader) []*Emoji {
-	var emojiList []*Emoji
-	json.NewDecoder(data).Decode(&emojiList)
-	return emojiList
 }

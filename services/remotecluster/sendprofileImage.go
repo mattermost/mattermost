@@ -15,8 +15,8 @@ import (
 	"path"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type SendProfileImageResultFunc func(userId string, rc *model.RemoteCluster, resp *Response, err error)
@@ -99,7 +99,7 @@ func (rcs *Service) sendProfileImageToRemote(timeout time.Duration, task sendPro
 	if err != nil {
 		return fmt.Errorf("invalid siteURL while sending file to remote %s: %w", task.rc.RemoteId, err)
 	}
-	u.Path = path.Join(u.Path, model.API_URL_SUFFIX, "remotecluster", task.userID, "image")
+	u.Path = path.Join(u.Path, model.APIURLSuffix, "remotecluster", task.userID, "image")
 
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
@@ -122,8 +122,8 @@ func (rcs *Service) sendProfileImageToRemote(timeout time.Duration, task sendPro
 		return err
 	}
 	req.Header.Set("Content-Type", writer.FormDataContentType())
-	req.Header.Set(model.HEADER_REMOTECLUSTER_ID, task.rc.RemoteId)
-	req.Header.Set(model.HEADER_REMOTECLUSTER_TOKEN, task.rc.RemoteToken)
+	req.Header.Set(model.HeaderRemoteclusterId, task.rc.RemoteId)
+	req.Header.Set(model.HeaderRemoteclusterToken, task.rc.RemoteToken)
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()

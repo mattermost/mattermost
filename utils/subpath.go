@@ -17,9 +17,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 // getSubpathScript renders the inline script that defines window.publicPath to change how webpack loads assets.
@@ -142,7 +142,7 @@ func UpdateAssetsSubpathInDir(subpath, directory string) error {
 // UpdateAssetsSubpath rewrites assets in the /client directory to assume the application is hosted
 // at the given subpath instead of at the root. No changes are written unless necessary.
 func UpdateAssetsSubpath(subpath string) error {
-	return UpdateAssetsSubpathInDir(subpath, model.CLIENT_DIR)
+	return UpdateAssetsSubpathInDir(subpath, model.ClientDir)
 }
 
 // UpdateAssetsSubpathFromConfig uses UpdateAssetsSubpath and any path defined in the SiteURL.

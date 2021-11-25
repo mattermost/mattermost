@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS PublicChannels (
     TeamId varchar(26) DEFAULT NULL,
     DisplayName varchar(64) DEFAULT NULL,
     Name varchar(64) DEFAULT NULL,
-    Header varchar(1024) DEFAULT NULL,
+    Header text,
     Purpose varchar(250) DEFAULT NULL,
     PRIMARY KEY (Id),
     UNIQUE KEY Name (Name, TeamId)

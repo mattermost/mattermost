@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS GroupChannels (
     GroupId varchar(26) NOT NULL,
     AutoAdd tinyint(1),
-    SchemeAdmin tinyint(1),
+    SchemeAdmin tinyint(1) DEFAULT NULL,
     CreateAt bigint(20) DEFAULT NULL,
     DeleteAt bigint(20) DEFAULT NULL,
     UpdateAt bigint(20) DEFAULT NULL,

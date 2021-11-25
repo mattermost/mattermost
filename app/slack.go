@@ -13,10 +13,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/slackimport"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/slackimport"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func (a *App) SlackImport(c *request.Context, fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer) {
@@ -38,10 +38,10 @@ func (a *App) SlackImport(c *request.Context, fileData multipart.File, fileSize 
 		},
 		GenerateThumbnailImage: a.generateThumbnailImage,
 		GeneratePreviewImage:   a.generatePreviewImage,
-		InvalidateAllCaches:    func() { a.srv.InvalidateAllCaches() },
-		MaxPostSize:            func() int { return a.srv.MaxPostSize() },
+		InvalidateAllCaches:    func() { a.ch.srv.InvalidateAllCaches() },
+		MaxPostSize:            func() int { return a.ch.srv.MaxPostSize() },
 		PrepareImage: func(fileData []byte) (image.Image, func(), error) {
-			img, release, err := prepareImage(a.srv.imgDecoder, bytes.NewReader(fileData))
+			img, release, err := prepareImage(a.ch.srv.imgDecoder, bytes.NewReader(fileData))
 			if err != nil {
 				return nil, nil, err
 			}
@@ -49,7 +49,7 @@ func (a *App) SlackImport(c *request.Context, fileData multipart.File, fileSize 
 		},
 	}
 
-	importer := slackimport.New(a.srv.Store, actions, a.Config())
+	importer := slackimport.New(a.ch.srv.Store, actions, a.Config())
 	return importer.SlackImport(fileData, fileSize, teamID)
 }
 
@@ -72,7 +72,7 @@ func (a *App) ProcessSlackAttachments(attachments []*model.SlackAttachment) []*m
 		attachment.Title = a.ProcessSlackText(attachment.Title)
 
 		for _, field := range attachment.Fields {
-			if field.Value != nil {
+			if field != nil && field.Value != nil {
 				// Ensure the value is set to a string if it is set
 				field.Value = a.ProcessSlackText(fmt.Sprintf("%v", field.Value))
 			}

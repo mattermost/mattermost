@@ -12,5 +12,5 @@ CREATE TABLE IF NOT EXISTS oauthapps (
 
 CREATE INDEX IF NOT EXISTS idx_oauthapps_creator_id ON oauthapps (creatorid);
 
-ALTER TABLE oauthapps ADD COLUMN IF NOT EXISTS istrusted boolean DEFAULT false;
-ALTER TABLE oauthapps ADD COLUMN IF NOT EXISTS iconurl VARCHAR(512) DEFAULT '';
+ALTER TABLE oauthapps ADD COLUMN IF NOT EXISTS istrusted boolean;
+ALTER TABLE oauthapps ADD COLUMN IF NOT EXISTS iconurl VARCHAR(512);

@@ -6,10 +6,10 @@ package migrations
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/app"
+	tjobs "github.com/mattermost/mattermost-server/v6/jobs/interfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 const (
@@ -17,8 +17,8 @@ const (
 	MigrationStateInProgress  = "in_progress"
 	MigrationStateCompleted   = "completed"
 
-	JobDataKeyMigration           = "migration_key"
-	JobDataKeyMigration_LAST_DONE = "last_done"
+	JobDataKeyMigration         = "migration_key"
+	JobDataKeyMigrationLastDone = "last_done"
 )
 
 type MigrationsJobInterfaceImpl struct {
@@ -33,7 +33,7 @@ func init() {
 
 func MakeMigrationsList() []string {
 	return []string{
-		model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2,
+		model.MigrationKeyAdvancedPermissionsPhase2,
 	}
 }
 
@@ -42,7 +42,7 @@ func GetMigrationState(migration string, store store.Store) (string, *model.Job,
 		return MigrationStateCompleted, nil, nil
 	}
 
-	jobs, err := store.Job().GetAllByType(model.JOB_TYPE_MIGRATIONS)
+	jobs, err := store.Job().GetAllByType(model.JobTypeMigrations)
 	if err != nil {
 		return "", nil, model.NewAppError("GetMigrationState", "app.job.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -54,7 +54,7 @@ func GetMigrationState(migration string, store store.Store) (string, *model.Job,
 			}
 
 			switch job.Status {
-			case model.JOB_STATUS_IN_PROGRESS, model.JOB_STATUS_PENDING:
+			case model.JobStatusInProgress, model.JobStatusPending:
 				return MigrationStateInProgress, job, nil
 			default:
 				return MigrationStateUnscheduled, job, nil

@@ -5,14 +5,16 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"reflect"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func (a *App) GetRole(id string) (*model.Role, *model.AppError) {
@@ -33,6 +35,20 @@ func (a *App) GetRole(id string) (*model.Role, *model.AppError) {
 	}
 
 	return role, nil
+}
+
+func (a *App) GetAllRoles() ([]*model.Role, *model.AppError) {
+	roles, err := a.Srv().Store.Role().GetAll()
+	if err != nil {
+		return nil, model.NewAppError("GetAllRoles", "app.role.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	appErr := a.Srv().mergeChannelHigherScopedPermissions(roles)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	return roles, nil
 }
 
 func (s *Server) GetRoleByName(ctx context.Context, name string) (*model.Role, *model.AppError) {
@@ -163,9 +179,9 @@ func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
 	}
 
 	builtInChannelRoles := []string{
-		model.CHANNEL_GUEST_ROLE_ID,
-		model.CHANNEL_USER_ROLE_ID,
-		model.CHANNEL_ADMIN_ROLE_ID,
+		model.ChannelGuestRoleId,
+		model.ChannelUserRoleId,
+		model.ChannelAdminRoleId,
 	}
 
 	builtInRolesMinusChannelRoles := append(utils.RemoveStringsFromSlice(model.BuiltInSchemeManagedRoleIDs, builtInChannelRoles...), model.NewSystemRoleIDs...)
@@ -239,8 +255,12 @@ func (a *App) CheckRolesExist(roleNames []string) *model.AppError {
 }
 
 func (a *App) sendUpdatedRoleEvent(role *model.Role) {
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ROLE_UPDATED, "", "", "", nil)
-	message.Add("role", role.ToJson())
+	message := model.NewWebSocketEvent(model.WebsocketEventRoleUpdated, "", "", "", nil)
+	roleJSON, jsonErr := json.Marshal(role)
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode role to JSON", mlog.Err(jsonErr))
+	}
+	message.Add("role", string(roleJSON))
 
 	a.Srv().Go(func() {
 		a.Publish(message)

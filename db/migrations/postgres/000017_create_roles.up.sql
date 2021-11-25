@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS roles (
     UNIQUE(name)
 );
 
-ALTER TABLE roles ADD COLUMN IF NOT EXISTS builtin boolean DEFAULT false;
+ALTER TABLE roles ADD COLUMN IF NOT EXISTS builtin boolean;
 
 UPDATE Roles SET SchemeManaged = false
 WHERE Name NOT IN ('system_user', 'system_admin', 'team_user', 'team_admin', 'channel_user', 'channel_admin');

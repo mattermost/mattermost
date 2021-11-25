@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS threadmemberships(
     PRIMARY KEY (postid, userid)
 );
 
-ALTER TABLE threadmemberships ADD COLUMN IF NOT EXISTS unreadmentions bigint default 0;
+ALTER TABLE threadmemberships ADD COLUMN IF NOT EXISTS unreadmentions bigint;
 
 CREATE INDEX IF NOT EXISTS idx_thread_memberships_last_update_at ON threadmemberships(lastupdated);
 CREATE INDEX IF NOT EXISTS idx_thread_memberships_last_view_at ON threadmemberships(lastviewed);

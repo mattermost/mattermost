@@ -39,7 +39,7 @@ SET @preparedStatement = (SELECT IF(
         AND column_name = 'HasReactions'
     ) > 0,
     'SELECT 1',
-    'ALTER TABLE Posts ADD HasReactions tinyint(1) DEFAULT 0;'
+    'ALTER TABLE Posts ADD HasReactions tinyint(1) DEFAULT NULL;'
 ));
 
 PREPARE alterIfNotExists FROM @preparedStatement;
@@ -54,7 +54,7 @@ SET @preparedStatement = (SELECT IF(
         AND column_name = 'EditAt'
     ) > 0,
     'SELECT 1',
-    'ALTER TABLE Posts ADD EditAt bigint(20) DEFAULT 0;'
+    'ALTER TABLE Posts ADD EditAt bigint(20) DEFAULT NULL;'
 ));
 
 PREPARE alterIfNotExists FROM @preparedStatement;
@@ -69,7 +69,7 @@ SET @preparedStatement = (SELECT IF(
         AND column_name = 'IsPinned'
     ) > 0,
     'SELECT 1',
-    'ALTER TABLE Posts ADD IsPinned tinyint(1) DEFAULT 0;'
+    'ALTER TABLE Posts ADD IsPinned tinyint(1) DEFAULT NULL;'
 ));
 
 PREPARE alterIfNotExists FROM @preparedStatement;

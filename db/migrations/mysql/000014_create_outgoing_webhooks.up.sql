@@ -36,7 +36,7 @@ SET @preparedStatement = (SELECT IF(
         AND column_name = 'TriggerWhen'
     ) > 0,
     'SELECT 1',
-    'ALTER TABLE OutgoingWebhooks ADD TriggerWhen int(11) DEFAULT 0;'
+    'ALTER TABLE OutgoingWebhooks ADD TriggerWhen int(11) DEFAULT NULL;'
 ));
 
 PREPARE alterIfNotExists FROM @preparedStatement;

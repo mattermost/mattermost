@@ -13,14 +13,14 @@ import (
 
 	rudder "github.com/rudderlabs/analytics-go"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/services/httpservice"
-	"github.com/mattermost/mattermost-server/v5/services/marketplace"
-	"github.com/mattermost/mattermost-server/v5/services/searchengine"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/services/httpservice"
+	"github.com/mattermost/mattermost-server/v6/services/marketplace"
+	"github.com/mattermost/mattermost-server/v6/services/searchengine"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 const (
@@ -44,7 +44,7 @@ const (
 	TrackConfigEmail             = "config_email"
 	TrackConfigPrivacy           = "config_privacy"
 	TrackConfigTheme             = "config_theme"
-	TrackConfigOauth             = "config_oauth"
+	TrackConfigOAuth             = "config_oauth"
 	TrackConfigLDAP              = "config_ldap"
 	TrackConfigCompliance        = "config_compliance"
 	TrackConfigLocalization      = "config_localization"
@@ -85,7 +85,7 @@ const (
 type ServerIface interface {
 	Config() *model.Config
 	IsLeader() bool
-	HttpService() httpservice.HTTPService
+	HTTPService() httpservice.HTTPService
 	GetPluginsEnvironment() *plugin.Environment
 	License() *model.License
 	GetRoleByName(context.Context, string) (*model.Role, *model.AppError)
@@ -104,7 +104,7 @@ type TelemetryService struct {
 
 type RudderConfig struct {
 	RudderKey    string
-	DataplaneUrl string
+	DataplaneURL string
 }
 
 func New(srv ServerIface, dbStore store.Store, searchEngine *searchengine.Broker, log *mlog.Logger) *TelemetryService {
@@ -122,20 +122,16 @@ func (ts *TelemetryService) ensureTelemetryID() {
 	if ts.TelemetryID != "" {
 		return
 	}
-	props, err := ts.dbStore.System().Get()
+
+	id := model.NewId()
+	systemID := &model.System{Name: model.SystemTelemetryId, Value: id}
+	systemID, err := ts.dbStore.System().InsertIfExists(systemID)
 	if err != nil {
 		mlog.Error("unable to get the telemetry ID", mlog.Err(err))
 		return
 	}
 
-	id := props[model.SYSTEM_TELEMETRY_ID]
-	if id == "" {
-		id = model.NewId()
-		systemID := &model.System{Name: model.SYSTEM_TELEMETRY_ID, Value: id}
-		ts.dbStore.System().Save(systemID)
-	}
-
-	ts.TelemetryID = id
+	ts.TelemetryID = systemID.Value
 }
 
 func (ts *TelemetryService) getRudderConfig() RudderConfig {
@@ -154,8 +150,8 @@ func (ts *TelemetryService) telemetryEnabled() bool {
 
 func (ts *TelemetryService) sendDailyTelemetry(override bool) {
 	config := ts.getRudderConfig()
-	if ts.telemetryEnabled() && ((config.DataplaneUrl != "" && config.RudderKey != "") || override) {
-		ts.initRudder(config.DataplaneUrl, config.RudderKey)
+	if ts.telemetryEnabled() && ((config.DataplaneURL != "" && config.RudderKey != "") || override) {
+		ts.initRudder(config.DataplaneURL, config.RudderKey)
 		ts.trackActivity()
 		ts.trackConfig()
 		ts.trackLicense()
@@ -169,7 +165,7 @@ func (ts *TelemetryService) sendDailyTelemetry(override bool) {
 	}
 }
 
-func (ts *TelemetryService) sendTelemetry(event string, properties map[string]interface{}) {
+func (ts *TelemetryService) SendTelemetry(event string, properties map[string]interface{}) {
 	if ts.rudderClient != nil {
 		var context *rudder.Context
 		// if we are part of a cloud installation, add it's ID to the tracked event's context
@@ -335,7 +331,7 @@ func (ts *TelemetryService) trackActivity() {
 		activeUsersMonthlyCount = r.Data.(int64)
 	}
 
-	ts.sendTelemetry(TrackActivity, map[string]interface{}{
+	ts.SendTelemetry(TrackActivity, map[string]interface{}{
 		"registered_users":             userCount,
 		"bot_accounts":                 botAccountsCount,
 		"guest_accounts":               guestAccountsCount,
@@ -359,26 +355,25 @@ func (ts *TelemetryService) trackActivity() {
 
 func (ts *TelemetryService) trackConfig() {
 	cfg := ts.srv.Config()
-	ts.sendTelemetry(TrackConfigService, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigService, map[string]interface{}{
 		"web_server_mode":                                         *cfg.ServiceSettings.WebserverMode,
 		"enable_security_fix_alert":                               *cfg.ServiceSettings.EnableSecurityFixAlert,
 		"enable_insecure_outgoing_connections":                    *cfg.ServiceSettings.EnableInsecureOutgoingConnections,
 		"enable_incoming_webhooks":                                cfg.ServiceSettings.EnableIncomingWebhooks,
 		"enable_outgoing_webhooks":                                cfg.ServiceSettings.EnableOutgoingWebhooks,
 		"enable_commands":                                         *cfg.ServiceSettings.EnableCommands,
-		"enable_only_admin_integrations":                          *cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_EnableOnlyAdminIntegrations,
 		"enable_post_username_override":                           cfg.ServiceSettings.EnablePostUsernameOverride,
 		"enable_post_icon_override":                               cfg.ServiceSettings.EnablePostIconOverride,
 		"enable_user_access_tokens":                               *cfg.ServiceSettings.EnableUserAccessTokens,
 		"enable_custom_emoji":                                     *cfg.ServiceSettings.EnableCustomEmoji,
 		"enable_emoji_picker":                                     *cfg.ServiceSettings.EnableEmojiPicker,
 		"enable_gif_picker":                                       *cfg.ServiceSettings.EnableGifPicker,
-		"gfycat_api_key":                                          isDefault(*cfg.ServiceSettings.GfycatApiKey, model.SERVICE_SETTINGS_DEFAULT_GFYCAT_API_KEY),
-		"gfycat_api_secret":                                       isDefault(*cfg.ServiceSettings.GfycatApiSecret, model.SERVICE_SETTINGS_DEFAULT_GFYCAT_API_SECRET),
+		"gfycat_api_key":                                          isDefault(*cfg.ServiceSettings.GfycatAPIKey, model.ServiceSettingsDefaultGfycatAPIKey),
+		"gfycat_api_secret":                                       isDefault(*cfg.ServiceSettings.GfycatAPISecret, model.ServiceSettingsDefaultGfycatAPISecret),
 		"experimental_enable_authentication_transfer":             *cfg.ServiceSettings.ExperimentalEnableAuthenticationTransfer,
-		"restrict_custom_emoji_creation":                          *cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation,
 		"enable_testing":                                          cfg.ServiceSettings.EnableTesting,
 		"enable_developer":                                        *cfg.ServiceSettings.EnableDeveloper,
+		"developer_flags":                                         isDefault(*cfg.ServiceSettings.DeveloperFlags, model.ServiceSettingsDefaultDeveloperFlags),
 		"enable_multifactor_authentication":                       *cfg.ServiceSettings.EnableMultifactorAuthentication,
 		"enforce_multifactor_authentication":                      *cfg.ServiceSettings.EnforceMultifactorAuthentication,
 		"enable_oauth_service_provider":                           cfg.ServiceSettings.EnableOAuthServiceProvider,
@@ -393,20 +388,18 @@ func (ts *TelemetryService) trackConfig() {
 		"session_length_sso_in_days":                              *cfg.ServiceSettings.SessionLengthSSOInDays,
 		"session_cache_in_minutes":                                *cfg.ServiceSettings.SessionCacheInMinutes,
 		"session_idle_timeout_in_minutes":                         *cfg.ServiceSettings.SessionIdleTimeoutInMinutes,
-		"isdefault_site_url":                                      isDefault(*cfg.ServiceSettings.SiteURL, model.SERVICE_SETTINGS_DEFAULT_SITE_URL),
-		"isdefault_tls_cert_file":                                 isDefault(*cfg.ServiceSettings.TLSCertFile, model.SERVICE_SETTINGS_DEFAULT_TLS_CERT_FILE),
-		"isdefault_tls_key_file":                                  isDefault(*cfg.ServiceSettings.TLSKeyFile, model.SERVICE_SETTINGS_DEFAULT_TLS_KEY_FILE),
-		"isdefault_read_timeout":                                  isDefault(*cfg.ServiceSettings.ReadTimeout, model.SERVICE_SETTINGS_DEFAULT_READ_TIMEOUT),
-		"isdefault_write_timeout":                                 isDefault(*cfg.ServiceSettings.WriteTimeout, model.SERVICE_SETTINGS_DEFAULT_WRITE_TIMEOUT),
-		"isdefault_idle_timeout":                                  isDefault(*cfg.ServiceSettings.IdleTimeout, model.SERVICE_SETTINGS_DEFAULT_IDLE_TIMEOUT),
+		"isdefault_site_url":                                      isDefault(*cfg.ServiceSettings.SiteURL, model.ServiceSettingsDefaultSiteURL),
+		"isdefault_tls_cert_file":                                 isDefault(*cfg.ServiceSettings.TLSCertFile, model.ServiceSettingsDefaultTLSCertFile),
+		"isdefault_tls_key_file":                                  isDefault(*cfg.ServiceSettings.TLSKeyFile, model.ServiceSettingsDefaultTLSKeyFile),
+		"isdefault_read_timeout":                                  isDefault(*cfg.ServiceSettings.ReadTimeout, model.ServiceSettingsDefaultReadTimeout),
+		"isdefault_write_timeout":                                 isDefault(*cfg.ServiceSettings.WriteTimeout, model.ServiceSettingsDefaultWriteTimeout),
+		"isdefault_idle_timeout":                                  isDefault(*cfg.ServiceSettings.IdleTimeout, model.ServiceSettingsDefaultIdleTimeout),
 		"isdefault_google_developer_key":                          isDefault(cfg.ServiceSettings.GoogleDeveloperKey, ""),
-		"isdefault_allow_cors_from":                               isDefault(*cfg.ServiceSettings.AllowCorsFrom, model.SERVICE_SETTINGS_DEFAULT_ALLOW_CORS_FROM),
+		"isdefault_allow_cors_from":                               isDefault(*cfg.ServiceSettings.AllowCorsFrom, model.ServiceSettingsDefaultAllowCorsFrom),
 		"isdefault_cors_exposed_headers":                          isDefault(cfg.ServiceSettings.CorsExposedHeaders, ""),
 		"cors_allow_credentials":                                  *cfg.ServiceSettings.CorsAllowCredentials,
 		"cors_debug":                                              *cfg.ServiceSettings.CorsDebug,
 		"isdefault_allowed_untrusted_internal_connections":        isDefault(*cfg.ServiceSettings.AllowedUntrustedInternalConnections, ""),
-		"restrict_post_delete":                                    *cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictPostDelete,
-		"allow_edit_post":                                         *cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_AllowEditPost,
 		"post_edit_time_limit":                                    *cfg.ServiceSettings.PostEditTimeLimit,
 		"enable_user_typing_messages":                             *cfg.ServiceSettings.EnableUserTypingMessages,
 		"enable_channel_viewed_messages":                          *cfg.ServiceSettings.EnableChannelViewedMessages,
@@ -415,9 +408,9 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_post_search":                                      *cfg.ServiceSettings.EnablePostSearch,
 		"minimum_hashtag_length":                                  *cfg.ServiceSettings.MinimumHashtagLength,
 		"enable_user_statuses":                                    *cfg.ServiceSettings.EnableUserStatuses,
-		"close_unused_direct_messages":                            *cfg.ServiceSettings.CloseUnusedDirectMessages,
 		"enable_preview_features":                                 *cfg.ServiceSettings.EnablePreviewFeatures,
 		"enable_tutorial":                                         *cfg.ServiceSettings.EnableTutorial,
+		"enable_onboarding_flow":                                  *cfg.ServiceSettings.EnableOnboardingFlow,
 		"experimental_enable_default_channel_leave_join_messages": *cfg.ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages,
 		"experimental_group_unread_channels":                      *cfg.ServiceSettings.ExperimentalGroupUnreadChannels,
 		"collapsed_threads":                                       *cfg.ServiceSettings.CollapsedThreads,
@@ -427,69 +420,54 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_api_user_deletion":                                *cfg.ServiceSettings.EnableAPIUserDeletion,
 		"enable_api_channel_deletion":                             *cfg.ServiceSettings.EnableAPIChannelDeletion,
 		"experimental_enable_hardened_mode":                       *cfg.ServiceSettings.ExperimentalEnableHardenedMode,
-		"disable_legacy_mfa":                                      *cfg.ServiceSettings.DisableLegacyMFA,
 		"experimental_strict_csrf_enforcement":                    *cfg.ServiceSettings.ExperimentalStrictCSRFEnforcement,
 		"enable_email_invitations":                                *cfg.ServiceSettings.EnableEmailInvitations,
-		"experimental_channel_organization":                       *cfg.ServiceSettings.ExperimentalChannelOrganization,
 		"disable_bots_when_owner_is_deactivated":                  *cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated,
 		"enable_bot_account_creation":                             *cfg.ServiceSettings.EnableBotAccountCreation,
 		"enable_svgs":                                             *cfg.ServiceSettings.EnableSVGs,
 		"enable_latex":                                            *cfg.ServiceSettings.EnableLatex,
+		"enable_inline_latex":                                     *cfg.ServiceSettings.EnableInlineLatex,
 		"enable_opentracing":                                      *cfg.ServiceSettings.EnableOpenTracing,
 		"enable_local_mode":                                       *cfg.ServiceSettings.EnableLocalMode,
 		"managed_resource_paths":                                  isDefault(*cfg.ServiceSettings.ManagedResourcePaths, ""),
-		"enable_legacy_sidebar":                                   *cfg.ServiceSettings.EnableLegacySidebar,
 		"thread_auto_follow":                                      *cfg.ServiceSettings.ThreadAutoFollow,
 		"enable_link_previews":                                    *cfg.ServiceSettings.EnableLinkPreviews,
+		"enable_permalink_previews":                               *cfg.ServiceSettings.EnablePermalinkPreviews,
 		"enable_file_search":                                      *cfg.ServiceSettings.EnableFileSearch,
 		"restrict_link_previews":                                  isDefault(*cfg.ServiceSettings.RestrictLinkPreviews, ""),
 	})
 
-	ts.sendTelemetry(TrackConfigTeam, map[string]interface{}{
-		"enable_user_creation":                      cfg.TeamSettings.EnableUserCreation,
-		"enable_team_creation":                      *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_EnableTeamCreation,
-		"restrict_team_invite":                      *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictTeamInvite,
-		"restrict_public_channel_creation":          *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelCreation,
-		"restrict_private_channel_creation":         *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelCreation,
-		"restrict_public_channel_management":        *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement,
-		"restrict_private_channel_management":       *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement,
-		"restrict_public_channel_deletion":          *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelDeletion,
-		"restrict_private_channel_deletion":         *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelDeletion,
-		"enable_open_server":                        *cfg.TeamSettings.EnableOpenServer,
-		"enable_user_deactivation":                  *cfg.TeamSettings.EnableUserDeactivation,
-		"enable_custom_user_statuses":               *cfg.TeamSettings.EnableCustomUserStatuses,
-		"enable_custom_brand":                       *cfg.TeamSettings.EnableCustomBrand,
-		"restrict_direct_message":                   *cfg.TeamSettings.RestrictDirectMessage,
-		"max_notifications_per_channel":             *cfg.TeamSettings.MaxNotificationsPerChannel,
-		"enable_confirm_notifications_to_channel":   *cfg.TeamSettings.EnableConfirmNotificationsToChannel,
-		"max_users_per_team":                        *cfg.TeamSettings.MaxUsersPerTeam,
-		"max_channels_per_team":                     *cfg.TeamSettings.MaxChannelsPerTeam,
-		"teammate_name_display":                     *cfg.TeamSettings.TeammateNameDisplay,
-		"experimental_view_archived_channels":       *cfg.TeamSettings.ExperimentalViewArchivedChannels,
-		"lock_teammate_name_display":                *cfg.TeamSettings.LockTeammateNameDisplay,
-		"isdefault_site_name":                       isDefault(cfg.TeamSettings.SiteName, "Mattermost"),
-		"isdefault_custom_brand_text":               isDefault(*cfg.TeamSettings.CustomBrandText, model.TEAM_SETTINGS_DEFAULT_CUSTOM_BRAND_TEXT),
-		"isdefault_custom_description_text":         isDefault(*cfg.TeamSettings.CustomDescriptionText, model.TEAM_SETTINGS_DEFAULT_CUSTOM_DESCRIPTION_TEXT),
-		"isdefault_user_status_away_timeout":        isDefault(*cfg.TeamSettings.UserStatusAwayTimeout, model.TEAM_SETTINGS_DEFAULT_USER_STATUS_AWAY_TIMEOUT),
-		"restrict_private_channel_manage_members":   *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManageMembers,
-		"enable_X_to_leave_channels_from_LHS":       *cfg.TeamSettings.EnableXToLeaveChannelsFromLHS,
-		"experimental_enable_automatic_replies":     *cfg.TeamSettings.ExperimentalEnableAutomaticReplies,
-		"experimental_town_square_is_hidden_in_lhs": *cfg.TeamSettings.ExperimentalHideTownSquareinLHS,
-		"experimental_town_square_is_read_only":     *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly,
-		"experimental_primary_team":                 isDefault(*cfg.TeamSettings.ExperimentalPrimaryTeam, ""),
-		"experimental_default_channels":             len(cfg.TeamSettings.ExperimentalDefaultChannels),
+	ts.SendTelemetry(TrackConfigTeam, map[string]interface{}{
+		"enable_user_creation":                    cfg.TeamSettings.EnableUserCreation,
+		"enable_open_server":                      *cfg.TeamSettings.EnableOpenServer,
+		"enable_user_deactivation":                *cfg.TeamSettings.EnableUserDeactivation,
+		"enable_custom_user_statuses":             *cfg.TeamSettings.EnableCustomUserStatuses,
+		"enable_custom_brand":                     *cfg.TeamSettings.EnableCustomBrand,
+		"restrict_direct_message":                 *cfg.TeamSettings.RestrictDirectMessage,
+		"max_notifications_per_channel":           *cfg.TeamSettings.MaxNotificationsPerChannel,
+		"enable_confirm_notifications_to_channel": *cfg.TeamSettings.EnableConfirmNotificationsToChannel,
+		"max_users_per_team":                      *cfg.TeamSettings.MaxUsersPerTeam,
+		"max_channels_per_team":                   *cfg.TeamSettings.MaxChannelsPerTeam,
+		"teammate_name_display":                   *cfg.TeamSettings.TeammateNameDisplay,
+		"experimental_view_archived_channels":     *cfg.TeamSettings.ExperimentalViewArchivedChannels,
+		"lock_teammate_name_display":              *cfg.TeamSettings.LockTeammateNameDisplay,
+		"isdefault_site_name":                     isDefault(cfg.TeamSettings.SiteName, "Mattermost"),
+		"isdefault_custom_brand_text":             isDefault(*cfg.TeamSettings.CustomBrandText, model.TeamSettingsDefaultCustomBrandText),
+		"isdefault_custom_description_text":       isDefault(*cfg.TeamSettings.CustomDescriptionText, model.TeamSettingsDefaultCustomDescriptionText),
+		"isdefault_user_status_away_timeout":      isDefault(*cfg.TeamSettings.UserStatusAwayTimeout, model.TeamSettingsDefaultUserStatusAwayTimeout),
+		"experimental_enable_automatic_replies":   *cfg.TeamSettings.ExperimentalEnableAutomaticReplies,
+		"experimental_primary_team":               isDefault(*cfg.TeamSettings.ExperimentalPrimaryTeam, ""),
+		"experimental_default_channels":           len(cfg.TeamSettings.ExperimentalDefaultChannels),
 	})
 
-	ts.sendTelemetry(TrackConfigClientReq, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigClientReq, map[string]interface{}{
 		"android_latest_version": cfg.ClientRequirements.AndroidLatestVersion,
 		"android_min_version":    cfg.ClientRequirements.AndroidMinVersion,
-		"desktop_latest_version": cfg.ClientRequirements.DesktopLatestVersion,
-		"desktop_min_version":    cfg.ClientRequirements.DesktopMinVersion,
 		"ios_latest_version":     cfg.ClientRequirements.IosLatestVersion,
 		"ios_min_version":        cfg.ClientRequirements.IosMinVersion,
 	})
 
-	ts.sendTelemetry(TrackConfigSQL, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigSQL, map[string]interface{}{
 		"driver_name":                    *cfg.SqlSettings.DriverName,
 		"trace":                          cfg.SqlSettings.Trace,
 		"max_idle_conns":                 *cfg.SqlSettings.MaxIdleConns,
@@ -502,7 +480,7 @@ func (ts *TelemetryService) trackConfig() {
 		"disable_database_search":        *cfg.SqlSettings.DisableDatabaseSearch,
 	})
 
-	ts.sendTelemetry(TrackConfigLog, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigLog, map[string]interface{}{
 		"enable_console":           cfg.LogSettings.EnableConsole,
 		"console_level":            cfg.LogSettings.ConsoleLevel,
 		"console_json":             *cfg.LogSettings.ConsoleJson,
@@ -514,7 +492,7 @@ func (ts *TelemetryService) trackConfig() {
 		"advanced_logging_config":  *cfg.LogSettings.AdvancedLoggingConfig != "",
 	})
 
-	ts.sendTelemetry(TrackConfigAudit, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigAudit, map[string]interface{}{
 		"file_enabled":            *cfg.ExperimentalAuditSettings.FileEnabled,
 		"file_max_size_mb":        *cfg.ExperimentalAuditSettings.FileMaxSizeMB,
 		"file_max_age_days":       *cfg.ExperimentalAuditSettings.FileMaxAgeDays,
@@ -524,7 +502,7 @@ func (ts *TelemetryService) trackConfig() {
 		"advanced_logging_config": *cfg.ExperimentalAuditSettings.AdvancedLoggingConfig != "",
 	})
 
-	ts.sendTelemetry(TrackConfigNotificationLog, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigNotificationLog, map[string]interface{}{
 		"enable_console":          *cfg.NotificationLogSettings.EnableConsole,
 		"console_level":           *cfg.NotificationLogSettings.ConsoleLevel,
 		"console_json":            *cfg.NotificationLogSettings.ConsoleJson,
@@ -535,7 +513,7 @@ func (ts *TelemetryService) trackConfig() {
 		"advanced_logging_config": *cfg.NotificationLogSettings.AdvancedLoggingConfig != "",
 	})
 
-	ts.sendTelemetry(TrackConfigPassword, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigPassword, map[string]interface{}{
 		"minimum_length": *cfg.PasswordSettings.MinimumLength,
 		"lowercase":      *cfg.PasswordSettings.Lowercase,
 		"number":         *cfg.PasswordSettings.Number,
@@ -543,10 +521,10 @@ func (ts *TelemetryService) trackConfig() {
 		"symbol":         *cfg.PasswordSettings.Symbol,
 	})
 
-	ts.sendTelemetry(TrackConfigFile, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigFile, map[string]interface{}{
 		"enable_public_links":     cfg.FileSettings.EnablePublicLink,
 		"driver_name":             *cfg.FileSettings.DriverName,
-		"isdefault_directory":     isDefault(*cfg.FileSettings.Directory, model.FILE_SETTINGS_DEFAULT_DIRECTORY),
+		"isdefault_directory":     isDefault(*cfg.FileSettings.Directory, model.FileSettingsDefaultDirectory),
 		"isabsolute_directory":    filepath.IsAbs(*cfg.FileSettings.Directory),
 		"extract_content":         *cfg.FileSettings.ExtractContent,
 		"archive_recursion":       *cfg.FileSettings.ArchiveRecursion,
@@ -555,12 +533,13 @@ func (ts *TelemetryService) trackConfig() {
 		"amazon_s3_signv2":        *cfg.FileSettings.AmazonS3SignV2,
 		"amazon_s3_trace":         *cfg.FileSettings.AmazonS3Trace,
 		"max_file_size":           *cfg.FileSettings.MaxFileSize,
+		"max_image_resolution":    *cfg.FileSettings.MaxImageResolution,
 		"enable_file_attachments": *cfg.FileSettings.EnableFileAttachments,
 		"enable_mobile_upload":    *cfg.FileSettings.EnableMobileUpload,
 		"enable_mobile_download":  *cfg.FileSettings.EnableMobileDownload,
 	})
 
-	ts.sendTelemetry(TrackConfigEmail, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigEmail, map[string]interface{}{
 		"enable_sign_up_with_email":            cfg.EmailSettings.EnableSignUpWithEmail,
 		"enable_sign_in_with_email":            *cfg.EmailSettings.EnableSignInWithEmail,
 		"enable_sign_in_with_username":         *cfg.EmailSettings.EnableSignInWithUsername,
@@ -579,7 +558,7 @@ func (ts *TelemetryService) trackConfig() {
 		"isdefault_feedback_name":              isDefault(cfg.EmailSettings.FeedbackName, ""),
 		"isdefault_feedback_email":             isDefault(cfg.EmailSettings.FeedbackEmail, ""),
 		"isdefault_reply_to_address":           isDefault(cfg.EmailSettings.ReplyToAddress, ""),
-		"isdefault_feedback_organization":      isDefault(*cfg.EmailSettings.FeedbackOrganization, model.EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION),
+		"isdefault_feedback_organization":      isDefault(*cfg.EmailSettings.FeedbackOrganization, model.EmailSettingsDefaultFeedbackOrganization),
 		"skip_server_certificate_verification": *cfg.EmailSettings.SkipServerCertificateVerification,
 		"isdefault_login_button_color":         isDefault(*cfg.EmailSettings.LoginButtonColor, ""),
 		"isdefault_login_button_border_color":  isDefault(*cfg.EmailSettings.LoginButtonBorderColor, ""),
@@ -587,7 +566,7 @@ func (ts *TelemetryService) trackConfig() {
 		"smtp_server_timeout":                  *cfg.EmailSettings.SMTPServerTimeout,
 	})
 
-	ts.sendTelemetry(TrackConfigRate, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigRate, map[string]interface{}{
 		"enable_rate_limiter":      *cfg.RateLimitSettings.Enable,
 		"vary_by_remote_address":   *cfg.RateLimitSettings.VaryByRemoteAddr,
 		"vary_by_user":             *cfg.RateLimitSettings.VaryByUser,
@@ -597,41 +576,41 @@ func (ts *TelemetryService) trackConfig() {
 		"isdefault_vary_by_header": isDefault(cfg.RateLimitSettings.VaryByHeader, ""),
 	})
 
-	ts.sendTelemetry(TrackConfigPrivacy, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigPrivacy, map[string]interface{}{
 		"show_email_address": cfg.PrivacySettings.ShowEmailAddress,
 		"show_full_name":     cfg.PrivacySettings.ShowFullName,
 	})
 
-	ts.sendTelemetry(TrackConfigTheme, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigTheme, map[string]interface{}{
 		"enable_theme_selection":  *cfg.ThemeSettings.EnableThemeSelection,
-		"isdefault_default_theme": isDefault(*cfg.ThemeSettings.DefaultTheme, model.TEAM_SETTINGS_DEFAULT_TEAM_TEXT),
+		"isdefault_default_theme": isDefault(*cfg.ThemeSettings.DefaultTheme, model.TeamSettingsDefaultTeamText),
 		"allow_custom_themes":     *cfg.ThemeSettings.AllowCustomThemes,
 		"allowed_themes":          len(cfg.ThemeSettings.AllowedThemes),
 	})
 
-	ts.sendTelemetry(TrackConfigOauth, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigOAuth, map[string]interface{}{
 		"enable_gitlab":    cfg.GitLabSettings.Enable,
-		"openid_gitlab":    *cfg.GitLabSettings.Enable && strings.Contains(*cfg.GitLabSettings.Scope, model.SERVICE_OPENID),
+		"openid_gitlab":    *cfg.GitLabSettings.Enable && strings.Contains(*cfg.GitLabSettings.Scope, model.ServiceOpenid),
 		"enable_google":    cfg.GoogleSettings.Enable,
-		"openid_google":    *cfg.GoogleSettings.Enable && strings.Contains(*cfg.GoogleSettings.Scope, model.SERVICE_OPENID),
+		"openid_google":    *cfg.GoogleSettings.Enable && strings.Contains(*cfg.GoogleSettings.Scope, model.ServiceOpenid),
 		"enable_office365": cfg.Office365Settings.Enable,
-		"openid_office365": *cfg.Office365Settings.Enable && strings.Contains(*cfg.Office365Settings.Scope, model.SERVICE_OPENID),
+		"openid_office365": *cfg.Office365Settings.Enable && strings.Contains(*cfg.Office365Settings.Scope, model.ServiceOpenid),
 		"enable_openid":    cfg.OpenIdSettings.Enable,
 	})
 
-	ts.sendTelemetry(TrackConfigSupport, map[string]interface{}{
-		"isdefault_terms_of_service_link":              isDefault(*cfg.SupportSettings.TermsOfServiceLink, model.SUPPORT_SETTINGS_DEFAULT_TERMS_OF_SERVICE_LINK),
-		"isdefault_privacy_policy_link":                isDefault(*cfg.SupportSettings.PrivacyPolicyLink, model.SUPPORT_SETTINGS_DEFAULT_PRIVACY_POLICY_LINK),
-		"isdefault_about_link":                         isDefault(*cfg.SupportSettings.AboutLink, model.SUPPORT_SETTINGS_DEFAULT_ABOUT_LINK),
-		"isdefault_help_link":                          isDefault(*cfg.SupportSettings.HelpLink, model.SUPPORT_SETTINGS_DEFAULT_HELP_LINK),
-		"isdefault_report_a_problem_link":              isDefault(*cfg.SupportSettings.ReportAProblemLink, model.SUPPORT_SETTINGS_DEFAULT_REPORT_A_PROBLEM_LINK),
-		"isdefault_support_email":                      isDefault(*cfg.SupportSettings.SupportEmail, model.SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL),
+	ts.SendTelemetry(TrackConfigSupport, map[string]interface{}{
+		"isdefault_terms_of_service_link":              isDefault(*cfg.SupportSettings.TermsOfServiceLink, model.SupportSettingsDefaultTermsOfServiceLink),
+		"isdefault_privacy_policy_link":                isDefault(*cfg.SupportSettings.PrivacyPolicyLink, model.SupportSettingsDefaultPrivacyPolicyLink),
+		"isdefault_about_link":                         isDefault(*cfg.SupportSettings.AboutLink, model.SupportSettingsDefaultAboutLink),
+		"isdefault_help_link":                          isDefault(*cfg.SupportSettings.HelpLink, model.SupportSettingsDefaultHelpLink),
+		"isdefault_report_a_problem_link":              isDefault(*cfg.SupportSettings.ReportAProblemLink, model.SupportSettingsDefaultReportAProblemLink),
+		"isdefault_support_email":                      isDefault(*cfg.SupportSettings.SupportEmail, model.SupportSettingsDefaultSupportEmail),
 		"custom_terms_of_service_enabled":              *cfg.SupportSettings.CustomTermsOfServiceEnabled,
 		"custom_terms_of_service_re_acceptance_period": *cfg.SupportSettings.CustomTermsOfServiceReAcceptancePeriod,
 		"enable_ask_community_link":                    *cfg.SupportSettings.EnableAskCommunityLink,
 	})
 
-	ts.sendTelemetry(TrackConfigLDAP, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigLDAP, map[string]interface{}{
 		"enable":                                 *cfg.LdapSettings.Enable,
 		"enable_sync":                            *cfg.LdapSettings.EnableSync,
 		"enable_admin_filter":                    *cfg.LdapSettings.EnableAdminFilter,
@@ -640,21 +619,21 @@ func (ts *TelemetryService) trackConfig() {
 		"sync_interval_minutes":                  *cfg.LdapSettings.SyncIntervalMinutes,
 		"query_timeout":                          *cfg.LdapSettings.QueryTimeout,
 		"max_page_size":                          *cfg.LdapSettings.MaxPageSize,
-		"isdefault_first_name_attribute":         isDefault(*cfg.LdapSettings.FirstNameAttribute, model.LDAP_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE),
-		"isdefault_last_name_attribute":          isDefault(*cfg.LdapSettings.LastNameAttribute, model.LDAP_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE),
-		"isdefault_email_attribute":              isDefault(*cfg.LdapSettings.EmailAttribute, model.LDAP_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE),
-		"isdefault_username_attribute":           isDefault(*cfg.LdapSettings.UsernameAttribute, model.LDAP_SETTINGS_DEFAULT_USERNAME_ATTRIBUTE),
-		"isdefault_nickname_attribute":           isDefault(*cfg.LdapSettings.NicknameAttribute, model.LDAP_SETTINGS_DEFAULT_NICKNAME_ATTRIBUTE),
-		"isdefault_id_attribute":                 isDefault(*cfg.LdapSettings.IdAttribute, model.LDAP_SETTINGS_DEFAULT_ID_ATTRIBUTE),
-		"isdefault_position_attribute":           isDefault(*cfg.LdapSettings.PositionAttribute, model.LDAP_SETTINGS_DEFAULT_POSITION_ATTRIBUTE),
+		"isdefault_first_name_attribute":         isDefault(*cfg.LdapSettings.FirstNameAttribute, model.LdapSettingsDefaultFirstNameAttribute),
+		"isdefault_last_name_attribute":          isDefault(*cfg.LdapSettings.LastNameAttribute, model.LdapSettingsDefaultLastNameAttribute),
+		"isdefault_email_attribute":              isDefault(*cfg.LdapSettings.EmailAttribute, model.LdapSettingsDefaultEmailAttribute),
+		"isdefault_username_attribute":           isDefault(*cfg.LdapSettings.UsernameAttribute, model.LdapSettingsDefaultUsernameAttribute),
+		"isdefault_nickname_attribute":           isDefault(*cfg.LdapSettings.NicknameAttribute, model.LdapSettingsDefaultNicknameAttribute),
+		"isdefault_id_attribute":                 isDefault(*cfg.LdapSettings.IdAttribute, model.LdapSettingsDefaultIdAttribute),
+		"isdefault_position_attribute":           isDefault(*cfg.LdapSettings.PositionAttribute, model.LdapSettingsDefaultPositionAttribute),
 		"isdefault_login_id_attribute":           isDefault(*cfg.LdapSettings.LoginIdAttribute, ""),
-		"isdefault_login_field_name":             isDefault(*cfg.LdapSettings.LoginFieldName, model.LDAP_SETTINGS_DEFAULT_LOGIN_FIELD_NAME),
+		"isdefault_login_field_name":             isDefault(*cfg.LdapSettings.LoginFieldName, model.LdapSettingsDefaultLoginFieldName),
 		"isdefault_login_button_color":           isDefault(*cfg.LdapSettings.LoginButtonColor, ""),
 		"isdefault_login_button_border_color":    isDefault(*cfg.LdapSettings.LoginButtonBorderColor, ""),
 		"isdefault_login_button_text_color":      isDefault(*cfg.LdapSettings.LoginButtonTextColor, ""),
 		"isempty_group_filter":                   isDefault(*cfg.LdapSettings.GroupFilter, ""),
-		"isdefault_group_display_name_attribute": isDefault(*cfg.LdapSettings.GroupDisplayNameAttribute, model.LDAP_SETTINGS_DEFAULT_GROUP_DISPLAY_NAME_ATTRIBUTE),
-		"isdefault_group_id_attribute":           isDefault(*cfg.LdapSettings.GroupIdAttribute, model.LDAP_SETTINGS_DEFAULT_GROUP_ID_ATTRIBUTE),
+		"isdefault_group_display_name_attribute": isDefault(*cfg.LdapSettings.GroupDisplayNameAttribute, model.LdapSettingsDefaultGroupDisplayNameAttribute),
+		"isdefault_group_id_attribute":           isDefault(*cfg.LdapSettings.GroupIdAttribute, model.LdapSettingsDefaultGroupIdAttribute),
 		"isempty_guest_filter":                   isDefault(*cfg.LdapSettings.GuestFilter, ""),
 		"isempty_admin_filter":                   isDefault(*cfg.LdapSettings.AdminFilter, ""),
 		"isnotempty_picture_attribute":           !isDefault(*cfg.LdapSettings.PictureAttribute, ""),
@@ -662,18 +641,18 @@ func (ts *TelemetryService) trackConfig() {
 		"isnotempty_private_key":                 !isDefault(*cfg.LdapSettings.PrivateKeyFile, ""),
 	})
 
-	ts.sendTelemetry(TrackConfigCompliance, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigCompliance, map[string]interface{}{
 		"enable":       *cfg.ComplianceSettings.Enable,
 		"enable_daily": *cfg.ComplianceSettings.EnableDaily,
 	})
 
-	ts.sendTelemetry(TrackConfigLocalization, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigLocalization, map[string]interface{}{
 		"default_server_locale": *cfg.LocalizationSettings.DefaultServerLocale,
 		"default_client_locale": *cfg.LocalizationSettings.DefaultClientLocale,
 		"available_locales":     *cfg.LocalizationSettings.AvailableLocales,
 	})
 
-	ts.sendTelemetry(TrackConfigSAML, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigSAML, map[string]interface{}{
 		"enable":                              *cfg.SamlSettings.Enable,
 		"enable_sync_with_ldap":               *cfg.SamlSettings.EnableSyncWithLdap,
 		"enable_sync_with_ldap_include_auth":  *cfg.SamlSettings.EnableSyncWithLdapIncludeAuth,
@@ -686,48 +665,48 @@ func (ts *TelemetryService) trackConfig() {
 		"isdefault_canonical_algorithm":       isDefault(*cfg.SamlSettings.CanonicalAlgorithm, ""),
 		"isdefault_scoping_idp_provider_id":   isDefault(*cfg.SamlSettings.ScopingIDPProviderId, ""),
 		"isdefault_scoping_idp_name":          isDefault(*cfg.SamlSettings.ScopingIDPName, ""),
-		"isdefault_id_attribute":              isDefault(*cfg.SamlSettings.IdAttribute, model.SAML_SETTINGS_DEFAULT_ID_ATTRIBUTE),
-		"isdefault_guest_attribute":           isDefault(*cfg.SamlSettings.GuestAttribute, model.SAML_SETTINGS_DEFAULT_GUEST_ATTRIBUTE),
-		"isdefault_admin_attribute":           isDefault(*cfg.SamlSettings.AdminAttribute, model.SAML_SETTINGS_DEFAULT_ADMIN_ATTRIBUTE),
-		"isdefault_first_name_attribute":      isDefault(*cfg.SamlSettings.FirstNameAttribute, model.SAML_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE),
-		"isdefault_last_name_attribute":       isDefault(*cfg.SamlSettings.LastNameAttribute, model.SAML_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE),
-		"isdefault_email_attribute":           isDefault(*cfg.SamlSettings.EmailAttribute, model.SAML_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE),
-		"isdefault_username_attribute":        isDefault(*cfg.SamlSettings.UsernameAttribute, model.SAML_SETTINGS_DEFAULT_USERNAME_ATTRIBUTE),
-		"isdefault_nickname_attribute":        isDefault(*cfg.SamlSettings.NicknameAttribute, model.SAML_SETTINGS_DEFAULT_NICKNAME_ATTRIBUTE),
-		"isdefault_locale_attribute":          isDefault(*cfg.SamlSettings.LocaleAttribute, model.SAML_SETTINGS_DEFAULT_LOCALE_ATTRIBUTE),
-		"isdefault_position_attribute":        isDefault(*cfg.SamlSettings.PositionAttribute, model.SAML_SETTINGS_DEFAULT_POSITION_ATTRIBUTE),
-		"isdefault_login_button_text":         isDefault(*cfg.SamlSettings.LoginButtonText, model.USER_AUTH_SERVICE_SAML_TEXT),
+		"isdefault_id_attribute":              isDefault(*cfg.SamlSettings.IdAttribute, model.SamlSettingsDefaultIdAttribute),
+		"isdefault_guest_attribute":           isDefault(*cfg.SamlSettings.GuestAttribute, model.SamlSettingsDefaultGuestAttribute),
+		"isdefault_admin_attribute":           isDefault(*cfg.SamlSettings.AdminAttribute, model.SamlSettingsDefaultAdminAttribute),
+		"isdefault_first_name_attribute":      isDefault(*cfg.SamlSettings.FirstNameAttribute, model.SamlSettingsDefaultFirstNameAttribute),
+		"isdefault_last_name_attribute":       isDefault(*cfg.SamlSettings.LastNameAttribute, model.SamlSettingsDefaultLastNameAttribute),
+		"isdefault_email_attribute":           isDefault(*cfg.SamlSettings.EmailAttribute, model.SamlSettingsDefaultEmailAttribute),
+		"isdefault_username_attribute":        isDefault(*cfg.SamlSettings.UsernameAttribute, model.SamlSettingsDefaultUsernameAttribute),
+		"isdefault_nickname_attribute":        isDefault(*cfg.SamlSettings.NicknameAttribute, model.SamlSettingsDefaultNicknameAttribute),
+		"isdefault_locale_attribute":          isDefault(*cfg.SamlSettings.LocaleAttribute, model.SamlSettingsDefaultLocaleAttribute),
+		"isdefault_position_attribute":        isDefault(*cfg.SamlSettings.PositionAttribute, model.SamlSettingsDefaultPositionAttribute),
+		"isdefault_login_button_text":         isDefault(*cfg.SamlSettings.LoginButtonText, model.UserAuthServiceSamlText),
 		"isdefault_login_button_color":        isDefault(*cfg.SamlSettings.LoginButtonColor, ""),
 		"isdefault_login_button_border_color": isDefault(*cfg.SamlSettings.LoginButtonBorderColor, ""),
 		"isdefault_login_button_text_color":   isDefault(*cfg.SamlSettings.LoginButtonTextColor, ""),
 	})
 
-	ts.sendTelemetry(TrackConfigCluster, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigCluster, map[string]interface{}{
 		"enable":                                *cfg.ClusterSettings.Enable,
 		"network_interface":                     isDefault(*cfg.ClusterSettings.NetworkInterface, ""),
 		"bind_address":                          isDefault(*cfg.ClusterSettings.BindAddress, ""),
 		"advertise_address":                     isDefault(*cfg.ClusterSettings.AdvertiseAddress, ""),
-		"use_ip_address":                        *cfg.ClusterSettings.UseIpAddress,
+		"use_ip_address":                        *cfg.ClusterSettings.UseIPAddress,
 		"enable_experimental_gossip_encryption": *cfg.ClusterSettings.EnableExperimentalGossipEncryption,
 		"enable_gossip_compression":             *cfg.ClusterSettings.EnableGossipCompression,
 		"read_only_config":                      *cfg.ClusterSettings.ReadOnlyConfig,
 	})
 
-	ts.sendTelemetry(TrackConfigMetrics, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigMetrics, map[string]interface{}{
 		"enable":             *cfg.MetricsSettings.Enable,
 		"block_profile_rate": *cfg.MetricsSettings.BlockProfileRate,
 	})
 
-	ts.sendTelemetry(TrackConfigNativeApp, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigNativeApp, map[string]interface{}{
 		"isdefault_app_custom_url_schemes":    isDefaultArray(cfg.NativeAppSettings.AppCustomURLSchemes, model.GetDefaultAppCustomURLSchemes()),
-		"isdefault_app_download_link":         isDefault(*cfg.NativeAppSettings.AppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_APP_DOWNLOAD_LINK),
-		"isdefault_android_app_download_link": isDefault(*cfg.NativeAppSettings.AndroidAppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_ANDROID_APP_DOWNLOAD_LINK),
-		"isdefault_iosapp_download_link":      isDefault(*cfg.NativeAppSettings.IosAppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK),
+		"isdefault_app_download_link":         isDefault(*cfg.NativeAppSettings.AppDownloadLink, model.NativeappSettingsDefaultAppDownloadLink),
+		"isdefault_android_app_download_link": isDefault(*cfg.NativeAppSettings.AndroidAppDownloadLink, model.NativeappSettingsDefaultAndroidAppDownloadLink),
+		"isdefault_iosapp_download_link":      isDefault(*cfg.NativeAppSettings.IosAppDownloadLink, model.NativeappSettingsDefaultIosAppDownloadLink),
 	})
 
-	ts.sendTelemetry(TrackConfigExperimental, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigExperimental, map[string]interface{}{
 		"client_side_cert_enable":            *cfg.ExperimentalSettings.ClientSideCertEnable,
-		"isdefault_client_side_cert_check":   isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH),
+		"isdefault_client_side_cert_check":   isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.ClientSideCertCheckPrimaryAuth),
 		"link_metadata_timeout_milliseconds": *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
 		"enable_click_to_reply":              *cfg.ExperimentalSettings.EnableClickToReply,
 		"restrict_system_admin":              *cfg.ExperimentalSettings.RestrictSystemAdmin,
@@ -738,23 +717,23 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_remote_cluster_service":      *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
 	})
 
-	ts.sendTelemetry(TrackConfigAnalytics, map[string]interface{}{
-		"isdefault_max_users_for_statistics": isDefault(*cfg.AnalyticsSettings.MaxUsersForStatistics, model.ANALYTICS_SETTINGS_DEFAULT_MAX_USERS_FOR_STATISTICS),
+	ts.SendTelemetry(TrackConfigAnalytics, map[string]interface{}{
+		"isdefault_max_users_for_statistics": isDefault(*cfg.AnalyticsSettings.MaxUsersForStatistics, model.AnalyticsSettingsDefaultMaxUsersForStatistics),
 	})
 
-	ts.sendTelemetry(TrackConfigAnnouncement, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigAnnouncement, map[string]interface{}{
 		"enable_banner":               *cfg.AnnouncementSettings.EnableBanner,
-		"isdefault_banner_color":      isDefault(*cfg.AnnouncementSettings.BannerColor, model.ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR),
-		"isdefault_banner_text_color": isDefault(*cfg.AnnouncementSettings.BannerTextColor, model.ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_TEXT_COLOR),
+		"isdefault_banner_color":      isDefault(*cfg.AnnouncementSettings.BannerColor, model.AnnouncementSettingsDefaultBannerColor),
+		"isdefault_banner_text_color": isDefault(*cfg.AnnouncementSettings.BannerTextColor, model.AnnouncementSettingsDefaultBannerTextColor),
 		"allow_banner_dismissal":      *cfg.AnnouncementSettings.AllowBannerDismissal,
 		"admin_notices_enabled":       *cfg.AnnouncementSettings.AdminNoticesEnabled,
 		"user_notices_enabled":        *cfg.AnnouncementSettings.UserNoticesEnabled,
 	})
 
-	ts.sendTelemetry(TrackConfigElasticsearch, map[string]interface{}{
-		"isdefault_connection_url":          isDefault(*cfg.ElasticsearchSettings.ConnectionUrl, model.ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL),
-		"isdefault_username":                isDefault(*cfg.ElasticsearchSettings.Username, model.ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME),
-		"isdefault_password":                isDefault(*cfg.ElasticsearchSettings.Password, model.ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD),
+	ts.SendTelemetry(TrackConfigElasticsearch, map[string]interface{}{
+		"isdefault_connection_url":          isDefault(*cfg.ElasticsearchSettings.ConnectionURL, model.ElasticsearchSettingsDefaultConnectionURL),
+		"isdefault_username":                isDefault(*cfg.ElasticsearchSettings.Username, model.ElasticsearchSettingsDefaultUsername),
+		"isdefault_password":                isDefault(*cfg.ElasticsearchSettings.Password, model.ElasticsearchSettingsDefaultPassword),
 		"enable_indexing":                   *cfg.ElasticsearchSettings.EnableIndexing,
 		"enable_searching":                  *cfg.ElasticsearchSettings.EnableSearching,
 		"enable_autocomplete":               *cfg.ElasticsearchSettings.EnableAutocomplete,
@@ -765,7 +744,7 @@ func (ts *TelemetryService) trackConfig() {
 		"channel_index_shards":              *cfg.ElasticsearchSettings.ChannelIndexShards,
 		"user_index_replicas":               *cfg.ElasticsearchSettings.UserIndexReplicas,
 		"user_index_shards":                 *cfg.ElasticsearchSettings.UserIndexShards,
-		"isdefault_index_prefix":            isDefault(*cfg.ElasticsearchSettings.IndexPrefix, model.ELASTICSEARCH_SETTINGS_DEFAULT_INDEX_PREFIX),
+		"isdefault_index_prefix":            isDefault(*cfg.ElasticsearchSettings.IndexPrefix, model.ElasticsearchSettingsDefaultIndexPrefix),
 		"live_indexing_batch_size":          *cfg.ElasticsearchSettings.LiveIndexingBatchSize,
 		"bulk_indexing_time_window_seconds": *cfg.ElasticsearchSettings.BulkIndexingTimeWindowSeconds,
 		"request_timeout_seconds":           *cfg.ElasticsearchSettings.RequestTimeoutSeconds,
@@ -773,58 +752,59 @@ func (ts *TelemetryService) trackConfig() {
 		"trace":                             *cfg.ElasticsearchSettings.Trace,
 	})
 
-	ts.trackPluginConfig(cfg, model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL)
+	ts.trackPluginConfig(cfg, model.PluginSettingsDefaultMarketplaceURL)
 
-	ts.sendTelemetry(TrackConfigDataRetention, map[string]interface{}{
-		"enable_message_deletion": *cfg.DataRetentionSettings.EnableMessageDeletion,
-		"enable_file_deletion":    *cfg.DataRetentionSettings.EnableFileDeletion,
-		"message_retention_days":  *cfg.DataRetentionSettings.MessageRetentionDays,
-		"file_retention_days":     *cfg.DataRetentionSettings.FileRetentionDays,
-		"deletion_job_start_time": *cfg.DataRetentionSettings.DeletionJobStartTime,
-		"batch_size":              *cfg.DataRetentionSettings.BatchSize,
+	ts.SendTelemetry(TrackConfigDataRetention, map[string]interface{}{
+		"enable_message_deletion":     *cfg.DataRetentionSettings.EnableMessageDeletion,
+		"enable_file_deletion":        *cfg.DataRetentionSettings.EnableFileDeletion,
+		"message_retention_days":      *cfg.DataRetentionSettings.MessageRetentionDays,
+		"file_retention_days":         *cfg.DataRetentionSettings.FileRetentionDays,
+		"deletion_job_start_time":     *cfg.DataRetentionSettings.DeletionJobStartTime,
+		"batch_size":                  *cfg.DataRetentionSettings.BatchSize,
+		"cleanup_jobs_threshold_days": *cfg.JobSettings.CleanupJobsThresholdDays,
 	})
 
-	ts.sendTelemetry(TrackConfigMessageExport, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigMessageExport, map[string]interface{}{
 		"enable_message_export":                 *cfg.MessageExportSettings.EnableExport,
 		"export_format":                         *cfg.MessageExportSettings.ExportFormat,
 		"daily_run_time":                        *cfg.MessageExportSettings.DailyRunTime,
 		"default_export_from_timestamp":         *cfg.MessageExportSettings.ExportFromTimestamp,
 		"batch_size":                            *cfg.MessageExportSettings.BatchSize,
 		"global_relay_customer_type":            *cfg.MessageExportSettings.GlobalRelaySettings.CustomerType,
-		"is_default_global_relay_smtp_username": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.SmtpUsername, ""),
-		"is_default_global_relay_smtp_password": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.SmtpPassword, ""),
+		"is_default_global_relay_smtp_username": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.SMTPUsername, ""),
+		"is_default_global_relay_smtp_password": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.SMTPPassword, ""),
 		"is_default_global_relay_email_address": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.EmailAddress, ""),
 		"global_relay_smtp_server_timeout":      *cfg.MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout,
 		"download_export_results":               *cfg.MessageExportSettings.DownloadExportResults,
 	})
 
-	ts.sendTelemetry(TrackConfigDisplay, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigDisplay, map[string]interface{}{
 		"experimental_timezone":        *cfg.DisplaySettings.ExperimentalTimezone,
-		"isdefault_custom_url_schemes": len(cfg.DisplaySettings.CustomUrlSchemes) != 0,
+		"isdefault_custom_url_schemes": len(cfg.DisplaySettings.CustomURLSchemes) != 0,
 	})
 
-	ts.sendTelemetry(TrackConfigGuestAccounts, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigGuestAccounts, map[string]interface{}{
 		"enable":                                 *cfg.GuestAccountsSettings.Enable,
 		"allow_email_accounts":                   *cfg.GuestAccountsSettings.AllowEmailAccounts,
 		"enforce_multifactor_authentication":     *cfg.GuestAccountsSettings.EnforceMultifactorAuthentication,
 		"isdefault_restrict_creation_to_domains": isDefault(*cfg.GuestAccountsSettings.RestrictCreationToDomains, ""),
 	})
 
-	ts.sendTelemetry(TrackConfigImageProxy, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigImageProxy, map[string]interface{}{
 		"enable":                               *cfg.ImageProxySettings.Enable,
 		"image_proxy_type":                     *cfg.ImageProxySettings.ImageProxyType,
 		"isdefault_remote_image_proxy_url":     isDefault(*cfg.ImageProxySettings.RemoteImageProxyURL, ""),
 		"isdefault_remote_image_proxy_options": isDefault(*cfg.ImageProxySettings.RemoteImageProxyOptions, ""),
 	})
 
-	ts.sendTelemetry(TrackConfigBleve, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigBleve, map[string]interface{}{
 		"enable_indexing":                   *cfg.BleveSettings.EnableIndexing,
 		"enable_searching":                  *cfg.BleveSettings.EnableSearching,
 		"enable_autocomplete":               *cfg.BleveSettings.EnableAutocomplete,
 		"bulk_indexing_time_window_seconds": *cfg.BleveSettings.BulkIndexingTimeWindowSeconds,
 	})
 
-	ts.sendTelemetry(TrackConfigExport, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigExport, map[string]interface{}{
 		"retention_days": *cfg.ExportSettings.RetentionDays,
 	})
 
@@ -834,7 +814,7 @@ func (ts *TelemetryService) trackConfig() {
 	for k, v := range flags {
 		interfaceFlags[k] = v
 	}
-	ts.sendTelemetry(TrackFeatureFlags, interfaceFlags)
+	ts.SendTelemetry(TrackFeatureFlags, interfaceFlags)
 }
 
 func (ts *TelemetryService) trackLicense() {
@@ -854,7 +834,7 @@ func (ts *TelemetryService) trackLicense() {
 			data["feature_"+featureName] = featureValue
 		}
 
-		ts.sendTelemetry(TrackLicense, data)
+		ts.SendTelemetry(TrackLicense, data)
 	}
 }
 
@@ -909,7 +889,7 @@ func (ts *TelemetryService) trackPlugins() {
 		totalDisabledCount = -1 // -1 to indicate disabled or error
 	}
 
-	ts.sendTelemetry(TrackPlugins, map[string]interface{}{
+	ts.SendTelemetry(TrackPlugins, map[string]interface{}{
 		"enabled_plugins":               totalEnabledCount,
 		"enabled_webapp_plugins":        webappEnabledCount,
 		"enabled_backend_plugins":       backendEnabledCount,
@@ -938,99 +918,99 @@ func (ts *TelemetryService) trackServer() {
 		data["database_version"] = scr
 	}
 
-	ts.sendTelemetry(TrackServer, data)
+	ts.SendTelemetry(TrackServer, data)
 }
 
 func (ts *TelemetryService) trackPermissions() {
 	phase1Complete := false
-	if _, err := ts.dbStore.System().GetByName(model.ADVANCED_PERMISSIONS_MIGRATION_KEY); err == nil {
+	if _, err := ts.dbStore.System().GetByName(model.AdvancedPermissionsMigrationKey); err == nil {
 		phase1Complete = true
 	}
 
 	phase2Complete := false
-	if _, err := ts.dbStore.System().GetByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2); err == nil {
+	if _, err := ts.dbStore.System().GetByName(model.MigrationKeyAdvancedPermissionsPhase2); err == nil {
 		phase2Complete = true
 	}
 
-	ts.sendTelemetry(TrackPermissionsGeneral, map[string]interface{}{
+	ts.SendTelemetry(TrackPermissionsGeneral, map[string]interface{}{
 		"phase_1_migration_complete": phase1Complete,
 		"phase_2_migration_complete": phase2Complete,
 	})
 
 	systemAdminPermissions := ""
-	if role, err := ts.srv.GetRoleByName(context.Background(), model.SYSTEM_ADMIN_ROLE_ID); err == nil {
+	if role, err := ts.srv.GetRoleByName(context.Background(), model.SystemAdminRoleId); err == nil {
 		systemAdminPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	systemUserPermissions := ""
-	if role, err := ts.srv.GetRoleByName(context.Background(), model.SYSTEM_USER_ROLE_ID); err == nil {
+	if role, err := ts.srv.GetRoleByName(context.Background(), model.SystemUserRoleId); err == nil {
 		systemUserPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	teamAdminPermissions := ""
-	if role, err := ts.srv.GetRoleByName(context.Background(), model.TEAM_ADMIN_ROLE_ID); err == nil {
+	if role, err := ts.srv.GetRoleByName(context.Background(), model.TeamAdminRoleId); err == nil {
 		teamAdminPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	teamUserPermissions := ""
-	if role, err := ts.srv.GetRoleByName(context.Background(), model.TEAM_USER_ROLE_ID); err == nil {
+	if role, err := ts.srv.GetRoleByName(context.Background(), model.TeamUserRoleId); err == nil {
 		teamUserPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	teamGuestPermissions := ""
-	if role, err := ts.srv.GetRoleByName(context.Background(), model.TEAM_GUEST_ROLE_ID); err == nil {
+	if role, err := ts.srv.GetRoleByName(context.Background(), model.TeamGuestRoleId); err == nil {
 		teamGuestPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	channelAdminPermissions := ""
-	if role, err := ts.srv.GetRoleByName(context.Background(), model.CHANNEL_ADMIN_ROLE_ID); err == nil {
+	if role, err := ts.srv.GetRoleByName(context.Background(), model.ChannelAdminRoleId); err == nil {
 		channelAdminPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	channelUserPermissions := ""
-	if role, err := ts.srv.GetRoleByName(context.Background(), model.CHANNEL_USER_ROLE_ID); err == nil {
+	if role, err := ts.srv.GetRoleByName(context.Background(), model.ChannelUserRoleId); err == nil {
 		channelUserPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	channelGuestPermissions := ""
-	if role, err := ts.srv.GetRoleByName(context.Background(), model.CHANNEL_GUEST_ROLE_ID); err == nil {
+	if role, err := ts.srv.GetRoleByName(context.Background(), model.ChannelGuestRoleId); err == nil {
 		channelGuestPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	systemManagerPermissions := ""
 	systemManagerPermissionsModified := false
-	if role, err := ts.srv.GetRoleByName(context.Background(), model.SYSTEM_MANAGER_ROLE_ID); err == nil {
+	if role, err := ts.srv.GetRoleByName(context.Background(), model.SystemManagerRoleId); err == nil {
 		systemManagerPermissionsModified = len(model.PermissionsChangedByPatch(role, &model.RolePatch{Permissions: &model.SystemManagerDefaultPermissions})) > 0
 		systemManagerPermissions = strings.Join(role.Permissions, " ")
 	}
-	systemManagerCount, countErr := ts.dbStore.User().Count(model.UserCountOptions{Roles: []string{model.SYSTEM_MANAGER_ROLE_ID}})
+	systemManagerCount, countErr := ts.dbStore.User().Count(model.UserCountOptions{Roles: []string{model.SystemManagerRoleId}})
 	if countErr != nil {
 		systemManagerCount = 0
 	}
 
 	systemUserManagerPermissions := ""
 	systemUserManagerPermissionsModified := false
-	if role, err := ts.srv.GetRoleByName(context.Background(), model.SYSTEM_USER_MANAGER_ROLE_ID); err == nil {
+	if role, err := ts.srv.GetRoleByName(context.Background(), model.SystemUserManagerRoleId); err == nil {
 		systemUserManagerPermissionsModified = len(model.PermissionsChangedByPatch(role, &model.RolePatch{Permissions: &model.SystemUserManagerDefaultPermissions})) > 0
 		systemUserManagerPermissions = strings.Join(role.Permissions, " ")
 	}
-	systemUserManagerCount, countErr := ts.dbStore.User().Count(model.UserCountOptions{Roles: []string{model.SYSTEM_USER_MANAGER_ROLE_ID}})
+	systemUserManagerCount, countErr := ts.dbStore.User().Count(model.UserCountOptions{Roles: []string{model.SystemUserManagerRoleId}})
 	if countErr != nil {
 		systemManagerCount = 0
 	}
 
 	systemReadOnlyAdminPermissions := ""
 	systemReadOnlyAdminPermissionsModified := false
-	if role, err := ts.srv.GetRoleByName(context.Background(), model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID); err == nil {
+	if role, err := ts.srv.GetRoleByName(context.Background(), model.SystemReadOnlyAdminRoleId); err == nil {
 		systemReadOnlyAdminPermissionsModified = len(model.PermissionsChangedByPatch(role, &model.RolePatch{Permissions: &model.SystemReadOnlyAdminDefaultPermissions})) > 0
 		systemReadOnlyAdminPermissions = strings.Join(role.Permissions, " ")
 	}
-	systemReadOnlyAdminCount, countErr := ts.dbStore.User().Count(model.UserCountOptions{Roles: []string{model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID}})
+	systemReadOnlyAdminCount, countErr := ts.dbStore.User().Count(model.UserCountOptions{Roles: []string{model.SystemReadOnlyAdminRoleId}})
 	if countErr != nil {
 		systemReadOnlyAdminCount = 0
 	}
 
-	ts.sendTelemetry(TrackPermissionsSystemScheme, map[string]interface{}{
+	ts.SendTelemetry(TrackPermissionsSystemScheme, map[string]interface{}{
 		"system_admin_permissions":                    systemAdminPermissions,
 		"system_user_permissions":                     systemUserPermissions,
 		"system_manager_permissions":                  systemManagerPermissions,
@@ -1050,7 +1030,7 @@ func (ts *TelemetryService) trackPermissions() {
 		"system_read_only_admin_count":                systemReadOnlyAdminCount,
 	})
 
-	if schemes, err := ts.srv.GetSchemes(model.SCHEME_SCOPE_TEAM, 0, 100); err == nil {
+	if schemes, err := ts.srv.GetSchemes(model.SchemeScopeTeam, 0, 100); err == nil {
 		for _, scheme := range schemes {
 			teamAdminPermissions := ""
 			if role, err := ts.srv.GetRoleByName(context.Background(), scheme.DefaultTeamAdminRole); err == nil {
@@ -1084,7 +1064,7 @@ func (ts *TelemetryService) trackPermissions() {
 
 			count, _ := ts.dbStore.Team().AnalyticsGetTeamCountForScheme(scheme.Id)
 
-			ts.sendTelemetry(TrackPermissionsTeamSchemes, map[string]interface{}{
+			ts.SendTelemetry(TrackPermissionsTeamSchemes, map[string]interface{}{
 				"scheme_id":                 scheme.Id,
 				"team_admin_permissions":    teamAdminPermissions,
 				"team_user_permissions":     teamUserPermissions,
@@ -1107,7 +1087,7 @@ func (ts *TelemetryService) trackElasticsearch() {
 		}
 	}
 
-	ts.sendTelemetry(TrackElasticsearch, data)
+	ts.SendTelemetry(TrackElasticsearch, data)
 }
 
 func (ts *TelemetryService) trackGroups() {
@@ -1151,7 +1131,7 @@ func (ts *TelemetryService) trackGroups() {
 		mlog.Debug("Could not get group_count_with_allow_reference", mlog.Err(err))
 	}
 
-	ts.sendTelemetry(TrackGroups, map[string]interface{}{
+	ts.SendTelemetry(TrackGroups, map[string]interface{}{
 		"group_count":                      groupCount,
 		"group_team_count":                 groupTeamCount,
 		"group_channel_count":              groupChannelCount,
@@ -1164,49 +1144,49 @@ func (ts *TelemetryService) trackGroups() {
 }
 
 func (ts *TelemetryService) trackChannelModeration() {
-	channelSchemeCount, err := ts.dbStore.Scheme().CountByScope(model.SCHEME_SCOPE_CHANNEL)
+	channelSchemeCount, err := ts.dbStore.Scheme().CountByScope(model.SchemeScopeChannel)
 	if err != nil {
 		mlog.Debug("Could not get channel_scheme_count", mlog.Err(err))
 	}
 
-	createPostUser, err := ts.dbStore.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_CREATE_POST.Id, model.RoleScopeChannel, model.RoleTypeUser)
+	createPostUser, err := ts.dbStore.Scheme().CountWithoutPermission(model.SchemeScopeChannel, model.PermissionCreatePost.Id, model.RoleScopeChannel, model.RoleTypeUser)
 	if err != nil {
 		mlog.Debug("Could not get create_post_user_disabled_count", mlog.Err(err))
 	}
 
-	createPostGuest, err := ts.dbStore.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_CREATE_POST.Id, model.RoleScopeChannel, model.RoleTypeGuest)
+	createPostGuest, err := ts.dbStore.Scheme().CountWithoutPermission(model.SchemeScopeChannel, model.PermissionCreatePost.Id, model.RoleScopeChannel, model.RoleTypeGuest)
 	if err != nil {
 		mlog.Debug("Could not get create_post_guest_disabled_count", mlog.Err(err))
 	}
 
 	// only need to track one of 'add_reaction' or 'remove_reaction` because they're both toggled together by the channel moderation feature
-	postReactionsUser, err := ts.dbStore.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_ADD_REACTION.Id, model.RoleScopeChannel, model.RoleTypeUser)
+	postReactionsUser, err := ts.dbStore.Scheme().CountWithoutPermission(model.SchemeScopeChannel, model.PermissionAddReaction.Id, model.RoleScopeChannel, model.RoleTypeUser)
 	if err != nil {
 		mlog.Debug("Could not get post_reactions_user_disabled_count", mlog.Err(err))
 	}
 
-	postReactionsGuest, err := ts.dbStore.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_ADD_REACTION.Id, model.RoleScopeChannel, model.RoleTypeGuest)
+	postReactionsGuest, err := ts.dbStore.Scheme().CountWithoutPermission(model.SchemeScopeChannel, model.PermissionAddReaction.Id, model.RoleScopeChannel, model.RoleTypeGuest)
 	if err != nil {
 		mlog.Debug("Could not get post_reactions_guest_disabled_count", mlog.Err(err))
 	}
 
 	// only need to track one of 'manage_public_channel_members' or 'manage_private_channel_members` because they're both toggled together by the channel moderation feature
-	manageMembersUser, err := ts.dbStore.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id, model.RoleScopeChannel, model.RoleTypeUser)
+	manageMembersUser, err := ts.dbStore.Scheme().CountWithoutPermission(model.SchemeScopeChannel, model.PermissionManagePublicChannelMembers.Id, model.RoleScopeChannel, model.RoleTypeUser)
 	if err != nil {
 		mlog.Debug("Could not get manage_members_user_disabled_count", mlog.Err(err))
 	}
 
-	useChannelMentionsUser, err := ts.dbStore.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.RoleScopeChannel, model.RoleTypeUser)
+	useChannelMentionsUser, err := ts.dbStore.Scheme().CountWithoutPermission(model.SchemeScopeChannel, model.PermissionUseChannelMentions.Id, model.RoleScopeChannel, model.RoleTypeUser)
 	if err != nil {
 		mlog.Debug("Could not get use_channel_mentions_user_disabled_count", mlog.Err(err))
 	}
 
-	useChannelMentionsGuest, err := ts.dbStore.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.RoleScopeChannel, model.RoleTypeGuest)
+	useChannelMentionsGuest, err := ts.dbStore.Scheme().CountWithoutPermission(model.SchemeScopeChannel, model.PermissionUseChannelMentions.Id, model.RoleScopeChannel, model.RoleTypeGuest)
 	if err != nil {
 		mlog.Debug("Could not get use_channel_mentions_guest_disabled_count", mlog.Err(err))
 	}
 
-	ts.sendTelemetry(TrackChannelModeration, map[string]interface{}{
+	ts.SendTelemetry(TrackChannelModeration, map[string]interface{}{
 		"channel_scheme_count": channelSchemeCount,
 
 		"create_post_user_disabled_count":  createPostUser,
@@ -1225,7 +1205,7 @@ func (ts *TelemetryService) trackChannelModeration() {
 func (ts *TelemetryService) initRudder(endpoint string, rudderKey string) {
 	if ts.rudderClient == nil {
 		config := rudder.Config{}
-		config.Logger = rudder.StdLogger(ts.log.StdLog(mlog.String("source", "rudder")))
+		config.Logger = rudder.StdLogger(ts.log.With(mlog.String("source", "rudder")).StdLogger(mlog.LvlDebug))
 		config.Endpoint = endpoint
 		// For testing
 		if endpoint != RudderDataplaneURL {
@@ -1288,9 +1268,9 @@ func (ts *TelemetryService) trackWarnMetrics() {
 		return
 	}
 	for key, value := range systemDataList {
-		if strings.HasPrefix(key, model.WARN_METRIC_STATUS_STORE_PREFIX) {
+		if strings.HasPrefix(key, model.WarnMetricStatusStorePrefix) {
 			if _, ok := model.WarnMetricsTable[key]; ok {
-				ts.sendTelemetry(TrackWarnMetrics, map[string]interface{}{
+				ts.SendTelemetry(TrackWarnMetrics, map[string]interface{}{
 					key: value != "false",
 				})
 			}
@@ -1303,15 +1283,15 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 		"enable_nps_survey":             pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", true),
 		"enable":                        *cfg.PluginSettings.Enable,
 		"enable_uploads":                *cfg.PluginSettings.EnableUploads,
-		"allow_insecure_download_url":   *cfg.PluginSettings.AllowInsecureDownloadUrl,
+		"allow_insecure_download_url":   *cfg.PluginSettings.AllowInsecureDownloadURL,
 		"enable_health_check":           *cfg.PluginSettings.EnableHealthCheck,
 		"enable_marketplace":            *cfg.PluginSettings.EnableMarketplace,
 		"require_pluginSignature":       *cfg.PluginSettings.RequirePluginSignature,
 		"enable_remote_marketplace":     *cfg.PluginSettings.EnableRemoteMarketplace,
 		"automatic_prepackaged_plugins": *cfg.PluginSettings.AutomaticPrepackagedPlugins,
-		"is_default_marketplace_url":    isDefault(*cfg.PluginSettings.MarketplaceUrl, model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL),
+		"is_default_marketplace_url":    isDefault(*cfg.PluginSettings.MarketplaceURL, model.PluginSettingsDefaultMarketplaceURL),
 		"signature_public_key_files":    len(cfg.PluginSettings.SignaturePublicKeyFiles),
-		"chimera_oauth_proxy_url":       *cfg.PluginSettings.ChimeraOAuthProxyUrl,
+		"chimera_oauth_proxy_url":       *cfg.PluginSettings.ChimeraOAuthProxyURL,
 	}
 
 	// knownPluginIDs lists all known plugin IDs in the Marketplace
@@ -1327,6 +1307,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 		"com.mattermost.nps",
 		"com.mattermost.plugin-channel-export",
 		"com.mattermost.plugin-incident-management",
+		"playbooks",
 		"com.mattermost.plugin-todo",
 		"com.mattermost.webex",
 		"com.mattermost.welcomebot",
@@ -1376,13 +1357,13 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 		}
 	}
 
-	ts.sendTelemetry(TrackConfigPlugin, pluginConfigData)
+	ts.SendTelemetry(TrackConfigPlugin, pluginConfigData)
 }
 
 func (ts *TelemetryService) getAllMarketplaceplugins(marketplaceURL string) ([]*model.BaseMarketplacePlugin, error) {
 	marketplaceClient, err := marketplace.NewClient(
 		marketplaceURL,
-		ts.srv.HttpService(),
+		ts.srv.HTTPService(),
 	)
 	if err != nil {
 		return nil, err

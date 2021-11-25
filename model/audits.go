@@ -3,11 +3,6 @@
 
 package model
 
-import (
-	"encoding/json"
-	"io"
-)
-
 type Audits []Audit
 
 func (o Audits) Etag() string {
@@ -16,18 +11,4 @@ func (o Audits) Etag() string {
 		return Etag(o[0].CreateAt)
 	}
 	return ""
-}
-
-func (o Audits) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return "[]"
-	}
-	return string(b)
-}
-
-func AuditsFromJson(data io.Reader) Audits {
-	var o Audits
-	json.NewDecoder(data).Decode(&o)
-	return o
 }

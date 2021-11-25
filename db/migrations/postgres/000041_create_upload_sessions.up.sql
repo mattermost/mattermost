@@ -14,5 +14,5 @@ CREATE INDEX IF NOT EXISTS idx_uploadsessions_user_id ON uploadsessions(userid);
 CREATE INDEX IF NOT EXISTS idx_uploadsessions_create_at ON uploadsessions(createat);
 CREATE INDEX IF NOT EXISTS idx_uploadsessions_type ON uploadsessions(type);
 
-ALTER TABLE uploadsessions ADD COLUMN IF NOT EXISTS remoteid VARCHAR(26) DEFAULT '';
-ALTER TABLE uploadsessions ADD COLUMN IF NOT EXISTS reqfileid VARCHAR(26) DEFAULT '';
+ALTER TABLE uploadsessions ADD COLUMN IF NOT EXISTS remoteid VARCHAR(26);
+ALTER TABLE uploadsessions ADD COLUMN IF NOT EXISTS reqfileid VARCHAR(26);

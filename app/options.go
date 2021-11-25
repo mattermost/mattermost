@@ -6,10 +6,10 @@ package app
 import (
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type Option func(s *Server) error
@@ -106,9 +106,8 @@ func SkipPostInitializiation() Option {
 type AppOption func(a *App)
 type AppOptionCreator func() []AppOption
 
-func ServerConnector(s *Server) AppOption {
+func ServerConnector(ch *Channels) AppOption {
 	return func(a *App) {
-		a.srv = s
-		a.searchEngine = s.SearchEngine
+		a.ch = ch
 	}
 }

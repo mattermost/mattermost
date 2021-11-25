@@ -6,9 +6,9 @@ package jobs
 import (
 	"errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/configservice"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/configservice"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type Workers struct {
@@ -32,6 +32,8 @@ type Workers struct {
 	ExportDelete             model.Worker
 	Cloud                    model.Worker
 	ResendInvitationEmail    model.Worker
+	ExtractContent           model.Worker
+	FixCRTChannelUnreads     model.Worker
 
 	listenerId string
 	running    bool
@@ -124,6 +126,14 @@ func (srv *JobServer) InitWorkers() error {
 		workers.ResendInvitationEmail = resendInvitationEmailInterface.MakeWorker()
 	}
 
+	if extractContentInterface := srv.ExtractContent; extractContentInterface != nil {
+		workers.ExtractContent = extractContentInterface.MakeWorker()
+	}
+
+	if fixCRTChannelUnreads := srv.FixCRTChannelUnreads; fixCRTChannelUnreads != nil {
+		workers.FixCRTChannelUnreads = fixCRTChannelUnreads.MakeWorker()
+	}
+
 	srv.workers = workers
 
 	return nil
@@ -200,6 +210,14 @@ func (workers *Workers) Start() {
 
 	if workers.ResendInvitationEmail != nil {
 		go workers.ResendInvitationEmail.Run()
+	}
+
+	if workers.ExtractContent != nil {
+		go workers.ExtractContent.Run()
+	}
+
+	if workers.FixCRTChannelUnreads != nil {
+		go workers.FixCRTChannelUnreads.Run()
 	}
 
 	go workers.Watcher.Start()
@@ -333,6 +351,14 @@ func (workers *Workers) Stop() {
 
 	if workers.ResendInvitationEmail != nil {
 		workers.ResendInvitationEmail.Stop()
+	}
+
+	if workers.ExtractContent != nil {
+		workers.ExtractContent.Stop()
+	}
+
+	if workers.FixCRTChannelUnreads != nil {
+		workers.FixCRTChannelUnreads.Stop()
 	}
 
 	workers.running = false

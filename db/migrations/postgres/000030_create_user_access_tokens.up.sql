@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS useraccesstokens (
     description VARCHAR(512)
 );
 
-ALTER TABLE useraccesstokens ADD COLUMN IF NOT EXISTS isactive boolean default true;
+ALTER TABLE useraccesstokens ADD COLUMN IF NOT EXISTS isactive boolean;
 CREATE INDEX IF NOT EXISTS idx_user_access_tokens_user_id ON useraccesstokens(userid);
 
 DROP INDEX IF EXISTS idx_user_access_tokens_token;

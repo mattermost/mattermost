@@ -19,7 +19,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 const (
@@ -40,36 +40,36 @@ func TestService_sendProfileImageToRemote(t *testing.T) {
 		if shouldError.get() {
 			w.WriteHeader(http.StatusInternalServerError)
 			resp := make(map[string]string)
-			resp[model.STATUS] = model.STATUS_FAIL
-			w.Write([]byte(model.MapToJson(resp)))
+			resp[model.STATUS] = model.StatusFail
+			w.Write([]byte(model.MapToJSON(resp)))
 			return
 		}
 
-		status := model.STATUS_OK
+		status := model.StatusOk
 		defer func(s *string) {
-			if *s != model.STATUS_OK {
+			if *s != model.StatusOk {
 				w.WriteHeader(http.StatusInternalServerError)
 			}
 			resp := make(map[string]string)
 			resp[model.STATUS] = *s
-			w.Write([]byte(model.MapToJson(resp)))
+			w.Write([]byte(model.MapToJSON(resp)))
 		}(&status)
 
 		if err := r.ParseMultipartForm(1024 * 1024); err != nil {
-			status = model.STATUS_FAIL
+			status = model.StatusFail
 			assert.Fail(t, "connect parse multipart form", err)
 			return
 		}
 		m := r.MultipartForm
 		if m == nil {
-			status = model.STATUS_FAIL
+			status = model.StatusFail
 			assert.Fail(t, "multipart form missing")
 			return
 		}
 
 		imageArray, ok := m.File["image"]
 		if !ok || len(imageArray) != 1 {
-			status = model.STATUS_FAIL
+			status = model.StatusFail
 			assert.Fail(t, "image missing")
 			return
 		}
@@ -77,7 +77,7 @@ func TestService_sendProfileImageToRemote(t *testing.T) {
 		imageData := imageArray[0]
 		file, err := imageData.Open()
 		if err != nil {
-			status = model.STATUS_FAIL
+			status = model.StatusFail
 			assert.Fail(t, "cannot open multipart form file")
 			return
 		}
@@ -85,7 +85,7 @@ func TestService_sendProfileImageToRemote(t *testing.T) {
 
 		img, err := png.Decode(file)
 		if err != nil || imageWidth != img.Bounds().Max.X || imageHeight != img.Bounds().Max.Y {
-			status = model.STATUS_FAIL
+			status = model.StatusFail
 			assert.Fail(t, "cannot decode png", err)
 			return
 		}
@@ -101,7 +101,8 @@ func TestService_sendProfileImageToRemote(t *testing.T) {
 
 	provider := testImageProvider{}
 
-	mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL))
+	mockServer := newMockServer(makeRemoteClusters(NumRemotes, ts.URL))
+	defer mockServer.Shutdown()
 	mockServer.SetUser(user)
 	service, err := NewRemoteClusterService(mockServer)
 	require.NoError(t, err)

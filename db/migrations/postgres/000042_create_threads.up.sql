@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS threads (
     participants text
 );
 
-ALTER TABLE threads ADD COLUMN IF NOT EXISTS channelid VARCHAR(26) DEFAULT NULL;
+ALTER TABLE threads ADD COLUMN IF NOT EXISTS channelid VARCHAR(26);
 
 CREATE INDEX IF NOT EXISTS idx_threads_channel_id ON threads (channelid);
 

@@ -148,14 +148,6 @@
     "translation": "Este canal foi convertido para um Canal Privado."
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "O canal padrão não pode ser convertido em um canal privado."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "O canal selecionado para conversão já é um canal privado."
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Deve-se usar a API de serviço createDirectChannel para criação do canal de mensagens diretas."
   },
@@ -1318,16 +1310,8 @@
     "translation": "ChannelId inválido para o parâmetro RootId."
   },
   {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Parâmetro ParentId inválido."
-  },
-  {
     "id": "api.post.create_post.root_id.app_error",
     "translation": "Parâmetro RootId inválido."
-  },
-  {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Este canal é somente leitura. Somente membros com permissão podem publicar aqui."
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
@@ -1386,10 +1370,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Não é possível atualizar uma publicação em um canal excluído."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Este canal é somente leitura. Somente membros com permissão podem fixar ou desafixar publicações aqui."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1470,10 +1450,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Você não pode salvar a reação de outro usuário."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Não é possível reagir a publicações em canais somente leitura."
   },
   {
     "id": "api.restricted_system_admin",
@@ -3020,10 +2996,6 @@
     "translation": "Não é possível gravar o arquivo de imagem no seu armazenamento de arquivos. Por favor verifique sua conexão e tente novamente."
   },
   {
-    "id": "cli.license.critical",
-    "translation": "Essa funcionalidade requer um upgrade para a edição Enterprise e a inclusão da licença. Por favor entre em contato com o Administrador do Sistema."
-  },
-  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Não foi possível obter os usuários."
   },
@@ -3720,10 +3692,6 @@
     "translation": "Hook id do comando inválido."
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "parent id inválido."
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "root id inválida."
   },
@@ -4408,20 +4376,12 @@
     "translation": "Id original inválida."
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Id pai inválido."
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Props inválido."
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Id raiz inválido."
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "ID raiz inválida deve ser definida se o ID pai for definido"
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -5132,10 +5092,6 @@
     "translation": "Não é possível criar o arquivo zip"
   },
   {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "O webhook de saída está excluído mas incapaz de criar um novo devido a algum erro."
-  },
-  {
     "id": "bleveengine.stop_user_index.error",
     "translation": "Falha ao fechar o índice de usuário."
   },
@@ -5756,10 +5712,6 @@
     "translation": "Ocorreu um erro durante o download do plugin."
   },
   {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Ocorreu um erro ao abrir o arquivo de chave pública."
-  },
-  {
     "id": "api.license.remove_expired_license.failed.error",
     "translation": "Falha ao enviar o e-mail de licença de desativação com sucesso."
   },
@@ -5928,10 +5880,6 @@
     "translation": "Não foi possível mover canais de mensagens diretas ou de grupo"
   },
   {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Encontramos um erro ao apagar o lote de reações."
-  },
-  {
     "id": "app.reaction.save.save.app_error",
     "translation": "Não é possível salvar a reação."
   },
@@ -6070,10 +6018,6 @@
   {
     "id": "api.config.update_config.clear_siteurl.app_error",
     "translation": "O URL do site não pode ser limpo."
-  },
-  {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Falha ao limpar registros."
   },
   {
     "id": "app.recover.save.app_error",
@@ -6278,10 +6222,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "Encontramos um erro ao obter o relatório de conformidade."
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Encontramos um erro ao limpar o lote de flags."
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6742,10 +6682,6 @@
   {
     "id": "app.job.get.app_error",
     "translation": "Não foi possível obter o job."
-  },
-  {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Encontramos um erro ao apagar o lote de arquivos de informações."
   },
   {
     "id": "app.file_info.save.app_error",
@@ -7978,10 +7914,6 @@
   {
     "id": "ent.elasticsearch.index_channels_batch.error",
     "translation": "Não foi possível obter o lote de canais para indexação."
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Encontramos um erro ao excluir permanentemente o lote de postagens."
   },
   {
     "id": "app.import.marshal.app_error",

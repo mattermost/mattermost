@@ -73,7 +73,7 @@ func (r *bucketLocationCache) Delete(bucketName string) {
 
 // GetBucketLocation - get location for the bucket name from location cache, if not
 // fetch freshly by making a new request.
-func (c Client) GetBucketLocation(ctx context.Context, bucketName string) (string, error) {
+func (c *Client) GetBucketLocation(ctx context.Context, bucketName string) (string, error) {
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return "", err
 	}
@@ -82,7 +82,7 @@ func (c Client) GetBucketLocation(ctx context.Context, bucketName string) (strin
 
 // getBucketLocation - Get location for the bucketName from location map cache, if not
 // fetch freshly by making a new request.
-func (c Client) getBucketLocation(ctx context.Context, bucketName string) (string, error) {
+func (c *Client) getBucketLocation(ctx context.Context, bucketName string) (string, error) {
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return "", err
 	}
@@ -169,7 +169,7 @@ func processBucketLocationResponse(resp *http.Response, bucketName string) (buck
 }
 
 // getBucketLocationRequest - Wrapper creates a new getBucketLocation request.
-func (c Client) getBucketLocationRequest(ctx context.Context, bucketName string) (*http.Request, error) {
+func (c *Client) getBucketLocationRequest(ctx context.Context, bucketName string) (*http.Request, error) {
 	// Set location query.
 	urlValues := make(url.Values)
 	urlValues.Set("location", "")
@@ -188,7 +188,7 @@ func (c Client) getBucketLocationRequest(ctx context.Context, bucketName string)
 
 	var urlStr string
 
-	//only support Aliyun OSS for virtual hosted path,  compatible  Amazon & Google Endpoint
+	// only support Aliyun OSS for virtual hosted path,  compatible  Amazon & Google Endpoint
 	if isVirtualHost && s3utils.IsAliyunOSSEndpoint(targetURL) {
 		urlStr = c.endpointURL.Scheme + "://" + bucketName + "." + targetURL.Host + "/?location"
 	} else {

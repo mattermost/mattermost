@@ -13,9 +13,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest"
 )
 
 type HelloUserPlugin struct {
@@ -45,12 +45,8 @@ func Example() {
 	api.On("GetUser", user.Id).Return(user, nil)
 	defer api.AssertExpectations(t)
 
-	helpers := &plugintest.Helpers{}
-	defer helpers.AssertExpectations(t)
-
 	p := &HelloUserPlugin{}
 	p.SetAPI(api)
-	p.SetHelpers(helpers)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/", nil)

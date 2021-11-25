@@ -6,15 +6,16 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
+	"strconv"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 type SqlThreadStore struct {
@@ -33,7 +34,7 @@ func newSqlThreadStore(sqlStore *SqlStore) store.ThreadStore {
 		tableThreads := db.AddTableWithName(model.Thread{}, "Threads").SetKeys(false, "PostId")
 		tableThreads.ColMap("PostId").SetMaxSize(26)
 		tableThreads.ColMap("ChannelId").SetMaxSize(26)
-		tableThreads.ColMap("Participants").SetMaxSize(0)
+		tableThreads.ColMap("Participants").SetDataType(sqlStore.jsonDataType())
 		tableThreadMemberships := db.AddTableWithName(model.ThreadMembership{}, "ThreadMemberships").SetKeys(false, "PostId", "UserId")
 		tableThreadMemberships.ColMap("PostId").SetMaxSize(26)
 		tableThreadMemberships.ColMap("UserId").SetMaxSize(26)
@@ -52,7 +53,7 @@ func threadToSlice(thread *model.Thread) []interface{} {
 		thread.ChannelId,
 		thread.LastReplyAt,
 		thread.ReplyCount,
-		model.ArrayToJson(thread.Participants),
+		model.ArrayToJSON(thread.Participants),
 	}
 }
 
@@ -283,7 +284,10 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	}
 	totalUnreadThreads := totalUnreadThreadsResult.Data.(int64)
 
+	// userIds is the de-duped list of participant ids from all threads.
 	var userIds []string
+	// userIdMap is the map of participant ids from all threads.
+	// Used to generate userIds
 	userIdMap := map[string]bool{}
 
 	result := &model.Threads{
@@ -307,30 +311,30 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 				}
 			}
 		}
-		var users []*model.User
+		// usersMap is the global profile map of all participants from all threads.
+		usersMap := make(map[string]*model.User, len(userIds))
 		if opts.Extended {
-			var err error
-			users, err = s.User().GetProfileByIds(context.Background(), userIds, &store.UserGetByIdsOpts{}, true)
+			users, err := s.User().GetProfileByIds(context.Background(), userIds, &store.UserGetByIdsOpts{}, true)
 			if err != nil {
 				return nil, errors.Wrapf(err, "failed to get threads for user id=%s", userId)
 			}
+			for _, user := range users {
+				usersMap[user.Id] = user
+			}
 		} else {
 			for _, userId := range userIds {
-				users = append(users, &model.User{Id: userId})
+				usersMap[userId] = &model.User{Id: userId}
 			}
 		}
 
+		result.Threads = make([]*model.ThreadResponse, 0, len(threads))
 		for _, thread := range threads {
-			var participants []*model.User
+			participants := make([]*model.User, 0, len(thread.Participants))
+			// We get the user profiles for only a single thread filtered from the
+			// global users map.
 			for _, participantId := range thread.Participants {
-				var participant *model.User
-				for _, u := range users {
-					if u.Id == participantId {
-						participant = u
-						break
-					}
-				}
-				if participant == nil {
+				participant, ok := usersMap[participantId]
+				if !ok {
 					return nil, errors.New("cannot find thread participant with id=" + participantId)
 				}
 				participants = append(participants, participant)
@@ -351,12 +355,24 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	return result, nil
 }
 
-func (s *SqlThreadStore) GetThreadFollowers(threadID string) ([]string, error) {
+func (s *SqlThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error) {
 	var users []string
+
+	fetchConditions := sq.And{
+		sq.Eq{"PostId": threadID},
+	}
+
+	if fetchOnlyActive {
+		fetchConditions = sq.And{
+			sq.Eq{"Following": true},
+			fetchConditions,
+		}
+	}
+
 	query, args, _ := s.getQueryBuilder().
 		Select("ThreadMemberships.UserId").
 		From("ThreadMemberships").
-		Where(sq.Eq{"PostId": threadID}).ToSql()
+		Where(fetchConditions).ToSql()
 	_, err := s.GetReplica().Select(&users, query, args...)
 
 	if err != nil {
@@ -428,6 +444,20 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		}
 	}
 
+	var participants []*model.User
+	for _, participantId := range thread.Participants {
+		var participant *model.User
+		for _, u := range users {
+			if u.Id == participantId {
+				participant = u
+				break
+			}
+		}
+		if participant != nil {
+			participants = append(participants, participant)
+		}
+	}
+
 	result := &model.ThreadResponse{
 		PostId:         thread.PostId,
 		ReplyCount:     thread.ReplyCount,
@@ -435,7 +465,7 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		LastViewedAt:   thread.LastViewedAt,
 		UnreadReplies:  thread.UnreadReplies,
 		UnreadMentions: thread.UnreadMentions,
-		Participants:   users,
+		Participants:   participants,
 		Post:           thread.Post.ToNilIfInvalid(),
 	}
 
@@ -604,7 +634,7 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
 	// b. mention count changed
 	// c. user viewed a thread
 	if err == nil {
-		followingNeedsUpdate := (opts.UpdateFollowing && !membership.Following || membership.Following != opts.Following)
+		followingNeedsUpdate := (opts.UpdateFollowing && (membership.Following != opts.Following))
 		if followingNeedsUpdate || opts.IncrementMentions || opts.UpdateViewedTimestamp {
 			if followingNeedsUpdate {
 				membership.Following = opts.Following
@@ -651,14 +681,21 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
 	}
 
 	if opts.UpdateParticipants {
-		thread, getErr := s.get(trx, postId)
-		if getErr != nil {
-			return nil, getErr
-		}
-		if thread != nil && !thread.Participants.Contains(userId) {
-			thread.Participants = append(thread.Participants, userId)
-			if _, err = s.update(trx, thread); err != nil {
-				return nil, err
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			if _, err2 := trx.Exec(`UPDATE Threads
+				SET participants = participants || $1::jsonb
+				WHERE postid=$2
+				AND NOT participants ? $3`, jsonArray([]string{userId}), postId, userId); err2 != nil {
+				return nil, err2
+			}
+		} else {
+			// CONCAT('$[', JSON_LENGTH(Participants), ']') just generates $[n]
+			// which is the positional syntax required for appending.
+			if _, err2 := trx.Exec(`UPDATE Threads
+				SET Participants = JSON_ARRAY_INSERT(Participants, CONCAT('$[', JSON_LENGTH(Participants), ']'), ?)
+				WHERE PostId=?
+				AND NOT JSON_CONTAINS(Participants, ?)`, userId, postId, strconv.Quote(userId)); err2 != nil {
+				return nil, err2
 			}
 		}
 	}

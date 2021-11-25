@@ -18,7 +18,7 @@ CREATE INDEX IF NOT EXISTS idx_incoming_webhook_delete_at ON incomingwebhooks (d
 
 ALTER TABLE incomingwebhooks ADD COLUMN IF NOT EXISTS username VARCHAR(255);
 ALTER TABLE incomingwebhooks ADD COLUMN IF NOT EXISTS iconurl VARCHAR(1024);
-ALTER TABLE incomingwebhooks ADD COLUMN IF NOT EXISTS channellocked boolean default false;
+ALTER TABLE incomingwebhooks ADD COLUMN IF NOT EXISTS channellocked boolean;
 ALTER TABLE incomingwebhooks ALTER COLUMN description TYPE VARCHAR(500);
 
 DO $$

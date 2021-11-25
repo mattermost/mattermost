@@ -6,7 +6,7 @@ package app
 import (
 	"archive/zip"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 // Import Data Models
@@ -34,32 +34,33 @@ type TeamImportData struct {
 }
 
 type ChannelImportData struct {
-	Team        *string `json:"team"`
-	Name        *string `json:"name"`
-	DisplayName *string `json:"display_name"`
-	Type        *string `json:"type"`
-	Header      *string `json:"header,omitempty"`
-	Purpose     *string `json:"purpose,omitempty"`
-	Scheme      *string `json:"scheme,omitempty"`
+	Team        *string            `json:"team"`
+	Name        *string            `json:"name"`
+	DisplayName *string            `json:"display_name"`
+	Type        *model.ChannelType `json:"type"`
+	Header      *string            `json:"header,omitempty"`
+	Purpose     *string            `json:"purpose,omitempty"`
+	Scheme      *string            `json:"scheme,omitempty"`
 }
 
 type UserImportData struct {
-	ProfileImage       *string `json:"profile_image,omitempty"`
-	Username           *string `json:"username"`
-	Email              *string `json:"email"`
-	AuthService        *string `json:"auth_service"`
-	AuthData           *string `json:"auth_data,omitempty"`
-	Password           *string `json:"password,omitempty"`
-	Nickname           *string `json:"nickname"`
-	FirstName          *string `json:"first_name"`
-	LastName           *string `json:"last_name"`
-	Position           *string `json:"position"`
-	Roles              *string `json:"roles"`
-	Locale             *string `json:"locale"`
-	UseMarkdownPreview *string `json:"feature_enabled_markdown_preview,omitempty"`
-	UseFormatting      *string `json:"formatting,omitempty"`
-	ShowUnreadSection  *string `json:"show_unread_section,omitempty"`
-	DeleteAt           *int64  `json:"delete_at,omitempty"`
+	ProfileImage       *string   `json:"profile_image,omitempty"`
+	ProfileImageData   *zip.File `json:"-"`
+	Username           *string   `json:"username"`
+	Email              *string   `json:"email"`
+	AuthService        *string   `json:"auth_service"`
+	AuthData           *string   `json:"auth_data,omitempty"`
+	Password           *string   `json:"password,omitempty"`
+	Nickname           *string   `json:"nickname"`
+	FirstName          *string   `json:"first_name"`
+	LastName           *string   `json:"last_name"`
+	Position           *string   `json:"position"`
+	Roles              *string   `json:"roles"`
+	Locale             *string   `json:"locale"`
+	UseMarkdownPreview *string   `json:"feature_enabled_markdown_preview,omitempty"`
+	UseFormatting      *string   `json:"formatting,omitempty"`
+	ShowUnreadSection  *string   `json:"show_unread_section,omitempty"`
+	DeleteAt           *int64    `json:"delete_at,omitempty"`
 
 	Teams *[]UserTeamImportData `json:"teams,omitempty"`
 
@@ -109,8 +110,9 @@ type UserChannelNotifyPropsImportData struct {
 }
 
 type EmojiImportData struct {
-	Name  *string `json:"name"`
-	Image *string `json:"image"`
+	Name  *string   `json:"name"`
+	Image *string   `json:"image"`
+	Data  *zip.File `json:"-"`
 }
 
 type ReactionImportData struct {

@@ -6,7 +6,7 @@ package sqlstore
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/store/storetest"
+	"github.com/mattermost/mattermost-server/v6/store/storetest"
 )
 
 func TestClusterDiscoveryStore(t *testing.T) {

@@ -1,3 +1,4 @@
+//go:build go1.9
 // +build go1.9
 
 package mysql
@@ -8,21 +9,19 @@ import (
 	"crypto/x509"
 	"database/sql"
 	"fmt"
+	"go.uber.org/atomic"
 	"io"
 	"io/ioutil"
 	nurl "net/url"
 	"strconv"
 	"strings"
-)
 
-import (
 	"github.com/go-sql-driver/mysql"
+	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/hashicorp/go-multierror"
 )
 
-import (
-	"github.com/golang-migrate/migrate/v4/database"
-)
+var _ database.Driver = (*Mysql)(nil) // explicit compile time type check
 
 func init() {
 	database.Register("mysql", &Mysql{})
@@ -49,25 +48,31 @@ type Mysql struct {
 	// just do everything over a single conn anyway.
 	conn     *sql.Conn
 	db       *sql.DB
-	isLocked bool
+	isLocked atomic.Bool
 
 	config *Config
 }
 
-// instance must have `multiStatements` set to true
-func WithInstance(instance *sql.DB, config *Config) (database.Driver, error) {
+// connection instance must have `multiStatements` set to true
+func WithConnection(ctx context.Context, conn *sql.Conn, config *Config) (*Mysql, error) {
 	if config == nil {
 		return nil, ErrNilConfig
 	}
 
-	if err := instance.Ping(); err != nil {
+	if err := conn.PingContext(ctx); err != nil {
 		return nil, err
+	}
+
+	mx := &Mysql{
+		conn:   conn,
+		db:     nil,
+		config: config,
 	}
 
 	if config.DatabaseName == "" {
 		query := `SELECT DATABASE()`
 		var databaseName sql.NullString
-		if err := instance.QueryRow(query).Scan(&databaseName); err != nil {
+		if err := conn.QueryRowContext(ctx, query).Scan(&databaseName); err != nil {
 			return nil, &database.Error{OrigErr: err, Query: []byte(query)}
 		}
 
@@ -82,20 +87,32 @@ func WithInstance(instance *sql.DB, config *Config) (database.Driver, error) {
 		config.MigrationsTable = DefaultMigrationsTable
 	}
 
-	conn, err := instance.Conn(context.Background())
+	if err := mx.ensureVersionTable(); err != nil {
+		return nil, err
+	}
+
+	return mx, nil
+}
+
+// instance must have `multiStatements` set to true
+func WithInstance(instance *sql.DB, config *Config) (database.Driver, error) {
+	ctx := context.Background()
+
+	if err := instance.Ping(); err != nil {
+		return nil, err
+	}
+
+	conn, err := instance.Conn(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	mx := &Mysql{
-		conn:   conn,
-		db:     instance,
-		config: config,
-	}
-
-	if err := mx.ensureVersionTable(); err != nil {
+	mx, err := WithConnection(ctx, conn, config)
+	if err != nil {
 		return nil, err
 	}
+
+	mx.db = instance
 
 	return mx, nil
 }
@@ -243,7 +260,11 @@ func (m *Mysql) Open(url string) (database.Driver, error) {
 
 func (m *Mysql) Close() error {
 	connErr := m.conn.Close()
-	dbErr := m.db.Close()
+	var dbErr error
+	if m.db != nil {
+		dbErr = m.db.Close()
+	}
+
 	if connErr != nil || dbErr != nil {
 		return fmt.Errorf("conn: %v, db: %v", connErr, dbErr)
 	}
@@ -251,62 +272,53 @@ func (m *Mysql) Close() error {
 }
 
 func (m *Mysql) Lock() error {
-	if m.isLocked {
-		return database.ErrLocked
-	}
+	return database.CasRestoreOnErr(&m.isLocked, false, true, database.ErrLocked, func() error {
+		if m.config.NoLock {
+			return nil
+		}
+		aid, err := database.GenerateAdvisoryLockId(
+			fmt.Sprintf("%s:%s", m.config.DatabaseName, m.config.MigrationsTable))
+		if err != nil {
+			return err
+		}
 
-	if m.config.NoLock {
-		m.isLocked = true
+		query := "SELECT GET_LOCK(?, 10)"
+		var success bool
+		if err := m.conn.QueryRowContext(context.Background(), query, aid).Scan(&success); err != nil {
+			return &database.Error{OrigErr: err, Err: "try lock failed", Query: []byte(query)}
+		}
+
+		if !success {
+			return database.ErrLocked
+		}
+
 		return nil
-	}
-
-	aid, err := database.GenerateAdvisoryLockId(
-		fmt.Sprintf("%s:%s", m.config.DatabaseName, m.config.MigrationsTable))
-	if err != nil {
-		return err
-	}
-
-	query := "SELECT GET_LOCK(?, 10)"
-	var success bool
-	if err := m.conn.QueryRowContext(context.Background(), query, aid).Scan(&success); err != nil {
-		return &database.Error{OrigErr: err, Err: "try lock failed", Query: []byte(query)}
-	}
-
-	if success {
-		m.isLocked = true
-		return nil
-	}
-
-	return database.ErrLocked
+	})
 }
 
 func (m *Mysql) Unlock() error {
-	if !m.isLocked {
+	return database.CasRestoreOnErr(&m.isLocked, true, false, database.ErrNotLocked, func() error {
+		if m.config.NoLock {
+			return nil
+		}
+
+		aid, err := database.GenerateAdvisoryLockId(
+			fmt.Sprintf("%s:%s", m.config.DatabaseName, m.config.MigrationsTable))
+		if err != nil {
+			return err
+		}
+
+		query := `SELECT RELEASE_LOCK(?)`
+		if _, err := m.conn.ExecContext(context.Background(), query, aid); err != nil {
+			return &database.Error{OrigErr: err, Query: []byte(query)}
+		}
+
+		// NOTE: RELEASE_LOCK could return NULL or (or 0 if the code is changed),
+		// in which case isLocked should be true until the timeout expires -- synchronizing
+		// these states is likely not worth trying to do; reconsider the necessity of isLocked.
+
 		return nil
-	}
-
-	if m.config.NoLock {
-		m.isLocked = false
-		return nil
-	}
-
-	aid, err := database.GenerateAdvisoryLockId(
-		fmt.Sprintf("%s:%s", m.config.DatabaseName, m.config.MigrationsTable))
-	if err != nil {
-		return err
-	}
-
-	query := `SELECT RELEASE_LOCK(?)`
-	if _, err := m.conn.ExecContext(context.Background(), query, aid); err != nil {
-		return &database.Error{OrigErr: err, Query: []byte(query)}
-	}
-
-	// NOTE: RELEASE_LOCK could return NULL or (or 0 if the code is changed),
-	// in which case isLocked should be true until the timeout expires -- synchronizing
-	// these states is likely not worth trying to do; reconsider the necessity of isLocked.
-
-	m.isLocked = false
-	return nil
+	})
 }
 
 func (m *Mysql) Run(migration io.Reader) error {

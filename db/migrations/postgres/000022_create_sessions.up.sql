@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     props VARCHAR(1000)
 );
 
-ALTER TABLE sessions ADD COLUMN IF NOT EXISTS expirednotify boolean default false;
+ALTER TABLE sessions ADD COLUMN IF NOT EXISTS expirednotify boolean;
 
 CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions (userid);
 CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions (token);

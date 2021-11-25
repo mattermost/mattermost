@@ -1,4 +1,4 @@
-module github.com/mattermost/mattermost-server/v5
+module github.com/mattermost/mattermost-server/v6
 
 go 1.14
 

@@ -1,0 +1,15 @@
+{
+  "recurse": true,
+  "properties": {
+    "GomodMainOnly": true,
+    "GomodExcludes": "_tests/|[-_]generators?$|^plugin/checker$",
+    "NpmExcludes": "/e2e$",
+    "GradlePath": "./gradlew:../gradlew"
+  },
+  "filters": [
+    "release"
+  ],
+  "excludes": "/.git$|/node_modules$",
+  "url": "https://deptrack.security.internal.mattermost.com/",
+  "verbose": 3
+}

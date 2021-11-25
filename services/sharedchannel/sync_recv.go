@@ -11,10 +11,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/remotecluster"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
@@ -99,7 +99,7 @@ func (scs *Service) processSyncMessage(syncMsg *syncMsg, rc *model.RemoteCluster
 			continue
 		}
 
-		if channel.Type != model.CHANNEL_DIRECT && team == nil {
+		if channel.Type != model.ChannelTypeDirect && team == nil {
 			var err2 error
 			team, err2 = scs.server.GetStore().Channel().GetTeamForChannel(syncMsg.ChannelId)
 			if err2 != nil {
@@ -244,8 +244,8 @@ func (scs *Service) insertSyncUser(user *model.User, channel *model.Channel, rc 
 			suffix = strconv.FormatInt(int64(i), 10)
 		}
 
-		user.Username = mungUsername(user.Username, rc.Name, suffix, model.USER_NAME_MAX_LENGTH)
-		user.Email = mungEmail(rc.Name, model.USER_EMAIL_MAX_LENGTH)
+		user.Username = mungUsername(user.Username, rc.Name, suffix, model.UserNameMaxLength)
+		user.Email = mungEmail(rc.Name, model.UserEmailMaxLength)
 
 		if userSaved, err = scs.server.GetStore().User().Save(user); err != nil {
 			e, ok := err.(errInvalidInput)
@@ -298,8 +298,8 @@ func (scs *Service) updateSyncUser(patch *model.UserPatch, user *model.User, cha
 		if i > 1 {
 			suffix = strconv.FormatInt(int64(i), 10)
 		}
-		user.Username = mungUsername(user.Username, rc.Name, suffix, model.USER_NAME_MAX_LENGTH)
-		user.Email = mungEmail(rc.Name, model.USER_EMAIL_MAX_LENGTH)
+		user.Username = mungUsername(user.Username, rc.Name, suffix, model.UserNameMaxLength)
+		user.Email = mungEmail(rc.Name, model.UserEmailMaxLength)
 
 		if update, err = scs.server.GetStore().User().Update(user, false); err != nil {
 			e, ok := err.(errInvalidInput)

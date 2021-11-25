@@ -28,7 +28,7 @@ func main() {
 		"mysql":              3306,
 		"postgres":           5432,
 		"minio":              9000,
-		"inbucket":           10080,
+		"inbucket":           9001,
 		"openldap":           389,
 		"elasticsearch":      9200,
 		"dejavu":             1358,

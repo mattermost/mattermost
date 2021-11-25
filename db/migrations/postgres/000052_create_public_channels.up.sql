@@ -14,7 +14,7 @@ CREATE INDEX IF NOT EXISTS idx_publicchannels_name ON publicchannels (name);
 CREATE INDEX IF NOT EXISTS idx_publicchannels_delete_at ON publicchannels (deleteat);
 CREATE INDEX IF NOT EXISTS idx_publicchannels_name_lower ON publicchannels (lower(name));
 CREATE INDEX IF NOT EXISTS idx_publicchannels_displayname_lower ON publicchannels (lower(displayname));
-CREATE INDEX IF NOT EXISTS idx_publicchannels_search_txt ON publicchannels (name, displayname, purpose);
+CREATE INDEX IF NOT EXISTS idx_publicchannels_search_txt ON publicchannels using gin (to_tsvector('english'::regconfig, (((((name)::text || ' '::text) || (displayname)::text) || ' '::text) || (purpose)::text)));
 
 DO $$
 	<< migratepc >>

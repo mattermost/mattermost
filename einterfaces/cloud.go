@@ -4,11 +4,11 @@
 package einterfaces
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type CloudInterface interface {
-	GetCloudProducts(userID string) ([]*model.Product, error)
+	GetCloudProducts(userID string, includeLegacyProducts bool) ([]*model.Product, error)
 
 	CreateCustomerPayment(userID string) (*model.StripeSetupIntent, error)
 	ConfirmCustomerPayment(userID string, confirmRequest *model.ConfirmPaymentMethodRequest) error

@@ -4,15 +4,16 @@
 package api4
 
 import (
+	"encoding/json"
 	"io"
 	"io/ioutil"
 	"net/http"
-	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/web"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/audit"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/web"
 )
 
 const (
@@ -20,14 +21,14 @@ const (
 )
 
 func (api *API) InitEmoji() {
-	api.BaseRoutes.Emojis.Handle("", api.ApiSessionRequired(createEmoji)).Methods("POST")
-	api.BaseRoutes.Emojis.Handle("", api.ApiSessionRequired(getEmojiList)).Methods("GET")
-	api.BaseRoutes.Emojis.Handle("/search", api.ApiSessionRequired(searchEmojis)).Methods("POST")
-	api.BaseRoutes.Emojis.Handle("/autocomplete", api.ApiSessionRequired(autocompleteEmojis)).Methods("GET")
-	api.BaseRoutes.Emoji.Handle("", api.ApiSessionRequired(deleteEmoji)).Methods("DELETE")
-	api.BaseRoutes.Emoji.Handle("", api.ApiSessionRequired(getEmoji)).Methods("GET")
-	api.BaseRoutes.EmojiByName.Handle("", api.ApiSessionRequired(getEmojiByName)).Methods("GET")
-	api.BaseRoutes.Emoji.Handle("/image", api.ApiSessionRequiredTrustRequester(getEmojiImage)).Methods("GET")
+	api.BaseRoutes.Emojis.Handle("", api.APISessionRequired(createEmoji)).Methods("POST")
+	api.BaseRoutes.Emojis.Handle("", api.APISessionRequired(getEmojiList)).Methods("GET")
+	api.BaseRoutes.Emojis.Handle("/search", api.APISessionRequired(searchEmojis)).Methods("POST")
+	api.BaseRoutes.Emojis.Handle("/autocomplete", api.APISessionRequired(autocompleteEmojis)).Methods("GET")
+	api.BaseRoutes.Emoji.Handle("", api.APISessionRequired(deleteEmoji)).Methods("DELETE")
+	api.BaseRoutes.Emoji.Handle("", api.APISessionRequired(getEmoji)).Methods("GET")
+	api.BaseRoutes.EmojiByName.Handle("", api.APISessionRequired(getEmojiByName)).Methods("GET")
+	api.BaseRoutes.Emoji.Handle("/image", api.APISessionRequiredTrustRequester(getEmojiImage)).Methods("GET")
 }
 
 func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -59,16 +60,16 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_CREATE_EMOJIS) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateEmojis) {
 		hasPermission := false
 		for _, membership := range memberships {
-			if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), membership.TeamId, model.PERMISSION_CREATE_EMOJIS) {
+			if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), membership.TeamId, model.PermissionCreateEmojis) {
 				hasPermission = true
 				break
 			}
 		}
 		if !hasPermission {
-			c.SetPermissionError(model.PERMISSION_CREATE_EMOJIS)
+			c.SetPermissionError(model.PermissionCreateEmojis)
 			return
 		}
 	}
@@ -81,22 +82,24 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emoji := model.EmojiFromJson(strings.NewReader(props["emoji"][0]))
-	if emoji == nil {
+	var emoji model.Emoji
+	if jsonErr := json.Unmarshal([]byte(props["emoji"][0]), &emoji); jsonErr != nil {
 		c.SetInvalidParam("emoji")
 		return
 	}
 
 	auditRec.AddMeta("emoji", emoji)
 
-	newEmoji, err := c.App.CreateEmoji(c.AppContext.Session().UserId, emoji, m)
+	newEmoji, err := c.App.CreateEmoji(c.AppContext.Session().UserId, &emoji, m)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
 	auditRec.Success()
-	w.Write([]byte(newEmoji.ToJson()))
+	if err := json.NewEncoder(w).Encode(newEmoji); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getEmojiList(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -106,8 +109,8 @@ func getEmojiList(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	sort := r.URL.Query().Get("sort")
-	if sort != "" && sort != model.EMOJI_SORT_BY_NAME {
-		c.SetInvalidUrlParam("sort")
+	if sort != "" && sort != model.EmojiSortByName {
+		c.SetInvalidURLParam("sort")
 		return
 	}
 
@@ -117,7 +120,9 @@ func getEmojiList(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.EmojiListToJson(listEmoji)))
+	if err := json.NewEncoder(w).Encode(listEmoji); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -145,32 +150,32 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_DELETE_EMOJIS) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionDeleteEmojis) {
 		hasPermission := false
 		for _, membership := range memberships {
-			if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), membership.TeamId, model.PERMISSION_DELETE_EMOJIS) {
+			if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), membership.TeamId, model.PermissionDeleteEmojis) {
 				hasPermission = true
 				break
 			}
 		}
 		if !hasPermission {
-			c.SetPermissionError(model.PERMISSION_DELETE_EMOJIS)
+			c.SetPermissionError(model.PermissionDeleteEmojis)
 			return
 		}
 	}
 
 	if c.AppContext.Session().UserId != emoji.CreatorId {
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_DELETE_OTHERS_EMOJIS) {
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionDeleteOthersEmojis) {
 			hasPermission := false
 			for _, membership := range memberships {
-				if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), membership.TeamId, model.PERMISSION_DELETE_OTHERS_EMOJIS) {
+				if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), membership.TeamId, model.PermissionDeleteOthersEmojis) {
 					hasPermission = true
 					break
 				}
 			}
 
 			if !hasPermission {
-				c.SetPermissionError(model.PERMISSION_DELETE_OTHERS_EMOJIS)
+				c.SetPermissionError(model.PermissionDeleteOthersEmojis)
 				return
 			}
 		}
@@ -204,7 +209,9 @@ func getEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(emoji.ToJson()))
+	if err := json.NewEncoder(w).Encode(emoji); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getEmojiByName(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -219,7 +226,9 @@ func getEmojiByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(emoji.ToJson()))
+	if err := json.NewEncoder(w).Encode(emoji); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -245,8 +254,8 @@ func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func searchEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
-	emojiSearch := model.EmojiSearchFromJson(r.Body)
-	if emojiSearch == nil {
+	var emojiSearch model.EmojiSearch
+	if jsonErr := json.NewDecoder(r.Body).Decode(&emojiSearch); jsonErr != nil {
 		c.SetInvalidParam("term")
 		return
 	}
@@ -262,14 +271,16 @@ func searchEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.EmojiListToJson(emojis)))
+	if err := json.NewEncoder(w).Encode(emojis); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func autocompleteEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
 	name := r.URL.Query().Get("name")
 
 	if name == "" {
-		c.SetInvalidUrlParam("name")
+		c.SetInvalidURLParam("name")
 		return
 	}
 
@@ -279,5 +290,7 @@ func autocompleteEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.EmojiListToJson(emojis)))
+	if err := json.NewEncoder(w).Encode(emojis); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }

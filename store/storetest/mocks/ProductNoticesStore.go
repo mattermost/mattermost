@@ -5,7 +5,7 @@
 package mocks
 
 import (
-	model "github.com/mattermost/mattermost-server/v5/model"
+	model "github.com/mattermost/mattermost-server/v6/model"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -29,11 +29,11 @@ func (_m *ProductNoticesStore) Clear(notices []string) error {
 }
 
 // ClearOldNotices provides a mock function with given fields: currentNotices
-func (_m *ProductNoticesStore) ClearOldNotices(currentNotices *model.ProductNotices) error {
+func (_m *ProductNoticesStore) ClearOldNotices(currentNotices model.ProductNotices) error {
 	ret := _m.Called(currentNotices)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.ProductNotices) error); ok {
+	if rf, ok := ret.Get(0).(func(model.ProductNotices) error); ok {
 		r0 = rf(currentNotices)
 	} else {
 		r0 = ret.Error(0)

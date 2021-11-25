@@ -6,11 +6,11 @@ CREATE TABLE IF NOT EXISTS remoteclusters (
     siteurl VARCHAR(512),
     createat bigint,
     lastpingat bigint,
-    token VARCHAR(26) NOT NULL,
+    token VARCHAR(26),
     remotetoken VARCHAR(26),
     topics VARCHAR(512),
-    creatorid VARCHAR(26) NOT NULL,
+    creatorid VARCHAR(26),
     PRIMARY KEY (remoteid, name)
 );
 
-CREATE UNIQUE INDEX remote_clusters_site_url_unique ON remoteclusters (remoteteamid, siteurl);
+CREATE UNIQUE INDEX IF NOT EXISTS remote_clusters_site_url_unique ON remoteclusters (siteurl, remoteteamid);

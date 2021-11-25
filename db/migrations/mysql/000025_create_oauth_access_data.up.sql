@@ -61,7 +61,7 @@ SET @preparedStatement = (SELECT IF(
         AND column_name = 'ExpiresAt'
     ) > 0,
     'SELECT 1',
-    'ALTER TABLE OAuthAccessData ADD ExpiresAt bigint(20) DEFAULT 0;'
+    'ALTER TABLE OAuthAccessData ADD ExpiresAt bigint(20) DEFAULT NULL;'
 ));
 
 PREPARE alterIfNotExists FROM @preparedStatement;
@@ -106,7 +106,7 @@ SET @preparedStatement = (SELECT IF(
         AND column_name = 'Scope'
     ) > 0,
     'SELECT 1',
-    'ALTER TABLE OAuthAccessData ADD Scope varchar(128) DEFAULT "user";'
+    'ALTER TABLE OAuthAccessData ADD Scope varchar(128) DEFAULT NULL;'
 ));
 
 PREPARE alterIfNotExists FROM @preparedStatement;

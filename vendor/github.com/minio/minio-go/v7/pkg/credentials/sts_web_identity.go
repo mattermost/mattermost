@@ -54,8 +54,9 @@ type WebIdentityResult struct {
 
 // WebIdentityToken - web identity token with expiry.
 type WebIdentityToken struct {
-	Token  string
-	Expiry int
+	Token       string
+	AccessToken string
+	Expiry      int
 }
 
 // A STSWebIdentity retrieves credentials from MinIO service, and keeps track if
@@ -77,9 +78,9 @@ type STSWebIdentity struct {
 	// This is a customer provided function and is mandatory.
 	GetWebIDTokenExpiry func() (*WebIdentityToken, error)
 
-	// roleARN is the Amazon Resource Name (ARN) of the role that the caller is
+	// RoleARN is the Amazon Resource Name (ARN) of the role that the caller is
 	// assuming.
-	roleARN string
+	RoleARN string
 
 	// roleSessionName is the identifier for the assumed role session.
 	roleSessionName string
@@ -121,6 +122,10 @@ func getWebIdentityCredentials(clnt *http.Client, endpoint, roleARN, roleSession
 		v.Set("RoleSessionName", roleSessionName)
 	}
 	v.Set("WebIdentityToken", idToken.Token)
+	if idToken.AccessToken != "" {
+		// Usually set when server is using extended userInfo endpoint.
+		v.Set("WebIdentityAccessToken", idToken.AccessToken)
+	}
 	if idToken.Expiry > 0 {
 		v.Set("DurationSeconds", fmt.Sprintf("%d", idToken.Expiry))
 	}
@@ -159,7 +164,7 @@ func getWebIdentityCredentials(clnt *http.Client, endpoint, roleARN, roleSession
 // Retrieve retrieves credentials from the MinIO service.
 // Error will be returned if the request fails.
 func (m *STSWebIdentity) Retrieve() (Value, error) {
-	a, err := getWebIdentityCredentials(m.Client, m.STSEndpoint, m.roleARN, m.roleSessionName, m.GetWebIDTokenExpiry)
+	a, err := getWebIdentityCredentials(m.Client, m.STSEndpoint, m.RoleARN, m.roleSessionName, m.GetWebIDTokenExpiry)
 	if err != nil {
 		return Value{}, err
 	}

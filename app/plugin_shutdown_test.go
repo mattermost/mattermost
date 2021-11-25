@@ -24,7 +24,7 @@ func TestPluginShutdownTest(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/v5/plugin"
+				"github.com/mattermost/mattermost-server/v6/plugin"
 			)
 
 			type MyPlugin struct {
@@ -39,7 +39,7 @@ func TestPluginShutdownTest(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/v5/plugin"
+				"github.com/mattermost/mattermost-server/v6/plugin"
 			)
 
 			type MyPlugin struct {
@@ -63,7 +63,7 @@ func TestPluginShutdownTest(t *testing.T) {
 	done := make(chan bool)
 	go func() {
 		defer close(done)
-		th.App.Srv().ShutDownPlugins()
+		th.App.ch.ShutDownPlugins()
 	}()
 
 	select {

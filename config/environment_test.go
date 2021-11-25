@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func modifiedDefault(modify func(*model.Config)) *model.Config {
@@ -81,13 +81,13 @@ func TestRemoveEnvOverrides(t *testing.T) {
 		{
 			name: "bool setting",
 			inputConfig: modifiedDefault(func(in *model.Config) {
-				*in.ClusterSettings.UseIpAddress = false
+				*in.ClusterSettings.UseIPAddress = false
 			}),
 			env: map[string]string{
 				"MM_CLUSTERSETTINGS_USEIPADDRESS": "true",
 			},
 			expectedConfig: modifiedDefault(func(in *model.Config) {
-				*in.ClusterSettings.UseIpAddress = true
+				*in.ClusterSettings.UseIPAddress = true
 			}),
 		},
 		{

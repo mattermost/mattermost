@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 )
 
 func TestJoinCommandNoChannel(t *testing.T) {
@@ -42,7 +42,7 @@ func TestJoinCommandForExistingChannel(t *testing.T) {
 	channel2, _ := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "AA",
 		Name:        "aa" + model.NewId() + "a",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 		TeamId:      th.BasicTeam.Id,
 		CreatorId:   th.BasicUser.Id,
 	}, false)
@@ -70,7 +70,7 @@ func TestJoinCommandWithTilde(t *testing.T) {
 	channel2, _ := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "AA",
 		Name:        "aa" + model.NewId() + "a",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 		TeamId:      th.BasicTeam.Id,
 		CreatorId:   th.BasicUser.Id,
 	}, false)
@@ -94,7 +94,7 @@ func TestJoinCommandPermissions(t *testing.T) {
 	channel2, _ := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "AA",
 		Name:        "aa" + model.NewId() + "a",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 		TeamId:      th.BasicTeam.Id,
 		CreatorId:   th.BasicUser.Id,
 	}, false)
@@ -129,7 +129,7 @@ func TestJoinCommandPermissions(t *testing.T) {
 	channel3, _ := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "BB",
 		Name:        "aa" + model.NewId() + "a",
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        model.ChannelTypePrivate,
 		TeamId:      th.BasicTeam.Id,
 		CreatorId:   th.BasicUser.Id,
 	}, false)

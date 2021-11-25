@@ -6,9 +6,9 @@ package scheduler
 import (
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const pluginsJobInterval = 24 * 60 * 60 * time.Second
@@ -26,7 +26,7 @@ func (scheduler *Scheduler) Name() string {
 }
 
 func (scheduler *Scheduler) JobType() string {
-	return model.JOB_TYPE_PLUGINS
+	return model.JobTypePlugins
 }
 
 func (scheduler *Scheduler) Enabled(cfg *model.Config) bool {
@@ -41,7 +41,7 @@ func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, p
 func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
 	mlog.Debug("Scheduling Job", mlog.String("scheduler", scheduler.Name()))
 
-	job, err := scheduler.App.Srv().Jobs.CreateJob(model.JOB_TYPE_PLUGINS, nil)
+	job, err := scheduler.App.Srv().Jobs.CreateJob(model.JobTypePlugins, nil)
 	if err != nil {
 		return nil, err
 	}

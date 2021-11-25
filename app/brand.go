@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 const (
@@ -28,17 +28,17 @@ func (a *App) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
 	}
 	defer file.Close()
 
-	if err = checkImageLimits(file); err != nil {
+	if err = checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); err != nil {
 		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.check_image_limits.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	img, _, err := a.srv.imgDecoder.Decode(file)
+	img, _, err := a.ch.srv.imgDecoder.Decode(file)
 	if err != nil {
 		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.decode.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	buf := new(bytes.Buffer)
-	err = a.srv.imgEncoder.EncodePNG(buf, img)
+	err = a.ch.srv.imgEncoder.EncodePNG(buf, img)
 	if err != nil {
 		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.encode.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

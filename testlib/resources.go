@@ -4,6 +4,7 @@
 package testlib
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -12,10 +13,10 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/filestore"
-	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/filestore"
+	"github.com/mattermost/mattermost-server/v6/utils"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 const (
@@ -206,8 +207,13 @@ func setupConfig(configDir string) error {
 		return errors.Wrapf(err, "failed to create config directory %s", configDir)
 	}
 
+	buf, err := json.Marshal(config)
+	if err != nil {
+		return fmt.Errorf("failed to marshal config: %v", err)
+	}
+
 	configJSON := path.Join(configDir, "config.json")
-	err = ioutil.WriteFile(configJSON, []byte(config.ToJson()), 0644)
+	err = ioutil.WriteFile(configJSON, buf, 0644)
 	if err != nil {
 		return errors.Wrapf(err, "failed to write config to %s", configJSON)
 	}

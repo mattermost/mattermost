@@ -148,14 +148,6 @@
     "translation": "Канал перетворений в приватний."
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "Цей стандартний канал не може бути конвертований в приватний."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "Канал, що потрібно конвертувати, вже приватний."
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Потрібно використовувати createDirectChannel з API для створення каналу особистих повідомлень"
   },
@@ -1320,16 +1312,8 @@
     "translation": "Недійсний параметр ChannelId для параметра RootId"
   },
   {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Недійсний параметр ParentId"
-  },
-  {
     "id": "api.post.create_post.root_id.app_error",
     "translation": "Недійсний параметр RootId"
-  },
-  {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Цей канал доступний лише для читання. Тут можуть публікувати лише користувачі з дозволом."
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
@@ -1390,10 +1374,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Цей канал доступний лише для читання. Тут можуть публікувати лише користувачі з дозволом."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1474,10 +1454,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Ви не можете зберегти реакцію для іншого користувача."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Реагування на повідомлення неможливе у каналах лише для читання."
   },
   {
     "id": "api.restricted_system_admin",
@@ -3024,10 +3000,6 @@
     "translation": "Не вдається записати файл зображення у файловий накопичувач. Перевірте ваше з'єднання та повторіть спробу."
   },
   {
-    "id": "cli.license.critical",
-    "translation": "Функція вимагає оновлення Enterprise Edition та включення ліцензійного ключа. Будь ласка, зв'яжіться зі своїм системним адміністратором."
-  },
-  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Не вдається отримати повідомлення "
   },
@@ -3724,10 +3696,6 @@
     "translation": "Недійсний ідентифікатор командного крюка"
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Недійсний батьківський ідентифікатор"
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "Недійсний ідентифікатор кореня"
   },
@@ -4412,20 +4380,12 @@
     "translation": "Некоректний оригінальний ідентифікатор"
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Недійсний батьківський ідентифікатор"
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Неправильні властивості"
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Недійсний ідентифікатор кореня"
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Необхідно встановити неправильний кореневий ідентифікатор, якщо встановлено батьківський"
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -5136,10 +5096,6 @@
     "translation": "Неможливо створити файл eml."
   },
   {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "The outgoing webhook is deleted but unable to create a new one due to some error."
-  },
-  {
     "id": "bleveengine.stop_user_index.error",
     "translation": "Failed to close user index."
   },
@@ -5752,10 +5708,6 @@
     "translation": "An error occurred while downloading the plugin."
   },
   {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Під час видалення додатка OAuth2 сталася помилка"
-  },
-  {
     "id": "api.license.remove_expired_license.failed.error",
     "translation": "Не вдалося успішно деактивувати електронну адресу облікового запису"
   },
@@ -5918,10 +5870,6 @@
   {
     "id": "api.admin.delete_brand_image.storage.not_found",
     "translation": "Unable to delete brand image, not found."
-  },
-  {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
   },
   {
     "id": "app.reaction.save.save.app_error",
@@ -6140,10 +6088,6 @@
     "translation": "Не вдалося отримати користувачів у каналі протягом певного періоду часу"
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Не вдалося очистити записи"
-  },
-  {
     "id": "app.emoji.create.internal_error",
     "translation": "Не вдається зберегти смайли"
   },
@@ -6202,10 +6146,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "Виникла помилка при спробі прочитати файл"
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Ми зіткнулися з помилкою, очищаючи партію прапорів"
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6488,10 +6428,6 @@
     "translation": "Не вдається отримати схему"
   },
   {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
-  },
-  {
     "id": "app.file_info.save.app_error",
     "translation": "Не вдається зберегти інформацію про файл"
   },
@@ -6578,10 +6514,6 @@
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "Не вдалося отримати партію повідомлень для індексації"
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
   },
   {
     "id": "app.post.overwrite.app_error",
