@@ -2516,6 +2516,7 @@ func (s *SqlPostStore) GetUniquePostTypesSince(channelId string, timestamp int64
 		Where(sq.And{
 			sq.Eq{"ChannelId": channelId},
 			sq.GtOrEq{"CreateAt": timestamp},
+			sq.Eq{"DeleteAt": 0},
 		}).ToSql()
 	if err != nil {
 		return nil, err

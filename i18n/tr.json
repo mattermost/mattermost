@@ -9277,5 +9277,13 @@
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
     "translation": "Özel durum güncellenemedi. Lütfen bir emoji ve/veya özel durum metni ekleyin."
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "Anımsatıcı"
+  },
+  {
+    "id": "app.session.extend_session_expiry.app_error",
+    "translation": "Oturum süresi uzatılamadı"
   }
 ]
