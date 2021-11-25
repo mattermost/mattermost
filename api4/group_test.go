@@ -127,7 +127,7 @@ func TestCreateGroup(t *testing.T) {
 	}
 	_, response, err = th.SystemAdminClient.CreateGroup(unReferenceableCustomGroup)
 	require.Error(t, err)
-	CheckBadRequestStatus(t, response)
+	CheckNotImplementedStatus(t, response)
 	unReferenceableCustomGroup.AllowReference = true
 	_, response, err = th.SystemAdminClient.CreateGroup(unReferenceableCustomGroup)
 	require.NoError(t, err)
@@ -142,7 +142,7 @@ func TestCreateGroup(t *testing.T) {
 	}
 	_, response, err = th.SystemAdminClient.CreateGroup(customGroupWithRemoteID)
 	require.Error(t, err)
-	CheckBadRequestStatus(t, response)
+	CheckNotImplementedStatus(t, response)
 
 	th.SystemAdminClient.Logout()
 	_, response, err = th.SystemAdminClient.CreateGroup(g)

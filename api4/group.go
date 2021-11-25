@@ -147,12 +147,12 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !group.AllowReference {
-		c.Err = model.NewAppError("createGroup", "api.custom_groups.must_be_referencable", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("createGroup", "api.custom_groups.must_be_referencable", nil, "", http.StatusNotImplemented)
 		return
 	}
 
 	if group.RemoteId != nil {
-		c.Err = model.NewAppError("createGroup", "api.custom_groups.no_remote_id", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("createGroup", "api.custom_groups.no_remote_id", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -962,8 +962,6 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("addGroupMembers", newMembers)
 
-	// License and Permissions check here
-
 	members, err := c.App.UpsertGroupMembers(c.Params.GroupId, newMembers.UserIds)
 	if err != nil {
 		c.Err = err
@@ -985,8 +983,8 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionCustomGroupDelete) {
-		c.SetPermissionError(model.PermissionCustomGroupDelete)
+	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionCustomGroupManageMembers) {
+		c.SetPermissionError(model.PermissionCustomGroupManageMembers)
 		return
 	}
 
@@ -1005,8 +1003,6 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("deleteGroupMembers", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("deleteGroupMembers", deleteBody)
-
-	// License and Permissions check here
 
 	members, err := c.App.DeleteGroupMembers(c.Params.GroupId, deleteBody.UserIds)
 	if err != nil {
