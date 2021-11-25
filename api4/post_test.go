@@ -1202,6 +1202,28 @@ func TestGetPostsForChannel(t *testing.T) {
 		require.Equal(t, "", posts.NextPostId, "should return an empty NextPostId")
 		require.Equal(t, "", posts.PrevPostId, "should return an empty PrevPostId")
 	})
+
+	th.TestForAllClients(t, func(t *testing.T, c *model.Client4) {
+		channel := th.CreatePublicChannel()
+		th.CreatePostWithClient(th.SystemAdminClient, channel)
+		th.SystemAdminClient.DeleteChannel(channel.Id)
+
+		experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalViewArchivedChannels = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.ExperimentalViewArchivedChannels = experimentalViewArchivedChannels
+		})
+
+		// the endpoint should work fine when viewing archived channels is enabled
+		_, _, err = c.GetPostsForChannel(channel.Id, 0, 10, "", false)
+		require.NoError(t, err)
+
+		// the endpoint should return forbidden if viewing archived channels is disabled
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalViewArchivedChannels = false })
+		_, resp, err = c.GetPostsForChannel(channel.Id, 0, 10, "", false)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	}, "Should forbid to retrieve posts if the channel is archived and users are not allowed to view archived messages")
 }
 
 func TestGetFlaggedPostsForUser(t *testing.T) {
