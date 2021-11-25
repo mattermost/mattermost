@@ -9281,5 +9281,25 @@
   {
     "id": "api.templates.invite_body.title.reminder",
     "translation": "Erinnerung"
+  },
+  {
+    "id": "app.session.extend_session_expiry.app_error",
+    "translation": "Kann Sitzungsdauer nicht verlängern"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.mark_channel_as_read",
+    "translation": "Konnte Kanal nicht als gelesen markieren"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.kill_orphan_jobs",
+    "translation": "Beende verwaiste Jobs"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.get_post_types",
+    "translation": "Konnte keine eindeutigen POST Typen holen"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.get_bad_channel_memberships",
+    "translation": "Konnte keine schlechten Kanalmitgliedschaften holen"
   }
 ]

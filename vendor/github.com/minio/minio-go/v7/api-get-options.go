@@ -25,7 +25,7 @@ import (
 	"github.com/minio/minio-go/v7/pkg/encrypt"
 )
 
-//AdvancedGetOptions for internal use by MinIO server - not intended for client use.
+// AdvancedGetOptions for internal use by MinIO server - not intended for client use.
 type AdvancedGetOptions struct {
 	ReplicationDeleteMarker bool
 	ReplicationProxyRequest string
