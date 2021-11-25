@@ -69,7 +69,7 @@ func (s SqlProductNoticesStore) View(userId string, notices []string) error {
 	}
 	defer finalizeTransactionX(transaction)
 
-	var noticeStates []model.ProductNoticeViewState
+	noticeStates := []model.ProductNoticeViewState{}
 	sql, args, _ := s.getQueryBuilder().
 		Select("*").
 		From("ProductNoticeViewState").
@@ -124,7 +124,7 @@ func (s SqlProductNoticesStore) View(userId string, notices []string) error {
 }
 
 func (s SqlProductNoticesStore) GetViews(userId string) ([]model.ProductNoticeViewState, error) {
-	var noticeStates []model.ProductNoticeViewState
+	noticeStates := []model.ProductNoticeViewState{}
 	sql, args, err := s.getQueryBuilder().Select("*").From("ProductNoticeViewState").Where(sq.Eq{"UserId": userId}).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "product_notice_view_state_tosql")
