@@ -109,7 +109,7 @@ func (rseworker *ResendInvitationEmailWorker) Execute(job *model.Job, elapsedTim
 		}
 	}
 
-	if (elapsedTimeSinceSchedule > firstDuration) && (systemValue.Value == "0") {
+	if (elapsedTimeSinceSchedule > firstDuration) && (systemValue == nil || systemValue.Value == "0") {
 		rseworker.ResendEmails(job, "48")
 		rseworker.setNumResendEmailSent(job, "1")
 	} else if elapsedTimeSinceSchedule > secondDuration {
