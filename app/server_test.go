@@ -182,10 +182,14 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 				AmazonS3PathPrefix:      model.NewString(""),
 				AmazonS3SSL:             model.NewBool(false),
 			}
+			*cfg.ServiceSettings.ListenAddress = ":0"
 		})
 		return nil
 	})
 	require.NoError(t, err)
+
+	require.NoError(t, s.Start())
+	defer s.Shutdown()
 
 	// ensure that a new bucket was created
 	backend, appErr := s.FileBackend()
