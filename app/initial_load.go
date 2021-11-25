@@ -114,6 +114,7 @@ func (a *App) GetInitialLoadData(config map[string]string, license map[string]st
 	}()
 
 	var channelsLeftError *model.AppError
+	data.ChannelsLeft = []string{}
 	if since > 0 {
 		wg.Add(1)
 		go func() {
