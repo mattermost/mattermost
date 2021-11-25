@@ -489,13 +489,13 @@ func (_m *TeamStore) GetTeamsByScheme(schemeID string, offset int, limit int) ([
 	return r0, r1
 }
 
-// GetTeamsByUserId provides a mock function with given fields: userID
-func (_m *TeamStore) GetTeamsByUserId(userID string) ([]*model.Team, error) {
-	ret := _m.Called(userID)
+// GetTeamsByUserId provides a mock function with given fields: userID, includeDeleted
+func (_m *TeamStore) GetTeamsByUserId(userID string, includeDeleted bool) ([]*model.Team, error) {
+	ret := _m.Called(userID, includeDeleted)
 
 	var r0 []*model.Team
-	if rf, ok := ret.Get(0).(func(string) []*model.Team); ok {
-		r0 = rf(userID)
+	if rf, ok := ret.Get(0).(func(string, bool) []*model.Team); ok {
+		r0 = rf(userID, includeDeleted)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Team)
@@ -503,8 +503,8 @@ func (_m *TeamStore) GetTeamsByUserId(userID string) ([]*model.Team, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userID)
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
+		r1 = rf(userID, includeDeleted)
 	} else {
 		r1 = ret.Error(1)
 	}

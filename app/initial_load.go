@@ -50,7 +50,9 @@ func (a *App) GetInitialLoadData(config map[string]string, license map[string]st
 			return
 		}
 		user.Sanitize(map[string]bool{})
-		data.User = user
+		if user.UpdateAt >= since {
+			data.User = user
+		}
 	}()
 
 	var teamMembersError *model.AppError
@@ -69,12 +71,22 @@ func (a *App) GetInitialLoadData(config map[string]string, license map[string]st
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		teams, err := a.GetTeamsForUser(userID)
+		// TODO: Allow to include deleted teams
+		teams, err := a.GetTeamsForUser(userID, true)
 		if err != nil {
 			teamsError = err
 			return
 		}
-		data.Teams = teams
+		if since == 0 {
+			data.Teams = teams
+		} else {
+			data.Teams = []*model.Team{}
+			for _, t := range teams {
+				if t.UpdateAt >= since || t.DeleteAt >= since {
+					data.Teams = append(data.Teams, t)
+				}
+			}
+		}
 	}()
 
 	var preferencesError *model.AppError
@@ -101,6 +113,20 @@ func (a *App) GetInitialLoadData(config map[string]string, license map[string]st
 		data.ChannelMemberships = channelMembers
 	}()
 
+	var channelsLeftError *model.AppError
+	if since > 0 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			channelsLeft, err := a.GetChannelsLeftSince(userID, since)
+			if err != nil {
+				channelMembersError = err
+				return
+			}
+			data.ChannelsLeft = channelsLeft
+		}()
+	}
+
 	var channelsError *model.AppError
 	wg.Add(1)
 	go func() {
@@ -110,7 +136,16 @@ func (a *App) GetInitialLoadData(config map[string]string, license map[string]st
 			channelsError = err
 			return
 		}
-		data.Channels = channels
+		if since == 0 {
+			data.Channels = channels
+		} else {
+			data.Channels = []*model.Channel{}
+			for _, c := range channels {
+				if c.UpdateAt >= since || c.DeleteAt >= since {
+					data.Channels = append(data.Channels, c)
+				}
+			}
+		}
 	}()
 
 	displaySettingValue := data.Config["TeammateNameDisplay"]
@@ -145,15 +180,19 @@ func (a *App) GetInitialLoadData(config map[string]string, license map[string]st
 	}
 
 	if preferencesError != nil {
-		return nil, teamsError
+		return nil, preferencesError
 	}
 
 	if channelMembersError != nil {
-		return nil, teamsError
+		return nil, channelMembersError
+	}
+
+	if channelsLeftError != nil {
+		return nil, channelsLeftError
 	}
 
 	if channelsError != nil {
-		return nil, teamsError
+		return nil, channelsError
 	}
 
 	if dmGmDisplayNamesErr != nil {
@@ -187,6 +226,15 @@ func (a *App) GetInitialLoadData(config map[string]string, license map[string]st
 	if err != nil {
 		return nil, err
 	}
-	data.Roles = roles
+	if since == 0 {
+		data.Roles = roles
+	} else {
+		data.Roles = []*model.Role{}
+		for _, r := range roles {
+			if r.UpdateAt >= since || r.DeleteAt >= since {
+				data.Roles = append(data.Roles, r)
+			}
+		}
+	}
 	return &data, nil
 }

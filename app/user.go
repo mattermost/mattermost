@@ -862,7 +862,7 @@ func (a *App) userDeactivated(c *request.Context, userID string) *model.AppError
 }
 
 func (a *App) invalidateUserChannelMembersCaches(userID string) *model.AppError {
-	teamsForUser, err := a.GetTeamsForUser(userID)
+	teamsForUser, err := a.GetTeamsForUser(userID, false)
 	if err != nil {
 		return err
 	}
@@ -2045,7 +2045,7 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 	if nErr != nil {
 		return model.NewAppError("PromoteGuestToUser", "app.user.promote_guest.user_update.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
-	userTeams, nErr := a.Srv().Store.Team().GetTeamsByUserId(user.Id)
+	userTeams, nErr := a.Srv().Store.Team().GetTeamsByUserId(user.Id, false)
 	if nErr != nil {
 		return model.NewAppError("PromoteGuestToUser", "app.team.get_all.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}

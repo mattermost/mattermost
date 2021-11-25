@@ -413,7 +413,7 @@ func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teams, err := c.App.GetTeamsForUser(c.Params.UserId)
+	teams, err := c.App.GetTeamsForUser(c.Params.UserId, false)
 	if err != nil {
 		c.Err = err
 		return

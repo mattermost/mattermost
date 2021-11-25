@@ -5217,6 +5217,28 @@ func (a *OpenTracingAppLayer) GetChannelsForUser(userID string, includeDeleted b
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetChannelsLeftSince(userID string, since int64) ([]string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelsLeftSince")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetChannelsLeftSince(userID, since)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetChannelsUserNotIn(teamID string, userID string, offset int, limit int) (model.ChannelList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelsUserNotIn")
@@ -9263,7 +9285,7 @@ func (a *OpenTracingAppLayer) GetTeamsForSchemePage(scheme *model.Scheme, page i
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetTeamsForUser(userID string) ([]*model.Team, *model.AppError) {
+func (a *OpenTracingAppLayer) GetTeamsForUser(userID string, includeDeleted bool) ([]*model.Team, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeamsForUser")
 
@@ -9275,7 +9297,7 @@ func (a *OpenTracingAppLayer) GetTeamsForUser(userID string) ([]*model.Team, *mo
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetTeamsForUser(userID)
+	resultVar0, resultVar1 := a.app.GetTeamsForUser(userID, includeDeleted)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

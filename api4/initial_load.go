@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 )
@@ -34,6 +35,17 @@ func initialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	config = c.App.ClientConfigWithComputed()
 
+	var since int64 = 0
+	sinceString := r.URL.Query().Get("since")
+	if sinceString != "" {
+		var parseError error
+		since, parseError = strconv.ParseInt(sinceString, 10, 64)
+		if parseError != nil {
+			c.SetInvalidParam("since")
+			return
+		}
+	}
+
 	var license map[string]string
 
 	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadLicenseInformation) {
@@ -48,7 +60,7 @@ func initialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	initialLoadData, err := c.App.GetInitialLoadData(config, license, c.IsSystemAdmin(), restrictions, userID, 0)
+	initialLoadData, err := c.App.GetInitialLoadData(config, license, c.IsSystemAdmin(), restrictions, userID, since)
 	if err != nil {
 		c.Err = err
 		return

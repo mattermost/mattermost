@@ -854,8 +854,8 @@ func (a *App) SearchPrivateTeams(searchOpts *model.TeamSearch) ([]*model.Team, *
 	return teams, nil
 }
 
-func (a *App) GetTeamsForUser(userID string) ([]*model.Team, *model.AppError) {
-	teams, err := a.Srv().Store.Team().GetTeamsByUserId(userID)
+func (a *App) GetTeamsForUser(userID string, includeDeleted bool) ([]*model.Team, *model.AppError) {
+	teams, err := a.Srv().Store.Team().GetTeamsByUserId(userID, includeDeleted)
 	if err != nil {
 		return nil, model.NewAppError("GetTeamsForUser", "app.team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

@@ -3379,3 +3379,12 @@ func (a *App) getDirectChannel(userID, otherUserID string) (*model.Channel, *mod
 
 	return channel, nil
 }
+
+func (a *App) GetChannelsLeftSince(userID string, since int64) ([]string, *model.AppError) {
+	channelsLeft, err := a.Srv().Store.ChannelMemberHistory().GetChannelsLeftSince(userID, since)
+	if err != nil {
+		return nil, model.NewAppError("GetChannelsLeftSince", "app.channel.get_channels_leaved_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return channelsLeft, nil
+}

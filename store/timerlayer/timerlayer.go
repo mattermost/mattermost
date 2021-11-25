@@ -2302,6 +2302,22 @@ func (s *TimerLayerChannelMemberHistoryStore) DeleteOrphanedRows(limit int) (int
 	return result, err
 }
 
+func (s *TimerLayerChannelMemberHistoryStore) GetChannelsLeftSince(userId string, since int64) ([]string, error) {
+	start := timemodule.Now()
+
+	result, err := s.ChannelMemberHistoryStore.GetChannelsLeftSince(userId, since)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelMemberHistoryStore.GetChannelsLeftSince", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelID string) ([]*model.ChannelMemberHistoryResult, error) {
 	start := timemodule.Now()
 
@@ -7688,10 +7704,10 @@ func (s *TimerLayerTeamStore) GetTeamsByScheme(schemeID string, offset int, limi
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetTeamsByUserId(userID string) ([]*model.Team, error) {
+func (s *TimerLayerTeamStore) GetTeamsByUserId(userID string, includeDeleted bool) ([]*model.Team, error) {
 	start := timemodule.Now()
 
-	result, err := s.TeamStore.GetTeamsByUserId(userID)
+	result, err := s.TeamStore.GetTeamsByUserId(userID, includeDeleted)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

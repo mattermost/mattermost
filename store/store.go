@@ -111,7 +111,7 @@ type TeamStore interface {
 	GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, error)
 	GetAllPrivateTeamListing() ([]*model.Team, error)
 	GetAllTeamListing() ([]*model.Team, error)
-	GetTeamsByUserId(userID string) ([]*model.Team, error)
+	GetTeamsByUserId(userID string, includeDeleted bool) ([]*model.Team, error)
 	GetByInviteId(inviteID string) (*model.Team, error)
 	PermanentDelete(teamID string) error
 	AnalyticsTeamCount(opts *model.TeamSearch) (int64, error)
@@ -289,6 +289,7 @@ type ChannelMemberHistoryStore interface {
 	PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
 	DeleteOrphanedRows(limit int) (deleted int64, err error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
+	GetChannelsLeftSince(userId string, since int64) ([]string, error)
 }
 type ThreadStore interface {
 	GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error)

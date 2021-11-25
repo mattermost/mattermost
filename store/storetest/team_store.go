@@ -653,7 +653,7 @@ func testTeamStoreByUserId(t *testing.T, ss store.Store) {
 	_, nErr := ss.Team().SaveMember(m1, -1)
 	require.NoError(t, nErr)
 
-	teams, err := ss.Team().GetTeamsByUserId(m1.UserId)
+	teams, err := ss.Team().GetTeamsByUserId(m1.UserId, false)
 	require.NoError(t, err)
 	require.Len(t, teams, 1, "Should return a team")
 	require.Equal(t, teams[0].Id, o1.Id, "should be a member")

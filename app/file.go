@@ -296,7 +296,7 @@ func (a *App) findTeamIdForFilename(post *model.Post, id, filename string) strin
 	name, _ := url.QueryUnescape(filename)
 
 	// This post is in a direct channel so we need to figure out what team the files are stored under.
-	teams, err := a.Srv().Store.Team().GetTeamsByUserId(post.UserId)
+	teams, err := a.Srv().Store.Team().GetTeamsByUserId(post.UserId, false)
 	if err != nil {
 		mlog.Error("Unable to get teams when migrating post to use FileInfo", mlog.Err(err), mlog.String("post_id", post.Id))
 		return ""

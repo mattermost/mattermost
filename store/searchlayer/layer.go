@@ -79,7 +79,7 @@ func (s *SearchStore) indexUser(user *model.User) {
 	for _, engine := range s.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
 			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
-				userTeams, nErr := s.Team().GetTeamsByUserId(user.Id)
+				userTeams, nErr := s.Team().GetTeamsByUserId(user.Id, false)
 				if nErr != nil {
 					mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(nErr))
 					return

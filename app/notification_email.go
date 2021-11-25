@@ -24,7 +24,7 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 	post := notification.Post
 
 	if channel.IsGroupOrDirect() {
-		teams, err := a.Srv().Store.Team().GetTeamsByUserId(user.Id)
+		teams, err := a.Srv().Store.Team().GetTeamsByUserId(user.Id, false)
 		if err != nil {
 			return errors.Wrap(err, "unable to get user teams")
 		}

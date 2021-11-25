@@ -255,3 +255,22 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit 
 	}
 	return rowsAffected, nil
 }
+
+func (s SqlChannelMemberHistoryStore) GetChannelsLeftSince(userId string, since int64) ([]string, error) {
+	query, params, err := s.getQueryBuilder().
+		Select("ChannelId").
+		From("ChannelMemberHistory").
+		GroupBy("ChannelId").
+		Where(sq.Eq{"UserId": userId}).
+		Having("MAX(LeaveTime) > MAX(JoinTime) AND MAX(LeaveTime) IS NOT NULL AND MAX(LeaveTime) >= ?", since).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "channel_member_history_leaved_since_to_sql")
+	}
+	var channelIds []string
+	err = s.GetReplicaX().Select(&channelIds, query, params...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "GetChannelsLeftSince userId=%s since=%d", userId, since)
+	}
+
+	return channelIds, nil
+}

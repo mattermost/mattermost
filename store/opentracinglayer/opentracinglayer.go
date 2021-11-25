@@ -2500,6 +2500,24 @@ func (s *OpenTracingLayerChannelMemberHistoryStore) DeleteOrphanedRows(limit int
 	return result, err
 }
 
+func (s *OpenTracingLayerChannelMemberHistoryStore) GetChannelsLeftSince(userId string, since int64) ([]string, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelMemberHistoryStore.GetChannelsLeftSince")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ChannelMemberHistoryStore.GetChannelsLeftSince(userId, since)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelID string) ([]*model.ChannelMemberHistoryResult, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelMemberHistoryStore.GetUsersInChannelDuring")
@@ -8534,7 +8552,7 @@ func (s *OpenTracingLayerTeamStore) GetTeamsByScheme(schemeID string, offset int
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) GetTeamsByUserId(userID string) ([]*model.Team, error) {
+func (s *OpenTracingLayerTeamStore) GetTeamsByUserId(userID string, includeDeleted bool) ([]*model.Team, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetTeamsByUserId")
 	s.Root.Store.SetContext(newCtx)
@@ -8543,7 +8561,7 @@ func (s *OpenTracingLayerTeamStore) GetTeamsByUserId(userID string) ([]*model.Te
 	}()
 
 	defer span.Finish()
-	result, err := s.TeamStore.GetTeamsByUserId(userID)
+	result, err := s.TeamStore.GetTeamsByUserId(userID, includeDeleted)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

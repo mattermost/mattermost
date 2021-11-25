@@ -586,17 +586,24 @@ func (s SqlTeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) 
 }
 
 // GetTeamsByUserId returns from the database all teams that userId belongs to.
-func (s SqlTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, error) {
+func (s SqlTeamStore) GetTeamsByUserId(userId string, includeDeleted bool) ([]*model.Team, error) {
 	var teams []*model.Team
-	query, args, err := s.teamsQuery.
+
+	query := s.teamsQuery.
 		Join("TeamMembers ON TeamMembers.TeamId = Teams.Id").
-		Where(sq.Eq{"TeamMembers.UserId": userId, "TeamMembers.DeleteAt": 0, "Teams.DeleteAt": 0}).ToSql()
+		Where(sq.Eq{"TeamMembers.UserId": userId, "TeamMembers.DeleteAt": 0})
+
+	if !includeDeleted {
+		query = query.Where(sq.Eq{"Teams.DeleteAt": 0})
+	}
+
+	sql, args, err := query.ToSql()
 
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
 
-	if _, err = s.GetReplica().Select(&teams, query, args...); err != nil {
+	if _, err = s.GetReplica().Select(&teams, sql, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Teams")
 	}
 
