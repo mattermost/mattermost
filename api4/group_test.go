@@ -1108,15 +1108,7 @@ func TestGetGroups(t *testing.T) {
 		},
 	}
 
-	th.App.Srv().SetLicense(nil)
-
-	_, response, err := th.SystemAdminClient.GetGroups(opts)
-	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
-
-	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
-
-	_, _, err = th.SystemAdminClient.GetGroups(opts)
+	_, _, err := th.SystemAdminClient.GetGroups(opts)
 	require.NoError(t, err)
 
 	_, err = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "")

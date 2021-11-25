@@ -67,6 +67,8 @@ type FeatureFlags struct {
 
 	// A/B test for whether radio buttons or toggle button is more effective in in-screen invite to team modal ("none", "toggle")
 	InviteToTeam string
+
+	CustomGroups bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -90,6 +92,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AddMembersToChannel = "top"
 	f.ResendInviteEmailInterval = ""
 	f.InviteToTeam = "none"
+	f.CustomGroups = true
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

@@ -116,6 +116,11 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if group.Source != model.GroupSourceLdap && !c.App.Config().FeatureFlags.CustomGroups {
+		c.Err = model.NewAppError("getGroup", "api.custom_groups.feature_disabled", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	b, marshalErr := json.Marshal(group)
 	if marshalErr != nil {
 		c.Err = model.NewAppError("Api4.getGroup", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
@@ -126,6 +131,11 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.Config().FeatureFlags.CustomGroups {
+		c.Err = model.NewAppError("createGroup", "api.custom_groups.feature_disabled", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateCustomGroup) {
 		c.SetPermissionError(model.PermissionCreateCustomGroup)
 		return
@@ -190,6 +200,10 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionCustomGroupEdit)
 			return
 		}
+		if !c.App.Config().FeatureFlags.CustomGroups {
+			c.Err = model.NewAppError("patchGroup", "api.custom_groups.feature_disabled", nil, "", http.StatusNotImplemented)
+			return
+		}
 	} else {
 		if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
 			c.Err = model.NewAppError("Api4.patchGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
@@ -209,7 +223,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if group.Source == model.GroupSourceCustom && groupPatch.AllowReference != nil && !*groupPatch.AllowReference {
-		c.Err = model.NewAppError("Api4.patchGroup", "api.custom_groups.must_be_referencable", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("Api4.patchGroup", "api.custom_groups.must_be_referencable", nil, "", http.StatusBadRequest) // change to not implemented
 		return
 	}
 
@@ -596,6 +610,11 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionSysconsoleReadUserManagementGroups)
 			return
 		}
+	} else {
+		if !c.App.Config().FeatureFlags.CustomGroups {
+			c.Err = model.NewAppError("getGroupMembers", "api.custom_groups.feature_disabled", nil, "", http.StatusNotImplemented)
+			return
+		}
 	}
 
 	members, count, err := c.App.GetGroupMemberUsersPage(c.Params.GroupId, c.Params.Page, c.Params.PerPage)
@@ -826,10 +845,6 @@ func getGroupsAssociatedToChannelsByTeam(c *Context, w http.ResponseWriter, r *h
 }
 
 func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
-		c.Err = model.NewAppError("Api4.getGroups", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
-		return
-	}
 	var teamID, channelID string
 
 	if id := c.Params.NotAssociatedToTeam; model.IsValidId(id) {
@@ -847,6 +862,11 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		FilterParentTeamPermitted: c.Params.FilterParentTeamPermitted,
 		Source:                    c.Params.GroupSource,
 		FilterHasMember:           c.Params.FilterHasMember,
+	}
+
+	if !c.App.Config().FeatureFlags.CustomGroups && opts.Source == model.GroupSourceCustom {
+		c.Err = model.NewAppError("getGroups", "api.custom_groups.feature_disabled", nil, "", http.StatusNotImplemented)
+		return
 	}
 
 	if teamID != "" {
@@ -904,6 +924,11 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.Config().FeatureFlags.CustomGroups {
+		c.Err = model.NewAppError("deleteGroup", "api.custom_groups.feature_disabled", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	c.RequireGroupId()
 	if c.Err != nil {
 		return
@@ -936,6 +961,11 @@ func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.Config().FeatureFlags.CustomGroups {
+		c.Err = model.NewAppError("createGroup", "api.custom_groups.feature_disabled", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	c.RequireGroupId()
 	if c.Err != nil {
 		return
@@ -978,6 +1008,11 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.Config().FeatureFlags.CustomGroups {
+		c.Err = model.NewAppError("deleteGroupMembers", "api.custom_groups.feature_disabled", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	c.RequireGroupId()
 	if c.Err != nil {
 		return
