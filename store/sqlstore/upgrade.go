@@ -19,6 +19,7 @@ import (
 const (
 	CurrentSchemaVersion   = Version610
 	Version620             = "6.2.0"
+	Version611             = "6.1.1"
 	Version610             = "6.1.0"
 	Version600             = "6.0.0"
 	Version5390            = "5.39.0"
@@ -217,6 +218,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion539(sqlStore)
 	upgradeDatabaseToVersion600(sqlStore)
 	upgradeDatabaseToVersion610(sqlStore)
+	upgradeDatabaseToVersion611(sqlStore)
 	upgradeDatabaseToVersion620(sqlStore)
 
 	return nil
@@ -1409,9 +1411,59 @@ func upgradeDatabaseToVersion610(sqlStore *SqlStore) {
 	}
 }
 
+func upgradeDatabaseToVersion611(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, Version610, Version611) {
+
+		forceIndex := ""
+		if sqlStore.DriverName() == model.DatabaseDriverMysql {
+			forceIndex = "FORCE INDEX(idx_posts_channel_id_update_at)"
+		}
+
+		sqlStore.CreateColumnIfNotExists("Channels", "LastRootPostAt", "bigint", "bigint", "0")
+
+		lastRootPostAtCTE := `
+			SELECT Channels.Id channelid, COALESCE(MAX(Posts.CreateAt), 0) as lastrootpost
+			FROM Channels
+			LEFT JOIN Posts ` + forceIndex + ` ON Channels.Id = Posts.ChannelId
+			WHERE Posts.RootId = ''
+			AND Channels.LastRootPostAt is NULL
+			GROUP BY Channels.Id
+		`
+
+		updateChannels := `
+			WITH q AS (` + lastRootPostAtCTE + `)
+			UPDATE Channels SET LastRootPostAt=q.lastrootpost
+			FROM q where q.channelid=Channels.Id;
+		`
+
+		if sqlStore.DriverName() == model.DatabaseDriverMysql {
+			updateChannels = `
+				UPDATE Channels
+				INNER Join (` + lastRootPostAtCTE + `) as q
+				ON q.channelid=Channels.Id
+				SET LastRootPostAt=lastrootpost;
+			`
+		}
+
+		// run the same query as in Version610 but only for channels that have
+		// LastRootPostAt equal to null and are having posts
+		if _, err := sqlStore.GetMaster().ExecNoTimeout(updateChannels); err != nil {
+			mlog.Error("Error updating Channels table", mlog.Err(err))
+		}
+
+		// Set LastRootPostAt to 0 for Channels that have not update LastRootPostAt in the above operation
+		// Usually those are channels with no posts
+		if _, err := sqlStore.GetMaster().ExecNoTimeout("UPDATE Channels SET LastRootPostAt = 0 WHERE LastRootPostAt IS NULL"); err != nil {
+			mlog.Error("Error updating Channels table without posts", mlog.Err(err))
+		}
+
+		saveSchemaVersion(sqlStore, Version611)
+	}
+}
+
 func upgradeDatabaseToVersion620(sqlStore *SqlStore) {
 	// TODO: uncomment when the time arrive to upgrade the DB for 6.2
-	// if shouldPerformUpgrade(sqlStore, Version610, Version620) {
+	// if shouldPerformUpgrade(sqlStore, Version611, Version620) {
 
 	// 	saveSchemaVersion(sqlStore, Version620)
 	// }
