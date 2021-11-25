@@ -52,7 +52,7 @@ var expirationRegex = regexp.MustCompile(`expiry-date="(.*?)", rule-id="(.*?)"`)
 
 func amzExpirationToExpiryDateRuleID(expiration string) (time.Time, string) {
 	if matches := expirationRegex.FindStringSubmatch(expiration); len(matches) == 3 {
-		expTime, err := time.Parse(http.TimeFormat, matches[1])
+		expTime, err := parseRFC7231Time(matches[1])
 		if err != nil {
 			return time.Time{}, ""
 		}
@@ -73,7 +73,7 @@ func amzRestoreToStruct(restore string) (ongoing bool, expTime time.Time, err er
 		return false, time.Time{}, err
 	}
 	if matches[3] != "" {
-		expTime, err = time.Parse(http.TimeFormat, matches[3])
+		expTime, err = parseRFC7231Time(matches[3])
 		if err != nil {
 			return false, time.Time{}, err
 		}
@@ -240,6 +240,27 @@ func extractObjMetadata(header http.Header) http.Header {
 	return filteredHeader
 }
 
+const (
+	// RFC 7231#section-7.1.1.1 timetamp format. e.g Tue, 29 Apr 2014 18:30:38 GMT
+	rfc822TimeFormat                           = "Mon, 2 Jan 2006 15:04:05 GMT"
+	rfc822TimeFormatSingleDigitDay             = "Mon, _2 Jan 2006 15:04:05 GMT"
+	rfc822TimeFormatSingleDigitDayTwoDigitYear = "Mon, _2 Jan 06 15:04:05 GMT"
+)
+
+func parseTime(t string, formats ...string) (time.Time, error) {
+	for _, format := range formats {
+		tt, err := time.Parse(format, t)
+		if err == nil {
+			return tt, nil
+		}
+	}
+	return time.Time{}, fmt.Errorf("unable to parse %s in any of the input formats: %s", t, formats)
+}
+
+func parseRFC7231Time(lastModified string) (time.Time, error) {
+	return parseTime(lastModified, rfc822TimeFormat, rfc822TimeFormatSingleDigitDay, rfc822TimeFormatSingleDigitDayTwoDigitYear)
+}
+
 // ToObjectInfo converts http header values into ObjectInfo type,
 // extracts metadata and fills in all the necessary fields in ObjectInfo.
 func ToObjectInfo(bucketName string, objectName string, h http.Header) (ObjectInfo, error) {
@@ -267,7 +288,7 @@ func ToObjectInfo(bucketName string, objectName string, h http.Header) (ObjectIn
 	}
 
 	// Parse Last-Modified has http time format.
-	date, err := time.Parse(http.TimeFormat, h.Get("Last-Modified"))
+	mtime, err := parseRFC7231Time(h.Get("Last-Modified"))
 	if err != nil {
 		return ObjectInfo{}, ErrorResponse{
 			Code:       "InternalError",
@@ -289,7 +310,18 @@ func ToObjectInfo(bucketName string, objectName string, h http.Header) (ObjectIn
 	expiryStr := h.Get("Expires")
 	var expiry time.Time
 	if expiryStr != "" {
-		expiry, _ = time.Parse(http.TimeFormat, expiryStr)
+		expiry, err = parseRFC7231Time(expiryStr)
+		if err != nil {
+			return ObjectInfo{}, ErrorResponse{
+				Code:       "InternalError",
+				Message:    fmt.Sprintf("'Expiry' is not in supported format: %v", err),
+				BucketName: bucketName,
+				Key:        objectName,
+				RequestID:  h.Get("x-amz-request-id"),
+				HostID:     h.Get("x-amz-id-2"),
+				Region:     h.Get("x-amz-bucket-region"),
+			}
+		}
 	}
 
 	metadata := extractObjMetadata(h)
@@ -337,7 +369,7 @@ func ToObjectInfo(bucketName string, objectName string, h http.Header) (ObjectIn
 		ETag:              etag,
 		Key:               objectName,
 		Size:              size,
-		LastModified:      date,
+		LastModified:      mtime,
 		ContentType:       contentType,
 		Expires:           expiry,
 		VersionID:         h.Get(amzVersionID),
@@ -404,7 +436,7 @@ func redactSignature(origAuth string) string {
 		return "AWS **REDACTED**:**REDACTED**"
 	}
 
-	/// Signature V4 authorization header.
+	// Signature V4 authorization header.
 
 	// Strip out accessKeyID from:
 	// Credential=<access-key-id>/<date>/<aws-region>/<aws-service>/aws4_request
@@ -552,6 +584,11 @@ func IsNetworkOrHostDown(err error, expectTimeouts bool) bool {
 	if expectTimeouts && errors.Is(err, context.DeadlineExceeded) {
 		return false
 	}
+
+	if errors.Is(err, context.DeadlineExceeded) {
+		return true
+	}
+
 	// We need to figure if the error either a timeout
 	// or a non-temporary error.
 	urlErr := &url.Error{}
@@ -581,6 +618,10 @@ func IsNetworkOrHostDown(err error, expectTimeouts bool) bool {
 	case strings.Contains(err.Error(), "connection timed out"):
 		// If err is a net.Dial timeout.
 		return true
+	case strings.Contains(err.Error(), "connection refused"):
+		// If err is connection refused
+		return true
+
 	case strings.Contains(strings.ToLower(err.Error()), "503 service unavailable"):
 		// Denial errors
 		return true

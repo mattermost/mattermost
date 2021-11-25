@@ -1178,36 +1178,36 @@ func rootCountMigration(sqlStore *SqlStore) {
 		forceIndex = "FORCE INDEX(idx_posts_channel_id_update_at)"
 	}
 	totalMsgCountRootCTE := `
-	SELECT Channels.Id channelid, COALESCE(COUNT(*),0) newcount, COALESCE(MAX(Posts.CreateAt), 0) as lastpost
-	FROM Channels
-	LEFT JOIN Posts ` + forceIndex + ` ON Channels.Id = Posts.ChannelId
-	WHERE Posts.RootId = ''
-	GROUP BY Channels.Id
-`
-	channelsCTE := "SELECT TotalMsgCountRoot, Id, LastRootPostAt from Channels"
+		SELECT Channels.Id channelid, COALESCE(COUNT(*),0) newcount, COALESCE(MAX(Posts.CreateAt), 0) as lastpost
+		FROM Channels
+		LEFT JOIN Posts ` + forceIndex + ` ON Channels.Id = Posts.ChannelId
+		WHERE Posts.RootId = ''
+		GROUP BY Channels.Id
+	`
+	channelsCTE := "SELECT TotalMsgCountRoot, Id, LastRootAt from Channels"
 	updateChannels := `
-	WITH q AS (` + totalMsgCountRootCTE + `)
-	UPDATE Channels SET TotalMsgCountRoot = q.newcount, LastRootPostAt=q.lastpost
-	FROM q where q.channelid=Channels.Id;
-`
+		WITH q AS (` + totalMsgCountRootCTE + `)
+		UPDATE Channels SET TotalMsgCountRoot = q.newcount, LastRootAt=q.lastpost
+		FROM q where q.channelid=Channels.Id;
+	`
 	updateChannelMembers := `
-	WITH q as (` + channelsCTE + `)
-	UPDATE ChannelMembers CM SET MsgCountRoot=TotalMsgCountRoot
-	FROM q WHERE q.id=CM.ChannelId AND LastViewedAt >= q.lastrootpostat;
+		WITH q as (` + channelsCTE + `)
+		UPDATE ChannelMembers CM SET MsgCountRoot=TotalMsgCountRoot
+		FROM q WHERE q.id=CM.ChannelId AND LastViewedAt >= q.lastrootat;
 	`
 	if sqlStore.DriverName() == model.DatabaseDriverMysql {
 		updateChannels = `
-		UPDATE Channels
-		INNER Join (` + totalMsgCountRootCTE + `) as q
-		ON q.channelid=Channels.Id
-		SET TotalMsgCountRoot = q.newcount, LastRootPostAt=q.lastpost;
-	`
-		updateChannelMembers = `
-		UPDATE ChannelMembers CM
-		INNER JOIN (` + channelsCTE + `) as q
-		ON q.id=CM.ChannelId and LastViewedAt >= q.lastrootpostat
-		SET MsgCountRoot=TotalMsgCountRoot
+			UPDATE Channels
+			INNER Join (` + totalMsgCountRootCTE + `) as q
+			ON q.channelid=Channels.Id
+			SET TotalMsgCountRoot = q.newcount, LastRootAt=q.lastpost;
 		`
+		updateChannelMembers = `
+			UPDATE ChannelMembers CM
+			INNER JOIN (` + channelsCTE + `) as q
+			ON q.id=CM.ChannelId and LastViewedAt >= q.lastrootat
+			SET MsgCountRoot=TotalMsgCountRoot
+			`
 	}
 
 	if !totalMsgCountRootExists {

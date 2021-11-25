@@ -316,8 +316,8 @@ func (p PostPolicy) marshalJSON() []byte {
 	}
 	retStr := "{"
 	retStr = retStr + expirationStr + ","
-	retStr = retStr + conditionsStr
-	retStr = retStr + "}"
+	retStr += conditionsStr
+	retStr += "}"
 	return []byte(retStr)
 }
 

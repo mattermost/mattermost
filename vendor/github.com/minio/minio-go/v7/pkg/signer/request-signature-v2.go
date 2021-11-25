@@ -233,16 +233,7 @@ func writeCanonicalizedHeaders(buf *bytes.Buffer, req http.Request) {
 			if idx > 0 {
 				buf.WriteByte(',')
 			}
-			if strings.Contains(v, "\n") {
-				// TODO: "Unfold" long headers that
-				// span multiple lines (as allowed by
-				// RFC 2616, section 4.2) by replacing
-				// the folding white-space (including
-				// new-line) by a single space.
-				buf.WriteString(v)
-			} else {
-				buf.WriteString(v)
-			}
+			buf.WriteString(v)
 		}
 		buf.WriteByte('\n')
 	}
