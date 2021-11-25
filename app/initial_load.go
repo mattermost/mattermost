@@ -35,10 +35,15 @@ func userDisplayName(user *model.User, displaySetting string) string {
 }
 
 func (a *App) GetInitialLoadData(config map[string]string, license map[string]string, isAdmin bool, restrictions *model.ViewUsersRestrictions, userID string, since int64) (*model.InitialLoad, *model.AppError) {
-	data := model.InitialLoad{
-		Config:  config,
-		License: license,
+	data := model.InitialLoad{}
+
+	if a.Srv().GetConfigUpdateAt() > since {
+		data.Config = config
 	}
+	if a.Srv().GetLicenseUpdateAt() > since {
+		data.License = license
+	}
+
 	var wg sync.WaitGroup
 	var userError *model.AppError
 	wg.Add(1)
@@ -50,9 +55,7 @@ func (a *App) GetInitialLoadData(config map[string]string, license map[string]st
 			return
 		}
 		user.Sanitize(map[string]bool{})
-		if user.UpdateAt >= since {
-			data.User = user
-		}
+		data.User = user
 	}()
 
 	var teamMembersError *model.AppError
@@ -245,6 +248,10 @@ func (a *App) GetInitialLoadData(config map[string]string, license map[string]st
 				data.Roles = append(data.Roles, r)
 			}
 		}
+	}
+
+	if data.User.UpdateAt < since {
+		data.User = nil
 	}
 	return &data, nil
 }

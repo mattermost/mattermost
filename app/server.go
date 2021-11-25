@@ -134,7 +134,9 @@ type Server struct {
 	statusCache             cache.Cache
 	openGraphDataCache      cache.Cache
 	configListenerId        string
+	configUpdateAt          int64
 	licenseListenerId       string
+	licenseUpdateAt         int64
 	clusterLeaderListenerId string
 	searchConfigListenerId  string
 	searchLicenseListenerId string
@@ -445,7 +447,9 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to create teams service")
 	}
 
+	atomic.StoreInt64(&s.configUpdateAt, model.GetMillis())
 	s.configListenerId = s.AddConfigListener(func(_, _ *model.Config) {
+		atomic.StoreInt64(&s.configUpdateAt, model.GetMillis())
 		ch := s.Channels()
 		ch.regenerateClientConfig()
 
@@ -462,7 +466,9 @@ func NewServer(options ...Option) (*Server, error) {
 			return
 		}
 	})
+	atomic.StoreInt64(&s.licenseUpdateAt, model.GetMillis())
 	s.licenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		atomic.StoreInt64(&s.licenseUpdateAt, model.GetMillis())
 		s.Channels().regenerateClientConfig()
 
 		message := model.NewWebSocketEvent(model.WebsocketEventLicenseChanged, "", "", "", nil)
@@ -2256,6 +2262,14 @@ func (s *Server) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppErr
 	}
 
 	return img, nil
+}
+
+func (s *Server) GetConfigUpdateAt() int64 {
+	return atomic.LoadInt64(&s.configUpdateAt)
+}
+
+func (s *Server) GetLicenseUpdateAt() int64 {
+	return atomic.LoadInt64(&s.licenseUpdateAt)
 }
 
 func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
