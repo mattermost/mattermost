@@ -21,8 +21,11 @@ package lifecycle
 import (
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"time"
 )
+
+var errMissingStorageClass = errors.New("storage-class cannot be empty")
 
 // AbortIncompleteMultipartUpload structure, not supported yet on MinIO
 type AbortIncompleteMultipartUpload struct {
@@ -50,13 +53,14 @@ func (n AbortIncompleteMultipartUpload) MarshalXML(e *xml.Encoder, start xml.Sta
 // (or suspended) to request server delete noncurrent object versions at a
 // specific period in the object's lifetime.
 type NoncurrentVersionExpiration struct {
-	XMLName        xml.Name       `xml:"NoncurrentVersionExpiration" json:"-"`
-	NoncurrentDays ExpirationDays `xml:"NoncurrentDays,omitempty"`
+	XMLName               xml.Name       `xml:"NoncurrentVersionExpiration" json:"-"`
+	NoncurrentDays        ExpirationDays `xml:"NoncurrentDays,omitempty"`
+	MaxNoncurrentVersions int            `xml:"MaxNoncurrentVersions,omitempty"`
 }
 
 // MarshalXML if non-current days not set to non zero value
 func (n NoncurrentVersionExpiration) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	if n.IsDaysNull() {
+	if n.isNull() {
 		return nil
 	}
 	type noncurrentVersionExpirationWrapper NoncurrentVersionExpiration
@@ -68,13 +72,17 @@ func (n NoncurrentVersionExpiration) IsDaysNull() bool {
 	return n.NoncurrentDays == ExpirationDays(0)
 }
 
+func (n NoncurrentVersionExpiration) isNull() bool {
+	return n.IsDaysNull() && n.MaxNoncurrentVersions == 0
+}
+
 // NoncurrentVersionTransition structure, set this action to request server to
 // transition noncurrent object versions to different set storage classes
 // at a specific period in the object's lifetime.
 type NoncurrentVersionTransition struct {
 	XMLName        xml.Name       `xml:"NoncurrentVersionTransition,omitempty"  json:"-"`
 	StorageClass   string         `xml:"StorageClass,omitempty" json:"StorageClass,omitempty"`
-	NoncurrentDays ExpirationDays `xml:"NoncurrentDays,omitempty" json:"NoncurrentDays,omitempty"`
+	NoncurrentDays ExpirationDays `xml:"NoncurrentDays" json:"NoncurrentDays"`
 }
 
 // IsDaysNull returns true if days field is null
@@ -87,10 +95,30 @@ func (n NoncurrentVersionTransition) IsStorageClassEmpty() bool {
 	return n.StorageClass == ""
 }
 
+func (n NoncurrentVersionTransition) isNull() bool {
+	return n.StorageClass == ""
+}
+
+// UnmarshalJSON implements NoncurrentVersionTransition JSONify
+func (n *NoncurrentVersionTransition) UnmarshalJSON(b []byte) error {
+	type noncurrentVersionTransition NoncurrentVersionTransition
+	var nt noncurrentVersionTransition
+	err := json.Unmarshal(b, &nt)
+	if err != nil {
+		return err
+	}
+
+	if nt.StorageClass == "" {
+		return errMissingStorageClass
+	}
+	*n = NoncurrentVersionTransition(nt)
+	return nil
+}
+
 // MarshalXML is extended to leave out
 // <NoncurrentVersionTransition></NoncurrentVersionTransition> tags
 func (n NoncurrentVersionTransition) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	if n.IsDaysNull() || n.IsStorageClassEmpty() {
+	if n.isNull() {
 		return nil
 	}
 	type noncurrentVersionTransitionWrapper NoncurrentVersionTransition
@@ -114,25 +142,44 @@ type Transition struct {
 	XMLName      xml.Name       `xml:"Transition" json:"-"`
 	Date         ExpirationDate `xml:"Date,omitempty" json:"Date,omitempty"`
 	StorageClass string         `xml:"StorageClass,omitempty" json:"StorageClass,omitempty"`
-	Days         ExpirationDays `xml:"Days,omitempty" json:"Days,omitempty"`
+	Days         ExpirationDays `xml:"Days" json:"Days"`
+}
+
+// UnmarshalJSON returns an error if storage-class is empty.
+func (t *Transition) UnmarshalJSON(b []byte) error {
+	type transition Transition
+	var tr transition
+	err := json.Unmarshal(b, &tr)
+	if err != nil {
+		return err
+	}
+
+	if tr.StorageClass == "" {
+		return errMissingStorageClass
+	}
+	*t = Transition(tr)
+	return nil
 }
 
 // MarshalJSON customizes json encoding by omitting empty values
 func (t Transition) MarshalJSON() ([]byte, error) {
+	if t.IsNull() {
+		return nil, nil
+	}
 	type transition struct {
 		Date         *ExpirationDate `json:"Date,omitempty"`
 		StorageClass string          `json:"StorageClass,omitempty"`
-		Days         *ExpirationDays `json:"Days,omitempty"`
+		Days         *ExpirationDays `json:"Days"`
 	}
 
 	newt := transition{
 		StorageClass: t.StorageClass,
 	}
-	if !t.IsDaysNull() {
-		newt.Days = &t.Days
-	}
+
 	if !t.IsDateNull() {
 		newt.Date = &t.Date
+	} else {
+		newt.Days = &t.Days
 	}
 	return json.Marshal(newt)
 }
@@ -147,9 +194,9 @@ func (t Transition) IsDateNull() bool {
 	return t.Date.Time.IsZero()
 }
 
-// IsNull returns true if both date and days fields are null
+// IsNull returns true if no storage-class is set.
 func (t Transition) IsNull() bool {
-	return t.IsDaysNull() && t.IsDateNull()
+	return t.StorageClass == ""
 }
 
 // MarshalXML is transition is non null
@@ -364,10 +411,10 @@ func (r Rule) MarshalJSON() ([]byte, error) {
 	if !r.Transition.IsNull() {
 		newr.Transition = &r.Transition
 	}
-	if !r.NoncurrentVersionExpiration.IsDaysNull() {
+	if !r.NoncurrentVersionExpiration.isNull() {
 		newr.NoncurrentVersionExpiration = &r.NoncurrentVersionExpiration
 	}
-	if !r.NoncurrentVersionTransition.IsDaysNull() {
+	if !r.NoncurrentVersionTransition.isNull() {
 		newr.NoncurrentVersionTransition = &r.NoncurrentVersionTransition
 	}
 

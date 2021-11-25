@@ -84,7 +84,6 @@ func parseLinkReferenceDefinition(block text.Reader, pc Context) (int, int) {
 	if util.IsBlank(label) {
 		return -1, -1
 	}
-	block.SkipSpaces()
 	if block.Peek() != ':' {
 		return -1, -1
 	}
@@ -123,7 +122,8 @@ func parseLinkReferenceDefinition(block text.Reader, pc Context) (int, int) {
 		}
 		ref := NewReference(label, destination, nil)
 		pc.AddReference(ref)
-		return startLine, endLine
+		block.AdvanceLine()
+		return startLine, endLine + 1
 	}
 	var title []byte
 	if segments.Len() == 1 {

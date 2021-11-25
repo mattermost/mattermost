@@ -9266,5 +9266,41 @@
   {
     "id": "ent.elasticsearch.getAllChannelMembers.error",
     "translation": "Nie udało się zebrać wszystkich członków kanału"
+  },
+  {
+    "id": "app.user.get_thread_count_for_user.app_error",
+    "translation": "Nie udało się uzyskać liczby wątków dla tego użytkownika."
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "Nie udało się pobrać wszystkich ról."
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "Przypomnienie"
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Nie udało się zaktualizować niestandardowego statusu. Proszę dodać albo emoji, albo niestandardowy status tekstowy, albo oba."
+  },
+  {
+    "id": "app.session.extend_session_expiry.app_error",
+    "translation": "Nie można wydłużyć sesji"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.mark_channel_as_read",
+    "translation": "Nie można oznaczyć kanału jako przeczytany"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.kill_orphan_jobs",
+    "translation": "Usuwanie osieroconych zadań"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.get_post_types",
+    "translation": "Nie udało się uzyskać unikalnych typów postów"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.get_bad_channel_memberships",
+    "translation": "Nie udało się zebrać wszystkich członków kanału"
   }
 ]

@@ -1,11 +1,12 @@
 module github.com/minio/minio-go/v7
 
-go 1.14
+go 1.15
 
 require (
 	github.com/dustin/go-humanize v1.0.0
 	github.com/google/uuid v1.1.1
 	github.com/json-iterator/go v1.1.10
+	github.com/klauspost/compress v1.13.5
 	github.com/klauspost/cpuid v1.3.1 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/minio/md5-simd v1.1.0
