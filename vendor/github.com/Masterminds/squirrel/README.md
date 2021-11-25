@@ -1,4 +1,4 @@
-[![Project Status: Inactive – The project has reached a stable, usable state but is no longer being actively developed; support/maintenance will be provided as time allows.](https://www.repostatus.org/badges/latest/inactive.svg)](https://www.repostatus.org/#inactive)
+[![Stability: Maintenance](https://masterminds.github.io/stability/maintenance.svg)](https://masterminds.github.io/stability/maintenance.html)
 ### Squirrel is "complete".
 Bug fixes will still be merged (slowly). Bug reports are welcome, but I will not necessarily respond to them. If another fork (or substantially similar project) actively improves on what Squirrel does, let me know and I may link to it here.
 
@@ -64,7 +64,7 @@ Squirrel wants to make your life easier:
 
 ```go
 // StmtCache caches Prepared Stmts for you
-dbCache := sq.NewStmtCacher(db)
+dbCache := sq.NewStmtCache(db)
 
 // StatementBuilder keeps your syntax neat
 mydb := sq.StatementBuilder.RunWith(dbCache)

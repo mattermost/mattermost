@@ -72,6 +72,12 @@ const (
 
 	// EC2 IMDS Endpoint
 	ec2MetadataServiceEndpointKey = "ec2_metadata_service_endpoint"
+
+	// Use DualStack Endpoint Resolution
+	useDualStackEndpoint = "use_dualstack_endpoint"
+
+	// Use FIPS Endpoint Resolution
+	useFIPSEndpointKey = "use_fips_endpoint"
 )
 
 // sharedConfig represents the configuration fields of the SDK config files.
@@ -161,6 +167,18 @@ type sharedConfig struct {
 	//
 	// ec2_metadata_service_endpoint=http://fd00:ec2::254
 	EC2IMDSEndpoint string
+
+	// Specifies that SDK clients must resolve a dual-stack endpoint for
+	// services.
+	//
+	// use_dualstack_endpoint=true
+	UseDualStackEndpoint endpoints.DualStackEndpointState
+
+	// Specifies that SDK clients must resolve a FIPS endpoint for
+	// services.
+	//
+	// use_fips_endpoint=true
+	UseFIPSEndpoint endpoints.FIPSEndpointState
 }
 
 type sharedConfigFile struct {
@@ -356,6 +374,10 @@ func (cfg *sharedConfig) setFromIniFile(profile string, file sharedConfigFile, e
 				ec2MetadataServiceEndpointModeKey, file.Filename, err)
 		}
 		updateString(&cfg.EC2IMDSEndpoint, section, ec2MetadataServiceEndpointKey)
+
+		updateUseDualStackEndpoint(&cfg.UseDualStackEndpoint, section, useDualStackEndpoint)
+
+		updateUseFIPSEndpoint(&cfg.UseFIPSEndpoint, section, useFIPSEndpointKey)
 	}
 
 	updateString(&cfg.CredentialProcess, section, credentialProcessKey)
@@ -672,4 +694,36 @@ func (e CredentialRequiresARNError) OrigErr() error {
 // Error satisfies the error interface.
 func (e CredentialRequiresARNError) Error() string {
 	return awserr.SprintError(e.Code(), e.Message(), "", nil)
+}
+
+// updateEndpointDiscoveryType will only update the dst with the value in the section, if
+// a valid key and corresponding EndpointDiscoveryType is found.
+func updateUseDualStackEndpoint(dst *endpoints.DualStackEndpointState, section ini.Section, key string) {
+	if !section.Has(key) {
+		return
+	}
+
+	if section.Bool(key) {
+		*dst = endpoints.DualStackEndpointStateEnabled
+	} else {
+		*dst = endpoints.DualStackEndpointStateDisabled
+	}
+
+	return
+}
+
+// updateEndpointDiscoveryType will only update the dst with the value in the section, if
+// a valid key and corresponding EndpointDiscoveryType is found.
+func updateUseFIPSEndpoint(dst *endpoints.FIPSEndpointState, section ini.Section, key string) {
+	if !section.Has(key) {
+		return
+	}
+
+	if section.Bool(key) {
+		*dst = endpoints.FIPSEndpointStateEnabled
+	} else {
+		*dst = endpoints.FIPSEndpointStateDisabled
+	}
+
+	return
 }

@@ -169,7 +169,7 @@ func (s *Stream) Write(b []byte) (n int, err error) {
 func (s *Stream) write(b []byte) (n int, err error) {
 	var flags uint16
 	var max uint32
-	var body io.Reader
+	var body []byte
 START:
 	s.stateLock.Lock()
 	switch s.state {
@@ -195,7 +195,7 @@ START:
 
 	// Send up to our send window
 	max = min(window, uint32(len(b)))
-	body = bytes.NewReader(b[:max])
+	body = b[:max]
 
 	// Send the header
 	s.sendHdr.encode(typeData, flags, s.id, max)

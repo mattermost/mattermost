@@ -25,6 +25,7 @@ import (
 	"math"
 	"net"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -146,13 +147,20 @@ func dial(ctx context.Context, fn func(context.Context, string) (net.Conn, error
 	address := addr.Addr
 	networkType, ok := networktype.Get(addr)
 	if fn != nil {
+		// Special handling for unix scheme with custom dialer. Back in the day,
+		// we did not have a unix resolver and therefore targets with a unix
+		// scheme would end up using the passthrough resolver. So, user's used a
+		// custom dialer in this case and expected the original dial target to
+		// be passed to the custom dialer. Now, we have a unix resolver. But if
+		// a custom dialer is specified, we want to retain the old behavior in
+		// terms of the address being passed to the custom dialer.
 		if networkType == "unix" && !strings.HasPrefix(address, "\x00") {
-			// For backward compatibility, if the user dialed "unix:///path",
-			// the passthrough resolver would be used and the user's custom
-			// dialer would see "unix:///path". Since the unix resolver is used
-			// and the address is now "/path", prepend "unix://" so the user's
-			// custom dialer sees the same address.
-			return fn(ctx, "unix://"+address)
+			// Supported unix targets are either "unix://absolute-path" or
+			// "unix:relative-path".
+			if filepath.IsAbs(address) {
+				return fn(ctx, "unix://"+address)
+			}
+			return fn(ctx, "unix:"+address)
 		}
 		return fn(ctx, address)
 	}
@@ -1073,7 +1081,7 @@ func (t *http2Client) handleData(f *http2.DataFrame) {
 	}
 	// The server has closed the stream without sending trailers.  Record that
 	// the read direction is closed, and set the status appropriately.
-	if f.FrameHeader.Flags.Has(http2.FlagDataEndStream) {
+	if f.StreamEnded() {
 		t.closeStream(s, io.EOF, false, http2.ErrCodeNo, status.New(codes.Internal, "server closed the stream without sending trailers"), nil, true)
 	}
 }
@@ -1403,26 +1411,6 @@ func (t *http2Client) operateHeaders(frame *http2.MetaHeadersFrame) {
 	}
 
 	isHeader := false
-	defer func() {
-		if t.statsHandler != nil {
-			if isHeader {
-				inHeader := &stats.InHeader{
-					Client:      true,
-					WireLength:  int(frame.Header().Length),
-					Header:      s.header.Copy(),
-					Compression: s.recvCompress,
-				}
-				t.statsHandler.HandleRPC(s.ctx, inHeader)
-			} else {
-				inTrailer := &stats.InTrailer{
-					Client:     true,
-					WireLength: int(frame.Header().Length),
-					Trailer:    s.trailer.Copy(),
-				}
-				t.statsHandler.HandleRPC(s.ctx, inTrailer)
-			}
-		}
-	}()
 
 	// If headerChan hasn't been closed yet
 	if atomic.CompareAndSwapUint32(&s.headerChanClosed, 0, 1) {
@@ -1442,6 +1430,25 @@ func (t *http2Client) operateHeaders(frame *http2.MetaHeadersFrame) {
 			s.noHeaders = true
 		}
 		close(s.headerChan)
+	}
+
+	if t.statsHandler != nil {
+		if isHeader {
+			inHeader := &stats.InHeader{
+				Client:      true,
+				WireLength:  int(frame.Header().Length),
+				Header:      metadata.MD(mdata).Copy(),
+				Compression: s.recvCompress,
+			}
+			t.statsHandler.HandleRPC(s.ctx, inHeader)
+		} else {
+			inTrailer := &stats.InTrailer{
+				Client:     true,
+				WireLength: int(frame.Header().Length),
+				Trailer:    metadata.MD(mdata).Copy(),
+			}
+			t.statsHandler.HandleRPC(s.ctx, inTrailer)
+		}
 	}
 
 	if !endStream {
