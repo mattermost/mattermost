@@ -110,7 +110,16 @@ func (a *App) GetInitialLoadData(config map[string]string, license map[string]st
 			channelMembersError = err
 			return
 		}
-		data.ChannelMemberships = channelMembers
+		if since == 0 {
+			data.ChannelMemberships = channelMembers
+		} else {
+			data.ChannelMemberships = []*model.ChannelMember{}
+			for _, cm := range channelMembers {
+				if cm.LastUpdateAt >= since {
+					data.ChannelMemberships = append(data.ChannelMemberships, cm)
+				}
+			}
+		}
 	}()
 
 	var channelsLeftError *model.AppError
