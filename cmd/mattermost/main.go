@@ -25,6 +25,8 @@ import (
 	_ "github.com/mattermost/mattermost-server/v6/model/gitlab"
 	// Enterprise Imports
 	_ "github.com/mattermost/mattermost-server/v6/imports"
+	// Products
+	_ "github.com/mattermost/mattermost-server/v6/time"
 )
 
 func main() {
