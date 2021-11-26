@@ -95,16 +95,16 @@ func (a *App) NotificationsLog() *mlog.Logger {
 }
 
 func (a *App) AccountMigration() einterfaces.AccountMigrationInterface {
-	return a.ch.srv.AccountMigration
+	return a.ch.AccountMigration
 }
 func (a *App) Cluster() einterfaces.ClusterInterface {
 	return a.ch.srv.Cluster
 }
 func (a *App) Compliance() einterfaces.ComplianceInterface {
-	return a.ch.srv.Compliance
+	return a.ch.Compliance
 }
 func (a *App) DataRetention() einterfaces.DataRetentionInterface {
-	return a.ch.srv.DataRetention
+	return a.ch.DataRetention
 }
 func (a *App) SearchEngine() *searchengine.Broker {
 	return a.ch.srv.SearchEngine
@@ -113,7 +113,7 @@ func (a *App) Ldap() einterfaces.LdapInterface {
 	return a.ch.srv.Ldap
 }
 func (a *App) MessageExport() einterfaces.MessageExportInterface {
-	return a.ch.srv.MessageExport
+	return a.ch.MessageExport
 }
 func (a *App) Metrics() einterfaces.MetricsInterface {
 	return a.ch.srv.Metrics
