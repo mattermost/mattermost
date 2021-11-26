@@ -8,8 +8,11 @@ import (
 
 	mmApp "github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 
 	"github.com/mattermost/mattermost-server/v6/time/api"
+	"github.com/mattermost/mattermost-server/v6/time/app"
+	"github.com/mattermost/mattermost-server/v6/time/store"
 )
 
 // Time contains all time related state.
@@ -30,7 +33,21 @@ func NewTime(s *mmApp.Server, r *mux.Router) (*Time, error) {
 		router: r,
 	}
 
-	api.Init(r, s)
+	// Set up store
+	mmStore := s.Store.(*sqlstore.SqlStore)
+	sqlStore, err := store.New(mmStore.GetMaster().Db, mmStore.DriverName())
+	if err != nil {
+		return nil, err
+	}
+
+	taskStore := store.NewTaskStore(sqlStore)
+
+	// Set up services
+	taskService := app.NewTaskService(taskStore)
+
+	// Initialize API
+	api := api.Init(s, r)
+	api.InitTask(taskService)
 
 	return ti, nil
 }

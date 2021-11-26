@@ -17,15 +17,22 @@ type Task struct {
 	BlockID  string
 }
 
+type TaskStore interface {
+	Create(task *Task) (*Task, error)
+}
+
 type TaskService interface {
 	Create(task *Task) (*Task, error)
 }
 
 type taskService struct {
+	taskStore TaskStore
 }
 
-func NewTaskService() TaskService {
-	return &taskService{}
+func NewTaskService(taskStore TaskStore) TaskService {
+	return &taskService{
+		taskStore: taskStore,
+	}
 }
 
 func (s *taskService) Create(task *Task) (*Task, error) {

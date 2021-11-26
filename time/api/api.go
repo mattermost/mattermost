@@ -10,7 +10,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/api4"
 	mmApp "github.com/mattermost/mattermost-server/v6/app"
-	"github.com/mattermost/mattermost-server/v6/time/app"
 	"github.com/mattermost/mattermost-server/v6/web"
 )
 
@@ -25,17 +24,11 @@ type API struct {
 	srv        *mmApp.Server
 }
 
-func Init(router *mux.Router, srv *mmApp.Server) *API {
+func Init(s *mmApp.Server, r *mux.Router) *API {
 	api := &API{
-		BaseRoutes: &Routes{},
-		srv:        srv,
+		BaseRoutes: &Routes{Root: r},
+		srv:        s,
 	}
-
-	api.BaseRoutes.Root = router.PathPrefix("/api/v1").Subrouter()
-
-	taskService := app.NewTaskService()
-
-	api.InitTask(taskService)
 
 	return api
 }
