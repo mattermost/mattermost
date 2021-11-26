@@ -919,7 +919,10 @@ func (a *App) getAddPlaybooksPermissions() (permissionsMap, error) {
 	transformations := []permissionTransformation{}
 
 	transformations = append(transformations, permissionTransformation{
-		On: isRole(model.SystemUserRoleId),
+		On: permissionOr(
+			permissionExists(model.PermissionCreatePublicChannel.Id),
+			permissionExists(model.PermissionCreatePrivateChannel.Id),
+		),
 		Add: []string{
 			model.PermissionPublicPlaybookCreate.Id,
 			model.PermissionPrivatePlaybookCreate.Id,
