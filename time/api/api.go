@@ -4,12 +4,17 @@
 package api
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/mattermost/mattermost-plugin-playbooks/server/bot"
+
+	"github.com/mattermost/mattermost-server/v6/api4"
+	mmApp "github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/time/app"
+	"github.com/mattermost/mattermost-server/v6/web"
 )
+
+type Context = web.Context
 
 type Routes struct {
 	Root *mux.Router // 'api/v1'
@@ -17,35 +22,24 @@ type Routes struct {
 
 type API struct {
 	BaseRoutes *Routes
+	srv        *mmApp.Server
 }
 
-func Init(router *mux.Router) *API {
+func Init(router *mux.Router, srv *mmApp.Server) *API {
 	api := &API{
 		BaseRoutes: &Routes{},
+		srv:        srv,
 	}
 
 	api.BaseRoutes.Root = router.PathPrefix("/api/v1").Subrouter()
 
+	taskService := app.NewTaskService()
+
+	api.InitTask(taskService)
+
 	return api
 }
 
-// HandleErrorWithCode logs the internal error and sends the public facing error
-// message as JSON in a response with the provided code.
-func HandleErrorWithCode(logger bot.Logger, w http.ResponseWriter, code int, publicErrorMsg string, internalErr error) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-
-	details := ""
-	if internalErr != nil {
-		details = internalErr.Error()
-	}
-
-	logger.Warnf("public error message: %v; internal details: %v", publicErrorMsg, details)
-
-	responseMsg, _ := json.Marshal(struct {
-		Error string `json:"error"` // A public facing message providing details about the error.
-	}{
-		Error: publicErrorMsg,
-	})
-	_, _ = w.Write(responseMsg)
+func (api *API) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	return api4.APISessionRequired(api.srv, h)
 }

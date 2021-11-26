@@ -13,14 +13,16 @@ type TaskHandler struct {
 	taskService app.TaskService
 }
 
-func (api *API) InitTask() {
-	handler := &TaskHandler{}
+func (api *API) InitTask(taskService app.TaskService) {
+	handler := &TaskHandler{
+		taskService: taskService,
+	}
 
 	tasksRouter := api.BaseRoutes.Root.PathPrefix("/tasks").Subrouter()
 
-	tasksRouter.HandleFunc("", handler.createTask).Methods(http.MethodPost)
+	tasksRouter.Handle("", api.APISessionRequired(handler.createTask)).Methods(http.MethodPost)
 }
 
-func (h *TaskHandler) createTask(w http.ResponseWriter, r *http.Request) {
+func (h *TaskHandler) createTask(c *Context, w http.ResponseWriter, r *http.Request) {
 
 }

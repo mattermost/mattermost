@@ -3,13 +3,15 @@
 
 package app
 
+import "github.com/gorilla/mux"
+
 type Product interface {
 	Start() error
 	Stop() error
 }
 
-var products = make(map[string]func(*Server) (Product, error))
+var products = make(map[string]func(*Server, *mux.Router) (Product, error))
 
-func RegisterProduct(name string, f func(*Server) (Product, error)) {
+func RegisterProduct(name string, f func(*Server, *mux.Router) (Product, error)) {
 	products[name] = f
 }

@@ -7,6 +7,7 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
@@ -40,12 +41,12 @@ type Channels struct {
 }
 
 func init() {
-	RegisterProduct("channels", func(s *Server) (Product, error) {
-		return NewChannels(s)
+	RegisterProduct("channels", func(s *Server, r *mux.Router) (Product, error) {
+		return NewChannels(s, r)
 	})
 }
 
-func NewChannels(s *Server) (*Channels, error) {
+func NewChannels(s *Server, r *mux.Router) (*Channels, error) {
 	ch := &Channels{
 		srv:        s,
 		imageProxy: imageproxy.MakeImageProxy(s, s.httpService, s.Log),

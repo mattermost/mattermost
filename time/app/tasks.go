@@ -21,9 +21,11 @@ type TaskService interface {
 	Create(task *Task) (*Task, error)
 }
 
-var _ TaskService = &taskService{}
-
 type taskService struct {
+}
+
+func NewTaskService() TaskService {
+	return &taskService{}
 }
 
 func (s *taskService) Create(task *Task) (*Task, error) {

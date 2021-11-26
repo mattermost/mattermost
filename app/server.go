@@ -83,6 +83,9 @@ type Server struct {
 	// RootRouter is the starting point for all HTTP requests to the server.
 	RootRouter *mux.Router
 
+	// ProductRouter is the starting point for all HTTP requests to a product.
+	ProductRouter *mux.Router
+
 	// LocalRouter is the starting point for all the local UNIX socket
 	// requests to the server
 	LocalRouter *mux.Router
@@ -201,11 +204,13 @@ type Server struct {
 
 func NewServer(options ...Option) (*Server, error) {
 	rootRouter := mux.NewRouter()
+	productRouter := rootRouter.PathPrefix("/p").Subrouter()
 	localRouter := mux.NewRouter()
 
 	s := &Server{
 		goroutineExitSignal: make(chan struct{}, 1),
 		RootRouter:          rootRouter,
+		ProductRouter:       productRouter,
 		LocalRouter:         localRouter,
 		licenseListeners:    map[string]func(*model.License, *model.License){},
 		hashSeed:            maphash.MakeSeed(),
@@ -257,7 +262,8 @@ func NewServer(options ...Option) (*Server, error) {
 	// Step 3: Initialize products.
 	// Depends on s.httpService.
 	for name, initializer := range products {
-		prod, err2 := initializer(s)
+		router := productRouter.PathPrefix(fmt.Sprintf("/%s", name)).Subrouter()
+		prod, err2 := initializer(s, router)
 		if err2 != nil {
 			return nil, errors.Wrapf(err2, "error initializing product: %s", name)
 		}

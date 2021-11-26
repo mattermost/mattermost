@@ -4,25 +4,33 @@
 package time
 
 import (
-	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/gorilla/mux"
+
+	mmApp "github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/model"
+
+	"github.com/mattermost/mattermost-server/v6/time/api"
 )
 
 // Time contains all time related state.
 type Time struct {
-	srv *app.Server
+	srv    *mmApp.Server
+	router *mux.Router
 }
 
 func init() {
-	app.RegisterProduct("time", func(s *app.Server) (app.Product, error) {
-		return NewTime(s)
+	mmApp.RegisterProduct("time", func(s *mmApp.Server, r *mux.Router) (mmApp.Product, error) {
+		return NewTime(s, r)
 	})
 }
 
-func NewTime(s *app.Server) (*Time, error) {
+func NewTime(s *mmApp.Server, r *mux.Router) (*Time, error) {
 	ti := &Time{
-		srv: s,
+		srv:    s,
+		router: r,
 	}
+
+	api.Init(r, s)
 
 	return ti, nil
 }

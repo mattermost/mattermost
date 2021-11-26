@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/gziphandler"
 
+	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/web"
 )
 
@@ -32,11 +33,15 @@ func (api *API) APIHandler(h func(*Context, http.ResponseWriter, *http.Request))
 	return handler
 }
 
+func (api *API) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	return APISessionRequired(api.srv, h)
+}
+
 // APISessionRequired provides a handler for API endpoints which require the user to be logged in in order for access to
 // be granted.
-func (api *API) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func APISessionRequired(s *app.Server, h func(*web.Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &web.Handler{
-		Srv:            api.srv,
+		Srv:            s,
 		HandleFunc:     h,
 		HandlerName:    web.GetHandlerName(h),
 		RequireSession: true,
@@ -45,7 +50,7 @@ func (api *API) APISessionRequired(h func(*Context, http.ResponseWriter, *http.R
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *s.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
