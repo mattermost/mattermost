@@ -2735,3 +2735,26 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 		require.Equal(t, int64(3), channelUnread.MsgCountRoot)
 	})
 }
+func TestGetPostsByIds(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	post1 := th.CreatePost()
+	post2 := th.CreatePost()
+
+	posts, response, err := client.GetPostsByIds([]string{post1.Id, post2.Id})
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
+	require.Len(t, posts, 2, "wrong number returned")
+	require.Equal(t, posts[0].Id, post2.Id)
+	require.Equal(t, posts[1].Id, post1.Id)
+
+	_, response, err = client.GetPostsByIds([]string{})
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
+
+	_, response, err = client.GetPostsByIds([]string{"abc123"})
+	require.Error(t, err)
+	CheckNotFoundStatus(t, response)
+}
