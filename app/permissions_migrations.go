@@ -929,6 +929,24 @@ func (a *App) getAddPlaybooksPermissions() (permissionsMap, error) {
 		},
 	})
 
+	transformations = append(transformations, permissionTransformation{
+		On: isRole(model.SystemAdminRoleId),
+		Add: []string{
+			model.PermissionPublicPlaybookManageProperties.Id,
+			model.PermissionPublicPlaybookManageMembers.Id,
+			model.PermissionPublicPlaybookView.Id,
+			model.PermissionPublicPlaybookMakePrivate.Id,
+			model.PermissionPrivatePlaybookManageProperties.Id,
+			model.PermissionPrivatePlaybookManageMembers.Id,
+			model.PermissionPrivatePlaybookView.Id,
+			model.PermissionPrivatePlaybookMakePublic.Id,
+			model.PermissionRunCreate.Id,
+			model.PermissionRunManageProperties.Id,
+			model.PermissionRunManageMembers.Id,
+			model.PermissionRunView.Id,
+		},
+	})
+
 	return transformations, nil
 }
 
