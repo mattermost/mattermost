@@ -9310,5 +9310,9 @@
   {
     "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
     "translation": "Nie można pobrać postów dla zarchiwizowanego kanału"
+  },
+  {
+    "id": "api.post.posts_by_ids.invalid_body.request_error",
+    "translation": "Liczba identyfikatorów postów osiągnęła maksymalny rozmiar {{.MaxLength}}."
   }
 ]
