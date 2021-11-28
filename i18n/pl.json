@@ -9302,5 +9302,13 @@
   {
     "id": "fix_crt_channel_unreads.worker.do_job.get_bad_channel_memberships",
     "translation": "Nie udało się zebrać wszystkich członków kanału"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
+    "translation": "Nie można pobrać użytkowników dla zarchiwizowanego kanału"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
+    "translation": "Nie można pobrać postów dla zarchiwizowanego kanału"
   }
 ]
