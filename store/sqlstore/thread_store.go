@@ -791,7 +791,7 @@ func (s *SqlThreadStore) CollectThreadsWithNewerReplies(userId string, channelId
 			},
 		}).
 		ToSql()
-	if err := s.GetReplicaX().Get(&changedThreads, query, args...); err != nil {
+	if err := s.GetReplicaX().Select(&changedThreads, query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to fetch threads")
 	}
 	return changedThreads, nil
