@@ -341,7 +341,7 @@ func (s *Server) doPlaybooksRolesCreationMigration() {
 			allSucceeded = false
 		}
 	}
-	schemes, err := s.Store.Scheme().GetAllPage("", 0, 1000000)
+	schemes, err := s.Store.Scheme().GetAllPage(model.SchemeScopeTeam, 0, 1000000)
 	if err != nil {
 		mlog.Critical("Failed to get all schemes.", mlog.Err(err))
 		allSucceeded = false

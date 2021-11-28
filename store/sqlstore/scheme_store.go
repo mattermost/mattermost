@@ -34,10 +34,10 @@ func newSqlSchemeStore(sqlStore *SqlStore) store.SchemeStore {
 		table.ColMap("DefaultChannelAdminRole").SetMaxSize(64)
 		table.ColMap("DefaultChannelUserRole").SetMaxSize(64)
 		table.ColMap("DefaultChannelGuestRole").SetMaxSize(64)
-		table.ColMap("DefaultPlaybookAdminRole").SetMaxSize(64)
-		table.ColMap("DefaultPlaybookMemberRole").SetMaxSize(64)
-		table.ColMap("DefaultRunAdminRole").SetMaxSize(64)
-		table.ColMap("DefaultRunMemberRole").SetMaxSize(64)
+		table.ColMap("DefaultPlaybookAdminRole").SetMaxSize(64).SetDefaultConstraint(model.NewString(""))
+		table.ColMap("DefaultPlaybookMemberRole").SetMaxSize(64).SetDefaultConstraint(model.NewString(""))
+		table.ColMap("DefaultRunAdminRole").SetMaxSize(64).SetDefaultConstraint(model.NewString(""))
+		table.ColMap("DefaultRunMemberRole").SetMaxSize(64).SetDefaultConstraint(model.NewString(""))
 	}
 
 	return s
@@ -119,7 +119,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 		defaultRoles[role.Name] = role
 	}
 
-	if len(defaultRoles) != 10 {
+	if len(defaultRoles) != len(defaultRoleNames) {
 		return nil, errors.New("createScheme: unable to retrieve default scheme roles")
 	}
 

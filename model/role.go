@@ -763,8 +763,6 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionCreatePrivateChannel.Id,
 			PermissionInviteUser.Id,
 			PermissionAddUserToTeam.Id,
-			PermissionPublicPlaybookCreate.Id,
-			PermissionPrivatePlaybookCreate.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,
