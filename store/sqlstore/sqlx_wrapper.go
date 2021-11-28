@@ -18,6 +18,18 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
+// sqlxExecutor exposes sqlx operations. It is used to enable some internal store methods to
+// accept both transactions (*sqlxTxWrapper) and common db handlers (*sqlxDbWrapper).
+type sqlxExecutor interface {
+	Get(dest interface{}, query string, args ...interface{}) error
+	NamedExec(query string, arg interface{}) (sql.Result, error)
+	Exec(query string, args ...interface{}) (sql.Result, error)
+	NamedQuery(query string, arg interface{}) (*sqlx.Rows, error)
+	QueryRowX(query string, args ...interface{}) *sqlx.Row
+	QueryX(query string, args ...interface{}) (*sqlx.Rows, error)
+	Select(dest interface{}, query string, args ...interface{}) error
+}
+
 // namedParamRegex is used to capture all named parameters and convert them
 // to lowercase. This is necessary to be able to use a single query for both
 // Postgres and MySQL.
