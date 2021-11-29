@@ -2216,6 +2216,10 @@
     "translation": "Can not update a post in a deleted channel."
   },
   {
+    "id": "api.post.posts_by_ids.invalid_body.request_error",
+    "translation": "The number of Post IDs received has exceeded the maximum size of {{.MaxLength}}"
+  },
+  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Unable to parse the request body."
   },
@@ -4250,6 +4254,14 @@
   {
     "id": "api.user.verify_email.token_parse.error",
     "translation": "Failed to parse token data from email verification"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
+    "translation": "Cannot retrieve posts for an archived channel"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
+    "translation": "Cannot retrieve users for an archived channel"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
