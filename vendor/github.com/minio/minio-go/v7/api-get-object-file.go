@@ -28,7 +28,7 @@ import (
 
 // FGetObject - download contents of an object to a local file.
 // The options can be used to specify the GET request further.
-func (c Client) FGetObject(ctx context.Context, bucketName, objectName, filePath string, opts GetObjectOptions) error {
+func (c *Client) FGetObject(ctx context.Context, bucketName, objectName, filePath string, opts GetObjectOptions) error {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return err

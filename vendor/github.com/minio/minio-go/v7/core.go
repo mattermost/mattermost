@@ -125,9 +125,3 @@ func (c Core) PutBucketPolicy(ctx context.Context, bucket, bucketPolicy string) 
 func (c Core) GetObject(ctx context.Context, bucketName, objectName string, opts GetObjectOptions) (io.ReadCloser, ObjectInfo, http.Header, error) {
 	return c.getObject(ctx, bucketName, objectName, opts)
 }
-
-// StatObject is a lower level API implemented to support special
-// conditions matching etag, modtime on a request.
-func (c Core) StatObject(ctx context.Context, bucketName, objectName string, opts StatObjectOptions) (ObjectInfo, error) {
-	return c.statObject(ctx, bucketName, objectName, opts)
-}
