@@ -22,7 +22,9 @@ const (
 	ScopeFilesRead    Scope = "files:read"
 	ScopeFilesWrite   Scope = "files:write"
 	ScopeSearchPosts  Scope = "search:post"
-	ScopeNoScope      Scope = ""
+
+	// ScopeNoScope should only be used in the API to avoid scope check
+	ScopeNoScope Scope = ""
 
 	PluginScopePrefix         = "plugin:"
 	PluginSpecificScopePrefix = "pluginscope:"

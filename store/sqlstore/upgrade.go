@@ -1422,7 +1422,7 @@ func upgradeDatabaseToVersion630(sqlStore *SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, Version620, Version630) {
 
 	sqlStore.CreateColumnIfNotExistsNoDefault("OAuthApps", "Scopes", "Text", "VARCHAR(1024)")
-	sqlStore.CreateColumnIfNotExists("OAuthApps", "AppsFrameworkAppID", "VARCHAR(26)", "VARCHAR(26)", "")
+	sqlStore.CreateColumnIfNotExists("OAuthApps", "MattermostAppID", "VARCHAR(26)", "VARCHAR(26)", "")
 
 	// 	saveSchemaVersion(sqlStore, Version630)
 	// }

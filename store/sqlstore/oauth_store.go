@@ -32,7 +32,7 @@ func newSqlOAuthStore(sqlStore *SqlStore) store.OAuthStore {
 		table.ColMap("Homepage").SetMaxSize(256)
 		table.ColMap("IconURL").SetMaxSize(512)
 		table.ColMap("Scopes").SetMaxSize(1024)
-		table.ColMap("AppsFrameworkAppID").SetMaxSize(26).SetDefaultConstraint(model.NewString(""))
+		table.ColMap("MattermostAppID").SetMaxSize(26).SetDefaultConstraint(model.NewString(""))
 
 		tableAuth := db.AddTableWithName(model.AuthData{}, "OAuthAuthData").SetKeys(false, "Code")
 		tableAuth.ColMap("UserId").SetMaxSize(26)
@@ -72,9 +72,9 @@ func (as SqlOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, error) {
 	}
 
 	if _, err := as.GetMasterX().NamedExec(`INSERT INTO OAuthApps
-		(Id, CreatorId, CreateAt, UpdateAt, ClientSecret, Name, Description, IconURL, CallbackUrls, Homepage, IsTrusted, Scopes, AppsFrameworkAppID)
+		(Id, CreatorId, CreateAt, UpdateAt, ClientSecret, Name, Description, IconURL, CallbackUrls, Homepage, IsTrusted, Scopes, MattermostAppID)
 		VALUES
-		(:Id, :CreatorId, :CreateAt, :UpdateAt, :ClientSecret, :Name, :Description, :IconURL, :CallbackUrls, :Homepage, :IsTrusted, :Scopes, :AppsFrameworkAppID)`, app); err != nil {
+		(:Id, :CreatorId, :CreateAt, :UpdateAt, :ClientSecret, :Name, :Description, :IconURL, :CallbackUrls, :Homepage, :IsTrusted, :Scopes, :MattermostAppID)`, app); err != nil {
 		return nil, errors.Wrap(err, "failed to save OAuthApp")
 	}
 	return app, nil
@@ -103,7 +103,7 @@ func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, error) 
 	res, err := as.GetMasterX().NamedExec(`UPDATE OAuthApps
 		SET UpdateAt=:UpdateAt, ClientSecret=:ClientSecret, Name=:Name,
 			Description=:Description, IconURL=:IconURL, CallbackUrls=:CallbackUrls,
-			Homepage=:Homepage, IsTrusted=:IsTrusted, Scopes=:Scopes, AppsFrameworkAppID=:AppsFrameworkAppID
+			Homepage=:Homepage, IsTrusted=:IsTrusted, Scopes=:Scopes, MattermostAppID=:MattermostAppID
 		WHERE Id=:Id`, app)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update OAuthApp with id=%s", app.Id)

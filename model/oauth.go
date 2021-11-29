@@ -18,19 +18,19 @@ const (
 )
 
 type OAuthApp struct {
-	Id                 string      `json:"id"`
-	CreatorId          string      `json:"creator_id"`
-	CreateAt           int64       `json:"create_at"`
-	UpdateAt           int64       `json:"update_at"`
-	ClientSecret       string      `json:"client_secret"`
-	Name               string      `json:"name"`
-	Description        string      `json:"description"`
-	IconURL            string      `json:"icon_url"`
-	CallbackUrls       StringArray `json:"callback_urls"`
-	Homepage           string      `json:"homepage"`
-	IsTrusted          bool        `json:"is_trusted"`
-	Scopes             Scopes      `json:"scopes"`
-	AppsFrameworkAppID string      `json:"apps_framework_app_id"`
+	Id              string      `json:"id"`
+	CreatorId       string      `json:"creator_id"`
+	CreateAt        int64       `json:"create_at"`
+	UpdateAt        int64       `json:"update_at"`
+	ClientSecret    string      `json:"client_secret"`
+	Name            string      `json:"name"`
+	Description     string      `json:"description"`
+	IconURL         string      `json:"icon_url"`
+	CallbackUrls    StringArray `json:"callback_urls"`
+	Homepage        string      `json:"homepage"`
+	IsTrusted       bool        `json:"is_trusted"`
+	Scopes          Scopes      `json:"scopes"`
+	MattermostAppID string      `json:"mattermost_app_id"`
 }
 
 // IsValid validates the app and returns an error if it isn't configured
