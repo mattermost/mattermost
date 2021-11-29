@@ -384,7 +384,7 @@ func (a *App) newSession(app *model.OAuthApp, user *model.User) (*model.Session,
 	a.ch.srv.userService.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthSSOInDays)
 	session.AddProp(model.SessionPropPlatform, app.Name)
 	session.AddProp(model.SessionPropOAuthAppID, app.Id)
-	session.AddProp(model.SessionPropAppsFrameworkAppID, app.AppsFrameworkAppID)
+	session.AddProp(model.SessionPropMattermostAppID, app.MattermostAppID)
 	session.AddProp(model.SessionPropOs, "OAuth2")
 	session.AddProp(model.SessionPropBrowser, "OAuth2")
 
