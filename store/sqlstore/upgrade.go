@@ -17,7 +17,8 @@ import (
 )
 
 const (
-	CurrentSchemaVersion   = Version611
+	CurrentSchemaVersion   = Version620
+	Version630             = "6.3.0"
 	Version620             = "6.2.0"
 	Version611             = "6.1.1"
 	Version610             = "6.1.0"
@@ -220,6 +221,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion610(sqlStore)
 	upgradeDatabaseToVersion611(sqlStore)
 	upgradeDatabaseToVersion620(sqlStore)
+	upgradeDatabaseToVersion630(sqlStore)
 
 	return nil
 }
@@ -1462,9 +1464,15 @@ func upgradeDatabaseToVersion611(sqlStore *SqlStore) {
 }
 
 func upgradeDatabaseToVersion620(sqlStore *SqlStore) {
-	// TODO: uncomment when the time arrive to upgrade the DB for 6.2
-	// if shouldPerformUpgrade(sqlStore, Version611, Version620) {
+	if shouldPerformUpgrade(sqlStore, Version611, Version620) {
+		saveSchemaVersion(sqlStore, Version620)
+	}
+}
 
-	// 	saveSchemaVersion(sqlStore, Version620)
+func upgradeDatabaseToVersion630(sqlStore *SqlStore) {
+	// TODO: uncomment when the time arrive to upgrade the DB for 6.3
+	// if shouldPerformUpgrade(sqlStore, Version620, Version630) {
+
+	// 	saveSchemaVersion(sqlStore, Version630)
 	// }
 }
