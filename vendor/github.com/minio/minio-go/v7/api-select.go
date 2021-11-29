@@ -54,6 +54,13 @@ const (
 	SelectCompressionNONE SelectCompressionType = "NONE"
 	SelectCompressionGZIP                       = "GZIP"
 	SelectCompressionBZIP                       = "BZIP2"
+
+	// Non-standard compression schemes, supported by MinIO hosts:
+
+	SelectCompressionZSTD   = "ZSTD"   // Zstandard compression.
+	SelectCompressionLZ4    = "LZ4"    // LZ4 Stream
+	SelectCompressionS2     = "S2"     // S2 Stream
+	SelectCompressionSNAPPY = "SNAPPY" // Snappy stream
 )
 
 // CSVQuoteFields - is the parameter for how CSV fields are quoted.
@@ -330,10 +337,10 @@ func (j JSONOutputOptions) MarshalXML(e *xml.Encoder, start xml.StartElement) er
 
 // SelectObjectInputSerialization - input serialization parameters
 type SelectObjectInputSerialization struct {
-	CompressionType SelectCompressionType
-	Parquet         *ParquetInputOptions `xml:"Parquet,omitempty"`
-	CSV             *CSVInputOptions     `xml:"CSV,omitempty"`
-	JSON            *JSONInputOptions    `xml:"JSON,omitempty"`
+	CompressionType SelectCompressionType `xml:"CompressionType,omitempty"`
+	Parquet         *ParquetInputOptions  `xml:"Parquet,omitempty"`
+	CSV             *CSVInputOptions      `xml:"CSV,omitempty"`
+	JSON            *JSONInputOptions     `xml:"JSON,omitempty"`
 }
 
 // SelectObjectOutputSerialization - output serialization parameters.
@@ -431,7 +438,7 @@ const (
 )
 
 // SelectObjectContent is a implementation of http://docs.aws.amazon.com/AmazonS3/latest/API/RESTObjectSELECTContent.html AWS S3 API.
-func (c Client) SelectObjectContent(ctx context.Context, bucketName, objectName string, opts SelectObjectOptions) (*SelectResults, error) {
+func (c *Client) SelectObjectContent(ctx context.Context, bucketName, objectName string, opts SelectObjectOptions) (*SelectResults, error) {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return nil, err

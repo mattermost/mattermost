@@ -133,6 +133,7 @@ type cleanupStream struct {
 func (c *cleanupStream) isTransportResponseFrame() bool { return c.rst } // Results in a RST_STREAM
 
 type earlyAbortStream struct {
+	httpStatus     uint32
 	streamID       uint32
 	contentSubtype string
 	status         *status.Status
@@ -296,7 +297,7 @@ type controlBuffer struct {
 	// closed and nilled when transportResponseFrames drops below the
 	// threshold.  Both fields are protected by mu.
 	transportResponseFrames int
-	trfChan                 atomic.Value // *chan struct{}
+	trfChan                 atomic.Value // chan struct{}
 }
 
 func newControlBuffer(done <-chan struct{}) *controlBuffer {
@@ -310,10 +311,10 @@ func newControlBuffer(done <-chan struct{}) *controlBuffer {
 // throttle blocks if there are too many incomingSettings/cleanupStreams in the
 // controlbuf.
 func (c *controlBuffer) throttle() {
-	ch, _ := c.trfChan.Load().(*chan struct{})
+	ch, _ := c.trfChan.Load().(chan struct{})
 	if ch != nil {
 		select {
-		case <-*ch:
+		case <-ch:
 		case <-c.done:
 		}
 	}
@@ -347,8 +348,7 @@ func (c *controlBuffer) executeAndPut(f func(it interface{}) bool, it cbItem) (b
 		if c.transportResponseFrames == maxQueuedTransportResponseFrames {
 			// We are adding the frame that puts us over the threshold; create
 			// a throttling channel.
-			ch := make(chan struct{})
-			c.trfChan.Store(&ch)
+			c.trfChan.Store(make(chan struct{}))
 		}
 	}
 	c.mu.Unlock()
@@ -389,9 +389,9 @@ func (c *controlBuffer) get(block bool) (interface{}, error) {
 				if c.transportResponseFrames == maxQueuedTransportResponseFrames {
 					// We are removing the frame that put us over the
 					// threshold; close and clear the throttling channel.
-					ch := c.trfChan.Load().(*chan struct{})
-					close(*ch)
-					c.trfChan.Store((*chan struct{})(nil))
+					ch := c.trfChan.Load().(chan struct{})
+					close(ch)
+					c.trfChan.Store((chan struct{})(nil))
 				}
 				c.transportResponseFrames--
 			}
@@ -407,7 +407,6 @@ func (c *controlBuffer) get(block bool) (interface{}, error) {
 		select {
 		case <-c.ch:
 		case <-c.done:
-			c.finish()
 			return nil, ErrConnClosing
 		}
 	}
@@ -432,6 +431,14 @@ func (c *controlBuffer) finish() {
 			hdr.onOrphaned(ErrConnClosing)
 		}
 	}
+	// In case throttle() is currently in flight, it needs to be unblocked.
+	// Otherwise, the transport may not close, since the transport is closed by
+	// the reader encountering the connection error.
+	ch, _ := c.trfChan.Load().(chan struct{})
+	if ch != nil {
+		close(ch)
+	}
+	c.trfChan.Store((chan struct{})(nil))
 	c.mu.Unlock()
 }
 
@@ -765,9 +772,12 @@ func (l *loopyWriter) earlyAbortStreamHandler(eas *earlyAbortStream) error {
 	if l.side == clientSide {
 		return errors.New("earlyAbortStream not handled on client")
 	}
-
+	// In case the caller forgets to set the http status, default to 200.
+	if eas.httpStatus == 0 {
+		eas.httpStatus = 200
+	}
 	headerFields := []hpack.HeaderField{
-		{Name: ":status", Value: "200"},
+		{Name: ":status", Value: strconv.Itoa(int(eas.httpStatus))},
 		{Name: "content-type", Value: grpcutil.ContentType(eas.contentSubtype)},
 		{Name: "grpc-status", Value: strconv.Itoa(int(eas.status.Code()))},
 		{Name: "grpc-message", Value: encodeGrpcMessage(eas.status.Message())},

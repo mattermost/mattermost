@@ -17,7 +17,7 @@
 
 package minio
 
-/// Multipart upload defaults.
+// Multipart upload defaults.
 
 // absMinPartSize - absolute minimum part size (5 MiB) below which
 // a part in a multipart upload may not be uploaded.
@@ -69,6 +69,7 @@ const (
 	amzVersionID         = "X-Amz-Version-Id"
 	amzTaggingCount      = "X-Amz-Tagging-Count"
 	amzExpiration        = "X-Amz-Expiration"
+	amzRestore           = "X-Amz-Restore"
 	amzReplicationStatus = "X-Amz-Replication-Status"
 	amzDeleteMarker      = "X-Amz-Delete-Marker"
 
@@ -89,4 +90,12 @@ const (
 	minIOBucketReplicationDeleteMarker = "X-Minio-Source-DeleteMarker"
 	minIOBucketReplicationProxyRequest = "X-Minio-Source-Proxy-Request"
 	minIOBucketReplicationRequest      = "X-Minio-Source-Replication-Request"
+	// Header indicates last tag update time on source
+	minIOBucketReplicationTaggingTimestamp = "X-Minio-Source-Replication-Tagging-Timestamp"
+	// Header indicates last retention update time on source
+	minIOBucketReplicationObjectRetentionTimestamp = "X-Minio-Source-Replication-Retention-Timestamp"
+	// Header indicates last legalhold update time on source
+	minIOBucketReplicationObjectLegalHoldTimestamp = "X-Minio-Source-Replication-LegalHold-Timestamp"
+
+	minIOForceDelete = "x-minio-force-delete"
 )

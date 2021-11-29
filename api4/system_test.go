@@ -748,7 +748,7 @@ func TestServerBusy503(t *testing.T) {
 
 func TestPushNotificationAck(t *testing.T) {
 	th := Setup(t).InitBasic()
-	api := Init(th.App, th.Server.Router)
+	api := Init(th.Server)
 	session, _ := th.App.GetSession(th.Client.AuthToken)
 	defer th.TearDown()
 
@@ -771,7 +771,7 @@ func TestPushNotificationAck(t *testing.T) {
 		resp := httptest.NewRecorder()
 		req := httptest.NewRequest("POST", "/api/v4/notifications/ack", nil)
 		req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
-		req.Body = ioutil.NopCloser(bytes.NewBufferString(fmt.Sprintf(`{"id":"123", "is_id_loaded":true, "post_id":"%s"}`, privatePost.Id)))
+		req.Body = ioutil.NopCloser(bytes.NewBufferString(fmt.Sprintf(`{"id":"123", "is_id_loaded":true, "post_id":"%s", "type": "%s"}`, privatePost.Id, model.PushTypeMessage)))
 
 		handler.ServeHTTP(resp, req)
 		assert.Equal(t, http.StatusForbidden, resp.Code)

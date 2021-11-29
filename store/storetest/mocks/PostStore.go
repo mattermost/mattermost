@@ -635,6 +635,29 @@ func (_m *PostStore) GetSingle(id string, inclDeleted bool) (*model.Post, error)
 	return r0, r1
 }
 
+// GetUniquePostTypesSince provides a mock function with given fields: channelId, timestamp
+func (_m *PostStore) GetUniquePostTypesSince(channelId string, timestamp int64) ([]string, error) {
+	ret := _m.Called(channelId, timestamp)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(string, int64) []string); ok {
+		r0 = rf(channelId, timestamp)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
+		r1 = rf(channelId, timestamp)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // HasAutoResponsePostByUserSince provides a mock function with given fields: options, userId
 func (_m *PostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error) {
 	ret := _m.Called(options, userId)

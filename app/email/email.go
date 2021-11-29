@@ -426,7 +426,7 @@ func (es *Service) SendMfaChangeEmail(email string, activated bool, locale, site
 	return nil
 }
 
-func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string) error {
+func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string, reminderData *model.TeamInviteReminderData) error {
 	if es.PerHourEmailRateLimiter == nil {
 		return NoRateLimiterError
 	}
@@ -450,7 +450,6 @@ func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderU
 
 			data := es.NewEmailTemplateData("")
 			data.Props["SiteURL"] = siteURL
-			data.Props["Title"] = i18n.T("api.templates.invite_body.title", map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
 			data.Props["SubTitle"] = i18n.T("api.templates.invite_body.subTitle")
 			data.Props["Button"] = i18n.T("api.templates.invite_body.button")
 			data.Props["SenderName"] = senderName
@@ -467,6 +466,16 @@ func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderU
 			tokenProps["email"] = invite
 			tokenProps["display_name"] = team.DisplayName
 			tokenProps["name"] = team.Name
+
+			title := i18n.T("api.templates.invite_body.title", map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
+			if reminderData != nil {
+				reminder := i18n.T("api.templates.invite_body.title.reminder")
+				title = fmt.Sprintf("%s: %s", reminder, title)
+				tokenProps["reminder_interval"] = reminderData.Interval
+			}
+
+			data.Props["Title"] = title
+
 			tokenData := model.MapToJSON(tokenProps)
 
 			if err := es.store.Token().Save(token); err != nil {
@@ -555,15 +564,24 @@ func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Cha
 				mlog.Info("sending invitation ", mlog.String("to", invite), mlog.String("link", data.Props["ButtonURL"].(string)))
 			}
 
+			senderPhoto := ""
 			embeddedFiles := make(map[string]io.Reader)
 			if message != "" {
 				if senderProfileImage != nil {
-					data.Props["SenderPhoto"] = "user-avatar.png"
+					senderPhoto = "user-avatar.png"
 					embeddedFiles = map[string]io.Reader{
-						"user-avatar.png": bytes.NewReader(senderProfileImage),
+						senderPhoto: bytes.NewReader(senderProfileImage),
 					}
 				}
 			}
+
+			pData := postData{
+				SenderName:  senderName,
+				Message:     template.HTML(message),
+				SenderPhoto: senderPhoto,
+			}
+
+			data.Props["Posts"] = []postData{pData}
 
 			body, err := es.templatesContainer.RenderToString("invite_body", data)
 			if err != nil {

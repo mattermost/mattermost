@@ -996,19 +996,19 @@ func TestGetChannelsForUser(t *testing.T) {
 	defer th.App.PermanentDeleteChannel(channel)
 	defer th.TearDown()
 
-	channelList, err := th.App.GetChannelsForUser(th.BasicTeam.Id, th.BasicUser.Id, false, 0)
+	channelList, err := th.App.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false, 0)
 	require.Nil(t, err)
 	require.Len(t, channelList, 4)
 
 	th.App.DeleteChannel(th.Context, channel, th.BasicUser.Id)
 
 	// Now we get all the non-archived channels for the user
-	channelList, err = th.App.GetChannelsForUser(th.BasicTeam.Id, th.BasicUser.Id, false, 0)
+	channelList, err = th.App.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false, 0)
 	require.Nil(t, err)
 	require.Len(t, channelList, 3)
 
 	// Now we get all the channels, even though are archived, for the user
-	channelList, err = th.App.GetChannelsForUser(th.BasicTeam.Id, th.BasicUser.Id, true, 0)
+	channelList, err = th.App.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, true, 0)
 	require.Nil(t, err)
 	require.Len(t, channelList, 4)
 }
@@ -1972,12 +1972,12 @@ func TestMarkChannelsAsViewedPanic(t *testing.T) {
 	mockSessionStore := mocks.SessionStore{}
 	mockOAuthStore := mocks.OAuthStore{}
 	var err error
-	th.App.srv.userService, err = users.New(users.ServiceConfig{
+	th.App.ch.srv.userService, err = users.New(users.ServiceConfig{
 		UserStore:    &mockUserStore,
 		SessionStore: &mockSessionStore,
 		OAuthStore:   &mockOAuthStore,
-		ConfigFn:     th.App.srv.Config,
-		LicenseFn:    th.App.srv.License,
+		ConfigFn:     th.App.ch.srv.Config,
+		LicenseFn:    th.App.ch.srv.License,
 	})
 	require.NoError(t, err)
 	mockPreferenceStore := mocks.PreferenceStore{}

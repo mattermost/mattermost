@@ -52,7 +52,7 @@ func parseHeaderList(headerList string) []string {
 			} else {
 				h = append(h, b)
 			}
-		case b == '-' || b == '_' || (b >= '0' && b <= '9'):
+		case b == '-' || b == '_' || b == '.' || (b >= '0' && b <= '9'):
 			h = append(h, b)
 		}
 

@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"encoding/json"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
@@ -44,8 +45,20 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 	}
 
 	metadata.PreSave()
+	metadataBytes, err := json.Marshal(metadata.Data)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not serialize metadataBytes to JSON")
+	}
 
-	err := s.GetMaster().Insert(metadata)
+	query, args, err := s.getQueryBuilder().
+		Insert("LinkMetadata").
+		Columns("Hash", "URL", "Timestamp", "Type", "Data").
+		Values(metadata.Hash, metadata.URL, metadata.Timestamp, metadata.Type, string(metadataBytes)).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "metadata_tosql")
+	}
+	_, err = s.GetMasterX().Exec(query, args...)
 	if err != nil && !IsUniqueConstraintError(err, []string{"PRIMARY", "linkmetadata_pkey"}) {
 		return nil, errors.Wrap(err, "could not save link metadata")
 	}
@@ -54,7 +67,7 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 }
 
 func (s SqlLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetadata, error) {
-	var metadata *model.LinkMetadata
+	var metadata model.LinkMetadata
 	query, args, err := s.getQueryBuilder().
 		Select("*").
 		From("LinkMetadata").
@@ -63,7 +76,7 @@ func (s SqlLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetad
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create query with querybuilder")
 	}
-	err = s.GetReplica().SelectOne(&metadata, query, args...)
+	err = s.GetReplicaX().Get(&metadata, query, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("LinkMetadata", "url="+url)
@@ -76,5 +89,5 @@ func (s SqlLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetad
 		return nil, errors.Wrapf(err, "could not deserialize metadata to concrete type for url=%s", url)
 	}
 
-	return metadata, nil
+	return &metadata, nil
 }

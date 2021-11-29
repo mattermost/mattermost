@@ -120,9 +120,9 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 	})
 
 	ctx := &request.Context{}
-	a := app.New(app.ServerConnector(s))
+	a := app.New(app.ServerConnector(s.Channels()))
 
-	web := New(a, s.Router)
+	web := New(s)
 	URL = fmt.Sprintf("http://localhost:%v", s.ListenAddr.Port)
 	apiClient = model.NewAPIv4Client(URL)
 
@@ -327,7 +327,7 @@ func TestPublicFilesRequest(t *testing.T) {
 	require.NotNil(t, manifest)
 	require.True(t, activated)
 
-	th.App.SetPluginsEnvironment(env)
+	th.App.Channels().SetPluginsEnvironment(env)
 
 	req, _ := http.NewRequest("GET", "/plugins/com.mattermost.sample/public/hello.html", nil)
 	res := httptest.NewRecorder()

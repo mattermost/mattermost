@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
@@ -63,7 +64,21 @@ func (s SqlCommandStore) Save(command *model.Command) (*model.Command, error) {
 		return nil, err
 	}
 
-	if err := s.GetMaster().Insert(command); err != nil {
+	// Trigger is a keyword
+	var trigger string
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		trigger = `"trigger"`
+	} else {
+		trigger = "`Trigger`"
+	}
+
+	if _, err := s.GetMasterX().NamedExec(`INSERT INTO Commands (Id, Token, CreateAt,
+		UpdateAt, DeleteAt, CreatorId, TeamId, `+trigger+`, Method, Username,
+		IconURL, AutoComplete, AutoCompleteDesc, AutoCompleteHint, DisplayName, Description,
+		URL, PluginId)
+	VALUES (:Id, :Token, :CreateAt, :UpdateAt, :DeleteAt, :CreatorId, :TeamId, :Trigger, :Method,
+		:Username, :IconURL, :AutoComplete, :AutoCompleteDesc, :AutoCompleteHint, :DisplayName,
+		:Description, :URL, :PluginId)`, command); err != nil {
 		return nil, errors.Wrapf(err, "insert: command_id=%s", command.Id)
 	}
 
@@ -78,7 +93,7 @@ func (s SqlCommandStore) Get(id string) (*model.Command, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "commands_tosql")
 	}
-	if err = s.GetReplica().SelectOne(&command, query, args...); err == sql.ErrNoRows {
+	if err = s.GetReplicaX().Get(&command, query, args...); err == sql.ErrNoRows {
 		return nil, store.NewErrNotFound("Command", id)
 	} else if err != nil {
 		return nil, errors.Wrapf(err, "selectone: command_id=%s", id)
@@ -88,14 +103,14 @@ func (s SqlCommandStore) Get(id string) (*model.Command, error) {
 }
 
 func (s SqlCommandStore) GetByTeam(teamId string) ([]*model.Command, error) {
-	var commands []*model.Command
+	commands := []*model.Command{}
 
 	sql, args, err := s.commandsQuery.
 		Where(sq.Eq{"TeamId": teamId, "DeleteAt": 0}).ToSql()
 	if err != nil {
 		return nil, errors.Wrapf(err, "commands_tosql")
 	}
-	if _, err := s.GetReplica().Select(&commands, sql, args...); err != nil {
+	if err := s.GetReplicaX().Select(&commands, sql, args...); err != nil {
 		return nil, errors.Wrapf(err, "select: team_id=%s", teamId)
 	}
 
@@ -117,7 +132,7 @@ func (s SqlCommandStore) GetByTrigger(teamId string, trigger string) (*model.Com
 		return nil, errors.Wrapf(err, "commands_tosql")
 	}
 
-	if err := s.GetReplica().SelectOne(&command, query, args...); err == sql.ErrNoRows {
+	if err := s.GetReplicaX().Get(&command, query, args...); err == sql.ErrNoRows {
 		errorId := "teamId=" + teamId + ", trigger=" + trigger
 		return nil, store.NewErrNotFound("Command", errorId)
 	} else if err != nil {
@@ -136,7 +151,7 @@ func (s SqlCommandStore) Delete(commandId string, time int64) error {
 		return errors.Wrapf(err, "commands_tosql")
 	}
 
-	_, err = s.GetMaster().Exec(sql, args...)
+	_, err = s.GetMasterX().Exec(sql, args...)
 	if err != nil {
 		errors.Wrapf(err, "delete: command_id=%s", commandId)
 	}
@@ -151,7 +166,7 @@ func (s SqlCommandStore) PermanentDeleteByTeam(teamId string) error {
 	if err != nil {
 		return errors.Wrapf(err, "commands_tosql")
 	}
-	_, err = s.GetMaster().Exec(sql, args...)
+	_, err = s.GetMasterX().Exec(sql, args...)
 	if err != nil {
 		return errors.Wrapf(err, "delete: team_id=%s", teamId)
 	}
@@ -165,7 +180,7 @@ func (s SqlCommandStore) PermanentDeleteByUser(userId string) error {
 	if err != nil {
 		return errors.Wrapf(err, "commands_tosql")
 	}
-	_, err = s.GetMaster().Exec(sql, args...)
+	_, err = s.GetMasterX().Exec(sql, args...)
 	if err != nil {
 		return errors.Wrapf(err, "delete: user_id=%s", userId)
 	}
@@ -180,10 +195,48 @@ func (s SqlCommandStore) Update(cmd *model.Command) (*model.Command, error) {
 		return nil, err
 	}
 
-	if _, err := s.GetMaster().Update(cmd); err != nil {
-		return nil, errors.Wrapf(err, "update: command_id=%s", cmd.Id)
+	query := s.getQueryBuilder().
+		Update("Commands").
+		Set("Token", cmd.Token).
+		Set("CreateAt", cmd.CreateAt).
+		Set("UpdateAt", cmd.UpdateAt).
+		Set("CreatorId", cmd.CreatorId).
+		Set("TeamId", cmd.TeamId).
+		Set("Method", cmd.Method).
+		Set("Username", cmd.Username).
+		Set("IconURL", cmd.IconURL).
+		Set("AutoComplete", cmd.AutoComplete).
+		Set("AutoCompleteDesc", cmd.AutoCompleteDesc).
+		Set("AutoCompleteHint", cmd.AutoCompleteHint).
+		Set("DisplayName", cmd.DisplayName).
+		Set("Description", cmd.Description).
+		Set("URL", cmd.URL).
+		Set("PluginId", cmd.PluginId).
+		Where(sq.Eq{"Id": cmd.Id})
+
+	// Trigger is a keyword
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		query = query.Set(`"trigger"`, cmd.Trigger)
+	} else {
+		query = query.Set("`Trigger`", cmd.Trigger)
 	}
 
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "commands_tosql")
+	}
+
+	res, err := s.GetMasterX().Exec(queryString, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to update commands")
+	}
+	count, err := res.RowsAffected()
+	if err != nil {
+		return nil, errors.Wrap(err, "error while getting rows_affected")
+	}
+	if count > 1 {
+		return nil, fmt.Errorf("unexpected count while updating commands: count=%d, Id=%s", count, cmd.Id)
+	}
 	return cmd, nil
 }
 
@@ -202,7 +255,8 @@ func (s SqlCommandStore) AnalyticsCommandCount(teamId string) (int64, error) {
 		return 0, errors.Wrapf(err, "commands_tosql")
 	}
 
-	c, err := s.GetReplica().SelectInt(sql, args...)
+	var c int64
+	err = s.GetReplicaX().Get(&c, sql, args...)
 	if err != nil {
 		return 0, errors.Wrapf(err, "unable to count the commands: team_id=%s", teamId)
 	}

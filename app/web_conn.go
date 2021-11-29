@@ -57,6 +57,7 @@ type WebConnConfig struct {
 	Locale       string
 	ConnectionID string
 	Active       bool
+	ReuseCount   int
 
 	// These aren't necessary to be exported to api layer.
 	sequence         int
@@ -94,7 +95,13 @@ type WebConn struct {
 	// to this webConn or not.
 	// It is not used as an atomic, because there is no need to.
 	// So do not use this outside the web hub.
-	active       bool
+	active bool
+	// reuseCount indicates how many times this connection has been reused.
+	// This is used to differentiate between a fresh connection and
+	// a reused connection.
+	// It's theoretically possible for this number to wrap around. But we
+	// leave that as an edge-case.
+	reuseCount   int
 	sessionToken atomic.Value
 	session      atomic.Value
 	connectionID atomic.Value
@@ -111,6 +118,7 @@ type CheckConnResult struct {
 	ActiveQueue      chan model.WebSocketMessage
 	DeadQueue        []*model.WebSocketEvent
 	DeadQueuePointer int
+	ReuseCount       int
 }
 
 // PopulateWebConnConfig checks if the connection id already exists in the hub,
@@ -120,8 +128,8 @@ func (a *App) PopulateWebConnConfig(s *model.Session, cfg *WebConnConfig, seqVal
 		return nil, fmt.Errorf("invalid connection id: %s", cfg.ConnectionID)
 	}
 
-	// TODO: the method should internally forward the request
-	// to the cluster if it does not have it.
+	// This does not handle reconnect requests across nodes in a cluster.
+	// It falls back to the non-reliable case in that scenario.
 	res := a.CheckWebConn(s.UserId, cfg.ConnectionID)
 	if res == nil {
 		// If the connection is not present, then we assume either timeout,
@@ -133,6 +141,7 @@ func (a *App) PopulateWebConnConfig(s *model.Session, cfg *WebConnConfig, seqVal
 		cfg.deadQueue = res.DeadQueue
 		cfg.deadQueuePointer = res.DeadQueuePointer
 		cfg.Active = false
+		cfg.ReuseCount = res.ReuseCount
 		// Now we get the sequence number
 		if seqVal == "" {
 			// Sequence_number must be sent with connection id.
@@ -172,7 +181,7 @@ func (a *App) NewWebConn(cfg *WebConnConfig) *WebConn {
 		cfg.activeQueue = make(chan model.WebSocketMessage, sendQueueSize)
 	}
 
-	if cfg.deadQueue == nil && *a.srv.Config().ServiceSettings.EnableReliableWebSockets {
+	if cfg.deadQueue == nil && *a.ch.srv.Config().ServiceSettings.EnableReliableWebSockets {
 		cfg.deadQueue = make([]*model.WebSocketEvent, deadQueueSize)
 	}
 
@@ -188,6 +197,7 @@ func (a *App) NewWebConn(cfg *WebConnConfig) *WebConn {
 		T:                  cfg.TFunc,
 		Locale:             cfg.Locale,
 		active:             cfg.Active,
+		reuseCount:         cfg.ReuseCount,
 		endWritePump:       make(chan struct{}),
 		pumpFinished:       make(chan struct{}),
 		pluginPosted:       make(chan pluginWSPostedHook, 10),
@@ -287,7 +297,7 @@ func (wc *WebConn) SetSession(v *model.Session) {
 // Pump starts the WebConn instance. After this, the websocket
 // is ready to send/receive messages.
 func (wc *WebConn) Pump() {
-	defer wc.App.srv.userService.ReturnSessionToPool(wc.GetSession())
+	defer wc.App.Srv().userService.ReturnSessionToPool(wc.GetSession())
 
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -365,7 +375,7 @@ func (wc *WebConn) writePump() {
 		wc.WebSocket.Close()
 	}()
 
-	if *wc.App.srv.Config().ServiceSettings.EnableReliableWebSockets && wc.Sequence != 0 {
+	if *wc.App.Srv().Config().ServiceSettings.EnableReliableWebSockets && wc.Sequence != 0 {
 		if ok, index := wc.isInDeadQueue(wc.Sequence); ok {
 			if err := wc.drainDeadQueue(index); err != nil {
 				wc.logSocketErr("websocket.drainDeadQueue", err)
@@ -462,7 +472,7 @@ func (wc *WebConn) writePump() {
 				mlog.Warn("websocket.full", logData...)
 			}
 
-			if *wc.App.srv.Config().ServiceSettings.EnableReliableWebSockets &&
+			if *wc.App.Srv().Config().ServiceSettings.EnableReliableWebSockets &&
 				evtOk {
 				wc.addToDeadQueue(evt)
 			}
@@ -525,12 +535,17 @@ func (wc *WebConn) addToDeadQueue(msg *model.WebSocketEvent) {
 // the latest element in the dead queue, which would mean there is no message loss.
 func (wc *WebConn) hasMsgLoss() bool {
 	var index int
+	// deadQueuePointer = 0 means either no msg written or the pointer
+	// has rolled over to its starting position.
 	if wc.deadQueuePointer == 0 {
+		// If last entry is nil, it means no msg is written.
 		if wc.deadQueue[deadQueueSize-1] == nil {
-			return false // No msg written
+			return false
 		}
+		// If it's not nil, that means it has rolled over to start, and we
+		// check the last position.
 		index = deadQueueSize - 1
-	} else {
+	} else { // deadQueuePointer != 0 means it's somewhere in the middle.
 		index = wc.deadQueuePointer - 1
 	}
 
@@ -728,7 +743,7 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 		}
 
 		if wc.allChannelMembers == nil {
-			result, err := wc.App.Srv().Store.Channel().GetAllChannelMembersForUser(wc.UserId, true, false)
+			result, err := wc.App.Srv().Store.Channel().GetAllChannelMembersForUser(wc.UserId, false, false)
 			if err != nil {
 				mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
 				return false

@@ -182,8 +182,14 @@ func TestUpdateChannel(t *testing.T) {
 	require.Equal(t, private.Header, newPrivateChannel.Header, "Update failed for Header in private channel")
 	require.Equal(t, private.Purpose, newPrivateChannel.Purpose, "Update failed for Purpose in private channel")
 
-	// Test that changing the type fails and returns error
+	//Test updating default channel's name and returns error
+	defaultChannel, _ := th.App.GetChannelByName(model.DefaultChannelName, team.Id, false)
+	defaultChannel.Name = "testing"
+	_, resp, err = client.UpdateChannel(defaultChannel)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
 
+	// Test that changing the type fails and returns error
 	private.Type = model.ChannelTypeOpen
 	_, resp, err = client.UpdateChannel(private)
 	require.Error(t, err)
@@ -250,6 +256,7 @@ func TestPatchChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
+	team := th.BasicTeam
 
 	patch := &model.ChannelPatch{
 		Name:        new(string),
@@ -276,6 +283,16 @@ func TestPatchChannel(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, oldName, channel.Name, "should not have updated")
+
+	//Test updating default channel's name and returns error
+	defaultChannel, _ := th.App.GetChannelByName(model.DefaultChannelName, team.Id, false)
+	defaultChannelPatch := &model.ChannelPatch{
+		Name: new(string),
+	}
+	*defaultChannelPatch.Name = "testing"
+	_, resp, err := client.PatchChannel(defaultChannel.Id, defaultChannelPatch)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
 
 	// Test GroupConstrained flag
 	patch.GroupConstrained = model.NewBool(true)
@@ -1034,6 +1051,58 @@ func TestGetChannelsForTeamForUser(t *testing.T) {
 	})
 }
 
+func TestGetChannelsForUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	client := th.Client
+
+	// Adding another team with more channels (public and private)
+	myTeam := th.CreateTeam()
+	ch1 := th.CreateChannelWithClientAndTeam(client, model.ChannelTypeOpen, myTeam.Id)
+	ch2 := th.CreateChannelWithClientAndTeam(client, model.ChannelTypePrivate, myTeam.Id)
+	th.LinkUserToTeam(th.BasicUser, myTeam)
+	th.App.AddUserToChannel(th.BasicUser, ch1, false)
+	th.App.AddUserToChannel(th.BasicUser, ch2, false)
+
+	channels, _, err := client.GetChannelsForUserWithLastDeleteAt(th.BasicUser.Id, 0)
+	require.NoError(t, err)
+
+	numPrivate := 0
+	numPublic := 0
+	numOffTopic := 0
+	numTownSquare := 0
+	for _, ch := range channels {
+		if ch.Type == model.ChannelTypeOpen {
+			numPublic++
+		} else if ch.Type == model.ChannelTypePrivate {
+			numPrivate++
+		}
+
+		if ch.DisplayName == "Off-Topic" {
+			numOffTopic++
+		} else if ch.DisplayName == "Town Square" {
+			numTownSquare++
+		}
+	}
+
+	assert.Len(t, channels, 9)
+	assert.Equal(t, 2, numPrivate)
+	assert.Equal(t, 7, numPublic)
+	assert.Equal(t, 2, numOffTopic)
+	assert.Equal(t, 2, numTownSquare)
+
+	// Creating some more channels to be exactly 100 to test page size boundaries.
+	for i := 0; i < 91; i++ {
+		ch1 = th.CreateChannelWithClientAndTeam(client, model.ChannelTypeOpen, myTeam.Id)
+		th.App.AddUserToChannel(th.BasicUser, ch1, false)
+	}
+
+	channels, _, err = client.GetChannelsForUserWithLastDeleteAt(th.BasicUser.Id, 0)
+	require.NoError(t, err)
+	assert.Len(t, channels, 100)
+}
+
 func TestGetAllChannels(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -1383,6 +1452,16 @@ func TestSearchAllChannels(t *testing.T) {
 	require.NoError(t, err)
 
 	team := th.CreateTeam()
+	privateChannel2, _, err := th.SystemAdminClient.CreateChannel(&model.Channel{
+		DisplayName: "dn_private2",
+		Name:        "private2",
+		Type:        model.ChannelTypePrivate,
+		TeamId:      team.Id,
+	})
+	require.NoError(t, err)
+	th.LinkUserToTeam(th.SystemAdminUser, team)
+	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+
 	groupConstrainedChannel, _, err := th.SystemAdminClient.CreateChannel(&model.Channel{
 		DisplayName:      "SearchAllChannels-groupConstrained-1",
 		Name:             "groupconstrained1",
@@ -1450,7 +1529,7 @@ func TestSearchAllChannels(t *testing.T) {
 		{
 			"Search with private channel filter",
 			&model.ChannelSearch{Private: true},
-			[]string{th.BasicPrivateChannel.Id, th.BasicPrivateChannel2.Id, privateChannel.Id, groupConstrainedChannel.Id},
+			[]string{th.BasicPrivateChannel.Id, privateChannel2.Id, th.BasicPrivateChannel2.Id, privateChannel.Id, groupConstrainedChannel.Id},
 		},
 		{
 			"Search with public channel filter",
@@ -1516,6 +1595,14 @@ func TestSearchAllChannels(t *testing.T) {
 			assert.ElementsMatch(t, testCase.ExpectedChannelIds, actualChannelIds)
 		})
 	}
+
+	userChannels, _, err := th.SystemAdminClient.SearchAllChannelsForUser("private")
+	require.NoError(t, err)
+	assert.Len(t, userChannels, 2)
+
+	userChannels, _, err = th.SystemAdminClient.SearchAllChannelsForUser("FOOBARDISPLAYNAME")
+	require.NoError(t, err)
+	assert.Len(t, userChannels, 1)
 
 	// Searching with no terms returns all default channels
 	allChannels, _, err := th.SystemAdminClient.SearchAllChannels(&model.ChannelSearch{Term: ""})
@@ -3238,7 +3325,7 @@ func TestAutocompleteChannels(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	// A private channel to make sure private channels are not used
+	// A private channel to make sure private channels are used.
 	ptown, _, _ := th.Client.CreateChannel(&model.Channel{
 		DisplayName: "Town",
 		Name:        "town",
@@ -3267,8 +3354,8 @@ func TestAutocompleteChannels(t *testing.T) {
 			"Basic town-square",
 			th.BasicTeam.Id,
 			"town",
-			[]string{"town-square"},
-			[]string{"off-topic", "town", "tower"},
+			[]string{"town-square", "town"},
+			[]string{"off-topic", "tower"},
 		},
 		{
 			"Basic off-topic",
@@ -3281,8 +3368,8 @@ func TestAutocompleteChannels(t *testing.T) {
 			"Basic town square and off topic",
 			th.BasicTeam.Id,
 			"tow",
-			[]string{"town-square", "tower"},
-			[]string{"off-topic", "town"},
+			[]string{"town-square", "tower", "town"},
+			[]string{"off-topic"},
 		},
 	} {
 		t.Run(tc.description, func(t *testing.T) {

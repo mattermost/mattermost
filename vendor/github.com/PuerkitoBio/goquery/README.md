@@ -1,5 +1,8 @@
 # goquery - a little like that j-thing, only in Go
-[![builds.sr.ht status](https://builds.sr.ht/~mna/goquery/commits/fedora.yml.svg)](https://builds.sr.ht/~mna/goquery/commits/fedora.yml?) [![build status](https://secure.travis-ci.org/PuerkitoBio/goquery.svg?branch=master)](http://travis-ci.org/PuerkitoBio/goquery) [![Go Reference](https://pkg.go.dev/badge/github.com/PuerkitoBio/goquery.svg)](https://pkg.go.dev/github.com/PuerkitoBio/goquery) [![Sourcegraph Badge](https://sourcegraph.com/github.com/PuerkitoBio/goquery/-/badge.svg)](https://sourcegraph.com/github.com/PuerkitoBio/goquery?badge)
+
+[![Build Status](https://github.com/PuerkitoBio/goquery/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/PuerkitoBio/goquery/actions)
+[![Go Reference](https://pkg.go.dev/badge/github.com/PuerkitoBio/goquery.svg)](https://pkg.go.dev/github.com/PuerkitoBio/goquery)
+[![Sourcegraph Badge](https://sourcegraph.com/github.com/PuerkitoBio/goquery/-/badge.svg)](https://sourcegraph.com/github.com/PuerkitoBio/goquery?badge)
 
 goquery brings a syntax and a set of features similar to [jQuery][] to the [Go language][go]. It is based on Go's [net/html package][html] and the CSS Selector library [cascadia][]. Since the net/html parser returns nodes, and not a full-featured DOM tree, jQuery's stateful manipulation functions (like height(), css(), detach()) have been left off.
 
@@ -37,6 +40,8 @@ Please note that because of the net/html dependency, goquery requires Go1.1+ and
 
 **Note that goquery's API is now stable, and will not break.**
 
+*    **2021-10-25 (v1.8.0)** : Add `Render` function to render a `Selection` to an `io.Writer` (thanks [@anthonygedeon](https://github.com/anthonygedeon)).
+*    **2021-07-11 (v1.7.1)** : Update go.mod dependencies and add dependabot config (thanks [@jauderho](https://github.com/jauderho)).
 *    **2021-06-14 (v1.7.0)** : Add `Single` and `SingleMatcher` functions to optimize first-match selection (thanks [@gdollardollar](https://github.com/gdollardollar)).
 *    **2021-01-11 (v1.6.1)** : Fix panic when calling `{Prepend,Append,Set}Html` on a `Selection` that contains non-Element nodes.
 *    **2020-10-08 (v1.6.0)** : Parse html in context of the container node for all functions that deal with html strings (`AfterHtml`, `AppendHtml`, etc.). Thanks to [@thiemok][thiemok] and [@davidjwilkins][djw] for their work on this.

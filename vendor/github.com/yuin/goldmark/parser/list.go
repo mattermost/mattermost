@@ -1,10 +1,11 @@
 package parser
 
 import (
+	"strconv"
+
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/text"
 	"github.com/yuin/goldmark/util"
-	"strconv"
 )
 
 type listItemType int
@@ -14,6 +15,10 @@ const (
 	bulletList
 	orderedList
 )
+
+var skipListParserKey = NewContextKey()
+var emptyListItemWithBlankLines = NewContextKey()
+var listItemFlagValue interface{} = true
 
 // Same as
 // `^(([ ]*)([\-\*\+]))(\s+.*)?\n?$`.FindSubmatchIndex or
@@ -122,8 +127,8 @@ func (b *listParser) Trigger() []byte {
 
 func (b *listParser) Open(parent ast.Node, reader text.Reader, pc Context) (ast.Node, State) {
 	last := pc.LastOpenedBlock().Node
-	if _, lok := last.(*ast.List); lok || pc.Get(skipListParser) != nil {
-		pc.Set(skipListParser, nil)
+	if _, lok := last.(*ast.List); lok || pc.Get(skipListParserKey) != nil {
+		pc.Set(skipListParserKey, nil)
 		return nil, NoChildren
 	}
 	line, _ := reader.PeekLine()
@@ -143,7 +148,7 @@ func (b *listParser) Open(parent ast.Node, reader text.Reader, pc Context) (ast.
 			return nil, NoChildren
 		}
 		//an empty list item cannot interrupt a paragraph:
-		if match[5]-match[4] == 1 {
+		if match[4] < 0 || util.IsBlank(line[match[4]:match[5]]) {
 			return nil, NoChildren
 		}
 	}
@@ -153,6 +158,7 @@ func (b *listParser) Open(parent ast.Node, reader text.Reader, pc Context) (ast.
 	if start > -1 {
 		node.Start = start
 	}
+	pc.Set(emptyListItemWithBlankLines, nil)
 	return node, HasChildren
 }
 
@@ -160,12 +166,9 @@ func (b *listParser) Continue(node ast.Node, reader text.Reader, pc Context) Sta
 	list := node.(*ast.List)
 	line, _ := reader.PeekLine()
 	if util.IsBlank(line) {
-		// A list item can begin with at most one blank line
-		if node.ChildCount() == 1 && node.LastChild().ChildCount() == 0 {
-			return Close
+		if node.LastChild().ChildCount() == 0 {
+			pc.Set(emptyListItemWithBlankLines, listItemFlagValue)
 		}
-
-		reader.Advance(len(line)-1)
 		return Continue | HasChildren
 	}
 
@@ -177,10 +180,23 @@ func (b *listParser) Continue(node ast.Node, reader text.Reader, pc Context) Sta
 	// - a
 	//  - b          <--- current line
 	// it maybe a new child of the list.
+	//
+	// Empty list items can have multiple blanklines
+	//
+	// -             <--- 1st item is an empty thus "offset" is unknown
+	//
+	//
+	//   -           <--- current line
+	//
+	// -> 1 list with 2 blank items
+	//
+	// So if the last item is an empty, it maybe a new child of the list.
+	//
 	offset := lastOffset(node)
+	lastIsEmpty := node.LastChild().ChildCount() == 0
 	indent, _ := util.IndentWidth(line, reader.LineOffset())
 
-	if indent < offset {
+	if indent < offset || lastIsEmpty {
 		if indent < 4 {
 			match, typ := matchesListItem(line, false) // may have a leading spaces more than 3
 			if typ != notList && match[1]-offset < 4 {
@@ -202,10 +218,23 @@ func (b *listParser) Continue(node ast.Node, reader text.Reader, pc Context) Sta
 						return Close
 					}
 				}
-
 				return Continue | HasChildren
 			}
 		}
+		if !lastIsEmpty {
+			return Close
+		}
+	}
+
+	// Non empty items can not exist next to an empty list item
+	// with blank lines. So we need to close the current list
+	//
+	// -
+	//
+	//   foo
+	//
+	// -> 1 list with 1 blank items and 1 paragraph
+	if pc.Get(emptyListItemWithBlankLines) != nil {
 		return Close
 	}
 	return Continue | HasChildren
@@ -232,8 +261,9 @@ func (b *listParser) Close(node ast.Node, reader text.Reader, pc Context) {
 
 	if list.IsTight {
 		for child := node.FirstChild(); child != nil; child = child.NextSibling() {
-			for gc := child.FirstChild(); gc != nil; gc = gc.NextSibling() {
+			for gc := child.FirstChild(); gc != nil; {
 				paragraph, ok := gc.(*ast.Paragraph)
+				gc = gc.NextSibling()
 				if ok {
 					textBlock := ast.NewTextBlock()
 					textBlock.SetLines(paragraph.Lines())
