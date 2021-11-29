@@ -27,7 +27,7 @@ import (
 
 // BucketExists verifies if bucket exists and you have permission to access it. Allows for a Context to
 // control cancellations and timeouts.
-func (c Client) BucketExists(ctx context.Context, bucketName string) (bool, error) {
+func (c *Client) BucketExists(ctx context.Context, bucketName string) (bool, error) {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return false, err
@@ -58,19 +58,7 @@ func (c Client) BucketExists(ctx context.Context, bucketName string) (bool, erro
 }
 
 // StatObject verifies if object exists and you have permission to access.
-func (c Client) StatObject(ctx context.Context, bucketName, objectName string, opts StatObjectOptions) (ObjectInfo, error) {
-	// Input validation.
-	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
-		return ObjectInfo{}, err
-	}
-	if err := s3utils.CheckValidObjectName(objectName); err != nil {
-		return ObjectInfo{}, err
-	}
-	return c.statObject(ctx, bucketName, objectName, opts)
-}
-
-// Lower level API for statObject supporting pre-conditions and range headers.
-func (c Client) statObject(ctx context.Context, bucketName, objectName string, opts StatObjectOptions) (ObjectInfo, error) {
+func (c *Client) StatObject(ctx context.Context, bucketName, objectName string, opts StatObjectOptions) (ObjectInfo, error) {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return ObjectInfo{}, err

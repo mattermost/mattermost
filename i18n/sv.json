@@ -9265,5 +9265,25 @@
   {
     "id": "ent.elasticsearch.getAllChannelMembers.error",
     "translation": "Misslyckades att hämta alla kanalmedlemmar"
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "Kunde inte hämta alla roller."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Misslyckades att uppdatera anpassad status. Lägg till emoij och/eller egen statustext."
+  },
+  {
+    "id": "app.user.get_thread_count_for_user.app_error",
+    "translation": "Det gick inte att ta fram användarens antal trådar."
+  },
+  {
+    "id": "app.session.extend_session_expiry.app_error",
+    "translation": "Kunde inte förlänga sessionens längd"
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "Påminnelse"
   }
 ]

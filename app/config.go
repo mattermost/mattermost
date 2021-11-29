@@ -109,14 +109,14 @@ func (a *App) RemoveConfigListener(id string) {
 // ensurePostActionCookieSecret ensures that the key for encrypting PostActionCookie exists
 // and future calls to PostActionCookieSecret will always return a valid key, same on all
 // servers in the cluster
-func (s *Server) ensurePostActionCookieSecret() error {
-	if s.postActionCookieSecret != nil {
+func (ch *Channels) ensurePostActionCookieSecret() error {
+	if ch.postActionCookieSecret != nil {
 		return nil
 	}
 
 	var secret *model.SystemPostActionCookieSecret
 
-	value, err := s.Store.System().GetByName(model.SystemPostActionCookieSecretKey)
+	value, err := ch.srv.Store.System().GetByName(model.SystemPostActionCookieSecretKey)
 	if err == nil {
 		if err := json.Unmarshal([]byte(value.Value), &secret); err != nil {
 			return err
@@ -142,7 +142,7 @@ func (s *Server) ensurePostActionCookieSecret() error {
 		}
 		system.Value = string(v)
 		// If we were able to save the key, use it, otherwise log the error.
-		if err = s.Store.System().Save(system); err != nil {
+		if err = ch.srv.Store.System().Save(system); err != nil {
 			mlog.Warn("Failed to save PostActionCookieSecret", mlog.Err(err))
 		} else {
 			secret = newSecret
@@ -152,7 +152,7 @@ func (s *Server) ensurePostActionCookieSecret() error {
 	// If we weren't able to save a new key above, another server must have beat us to it. Get the
 	// key from the database, and if that fails, error out.
 	if secret == nil {
-		value, err := s.Store.System().GetByName(model.SystemPostActionCookieSecretKey)
+		value, err := ch.srv.Store.System().GetByName(model.SystemPostActionCookieSecretKey)
 		if err != nil {
 			return err
 		}
@@ -162,7 +162,7 @@ func (s *Server) ensurePostActionCookieSecret() error {
 		}
 	}
 
-	s.postActionCookieSecret = secret.Secret
+	ch.postActionCookieSecret = secret.Secret
 	return nil
 }
 
@@ -294,12 +294,12 @@ func (a *App) AsymmetricSigningKey() *ecdsa.PrivateKey {
 	return a.ch.AsymmetricSigningKey()
 }
 
-func (s *Server) PostActionCookieSecret() []byte {
-	return s.postActionCookieSecret
+func (ch *Channels) PostActionCookieSecret() []byte {
+	return ch.postActionCookieSecret
 }
 
 func (a *App) PostActionCookieSecret() []byte {
-	return a.Srv().PostActionCookieSecret()
+	return a.ch.PostActionCookieSecret()
 }
 
 func (ch *Channels) regenerateClientConfig() {

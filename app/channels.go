@@ -8,6 +8,7 @@ import (
 	"sync/atomic"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
@@ -18,9 +19,13 @@ import (
 type Channels struct {
 	srv *Server
 
+	postActionCookieSecret []byte
+
+	pluginCommandsLock     sync.RWMutex
+	pluginCommands         []*PluginCommand
+	pluginsLock            sync.RWMutex
 	pluginsEnvironment     *plugin.Environment
 	pluginConfigListenerID string
-	pluginsLock            sync.RWMutex
 
 	imageProxy *imageproxy.ImageProxy
 
@@ -35,6 +40,11 @@ type Channels struct {
 	cachedDBMSVersion string
 	// previously fetched notices
 	cachedNotices model.ProductNotices
+
+	AccountMigration einterfaces.AccountMigrationInterface
+	Compliance       einterfaces.ComplianceInterface
+	DataRetention    einterfaces.DataRetentionInterface
+	MessageExport    einterfaces.MessageExportInterface
 }
 
 func init() {
@@ -44,10 +54,34 @@ func init() {
 }
 
 func NewChannels(s *Server) (*Channels, error) {
-	return &Channels{
+	ch := &Channels{
 		srv:        s,
 		imageProxy: imageproxy.MakeImageProxy(s, s.httpService, s.Log),
-	}, nil
+	}
+	// We are passing a partially filled Channels struct so that the enterprise
+	// methods can have access to app methods.
+	// Otherwise, passing server would mean it has to call s.Channels(),
+	// which would be nil at this point.
+	if complianceInterface != nil {
+		ch.Compliance = complianceInterface(New(ServerConnector(ch)))
+	}
+	if messageExportInterface != nil {
+		ch.MessageExport = messageExportInterface(New(ServerConnector(ch)))
+	}
+	if dataRetentionInterface != nil {
+		ch.DataRetention = dataRetentionInterface(New(ServerConnector(ch)))
+	}
+	if accountMigrationInterface != nil {
+		ch.AccountMigration = accountMigrationInterface(New(ServerConnector(ch)))
+	}
+
+	// Setup routes.
+	pluginsRoute := ch.srv.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
+	pluginsRoute.HandleFunc("", ch.ServePluginRequest)
+	pluginsRoute.HandleFunc("/public/{public_file:.*}", ch.ServePluginPublicRequest)
+	pluginsRoute.HandleFunc("/{anything:.*}", ch.ServePluginRequest)
+
+	return ch, nil
 }
 
 func (ch *Channels) Start() error {
@@ -65,6 +99,10 @@ func (ch *Channels) Start() error {
 
 	if err := ch.ensureAsymmetricSigningKey(); err != nil {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
+	}
+
+	if err := ch.ensurePostActionCookieSecret(); err != nil {
+		return errors.Wrapf(err, "unable to ensure PostAction cookie secret")
 	}
 	return nil
 }

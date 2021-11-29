@@ -735,6 +735,20 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	var profiles []*model.User
 	etag := ""
 
+	if inChannelId != "" {
+		if !*c.App.Config().TeamSettings.ExperimentalViewArchivedChannels {
+			channel, appErr := c.App.GetChannel(inChannelId)
+			if appErr != nil {
+				c.Err = appErr
+				return
+			}
+			if channel.DeleteAt != 0 {
+				c.Err = model.NewAppError("Api4.getUsersInChannel", "api.user.view_archived_channels.get_users_in_channel.app_error", nil, "", http.StatusForbidden)
+				return
+			}
+		}
+	}
+
 	if withoutTeamBool, _ := strconv.ParseBool(withoutTeam); withoutTeamBool {
 		// Use a special permission for now
 		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionListUsersWithoutTeam) {
@@ -784,6 +798,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
+
 		if sort == "status" {
 			profiles, err = c.App.GetUsersInChannelPageByStatus(userGetOptions, c.IsSystemAdmin())
 		} else {
@@ -3048,7 +3063,7 @@ func updateReadStateThreadByUser(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	thread, err := c.App.UpdateThreadReadForUser(c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, c.Params.Timestamp)
+	thread, err := c.App.UpdateThreadReadForUser(c.AppContext.Session().Id, c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, c.Params.Timestamp)
 	if err != nil {
 		c.Err = err
 		return

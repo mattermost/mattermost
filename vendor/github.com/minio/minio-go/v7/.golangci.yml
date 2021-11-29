@@ -8,9 +8,20 @@ linters:
     - typecheck
     - goimports
     - misspell
+    - revive
     - govet
-    - golint
     - ineffassign
     - gosimple
     - deadcode
     - structcheck
+    - gocritic
+
+issues:
+  exclude-use-default: false
+  exclude:
+      # todo fix these when we get enough time.
+      - "singleCaseSwitch: should rewrite switch statement to if statement"
+      - "unlambda: replace"
+      - "captLocal:"
+      - "ifElseChain:"
+      - "elseif:"
