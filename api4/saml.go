@@ -16,7 +16,7 @@ import (
 )
 
 func (api *API) InitSaml() {
-	api.BaseRoutes.SAML.Handle("/metadata", api.APIHandler(getSamlMetadata, model.ScopeNoScope)).Methods("GET")
+	api.BaseRoutes.SAML.Handle("/metadata", api.APIHandler(getSamlMetadata, model.ScopeAny)).Methods("GET")
 
 	api.BaseRoutes.SAML.Handle("/certificate/public", api.APISessionRequired(addSamlPublicCertificate)).Methods("POST")
 	api.BaseRoutes.SAML.Handle("/certificate/private", api.APISessionRequired(addSamlPrivateCertificate)).Methods("POST")

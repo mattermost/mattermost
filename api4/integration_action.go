@@ -13,7 +13,7 @@ import (
 func (api *API) InitAction() {
 	api.BaseRoutes.Post.Handle("/actions/{action_id:[A-Za-z0-9]+}", api.APISessionRequired(doPostAction)).Methods("POST")
 
-	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/open", api.APIHandler(openDialog, model.ScopeNoScope)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/open", api.APIHandler(openDialog, model.ScopeAny)).Methods("POST")
 	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/submit", api.APISessionRequired(submitDialog)).Methods("POST")
 }
 

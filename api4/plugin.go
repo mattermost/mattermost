@@ -37,7 +37,7 @@ func (api *API) InitPlugin() {
 	api.BaseRoutes.Plugin.Handle("/enable", api.APISessionRequired(enablePlugin)).Methods("POST")
 	api.BaseRoutes.Plugin.Handle("/disable", api.APISessionRequired(disablePlugin)).Methods("POST")
 
-	api.BaseRoutes.Plugins.Handle("/webapp", api.APIHandler(getWebappPlugins, model.ScopeNoScope)).Methods("GET")
+	api.BaseRoutes.Plugins.Handle("/webapp", api.APIHandler(getWebappPlugins, model.ScopeAny)).Methods("GET")
 
 	api.BaseRoutes.Plugins.Handle("/marketplace", api.APISessionRequired(getMarketplacePlugins)).Methods("GET")
 

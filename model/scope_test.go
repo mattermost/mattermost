@@ -57,12 +57,12 @@ func TestIsInScope(t *testing.T) {
 	allScopes := append(getPredefinedScopes(), NewPluginScope("pluginID"), NewPluginSpecificScope("pluginID", "scope"))
 	others := Scopes{}
 	for _, s := range allScopes {
-		assert.False(t, s.isInScope(ScopeDeny()), "Scope %v should not be in Deny scope", s)
-		assert.True(t, s.isInScope(ScopeAny(s)), "Scope %v should be in scope created with ScopeAny(%v)", s, s)
-		assert.True(t, s.isInScope(allScopes), "Scope %v should be among all the scopes", s)
-		assert.False(t, s.isInScope(others), "Scope %v should not be in previous scopes", s)
+		assert.False(t, s.IsInScope(ScopeDeny()), "Scope %v should not be in Deny scope", s)
+		assert.True(t, s.IsInScope(Scopes{s}), "Scope %v should be in scope created with ScopeAny(%v)", s, s)
+		assert.True(t, s.IsInScope(allScopes), "Scope %v should be among all the scopes", s)
+		assert.False(t, s.IsInScope(others), "Scope %v should not be in previous scopes", s)
 		others = append(others, s)
-		assert.True(t, s.isInScope(others), "Scope %v should be in a scope where it has been added", s)
+		assert.True(t, s.IsInScope(others), "Scope %v should be in a scope where it has been added", s)
 	}
 }
 
@@ -86,7 +86,7 @@ func TestAreAllowed(t *testing.T) {
 	assert.True(t, allScopes.AreAllowed(allScopes), "Scopes should be allowed when at least one belong to the allowed group")
 	assert.True(t, Scopes{allScopes[0]}.AreAllowed(allScopes), "Scopes should be allowed when at least one belong to the allowed group")
 
-	assert.False(t, allScopes.AreAllowed(ScopeAny(NewPluginScope("pluginID2"))), "Scopes should not be allowed when there is no element equal to the allowed group")
+	assert.False(t, allScopes.AreAllowed(Scopes{NewPluginScope("pluginID2")}), "Scopes should not be allowed when there is no element equal to the allowed group")
 	assert.False(t, emptyScopes.AreAllowed(allScopes), "Scopes should not be allowed when there is no element equal to the allowed group")
 }
 
@@ -94,7 +94,7 @@ func TestIsPluginInScope(t *testing.T) {
 	plugin1ID := "plugin1ID"
 	plugin2ID := "plugin2ID"
 
-	scope := ScopeAny(NewPluginScope(plugin1ID))
+	scope := Scopes{NewPluginScope(plugin1ID)}
 
 	assert.True(t, scope.IsPluginInScope(plugin1ID))
 	assert.False(t, scope.IsPluginInScope(plugin2ID))
@@ -209,10 +209,10 @@ func TestEquals(t *testing.T) {
 func TestValidate(t *testing.T) {
 	assert.True(t, ScopeDeny().Validate(), "ScopeDeny should be a valid scope")
 	assert.True(t, ScopeAllow().Validate(), "ScopeAllow should be a valid scope")
-	assert.True(t, ScopeAny(getPredefinedScopes()...).Validate(), "Predefined scopes should be valid")
-	assert.True(t, ScopeAny(NewPluginScope("pluginID")).Validate(), "Plugin scopes should be valid")
-	assert.True(t, ScopeAny(NewPluginSpecificScope("pluginID", "scope")).Validate(), "Plugin specific scopes should be valid")
-	assert.False(t, ScopeAny(Scope("arbitrary:string")).Validate(), "Arbitrary strings are not valid scopes")
+	assert.True(t, getPredefinedScopes().Validate(), "Predefined scopes should be valid")
+	assert.True(t, Scopes{NewPluginScope("pluginID")}.Validate(), "Plugin scopes should be valid")
+	assert.True(t, Scopes{NewPluginSpecificScope("pluginID", "scope")}.Validate(), "Plugin specific scopes should be valid")
+	assert.False(t, Scopes{Scope("arbitrary:string")}.Validate(), "Arbitrary strings are not valid scopes")
 
 	allScopes := append(getPredefinedScopes(), NewPluginScope("pluginID"), NewPluginSpecificScope("pluginID", "scope"))
 	assert.True(t, allScopes.Validate(), "all scopes should be valid")

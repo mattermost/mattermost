@@ -60,7 +60,7 @@ func testOAuthStoreSaveApp(t *testing.T, ss store.Store) {
 	a2.CallbackUrls = []string{"https://nowhere.com"}
 	a2.Homepage = "https://nowhere.com"
 	a2.Name = "TestApp" + model.NewId()
-	a2.Scopes = model.ScopeAny(model.ScopeFilesRead)
+	a2.Scopes = model.Scopes{model.ScopeFilesRead}
 
 	_, err = ss.OAuth().SaveApp(&a2)
 	require.NoError(t, err)
@@ -129,7 +129,7 @@ func testOAuthStoreUpdateApp(t *testing.T, ss store.Store) {
 	require.NotEqual(t, ua.CreatorId, "12345678901234567890123456", "creator id should not have updated")
 
 	// Lets update the scopes
-	a1.Scopes = model.ScopeAny(model.ScopeFilesRead)
+	a1.Scopes = model.Scopes{model.ScopeFilesRead}
 	ua, err = ss.OAuth().UpdateApp(&a1)
 	require.NoError(t, err)
 	require.True(t, ua.Scopes.Equals(a1.Scopes), "scopes should be updated")

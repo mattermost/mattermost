@@ -212,7 +212,7 @@ func scopeFromArgs(scopes []model.Scope) []model.Scope {
 	handlerScopes := scopes
 	if len(scopes) == 0 {
 		handlerScopes = model.ScopeDeny()
-	} else if scopes[0] == model.ScopeNoScope {
+	} else if scopes[0] == model.ScopeAny {
 		handlerScopes = model.ScopeAllow()
 	}
 	return handlerScopes

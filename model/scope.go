@@ -23,16 +23,12 @@ const (
 	ScopeFilesWrite   Scope = "files:write"
 	ScopeSearchPosts  Scope = "search:post"
 
-	// ScopeNoScope should only be used in the API to avoid scope check
-	ScopeNoScope Scope = ""
+	// ScopeAny should only be used in the API to avoid scope check
+	ScopeAny Scope = ""
 
 	PluginScopePrefix         = "plugin:"
 	PluginSpecificScopePrefix = "pluginscope:"
 )
-
-func ScopeAny(scopes ...Scope) Scopes {
-	return scopes
-}
 
 func ScopeAllow() Scopes {
 	return Scopes{}
@@ -71,7 +67,7 @@ func getPredefinedScopes() Scopes {
 }
 
 func (s Scope) IsPredefinedScope() bool {
-	return s.isInScope(getPredefinedScopes())
+	return s.IsInScope(getPredefinedScopes())
 }
 
 func (s Scope) IsScopeForPlugin(pluginID string) bool {
@@ -79,8 +75,8 @@ func (s Scope) IsScopeForPlugin(pluginID string) bool {
 		strings.TrimPrefix(string(s), PluginScopePrefix) == pluginID
 }
 
-// isInScope checks if a scope is in the scope list
-func (s Scope) isInScope(scopes Scopes) bool {
+// IsInScope checks if a scope is in the scope list
+func (s Scope) IsInScope(scopes Scopes) bool {
 	if scopes == nil {
 		return false
 	}
@@ -137,7 +133,7 @@ func (ss Scopes) intersection(scope Scopes) Scopes {
 
 	out := Scopes{}
 	for _, x := range ss {
-		if x.isInScope(scope) {
+		if x.IsInScope(scope) {
 			out = append(out, x)
 		}
 	}
@@ -187,7 +183,7 @@ func (ss Scopes) IsSuperset(ss2 Scopes) bool {
 	}
 
 	for _, s2 := range ss2 {
-		if !s2.isInScope(ss) {
+		if !s2.IsInScope(ss) {
 			return false
 		}
 	}

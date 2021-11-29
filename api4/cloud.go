@@ -37,8 +37,8 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices", api.APISessionRequired(getInvoicesForSubscription)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf", api.APISessionRequired(getSubscriptionInvoicePDF)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription/limitreached/invite", api.APISessionRequired(sendAdminUpgradeRequestEmail)).Methods("POST")
-	api.BaseRoutes.Cloud.Handle("/subscription/limitreached/join", api.APIHandler(sendAdminUpgradeRequestEmailOnJoin, model.ScopeNoScope)).Methods("POST")
-	api.BaseRoutes.Cloud.Handle("/subscription/stats", api.APIHandler(getSubscriptionStats, model.ScopeNoScope)).Methods("GET")
+	api.BaseRoutes.Cloud.Handle("/subscription/limitreached/join", api.APIHandler(sendAdminUpgradeRequestEmailOnJoin, model.ScopeAny)).Methods("POST")
+	api.BaseRoutes.Cloud.Handle("/subscription/stats", api.APIHandler(getSubscriptionStats, model.ScopeAny)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription", api.APISessionRequired(changeSubscription)).Methods("PUT")
 
 	// POST /api/v4/cloud/webhook

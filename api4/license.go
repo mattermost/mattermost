@@ -24,7 +24,7 @@ func (api *API) InitLicense() {
 	api.BaseRoutes.APIRoot.Handle("/license", api.APISessionRequired(addLicense)).Methods("POST")
 	api.BaseRoutes.APIRoot.Handle("/license", api.APISessionRequired(removeLicense)).Methods("DELETE")
 	api.BaseRoutes.APIRoot.Handle("/license/renewal", api.APISessionRequired(requestRenewalLink)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/license/client", api.APIHandler(getClientLicense, model.ScopeNoScope)).Methods("GET") // TODO Consider OAuth scopes
+	api.BaseRoutes.APIRoot.Handle("/license/client", api.APIHandler(getClientLicense, model.ScopeAny)).Methods("GET")
 }
 
 func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {

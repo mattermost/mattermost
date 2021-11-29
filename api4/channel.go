@@ -66,7 +66,7 @@ func (api *API) InitChannel() {
 
 	api.BaseRoutes.ChannelMembers.Handle("", api.APISessionRequired(getChannelMembers)).Methods("GET")
 	api.BaseRoutes.ChannelMembers.Handle("/ids", api.APISessionRequired(getChannelMembersByIds)).Methods("POST")
-	api.BaseRoutes.ChannelMembers.Handle("", api.APISessionRequired(addChannelMember)).Methods("POST")
+	api.BaseRoutes.ChannelMembers.Handle("", api.APISessionRequired(addChannelMember, model.ScopeChannelJoin)).Methods("POST")
 	api.BaseRoutes.ChannelMembersForUser.Handle("", api.APISessionRequired(getChannelMembersForTeamForUser)).Methods("GET")
 	api.BaseRoutes.ChannelMember.Handle("", api.APISessionRequired(getChannelMember)).Methods("GET")
 	api.BaseRoutes.ChannelMember.Handle("", api.APISessionRequired(removeChannelMember)).Methods("DELETE")
@@ -1640,17 +1640,26 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	isSelfAdd := member.UserId == c.AppContext.Session().UserId
+	hasNeededScopes := true
+	oAuthScopes := c.AppContext.Scopes()
+	if oAuthScopes != nil {
+		if !isSelfAdd {
+			hasNeededScopes = false
+		} else if !model.ScopeChannelJoin.IsInScope(oAuthScopes) {
+			hasNeededScopes = false
+		}
+	}
 
 	if channel.Type == model.ChannelTypeOpen {
 		if isSelfAdd && isNewMembership {
-			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionJoinPublicChannels) {
+			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionJoinPublicChannels) || !hasNeededScopes {
 				c.SetPermissionError(model.PermissionJoinPublicChannels)
 				return
 			}
 		} else if isSelfAdd && !isNewMembership {
 			// nothing to do, since already in the channel
 		} else if !isSelfAdd {
-			if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channel.Id, model.PermissionManagePublicChannelMembers) {
+			if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channel.Id, model.PermissionManagePublicChannelMembers) || !hasNeededScopes {
 				c.SetPermissionError(model.PermissionManagePublicChannelMembers)
 				return
 			}
@@ -1659,14 +1668,14 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if channel.Type == model.ChannelTypePrivate {
 		if isSelfAdd && isNewMembership {
-			if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channel.Id, model.PermissionManagePrivateChannelMembers) {
+			if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channel.Id, model.PermissionManagePrivateChannelMembers) || !hasNeededScopes {
 				c.SetPermissionError(model.PermissionManagePrivateChannelMembers)
 				return
 			}
 		} else if isSelfAdd && !isNewMembership {
 			// nothing to do, since already in the channel
 		} else if !isSelfAdd {
-			if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channel.Id, model.PermissionManagePrivateChannelMembers) {
+			if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channel.Id, model.PermissionManagePrivateChannelMembers) || !hasNeededScopes {
 				c.SetPermissionError(model.PermissionManagePrivateChannelMembers)
 				return
 			}

@@ -808,7 +808,7 @@ func TestHandlerServeOAuthScoped(t *testing.T) {
 		Description:  "app",
 		Homepage:     "http://foo.com",
 		CallbackUrls: []string{"http://foo.com"},
-		Scopes:       model.ScopeAny(model.ScopeMessageRead),
+		Scopes:       model.Scopes{model.ScopeMessageRead},
 	}
 
 	oAuthApp, err := th.App.CreateOAuthApp(oAuthApp)
@@ -875,7 +875,7 @@ func TestHandlerServeOAuthScoped(t *testing.T) {
 		TrustRequester: false,
 		RequireMfa:     false,
 		IsStatic:       false,
-		AllowedScopes:  model.ScopeAny(model.ScopeMessageWrite),
+		AllowedScopes:  model.Scopes{model.ScopeMessageWrite},
 	}
 
 	request = httptest.NewRequest("POST", "/api/v4/test", nil)
@@ -892,7 +892,7 @@ func TestHandlerServeOAuthScoped(t *testing.T) {
 		TrustRequester: false,
 		RequireMfa:     false,
 		IsStatic:       false,
-		AllowedScopes:  model.ScopeAny(model.ScopeMessageRead),
+		AllowedScopes:  model.Scopes{model.ScopeMessageRead},
 	}
 
 	request = httptest.NewRequest("POST", "/api/v4/test", nil)
@@ -981,7 +981,7 @@ func TestHandlerServeOAuthLegacy(t *testing.T) {
 		TrustRequester: false,
 		RequireMfa:     false,
 		IsStatic:       false,
-		AllowedScopes:  model.ScopeAny(model.ScopeMessageWrite),
+		AllowedScopes:  model.Scopes{model.ScopeMessageWrite},
 	}
 
 	request = httptest.NewRequest("POST", "/api/v4/test", nil)
@@ -998,7 +998,7 @@ func TestHandlerServeOAuthLegacy(t *testing.T) {
 		TrustRequester: false,
 		RequireMfa:     false,
 		IsStatic:       false,
-		AllowedScopes:  model.ScopeAny(model.ScopeMessageRead),
+		AllowedScopes:  model.Scopes{model.ScopeMessageRead},
 	}
 
 	request = httptest.NewRequest("POST", "/api/v4/test", nil)

@@ -35,7 +35,7 @@ var redirectLocationDataCache = cache.NewLRU(cache.LRUOptions{
 })
 
 func (api *API) InitSystem() {
-	api.BaseRoutes.System.Handle("/ping", api.APIHandler(getSystemPing, model.ScopeNoScope)).Methods("GET")
+	api.BaseRoutes.System.Handle("/ping", api.APIHandler(getSystemPing, model.ScopeAny)).Methods("GET")
 
 	api.BaseRoutes.System.Handle("/timezones", api.APISessionRequired(getSupportedTimezones)).Methods("GET")
 
@@ -47,7 +47,7 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/caches/invalidate", api.APISessionRequired(invalidateCaches)).Methods("POST")
 
 	api.BaseRoutes.APIRoot.Handle("/logs", api.APISessionRequired(getLogs)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/logs", api.APIHandler(postLog, model.ScopeNoScope)).Methods("POST") // Scopes handled at postLog
+	api.BaseRoutes.APIRoot.Handle("/logs", api.APIHandler(postLog, model.ScopeAny)).Methods("POST") // Scopes handled at postLog
 
 	api.BaseRoutes.APIRoot.Handle("/analytics/old", api.APISessionRequired(getAnalytics)).Methods("GET")
 
