@@ -1978,6 +1978,9 @@ func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
+	if len(posts) == 0 {
+		return nil, store.NewErrNotFound("Post", fmt.Sprintf("postIds=%v", postIds))
+	}
 	return posts, nil
 }
 
@@ -2521,4 +2524,24 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *gorp.Transaction, pos
 		}
 	}
 	return nil
+}
+
+// GetUniquePostTypesSince returns the unique post types in a channel after the given timestamp
+func (s *SqlPostStore) GetUniquePostTypesSince(channelId string, timestamp int64) ([]string, error) {
+	query, args, err := s.getQueryBuilder().
+		Select("DISTINCT Type").
+		From("Posts").
+		Where(sq.And{
+			sq.Eq{"ChannelId": channelId},
+			sq.GtOrEq{"CreateAt": timestamp},
+			sq.Eq{"DeleteAt": 0},
+		}).ToSql()
+	if err != nil {
+		return nil, err
+	}
+	var types []string
+	if _, err := s.GetReplica().Select(&types, query, args...); err != nil {
+		return nil, err
+	}
+	return types, nil
 }

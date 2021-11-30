@@ -139,7 +139,7 @@ func newObjectLockConfig(mode *RetentionMode, validity *uint, unit *ValidityUnit
 }
 
 // SetBucketObjectLockConfig sets object lock configuration in given bucket. mode, validity and unit are either all set or all nil.
-func (c Client) SetBucketObjectLockConfig(ctx context.Context, bucketName string, mode *RetentionMode, validity *uint, unit *ValidityUnit) error {
+func (c *Client) SetBucketObjectLockConfig(ctx context.Context, bucketName string, mode *RetentionMode, validity *uint, unit *ValidityUnit) error {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return err
@@ -184,7 +184,7 @@ func (c Client) SetBucketObjectLockConfig(ctx context.Context, bucketName string
 }
 
 // GetObjectLockConfig gets object lock configuration of given bucket.
-func (c Client) GetObjectLockConfig(ctx context.Context, bucketName string) (objectLock string, mode *RetentionMode, validity *uint, unit *ValidityUnit, err error) {
+func (c *Client) GetObjectLockConfig(ctx context.Context, bucketName string) (objectLock string, mode *RetentionMode, validity *uint, unit *ValidityUnit, err error) {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return "", nil, nil, nil, err
@@ -230,12 +230,12 @@ func (c Client) GetObjectLockConfig(ctx context.Context, bucketName string) (obj
 }
 
 // GetBucketObjectLockConfig gets object lock configuration of given bucket.
-func (c Client) GetBucketObjectLockConfig(ctx context.Context, bucketName string) (mode *RetentionMode, validity *uint, unit *ValidityUnit, err error) {
+func (c *Client) GetBucketObjectLockConfig(ctx context.Context, bucketName string) (mode *RetentionMode, validity *uint, unit *ValidityUnit, err error) {
 	_, mode, validity, unit, err = c.GetObjectLockConfig(ctx, bucketName)
 	return mode, validity, unit, err
 }
 
 // SetObjectLockConfig sets object lock configuration in given bucket. mode, validity and unit are either all set or all nil.
-func (c Client) SetObjectLockConfig(ctx context.Context, bucketName string, mode *RetentionMode, validity *uint, unit *ValidityUnit) error {
+func (c *Client) SetObjectLockConfig(ctx context.Context, bucketName string, mode *RetentionMode, validity *uint, unit *ValidityUnit) error {
 	return c.SetBucketObjectLockConfig(ctx, bucketName, mode, validity, unit)
 }

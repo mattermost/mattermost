@@ -670,6 +670,7 @@ type AppIface interface {
 	GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList, *model.AppError)
 	GetPostsAroundPost(before bool, options model.GetPostsOptions) (*model.PostList, *model.AppError)
 	GetPostsBeforePost(options model.GetPostsOptions) (*model.PostList, *model.AppError)
+	GetPostsByIds(postIDs []string) ([]*model.Post, *model.AppError)
 	GetPostsEtag(channelID string, collapsedThreads bool) string
 	GetPostsForChannelAroundLastUnread(channelID, userID string, limitBefore, limitAfter int, skipFetchThreads bool, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, *model.AppError)
 	GetPostsPage(options model.GetPostsOptions) (*model.PostList, *model.AppError)
@@ -810,7 +811,7 @@ type AppIface interface {
 	InviteGuestsToChannels(teamID string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError
 	InviteGuestsToChannelsGracefully(teamID string, guestsInvite *model.GuestsInvite, senderId string) ([]*model.EmailInviteWithError, *model.AppError)
 	InviteNewUsersToTeam(emailList []string, teamID, senderId string) *model.AppError
-	InviteNewUsersToTeamGracefully(emailList []string, teamID, senderId string) ([]*model.EmailInviteWithError, *model.AppError)
+	InviteNewUsersToTeamGracefully(emailList []string, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError)
 	IsCRTEnabledForUser(userID string) bool
 	IsFirstUserAccount() bool
 	IsLeader() bool

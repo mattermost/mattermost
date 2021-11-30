@@ -20,6 +20,7 @@
 package main
 
 import (
+	"archive/zip"
 	"bytes"
 	"context"
 	"errors"
@@ -32,6 +33,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"reflect"
 	"runtime"
@@ -151,6 +153,8 @@ func logError(testName string, function string, args map[string]interface{}, sta
 	// addition to NotImplemented error returned from server
 	if isErrNotImplemented(err) {
 		ignoredLog(testName, function, args, startTime, message).Info()
+	} else if isRunOnFail() {
+		failureLog(testName, function, args, startTime, alert, message, err).Error()
 	} else {
 		failureLog(testName, function, args, startTime, alert, message, err).Fatal()
 	}
@@ -258,6 +262,10 @@ func cleanupVersionedBucket(bucketName string, c *minio.Client) error {
 
 func isErrNotImplemented(err error) bool {
 	return minio.ToErrorResponse(err).Code == "NotImplemented"
+}
+
+func isRunOnFail() bool {
+	return os.Getenv("RUN_ON_FAIL") == "1"
 }
 
 func init() {
@@ -2885,8 +2893,8 @@ func testFPutObject() {
 		logError(testName, function, args, startTime, "", "StatObject failed", err)
 		return
 	}
-	if rGTar.ContentType != "application/x-gtar" && rGTar.ContentType != "application/octet-stream" {
-		logError(testName, function, args, startTime, "", "ContentType does not match, expected application/x-gtar or application/octet-stream, got "+rGTar.ContentType, err)
+	if rGTar.ContentType != "application/x-gtar" && rGTar.ContentType != "application/octet-stream" && rGTar.ContentType != "application/x-tar" {
+		logError(testName, function, args, startTime, "", "ContentType does not match, expected application/x-tar or application/octet-stream, got "+rGTar.ContentType, err)
 		return
 	}
 
@@ -3172,6 +3180,189 @@ func testPutObjectContext() {
 
 	successLogger(testName, function, args, startTime).Info()
 
+}
+
+// Tests get object with s3zip extensions.
+func testGetObjectS3Zip() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "GetObject(bucketName, objectName)"
+	args := map[string]interface{}{"x-minio-extract": true}
+
+	// Seed random based on current time.
+	rand.Seed(time.Now().Unix())
+
+	// Instantiate new minio client object.
+	c, err := minio.New(os.Getenv(serverEndpoint),
+		&minio.Options{
+			Creds:  credentials.NewStaticV4(os.Getenv(accessKey), os.Getenv(secretKey), ""),
+			Secure: mustParseBool(os.Getenv(enableHTTPS)),
+		})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
+		return
+	}
+
+	// Enable tracing, write to stderr.
+	// c.TraceOn(os.Stderr)
+
+	// Set user agent.
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
+
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
+	args["bucketName"] = bucketName
+
+	// Make a new bucket.
+	err = c.MakeBucket(context.Background(), bucketName, minio.MakeBucketOptions{Region: "us-east-1"})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MakeBucket failed", err)
+		return
+	}
+
+	defer func() {
+		// Delete all objects and buckets
+		if err = cleanupBucket(bucketName, c); err != nil {
+			logError(testName, function, args, startTime, "", "CleanupBucket failed", err)
+			return
+		}
+	}()
+
+	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "") + ".zip"
+	args["objectName"] = objectName
+
+	var zipFile bytes.Buffer
+	zw := zip.NewWriter(&zipFile)
+	rng := rand.New(rand.NewSource(0xc0cac01a))
+	const nFiles = 500
+	for i := 0; i <= nFiles; i++ {
+		if i == nFiles {
+			// Make one large, compressible file.
+			i = 1000000
+		}
+		b := make([]byte, i)
+		if i < nFiles {
+			rng.Read(b)
+		}
+		wc, err := zw.Create(fmt.Sprintf("test/small/file-%d.bin", i))
+		if err != nil {
+			logError(testName, function, args, startTime, "", "zw.Create failed", err)
+			return
+		}
+		wc.Write(b)
+	}
+	err = zw.Close()
+	if err != nil {
+		logError(testName, function, args, startTime, "", "zw.Close failed", err)
+		return
+	}
+	buf := zipFile.Bytes()
+
+	// Save the data
+	_, err = c.PutObject(context.Background(), bucketName, objectName, bytes.NewReader(buf), int64(len(buf)), minio.PutObjectOptions{ContentType: "binary/octet-stream"})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "PutObject failed", err)
+		return
+	}
+
+	// Read the data back
+	r, err := c.GetObject(context.Background(), bucketName, objectName, minio.GetObjectOptions{})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "GetObject failed", err)
+		return
+	}
+
+	st, err := r.Stat()
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Stat object failed", err)
+		return
+	}
+
+	if st.Size != int64(len(buf)) {
+		logError(testName, function, args, startTime, "", "Number of bytes does not match, expected "+string(len(buf))+", got "+string(st.Size), err)
+		return
+	}
+	r.Close()
+
+	zr, err := zip.NewReader(bytes.NewReader(buf), int64(len(buf)))
+	if err != nil {
+		logError(testName, function, args, startTime, "", "zip.NewReader failed", err)
+		return
+	}
+	lOpts := minio.ListObjectsOptions{}
+	lOpts.Set("x-minio-extract", "true")
+	lOpts.Prefix = objectName + "/"
+	lOpts.Recursive = true
+	list := c.ListObjects(context.Background(), bucketName, lOpts)
+	var listed = map[string]minio.ObjectInfo{}
+	for item := range list {
+		if item.Err != nil {
+			break
+		}
+		listed[item.Key] = item
+	}
+	if len(listed) == 0 {
+		// Assume we are running against non-minio.
+		args["SKIPPED"] = true
+		ignoredLog(testName, function, args, startTime, "s3zip does not appear to be present").Info()
+		return
+	}
+
+	for _, file := range zr.File {
+		if file.FileInfo().IsDir() {
+			continue
+		}
+		args["zipfile"] = file.Name
+		zfr, err := file.Open()
+		if err != nil {
+			logError(testName, function, args, startTime, "", "file.Open failed", err)
+			return
+		}
+		want, err := ioutil.ReadAll(zfr)
+		if err != nil {
+			logError(testName, function, args, startTime, "", "fzip file read failed", err)
+			return
+		}
+
+		opts := minio.GetObjectOptions{}
+		opts.Set("x-minio-extract", "true")
+		key := path.Join(objectName, file.Name)
+		r, err = c.GetObject(context.Background(), bucketName, key, opts)
+		if err != nil {
+			terr := minio.ToErrorResponse(err)
+			if terr.StatusCode != http.StatusNotFound {
+				logError(testName, function, args, startTime, "", "GetObject failed", err)
+			}
+			return
+		}
+		got, err := ioutil.ReadAll(r)
+		if err != nil {
+			logError(testName, function, args, startTime, "", "ReadAll failed", err)
+			return
+		}
+		r.Close()
+		if !bytes.Equal(want, got) {
+			logError(testName, function, args, startTime, "", "Content mismatch", err)
+			return
+		}
+		oi, ok := listed[key]
+		if !ok {
+			logError(testName, function, args, startTime, "", "Object Missing", fmt.Errorf("%s not present in listing", key))
+			return
+		}
+		if int(oi.Size) != len(got) {
+			logError(testName, function, args, startTime, "", "Object Size Incorrect", fmt.Errorf("listing %d, read %d", oi.Size, len(got)))
+			return
+		}
+		delete(listed, key)
+	}
+	delete(args, "zipfile")
+	if len(listed) > 0 {
+		logError(testName, function, args, startTime, "", "Extra listed objects", fmt.Errorf("left over: %v", listed))
+		return
+	}
+	successLogger(testName, function, args, startTime).Info()
 }
 
 // Tests get object ReaderSeeker interface methods.
@@ -5902,6 +6093,63 @@ func testFunctional() {
 		return
 	}
 
+	function = "PresignHeader(method, bucketName, objectName, expires, reqParams, extraHeaders)"
+	functionAll += ", " + function
+	presignExtraHeaders := map[string][]string{
+		"mysecret": {"abcxxx"},
+	}
+	args = map[string]interface{}{
+		"method":       "PUT",
+		"bucketName":   bucketName,
+		"objectName":   objectName + "-presign-custom",
+		"expires":      3600 * time.Second,
+		"extraHeaders": presignExtraHeaders,
+	}
+	presignedURL, err := c.PresignHeader(context.Background(), "PUT", bucketName, objectName+"-presign-custom", 3600*time.Second, nil, presignExtraHeaders)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Presigned failed", err)
+		return
+	}
+
+	// Generate data more than 32K
+	buf = bytes.Repeat([]byte("1"), rand.Intn(1<<10)+32*1024)
+
+	req, err = http.NewRequest(http.MethodPut, presignedURL.String(), bytes.NewReader(buf))
+	if err != nil {
+		logError(testName, function, args, startTime, "", "HTTP request to Presigned URL failed", err)
+		return
+	}
+
+	req.Header.Add("mysecret", "abcxxx")
+	resp, err = httpClient.Do(req)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "HTTP request to Presigned URL failed", err)
+		return
+	}
+
+	// Download the uploaded object to verify
+	args = map[string]interface{}{
+		"bucketName": bucketName,
+		"objectName": objectName + "-presign-custom",
+	}
+	newReader, err = c.GetObject(context.Background(), bucketName, objectName+"-presign-custom", minio.GetObjectOptions{})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "GetObject of uploaded custom-presigned object failed", err)
+		return
+	}
+
+	newReadBytes, err = ioutil.ReadAll(newReader)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "ReadAll failed during get on custom-presigned put object", err)
+		return
+	}
+	newReader.Close()
+
+	if !bytes.Equal(newReadBytes, buf) {
+		logError(testName, function, args, startTime, "", "Bytes mismatch on custom-presigned object upload verification", err)
+		return
+	}
+
 	function = "RemoveObject(bucketName, objectName)"
 	functionAll += ", " + function
 	args = map[string]interface{}{
@@ -5932,6 +6180,14 @@ func testFunctional() {
 
 	args["objectName"] = objectName + "-presigned"
 	err = c.RemoveObject(context.Background(), bucketName, objectName+"-presigned", minio.RemoveObjectOptions{})
+
+	if err != nil {
+		logError(testName, function, args, startTime, "", "RemoveObject failed", err)
+		return
+	}
+
+	args["objectName"] = objectName + "-presign-custom"
+	err = c.RemoveObject(context.Background(), bucketName, objectName+"-presign-custom", minio.RemoveObjectOptions{})
 
 	if err != nil {
 		logError(testName, function, args, startTime, "", "RemoveObject failed", err)
@@ -6476,8 +6732,8 @@ func testFPutObjectV2() {
 		logError(testName, function, args, startTime, "", "Unexpected size", nil)
 		return
 	}
-	if rGTar.ContentType != "application/x-gtar" && rGTar.ContentType != "application/octet-stream" {
-		logError(testName, function, args, startTime, "", "Content-Type headers mismatched, expected: application/x-gtar , got "+rGTar.ContentType, err)
+	if rGTar.ContentType != "application/x-gtar" && rGTar.ContentType != "application/octet-stream" && rGTar.ContentType != "application/x-tar" {
+		logError(testName, function, args, startTime, "", "Content-Type headers mismatched, expected: application/x-tar , got "+rGTar.ContentType, err)
 		return
 	}
 
@@ -10680,27 +10936,44 @@ func testFunctionalV2() {
 		return
 	}
 
-	function = "GetObject(bucketName, objectName)"
-	functionAll += ", " + function
+	// Download the uploaded object to verify
 	args = map[string]interface{}{
 		"bucketName": bucketName,
 		"objectName": objectName + "-presigned",
 	}
 	newReader, err = c.GetObject(context.Background(), bucketName, objectName+"-presigned", minio.GetObjectOptions{})
 	if err != nil {
-		logError(testName, function, args, startTime, "", "GetObject failed", err)
+		logError(testName, function, args, startTime, "", "GetObject of uploaded presigned object failed", err)
 		return
 	}
 
 	newReadBytes, err = ioutil.ReadAll(newReader)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "ReadAll failed", err)
+		logError(testName, function, args, startTime, "", "ReadAll failed during get on presigned put object", err)
 		return
 	}
 	newReader.Close()
 
 	if !bytes.Equal(newReadBytes, buf) {
-		logError(testName, function, args, startTime, "", "Bytes mismatch", err)
+		logError(testName, function, args, startTime, "", "Bytes mismatch on presigned object upload verification", err)
+		return
+	}
+
+	function = "PresignHeader(method, bucketName, objectName, expires, reqParams, extraHeaders)"
+	functionAll += ", " + function
+	presignExtraHeaders := map[string][]string{
+		"mysecret": {"abcxxx"},
+	}
+	args = map[string]interface{}{
+		"method":       "PUT",
+		"bucketName":   bucketName,
+		"objectName":   objectName + "-presign-custom",
+		"expires":      3600 * time.Second,
+		"extraHeaders": presignExtraHeaders,
+	}
+	_, err = c.PresignHeader(context.Background(), "PUT", bucketName, objectName+"-presign-custom", 3600*time.Second, nil, presignExtraHeaders)
+	if err == nil {
+		logError(testName, function, args, startTime, "", "Presigned with extra headers succeeded", err)
 		return
 	}
 
@@ -11596,6 +11869,7 @@ func testRemoveObjects() {
 	_, err = c.PutObject(context.Background(), bucketName, objectName, reader, int64(bufSize), minio.PutObjectOptions{})
 	if err != nil {
 		logError(testName, function, args, startTime, "", "Error uploading object", err)
+		return
 	}
 
 	// Replace with smaller...
@@ -11617,7 +11891,8 @@ func testRemoveObjects() {
 	}
 	err = c.PutObjectRetention(context.Background(), bucketName, objectName, opts)
 	if err != nil {
-		log.Fatalln(err)
+		logError(testName, function, args, startTime, "", "Error setting retention", err)
+		return
 	}
 
 	objectsCh := make(chan minio.ObjectInfo)
@@ -11627,7 +11902,8 @@ func testRemoveObjects() {
 		// List all objects from a bucket-name with a matching prefix.
 		for object := range c.ListObjects(context.Background(), bucketName, minio.ListObjectsOptions{UseV1: true, Recursive: true}) {
 			if object.Err != nil {
-				log.Fatalln(object.Err)
+				logError(testName, function, args, startTime, "", "Error listing objects", object.Err)
+				return
 			}
 			objectsCh <- object
 		}
@@ -11650,7 +11926,8 @@ func testRemoveObjects() {
 		// List all objects from a bucket-name with a matching prefix.
 		for object := range c.ListObjects(context.Background(), bucketName, minio.ListObjectsOptions{UseV1: true, Recursive: true}) {
 			if object.Err != nil {
-				log.Fatalln(object.Err)
+				logError(testName, function, args, startTime, "", "Error listing objects", object.Err)
+				return
 			}
 			objectsCh1 <- object
 		}
@@ -11730,6 +12007,7 @@ func main() {
 		testPutObjectStreaming()
 		testGetObjectSeekEnd()
 		testGetObjectClosedTwice()
+		testGetObjectS3Zip()
 		testRemoveMultipleObjects()
 		testFPutObjectMultipart()
 		testFPutObject()

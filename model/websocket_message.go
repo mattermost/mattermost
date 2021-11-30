@@ -90,10 +90,56 @@ type WebsocketBroadcast struct {
 	ContainsSensitiveData bool            `json:"-"`
 }
 
+func (wb *WebsocketBroadcast) copy() *WebsocketBroadcast {
+	if wb == nil {
+		return nil
+	}
+
+	var c WebsocketBroadcast
+	if wb.OmitUsers != nil {
+		c.OmitUsers = make(map[string]bool, len(wb.OmitUsers))
+		for k, v := range wb.OmitUsers {
+			c.OmitUsers[k] = v
+		}
+	}
+	c.UserId = wb.UserId
+	c.ChannelId = wb.ChannelId
+	c.TeamId = wb.TeamId
+	c.ContainsSanitizedData = wb.ContainsSanitizedData
+	c.ContainsSensitiveData = wb.ContainsSensitiveData
+
+	return &c
+}
+
 type precomputedWebSocketEventJSON struct {
 	Event     json.RawMessage
 	Data      json.RawMessage
 	Broadcast json.RawMessage
+}
+
+func (p *precomputedWebSocketEventJSON) copy() *precomputedWebSocketEventJSON {
+	if p == nil {
+		return nil
+	}
+
+	var c precomputedWebSocketEventJSON
+
+	if p.Event != nil {
+		c.Event = make([]byte, len(p.Event))
+		copy(c.Event, p.Event)
+	}
+
+	if p.Data != nil {
+		c.Data = make([]byte, len(p.Data))
+		copy(c.Data, p.Data)
+	}
+
+	if p.Broadcast != nil {
+		c.Broadcast = make([]byte, len(p.Broadcast))
+		copy(c.Broadcast, p.Broadcast)
+	}
+
+	return &c
 }
 
 // webSocketEventJSON mirrors WebSocketEvent to make some of its unexported fields serializable
@@ -150,6 +196,25 @@ func (ev *WebSocketEvent) Copy() *WebSocketEvent {
 		broadcast:       ev.broadcast,
 		sequence:        ev.sequence,
 		precomputedJSON: ev.precomputedJSON,
+	}
+	return copy
+}
+
+func (ev *WebSocketEvent) DeepCopy() *WebSocketEvent {
+	var dataCopy map[string]interface{}
+	if ev.data != nil {
+		dataCopy = make(map[string]interface{}, len(ev.data))
+		for k, v := range ev.data {
+			dataCopy[k] = v
+		}
+	}
+
+	copy := &WebSocketEvent{
+		event:           ev.event,
+		data:            dataCopy,
+		broadcast:       ev.broadcast.copy(),
+		sequence:        ev.sequence,
+		precomputedJSON: ev.precomputedJSON.copy(),
 	}
 	return copy
 }

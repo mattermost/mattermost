@@ -1,8 +1,8 @@
 # imageproxy
 
-[![GoDoc](https://img.shields.io/static/v1?label=godoc&message=reference&color=blue)](https://pkg.go.dev/willnorris.com/go/imageproxy)
+[![GoDoc](https://img.shields.io/badge/godoc-reference-blue)](https://pkg.go.dev/willnorris.com/go/imageproxy)
 [![Test Status](https://github.com/willnorris/imageproxy/workflows/tests/badge.svg)](https://github.com/willnorris/imageproxy/actions?query=workflow%3Atests)
-[![Test Coverage](https://codecov.io/gh/willnorris/imageproxy/branch/master/graph/badge.svg)](https://codecov.io/gh/willnorris/imageproxy)
+[![Test Coverage](https://codecov.io/gh/willnorris/imageproxy/branch/main/graph/badge.svg)](https://codecov.io/gh/willnorris/imageproxy)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2611/badge)](https://bestpractices.coreinfrastructure.org/projects/2611)
 
 imageproxy is a caching image proxy server written in go.  It features:
@@ -20,9 +20,16 @@ site (read more in [this post][]).  But you can also enable request signing and
 use it as an SSL proxy for remote images, similar to [atmos/camo][] but with
 additional image adjustment options.
 
+I aim to keep imageproxy compatible with the two [most recent major go
+releases][]. I also keep track of the minimum go version that still works
+(currently go1.13 with modules enabled), but that might change at any time. You
+can see the go versions that are tested against in
+[.github/workflows/tests.yml][].
+
 [this post]: https://willnorris.com/2014/01/a-self-hosted-alternative-to-jetpacks-photon-service
 [atmos/camo]: https://github.com/atmos/camo
-
+[most recent major go releases]: https://golang.org/doc/devel/release.html
+[.github/workflows/tests.yml]: ./.github/workflows/tests.yml
 
 ## URL Structure ##
 
@@ -91,7 +98,7 @@ image][material-animation] resized to 200px square and rotated 270 degrees:
 
 Install the package using:
 
-    go get willnorris.com/go/imageproxy/cmd/imageproxy
+    go install willnorris.com/go/imageproxy/cmd/imageproxy@latest
 
 Once installed, ensure `$GOPATH/bin` is in your `$PATH`, then run the proxy
 using:
@@ -208,9 +215,11 @@ Alternately, try running:
 Reloading the [codercat URL][] will still return an error message.
 
 You can specify multiple hosts as a comma separated list to either flag, or
-prefix a host value with `*.` to allow or deny all sub-domains as well.
+prefix a host value with `*.` to allow or deny all sub-domains. You can
+also specify a netblock in CIDR notation (`127.0.0.0/8`) -- this is useful for
+blocking reserved ranges like `127.0.0.0/8`, `192.168.0.0/16`, etc.
 
-If a host matches both an allowed an a denied host, the request will be denied.
+If a host matches both an allowed and denied host, the request will be denied.
 
 ### Allowed Content-Type List ###
 
@@ -320,15 +329,22 @@ don't have much experience with them personally.
 ### Heroku ###
 
 It's easy to vendorize the dependencies with `Godep` and deploy to Heroku. Take
-a look at [this GitHub repo](https://github.com/oreillymedia/prototype-imageproxy)
+a look at [this GitHub repo](https://github.com/oreillymedia/prototype-imageproxy/tree/heroku)
+(make sure you use the `heroku` branch).
+
+### AWS Elastic Beanstalk ###
+
+[O’Reilly Media](https://github.com/oreillymedia) set up [a repository](https://github.com/oreillymedia/prototype-imageproxy)
+with everything you need to deploy imageproxy to Elastic Beanstalk. Just follow the instructions
+in the [README](https://github.com/oreillymedia/prototype-imageproxy/blob/master/Readme.md).
 
 ### Docker ###
 
-A docker image is available at [`willnorris/imageproxy`](https://registry.hub.docker.com/u/willnorris/imageproxy/dockerfile/).
+A docker image is available at [`ghcr.io/willnorris/imageproxy`](https://github.com/willnorris/imageproxy/pkgs/container/imageproxy).
 
 You can run it by
 ```
-docker run -p 8080:8080 willnorris/imageproxy -addr 0.0.0.0:8080
+docker run -p 8080:8080 ghcr.io/willnorris/imageproxy -addr 0.0.0.0:8080
 ```
 
 Or in your Dockerfile:
@@ -364,5 +380,7 @@ to alter the precedence order by setting:
 
 ## License ##
 
-imageproxy is copyright Google, but is not an official Google product.  It is
-available under the [Apache 2.0 License](./LICENSE).
+imageproxy is copyright its respective authors. All of my personal work on
+imageproxy through 2020 (which accounts for the majority of the code) is
+copyright Google, my employer at the time.  It is available under the [Apache
+2.0 License](./LICENSE).
