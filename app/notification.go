@@ -600,16 +600,11 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					a.sanitizeProfiles(userThread.Participants, false)
 					userThread.Post.SanitizeProps()
 
-					previewPost := post.GetPreviewPost()
-					if previewPost != nil {
-						previewedChannel, err := a.GetChannel(previewPost.Post.ChannelId)
-						if err != nil {
-							return nil, err
-						}
-						if previewedChannel != nil && !a.HasPermissionToReadChannel(uid, previewedChannel) {
-							userThread.Post.Metadata.Embeds[0].Data = nil
-						}
+					sanitizedPost, err := a.SanitizePostMetadataForUser(userThread.Post, uid)
+					if err != nil {
+						return nil, err
 					}
+					userThread.Post = sanitizedPost
 
 					payload, jsonErr := json.Marshal(userThread)
 					if jsonErr != nil {
