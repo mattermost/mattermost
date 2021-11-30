@@ -295,15 +295,18 @@ func (s SqlTeamStore) Update(team *model.Team) (*model.Team, error) {
 // If the team doesn't exist it returns a model.AppError with a
 // http.StatusNotFound in the StatusCode field.
 func (s SqlTeamStore) Get(id string) (*model.Team, error) {
-	obj, err := s.GetReplica().Get(model.Team{}, id)
-	if err != nil {
+	var team model.Team
+	if err := s.GetReplicaX().Get(&team, `SELECT * FROM Teams WHERE Id=?`, id); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Team", id)
+		}
 		return nil, errors.Wrapf(err, "failed to get Team with id=%s", id)
 	}
-	if obj == nil {
+	if team.Id == "" {
 		return nil, store.NewErrNotFound("Team", id)
 	}
 
-	return obj.(*model.Team), nil
+	return &team, nil
 }
 
 // GetByInviteId returns from the database the team that matches the inviteId provided as parameter.
