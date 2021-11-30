@@ -316,7 +316,7 @@ func (s SqlTeamStore) GetByInviteId(inviteId string) (*model.Team, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
-	err = s.GetReplica().SelectOne(&team, query, args...)
+	err = s.GetReplicaX().Get(&team, query, args...)
 	if err != nil {
 		return nil, store.NewErrNotFound("Team", fmt.Sprintf("inviteId=%s", inviteId))
 	}
@@ -337,7 +337,7 @@ func (s SqlTeamStore) GetByName(name string) (*model.Team, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
-	err = s.GetReplica().SelectOne(&team, query, args...)
+	err = s.GetReplicaX().Get(&team, query, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Team", fmt.Sprintf("name=%s", name))
