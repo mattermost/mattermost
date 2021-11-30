@@ -962,7 +962,7 @@ type API interface {
 
 	// RolesGrantPermission check if the specified roles grant the specified permission
 	//
-	// Minimum server version: 6.1
+	// Minimum server version: 6.3
 	RolesGrantPermission(roleNames []string, permissionId string) bool
 
 	// LogDebug writes a log message to the Mattermost server log file.
