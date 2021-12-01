@@ -2,6 +2,7 @@ package goquery
 
 import (
 	"bytes"
+	"io"
 
 	"golang.org/x/net/html"
 )
@@ -50,11 +51,22 @@ func nodeName(node *html.Node) string {
 	case html.ElementNode, html.DoctypeNode:
 		return node.Data
 	default:
-		if node.Type >= 0 && int(node.Type) < len(nodeNames) {
+		if int(node.Type) < len(nodeNames) {
 			return nodeNames[node.Type]
 		}
 		return ""
 	}
+}
+
+// Render renders the html of the first element from selector and writes it to
+// the writer.  It behaves the same as OuterHtml but writes to w instead of
+// returning the string.
+func Render(w io.Writer, s *Selection) error {
+	if s.Length() == 0 {
+		return nil
+	}
+	n := s.Get(0)
+	return html.Render(w, n)
 }
 
 // OuterHtml returns the outer HTML rendering of the first item in
@@ -66,12 +78,7 @@ func nodeName(node *html.Node) string {
 // a property provided by the DOM).
 func OuterHtml(s *Selection) (string, error) {
 	var buf bytes.Buffer
-
-	if s.Length() == 0 {
-		return "", nil
-	}
-	n := s.Get(0)
-	if err := html.Render(&buf, n); err != nil {
+	if err := Render(&buf, s); err != nil {
 		return "", err
 	}
 	return buf.String(), nil

@@ -32,7 +32,7 @@ import (
 
 // GetBucketTagging fetch tagging configuration for a bucket with a
 // context to control cancellations and timeouts.
-func (c Client) GetBucketTagging(ctx context.Context, bucketName string) (*tags.Tags, error) {
+func (c *Client) GetBucketTagging(ctx context.Context, bucketName string) (*tags.Tags, error) {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func (c Client) GetBucketTagging(ctx context.Context, bucketName string) (*tags.
 
 // SetBucketTagging sets tagging configuration for a bucket
 // with a context to control cancellations and timeouts.
-func (c Client) SetBucketTagging(ctx context.Context, bucketName string, tags *tags.Tags) error {
+func (c *Client) SetBucketTagging(ctx context.Context, bucketName string, tags *tags.Tags) error {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return err
@@ -107,7 +107,7 @@ func (c Client) SetBucketTagging(ctx context.Context, bucketName string, tags *t
 
 // RemoveBucketTagging removes tagging configuration for a
 // bucket with a context to control cancellations and timeouts.
-func (c Client) RemoveBucketTagging(ctx context.Context, bucketName string) error {
+func (c *Client) RemoveBucketTagging(ctx context.Context, bucketName string) error {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return err
