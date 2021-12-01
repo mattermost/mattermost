@@ -3117,7 +3117,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Streamline your work with tools like Github, Google Calendar and Chrome. Explore all of the integrations we have on our"
+    "translation": "Streamline your work with tools like Github, Jira and Zoom. Explore all of the integrations we have on our"
   },
   {
     "id": "api.templates.cloud_welcome_email.app_market_place",
@@ -3157,7 +3157,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "for the best experience on PC, Mac, iOS and Android."
+    "translation": "for the best experience on Windows, Linux, Mac, iOS and Android."
   },
   {
     "id": "api.templates.cloud_welcome_email.start_questions",
