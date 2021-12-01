@@ -7,23 +7,44 @@ import (
 	"html"
 	"io"
 	"net/url"
+	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"golang.org/x/net/html/charset"
 
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
-const MaxOpenGraphResponseSize = 1024 * 1024 * 50
+const (
+	MaxOpenGraphResponseSize   = 1024 * 1024 * 50
+	openGraphMetadataCacheSize = 10000
+)
 
-func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
+func (a *App) GetOpenGraphMetadata(requestURL string) ([]byte, error) {
+	var ogJSONGeneric []byte
+	err := a.Srv().openGraphDataCache.Get(requestURL, &ogJSONGeneric)
+	if err == nil {
+		return ogJSONGeneric, nil
+	}
+
 	res, err := a.HTTPService().MakeClient(false).Get(requestURL)
 	if err != nil {
-		mlog.Debug("GetOpenGraphMetadata request failed", mlog.String("requestURL", requestURL), mlog.Err(err))
-		return nil
+		return nil, err
 	}
 	defer res.Body.Close()
-	return a.parseOpenGraphMetadata(requestURL, res.Body, res.Header.Get("Content-Type"))
+
+	graph := a.parseOpenGraphMetadata(requestURL, res.Body, res.Header.Get("Content-Type"))
+
+	ogJSON, err := graph.ToJSON()
+	if err != nil {
+		return nil, err
+	}
+	err = a.Srv().openGraphDataCache.SetWithExpiry(requestURL, ogJSON, 1*time.Hour)
+	if err != nil {
+		return nil, err
+	}
+
+	return ogJSON, nil
 }
 
 func (a *App) parseOpenGraphMetadata(requestURL string, body io.Reader, contentType string) *opengraph.OpenGraph {
@@ -36,7 +57,7 @@ func (a *App) parseOpenGraphMetadata(requestURL string, body io.Reader, contentT
 
 	makeOpenGraphURLsAbsolute(og, requestURL)
 
-	openGraphDecodeHtmlEntities(og)
+	openGraphDecodeHTMLEntities(og)
 
 	// If image proxy enabled modify open graph data to feed though proxy
 	if toProxyURL := a.ImageProxyAdder(); toProxyURL != nil {
@@ -119,7 +140,7 @@ func openGraphDataWithProxyAddedToImageURLs(ogdata *opengraph.OpenGraph, toProxy
 	return ogdata
 }
 
-func openGraphDecodeHtmlEntities(og *opengraph.OpenGraph) {
+func openGraphDecodeHTMLEntities(og *opengraph.OpenGraph) {
 	og.Title = html.UnescapeString(og.Title)
 	og.Description = html.UnescapeString(og.Description)
 }

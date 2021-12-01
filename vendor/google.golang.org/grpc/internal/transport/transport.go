@@ -30,6 +30,7 @@ import (
 	"net"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
@@ -241,6 +242,7 @@ type Stream struct {
 	ctx          context.Context    // the associated context of the stream
 	cancel       context.CancelFunc // always nil for client side Stream
 	done         chan struct{}      // closed at the end of stream to unblock writers. On the client side.
+	doneFunc     func()             // invoked at the end of stream on client side.
 	ctxDone      <-chan struct{}    // same as done chan but for server side. Cache of ctx.Done() (for performance)
 	method       string             // the associated RPC method of the stream
 	recvCompress string
@@ -517,7 +519,8 @@ const (
 // ServerConfig consists of all the configurations to establish a server transport.
 type ServerConfig struct {
 	MaxStreams            uint32
-	AuthInfo              credentials.AuthInfo
+	ConnectionTimeout     time.Duration
+	Credentials           credentials.TransportCredentials
 	InTapHandle           tap.ServerInHandle
 	StatsHandler          stats.Handler
 	KeepaliveParams       keepalive.ServerParameters
@@ -529,12 +532,6 @@ type ServerConfig struct {
 	ChannelzParentID      int64
 	MaxHeaderListSize     *uint32
 	HeaderTableSize       *uint32
-}
-
-// NewServerTransport creates a ServerTransport with conn or non-nil error
-// if it fails.
-func NewServerTransport(protocol string, conn net.Conn, config *ServerConfig) (ServerTransport, error) {
-	return newHTTP2Server(conn, config)
 }
 
 // ConnectOptions covers all relevant options for communicating with the server.
@@ -611,6 +608,8 @@ type CallHdr struct {
 	ContentSubtype string
 
 	PreviousAttempts int // value of grpc-previous-rpc-attempts header to set
+
+	DoneFunc func() // called when the stream is finished
 }
 
 // ClientTransport is the common interface for all gRPC client-side transport
@@ -619,7 +618,7 @@ type ClientTransport interface {
 	// Close tears down this transport. Once it returns, the transport
 	// should not be accessed any more. The caller must make sure this
 	// is called only once.
-	Close() error
+	Close(err error)
 
 	// GracefulClose starts to tear down the transport: the transport will stop
 	// accepting new RPCs and NewStream will return error. Once all streams are
@@ -653,8 +652,9 @@ type ClientTransport interface {
 	// HTTP/2).
 	GoAway() <-chan struct{}
 
-	// GetGoAwayReason returns the reason why GoAway frame was received.
-	GetGoAwayReason() GoAwayReason
+	// GetGoAwayReason returns the reason why GoAway frame was received, along
+	// with a human readable string with debug info.
+	GetGoAwayReason() (GoAwayReason, string)
 
 	// RemoteAddr returns the remote network address.
 	RemoteAddr() net.Addr
@@ -690,7 +690,7 @@ type ServerTransport interface {
 	// Close tears down the transport. Once it is called, the transport
 	// should not be accessed any more. All the pending streams and their
 	// handlers will be terminated asynchronously.
-	Close() error
+	Close()
 
 	// RemoteAddr returns the remote network address.
 	RemoteAddr() net.Addr

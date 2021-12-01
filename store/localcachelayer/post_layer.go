@@ -4,12 +4,13 @@
 package localcachelayer
 
 import (
+	"bytes"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type LocalCachePostStore struct {
@@ -18,18 +19,18 @@ type LocalCachePostStore struct {
 }
 
 func (s *LocalCachePostStore) handleClusterInvalidateLastPostTime(msg *model.ClusterMessage) {
-	if msg.Data == ClearCacheMessageData {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		s.rootStore.lastPostTimeCache.Purge()
 	} else {
-		s.rootStore.lastPostTimeCache.Remove(msg.Data)
+		s.rootStore.lastPostTimeCache.Remove(string(msg.Data))
 	}
 }
 
 func (s *LocalCachePostStore) handleClusterInvalidateLastPosts(msg *model.ClusterMessage) {
-	if msg.Data == ClearCacheMessageData {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		s.rootStore.postLastPostsCache.Purge()
 	} else {
-		s.rootStore.postLastPostsCache.Remove(msg.Data)
+		s.rootStore.postLastPostsCache.Remove(string(msg.Data))
 	}
 }
 

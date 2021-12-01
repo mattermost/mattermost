@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/dgryski/dgoogauth"
-	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -47,7 +47,7 @@ func TestGenerateSecret(t *testing.T) {
 	})
 }
 
-func TestGetIssuerFromUrl(t *testing.T) {
+func TestGetIssuerFromURL(t *testing.T) {
 	cases := []struct {
 		Input    string
 		Expected string
@@ -64,7 +64,7 @@ func TestGetIssuerFromUrl(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		assert.Equal(t, c.Expected, getIssuerFromUrl(c.Input))
+		assert.Equal(t, c.Expected, getIssuerFromURL(c.Input))
 	}
 }
 

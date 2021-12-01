@@ -4,10 +4,10 @@
 package slashcommands
 
 import (
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 type AutoChannelCreator struct {
@@ -19,7 +19,7 @@ type AutoChannelCreator struct {
 	DisplayNameCharset string
 	NameLen            utils.Range
 	NameCharset        string
-	ChannelType        string
+	ChannelType        model.ChannelType
 }
 
 func NewAutoChannelCreator(a *app.App, team *model.Team, userID string) *AutoChannelCreator {

@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2020 Jeevanandam M (jeeva@myjeeva.com), All rights reserved.
+// Copyright (c) 2015-2021 Jeevanandam M (jeeva@myjeeva.com), All rights reserved.
 // resty source code and usage is governed by a MIT style
 // license that can be found in the LICENSE file.
 
@@ -6,7 +6,6 @@ package resty
 
 import (
 	"bytes"
-	"encoding/xml"
 	"errors"
 	"fmt"
 	"io"
@@ -29,13 +28,13 @@ const debugRequestLogKey = "__restyDebugRequestLog"
 
 func parseRequestURL(c *Client, r *Request) error {
 	// GitHub #103 Path Params
-	if len(r.pathParams) > 0 {
-		for p, v := range r.pathParams {
+	if len(r.PathParams) > 0 {
+		for p, v := range r.PathParams {
 			r.URL = strings.Replace(r.URL, "{"+p+"}", url.PathEscape(v), -1)
 		}
 	}
-	if len(c.pathParams) > 0 {
-		for p, v := range c.pathParams {
+	if len(c.PathParams) > 0 {
+		for p, v := range c.PathParams {
 			r.URL = strings.Replace(r.URL, "{"+p+"}", url.PathEscape(v), -1)
 		}
 	}
@@ -58,6 +57,11 @@ func parseRequestURL(c *Client, r *Request) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	// GH #407 && #318
+	if reqURL.Scheme == "" && len(c.scheme) > 0 {
+		reqURL.Scheme = c.scheme
 	}
 
 	// Adding Query Param
@@ -189,12 +193,6 @@ func createHTTPRequest(c *Client, r *Request) (err error) {
 	// Add cookies from request instance into http request
 	for _, cookie := range r.Cookies {
 		r.RawRequest.AddCookie(cookie)
-	}
-
-	// it's for non-http scheme option
-	if r.RawRequest.URL != nil && r.RawRequest.URL.Scheme == "" {
-		r.RawRequest.URL.Scheme = c.scheme
-		r.RawRequest.URL.Host = r.URL
 	}
 
 	// Enable trace
@@ -458,12 +456,12 @@ func handleRequestBody(c *Client, r *Request) (err error) {
 		bodyBytes = []byte(s)
 	} else if IsJSONType(contentType) &&
 		(kind == reflect.Struct || kind == reflect.Map || kind == reflect.Slice) {
-		bodyBytes, err = jsonMarshal(c, r, r.Body)
+		r.bodyBuf, err = jsonMarshal(c, r, r.Body)
 		if err != nil {
 			return
 		}
 	} else if IsXMLType(contentType) && (kind == reflect.Struct) {
-		bodyBytes, err = xml.Marshal(r.Body)
+		bodyBytes, err = c.XMLMarshal(r.Body)
 		if err != nil {
 			return
 		}

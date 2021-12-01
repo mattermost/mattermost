@@ -12,7 +12,10 @@ import (
 )
 
 var (
-	ErrClosed      = errors.New("redis: client is closed")
+	// ErrClosed performs any operation on the closed client will return this error.
+	ErrClosed = errors.New("redis: client is closed")
+
+	// ErrPoolTimeout timed out waiting to get a connection from the connection pool.
 	ErrPoolTimeout = errors.New("redis: connection pool timeout")
 )
 
@@ -54,6 +57,7 @@ type Options struct {
 	Dialer  func(context.Context) (net.Conn, error)
 	OnClose func(*Conn) error
 
+	PoolFIFO           bool
 	PoolSize           int
 	MinIdleConns       int
 	MaxConnAge         time.Duration
@@ -117,9 +121,10 @@ func (p *ConnPool) checkMinIdleConns() {
 	for p.poolSize < p.opt.PoolSize && p.idleConnsLen < p.opt.MinIdleConns {
 		p.poolSize++
 		p.idleConnsLen++
+
 		go func() {
 			err := p.addIdleConn()
-			if err != nil {
+			if err != nil && err != ErrClosed {
 				p.connsMu.Lock()
 				p.poolSize--
 				p.idleConnsLen--
@@ -136,9 +141,16 @@ func (p *ConnPool) addIdleConn() error {
 	}
 
 	p.connsMu.Lock()
+	defer p.connsMu.Unlock()
+
+	// It is not allowed to add new connections to the closed connection pool.
+	if p.closed() {
+		_ = cn.Close()
+		return ErrClosed
+	}
+
 	p.conns = append(p.conns, cn)
 	p.idleConns = append(p.idleConns, cn)
-	p.connsMu.Unlock()
 	return nil
 }
 
@@ -153,6 +165,14 @@ func (p *ConnPool) newConn(ctx context.Context, pooled bool) (*Conn, error) {
 	}
 
 	p.connsMu.Lock()
+	defer p.connsMu.Unlock()
+
+	// It is not allowed to add new connections to the closed connection pool.
+	if p.closed() {
+		_ = cn.Close()
+		return nil, ErrClosed
+	}
+
 	p.conns = append(p.conns, cn)
 	if pooled {
 		// If pool is full remove the cn on next Put.
@@ -162,7 +182,6 @@ func (p *ConnPool) newConn(ctx context.Context, pooled bool) (*Conn, error) {
 			p.poolSize++
 		}
 	}
-	p.connsMu.Unlock()
 
 	return cn, nil
 }
@@ -185,7 +204,6 @@ func (p *ConnPool) dialConn(ctx context.Context, pooled bool) (*Conn, error) {
 		return nil, err
 	}
 
-	internal.NewConnectionsCounter.Add(ctx, 1)
 	cn := NewConn(netConn)
 	cn.pooled = pooled
 	return cn, nil
@@ -228,15 +246,18 @@ func (p *ConnPool) Get(ctx context.Context) (*Conn, error) {
 		return nil, ErrClosed
 	}
 
-	err := p.waitTurn(ctx)
-	if err != nil {
+	if err := p.waitTurn(ctx); err != nil {
 		return nil, err
 	}
 
 	for {
 		p.connsMu.Lock()
-		cn := p.popIdle()
+		cn, err := p.popIdle()
 		p.connsMu.Unlock()
+
+		if err != nil {
+			return nil, err
+		}
 
 		if cn == nil {
 			break
@@ -306,17 +327,28 @@ func (p *ConnPool) freeTurn() {
 	<-p.queue
 }
 
-func (p *ConnPool) popIdle() *Conn {
-	if len(p.idleConns) == 0 {
-		return nil
+func (p *ConnPool) popIdle() (*Conn, error) {
+	if p.closed() {
+		return nil, ErrClosed
+	}
+	n := len(p.idleConns)
+	if n == 0 {
+		return nil, nil
 	}
 
-	idx := len(p.idleConns) - 1
-	cn := p.idleConns[idx]
-	p.idleConns = p.idleConns[:idx]
+	var cn *Conn
+	if p.opt.PoolFIFO {
+		cn = p.idleConns[0]
+		copy(p.idleConns, p.idleConns[1:])
+		p.idleConns = p.idleConns[:n-1]
+	} else {
+		idx := n - 1
+		cn = p.idleConns[idx]
+		p.idleConns = p.idleConns[:idx]
+	}
 	p.idleConnsLen--
 	p.checkMinIdleConns()
-	return cn
+	return cn, nil
 }
 
 func (p *ConnPool) Put(ctx context.Context, cn *Conn) {

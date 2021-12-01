@@ -4,10 +4,10 @@
 package slashcommands
 
 import (
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 )
 
 type HelpProvider struct {
@@ -38,7 +38,7 @@ func (h *HelpProvider) DoCommand(a *app.App, c *request.Context, args *model.Com
 	helpLink := *a.Config().SupportSettings.HelpLink
 
 	if helpLink == "" {
-		helpLink = model.SUPPORT_SETTINGS_DEFAULT_HELP_LINK
+		helpLink = model.SupportSettingsDefaultHelpLink
 	}
 
 	return &model.CommandResponse{GotoLocation: helpLink}

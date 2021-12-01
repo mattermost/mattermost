@@ -140,10 +140,7 @@ func (o *samplerOptions) applyOptionsAndDefaults(opts ...SamplerOption) *sampler
 		o.samplingRefreshInterval = defaultSamplingRefreshInterval
 	}
 	if o.samplingFetcher == nil {
-		o.samplingFetcher = &httpSamplingStrategyFetcher{
-			serverURL: o.samplingServerURL,
-			logger:    o.logger,
-		}
+		o.samplingFetcher = newHTTPSamplingStrategyFetcher(o.samplingServerURL, o.logger)
 	}
 	if o.samplingParser == nil {
 		o.samplingParser = new(samplingStrategyParser)

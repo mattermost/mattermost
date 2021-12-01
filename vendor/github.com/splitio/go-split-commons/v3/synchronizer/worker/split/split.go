@@ -1,13 +1,12 @@
 package split
 
 import (
-	"strconv"
 	"time"
 
 	"github.com/splitio/go-split-commons/v3/dtos"
 	"github.com/splitio/go-split-commons/v3/service"
 	"github.com/splitio/go-split-commons/v3/storage"
-	"github.com/splitio/go-split-commons/v3/util"
+	"github.com/splitio/go-split-commons/v3/telemetry"
 	"github.com/splitio/go-toolkit/v4/logging"
 )
 
@@ -17,24 +16,24 @@ const (
 
 // UpdaterImpl struct for split sync
 type UpdaterImpl struct {
-	splitStorage   storage.SplitStorage
-	splitFetcher   service.SplitFetcher
-	metricsWrapper *storage.MetricWrapper
-	logger         logging.LoggerInterface
+	splitStorage     storage.SplitStorage
+	splitFetcher     service.SplitFetcher
+	logger           logging.LoggerInterface
+	runtimeTelemetry storage.TelemetryRuntimeProducer
 }
 
 // NewSplitFetcher creates new split synchronizer for processing split updates
 func NewSplitFetcher(
 	splitStorage storage.SplitStorage,
 	splitFetcher service.SplitFetcher,
-	metricsWrapper *storage.MetricWrapper,
 	logger logging.LoggerInterface,
-) *UpdaterImpl {
+	runtimeTelemetry storage.TelemetryRuntimeProducer,
+) Updater {
 	return &UpdaterImpl{
-		splitStorage:   splitStorage,
-		splitFetcher:   splitFetcher,
-		metricsWrapper: metricsWrapper,
-		logger:         logger,
+		splitStorage:     splitStorage,
+		splitFetcher:     splitFetcher,
+		logger:           logger,
+		runtimeTelemetry: runtimeTelemetry,
 	}
 }
 
@@ -76,16 +75,15 @@ func (s *UpdaterImpl) SynchronizeSplits(till *int64, requestNoCache bool) ([]str
 		splits, err := s.splitFetcher.Fetch(changeNumber, requestNoCache)
 		if err != nil {
 			if httpError, ok := err.(*dtos.HTTPError); ok {
-				s.metricsWrapper.StoreCounters(storage.SplitChangesCounter, strconv.Itoa(httpError.Code))
+				s.runtimeTelemetry.RecordSyncError(telemetry.SplitSync, httpError.Code)
 			}
 			return segments, err
 		}
+		s.runtimeTelemetry.RecordSyncLatency(telemetry.SplitSync, time.Since(before).Nanoseconds())
 		s.processUpdate(splits)
 		segments = append(segments, extractSegments(splits)...)
-		bucket := util.Bucket(time.Now().Sub(before).Nanoseconds())
-		s.metricsWrapper.StoreCounters(storage.SplitChangesCounter, "ok")
-		s.metricsWrapper.StoreLatencies(storage.SplitChangesLatency, bucket)
 		if splits.Till == splits.Since || (till != nil && splits.Till >= *till) {
+			s.runtimeTelemetry.RecordSuccessfulSync(telemetry.SplitSync, time.Now().UTC().UnixNano()/int64(time.Millisecond))
 			return segments, nil
 		}
 	}

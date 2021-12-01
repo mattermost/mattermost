@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type Schedulers struct {
@@ -99,6 +99,10 @@ func (srv *JobServer) InitSchedulers() error {
 
 	if exportDeleteInterface := srv.ExportDelete; exportDeleteInterface != nil {
 		schedulers.schedulers = append(schedulers.schedulers, exportDeleteInterface.MakeScheduler())
+	}
+
+	if fixCRTChannelUnreadsInterface := srv.FixCRTChannelUnreads; fixCRTChannelUnreadsInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, fixCRTChannelUnreadsInterface.MakeScheduler())
 	}
 
 	schedulers.nextRunTimes = make([]*time.Time, len(schedulers.schedulers))

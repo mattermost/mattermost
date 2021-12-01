@@ -100,7 +100,7 @@ func NewDsn(rawURL string) (*Dsn, error) {
 	}
 
 	// ProjectID
-	if len(parsedURL.Path) == 0 || parsedURL.Path == "/" {
+	if parsedURL.Path == "" || parsedURL.Path == "/" {
 		return nil, &DsnParseError{"empty project id"}
 	}
 	pathSegments := strings.Split(parsedURL.Path[1:], "/")

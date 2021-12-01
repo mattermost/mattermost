@@ -58,6 +58,12 @@
           .mj-outlook-group-fix { width:100% !important; }
         </style>
         <![endif]-->
+  <!--[if !mso]><!-->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,500,700" rel="stylesheet" type="text/css">
+  <style type="text/css">
+    @import url(https://fonts.googleapis.com/css?family=Open+Sans:300,400,500,700);
+  </style>
+  <!--<![endif]-->
   <style type="text/css">
     @media only screen and (min-width:480px) {
       .mj-column-per-100 {
@@ -92,25 +98,29 @@
 
     .emailBody a {
       text-decoration: none !important;
-      color: #166DE0 !important;
+      color: #1C58D9 !important;
     }
 
     .title div {
       font-weight: 600 !important;
       font-size: 28px !important;
       line-height: 36px !important;
-      letter-spacing: -0.02em !important;
-      color: #3D3C40 !important;
+      letter-spacing: -0.01em !important;
+      color: #3F4350 !important;
     }
 
     .subTitle div {
       font-size: 16px !important;
       line-height: 24px !important;
-      color: rgba(61, 60, 64, 0.64) !important;
+      color: rgba(63, 67, 80, 0.64) !important;
+    }
+
+    .subTitle a {
+      color: rgb(28, 88, 217) !important;
     }
 
     .button a {
-      background-color: #166DE0 !important;
+      background-color: #1C58D9 !important;
       font-weight: 600 !important;
       font-size: 16px !important;
       line-height: 18px !important;
@@ -118,10 +128,21 @@
       padding: 15px 24px !important;
     }
 
+    .messageButton a {
+      background-color: #FFFFFF !important;
+      border: 1px solid #FFFFFF !important;
+      box-sizing: border-box !important;
+      color: #1C58D9 !important;
+      padding: 12px 20px !important;
+      font-weight: 600 !important;
+      font-size: 14px !important;
+      line-height: 14px !important;
+    }
+
     .info div {
       font-size: 14px !important;
       line-height: 20px !important;
-      color: #3D3C40 !important;
+      color: #3F4350 !important;
       padding: 40px 0px !important;
     }
 
@@ -129,26 +150,26 @@
       font-weight: 600 !important;
       font-size: 16px !important;
       line-height: 24px !important;
-      color: #3D3C40 !important;
+      color: #3F4350 !important;
       padding: 0px 0px 4px 0px !important;
     }
 
     .footerInfo div {
       font-size: 14px !important;
       line-height: 20px !important;
-      color: #3D3C40 !important;
+      color: #3F4350 !important;
       padding: 0px 48px 0px 48px !important;
     }
 
     .footerInfo a {
-      color: #166DE0 !important;
+      color: #1C58D9 !important;
     }
 
     .appDownloadButton a {
       background-color: #FFFFFF !important;
-      border: 1px solid #166DE0 !important;
+      border: 1px solid #1C58D9 !important;
       box-sizing: border-box !important;
-      color: #166DE0 !important;
+      color: #1C58D9 !important;
       padding: 13px 20px !important;
       font-weight: 600 !important;
       font-size: 14px !important;
@@ -158,7 +179,7 @@
     .emailFooter div {
       font-size: 12px !important;
       line-height: 16px !important;
-      color: rgba(61, 60, 64, 0.56) !important;
+      color: rgba(63, 67, 80, 0.56) !important;
       padding: 8px 24px 8px 24px !important;
     }
 
@@ -186,20 +207,67 @@
       width: 32px !important;
     }
 
-    .senderName div {
+    .postNameAndTime {
+      padding: 0px 0px 4px 0px !important;
+      display: flex;
+    }
+
+    .senderName {
+      font-family: Open Sans, sans-serif;
       text-align: left !important;
       font-weight: 600 !important;
       font-size: 14px !important;
       line-height: 20px !important;
-      color: #3D3C40 !important;
-      padding: 0px 0px 4px 0px !important;
+      color: #3F4350 !important;
+    }
+
+    .time {
+      font-family: Open Sans, sans-serif;
+      font-size: 12px;
+      line-height: 16px;
+      color: rgba(63, 67, 80, 0.56);
+      padding: 2px 6px;
+      align-items: center;
+      float: left;
+    }
+
+    .channelBg {
+      background: rgba(63, 67, 80, 0.08);
+      border-radius: 4px;
+      display: flex;
+      padding-left: 4px;
+    }
+
+    .channelLogo {
+      width: 10px;
+      height: 10px;
+      padding: 5px 4px 5px 6px;
+      float: left;
+    }
+
+    .channelName {
+      font-family: Open Sans, sans-serif;
+      font-weight: 600;
+      font-size: 10px;
+      line-height: 16px;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+      color: rgba(63, 67, 80, 0.64);
+      padding: 2px 6px 2px 0px;
+    }
+
+    .gmChannelCount {
+      background-color: rgba(63, 67, 80, 0.2);
+      padding: 0 5px;
+      border-radius: 2px;
+      margin-right: 2px;
     }
 
     .senderMessage div {
       text-align: left !important;
       font-size: 14px !important;
       line-height: 20px !important;
-      color: #3D3C40 !important;
+      color: #3F4350 !important;
       padding: 0px !important;
     }
 
@@ -255,7 +323,7 @@
 </head>
 
 <body style="word-spacing:normal;">
-  <div class="emailBody" style="">
+  <div class="emailBody" style="background: #F3F3F3;">
     <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
     <div style="background:#FFFFFF;background-color:#FFFFFF;margin:0px auto;border-radius:0;max-width:600px;">
       <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#FFFFFF;background-color:#FFFFFF;width:100%;border-radius:0;">
@@ -278,7 +346,7 @@
                                     <tbody>
                                       <tr>
                                         <td style="width:132px;">
-                                          <img alt="" height="21" src="{{.Props.SiteURL}}/static/images/logo_email_gray.png" style="border:0;display:block;outline:none;text-decoration:none;height:21.76px;width:100%;font-size:13px;" width="132" />
+                                          <img alt height="21" src="{{.Props.SiteURL}}/static/images/logo_email_gray.png" style="border:0;display:block;outline:none;text-decoration:none;height:21.76px;width:100%;font-size:13px;" width="132">
                                         </td>
                                       </tr>
                                     </tbody>
@@ -306,7 +374,7 @@
                             <tbody>
                               <tr>
                                 <td align="left" class="title" style="font-size:0px;padding:10px 0px;word-break:break-word;">
-                                  <div style="font-family:Arial;font-size:13px;line-height:1;text-align:left;color:#000000;">{{.Props.Title}}</div>
+                                  <div style="font-family: Arial; text-align: left; font-weight: 600; font-size: 28px; line-height: 36px; letter-spacing: -0.01em; color: #3F4350;">{{.Props.Title}}</div>
                                 </td>
                               </tr>
                               <tr>
@@ -319,7 +387,7 @@
                                   <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
                                     <tr>
                                       <td align="center" bgcolor="#FFFFFF" role="presentation" style="border:none;border-radius:4px;border-top:16px;cursor:auto;mso-padding-alt:10px 25px;background:#FFFFFF;" valign="middle">
-                                        <a href="{{.Props.ButtonURL}}" style="display:inline-block;background:#FFFFFF;color:#ffffff;font-family:Arial;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:4px;" target="_blank">
+                                        <a href="{{.Props.ButtonURL}}" style="display: inline-block; background: #FFFFFF; font-family: Arial; margin: 0; text-transform: none; mso-padding-alt: 0px; border-radius: 4px; text-decoration: none; background-color: #1C58D9; font-weight: 600; font-size: 16px; line-height: 18px; color: #FFFFFF; padding: 15px 24px;" target="_blank">
                                           {{.Props.Button}}
                                         </a>
                                       </td>
@@ -352,7 +420,7 @@
                                     <tbody>
                                       <tr>
                                         <td style="width:320px;">
-                                          <img alt="" height="auto" src="{{.Props.SiteURL}}/static/images/add_subscription.png" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="320" />
+                                          <img alt height="auto" src="{{.Props.SiteURL}}/static/images/add_subscription.png" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="320">
                                         </td>
                                       </tr>
                                     </tbody>
@@ -380,13 +448,13 @@
                             <tbody>
                               <tr>
                                 <td align="left" class="footerTitle" style="font-size:0px;padding:24px 0px 0px 0px;word-break:break-word;">
-                                  <div style="font-family:Arial;font-size:13px;line-height:1;text-align:left;color:#000000;">{{.Props.QuestionTitle}}</div>
+                                  <div style="font-family: Arial; text-align: left; font-weight: 600; font-size: 16px; line-height: 24px; color: #3F4350; padding: 0px 0px 4px 0px;">{{.Props.QuestionTitle}}</div>
                                 </td>
                               </tr>
                               <tr>
                                 <td align="left" style="font-size:0px;padding:0px 0px ;word-break:break-word;">
                                   <div style="font-family:Arial;font-size:14px;line-height:20px;text-align:left;color:#3D3C40;">{{.Props.QuestionInfo}}
-                                    <a href='mailto:{{.Props.SupportEmail}}'>
+                                    <a href="mailto:{{.Props.SupportEmail}}" style="text-decoration: none; color: #1C58D9;">
                                       {{.Props.SupportEmail}}
                                     </a>
                                   </div>
@@ -413,7 +481,7 @@
                             <tbody>
                               <tr>
                                 <td align="center" class="emailFooter" style="font-size:0px;padding:0px;word-break:break-word;">
-                                  <div style="font-family:Arial;font-size:13px;line-height:1;text-align:center;color:#000000;">{{.Props.Organization}}
+                                  <div style="font-family: Arial; text-align: center; font-size: 12px; line-height: 16px; color: rgba(63, 67, 80, 0.56); padding: 8px 24px 8px 24px;">{{.Props.Organization}}
                                     {{.Props.FooterV2}}
                                   </div>
                                 </td>

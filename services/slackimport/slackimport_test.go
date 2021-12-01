@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
 func TestSlackConvertTimeStamp(t *testing.T) {
@@ -329,7 +329,7 @@ func TestOldImportChannel(t *testing.T) {
 	t.Run("No panic on direct channel", func(t *testing.T) {
 		//ch := th.CreateDmChannel(u1)
 		ch := &model.Channel{
-			Type: model.CHANNEL_DIRECT,
+			Type: model.ChannelTypeDirect,
 			Name: "test-channel",
 		}
 		users := map[string]*model.User{
@@ -349,7 +349,7 @@ func TestOldImportChannel(t *testing.T) {
 
 	t.Run("No panic on direct channel with 1 member", func(t *testing.T) {
 		ch := &model.Channel{
-			Type: model.CHANNEL_DIRECT,
+			Type: model.ChannelTypeDirect,
 			Name: "test-channel",
 		}
 		users := map[string]*model.User{
@@ -369,7 +369,7 @@ func TestOldImportChannel(t *testing.T) {
 
 	t.Run("No panic on group channel", func(t *testing.T) {
 		ch := &model.Channel{
-			Type: model.CHANNEL_GROUP,
+			Type: model.ChannelTypeGroup,
 			Name: "test-channel",
 		}
 		users := map[string]*model.User{

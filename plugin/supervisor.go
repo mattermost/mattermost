@@ -14,9 +14,9 @@ import (
 
 	plugin "github.com/hashicorp/go-plugin"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type supervisor struct {
@@ -25,9 +25,10 @@ type supervisor struct {
 	hooks       Hooks
 	implemented [TotalHooksID]bool
 	pid         int
+	hooksClient *hooksRPCClient
 }
 
-func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, parentLogger *mlog.Logger, metrics einterfaces.MetricsInterface) (retSupervisor *supervisor, retErr error) {
+func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, parentLogger *mlog.Logger, metrics einterfaces.MetricsInterface) (retSupervisor *supervisor, retErr error) {
 	sup := supervisor{}
 	defer func() {
 		if retErr != nil {
@@ -38,14 +39,15 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, parentLogger *mlog
 	wrappedLogger := pluginInfo.WrapLogger(parentLogger)
 
 	hclogAdaptedLogger := &hclogAdapter{
-		wrappedLogger: wrappedLogger.WithCallerSkip(1),
+		wrappedLogger: wrappedLogger,
 		extrasKey:     "wrapped_extras",
 	}
 
 	pluginMap := map[string]plugin.Plugin{
 		"hooks": &hooksPlugin{
-			log:     wrappedLogger,
-			apiImpl: &apiTimerLayer{pluginInfo.Manifest.Id, apiImpl, metrics},
+			log:        wrappedLogger,
+			driverImpl: driver,
+			apiImpl:    &apiTimerLayer{pluginInfo.Manifest.Id, apiImpl, metrics},
 		},
 	}
 
@@ -82,6 +84,11 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, parentLogger *mlog
 		return nil, err
 	}
 
+	c, ok := raw.(*hooksRPCClient)
+	if ok {
+		sup.hooksClient = c
+	}
+
 	sup.hooks = &hooksTimerLayer{pluginInfo.Manifest.Id, raw.(Hooks), metrics}
 
 	impl, err := sup.hooks.Implemented()
@@ -102,6 +109,11 @@ func (sup *supervisor) Shutdown() {
 	defer sup.lock.RUnlock()
 	if sup.client != nil {
 		sup.client.Kill()
+	}
+
+	// Wait for API RPC server and DB RPC server to exit.
+	if sup.hooksClient != nil {
+		sup.hooksClient.doneWg.Wait()
 	}
 }
 

@@ -50,6 +50,9 @@ type Stream struct {
 	readDeadline  atomic.Value // time.Time
 	writeDeadline atomic.Value // time.Time
 
+	// establishCh is notified if the stream is established or being closed.
+	establishCh chan struct{}
+
 	// closeTimer is set with stateLock held to honor the StreamCloseTimeout
 	// setting on Session.
 	closeTimer *time.Timer
@@ -70,6 +73,7 @@ func newStream(session *Session, id uint32, state streamState) *Stream {
 		sendWindow:   initialStreamWindow,
 		recvNotifyCh: make(chan struct{}, 1),
 		sendNotifyCh: make(chan struct{}, 1),
+		establishCh:  make(chan struct{}, 1),
 	}
 	s.readDeadline.Store(time.Time{})
 	s.writeDeadline.Store(time.Time{})
@@ -165,7 +169,7 @@ func (s *Stream) Write(b []byte) (n int, err error) {
 func (s *Stream) write(b []byte) (n int, err error) {
 	var flags uint16
 	var max uint32
-	var body io.Reader
+	var body []byte
 START:
 	s.stateLock.Lock()
 	switch s.state {
@@ -191,7 +195,7 @@ START:
 
 	// Send up to our send window
 	max = min(window, uint32(len(b)))
-	body = bytes.NewReader(b[:max])
+	body = b[:max]
 
 	// Send the header
 	s.sendHdr.encode(typeData, flags, s.id, max)
@@ -393,6 +397,7 @@ func (s *Stream) processFlags(flags uint16) error {
 		if s.state == streamSYNSent {
 			s.state = streamEstablished
 		}
+		asyncNotify(s.establishCh)
 		s.session.establishStream(s.id)
 	}
 	if flags&flagFIN == flagFIN {
@@ -425,6 +430,7 @@ func (s *Stream) processFlags(flags uint16) error {
 func (s *Stream) notifyWaiting() {
 	asyncNotify(s.recvNotifyCh)
 	asyncNotify(s.sendNotifyCh)
+	asyncNotify(s.establishCh)
 }
 
 // incrSendWindow updates the size of our send window

@@ -9,8 +9,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func TestUserAccessTokenStore(t *testing.T, ss store.Store) {
@@ -111,7 +111,7 @@ func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
 	s2.UserId = uat.UserId
 	s2.Token = uat.Token
 
-	s2, err = ss.Session().Save(s2)
+	_, err = ss.Session().Save(s2)
 	require.NoError(t, err)
 
 	nErr = ss.UserAccessToken().UpdateTokenEnable(uat.Id)
@@ -136,7 +136,7 @@ func testUserAccessTokenSearch(t *testing.T, ss store.Store) {
 	s1.UserId = uat.UserId
 	s1.Token = uat.Token
 
-	s1, nErr := ss.Session().Save(s1)
+	_, nErr := ss.Session().Save(s1)
 	require.NoError(t, nErr)
 
 	_, nErr = ss.UserAccessToken().Save(uat)

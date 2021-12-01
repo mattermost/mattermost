@@ -8,11 +8,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/store/storetest"
-	"github.com/mattermost/mattermost-server/v5/utils/testutils"
+	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/store/storetest"
+	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 )
 
 func makeJobServer(t *testing.T) (*JobServer, *storetest.Store, *mocks.MetricsInterface) {
@@ -61,7 +61,7 @@ func TestClaimJob(t *testing.T) {
 			Type: "job_type",
 		}
 
-		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JOB_STATUS_PENDING, model.JOB_STATUS_IN_PROGRESS).Return(false, &model.AppError{Message: "message"})
+		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JobStatusPending, model.JobStatusInProgress).Return(false, &model.AppError{Message: "message"})
 
 		updated, err := jobServer.ClaimJob(job)
 		expectErrorId(t, "app.job.update.app_error", err)
@@ -76,7 +76,7 @@ func TestClaimJob(t *testing.T) {
 			Type: "job_type",
 		}
 
-		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JOB_STATUS_PENDING, model.JOB_STATUS_IN_PROGRESS).Return(false, nil)
+		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JobStatusPending, model.JobStatusInProgress).Return(false, nil)
 
 		updated, err := jobServer.ClaimJob(job)
 		require.Nil(t, err)
@@ -91,7 +91,7 @@ func TestClaimJob(t *testing.T) {
 			Type: "job_type",
 		}
 
-		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JOB_STATUS_PENDING, model.JOB_STATUS_IN_PROGRESS).Return(true, nil)
+		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JobStatusPending, model.JobStatusInProgress).Return(true, nil)
 		mockMetrics.On("IncrementJobActive", "job_type")
 
 		updated, err := jobServer.ClaimJob(job)
@@ -107,7 +107,7 @@ func TestClaimJob(t *testing.T) {
 			Type: "job_type",
 		}
 
-		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JOB_STATUS_PENDING, model.JOB_STATUS_IN_PROGRESS).Return(true, nil)
+		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JobStatusPending, model.JobStatusInProgress).Return(true, nil)
 
 		updated, err := jobServer.ClaimJob(job)
 		require.Nil(t, err)
@@ -125,10 +125,10 @@ func TestSetJobProgress(t *testing.T) {
 			Type: "job_type",
 		}
 
-		job.Status = model.JOB_STATUS_IN_PROGRESS
+		job.Status = model.JobStatusInProgress
 		job.Progress = progress
 
-		mockStore.JobStore.On("UpdateOptimistically", job, model.JOB_STATUS_IN_PROGRESS).Return(false, &model.AppError{Message: "message"})
+		mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(false, &model.AppError{Message: "message"})
 
 		err := jobServer.SetJobProgress(job, progress)
 		expectErrorId(t, "app.job.update.app_error", err)
@@ -143,10 +143,10 @@ func TestSetJobProgress(t *testing.T) {
 			Type: "job_type",
 		}
 
-		job.Status = model.JOB_STATUS_IN_PROGRESS
+		job.Status = model.JobStatusInProgress
 		job.Progress = progress
 
-		mockStore.JobStore.On("UpdateOptimistically", job, model.JOB_STATUS_IN_PROGRESS).Return(true, nil)
+		mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(true, nil)
 
 		err := jobServer.SetJobProgress(job, progress)
 		require.Nil(t, err)
@@ -162,7 +162,7 @@ func TestSetJobWarning(t *testing.T) {
 			Type: "job_type",
 		}
 
-		mockStore.JobStore.On("UpdateStatus", "job_id", model.JOB_STATUS_WARNING).Return(job, &model.AppError{Message: "message"})
+		mockStore.JobStore.On("UpdateStatus", "job_id", model.JobStatusWarning).Return(job, &model.AppError{Message: "message"})
 
 		err := jobServer.SetJobWarning(job)
 		expectErrorId(t, "app.job.update.app_error", err)
@@ -176,7 +176,7 @@ func TestSetJobWarning(t *testing.T) {
 			Type: "job_type",
 		}
 
-		mockStore.JobStore.On("UpdateStatus", "job_id", model.JOB_STATUS_WARNING).Return(job, nil)
+		mockStore.JobStore.On("UpdateStatus", "job_id", model.JobStatusWarning).Return(job, nil)
 
 		err := jobServer.SetJobWarning(job)
 		require.Nil(t, err)
@@ -192,7 +192,7 @@ func TestSetJobSuccess(t *testing.T) {
 			Type: "job_type",
 		}
 
-		mockStore.JobStore.On("UpdateStatus", "job_id", model.JOB_STATUS_SUCCESS).Return(job, &model.AppError{Message: "message"})
+		mockStore.JobStore.On("UpdateStatus", "job_id", model.JobStatusSuccess).Return(job, &model.AppError{Message: "message"})
 
 		err := jobServer.SetJobSuccess(job)
 		expectErrorId(t, "app.job.update.app_error", err)
@@ -206,7 +206,7 @@ func TestSetJobSuccess(t *testing.T) {
 			Type: "job_type",
 		}
 
-		mockStore.JobStore.On("UpdateStatus", "job_id", model.JOB_STATUS_SUCCESS).Return(job, nil)
+		mockStore.JobStore.On("UpdateStatus", "job_id", model.JobStatusSuccess).Return(job, nil)
 		mockMetrics.On("DecrementJobActive", "job_type")
 
 		err := jobServer.SetJobSuccess(job)
@@ -221,7 +221,7 @@ func TestSetJobSuccess(t *testing.T) {
 			Type: "job_type",
 		}
 
-		mockStore.JobStore.On("UpdateStatus", "job_id", model.JOB_STATUS_SUCCESS).Return(job, nil)
+		mockStore.JobStore.On("UpdateStatus", "job_id", model.JobStatusSuccess).Return(job, nil)
 
 		err := jobServer.SetJobSuccess(job)
 		require.Nil(t, err)
@@ -238,7 +238,7 @@ func TestSetJobError(t *testing.T) {
 				Type: "job_type",
 			}
 
-			mockStore.JobStore.On("UpdateStatus", "job_id", model.JOB_STATUS_ERROR).Return(job, &model.AppError{Message: "message"})
+			mockStore.JobStore.On("UpdateStatus", "job_id", model.JobStatusError).Return(job, &model.AppError{Message: "message"})
 
 			err := jobServer.SetJobError(job, nil)
 			expectErrorId(t, "app.job.update.app_error", err)
@@ -252,7 +252,7 @@ func TestSetJobError(t *testing.T) {
 				Type: "job_type",
 			}
 
-			mockStore.JobStore.On("UpdateStatus", "job_id", model.JOB_STATUS_ERROR).Return(job, nil)
+			mockStore.JobStore.On("UpdateStatus", "job_id", model.JobStatusError).Return(job, nil)
 			mockMetrics.On("DecrementJobActive", "job_type")
 
 			err := jobServer.SetJobError(job, nil)
@@ -267,7 +267,7 @@ func TestSetJobError(t *testing.T) {
 				Type: "job_type",
 			}
 
-			mockStore.JobStore.On("UpdateStatus", "job_id", model.JOB_STATUS_ERROR).Return(job, nil)
+			mockStore.JobStore.On("UpdateStatus", "job_id", model.JobStatusError).Return(job, nil)
 
 			err := jobServer.SetJobError(job, nil)
 			require.Nil(t, err)
@@ -287,7 +287,7 @@ func TestSetJobError(t *testing.T) {
 				Data:     map[string]string{"error": jobError.Message},
 			}
 
-			mockStore.JobStore.On("UpdateOptimistically", job, model.JOB_STATUS_IN_PROGRESS).Return(false, &model.AppError{Message: "message"})
+			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(false, &model.AppError{Message: "message"})
 
 			err := jobServer.SetJobError(job, jobError)
 			expectErrorId(t, "app.job.update.app_error", err)
@@ -305,7 +305,7 @@ func TestSetJobError(t *testing.T) {
 				Data:     map[string]string{"error": jobError.Message},
 			}
 
-			mockStore.JobStore.On("UpdateOptimistically", job, model.JOB_STATUS_IN_PROGRESS).Return(true, nil)
+			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(true, nil)
 			mockMetrics.On("DecrementJobActive", "job_type")
 
 			err := jobServer.SetJobError(job, jobError)
@@ -324,7 +324,7 @@ func TestSetJobError(t *testing.T) {
 				Data:     map[string]string{"error": jobError.Message},
 			}
 
-			mockStore.JobStore.On("UpdateOptimistically", job, model.JOB_STATUS_IN_PROGRESS).Return(true, nil)
+			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(true, nil)
 
 			err := jobServer.SetJobError(job, jobError)
 			require.Nil(t, err)
@@ -342,8 +342,8 @@ func TestSetJobError(t *testing.T) {
 				Data:     map[string]string{"error": jobError.Message},
 			}
 
-			mockStore.JobStore.On("UpdateOptimistically", job, model.JOB_STATUS_IN_PROGRESS).Return(false, nil)
-			mockStore.JobStore.On("UpdateOptimistically", job, model.JOB_STATUS_CANCEL_REQUESTED).Return(false, &model.AppError{Message: "message"})
+			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(false, nil)
+			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusCancelRequested).Return(false, &model.AppError{Message: "message"})
 
 			err := jobServer.SetJobError(job, jobError)
 			expectErrorId(t, "app.job.update.app_error", err)
@@ -361,8 +361,8 @@ func TestSetJobError(t *testing.T) {
 				Data:     map[string]string{"error": jobError.Message},
 			}
 
-			mockStore.JobStore.On("UpdateOptimistically", job, model.JOB_STATUS_IN_PROGRESS).Return(false, nil)
-			mockStore.JobStore.On("UpdateOptimistically", job, model.JOB_STATUS_CANCEL_REQUESTED).Return(false, nil)
+			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(false, nil)
+			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusCancelRequested).Return(false, nil)
 
 			err := jobServer.SetJobError(job, jobError)
 			expectErrorId(t, "jobs.set_job_error.update.error", err)
@@ -380,8 +380,8 @@ func TestSetJobError(t *testing.T) {
 				Data:     map[string]string{"error": jobError.Message},
 			}
 
-			mockStore.JobStore.On("UpdateOptimistically", job, model.JOB_STATUS_IN_PROGRESS).Return(false, nil)
-			mockStore.JobStore.On("UpdateOptimistically", job, model.JOB_STATUS_CANCEL_REQUESTED).Return(true, nil)
+			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(false, nil)
+			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusCancelRequested).Return(true, nil)
 
 			err := jobServer.SetJobError(job, jobError)
 			require.Nil(t, err)
@@ -398,7 +398,7 @@ func TestSetJobCanceled(t *testing.T) {
 			Type: "job_type",
 		}
 
-		mockStore.JobStore.On("UpdateStatus", "job_id", model.JOB_STATUS_CANCELED).Return(job, &model.AppError{Message: "message"})
+		mockStore.JobStore.On("UpdateStatus", "job_id", model.JobStatusCanceled).Return(job, &model.AppError{Message: "message"})
 
 		err := jobServer.SetJobCanceled(job)
 		expectErrorId(t, "app.job.update.app_error", err)
@@ -412,7 +412,7 @@ func TestSetJobCanceled(t *testing.T) {
 			Type: "job_type",
 		}
 
-		mockStore.JobStore.On("UpdateStatus", "job_id", model.JOB_STATUS_CANCELED).Return(job, nil)
+		mockStore.JobStore.On("UpdateStatus", "job_id", model.JobStatusCanceled).Return(job, nil)
 		mockMetrics.On("DecrementJobActive", "job_type")
 
 		err := jobServer.SetJobCanceled(job)
@@ -427,7 +427,7 @@ func TestSetJobCanceled(t *testing.T) {
 			Type: "job_type",
 		}
 
-		mockStore.JobStore.On("UpdateStatus", "job_id", model.JOB_STATUS_CANCELED).Return(job, nil)
+		mockStore.JobStore.On("UpdateStatus", "job_id", model.JobStatusCanceled).Return(job, nil)
 
 		err := jobServer.SetJobCanceled(job)
 		require.Nil(t, err)
@@ -443,9 +443,9 @@ func TestUpdateInProgressJobData(t *testing.T) {
 			Type: "job_type",
 		}
 
-		job.Status = model.JOB_STATUS_IN_PROGRESS
+		job.Status = model.JobStatusInProgress
 
-		mockStore.JobStore.On("UpdateOptimistically", job, model.JOB_STATUS_IN_PROGRESS).Return(false, &model.AppError{Message: "message"})
+		mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(false, &model.AppError{Message: "message"})
 
 		err := jobServer.UpdateInProgressJobData(job)
 		expectErrorId(t, "app.job.update.app_error", err)
@@ -459,9 +459,9 @@ func TestUpdateInProgressJobData(t *testing.T) {
 			Type: "job_type",
 		}
 
-		job.Status = model.JOB_STATUS_IN_PROGRESS
+		job.Status = model.JobStatusInProgress
 
-		mockStore.JobStore.On("UpdateOptimistically", job, model.JOB_STATUS_IN_PROGRESS).Return(true, nil)
+		mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(true, nil)
 
 		err := jobServer.UpdateInProgressJobData(job)
 		require.Nil(t, err)
@@ -472,7 +472,7 @@ func TestRequestCancellation(t *testing.T) {
 	t.Run("error cancelling", func(t *testing.T) {
 		jobServer, mockStore, _ := makeJobServer(t)
 
-		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JOB_STATUS_PENDING, model.JOB_STATUS_CANCELED).Return(false, &model.AppError{Message: "message"})
+		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JobStatusPending, model.JobStatusCanceled).Return(false, &model.AppError{Message: "message"})
 
 		err := jobServer.RequestCancellation("job_id")
 		expectErrorId(t, "app.job.update.app_error", err)
@@ -481,7 +481,7 @@ func TestRequestCancellation(t *testing.T) {
 	t.Run("cancelled, job not found", func(t *testing.T) {
 		jobServer, mockStore, _ := makeJobServer(t)
 
-		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JOB_STATUS_PENDING, model.JOB_STATUS_CANCELED).Return(true, nil)
+		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JobStatusPending, model.JobStatusCanceled).Return(true, nil)
 		mockStore.JobStore.On("Get", "job_id").Return(nil, &store.ErrNotFound{})
 
 		err := jobServer.RequestCancellation("job_id")
@@ -496,7 +496,7 @@ func TestRequestCancellation(t *testing.T) {
 			Type: "job_type",
 		}
 
-		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JOB_STATUS_PENDING, model.JOB_STATUS_CANCELED).Return(true, nil)
+		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JobStatusPending, model.JobStatusCanceled).Return(true, nil)
 		mockStore.JobStore.On("Get", "job_id").Return(job, nil)
 		mockMetrics.On("DecrementJobActive", "job_type")
 
@@ -507,7 +507,7 @@ func TestRequestCancellation(t *testing.T) {
 	t.Run("cancelled, success, nil metrics service", func(t *testing.T) {
 		jobServer, mockStore := makeTeamEditionJobServer(t)
 
-		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JOB_STATUS_PENDING, model.JOB_STATUS_CANCELED).Return(true, nil)
+		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JobStatusPending, model.JobStatusCanceled).Return(true, nil)
 
 		err := jobServer.RequestCancellation("job_id")
 		require.Nil(t, err)
@@ -516,8 +516,8 @@ func TestRequestCancellation(t *testing.T) {
 	t.Run("unable to cancel, requesting cancellation instead, error setting status", func(t *testing.T) {
 		jobServer, mockStore, _ := makeJobServer(t)
 
-		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JOB_STATUS_PENDING, model.JOB_STATUS_CANCELED).Return(false, nil)
-		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JOB_STATUS_IN_PROGRESS, model.JOB_STATUS_CANCEL_REQUESTED).Return(false, &model.AppError{Message: "message"})
+		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JobStatusPending, model.JobStatusCanceled).Return(false, nil)
+		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JobStatusInProgress, model.JobStatusCancelRequested).Return(false, &model.AppError{Message: "message"})
 
 		err := jobServer.RequestCancellation("job_id")
 		expectErrorId(t, "app.job.update.app_error", err)
@@ -526,8 +526,8 @@ func TestRequestCancellation(t *testing.T) {
 	t.Run("unable to cancel, requesting cancellation instead, success", func(t *testing.T) {
 		jobServer, mockStore, _ := makeJobServer(t)
 
-		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JOB_STATUS_PENDING, model.JOB_STATUS_CANCELED).Return(false, nil)
-		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JOB_STATUS_IN_PROGRESS, model.JOB_STATUS_CANCEL_REQUESTED).Return(true, nil)
+		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JobStatusPending, model.JobStatusCanceled).Return(false, nil)
+		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JobStatusInProgress, model.JobStatusCancelRequested).Return(true, nil)
 
 		err := jobServer.RequestCancellation("job_id")
 		require.Nil(t, err)
@@ -536,8 +536,8 @@ func TestRequestCancellation(t *testing.T) {
 	t.Run("unable to cancel, requesting cancellation instead, unexpected state", func(t *testing.T) {
 		jobServer, mockStore, _ := makeJobServer(t)
 
-		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JOB_STATUS_PENDING, model.JOB_STATUS_CANCELED).Return(false, nil)
-		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JOB_STATUS_IN_PROGRESS, model.JOB_STATUS_CANCEL_REQUESTED).Return(false, nil)
+		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JobStatusPending, model.JobStatusCanceled).Return(false, nil)
+		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JobStatusInProgress, model.JobStatusCancelRequested).Return(false, nil)
 
 		err := jobServer.RequestCancellation("job_id")
 		expectErrorId(t, "jobs.request_cancellation.status.error", err)

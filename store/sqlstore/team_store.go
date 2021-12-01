@@ -13,9 +13,9 @@ import (
 	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 const (
@@ -105,11 +105,11 @@ func getTeamRoles(schemeGuest, schemeUser, schemeAdmin bool, defaultTeamGuestRol
 	// them from ExplicitRoles field.
 	for _, role := range roles {
 		switch role {
-		case model.TEAM_GUEST_ROLE_ID:
+		case model.TeamGuestRoleId:
 			result.schemeGuest = true
-		case model.TEAM_USER_ROLE_ID:
+		case model.TeamUserRoleId:
 			result.schemeUser = true
-		case model.TEAM_ADMIN_ROLE_ID:
+		case model.TeamAdminRoleId:
 			result.schemeAdmin = true
 		default:
 			result.explicitRoles = append(result.explicitRoles, role)
@@ -124,21 +124,21 @@ func getTeamRoles(schemeGuest, schemeUser, schemeAdmin bool, defaultTeamGuestRol
 		if defaultTeamGuestRole != "" {
 			schemeImpliedRoles = append(schemeImpliedRoles, defaultTeamGuestRole)
 		} else {
-			schemeImpliedRoles = append(schemeImpliedRoles, model.TEAM_GUEST_ROLE_ID)
+			schemeImpliedRoles = append(schemeImpliedRoles, model.TeamGuestRoleId)
 		}
 	}
 	if result.schemeUser {
 		if defaultTeamUserRole != "" {
 			schemeImpliedRoles = append(schemeImpliedRoles, defaultTeamUserRole)
 		} else {
-			schemeImpliedRoles = append(schemeImpliedRoles, model.TEAM_USER_ROLE_ID)
+			schemeImpliedRoles = append(schemeImpliedRoles, model.TeamUserRoleId)
 		}
 	}
 	if result.schemeAdmin {
 		if defaultTeamAdminRole != "" {
 			schemeImpliedRoles = append(schemeImpliedRoles, defaultTeamAdminRole)
 		} else {
-			schemeImpliedRoles = append(schemeImpliedRoles, model.TEAM_ADMIN_ROLE_ID)
+			schemeImpliedRoles = append(schemeImpliedRoles, model.TeamAdminRoleId)
 		}
 	}
 	for _, impliedRole := range schemeImpliedRoles {
@@ -227,7 +227,7 @@ func newSqlTeamStore(sqlStore *SqlStore) store.TeamStore {
 		tablem := db.AddTableWithName(teamMember{}, "TeamMembers").SetKeys(false, "TeamId", "UserId")
 		tablem.ColMap("TeamId").SetMaxSize(26)
 		tablem.ColMap("UserId").SetMaxSize(26)
-		tablem.ColMap("Roles").SetMaxSize(64)
+		tablem.ColMap("Roles").SetMaxSize(model.UserRolesMaxLength)
 	}
 
 	return s
@@ -400,7 +400,7 @@ func (s SqlTeamStore) teamSearchQuery(opts *model.TeamSearch, countQuery bool) s
 		term = wildcardSearchTerm(term)
 
 		operatorKeyword := "ILIKE"
-		if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		if s.DriverName() == model.DatabaseDriverMysql {
 			operatorKeyword = "LIKE"
 		}
 
@@ -1264,11 +1264,11 @@ func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) (
 			member.SchemeGuest = sql.NullBool{Bool: false, Valid: true}
 		}
 		for _, role := range roles {
-			if role == model.TEAM_ADMIN_ROLE_ID {
+			if role == model.TeamAdminRoleId {
 				member.SchemeAdmin = sql.NullBool{Bool: true, Valid: true}
-			} else if role == model.TEAM_USER_ROLE_ID {
+			} else if role == model.TeamUserRoleId {
 				member.SchemeUser = sql.NullBool{Bool: true, Valid: true}
-			} else if role == model.TEAM_GUEST_ROLE_ID {
+			} else if role == model.TeamGuestRoleId {
 				member.SchemeGuest = sql.NullBool{Bool: true, Valid: true}
 			} else {
 				newRoles = append(newRoles, role)
@@ -1421,6 +1421,34 @@ func (s SqlTeamStore) GetUserTeamIds(userId string, allowFromCache bool) ([]stri
 	}
 
 	return teamIds, nil
+}
+
+// GetCommonTeamIDsForTwoUsers returns the intersection of all the teams to which the specified
+// users belong.
+func (s SqlTeamStore) GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, error) {
+	var teamIDs []string
+	query, args, err := s.getQueryBuilder().
+		Select("TM1.TeamId").
+		From("TeamMembers AS TM1").
+		InnerJoin("TeamMembers AS TM2 ON TM1.TeamId = TM2.TeamId").
+		InnerJoin("Teams ON TM1.TeamId = Teams.Id").
+		Where(sq.And{
+			sq.Eq{"TM1.UserId": userID},
+			sq.Eq{"TM1.DeleteAt": 0},
+			sq.Eq{"TM2.UserId": otherUserID},
+			sq.Eq{"TM2.DeleteAt": 0},
+			sq.Eq{"Teams.DeleteAt": 0},
+		}).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "team_tosql")
+	}
+	_, err = s.GetReplica().Select(&teamIDs, query, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find TeamMembers with user IDs %s and %s", userID, otherUserID)
+	}
+
+	return teamIDs, nil
 }
 
 // GetTeamMembersForExport gets the various teams for which a user, denoted by userId, is a part of.

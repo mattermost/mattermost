@@ -11,10 +11,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
 func handlerForHTTPErrors(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -25,7 +26,7 @@ func TestHandlerServeHTTPErrors(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
-	web := New(th.App, th.Server.Router)
+	web := New(th.Server)
 	handler := web.NewHandler(handlerForHTTPErrors)
 
 	var flagtests = []struct {
@@ -84,7 +85,7 @@ func TestHandlerServeHTTPSecureTransport(t *testing.T) {
 		*config.ServiceSettings.TLSStrictTransportMaxAge = 6000
 	})
 
-	web := New(th.App, th.Server.Router)
+	web := New(th.Server)
 	handler := web.NewHandler(handlerForHTTPSecureTransport)
 
 	request := httptest.NewRequest("GET", "/api/v4/test", nil)
@@ -126,7 +127,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	session := &model.Session{
 		UserId:   th.BasicUser.Id,
 		CreateAt: model.GetMillis(),
-		Roles:    model.SYSTEM_USER_ROLE_ID,
+		Roles:    model.SystemUserRoleId,
 		IsOAuth:  false,
 	}
 	session.GenerateCSRF()
@@ -136,10 +137,10 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 		t.Errorf("Expected nil, got %s", err)
 	}
 
-	web := New(th.App, th.Server.Router)
+	web := New(th.Server)
 
 	handler := Handler{
-		App:            web.app,
+		Srv:            web.srv,
 		HandleFunc:     handlerForCSRFToken,
 		RequireSession: true,
 		TrustRequester: false,
@@ -148,15 +149,15 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	}
 
 	cookie := &http.Cookie{
-		Name:  model.SESSION_COOKIE_USER,
+		Name:  model.SessionCookieUser,
 		Value: th.BasicUser.Username,
 	}
 	cookie2 := &http.Cookie{
-		Name:  model.SESSION_COOKIE_TOKEN,
+		Name:  model.SessionCookieToken,
 		Value: session.Token,
 	}
 	cookie3 := &http.Cookie{
-		Name:  model.SESSION_COOKIE_CSRF,
+		Name:  model.SessionCookieCsrf,
 		Value: session.GetCSRF(),
 	}
 
@@ -166,7 +167,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	request.AddCookie(cookie)
 	request.AddCookie(cookie2)
 	request.AddCookie(cookie3)
-	request.Header.Add(model.HEADER_CSRF_TOKEN, session.GetCSRF())
+	request.Header.Add(model.HeaderCsrfToken, session.GetCSRF())
 	response := httptest.NewRecorder()
 	handler.ServeHTTP(response, request)
 
@@ -196,7 +197,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	request.AddCookie(cookie)
 	request.AddCookie(cookie2)
 	request.AddCookie(cookie3)
-	request.Header.Add(model.HEADER_REQUESTED_WITH, model.HEADER_REQUESTED_WITH_XML)
+	request.Header.Add(model.HeaderRequestedWith, model.HeaderRequestedWithXML)
 	response = httptest.NewRecorder()
 	handler.ServeHTTP(response, request)
 
@@ -219,7 +220,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	// Handler with RequireSession set to false
 
 	handlerNoSession := Handler{
-		App:            th.App,
+		Srv:            th.Server,
 		HandleFunc:     handlerForCSRFToken,
 		RequireSession: false,
 		TrustRequester: false,
@@ -233,7 +234,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	request.AddCookie(cookie)
 	request.AddCookie(cookie2)
 	request.AddCookie(cookie3)
-	request.Header.Add(model.HEADER_CSRF_TOKEN, session.GetCSRF())
+	request.Header.Add(model.HeaderCsrfToken, session.GetCSRF())
 	response = httptest.NewRecorder()
 	handlerNoSession.ServeHTTP(response, request)
 
@@ -263,10 +264,10 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
-		web := New(th.App, th.Server.Router)
+		web := New(th.Server)
 
 		handler := Handler{
-			App:            web.app,
+			Srv:            web.srv,
 			HandleFunc:     handlerForCSPHeader,
 			RequireSession: false,
 			TrustRequester: false,
@@ -285,10 +286,10 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
-		web := New(th.App, th.Server.Router)
+		web := New(th.Server)
 
 		handler := Handler{
-			App:            web.app,
+			Srv:            web.srv,
 			HandleFunc:     handlerForCSPHeader,
 			RequireSession: false,
 			TrustRequester: false,
@@ -300,7 +301,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, response.Header()["Content-Security-Policy"], []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com"})
+		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com"}, response.Header()["Content-Security-Policy"])
 	})
 
 	t.Run("static, with subpath", func(t *testing.T) {
@@ -325,10 +326,10 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 			*cfg.ServiceSettings.SiteURL = *cfg.ServiceSettings.SiteURL + "/subpath"
 		})
 
-		web := New(th.App, th.Server.Router)
+		web := New(th.Server)
 
 		handler := Handler{
-			App:            web.app,
+			Srv:            web.srv,
 			HandleFunc:     handlerForCSPHeader,
 			RequireSession: false,
 			TrustRequester: false,
@@ -340,7 +341,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, response.Header()["Content-Security-Policy"], []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com"})
+		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com"}, response.Header()["Content-Security-Policy"])
 
 		// TODO: It's hard to unit test this now that the CSP directive is effectively
 		// decided in Setup(). Circle back to this in master once the memory store is
@@ -355,9 +356,160 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response = httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, response.Header()["Content-Security-Policy"], []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com"})
+		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com"}, response.Header()["Content-Security-Policy"])
 		// TODO: See above.
 		// assert.Contains(t, response.Header()["Content-Security-Policy"], "frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com 'sha256-tPOjw+tkVs9axL78ZwGtYl975dtyPHB6LYKAO2R3gR4='", "csp header incorrectly changed after subpath changed")
+	})
+
+	t.Run("dev mode", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		oldBuildNumber := model.BuildNumber
+		model.BuildNumber = "dev"
+		defer func() {
+			model.BuildNumber = oldBuildNumber
+		}()
+
+		web := New(th.Server)
+
+		handler := Handler{
+			Srv:            web.srv,
+			HandleFunc:     handlerForCSPHeader,
+			RequireSession: false,
+			TrustRequester: false,
+			RequireMfa:     false,
+			IsStatic:       true,
+		}
+
+		request := httptest.NewRequest("POST", "/", nil)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+		assert.Equal(t, 200, response.Code)
+		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com 'unsafe-eval' 'unsafe-inline'"}, response.Header()["Content-Security-Policy"])
+	})
+
+}
+
+func TestGenerateDevCSP(t *testing.T) {
+	t.Run("dev mode", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		oldBuildNumber := model.BuildNumber
+		model.BuildNumber = "dev"
+		defer func() {
+			model.BuildNumber = oldBuildNumber
+		}()
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Logger:     th.App.Log(),
+		}
+
+		devCSP := generateDevCSP(*c)
+
+		assert.Equal(t, " 'unsafe-eval' 'unsafe-inline'", devCSP)
+
+	})
+	t.Run("allowed dev flags", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		oldBuildNumber := model.BuildNumber
+		model.BuildNumber = "0"
+		defer func() {
+			model.BuildNumber = oldBuildNumber
+		}()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.DeveloperFlags = "unsafe-inline=true,unsafe-eval=true"
+		})
+
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Logger:     th.App.Log(),
+		}
+
+		devCSP := generateDevCSP(*c)
+
+		assert.Equal(t, " 'unsafe-eval' 'unsafe-inline'", devCSP)
+	})
+
+	t.Run("partial dev flags", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		oldBuildNumber := model.BuildNumber
+		model.BuildNumber = "0"
+		defer func() {
+			model.BuildNumber = oldBuildNumber
+		}()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.DeveloperFlags = "unsafe-inline=false,unsafe-eval=true"
+		})
+
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Logger:     th.App.Log(),
+		}
+
+		devCSP := generateDevCSP(*c)
+
+		assert.Equal(t, " 'unsafe-eval'", devCSP)
+	})
+
+	t.Run("unknown dev flags", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		oldBuildNumber := model.BuildNumber
+		model.BuildNumber = "0"
+		defer func() {
+			model.BuildNumber = oldBuildNumber
+		}()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.DeveloperFlags = "unknown=true,unsafe-inline=false,unsafe-eval=true"
+		})
+
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Logger:     th.App.Log(),
+		}
+
+		devCSP := generateDevCSP(*c)
+
+		assert.Equal(t, " 'unsafe-eval'", devCSP)
+	})
+
+	t.Run("empty dev flags", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.DeveloperFlags = ""
+		})
+
+		logger := mlog.CreateConsoleTestLogger(false, mlog.LvlWarn)
+		buf := &mlog.Buffer{}
+		require.NoError(t, mlog.AddWriterTarget(logger, buf, false, mlog.LvlWarn))
+
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Logger:     logger,
+		}
+
+		generateDevCSP(*c)
+
+		require.NoError(t, logger.Shutdown())
+
+		assert.Equal(t, "", buf.String())
 	})
 }
 
@@ -380,10 +532,10 @@ func TestHandlerServeInvalidToken(t *testing.T) {
 				*cfg.ServiceSettings.SiteURL = tc.SiteURL
 			})
 
-			web := New(th.App, th.Server.Router)
+			web := New(th.Server)
 
 			handler := Handler{
-				App:            web.app,
+				Srv:            web.srv,
 				HandleFunc:     handlerForCSRFToken,
 				RequireSession: true,
 				TrustRequester: false,
@@ -392,7 +544,7 @@ func TestHandlerServeInvalidToken(t *testing.T) {
 			}
 
 			cookie := &http.Cookie{
-				Name:  model.SESSION_COOKIE_TOKEN,
+				Name:  model.SessionCookieToken,
 				Value: "invalid",
 			}
 
@@ -426,7 +578,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
-		r.Header.Set(model.HEADER_CSRF_TOKEN, token)
+		r.Header.Set(model.HeaderCsrfToken, token)
 		session := &model.Session{
 			Props: map[string]string{
 				"csrf": token,
@@ -458,7 +610,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
-		r.Header.Set(model.HEADER_REQUESTED_WITH, model.HEADER_REQUESTED_WITH_XML)
+		r.Header.Set(model.HeaderRequestedWith, model.HeaderRequestedWithXML)
 		session := &model.Session{
 			Props: map[string]string{
 				"csrf": token,
@@ -508,7 +660,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
-		r.Header.Set(model.HEADER_REQUESTED_WITH, model.HEADER_REQUESTED_WITH_XML)
+		r.Header.Set(model.HeaderRequestedWith, model.HeaderRequestedWithXML)
 		session := &model.Session{
 			Props: map[string]string{
 				"csrf": token,
@@ -629,7 +781,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
-		r.Header.Set(model.HEADER_CSRF_TOKEN, token)
+		r.Header.Set(model.HeaderCsrfToken, token)
 
 		checked, passed := h.checkCSRFToken(c, r, token, tokenLocation, nil)
 
@@ -655,7 +807,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
-		r.Header.Set(model.HEADER_CSRF_TOKEN, token)
+		r.Header.Set(model.HeaderCsrfToken, token)
 		session := &model.Session{
 			Props: map[string]string{
 				"csrf": token,

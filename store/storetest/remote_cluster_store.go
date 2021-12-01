@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -121,7 +121,6 @@ func testRemoteClusterGetAll(t *testing.T, ss store.Store) {
 
 	idsAll := make([]string, 0)
 	idsOnline := make([]string, 0)
-	idsOffline := make([]string, 0)
 	idsShareTopic := make([]string, 0)
 
 	for _, item := range data {
@@ -131,8 +130,6 @@ func testRemoteClusterGetAll(t *testing.T, ss store.Store) {
 		idsAll = append(idsAll, saved.RemoteId)
 		if online {
 			idsOnline = append(idsOnline, saved.RemoteId)
-		} else {
-			idsOffline = append(idsOffline, saved.RemoteId)
 		}
 		if strings.Contains(saved.Topics, " shared ") {
 			idsShareTopic = append(idsShareTopic, saved.RemoteId)

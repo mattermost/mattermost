@@ -14,10 +14,10 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 var ErrNotFound = errors.New("Item not found")
@@ -54,17 +54,23 @@ type Environment struct {
 	logger                 *mlog.Logger
 	metrics                einterfaces.MetricsInterface
 	newAPIImpl             apiImplCreatorFunc
+	dbDriver               Driver
 	pluginDir              string
 	webappPluginDir        string
 	prepackagedPlugins     []*PrepackagedPlugin
 	prepackagedPluginsLock sync.RWMutex
 }
 
-func NewEnvironment(newAPIImpl apiImplCreatorFunc, pluginDir string, webappPluginDir string, logger *mlog.Logger, metrics einterfaces.MetricsInterface) (*Environment, error) {
+func NewEnvironment(newAPIImpl apiImplCreatorFunc,
+	dbDriver Driver,
+	pluginDir string, webappPluginDir string,
+	logger *mlog.Logger,
+	metrics einterfaces.MetricsInterface) (*Environment, error) {
 	return &Environment{
 		logger:          logger,
 		metrics:         metrics,
 		newAPIImpl:      newAPIImpl,
+		dbDriver:        dbDriver,
 		pluginDir:       pluginDir,
 		webappPluginDir: webappPluginDir,
 	}, nil
@@ -263,7 +269,7 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 	}
 
 	if pluginInfo.Manifest.HasServer() {
-		sup, err := newSupervisor(pluginInfo, env.newAPIImpl(pluginInfo.Manifest), env.logger, env.metrics)
+		sup, err := newSupervisor(pluginInfo, env.newAPIImpl(pluginInfo.Manifest), env.dbDriver, env.logger, env.metrics)
 		if err != nil {
 			return nil, false, errors.Wrapf(err, "unable to start plugin: %v", id)
 		}
@@ -326,9 +332,7 @@ func (env *Environment) RestartPlugin(id string) error {
 
 // Shutdown deactivates all plugins and gracefully shuts down the environment.
 func (env *Environment) Shutdown() {
-	if env.pluginHealthCheckJob != nil {
-		env.pluginHealthCheckJob.Cancel()
-	}
+	env.TogglePluginHealthCheckJob(false)
 
 	var wg sync.WaitGroup
 	env.registeredPlugins.Range(func(key, value interface{}) bool {
@@ -501,8 +505,8 @@ func newRegisteredPlugin(bundle *model.BundleInfo) registeredPlugin {
 	return registeredPlugin{State: state, BundleInfo: bundle}
 }
 
-// InitPluginHealthCheckJob starts a new job if one is not running and is set to enabled, or kills an existing one if set to disabled.
-func (env *Environment) InitPluginHealthCheckJob(enable bool) {
+// TogglePluginHealthCheckJob starts a new job if one is not running and is set to enabled, or kills an existing one if set to disabled.
+func (env *Environment) TogglePluginHealthCheckJob(enable bool) {
 	// Config is set to enable. No job exists, start a new job.
 	if enable && env.pluginHealthCheckJob == nil {
 		mlog.Debug("Enabling plugin health check job", mlog.Duration("interval_s", HealthCheckInterval))

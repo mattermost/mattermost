@@ -1,6 +1,45 @@
 Changes by Version
 ==================
 
+2.29.2 (unreleased)
+-------------------
+- Nothing yet.
+
+
+2.29.1 (2021-05-24)
+-------------------
+- Remove dependency on "testing" in "thrift" (#586) -- @yurishkuro
+
+
+2.29.0 (2021-05-20)
+-------------------
+- Update vendored thrift to 0.14.1 (#584) -- @nhatthm
+
+
+2.28.0 (2021-04-30)
+-------------------
+- HTTPSamplingStrategyFetcher: Use http client with 10 second timeout (#578) -- Joe Elliott
+
+
+2.27.0 (2021-04-19)
+-------------------
+- Don't override HTTP Reporter batch size to 1; default to 100, user can override (#571) -- R. Aidan Campbell
+
+
+2.26.0 (2021-04-16)
+-------------------
+- Delete a baggage item when value is blank (#562) -- evan.kim
+- Trim baggage key when parsing (#566) -- sicong.huang
+- feat: extend configuration to support custom randomNumber func (#555) -- NemoO_o
+- Support JAEGER_TRACEID_128BIT env var (#547) -- Yuri Shkuro
+- Additional context protections (#544) -- Joe Elliott
+- Lock RemotelyControlledSampler.sampler on callbacks (#543) -- Dima
+- Upgrade build to Go 1.15 (#539) -- Yuri Shkuro
+- Upgrade to jaeger-lib@2.3.0 to fix broken codahale/hdrhistogram dependency (#537) -- Yuri Shkuro
+- Prefix TraceID/SpanID.String() with zeroes (#533) -- Lukas Vogel
+- Upgrade to OpenTracing Go 1.2 (#525) -- Yuri Shkuro
+
+
 2.25.0 (2020-07-13)
 -------------------
 ## Breaking changes

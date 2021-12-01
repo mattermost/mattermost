@@ -31,21 +31,22 @@ func recoverBlock(e *error) {
 	}
 }
 
-// blockHash hashes the lower 6 bytes into a value < htSize.
+// blockHash hashes the lower five bytes of x into a value < htSize.
 func blockHash(x uint64) uint32 {
 	const prime6bytes = 227718039650203
-	return uint32(((x << (64 - 48)) * prime6bytes) >> (64 - hashLog))
+	x &= 1<<40 - 1
+	return uint32((x * prime6bytes) >> (64 - hashLog))
 }
 
 func CompressBlockBound(n int) int {
 	return n + n/255 + 16
 }
 
-func UncompressBlock(src, dst []byte) (int, error) {
+func UncompressBlock(src, dst, dict []byte) (int, error) {
 	if len(src) == 0 {
 		return 0, nil
 	}
-	if di := decodeBlock(dst, src); di >= 0 {
+	if di := decodeBlock(dst, src, dict); di >= 0 {
 		return di, nil
 	}
 	return 0, lz4errors.ErrInvalidSourceShortBuffer
@@ -116,9 +117,9 @@ func (c *Compressor) CompressBlock(src, dst []byte) (int, error) {
 		goto lastLiterals
 	}
 
-	// Fast scan strategy: the hash table only stores the last 4 bytes sequences.
+	// Fast scan strategy: the hash table only stores the last five-byte sequences.
 	for si < sn {
-		// Hash the next 6 bytes (sequence)...
+		// Hash the next five bytes (sequence)...
 		match := binary.LittleEndian.Uint64(src[si:])
 		h := blockHash(match)
 		h2 := blockHash(match >> 8)
@@ -203,9 +204,12 @@ func (c *Compressor) CompressBlock(src, dst []byte) (int, error) {
 			dst[di] |= 0xF0
 			di++
 			l := lLen - 0xF
-			for ; l >= 0xFF; l -= 0xFF {
+			for ; l >= 0xFF && di < len(dst); l -= 0xFF {
 				dst[di] = 0xFF
 				di++
+			}
+			if di >= len(dst) {
+				return 0, lz4errors.ErrInvalidSourceShortBuffer
 			}
 			dst[di] = byte(l)
 		}

@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2020 Jeevanandam M (jeeva@myjeeva.com), All rights reserved.
+// Copyright (c) 2015-2021 Jeevanandam M (jeeva@myjeeva.com), All rights reserved.
 // resty source code and usage is governed by a MIT style
 // license that can be found in the LICENSE file.
 
@@ -14,7 +14,7 @@ import (
 )
 
 // Version # of resty
-const Version = "2.6.0"
+const Version = "2.7.0"
 
 // New method creates a new Resty client.
 func New() *Client {

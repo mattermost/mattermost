@@ -5,7 +5,7 @@
 package mocks
 
 import (
-	model "github.com/mattermost/mattermost-server/v5/model"
+	model "github.com/mattermost/mattermost-server/v6/model"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -31,6 +31,29 @@ func (_m *TokenStore) Delete(token string) error {
 	}
 
 	return r0
+}
+
+// GetAllTokensByType provides a mock function with given fields: tokenType
+func (_m *TokenStore) GetAllTokensByType(tokenType string) ([]*model.Token, error) {
+	ret := _m.Called(tokenType)
+
+	var r0 []*model.Token
+	if rf, ok := ret.Get(0).(func(string) []*model.Token); ok {
+		r0 = rf(tokenType)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Token)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(tokenType)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // GetByToken provides a mock function with given fields: token

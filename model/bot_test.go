@@ -4,7 +4,6 @@
 package model
 
 import (
-	"bytes"
 	"strings"
 	"testing"
 
@@ -247,7 +246,15 @@ func TestBotPreSave(t *testing.T) {
 		DeleteAt:       0,
 	}
 
-	originalBot := &*bot
+	originalBot := &Bot{
+		UserId:         bot.UserId,
+		Username:       bot.Username,
+		DisplayName:    bot.DisplayName,
+		Description:    bot.Description,
+		OwnerId:        bot.OwnerId,
+		LastIconUpdate: bot.LastIconUpdate,
+		DeleteAt:       bot.DeleteAt,
+	}
 
 	bot.PreSave()
 	assert.NotEqual(t, 0, bot.CreateAt)
@@ -270,11 +277,20 @@ func TestBotPreUpdate(t *testing.T) {
 		DeleteAt:       0,
 	}
 
-	originalBot := &*bot
+	originalBot := &Bot{
+		UserId:         bot.UserId,
+		Username:       bot.Username,
+		DisplayName:    bot.DisplayName,
+		Description:    bot.Description,
+		OwnerId:        bot.OwnerId,
+		LastIconUpdate: bot.LastIconUpdate,
+		DeleteAt:       bot.DeleteAt,
+	}
 
 	bot.PreSave()
 	assert.NotEqual(t, 0, bot.UpdateAt)
 
+	originalBot.CreateAt = bot.CreateAt
 	originalBot.UpdateAt = bot.UpdateAt
 	assert.Equal(t, originalBot, bot)
 }
@@ -350,35 +366,6 @@ func TestBotEtag(t *testing.T) {
 			assert.NotEqual(t, bot1.Etag(), bot2.Etag())
 		})
 	})
-}
-
-func TestBotToAndFromJson(t *testing.T) {
-	bot1 := &Bot{
-		UserId:         NewId(),
-		Username:       "username",
-		DisplayName:    "display name",
-		Description:    "description",
-		OwnerId:        NewId(),
-		LastIconUpdate: 1,
-		CreateAt:       2,
-		UpdateAt:       3,
-		DeleteAt:       4,
-	}
-
-	bot2 := &Bot{
-		UserId:         NewId(),
-		Username:       "username",
-		DisplayName:    "display name",
-		Description:    "description 2",
-		OwnerId:        NewId(),
-		LastIconUpdate: 5,
-		CreateAt:       6,
-		UpdateAt:       7,
-		DeleteAt:       8,
-	}
-
-	assert.Equal(t, bot1, BotFromJson(bytes.NewReader(bot1.ToJson())))
-	assert.Equal(t, bot2, BotFromJson(bytes.NewReader(bot2.ToJson())))
 }
 
 func sToP(s string) *string {
@@ -491,21 +478,38 @@ func TestBotPatch(t *testing.T) {
 	}
 }
 
-func TestBotPatchToAndFromJson(t *testing.T) {
-	botPatch1 := &BotPatch{
-		Username:    sToP("username"),
-		DisplayName: sToP("display name"),
-		Description: sToP("description"),
+func TestBotWouldPatch(t *testing.T) {
+	b := &Bot{
+		UserId: NewId(),
 	}
 
-	botPatch2 := &BotPatch{
-		Username:    sToP("username"),
-		DisplayName: sToP("display name"),
-		Description: sToP("description 2"),
-	}
+	t.Run("nil patch", func(t *testing.T) {
+		ok := b.WouldPatch(nil)
+		require.False(t, ok)
+	})
 
-	assert.Equal(t, botPatch1, BotPatchFromJson(bytes.NewReader(botPatch1.ToJson())))
-	assert.Equal(t, botPatch2, BotPatchFromJson(bytes.NewReader(botPatch2.ToJson())))
+	t.Run("nil patch fields", func(t *testing.T) {
+		patch := &BotPatch{}
+		ok := b.WouldPatch(patch)
+		require.False(t, ok)
+	})
+
+	t.Run("patch", func(t *testing.T) {
+		patch := &BotPatch{
+			DisplayName: NewString("BotName"),
+		}
+		ok := b.WouldPatch(patch)
+		require.True(t, ok)
+	})
+
+	t.Run("no patch", func(t *testing.T) {
+		patch := &BotPatch{
+			DisplayName: NewString("BotName"),
+		}
+		b.Patch(patch)
+		ok := b.WouldPatch(patch)
+		require.False(t, ok)
+	})
 }
 
 func TestUserFromBot(t *testing.T) {
@@ -564,68 +568,6 @@ func TestBotFromUser(t *testing.T) {
 		Username:    "username",
 		DisplayName: "username",
 	}, BotFromUser(user))
-}
-
-func TestBotListToAndFromJson(t *testing.T) {
-	testCases := []struct {
-		Description string
-		BotList     BotList
-	}{
-		{
-			"empty list",
-			BotList{},
-		},
-		{
-			"single item",
-			BotList{
-				&Bot{
-					UserId:         NewId(),
-					Username:       "username",
-					DisplayName:    "display name",
-					Description:    "description",
-					OwnerId:        NewId(),
-					LastIconUpdate: 1,
-					CreateAt:       2,
-					UpdateAt:       3,
-					DeleteAt:       4,
-				},
-			},
-		},
-		{
-			"multiple items",
-			BotList{
-				&Bot{
-					UserId:         NewId(),
-					Username:       "username",
-					DisplayName:    "display name",
-					Description:    "description",
-					OwnerId:        NewId(),
-					LastIconUpdate: 1,
-					CreateAt:       2,
-					UpdateAt:       3,
-					DeleteAt:       4,
-				},
-
-				&Bot{
-					UserId:         NewId(),
-					Username:       "username",
-					DisplayName:    "display name",
-					Description:    "description 2",
-					OwnerId:        NewId(),
-					LastIconUpdate: 5,
-					CreateAt:       6,
-					UpdateAt:       7,
-					DeleteAt:       8,
-				},
-			},
-		},
-	}
-
-	for _, testCase := range testCases {
-		t.Run(testCase.Description, func(t *testing.T) {
-			assert.Equal(t, testCase.BotList, BotListFromJson(bytes.NewReader(testCase.BotList.ToJson())))
-		})
-	}
 }
 
 func TestBotListEtag(t *testing.T) {
@@ -728,14 +670,14 @@ func TestIsBotChannel(t *testing.T) {
 	}{
 		{
 			Name:     "not a direct channel",
-			Channel:  &Channel{Type: CHANNEL_OPEN},
+			Channel:  &Channel{Type: ChannelTypeOpen},
 			Expected: false,
 		},
 		{
 			Name: "a direct channel with another user",
 			Channel: &Channel{
 				Name: "user1__user2",
-				Type: CHANNEL_DIRECT,
+				Type: ChannelTypeDirect,
 			},
 			Expected: false,
 		},
@@ -743,7 +685,7 @@ func TestIsBotChannel(t *testing.T) {
 			Name: "a direct channel with the name containing the bot's ID first",
 			Channel: &Channel{
 				Name: "botUserID__user2",
-				Type: CHANNEL_DIRECT,
+				Type: ChannelTypeDirect,
 			},
 			Expected: true,
 		},
@@ -751,7 +693,7 @@ func TestIsBotChannel(t *testing.T) {
 			Name: "a direct channel with the name containing the bot's ID second",
 			Channel: &Channel{
 				Name: "user1__botUserID",
-				Type: CHANNEL_DIRECT,
+				Type: ChannelTypeDirect,
 			},
 			Expected: true,
 		},

@@ -38,12 +38,6 @@ var (
 	// KeepaliveMinPingTime is the minimum ping interval.  This must be 10s by
 	// default, but tests may wish to set it lower for convenience.
 	KeepaliveMinPingTime = 10 * time.Second
-	// NewRequestInfoContext creates a new context based on the argument context attaching
-	// the passed in RequestInfo to the new context.
-	NewRequestInfoContext interface{} // func(context.Context, credentials.RequestInfo) context.Context
-	// NewClientHandshakeInfoContext returns a copy of the input context with
-	// the passed in ClientHandshakeInfo struct added to it.
-	NewClientHandshakeInfoContext interface{} // func(context.Context, credentials.ClientHandshakeInfo) context.Context
 	// ParseServiceConfigForTesting is for creating a fake
 	// ClientConn for resolver testing only
 	ParseServiceConfigForTesting interface{} // func(string) *serviceconfig.ParseResult
@@ -65,6 +59,11 @@ var (
 	// gRPC server. An xDS-enabled server needs to know what type of credentials
 	// is configured on the underlying gRPC server. This is set by server.go.
 	GetServerCredentials interface{} // func (*grpc.Server) credentials.TransportCredentials
+	// DrainServerTransports initiates a graceful close of existing connections
+	// on a gRPC server accepted on the provided listener address. An
+	// xDS-enabled server invokes this method on a grpc.Server when a particular
+	// listener moves to "not-serving" mode.
+	DrainServerTransports interface{} // func(*grpc.Server, string)
 )
 
 // HealthChecker defines the signature of the client-side LB channel health checking function.

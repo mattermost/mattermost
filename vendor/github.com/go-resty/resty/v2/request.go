@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2020 Jeevanandam M (jeeva@myjeeva.com), All rights reserved.
+// Copyright (c) 2015-2021 Jeevanandam M (jeeva@myjeeva.com), All rights reserved.
 // resty source code and usage is governed by a MIT style
 // license that can be found in the LICENSE file.
 
@@ -33,6 +33,7 @@ type Request struct {
 	AuthScheme string
 	QueryParam url.Values
 	FormData   url.Values
+	PathParams map[string]string
 	Header     http.Header
 	Time       time.Time
 	Body       interface{}
@@ -60,13 +61,13 @@ type Request struct {
 	fallbackContentType string
 	forceContentType    string
 	ctx                 context.Context
-	pathParams          map[string]string
 	values              map[string]interface{}
 	client              *Client
 	bodyBuf             *bytes.Buffer
 	clientTrace         *clientTrace
 	multipartFiles      []*File
 	multipartFields     []*MultipartField
+	retryConditions     []RetryConditionFunc
 }
 
 // Context method returns the Context if its already set in request
@@ -114,6 +115,37 @@ func (r *Request) SetHeaders(headers map[string]string) *Request {
 	for h, v := range headers {
 		r.SetHeader(h, v)
 	}
+	return r
+}
+
+// SetHeaderMultiValues sets multiple headers fields and its values is list of strings at one go in the current request.
+//
+// For Example: To set `Accept` as `text/html, application/xhtml+xml, application/xml;q=0.9, image/webp, */*;q=0.8`
+//
+// 		client.R().
+//			SetHeaderMultiValues(map[string][]string{
+//				"Accept": []string{"text/html", "application/xhtml+xml", "application/xml;q=0.9", "image/webp", "*/*;q=0.8"},
+//			})
+// Also you can override header value, which was set at client instance level.
+func (r *Request) SetHeaderMultiValues(headers map[string][]string) *Request {
+	for key, values := range headers {
+		r.SetHeader(key, strings.Join(values, ", "))
+	}
+	return r
+}
+
+// SetHeaderVerbatim method is to set a single header field and its value verbatim in the current request.
+//
+// For Example: To set `all_lowercase` and `UPPERCASE` as `available`.
+// 		client.R().
+//			SetHeaderVerbatim("all_lowercase", "available").
+//			SetHeaderVerbatim("UPPERCASE", "available")
+//
+// Also you can override header value, which was set at client instance level.
+//
+// Since v2.6.0
+func (r *Request) SetHeaderVerbatim(header, value string) *Request {
+	r.Header[header] = []string{value}
 	return r
 }
 
@@ -479,7 +511,7 @@ func (r *Request) SetDoNotParseResponse(parse bool) *Request {
 // It replaces the value of the key while composing the request URL. Also you can
 // override Path Params value, which was set at client instance level.
 func (r *Request) SetPathParam(param, value string) *Request {
-	r.pathParams[param] = value
+	r.PathParams[param] = value
 	return r
 }
 
@@ -559,6 +591,18 @@ func (r *Request) SetCookie(hc *http.Cookie) *Request {
 // Since v2.1.0
 func (r *Request) SetCookies(rs []*http.Cookie) *Request {
 	r.Cookies = append(r.Cookies, rs...)
+	return r
+}
+
+// AddRetryCondition method adds a retry condition function to the request's
+// array of functions that are checked to determine if the request is retried.
+// The request will retry if any of the functions return true and error is nil.
+//
+// Note: These retry conditions are checked before all retry conditions of the client.
+//
+// Since v2.7.0
+func (r *Request) AddRetryCondition(condition RetryConditionFunc) *Request {
+	r.retryConditions = append(r.retryConditions, condition)
 	return r
 }
 
@@ -732,7 +776,8 @@ func (r *Request) Execute(method, url string) (*Response, error) {
 		Retries(r.client.RetryCount),
 		WaitTime(r.client.RetryWaitTime),
 		MaxWaitTime(r.client.RetryMaxWaitTime),
-		RetryConditions(r.client.RetryConditions),
+		RetryConditions(append(r.retryConditions, r.client.RetryConditions...)),
+		RetryHooks(r.client.RetryHooks),
 	)
 
 	r.client.onErrorHooks(r, resp, unwrapNoRetryErr(err))
@@ -838,11 +883,14 @@ func (r *Request) initValuesMap() {
 	}
 }
 
-var noescapeJSONMarshal = func(v interface{}) ([]byte, error) {
+var noescapeJSONMarshal = func(v interface{}) (*bytes.Buffer, error) {
 	buf := acquireBuffer()
-	defer releaseBuffer(buf)
 	encoder := json.NewEncoder(buf)
 	encoder.SetEscapeHTML(false)
-	err := encoder.Encode(v)
-	return buf.Bytes(), err
+	if err := encoder.Encode(v); err != nil {
+		releaseBuffer(buf)
+		return nil, err
+	}
+
+	return buf, nil
 }

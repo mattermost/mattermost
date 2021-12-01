@@ -1,11 +1,13 @@
 # docconv
 
-[![GoDoc](https://godoc.org/code.sajari.com/docconv?status.svg)](https://godoc.org/code.sajari.com/docconv)
-[![Build Status](https://travis-ci.org/sajari/docconv.svg?branch=master)](https://travis-ci.org/sajari/docconv)
+[![Go reference](https://pkg.go.dev/badge/code.sajari.com/docconv.svg)](https://pkg.go.dev/code.sajari.com/docconv)
+[![Build status](https://github.com/sajari/docconv/workflows/Go/badge.svg?branch=master)](https://github.com/sajari/docconv/actions)
+[![Report card](https://goreportcard.com/badge/code.sajari.com/docconv)](https://goreportcard.com/report/code.sajari.com/docconv)
+[![Sourcegraph](https://sourcegraph.com/github.com/sajari/docconv/-/badge.svg)](https://sourcegraph.com/github.com/sajari/docconv)
 
 A Go wrapper library to convert PDF, DOC, DOCX, XML, HTML, RTF, ODT, Pages documents and images (see optional dependencies below) to plain text.
 
-> **Note for returning users:** the Go import path for this package been moved to `code.sajari.com/docconv`.
+> **Note for returning users:** the Go import path for this package changed to `code.sajari.com/docconv`.
 
 ## Installation
 
@@ -48,13 +50,15 @@ The `docd` tool runs as either:
 
 2.  a service exposed from within a Docker container
 
-    This also runs as a service, but from within a Docker container. There are three build scripts:
+    This also runs as a service, but from within a Docker container.
+    Official images are published at https://hub.docker.com/r/sajari/docd.
 
-    - [./docd/debian.sh](./docd/debian.sh)
-    - [./docd/alpine.sh](./docd/alpine.sh)
-    - [./docd/appengine.sh](./docd/appengine.sh)
+    Optionally you can build it yourself:
 
-    The `debian` version uses the Debian package repository which can vary with builds. The `alpine` version uses a very cut down Linux distribution to produce a container ~40MB. It also locks the dependency versions for consistency, but may miss out on future updates. The `appengine` version is a flex based custom runtime for Google Cloud.
+    ```
+    cd docd
+    docker build -t docd .
+    ```
 
 3.  via the command line.
 

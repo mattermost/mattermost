@@ -4,6 +4,8 @@
 package app
 
 import (
+	"archive/zip"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -15,9 +17,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 func ptrStr(s string) *string {
@@ -70,7 +72,7 @@ func AssertAllPostsCount(t *testing.T, a *App, initialCount int64, change int64,
 	require.Equal(t, initialCount+change, result, "Did not find the expected number of posts.")
 }
 
-func AssertChannelCount(t *testing.T, a *App, channelType string, expectedCount int64) {
+func AssertChannelCount(t *testing.T, a *App, channelType model.ChannelType, expectedCount int64) {
 	count, err := a.Srv().Store.Channel().AnalyticsTypeCount("", channelType)
 	require.Equalf(t, expectedCount, count, "Channel count of type: %v. Expected: %v, Got: %v", channelType, expectedCount, count)
 	require.NoError(t, err, "Failed to get channel count.")
@@ -185,13 +187,13 @@ func TestImportBulkImport(t *testing.T) {
 {"type": "direct_post", "direct_post": {"channel_members": ["` + username + `", "` + username2 + `", "` + username3 + `"], "user": "` + username + `", "message": "Hello Group Channel", "create_at": 123456789015}}
 {"type": "emoji", "emoji": {"name": "` + emojiName + `", "image": "` + testImage + `"}}`
 
-	err, line := th.App.BulkImport(th.Context, strings.NewReader(data1), false, 2)
+	err, line := th.App.BulkImport(th.Context, strings.NewReader(data1), nil, false, 2)
 	require.Nil(t, err, "BulkImport should have succeeded")
 	require.Equal(t, 0, line, "BulkImport line should be 0")
 
 	// Run bulk import using a string that contains a line with invalid json.
 	data2 := `{"type": "version", "version": 1`
-	err, line = th.App.BulkImport(th.Context, strings.NewReader(data2), false, 2)
+	err, line = th.App.BulkImport(th.Context, strings.NewReader(data2), nil, false, 2)
 	require.NotNil(t, err, "Should have failed due to invalid JSON on line 1.")
 	require.Equal(t, 1, line, "Should have failed due to invalid JSON on line 1.")
 
@@ -200,7 +202,7 @@ func TestImportBulkImport(t *testing.T) {
 {"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}
 {"type": "user", "user": {"username": "kufjgnkxkrhhfgbrip6qxkfsaa", "email": "kufjgnkxkrhhfgbrip6qxkfsaa@example.com"}}
 {"type": "user", "user": {"username": "bwshaim6qnc2ne7oqkd5b2s2rq", "email": "bwshaim6qnc2ne7oqkd5b2s2rq@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}]}]}}`
-	err, line = th.App.BulkImport(th.Context, strings.NewReader(data3), false, 2)
+	err, line = th.App.BulkImport(th.Context, strings.NewReader(data3), nil, false, 2)
 	require.NotNil(t, err, "Should have failed due to missing version line on line 1.")
 	require.Equal(t, 1, line, "Should have failed due to missing version line on line 1.")
 
@@ -212,7 +214,7 @@ func TestImportBulkImport(t *testing.T) {
 {"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}
 {"type": "user", "user": {"username": "` + username + `", "email": "` + username + `@example.com", "teams": [{"name": "` + teamName + `","theme": "` + teamTheme1 + `", "channels": [{"name": "` + channelName + `"}]}]}}
 {"type": "post", "post": {"team": "` + teamName + `", "channel": "` + channelName + `", "user": "` + username + `", "message": "Hello World", "create_at": 123456789012}}`
-		err, line = th.App.BulkImport(th.Context, strings.NewReader(data4+"\r\n"+posts), false, 2)
+		err, line = th.App.BulkImport(th.Context, strings.NewReader(data4+"\r\n"+posts), nil, false, 2)
 		require.Nil(t, err, "BulkImport should have succeeded")
 		require.Equal(t, 0, line, "BulkImport line should be 0")
 	})
@@ -220,7 +222,7 @@ func TestImportBulkImport(t *testing.T) {
 	t.Run("First item after version without type", func(t *testing.T) {
 		data := `{"type": "version", "version": 1}
 {"name": "custom-emoji-troll", "image": "bulkdata/emoji/trollolol.png"}`
-		err, line := th.App.BulkImport(th.Context, strings.NewReader(data), false, 2)
+		err, line := th.App.BulkImport(th.Context, strings.NewReader(data), nil, false, 2)
 		require.NotNil(t, err, "Should have failed due to invalid type on line 2.")
 		require.Equal(t, 2, line, "Should have failed due to invalid type on line 2.")
 	})
@@ -234,7 +236,7 @@ func TestImportBulkImport(t *testing.T) {
 {"type": "direct_channel", "direct_channel": {"members": ["` + username + `", "` + username + `"]}}
 {"type": "direct_post", "direct_post": {"channel_members": ["` + username + `", "` + username + `"], "user": "` + username + `", "message": "Hello Direct Channel to myself", "create_at": 123456789014, "props":{"attachments":[{"id":0,"fallback":"[February 4th, 2020 2:46 PM] author: fallback","color":"D0D0D0","pretext":"","author_name":"author","author_link":"","title":"","title_link":"","text":"this post has props","fields":null,"image_url":"","thumb_url":"","footer":"Posted in #general","footer_icon":"","ts":"1580823992.000100"}]}}}}`
 
-		err, line := th.App.BulkImport(th.Context, strings.NewReader(data6), false, 2)
+		err, line := th.App.BulkImport(th.Context, strings.NewReader(data6), nil, false, 2)
 		require.Nil(t, err, "BulkImport should have succeeded")
 		require.Equal(t, 0, line, "BulkImport line should be 0")
 	})
@@ -278,7 +280,7 @@ func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) 
 	}
 }
 
-func TestRewriteFilePaths(t *testing.T) {
+func TestProcessAttachments(t *testing.T) {
 	genAttachments := func() *[]AttachmentImportData {
 		return &[]AttachmentImportData{
 			{
@@ -327,9 +329,11 @@ func TestRewriteFilePaths(t *testing.T) {
 				Path: model.NewString("somedir/file.jpg"),
 			},
 		}
-		rewriteFilePaths(&line, "")
+		err := processAttachments(&line, "", nil)
+		require.NoError(t, err)
 		require.Equal(t, expected, line.Post.Attachments)
-		rewriteFilePaths(&line2, "")
+		err = processAttachments(&line2, "", nil)
+		require.NoError(t, err)
 		require.Equal(t, expected, line2.DirectPost.Attachments)
 	})
 
@@ -344,25 +348,79 @@ func TestRewriteFilePaths(t *testing.T) {
 		}
 
 		t.Run("post attachments", func(t *testing.T) {
-			rewriteFilePaths(&line, "/tmp")
+			err := processAttachments(&line, "/tmp", nil)
+			require.NoError(t, err)
 			require.Equal(t, expected, line.Post.Attachments)
 		})
 
 		t.Run("direct post attachments", func(t *testing.T) {
-			rewriteFilePaths(&line2, "/tmp")
+			err := processAttachments(&line2, "/tmp", nil)
+			require.NoError(t, err)
 			require.Equal(t, expected, line2.DirectPost.Attachments)
 		})
 
 		t.Run("profile image", func(t *testing.T) {
 			expected := "/tmp/profile.jpg"
-			rewriteFilePaths(&userLine, "/tmp")
+			err := processAttachments(&userLine, "/tmp", nil)
+			require.NoError(t, err)
 			require.Equal(t, expected, *userLine.User.ProfileImage)
 		})
 
 		t.Run("emoji", func(t *testing.T) {
 			expected := "/tmp/emoji.png"
-			rewriteFilePaths(&emojiLine, "/tmp")
+			err := processAttachments(&emojiLine, "/tmp", nil)
+			require.NoError(t, err)
 			require.Equal(t, expected, *emojiLine.Emoji.Image)
+		})
+	})
+
+	t.Run("with filesMap", func(t *testing.T) {
+		t.Run("post attachments", func(t *testing.T) {
+			filesMap := map[string]*zip.File{
+				"/tmp/file.jpg": nil,
+			}
+			err := processAttachments(&line, "", filesMap)
+			require.Error(t, err)
+
+			filesMap["/tmp/somedir/file.jpg"] = nil
+			err = processAttachments(&line, "", filesMap)
+			require.NoError(t, err)
+		})
+
+		t.Run("direct post attachments", func(t *testing.T) {
+			filesMap := map[string]*zip.File{
+				"/tmp/file.jpg": nil,
+			}
+			err := processAttachments(&line2, "", filesMap)
+			require.Error(t, err)
+
+			filesMap["/tmp/somedir/file.jpg"] = nil
+			err = processAttachments(&line2, "", filesMap)
+			require.NoError(t, err)
+		})
+
+		t.Run("profile image", func(t *testing.T) {
+			filesMap := map[string]*zip.File{
+				"/tmp/file.jpg": nil,
+			}
+			err := processAttachments(&userLine, "", filesMap)
+			require.Error(t, err)
+
+			filesMap["/tmp/profile.jpg"] = nil
+			err = processAttachments(&userLine, "", filesMap)
+			require.NoError(t, err)
+		})
+
+		t.Run("emoji", func(t *testing.T) {
+			filesMap := map[string]*zip.File{
+				"/tmp/file.jpg": nil,
+			}
+			err := processAttachments(&emojiLine, "", filesMap)
+			require.Error(t, err)
+
+			filesMap["/tmp/emoji.png"] = nil
+			err = processAttachments(&emojiLine, "", filesMap)
+			require.NoError(t, err)
 		})
 	})
 }
@@ -393,8 +451,50 @@ func BenchmarkBulkImport(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		err, _ := th.App.BulkImportWithPath(th.Context, jsonFile, false, runtime.NumCPU(), dir)
+		err, _ := th.App.BulkImportWithPath(th.Context, jsonFile, nil, false, runtime.NumCPU(), dir)
 		require.Nil(b, err)
 	}
 	b.StopTimer()
+}
+
+func TestImportBulkImportWithAttachments(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	testsDir, _ := fileutils.FindDir("tests")
+
+	importFile, err := os.Open(testsDir + "/export_test.zip")
+	require.NoError(t, err)
+	defer importFile.Close()
+
+	info, err := importFile.Stat()
+	require.NoError(t, err)
+
+	importZipReader, err := zip.NewReader(importFile, info.Size())
+	require.NoError(t, err)
+	require.NotNil(t, importZipReader)
+
+	var jsonFile io.ReadCloser
+	for _, f := range importZipReader.File {
+		if filepath.Ext(f.Name) != ".jsonl" {
+			continue
+		}
+
+		jsonFile, err = f.Open()
+		require.NoError(t, err)
+		defer jsonFile.Close()
+		break
+	}
+	require.NotNil(t, jsonFile)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = model.NewInt(1000) })
+
+	appErr, _ := th.App.BulkImportWithPath(th.Context, jsonFile, importZipReader, false, 1, ExportDataDir)
+	require.Nil(t, appErr)
+
+	adminUser, appErr := th.App.GetUserByUsername("sysadmin")
+	require.Nil(t, appErr)
+
+	files := GetAttachments(adminUser.Id, th, t)
+	require.Len(t, files, 11)
 }

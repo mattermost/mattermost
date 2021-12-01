@@ -320,7 +320,7 @@ func (t *Tracer) startSpanWithOptions(
 	sp.references = references
 	sp.firstInProcess = rpcServer || sp.context.parentID == 0
 
-	if !sp.isSamplingFinalized() {
+	if !sp.context.isSamplingFinalized() {
 		decision := t.sampler.OnCreateSpan(sp)
 		sp.applySamplingDecision(decision, false)
 	}
@@ -413,7 +413,7 @@ func (t *Tracer) newSpan() *Span {
 // calling client-side span, but obviously the server side span is
 // no longer a root span of the trace.
 func (t *Tracer) emitNewSpanMetrics(sp *Span, newTrace bool) {
-	if !sp.isSamplingFinalized() {
+	if !sp.context.isSamplingFinalized() {
 		t.metrics.SpansStartedDelayedSampling.Inc(1)
 		if newTrace {
 			t.metrics.TracesStartedDelayedSampling.Inc(1)
@@ -437,9 +437,11 @@ func (t *Tracer) emitNewSpanMetrics(sp *Span, newTrace bool) {
 }
 
 func (t *Tracer) reportSpan(sp *Span) {
-	if !sp.isSamplingFinalized() {
+	ctx := sp.SpanContext()
+
+	if !ctx.isSamplingFinalized() {
 		t.metrics.SpansFinishedDelayedSampling.Inc(1)
-	} else if sp.context.IsSampled() {
+	} else if ctx.IsSampled() {
 		t.metrics.SpansFinishedSampled.Inc(1)
 	} else {
 		t.metrics.SpansFinishedNotSampled.Inc(1)
@@ -448,7 +450,7 @@ func (t *Tracer) reportSpan(sp *Span) {
 	// Note: if the reporter is processing Span asynchronously then it needs to Retain() the span,
 	// and then Release() it when no longer needed.
 	// Otherwise, the span may be reused for another trace and its data may be overwritten.
-	if sp.context.IsSampled() {
+	if ctx.IsSampled() {
 		t.reporter.Report(sp)
 	}
 

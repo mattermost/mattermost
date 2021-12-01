@@ -22,7 +22,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	hclog "github.com/hashicorp/go-hclog"
+	"github.com/hashicorp/go-hclog"
+	"google.golang.org/grpc"
 )
 
 // If this is 1, then we've called CleanupClients. This can be used
@@ -203,15 +204,21 @@ type ClientConfig struct {
 	//
 	// You cannot Reattach to a server with this option enabled.
 	AutoMTLS bool
+
+	// GRPCDialOptions allows plugin users to pass custom grpc.DialOption
+	// to create gRPC connections. This only affects plugins using the gRPC
+	// protocol.
+	GRPCDialOptions []grpc.DialOption
 }
 
 // ReattachConfig is used to configure a client to reattach to an
 // already-running plugin process. You can retrieve this information by
 // calling ReattachConfig on Client.
 type ReattachConfig struct {
-	Protocol Protocol
-	Addr     net.Addr
-	Pid      int
+	Protocol        Protocol
+	ProtocolVersion int
+	Addr            net.Addr
+	Pid             int
 
 	// Test is set to true if this is reattaching to to a plugin in "test mode"
 	// (see ServeConfig.Test). In this mode, client.Kill will NOT kill the
@@ -837,6 +844,10 @@ func (c *Client) reattach() (net.Addr, error) {
 	if c.protocol == "" {
 		// Default the protocol to net/rpc for backwards compatibility
 		c.protocol = ProtocolNetRPC
+	}
+
+	if c.config.Reattach.Test {
+		c.negotiatedVersion = c.config.Reattach.ProtocolVersion
 	}
 
 	// If we're in test mode, we do NOT set the process. This avoids the

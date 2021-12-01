@@ -8,7 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 // MemoryStore implements the Store interface. It is meant primarily for testing.
@@ -116,10 +116,5 @@ func (ms *MemoryStore) String() string {
 
 // Close does nothing for a memory store.
 func (ms *MemoryStore) Close() error {
-	return nil
-}
-
-// Watch nothing on memory store
-func (ms *MemoryStore) Watch(_ func()) error {
 	return nil
 }

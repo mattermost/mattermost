@@ -16,10 +16,10 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/searchengine/mocks"
-	filesStoreMocks "github.com/mattermost/mattermost-server/v5/shared/filestore/mocks"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/searchengine/mocks"
+	filesStoreMocks "github.com/mattermost/mattermost-server/v6/shared/filestore/mocks"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 func TestGeneratePublicLinkHash(t *testing.T) {
@@ -234,7 +234,7 @@ func TestFindTeamIdForFilename(t *testing.T) {
 	teamID := th.App.findTeamIdForFilename(th.BasicPost, "someid", "somefile.png")
 	assert.Equal(t, th.BasicTeam.Id, teamID)
 
-	_, err := th.App.CreateTeamWithUser(th.Context, &model.Team{Email: th.BasicUser.Email, Name: "zz" + model.NewId(), DisplayName: "Joram's Test Team", Type: model.TEAM_OPEN}, th.BasicUser.Id)
+	_, err := th.App.CreateTeamWithUser(th.Context, &model.Team{Email: th.BasicUser.Email, Name: "zz" + model.NewId(), DisplayName: "Joram's Test Team", Type: model.TeamOpen}, th.BasicUser.Id)
 	require.Nil(t, err)
 
 	teamID = th.App.findTeamIdForFilename(th.BasicPost, "someid", "somefile.png")

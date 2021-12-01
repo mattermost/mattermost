@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/splitio/go-split-commons/v3/storage"
 	"github.com/splitio/go-toolkit/v4/datastructures/set"
 	"github.com/splitio/go-toolkit/v4/logging"
 	"github.com/splitio/go-toolkit/v4/redis"
@@ -19,7 +20,7 @@ type SegmentStorage struct {
 }
 
 // NewSegmentStorage creates a new RedisSegmentStorage and returns a reference to it
-func NewSegmentStorage(redisClient *redis.PrefixedRedisClient, logger logging.LoggerInterface) *SegmentStorage {
+func NewSegmentStorage(redisClient *redis.PrefixedRedisClient, logger logging.LoggerInterface) storage.SegmentStorage {
 	return &SegmentStorage{
 		client: *redisClient,
 		logger: logger,
@@ -98,3 +99,6 @@ func (r *SegmentStorage) SegmentContainsKey(segmentName string, key string) (boo
 
 // CountRemovedKeys method
 func (r *SegmentStorage) CountRemovedKeys(segmentName string) int64 { return 0 }
+
+// SegmentKeysCount method
+func (r *SegmentStorage) SegmentKeysCount() int64 { return 0 }

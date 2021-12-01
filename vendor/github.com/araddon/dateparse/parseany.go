@@ -240,7 +240,7 @@ func parseTime(datestr string, loc *time.Location, opts ...ParserOption) (p *par
 		// this is because it means that a day is being interpreted as a month and overflowing the valid value for that
 		// by retrying in this case, we can fix a common situation with no assumptions
 		defer func() {
-			if p.ambiguousMD {
+			if p != nil && p.ambiguousMD {
 				// if it errors out with the following error, swap before we
 				// get out of this function to reduce scope it needs to be applied on
 				_, err := p.parse()

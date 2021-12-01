@@ -8,16 +8,16 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (a *App) getSysAdminsEmailRecipients() ([]*model.User, *model.AppError) {
 	userOptions := &model.UserGetOptions{
 		Page:     0,
 		PerPage:  100,
-		Role:     model.SYSTEM_ADMIN_ROLE_ID,
+		Role:     model.SystemAdminRoleId,
 		Inactive: false,
 	}
 	return a.GetUsers(userOptions)
@@ -79,6 +79,52 @@ func (a *App) SendAdminUpgradeRequestEmail(username string, subscription *model.
 	return nil
 }
 
+func (a *App) GetSubscriptionStats() (*model.SubscriptionStats, *model.AppError) {
+	if a.Srv().License() == nil || !*a.Srv().License().Features.Cloud {
+		return nil, model.NewAppError("app.GetSubscriptionStats", "api.cloud.license_error", nil, "", http.StatusInternalServerError)
+	}
+
+	subscription, appErr := a.Cloud().GetSubscription("")
+	if appErr != nil {
+		return nil, model.NewAppError("app.GetSubscriptionStats", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+	}
+
+	count, err := a.Srv().Store.User().Count(model.UserCountOptions{})
+	if err != nil {
+		return nil, model.NewAppError("app.GetSubscriptionStats", "app.user.get_total_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	cloudUserLimit := *a.Config().ExperimentalSettings.CloudUserLimit
+
+	s := cloudUserLimit - count
+
+	return &model.SubscriptionStats{
+		RemainingSeats: int(s),
+		IsPaidTier:     subscription.IsPaidTier,
+	}, nil
+}
+
+func (a *App) CheckCloudAccountAtLimit() (bool, *model.AppError) {
+	if a.Srv().License() == nil || (a.Srv().License() != nil && !*a.Srv().License().Features.Cloud) {
+		// Not cloud instance, so no at limit checks
+		return false, nil
+	}
+
+	stats, err := a.GetSubscriptionStats()
+	if err != nil {
+		return false, err
+	}
+
+	if stats.IsPaidTier == "true" {
+		return false, nil
+	}
+
+	if stats.RemainingSeats < 1 {
+		return true, nil
+	}
+
+	return false, nil
+}
+
 func (a *App) CheckAndSendUserLimitWarningEmails(c *request.Context) *model.AppError {
 	if a.Srv().License() == nil || (a.Srv().License() != nil && !*a.Srv().License().Features.Cloud) {
 		// Not cloud instance, do nothing
@@ -133,8 +179,8 @@ func (a *App) CheckAndSendUserLimitWarningEmails(c *request.Context) *model.AppE
 	} else if remainingUsers == 0 {
 		// At limit
 		for admin := range sysAdmins {
-			_, appErr := a.Srv().EmailService.SendAtUserLimitWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *a.Config().ServiceSettings.SiteURL)
-			if appErr != nil {
+			_, err := a.Srv().EmailService.SendAtUserLimitWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *a.Config().ServiceSettings.SiteURL)
+			if err != nil {
 				a.Log().Error(
 					"Error sending user limit warning email to admin",
 					mlog.String("username", sysAdmins[admin].Username),

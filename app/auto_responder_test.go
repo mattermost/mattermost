@@ -5,11 +5,12 @@ package app
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestSetAutoResponderStatus(t *testing.T) {
@@ -33,7 +34,7 @@ func TestSetAutoResponderStatus(t *testing.T) {
 
 	status, err := th.App.GetStatus(userUpdated1.Id)
 	require.Nil(t, err)
-	assert.Equal(t, model.STATUS_OUT_OF_OFFICE, status.Status)
+	assert.Equal(t, model.StatusOutOfOffice, status.Status)
 
 	patch2 := &model.UserPatch{}
 	patch2.NotifyProps = make(map[string]string)
@@ -47,7 +48,7 @@ func TestSetAutoResponderStatus(t *testing.T) {
 
 	status, err = th.App.GetStatus(userUpdated2.Id)
 	require.Nil(t, err)
-	assert.Equal(t, model.STATUS_ONLINE, status.Status)
+	assert.Equal(t, model.StatusOnline, status.Status)
 
 }
 
@@ -100,7 +101,7 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 
 		savedPost, _ := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: channel.Id,
-			Message:   "zz" + model.NewId() + "a",
+			Message:   NewTestId(),
 			UserId:    th.BasicUser.Id},
 			th.BasicChannel,
 			false, true)
@@ -130,7 +131,7 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 
 		savedPost, _ := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: channel.Id,
-			Message:   "zz" + model.NewId() + "a",
+			Message:   NewTestId(),
 			UserId:    th.BasicUser.Id},
 			th.BasicChannel,
 			false, true)
@@ -147,7 +148,7 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 
 		savedPost, _ := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: th.BasicChannel.Id,
-			Message:   "zz" + model.NewId() + "a",
+			Message:   NewTestId(),
 			UserId:    th.BasicUser.Id},
 			th.BasicChannel,
 			false, true)
@@ -187,7 +188,7 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 
 		savedPost, _ := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: channel.Id,
-			Message:   "zz" + model.NewId() + "a",
+			Message:   NewTestId(),
 			UserId:    botUser.Id},
 			th.BasicChannel,
 			false, true)
@@ -215,24 +216,27 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 
 		channel := th.CreateDmChannel(receiver)
 
+		// Clean up all posts from this user.
+		// There are some dummy messages like "user joined team" etc.
+		// which needs to be cleaned up.
+		require.NoError(t, th.GetSqlStore().Post().PermanentDeleteByUser(th.BasicUser.Id))
+
 		savedPost, err := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: channel.Id,
-			Message:   NewTestId(),
-			UserId:    th.BasicUser.Id},
+			Message:   patch.NotifyProps["auto_responder_message"],
+			UserId:    receiver.Id,
+			CreateAt:  model.GetMillisForTime(time.Now().Add(-48 * time.Hour)),
+			Type:      model.PostTypeAutoResponder,
+		},
 			th.BasicChannel,
 			false, true)
-
-		assert.Nil(t, err)
+		require.Nil(t, err)
+		savedPost.CreateAt = model.GetMillisForTime(time.Now())
 
 		sent, err := th.App.SendAutoResponseIfNecessary(th.Context, channel, th.BasicUser, savedPost)
 
 		require.Nil(t, err)
 		assert.True(t, sent)
-
-		sent, err = th.App.SendAutoResponseIfNecessary(th.Context, channel, th.BasicUser, savedPost)
-
-		require.Nil(t, err)
-		assert.False(t, sent)
 	})
 }
 
@@ -268,10 +272,9 @@ func TestSendAutoResponseSuccess(t *testing.T) {
 
 	autoResponderPostFound := false
 	for _, post := range list.Posts {
-		if post.Type == model.POST_AUTO_RESPONDER {
+		if post.Type == model.PostTypeAutoResponder {
 			autoResponderPostFound = true
 			assert.Equal(t, savedPost.Id, post.RootId)
-			assert.Equal(t, savedPost.Id, post.ParentId)
 		}
 	}
 	assert.True(t, autoResponderPostFound)
@@ -304,7 +307,7 @@ func TestSendAutoResponseSuccessOnThread(t *testing.T) {
 		Message:   "zz" + model.NewId() + "a",
 		UserId:    th.BasicUser.Id,
 		RootId:    parentPost.Id,
-		ParentId:  parentPost.Id},
+	},
 		th.BasicChannel,
 		false, true)
 
@@ -318,10 +321,9 @@ func TestSendAutoResponseSuccessOnThread(t *testing.T) {
 
 	autoResponderPostFound := false
 	for _, post := range list.Posts {
-		if post.Type == model.POST_AUTO_RESPONDER {
+		if post.Type == model.PostTypeAutoResponder {
 			autoResponderPostFound = true
 			assert.Equal(t, savedPost.RootId, post.RootId)
-			assert.Equal(t, savedPost.ParentId, post.ParentId)
 		}
 	}
 	assert.True(t, autoResponderPostFound)
@@ -359,7 +361,7 @@ func TestSendAutoResponseFailure(t *testing.T) {
 	} else {
 		autoResponderPostFound := false
 		for _, post := range list.Posts {
-			if post.Type == model.POST_AUTO_RESPONDER {
+			if post.Type == model.PostTypeAutoResponder {
 				autoResponderPostFound = true
 			}
 		}

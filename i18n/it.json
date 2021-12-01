@@ -148,14 +148,6 @@
     "translation": "Questo canale è stato convertito in un Canale Privato."
   },
   {
-    "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "Questo canale predefinito non può essere convertito in un canale privato."
-  },
-  {
-    "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "Il canale da convertire è già un canale privato."
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Bisogna usare il servizio createDirectChannel API per la creazione dei messaggi diretti nel canale."
   },
@@ -1183,7 +1175,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "errore raccolta"
+    "translation": "Errore nella raccolta."
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1318,16 +1310,8 @@
     "translation": "ChannelId non valido per il parametro RootId."
   },
   {
-    "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Parametro ParentId non valido."
-  },
-  {
     "id": "api.post.create_post.root_id.app_error",
     "translation": "Parametro RooId non valido."
-  },
-  {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Il canale è in sola lettura. Solo i membri con i permessi corretti possono pubblicare qui."
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
@@ -1386,10 +1370,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Impossibile aggiornare una pubblicazione in un canale eliminato."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Il canale è in sola lettura. Solo i membri con i permessi corretti possono bloccare o sbloccare le pubblicazioni in questo canale."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1470,10 +1450,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Non puoi salvare le reazioni di un altro utente."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Non è possibile reagire alle pubblicazioni nei canali in sola lettura."
   },
   {
     "id": "api.restricted_system_admin",
@@ -1716,10 +1692,6 @@
     "translation": "Impossibile decodificare l'icona del gruppo."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Impossibile decodificare i metadati dell'icona del gruppo."
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Impossibile codificare l'icona del gruppo."
   },
@@ -1845,7 +1817,7 @@
   },
   {
     "id": "api.templates.invite_body.title",
-    "translation": "Sei stato invitato"
+    "translation": "{{ .SenderName }} ti ha invitato ad unirti alla squadra {{ .TeamDisplayName }}."
   },
   {
     "id": "api.templates.invite_subject",
@@ -2184,24 +2156,8 @@
     "translation": "Impossibile inviare la notifica di disattivazione account"
   },
   {
-    "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Invio notifica email di cambio email avvenuto con successo fallita"
-  },
-  {
-    "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Invio notifica email di cambio username avvenuto con successo, fallita"
-  },
-  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Invio email di verifica per il cambio email fallita"
-  },
-  {
-    "id": "api.user.send_mfa_change_email.error",
-    "translation": "Impossibile inviare l'email di notifica del cambio MFA."
-  },
-  {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Invio email per la verifica dell'update della password fallito"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2216,16 +2172,8 @@
     "translation": "Invio email per la verifica dell'update della password fallito"
   },
   {
-    "id": "api.user.send_user_access_token.error",
-    "translation": "Impossibile inviare l'email di notifica per la creazione del token di accesso"
-  },
-  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Invio email di verifica fallita"
-  },
-  {
-    "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Invio email di benvenuto fallito"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -2270,10 +2218,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Impossibile caricare l'immagine di profilo."
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Impossibile salvare l'immagine profilo. Il file non sembra essere un'immagine valida."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3040,10 +2984,6 @@
     "translation": "Impossibile decodificare i dati dell'immagine."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Impossibile trovare i metadati dell'immagine."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Impossibile convertire l'immagine in PNG. Riprovare."
   },
@@ -3054,14 +2994,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Impossibile scrivere l'immagine nell'archivio file. Controllare la connessione e riprovare."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Impossibile leggere il file immagine. Assicurarsi che l'immagine sia più piccola di 2 MB e riprovare."
-  },
-  {
-    "id": "cli.license.critical",
-    "translation": "Questa opzione richiede una licenza Enterprise Edition valida. Per favore contatta il tuo Amministratore di Sistema."
   },
   {
     "id": "ent.account_migration.get_all_failed",
@@ -3760,10 +3692,6 @@
     "translation": "Id comando hook non valido."
   },
   {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Id genitore non valido."
-  },
-  {
     "id": "model.command_hook.root_id.app_error",
     "translation": "Id radice non valido."
   },
@@ -4448,20 +4376,12 @@
     "translation": "Id originale non valido."
   },
   {
-    "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Id genitore non valido."
-  },
-  {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Proprietà invalide."
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
     "translation": "Id radice non valido."
-  },
-  {
-    "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Non valido l'ID root deve essere specificato se l'ID padre è presente."
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -5232,14 +5152,6 @@
     "translation": "La creazione di bot è stata disabilitata."
   },
   {
-    "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Impossibile leggere il file dell'icona."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Errore durante l'analisi del multipart-form."
-  },
-  {
     "id": "api.bot.teams_channels.add_message_mobile",
     "translation": "Per favore aggiungimi alle squadre e ai canali con cui vuoi che interagisca. Per farlo utilizza il browser oppure l'app desktop di Mattermost."
   },
@@ -5492,10 +5404,6 @@
     "translation": "La ricerca non è stata completata."
   },
   {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "Il webhook in uscita è cancellato ma non è possibile crearne uno nuovo a causa di un errore."
-  },
-  {
     "id": "ent.compliance.csv.metadata.json.zipfile.appError",
     "translation": "Impossibile creare il file zip"
   },
@@ -5648,30 +5556,6 @@
     "translation": "Tipo contenuto non valido."
   },
   {
-    "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Impossibile eliminare l'icona."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Impossibile caricare l'icona."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Lista vuota per il campo 'image' nella richiesta."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Nessun file nel campo 'immagine' nella richiesta."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Impossibile aprire il file immagine."
-  },
-  {
-    "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Impossibile caricare il file. Il file è troppo grande."
-  },
-  {
     "id": "api.channel.add_members.error",
     "translation": "Errore aggiungendo il membro al canale."
   },
@@ -5750,10 +5634,6 @@
   {
     "id": "api.ldap_groups.existing_user_name_error",
     "translation": "il nome di questo gruppo esiste già come nome utente"
-  },
-  {
-    "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Si è verificato un errore durante l'apertura del file di chiave pubblica."
   },
   {
     "id": "api.plugin.install.download_failed.app_error",
@@ -6108,10 +5988,6 @@
     "translation": "Impossibile spostare i canali di gruppo o di messaggi diretti"
   },
   {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "Si è verificato un errore durante la cancellazione delle reazioni"
-  },
-  {
     "id": "app.reaction.save.save.app_error",
     "translation": "Impossibile salvare la reazione"
   },
@@ -6320,10 +6196,6 @@
     "translation": "Impossibile trovare gli utenti del canale durante il momento specificato"
   },
   {
-    "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Impossibile cancellare i record"
-  },
-  {
     "id": "app.user_access_token.update_token_enable.app_error",
     "translation": "Impossibile attivare il token di accesso."
   },
@@ -6478,10 +6350,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "Non è stato possibile recuperare i rapporti di compliance."
-  },
-  {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "Si è verificato un errore pulendo i flag"
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6832,10 +6700,6 @@
     "translation": "Impossibile ottenere il lavoro"
   },
   {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "Si è verificato un errore durante la cancellazione delle informazioni sui file"
-  },
-  {
     "id": "app.file_info.save.app_error",
     "translation": "Impossibile salvare le informazioni sul file"
   },
@@ -6889,15 +6753,11 @@
   },
   {
     "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Forza Autenticazione Multifattore:"
+    "translation": "Forza Autenticazione Multifattore"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "Impossibile trovare la coda delle pubblicazioni da indicizzare"
-  },
-  {
-    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Si è verifcato un errore durante la cancellazione delle pubblicazioni"
   },
   {
     "id": "app.post.overwrite.app_error",
@@ -7266,5 +7126,45 @@
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Impossibile recuperare i membri del canale"
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "La tua licenza non supporta le richieste di cloud."
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "Errore nell'ottenere l'abbonamento al cloud."
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "Impossibile ottenere le email degli amministratori di sistema."
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "L'evento webhook non è stato gestito. Manca oppure non è valido."
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "Errore interno durante la richiesta della cloud api."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Errore nell'invalidazione della cache"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "Un canale diretto non può essere creato tra questi utenti perché non condividono alcun team in comune."
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Ritorna a {{.SiteName}}"
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Impossibile azzerare il campo AuthData all'Email."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP non è disponibile."
   }
 ]

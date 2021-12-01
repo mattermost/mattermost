@@ -67,6 +67,12 @@ type Octal int
 // text output. For example: L.Info("bits", Binary(17))
 type Binary int
 
+// A simple shortcut to format strings with Go quoting. Control and
+// non-printable characters will be escaped with their backslash equivalents in
+// output. Intended for untrusted or multiline strings which should be logged
+// as concisely as possible.
+type Quote string
+
 // ColorOption expresses how the output should be colored, if at all.
 type ColorOption uint8
 
@@ -234,6 +240,10 @@ type LoggerOptions struct {
 
 	// Include file and line information in each log line
 	IncludeLocation bool
+
+	// AdditionalLocationOffset is the number of additional stack levels to skip
+	// when finding the file and line information for the log line
+	AdditionalLocationOffset int
 
 	// The time format to use instead of the default
 	TimeFormat string

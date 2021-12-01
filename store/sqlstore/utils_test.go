@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -101,5 +102,34 @@ func TestRemoveNonAlphaNumericUnquotedTerms(t *testing.T) {
 			got := removeNonAlphaNumericUnquotedTerms(test.term, sep)
 			require.Equal(t, test.want, got)
 		})
+	}
+}
+
+func TestMySQLJSONArgs(t *testing.T) {
+	tests := []struct {
+		props     map[string]string
+		args      []interface{}
+		argString string
+	}{
+		{
+			props: map[string]string{
+				"desktop": "linux",
+				"mobile":  "android",
+				"notify":  "always",
+			},
+			args:      []interface{}{"$.desktop", "linux", "$.mobile", "android", "$.notify", "always"},
+			argString: "?, ?, ?, ?, ?, ?",
+		},
+		{
+			props:     map[string]string{},
+			args:      nil,
+			argString: "",
+		},
+	}
+
+	for _, test := range tests {
+		args, argString := constructMySQLJSONArgs(test.props)
+		assert.ElementsMatch(t, test.args, args)
+		assert.Equal(t, test.argString, argString)
 	}
 }

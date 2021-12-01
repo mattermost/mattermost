@@ -9,12 +9,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/jobs"
-	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/jobs"
+	tjobs "github.com/mattermost/mattermost-server/v6/jobs/interfaces"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/searchengine/bleveengine"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
@@ -510,7 +510,22 @@ func (worker *BleveIndexerWorker) BulkIndexChannels(channels []*model.Channel, p
 
 	for _, channel := range channels {
 		if channel.DeleteAt == 0 {
-			searchChannel := bleveengine.BLVChannelFromChannel(channel)
+			var userIDs []string
+			var err error
+			if channel.Type == model.ChannelTypePrivate {
+				userIDs, err = worker.jobServer.Store.Channel().GetAllChannelMembersById(channel.Id)
+				if err != nil {
+					return 0, model.NewAppError("BleveIndexerWorker.BulkIndexChannels", "bleveengine.indexer.do_job.bulk_index_channels.batch_error", nil, err.Error(), http.StatusInternalServerError)
+				}
+			}
+
+			// Get teamMember ids from channelid
+			teamMemberIDs, err := worker.jobServer.Store.Channel().GetTeamMembersForChannel(channel.Id)
+			if err != nil {
+				return 0, model.NewAppError("BleveIndexerWorker.BulkIndexChannels", "bleveengine.indexer.do_job.bulk_index_channels.batch_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+
+			searchChannel := bleveengine.BLVChannelFromChannel(channel, userIDs, teamMemberIDs)
 			batch.Index(searchChannel.Id, searchChannel)
 		} else {
 			batch.Delete(channel.Id)

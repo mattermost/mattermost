@@ -215,6 +215,12 @@ func (p *BinaryPropagator) Inject(
 	return nil
 }
 
+// W3C limits https://github.com/w3c/baggage/blob/master/baggage/HTTP_HEADER_FORMAT.md#limits
+const (
+	maxBinaryBaggage      = 180
+	maxBinaryNameValueLen = 4096
+)
+
 // Extract implements Extractor of BinaryPropagator
 func (p *BinaryPropagator) Extract(abstractCarrier interface{}) (SpanContext, error) {
 	carrier, ok := abstractCarrier.(io.Reader)
@@ -245,6 +251,9 @@ func (p *BinaryPropagator) Extract(abstractCarrier interface{}) (SpanContext, er
 	if err := binary.Read(carrier, binary.BigEndian, &numBaggage); err != nil {
 		return emptyContext, opentracing.ErrSpanContextCorrupted
 	}
+	if numBaggage > maxBinaryBaggage {
+		return emptyContext, opentracing.ErrSpanContextCorrupted
+	}
 	if iNumBaggage := int(numBaggage); iNumBaggage > 0 {
 		ctx.baggage = make(map[string]string, iNumBaggage)
 		buf := p.buffers.Get().(*bytes.Buffer)
@@ -263,6 +272,9 @@ func (p *BinaryPropagator) Extract(abstractCarrier interface{}) (SpanContext, er
 			key := buf.String()
 
 			if err := binary.Read(carrier, binary.BigEndian, &valLen); err != nil {
+				return emptyContext, opentracing.ErrSpanContextCorrupted
+			}
+			if keyLen+valLen > maxBinaryNameValueLen {
 				return emptyContext, opentracing.ErrSpanContextCorrupted
 			}
 			buf.Reset()
@@ -292,7 +304,7 @@ func (p *TextMapPropagator) parseCommaSeparatedMap(value string) map[string]stri
 	for _, kvpair := range strings.Split(value, ",") {
 		kv := strings.Split(strings.TrimSpace(kvpair), "=")
 		if len(kv) == 2 {
-			baggage[kv[0]] = kv[1]
+			baggage[strings.TrimSpace(kv[0])] = kv[1]
 		} else {
 			log.Printf("Malformed value passed in for %s", p.headerKeys.JaegerBaggageHeader)
 		}

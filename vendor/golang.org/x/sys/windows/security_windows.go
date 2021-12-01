@@ -889,6 +889,7 @@ type WTS_SESSION_INFO struct {
 //sys WTSQueryUserToken(session uint32, token *Token) (err error) = wtsapi32.WTSQueryUserToken
 //sys WTSEnumerateSessions(handle Handle, reserved uint32, version uint32, sessions **WTS_SESSION_INFO, count *uint32) (err error) = wtsapi32.WTSEnumerateSessionsW
 //sys WTSFreeMemory(ptr uintptr) = wtsapi32.WTSFreeMemory
+//sys WTSGetActiveConsoleSessionId() (sessionID uint32)
 
 type ACL struct {
 	aclRevision byte
@@ -1334,7 +1335,11 @@ func (absoluteSD *SECURITY_DESCRIPTOR) ToSelfRelative() (selfRelativeSD *SECURIT
 }
 
 func (selfRelativeSD *SECURITY_DESCRIPTOR) copySelfRelativeSecurityDescriptor() *SECURITY_DESCRIPTOR {
-	sdLen := (int)(selfRelativeSD.Length())
+	sdLen := int(selfRelativeSD.Length())
+	const min = int(unsafe.Sizeof(SECURITY_DESCRIPTOR{}))
+	if sdLen < min {
+		sdLen = min
+	}
 
 	var src []byte
 	h := (*unsafeheader.Slice)(unsafe.Pointer(&src))
@@ -1342,7 +1347,15 @@ func (selfRelativeSD *SECURITY_DESCRIPTOR) copySelfRelativeSecurityDescriptor() 
 	h.Len = sdLen
 	h.Cap = sdLen
 
-	dst := make([]byte, sdLen)
+	const psize = int(unsafe.Sizeof(uintptr(0)))
+
+	var dst []byte
+	h = (*unsafeheader.Slice)(unsafe.Pointer(&dst))
+	alloc := make([]uintptr, (sdLen+psize-1)/psize)
+	h.Data = (*unsafeheader.Slice)(unsafe.Pointer(&alloc)).Data
+	h.Len = sdLen
+	h.Cap = sdLen
+
 	copy(dst, src)
 	return (*SECURITY_DESCRIPTOR)(unsafe.Pointer(&dst[0]))
 }

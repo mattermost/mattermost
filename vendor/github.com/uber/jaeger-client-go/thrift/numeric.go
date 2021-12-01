@@ -69,14 +69,14 @@ func NewNumericFromDouble(dValue float64) Numeric {
 
 func NewNumericFromI64(iValue int64) Numeric {
 	dValue := float64(iValue)
-	sValue := string(iValue)
+	sValue := strconv.FormatInt(iValue, 10)
 	isNil := false
 	return &numeric{iValue: iValue, dValue: dValue, sValue: sValue, isNil: isNil}
 }
 
 func NewNumericFromI32(iValue int32) Numeric {
 	dValue := float64(iValue)
-	sValue := string(iValue)
+	sValue := strconv.FormatInt(int64(iValue), 10)
 	isNil := false
 	return &numeric{iValue: int64(iValue), dValue: dValue, sValue: sValue, isNil: isNil}
 }

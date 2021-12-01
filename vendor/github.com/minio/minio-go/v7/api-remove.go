@@ -29,11 +29,62 @@ import (
 	"github.com/minio/minio-go/v7/pkg/s3utils"
 )
 
+//revive:disable
+
+// Deprecated: BucketOptions will be renamed to RemoveBucketOptions in future versions.
+type BucketOptions = RemoveBucketOptions
+
+//revive:enable
+
+// RemoveBucketOptions special headers to purge buckets, only
+// useful when endpoint is MinIO
+type RemoveBucketOptions struct {
+	ForceDelete bool
+}
+
+// RemoveBucketWithOptions deletes the bucket name.
+//
+// All objects (including all object versions and delete markers)
+// in the bucket will be deleted forcibly if bucket options set
+// ForceDelete to 'true'.
+func (c *Client) RemoveBucketWithOptions(ctx context.Context, bucketName string, opts RemoveBucketOptions) error {
+	// Input validation.
+	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
+		return err
+	}
+
+	// Build headers.
+	headers := make(http.Header)
+	if opts.ForceDelete {
+		headers.Set(minIOForceDelete, "true")
+	}
+
+	// Execute DELETE on bucket.
+	resp, err := c.executeMethod(ctx, http.MethodDelete, requestMetadata{
+		bucketName:       bucketName,
+		contentSHA256Hex: emptySHA256Hex,
+		customHeader:     headers,
+	})
+	defer closeResponse(resp)
+	if err != nil {
+		return err
+	}
+	if resp != nil {
+		if resp.StatusCode != http.StatusNoContent {
+			return httpRespToErrorResponse(resp, bucketName, "")
+		}
+	}
+
+	// Remove the location from cache on a successful delete.
+	c.bucketLocCache.Delete(bucketName)
+	return nil
+}
+
 // RemoveBucket deletes the bucket name.
 //
 //  All objects (including all object versions and delete markers).
 //  in the bucket must be deleted before successfully attempting this request.
-func (c Client) RemoveBucket(ctx context.Context, bucketName string) error {
+func (c *Client) RemoveBucket(ctx context.Context, bucketName string) error {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return err
@@ -64,17 +115,19 @@ type AdvancedRemoveOptions struct {
 	ReplicationDeleteMarker bool
 	ReplicationStatus       ReplicationStatus
 	ReplicationMTime        time.Time
+	ReplicationRequest      bool
 }
 
 // RemoveObjectOptions represents options specified by user for RemoveObject call
 type RemoveObjectOptions struct {
+	ForceDelete      bool
 	GovernanceBypass bool
 	VersionID        string
 	Internal         AdvancedRemoveOptions
 }
 
 // RemoveObject removes an object from a bucket.
-func (c Client) RemoveObject(ctx context.Context, bucketName, objectName string, opts RemoveObjectOptions) error {
+func (c *Client) RemoveObject(ctx context.Context, bucketName, objectName string, opts RemoveObjectOptions) error {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return err
@@ -86,7 +139,7 @@ func (c Client) RemoveObject(ctx context.Context, bucketName, objectName string,
 	return c.removeObject(ctx, bucketName, objectName, opts)
 }
 
-func (c Client) removeObject(ctx context.Context, bucketName, objectName string, opts RemoveObjectOptions) error {
+func (c *Client) removeObject(ctx context.Context, bucketName, objectName string, opts RemoveObjectOptions) error {
 
 	// Get resources properly escaped and lined up before
 	// using them in http request.
@@ -111,6 +164,12 @@ func (c Client) removeObject(ctx context.Context, bucketName, objectName string,
 	}
 	if !opts.Internal.ReplicationStatus.Empty() {
 		headers.Set(amzBucketReplicationStatus, string(opts.Internal.ReplicationStatus))
+	}
+	if opts.Internal.ReplicationRequest {
+		headers.Set(minIOBucketReplicationRequest, "")
+	}
+	if opts.ForceDelete {
+		headers.Set(minIOForceDelete, "true")
 	}
 	// Execute DELETE on objectName.
 	resp, err := c.executeMethod(ctx, http.MethodDelete, requestMetadata{
@@ -194,7 +253,7 @@ type RemoveObjectsOptions struct {
 // RemoveObjects removes multiple objects from a bucket while
 // it is possible to specify objects versions which are received from
 // objectsCh. Remove failures are sent back via error channel.
-func (c Client) RemoveObjects(ctx context.Context, bucketName string, objectsCh <-chan ObjectInfo, opts RemoveObjectsOptions) <-chan RemoveObjectError {
+func (c *Client) RemoveObjects(ctx context.Context, bucketName string, objectsCh <-chan ObjectInfo, opts RemoveObjectsOptions) <-chan RemoveObjectError {
 	errorCh := make(chan RemoveObjectError, 1)
 
 	// Validate if bucket name is valid.
@@ -239,7 +298,7 @@ func hasInvalidXMLChar(str string) bool {
 }
 
 // Generate and call MultiDelete S3 requests based on entries received from objectsCh
-func (c Client) removeObjects(ctx context.Context, bucketName string, objectsCh <-chan ObjectInfo, errorCh chan<- RemoveObjectError, opts RemoveObjectsOptions) {
+func (c *Client) removeObjects(ctx context.Context, bucketName string, objectsCh <-chan ObjectInfo, errorCh chan<- RemoveObjectError, opts RemoveObjectsOptions) {
 	maxEntries := 1000
 	finish := false
 	urlValues := make(url.Values)
@@ -337,7 +396,7 @@ func (c Client) removeObjects(ctx context.Context, bucketName string, objectsCh 
 }
 
 // RemoveIncompleteUpload aborts an partially uploaded object.
-func (c Client) RemoveIncompleteUpload(ctx context.Context, bucketName, objectName string) error {
+func (c *Client) RemoveIncompleteUpload(ctx context.Context, bucketName, objectName string) error {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return err
@@ -364,7 +423,7 @@ func (c Client) RemoveIncompleteUpload(ctx context.Context, bucketName, objectNa
 
 // abortMultipartUpload aborts a multipart upload for the given
 // uploadID, all previously uploaded parts are deleted.
-func (c Client) abortMultipartUpload(ctx context.Context, bucketName, objectName, uploadID string) error {
+func (c *Client) abortMultipartUpload(ctx context.Context, bucketName, objectName, uploadID string) error {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return err

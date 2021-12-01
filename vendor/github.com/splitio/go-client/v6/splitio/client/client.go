@@ -12,21 +12,30 @@ import (
 	"github.com/splitio/go-split-commons/v3/dtos"
 	"github.com/splitio/go-split-commons/v3/provisional"
 	"github.com/splitio/go-split-commons/v3/storage"
-	"github.com/splitio/go-split-commons/v3/util"
+	"github.com/splitio/go-split-commons/v3/telemetry"
 	"github.com/splitio/go-toolkit/v4/logging"
+)
+
+const (
+	treatment            = "Treatment"
+	treatments           = "Treatments"
+	treatmentWithConfig  = "TreatmentWithConfig"
+	treatmentsWithConfig = "TreatmentsWithConfig"
 )
 
 // SplitClient is the entry-point of the split SDK.
 type SplitClient struct {
-	logger             logging.LoggerInterface
-	evaluator          evaluator.Interface
-	impressions        storage.ImpressionStorageProducer
-	metrics            storage.MetricsStorageProducer
-	events             storage.EventStorageProducer
-	validator          inputValidation
-	factory            *SplitFactory
-	impressionListener *impressionlistener.WrapperImpressionListener
-	impressionManager  provisional.ImpressionManager
+	logger              logging.LoggerInterface
+	evaluator           evaluator.Interface
+	impressions         storage.ImpressionStorageProducer
+	events              storage.EventStorageProducer
+	validator           inputValidation
+	factory             *SplitFactory
+	impressionListener  *impressionlistener.WrapperImpressionListener
+	impressionManager   provisional.ImpressionManager
+	initTelemetry       storage.TelemetryConfigProducer
+	evaluationTelemetry storage.TelemetryEvaluationProducer
+	runtimeTelemetry    storage.TelemetryRuntimeProducer
 }
 
 // TreatmentResult struct that includes the Treatment evaluation with the corresponding Config
@@ -36,17 +45,12 @@ type TreatmentResult struct {
 }
 
 // getEvaluationResult calls evaluation for one particular split
-func (c *SplitClient) getEvaluationResult(
-	matchingKey string,
-	bucketingKey *string,
-	feature string,
-	attributes map[string]interface{},
-	operation string,
-) *evaluator.Result {
+func (c *SplitClient) getEvaluationResult(matchingKey string, bucketingKey *string, feature string, attributes map[string]interface{}, operation string) *evaluator.Result {
 	if c.isReady() {
 		return c.evaluator.EvaluateFeature(matchingKey, bucketingKey, feature, attributes)
 	}
 	c.logger.Warning(operation + ": the SDK is not ready, results may be incorrect. Make sure to wait for SDK readiness before using this method")
+	c.initTelemetry.RecordNonReadyUsage()
 	return &evaluator.Result{
 		Treatment: evaluator.Control,
 		Label:     impressionlabels.ClientNotReady,
@@ -55,17 +59,12 @@ func (c *SplitClient) getEvaluationResult(
 }
 
 // getEvaluationsResult calls evaluation for multiple treatments at once
-func (c *SplitClient) getEvaluationsResult(
-	matchingKey string,
-	bucketingKey *string,
-	features []string,
-	attributes map[string]interface{},
-	operation string,
-) evaluator.Results {
+func (c *SplitClient) getEvaluationsResult(matchingKey string, bucketingKey *string, features []string, attributes map[string]interface{}, operation string) evaluator.Results {
 	if c.isReady() {
 		return c.evaluator.EvaluateFeatures(matchingKey, bucketingKey, features, attributes)
 	}
 	c.logger.Warning(operation + ": the SDK is not ready, results may be incorrect. Make sure to wait for SDK readiness before using this method")
+	c.initTelemetry.RecordNonReadyUsage()
 	result := evaluator.Results{
 		EvaluationTimeNs: 0,
 		Evaluations:      make(map[string]evaluator.Result),
@@ -81,14 +80,7 @@ func (c *SplitClient) getEvaluationsResult(
 }
 
 // createImpression creates impression to be stored and used by listener
-func (c *SplitClient) createImpression(
-	feature string,
-	bucketingKey *string,
-	evaluationLabel string,
-	matchingKey string,
-	treatment string,
-	changeNumber int64,
-) dtos.Impression {
+func (c *SplitClient) createImpression(feature string, bucketingKey *string, evaluationLabel string, matchingKey string, treatment string, changeNumber int64) dtos.Impression {
 	var label string
 	if c.factory.cfg.LabelsEnabled {
 		label = evaluationLabel
@@ -126,23 +118,11 @@ func (c *SplitClient) storeData(impressions []dtos.Impression, attributes map[st
 	}
 
 	// Store latency
-	if c.metrics != nil {
-		bucket := util.Bucket(evaluationTimeNs)
-		c.metrics.IncLatency(metricsLabel, bucket)
-	} else {
-		c.logger.Warning("No metrics storage set in client. Not sending latencies!")
-	}
+	c.evaluationTelemetry.RecordLatency(metricsLabel, int64(telemetry.Bucket(evaluationTimeNs)))
 }
 
-// doTreatmentCall retrieves treatments of an specific feature with configurations object if it is present
-// for a certain key and set of attributes
-func (c *SplitClient) doTreatmentCall(
-	key interface{},
-	feature string,
-	attributes map[string]interface{},
-	operation string,
-	metricsLabel string,
-) (t TreatmentResult) {
+// doTreatmentCall retrieves treatments of an specific feature with configurations object if it is present for a certain key and set of attributes
+func (c *SplitClient) doTreatmentCall(key interface{}, feature string, attributes map[string]interface{}, operation string, metricsLabel string) (t TreatmentResult) {
 	controlTreatment := TreatmentResult{
 		Treatment: evaluator.Control,
 		Config:    nil,
@@ -153,6 +133,7 @@ func (c *SplitClient) doTreatmentCall(
 		if r := recover(); r != nil {
 			// At this point we'll only trust that the logger isn't panicking trust
 			// that the logger isn't panicking
+			c.evaluationTelemetry.RecordException(metricsLabel)
 			c.logger.Error(
 				"SDK is panicking with the following error", r, "\n",
 				string(debug.Stack()), "\n",
@@ -200,13 +181,13 @@ func (c *SplitClient) doTreatmentCall(
 // Treatment implements the main functionality of split. Retrieve treatments of a specific feature
 // for a certain key and set of attributes
 func (c *SplitClient) Treatment(key interface{}, feature string, attributes map[string]interface{}) string {
-	return c.doTreatmentCall(key, feature, attributes, "Treatment", "sdk.getTreatment").Treatment
+	return c.doTreatmentCall(key, feature, attributes, treatment, telemetry.Treatment).Treatment
 }
 
 // TreatmentWithConfig implements the main functionality of split. Retrieves the treatment of a specific feature with
 // the corresponding configuration if it is present
 func (c *SplitClient) TreatmentWithConfig(key interface{}, feature string, attributes map[string]interface{}) TreatmentResult {
-	return c.doTreatmentCall(key, feature, attributes, "TreatmentWithConfig", "sdk.getTreatmentWithConfig")
+	return c.doTreatmentCall(key, feature, attributes, treatmentWithConfig, telemetry.TreatmentWithConfig)
 }
 
 // Generates control treatments
@@ -225,15 +206,8 @@ func (c *SplitClient) generateControlTreatments(features []string, operation str
 	return treatments
 }
 
-// doTreatmentsCall retrieves treatments of an specific array of features with configurations object if it is present
-// for a certain key and set of attributes
-func (c *SplitClient) doTreatmentsCall(
-	key interface{},
-	features []string,
-	attributes map[string]interface{},
-	operation string,
-	metricsLabel string,
-) (t map[string]TreatmentResult) {
+// doTreatmentsCall retrieves treatments of an specific array of features with configurations object if it is present for a certain key and set of attributes
+func (c *SplitClient) doTreatmentsCall(key interface{}, features []string, attributes map[string]interface{}, operation string, metricsLabel string) (t map[string]TreatmentResult) {
 	treatments := make(map[string]TreatmentResult)
 
 	// Set up a guard deferred function to recover if the SDK starts panicking
@@ -241,10 +215,11 @@ func (c *SplitClient) doTreatmentsCall(
 		if r := recover(); r != nil {
 			// At this point we'll only trust that the logger isn't panicking trust
 			// that the logger isn't panicking
+			c.evaluationTelemetry.RecordException(metricsLabel)
 			c.logger.Error(
 				"SDK is panicking with the following error", r, "\n",
 				string(debug.Stack()), "\n")
-			t = treatments
+			t = c.generateControlTreatments(features, operation)
 		}
 	}()
 
@@ -290,17 +265,17 @@ func (c *SplitClient) doTreatmentsCall(
 
 // Treatments evaluates multiple featers for a single user and set of attributes at once
 func (c *SplitClient) Treatments(key interface{}, features []string, attributes map[string]interface{}) map[string]string {
-	treatments := map[string]string{}
-	result := c.doTreatmentsCall(key, features, attributes, "Treatments", "sdk.getTreatments")
+	treatmentsResult := map[string]string{}
+	result := c.doTreatmentsCall(key, features, attributes, treatments, telemetry.Treatments)
 	for feature, treatmentResult := range result {
-		treatments[feature] = treatmentResult.Treatment
+		treatmentsResult[feature] = treatmentResult.Treatment
 	}
-	return treatments
+	return treatmentsResult
 }
 
 // TreatmentsWithConfig evaluates multiple featers for a single user and set of attributes at once and returns configurations
 func (c *SplitClient) TreatmentsWithConfig(key interface{}, features []string, attributes map[string]interface{}) map[string]TreatmentResult {
-	return c.doTreatmentsCall(key, features, attributes, "TreatmentsWithConfig", "sdk.getTreatmentsWithConfig")
+	return c.doTreatmentsCall(key, features, attributes, treatmentsWithConfig, telemetry.TreatmentsWithConfig)
 }
 
 // isDestroyed returns true if the client has been destroyed
@@ -321,24 +296,17 @@ func (c *SplitClient) Destroy() {
 }
 
 // Track an event and its custom value
-func (c *SplitClient) Track(
-	key string,
-	trafficType string,
-	eventType string,
-	value interface{},
-	properties map[string]interface{},
-) (ret error) {
-
+func (c *SplitClient) Track(key string, trafficType string, eventType string, value interface{}, properties map[string]interface{}) (ret error) {
 	defer func() {
 		if r := recover(); r != nil {
 			// At this point we'll only trust that the logger isn't panicking
+			c.evaluationTelemetry.RecordException(telemetry.Track)
 			c.logger.Error(
 				"SDK is panicking with the following error", r, "\n",
 				string(debug.Stack()), "\n",
 			)
 			ret = errors.New("Track is panicking. Please check logs")
 		}
-		return
 	}()
 
 	if c.isDestroyed() {
@@ -348,6 +316,7 @@ func (c *SplitClient) Track(
 
 	if !c.isReady() {
 		c.logger.Warning("Track: the SDK is not ready, results may be incorrect. Make sure to wait for SDK readiness before using this method")
+		c.initTelemetry.RecordNonReadyUsage()
 	}
 
 	key, trafficType, eventType, value, err := c.validator.ValidateTrackInputs(

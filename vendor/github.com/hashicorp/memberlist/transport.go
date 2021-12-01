@@ -82,16 +82,18 @@ func (a *Address) String() string {
 	return a.Addr
 }
 
+// IngestionAwareTransport is not used.
+//
+// Deprecated: IngestionAwareTransport is not used and may be removed in a future
+// version. Define the interface locally instead of referencing this exported
+// interface.
 type IngestionAwareTransport interface {
-	Transport
-	// IngestPacket pulls a single packet off the conn, and only closes it if shouldClose is true.
 	IngestPacket(conn net.Conn, addr net.Addr, now time.Time, shouldClose bool) error
-	// IngestStream hands off the conn to the transport and doesn't close it.
 	IngestStream(conn net.Conn) error
 }
 
 type NodeAwareTransport interface {
-	IngestionAwareTransport
+	Transport
 	WriteToAddress(b []byte, addr Address) (time.Time, error)
 	DialAddressTimeout(addr Address, timeout time.Duration) (net.Conn, error)
 }
@@ -102,26 +104,57 @@ type shimNodeAwareTransport struct {
 
 var _ NodeAwareTransport = (*shimNodeAwareTransport)(nil)
 
-func (t *shimNodeAwareTransport) IngestPacket(conn net.Conn, addr net.Addr, now time.Time, shouldClose bool) error {
-	iat, ok := t.Transport.(IngestionAwareTransport)
-	if !ok {
-		panic("shimNodeAwareTransport does not support IngestPacket")
-	}
-	return iat.IngestPacket(conn, addr, now, shouldClose)
-}
-
-func (t *shimNodeAwareTransport) IngestStream(conn net.Conn) error {
-	iat, ok := t.Transport.(IngestionAwareTransport)
-	if !ok {
-		panic("shimNodeAwareTransport does not support IngestStream")
-	}
-	return iat.IngestStream(conn)
-}
-
 func (t *shimNodeAwareTransport) WriteToAddress(b []byte, addr Address) (time.Time, error) {
 	return t.WriteTo(b, addr.Addr)
 }
 
 func (t *shimNodeAwareTransport) DialAddressTimeout(addr Address, timeout time.Duration) (net.Conn, error) {
 	return t.DialTimeout(addr.Addr, timeout)
+}
+
+type labelWrappedTransport struct {
+	label string
+	NodeAwareTransport
+}
+
+var _ NodeAwareTransport = (*labelWrappedTransport)(nil)
+
+func (t *labelWrappedTransport) WriteToAddress(buf []byte, addr Address) (time.Time, error) {
+	var err error
+	buf, err = AddLabelHeaderToPacket(buf, t.label)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("failed to add label header to packet: %w", err)
+	}
+	return t.NodeAwareTransport.WriteToAddress(buf, addr)
+}
+
+func (t *labelWrappedTransport) WriteTo(buf []byte, addr string) (time.Time, error) {
+	var err error
+	buf, err = AddLabelHeaderToPacket(buf, t.label)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return t.NodeAwareTransport.WriteTo(buf, addr)
+}
+
+func (t *labelWrappedTransport) DialAddressTimeout(addr Address, timeout time.Duration) (net.Conn, error) {
+	conn, err := t.NodeAwareTransport.DialAddressTimeout(addr, timeout)
+	if err != nil {
+		return nil, err
+	}
+	if err := AddLabelHeaderToStream(conn, t.label); err != nil {
+		return nil, fmt.Errorf("failed to add label header to stream: %w", err)
+	}
+	return conn, nil
+}
+
+func (t *labelWrappedTransport) DialTimeout(addr string, timeout time.Duration) (net.Conn, error) {
+	conn, err := t.NodeAwareTransport.DialTimeout(addr, timeout)
+	if err != nil {
+		return nil, err
+	}
+	if err := AddLabelHeaderToStream(conn, t.label); err != nil {
+		return nil, fmt.Errorf("failed to add label header to stream: %w", err)
+	}
+	return conn, nil
 }

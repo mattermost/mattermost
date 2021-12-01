@@ -4,18 +4,20 @@
 package app
 
 import (
+	"archive/zip"
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"path/filepath"
 	"strings"
 	"sync"
 
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
@@ -36,44 +38,74 @@ func stopOnError(err LineImportWorkerError) bool {
 	}
 }
 
-func rewriteAttachmentPaths(files *[]AttachmentImportData, basePath string) {
+func processAttachmentPaths(files *[]AttachmentImportData, basePath string, filesMap map[string]*zip.File) error {
 	if files == nil {
-		return
+		return nil
 	}
-	for _, f := range *files {
+	var ok bool
+	for i, f := range *files {
 		if f.Path != nil {
-			*f.Path = filepath.Join(basePath, *f.Path)
+			path := filepath.Join(basePath, *f.Path)
+			*f.Path = path
+			if len(filesMap) > 0 {
+				if (*files)[i].Data, ok = filesMap[path]; !ok {
+					return fmt.Errorf("attachment %q not found in map", path)
+				}
+			}
 		}
 	}
+
+	return nil
 }
 
-func rewriteFilePaths(line *LineImportData, basePath string) {
+func processAttachments(line *LineImportData, basePath string, filesMap map[string]*zip.File) error {
+	var ok bool
 	switch line.Type {
 	case "post", "direct_post":
 		var replies []ReplyImportData
 		if line.Type == "direct_post" {
-			rewriteAttachmentPaths(line.DirectPost.Attachments, basePath)
+			if err := processAttachmentPaths(line.DirectPost.Attachments, basePath, filesMap); err != nil {
+				return err
+			}
 			if line.DirectPost.Replies != nil {
 				replies = *line.DirectPost.Replies
 			}
 		} else {
-			rewriteAttachmentPaths(line.Post.Attachments, basePath)
+			if err := processAttachmentPaths(line.Post.Attachments, basePath, filesMap); err != nil {
+				return err
+			}
 			if line.Post.Replies != nil {
 				replies = *line.Post.Replies
 			}
 		}
 		for _, reply := range replies {
-			rewriteAttachmentPaths(reply.Attachments, basePath)
+			if err := processAttachmentPaths(reply.Attachments, basePath, filesMap); err != nil {
+				return err
+			}
 		}
 	case "user":
 		if line.User.ProfileImage != nil {
-			*line.User.ProfileImage = filepath.Join(basePath, *line.User.ProfileImage)
+			path := filepath.Join(basePath, *line.User.ProfileImage)
+			*line.User.ProfileImage = path
+			if len(filesMap) > 0 {
+				if line.User.ProfileImageData, ok = filesMap[path]; !ok {
+					return fmt.Errorf("attachment %q not found in map", path)
+				}
+			}
 		}
 	case "emoji":
 		if line.Emoji.Image != nil {
-			*line.Emoji.Image = filepath.Join(basePath, *line.Emoji.Image)
+			path := filepath.Join(basePath, *line.Emoji.Image)
+			*line.Emoji.Image = path
+			if len(filesMap) > 0 {
+				if line.Emoji.Data, ok = filesMap[path]; !ok {
+					return fmt.Errorf("attachment %q not found in map", path)
+				}
+			}
 		}
 	}
+
+	return nil
 }
 
 func (a *App) bulkImportWorker(c *request.Context, dryRun bool, wg *sync.WaitGroup, lines <-chan LineImportWorkerData, errors chan<- LineImportWorkerError) {
@@ -123,16 +155,20 @@ func (a *App) bulkImportWorker(c *request.Context, dryRun bool, wg *sync.WaitGro
 	wg.Done()
 }
 
-func (a *App) BulkImport(c *request.Context, fileReader io.Reader, dryRun bool, workers int) (*model.AppError, int) {
-	return a.bulkImport(c, fileReader, dryRun, workers, "")
+func (a *App) BulkImport(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (*model.AppError, int) {
+	return a.bulkImport(c, jsonlReader, attachmentsReader, dryRun, workers, "")
 }
 
-func (a *App) BulkImportWithPath(c *request.Context, fileReader io.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
-	return a.bulkImport(c, fileReader, dryRun, workers, importPath)
+func (a *App) BulkImportWithPath(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
+	return a.bulkImport(c, jsonlReader, attachmentsReader, dryRun, workers, importPath)
 }
 
-func (a *App) bulkImport(c *request.Context, fileReader io.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
-	scanner := bufio.NewScanner(fileReader)
+// bulkImport will extract attachments from attachmentsReader if it is
+// not nil. If it is nil, it will look for attachments on the
+// filesystem in the locations specified by the JSONL file according
+// to the older behavior
+func (a *App) bulkImport(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
+	scanner := bufio.NewScanner(jsonlReader)
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, maxScanTokenSize)
 
@@ -146,6 +182,14 @@ func (a *App) bulkImport(c *request.Context, fileReader io.Reader, dryRun bool, 
 	var linesChan chan LineImportWorkerData
 	lastLineType := ""
 
+	var attachedFiles map[string]*zip.File
+	if attachmentsReader != nil {
+		attachedFiles = make(map[string]*zip.File, len(attachmentsReader.File))
+		for _, fi := range attachmentsReader.File {
+			attachedFiles[fi.Name] = fi
+		}
+	}
+
 	for scanner.Scan() {
 		decoder := json.NewDecoder(bytes.NewReader(scanner.Bytes()))
 		lineNumber++
@@ -155,8 +199,8 @@ func (a *App) bulkImport(c *request.Context, fileReader io.Reader, dryRun bool, 
 			return model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, err.Error(), http.StatusBadRequest), lineNumber
 		}
 
-		if importPath != "" {
-			rewriteFilePaths(&line, importPath)
+		if err := processAttachments(&line, importPath, attachedFiles); err != nil {
+			return model.NewAppError("BulkImport", "app.import.bulk_import.process_attachments.error", nil, err.Error(), http.StatusBadRequest), lineNumber
 		}
 
 		if lineNumber == 1 {

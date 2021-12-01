@@ -7,12 +7,14 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"crypto/sha512"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"regexp"
 	"strings"
+
+	"golang.org/x/crypto/scrypt"
 )
 
 const (
@@ -125,14 +127,6 @@ func (rc *RemoteCluster) fixTopics() {
 	rc.Topics = sb.String()
 }
 
-func (rc *RemoteCluster) ToJSON() (string, error) {
-	b, err := json.Marshal(rc)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
-}
-
 func (rc *RemoteCluster) ToRemoteClusterInfo() RemoteClusterInfo {
 	return RemoteClusterInfo{
 		Name:        rc.Name,
@@ -144,15 +138,6 @@ func (rc *RemoteCluster) ToRemoteClusterInfo() RemoteClusterInfo {
 
 func NormalizeRemoteName(name string) string {
 	return strings.ToLower(name)
-}
-
-func RemoteClusterFromJSON(data io.Reader) (*RemoteCluster, *AppError) {
-	var rc RemoteCluster
-	err := json.NewDecoder(data).Decode(&rc)
-	if err != nil {
-		return nil, NewAppError("RemoteClusterFromJSON", "model.utils.decode_json.app_error", nil, err.Error(), http.StatusBadRequest)
-	}
-	return &rc, nil
 }
 
 // RemoteClusterInfo provides a subset of RemoteCluster fields suitable for sending to clients.
@@ -179,15 +164,6 @@ func (f *RemoteClusterFrame) IsValid() *AppError {
 	}
 
 	return nil
-}
-
-func RemoteClusterFrameFromJSON(data io.Reader) (*RemoteClusterFrame, *AppError) {
-	var frame RemoteClusterFrame
-	err := json.NewDecoder(data).Decode(&frame)
-	if err != nil {
-		return nil, NewAppError("RemoteClusterFrameFromJSON", "model.utils.decode_json.app_error", nil, err.Error(), http.StatusBadRequest)
-	}
-	return &frame, nil
 }
 
 // RemoteClusterMsg represents a message that is sent and received between clusters.
@@ -224,29 +200,11 @@ func (m RemoteClusterMsg) IsValid() *AppError {
 	return nil
 }
 
-func RemoteClusterMsgFromJSON(data io.Reader) (RemoteClusterMsg, *AppError) {
-	var msg RemoteClusterMsg
-	err := json.NewDecoder(data).Decode(&msg)
-	if err != nil {
-		return RemoteClusterMsg{}, NewAppError("RemoteClusterMsgFromJSON", "model.utils.decode_json.app_error", nil, err.Error(), http.StatusBadRequest)
-	}
-	return msg, nil
-}
-
 // RemoteClusterPing represents a ping that is sent and received between clusters
 // to indicate a connection is alive. This is the payload for a `RemoteClusterMsg`.
 type RemoteClusterPing struct {
 	SentAt int64 `json:"sent_at"`
 	RecvAt int64 `json:"recv_at"`
-}
-
-func RemoteClusterPingFromRawJSON(raw json.RawMessage) (RemoteClusterPing, *AppError) {
-	var ping RemoteClusterPing
-	err := json.Unmarshal(raw, &ping)
-	if err != nil {
-		return RemoteClusterPing{}, NewAppError("RemoteClusterPingFromRawJSON", "model.utils.decode_json.app_error", nil, err.Error(), http.StatusBadRequest)
-	}
-	return ping, nil
 }
 
 // RemoteClusterInvite represents an invitation to establish a simple trust with a remote cluster.
@@ -257,23 +215,23 @@ type RemoteClusterInvite struct {
 	Token        string `json:"token"`
 }
 
-func RemoteClusterInviteFromRawJSON(raw json.RawMessage) (*RemoteClusterInvite, *AppError) {
-	var invite RemoteClusterInvite
-	err := json.Unmarshal(raw, &invite)
-	if err != nil {
-		return nil, NewAppError("RemoteClusterInviteFromRawJSON", "model.utils.decode_json.app_error", nil, err.Error(), http.StatusBadRequest)
-	}
-	return &invite, nil
-}
-
 func (rci *RemoteClusterInvite) Encrypt(password string) ([]byte, error) {
 	raw, err := json.Marshal(&rci)
 	if err != nil {
 		return nil, err
 	}
 
-	// hash the pasword to 32 bytes for AES256
-	key := sha512.Sum512_256([]byte(password))
+	// create random salt to be prepended to the blob.
+	salt := make([]byte, 16)
+	if _, err = io.ReadFull(rand.Reader, salt); err != nil {
+		return nil, err
+	}
+
+	key, err := scrypt.Key([]byte(password), salt, 32768, 8, 1, 32)
+	if err != nil {
+		return nil, err
+	}
+
 	block, err := aes.NewCipher(key[:])
 	if err != nil {
 		return nil, err
@@ -291,12 +249,25 @@ func (rci *RemoteClusterInvite) Encrypt(password string) ([]byte, error) {
 	}
 
 	// prefix the nonce to the cyphertext so we don't need to keep track of it.
-	return gcm.Seal(nonce, nonce, raw, nil), nil
+	sealed := gcm.Seal(nonce, nonce, raw, nil)
+
+	return append(salt, sealed...), nil
 }
 
 func (rci *RemoteClusterInvite) Decrypt(encrypted []byte, password string) error {
-	// hash the pasword to 32 bytes for AES256
-	key := sha512.Sum512_256([]byte(password))
+	if len(encrypted) <= 16 {
+		return errors.New("invalid length")
+	}
+
+	// first 16 bytes is the salt that was used to derive a key
+	salt := encrypted[:16]
+	encrypted = encrypted[16:]
+
+	key, err := scrypt.Key([]byte(password), salt, 32768, 8, 1, 32)
+	if err != nil {
+		return err
+	}
+
 	block, err := aes.NewCipher(key[:])
 	if err != nil {
 		return err

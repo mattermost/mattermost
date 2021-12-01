@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package config_test
+package config
 
 import (
 	"fmt"
@@ -9,8 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestGetClientConfig(t *testing.T) {
@@ -26,16 +25,16 @@ func TestGetClientConfig(t *testing.T) {
 			"unlicensed",
 			&model.Config{
 				EmailSettings: model.EmailSettings{
-					EmailNotificationContentsType: sToP(model.EMAIL_NOTIFICATION_CONTENTS_FULL),
+					EmailNotificationContentsType: model.NewString(model.EmailNotificationContentsFull),
 				},
 				ThemeSettings: model.ThemeSettings{
 					// Ignored, since not licensed.
-					AllowCustomThemes: bToP(false),
+					AllowCustomThemes: model.NewBool(false),
 				},
 				ServiceSettings: model.ServiceSettings{
-					WebsocketURL:        sToP("ws://mattermost.example.com:8065"),
-					WebsocketPort:       iToP(80),
-					WebsocketSecurePort: iToP(443),
+					WebsocketURL:        model.NewString("ws://mattermost.example.com:8065"),
+					WebsocketPort:       model.NewInt(80),
+					WebsocketSecurePort: model.NewInt(443),
 				},
 			},
 			"",
@@ -54,17 +53,17 @@ func TestGetClientConfig(t *testing.T) {
 			"licensed, but not for theme management",
 			&model.Config{
 				EmailSettings: model.EmailSettings{
-					EmailNotificationContentsType: sToP(model.EMAIL_NOTIFICATION_CONTENTS_FULL),
+					EmailNotificationContentsType: model.NewString(model.EmailNotificationContentsFull),
 				},
 				ThemeSettings: model.ThemeSettings{
 					// Ignored, since not licensed.
-					AllowCustomThemes: bToP(false),
+					AllowCustomThemes: model.NewBool(false),
 				},
 			},
 			"tag1",
 			&model.License{
 				Features: &model.Features{
-					ThemeManagement: bToP(false),
+					ThemeManagement: model.NewBool(false),
 				},
 			},
 			map[string]string{
@@ -77,16 +76,16 @@ func TestGetClientConfig(t *testing.T) {
 			"licensed for theme management",
 			&model.Config{
 				EmailSettings: model.EmailSettings{
-					EmailNotificationContentsType: sToP(model.EMAIL_NOTIFICATION_CONTENTS_FULL),
+					EmailNotificationContentsType: model.NewString(model.EmailNotificationContentsFull),
 				},
 				ThemeSettings: model.ThemeSettings{
-					AllowCustomThemes: bToP(false),
+					AllowCustomThemes: model.NewBool(false),
 				},
 			},
 			"tag2",
 			&model.License{
 				Features: &model.Features{
-					ThemeManagement: bToP(true),
+					ThemeManagement: model.NewBool(true),
 				},
 			},
 			map[string]string{
@@ -99,13 +98,13 @@ func TestGetClientConfig(t *testing.T) {
 			"licensed for enforcement",
 			&model.Config{
 				ServiceSettings: model.ServiceSettings{
-					EnforceMultifactorAuthentication: bToP(true),
+					EnforceMultifactorAuthentication: model.NewBool(true),
 				},
 			},
 			"tag1",
 			&model.License{
 				Features: &model.Features{
-					MFA: bToP(true),
+					MFA: model.NewBool(true),
 				},
 			},
 			map[string]string{
@@ -113,37 +112,10 @@ func TestGetClientConfig(t *testing.T) {
 			},
 		},
 		{
-			"experimental channel organization enabled",
-			&model.Config{
-				ServiceSettings: model.ServiceSettings{
-					ExperimentalChannelOrganization: bToP(true),
-				},
-			},
-			"tag1",
-			nil,
-			map[string]string{
-				"ExperimentalChannelOrganization": "true",
-			},
-		},
-		{
-			"experimental channel organization disabled, but experimental group unread channels on",
-			&model.Config{
-				ServiceSettings: model.ServiceSettings{
-					ExperimentalChannelOrganization: bToP(false),
-					ExperimentalGroupUnreadChannels: sToP(model.GROUP_UNREAD_CHANNELS_DEFAULT_ON),
-				},
-			},
-			"tag1",
-			nil,
-			map[string]string{
-				"ExperimentalChannelOrganization": "true",
-			},
-		},
-		{
 			"default marketplace",
 			&model.Config{
 				PluginSettings: model.PluginSettings{
-					MarketplaceUrl: sToP(model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL),
+					MarketplaceURL: model.NewString(model.PluginSettingsDefaultMarketplaceURL),
 				},
 			},
 			"tag1",
@@ -156,7 +128,7 @@ func TestGetClientConfig(t *testing.T) {
 			"non-default marketplace",
 			&model.Config{
 				PluginSettings: model.PluginSettings{
-					MarketplaceUrl: sToP("http://example.com"),
+					MarketplaceURL: model.NewString("http://example.com"),
 				},
 			},
 			"tag1",
@@ -169,7 +141,7 @@ func TestGetClientConfig(t *testing.T) {
 			"enable ShowFullName prop",
 			&model.Config{
 				PrivacySettings: model.PrivacySettings{
-					ShowFullName: bToP(true),
+					ShowFullName: model.NewBool(true),
 				},
 			},
 			"tag1",
@@ -190,7 +162,7 @@ func TestGetClientConfig(t *testing.T) {
 				testCase.license.Features.SetDefaults()
 			}
 
-			configMap := config.GenerateClientConfig(testCase.config, testCase.telemetryID, testCase.license)
+			configMap := GenerateClientConfig(testCase.config, testCase.telemetryID, testCase.license)
 			for expectedField, expectedValue := range testCase.expectedFields {
 				actualValue, ok := configMap[expectedField]
 				if assert.True(t, ok, fmt.Sprintf("config does not contain %v", expectedField)) {
@@ -214,16 +186,16 @@ func TestGetLimitedClientConfig(t *testing.T) {
 			"unlicensed",
 			&model.Config{
 				EmailSettings: model.EmailSettings{
-					EmailNotificationContentsType: sToP(model.EMAIL_NOTIFICATION_CONTENTS_FULL),
+					EmailNotificationContentsType: model.NewString(model.EmailNotificationContentsFull),
 				},
 				ThemeSettings: model.ThemeSettings{
 					// Ignored, since not licensed.
-					AllowCustomThemes: bToP(false),
+					AllowCustomThemes: model.NewBool(false),
 				},
 				ServiceSettings: model.ServiceSettings{
-					WebsocketURL:        sToP("ws://mattermost.example.com:8065"),
-					WebsocketPort:       iToP(80),
-					WebsocketSecurePort: iToP(443),
+					WebsocketURL:        model.NewString("ws://mattermost.example.com:8065"),
+					WebsocketPort:       model.NewInt(80),
+					WebsocketSecurePort: model.NewInt(443),
 				},
 			},
 			"",
@@ -240,11 +212,11 @@ func TestGetLimitedClientConfig(t *testing.T) {
 			"password settings",
 			&model.Config{
 				PasswordSettings: model.PasswordSettings{
-					MinimumLength: iToP(15),
-					Lowercase:     bToP(true),
-					Uppercase:     bToP(true),
-					Number:        bToP(true),
-					Symbol:        bToP(false),
+					MinimumLength: model.NewInt(15),
+					Lowercase:     model.NewBool(true),
+					Uppercase:     model.NewBool(true),
+					Number:        model.NewBool(true),
+					Symbol:        model.NewBool(false),
 				},
 			},
 			"",
@@ -282,7 +254,7 @@ func TestGetLimitedClientConfig(t *testing.T) {
 				testCase.license.Features.SetDefaults()
 			}
 
-			configMap := config.GenerateLimitedClientConfig(testCase.config, testCase.telemetryID, testCase.license)
+			configMap := GenerateLimitedClientConfig(testCase.config, testCase.telemetryID, testCase.license)
 			for expectedField, expectedValue := range testCase.expectedFields {
 				actualValue, ok := configMap[expectedField]
 				if assert.True(t, ok, fmt.Sprintf("config does not contain %v", expectedField)) {
@@ -291,16 +263,4 @@ func TestGetLimitedClientConfig(t *testing.T) {
 			}
 		})
 	}
-}
-
-func sToP(s string) *string {
-	return &s
-}
-
-func bToP(b bool) *bool {
-	return &b
-}
-
-func iToP(i int) *int {
-	return &i
 }

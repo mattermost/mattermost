@@ -43,8 +43,6 @@ func TestCommandWebhookIsValid(t *testing.T) {
 		{func() { h.ChannelId = NewId() }, ""},
 		{func() { h.RootId = "asd" }, "model.command_hook.root_id.app_error"},
 		{func() { h.RootId = NewId() }, ""},
-		{func() { h.ParentId = "asd" }, "model.command_hook.parent_id.app_error"},
-		{func() { h.ParentId = NewId() }, ""},
 	} {
 		tmp := h
 		test.Transform()

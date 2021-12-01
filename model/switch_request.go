@@ -3,11 +3,6 @@
 
 package model
 
-import (
-	"encoding/json"
-	"io"
-)
-
 type SwitchRequest struct {
 	CurrentService string `json:"current_service"`
 	NewService     string `json:"new_service"`
@@ -18,38 +13,27 @@ type SwitchRequest struct {
 	LdapLoginId    string `json:"ldap_id"`
 }
 
-func (o *SwitchRequest) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func SwitchRequestFromJson(data io.Reader) *SwitchRequest {
-	var o *SwitchRequest
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
 func (o *SwitchRequest) EmailToOAuth() bool {
-	return o.CurrentService == USER_AUTH_SERVICE_EMAIL &&
-		(o.NewService == USER_AUTH_SERVICE_SAML ||
-			o.NewService == USER_AUTH_SERVICE_GITLAB ||
-			o.NewService == SERVICE_GOOGLE ||
-			o.NewService == SERVICE_OFFICE365 ||
-			o.NewService == SERVICE_OPENID)
+	return o.CurrentService == UserAuthServiceEmail &&
+		(o.NewService == UserAuthServiceSaml ||
+			o.NewService == UserAuthServiceGitlab ||
+			o.NewService == ServiceGoogle ||
+			o.NewService == ServiceOffice365 ||
+			o.NewService == ServiceOpenid)
 }
 
 func (o *SwitchRequest) OAuthToEmail() bool {
-	return (o.CurrentService == USER_AUTH_SERVICE_SAML ||
-		o.CurrentService == USER_AUTH_SERVICE_GITLAB ||
-		o.CurrentService == SERVICE_GOOGLE ||
-		o.CurrentService == SERVICE_OFFICE365 ||
-		o.CurrentService == SERVICE_OPENID) && o.NewService == USER_AUTH_SERVICE_EMAIL
+	return (o.CurrentService == UserAuthServiceSaml ||
+		o.CurrentService == UserAuthServiceGitlab ||
+		o.CurrentService == ServiceGoogle ||
+		o.CurrentService == ServiceOffice365 ||
+		o.CurrentService == ServiceOpenid) && o.NewService == UserAuthServiceEmail
 }
 
 func (o *SwitchRequest) EmailToLdap() bool {
-	return o.CurrentService == USER_AUTH_SERVICE_EMAIL && o.NewService == USER_AUTH_SERVICE_LDAP
+	return o.CurrentService == UserAuthServiceEmail && o.NewService == UserAuthServiceLdap
 }
 
 func (o *SwitchRequest) LdapToEmail() bool {
-	return o.CurrentService == USER_AUTH_SERVICE_LDAP && o.NewService == USER_AUTH_SERVICE_EMAIL
+	return o.CurrentService == UserAuthServiceLdap && o.NewService == UserAuthServiceEmail
 }

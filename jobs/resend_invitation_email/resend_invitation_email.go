@@ -3,8 +3,8 @@
 package resend_invitation_email
 
 import (
-	"github.com/mattermost/mattermost-server/v5/app"
-	ejobs "github.com/mattermost/mattermost-server/v5/einterfaces/jobs"
+	"github.com/mattermost/mattermost-server/v6/app"
+	ejobs "github.com/mattermost/mattermost-server/v6/einterfaces/jobs"
 )
 
 type ResendInvitationEmailJobInterfaceImpl struct {
@@ -13,7 +13,7 @@ type ResendInvitationEmailJobInterfaceImpl struct {
 
 func init() {
 	app.RegisterJobsResendInvitationEmailInterface(func(s *app.Server) ejobs.ResendInvitationEmailJobInterface {
-		a := app.New(app.ServerConnector(s))
+		a := app.New(app.ServerConnector(s.Channels()))
 		return &ResendInvitationEmailJobInterfaceImpl{a}
 	})
 }

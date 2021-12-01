@@ -5,12 +5,13 @@ package sqlstore
 
 import (
 	"database/sql"
+	"encoding/json"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type SqlLinkMetadataStore struct {
@@ -24,14 +25,14 @@ func newSqlLinkMetadataStore(sqlStore *SqlStore) store.LinkMetadataStore {
 		table := db.AddTableWithName(model.LinkMetadata{}, "LinkMetadata").SetKeys(false, "Hash")
 		table.ColMap("URL").SetMaxSize(2048)
 		table.ColMap("Type").SetMaxSize(16)
-		table.ColMap("Data").SetMaxSize(4096)
+		table.ColMap("Data").SetDataType(sqlStore.jsonDataType())
 	}
 
 	return s
 }
 
 func (s SqlLinkMetadataStore) createIndexesIfNotExists() {
-	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if s.DriverName() == model.DatabaseDriverMysql {
 		s.CreateCompositeIndexIfNotExists("idx_link_metadata_url_timestamp", "LinkMetadata", []string{"URL(512)", "Timestamp"})
 	} else {
 		s.CreateCompositeIndexIfNotExists("idx_link_metadata_url_timestamp", "LinkMetadata", []string{"URL", "Timestamp"})
@@ -44,8 +45,20 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 	}
 
 	metadata.PreSave()
+	metadataBytes, err := json.Marshal(metadata.Data)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not serialize metadataBytes to JSON")
+	}
 
-	err := s.GetMaster().Insert(metadata)
+	query, args, err := s.getQueryBuilder().
+		Insert("LinkMetadata").
+		Columns("Hash", "URL", "Timestamp", "Type", "Data").
+		Values(metadata.Hash, metadata.URL, metadata.Timestamp, metadata.Type, string(metadataBytes)).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "metadata_tosql")
+	}
+	_, err = s.GetMasterX().Exec(query, args...)
 	if err != nil && !IsUniqueConstraintError(err, []string{"PRIMARY", "linkmetadata_pkey"}) {
 		return nil, errors.Wrap(err, "could not save link metadata")
 	}
@@ -54,7 +67,7 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 }
 
 func (s SqlLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetadata, error) {
-	var metadata *model.LinkMetadata
+	var metadata model.LinkMetadata
 	query, args, err := s.getQueryBuilder().
 		Select("*").
 		From("LinkMetadata").
@@ -63,7 +76,7 @@ func (s SqlLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetad
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create query with querybuilder")
 	}
-	err = s.GetReplica().SelectOne(&metadata, query, args...)
+	err = s.GetReplicaX().Get(&metadata, query, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("LinkMetadata", "url="+url)
@@ -76,5 +89,5 @@ func (s SqlLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetad
 		return nil, errors.Wrapf(err, "could not deserialize metadata to concrete type for url=%s", url)
 	}
 
-	return metadata, nil
+	return &metadata, nil
 }

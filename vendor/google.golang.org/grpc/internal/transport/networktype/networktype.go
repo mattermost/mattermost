@@ -17,7 +17,7 @@
  */
 
 // Package networktype declares the network type to be used in the default
-// dailer. Attribute of a resolver.Address.
+// dialer. Attribute of a resolver.Address.
 package networktype
 
 import (
@@ -31,7 +31,7 @@ const key = keyType("grpc.internal.transport.networktype")
 
 // Set returns a copy of the provided address with attributes containing networkType.
 func Set(address resolver.Address, networkType string) resolver.Address {
-	address.Attributes = address.Attributes.WithValues(key, networkType)
+	address.Attributes = address.Attributes.WithValue(key, networkType)
 	return address
 }
 

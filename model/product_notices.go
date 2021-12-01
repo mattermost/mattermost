@@ -32,11 +32,11 @@ type ProductNotice struct {
 }
 
 func (n *ProductNotice) SysAdminOnly() bool {
-	return n.Conditions.Audience != nil && *n.Conditions.Audience == NoticeAudience_Sysadmin
+	return n.Conditions.Audience != nil && *n.Conditions.Audience == NoticeAudienceSysadmin
 }
 
 func (n *ProductNotice) TeamAdminOnly() bool {
-	return n.Conditions.Audience != nil && *n.Conditions.Audience == NoticeAudience_TeamAdmin
+	return n.Conditions.Audience != nil && *n.Conditions.Audience == NoticeAudienceTeamAdmin
 }
 
 type Conditions struct {
@@ -91,23 +91,23 @@ func NewNoticeAudience(s NoticeAudience) *NoticeAudience {
 
 func (a *NoticeAudience) Matches(sysAdmin bool, teamAdmin bool) bool {
 	switch *a {
-	case NoticeAudience_All:
+	case NoticeAudienceAll:
 		return true
-	case NoticeAudience_Member:
+	case NoticeAudienceMember:
 		return !sysAdmin && !teamAdmin
-	case NoticeAudience_Sysadmin:
+	case NoticeAudienceSysadmin:
 		return sysAdmin
-	case NoticeAudience_TeamAdmin:
+	case NoticeAudienceTeamAdmin:
 		return teamAdmin
 	}
 	return false
 }
 
 const (
-	NoticeAudience_All       NoticeAudience = "all"
-	NoticeAudience_Member    NoticeAudience = "member"
-	NoticeAudience_Sysadmin  NoticeAudience = "sysadmin"
-	NoticeAudience_TeamAdmin NoticeAudience = "teamadmin"
+	NoticeAudienceAll       NoticeAudience = "all"
+	NoticeAudienceMember    NoticeAudience = "member"
+	NoticeAudienceSysadmin  NoticeAudience = "sysadmin"
+	NoticeAudienceTeamAdmin NoticeAudience = "teamadmin"
 )
 
 // Only show the notice on specific clients. Defaults to 'all'
@@ -119,36 +119,36 @@ func NewNoticeClientType(s NoticeClientType) *NoticeClientType { return &s }
 
 func (c *NoticeClientType) Matches(other NoticeClientType) bool {
 	switch *c {
-	case NoticeClientType_All:
+	case NoticeClientTypeAll:
 		return true
-	case NoticeClientType_Mobile:
-		return other == NoticeClientType_MobileIos || other == NoticeClientType_MobileAndroid
+	case NoticeClientTypeMobile:
+		return other == NoticeClientTypeMobileIos || other == NoticeClientTypeMobileAndroid
 	default:
 		return *c == other
 	}
 }
 
 const (
-	NoticeClientType_All           NoticeClientType = "all"
-	NoticeClientType_Desktop       NoticeClientType = "desktop"
-	NoticeClientType_Mobile        NoticeClientType = "mobile"
-	NoticeClientType_MobileAndroid NoticeClientType = "mobile-android"
-	NoticeClientType_MobileIos     NoticeClientType = "mobile-ios"
-	NoticeClientType_Web           NoticeClientType = "web"
+	NoticeClientTypeAll           NoticeClientType = "all"
+	NoticeClientTypeDesktop       NoticeClientType = "desktop"
+	NoticeClientTypeMobile        NoticeClientType = "mobile"
+	NoticeClientTypeMobileAndroid NoticeClientType = "mobile-android"
+	NoticeClientTypeMobileIos     NoticeClientType = "mobile-ios"
+	NoticeClientTypeWeb           NoticeClientType = "web"
 )
 
 func NoticeClientTypeFromString(s string) (NoticeClientType, error) {
 	switch s {
 	case "web":
-		return NoticeClientType_Web, nil
+		return NoticeClientTypeWeb, nil
 	case "mobile-ios":
-		return NoticeClientType_MobileIos, nil
+		return NoticeClientTypeMobileIos, nil
 	case "mobile-android":
-		return NoticeClientType_MobileAndroid, nil
+		return NoticeClientTypeMobileAndroid, nil
 	case "desktop":
-		return NoticeClientType_Desktop, nil
+		return NoticeClientTypeDesktop, nil
 	}
-	return NoticeClientType_All, errors.New("Invalid client type supplied")
+	return NoticeClientTypeAll, errors.New("Invalid client type supplied")
 }
 
 // Instance type. Defaults to "both"
@@ -156,22 +156,22 @@ type NoticeInstanceType string
 
 func NewNoticeInstanceType(n NoticeInstanceType) *NoticeInstanceType { return &n }
 func (t *NoticeInstanceType) Matches(isCloud bool) bool {
-	if *t == NoticeInstanceType_Both {
+	if *t == NoticeInstanceTypeBoth {
 		return true
 	}
-	if *t == NoticeInstanceType_Cloud && !isCloud {
+	if *t == NoticeInstanceTypeCloud && !isCloud {
 		return false
 	}
-	if *t == NoticeInstanceType_OnPrem && isCloud {
+	if *t == NoticeInstanceTypeOnPrem && isCloud {
 		return false
 	}
 	return true
 }
 
 const (
-	NoticeInstanceType_Both   NoticeInstanceType = "both"
-	NoticeInstanceType_Cloud  NoticeInstanceType = "cloud"
-	NoticeInstanceType_OnPrem NoticeInstanceType = "onprem"
+	NoticeInstanceTypeBoth   NoticeInstanceType = "both"
+	NoticeInstanceTypeCloud  NoticeInstanceType = "cloud"
+	NoticeInstanceTypeOnPrem NoticeInstanceType = "onprem"
 )
 
 // SKU. Defaults to "all"
@@ -180,9 +180,9 @@ type NoticeSKU string
 func NewNoticeSKU(s NoticeSKU) *NoticeSKU { return &s }
 func (c *NoticeSKU) Matches(s string) bool {
 	switch *c {
-	case NoticeSKU_All:
+	case NoticeSKUAll:
 		return true
-	case NoticeSKU_E0, NoticeSKU_Team:
+	case NoticeSKUE0, NoticeSKUTeam:
 		return s == ""
 	default:
 		return s == string(*c)
@@ -190,11 +190,11 @@ func (c *NoticeSKU) Matches(s string) bool {
 }
 
 const (
-	NoticeSKU_E0   NoticeSKU = "e0"
-	NoticeSKU_E10  NoticeSKU = "e10"
-	NoticeSKU_E20  NoticeSKU = "e20"
-	NoticeSKU_All  NoticeSKU = "all"
-	NoticeSKU_Team NoticeSKU = "team"
+	NoticeSKUE0   NoticeSKU = "e0"
+	NoticeSKUE10  NoticeSKU = "e10"
+	NoticeSKUE20  NoticeSKU = "e20"
+	NoticeSKUAll  NoticeSKU = "all"
+	NoticeSKUTeam NoticeSKU = "team"
 )
 
 // Optional action to perform on action button click. (defaults to closing the notice)

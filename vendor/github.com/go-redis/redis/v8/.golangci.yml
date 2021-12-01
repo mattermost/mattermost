@@ -22,3 +22,6 @@ linters:
     - exhaustivestruct
     - wrapcheck
     - errorlint
+    - cyclop
+    - forcetypeassert
+    - forbidigo

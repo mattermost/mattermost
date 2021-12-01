@@ -35,6 +35,9 @@ type UniversalOptions struct {
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
 
+	// PoolFIFO uses FIFO mode for each node connection pool GET/PUT (default LIFO).
+	PoolFIFO bool
+
 	PoolSize           int
 	MinIdleConns       int
 	MaxConnAge         time.Duration
@@ -53,6 +56,7 @@ type UniversalOptions struct {
 
 	// The sentinel master name.
 	// Only failover clients.
+
 	MasterName string
 }
 
@@ -82,6 +86,7 @@ func (o *UniversalOptions) Cluster() *ClusterOptions {
 		DialTimeout:        o.DialTimeout,
 		ReadTimeout:        o.ReadTimeout,
 		WriteTimeout:       o.WriteTimeout,
+		PoolFIFO:           o.PoolFIFO,
 		PoolSize:           o.PoolSize,
 		MinIdleConns:       o.MinIdleConns,
 		MaxConnAge:         o.MaxConnAge,
@@ -119,6 +124,7 @@ func (o *UniversalOptions) Failover() *FailoverOptions {
 		ReadTimeout:  o.ReadTimeout,
 		WriteTimeout: o.WriteTimeout,
 
+		PoolFIFO:           o.PoolFIFO,
 		PoolSize:           o.PoolSize,
 		MinIdleConns:       o.MinIdleConns,
 		MaxConnAge:         o.MaxConnAge,
@@ -154,6 +160,7 @@ func (o *UniversalOptions) Simple() *Options {
 		ReadTimeout:  o.ReadTimeout,
 		WriteTimeout: o.WriteTimeout,
 
+		PoolFIFO:           o.PoolFIFO,
 		PoolSize:           o.PoolSize,
 		MinIdleConns:       o.MinIdleConns,
 		MaxConnAge:         o.MaxConnAge,
@@ -168,9 +175,9 @@ func (o *UniversalOptions) Simple() *Options {
 // --------------------------------------------------------------------
 
 // UniversalClient is an abstract client which - based on the provided options -
-// can connect to either clusters, or sentinel-backed failover instances
-// or simple single-instance servers. This can be useful for testing
-// cluster-specific applications locally.
+// represents either a ClusterClient, a FailoverClient, or a single-node Client.
+// This can be useful for testing cluster-specific applications locally or having different
+// clients in different environments.
 type UniversalClient interface {
 	Cmdable
 	Context() context.Context
@@ -190,12 +197,12 @@ var (
 	_ UniversalClient = (*Ring)(nil)
 )
 
-// NewUniversalClient returns a new multi client. The type of client returned depends
-// on the following three conditions:
+// NewUniversalClient returns a new multi client. The type of the returned client depends
+// on the following conditions:
 //
-// 1. if a MasterName is passed a sentinel-backed FailoverClient will be returned
-// 2. if the number of Addrs is two or more, a ClusterClient will be returned
-// 3. otherwise, a single-node redis Client will be returned.
+// 1. If the MasterName option is specified, a sentinel-backed FailoverClient is returned.
+// 2. if the number of Addrs is two or more, a ClusterClient is returned.
+// 3. Otherwise, a single-node Client is returned.
 func NewUniversalClient(opts *UniversalOptions) UniversalClient {
 	if opts.MasterName != "" {
 		return NewFailoverClient(opts.Failover())

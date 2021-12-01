@@ -4,25 +4,18 @@
 package model
 
 import (
-	"bytes"
-	"encoding/json"
 	"image"
 	"image/gif"
-	"image/jpeg"
 	"io"
 	"mime"
 	"net/http"
 	"path/filepath"
 	"strings"
-
-	"github.com/disintegration/imaging"
-
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
-	FILEINFO_SORT_BY_CREATED = "CreateAt"
-	FILEINFO_SORT_BY_SIZE    = "Size"
+	FileinfoSortByCreated = "CreateAt"
+	FileinfoSortBySize    = "Size"
 )
 
 // GetFileInfosOptions contains options for getting FileInfos
@@ -62,36 +55,6 @@ type FileInfo struct {
 	MiniPreview     *[]byte `json:"mini_preview"` // declared as *[]byte to avoid postgres/mysql differences in deserialization
 	Content         string  `json:"-"`
 	RemoteId        *string `json:"remote_id"`
-}
-
-func (fi *FileInfo) ToJson() string {
-	b, _ := json.Marshal(fi)
-	return string(b)
-}
-
-func FileInfoFromJson(data io.Reader) *FileInfo {
-	decoder := json.NewDecoder(data)
-
-	var fi FileInfo
-	if err := decoder.Decode(&fi); err != nil {
-		return nil
-	}
-	return &fi
-}
-
-func FileInfosToJson(infos []*FileInfo) string {
-	b, _ := json.Marshal(infos)
-	return string(b)
-}
-
-func FileInfosFromJson(data io.Reader) []*FileInfo {
-	decoder := json.NewDecoder(data)
-
-	var infos []*FileInfo
-	if err := decoder.Decode(&infos); err != nil {
-		return nil
-	}
-	return infos
 }
 
 func (fi *FileInfo) PreSave() {
@@ -160,19 +123,6 @@ func NewInfo(name string) *FileInfo {
 	}
 
 	return info
-}
-
-func GenerateMiniPreviewImage(img image.Image) *[]byte {
-	preview := imaging.Resize(img, 16, 16, imaging.Lanczos)
-
-	buf := new(bytes.Buffer)
-
-	if err := jpeg.Encode(buf, preview, &jpeg.Options{Quality: 90}); err != nil {
-		mlog.Info("Unable to encode image as mini preview jpg", mlog.Err(err))
-		return nil
-	}
-	data := buf.Bytes()
-	return &data
 }
 
 func GetInfoForBytes(name string, data io.ReadSeeker, size int) (*FileInfo, *AppError) {

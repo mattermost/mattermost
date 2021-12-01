@@ -8,8 +8,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/app/featureflag"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 // setupFeatureFlags called on startup and when the cluster leader changes.
@@ -21,7 +21,7 @@ func (s *Server) setupFeatureFlags() {
 	splitConfigured := splitKey != ""
 	syncFeatureFlags := splitConfigured && s.IsLeader()
 
-	s.configStore.PersistFeatures(splitConfigured)
+	s.configStore.SetReadOnlyFF(!splitConfigured)
 
 	if syncFeatureFlags {
 		if err := s.startFeatureFlagUpdateJob(); err != nil {
@@ -71,7 +71,7 @@ func (s *Server) startFeatureFlagUpdateJob() error {
 		attributes["group_id"] = groupId
 	}
 
-	synchronizer, err := config.NewFeatureFlagSynchronizer(config.FeatureFlagSyncParams{
+	synchronizer, err := featureflag.NewSynchronizer(featureflag.SyncParams{
 		ServerID:   s.TelemetryId(),
 		SplitKey:   *s.Config().ServiceSettings.SplitKey,
 		Log:        log,

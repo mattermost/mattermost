@@ -46,6 +46,22 @@ type BalancerConfig struct {
 
 type intermediateBalancerConfig []map[string]json.RawMessage
 
+// MarshalJSON implements the json.Marshaler interface.
+//
+// It marshals the balancer and config into a length-1 slice
+// ([]map[string]config).
+func (bc *BalancerConfig) MarshalJSON() ([]byte, error) {
+	if bc.Config == nil {
+		// If config is nil, return empty config `{}`.
+		return []byte(fmt.Sprintf(`[{%q: %v}]`, bc.Name, "{}")), nil
+	}
+	c, err := json.Marshal(bc.Config)
+	if err != nil {
+		return nil, err
+	}
+	return []byte(fmt.Sprintf(`[{%q: %s}]`, bc.Name, c)), nil
+}
+
 // UnmarshalJSON implements the json.Unmarshaler interface.
 //
 // ServiceConfig contains a list of loadBalancingConfigs, each with a name and
@@ -62,6 +78,7 @@ func (bc *BalancerConfig) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
+	var names []string
 	for i, lbcfg := range ir {
 		if len(lbcfg) != 1 {
 			return fmt.Errorf("invalid loadBalancingConfig: entry %v does not contain exactly 1 policy/config pair: %q", i, lbcfg)
@@ -76,6 +93,7 @@ func (bc *BalancerConfig) UnmarshalJSON(b []byte) error {
 		for name, jsonCfg = range lbcfg {
 		}
 
+		names = append(names, name)
 		builder := balancer.Get(name)
 		if builder == nil {
 			// If the balancer is not registered, move on to the next config.
@@ -104,7 +122,7 @@ func (bc *BalancerConfig) UnmarshalJSON(b []byte) error {
 	// return. This means we had a loadBalancingConfig slice but did not
 	// encounter a registered policy. The config is considered invalid in this
 	// case.
-	return fmt.Errorf("invalid loadBalancingConfig: no supported policies found")
+	return fmt.Errorf("invalid loadBalancingConfig: no supported policies found in %v", names)
 }
 
 // MethodConfig defines the configuration recommended by the service providers for a

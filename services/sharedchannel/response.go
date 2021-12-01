@@ -4,7 +4,13 @@
 package sharedchannel
 
 type SyncResponse struct {
-	LastSyncAt int64    `json:"last_sync_at"`
-	PostErrors []string `json:"post_errors"`
-	UsersSyncd []string `json:"users_syncd"`
+	UsersLastUpdateAt int64    `json:"users_last_update_at"`
+	UserErrors        []string `json:"user_errors"`
+	UsersSyncd        []string `json:"users_syncd"`
+
+	PostsLastUpdateAt int64    `json:"posts_last_update_at"`
+	PostErrors        []string `json:"post_errors"`
+
+	ReactionsLastUpdateAt int64    `json:"reactions_last_update_at"`
+	ReactionErrors        []string `json:"reaction_errors"`
 }

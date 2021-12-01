@@ -2,13 +2,13 @@ package impression
 
 import (
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/splitio/go-split-commons/v3/conf"
 	"github.com/splitio/go-split-commons/v3/dtos"
 	"github.com/splitio/go-split-commons/v3/service"
 	"github.com/splitio/go-split-commons/v3/storage"
+	"github.com/splitio/go-split-commons/v3/telemetry"
 	"github.com/splitio/go-split-commons/v3/util"
 	"github.com/splitio/go-toolkit/v4/logging"
 )
@@ -22,20 +22,20 @@ const (
 type RecorderSingle struct {
 	impressionStorage  storage.ImpressionStorageConsumer
 	impressionRecorder service.ImpressionsRecorder
-	metricsWrapper     *storage.MetricWrapper
 	logger             logging.LoggerInterface
 	metadata           dtos.Metadata
 	mode               string
+	runtimeTelemetry   storage.TelemetryRuntimeProducer
 }
 
 // NewRecorderSingle creates new impression synchronizer for posting impressions
 func NewRecorderSingle(
 	impressionStorage storage.ImpressionStorageConsumer,
 	impressionRecorder service.ImpressionsRecorder,
-	metricsWrapper *storage.MetricWrapper,
 	logger logging.LoggerInterface,
 	metadata dtos.Metadata,
 	managerConfig conf.ManagerConfig,
+	runtimeTelemetry storage.TelemetryRuntimeProducer,
 ) ImpressionRecorder {
 	mode := conf.ImpressionsModeOptimized
 	if !util.ShouldBeOptimized(managerConfig) {
@@ -44,10 +44,10 @@ func NewRecorderSingle(
 	return &RecorderSingle{
 		impressionStorage:  impressionStorage,
 		impressionRecorder: impressionRecorder,
-		metricsWrapper:     metricsWrapper,
 		logger:             logger,
 		metadata:           metadata,
 		mode:               mode,
+		runtimeTelemetry:   runtimeTelemetry,
 	}
 }
 
@@ -96,13 +96,12 @@ func (i *RecorderSingle) SynchronizeImpressions(bulkSize int64) error {
 	err = i.impressionRecorder.Record(bulkImpressions, i.metadata, map[string]string{splitSDKImpressionsMode: i.mode})
 	if err != nil {
 		if httpError, ok := err.(*dtos.HTTPError); ok {
-			i.metricsWrapper.StoreCounters(storage.TestImpressionsCounter, strconv.Itoa(httpError.Code))
+			i.runtimeTelemetry.RecordSyncError(telemetry.ImpressionSync, httpError.Code)
 		}
 		return err
 	}
-	bucket := util.Bucket(time.Now().Sub(before).Nanoseconds())
-	i.metricsWrapper.StoreLatencies(storage.TestImpressionsLatency, bucket)
-	i.metricsWrapper.StoreCounters(storage.TestImpressionsCounter, "ok")
+	i.runtimeTelemetry.RecordSyncLatency(telemetry.ImpressionSync, time.Since(before).Nanoseconds())
+	i.runtimeTelemetry.RecordSuccessfulSync(telemetry.ImpressionSync, time.Now().UTC().UnixNano()/int64(time.Millisecond))
 	return nil
 }
 

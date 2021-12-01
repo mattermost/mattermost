@@ -15,6 +15,7 @@
 package utils
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -124,15 +125,14 @@ func NewAgentClientUDP(hostPort string, maxPacketSize int) (*AgentClientUDP, err
 }
 
 // EmitZipkinBatch implements EmitZipkinBatch() of Agent interface
-func (a *AgentClientUDP) EmitZipkinBatch(spans []*zipkincore.Span) error {
+func (a *AgentClientUDP) EmitZipkinBatch(context.Context, []*zipkincore.Span) error {
 	return errors.New("Not implemented")
 }
 
 // EmitBatch implements EmitBatch() of Agent interface
-func (a *AgentClientUDP) EmitBatch(batch *jaeger.Batch) error {
+func (a *AgentClientUDP) EmitBatch(ctx context.Context, batch *jaeger.Batch) error {
 	a.thriftBuffer.Reset()
-	a.client.SeqId = 0 // we have no need for distinct SeqIds for our one-way UDP messages
-	if err := a.client.EmitBatch(batch); err != nil {
+	if err := a.client.EmitBatch(ctx, batch); err != nil {
 		return err
 	}
 	if a.thriftBuffer.Len() > a.maxPacketSize {

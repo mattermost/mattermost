@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func TestGetClusterStatus(t *testing.T) {
@@ -16,13 +16,14 @@ func TestGetClusterStatus(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("as system user", func(t *testing.T) {
-		_, resp := th.Client.GetClusterStatus()
+		_, resp, err := th.Client.GetClusterStatus()
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
-		infos, resp := th.SystemAdminClient.GetClusterStatus()
-		CheckNoError(t, resp)
+		infos, _, err := th.SystemAdminClient.GetClusterStatus()
+		require.NoError(t, err)
 
 		require.NotNil(t, infos, "cluster status should not be nil")
 	})
@@ -30,7 +31,8 @@ func TestGetClusterStatus(t *testing.T) {
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		_, resp := th.SystemAdminClient.GetClusterStatus()
+		_, resp, err := th.SystemAdminClient.GetClusterStatus()
+		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 }

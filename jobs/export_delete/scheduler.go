@@ -6,8 +6,8 @@ package export_delete
 import (
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 const (
@@ -28,7 +28,7 @@ func (scheduler *Scheduler) Name() string {
 }
 
 func (scheduler *Scheduler) JobType() string {
-	return model.JOB_TYPE_EXPORT_DELETE
+	return model.JobTypeExportDelete
 }
 
 func (scheduler *Scheduler) Enabled(cfg *model.Config) bool {
@@ -43,7 +43,7 @@ func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, p
 func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
 	data := map[string]string{}
 
-	job, err := scheduler.app.Srv().Jobs.CreateJob(model.JOB_TYPE_EXPORT_DELETE, data)
+	job, err := scheduler.app.Srv().Jobs.CreateJob(model.JobTypeExportDelete, data)
 	if err != nil {
 		return nil, err
 	}

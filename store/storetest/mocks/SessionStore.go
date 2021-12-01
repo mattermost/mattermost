@@ -7,7 +7,7 @@ package mocks
 import (
 	context "context"
 
-	model "github.com/mattermost/mattermost-server/v5/model"
+	model "github.com/mattermost/mattermost-server/v6/model"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -38,8 +38,17 @@ func (_m *SessionStore) AnalyticsSessionCount() (int64, error) {
 }
 
 // Cleanup provides a mock function with given fields: expiryTime, batchSize
-func (_m *SessionStore) Cleanup(expiryTime int64, batchSize int64) {
-	_m.Called(expiryTime, batchSize)
+func (_m *SessionStore) Cleanup(expiryTime int64, batchSize int64) error {
+	ret := _m.Called(expiryTime, batchSize)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(int64, int64) error); ok {
+		r0 = rf(expiryTime, batchSize)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // Get provides a mock function with given fields: ctx, sessionIDOrToken

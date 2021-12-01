@@ -8,8 +8,8 @@ package gzip
 
 import (
 	"bufio"
+	"compress/gzip"
 	"encoding/binary"
-	"errors"
 	"hash/crc32"
 	"io"
 	"time"
@@ -30,9 +30,9 @@ const (
 
 var (
 	// ErrChecksum is returned when reading GZIP data that has an invalid checksum.
-	ErrChecksum = errors.New("gzip: invalid checksum")
+	ErrChecksum = gzip.ErrChecksum
 	// ErrHeader is returned when reading GZIP data that has an invalid header.
-	ErrHeader = errors.New("gzip: invalid header")
+	ErrHeader = gzip.ErrHeader
 )
 
 var le = binary.LittleEndian
@@ -75,6 +75,7 @@ type Header struct {
 type Reader struct {
 	Header       // valid after NewReader or Reader.Reset
 	r            flate.Reader
+	br           *bufio.Reader
 	decompressor io.ReadCloser
 	digest       uint32 // CRC-32, IEEE polynomial (section 8)
 	size         uint32 // Uncompressed size (section 2.3.1)
@@ -109,7 +110,13 @@ func (z *Reader) Reset(r io.Reader) error {
 	if rr, ok := r.(flate.Reader); ok {
 		z.r = rr
 	} else {
-		z.r = bufio.NewReader(r)
+		// Reuse if we can.
+		if z.br != nil {
+			z.br.Reset(r)
+		} else {
+			z.br = bufio.NewReader(r)
+		}
+		z.r = z.br
 	}
 	z.Header, z.err = z.readHeader()
 	return z.err

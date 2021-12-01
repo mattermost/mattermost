@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,6 +25,7 @@ func TestRetentionPolicyStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetTeams", func(t *testing.T) { testRetentionPolicyStoreGetTeams(t, ss, s) })
 	t.Run("AddTeams", func(t *testing.T) { testRetentionPolicyStoreAddTeams(t, ss, s) })
 	t.Run("RemoveTeams", func(t *testing.T) { testRetentionPolicyStoreRemoveTeams(t, ss, s) })
+	t.Run("RemoveOrphanedRows", func(t *testing.T) { testRetentionPolicyStoreRemoveOrphanedRows(t, ss, s) })
 	t.Run("GetPoliciesForUser", func(t *testing.T) { testRetentionPolicyStoreGetPoliciesForUser(t, ss, s) })
 }
 
@@ -115,7 +116,7 @@ func createChannelsForRetentionPolicy(t *testing.T, ss store.Store, teamId strin
 			TeamId:      teamId,
 			DisplayName: "Channel " + name,
 			Name:        name,
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 		}
 		channel, err := ss.Channel().Save(channel, -1)
 		require.NoError(t, err)
@@ -131,7 +132,7 @@ func createTeamsForRetentionPolicy(t *testing.T, ss store.Store, numTeams int) (
 		team := &model.Team{
 			DisplayName: "Team " + name,
 			Name:        name,
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		}
 		team, err := ss.Team().Save(team)
 		require.NoError(t, err)
@@ -655,4 +656,22 @@ func testRetentionPolicyStoreGetPoliciesForUser(t *testing.T, ss store.Store, s 
 		require.NoError(t, err)
 		require.Equal(t, int64(len(channelIDs)), count)
 	})
+}
+
+func testRetentionPolicyStoreRemoveOrphanedRows(t *testing.T, ss store.Store, s SqlStore) {
+	teamID := createTeamsForRetentionPolicy(t, ss, 1)[0]
+	channelID := createChannelsForRetentionPolicy(t, ss, teamID, 1)[0]
+	policy := saveRetentionPolicyWithTeamAndChannelIds(t, ss, "Policy 1",
+		[]string{teamID}, []string{channelID})
+
+	err := ss.Channel().PermanentDelete(channelID)
+	require.NoError(t, err)
+	err = ss.Team().PermanentDelete(teamID)
+	require.NoError(t, err)
+	_, err = ss.RetentionPolicy().DeleteOrphanedRows(1000)
+	require.NoError(t, err)
+
+	policy.ChannelIDs = make([]string, 0)
+	policy.TeamIDs = make([]string, 0)
+	checkRetentionPolicyLikeThisExists(t, ss, policy)
 }

@@ -288,7 +288,7 @@ func decodeStructValue(d *Decoder, v reflect.Value) error {
 		return err
 	}
 
-	if n == -1 {
+	if n <= 0 {
 		v.Set(reflect.Zero(v.Type()))
 		return nil
 	}

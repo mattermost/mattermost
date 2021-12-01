@@ -17,11 +17,12 @@ func encodeMapValue(e *Encoder, v reflect.Value) error {
 		return err
 	}
 
-	for _, key := range v.MapKeys() {
-		if err := e.EncodeValue(key); err != nil {
+	iter := v.MapRange()
+	for iter.Next() {
+		if err := e.EncodeValue(iter.Key()); err != nil {
 			return err
 		}
-		if err := e.EncodeValue(v.MapIndex(key)); err != nil {
+		if err := e.EncodeValue(iter.Value()); err != nil {
 			return err
 		}
 	}
@@ -147,7 +148,7 @@ func encodeStructValue(e *Encoder, strct reflect.Value) error {
 	if e.flags&arrayEncodedStructsFlag != 0 || structFields.AsArray {
 		return encodeStructValueAsArray(e, strct, structFields.List)
 	}
-	fields := structFields.OmitEmpty(strct)
+	fields := structFields.OmitEmpty(strct, e.flags&omitEmptyFlag != 0)
 
 	if err := e.EncodeMapLen(len(fields)); err != nil {
 		return err

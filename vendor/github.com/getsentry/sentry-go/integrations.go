@@ -170,8 +170,7 @@ func getIgnoreErrorsSuspects(event *Event) []string {
 	}
 
 	for _, ex := range event.Exception {
-		suspects = append(suspects, ex.Type)
-		suspects = append(suspects, ex.Value)
+		suspects = append(suspects, ex.Type, ex.Value)
 	}
 
 	return suspects

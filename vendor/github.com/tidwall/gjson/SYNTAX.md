@@ -77,13 +77,20 @@ Special purpose characters, such as `.`, `*`, and `?` can be escaped with `\`.
 fav\.movie             "Deer Hunter"
 ```
 
-You'll also need to make sure that the `\` character is correctly escaped when hardcoding a path in source code.
+You'll also need to make sure that the `\` character is correctly escaped when hardcoding a path in you source code.
 
 ```go
-res := gjson.Get(json, "fav\\.movie")  // must escape the slash
-res := gjson.Get(json, `fav\.movie`)   // no need to escape the slash 
-
+// Go
+val := gjson.Get(json, "fav\\.movie")  // must escape the slash
+val := gjson.Get(json, `fav\.movie`)   // no need to escape the slash 
 ```
+
+```rust
+// Rust
+let val = gjson::get(json, "fav\\.movie")     // must escape the slash
+let val = gjson::get(json, r#"fav\.movie"#)   // no need to escape the slash 
+```
+
 
 ### Arrays
 
@@ -127,6 +134,37 @@ friends.#(nets.#(=="fb"))#.first  >> ["Dale","Roger"]
 changed in v1.3.0 as to avoid confusion with the new [multipath](#multipaths) 
 syntax. For backwards compatibility, `#[...]` will continue to work until the
 next major release.*
+
+The `~` (tilde) operator will convert a value to a boolean before comparison.
+
+For example, using the following JSON:
+
+```json
+{
+  "vals": [
+    { "a": 1, "b": true },
+    { "a": 2, "b": true },
+    { "a": 3, "b": false },
+    { "a": 4, "b": "0" },
+    { "a": 5, "b": 0 },
+    { "a": 6, "b": "1" },
+    { "a": 7, "b": 1 },
+    { "a": 8, "b": "true" },
+    { "a": 9, "b": false },
+    { "a": 10, "b": null },
+    { "a": 11 }
+  ]
+}
+```
+
+You can now query for all true(ish) or false(ish) values:
+
+```
+vals.#(b==~true)#.a    >> [1,2,6,7,8]
+vals.#(b==~false)#.a   >> [3,4,5,9,10,11]
+```
+
+The last value which was non-existent is treated as `false`
 
 ### Dot vs Pipe
 
@@ -198,6 +236,8 @@ There are currently the following built-in modifiers:
 - `@valid`: Ensure the json document is valid.
 - `@flatten`: Flattens an array.
 - `@join`: Joins multiple objects into a single object.
+- `@keys`: Returns an array of keys for an object.
+- `@values`: Returns an array of values for an object.
 
 #### Modifier arguments
 
@@ -248,11 +288,13 @@ gjson.AddModifier("case", func(json, arg string) string {
 "children.@case:lower.@reverse"    ["jack","alex","sara"]
 ```
 
+*Note: Custom modifiers are not yet available in the Rust version*
+
 ### Multipaths
 
 Starting with v1.3.0, GJSON added the ability to join multiple paths together
-to form new documents. Wrapping comma-separated paths between `{...}` or 
-`[...]` will result in a new array or object, respectively.
+to form new documents. Wrapping comma-separated paths between `[...]` or
+`{...}` will result in a new array or object, respectively.
 
 For example, using the given multipath 
 

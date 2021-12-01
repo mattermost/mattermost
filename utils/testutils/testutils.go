@@ -14,7 +14,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/utils"
+
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 func ReadTestFile(name string) ([]byte, error) {
@@ -71,4 +73,8 @@ func GetInterface(port int) string {
 		return ""
 	}
 	return string(out)
+}
+
+func ResetLicenseValidator() {
+	utils.LicenseValidator = &utils.LicenseValidatorImpl{}
 }

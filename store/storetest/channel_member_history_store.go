@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func TestChannelMemberHistoryStore(t *testing.T, ss store.Store) {
@@ -21,6 +21,7 @@ func TestChannelMemberHistoryStore(t *testing.T, ss store.Store) {
 	t.Run("TestGetUsersInChannelAtChannelMemberHistory", func(t *testing.T) { testGetUsersInChannelAtChannelMemberHistory(t, ss) })
 	t.Run("TestGetUsersInChannelAtChannelMembers", func(t *testing.T) { testGetUsersInChannelAtChannelMembers(t, ss) })
 	t.Run("TestPermanentDeleteBatch", func(t *testing.T) { testPermanentDeleteBatch(t, ss) })
+	t.Run("TestPermanentDeleteBatchForRetentionPolicies", func(t *testing.T) { testPermanentDeleteBatchForRetentionPolicies(t, ss) })
 }
 
 func testLogJoinEvent(t *testing.T, ss store.Store) {
@@ -29,7 +30,7 @@ func testLogJoinEvent(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel, err := ss.Channel().Save(&ch, -1)
 	require.NoError(t, err)
@@ -55,7 +56,7 @@ func testLogLeaveEvent(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel, err := ss.Channel().Save(&ch, -1)
 	require.NoError(t, err)
@@ -84,7 +85,7 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel, err := ss.Channel().Save(ch, -1)
 	require.NoError(t, err)
@@ -180,7 +181,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel, err := ss.Channel().Save(channel, -1)
 	require.NoError(t, err)
@@ -199,7 +200,8 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 	var tableDataTruncated = false
 	for !tableDataTruncated {
 		var count int64
-		count, err = ss.ChannelMemberHistory().PermanentDeleteBatch(model.GetMillis(), 1000)
+		count, _, err = ss.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
+			0, model.GetMillis(), 1000, model.RetentionPolicyCursor{})
 		require.NoError(t, err, "Failed to truncate ChannelMemberHistory contents")
 		tableDataTruncated = count == int64(0)
 	}
@@ -291,7 +293,7 @@ func testPermanentDeleteBatch(t *testing.T, ss store.Store) {
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
 		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}
 	channel, err := ss.Channel().Save(channel, -1)
 	require.NoError(t, err)
@@ -333,7 +335,8 @@ func testPermanentDeleteBatch(t *testing.T, ss store.Store) {
 	assert.Len(t, channelMembers, 2)
 
 	// the permanent delete should delete at least one record
-	rowsDeleted, err := ss.ChannelMemberHistory().PermanentDeleteBatch(leaveTime, math.MaxInt64)
+	rowsDeleted, _, err := ss.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
+		0, leaveTime+1, math.MaxInt64, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 	assert.NotEqual(t, int64(0), rowsDeleted)
 
@@ -342,4 +345,47 @@ func testPermanentDeleteBatch(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, user2.Id, channelMembers[0].UserId)
+}
+
+func testPermanentDeleteBatchForRetentionPolicies(t *testing.T, ss store.Store) {
+	const limit = 1000
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName: "DisplayName",
+		Name:        "team" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+	channel, err := ss.Channel().Save(&model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "DisplayName",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+	userID := model.NewId()
+
+	joinTime := int64(1000)
+	leaveTime := int64(1500)
+	err = ss.ChannelMemberHistory().LogJoinEvent(userID, channel.Id, joinTime)
+	require.NoError(t, err)
+	err = ss.ChannelMemberHistory().LogLeaveEvent(userID, channel.Id, leaveTime)
+	require.NoError(t, err)
+
+	channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
+		RetentionPolicy: model.RetentionPolicy{
+			DisplayName:  "DisplayName",
+			PostDuration: model.NewInt64(30),
+		},
+		ChannelIDs: []string{channel.Id},
+	})
+	require.NoError(t, err)
+
+	nowMillis := leaveTime + *channelPolicy.PostDuration*24*60*60*1000 + 1
+	_, _, err = ss.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
+		nowMillis, 0, limit, model.RetentionPolicyCursor{})
+	require.NoError(t, err)
+	result, err := ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime, leaveTime, channel.Id)
+	require.NoError(t, err)
+	require.Empty(t, result, "history should have been deleted by channel policy")
 }

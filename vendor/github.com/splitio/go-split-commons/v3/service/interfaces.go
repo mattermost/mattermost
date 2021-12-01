@@ -25,11 +25,10 @@ type ImpressionsRecorder interface {
 	RecordImpressionsCount(pf dtos.ImpressionsCountDTO, metadata dtos.Metadata) error
 }
 
-// MetricsRecorder interface to be implemented by Metrics loggers
-type MetricsRecorder interface {
-	RecordLatencies(latencies []dtos.LatenciesDTO, metadata dtos.Metadata) error
-	RecordCounters(counters []dtos.CounterDTO, metadata dtos.Metadata) error
-	RecordGauge(gauge dtos.GaugeDTO, metadata dtos.Metadata) error
+// TelemetryRecorder interface to be implemented by Telemetry loggers
+type TelemetryRecorder interface {
+	RecordConfig(config dtos.Config, metadata dtos.Metadata) error
+	RecordStats(stats dtos.Stats, metadata dtos.Metadata) error
 }
 
 // EventsRecorder interface to post events

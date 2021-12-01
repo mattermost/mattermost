@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"strings"
 	"sync"
@@ -13,18 +14,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPostToJson(t *testing.T) {
+func TestPostToJSON(t *testing.T) {
 	o := Post{Id: NewId(), Message: NewId()}
-	j := o.ToJson()
-	ro := PostFromJson(strings.NewReader(j))
-
-	assert.NotNil(t, ro)
+	j, err := o.ToJSON()
+	assert.NoError(t, err)
+	var ro Post
+	err = json.Unmarshal([]byte(j), &ro)
+	assert.NoError(t, err)
 	assert.Equal(t, &o, ro.Clone())
-}
-
-func TestPostFromJsonError(t *testing.T) {
-	ro := PostFromJson(strings.NewReader(""))
-	assert.Nil(t, ro)
 }
 
 func TestPostIsValid(t *testing.T) {
@@ -56,16 +53,7 @@ func TestPostIsValid(t *testing.T) {
 	require.NotNil(t, err)
 
 	o.RootId = ""
-	o.ParentId = "123"
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
 
-	o.ParentId = NewId()
-	o.RootId = ""
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
-
-	o.ParentId = ""
 	o.Message = strings.Repeat("0", maxPostSize+1)
 	err = o.IsValid(maxPostSize)
 	require.NotNil(t, err)
@@ -81,7 +69,7 @@ func TestPostIsValid(t *testing.T) {
 	err = o.IsValid(maxPostSize)
 	require.NotNil(t, err)
 
-	o.Type = POST_CUSTOM_TYPE_PREFIX + "type"
+	o.Type = PostCustomTypePrefix + "type"
 	err = o.IsValid(maxPostSize)
 	require.Nil(t, err)
 }
@@ -107,7 +95,7 @@ func TestPostIsSystemMessage(t *testing.T) {
 
 	require.False(t, post1.IsSystemMessage())
 
-	post2 := Post{Message: "test_2", Type: POST_JOIN_LEAVE}
+	post2 := Post{Message: "test_2", Type: PostTypeJoinLeave}
 	post2.PreSave()
 
 	require.True(t, post2.IsSystemMessage())
@@ -125,30 +113,30 @@ func TestPostSanitizeProps(t *testing.T) {
 
 	post1.SanitizeProps()
 
-	require.Nil(t, post1.GetProp(PROPS_ADD_CHANNEL_MEMBER))
+	require.Nil(t, post1.GetProp(PropsAddChannelMember))
 
 	post2 := &Post{
 		Message: "test",
 		Props: StringInterface{
-			PROPS_ADD_CHANNEL_MEMBER: "test",
+			PropsAddChannelMember: "test",
 		},
 	}
 
 	post2.SanitizeProps()
 
-	require.Nil(t, post2.GetProp(PROPS_ADD_CHANNEL_MEMBER))
+	require.Nil(t, post2.GetProp(PropsAddChannelMember))
 
 	post3 := &Post{
 		Message: "test",
 		Props: StringInterface{
-			PROPS_ADD_CHANNEL_MEMBER: "no good",
-			"attachments":            "good",
+			PropsAddChannelMember: "no good",
+			"attachments":         "good",
 		},
 	}
 
 	post3.SanitizeProps()
 
-	require.Nil(t, post3.GetProp(PROPS_ADD_CHANNEL_MEMBER))
+	require.Nil(t, post3.GetProp(PropsAddChannelMember))
 
 	require.NotNil(t, post3.GetProp("attachments"))
 }
@@ -778,21 +766,21 @@ func TestPostDisableMentionHighlights(t *testing.T) {
 			"",
 		},
 		{
-			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED and returns mention",
+			"Sets PostPropsMentionHighlightDisabled and returns mention",
 			"Sample message with @here",
-			StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+			StringInterface{PostPropsMentionHighlightDisabled: true},
 			"@here",
 		},
 		{
-			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED and returns mention",
+			"Sets PostPropsMentionHighlightDisabled and returns mention",
 			"Sample message with @channel",
-			StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+			StringInterface{PostPropsMentionHighlightDisabled: true},
 			"@channel",
 		},
 		{
-			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED and returns mention",
+			"Sets PostPropsMentionHighlightDisabled and returns mention",
 			"Sample message with @all",
-			StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+			StringInterface{PostPropsMentionHighlightDisabled: true},
 			"@all",
 		},
 	}
@@ -821,19 +809,19 @@ func TestPostPatchDisableMentionHighlights(t *testing.T) {
 			nil,
 		},
 		{
-			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED",
+			"Sets PostPropsMentionHighlightDisabled",
 			"Sample message with @here",
-			&StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+			&StringInterface{PostPropsMentionHighlightDisabled: true},
 		},
 		{
-			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED",
+			"Sets PostPropsMentionHighlightDisabled",
 			"Sample message with @channel",
-			&StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+			&StringInterface{PostPropsMentionHighlightDisabled: true},
 		},
 		{
-			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED",
+			"Sets PostPropsMentionHighlightDisabled",
 			"Sample message with @all",
-			&StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+			&StringInterface{PostPropsMentionHighlightDisabled: true},
 		},
 	}
 	for _, tc := range testCases {
@@ -855,34 +843,6 @@ func TestPostPatchDisableMentionHighlights(t *testing.T) {
 		patch.DisableMentionHighlights()
 		// Useless assertion to prevent compiler elision.
 		assert.Nil(t, patch.Message)
-	})
-}
-
-func TestSearchParameterFromJson(t *testing.T) {
-	t.Run("empty input", func(t *testing.T) {
-		params, err := SearchParameterFromJson(strings.NewReader(""))
-		require.Nil(t, params)
-		require.Error(t, err)
-	})
-
-	t.Run("invalid json", func(t *testing.T) {
-		params, err := SearchParameterFromJson(strings.NewReader("invalid"))
-		require.Nil(t, params)
-		require.Error(t, err)
-	})
-
-	t.Run("valid empty input", func(t *testing.T) {
-		params, err := SearchParameterFromJson(strings.NewReader("{}"))
-		require.NoError(t, err)
-		require.NotNil(t, params)
-		require.Equal(t, &SearchParameter{}, params)
-	})
-
-	t.Run("valid non-empty input", func(t *testing.T) {
-		params, err := SearchParameterFromJson(strings.NewReader("{\"terms\": \"test\"}"))
-		require.NoError(t, err)
-		require.NotNil(t, params)
-		require.Equal(t, "test", *params.Terms)
 	})
 }
 
@@ -928,5 +888,21 @@ func TestPostAttachments(t *testing.T) {
 		require.Len(t, attachments[0].Actions, 2)
 		require.Equal(t, attachments[0].Actions[0].Id, "test1")
 		require.Equal(t, attachments[0].Actions[1].Id, "test2")
+	})
+
+	t.Run("nil fields", func(t *testing.T) {
+		p.Props["attachments"] = []interface{}{
+			map[string]interface{}{"fields": []interface{}{
+				map[string]interface{}{"value": ":emoji1:"},
+				nil,
+				map[string]interface{}{"value": ":emoji2:"},
+			},
+			},
+		}
+
+		attachments := p.Attachments()
+		require.Len(t, attachments[0].Fields, 2)
+		assert.Equal(t, attachments[0].Fields[0].Value, ":emoji1:")
+		assert.Equal(t, attachments[0].Fields[1].Value, ":emoji2:")
 	})
 }

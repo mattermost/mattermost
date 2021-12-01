@@ -6,12 +6,12 @@ package commands
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/i18n"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func initDBCommandContextCobra(command *cobra.Command, readOnlyConfigStore bool) (*app.App, error) {
@@ -42,14 +42,15 @@ func initDBCommandContext(configDSN string, readOnlyConfigStore bool) (*app.App,
 	model.AppErrorInit(i18n.T)
 
 	s, err := app.NewServer(
-		app.Config(configDSN, false, readOnlyConfigStore, nil),
+		app.Config(configDSN, readOnlyConfigStore, nil),
 		app.StartSearchEngine,
+		app.StartMetrics,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	a := app.New(app.ServerConnector(s))
+	a := app.New(app.ServerConnector(s.Channels()))
 
 	if model.BuildEnterpriseReady == "true" {
 		a.Srv().LoadLicense()

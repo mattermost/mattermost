@@ -16,6 +16,13 @@ func New(args ...string) Goose {
 	}
 }
 
+// NewWithConfig returns a new instance of the article extractor with configuration
+func NewWithConfig(config Configuration) Goose {
+	return Goose{
+		config,
+	}
+}
+
 // ExtractFromURL follows the URL, fetches the HTML page and returns an article object
 func (g Goose) ExtractFromURL(url string) (*Article, error) {
 	HtmlRequester := NewHtmlRequester(g.config)

@@ -16,8 +16,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/httpservice"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/httpservice"
 )
 
 func TestCreateIncomingWebhookForChannel(t *testing.T) {
@@ -300,14 +300,14 @@ func TestCreateWebhookPost(t *testing.T) {
 			},
 		},
 		"webhook_display_name": hook.DisplayName,
-	}, model.POST_SLACK_ATTACHMENT, "")
+	}, model.PostTypeSlackAttachment, "")
 	require.Nil(t, err)
 
 	assert.Contains(t, post.GetProps(), "from_webhook", "missing from_webhook prop")
 	assert.Contains(t, post.GetProps(), "attachments", "missing attachments prop")
 	assert.Contains(t, post.GetProps(), "webhook_display_name", "missing webhook_display_name prop")
 
-	_, err = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "", nil, model.POST_SYSTEM_GENERIC, "")
+	_, err = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "", nil, model.PostTypeSystemGeneric, "")
 	require.NotNil(t, err, "Should have failed - bad post type")
 
 	expectedText := "`<>|<>|`"
@@ -318,7 +318,7 @@ func TestCreateWebhookPost(t *testing.T) {
 			},
 		},
 		"webhook_display_name": hook.DisplayName,
-	}, model.POST_SLACK_ATTACHMENT, "")
+	}, model.PostTypeSlackAttachment, "")
 	require.Nil(t, err)
 	assert.Equal(t, expectedText, post.Message)
 
@@ -330,7 +330,7 @@ func TestCreateWebhookPost(t *testing.T) {
 			},
 		},
 		"webhook_display_name": hook.DisplayName,
-	}, model.POST_SLACK_ATTACHMENT, "")
+	}, model.PostTypeSlackAttachment, "")
 	require.Nil(t, err)
 	assert.Equal(t, expectedText, post.Message)
 
@@ -358,7 +358,7 @@ Date:   Thu Mar 1 19:46:48 2018 +0300
 			},
 		},
 		"webhook_display_name": hook.DisplayName,
-	}, model.POST_SLACK_ATTACHMENT, "")
+	}, model.PostTypeSlackAttachment, "")
 	require.Nil(t, err)
 	assert.Equal(t, expectedText, post.Message)
 }
@@ -397,7 +397,7 @@ func TestSplitWebhookPost(t *testing.T) {
 							Text: strings.Repeat("本", 2000),
 						},
 						{
-							Text: strings.Repeat("本", model.POST_PROPS_MAX_USER_RUNES-1000),
+							Text: strings.Repeat("本", model.PostPropsMaxUserRunes-1000),
 						},
 					},
 				},
@@ -423,7 +423,7 @@ func TestSplitWebhookPost(t *testing.T) {
 					Props: map[string]interface{}{
 						"attachments": []*model.SlackAttachment{
 							{
-								Text: strings.Repeat("本", model.POST_PROPS_MAX_USER_RUNES-1000),
+								Text: strings.Repeat("本", model.PostPropsMaxUserRunes-1000),
 							},
 						},
 					},
@@ -434,7 +434,7 @@ func TestSplitWebhookPost(t *testing.T) {
 			Post: &model.Post{
 				Message: "foo",
 				Props: map[string]interface{}{
-					"foo": strings.Repeat("x", model.POST_PROPS_MAX_USER_RUNES*2),
+					"foo": strings.Repeat("x", model.PostPropsMaxUserRunes*2),
 				},
 			},
 		},
@@ -491,29 +491,28 @@ func TestSplitWebhookPostAttachments(t *testing.T) {
 		},
 		{
 			name: "split into 2",
-			post: makePost(maxPostSize-1, []int{model.POST_PROPS_MAX_USER_RUNES * 3 / 4, model.POST_PROPS_MAX_USER_RUNES * 1 / 4}),
+			post: makePost(maxPostSize-1, []int{model.PostPropsMaxUserRunes * 3 / 4, model.PostPropsMaxUserRunes * 1 / 4}),
 			expected: []*model.Post{
-				makePost(maxPostSize-1, []int{model.POST_PROPS_MAX_USER_RUNES * 3 / 4}),
-				makePost(0, []int{model.POST_PROPS_MAX_USER_RUNES * 1 / 4}),
+				makePost(maxPostSize-1, []int{model.PostPropsMaxUserRunes * 3 / 4}),
+				makePost(0, []int{model.PostPropsMaxUserRunes * 1 / 4}),
 			},
 		},
 		{
 			name: "split into 3",
-			post: makePost(maxPostSize*3/2, []int{1000, 2000, model.POST_PROPS_MAX_USER_RUNES - 1000}),
+			post: makePost(maxPostSize*3/2, []int{1000, 2000, model.PostPropsMaxUserRunes - 1000}),
 			expected: []*model.Post{
 				makePost(maxPostSize, nil),
 				makePost(maxPostSize/2, []int{1000, 2000}),
-				makePost(0, []int{model.POST_PROPS_MAX_USER_RUNES - 1000}),
+				makePost(0, []int{model.PostPropsMaxUserRunes - 1000}),
 			},
 		},
 		{
 			name: "MM-24644 split into 3",
-			post: makePost(maxPostSize*3/2, []int{5150, 2000, model.POST_PROPS_MAX_USER_RUNES - 1000}),
+			post: makePost(maxPostSize*3/2, []int{5150, 2000, model.PostPropsMaxUserRunes - 1000}),
 			expected: []*model.Post{
 				makePost(maxPostSize, nil),
-				makePost(maxPostSize/2, []int{5150}),
-				makePost(0, []int{2000}),
-				makePost(0, []int{model.POST_PROPS_MAX_USER_RUNES - 1000}),
+				makePost(maxPostSize/2, []int{5150, 2000}),
+				makePost(0, []int{model.PostPropsMaxUserRunes - 1000}),
 			},
 		},
 	}
@@ -611,11 +610,11 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 		WebhookResponse            *model.OutgoingWebhookResponse
 	}
 
-	createOutgoingWebhook := func(channel *model.Channel, testCallBackUrl string, th *TestHelper) (*model.OutgoingWebhook, *model.AppError) {
+	createOutgoingWebhook := func(channel *model.Channel, testCallBackURL string, th *TestHelper) (*model.OutgoingWebhook, *model.AppError) {
 		outgoingWebhook := model.OutgoingWebhook{
 			ChannelId:    channel.Id,
 			TeamId:       channel.TeamId,
-			CallbackURLs: []string{testCallBackUrl},
+			CallbackURLs: []string{testCallBackURL},
 			Username:     "some-user-name",
 			IconURL:      "http://some-icon/",
 			DisplayName:  "some-display-name",
@@ -673,7 +672,9 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if testCase.WebhookResponse != nil {
-					w.Write([]byte(testCase.WebhookResponse.ToJson()))
+					js, jsonErr := json.Marshal(testCase.WebhookResponse)
+					require.NoError(t, jsonErr)
+					w.Write(js)
 				} else {
 					w.Write([]byte(`{"text": "sample response text from test server"}`))
 				}
@@ -755,7 +756,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
 		require.Error(t, err)
-		require.IsType(t, &json.SyntaxError{}, err)
+		require.Equal(t, "api.unmarshal_error", err.(*model.AppError).Id)
 	})
 
 	t.Run("with a large, valid response", func(t *testing.T) {
@@ -766,7 +767,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
 		require.Error(t, err)
-		require.Equal(t, io.ErrUnexpectedEOF, err)
+		require.Equal(t, "api.unmarshal_error", err.(*model.AppError).Id)
 	})
 
 	t.Run("with a large, invalid response", func(t *testing.T) {
@@ -777,7 +778,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
 		require.Error(t, err)
-		require.IsType(t, &json.SyntaxError{}, err)
+		require.Equal(t, "api.unmarshal_error", err.(*model.AppError).Id)
 	})
 
 	t.Run("with a slow response", func(t *testing.T) {

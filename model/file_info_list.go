@@ -4,8 +4,6 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
 	"sort"
 )
 
@@ -31,15 +29,6 @@ func (o *FileInfoList) ToSlice() []*FileInfo {
 		fileInfos = append(fileInfos, o.FileInfos[id])
 	}
 	return fileInfos
-}
-
-func (o *FileInfoList) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
 }
 
 func (o *FileInfoList) MakeNonNil() {
@@ -119,10 +108,4 @@ func (o *FileInfoList) Etag() string {
 	}
 
 	return Etag(orderId, id, t)
-}
-
-func FileInfoListFromJson(data io.Reader) *FileInfoList {
-	var o *FileInfoList
-	json.NewDecoder(data).Decode(&o)
-	return o
 }

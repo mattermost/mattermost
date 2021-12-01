@@ -318,7 +318,7 @@ func (scope *Scope) Clone() *Scope {
 	clone.transaction = scope.transaction
 	clone.request = scope.request
 	clone.requestBody = scope.requestBody
-
+	clone.eventProcessors = scope.eventProcessors
 	return clone
 }
 
