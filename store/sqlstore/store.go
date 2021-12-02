@@ -1444,9 +1444,9 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	var driver drivers.Driver
 	switch ss.DriverName() {
 	case model.DatabaseDriverMysql:
-		dataSource, err := ss.appendMultipleStatementsFlag(*ss.settings.DataSource)
-		if err != nil {
-			return err
+		dataSource, err2 := ss.appendMultipleStatementsFlag(*ss.settings.DataSource)
+		if err2 != nil {
+			return err2
 		}
 		db := setupConnection("master", dataSource, ss.settings)
 		driver, err = ms.WithInstance(db, &ms.Config{
