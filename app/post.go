@@ -1670,3 +1670,18 @@ func (a *App) GetPostIfAuthorized(postID string, session *model.Session) (*model
 
 	return post, nil
 }
+
+func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, *model.AppError) {
+	posts, err := a.Srv().Store.Post().GetPostsByIds(postIDs)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetPostsByIds", "app.post.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetPostsByIds", "app.post.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return posts, nil
+}
