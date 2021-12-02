@@ -159,7 +159,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 		mlog.Fatal("Error while checking DB version.", mlog.Err(err))
 	}
 
-	err = store.migrate(migrationsDirectionUp, *settings.MigrationsStatementTimeoutSeconds)
+	err = store.migrate(migrationsDirectionUp)
 	if err != nil {
 		mlog.Fatal("Failed to apply database migrations.", mlog.Err(err))
 	}
@@ -317,14 +317,6 @@ func (ss *SqlStore) initConnection() {
 		if err != nil {
 			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(err), mlog.String("src", dataSource))
 		}
-	}
-
-	// When WithInstance is used in migration, the underlying driver connections are not tracked.
-	// So we will have to open a fresh connection for migrations and explicitly close it when all is done.
-	var err error
-	dataSource, err = ss.appendMultipleStatementsFlag(dataSource)
-	if err != nil {
-		panic(err)
 	}
 
 	handle := setupConnection("master", dataSource, ss.settings)
@@ -1427,7 +1419,7 @@ func (ss *SqlStore) GetLicense() *model.License {
 	return ss.license
 }
 
-func (ss *SqlStore) migrate(direction migrationDirection, timeout int) error {
+func (ss *SqlStore) migrate(direction migrationDirection) error {
 	// we need to compute missing migrations (if any) and manually save unnecessary migrations
 	// to the db_migrations table. So that previous migrations won't get applied
 
@@ -1449,21 +1441,21 @@ func (ss *SqlStore) migrate(direction migrationDirection, timeout int) error {
 	}
 	defer src.Close()
 
-	db := ss.GetMasterX().DB.DB
-	if db == nil {
-		return fmt.Errorf("db instance is nil")
-	}
-
 	var driver drivers.Driver
-
 	switch ss.DriverName() {
 	case model.DatabaseDriverMysql:
+		dataSource, err := ss.appendMultipleStatementsFlag(*ss.settings.DataSource)
+		if err != nil {
+			return err
+		}
+		db := setupConnection("master", dataSource, ss.settings)
 		driver, err = ms.WithInstance(db, &ms.Config{
-			StatementTimeoutInSecs: timeout,
+			StatementTimeoutInSecs: *ss.settings.MigrationsStatementTimeoutSeconds,
 		})
+		defer db.Close()
 	case model.DatabaseDriverPostgres:
-		driver, err = ps.WithInstance(db, &ps.Config{
-			StatementTimeoutInSecs: timeout,
+		driver, err = ps.WithInstance(ss.GetMasterX().DB.DB, &ps.Config{
+			StatementTimeoutInSecs: *ss.settings.MigrationsStatementTimeoutSeconds,
 		})
 	default:
 		err = fmt.Errorf("unsupported database type %s for migration", ss.DriverName())

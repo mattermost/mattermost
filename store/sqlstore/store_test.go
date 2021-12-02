@@ -493,7 +493,7 @@ func TestUpAndDownMigrations(t *testing.T) {
 			store := New(*settings, nil)
 			defer store.Close()
 
-			err := store.migrate(migrationsDirectionDown, 10)
+			err := store.migrate(migrationsDirectionDown)
 			assert.NoError(t, err, "downing migrations should not error")
 		})
 	}
