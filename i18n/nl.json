@@ -9301,5 +9301,13 @@
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
     "translation": "Het is niet gelukt om de aangepaste status bij te werken. Voeg een emoji of een aangepaste tekststatus of beide toe."
+  },
+  {
+    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
+    "translation": "Kan geen berichten ophalen voor een gearchiveerd kanaal"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
+    "translation": "Kan geen berichten ophalen voor een gearchiveerd kanaal"
   }
 ]
