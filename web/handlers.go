@@ -100,26 +100,28 @@ func generateDevCSP(c Context) string {
 	}
 
 	// Add supported flags for debugging during development, even if not on a dev build.
-	for _, devFlagKVStr := range strings.Split(*c.App.Config().ServiceSettings.DeveloperFlags, ",") {
-		devFlagKVSplit := strings.SplitN(devFlagKVStr, "=", 2)
-		if len(devFlagKVSplit) != 2 {
-			c.Logger.Warn("Unable to parse developer flag", mlog.String("developer_flag", devFlagKVStr))
-			continue
-		}
-		devFlagKey := devFlagKVSplit[0]
-		devFlagValue := devFlagKVSplit[1]
+	if *c.App.Config().ServiceSettings.DeveloperFlags != "" {
+		for _, devFlagKVStr := range strings.Split(*c.App.Config().ServiceSettings.DeveloperFlags, ",") {
+			devFlagKVSplit := strings.SplitN(devFlagKVStr, "=", 2)
+			if len(devFlagKVSplit) != 2 {
+				c.Logger.Warn("Unable to parse developer flag", mlog.String("developer_flag", devFlagKVStr))
+				continue
+			}
+			devFlagKey := devFlagKVSplit[0]
+			devFlagValue := devFlagKVSplit[1]
 
-		// Ignore disabled keys
-		if devFlagValue != "true" {
-			continue
-		}
+			// Ignore disabled keys
+			if devFlagValue != "true" {
+				continue
+			}
 
-		// Honour only supported keys
-		switch devFlagKey {
-		case "unsafe-eval", "unsafe-inline":
-			devCSPMap[devFlagKey] = true
-		default:
-			c.Logger.Warn("Unrecognized developer flag", mlog.String("developer_flag", devFlagKVStr))
+			// Honour only supported keys
+			switch devFlagKey {
+			case "unsafe-eval", "unsafe-inline":
+				devCSPMap[devFlagKey] = true
+			default:
+				c.Logger.Warn("Unrecognized developer flag", mlog.String("developer_flag", devFlagKVStr))
+			}
 		}
 	}
 	var devCSP string
