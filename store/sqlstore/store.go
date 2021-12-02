@@ -8,7 +8,6 @@ import (
 	"database/sql"
 	dbsql "database/sql"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -17,13 +16,15 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/go-morph/morph"
+
+	"github.com/go-morph/morph/drivers"
+	ms "github.com/go-morph/morph/drivers/mysql"
+	ps "github.com/go-morph/morph/drivers/postgres"
+
+	mbindata "github.com/go-morph/morph/sources/go_bindata"
 	"github.com/go-sql-driver/mysql"
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database"
-	mysqlmigrate "github.com/golang-migrate/migrate/v4/database/mysql"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	bindata "github.com/golang-migrate/migrate/v4/source/go_bindata"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	_ "github.com/lib/pq"
@@ -158,7 +159,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 		mlog.Fatal("Error while checking DB version.", mlog.Err(err))
 	}
 
-	err = store.migrate(migrationsDirectionUp)
+	err = store.migrate(migrationsDirectionUp, *settings.MigrationsStatementTimeoutSeconds)
 	if err != nil {
 		mlog.Fatal("Failed to apply database migrations.", mlog.Err(err))
 	}
@@ -316,6 +317,14 @@ func (ss *SqlStore) initConnection() {
 		if err != nil {
 			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(err), mlog.String("src", dataSource))
 		}
+	}
+
+	// When WithInstance is used in migration, the underlying driver connections are not tracked.
+	// So we will have to open a fresh connection for migrations and explicitly close it when all is done.
+	var err error
+	dataSource, err = ss.appendMultipleStatementsFlag(dataSource)
+	if err != nil {
+		panic(err)
 	}
 
 	handle := setupConnection("master", dataSource, ss.settings)
@@ -1418,30 +1427,9 @@ func (ss *SqlStore) GetLicense() *model.License {
 	return ss.license
 }
 
-func (ss *SqlStore) migrate(direction migrationDirection) error {
-	var driver database.Driver
-	var err error
-
-	// When WithInstance is used in golang-migrate, the underlying driver connections are not tracked.
-	// So we will have to open a fresh connection for migrations and explicitly close it when all is done.
-	dataSource, err := ss.appendMultipleStatementsFlag(*ss.settings.DataSource)
-	if err != nil {
-		return err
-	}
-	db := setupConnection("migrations", dataSource, ss.settings)
-	defer db.Close()
-
-	if ss.DriverName() == model.DatabaseDriverMysql {
-		driver, err = mysqlmigrate.WithInstance(db, &mysqlmigrate.Config{})
-		if err != nil {
-			return err
-		}
-	} else {
-		driver, err = postgres.WithInstance(db, &postgres.Config{})
-		if err != nil {
-			return err
-		}
-	}
+func (ss *SqlStore) migrate(direction migrationDirection, timeout int) error {
+	// we need to compute missing migrations (if any) and manually save unnecessary migrations
+	// to the db_migrations table. So that previous migrations won't get applied
 
 	var assetNamesForDriver []string
 	for _, assetName := range migrations.AssetNames() {
@@ -1450,39 +1438,53 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 		}
 	}
 
-	source := bindata.Resource(assetNamesForDriver, func(name string) ([]byte, error) {
-		return migrations.Asset(filepath.Join(ss.DriverName(), name))
+	src, err := mbindata.WithInstance(&mbindata.AssetSource{
+		Names: assetNamesForDriver,
+		AssetFunc: func(name string) ([]byte, error) {
+			return migrations.Asset(filepath.Join(ss.DriverName(), name))
+		},
 	})
+	if err != nil {
+		return err
+	}
+	defer src.Close()
 
-	sourceDriver, err := bindata.WithInstance(source)
+	db := ss.GetMasterX().DB.DB
+	if db == nil {
+		return fmt.Errorf("db instance is nil")
+	}
+
+	var driver drivers.Driver
+
+	switch ss.DriverName() {
+	case model.DatabaseDriverMysql:
+		driver, err = ms.WithInstance(db, &ms.Config{
+			StatementTimeoutInSecs: timeout,
+		})
+	case model.DatabaseDriverPostgres:
+		driver, err = ps.WithInstance(db, &ps.Config{
+			StatementTimeoutInSecs: timeout,
+		})
+	default:
+		err = fmt.Errorf("unsupported database type %s for migration", ss.DriverName())
+	}
 	if err != nil {
 		return err
 	}
 
-	migrations, err := migrate.NewWithInstance("go-bindata",
-		sourceDriver,
-		ss.DriverName(),
-		driver)
-
+	engine, err := morph.New(driver, src)
 	if err != nil {
 		return err
 	}
-	defer migrations.Close()
+	defer engine.Close()
 
 	switch direction {
-	case migrationsDirectionUp:
-		err = migrations.Up()
 	case migrationsDirectionDown:
-		err = migrations.Down()
-	default:
-		return errors.New(fmt.Sprintf("unsupported migration direction %s", direction))
-	}
-
-	if err != nil && err != migrate.ErrNoChange && !errors.Is(err, os.ErrNotExist) {
+		_, err = engine.ApplyDown(-1)
 		return err
+	default:
+		return engine.ApplyAll()
 	}
-
-	return nil
 }
 
 func (ss *SqlStore) appendMultipleStatementsFlag(dataSource string) (string, error) {

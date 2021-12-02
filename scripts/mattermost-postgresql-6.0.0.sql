@@ -632,13 +632,11 @@ ALTER TABLE public.roles OWNER TO mmuser;
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: mmuser
 --
 
-CREATE TABLE public.schema_migrations (
-    version bigint NOT NULL,
-    dirty boolean NOT NULL
-);
+CREATE TABLE IF NOT EXISTS public.db_migrations (
+	version bigint NOT NULL PRIMARY KEY,
+	name varchar NOT NULL);
 
-
-ALTER TABLE public.schema_migrations OWNER TO mmuser;
+ALTER TABLE public.db_migrations OWNER TO mmuser;
 
 --
 -- Name: schemes; Type: TABLE; Schema: public; Owner: mmuser

@@ -1177,15 +1177,15 @@ CREATE TABLE `Users` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `schema_migrations`
+-- Table structure for table `db_migrations`
 --
 
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `schema_migrations` (
-  `version` bigint(20) NOT NULL,
-  `dirty` tinyint(1) NOT NULL,
-  PRIMARY KEY (`version`)
+CREATE TABLE `db_migrations` (
+  `Version` bigint(20) NOT NULL,
+  `Name` varchar(64) NOT NULL,
+  PRIMARY KEY (`Version`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

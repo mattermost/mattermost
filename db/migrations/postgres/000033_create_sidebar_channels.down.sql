@@ -13,6 +13,6 @@ BEGIN
     IF col_exist_and_type_different THEN
         ALTER TABLE sidebarchannels ALTER COLUMN categoryid TYPE varchar(26);
     END IF;
-END modify_column_type_if_type_is_different $$
+END modify_column_type_if_type_is_different $$;
 
 DROP TABLE IF EXISTS sidebarchannels;

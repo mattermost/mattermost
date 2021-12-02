@@ -1,5 +1,5 @@
 ALTER TABLE sidebarcategories DROP COLUMN IF EXISTS collapsed;
-ALTER TABLE sidebarcategories DROP COLUMN IF EXISTS muted
+ALTER TABLE sidebarcategories DROP COLUMN IF EXISTS muted;
 
 DO $$
 <<modify_column_type_if_type_is_different>>

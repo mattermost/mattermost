@@ -1,15 +1,13 @@
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'ChannelMembers'
-        AND table_schema = DATABASE()
-        AND column_name = 'Roles'
-        AND column_type != 'varchar(64)'
-    ) > 0,
-    'ALTER TABLE ChannelMembers MODIFY COLUMN Roles varchar(64);',
-    'SELECT 1'
-));
-
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
+DO $$
+DECLARE 
+    column_exist boolean := false;
+BEGIN
+SELECT count(*) != 0 INTO column_exist
+    FROM information_schema.columns
+    WHERE table_name = 'channelmembers'
+    AND column_name = 'roles'
+    AND NOT data_type = 'varchar(64)';
+IF column_exist THEN
+    ALTER TABLE channelmembers ALTER COLUMN roles TYPE varchar(64);
+END IF;
+END $$;

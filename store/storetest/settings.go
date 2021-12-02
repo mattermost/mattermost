@@ -134,23 +134,25 @@ func postgreSQLDSNDatabase(dsn string) string {
 
 func databaseSettings(driver, dataSource string) *model.SqlSettings {
 	settings := &model.SqlSettings{
-		DriverName:                  &driver,
-		DataSource:                  &dataSource,
-		DataSourceReplicas:          []string{},
-		DataSourceSearchReplicas:    []string{},
-		MaxIdleConns:                new(int),
-		ConnMaxLifetimeMilliseconds: new(int),
-		ConnMaxIdleTimeMilliseconds: new(int),
-		MaxOpenConns:                new(int),
-		Trace:                       model.NewBool(false),
-		AtRestEncryptKey:            model.NewString(model.NewRandomString(32)),
-		QueryTimeout:                new(int),
+		DriverName:                        &driver,
+		DataSource:                        &dataSource,
+		DataSourceReplicas:                []string{},
+		DataSourceSearchReplicas:          []string{},
+		MaxIdleConns:                      new(int),
+		ConnMaxLifetimeMilliseconds:       new(int),
+		ConnMaxIdleTimeMilliseconds:       new(int),
+		MaxOpenConns:                      new(int),
+		Trace:                             model.NewBool(false),
+		AtRestEncryptKey:                  model.NewString(model.NewRandomString(32)),
+		QueryTimeout:                      new(int),
+		MigrationsStatementTimeoutSeconds: new(int),
 	}
 	*settings.MaxIdleConns = 10
 	*settings.ConnMaxLifetimeMilliseconds = 3600000
 	*settings.ConnMaxIdleTimeMilliseconds = 300000
 	*settings.MaxOpenConns = 100
 	*settings.QueryTimeout = 60
+	*settings.MigrationsStatementTimeoutSeconds = 10
 
 	return settings
 }
