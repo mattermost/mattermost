@@ -675,6 +675,8 @@ func (s *SqlPostStore) GetEtag(channelId string, allowFromCache, collapsedThread
 	return result
 }
 
+// Soft deletes a post
+// and cleans up the thread if it's a comment
 func (s *SqlPostStore) Delete(postID string, time int64, deleteByID string) error {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
@@ -789,6 +791,10 @@ func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) error {
 	return nil
 }
 
+// Permanently deletes all comments by user,
+// cleans up threads (removes said user from participants and decreases reply count),
+// permanent delete all root posts by user,
+// and delete threads and thread memberships for those root posts
 func (s *SqlPostStore) PermanentDeleteByUser(userId string) error {
 	// First attempt to delete all the comments for a user
 	if err := s.permanentDeleteAllCommentByUser(userId); err != nil {
@@ -825,6 +831,9 @@ func (s *SqlPostStore) PermanentDeleteByUser(userId string) error {
 	return nil
 }
 
+// Permanent deletes all channel root posts and comments,
+// deletes all threads and thread memberships
+// no thread comment cleanup needed, since we are deleting threads and thread memberships
 func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) error {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
@@ -2425,6 +2434,7 @@ func (s *SqlPostStore) GetOldestEntityCreationTime() (int64, error) {
 	return oldest, nil
 }
 
+// Deletes a thread and a thread membership if the postId is a root post
 func (s *SqlPostStore) permanentDeleteThreads(transaction *sqlxTxWrapper, postId string) error {
 	if _, err := transaction.Exec("DELETE FROM Threads WHERE PostId = ?", postId); err != nil {
 		return errors.Wrap(err, "failed to delete Threads")
@@ -2435,6 +2445,10 @@ func (s *SqlPostStore) permanentDeleteThreads(transaction *sqlxTxWrapper, postId
 	return nil
 }
 
+// Thread cleanup upon post deletion
+// if the post is a comment
+// reply count is reduced by 1 and,
+// the user is removed from participants if the comment deleted is the last reply from said user.
 func (s *SqlPostStore) cleanupThreadComments(transaction *sqlxTxWrapper, postId, rootId string, userId string) error {
 	if rootId != "" {
 		queryString, args, err := s.getQueryBuilder().
