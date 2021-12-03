@@ -1256,7 +1256,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "Open the Account Settings dialog"
+    "translation": "Open the Settings dialog"
   },
   {
     "id": "api.command_settings.name",
