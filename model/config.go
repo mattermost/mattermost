@@ -1873,6 +1873,7 @@ type TeamSettings struct {
 	EnableUserDeactivation              *bool    `access:"experimental_features"`
 	RestrictCreationToDomains           *string  `access:"authentication_signup"` // telemetry: none
 	EnableCustomUserStatuses            *bool    `access:"site_users_and_teams"`
+	EnableLastActiveTime                *bool    `access:"site_users_and_teams"`
 	EnableCustomBrand                   *bool    `access:"site_customization"`
 	CustomBrandText                     *string  `access:"site_customization"`
 	CustomDescriptionText               *string  `access:"site_customization"`
@@ -1913,6 +1914,10 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.EnableCustomUserStatuses == nil {
 		s.EnableCustomUserStatuses = NewBool(true)
+	}
+
+	if s.EnableLastActiveTime == nil {
+		s.EnableLastActiveTime = NewBool(true)
 	}
 
 	if s.EnableCustomBrand == nil {
