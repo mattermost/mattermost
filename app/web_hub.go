@@ -465,11 +465,7 @@ func (h *Hub) Start() {
 			case webConn := <-h.unregister:
 				// If already removed (via queue full), then removing again becomes a noop.
 				// But if not removed, mark inactive.
-				if *h.srv.Config().ServiceSettings.EnableReliableWebSockets {
-					webConn.active = false
-				} else {
-					connIndex.Remove(webConn)
-				}
+				webConn.active = false
 
 				atomic.StoreInt64(&h.connectionCount, int64(connIndex.AllActive()))
 
