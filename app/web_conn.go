@@ -181,7 +181,7 @@ func (a *App) NewWebConn(cfg *WebConnConfig) *WebConn {
 		cfg.activeQueue = make(chan model.WebSocketMessage, sendQueueSize)
 	}
 
-	if cfg.deadQueue == nil && *a.ch.srv.Config().ServiceSettings.EnableReliableWebSockets {
+	if cfg.deadQueue == nil {
 		cfg.deadQueue = make([]*model.WebSocketEvent, deadQueueSize)
 	}
 
@@ -375,7 +375,7 @@ func (wc *WebConn) writePump() {
 		wc.WebSocket.Close()
 	}()
 
-	if *wc.App.Srv().Config().ServiceSettings.EnableReliableWebSockets && wc.Sequence != 0 {
+	if wc.Sequence != 0 {
 		if ok, index := wc.isInDeadQueue(wc.Sequence); ok {
 			if err := wc.drainDeadQueue(index); err != nil {
 				wc.logSocketErr("websocket.drainDeadQueue", err)
@@ -472,8 +472,7 @@ func (wc *WebConn) writePump() {
 				mlog.Warn("websocket.full", logData...)
 			}
 
-			if *wc.App.Srv().Config().ServiceSettings.EnableReliableWebSockets &&
-				evtOk {
+			if evtOk {
 				wc.addToDeadQueue(evt)
 			}
 
