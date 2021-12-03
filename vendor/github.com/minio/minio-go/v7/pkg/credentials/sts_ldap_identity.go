@@ -124,7 +124,7 @@ func stripPassword(err error) error {
 // LDAP Identity with a specified session policy. The `policy` parameter must be
 // a JSON string specifying the policy document.
 //
-// DEPRECATED: Use the `LDAPIdentityPolicyOpt` with `NewLDAPIdentity` instead.
+// Deprecated: Use the `LDAPIdentityPolicyOpt` with `NewLDAPIdentity` instead.
 func NewLDAPIdentityWithSessionPolicy(stsEndpoint, ldapUsername, ldapPassword, policy string) (*Credentials, error) {
 	return New(&LDAPIdentity{
 		Client:       &http.Client{Transport: http.DefaultTransport},

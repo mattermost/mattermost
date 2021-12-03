@@ -1978,6 +1978,9 @@ func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
+	if len(posts) == 0 {
+		return nil, store.NewErrNotFound("Post", fmt.Sprintf("postIds=%v", postIds))
+	}
 	return posts, nil
 }
 
@@ -2531,6 +2534,7 @@ func (s *SqlPostStore) GetUniquePostTypesSince(channelId string, timestamp int64
 		Where(sq.And{
 			sq.Eq{"ChannelId": channelId},
 			sq.GtOrEq{"CreateAt": timestamp},
+			sq.Eq{"DeleteAt": 0},
 		}).ToSql()
 	if err != nil {
 		return nil, err

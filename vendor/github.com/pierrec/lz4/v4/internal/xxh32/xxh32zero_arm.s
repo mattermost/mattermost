@@ -1,15 +1,7 @@
 // +build !noasm
 
+#include "go_asm.h"
 #include "textflag.h"
-
-#define prime1		$2654435761
-#define prime2		$2246822519
-#define prime3		$3266489917
-#define prime4		$668265263
-#define prime5		$374761393
-
-#define prime1plus2	$606290984
-#define prime1minus	$1640531535
 
 // Register allocation.
 #define p	R0
@@ -106,12 +98,12 @@ TEXT ·ChecksumZero(SB), NOFRAME|NOSPLIT, $-4-16
 	MOVW input_base+0(FP), p
 	MOVW input_len+4(FP),  n
 
-	MOVW prime1, prime1r
-	MOVW prime2, prime2r
+	MOVW $const_prime1, prime1r
+	MOVW $const_prime2, prime2r
 
 	// Set up h for n < 16. It's tempting to say {ADD prime5, n, h}
 	// here, but that's a pseudo-op that generates a load through R11.
-	MOVW prime5, prime5r
+	MOVW $const_prime5, prime5r
 	ADD  prime5r, n, h
 	CMP  $0, n
 	BEQ  end
@@ -121,10 +113,10 @@ TEXT ·ChecksumZero(SB), NOFRAME|NOSPLIT, $-4-16
 	SUB.S $16, n
 	BMI   loop16done
 
-	MOVW prime1plus2, v1
-	MOVW prime2,      v2
-	MOVW $0,          v3
-	MOVW prime1minus, v4
+	ADD  prime1r, prime2r, v1
+	MOVW prime2r, v2
+	MOVW $0, v3
+	RSB  $0, prime1r, v4
 
 	TST $3, p
 	BNE loop16unaligned
@@ -154,9 +146,9 @@ loop16done:
 	ADD $16, n	// Restore number of bytes left.
 
 	SUB.S $4, n
-	MOVW  prime3, prime3r
+	MOVW  $const_prime3, prime3r
 	BMI   loop4done
-	MOVW  prime4, prime4r
+	MOVW  $const_prime4, prime4r
 
 	TST $3, p
 	BNE loop4unaligned
@@ -193,7 +185,7 @@ loop4done:
 	ADD.S $4, n	// Restore number of bytes left.
 	BEQ   end
 
-	MOVW prime5, prime5r
+	MOVW $const_prime5, prime5r
 
 loop1:
 	SUB.S $1, n
@@ -206,7 +198,7 @@ loop1:
 	BNE loop1
 
 end:
-	MOVW prime3, prime3r
+	MOVW $const_prime3, prime3r
 	EOR  h >> 15, h
 	MUL  prime2r, h
 	EOR  h >> 13, h
@@ -222,8 +214,8 @@ TEXT ·update(SB), NOFRAME|NOSPLIT, $-4-20
 	MOVW    v+0(FP), p
 	MOVM.IA (p), [v1, v2, v3, v4]
 
-	MOVW prime1, prime1r
-	MOVW prime2, prime2r
+	MOVW $const_prime1, prime1r
+	MOVW $const_prime2, prime2r
 
 	// Process buf, if not nil.
 	MOVW buf+4(FP), p
