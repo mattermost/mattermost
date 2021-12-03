@@ -12,14 +12,14 @@ import (
 // WebSocketRequest represents a request made to the server through a websocket.
 type WebSocketRequest struct {
 	// Client-provided fields
-	Seq    int64                  `json:"seq"`    // A counter which is incremented for every request made.
-	Action string                 `json:"action"` // The action to perform for a request. For example: get_statuses, user_typing.
-	Data   map[string]interface{} `json:"data"`   // The metadata for an action.
+	Seq    int64                  `json:"seq" msgpack:"seq"`       // A counter which is incremented for every request made.
+	Action string                 `json:"action" msgpack:"action"` // The action to perform for a request. For example: get_statuses, user_typing.
+	Data   map[string]interface{} `json:"data" msgpack:"data"`     // The metadata for an action.
 
 	// Server-provided fields
-	Session Session            `json:"-"`
-	T       i18n.TranslateFunc `json:"-"`
-	Locale  string             `json:"-"`
+	Session Session            `json:"-" msgpack:"-"`
+	T       i18n.TranslateFunc `json:"-" msgpack:"-"`
+	Locale  string             `json:"-" msgpack:"-"`
 }
 
 func (o *WebSocketRequest) Clone() (*WebSocketRequest, error) {
