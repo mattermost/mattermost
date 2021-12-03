@@ -6,17 +6,20 @@ package mail
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"io"
 	"mime"
 	"net"
 	"net/mail"
 	"net/smtp"
+	"strings"
 	"time"
 
 	"github.com/jaytaylor/html2text"
 	"github.com/pkg/errors"
 	gomail "gopkg.in/mail.v2"
 
+	"github.com/mattermost/gosaml2/uuid"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
@@ -302,6 +305,7 @@ func SendMail(c smtpClient, mail mailData, date time.Time) error {
 		"Content-Transfer-Encoding": {"8bit"},
 		"Auto-Submitted":            {"auto-generated"},
 		"Precedence":                {"bulk"},
+		"Message-ID":                {mail.generateMessageID()},
 	}
 
 	if mail.replyTo.Address != "" {
@@ -349,4 +353,10 @@ func SendMail(c smtpClient, mail mailData, date time.Time) error {
 	}
 
 	return nil
+}
+
+func (mail mailData) generateMessageID() string {
+	id := uuid.NewV4()
+	domain := strings.Split(mail.from.Address, "@")[1]
+	return fmt.Sprintf("<%s@%s>", id.String(), domain)
 }
