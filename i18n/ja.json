@@ -887,7 +887,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "アカウント設定ダイアログを開く"
+    "translation": "設定ダイアログを開く"
   },
   {
     "id": "api.command_settings.name",
@@ -8473,7 +8473,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "PC、Mac、iOS、Androidで最高の体験を。"
+    "translation": "Windows、Linux、Mac、iOS、Androidで最高の体験を。"
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info",
@@ -8509,7 +8509,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Github、Googleカレンダー、Chromeなどのツールを使って仕事を効率化しましょう。我々のマーケットプレースですべての統合機能をご覧ください"
+    "translation": "GitHub、Jira、Zoomなどのツールを使って仕事を効率化しましょう。我々のマーケットプレースですべての統合機能をご覧ください"
   },
   {
     "id": "api.templates.cloud_welcome_email.button",
@@ -9262,5 +9262,49 @@
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
     "translation": "カスタムステータスを更新できませんでした。絵文字とテキストステータスのどちらかまたは両方を指定してください。"
+  },
+  {
+    "id": "app.user.get_thread_count_for_user.app_error",
+    "translation": "そのユーザーのスレッド数を取得できませんでした。"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.mark_channel_as_read",
+    "translation": "チャンネルを既読にできませんでした"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.kill_orphan_jobs",
+    "translation": "孤立したジョブを終了しています"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.get_post_types",
+    "translation": "ユニークな投稿タイプを取得できませんでした"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.get_bad_channel_memberships",
+    "translation": "問題のあるチャネルメンバーシップを取得できませんでした"
+  },
+  {
+    "id": "app.session.extend_session_expiry.app_error",
+    "translation": "セッションの長さを延長できませんでした"
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "全ての役割を取得できませんでした。"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
+    "translation": "アーカイブされたチャネルのユーザーを取得できません"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
+    "translation": "アーカイブされたチャンネルの投稿を取得できません"
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "リマインダー"
+  },
+  {
+    "id": "api.post.posts_by_ids.invalid_body.request_error",
+    "translation": "受信したPost IDの数が{{.MaxLength}}の最大サイズを超えています"
   }
 ]
