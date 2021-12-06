@@ -45,10 +45,6 @@ const (
 
 const websocketMessagePluginPrefix = "custom_"
 
-type msgDecoder interface {
-	Decode(v interface{}) error
-}
-
 type pluginWSPostedHook struct {
 	connectionID string
 	userID       string
@@ -354,7 +350,9 @@ func (wc *WebConn) readPump() {
 			return
 		}
 
-		var decoder msgDecoder
+		var decoder interface {
+			Decode(v interface{}) error
+		}
 		if msgType == websocket.TextMessage {
 			decoder = json.NewDecoder(rd)
 		} else {
