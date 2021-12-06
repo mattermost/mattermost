@@ -8441,7 +8441,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "voor de beste ervaring op PC, Mac, iOS en Android."
+    "translation": "voor de beste ervaring op Windows, Linux, Mac, iOS en Android."
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info",
@@ -8481,7 +8481,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Stroomlijn jE werk met tools als Github, Google Agenda en Chrome. Ontdek alle integraties die we hebben op onze"
+    "translation": "Streamline your work with tools like Github, Jira and Zoom. Explore all of the integrations we have on our"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -9309,5 +9309,9 @@
   {
     "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
     "translation": "Kan geen berichten ophalen voor een gearchiveerd kanaal"
+  },
+  {
+    "id": "api.post.posts_by_ids.invalid_body.request_error",
+    "translation": "Het aantal ontvangen Post ID's heeft de maximumgrootte van {{.MaxLength}} overschreden"
   }
 ]
