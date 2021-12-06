@@ -252,9 +252,6 @@ func TestWebSocketSendBinary(t *testing.T) {
 	WebSocketClient2, err := th.CreateWebSocketClientWithClient(client2)
 	require.NoError(t, err)
 	defer WebSocketClient2.Close()
-	WebSocketClient2.Listen()
-	resp = <-WebSocketClient2.ResponseChannel
-	require.Equal(t, resp.Status, model.StatusOk)
 
 	time.Sleep(1000 * time.Millisecond)
 
