@@ -187,16 +187,17 @@ func TestWebSocketSendBinaryMessage(t *testing.T) {
 	url := strings.Replace(s.URL, "http://", "ws://", 1)
 	cli, err := NewWebSocketClient4(url, "authToken")
 	require.NoError(t, err)
-
 	cli.Listen()
+	defer cli.Close()
 
 	err = cli.SendBinaryMessage("binaryAction", map[string]interface{}{
-		"func": func() {},
+		"unmarshable": func() {},
 	})
 	require.Error(t, err)
 
 	err = cli.SendBinaryMessage("binaryAction", clientData)
 	require.NoError(t, err)
 
-	<-cli.writeChan
+	// This is to make sure the message is handled prior to exiting.
+	<-cli.quitWriterChan
 }
