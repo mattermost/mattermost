@@ -7893,7 +7893,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "aby uzyskać najlepsze działanie na komputerach PC, Mac, iOS i Android."
+    "translation": "aby uzyskać najlepsze działanie na komputerach z Windows, Linux, Mac, iOS i Android."
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info",
@@ -7925,7 +7925,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Usprawnij swoją pracę dzięki narzędziom takim jak Github, Kalendarz Google i Chrome. Poznaj wszystkie integracje, które mamy na naszej stronie"
+    "translation": "Usprawnij swoją pracę dzięki narzędziom takim jak Github, Jira i Zoom. Poznaj wszystkie integracje, które mamy na naszej stronie"
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
