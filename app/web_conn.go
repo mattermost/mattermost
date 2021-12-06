@@ -350,7 +350,7 @@ func (wc *WebConn) readPump() {
 	for {
 		msgType, rd, err := wc.WebSocket.NextReader()
 		if err != nil {
-			wc.logSocketErr("websocket.read", err)
+			wc.logSocketErr("websocket.NextReader", err)
 			return
 		}
 
@@ -362,7 +362,7 @@ func (wc *WebConn) readPump() {
 		}
 		var req model.WebSocketRequest
 		if err = decoder.Decode(&req); err != nil {
-			wc.logSocketErr("websocket.read", err)
+			wc.logSocketErr("websocket.Decode", err)
 			return
 		}
 
