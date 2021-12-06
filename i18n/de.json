@@ -888,7 +888,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "Kontoeinstellungen öffnen"
+    "translation": "Öffnen Sie den Dialog Einstellungen"
   },
   {
     "id": "api.command_settings.name",
@@ -7980,7 +7980,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "für die beste Benutzererfahrung auf PC, Mac, iOS und Android."
+    "translation": "für die beste Benutzererfahrung auf Windows, Linux, Mac, iOS und Android."
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info",
@@ -8020,7 +8020,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Optimieren Sie Ihre Arbeit mit Werkzeugen wie Github, Google Calendar und Chrome. Entdecken Sie alle Integrationen, die wir in unserem"
+    "translation": "Optimieren Sie Ihre Arbeit mit Werkzeugen wie Github, Jira und Zoom. Entdecken Sie alle Integrationen, die wir in unserem"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
