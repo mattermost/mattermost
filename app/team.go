@@ -1848,7 +1848,7 @@ func (a *App) SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppEr
 	img = imaging.FillCenter(img, teamIconWidthAndHeight, teamIconWidthAndHeight)
 
 	buf := new(bytes.Buffer)
-	err = a.Srv().imgEncoder.EncodePNG(buf, img)
+	err = a.ch.imgEncoder.EncodePNG(buf, img)
 	if err != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.encode.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
