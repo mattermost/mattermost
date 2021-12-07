@@ -405,7 +405,7 @@ func (s *Server) doPlaybooksRolesCreationMigration() {
 				}
 
 				if savedRole, err := s.Store.Role().Save(runMemberRole); err != nil {
-					mlog.Critical("Failed to create new run admin role for existing custom scheme.", mlog.Err(err))
+					mlog.Critical("Failed to create new run member role for existing custom scheme.", mlog.Err(err))
 					allSucceeded = false
 				} else {
 					scheme.DefaultRunMemberRole = savedRole.Name

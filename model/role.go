@@ -851,8 +851,8 @@ func MakeDefaultRoles() map[string]*Role {
 
 	roles[RunAdminRoleId] = &Role{
 		Name:        RunAdminRoleId,
-		DisplayName: "authentication.roles.playbook_member.name",
-		Description: "authentication.roles.playbook_member.description",
+		DisplayName: "authentication.roles.run_admin.name",
+		Description: "authentication.roles.run_admin.description",
 		Permissions: []string{
 			PermissionRunManageMembers.Id,
 			PermissionRunManageProperties.Id,
@@ -863,8 +863,8 @@ func MakeDefaultRoles() map[string]*Role {
 
 	roles[RunMemberRoleId] = &Role{
 		Name:        RunMemberRoleId,
-		DisplayName: "authentication.roles.playbook_member.name",
-		Description: "authentication.roles.playbook_member.description",
+		DisplayName: "authentication.roles.run_member.name",
+		Description: "authentication.roles.run_member.description",
 		Permissions: []string{
 			PermissionRunView.Id,
 		},
