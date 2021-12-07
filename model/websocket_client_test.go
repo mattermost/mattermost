@@ -151,8 +151,9 @@ func TestWebSocketClose(t *testing.T) {
 	})
 }
 
-func binaryWebsocketHandler(t *testing.T, clientData map[string]interface{}) http.HandlerFunc {
+func binaryWebsocketHandler(t *testing.T, clientData map[string]interface{}, doneCh chan struct{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		defer close(doneCh)
 		upgrader := &websocket.Upgrader{
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
@@ -181,7 +182,8 @@ func TestWebSocketSendBinaryMessage(t *testing.T) {
 		"data": []byte("some data to send as binary"),
 	}
 
-	s := httptest.NewServer(binaryWebsocketHandler(t, clientData))
+	doneCh := make(chan struct{})
+	s := httptest.NewServer(binaryWebsocketHandler(t, clientData, doneCh))
 	defer s.Close()
 
 	url := strings.Replace(s.URL, "http://", "ws://", 1)
@@ -199,5 +201,5 @@ func TestWebSocketSendBinaryMessage(t *testing.T) {
 	require.NoError(t, err)
 
 	// This is to make sure the message is handled prior to exiting.
-	<-cli.quitWriterChan
+	<-doneCh
 }
