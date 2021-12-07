@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
@@ -148,4 +149,57 @@ func TestWebSocketClose(t *testing.T) {
 		// Check whether the write channel was closed or not.
 		checkWriteChan(cli.writeChan)
 	})
+}
+
+func binaryWebsocketHandler(t *testing.T, clientData map[string]interface{}, doneCh chan struct{}) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		defer close(doneCh)
+		upgrader := &websocket.Upgrader{
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
+		}
+		conn, err := upgrader.Upgrade(w, req, nil)
+		require.NoError(t, err)
+		defer conn.Close()
+
+		for {
+			msgType, buf, err := conn.ReadMessage()
+			require.NoError(t, err)
+			if msgType == websocket.BinaryMessage {
+				require.Equal(t, msgType, websocket.BinaryMessage)
+				wsReq := &WebSocketRequest{}
+				err = msgpack.Unmarshal(buf, wsReq)
+				require.NoError(t, err)
+				require.Equal(t, clientData, wsReq.Data)
+				break
+			}
+		}
+	}
+}
+
+func TestWebSocketSendBinaryMessage(t *testing.T) {
+	clientData := map[string]interface{}{
+		"data": []byte("some data to send as binary"),
+	}
+
+	doneCh := make(chan struct{})
+	s := httptest.NewServer(binaryWebsocketHandler(t, clientData, doneCh))
+	defer s.Close()
+
+	url := strings.Replace(s.URL, "http://", "ws://", 1)
+	cli, err := NewWebSocketClient4(url, "authToken")
+	require.NoError(t, err)
+	cli.Listen()
+	defer cli.Close()
+
+	err = cli.SendBinaryMessage("binaryAction", map[string]interface{}{
+		"unmarshable": func() {},
+	})
+	require.Error(t, err)
+
+	err = cli.SendBinaryMessage("binaryAction", clientData)
+	require.NoError(t, err)
+
+	// This is to make sure the message is handled prior to exiting.
+	<-doneCh
 }
