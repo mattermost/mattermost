@@ -185,8 +185,7 @@ func (wsc *WebSocketClient) writer() {
 			case msgTypeJSON:
 				wsc.Conn.WriteJSON(msg.data)
 			case msgTypeBinary:
-				data, ok := msg.data.([]byte)
-				if ok {
+				if data, ok := msg.data.([]byte); ok {
 					wsc.Conn.WriteMessage(websocket.BinaryMessage, data)
 				}
 			case msgTypePong:
