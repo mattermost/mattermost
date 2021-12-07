@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 
 	"github.com/gorilla/websocket"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 const (
@@ -26,6 +27,7 @@ type msgType int
 const (
 	msgTypeJSON msgType = iota + 1
 	msgTypePong
+	msgTypeBinary
 )
 
 type writeMessage struct {
@@ -182,6 +184,10 @@ func (wsc *WebSocketClient) writer() {
 			switch msg.msgType {
 			case msgTypeJSON:
 				wsc.Conn.WriteJSON(msg.data)
+			case msgTypeBinary:
+				if data, ok := msg.data.([]byte); ok {
+					wsc.Conn.WriteMessage(websocket.BinaryMessage, data)
+				}
 			case msgTypePong:
 				wsc.Conn.WriteMessage(websocket.PongMessage, []byte{})
 			}
@@ -273,6 +279,26 @@ func (wsc *WebSocketClient) SendMessage(action string, data map[string]interface
 		msgType: msgTypeJSON,
 		data:    req,
 	}
+}
+
+func (wsc *WebSocketClient) SendBinaryMessage(action string, data map[string]interface{}) error {
+	req := &WebSocketRequest{}
+	req.Seq = wsc.Sequence
+	req.Action = action
+	req.Data = data
+
+	binaryData, err := msgpack.Marshal(req)
+	if err != nil {
+		return fmt.Errorf("failed to marshal request to msgpack: %w", err)
+	}
+
+	wsc.Sequence++
+	wsc.writeChan <- writeMessage{
+		msgType: msgTypeBinary,
+		data:    binaryData,
+	}
+
+	return nil
 }
 
 // UserTyping will push a user_typing event out to all connected users

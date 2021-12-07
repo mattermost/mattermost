@@ -4,9 +4,11 @@
 package app
 
 import (
+	"runtime"
 	"sync"
 	"sync/atomic"
 
+	"github.com/mattermost/mattermost-server/v6/app/imaging"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -45,6 +47,18 @@ type Channels struct {
 	Compliance       einterfaces.ComplianceInterface
 	DataRetention    einterfaces.DataRetentionInterface
 	MessageExport    einterfaces.MessageExportInterface
+
+	// These are used to prevent concurrent upload requests
+	// for a given upload session which could cause inconsistencies
+	// and data corruption.
+	uploadLockMapMut sync.Mutex
+	uploadLockMap    map[string]bool
+
+	imgDecoder *imaging.Decoder
+	imgEncoder *imaging.Encoder
+
+	dndTaskMut sync.Mutex
+	dndTask    *model.ScheduledTask
 }
 
 func init() {
@@ -55,8 +69,9 @@ func init() {
 
 func NewChannels(s *Server) (*Channels, error) {
 	ch := &Channels{
-		srv:        s,
-		imageProxy: imageproxy.MakeImageProxy(s, s.httpService, s.Log),
+		srv:           s,
+		imageProxy:    imageproxy.MakeImageProxy(s, s.httpService, s.Log),
+		uploadLockMap: map[string]bool{},
 	}
 	// We are passing a partially filled Channels struct so that the enterprise
 	// methods can have access to app methods.
@@ -73,6 +88,20 @@ func NewChannels(s *Server) (*Channels, error) {
 	}
 	if accountMigrationInterface != nil {
 		ch.AccountMigration = accountMigrationInterface(New(ServerConnector(ch)))
+	}
+
+	var imgErr error
+	ch.imgDecoder, imgErr = imaging.NewDecoder(imaging.DecoderOptions{
+		ConcurrencyLevel: runtime.NumCPU(),
+	})
+	if imgErr != nil {
+		return nil, errors.Wrap(imgErr, "failed to create image decoder")
+	}
+	ch.imgEncoder, imgErr = imaging.NewEncoder(imaging.EncoderOptions{
+		ConcurrencyLevel: runtime.NumCPU(),
+	})
+	if imgErr != nil {
+		return nil, errors.Wrap(imgErr, "failed to create image encoder")
 	}
 
 	// Setup routes.
@@ -109,6 +138,13 @@ func (ch *Channels) Start() error {
 
 func (ch *Channels) Stop() error {
 	ch.ShutDownPlugins()
+
+	ch.dndTaskMut.Lock()
+	if ch.dndTask != nil {
+		ch.dndTask.Cancel()
+	}
+	ch.dndTaskMut.Unlock()
+
 	return nil
 }
 
