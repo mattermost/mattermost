@@ -126,7 +126,7 @@ const (
 
 	EmailSettingsDefaultFeedbackOrganization = ""
 
-	SupportSettingsDefaultTermsOfServiceLink = "https://mattermost.com/terms-of-service/"
+	SupportSettingsDefaultTermsOfServiceLink = "https://mattermost.com/terms-of-use/"
 	SupportSettingsDefaultPrivacyPolicyLink  = "https://mattermost.com/privacy-policy/"
 	SupportSettingsDefaultAboutLink          = "https://about.mattermost.com/default-about/"
 	SupportSettingsDefaultHelpLink           = "https://about.mattermost.com/default-help/"
@@ -365,7 +365,6 @@ type ServiceSettings struct {
 	ThreadAutoFollow                                  *bool   `access:"experimental_features"`
 	CollapsedThreads                                  *string `access:"experimental_features"`
 	ManagedResourcePaths                              *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	EnableReliableWebSockets                          *bool   `access:"experimental_features"` // telemetry: none
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -781,10 +780,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.ManagedResourcePaths == nil {
 		s.ManagedResourcePaths = NewString("")
-	}
-
-	if s.EnableReliableWebSockets == nil {
-		s.EnableReliableWebSockets = NewBool(true)
 	}
 }
 
