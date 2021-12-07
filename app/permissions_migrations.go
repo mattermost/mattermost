@@ -915,6 +915,41 @@ func (a *App) getAddTestEmailAncillaryPermission() (permissionsMap, error) {
 	return transformations, nil
 }
 
+func (a *App) getAddPlaybooksPermissions() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	transformations = append(transformations, permissionTransformation{
+		On: permissionOr(
+			permissionExists(model.PermissionCreatePublicChannel.Id),
+			permissionExists(model.PermissionCreatePrivateChannel.Id),
+		),
+		Add: []string{
+			model.PermissionPublicPlaybookCreate.Id,
+			model.PermissionPrivatePlaybookCreate.Id,
+		},
+	})
+
+	transformations = append(transformations, permissionTransformation{
+		On: isRole(model.SystemAdminRoleId),
+		Add: []string{
+			model.PermissionPublicPlaybookManageProperties.Id,
+			model.PermissionPublicPlaybookManageMembers.Id,
+			model.PermissionPublicPlaybookView.Id,
+			model.PermissionPublicPlaybookMakePrivate.Id,
+			model.PermissionPrivatePlaybookManageProperties.Id,
+			model.PermissionPrivatePlaybookManageMembers.Id,
+			model.PermissionPrivatePlaybookView.Id,
+			model.PermissionPrivatePlaybookMakePublic.Id,
+			model.PermissionRunCreate.Id,
+			model.PermissionRunManageProperties.Id,
+			model.PermissionRunManageMembers.Id,
+			model.PermissionRunView.Id,
+		},
+	})
+
+	return transformations, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	return a.Srv().doPermissionsMigrations()
@@ -953,6 +988,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddAboutSubsectionPermissions, Migration: a.getAddAboutSubsectionPermissions},
 		{Key: model.MigrationKeyAddReportingSubsectionPermissions, Migration: a.getAddReportingSubsectionPermissions},
 		{Key: model.MigrationKeyAddTestEmailAncillaryPermission, Migration: a.getAddTestEmailAncillaryPermission},
+		{Key: model.MigrationKeyAddPlaybooksPermissions, Migration: a.getAddPlaybooksPermissions},
 	}
 
 	roles, err := s.Store.Role().GetAll()
