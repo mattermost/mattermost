@@ -66,7 +66,7 @@ func (a *App) CreatePostAsUser(c *request.Context, post *model.Post, currentSess
 	// the post is NOT a reply post with CRT enabled
 	_, fromWebhook := post.GetProps()["from_webhook"]
 	_, fromBot := post.GetProps()["from_bot"]
-	isCRTReply := post.RootId != "" && a.isCRTEnabledForUser(post.UserId)
+	isCRTReply := post.RootId != "" && a.IsCRTEnabledForUser(post.UserId)
 	if !fromWebhook && !fromBot && !isCRTReply {
 		if _, err := a.MarkChannelsAsViewed([]string{post.ChannelId}, post.UserId, currentSessionId, true); err != nil {
 			mlog.Warn(
@@ -721,26 +721,23 @@ func (a *App) publishWebsocketEventForPermalinkPost(post *model.Post, message *m
 		return false, err
 	}
 
-	previewedChannel, err := a.GetChannel(previewedPost.ChannelId)
-	if err != nil {
-		if err.StatusCode == http.StatusNotFound {
-			mlog.Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
-			return false, nil
-		}
-		return false, err
-	}
-
 	channelMembers, err := a.GetChannelMembersPage(post.ChannelId, 0, 10000000)
 	if err != nil {
 		return false, err
 	}
 
 	for _, cm := range channelMembers {
-		postForUser := post.Clone()
-		if !a.HasPermissionToReadChannel(cm.UserId, previewedChannel) {
-			postForUser.Metadata.Embeds[0].Data = nil
+		postForUser, err := a.SanitizePostMetadataForUser(post, cm.UserId)
+		if err != nil {
+			if err.StatusCode == http.StatusNotFound {
+				mlog.Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
+				return false, nil
+			}
+			return false, err
 		}
-		messageCopy := message.Copy()
+		// Using DeepCopy here to avoid a race condition
+		// between publishing the event and setting the "post" data value below.
+		messageCopy := message.DeepCopy()
 		broadcastCopy := messageCopy.GetBroadcast()
 		broadcastCopy.UserId = cm.UserId
 		messageCopy.SetBroadcast(broadcastCopy)
@@ -1672,4 +1669,19 @@ func (a *App) GetPostIfAuthorized(postID string, session *model.Session) (*model
 	}
 
 	return post, nil
+}
+
+func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, *model.AppError) {
+	posts, err := a.Srv().Store.Post().GetPostsByIds(postIDs)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetPostsByIds", "app.post.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetPostsByIds", "app.post.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return posts, nil
 }

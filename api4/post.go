@@ -19,6 +19,7 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Posts.Handle("", api.APISessionRequired(createPost)).Methods("POST")
 	api.BaseRoutes.Post.Handle("", api.APISessionRequired(getPost)).Methods("GET")
 	api.BaseRoutes.Post.Handle("", api.APISessionRequired(deletePost)).Methods("DELETE")
+	api.BaseRoutes.Posts.Handle("/ids", api.APISessionRequired(getPostsByIds)).Methods("POST")
 	api.BaseRoutes.Posts.Handle("/ephemeral", api.APISessionRequired(createEphemeralPost)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/thread", api.APISessionRequired(getPostThread)).Methods("GET")
 	api.BaseRoutes.Post.Handle("/files/info", api.APISessionRequired(getFileInfosForPost)).Methods("GET")
@@ -180,6 +181,18 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channelId, model.PermissionReadChannel) {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
+	}
+
+	if !*c.App.Config().TeamSettings.ExperimentalViewArchivedChannels {
+		channel, err := c.App.GetChannel(channelId)
+		if err != nil {
+			c.Err = err
+			return
+		}
+		if channel.DeleteAt != 0 {
+			c.Err = model.NewAppError("Api4.getPostsForChannel", "api.user.view_archived_channels.get_posts_for_channel.app_error", nil, "", http.StatusForbidden)
+			return
+		}
 	}
 
 	var list *model.PostList
@@ -392,6 +405,57 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set(model.HeaderEtagServer, post.Etag())
 	if err := json.NewEncoder(w).Encode(post); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
+	postIDs := model.ArrayFromJSON(r.Body)
+
+	if len(postIDs) == 0 {
+		c.SetInvalidParam("post_ids")
+		return
+	}
+
+	if len(postIDs) > 1000 {
+		c.Err = model.NewAppError("getPostsByIds", "api.post.posts_by_ids.invalid_body.request_error", map[string]interface{}{"MaxLength": 1000}, "", http.StatusBadRequest)
+		return
+	}
+
+	postsList, err := c.App.GetPostsByIds(postIDs)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	var posts = []*model.Post{}
+	channelMap := make(map[string]*model.Channel)
+
+	for _, post := range postsList {
+		var channel *model.Channel
+		if val, ok := channelMap[post.ChannelId]; ok {
+			channel = val
+		} else {
+			channel, err = c.App.GetChannel(post.ChannelId)
+			if err != nil {
+				c.Err = err
+				return
+			}
+			channelMap[channel.Id] = channel
+		}
+
+		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channel.Id, model.PermissionReadChannel) {
+			if channel.Type != model.ChannelTypeOpen || (channel.Type == model.ChannelTypeOpen && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel)) {
+				continue
+			}
+		}
+
+		post = c.App.PreparePostForClient(post, false, false)
+
+		posts = append(posts, post)
+	}
+
+	if err := json.NewEncoder(w).Encode(posts); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }

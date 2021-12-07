@@ -17,7 +17,6 @@ import (
 	"github.com/blevesearch/bleve/v2/analysis/analyzer/standard"
 	"github.com/blevesearch/bleve/v2/mapping"
 
-	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
@@ -38,7 +37,6 @@ type BleveEngine struct {
 	Mutex        sync.RWMutex
 	ready        int32
 	cfg          *model.Config
-	jobServer    *jobs.JobServer
 	indexSync    bool
 }
 
@@ -120,10 +118,9 @@ func getUserIndexMapping() *mapping.IndexMappingImpl {
 	return indexMapping
 }
 
-func NewBleveEngine(cfg *model.Config, jobServer *jobs.JobServer) *BleveEngine {
+func NewBleveEngine(cfg *model.Config) *BleveEngine {
 	return &BleveEngine{
-		cfg:       cfg,
-		jobServer: jobServer,
+		cfg: cfg,
 	}
 }
 

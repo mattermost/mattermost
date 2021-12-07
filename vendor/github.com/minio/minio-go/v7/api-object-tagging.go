@@ -36,7 +36,7 @@ type PutObjectTaggingOptions struct {
 
 // PutObjectTagging replaces or creates object tag(s) and can target
 // a specific object version in a versioned bucket.
-func (c Client) PutObjectTagging(ctx context.Context, bucketName, objectName string, otags *tags.Tags, opts PutObjectTaggingOptions) error {
+func (c *Client) PutObjectTagging(ctx context.Context, bucketName, objectName string, otags *tags.Tags, opts PutObjectTaggingOptions) error {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return err
@@ -87,7 +87,7 @@ type GetObjectTaggingOptions struct {
 
 // GetObjectTagging fetches object tag(s) with options to target
 // a specific object version in a versioned bucket.
-func (c Client) GetObjectTagging(ctx context.Context, bucketName, objectName string, opts GetObjectTaggingOptions) (*tags.Tags, error) {
+func (c *Client) GetObjectTagging(ctx context.Context, bucketName, objectName string, opts GetObjectTaggingOptions) (*tags.Tags, error) {
 	// Get resources properly escaped and lined up before
 	// using them in http request.
 	urlValues := make(url.Values)
@@ -125,7 +125,7 @@ type RemoveObjectTaggingOptions struct {
 
 // RemoveObjectTagging removes object tag(s) with options to control a specific object
 // version in a versioned bucket
-func (c Client) RemoveObjectTagging(ctx context.Context, bucketName, objectName string, opts RemoveObjectTaggingOptions) error {
+func (c *Client) RemoveObjectTagging(ctx context.Context, bucketName, objectName string, opts RemoveObjectTaggingOptions) error {
 	// Get resources properly escaped and lined up before
 	// using them in http request.
 	urlValues := make(url.Values)
