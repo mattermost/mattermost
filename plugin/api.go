@@ -960,6 +960,11 @@ type API interface {
 	// Minimum server version: 5.3
 	HasPermissionToChannel(userID, channelId string, permission *model.Permission) bool
 
+	// RolesGrantPermission check if the specified roles grant the specified permission
+	//
+	// Minimum server version: 6.3
+	RolesGrantPermission(roleNames []string, permissionId string) bool
+
 	// LogDebug writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins
 	// do not need to add that info.
