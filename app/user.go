@@ -2315,7 +2315,13 @@ func (a *App) UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID
 	if storeErr != nil {
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
 	}
+
 	previousUnreadMentions := membership.UnreadMentions
+	previousUnreadReplies, nErr := a.Srv().Store.Thread().GetThreadUnreadReplyCount(membership)
+	if nErr != nil {
+		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+
 	post, err := a.GetSinglePost(threadID)
 	if err != nil {
 		return nil, err
@@ -2324,25 +2330,18 @@ func (a *App) UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID
 	if err != nil {
 		return nil, err
 	}
-	_, nErr := a.Srv().Store.Thread().UpdateMembership(membership)
+	_, nErr = a.Srv().Store.Thread().UpdateMembership(membership)
 	if nErr != nil {
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	membership.LastViewed = timestamp
 
-	var thread *model.ThreadResponse
-	thread, err = a.GetThreadForUser(teamID, membership, false)
-	if err != nil {
-		return nil, err
-	}
-	previousUnreadReplies := thread.UnreadReplies
-
 	nErr = a.Srv().Store.Thread().MarkAsRead(userID, threadID, timestamp)
 	if nErr != nil {
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
-	thread, err = a.GetThreadForUser(teamID, membership, false)
+	thread, err := a.GetThreadForUser(teamID, membership, false)
 	if err != nil {
 		return nil, err
 	}
