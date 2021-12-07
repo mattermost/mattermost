@@ -357,6 +357,12 @@ func SendMail(c smtpClient, mail mailData, date time.Time) error {
 
 func (mail mailData) generateMessageID() string {
 	id := uuid.NewV4()
-	domain := strings.Split(mail.from.Address, "@")[1]
+	addressParts := strings.Split(mail.from.Address, "@")
+	var domain string
+	if len(addressParts) == 2 {
+		domain = addressParts[1]
+	} else {
+		domain = "mattermost"
+	}
 	return fmt.Sprintf("<%s@%s>", id.String(), domain)
 }
