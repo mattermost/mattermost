@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/vmihailenco/msgpack/v5"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
@@ -343,9 +344,23 @@ func (wc *WebConn) readPump() {
 	})
 
 	for {
+		msgType, rd, err := wc.WebSocket.NextReader()
+		if err != nil {
+			wc.logSocketErr("websocket.NextReader", err)
+			return
+		}
+
+		var decoder interface {
+			Decode(v interface{}) error
+		}
+		if msgType == websocket.TextMessage {
+			decoder = json.NewDecoder(rd)
+		} else {
+			decoder = msgpack.NewDecoder(rd)
+		}
 		var req model.WebSocketRequest
-		if err := wc.WebSocket.ReadJSON(&req); err != nil {
-			wc.logSocketErr("websocket.read", err)
+		if err = decoder.Decode(&req); err != nil {
+			wc.logSocketErr("websocket.Decode", err)
 			return
 		}
 
