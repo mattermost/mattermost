@@ -6728,7 +6728,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "Öppna kontoinställningar"
+    "translation": "Öppna inställningar"
   },
   {
     "id": "api.command_search.unsupported.app_error",
@@ -8449,7 +8449,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "för bästa upplevelsen på PC, Mac, iOS och Android."
+    "translation": "för bästa upplevelsen på Windows, Linux, Mac, iOS och Android."
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info",
@@ -8489,7 +8489,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Effektivisera ditt arbete med verktyg som Github, Google kalender chrome. Utforska alla integrationer vi har på vår"
+    "translation": "Effektivisera ditt arbete med verktyg som Github, Jira och Zoom. Utforska alla integrationer vi har på vår"
   },
   {
     "id": "model.user.is_valid.marshal.app_error",
