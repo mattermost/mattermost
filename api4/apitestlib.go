@@ -18,6 +18,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gorilla/websocket"
 	s3 "github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/stretchr/testify/require"
@@ -482,6 +483,10 @@ func (th *TestHelper) CreateLocalClient(socketPath string) *model.Client4 {
 
 func (th *TestHelper) CreateWebSocketClient() (*model.WebSocketClient, error) {
 	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), th.Client.AuthToken)
+}
+
+func (th *TestHelper) CreateReliableWebSocketClient(connID string, seqNo int) (*model.WebSocketClient, error) {
+	return model.NewReliableWebSocketClientWithDialer(websocket.DefaultDialer, fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), th.Client.AuthToken, connID, seqNo, true)
 }
 
 func (th *TestHelper) CreateWebSocketSystemAdminClient() (*model.WebSocketClient, error) {

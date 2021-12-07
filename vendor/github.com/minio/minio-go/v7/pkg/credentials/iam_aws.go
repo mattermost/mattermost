@@ -112,7 +112,7 @@ func (m *IAM) Retrieve() (Value, error) {
 
 				return &WebIdentityToken{Token: string(token)}, nil
 			},
-			roleARN:         os.Getenv("AWS_ROLE_ARN"),
+			RoleARN:         os.Getenv("AWS_ROLE_ARN"),
 			roleSessionName: os.Getenv("AWS_ROLE_SESSION_NAME"),
 		}
 

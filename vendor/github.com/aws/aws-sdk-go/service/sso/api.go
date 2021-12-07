@@ -550,7 +550,7 @@ func (s *AccountInfo) SetEmailAddress(v string) *AccountInfo {
 }
 
 type GetRoleCredentialsInput struct {
-	_ struct{} `type:"structure"`
+	_ struct{} `type:"structure" nopayload:"true"`
 
 	// The token issued by the CreateToken API call. For more information, see CreateToken
 	// (https://docs.aws.amazon.com/singlesignon/latest/OIDCAPIReference/API_CreateToken.html)
@@ -726,7 +726,7 @@ func (s *InvalidRequestException) RequestID() string {
 }
 
 type ListAccountRolesInput struct {
-	_ struct{} `type:"structure"`
+	_ struct{} `type:"structure" nopayload:"true"`
 
 	// The token issued by the CreateToken API call. For more information, see CreateToken
 	// (https://docs.aws.amazon.com/singlesignon/latest/OIDCAPIReference/API_CreateToken.html)
@@ -855,7 +855,7 @@ func (s *ListAccountRolesOutput) SetRoleList(v []*RoleInfo) *ListAccountRolesOut
 }
 
 type ListAccountsInput struct {
-	_ struct{} `type:"structure"`
+	_ struct{} `type:"structure" nopayload:"true"`
 
 	// The token issued by the CreateToken API call. For more information, see CreateToken
 	// (https://docs.aws.amazon.com/singlesignon/latest/OIDCAPIReference/API_CreateToken.html)
@@ -970,7 +970,7 @@ func (s *ListAccountsOutput) SetNextToken(v string) *ListAccountsOutput {
 }
 
 type LogoutInput struct {
-	_ struct{} `type:"structure"`
+	_ struct{} `type:"structure" nopayload:"true"`
 
 	// The token issued by the CreateToken API call. For more information, see CreateToken
 	// (https://docs.aws.amazon.com/singlesignon/latest/OIDCAPIReference/API_CreateToken.html)

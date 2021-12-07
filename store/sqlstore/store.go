@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"context"
+	"database/sql"
 	dbsql "database/sql"
 	"fmt"
 	"os"
@@ -341,7 +342,7 @@ func (ss *SqlStore) initConnection() {
 		var err error
 		dataSource, err = resetReadTimeout(dataSource)
 		if err != nil {
-			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(err))
+			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(err), mlog.String("src", dataSource))
 		}
 	}
 
@@ -436,6 +437,15 @@ func (ss *SqlStore) GetMaster() *gorp.DbMap {
 
 func (ss *SqlStore) GetMasterX() *sqlxDBWrapper {
 	return ss.masterX
+}
+
+func (ss *SqlStore) SetMasterX(db *sql.DB) {
+	ss.masterX = newSqlxDBWrapper(sqlx.NewDb(db, ss.DriverName()),
+		time.Duration(*ss.settings.QueryTimeout)*time.Second,
+		*ss.settings.Trace)
+	if ss.DriverName() == model.DatabaseDriverMysql {
+		ss.masterX.MapperFunc(noOpMapper)
+	}
 }
 
 func (ss *SqlStore) GetSearchReplica() *gorp.DbMap {
@@ -1419,8 +1429,11 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	var driver database.Driver
 	var err error
 
-	// When WithInstance is used in golang-migrate, the underlying driver connections are not tracked.
-	// So we will have to open a fresh connection for migrations and explicitly close it when all is done.
+	// golang-migrate doesn't have a way to reuse an existing connection in a migration.
+	// The current API will always close the current connection _as well as_ the *sql.DB
+	// instance along with it. Which means that we cannot pass an existing DB instance,
+	// because it will be closed. Therefore, we always have to create a new instance,
+	// and therefore a new connection.
 	dataSource, err := ss.appendMultipleStatementsFlag(*ss.settings.DataSource)
 	if err != nil {
 		return err
