@@ -21,10 +21,47 @@ func Match(str, pattern string) bool {
 	if pattern == "*" {
 		return true
 	}
-	return match(str, pattern)
+	return match(str, pattern, 0, nil, -1) == rMatch
 }
 
-func match(str, pat string) bool {
+// MatchLimit is the same as Match but will limit the complexity of the match
+// operation. This is to avoid long running matches, specifically to avoid ReDos
+// attacks from arbritary inputs.
+//
+// How it works:
+// The underlying match routine is recursive and may call itself when it
+// encounters a sandwiched wildcard pattern, such as: `user:*:name`.
+// Everytime it calls itself a counter is incremented.
+// The operation is stopped when counter > maxcomp*len(str).
+func MatchLimit(str, pattern string, maxcomp int) (matched, stopped bool) {
+	if pattern == "*" {
+		return true, false
+	}
+	counter := 0
+	r := match(str, pattern, len(str), &counter, maxcomp)
+	if r == rStop {
+		return false, true
+	}
+	return r == rMatch, false
+}
+
+type result int
+
+const (
+	rNoMatch result = iota
+	rMatch
+	rStop
+)
+
+func match(str, pat string, slen int, counter *int, maxcomp int) result {
+	// check complexity limit
+	if maxcomp > -1 {
+		if *counter > slen*maxcomp {
+			return rStop
+		}
+		*counter++
+	}
+
 	for len(pat) > 0 {
 		var wild bool
 		pc, ps := rune(pat[0]), 1
@@ -42,7 +79,7 @@ func match(str, pat string) bool {
 		switch pc {
 		case '?':
 			if ss == 0 {
-				return false
+				return rNoMatch
 			}
 		case '*':
 			// Ignore repeating stars.
@@ -50,39 +87,45 @@ func match(str, pat string) bool {
 				pat = pat[1:]
 			}
 
-			// If this is the last character then it must be a match.
+			// If this star is the last character then it must be a match.
 			if len(pat) == 1 {
-				return true
+				return rMatch
 			}
 
 			// Match and trim any non-wildcard suffix characters.
 			var ok bool
 			str, pat, ok = matchTrimSuffix(str, pat)
 			if !ok {
-				return false
+				return rNoMatch
 			}
 
-			// perform recursive wildcard search
-			if match(str, pat[1:]) {
-				return true
+			// Check for single star again.
+			if len(pat) == 1 {
+				return rMatch
+			}
+
+			// Perform recursive wildcard search.
+			r := match(str, pat[1:], slen, counter, maxcomp)
+			if r != rNoMatch {
+				return r
 			}
 			if len(str) == 0 {
-				return false
+				return rNoMatch
 			}
 			wild = true
 		default:
 			if ss == 0 {
-				return false
+				return rNoMatch
 			}
 			if pc == '\\' {
 				pat = pat[ps:]
 				pc, ps = utf8.DecodeRuneInString(pat)
 				if ps == 0 {
-					return false
+					return rNoMatch
 				}
 			}
 			if sc != pc {
-				return false
+				return rNoMatch
 			}
 		}
 		str = str[ss:]
@@ -90,7 +133,10 @@ func match(str, pat string) bool {
 			pat = pat[ps:]
 		}
 	}
-	return len(str) == 0
+	if len(str) == 0 {
+		return rMatch
+	}
+	return rNoMatch
 }
 
 // matchTrimSuffix matches and trims any non-wildcard suffix characters.

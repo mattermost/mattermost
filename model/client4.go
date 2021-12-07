@@ -3768,6 +3768,27 @@ func (c *Client4) GetPostsForChannel(channelId string, page, perPage int, etag s
 	return &list, BuildResponse(r), nil
 }
 
+// GetPostsByIds gets a list of posts by taking an array of post ids
+func (c *Client4) GetPostsByIds(postIds []string) ([]*Post, *Response, error) {
+	js, jsonErr := json.Marshal(postIds)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("SearchFilesWithParams", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.DoAPIPost(c.postsRoute()+"/ids", string(js))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list []*Post
+	if r.StatusCode == http.StatusNotModified {
+		return list, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetPostsByIds", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
+}
+
 // GetFlaggedPostsForUser returns flagged posts of a user based on user id string.
 func (c *Client4) GetFlaggedPostsForUser(userId string, page int, perPage int) (*PostList, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)

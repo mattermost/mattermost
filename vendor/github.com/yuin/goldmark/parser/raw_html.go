@@ -48,8 +48,9 @@ func (s *rawHTMLParser) Parse(parent ast.Node, block text.Reader, pc Context) as
 }
 
 var tagnamePattern = `([A-Za-z][A-Za-z0-9-]*)`
-var attributePattern = `(?:\s+[a-zA-Z_:][a-zA-Z0-9:._-]*(?:\s*=\s*(?:[^\"'=<>` + "`" + `\x00-\x20]+|'[^']*'|"[^"]*"))?)`
-var openTagRegexp = regexp.MustCompile("^<" + tagnamePattern + attributePattern + `*\s*/?>`)
+
+var attributePattern = `(?:[\r\n \t]+[a-zA-Z_:][a-zA-Z0-9:._-]*(?:[\r\n \t]*=[\r\n \t]*(?:[^\"'=<>` + "`" + `\x00-\x20]+|'[^']*'|"[^"]*"))?)`
+var openTagRegexp = regexp.MustCompile("^<" + tagnamePattern + attributePattern + `*[ \t]*/?>`)
 var closeTagRegexp = regexp.MustCompile("^</" + tagnamePattern + `\s*>`)
 var commentRegexp = regexp.MustCompile(`^<!---->|<!--(?:-?[^>-])(?:-?[^-])*-->`)
 var processingInstructionRegexp = regexp.MustCompile(`^(?:<\?).*?(?:\?>)`)

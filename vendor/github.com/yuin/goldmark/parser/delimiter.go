@@ -162,15 +162,11 @@ func ProcessDelimiters(bottom ast.Node, pc Context) {
 	var closer *Delimiter
 	if bottom != nil {
 		if bottom != lastDelimiter {
-			for c := lastDelimiter.PreviousSibling(); c != nil; {
+			for c := lastDelimiter.PreviousSibling(); c != nil && c != bottom; {
 				if d, ok := c.(*Delimiter); ok {
 					closer = d
 				}
-				prev := c.PreviousSibling()
-				if prev == bottom {
-					break
-				}
-				c = prev
+				c = c.PreviousSibling()
 			}
 		}
 	} else {
@@ -189,7 +185,7 @@ func ProcessDelimiters(bottom ast.Node, pc Context) {
 		found := false
 		maybeOpener := false
 		var opener *Delimiter
-		for opener = closer.PreviousDelimiter; opener != nil; opener = opener.PreviousDelimiter {
+		for opener = closer.PreviousDelimiter; opener != nil && opener != bottom; opener = opener.PreviousDelimiter {
 			if opener.CanOpen && opener.Processor.CanOpenCloser(opener, closer) {
 				maybeOpener = true
 				consume = opener.CalcComsumption(closer)

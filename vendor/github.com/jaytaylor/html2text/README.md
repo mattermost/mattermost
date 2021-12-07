@@ -6,7 +6,6 @@
 
 ### Converts HTML into text of the markdown-flavored variety
 
-
 ## Introduction
 
 Ensure your emails are readable by all!
@@ -19,7 +18,6 @@ There are still lots of improvements to be had, but FWIW this has worked fine fo
 
 It requires go 1.x or newer ;)
 
-
 ## Download the package
 
 ```bash
@@ -27,6 +25,8 @@ go get jaytaylor.com/html2text
 ```
 
 ## Example usage
+
+### Library
 
 ```go
 package main
@@ -110,6 +110,11 @@ Here is some more information:
 +-------------+-------------+
 ```
 
+### Command line
+
+```
+echo '<div>hi</div>' | html2text
+```
 
 ## Unit-tests
 
@@ -119,11 +124,9 @@ Running the unit-tests is straightforward and standard:
 go test
 ```
 
-
 # License
 
 Permissive MIT license.
-
 
 ## Contact
 

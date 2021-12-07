@@ -920,8 +920,7 @@ func encodeData(s *Writer, is_last bool, force_flush bool) bool {
    REQUIRED: |header| should be 8-byte aligned and at least 16 bytes long.
    REQUIRED: |block_size| <= (1 << 24). */
 func writeMetadataHeader(s *Writer, block_size uint, header []byte) uint {
-	var storage_ix uint
-	storage_ix = uint(s.last_bytes_bits_)
+	storage_ix := uint(s.last_bytes_bits_)
 	header[0] = byte(s.last_bytes_)
 	header[1] = byte(s.last_bytes_ >> 8)
 	s.last_bytes_ = 0
