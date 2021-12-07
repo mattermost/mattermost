@@ -10,6 +10,8 @@ docker exec mattermost-postgres sh -c 'exec echo "CREATE DATABASE migrated; CREA
 echo "Importing postgres dump from version ${SCHEMA_VERSION}"
 docker exec -i mattermost-postgres psql -U mmuser -d migrated < $(pwd)/scripts/mattermost-postgresql-$SCHEMA_VERSION.sql
 
+docker exec -i mattermost-postgres psql -U mmuser -d migrated -c "INSERT INTO Systems (Name, Value) VALUES ('Version', '$SCHEMA_VERSION')"
+
 echo "Setting up config for db migration"
 cat config/config.json | \
     jq '.SqlSettings.DataSource = "postgres://mmuser:mostest@localhost:5432/migrated?sslmode=disable&connect_timeout=10"'| \
@@ -26,7 +28,7 @@ cat config/config.json | \
 echo "Setting up fresh db"
 make ARGS="version --config $TMPDIR/config.json" run-cli
 
-if [ "$SCHEMA_VERSION" == "5.0" ]; then
+if [ "$SCHEMA_VERSION" == "5.0.0" ]; then
   for i in "ChannelMembers MentionCountRoot" "ChannelMembers MsgCountRoot" "Channels TotalMsgCountRoot"; do
     a=( $i );
     echo "Ignoring known Postgres mismatch: ${a[0]}.${a[1]}"

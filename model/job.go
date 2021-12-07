@@ -27,6 +27,7 @@ const (
 	JobTypeCloud                        = "cloud"
 	JobTypeResendInvitationEmail        = "resend_invitation_email"
 	JobTypeExtractContent               = "extract_content"
+	JobTypeFixChannelUnreadsForCRT      = "fix_channel_unreads_for_crt"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
@@ -55,18 +56,19 @@ var AllJobTypes = [...]string{
 	JobTypeExportDelete,
 	JobTypeCloud,
 	JobTypeExtractContent,
+	JobTypeFixChannelUnreadsForCRT,
 }
 
 type Job struct {
-	Id             string            `json:"id"`
-	Type           string            `json:"type"`
-	Priority       int64             `json:"priority"`
-	CreateAt       int64             `json:"create_at"`
-	StartAt        int64             `json:"start_at"`
-	LastActivityAt int64             `json:"last_activity_at"`
-	Status         string            `json:"status"`
-	Progress       int64             `json:"progress"`
-	Data           map[string]string `json:"data"`
+	Id             string    `json:"id"`
+	Type           string    `json:"type"`
+	Priority       int64     `json:"priority"`
+	CreateAt       int64     `json:"create_at"`
+	StartAt        int64     `json:"start_at"`
+	LastActivityAt int64     `json:"last_activity_at"`
+	Status         string    `json:"status"`
+	Progress       int64     `json:"progress"`
+	Data           StringMap `json:"data"`
 }
 
 func (j *Job) IsValid() *AppError {
@@ -97,6 +99,7 @@ func (j *Job) IsValid() *AppError {
 	case JobTypeCloud:
 	case JobTypeResendInvitationEmail:
 	case JobTypeExtractContent:
+	case JobTypeFixChannelUnreadsForCRT:
 	default:
 		return NewAppError("Job.IsValid", "model.job.is_valid.type.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}

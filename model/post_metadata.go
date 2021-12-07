@@ -34,3 +34,31 @@ type PostImage struct {
 	// FrameCount stores the number of frames in this image, if it is an animated gif. It will be 0 for other formats.
 	FrameCount int `json:"frame_count"`
 }
+
+// Copy does a deep copy
+func (p *PostMetadata) Copy() *PostMetadata {
+	embedsCopy := make([]*PostEmbed, len(p.Embeds))
+	copy(embedsCopy, p.Embeds)
+
+	emojisCopy := make([]*Emoji, len(p.Emojis))
+	copy(emojisCopy, p.Emojis)
+
+	filesCopy := make([]*FileInfo, len(p.Files))
+	copy(filesCopy, p.Files)
+
+	imagesCopy := map[string]*PostImage{}
+	for k, v := range p.Images {
+		imagesCopy[k] = v
+	}
+
+	reactionsCopy := make([]*Reaction, len(p.Reactions))
+	copy(reactionsCopy, p.Reactions)
+
+	return &PostMetadata{
+		Embeds:    embedsCopy,
+		Emojis:    emojisCopy,
+		Files:     filesCopy,
+		Images:    imagesCopy,
+		Reactions: reactionsCopy,
+	}
+}

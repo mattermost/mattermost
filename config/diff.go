@@ -18,6 +18,59 @@ type ConfigDiff struct {
 	ActualVal interface{} `json:"actual_val"`
 }
 
+var configSensitivePaths = map[string]bool{
+	"LdapSettings.BindPassword":                              true,
+	"FileSettings.PublicLinkSalt":                            true,
+	"FileSettings.AmazonS3SecretAccessKey":                   true,
+	"SqlSettings.DataSource":                                 true,
+	"SqlSettings.AtRestEncryptKey":                           true,
+	"SqlSettings.DataSourceReplicas":                         true,
+	"SqlSettings.DataSourceSearchReplicas":                   true,
+	"EmailSettings.SMTPPassword":                             true,
+	"GitLabSettings.Secret":                                  true,
+	"GoogleSettings.Secret":                                  true,
+	"Office365Settings.Secret":                               true,
+	"OpenIdSettings.Secret":                                  true,
+	"ElasticsearchSettings.Password":                         true,
+	"MessageExportSettings.GlobalRelaySettings.SMTPUsername": true,
+	"MessageExportSettings.GlobalRelaySettings.SMTPPassword": true,
+	"MessageExportSettings.GlobalRelaySettings.EmailAddress": true,
+	"ServiceSettings.GfycatAPISecret":                        true,
+	"ServiceSettings.SplitKey":                               true,
+	"PluginSettings.Plugins":                                 true,
+}
+
+// Sanitize replaces sensitive config values in the diff with asterisks filled strings.
+func (cd ConfigDiffs) Sanitize() ConfigDiffs {
+	if len(cd) == 1 {
+		cfgPtr, ok := cd[0].BaseVal.(*model.Config)
+		if ok {
+			cfgPtr.Sanitize()
+		}
+		cfgPtr, ok = cd[0].ActualVal.(*model.Config)
+		if ok {
+			cfgPtr.Sanitize()
+		}
+		cfgVal, ok := cd[0].BaseVal.(model.Config)
+		if ok {
+			cfgVal.Sanitize()
+		}
+		cfgVal, ok = cd[0].ActualVal.(model.Config)
+		if ok {
+			cfgVal.Sanitize()
+		}
+	}
+
+	for i := range cd {
+		if configSensitivePaths[cd[i].Path] {
+			cd[i].BaseVal = model.FakeSetting
+			cd[i].ActualVal = model.FakeSetting
+		}
+	}
+
+	return cd
+}
+
 func diff(base, actual reflect.Value, label string) ([]ConfigDiff, error) {
 	var diffs []ConfigDiff
 
