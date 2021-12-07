@@ -4,9 +4,9 @@
 package model
 
 import (
-	"encoding/json"
-
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 // WebSocketRequest represents a request made to the server through a websocket.
@@ -23,12 +23,12 @@ type WebSocketRequest struct {
 }
 
 func (o *WebSocketRequest) Clone() (*WebSocketRequest, error) {
-	buf, err := json.Marshal(o)
+	buf, err := msgpack.Marshal(o)
 	if err != nil {
 		return nil, err
 	}
 	var ret WebSocketRequest
-	err = json.Unmarshal(buf, &ret)
+	err = msgpack.Unmarshal(buf, &ret)
 	if err != nil {
 		return nil, err
 	}
