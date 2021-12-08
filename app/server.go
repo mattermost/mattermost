@@ -662,6 +662,41 @@ func NewServer(options ...Option) (*Server, error) {
 	return s, nil
 }
 
+// ReloadServices reloads the services with the given store
+func (s *Server) ReloadServices(st store.Store) error {
+	us, err := users.New(users.ServiceConfig{
+		UserStore:    st.User(),
+		SessionStore: st.Session(),
+		OAuthStore:   st.OAuth(),
+		ConfigFn:     s.Config,
+		LicenseFn:    s.License,
+		Metrics:      s.Metrics,
+		Cluster:      s.Cluster,
+	})
+	if err != nil {
+		return err
+	}
+	s.userService = us
+
+	ts, err := teams.New(teams.ServiceConfig{
+		TeamStore:    st.Team(),
+		GroupStore:   st.Group(),
+		ChannelStore: st.Channel(),
+		SchemeStore:  st.Scheme(),
+		RoleStore:    st.Role(),
+		Users:        s.userService,
+		WebHub:       s,
+		ConfigFn:     s.Config,
+		LicenseFn:    s.License,
+	})
+	if err != nil {
+		return err
+	}
+	s.teamService = ts
+
+	return nil
+}
+
 func (s *Server) SetupMetricsServer() {
 	if !*s.Config().MetricsSettings.Enable {
 		return
