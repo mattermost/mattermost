@@ -8,9 +8,6 @@ const (
 	PermissionScopeTeam     = "team_scope"
 	PermissionScopeChannel  = "channel_scope"
 	PermissionScopeGroup    = "group_scope"
-	PermissionScopeSystem   = "system_scope"
-	PermissionScopeTeam     = "team_scope"
-	PermissionScopeChannel  = "channel_scope"
 	PermissionScopePlaybook = "playbook_scope"
 	PermissionScopeRun      = "run_scope"
 )
