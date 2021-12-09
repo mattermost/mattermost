@@ -5477,7 +5477,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "for the best experience on PC, Mac, iOS and Android."
+    "translation": "for the best experience on Windows, Linux, Mac, iOS and Android."
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info",
@@ -5517,7 +5517,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Streamline your work with tools like GitHub, Google Calendar and Chrome. Explore all of the integrations we have on our"
+    "translation": "Streamline your work with tools like Github, Jira and Zoom. Explore all of the integrations we have on our"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -8668,7 +8668,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "Open the Account Settings dialog"
+    "translation": "Open the Settings dialog"
   },
   {
     "id": "api.command_search.unsupported.app_error",
@@ -9301,5 +9301,17 @@
   {
     "id": "fix_crt_channel_unreads.worker.do_job.get_bad_channel_memberships",
     "translation": "Failed to retrieve bad channel memberships"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
+    "translation": "Cannot retrieve users for an archived channel"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
+    "translation": "Cannot retrieve posts for an archived channel"
+  },
+  {
+    "id": "api.post.posts_by_ids.invalid_body.request_error",
+    "translation": "The number of Post IDs received has exceeded the maximum size of {{.MaxLength}}"
   }
 ]

@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
@@ -484,6 +485,31 @@ func TestGenerateDevCSP(t *testing.T) {
 		devCSP := generateDevCSP(*c)
 
 		assert.Equal(t, " 'unsafe-eval'", devCSP)
+	})
+
+	t.Run("empty dev flags", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.DeveloperFlags = ""
+		})
+
+		logger := mlog.CreateConsoleTestLogger(false, mlog.LvlWarn)
+		buf := &mlog.Buffer{}
+		require.NoError(t, mlog.AddWriterTarget(logger, buf, false, mlog.LvlWarn))
+
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Logger:     logger,
+		}
+
+		generateDevCSP(*c)
+
+		require.NoError(t, logger.Shutdown())
+
+		assert.Equal(t, "", buf.String())
 	})
 }
 
