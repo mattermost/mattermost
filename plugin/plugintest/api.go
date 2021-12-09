@@ -3023,6 +3023,20 @@ func (_m *API) RevokeUserAccessToken(tokenID string) *model.AppError {
 	return r0
 }
 
+// RolesGrantPermission provides a mock function with given fields: roleNames, permissionId
+func (_m *API) RolesGrantPermission(roleNames []string, permissionId string) bool {
+	ret := _m.Called(roleNames, permissionId)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func([]string, string) bool); ok {
+		r0 = rf(roleNames, permissionId)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // SaveConfig provides a mock function with given fields: config
 func (_m *API) SaveConfig(config *model.Config) *model.AppError {
 	ret := _m.Called(config)

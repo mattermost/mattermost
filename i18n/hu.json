@@ -5849,7 +5849,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Egyszerűsítse munkáját olyan eszközökkel mint a Github, a Google Naptár és a Chrome. Fedezze fel a saját integrációinkat"
+    "translation": "Egyszerűsítse munkáját olyan eszközökkel mint Github, Jira és Zoom. Fedezze fel további integrációinkat"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -7164,7 +7164,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "a legjobb élmény érdekében PC-n, Mac-en, iOS-en és Androidon."
+    "translation": "a legjobb élmény érdekében Windows-on, Linux-on, Mac-en, iOS-en és Androidon."
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info",
@@ -7224,7 +7224,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "A fiókbeállítások ablak megnyitása"
+    "translation": "Beállítások ablak megnyitása"
   },
   {
     "id": "api.command_search.unsupported.app_error",
@@ -7868,7 +7868,7 @@
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
-    "translation": "Egyéb Téma"
+    "translation": "Egyebek"
   },
   {
     "id": "api.channel.create_channel.max_channel_limit.app_error",

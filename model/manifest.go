@@ -206,7 +206,8 @@ type ManifestServer struct {
 	Executable string `json:"executable" yaml:"executable"`
 }
 
-// ManifestExecutables is a legacy structure capturing a subet of the known platform executables.
+// Deprecated: ManifestExecutables is a legacy structure capturing a subset of the known platform executables.
+// It will be remove in v7.0: https://mattermost.atlassian.net/browse/MM-40531
 type ManifestExecutables struct {
 	// LinuxAmd64 is the path to your executable binary for the corresponding platform
 	LinuxAmd64 string `json:"linux-amd64,omitempty" yaml:"linux-amd64,omitempty"`
