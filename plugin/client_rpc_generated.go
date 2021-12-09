@@ -4832,6 +4832,35 @@ func (s *apiRPCServer) HasPermissionToChannel(args *Z_HasPermissionToChannelArgs
 	return nil
 }
 
+type Z_RolesGrantPermissionArgs struct {
+	A []string
+	B string
+}
+
+type Z_RolesGrantPermissionReturns struct {
+	A bool
+}
+
+func (g *apiRPCClient) RolesGrantPermission(roleNames []string, permissionId string) bool {
+	_args := &Z_RolesGrantPermissionArgs{roleNames, permissionId}
+	_returns := &Z_RolesGrantPermissionReturns{}
+	if err := g.client.Call("Plugin.RolesGrantPermission", _args, _returns); err != nil {
+		log.Printf("RPC call to RolesGrantPermission API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RolesGrantPermission(args *Z_RolesGrantPermissionArgs, returns *Z_RolesGrantPermissionReturns) error {
+	if hook, ok := s.impl.(interface {
+		RolesGrantPermission(roleNames []string, permissionId string) bool
+	}); ok {
+		returns.A = hook.RolesGrantPermission(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API RolesGrantPermission called but not implemented."))
+	}
+	return nil
+}
+
 type Z_SendMailArgs struct {
 	A string
 	B string

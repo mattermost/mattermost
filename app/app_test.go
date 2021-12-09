@@ -89,6 +89,10 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 		"system_user_access_token",
 		"team_post_all",
 		"team_post_all_public",
+		"playbook_admin",
+		"playbook_member",
+		"run_admin",
+		"run_member",
 	}
 
 	roles1, err1 := th.App.GetRolesByNames(roleNames)
