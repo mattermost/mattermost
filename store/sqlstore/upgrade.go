@@ -1425,6 +1425,7 @@ func upgradeDatabaseToVersion630(sqlStore *SqlStore) {
 	sqlStore.CreateColumnIfNotExists("Schemes", "DefaultPlaybookMemberRole", "VARCHAR(64)", "VARCHAR(64)", "")
 	sqlStore.CreateColumnIfNotExists("Schemes", "DefaultRunAdminRole", "VARCHAR(64)", "VARCHAR(64)", "")
 	sqlStore.CreateColumnIfNotExists("Schemes", "DefaultRunMemberRole", "VARCHAR(64)", "VARCHAR(64)", "")
+
 	sqlStore.CreateColumnIfNotExistsNoDefault("OAuthApps", "Scopes", "Text", "VARCHAR(1024)")
 	sqlStore.CreateColumnIfNotExists("OAuthApps", "MattermostAppID", "VARCHAR(26)", "VARCHAR(26)", "")
 
