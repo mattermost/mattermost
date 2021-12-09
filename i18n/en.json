@@ -6225,7 +6225,7 @@
   },
   {
     "id": "app.team.save.existing.app_error",
-    "translation": "Must call update for existing team."
+    "translation": "Unable to create new team, the name is already in use."
   },
   {
     "id": "app.team.save_member.save.app_error",
