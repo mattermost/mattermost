@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/app/teams"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
@@ -182,6 +183,27 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	emptyMockStore.On("Close").Return(nil)
 	emptyMockStore.On("Status").Return(&statusMock)
 	th.App.Srv().Store = &emptyMockStore
+
+	teamStoreMock := mocks.TeamStore{}
+	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
+	mockStore.On("Team").Return(&teamStoreMock)
+	mockStore.On("Group").Return(&mocks.GroupStore{})
+	mockStore.On("Channel").Return(&mocks.ChannelStore{})
+	mockStore.On("Scheme").Return(&mocks.SchemeStore{})
+	mockStore.On("Role").Return(&mocks.RoleStore{})
+	var err error
+	th.App.Srv().teamService, err = teams.New(teams.ServiceConfig{
+		TeamStore:    mockStore.Team(),
+		GroupStore:   mockStore.Group(),
+		ChannelStore: mockStore.Channel(),
+		SchemeStore:  mockStore.Scheme(),
+		RoleStore:    mockStore.Role(),
+		Users:        th.App.Srv().userService,
+		WebHub:       th.App,
+		ConfigFn:     th.App.Config,
+		LicenseFn:    th.App.ch.srv.License,
+	})
+	require.NoError(tb, err)
 	return th
 }
 

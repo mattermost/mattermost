@@ -89,6 +89,7 @@ func (ts *TeamService) sendEvent(team *model.Team, event string) {
 	teamJSON, jsonErr := json.Marshal(team)
 	if jsonErr != nil {
 		mlog.Warn("Failed to encode team to JSON", mlog.Err(jsonErr))
+		return
 	}
 	message.Add("team", string(teamJSON))
 	ts.wh.Publish(message)

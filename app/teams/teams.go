@@ -260,7 +260,6 @@ func (ts *TeamService) UpdateTeamMemberRoles(teamID string, userID string, newRo
 		var role *model.Role
 		role, err = ts.roleStore.GetByName(context.Background(), roleName)
 		if err != nil {
-			// err.StatusCode = http.StatusBadRequest
 			return nil, RoleNotFoundError
 		}
 		if !role.SchemeManaged {

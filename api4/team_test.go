@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
@@ -2902,8 +2903,7 @@ func TestImportTeam(t *testing.T) {
 		fileData, err := base64.StdEncoding.DecodeString(fileResp["results"])
 		require.NoError(t, err, "failed to decode base64 results data")
 
-		fileReturned := string(fileData)
-		require.Truef(t, strings.Contains(fileReturned, "darth.vader@stardeath.com"), "failed to report the user was imported, fileReturned: %s", fileReturned)
+		require.Truef(t, bytes.Contains(fileData, []byte("darth.vader@stardeath.com")), "failed to report the user was imported, fileReturned: %s", fileData)
 
 		// Checking the imported users
 		importedUser, _, err := th.SystemAdminClient.GetUserByUsername("bot_test", "")
