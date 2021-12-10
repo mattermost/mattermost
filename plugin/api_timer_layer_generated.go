@@ -1034,6 +1034,13 @@ func (api *apiTimerLayer) HasPermissionToChannel(userID, channelId string, permi
 	return _returnsA
 }
 
+func (api *apiTimerLayer) RolesGrantPermission(roleNames []string, permissionId string) bool {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RolesGrantPermission(roleNames, permissionId)
+	api.recordTime(startTime, "RolesGrantPermission", true)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) LogDebug(msg string, keyValuePairs ...interface{}) {
 	startTime := timePkg.Now()
 	api.apiImpl.LogDebug(msg, keyValuePairs...)
