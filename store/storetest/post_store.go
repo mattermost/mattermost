@@ -848,8 +848,44 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 	o3, err = ss.Post().Save(o3)
 	require.NoError(t, err)
 
+	o4 := &model.Post{}
+	o4.ChannelId = model.NewId()
+	o4.RootId = o1.Id
+	o4.UserId = o2.UserId
+	o4.Message = NewTestId()
+	o4, err = ss.Post().Save(o4)
+	require.NoError(t, err)
+
+	o5 := &model.Post{}
+	o5.ChannelId = o3.ChannelId
+	o5.UserId = model.NewId()
+	o5.Message = NewTestId()
+	o5, err = ss.Post().Save(o5)
+	require.NoError(t, err)
+
+	o6 := &model.Post{}
+	o6.ChannelId = o3.ChannelId
+	o6.RootId = o5.Id
+	o6.UserId = model.NewId()
+	o6.Message = NewTestId()
+	o6, err = ss.Post().Save(o6)
+	require.NoError(t, err)
+
+	var thread *model.Thread
+	thread, err = ss.Thread().Get(o1.Id)
+	require.NoError(t, err)
+
+	require.EqualValues(t, 2, thread.ReplyCount)
+	require.EqualValues(t, model.StringArray{o2.UserId}, thread.Participants)
+
 	err2 := ss.Post().PermanentDeleteByUser(o2.UserId)
 	require.NoError(t, err2)
+
+	thread, err = ss.Thread().Get(o1.Id)
+	require.NoError(t, err)
+
+	require.EqualValues(t, 0, thread.ReplyCount)
+	require.EqualValues(t, model.StringArray{}, thread.Participants)
 
 	_, err = ss.Post().Get(context.Background(), o1.Id, false, false, false, "")
 	require.NoError(t, err, "Deleted id shouldn't have failed")
@@ -857,10 +893,27 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Get(context.Background(), o2.Id, false, false, false, "")
 	require.Error(t, err, "Deleted id should have failed")
 
+	thread, err = ss.Thread().Get(o5.Id)
+	require.NoError(t, err)
+	require.NotEmpty(t, thread)
+
 	err = ss.Post().PermanentDeleteByChannel(o3.ChannelId)
 	require.NoError(t, err)
 
+	thread, err = ss.Thread().Get(o5.Id)
+	require.NoError(t, err)
+	require.Nil(t, thread)
+
 	_, err = ss.Post().Get(context.Background(), o3.Id, false, false, false, "")
+	require.Error(t, err, "Deleted id should have failed")
+
+	_, err = ss.Post().Get(context.Background(), o4.Id, false, false, false, "")
+	require.Error(t, err, "Deleted id should have failed")
+
+	_, err = ss.Post().Get(context.Background(), o5.Id, false, false, false, "")
+	require.Error(t, err, "Deleted id should have failed")
+
+	_, err = ss.Post().Get(context.Background(), o6.Id, false, false, false, "")
 	require.Error(t, err, "Deleted id should have failed")
 }
 

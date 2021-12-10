@@ -90,15 +90,15 @@ func (rseworker *ResendInvitationEmailWorker) DoJob_24(job *model.Job) {
 
 func (rseworker *ResendInvitationEmailWorker) DoJob_24_48(job *model.Job) {
 	elapsedTimeSinceSchedule, DurationInMillis_24, DurationInMillis_48, _ := rseworker.GetDurations(job)
-	rseworker.Execute(job, elapsedTimeSinceSchedule, DurationInMillis_24, DurationInMillis_48)
+	rseworker.Execute(job, elapsedTimeSinceSchedule, DurationInMillis_24, DurationInMillis_48, "24", "48")
 }
 
 func (rseworker *ResendInvitationEmailWorker) DoJob_24_72(job *model.Job) {
 	elapsedTimeSinceSchedule, DurationInMillis_24, _, DurationInMillis_72 := rseworker.GetDurations(job)
-	rseworker.Execute(job, elapsedTimeSinceSchedule, DurationInMillis_24, DurationInMillis_72)
+	rseworker.Execute(job, elapsedTimeSinceSchedule, DurationInMillis_24, DurationInMillis_72, "24", "72")
 }
 
-func (rseworker *ResendInvitationEmailWorker) Execute(job *model.Job, elapsedTimeSinceSchedule, firstDuration, secondDuration int64) {
+func (rseworker *ResendInvitationEmailWorker) Execute(job *model.Job, elapsedTimeSinceSchedule, firstDuration, secondDuration int64, firstDurationTelemetryValue, secondDurationTelemetryValue string) {
 	systemValue, sysValErr := rseworker.App.Srv().Store.System().GetByName(job.Id)
 	if sysValErr != nil {
 		if _, ok := sysValErr.(*store.ErrNotFound); !ok {
@@ -110,10 +110,10 @@ func (rseworker *ResendInvitationEmailWorker) Execute(job *model.Job, elapsedTim
 	}
 
 	if (elapsedTimeSinceSchedule > firstDuration) && (systemValue == nil || systemValue.Value == "0") {
-		rseworker.ResendEmails(job, "48")
+		rseworker.ResendEmails(job, firstDurationTelemetryValue)
 		rseworker.setNumResendEmailSent(job, "1")
 	} else if elapsedTimeSinceSchedule > secondDuration {
-		rseworker.ResendEmails(job, "72")
+		rseworker.ResendEmails(job, secondDurationTelemetryValue)
 		rseworker.TearDown(job)
 	}
 }
