@@ -587,8 +587,8 @@ func (a *Int32Array) scanBytes(src []byte) error {
 	} else {
 		b := make(Int32Array, len(elems))
 		for i, v := range elems {
-			var x int
-			if x, err = strconv.Atoi(string(v)); err != nil {
+			x, err := strconv.ParseInt(string(v), 10, 32)
+			if err != nil {
 				return fmt.Errorf("pq: parsing array element index %d: %v", i, err)
 			}
 			b[i] = int32(x)

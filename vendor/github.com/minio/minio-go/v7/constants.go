@@ -17,7 +17,7 @@
 
 package minio
 
-/// Multipart upload defaults.
+// Multipart upload defaults.
 
 // absMinPartSize - absolute minimum part size (5 MiB) below which
 // a part in a multipart upload may not be uploaded.

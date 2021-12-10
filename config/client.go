@@ -94,7 +94,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 	props["CloudUserLimit"] = strconv.FormatInt(*c.ExperimentalSettings.CloudUserLimit, 10)
 
-	props["EnableReliableWebSockets"] = strconv.FormatBool(*c.ServiceSettings.EnableReliableWebSockets)
+	// TODO: remove this when the mobile client release reaches 1.52.
+	props["EnableReliableWebSockets"] = strconv.FormatBool(true)
 
 	// Set default values for all options that require a license.
 	props["ExperimentalEnableAuthenticationTransfer"] = "true"

@@ -888,7 +888,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "Kontoeinstellungen öffnen"
+    "translation": "Öffnen Sie den Dialog Einstellungen"
   },
   {
     "id": "api.command_settings.name",
@@ -7980,7 +7980,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "für die beste Benutzererfahrung auf PC, Mac, iOS und Android."
+    "translation": "für die beste Benutzererfahrung auf Windows, Linux, Mac, iOS und Android."
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info",
@@ -8020,7 +8020,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Optimieren Sie Ihre Arbeit mit Werkzeugen wie Github, Google Calendar und Chrome. Entdecken Sie alle Integrationen, die wir in unserem"
+    "translation": "Optimieren Sie Ihre Arbeit mit Werkzeugen wie Github, Jira und Zoom. Entdecken Sie alle Integrationen, die wir in unserem"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -9281,5 +9281,37 @@
   {
     "id": "api.templates.invite_body.title.reminder",
     "translation": "Erinnerung"
+  },
+  {
+    "id": "app.session.extend_session_expiry.app_error",
+    "translation": "Kann Sitzungsdauer nicht verlängern"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.mark_channel_as_read",
+    "translation": "Konnte Kanal nicht als gelesen markieren"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.kill_orphan_jobs",
+    "translation": "Beende verwaiste Jobs"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.get_post_types",
+    "translation": "Konnte keine eindeutigen POST Typen holen"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.get_bad_channel_memberships",
+    "translation": "Konnte keine schlechten Kanalmitgliedschaften holen"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
+    "translation": "Kann keine Benutzer für einen archivierten Kanal holen"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
+    "translation": "Kann keine Nachrichten für einen archivierten Kanal holen"
+  },
+  {
+    "id": "api.post.posts_by_ids.invalid_body.request_error",
+    "translation": "Die Anzahl der erhaltenen Post IDs hat die maximale Größe von {{.MaxLength}} überschritten"
   }
 ]

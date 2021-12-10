@@ -25,7 +25,7 @@ import (
 )
 
 // CopyObject - copy a source object into a new object
-func (c Client) CopyObject(ctx context.Context, dst CopyDestOptions, src CopySrcOptions) (UploadInfo, error) {
+func (c *Client) CopyObject(ctx context.Context, dst CopyDestOptions, src CopySrcOptions) (UploadInfo, error) {
 	if err := src.validate(); err != nil {
 		return UploadInfo{}, err
 	}
