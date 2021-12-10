@@ -1559,6 +1559,14 @@
     "translation": "Please enter text for your Custom Terms of Service."
   },
   {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "custom groups feature is disabled"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "license does not include custom groups feature"
+  },
+  {
     "id": "api.custom_groups.must_be_referencable",
     "translation": "allow_reference must be 'true' for custom groups"
   },
