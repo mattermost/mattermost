@@ -2,7 +2,7 @@ package pluginapi
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 
 	"github.com/sirupsen/logrus"
 )
@@ -57,5 +57,5 @@ func (lh *LogrusHook) Fire(entry *logrus.Entry) error {
 func ConfigureLogrus(logger *logrus.Logger, client *Client) {
 	hook := NewLogrusHook(client.Log)
 	logger.Hooks.Add(hook)
-	logger.SetOutput(ioutil.Discard)
+	logger.SetOutput(io.Discard)
 }

@@ -3,7 +3,6 @@ package pluginapi
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
@@ -128,7 +127,7 @@ func (t *TeamService) GetIcon(teamID string) (io.Reader, error) {
 //
 // Minimum server version: 5.6
 func (t *TeamService) SetIcon(teamID string, content io.Reader) error {
-	contentBytes, err := ioutil.ReadAll(content)
+	contentBytes, err := io.ReadAll(content)
 	if err != nil {
 		return err
 	}

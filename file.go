@@ -3,7 +3,6 @@ package pluginapi
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
@@ -60,7 +59,7 @@ func (f *FileService) GetLink(id string) (string, error) {
 //
 // Minimum server version: 5.6
 func (f *FileService) Upload(content io.Reader, fileName, channelID string) (*model.FileInfo, error) {
-	contentBytes, err := ioutil.ReadAll(content)
+	contentBytes, err := io.ReadAll(content)
 	if err != nil {
 		return nil, err
 	}

@@ -3,7 +3,7 @@ package command
 import (
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	"github.com/pkg/errors"
@@ -22,7 +22,7 @@ func GetIconData(api PluginAPI, iconPath string) (string, error) {
 		return "", errors.Wrap(err, "couldn't get bundle path")
 	}
 
-	icon, err := ioutil.ReadFile(filepath.Join(bundlePath, iconPath))
+	icon, err := os.ReadFile(filepath.Join(bundlePath, iconPath))
 	if err != nil {
 		return "", errors.Wrap(err, "failed to open icon")
 	}

@@ -2,7 +2,7 @@ package pluginapi_test
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
@@ -234,7 +234,7 @@ func TestGetTeamIcon(t *testing.T) {
 
 		content, err := client.Team.GetIcon("1")
 		require.NoError(t, err)
-		contentBytes, err := ioutil.ReadAll(content)
+		contentBytes, err := io.ReadAll(content)
 		require.NoError(t, err)
 		require.Equal(t, []byte{2}, contentBytes)
 	})

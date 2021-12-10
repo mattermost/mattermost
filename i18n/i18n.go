@@ -2,7 +2,7 @@ package i18n
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -63,7 +63,7 @@ func InitBundle(api PluginAPI, path string) (*Bundle, error) {
 
 	i18nDir := filepath.Join(bundlePath, path)
 
-	files, err := ioutil.ReadDir(i18nDir)
+	files, err := os.ReadDir(i18nDir)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to open i18n directory")
 	}

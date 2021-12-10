@@ -1,7 +1,6 @@
 package pluginapi_test
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -27,13 +26,13 @@ func TestGetManifest(t *testing.T) {
 			Name: "Some Name",
 		}
 
-		dir, err := ioutil.TempDir("", "")
+		dir, err := os.MkdirTemp("", "")
 		require.NoError(t, err)
 		defer os.RemoveAll(dir)
 
 		tmpfn := filepath.Join(dir, "plugin.json")
 		//nolint:gosec //only used in tests
-		err = ioutil.WriteFile(tmpfn, content, 0666)
+		err = os.WriteFile(tmpfn, content, 0666)
 		require.NoError(t, err)
 
 		api := &plugintest.API{}
@@ -63,7 +62,7 @@ func TestGetManifest(t *testing.T) {
 	})
 
 	t.Run("No manifest found", func(t *testing.T) {
-		dir, err := ioutil.TempDir("", "")
+		dir, err := os.MkdirTemp("", "")
 		require.NoError(t, err)
 		defer os.RemoveAll(dir)
 

@@ -2,7 +2,7 @@ package pluginapi_test
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -22,7 +22,7 @@ func TestGetFile(t *testing.T) {
 
 		content, err := client.File.Get("1")
 		require.NoError(t, err)
-		contentBytes, err := ioutil.ReadAll(content)
+		contentBytes, err := io.ReadAll(content)
 		require.NoError(t, err)
 		require.Equal(t, []byte{2}, contentBytes)
 	})
@@ -52,7 +52,7 @@ func TestGetFileByPath(t *testing.T) {
 
 		content, err := client.File.GetByPath("1")
 		require.NoError(t, err)
-		contentBytes, err := ioutil.ReadAll(content)
+		contentBytes, err := io.ReadAll(content)
 		require.NoError(t, err)
 		require.Equal(t, []byte{2}, contentBytes)
 	})

@@ -3,7 +3,6 @@ package pluginapi
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
@@ -177,7 +176,7 @@ func (u *UserService) GetProfileImage(userID string) (io.Reader, error) {
 //
 // Minimum server version: 5.6
 func (u *UserService) SetProfileImage(userID string, content io.Reader) error {
-	contentBytes, err := ioutil.ReadAll(content)
+	contentBytes, err := io.ReadAll(content)
 	if err != nil {
 		return err
 	}

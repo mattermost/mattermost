@@ -1,7 +1,7 @@
 package pluginapi_test
 
 import (
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -312,11 +312,11 @@ func TestEnsureBot(t *testing.T) {
 
 			expectedBotID := model.NewId()
 
-			profileImageFile, err := ioutil.TempFile("", "profile_image")
+			profileImageFile, err := os.CreateTemp("", "profile_image")
 			require.NoError(t, err)
 
 			profileImageBytes := []byte("profile image")
-			err = ioutil.WriteFile(profileImageFile.Name(), profileImageBytes, 0600)
+			err = os.WriteFile(profileImageFile.Name(), profileImageBytes, 0600)
 			require.NoError(t, err)
 
 			api.On("KVGet", plugin.BotUserKey).Return([]byte(expectedBotID), nil)
@@ -344,18 +344,18 @@ func TestEnsureBot(t *testing.T) {
 			expectedBotDisplayName := "Updated Test Bot"
 			expectedBotDescription := "updated testbotdescription"
 
-			profileImageFile, err := ioutil.TempFile("", "profile_image")
+			profileImageFile, err := os.CreateTemp("", "profile_image")
 			require.NoError(t, err)
 
 			profileImageBytes := []byte("profile image")
-			err = ioutil.WriteFile(profileImageFile.Name(), profileImageBytes, 0600)
+			err = os.WriteFile(profileImageFile.Name(), profileImageBytes, 0600)
 			require.NoError(t, err)
 
-			iconImageFile, err := ioutil.TempFile("", "profile_image")
+			iconImageFile, err := os.CreateTemp("", "profile_image")
 			require.NoError(t, err)
 
 			iconImageBytes := []byte("icon image")
-			err = ioutil.WriteFile(iconImageFile.Name(), iconImageBytes, 0600)
+			err = os.WriteFile(iconImageFile.Name(), iconImageBytes, 0600)
 			require.NoError(t, err)
 
 			api.On("GetServerVersion").Return("5.10.0")
@@ -465,11 +465,11 @@ func TestEnsureBot(t *testing.T) {
 
 			expectedBotID := model.NewId()
 
-			profileImageFile, err := ioutil.TempFile("", "profile_image")
+			profileImageFile, err := os.CreateTemp("", "profile_image")
 			require.NoError(t, err)
 
 			profileImageBytes := []byte("profile image")
-			err = ioutil.WriteFile(profileImageFile.Name(), profileImageBytes, 0600)
+			err = os.WriteFile(profileImageFile.Name(), profileImageBytes, 0600)
 			require.NoError(t, err)
 
 			api.On("KVGet", plugin.BotUserKey).Return(nil, nil)

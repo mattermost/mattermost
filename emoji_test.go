@@ -1,7 +1,7 @@
 package pluginapi_test
 
 import (
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -77,7 +77,7 @@ func TestGetEmojiImage(t *testing.T) {
 
 		content, format, err := client.Emoji.GetImage("1")
 		require.NoError(t, err)
-		contentBytes, err := ioutil.ReadAll(content)
+		contentBytes, err := io.ReadAll(content)
 		require.NoError(t, err)
 		require.Equal(t, []byte{1}, contentBytes)
 		require.Equal(t, "jpg", format)

@@ -1,7 +1,6 @@
 package i18n_test
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -35,7 +34,7 @@ func ExampleInitBundle() {
 
 func TestInitBundle(t *testing.T) {
 	t.Run("fine", func(t *testing.T) {
-		dir, err := ioutil.TempDir("", "")
+		dir, err := os.MkdirTemp("", "")
 		require.NoError(t, err)
 
 		defer os.RemoveAll(dir)
@@ -47,26 +46,26 @@ func TestInitBundle(t *testing.T) {
 
 		file := filepath.Join(i18nDir, "active.de.json")
 		content := []byte("{}")
-		err = ioutil.WriteFile(file, content, 0600)
+		err = os.WriteFile(file, content, 0600)
 		require.NoError(t, err)
 
 		// Add en translation file.
 		// InitBundle should ignore it.
 		file = filepath.Join(i18nDir, "active.en.json")
 		content = []byte("")
-		err = ioutil.WriteFile(file, content, 0600)
+		err = os.WriteFile(file, content, 0600)
 		require.NoError(t, err)
 
 		// Add json junk file
 		file = filepath.Join(i18nDir, "foo.json")
 		content = []byte("")
-		err = ioutil.WriteFile(file, content, 0600)
+		err = os.WriteFile(file, content, 0600)
 		require.NoError(t, err)
 
 		// Add active. junk file
 		file = filepath.Join(i18nDir, "active.foo")
 		content = []byte("")
-		err = ioutil.WriteFile(file, content, 0600)
+		err = os.WriteFile(file, content, 0600)
 		require.NoError(t, err)
 
 		api := &plugintest.API{}
@@ -81,7 +80,7 @@ func TestInitBundle(t *testing.T) {
 	})
 
 	t.Run("fine", func(t *testing.T) {
-		dir, err := ioutil.TempDir("", "")
+		dir, err := os.MkdirTemp("", "")
 		require.NoError(t, err)
 
 		defer os.RemoveAll(dir)
@@ -93,13 +92,13 @@ func TestInitBundle(t *testing.T) {
 
 		file := filepath.Join(i18nDir, "active.de.json")
 		content := []byte("{}")
-		err = ioutil.WriteFile(file, content, 0600)
+		err = os.WriteFile(file, content, 0600)
 		require.NoError(t, err)
 
 		// Add translation file with invalid content
 		file = filepath.Join(i18nDir, "active.es.json")
 		content = []byte("foo bar")
-		err = ioutil.WriteFile(file, content, 0600)
+		err = os.WriteFile(file, content, 0600)
 		require.NoError(t, err)
 
 		api := &plugintest.API{}
