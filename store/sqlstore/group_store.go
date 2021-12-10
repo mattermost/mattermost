@@ -151,11 +151,11 @@ func (s *SqlGroupStore) CreateWithUserIds(group *model.GroupWithUserIds) (*model
 
 	groupSelectQuery, groupSelectProps := s.buildGetGroupQuery(group.Id, 0, 1)
 
-	txn, err := s.GetMaster().Begin()
+	txn, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return nil, err
 	}
-	defer finalizeTransaction(txn)
+	defer finalizeTransactionX(txn)
 	// Create a new usergroup
 	if _, err = txn.Exec(groupInsertQuery, groupInsertArgs...); err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "groups_name_key"}) {
@@ -170,7 +170,7 @@ func (s *SqlGroupStore) CreateWithUserIds(group *model.GroupWithUserIds) (*model
 
 	// Get the new Group along with the member count
 	var newGroup model.Group
-	if err = txn.SelectOne(&newGroup, groupSelectQuery, groupSelectProps); err != nil {
+	if err = txn.Get(&newGroup, groupSelectQuery, groupSelectProps); err != nil {
 		return nil, err
 	}
 	if err = txn.Commit(); err != nil {
