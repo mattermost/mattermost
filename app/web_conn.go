@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/vmihailenco/msgpack/v5"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
@@ -181,7 +182,7 @@ func (a *App) NewWebConn(cfg *WebConnConfig) *WebConn {
 		cfg.activeQueue = make(chan model.WebSocketMessage, sendQueueSize)
 	}
 
-	if cfg.deadQueue == nil && *a.ch.srv.Config().ServiceSettings.EnableReliableWebSockets {
+	if cfg.deadQueue == nil {
 		cfg.deadQueue = make([]*model.WebSocketEvent, deadQueueSize)
 	}
 
@@ -343,9 +344,23 @@ func (wc *WebConn) readPump() {
 	})
 
 	for {
+		msgType, rd, err := wc.WebSocket.NextReader()
+		if err != nil {
+			wc.logSocketErr("websocket.NextReader", err)
+			return
+		}
+
+		var decoder interface {
+			Decode(v interface{}) error
+		}
+		if msgType == websocket.TextMessage {
+			decoder = json.NewDecoder(rd)
+		} else {
+			decoder = msgpack.NewDecoder(rd)
+		}
 		var req model.WebSocketRequest
-		if err := wc.WebSocket.ReadJSON(&req); err != nil {
-			wc.logSocketErr("websocket.read", err)
+		if err = decoder.Decode(&req); err != nil {
+			wc.logSocketErr("websocket.Decode", err)
 			return
 		}
 
@@ -375,7 +390,7 @@ func (wc *WebConn) writePump() {
 		wc.WebSocket.Close()
 	}()
 
-	if *wc.App.Srv().Config().ServiceSettings.EnableReliableWebSockets && wc.Sequence != 0 {
+	if wc.Sequence != 0 {
 		if ok, index := wc.isInDeadQueue(wc.Sequence); ok {
 			if err := wc.drainDeadQueue(index); err != nil {
 				wc.logSocketErr("websocket.drainDeadQueue", err)
@@ -472,8 +487,7 @@ func (wc *WebConn) writePump() {
 				mlog.Warn("websocket.full", logData...)
 			}
 
-			if *wc.App.Srv().Config().ServiceSettings.EnableReliableWebSockets &&
-				evtOk {
+			if evtOk {
 				wc.addToDeadQueue(evt)
 			}
 
