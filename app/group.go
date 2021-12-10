@@ -152,9 +152,9 @@ func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
 	updatedGroup, err := a.Srv().Store.Group().Update(group)
 
 	if err == nil {
-		count, err := a.Srv().Store.Group().GetMemberCount(updatedGroup.Id)
-		if err != nil {
-			return nil, model.NewAppError("CreateGroupWithUserIds", "app.group.id.app_error", nil, err.Error(), http.StatusBadRequest)
+		count, countErr := a.Srv().Store.Group().GetMemberCount(updatedGroup.Id)
+		if countErr != nil {
+			return nil, model.NewAppError("CreateGroupWithUserIds", "app.group.id.app_error", nil, countErr.Error(), http.StatusBadRequest)
 		}
 		memberCount := int(count)
 		updatedGroup.MemberCount = &memberCount

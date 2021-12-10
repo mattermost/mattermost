@@ -8,7 +8,6 @@ import (
 
 	"github.com/mattermost/gziphandler"
 
-	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/web"
 )
 
@@ -200,12 +199,12 @@ func (api *API) APILocal(h handlerFunc) http.Handler {
 	return handler
 }
 
-func withLicense(f handlerFunc) handlerFunc {
-	return func(c *Context, w http.ResponseWriter, r *http.Request) {
-		if c.App.License() == nil {
-			c.Err = model.NewAppError("", "api.license_error", nil, "", http.StatusNotImplemented)
-			return
-		}
-		f(c, w, r)
-	}
-}
+// func withLicense(f handlerFunc) handlerFunc {
+// 	return func(c *Context, w http.ResponseWriter, r *http.Request) {
+// 		if c.App.License() == nil {
+// 			c.Err = model.NewAppError("", "api.license_error", nil, "", http.StatusNotImplemented)
+// 			return
+// 		}
+// 		f(c, w, r)
+// 	}
+// }
