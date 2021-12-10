@@ -149,8 +149,6 @@ func (s *SqlGroupStore) CreateWithUserIds(group *model.GroupWithUserIds) (*model
 		return nil, err
 	}
 
-	groupSelectQuery, groupSelectProps := s.buildGetGroupQuery(group.Id, 0, 1)
-
 	txn, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return nil, err
@@ -169,40 +167,39 @@ func (s *SqlGroupStore) CreateWithUserIds(group *model.GroupWithUserIds) (*model
 	}
 
 	// Get the new Group along with the member count
+	groupGroupQuery := `
+		SELECT
+			UserGroups.*,
+			A.Count AS MemberCount
+		FROM
+			UserGroups
+			INNER JOIN (
+				SELECT
+					UserGroups.Id,
+					COUNT(GroupMembers.UserId) AS Count
+				FROM
+					UserGroups
+					LEFT JOIN GroupMembers ON UserGroups.Id = GroupMembers.GroupId
+				WHERE
+					UserGroups.Id = ?
+				GROUP BY
+					UserGroups.Id
+				ORDER BY
+					UserGroups.DisplayName,
+					UserGroups.Id
+				LIMIT
+					? OFFSET ?
+			) AS A ON UserGroups.Id = A.Id
+		ORDER BY
+			UserGroups.CreateAt DESC`
 	var newGroup model.Group
-	if err = txn.Get(&newGroup, groupSelectQuery, groupSelectProps); err != nil {
+	if err = txn.Get(&newGroup, groupGroupQuery, group.Id, 1, 0); err != nil {
 		return nil, err
 	}
 	if err = txn.Commit(); err != nil {
 		return nil, err
 	}
 	return &newGroup, nil
-}
-
-func (s *SqlGroupStore) buildGetGroupQuery(id string, offset, limit int) (query string, props map[string]interface{}) {
-	props = map[string]interface{}{"Offset": offset, "Limit": limit}
-	whereIdEqualsPolicyId := ""
-	if id != "" {
-		whereIdEqualsPolicyId = "WHERE UserGroups.Id = :GroupId"
-		props["GroupId"] = id
-	}
-	query = `
-	SELECT UserGroups.*,
-	       A.Count AS MemberCount
-	FROM UserGroups
-	INNER JOIN (
-		SELECT UserGroups.Id,
-		       COUNT(GroupMembers.UserId) AS Count
-		FROM UserGroups
-		LEFT JOIN GroupMembers ON UserGroups.Id = GroupMembers.GroupId
-		` + whereIdEqualsPolicyId + `
-		GROUP BY UserGroups.Id
-		ORDER BY UserGroups.DisplayName, UserGroups.Id
-		LIMIT :Limit
-		OFFSET :Offset
-	) AS A ON UserGroups.Id = A.Id
-	ORDER BY UserGroups.CreateAt DESC`
-	return
 }
 
 func (s *SqlGroupStore) checkUsersExist(userIDs []string) error {
