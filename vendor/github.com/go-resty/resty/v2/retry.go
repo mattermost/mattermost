@@ -129,6 +129,12 @@ func Backoff(operation func() (*Response, error), options ...Option) error {
 			hook(resp, err)
 		}
 
+		// Don't need to wait when no retries left.
+		// Still run retry hooks even on last retry to keep compatibility.
+		if attempt == opts.maxRetries {
+			return err
+		}
+
 		waitTime, err2 := sleepDuration(resp, opts.waitTime, opts.maxWaitTime, attempt)
 		if err2 != nil {
 			if err == nil {

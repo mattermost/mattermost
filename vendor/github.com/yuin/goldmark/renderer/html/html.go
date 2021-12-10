@@ -296,7 +296,7 @@ func (r *Renderer) renderHTMLBlock(w util.BufWriter, source []byte, node ast.Nod
 			l := n.Lines().Len()
 			for i := 0; i < l; i++ {
 				line := n.Lines().At(i)
-				_, _ = w.Write(line.Value(source))
+				r.Writer.SecureWrite(w, line.Value(source))
 			}
 		} else {
 			_, _ = w.WriteString("<!-- raw HTML omitted -->\n")
@@ -305,7 +305,7 @@ func (r *Renderer) renderHTMLBlock(w util.BufWriter, source []byte, node ast.Nod
 		if n.HasClosure() {
 			if r.Unsafe {
 				closure := n.ClosureLine
-				_, _ = w.Write(closure.Value(source))
+				r.Writer.SecureWrite(w, closure.Value(source))
 			} else {
 				_, _ = w.WriteString("<!-- raw HTML omitted -->\n")
 			}
@@ -668,7 +668,12 @@ type Writer interface {
 	// RawWrite writes the given source to writer without resolving references and
 	// unescaping backslash escaped characters.
 	RawWrite(writer util.BufWriter, source []byte)
+
+	// SecureWrite writes the given source to writer with replacing insecure characters.
+	SecureWrite(writer util.BufWriter, source []byte)
 }
+
+var replacementCharacter = []byte("\ufffd")
 
 type defaultWriter struct {
 }
@@ -682,6 +687,23 @@ func escapeRune(writer util.BufWriter, r rune) {
 		}
 	}
 	_, _ = writer.WriteRune(util.ToValidRune(r))
+}
+
+func (d *defaultWriter) SecureWrite(writer util.BufWriter, source []byte) {
+	n := 0
+	l := len(source)
+	for i := 0; i < l; i++ {
+		if source[i] == '\u0000' {
+			_, _ = writer.Write(source[i-n : i])
+			n = 0
+			_, _ = writer.Write(replacementCharacter)
+			continue
+		}
+		n++
+	}
+	if n != 0 {
+		_, _ = writer.Write(source[l-n:])
+	}
 }
 
 func (d *defaultWriter) RawWrite(writer util.BufWriter, source []byte) {
@@ -719,7 +741,7 @@ func (d *defaultWriter) Write(writer util.BufWriter, source []byte) {
 		}
 		if c == '\x00' {
 			d.RawWrite(writer, source[n:i])
-			d.RawWrite(writer, []byte("\ufffd"))
+			d.RawWrite(writer, replacementCharacter)
 			n = i + 1
 			continue
 		}
@@ -745,8 +767,8 @@ func (d *defaultWriter) Write(writer util.BufWriter, source []byte) {
 					} else if nc >= '0' && nc <= '9' {
 						start := nnext
 						i, ok = util.ReadWhile(source, [2]int{start, limit}, util.IsNumeric)
-						if ok && i < limit && i-start < 8 && source[i] == ';' && i-start < 7 {
-							v, _ := strconv.ParseUint(util.BytesToReadOnlyString(source[start:i]), 0, 32)
+						if ok && i < limit && i-start < 8 && source[i] == ';' {
+							v, _ := strconv.ParseUint(util.BytesToReadOnlyString(source[start:i]), 10, 32)
 							d.RawWrite(writer, source[n:pos])
 							n = i + 1
 							escapeRune(writer, rune(v))
