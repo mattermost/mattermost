@@ -614,10 +614,10 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					message.Add("thread", string(payload))
 
 					previousUnreadMentions := userThread.UnreadMentions
-					previousUnreadReplies := userThread.UnreadReplies - 1
+					previousUnreadReplies := max(userThread.UnreadReplies-1, 0)
 
 					if mentions.isUserMentioned(uid) {
-						previousUnreadMentions = userThread.UnreadMentions - 1
+						previousUnreadMentions = max(userThread.UnreadMentions-1, 0)
 					}
 
 					message.Add("previous_unread_mentions", previousUnreadMentions)
@@ -629,6 +629,13 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 	}
 	return mentionedUsersList, nil
+}
+
+func max(a, b int64) int64 {
+	if a < b {
+		return b
+	}
+	return a
 }
 
 func (a *App) userAllowsEmail(user *model.User, channelMemberNotificationProps model.StringMap, post *model.Post) bool {

@@ -854,7 +854,7 @@ func (s *SqlThreadStore) DeleteOrphanedRows(limit int) (deleted int64, err error
 	return
 }
 
-// return number of unread replies and number of unread mentions for a single thread
+// return number of unread replies for a single thread
 func (s *SqlThreadStore) GetThreadUnreadReplyCount(threadMembership *model.ThreadMembership) (unreadReplies int64, err error) {
 	query, args := s.getQueryBuilder().
 		Select("COUNT(Posts.Id)").
@@ -865,7 +865,7 @@ func (s *SqlThreadStore) GetThreadUnreadReplyCount(threadMembership *model.Threa
 			sq.Eq{"Posts.DeleteAt": 0},
 		}).MustSql()
 
-	unreadReplies, err = s.GetReplica().SelectInt(query, args...)
+	err = s.GetReplicaX().Get(&unreadReplies, query, args...)
 
 	if err != nil {
 		return

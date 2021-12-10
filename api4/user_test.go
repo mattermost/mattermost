@@ -5806,7 +5806,7 @@ func TestThreadSocketEvents(t *testing.T) {
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 
-	_, appErr := th.App.CreatePostAsUser(th.Context, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", UserId: th.BasicUser2.Id, RootId: rpost.Id}, th.Context.Session().Id, false)
+	replyPost, appErr := th.App.CreatePostAsUser(th.Context, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply @" + th.BasicUser.Username, UserId: th.BasicUser2.Id, RootId: rpost.Id}, th.Context.Session().Id, false)
 	require.Nil(t, appErr)
 	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
 	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser2.Id)
@@ -5859,7 +5859,7 @@ func TestThreadSocketEvents(t *testing.T) {
 		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadFollowChanged)
 	})
 
-	_, resp, err = th.Client.UpdateThreadReadForUser(th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, 123)
+	_, resp, err = th.Client.UpdateThreadReadForUser(th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, replyPost.CreateAt+1)
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 
@@ -5871,7 +5871,14 @@ func TestThreadSocketEvents(t *testing.T) {
 				case ev := <-userWSClient.EventChannel:
 					if ev.EventType() == model.WebsocketEventThreadReadChanged {
 						caught = true
-						require.EqualValues(t, ev.GetData()["timestamp"], 123)
+
+						data := ev.GetData()
+						require.EqualValues(t, replyPost.CreateAt+1, data["timestamp"])
+						require.EqualValues(t, float64(1), data["previous_unread_replies"])
+						require.EqualValues(t, float64(1), data["previous_unread_mentions"])
+						require.EqualValues(t, float64(0), data["unread_replies"])
+						require.EqualValues(t, float64(0), data["unread_mentions"])
+
 					}
 				case <-time.After(1 * time.Second):
 					return
@@ -5882,6 +5889,78 @@ func TestThreadSocketEvents(t *testing.T) {
 		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadReadChanged)
 	})
 
+	_, resp, err = th.Client.UpdateThreadReadForUser(th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, rpost.CreateAt)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	t.Run("Listen for read event 2", func(t *testing.T) {
+		var caught bool
+		func() {
+			for {
+				select {
+				case ev := <-userWSClient.EventChannel:
+					if ev.EventType() == model.WebsocketEventThreadReadChanged {
+						caught = true
+
+						data := ev.GetData()
+						require.EqualValues(t, rpost.CreateAt, data["timestamp"])
+						require.EqualValues(t, float64(0), data["previous_unread_replies"])
+						require.EqualValues(t, float64(0), data["previous_unread_mentions"])
+						require.EqualValues(t, float64(1), data["unread_replies"])
+						require.EqualValues(t, float64(1), data["unread_mentions"])
+
+					}
+				case <-time.After(1 * time.Second):
+					return
+				}
+			}
+		}()
+
+		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadReadChanged)
+	})
+
+	// make sure to follow the thread
+	resp, err = th.Client.UpdateThreadFollowForUser(th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, true)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	// read the thread
+	_, resp, err = th.Client.UpdateThreadReadForUser(th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, replyPost.CreateAt+1)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	// post a reply on the thread
+	_, resp, err = th.Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply @" + th.BasicUser.Username, UserId: th.BasicUser2.Id, RootId: rpost.Id})
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+
+	t.Run("Listen for thread updated event after create post", func(t *testing.T) {
+		var caught bool
+		func() {
+			for {
+				select {
+				case ev := <-userWSClient.EventChannel:
+					if ev.EventType() == model.WebsocketEventThreadUpdated {
+						caught = true
+						data := ev.GetData()
+						var thread model.ThreadResponse
+						jsonErr := json.Unmarshal([]byte(data["thread"].(string)), &thread)
+						require.NoError(t, jsonErr)
+
+						require.Equal(t, float64(0), data["previous_unread_replies"])
+						require.Equal(t, float64(0), data["previous_unread_mentions"])
+						require.Equal(t, int64(0), thread.UnreadReplies)
+						require.Equal(t, int64(0), thread.UnreadMentions)
+
+					}
+				case <-time.After(1 * time.Second):
+					return
+				}
+			}
+		}()
+
+		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadUpdated)
+	})
 }
 
 func TestFollowThreads(t *testing.T) {
