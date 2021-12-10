@@ -2439,7 +2439,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	replies, nErr = th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, replyTime)
 	assert.NoError(t, nErr, "Expected success.")
 	reply = replies[0]
-	replyBool = reply.Type != *(*data.Post.Replies)[0].Type || reply.Message != *(*data.Post.Replies)[0].Message || reply.CreateAt != *(*data.Post.Replies)[0].CreateAt || reply.EditAt != *(*data.Post.Replies)[0].EditAt || reply.UserId != user.Id
+	importReply := (*data.Post.Replies)[0]
+	replyBool = reply.Type != *importReply.Type || reply.Message != *importReply.Message || reply.CreateAt != *importReply.CreateAt || reply.EditAt != *importReply.EditAt || reply.UserId != user.Id
 	require.False(t, replyBool, "Post properties not as expected")
 
 	// Create another Team.
@@ -4024,7 +4025,8 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.Len(t, replies, 1, "Unexpected number of posts found.")
 
 		reply := replies[0]
-		replyBool := reply.Type != *(*data.DirectPost.Replies)[0].Type || reply.Message != *(*data.DirectPost.Replies)[0].Message || reply.CreateAt != *(*data.DirectPost.Replies)[0].CreateAt || reply.EditAt != *(*data.DirectPost.Replies)[0].EditAt || reply.UserId != th.BasicUser.Id
+		importReply := (*data.DirectPost.Replies)[0]
+		replyBool := reply.Type != *importReply.Type || reply.Message != *importReply.Message || reply.CreateAt != *importReply.CreateAt || reply.EditAt != *importReply.EditAt || reply.UserId != th.BasicUser.Id
 		require.False(t, replyBool, "Post properties not as expected")
 	})
 }
