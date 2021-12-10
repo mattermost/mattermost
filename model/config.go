@@ -366,7 +366,7 @@ type ServiceSettings struct {
 	CollapsedThreads                                  *string `access:"experimental_features"`
 	ManagedResourcePaths                              *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableReliableWebSockets                          *bool   `access:"experimental_features"` // telemetry: none
-	EnableCustomGroups                                *bool
+	EnableCustomGroups                                *bool   // telemtetry: none
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
