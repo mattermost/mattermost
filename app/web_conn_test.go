@@ -155,8 +155,6 @@ func TestWebConnAddDeadQueue(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableReliableWebSockets = true })
-
 	wc := th.App.NewWebConn(&WebConnConfig{
 		WebSocket: &websocket.Conn{},
 	})
@@ -185,10 +183,6 @@ func TestWebConnAddDeadQueue(t *testing.T) {
 func TestWebConnIsInDeadQueue(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.EnableReliableWebSockets = true
-	})
 
 	wc := th.App.NewWebConn(&WebConnConfig{
 		WebSocket: &websocket.Conn{},
@@ -250,10 +244,6 @@ func TestWebConnIsInDeadQueue(t *testing.T) {
 func TestWebConnDrainDeadQueue(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.EnableReliableWebSockets = true
-	})
 
 	var dialConn = func(t *testing.T, a *App, addr net.Addr) *WebConn {
 		d := websocket.Dialer{}

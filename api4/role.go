@@ -178,7 +178,18 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if oldRole.Name == model.TeamAdminRoleId || oldRole.Name == model.ChannelAdminRoleId || oldRole.Name == model.SystemUserRoleId || oldRole.Name == model.TeamUserRoleId || oldRole.Name == model.ChannelUserRoleId || oldRole.Name == model.SystemGuestRoleId || oldRole.Name == model.TeamGuestRoleId || oldRole.Name == model.ChannelGuestRoleId {
+	if oldRole.Name == model.TeamAdminRoleId ||
+		oldRole.Name == model.ChannelAdminRoleId ||
+		oldRole.Name == model.SystemUserRoleId ||
+		oldRole.Name == model.TeamUserRoleId ||
+		oldRole.Name == model.ChannelUserRoleId ||
+		oldRole.Name == model.SystemGuestRoleId ||
+		oldRole.Name == model.TeamGuestRoleId ||
+		oldRole.Name == model.ChannelGuestRoleId ||
+		oldRole.Name == model.PlaybookAdminRoleId ||
+		oldRole.Name == model.PlaybookMemberRoleId ||
+		oldRole.Name == model.RunAdminRoleId ||
+		oldRole.Name == model.RunMemberRoleId {
 		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementPermissions) {
 			c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementPermissions)
 			return

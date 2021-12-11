@@ -132,7 +132,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost, isEditPo
 
 func (a *App) PreparePostForClientWithEmbedsAndImages(originalPost *model.Post, isNewPost, isEditPost bool) *model.Post {
 	post := a.PreparePostForClient(originalPost, isNewPost, isEditPost)
-	post = a.getEmbedsAndImages(post, true)
+	post = a.getEmbedsAndImages(post, isNewPost)
 	return post
 }
 

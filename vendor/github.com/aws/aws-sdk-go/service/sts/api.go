@@ -63,14 +63,15 @@ func (c *STS) AssumeRoleRequest(input *AssumeRoleInput) (req *request.Request, o
 // or for cross-account access. For a comparison of AssumeRole with other API
 // operations that produce temporary credentials, see Requesting Temporary Security
 // Credentials (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_request.html)
-// and Comparing the STS API operations (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_request.html#stsapi_comparison)
+// and Comparing the Amazon Web Services STS API operations (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_request.html#stsapi_comparison)
 // in the IAM User Guide.
 //
 // Permissions
 //
 // The temporary security credentials created by AssumeRole can be used to make
 // API calls to any Amazon Web Services service with the following exception:
-// You cannot call the STS GetFederationToken or GetSessionToken API operations.
+// You cannot call the Amazon Web Services STS GetFederationToken or GetSessionToken
+// API operations.
 //
 // (Optional) You can pass inline or managed session policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html#policies_session)
 // to this operation. You can pass a single JSON policy document to use as an
@@ -86,26 +87,33 @@ func (c *STS) AssumeRoleRequest(input *AssumeRoleInput) (req *request.Request, o
 // For more information, see Session Policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html#policies_session)
 // in the IAM User Guide.
 //
-// To assume a role from a different account, your account must be trusted by
-// the role. The trust relationship is defined in the role's trust policy when
-// the role is created. That trust policy states which accounts are allowed
-// to delegate that access to users in the account.
+// When you create a role, you create two policies: A role trust policy that
+// specifies who can assume the role and a permissions policy that specifies
+// what can be done with the role. You specify the trusted principal who is
+// allowed to assume the role in the role trust policy.
+//
+// To assume a role from a different account, your Amazon Web Services account
+// must be trusted by the role. The trust relationship is defined in the role's
+// trust policy when the role is created. That trust policy states which accounts
+// are allowed to delegate that access to users in the account.
 //
 // A user who wants to access a role in a different account must also have permissions
 // that are delegated from the user account administrator. The administrator
 // must attach a policy that allows the user to call AssumeRole for the ARN
-// of the role in the other account. If the user is in the same account as the
-// role, then you can do either of the following:
+// of the role in the other account.
 //
-//    * Attach a policy to the user (identical to the previous user in a different
-//    account).
+// To allow a user to assume a role in the same account, you can do either of
+// the following:
+//
+//    * Attach a policy to the user that allows the user to call AssumeRole
+//    (as long as the role's trust policy trusts the account).
 //
 //    * Add the user as a principal directly in the role's trust policy.
 //
-// In this case, the trust policy acts as an IAM resource-based policy. Users
-// in the same account as the role do not need explicit permission to assume
-// the role. For more information about trust policies and resource-based policies,
-// see IAM Policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html)
+// You can do either because the role’s trust policy acts as an IAM resource-based
+// policy. When a resource-based policy grants access to a principal in the
+// same account, no additional identity-based policy is required. For more information
+// about trust policies and resource-based policies, see IAM Policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html)
 // in the IAM User Guide.
 //
 // Tags
@@ -170,7 +178,7 @@ func (c *STS) AssumeRoleRequest(input *AssumeRoleInput) (req *request.Request, o
 //
 //   You could receive this error even though you meet other defined session policy
 //   and session tag limits. For more information, see IAM and STS Entity Character
-//   Limits (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_enable-regions.html)
+//   Limits (https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_iam-quotas.html#reference_iam-limits-entity-length)
 //   in the IAM User Guide.
 //
 //   * ErrCodeRegionDisabledException "RegionDisabledException"
@@ -258,7 +266,7 @@ func (c *STS) AssumeRoleWithSAMLRequest(input *AssumeRoleWithSAMLInput) (req *re
 // Services access without user-specific credentials or configuration. For a
 // comparison of AssumeRoleWithSAML with the other API operations that produce
 // temporary credentials, see Requesting Temporary Security Credentials (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_request.html)
-// and Comparing the STS API operations (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_request.html#stsapi_comparison)
+// and Comparing the Amazon Web Services STS API operations (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_request.html#stsapi_comparison)
 // in the IAM User Guide.
 //
 // The temporary security credentials returned by this operation consist of
@@ -403,7 +411,7 @@ func (c *STS) AssumeRoleWithSAMLRequest(input *AssumeRoleWithSAMLInput) (req *re
 //
 //   You could receive this error even though you meet other defined session policy
 //   and session tag limits. For more information, see IAM and STS Entity Character
-//   Limits (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_enable-regions.html)
+//   Limits (https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_iam-quotas.html#reference_iam-limits-entity-length)
 //   in the IAM User Guide.
 //
 //   * ErrCodeIDPRejectedClaimException "IDPRejectedClaim"
@@ -523,7 +531,7 @@ func (c *STS) AssumeRoleWithWebIdentityRequest(input *AssumeRoleWithWebIdentityI
 // by using a token from the web identity provider. For a comparison of AssumeRoleWithWebIdentity
 // with the other API operations that produce temporary credentials, see Requesting
 // Temporary Security Credentials (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_request.html)
-// and Comparing the STS API operations (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_request.html#stsapi_comparison)
+// and Comparing the Amazon Web Services STS API operations (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_request.html#stsapi_comparison)
 // in the IAM User Guide.
 //
 // The temporary security credentials returned by this API consist of an access
@@ -661,7 +669,7 @@ func (c *STS) AssumeRoleWithWebIdentityRequest(input *AssumeRoleWithWebIdentityI
 //
 //   You could receive this error even though you meet other defined session policy
 //   and session tag limits. For more information, see IAM and STS Entity Character
-//   Limits (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_enable-regions.html)
+//   Limits (https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_iam-quotas.html#reference_iam-limits-entity-length)
 //   in the IAM User Guide.
 //
 //   * ErrCodeIDPRejectedClaimException "IDPRejectedClaim"
@@ -776,10 +784,11 @@ func (c *STS) DecodeAuthorizationMessageRequest(input *DecodeAuthorizationMessag
 // code.
 //
 // The message is encoded because the details of the authorization status can
-// constitute privileged information that the user who requested the operation
+// contain privileged information that the user who requested the operation
 // should not see. To decode an authorization status message, a user must be
-// granted permissions via an IAM policy to request the DecodeAuthorizationMessage
-// (sts:DecodeAuthorizationMessage) action.
+// granted permissions through an IAM policy (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html)
+// to request the DecodeAuthorizationMessage (sts:DecodeAuthorizationMessage)
+// action.
 //
 // The decoded message includes the following type of information:
 //
@@ -1065,7 +1074,7 @@ func (c *STS) GetFederationTokenRequest(input *GetFederationTokenInput) (req *re
 // For a comparison of GetFederationToken with the other API operations that
 // produce temporary credentials, see Requesting Temporary Security Credentials
 // (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_request.html)
-// and Comparing the STS API operations (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_request.html#stsapi_comparison)
+// and Comparing the Amazon Web Services STS API operations (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_request.html#stsapi_comparison)
 // in the IAM User Guide.
 //
 // You can create a mobile-based or browser-based app that can authenticate
@@ -1088,9 +1097,9 @@ func (c *STS) GetFederationTokenRequest(input *GetFederationTokenInput) (req *re
 //
 // The temporary credentials are valid for the specified duration, from 900
 // seconds (15 minutes) up to a maximum of 129,600 seconds (36 hours). The default
-// session duration is 43,200 seconds (12 hours). Temporary credentials that
-// are obtained by using Amazon Web Services account root user credentials have
-// a maximum duration of 3,600 seconds (1 hour).
+// session duration is 43,200 seconds (12 hours). Temporary credentials obtained
+// by using the Amazon Web Services account root user credentials have a maximum
+// duration of 3,600 seconds (1 hour).
 //
 // Permissions
 //
@@ -1141,63 +1150,6 @@ func (c *STS) GetFederationTokenRequest(input *GetFederationTokenInput) (req *re
 // (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_request.html#api_assumerolewithwebidentity)
 // in the IAM User Guide.
 //
-// You can also call GetFederationToken using the security credentials of an
-// Amazon Web Services account root user, but we do not recommend it. Instead,
-// we recommend that you create an IAM user for the purpose of the proxy application.
-// Then attach a policy to the IAM user that limits federated users to only
-// the actions and resources that they need to access. For more information,
-// see IAM Best Practices (https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html)
-// in the IAM User Guide.
-//
-// Session duration
-//
-// The temporary credentials are valid for the specified duration, from 900
-// seconds (15 minutes) up to a maximum of 129,600 seconds (36 hours). The default
-// session duration is 43,200 seconds (12 hours). Temporary credentials that
-// are obtained by using Amazon Web Services account root user credentials have
-// a maximum duration of 3,600 seconds (1 hour).
-//
-// Permissions
-//
-// You can use the temporary credentials created by GetFederationToken in any
-// Amazon Web Services service except the following:
-//
-//    * You cannot call any IAM operations using the CLI or the Amazon Web Services
-//    API.
-//
-//    * You cannot call any STS operations except GetCallerIdentity.
-//
-// You must pass an inline or managed session policy (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html#policies_session)
-// to this operation. You can pass a single JSON policy document to use as an
-// inline session policy. You can also specify up to 10 managed policies to
-// use as managed session policies. The plain text that you use for both inline
-// and managed session policies can't exceed 2,048 characters.
-//
-// Though the session policy parameters are optional, if you do not pass a policy,
-// then the resulting federated user session has no permissions. When you pass
-// session policies, the session permissions are the intersection of the IAM
-// user policies and the session policies that you pass. This gives you a way
-// to further restrict the permissions for a federated user. You cannot use
-// session policies to grant more permissions than those that are defined in
-// the permissions policy of the IAM user. For more information, see Session
-// Policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html#policies_session)
-// in the IAM User Guide. For information about using GetFederationToken to
-// create temporary security credentials, see GetFederationToken—Federation
-// Through a Custom Identity Broker (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_request.html#api_getfederationtoken).
-//
-// You can use the credentials to access a resource that has a resource-based
-// policy. If that policy specifically references the federated user session
-// in the Principal element of the policy, the session has the permissions allowed
-// by the policy. These permissions are granted in addition to the permissions
-// granted by the session policies.
-//
-// Tags
-//
-// (Optional) You can pass tag key-value pairs to your session. These are called
-// session tags. For more information about session tags, see Passing Session
-// Tags in STS (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_session-tags.html)
-// in the IAM User Guide.
-//
 // An administrator must grant you the permissions necessary to pass session
 // tags. The administrator can also create granular permissions to allow you
 // to pass only specific session tags. For more information, see Tutorial: Using
@@ -1234,7 +1186,7 @@ func (c *STS) GetFederationTokenRequest(input *GetFederationTokenInput) (req *re
 //
 //   You could receive this error even though you meet other defined session policy
 //   and session tag limits. For more information, see IAM and STS Entity Character
-//   Limits (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_enable-regions.html)
+//   Limits (https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_iam-quotas.html#reference_iam-limits-entity-length)
 //   in the IAM User Guide.
 //
 //   * ErrCodeRegionDisabledException "RegionDisabledException"
@@ -1323,7 +1275,7 @@ func (c *STS) GetSessionTokenRequest(input *GetSessionTokenInput) (req *request.
 // then the API returns an access denied error. For a comparison of GetSessionToken
 // with the other API operations that produce temporary credentials, see Requesting
 // Temporary Security Credentials (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_request.html)
-// and Comparing the STS API operations (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_request.html#stsapi_comparison)
+// and Comparing the Amazon Web Services STS API operations (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_request.html#stsapi_comparison)
 // in the IAM User Guide.
 //
 // Session Duration
@@ -1404,15 +1356,23 @@ func (c *STS) GetSessionTokenWithContext(ctx aws.Context, input *GetSessionToken
 type AssumeRoleInput struct {
 	_ struct{} `type:"structure"`
 
-	// The duration, in seconds, of the role session. The value specified can can
-	// range from 900 seconds (15 minutes) up to the maximum session duration that
-	// is set for the role. The maximum session duration setting can have a value
-	// from 1 hour to 12 hours. If you specify a value higher than this setting
-	// or the administrator setting (whichever is lower), the operation fails. For
-	// example, if you specify a session duration of 12 hours, but your administrator
-	// set the maximum session duration to 6 hours, your operation fails. To learn
-	// how to view the maximum value for your role, see View the Maximum Session
-	// Duration Setting for a Role (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use.html#id_roles_use_view-role-max-session)
+	// The duration, in seconds, of the role session. The value specified can range
+	// from 900 seconds (15 minutes) up to the maximum session duration set for
+	// the role. The maximum session duration setting can have a value from 1 hour
+	// to 12 hours. If you specify a value higher than this setting or the administrator
+	// setting (whichever is lower), the operation fails. For example, if you specify
+	// a session duration of 12 hours, but your administrator set the maximum session
+	// duration to 6 hours, your operation fails.
+	//
+	// Role chaining limits your Amazon Web Services CLI or Amazon Web Services
+	// API role session to a maximum of one hour. When you use the AssumeRole API
+	// operation to assume a role, you can specify the duration of your role session
+	// with the DurationSeconds parameter. You can specify a parameter value of
+	// up to 43200 seconds (12 hours), depending on the maximum session duration
+	// setting for your role. However, if you assume a role using role chaining
+	// and provide a DurationSeconds parameter value greater than one hour, the
+	// operation fails. To learn how to view the maximum value for your role, see
+	// View the Maximum Session Duration Setting for a Role (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use.html#id_roles_use_view-role-max-session)
 	// in the IAM User Guide.
 	//
 	// By default, the value is set to 3600 seconds.
@@ -1422,7 +1382,7 @@ type AssumeRoleInput struct {
 	// to the federation endpoint for a console sign-in token takes a SessionDuration
 	// parameter that specifies the maximum length of the console session. For more
 	// information, see Creating a URL that Enables Federated Users to Access the
-	// Management Console (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_enable-console-custom-url.html)
+	// Amazon Web Services Management Console (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_enable-console-custom-url.html)
 	// in the IAM User Guide.
 	DurationSeconds *int64 `min:"900" type:"integer"`
 
@@ -1548,7 +1508,7 @@ type AssumeRoleInput struct {
 
 	// A list of session tags that you want to pass. Each session tag consists of
 	// a key name and an associated value. For more information about session tags,
-	// see Tagging STS Sessions (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_session-tags.html)
+	// see Tagging Amazon Web Services STS Sessions (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_session-tags.html)
 	// in the IAM User Guide.
 	//
 	// This parameter is optional. You can pass up to 50 session tags. The plaintext
@@ -1858,7 +1818,7 @@ type AssumeRoleWithSAMLInput struct {
 	// to the federation endpoint for a console sign-in token takes a SessionDuration
 	// parameter that specifies the maximum length of the console session. For more
 	// information, see Creating a URL that Enables Federated Users to Access the
-	// Management Console (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_enable-console-custom-url.html)
+	// Amazon Web Services Management Console (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_enable-console-custom-url.html)
 	// in the IAM User Guide.
 	DurationSeconds *int64 `min:"900" type:"integer"`
 
@@ -2205,7 +2165,7 @@ type AssumeRoleWithWebIdentityInput struct {
 	// to the federation endpoint for a console sign-in token takes a SessionDuration
 	// parameter that specifies the maximum length of the console session. For more
 	// information, see Creating a URL that Enables Federated Users to Access the
-	// Management Console (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_enable-console-custom-url.html)
+	// Amazon Web Services Management Console (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_enable-console-custom-url.html)
 	// in the IAM User Guide.
 	DurationSeconds *int64 `min:"900" type:"integer"`
 
@@ -2705,7 +2665,7 @@ func (s *DecodeAuthorizationMessageInput) SetEncodedMessage(v string) *DecodeAut
 type DecodeAuthorizationMessageOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An XML document that contains the decoded message.
+	// The API returns a response with the decoded message.
 	DecodedMessage *string `type:"string"`
 }
 
@@ -3237,8 +3197,8 @@ type GetSessionTokenInput struct {
 	// user has a policy that requires MFA authentication. The value is either the
 	// serial number for a hardware device (such as GAHT12345678) or an Amazon Resource
 	// Name (ARN) for a virtual device (such as arn:aws:iam::123456789012:mfa/user).
-	// You can find the device for an IAM user by going to the Management Console
-	// and viewing the user's security credentials.
+	// You can find the device for an IAM user by going to the Amazon Web Services
+	// Management Console and viewing the user's security credentials.
 	//
 	// The regex used to validate this parameter is a string of characters consisting
 	// of upper- and lower-case alphanumeric characters with no spaces. You can
@@ -3400,9 +3360,9 @@ func (s *PolicyDescriptorType) SetArn(v string) *PolicyDescriptorType {
 
 // You can pass custom key-value pair attributes when you assume a role or federate
 // a user. These are called session tags. You can then use the session tags
-// to control access to resources. For more information, see Tagging STS Sessions
-// (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_session-tags.html) in
-// the IAM User Guide.
+// to control access to resources. For more information, see Tagging Amazon
+// Web Services STS Sessions (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_session-tags.html)
+// in the IAM User Guide.
 type Tag struct {
 	_ struct{} `type:"structure"`
 

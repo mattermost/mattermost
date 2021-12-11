@@ -1,7 +1,6 @@
 package archiver
 
 import (
-	"archive/zip"
 	"bytes"
 	"compress/flate"
 	"fmt"
@@ -14,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/dsnet/compress/bzip2"
+	"github.com/klauspost/compress/zip"
 	"github.com/klauspost/compress/zstd"
 	"github.com/ulikunitz/xz"
 )
@@ -350,6 +350,7 @@ func (z *Zip) writeWalk(source, topLevelFolder, destination string) error {
 			FileInfo: FileInfo{
 				FileInfo:   info,
 				CustomName: nameInArchive,
+				SourcePath: fpath,
 			},
 			ReadCloser: file,
 		})
@@ -420,7 +421,7 @@ func (z *Zip) Write(f File) error {
 
 	writer, err := z.zw.CreateHeader(header)
 	if err != nil {
-		return fmt.Errorf("%s: making header: %v", f.Name(), err)
+		return fmt.Errorf("%s: making header: %w", f.Name(), err)
 	}
 
 	return z.writeFile(f, writer)
@@ -431,14 +432,18 @@ func (z *Zip) writeFile(f File, writer io.Writer) error {
 		return nil // directories have no contents
 	}
 	if isSymlink(f) {
+		fi, ok := f.FileInfo.(FileInfo)
+		if !ok {
+			return fmt.Errorf("failed to cast fs.FileInfo to archiver.FileInfo: %v", f)
+		}
 		// file body for symlinks is the symlink target
-		linkTarget, err := os.Readlink(f.Name())
+		linkTarget, err := os.Readlink(fi.SourcePath)
 		if err != nil {
-			return fmt.Errorf("%s: readlink: %v", f.Name(), err)
+			return fmt.Errorf("%s: readlink: %v", fi.SourcePath, err)
 		}
 		_, err = writer.Write([]byte(filepath.ToSlash(linkTarget)))
 		if err != nil {
-			return fmt.Errorf("%s: writing symlink target: %v", f.Name(), err)
+			return fmt.Errorf("%s: writing symlink target: %v", fi.SourcePath, err)
 		}
 		return nil
 	}
@@ -448,7 +453,7 @@ func (z *Zip) writeFile(f File, writer io.Writer) error {
 	}
 	_, err := io.Copy(writer, f)
 	if err != nil {
-		return fmt.Errorf("%s: copying contents: %v", f.Name(), err)
+		return fmt.Errorf("%s: copying contents: %w", f.Name(), err)
 	}
 
 	return nil

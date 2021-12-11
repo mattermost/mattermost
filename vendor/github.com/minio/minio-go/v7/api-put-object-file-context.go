@@ -27,7 +27,7 @@ import (
 )
 
 // FPutObject - Create an object in a bucket, with contents from file at filePath. Allows request cancellation.
-func (c Client) FPutObject(ctx context.Context, bucketName, objectName, filePath string, opts PutObjectOptions) (info UploadInfo, err error) {
+func (c *Client) FPutObject(ctx context.Context, bucketName, objectName, filePath string, opts PutObjectOptions) (info UploadInfo, err error) {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return UploadInfo{}, err
