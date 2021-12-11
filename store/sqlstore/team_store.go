@@ -246,7 +246,12 @@ func (s SqlTeamStore) Save(team *model.Team) (*model.Team, error) {
 		return nil, err
 	}
 
-	if err := s.GetMaster().Insert(team); err != nil {
+	if _, err := s.GetMasterX().NamedExec(`INSERT INTO Teams
+		(Id, CreateAt, UpdateAt, DeleteAt, DisplayName, Name, Description, Email, Type, CompanyName, AllowedDomains,
+		InviteId, AllowOpenInvite, LastTeamIconUpdate, SchemeId, GroupConstrained, PolicyID)
+		VALUES
+		(:Id, :CreateAt, :UpdateAt, :DeleteAt, :DisplayName, :Name, :Description, :Email, :Type, :CompanyName, :AllowedDomains,
+		:InviteId, :AllowOpenInvite, :LastTeamIconUpdate, :SchemeId, :GroupConstrained, :PolicyID)`, team); err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "teams_name_key"}) {
 			return nil, store.NewErrInvalidInput("Team", "id", team.Id)
 		}
