@@ -888,7 +888,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "Hesap ayarları penceresini açar"
+    "translation": "Ayarlar penceresini aç"
   },
   {
     "id": "api.command_settings.name",
@@ -8349,7 +8349,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "PC, Mac, iOS ve Android üzerinde en iyi deneyim için."
+    "translation": "Windows, Linuxi Mac, iOS ve Android üzerinde en iyi deneyim için."
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info",
@@ -8465,7 +8465,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Çalışmalarınızı GitHub, Google Takvim ve Chrome gibi uygulamalar ile paylaşım. Tüm bütünleştirmeleri şurada görebilirsiniz"
+    "translation": "Çalışmalarınızı GitHub, Jira ve Zoom gibi uygulamalar ile paylaşın. Tüm bütünleştirmeleri şurada görebilirsiniz"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -9285,5 +9285,33 @@
   {
     "id": "app.session.extend_session_expiry.app_error",
     "translation": "Oturum süresi uzatılamadı"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.mark_channel_as_read",
+    "translation": "Kanal okunmuş olarak işaretlenemedi"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.kill_orphan_jobs",
+    "translation": "Yetim görevler sonlandırılıyor"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.get_post_types",
+    "translation": "Eşsiz yazı türleri alınamadı"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.get_bad_channel_memberships",
+    "translation": "Bozuk kanal üyelikleri alınamadı"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
+    "translation": "Arşivlenmiş bir kanalın kullanıcıları alınamaz"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
+    "translation": "Arşivlenmiş bir kanalın yazıları alınamaz"
+  },
+  {
+    "id": "api.post.posts_by_ids.invalid_body.request_error",
+    "translation": "Alınan yazı kodlarının sayısı en fazla boyut sınırı olan {{.MaxLength}} değerini aşıyor"
   }
 ]
