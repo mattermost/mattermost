@@ -51,6 +51,11 @@ type SqlGroupStore struct {
 	*SqlStore
 }
 
+type groupWithMemberCount struct {
+	*model.Group
+	MemberCount int
+}
+
 func newSqlGroupStore(sqlStore *SqlStore) store.GroupStore {
 	s := &SqlGroupStore{SqlStore: sqlStore}
 	for _, db := range sqlStore.GetAllConns() {
@@ -193,12 +198,15 @@ func (s *SqlGroupStore) CreateWithUserIds(group *model.GroupWithUserIds) (*model
 		ORDER BY
 			UserGroups.CreateAt DESC`
 	var newGroup model.Group
-	if err = txn.Get(&newGroup, groupGroupQuery, group.Id, 1, 0); err != nil {
+	var groupForQuery groupWithMemberCount
+	if err = txn.Get(&groupForQuery, groupGroupQuery, group.Id, 1, 0); err != nil {
 		return nil, err
 	}
 	if err = txn.Commit(); err != nil {
 		return nil, err
 	}
+	newGroup = *groupForQuery.Group
+	newGroup.MemberCount = &groupForQuery.MemberCount
 	return &newGroup, nil
 }
 
