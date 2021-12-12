@@ -51,11 +51,6 @@ type SqlGroupStore struct {
 	*SqlStore
 }
 
-type groupWithMemberCount struct {
-	*model.Group
-	MemberCount int
-}
-
 func newSqlGroupStore(sqlStore *SqlStore) store.GroupStore {
 	s := &SqlGroupStore{SqlStore: sqlStore}
 	for _, db := range sqlStore.GetAllConns() {
@@ -121,35 +116,35 @@ func (s *SqlGroupStore) Create(group *model.Group) (*model.Group, error) {
 	return group, nil
 }
 
-func (s *SqlGroupStore) CreateWithUserIds(group *model.GroupWithUserIds) (*model.Group, error) {
-	if group.Id != "" {
-		return nil, store.NewErrInvalidInput("Group", "id", group.Id)
+func (s *SqlGroupStore) CreateWithUserIds(g *model.GroupWithUserIds) (*model.Group, error) {
+	if g.Id != "" {
+		return nil, store.NewErrInvalidInput("Group", "id", g.Id)
 	}
 
 	// Check if group values are formatted correctly
-	if err := group.IsValidForCreate(); err != nil {
+	if err := g.IsValidForCreate(); err != nil {
 		return nil, err
 	}
 
 	// Check Users exist
-	if err := s.checkUsersExist(group.UserIds); err != nil {
+	if err := s.checkUsersExist(g.UserIds); err != nil {
 		return nil, err
 	}
 
-	group.Id = model.NewId()
-	group.CreateAt = model.GetMillis()
-	group.UpdateAt = group.CreateAt
+	g.Id = model.NewId()
+	g.CreateAt = model.GetMillis()
+	g.UpdateAt = g.CreateAt
 
 	groupInsertQuery, groupInsertArgs, err := s.getQueryBuilder().
 		Insert("UserGroups").
 		Columns("Id", "Name", "DisplayName", "Description", "Source", "RemoteId", "CreateAt", "UpdateAt", "DeleteAt", "AllowReference").
-		Values(group.Id, group.Name, group.DisplayName, group.Description, group.Source, group.RemoteId, group.CreateAt, group.UpdateAt, 0, group.AllowReference).
+		Values(g.Id, g.Name, g.DisplayName, g.Description, g.Source, g.RemoteId, g.CreateAt, g.UpdateAt, 0, g.AllowReference).
 		ToSql()
 	if err != nil {
 		return nil, err
 	}
 
-	usersInsertQuery, usersInsertArgs, err := s.buildInsertGroupUsersQuery(group.Id, group.UserIds)
+	usersInsertQuery, usersInsertArgs, err := s.buildInsertGroupUsersQuery(g.Id, g.UserIds)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +157,7 @@ func (s *SqlGroupStore) CreateWithUserIds(group *model.GroupWithUserIds) (*model
 	// Create a new usergroup
 	if _, err = txn.Exec(groupInsertQuery, groupInsertArgs...); err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "groups_name_key"}) {
-			return nil, errors.Wrapf(err, "Group with name %s already exists", *group.Name)
+			return nil, errors.Wrapf(err, "Group with name %s already exists", *g.Name)
 		}
 		return nil, errors.Wrap(err, "failed to save Group")
 	}
@@ -197,17 +192,14 @@ func (s *SqlGroupStore) CreateWithUserIds(group *model.GroupWithUserIds) (*model
 			) AS A ON UserGroups.Id = A.Id
 		ORDER BY
 			UserGroups.CreateAt DESC`
-	var newGroup model.Group
-	var groupForQuery groupWithMemberCount
-	if err = txn.Get(&groupForQuery, groupGroupQuery, group.Id, 1, 0); err != nil {
+	var newGroup group
+	if err = txn.Get(&newGroup, groupGroupQuery, g.Id, 1, 0); err != nil {
 		return nil, err
 	}
 	if err = txn.Commit(); err != nil {
 		return nil, err
 	}
-	newGroup = *groupForQuery.Group
-	newGroup.MemberCount = &groupForQuery.MemberCount
-	return &newGroup, nil
+	return newGroup.ToModel(), nil
 }
 
 func (s *SqlGroupStore) checkUsersExist(userIDs []string) error {
