@@ -101,7 +101,7 @@ func (ls SqlLicenseStore) GetAll() ([]*model.LicenseRecord, error) {
 		return nil, errors.Wrap(err, "license_tosql")
 	}
 
-	var licenses []*model.LicenseRecord
+	licenses := []*model.LicenseRecord{}
 	if err := ls.GetReplicaX().Select(&licenses, queryString); err != nil {
 		return nil, errors.Wrap(err, "failed to fetch licenses")
 	}
