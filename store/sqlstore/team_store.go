@@ -285,9 +285,19 @@ func (s SqlTeamStore) Update(team *model.Team) (*model.Team, error) {
 	team.CreateAt = oldTeam.CreateAt
 	team.UpdateAt = model.GetMillis()
 
-	count, err := s.GetMaster().Update(team)
+	res, err := s.GetMasterX().NamedExec(`UPDATE Teams
+			SET CreateAt=:CreateAt, UpdateAt=:UpdateAt, DeleteAt=:DeleteAt, DisplayName=:DisplayName, Name=:Name,
+				Description=:Description, Email=:Email, Type=:Type, CompanyName=:CompanyName, AllowedDomains,
+				InviteId=:InviteId, AllowOpenInvite=:AllowOpenInvite, LastTeamIconUpdate=:LastTeamIconUpdate,
+				SchemeId=:SchemeId, GroupConstrained=:GroupConstrained, PolicyID
+			WHERE Id:=Id`, team)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update Team with id=%s", team.Id)
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get rows_affected")
 	}
 	if count > 1 {
 		return nil, errors.Wrapf(err, "multiple Teams updated with id=%s", team.Id)
@@ -845,7 +855,10 @@ func (s SqlTeamStore) UpdateMultipleMembers(members []*model.TeamMember) ([]*mod
 			return nil, err
 		}
 
-		if _, err := s.GetMaster().Update(NewTeamMemberFromModel(member)); err != nil {
+		if _, err := s.GetMasterX().NamedExec(`UPDATE TeamMembers
+				SET Roles=:Roles, DeleteAt=:DeleteAt, SchemeGuest=:SchemeGuest,
+					SchemeUser=:SchemeUser, SchemeAdmin=:SchemeAdmin, ExplicitRoles=:ExplicitRoles
+				WHERE TeamId=:TeamId AND UserId=:UserId`, member); err != nil {
 			return nil, errors.Wrap(err, "failed to update TeamMember")
 		}
 		teams = append(teams, member.TeamId)
