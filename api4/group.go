@@ -11,100 +11,91 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func (api *API) InitGroup() {
 	// GET /api/v4/groups
-	api.BaseRoutes.Groups.Handle("", api.APISessionRequired(getGroups)).Methods("GET")
+	api.BaseRoutes.Groups.Handle("", api.APISessionRequired(withLicense(getGroups))).Methods("GET")
 
 	// POST /api/v4/groups
-	api.BaseRoutes.Groups.Handle("", api.APISessionRequired(createGroup)).Methods("POST")
+	api.BaseRoutes.Groups.Handle("", api.APISessionRequired(withLicense(createGroup))).Methods("POST")
 
 	// GET /api/v4/groups/:group_id
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}",
-		api.APISessionRequired(getGroup)).Methods("GET")
+		api.APISessionRequired(withLicense(getGroup))).Methods("GET")
 
 	// PUT /api/v4/groups/:group_id/patch
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/patch",
-		api.APISessionRequired(patchGroup)).Methods("PUT")
+		api.APISessionRequired(withLicense(patchGroup))).Methods("PUT")
 
 	// POST /api/v4/groups/:group_id/teams/:team_id/link
 	// POST /api/v4/groups/:group_id/channels/:channel_id/link
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}/{syncable_id:[A-Za-z0-9]+}/link",
-		api.APISessionRequired(linkGroupSyncable)).Methods("POST")
+		api.APISessionRequired(withLicense(linkGroupSyncable))).Methods("POST")
 
 	// DELETE /api/v4/groups/:group_id/teams/:team_id/link
 	// DELETE /api/v4/groups/:group_id/channels/:channel_id/link
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}/{syncable_id:[A-Za-z0-9]+}/link",
-		api.APISessionRequired(unlinkGroupSyncable)).Methods("DELETE")
+		api.APISessionRequired(withLicense(unlinkGroupSyncable))).Methods("DELETE")
 
 	// GET /api/v4/groups/:group_id/teams/:team_id
 	// GET /api/v4/groups/:group_id/channels/:channel_id
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}/{syncable_id:[A-Za-z0-9]+}",
-		api.APISessionRequired(getGroupSyncable)).Methods("GET")
+		api.APISessionRequired(withLicense(getGroupSyncable))).Methods("GET")
 
 	// GET /api/v4/groups/:group_id/teams
 	// GET /api/v4/groups/:group_id/channels
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}",
-		api.APISessionRequired(getGroupSyncables)).Methods("GET")
+		api.APISessionRequired(withLicense(getGroupSyncables))).Methods("GET")
 
 	// PUT /api/v4/groups/:group_id/teams/:team_id/patch
 	// PUT /api/v4/groups/:group_id/channels/:channel_id/patch
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}/{syncable_id:[A-Za-z0-9]+}/patch",
-		api.APISessionRequired(patchGroupSyncable)).Methods("PUT")
+		api.APISessionRequired(withLicense(patchGroupSyncable))).Methods("PUT")
 
 	// GET /api/v4/groups/:group_id/stats
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/stats",
-		api.APISessionRequired(getGroupStats)).Methods("GET")
+		api.APISessionRequired(withLicense(getGroupStats))).Methods("GET")
 
-	// GET /api/v4/groups/:group_id/members?page=0&per_page=100
+	// GET /api/v4/groups/:group_id/members
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members",
-		api.APISessionRequired(getGroupMembers)).Methods("GET")
+		api.APISessionRequired(withLicense(getGroupMembers))).Methods("GET")
 
-	// GET /api/v4/users/:user_id/groups?page=0&per_page=100
+	// GET /api/v4/users/:user_id/groups
 	api.BaseRoutes.Users.Handle("/{user_id:[A-Za-z0-9]+}/groups",
-		api.APISessionRequired(getGroupsByUserId)).Methods("GET")
+		api.APISessionRequired(withLicense(getGroupsByUserId))).Methods("GET")
 
-	// GET /api/v4/channels/:channel_id/groups?page=0&per_page=100
+	// GET /api/v4/channels/:channel_id/groups
 	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/groups",
-		api.APISessionRequired(getGroupsByChannel)).Methods("GET")
+		api.APISessionRequired(withLicense(getGroupsByChannel))).Methods("GET")
 
-	// GET /api/v4/teams/:team_id/groups?page=0&per_page=100
+	// GET /api/v4/teams/:team_id/groups
 	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/groups",
-		api.APISessionRequired(getGroupsByTeam)).Methods("GET")
+		api.APISessionRequired(withLicense(getGroupsByTeam))).Methods("GET")
 
-	// GET /api/v4/teams/:team_id/groups_by_channels?page=0&per_page=100
+	// GET /api/v4/teams/:team_id/groups_by_channels
 	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/groups_by_channels",
-		api.APISessionRequired(getGroupsAssociatedToChannelsByTeam)).Methods("GET")
+		api.APISessionRequired(withLicense(getGroupsAssociatedToChannelsByTeam))).Methods("GET")
 
 	// DELETE /api/v4/groups/:group_id
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}",
-		api.APISessionRequired(deleteGroup)).Methods("DELETE")
+		api.APISessionRequired(withLicense(deleteGroup))).Methods("DELETE")
 
 	// POST /api/v4/groups/:group_id/members
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members",
-		api.APISessionRequired(addGroupMembers)).Methods("POST")
+		api.APISessionRequired(withLicense(addGroupMembers))).Methods("POST")
 
 	// DELETE /api/v4/groups/:group_id/members
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members",
-		api.APISessionRequired(deleteGroupMembers)).Methods("DELETE")
+		api.APISessionRequired(withLicense(deleteGroupMembers))).Methods("DELETE")
 }
 
 func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireGroupId()
 	if c.Err != nil {
-		return
-	}
-
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
-		c.Err = model.NewAppError("Api4.getGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
-		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementGroups)
 		return
 	}
 
@@ -116,8 +107,16 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if group.Source != model.GroupSourceLdap && !c.App.Config().FeatureFlags.CustomGroups {
-		c.Err = model.NewAppError("getGroup", "api.custom_groups.feature_disabled", nil, "", http.StatusNotImplemented)
+	if group.Source == model.GroupSourceLdap {
+		if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionSysconsoleReadUserManagementGroups) {
+			c.SetPermissionError(model.PermissionSysconsoleReadUserManagementGroups)
+			return
+		}
+	}
+
+	if err := licensedAndConfiguredForGroupBySource(c.App, group.Source); err != nil {
+		err.Where = "Api4.getGroup"
+		c.Err = err
 		return
 	}
 
@@ -131,28 +130,25 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.Config().FeatureFlags.CustomGroups {
-		c.Err = model.NewAppError("createGroup", "api.custom_groups.feature_disabled", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateCustomGroup) {
-		c.SetPermissionError(model.PermissionCreateCustomGroup)
-		return
-	}
-
 	var group *model.GroupWithUserIds
 	if jsonErr := json.NewDecoder(r.Body).Decode(&group); jsonErr != nil {
 		c.SetInvalidParam("group")
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createGroup", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("group", group)
-
 	if group.Source != model.GroupSourceCustom {
 		c.Err = model.NewAppError("createGroup", "app.group.crud_permission", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if err := licensedAndConfiguredForGroupBySource(c.App, group.Source); err != nil {
+		err.Where = "Api4.createGroup"
+		c.Err = err
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateCustomGroup) {
+		c.SetPermissionError(model.PermissionCreateCustomGroup)
 		return
 	}
 
@@ -165,6 +161,10 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("createGroup", "api.custom_groups.no_remote_id", nil, "", http.StatusNotImplemented)
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("createGroup", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("group", group)
 
 	newGroup, err := c.App.CreateGroupWithUserIds(group)
 	if err != nil {
@@ -195,25 +195,21 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if group.Source == model.GroupSourceCustom {
-		if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionCustomGroupEdit) {
-			c.SetPermissionError(model.PermissionCustomGroupEdit)
-			return
-		}
-		if !c.App.Config().FeatureFlags.CustomGroups {
-			c.Err = model.NewAppError("patchGroup", "api.custom_groups.feature_disabled", nil, "", http.StatusNotImplemented)
-			return
-		}
-	} else {
-		if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
-			c.Err = model.NewAppError("Api4.patchGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
-			return
-		}
+	if err := licensedAndConfiguredForGroupBySource(c.App, group.Source); err != nil {
+		err.Where = "Api4.patchGroup"
+		c.Err = err
+		return
+	}
 
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
-			c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementGroups)
-			return
-		}
+	var requiredPermission *model.Permission
+	if group.Source == model.GroupSourceCustom {
+		requiredPermission = model.PermissionCustomGroupEdit
+	} else {
+		requiredPermission = model.PermissionSysconsoleWriteUserManagementGroups
+	}
+	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, requiredPermission) {
+		c.SetPermissionError(requiredPermission)
+		return
 	}
 
 	var groupPatch model.GroupPatch
@@ -314,7 +310,7 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
+	if !*c.App.Srv().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.createGroupSyncable", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -370,7 +366,7 @@ func getGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	syncableType := c.Params.SyncableType
 
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
+	if !*c.App.Srv().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.getGroupSyncable", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -407,7 +403,7 @@ func getGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	syncableType := c.Params.SyncableType
 
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
+	if !*c.App.Srv().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.getGroupSyncables", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -469,7 +465,7 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
+	if !*c.App.Srv().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.patchGroupSyncable", "api.ldap_groups.license_error", nil, "",
 			http.StatusNotImplemented)
 		return
@@ -535,7 +531,7 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("syncable_id", syncableID)
 	auditRec.AddMeta("syncable_type", syncableType)
 
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
+	if !*c.App.Srv().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.unlinkGroupSyncable", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -600,21 +596,15 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if group.Source != model.GroupSourceCustom {
-		if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
-			c.Err = model.NewAppError("Api4.getGroupMembers", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
-			return
-		}
+	if err := licensedAndConfiguredForGroupBySource(c.App, group.Source); err != nil {
+		err.Where = "Api4.getGroupMembers"
+		c.Err = err
+		return
+	}
 
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
-			c.SetPermissionError(model.PermissionSysconsoleReadUserManagementGroups)
-			return
-		}
-	} else {
-		if !c.App.Config().FeatureFlags.CustomGroups {
-			c.Err = model.NewAppError("getGroupMembers", "api.custom_groups.feature_disabled", nil, "", http.StatusNotImplemented)
-			return
-		}
+	if group.Source == model.GroupSourceLdap && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementGroups)
+		return
 	}
 
 	members, count, err := c.App.GetGroupMemberUsersPage(c.Params.GroupId, c.Params.Page, c.Params.PerPage)
@@ -644,7 +634,7 @@ func getGroupStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
+	if !*c.App.Srv().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.getGroupStats", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -684,7 +674,7 @@ func getGroupsByUserId(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
+	if !*c.App.Srv().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.getGroupsByUserId", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -767,7 +757,6 @@ func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-
 	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.getGroupsByTeam", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
@@ -800,7 +789,7 @@ func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("Api4.getGroupsByTeam", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
-
+	fmt.Println("DEBUG/getGroupsByTeam/794")
 	w.Write(b)
 }
 
@@ -810,7 +799,7 @@ func getGroupsAssociatedToChannelsByTeam(c *Context, w http.ResponseWriter, r *h
 		return
 	}
 
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
+	if !*c.App.Srv().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.getGroupsAssociatedToChannelsByTeam", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -869,6 +858,12 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := licensedAndConfiguredForGroupBySource(c.App, opts.Source); err != nil {
+		err.Where = "Api4.getGroups"
+		c.Err = err
+		return
+	}
+
 	if teamID != "" {
 		_, err := c.App.GetTeam(teamID)
 		if err != nil {
@@ -924,24 +919,30 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.Config().FeatureFlags.CustomGroups {
-		c.Err = model.NewAppError("deleteGroup", "api.custom_groups.feature_disabled", nil, "", http.StatusNotImplemented)
-		return
-	}
-
 	c.RequireGroupId()
 	if c.Err != nil {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionCustomGroupDelete) {
-		c.SetPermissionError(model.PermissionCustomGroupDelete)
+	group, err := c.App.GetGroup(c.Params.GroupId, nil)
+	if err != nil {
+		c.Err = err
 		return
 	}
 
-	err := c.App.SourceHasCRUDPermissions(c.Params.GroupId)
-	if err != nil {
+	if group.Source != model.GroupSourceCustom {
+		c.Err = model.NewAppError("Api4.deleteGroup", "app.group.crud_permission", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if err := licensedAndConfiguredForGroupBySource(c.App, model.GroupSourceCustom); err != nil {
+		err.Where = "Api4.deleteGroup"
 		c.Err = err
+		return
+	}
+
+	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionCustomGroupDelete) {
+		c.SetPermissionError(model.PermissionCustomGroupDelete)
 		return
 	}
 
@@ -961,24 +962,30 @@ func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.Config().FeatureFlags.CustomGroups {
-		c.Err = model.NewAppError("createGroup", "api.custom_groups.feature_disabled", nil, "", http.StatusNotImplemented)
-		return
-	}
-
 	c.RequireGroupId()
 	if c.Err != nil {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionCustomGroupManageMembers) {
-		c.SetPermissionError(model.PermissionCustomGroupManageMembers)
+	group, err := c.App.GetGroup(c.Params.GroupId, nil)
+	if err != nil {
+		c.Err = err
 		return
 	}
 
-	err := c.App.SourceHasCRUDPermissions(c.Params.GroupId)
-	if err != nil {
+	if group.Source != model.GroupSourceCustom {
+		c.Err = model.NewAppError("Api4.deleteGroup", "app.group.crud_permission", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if err := licensedAndConfiguredForGroupBySource(c.App, model.GroupSourceCustom); err != nil {
+		err.Where = "Api4.deleteGroup"
 		c.Err = err
+		return
+	}
+
+	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionCustomGroupManageMembers) {
+		c.SetPermissionError(model.PermissionCustomGroupManageMembers)
 		return
 	}
 
@@ -1008,13 +1015,25 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.Config().FeatureFlags.CustomGroups {
-		c.Err = model.NewAppError("deleteGroupMembers", "api.custom_groups.feature_disabled", nil, "", http.StatusNotImplemented)
+	c.RequireGroupId()
+	if c.Err != nil {
 		return
 	}
 
-	c.RequireGroupId()
-	if c.Err != nil {
+	group, err := c.App.GetGroup(c.Params.GroupId, nil)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if group.Source != model.GroupSourceCustom {
+		c.Err = model.NewAppError("Api4.deleteGroup", "app.group.crud_permission", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if err := licensedAndConfiguredForGroupBySource(c.App, model.GroupSourceCustom); err != nil {
+		err.Where = "Api4.deleteGroup"
+		c.Err = err
 		return
 	}
 
@@ -1026,12 +1045,6 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	var deleteBody *model.GroupModifyMembers
 	if jsonErr := json.NewDecoder(r.Body).Decode(&deleteBody); jsonErr != nil {
 		c.SetInvalidParam("deleteGroupMembers")
-		return
-	}
-
-	err := c.App.SourceHasCRUDPermissions(c.Params.GroupId)
-	if err != nil {
-		c.Err = err
 		return
 	}
 
@@ -1052,4 +1065,29 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.Success()
 	w.Write(b)
+}
+
+// licensedAndConfiguredForGroupBySource returns an app error if not properly license or configured for the given group type. The returned app error
+// will have a blank 'Where' field, which should be subsequently set by the caller, for example:
+//
+//    err := licensedAndConfiguredForGroupBySource(c.App, group.Source)
+//    err.Where = "Api4.getGroup"
+//
+// Temporarily, this function also checks for the CustomGroups feature flag.
+func licensedAndConfiguredForGroupBySource(app app.AppIface, source model.GroupSource) *model.AppError {
+	lic := app.Srv().License()
+
+	if source == model.GroupSourceLdap && lic != nil && !*lic.Features.LDAPGroups {
+		return model.NewAppError("", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+	}
+
+	if source == model.GroupSourceCustom && lic != nil && !*lic.Features.CustomGroups {
+		return model.NewAppError("", "api.custom_groups.license_error", nil, "", http.StatusNotImplemented)
+	}
+
+	if source == model.GroupSourceCustom && (!app.Config().FeatureFlags.CustomGroups || !*app.Config().ServiceSettings.EnableCustomGroups) {
+		return model.NewAppError("", "api.custom_groups.feature_disabled", nil, "", http.StatusNotImplemented)
+	}
+
+	return nil
 }

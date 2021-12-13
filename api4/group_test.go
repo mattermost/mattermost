@@ -164,9 +164,11 @@ func TestDeleteGroup(t *testing.T) {
 	})
 	assert.Nil(t, appErr)
 
+	th.App.Srv().SetLicense(model.NewTestLicense("custom_groups"))
+
 	_, response, err := th.Client.DeleteGroup(g.Id)
 	require.Error(t, err)
-	CheckForbiddenStatus(t, response)
+	CheckNotImplementedStatus(t, response)
 
 	th.AddPermissionToRole(model.PermissionCustomGroupDelete.Id, model.SystemUserRoleId)
 	_, response, err = th.Client.DeleteGroup(g.Id)
@@ -886,6 +888,8 @@ func TestGetGroupsByChannel(t *testing.T) {
 		},
 	}
 
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		_, _, response, err := client.GetGroupsByChannel("asdfasdf", opts)
 		require.Error(t, err)
@@ -965,6 +969,8 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 		},
 	}
 
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
 	_, response, err := th.SystemAdminClient.GetGroupsAssociatedToChannelsByTeam("asdfasdf", opts)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
@@ -1041,13 +1047,15 @@ func TestGetGroupsByTeam(t *testing.T) {
 		},
 	}
 
+	th.App.Srv().SetLicense(model.NewTestLicense("custom_groups"))
+
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		_, _, response, err := client.GetGroupsByTeam("asdfasdf", opts)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, response)
 	})
 
-	th.App.Srv().SetLicense(nil)
+	th.App.Srv().RemoveLicense()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		_, _, response, err := client.GetGroupsByTeam(th.BasicTeam.Id, opts)
@@ -1107,6 +1115,8 @@ func TestGetGroups(t *testing.T) {
 			PerPage: 60,
 		},
 	}
+
+	th.App.Srv().SetLicense(model.NewTestLicense("custom_groups"))
 
 	_, _, err := th.SystemAdminClient.GetGroups(opts)
 	require.NoError(t, err)
@@ -1397,6 +1407,8 @@ func TestAddMembersToGroup(t *testing.T) {
 		UserIds: []string{user1.Id, user2.Id},
 	}
 
+	th.App.Srv().SetLicense(model.NewTestLicense("custom_groups"))
+
 	groupMembers, response, upsertErr := th.SystemAdminClient.UpsertGroupMembers(group.Id, members)
 	require.NoError(t, upsertErr)
 	CheckOKStatus(t, response)
@@ -1466,6 +1478,8 @@ func TestDeleteMembersFromGroup(t *testing.T) {
 	members := &model.GroupModifyMembers{
 		UserIds: []string{user1.Id},
 	}
+
+	th.App.Srv().SetLicense(model.NewTestLicense("custom_groups"))
 
 	groupMembers, response, deleteErr := th.SystemAdminClient.DeleteGroupMembers(group.Id, members)
 	require.NoError(t, deleteErr)
