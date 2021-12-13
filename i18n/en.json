@@ -1563,6 +1563,10 @@
     "translation": "custom groups feature is disabled"
   },
   {
+    "id": "api.custom_groups.license_error",
+    "translation": "not licensed for custom groups"
+  },
+  {
     "id": "api.custom_groups.must_be_referencable",
     "translation": "allow_reference must be 'true' for custom groups"
   },
@@ -1980,6 +1984,10 @@
   {
     "id": "api.license.upgrade_needed.app_error",
     "translation": "Feature requires an upgrade to Enterprise Edition."
+  },
+  {
+    "id": "api.license_error",
+    "translation": "api endpoint requires a license"
   },
   {
     "id": "api.marshal_error",
