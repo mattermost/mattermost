@@ -249,7 +249,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					Following:             true,
 					IncrementMentions:     incrementMentions,
 					UpdateFollowing:       updateFollowing,
-					UpdateViewedTimestamp: userID == post.UserId,
+					UpdateViewedTimestamp: false,
 					UpdateParticipants:    userID == post.UserId,
 				}
 				threadMembership, err := a.Srv().Store.Thread().MaintainMembership(userID, post.RootId, opts)
@@ -598,6 +598,32 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					return nil, errors.Wrapf(err, "cannot get thread %q for user %q", post.RootId, uid)
 				}
 				if userThread != nil {
+					previousUnreadMentions := userThread.UnreadMentions
+					previousUnreadReplies := max(userThread.UnreadReplies-1, 0)
+
+					if mentions.isUserMentioned(uid) {
+						previousUnreadMentions = max(userThread.UnreadMentions-1, 0)
+					}
+
+					// set last viewed at to now for commenter
+					if uid == post.UserId {
+						opts := store.ThreadMembershipOpts{
+							UpdateViewedTimestamp: true,
+						}
+						// should set unread mentions, and unread replies to 0
+						um, err := a.Srv().Store.Thread().MaintainMembership(uid, post.RootId, opts)
+
+						if err != nil {
+							return nil, errors.Wrapf(err, "cannot maintain thread membership %q for user %q", post.RootId, uid)
+						}
+
+						userThread.UnreadMentions = um.UnreadMentions                                        // should be 0
+						userThread.UnreadReplies, err = a.Srv().Store.Thread().GetThreadUnreadReplyCount(um) // should be 0
+
+						if err != nil {
+							return nil, errors.Wrapf(err, "cannot get threads %q unread replies count for user %q", post.RootId, uid)
+						}
+					}
 					a.sanitizeProfiles(userThread.Participants, false)
 					userThread.Post.SanitizeProps()
 
@@ -612,14 +638,6 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 						mlog.Warn("Failed to encode thread to JSON")
 					}
 					message.Add("thread", string(payload))
-
-					previousUnreadMentions := userThread.UnreadMentions
-					previousUnreadReplies := max(userThread.UnreadReplies-1, 0)
-
-					if mentions.isUserMentioned(uid) {
-						previousUnreadMentions = max(userThread.UnreadMentions-1, 0)
-					}
-
 					message.Add("previous_unread_mentions", previousUnreadMentions)
 					message.Add("previous_unread_replies", previousUnreadReplies)
 

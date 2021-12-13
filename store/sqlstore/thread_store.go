@@ -648,11 +648,11 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
 			}
 			if opts.UpdateViewedTimestamp {
 				membership.LastViewed = now
-			}
-			membership.LastUpdated = now
-			if opts.IncrementMentions {
+				membership.UnreadMentions = 0
+			} else if opts.IncrementMentions {
 				membership.UnreadMentions += 1
 			}
+			membership.LastUpdated = now
 			if _, err = s.updateMembership(trx, membership); err != nil {
 				return nil, err
 			}

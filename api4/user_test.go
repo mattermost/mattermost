@@ -5935,15 +5935,9 @@ func TestThreadSocketEvents(t *testing.T) {
 			{&model.Post{ChannelId: th.BasicChannel.Id, Message: "simple reply", UserId: th.BasicUser2.Id, RootId: rpost.Id}, 0, 0, 1, 0},
 			{&model.Post{ChannelId: th.BasicChannel.Id, Message: "mention reply 1 @" + th.BasicUser.Username, UserId: th.BasicUser2.Id, RootId: rpost.Id}, 1, 0, 2, 1},
 			{&model.Post{ChannelId: th.BasicChannel.Id, Message: "mention reply 2 @" + th.BasicUser.Username, UserId: th.BasicUser2.Id, RootId: rpost.Id}, 2, 1, 3, 2},
-			// the following case is a broken
-			// there are a couple of issues,
-			// the results that passes the test are 0, 2, 0, 2
-			// when they should be 3, 2, 0, 0
-			// which means 1. we are zeroing unread but not mentions for some reason.
-			// and 2. previous unread are zeroed when they shouldn't
-			// not an actual problem, (2.) since to post you have to view the thread first
-			// could be a problem if we have quick replies in the app though (reply from a notification)
-			// {&model.Post{ChannelId: th.BasicChannel.Id, Message: "self reply 2", UserId: th.BasicUser.Id, RootId: rpost.Id}, 3, 2, 0, 0},
+			{&model.Post{ChannelId: th.BasicChannel.Id, Message: "self reply", UserId: th.BasicUser.Id, RootId: rpost.Id}, 3, 2, 0, 0}, // posting as current user will read the thread
+			{&model.Post{ChannelId: th.BasicChannel.Id, Message: "simple reply", UserId: th.BasicUser2.Id, RootId: rpost.Id}, 0, 0, 1, 0},
+			{&model.Post{ChannelId: th.BasicChannel.Id, Message: "mention reply 3 @" + th.BasicUser.Username, UserId: th.BasicUser2.Id, RootId: rpost.Id}, 1, 0, 2, 1},
 		}
 
 		for _, tc := range testCases {
