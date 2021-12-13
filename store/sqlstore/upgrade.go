@@ -860,6 +860,11 @@ func upgradeDatabaseToVersion630(sqlStore *SqlStore) {
 	// TODO: uncomment when the time arrive to upgrade the DB for 6.3
 	// if shouldPerformUpgrade(sqlStore, Version620, Version630) {
 
+	sqlStore.CreateColumnIfNotExists("Schemes", "DefaultPlaybookAdminRole", "VARCHAR(64)", "VARCHAR(64)", "")
+	sqlStore.CreateColumnIfNotExists("Schemes", "DefaultPlaybookMemberRole", "VARCHAR(64)", "VARCHAR(64)", "")
+	sqlStore.CreateColumnIfNotExists("Schemes", "DefaultRunAdminRole", "VARCHAR(64)", "VARCHAR(64)", "")
+	sqlStore.CreateColumnIfNotExists("Schemes", "DefaultRunMemberRole", "VARCHAR(64)", "VARCHAR(64)", "")
+
 	// 	saveSchemaVersion(sqlStore, Version630)
 	// }
 }
