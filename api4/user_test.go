@@ -5942,8 +5942,8 @@ func TestThreadSocketEvents(t *testing.T) {
 
 		for _, tc := range testCases {
 			// post a reply on the thread
-			require.Nil(t, appErr)
 			_, appErr = th.App.CreatePostAsUser(th.Context, tc.post, th.Context.Session().Id, false)
+			require.Nil(t, appErr)
 
 			var caught bool
 			func() {
