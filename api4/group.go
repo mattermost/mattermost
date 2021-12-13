@@ -114,9 +114,9 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := licensedAndConfiguredForGroupBySource(c.App, group.Source); err != nil {
-		err.Where = "Api4.getGroup"
-		c.Err = err
+	if lcErr := licensedAndConfiguredForGroupBySource(c.App, group.Source); lcErr != nil {
+		lcErr.Where = "Api4.getGroup"
+		c.Err = lcErr
 		return
 	}
 
@@ -141,9 +141,9 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := licensedAndConfiguredForGroupBySource(c.App, group.Source); err != nil {
-		err.Where = "Api4.createGroup"
-		c.Err = err
+	if lcErr := licensedAndConfiguredForGroupBySource(c.App, group.Source); lcErr != nil {
+		lcErr.Where = "Api4.createGroup"
+		c.Err = lcErr
 		return
 	}
 
@@ -195,9 +195,9 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := licensedAndConfiguredForGroupBySource(c.App, group.Source); err != nil {
-		err.Where = "Api4.patchGroup"
-		c.Err = err
+	if lcErr := licensedAndConfiguredForGroupBySource(c.App, group.Source); lcErr != nil {
+		lcErr.Where = "Api4.patchGroup"
+		c.Err = lcErr
 		return
 	}
 
@@ -596,9 +596,9 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := licensedAndConfiguredForGroupBySource(c.App, group.Source); err != nil {
-		err.Where = "Api4.getGroupMembers"
-		c.Err = err
+	if lcErr := licensedAndConfiguredForGroupBySource(c.App, group.Source); lcErr != nil {
+		lcErr.Where = "Api4.getGroupMembers"
+		c.Err = lcErr
 		return
 	}
 
@@ -858,9 +858,9 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := licensedAndConfiguredForGroupBySource(c.App, opts.Source); err != nil {
-		err.Where = "Api4.getGroups"
-		c.Err = err
+	if lcErr := licensedAndConfiguredForGroupBySource(c.App, opts.Source); lcErr != nil {
+		lcErr.Where = "Api4.getGroups"
+		c.Err = lcErr
 		return
 	}
 
@@ -935,9 +935,9 @@ func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := licensedAndConfiguredForGroupBySource(c.App, model.GroupSourceCustom); err != nil {
-		err.Where = "Api4.deleteGroup"
-		c.Err = err
+	if lcErr := licensedAndConfiguredForGroupBySource(c.App, model.GroupSourceCustom); lcErr != nil {
+		lcErr.Where = "Api4.deleteGroup"
+		c.Err = lcErr
 		return
 	}
 
@@ -978,9 +978,9 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := licensedAndConfiguredForGroupBySource(c.App, model.GroupSourceCustom); err != nil {
-		err.Where = "Api4.deleteGroup"
-		c.Err = err
+	if lcErr := licensedAndConfiguredForGroupBySource(c.App, model.GroupSourceCustom); lcErr != nil {
+		lcErr.Where = "Api4.deleteGroup"
+		c.Err = lcErr
 		return
 	}
 
@@ -1031,9 +1031,9 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := licensedAndConfiguredForGroupBySource(c.App, model.GroupSourceCustom); err != nil {
-		err.Where = "Api4.deleteGroup"
-		c.Err = err
+	if lcErr := licensedAndConfiguredForGroupBySource(c.App, model.GroupSourceCustom); lcErr != nil {
+		lcErr.Where = "Api4.deleteGroup"
+		c.Err = lcErr
 		return
 	}
 
