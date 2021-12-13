@@ -2291,7 +2291,6 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	// Post with reply.
 	replyPostTime := hashtagTime + 4
 	replyTime := hashtagTime + 5
-	replyEditTime := hashtagTime + 6
 	data = LineImportWorkerData{
 		LineImportData{
 			Post: &PostImportData{
@@ -2410,6 +2409,12 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 11, team.Id)
 
 	// Create new reply with type and edit_at for existing post with replies.
+
+	// Post with reply.
+	editedReplyPostTime := hashtagTime + 6
+	editedReplyTime := hashtagTime + 7
+	editedReplyEditTime := hashtagTime + 8
+
 	data = LineImportWorkerData{
 		LineImportData{
 			Post: &PostImportData{
@@ -2417,13 +2422,13 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Channel:  &channelName,
 				User:     &user2.Username,
 				Message:  ptrStr("Message with reply"),
-				CreateAt: &replyPostTime,
+				CreateAt: &editedReplyPostTime,
 				Replies: &[]ReplyImportData{{
 					User:     &username,
 					Type:     ptrStr(model.PostTypeSystemGeneric),
 					Message:  ptrStr("Message reply 3"),
-					CreateAt: &replyTime,
-					EditAt:   &replyEditTime,
+					CreateAt: &editedReplyTime,
+					EditAt:   &editedReplyEditTime,
 				}},
 			},
 		},
@@ -2433,10 +2438,10 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	assert.Nil(t, err, "Expected success.")
 	assert.Equal(t, 0, errLine)
 
-	AssertAllPostsCount(t, th.App, initialPostCount, 12, team.Id)
+	AssertAllPostsCount(t, th.App, initialPostCount, 13, team.Id)
 
 	// Check the reply values.
-	replies, nErr = th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, replyTime)
+	replies, nErr = th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, editedReplyTime)
 	assert.NoError(t, nErr, "Expected success.")
 	reply = replies[0]
 	importReply := (*data.Post.Replies)[0]
@@ -2498,7 +2503,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 
 	// Posts should be added to the right team
 	AssertAllPostsCount(t, th.App, initialPostCountForTeam2, 1, team2.Id)
-	AssertAllPostsCount(t, th.App, initialPostCount, 13, team.Id)
+	AssertAllPostsCount(t, th.App, initialPostCount, 14, team.Id)
 }
 
 func TestImportImportPost(t *testing.T) {
