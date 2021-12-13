@@ -3518,10 +3518,10 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.Len(t, posts, 1)
 
 		post := posts[0]
-		require.Equal(t, post.Type, *data.DirectPost.Type)
-		require.Equal(t, post.Message, *data.DirectPost.Message)
-		require.Equal(t, post.CreateAt, *data.DirectPost.CreateAt)
-		require.Equal(t, post.UserId, th.BasicUser.Id)
+		assert.Equal(t, post.Type, *data.DirectPost.Type)
+		assert.Equal(t, post.Message, *data.DirectPost.Message)
+		assert.Equal(t, post.CreateAt, *data.DirectPost.CreateAt)
+		assert.Equal(t, post.UserId, th.BasicUser.Id)
 	})
 
 	t.Run("Test with EditAt", func(t *testing.T) {
@@ -3550,10 +3550,10 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.Len(t, posts, 1)
 
 		post := posts[0]
-		require.Equal(t, post.Message, *data.DirectPost.Message)
-		require.Equal(t, post.CreateAt, *data.DirectPost.CreateAt)
-		require.Equal(t, post.EditAt, *data.DirectPost.EditAt)
-		require.Equal(t, post.UserId, th.BasicUser.Id)
+		assert.Equal(t, post.Message, *data.DirectPost.Message)
+		assert.Equal(t, post.CreateAt, *data.DirectPost.CreateAt)
+		assert.Equal(t, post.EditAt, *data.DirectPost.EditAt)
+		assert.Equal(t, post.UserId, th.BasicUser.Id)
 	})
 
 	// ------------------ Group Channel -------------------------
