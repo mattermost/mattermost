@@ -17,7 +17,9 @@ import (
 )
 
 const (
-	CurrentSchemaVersion   = Version600
+	CurrentSchemaVersion   = Version620
+	Version630             = "6.3.0"
+	Version620             = "6.2.0"
 	Version610             = "6.1.0"
 	Version600             = "6.0.0"
 	Version5390            = "5.39.0"
@@ -216,6 +218,8 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion539(sqlStore)
 	upgradeDatabaseToVersion600(sqlStore)
 	upgradeDatabaseToVersion610(sqlStore)
+	upgradeDatabaseToVersion620(sqlStore)
+	upgradeDatabaseToVersion630(sqlStore)
 
 	return nil
 }
@@ -1359,22 +1363,22 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 }
 
 func upgradeDatabaseToVersion610(sqlStore *SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, Version600, Version610) {
+	if shouldPerformUpgrade(sqlStore, Version600, Version610) {
 
-	sqlStore.AlterColumnTypeIfExists("Sessions", "Roles", "text", "varchar(256)")
-	sqlStore.AlterColumnTypeIfExists("ChannelMembers", "Roles", "text", "varchar(256)")
-	sqlStore.AlterColumnTypeIfExists("TeamMembers", "Roles", "text", "varchar(256)")
-	sqlStore.CreateCompositeIndexIfNotExists("idx_jobs_status_type", "Jobs", []string{"Status", "Type"})
+		sqlStore.AlterColumnTypeIfExists("Sessions", "Roles", "text", "varchar(256)")
+		sqlStore.AlterColumnTypeIfExists("ChannelMembers", "Roles", "text", "varchar(256)")
+		sqlStore.AlterColumnTypeIfExists("TeamMembers", "Roles", "text", "varchar(256)")
+		sqlStore.CreateCompositeIndexIfNotExists("idx_jobs_status_type", "Jobs", []string{"Status", "Type"})
 
-	forceIndex := ""
-	if sqlStore.DriverName() == model.DatabaseDriverMysql {
-		forceIndex = "FORCE INDEX(idx_posts_channel_id_update_at)"
-	}
+		forceIndex := ""
+		if sqlStore.DriverName() == model.DatabaseDriverMysql {
+			forceIndex = "FORCE INDEX(idx_posts_channel_id_update_at)"
+		}
 
-	lastRootPostAtExists := sqlStore.DoesColumnExist("Channels", "LastRootPostAt")
-	sqlStore.CreateColumnIfNotExists("Channels", "LastRootPostAt", "bigint", "bigint", "0")
+		lastRootPostAtExists := sqlStore.DoesColumnExist("Channels", "LastRootPostAt")
+		sqlStore.CreateColumnIfNotExists("Channels", "LastRootPostAt", "bigint", "bigint", "0")
 
-	lastRootPostAtCTE := `
+		lastRootPostAtCTE := `
 		SELECT Channels.Id channelid, COALESCE(MAX(Posts.CreateAt), 0) as lastrootpost
 		FROM Channels
 		LEFT JOIN Posts ` + forceIndex + ` ON Channels.Id = Posts.ChannelId
@@ -1382,27 +1386,46 @@ func upgradeDatabaseToVersion610(sqlStore *SqlStore) {
 		GROUP BY Channels.Id
 	`
 
-	updateChannels := `
+		updateChannels := `
 		WITH q AS (` + lastRootPostAtCTE + `)
 		UPDATE Channels SET LastRootPostAt=q.lastrootpost
 		FROM q where q.channelid=Channels.Id;
 	`
 
-	if sqlStore.DriverName() == model.DatabaseDriverMysql {
-		updateChannels = `
+		if sqlStore.DriverName() == model.DatabaseDriverMysql {
+			updateChannels = `
 			UPDATE Channels
 			INNER Join (` + lastRootPostAtCTE + `) as q
 			ON q.channelid=Channels.Id
 			SET LastRootPostAt=lastrootpost;
 		`
-	}
-
-	if !lastRootPostAtExists {
-		if _, err := sqlStore.GetMaster().ExecNoTimeout(updateChannels); err != nil {
-			mlog.Error("Error updating Channels table", mlog.Err(err))
 		}
-	}
 
-	// saveSchemaVersion(sqlStore, Version610)
+		if !lastRootPostAtExists {
+			if _, err := sqlStore.GetMaster().ExecNoTimeout(updateChannels); err != nil {
+				mlog.Error("Error updating Channels table", mlog.Err(err))
+			}
+		}
+
+		saveSchemaVersion(sqlStore, Version610)
+	}
+}
+
+func upgradeDatabaseToVersion620(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, Version610, Version620) {
+		saveSchemaVersion(sqlStore, Version620)
+	}
+}
+
+func upgradeDatabaseToVersion630(sqlStore *SqlStore) {
+	// TODO: uncomment when the time arrive to upgrade the DB for 6.3
+	// if shouldPerformUpgrade(sqlStore, Version620, Version630) {
+
+	sqlStore.CreateColumnIfNotExists("Schemes", "DefaultPlaybookAdminRole", "VARCHAR(64)", "VARCHAR(64)", "")
+	sqlStore.CreateColumnIfNotExists("Schemes", "DefaultPlaybookMemberRole", "VARCHAR(64)", "VARCHAR(64)", "")
+	sqlStore.CreateColumnIfNotExists("Schemes", "DefaultRunAdminRole", "VARCHAR(64)", "VARCHAR(64)", "")
+	sqlStore.CreateColumnIfNotExists("Schemes", "DefaultRunMemberRole", "VARCHAR(64)", "VARCHAR(64)", "")
+
+	// 	saveSchemaVersion(sqlStore, Version630)
 	// }
 }

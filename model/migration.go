@@ -35,4 +35,6 @@ const (
 	MigrationKeyAddTestEmailAncillaryPermission        = "test_email_ancillary_permission"
 	MigrationKeyAddAboutSubsectionPermissions          = "about_subsection_permissions"
 	MigrationKeyAddIntegrationsSubsectionPermissions   = "integrations_subsection_permissions"
+	MigrationKeyFixCRTChannelUnreads                   = "fix_crt_channel_unreads"
+	MigrationKeyAddPlaybooksPermissions                = "playbooks_permissions"
 )
