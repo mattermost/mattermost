@@ -661,7 +661,7 @@ func (s SqlTeamStore) PermanentDelete(teamId string) error {
 	if err != nil {
 		return errors.Wrap(err, "team_tosql")
 	}
-	if _, err = s.GetMaster().Exec(sql, args...); err != nil {
+	if _, err = s.GetMasterX().Exec(sql, args...); err != nil {
 		return errors.Wrapf(err, "failed to delete Team with id=%s", teamId)
 	}
 	return nil
@@ -812,7 +812,7 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 		return nil, errors.Wrap(err, "insert_members_to_sql")
 	}
 
-	if _, err = s.GetMaster().Exec(sql, args...); err != nil {
+	if _, err = s.GetMasterX().Exec(sql, args...); err != nil {
 		if IsUniqueConstraintError(err, []string{"TeamId", "teammembers_pkey", "PRIMARY"}) {
 			return nil, store.NewErrConflict("TeamMember", err, "")
 		}
@@ -1167,7 +1167,7 @@ func (s SqlTeamStore) RemoveMembers(teamId string, userIds []string) error {
 	if err != nil {
 		return errors.Wrap(err, "team_tosql")
 	}
-	_, err = s.GetMaster().Exec(query, args...)
+	_, err = s.GetMasterX().Exec(query, args...)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete TeamMembers with teamId=%s and userId in %v", teamId, userIds)
 	}
@@ -1188,7 +1188,7 @@ func (s SqlTeamStore) RemoveAllMembersByTeam(teamId string) error {
 		return errors.Wrap(err, "team_tosql")
 	}
 
-	_, err = s.GetMaster().Exec(query, args...)
+	_, err = s.GetMasterX().Exec(query, args...)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete TeamMembers with teamId=%s", teamId)
 	}
@@ -1203,7 +1203,7 @@ func (s SqlTeamStore) RemoveAllMembersByUser(userId string) error {
 	if err != nil {
 		return errors.Wrap(err, "team_tosql")
 	}
-	_, err = s.GetMaster().Exec(query, args...)
+	_, err = s.GetMasterX().Exec(query, args...)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete TeamMembers with userId=%s", userId)
 	}
@@ -1222,7 +1222,7 @@ func (s SqlTeamStore) UpdateLastTeamIconUpdate(teamId string, curTime int64) err
 		return errors.Wrap(err, "team_tosql")
 	}
 
-	if _, err = s.GetMaster().Exec(query, args...); err != nil {
+	if _, err = s.GetMasterX().Exec(query, args...); err != nil {
 		return errors.Wrap(err, "failed to update Team")
 	}
 	return nil
@@ -1316,7 +1316,7 @@ func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) (
 
 // ResetAllTeamSchemes Set all Team's SchemeId values to an empty string.
 func (s SqlTeamStore) ResetAllTeamSchemes() error {
-	if _, err := s.GetMaster().Exec("UPDATE Teams SET SchemeId=''"); err != nil {
+	if _, err := s.GetMasterX().Exec("UPDATE Teams SET SchemeId=''"); err != nil {
 		return errors.Wrap(err, "failed to update Teams")
 	}
 	return nil
@@ -1526,7 +1526,7 @@ func (s SqlTeamStore) UpdateMembersRole(teamID string, userIDs []string) error {
 		return errors.Wrap(err, "team_tosql")
 	}
 
-	if _, err = s.GetMaster().Exec(query, args...); err != nil {
+	if _, err = s.GetMasterX().Exec(query, args...); err != nil {
 		return errors.Wrap(err, "failed to update TeamMembers")
 	}
 
