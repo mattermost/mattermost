@@ -1425,7 +1425,9 @@ func upgradeDatabaseToVersion630(sqlStore *SqlStore) {
 	sqlStore.CreateColumnIfNotExists("Schemes", "DefaultPlaybookMemberRole", "VARCHAR(64)", "VARCHAR(64)", "")
 	sqlStore.CreateColumnIfNotExists("Schemes", "DefaultRunAdminRole", "VARCHAR(64)", "VARCHAR(64)", "")
 	sqlStore.CreateColumnIfNotExists("Schemes", "DefaultRunMemberRole", "VARCHAR(64)", "VARCHAR(64)", "")
-
+	sqlStore.RemoveIndexIfExists("idx_uploadsessions_user_id", "UploadSessions")
+	sqlStore.CreateIndexIfNotExists("idx_uploadsessions_type", "UploadSessions", "Type")
+	sqlStore.CreateIndexIfNotExists("idx_uploadsessions_user_id", "UploadSessions", "UserId")
 	// 	saveSchemaVersion(sqlStore, Version630)
 	// }
 }

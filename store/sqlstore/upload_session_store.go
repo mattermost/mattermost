@@ -36,7 +36,7 @@ func newSqlUploadSessionStore(sqlStore *SqlStore) store.UploadSessionStore {
 }
 
 func (us SqlUploadSessionStore) createIndexesIfNotExists() {
-	us.CreateIndexIfNotExists("idx_uploadsessions_user_id", "UploadSessions", "Type")
+	us.CreateIndexIfNotExists("idx_uploadsessions_type", "UploadSessions", "Type")
 	us.CreateIndexIfNotExists("idx_uploadsessions_create_at", "UploadSessions", "CreateAt")
 	us.CreateIndexIfNotExists("idx_uploadsessions_user_id", "UploadSessions", "UserId")
 }

@@ -1067,8 +1067,9 @@ CREATE TABLE `UploadSessions` (
   `RemoteId` varchar(26) DEFAULT NULL,
   `ReqFileId` varchar(26) DEFAULT NULL,
   PRIMARY KEY (`Id`),
-  KEY `idx_uploadsessions_user_id` (`Type`),
-  KEY `idx_uploadsessions_create_at` (`CreateAt`)
+  KEY `idx_uploadsessions_type` (`Type`),
+  KEY `idx_uploadsessions_create_at` (`CreateAt`),
+  KEY `idx_uploadsessions_user_id` (`UserId`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
 

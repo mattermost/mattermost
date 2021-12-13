@@ -2233,6 +2233,12 @@ CREATE INDEX idx_threads_channel_id_last_reply_at ON public.threads USING btree 
 
 
 --
+-- Name: idx_uploadsessions_type; Type: INDEX; Schema: public; Owner: mmuser
+--
+
+CREATE INDEX idx_uploadsessions_user_id ON public.uploadsessions USING btree (type);
+
+--
 -- Name: idx_uploadsessions_create_at; Type: INDEX; Schema: public; Owner: mmuser
 --
 
@@ -2243,7 +2249,7 @@ CREATE INDEX idx_uploadsessions_create_at ON public.uploadsessions USING btree (
 -- Name: idx_uploadsessions_user_id; Type: INDEX; Schema: public; Owner: mmuser
 --
 
-CREATE INDEX idx_uploadsessions_user_id ON public.uploadsessions USING btree (type);
+CREATE INDEX idx_uploadsessions_user_id ON public.uploadsessions USING btree (userid);
 
 
 --
