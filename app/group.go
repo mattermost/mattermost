@@ -121,11 +121,14 @@ func (a *App) CreateGroupWithUserIds(group *model.GroupWithUserIds) (*model.Grou
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
+		var dupKey *store.ErrUniqueConstraint
 		switch {
 		case errors.As(err, &appErr):
 			return nil, appErr
 		case errors.As(err, &invErr):
 			return nil, model.NewAppError("CreateGroupWithUserIds", "app.group.id.app_error", nil, invErr.Error(), http.StatusBadRequest)
+		case errors.As(err, &dupKey):
+			return nil, model.NewAppError("CreateGroup", "app.custom_group.unique_name", nil, dupKey.Error(), http.StatusBadRequest)
 		default:
 			return nil, model.NewAppError("CreateGroupWithUserIds", "app.insert_error", nil, err.Error(), http.StatusInternalServerError)
 		}

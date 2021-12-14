@@ -157,7 +157,7 @@ func (s *SqlGroupStore) CreateWithUserIds(g *model.GroupWithUserIds) (*model.Gro
 	// Create a new usergroup
 	if _, err = txn.Exec(groupInsertQuery, groupInsertArgs...); err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "groups_name_key"}) {
-			return nil, errors.Wrapf(err, "Group with name %s already exists", *g.Name)
+			return nil, store.NewErrUniqueConstraint("Name")
 		}
 		return nil, errors.Wrap(err, "failed to save Group")
 	}
