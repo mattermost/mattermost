@@ -830,11 +830,11 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	// For animated GIFs disable the preview; since we have to Decode gifs
 	// anyway, cache the decoded image for later.
 	if t.fileinfo.MimeType == "image/gif" {
-		gifConfig, err := gif.DecodeAll(io.MultiReader(bytes.NewReader(t.buf.Bytes()), t.teeInput))
+		firstEmbeddedImage, err := gif.Decode(io.MultiReader(bytes.NewReader(t.buf.Bytes()), t.teeInput))
 		if err == nil {
-			if len(gifConfig.Image) > 0 {
+			if firstEmbeddedImage != nil {
 				t.fileinfo.HasPreviewImage = false
-				t.decoded = gifConfig.Image[0]
+				t.decoded = firstEmbeddedImage
 				t.imageType = "gif"
 			}
 		}
