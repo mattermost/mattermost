@@ -11,7 +11,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"image"
-	"image/gif"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -830,13 +829,11 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	// For animated GIFs disable the preview; since we have to Decode gifs
 	// anyway, cache the decoded image for later.
 	if t.fileinfo.MimeType == "image/gif" {
-		firstEmbeddedImage, err := gif.Decode(io.MultiReader(bytes.NewReader(t.buf.Bytes()), t.teeInput))
-		if err == nil {
-			if firstEmbeddedImage != nil {
-				t.fileinfo.HasPreviewImage = false
-				t.decoded = firstEmbeddedImage
-				t.imageType = "gif"
-			}
+		image, format, err := t.imgDecoder.Decode(io.MultiReader(bytes.NewReader(t.buf.Bytes()), t.teeInput))
+		if err == nil && image != nil {
+			t.fileinfo.HasPreviewImage = false
+			t.decoded = image
+			t.imageType = format
 		}
 	}
 
