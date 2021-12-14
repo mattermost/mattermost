@@ -1630,7 +1630,7 @@ func (ss *SqlStore) jsonDataType() string {
 
 func (ss *SqlStore) toReserveCase(str string) string {
 	if ss.DriverName() == model.DatabaseDriverPostgres {
-		return fmt.Sprintf(`"%s"`, str)
+		return fmt.Sprintf("%q", str)
 	}
 
 	return fmt.Sprintf("`%s`", strings.Title(str))
