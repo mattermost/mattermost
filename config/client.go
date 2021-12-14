@@ -197,6 +197,10 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["ExperimentalSharedChannels"] = strconv.FormatBool(*c.ExperimentalSettings.EnableSharedChannels)
 			props["ExperimentalRemoteClusterService"] = strconv.FormatBool(c.FeatureFlags.EnableRemoteClusterService && *c.ExperimentalSettings.EnableRemoteClusterService)
 		}
+
+		if *license.Features.CustomGroups {
+			props["EnableCustomGroups"] = strconv.FormatBool(*c.ServiceSettings.EnableCustomGroups)
+		}
 	}
 
 	return props
