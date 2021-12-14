@@ -1928,23 +1928,23 @@ func initializePermissions() {
 	}
 
 	PermissionCustomGroupManageMembers = &Permission{
-		"custom_group_manage_members",
-		"authentication.permissions.custom_group_manage_members.name",
-		"authentication.permissions.custom_group_manage_members.description",
+		"manage_custom_group_members",
+		"authentication.permissions.manage_custom_group_members.name",
+		"authentication.permissions.manage_custom_group_members.description",
 		PermissionScopeGroup,
 	}
 
 	PermissionCustomGroupEdit = &Permission{
-		"custom_group_edit",
-		"authentication.permissions.custom_group_edit.name",
-		"authentication.permissions.custom_group_edit.description",
+		"edit_custom_group",
+		"authentication.permissions.edit_custom_group.name",
+		"authentication.permissions.edit_custom_group.description",
 		PermissionScopeGroup,
 	}
 
 	PermissionCustomGroupDelete = &Permission{
-		"custom_group_delete",
-		"authentication.permissions.custom_group_delete.name",
-		"authentication.permissions.custom_group_delete.description",
+		"delete_custom_group",
+		"authentication.permissions.delete_custom_group.name",
+		"authentication.permissions.delete_custom_group.description",
 		PermissionScopeGroup,
 	}
 

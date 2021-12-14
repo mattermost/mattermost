@@ -157,7 +157,7 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if group.RemoteId != nil {
+	if group.GetRemoteId() != "" {
 		c.Err = model.NewAppError("createGroup", "api.custom_groups.no_remote_id", nil, "", http.StatusNotImplemented)
 		return
 	}

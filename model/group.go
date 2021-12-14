@@ -159,7 +159,7 @@ func (group *Group) IsValidForCreate() *AppError {
 		return NewAppError("Group.IsValidForCreate", "model.group.source.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if ((group.RemoteId == nil || *group.RemoteId == "") && group.requiresRemoteId()) && len(*group.RemoteId) > GroupRemoteIDMaxLength {
+	if (group.GetRemoteId() == "" && group.requiresRemoteId()) || len(group.GetRemoteId()) > GroupRemoteIDMaxLength {
 		return NewAppError("Group.IsValidForCreate", "model.group.remote_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -209,4 +209,11 @@ func (group *Group) IsValidName() *AppError {
 		}
 	}
 	return nil
+}
+
+func (group *Group) GetRemoteId() string {
+	if group.RemoteId == nil {
+		return ""
+	}
+	return *group.RemoteId
 }
