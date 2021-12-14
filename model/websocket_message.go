@@ -62,6 +62,8 @@ const (
 	WebsocketEventReceivedGroupNotAssociatedToTeam    = "received_group_not_associated_to_team"
 	WebsocketEventReceivedGroupAssociatedToChannel    = "received_group_associated_to_channel"
 	WebsocketEventReceivedGroupNotAssociatedToChannel = "received_group_not_associated_to_channel"
+	WebsocketEventGroupMemberDelete                   = "group_member_deleted"
+	WebsocketEventGroupMemberAdd                      = "group_member_add"
 	WebsocketEventSidebarCategoryCreated              = "sidebar_category_created"
 	WebsocketEventSidebarCategoryUpdated              = "sidebar_category_updated"
 	WebsocketEventSidebarCategoryDeleted              = "sidebar_category_deleted"

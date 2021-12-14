@@ -263,6 +263,8 @@ func (a *App) UpsertGroupMember(groupID string, userID string) (*model.GroupMemb
 		}
 	}
 
+	a.publishGroupMemberEvent(model.WebsocketEventGroupMemberAdd, groupMember)
+
 	return groupMember, nil
 }
 
@@ -277,6 +279,8 @@ func (a *App) DeleteGroupMember(groupID string, userID string) (*model.GroupMemb
 			return nil, model.NewAppError("DeleteGroupMember", "app.update_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
+
+	a.publishGroupMemberEvent(model.WebsocketEventGroupMemberDelete, groupMember)
 
 	return groupMember, nil
 }
@@ -721,6 +725,10 @@ func (a *App) UpsertGroupMembers(groupID string, userIDs []string) ([]*model.Gro
 		}
 	}
 
+	for _, groupMember := range members {
+		a.publishGroupMemberEvent(model.WebsocketEventGroupMemberAdd, groupMember)
+	}
+
 	return members, nil
 }
 
@@ -739,5 +747,19 @@ func (a *App) DeleteGroupMembers(groupID string, userIDs []string) ([]*model.Gro
 		}
 	}
 
+	for _, groupMember := range members {
+		a.publishGroupMemberEvent(model.WebsocketEventGroupMemberDelete, groupMember)
+	}
+
 	return members, nil
+}
+
+func (a *App) publishGroupMemberEvent(eventName string, groupMember *model.GroupMember) {
+	messageWs := model.NewWebSocketEvent(eventName, "", "", "", nil)
+	groupMemberJSON, jsonErr := json.Marshal(groupMember)
+	if jsonErr != nil {
+		mlog.Warn("failed to encode group member to JSON", mlog.Err(jsonErr))
+	}
+	messageWs.Add("group_member", string(groupMemberJSON))
+	a.Publish(messageWs)
 }
