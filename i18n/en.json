@@ -1559,6 +1559,10 @@
     "translation": "Please enter text for your Custom Terms of Service."
   },
   {
+    "id": "api.custom_groups.count_err",
+    "translation": "error counting groups"
+  },
+  {
     "id": "api.custom_groups.feature_disabled",
     "translation": "custom groups feature is disabled"
   },
@@ -4758,6 +4762,10 @@
   {
     "id": "app.create_basic_user.save_member.max_accounts.app_error",
     "translation": "Unable to create default team membership because no more members are allowed in that team"
+  },
+  {
+    "id": "app.custom_group.unique_name",
+    "translation": "group name is not unique"
   },
   {
     "id": "app.email.no_rate_limiter.app_error",
