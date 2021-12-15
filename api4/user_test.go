@@ -6076,6 +6076,8 @@ func postAndCheck(t *testing.T, client *model.Client4, post *model.Post) (*model
 
 func TestMaintainUnreadRepliesInThread(t *testing.T) {
 	th := Setup(t).InitBasic()
+	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+	th.App.AddUserToChannel(th.SystemAdminUser, th.BasicChannel, false)
 	defer th.TearDown()
 	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
@@ -6213,6 +6215,8 @@ func TestSingleThreadGet(t *testing.T) {
 
 func TestMaintainUnreadMentionsInThread(t *testing.T) {
 	th := Setup(t).InitBasic()
+	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+	th.App.AddUserToChannel(th.SystemAdminUser, th.BasicChannel, false)
 	defer th.TearDown()
 	client := th.Client
 	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
@@ -6254,7 +6258,7 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 	// test self mention, shouldn't increase mention count
 	postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply @" + th.BasicUser.Username, RootId: rpost.Id})
 	// count shouldn't increase
-	checkThreadList(th.Client, th.BasicUser.Id, 1, 1)
+	checkThreadList(th.Client, th.BasicUser.Id, 0, 1)
 
 	// test DM
 	dm := th.CreateDmChannel(th.SystemAdminUser)
