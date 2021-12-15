@@ -1437,7 +1437,8 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 	if opts.FilterHasMember != "" {
 		groupsQuery = groupsQuery.
 			LeftJoin("GroupMembers ON GroupMembers.GroupId = g.Id").
-			Where("GroupMembers.UserId = ?", opts.FilterHasMember)
+			Where("GroupMembers.UserId = ?", opts.FilterHasMember).
+			Where("GroupMembers.DeleteAt = 0")
 	}
 
 	groupsQuery = groupsQuery.
