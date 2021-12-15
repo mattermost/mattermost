@@ -6076,9 +6076,11 @@ func postAndCheck(t *testing.T, client *model.Client4, post *model.Post) (*model
 
 func TestMaintainUnreadRepliesInThread(t *testing.T) {
 	th := Setup(t).InitBasic()
-	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
-	th.App.AddUserToChannel(th.SystemAdminUser, th.BasicChannel, false)
 	defer th.TearDown()
+	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+	defer th.UnlinkUserFromTeam(th.SystemAdminUser, th.BasicTeam)
+	th.AddUserToChannel(th.SystemAdminUser, th.BasicChannel)
+	defer th.RemoveUserFromChannel(th.SystemAdminUser, th.BasicChannel)
 	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -6215,9 +6217,11 @@ func TestSingleThreadGet(t *testing.T) {
 
 func TestMaintainUnreadMentionsInThread(t *testing.T) {
 	th := Setup(t).InitBasic()
-	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
-	th.App.AddUserToChannel(th.SystemAdminUser, th.BasicChannel, false)
 	defer th.TearDown()
+	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+	defer th.UnlinkUserFromTeam(th.SystemAdminUser, th.BasicTeam)
+	th.AddUserToChannel(th.SystemAdminUser, th.BasicChannel)
+	defer th.RemoveUserFromChannel(th.SystemAdminUser, th.BasicChannel)
 	client := th.Client
 	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
@@ -6257,7 +6261,7 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 
 	// test self mention, shouldn't increase mention count
 	postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply @" + th.BasicUser.Username, RootId: rpost.Id})
-	// count shouldn't increase
+	// mention should be 0 after self reply
 	checkThreadList(th.Client, th.BasicUser.Id, 0, 1)
 
 	// test DM
@@ -6265,19 +6269,19 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 	dm_root_post, _ := postAndCheck(t, client, &model.Post{ChannelId: dm.Id, Message: "hi @" + th.SystemAdminUser.Username})
 
 	// no changes
-	checkThreadList(th.Client, th.BasicUser.Id, 1, 1)
+	checkThreadList(th.Client, th.BasicUser.Id, 0, 1)
 
-	// post reply by the same user
+	// post reply by the BasicUser
 	postAndCheck(t, client, &model.Post{ChannelId: dm.Id, Message: "how are you", RootId: dm_root_post.Id})
 
 	// thread created
-	checkThreadList(th.Client, th.BasicUser.Id, 1, 2)
+	checkThreadList(th.Client, th.BasicUser.Id, 0, 2)
 
 	// post two replies by another user, without mentions. mention count should still increase since this is a DM
 	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: dm.Id, Message: "msg1", RootId: dm_root_post.Id})
 	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: dm.Id, Message: "msg2", RootId: dm_root_post.Id})
 	// expect increment by two mentions
-	checkThreadList(th.Client, th.BasicUser.Id, 3, 2)
+	checkThreadList(th.Client, th.BasicUser.Id, 2, 2)
 }
 
 func TestReadThreads(t *testing.T) {
