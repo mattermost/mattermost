@@ -263,7 +263,7 @@ func (f *Features) SetDefaults() {
 	}
 
 	if f.CustomGroups == nil {
-		f.CustomGroups = NewBool(*f.FutureFeatures)
+		f.CustomGroups = NewBool(false)
 	}
 }
 
