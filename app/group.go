@@ -173,11 +173,14 @@ func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		var appErr *model.AppError
+		var dupKey *store.ErrUniqueConstraint
 		switch {
 		case errors.As(err, &appErr):
 			return nil, appErr
 		case errors.As(err, &nfErr):
 			return nil, model.NewAppError("UpdateGroup", "app.group.no_rows", nil, nfErr.Error(), http.StatusNotFound)
+		case errors.As(err, &dupKey):
+			return nil, model.NewAppError("CreateGroup", "app.custom_group.unique_name", nil, dupKey.Error(), http.StatusBadRequest)
 		default:
 			return nil, model.NewAppError("UpdateGroup", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 		}
