@@ -22,4 +22,6 @@ type CloudInterface interface {
 	GetInvoicePDF(userID, invoiceID string) ([]byte, string, error)
 
 	ChangeSubscription(userID, subscriptionID string, subscriptionChange *model.SubscriptionChange) (*model.Subscription, error)
+
+	GetLicenseExistenceStatusOnCWS(userID, licenseID string) bool
 }
