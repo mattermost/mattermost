@@ -909,7 +909,23 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b, marshalErr := json.Marshal(groups)
+	var b []byte
+	var marshalErr error
+	if c.Params.IncludeTotalCount {
+		totalCount, countErr := c.App.Srv().Store.Group().GroupCount()
+		if countErr != nil {
+			c.Err = model.NewAppError("Api4.getGroups", "api.custom_groups.count_err", nil, countErr.Error(), http.StatusInternalServerError)
+			return
+		}
+		gwc := &model.GroupsWithCount{
+			Groups:     groups,
+			TotalCount: totalCount,
+		}
+		b, marshalErr = json.Marshal(gwc)
+	} else {
+		b, marshalErr = json.Marshal(groups)
+	}
+
 	if marshalErr != nil {
 		c.Err = model.NewAppError("Api4.getGroups", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return

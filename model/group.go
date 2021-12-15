@@ -217,3 +217,8 @@ func (group *Group) GetRemoteId() string {
 	}
 	return *group.RemoteId
 }
+
+type GroupsWithCount struct {
+	Groups     []*Group `json:"groups"`
+	TotalCount int64    `json:"total_count"`
+}
