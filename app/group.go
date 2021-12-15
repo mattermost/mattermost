@@ -227,7 +227,7 @@ func (a *App) GetGroupMemberUsers(groupID string) ([]*model.User, *model.AppErro
 		return nil, model.NewAppError("GetGroupMemberUsers", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return a.sanitizeProfiles(users, false), nil
+	return users, nil
 }
 
 func (a *App) GetGroupMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, int, *model.AppError) {
