@@ -28,7 +28,7 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 	firstExpiry := time.Now().Add(time.Minute)
 	session := &model.Session{
 		UserId:    p.configuration.BasicUser2Id,
-		ExpiresAt: firstExpiry.UnixMilli(),
+		ExpiresAt: model.GetMillisForTime(firstExpiry),
 	}
 	session, appErr := p.API.CreateSession(session)
 	if appErr != nil {
@@ -36,7 +36,7 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 	}
 
 	newExpiry := firstExpiry.Add(time.Minute)
-	appErr = p.API.ExtendSessionExpiry(session.Id, newExpiry.UnixMilli())
+	appErr = p.API.ExtendSessionExpiry(session.Id, model.GetMillisForTime(newExpiry))
 	if appErr != nil {
 		return nil, appErr.Error()
 	}
@@ -45,8 +45,8 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 	if appErr != nil {
 		return nil, appErr.Error()
 	}
-	if rSession.ExpiresAt != firstExpiry.Add(time.Minute).UnixMilli() {
-		return nil, fmt.Sprintf("ExpiresAt not equal, expected: %v, got: %v", firstExpiry.Add(time.Minute).UnixMilli(), rSession.ExpiresAt)
+	if rSession.ExpiresAt != model.GetMillisForTime(firstExpiry.Add(time.Minute)) {
+		return nil, fmt.Sprintf("ExpiresAt not equal, expected: %v, got: %v", model.GetMillisForTime(firstExpiry.Add(time.Minute)), rSession.ExpiresAt)
 	}
 
 	appErr = p.API.RevokeSession(session.Id)
