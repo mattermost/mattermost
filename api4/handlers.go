@@ -200,7 +200,7 @@ func (api *API) APILocal(h handlerFunc) http.Handler {
 	return handler
 }
 
-func withLicense(f handlerFunc) handlerFunc {
+func requireLicense(f handlerFunc) handlerFunc {
 	return func(c *Context, w http.ResponseWriter, r *http.Request) {
 		if c.App.Srv().License() == nil {
 			c.Err = model.NewAppError("", "api.license_error", nil, "", http.StatusNotImplemented)

@@ -18,79 +18,79 @@ import (
 
 func (api *API) InitGroup() {
 	// GET /api/v4/groups
-	api.BaseRoutes.Groups.Handle("", api.APISessionRequired(withLicense(getGroups))).Methods("GET")
+	api.BaseRoutes.Groups.Handle("", api.APISessionRequired(requireLicense(getGroups))).Methods("GET")
 
 	// POST /api/v4/groups
-	api.BaseRoutes.Groups.Handle("", api.APISessionRequired(withLicense(createGroup))).Methods("POST")
+	api.BaseRoutes.Groups.Handle("", api.APISessionRequired(requireLicense(createGroup))).Methods("POST")
 
 	// GET /api/v4/groups/:group_id
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}",
-		api.APISessionRequired(withLicense(getGroup))).Methods("GET")
+		api.APISessionRequired(requireLicense(getGroup))).Methods("GET")
 
 	// PUT /api/v4/groups/:group_id/patch
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/patch",
-		api.APISessionRequired(withLicense(patchGroup))).Methods("PUT")
+		api.APISessionRequired(requireLicense(patchGroup))).Methods("PUT")
 
 	// POST /api/v4/groups/:group_id/teams/:team_id/link
 	// POST /api/v4/groups/:group_id/channels/:channel_id/link
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}/{syncable_id:[A-Za-z0-9]+}/link",
-		api.APISessionRequired(withLicense(linkGroupSyncable))).Methods("POST")
+		api.APISessionRequired(requireLicense(linkGroupSyncable))).Methods("POST")
 
 	// DELETE /api/v4/groups/:group_id/teams/:team_id/link
 	// DELETE /api/v4/groups/:group_id/channels/:channel_id/link
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}/{syncable_id:[A-Za-z0-9]+}/link",
-		api.APISessionRequired(withLicense(unlinkGroupSyncable))).Methods("DELETE")
+		api.APISessionRequired(requireLicense(unlinkGroupSyncable))).Methods("DELETE")
 
 	// GET /api/v4/groups/:group_id/teams/:team_id
 	// GET /api/v4/groups/:group_id/channels/:channel_id
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}/{syncable_id:[A-Za-z0-9]+}",
-		api.APISessionRequired(withLicense(getGroupSyncable))).Methods("GET")
+		api.APISessionRequired(requireLicense(getGroupSyncable))).Methods("GET")
 
 	// GET /api/v4/groups/:group_id/teams
 	// GET /api/v4/groups/:group_id/channels
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}",
-		api.APISessionRequired(withLicense(getGroupSyncables))).Methods("GET")
+		api.APISessionRequired(requireLicense(getGroupSyncables))).Methods("GET")
 
 	// PUT /api/v4/groups/:group_id/teams/:team_id/patch
 	// PUT /api/v4/groups/:group_id/channels/:channel_id/patch
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}/{syncable_id:[A-Za-z0-9]+}/patch",
-		api.APISessionRequired(withLicense(patchGroupSyncable))).Methods("PUT")
+		api.APISessionRequired(requireLicense(patchGroupSyncable))).Methods("PUT")
 
 	// GET /api/v4/groups/:group_id/stats
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/stats",
-		api.APISessionRequired(withLicense(getGroupStats))).Methods("GET")
+		api.APISessionRequired(requireLicense(getGroupStats))).Methods("GET")
 
 	// GET /api/v4/groups/:group_id/members
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members",
-		api.APISessionRequired(withLicense(getGroupMembers))).Methods("GET")
+		api.APISessionRequired(requireLicense(getGroupMembers))).Methods("GET")
 
 	// GET /api/v4/users/:user_id/groups
 	api.BaseRoutes.Users.Handle("/{user_id:[A-Za-z0-9]+}/groups",
-		api.APISessionRequired(withLicense(getGroupsByUserId))).Methods("GET")
+		api.APISessionRequired(requireLicense(getGroupsByUserId))).Methods("GET")
 
 	// GET /api/v4/channels/:channel_id/groups
 	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/groups",
-		api.APISessionRequired(withLicense(getGroupsByChannel))).Methods("GET")
+		api.APISessionRequired(requireLicense(getGroupsByChannel))).Methods("GET")
 
 	// GET /api/v4/teams/:team_id/groups
 	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/groups",
-		api.APISessionRequired(withLicense(getGroupsByTeam))).Methods("GET")
+		api.APISessionRequired(requireLicense(getGroupsByTeam))).Methods("GET")
 
 	// GET /api/v4/teams/:team_id/groups_by_channels
 	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/groups_by_channels",
-		api.APISessionRequired(withLicense(getGroupsAssociatedToChannelsByTeam))).Methods("GET")
+		api.APISessionRequired(requireLicense(getGroupsAssociatedToChannelsByTeam))).Methods("GET")
 
 	// DELETE /api/v4/groups/:group_id
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}",
-		api.APISessionRequired(withLicense(deleteGroup))).Methods("DELETE")
+		api.APISessionRequired(requireLicense(deleteGroup))).Methods("DELETE")
 
 	// POST /api/v4/groups/:group_id/members
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members",
-		api.APISessionRequired(withLicense(addGroupMembers))).Methods("POST")
+		api.APISessionRequired(requireLicense(addGroupMembers))).Methods("POST")
 
 	// DELETE /api/v4/groups/:group_id/members
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members",
-		api.APISessionRequired(withLicense(deleteGroupMembers))).Methods("DELETE")
+		api.APISessionRequired(requireLicense(deleteGroupMembers))).Methods("DELETE")
 }
 
 func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
