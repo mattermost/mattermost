@@ -755,7 +755,7 @@ func (a *App) DeleteGroupMembers(groupID string, userIDs []string) ([]*model.Gro
 }
 
 func (a *App) publishGroupMemberEvent(eventName string, groupMember *model.GroupMember) {
-	messageWs := model.NewWebSocketEvent(eventName, "", "", "", nil)
+	messageWs := model.NewWebSocketEvent(eventName, "", "", groupMember.UserId, nil)
 	groupMemberJSON, jsonErr := json.Marshal(groupMember)
 	if jsonErr != nil {
 		mlog.Warn("failed to encode group member to JSON", mlog.Err(jsonErr))
