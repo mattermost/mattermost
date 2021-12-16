@@ -31,7 +31,7 @@ SET @preparedStatement = (SELECT IF(
         AND column_name = 'PluginId'
     ) > 0,
     'SELECT 1',
-    'ALTER TABLE Commands ADD PluginId text;'
+    'ALTER TABLE Commands ADD PluginId varchar(190);'
 ));
 
 PREPARE alterIfNotExists FROM @preparedStatement;
