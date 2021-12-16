@@ -574,13 +574,12 @@ func (a *App) GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model
 // The result can be used, for example, to determine the set of users who would be removed from a team if the team
 // were group-constrained with the given groups.
 func (a *App) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, int64, *model.AppError) {
-	unsanitizedUsers, err := a.Srv().Store.Group().TeamMembersMinusGroupMembers(teamID, groupIDs, page, perPage)
+	users, err := a.Srv().Store.Group().TeamMembersMinusGroupMembers(teamID, groupIDs, page, perPage)
 	if err != nil {
 		return nil, 0, model.NewAppError("TeamMembersMinusGroupMembers", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	var users []*model.UserWithGroups
-	for _, u := range unsanitizedUsers {
+	for _, u := range users {
 		a.SanitizeProfile(&u.User, false)
 	}
 
@@ -643,13 +642,12 @@ func (a *App) GetGroupsByIDs(groupIDs []string) ([]*model.Group, *model.AppError
 // The result can be used, for example, to determine the set of users who would be removed from a channel if the
 // channel were group-constrained with the given groups.
 func (a *App) ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, int64, *model.AppError) {
-	unsanitizedUsers, err := a.Srv().Store.Group().ChannelMembersMinusGroupMembers(channelID, groupIDs, page, perPage)
+	users, err := a.Srv().Store.Group().ChannelMembersMinusGroupMembers(channelID, groupIDs, page, perPage)
 	if err != nil {
 		return nil, 0, model.NewAppError("ChannelMembersMinusGroupMembers", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	var users []*model.UserWithGroups
-	for _, u := range unsanitizedUsers {
+	for _, u := range users {
 		a.SanitizeProfile(&u.User, false)
 	}
 
