@@ -1093,11 +1093,15 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 func licensedAndConfiguredForGroupBySource(app app.AppIface, source model.GroupSource) *model.AppError {
 	lic := app.Srv().License()
 
-	if source == model.GroupSourceLdap && lic != nil && !*lic.Features.LDAPGroups {
+	if lic == nil {
+		return model.NewAppError("", "api.license_error", nil, "", http.StatusNotImplemented)
+	}
+
+	if source == model.GroupSourceLdap && !*lic.Features.LDAPGroups {
 		return model.NewAppError("", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if source == model.GroupSourceCustom && lic != nil && !*lic.Features.CustomGroups {
+	if source == model.GroupSourceCustom && !*lic.Features.CustomGroups {
 		return model.NewAppError("", "api.custom_groups.license_error", nil, "", http.StatusNotImplemented)
 	}
 
