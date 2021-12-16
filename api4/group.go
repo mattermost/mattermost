@@ -1101,7 +1101,7 @@ func licensedAndConfiguredForGroupBySource(app app.AppIface, source model.GroupS
 		return model.NewAppError("", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if source == model.GroupSourceCustom && !*lic.Features.CustomGroups {
+	if source == model.GroupSourceCustom && lic.SkuShortName != model.LicenseShortSkuProfessional && lic.SkuShortName != model.LicenseShortSkuEnterprise {
 		return model.NewAppError("", "api.custom_groups.license_error", nil, "", http.StatusNotImplemented)
 	}
 

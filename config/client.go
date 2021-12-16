@@ -198,7 +198,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["ExperimentalRemoteClusterService"] = strconv.FormatBool(c.FeatureFlags.EnableRemoteClusterService && *c.ExperimentalSettings.EnableRemoteClusterService)
 		}
 
-		if *license.Features.CustomGroups {
+		if license.SkuShortName == model.LicenseShortSkuProfessional || license.SkuShortName == model.LicenseShortSkuEnterprise {
 			props["EnableCustomGroups"] = strconv.FormatBool(*c.ServiceSettings.EnableCustomGroups)
 		}
 	}
