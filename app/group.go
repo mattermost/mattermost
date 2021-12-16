@@ -30,8 +30,7 @@ func (a *App) GetGroup(id string, opts *model.GetGroupOpts) (*model.Group, *mode
 		if err != nil {
 			return nil, model.NewAppError("GetGroup", "app.member_count", nil, err.Error(), http.StatusInternalServerError)
 		}
-		memberCountInt := int(memberCount)
-		group.MemberCount = &memberCountInt
+		group.MemberCount = model.NewInt(int(memberCount))
 	}
 
 	return group, nil
