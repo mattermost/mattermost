@@ -13,19 +13,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
-func (a *App) SourceHasCRUDPermissions(id string) *model.AppError {
-	group, err := a.GetGroup(id, nil)
-	if err != nil {
-		return err
-	}
-
-	if group.Source != model.GroupSourceCustom {
-		return model.NewAppError("SourceHasCRUDPermissions", "app.group.crud_permission", nil, "", http.StatusNotImplemented)
-	}
-
-	return nil
-}
-
 func (a *App) GetGroup(id string, opts *model.GetGroupOpts) (*model.Group, *model.AppError) {
 	group, err := a.Srv().Store.Group().Get(id)
 	if err != nil {
