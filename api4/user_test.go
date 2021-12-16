@@ -5927,17 +5927,53 @@ func TestThreadSocketEvents(t *testing.T) {
 	t.Run("Listen for thread updated event after create post", func(t *testing.T) {
 		testCases := []struct {
 			post        *model.Post
-			preReplies  float64
-			preMentions float64
+			preReplies  int64
+			preMentions int64
 			replies     int64
 			mentions    int64
 		}{
-			{&model.Post{ChannelId: th.BasicChannel.Id, Message: "simple reply", UserId: th.BasicUser2.Id, RootId: rpost.Id}, 0, 0, 1, 0},
-			{&model.Post{ChannelId: th.BasicChannel.Id, Message: "mention reply 1 @" + th.BasicUser.Username, UserId: th.BasicUser2.Id, RootId: rpost.Id}, 1, 0, 2, 1},
-			{&model.Post{ChannelId: th.BasicChannel.Id, Message: "mention reply 2 @" + th.BasicUser.Username, UserId: th.BasicUser2.Id, RootId: rpost.Id}, 2, 1, 3, 2},
-			{&model.Post{ChannelId: th.BasicChannel.Id, Message: "self reply", UserId: th.BasicUser.Id, RootId: rpost.Id}, 3, 2, 0, 0}, // posting as current user will read the thread
-			{&model.Post{ChannelId: th.BasicChannel.Id, Message: "simple reply", UserId: th.BasicUser2.Id, RootId: rpost.Id}, 0, 0, 1, 0},
-			{&model.Post{ChannelId: th.BasicChannel.Id, Message: "mention reply 3 @" + th.BasicUser.Username, UserId: th.BasicUser2.Id, RootId: rpost.Id}, 1, 0, 2, 1},
+			{
+				post:        &model.Post{ChannelId: th.BasicChannel.Id, Message: "simple reply", UserId: th.BasicUser2.Id, RootId: rpost.Id},
+				preReplies:  0,
+				preMentions: 0,
+				replies:     1,
+				mentions:    0,
+			},
+			{
+				post:        &model.Post{ChannelId: th.BasicChannel.Id, Message: "mention reply 1 @" + th.BasicUser.Username, UserId: th.BasicUser2.Id, RootId: rpost.Id},
+				preReplies:  1,
+				preMentions: 0,
+				replies:     2,
+				mentions:    1,
+			},
+			{
+				post:        &model.Post{ChannelId: th.BasicChannel.Id, Message: "mention reply 2 @" + th.BasicUser.Username, UserId: th.BasicUser2.Id, RootId: rpost.Id},
+				preReplies:  2,
+				preMentions: 1,
+				replies:     3,
+				mentions:    2,
+			},
+			{
+				// posting as current user will read the thread
+				post:        &model.Post{ChannelId: th.BasicChannel.Id, Message: "self reply", UserId: th.BasicUser.Id, RootId: rpost.Id},
+				preReplies:  3,
+				preMentions: 2,
+				replies:     0,
+				mentions:    0,
+			}, {
+				post:        &model.Post{ChannelId: th.BasicChannel.Id, Message: "simple reply", UserId: th.BasicUser2.Id, RootId: rpost.Id},
+				preReplies:  0,
+				preMentions: 0,
+				replies:     1,
+				mentions:    0,
+			},
+			{
+				post:        &model.Post{ChannelId: th.BasicChannel.Id, Message: "mention reply 3 @" + th.BasicUser.Username, UserId: th.BasicUser2.Id, RootId: rpost.Id},
+				preReplies:  1,
+				preMentions: 0,
+				replies:     2,
+				mentions:    1,
+			},
 		}
 
 		for _, tc := range testCases {
@@ -5957,8 +5993,8 @@ func TestThreadSocketEvents(t *testing.T) {
 							jsonErr := json.Unmarshal([]byte(data["thread"].(string)), &thread)
 							require.NoError(t, jsonErr)
 
-							require.Equal(t, tc.preReplies, data["previous_unread_replies"])
-							require.Equal(t, tc.preMentions, data["previous_unread_mentions"])
+							require.Equal(t, tc.preReplies, int64(data["previous_unread_replies"].(float64)))
+							require.Equal(t, tc.preMentions, int64(data["previous_unread_mentions"].(float64)))
 							require.Equal(t, tc.replies, thread.UnreadReplies)
 							require.Equal(t, tc.mentions, thread.UnreadMentions)
 						}
@@ -6271,7 +6307,7 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 	// no changes
 	checkThreadList(th.Client, th.BasicUser.Id, 0, 1)
 
-	// post reply by the BasicUser
+	// post reply by the same user
 	postAndCheck(t, client, &model.Post{ChannelId: dm.Id, Message: "how are you", RootId: dm_root_post.Id})
 
 	// thread created

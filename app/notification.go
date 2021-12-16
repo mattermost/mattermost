@@ -600,29 +600,21 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				if userThread != nil {
 					previousUnreadMentions := userThread.UnreadMentions
 					previousUnreadReplies := max(userThread.UnreadReplies-1, 0)
-
 					if mentions.isUserMentioned(uid) {
 						previousUnreadMentions = max(userThread.UnreadMentions-1, 0)
 					}
-
-					// set last viewed at to now for commenter
+					// set LastViewed to now for commenter
 					if uid == post.UserId {
 						opts := store.ThreadMembershipOpts{
 							UpdateViewedTimestamp: true,
 						}
 						// should set unread mentions, and unread replies to 0
-						um, err := a.Srv().Store.Thread().MaintainMembership(uid, post.RootId, opts)
-
+						_, err = a.Srv().Store.Thread().MaintainMembership(uid, post.RootId, opts)
 						if err != nil {
 							return nil, errors.Wrapf(err, "cannot maintain thread membership %q for user %q", post.RootId, uid)
 						}
-
-						userThread.UnreadMentions = um.UnreadMentions                                        // should be 0
-						userThread.UnreadReplies, err = a.Srv().Store.Thread().GetThreadUnreadReplyCount(um) // should be 0
-
-						if err != nil {
-							return nil, errors.Wrapf(err, "cannot get threads %q unread replies count for user %q", post.RootId, uid)
-						}
+						userThread.UnreadMentions = 0
+						userThread.UnreadReplies = 0
 					}
 					a.sanitizeProfiles(userThread.Participants, false)
 					userThread.Post.SanitizeProps()
