@@ -32,9 +32,28 @@ type MessageExport struct {
 	PostFileIds    StringArray
 }
 
+type BlockExport struct {
+	ID          string
+	ParentID    string
+	RootID      string
+	ModifiedBy  string
+	Type        string
+	Title       string
+	Fields      string
+	CreateAt    int64
+	UpdateAt    int64
+	DeleteAt    int64
+	WorkspaceID string
+}
+
 type MessageExportCursor struct {
 	LastPostUpdateAt int64
 	LastPostId       string
+}
+
+type BlockExportCursor struct {
+	LastBlockUpdateAt int64
+	LastBlockId       string
 }
 
 // PreviewID returns the value of the post's previewed_post prop, if present, or an empty string.

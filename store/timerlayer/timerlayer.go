@@ -2669,6 +2669,22 @@ func (s *TimerLayerCommandWebhookStore) TryUse(id string, limit int) error {
 	return err
 }
 
+func (s *TimerLayerComplianceStore) BlocksExport(cursor model.BlockExportCursor, limit int) ([]*model.BlockExport, model.BlockExportCursor, error) {
+	start := timemodule.Now()
+
+	result, resultVar1, err := s.ComplianceStore.BlocksExport(cursor, limit)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ComplianceStore.BlocksExport", success, elapsed)
+	}
+	return result, resultVar1, err
+}
+
 func (s *TimerLayerComplianceStore) ComplianceExport(compliance *model.Compliance, cursor model.ComplianceExportCursor, limit int) ([]*model.CompliancePost, model.ComplianceExportCursor, error) {
 	start := timemodule.Now()
 

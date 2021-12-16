@@ -501,6 +501,7 @@ type ComplianceStore interface {
 	GetAll(offset, limit int) (model.Compliances, error)
 	ComplianceExport(compliance *model.Compliance, cursor model.ComplianceExportCursor, limit int) ([]*model.CompliancePost, model.ComplianceExportCursor, error)
 	MessageExport(cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error)
+	BlocksExport(cursor model.BlockExportCursor, limit int) ([]*model.BlockExport, model.BlockExportCursor, error)
 }
 
 type OAuthStore interface {

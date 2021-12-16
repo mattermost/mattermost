@@ -14,6 +14,36 @@ type ComplianceStore struct {
 	mock.Mock
 }
 
+// BlocksExport provides a mock function with given fields: cursor, limit
+func (_m *ComplianceStore) BlocksExport(cursor model.BlockExportCursor, limit int) ([]*model.BlockExport, model.BlockExportCursor, error) {
+	ret := _m.Called(cursor, limit)
+
+	var r0 []*model.BlockExport
+	if rf, ok := ret.Get(0).(func(model.BlockExportCursor, int) []*model.BlockExport); ok {
+		r0 = rf(cursor, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.BlockExport)
+		}
+	}
+
+	var r1 model.BlockExportCursor
+	if rf, ok := ret.Get(1).(func(model.BlockExportCursor, int) model.BlockExportCursor); ok {
+		r1 = rf(cursor, limit)
+	} else {
+		r1 = ret.Get(1).(model.BlockExportCursor)
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func(model.BlockExportCursor, int) error); ok {
+		r2 = rf(cursor, limit)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // ComplianceExport provides a mock function with given fields: compliance, cursor, limit
 func (_m *ComplianceStore) ComplianceExport(compliance *model.Compliance, cursor model.ComplianceExportCursor, limit int) ([]*model.CompliancePost, model.ComplianceExportCursor, error) {
 	ret := _m.Called(compliance, cursor, limit)

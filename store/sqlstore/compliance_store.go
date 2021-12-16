@@ -351,3 +351,42 @@ func (s SqlComplianceStore) MessageExport(cursor model.MessageExportCursor, limi
 	}
 	return cposts, cursor, nil
 }
+
+func (s SqlComplianceStore) BlocksExport(cursor model.BlockExportCursor, limit int) ([]*model.BlockExport, model.BlockExportCursor, error) {
+	var args []interface{}
+	args = append(args, cursor.LastBlockUpdateAt, cursor.LastBlockUpdateAt, cursor.LastBlockId, limit)
+	query :=
+		`SELECT
+			id as ID,
+			parent_id as ParentID,
+			root_id as RootID,
+			modified_by as ModifiedBy,
+			type as Type,
+			title as Title,
+			COALESCE(fields, '{}') as Fields,
+			create_at as CreateAt,
+			update_at as UpdateAt,
+			delete_at as DeleteAt,
+			COALESCE(workspace_id, '0') as WorkspaceID
+		FROM
+			focalboard_blocks_history
+		WHERE (
+			update_at > ?
+			OR (
+				update_at = ?
+				AND Id > ?
+			)
+		)
+		ORDER BY update_at, Id
+		LIMIT ?`
+
+	cblocks := []*model.BlockExport{}
+	if err := s.GetReplicaX().Select(&cblocks, query, args...); err != nil {
+		return nil, cursor, errors.Wrap(err, "unable to export blocks")
+	}
+	if len(cblocks) > 0 {
+		cursor.LastBlockUpdateAt = cblocks[len(cblocks)-1].UpdateAt
+		cursor.LastBlockId = cblocks[len(cblocks)-1].ID
+	}
+	return cblocks, cursor, nil
+}
