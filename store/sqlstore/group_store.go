@@ -209,7 +209,7 @@ func (s *SqlGroupStore) checkUsersExist(userIDs []string) error {
 	usersSelectQuery, usersSelectArgs, err := s.getQueryBuilder().
 		Select("Id").
 		From("Users").
-		Where(sq.Eq{"Id": userIDs}).
+		Where(sq.Eq{"Id": userIDs, "DeleteAt": 0}).
 		ToSql()
 	if err != nil {
 		return err
