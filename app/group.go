@@ -177,17 +177,6 @@ func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
 
 func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 	deletedGroup, err := a.Srv().Store.Group().Delete(groupID)
-
-	if err == nil {
-		messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil)
-		groupJSON, jsonErr := json.Marshal(deletedGroup)
-		if jsonErr != nil {
-			mlog.Warn("Failed to encode group to JSON", mlog.Err(jsonErr))
-		}
-		messageWs.Add("group", string(groupJSON))
-		a.Publish(messageWs)
-	}
-
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
