@@ -7130,7 +7130,10 @@ func (c *Client4) UpsertGroupMembers(groupID string, userIds *GroupModifyMembers
 }
 
 func (c *Client4) DeleteGroupMembers(groupID string, userIds *GroupModifyMembers) ([]*GroupMember, *Response, error) {
-	payload, _ := json.Marshal(userIds)
+	payload, jsonErr := json.Marshal(userIds)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("DeleteGroupMembers", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 	r, err := c.DoAPIDeleteBytes(c.groupRoute(groupID)+"/members", payload)
 	if err != nil {
 		return nil, BuildResponse(r), err

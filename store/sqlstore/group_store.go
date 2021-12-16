@@ -203,31 +203,32 @@ func (s *SqlGroupStore) CreateWithUserIds(g *model.GroupWithUserIds) (*model.Gro
 }
 
 func (s *SqlGroupStore) checkUsersExist(userIDs []string) error {
-	if len(userIDs) > 0 {
-		usersSelectQuery, usersSelectArgs, err := s.getQueryBuilder().
-			Select("Id").
-			From("Users").
-			Where(sq.Eq{"Id": userIDs}).
-			ToSql()
-		if err != nil {
-			return err
-		}
-		var rows []*string
-		err = s.GetReplicaX().Select(&rows, usersSelectQuery, usersSelectArgs...)
-		if err != nil {
-			return err
-		}
-		if len(rows) == len(userIDs) {
-			return nil
-		}
-		retrievedIDs := make(map[string]bool)
-		for _, userID := range rows {
-			retrievedIDs[*userID] = true
-		}
-		for _, userID := range userIDs {
-			if _, ok := retrievedIDs[userID]; !ok {
-				return store.NewErrNotFound("User", userID)
-			}
+	if len(userIDs) == 0 {
+		return nil
+	}
+	usersSelectQuery, usersSelectArgs, err := s.getQueryBuilder().
+		Select("Id").
+		From("Users").
+		Where(sq.Eq{"Id": userIDs}).
+		ToSql()
+	if err != nil {
+		return err
+	}
+	var rows []string
+	err = s.GetReplicaX().Select(&rows, usersSelectQuery, usersSelectArgs...)
+	if err != nil {
+		return err
+	}
+	if len(rows) == len(userIDs) {
+		return nil
+	}
+	retrievedIDs := make(map[string]bool)
+	for _, userID := range rows {
+		retrievedIDs[userID] = true
+	}
+	for _, userID := range userIDs {
+		if _, ok := retrievedIDs[userID]; !ok {
+			return store.NewErrNotFound("User", userID)
 		}
 	}
 	return nil
@@ -405,7 +406,7 @@ func (s *SqlGroupStore) GetMember(groupID, userID string) (*model.GroupMember, e
 		return nil, errors.Wrap(err, "get_member_query")
 	}
 	var groupMember model.GroupMember
-	err = s.GetMasterX().Get(&groupMember, query, args...)
+	err = s.GetReplicaX().Get(&groupMember, query, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "GetMember")
 	}
