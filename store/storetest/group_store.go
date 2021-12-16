@@ -285,7 +285,7 @@ func testGroupCreateWithUserIds(t *testing.T, ss store.Store) {
 	data, err = ss.Group().CreateWithUserIds(guids4b)
 	require.Nil(t, data)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), fmt.Sprintf("Group with name %s already exists", *guids4b.Name))
+	require.Contains(t, err.Error(), "unique constraint: Name")
 
 	// Fields cannot be greater than max values
 	g5 := &model.Group{
