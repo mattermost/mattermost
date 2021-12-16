@@ -266,16 +266,16 @@ func requestRenewalLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// check for existence of license on the CWS before generating a link since renewals occur on the CWS
-	exists := c.App.Cloud().GetLicenseExistenceStatusOnCWS(c.AppContext.Session().UserId, c.App.Srv().License().Id)
-	if !exists {
-		c.Err = model.NewAppError("requestRenewalLink", "api.license.request_renewal_link.unavailable_on_cws", nil, "", http.StatusBadRequest)
+	renewalLink, token, err := c.App.Srv().GenerateLicenseRenewalLink()
+	if err != nil {
+		c.Err = err
 		return
 	}
 
-	renewalLink, err := c.App.Srv().GenerateLicenseRenewalLink()
-	if err != nil {
-		c.Err = err
+	// check if it is possible to renew license on the portal with generated token
+	canRenewWithToken := c.App.Cloud().GetLicenseRenewalStatusOnCWS(c.AppContext.Session().UserId, token)
+	if !canRenewWithToken {
+		c.Err = model.NewAppError("requestRenewalLink", "api.license.request_renewal_link.cannot_renew_on_cws", nil, "", http.StatusBadRequest)
 		return
 	}
 

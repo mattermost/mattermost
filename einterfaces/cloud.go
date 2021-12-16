@@ -23,5 +23,6 @@ type CloudInterface interface {
 
 	ChangeSubscription(userID, subscriptionID string, subscriptionChange *model.SubscriptionChange) (*model.Subscription, error)
 
-	GetLicenseExistenceStatusOnCWS(userID, licenseID string) bool
+	// GetLicenseRenewalStatusOnCWS checks on the portal whether it is possible to use token to renew a license
+	GetLicenseRenewalStatusOnCWS(userID, token string) bool
 }
