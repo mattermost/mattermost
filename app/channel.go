@@ -2554,7 +2554,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 				UpdateFollowing: true,
 			}
 		}
-		if opts.UpdateFollowing {
+		if opts.UpdateFollowing || threadMembership == nil {
 			threadMembership, storeErr = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, opts)
 			if storeErr != nil && !errors.As(storeErr, &nfErr) {
 				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
