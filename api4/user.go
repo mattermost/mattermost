@@ -986,8 +986,9 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if props.InGroupId != "" {
-		if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
-			c.Err = model.NewAppError("Api4.searchUsers", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		if gErr := requireGroupAccess(c, props.InGroupId); gErr != nil {
+			gErr.Where = "Api.searchUsers"
+			c.Err = gErr
 			return
 		}
 
@@ -998,8 +999,9 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if props.NotInGroupId != "" {
-		if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
-			c.Err = model.NewAppError("Api4.searchUsers", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		if gErr := requireGroupAccess(c, props.NotInGroupId); gErr != nil {
+			gErr.Where = "Api.searchUsers"
+			c.Err = gErr
 			return
 		}
 
