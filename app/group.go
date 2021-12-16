@@ -582,11 +582,7 @@ func (a *App) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, pag
 
 	var users []*model.UserWithGroups
 	for _, u := range unsanitizedUsers {
-		us := a.sanitizeProfiles([]*model.User{&u.User}, false)
-		if len(us) == 1 {
-			u.User = *us[0]
-			users = append(users, u)
-		}
+		a.SanitizeProfile(&u.User, false)
 	}
 
 	// parse all group ids of all users
@@ -655,11 +651,7 @@ func (a *App) ChannelMembersMinusGroupMembers(channelID string, groupIDs []strin
 
 	var users []*model.UserWithGroups
 	for _, u := range unsanitizedUsers {
-		us := a.sanitizeProfiles([]*model.User{&u.User}, false)
-		if len(us) == 1 {
-			u.User = *us[0]
-			users = append(users, u)
-		}
+		a.SanitizeProfile(&u.User, false)
 	}
 
 	// parse all group ids of all users
