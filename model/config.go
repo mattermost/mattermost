@@ -365,7 +365,7 @@ type ServiceSettings struct {
 	ThreadAutoFollow                                  *bool   `access:"experimental_features"`
 	CollapsedThreads                                  *string `access:"experimental_features"`
 	ManagedResourcePaths                              *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	EnableCustomGroups                                *bool   // telemetry: none
+	EnableCustomGroups                                *bool
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
