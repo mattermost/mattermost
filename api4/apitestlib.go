@@ -946,8 +946,8 @@ func CheckUnauthorizedStatus(tb testing.TB, resp *model.Response) {
 }
 
 func CheckNotFoundStatus(tb testing.TB, resp *model.Response) {
-	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusNotFound)
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusNotFound)
 }
 
 func CheckBadRequestStatus(tb testing.TB, resp *model.Response) {
