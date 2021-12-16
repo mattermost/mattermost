@@ -789,7 +789,7 @@ func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("Api4.getGroupsByTeam", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
-	fmt.Println("DEBUG/getGroupsByTeam/794")
+
 	w.Write(b)
 }
 
