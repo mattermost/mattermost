@@ -125,7 +125,7 @@ func (a *App) CreateGroupWithUserIds(group *model.GroupWithUserIds) (*model.Grou
 	if err != nil {
 		return nil, model.NewAppError("CreateGroupWithUserIds", "app.group.id.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
-	group.MemberCount = model.NewInt(count)
+	group.MemberCount = model.NewInt(int(count))
 	groupJSON, jsonErr := json.Marshal(newGroup)
 	if jsonErr != nil {
 		mlog.Warn("Failed to encode group to JSON", mlog.Err(jsonErr))
@@ -144,7 +144,7 @@ func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
 		if countErr != nil {
 			return nil, model.NewAppError("CreateGroupWithUserIds", "app.group.id.app_error", nil, countErr.Error(), http.StatusBadRequest)
 		}
-	updatedGroup.MemberCount = model.NewInt(count)
+		updatedGroup.MemberCount = model.NewInt(int(count))
 		messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil)
 		groupJSON, jsonErr := json.Marshal(updatedGroup)
 		if jsonErr != nil {
