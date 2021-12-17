@@ -144,8 +144,7 @@ func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
 		if countErr != nil {
 			return nil, model.NewAppError("CreateGroupWithUserIds", "app.group.id.app_error", nil, countErr.Error(), http.StatusBadRequest)
 		}
-		memberCount := int(count)
-		updatedGroup.MemberCount = &memberCount
+	updatedGroup.MemberCount = model.NewInt(count)
 		messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil)
 		groupJSON, jsonErr := json.Marshal(updatedGroup)
 		if jsonErr != nil {
