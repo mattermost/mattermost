@@ -574,7 +574,7 @@ func (a *App) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, pag
 
 	// parse all group ids of all users
 	allUsersGroupIDMap := map[string]bool{}
-	for _, user := range users { //nolint
+	for _, user := range users {
 		for _, groupID := range user.GetGroupIDs() {
 			allUsersGroupIDMap[groupID] = true
 		}
@@ -599,7 +599,7 @@ func (a *App) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, pag
 	}
 
 	// populate each instance's groups field
-	for _, user := range users { //nolint
+	for _, user := range users {
 		user.Groups = []*model.Group{}
 		for _, groupID := range user.GetGroupIDs() {
 			group, ok := groupMap[groupID]
@@ -642,7 +642,7 @@ func (a *App) ChannelMembersMinusGroupMembers(channelID string, groupIDs []strin
 
 	// parse all group ids of all users
 	allUsersGroupIDMap := map[string]bool{}
-	for _, user := range users { //nolint
+	for _, user := range users {
 		for _, groupID := range user.GetGroupIDs() {
 			allUsersGroupIDMap[groupID] = true
 		}
@@ -667,7 +667,7 @@ func (a *App) ChannelMembersMinusGroupMembers(channelID string, groupIDs []strin
 	}
 
 	// populate each instance's groups field
-	for _, user := range users { //nolint
+	for _, user := range users {
 		user.Groups = []*model.Group{}
 		for _, groupID := range user.GetGroupIDs() {
 			group, ok := groupMap[groupID]
