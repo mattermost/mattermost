@@ -173,15 +173,15 @@ func (_m *CloudInterface) GetInvoicesForSubscription(userID string) ([]*model.In
 	return r0, r1
 }
 
-// GetLicenseRenewalStatusOnCWS provides a mock function with given fields: userID, token
-func (_m *CloudInterface) GetLicenseRenewalStatusOnCWS(userID string, token string) bool {
+// GetLicenseRenewalStatus provides a mock function with given fields: userID, token
+func (_m *CloudInterface) GetLicenseRenewalStatus(userID string, token string) error {
 	ret := _m.Called(userID, token)
 
-	var r0 bool
-	if rf, ok := ret.Get(0).(func(string, string) bool); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
 		r0 = rf(userID, token)
 	} else {
-		r0 = ret.Get(0).(bool)
+		r0 = ret.Error(0)
 	}
 
 	return r0
