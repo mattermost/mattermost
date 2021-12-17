@@ -638,10 +638,9 @@ func TestChannelsPluginsInit(t *testing.T) {
 		ctx := request.EmptyContext()
 		path, _ := fileutils.FindDir("tests")
 
-		panicTestFunc := func() {
+		require.NotPanics(t, func() {
 			th.Server.Channels().initPlugins(ctx, path, path)
-		}
-		require.NotPanics(t, panicTestFunc)
+		})
 	}
 
 	t.Run("no panics when plugins enabled", func(t *testing.T) {
