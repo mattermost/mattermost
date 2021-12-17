@@ -78,7 +78,7 @@ func TestCreateGroup(t *testing.T) {
 		AllowReference: true,
 	}
 
-	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional, "ldap"))
 
 	group, _, err := th.SystemAdminClient.CreateGroup(g)
 	require.NoError(t, err)
@@ -164,7 +164,7 @@ func TestDeleteGroup(t *testing.T) {
 	})
 	assert.Nil(t, appErr)
 
-	th.App.Srv().SetLicense(model.NewTestLicense("custom_groups"))
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 	_, response, err := th.Client.DeleteGroup(g.Id)
 	require.Error(t, err)
@@ -236,7 +236,7 @@ func TestPatchGroup(t *testing.T) {
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, response)
 
-	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional, "ldap"))
 
 	group2, response, err := th.SystemAdminClient.PatchGroup(g.Id, gp)
 	require.NoError(t, err)
@@ -1047,7 +1047,7 @@ func TestGetGroupsByTeam(t *testing.T) {
 		},
 	}
 
-	th.App.Srv().SetLicense(model.NewTestLicense("custom_groups"))
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		_, _, response, err := client.GetGroupsByTeam("asdfasdf", opts)
@@ -1116,7 +1116,7 @@ func TestGetGroups(t *testing.T) {
 		},
 	}
 
-	th.App.Srv().SetLicense(model.NewTestLicense("custom_groups"))
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 	_, _, err := th.SystemAdminClient.GetGroups(opts)
 	require.NoError(t, err)
@@ -1407,7 +1407,7 @@ func TestAddMembersToGroup(t *testing.T) {
 		UserIds: []string{user1.Id, user2.Id},
 	}
 
-	th.App.Srv().SetLicense(model.NewTestLicense("custom_groups"))
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 	groupMembers, response, upsertErr := th.SystemAdminClient.UpsertGroupMembers(group.Id, members)
 	require.NoError(t, upsertErr)
@@ -1479,7 +1479,7 @@ func TestDeleteMembersFromGroup(t *testing.T) {
 		UserIds: []string{user1.Id},
 	}
 
-	th.App.Srv().SetLicense(model.NewTestLicense("custom_groups"))
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 	groupMembers, response, deleteErr := th.SystemAdminClient.DeleteGroupMembers(group.Id, members)
 	require.NoError(t, deleteErr)
