@@ -153,7 +153,7 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !group.AllowReference {
-		c.Err = model.NewAppError("createGroup", "api.custom_groups.must_be_referencable", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("createGroup", "api.custom_groups.must_be_referenceable", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -219,7 +219,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if group.Source == model.GroupSourceCustom && groupPatch.AllowReference != nil && !*groupPatch.AllowReference {
-		c.Err = model.NewAppError("Api4.patchGroup", "api.custom_groups.must_be_referencable", nil, "", http.StatusBadRequest) // change to not implemented
+		c.Err = model.NewAppError("Api4.patchGroup", "api.custom_groups.must_be_referenceable", nil, "", http.StatusBadRequest)
 		return
 	}
 

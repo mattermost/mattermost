@@ -1571,7 +1571,7 @@
     "translation": "not licensed for custom groups"
   },
   {
-    "id": "api.custom_groups.must_be_referencable",
+    "id": "api.custom_groups.must_be_referenceable",
     "translation": "allow_reference must be 'true' for custom groups"
   },
   {
