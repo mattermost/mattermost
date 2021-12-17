@@ -3489,7 +3489,6 @@ func testUserStoreSearchInGroup(t *testing.T, ss store.Store) {
 	u3 := &model.User{
 		Username: "jimbo3" + model.NewId(),
 		Email:    MakeEmail(),
-		DeleteAt: 1,
 	}
 	_, err = ss.User().Save(u3)
 	require.NoError(t, err)
@@ -3529,6 +3528,10 @@ func testUserStoreSearchInGroup(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	_, err = ss.Group().UpsertMember(g1.Id, u3.Id)
+	require.NoError(t, err)
+
+	u3.DeleteAt = 1
+	_, err = ss.User().Update(u3, true)
 	require.NoError(t, err)
 
 	testCases := []struct {
@@ -3629,7 +3632,6 @@ func testUserStoreSearchNotInGroup(t *testing.T, ss store.Store) {
 	u3 := &model.User{
 		Username: "jimbo3" + model.NewId(),
 		Email:    MakeEmail(),
-		DeleteAt: 1,
 	}
 	_, err = ss.User().Save(u3)
 	require.NoError(t, err)
@@ -3669,6 +3671,10 @@ func testUserStoreSearchNotInGroup(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	_, err = ss.Group().UpsertMember(g1.Id, u3.Id)
+	require.NoError(t, err)
+
+	u3.DeleteAt = 1
+	_, err = ss.User().Update(u3, true)
 	require.NoError(t, err)
 
 	testCases := []struct {
