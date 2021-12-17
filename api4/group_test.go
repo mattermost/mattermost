@@ -1109,6 +1109,16 @@ func TestGetGroups(t *testing.T) {
 	assert.Nil(t, appErr)
 	start := group.UpdateAt - 1
 
+	id2 := model.NewId()
+	group2, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id2,
+		Name:        model.NewString("name" + id2),
+		Source:      model.GroupSourceCustom,
+		Description: "description_" + id2,
+		RemoteId:    model.NewString(model.NewId()),
+	})
+	assert.Nil(t, appErr)
+
 	opts := model.GroupSearchOpts{
 		PageOpts: &model.PageOpts{
 			Page:    0,
@@ -1184,6 +1194,12 @@ func TestGetGroups(t *testing.T) {
 	assert.Len(t, groups, 1)
 	// make sure it returned th.Group,not group
 	assert.Equal(t, groups[0].Id, th.Group.Id)
+
+	opts.Source = model.GroupSourceCustom
+	groups, _, err = th.Client.GetGroups(opts)
+	assert.NoError(t, err)
+	assert.Len(t, groups, 1)
+	assert.Equal(t, groups[0].Id, group2.Id)
 }
 
 func TestGetGroupsByUserId(t *testing.T) {
