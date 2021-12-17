@@ -35,6 +35,11 @@ func (m *ProductNoticesJobInterfaceImpl) MakeWorker() model.Worker {
 	return &worker
 }
 
+func (worker *Worker) IsEnabled(cfg *model.Config) bool {
+	// Only enabled when ExtendSessionLengthWithActivity is enabled.
+	return *cfg.AnnouncementSettings.AdminNoticesEnabled || *cfg.AnnouncementSettings.UserNoticesEnabled
+}
+
 func (worker *Worker) Run() {
 	mlog.Debug("Worker started", mlog.String("worker", worker.name))
 

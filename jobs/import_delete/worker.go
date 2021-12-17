@@ -51,6 +51,10 @@ func (w *ImportDeleteWorker) JobChannel() chan<- model.Job {
 	return w.jobsChan
 }
 
+func (w *ImportDeleteWorker) IsEnabled(cfg *model.Config) bool {
+	return *cfg.ImportSettings.Directory != "" && *cfg.ImportSettings.RetentionDays > 0
+}
+
 func (w *ImportDeleteWorker) Run() {
 	mlog.Debug("Worker started", mlog.String("worker", w.name))
 

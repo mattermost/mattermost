@@ -49,6 +49,10 @@ func (w *ExportDeleteWorker) JobChannel() chan<- model.Job {
 	return w.jobsChan
 }
 
+func (w *ExportDeleteWorker) IsEnabled(cfg *model.Config) bool {
+	return *cfg.ExportSettings.Directory != "" && *cfg.ExportSettings.RetentionDays > 0
+}
+
 func (w *ExportDeleteWorker) Run() {
 	mlog.Debug("Worker started", mlog.String("worker", w.name))
 

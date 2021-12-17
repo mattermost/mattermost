@@ -79,6 +79,11 @@ func (worker *Worker) JobChannel() chan<- model.Job {
 	return worker.jobs
 }
 
+func (worker *Worker) IsEnabled(cfg *model.Config) bool {
+	// Only enabled when Metrics are enabled.
+	return *cfg.MetricsSettings.Enable
+}
+
 func (worker *Worker) DoJob(job *model.Job) {
 	if claimed, err := worker.jobServer.ClaimJob(job); err != nil {
 		mlog.Warn("Worker experienced an error while trying to claim job",

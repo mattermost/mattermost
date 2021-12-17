@@ -57,6 +57,10 @@ func (rseworker *ResendInvitationEmailWorker) Run() {
 	}
 }
 
+func (rseworker *ResendInvitationEmailWorker) IsEnabled(cfg *model.Config) bool {
+	return *cfg.ServiceSettings.EnableEmailInvitations
+}
+
 func (rseworker *ResendInvitationEmailWorker) Stop() {
 	mlog.Debug("Worker stopping", mlog.String("worker", rseworker.name))
 	rseworker.stop <- true

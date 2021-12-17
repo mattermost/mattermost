@@ -55,6 +55,13 @@ func (w *FixCRTChannelUnreadsWorker) JobChannel() chan<- model.Job {
 	return w.jobsChan
 }
 
+func (w *FixCRTChannelUnreadsWorker) IsEnabled(cfg *model.Config) bool {
+	if _, err := w.app.Srv().Store.System().GetByName(model.MigrationKeyFixCRTChannelUnreads); err == nil {
+		return false
+	}
+	return true
+}
+
 func (w *FixCRTChannelUnreadsWorker) Run() {
 	mlog.Debug("Worker started", mlog.String("worker", w.name))
 

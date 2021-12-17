@@ -1855,76 +1855,66 @@ func (ch *Channels) ClientConfigHash() string {
 
 func (s *Server) initJobs() {
 	s.Jobs = jobs.NewJobServer(s, s.Store, s.Metrics)
-	if jobsDataRetentionJobInterface != nil {
-		s.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(s)
-	}
-	if jobsMessageExportJobInterface != nil {
-		s.Jobs.MessageExportJob = jobsMessageExportJobInterface(s)
-	}
-	if jobsElasticsearchAggregatorInterface != nil {
-		s.Jobs.ElasticsearchAggregator = jobsElasticsearchAggregatorInterface(s)
-	}
-	if jobsElasticsearchIndexerInterface != nil {
-		s.Jobs.ElasticsearchIndexer = jobsElasticsearchIndexerInterface(s)
-	}
-	if jobsBleveIndexerInterface != nil {
-		s.Jobs.BleveIndexer = jobsBleveIndexerInterface(s)
-	}
-	if jobsMigrationsInterface != nil {
-		s.Jobs.Migrations = jobsMigrationsInterface(s)
-	}
-	if jobsLdapSyncInterface != nil {
-		s.Jobs.LdapSync = jobsLdapSyncInterface(s)
-	}
-	if jobsPluginsInterface != nil {
-		s.Jobs.Plugins = jobsPluginsInterface(s)
-	}
-	if jobsExpiryNotifyInterface != nil {
-		s.Jobs.ExpiryNotify = jobsExpiryNotifyInterface(s)
-	}
-	if productNoticesJobInterface != nil {
-		s.Jobs.ProductNotices = productNoticesJobInterface(s)
-	}
-	if jobsImportProcessInterface != nil {
-		s.Jobs.ImportProcess = jobsImportProcessInterface(s)
-	}
-	if jobsImportDeleteInterface != nil {
-		s.Jobs.ImportDelete = jobsImportDeleteInterface(s)
-	}
-	if jobsExportDeleteInterface != nil {
-		s.Jobs.ExportDelete = jobsExportDeleteInterface(s)
-	}
-
-	if jobsExportProcessInterface != nil {
-		s.Jobs.ExportProcess = jobsExportProcessInterface(s)
-	}
-
-	if jobsExportProcessInterface != nil {
-		s.Jobs.ExportProcess = jobsExportProcessInterface(s)
-	}
-
-	if jobsActiveUsersInterface != nil {
-		s.Jobs.ActiveUsers = jobsActiveUsersInterface(s)
-	}
-
-	if jobsCloudInterface != nil {
-		s.Jobs.Cloud = jobsCloudInterface(s)
-	}
-
-	if jobsResendInvitationEmailInterface != nil {
-		s.Jobs.ResendInvitationEmails = jobsResendInvitationEmailInterface(s)
-	}
-
-	if jobsExtractContentInterface != nil {
-		s.Jobs.ExtractContent = jobsExtractContentInterface(s)
-	}
-
-	if fixCRTChannelUnreadsJobInterface != nil {
-		s.Jobs.FixCRTChannelUnreads = fixCRTChannelUnreadsJobInterface(s)
-	}
 
 	s.Jobs.InitWorkers()
 	s.Jobs.InitSchedulers()
+
+	builder := jobsDataRetentionJobInterface(s)
+	s.Jobs.RegisterJobType(model.JobTypeDataRetention, builder.MakeWorker(), builder.MakeScheduler())
+
+	builder = jobsMessageExportJobInterface(s)
+	s.Jobs.RegisterJobType(model.JobTypeMessageExport, builder.MakeWorker(), builder.MakeScheduler())
+
+	builder = jobsElasticsearchAggregatorInterface(s)
+	s.Jobs.RegisterJobType(model.JobTypeElasticsearchPostAggregation, builder.MakeWorker(), builder.MakeScheduler())
+
+	workerBuilder := jobsElasticsearchIndexerInterface(s)
+	s.Jobs.RegisterJobType(model.JobTypeElasticsearchPostIndexing, workerBuilder.MakeWorker(), nil)
+
+	workerBuilder = jobsBleveIndexerInterface(s)
+	s.Jobs.RegisterJobType(model.JobTypeBlevePostIndexing, workerBuilder.MakeWorker(), nil)
+
+	builder = jobsMigrationsInterface(s)
+	s.Jobs.RegisterJobType(model.JobTypeMigrations, builder.MakeWorker(), builder.MakeScheduler())
+
+	builder = jobsLdapSyncInterface(s)
+	s.Jobs.RegisterJobType(model.JobTypeLdapSync, builder.MakeWorker(), builder.MakeScheduler())
+
+	builder = jobsPluginsInterface(s)
+	s.Jobs.RegisterJobType(model.JobTypePlugins, builder.MakeWorker(), builder.MakeScheduler())
+
+	builder = jobsExpiryNotifyInterface(s)
+	s.Jobs.RegisterJobType(model.JobTypeExpiryNotify, builder.MakeWorker(), builder.MakeScheduler())
+
+	builder = productNoticesJobInterface(s)
+	s.Jobs.RegisterJobType(model.JobTypeProductNotices, builder.MakeWorker(), builder.MakeScheduler())
+
+	workerBuilder = jobsImportProcessInterface(s)
+	s.Jobs.RegisterJobType(model.JobTypeImportProcess, workerBuilder.MakeWorker(), nil)
+
+	builder = jobsImportDeleteInterface(s)
+	s.Jobs.RegisterJobType(model.JobTypeImportDelete, builder.MakeWorker(), builder.MakeScheduler())
+
+	builder = jobsExportDeleteInterface(s)
+	s.Jobs.RegisterJobType(model.JobTypeExportDelete, builder.MakeWorker(), builder.MakeScheduler())
+
+	workerBuilder = jobsExportProcessInterface(s)
+	s.Jobs.RegisterJobType(model.JobTypeExportProcess, workerBuilder.MakeWorker(), nil)
+
+	builder = jobsActiveUsersInterface(s)
+	s.Jobs.RegisterJobType(model.JobTypeActiveUsers, builder.MakeWorker(), builder.MakeScheduler())
+
+	builder = jobsCloudInterface(s)
+	s.Jobs.RegisterJobType(model.JobTypeCloud, builder.MakeWorker(), builder.MakeScheduler())
+
+	builder = jobsResendInvitationEmailInterface(s)
+	s.Jobs.RegisterJobType(model.JobTypeResendInvitationEmail, builder.MakeWorker(), builder.MakeScheduler())
+
+	workerBuilder = jobsExtractContentInterface(s)
+	s.Jobs.RegisterJobType(model.JobTypeExtractContent, workerBuilder.MakeWorker(), nil)
+
+	builder = fixCRTChannelUnreadsJobInterface(s)
+	s.Jobs.RegisterJobType(model.JobTypeFixChannelUnreadsForCRT, builder.MakeWorker(), builder.MakeScheduler())
 }
 
 func (s *Server) TelemetryId() string {

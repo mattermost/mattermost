@@ -49,6 +49,10 @@ func (w *ExportProcessWorker) JobChannel() chan<- model.Job {
 	return w.jobsChan
 }
 
+func (w *ExportProcessWorker) IsEnabled(cfg *model.Config) bool {
+	return true
+}
+
 func (w *ExportProcessWorker) Run() {
 	mlog.Debug("Worker started", mlog.String("worker", w.name))
 

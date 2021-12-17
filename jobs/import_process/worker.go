@@ -83,6 +83,10 @@ func (w *ImportProcessWorker) Stop() {
 	<-w.stoppedChan
 }
 
+func (w *ImportProcessWorker) IsEnabled(cfg *model.Config) bool {
+	return true
+}
+
 func (w *ImportProcessWorker) doJob(job *model.Job) {
 	if claimed, err := w.jobServer.ClaimJob(job); err != nil {
 		mlog.Warn("Worker experienced an error while trying to claim job",

@@ -55,6 +55,10 @@ func (i *ExtractContentInterfaceImpl) MakeWorker() model.Worker {
 	}
 }
 
+func (w *ExtractContentWorker) IsEnabled(cfg *model.Config) bool {
+	return true
+}
+
 func (w *ExtractContentWorker) JobChannel() chan<- model.Job {
 	return w.jobsChan
 }

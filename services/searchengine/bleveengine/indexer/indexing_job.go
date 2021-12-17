@@ -92,6 +92,10 @@ func (worker *BleveIndexerWorker) JobChannel() chan<- model.Job {
 	return worker.jobs
 }
 
+func (worker *BleveIndexerWorker) IsEnabled(cfg *model.Config) bool {
+	return true
+}
+
 func (worker *BleveIndexerWorker) Run() {
 	mlog.Debug("Worker Started", mlog.String("workername", worker.name))
 

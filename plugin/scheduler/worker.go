@@ -62,6 +62,10 @@ func (worker *Worker) JobChannel() chan<- model.Job {
 	return worker.jobs
 }
 
+func (worker *Worker) IsEnabled(cfg *model.Config) bool {
+	return true
+}
+
 func (worker *Worker) DoJob(job *model.Job) {
 	if claimed, err := worker.jobServer.ClaimJob(job); err != nil {
 		mlog.Info("Worker experienced an error while trying to claim job",
