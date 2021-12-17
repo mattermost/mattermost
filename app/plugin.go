@@ -176,7 +176,9 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 	ch.pluginsLock.RUnlock()
 	if pluginsEnvironment != nil || !*ch.srv.Config().PluginSettings.Enable {
 		ch.syncPluginsActiveState()
-		pluginsEnvironment.TogglePluginHealthCheckJob(*ch.srv.Config().PluginSettings.EnableHealthCheck)
+		if pluginsEnvironment != nil {
+			pluginsEnvironment.TogglePluginHealthCheckJob(*ch.srv.Config().PluginSettings.EnableHealthCheck)
+		}
 		return
 	}
 
