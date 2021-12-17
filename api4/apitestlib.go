@@ -903,106 +903,106 @@ func GenerateTestId() string {
 	return model.NewId()
 }
 
-func CheckUserSanitization(t *testing.T, user *model.User) {
-	t.Helper()
+func CheckUserSanitization(tb testing.TB, user *model.User) {
+	tb.Helper()
 
-	require.Equal(t, "", user.Password, "password wasn't blank")
-	require.Empty(t, user.AuthData, "auth data wasn't blank")
-	require.Equal(t, "", user.MfaSecret, "mfa secret wasn't blank")
+	require.Equal(tb, "", user.Password, "password wasn't blank")
+	require.Empty(tb, user.AuthData, "auth data wasn't blank")
+	require.Equal(tb, "", user.MfaSecret, "mfa secret wasn't blank")
 }
 
-func CheckEtag(t *testing.T, data interface{}, resp *model.Response) {
-	t.Helper()
+func CheckEtag(tb testing.TB, data interface{}, resp *model.Response) {
+	tb.Helper()
 
-	require.Empty(t, data)
-	require.Equal(t, http.StatusNotModified, resp.StatusCode, "wrong status code for etag")
+	require.Empty(tb, data)
+	require.Equal(tb, http.StatusNotModified, resp.StatusCode, "wrong status code for etag")
 }
 
-func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int) {
-	t.Helper()
+func checkHTTPStatus(tb testing.TB, resp *model.Response, expectedStatus int) {
+	tb.Helper()
 
-	require.NotNilf(t, resp, "Unexpected nil response, expected http status:%v", expectedStatus)
-	require.Equalf(t, expectedStatus, resp.StatusCode, "Expected http status:%v, got %v", expectedStatus, resp.StatusCode)
+	require.NotNilf(tb, resp, "Unexpected nil response, expected http status:%v", expectedStatus)
+	require.Equalf(tb, expectedStatus, resp.StatusCode, "Expected http status:%v, got %v", expectedStatus, resp.StatusCode)
 }
 
-func CheckOKStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusOK)
+func CheckOKStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusOK)
 }
 
-func CheckCreatedStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusCreated)
+func CheckCreatedStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusCreated)
 }
 
-func CheckForbiddenStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusForbidden)
+func CheckForbiddenStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusForbidden)
 }
 
-func CheckUnauthorizedStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusUnauthorized)
+func CheckUnauthorizedStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusUnauthorized)
 }
 
-func CheckNotFoundStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusNotFound)
+func CheckNotFoundStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusNotFound)
 }
 
-func CheckBadRequestStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusBadRequest)
+func CheckBadRequestStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusBadRequest)
 }
 
-func CheckNotImplementedStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusNotImplemented)
+func CheckNotImplementedStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusNotImplemented)
 }
 
-func CheckRequestEntityTooLargeStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusRequestEntityTooLarge)
+func CheckRequestEntityTooLargeStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusRequestEntityTooLarge)
 }
 
-func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusInternalServerError)
+func CheckInternalErrorStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusInternalServerError)
 }
 
-func CheckServiceUnavailableStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusServiceUnavailable)
+func CheckServiceUnavailableStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusServiceUnavailable)
 }
 
-func CheckErrorID(t *testing.T, err error, errorId string) {
-	t.Helper()
+func CheckErrorID(tb testing.TB, err error, errorId string) {
+	tb.Helper()
 
-	require.Error(t, err, "should have errored with id: %s", errorId)
+	require.Error(tb, err, "should have errored with id: %s", errorId)
 
 	var appError *model.AppError
 	ok := errors.As(err, &appError)
-	require.True(t, ok, "should have been a model.AppError")
+	require.True(tb, ok, "should have been a model.AppError")
 
-	require.Equalf(t, errorId, appError.Id, "incorrect error id, actual: %s, expected: %s", appError.Id, errorId)
+	require.Equalf(tb, errorId, appError.Id, "incorrect error id, actual: %s, expected: %s", appError.Id, errorId)
 }
 
-func CheckErrorMessage(t *testing.T, err error, message string) {
-	t.Helper()
+func CheckErrorMessage(tb testing.TB, err error, message string) {
+	tb.Helper()
 
-	require.Error(t, err, "should have errored with message: %s", message)
+	require.Error(tb, err, "should have errored with message: %s", message)
 
 	var appError *model.AppError
 	ok := errors.As(err, &appError)
-	require.True(t, ok, "should have been a model.AppError")
+	require.True(tb, ok, "should have been a model.AppError")
 
-	require.Equalf(t, message, appError.Message, "incorrect error message, actual: %s, expected: %s", appError.Id, message)
+	require.Equalf(tb, message, appError.Message, "incorrect error message, actual: %s, expected: %s", appError.Id, message)
 }
 
-func CheckStartsWith(t *testing.T, value, prefix, message string) {
-	t.Helper()
+func CheckStartsWith(tb testing.TB, value, prefix, message string) {
+	tb.Helper()
 
-	require.True(t, strings.HasPrefix(value, prefix), message, value)
+	require.True(tb, strings.HasPrefix(value, prefix), message, value)
 }
 
 // Similar to s3.New() but allows initialization of signature v2 or signature v4 client.
