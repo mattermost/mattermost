@@ -5,15 +5,18 @@ package app
 
 import (
 	"runtime"
+	"strings"
 	"sync"
 	"sync/atomic"
 
 	"github.com/mattermost/mattermost-server/v6/app/imaging"
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/pkg/errors"
 )
 
@@ -119,11 +122,32 @@ func (ch *Channels) Start() error {
 	ch.initPlugins(ctx, *ch.srv.Config().PluginSettings.Directory, *ch.srv.Config().PluginSettings.ClientDirectory)
 
 	ch.AddConfigListener(func(prevCfg, cfg *model.Config) {
-		if *cfg.PluginSettings.Enable {
-			ch.initPlugins(ctx, *cfg.PluginSettings.Directory, *ch.srv.Config().PluginSettings.ClientDirectory)
-		} else {
-			ch.ShutDownPlugins()
+		// We compute the difference between configs
+		// to ensure we don't re-init plugins unnecessarily.
+		diffs, err := config.Diff(prevCfg, cfg)
+		if err != nil {
+			mlog.Warn("Error in comparing configs", mlog.Err(err))
+			return
 		}
+
+		hasDiff := false
+		// TODO: This could be a method on ConfigDiffs itself
+		for _, diff := range diffs {
+			if strings.HasPrefix(diff.Path, "PluginSettings.") {
+				hasDiff = true
+				break
+			}
+		}
+
+		// Do only if some plugin related settings has changed.
+		if hasDiff {
+			if *cfg.PluginSettings.Enable {
+				ch.initPlugins(ctx, *cfg.PluginSettings.Directory, *ch.srv.Config().PluginSettings.ClientDirectory)
+			} else {
+				ch.ShutDownPlugins()
+			}
+		}
+
 	})
 
 	if err := ch.ensureAsymmetricSigningKey(); err != nil {
