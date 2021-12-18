@@ -186,14 +186,14 @@ else
 endif
 
 package-osx-amd64: package-prep
-	DIST_PATH_GENERIC=$(DIST_PATH_OSX_AMD64) CURRENT_PACKAGE_ARCH=darwin_amd64 PLUGIN_ARCH=osx-amd64 MMCTL_PLATFORM="Darwin-AMD64" MM_BIN_NAME=mattermost $(MAKE) package-general
+	DIST_PATH_GENERIC=$(DIST_PATH_OSX_AMD64) CURRENT_PACKAGE_ARCH=darwin_amd64 PLUGIN_ARCH=osx-amd64 MMCTL_PLATFORM="Darwin-x86_64" MM_BIN_NAME=mattermost $(MAKE) package-general
 	@# Package
 	tar -C $(DIST_PATH_OSX_AMD64)/.. -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-osx-amd64.tar.gz mattermost ../mattermost
 	@# Cleanup
 	rm -rf $(DIST_ROOT)/osx_amd64
 
 package-osx-arm64: package-prep
-	DIST_PATH_GENERIC=$(DIST_PATH_OSX_ARM64) CURRENT_PACKAGE_ARCH=darwin_arm64 PLUGIN_ARCH=osx-arm64 MMCTL_PLATFORM="Darwin-ARM64" MM_BIN_NAME=mattermost $(MAKE) package-general
+	DIST_PATH_GENERIC=$(DIST_PATH_OSX_ARM64) CURRENT_PACKAGE_ARCH=darwin_arm64 PLUGIN_ARCH=osx-arm64 MMCTL_PLATFORM="Darwin-arm64" MM_BIN_NAME=mattermost $(MAKE) package-general
 	@# Package
 	tar -C $(DIST_PATH_OSX_ARM64)/.. -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-osx-arm64.tar.gz mattermost ../mattermost
 	@# Cleanup
@@ -202,14 +202,14 @@ package-osx-arm64: package-prep
 package-osx: package-osx-amd64 package-osx-arm64
 
 package-linux-amd64: package-prep
-	DIST_PATH_GENERIC=$(DIST_PATH_LIN_AMD64) CURRENT_PACKAGE_ARCH=linux_amd64 PLUGIN_ARCH=linux-amd64 MMCTL_PLATFORM="Linux-AMD64" MM_BIN_NAME=mattermost $(MAKE) package-general
+	DIST_PATH_GENERIC=$(DIST_PATH_LIN_AMD64) CURRENT_PACKAGE_ARCH=linux_amd64 PLUGIN_ARCH=linux-amd64 MMCTL_PLATFORM="Linux-x86_64" MM_BIN_NAME=mattermost $(MAKE) package-general
 	@# Package
 	tar -C $(DIST_PATH_LIN_AMD64)/.. -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-linux-amd64.tar.gz mattermost ../mattermost
 	@# Cleanup
 	rm -rf $(DIST_ROOT)/linux_amd64
 
 package-linux-arm64: package-prep
-	DIST_PATH_GENERIC=$(DIST_PATH_LIN_ARM64) CURRENT_PACKAGE_ARCH=linux_arm64 PLUGIN_ARCH=linux-arm64 MMCTL_PLATFORM="Linux-ARM64" MM_BIN_NAME=mattermost $(MAKE) package-general
+	DIST_PATH_GENERIC=$(DIST_PATH_LIN_ARM64) CURRENT_PACKAGE_ARCH=linux_arm64 PLUGIN_ARCH=linux-arm64 MMCTL_PLATFORM="Linux-aarch64" MM_BIN_NAME=mattermost $(MAKE) package-general
 	@# Package
 	tar -C $(DIST_PATH_LIN_ARM64)/.. -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-linux-arm64.tar.gz mattermost ../mattermost
 	@# Cleanup

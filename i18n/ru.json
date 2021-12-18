@@ -889,7 +889,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "Открыть диалог настроек учётной записи"
+    "translation": "Открыть диалог настроек"
   },
   {
     "id": "api.command_settings.name",
@@ -8769,15 +8769,15 @@
   },
   {
     "id": "api.context.remote_id_missing.app_error",
-    "translation": "Отсутствует идентификатор удалённого кластера."
+    "translation": "Отсутствует ID удалённого кластера."
   },
   {
     "id": "api.context.remote_id_mismatch.app_error",
-    "translation": "Несоответствие идентификатора удаленного кластера."
+    "translation": "Несоответствие ID удаленного кластера."
   },
   {
     "id": "api.context.remote_id_invalid.app_error",
-    "translation": "Невозможно найти идентификатор удаленного кластера {{.RemoteId}}."
+    "translation": "Невозможно найти безопасный ID подключения {{.RemoteId}}."
   },
   {
     "id": "api.context.json_encoding.app_error",
@@ -8797,11 +8797,11 @@
   },
   {
     "id": "api.command_share.uninvite_remote_id.help",
-    "translation": "Идентификатор удалённой инсталляции для отключения."
+    "translation": "Идентификатор безопасного подключения к неприглашенному гостю."
   },
   {
     "id": "api.command_share.uninvite_remote.help",
-    "translation": "Отключить удалённую инсталляцию от этого общего канала"
+    "translation": "Отмена приглашения на безопасное соединение от этого общего канала"
   },
   {
     "id": "api.command_share.shared_channel_unshare.error",
@@ -8821,7 +8821,7 @@
   },
   {
     "id": "api.command_share.remote_uninvited",
-    "translation": "Удалённый `{{.RemoteId}}`отключен."
+    "translation": "Безопасное соединение с `{{.RemoteId}}`неприглашенным."
   },
   {
     "id": "api.command_share.remote_not_valid",
@@ -8853,7 +8853,7 @@
   },
   {
     "id": "api.command_share.name",
-    "translation": "поделиться"
+    "translation": "общий канал"
   },
   {
     "id": "api.command_share.must_specify_valid_remote",
@@ -8969,6 +8969,62 @@
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
-    "translation": " дополнил обсуждение, на которое Вы подписаны."
+    "translation": " ответил в чате, на который Вы подписаны."
+  },
+  {
+    "id": "api.post.posts_by_ids.invalid_body.request_error",
+    "translation": "Количество полученных ID сообщений превышает максимальный размер {{.MaxLength}}"
+  },
+  {
+    "id": "api.oauth.click_redirect",
+    "translation": "Если Вы не были перенаправлены автоматически, нажмите <a href='{{.Link}}'>link</a>"
+  },
+  {
+    "id": "api.license.upgrade_needed.app_error",
+    "translation": "Для этой функции требуется обновление до Enterprise Edition."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.title",
+    "translation": "У вас есть новые сообщения"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subTitle",
+    "translation": "См. ниже сводку Ваших новых сообщений."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.messageButton",
+    "translation": "Посмотреть это сообщение"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.button",
+    "translation": "Открыть Mattermost"
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Не удалось обновить настраиваемый статус. Пожалуйста, добавьте статус эмодзи или произвольный текст или и то, и другое."
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "Не удалось провести различие конфигураций"
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Не удалось перезагрузить конфигурацию."
+  },
+  {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "Не удалось провести различие конфигураций"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "Срок действия этого пробного лицензионного ключа для Mattermost Enterprise Edition истек и больше не действует. Если вы хотите продлить пробный период, пожалуйста, [свяжитесь с нашим отделом продаж] (https://mattermost.com/contact-us/)."
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Не удалось проверить, можно ли запустить пробную версию"
   }
 ]
