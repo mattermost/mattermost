@@ -22,6 +22,60 @@ const (
 	TeamMemberExistsError = "store.sql_team.save_member.exists.app_error"
 )
 
+type TeamWithPolicyId struct {
+	Id                 string
+	CreateAt           int64
+	UpdateAt           int64
+	DeleteAt           int64
+	DisplayName        string
+	Name               string
+	Description        string
+	Email              string
+	Type               string
+	CompanyName        string
+	AllowedDomains     string
+	InviteId           string
+	AllowOpenInvite    bool
+	LastTeamIconUpdate int64
+	SchemeId           *string
+	GroupConstrained   *bool
+	PolicyId           *string
+}
+
+func (t TeamWithPolicyId) ToModel() *model.Team {
+	return &model.Team{
+		Id:                 t.Id,
+		CreateAt:           t.CreateAt,
+		UpdateAt:           t.UpdateAt,
+		DeleteAt:           t.DeleteAt,
+		DisplayName:        t.DisplayName,
+		Name:               t.Name,
+		Description:        t.Description,
+		Email:              t.Email,
+		Type:               t.Type,
+		CompanyName:        t.CompanyName,
+		AllowedDomains:     t.AllowedDomains,
+		InviteId:           t.InviteId,
+		AllowOpenInvite:    t.AllowOpenInvite,
+		LastTeamIconUpdate: t.LastTeamIconUpdate,
+		SchemeId:           t.SchemeId,
+		GroupConstrained:   t.GroupConstrained,
+		PolicyID:           t.PolicyId,
+	}
+}
+
+type TeamWithPolicyIdList []TeamWithPolicyId
+
+func (tl TeamWithPolicyIdList) ToModel() []*model.Team {
+	var tms []*model.Team
+
+	for _, t := range tl {
+		tms = append(tms, t.ToModel())
+	}
+
+	return tms
+}
+
 type SqlTeamStore struct {
 	*SqlStore
 
@@ -248,10 +302,10 @@ func (s SqlTeamStore) Save(team *model.Team) (*model.Team, error) {
 
 	if _, err := s.GetMasterX().NamedExec(`INSERT INTO Teams
 		(Id, CreateAt, UpdateAt, DeleteAt, DisplayName, Name, Description, Email, Type, CompanyName, AllowedDomains,
-		InviteId, AllowOpenInvite, LastTeamIconUpdate, SchemeId, GroupConstrained, PolicyID)
+		InviteId, AllowOpenInvite, LastTeamIconUpdate, SchemeId, GroupConstrained)
 		VALUES
 		(:Id, :CreateAt, :UpdateAt, :DeleteAt, :DisplayName, :Name, :Description, :Email, :Type, :CompanyName, :AllowedDomains,
-		:InviteId, :AllowOpenInvite, :LastTeamIconUpdate, :SchemeId, :GroupConstrained, :PolicyID)`, team); err != nil {
+		:InviteId, :AllowOpenInvite, :LastTeamIconUpdate, :SchemeId, :GroupConstrained)`, team); err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "teams_name_key"}) {
 			return nil, store.NewErrInvalidInput("Team", "id", team.Id)
 		}
@@ -287,10 +341,10 @@ func (s SqlTeamStore) Update(team *model.Team) (*model.Team, error) {
 
 	res, err := s.GetMasterX().NamedExec(`UPDATE Teams
 			SET CreateAt=:CreateAt, UpdateAt=:UpdateAt, DeleteAt=:DeleteAt, DisplayName=:DisplayName, Name=:Name,
-				Description=:Description, Email=:Email, Type=:Type, CompanyName=:CompanyName, AllowedDomains,
+				Description=:Description, Email=:Email, Type=:Type, CompanyName=:CompanyName, AllowedDomains=:AllowedDomains,
 				InviteId=:InviteId, AllowOpenInvite=:AllowOpenInvite, LastTeamIconUpdate=:LastTeamIconUpdate,
-				SchemeId=:SchemeId, GroupConstrained=:GroupConstrained, PolicyID
-			WHERE Id:=Id`, team)
+				SchemeId=:SchemeId, GroupConstrained=:GroupConstrained
+			WHERE Id=:Id`, team)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update Team with id=%s", team.Id)
 	}
@@ -490,7 +544,7 @@ func (s SqlTeamStore) teamSearchQuery(opts *model.TeamSearch, countQuery bool) s
 // SearchAll returns from the database a list of teams that match the Name or DisplayName
 // passed as the term search parameter.
 func (s SqlTeamStore) SearchAll(opts *model.TeamSearch) ([]*model.Team, error) {
-	var teams []*model.Team
+	var teams TeamWithPolicyIdList
 
 	queryString, args, err := s.teamSearchQuery(opts, false).ToSql()
 	if err != nil {
@@ -501,12 +555,12 @@ func (s SqlTeamStore) SearchAll(opts *model.TeamSearch) ([]*model.Team, error) {
 		return nil, errors.Wrapf(err, "failed to find Teams with term=%s", opts.Term)
 	}
 
-	return teams, nil
+	return teams.ToModel(), nil
 }
 
 // SearchAllPaged returns a teams list and the total count of teams that matched the search.
 func (s SqlTeamStore) SearchAllPaged(opts *model.TeamSearch) ([]*model.Team, int64, error) {
-	var teams []*model.Team
+	var teams TeamWithPolicyIdList
 	var totalCount int64
 
 	queryString, args, err := s.teamSearchQuery(opts, false).ToSql()
@@ -526,7 +580,7 @@ func (s SqlTeamStore) SearchAllPaged(opts *model.TeamSearch) ([]*model.Team, int
 		return nil, 0, errors.Wrapf(err, "failed to count Teams with term=%s", opts.Term)
 	}
 
-	return teams, totalCount, nil
+	return teams.ToModel(), totalCount, nil
 }
 
 // SearchOpen returns from the database a list of public teams that match the Name or DisplayName
@@ -564,7 +618,7 @@ func (s SqlTeamStore) GetAll() ([]*model.Team, error) {
 
 // GetAllPage returns teams, up to a total limit passed as parameter and paginated by offset number passed as parameter.
 func (s SqlTeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, error) {
-	var teams []*model.Team
+	var teams TeamWithPolicyIdList
 
 	selectString := "Teams.*"
 	if opts != nil && opts.IncludePolicyID != nil && *opts.IncludePolicyID {
@@ -600,7 +654,7 @@ func (s SqlTeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) 
 		return nil, errors.Wrap(err, "failed to find Teams")
 	}
 
-	return teams, nil
+	return teams.ToModel(), nil
 }
 
 // GetTeamsByUserId returns from the database all teams that userId belongs to.
@@ -857,7 +911,7 @@ func (s SqlTeamStore) UpdateMultipleMembers(members []*model.TeamMember) ([]*mod
 
 		if _, err := s.GetMasterX().NamedExec(`UPDATE TeamMembers
 				SET Roles=:Roles, DeleteAt=:DeleteAt, SchemeGuest=:SchemeGuest,
-					SchemeUser=:SchemeUser, SchemeAdmin=:SchemeAdmin, ExplicitRoles=:ExplicitRoles
+					SchemeUser=:SchemeUser, SchemeAdmin=:SchemeAdmin
 				WHERE TeamId=:TeamId AND UserId=:UserId`, member); err != nil {
 			return nil, errors.Wrap(err, "failed to update TeamMember")
 		}
