@@ -74,7 +74,10 @@ func (watcher *Watcher) PollAndNotify() {
 	for _, job := range jobs {
 		worker := watcher.workers.Get(job.Type)
 		if worker != nil {
-			worker.JobChannel() <- *job
+			select {
+			case worker.JobChannel() <- *job:
+			default:
+			}
 		}
 	}
 }
