@@ -1630,3 +1630,11 @@ func (ss *SqlStore) jsonDataType() string {
 	}
 	return "json"
 }
+
+func (ss *SqlStore) toReserveCase(str string) string {
+	if ss.DriverName() == model.DatabaseDriverPostgres {
+		return fmt.Sprintf("%q", str)
+	}
+
+	return fmt.Sprintf("`%s`", strings.Title(str))
+}
