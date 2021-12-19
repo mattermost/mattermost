@@ -649,15 +649,9 @@ gen-serialized: ## Generates serialization methods for hot structs
 	$(GOBIN)/msgp -file=./model/team_member.go -tests=false -o=./model/team_member_serial_gen.go
 
 todo: ## Display TODO and FIXME items in the source code.
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime TODO
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime XXX
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime FIXME
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime "FIX ME"
+	@! ag --ignore={Makefile,vendor,runtime} '(TODO|XXX|FIXME|"FIX ME")[: ]+' 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime TODO enterprise/
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime XXX enterprise/
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime FIXME enterprise/
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime "FIX ME" enterprise/
+	@! ag --ignore={Makefile,vendor,runtime} '(TODO|XXX|FIXME|"FIX ME")[: ]+' enterprise/
 endif
 
 ## Help documentatin à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
