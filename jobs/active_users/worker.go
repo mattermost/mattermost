@@ -6,11 +6,11 @@ package active_users
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/jobs"
-	tjobs "github.com/mattermost/mattermost-server/v6/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 const (
@@ -18,33 +18,24 @@ const (
 )
 
 type Worker struct {
-	name      string
-	stop      chan bool
-	stopped   chan bool
-	jobs      chan model.Job
-	jobServer *jobs.JobServer
-	app       *app.App
+	name       string
+	stop       chan bool
+	stopped    chan bool
+	jobs       chan model.Job
+	jobServer  *jobs.JobServer
+	store      store.Store
+	getMetrics func() einterfaces.MetricsInterface
 }
 
-func init() {
-	app.RegisterJobsActiveUsersInterface(func(s *app.Server) tjobs.ActiveUsersJobInterface {
-		a := app.New(app.ServerConnector(s.Channels()))
-		return &ActiveUsersJobInterfaceImpl{a}
-	})
-}
-
-type ActiveUsersJobInterfaceImpl struct {
-	App *app.App
-}
-
-func (m *ActiveUsersJobInterfaceImpl) MakeWorker() model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, store store.Store, getMetrics func() einterfaces.MetricsInterface) model.Worker {
 	worker := Worker{
-		name:      JobName,
-		stop:      make(chan bool, 1),
-		stopped:   make(chan bool, 1),
-		jobs:      make(chan model.Job),
-		jobServer: m.App.Srv().Jobs,
-		app:       m.App,
+		name:       JobName,
+		stop:       make(chan bool, 1),
+		stopped:    make(chan bool, 1),
+		jobs:       make(chan model.Job),
+		jobServer:  jobServer,
+		store:      store,
+		getMetrics: getMetrics,
 	}
 	return &worker
 }
@@ -95,7 +86,7 @@ func (worker *Worker) DoJob(job *model.Job) {
 		return
 	}
 
-	count, err := worker.app.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: false})
+	count, err := worker.store.User().Count(model.UserCountOptions{IncludeDeleted: false})
 
 	if err != nil {
 		mlog.Error("Worker: Failed to get active user count", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
@@ -103,8 +94,8 @@ func (worker *Worker) DoJob(job *model.Job) {
 		return
 	}
 
-	if worker.app.Metrics() != nil {
-		worker.app.Metrics().ObserveEnabledUsers(count)
+	if worker.getMetrics() != nil {
+		worker.getMetrics().ObserveEnabledUsers(count)
 	}
 
 	mlog.Info("Worker: Job is complete", mlog.String("worker", worker.name), mlog.String("job_id", job.Id))
@@ -112,14 +103,14 @@ func (worker *Worker) DoJob(job *model.Job) {
 }
 
 func (worker *Worker) setJobSuccess(job *model.Job) {
-	if err := worker.app.Srv().Jobs.SetJobSuccess(job); err != nil {
+	if err := worker.jobServer.SetJobSuccess(job); err != nil {
 		mlog.Error("Worker: Failed to set success for job", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 		worker.setJobError(job, err)
 	}
 }
 
 func (worker *Worker) setJobError(job *model.Job, appError *model.AppError) {
-	if err := worker.app.Srv().Jobs.SetJobError(job, appError); err != nil {
+	if err := worker.jobServer.SetJobError(job, appError); err != nil {
 		mlog.Error("Worker: Failed to set job error", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 	}
 }

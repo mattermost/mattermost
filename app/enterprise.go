@@ -96,12 +96,6 @@ func RegisterJobsBleveIndexerInterface(f func(*Server) tjobs.IndexerJobInterface
 	jobsBleveIndexerInterface = f
 }
 
-var jobsActiveUsersInterface func(*Server) tjobs.ActiveUsersJobInterface
-
-func RegisterJobsActiveUsersInterface(f func(*Server) tjobs.ActiveUsersJobInterface) {
-	jobsActiveUsersInterface = f
-}
-
 var jobsResendInvitationEmailInterface func(*Server) ejobs.ResendInvitationEmailJobInterface
 
 // RegisterJobsResendInvitationEmailInterface is used to register or initialize the jobsResendInvitationEmailInterface

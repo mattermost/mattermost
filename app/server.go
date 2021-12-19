@@ -45,6 +45,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/jobs"
+	"github.com/mattermost/mattermost-server/v6/jobs/active_users"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/awsmeter"
 	"github.com/mattermost/mattermost-server/v6/services/cache"
@@ -1901,8 +1902,11 @@ func (s *Server) initJobs() {
 	workerBuilder = jobsExportProcessInterface(s)
 	s.Jobs.RegisterJobType(model.JobTypeExportProcess, workerBuilder.MakeWorker(), nil)
 
-	builder = jobsActiveUsersInterface(s)
-	s.Jobs.RegisterJobType(model.JobTypeActiveUsers, builder.MakeWorker(), builder.MakeScheduler())
+	s.Jobs.RegisterJobType(
+		model.JobTypeActiveUsers,
+		active_users.MakeWorker(s.Jobs, s.Store, func() einterfaces.MetricsInterface { return s.Metrics }),
+		active_users.MakeScheduler(s.Jobs),
+	)
 
 	builder = jobsCloudInterface(s)
 	s.Jobs.RegisterJobType(model.JobTypeCloud, builder.MakeWorker(), builder.MakeScheduler())

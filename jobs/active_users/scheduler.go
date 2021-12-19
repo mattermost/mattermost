@@ -12,9 +12,9 @@ const (
 	SchedFreqMinutes = 10
 )
 
-func (m *ActiveUsersJobInterfaceImpl) MakeScheduler() model.Scheduler {
+func MakeScheduler(jobServer *jobs.JobServer) model.Scheduler {
 	isEnabled := func(cfg *model.Config) bool {
 		return *cfg.MetricsSettings.Enable
 	}
-	return jobs.NewPeridicScheduler(m.App.Srv().Jobs, model.JobTypeActiveUsers, SchedFreqMinutes, isEnabled)
+	return jobs.NewPeridicScheduler(jobServer, model.JobTypeActiveUsers, SchedFreqMinutes, isEnabled)
 }
