@@ -46,6 +46,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/jobs/active_users"
+	"github.com/mattermost/mattermost-server/v6/jobs/expirynotify"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/awsmeter"
 	"github.com/mattermost/mattermost-server/v6/services/cache"
@@ -1884,8 +1885,11 @@ func (s *Server) initJobs() {
 	builder = jobsPluginsInterface(s)
 	s.Jobs.RegisterJobType(model.JobTypePlugins, builder.MakeWorker(), builder.MakeScheduler())
 
-	builder = jobsExpiryNotifyInterface(s)
-	s.Jobs.RegisterJobType(model.JobTypeExpiryNotify, builder.MakeWorker(), builder.MakeScheduler())
+	s.Jobs.RegisterJobType(
+		model.JobTypeExpiryNotify,
+		expirynotify.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())).NotifySessionsExpired),
+		expirynotify.MakeScheduler(s.Jobs),
+	)
 
 	builder = productNoticesJobInterface(s)
 	s.Jobs.RegisterJobType(model.JobTypeProductNotices, builder.MakeWorker(), builder.MakeScheduler())

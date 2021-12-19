@@ -12,9 +12,9 @@ const (
 	SchedFreqMinutes = 10
 )
 
-func (m *ExpiryNotifyJobInterfaceImpl) MakeScheduler() model.Scheduler {
+func MakeScheduler(jobServer *jobs.JobServer) model.Scheduler {
 	isEnabled := func(cfg *model.Config) bool {
 		return *cfg.ServiceSettings.ExtendSessionLengthWithActivity
 	}
-	return jobs.NewPeridicScheduler(m.App.Srv().Jobs, model.JobTypeExpiryNotify, SchedFreqMinutes, isEnabled)
+	return jobs.NewPeridicScheduler(jobServer, model.JobTypeExpiryNotify, SchedFreqMinutes, isEnabled)
 }
