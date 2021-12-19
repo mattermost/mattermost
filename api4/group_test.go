@@ -1120,6 +1120,7 @@ func TestGetGroups(t *testing.T) {
 	assert.Nil(t, appErr)
 
 	opts := model.GroupSearchOpts{
+		Source: model.GroupSourceLdap,
 		PageOpts: &model.PageOpts{
 			Page:    0,
 			PerPage: 60,
