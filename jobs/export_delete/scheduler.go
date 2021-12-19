@@ -23,14 +23,6 @@ func (i *ExportDeleteInterfaceImpl) MakeScheduler() model.Scheduler {
 	return &Scheduler{i.app}
 }
 
-func (scheduler *Scheduler) Name() string {
-	return jobName + "Scheduler"
-}
-
-func (scheduler *Scheduler) JobType() string {
-	return model.JobTypeExportDelete
-}
-
 func (scheduler *Scheduler) Enabled(cfg *model.Config) bool {
 	return *cfg.ExportSettings.Directory != "" && *cfg.ExportSettings.RetentionDays > 0
 }

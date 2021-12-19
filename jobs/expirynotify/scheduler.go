@@ -22,14 +22,6 @@ func (m *ExpiryNotifyJobInterfaceImpl) MakeScheduler() model.Scheduler {
 	return &Scheduler{m.App}
 }
 
-func (scheduler *Scheduler) Name() string {
-	return JobName + "Scheduler"
-}
-
-func (scheduler *Scheduler) JobType() string {
-	return model.JobTypeExpiryNotify
-}
-
 func (scheduler *Scheduler) Enabled(cfg *model.Config) bool {
 	// Only enabled when ExtendSessionLengthWithActivity is enabled.
 	return *cfg.ServiceSettings.ExtendSessionLengthWithActivity

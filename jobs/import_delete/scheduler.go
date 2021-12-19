@@ -23,14 +23,6 @@ func (i *ImportDeleteInterfaceImpl) MakeScheduler() model.Scheduler {
 	return &Scheduler{i.app}
 }
 
-func (scheduler *Scheduler) Name() string {
-	return jobName + "Scheduler"
-}
-
-func (scheduler *Scheduler) JobType() string {
-	return model.JobTypeImportDelete
-}
-
 func (scheduler *Scheduler) Enabled(cfg *model.Config) bool {
 	return *cfg.ImportSettings.Directory != "" && *cfg.ImportSettings.RetentionDays > 0
 }

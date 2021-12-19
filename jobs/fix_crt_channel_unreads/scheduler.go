@@ -19,14 +19,6 @@ func (i *FixCRTChannelUnreadsJobInterfaceImpl) MakeScheduler() model.Scheduler {
 	return &Scheduler{i.App}
 }
 
-func (s *Scheduler) Name() string {
-	return JobName + "Scheduler"
-}
-
-func (s *Scheduler) JobType() string {
-	return model.JobTypeFixChannelUnreadsForCRT
-}
-
 func (s *Scheduler) Enabled(cfg *model.Config) bool {
 	if _, err := s.App.Srv().Store.System().GetByName(model.MigrationKeyFixCRTChannelUnreads); err == nil {
 		return false
@@ -37,7 +29,7 @@ func (s *Scheduler) Enabled(cfg *model.Config) bool {
 func (s *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time {
 	nextTime := time.Now().Add(1 * time.Minute)
 
-	runningJobs, err := s.App.Srv().Store.Job().GetCountByStatusAndType(model.JobStatusInProgress, s.JobType())
+	runningJobs, err := s.App.Srv().Store.Job().GetCountByStatusAndType(model.JobStatusInProgress, model.JobTypeFixChannelUnreadsForCRT)
 	if err != nil {
 		mlog.Error("Failed to get running jobs", mlog.Err(err))
 		runningJobs = 1
@@ -51,7 +43,7 @@ func (s *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJo
 
 func (s *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
 	// if we have pending or running jobs then don't create a job
-	runningJobs, sErr := s.App.Srv().Store.Job().GetCountByStatusAndType(model.JobStatusInProgress, s.JobType())
+	runningJobs, sErr := s.App.Srv().Store.Job().GetCountByStatusAndType(model.JobStatusInProgress, model.JobTypeFixChannelUnreadsForCRT)
 	if sErr != nil {
 		mlog.Error("Failed to get running jobs", mlog.Err(sErr))
 	}

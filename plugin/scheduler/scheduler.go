@@ -21,14 +21,6 @@ func (m *PluginsJobInterfaceImpl) MakeScheduler() model.Scheduler {
 	return &Scheduler{m.App}
 }
 
-func (scheduler *Scheduler) Name() string {
-	return "PluginsScheduler"
-}
-
-func (scheduler *Scheduler) JobType() string {
-	return model.JobTypePlugins
-}
-
 func (scheduler *Scheduler) Enabled(cfg *model.Config) bool {
 	return true
 }
@@ -39,7 +31,7 @@ func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, p
 }
 
 func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
-	mlog.Debug("Scheduling Job", mlog.String("scheduler", scheduler.Name()))
+	mlog.Debug("Scheduling Job", mlog.String("scheduler", model.JobTypePlugins))
 
 	job, err := scheduler.App.Srv().Jobs.CreateJob(model.JobTypePlugins, nil)
 	if err != nil {

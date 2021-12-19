@@ -22,14 +22,6 @@ func (m *ActiveUsersJobInterfaceImpl) MakeScheduler() model.Scheduler {
 	return &Scheduler{m.App}
 }
 
-func (scheduler *Scheduler) Name() string {
-	return JobName + "Scheduler"
-}
-
-func (scheduler *Scheduler) JobType() string {
-	return model.JobTypeActiveUsers
-}
-
 func (scheduler *Scheduler) Enabled(cfg *model.Config) bool {
 	// Only enabled when Metrics are enabled.
 	return *cfg.MetricsSettings.Enable

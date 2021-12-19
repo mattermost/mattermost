@@ -19,14 +19,6 @@ func (rse *ResendInvitationEmailJobInterfaceImpl) MakeScheduler() model.Schedule
 	return &ResendInvitationEmailScheduler{rse.App}
 }
 
-func (s *ResendInvitationEmailScheduler) Name() string {
-	return ResendInvitationEmailJob + "Scheduler"
-}
-
-func (s *ResendInvitationEmailScheduler) JobType() string {
-	return model.JobTypeResendInvitationEmail
-}
-
 func (s *ResendInvitationEmailScheduler) Enabled(cfg *model.Config) bool {
 	return *cfg.ServiceSettings.EnableEmailInvitations
 }
