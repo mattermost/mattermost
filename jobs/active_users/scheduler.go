@@ -4,9 +4,7 @@
 package active_users
 
 import (
-	"time"
-
-	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
@@ -14,30 +12,9 @@ const (
 	SchedFreqMinutes = 10
 )
 
-type Scheduler struct {
-	App *app.App
-}
-
 func (m *ActiveUsersJobInterfaceImpl) MakeScheduler() model.Scheduler {
-	return &Scheduler{m.App}
-}
-
-func (scheduler *Scheduler) Enabled(cfg *model.Config) bool {
-	// Only enabled when Metrics are enabled.
-	return *cfg.MetricsSettings.Enable
-}
-
-func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time {
-	nextTime := time.Now().Add(SchedFreqMinutes * time.Minute)
-	return &nextTime
-}
-
-func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
-	data := map[string]string{}
-
-	job, err := scheduler.App.Srv().Jobs.CreateJob(model.JobTypeActiveUsers, data)
-	if err != nil {
-		return nil, err
+	isEnabled := func(cfg *model.Config) bool {
+		return *cfg.MetricsSettings.Enable
 	}
-	return job, nil
+	return jobs.NewPeridicScheduler(m.App.Srv().Jobs, model.JobTypeActiveUsers, SchedFreqMinutes, isEnabled)
 }

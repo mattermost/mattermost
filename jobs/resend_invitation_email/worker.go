@@ -28,7 +28,7 @@ type ResendInvitationEmailWorker struct {
 
 func (rse *ResendInvitationEmailJobInterfaceImpl) MakeWorker() model.Worker {
 	worker := ResendInvitationEmailWorker{
-		name:    ResendInvitationEmailJob,
+		name:    model.JobTypeResendInvitationEmail,
 		stop:    make(chan bool, 1),
 		stopped: make(chan bool, 1),
 		jobs:    make(chan model.Job),

@@ -1907,8 +1907,8 @@ func (s *Server) initJobs() {
 	builder = jobsCloudInterface(s)
 	s.Jobs.RegisterJobType(model.JobTypeCloud, builder.MakeWorker(), builder.MakeScheduler())
 
-	builder = jobsResendInvitationEmailInterface(s)
-	s.Jobs.RegisterJobType(model.JobTypeResendInvitationEmail, builder.MakeWorker(), builder.MakeScheduler())
+	workerBuilder = jobsResendInvitationEmailInterface(s)
+	s.Jobs.RegisterJobType(model.JobTypeResendInvitationEmail, builder.MakeWorker(), nil)
 
 	workerBuilder = jobsExtractContentInterface(s)
 	s.Jobs.RegisterJobType(model.JobTypeExtractContent, workerBuilder.MakeWorker(), nil)

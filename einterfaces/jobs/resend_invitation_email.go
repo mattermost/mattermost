@@ -7,5 +7,4 @@ import "github.com/mattermost/mattermost-server/v6/model"
 // ResendInvitationEmailJobInterface defines the interface for the job to resend invitation emails
 type ResendInvitationEmailJobInterface interface {
 	MakeWorker() model.Worker
-	MakeScheduler() model.Scheduler
 }

@@ -4,40 +4,17 @@
 package export_delete
 
 import (
-	"time"
-
-	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 const (
-	jobName        = "ExportDelete"
-	schedFrequency = 24 * time.Hour
+	SchedFreqMinutes = 24 * 60
 )
 
-type Scheduler struct {
-	app *app.App
-}
-
-func (i *ExportDeleteInterfaceImpl) MakeScheduler() model.Scheduler {
-	return &Scheduler{i.app}
-}
-
-func (scheduler *Scheduler) Enabled(cfg *model.Config) bool {
-	return *cfg.ExportSettings.Directory != "" && *cfg.ExportSettings.RetentionDays > 0
-}
-
-func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time {
-	nextTime := time.Now().Add(schedFrequency)
-	return &nextTime
-}
-
-func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
-	data := map[string]string{}
-
-	job, err := scheduler.app.Srv().Jobs.CreateJob(model.JobTypeExportDelete, data)
-	if err != nil {
-		return nil, err
+func (m *ExportDeleteInterfaceImpl) MakeScheduler() model.Scheduler {
+	isEnabled := func(cfg *model.Config) bool {
+		return *cfg.ExportSettings.Directory != "" && *cfg.ExportSettings.RetentionDays > 0
 	}
-	return job, nil
+	return jobs.NewPeridicScheduler(m.app.Srv().Jobs, model.JobTypeExportDelete, SchedFreqMinutes, isEnabled)
 }
