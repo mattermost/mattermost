@@ -7,41 +7,37 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/jobs"
-	tjobs "github.com/mattermost/mattermost-server/v6/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/configservice"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
-func init() {
-	app.RegisterJobsExportDeleteInterface(func(s *app.Server) tjobs.ExportDeleteInterface {
-		a := app.New(app.ServerConnector(s.Channels()))
-		return &ExportDeleteInterfaceImpl{a}
-	})
-}
-
-type ExportDeleteInterfaceImpl struct {
-	app *app.App
+type AppIface interface {
+	ListDirectory(path string) ([]string, *model.AppError)
+	FileModTime(path string) (time.Time, *model.AppError)
+	RemoveFile(path string) *model.AppError
 }
 
 type ExportDeleteWorker struct {
-	name        string
-	stopChan    chan struct{}
-	stoppedChan chan struct{}
-	jobsChan    chan model.Job
-	jobServer   *jobs.JobServer
-	app         *app.App
+	name          string
+	stopChan      chan struct{}
+	stoppedChan   chan struct{}
+	jobsChan      chan model.Job
+	jobServer     *jobs.JobServer
+	configService configservice.ConfigService
+	app           AppIface
 }
 
-func (i *ExportDeleteInterfaceImpl) MakeWorker() model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, configService configservice.ConfigService, app AppIface) model.Worker {
 	return &ExportDeleteWorker{
-		name:        "ExportDelete",
-		stopChan:    make(chan struct{}),
-		stoppedChan: make(chan struct{}),
-		jobsChan:    make(chan model.Job),
-		jobServer:   i.app.Srv().Jobs,
-		app:         i.app,
+		name:          "ExportDelete",
+		stopChan:      make(chan struct{}),
+		stoppedChan:   make(chan struct{}),
+		jobsChan:      make(chan model.Job),
+		jobServer:     jobServer,
+		configService: configService,
+		app:           app,
 	}
 }
 
@@ -90,8 +86,8 @@ func (w *ExportDeleteWorker) doJob(job *model.Job) {
 		return
 	}
 
-	exportPath := *w.app.Config().ExportSettings.Directory
-	retentionTime := time.Duration(*w.app.Config().ExportSettings.RetentionDays) * 24 * time.Hour
+	exportPath := *w.configService.Config().ExportSettings.Directory
+	retentionTime := time.Duration(*w.configService.Config().ExportSettings.RetentionDays) * 24 * time.Hour
 	exports, appErr := w.app.ListDirectory(exportPath)
 	if appErr != nil {
 		w.setJobError(job, appErr)
@@ -129,14 +125,14 @@ func (w *ExportDeleteWorker) doJob(job *model.Job) {
 }
 
 func (w *ExportDeleteWorker) setJobSuccess(job *model.Job) {
-	if err := w.app.Srv().Jobs.SetJobSuccess(job); err != nil {
+	if err := w.jobServer.SetJobSuccess(job); err != nil {
 		mlog.Error("Worker: Failed to set success for job", mlog.String("worker", w.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 		w.setJobError(job, err)
 	}
 }
 
 func (w *ExportDeleteWorker) setJobError(job *model.Job, appError *model.AppError) {
-	if err := w.app.Srv().Jobs.SetJobError(job, appError); err != nil {
+	if err := w.jobServer.SetJobError(job, appError); err != nil {
 		mlog.Error("Worker: Failed to set job error", mlog.String("worker", w.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 	}
 }

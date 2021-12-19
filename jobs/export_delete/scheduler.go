@@ -12,9 +12,9 @@ const (
 	SchedFreqMinutes = 24 * 60
 )
 
-func (m *ExportDeleteInterfaceImpl) MakeScheduler() model.Scheduler {
+func MakeScheduler(jobServer *jobs.JobServer) model.Scheduler {
 	isEnabled := func(cfg *model.Config) bool {
 		return *cfg.ExportSettings.Directory != "" && *cfg.ExportSettings.RetentionDays > 0
 	}
-	return jobs.NewPeridicScheduler(m.app.Srv().Jobs, model.JobTypeExportDelete, SchedFreqMinutes, isEnabled)
+	return jobs.NewPeridicScheduler(jobServer, model.JobTypeExportDelete, SchedFreqMinutes, isEnabled)
 }

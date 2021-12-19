@@ -47,6 +47,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/jobs/active_users"
 	"github.com/mattermost/mattermost-server/v6/jobs/expirynotify"
+	"github.com/mattermost/mattermost-server/v6/jobs/export_delete"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/awsmeter"
 	"github.com/mattermost/mattermost-server/v6/services/cache"
@@ -1900,8 +1901,11 @@ func (s *Server) initJobs() {
 	builder = jobsImportDeleteInterface(s)
 	s.Jobs.RegisterJobType(model.JobTypeImportDelete, builder.MakeWorker(), builder.MakeScheduler())
 
-	builder = jobsExportDeleteInterface(s)
-	s.Jobs.RegisterJobType(model.JobTypeExportDelete, builder.MakeWorker(), builder.MakeScheduler())
+	s.Jobs.RegisterJobType(
+		model.JobTypeExportDelete,
+		export_delete.MakeWorker(s.Jobs, s, New(ServerConnector(s.Channels()))),
+		export_delete.MakeScheduler(s.Jobs),
+	)
 
 	workerBuilder = jobsExportProcessInterface(s)
 	s.Jobs.RegisterJobType(model.JobTypeExportProcess, workerBuilder.MakeWorker(), nil)
