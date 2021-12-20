@@ -121,12 +121,6 @@ func RegisterJobsImportDeleteInterface(f func(*Server) tjobs.ImportDeleteInterfa
 	jobsImportDeleteInterface = f
 }
 
-var jobsExportProcessInterface func(*Server) tjobs.ExportProcessInterface
-
-func RegisterJobsExportProcessInterface(f func(*Server) tjobs.ExportProcessInterface) {
-	jobsExportProcessInterface = f
-}
-
 var jobsExtractContentInterface func(*Server) tjobs.ExtractContentInterface
 
 func RegisterJobsExtractContentInterface(f func(*Server) tjobs.ExtractContentInterface) {

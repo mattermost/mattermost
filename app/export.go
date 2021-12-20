@@ -20,11 +20,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
-type BulkExportOpts struct {
-	IncludeAttachments bool
-	CreateArchive      bool
-}
-
 // ExportDataDir is the name of the directory were to store additional data
 // included with the export (e.g. file attachments).
 const ExportDataDir = "data"
@@ -64,7 +59,7 @@ var exportablePreferences = map[ComparablePreference]string{{
 }: "EmailInterval",
 }
 
-func (a *App) BulkExport(writer io.Writer, outPath string, opts BulkExportOpts) *model.AppError {
+func (a *App) BulkExport(writer io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError {
 	var zipWr *zip.Writer
 	if opts.CreateArchive {
 		var err error

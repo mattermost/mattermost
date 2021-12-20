@@ -21,16 +21,6 @@ type AppIface interface {
 	RemoveFile(path string) *model.AppError
 }
 
-type ExportDeleteWorker struct {
-	name          string
-	stopChan      chan struct{}
-	stoppedChan   chan struct{}
-	jobsChan      chan model.Job
-	jobServer     *jobs.JobServer
-	configService configservice.ConfigService
-	app           AppIface
-}
-
 func MakeWorker(jobServer *jobs.JobServer, configService configservice.ConfigService, app AppIface) model.Worker {
 	isEnabled := func(cfg *model.Config) bool {
 		return *cfg.ExportSettings.Directory != "" && *cfg.ExportSettings.RetentionDays > 0
