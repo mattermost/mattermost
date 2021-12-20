@@ -54,6 +54,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/jobs/import_delete"
 	"github.com/mattermost/mattermost-server/v6/jobs/import_process"
 	"github.com/mattermost/mattermost-server/v6/jobs/product_notices"
+	"github.com/mattermost/mattermost-server/v6/jobs/resend_invitation_email"
 	"github.com/mattermost/mattermost-server/v6/migrations"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/scheduler"
@@ -1949,8 +1950,11 @@ func (s *Server) initJobs() {
 	builder = jobsCloudInterface(s)
 	s.Jobs.RegisterJobType(model.JobTypeCloud, builder.MakeWorker(), builder.MakeScheduler())
 
-	workerBuilder = jobsResendInvitationEmailInterface(s)
-	s.Jobs.RegisterJobType(model.JobTypeResendInvitationEmail, builder.MakeWorker(), nil)
+	s.Jobs.RegisterJobType(
+		model.JobTypeResendInvitationEmail,
+		resend_invitation_email.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store, s.telemetryService),
+		nil,
+	)
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeExtractContent,

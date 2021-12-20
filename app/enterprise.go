@@ -71,13 +71,6 @@ func RegisterJobsLdapSyncInterface(f func(*Server) ejobs.LdapSyncInterface) {
 	jobsLdapSyncInterface = f
 }
 
-var jobsResendInvitationEmailInterface func(*Server) ejobs.ResendInvitationEmailJobInterface
-
-// RegisterJobsResendInvitationEmailInterface is used to register or initialize the jobsResendInvitationEmailInterface
-func RegisterJobsResendInvitationEmailInterface(f func(*Server) ejobs.ResendInvitationEmailJobInterface) {
-	jobsResendInvitationEmailInterface = f
-}
-
 var jobsCloudInterface func(*Server) ejobs.CloudJobInterface
 
 func RegisterJobsCloudInterface(f func(*Server) ejobs.CloudJobInterface) {
