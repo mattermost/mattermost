@@ -13,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type PluginCommand struct {
@@ -164,5 +165,12 @@ func (a *App) tryExecutePluginCommand(c *request.Context, args *model.CommandArg
 		errMessage := fmt.Sprintf("err= Plugin %s crashed due to /%s command", matched.PluginId, trigger)
 		return matched.Command, nil, model.NewAppError("ExecutePluginCommand", "model.plugin_command_crash.error.app_error", map[string]interface{}{"Command": trigger, "PluginId": matched.PluginId}, errMessage, http.StatusInternalServerError)
 	}
+	// This is a response from the plugin, which may set an incorrect status code;
+	// e.g setting a status code of 0 will crash the server. So we always bucket everything under 500.
+	if appErr != nil && (appErr.StatusCode < 100 || appErr.StatusCode > 999) {
+		mlog.Warn("Invalid status code returned from plugin. Converting to internal server error.", mlog.String("plugin_id", matched.PluginId), mlog.Int("status_code", appErr.StatusCode))
+		appErr.StatusCode = http.StatusInternalServerError
+	}
+
 	return matched.Command, response, appErr
 }

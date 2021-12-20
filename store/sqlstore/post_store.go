@@ -702,11 +702,16 @@ func (s *SqlPostStore) Delete(postID string, time int64, deleteByID string) erro
 				Props = jsonb_set(Props, $2, $3)
 			WHERE Id = $4 OR RootId = $4`, time, jsonKeyPath(model.PostPropsDeleteBy), jsonStringVal(deleteByID), postID)
 	} else {
+		// We use ORDER BY clause for MySQL
+		// to trigger filesort optimization in the index_merge.
+		// Without it, MySQL does a temporary sort.
+		// See: https://dev.mysql.com/doc/refman/8.0/en/order-by-optimization.html#order-by-filesort.
 		_, err = transaction.Exec(`UPDATE Posts
 			SET DeleteAt = ?,
 			UpdateAt = ?,
 			Props = JSON_SET(Props, ?, ?)
-			Where Id = ? OR RootId = ?`, time, time, "$."+model.PostPropsDeleteBy, deleteByID, postID, postID)
+			Where Id = ? OR RootId = ?
+			ORDER BY Id`, time, time, "$."+model.PostPropsDeleteBy, deleteByID, postID, postID)
 	}
 
 	if err != nil {
