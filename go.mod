@@ -16,7 +16,7 @@ require (
 	github.com/aws/aws-sdk-go v1.42.11
 	github.com/bits-and-blooms/bitset v1.2.1 // indirect
 	github.com/blang/semver v3.5.1+incompatible
-	github.com/blevesearch/bleve/v2 v2.2.2
+	github.com/blevesearch/bleve/v2 v2.3.0
 	github.com/cespare/xxhash/v2 v2.1.2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
@@ -119,7 +119,7 @@ require (
 	golang.org/x/mod v0.5.1 // indirect
 	golang.org/x/net v0.0.0-20211123203042-d83791d6bcd9
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	golang.org/x/sys v0.0.0-20211123173158-ef496fb156ab // indirect
+	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
 	golang.org/x/text v0.3.7
 	golang.org/x/tools v0.1.7
 	google.golang.org/genproto v0.0.0-20211118181313-81c1377c94b1 // indirect
