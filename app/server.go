@@ -52,6 +52,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/jobs/extract_content"
 	"github.com/mattermost/mattermost-server/v6/jobs/import_delete"
 	"github.com/mattermost/mattermost-server/v6/jobs/import_process"
+	"github.com/mattermost/mattermost-server/v6/jobs/product_notices"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/awsmeter"
 	"github.com/mattermost/mattermost-server/v6/services/cache"
@@ -1896,8 +1897,11 @@ func (s *Server) initJobs() {
 		expirynotify.MakeScheduler(s.Jobs),
 	)
 
-	builder = productNoticesJobInterface(s)
-	s.Jobs.RegisterJobType(model.JobTypeProductNotices, builder.MakeWorker(), builder.MakeScheduler())
+	s.Jobs.RegisterJobType(
+		model.JobTypeProductNotices,
+		product_notices.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
+		product_notices.MakeScheduler(s.Jobs),
+	)
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeImportProcess,

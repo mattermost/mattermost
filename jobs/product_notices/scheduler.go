@@ -19,9 +19,9 @@ func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, p
 	return &nextTime
 }
 
-func (m *ProductNoticesJobInterfaceImpl) MakeScheduler() model.Scheduler {
+func MakeScheduler(jobServer *jobs.JobServer) model.Scheduler {
 	isEnabled := func(cfg *model.Config) bool {
 		return *cfg.AnnouncementSettings.AdminNoticesEnabled || *cfg.AnnouncementSettings.UserNoticesEnabled
 	}
-	return &Scheduler{PeriodicScheduler: jobs.NewPeridicScheduler(m.App.Srv().Jobs, model.JobTypeProductNotices, 0, isEnabled)}
+	return &Scheduler{PeriodicScheduler: jobs.NewPeridicScheduler(jobServer, model.JobTypeProductNotices, 0, isEnabled)}
 }
