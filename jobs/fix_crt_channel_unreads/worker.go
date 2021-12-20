@@ -8,11 +8,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/jobs"
-	tjobs "github.com/mattermost/mattermost-server/v6/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 const (
@@ -25,29 +24,17 @@ type FixCRTChannelUnreadsWorker struct {
 	stoppedChan chan struct{}
 	jobsChan    chan model.Job
 	jobServer   *jobs.JobServer
-	app         *app.App
+	store       store.Store
 }
 
-type FixCRTChannelUnreadsJobInterfaceImpl struct {
-	App *app.App
-}
-
-func init() {
-	app.RegisterFixCRTChannelUnreadsJobInterface(func(s *app.Server) tjobs.FixCRTChannelUnreadsJobInterface {
-		a := app.New(app.ServerConnector(s.Channels()))
-		return &FixCRTChannelUnreadsJobInterfaceImpl{a}
-	})
-}
-
-func (i *FixCRTChannelUnreadsJobInterfaceImpl) MakeWorker() model.Worker {
-
+func MakeWorker(jobServer *jobs.JobServer, store store.Store) model.Worker {
 	return &FixCRTChannelUnreadsWorker{
 		name:        JobName,
 		stopChan:    make(chan struct{}),
 		stoppedChan: make(chan struct{}),
 		jobsChan:    make(chan model.Job),
-		jobServer:   i.App.Srv().Jobs,
-		app:         i.App,
+		jobServer:   jobServer,
+		store:       store,
 	}
 }
 
@@ -56,7 +43,7 @@ func (w *FixCRTChannelUnreadsWorker) JobChannel() chan<- model.Job {
 }
 
 func (w *FixCRTChannelUnreadsWorker) IsEnabled(cfg *model.Config) bool {
-	if _, err := w.app.Srv().Store.System().GetByName(model.MigrationKeyFixCRTChannelUnreads); err == nil {
+	if _, err := w.store.System().GetByName(model.MigrationKeyFixCRTChannelUnreads); err == nil {
 		return false
 	}
 	return true
@@ -67,7 +54,7 @@ func (w *FixCRTChannelUnreadsWorker) Run() {
 
 	// kill all in-progress jobs in DB. This can happen if server
 	// was shut down incorrectly
-	olderJobs, err := w.app.Srv().Store.Job().GetAllByStatus(model.JobStatusInProgress)
+	olderJobs, err := w.store.Job().GetAllByStatus(model.JobStatusInProgress)
 	if err == nil {
 		for _, j := range olderJobs {
 			if j.Type == model.JobTypeFixChannelUnreadsForCRT {
@@ -115,7 +102,7 @@ func (w *FixCRTChannelUnreadsWorker) doJob(job *model.Job) {
 	} else if !claimed {
 		return
 	}
-	if _, err := w.app.Srv().Store.System().GetByName(model.MigrationKeyFixCRTChannelUnreads); err == nil {
+	if _, err := w.store.System().GetByName(model.MigrationKeyFixCRTChannelUnreads); err == nil {
 		mlog.Info("Worker: migration already done", mlog.String("worker", w.name), mlog.String("job_id", job.Id))
 		w.setJobSuccess(job)
 		return
@@ -140,7 +127,7 @@ func (w *FixCRTChannelUnreadsWorker) doJob(job *model.Job) {
 		if shouldStop {
 			break
 		}
-		cms, sErr := w.app.Srv().Store.Channel().GetCRTUnfixedChannelMembershipsAfter(channelID, userID, 100)
+		cms, sErr := w.store.Channel().GetCRTUnfixedChannelMembershipsAfter(channelID, userID, 100)
 		if sErr != nil {
 			if sErr == sql.ErrNoRows {
 				migrationDone = true
@@ -169,7 +156,7 @@ func (w *FixCRTChannelUnreadsWorker) doJob(job *model.Job) {
 		prevErr = false
 		cmToFix := make(map[string][]string)
 		for _, cm := range cms {
-			postTypes, err := w.app.Srv().Store.Post().GetUniquePostTypesSince(cm.ChannelId, cm.LastViewedAt)
+			postTypes, err := w.store.Post().GetUniquePostTypesSince(cm.ChannelId, cm.LastViewedAt)
 			if err != nil {
 				mlog.Warn("Failed to get unique unread posts",
 					mlog.String("worker", w.name),
@@ -189,7 +176,7 @@ func (w *FixCRTChannelUnreadsWorker) doJob(job *model.Job) {
 		}
 		checkedCM += len(cms)
 		for uID, cIDs := range cmToFix {
-			_, err := w.app.Srv().Store.Channel().UpdateLastViewedAt(cIDs, uID, false)
+			_, err := w.store.Channel().UpdateLastViewedAt(cIDs, uID, false)
 			if err != nil {
 				mlog.Warn("Worker experienced an error while trying to mark channel as read",
 					mlog.String("worker", w.name),
@@ -215,7 +202,7 @@ func (w *FixCRTChannelUnreadsWorker) doJob(job *model.Job) {
 			Value: "true",
 		}
 
-		if err := w.app.Srv().Store.System().Save(&system); err != nil {
+		if err := w.store.System().Save(&system); err != nil {
 			mlog.Critical("Failed to mark crt channel unreads migration job as completed.", mlog.Err(err))
 		}
 	}
@@ -229,20 +216,20 @@ func (w *FixCRTChannelUnreadsWorker) doJob(job *model.Job) {
 }
 
 func (w *FixCRTChannelUnreadsWorker) setJobSuccess(job *model.Job) {
-	if err := w.app.Srv().Jobs.SetJobSuccess(job); err != nil {
+	if err := w.jobServer.SetJobSuccess(job); err != nil {
 		mlog.Error("Worker: Failed to set success for job", mlog.String("worker", w.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 		w.setJobError(job, err)
 	}
 }
 
 func (w *FixCRTChannelUnreadsWorker) setJobError(job *model.Job, appError *model.AppError) {
-	if err := w.app.Srv().Jobs.SetJobError(job, appError); err != nil {
+	if err := w.jobServer.SetJobError(job, appError); err != nil {
 		mlog.Error("Worker: Failed to set job error", mlog.String("worker", w.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 	}
 }
 
 func (w *FixCRTChannelUnreadsWorker) updateData(job *model.Job) {
-	if err := w.app.Srv().Jobs.UpdateInProgressJobData(job); err != nil {
+	if err := w.jobServer.UpdateInProgressJobData(job); err != nil {
 		mlog.Error("Worker: Failed to update job data", mlog.String("worker", w.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 	}
 }
@@ -254,7 +241,7 @@ func (w *FixCRTChannelUnreadsWorker) updateProgress(job *model.Job, channelID, u
 }
 
 func (w *FixCRTChannelUnreadsWorker) getProgressFromPreviousJobs(job *model.Job) (string, string) {
-	olderJob, err := w.app.Srv().Store.Job().GetNewestJobByStatusesAndType(
+	olderJob, err := w.store.Job().GetNewestJobByStatusesAndType(
 		[]string{model.JobStatusCanceled, model.JobStatusCancelRequested, model.JobStatusSuccess, model.JobStatusError},
 		job.Type,
 	)

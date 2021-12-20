@@ -6,21 +6,23 @@ package fix_crt_channel_unreads
 import (
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type Scheduler struct {
-	App *app.App
+	jobServer *jobs.JobServer
+	store     store.Store
 }
 
-func (i *FixCRTChannelUnreadsJobInterfaceImpl) MakeScheduler() model.Scheduler {
-	return &Scheduler{i.App}
+func MakeScheduler(jobServer *jobs.JobServer, store store.Store) model.Scheduler {
+	return &Scheduler{jobServer, store}
 }
 
 func (s *Scheduler) Enabled(cfg *model.Config) bool {
-	if _, err := s.App.Srv().Store.System().GetByName(model.MigrationKeyFixCRTChannelUnreads); err == nil {
+	if _, err := s.store.System().GetByName(model.MigrationKeyFixCRTChannelUnreads); err == nil {
 		return false
 	}
 	return true
@@ -29,7 +31,7 @@ func (s *Scheduler) Enabled(cfg *model.Config) bool {
 func (s *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time {
 	nextTime := time.Now().Add(1 * time.Minute)
 
-	runningJobs, err := s.App.Srv().Store.Job().GetCountByStatusAndType(model.JobStatusInProgress, model.JobTypeFixChannelUnreadsForCRT)
+	runningJobs, err := s.store.Job().GetCountByStatusAndType(model.JobStatusInProgress, model.JobTypeFixChannelUnreadsForCRT)
 	if err != nil {
 		mlog.Error("Failed to get running jobs", mlog.Err(err))
 		runningJobs = 1
@@ -43,7 +45,7 @@ func (s *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJo
 
 func (s *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
 	// if we have pending or running jobs then don't create a job
-	runningJobs, sErr := s.App.Srv().Store.Job().GetCountByStatusAndType(model.JobStatusInProgress, model.JobTypeFixChannelUnreadsForCRT)
+	runningJobs, sErr := s.store.Job().GetCountByStatusAndType(model.JobStatusInProgress, model.JobTypeFixChannelUnreadsForCRT)
 	if sErr != nil {
 		mlog.Error("Failed to get running jobs", mlog.Err(sErr))
 	}
@@ -51,7 +53,7 @@ func (s *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, lastSuccess
 		return nil, nil
 	}
 
-	job, err := s.App.Srv().Jobs.CreateJob(model.JobTypeFixChannelUnreadsForCRT, map[string]string{})
+	job, err := s.jobServer.CreateJob(model.JobTypeFixChannelUnreadsForCRT, map[string]string{})
 	if err != nil {
 		return nil, err
 	}

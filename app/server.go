@@ -50,6 +50,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/jobs/export_delete"
 	"github.com/mattermost/mattermost-server/v6/jobs/export_process"
 	"github.com/mattermost/mattermost-server/v6/jobs/extract_content"
+	"github.com/mattermost/mattermost-server/v6/jobs/fix_crt_channel_unreads"
 	"github.com/mattermost/mattermost-server/v6/jobs/import_delete"
 	"github.com/mattermost/mattermost-server/v6/jobs/import_process"
 	"github.com/mattermost/mattermost-server/v6/jobs/product_notices"
@@ -1945,8 +1946,11 @@ func (s *Server) initJobs() {
 		nil,
 	)
 
-	builder = fixCRTChannelUnreadsJobInterface(s)
-	s.Jobs.RegisterJobType(model.JobTypeFixChannelUnreadsForCRT, builder.MakeWorker(), builder.MakeScheduler())
+	s.Jobs.RegisterJobType(
+		model.JobTypeFixChannelUnreadsForCRT,
+		fix_crt_channel_unreads.MakeWorker(s.Jobs, s.Store),
+		fix_crt_channel_unreads.MakeScheduler(s.Jobs, s.Store),
+	)
 }
 
 func (s *Server) TelemetryId() string {
