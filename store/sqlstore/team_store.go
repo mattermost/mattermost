@@ -905,6 +905,8 @@ func (s SqlTeamStore) UpdateMultipleMembers(members []*model.TeamMember) ([]*mod
 	for _, member := range members {
 		member.PreUpdate()
 
+		newTeamMember := NewTeamMemberFromModel(member)
+
 		if err := member.IsValid(); err != nil {
 			return nil, err
 		}
@@ -912,7 +914,7 @@ func (s SqlTeamStore) UpdateMultipleMembers(members []*model.TeamMember) ([]*mod
 		if _, err := s.GetMasterX().NamedExec(`UPDATE TeamMembers
 				SET Roles=:Roles, DeleteAt=:DeleteAt, SchemeGuest=:SchemeGuest,
 					SchemeUser=:SchemeUser, SchemeAdmin=:SchemeAdmin
-				WHERE TeamId=:TeamId AND UserId=:UserId`, member); err != nil {
+				WHERE TeamId=:TeamId AND UserId=:UserId`, newTeamMember); err != nil {
 			return nil, errors.Wrap(err, "failed to update TeamMember")
 		}
 		teams = append(teams, member.TeamId)
