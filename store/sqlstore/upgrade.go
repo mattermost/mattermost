@@ -1428,6 +1428,8 @@ func upgradeDatabaseToVersion630(sqlStore *SqlStore) {
 
 	sqlStore.AlterColumnTypeIfExists("PluginKeyValueStore", "PKey", "VARCHAR(150)", "VARCHAR(150)")
 
+	sqlStore.CreateColumnIfNotExists("OAuthApps", "MattermostAppID", "VARCHAR(32)", "VARCHAR(32)", "")
+
 	// 	saveSchemaVersion(sqlStore, Version630)
 	// }
 }
