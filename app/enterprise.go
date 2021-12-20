@@ -109,12 +109,6 @@ func RegisterJobsCloudInterface(f func(*Server) ejobs.CloudJobInterface) {
 	jobsCloudInterface = f
 }
 
-var jobsImportProcessInterface func(*Server) tjobs.ImportProcessInterface
-
-func RegisterJobsImportProcessInterface(f func(*Server) tjobs.ImportProcessInterface) {
-	jobsImportProcessInterface = f
-}
-
 var productNoticesJobInterface func(*Server) tjobs.ProductNoticesJobInterface
 
 func RegisterProductNoticesJobInterface(f func(*Server) tjobs.ProductNoticesJobInterface) {

@@ -51,6 +51,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/jobs/export_process"
 	"github.com/mattermost/mattermost-server/v6/jobs/extract_content"
 	"github.com/mattermost/mattermost-server/v6/jobs/import_delete"
+	"github.com/mattermost/mattermost-server/v6/jobs/import_process"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/awsmeter"
 	"github.com/mattermost/mattermost-server/v6/services/cache"
@@ -1898,8 +1899,11 @@ func (s *Server) initJobs() {
 	builder = productNoticesJobInterface(s)
 	s.Jobs.RegisterJobType(model.JobTypeProductNotices, builder.MakeWorker(), builder.MakeScheduler())
 
-	workerBuilder = jobsImportProcessInterface(s)
-	s.Jobs.RegisterJobType(model.JobTypeImportProcess, workerBuilder.MakeWorker(), nil)
+	s.Jobs.RegisterJobType(
+		model.JobTypeImportProcess,
+		import_process.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
+		nil,
+	)
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeImportDelete,
@@ -1909,7 +1913,7 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeExportDelete,
-		export_delete.MakeWorker(s.Jobs, s, New(ServerConnector(s.Channels()))),
+		export_delete.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
 		export_delete.MakeScheduler(s.Jobs),
 	)
 

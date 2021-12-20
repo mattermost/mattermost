@@ -16,18 +16,19 @@ import (
 const jobName = "ExportDelete"
 
 type AppIface interface {
+	configservice.ConfigService
 	ListDirectory(path string) ([]string, *model.AppError)
 	FileModTime(path string) (time.Time, *model.AppError)
 	RemoveFile(path string) *model.AppError
 }
 
-func MakeWorker(jobServer *jobs.JobServer, configService configservice.ConfigService, app AppIface) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 	isEnabled := func(cfg *model.Config) bool {
 		return *cfg.ExportSettings.Directory != "" && *cfg.ExportSettings.RetentionDays > 0
 	}
 	execute := func(job *model.Job) error {
-		exportPath := *configService.Config().ExportSettings.Directory
-		retentionTime := time.Duration(*configService.Config().ExportSettings.RetentionDays) * 24 * time.Hour
+		exportPath := *app.Config().ExportSettings.Directory
+		retentionTime := time.Duration(*app.Config().ExportSettings.RetentionDays) * 24 * time.Hour
 		exports, appErr := app.ListDirectory(exportPath)
 		if appErr != nil {
 			return appErr
