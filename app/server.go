@@ -49,6 +49,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/jobs/expirynotify"
 	"github.com/mattermost/mattermost-server/v6/jobs/export_delete"
 	"github.com/mattermost/mattermost-server/v6/jobs/export_process"
+	"github.com/mattermost/mattermost-server/v6/jobs/extract_content"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/awsmeter"
 	"github.com/mattermost/mattermost-server/v6/services/cache"
@@ -1909,7 +1910,7 @@ func (s *Server) initJobs() {
 	)
 
 	s.Jobs.RegisterJobType(
-		model.JobTypeActiveUsers,
+		model.JobTypeExportProcess,
 		export_process.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
 		nil,
 	)
@@ -1926,8 +1927,11 @@ func (s *Server) initJobs() {
 	workerBuilder = jobsResendInvitationEmailInterface(s)
 	s.Jobs.RegisterJobType(model.JobTypeResendInvitationEmail, builder.MakeWorker(), nil)
 
-	workerBuilder = jobsExtractContentInterface(s)
-	s.Jobs.RegisterJobType(model.JobTypeExtractContent, workerBuilder.MakeWorker(), nil)
+	s.Jobs.RegisterJobType(
+		model.JobTypeExtractContent,
+		extract_content.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store),
+		nil,
+	)
 
 	builder = fixCRTChannelUnreadsJobInterface(s)
 	s.Jobs.RegisterJobType(model.JobTypeFixChannelUnreadsForCRT, builder.MakeWorker(), builder.MakeScheduler())
