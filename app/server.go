@@ -56,6 +56,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/jobs/product_notices"
 	"github.com/mattermost/mattermost-server/v6/migrations"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin/scheduler"
 	"github.com/mattermost/mattermost-server/v6/services/awsmeter"
 	"github.com/mattermost/mattermost-server/v6/services/cache"
 	"github.com/mattermost/mattermost-server/v6/services/httpservice"
@@ -1893,8 +1894,11 @@ func (s *Server) initJobs() {
 	builder = jobsLdapSyncInterface(s)
 	s.Jobs.RegisterJobType(model.JobTypeLdapSync, builder.MakeWorker(), builder.MakeScheduler())
 
-	builder = jobsPluginsInterface(s)
-	s.Jobs.RegisterJobType(model.JobTypePlugins, builder.MakeWorker(), builder.MakeScheduler())
+	s.Jobs.RegisterJobType(
+		model.JobTypePlugins,
+		scheduler.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
+		scheduler.MakeScheduler(s.Jobs),
+	)
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeExpiryNotify,

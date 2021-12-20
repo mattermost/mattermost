@@ -4,20 +4,15 @@
 package scheduler
 
 import (
-	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 const SchedFreqMinutes = 24 * 60
 
-type Scheduler struct {
-	App *app.App
-}
-
-func (m *PluginsJobInterfaceImpl) MakeScheduler() model.Scheduler {
+func MakeScheduler(jobServer *jobs.JobServer) model.Scheduler {
 	isEnabled := func(cfg *model.Config) bool {
 		return true
 	}
-	return jobs.NewPeridicScheduler(m.App.Srv().Jobs, model.JobTypePlugins, SchedFreqMinutes, isEnabled)
+	return jobs.NewPeridicScheduler(jobServer, model.JobTypePlugins, SchedFreqMinutes, isEnabled)
 }
