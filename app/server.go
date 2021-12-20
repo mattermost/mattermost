@@ -63,6 +63,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine/bleveengine"
+	"github.com/mattermost/mattermost-server/v6/services/searchengine/bleveengine/indexer"
 	"github.com/mattermost/mattermost-server/v6/services/sharedchannel"
 	"github.com/mattermost/mattermost-server/v6/services/telemetry"
 	"github.com/mattermost/mattermost-server/v6/services/timezones"
@@ -1882,8 +1883,11 @@ func (s *Server) initJobs() {
 	workerBuilder := jobsElasticsearchIndexerInterface(s)
 	s.Jobs.RegisterJobType(model.JobTypeElasticsearchPostIndexing, workerBuilder.MakeWorker(), nil)
 
-	workerBuilder = jobsBleveIndexerInterface(s)
-	s.Jobs.RegisterJobType(model.JobTypeBlevePostIndexing, workerBuilder.MakeWorker(), nil)
+	s.Jobs.RegisterJobType(
+		model.JobTypeBlevePostIndexing,
+		indexer.MakeWorker(s.Jobs, s.SearchEngine.BleveEngine.(*bleveengine.BleveEngine)),
+		nil,
+	)
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeMigrations,

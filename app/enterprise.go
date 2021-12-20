@@ -6,7 +6,6 @@ package app
 import (
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	ejobs "github.com/mattermost/mattermost-server/v6/einterfaces/jobs"
-	tjobs "github.com/mattermost/mattermost-server/v6/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -60,9 +59,9 @@ func RegisterJobsElasticsearchAggregatorInterface(f func(*Server) ejobs.Elastics
 	jobsElasticsearchAggregatorInterface = f
 }
 
-var jobsElasticsearchIndexerInterface func(*Server) tjobs.IndexerJobInterface
+var jobsElasticsearchIndexerInterface func(*Server) ejobs.IndexerJobInterface
 
-func RegisterJobsElasticsearchIndexerInterface(f func(*Server) tjobs.IndexerJobInterface) {
+func RegisterJobsElasticsearchIndexerInterface(f func(*Server) ejobs.IndexerJobInterface) {
 	jobsElasticsearchIndexerInterface = f
 }
 
@@ -70,12 +69,6 @@ var jobsLdapSyncInterface func(*Server) ejobs.LdapSyncInterface
 
 func RegisterJobsLdapSyncInterface(f func(*Server) ejobs.LdapSyncInterface) {
 	jobsLdapSyncInterface = f
-}
-
-var jobsBleveIndexerInterface func(*Server) tjobs.IndexerJobInterface
-
-func RegisterJobsBleveIndexerInterface(f func(*Server) tjobs.IndexerJobInterface) {
-	jobsBleveIndexerInterface = f
 }
 
 var jobsResendInvitationEmailInterface func(*Server) ejobs.ResendInvitationEmailJobInterface
