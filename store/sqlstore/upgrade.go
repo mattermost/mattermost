@@ -1814,6 +1814,8 @@ func upgradeDatabaseToVersion630(sqlStore *SqlStore) {
 	sqlStore.CreateColumnIfNotExists("Schemes", "DefaultRunAdminRole", "VARCHAR(64)", "VARCHAR(64)", "")
 	sqlStore.CreateColumnIfNotExists("Schemes", "DefaultRunMemberRole", "VARCHAR(64)", "VARCHAR(64)", "")
 
+	sqlStore.AlterColumnTypeIfExists("PluginKeyValueStore", "PKey", "VARCHAR(150)", "VARCHAR(150)")
+
 	// 	saveSchemaVersion(sqlStore, Version630)
 	// }
 }
