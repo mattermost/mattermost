@@ -6,9 +6,10 @@ package migrations
 import (
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 const (
@@ -16,12 +17,13 @@ const (
 )
 
 type Scheduler struct {
-	srv                    *app.Server
+	jobServer              *jobs.JobServer
+	store                  store.Store
 	allMigrationsCompleted bool
 }
 
-func (m *MigrationsJobInterfaceImpl) MakeScheduler() model.Scheduler {
-	return &Scheduler{m.srv, false}
+func MakeScheduler(jobServer *jobs.JobServer, store store.Store) model.Scheduler {
+	return &Scheduler{jobServer, store, false}
 }
 
 func (scheduler *Scheduler) Enabled(_ *model.Config) bool {
@@ -44,7 +46,7 @@ func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, las
 
 	// Work through the list of migrations in order. Schedule the first one that isn't done (assuming it isn't in progress already).
 	for _, key := range MakeMigrationsList() {
-		state, job, err := GetMigrationState(key, scheduler.srv.Store)
+		state, job, err := GetMigrationState(key, scheduler.store)
 		if err != nil {
 			mlog.Error("Failed to determine status of migration: ", mlog.String("scheduler", model.JobTypeMigrations), mlog.String("migration_key", key), mlog.String("error", err.Error()))
 			return nil, nil
@@ -54,7 +56,7 @@ func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, las
 			// Check the migration job isn't wedged.
 			if job != nil && job.LastActivityAt < model.GetMillis()-MigrationJobWedgedTimeoutMilliseconds && job.CreateAt < model.GetMillis()-MigrationJobWedgedTimeoutMilliseconds {
 				mlog.Warn("Job appears to be wedged. Rescheduling another instance.", mlog.String("scheduler", model.JobTypeMigrations), mlog.String("wedged_job_id", job.Id), mlog.String("migration_key", key))
-				if err := scheduler.srv.Jobs.SetJobError(job, nil); err != nil {
+				if err := scheduler.jobServer.SetJobError(job, nil); err != nil {
 					mlog.Error("Worker: Failed to set job error", mlog.String("scheduler", model.JobTypeMigrations), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 				}
 				return scheduler.createJob(key, job)
@@ -95,7 +97,7 @@ func (scheduler *Scheduler) createJob(migrationKey string, lastJob *model.Job) (
 		JobDataKeyMigrationLastDone: lastDone,
 	}
 
-	job, err := scheduler.srv.Jobs.CreateJob(model.JobTypeMigrations, data)
+	job, err := scheduler.jobServer.CreateJob(model.JobTypeMigrations, data)
 	if err != nil {
 		return nil, err
 	}

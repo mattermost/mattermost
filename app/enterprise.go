@@ -72,12 +72,6 @@ func RegisterJobsLdapSyncInterface(f func(*Server) ejobs.LdapSyncInterface) {
 	jobsLdapSyncInterface = f
 }
 
-var jobsMigrationsInterface func(*Server) tjobs.MigrationsJobInterface
-
-func RegisterJobsMigrationsJobInterface(f func(*Server) tjobs.MigrationsJobInterface) {
-	jobsMigrationsInterface = f
-}
-
 var jobsPluginsInterface func(*Server) tjobs.PluginsJobInterface
 
 func RegisterJobsPluginsJobInterface(f func(*Server) tjobs.PluginsJobInterface) {

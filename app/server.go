@@ -54,6 +54,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/jobs/import_delete"
 	"github.com/mattermost/mattermost-server/v6/jobs/import_process"
 	"github.com/mattermost/mattermost-server/v6/jobs/product_notices"
+	"github.com/mattermost/mattermost-server/v6/migrations"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/awsmeter"
 	"github.com/mattermost/mattermost-server/v6/services/cache"
@@ -1883,8 +1884,11 @@ func (s *Server) initJobs() {
 	workerBuilder = jobsBleveIndexerInterface(s)
 	s.Jobs.RegisterJobType(model.JobTypeBlevePostIndexing, workerBuilder.MakeWorker(), nil)
 
-	builder = jobsMigrationsInterface(s)
-	s.Jobs.RegisterJobType(model.JobTypeMigrations, builder.MakeWorker(), builder.MakeScheduler())
+	s.Jobs.RegisterJobType(
+		model.JobTypeMigrations,
+		migrations.MakeWorker(s.Jobs, s.Store),
+		migrations.MakeScheduler(s.Jobs, s.Store),
+	)
 
 	builder = jobsLdapSyncInterface(s)
 	s.Jobs.RegisterJobType(model.JobTypeLdapSync, builder.MakeWorker(), builder.MakeScheduler())
