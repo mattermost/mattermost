@@ -115,12 +115,6 @@ func RegisterJobsImportProcessInterface(f func(*Server) tjobs.ImportProcessInter
 	jobsImportProcessInterface = f
 }
 
-var jobsImportDeleteInterface func(*Server) tjobs.ImportDeleteInterface
-
-func RegisterJobsImportDeleteInterface(f func(*Server) tjobs.ImportDeleteInterface) {
-	jobsImportDeleteInterface = f
-}
-
 var productNoticesJobInterface func(*Server) tjobs.ProductNoticesJobInterface
 
 func RegisterProductNoticesJobInterface(f func(*Server) tjobs.ProductNoticesJobInterface) {
