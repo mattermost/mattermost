@@ -2826,6 +2826,13 @@ const (
 	WDIOS_TEMPPANIC                             = 0x4
 	WDIOS_UNKNOWN                               = -0x1
 	WEXITED                                     = 0x4
+	WGALLOWEDIP_A_MAX                           = 0x3
+	WGDEVICE_A_MAX                              = 0x8
+	WGPEER_A_MAX                                = 0xa
+	WG_CMD_MAX                                  = 0x1
+	WG_GENL_NAME                                = "wireguard"
+	WG_GENL_VERSION                             = 0x1
+	WG_KEY_LEN                                  = 0x20
 	WIN_ACKMEDIACHANGE                          = 0xdb
 	WIN_CHECKPOWERMODE1                         = 0xe5
 	WIN_CHECKPOWERMODE2                         = 0x98
