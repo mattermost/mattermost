@@ -6896,6 +6896,10 @@
     "translation": "Unable to add attachment to the CSV export."
   },
   {
+    "id": "ent.compliance.csv.block.export.appError",
+    "translation": "Unable to export a boards block."
+  },
+  {
     "id": "ent.compliance.csv.file.creation.appError",
     "translation": "Unable to create temporary CSV export file."
   },
