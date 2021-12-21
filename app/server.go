@@ -1872,17 +1872,35 @@ func (s *Server) initJobs() {
 	s.Jobs.InitWorkers()
 	s.Jobs.InitSchedulers()
 
-	builder := jobsDataRetentionJobInterface(s)
-	s.Jobs.RegisterJobType(model.JobTypeDataRetention, builder.MakeWorker(), builder.MakeScheduler())
+	if jobsDataRetentionJobInterface != nil {
+		builder := jobsDataRetentionJobInterface(s)
+		s.Jobs.RegisterJobType(model.JobTypeDataRetention, builder.MakeWorker(), builder.MakeScheduler())
+	}
 
-	builder = jobsMessageExportJobInterface(s)
-	s.Jobs.RegisterJobType(model.JobTypeMessageExport, builder.MakeWorker(), builder.MakeScheduler())
+	if jobsMessageExportJobInterface != nil {
+		builder := jobsMessageExportJobInterface(s)
+		s.Jobs.RegisterJobType(model.JobTypeMessageExport, builder.MakeWorker(), builder.MakeScheduler())
+	}
 
-	builder = jobsElasticsearchAggregatorInterface(s)
-	s.Jobs.RegisterJobType(model.JobTypeElasticsearchPostAggregation, builder.MakeWorker(), builder.MakeScheduler())
+	if jobsElasticsearchAggregatorInterface != nil {
+		builder := jobsElasticsearchAggregatorInterface(s)
+		s.Jobs.RegisterJobType(model.JobTypeElasticsearchPostAggregation, builder.MakeWorker(), builder.MakeScheduler())
+	}
 
-	workerBuilder := jobsElasticsearchIndexerInterface(s)
-	s.Jobs.RegisterJobType(model.JobTypeElasticsearchPostIndexing, workerBuilder.MakeWorker(), nil)
+	if jobsElasticsearchIndexerInterface != nil {
+		builder := jobsElasticsearchIndexerInterface(s)
+		s.Jobs.RegisterJobType(model.JobTypeElasticsearchPostIndexing, builder.MakeWorker(), nil)
+	}
+
+	if jobsLdapSyncInterface != nil {
+		builder := jobsLdapSyncInterface(s)
+		s.Jobs.RegisterJobType(model.JobTypeLdapSync, builder.MakeWorker(), builder.MakeScheduler())
+	}
+
+	if jobsCloudInterface != nil {
+		builder := jobsCloudInterface(s)
+		s.Jobs.RegisterJobType(model.JobTypeCloud, builder.MakeWorker(), builder.MakeScheduler())
+	}
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeBlevePostIndexing,
@@ -1895,9 +1913,6 @@ func (s *Server) initJobs() {
 		migrations.MakeWorker(s.Jobs, s.Store),
 		migrations.MakeScheduler(s.Jobs, s.Store),
 	)
-
-	builder = jobsLdapSyncInterface(s)
-	s.Jobs.RegisterJobType(model.JobTypeLdapSync, builder.MakeWorker(), builder.MakeScheduler())
 
 	s.Jobs.RegisterJobType(
 		model.JobTypePlugins,
@@ -1946,9 +1961,6 @@ func (s *Server) initJobs() {
 		active_users.MakeWorker(s.Jobs, s.Store, func() einterfaces.MetricsInterface { return s.Metrics }),
 		active_users.MakeScheduler(s.Jobs),
 	)
-
-	builder = jobsCloudInterface(s)
-	s.Jobs.RegisterJobType(model.JobTypeCloud, builder.MakeWorker(), builder.MakeScheduler())
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeResendInvitationEmail,

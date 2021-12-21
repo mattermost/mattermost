@@ -38,7 +38,9 @@ func (srv *JobServer) Config() *model.Config {
 func (srv *JobServer) RegisterJobType(name string, worker model.Worker, scheduler model.Scheduler) {
 	srv.mut.Lock()
 	defer srv.mut.Unlock()
-	srv.workers.AddWorker(name, worker)
+	if worker != nil {
+		srv.workers.AddWorker(name, worker)
+	}
 	if scheduler != nil {
 		srv.schedulers.AddScheduler(name, scheduler)
 	}
