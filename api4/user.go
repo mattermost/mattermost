@@ -991,22 +991,12 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = gErr
 			return
 		}
-
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-			c.SetPermissionError(model.PermissionManageSystem)
-			return
-		}
 	}
 
 	if props.NotInGroupId != "" {
 		if gErr := requireGroupAccess(c, props.NotInGroupId); gErr != nil {
 			gErr.Where = "Api.searchUsers"
 			c.Err = gErr
-			return
-		}
-
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}
 	}
