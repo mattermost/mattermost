@@ -344,6 +344,16 @@ func (s SqlComplianceStore) MessageExport(cursor model.MessageExportCursor, limi
 }
 
 func (s SqlComplianceStore) BlocksExport(cursor model.BlockExportCursor, limit int) ([]*model.BlockExport, model.BlockExportCursor, error) {
+	var version int
+	schemaVersionRow := s.GetReplicaX().QueryRowX("select version from focalboard_schema_migrations")
+	if schemaVersionRow.Err() != nil {
+		return nil, cursor, schemaVersionRow.Err()
+	}
+	schemaVersionRow.Scan(&version)
+	if version != 16 {
+		return nil, cursor, fmt.Errorf("invalid focalboard version to export compliance, current=%d, expected=%d", version, 16)
+	}
+
 	var args []interface{}
 	args = append(args, cursor.LastBlockUpdateAt, cursor.LastBlockUpdateAt, cursor.LastBlockId, limit)
 	query :=
