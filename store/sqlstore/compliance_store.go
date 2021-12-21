@@ -352,6 +352,8 @@ func (s SqlComplianceStore) BlocksExport(cursor model.BlockExportCursor, limit i
 			parent_id as ParentID,
 			root_id as RootID,
 			modified_by as ModifiedBy,
+			Users.Email AS ModifiedByEmail,
+			Users.Username as ModifiedByUsername,
 			type as Type,
 			title as Title,
 			COALESCE(fields, '{}') as Fields,
@@ -361,6 +363,7 @@ func (s SqlComplianceStore) BlocksExport(cursor model.BlockExportCursor, limit i
 			COALESCE(workspace_id, '0') as WorkspaceID
 		FROM
 			focalboard_blocks_history
+		LEFT OUTER JOIN Users ON ModifiedBy = Users.Id
 		WHERE (
 			update_at > ?
 			OR (

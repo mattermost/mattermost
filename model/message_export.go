@@ -33,17 +33,19 @@ type MessageExport struct {
 }
 
 type BlockExport struct {
-	ID          string
-	ParentID    string
-	RootID      string
-	ModifiedBy  string
-	Type        string
-	Title       string
-	Fields      string
-	CreateAt    int64
-	UpdateAt    int64
-	DeleteAt    int64
-	WorkspaceID string
+	ID                 string
+	ParentID           string
+	RootID             string
+	ModifiedBy         string
+	ModifiedByEmail    string
+	ModifiedByUsername string
+	Type               string
+	Title              string
+	Fields             string
+	CreateAt           int64
+	UpdateAt           int64
+	DeleteAt           int64
+	WorkspaceID        string
 }
 
 type MessageExportCursor struct {
