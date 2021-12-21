@@ -348,30 +348,30 @@ func (s SqlComplianceStore) BlocksExport(cursor model.BlockExportCursor, limit i
 	args = append(args, cursor.LastBlockUpdateAt, cursor.LastBlockUpdateAt, cursor.LastBlockId, limit)
 	query :=
 		`SELECT
-			id as ID,
-			parent_id as ParentID,
-			root_id as RootID,
-			modified_by as ModifiedBy,
-			Users.Email AS ModifiedByEmail,
-			Users.Username as ModifiedByUsername,
-			type as Type,
-			title as Title,
-			COALESCE(fields, '{}') as Fields,
-			create_at as CreateAt,
-			update_at as UpdateAt,
-			delete_at as DeleteAt,
-			COALESCE(workspace_id, '0') as WorkspaceID
+			B.id as ID,
+			B.parent_id as ParentID,
+			B.root_id as RootID,
+			B.modified_by as ModifiedBy,
+			COALESCE(Users.Email, '') AS ModifiedByEmail,
+			COALESCE(Users.Username, '') as ModifiedByUsername,
+			B.type as Type,
+			B.title as Title,
+			COALESCE(B.fields, '{}') as Fields,
+			B.create_at as CreateAt,
+			B.update_at as UpdateAt,
+			B.delete_at as DeleteAt,
+			COALESCE(B.workspace_id, '0') as WorkspaceID
 		FROM
-			focalboard_blocks_history
-		LEFT OUTER JOIN Users ON ModifiedBy = Users.Id
+			focalboard_blocks_history as B
+		LEFT OUTER JOIN Users ON B.modified_by = Users.Id
 		WHERE (
-			update_at > ?
+			B.update_at > ?
 			OR (
-				update_at = ?
-				AND Id > ?
+				B.update_at = ?
+				AND B.Id > ?
 			)
 		)
-		ORDER BY update_at, Id
+		ORDER BY B.update_at, B.Id
 		LIMIT ?`
 
 	cblocks := []*model.BlockExport{}

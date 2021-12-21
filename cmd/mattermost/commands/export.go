@@ -160,11 +160,15 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 func buildExportCmdF(format string) func(command *cobra.Command, args []string) error {
 	return func(command *cobra.Command, args []string) error {
 		a, err := InitDBCommandContextCobra(command)
-		license := a.Srv().License()
 		if err != nil {
 			return err
 		}
 		defer a.Srv().Shutdown()
+
+		config := a.Srv().Config()
+		if format == model.ComplianceExportTypeCsvWithBoards && (config.PluginSettings.PluginStates["focalboard"] == nil || !config.PluginSettings.PluginStates["focalboard"].Enable) {
+			return errors.New(fmt.Sprintf("%s format is only available when the focalboard plugin is enabled", format))
+		}
 
 		startTime, err := command.Flags().GetInt64("exportFrom")
 		if err != nil {
@@ -174,6 +178,7 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 			return errors.New("exportFrom must be a positive integer")
 		}
 
+		license := a.Srv().License()
 		if a.MessageExport() == nil || license == nil || !*license.Features.MessageExport {
 			return errors.New("message export feature not available")
 		}
