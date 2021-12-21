@@ -694,9 +694,9 @@ func MakeDefaultRoles() map[string]*Role {
 		DisplayName: fmt.Sprintf("authentication.roles.%s.name", CustomGroupUserRoleId),
 		Description: fmt.Sprintf("authentication.roles.%s.description", CustomGroupUserRoleId),
 		Permissions: []string{
-			PermissionCustomGroupManageMembers.Id,
-			PermissionCustomGroupEdit.Id,
-			PermissionCustomGroupDelete.Id,
+			PermissionManageCustomGroupMembers.Id,
+			PermissionEditCustomGroup.Id,
+			PermissionDeleteCustomGroup.Id,
 		},
 	}
 
@@ -913,6 +913,7 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionViewMembers.Id,
 			PermissionCreateTeam.Id,
 			PermissionCreateCustomGroup.Id,
+			PermissionManageCustomGroupMembers.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,

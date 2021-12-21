@@ -37,4 +37,5 @@ const (
 	MigrationKeyAddIntegrationsSubsectionPermissions   = "integrations_subsection_permissions"
 	MigrationKeyFixCRTChannelUnreads                   = "fix_crt_channel_unreads"
 	MigrationKeyAddPlaybooksPermissions                = "playbooks_permissions"
+	MigrationKeyAddCustomUserGroupsPermissions         = "custom_groups_permissions"
 )

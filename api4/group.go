@@ -203,7 +203,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var requiredPermission *model.Permission
 	if group.Source == model.GroupSourceCustom {
-		requiredPermission = model.PermissionCustomGroupEdit
+		requiredPermission = model.PermissionEditCustomGroup
 	} else {
 		requiredPermission = model.PermissionSysconsoleWriteUserManagementGroups
 	}
@@ -957,8 +957,8 @@ func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionCustomGroupDelete) {
-		c.SetPermissionError(model.PermissionCustomGroupDelete)
+	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionDeleteCustomGroup) {
+		c.SetPermissionError(model.PermissionDeleteCustomGroup)
 		return
 	}
 
@@ -1000,8 +1000,8 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionCustomGroupManageMembers) {
-		c.SetPermissionError(model.PermissionCustomGroupManageMembers)
+	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionManageCustomGroupMembers) {
+		c.SetPermissionError(model.PermissionManageCustomGroupMembers)
 		return
 	}
 
@@ -1053,8 +1053,8 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionCustomGroupManageMembers) {
-		c.SetPermissionError(model.PermissionCustomGroupManageMembers)
+	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionManageCustomGroupMembers) {
+		c.SetPermissionError(model.PermissionManageCustomGroupMembers)
 		return
 	}
 

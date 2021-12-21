@@ -170,7 +170,7 @@ func TestDeleteGroup(t *testing.T) {
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, response)
 
-	th.AddPermissionToRole(model.PermissionCustomGroupDelete.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(model.PermissionDeleteCustomGroup.Id, model.SystemUserRoleId)
 	_, response, err = th.Client.DeleteGroup(g.Id)
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, response)

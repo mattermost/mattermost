@@ -154,7 +154,7 @@ func TestSessionHasPermissionToGroup(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	permission := model.PermissionCustomGroupDelete
+	permission := model.PermissionDeleteCustomGroup
 
 	for i, row := range records {
 		// skip csv header

@@ -357,9 +357,9 @@ var PermissionRunView *Permission
 var PermissionManageSystem *Permission
 
 var PermissionCreateCustomGroup *Permission
-var PermissionCustomGroupManageMembers *Permission
-var PermissionCustomGroupEdit *Permission
-var PermissionCustomGroupDelete *Permission
+var PermissionManageCustomGroupMembers *Permission
+var PermissionEditCustomGroup *Permission
+var PermissionDeleteCustomGroup *Permission
 
 var AllPermissions []*Permission
 var DeprecatedPermissions []*Permission
@@ -1927,21 +1927,21 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
-	PermissionCustomGroupManageMembers = &Permission{
+	PermissionManageCustomGroupMembers = &Permission{
 		"manage_custom_group_members",
 		"authentication.permissions.manage_custom_group_members.name",
 		"authentication.permissions.manage_custom_group_members.description",
 		PermissionScopeGroup,
 	}
 
-	PermissionCustomGroupEdit = &Permission{
+	PermissionEditCustomGroup = &Permission{
 		"edit_custom_group",
 		"authentication.permissions.edit_custom_group.name",
 		"authentication.permissions.edit_custom_group.description",
 		PermissionScopeGroup,
 	}
 
-	PermissionCustomGroupDelete = &Permission{
+	PermissionDeleteCustomGroup = &Permission{
 		"delete_custom_group",
 		"authentication.permissions.delete_custom_group.name",
 		"authentication.permissions.delete_custom_group.description",
@@ -2295,9 +2295,9 @@ func initializePermissions() {
 	}
 
 	GroupScopedPermissions := []*Permission{
-		PermissionCustomGroupManageMembers,
-		PermissionCustomGroupEdit,
-		PermissionCustomGroupDelete,
+		PermissionManageCustomGroupMembers,
+		PermissionEditCustomGroup,
+		PermissionDeleteCustomGroup,
 	}
 
 	DeprecatedPermissions = []*Permission{
