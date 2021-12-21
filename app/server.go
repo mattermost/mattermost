@@ -1678,7 +1678,7 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 
 	daysToExpiration := license.DaysToExpiration()
 
-	renewalLink, appErr := s.GenerateLicenseRenewalLink()
+	renewalLink, _, appErr := s.GenerateLicenseRenewalLink()
 	if appErr != nil {
 		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.server.license_up_for_renewal.error_generating_link", nil, appErr.Error(), http.StatusInternalServerError)
 	}
@@ -1769,7 +1769,7 @@ func (s *Server) doLicenseExpirationCheck() {
 // SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
 // to renew the user license
 func (s *Server) SendRemoveExpiredLicenseEmail(email string, locale, siteURL string) *model.AppError {
-	renewalLink, err := s.GenerateLicenseRenewalLink()
+	renewalLink, _, err := s.GenerateLicenseRenewalLink()
 	if err != nil {
 		return err
 	}
