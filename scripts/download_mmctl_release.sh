@@ -5,7 +5,7 @@ if [[ "$OS" = "Windows_NT" ]]
 then
   PLATFORM="Windows"
 else
-  PLATFORM=$(uname)
+  PLATFORM=$(uname)-$(uname -m)
 fi
 
 if [[ ! -z "$1" ]];
@@ -35,19 +35,19 @@ fi
 
 case "$PLATFORM" in
 
-Linux-AMD64)
+Linux-x86_64)
   MMCTL_FILE="linux_amd64.tar" && curl -f -O -L https://releases.mattermost.com/mmctl/"$RELEASE_TO_DOWNLOAD"/"$MMCTL_FILE" && tar -xvf "$MMCTL_FILE" -C "$BIN_PATH" && rm "$MMCTL_FILE";
   ;;
 
-Linux-ARM64)
+Linux-aarch64)
   MMCTL_FILE="linux_arm64.tar" && curl -f -O -L https://releases.mattermost.com/mmctl/"$RELEASE_TO_DOWNLOAD"/"$MMCTL_FILE" && tar -xvf "$MMCTL_FILE" -C "$BIN_PATH" && rm "$MMCTL_FILE";
   ;;
 
-Darwin-AMD64)
+Darwin-x86_64)
   MMCTL_FILE="darwin_amd64.tar" && curl -f -O -L https://releases.mattermost.com/mmctl/"$RELEASE_TO_DOWNLOAD"/"$MMCTL_FILE" && tar -xvf "$MMCTL_FILE" -C "$BIN_PATH" && rm "$MMCTL_FILE";
   ;;
 
-Darwin-ARM64)
+Darwin-arm64)
   MMCTL_FILE="darwin_arm64.tar" && curl -f -O -L https://releases.mattermost.com/mmctl/"$RELEASE_TO_DOWNLOAD"/"$MMCTL_FILE" && tar -xvf "$MMCTL_FILE" -C "$BIN_PATH" && rm "$MMCTL_FILE";
   ;;
 
