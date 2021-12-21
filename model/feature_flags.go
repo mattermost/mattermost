@@ -72,6 +72,9 @@ type FeatureFlags struct {
 	InviteToTeam string
 
 	CustomGroups bool
+
+	// Enable inline post editing
+	InlinePostEditing bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -97,8 +100,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ResendInviteEmailInterval = ""
 	f.InviteToTeam = "none"
 	f.CustomGroups = true
+	f.InlinePostEditing = false
 }
-
 func (f *FeatureFlags) Plugins() map[string]string {
 	rFFVal := reflect.ValueOf(f).Elem()
 	rFFType := reflect.TypeOf(f).Elem()
