@@ -7524,18 +7524,6 @@
     "translation": "Error"
   },
   {
-    "id": "extrac_content.worker.do_job.invalid_input.from",
-    "translation": "Invalid input value 'from'"
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.to",
-    "translation": "Invalid input value 'to'"
-  },
-  {
-    "id": "extract_content.worker.do_job.file_info",
-    "translation": "Failed to get file information for content extraction."
-  },
-  {
     "id": "fix_crt_channel_unreads.worker.do_job.get_bad_channel_memberships",
     "translation": "Failed to get bad channel memberships"
   },
