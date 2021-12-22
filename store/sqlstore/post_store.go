@@ -2005,6 +2005,7 @@ func removeMysqlStopWordsFromTerms(terms string) (string, error) {
 
 // TODO: convert to squirrel HW
 func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, error) {
+	var args []interface{}
 	query :=
 		`SELECT DISTINCT
 		        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
@@ -2013,6 +2014,7 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 
 	if teamId != "" {
 		query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = ? AND"
+		args = []interface{}{teamId}
 	} else {
 		query += " WHERE"
 	}
@@ -2030,6 +2032,7 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 
 		if teamId != "" {
 			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = ? AND"
+			args = []interface{}{teamId}
 		} else {
 			query += " WHERE"
 		}
@@ -2042,12 +2045,13 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 
 	end := utils.MillisFromTime(utils.EndOfDay(utils.Yesterday()))
 	start := utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -31)))
+	args = append(args, start, end)
 
 	rows := model.AnalyticsRows{}
 	err := s.GetReplicaX().Select(
 		&rows,
 		query,
-		teamId, start, end)
+		args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with teamId=%s", teamId)
 	}
@@ -2057,6 +2061,7 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 // TODO: convert to squirrel HW
 func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, error) {
 
+	var args []interface{}
 	query :=
 		`SELECT
 		        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
@@ -2069,6 +2074,7 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCoun
 
 	if options.TeamId != "" {
 		query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = ? AND"
+		args = []interface{}{options.TeamId}
 	} else {
 		query += " WHERE"
 	}
@@ -2091,6 +2097,7 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCoun
 
 		if options.TeamId != "" {
 			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id  AND Channels.TeamId = ? AND"
+			args = []interface{}{options.TeamId}
 		} else {
 			query += " WHERE"
 		}
@@ -2107,12 +2114,13 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCoun
 	if options.YesterdayOnly {
 		start = utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -1)))
 	}
+	args = append(args, end, start)
 
 	rows := model.AnalyticsRows{}
 	err := s.GetReplicaX().Select(
 		&rows,
 		query,
-		options.TeamId, end, start)
+		args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with teamId=%s", options.TeamId)
 	}
