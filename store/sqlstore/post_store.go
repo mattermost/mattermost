@@ -1579,9 +1579,7 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 	}
 
 	// query parent Ids first
-	roots := []*struct {
-		RootId string
-	}{}
+	roots := []string{}
 	rootQuery := `
 		SELECT DISTINCT
 			q.RootId
@@ -1609,7 +1607,7 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 	placeholders := make([]string, len(roots))
 	for idx, r := range roots {
 		key := fmt.Sprintf(":Root%v", idx)
-		params[key[1:]] = r.RootId
+		params[key[1:]] = r
 		placeholders[idx] = key
 	}
 	placeholderString := strings.Join(placeholders, ", ")
