@@ -8599,10 +8599,10 @@ func (s *TimerLayerThreadStore) UpdateUnreadsByChannel(userId string, changedThr
 	return err
 }
 
-func (s *TimerLayerTokenStore) Cleanup() {
+func (s *TimerLayerTokenStore) Cleanup(expiryTime int64) {
 	start := timemodule.Now()
 
-	s.TokenStore.Cleanup()
+	s.TokenStore.Cleanup(expiryTime)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
