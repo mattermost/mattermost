@@ -1491,7 +1491,11 @@ func doSecurity(s *Server) {
 }
 
 func doTokenCleanup(s *Server) {
-	s.Store.Token().Cleanup()
+	expiry := model.GetMillis() - model.MaxTokenExipryTime
+
+	mlog.Debug("Cleaning up token store.")
+
+	s.Store.Token().Cleanup(expiry)
 }
 
 func doCommandWebhookCleanup(s *Server) {
