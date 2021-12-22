@@ -35,15 +35,20 @@ func (srv *JobServer) InitWorkers() error {
 		return ErrWorkersRunning
 	}
 
-	workers := &Workers{
-		ConfigService: srv.ConfigService,
-		workers:       make(map[string]model.Worker),
-	}
+	workers := NewWorkers(srv.ConfigService)
+
 	workers.Watcher = srv.MakeWatcher(workers, DefaultWatcherPollingInterval)
 
 	srv.workers = workers
 
 	return nil
+}
+
+func NewWorkers(configService configservice.ConfigService) *Workers {
+	return &Workers{
+		ConfigService: configService,
+		workers:       make(map[string]model.Worker),
+	}
 }
 
 func (workers *Workers) AddWorker(name string, worker model.Worker) {
