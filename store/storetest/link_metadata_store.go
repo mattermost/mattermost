@@ -112,7 +112,7 @@ func testLinkMetadataStoreSave(t *testing.T, ss store.Store) {
 
 		linkMetadata, err = ss.LinkMetadata().Save(metadata)
 		require.NoError(t, err)
-		assert.Equal(t, linkMetadata.Data, &model.PostImage{Height: 10, Width: 20})
+		assert.Equal(t, newData, linkMetadata.Data)
 
 		// Should return the original result, not the duplicate one
 		linkMetadata, err = ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
