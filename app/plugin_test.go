@@ -20,6 +20,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -626,6 +627,37 @@ func TestPluginSync(t *testing.T) {
 			})
 		})
 	}
+}
+
+// See https://github.com/mattermost/mattermost-server/issues/19189
+func TestChannelsPluginsInit(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	runNoPanicTest := func(t *testing.T) {
+		ctx := request.EmptyContext()
+		path, _ := fileutils.FindDir("tests")
+
+		require.NotPanics(t, func() {
+			th.Server.Channels().initPlugins(ctx, path, path)
+		})
+	}
+
+	t.Run("no panics when plugins enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+		})
+
+		runNoPanicTest(t)
+	})
+
+	t.Run("no panics when plugins disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = false
+		})
+
+		runNoPanicTest(t)
+	})
 }
 
 func TestSyncPluginsActiveState(t *testing.T) {
