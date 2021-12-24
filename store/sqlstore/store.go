@@ -676,13 +676,15 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 // GetColumnInfo returns data type information about the given column.
 func (ss *SqlStore) GetColumnInfo(tableName, columnName string) (*ColumnInfo, error) {
 	var columnInfo ColumnInfo
+	tableName = strings.ToLower(tableName)
+	columnName = strings.ToLower(columnName)
 	if ss.DriverName() == model.DatabaseDriverPostgres {
 		err := ss.GetMaster().SelectOne(&columnInfo,
 			`SELECT data_type as DataType, COALESCE(column_default, '') as DefaultValue,
 					COALESCE(character_maximum_length, 0) as CharMaximumLength
 			 FROM information_schema.columns
-			 WHERE lower(table_name) = lower($1)
-			 AND lower(column_name) = lower($2)`,
+			 WHERE lower(table_name) = $1
+			 AND lower(column_name) = $2`,
 			tableName, columnName)
 		if err != nil {
 			return nil, err
@@ -694,8 +696,8 @@ func (ss *SqlStore) GetColumnInfo(tableName, columnName string) (*ColumnInfo, er
 					COALESCE(character_maximum_length, 0) as CharMaximumLength
 			 FROM information_schema.columns
 			 WHERE table_schema = DATABASE()
-			 AND lower(table_name) = lower(?)
-			 AND lower(column_name) = lower(?)`,
+			 AND lower(table_name) = ?
+			 AND lower(column_name) = ?`,
 			tableName, columnName)
 		if err != nil {
 			return nil, err
