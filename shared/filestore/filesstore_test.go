@@ -270,20 +270,19 @@ func (s *FileBackendTestSuite) TestListDirectory() {
 	s.Len(paths, 1)
 	s.Equal(path1, (paths)[0])
 
-	paths, err = s.backend.ListDirectory("19700101/")
+	paths, err = s.backend.ListDirectory("19800101/")
 	s.Nil(err)
 	s.Len(paths, 1)
-	s.Equal(path1, (paths)[0])
+	s.Equal(path2, (paths)[0])
 
 	paths, err = s.backend.ListDirectory("")
 	s.Nil(err)
-
 	found1 := false
 	found2 := false
 	for _, path := range paths {
-		if path == "19700101" {
+		if path == path1 {
 			found1 = true
-		} else if path == "19800101" {
+		} else if path == path2 {
 			found2 = true
 		}
 	}
