@@ -393,7 +393,8 @@ func (b *S3FileBackend) ListDirectory(path string) ([]string, error) {
 	}
 
 	opts := s3.ListObjectsOptions{
-		Prefix: path,
+		Prefix:    path,
+		Recursive: true,
 	}
 	var paths []string
 	for object := range b.client.ListObjects(context.Background(), b.bucket, opts) {
