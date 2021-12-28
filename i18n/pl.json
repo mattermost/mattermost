@@ -9314,5 +9314,9 @@
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "Liczba identyfikatorów postów osiągnęła maksymalny rozmiar {{.MaxLength}}"
+  },
+  {
+    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
+    "translation": "Odnowienie tej licencji na portalu nie jest możliwe"
   }
 ]
