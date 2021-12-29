@@ -669,6 +669,44 @@ func (s *hooksRPCServer) WebSocketMessageHasBeenPosted(args *Z_WebSocketMessageH
 	return nil
 }
 
+func init() {
+	hookNameToId["RunDataRetention"] = RunDataRetentionID
+}
+
+type Z_RunDataRetentionArgs struct {
+	A int64
+	B int64
+	C int64
+}
+
+type Z_RunDataRetentionReturns struct {
+	A int64
+	B error
+}
+
+func (g *hooksRPCClient) RunDataRetention(globalRetentionDate, nowTime, batchSize int64) (int64, error) {
+	_args := &Z_RunDataRetentionArgs{globalRetentionDate, nowTime, batchSize}
+	_returns := &Z_RunDataRetentionReturns{}
+	if g.implemented[RunDataRetentionID] {
+		if err := g.client.Call("Plugin.RunDataRetention", _args, _returns); err != nil {
+			g.log.Error("RPC call RunDataRetention to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *hooksRPCServer) RunDataRetention(args *Z_RunDataRetentionArgs, returns *Z_RunDataRetentionReturns) error {
+	if hook, ok := s.impl.(interface {
+		RunDataRetention(globalRetentionDate, nowTime, batchSize int64) (int64, error)
+	}); ok {
+		returns.A, returns.B = hook.RunDataRetention(args.A, args.B, args.C)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook RunDataRetention called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }

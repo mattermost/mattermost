@@ -2,6 +2,10 @@ module github.com/mattermost/mattermost-server/v6
 
 go 1.16
 
+replace github.com/mattermost/mattermost-server/v6/plugin => ./plugin/
+replace github.com/mattermost/mattermost-server/v6/app => ./app/
+replace github.com/mattermost/mattermost-server/v6/model => ./model/
+
 require (
 	code.sajari.com/docconv v1.2.0
 	github.com/HdrHistogram/hdrhistogram-go v0.9.0 // indirect

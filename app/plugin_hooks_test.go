@@ -742,6 +742,46 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 	assert.Equal(t, th.Context.Session().UserId, th.BasicUser.Id)
 }
 
+func TestRunDataRetention(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
+
+	assert.Nil(t, err, "Error updating user password: %s", err)
+
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/v6/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) RunDataRetention() {
+			return
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.NewPluginAPI)
+	defer tearDown()
+
+	r := &http.Request{}
+	w := httptest.NewRecorder()
+
+	err = th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+
+	assert.Nil(t, err, "Expected nil, got %s", err)
+	assert.Equal(t, th.Context.Session().UserId, th.BasicUser.Id)
+}
+
 func TestUserHasLoggedIn(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
