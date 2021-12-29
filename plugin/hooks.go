@@ -248,5 +248,5 @@ type Hooks interface {
 	// RunDataRetention is invoked during a DataRetentionJob
 	//
 	// Minimum server version: 6.3
-	RunDataRetention(globalRetentionDate, nowTime, batchSize int64) (int64, error)
+	RunDataRetention(nowTime, batchSize int64) (int64, error)
 }

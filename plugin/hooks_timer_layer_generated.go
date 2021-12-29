@@ -187,9 +187,9 @@ func (hooks *hooksTimerLayer) WebSocketMessageHasBeenPosted(webConnID, userID st
 	hooks.recordTime(startTime, "WebSocketMessageHasBeenPosted", true)
 }
 
-func (hooks *hooksTimerLayer) RunDataRetention(globalRetentionDate, nowTime, batchSize int64) (int64, error) {
+func (hooks *hooksTimerLayer) RunDataRetention(nowTime, batchSize int64) (int64, error) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := hooks.hooksImpl.RunDataRetention(globalRetentionDate, nowTime, batchSize)
+	_returnsA, _returnsB := hooks.hooksImpl.RunDataRetention(nowTime, batchSize)
 	hooks.recordTime(startTime, "RunDataRetention", _returnsB == nil)
 	return _returnsA, _returnsB
 }
