@@ -1149,7 +1149,7 @@ CREATE TABLE `Users` (
   `Nickname` varchar(64) DEFAULT NULL,
   `FirstName` varchar(64) DEFAULT NULL,
   `LastName` varchar(64) DEFAULT NULL,
-  `Roles` varchar(256),
+  `Roles` text,
   `AllowMarketing` tinyint(1) DEFAULT NULL,
   `Props` json DEFAULT NULL,
   `NotifyProps` json DEFAULT NULL,
