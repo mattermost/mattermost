@@ -858,13 +858,6 @@ func upgradeDatabaseToVersion620(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion630(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version620, Version630) {
-		sqlStore.CreateColumnIfNotExists("Schemes", "DefaultPlaybookAdminRole", "VARCHAR(64)", "VARCHAR(64)", "")
-		sqlStore.CreateColumnIfNotExists("Schemes", "DefaultPlaybookMemberRole", "VARCHAR(64)", "VARCHAR(64)", "")
-		sqlStore.CreateColumnIfNotExists("Schemes", "DefaultRunAdminRole", "VARCHAR(64)", "VARCHAR(64)", "")
-		sqlStore.CreateColumnIfNotExists("Schemes", "DefaultRunMemberRole", "VARCHAR(64)", "VARCHAR(64)", "")
-
-		sqlStore.AlterColumnTypeIfExists("PluginKeyValueStore", "PKey", "VARCHAR(150)", "VARCHAR(150)")
-
 		saveSchemaVersion(sqlStore, Version630)
 	}
 }
