@@ -295,6 +295,8 @@ var (
 	procLockFileEx                                           = modkernel32.NewProc("LockFileEx")
 	procLockResource                                         = modkernel32.NewProc("LockResource")
 	procMapViewOfFile                                        = modkernel32.NewProc("MapViewOfFile")
+	procModule32FirstW                                       = modkernel32.NewProc("Module32FirstW")
+	procModule32NextW                                        = modkernel32.NewProc("Module32NextW")
 	procMoveFileExW                                          = modkernel32.NewProc("MoveFileExW")
 	procMoveFileW                                            = modkernel32.NewProc("MoveFileW")
 	procMultiByteToWideChar                                  = modkernel32.NewProc("MultiByteToWideChar")
@@ -2562,6 +2564,22 @@ func MapViewOfFile(handle Handle, access uint32, offsetHigh uint32, offsetLow ui
 	r0, _, e1 := syscall.Syscall6(procMapViewOfFile.Addr(), 5, uintptr(handle), uintptr(access), uintptr(offsetHigh), uintptr(offsetLow), uintptr(length), 0)
 	addr = uintptr(r0)
 	if addr == 0 {
+		err = errnoErr(e1)
+	}
+	return
+}
+
+func Module32First(snapshot Handle, moduleEntry *ModuleEntry32) (err error) {
+	r1, _, e1 := syscall.Syscall(procModule32FirstW.Addr(), 2, uintptr(snapshot), uintptr(unsafe.Pointer(moduleEntry)), 0)
+	if r1 == 0 {
+		err = errnoErr(e1)
+	}
+	return
+}
+
+func Module32Next(snapshot Handle, moduleEntry *ModuleEntry32) (err error) {
+	r1, _, e1 := syscall.Syscall(procModule32NextW.Addr(), 2, uintptr(snapshot), uintptr(unsafe.Pointer(moduleEntry)), 0)
+	if r1 == 0 {
 		err = errnoErr(e1)
 	}
 	return

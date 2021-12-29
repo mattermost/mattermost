@@ -10792,9 +10792,9 @@ func (s *RetryLayerThreadStore) UpdateUnreadsByChannel(userId string, changedThr
 
 }
 
-func (s *RetryLayerTokenStore) Cleanup() {
+func (s *RetryLayerTokenStore) Cleanup(expiryTime int64) {
 
-	s.TokenStore.Cleanup()
+	s.TokenStore.Cleanup(expiryTime)
 
 }
 

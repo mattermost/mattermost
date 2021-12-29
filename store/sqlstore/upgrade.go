@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	CurrentSchemaVersion   = Version620
+	CurrentSchemaVersion   = Version630
 	Version630             = "6.3.0"
 	Version620             = "6.2.0"
 	Version610             = "6.1.0"
@@ -857,8 +857,14 @@ func upgradeDatabaseToVersion620(sqlStore *SqlStore) {
 }
 
 func upgradeDatabaseToVersion630(sqlStore *SqlStore) {
-	// TODO: uncomment when the time arrive to upgrade the DB for 6.3
-	// if shouldPerformUpgrade(sqlStore, Version620, Version630) {
-	// 	saveSchemaVersion(sqlStore, Version630)
-	// }
+	if shouldPerformUpgrade(sqlStore, Version620, Version630) {
+		sqlStore.CreateColumnIfNotExists("Schemes", "DefaultPlaybookAdminRole", "VARCHAR(64)", "VARCHAR(64)", "")
+		sqlStore.CreateColumnIfNotExists("Schemes", "DefaultPlaybookMemberRole", "VARCHAR(64)", "VARCHAR(64)", "")
+		sqlStore.CreateColumnIfNotExists("Schemes", "DefaultRunAdminRole", "VARCHAR(64)", "VARCHAR(64)", "")
+		sqlStore.CreateColumnIfNotExists("Schemes", "DefaultRunMemberRole", "VARCHAR(64)", "VARCHAR(64)", "")
+
+		sqlStore.AlterColumnTypeIfExists("PluginKeyValueStore", "PKey", "VARCHAR(150)", "VARCHAR(150)")
+
+		saveSchemaVersion(sqlStore, Version630)
+	}
 }

@@ -7342,5 +7342,17 @@
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
     "translation": " 스레드에 응답했습니다."
+  },
+  {
+    "id": "api.command_remote.missing_command",
+    "translation": "없는 명령입니다. 가능한 동작 : {{.Actions}}"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "공통된 서버가 없어 해당 유저들과 개인 메세지 채널을 만들 수 없습니다."
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "'AuthData' 필드를 이메일로 초기화에 실패했습니다."
   }
 ]

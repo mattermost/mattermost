@@ -90,7 +90,7 @@ github.com/bits-and-blooms/bitset
 # github.com/blang/semver v3.5.1+incompatible
 ## explicit
 github.com/blang/semver
-# github.com/blevesearch/bleve/v2 v2.2.2
+# github.com/blevesearch/bleve/v2 v2.3.0
 ## explicit
 github.com/blevesearch/bleve/v2
 github.com/blevesearch/bleve/v2/analysis
@@ -146,15 +146,15 @@ github.com/blevesearch/vellum
 github.com/blevesearch/vellum/levenshtein
 github.com/blevesearch/vellum/regexp
 github.com/blevesearch/vellum/utf8
-# github.com/blevesearch/zapx/v11 v11.3.1
+# github.com/blevesearch/zapx/v11 v11.3.2
 github.com/blevesearch/zapx/v11
-# github.com/blevesearch/zapx/v12 v12.3.1
+# github.com/blevesearch/zapx/v12 v12.3.2
 github.com/blevesearch/zapx/v12
-# github.com/blevesearch/zapx/v13 v13.3.1
+# github.com/blevesearch/zapx/v13 v13.3.2
 github.com/blevesearch/zapx/v13
-# github.com/blevesearch/zapx/v14 v14.3.1
+# github.com/blevesearch/zapx/v14 v14.3.2
 github.com/blevesearch/zapx/v14
-# github.com/blevesearch/zapx/v15 v15.3.1
+# github.com/blevesearch/zapx/v15 v15.3.2
 github.com/blevesearch/zapx/v15
 # github.com/cespare/xxhash/v2 v2.1.2
 ## explicit
@@ -768,7 +768,7 @@ golang.org/x/net/trace
 # golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 ## explicit
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.0.0-20211124211545-fe61309f8881
+# golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e
 ## explicit
 golang.org/x/sys/cpu
 golang.org/x/sys/execabs
