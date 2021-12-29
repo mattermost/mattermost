@@ -927,6 +927,3 @@ willnorris.com/go/gifresize
 ## explicit
 willnorris.com/go/imageproxy
 willnorris.com/go/imageproxy/third_party/http
-# github.com/mattermost/mattermost-server/v6/plugin => ./plugin/
-# github.com/mattermost/mattermost-server/v6/app => ./app/
-# github.com/mattermost/mattermost-server/v6/model => ./model/
