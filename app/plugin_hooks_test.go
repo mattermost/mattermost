@@ -746,11 +746,7 @@ func TestRunDataRetention(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
-
-	assert.Nil(t, err, "Error updating user password: %s", err)
-
-	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
+	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
 			`
 		package main
@@ -763,8 +759,8 @@ func TestRunDataRetention(t *testing.T) {
 			plugin.MattermostPlugin
 		}
 
-		func (p *MyPlugin) RunDataRetention() {
-			return
+		func (p *MyPlugin) RunDataRetention(nowMillis, batchSize int64) (int64, error){
+			return 100, nil
 		}
 
 		func main() {
@@ -773,13 +769,16 @@ func TestRunDataRetention(t *testing.T) {
 	`}, th.App, th.NewPluginAPI)
 	defer tearDown()
 
-	r := &http.Request{}
-	w := httptest.NewRecorder()
+	require.Len(t, pluginIDs, 1)
+	pluginID := pluginIDs[0]
 
-	err = th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+	require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
 
-	assert.Nil(t, err, "Expected nil, got %s", err)
-	assert.Equal(t, th.Context.Session().UserId, th.BasicUser.Id)
+	th.App.GetPluginsEnvironment().RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		n, _ := hooks.RunDataRetention(0, 0)
+		assert.Equal(t, int64(100), n)
+		return true
+	}, plugin.RunDataRetentionID)
 }
 
 func TestUserHasLoggedIn(t *testing.T) {
