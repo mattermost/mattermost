@@ -268,7 +268,7 @@ func (s *SqlGroupStore) GetMemberUsers(groupID string) ([]*model.User, error) {
 
 	query := `
 		SELECT
-			Users.*
+			Users.Id, Users.CreateAt, Users.UpdateAt, Users.DeleteAt, Users.Username, Users.Password, Users.AuthData, Users.AuthService, Users.Email, Users.EmailVerified, Users.Nickname, Users.FirstName, Users.LastName, Users.Position, Users.Roles, Users.AllowMarketing, Users.Props, Users.NotifyProps, Users.LastPasswordUpdate, Users.LastPictureUpdate, Users.FailedAttempts, Users.Locale, Users.Timezone, Users.MfaActive, Users.MfaSecret
 		FROM
 			GroupMembers
 			JOIN Users ON Users.Id = GroupMembers.UserId
@@ -289,7 +289,7 @@ func (s *SqlGroupStore) GetMemberUsersPage(groupID string, page int, perPage int
 
 	query := `
 		SELECT
-			Users.*
+			Users.Id, Users.CreateAt, Users.UpdateAt, Users.DeleteAt, Users.Username, Users.Password, Users.AuthData, Users.AuthService, Users.Email, Users.EmailVerified, Users.Nickname, Users.FirstName, Users.LastName, Users.Position, Users.Roles, Users.AllowMarketing, Users.Props, Users.NotifyProps, Users.LastPasswordUpdate, Users.LastPictureUpdate, Users.FailedAttempts, Users.Locale, Users.Timezone, Users.MfaActive, Users.MfaSecret
 		FROM
 			GroupMembers
 			JOIN Users ON Users.Id = GroupMembers.UserId
@@ -336,7 +336,7 @@ func (s *SqlGroupStore) GetMemberUsersInTeam(groupID string, teamID string) ([]*
 
 	query := `
 		SELECT
-			Users.*
+			Users.Id, Users.CreateAt, Users.UpdateAt, Users.DeleteAt, Users.Username, Users.Password, Users.AuthData, Users.AuthService, Users.Email, Users.EmailVerified, Users.Nickname, Users.FirstName, Users.LastName, Users.Position, Users.Roles, Users.AllowMarketing, Users.Props, Users.NotifyProps, Users.LastPasswordUpdate, Users.LastPictureUpdate, Users.FailedAttempts, Users.Locale, Users.Timezone, Users.MfaActive, Users.MfaSecret
 		FROM
 			GroupMembers
 			JOIN Users ON Users.Id = GroupMembers.UserId
@@ -365,7 +365,7 @@ func (s *SqlGroupStore) GetMemberUsersNotInChannel(groupID string, channelID str
 
 	query := `
 		SELECT
-			Users.*
+			Users.Id, Users.CreateAt, Users.UpdateAt, Users.DeleteAt, Users.Username, Users.Password, Users.AuthData, Users.AuthService, Users.Email, Users.EmailVerified, Users.Nickname, Users.FirstName, Users.LastName, Users.Position, Users.Roles, Users.AllowMarketing, Users.Props, Users.NotifyProps, Users.LastPasswordUpdate, Users.LastPictureUpdate, Users.FailedAttempts, Users.Locale, Users.Timezone, Users.MfaActive, Users.MfaSecret
 		FROM
 			GroupMembers
 			JOIN Users ON Users.Id = GroupMembers.UserId
@@ -1403,7 +1403,8 @@ func (s *SqlGroupStore) teamMembersMinusGroupMembersQuery(teamID string, groupID
 	if isCount {
 		selectStr = "count(DISTINCT Users.Id)"
 	} else {
-		tmpl := "Users.*, coalesce(TeamMembers.SchemeGuest, false) SchemeGuest, TeamMembers.SchemeAdmin, TeamMembers.SchemeUser, %s AS GroupIDs"
+		tmpl := "Users.Id, Users.CreateAt, Users.UpdateAt, Users.DeleteAt, Users.Username, Users.Password, Users.AuthData, Users.AuthService, Users.Email, Users.EmailVerified, Users.Nickname, Users.FirstName, Users.LastName, Users.Position, Users.Roles, Users.AllowMarketing, Users.Props, Users.NotifyProps, Users.LastPasswordUpdate, Users.LastPictureUpdate, Users.FailedAttempts, Users.Locale, Users.Timezone, Users.MfaActive, Users.MfaSecret, " +
+			"coalesce(TeamMembers.SchemeGuest, false) SchemeGuest, TeamMembers.SchemeAdmin, TeamMembers.SchemeUser, %s AS GroupIDs"
 		if s.DriverName() == model.DatabaseDriverMysql {
 			selectStr = fmt.Sprintf(tmpl, "group_concat(UserGroups.Id)")
 		} else {
@@ -1481,7 +1482,8 @@ func (s *SqlGroupStore) channelMembersMinusGroupMembersQuery(channelID string, g
 	if isCount {
 		selectStr = "count(DISTINCT Users.Id)"
 	} else {
-		tmpl := "Users.*, coalesce(ChannelMembers.SchemeGuest, false) SchemeGuest, ChannelMembers.SchemeAdmin, ChannelMembers.SchemeUser, %s AS GroupIDs"
+		tmpl := "Users.Id, Users.CreateAt, Users.UpdateAt, Users.DeleteAt, Users.Username, Users.Password, Users.AuthData, Users.AuthService, Users.Email, Users.EmailVerified, Users.Nickname, Users.FirstName, Users.LastName, Users.Position, Users.Roles, Users.AllowMarketing, Users.Props, Users.NotifyProps, Users.LastPasswordUpdate, Users.LastPictureUpdate, Users.FailedAttempts, Users.Locale, Users.Timezone, Users.MfaActive, Users.MfaSecret, " +
+			"coalesce(ChannelMembers.SchemeGuest, false) SchemeGuest, ChannelMembers.SchemeAdmin, ChannelMembers.SchemeUser, %s AS GroupIDs"
 		if s.DriverName() == model.DatabaseDriverMysql {
 			selectStr = fmt.Sprintf(tmpl, "group_concat(UserGroups.Id)")
 		} else {
