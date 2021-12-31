@@ -742,45 +742,6 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 	assert.Equal(t, th.Context.Session().UserId, th.BasicUser.Id)
 }
 
-func TestRunDataRetention(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
-		[]string{
-			`
-		package main
-
-		import (
-			"github.com/mattermost/mattermost-server/v6/plugin"
-		)
-
-		type MyPlugin struct {
-			plugin.MattermostPlugin
-		}
-
-		func (p *MyPlugin) RunDataRetention(nowMillis, batchSize int64) (int64, error){
-			return 100, nil
-		}
-
-		func main() {
-			plugin.ClientMain(&MyPlugin{})
-		}
-	`}, th.App, th.NewPluginAPI)
-	defer tearDown()
-
-	require.Len(t, pluginIDs, 1)
-	pluginID := pluginIDs[0]
-
-	require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
-
-	th.App.GetPluginsEnvironment().RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-		n, _ := hooks.RunDataRetention(0, 0)
-		assert.Equal(t, int64(100), n)
-		return true
-	}, plugin.RunDataRetentionID)
-}
-
 func TestUserHasLoggedIn(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -1253,4 +1214,48 @@ func TestHookReactionHasBeenRemoved(t *testing.T) {
 	err := th.App.DeleteReactionForPost(th.Context, reaction)
 
 	require.Nil(t, err)
+}
+
+func TestHookRunDataRetention(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/v6/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) RunDataRetention(nowMillis, batchSize int64) (int64, error){
+			return 100, nil
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.NewPluginAPI)
+	defer tearDown()
+
+	require.Len(t, pluginIDs, 1)
+	pluginID := pluginIDs[0]
+
+	require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+
+	hookCalled := false
+	th.App.GetPluginsEnvironment().RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		n, _ := hooks.RunDataRetention(0, 0)
+		// Ensure return it correct
+		assert.Equal(t, int64(100), n)
+		hookCalled = true
+		return hookCalled
+	}, plugin.RunDataRetentionID)
+
+	require.True(t, hookCalled)
 }

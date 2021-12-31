@@ -219,20 +219,20 @@ func (_m *Hooks) ReactionHasBeenRemoved(c *plugin.Context, reaction *model.React
 	_m.Called(c, reaction)
 }
 
-// RunDataRetention provides a mock function with given fields: globalRetentionDate, nowTime, batchSize
-func (_m *Hooks) RunDataRetention(globalRetentionDate int64, nowTime int64, batchSize int64) (int64, error) {
-	ret := _m.Called(globalRetentionDate, nowTime, batchSize)
+// RunDataRetention provides a mock function with given fields: nowTime, batchSize
+func (_m *Hooks) RunDataRetention(nowTime int64, batchSize int64) (int64, error) {
+	ret := _m.Called(nowTime, batchSize)
 
 	var r0 int64
-	if rf, ok := ret.Get(0).(func(int64, int64, int64) int64); ok {
-		r0 = rf(globalRetentionDate, nowTime, batchSize)
+	if rf, ok := ret.Get(0).(func(int64, int64) int64); ok {
+		r0 = rf(nowTime, batchSize)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(int64, int64, int64) error); ok {
-		r1 = rf(globalRetentionDate, nowTime, batchSize)
+	if rf, ok := ret.Get(1).(func(int64, int64) error); ok {
+		r1 = rf(nowTime, batchSize)
 	} else {
 		r1 = ret.Error(1)
 	}
