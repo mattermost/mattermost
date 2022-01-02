@@ -9313,5 +9313,9 @@
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "Het aantal ontvangen Post ID's heeft de maximumgrootte van {{.MaxLength}} overschreden"
+  },
+  {
+    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
+    "translation": "Vernieuwen van deze licentie op het portaal is niet mogelijk"
   }
 ]
