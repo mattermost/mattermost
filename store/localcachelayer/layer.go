@@ -35,8 +35,8 @@ const (
 	EmojiCacheSize = 5000
 	EmojiCacheSec  = 30 * 60
 
-	ChannelPinnedPostsCounsCacheSize = model.ChannelCacheSize
-	ChannelPinnedPostsCountsCacheSec = 30 * 60
+	ChannelPinnedPostsCountsCacheSize = model.ChannelCacheSize
+	ChannelPinnedPostsCountsCacheSec  = 30 * 60
 
 	ChannelMembersCountsCacheSize = model.ChannelCacheSize
 	ChannelMembersCountsCacheSec  = 30 * 60
@@ -206,7 +206,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 
 	// Channels
 	if localCacheStore.channelPinnedPostCountsCache, err = cacheProvider.NewCache(&cache.CacheOptions{
-		Size:                   ChannelPinnedPostsCounsCacheSize,
+		Size:                   ChannelPinnedPostsCountsCacheSize,
 		Name:                   "ChannelPinnedPostsCounts",
 		DefaultExpiry:          ChannelPinnedPostsCountsCacheSec * time.Second,
 		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForChannelPinnedpostsCounts,
