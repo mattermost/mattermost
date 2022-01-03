@@ -1439,7 +1439,7 @@ func upgradeDatabaseToVersion640(sqlStore *SqlStore) {
 	}
 
 	sqlStore.CreateColumnIfNotExists("OAuthApps", "MattermostAppID", "VARCHAR(32)", "VARCHAR(32)", "")
-	
+
 	// 	saveSchemaVersion(sqlStore, Version640)
 	// }
 }
