@@ -809,7 +809,7 @@ func (s SqlSharedChannelStore) UpdateAttachmentLastSyncAt(id string, syncTime in
 
 	result, err := s.GetMasterX().Exec(squery, args...)
 	if err != nil {
-		return errors.Wrap(err, "failed to update LastSycnAt for SharedChannelAttachment")
+		return errors.Wrap(err, "failed to update LastSyncAt for SharedChannelAttachment")
 	}
 
 	count, err := result.RowsAffected()
