@@ -1438,6 +1438,6 @@ func upgradeDatabaseToVersion640(sqlStore *SqlStore) {
 		sqlStore.GetMaster().ExecNoTimeout("ALTER TABLE Users DROP COLUMN AcceptedTermsOfServiceId")
 	}
 
-	// 	saveSchemaVersion(sqlStore, Version630)
+	// 	saveSchemaVersion(sqlStore, Version640)
 	// }
 }
