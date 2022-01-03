@@ -509,13 +509,13 @@ func (a *App) doLocalWarnMetricsRequest(c *request.Context, rawURL string, upstr
 					},
 				},
 			)
-			attachements := []*model.SlackAttachment{{
+			attachments := []*model.SlackAttachment{{
 				AuthorName: "",
 				Title:      "",
 				Actions:    actions,
 				Text:       i18n.T("api.server.warn_metric.bot_response.notification_failure.body"),
 			}}
-			model.ParseSlackAttachment(botPost, attachements)
+			model.ParseSlackAttachment(botPost, attachments)
 		}
 	}
 
