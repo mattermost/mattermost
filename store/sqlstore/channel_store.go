@@ -3182,7 +3182,7 @@ func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearch
 	if err != nil {
 		return nil, 0, errors.Wrap(err, "channel_tosql")
 	}
-	channels := model.ChannelListWithTeamData{}
+	channels := []*channelWithTeamDataInternal{}
 	if err2 := s.GetReplicaX().Select(&channels, queryString, args...); err2 != nil {
 		return nil, 0, errors.Wrapf(err2, "failed to find Channels with term='%s'", term)
 	}
@@ -3203,7 +3203,7 @@ func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearch
 		totalCount = int64(len(channels))
 	}
 
-	return channels, totalCount, nil
+	return channelWithTeamDataSliceToModel(channels), totalCount, nil
 }
 
 // TODO: rewrite in squrrel
