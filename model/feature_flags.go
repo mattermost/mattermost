@@ -70,6 +70,9 @@ type FeatureFlags struct {
 
 	// A/B test for whether radio buttons or toggle button is more effective in in-screen invite to team modal ("none", "toggle")
 	InviteToTeam string
+
+	// Enable inline post editing
+	InlinePostEditing bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -94,6 +97,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.GuidedChannelCreation = false
 	f.ResendInviteEmailInterval = ""
 	f.InviteToTeam = "none"
+	f.InlinePostEditing = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
