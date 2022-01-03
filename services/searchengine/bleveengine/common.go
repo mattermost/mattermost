@@ -80,12 +80,12 @@ func BLVUserFromUserAndTeams(user *model.User, teamsIds, channelsIds []string) *
 		fullnameSuggestions = searchengine.GetSuggestionInputsSplitBy(fullname, " ")
 	}
 
-	nicknameSuggesitons := []string{}
+	nicknameSuggestions := []string{}
 	if user.Nickname != "" {
-		nicknameSuggesitons = searchengine.GetSuggestionInputsSplitBy(user.Nickname, " ")
+		nicknameSuggestions = searchengine.GetSuggestionInputsSplitBy(user.Nickname, " ")
 	}
 
-	usernameAndNicknameSuggestions := append(usernameSuggestions, nicknameSuggesitons...)
+	usernameAndNicknameSuggestions := append(usernameSuggestions, nicknameSuggestions...)
 
 	return &BLVUser{
 		Id:                         user.Id,
