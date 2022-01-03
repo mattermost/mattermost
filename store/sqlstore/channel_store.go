@@ -454,7 +454,7 @@ type channelInternal struct {
 	GroupConstrained  *bool
 	Shared            *bool
 	TotalMsgCountRoot int64
-	PolicyID          *string
+	PolicyId          *string
 	LastRootPostAt    int64
 }
 
@@ -479,7 +479,7 @@ func (ci *channelInternal) ToModel() *model.Channel {
 		GroupConstrained:  ci.GroupConstrained,
 		Shared:            ci.Shared,
 		TotalMsgCountRoot: ci.TotalMsgCountRoot,
-		PolicyID:          ci.PolicyID,
+		PolicyID:          ci.PolicyId,
 		LastRootPostAt:    ci.LastRootPostAt,
 	}
 }
@@ -1248,7 +1248,7 @@ func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCo
 	} else {
 		selectStr = "c.*, Teams.DisplayName AS TeamDisplayName, Teams.Name AS TeamName, Teams.UpdateAt AS TeamUpdateAt"
 		if opts.IncludePolicyID {
-			selectStr += ", RetentionPoliciesChannels.PolicyId AS PolicyID"
+			selectStr += ", RetentionPoliciesChannels.PolicyId"
 		}
 	}
 
