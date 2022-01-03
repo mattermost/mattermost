@@ -1015,7 +1015,7 @@ func (s SqlChannelStore) DeleteSidebarCategory(categoryId string) error {
 		Delete("SidebarCategories").
 		Where(sq.Eq{"Id": categoryId}).ToSql()
 	if err != nil {
-		return errors.Wrap(err, "delete_sidebar_cateory_tosql")
+		return errors.Wrap(err, "delete_sidebar_category_tosql")
 	}
 	if _, err = transaction.Exec(query, args...); err != nil {
 		return errors.Wrap(err, "failed to delete SidebarCategory")
@@ -1026,7 +1026,7 @@ func (s SqlChannelStore) DeleteSidebarCategory(categoryId string) error {
 		Delete("SidebarChannels").
 		Where(sq.Eq{"CategoryId": categoryId}).ToSql()
 	if err != nil {
-		return errors.Wrap(err, "delete_sidebar_cateory_tosql")
+		return errors.Wrap(err, "delete_sidebar_category_tosql")
 	}
 	if _, err = transaction.Exec(query, args...); err != nil {
 		return errors.Wrap(err, "failed to delete SidebarChannel")
