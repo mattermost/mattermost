@@ -297,7 +297,7 @@ func (b *S3FileBackend) MoveFile(oldPath, newPath string) error {
 	}
 
 	if _, err := b.client.CopyObject(context.Background(), dstOpts, srcOpts); err != nil {
-		return errors.Wrapf(err, "unable to copy the file to %s to the new destionation", newPath)
+		return errors.Wrapf(err, "unable to copy the file to %s to the new destination", newPath)
 	}
 
 	if err := b.client.RemoveObject(context.Background(), b.bucket, oldPath, s3.RemoveObjectOptions{}); err != nil {
