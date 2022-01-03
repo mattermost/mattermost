@@ -98,12 +98,12 @@ func (ch *Channels) verifyPlugin(plugin, signature io.ReadSeeker) *model.AppErro
 	return model.NewAppError("VerifyPlugin", "api.plugin.verify_plugin.app_error", nil, "", http.StatusInternalServerError)
 }
 
-func verifySignature(publicKey, message, signatrue io.Reader) error {
+func verifySignature(publicKey, message, signature io.Reader) error {
 	pk, err := decodeIfArmored(publicKey)
 	if err != nil {
 		return errors.Wrap(err, "can't decode public key")
 	}
-	s, err := decodeIfArmored(signatrue)
+	s, err := decodeIfArmored(signature)
 	if err != nil {
 		return errors.Wrap(err, "can't decode signature")
 	}
