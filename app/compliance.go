@@ -65,7 +65,7 @@ func (a *App) GetComplianceReport(reportId string) (*model.Compliance, *model.Ap
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetComplicanceReport", "app.compliance.get.finding.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetComplianceReport", "app.compliance.get.finding.app_error", nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("GetComplianceReport", "app.compliance.get.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
