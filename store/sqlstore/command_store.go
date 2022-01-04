@@ -65,12 +65,7 @@ func (s SqlCommandStore) Save(command *model.Command) (*model.Command, error) {
 	}
 
 	// Trigger is a keyword
-	var trigger string
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		trigger = `"trigger"`
-	} else {
-		trigger = "`Trigger`"
-	}
+	trigger := s.toReserveCase("trigger")
 
 	if _, err := s.GetMasterX().NamedExec(`INSERT INTO Commands (Id, Token, CreateAt,
 		UpdateAt, DeleteAt, CreatorId, TeamId, `+trigger+`, Method, Username,
@@ -215,11 +210,7 @@ func (s SqlCommandStore) Update(cmd *model.Command) (*model.Command, error) {
 		Where(sq.Eq{"Id": cmd.Id})
 
 	// Trigger is a keyword
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		query = query.Set(`"trigger"`, cmd.Trigger)
-	} else {
-		query = query.Set("`Trigger`", cmd.Trigger)
-	}
+	query = query.Set(s.toReserveCase("trigger"), cmd.Trigger)
 
 	queryString, args, err := query.ToSql()
 	if err != nil {

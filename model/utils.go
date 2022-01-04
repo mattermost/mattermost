@@ -135,6 +135,11 @@ func (si *StringInterface) Scan(value interface{}) error {
 	return errors.New("received value is neither a byte slice nor string")
 }
 
+// Value converts StringInterface to database value
+func (si StringInterface) Value() (driver.Value, error) {
+	return json.Marshal(si)
+}
+
 var translateFunc i18n.TranslateFunc
 var translateFuncOnce sync.Once
 
