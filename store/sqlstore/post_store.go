@@ -1404,7 +1404,7 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 	if err != nil {
 		return nil, errors.Wrap(err, "post_tosql")
 	}
-	err = s.GetMasterX().Select(&posts, queryString, args...)
+	err = s.GetReplicaX().Select(&posts, queryString, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 	}
@@ -1439,7 +1439,7 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		if nErr != nil {
 			return nil, errors.Wrap(nErr, "post_tosql")
 		}
-		nErr = s.GetMasterX().Select(&parents, rootQueryString, rootArgs...)
+		nErr = s.GetReplicaX().Select(&parents, rootQueryString, rootArgs...)
 		if nErr != nil {
 			return nil, errors.Wrapf(nErr, "failed to find Posts with channelId=%s", options.ChannelId)
 		}
