@@ -18,6 +18,7 @@ import (
 
 const (
 	CurrentSchemaVersion   = Version630
+	Version631             = "6.3.1"
 	Version630             = "6.3.0"
 	Version620             = "6.2.0"
 	Version610             = "6.1.0"
@@ -220,6 +221,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion610(sqlStore)
 	upgradeDatabaseToVersion620(sqlStore)
 	upgradeDatabaseToVersion630(sqlStore)
+	upgradeDatabaseToVersion631(sqlStore)
 
 	return nil
 }
@@ -1826,4 +1828,14 @@ func upgradeDatabaseToVersion630(sqlStore *SqlStore) {
 
 		saveSchemaVersion(sqlStore, Version630)
 	}
+}
+
+func upgradeDatabaseToVersion631(sqlStore *SqlStore) {
+	// if shouldPerformUpgrade(sqlStore, Version630, Version631) {
+	if sqlStore.DoesColumnExist("Users", "AcceptedTermsOfServiceId") {
+		sqlStore.GetMaster().ExecNoTimeout("ALTER TABLE Users DROP COLUMN AcceptedTermsOfServiceId")
+	}
+
+	// saveSchemaVersion(sqlStore, Version631)
+	// }
 }
