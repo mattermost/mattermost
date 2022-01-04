@@ -1831,11 +1831,11 @@ func upgradeDatabaseToVersion630(sqlStore *SqlStore) {
 }
 
 func upgradeDatabaseToVersion631(sqlStore *SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, Version630, Version631) {
-	if sqlStore.DoesColumnExist("Users", "AcceptedTermsOfServiceId") {
-		sqlStore.GetMaster().ExecNoTimeout("ALTER TABLE Users DROP COLUMN AcceptedTermsOfServiceId")
-	}
+	if shouldPerformUpgrade(sqlStore, Version630, Version631) {
+		if sqlStore.DoesColumnExist("Users", "AcceptedTermsOfServiceId") {
+			sqlStore.GetMaster().ExecNoTimeout("ALTER TABLE Users DROP COLUMN AcceptedTermsOfServiceId")
+		}
 
-	// saveSchemaVersion(sqlStore, Version631)
-	// }
+		saveSchemaVersion(sqlStore, Version631)
+	}
 }
