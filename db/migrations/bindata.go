@@ -146,6 +146,8 @@
 // mysql/000072_upgrade_schemes_v6.3.up.sql
 // mysql/000073_upgrade_plugin_key_value_store_v6.3.down.sql
 // mysql/000073_upgrade_plugin_key_value_store_v6.3.up.sql
+// mysql/000074_upgrade_users_v6.3.down.sql
+// mysql/000074_upgrade_users_v6.3.up.sql
 // postgres/000001_create_teams.down.sql
 // postgres/000001_create_teams.up.sql
 // postgres/000002_create_team_members.down.sql
@@ -292,6 +294,8 @@
 // postgres/000072_upgrade_schemes_v6.3.up.sql
 // postgres/000073_upgrade_plugin_key_value_store_v6.3.down.sql
 // postgres/000073_upgrade_plugin_key_value_store_v6.3.up.sql
+// postgres/000074_upgrade_users_v6.3.down.sql
+// postgres/000074_upgrade_users_v6.3.up.sql
 package migrations
 
 import (
@@ -3288,6 +3292,46 @@ func mysql000073_upgrade_plugin_key_value_store_v63UpSql() (*asset, error) {
 	return a, nil
 }
 
+var _mysql000074_upgrade_users_v63DownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x04\xc0\xb1\x0d\x02\x31\x0c\x05\xd0\x9e\x29\xfe\x02\xc7\x0e\x94\x57\x51\xc0\x02\xc1\xf7\x03\x16\x8e\x8d\x1c\x13\x89\xed\x79\xdb\x86\xbd\xa0\x13\xea\x45\x2f\x0d\x6f\x66\x3f\x54\xc0\xa3\xf0\x6a\x8b\xc8\x30\x7b\x34\x79\xa3\x47\x22\x39\x62\xa9\x3f\x71\x11\xe1\xa7\x78\xdc\x99\x63\x5e\xfb\x8d\xb9\x54\xb8\x1f\x90\xb0\xef\xf0\xf3\xe9\x1f\x00\x00\xff\xff\xe6\xb3\x2e\xec\x5a\x00\x00\x00")
+
+func mysql000074_upgrade_users_v63DownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000074_upgrade_users_v63DownSql,
+		"mysql/000074_upgrade_users_v6.3.down.sql",
+	)
+}
+
+func mysql000074_upgrade_users_v63DownSql() (*asset, error) {
+	bytes, err := mysql000074_upgrade_users_v63DownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000074_upgrade_users_v6.3.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000074_upgrade_users_v63UpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x74\x90\x5f\x4b\xc3\x30\x14\xc5\xdf\xf3\x29\xce\x5b\x5b\x11\xd1\xe7\x32\xf1\xae\xbd\x63\x85\xb6\x19\x49\x8a\xbe\x8d\xda\xdd\xe1\x60\x9d\xa3\x89\xe2\xc7\x17\xd7\x52\xf0\x5f\x1e\x42\x20\xbf\xf3\x4b\xee\x51\x96\x1d\x1e\xce\x83\x9c\xdb\x41\x76\x36\xb4\x41\x7a\x39\x05\x2c\x10\x5b\x2e\x39\x73\x28\x56\xb1\x02\x80\x71\xff\x5a\xd3\x45\xa6\x9b\xda\xc5\x57\x09\x56\x46\x57\x28\xea\x95\x36\x15\xb9\x42\xd7\x5b\x9b\xad\xb9\xa2\x9b\x4c\x97\x4d\x55\xdb\x39\xf7\xb8\x66\xc3\x08\xed\xf3\x51\xb6\xa7\xb6\x17\x2c\x10\x35\x5e\x06\x1f\xcd\x08\xd5\xf9\x04\xf8\xee\x45\xfa\x16\x0b\xe4\xe4\x68\x49\x96\xe3\xe4\x1b\xd5\xbd\x1e\xdf\xfa\xd3\xec\xa1\xae\x93\x73\x90\x9d\x93\xa1\xf7\x7a\x6f\x65\x78\x3f\x74\x52\xec\x46\x75\x82\x7b\xdc\x5e\x5f\x8e\x11\x95\x8e\x0d\x1c\x2d\x4b\xc6\xe5\x75\xe4\x46\x6f\x30\x7e\x16\xff\x79\xd2\x68\x8a\x4f\xc3\xdf\x45\x2a\x49\x52\xa5\x36\x86\x37\x64\x18\xed\x31\xc8\x50\xec\xf9\xe3\xe0\x83\x1f\x1b\xf9\xdd\x6a\xaa\xf8\x89\xb3\xc6\xfd\xc0\x53\x95\x33\x95\xa5\xce\xc8\x31\xfe\x14\xa6\xea\x33\x00\x00\xff\xff\xe3\x9d\xad\x7d\xa8\x01\x00\x00")
+
+func mysql000074_upgrade_users_v63UpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000074_upgrade_users_v63UpSql,
+		"mysql/000074_upgrade_users_v6.3.up.sql",
+	)
+}
+
+func mysql000074_upgrade_users_v63UpSql() (*asset, error) {
+	bytes, err := mysql000074_upgrade_users_v63UpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000074_upgrade_users_v6.3.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _postgres000001_create_teamsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x94\x90\xc1\x6a\x04\x21\x10\x44\xef\x7e\x45\x1f\x93\x6f\xf0\x34\xd9\x35\x30\x30\x19\xc3\xac\x81\xbd\x89\x68\x93\x34\x38\x2a\xea\x26\xf9\xfc\x30\xe3\x92\x1c\x72\x58\xf7\xd8\xd4\xab\xa2\xab\x0e\x8b\x18\x94\x80\x71\x3e\x8a\x33\x8c\xcf\x30\x4b\x05\xe2\x3c\x9e\xd4\x09\xc8\x7d\xeb\x8a\x66\x2d\x3a\x98\x15\x41\xce\xb0\x5f\xf0\xb0\x9d\x8f\x9c\xb1\x61\x52\x62\x01\x35\x3c\x4d\xe2\x2a\x1d\x17\xf9\x0a\x07\x39\xbd\xbd\xcc\x5b\xd8\x35\xc8\x78\x1f\xbf\x62\xc2\x40\xe1\x93\x2a\xf2\x6e\xa3\x37\xa5\x6e\x3a\xd9\x18\x2e\xc9\x99\x7b\xbc\x0e\x8b\xcd\x94\x2a\xc5\xd0\x6f\x7a\xcf\xf1\x92\x6c\x0c\xa5\x66\x43\x01\x1d\x67\x6c\x07\x7f\xe7\xf9\x37\x4d\xab\xa4\xc9\xf1\x5b\x64\x2b\xa0\x4d\xbd\x49\xda\x8c\x9d\xa4\x43\x8f\x7d\x64\xb1\x1f\xb8\xb6\x3f\x1b\xda\xc6\xf8\x43\x77\x8c\xb3\x9f\x00\x00\x00\xff\xff\x9c\xf4\x8f\xc0\x10\x02\x00\x00")
 
 func postgres000001_create_teamsDownSqlBytes() ([]byte, error) {
@@ -6208,6 +6252,46 @@ func postgres000073_upgrade_plugin_key_value_store_v63UpSql() (*asset, error) {
 	return a, nil
 }
 
+var _postgres000074_upgrade_users_v63DownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x04\xc0\xb1\x0d\x02\x31\x0c\x05\xd0\x9e\x29\xfe\x02\xc7\x0e\x94\x57\x51\xc0\x02\xc1\xf7\x03\x16\x8e\x8d\x1c\x13\x89\xed\x79\xdb\x86\xbd\xa0\x13\xea\x45\x2f\x0d\x6f\x66\x3f\x54\xc0\xa3\xf0\x6a\x8b\xc8\x30\x7b\x34\x79\xa3\x47\x22\x39\x62\xa9\x3f\x71\x11\xe1\xa7\x78\xdc\x99\x63\x5e\xfb\x8d\xb9\x54\xb8\x1f\x90\xb0\xef\xf0\xf3\xe9\x1f\x00\x00\xff\xff\xe6\xb3\x2e\xec\x5a\x00\x00\x00")
+
+func postgres000074_upgrade_users_v63DownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000074_upgrade_users_v63DownSql,
+		"postgres/000074_upgrade_users_v6.3.down.sql",
+	)
+}
+
+func postgres000074_upgrade_users_v63DownSql() (*asset, error) {
+	bytes, err := postgres000074_upgrade_users_v63DownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000074_upgrade_users_v6.3.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _postgres000074_upgrade_users_v63UpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\xf4\x09\x71\x0d\x52\x08\x71\x74\xf2\x71\x55\x28\x2d\x4e\x2d\x2a\x56\x70\x09\xf2\x0f\x50\x70\xf6\xf7\x09\xf5\xf5\x53\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x48\x4c\x4e\x4e\x2d\x28\x49\x4d\x29\x49\x2d\xca\x2d\xce\x4f\x2b\x4e\x2d\x2a\xcb\x4c\x4e\xcd\x4c\xb1\xe6\x02\x04\x00\x00\xff\xff\x1a\x3f\xb9\xc6\x42\x00\x00\x00")
+
+func postgres000074_upgrade_users_v63UpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000074_upgrade_users_v63UpSql,
+		"postgres/000074_upgrade_users_v6.3.up.sql",
+	)
+}
+
+func postgres000074_upgrade_users_v63UpSql() (*asset, error) {
+	bytes, err := postgres000074_upgrade_users_v63UpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000074_upgrade_users_v6.3.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -6406,6 +6490,8 @@ var _bindata = map[string]func() (*asset, error){
 	"mysql/000072_upgrade_schemes_v6.3.up.sql":                     mysql000072_upgrade_schemes_v63UpSql,
 	"mysql/000073_upgrade_plugin_key_value_store_v6.3.down.sql":    mysql000073_upgrade_plugin_key_value_store_v63DownSql,
 	"mysql/000073_upgrade_plugin_key_value_store_v6.3.up.sql":      mysql000073_upgrade_plugin_key_value_store_v63UpSql,
+	"mysql/000074_upgrade_users_v6.3.down.sql":                     mysql000074_upgrade_users_v63DownSql,
+	"mysql/000074_upgrade_users_v6.3.up.sql":                       mysql000074_upgrade_users_v63UpSql,
 	"postgres/000001_create_teams.down.sql":                        postgres000001_create_teamsDownSql,
 	"postgres/000001_create_teams.up.sql":                          postgres000001_create_teamsUpSql,
 	"postgres/000002_create_team_members.down.sql":                 postgres000002_create_team_membersDownSql,
@@ -6552,6 +6638,8 @@ var _bindata = map[string]func() (*asset, error){
 	"postgres/000072_upgrade_schemes_v6.3.up.sql":                  postgres000072_upgrade_schemes_v63UpSql,
 	"postgres/000073_upgrade_plugin_key_value_store_v6.3.down.sql": postgres000073_upgrade_plugin_key_value_store_v63DownSql,
 	"postgres/000073_upgrade_plugin_key_value_store_v6.3.up.sql":   postgres000073_upgrade_plugin_key_value_store_v63UpSql,
+	"postgres/000074_upgrade_users_v6.3.down.sql":                  postgres000074_upgrade_users_v63DownSql,
+	"postgres/000074_upgrade_users_v6.3.up.sql":                    postgres000074_upgrade_users_v63UpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -6742,6 +6830,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"000072_upgrade_schemes_v6.3.up.sql":                  &bintree{mysql000072_upgrade_schemes_v63UpSql, map[string]*bintree{}},
 		"000073_upgrade_plugin_key_value_store_v6.3.down.sql": &bintree{mysql000073_upgrade_plugin_key_value_store_v63DownSql, map[string]*bintree{}},
 		"000073_upgrade_plugin_key_value_store_v6.3.up.sql":   &bintree{mysql000073_upgrade_plugin_key_value_store_v63UpSql, map[string]*bintree{}},
+		"000074_upgrade_users_v6.3.down.sql":                  &bintree{mysql000074_upgrade_users_v63DownSql, map[string]*bintree{}},
+		"000074_upgrade_users_v6.3.up.sql":                    &bintree{mysql000074_upgrade_users_v63UpSql, map[string]*bintree{}},
 	}},
 	"postgres": &bintree{nil, map[string]*bintree{
 		"000001_create_teams.down.sql":                        &bintree{postgres000001_create_teamsDownSql, map[string]*bintree{}},
@@ -6890,6 +6980,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"000072_upgrade_schemes_v6.3.up.sql":                  &bintree{postgres000072_upgrade_schemes_v63UpSql, map[string]*bintree{}},
 		"000073_upgrade_plugin_key_value_store_v6.3.down.sql": &bintree{postgres000073_upgrade_plugin_key_value_store_v63DownSql, map[string]*bintree{}},
 		"000073_upgrade_plugin_key_value_store_v6.3.up.sql":   &bintree{postgres000073_upgrade_plugin_key_value_store_v63UpSql, map[string]*bintree{}},
+		"000074_upgrade_users_v6.3.down.sql":                  &bintree{postgres000074_upgrade_users_v63DownSql, map[string]*bintree{}},
+		"000074_upgrade_users_v6.3.up.sql":                    &bintree{postgres000074_upgrade_users_v63UpSql, map[string]*bintree{}},
 	}},
 }}
 
