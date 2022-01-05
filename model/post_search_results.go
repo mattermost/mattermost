@@ -30,7 +30,6 @@ func (o *PostSearchResults) ToJSON() (string, error) {
 }
 
 func (o *PostSearchResults) EncodeJSON(w io.Writer) error {
-	copy := *o
-	copy.PostList.StripActionIntegrations()
-	return json.NewEncoder(w).Encode(&copy)
+	o.PostList.StripActionIntegrations()
+	return json.NewEncoder(w).Encode(o)
 }

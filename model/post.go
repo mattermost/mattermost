@@ -229,9 +229,8 @@ func (o *Post) ToJSON() (string, error) {
 }
 
 func (o *Post) EncodeJSON(w io.Writer) error {
-	copy := o.Clone()
-	copy.StripActionIntegrations()
-	return json.NewEncoder(w).Encode(&copy)
+	o.StripActionIntegrations()
+	return json.NewEncoder(w).Encode(o)
 }
 
 type GetPostsSinceOptions struct {

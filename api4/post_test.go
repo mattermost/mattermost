@@ -2758,3 +2758,55 @@ func TestGetPostsByIds(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, response)
 }
+
+func TestGetPostStripActionIntegrations(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	post := &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   "with slack attachment action",
+	}
+	post.AddProp("attachments", []*model.SlackAttachment{
+		{
+			Text: "Slack Attachment Text",
+			Fields: []*model.SlackAttachmentField{
+				{
+					Title: "Test Field",
+					Value: "test value",
+					Short: true,
+				},
+			},
+			Actions: []*model.PostAction{
+				{
+					Type: "button",
+					Name: "test-name",
+					Integration: &model.PostActionIntegration{
+						URL: "https://test.test/action",
+						Context: map[string]interface{}{
+							"test-ctx": "some-value",
+						},
+					},
+				},
+			},
+		},
+	})
+
+	rpost, resp, err2 := client.CreatePost(post)
+	require.NoError(t, err2)
+	CheckCreatedStatus(t, resp)
+
+	actualPost, _, err := client.GetPost(rpost.Id, "")
+	require.NoError(t, err)
+	attachments, _ := actualPost.Props["attachments"].([]interface{})
+	require.Equal(t, 1, len(attachments))
+	att, _ := attachments[0].(map[string]interface{})
+	require.NotNil(t, att)
+	actions, _ := att["actions"].([]interface{})
+	require.Equal(t, 1, len(actions))
+	action, _ := actions[0].(map[string]interface{})
+	require.NotNil(t, action)
+	// integration must be omitted
+	require.Nil(t, action["integration"])
+}

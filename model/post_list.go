@@ -82,9 +82,8 @@ func (o *PostList) ToJSON() (string, error) {
 }
 
 func (o *PostList) EncodeJSON(w io.Writer) error {
-	copy := *o
-	copy.StripActionIntegrations()
-	return json.NewEncoder(w).Encode(&copy)
+	o.StripActionIntegrations()
+	return json.NewEncoder(w).Encode(o)
 }
 
 func (o *PostList) MakeNonNil() {
