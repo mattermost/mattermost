@@ -3653,14 +3653,12 @@ func TestLoginCookies(t *testing.T) {
 
 		_, resp, _ := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 
-		cloudSessionCookie := ""
-		for _, cookie := range resp.Header["Set-Cookie"] {
-			if match := regexp.MustCompile("^" + model.SessionCookieCloudUrl + "=([a-z0-9]+)").FindStringSubmatch(cookie); match != nil {
-				cloudSessionCookie = match[1]
-			}
-		}
+		val := strings.Split(resp.Header["Set-Cookie"][0], ";")
+		cloudSessionCookie := strings.Split(val[0], "=")[1]
+		domain := strings.Split(val[2], "=")[1]
 
 		assert.Equal(t, "testchips", cloudSessionCookie)
+		assert.Equal(t, "mattermost.com", domain)
 	})
 
 	t.Run("should NOT return cookie with MMCLOUDURL for NON cloud installations", func(t *testing.T) {
