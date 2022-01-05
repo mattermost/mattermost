@@ -1854,7 +1854,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// For context see: https://mattermost.atlassian.net/browse/MM-39583
 	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
-		c.App.AttachCWSIntermediaryLoginCookie(c.AppContext, w, r)
+		c.App.AttachCloudSessionCookie(c.AppContext, w, r)
 	}
 
 	userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)

@@ -391,7 +391,7 @@ type AppIface interface {
 	AllowOAuthAppAccessToUser(userID string, authRequest *model.AuthorizeRequest) (string, *model.AppError)
 	AppendFile(fr io.Reader, path string) (int64, *model.AppError)
 	AsymmetricSigningKey() *ecdsa.PrivateKey
-	AttachCWSIntermediaryLoginCookie(c *request.Context, w http.ResponseWriter, r *http.Request)
+	AttachCloudSessionCookie(c *request.Context, w http.ResponseWriter, r *http.Request)
 	AttachDeviceId(sessionID string, deviceID string, expiresAt int64) *model.AppError
 	AttachSessionCookies(c *request.Context, w http.ResponseWriter, r *http.Request)
 	AuthenticateUserForLogin(c *request.Context, id, loginId, password, mfaToken, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError)

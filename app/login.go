@@ -238,7 +238,7 @@ func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request
 	return nil
 }
 
-func (a *App) AttachCWSIntermediaryLoginCookie(c *request.Context, w http.ResponseWriter, r *http.Request) {
+func (a *App) AttachCloudSessionCookie(c *request.Context, w http.ResponseWriter, r *http.Request) {
 	secure := false
 	if GetProtocol(r) == "https" {
 		secure = true
@@ -249,16 +249,15 @@ func (a *App) AttachCWSIntermediaryLoginCookie(c *request.Context, w http.Respon
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
 
-	// for a domain like 'allan.cloud.mattermost.com' this will give us 'cloud.mattermost.com'
 	var val string
 	if strings.Contains(domain, "localhost") {
 		val = "localhost"
 	} else {
-		val = strings.SplitN(domain, ".", 2)[1]
+		val = strings.SplitN(domain, ".", 2)[0]
 	}
 
 	cookie := &http.Cookie{
-		Name:     model.SessionCookieCWSIntermediary,
+		Name:     model.SessionCookieCloudUrl,
 		Value:    val,
 		Path:     subpath,
 		MaxAge:   maxAge,
