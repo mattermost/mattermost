@@ -29,8 +29,6 @@ type hasherHandle interface {
 	Store(data []byte, mask uint, ix uint)
 }
 
-type score_t uint
-
 const kCutoffTransformsCount uint32 = 10
 
 /*   0,  12,   27,    23,    42,    63,    56,    48,    59,    64 */

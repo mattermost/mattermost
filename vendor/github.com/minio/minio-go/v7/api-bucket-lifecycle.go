@@ -30,7 +30,7 @@ import (
 )
 
 // SetBucketLifecycle set the lifecycle on an existing bucket.
-func (c Client) SetBucketLifecycle(ctx context.Context, bucketName string, config *lifecycle.Configuration) error {
+func (c *Client) SetBucketLifecycle(ctx context.Context, bucketName string, config *lifecycle.Configuration) error {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return err
@@ -51,7 +51,7 @@ func (c Client) SetBucketLifecycle(ctx context.Context, bucketName string, confi
 }
 
 // Saves a new bucket lifecycle.
-func (c Client) putBucketLifecycle(ctx context.Context, bucketName string, buf []byte) error {
+func (c *Client) putBucketLifecycle(ctx context.Context, bucketName string, buf []byte) error {
 	// Get resources properly escaped and lined up before
 	// using them in http request.
 	urlValues := make(url.Values)
@@ -81,7 +81,7 @@ func (c Client) putBucketLifecycle(ctx context.Context, bucketName string, buf [
 }
 
 // Remove lifecycle from a bucket.
-func (c Client) removeBucketLifecycle(ctx context.Context, bucketName string) error {
+func (c *Client) removeBucketLifecycle(ctx context.Context, bucketName string) error {
 	// Get resources properly escaped and lined up before
 	// using them in http request.
 	urlValues := make(url.Values)
@@ -101,7 +101,7 @@ func (c Client) removeBucketLifecycle(ctx context.Context, bucketName string) er
 }
 
 // GetBucketLifecycle fetch bucket lifecycle configuration
-func (c Client) GetBucketLifecycle(ctx context.Context, bucketName string) (*lifecycle.Configuration, error) {
+func (c *Client) GetBucketLifecycle(ctx context.Context, bucketName string) (*lifecycle.Configuration, error) {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return nil, err
@@ -120,7 +120,7 @@ func (c Client) GetBucketLifecycle(ctx context.Context, bucketName string) (*lif
 }
 
 // Request server for current bucket lifecycle.
-func (c Client) getBucketLifecycle(ctx context.Context, bucketName string) ([]byte, error) {
+func (c *Client) getBucketLifecycle(ctx context.Context, bucketName string) ([]byte, error) {
 	// Get resources properly escaped and lined up before
 	// using them in http request.
 	urlValues := make(url.Values)

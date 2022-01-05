@@ -405,9 +405,9 @@ func (*Rar) Match(file io.ReadSeeker) (bool, error) {
 	if n, err := file.Read(buf); err != nil || n < 8 {
 		return false, nil
 	}
-	hasTarHeader := bytes.Equal(buf[:7], []byte("Rar!\x1a\x07\x00")) || // ver 1.5
+	hasRarHeader := bytes.Equal(buf[:7], []byte("Rar!\x1a\x07\x00")) || // ver 1.5
 		bytes.Equal(buf, []byte("Rar!\x1a\x07\x01\x00")) // ver 5.0
-	return hasTarHeader, nil
+	return hasRarHeader, nil
 }
 
 func (r *Rar) String() string { return "rar" }

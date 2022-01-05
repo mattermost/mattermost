@@ -10,7 +10,7 @@ import (
 
 const (
 	KeyValuePluginIdMaxRunes = 190
-	KeyValueKeyMaxRunes      = 50
+	KeyValueKeyMaxRunes      = 150
 )
 
 type PluginKeyValue struct {

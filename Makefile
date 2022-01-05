@@ -117,13 +117,13 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.20.1
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.22.1
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.5.0
-PLUGIN_PACKAGES += focalboard-v0.9.3
+PLUGIN_PACKAGES += focalboard-v0.11.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -353,12 +353,12 @@ test-compile: ## Compile tests.
 	done
 
 test-db-migration: start-docker ## Gets diff of upgrade vs new instance schemas.
-	./scripts/mysql-migration-test.sh 6.0
-	./scripts/psql-migration-test.sh 6.0
+	./scripts/mysql-migration-test.sh 6.0.0
+	./scripts/psql-migration-test.sh 6.0.0
 
 test-db-migration-v5: start-docker ## Gets diff of upgrade vs new instance schemas.
-	./scripts/mysql-migration-v5-test.sh 5.0
-	./scripts/psql-migration-v5-test.sh 5.0
+	./scripts/mysql-migration-test.sh 5.0.0
+	./scripts/psql-migration-test.sh 5.0.0
 
 gomodtidy:
 	@cp go.mod go.mod.orig

@@ -75,15 +75,15 @@ func (a *App) ReloadConfig() error {
 }
 
 func (a *App) ClientConfig() map[string]string {
-	return a.Srv().clientConfig.Load().(map[string]string)
+	return a.ch.clientConfig.Load().(map[string]string)
 }
 
 func (a *App) ClientConfigHash() string {
-	return a.Srv().ClientConfigHash()
+	return a.ch.ClientConfigHash()
 }
 
 func (a *App) LimitedClientConfig() map[string]string {
-	return a.Srv().limitedClientConfig.Load().(map[string]string)
+	return a.ch.limitedClientConfig.Load().(map[string]string)
 }
 
 // Registers a function with a given listener to be called when the config is reloaded and may have changed. The function
@@ -109,14 +109,14 @@ func (a *App) RemoveConfigListener(id string) {
 // ensurePostActionCookieSecret ensures that the key for encrypting PostActionCookie exists
 // and future calls to PostActionCookieSecret will always return a valid key, same on all
 // servers in the cluster
-func (s *Server) ensurePostActionCookieSecret() error {
-	if s.postActionCookieSecret != nil {
+func (ch *Channels) ensurePostActionCookieSecret() error {
+	if ch.postActionCookieSecret != nil {
 		return nil
 	}
 
 	var secret *model.SystemPostActionCookieSecret
 
-	value, err := s.Store.System().GetByName(model.SystemPostActionCookieSecretKey)
+	value, err := ch.srv.Store.System().GetByName(model.SystemPostActionCookieSecretKey)
 	if err == nil {
 		if err := json.Unmarshal([]byte(value.Value), &secret); err != nil {
 			return err
@@ -142,7 +142,7 @@ func (s *Server) ensurePostActionCookieSecret() error {
 		}
 		system.Value = string(v)
 		// If we were able to save the key, use it, otherwise log the error.
-		if err = s.Store.System().Save(system); err != nil {
+		if err = ch.srv.Store.System().Save(system); err != nil {
 			mlog.Warn("Failed to save PostActionCookieSecret", mlog.Err(err))
 		} else {
 			secret = newSecret
@@ -152,7 +152,7 @@ func (s *Server) ensurePostActionCookieSecret() error {
 	// If we weren't able to save a new key above, another server must have beat us to it. Get the
 	// key from the database, and if that fails, error out.
 	if secret == nil {
-		value, err := s.Store.System().GetByName(model.SystemPostActionCookieSecretKey)
+		value, err := ch.srv.Store.System().GetByName(model.SystemPostActionCookieSecretKey)
 		if err != nil {
 			return err
 		}
@@ -162,20 +162,20 @@ func (s *Server) ensurePostActionCookieSecret() error {
 		}
 	}
 
-	s.postActionCookieSecret = secret.Secret
+	ch.postActionCookieSecret = secret.Secret
 	return nil
 }
 
 // ensureAsymmetricSigningKey ensures that an asymmetric signing key exists and future calls to
 // AsymmetricSigningKey will always return a valid signing key.
-func (s *Server) ensureAsymmetricSigningKey() error {
-	if s.AsymmetricSigningKey() != nil {
+func (ch *Channels) ensureAsymmetricSigningKey() error {
+	if ch.AsymmetricSigningKey() != nil {
 		return nil
 	}
 
 	var key *model.SystemAsymmetricSigningKey
 
-	value, err := s.Store.System().GetByName(model.SystemAsymmetricSigningKeyKey)
+	value, err := ch.srv.Store.System().GetByName(model.SystemAsymmetricSigningKeyKey)
 	if err == nil {
 		if err := json.Unmarshal([]byte(value.Value), &key); err != nil {
 			return err
@@ -205,7 +205,7 @@ func (s *Server) ensureAsymmetricSigningKey() error {
 		}
 		system.Value = string(v)
 		// If we were able to save the key, use it, otherwise log the error.
-		if err = s.Store.System().Save(system); err != nil {
+		if err = ch.srv.Store.System().Save(system); err != nil {
 			mlog.Warn("Failed to save AsymmetricSigningKey", mlog.Err(err))
 		} else {
 			key = newKey
@@ -215,7 +215,7 @@ func (s *Server) ensureAsymmetricSigningKey() error {
 	// If we weren't able to save a new key above, another server must have beat us to it. Get the
 	// key from the database, and if that fails, error out.
 	if key == nil {
-		value, err := s.Store.System().GetByName(model.SystemAsymmetricSigningKeyKey)
+		value, err := ch.srv.Store.System().GetByName(model.SystemAsymmetricSigningKeyKey)
 		if err != nil {
 			return err
 		}
@@ -232,7 +232,7 @@ func (s *Server) ensureAsymmetricSigningKey() error {
 	default:
 		return fmt.Errorf("unknown curve: " + key.ECDSAKey.Curve)
 	}
-	s.asymmetricSigningKey.Store(&ecdsa.PrivateKey{
+	ch.asymmetricSigningKey.Store(&ecdsa.PrivateKey{
 		PublicKey: ecdsa.PublicKey{
 			Curve: curve,
 			X:     key.ECDSAKey.X,
@@ -240,7 +240,7 @@ func (s *Server) ensureAsymmetricSigningKey() error {
 		},
 		D: key.ECDSAKey.D,
 	})
-	s.regenerateClientConfig()
+	ch.regenerateClientConfig()
 	return nil
 }
 
@@ -283,31 +283,31 @@ func (s *Server) ensureFirstServerRunTimestamp() error {
 }
 
 // AsymmetricSigningKey will return a private key that can be used for asymmetric signing.
-func (s *Server) AsymmetricSigningKey() *ecdsa.PrivateKey {
-	if key := s.asymmetricSigningKey.Load(); key != nil {
+func (ch *Channels) AsymmetricSigningKey() *ecdsa.PrivateKey {
+	if key := ch.asymmetricSigningKey.Load(); key != nil {
 		return key.(*ecdsa.PrivateKey)
 	}
 	return nil
 }
 
 func (a *App) AsymmetricSigningKey() *ecdsa.PrivateKey {
-	return a.Srv().AsymmetricSigningKey()
+	return a.ch.AsymmetricSigningKey()
 }
 
-func (s *Server) PostActionCookieSecret() []byte {
-	return s.postActionCookieSecret
+func (ch *Channels) PostActionCookieSecret() []byte {
+	return ch.postActionCookieSecret
 }
 
 func (a *App) PostActionCookieSecret() []byte {
-	return a.Srv().PostActionCookieSecret()
+	return a.ch.PostActionCookieSecret()
 }
 
-func (s *Server) regenerateClientConfig() {
-	clientConfig := config.GenerateClientConfig(s.Config(), s.TelemetryId(), s.License())
-	limitedClientConfig := config.GenerateLimitedClientConfig(s.Config(), s.TelemetryId(), s.License())
+func (ch *Channels) regenerateClientConfig() {
+	clientConfig := config.GenerateClientConfig(ch.srv.Config(), ch.srv.TelemetryId(), ch.srv.License())
+	limitedClientConfig := config.GenerateLimitedClientConfig(ch.srv.Config(), ch.srv.TelemetryId(), ch.srv.License())
 
 	if clientConfig["EnableCustomTermsOfService"] == "true" {
-		termsOfService, err := s.Store.TermsOfService().GetLatest(true)
+		termsOfService, err := ch.srv.Store.TermsOfService().GetLatest(true)
 		if err != nil {
 			mlog.Err(err)
 		} else {
@@ -316,16 +316,16 @@ func (s *Server) regenerateClientConfig() {
 		}
 	}
 
-	if key := s.AsymmetricSigningKey(); key != nil {
+	if key := ch.AsymmetricSigningKey(); key != nil {
 		der, _ := x509.MarshalPKIXPublicKey(&key.PublicKey)
 		clientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
 		limitedClientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
 	}
 
 	clientConfigJSON, _ := json.Marshal(clientConfig)
-	s.clientConfig.Store(clientConfig)
-	s.limitedClientConfig.Store(limitedClientConfig)
-	s.clientConfigHash.Store(fmt.Sprintf("%x", md5.Sum(clientConfigJSON)))
+	ch.clientConfig.Store(clientConfig)
+	ch.limitedClientConfig.Store(limitedClientConfig)
+	ch.clientConfigHash.Store(fmt.Sprintf("%x", md5.Sum(clientConfigJSON)))
 }
 
 func (a *App) GetCookieDomain() string {
@@ -342,28 +342,23 @@ func (a *App) GetSiteURL() string {
 }
 
 // ClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
-func (s *Server) ClientConfigWithComputed() map[string]string {
+func (a *App) ClientConfigWithComputed() map[string]string {
 	respCfg := map[string]string{}
-	for k, v := range s.clientConfig.Load().(map[string]string) {
+	for k, v := range a.ch.clientConfig.Load().(map[string]string) {
 		respCfg[k] = v
 	}
 
 	// These properties are not configurable, but nevertheless represent configuration expected
 	// by the client.
-	respCfg["NoAccounts"] = strconv.FormatBool(s.userService.IsFirstUserAccount())
-	respCfg["MaxPostSize"] = strconv.Itoa(s.MaxPostSize())
-	respCfg["UpgradedFromTE"] = strconv.FormatBool(s.isUpgradedFromTE())
+	respCfg["NoAccounts"] = strconv.FormatBool(a.ch.srv.userService.IsFirstUserAccount())
+	respCfg["MaxPostSize"] = strconv.Itoa(a.ch.srv.MaxPostSize())
+	respCfg["UpgradedFromTE"] = strconv.FormatBool(a.ch.srv.isUpgradedFromTE())
 	respCfg["InstallationDate"] = ""
-	if installationDate, err := s.getSystemInstallDate(); err == nil {
+	if installationDate, err := a.ch.srv.getSystemInstallDate(); err == nil {
 		respCfg["InstallationDate"] = strconv.FormatInt(installationDate, 10)
 	}
 
 	return respCfg
-}
-
-// ClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
-func (a *App) ClientConfigWithComputed() map[string]string {
-	return a.Srv().ClientConfigWithComputed()
 }
 
 // LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.

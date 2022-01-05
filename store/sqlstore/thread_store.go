@@ -291,7 +291,10 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	}
 	totalUnreadThreads := totalUnreadThreadsResult.Data.(int64)
 
+	// userIds is the de-duped list of participant ids from all threads.
 	var userIds []string
+	// userIdMap is the map of participant ids from all threads.
+	// Used to generate userIds
 	userIdMap := map[string]bool{}
 
 	result := &model.Threads{
@@ -315,30 +318,30 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 				}
 			}
 		}
-		var users []*model.User
+		// usersMap is the global profile map of all participants from all threads.
+		usersMap := make(map[string]*model.User, len(userIds))
 		if opts.Extended {
-			var err error
-			users, err = s.User().GetProfileByIds(context.Background(), userIds, &store.UserGetByIdsOpts{}, true)
+			users, err := s.User().GetProfileByIds(context.Background(), userIds, &store.UserGetByIdsOpts{}, true)
 			if err != nil {
 				return nil, errors.Wrapf(err, "failed to get threads for user id=%s", userId)
 			}
+			for _, user := range users {
+				usersMap[user.Id] = user
+			}
 		} else {
 			for _, userId := range userIds {
-				users = append(users, &model.User{Id: userId})
+				usersMap[userId] = &model.User{Id: userId}
 			}
 		}
 
+		result.Threads = make([]*model.ThreadResponse, 0, len(threads))
 		for _, thread := range threads {
-			var participants []*model.User
+			participants := make([]*model.User, 0, len(thread.Participants))
+			// We get the user profiles for only a single thread filtered from the
+			// global users map.
 			for _, participantId := range thread.Participants {
-				var participant *model.User
-				for _, u := range users {
-					if u.Id == participantId {
-						participant = u
-						break
-					}
-				}
-				if participant == nil {
+				participant, ok := usersMap[participantId]
+				if !ok {
 					return nil, errors.New("cannot find thread participant with id=" + participantId)
 				}
 				participants = append(participants, participant)
@@ -457,7 +460,9 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 				break
 			}
 		}
-		participants = append(participants, participant)
+		if participant != nil {
+			participants = append(participants, participant)
+		}
 	}
 
 	result := &model.ThreadResponse{

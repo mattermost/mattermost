@@ -2,6 +2,7 @@
 // +build gc
 // +build !noasm
 
+#include "go_asm.h"
 #include "textflag.h"
 
 // AX scratch
@@ -17,7 +18,7 @@
 // R12 short output end
 // R13 short input end
 // R14 &dict
-// R15 &dict + len(dict)
+// R15 len(dict)
 
 // func decodeBlock(dst, src, dict []byte) int
 TEXT ·decodeBlock(SB), NOSPLIT, $48-80
@@ -34,7 +35,6 @@ TEXT ·decodeBlock(SB), NOSPLIT, $48-80
 
 	MOVQ dict_base+48(FP), R14
 	MOVQ dict_len+56(FP), R15
-	ADDQ R14, R15
 
 	// shortcut ends
 	// short output end
@@ -47,7 +47,7 @@ TEXT ·decodeBlock(SB), NOSPLIT, $48-80
 loop:
 	// for si < len(src)
 	CMPQ SI, R9
-	JGE end
+	JAE end
 
 	// token := uint32(src[si])
 	MOVBQZX (SI), DX
@@ -63,9 +63,9 @@ loop:
 	CMPQ CX, $0xF
 	JEQ lit_len_loop_pre
 	CMPQ DI, R12
-	JGE lit_len_loop_pre
+	JAE lit_len_loop_pre
 	CMPQ SI, R13
-	JGE lit_len_loop_pre
+	JAE lit_len_loop_pre
 
 	// copy shortcut
 
@@ -92,22 +92,22 @@ loop:
 	// offset := uint16(data[:2])
 	MOVWQZX (SI), DX
 	ADDQ $2, SI
+	JC err_short_buf
 
 	MOVQ DI, AX
 	SUBQ DX, AX
+	JC err_corrupt
 	CMPQ AX, DI
-	JGT err_short_buf
+	JA err_short_buf
 
 	// if we can't do the second stage then jump straight to read the
 	// match length, we already have the offset.
 	CMPQ CX, $0xF
 	JEQ match_len_loop_pre
-	CMPQ DX, R11
-	JLT match_len_loop_pre
 	CMPQ DX, $8
 	JLT match_len_loop_pre
 	CMPQ AX, R11
-	JLT err_short_buf
+	JB match_len_loop_pre
 
 	// memcpy(op + 0, match + 0, 8);
 	MOVQ (AX), BX
@@ -119,7 +119,7 @@ loop:
 	MOVW 16(AX), BX
 	MOVW BX, 16(DI)
 
-	LEAQ 4(DI)(CX*1), DI // minmatch
+	LEAQ const_minMatch(DI)(CX*1), DI
 
 	// shortcut complete, load next token
 	JMP loop
@@ -131,37 +131,31 @@ lit_len_loop_pre:
 	CMPQ CX, $0xF
 	JNE copy_literal
 
+	// do { BX = src[si++]; lit_len += BX } while (BX == 0xFF).
 lit_len_loop:
-	// for src[si] == 0xFF
-	CMPB (SI), $0xFF
-	JNE lit_len_finalise
+	CMPQ SI, R9
+	JAE err_short_buf
 
-	// bounds check src[si+1]
-	LEAQ 1(SI), AX
-	CMPQ AX, R9
-	JGT err_short_buf
-
-	// lit_len += 0xFF
-	ADDQ $0xFF, CX
+	MOVBLZX (SI), BX
 	INCQ SI
-	JMP lit_len_loop
+	ADDQ BX, CX
 
-lit_len_finalise:
-	// lit_len += int(src[si])
-	// si++
-	MOVBQZX (SI), AX
-	ADDQ AX, CX
-	INCQ SI
+	CMPB BX, $0xFF
+	JE lit_len_loop
 
 copy_literal:
 	// bounds check src and dst
-	LEAQ (SI)(CX*1), AX
+	MOVQ SI, AX
+	ADDQ CX, AX
+	JC err_short_buf
 	CMPQ AX, R9
-	JGT err_short_buf
+	JA err_short_buf
 
-	LEAQ (DI)(CX*1), AX
-	CMPQ AX, R8
-	JGT err_short_buf
+	MOVQ DI, BX
+	ADDQ CX, BX
+	JC err_short_buf
+	CMPQ BX, R8
+	JA err_short_buf
 
 	// whats a good cut off to call memmove?
 	CMPQ CX, $16
@@ -213,6 +207,8 @@ memmove_lit:
 	ADDQ dst_len+8(FP), R8
 	MOVQ src_base+24(FP), R9
 	ADDQ src_len+32(FP), R9
+	MOVQ dict_base+48(FP), R14
+	MOVQ dict_len+56(FP), R15
 	MOVQ R8, R12
 	SUBQ $32, R12
 	MOVQ R9, R13
@@ -220,21 +216,21 @@ memmove_lit:
 
 finish_lit_copy:
 	CMPQ SI, R9
-	JGE end
+	JAE end
 
 offset:
 	// CX := mLen
 	// free up DX to use for offset
 	MOVQ DX, CX
 
-	LEAQ 2(SI), AX
-	CMPQ AX, R9
-	JGT err_short_buf
-
 	// offset
-	// DX := int(src[si]) | int(src[si+1])<<8
-	MOVWQZX (SI), DX
+	// si += 2
+	// DX := int(src[si-2]) | int(src[si-1])<<8
 	ADDQ $2, SI
+	JC err_short_buf
+	CMPQ SI, R9
+	JA err_short_buf
+	MOVWQZX -2(SI), DX
 
 	// 0 offset is invalid
 	CMPQ DX, $0
@@ -247,27 +243,17 @@ match_len_loop_pre:
 	CMPB CX, $0xF
 	JNE copy_match
 
+	// do { BX = src[si++]; mlen += BX } while (BX == 0xFF).
 match_len_loop:
-	// for src[si] == 0xFF
-	// lit_len += 0xFF
-	CMPB (SI), $0xFF
-	JNE match_len_finalise
+	CMPQ SI, R9
+	JAE err_short_buf
 
-	// bounds check src[si+1]
-	LEAQ 1(SI), AX
-	CMPQ AX, R9
-	JGT err_short_buf
-
-	ADDQ $0xFF, CX
+	MOVBLZX (SI), BX
 	INCQ SI
-	JMP match_len_loop
+	ADDQ BX, CX
 
-match_len_finalise:
-	// lit_len += int(src[si])
-	// si++
-	MOVBQZX (SI), AX
-	ADDQ AX, CX
-	INCQ SI
+	CMPB BX, $0xFF
+	JE match_len_loop
 
 copy_match:
 	// mLen += minMatch
@@ -275,9 +261,11 @@ copy_match:
 
 	// check we have match_len bytes left in dst
 	// di+match_len < len(dst)
-	LEAQ (DI)(CX*1), AX
+	MOVQ DI, AX
+	ADDQ CX, AX
+	JC err_short_buf
 	CMPQ AX, R8
-	JGT err_short_buf
+	JA err_short_buf
 
 	// DX = offset
 	// CX = match_len
@@ -287,13 +275,14 @@ copy_match:
 
 	// check BX is within dst
 	// if BX < &dst
+	JC copy_match_from_dict
 	CMPQ BX, R11
-	JLT copy_match_from_dict
+	JBE copy_match_from_dict
 
 	// if offset + match_len < di
 	LEAQ (BX)(CX*1), AX
 	CMPQ DI, AX
-	JGT copy_interior_match
+	JA copy_interior_match
 
 	// AX := len(dst[:di])
 	// MOVQ DI, AX
@@ -313,9 +302,7 @@ copy_match_loop:
 	INCQ DI
 	INCQ BX
 	DECQ CX
-
-	CMPQ CX, $0
-	JGT copy_match_loop
+	JNZ copy_match_loop
 
 	JMP loop
 
@@ -343,14 +330,12 @@ copy_match_from_dict:
 	MOVQ R11, AX
 	SUBQ BX, AX
 
-	// BX = &dict_end - dict_bytes_available
+	// BX = len(dict) - dict_bytes_available
 	MOVQ R15, BX
 	SUBQ AX, BX
+	JS err_short_dict
 
-	// check BX is within dict
-	// if BX < &dict
-	CMPQ BX, R14
-	JLT err_short_dict
+	ADDQ R14, BX
 
 	// if match_len > dict_bytes_available, match fits entirely within external dictionary : just copy
 	CMPQ CX, AX
@@ -387,7 +372,6 @@ copy_match_from_dict:
 	ADDQ src_len+32(FP), R9
 	MOVQ dict_base+48(FP), R14
 	MOVQ dict_len+56(FP), R15
-	ADDQ R14, R15
 	MOVQ R8, R12
 	SUBQ $32, R12
 	MOVQ R9, R13
@@ -408,7 +392,7 @@ copy_match_from_dict:
 	// if &dst + rest_size > di, copy byte by byte
 	CMPQ AX, DI
 
-	JGT copy_match_loop
+	JA copy_match_loop
 
 memmove_match:
 	// memmove(to, from, len)
@@ -439,7 +423,6 @@ memmove_match:
 	SUBQ $16, R13
 	MOVQ dict_base+48(FP), R14
 	MOVQ dict_len+56(FP), R15
-	ADDQ R14, R15
 
 	JMP loop
 

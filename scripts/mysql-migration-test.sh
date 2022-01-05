@@ -10,6 +10,8 @@ docker exec mattermost-mysql mysql -uroot -pmostest -e "CREATE DATABASE migrated
 echo "Importing mysql dump from version ${SCHEMA_VERSION}"
 docker exec -i mattermost-mysql mysql -D migrated -uroot -pmostest < $(pwd)/scripts/mattermost-mysql-$SCHEMA_VERSION.sql
 
+docker exec -i mattermost-mysql mysql -D migrated -uroot -pmostest -e "INSERT INTO Systems (Name, Value) VALUES ('Version', '$SCHEMA_VERSION')"
+
 echo "Setting up config for db migration"
 cat config/config.json | \
     jq '.SqlSettings.DataSource = "mmuser:mostest@tcp(localhost:3306)/migrated?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s"' | \
@@ -26,7 +28,7 @@ cat config/config.json | \
 echo "Setting up fresh db"
 make ARGS="version --config $TMPDIR/config.json" run-cli
 
-if [ "$SCHEMA_VERSION" == "5.0" ]; then
+if [ "$SCHEMA_VERSION" == "5.0.0" ]; then
   for i in "ChannelMembers SchemeGuest" "ChannelMembers MsgCountRoot" "ChannelMembers MentionCountRoot" "Channels TotalMsgCountRoot"; do
     a=( $i );
     echo "Ignoring known MySQL mismatch: ${a[0]}.${a[1]}"
