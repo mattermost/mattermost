@@ -992,13 +992,13 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.SanitizeTeams(*c.AppContext.Session(), teams)
-
 	var resBody []byte
 
 	if c.Params.IncludeTotalCount {
+		c.App.SanitizeTeams(*c.AppContext.Session(), teamsWithCount.Teams)
 		resBody = model.TeamsWithCountToJson(teamsWithCount)
 	} else {
+		c.App.SanitizeTeams(*c.AppContext.Session(), teams)
 		resBody = model.ToJson(teams)
 	}
 

@@ -1082,6 +1082,18 @@ func TestGetAllTeams(t *testing.T) {
 		_, resp = Client.GetAllTeams("", 1, 10)
 		CheckUnauthorizedStatus(t, resp)
 	})
+
+	t.Run("Sanitize the teams in the response with total count", func(t *testing.T) {
+		otherUser := th.CreateUser()
+		Client.Login(otherUser.Email, otherUser.Password)
+		teams, _, _ := Client.GetAllTeamsWithTotalCount("", 0, 10)
+		for _, team := range teams {
+			if team.Email != "" {
+				require.Nil(t, team.Email)
+				break
+			}
+		}
+	})
 }
 
 func TestGetAllTeamsSanitization(t *testing.T) {
