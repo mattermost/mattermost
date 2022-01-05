@@ -254,6 +254,8 @@ func (a *App) AttachCloudSessionCookie(c *request.Context, w http.ResponseWriter
 		val = "localhost"
 	} else {
 		val = strings.SplitN(domain, ".", 2)[0]
+		// we want to share this cookie between 'https://customers.mattermost.com' and 'https://example.cloud.mattermost.com'
+		domain = "mattermost.com"
 	}
 
 	cookie := &http.Cookie{
