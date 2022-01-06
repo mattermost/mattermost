@@ -9310,5 +9310,9 @@
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "A kapott Bejegyzés Azonosítók száma meghaladja a maximális mennyiséget ({{.MaxLength}})"
+  },
+  {
+    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
+    "translation": "Ennek a licensznek a portálon keresztüli megújítása nem lehetséges"
   }
 ]
