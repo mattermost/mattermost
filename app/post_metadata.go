@@ -515,7 +515,7 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 		referencedPostID := requestURL[len(requestURL)-26:]
 
 		referencedPost, appErr := a.GetSinglePost(referencedPostID)
-		// TODO: Look into saving a value in the LinkMetadat.Data field to prevent perpetually re-querying for the deleted post.
+		// TODO: Look into saving a value in the LinkMetadata.Data field to prevent perpetually re-querying for the deleted post.
 		if appErr != nil {
 			return nil, nil, nil, appErr
 		}

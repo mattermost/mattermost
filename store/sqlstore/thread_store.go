@@ -636,7 +636,7 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
 
 	membership, err := s.getMembershipForUser(trx, userId, postId)
 	now := utils.MillisFromTime(time.Now())
-	// if memebership exists, update it if:
+	// if membership exists, update it if:
 	// a. user started/stopped following a thread
 	// b. mention count changed
 	// c. user viewed a thread
