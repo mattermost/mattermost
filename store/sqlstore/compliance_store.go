@@ -306,8 +306,8 @@ func (s SqlComplianceStore) MessageExport(cursor model.MessageExportCursor, limi
 			Teams.DisplayName AS TeamDisplayName,
 			Channels.Id AS ChannelId,
 			CASE
-				WHEN Channels.Type = 'D' THEN 'Direct Message'
-				WHEN Channels.Type = 'G' THEN 'Group Message'
+				WHEN Channels.Type = '`+model.ChannelTypeDirect+`' THEN 'Direct Message'
+				WHEN Channels.Type = '`+model.ChannelTypeGroup+`' THEN 'Group Message'
 				ELSE Channels.DisplayName
 			END AS ChannelDisplayName,
 			Channels.Name AS ChannelName,

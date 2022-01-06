@@ -546,9 +546,8 @@ func (s SqlChannelStore) MigratePublicChannels() error {
 		LEFT JOIN
 		    PublicChannels pc ON (pc.Id = c.Id)
 		WHERE
-		    c.Type = 'O'
-		AND pc.Id IS NULL
-	`); err != nil {
+		    c.Type = :ChannelType
+		AND pc.Id IS NULL`, map[string]interface{}{"ChannelType": model.ChannelTypeOpen}); err != nil {
 		return err
 	}
 
@@ -739,7 +738,7 @@ func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *mo
 	}
 
 	if channel.Type != model.ChannelTypeDirect && channel.Type != model.ChannelTypeGroup && maxChannelsPerTeam >= 0 {
-		if count, err := transaction.SelectInt("SELECT COUNT(0) FROM Channels WHERE TeamId = :TeamId AND DeleteAt = 0 AND (Type = 'O' OR Type = 'P')", map[string]interface{}{"TeamId": channel.TeamId}); err != nil {
+		if count, err := transaction.SelectInt("SELECT COUNT(0) FROM Channels WHERE TeamId = :TeamId AND DeleteAt = 0 AND (Type = :ChannelTypeOpen OR Type = :ChannelTypePrivate)", map[string]interface{}{"TeamId": channel.TeamId, "ChannelTypeOpen":model.ChannelTypeOpen, "ChannelTypePrivate": model.ChannelTypePrivate}); err != nil {
 			return nil, errors.Wrapf(err, "save_channel_count: teamId=%s", channel.TeamId)
 		} else if count >= maxChannelsPerTeam {
 			return nil, store.NewErrLimitExceeded("channels_per_team", int(count), "teamId="+channel.TeamId)
@@ -1392,7 +1391,7 @@ func (s SqlChannelStore) GetChannelCounts(teamId string, userId string) (*model.
 
 func (s SqlChannelStore) GetTeamChannels(teamId string) (model.ChannelList, error) {
 	var data model.ChannelList
-	_, err := s.GetReplica().Select(&data, "SELECT * FROM Channels WHERE TeamId = :TeamId And Type != 'D' ORDER BY DisplayName", map[string]interface{}{"TeamId": teamId})
+	_, err := s.GetReplica().Select(&data, "SELECT * FROM Channels WHERE TeamId = :TeamId And Type != :ChannelType ORDER BY DisplayName", map[string]interface{}{"TeamId": teamId, "ChannelType": model.ChannelTypeDirect})
 
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Channels with teamId=%s", teamId)
@@ -1530,17 +1529,17 @@ func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int, userId
 		SELECT * FROM Channels
 		WHERE (TeamId = :TeamId OR TeamId = '')
 		AND DeleteAt != 0
-		AND Type != 'P'
+		AND Type != :ChannelType
 		UNION
 			SELECT * FROM Channels
 			WHERE (TeamId = :TeamId OR TeamId = '')
 			AND DeleteAt != 0
-			AND Type = 'P'
+			AND Type = :ChannelType
 			AND Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = :UserId)
 		ORDER BY DisplayName LIMIT :Limit OFFSET :Offset
 	`
 
-	if _, err := s.GetReplica().Select(&channels, query, map[string]interface{}{"TeamId": teamId, "Limit": limit, "Offset": offset, "UserId": userId}); err != nil {
+	if _, err := s.GetReplica().Select(&channels, query, map[string]interface{}{"TeamId": teamId, "Limit": limit, "Offset": offset, "UserId": userId, "ChannelType": model.ChannelTypePrivate}); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Channel", fmt.Sprintf("TeamId=%s,UserId=%s", teamId, userId))
 		}
@@ -2549,7 +2548,7 @@ func (s SqlChannelStore) IncrementMentionCount(channelId string, userId string, 
 
 func (s SqlChannelStore) GetAll(teamId string) ([]*model.Channel, error) {
 	var data []*model.Channel
-	_, err := s.GetReplica().Select(&data, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Type != 'D' ORDER BY Name", map[string]interface{}{"TeamId": teamId})
+	_, err := s.GetReplica().Select(&data, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Type != :ChannelType ORDER BY Name", map[string]interface{}{"TeamId": teamId, "ChannelType": model.ChannelTypeDirect})
 
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Channels with teamId=%s", teamId)
@@ -2708,15 +2707,16 @@ func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) 
 		`+deleteFilter+`
 		SEARCH_CLAUSE
 		AND (
-			c.Type != 'P'
+			c.Type != :ChannelType
 			OR (
-				c.Type = 'P'
+				c.Type = :ChannelType
 				AND c.Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = :UserId)
 			)
 		)
 	ORDER BY c.DisplayName
 	`, term, map[string]interface{}{
 		"UserId": userID,
+		"ChannelType": model.ChannelTypePrivate,
 	})
 }
 
@@ -2736,9 +2736,9 @@ func (s SqlChannelStore) AutocompleteInTeam(teamID, userID, term string, include
 		`+deleteFilter+`
 		SEARCH_CLAUSE
 		AND (
-			c.Type != 'P'
+			c.Type != :ChannelType
 			OR (
-				c.Type = 'P'
+				c.Type = :ChannelType
 				AND c.Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = :UserId)
 			)
 		)
@@ -2748,6 +2748,7 @@ func (s SqlChannelStore) AutocompleteInTeam(teamID, userID, term string, include
 		"TeamId": teamID,
 		"UserId": userID,
 		"Limit":  model.ChannelSearchDefaultLimit,
+		"ChannelType": model.ChannelTypePrivate,
 	})
 }
 
@@ -2824,20 +2825,20 @@ func (s SqlChannelStore) autocompleteInTeamForSearchDirectMessages(userId string
 					%v
 				) AS OtherUsers ON OtherUsers.ChannelId = C.Id
 			WHERE
-			    C.Type = 'D'
+			    C.Type = :ChannelType
 				AND CM.UserId = :UserId
 			LIMIT 50`
 
 	var channels model.ChannelList
 
 	if likeClause, likeTerm := s.buildLIKEClause(term, "IU.Username, IU.Nickname"); likeClause == "" {
-		if _, err := s.GetReplica().Select(&channels, fmt.Sprintf(queryFormat, ""), map[string]interface{}{"UserId": userId}); err != nil {
+		if _, err := s.GetReplica().Select(&channels, fmt.Sprintf(queryFormat, ""), map[string]interface{}{"UserId": userId, "ChannelType": model.ChannelTypeDirect}); err != nil {
 			return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
 		}
 	} else {
 		query := fmt.Sprintf(queryFormat, "AND "+likeClause)
 
-		if _, err := s.GetReplica().Select(&channels, query, map[string]interface{}{"UserId": userId, "LikeTerm": likeTerm}); err != nil {
+		if _, err := s.GetReplica().Select(&channels, query, map[string]interface{}{"UserId": userId, "LikeTerm": likeTerm, "ChannelType": model.ChannelTypeDirect}); err != nil {
 			return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
 		}
 	}
@@ -2881,12 +2882,13 @@ func (s SqlChannelStore) SearchArchivedInTeam(teamId string, term string, userId
 			c.TeamId = :TeamId
 			SEARCH_CLAUSE
 			AND c.DeleteAt != 0
-			AND c.Type != 'P'
+			AND c.Type != :ChannelType
 		ORDER BY c.DisplayName
 		LIMIT 100
 		`, term, map[string]interface{}{
 		"TeamId": teamId,
 		"UserId": userId,
+		"ChannelType" : model.ChannelTypePrivate,
 	})
 
 	privateChannels, privateErr := s.performSearch(`
@@ -2900,13 +2902,14 @@ func (s SqlChannelStore) SearchArchivedInTeam(teamId string, term string, userId
 			c.TeamId = :TeamId
 			SEARCH_CLAUSE
 			AND c.DeleteAt != 0
-			AND c.Type = 'P'
+			AND c.Type = :ChannelType
 			AND c.Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = :UserId)
 		ORDER BY c.DisplayName
 		LIMIT 100
 		`, term, map[string]interface{}{
 		"TeamId": teamId,
 		"UserId": userId,
+		"ChannelType" : model.ChannelTypePrivate,
 	})
 
 	outputErr := publicErr
@@ -3518,11 +3521,11 @@ func (s SqlChannelStore) GetAllChannelsForExportAfter(limit int, afterId string)
 			Schemes ON Channels.SchemeId = Schemes.Id
 		WHERE
 			Channels.Id > :AfterId
-			AND Channels.Type IN ('O', 'P')
+			AND Channels.Type IN (:ChannelTypeOpen, :ChannelTypePrivate)
 		ORDER BY
 			Id
 		LIMIT :Limit`,
-		map[string]interface{}{"AfterId": afterId, "Limit": limit}); err != nil {
+		map[string]interface{}{"AfterId": afterId, "Limit": limit, "ChannelTypeOpen": model.ChannelTypeOpen, "ChannelTypePrivate": model.ChannelTypePrivate}); err != nil {
 		return nil, errors.Wrap(err, "failed to find Channels for export")
 	}
 
@@ -3571,7 +3574,7 @@ func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId s
 		Where(sq.And{
 			sq.Gt{"Channels.Id": afterId},
 			sq.Eq{"Channels.DeleteAt": int(0)},
-			sq.Eq{"Channels.Type": []string{"D", "G"}},
+			sq.Eq{"Channels.Type": []string{model.ChannelTypeDirect, model.ChannelTypeGroup}},
 		}).
 		OrderBy("Channels.Id").
 		Limit(uint64(limit))
