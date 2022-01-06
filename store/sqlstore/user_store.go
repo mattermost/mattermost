@@ -1327,7 +1327,7 @@ func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime in
 
 func (us SqlUserStore) GetUnreadCount(userId string) (int64, error) {
 	query := `
-		SELECT SUM(CASE WHEN c.Type = 'D' THEN (c.TotalMsgCount - cm.MsgCount) ELSE cm.MentionCount END)
+		SELECT SUM(CASE WHEN c.Type = '`+model.ChannelTypeDirect+`' THEN (c.TotalMsgCount - cm.MsgCount) ELSE cm.MentionCount END)
 		FROM Channels c
 		INNER JOIN ChannelMembers cm
 			ON cm.ChannelId = c.Id
@@ -1343,7 +1343,7 @@ func (us SqlUserStore) GetUnreadCount(userId string) (int64, error) {
 }
 
 func (us SqlUserStore) GetUnreadCountForChannel(userId string, channelId string) (int64, error) {
-	count, err := us.GetReplica().SelectInt("SELECT SUM(CASE WHEN c.Type = 'D' THEN (c.TotalMsgCount - cm.MsgCount) ELSE cm.MentionCount END) FROM Channels c INNER JOIN ChannelMembers cm ON c.Id = cm.ChannelId AND cm.ChannelId = :ChannelId AND cm.UserId = :UserId", map[string]interface{}{"ChannelId": channelId, "UserId": userId})
+	count, err := us.GetReplica().SelectInt("SELECT SUM(CASE WHEN c.Type = '"+model.ChannelTypeDirect+"' THEN (c.TotalMsgCount - cm.MsgCount) ELSE cm.MentionCount END) FROM Channels c INNER JOIN ChannelMembers cm ON c.Id = cm.ChannelId AND cm.ChannelId = :ChannelId AND cm.UserId = :UserId", map[string]interface{}{"ChannelId": channelId, "UserId": userId})
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to get unread count for channelId=%s and userId=%s", channelId, userId)
 	}
@@ -1697,7 +1697,7 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 			`).
 		From("ChannelMembers cm").
 		Join("Channels c ON cm.ChannelId = c.Id").
-		Where(sq.Eq{"c.Type": "O", "cm.UserId": userIds}).
+		Where(sq.Eq{"c.Type": model.ChannelTypeOpen, "cm.UserId": userIds}).
 		ToSql()
 	_, err = us.GetSearchReplica().Select(&channelMembers, channelMembersQuery, args...)
 	if err != nil {
