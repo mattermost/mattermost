@@ -73,6 +73,8 @@ type FeatureFlags struct {
 
 	// Enable inline post editing
 	InlinePostEditing bool
+
+	GroupMemberDNFallback bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -98,6 +100,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ResendInviteEmailInterval = ""
 	f.InviteToTeam = "none"
 	f.InlinePostEditing = false
+	f.GroupMemberDNFallback = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
