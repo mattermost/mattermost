@@ -572,7 +572,7 @@ func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset 
 	posts := []*postInternal{}
 	query := `
             SELECT
-                A.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN A.RootId = '' THEN A.Id ELSE A.RootId END) AND Posts.DeleteAt = 0) as ReplyCount
+                A.*, (SELECT count(*) FROM Posts WHERE Posts.RootId = (CASE WHEN A.RootId = '' THEN A.Id ELSE A.RootId END) AND Posts.DeleteAt = 0) as ReplyCount
             FROM
                 (SELECT
                     *
@@ -713,7 +713,7 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, skipFetchThreads, col
 	}
 
 	var post postInternal
-	postFetchQuery := "SELECT p.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.Id = ? AND p.DeleteAt = 0"
+	postFetchQuery := "SELECT p.*, (SELECT count(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.Id = ? AND p.DeleteAt = 0"
 	err := s.DBXFromContext(ctx).Get(&post, postFetchQuery, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -736,7 +736,7 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, skipFetchThreads, col
 		}
 
 		posts := []*postInternal{}
-		err = s.GetReplicaX().Select(&posts, "SELECT *, (SELECT count(Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE (Id = ? OR RootId = ?) AND DeleteAt = 0", rootId, rootId)
+		err = s.GetReplicaX().Select(&posts, "SELECT *, (SELECT count(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE (Id = ? OR RootId = ?) AND DeleteAt = 0", rootId, rootId)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to find Posts")
 		}
@@ -1199,8 +1199,8 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 	replyCountQuery1 := ""
 	replyCountQuery2 := ""
 	if options.SkipFetchThreads {
-		replyCountQuery1 = `, (SELECT COUNT(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p1.RootId = '' THEN p1.Id ELSE p1.RootId END) AND Posts.DeleteAt = 0) as ReplyCount`
-		replyCountQuery2 = `, (SELECT COUNT(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN cte.RootId = '' THEN cte.Id ELSE cte.RootId END) AND Posts.DeleteAt = 0) as ReplyCount`
+		replyCountQuery1 = `, (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p1.RootId = '' THEN p1.Id ELSE p1.RootId END) AND Posts.DeleteAt = 0) as ReplyCount`
+		replyCountQuery2 = `, (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN cte.RootId = '' THEN cte.Id ELSE cte.RootId END) AND Posts.DeleteAt = 0) as ReplyCount`
 	}
 	var query string
 	var params []interface{}
@@ -1378,7 +1378,7 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		)
 	}
 	query := s.getQueryBuilder().Select(columns...)
-	replyCountSubQuery := s.getQueryBuilder().Select("COUNT(Posts.Id)").From("Posts").Where(sq.Expr("Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0"))
+	replyCountSubQuery := s.getQueryBuilder().Select("COUNT(*)").From("Posts").Where(sq.Expr("Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0"))
 
 	conditions := sq.And{
 		sq.Expr(`CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = ?)`, options.PostId),
@@ -1404,7 +1404,7 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 	if err != nil {
 		return nil, errors.Wrap(err, "post_tosql")
 	}
-	err = s.GetMasterX().Select(&posts, queryString, args...)
+	err = s.GetReplicaX().Select(&posts, queryString, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 	}
@@ -1439,7 +1439,7 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		if nErr != nil {
 			return nil, errors.Wrap(nErr, "post_tosql")
 		}
-		nErr = s.GetMasterX().Select(&parents, rootQueryString, rootArgs...)
+		nErr = s.GetReplicaX().Select(&parents, rootQueryString, rootArgs...)
 		if nErr != nil {
 			return nil, errors.Wrapf(nErr, "failed to find Posts with channelId=%s", options.ChannelId)
 		}
@@ -1562,7 +1562,7 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 	posts := []*postInternal{}
 	var fetchQuery string
 	if skipFetchThreads {
-		fetchQuery = "SELECT p.*, (SELECT COUNT(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE ChannelId = ? AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT ? OFFSET ?"
+		fetchQuery = "SELECT p.*, (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE ChannelId = ? AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT ? OFFSET ?"
 	} else {
 		fetchQuery = "SELECT * FROM Posts WHERE ChannelId = ? AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT ? OFFSET ?"
 	}
@@ -1615,7 +1615,7 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 	replyCountQuery := ""
 	whereStatement := "p.Id IN (" + placeholderString + ")"
 	if skipFetchThreads {
-		replyCountQuery = `, (SELECT COUNT(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount`
+		replyCountQuery = `, (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount`
 	} else {
 		whereStatement += " OR p.RootId IN (" + placeholderString + ")"
 	}
@@ -1641,7 +1641,7 @@ func (s *SqlPostStore) getParentsPostsPostgreSQL(channelId string, offset int, l
 	replyCountQuery := ""
 	onStatement := "q1.RootId = q2.Id"
 	if skipFetchThreads {
-		replyCountQuery = ` ,(SELECT COUNT(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN q2.RootId = '' THEN q2.Id ELSE q2.RootId END) AND Posts.DeleteAt = 0) as ReplyCount`
+		replyCountQuery = ` ,(SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN q2.RootId = '' THEN q2.Id ELSE q2.RootId END) AND Posts.DeleteAt = 0) as ReplyCount`
 	} else {
 		onStatement += " OR q1.RootId = q2.RootId"
 	}
@@ -1844,7 +1844,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 
 	baseQuery := s.getQueryBuilder().Select(
 		"*",
-		"(SELECT COUNT(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN q2.RootId = '' THEN q2.Id ELSE q2.RootId END) AND Posts.DeleteAt = 0) as ReplyCount",
+		"(SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN q2.RootId = '' THEN q2.Id ELSE q2.RootId END) AND Posts.DeleteAt = 0) as ReplyCount",
 	).From("Posts q2").
 		Where("DeleteAt = 0").
 		Where(fmt.Sprintf("Type NOT LIKE '%s%%'", model.PostSystemMessagePrefix)).
@@ -2172,7 +2172,7 @@ func (s *SqlPostStore) GetPostsCreatedAt(channelId string, time int64) ([]*model
 }
 
 func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, error) {
-	baseQuery := s.getQueryBuilder().Select("p.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount").
+	baseQuery := s.getQueryBuilder().Select("p.*, (SELECT count(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount").
 		From("Posts p").
 		Where(sq.Eq{"p.Id": postIds}).
 		OrderBy("CreateAt DESC")

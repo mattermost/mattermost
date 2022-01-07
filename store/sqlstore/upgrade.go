@@ -1428,16 +1428,16 @@ func upgradeDatabaseToVersion630(sqlStore *SqlStore) {
 
 		sqlStore.AlterColumnTypeIfExists("PluginKeyValueStore", "PKey", "VARCHAR(150)", "VARCHAR(150)")
 
+		if sqlStore.DoesColumnExist("Users", "AcceptedTermsOfServiceId") {
+			sqlStore.GetMaster().ExecNoTimeout("ALTER TABLE Users DROP COLUMN AcceptedTermsOfServiceId")
+		}
+
 		saveSchemaVersion(sqlStore, Version630)
 	}
 }
 
 func upgradeDatabaseToVersion640(sqlStore *SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, Version630, Version640) {
-	if sqlStore.DoesColumnExist("Users", "AcceptedTermsOfServiceId") {
-		sqlStore.GetMaster().ExecNoTimeout("ALTER TABLE Users DROP COLUMN AcceptedTermsOfServiceId")
-	}
-
 	sqlStore.CreateColumnIfNotExists("OAuthApps", "MattermostAppID", "VARCHAR(32)", "VARCHAR(32)", "")
 
 	// 	saveSchemaVersion(sqlStore, Version640)
