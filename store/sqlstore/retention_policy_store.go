@@ -411,13 +411,14 @@ func (s *SqlRetentionPolicyStore) Get(id string) (*model.RetentionPolicyWithTeam
 	return &policy, nil
 }
 
-func (s *SqlRetentionPolicyStore) GetAll(offset, limit int) (policies []*model.RetentionPolicyWithTeamAndChannelCounts, err error) {
+func (s *SqlRetentionPolicyStore) GetAll(offset, limit int) ([]*model.RetentionPolicyWithTeamAndChannelCounts, error) {
+	policies := []*model.RetentionPolicyWithTeamAndChannelCounts{}
 	queryString, args, err := s.buildGetPoliciesQuery("", offset, limit)
 	if err != nil {
-		return
+		return policies, err
 	}
 	err = s.GetReplicaX().Select(&policies, queryString, args...)
-	return
+	return policies, err
 }
 
 func (s *SqlRetentionPolicyStore) GetCount() (int64, error) {
