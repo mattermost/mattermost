@@ -17,6 +17,12 @@ else
 	export IS_LINUX =
 endif
 
+define LICENSE_HEADER
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+endef
+
 IS_CI ?= false
 # Build Flags
 BUILD_NUMBER ?= $(BUILD_NUMBER:)
@@ -635,6 +641,7 @@ ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 endif
 endif
 
+gen-serialized:	export LICENSE_HEADER:=$(LICENSE_HEADER)
 gen-serialized: ## Generates serialization methods for hot structs
 	# This tool only works at a file level, not at a package level.
 	# There will be some warnings about "unresolved identifiers",
@@ -643,10 +650,19 @@ gen-serialized: ## Generates serialization methods for hot structs
 	# identifiers will be resolved. An alternative to remove the warnings
 	# would be to temporarily move all the structs to the same file,
 	# but that involves a lot of manual work.
-	$(GO) get -modfile=go.tools.mod github.com/tinylib/msgp
+	$(GO) install github.com/tinylib/msgp@v1.1.6
 	$(GOBIN)/msgp -file=./model/session.go -tests=false -o=./model/session_serial_gen.go
+	@echo "$$LICENSE_HEADER" > tmp.go
+	@cat ./model/session_serial_gen.go >> tmp.go
+	@mv tmp.go ./model/session_serial_gen.go
 	$(GOBIN)/msgp -file=./model/user.go -tests=false -o=./model/user_serial_gen.go
+	@echo "$$LICENSE_HEADER" > tmp.go
+	@cat ./model/user_serial_gen.go >> tmp.go
+	@mv tmp.go ./model/user_serial_gen.go
 	$(GOBIN)/msgp -file=./model/team_member.go -tests=false -o=./model/team_member_serial_gen.go
+	@echo "$$LICENSE_HEADER" > tmp.go
+	@cat ./model/team_member_serial_gen.go >> tmp.go
+	@mv tmp.go ./model/team_member_serial_gen.go
 
 todo: ## Display TODO and FIXME items in the source code.
 	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime '(TODO|XXX|FIXME|"FIX ME")[: ]+' 
