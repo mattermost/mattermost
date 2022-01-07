@@ -1146,7 +1146,7 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.MigrationsStatementTimeoutSeconds == nil {
-		s.MigrationsStatementTimeoutSeconds = NewInt(6000)
+		s.MigrationsStatementTimeoutSeconds = NewInt(100000)
 	}
 
 	if s.ReplicaLagSettings == nil {
