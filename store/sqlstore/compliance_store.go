@@ -333,6 +333,7 @@ func (s SqlComplianceStore) MessageExport(cursor model.MessageExportCursor, limi
 		LIMIT ?`
 
 	cposts := []*model.MessageExport{}
+	args = append
 	if err := s.GetReplicaX().Select(&cposts, query, args...); err != nil {
 		return nil, cursor, errors.Wrap(err, "unable to export messages")
 	}

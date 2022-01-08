@@ -514,7 +514,8 @@ func (s SqlTeamStore) SearchAllPaged(opts *model.TeamSearch) ([]*model.Team, int
 // SearchOpen returns from the database a list of public teams that match the Name or DisplayName
 // passed as the term search parameter.
 func (s SqlTeamStore) SearchOpen(opts *model.TeamSearch) ([]*model.Team, error) {
-	opts.TeamType = model.ChannelTypeOpen
+	var channelType = model.ChannelTypeOpen
+	opts.TeamType = channelType
 	opts.AllowOpenInvite = model.NewBool(true)
 	return s.SearchAll(opts)
 }
