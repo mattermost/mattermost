@@ -30,11 +30,6 @@ func newSqlPreferenceStore(sqlStore *SqlStore) store.PreferenceStore {
 	return s
 }
 
-func (s SqlPreferenceStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_preferences_category", "Preferences", "Category")
-	s.CreateIndexIfNotExists("idx_preferences_name", "Preferences", "Name")
-}
-
 func (s SqlPreferenceStore) deleteUnusedFeatures() {
 	mlog.Debug("Deleting any unused pre-release features")
 	sql, args, err := s.getQueryBuilder().

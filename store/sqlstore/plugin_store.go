@@ -36,9 +36,6 @@ func newSqlPluginStore(sqlStore *SqlStore) store.PluginStore {
 	return s
 }
 
-func (ps SqlPluginStore) createIndexesIfNotExists() {
-}
-
 func (ps SqlPluginStore) SaveOrUpdate(kv *model.PluginKeyValue) (*model.PluginKeyValue, error) {
 	if err := kv.IsValid(); err != nil {
 		return nil, err
