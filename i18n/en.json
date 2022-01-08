@@ -8212,6 +8212,10 @@
     "translation": "Invalid value for read timeout."
   },
   {
+    "id": "model.config.is_valid.replica_mismatch.app_error",
+    "translation": "Number of replica lag queries is more than the number of replicas configured. Must be less than or equal to the number of replicas."
+  },
+  {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
     "translation": "Invalid direct message restriction. Must be 'any', or 'team'."
   },
@@ -8302,6 +8306,10 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "Invalid maximum open connection for SQL settings. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.sql_migrations_statement_timout.app_error",
+    "translation": "Invalid timeout value for migrations statements. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.sql_query_timeout.app_error",

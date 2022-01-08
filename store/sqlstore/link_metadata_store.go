@@ -31,14 +31,6 @@ func newSqlLinkMetadataStore(sqlStore *SqlStore) store.LinkMetadataStore {
 	return s
 }
 
-func (s SqlLinkMetadataStore) createIndexesIfNotExists() {
-	if s.DriverName() == model.DatabaseDriverMysql {
-		s.CreateCompositeIndexIfNotExists("idx_link_metadata_url_timestamp", "LinkMetadata", []string{"URL(512)", "Timestamp"})
-	} else {
-		s.CreateCompositeIndexIfNotExists("idx_link_metadata_url_timestamp", "LinkMetadata", []string{"URL", "Timestamp"})
-	}
-}
-
 func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMetadata, error) {
 	if err := metadata.IsValid(); err != nil {
 		return nil, err
