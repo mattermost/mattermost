@@ -9321,9 +9321,5 @@
   {
     "id": "model.config.is_valid.sql_migrations_statement_timout.app_error",
     "translation": "Ungültiger Timeout Wert für Migrationsanweisungen. Muss eine positive Zahl sein."
-  },
-  {
-    "id": "model.config.is_valid.replica_mismatch.app_error",
-    "translation": "Die Anzahl der Replikarückstand-Abfragen is höher als die Anzahl der konfigurierten Replikas. Muss kleiner oder gleich der Anzahl der Replikas sein."
   }
 ]
