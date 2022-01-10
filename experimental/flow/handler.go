@@ -19,7 +19,7 @@ type fh struct {
 	fc Controller
 }
 
-func Init(r *mux.Router, fc Controller) {
+func initHandler(r *mux.Router, fc Controller) {
 	fh := &fh{
 		fc: fc,
 	}

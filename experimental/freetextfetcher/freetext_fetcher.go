@@ -96,10 +96,12 @@ func (ftf *freetextFetcher) MessageHasBeenPosted(c *plugin.Context, post *model.
 		return
 	}
 
-	validation := ftf.validate(post.Message)
-	if validation != "" {
-		_, _ = ftf.poster.DM(post.UserId, validation)
-		return
+	if ftf.validate != nil {
+		validation := ftf.validate(post.Message)
+		if validation != "" {
+			_, _ = ftf.poster.DM(post.UserId, validation)
+			return
+		}
 	}
 
 	ftf.postConfirmation(post.UserId, post.Message, pluginURL, payload)

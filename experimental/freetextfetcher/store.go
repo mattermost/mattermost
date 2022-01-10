@@ -19,8 +19,8 @@ type freetextStore struct {
 }
 
 type storeElement struct {
-	fetcherID string
-	payload   string
+	FetcherID string `json:"fetcher_id"`
+	Payload   string `json:"payload"`
 }
 
 // NewFreetextStore creates a new store for the FreetextFetcher
@@ -33,8 +33,8 @@ func NewFreetextStore(apiClient pluginapi.Client, keyPrefix string) FreetextStor
 
 func (fts *freetextStore) StartFetching(userID, fetcherID, payload string) error {
 	toStore := storeElement{
-		fetcherID: fetcherID,
-		payload:   payload,
+		FetcherID: fetcherID,
+		Payload:   payload,
 	}
 	ok, err := fts.client.KV.Set(fts.getKey(userID), toStore)
 	if err != nil {
@@ -57,11 +57,11 @@ func (fts *freetextStore) ShouldProcessFreetext(userID, fetcherID string) (shoul
 		return false, "", err
 	}
 
-	if se.fetcherID != fetcherID {
+	if se.FetcherID != fetcherID {
 		return false, "", nil
 	}
 
-	return true, se.payload, nil
+	return true, se.Payload, nil
 }
 
 func (fts *freetextStore) getKey(userID string) string {

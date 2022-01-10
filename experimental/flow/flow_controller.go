@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/gorilla/mux"
+
 	"github.com/mattermost/mattermost-plugin-api/experimental/bot/logger"
 	"github.com/mattermost/mattermost-plugin-api/experimental/bot/poster"
 	"github.com/mattermost/mattermost-plugin-api/experimental/flow/steps"
@@ -31,6 +33,7 @@ type flowController struct {
 func NewFlowController(
 	p poster.Poster,
 	l logger.Logger,
+	r *mux.Router,
 	pluginURL string,
 	flow Flow,
 	flowStore Store,
@@ -44,6 +47,8 @@ func NewFlowController(
 		propertyStore: propertyStore,
 		pluginURL:     pluginURL,
 	}
+
+	initHandler(r, fc)
 
 	for _, step := range flow.Steps() {
 		ftf := step.GetFreetextFetcher()
