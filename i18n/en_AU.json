@@ -9317,5 +9317,9 @@
   {
     "id": "api.license.request_renewal_link.cannot_renew_on_cws",
     "translation": "Renewing this licence on the portal is not possible"
+  },
+  {
+    "id": "model.config.is_valid.sql_migrations_statement_timout.app_error",
+    "translation": "Invalid timeout value for migrations statements. Must be a positive number."
   }
 ]
