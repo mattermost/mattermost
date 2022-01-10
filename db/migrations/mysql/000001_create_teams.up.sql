@@ -80,3 +80,18 @@ SET @preparedStatement = (SELECT IF(
 PREPARE alterIfNotExists FROM @preparedStatement;
 EXECUTE alterIfNotExists;
 DEALLOCATE PREPARE alterIfNotExists;
+
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+        WHERE table_name = 'Teams'
+        AND table_schema = DATABASE()
+        AND index_name = 'idx_teams_name'
+    ) > 0,
+    'DROP INDEX idx_teams_name ON Teams;',
+    'SELECT 1'
+));
+
+PREPARE removeIndexIfExists FROM @preparedStatement;
+EXECUTE removeIndexIfExists;
+DEALLOCATE PREPARE removeIndexIfExists;
