@@ -57,13 +57,6 @@ func threadToSlice(thread *model.Thread) []interface{} {
 	}
 }
 
-func (s *SqlThreadStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_thread_memberships_last_update_at", "ThreadMemberships", "LastUpdated")
-	s.CreateIndexIfNotExists("idx_thread_memberships_last_view_at", "ThreadMemberships", "LastViewed")
-	s.CreateIndexIfNotExists("idx_thread_memberships_user_id", "ThreadMemberships", "UserId")
-	s.CreateCompositeIndexIfNotExists("idx_threads_channel_id_last_reply_at", "Threads", []string{"ChannelId", "LastReplyAt"})
-}
-
 func (s *SqlThreadStore) SaveMultiple(threads []*model.Thread) ([]*model.Thread, int, error) {
 	builder := s.getQueryBuilder().Insert("Threads").Columns(threadSliceColumns()...)
 	for _, thread := range threads {
