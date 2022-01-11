@@ -38,7 +38,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/app/email"
 	"github.com/mattermost/mattermost-server/v6/app/featureflag"
-	"github.com/mattermost/mattermost-server/v6/app/imaging"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/app/teams"
 	"github.com/mattermost/mattermost-server/v6/app/users"
@@ -140,10 +139,6 @@ type Server struct {
 	searchLicenseListenerId string
 	loggerLicenseListenerId string
 	configStore             *config.Store
-	postActionCookieSecret  []byte
-
-	pluginCommands     []*PluginCommand
-	pluginCommandsLock sync.RWMutex
 
 	telemetryService *telemetry.TelemetryService
 	userService      *users.UserService
@@ -166,38 +161,22 @@ type Server struct {
 
 	SearchEngine *searchengine.Broker
 
-	AccountMigration einterfaces.AccountMigrationInterface
-	Cluster          einterfaces.ClusterInterface
-	Compliance       einterfaces.ComplianceInterface
-	DataRetention    einterfaces.DataRetentionInterface
-	Ldap             einterfaces.LdapInterface
-	MessageExport    einterfaces.MessageExportInterface
-	Cloud            einterfaces.CloudInterface
-	Metrics          einterfaces.MetricsInterface
-	Notification     einterfaces.NotificationInterface
-	Saml             einterfaces.SamlInterface
-	LicenseManager   einterfaces.LicenseInterface
+	Cluster        einterfaces.ClusterInterface
+	Cloud          einterfaces.CloudInterface
+	Metrics        einterfaces.MetricsInterface
+	Notification   einterfaces.NotificationInterface
+	LicenseManager einterfaces.LicenseInterface
+	Saml           einterfaces.SamlInterface
+	Ldap           einterfaces.LdapInterface
 
 	CacheProvider cache.Provider
 
 	tracer *tracing.Tracer
 
-	// These are used to prevent concurrent upload requests
-	// for a given upload session which could cause inconsistencies
-	// and data corruption.
-	uploadLockMapMut sync.Mutex
-	uploadLockMap    map[string]bool
-
 	featureFlagSynchronizer      *featureflag.Synchronizer
 	featureFlagStop              chan struct{}
 	featureFlagStopped           chan struct{}
 	featureFlagSynchronizerMutex sync.Mutex
-
-	imgDecoder *imaging.Decoder
-	imgEncoder *imaging.Encoder
-
-	dndTaskMut sync.Mutex
-	dndTask    *model.ScheduledTask
 
 	products map[string]Product
 }
@@ -210,10 +189,13 @@ func NewServer(options ...Option) (*Server, error) {
 		goroutineExitSignal: make(chan struct{}, 1),
 		RootRouter:          rootRouter,
 		LocalRouter:         localRouter,
-		licenseListeners:    map[string]func(*model.License, *model.License){},
-		hashSeed:            maphash.MakeSeed(),
-		uploadLockMap:       map[string]bool{},
-		products:            make(map[string]Product),
+		WebSocketRouter: &WebSocketRouter{
+			handlers: make(map[string]webSocketHandler),
+		},
+		licenseListeners: map[string]func(*model.License, *model.License){},
+		hashSeed:         maphash.MakeSeed(),
+		timezones:        timezones.New(),
+		products:         make(map[string]Product),
 	}
 
 	for _, option := range options {
@@ -245,6 +227,12 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.Error("Could not initiate logging", mlog.Err(err))
 	}
 
+	subpath, err := utils.GetSubpathFromConfig(s.Config())
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse SiteURL subpath")
+	}
+	s.Router = s.RootRouter.PathPrefix(subpath).Subrouter()
+
 	// This is called after initLogging() to avoid a race condition.
 	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
 
@@ -253,9 +241,9 @@ func NewServer(options ...Option) (*Server, error) {
 	// Step 3: Initialize products.
 	// Depends on s.httpService.
 	for name, initializer := range products {
-		prod, err := initializer(s)
-		if err != nil {
-			return nil, errors.Wrapf(err, "error initializing product: %s", name)
+		prod, err2 := initializer(s)
+		if err2 != nil {
+			return nil, errors.Wrapf(err2, "error initializing product: %s", name)
 		}
 
 		s.products[name] = prod
@@ -280,8 +268,8 @@ func NewServer(options ...Option) (*Server, error) {
 	// At the moment we only have this implementation
 	// in the future the cache provider will be built based on the loaded config
 	s.CacheProvider = cache.NewProvider()
-	if err := s.CacheProvider.Connect(); err != nil {
-		return nil, errors.Wrapf(err, "Unable to connect to cache provider")
+	if err2 := s.CacheProvider.Connect(); err2 != nil {
+		return nil, errors.Wrapf(err2, "Unable to connect to cache provider")
 	}
 
 	// It is important to initialize the hub only after the global logger is set
@@ -326,7 +314,6 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
-	var err error
 	s.Store, err = s.newStore()
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot create store")
@@ -491,20 +478,6 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.setupFeatureFlags()
 
-	var imgErr error
-	s.imgDecoder, imgErr = imaging.NewDecoder(imaging.DecoderOptions{
-		ConcurrencyLevel: runtime.NumCPU(),
-	})
-	if imgErr != nil {
-		return nil, errors.Wrap(imgErr, "failed to create image decoder")
-	}
-	s.imgEncoder, imgErr = imaging.NewEncoder(imaging.EncoderOptions{
-		ConcurrencyLevel: runtime.NumCPU(),
-	})
-	if imgErr != nil {
-		return nil, errors.Wrap(imgErr, "failed to create image encoder")
-	}
-
 	s.initJobs()
 
 	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
@@ -520,29 +493,6 @@ func NewServer(options ...Option) (*Server, error) {
 		s.Cluster.StartInterNodeCommunication()
 	}
 
-	if err = s.ensurePostActionCookieSecret(); err != nil {
-		return nil, errors.Wrapf(err, "unable to ensure PostAction cookie secret")
-	}
-
-	if err = s.ensureInstallationDate(); err != nil {
-		return nil, errors.Wrapf(err, "unable to ensure installation date")
-	}
-
-	if err = s.ensureFirstServerRunTimestamp(); err != nil {
-		return nil, errors.Wrapf(err, "unable to ensure first run timestamp")
-	}
-
-	subpath, err := utils.GetSubpathFromConfig(s.Config())
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse SiteURL subpath")
-	}
-	s.Router = s.RootRouter.PathPrefix(subpath).Subrouter()
-
-	pluginsRoute := s.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
-	pluginsRoute.HandleFunc("", s.ServePluginRequest)
-	pluginsRoute.HandleFunc("/public/{public_file:.*}", s.ServePluginPublicRequest)
-	pluginsRoute.HandleFunc("/{anything:.*}", s.ServePluginRequest)
-
 	// If configured with a subpath, redirect 404s at the root back into the subpath.
 	if subpath != "/" {
 		s.RootRouter.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -551,36 +501,10 @@ func NewServer(options ...Option) (*Server, error) {
 		})
 	}
 
-	s.WebSocketRouter = &WebSocketRouter{
-		handlers: make(map[string]webSocketHandler),
-	}
-
-	mailConfig := s.MailServiceConfig()
-
-	if nErr := mail.TestConnection(mailConfig); nErr != nil {
-		mlog.Error("Mail server connection test is failed", mlog.Err(nErr))
-	}
-
 	if _, err = url.ParseRequestURI(*s.Config().ServiceSettings.SiteURL); err != nil {
 		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: http://about.mattermost.com/default-site-url")
 	}
 
-	backend, appErr := s.FileBackend()
-	if appErr != nil {
-		mlog.Error("Problem with file storage settings", mlog.Err(appErr))
-	} else {
-		nErr := backend.TestConnection()
-		if nErr != nil {
-			if _, ok := nErr.(*filestore.S3FileBackendNoBucketError); ok {
-				nErr = backend.(*filestore.S3FileBackend).MakeBucket()
-			}
-			if nErr != nil {
-				mlog.Error("Problem with file storage settings", mlog.Err(nErr))
-			}
-		}
-	}
-
-	s.timezones = timezones.New()
 	// Start email batching because it's not like the other jobs
 	s.AddConfigListener(func(_, _ *model.Config) {
 		s.EmailService.InitEmailBatching()
@@ -605,10 +529,6 @@ func NewServer(options ...Option) (*Server, error) {
 	mlog.Info("Printing current working", mlog.String("directory", pwd))
 	mlog.Info("Loaded config", mlog.String("source", s.configStore.String()))
 
-	s.checkPushNotificationServerURL()
-
-	s.ReloadConfig()
-
 	license := s.License()
 	allowAdvancedLogging := license != nil && *license.Features.AdvancedLogging
 
@@ -631,10 +551,6 @@ func NewServer(options ...Option) (*Server, error) {
 	// Enable developer settings if this is a "dev" build
 	if model.BuildNumber == "dev" {
 		s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
-	}
-
-	if err = s.Store.Status().ResetAll(); err != nil {
-		mlog.Error("Error to reset the server status.", mlog.Err(err))
 	}
 
 	if s.startMetrics {
@@ -672,11 +588,10 @@ func NewServer(options ...Option) (*Server, error) {
 		return s, nil
 	}
 
-	c := request.EmptyContext()
-	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
+	s.AddConfigListener(func(old, new *model.Config) {
 		appInstance := New(ServerConnector(s.Channels()))
-		if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
-			if appErr := appInstance.DeactivateGuests(c); appErr != nil {
+		if *old.GuestAccountsSettings.Enable && !*new.GuestAccountsSettings.Enable {
+			if appErr := appInstance.DeactivateGuests(request.EmptyContext()); appErr != nil {
 				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 			}
 		}
@@ -685,7 +600,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// Disable active guest accounts on first run if guest accounts are disabled
 	if !*s.Config().GuestAccountsSettings.Enable {
 		appInstance := New(ServerConnector(s.Channels()))
-		if appErr := appInstance.DeactivateGuests(c); appErr != nil {
+		if appErr := appInstance.DeactivateGuests(request.EmptyContext()); appErr != nil {
 			mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 		}
 	}
@@ -694,7 +609,7 @@ func NewServer(options ...Option) (*Server, error) {
 		s.Go(func() {
 			appInstance := New(ServerConnector(s.Channels()))
 			s.runLicenseExpirationCheckJob()
-			runCheckAdminSupportStatusJob(appInstance, c)
+			runCheckAdminSupportStatusJob(appInstance, request.EmptyContext())
 			runDNDStatusExpireJob(appInstance)
 		})
 		s.runJobs()
@@ -768,7 +683,7 @@ func (s *Server) runJobs() {
 		runCommandWebhookCleanupJob(s)
 	})
 
-	if complianceI := s.Compliance; complianceI != nil {
+	if complianceI := s.Channels().Compliance; complianceI != nil {
 		complianceI.StartComplianceDailyJob()
 	}
 
@@ -1084,12 +999,6 @@ func (s *Server) Shutdown() {
 		}
 	}
 
-	s.dndTaskMut.Lock()
-	if s.dndTask != nil {
-		s.dndTask.Cancel()
-	}
-	s.dndTaskMut.Unlock()
-
 	mlog.Info("Server stopped")
 
 	// Stop products.
@@ -1216,6 +1125,40 @@ func (s *Server) Start() error {
 			return errors.Wrapf(err, "Unable to start %s", name)
 		}
 	}
+
+	if err := s.ensureInstallationDate(); err != nil {
+		return errors.Wrapf(err, "unable to ensure installation date")
+	}
+
+	if err := s.ensureFirstServerRunTimestamp(); err != nil {
+		return errors.Wrapf(err, "unable to ensure first run timestamp")
+	}
+
+	if err := s.Store.Status().ResetAll(); err != nil {
+		mlog.Error("Error to reset the server status.", mlog.Err(err))
+	}
+	if err := mail.TestConnection(s.MailServiceConfig()); err != nil {
+		mlog.Error("Mail server connection test is failed", mlog.Err(err))
+	}
+
+	backend, appErr := s.FileBackend()
+	if appErr != nil {
+		mlog.Error("Problem with file storage settings", mlog.Err(appErr))
+	} else {
+		err := backend.TestConnection()
+		if err != nil {
+			if _, ok := err.(*filestore.S3FileBackendNoBucketError); ok {
+				err = backend.(*filestore.S3FileBackend).MakeBucket()
+			}
+			if err != nil {
+				mlog.Error("Problem with file storage settings", mlog.Err(err))
+			}
+		}
+	}
+
+	s.checkPushNotificationServerURL()
+
+	s.ReloadConfig()
 
 	mlog.Info("Starting Server...")
 
@@ -1548,7 +1491,11 @@ func doSecurity(s *Server) {
 }
 
 func doTokenCleanup(s *Server) {
-	s.Store.Token().Cleanup()
+	expiry := model.GetMillis() - model.MaxTokenExipryTime
+
+	mlog.Debug("Cleaning up token store.")
+
+	s.Store.Token().Cleanup(expiry)
 }
 
 func doCommandWebhookCleanup(s *Server) {
@@ -1701,7 +1648,7 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 
 	daysToExpiration := license.DaysToExpiration()
 
-	renewalLink, appErr := s.GenerateLicenseRenewalLink()
+	renewalLink, _, appErr := s.GenerateLicenseRenewalLink()
 	if appErr != nil {
 		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.server.license_up_for_renewal.error_generating_link", nil, appErr.Error(), http.StatusInternalServerError)
 	}
@@ -1792,7 +1739,7 @@ func (s *Server) doLicenseExpirationCheck() {
 // SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
 // to renew the user license
 func (s *Server) SendRemoveExpiredLicenseEmail(email string, locale, siteURL string) *model.AppError {
-	renewalLink, err := s.GenerateLicenseRenewalLink()
+	renewalLink, _, err := s.GenerateLicenseRenewalLink()
 	if err != nil {
 		return err
 	}
@@ -1974,6 +1921,10 @@ func (s *Server) initJobs() {
 
 	if jobsExtractContentInterface != nil {
 		s.Jobs.ExtractContent = jobsExtractContentInterface(s)
+	}
+
+	if fixCRTChannelUnreadsJobInterface != nil {
+		s.Jobs.FixCRTChannelUnreads = fixCRTChannelUnreadsJobInterface(s)
 	}
 
 	s.Jobs.InitWorkers()
@@ -2183,7 +2134,7 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
 	}
 
 	// Here we are getting information regarding LDAP
-	ldapInterface := a.Srv().Ldap
+	ldapInterface := a.ch.srv.Ldap
 	var vendorName, vendorVersion string
 	if ldapInterface != nil {
 		vendorName, vendorVersion = ldapInterface.GetVendorNameAndVendorVersion()
@@ -2276,18 +2227,18 @@ func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
 }
 
 func createDNDStatusExpirationRecurringTask(a *App) {
-	a.ch.srv.dndTaskMut.Lock()
-	a.ch.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
-	a.ch.srv.dndTaskMut.Unlock()
+	a.ch.dndTaskMut.Lock()
+	a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+	a.ch.dndTaskMut.Unlock()
 }
 
 func cancelDNDStatusExpirationRecurringTask(a *App) {
-	a.ch.srv.dndTaskMut.Lock()
-	if a.ch.srv.dndTask != nil {
-		a.ch.srv.dndTask.Cancel()
-		a.ch.srv.dndTask = nil
+	a.ch.dndTaskMut.Lock()
+	if a.ch.dndTask != nil {
+		a.ch.dndTask.Cancel()
+		a.ch.dndTask = nil
 	}
-	a.ch.srv.dndTaskMut.Unlock()
+	a.ch.dndTaskMut.Unlock()
 }
 
 func runDNDStatusExpireJob(a *App) {

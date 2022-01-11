@@ -273,9 +273,20 @@ func (s *linkifyParser) Parse(parent ast.Node, block text.Reader, pc parser.Cont
 		s := segment.WithStop(segment.Start + 1)
 		ast.MergeOrAppendTextSegment(parent, s)
 	}
-	consumes += m[1]
+	i := m[1] - 1
+	for ; i > 0; i-- {
+		c := line[i]
+		switch c {
+		case '?', '!', '.', ',', ':', '*', '_', '~':
+		default:
+			goto endfor
+		}
+	}
+endfor:
+	i++
+	consumes += i
 	block.Advance(consumes)
-	n := ast.NewTextSegment(text.NewSegment(start, start+m[1]))
+	n := ast.NewTextSegment(text.NewSegment(start, start+i))
 	link := ast.NewAutoLink(typ, n)
 	link.Protocol = protocol
 	return link

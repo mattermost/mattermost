@@ -132,7 +132,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost, isEditPo
 
 func (a *App) PreparePostForClientWithEmbedsAndImages(originalPost *model.Post, isNewPost, isEditPost bool) *model.Post {
 	post := a.PreparePostForClient(originalPost, isNewPost, isEditPost)
-	post = a.getEmbedsAndImages(post, true)
+	post = a.getEmbedsAndImages(post, isNewPost)
 	return post
 }
 
@@ -549,6 +549,7 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 		} else {
 			request.Header.Add("Accept", "image/*")
 			request.Header.Add("Accept", "text/html;q=0.8")
+			request.Header.Add("Accept-Language", *a.Config().LocalizationSettings.DefaultServerLocale)
 
 			client := a.HTTPService().MakeClient(false)
 			client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond

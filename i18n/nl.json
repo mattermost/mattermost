@@ -888,7 +888,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "Open de accountinstellingen dialoog"
+    "translation": "Open het dialoogvenster Instellingen"
   },
   {
     "id": "api.command_settings.name",
@@ -8441,7 +8441,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "voor de beste ervaring op PC, Mac, iOS en Android."
+    "translation": "voor de beste ervaring op Windows, Linux, Mac, iOS en Android."
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info",
@@ -8481,7 +8481,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Stroomlijn jE werk met tools als Github, Google Agenda en Chrome. Ontdek alle integraties die we hebben op onze"
+    "translation": "Streamline your work with tools like Github, Jira and Zoom. Explore all of the integrations we have on our"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -9265,5 +9265,57 @@
   {
     "id": "ent.elasticsearch.getAllChannelMembers.error",
     "translation": "Mislukt om alle kanaalleden te verkrijgen"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.mark_channel_as_read",
+    "translation": "Fout bij het kanaal te markeren als gelezen"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.kill_orphan_jobs",
+    "translation": "Kill orphanend taken"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.get_post_types",
+    "translation": "Mislukt om unieke post types op te halen"
+  },
+  {
+    "id": "fix_crt_channel_unreads.worker.do_job.get_bad_channel_memberships",
+    "translation": "Mislukt om slechte kanaal lidmaatschappen op te halen"
+  },
+  {
+    "id": "app.user.get_thread_count_for_user.app_error",
+    "translation": "We konden het aantal draadjes voor de gebruiker niet ophalen."
+  },
+  {
+    "id": "app.session.extend_session_expiry.app_error",
+    "translation": "Kan sessielengte niet verlengen"
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "Alle rollen kunnen niet worden opgehaald."
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "Herinnering"
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Het is niet gelukt om de aangepaste status bij te werken. Voeg een emoji of een aangepaste tekststatus of beide toe."
+  },
+  {
+    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
+    "translation": "Kan geen berichten ophalen voor een gearchiveerd kanaal"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
+    "translation": "Kan geen berichten ophalen voor een gearchiveerd kanaal"
+  },
+  {
+    "id": "api.post.posts_by_ids.invalid_body.request_error",
+    "translation": "Het aantal ontvangen Post ID's heeft de maximumgrootte van {{.MaxLength}} overschreden"
+  },
+  {
+    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
+    "translation": "Vernieuwen van deze licentie op het portaal is niet mogelijk"
   }
 ]

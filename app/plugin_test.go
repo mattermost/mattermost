@@ -20,6 +20,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -342,7 +343,7 @@ func TestServePluginRequest(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/plugins/foo/bar", nil)
-	th.App.ch.srv.ServePluginRequest(w, r)
+	th.App.ch.ServePluginRequest(w, r)
 	assert.Equal(t, http.StatusNotImplemented, w.Result().StatusCode)
 }
 
@@ -386,7 +387,7 @@ func TestPrivateServePluginRequest(t *testing.T) {
 
 			request = mux.SetURLVars(request, map[string]string{"plugin_id": "id"})
 
-			th.App.ch.srv.servePluginRequest(recorder, request, handler)
+			th.App.ch.servePluginRequest(recorder, request, handler)
 		})
 	}
 
@@ -409,7 +410,7 @@ func TestHandlePluginRequest(t *testing.T) {
 	var assertions func(*http.Request)
 	router := mux.NewRouter()
 	router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/{anything:.*}", func(_ http.ResponseWriter, r *http.Request) {
-		th.App.ch.srv.servePluginRequest(nil, r, func(_ *plugin.Context, _ http.ResponseWriter, r *http.Request) {
+		th.App.ch.servePluginRequest(nil, r, func(_ *plugin.Context, _ http.ResponseWriter, r *http.Request) {
 			assertions(r)
 		})
 	})
@@ -621,11 +622,42 @@ func TestPluginSync(t *testing.T) {
 				appErr = th.App.DeletePublicKey("pub_key")
 				checkNoError(t, appErr)
 
-				appErr = th.App.RemovePlugin("testplugin")
+				appErr = th.App.ch.RemovePlugin("testplugin")
 				checkNoError(t, appErr)
 			})
 		})
 	}
+}
+
+// See https://github.com/mattermost/mattermost-server/issues/19189
+func TestChannelsPluginsInit(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	runNoPanicTest := func(t *testing.T) {
+		ctx := request.EmptyContext()
+		path, _ := fileutils.FindDir("tests")
+
+		require.NotPanics(t, func() {
+			th.Server.Channels().initPlugins(ctx, path, path)
+		})
+	}
+
+	t.Run("no panics when plugins enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+		})
+
+		runNoPanicTest(t)
+	})
+
+	t.Run("no panics when plugins disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = false
+		})
+
+		runNoPanicTest(t)
+	})
 }
 
 func TestSyncPluginsActiveState(t *testing.T) {
@@ -758,7 +790,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, pluginBytes)
 
-		manifest, appErr := th.App.installPluginLocally(bytes.NewReader(pluginBytes), nil, installPluginLocallyAlways)
+		manifest, appErr := th.App.ch.installPluginLocally(bytes.NewReader(pluginBytes), nil, installPluginLocallyAlways)
 		require.Nil(t, appErr)
 		require.Equal(t, "testplugin", manifest.Id)
 
@@ -785,7 +817,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.Len(t, pluginStatus, 1)
 		require.Equal(t, pluginStatus[0].PluginId, "testplugin")
 
-		appErr = th.App.RemovePlugin("testplugin")
+		appErr = th.App.ch.RemovePlugin("testplugin")
 		checkNoError(t, appErr)
 
 		pluginStatus, err = env.Statuses()
@@ -866,7 +898,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, pluginBytes)
 
-		manifest, appErr := th.App.installPluginLocally(bytes.NewReader(pluginBytes), nil, installPluginLocallyAlways)
+		manifest, appErr := th.App.ch.installPluginLocally(bytes.NewReader(pluginBytes), nil, installPluginLocallyAlways)
 		require.Nil(t, appErr)
 		require.Equal(t, "testplugin", manifest.Id)
 
@@ -896,7 +928,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.Len(t, pluginStatus, 1)
 		require.Equal(t, pluginStatus[0].PluginId, "testplugin")
 
-		appErr = th.App.RemovePlugin("testplugin")
+		appErr = th.App.ch.RemovePlugin("testplugin")
 		checkNoError(t, appErr)
 
 		pluginStatus, err = env.Statuses()

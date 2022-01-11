@@ -39,11 +39,6 @@ func newSqlJobStore(sqlStore *SqlStore) store.JobStore {
 	return s
 }
 
-func (jss SqlJobStore) createIndexesIfNotExists() {
-	jss.CreateIndexIfNotExists("idx_jobs_type", "Jobs", "Type")
-	jss.CreateCompositeIndexIfNotExists("idx_jobs_status_type", "Jobs", []string{"Status", "Type"})
-}
-
 func (jss SqlJobStore) Save(job *model.Job) (*model.Job, error) {
 	jsonData, err := json.Marshal(job.Data)
 	if err != nil {

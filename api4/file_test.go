@@ -230,7 +230,7 @@ func TestUploadFiles(t *testing.T) {
 		expectedImageHasPreview     []bool
 		expectedImageMiniPreview    []bool
 		setupConfig                 func(a *app.App) func(a *app.App)
-		checkResponse               func(t *testing.T, resp *model.Response)
+		checkResponse               func(t testing.TB, resp *model.Response)
 	}{
 		// Upload a bunch of files, mixed images and non-images
 		{

@@ -506,55 +506,6 @@ func newSqlChannelStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface
 	return s
 }
 
-func (s SqlChannelStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_channels_update_at", "Channels", "UpdateAt")
-	s.CreateIndexIfNotExists("idx_channels_create_at", "Channels", "CreateAt")
-	s.CreateIndexIfNotExists("idx_channels_delete_at", "Channels", "DeleteAt")
-	s.CreateIndexIfNotExists("idx_channels_scheme_id", "Channels", "SchemeId")
-	s.CreateCompositeIndexIfNotExists("idx_channels_team_id_display_name", "Channels", []string{"TeamId", "DisplayName"})
-	s.CreateCompositeIndexIfNotExists("idx_channels_team_id_type", "Channels", []string{"TeamId", "Type"})
-
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		s.CreateIndexIfNotExists("idx_channels_name_lower", "Channels", "lower(Name)")
-		s.CreateIndexIfNotExists("idx_channels_displayname_lower", "Channels", "lower(DisplayName)")
-	}
-
-	s.CreateCompositeIndexIfNotExists("idx_channelmembers_user_id_channel_id_last_viewed_at", "ChannelMembers", []string{"UserId", "ChannelId", "LastViewedAt"})
-	s.CreateCompositeIndexIfNotExists("idx_channelmembers_channel_id_scheme_guest_user_id", "ChannelMembers", []string{"ChannelId", "SchemeGuest", "UserId"})
-
-	s.CreateFullTextIndexIfNotExists("idx_channel_search_txt", "Channels", "Name, DisplayName, Purpose")
-
-	s.CreateIndexIfNotExists("idx_publicchannels_team_id", "PublicChannels", "TeamId")
-	s.CreateIndexIfNotExists("idx_publicchannels_delete_at", "PublicChannels", "DeleteAt")
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		s.CreateIndexIfNotExists("idx_publicchannels_name_lower", "PublicChannels", "lower(Name)")
-		s.CreateIndexIfNotExists("idx_publicchannels_displayname_lower", "PublicChannels", "lower(DisplayName)")
-	}
-	s.CreateFullTextIndexIfNotExists("idx_publicchannels_search_txt", "PublicChannels", "Name, DisplayName, Purpose")
-}
-
-// MigratePublicChannels initializes the PublicChannels table with data created before this version
-// of the Mattermost server kept it up-to-date.
-func (s SqlChannelStore) MigratePublicChannels() error {
-	if _, err := s.GetMaster().Exec(`
-		INSERT INTO PublicChannels
-		    (Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
-		SELECT
-		    c.Id, c.DeleteAt, c.TeamId, c.DisplayName, c.Name, c.Header, c.Purpose
-		FROM
-		    Channels c
-		LEFT JOIN
-		    PublicChannels pc ON (pc.Id = c.Id)
-		WHERE
-		    c.Type = 'O'
-		AND pc.Id IS NULL
-	`); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (s SqlChannelStore) upsertPublicChannelT(transaction *gorp.Transaction, channel *model.Channel) error {
 	publicChannel := &publicChannel{
 		Id:          channel.Id,
@@ -2128,7 +2079,7 @@ func (s SqlChannelStore) GetMemberCountsByGroup(ctx context.Context, channelID s
 
 	if includeTimezones {
 		if s.DriverName() == model.DatabaseDriverMysql {
-			selectStr += `, 
+			selectStr += `,
 				COUNT(DISTINCT
 				(
 					CASE WHEN Timezone->"$.useAutomaticTimezone" = 'true' AND LENGTH(JSON_UNQUOTE(Timezone->"$.automaticTimezone")) > 0
@@ -2138,7 +2089,7 @@ func (s SqlChannelStore) GetMemberCountsByGroup(ctx context.Context, channelID s
 					END
 				)) AS ChannelMemberTimezonesCount`
 		} else if s.DriverName() == model.DatabaseDriverPostgres {
-			selectStr += `, 
+			selectStr += `,
 				COUNT(DISTINCT
 				(
 					CASE WHEN Timezone->>'useAutomaticTimezone' = 'true' AND length(Timezone->>'automaticTimezone') > 0
@@ -3752,4 +3703,33 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 		return nil, errors.Wrapf(err, "failed to find team with channel_id=%s", channelID)
 	}
 	return &team, nil
+}
+
+func (s SqlChannelStore) GetCRTUnfixedChannelMembershipsAfter(channelID, userID string, count int) ([]model.ChannelMember, error) {
+	// we want both channelID and userID, or neither of them specified
+	if (userID == "" || channelID == "") && (channelID != userID) {
+		return nil, fmt.Errorf("channelID=%q userID=%q, got one empty param, both need to be empty or specified", channelID, userID)
+	}
+	getUnfixedCMQuery := `
+			SELECT ChannelMembers.*
+			FROM ChannelMembers, Channels
+			WHERE ChannelId = Id AND (ChannelMembers.UserId, ChannelMembers.ChannelId) > (:userId, :channelId) AND Channels.TotalMsgCountRoot > ChannelMembers.MsgCountRoot
+			ORDER BY UserId, ChannelId
+			LIMIT :count;
+	`
+	if userID == "" && channelID == "" {
+		getUnfixedCMQuery = `
+			SELECT ChannelMembers.*
+			FROM ChannelMembers, Channels
+			WHERE ChannelId = Id AND Channels.TotalMsgCountRoot > ChannelMembers.MsgCountRoot
+			ORDER BY UserId, ChannelId
+			LIMIT :count;
+		`
+	}
+	var cms []model.ChannelMember
+
+	if _, err := s.GetReplica().Select(&cms, getUnfixedCMQuery, map[string]interface{}{"channelId": channelID, "userId": userID, "count": count}); err != nil {
+		return nil, errors.Wrapf(err, "failed to %d ChannelMembers after channelId=%q and userId=%q", count, channelID, userID)
+	}
+	return cms, nil
 }
