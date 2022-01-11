@@ -918,9 +918,21 @@ func (a *App) getAddTestEmailAncillaryPermission() (permissionsMap, error) {
 func (a *App) getAddCustomUserGroupsPermissions() (permissionsMap, error) {
 	t := []permissionTransformation{}
 
+	customGroupPermissions := []string{
+		model.PermissionCreateCustomGroup.Id,
+		model.PermissionManageCustomGroupMembers.Id,
+		model.PermissionEditCustomGroup.Id,
+		model.PermissionDeleteCustomGroup.Id,
+	}
+
 	t = append(t, permissionTransformation{
 		On:  isRole(model.SystemUserRoleId),
-		Add: []string{model.PermissionManageCustomGroupMembers.Id},
+		Add: customGroupPermissions,
+	})
+
+	t = append(t, permissionTransformation{
+		On:  isRole(model.SystemAdminRoleId),
+		Add: customGroupPermissions,
 	})
 
 	return t, nil
