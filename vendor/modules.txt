@@ -419,6 +419,9 @@ github.com/matttproud/golang_protobuf_extensions/pbutil
 # github.com/mholt/archiver/v3 v3.5.1
 ## explicit
 github.com/mholt/archiver/v3
+# github.com/microcosm-cc/bluemonday v1.0.2
+## explicit
+github.com/microcosm-cc/bluemonday
 # github.com/miekg/dns v1.1.43
 ## explicit
 github.com/miekg/dns
