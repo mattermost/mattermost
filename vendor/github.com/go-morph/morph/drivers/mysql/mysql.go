@@ -6,7 +6,6 @@ import (
 	"database/sql"
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/pkg/errors"
 
@@ -18,9 +17,11 @@ import (
 const driverName = "mysql"
 const defaultMigrationMaxSize = 10 * 1 << 20 // 10 MB
 var defaultConfig = &Config{
-	MigrationsTable:        "db_migrations",
-	StatementTimeoutInSecs: 60,
-	MigrationMaxSize:       defaultMigrationMaxSize,
+	Config: drivers.Config{
+		MigrationsTable:        "db_migrations",
+		StatementTimeoutInSecs: 60,
+		MigrationMaxSize:       defaultMigrationMaxSize,
+	},
 }
 
 // add here any custom driver configuration
@@ -31,11 +32,9 @@ var configParams = []string{
 }
 
 type Config struct {
-	MigrationsTable        string
-	StatementTimeoutInSecs int
-	MigrationMaxSize       int
-	databaseName           string
-	closeDBonClose         bool
+	drivers.Config
+	databaseName   string
+	closeDBonClose bool
 }
 
 type mysql struct {
@@ -99,10 +98,14 @@ func Open(connURL string) (drivers.Driver, error) {
 }
 
 func (driver *mysql) Ping() error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(driver.config.StatementTimeoutInSecs)*time.Second)
+	ctx, cancel := drivers.GetContext(driver.config.StatementTimeoutInSecs)
 	defer cancel()
 
 	return driver.conn.PingContext(ctx)
+}
+
+func (mysql) DriverName() string {
+	return driverName
 }
 
 func (driver *mysql) Close() error {
@@ -144,7 +147,7 @@ func (driver *mysql) Lock() error {
 	// This will wait until the lock can be acquired or until the statement timeout has reached.
 	query := fmt.Sprintf("SELECT GET_LOCK(?, %d)", driver.config.StatementTimeoutInSecs)
 	var success bool
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(driver.config.StatementTimeoutInSecs)*time.Second)
+	ctx, cancel := drivers.GetContext(driver.config.StatementTimeoutInSecs)
 	defer cancel()
 
 	if err := driver.conn.QueryRowContext(ctx, query, aid).Scan(&success); err != nil {
@@ -177,7 +180,7 @@ func (driver *mysql) Unlock() error {
 	}
 
 	query := `SELECT RELEASE_LOCK(?)`
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(driver.config.StatementTimeoutInSecs)*time.Second)
+	ctx, cancel := drivers.GetContext(driver.config.StatementTimeoutInSecs)
 	defer cancel()
 
 	if _, err := driver.conn.ExecContext(ctx, query, aid); err != nil {
@@ -194,7 +197,7 @@ func (driver *mysql) Unlock() error {
 }
 
 func (driver *mysql) createSchemaTableIfNotExists() (err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(driver.config.StatementTimeoutInSecs)*time.Second)
+	ctx, cancel := drivers.GetContext(driver.config.StatementTimeoutInSecs)
 	defer cancel()
 
 	createTableIfNotExistsQuery := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (Version bigint(20) NOT NULL, Name varchar(64) NOT NULL, PRIMARY KEY (Version)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4", driver.config.MigrationsTable)
@@ -232,7 +235,7 @@ func (driver *mysql) Apply(migration *models.Migration, saveVersion bool) (err e
 		}
 	}
 	defer migration.Close()
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(driver.config.StatementTimeoutInSecs)*time.Second)
+	ctx, cancel := drivers.GetContext(driver.config.StatementTimeoutInSecs)
 	defer cancel()
 
 	if _, err := driver.conn.ExecContext(ctx, query); err != nil {
@@ -245,7 +248,7 @@ func (driver *mysql) Apply(migration *models.Migration, saveVersion bool) (err e
 		}
 	}
 
-	updateVersionContext, cancel := context.WithTimeout(context.Background(), time.Duration(driver.config.StatementTimeoutInSecs)*time.Second)
+	updateVersionContext, cancel := drivers.GetContext(driver.config.StatementTimeoutInSecs)
 	defer cancel()
 
 	if !saveVersion {
@@ -291,7 +294,7 @@ func (driver *mysql) AppliedMigrations() (migrations []*models.Migration, err er
 	}
 
 	query := fmt.Sprintf("SELECT version, name FROM %s", driver.config.MigrationsTable)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(driver.config.StatementTimeoutInSecs)*time.Second)
+	ctx, cancel := drivers.GetContext(driver.config.StatementTimeoutInSecs)
 	defer cancel()
 	var appliedMigrations []*models.Migration
 	var version uint32
@@ -331,7 +334,7 @@ func (driver *mysql) AppliedMigrations() (migrations []*models.Migration, err er
 func currentDatabaseNameFromDB(conn *sql.Conn, config *Config) (string, error) {
 	query := "SELECT DATABASE()"
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(config.StatementTimeoutInSecs)*time.Second)
+	ctx, cancel := drivers.GetContext(config.StatementTimeoutInSecs)
 	defer cancel()
 
 	var databaseName string

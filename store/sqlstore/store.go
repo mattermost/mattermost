@@ -1450,12 +1450,16 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 		}
 		db := setupConnection("master", dataSource, ss.settings)
 		driver, err = ms.WithInstance(db, &ms.Config{
-			StatementTimeoutInSecs: *ss.settings.MigrationsStatementTimeoutSeconds,
+			Config: drivers.Config{
+				StatementTimeoutInSecs: *ss.settings.MigrationsStatementTimeoutSeconds,
+			},
 		})
 		defer db.Close()
 	case model.DatabaseDriverPostgres:
 		driver, err = ps.WithInstance(ss.GetMasterX().DB.DB, &ps.Config{
-			StatementTimeoutInSecs: *ss.settings.MigrationsStatementTimeoutSeconds,
+			Config: drivers.Config{
+				StatementTimeoutInSecs: *ss.settings.MigrationsStatementTimeoutSeconds,
+			},
 		})
 	default:
 		err = fmt.Errorf("unsupported database type %s for migration", ss.DriverName())
@@ -1464,7 +1468,7 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 		return err
 	}
 
-	engine, err := morph.New(driver, src)
+	engine, err := morph.New(context.Background(), driver, src, morph.WithLock("mm-lock-key"))
 	if err != nil {
 		return err
 	}
