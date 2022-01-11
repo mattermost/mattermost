@@ -7,8 +7,8 @@
 Useful Resources:
 
 - [Deployment Guide](https://docs.mattermost.com/guides/deployment.html) - Install, setup, and configure your own Mattermost instance.
-- [Admin and User Documentation](http://docs.mattermost.com/) - Learn how to run a Mattermost instance and take advantage of all the features.
-- [Developer Documentation](http://developers.mattermost.com/) - Contribute code to Mattermost or build an integration via APIs, Webhooks, slash commands, Apps, and plugins.
+- [Admin and User Documentation](https://docs.mattermost.com/) - Learn how to run a Mattermost instance and take advantage of all the features.
+- [Developer Documentation](https://developers.mattermost.com/) - Contribute code to Mattermost or build an integration via APIs, Webhooks, slash commands, Apps, and plugins.
 
 Table of Contents
 =================
@@ -80,7 +80,7 @@ See the [LICENSE file](LICENSE.txt) for license rights and limitations.
 - **Blog** - Get the latest updates from the [Mattermost blog](https://mattermost.com/blog/).
 - **Facebook** - Follow [Mattermost](https://www.facebook.com/MattermostHQ).
 - **LinkedIn** - Follow [Mattermost](https://www.linkedin.com/company/mattermost/).
-- **Email** - Subscribe to our [newsletter](http://mattermost.us11.list-manage.com/subscribe?u=6cdba22349ae374e188e7ab8e&id=2add1c8034) (1 or 2 per month).
+- **Email** - Subscribe to our [newsletter](https://mattermost.us11.list-manage.com/subscribe?u=6cdba22349ae374e188e7ab8e&id=2add1c8034) (1 or 2 per month).
 - **Mattermost** - Join the ~contributors channel on [the Mattermost Community Server](https://community.mattermost.com). 
 - **IRC** - Join the #matterbridge channel on [Freenode](https://freenode.net/) (thanks to [matterircd](https://github.com/42wim/matterircd)).
 
