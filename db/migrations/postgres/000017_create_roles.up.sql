@@ -13,7 +13,19 @@ CREATE TABLE IF NOT EXISTS roles (
 
 ALTER TABLE roles ADD COLUMN IF NOT EXISTS builtin boolean;
 
-UPDATE Roles SET SchemeManaged = false
-WHERE Name NOT IN ('system_user', 'system_admin', 'team_user', 'team_admin', 'channel_user', 'channel_admin');
+DO $$
+	<< migrate_roles >>
+BEGIN
+	IF((
+		SELECT
+			value
+		FROM systems
+	WHERE
+		Name = 'Version') = '4.10.0') THEN
+            UPDATE Roles SET SchemeManaged = false
+            WHERE Name NOT IN ('system_user', 'system_admin', 'team_user', 'team_admin', 'channel_user', 'channel_admin');
+	END IF;
+END migrate_roles
+$$;
 
 ALTER TABLE roles ALTER COLUMN permissions TYPE TEXT;

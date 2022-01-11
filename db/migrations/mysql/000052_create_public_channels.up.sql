@@ -71,8 +71,7 @@ EXECUTE createIndexIfNotExists;
 DEALLOCATE PREPARE createIndexIfNotExists;
 
 CREATE PROCEDURE MigratePC ()
-BEGIN
-DECLARE
+BEGIN DECLARE
 	PublicChannels_Count INT;
 	SELECT
 		COUNT(*)
