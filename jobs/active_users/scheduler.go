@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
-const schedFreq = time.Duration(10 * time.Minute)
+const schedFreq = 10 * time.Minute
 
 func MakeScheduler(jobServer *jobs.JobServer) model.Scheduler {
 	isEnabled := func(cfg *model.Config) bool {
