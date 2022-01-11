@@ -29,12 +29,12 @@ func (scheduler *PeriodicScheduler) Enabled(cfg *model.Config) bool {
 	return scheduler.enabledFunc(cfg)
 }
 
-func (scheduler *PeriodicScheduler) NextScheduleTime(_ *model.Config, _ time.Time, _ bool, _ *model.Job) *time.Time {
+func (scheduler *PeriodicScheduler) NextScheduleTime(_ *model.Config, _ time.Time /* pendingJobs */, _ bool /* lastSuccessfulJob */, _ *model.Job) *time.Time {
 	nextTime := time.Now().Add(scheduler.waitTime)
 	return &nextTime
 }
 
-func (scheduler *PeriodicScheduler) ScheduleJob(_ *model.Config, _ bool, _ *model.Job) (*model.Job, *model.AppError) {
+func (scheduler *PeriodicScheduler) ScheduleJob(_ *model.Config /* pendingJobs */, _ bool /* lastSuccessfulJob */, _ *model.Job) (*model.Job, *model.AppError) {
 	return scheduler.jobs.CreateJob(scheduler.jobType, nil)
 }
 
@@ -58,7 +58,7 @@ func (scheduler *DailyScheduler) Enabled(cfg *model.Config) bool {
 	return scheduler.enabledFunc(cfg)
 }
 
-func (scheduler *DailyScheduler) NextScheduleTime(cfg *model.Config, now time.Time, _ bool, _ *model.Job) *time.Time {
+func (scheduler *DailyScheduler) NextScheduleTime(cfg *model.Config, now time.Time /* pendingJobs */, _ bool /* lastSuccessfulJob */, _ *model.Job) *time.Time {
 	scheduledTime := scheduler.startTimeFunc(cfg)
 	if scheduledTime == nil {
 		return nil
@@ -67,6 +67,6 @@ func (scheduler *DailyScheduler) NextScheduleTime(cfg *model.Config, now time.Ti
 	return GenerateNextStartDateTime(now, *scheduledTime)
 }
 
-func (scheduler *DailyScheduler) ScheduleJob(_ *model.Config, _ bool, _ *model.Job) (*model.Job, *model.AppError) {
+func (scheduler *DailyScheduler) ScheduleJob(_ *model.Config /* pendingJobs */, _ bool /* lastSuccessfulJob */, _ *model.Job) (*model.Job, *model.AppError) {
 	return scheduler.jobs.CreateJob(scheduler.jobType, nil)
 }
