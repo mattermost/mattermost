@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type PeriodicScheduler struct {
@@ -40,18 +39,18 @@ func (scheduler *PeriodicScheduler) ScheduleJob(_ *model.Config, _ bool, _ *mode
 }
 
 type DailyScheduler struct {
-	jobs        *JobServer
-	timeConfig  func(cfg *model.Config) string
-	jobType     string
-	enabledFunc func(cfg *model.Config) bool
+	jobs          *JobServer
+	startTimeFunc func(cfg *model.Config) *time.Time
+	jobType       string
+	enabledFunc   func(cfg *model.Config) bool
 }
 
-func NewDailyScheduler(jobs *JobServer, jobType string, timeConfig func(cfg *model.Config) string, enabledFunc func(cfg *model.Config) bool) *DailyScheduler {
+func NewDailyScheduler(jobs *JobServer, jobType string, startTimeFunc func(cfg *model.Config) *time.Time, enabledFunc func(cfg *model.Config) bool) *DailyScheduler {
 	return &DailyScheduler{
-		timeConfig:  timeConfig,
-		jobType:     jobType,
-		enabledFunc: enabledFunc,
-		jobs:        jobs,
+		startTimeFunc: startTimeFunc,
+		jobType:       jobType,
+		enabledFunc:   enabledFunc,
+		jobs:          jobs,
 	}
 }
 
@@ -60,13 +59,12 @@ func (scheduler *DailyScheduler) Enabled(cfg *model.Config) bool {
 }
 
 func (scheduler *DailyScheduler) NextScheduleTime(cfg *model.Config, now time.Time, _ bool, _ *model.Job) *time.Time {
-	parsedTime, err := time.Parse("15:04", scheduler.timeConfig(cfg))
-	if err != nil {
-		mlog.Error("Cannot determine next schedule time for message export job. DailyRunTime config value is invalid.")
+	scheduledTime := scheduler.startTimeFunc(cfg)
+	if scheduledTime == nil {
 		return nil
 	}
 
-	return GenerateNextStartDateTime(now, parsedTime)
+	return GenerateNextStartDateTime(now, *scheduledTime)
 }
 
 func (scheduler *DailyScheduler) ScheduleJob(_ *model.Config, _ bool, _ *model.Job) (*model.Job, *model.AppError) {
