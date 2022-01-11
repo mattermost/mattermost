@@ -33,7 +33,7 @@ SET @preparedStatement = (SELECT IF(
         AND index_name = 'idx_publicchannels_name'
     ) > 0,
     'SELECT 1',
-    'CREATE INDEX idx_publicchannels_name ON PublicChannels(name);'
+    'CREATE INDEX idx_publicchannels_name ON PublicChannels(Name);'
 ));
 
 PREPARE createIndexIfNotExists FROM @preparedStatement;
@@ -48,7 +48,7 @@ SET @preparedStatement = (SELECT IF(
         AND index_name = 'idx_publicchannels_delete_at'
     ) > 0,
     'SELECT 1',
-    'CREATE INDEX idx_publicchannels_delete_at ON PublicChannels(deleteat);'
+    'CREATE INDEX idx_publicchannels_delete_at ON PublicChannels(DeleteAt);'
 ));
 
 PREPARE createIndexIfNotExists FROM @preparedStatement;
@@ -63,7 +63,7 @@ SET @preparedStatement = (SELECT IF(
         AND index_name = 'idx_publicchannels_search_txt'
     ) > 0,
     'SELECT 1',
-    'CREATE FULLTEXT INDEX idx_publicchannels_search_txt ON PublicChannels(name, displayname, purpose);'
+    'CREATE FULLTEXT INDEX idx_publicchannels_search_txt ON PublicChannels(Name, DisplayName, Purpose);'
 ));
 
 PREPARE createIndexIfNotExists FROM @preparedStatement;
@@ -72,9 +72,13 @@ DEALLOCATE PREPARE createIndexIfNotExists;
 
 CREATE PROCEDURE MigratePC ()
 BEGIN
-	IF(NOT EXISTS (
-		SELECT
-			1 FROM PublicChannels)) THEN
+DECLARE
+	PublicChannels_Count INT;
+	SELECT
+		COUNT(*)
+	FROM
+		PublicChannels INTO PublicChannels_Count;
+	IF(PublicChannels_Count = 0) THEN
 		INSERT INTO PublicChannels (Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
 		SELECT
 			c.Id, c.DeleteAt, c.TeamId, c.DisplayName, c.Name, c.Header, c.Purpose
