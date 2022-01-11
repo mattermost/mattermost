@@ -72,7 +72,7 @@ func (worker *SimpleWorker) DoJob(job *model.Job) {
 		mlog.Warn("SimpleWorker experienced an error while trying to claim job",
 			mlog.String("worker", worker.name),
 			mlog.String("job_id", job.Id),
-			mlog.String("error", err.Error()))
+			mlog.Err(err))
 		return
 	} else if !claimed {
 		return

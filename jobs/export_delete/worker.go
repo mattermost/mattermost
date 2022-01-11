@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/configservice"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/wiggin77/merror"
 )
 
 const jobName = "ExportDelete"
@@ -34,14 +35,14 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 			return appErr
 		}
 
-		var hasErrs bool
+		errors := merror.New()
 		for i := range exports {
 			filename := filepath.Base(exports[i])
 			modTime, appErr := app.FileModTime(filepath.Join(exportPath, filename))
 			if appErr != nil {
 				mlog.Debug("Worker: Failed to get file modification time",
 					mlog.Err(appErr), mlog.String("export", exports[i]))
-				hasErrs = true
+				errors.Append(appErr)
 				continue
 			}
 
@@ -50,14 +51,14 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 				if appErr := app.RemoveFile(exports[i]); appErr != nil {
 					mlog.Debug("Worker: Failed to remove file",
 						mlog.Err(appErr), mlog.String("export", exports[i]))
-					hasErrs = true
+					errors.Append(appErr)
 					continue
 				}
 			}
 		}
 
-		if hasErrs {
-			mlog.Warn("Worker: errors occurred")
+		if err := errors.ErrorOrNil(); err != nil {
+			mlog.Warn("Worker: errors occurred", mlog.String("job-name", jobName), mlog.Err(err))
 		}
 		return nil
 	}

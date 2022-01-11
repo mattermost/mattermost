@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/services/configservice"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/wiggin77/merror"
 )
 
 const jobName = "ImportDelete"
@@ -36,14 +37,14 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, s store.Store) model.Wo
 			return appErr
 		}
 
-		var hasErrs bool
+		multipleErrors := merror.New()
 		for i := range imports {
 			filename := filepath.Base(imports[i])
 			modTime, appErr := app.FileModTime(filepath.Join(importPath, filename))
 			if appErr != nil {
 				mlog.Debug("Worker: Failed to get file modification time",
 					mlog.Err(appErr), mlog.String("import", imports[i]))
-				hasErrs = true
+				multipleErrors.Append(appErr)
 				continue
 			}
 
@@ -58,7 +59,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, s store.Store) model.Wo
 					if storeErr := s.UploadSession().Delete(uploadID); storeErr != nil {
 						mlog.Debug("Worker: Failed to delete UploadSession",
 							mlog.Err(storeErr), mlog.String("upload_id", uploadID))
-						hasErrs = true
+						multipleErrors.Append(storeErr)
 						continue
 					}
 				} else {
@@ -69,13 +70,13 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, s store.Store) model.Wo
 					if storeErr != nil && !errors.As(storeErr, &nfErr) {
 						mlog.Debug("Worker: Failed to get FileInfo",
 							mlog.Err(storeErr), mlog.String("path", filePath))
-						hasErrs = true
+						multipleErrors.Append(storeErr)
 						continue
 					} else if storeErr == nil {
 						if storeErr = s.FileInfo().PermanentDelete(info.Id); storeErr != nil {
 							mlog.Debug("Worker: Failed to delete FileInfo",
 								mlog.Err(storeErr), mlog.String("file_id", info.Id))
-							hasErrs = true
+							multipleErrors.Append(storeErr)
 							continue
 						}
 					}
@@ -85,14 +86,14 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, s store.Store) model.Wo
 				if appErr := app.RemoveFile(imports[i]); appErr != nil {
 					mlog.Debug("Worker: Failed to remove file",
 						mlog.Err(appErr), mlog.String("import", imports[i]))
-					hasErrs = true
+					multipleErrors.Append(appErr)
 					continue
 				}
 			}
 		}
 
-		if hasErrs {
-			mlog.Warn("Worker: errors occurred")
+		if err := multipleErrors.ErrorOrNil(); err != nil {
+			mlog.Warn("Worker: errors occurred", mlog.String("job-name", jobName), mlog.Err(err))
 		}
 		return nil
 	}
