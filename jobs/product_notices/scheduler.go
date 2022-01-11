@@ -23,5 +23,5 @@ func MakeScheduler(jobServer *jobs.JobServer) model.Scheduler {
 	isEnabled := func(cfg *model.Config) bool {
 		return *cfg.AnnouncementSettings.AdminNoticesEnabled || *cfg.AnnouncementSettings.UserNoticesEnabled
 	}
-	return &Scheduler{PeriodicScheduler: jobs.NewPeridicScheduler(jobServer, model.JobTypeProductNotices, 0, isEnabled)}
+	return &Scheduler{PeriodicScheduler: jobs.NewPeriodicScheduler(jobServer, model.JobTypeProductNotices, time.Duration(0), isEnabled)}
 }

@@ -4,17 +4,17 @@
 package import_delete
 
 import (
+	"time"
+
 	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
-const (
-	SchedFreqMinutes = 24 * 60
-)
+const schedFreq = time.Duration(24 * time.Hour)
 
 func MakeScheduler(jobServer *jobs.JobServer) model.Scheduler {
 	isEnabled := func(cfg *model.Config) bool {
 		return *cfg.ImportSettings.Directory != "" && *cfg.ImportSettings.RetentionDays > 0
 	}
-	return jobs.NewPeridicScheduler(jobServer, model.JobTypeImportDelete, SchedFreqMinutes, isEnabled)
+	return jobs.NewPeriodicScheduler(jobServer, model.JobTypeImportDelete, schedFreq, isEnabled)
 }

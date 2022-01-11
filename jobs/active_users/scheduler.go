@@ -4,17 +4,17 @@
 package active_users
 
 import (
+	"time"
+
 	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
-const (
-	SchedFreqMinutes = 10
-)
+const schedFreq = time.Duration(10 * time.Minute)
 
 func MakeScheduler(jobServer *jobs.JobServer) model.Scheduler {
 	isEnabled := func(cfg *model.Config) bool {
 		return *cfg.MetricsSettings.Enable
 	}
-	return jobs.NewPeridicScheduler(jobServer, model.JobTypeActiveUsers, SchedFreqMinutes, isEnabled)
+	return jobs.NewPeriodicScheduler(jobServer, model.JobTypeActiveUsers, schedFreq, isEnabled)
 }
