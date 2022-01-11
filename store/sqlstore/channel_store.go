@@ -2432,7 +2432,6 @@ func (s SqlChannelStore) CountPostsAfter(channelId string, timestamp int64, user
 // If the provided mentionCount is -1, the given post and all posts after it are considered to be mentions. Returns
 // an updated model.ChannelUnreadAt that can be returned to the client.
 func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount, mentionCountRoot int, updateThreads bool, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error) {
-	fmt.Println("I AM CALLED:-------", updateThreads)
 	var threadsToUpdate []string
 	unreadDate := unreadPost.CreateAt - 1
 	if updateThreads {
