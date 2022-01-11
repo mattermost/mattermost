@@ -3726,10 +3726,10 @@ func (s SqlChannelStore) GetCRTUnfixedChannelMembershipsAfter(channelID, userID 
 			LIMIT :count;
 		`
 	}
-	var cms []model.ChannelMember
+	var dbMembers channelMemberWithSchemeRolesList
 
-	if _, err := s.GetReplica().Select(&cms, getUnfixedCMQuery, map[string]interface{}{"channelId": channelID, "userId": userID, "count": count}); err != nil {
-		return nil, errors.Wrapf(err, "failed to %d ChannelMembers after channelId=%q and userId=%q", count, channelID, userID)
+	if _, err := s.GetReplica().Select(&dbMembers, getUnfixedCMQuery, map[string]interface{}{"channelId": channelID, "userId": userID, "count": count}); err != nil {
+		return nil, errors.Wrapf(err, "failed to get %d ChannelMembers after channelId=%q and userId=%q", count, channelID, userID)
 	}
-	return cms, nil
+	return dbMembers.ToModel(), nil
 }
