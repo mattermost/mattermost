@@ -248,7 +248,6 @@ type ChannelStore interface {
 	MigrateChannelMembers(fromChannelID string, fromUserID string) (map[string]string, error)
 	ResetAllChannelSchemes() error
 	ClearAllCustomRoleAssignments() error
-	MigratePublicChannels() error
 	CreateInitialSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, error)
 	GetSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, error)
 	GetSidebarCategory(categoryID string) (*model.SidebarCategoryWithChannels, error)

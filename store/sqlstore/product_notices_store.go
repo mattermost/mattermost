@@ -29,11 +29,6 @@ func newSqlProductNoticesStore(sqlStore *SqlStore) store.ProductNoticesStore {
 	return s
 }
 
-func (s SqlProductNoticesStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_notice_views_timestamp", "ProductNoticeViewState", "Timestamp")
-	s.CreateIndexIfNotExists("idx_notice_views_notice_id", "ProductNoticeViewState", "NoticeId")
-}
-
 func (s SqlProductNoticesStore) Clear(notices []string) error {
 	sql, args, err := s.getQueryBuilder().Delete("ProductNoticeViewState").Where(sq.Eq{"NoticeId": notices}).ToSql()
 	if err != nil {
