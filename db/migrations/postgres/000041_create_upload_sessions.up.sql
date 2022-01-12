@@ -16,3 +16,17 @@ CREATE INDEX IF NOT EXISTS idx_uploadsessions_type ON uploadsessions(type);
 
 ALTER TABLE uploadsessions ADD COLUMN IF NOT EXISTS remoteid VARCHAR(26);
 ALTER TABLE uploadsessions ADD COLUMN IF NOT EXISTS reqfileid VARCHAR(26);
+
+DO $$
+	<< shared_channel_support >>
+BEGIN
+	IF((
+		SELECT
+			value
+		FROM systems
+	WHERE
+		Name = 'Version') = '5.34.0') THEN
+           UPDATE UploadSessions SET RemoteId='', ReqFileId='' WHERE RemoteId IS NULL;
+	END IF;
+END shared_channel_support
+$$;

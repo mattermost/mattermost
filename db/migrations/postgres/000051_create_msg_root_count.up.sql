@@ -4,6 +4,8 @@ DECLARE
     mention_count_root_exist boolean := false;
 DECLARE
     msg_count_root_exist boolean := false;
+DECLARE
+	tmp_count_root integer := 0;
 BEGIN
 SELECT count(*) != 0 INTO msg_count_root_exist
     FROM information_schema.columns
@@ -15,8 +17,13 @@ SELECT count(*) != 0 INTO msg_count_root_exist
     WHERE table_name = 'channelmembers'
     AND column_name = 'mentioncountroot';
 
+IF mention_count_root_exist THEN
+	tmp_count_root := (SELECT count(*) FROM channelmembers WHERE msgcountroot = NULL OR mentioncountroot = NULL);
+END IF;
+
 ALTER TABLE channelmembers ADD COLUMN IF NOT EXISTS mentioncountroot bigint;
 
+IF (tmp_count_root > 0) THEN
 	WITH q AS (
 		SELECT ChannelId, COALESCE(SUM(UnreadMentions), 0) AS UnreadMentions, UserId
 		FROM ThreadMemberships
@@ -30,9 +37,10 @@ ALTER TABLE channelmembers ADD COLUMN IF NOT EXISTS mentioncountroot bigint;
 				q.ChannelId = ChannelMembers.ChannelId AND
 				q.UserId = ChannelMembers.UserId AND
 				ChannelMembers.MentionCount > 0;
+END IF;
 
 ALTER TABLE channels ADD COLUMN IF NOT EXISTS totalmsgcountroot bigint;
-ALTER TABLE channels ADD COLUMN IF NOT EXISTS lastrootpostat bigint;
+ALTER TABLE channels ADD COLUMN IF NOT EXISTS lastrootat bigint;
 
 ALTER TABLE channelmembers ADD COLUMN IF NOT EXISTS msgcountroot bigint;
 
@@ -44,16 +52,16 @@ IF NOT msg_count_root_exist THEN
 		WHERE Posts.RootId = ''
 		GROUP BY Channels.Id
 	)
-		UPDATE Channels SET TotalMsgCountRoot = q.newcount, LastRootPostAt=q.lastpost
+		UPDATE Channels SET TotalMsgCountRoot = q.newcount, LastRootAt=q.lastpost
 		FROM q where q.channelid=Channels.Id;
 END IF;
 
 IF NOT mention_count_root_exist THEN
-		WITH q as (SELECT TotalMsgCountRoot, Id, LastRootPostAt from Channels)
+		WITH q as (SELECT TotalMsgCountRoot, Id, LastRootAt from Channels)
 		UPDATE ChannelMembers CM SET MsgCountRoot=TotalMsgCountRoot
-		FROM q WHERE q.id=CM.ChannelId AND LastViewedAt >= q.lastrootpostat;
+		FROM q WHERE q.id=CM.ChannelId AND LastViewedAt >= q.lastrootat;
 END IF;
 
-ALTER TABLE channels DROP COLUMN IF EXISTS lastrootpostat;
+ALTER TABLE channels DROP COLUMN IF EXISTS lastrootat;
 
 END migrate_root_mention_count $$;
