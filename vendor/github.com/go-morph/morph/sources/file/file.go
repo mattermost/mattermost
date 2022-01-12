@@ -70,7 +70,7 @@ func (f *File) readMigrations() error {
 	}
 
 	migrations := []*models.Migration{}
-	walkerr := filepath.Walk(f.path, func(path string, info os.FileInfo, err error) error {
+	walkerr := filepath.Walk(f.path, func(path string, info os.FileInfo, _ error) error {
 		if info.IsDir() {
 			return nil
 		}
