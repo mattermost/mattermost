@@ -101,10 +101,6 @@ func (srv *JobServer) InitSchedulers() error {
 		schedulers.schedulers = append(schedulers.schedulers, exportDeleteInterface.MakeScheduler())
 	}
 
-	if fixCRTChannelUnreadsInterface := srv.FixCRTChannelUnreads; fixCRTChannelUnreadsInterface != nil {
-		schedulers.schedulers = append(schedulers.schedulers, fixCRTChannelUnreadsInterface.MakeScheduler())
-	}
-
 	schedulers.nextRunTimes = make([]*time.Time, len(schedulers.schedulers))
 	srv.schedulers = schedulers
 
