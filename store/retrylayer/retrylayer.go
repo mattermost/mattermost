@@ -1129,27 +1129,6 @@ func (s *RetryLayerChannelStore) GetByNames(team_id string, names []string, allo
 
 }
 
-func (s *RetryLayerChannelStore) GetCRTUnfixedChannelMembershipsAfter(channelID string, userID string, count int) ([]model.ChannelMember, error) {
-
-	tries := 0
-	for {
-		result, err := s.ChannelStore.GetCRTUnfixedChannelMembershipsAfter(channelID, userID, count)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerChannelStore) GetChannelCounts(teamID string, userID string) (*model.ChannelCounts, error) {
 
 	tries := 0
@@ -6390,27 +6369,6 @@ func (s *RetryLayerPostStore) GetSingle(id string, inclDeleted bool) (*model.Pos
 	tries := 0
 	for {
 		result, err := s.PostStore.GetSingle(id, inclDeleted)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerPostStore) GetUniquePostTypesSince(channelId string, timestamp int64) ([]string, error) {
-
-	tries := 0
-	for {
-		result, err := s.PostStore.GetUniquePostTypesSince(channelId, timestamp)
 		if err == nil {
 			return result, nil
 		}

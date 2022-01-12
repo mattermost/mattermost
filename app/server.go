@@ -1919,10 +1919,6 @@ func (s *Server) initJobs() {
 		s.Jobs.ExtractContent = jobsExtractContentInterface(s)
 	}
 
-	if fixCRTChannelUnreadsJobInterface != nil {
-		s.Jobs.FixCRTChannelUnreads = fixCRTChannelUnreadsJobInterface(s)
-	}
-
 	s.Jobs.InitWorkers()
 	s.Jobs.InitSchedulers()
 }
