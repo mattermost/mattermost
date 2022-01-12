@@ -27,8 +27,20 @@ PREPARE alterIfNotExists FROM @preparedStatement;
 EXECUTE alterIfNotExists;
 DEALLOCATE PREPARE alterIfNotExists;
 
+CREATE PROCEDURE MigrateRoles ()
+BEGIN DECLARE
+	SchemaVersion TEXT;
+	SELECT Value FROM Systems WHERE Name = 'Version' INTO SchemaVersion;
+IF(SchemaVersion = '4.10.0') THEN
+
 UPDATE Roles SET SchemeManaged = 0
 WHERE Name NOT IN ('system_user', 'system_admin', 'team_user', 'team_admin', 'channel_user', 'channel_admin');
+
+END IF;
+END;
+
+Call MigrateRoles();
+DROP PROCEDURE IF EXISTS MigrateRoles;
 
 SET @preparedStatement = (SELECT IF(
     (

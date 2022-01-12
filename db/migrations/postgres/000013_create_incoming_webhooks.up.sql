@@ -55,3 +55,17 @@ BEGIN
             RAISE EXCEPTION 'IncomingWebhooks column IconURL has data larger that 1024 characters';
     END IF;
 END checks $$;
+
+DO $$
+DECLARE 
+    column_exist boolean := false;
+BEGIN
+SELECT count(*) != 0 INTO column_exist
+    FROM information_schema.columns
+    WHERE table_name = 'incomingwebhooks'
+    AND column_name = 'description'
+    AND NOT data_type = 'VARCHAR(500)';
+IF column_exist THEN
+    ALTER TABLE incomingwebhooks ALTER COLUMN description TYPE VARCHAR(500);
+END IF;
+END $$;

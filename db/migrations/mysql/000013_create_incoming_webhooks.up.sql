@@ -174,3 +174,19 @@ CALL CheckColumnMaxLength('Username', 255);
 CALL CheckColumnMaxLength('IconURL',  1024);
 
 DROP PROCEDURE IF EXISTS CheckColumnMaxLength;
+
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE table_name = 'IncomingWebhooks'
+        AND table_schema = DATABASE()
+        AND column_name = 'Description'
+        AND column_type != 'text'
+    ) > 0,
+    'ALTER TABLE IncomingWebhooks MODIFY COLUMN Description text;',
+    'SELECT 1'
+));
+
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
