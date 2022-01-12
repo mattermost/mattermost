@@ -19,6 +19,5 @@ func MakeWorker(jobServer *jobs.JobServer, notifySessionsExpired func() *model.A
 	execute := func(job *model.Job) error {
 		return notifySessionsExpired()
 	}
-	worker := jobs.NewSimpleWorker(JobName, jobServer, execute, isEnabled)
-	return worker
+	return jobs.NewSimpleWorker(JobName, jobServer, execute, isEnabled)
 }

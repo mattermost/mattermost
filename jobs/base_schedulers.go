@@ -11,14 +11,14 @@ import (
 
 type PeriodicScheduler struct {
 	jobs        *JobServer
-	waitTime    time.Duration
+	period      time.Duration
 	jobType     string
 	enabledFunc func(cfg *model.Config) bool
 }
 
-func NewPeriodicScheduler(jobs *JobServer, jobType string, waitTime time.Duration, enabledFunc func(cfg *model.Config) bool) *PeriodicScheduler {
+func NewPeriodicScheduler(jobs *JobServer, jobType string, period time.Duration, enabledFunc func(cfg *model.Config) bool) *PeriodicScheduler {
 	return &PeriodicScheduler{
-		waitTime:    waitTime,
+		period:      period,
 		jobType:     jobType,
 		enabledFunc: enabledFunc,
 		jobs:        jobs,
@@ -30,7 +30,7 @@ func (scheduler *PeriodicScheduler) Enabled(cfg *model.Config) bool {
 }
 
 func (scheduler *PeriodicScheduler) NextScheduleTime(_ *model.Config, _ time.Time /* pendingJobs */, _ bool /* lastSuccessfulJob */, _ *model.Job) *time.Time {
-	nextTime := time.Now().Add(scheduler.waitTime)
+	nextTime := time.Now().Add(scheduler.period)
 	return &nextTime
 }
 
