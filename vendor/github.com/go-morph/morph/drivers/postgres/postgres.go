@@ -372,6 +372,7 @@ func (pg *postgres) AppliedMigrations() (migrations []*models.Migration, err err
 			Query:   []byte(query),
 		}
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		if err := rows.Scan(&version, &name); err != nil {

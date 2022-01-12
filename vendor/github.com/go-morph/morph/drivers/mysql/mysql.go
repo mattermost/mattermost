@@ -310,6 +310,7 @@ func (driver *mysql) AppliedMigrations() (migrations []*models.Migration, err er
 			Query:   []byte(query),
 		}
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		if err := rows.Scan(&version, &name); err != nil {

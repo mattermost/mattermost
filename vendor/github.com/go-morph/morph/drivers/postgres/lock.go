@@ -45,14 +45,19 @@ func NewMutex(key string, driver drivers.Driver) (*Mutex, error) {
 		return nil, errors.New("incorrect implementation of the driver")
 	}
 
+	conn, err := ps.db.Conn(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
 	createTableIfNotExistsQuery := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (id varchar(64) PRIMARY KEY, expireat bigint);", drivers.MutexTableName)
-	if _, err = ps.conn.ExecContext(ctx, createTableIfNotExistsQuery); err != nil {
+	if _, err = conn.ExecContext(ctx, createTableIfNotExistsQuery); err != nil {
 		return nil, err
 	}
 
 	return &Mutex{
 		key:  key,
-		conn: ps.conn,
+		conn: conn,
 	}, nil
 }
 
@@ -232,6 +237,8 @@ func (m *Mutex) Unlock() {
 	m.stopRefresh = nil
 	<-m.refreshDone
 	m.lock.Unlock()
+
+	defer m.conn.Close()
 
 	// If an error occurs deleting, the mutex will still expire, allowing later retry.
 	query := fmt.Sprintf("DELETE FROM %s WHERE id = $1", drivers.MutexTableName)
