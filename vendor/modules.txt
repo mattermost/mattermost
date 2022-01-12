@@ -214,7 +214,7 @@ github.com/gigawattio/window
 # github.com/go-asn1-ber/asn1-ber v1.5.3
 ## explicit
 github.com/go-asn1-ber/asn1-ber
-# github.com/go-morph/morph v0.0.0-20211202070306-dbdc0736c17e
+# github.com/go-morph/morph v0.2.1
 ## explicit
 github.com/go-morph/morph
 github.com/go-morph/morph/drivers
@@ -419,6 +419,9 @@ github.com/matttproud/golang_protobuf_extensions/pbutil
 # github.com/mholt/archiver/v3 v3.5.1
 ## explicit
 github.com/mholt/archiver/v3
+# github.com/microcosm-cc/bluemonday v1.0.2
+## explicit
+github.com/microcosm-cc/bluemonday
 # github.com/miekg/dns v1.1.43
 ## explicit
 github.com/miekg/dns

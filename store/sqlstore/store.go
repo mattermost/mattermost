@@ -1444,18 +1444,27 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	var driver drivers.Driver
 	switch ss.DriverName() {
 	case model.DatabaseDriverMysql:
-		dataSource, err2 := ss.appendMultipleStatementsFlag(*ss.settings.DataSource)
-		if err2 != nil {
-			return err2
+		dataSource, rErr := resetReadTimeout(*ss.settings.DataSource)
+		if rErr != nil {
+			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(rErr), mlog.String("src", *ss.settings.DataSource))
+			return rErr
+		}
+		dataSource, err = ss.appendMultipleStatementsFlag(dataSource)
+		if err != nil {
+			return err
 		}
 		db := setupConnection("master", dataSource, ss.settings)
 		driver, err = ms.WithInstance(db, &ms.Config{
-			StatementTimeoutInSecs: *ss.settings.MigrationsStatementTimeoutSeconds,
+			Config: drivers.Config{
+				StatementTimeoutInSecs: *ss.settings.MigrationsStatementTimeoutSeconds,
+			},
 		})
 		defer db.Close()
 	case model.DatabaseDriverPostgres:
 		driver, err = ps.WithInstance(ss.GetMasterX().DB.DB, &ps.Config{
-			StatementTimeoutInSecs: *ss.settings.MigrationsStatementTimeoutSeconds,
+			Config: drivers.Config{
+				StatementTimeoutInSecs: *ss.settings.MigrationsStatementTimeoutSeconds,
+			},
 		})
 	default:
 		err = fmt.Errorf("unsupported database type %s for migration", ss.DriverName())
@@ -1464,7 +1473,7 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 		return err
 	}
 
-	engine, err := morph.New(driver, src)
+	engine, err := morph.New(context.Background(), driver, src, morph.WithLock("mm-lock-key"))
 	if err != nil {
 		return err
 	}

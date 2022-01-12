@@ -50,7 +50,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/jobs/export_delete"
 	"github.com/mattermost/mattermost-server/v6/jobs/export_process"
 	"github.com/mattermost/mattermost-server/v6/jobs/extract_content"
-	"github.com/mattermost/mattermost-server/v6/jobs/fix_crt_channel_unreads"
 	"github.com/mattermost/mattermost-server/v6/jobs/import_delete"
 	"github.com/mattermost/mattermost-server/v6/jobs/import_process"
 	"github.com/mattermost/mattermost-server/v6/jobs/product_notices"
@@ -1872,7 +1871,6 @@ func (ch *Channels) ClientConfigHash() string {
 
 func (s *Server) initJobs() {
 	s.Jobs = jobs.NewJobServer(s, s.Store, s.Metrics)
-
 	s.Jobs.InitWorkers()
 	s.Jobs.InitSchedulers()
 
@@ -1976,12 +1974,6 @@ func (s *Server) initJobs() {
 		model.JobTypeExtractContent,
 		extract_content.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store),
 		nil,
-	)
-
-	s.Jobs.RegisterJobType(
-		model.JobTypeFixChannelUnreadsForCRT,
-		fix_crt_channel_unreads.MakeWorker(s.Jobs, s.Store),
-		fix_crt_channel_unreads.MakeScheduler(s.Jobs, s.Store),
 	)
 }
 

@@ -527,17 +527,6 @@ func upgradeDatabaseToVersion57(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion58(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version570, Version580) {
-		// Fix column types and defaults where gorp converged on a different schema value than the
-		// original migration.
-		sqlStore.AlterColumnTypeIfExists("OutgoingWebhooks", "Description", "text", "VARCHAR(500)")
-		sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "Description", "text", "VARCHAR(500)")
-		sqlStore.AlterColumnTypeIfExists("OutgoingWebhooks", "IconURL", "text", "VARCHAR(1024)")
-		sqlStore.RemoveDefaultIfColumnExists("OutgoingWebhooks", "Username")
-		if sqlStore.DriverName() == model.DatabaseDriverPostgres {
-			sqlStore.RemoveDefaultIfColumnExists("OutgoingWebhooks", "IconURL")
-		}
-		sqlStore.AlterDefaultIfColumnExists("OutgoingWebhooks", "Username", model.NewString("NULL"), nil)
-
 		saveSchemaVersion(sqlStore, Version580)
 	}
 }
@@ -550,8 +539,6 @@ func upgradeDatabaseToVersion59(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion510(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version590, Version5100) {
-		sqlStore.CreateIndexIfNotExists("idx_groupchannels_channelid", "GroupChannels", "ChannelId")
-
 		saveSchemaVersion(sqlStore, Version5100)
 	}
 }
@@ -601,17 +588,10 @@ func upgradeDatabaseToVersion515(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion516(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5150, Version5160) {
-		// Fix mismatches between the canonical and migrated schemas.
-		sqlStore.AlterColumnTypeIfExists("Teams", "AllowedDomains", "text", "VARCHAR(1000)")
-		sqlStore.AlterColumnTypeIfExists("Teams", "GroupConstrained", "tinyint(1)", "boolean")
-
 		// One known mismatch remains: ChannelMembers.SchemeGuest. The requisite migration
 		// is left here for posterity, but we're avoiding fix this given the corresponding
 		// table rewrite in most MySQL and Postgres instances.
 		// sqlStore.AlterColumnTypeIfExists("ChannelMembers", "SchemeGuest", "tinyint(4)", "boolean")
-
-		sqlStore.CreateIndexIfNotExists("idx_groupchannels_channelid", "GroupChannels", "ChannelId")
-
 		saveSchemaVersion(sqlStore, Version5160)
 	}
 }
@@ -648,8 +628,6 @@ func upgradeDatabaseToVersion521(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion522(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5210, Version5220) {
-		sqlStore.CreateIndexIfNotExists("idx_teams_scheme_id", "Teams", "SchemeId")
-
 		saveSchemaVersion(sqlStore, Version5220)
 	}
 }
@@ -689,9 +667,6 @@ func upgradeDatabaseToVersion528(sqlStore *SqlStore) {
 		if err := precheckMigrationToVersion528(sqlStore); err != nil {
 			mlog.Fatal("Error upgrading DB schema to 5.28.0", mlog.Err(err))
 		}
-
-		sqlStore.AlterColumnTypeIfExists("Teams", "Type", "VARCHAR(255)", "VARCHAR(255)")
-		sqlStore.AlterColumnTypeIfExists("Teams", "SchemeId", "VARCHAR(26)", "VARCHAR(26)")
 
 		saveSchemaVersion(sqlStore, Version5280)
 	}
@@ -758,36 +733,7 @@ func upgradeDatabaseToVersion531(sqlStore *SqlStore) {
 
 const RemoteClusterSiteURLUniqueIndex = "remote_clusters_site_url_unique"
 
-func hasMissingMigrationsVersion532(sqlStore *SqlStore) bool {
-	scIdInfo, err := sqlStore.GetColumnInfo("Posts", "FileIds")
-	if err != nil {
-		mlog.Error("Error getting column info for migration check",
-			mlog.String("table", "Posts"),
-			mlog.String("column", "FileIds"),
-			mlog.Err(err),
-		)
-		return true
-	}
-
-	if sqlStore.DriverName() == model.DatabaseDriverPostgres {
-		if !sqlStore.IsVarchar(scIdInfo.DataType) || scIdInfo.CharMaximumLength != 300 {
-			return true
-		}
-	}
-
-	return false
-}
-
 func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
-	if hasMissingMigrationsVersion532(sqlStore) {
-		// this migration was reverted on MySQL due to performance reasons. Doing
-		// it only on PostgreSQL for the time being.
-		if sqlStore.DriverName() == model.DatabaseDriverPostgres {
-			// allow 10 files per post
-			sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
-		}
-	}
-
 	if shouldPerformUpgrade(sqlStore, Version5310, Version5320) {
 		saveSchemaVersion(sqlStore, Version5320)
 	}
@@ -807,11 +753,6 @@ func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5340, Version5350) {
-		// Shared channels support
-		if _, err := sqlStore.GetMaster().ExecNoTimeout("UPDATE UploadSessions SET RemoteId='', ReqFileId='' WHERE RemoteId IS NULL"); err != nil {
-			mlog.Error("Error updating RemoteId,ReqFileId in UploadsSession table", mlog.Err(err))
-		}
-
 		saveSchemaVersion(sqlStore, Version5350)
 	}
 }

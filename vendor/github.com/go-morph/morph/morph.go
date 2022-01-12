@@ -1,6 +1,7 @@
 package morph
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -14,15 +15,12 @@ import (
 	"github.com/go-morph/morph/drivers"
 	"github.com/go-morph/morph/sources"
 
-	_ "github.com/go-morph/morph/drivers/mysql"
-	_ "github.com/go-morph/morph/drivers/postgres"
+	ms "github.com/go-morph/morph/drivers/mysql"
+	ps "github.com/go-morph/morph/drivers/postgres"
 
 	_ "github.com/go-morph/morph/sources/file"
 	_ "github.com/go-morph/morph/sources/go_bindata"
 )
-
-// DefaultLockTimeout sets the max time a database driver has to acquire a lock.
-var DefaultLockTimeout = 15 * time.Second
 
 var migrationProgressStart = "==  %s: migrating  ================================================="
 var migrationProgressFinished = "==  %s: migrated (%s)  ========================================"
@@ -33,18 +31,19 @@ type Morph struct {
 	config *Config
 	driver drivers.Driver
 	source sources.Source
+	mutex  drivers.Locker
 }
 
 type Config struct {
 	Logger      Logger
 	LockTimeout time.Duration
+	LockKey     string
 }
 
 type EngineOption func(*Morph)
 
 var defaultConfig = &Config{
-	LockTimeout: DefaultLockTimeout,
-	Logger:      log.New(os.Stderr, "", log.LstdFlags), // add default logger
+	Logger: log.New(os.Stderr, "", log.LstdFlags), // add default logger
 }
 
 func WithLogger(logger *log.Logger) EngineOption {
@@ -71,8 +70,17 @@ func SetSatementTimeoutInSeconds(n int) EngineOption {
 	}
 }
 
-// New creates a new instance of the migrations engine from an existing db instance and a migrations source
-func New(driver drivers.Driver, source sources.Source, options ...EngineOption) (*Morph, error) {
+// WithLock creates a lock table in the database so that the migrations are
+// guaranteed to be executed from a single instance. The key is used for naming
+// the mutex.
+func WithLock(key string) EngineOption {
+	return func(m *Morph) {
+		m.config.LockKey = key
+	}
+}
+
+// New creates a new instance of the migrations engine from an existing db instance and a migrations source.
+func New(ctx context.Context, driver drivers.Driver, source sources.Source, options ...EngineOption) (*Morph, error) {
 	engine := &Morph{
 		config: defaultConfig,
 		source: source,
@@ -87,11 +95,32 @@ func New(driver drivers.Driver, source sources.Source, options ...EngineOption) 
 		return nil, err
 	}
 
+	if impl, ok := driver.(drivers.Lockable); ok && engine.config.LockKey != "" {
+		var mx drivers.Locker
+		var err error
+		switch impl.DriverName() {
+		case "mysql":
+			mx, err = ms.NewMutex(engine.config.LockKey, driver)
+		case "postgres":
+			mx, err = ps.NewMutex(engine.config.LockKey, driver)
+		}
+		if err != nil {
+			return nil, err
+		}
+
+		engine.mutex = mx
+		_ = mx.LockWithContext(ctx)
+	}
+
 	return engine, nil
 }
 
 // Close closes the underlying database connection of the engine.
 func (m *Morph) Close() error {
+	if m.mutex != nil {
+		m.mutex.Unlock()
+	}
+
 	return m.driver.Close()
 }
 
@@ -101,7 +130,7 @@ func (m *Morph) ApplyAll() error {
 	return err
 }
 
-// Applies limited number of migrations
+// Applies limited number of migrations upwards.
 func (m *Morph) Apply(limit int) (int, error) {
 	appliedMigrations, err := m.driver.AppliedMigrations()
 	if err != nil {
@@ -113,9 +142,14 @@ func (m *Morph) Apply(limit int) (int, error) {
 		return -1, err
 	}
 
-	migrations, rollbacks, err := findUpScripts(sortMigrations(pendingMigrations))
-	if err != nil {
-		return -1, err
+	migrations := make([]*models.Migration, 0)
+	sortedMigrations := sortMigrations(pendingMigrations)
+
+	for _, migration := range sortedMigrations {
+		if migration.Direction != models.Up {
+			continue
+		}
+		migrations = append(migrations, migration)
 	}
 
 	steps := limit
@@ -133,18 +167,6 @@ func (m *Morph) Apply(limit int) (int, error) {
 		migrationName := migrations[i].Name
 		m.config.Logger.Println(InfoLoggerLight.Sprint(formatProgress(fmt.Sprintf(migrationProgressStart, migrationName))))
 		if err := m.driver.Apply(migrations[i], true); err != nil {
-			rollback, ok := rollbacks[migrationName]
-			if ok {
-				m.config.Logger.Println(ErrorLoggerLight.Sprint(formatProgress(fmt.Sprintf("failed to apply %s, rolling back.", migrationName))))
-				m.config.Logger.Println(InfoLoggerLight.Sprint(formatProgress(fmt.Sprintf("trying to apply %s (%s)", rollback.Name, rollback.Direction))))
-
-				if err2 := m.driver.Apply(rollback, false); err2 != nil {
-					return applied, fmt.Errorf("could not rollback the migration %s: %w", migrationName, err)
-				}
-				m.config.Logger.Println(InfoLoggerLight.Sprint(formatProgress(fmt.Sprintf("rollback completed for %s. Aborting gracefully.", migrationName))))
-				return applied, err
-			}
-
 			return applied, err
 		}
 
@@ -166,6 +188,9 @@ func (m *Morph) ApplyDown(limit int) (int, error) {
 
 	sortedMigrations := reverseSortMigrations(appliedMigrations)
 	downMigrations, err := findDownScripts(sortedMigrations, m.source.Migrations())
+	if err != nil {
+		return -1, err
+	}
 
 	steps := limit
 	if len(sortedMigrations) < steps {
@@ -228,27 +253,6 @@ func computePendingMigrations(appliedMigrations []*models.Migration, sourceMigra
 	}
 
 	return pendingMigrations, nil
-}
-
-func findUpScripts(migrations []*models.Migration) ([]*models.Migration, map[string]*models.Migration, error) {
-	rollbackMigrations := make(map[string]*models.Migration)
-	toBeAppliedMigrations := make([]*models.Migration, 0)
-	for _, migration := range migrations {
-		if migration.Direction != models.Up {
-			rollbackMigrations[migration.Name] = migration
-			continue
-		}
-		toBeAppliedMigrations = append(toBeAppliedMigrations, migration)
-	}
-
-	for _, migration := range toBeAppliedMigrations {
-		_, ok := rollbackMigrations[migration.Name]
-		if !ok {
-			return nil, nil, fmt.Errorf("the rollback migration file for %s is missing", migration.RawName)
-		}
-	}
-
-	return toBeAppliedMigrations, rollbackMigrations, nil
 }
 
 func findDownScripts(appliedMigrations []*models.Migration, sourceMigrations []*models.Migration) (map[string]*models.Migration, error) {

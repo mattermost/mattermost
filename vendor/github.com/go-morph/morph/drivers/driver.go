@@ -4,6 +4,14 @@ import (
 	"github.com/go-morph/morph/models"
 )
 
+type Config struct {
+	MigrationsTable string
+	// StatementTimeoutInSecs is used to set a timeout for each migration file.
+	// Set below zero to disable timeout. Zero value will result in default value, which is 60 seconds.
+	StatementTimeoutInSecs int
+	MigrationMaxSize       int
+}
+
 type Driver interface {
 	Ping() error
 	// Close closes the underlying db connection. If the driver is created via Open() function
