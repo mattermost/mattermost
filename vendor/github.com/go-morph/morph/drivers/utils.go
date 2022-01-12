@@ -1,10 +1,12 @@
 package drivers
 
 import (
+	"context"
 	"fmt"
 	"hash/crc32"
 	"regexp"
 	"strings"
+	"time"
 )
 
 func ExtractCustomParams(conn string, params []string) (map[string]string, error) {
@@ -21,7 +23,7 @@ func ExtractCustomParams(conn string, params []string) (map[string]string, error
 }
 
 func RemoveParamsFromURL(conn string, params []string) (string, error) {
-	prefixCorrection := regexp.MustCompile("\\?&+")
+	prefixCorrection := regexp.MustCompile(`\?&+`)
 	repeatedAmber := regexp.MustCompile("&+")
 
 	for _, param := range params {
@@ -46,4 +48,11 @@ func GenerateAdvisoryLockID(databaseName, schemaName string) (string, error) {
 	sum := crc32.ChecksumIEEE([]byte(databaseName))
 	sum = sum * uint32(advisoryLockIDSalt)
 	return fmt.Sprint(sum), nil
+}
+
+func GetContext(timeoutInSeconds int) (context.Context, context.CancelFunc) {
+	if t := timeoutInSeconds; t > 0 {
+		return context.WithTimeout(context.Background(), time.Second*time.Duration(t))
+	}
+	return context.WithCancel(context.Background())
 }
