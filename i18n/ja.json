@@ -9097,7 +9097,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "このMattermost Enterprise Editionのトライアルライセンスキーは期限が切れており、有効ではありません。トライアル期間の延長をご希望の場合は[セールスチームまでご連絡ください](https://mattermost.com/contact-us/)。"
+    "translation": "このMattermost Enterprise Editionのトライアルライセンスキーは期限が切れており、有効ではありません。トライアル期間の延長をご希望の場合は[営業までご連絡ください](https://mattermost.com/contact-us/)。"
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -9306,5 +9306,13 @@
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "受信したPost IDの数が{{.MaxLength}}の最大サイズを超えています"
+  },
+  {
+    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
+    "translation": "ポータルでこのライセンスを更新することはできません"
+  },
+  {
+    "id": "model.config.is_valid.sql_migrations_statement_timout.app_error",
+    "translation": "マイグレーションステートメントのタイムアウト値が不正です。正の数でなければなりません。"
   }
 ]
