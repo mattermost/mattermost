@@ -165,6 +165,9 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PermissionViewMembers.Id,
 			model.PermissionCreateTeam.Id,
 			model.PermissionCreateCustomGroup.Id,
+			model.PermissionEditCustomGroup.Id,
+			model.PermissionDeleteCustomGroup.Id,
+			model.PermissionManageCustomGroupMembers.Id,
 		},
 		"system_post_all": {
 			model.PermissionCreatePost.Id,
