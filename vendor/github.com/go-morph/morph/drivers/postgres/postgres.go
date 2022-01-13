@@ -14,14 +14,7 @@ import (
 )
 
 var (
-	driverName    = "postgres"
-	defaultConfig = &Config{
-		Config: drivers.Config{
-			MigrationsTable:        "db_migrations",
-			StatementTimeoutInSecs: 60,
-			MigrationMaxSize:       defaultMigrationMaxSize,
-		},
-	}
+	driverName              = "postgres"
 	defaultMigrationMaxSize = 10 * 1 << 20 // 10 MB
 	configParams            = []string{
 		"x-migration-max-size",
@@ -44,7 +37,7 @@ type postgres struct {
 }
 
 func WithInstance(dbInstance *sql.DB, config *Config) (drivers.Driver, error) {
-	driverConfig := mergeConfigs(config, defaultConfig)
+	driverConfig := mergeConfigs(config, getDefaultConfig())
 
 	conn, err := dbInstance.Conn(context.Background())
 	if err != nil {
@@ -77,7 +70,7 @@ func Open(connURL string) (drivers.Driver, error) {
 		return nil, &drivers.AppError{Driver: driverName, OrigErr: err, Message: "failed to sanitize url from custom parameters"}
 	}
 
-	driverConfig, err := mergeConfigWithParams(customParams, defaultConfig)
+	driverConfig, err := mergeConfigWithParams(customParams, getDefaultConfig())
 	if err != nil {
 		return nil, &drivers.AppError{Driver: driverName, OrigErr: err, Message: "failed to merge custom params to driver config"}
 	}
