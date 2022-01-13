@@ -527,12 +527,6 @@ github.com/go-logfmt/logfmt v0.5.0/go.mod h1:wCYkCAKZfumFQihp8CzCvQ3paCTfi41vtzG
 github.com/go-logr/logr v0.1.0/go.mod h1:ixOQHD9gLJUVQQ2ZOR7zLEifBX6tGkNJF4QyIY7sIas=
 github.com/go-logr/logr v0.2.0/go.mod h1:z6/tIYblkpsD+a4lm/fGIIU9mZ+XfAiaFtq7xTgseGU=
 github.com/go-martini/martini v0.0.0-20170121215854-22fa46961aab/go.mod h1:/P9AEU963A2AYjv4d1V5eVL1CQbEJq6aCNHDDjibzu8=
-github.com/go-morph/morph v0.0.0-20211202070306-dbdc0736c17e h1:iS/jL0Xij+6O5d/VXrt+VOZfATHCTDIjBVVthVpHFY0=
-github.com/go-morph/morph v0.0.0-20211202070306-dbdc0736c17e/go.mod h1:XQh5WcM351wOV3z3zEWRM8RaJ65E2p4P7WWbmFAi8x4=
-github.com/go-morph/morph v0.0.0-20220110203813-7e65a95885ea h1:l2xnsVP6YW9DZet6HfUhMKtEOPyGg2QsRyDPLECnW1o=
-github.com/go-morph/morph v0.0.0-20220110203813-7e65a95885ea/go.mod h1:XQh5WcM351wOV3z3zEWRM8RaJ65E2p4P7WWbmFAi8x4=
-github.com/go-morph/morph v0.2.1 h1:Wo+TUt4+jCwKJh57mpuRBSMioYjA2TwjQD027hhOgro=
-github.com/go-morph/morph v0.2.1/go.mod h1:XQh5WcM351wOV3z3zEWRM8RaJ65E2p4P7WWbmFAi8x4=
 github.com/go-morph/morph v0.2.2 h1:f7/+VZ+1/eR+5SUoMKYo16QQISewuvS4hogX8x/uFnA=
 github.com/go-morph/morph v0.2.2/go.mod h1:XQh5WcM351wOV3z3zEWRM8RaJ65E2p4P7WWbmFAi8x4=
 github.com/go-openapi/jsonpointer v0.19.2/go.mod h1:3akKfEdA7DF1sugOqz1dVQHBcuDBPKZGEoHC/NkiQRg=
