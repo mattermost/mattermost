@@ -251,6 +251,26 @@ func Setup(tb testing.TB) *TestHelper {
 	return th
 }
 
+func SetupAndApplyConfigBeforeLogin(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
+
+	if mainHelper == nil {
+		tb.SkipNow()
+	}
+
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+	mainHelper.PreloadMigrations()
+	searchEngine := mainHelper.GetSearchEngine()
+	th := setupTestHelper(dbStore, searchEngine, false, true, nil, nil)
+	th.App.UpdateConfig(updateConfig)
+	th.InitLogin()
+	return th
+}
+
 func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()

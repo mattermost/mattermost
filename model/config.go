@@ -3297,10 +3297,6 @@ func (s *SqlSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_max_conn.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *s.MigrationsStatementTimeoutSeconds <= 0 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.sql_migrations_statement_timout.app_error", nil, "", http.StatusBadRequest)
-	}
-
 	return nil
 }
 

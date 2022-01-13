@@ -85,3 +85,15 @@ SET @preparedStatement = (SELECT IF(
 PREPARE alterIfNotExists FROM @preparedStatement;
 EXECUTE alterIfNotExists;
 DEALLOCATE PREPARE alterIfNotExists;
+
+CREATE PROCEDURE SharedChannelsSupport ()
+BEGIN DECLARE
+	SchemaVersion TEXT;
+	SELECT Value FROM Systems WHERE Name = 'Version' INTO SchemaVersion;
+IF(SchemaVersion = '5.34.0') THEN
+    UPDATE UploadSessions SET RemoteId='', ReqFileId='' WHERE RemoteId IS NULL;
+END IF;
+END;
+
+Call SharedChannelsSupport();
+DROP PROCEDURE IF EXISTS SharedChannelsSupport;

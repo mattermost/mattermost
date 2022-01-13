@@ -10,6 +10,14 @@ WHERE TABLE_NAME = 'ChannelMembers'
   AND table_schema = DATABASE()
   AND COLUMN_NAME = 'MsgCountRoot' INTO MentionCountRoot_EXIST;
 
+SET @tmp_count_root := 0;
+	IF(MentionCountRoot_EXIST = 1) THEN
+		SELECT @tmp_count_root := COUNT(*)
+		FROM ChannelMembers
+			WHERE MsgCountRoot = NULL
+			OR MentionCountRoot = NULL;
+END IF;
+
 SET @preparedStatement =
   (SELECT IF(
                (SELECT COUNT(*)
@@ -22,6 +30,7 @@ PREPARE alterIfNotExists FROM @preparedStatement;
 EXECUTE alterIfNotExists;
 DEALLOCATE PREPARE alterIfNotExists;
 
+IF(@tmp_count_root > 0) THEN
 UPDATE ChannelMembers
 INNER JOIN
   (SELECT ChannelId,
@@ -34,6 +43,7 @@ INNER JOIN
 AND q.UserId = ChannelMembers.UserId
 AND ChannelMembers.MentionCount > 0
 SET MentionCountRoot = ChannelMembers.MentionCount - q.UnreadMentions;
+END IF;
 
 SET @preparedStatement =
   (SELECT IF(
@@ -53,7 +63,7 @@ SET @preparedStatement =
                 FROM INFORMATION_SCHEMA.COLUMNS
                 WHERE TABLE_NAME = 'Channels'
                   AND table_schema = DATABASE()
-                  AND COLUMN_NAME = 'LastRootPostAt') > 0, 'SELECT 1', 'ALTER TABLE Channels ADD COLUMN LastRootPostAt bigint(20);'));
+                  AND COLUMN_NAME = 'LastRootAt') > 0, 'SELECT 1', 'ALTER TABLE Channels ADD COLUMN LastRootAt bigint(20);'));
 
 PREPARE alterIfNotExists FROM @preparedStatement;
 EXECUTE alterIfNotExists;
@@ -82,7 +92,7 @@ INNER JOIN
    WHERE Posts.RootId = ''
    GROUP BY Channels.Id) AS q ON q.channelid = Channels.Id
 SET TotalMsgCountRoot = q.newcount,
-    LastRootPostAt = q.lastpost;
+    LastRootAt = q.lastpost;
 END IF;
 
 IF(MentionCountRoot_EXIST = 0) THEN
@@ -90,9 +100,9 @@ UPDATE ChannelMembers CM
 INNER JOIN
   (SELECT TotalMsgCountRoot,
           Id,
-          LastRootPostAt
+          LastRootAt
    FROM Channels) AS q ON q.id = CM.ChannelId
-AND LastViewedAt >= q.lastrootpostat
+AND LastViewedAt >= q.lastrootat
 SET MsgCountRoot = TotalMsgCountRoot;
 END IF;
 
@@ -102,7 +112,7 @@ SET @preparedStatement =
                 FROM INFORMATION_SCHEMA.COLUMNS
                 WHERE TABLE_NAME = 'Channels'
                   AND table_schema = DATABASE()
-                  AND COLUMN_NAME = 'LastRootPostAt' ) > 0, 'ALTER TABLE Channels DROP COLUMN LastRootPostAt;', 'SELECT 1'));
+                  AND COLUMN_NAME = 'LastRootAt' ) > 0, 'ALTER TABLE Channels DROP COLUMN LastRootAt;', 'SELECT 1'));
 
 PREPARE alterIfExists
 FROM @preparedStatement;

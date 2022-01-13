@@ -34,3 +34,17 @@ CREATE INDEX IF NOT EXISTS idx_posts_hashtags_txt ON posts USING gin(to_tsvector
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS remoteid VARCHAR(26);
 
 DROP INDEX IF EXISTS idx_posts_channel_id;
+
+DO $$
+DECLARE 
+    column_exist boolean := false;
+BEGIN
+SELECT count(*) != 0 INTO column_exist
+    FROM information_schema.columns
+    WHERE table_name = 'posts'
+    AND column_name = 'fileids'
+    AND NOT data_type = 'varchar(300)';
+IF column_exist THEN
+    ALTER TABLE posts ALTER COLUMN fileids TYPE varchar(300);
+END IF;
+END $$;

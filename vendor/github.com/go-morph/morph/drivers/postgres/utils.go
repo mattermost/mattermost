@@ -1,6 +1,10 @@
 package postgres
 
-import "net/url"
+import (
+	"net/url"
+
+	"github.com/go-morph/morph/drivers"
+)
 
 func extractDatabaseNameFromURL(URL string) (string, error) {
 	uri, err := url.Parse(URL)
@@ -9,4 +13,14 @@ func extractDatabaseNameFromURL(URL string) (string, error) {
 	}
 
 	return uri.Path[1:], nil
+}
+
+func getDefaultConfig() *Config {
+	return &Config{
+		Config: drivers.Config{
+			MigrationsTable:        "db_migrations",
+			StatementTimeoutInSecs: 60,
+			MigrationMaxSize:       defaultMigrationMaxSize,
+		},
+	}
 }

@@ -147,3 +147,51 @@ SET @preparedStatement = (SELECT IF(
 PREPARE createIndexIfNotExists FROM @preparedStatement;
 EXECUTE createIndexIfNotExists;
 DEALLOCATE PREPARE createIndexIfNotExists;
+
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE table_name = 'OutgoingWebhooks'
+        AND table_schema = DATABASE()
+        AND column_name = 'Description'
+        AND column_type != 'text'
+    ) > 0,
+    'ALTER TABLE OutgoingWebhooks MODIFY COLUMN Description text;',
+    'SELECT 1'
+));
+
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE table_name = 'OutgoingWebhooks'
+        AND table_schema = DATABASE()
+        AND column_name = 'IconURL'
+        AND column_type != 'text'
+    ) > 0,
+    'ALTER TABLE OutgoingWebhooks MODIFY COLUMN IconURL text;',
+    'SELECT 1'
+));
+
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT Column_Default FROM Information_Schema.Columns
+        WHERE table_name = 'OutgoingWebhooks'
+        AND table_schema = DATABASE()
+        AND column_name = 'Username'
+    ) IS NULL,
+    'ALTER TABLE OutgoingWebhooks ALTER COLUMN Username SET DEFAULT NULL;',
+    'SELECT 1'
+));
+
+PREPARE alterIfDefaultNull FROM @preparedStatement;
+EXECUTE alterIfDefaultNull;
+DEALLOCATE PREPARE alterIfDefaultNull;
