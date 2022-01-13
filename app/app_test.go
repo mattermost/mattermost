@@ -224,6 +224,9 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 	assert.Nil(t, err3)
 	expected3 := []string{
 		model.PermissionCreateCustomGroup.Id,
+		model.PermissionEditCustomGroup.Id,
+		model.PermissionDeleteCustomGroup.Id,
+		model.PermissionManageCustomGroupMembers.Id,
 		model.PermissionListPublicTeams.Id,
 		model.PermissionJoinPublicTeams.Id,
 		model.PermissionCreateDirectChannel.Id,
