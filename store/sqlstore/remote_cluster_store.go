@@ -200,11 +200,3 @@ func (s sqlRemoteClusterStore) SetLastPingAt(remoteClusterId string) error {
 	}
 	return nil
 }
-
-func (s *sqlRemoteClusterStore) createIndexesIfNotExists() {
-	uniquenessColumns := []string{"SiteUrl", "RemoteTeamId"}
-	if s.DriverName() == model.DatabaseDriverMysql {
-		uniquenessColumns = []string{"RemoteTeamId", "SiteUrl(168)"}
-	}
-	s.CreateUniqueCompositeIndexIfNotExists(RemoteClusterSiteURLUniqueIndex, "RemoteClusters", uniquenessColumns)
-}

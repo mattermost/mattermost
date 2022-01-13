@@ -63,9 +63,6 @@ func newSqlBotStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) st
 	return us
 }
 
-func (us SqlBotStore) createIndexesIfNotExists() {
-}
-
 // Get fetches the given bot in the database.
 func (us SqlBotStore) Get(botUserId string, includeDeleted bool) (*model.Bot, error) {
 	var excludeDeletedSql = "AND b.DeleteAt = 0"
