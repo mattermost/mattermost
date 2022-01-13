@@ -9317,5 +9317,9 @@
   {
     "id": "api.license.request_renewal_link.cannot_renew_on_cws",
     "translation": "Det går inte att förnya licensen via portalen"
+  },
+  {
+    "id": "model.config.is_valid.sql_migrations_statement_timout.app_error",
+    "translation": "Felaktigt timeout-värde för migrationsmeddelanden. Måste vara ett positivt tal."
   }
 ]

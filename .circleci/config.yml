@@ -189,6 +189,19 @@ jobs:
             make build-templates
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the email templates using `make build-templates`"; exit 1; fi
 
+  check-gen-serialized:
+    docker:
+      - image: cimg/go:1.17
+    working_directory: ~/mattermost
+    steps:
+      - attach_workspace:
+          at: ~/mattermost/
+      - run:
+          command: |
+            cd mattermost-server
+            make gen-serialized
+            if [[ -n $(git status --porcelain) ]]; then echo "Please update the serialized files using 'make gen-serialized'"; exit 1; fi
+
   # Dedicate job for golangci-lint it does not need anything only the server code for that
   # and to make more clear when the job fails
   check-golangci-lint:
@@ -521,6 +534,9 @@ workflows:
       - check-email-templates:
           requires:
             - setup
+      - check-gen-serialized:
+          requires:
+            - setup
       - check-mattermost-vet:
           requires:
             - setup
@@ -534,6 +550,7 @@ workflows:
             - check-mocks
             - check-migrations
             - check-email-templates
+            - check-gen-serialized
             - check-mattermost-vet
             - check-golangci-lint
             - build-api-spec
@@ -560,6 +577,7 @@ workflows:
             - check-mocks
             - check-migrations
             - check-email-templates
+            - check-gen-serialized
       - test:
           name: test-postgres
           dbdriver: postgres
@@ -571,6 +589,7 @@ workflows:
             - check-mocks
             - check-migrations
             - check-email-templates
+            - check-gen-serialized
       - test-schema:
           requires:
             - check-app-layers
@@ -578,6 +597,7 @@ workflows:
             - check-mocks
             - check-migrations
             - check-email-templates
+            - check-gen-serialized
   release-build:
     jobs:
       - setup:
@@ -621,6 +641,9 @@ workflows:
       - check-email-templates:
           requires:
             - setup
+      - check-gen-serialized:
+          requires:
+            - setup
       - check-mattermost-vet:
           requires:
             - setup
@@ -632,6 +655,7 @@ workflows:
             - check-mocks
             - check-migrations
             - check-email-templates
+            - check-gen-serialized
             - check-mattermost-vet
             - check-golangci-lint
             - build-api-spec
@@ -642,6 +666,7 @@ workflows:
             - check-mocks
             - check-migrations
             - check-email-templates
+            - check-gen-serialized
             - check-mattermost-vet
             - build-api-spec
       - test:
@@ -655,6 +680,7 @@ workflows:
             - check-mocks
             - check-migrations
             - check-email-templates
+            - check-gen-serialized
       - test:
           name: test-postgres
           dbdriver: postgres
@@ -666,4 +692,5 @@ workflows:
             - check-mocks
             - check-migrations
             - check-email-templates
+            - check-gen-serialized
       # test-schema for master run in .gitlab-ci.yml

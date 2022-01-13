@@ -489,7 +489,6 @@ func TestUpAndDownMigrations(t *testing.T) {
 
 	for _, driver := range testDrivers {
 		t.Run("Should be reversible for "+driver, func(t *testing.T) {
-			t.Parallel()
 			settings := makeSqlSettings(driver)
 			store := New(*settings, nil)
 			defer store.Close()
