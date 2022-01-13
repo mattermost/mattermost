@@ -42,10 +42,6 @@ type Config struct {
 
 type EngineOption func(*Morph)
 
-var defaultConfig = &Config{
-	Logger: log.New(os.Stderr, "", log.LstdFlags), // add default logger
-}
-
 func WithLogger(logger *log.Logger) EngineOption {
 	return func(m *Morph) {
 		m.config.Logger = logger
@@ -82,7 +78,9 @@ func WithLock(key string) EngineOption {
 // New creates a new instance of the migrations engine from an existing db instance and a migrations source.
 func New(ctx context.Context, driver drivers.Driver, source sources.Source, options ...EngineOption) (*Morph, error) {
 	engine := &Morph{
-		config: defaultConfig,
+		config: &Config{
+			Logger: log.New(os.Stderr, "", log.LstdFlags), // add default logger
+		},
 		source: source,
 		driver: driver,
 	}

@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"github.com/go-morph/morph/drivers"
 	mysqlDriver "github.com/go-sql-driver/mysql"
 )
 
@@ -20,4 +21,14 @@ func extractDatabaseNameFromURL(conn string) (string, error) {
 	}
 
 	return cfg.DBName, nil
+}
+
+func getDefaultConfig() *Config {
+	return &Config{
+		Config: drivers.Config{
+			MigrationsTable:        "db_migrations",
+			StatementTimeoutInSecs: 60,
+			MigrationMaxSize:       defaultMigrationMaxSize,
+		},
+	}
 }
