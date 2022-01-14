@@ -3894,4 +3894,3 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 	}
 	return &team, nil
 }
-
