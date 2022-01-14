@@ -2363,7 +2363,7 @@ func (s SqlChannelStore) PermanentDeleteMembersByUser(userId string) error {
 	return nil
 }
 
-// TODO: convert to squirrel
+// TODO: convert to squirrel (https://github.com/mattermost/mattermost-server/issues/19332)
 func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, updateThreads bool) (map[string]int64, error) {
 	var threadsToUpdate []string
 	now := model.GetMillis()
@@ -2801,7 +2801,7 @@ func (s SqlChannelStore) GetTeamMembersForChannel(channelID string) ([]string, e
 	return teamMemberIDs, nil
 }
 
-// TODO: rewrite in squirrel
+// TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19333)
 func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) (model.ChannelListWithTeamData, error) {
 	deleteFilter := "AND c.DeleteAt = 0"
 	if includeDeleted {
@@ -2834,7 +2834,7 @@ func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) 
 	})
 }
 
-// TODO: rewrite in squirrel
+// TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19333)
 func (s SqlChannelStore) AutocompleteInTeam(teamID, userID, term string, includeDeleted bool) (model.ChannelList, error) {
 	deleteFilter := "AND c.DeleteAt = 0"
 	if includeDeleted {
@@ -2866,7 +2866,7 @@ func (s SqlChannelStore) AutocompleteInTeam(teamID, userID, term string, include
 	})
 }
 
-// TODO: rewrite in squirrel
+// TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19334)
 func (s SqlChannelStore) AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) (model.ChannelList, error) {
 	deleteFilter := "AND DeleteAt = 0"
 	if includeDeleted {
@@ -2919,7 +2919,7 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamId string, userId strin
 	return channels, nil
 }
 
-// TODO: rewrite in squirrel
+// TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19334)
 func (s SqlChannelStore) autocompleteInTeamForSearchDirectMessages(userId string, term string) ([]*model.Channel, error) {
 	queryFormat := `
 			SELECT
@@ -2962,7 +2962,7 @@ func (s SqlChannelStore) autocompleteInTeamForSearchDirectMessages(userId string
 	return channels, nil
 }
 
-// TODO: rewrite in squirrel
+// TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19333)
 func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted bool) (model.ChannelList, error) {
 	deleteFilter := "AND c.DeleteAt = 0"
 	if includeDeleted {
@@ -2987,7 +2987,7 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted
 	})
 }
 
-// TODO: rewrite in squirrel
+// TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19334)
 func (s SqlChannelStore) SearchArchivedInTeam(teamId string, term string, userId string) (model.ChannelList, error) {
 	publicChannels, publicErr := s.performSearch(`
 		SELECT
@@ -3043,7 +3043,7 @@ func (s SqlChannelStore) SearchArchivedInTeam(teamId string, term string, userId
 	return output, nil
 }
 
-// TODO: rewrite in squirrel
+// TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19334)
 func (s SqlChannelStore) SearchForUserInTeam(userId string, teamId string, term string, includeDeleted bool) (model.ChannelList, error) {
 	deleteFilter := "AND c.DeleteAt = 0"
 	if includeDeleted {
@@ -3430,7 +3430,7 @@ func (s SqlChannelStore) getSearchGroupChannelsQuery(userId, term string, isPost
 	return query, args
 }
 
-// TODO: rewrite in squirrel
+// TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19335)
 func (s SqlChannelStore) SearchGroupChannels(userId, term string) (model.ChannelList, error) {
 	isPostgreSQL := s.DriverName() == model.DatabaseDriverPostgres
 	queryString, args := s.getSearchGroupChannelsQuery(userId, term, isPostgreSQL)
@@ -3442,7 +3442,7 @@ func (s SqlChannelStore) SearchGroupChannels(userId, term string) (model.Channel
 	return groupChannels, nil
 }
 
-// TODO: rewrite in squirrel
+// TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19336)
 func (s SqlChannelStore) GetMembersByIds(channelId string, userIds []string) (model.ChannelMembers, error) {
 	var dbMembers channelMemberWithSchemeRolesList
 
@@ -3456,7 +3456,7 @@ func (s SqlChannelStore) GetMembersByIds(channelId string, userIds []string) (mo
 	return dbMembers.ToModel(), nil
 }
 
-// TODO: rewrite in squirrel
+// TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19336)
 func (s SqlChannelStore) GetMembersByChannelIds(channelIds []string, userId string) (model.ChannelMembers, error) {
 	var dbMembers channelMemberWithSchemeRolesList
 
