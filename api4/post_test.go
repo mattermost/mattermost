@@ -2875,7 +2875,7 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 
 			// update user's notify props
 			_, _, err = th.Client.PatchUser(th.BasicUser.Id, patch)
-			require.Nil(t, err)
+			require.NoError(t, err)
 
 			// post a reply on the thread
 			_, appErr := th.App.CreatePostAsUser(th.Context, tc.post, th.Context.Session().Id, false)
