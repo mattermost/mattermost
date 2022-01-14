@@ -249,26 +249,32 @@ func (a *App) AttachCloudSessionCookie(c *request.Context, w http.ResponseWriter
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
 
-	var val string
-	if strings.Contains(domain, "localhost") {
-		val = "localhost"
-	} else {
-		val = strings.SplitN(domain, ".", 2)[0]
-		domain = strings.SplitN(domain, ".", 3)[2]
-	}
+	// domain could potentially be empty when ServiceSettings.AllowCookiesForSubdomains is false
+	// or SiteURL for some reason is not set
+	if domain != "" {
+		var val string
+		if strings.Contains(domain, "localhost") {
+			val = "localhost"
+		} else {
+			val = strings.SplitN(domain, ".", 2)[0]
+			domain = strings.SplitN(domain, ".", 3)[2]
+		}
 
-	cookie := &http.Cookie{
-		Name:     model.SessionCookieCloudUrl,
-		Value:    val,
-		Path:     subpath,
-		MaxAge:   maxAge,
-		Expires:  expiresAt,
-		HttpOnly: true,
-		Domain:   domain,
-		Secure:   secure,
-	}
+		fmt.Println("DOM", val, domain)
 
-	http.SetCookie(w, cookie)
+		cookie := &http.Cookie{
+			Name:     model.SessionCookieCloudUrl,
+			Value:    val,
+			Path:     subpath,
+			MaxAge:   maxAge,
+			Expires:  expiresAt,
+			HttpOnly: true,
+			Domain:   domain,
+			Secure:   secure,
+		}
+
+		http.SetCookie(w, cookie)
+	}
 }
 
 func (a *App) AttachSessionCookies(c *request.Context, w http.ResponseWriter, r *http.Request) {
