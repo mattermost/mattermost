@@ -156,7 +156,7 @@ type Invoice struct {
 type InvoiceLineItem struct {
 	PriceID      string                 `json:"price_id"`
 	Total        int64                  `json:"total"`
-	Quantity     int64                  `json:"quantity"`
+	Quantity     float64                `json:"quantity"`
 	PricePerUnit int64                  `json:"price_per_unit"`
 	Description  string                 `json:"description"`
 	Type         string                 `json:"type"`
