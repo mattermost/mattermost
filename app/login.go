@@ -260,8 +260,6 @@ func (a *App) AttachCloudSessionCookie(c *request.Context, w http.ResponseWriter
 			domain = strings.SplitN(domain, ".", 3)[2]
 		}
 
-		fmt.Println("DOM", val, domain)
-
 		cookie := &http.Cookie{
 			Name:     model.SessionCookieCloudUrl,
 			Value:    val,
