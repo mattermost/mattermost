@@ -31,10 +31,6 @@ func newSqlUserAccessTokenStore(sqlStore *SqlStore) store.UserAccessTokenStore {
 	return s
 }
 
-func (s SqlUserAccessTokenStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_user_access_tokens_user_id", "UserAccessTokens", "UserId")
-}
-
 func (s SqlUserAccessTokenStore) Save(token *model.UserAccessToken) (*model.UserAccessToken, error) {
 	token.PreSave()
 

@@ -9314,5 +9314,13 @@
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "Liczba identyfikatorów postów osiągnęła maksymalny rozmiar {{.MaxLength}}"
+  },
+  {
+    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
+    "translation": "Odnowienie tej licencji na portalu nie jest możliwe"
+  },
+  {
+    "id": "model.config.is_valid.sql_migrations_statement_timout.app_error",
+    "translation": "Nieprawidłowa wartość limitu czasu dla statusu migracji. Musi być liczbą dodatnią."
   }
 ]
