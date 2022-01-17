@@ -83,7 +83,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store) mode
 		job.Data["processed"] = strconv.Itoa(nFiles)
 
 		if err := jobServer.UpdateInProgressJobData(job); err != nil {
-			mlog.Error("Worker: Failed to update job data", mlog.String("worker", model.JobTypeExtractContent), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
+			mlog.Error("Worker: Failed to update job data", mlog.String("worker", model.JobTypeExtractContent), mlog.String("job_id", job.Id), mlog.Err(err))
 		}
 		return nil
 	}

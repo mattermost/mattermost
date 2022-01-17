@@ -21,7 +21,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 	}
 	execute := func(job *model.Job) error {
 		if err := app.UpdateProductNotices(); err != nil {
-			mlog.Error("Worker: Failed to fetch product notices", mlog.String("worker", model.JobTypeProductNotices), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
+			mlog.Error("Worker: Failed to fetch product notices", mlog.String("worker", model.JobTypeProductNotices), mlog.String("job_id", job.Id), mlog.Err(err))
 			return err
 		}
 		return nil

@@ -80,7 +80,7 @@ func (worker *SimpleWorker) DoJob(job *model.Job) {
 
 	err := worker.execute(job)
 	if err != nil {
-		mlog.Error("SimpleWorker: Failed to get active user count", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
+		mlog.Error("SimpleWorker: Failed to get active user count", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
 		worker.setJobError(job, model.NewAppError("DoJob", "app.user.get_total_users_count.app_error", nil, err.Error(), http.StatusInternalServerError))
 		return
 	}
@@ -98,6 +98,6 @@ func (worker *SimpleWorker) setJobSuccess(job *model.Job) {
 
 func (worker *SimpleWorker) setJobError(job *model.Job, appError *model.AppError) {
 	if err := worker.jobServer.SetJobError(job, appError); err != nil {
-		mlog.Error("SimpleWorker: Failed to set job error", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
+		mlog.Error("SimpleWorker: Failed to set job error", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
 	}
 }
