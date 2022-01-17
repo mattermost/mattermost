@@ -245,12 +245,10 @@ func (a *App) AttachCloudSessionCookie(c *request.Context, w http.ResponseWriter
 	}
 
 	maxAge := *a.Config().ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24
-	domain := a.GetCookieDomain()
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
 
-	// domain could potentially be empty when ServiceSettings.AllowCookiesForSubdomains is false
-	// or SiteURL for some reason is not set
+	domain := a.GetSiteURL()
 	if domain != "" {
 		var val string
 		if strings.Contains(domain, "localhost") {
