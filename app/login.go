@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -248,7 +249,11 @@ func (a *App) AttachCloudSessionCookie(c *request.Context, w http.ResponseWriter
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
 
-	domain := a.GetSiteURL()
+	domain := ""
+	if siteURL, err := url.Parse(a.GetSiteURL()); err == nil {
+		domain = siteURL.Hostname()
+	}
+
 	if domain != "" {
 		var val string
 		if strings.Contains(domain, "localhost") {

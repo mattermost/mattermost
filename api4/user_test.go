@@ -3643,7 +3643,6 @@ func TestLoginCookies(t *testing.T) {
 
 	t.Run("should return cookie with MMCLOUDURL for cloud installations", func(t *testing.T) {
 		updateConfig := func(cfg *model.Config) {
-			*cfg.ServiceSettings.AllowCookiesForSubdomains = true
 			*cfg.ServiceSettings.SiteURL = "https://testchips.cloud.mattermost.com"
 		}
 		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic()
@@ -3663,7 +3662,6 @@ func TestLoginCookies(t *testing.T) {
 
 	t.Run("should NOT return cookie with MMCLOUDURL for NON cloud installations", func(t *testing.T) {
 		updateConfig := func(cfg *model.Config) {
-			*cfg.ServiceSettings.AllowCookiesForSubdomains = true
 			*cfg.ServiceSettings.SiteURL = "https://testchips.com"
 		}
 		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic()
