@@ -153,7 +153,7 @@ func parseDSN(dsn string) (string, string, error) {
 		// Strip off the mysql:// for the dsn with which to connect.
 		dsn = s[1]
 
-	case "postgres":
+	case "postgres", "postgresql":
 		// No changes required
 
 	default:
