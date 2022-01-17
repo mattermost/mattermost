@@ -150,59 +150,66 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	if opts.PageSize != 0 {
 		pageSize = opts.PageSize
 	}
-
-	totalUnreadThreadsChan := make(chan store.StoreResult, 1)
-	totalCountChan := make(chan store.StoreResult, 1)
-	totalUnreadMentionsChan := make(chan store.StoreResult, 1)
 	var threadsChan chan store.StoreResult
 	if !opts.TotalsOnly {
 		threadsChan = make(chan store.StoreResult, 1)
 	}
 
-	go func() {
-		repliesQuery, repliesQueryArgs, _ := s.getQueryBuilder().
-			Select("COUNT(DISTINCT(Posts.RootId))").
-			From("Posts").
-			LeftJoin("ThreadMemberships ON Posts.RootId = ThreadMemberships.PostId").
-			LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
-			Where(fetchConditions).
-			Where("Posts.CreateAt > ThreadMemberships.LastViewed").ToSql()
+	includeTotals := opts.TotalsOnly || !opts.ThreadsOnly
+	var totalUnreadThreadsChan chan store.StoreResult
+	var totalCountChan chan store.StoreResult
+	var totalUnreadMentionsChan chan store.StoreResult
 
-		totalUnreadThreads, err := s.GetMaster().SelectInt(repliesQuery, repliesQueryArgs...)
-		totalUnreadThreadsChan <- store.StoreResult{Data: totalUnreadThreads, NErr: errors.Wrapf(err, "failed to get count unread on threads for user id=%s", userId)}
-		close(totalUnreadThreadsChan)
-	}()
-	go func() {
-		newFetchConditions := fetchConditions
+	if includeTotals {
+		totalUnreadThreadsChan = make(chan store.StoreResult, 1)
+		totalCountChan = make(chan store.StoreResult, 1)
+		totalUnreadMentionsChan = make(chan store.StoreResult, 1)
 
-		if opts.Unread {
-			newFetchConditions = sq.And{newFetchConditions, sq.Expr("ThreadMemberships.LastViewed < Threads.LastReplyAt")}
-		}
+		go func() {
+			repliesQuery, repliesQueryArgs, _ := s.getQueryBuilder().
+				Select("COUNT(DISTINCT(Posts.RootId))").
+				From("Posts").
+				LeftJoin("ThreadMemberships ON Posts.RootId = ThreadMemberships.PostId").
+				LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
+				Where(fetchConditions).
+				Where("Posts.CreateAt > ThreadMemberships.LastViewed").ToSql()
 
-		threadsQuery, threadsQueryArgs, _ := s.getQueryBuilder().
-			Select("COUNT(ThreadMemberships.PostId)").
-			LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
-			LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
-			LeftJoin("Posts ON Posts.Id = ThreadMemberships.PostId").
-			From("ThreadMemberships").
-			Where(newFetchConditions).ToSql()
+			totalUnreadThreads, err := s.GetMaster().SelectInt(repliesQuery, repliesQueryArgs...)
+			totalUnreadThreadsChan <- store.StoreResult{Data: totalUnreadThreads, NErr: errors.Wrapf(err, "failed to get count unread on threads for user id=%s", userId)}
+			close(totalUnreadThreadsChan)
+		}()
+		go func() {
+			newFetchConditions := fetchConditions
 
-		totalCount, err := s.GetMaster().SelectInt(threadsQuery, threadsQueryArgs...)
-		totalCountChan <- store.StoreResult{Data: totalCount, NErr: err}
-		close(totalCountChan)
-	}()
-	go func() {
-		mentionsQuery, mentionsQueryArgs, _ := s.getQueryBuilder().
-			Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0)").
-			From("ThreadMemberships").
-			LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
-			LeftJoin("Posts ON Posts.Id = ThreadMemberships.PostId").
-			LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
-			Where(fetchConditions).ToSql()
-		totalUnreadMentions, err := s.GetMaster().SelectInt(mentionsQuery, mentionsQueryArgs...)
-		totalUnreadMentionsChan <- store.StoreResult{Data: totalUnreadMentions, NErr: err}
-		close(totalUnreadMentionsChan)
-	}()
+			if opts.Unread {
+				newFetchConditions = sq.And{newFetchConditions, sq.Expr("ThreadMemberships.LastViewed < Threads.LastReplyAt")}
+			}
+
+			threadsQuery, threadsQueryArgs, _ := s.getQueryBuilder().
+				Select("COUNT(ThreadMemberships.PostId)").
+				LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
+				LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
+				LeftJoin("Posts ON Posts.Id = ThreadMemberships.PostId").
+				From("ThreadMemberships").
+				Where(newFetchConditions).ToSql()
+
+			totalCount, err := s.GetMaster().SelectInt(threadsQuery, threadsQueryArgs...)
+			totalCountChan <- store.StoreResult{Data: totalCount, NErr: err}
+			close(totalCountChan)
+		}()
+		go func() {
+			mentionsQuery, mentionsQueryArgs, _ := s.getQueryBuilder().
+				Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0)").
+				From("ThreadMemberships").
+				LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
+				LeftJoin("Posts ON Posts.Id = ThreadMemberships.PostId").
+				LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
+				Where(fetchConditions).ToSql()
+			totalUnreadMentions, err := s.GetMaster().SelectInt(mentionsQuery, mentionsQueryArgs...)
+			totalUnreadMentionsChan <- store.StoreResult{Data: totalUnreadMentions, NErr: err}
+			close(totalUnreadMentionsChan)
+		}()
+	}
 
 	if !opts.TotalsOnly {
 		go func() {
@@ -266,24 +273,6 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		}()
 	}
 
-	totalUnreadMentionsResult := <-totalUnreadMentionsChan
-	if totalUnreadMentionsResult.NErr != nil {
-		return nil, totalUnreadMentionsResult.NErr
-	}
-	totalUnreadMentions := totalUnreadMentionsResult.Data.(int64)
-
-	totalCountResult := <-totalCountChan
-	if totalCountResult.NErr != nil {
-		return nil, totalCountResult.NErr
-	}
-	totalCount := totalCountResult.Data.(int64)
-
-	totalUnreadThreadsResult := <-totalUnreadThreadsChan
-	if totalUnreadThreadsResult.NErr != nil {
-		return nil, totalUnreadThreadsResult.NErr
-	}
-	totalUnreadThreads := totalUnreadThreadsResult.Data.(int64)
-
 	// userIds is the de-duped list of participant ids from all threads.
 	var userIds []string
 	// userIdMap is the map of participant ids from all threads.
@@ -291,10 +280,31 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	userIdMap := map[string]bool{}
 
 	result := &model.Threads{
-		Total:               totalCount,
-		Threads:             []*model.ThreadResponse{},
-		TotalUnreadMentions: totalUnreadMentions,
-		TotalUnreadThreads:  totalUnreadThreads,
+		Threads: []*model.ThreadResponse{},
+	}
+
+	if includeTotals {
+		totalUnreadMentionsResult := <-totalUnreadMentionsChan
+		if totalUnreadMentionsResult.NErr != nil {
+			return nil, totalUnreadMentionsResult.NErr
+		}
+		totalUnreadMentions := totalUnreadMentionsResult.Data.(int64)
+
+		totalCountResult := <-totalCountChan
+		if totalCountResult.NErr != nil {
+			return nil, totalCountResult.NErr
+		}
+		totalCount := totalCountResult.Data.(int64)
+
+		totalUnreadThreadsResult := <-totalUnreadThreadsChan
+		if totalUnreadThreadsResult.NErr != nil {
+			return nil, totalUnreadThreadsResult.NErr
+		}
+		totalUnreadThreads := totalUnreadThreadsResult.Data.(int64)
+
+		result.Total = totalCount
+		result.TotalUnreadMentions = totalUnreadMentions
+		result.TotalUnreadThreads = totalUnreadThreads
 	}
 
 	if !opts.TotalsOnly {

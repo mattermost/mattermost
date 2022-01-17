@@ -3002,14 +3002,15 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	options := model.GetUserThreadsOpts{
-		Since:      0,
-		Before:     "",
-		After:      "",
-		PageSize:   uint64(c.Params.PerPage),
-		Unread:     false,
-		Extended:   false,
-		Deleted:    false,
-		TotalsOnly: false,
+		Since:       0,
+		Before:      "",
+		After:       "",
+		PageSize:    uint64(c.Params.PerPage),
+		Unread:      false,
+		Extended:    false,
+		Deleted:     false,
+		TotalsOnly:  false,
+		ThreadsOnly: false,
 	}
 
 	sinceString := r.URL.Query().Get("since")
@@ -3034,11 +3035,13 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	unreadStr := r.URL.Query().Get("unread")
 	extendedStr := r.URL.Query().Get("extended")
 	totalsOnlyStr := r.URL.Query().Get("totalsOnly")
+	excludeTotalsStr := r.URL.Query().Get("threadsOnly")
 
 	options.Deleted, _ = strconv.ParseBool(deletedStr)
 	options.Unread, _ = strconv.ParseBool(unreadStr)
 	options.Extended, _ = strconv.ParseBool(extendedStr)
 	options.TotalsOnly, _ = strconv.ParseBool(totalsOnlyStr)
+	options.ThreadsOnly, _ = strconv.ParseBool(excludeTotalsStr)
 
 	threads, err := c.App.GetThreadsForUser(c.Params.UserId, c.Params.TeamId, options)
 	if err != nil {
