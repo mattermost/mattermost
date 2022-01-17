@@ -90,7 +90,7 @@ github.com/bits-and-blooms/bitset
 # github.com/blang/semver v3.5.1+incompatible
 ## explicit
 github.com/blang/semver
-# github.com/blevesearch/bleve/v2 v2.2.2
+# github.com/blevesearch/bleve/v2 v2.3.0
 ## explicit
 github.com/blevesearch/bleve/v2
 github.com/blevesearch/bleve/v2/analysis
@@ -146,15 +146,15 @@ github.com/blevesearch/vellum
 github.com/blevesearch/vellum/levenshtein
 github.com/blevesearch/vellum/regexp
 github.com/blevesearch/vellum/utf8
-# github.com/blevesearch/zapx/v11 v11.3.1
+# github.com/blevesearch/zapx/v11 v11.3.2
 github.com/blevesearch/zapx/v11
-# github.com/blevesearch/zapx/v12 v12.3.1
+# github.com/blevesearch/zapx/v12 v12.3.2
 github.com/blevesearch/zapx/v12
-# github.com/blevesearch/zapx/v13 v13.3.1
+# github.com/blevesearch/zapx/v13 v13.3.2
 github.com/blevesearch/zapx/v13
-# github.com/blevesearch/zapx/v14 v14.3.1
+# github.com/blevesearch/zapx/v14 v14.3.2
 github.com/blevesearch/zapx/v14
-# github.com/blevesearch/zapx/v15 v15.3.1
+# github.com/blevesearch/zapx/v15 v15.3.2
 github.com/blevesearch/zapx/v15
 # github.com/cespare/xxhash/v2 v2.1.2
 ## explicit
@@ -214,6 +214,16 @@ github.com/gigawattio/window
 # github.com/go-asn1-ber/asn1-ber v1.5.3
 ## explicit
 github.com/go-asn1-ber/asn1-ber
+# github.com/go-morph/morph v0.2.2
+## explicit
+github.com/go-morph/morph
+github.com/go-morph/morph/drivers
+github.com/go-morph/morph/drivers/mysql
+github.com/go-morph/morph/drivers/postgres
+github.com/go-morph/morph/models
+github.com/go-morph/morph/sources
+github.com/go-morph/morph/sources/file
+github.com/go-morph/morph/sources/go_bindata
 # github.com/go-redis/redis/v8 v8.11.4
 ## explicit
 github.com/go-redis/redis/v8
@@ -232,15 +242,8 @@ github.com/go-resty/resty/v2
 github.com/go-sql-driver/mysql
 # github.com/golang-migrate/migrate/v4 v4.15.1
 ## explicit
-github.com/golang-migrate/migrate/v4
-github.com/golang-migrate/migrate/v4/database
-github.com/golang-migrate/migrate/v4/database/multistmt
-github.com/golang-migrate/migrate/v4/database/mysql
-github.com/golang-migrate/migrate/v4/database/postgres
-github.com/golang-migrate/migrate/v4/internal/url
 github.com/golang-migrate/migrate/v4/source
 github.com/golang-migrate/migrate/v4/source/file
-github.com/golang-migrate/migrate/v4/source/go_bindata
 github.com/golang-migrate/migrate/v4/source/iofs
 # github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 ## explicit
@@ -416,6 +419,9 @@ github.com/matttproud/golang_protobuf_extensions/pbutil
 # github.com/mholt/archiver/v3 v3.5.1
 ## explicit
 github.com/mholt/archiver/v3
+# github.com/microcosm-cc/bluemonday v1.0.2
+## explicit
+github.com/microcosm-cc/bluemonday
 # github.com/miekg/dns v1.1.43
 ## explicit
 github.com/miekg/dns
@@ -765,7 +771,7 @@ golang.org/x/net/trace
 # golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 ## explicit
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.0.0-20211123173158-ef496fb156ab
+# golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e
 ## explicit
 golang.org/x/sys/cpu
 golang.org/x/sys/execabs

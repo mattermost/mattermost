@@ -949,22 +949,6 @@ func (s *TimerLayerChannelStore) GetByNames(team_id string, names []string, allo
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetCRTUnfixedChannelMembershipsAfter(channelID string, userID string, count int) ([]model.ChannelMember, error) {
-	start := timemodule.Now()
-
-	result, err := s.ChannelStore.GetCRTUnfixedChannelMembershipsAfter(channelID, userID, count)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetCRTUnfixedChannelMembershipsAfter", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerChannelStore) GetChannelCounts(teamID string, userID string) (*model.ChannelCounts, error) {
 	start := timemodule.Now()
 
@@ -1724,22 +1708,6 @@ func (s *TimerLayerChannelStore) MigrateChannelMembers(fromChannelID string, fro
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.MigrateChannelMembers", success, elapsed)
 	}
 	return result, err
-}
-
-func (s *TimerLayerChannelStore) MigratePublicChannels() error {
-	start := timemodule.Now()
-
-	err := s.ChannelStore.MigratePublicChannels()
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.MigratePublicChannels", success, elapsed)
-	}
-	return err
 }
 
 func (s *TimerLayerChannelStore) PermanentDelete(channelID string) error {
@@ -5130,22 +5098,6 @@ func (s *TimerLayerPostStore) GetSingle(id string, inclDeleted bool) (*model.Pos
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetUniquePostTypesSince(channelId string, timestamp int64) ([]string, error) {
-	start := timemodule.Now()
-
-	result, err := s.PostStore.GetUniquePostTypesSince(channelId, timestamp)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetUniquePostTypesSince", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerPostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error) {
 	start := timemodule.Now()
 
@@ -8519,10 +8471,10 @@ func (s *TimerLayerThreadStore) UpdateUnreadsByChannel(userId string, changedThr
 	return err
 }
 
-func (s *TimerLayerTokenStore) Cleanup() {
+func (s *TimerLayerTokenStore) Cleanup(expiryTime int64) {
 	start := timemodule.Now()
 
-	s.TokenStore.Cleanup()
+	s.TokenStore.Cleanup(expiryTime)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

@@ -52,12 +52,6 @@ func newSqlOAuthStore(sqlStore *SqlStore) store.OAuthStore {
 	return as
 }
 
-func (as SqlOAuthStore) createIndexesIfNotExists() {
-	as.CreateIndexIfNotExists("idx_oauthapps_creator_id", "OAuthApps", "CreatorId")
-	as.CreateIndexIfNotExists("idx_oauthaccessdata_user_id", "OAuthAccessData", "UserId")
-	as.CreateIndexIfNotExists("idx_oauthaccessdata_refresh_token", "OAuthAccessData", "RefreshToken")
-}
-
 func (as SqlOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, error) {
 	if app.Id != "" {
 		return nil, store.NewErrInvalidInput("OAuthApp", "Id", app.Id)

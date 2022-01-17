@@ -38,7 +38,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/app/email"
 	"github.com/mattermost/mattermost-server/v6/app/featureflag"
-	"github.com/mattermost/mattermost-server/v6/app/imaging"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/app/teams"
 	"github.com/mattermost/mattermost-server/v6/app/users"
@@ -174,22 +173,10 @@ type Server struct {
 
 	tracer *tracing.Tracer
 
-	// These are used to prevent concurrent upload requests
-	// for a given upload session which could cause inconsistencies
-	// and data corruption.
-	uploadLockMapMut sync.Mutex
-	uploadLockMap    map[string]bool
-
 	featureFlagSynchronizer      *featureflag.Synchronizer
 	featureFlagStop              chan struct{}
 	featureFlagStopped           chan struct{}
 	featureFlagSynchronizerMutex sync.Mutex
-
-	imgDecoder *imaging.Decoder
-	imgEncoder *imaging.Encoder
-
-	dndTaskMut sync.Mutex
-	dndTask    *model.ScheduledTask
 
 	products map[string]Product
 }
@@ -207,7 +194,6 @@ func NewServer(options ...Option) (*Server, error) {
 		},
 		licenseListeners: map[string]func(*model.License, *model.License){},
 		hashSeed:         maphash.MakeSeed(),
-		uploadLockMap:    map[string]bool{},
 		timezones:        timezones.New(),
 		products:         make(map[string]Product),
 	}
@@ -491,20 +477,6 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	s.setupFeatureFlags()
-
-	var imgErr error
-	s.imgDecoder, imgErr = imaging.NewDecoder(imaging.DecoderOptions{
-		ConcurrencyLevel: runtime.NumCPU(),
-	})
-	if imgErr != nil {
-		return nil, errors.Wrap(imgErr, "failed to create image decoder")
-	}
-	s.imgEncoder, imgErr = imaging.NewEncoder(imaging.EncoderOptions{
-		ConcurrencyLevel: runtime.NumCPU(),
-	})
-	if imgErr != nil {
-		return nil, errors.Wrap(imgErr, "failed to create image encoder")
-	}
 
 	s.initJobs()
 
@@ -1027,12 +999,6 @@ func (s *Server) Shutdown() {
 		}
 	}
 
-	s.dndTaskMut.Lock()
-	if s.dndTask != nil {
-		s.dndTask.Cancel()
-	}
-	s.dndTaskMut.Unlock()
-
 	mlog.Info("Server stopped")
 
 	// Stop products.
@@ -1525,7 +1491,11 @@ func doSecurity(s *Server) {
 }
 
 func doTokenCleanup(s *Server) {
-	s.Store.Token().Cleanup()
+	expiry := model.GetMillis() - model.MaxTokenExipryTime
+
+	mlog.Debug("Cleaning up token store.")
+
+	s.Store.Token().Cleanup(expiry)
 }
 
 func doCommandWebhookCleanup(s *Server) {
@@ -1678,7 +1648,7 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 
 	daysToExpiration := license.DaysToExpiration()
 
-	renewalLink, appErr := s.GenerateLicenseRenewalLink()
+	renewalLink, _, appErr := s.GenerateLicenseRenewalLink()
 	if appErr != nil {
 		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.server.license_up_for_renewal.error_generating_link", nil, appErr.Error(), http.StatusInternalServerError)
 	}
@@ -1769,7 +1739,7 @@ func (s *Server) doLicenseExpirationCheck() {
 // SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
 // to renew the user license
 func (s *Server) SendRemoveExpiredLicenseEmail(email string, locale, siteURL string) *model.AppError {
-	renewalLink, err := s.GenerateLicenseRenewalLink()
+	renewalLink, _, err := s.GenerateLicenseRenewalLink()
 	if err != nil {
 		return err
 	}
@@ -1951,10 +1921,6 @@ func (s *Server) initJobs() {
 
 	if jobsExtractContentInterface != nil {
 		s.Jobs.ExtractContent = jobsExtractContentInterface(s)
-	}
-
-	if fixCRTChannelUnreadsJobInterface != nil {
-		s.Jobs.FixCRTChannelUnreads = fixCRTChannelUnreadsJobInterface(s)
 	}
 
 	s.Jobs.InitWorkers()
@@ -2257,18 +2223,18 @@ func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
 }
 
 func createDNDStatusExpirationRecurringTask(a *App) {
-	a.ch.srv.dndTaskMut.Lock()
-	a.ch.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
-	a.ch.srv.dndTaskMut.Unlock()
+	a.ch.dndTaskMut.Lock()
+	a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+	a.ch.dndTaskMut.Unlock()
 }
 
 func cancelDNDStatusExpirationRecurringTask(a *App) {
-	a.ch.srv.dndTaskMut.Lock()
-	if a.ch.srv.dndTask != nil {
-		a.ch.srv.dndTask.Cancel()
-		a.ch.srv.dndTask = nil
+	a.ch.dndTaskMut.Lock()
+	if a.ch.dndTask != nil {
+		a.ch.dndTask.Cancel()
+		a.ch.dndTask = nil
 	}
-	a.ch.srv.dndTaskMut.Unlock()
+	a.ch.dndTaskMut.Unlock()
 }
 
 func runDNDStatusExpireJob(a *App) {

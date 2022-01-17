@@ -1015,24 +1015,6 @@ func (s *OpenTracingLayerChannelStore) GetByNames(team_id string, names []string
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) GetCRTUnfixedChannelMembershipsAfter(channelID string, userID string, count int) ([]model.ChannelMember, error) {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetCRTUnfixedChannelMembershipsAfter")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	result, err := s.ChannelStore.GetCRTUnfixedChannelMembershipsAfter(channelID, userID, count)
-	if err != nil {
-		span.LogFields(spanlog.Error(err))
-		ext.Error.Set(span, true)
-	}
-
-	return result, err
-}
-
 func (s *OpenTracingLayerChannelStore) GetChannelCounts(teamID string, userID string) (*model.ChannelCounts, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetChannelCounts")
@@ -1850,24 +1832,6 @@ func (s *OpenTracingLayerChannelStore) MigrateChannelMembers(fromChannelID strin
 	}
 
 	return result, err
-}
-
-func (s *OpenTracingLayerChannelStore) MigratePublicChannels() error {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.MigratePublicChannels")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	err := s.ChannelStore.MigratePublicChannels()
-	if err != nil {
-		span.LogFields(spanlog.Error(err))
-		ext.Error.Set(span, true)
-	}
-
-	return err
 }
 
 func (s *OpenTracingLayerChannelStore) PermanentDelete(channelID string) error {
@@ -5664,24 +5628,6 @@ func (s *OpenTracingLayerPostStore) GetSingle(id string, inclDeleted bool) (*mod
 	return result, err
 }
 
-func (s *OpenTracingLayerPostStore) GetUniquePostTypesSince(channelId string, timestamp int64) ([]string, error) {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetUniquePostTypesSince")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	result, err := s.PostStore.GetUniquePostTypesSince(channelId, timestamp)
-	if err != nil {
-		span.LogFields(spanlog.Error(err))
-		ext.Error.Set(span, true)
-	}
-
-	return result, err
-}
-
 func (s *OpenTracingLayerPostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.HasAutoResponsePostByUserSince")
@@ -9465,7 +9411,7 @@ func (s *OpenTracingLayerThreadStore) UpdateUnreadsByChannel(userId string, chan
 	return err
 }
 
-func (s *OpenTracingLayerTokenStore) Cleanup() {
+func (s *OpenTracingLayerTokenStore) Cleanup(expiryTime int64) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TokenStore.Cleanup")
 	s.Root.Store.SetContext(newCtx)
@@ -9474,7 +9420,7 @@ func (s *OpenTracingLayerTokenStore) Cleanup() {
 	}()
 
 	defer span.Finish()
-	s.TokenStore.Cleanup()
+	s.TokenStore.Cleanup(expiryTime)
 
 }
 

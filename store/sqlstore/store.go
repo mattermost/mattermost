@@ -8,7 +8,6 @@ import (
 	"database/sql"
 	dbsql "database/sql"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -17,13 +16,15 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/go-morph/morph"
+
+	"github.com/go-morph/morph/drivers"
+	ms "github.com/go-morph/morph/drivers/mysql"
+	ps "github.com/go-morph/morph/drivers/postgres"
+
+	mbindata "github.com/go-morph/morph/sources/go_bindata"
 	"github.com/go-sql-driver/mysql"
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database"
-	mysqlmigrate "github.com/golang-migrate/migrate/v4/database/mysql"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	bindata "github.com/golang-migrate/migrate/v4/source/go_bindata"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	_ "github.com/lib/pq"
@@ -215,38 +216,10 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 		mlog.Fatal("Failed to upgrade database.", mlog.Err(err))
 	}
 
-	store.stores.channel.(*SqlChannelStore).createIndexesIfNotExists()
-	store.stores.post.(*SqlPostStore).createIndexesIfNotExists()
-	store.stores.retentionPolicy.(*SqlRetentionPolicyStore).createIndexesIfNotExists()
-	store.stores.thread.(*SqlThreadStore).createIndexesIfNotExists()
-	store.stores.user.(*SqlUserStore).createIndexesIfNotExists()
-	store.stores.bot.(*SqlBotStore).createIndexesIfNotExists()
-	store.stores.audit.(*SqlAuditStore).createIndexesIfNotExists()
-	store.stores.compliance.(*SqlComplianceStore).createIndexesIfNotExists()
-	store.stores.session.(*SqlSessionStore).createIndexesIfNotExists()
-	store.stores.oauth.(*SqlOAuthStore).createIndexesIfNotExists()
 	store.stores.system.(*SqlSystemStore).createIndexesIfNotExists()
-	store.stores.webhook.(*SqlWebhookStore).createIndexesIfNotExists()
-	store.stores.command.(*SqlCommandStore).createIndexesIfNotExists()
-	store.stores.commandWebhook.(*SqlCommandWebhookStore).createIndexesIfNotExists()
-	store.stores.preference.(*SqlPreferenceStore).createIndexesIfNotExists()
-	store.stores.license.(*SqlLicenseStore).createIndexesIfNotExists()
-	store.stores.token.(*SqlTokenStore).createIndexesIfNotExists()
 	store.stores.emoji.(*SqlEmojiStore).createIndexesIfNotExists()
-	store.stores.status.(*SqlStatusStore).createIndexesIfNotExists()
-	store.stores.fileInfo.(*SqlFileInfoStore).createIndexesIfNotExists()
-	store.stores.uploadSession.(*SqlUploadSessionStore).createIndexesIfNotExists()
-	store.stores.job.(*SqlJobStore).createIndexesIfNotExists()
-	store.stores.userAccessToken.(*SqlUserAccessTokenStore).createIndexesIfNotExists()
-	store.stores.plugin.(*SqlPluginStore).createIndexesIfNotExists()
-	store.stores.TermsOfService.(SqlTermsOfServiceStore).createIndexesIfNotExists()
-	store.stores.productNotices.(SqlProductNoticesStore).createIndexesIfNotExists()
 	store.stores.UserTermsOfService.(SqlUserTermsOfServiceStore).createIndexesIfNotExists()
-	store.stores.linkMetadata.(*SqlLinkMetadataStore).createIndexesIfNotExists()
-	store.stores.sharedchannel.(*SqlSharedChannelStore).createIndexesIfNotExists()
 	store.stores.group.(*SqlGroupStore).createIndexesIfNotExists()
-	store.stores.scheme.(*SqlSchemeStore).createIndexesIfNotExists()
-	store.stores.remoteCluster.(*sqlRemoteClusterStore).createIndexesIfNotExists()
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
 	return store
@@ -671,6 +644,27 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 		mlog.Fatal("Failed to check if column exists because of missing driver")
 		return false
 	}
+}
+
+func (ss *SqlStore) DoesIndexExist(indexName string, tableName string) bool {
+	if ss.DriverName() == model.DatabaseDriverPostgres {
+		_, err := ss.GetMaster().SelectStr("SELECT $1::regclass", indexName)
+		// It should fail if the index does not exist
+		return err == nil
+	} else if ss.DriverName() == model.DatabaseDriverMysql {
+		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", tableName, indexName)
+		if err != nil {
+			mlog.Fatal("Failed to check index", mlog.Err(err))
+		}
+
+		if count <= 0 {
+			return false
+		}
+	} else {
+		mlog.Fatal("Failed to check if index exists because of missing driver")
+	}
+
+	return true
 }
 
 // GetColumnInfo returns data type information about the given column.
@@ -1426,32 +1420,8 @@ func (ss *SqlStore) GetLicense() *model.License {
 }
 
 func (ss *SqlStore) migrate(direction migrationDirection) error {
-	var driver database.Driver
-	var err error
-
-	// golang-migrate doesn't have a way to reuse an existing connection in a migration.
-	// The current API will always close the current connection _as well as_ the *sql.DB
-	// instance along with it. Which means that we cannot pass an existing DB instance,
-	// because it will be closed. Therefore, we always have to create a new instance,
-	// and therefore a new connection.
-	dataSource, err := ss.appendMultipleStatementsFlag(*ss.settings.DataSource)
-	if err != nil {
-		return err
-	}
-	db := setupConnection("migrations", dataSource, ss.settings)
-	defer db.Close()
-
-	if ss.DriverName() == model.DatabaseDriverMysql {
-		driver, err = mysqlmigrate.WithInstance(db, &mysqlmigrate.Config{})
-		if err != nil {
-			return err
-		}
-	} else {
-		driver, err = postgres.WithInstance(db, &postgres.Config{})
-		if err != nil {
-			return err
-		}
-	}
+	// we need to compute missing migrations (if any) and manually save unnecessary migrations
+	// to the db_migrations table. So that previous migrations won't get applied
 
 	var assetNamesForDriver []string
 	for _, assetName := range migrations.AssetNames() {
@@ -1460,39 +1430,62 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 		}
 	}
 
-	source := bindata.Resource(assetNamesForDriver, func(name string) ([]byte, error) {
-		return migrations.Asset(filepath.Join(ss.DriverName(), name))
+	src, err := mbindata.WithInstance(&mbindata.AssetSource{
+		Names: assetNamesForDriver,
+		AssetFunc: func(name string) ([]byte, error) {
+			return migrations.Asset(filepath.Join(ss.DriverName(), name))
+		},
 	})
+	if err != nil {
+		return err
+	}
+	defer src.Close()
 
-	sourceDriver, err := bindata.WithInstance(source)
+	var driver drivers.Driver
+	switch ss.DriverName() {
+	case model.DatabaseDriverMysql:
+		dataSource, rErr := resetReadTimeout(*ss.settings.DataSource)
+		if rErr != nil {
+			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(rErr), mlog.String("src", *ss.settings.DataSource))
+			return rErr
+		}
+		dataSource, err = ss.appendMultipleStatementsFlag(dataSource)
+		if err != nil {
+			return err
+		}
+		db := setupConnection("master", dataSource, ss.settings)
+		driver, err = ms.WithInstance(db, &ms.Config{
+			Config: drivers.Config{
+				StatementTimeoutInSecs: *ss.settings.MigrationsStatementTimeoutSeconds,
+			},
+		})
+		defer db.Close()
+	case model.DatabaseDriverPostgres:
+		driver, err = ps.WithInstance(ss.GetMasterX().DB.DB, &ps.Config{
+			Config: drivers.Config{
+				StatementTimeoutInSecs: *ss.settings.MigrationsStatementTimeoutSeconds,
+			},
+		})
+	default:
+		err = fmt.Errorf("unsupported database type %s for migration", ss.DriverName())
+	}
 	if err != nil {
 		return err
 	}
 
-	migrations, err := migrate.NewWithInstance("go-bindata",
-		sourceDriver,
-		ss.DriverName(),
-		driver)
-
+	engine, err := morph.New(context.Background(), driver, src, morph.WithLock("mm-lock-key"))
 	if err != nil {
 		return err
 	}
-	defer migrations.Close()
+	defer engine.Close()
 
 	switch direction {
-	case migrationsDirectionUp:
-		err = migrations.Up()
 	case migrationsDirectionDown:
-		err = migrations.Down()
-	default:
-		return errors.New(fmt.Sprintf("unsupported migration direction %s", direction))
-	}
-
-	if err != nil && err != migrate.ErrNoChange && !errors.Is(err, os.ErrNotExist) {
+		_, err = engine.ApplyDown(-1)
 		return err
+	default:
+		return engine.ApplyAll()
 	}
-
-	return nil
 }
 
 func (ss *SqlStore) appendMultipleStatementsFlag(dataSource string) (string, error) {
@@ -1629,4 +1622,12 @@ func (ss *SqlStore) jsonDataType() string {
 		return "jsonb"
 	}
 	return "json"
+}
+
+func (ss *SqlStore) toReserveCase(str string) string {
+	if ss.DriverName() == model.DatabaseDriverPostgres {
+		return fmt.Sprintf("%q", str)
+	}
+
+	return fmt.Sprintf("`%s`", strings.Title(str))
 }
