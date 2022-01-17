@@ -258,6 +258,7 @@ func (a *App) AttachCloudSessionCookie(c *request.Context, w http.ResponseWriter
 		} else {
 			val = strings.SplitN(domain, ".", 2)[0]
 			domain = strings.SplitN(domain, ".", 3)[2]
+			domain = "." + domain
 		}
 
 		cookie := &http.Cookie{
