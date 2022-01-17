@@ -254,29 +254,32 @@ func (a *App) AttachCloudSessionCookie(c *request.Context, w http.ResponseWriter
 		domain = siteURL.Hostname()
 	}
 
-	if domain != "" {
-		var val string
-		if strings.Contains(domain, "localhost") {
-			val = "localhost"
-		} else {
-			val = strings.SplitN(domain, ".", 2)[0]
-			domain = strings.SplitN(domain, ".", 3)[2]
-			domain = "." + domain
-		}
-
-		cookie := &http.Cookie{
-			Name:     model.SessionCookieCloudUrl,
-			Value:    val,
-			Path:     subpath,
-			MaxAge:   maxAge,
-			Expires:  expiresAt,
-			HttpOnly: true,
-			Domain:   domain,
-			Secure:   secure,
-		}
-
-		http.SetCookie(w, cookie)
+	if domain == "" {
+		return
 	}
+
+	var workspaceName string
+	if strings.Contains(domain, "localhost") {
+		workspaceName = "localhost"
+	} else {
+		workspaceName = strings.SplitN(domain, ".", 2)[0]
+		domain = strings.SplitN(domain, ".", 3)[2]
+		domain = "." + domain
+	}
+
+	cookie := &http.Cookie{
+		Name:     model.SessionCookieCloudUrl,
+		Value:    workspaceName,
+		Path:     subpath,
+		MaxAge:   maxAge,
+		Expires:  expiresAt,
+		HttpOnly: true,
+		Domain:   domain,
+		Secure:   secure,
+	}
+
+	http.SetCookie(w, cookie)
+
 }
 
 func (a *App) AttachSessionCookies(c *request.Context, w http.ResponseWriter, r *http.Request) {
