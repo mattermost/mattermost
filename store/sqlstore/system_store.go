@@ -34,9 +34,6 @@ func newSqlSystemStore(sqlStore *SqlStore) store.SystemStore {
 	return s
 }
 
-func (s SqlSystemStore) createIndexesIfNotExists() {
-}
-
 func (s SqlSystemStore) Save(system *model.System) error {
 	query := "INSERT INTO Systems (Name, Value) VALUES (:Name, :Value)"
 	if _, err := s.GetMasterX().NamedExec(query, system); err != nil {
