@@ -442,7 +442,7 @@ func (us SqlUserStore) GetAll() ([]*model.User, error) {
 	}
 
 	var data []*model.User
-	if _, err := us.GetReplica().Select(&data, queryString, args...); err != nil {
+	if err := us.GetReplicaX().Select(&data, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
 	return data, nil
@@ -460,7 +460,7 @@ func (us SqlUserStore) GetAllAfter(limit int, afterId string) ([]*model.User, er
 	}
 
 	var users []*model.User
-	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+	if err := us.GetReplicaX().Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
 
@@ -498,7 +498,7 @@ func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.U
 	}
 
 	var users []*model.User
-	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+	if err := us.GetReplicaX().Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to get User profiles")
 	}
 
@@ -675,7 +675,7 @@ func (us SqlUserStore) GetProfiles(options *model.UserGetOptions) ([]*model.User
 	}
 
 	var users []*model.User
-	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+	if err := us.GetReplicaX().Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
 
@@ -709,7 +709,7 @@ func (us SqlUserStore) GetProfilesInChannel(options *model.UserGetOptions) ([]*m
 	}
 
 	var users []*model.User
-	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+	if err := us.GetReplicaX().Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
 
@@ -748,7 +748,7 @@ func (us SqlUserStore) GetProfilesInChannelByStatus(options *model.UserGetOption
 	}
 
 	var users []*model.User
-	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+	if err := us.GetReplicaX().Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
 
@@ -830,7 +830,7 @@ func (us SqlUserStore) GetProfilesNotInChannel(teamId string, channelId string, 
 	}
 
 	var users []*model.User
-	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+	if err := us.GetReplicaX().Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
 
@@ -872,7 +872,7 @@ func (us SqlUserStore) GetProfilesWithoutTeam(options *model.UserGetOptions) ([]
 	}
 
 	var users []*model.User
-	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+	if err := us.GetReplicaX().Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
 
@@ -900,7 +900,7 @@ func (us SqlUserStore) GetProfilesByUsernames(usernames []string, viewRestrictio
 	}
 
 	var users []*model.User
-	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+	if err := us.GetReplicaX().Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
 
@@ -929,7 +929,7 @@ func (us SqlUserStore) GetRecentlyActiveUsersForTeam(teamId string, offset, limi
 	}
 
 	var users []*UserWithLastActivityAt
-	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+	if err := us.GetReplicaX().Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
 
@@ -960,7 +960,7 @@ func (us SqlUserStore) GetNewUsersForTeam(teamId string, offset, limit int, view
 	}
 
 	var users []*model.User
-	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+	if err := us.GetReplicaX().Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
 
@@ -1041,7 +1041,7 @@ func (us SqlUserStore) GetProfileByGroupChannelIdsForUser(userId string, channel
 	}
 
 	usersWithChannel := []*UserWithChannel{}
-	if _, err := us.GetReplica().Select(&usersWithChannel, queryString, args...); err != nil {
+	if err := us.GetReplicaX().Select(&usersWithChannel, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
 
@@ -1068,7 +1068,7 @@ func (us SqlUserStore) GetSystemAdminProfiles() (map[string]*model.User, error) 
 	}
 
 	var users []*model.User
-	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+	if err := us.GetReplicaX().Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
 
@@ -1136,7 +1136,7 @@ func (us SqlUserStore) GetAllUsingAuthService(authService string) ([]*model.User
 	}
 
 	var users []*model.User
-	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+	if err := us.GetReplicaX().Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Users with authService=%s", authService)
 	}
 
@@ -1154,7 +1154,7 @@ func (us SqlUserStore) GetAllNotInAuthService(authServices []string) ([]*model.U
 	}
 
 	var users []*model.User
-	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+	if err := us.GetReplicaX().Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Users with authServices in %v", authServices)
 	}
 
@@ -1199,7 +1199,7 @@ func (us SqlUserStore) GetForLogin(loginId string, allowSignInWithUsername, allo
 	}
 
 	users := []*model.User{}
-	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+	if err := us.GetReplicaX().Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
 
@@ -1508,7 +1508,7 @@ func (us SqlUserStore) performSearch(query sq.SelectBuilder, term string, option
 	}
 
 	var users []*model.User
-	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+	if err := us.GetReplicaX().Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Users with term=%s and searchType=%v", term, searchType)
 	}
 	for _, u := range users {
@@ -1569,7 +1569,7 @@ func (us SqlUserStore) GetProfilesNotInTeam(teamId string, groupConstrained bool
 		return nil, errors.Wrap(err, "get_profiles_not_in_team_tosql")
 	}
 
-	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+	if err := us.GetReplicaX().Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
 
@@ -1762,7 +1762,7 @@ func (us SqlUserStore) GetTeamGroupUsers(teamID string) ([]*model.User, error) {
 	}
 
 	var users []*model.User
-	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+	if err := us.GetReplicaX().Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
 
@@ -1782,7 +1782,7 @@ func (us SqlUserStore) GetChannelGroupUsers(channelID string) ([]*model.User, er
 	}
 
 	var users []*model.User
-	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+	if err := us.GetReplicaX().Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
 
