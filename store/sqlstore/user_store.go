@@ -110,7 +110,18 @@ func (us SqlUserStore) Save(user *model.User) (*model.User, error) {
 		return nil, err
 	}
 
-	if err := us.GetMaster().Insert(user); err != nil {
+	query := `INSERT INTO Users
+		(Id, CreateAt, UpdateAt, DeleteAt, Username, Password, AuthData, AuthService,
+		Email, EmailVerified, Nickname, FirstName, LastName, Position, Roles, AllowMarketing
+		Props, NotifyProps, LastPasswordUpdate, LastPictureUpdate, FailedAttempts,
+		Locale, Timezone, MfaActive, MfaSecret, RemoteId)
+		VALUES
+		(:Id, :CreateAt, :UpdateAt, :DeleteAt, :Username, :Password, :AuthData, :AuthService,
+		:Email, :EmailVerified, :Nickname, :FirstName, :LastName, :Position, :Roles, :AllowMarketing
+		:Props, :NotifyProps, :LastPasswordUpdate, :LastPictureUpdate, :FailedAttempts,
+		:Locale, :Timezone, :MfaActive, :MfaSecret, :RemoteId)`
+
+	if _, err := us.GetMasterX().NamedExec(query, user); err != nil {
 		if IsUniqueConstraintError(err, []string{"Email", "users_email_key", "idx_users_email_unique"}) {
 			return nil, store.NewErrInvalidInput("User", "email", user.Email)
 		}
