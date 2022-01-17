@@ -113,253 +113,38 @@ func (s *SqlThreadStore) get(ex gorp.SqlExecutor, id string) (*model.Thread, err
 }
 
 func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
-	type JoinedThread struct {
-		PostId         string
-		ReplyCount     int64
-		LastReplyAt    int64
-		LastViewedAt   int64
-		UnreadReplies  int64
-		UnreadMentions int64
-		Participants   model.StringArray
-		model.Post
-	}
+	var threads *model.Threads
+	var counts *model.Threads
+	var err error
 
-	fetchConditions := sq.And{
-		sq.Eq{"ThreadMemberships.UserId": userId},
-		sq.Eq{"ThreadMemberships.Following": true},
-	}
-	if opts.TeamOnly {
-		fetchConditions = sq.And{
-			sq.Eq{"Channels.TeamId": teamId},
-			fetchConditions,
+	if opts.ThreadsOnly || !opts.TotalsOnly {
+		threads, err = s.getThreadsOnlyForUser(userId, teamId, opts)
+
+		if err != nil {
+			return nil, err
 		}
-	} else {
-		fetchConditions = sq.And{
-			sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": ""}},
-			fetchConditions,
-		}
-	}
-	if !opts.Deleted {
-		fetchConditions = sq.And{
-			fetchConditions,
-			sq.Eq{"COALESCE(Posts.DeleteAt, 0)": 0},
+
+		if opts.ThreadsOnly {
+			return threads, nil
 		}
 	}
 
-	pageSize := uint64(30)
-	if opts.PageSize != 0 {
-		pageSize = opts.PageSize
+	if opts.TotalsOnly || !opts.ThreadsOnly {
+		counts, err = s.getTotalsOnlyForUser(userId, teamId, opts)
+		if err != nil {
+			return nil, err
+		}
+
+		if opts.TotalsOnly {
+			return counts, nil
+		}
 	}
-	var threadsChan chan store.StoreResult
-	if !opts.TotalsOnly {
-		threadsChan = make(chan store.StoreResult, 1)
-	}
-
-	includeTotals := opts.TotalsOnly || !opts.ThreadsOnly
-	var totalUnreadThreadsChan chan store.StoreResult
-	var totalCountChan chan store.StoreResult
-	var totalUnreadMentionsChan chan store.StoreResult
-
-	if includeTotals {
-		totalUnreadThreadsChan = make(chan store.StoreResult, 1)
-		totalCountChan = make(chan store.StoreResult, 1)
-		totalUnreadMentionsChan = make(chan store.StoreResult, 1)
-
-		go func() {
-			repliesQuery, repliesQueryArgs, _ := s.getQueryBuilder().
-				Select("COUNT(DISTINCT(Posts.RootId))").
-				From("Posts").
-				LeftJoin("ThreadMemberships ON Posts.RootId = ThreadMemberships.PostId").
-				LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
-				Where(fetchConditions).
-				Where("Posts.CreateAt > ThreadMemberships.LastViewed").ToSql()
-
-			totalUnreadThreads, err := s.GetMaster().SelectInt(repliesQuery, repliesQueryArgs...)
-			totalUnreadThreadsChan <- store.StoreResult{Data: totalUnreadThreads, NErr: errors.Wrapf(err, "failed to get count unread on threads for user id=%s", userId)}
-			close(totalUnreadThreadsChan)
-		}()
-		go func() {
-			newFetchConditions := fetchConditions
-
-			if opts.Unread {
-				newFetchConditions = sq.And{newFetchConditions, sq.Expr("ThreadMemberships.LastViewed < Threads.LastReplyAt")}
-			}
-
-			threadsQuery, threadsQueryArgs, _ := s.getQueryBuilder().
-				Select("COUNT(ThreadMemberships.PostId)").
-				LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
-				LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
-				LeftJoin("Posts ON Posts.Id = ThreadMemberships.PostId").
-				From("ThreadMemberships").
-				Where(newFetchConditions).ToSql()
-
-			totalCount, err := s.GetMaster().SelectInt(threadsQuery, threadsQueryArgs...)
-			totalCountChan <- store.StoreResult{Data: totalCount, NErr: err}
-			close(totalCountChan)
-		}()
-		go func() {
-			mentionsQuery, mentionsQueryArgs, _ := s.getQueryBuilder().
-				Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0)").
-				From("ThreadMemberships").
-				LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
-				LeftJoin("Posts ON Posts.Id = ThreadMemberships.PostId").
-				LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
-				Where(fetchConditions).ToSql()
-			totalUnreadMentions, err := s.GetMaster().SelectInt(mentionsQuery, mentionsQueryArgs...)
-			totalUnreadMentionsChan <- store.StoreResult{Data: totalUnreadMentions, NErr: err}
-			close(totalUnreadMentionsChan)
-		}()
-	}
-
-	if !opts.TotalsOnly {
-		go func() {
-			newFetchConditions := fetchConditions
-			if opts.Since > 0 {
-				newFetchConditions = sq.And{newFetchConditions, sq.GtOrEq{"ThreadMemberships.LastUpdated": opts.Since}}
-			}
-			order := "DESC"
-			if opts.Before != "" {
-				newFetchConditions = sq.And{
-					newFetchConditions,
-					sq.Expr(`LastReplyAt < (SELECT LastReplyAt FROM Threads WHERE PostId = ?)`, opts.Before),
-				}
-			}
-			if opts.After != "" {
-				order = "ASC"
-				newFetchConditions = sq.And{
-					newFetchConditions,
-					sq.Expr(`LastReplyAt > (SELECT LastReplyAt FROM Threads WHERE PostId = ?)`, opts.After),
-				}
-			}
-			if opts.Unread {
-				newFetchConditions = sq.And{newFetchConditions, sq.Expr("ThreadMemberships.LastViewed < Threads.LastReplyAt")}
-			}
-
-			unreadRepliesFetchConditions := sq.And{
-				sq.Expr("Posts.RootId = ThreadMemberships.PostId"),
-				sq.Expr("Posts.CreateAt > ThreadMemberships.LastViewed"),
-			}
-			if !opts.Deleted {
-				unreadRepliesFetchConditions = sq.And{
-					unreadRepliesFetchConditions,
-					sq.Expr("Posts.DeleteAt = 0"),
-				}
-			}
-
-			unreadRepliesQuery, _ := sq.
-				Select("COUNT(Posts.Id)").
-				From("Posts").
-				Where(unreadRepliesFetchConditions).
-				MustSql()
-
-			var threads []*JoinedThread
-			query, args, _ := s.getQueryBuilder().
-				Select(`Threads.*,
-				` + postSliceCoalesceQuery() + `,
-				ThreadMemberships.LastViewed as LastViewedAt,
-				ThreadMemberships.UnreadMentions as UnreadMentions`).
-				From("Threads").
-				Column(sq.Alias(sq.Expr(unreadRepliesQuery), "UnreadReplies")).
-				LeftJoin("Posts ON Posts.Id = Threads.PostId").
-				LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
-				LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId").
-				Where(newFetchConditions).
-				OrderBy("Threads.LastReplyAt " + order).
-				Limit(pageSize).ToSql()
-
-			_, err := s.GetReplica().Select(&threads, query, args...)
-			threadsChan <- store.StoreResult{Data: threads, NErr: err}
-			close(threadsChan)
-		}()
-	}
-
-	// userIds is the de-duped list of participant ids from all threads.
-	var userIds []string
-	// userIdMap is the map of participant ids from all threads.
-	// Used to generate userIds
-	userIdMap := map[string]bool{}
 
 	result := &model.Threads{
-		Threads: []*model.ThreadResponse{},
-	}
-
-	if includeTotals {
-		totalUnreadMentionsResult := <-totalUnreadMentionsChan
-		if totalUnreadMentionsResult.NErr != nil {
-			return nil, totalUnreadMentionsResult.NErr
-		}
-		totalUnreadMentions := totalUnreadMentionsResult.Data.(int64)
-
-		totalCountResult := <-totalCountChan
-		if totalCountResult.NErr != nil {
-			return nil, totalCountResult.NErr
-		}
-		totalCount := totalCountResult.Data.(int64)
-
-		totalUnreadThreadsResult := <-totalUnreadThreadsChan
-		if totalUnreadThreadsResult.NErr != nil {
-			return nil, totalUnreadThreadsResult.NErr
-		}
-		totalUnreadThreads := totalUnreadThreadsResult.Data.(int64)
-
-		result.Total = totalCount
-		result.TotalUnreadMentions = totalUnreadMentions
-		result.TotalUnreadThreads = totalUnreadThreads
-	}
-
-	if !opts.TotalsOnly {
-		threadsResult := <-threadsChan
-		if threadsResult.NErr != nil {
-			return nil, threadsResult.NErr
-		}
-		threads := threadsResult.Data.([]*JoinedThread)
-		for _, thread := range threads {
-			for _, participantId := range thread.Participants {
-				if _, ok := userIdMap[participantId]; !ok {
-					userIdMap[participantId] = true
-					userIds = append(userIds, participantId)
-				}
-			}
-		}
-		// usersMap is the global profile map of all participants from all threads.
-		usersMap := make(map[string]*model.User, len(userIds))
-		if opts.Extended {
-			users, err := s.User().GetProfileByIds(context.Background(), userIds, &store.UserGetByIdsOpts{}, true)
-			if err != nil {
-				return nil, errors.Wrapf(err, "failed to get threads for user id=%s", userId)
-			}
-			for _, user := range users {
-				usersMap[user.Id] = user
-			}
-		} else {
-			for _, userId := range userIds {
-				usersMap[userId] = &model.User{Id: userId}
-			}
-		}
-
-		result.Threads = make([]*model.ThreadResponse, 0, len(threads))
-		for _, thread := range threads {
-			participants := make([]*model.User, 0, len(thread.Participants))
-			// We get the user profiles for only a single thread filtered from the
-			// global users map.
-			for _, participantId := range thread.Participants {
-				participant, ok := usersMap[participantId]
-				if !ok {
-					return nil, errors.New("cannot find thread participant with id=" + participantId)
-				}
-				participants = append(participants, participant)
-			}
-			result.Threads = append(result.Threads, &model.ThreadResponse{
-				PostId:         thread.PostId,
-				ReplyCount:     thread.ReplyCount,
-				LastReplyAt:    thread.LastReplyAt,
-				LastViewedAt:   thread.LastViewedAt,
-				UnreadReplies:  thread.UnreadReplies,
-				UnreadMentions: thread.UnreadMentions,
-				Participants:   participants,
-				Post:           thread.Post.ToNilIfInvalid(),
-			})
-		}
+		Threads:             threads.Threads,
+		Total:               counts.Total,
+		TotalUnreadThreads:  counts.TotalUnreadThreads,
+		TotalUnreadMentions: counts.TotalUnreadMentions,
 	}
 
 	return result, nil
@@ -855,4 +640,274 @@ func (s *SqlThreadStore) DeleteOrphanedRows(limit int) (deleted int64, err error
 	}
 	deleted = rpcDeleted + rptDeleted
 	return
+}
+
+func (s *SqlThreadStore) getTotalsOnlyForUser(userId, teamId string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
+	fetchConditions := sq.And{
+		sq.Eq{"ThreadMemberships.UserId": userId},
+		sq.Eq{"ThreadMemberships.Following": true},
+	}
+	if opts.TeamOnly {
+		fetchConditions = sq.And{
+			sq.Eq{"Channels.TeamId": teamId},
+			fetchConditions,
+		}
+	} else {
+		fetchConditions = sq.And{
+			sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": ""}},
+			fetchConditions,
+		}
+	}
+	if !opts.Deleted {
+		fetchConditions = sq.And{
+			fetchConditions,
+			sq.Eq{"COALESCE(Posts.DeleteAt, 0)": 0},
+		}
+	}
+
+	totalUnreadThreadsChan := make(chan store.StoreResult, 1)
+	totalCountChan := make(chan store.StoreResult, 1)
+	totalUnreadMentionsChan := make(chan store.StoreResult, 1)
+
+	go func() {
+		repliesQuery, repliesQueryArgs, _ := s.getQueryBuilder().
+			Select("COUNT(DISTINCT(Posts.RootId))").
+			From("Posts").
+			LeftJoin("ThreadMemberships ON Posts.RootId = ThreadMemberships.PostId").
+			LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
+			Where(fetchConditions).
+			Where("Posts.CreateAt > ThreadMemberships.LastViewed").ToSql()
+
+		totalUnreadThreads, err := s.GetMaster().SelectInt(repliesQuery, repliesQueryArgs...)
+		totalUnreadThreadsChan <- store.StoreResult{Data: totalUnreadThreads, NErr: errors.Wrapf(err, "failed to get count unread on threads for user id=%s", userId)}
+		close(totalUnreadThreadsChan)
+	}()
+	go func() {
+		newFetchConditions := fetchConditions
+
+		if opts.Unread {
+			newFetchConditions = sq.And{newFetchConditions, sq.Expr("ThreadMemberships.LastViewed < Threads.LastReplyAt")}
+		}
+
+		threadsQuery, threadsQueryArgs, _ := s.getQueryBuilder().
+			Select("COUNT(ThreadMemberships.PostId)").
+			LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
+			LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
+			LeftJoin("Posts ON Posts.Id = ThreadMemberships.PostId").
+			From("ThreadMemberships").
+			Where(newFetchConditions).ToSql()
+
+		totalCount, err := s.GetMaster().SelectInt(threadsQuery, threadsQueryArgs...)
+		totalCountChan <- store.StoreResult{Data: totalCount, NErr: err}
+		close(totalCountChan)
+	}()
+	go func() {
+		mentionsQuery, mentionsQueryArgs, _ := s.getQueryBuilder().
+			Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0)").
+			From("ThreadMemberships").
+			LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
+			LeftJoin("Posts ON Posts.Id = ThreadMemberships.PostId").
+			LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
+			Where(fetchConditions).ToSql()
+		totalUnreadMentions, err := s.GetMaster().SelectInt(mentionsQuery, mentionsQueryArgs...)
+		totalUnreadMentionsChan <- store.StoreResult{Data: totalUnreadMentions, NErr: err}
+		close(totalUnreadMentionsChan)
+	}()
+
+	totalUnreadMentionsResult := <-totalUnreadMentionsChan
+	if totalUnreadMentionsResult.NErr != nil {
+		return nil, totalUnreadMentionsResult.NErr
+	}
+	totalUnreadMentions := totalUnreadMentionsResult.Data.(int64)
+
+	totalCountResult := <-totalCountChan
+	if totalCountResult.NErr != nil {
+		return nil, totalCountResult.NErr
+	}
+	totalCount := totalCountResult.Data.(int64)
+
+	totalUnreadThreadsResult := <-totalUnreadThreadsChan
+	if totalUnreadThreadsResult.NErr != nil {
+		return nil, totalUnreadThreadsResult.NErr
+	}
+	totalUnreadThreads := totalUnreadThreadsResult.Data.(int64)
+
+	result := &model.Threads{
+		Total:               totalCount,
+		TotalUnreadMentions: totalUnreadMentions,
+		TotalUnreadThreads:  totalUnreadThreads,
+	}
+
+	return result, nil
+}
+
+func (s *SqlThreadStore) getThreadsOnlyForUser(userId, teamId string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
+	type JoinedThread struct {
+		PostId         string
+		ReplyCount     int64
+		LastReplyAt    int64
+		LastViewedAt   int64
+		UnreadReplies  int64
+		UnreadMentions int64
+		Participants   model.StringArray
+		model.Post
+	}
+
+	fetchConditions := sq.And{
+		sq.Eq{"ThreadMemberships.UserId": userId},
+		sq.Eq{"ThreadMemberships.Following": true},
+	}
+	if opts.TeamOnly {
+		fetchConditions = sq.And{
+			sq.Eq{"Channels.TeamId": teamId},
+			fetchConditions,
+		}
+	} else {
+		fetchConditions = sq.And{
+			sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": ""}},
+			fetchConditions,
+		}
+	}
+	if !opts.Deleted {
+		fetchConditions = sq.And{
+			fetchConditions,
+			sq.Eq{"COALESCE(Posts.DeleteAt, 0)": 0},
+		}
+	}
+
+	pageSize := uint64(30)
+	if opts.PageSize != 0 {
+		pageSize = opts.PageSize
+	}
+	var threadsChan chan store.StoreResult
+	if !opts.TotalsOnly {
+		threadsChan = make(chan store.StoreResult, 1)
+	}
+
+	go func() {
+		newFetchConditions := fetchConditions
+		if opts.Since > 0 {
+			newFetchConditions = sq.And{newFetchConditions, sq.GtOrEq{"ThreadMemberships.LastUpdated": opts.Since}}
+		}
+		order := "DESC"
+		if opts.Before != "" {
+			newFetchConditions = sq.And{
+				newFetchConditions,
+				sq.Expr(`LastReplyAt < (SELECT LastReplyAt FROM Threads WHERE PostId = ?)`, opts.Before),
+			}
+		}
+		if opts.After != "" {
+			order = "ASC"
+			newFetchConditions = sq.And{
+				newFetchConditions,
+				sq.Expr(`LastReplyAt > (SELECT LastReplyAt FROM Threads WHERE PostId = ?)`, opts.After),
+			}
+		}
+		if opts.Unread {
+			newFetchConditions = sq.And{newFetchConditions, sq.Expr("ThreadMemberships.LastViewed < Threads.LastReplyAt")}
+		}
+
+		unreadRepliesFetchConditions := sq.And{
+			sq.Expr("Posts.RootId = ThreadMemberships.PostId"),
+			sq.Expr("Posts.CreateAt > ThreadMemberships.LastViewed"),
+		}
+		if !opts.Deleted {
+			unreadRepliesFetchConditions = sq.And{
+				unreadRepliesFetchConditions,
+				sq.Expr("Posts.DeleteAt = 0"),
+			}
+		}
+
+		unreadRepliesQuery, _ := sq.
+			Select("COUNT(Posts.Id)").
+			From("Posts").
+			Where(unreadRepliesFetchConditions).
+			MustSql()
+
+		var threads []*JoinedThread
+		query, args, _ := s.getQueryBuilder().
+			Select(`Threads.*,
+` + postSliceCoalesceQuery() + `,
+				ThreadMemberships.LastViewed as LastViewedAt,
+				ThreadMemberships.UnreadMentions as UnreadMentions`).
+			From("Threads").
+			Column(sq.Alias(sq.Expr(unreadRepliesQuery), "UnreadReplies")).
+			LeftJoin("Posts ON Posts.Id = Threads.PostId").
+			LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
+			LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId").
+			Where(newFetchConditions).
+			OrderBy("Threads.LastReplyAt " + order).
+			Limit(pageSize).ToSql()
+
+		_, err := s.GetReplica().Select(&threads, query, args...)
+		threadsChan <- store.StoreResult{Data: threads, NErr: err}
+		close(threadsChan)
+	}()
+
+	// userIds is the de-duped list of participant ids from all threads.
+	var userIds []string
+	// userIdMap is the map of participant ids from all threads.
+	// Used to generate userIds
+	userIdMap := map[string]bool{}
+
+	result := &model.Threads{
+		Threads: []*model.ThreadResponse{},
+	}
+
+	if !opts.TotalsOnly {
+		threadsResult := <-threadsChan
+		if threadsResult.NErr != nil {
+			return nil, threadsResult.NErr
+		}
+		threads := threadsResult.Data.([]*JoinedThread)
+		for _, thread := range threads {
+			for _, participantId := range thread.Participants {
+				if _, ok := userIdMap[participantId]; !ok {
+					userIdMap[participantId] = true
+					userIds = append(userIds, participantId)
+				}
+			}
+		}
+		// usersMap is the global profile map of all participants from all threads.
+		usersMap := make(map[string]*model.User, len(userIds))
+		if opts.Extended {
+			users, err := s.User().GetProfileByIds(context.Background(), userIds, &store.UserGetByIdsOpts{}, true)
+			if err != nil {
+				return nil, errors.Wrapf(err, "failed to get threads for user id=%s", userId)
+			}
+			for _, user := range users {
+				usersMap[user.Id] = user
+			}
+		} else {
+			for _, userId := range userIds {
+				usersMap[userId] = &model.User{Id: userId}
+			}
+		}
+
+		result.Threads = make([]*model.ThreadResponse, 0, len(threads))
+		for _, thread := range threads {
+			participants := make([]*model.User, 0, len(thread.Participants))
+			// We get the user profiles for only a single thread filtered from the
+			// global users map.
+			for _, participantId := range thread.Participants {
+				participant, ok := usersMap[participantId]
+				if !ok {
+					return nil, errors.New("cannot find thread participant with id=" + participantId)
+				}
+				participants = append(participants, participant)
+			}
+			result.Threads = append(result.Threads, &model.ThreadResponse{
+				PostId:         thread.PostId,
+				ReplyCount:     thread.ReplyCount,
+				LastReplyAt:    thread.LastReplyAt,
+				LastViewedAt:   thread.LastViewedAt,
+				UnreadReplies:  thread.UnreadReplies,
+				UnreadMentions: thread.UnreadMentions,
+				Participants:   participants,
+				Post:           thread.Post.ToNilIfInvalid(),
+			})
+		}
+	}
+
+	return result, nil
 }
