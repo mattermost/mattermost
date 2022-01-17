@@ -147,7 +147,7 @@ func (us SqlUserStore) DeactivateGuests() ([]string, error) {
 		return nil, errors.Wrap(err, "deactivate_guests_tosql")
 	}
 
-	_, err = us.GetMaster().Exec(queryString, args...)
+	_, err = us.GetMasterX().Exec(queryString, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to update Users with roles=system_guest")
 	}
@@ -251,7 +251,7 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 }
 
 func (us SqlUserStore) UpdateNotifyProps(userID string, props map[string]string) error {
-	if _, err := us.GetMaster().Exec(`UPDATE Users
+	if _, err := us.GetMasterX().Exec(`UPDATE Users
 		SET NotifyProps = :NotifyProps
 		WHERE Id = :UserId`, map[string]interface{}{
 		"NotifyProps": model.MapToJSON(props),
@@ -265,7 +265,7 @@ func (us SqlUserStore) UpdateNotifyProps(userID string, props map[string]string)
 func (us SqlUserStore) UpdateLastPictureUpdate(userId string) error {
 	curTime := model.GetMillis()
 
-	if _, err := us.GetMaster().Exec("UPDATE Users SET LastPictureUpdate = :Time, UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"Time": curTime, "UserId": userId}); err != nil {
+	if _, err := us.GetMasterX().Exec("UPDATE Users SET LastPictureUpdate = :Time, UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"Time": curTime, "UserId": userId}); err != nil {
 		return errors.Wrapf(err, "failed to update User with userId=%s", userId)
 	}
 
@@ -275,7 +275,7 @@ func (us SqlUserStore) UpdateLastPictureUpdate(userId string) error {
 func (us SqlUserStore) ResetLastPictureUpdate(userId string) error {
 	curTime := model.GetMillis()
 
-	if _, err := us.GetMaster().Exec("UPDATE Users SET LastPictureUpdate = :PictureUpdateTime, UpdateAt = :UpdateTime WHERE Id = :UserId", map[string]interface{}{"PictureUpdateTime": 0, "UpdateTime": curTime, "UserId": userId}); err != nil {
+	if _, err := us.GetMasterX().Exec("UPDATE Users SET LastPictureUpdate = :PictureUpdateTime, UpdateAt = :UpdateTime WHERE Id = :UserId", map[string]interface{}{"PictureUpdateTime": 0, "UpdateTime": curTime, "UserId": userId}); err != nil {
 		return errors.Wrapf(err, "failed to update User with userId=%s", userId)
 	}
 
@@ -285,7 +285,7 @@ func (us SqlUserStore) ResetLastPictureUpdate(userId string) error {
 func (us SqlUserStore) UpdateUpdateAt(userId string) (int64, error) {
 	curTime := model.GetMillis()
 
-	if _, err := us.GetMaster().Exec("UPDATE Users SET UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"Time": curTime, "UserId": userId}); err != nil {
+	if _, err := us.GetMasterX().Exec("UPDATE Users SET UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"Time": curTime, "UserId": userId}); err != nil {
 		return curTime, errors.Wrapf(err, "failed to update User with userId=%s", userId)
 	}
 
@@ -295,7 +295,7 @@ func (us SqlUserStore) UpdateUpdateAt(userId string) (int64, error) {
 func (us SqlUserStore) UpdatePassword(userId, hashedPassword string) error {
 	updateAt := model.GetMillis()
 
-	if _, err := us.GetMaster().Exec("UPDATE Users SET Password = :Password, LastPasswordUpdate = :LastPasswordUpdate, UpdateAt = :UpdateAt, AuthData = NULL, AuthService = '', FailedAttempts = 0 WHERE Id = :UserId", map[string]interface{}{"Password": hashedPassword, "LastPasswordUpdate": updateAt, "UpdateAt": updateAt, "UserId": userId}); err != nil {
+	if _, err := us.GetMasterX().Exec("UPDATE Users SET Password = :Password, LastPasswordUpdate = :LastPasswordUpdate, UpdateAt = :UpdateAt, AuthData = NULL, AuthService = '', FailedAttempts = 0 WHERE Id = :UserId", map[string]interface{}{"Password": hashedPassword, "LastPasswordUpdate": updateAt, "UpdateAt": updateAt, "UserId": userId}); err != nil {
 		return errors.Wrapf(err, "failed to update User with userId=%s", userId)
 	}
 
@@ -303,7 +303,7 @@ func (us SqlUserStore) UpdatePassword(userId, hashedPassword string) error {
 }
 
 func (us SqlUserStore) UpdateFailedPasswordAttempts(userId string, attempts int) error {
-	if _, err := us.GetMaster().Exec("UPDATE Users SET FailedAttempts = :FailedAttempts WHERE Id = :UserId", map[string]interface{}{"FailedAttempts": attempts, "UserId": userId}); err != nil {
+	if _, err := us.GetMasterX().Exec("UPDATE Users SET FailedAttempts = :FailedAttempts WHERE Id = :UserId", map[string]interface{}{"FailedAttempts": attempts, "UserId": userId}); err != nil {
 		return errors.Wrapf(err, "failed to update User with userId=%s", userId)
 	}
 
@@ -334,7 +334,7 @@ func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *s
 
 	query += " WHERE Id = :UserId"
 
-	if _, err := us.GetMaster().Exec(query, map[string]interface{}{"LastPasswordUpdate": updateAt, "UpdateAt": updateAt, "UserId": userId, "AuthService": service, "AuthData": authData, "Email": email}); err != nil {
+	if _, err := us.GetMasterX().Exec(query, map[string]interface{}{"LastPasswordUpdate": updateAt, "UpdateAt": updateAt, "UserId": userId, "AuthService": service, "AuthData": authData, "Email": email}); err != nil {
 		if IsUniqueConstraintError(err, []string{"Email", "users_email_key", "idx_users_email_unique", "AuthData", "users_authdata_key"}) {
 			return "", store.NewErrInvalidInput("User", "id", userId)
 		}
@@ -377,7 +377,7 @@ func (us SqlUserStore) ResetAuthDataToEmailForUsers(service string, userIDs []st
 	if err != nil {
 		return 0, errors.Wrap(err, "update_users_tosql")
 	}
-	result, err := us.GetMaster().Exec(query, args...)
+	result, err := us.GetMasterX().Exec(query, args...)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to update users' AuthData")
 	}
@@ -388,7 +388,7 @@ func (us SqlUserStore) ResetAuthDataToEmailForUsers(service string, userIDs []st
 func (us SqlUserStore) UpdateMfaSecret(userId, secret string) error {
 	updateAt := model.GetMillis()
 
-	if _, err := us.GetMaster().Exec("UPDATE Users SET MfaSecret = :Secret, UpdateAt = :UpdateAt WHERE Id = :UserId", map[string]interface{}{"Secret": secret, "UpdateAt": updateAt, "UserId": userId}); err != nil {
+	if _, err := us.GetMasterX().Exec("UPDATE Users SET MfaSecret = :Secret, UpdateAt = :UpdateAt WHERE Id = :UserId", map[string]interface{}{"Secret": secret, "UpdateAt": updateAt, "UserId": userId}); err != nil {
 		return errors.Wrapf(err, "failed to update User with userId=%s", userId)
 	}
 
@@ -398,7 +398,7 @@ func (us SqlUserStore) UpdateMfaSecret(userId, secret string) error {
 func (us SqlUserStore) UpdateMfaActive(userId string, active bool) error {
 	updateAt := model.GetMillis()
 
-	if _, err := us.GetMaster().Exec("UPDATE Users SET MfaActive = :Active, UpdateAt = :UpdateAt WHERE Id = :UserId", map[string]interface{}{"Active": active, "UpdateAt": updateAt, "UserId": userId}); err != nil {
+	if _, err := us.GetMasterX().Exec("UPDATE Users SET MfaActive = :Active, UpdateAt = :UpdateAt WHERE Id = :UserId", map[string]interface{}{"Active": active, "UpdateAt": updateAt, "UserId": userId}); err != nil {
 		return errors.Wrapf(err, "failed to update User with userId=%s", userId)
 	}
 
@@ -1241,7 +1241,7 @@ func (us SqlUserStore) GetForLogin(loginId string, allowSignInWithUsername, allo
 
 func (us SqlUserStore) VerifyEmail(userId, email string) (string, error) {
 	curTime := model.GetMillis()
-	if _, err := us.GetMaster().Exec("UPDATE Users SET Email = lower(:email), EmailVerified = true, UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"email": email, "Time": curTime, "UserId": userId}); err != nil {
+	if _, err := us.GetMasterX().Exec("UPDATE Users SET Email = lower(:email), EmailVerified = true, UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"email": email, "Time": curTime, "UserId": userId}); err != nil {
 		return "", errors.Wrapf(err, "failed to update Users with userId=%s and email=%s", userId, email)
 	}
 
@@ -1249,7 +1249,7 @@ func (us SqlUserStore) VerifyEmail(userId, email string) (string, error) {
 }
 
 func (us SqlUserStore) PermanentDelete(userId string) error {
-	if _, err := us.GetMaster().Exec("DELETE FROM Users WHERE Id = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
+	if _, err := us.GetMasterX().Exec("DELETE FROM Users WHERE Id = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
 		return errors.Wrapf(err, "failed to delete User with userId=%s", userId)
 	}
 	return nil
