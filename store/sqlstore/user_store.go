@@ -1091,7 +1091,7 @@ func (us SqlUserStore) GetByEmail(email string) (*model.User, error) {
 	}
 
 	user := model.User{}
-	if err := us.GetReplica().SelectOne(&user, queryString, args...); err != nil {
+	if err := us.GetReplicaX().Get(&user, queryString, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.Wrap(store.NewErrNotFound("User", fmt.Sprintf("email=%s", email)), "failed to find User")
 		}
@@ -1117,7 +1117,7 @@ func (us SqlUserStore) GetByAuth(authData *string, authService string) (*model.U
 	}
 
 	user := model.User{}
-	if err := us.GetReplica().SelectOne(&user, queryString, args...); err == sql.ErrNoRows {
+	if err := us.GetReplicaX().Get(&user, queryString, args...); err == sql.ErrNoRows {
 		return nil, store.NewErrNotFound("User", fmt.Sprintf("authData=%s, authService=%s", *authData, authService))
 	} else if err != nil {
 		return nil, errors.Wrapf(err, "failed to find User with authData=%s and authService=%s", *authData, authService)
@@ -1170,7 +1170,7 @@ func (us SqlUserStore) GetByUsername(username string) (*model.User, error) {
 	}
 
 	var user *model.User
-	if err := us.GetReplica().SelectOne(&user, queryString, args...); err != nil {
+	if err := us.GetReplicaX().Get(&user, queryString, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.Wrap(store.NewErrNotFound("User", fmt.Sprintf("username=%s", username)), "failed to find User")
 		}
@@ -2035,7 +2035,7 @@ func (us SqlUserStore) IsEmpty(excludeBots bool) (bool, error) {
 		return false, errors.Wrapf(err, "users_is_empty_to_sql")
 	}
 
-	if err = us.GetReplica().SelectOne(&hasRows, query, args...); err != nil {
+	if err = us.GetReplicaX().Get(&hasRows, query, args...); err != nil {
 		return false, errors.Wrap(err, "failed to check if table is empty")
 	}
 	return !hasRows, nil
