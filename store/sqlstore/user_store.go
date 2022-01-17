@@ -112,14 +112,14 @@ func (us SqlUserStore) Save(user *model.User) (*model.User, error) {
 
 	query := `INSERT INTO Users
 		(Id, CreateAt, UpdateAt, DeleteAt, Username, Password, AuthData, AuthService,
-		Email, EmailVerified, Nickname, FirstName, LastName, Position, Roles, AllowMarketing
-		Props, NotifyProps, LastPasswordUpdate, LastPictureUpdate, FailedAttempts,
-		Locale, Timezone, MfaActive, MfaSecret, RemoteId)
+			Email, EmailVerified, Nickname, FirstName, LastName, Position, Roles, AllowMarketing
+			Props, NotifyProps, LastPasswordUpdate, LastPictureUpdate, FailedAttempts,
+			Locale, Timezone, MfaActive, MfaSecret, RemoteId)
 		VALUES
 		(:Id, :CreateAt, :UpdateAt, :DeleteAt, :Username, :Password, :AuthData, :AuthService,
-		:Email, :EmailVerified, :Nickname, :FirstName, :LastName, :Position, :Roles, :AllowMarketing
-		:Props, :NotifyProps, :LastPasswordUpdate, :LastPictureUpdate, :FailedAttempts,
-		:Locale, :Timezone, :MfaActive, :MfaSecret, :RemoteId)`
+			:Email, :EmailVerified, :Nickname, :FirstName, :LastName, :Position, :Roles, :AllowMarketing
+			:Props, :NotifyProps, :LastPasswordUpdate, :LastPictureUpdate, :FailedAttempts,
+			:Locale, :Timezone, :MfaActive, :MfaSecret, :RemoteId)`
 
 	if _, err := us.GetMasterX().NamedExec(query, user); err != nil {
 		if IsUniqueConstraintError(err, []string{"Email", "users_email_key", "idx_users_email_unique"}) {
@@ -217,7 +217,16 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 		user.UpdateMentionKeysFromUsername(oldUser.Username)
 	}
 
-	count, err := us.GetMaster().Update(user)
+	query := `UPDATE Users
+			SET Id=:Id,CreateAt=:CreateAt,UpdateAt=:UpdateAt,DeleteAt=:DeleteAt,Username=:Username,Password=:Password,
+				AuthData=:AuthData,AuthService=:AuthService,Email=:Email,EmailVerified=:EmailVerified,Nickname=:Nickname,
+				FirstName=:FirstName,LastName=:LastName,Position=:Position,Roles=:Roles,AllowMarketing=:AllowMarketing,
+				Props=:Props,NotifyProps=:NotifyProps,LastPasswordUpdate=:LastPasswordUpdate,
+				LastPictureUpdate=:LastPictureUpdate,FailedAttempts=:FailedAttempts,Locale=:Locale,Timezone=:Timezone,
+				MfaActive=:MfaActive,MfaSecret=:MfaSecret,RemoteId=:RemoteId
+			WHERE Id:=Id`
+
+	res, err := us.GetMasterX().NamedExec(query, user)
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Email", "users_email_key", "idx_users_email_unique"}) {
 			return nil, store.NewErrConflict("Email", err, user.Email)
@@ -228,6 +237,10 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 		return nil, errors.Wrapf(err, "failed to update User with userId=%s", user.Id)
 	}
 
+	count, err := res.RowsAffected()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get rows_affected")
+	}
 	if count > 1 {
 		return nil, fmt.Errorf("multiple users were update: userId=%s, count=%d", user.Id, count)
 	}
