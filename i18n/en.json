@@ -3065,7 +3065,7 @@
   },
   {
     "id": "api.templates.at_limit_info1",
-    "translation": "It looks like you have 10 or more users in your workspace now — that’s great! If you want to invite more team members, consider upgrading Mattermost Cloud Professional now."
+    "translation": "It looks like you have 10 or more users in your workspace now — that’s great! If you want to invite more team members, consider upgrading Mattermost Cloud now."
   },
   {
     "id": "api.templates.at_limit_info2",
@@ -3093,7 +3093,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Professional has ended today, {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Professional."
+    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Enterprise has ended today, {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Enterprise."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
@@ -3425,7 +3425,7 @@
   },
   {
     "id": "api.templates.over_limit_info1",
-    "translation": "It looks like you have more than 10 users in your workspace which is beyond the free tier limits of Mattermost Cloud Professional. To avoid any disruption in your Mattermost workspace, please upgrade."
+    "translation": "It looks like you have more than 10 users in your workspace which is beyond the free tier limits of Mattermost Cloud. To avoid any disruption in your Mattermost workspace, please upgrade."
   },
   {
     "id": "api.templates.over_limit_info2",
