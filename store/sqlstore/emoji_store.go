@@ -39,12 +39,6 @@ func newSqlEmojiStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) 
 	return s
 }
 
-func (es SqlEmojiStore) createIndexesIfNotExists() {
-	es.CreateIndexIfNotExists("idx_emoji_update_at", "Emoji", "UpdateAt")
-	es.CreateIndexIfNotExists("idx_emoji_create_at", "Emoji", "CreateAt")
-	es.CreateIndexIfNotExists("idx_emoji_delete_at", "Emoji", "DeleteAt")
-}
-
 func (es SqlEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, error) {
 	emoji.PreSave()
 	if err := emoji.IsValid(); err != nil {
