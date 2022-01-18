@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -14,10 +15,15 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/cache"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mail"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
+
+var latestVersionCache = cache.NewLRU(cache.LRUOptions{
+	Size: 10000,
+})
 
 func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
@@ -240,4 +246,36 @@ func (s *Server) serverBusyStateChanged(sbs *model.ServerBusyState) {
 	} else {
 		mlog.Info("server busy state cleared via cluster event - non-critical services enabled")
 	}
+}
+
+func (a *App) GetLatestVersion() (*model.GithubReleaseInfo, *model.AppError) {
+	var cachedLatestVersion *model.GithubReleaseInfo
+	if cacheErr := latestVersionCache.Get("latest_version_cache", &cachedLatestVersion); cacheErr == nil {
+		return cachedLatestVersion, nil
+	}
+
+	res, err := http.Get("https://api.github.com/repos/mattermost/mattermost-server/releases?page=1&per_page=1")
+	if err != nil {
+		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version.failure", nil, "", http.StatusBadRequest)
+	}
+
+	defer res.Body.Close()
+
+	responseData, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version_read_all.failure", nil, "", http.StatusBadRequest)
+	}
+
+	var releaseInfoResponse []*model.GithubReleaseInfo
+	err = json.Unmarshal(responseData, &releaseInfoResponse)
+	if err != nil {
+		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version_unmarshal.failure", nil, "", http.StatusBadRequest)
+	}
+
+	err = latestVersionCache.Set("latest_version_cache", releaseInfoResponse[0])
+	if err != nil {
+		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version_set_cache.failure", nil, "", http.StatusBadRequest)
+	}
+
+	return releaseInfoResponse[0], nil
 }
