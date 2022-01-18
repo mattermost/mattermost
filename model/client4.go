@@ -7699,6 +7699,12 @@ func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOp
 	if options.Unread {
 		v.Set("unread", "true")
 	}
+	if options.ThreadsOnly {
+		v.Set("threadsOnly", "true")
+	}
+	if options.TotalsOnly {
+		v.Set("totalsOnly", "true")
+	}
 	url := c.userThreadsRoute(userId, teamId)
 	if len(v) > 0 {
 		url += "?" + v.Encode()
