@@ -36,32 +36,12 @@ SET @preparedStatement = (SELECT IF(
         WHERE table_name = 'Users'
         AND table_schema = DATABASE()
         AND column_name = 'Timezone'
-        AND column_type = 'JSON'
-    ) > 0,
-    'ALTER TABLE Users MODIFY COLUMN Timezone varchar(256);',
-    'SELECT 1'
-));
-
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
-
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_name = 'Users'
-        AND table_schema = DATABASE()
-        AND column_name = 'Timezone'
         AND column_type = 'varchar(256)'
         AND column_default IS NULL
     ) > 0,
     'ALTER TABLE Users ALTER Timezone SET DEFAULT \'{"automaticTimezone":"","manualTimezone":"","useAutomaticTimezone":"true"}\';',
     'SELECT 1'
 ));
-
-PREPARE alterIfExists FROM @preparedStatement;
-EXECUTE alterIfExists;
-DEALLOCATE PREPARE alterIfExists;
 
 PREPARE alterIfExists FROM @preparedStatement;
 EXECUTE alterIfExists;
