@@ -49,14 +49,6 @@ func newSqlRetentionPolicyStore(sqlStore *SqlStore, metrics einterfaces.MetricsI
 	return s
 }
 
-func (s *SqlRetentionPolicyStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("IDX_RetentionPolicies_DisplayName", "RetentionPolicies", "DisplayName")
-	s.CreateIndexIfNotExists("IDX_RetentionPoliciesChannels_PolicyId", "RetentionPoliciesChannels", "PolicyId")
-	s.CreateIndexIfNotExists("IDX_RetentionPoliciesTeams_PolicyId", "RetentionPoliciesTeams", "PolicyId")
-	s.CreateForeignKeyIfNotExists("RetentionPoliciesChannels", "PolicyId", "RetentionPolicies", "Id", true)
-	s.CreateForeignKeyIfNotExists("RetentionPoliciesTeams", "PolicyId", "RetentionPolicies", "Id", true)
-}
-
 // executePossiblyEmptyQuery only executes the query if it is non-empty. This helps avoid
 // having to check for MySQL, which, unlike Postgres, does not allow empty queries.
 func executePossiblyEmptyQuery(txn *sqlxTxWrapper, query string, args ...interface{}) (sql.Result, error) {
@@ -419,13 +411,14 @@ func (s *SqlRetentionPolicyStore) Get(id string) (*model.RetentionPolicyWithTeam
 	return &policy, nil
 }
 
-func (s *SqlRetentionPolicyStore) GetAll(offset, limit int) (policies []*model.RetentionPolicyWithTeamAndChannelCounts, err error) {
+func (s *SqlRetentionPolicyStore) GetAll(offset, limit int) ([]*model.RetentionPolicyWithTeamAndChannelCounts, error) {
+	policies := []*model.RetentionPolicyWithTeamAndChannelCounts{}
 	queryString, args, err := s.buildGetPoliciesQuery("", offset, limit)
 	if err != nil {
-		return
+		return policies, err
 	}
 	err = s.GetReplicaX().Select(&policies, queryString, args...)
-	return
+	return policies, err
 }
 
 func (s *SqlRetentionPolicyStore) GetCount() (int64, error) {

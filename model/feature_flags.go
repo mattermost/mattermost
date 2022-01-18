@@ -47,9 +47,6 @@ type FeatureFlags struct {
 	// Determine whether when a user gets created, they'll have noisy notifications e.g. Send desktop notifications for all activity
 	NewAccountNoisy bool
 
-	// Enable Boards Unfurl Preview
-	BoardsUnfurl bool
-
 	// Enable Calls plugin support in the mobile app
 	CallsMobile bool
 
@@ -89,7 +86,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.GlobalHeader = true
 	f.AddChannelButton = "by_team_name"
 	f.NewAccountNoisy = false
-	f.BoardsUnfurl = true
 	f.CallsMobile = false
 	f.AutoTour = "none"
 	f.BoardsFeatureFlags = ""
