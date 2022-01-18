@@ -3066,7 +3066,7 @@ func TestAddChannelMemberFromThread(t *testing.T) {
 	require.NoError(t, err)
 	// Should have two mentions. There might be a race condition
 	// here between the "added user to the channel" message and the GetUserThread call
-	require.GreaterOrEqual(t, int64(2), ut.UnreadMentions)
+	require.LessOrEqual(t, int64(2), ut.UnreadMentions)
 }
 
 func TestAddChannelMemberAddMyself(t *testing.T) {
