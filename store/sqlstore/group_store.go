@@ -77,11 +77,6 @@ func newSqlGroupStore(sqlStore *SqlStore) store.GroupStore {
 	return s
 }
 
-func (s *SqlGroupStore) createIndexesIfNotExists() {
-	s.CreateColumnIfNotExistsNoDefault("Channels", "GroupConstrained", "tinyint(1)", "boolean")
-	s.CreateColumnIfNotExistsNoDefault("Teams", "GroupConstrained", "tinyint(1)", "boolean")
-}
-
 func (s *SqlGroupStore) Create(group *model.Group) (*model.Group, error) {
 	if group.Id != "" {
 		return nil, store.NewErrInvalidInput("Group", "id", group.Id)
