@@ -9287,22 +9287,6 @@
     "translation": "Oturum süresi uzatılamadı"
   },
   {
-    "id": "fix_crt_channel_unreads.worker.do_job.mark_channel_as_read",
-    "translation": "Kanal okunmuş olarak işaretlenemedi"
-  },
-  {
-    "id": "fix_crt_channel_unreads.worker.do_job.kill_orphan_jobs",
-    "translation": "Yetim görevler sonlandırılıyor"
-  },
-  {
-    "id": "fix_crt_channel_unreads.worker.do_job.get_post_types",
-    "translation": "Eşsiz yazı türleri alınamadı"
-  },
-  {
-    "id": "fix_crt_channel_unreads.worker.do_job.get_bad_channel_memberships",
-    "translation": "Bozuk kanal üyelikleri alınamadı"
-  },
-  {
     "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
     "translation": "Arşivlenmiş bir kanalın kullanıcıları alınamaz"
   },
@@ -9317,9 +9301,5 @@
   {
     "id": "api.license.request_renewal_link.cannot_renew_on_cws",
     "translation": "Bu lisans portal üzerinden yenilenemez"
-  },
-  {
-    "id": "model.config.is_valid.sql_migrations_statement_timout.app_error",
-    "translation": "Aktarım bildirimleri için zaman aşımı değeri geçersiz. Pozitif bir sayı olmalıdır."
   }
 ]
