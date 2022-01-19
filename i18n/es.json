@@ -888,7 +888,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "Abrir el diálogo Configuración de la Cuenta"
+    "translation": "Abrir el cuadro de diálogo Configuración"
   },
   {
     "id": "api.command_settings.name",
@@ -8313,7 +8313,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "para obtener la mejor experiencia en PC, Mac, iOS y Android."
+    "translation": "para obtener la mejor experiencia en Windows, Linux, Mac, iOS y Android."
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info",
@@ -8353,7 +8353,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Agiliza tu trabajo con herramientas como Github, Google Calendar y Chrome. Explora todas las integraciones que tenemos en nuestro"
+    "translation": "Agiliza tu trabajo con herramientas como Github, Jira y Zoom. Explora todas las integraciones que tenemos en nuestro"
   },
   {
     "id": "api.templates.cloud_trial_ending_email.title",
@@ -9262,5 +9262,41 @@
   {
     "id": "api.user.create_user.bad_token_email_data.app_error",
     "translation": "La dirección de correo electrónico del token no coincide con la de los datos del usuario."
+  },
+  {
+    "id": "app.user.get_thread_count_for_user.app_error",
+    "translation": "No pudimos obtener el recuento de hilos para el usuario."
+  },
+  {
+    "id": "app.session.extend_session_expiry.app_error",
+    "translation": "No se puede ampliar la duración de la sesión"
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "No se pudo obtener todos los roles."
+  },
+  {
+    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
+    "translation": "No se pueden recuperar los usuarios de un canal archivado"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
+    "translation": "No se pueden recuperar los mensajes de un canal archivado"
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "Recordatorio"
+  },
+  {
+    "id": "api.post.posts_by_ids.invalid_body.request_error",
+    "translation": "El número de IDs de mensajes recibidos ha superado el tamaño máximo de {{.MaxLength}}"
+  },
+  {
+    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
+    "translation": "No es posible renovar esta licencia en el portal"
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "No se ha podido actualizar el estado personalizado. Por favor, añade un emoji o un estado de texto personalizado o ambos."
   }
 ]
