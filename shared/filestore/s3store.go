@@ -255,18 +255,25 @@ func (b *S3FileBackend) CopyFile(oldPath, newPath string) error {
 	oldPath = filepath.Join(b.pathPrefix, oldPath)
 	newPath = filepath.Join(b.pathPrefix, newPath)
 	srcOpts := s3.CopySrcOptions{
-		Bucket:     b.bucket,
-		Object:     oldPath,
-		Encryption: encrypt.NewSSE(),
+		Bucket: b.bucket,
+		Object: oldPath,
 	}
+	if b.encrypt {
+		srcOpts.Encryption = encrypt.NewSSE()
+	}
+
 	dstOpts := s3.CopyDestOptions{
-		Bucket:     b.bucket,
-		Object:     newPath,
-		Encryption: encrypt.NewSSE(),
+		Bucket: b.bucket,
+		Object: newPath,
 	}
+	if b.encrypt {
+		dstOpts.Encryption = encrypt.NewSSE()
+	}
+
 	if _, err := b.client.CopyObject(context.Background(), dstOpts, srcOpts); err != nil {
 		return errors.Wrapf(err, "unable to copy file from %s to %s", oldPath, newPath)
 	}
+
 	return nil
 }
 
@@ -274,14 +281,19 @@ func (b *S3FileBackend) MoveFile(oldPath, newPath string) error {
 	oldPath = filepath.Join(b.pathPrefix, oldPath)
 	newPath = filepath.Join(b.pathPrefix, newPath)
 	srcOpts := s3.CopySrcOptions{
-		Bucket:     b.bucket,
-		Object:     oldPath,
-		Encryption: encrypt.NewSSE(),
+		Bucket: b.bucket,
+		Object: oldPath,
 	}
+	if b.encrypt {
+		srcOpts.Encryption = encrypt.NewSSE()
+	}
+
 	dstOpts := s3.CopyDestOptions{
-		Bucket:     b.bucket,
-		Object:     newPath,
-		Encryption: encrypt.NewSSE(),
+		Bucket: b.bucket,
+		Object: newPath,
+	}
+	if b.encrypt {
+		dstOpts.Encryption = encrypt.NewSSE()
 	}
 
 	if _, err := b.client.CopyObject(context.Background(), dstOpts, srcOpts); err != nil {

@@ -155,9 +155,11 @@ func ImportLineForPost(post *model.PostForExport) *LineImportData {
 			Team:     &post.TeamName,
 			Channel:  &post.ChannelName,
 			User:     &post.Username,
+			Type:     &post.Type,
 			Message:  &post.Message,
 			Props:    &post.Props,
 			CreateAt: &post.CreateAt,
+			EditAt:   &post.EditAt,
 		},
 	}
 }
@@ -172,9 +174,11 @@ func ImportLineForDirectPost(post *model.DirectPostForExport) *LineImportData {
 		DirectPost: &DirectPostImportData{
 			ChannelMembers: &channelMembers,
 			User:           &post.User,
+			Type:           &post.Type,
 			Message:        &post.Message,
 			Props:          &post.Props,
 			CreateAt:       &post.CreateAt,
+			EditAt:         &post.EditAt,
 		},
 	}
 }
@@ -182,8 +186,10 @@ func ImportLineForDirectPost(post *model.DirectPostForExport) *LineImportData {
 func ImportReplyFromPost(post *model.ReplyForExport) *ReplyImportData {
 	return &ReplyImportData{
 		User:     &post.Username,
+		Type:     &post.Type,
 		Message:  &post.Message,
 		CreateAt: &post.CreateAt,
+		EditAt:   &post.EditAt,
 	}
 }
 

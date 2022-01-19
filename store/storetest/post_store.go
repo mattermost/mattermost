@@ -1818,7 +1818,7 @@ func testPostStoreGetPostBeforeAfter(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	rPost3, err := ss.Post().GetPostAfterTime(channelId, o2a.CreateAt, false)
-	require.Empty(t, rPost3, "should return no post")
+	require.Empty(t, rPost3.Id, "should return no post")
 	require.NoError(t, err)
 }
 

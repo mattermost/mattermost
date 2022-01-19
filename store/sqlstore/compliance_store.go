@@ -36,9 +36,6 @@ func newSqlComplianceStore(sqlStore *SqlStore) store.ComplianceStore {
 	return s
 }
 
-func (s SqlComplianceStore) createIndexesIfNotExists() {
-}
-
 func (s SqlComplianceStore) Save(compliance *model.Compliance) (*model.Compliance, error) {
 	compliance.PreSave()
 	if err := compliance.IsValid(); err != nil {

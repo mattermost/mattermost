@@ -9313,5 +9313,13 @@
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "Die Anzahl der erhaltenen Post IDs hat die maximale Größe von {{.MaxLength}} überschritten"
+  },
+  {
+    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
+    "translation": "Das Erneuern dieser Lizenz im Portal ist nicht möglich"
+  },
+  {
+    "id": "model.config.is_valid.sql_migrations_statement_timout.app_error",
+    "translation": "Ungültiger Timeout Wert für Migrationsanweisungen. Muss eine positive Zahl sein."
   }
 ]

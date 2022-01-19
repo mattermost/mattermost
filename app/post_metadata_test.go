@@ -754,12 +754,24 @@ func TestGetEmbedForPost(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/index.html" {
 			w.Header().Set("Content-Type", "text/html")
-			w.Write([]byte(`
-			<html>
-			<head>
-			<meta property="og:title" content="Title" />
-			</head>
-			</html>`))
+			if r.Header.Get("Accept-Language") == "fr" {
+				w.Header().Set("Content-Language", "fr")
+				w.Write([]byte(`
+				<html>
+				<head>
+				<meta property="og:title" content="Title-FR" />
+				<meta property="og:description" content="Bonjour le monde" />
+				</head>
+				</html>`))
+			} else {
+				w.Write([]byte(`
+				<html>
+				<head>
+				<meta property="og:title" content="Title" />
+				<meta property="og:description" content="Hello world" />
+				</head>
+				</html>`))
+			}
 		} else if r.URL.Path == "/image.png" {
 			file, err := testutils.ReadTestFile("test.png")
 			require.NoError(t, err)
@@ -819,14 +831,32 @@ func TestGetEmbedForPost(t *testing.T) {
 			assert.NoError(t, err)
 		})
 
-		t.Run("should return an image embed when the first link is an image", func(t *testing.T) {
+		t.Run("should return an opengraph embed", func(t *testing.T) {
 			embed, err := th.App.getEmbedForPost(&model.Post{}, ogURL, false)
 
 			assert.Equal(t, &model.PostEmbed{
 				Type: model.PostEmbedOpengraph,
 				URL:  ogURL,
 				Data: &opengraph.OpenGraph{
-					Title: "Title",
+					Title:       "Title",
+					Description: "Hello world",
+				},
+			}, embed)
+			assert.NoError(t, err)
+		})
+
+		t.Run("should return an opengraph embed in different Server Language", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.LocalizationSettings.DefaultServerLocale = "fr"
+			})
+			embed, err := th.App.getEmbedForPost(&model.Post{}, ogURL, false)
+
+			assert.Equal(t, &model.PostEmbed{
+				Type: model.PostEmbedOpengraph,
+				URL:  ogURL,
+				Data: &opengraph.OpenGraph{
+					Title:       "Title-FR",
+					Description: "Bonjour le monde",
 				},
 			}, embed)
 			assert.NoError(t, err)

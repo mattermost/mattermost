@@ -144,9 +144,9 @@ type ChannelSearchOpts struct {
 }
 
 type ChannelMemberCountByGroup struct {
-	GroupId                     string `db:"-" json:"group_id"`
-	ChannelMemberCount          int64  `db:"-" json:"channel_member_count"`
-	ChannelMemberTimezonesCount int64  `db:"-" json:"channel_member_timezones_count"`
+	GroupId                     string `json:"group_id"`
+	ChannelMemberCount          int64  `json:"channel_member_count"`
+	ChannelMemberTimezonesCount int64  `json:"channel_member_timezones_count"`
 }
 
 type ChannelOption func(channel *Channel)

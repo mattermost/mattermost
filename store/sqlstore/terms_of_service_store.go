@@ -30,9 +30,6 @@ func newSqlTermsOfServiceStore(sqlStore *SqlStore, metrics einterfaces.MetricsIn
 	return s
 }
 
-func (s SqlTermsOfServiceStore) createIndexesIfNotExists() {
-}
-
 func (s SqlTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*model.TermsOfService, error) {
 	if termsOfService.Id != "" {
 		return nil, store.NewErrInvalidInput("TermsOfService", "Id", termsOfService.Id)

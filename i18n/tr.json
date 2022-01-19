@@ -9313,5 +9313,13 @@
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "Alınan yazı kodlarının sayısı en fazla boyut sınırı olan {{.MaxLength}} değerini aşıyor"
+  },
+  {
+    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
+    "translation": "Bu lisans portal üzerinden yenilenemez"
+  },
+  {
+    "id": "model.config.is_valid.sql_migrations_statement_timout.app_error",
+    "translation": "Aktarım bildirimleri için zaman aşımı değeri geçersiz. Pozitif bir sayı olmalıdır."
   }
 ]
