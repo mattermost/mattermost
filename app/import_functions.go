@@ -1118,6 +1118,12 @@ func (a *App) importReplies(c *request.Context, data []ReplyImportData, post *mo
 		reply.RootId = post.Id
 		reply.Message = *replyData.Message
 		reply.CreateAt = *replyData.CreateAt
+		if replyData.Type != nil {
+			reply.Type = *replyData.Type
+		}
+		if replyData.EditAt != nil {
+			reply.EditAt = *replyData.EditAt
+		}
 
 		fileIDs := a.uploadAttachments(c, replyData.Attachments, reply, teamID)
 		for _, fileID := range reply.FileIds {
@@ -1392,6 +1398,12 @@ func (a *App) importMultiplePostLines(c *request.Context, lines []LineImportWork
 		post.CreateAt = *line.Post.CreateAt
 		post.Hashtags, _ = model.ParseHashtags(post.Message)
 
+		if line.Post.Type != nil {
+			post.Type = *line.Post.Type
+		}
+		if line.Post.EditAt != nil {
+			post.EditAt = *line.Post.EditAt
+		}
 		if line.Post.Props != nil {
 			post.Props = *line.Post.Props
 		}
@@ -1694,6 +1706,12 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 		post.CreateAt = *line.DirectPost.CreateAt
 		post.Hashtags, _ = model.ParseHashtags(post.Message)
 
+		if line.DirectPost.Type != nil {
+			post.Type = *line.DirectPost.Type
+		}
+		if line.DirectPost.EditAt != nil {
+			post.EditAt = *line.DirectPost.EditAt
+		}
 		if line.DirectPost.Props != nil {
 			post.Props = *line.DirectPost.Props
 		}

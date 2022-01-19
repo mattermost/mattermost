@@ -70,6 +70,7 @@ type StripeSetupIntent struct {
 // ConfirmPaymentMethodRequest contains the fields for the customer payment update API.
 type ConfirmPaymentMethodRequest struct {
 	StripeSetupIntentID string `json:"stripe_setup_intent_id"`
+	SubscriptionID      string `json:"subscription_id"`
 }
 
 // Customer model represents a customer on the system.

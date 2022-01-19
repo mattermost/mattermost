@@ -9097,7 +9097,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "このMattermost Enterprise Editionのトライアルライセンスキーは期限が切れており、有効ではありません。トライアル期間の延長をご希望の場合は[セールスチームまでご連絡ください](https://mattermost.com/contact-us/)。"
+    "translation": "このMattermost Enterprise Editionのトライアルライセンスキーは期限が切れており、有効ではありません。トライアル期間の延長をご希望の場合は[営業までご連絡ください](https://mattermost.com/contact-us/)。"
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -9268,22 +9268,6 @@
     "translation": "そのユーザーのスレッド数を取得できませんでした。"
   },
   {
-    "id": "fix_crt_channel_unreads.worker.do_job.mark_channel_as_read",
-    "translation": "チャンネルを既読にできませんでした"
-  },
-  {
-    "id": "fix_crt_channel_unreads.worker.do_job.kill_orphan_jobs",
-    "translation": "孤立したジョブを終了しています"
-  },
-  {
-    "id": "fix_crt_channel_unreads.worker.do_job.get_post_types",
-    "translation": "ユニークな投稿タイプを取得できませんでした"
-  },
-  {
-    "id": "fix_crt_channel_unreads.worker.do_job.get_bad_channel_memberships",
-    "translation": "問題のあるチャネルメンバーシップを取得できませんでした"
-  },
-  {
     "id": "app.session.extend_session_expiry.app_error",
     "translation": "セッションの長さを延長できませんでした"
   },
@@ -9306,5 +9290,9 @@
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "受信したPost IDの数が{{.MaxLength}}の最大サイズを超えています"
+  },
+  {
+    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
+    "translation": "ポータルでこのライセンスを更新することはできません"
   }
 ]
