@@ -7945,7 +7945,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, 14-dniowa bezpłatna wersja próbna Mattermost Cloud Professional została zakończona dzisiaj, {{.TodayDate}}. Proszę dodać informacje o płatności, aby Twój zespół mógł dalej korzystać z zalet Cloud Professional."
+    "translation": "{{.Name}}, 14-dniowa bezpłatna wersja próbna Mattermost Cloud została zakończona dzisiaj, {{.TodayDate}}. Proszę dodać informacje o płatności, aby Twój zespół mógł dalej korzystać z zalet Cloud."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -7973,7 +7973,7 @@
   },
   {
     "id": "api.templates.at_limit_info1",
-    "translation": "Wygląda na to, że masz teraz 10 lub więcej użytkowników w swojej przestrzeni roboczej - to świetnie! Jeśli chcesz zaprosić więcej członków zespołu, rozważ aktualizację do Mattermost Cloud Professional."
+    "translation": "Wygląda na to, że masz teraz 10 lub więcej użytkowników w swojej przestrzeni roboczej - to świetnie! Jeśli chcesz zaprosić więcej członków zespołu, rozważ aktualizację do Mattermost Cloud."
   },
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
@@ -8133,7 +8133,7 @@
   },
   {
     "id": "api.templates.over_limit_info1",
-    "translation": "Wygląda na to, że masz więcej niż 10 użytkowników w swojej przestrzeni roboczej, co wykracza poza limity bezpłatnej wersji usługi Mattermost Cloud Professional. Aby uniknąć zakłóceń w przestrzeni roboczej Mattermost, należy ją uaktualnić."
+    "translation": "Wygląda na to, że masz więcej niż 10 użytkowników w swojej przestrzeni roboczej, co wykracza poza limity bezpłatnej wersji usługi Mattermost Cloud. Aby uniknąć zakłóceń w przestrzeni roboczej Mattermost, należy ją uaktualnić."
   },
   {
     "id": "app.create_basic_user.save_member.app_error",
@@ -9288,22 +9288,6 @@
     "translation": "Nie można wydłużyć sesji"
   },
   {
-    "id": "fix_crt_channel_unreads.worker.do_job.mark_channel_as_read",
-    "translation": "Nie można oznaczyć kanału jako przeczytany"
-  },
-  {
-    "id": "fix_crt_channel_unreads.worker.do_job.kill_orphan_jobs",
-    "translation": "Usuwanie osieroconych zadań"
-  },
-  {
-    "id": "fix_crt_channel_unreads.worker.do_job.get_post_types",
-    "translation": "Nie udało się uzyskać unikalnych typów postów"
-  },
-  {
-    "id": "fix_crt_channel_unreads.worker.do_job.get_bad_channel_memberships",
-    "translation": "Nie udało się zebrać wszystkich członków kanału"
-  },
-  {
     "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
     "translation": "Nie można pobrać użytkowników dla zarchiwizowanego kanału"
   },
@@ -9318,9 +9302,5 @@
   {
     "id": "api.license.request_renewal_link.cannot_renew_on_cws",
     "translation": "Odnowienie tej licencji na portalu nie jest możliwe"
-  },
-  {
-    "id": "model.config.is_valid.sql_migrations_statement_timout.app_error",
-    "translation": "Nieprawidłowa wartość limitu czasu dla statusu migracji. Musi być liczbą dodatnią."
   }
 ]

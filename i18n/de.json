@@ -7792,7 +7792,7 @@
   },
   {
     "id": "api.templates.at_limit_info1",
-    "translation": "Es sieht so aus, als ob Sie 10 oder mehr Benutzer in Ihrem Arbeitsbereich haben — das ist großartig! Wenn Sie mehr Team Mitglieder einladen wollen, sollten Sie jetzt in Betracht ziehen, auf Mattermost Cloud Professional upzugraden."
+    "translation": "Es sieht so aus, als ob Sie 10 oder mehr Benutzer in Ihrem Arbeitsbereich haben — das ist großartig! Wenn Sie mehr Team Mitglieder einladen wollen, sollten Sie jetzt in Betracht ziehen, auf Mattermost Cloud upzugraden."
   },
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
@@ -8048,7 +8048,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, ihr 14-tägiger freier Test von Mattermost Cloud Professional ist heute zuende, {{.TodayDate}}. Bitte fügen Sie Ihre Bezahlinformationen hinzu, um sicherzustellen, dass Ihr Team weiterhin die Vorteile von Cloud Professional genießen kann."
+    "translation": "{{.Name}}, ihr 14-tägiger freier Test von Mattermost Cloud Enterprise ist heute zuende, {{.TodayDate}}. Bitte fügen Sie Ihre Bezahlinformationen hinzu, um sicherzustellen, dass Ihr Team weiterhin die Vorteile von Cloud Professional genießen kann."
   },
   {
     "id": "api.unable_to_read_file_from_backend",
@@ -8228,7 +8228,7 @@
   },
   {
     "id": "api.templates.over_limit_info1",
-    "translation": "Es sieht so aus, als ob Sie mehr als 10 Benutzer in Ihrem Arbeitsbereich haben, was über der Grenze für die freie Nutzung von Mattermost Cloud Professional ist. Um jegliche Unterbrechung in Ihrem Arbeitsbereich zu vermeiden, bitte upgraden."
+    "translation": "Es sieht so aus, als ob Sie mehr als 10 Benutzer in Ihrem Arbeitsbereich haben, was über der Grenze für die freie Nutzung von Mattermost Cloud ist. Um jegliche Unterbrechung in Ihrem Arbeitsbereich zu vermeiden, bitte upgraden."
   },
   {
     "id": "api.templates.over_limit_fix_now",
@@ -9287,22 +9287,6 @@
     "translation": "Kann Sitzungsdauer nicht verlängern"
   },
   {
-    "id": "fix_crt_channel_unreads.worker.do_job.mark_channel_as_read",
-    "translation": "Konnte Kanal nicht als gelesen markieren"
-  },
-  {
-    "id": "fix_crt_channel_unreads.worker.do_job.kill_orphan_jobs",
-    "translation": "Beende verwaiste Jobs"
-  },
-  {
-    "id": "fix_crt_channel_unreads.worker.do_job.get_post_types",
-    "translation": "Konnte keine eindeutigen POST Typen holen"
-  },
-  {
-    "id": "fix_crt_channel_unreads.worker.do_job.get_bad_channel_memberships",
-    "translation": "Konnte keine schlechten Kanalmitgliedschaften holen"
-  },
-  {
     "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
     "translation": "Kann keine Benutzer für einen archivierten Kanal holen"
   },
@@ -9317,9 +9301,5 @@
   {
     "id": "api.license.request_renewal_link.cannot_renew_on_cws",
     "translation": "Das Erneuern dieser Lizenz im Portal ist nicht möglich"
-  },
-  {
-    "id": "model.config.is_valid.sql_migrations_statement_timout.app_error",
-    "translation": "Ungültiger Timeout Wert für Migrationsanweisungen. Muss eine positive Zahl sein."
   }
 ]

@@ -98,4 +98,19 @@ PREPARE createIndexIfNotExists FROM @preparedStatement;
 EXECUTE createIndexIfNotExists;
 DEALLOCATE PREPARE createIndexIfNotExists;
 
-DELETE FROM Sessions where ExpiresAt > 3000000000000;
+CREATE PROCEDURE Migrate_If_Version_Below_5120 ()
+BEGIN
+DECLARE
+	CURRENT_DB_VERSION TEXT;
+	SELECT
+		Value
+	FROM
+		Systems
+	WHERE
+		Name = 'Version' INTO CURRENT_DB_VERSION;
+	IF(INET_ATON(CURRENT_DB_VERSION) < INET_ATON('5.12.0')) THEN
+		DELETE FROM Sessions where ExpiresAt > 3000000000000;
+	END IF;
+END;
+	CALL Migrate_If_Version_Below_5120 ();
+	DROP PROCEDURE IF EXISTS Migrate_If_Version_Below_5120;
