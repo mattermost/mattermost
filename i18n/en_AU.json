@@ -9287,22 +9287,6 @@
     "translation": "Unable to extend session length"
   },
   {
-    "id": "fix_crt_channel_unreads.worker.do_job.mark_channel_as_read",
-    "translation": "Failed to mark channel as read"
-  },
-  {
-    "id": "fix_crt_channel_unreads.worker.do_job.kill_orphan_jobs",
-    "translation": "Ending processes of orphaned jobs"
-  },
-  {
-    "id": "fix_crt_channel_unreads.worker.do_job.get_post_types",
-    "translation": "Failed to retrieve unique post types"
-  },
-  {
-    "id": "fix_crt_channel_unreads.worker.do_job.get_bad_channel_memberships",
-    "translation": "Failed to retrieve bad channel memberships"
-  },
-  {
     "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
     "translation": "Cannot retrieve users for an archived channel"
   },
@@ -9317,9 +9301,5 @@
   {
     "id": "api.license.request_renewal_link.cannot_renew_on_cws",
     "translation": "Renewing this licence on the portal is not possible"
-  },
-  {
-    "id": "model.config.is_valid.sql_migrations_statement_timout.app_error",
-    "translation": "Invalid timeout value for migrations statements. Must be a positive number."
   }
 ]
