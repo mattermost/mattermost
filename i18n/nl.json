@@ -7565,7 +7565,7 @@
   },
   {
     "id": "api.templates.at_limit_info1",
-    "translation": "Het lijkt dat je nu 10 of meer gebruikers hebt in je werkomgeving — Dat is fantastisch! Als je meer teamleden wil uitnodigen, overweeg dan een upgrade naar Mattermost Cloud Professional."
+    "translation": "Het lijkt dat je nu 10 of meer gebruikers hebt in je werkomgeving — Dat is fantastisch! Als je meer teamleden wil uitnodigen, overweeg dan een upgrade naar Mattermost Cloud."
   },
   {
     "id": "app.user.verify_email.app_error",
@@ -7713,7 +7713,7 @@
   },
   {
     "id": "api.templates.over_limit_info1",
-    "translation": "Je hebt meer dan 10 gebruikers in je werkplek en dat is overschrijdt de limiet binnen de gratis versie van Mattermost Cloud Professional. Om onderbrekingen te vermijden in je Mattermost werkplek, kan je upgraden."
+    "translation": "Je hebt meer dan 10 gebruikers in je werkplek en dat overschrijdt de limiet binnen de gratis versie van Mattermost Cloud. Om onderbrekingen te vermijden in je Mattermost werkplek, kan je upgraden."
   },
   {
     "id": "api.templates.over_limit_suspended_contact_support",
@@ -8945,7 +8945,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, je 14-daagse gratis proefperiode van Mattermost Cloud Professional eindigde vandaag {{.TodayDate}}. Voeg jouw betalingsgegevens toe om ervoor te zorgen dat jouw team kan blijven genieten van de voordelen van Cloud Professional."
+    "translation": "{{.Name}}, je 14-daagse gratis proefperiode van Mattermost Cloud Enterprise eindigde vandaag {{.TodayDate}}. Voeg jouw betalingsgegevens toe om ervoor te zorgen dat jouw team kan blijven genieten van de voordelen van Cloud Enterprise."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -9267,22 +9267,6 @@
     "translation": "Mislukt om alle kanaalleden te verkrijgen"
   },
   {
-    "id": "fix_crt_channel_unreads.worker.do_job.mark_channel_as_read",
-    "translation": "Fout bij het kanaal te markeren als gelezen"
-  },
-  {
-    "id": "fix_crt_channel_unreads.worker.do_job.kill_orphan_jobs",
-    "translation": "Kill orphanend taken"
-  },
-  {
-    "id": "fix_crt_channel_unreads.worker.do_job.get_post_types",
-    "translation": "Mislukt om unieke post types op te halen"
-  },
-  {
-    "id": "fix_crt_channel_unreads.worker.do_job.get_bad_channel_memberships",
-    "translation": "Mislukt om slechte kanaal lidmaatschappen op te halen"
-  },
-  {
     "id": "app.user.get_thread_count_for_user.app_error",
     "translation": "We konden het aantal draadjes voor de gebruiker niet ophalen."
   },
@@ -9317,9 +9301,5 @@
   {
     "id": "api.license.request_renewal_link.cannot_renew_on_cws",
     "translation": "Vernieuwen van deze licentie op het portaal is niet mogelijk"
-  },
-  {
-    "id": "model.config.is_valid.sql_migrations_statement_timout.app_error",
-    "translation": "Ongeldige time-out waarde voor migraties-statements. Moet een positief getal zijn."
   }
 ]
