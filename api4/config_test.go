@@ -801,6 +801,6 @@ func TestMigrateConfig(t *testing.T) {
 
 		response, cErr := th.SystemAdminClient.MigrateConfig("from.json", "to.json")
 		require.Error(t, cErr)
-		CheckMethodNotAllowedStatus(t, response)
+		CheckForbiddenStatus(t, response)
 	})
 }
