@@ -7481,7 +7481,7 @@
   },
   {
     "id": "api.command_remote.unknown_action",
-    "translation": "알 수 없는 작업 '{{.Action}'"
+    "translation": "알 수 없는 작업 `{{.Action}}`"
   },
   {
     "id": "api.command_remote.status.help",
