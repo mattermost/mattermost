@@ -1456,7 +1456,7 @@
   },
   {
     "id": "api.config.migrate_config_restricted.app_error",
-    "translation": "Config migratation is restricted due to instance type."
+    "translation": "Config migration is restricted due to instance type."
   },
   {
     "id": "api.config.patch_config.diff.app_error",
