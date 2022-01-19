@@ -960,6 +960,11 @@ func CheckForbiddenStatus(tb testing.TB, resp *model.Response) {
 	checkHTTPStatus(tb, resp, http.StatusForbidden)
 }
 
+func CheckMethodNotAllowedStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusMethodNotAllowed)
+}
+
 func CheckUnauthorizedStatus(tb testing.TB, resp *model.Response) {
 	tb.Helper()
 	checkHTTPStatus(tb, resp, http.StatusUnauthorized)

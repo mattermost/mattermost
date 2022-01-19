@@ -407,6 +407,12 @@ func migrateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	isCloud := c.App.License() != nil && *c.App.License().Features.Cloud
+	if isCloud {
+		c.Err = model.NewAppError("migrateConfig", "api.config.migrate_config_restricted.app_error", nil, "", http.StatusMethodNotAllowed)
+		return
+	}
+
 	err := config.Migrate(from, to)
 	if err != nil {
 		c.Err = model.NewAppError("migrateConfig", "api.config.migrate_config.app_error", nil, err.Error(), http.StatusInternalServerError)
