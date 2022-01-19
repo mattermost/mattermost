@@ -280,9 +280,11 @@ func (s *FileBackendTestSuite) TestListDirectory() {
 	s.Len(paths, 1)
 	s.Equal(path2, (paths)[0])
 
-	paths, err = s.backend.ListDirectory("19700102")
-	s.Nil(err)
-	s.Len(paths, 0)
+	if s.settings.DriverName == driverLocal {
+		paths, err = s.backend.ListDirectory("19800102")
+		s.Nil(err)
+		s.Len(paths, 0)
+	}
 
 	paths, err = s.backend.ListDirectory("")
 	s.Nil(err)
@@ -300,7 +302,9 @@ func (s *FileBackendTestSuite) TestListDirectory() {
 	}
 	s.True(found1)
 	s.True(found2)
-	s.False(found3)
+	if s.settings.DriverName == driverLocal {
+		s.False(found3)
+	}
 
 	s.backend.RemoveFile(path1)
 	s.backend.RemoveFile(path2)
