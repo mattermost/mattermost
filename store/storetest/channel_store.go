@@ -453,6 +453,10 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlStore) {
 	require.NoError(t, err, err)
 	require.Greater(t, len(channelsTeam), 0, "too little")
 
+	_, err = ss.Channel().GetTeamChannels("notfound")
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr))
+
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMaster().Exec("TRUNCATE Channels")
 }

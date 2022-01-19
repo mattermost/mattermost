@@ -58,8 +58,23 @@ PREPARE alterIfExists FROM @preparedStatement;
 EXECUTE alterIfExists;
 DEALLOCATE PREPARE alterIfExists;
 
-UPDATE Users SET Roles = 'system_user' WHERE Roles = '';
-UPDATE Users SET Roles = 'system_user system_admin' WHERE Roles = 'system_admin';
+CREATE PROCEDURE Migrate_If_Version_Below_350 ()
+BEGIN
+DECLARE
+	CURRENT_DB_VERSION TEXT;
+	SELECT
+		Value
+	FROM
+		Systems
+	WHERE
+		Name = 'Version' INTO CURRENT_DB_VERSION;
+	IF(INET_ATON(CURRENT_DB_VERSION) < INET_ATON('3.5.0')) THEN		
+        UPDATE Users SET Roles = 'system_user' WHERE Roles = '';
+        UPDATE Users SET Roles = 'system_user system_admin' WHERE Roles = 'system_admin';
+	END IF;
+END;
+	CALL Migrate_If_Version_Below_350 ();
+	DROP PROCEDURE IF EXISTS Migrate_If_Version_Below_350;
 
 SET @preparedStatement = (SELECT IF(
     (
@@ -106,7 +121,22 @@ PREPARE alterIfExists FROM @preparedStatement;
 EXECUTE alterIfExists;
 DEALLOCATE PREPARE alterIfExists;
 
-UPDATE Users SET AuthData=LOWER(AuthData) WHERE AuthService = 'saml';
+CREATE PROCEDURE Migrate_If_Version_Below_4100 ()
+BEGIN
+DECLARE
+	CURRENT_DB_VERSION TEXT;
+	SELECT
+		Value
+	FROM
+		Systems
+	WHERE
+		Name = 'Version' INTO CURRENT_DB_VERSION;
+	IF(INET_ATON(CURRENT_DB_VERSION) < INET_ATON('4.10.0')) THEN
+		UPDATE Users SET AuthData=LOWER(AuthData) WHERE AuthService = 'saml';
+	END IF;
+END;
+	CALL Migrate_If_Version_Below_4100 ();
+	DROP PROCEDURE IF EXISTS Migrate_If_Version_Below_4100;
 
 SET @preparedStatement = (SELECT IF(
     (
