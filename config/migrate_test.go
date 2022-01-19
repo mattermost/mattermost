@@ -141,7 +141,7 @@ func TestMigrate(t *testing.T) {
 		sourceDSN := path.Join(pwd, "config-custom.json")
 		destinationDSN := getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource)
 
-		sourcefile, err := NewFileStore(sourceDSN, false)
+		sourcefile, err := NewFileStore(sourceDSN, true)
 		require.NoError(t, err)
 		source, err := NewStoreFromBacking(sourcefile, nil, false)
 		require.NoError(t, err)

@@ -170,7 +170,7 @@ func TestFileStoreNew(t *testing.T) {
 		defer os.RemoveAll(tempDir)
 
 		path := filepath.Join(tempDir, "does_not_exist")
-		fs, err := NewFileStore(path, false)
+		fs, err := NewFileStore(path, true)
 		require.NoError(t, err)
 		configStore, err := NewStoreFromBacking(fs, nil, false)
 		require.NoError(t, err)
@@ -189,7 +189,7 @@ func TestFileStoreNew(t *testing.T) {
 		defer os.RemoveAll(tempDir)
 
 		path := filepath.Join(tempDir, "does_not_exist")
-		fs, err := NewFileStore(path, false)
+		fs, err := NewFileStore(path, true)
 		require.NoError(t, err)
 		configStore, err := NewStoreFromBacking(fs, customConfigDefaults, false)
 		require.NoError(t, err)
@@ -208,10 +208,7 @@ func TestFileStoreNew(t *testing.T) {
 		defer os.RemoveAll(tempDir)
 
 		path := filepath.Join(tempDir, "does/not/exist")
-		fs, err := NewFileStore(path, false)
-		require.NoError(t, err)
-		configStore, err := NewStoreFromBacking(fs, nil, false)
-		require.Nil(t, configStore)
+		_, err = NewFileStore(path, true)
 		require.Error(t, err)
 	})
 
@@ -1351,13 +1348,5 @@ func TestResolveConfigPath(t *testing.T) {
 		resolution, err := resolveConfigFilePath(file)
 		require.NoError(t, err)
 		require.Contains(t, resolution, filepath.Join(tempDir, file))
-	})
-
-	t.Run("should fail when file does not exist", func(t *testing.T) {
-		file := "config-test-2.json"
-
-		resolution, err := resolveConfigFilePath(file)
-		require.Error(t, err)
-		require.Equal(t, "", resolution)
 	})
 }
