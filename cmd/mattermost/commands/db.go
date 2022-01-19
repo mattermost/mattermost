@@ -46,7 +46,7 @@ var ResetCmd = &cobra.Command{
 
 var MigrateCmd = &cobra.Command{
 	Use:   "migrate",
-	Short: "Migrate the database if there is any unapplied migrtions",
+	Short: "Migrate the database if there are any unapplied migrations",
 	Long:  "Run the missing migrations from the migrations table.",
 	RunE:  migrateCmdF,
 }
