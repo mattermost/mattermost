@@ -29,8 +29,37 @@ ALTER TABLE users DROP COLUMN IF EXISTS lastpingat;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS position VARCHAR(128);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS timezone VARCHAR(256) DEFAULT '{"automaticTimezone":"","manualTimezone":"","useAutomaticTimezone":"true"}';
 ALTER TABLE users ALTER COLUMN position TYPE VARCHAR(128);
-UPDATE Users SET AuthData=LOWER(AuthData) WHERE AuthService = 'saml';
-ALTER TABLE users ALTER COLUMN roles TYPE VARCHAR(256);
+
+DO $$
+	<< migrate_if_version_below_4100 >>
+DECLARE
+	current_db_version VARCHAR(100) := '';
+BEGIN
+	SELECT
+		value INTO current_db_version
+	FROM
+		systems
+	WHERE
+		name = 'Version';
+	IF (string_to_array(current_db_version, '.') < string_to_array('4.10.0', '.')) THEN	
+        UPDATE Users SET AuthData=LOWER(AuthData) WHERE AuthService = 'saml';
+	END IF;
+END migrate_if_version_below_4100
+$$;
+
+DO $$
+DECLARE 
+    column_exist boolean := false;
+BEGIN
+SELECT count(*) != 0 INTO column_exist
+    FROM information_schema.columns
+    WHERE table_name = 'users'
+    AND column_name = 'roles'
+    AND NOT data_type = 'varchar(256)';
+IF column_exist THEN
+    ALTER TABLE users ALTER COLUMN roles TYPE varchar(256);
+END IF;
+END $$;
 
 CREATE INDEX IF NOT EXISTS idx_users_update_at ON users (updateat);
 CREATE INDEX IF NOT EXISTS idx_users_create_at ON users (createat);

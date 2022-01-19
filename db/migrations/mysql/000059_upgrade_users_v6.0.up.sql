@@ -36,7 +36,7 @@ SET @preparedStatement = (SELECT IF(
         WHERE table_name = 'Users'
         AND table_schema = DATABASE()
         AND column_name = 'Timezone'
-        AND column_default != NULL
+        AND column_default IS NOT NULL
     ) > 0,
     'ALTER TABLE Users ALTER Timezone DROP DEFAULT;',
     'SELECT 1'
