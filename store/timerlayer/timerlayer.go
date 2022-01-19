@@ -5018,6 +5018,23 @@ func (s *TimerLayerPostStore) GetPostsByIds(postIds []string) ([]*model.Post, er
 	return result, err
 }
 
+func (s *TimerLayerPostStore) GetLastPostRow() (lastPost *model.Post, _ error) {
+	start := timemodule.Now()
+
+	result, err := s.PostStore.GetLastPostRow()
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetLastPostRow", success, elapsed)
+	}
+
+	return result, err
+}
+
 func (s *TimerLayerPostStore) GetPostsCreatedAt(channelID string, time int64) ([]*model.Post, error) {
 	start := timemodule.Now()
 
@@ -6567,6 +6584,22 @@ func (s *TimerLayerSessionStore) UpdateExpiresAt(sessionID string, time int64) e
 		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.UpdateExpiresAt", success, elapsed)
 	}
 	return err
+}
+
+func (s *TimerLayerSessionStore) GetLastSessionRow() (lastSession *model.Session, _ error) {
+	start := timemodule.Now()
+
+	result, err := s.SessionStore.GetLastSessionRow()
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.GetLastSessionRow", success, elapsed)
+	}
+	return result, err
 }
 
 func (s *TimerLayerSessionStore) UpdateLastActivityAt(sessionID string, time int64) error {

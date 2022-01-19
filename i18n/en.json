@@ -3308,8 +3308,16 @@
     "translation": "Renew now"
   },
   {
+    "id": "api.templates.server_inactivity_button",
+    "translation": "Open Mattermost"
+  },
+  {
     "id": "api.templates.license_up_for_renewal_subject",
     "translation": "Your license is up for renewal"
+  },
+  {
+    "id": "api.templates.server_inactivity_subject",
+    "translation": "HEY! Open Mattermost to increase your team’s productivity!"
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle",
@@ -3322,6 +3330,14 @@
   {
     "id": "api.templates.license_up_for_renewal_title",
     "translation": "Your Mattermost subscription is up for renewal"
+  },
+  {
+    "id": "api.templates.server_inactivity_title",
+    "translation": "Unlock increased productivity with these awesome features"
+  },
+  {
+    "id": "api.templates.server_inactivity_subtitle",
+    "translation": "Unlock increased productivity with these awesome features"
   },
   {
     "id": "api.templates.mfa_activated_body.info",

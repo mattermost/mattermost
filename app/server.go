@@ -20,6 +20,7 @@ import (
 	"os/exec"
 	"path"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -609,6 +610,7 @@ func NewServer(options ...Option) (*Server, error) {
 		s.Go(func() {
 			appInstance := New(ServerConnector(s.Channels()))
 			s.runLicenseExpirationCheckJob()
+			s.runInactivityCheckJob()
 			runCheckAdminSupportStatusJob(appInstance, request.EmptyContext())
 			runDNDStatusExpireJob(appInstance)
 		})
@@ -1455,6 +1457,12 @@ func runJobsCleanupJob(s *Server) {
 	}, time.Hour*24)
 }
 
+func (s *Server) runInactivityCheckJob() {
+	model.CreateRecurringTask("Server inactivity Check", func() {
+		s.doInactivityCheck()
+	}, time.Minute*1)
+}
+
 func (s *Server) runLicenseExpirationCheckJob() {
 	s.doLicenseExpirationCheck()
 	model.CreateRecurringTask("License Expiration Check", func() {
@@ -1682,6 +1690,82 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 	}
 
 	return nil
+}
+
+func (s *Server) doInactivityCheck() {
+	// TODO (allan): there could be no post to reference, so we can use last session row as a reference
+
+	systemValue, sysValErr := s.Store.System().GetByName("INACTIVITY")
+	if sysValErr != nil {
+		if _, ok := sysValErr.(*store.ErrNotFound); !ok {
+			mlog.Error("An error occurred while getting INACTIVITY from system store", mlog.Err(sysValErr))
+		}
+	}
+
+	post, _ := s.Store.Post().GetLastPostRow()
+	session, _ := s.Store.Session().GetLastSessionRow()
+
+	var elapsed float64
+
+	// if we have systemValue, it means the job already ran some time back and we now have to use system value to calculate elapsed time
+	if systemValue != nil {
+		t, _ := strconv.ParseInt(systemValue.Value, 10, 64)
+		tt := time.Unix(t/1000, 0)
+		elapsed = time.Since(tt).Hours()
+	} else if post != nil {
+		createdAt := post.CreateAt
+		t := time.Unix(createdAt/1000, 0)
+		elapsed = time.Since(t).Hours()
+	} else {
+		lastSessionAt := session.CreateAt
+		t := time.Unix(lastSessionAt/1000, 0)
+		elapsed = time.Since(t).Hours()
+	}
+
+	fmt.Println("ELAPSED TIME", elapsed)
+
+	if elapsed > 0.5 {
+		siteURL := *s.Config().ServiceSettings.SiteURL
+		properties := map[string]interface{}{
+			"SiteURL": siteURL,
+		}
+		s.GetTelemetryService().SendTelemetry("inactive_server", properties)
+		users, err := s.Store.User().GetSystemAdminProfiles()
+		if err != nil {
+			mlog.Error("Failed to get system admins for license expired message from Mattermost.")
+			return
+		}
+
+		for _, user := range users {
+			user := user
+			if user.Email == "" {
+				mlog.Error("Invalid system admin email.", mlog.String("user_email", user.Email))
+				continue
+			}
+
+			name := user.FirstName
+			if name == "" {
+				name = user.Username
+			}
+
+			mlog.Debug("Sending inactivity reminder email.", mlog.String("user_email", user.Email))
+			s.Go(func() {
+				if err := s.EmailService.SendLicenseInactivityEmail(user.Email, name, user.Locale, siteURL); err != nil {
+					mlog.Error("Error while sending inactivity reminder email.", mlog.String("user_email", user.Email), mlog.Err(err))
+				}
+			})
+		}
+
+		// mark time that we sent emails
+		sysVar := &model.System{Name: "INACTIVITY", Value: fmt.Sprint(model.GetMillis())}
+		if err := s.Store.System().SaveOrUpdate(sysVar); err != nil {
+			mlog.Error("Unable to save INACTIVITY", mlog.Err(err))
+		}
+
+		// do some telemetry about sending the email
+		s.GetTelemetryService().SendTelemetry("inactive_server_emails_sent", properties)
+	}
+
 }
 
 func (s *Server) doLicenseExpirationCheck() {
