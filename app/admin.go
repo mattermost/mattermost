@@ -256,7 +256,7 @@ func (a *App) GetLatestVersion(latestVersionUrl string) (*model.GithubReleaseInf
 
 	res, err := http.Get(latestVersionUrl)
 	if err != nil {
-		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version.failure", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version_external_error.failure", nil, "", http.StatusInternalServerError)
 	}
 
 	defer res.Body.Close()

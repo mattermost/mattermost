@@ -4328,24 +4328,20 @@
     "translation": "Server is busy, non-critical services are temporarily unavailable."
   },
   {
-    "id": "app.admin.latest_version.failure",
-    "translation": ""
-  },
-  {
     "id": "app.admin.latest_version_external_error.failure",
-    "translation": ""
+    "translation": "Unable to fetch the latest version from Github."
   },
   {
     "id": "app.admin.latest_version_read_all.failure",
-    "translation": ""
+    "translation": "Unable to read github response."
   },
   {
     "id": "app.admin.latest_version_set_cache.failure",
-    "translation": ""
+    "translation": "Unable to set latest version cache."
   },
   {
     "id": "app.admin.latest_version_unmarshal.failure",
-    "translation": ""
+    "translation": "Unable to convert github response."
   },
   {
     "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
