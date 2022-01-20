@@ -6593,7 +6593,7 @@ func (a *OpenTracingAppLayer) GetLatestTermsOfService() (*model.TermsOfService, 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetLatestVersion() (*model.GithubReleaseInfo, *model.AppError) {
+func (a *OpenTracingAppLayer) GetLatestVersion(latestVersionUrl string) (*model.GithubReleaseInfo, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetLatestVersion")
 
@@ -6605,7 +6605,7 @@ func (a *OpenTracingAppLayer) GetLatestVersion() (*model.GithubReleaseInfo, *mod
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetLatestVersion()
+	resultVar0, resultVar1 := a.app.GetLatestVersion(latestVersionUrl)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

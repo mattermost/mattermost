@@ -409,7 +409,7 @@ func getLatestVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := c.App.GetLatestVersion()
+	resp, err := c.App.GetLatestVersion("https://api.github.com/repos/mattermost/mattermost-server/releases/latest")
 	if err != nil {
 		c.Err = err
 		return

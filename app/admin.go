@@ -248,13 +248,13 @@ func (s *Server) serverBusyStateChanged(sbs *model.ServerBusyState) {
 	}
 }
 
-func (a *App) GetLatestVersion() (*model.GithubReleaseInfo, *model.AppError) {
+func (a *App) GetLatestVersion(latestVersionUrl string) (*model.GithubReleaseInfo, *model.AppError) {
 	var cachedLatestVersion *model.GithubReleaseInfo
 	if cacheErr := latestVersionCache.Get("latest_version_cache", &cachedLatestVersion); cacheErr == nil {
 		return cachedLatestVersion, nil
 	}
 
-	res, err := http.Get("https://api.github.com/repos/mattermost/mattermost-server/releases?page=1&per_page=1")
+	res, err := http.Get(latestVersionUrl)
 	if err != nil {
 		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version.failure", nil, "", http.StatusBadRequest)
 	}
@@ -266,16 +266,17 @@ func (a *App) GetLatestVersion() (*model.GithubReleaseInfo, *model.AppError) {
 		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version_read_all.failure", nil, "", http.StatusBadRequest)
 	}
 
-	var releaseInfoResponse []*model.GithubReleaseInfo
+	var releaseInfoResponse *model.GithubReleaseInfo
 	err = json.Unmarshal(responseData, &releaseInfoResponse)
 	if err != nil {
+		mlog.Warn(err.Error())
 		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version_unmarshal.failure", nil, "", http.StatusBadRequest)
 	}
 
-	err = latestVersionCache.Set("latest_version_cache", releaseInfoResponse[0])
+	err = latestVersionCache.Set("latest_version_cache", releaseInfoResponse)
 	if err != nil {
 		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version_set_cache.failure", nil, "", http.StatusBadRequest)
 	}
 
-	return releaseInfoResponse[0], nil
+	return releaseInfoResponse, nil
 }
