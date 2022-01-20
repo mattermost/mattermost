@@ -40,9 +40,9 @@ func TestSendInviteEmails(t *testing.T) {
 	th.ConfigureInbucketMail()
 
 	emailTo := "test@example.com"
-	verifyMailbox := func(t *testing.T) {
-		t.Helper()
 
+	retrieveEmail := func(t *testing.T) mail.JSONMessageInbucket {
+		t.Helper()
 		var resultsMailbox mail.JSONMessageHeaderInbucket
 		err2 := mail.RetryInbucket(5, func() error {
 			var err error
@@ -52,15 +52,20 @@ func TestSendInviteEmails(t *testing.T) {
 		if err2 != nil {
 			t.Skipf("No email was received, maybe due load on the server: %v", err2)
 		}
-
 		require.Len(t, resultsMailbox, 1)
 		require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
 		resultsEmail, err := mail.GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
 		require.NoError(t, err, "Could not get message from mailbox")
-		require.Contains(t, resultsEmail.Body.HTML, "http://testserver", "Wrong received message %s", resultsEmail.Body.Text)
-		require.Contains(t, resultsEmail.Body.HTML, "test-user", "Wrong received message %s", resultsEmail.Body.Text)
-		require.Contains(t, resultsEmail.Body.Text, "http://testserver", "Wrong received message %s", resultsEmail.Body.Text)
-		require.Contains(t, resultsEmail.Body.Text, "test-user", "Wrong received message %s", resultsEmail.Body.Text)
+		return resultsEmail
+	}
+
+	verifyMailbox := func(t *testing.T) {
+		t.Helper()
+		email := retrieveEmail(t)
+		require.Contains(t, email.Body.HTML, "http://testserver", "Wrong received message %s", email.Body.Text)
+		require.Contains(t, email.Body.HTML, "test-user", "Wrong received message %s", email.Body.Text)
+		require.Contains(t, email.Body.Text, "http://testserver", "Wrong received message %s", email.Body.Text)
+		require.Contains(t, email.Body.Text, "test-user", "Wrong received message %s", email.Body.Text)
 	}
 
 	th.UpdateConfig(func(cfg *model.Config) {
@@ -92,6 +97,28 @@ func TestSendInviteEmails(t *testing.T) {
 		require.NoError(t, err)
 
 		verifyMailbox(t)
+	})
+
+	t.Run("SendGuestInviteEmails should sanitize HTML input", func(t *testing.T) {
+		mail.DeleteMailBox(emailTo)
+
+		message := `<a href="http://testserver">sanitized message</a>`
+		err := th.service.SendGuestInviteEmails(
+			th.BasicTeam,
+			[]*model.Channel{th.BasicChannel},
+			"test-user",
+			th.BasicUser.Id,
+			nil,
+			[]string{emailTo},
+			"http://testserver",
+			message,
+		)
+		require.NoError(t, err)
+
+		email := retrieveEmail(t)
+		require.NotContains(t, email.Body.HTML, message)
+		require.Contains(t, email.Body.HTML, "sanitized message")
+		require.Contains(t, email.Body.Text, "sanitized message")
 	})
 }
 

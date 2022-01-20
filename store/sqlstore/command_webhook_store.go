@@ -33,10 +33,6 @@ func newSqlCommandWebhookStore(sqlStore *SqlStore) store.CommandWebhookStore {
 	return s
 }
 
-func (s SqlCommandWebhookStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_command_webhook_create_at", "CommandWebhooks", "CreateAt")
-}
-
 func (s SqlCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.CommandWebhook, error) {
 	if webhook.Id != "" {
 		return nil, store.NewErrInvalidInput("CommandWebhook", "id", webhook.Id)
