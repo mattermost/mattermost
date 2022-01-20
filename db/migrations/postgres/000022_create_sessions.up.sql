@@ -19,4 +19,19 @@ CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions (expiresat);
 CREATE INDEX IF NOT EXISTS idx_sessions_create_at ON sessions (createat);
 CREATE INDEX IF NOT EXISTS idx_sessions_last_activity_at ON sessions (lastactivityat);
 
-DELETE FROM sessions where expiresat > 3000000000000;
+DO $$
+	<< migrate_if_version_below_5120 >>
+DECLARE
+	current_db_version VARCHAR(100) := '';
+BEGIN
+	SELECT
+		value INTO current_db_version
+	FROM
+		systems
+	WHERE
+		name = 'Version';
+	IF (string_to_array(current_db_version, '.') < string_to_array('5.12.0', '.')) THEN	
+        DELETE FROM sessions where expiresat > 3000000000000;
+	END IF;
+END migrate_if_version_below_5120
+$$;
