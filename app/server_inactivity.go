@@ -40,7 +40,7 @@ func (s *Server) doInactivityCheck() {
 	// and determine whether to send them a reminder.
 	if systemValue != nil {
 		sysT, _ := strconv.ParseInt(systemValue.Value, 10, 64)
-		tt := time.Unix(int64(sysT/1000), 0)
+		tt := time.Unix(sysT/1000, 0)
 		timeLastSentInativityEmail := time.Since(tt).Hours()
 
 		if post != nil {
