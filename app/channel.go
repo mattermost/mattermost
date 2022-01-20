@@ -2552,8 +2552,8 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
 			}
 			threadData, storeErr2 := a.Srv().Store.Thread().Get(threadId)
-			if storeErr2 != nil && !errors.As(storeErr2, &nfErr) {
-				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
+			if storeErr2 != nil {
+				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, storeErr2.Error(), http.StatusInternalServerError)
 			}
 			if threadData != nil && threadMembership != nil && threadMembership.Following {
 				channel, nErr := a.Srv().Store.Channel().Get(post.ChannelId, true)
