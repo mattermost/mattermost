@@ -4332,6 +4332,10 @@
     "translation": ""
   },
   {
+    "id": "app.admin.latest_version_external_error.failure",
+    "translation": ""
+  },
+  {
     "id": "app.admin.latest_version_read_all.failure",
     "translation": ""
   },
@@ -8770,6 +8774,10 @@
   {
     "id": "model.reaction.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.release_info.is_valid.id.app_error",
+    "translation": ""
   },
   {
     "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",

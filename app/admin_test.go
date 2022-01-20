@@ -42,6 +42,7 @@ func TestGetLatestVersion(t *testing.T) {
 	})
 
 	t.Run("get latest mm version from cache", func(t *testing.T) {
+		th.App.ClearLatestVersionCache()
 		originalResult, err := th.App.GetLatestVersion(ts.URL)
 		require.Nil(t, err)
 
@@ -72,16 +73,19 @@ func TestGetLatestVersion(t *testing.T) {
 	})
 
 	t.Run("get latest mm version error from external", func(t *testing.T) {
-		updatedServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		th.App.ClearLatestVersionCache()
+		errorServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(`
 				{
-					"message": "resource not found"
+					"message": "internal server error"
 				}
 			`))
 		}))
 		defer ts.Close()
 
-		_, err := th.App.GetLatestVersion(updatedServer.URL)
-		require.Error(t, err)
+		_, err := th.App.GetLatestVersion(errorServer.URL)
+		require.NotNil(t, err)
+		require.Equal(t, "app.admin.latest_version_external_error.failure", err.Id)
 	})
 }

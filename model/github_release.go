@@ -3,6 +3,10 @@
 
 package model
 
+import (
+	"net/http"
+)
+
 type GithubReleaseInfo struct {
 	Id          int    `json:"id"`
 	TagName     string `json:"tag_name"`
@@ -11,4 +15,12 @@ type GithubReleaseInfo struct {
 	PublishedAt string `json:"published_at"`
 	Body        string `json:"body"`
 	Url         string `json:"html_url"`
+}
+
+func (g *GithubReleaseInfo) IsValid() *AppError {
+	if g.Id == 0 {
+		return NewAppError("GithubReleaseInfo.IsValid", "model.release_info.is_valid.id.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	return nil
 }

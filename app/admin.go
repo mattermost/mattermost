@@ -256,27 +256,34 @@ func (a *App) GetLatestVersion(latestVersionUrl string) (*model.GithubReleaseInf
 
 	res, err := http.Get(latestVersionUrl)
 	if err != nil {
-		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version.failure", nil, "", http.StatusBadRequest)
+		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version.failure", nil, "", http.StatusInternalServerError)
 	}
 
 	defer res.Body.Close()
 
 	responseData, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version_read_all.failure", nil, "", http.StatusBadRequest)
+		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version_read_all.failure", nil, "", http.StatusInternalServerError)
 	}
 
 	var releaseInfoResponse *model.GithubReleaseInfo
 	err = json.Unmarshal(responseData, &releaseInfoResponse)
 	if err != nil {
-		mlog.Warn(err.Error())
-		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version_unmarshal.failure", nil, "", http.StatusBadRequest)
+		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version_unmarshal.failure", nil, "", http.StatusInternalServerError)
+	}
+
+	if validErr := releaseInfoResponse.IsValid(); validErr != nil {
+		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version_external_error.failure", nil, "", http.StatusInternalServerError)
 	}
 
 	err = latestVersionCache.Set("latest_version_cache", releaseInfoResponse)
 	if err != nil {
-		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version_set_cache.failure", nil, "", http.StatusBadRequest)
+		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version_set_cache.failure", nil, "", http.StatusInternalServerError)
 	}
 
 	return releaseInfoResponse, nil
+}
+
+func (a *App) ClearLatestVersionCache() {
+	latestVersionCache.Remove("latest_version_cache")
 }
