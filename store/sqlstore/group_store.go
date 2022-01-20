@@ -61,7 +61,6 @@ func newSqlGroupStore(sqlStore *SqlStore) store.GroupStore {
 		groups.ColMap("Description").SetMaxSize(model.GroupDescriptionMaxLength)
 		groups.ColMap("Source").SetMaxSize(model.GroupSourceMaxLength)
 		groups.ColMap("RemoteId").SetMaxSize(model.GroupRemoteIDMaxLength)
-		groups.SetUniqueTogether("Source", "RemoteId")
 
 		groupMembers := db.AddTableWithName(model.GroupMember{}, "GroupMembers").SetKeys(false, "GroupId", "UserId")
 		groupMembers.ColMap("GroupId").SetMaxSize(26)
@@ -76,18 +75,6 @@ func newSqlGroupStore(sqlStore *SqlStore) store.GroupStore {
 		groupChannels.ColMap("ChannelId").SetMaxSize(26)
 	}
 	return s
-}
-
-func (s *SqlGroupStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_groupmembers_create_at", "GroupMembers", "CreateAt")
-	s.CreateIndexIfNotExists("idx_usergroups_remote_id", "UserGroups", "RemoteId")
-	s.CreateIndexIfNotExists("idx_usergroups_delete_at", "UserGroups", "DeleteAt")
-	s.CreateIndexIfNotExists("idx_groupteams_teamid", "GroupTeams", "TeamId")
-	s.CreateIndexIfNotExists("idx_groupchannels_channelid", "GroupChannels", "ChannelId")
-	s.CreateColumnIfNotExistsNoDefault("Channels", "GroupConstrained", "tinyint(1)", "boolean")
-	s.CreateColumnIfNotExistsNoDefault("Teams", "GroupConstrained", "tinyint(1)", "boolean")
-	s.CreateIndexIfNotExists("idx_groupteams_schemeadmin", "GroupTeams", "SchemeAdmin")
-	s.CreateIndexIfNotExists("idx_groupchannels_schemeadmin", "GroupChannels", "SchemeAdmin")
 }
 
 func (s *SqlGroupStore) Create(group *model.Group) (*model.Group, error) {
