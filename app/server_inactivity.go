@@ -5,6 +5,7 @@ package app
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"time"
 
@@ -16,6 +17,13 @@ import (
 const serverInactivityHours = 100
 
 func (s *Server) doInactivityCheck() {
+	inactivityDurationHourseEnv := os.Getenv("MM_INACTIVITY_DURATION")
+	inactivityDurationHours, parseError := strconv.ParseFloat(inactivityDurationHourseEnv, 64)
+	if parseError != nil {
+		// default to 100 hours
+		inactivityDurationHours = serverInactivityHours
+	}
+
 	systemValue, sysValErr := s.Store.System().GetByName("INACTIVITY")
 	if sysValErr != nil {
 		if _, ok := sysValErr.(*store.ErrNotFound); !ok {
@@ -32,7 +40,7 @@ func (s *Server) doInactivityCheck() {
 	// and determine whether to send them a reminder.
 	if systemValue != nil {
 		sysT, _ := strconv.ParseInt(systemValue.Value, 10, 64)
-		tt := time.Unix(sysT/1000, 0)
+		tt := time.Unix(int64(sysT/1000), 0)
 		timeLastSentInativityEmail := time.Since(tt).Hours()
 
 		if post != nil {
@@ -40,7 +48,7 @@ func (s *Server) doInactivityCheck() {
 			posT := time.Unix(lastPostAt/1000, 0)
 			timeForLastPost := time.Since(posT).Hours()
 
-			if timeLastSentInativityEmail > serverInactivityHours && timeForLastPost > serverInactivityHours {
+			if timeLastSentInativityEmail > inactivityDurationHours && timeForLastPost > inactivityDurationHours {
 				s.takeInactivityAction()
 			}
 			return
@@ -51,7 +59,7 @@ func (s *Server) doInactivityCheck() {
 			sesT := time.Unix(lastSessionAt/1000, 0)
 			timeForLastSession := time.Since(sesT).Hours()
 
-			if timeLastSentInativityEmail > serverInactivityHours && timeForLastSession > serverInactivityHours {
+			if timeLastSentInativityEmail > inactivityDurationHours && timeForLastSession > inactivityDurationHours {
 				s.takeInactivityAction()
 			}
 			return
@@ -66,7 +74,7 @@ func (s *Server) doInactivityCheck() {
 		lastPostAt := post.CreateAt
 		posT := time.Unix(lastPostAt/1000, 0)
 		timeForLastPost := time.Since(posT).Hours()
-		if timeForLastPost > serverInactivityHours {
+		if timeForLastPost > inactivityDurationHours {
 			s.takeInactivityAction()
 		}
 		return
@@ -76,7 +84,7 @@ func (s *Server) doInactivityCheck() {
 		lastSessionAt := session.CreateAt
 		sesT := time.Unix(lastSessionAt/1000, 0)
 		timeForLastSession := time.Since(sesT).Hours()
-		if timeForLastSession > serverInactivityHours {
+		if timeForLastSession > inactivityDurationHours {
 			s.takeInactivityAction()
 		}
 		return
