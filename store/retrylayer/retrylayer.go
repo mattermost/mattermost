@@ -6022,6 +6022,27 @@ func (s *RetryLayerPostStore) GetFlaggedPostsForTeam(userID string, teamID strin
 
 }
 
+func (s *RetryLayerPostStore) GetLastPostRow() (*model.Post, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostStore.GetLastPostRow()
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPostStore) GetMaxPostSize() int {
 
 	return s.PostStore.GetMaxPostSize()
@@ -6243,27 +6264,6 @@ func (s *RetryLayerPostStore) GetPostsByIds(postIds []string) ([]*model.Post, er
 	tries := 0
 	for {
 		result, err := s.PostStore.GetPostsByIds(postIds)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerPostStore) GetLastPostRow() (lastPost *model.Post, _ error) {
-
-	tries := 0
-	for {
-		result, err := s.PostStore.GetLastPostRow()
 		if err == nil {
 			return result, nil
 		}
@@ -8092,6 +8092,27 @@ func (s *RetryLayerSessionStore) Get(ctx context.Context, sessionIDOrToken strin
 
 }
 
+func (s *RetryLayerSessionStore) GetLastSessionRow() (*model.Session, error) {
+
+	tries := 0
+	for {
+		result, err := s.SessionStore.GetLastSessionRow()
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerSessionStore) GetSessions(userID string) ([]*model.Session, error) {
 
 	tries := 0
@@ -8296,27 +8317,6 @@ func (s *RetryLayerSessionStore) UpdateExpiresAt(sessionID string, time int64) e
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerSessionStore) GetLastSessionRow() (lastSession *model.Session, _ error) {
-
-	tries := 0
-	for {
-		result, err := s.SessionStore.GetLastSessionRow()
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
