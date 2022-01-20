@@ -8392,6 +8392,10 @@
     "translation": "Invalid value for user_id."
   },
   {
+    "id": "model.github_release_info.is_valid.id.app_error",
+    "translation": "Invalid value for github ID."
+  },
+  {
     "id": "model.group.create_at.app_error",
     "translation": "invalid create at property for group."
   },
@@ -8770,10 +8774,6 @@
   {
     "id": "model.reaction.is_valid.user_id.app_error",
     "translation": "Invalid user id."
-  },
-  {
-    "id": "model.release_info.is_valid.id.app_error",
-    "translation": ""
   },
   {
     "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
