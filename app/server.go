@@ -1722,9 +1722,7 @@ func (s *Server) doInactivityCheck() {
 		elapsed = time.Since(t).Hours()
 	}
 
-	fmt.Println("ELAPSED TIME", elapsed)
-
-	if elapsed > 0.5 {
+	if elapsed > 0.005 {
 		siteURL := *s.Config().ServiceSettings.SiteURL
 		properties := map[string]interface{}{
 			"SiteURL": siteURL,
