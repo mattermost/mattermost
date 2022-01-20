@@ -1208,7 +1208,7 @@ func (s SqlTeamStore) UpdateLastTeamIconUpdate(teamId string, curTime int64) err
 }
 
 // GetTeamsByScheme returns from the database all teams that match the schemeId provided as parameter, up to
-// a total limit passed as paramater and paginated by offset number passed as parameter.
+// a total limit passed as parameter and paginated by offset number passed as parameter.
 func (s SqlTeamStore) GetTeamsByScheme(schemeId string, offset int, limit int) ([]*model.Team, error) {
 	query, args, err := s.teamsQuery.Where(sq.Eq{"SchemeId": schemeId}).
 		OrderBy("DisplayName").
@@ -1381,7 +1381,7 @@ func (s SqlTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) (int64, er
 	return count, nil
 }
 
-// GetAllForExportAfter returns teams for export, up to a total limit passed as paramater where Teams.Id is greater than the afterId passed as parameter.
+// GetAllForExportAfter returns teams for export, up to a total limit passed as parameter where Teams.Id is greater than the afterId passed as parameter.
 func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) ([]*model.TeamForExport, error) {
 	var data []*model.TeamForExport
 	query, args, err := s.getQueryBuilder().

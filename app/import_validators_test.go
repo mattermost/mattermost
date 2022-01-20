@@ -617,7 +617,7 @@ func TestImportValidateUserImportData(t *testing.T) {
 	data.NotifyProps.MentionKeys = ptrStr("valid")
 	checkNoError(t, validateUserImportData(&data))
 
-	//Test the emai batching interval validators
+	//Test the email batching interval validators
 	//Happy paths
 	data.EmailInterval = ptrStr("immediately")
 	checkNoError(t, validateUserImportData(&data))
