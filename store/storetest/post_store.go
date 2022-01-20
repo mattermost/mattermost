@@ -43,6 +43,7 @@ func TestPostStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetFlaggedPosts", func(t *testing.T) { testPostStoreGetFlaggedPosts(t, ss) })
 	t.Run("GetFlaggedPostsForChannel", func(t *testing.T) { testPostStoreGetFlaggedPostsForChannel(t, ss) })
 	t.Run("GetPostsCreatedAt", func(t *testing.T) { testPostStoreGetPostsCreatedAt(t, ss) })
+	t.Run("GetLastPostRow", func(t *testing.T) { testPostStoreGetLastPostRow(t, ss) })
 	t.Run("Overwrite", func(t *testing.T) { testPostStoreOverwrite(t, ss) })
 	t.Run("OverwriteMultiple", func(t *testing.T) { testPostStoreOverwriteMultiple(t, ss) })
 	t.Run("GetPostsByIds", func(t *testing.T) { testPostStoreGetPostsByIds(t, ss) })
@@ -2482,6 +2483,32 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o5.ChannelId, 0, 10)
 	require.NoError(t, err)
 	require.Len(t, r.Order, 0, "should have 0 posts")
+}
+
+func testPostStoreGetLastPostRow(t *testing.T, ss store.Store) {
+	createTime1 := model.GetMillis() + 1
+	o0 := &model.Post{}
+	o0.ChannelId = model.NewId()
+	o0.UserId = model.NewId()
+	o0.Message = NewTestId()
+	o0.CreateAt = createTime1
+	o0, err := ss.Post().Save(o0)
+	require.NoError(t, err)
+
+	createTime2 := model.GetMillis() + 2
+
+	o1 := &model.Post{}
+	o1.ChannelId = o0.ChannelId
+	o1.UserId = model.NewId()
+	o1.Message = "Latest message"
+	o1.CreateAt = createTime2
+	_, err = ss.Post().Save(o1)
+	require.NoError(t, err)
+
+	p, err := ss.Post().GetLastPostRow()
+	require.NoError(t, err)
+	assert.Equal(t, p.CreateAt, createTime2)
+	assert.Equal(t, p.Message, "Latest message")
 }
 
 func testPostStoreGetPostsCreatedAt(t *testing.T, ss store.Store) {
