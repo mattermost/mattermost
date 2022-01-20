@@ -62,15 +62,11 @@ func (a *App) GetPluginsEnvironment() *plugin.Environment {
 	return a.ch.GetPluginsEnvironment()
 }
 
-func (a *App) SetPluginsEnvironment(pluginsEnvironment *plugin.Environment) {
-	a.ch.pluginsLock.Lock()
-	defer a.ch.pluginsLock.Unlock()
+func (ch *Channels) SetPluginsEnvironment(pluginsEnvironment *plugin.Environment) {
+	ch.pluginsLock.Lock()
+	defer ch.pluginsLock.Unlock()
 
-	a.ch.pluginsEnvironment = pluginsEnvironment
-}
-
-func (a *App) SyncPluginsActiveState() {
-	a.ch.syncPluginsActiveState()
+	ch.pluginsEnvironment = pluginsEnvironment
 }
 
 func (ch *Channels) syncPluginsActiveState() {
@@ -180,7 +176,9 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 	ch.pluginsLock.RUnlock()
 	if pluginsEnvironment != nil || !*ch.srv.Config().PluginSettings.Enable {
 		ch.syncPluginsActiveState()
-		pluginsEnvironment.TogglePluginHealthCheckJob(*ch.srv.Config().PluginSettings.EnableHealthCheck)
+		if pluginsEnvironment != nil {
+			pluginsEnvironment.TogglePluginHealthCheckJob(*ch.srv.Config().PluginSettings.EnableHealthCheck)
+		}
 		return
 	}
 
@@ -452,7 +450,7 @@ func (ch *Channels) disablePlugin(id string) *model.AppError {
 	ch.srv.UpdateConfig(func(cfg *model.Config) {
 		cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: false}
 	})
-	ch.srv.unregisterPluginCommands(id)
+	ch.unregisterPluginCommands(id)
 
 	// This call will implicitly invoke SyncPluginsActiveState which will deactivate disabled plugins.
 	if _, _, err := ch.srv.SaveConfig(ch.srv.Config(), true); err != nil {
@@ -641,7 +639,7 @@ func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model
 			continue
 		}
 
-		// If available in the markteplace, only overwrite if newer.
+		// If available in the marketplace, only overwrite if newer.
 		prepackagedVersion, err := semver.Parse(prepackaged.Manifest.Version)
 		if err != nil {
 			return model.NewAppError("mergePrepackagedPlugins", "app.plugin.invalid_version.app_error", nil, err.Error(), http.StatusBadRequest)
@@ -994,7 +992,7 @@ func (ch *Channels) installFeatureFlagPlugins() {
 				}
 			}
 
-			_, err := ch.installMarketplacePlugin(&model.InstallMarketplacePluginRequest{
+			_, err := ch.InstallMarketplacePlugin(&model.InstallMarketplacePluginRequest{
 				Id:      pluginID,
 				Version: version,
 			})
@@ -1038,7 +1036,7 @@ func getPrepackagedPlugin(pluginPath *pluginSignaturePath, pluginFile io.ReadSee
 	if manifest.IconPath != "" {
 		iconData, err := getIcon(filepath.Join(pluginDir, manifest.IconPath))
 		if err != nil {
-			return nil, "", errors.Wrapf(err, "Failed to read icon at %s", manifest.IconPath)
+			mlog.Warn("Error loading local plugin icon", mlog.String("plugin", plugin.Manifest.Id), mlog.String("icon_path", plugin.Manifest.IconPath), mlog.Err(err))
 		}
 		plugin.IconData = iconData
 	}

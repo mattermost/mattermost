@@ -887,7 +887,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "계정 설정 화면 열기"
+    "translation": "설정 대화 상자 열기"
   },
   {
     "id": "api.command_settings.name",
@@ -7342,5 +7342,229 @@
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
     "translation": " 스레드에 응답했습니다."
+  },
+  {
+    "id": "api.command_remote.missing_command",
+    "translation": "없는 명령입니다. 가능한 동작 : {{.Actions}}"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "공통된 서버가 없어 해당 유저들과 개인 메세지 채널을 만들 수 없습니다."
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "'AuthData' 필드를 이메일로 초기화에 실패했습니다."
+  },
+  {
+    "id": "api.command_share.shared_channel_unavailable",
+    "translation": "이 채널은 더 이상 공유되지 않습니다."
+  },
+  {
+    "id": "api.command_share.service_disabled",
+    "translation": "공유 채널 서비스를 사용할 수 없습니다."
+  },
+  {
+    "id": "api.command_share.uninvite_remote_id.help",
+    "translation": "초대 취소에 대한 보안 연결 ID입니다."
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "설정을 다시 로드하지 못했습니다."
+  },
+  {
+    "id": "api.command_share.remote_table_header",
+    "translation": "| 보안 연결 | 사이트 URL | 읽기 전용 | 초대 수락 | 온라인 | 마지막 동기화 |"
+  },
+  {
+    "id": "api.command_share.remote_not_valid",
+    "translation": "초대를 취소할 올바른 보안 연결 ID를 지정해야 합니다"
+  },
+  {
+    "id": "api.command_share.remote_id_invalid.error",
+    "translation": "보안 연결 ID가 잘못되었습니다: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.remote_id.help",
+    "translation": "기존 보안 연결의 ID입니다. 보안 연결을 추가하려면 '보안 연결' 명령을 참조하십시오."
+  },
+  {
+    "id": "api.command_share.remote_already_invited",
+    "translation": "보안 연결이 이미 초대되었습니다."
+  },
+  {
+    "id": "api.command_share.permission_required",
+    "translation": "공유 채널을 관리하기 위해 `{{.Permission}}`권한이 필요하다."
+  },
+  {
+    "id": "api.command_share.not_shared_channel_unshare",
+    "translation": "공유되지 않은 채널은 공유를 취소할 수 없습니다."
+  },
+  {
+    "id": "api.command_share.no_remote_invited",
+    "translation": "이 채널에는 보안 연결이 초대되지 않았습니다."
+  },
+  {
+    "id": "api.command_share.name",
+    "translation": "공유 채널"
+  },
+  {
+    "id": "api.command_share.must_specify_valid_remote",
+    "translation": "초대할 올바른 보안 연결 ID를 지정해야 합니다."
+  },
+  {
+    "id": "api.command_share.missing_action",
+    "translation": "작업 누락. 사용 가능한 작업: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.invite_remote.help",
+    "translation": "외부 중요 인스턴스를 현재 공유 채널에 초대합니다"
+  },
+  {
+    "id": "api.command_share.invitation_sent",
+    "translation": "공유 채널 초대를 `{{.Name}} {{.SiteURL}}`에 보냈습니다."
+  },
+  {
+    "id": "api.command_share.invalid_value.error",
+    "translation": "'{{.Arg}}' 잘못 된 값: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.hint",
+    "translation": "[작업]"
+  },
+  {
+    "id": "api.command_share.fetch_remote_status.error",
+    "translation": "보안 연결에 대한 상태를 가져올 수 없습니다: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.fetch_remote.error",
+    "translation": "보안 연결을 가져오는 중 오류 발생: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.desc",
+    "translation": "현재 채널을 외부 매터모스트 인스턴스와 공유합니다."
+  },
+  {
+    "id": "api.command_share.could_not_uninvite.error",
+    "translation": "`{{.RemoteId}}` 초대를 취소할 수 없습니다: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.check_channel_exist.error",
+    "translation": "공유 채널을 확인하는 중 오류 발생: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_status_id",
+    "translation": "채널 ID `{{.ChannelId}}` 상태"
+  },
+  {
+    "id": "api.command_share.channel_status.help",
+    "translation": "이 공유 채널의 상태를 표시합니다"
+  },
+  {
+    "id": "api.command_share.channel_shared",
+    "translation": "이제 이 채널이 공유되었습니다."
+  },
+  {
+    "id": "api.command_share.channel_remote_id_not_exists",
+    "translation": "이 채널에 대한 공유 채널 보안 연결 `{{.RemoteId}}`이(가) 존재하지 않습니다."
+  },
+  {
+    "id": "api.command_share.channel_invite_not_home.error",
+    "translation": "다른 곳에서 시작된 공유 채널에는 보안 연결을 초대할 수 없습니다."
+  },
+  {
+    "id": "api.command_share.channel_invite.error",
+    "translation": "`{{.Name}}`을(를) 이 채널로 초대하는 동안 오류가 발생했습니다: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.available_actions",
+    "translation": "사용 가능한 작업: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.unknown_action",
+    "translation": "알 수 없는 작업 `{{.Action}}`"
+  },
+  {
+    "id": "api.command_remote.status.help",
+    "translation": "모든 보안 연결에 대한 상태 표시"
+  },
+  {
+    "id": "api.command_remote.site_url_not_set",
+    "translation": "사이트 URL이 설정되지 않았습니다. 시스템 콘솔 > 환경 > 웹 서버에서 설정해 주세요."
+  },
+  {
+    "id": "api.command_remote.service_not_enabled",
+    "translation": "보안 연결 서비스를 사용할 수 없습니다."
+  },
+  {
+    "id": "api.command_remote.service_disabled",
+    "translation": "보안 연결 서비스를 사용할 수 없습니다."
+  },
+  {
+    "id": "api.command_remote.remove_remote_id.help",
+    "translation": "제거할 보안 연결의 ID입니다."
+  },
+  {
+    "id": "api.command_remote.remove_remote.error",
+    "translation": "보안 연결을 제거할 수 없습니다: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.remove.help",
+    "translation": "보안 연결을 제거합니다"
+  },
+  {
+    "id": "api.command_remote.remotes_not_found",
+    "translation": "보안 연결을 찾을 수 없습니다."
+  },
+  {
+    "id": "api.command_remote.remote_table_header",
+    "translation": "| 보안 연결 | 표시 이름 | 연결 ID | 사이트 URL | 초대 수락 | 온라인 | 마지막 핑  |"
+  },
+  {
+    "id": "api.command_remote.remote_add_remove.help",
+    "translation": "보안 연결을 추가/제거합니다. 사용 가능한 작업: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.permission_required",
+    "translation": "보안 연결을 관리하려면 `{{.Permission}}` 권한이 필요합니다."
+  },
+  {
+    "id": "api.command_remote.name.hint",
+    "translation": "보안 연결의 고유한 이름"
+  },
+  {
+    "id": "api.command_remote.hint",
+    "translation": "[액션]"
+  },
+  {
+    "id": "api.command_remote.name.help",
+    "translation": "보안 연결 이름"
+  },
+  {
+    "id": "api.command_remote.name",
+    "translation": "보안연결"
+  },
+  {
+    "id": "api.command_remote.missing_empty",
+    "translation": "`{{.Arg}}`가 누락 또는 비어 있습니다"
+  },
+  {
+    "id": "bleveengine.delete_file.error",
+    "translation": "파일 삭제를 실패하였습니다."
+  },
+  {
+    "id": "api.command_share.unshare_channel.help",
+    "translation": "현재 채널을 공유하지 않습니다"
+  },
+  {
+    "id": "api.command_share.uninvite_remote.help",
+    "translation": "이 공유 채널에서 보안 연결 초대를 취소합니다"
+  },
+  {
+    "id": "api.command_share.shared_channel_unshare.error",
+    "translation": "이 채널의 공유를 취소할 수 없습니다: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.share_read_only.help",
+    "translation": "채널이 읽기 전용 모드로 공유됩니다"
   }
 ]

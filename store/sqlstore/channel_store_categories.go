@@ -90,7 +90,7 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Trans
 
 	if !hasCategoryOfType[model.SidebarCategoryChannels] {
 		if err := transaction.Insert(&model.SidebarCategory{
-			DisplayName: "Channels", // This will be retranslateed by the client into the user's locale
+			DisplayName: "Channels", // This will be retranslated by the client into the user's locale
 			Id:          channelsCategoryId,
 			UserId:      userId,
 			TeamId:      teamId,
@@ -104,7 +104,7 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Trans
 
 	if !hasCategoryOfType[model.SidebarCategoryDirectMessages] {
 		if err := transaction.Insert(&model.SidebarCategory{
-			DisplayName: "Direct Messages", // This will be retranslateed by the client into the user's locale
+			DisplayName: "Direct Messages", // This will be retranslated by the client into the user's locale
 			Id:          directMessagesCategoryId,
 			UserId:      userId,
 			TeamId:      teamId,

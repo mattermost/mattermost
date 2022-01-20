@@ -1525,20 +1525,6 @@ func (_m *ChannelStore) MigrateChannelMembers(fromChannelID string, fromUserID s
 	return r0, r1
 }
 
-// MigratePublicChannels provides a mock function with given fields:
-func (_m *ChannelStore) MigratePublicChannels() error {
-	ret := _m.Called()
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func() error); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // PermanentDelete provides a mock function with given fields: channelID
 func (_m *ChannelStore) PermanentDelete(channelID string) error {
 	ret := _m.Called(channelID)

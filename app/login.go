@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -236,6 +237,54 @@ func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request
 	}
 
 	return nil
+}
+
+func (a *App) AttachCloudSessionCookie(c *request.Context, w http.ResponseWriter, r *http.Request) {
+	secure := false
+	if GetProtocol(r) == "https" {
+		secure = true
+	}
+
+	maxAge := *a.Config().ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24
+	subpath, _ := utils.GetSubpathFromConfig(a.Config())
+	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
+
+	domain := ""
+	if siteURL, err := url.Parse(a.GetSiteURL()); err == nil {
+		domain = siteURL.Hostname()
+	}
+
+	if domain == "" {
+		return
+	}
+
+	var workspaceName string
+	if strings.Contains(domain, "localhost") {
+		workspaceName = "localhost"
+	} else {
+
+		// ensure we have a format for a cloud workspace url i.e. example.cloud.mattermost.com
+		if len(strings.Split(domain, ".")) != 4 {
+			return
+		}
+		workspaceName = strings.SplitN(domain, ".", 2)[0]
+		domain = strings.SplitN(domain, ".", 3)[2]
+		domain = "." + domain
+	}
+
+	cookie := &http.Cookie{
+		Name:     model.SessionCookieCloudUrl,
+		Value:    workspaceName,
+		Path:     subpath,
+		MaxAge:   maxAge,
+		Expires:  expiresAt,
+		HttpOnly: true,
+		Domain:   domain,
+		Secure:   secure,
+	}
+
+	http.SetCookie(w, cookie)
+
 }
 
 func (a *App) AttachSessionCookies(c *request.Context, w http.ResponseWriter, r *http.Request) {

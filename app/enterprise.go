@@ -12,9 +12,9 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
-var accountMigrationInterface func(*Server) einterfaces.AccountMigrationInterface
+var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface
 
-func RegisterAccountMigrationInterface(f func(*Server) einterfaces.AccountMigrationInterface) {
+func RegisterAccountMigrationInterface(f func(*App) einterfaces.AccountMigrationInterface) {
 	accountMigrationInterface = f
 }
 
@@ -24,15 +24,15 @@ func RegisterClusterInterface(f func(*Server) einterfaces.ClusterInterface) {
 	clusterInterface = f
 }
 
-var complianceInterface func(*Server) einterfaces.ComplianceInterface
+var complianceInterface func(*App) einterfaces.ComplianceInterface
 
-func RegisterComplianceInterface(f func(*Server) einterfaces.ComplianceInterface) {
+func RegisterComplianceInterface(f func(*App) einterfaces.ComplianceInterface) {
 	complianceInterface = f
 }
 
-var dataRetentionInterface func(*Server) einterfaces.DataRetentionInterface
+var dataRetentionInterface func(*App) einterfaces.DataRetentionInterface
 
-func RegisterDataRetentionInterface(f func(*Server) einterfaces.DataRetentionInterface) {
+func RegisterDataRetentionInterface(f func(*App) einterfaces.DataRetentionInterface) {
 	dataRetentionInterface = f
 }
 
@@ -157,9 +157,9 @@ func RegisterLdapInterface(f func(*Server) einterfaces.LdapInterface) {
 	ldapInterface = f
 }
 
-var messageExportInterface func(*Server) einterfaces.MessageExportInterface
+var messageExportInterface func(*App) einterfaces.MessageExportInterface
 
-func RegisterMessageExportInterface(f func(*Server) einterfaces.MessageExportInterface) {
+func RegisterMessageExportInterface(f func(*App) einterfaces.MessageExportInterface) {
 	messageExportInterface = f
 }
 
@@ -197,15 +197,7 @@ func (s *Server) initEnterprise() {
 	if metricsInterface != nil {
 		s.Metrics = metricsInterface(s)
 	}
-	if complianceInterface != nil {
-		s.Compliance = complianceInterface(s)
-	}
-	if messageExportInterface != nil {
-		s.MessageExport = messageExportInterface(s)
-	}
-	if dataRetentionInterface != nil {
-		s.DataRetention = dataRetentionInterface(s)
-	}
+
 	if clusterInterface != nil {
 		s.Cluster = clusterInterface(s)
 	}
@@ -217,15 +209,14 @@ func (s *Server) initEnterprise() {
 		s.LicenseManager = licenseInterface(s)
 	}
 
-	if accountMigrationInterface != nil {
-		s.AccountMigration = accountMigrationInterface(s)
-	}
 	if ldapInterface != nil {
 		s.Ldap = ldapInterface(s)
 	}
+
 	if notificationInterface != nil {
 		s.Notification = notificationInterface(s)
 	}
+
 	if samlInterfaceNew != nil {
 		mlog.Debug("Loading SAML2 library")
 		s.Saml = samlInterfaceNew(s)
@@ -238,6 +229,7 @@ func (s *Server) initEnterprise() {
 			}
 		})
 	}
+
 	if cloudInterface != nil {
 		s.Cloud = cloudInterface(s)
 	}

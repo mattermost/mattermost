@@ -1978,7 +1978,7 @@ func (c *Client4) GetBotsIncludeDeleted(page, perPage int, etag string) ([]*Bot,
 	return bots, BuildResponse(r), nil
 }
 
-// GetBotsOrphaned fetches the given page of bots, only including orphanded bots.
+// GetBotsOrphaned fetches the given page of bots, only including orphaned bots.
 func (c *Client4) GetBotsOrphaned(page, perPage int, etag string) ([]*Bot, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&only_orphaned="+c.boolString(true), page, perPage)
 	r, err := c.DoAPIGet(c.botsRoute()+query, etag)
@@ -3766,6 +3766,27 @@ func (c *Client4) GetPostsForChannel(channelId string, page, perPage int, etag s
 		return nil, nil, NewAppError("GetPostsForChannel", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
 	return &list, BuildResponse(r), nil
+}
+
+// GetPostsByIds gets a list of posts by taking an array of post ids
+func (c *Client4) GetPostsByIds(postIds []string) ([]*Post, *Response, error) {
+	js, jsonErr := json.Marshal(postIds)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("SearchFilesWithParams", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.DoAPIPost(c.postsRoute()+"/ids", string(js))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list []*Post
+	if r.StatusCode == http.StatusNotModified {
+		return list, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetPostsByIds", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetFlaggedPostsForUser returns flagged posts of a user based on user id string.
@@ -6152,6 +6173,44 @@ func (c *Client4) UpdateUserStatus(userId string, userStatus *Status) (*Status, 
 		return nil, nil, NewAppError("UpdateUserStatus", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
 	return &s, BuildResponse(r), nil
+}
+
+// UpdateUserCustomStatus sets a user's custom status based on the provided user id string.
+func (c *Client4) UpdateUserCustomStatus(userId string, userCustomStatus *CustomStatus) (*CustomStatus, *Response, error) {
+	buf, err := json.Marshal(userCustomStatus)
+	if err != nil {
+		return nil, nil, NewAppError("UpdateUserCustomStatus", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.DoAPIPutBytes(c.userStatusRoute(userId)+"/custom", buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var s CustomStatus
+	if jsonErr := json.NewDecoder(r.Body).Decode(&s); jsonErr != nil {
+		return nil, nil, NewAppError("UpdateUserCustomStatus", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &s, BuildResponse(r), nil
+}
+
+// RemoveUserCustomStatus remove a user's custom status based on the provided user id string.
+func (c *Client4) RemoveUserCustomStatus(userId string) (*Response, error) {
+	r, err := c.DoAPIDelete(c.userStatusRoute(userId) + "/custom")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// RemoveRecentUserCustomStatus remove a recent user's custom status based on the provided user id string.
+func (c *Client4) RemoveRecentUserCustomStatus(userId string) (*Response, error) {
+	r, err := c.DoAPIDelete(c.userStatusRoute(userId) + "/custom/recent")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
 }
 
 // Emoji Section

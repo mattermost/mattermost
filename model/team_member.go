@@ -69,6 +69,11 @@ type TeamMembersGetOptions struct {
 	ViewRestrictions *ViewUsersRestrictions
 }
 
+//msgp:ignore TeamInviteReminderData
+type TeamInviteReminderData struct {
+	Interval string
+}
+
 func EmailInviteWithErrorToEmails(o []*EmailInviteWithError) []string {
 	var ret []string
 	for _, o := range o {

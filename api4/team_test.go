@@ -642,7 +642,7 @@ func TestUpdateTeamPrivacy(t *testing.T) {
 		name                string
 		team                *model.Team
 		privacy             string
-		errChecker          func(t *testing.T, resp *model.Response)
+		errChecker          func(t testing.TB, resp *model.Response)
 		wantType            string
 		wantOpenInvite      bool
 		wantInviteIdChanged bool
@@ -1122,6 +1122,19 @@ func TestGetAllTeams(t *testing.T) {
 		_, resp, err = client.GetAllTeams("", 1, 10)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("Sanitize the teams in the response with total count", func(t *testing.T) {
+		otherUser := th.CreateUser()
+		client.Login(otherUser.Email, otherUser.Password)
+		teams, _, _, err := client.GetAllTeamsWithTotalCount("", 0, 10)
+		require.NoError(t, err)
+		for _, team := range teams {
+			if team.Email != "" {
+				require.Nil(t, team.Email)
+				break
+			}
+		}
 	})
 }
 

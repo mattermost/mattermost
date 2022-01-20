@@ -117,6 +117,34 @@ func (m *StringMap) Scan(value interface{}) error {
 	return errors.New("received value is neither a byte slice nor string")
 }
 
+// Value converts StringMap to database value
+func (m StringMap) Value() (driver.Value, error) {
+	return json.Marshal(m)
+}
+
+func (si *StringInterface) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+
+	buf, ok := value.([]byte)
+	if ok {
+		return json.Unmarshal(buf, si)
+	}
+
+	str, ok := value.(string)
+	if ok {
+		return json.Unmarshal([]byte(str), si)
+	}
+
+	return errors.New("received value is neither a byte slice nor string")
+}
+
+// Value converts StringInterface to database value
+func (si StringInterface) Value() (driver.Value, error) {
+	return json.Marshal(si)
+}
+
 var translateFunc i18n.TranslateFunc
 var translateFuncOnce sync.Once
 
