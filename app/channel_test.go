@@ -2028,7 +2028,7 @@ func TestMarkChannelAsUnreadFromPostPanic(t *testing.T) {
 	mockThreadStore.On("MarkAllAsReadInChannels", "userID", []string{"channelID"}).Return(nil)
 	mockThreadStore.On("GetMembershipForUser", "userID", "rootID").Return(nil, nil)
 	mockThreadStore.On("MaintainMembership", "userID", "rootID", mock.AnythingOfType("store.ThreadMembershipOpts")).Return(&model.ThreadMembership{}, nil)
-	mockThreadStore.On("Get", "rootID").Return(nil, errors.New("bad error"))
+	mockThreadStore.On("Get", "rootID").Return(nil, errors.New("bad error")) // Returning an error from here causes the panic
 
 	mockPostStore := mocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
