@@ -102,6 +102,11 @@ func (_m *ServerIface) GetSchemes(_a0 string, _a1 int, _a2 int) ([]*model.Scheme
 	return r0, r1
 }
 
+// Go provides a mock function with given fields: f
+func (_m *ServerIface) Go(f func()) {
+	_m.Called(f)
+}
+
 // HTTPService provides a mock function with given fields:
 func (_m *ServerIface) HTTPService() httpservice.HTTPService {
 	ret := _m.Called()

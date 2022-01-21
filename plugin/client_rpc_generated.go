@@ -706,6 +706,38 @@ func (s *hooksRPCServer) RunDataRetention(args *Z_RunDataRetentionArgs, returns 
 	return nil
 }
 
+func init() {
+	hookNameToId["OnSendDailyTelemetry"] = OnSendDailyTelemetryID
+}
+
+type Z_OnSendDailyTelemetryArgs struct {
+}
+
+type Z_OnSendDailyTelemetryReturns struct {
+}
+
+func (g *hooksRPCClient) OnSendDailyTelemetry() {
+	_args := &Z_OnSendDailyTelemetryArgs{}
+	_returns := &Z_OnSendDailyTelemetryReturns{}
+	if g.implemented[OnSendDailyTelemetryID] {
+		if err := g.client.Call("Plugin.OnSendDailyTelemetry", _args, _returns); err != nil {
+			g.log.Error("RPC call OnSendDailyTelemetry to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) OnSendDailyTelemetry(args *Z_OnSendDailyTelemetryArgs, returns *Z_OnSendDailyTelemetryReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnSendDailyTelemetry()
+	}); ok {
+		hook.OnSendDailyTelemetry()
+	} else {
+		return encodableError(fmt.Errorf("Hook OnSendDailyTelemetry called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }

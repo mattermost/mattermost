@@ -88,6 +88,7 @@ type ServerIface interface {
 	HTTPService() httpservice.HTTPService
 	GetPluginsEnvironment() *plugin.Environment
 	License() *model.License
+	Go(f func())
 	GetRoleByName(context.Context, string) (*model.Role, *model.AppError)
 	GetSchemes(string, int, int) ([]*model.Scheme, *model.AppError)
 }
@@ -901,6 +902,13 @@ func (ts *TelemetryService) trackPlugins() {
 		"disabled_backend_plugins":      backendDisabledCount,
 		"plugins_with_settings":         settingsCount,
 		"plugins_with_broken_manifests": brokenManifestCount,
+	})
+
+	ts.srv.Go(func() {
+		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			hooks.OnSendDailyTelemetry()
+			return true
+		}, plugin.OnSendDailyTelemetryID)
 	})
 }
 

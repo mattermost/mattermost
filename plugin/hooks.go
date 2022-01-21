@@ -40,6 +40,7 @@ const (
 	OnWebSocketDisconnectID         = 22
 	WebSocketMessageHasBeenPostedID = 23
 	RunDataRetentionID              = 24
+	OnSendDailyTelemetryID          = 25
 	TotalHooksID                    = iota
 )
 
@@ -245,8 +246,13 @@ type Hooks interface {
 	// Minimum server version: 6.0
 	WebSocketMessageHasBeenPosted(webConnID, userID string, req *model.WebSocketRequest)
 
-	// RunDataRetention is invoked during a DataRetentionJob
+	// RunDataRetention is invoked during a DataRetentionJob.
 	//
 	// Minimum server version: 6.4
 	RunDataRetention(nowTime, batchSize int64) (int64, error)
+
+	// OnSendDailyTelemetry is invoked when the server send the daily telemtry data.
+	//
+	// Minimum server version: 6.4
+	OnSendDailyTelemetry()
 }

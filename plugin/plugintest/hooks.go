@@ -199,6 +199,11 @@ func (_m *Hooks) OnPluginClusterEvent(c *plugin.Context, ev model.PluginClusterE
 	_m.Called(c, ev)
 }
 
+// OnSendDailyTelemetry provides a mock function with given fields:
+func (_m *Hooks) OnSendDailyTelemetry() {
+	_m.Called()
+}
+
 // OnWebSocketConnect provides a mock function with given fields: webConnID, userID
 func (_m *Hooks) OnWebSocketConnect(webConnID string, userID string) {
 	_m.Called(webConnID, userID)

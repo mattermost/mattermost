@@ -140,6 +140,10 @@ func (a *App) License() *model.License {
 	return a.Srv().License()
 }
 
+func (a *App) Go(f func()) {
+	a.Srv().Go(f)
+}
+
 func (a *App) DBHealthCheckWrite() error {
 	currentTime := strconv.FormatInt(time.Now().Unix(), 10)
 
