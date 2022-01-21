@@ -8256,6 +8256,10 @@
     "translation": "Invalid Username attribute. Must be set."
   },
   {
+    "id": "model.config.is_valid.session_length_sso_in_days.app_error",
+    "translation": ""
+  },
+  {
     "id": "model.config.is_valid.site_url.app_error",
     "translation": "Site URL must be a valid URL and start with http:// or https://."
   },

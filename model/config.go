@@ -3596,6 +3596,10 @@ func (s *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.collapsed_threads.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if *s.SessionLengthSSOInHours() < 1 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.session_length_sso_in_days.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	return nil
 }
 
