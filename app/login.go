@@ -338,7 +338,7 @@ func GetProtocol(r *http.Request) string {
 	if r.Header.Get(model.HeaderForwardedProto) == "https" || r.TLS != nil {
 		return "https"
 	}
-	return "http"
+	return "https"
 }
 
 func IsCWSLogin(a *App, token string) bool {
