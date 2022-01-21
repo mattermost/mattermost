@@ -644,6 +644,15 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 		})
 	}
 
+	if data.ColorizeUsernames != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   savedUser.Id,
+			Category: model.PreferenceCategoryDisplaySettings,
+			Name:     model.PreferenceNameColorizeUsernames,
+			Value:    *data.ColorizeUsernames,
+		})
+	}
+
 	if data.ChannelDisplayMode != nil {
 		preferences = append(preferences, model.Preference{
 			UserId:   savedUser.Id,

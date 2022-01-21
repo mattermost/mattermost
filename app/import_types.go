@@ -69,6 +69,7 @@ type UserImportData struct {
 	CollapsePreviews    *string `json:"link_previews,omitempty"`
 	MessageDisplay      *string `json:"message_display,omitempty"`
 	CollapseConsecutive *string `json:"collapse_consecutive_messages,omitempty"`
+	ColorizeUsernames   *string `json:"colorize_usernames,omitempty"`
 	ChannelDisplayMode  *string `json:"channel_display_mode,omitempty"`
 	TutorialStep        *string `json:"tutorial_step,omitempty"`
 	EmailInterval       *string `json:"email_interval,omitempty"`
