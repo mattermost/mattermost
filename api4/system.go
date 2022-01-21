@@ -417,7 +417,7 @@ func getLatestVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	b, jsonErr := json.Marshal(resp)
 	if jsonErr != nil {
-		c.Logger.Warn("Unable to marshal JSON in timezones.", mlog.Err(jsonErr))
+		c.Logger.Warn("Unable to marshal JSON for latest version.", mlog.Err(jsonErr))
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
