@@ -369,15 +369,15 @@ type ServiceSettings struct {
 }
 
 func (s *ServiceSettings) SessionLengthWebInHours() *int {
-	return NewInt(*s.SessionLengthWebInDays * 12)
+	return NewInt(*s.SessionLengthWebInDays * 24)
 }
 
 func (s *ServiceSettings) SessionLengthMobileInHours() *int {
-	return NewInt(*s.SessionLengthMobileInDays * 12)
+	return NewInt(*s.SessionLengthMobileInDays * 24)
 }
 
 func (s *ServiceSettings) SessionLengthSSOInHours() *int {
-	return NewInt(int(*s.SessionLengthSSOInDays * 12))
+	return NewInt(int(*s.SessionLengthSSOInDays * 24))
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
