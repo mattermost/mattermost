@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"regexp"
 	"sort"
@@ -225,6 +226,11 @@ func (o *Post) ToJSON() (string, error) {
 	copy.StripActionIntegrations()
 	b, err := json.Marshal(copy)
 	return string(b), err
+}
+
+func (o *Post) EncodeJSON(w io.Writer) error {
+	o.StripActionIntegrations()
+	return json.NewEncoder(w).Encode(o)
 }
 
 type GetPostsSinceOptions struct {
