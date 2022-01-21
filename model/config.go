@@ -320,7 +320,7 @@ type ServiceSettings struct {
 	ExtendSessionLengthWithActivity                   *bool    `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
 	SessionLengthWebInDays                            *int     `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
 	SessionLengthMobileInDays                         *int     `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
-	SessionLengthSSOInDays                            *int     `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
+	SessionLengthSSOInDays                            *float32 `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
 	SessionCacheInMinutes                             *int     `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
 	SessionIdleTimeoutInMinutes                       *int     `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
 	WebsocketSecurePort                               *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
@@ -366,6 +366,18 @@ type ServiceSettings struct {
 	ThreadAutoFollow                                  *bool   `access:"experimental_features"`
 	CollapsedThreads                                  *string `access:"experimental_features"`
 	ManagedResourcePaths                              *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+}
+
+func (s *ServiceSettings) SessionLengthWebInHours() *int {
+	return NewInt(*s.SessionLengthWebInDays * 12)
+}
+
+func (s *ServiceSettings) SessionLengthMobileInHours() *int {
+	return NewInt(*s.SessionLengthMobileInDays * 12)
+}
+
+func (s *ServiceSettings) SessionLengthSSOInHours() *int {
+	return NewInt(int(*s.SessionLengthSSOInDays * 12))
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -598,7 +610,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.SessionLengthSSOInDays == nil {
-		s.SessionLengthSSOInDays = NewInt(30)
+		s.SessionLengthSSOInDays = NewFloat32(30)
 	}
 
 	if s.SessionCacheInMinutes == nil {
