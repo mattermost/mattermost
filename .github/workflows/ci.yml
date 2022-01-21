@@ -1,4 +1,4 @@
-name: Checks
+name: CI
 
 on:
   push:
@@ -19,13 +19,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Extract version of Go to use
-      run: echo "GOVERSION=$(cat go.mod | grep go | head -1 | awk ' { print $2 } ' | cut -d '@' -f 1 | cut -d ':' -f 2)" >> $GITHUB_ENV
-
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: ${{ env.GOVERSION }}
+        go-version: '1.16.7'
 
     - name: Run check-app-layers
       run: |
@@ -39,13 +36,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Extract version of Go to use
-      run: echo "GOVERSION=$(cat go.mod | grep go | head -1 | awk ' { print $2 } ' | cut -d '@' -f 1 | cut -d ':' -f 2)" >> $GITHUB_ENV
-
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: ${{ env.GOVERSION }}
+        go-version: '1.16.7'
 
     - name: Run check-store-layers
       run: |
@@ -59,13 +53,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Extract version of Go to use
-      run: echo "GOVERSION=$(cat go.mod | grep go | head -1 | awk ' { print $2 } ' | cut -d '@' -f 1 | cut -d ':' -f 2)" >> $GITHUB_ENV
-
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: ${{ env.GOVERSION }}
+        go-version: '1.16.7'
 
     - name: Run check-mocks
       run: |
@@ -79,13 +70,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Extract version of Go to use
-      run: echo "GOVERSION=$(cat go.mod | grep go | head -1 | awk ' { print $2 } ' | cut -d '@' -f 1 | cut -d ':' -f 2)" >> $GITHUB_ENV
-
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: ${{ env.GOVERSION }}
+        go-version: '1.16.7'
 
     - name: Run check-migrations
       run: |
@@ -102,13 +90,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Extract version of Go to use
-      run: echo "GOVERSION=$(cat go.mod | grep go | head -1 | awk ' { print $2 } ' | cut -d '@' -f 1 | cut -d ':' -f 2)" >> $GITHUB_ENV
-
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: ${{ env.GOVERSION }}
+        go-version: '1.16.7'
 
     - name: Run check-email-templates
       run: |
@@ -123,13 +108,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Extract version of Go to use
-      run: echo "GOVERSION=$(cat go.mod | grep go | head -1 | awk ' { print $2 } ' | cut -d '@' -f 1 | cut -d ':' -f 2)" >> $GITHUB_ENV
-
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: ${{ env.GOVERSION }}
+        go-version: '1.16.7'
 
     - name: Run check-gen-serialized
       run: |
@@ -143,13 +125,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Extract version of Go to use
-      run: echo "GOVERSION=$(cat go.mod | grep go | head -1 | awk ' { print $2 } ' | cut -d '@' -f 1 | cut -d ':' -f 2)" >> $GITHUB_ENV
-
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: ${{ env.GOVERSION }}
+        go-version: '1.16.7'
 
     - name: Run check-mattermost-vet
       run: |
