@@ -1,0 +1,23 @@
+name: GolangCI-Lint
+
+on:
+  push:
+    branches:
+      - master
+      - cloud
+      - "release-*"
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  golangci-lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          version: v1.39.0

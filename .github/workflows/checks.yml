@@ -1,0 +1,160 @@
+name: Checks
+
+on:
+  push:
+    branches:
+      - master
+      - cloud
+      - "release-*"
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check-app-layers:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Extract version of Go to use
+      run: echo "GOVERSION=$(cat go.mod | grep go | head -1 | awk ' { print $2 } ' | cut -d '@' -f 1 | cut -d ':' -f 2)" >> $GITHUB_ENV
+
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GOVERSION }}
+
+    - name: Run check-app-layers
+      run: |
+        make app-layers
+        if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using 'make app-layers'"; exit 1; fi
+
+  check-store-layers:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Extract version of Go to use
+      run: echo "GOVERSION=$(cat go.mod | grep go | head -1 | awk ' { print $2 } ' | cut -d '@' -f 1 | cut -d ':' -f 2)" >> $GITHUB_ENV
+
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GOVERSION }}
+
+    - name: Run check-store-layers
+      run: |
+        make store-layers
+        if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using 'make store-layers'"; exit 1; fi
+
+  check-mocks:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Extract version of Go to use
+      run: echo "GOVERSION=$(cat go.mod | grep go | head -1 | awk ' { print $2 } ' | cut -d '@' -f 1 | cut -d ':' -f 2)" >> $GITHUB_ENV
+
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GOVERSION }}
+
+    - name: Run check-mocks
+      run: |
+        make einterfaces-mocks store-mocks
+        if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using 'make einterfaces-mocks store-mocks'"; exit 1; fi
+
+  check-migrations:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Extract version of Go to use
+      run: echo "GOVERSION=$(cat go.mod | grep go | head -1 | awk ' { print $2 } ' | cut -d '@' -f 1 | cut -d ':' -f 2)" >> $GITHUB_ENV
+
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GOVERSION }}
+
+    - name: Run check-migrations
+      run: |
+        export GOBIN=/home/runner/go/bin
+        export PATH=$PATH:$GOBIN
+
+        make migrations-bindata
+        if [[ -n $(git status --porcelain) ]]; then echo "Please update the migration bindata using 'make migrations-bindata'"; exit 1; fi
+
+  check-email-templates:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Extract version of Go to use
+      run: echo "GOVERSION=$(cat go.mod | grep go | head -1 | awk ' { print $2 } ' | cut -d '@' -f 1 | cut -d ':' -f 2)" >> $GITHUB_ENV
+
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GOVERSION }}
+
+    - name: Run check-email-templates
+      run: |
+        sudo npm install -g mjml@4.9.0
+        make build-templates
+        if [[ -n $(git status --porcelain) ]]; then echo "Please update the email templates using 'make build-templates'"; exit 1; fi
+
+  check-gen-serialized:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Extract version of Go to use
+      run: echo "GOVERSION=$(cat go.mod | grep go | head -1 | awk ' { print $2 } ' | cut -d '@' -f 1 | cut -d ':' -f 2)" >> $GITHUB_ENV
+
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GOVERSION }}
+
+    - name: Run check-gen-serialized
+      run: |
+        make gen-serialized
+        if [[ -n $(git status --porcelain) ]]; then echo "Please update the serialized files using 'make gen-serialized'"; exit 1; fi
+
+  check-mattermost-vet:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Extract version of Go to use
+      run: echo "GOVERSION=$(cat go.mod | grep go | head -1 | awk ' { print $2 } ' | cut -d '@' -f 1 | cut -d ':' -f 2)" >> $GITHUB_ENV
+
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GOVERSION }}
+
+    - name: Run check-mattermost-vet
+      run: |
+        export GOBIN=${PWD}/mattermost-server/bin
+        export PATH=$PATH:$GOBIN
+        make config-reset
+        make plugin-checker
+        make vet BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
