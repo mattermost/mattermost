@@ -309,7 +309,7 @@ func (s SqlTeamStore) Update(team *model.Team) (*model.Team, error) {
 // If the team doesn't exist it returns a model.AppError with a
 // http.StatusNotFound in the StatusCode field.
 func (s SqlTeamStore) Get(id string) (*model.Team, error) {
-	var team model.Team
+	team := model.Team{}
 	if err := s.GetReplicaX().Get(&team, `SELECT * FROM Teams WHERE Id=?`, id); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Team", id)
