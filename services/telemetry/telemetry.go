@@ -468,16 +468,17 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.SendTelemetry(TrackConfigSQL, map[string]interface{}{
-		"driver_name":                    *cfg.SqlSettings.DriverName,
-		"trace":                          cfg.SqlSettings.Trace,
-		"max_idle_conns":                 *cfg.SqlSettings.MaxIdleConns,
-		"conn_max_lifetime_milliseconds": *cfg.SqlSettings.ConnMaxLifetimeMilliseconds,
-		"conn_max_idletime_milliseconds": *cfg.SqlSettings.ConnMaxIdleTimeMilliseconds,
-		"max_open_conns":                 *cfg.SqlSettings.MaxOpenConns,
-		"data_source_replicas":           len(cfg.SqlSettings.DataSourceReplicas),
-		"data_source_search_replicas":    len(cfg.SqlSettings.DataSourceSearchReplicas),
-		"query_timeout":                  *cfg.SqlSettings.QueryTimeout,
-		"disable_database_search":        *cfg.SqlSettings.DisableDatabaseSearch,
+		"driver_name":                          *cfg.SqlSettings.DriverName,
+		"trace":                                cfg.SqlSettings.Trace,
+		"max_idle_conns":                       *cfg.SqlSettings.MaxIdleConns,
+		"conn_max_lifetime_milliseconds":       *cfg.SqlSettings.ConnMaxLifetimeMilliseconds,
+		"conn_max_idletime_milliseconds":       *cfg.SqlSettings.ConnMaxIdleTimeMilliseconds,
+		"max_open_conns":                       *cfg.SqlSettings.MaxOpenConns,
+		"data_source_replicas":                 len(cfg.SqlSettings.DataSourceReplicas),
+		"data_source_search_replicas":          len(cfg.SqlSettings.DataSourceSearchReplicas),
+		"query_timeout":                        *cfg.SqlSettings.QueryTimeout,
+		"disable_database_search":              *cfg.SqlSettings.DisableDatabaseSearch,
+		"migrations_statement_timeout_seconds": *cfg.SqlSettings.MigrationsStatementTimeoutSeconds,
 	})
 
 	ts.SendTelemetry(TrackConfigLog, map[string]interface{}{
@@ -757,8 +758,10 @@ func (ts *TelemetryService) trackConfig() {
 	ts.SendTelemetry(TrackConfigDataRetention, map[string]interface{}{
 		"enable_message_deletion":     *cfg.DataRetentionSettings.EnableMessageDeletion,
 		"enable_file_deletion":        *cfg.DataRetentionSettings.EnableFileDeletion,
+		"enable_boards_deletion":      *cfg.DataRetentionSettings.EnableBoardsDeletion,
 		"message_retention_days":      *cfg.DataRetentionSettings.MessageRetentionDays,
 		"file_retention_days":         *cfg.DataRetentionSettings.FileRetentionDays,
+		"boards_retention_days":       *cfg.DataRetentionSettings.BoardsRetentionDays,
 		"deletion_job_start_time":     *cfg.DataRetentionSettings.DeletionJobStartTime,
 		"batch_size":                  *cfg.DataRetentionSettings.BatchSize,
 		"cleanup_jobs_threshold_days": *cfg.JobSettings.CleanupJobsThresholdDays,

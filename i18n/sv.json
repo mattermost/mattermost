@@ -5045,7 +5045,7 @@
   },
   {
     "id": "api.templates.over_limit_info1",
-    "translation": "Det ser ut som om du har fler än 10 användare i din miljö och det är över gränsen för den kostnadsfria versionen av Mattermost Cloud Professional. För att undvika avbrott i din Mattermostmiljö bör du uppgradera."
+    "translation": "Det ser ut som om du har fler än 10 användare i din miljö och det är över gränsen för den kostnadsfria versionen av Mattermost Cloud. För att undvika avbrott i din Mattermostmiljö bör du uppgradera."
   },
   {
     "id": "api.templates.over_limit_fix_now",
@@ -5253,7 +5253,7 @@
   },
   {
     "id": "api.templates.at_limit_info1",
-    "translation": "Det ser ut som om du nu har 10 användare eller fler — Vad kul! Om du vill bjuda in fler teammedlemmar bör du nu uppgradera till Mattermost Cloud Professional."
+    "translation": "Det ser ut som om du nu har 10 användare eller fler — Vad kul! Om du vill bjuda in fler teammedlemmar bör du nu uppgradera till Mattermost Cloud."
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
@@ -8945,7 +8945,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, din 14-dagars kostnadsfria testperiod av Mattermost Cloud Professional avslutas idag, {{.TodayDate}}. Uppdatera din betalinformation för att säkerställa att ditt team kan fortsätta nyttja funktionerna i Cloud Professional."
+    "translation": "{{.Name}}, din 14-dagars kostnadsfria testperiod av Mattermost Cloud Enterprise avslutas idag, {{.TodayDate}}. Uppdatera din betalinformation för att säkerställa att ditt team kan fortsätta nyttja funktionerna i Cloud Enterprise."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -9287,22 +9287,6 @@
     "translation": "Påminnelse"
   },
   {
-    "id": "fix_crt_channel_unreads.worker.do_job.mark_channel_as_read",
-    "translation": "Kan inte markera kanalen som läst"
-  },
-  {
-    "id": "fix_crt_channel_unreads.worker.do_job.kill_orphan_jobs",
-    "translation": "Döda föräldralösa jobb"
-  },
-  {
-    "id": "fix_crt_channel_unreads.worker.do_job.get_post_types",
-    "translation": "Det gick inte att hämta unika typer av inlägg"
-  },
-  {
-    "id": "fix_crt_channel_unreads.worker.do_job.get_bad_channel_memberships",
-    "translation": "Misslyckades att hämta felaktiga kanalmedlemskap"
-  },
-  {
     "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
     "translation": "Det går inte att hämta användare från en arkiverad kanal"
   },
@@ -9313,5 +9297,9 @@
   {
     "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
     "translation": "Det går inte att hämta inlägg från en arkiverad kanal"
+  },
+  {
+    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
+    "translation": "Det går inte att förnya licensen via portalen"
   }
 ]

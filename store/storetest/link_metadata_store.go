@@ -95,7 +95,7 @@ func testLinkMetadataStoreSave(t *testing.T, ss store.Store) {
 		assert.Equal(t, *metadata, *linkMetadata)
 	})
 
-	t.Run("should not save with duplicate URL and timestamp, but should not return an error", func(t *testing.T) {
+	t.Run("should save data with duplicate URL and timestamp", func(t *testing.T) {
 		metadata := &model.LinkMetadata{
 			URL:       "http://example.com",
 			Timestamp: getNextLinkMetadataTimestamp(),
@@ -107,16 +107,17 @@ func testLinkMetadataStoreSave(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		assert.Equal(t, &model.PostImage{}, linkMetadata.Data)
 
-		metadata.Data = &model.PostImage{Height: 10, Width: 20}
+		newData := &model.PostImage{Height: 10, Width: 20}
+		metadata.Data = newData
 
 		linkMetadata, err = ss.LinkMetadata().Save(metadata)
 		require.NoError(t, err)
-		assert.Equal(t, linkMetadata.Data, &model.PostImage{Height: 10, Width: 20})
+		assert.Equal(t, newData, linkMetadata.Data)
 
 		// Should return the original result, not the duplicate one
 		linkMetadata, err = ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
 		require.NoError(t, err)
-		assert.Equal(t, &model.PostImage{}, linkMetadata.Data)
+		assert.Equal(t, newData, linkMetadata.Data)
 	})
 }
 
