@@ -49,18 +49,19 @@ const (
 	DefaultLocale        = "en"
 	UserAuthServiceEmail = "email"
 
-	UserEmailMaxLength    = 128
-	UserNicknameMaxRunes  = 64
-	UserPositionMaxRunes  = 128
-	UserFirstNameMaxRunes = 64
-	UserLastNameMaxRunes  = 64
-	UserAuthDataMaxLength = 128
-	UserNameMaxLength     = 64
-	UserNameMinLength     = 1
-	UserPasswordMaxLength = 72
-	UserLocaleMaxLength   = 5
-	UserTimezoneMaxRunes  = 256
-	UserRolesMaxLength    = 256
+	UserEmailMaxLength       = 128
+	UserNicknameMaxRunes     = 64
+	UserPositionMaxRunes     = 128
+	UserFirstNameMaxRunes    = 64
+	UserLastNameMaxRunes     = 64
+	UserAuthDataMaxLength    = 128
+	UserNameMaxLength        = 64
+	UserNameMinLength        = 1
+	UserPasswordMaxLength    = 72
+	UserLocaleMaxLength      = 5
+	UserTimezoneMaxRunes     = 256
+	UserRolesMaxLength       = 256
+	UserPropsKeyRecentEmojis = "recentEmojis"
 )
 
 //msgp:tuple User
@@ -917,6 +918,21 @@ func (u *UserWithGroups) GetGroupIDs() []string {
 		return nil
 	}
 	return strings.Split(trimmed, ",")
+}
+
+type RecentEmoji struct {
+	Name       string `json:"name"`
+	UsageCount uint32 `json:"usageCount"`
+}
+
+func (u *User) SetRecentEmojis(re *[]RecentEmoji) error {
+	u.MakeNonNil()
+	statusJSON, jsonErr := json.Marshal(re)
+	if jsonErr != nil {
+		return jsonErr
+	}
+	u.Props[UserPropsKeyRecentEmojis] = string(statusJSON)
+	return nil
 }
 
 //msgp:ignore UsersWithGroupsAndCount

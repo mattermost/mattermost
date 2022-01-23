@@ -2357,3 +2357,22 @@ func (a *App) UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID
 func getProfileImagePath(userID string) string {
 	return filepath.Join("users", userID, "profile.png")
 }
+
+func (a *App) SetRecentEmojis(userID string, re *[]model.RecentEmoji) *model.AppError {
+	if re == nil {
+		return model.NewAppError("SetRecentEmojis", "api.recent_emojis.set_recent_emojis.update.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	user, err := a.GetUser(userID)
+	if err != nil {
+		return err
+	}
+
+	user.SetRecentEmojis(re)
+	_, updateErr := a.UpdateUser(user, true)
+	if updateErr != nil {
+		return err
+	}
+
+	return nil
+}

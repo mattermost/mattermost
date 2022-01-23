@@ -3171,3 +3171,30 @@ func updateReadStateAllThreadsByUser(c *Context, w http.ResponseWriter, r *http.
 	ReturnStatusOK(w)
 	auditRec.Success()
 }
+
+func updateUserRecentEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	var recentEmojis []model.RecentEmoji
+	jsonErr := json.NewDecoder(r.Body).Decode(&recentEmojis)
+	if jsonErr != nil {
+		c.SetInvalidParam("recent_emojis")
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	err := c.App.SetRecentEmojis(c.Params.UserId, &recentEmojis)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+}

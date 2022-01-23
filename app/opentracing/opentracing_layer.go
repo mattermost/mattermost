@@ -14876,6 +14876,28 @@ func (a *OpenTracingAppLayer) SetProfileImageFromMultiPartFile(userID string, fi
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) SetRecentEmojis(userID string, re *[]model.RecentEmoji) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetRecentEmojis")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.SetRecentEmojis(userID, re)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) SetRemoteClusterLastPingAt(remoteClusterId string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetRemoteClusterLastPingAt")

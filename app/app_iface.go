@@ -989,6 +989,7 @@ type AppIface interface {
 	SetProfileImage(userID string, imageData *multipart.FileHeader) *model.AppError
 	SetProfileImageFromFile(userID string, file io.Reader) *model.AppError
 	SetProfileImageFromMultiPartFile(userID string, file multipart.File) *model.AppError
+	SetRecentEmojis(userID string, re *[]model.RecentEmoji) *model.AppError
 	SetRemoteClusterLastPingAt(remoteClusterId string) *model.AppError
 	SetSamlIdpCertificateFromMetadata(data []byte) *model.AppError
 	SetSearchEngine(se *searchengine.Broker)
