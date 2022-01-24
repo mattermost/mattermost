@@ -80,6 +80,7 @@ func (sa StringArray) Value() (driver.Value, error) {
 	if err != nil {
 		return nil, err
 	}
+	// non utf8 characters are not supported
 	return driver.Value(string(j)), err
 }
 
