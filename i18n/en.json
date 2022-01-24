@@ -4329,19 +4329,19 @@
   },
   {
     "id": "app.admin.latest_version_external_error.failure",
-    "translation": "Unable to fetch the latest version from Github."
+    "translation": " "
   },
   {
     "id": "app.admin.latest_version_read_all.failure",
-    "translation": "Unable to read github response."
+    "translation": " "
   },
   {
     "id": "app.admin.latest_version_set_cache.failure",
-    "translation": "Unable to set latest version cache."
+    "translation": " "
   },
   {
     "id": "app.admin.latest_version_unmarshal.failure",
-    "translation": "Unable to convert github response."
+    "translation": " "
   },
   {
     "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
@@ -8393,7 +8393,7 @@
   },
   {
     "id": "model.github_release_info.is_valid.id.app_error",
-    "translation": "Invalid value for github ID."
+    "translation": " "
   },
   {
     "id": "model.group.create_at.app_error",
