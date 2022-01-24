@@ -22,7 +22,7 @@ import (
 )
 
 var latestVersionCache = cache.NewLRU(cache.LRUOptions{
-	Size: 1000,
+	Size: 1,
 })
 
 func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
