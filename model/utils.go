@@ -162,7 +162,7 @@ type AppError struct {
 	StatusCode    int    `json:"status_code,omitempty"` // The http status code
 	Where         string `json:"-"`                     // The function where it happened in the form of Struct.Func
 	IsOAuth       bool   `json:"is_oauth,omitempty"`    // Whether the error is OAuth specific
-	params        map[string]interface{}
+	params        StringInterface
 }
 
 func (er *AppError) Error() string {
@@ -213,7 +213,7 @@ func AppErrorFromJSON(data io.Reader) *AppError {
 	return &er
 }
 
-func NewAppError(where string, id string, params map[string]interface{}, details string, status int) *AppError {
+func NewAppError(where string, id string, params StringInterface, details string, status int) *AppError {
 	ap := &AppError{}
 	ap.Id = id
 	ap.params = params
@@ -340,22 +340,22 @@ func MapBoolFromJSON(data io.Reader) map[string]bool {
 	return objmap
 }
 
-func ArrayToJSON(objmap []string) string {
+func ArrayToJSON(objmap StringArray) string {
 	b, _ := json.Marshal(objmap)
 	return string(b)
 }
 
-func ArrayFromJSON(data io.Reader) []string {
+func ArrayFromJSON(data io.Reader) StringArray {
 	decoder := json.NewDecoder(data)
 
-	var objmap []string
+	var objmap StringArray
 	if err := decoder.Decode(&objmap); err != nil {
-		return make([]string, 0)
+		return make(StringArray, 0)
 	}
 	return objmap
 }
 
-func ArrayFromInterface(data interface{}) []string {
+func ArrayFromInterface(data interface{}) StringArray {
 	stringArray := []string{}
 
 	dataArray, ok := data.([]interface{})
@@ -372,17 +372,17 @@ func ArrayFromInterface(data interface{}) []string {
 	return stringArray
 }
 
-func StringInterfaceToJSON(objmap map[string]interface{}) string {
+func StringInterfaceToJSON(objmap StringInterface) string {
 	b, _ := json.Marshal(objmap)
 	return string(b)
 }
 
-func StringInterfaceFromJSON(data io.Reader) map[string]interface{} {
+func StringInterfaceFromJSON(data io.Reader) StringInterface {
 	decoder := json.NewDecoder(data)
 
-	var objmap map[string]interface{}
+	var objmap StringInterface
 	if err := decoder.Decode(&objmap); err != nil {
-		return make(map[string]interface{})
+		return make(StringInterface)
 	}
 	return objmap
 }
@@ -448,7 +448,7 @@ func IsValidEmail(email string) bool {
 	return true
 }
 
-var reservedName = []string{
+var reservedName = StringArray{
 	"admin",
 	"api",
 	"channel",
@@ -588,7 +588,7 @@ func IsValidId(value string) bool {
 
 // RemoveDuplicateStrings does an in-place removal of duplicate strings
 // from the input slice. The original slice gets modified.
-func RemoveDuplicateStrings(in []string) []string {
+func RemoveDuplicateStrings(in StringArray) StringArray {
 	// In-place de-dup.
 	// Copied from https://github.com/golang/go/wiki/SliceTricks#in-place-deduplicate-comparable
 	if len(in) == 0 {
