@@ -3894,3 +3894,32 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 	}
 	return &team, nil
 }
+
+func (s SqlChannelStore) GetCRTUnfixedChannelMembershipsAfter(channelID, userID string, count int) ([]model.ChannelMember, error) {
+	// we want both channelID and userID, or neither of them specified
+	if (userID == "" || channelID == "") && (channelID != userID) {
+		return nil, fmt.Errorf("channelID=%q userID=%q, got one empty param, both need to be empty or specified", channelID, userID)
+	}
+	getUnfixedCMQuery := `
+			SELECT ChannelMembers.*
+			FROM ChannelMembers, Channels
+			WHERE ChannelId = Id AND (ChannelMembers.UserId, ChannelMembers.ChannelId) > (:userId, :channelId) AND Channels.TotalMsgCountRoot > ChannelMembers.MsgCountRoot
+			ORDER BY UserId, ChannelId
+			LIMIT :count;
+	`
+	if userID == "" && channelID == "" {
+		getUnfixedCMQuery = `
+			SELECT ChannelMembers.*
+			FROM ChannelMembers, Channels
+			WHERE ChannelId = Id AND Channels.TotalMsgCountRoot > ChannelMembers.MsgCountRoot
+			ORDER BY UserId, ChannelId
+			LIMIT :count;
+		`
+	}
+	var dbMembers channelMemberWithSchemeRolesList
+
+	if _, err := s.GetReplica().Select(&dbMembers, getUnfixedCMQuery, map[string]interface{}{"channelId": channelID, "userId": userID, "count": count}); err != nil {
+		return nil, errors.Wrapf(err, "failed to get %d ChannelMembers after channelId=%q and userId=%q", count, channelID, userID)
+	}
+	return dbMembers.ToModel(), nil
+}
