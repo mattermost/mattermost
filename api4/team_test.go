@@ -1095,7 +1095,7 @@ func TestGetAllTeams(t *testing.T) {
 		for _, team := range teams {
 			if team.Id == policyTeam.Id {
 				found = true
-				require.Nil(t, team.PolicyId)
+				require.Nil(t, team.PolicyID)
 				break
 			}
 		}
@@ -1110,7 +1110,7 @@ func TestGetAllTeams(t *testing.T) {
 		for _, team := range teams {
 			if team.Id == policyTeam.Id {
 				found = true
-				require.Equal(t, *team.PolicyId, policy.ID)
+				require.Equal(t, *team.PolicyID, policy.ID)
 				break
 			}
 		}
@@ -1393,7 +1393,7 @@ func TestSearchAllTeams(t *testing.T) {
 		for _, team := range teams {
 			if team.Id == policyTeam.Id {
 				found = true
-				require.Nil(t, team.PolicyId)
+				require.Nil(t, team.PolicyID)
 				break
 			}
 		}
@@ -1407,7 +1407,7 @@ func TestSearchAllTeams(t *testing.T) {
 		for _, team := range teams {
 			if team.Id == policyTeam.Id {
 				found = true
-				require.Equal(t, *team.PolicyId, policy.ID)
+				require.Equal(t, *team.PolicyID, policy.ID)
 				break
 			}
 		}

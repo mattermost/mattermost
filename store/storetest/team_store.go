@@ -685,7 +685,7 @@ func testTeamStoreGetAllPage(t *testing.T, ss store.Store) {
 	for _, team := range teams {
 		if team.Id == o.Id {
 			found = true
-			require.Nil(t, team.PolicyId)
+			require.Nil(t, team.PolicyID)
 			break
 		}
 	}
@@ -710,7 +710,7 @@ func testTeamStoreGetAllPage(t *testing.T, ss store.Store) {
 	for _, team := range teams {
 		if team.Id == o.Id {
 			found = true
-			require.Equal(t, *team.PolicyId, policy.ID)
+			require.Equal(t, *team.PolicyID, policy.ID)
 			break
 		}
 	}

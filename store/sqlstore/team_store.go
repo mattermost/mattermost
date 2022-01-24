@@ -748,12 +748,12 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 	if err != nil {
 		return nil, errors.Wrap(err, "team_roles_tosql")
 	}
-	var defaultTeamsRoles []struct {
+	defaultTeamsRoles := []struct {
 		Id    string
 		Guest sql.NullString
 		User  sql.NullString
 		Admin sql.NullString
-	}
+	}{}
 	err = s.GetMasterX().Select(&defaultTeamsRoles, sqlRolesQuery, argsRoles...)
 	if err != nil {
 		return nil, errors.Wrap(err, "default_team_roles_select")
@@ -780,10 +780,10 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 			return nil, errors.Wrap(err, "member_count_tosql")
 		}
 
-		var counters []struct {
+		counters := []struct {
 			Count  int
 			TeamId string
-		}
+		}{}
 
 		err = s.GetMasterX().Select(&counters, sqlCountQuery, argsCount...)
 		if err != nil {
@@ -882,12 +882,12 @@ func (s SqlTeamStore) UpdateMultipleMembers(members []*model.TeamMember) ([]*mod
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
-	var defaultTeamsRoles []struct {
+	defaultTeamsRoles := []struct {
 		Id    string
 		Guest sql.NullString
 		User  sql.NullString
 		Admin sql.NullString
-	}
+	}{}
 	err = s.GetMasterX().Select(&defaultTeamsRoles, sqlQuery, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Teams")
@@ -1266,7 +1266,7 @@ func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) (
 	}
 	defer finalizeTransactionX(transaction)
 
-	var teamMembers []teamMember
+	teamMembers := []teamMember{}
 	if err := transaction.Select(&teamMembers, "SELECT * from TeamMembers WHERE (TeamId, UserId) > (?, ?) ORDER BY TeamId, UserId LIMIT 100", fromTeamId, fromUserId); err != nil {
 		return nil, errors.Wrap(err, "failed to find TeamMembers")
 	}
