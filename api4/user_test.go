@@ -5871,6 +5871,19 @@ func TestGetThreadsForUser(t *testing.T) {
 		require.Equal(t, th.BasicUser.Id, uss.Threads[1].Participants[0].Id)
 	})
 
+	t.Run("setting both threadsOnly, and totalsOnly params is not allowed", func(t *testing.T) {
+		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+
+		_, resp, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			ThreadsOnly: true,
+			TotalsOnly:  true,
+			PageSize:    30,
+		})
+
+		require.Error(t, err)
+		checkHTTPStatus(t, resp, http.StatusBadRequest)
+	})
+
 	t.Run("editing or reacting to reply post does not make thread unread", func(t *testing.T) {
 		client := th.Client
 

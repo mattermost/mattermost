@@ -3025,8 +3025,13 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	options.Before = r.URL.Query().Get("before")
 	options.After = r.URL.Query().Get("after")
+	totalsOnlyStr := r.URL.Query().Get("totalsOnly")
+	threadsOnlyStr := r.URL.Query().Get("threadsOnly")
+	options.TotalsOnly, _ = strconv.ParseBool(totalsOnlyStr)
+	options.ThreadsOnly, _ = strconv.ParseBool(threadsOnlyStr)
+
 	// parameters are mutually exclusive
-	if options.Before != "" && options.After != "" {
+	if (options.Before != "" && options.After != "") || (options.TotalsOnly && options.ThreadsOnly) {
 		c.Err = model.NewAppError("api.getThreadsForUser", "api.getThreadsForUser.bad_params", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -3034,14 +3039,10 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	deletedStr := r.URL.Query().Get("deleted")
 	unreadStr := r.URL.Query().Get("unread")
 	extendedStr := r.URL.Query().Get("extended")
-	totalsOnlyStr := r.URL.Query().Get("totalsOnly")
-	excludeTotalsStr := r.URL.Query().Get("threadsOnly")
 
 	options.Deleted, _ = strconv.ParseBool(deletedStr)
 	options.Unread, _ = strconv.ParseBool(unreadStr)
 	options.Extended, _ = strconv.ParseBool(extendedStr)
-	options.TotalsOnly, _ = strconv.ParseBool(totalsOnlyStr)
-	options.ThreadsOnly, _ = strconv.ParseBool(excludeTotalsStr)
 
 	threads, err := c.App.GetThreadsForUser(c.Params.UserId, c.Params.TeamId, options)
 	if err != nil {
