@@ -81,7 +81,7 @@ func (sa StringArray) Value() (driver.Value, error) {
 		return nil, err
 	}
 	// non utf8 characters are not supported
-	return driver.Value(string(j)), err
+	return string(j), err
 }
 
 // Scan converts database column value to StringArray
