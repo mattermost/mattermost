@@ -36,7 +36,25 @@ PREPARE createIndexIfNotExists FROM @preparedStatement;
 EXECUTE createIndexIfNotExists;
 DEALLOCATE PREPARE createIndexIfNotExists;
 
-UPDATE Threads
-INNER JOIN Posts ON Posts.Id=Threads.PostId
-SET Threads.ChannelId=Posts.ChannelId
-WHERE Threads.ChannelId IS NULL;
+CREATE PROCEDURE Migrate_Empty_Threads ()
+BEGIN
+DECLARE
+	EMPTY_THREADS_EXIST INT;
+	SELECT
+		COUNT(*)
+	FROM
+		Threads
+	WHERE
+		ChannelId IS NULL INTO EMPTY_THREADS_EXIST;
+	IF(EMPTY_THREADS_EXIST > 0) THEN
+		UPDATE
+			Threads
+			INNER JOIN Posts ON Posts.Id = Threads.PostId
+		SET
+			Threads.ChannelId = Posts.ChannelId
+		WHERE
+			Threads.ChannelId IS NULL;
+		END IF;
+END;
+	CALL Migrate_Empty_Threads ();
+	DROP PROCEDURE IF EXISTS Migrate_Empty_Threads;

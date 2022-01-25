@@ -111,7 +111,7 @@ type AppIface interface {
 	DeleteGroupConstrainedMemberships(c *request.Context) error
 	// DeletePublicKey will delete plugin public key from the config.
 	DeletePublicKey(name string) *model.AppError
-	// DemoteUserToGuest Convert user's roles and all his mermbership's roles from
+	// DemoteUserToGuest Convert user's roles and all his membership's roles from
 	// regular user roles to guest roles.
 	DemoteUserToGuest(user *model.User) *model.AppError
 	// DisablePlugin will set the config for an installed plugin to disabled, triggering deactivation if active.
@@ -253,7 +253,7 @@ type AppIface interface {
 	// PopulateWebConnConfig checks if the connection id already exists in the hub,
 	// and if so, accordingly populates the other fields of the webconn.
 	PopulateWebConnConfig(s *model.Session, cfg *WebConnConfig, seqVal string) (*WebConnConfig, error)
-	// PromoteGuestToUser Convert user's roles and all his mermbership's roles from
+	// PromoteGuestToUser Convert user's roles and all his membership's roles from
 	// guest roles to regular user roles.
 	PromoteGuestToUser(c *request.Context, user *model.User, requestorId string) *model.AppError
 	// RenameChannel is used to rename the channel Name and the DisplayName fields
