@@ -1055,13 +1055,13 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.SanitizeTeams(*c.AppContext.Session(), teams)
-
 	var js []byte
 	var jsonErr error
 	if c.Params.IncludeTotalCount {
+		c.App.SanitizeTeams(*c.AppContext.Session(), teamsWithCount.Teams)
 		js, jsonErr = json.Marshal(teamsWithCount)
 	} else {
+		c.App.SanitizeTeams(*c.AppContext.Session(), teams)
 		js, jsonErr = json.Marshal(teams)
 	}
 	if jsonErr != nil {

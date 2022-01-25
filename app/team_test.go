@@ -929,7 +929,7 @@ func TestGetTeamMembers(t *testing.T) {
 			return users[i].Id < users[j].Id
 		})
 
-		// Fetch team members multipile times
+		// Fetch team members multiple times
 		members, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 5, nil)
 		require.Nil(t, err)
 

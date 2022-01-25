@@ -1706,7 +1706,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		require.NoError(t, err)
 
 		th := SetupConfig(t, func(cfg *model.Config) {
-			// Disable auto-installing prepackged plugins
+			// Disable auto-installing prepackaged plugins
 			*cfg.PluginSettings.AutomaticPrepackagedPlugins = false
 		}).InitBasic()
 		defer th.TearDown()
