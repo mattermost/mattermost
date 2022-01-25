@@ -8269,7 +8269,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Оптимизируйте свою работу с такими инструментами, как Github, Jira and Zoom.. Просмотрите все интеграции, которые есть у нас в нашем"
+    "translation": "Оптимизируйте свою работу с такими инструментами, как Github, Jira and Zoom. Просмотрите все интеграции, которые есть у нас в нашем"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -8613,11 +8613,11 @@
   },
   {
     "id": "api.command_remote.name.hint",
-    "translation": "Уникальное имя для безопасного соединения"
+    "translation": "Уникальное название для безопасного соединения"
   },
   {
     "id": "api.command_remote.name.help",
-    "translation": "Имя защищенного соединения"
+    "translation": "Название защищенного соединения"
   },
   {
     "id": "api.command_remote.name",
@@ -8925,11 +8925,11 @@
   },
   {
     "id": "api.command_remote.displayname.hint",
-    "translation": "Отображаемое имя безопасного соединения"
+    "translation": "Отображаемое название безопасного соединения"
   },
   {
     "id": "api.command_remote.displayname.help",
-    "translation": "Отображаемое имя безопасного соединения"
+    "translation": "Отображаемое название безопасного соединения"
   },
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
@@ -9081,15 +9081,15 @@
   },
   {
     "id": "app.notification.body.thread_dm.subTitle",
-    "translation": "Пока Вас не было, {{.SenderName}} ответил на тред в Вашем личном сообщении."
+    "translation": "Пока Вас не было, {{.SenderName}} ответил на обсуждение в Вашем личном сообщении."
   },
   {
     "id": "app.notification.body.thread_channel_full.subTitle",
-    "translation": "Пока Вас не было, {{.SenderName}} ответил в теме, за которой Вы следите в {{.ChannelName}}."
+    "translation": "Пока Вас не было, {{.SenderName}} ответил в обсуждении, за которым Вы следите на {{.ChannelName}}."
   },
   {
     "id": "app.notification.body.thread_channel.subTitle",
-    "translation": "Пока Вас не было, {{.SenderName}} ответил в теме, за которой Вы следите."
+    "translation": "Пока Вас не было, {{.SenderName}} ответил в обсуждении, за которым Вы следите."
   },
   {
     "id": "app.notification.body.mention.title",
@@ -9125,11 +9125,11 @@
   },
   {
     "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
-    "translation": "Список админов пуст."
+    "translation": "Список администраторов пуст."
   },
   {
     "id": "app.bot.get_system_bot.empty_admin_list.app_error",
-    "translation": "Список админов пуст."
+    "translation": "Список администраторов пуст."
   },
   {
     "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
@@ -9149,7 +9149,7 @@
   },
   {
     "id": "api.user.update_active.cloud_at_limit_check_error",
-    "translation": "Невозможно проверить количество пользователей в вашем облачном экземпляре Mattermost."
+    "translation": "Невозможно проверить количество пользователей в Вашем облачном экземпляре Mattermost."
   },
   {
     "id": "api.user.invalidate_verify_email_tokens_parse.error",
@@ -9197,11 +9197,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, ваша 14-дневная пробная версия Mattermost заканчивается через 3 дня {{.TrialEnd}}. Пожалуйста, добавьте свою платежную информацию, чтобы Ваша команда могла продолжать пользоваться преимуществами Mattermost Cloud."
+    "translation": "{{.Name}}, Ваша 14-дневная пробная версия Mattermost заканчивается через 3 дня {{.TrialEnd}}. Пожалуйста, добавьте свою платежную информацию, чтобы Ваша команда могла продолжать пользоваться преимуществами Mattermost Cloud."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, ваша 14-дневная бесплатная пробная версия Mattermost Cloud Professional закончилась сегодня, {{.TodayDate}}. Добавьте платежную информацию, чтобы ваша команда могла продолжать пользоваться преимуществами Cloud Professional."
+    "translation": "{{.Name}}, Ваша 14-дневная бесплатная пробная версия Mattermost Cloud Professional закончилась сегодня, {{.TodayDate}}. Добавьте платежную информацию, чтобы Ваша команда могла продолжать пользоваться преимуществами Cloud Professional."
   },
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
@@ -9209,7 +9209,7 @@
   },
   {
     "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "Перейдите в **Системная консоль > Конфигурация сайта > Настройка**, чтобы установить [Support Email](https://docs.mattermost.com/administration/config-settings.html#support-email) в качестве внутреннего адреса электронной почты ИТ-поддержки вашей организации для обратной связи с конечными пользователями, уведомлений по электронной почте и запросов в службу поддержки."
+    "translation": "Перейдите в **Системная консоль > Конфигурация сайта > Настройка**, чтобы установить [электронную почту техподдержки](https://docs.mattermost.com/administration/config-settings.html#support-email) в качестве внутреннего адреса электронной почты ИТ-поддержки Вашей организации для обратной связи с конечными пользователями, уведомлений по электронной почте и запросов в службу техподдержки."
   },
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
@@ -9229,7 +9229,7 @@
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
-    "translation": " ответил в треде."
+    "translation": " ответил в обсуждении."
   },
   {
     "id": "api.license.request_renewal_link.cannot_renew_on_cws",
