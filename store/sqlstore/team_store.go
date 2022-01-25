@@ -394,7 +394,7 @@ func (s SqlTeamStore) teamSearchQuery(opts *model.TeamSearch, countQuery bool) s
 	} else {
 		selectStr = "t.*"
 		if opts.IncludePolicyID != nil && *opts.IncludePolicyID {
-			selectStr += ", RetentionPoliciesTeams.PolicyId"
+			selectStr += ", RetentionPoliciesTeams.PolicyId as PolicyID"
 		}
 	}
 
@@ -568,7 +568,7 @@ func (s SqlTeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) 
 
 	selectString := "Teams.*"
 	if opts != nil && opts.IncludePolicyID != nil && *opts.IncludePolicyID {
-		selectString += ", RetentionPoliciesTeams.PolicyId"
+		selectString += ", RetentionPoliciesTeams.PolicyId as PolicyID"
 	}
 
 	builder := s.getQueryBuilder().
