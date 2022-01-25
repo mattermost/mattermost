@@ -323,7 +323,7 @@ jobs:
       - run:
           name: Run Tests
           command: |
-            ulimit -n 10240
+            # ulimit -n 10240
             mkdir -p mattermost-server/client/plugins
             cd mattermost-server/build
             docker run -it --net circleci_mm-test \
