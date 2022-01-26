@@ -775,7 +775,7 @@ func TestMigrateConfig(t *testing.T) {
 		CheckForbiddenStatus(t, response)
 	})
 
-	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+	t.Run("LocalClient", func(t *testing.T) {
 		f, err := config.NewStoreFromDSN("from.json", false, nil)
 		require.NoError(t, err)
 		defer f.RemoveFile("from.json")
@@ -784,7 +784,7 @@ func TestMigrateConfig(t *testing.T) {
 		require.NoError(t, err)
 		defer f.RemoveFile("to.json")
 
-		_, err = client.MigrateConfig("from.json", "to.json")
+		_, err = th.LocalClient.MigrateConfig("from.json", "to.json")
 		require.NoError(t, err)
 	})
 
