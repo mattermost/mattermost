@@ -11,7 +11,9 @@ type GoManager struct {
 }
 
 func New() *GoManager {
-	return &GoManager{}
+	return &GoManager{
+		goroutineExitSignal: make(chan struct{}, 1),
+	}
 }
 
 // Go creates a goroutine, but maintains a record of it to ensure that execution completes before
