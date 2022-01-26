@@ -2301,6 +2301,64 @@ func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state b
 	return nil
 }
 
+func (a *App) UpdateThreadFollowForUserFromChannelAdd(userID, teamID, threadID string) *model.AppError {
+	opts := store.ThreadMembershipOpts{
+		Following:             true,
+		IncrementMentions:     false,
+		UpdateFollowing:       true,
+		UpdateViewedTimestamp: false,
+		UpdateParticipants:    false,
+	}
+	tm, err := a.Srv().Store.Thread().MaintainMembership(userID, threadID, opts)
+	if err != nil {
+		return model.NewAppError("UpdateThreadFollowForUserFromChannelAdd", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	post, appErr := a.GetSinglePost(threadID)
+	if appErr != nil {
+		return appErr
+	}
+	user, appErr := a.GetUser(userID)
+	if appErr != nil {
+		return appErr
+	}
+	tm.UnreadMentions, appErr = a.countThreadMentions(user, post, teamID, post.CreateAt-1)
+	if appErr != nil {
+		return appErr
+	}
+	tm.LastViewed = post.CreateAt - 1
+	_, err = a.Srv().Store.Thread().UpdateMembership(tm)
+	if err != nil {
+		return model.NewAppError("UpdateThreadFollowForUserFromChannelAdd", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, teamID, "", userID, nil)
+	userThread, err := a.Srv().Store.Thread().GetThreadForUser(teamID, tm, true)
+	if err != nil {
+		var errNotFound *store.ErrNotFound
+		if errors.As(err, &errNotFound) {
+			return nil
+		}
+		return model.NewAppError("UpdateThreadFollowForUserFromChannelAdd", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	a.sanitizeProfiles(userThread.Participants, false)
+	userThread.Post.SanitizeProps()
+	sanitizedPost, appErr := a.SanitizePostMetadataForUser(userThread.Post, userID)
+	if appErr != nil {
+		return appErr
+	}
+	userThread.Post = sanitizedPost
+
+	payload, jsonErr := json.Marshal(userThread)
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode thread to JSON")
+	}
+	message.Add("thread", string(payload))
+
+	a.Publish(message)
+	return nil
+}
+
 func (a *App) UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError) {
 	user, err := a.GetUser(userID)
 	if err != nil {
