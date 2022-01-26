@@ -230,7 +230,7 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 		}, nil
 	}
 
-	if _, ok := post.GetProps()["boards"]; ok && a.Config().FeatureFlags.BoardsUnfurl {
+	if _, ok := post.GetProps()["boards"]; ok {
 		return &model.PostEmbed{
 			Type: model.PostEmbedBoards,
 			Data: post.GetProps()["boards"],
@@ -515,7 +515,7 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 		referencedPostID := requestURL[len(requestURL)-26:]
 
 		referencedPost, appErr := a.GetSinglePost(referencedPostID)
-		// TODO: Look into saving a value in the LinkMetadat.Data field to prevent perpetually re-querying for the deleted post.
+		// TODO: Look into saving a value in the LinkMetadata.Data field to prevent perpetually re-querying for the deleted post.
 		if appErr != nil {
 			return nil, nil, nil, appErr
 		}
