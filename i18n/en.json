@@ -1455,10 +1455,6 @@
     "translation": "Failed to migrate config store."
   },
   {
-    "id": "api.config.migrate_config_restricted.app_error",
-    "translation": "Config migration is restricted due to instance type."
-  },
-  {
     "id": "api.config.patch_config.diff.app_error",
     "translation": "Failed to diff configs"
   },
