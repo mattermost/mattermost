@@ -6196,6 +6196,10 @@
     "translation": "Unable to remove the team member."
   },
   {
+    "id": "app.team.rename_team.name_occupied",
+    "translation": "Unable to rename the team, the name is already in use."
+  },
+  {
     "id": "app.team.reset_all_team_schemes.app_error",
     "translation": "We could not reset the team schemes."
   },
