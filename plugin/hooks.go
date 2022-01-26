@@ -253,6 +253,6 @@ type Hooks interface {
 
 	// OnSendDailyTelemetry is invoked when the server send the daily telemtry data.
 	//
-	// Minimum server version: 6.4
+	// Minimum server version: 6.5
 	OnSendDailyTelemetry()
 }
