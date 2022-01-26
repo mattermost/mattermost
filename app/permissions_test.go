@@ -108,7 +108,7 @@ func TestImportPermissions(t *testing.T) {
 	withMigrationMarkedComplete(th, func() {
 
 		var appErr *model.AppError
-		results, appErr = th.App.getSchemes(scope, 0, 100)
+		results, appErr = th.App.GetSchemes(scope, 0, 100)
 		if appErr != nil {
 			panic(appErr)
 		}
@@ -121,7 +121,7 @@ func TestImportPermissions(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		results, appErr = th.App.getSchemes(scope, 0, 100)
+		results, appErr = th.App.GetSchemes(scope, 0, 100)
 		if appErr != nil {
 			panic(appErr)
 		}
@@ -191,7 +191,7 @@ func TestImportPermissions_idempotentScheme(t *testing.T) {
 	var expected int
 	withMigrationMarkedComplete(th, func() {
 		var appErr *model.AppError
-		results, appErr = th.App.getSchemes(model.SchemeScopeChannel, 0, 100)
+		results, appErr = th.App.GetSchemes(model.SchemeScopeChannel, 0, 100)
 		if appErr != nil {
 			panic(appErr)
 		}
@@ -202,7 +202,7 @@ func TestImportPermissions_idempotentScheme(t *testing.T) {
 			t.Error(err)
 		}
 
-		results, appErr = th.App.getSchemes(model.SchemeScopeChannel, 0, 100)
+		results, appErr = th.App.GetSchemes(model.SchemeScopeChannel, 0, 100)
 		if appErr != nil {
 			panic(appErr)
 		}
@@ -233,7 +233,7 @@ func TestImportPermissions_schemeDeletedOnRoleFailure(t *testing.T) {
 	var expected int
 	withMigrationMarkedComplete(th, func() {
 		var appErr *model.AppError
-		results, appErr = th.App.getSchemes(model.SchemeScopeChannel, 0, 100)
+		results, appErr = th.App.GetSchemes(model.SchemeScopeChannel, 0, 100)
 		if appErr != nil {
 			panic(appErr)
 		}
@@ -244,7 +244,7 @@ func TestImportPermissions_schemeDeletedOnRoleFailure(t *testing.T) {
 			t.Error(err)
 		}
 
-		results, appErr = th.App.getSchemes(model.SchemeScopeChannel, 0, 100)
+		results, appErr = th.App.GetSchemes(model.SchemeScopeChannel, 0, 100)
 		if appErr != nil {
 			panic(appErr)
 		}

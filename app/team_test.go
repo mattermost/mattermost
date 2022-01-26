@@ -772,7 +772,7 @@ func TestJoinUserToTeam(t *testing.T) {
 
 		_, appErr := th.App.JoinUserToTeam(th.Context, team, ruser1, ruser2.Id)
 		require.Nil(t, appErr, "Should return no error")
-		appErr = th.App.LeaveTeam(th.Context, team, ruser1, ruser1.Id)
+		appErr = th.App.leaveTeam(th.Context, team, ruser1, ruser1.Id)
 		require.Nil(t, appErr, "Should return no error")
 		_, appErr = th.App.JoinUserToTeam(th.Context, team, ruser2, ruser2.Id)
 		require.Nil(t, appErr, "Should return no error")
