@@ -3013,6 +3013,7 @@ func TestAddChannelMember(t *testing.T) {
 }
 
 func TestAddChannelMemberFromThread(t *testing.T) {
+	t.Skip("MM-41285")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	team := th.BasicTeam
