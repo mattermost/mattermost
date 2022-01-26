@@ -47,7 +47,6 @@ func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, 
 	configService := &FakeConfigService{cfg}
 	serverIfaceMock.On("Config").Return(cfg)
 	serverIfaceMock.On("IsLeader").Return(true)
-	serverIfaceMock.On("Go", mock.AnythingOfType("func()"))
 
 	pluginDir, _ := ioutil.TempDir("", "")
 	webappPluginDir, _ := ioutil.TempDir("", "")
