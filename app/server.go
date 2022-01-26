@@ -48,6 +48,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/awsmeter"
 	"github.com/mattermost/mattermost-server/v6/services/cache"
+	"github.com/mattermost/mattermost-server/v6/services/gomanager"
 	"github.com/mattermost/mattermost-server/v6/services/httpservice"
 	"github.com/mattermost/mattermost-server/v6/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine"
@@ -103,8 +104,7 @@ type Server struct {
 
 	didFinishListen chan struct{}
 
-	goroutineCount      int32
-	goroutineExitSignal chan struct{}
+	goManager *gomanager.GoManager
 
 	EmailService *email.Service
 
@@ -186,9 +186,9 @@ func NewServer(options ...Option) (*Server, error) {
 	localRouter := mux.NewRouter()
 
 	s := &Server{
-		goroutineExitSignal: make(chan struct{}, 1),
-		RootRouter:          rootRouter,
-		LocalRouter:         localRouter,
+		goManager:   gomanager.New(),
+		RootRouter:  rootRouter,
+		LocalRouter: localRouter,
 		WebSocketRouter: &WebSocketRouter{
 			handlers: make(map[string]webSocketHandler),
 		},
@@ -1069,24 +1069,12 @@ func (s *Server) UpgradeToE0Status() (int64, error) {
 // Go creates a goroutine, but maintains a record of it to ensure that execution completes before
 // the server is shutdown.
 func (s *Server) Go(f func()) {
-	atomic.AddInt32(&s.goroutineCount, 1)
-
-	go func() {
-		f()
-
-		atomic.AddInt32(&s.goroutineCount, -1)
-		select {
-		case s.goroutineExitSignal <- struct{}{}:
-		default:
-		}
-	}()
+	s.goManager.Go(f)
 }
 
 // WaitForGoroutines blocks until all goroutines created by App.Go exit.
 func (s *Server) WaitForGoroutines() {
-	for atomic.LoadInt32(&s.goroutineCount) != 0 {
-		<-s.goroutineExitSignal
-	}
+	s.goManager.WaitForGoroutines()
 }
 
 var corsAllowedMethods = []string{
