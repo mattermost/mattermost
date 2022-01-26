@@ -217,15 +217,27 @@ func (s *Server) removeFile(path string) *model.AppError {
 }
 
 func (a *App) ListDirectory(path string) ([]string, *model.AppError) {
-	return a.Srv().listDirectory(path)
+	return a.Srv().listDirectory(path, false)
 }
 
-func (s *Server) listDirectory(path string) ([]string, *model.AppError) {
+func (a *App) ListDirectoryRecursively(path string) ([]string, *model.AppError) {
+	return a.Srv().listDirectory(path, true)
+}
+
+func (s *Server) listDirectory(path string, recursion bool) ([]string, *model.AppError) {
 	backend, err := s.FileBackend()
 	if err != nil {
 		return nil, err
 	}
-	paths, nErr := backend.ListDirectory(path)
+	var paths []string
+	var nErr error
+
+	if recursion {
+		paths, nErr = backend.ListDirectoryRecursively(path)
+	} else {
+		paths, nErr = backend.ListDirectory(path)
+	}
+
 	if nErr != nil {
 		return nil, model.NewAppError("ListDirectory", "api.file.list_directory.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}

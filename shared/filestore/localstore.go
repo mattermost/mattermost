@@ -224,6 +224,10 @@ func appendRecursively(basePath, path string, maxDepth int) ([]string, error) {
 }
 
 func (b *LocalFileBackend) ListDirectory(path string) ([]string, error) {
+	return appendRecursively(b.directory, path, 0)
+}
+
+func (b *LocalFileBackend) ListDirectoryRecursively(path string) ([]string, error) {
 	return appendRecursively(b.directory, path, 10)
 }
 
