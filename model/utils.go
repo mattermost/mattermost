@@ -76,7 +76,12 @@ func (sa StringArray) Equals(input StringArray) bool {
 
 // Value converts StringArray to database value
 func (sa StringArray) Value() (driver.Value, error) {
-	return json.Marshal(sa)
+	j, err := json.Marshal(sa)
+	if err != nil {
+		return nil, err
+	}
+	// non utf8 characters are not supported
+	return string(j), err
 }
 
 // Scan converts database column value to StringArray
