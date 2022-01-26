@@ -104,7 +104,7 @@ type Server struct {
 
 	didFinishListen chan struct{}
 
-	goManager *gomanager.GoManager
+	goManager gomanager.GoManager
 
 	EmailService *email.Service
 
@@ -186,7 +186,6 @@ func NewServer(options ...Option) (*Server, error) {
 	localRouter := mux.NewRouter()
 
 	s := &Server{
-		goManager:   gomanager.New(),
 		RootRouter:  rootRouter,
 		LocalRouter: localRouter,
 		WebSocketRouter: &WebSocketRouter{

@@ -95,7 +95,7 @@ type ServerIface interface {
 
 type TelemetryService struct {
 	srv                        ServerIface
-	goManager                  *gomanager.GoManager
+	goManager                  gomanager.GoManager
 	dbStore                    store.Store
 	searchEngine               *searchengine.Broker
 	log                        *mlog.Logger
@@ -112,7 +112,6 @@ type RudderConfig struct {
 func New(srv ServerIface, dbStore store.Store, searchEngine *searchengine.Broker, log *mlog.Logger) *TelemetryService {
 	service := &TelemetryService{
 		srv:          srv,
-		goManager:    gomanager.New(),
 		dbStore:      dbStore,
 		searchEngine: searchEngine,
 		log:          log,
