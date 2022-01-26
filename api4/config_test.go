@@ -769,12 +769,6 @@ func TestMigrateConfig(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	t.Run("user is not system admin", func(t *testing.T) {
-		response, err := th.Client.MigrateConfig("from", "to")
-		require.Error(t, err)
-		CheckForbiddenStatus(t, response)
-	})
-
 	t.Run("LocalClient", func(t *testing.T) {
 		f, err := config.NewStoreFromDSN("from.json", false, nil)
 		require.NoError(t, err)
@@ -786,21 +780,5 @@ func TestMigrateConfig(t *testing.T) {
 
 		_, err = th.LocalClient.MigrateConfig("from.json", "to.json")
 		require.NoError(t, err)
-	})
-
-	t.Run("Cloud instances should not access to this API", func(t *testing.T) {
-		require.True(t, th.App.Srv().SetLicense(model.NewTestLicense("cloud")))
-
-		f, err := config.NewStoreFromDSN("from.json", false, nil)
-		require.NoError(t, err)
-		defer f.RemoveFile("from.json")
-
-		_, err = config.NewStoreFromDSN("to.json", false, nil)
-		require.NoError(t, err)
-		defer f.RemoveFile("to.json")
-
-		response, cErr := th.SystemAdminClient.MigrateConfig("from.json", "to.json")
-		require.Error(t, cErr)
-		CheckForbiddenStatus(t, response)
 	})
 }
