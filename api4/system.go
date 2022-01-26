@@ -66,8 +66,8 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/warn_metrics/trial-license-ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.APIHandler(requestTrialLicenseAndAckWarnMetric)).Methods("POST")
 	api.BaseRoutes.System.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getProductNotices)).Methods("GET")
 	api.BaseRoutes.System.Handle("/notices/view", api.APISessionRequired(updateViewedProductNotices)).Methods("PUT")
-
 	api.BaseRoutes.System.Handle("/support_packet", api.APISessionRequired(generateSupportPacket)).Methods("GET")
+	api.BaseRoutes.System.Handle("/onboarding/complete", api.APIHandler(completeOnboarding)).Methods("POST")
 }
 
 func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -852,6 +852,32 @@ func updateViewedProductNotices(c *Context, w http.ResponseWriter, r *http.Reque
 	err := c.App.UpdateViewedProductNotices(c.AppContext.Session().UserId, ids)
 	if err != nil {
 		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+func completeOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) && !c.App.IsFirstUserAccount() {
+		c.Err = model.NewAppError("completeOnboarding", "app.system.complete_onboarding_request.no_first_user", nil, "", http.StatusForbidden)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("completeOnboarding", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	onboardingRequest, err := model.CompleteOnboardingRequestFromReader(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("completeOnboarding", "app.system.complete_onboarding_request.app_error", nil, err.Error(), http.StatusBadRequest)
+		return
+	}
+	auditRec.AddMeta("install_plugin", onboardingRequest.InstallPlugins)
+
+	appErr := c.App.CompleteOnboarding(onboardingRequest)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
