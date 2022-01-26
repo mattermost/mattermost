@@ -387,7 +387,7 @@ func TestExportGMandDMChannels(t *testing.T) {
 	channels, nErr = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
 	require.NoError(t, nErr)
 
-	// Adding some deteminism so its possible to assert on slice index
+	// Adding some determinism so its possible to assert on slice index
 	sort.Slice(channels, func(i, j int) bool { return channels[i].Type > channels[j].Type })
 	assert.Equal(t, 2, len(channels))
 	assert.ElementsMatch(t, []string{th1.BasicUser.Username, user1.Username, user2.Username}, *channels[0].Members)
@@ -465,7 +465,7 @@ func TestExportDMandGMPost(t *testing.T) {
 	posts, err = th2.App.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
 	require.NoError(t, err)
 
-	// Adding some deteminism so its possible to assert on slice index
+	// Adding some determinism so its possible to assert on slice index
 	sort.Slice(posts, func(i, j int) bool { return posts[i].Message > posts[j].Message })
 	assert.Equal(t, 4, len(posts))
 	assert.ElementsMatch(t, gmMembers, *posts[0].ChannelMembers)

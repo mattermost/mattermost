@@ -558,7 +558,7 @@ func (r *Role) GetChannelModeratedPermissions(channelType ChannelType) map[strin
 	return moderatedPermissions
 }
 
-// RolePatchFromChannelModerationsPatch Creates and returns a RolePatch based on a slice of ChannelModerationPatchs, roleName is expected to be either "members" or "guests".
+// RolePatchFromChannelModerationsPatch Creates and returns a RolePatch based on a slice of ChannelModerationPatches, roleName is expected to be either "members" or "guests".
 func (r *Role) RolePatchFromChannelModerationsPatch(channelModerationsPatch []*ChannelModerationPatch, roleName string) *RolePatch {
 	permissionsToAddToPatch := make(map[string]bool)
 

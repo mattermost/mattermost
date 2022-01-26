@@ -1,14 +1,29 @@
-CREATE PROCEDURE MigrateRootId_Posts () BEGIN DECLARE ParentId_EXIST INT;
-SELECT COUNT(*)
-FROM INFORMATION_SCHEMA.COLUMNS
+CREATE PROCEDURE MigrateRootId_Posts ()
+BEGIN
+DECLARE ParentId_EXIST INT;
+DECLARE Alter_FileIds INT;
+DECLARE Alter_Props INT;
+SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
 WHERE TABLE_NAME = 'Posts'
   AND table_schema = DATABASE()
   AND COLUMN_NAME = 'ParentId' INTO ParentId_EXIST;
-IF(ParentId_EXIST > 0) THEN
-    UPDATE Posts SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId;
-    ALTER TABLE Posts MODIFY COLUMN FileIds text, MODIFY COLUMN Props JSON, DROP COLUMN ParentId;
-ELSE
-    ALTER TABLE Posts MODIFY COLUMN FileIds text, MODIFY COLUMN Props JSON;
+SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE table_name = 'Posts'
+  AND table_schema = DATABASE()
+  AND column_name = 'FileIds'
+  AND column_type != 'text' INTO Alter_FileIds;
+SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE table_name = 'Posts'
+  AND table_schema = DATABASE()
+  AND column_name = 'Props'
+  AND column_type != 'JSON' INTO Alter_Props;
+IF (Alter_Props OR Alter_FileIds) THEN
+	IF(ParentId_EXIST > 0) THEN
+		UPDATE Posts SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId;
+		ALTER TABLE Posts MODIFY COLUMN FileIds text, MODIFY COLUMN Props JSON, DROP COLUMN ParentId;
+	ELSE
+		ALTER TABLE Posts MODIFY COLUMN FileIds text, MODIFY COLUMN Props JSON;
+	END IF;
 END IF;
 END;
 

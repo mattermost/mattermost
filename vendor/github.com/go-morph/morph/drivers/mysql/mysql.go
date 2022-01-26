@@ -132,6 +132,11 @@ func (driver *mysql) Close() error {
 }
 
 func (driver *mysql) Lock() error {
+	if drivers.IsLockable(driver) {
+		// Supports lockable, so already locked at the global level.
+		return nil
+	}
+
 	aid, err := drivers.GenerateAdvisoryLockID(driver.config.databaseName, driver.config.MigrationsTable)
 	if err != nil {
 		return err
@@ -167,6 +172,11 @@ func (driver *mysql) Lock() error {
 }
 
 func (driver *mysql) Unlock() error {
+	if drivers.IsLockable(driver) {
+		// Supports lockable, so already locked at the global level.
+		return nil
+	}
+
 	aid, err := drivers.GenerateAdvisoryLockID(driver.config.databaseName, driver.config.MigrationsTable)
 	if err != nil {
 		return err

@@ -36,9 +36,10 @@ SET @preparedStatement = (SELECT IF(
         WHERE table_name = 'Users'
         AND table_schema = DATABASE()
         AND column_name = 'Timezone'
-        AND column_default = NULL
+        AND column_type = 'varchar(256)'
+        AND column_default IS NULL
     ) > 0,
-    'ALTER TABLE Users ALTER Timezone SET DEFAULT `{"automaticTimezone":"","manualTimezone":"","useAutomaticTimezone":"true"}`;',
+    'ALTER TABLE Users ALTER Timezone SET DEFAULT \'{"automaticTimezone":"","manualTimezone":"","useAutomaticTimezone":"true"}\';',
     'SELECT 1'
 ));
 
