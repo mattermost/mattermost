@@ -7585,7 +7585,7 @@
   },
   {
     "id": "api.templates.at_limit_info1",
-    "translation": "Parece que ahora tienes 10 o más usuarios en tu espacio de trabajo — ¡eso es genial! Si quieres invitar a más miembros del equipo, considera actualizar a Mattermost Cloud Professional ahora."
+    "translation": "Parece que ahora tienes 10 o más usuarios en tu espacio de trabajo — ¡eso es genial! Si quieres invitar a más miembros del equipo, considera actualizar a Mattermost Cloud ahora."
   },
   {
     "id": "api.system.update_viewed_notices.failed",
@@ -7813,7 +7813,7 @@
   },
   {
     "id": "api.templates.over_limit_info1",
-    "translation": "Parece que tienes más de 10 usuarios en tu espacio de trabajo, lo cual está más allá de los límites de la versión gratuita de Mattermost Cloud Professional. Para evitar cualquier interrupción en su espacio de trabajo de Mattermost, por favor, actualícelo."
+    "translation": "Parece que tienes más de 10 usuarios en tu espacio de trabajo, lo cual está más allá de los límites de la versión gratuita de Mattermost Cloud. Para evitar cualquier interrupción en su espacio de trabajo de Mattermost, por favor, actualícelo."
   },
   {
     "id": "api.templates.over_limit_fix_now",
@@ -8405,7 +8405,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, su prueba gratuita de 14 días de Mattermost Cloud Professional ha terminado hoy, {{.TodayDate}}. Por favor, añada su información de pago para asegurarse de que su equipo pueda seguir disfrutando de los beneficios de Cloud Professional."
+    "translation": "{{.Name}}, su prueba gratuita de 14 días de Mattermost Cloud Enterprise ha terminado hoy, {{.TodayDate}}. Por favor, añada su información de pago para asegurarse de que su equipo pueda seguir disfrutando de los beneficios de Cloud Enterprise."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
