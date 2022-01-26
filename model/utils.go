@@ -80,7 +80,7 @@ func (sa StringArray) Value() (driver.Value, error) {
 	if err != nil {
 		return nil, err
 	}
-	// non utf8 characters are not supported
+	// non utf8 characters are not supported https://mattermost.atlassian.net/browse/MM-41066
 	return string(j), err
 }
 
@@ -128,7 +128,7 @@ func (m StringMap) Value() (driver.Value, error) {
 	if err != nil {
 		return nil, err
 	}
-	// non utf8 characters are not supported
+	// non utf8 characters are not supported https://mattermost.atlassian.net/browse/MM-41066
 	return string(j), err
 }
 
@@ -156,7 +156,7 @@ func (si StringInterface) Value() (driver.Value, error) {
 	if err != nil {
 		return nil, err
 	}
-	// non utf8 characters are not supported
+	// non utf8 characters are not supported https://mattermost.atlassian.net/browse/MM-41066
 	return string(j), err
 }
 
