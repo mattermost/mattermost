@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"regexp"
 	"sort"
@@ -225,6 +226,11 @@ func (o *Post) ToJSON() (string, error) {
 	copy.StripActionIntegrations()
 	b, err := json.Marshal(copy)
 	return string(b), err
+}
+
+func (o *Post) EncodeJSON(w io.Writer) error {
+	o.StripActionIntegrations()
+	return json.NewEncoder(w).Encode(o)
 }
 
 type GetPostsSinceOptions struct {
@@ -684,6 +690,20 @@ func (o *Post) ToNilIfInvalid() *Post {
 		return nil
 	}
 	return o
+}
+
+func (o *Post) RemovePreviewPost() {
+	if o.Metadata == nil || o.Metadata.Embeds == nil {
+		return
+	}
+	n := 0
+	for _, embed := range o.Metadata.Embeds {
+		if embed.Type != PostEmbedPermalink {
+			o.Metadata.Embeds[n] = embed
+			n++
+		}
+	}
+	o.Metadata.Embeds = o.Metadata.Embeds[:n]
 }
 
 func (o *Post) GetPreviewPost() *PreviewPost {

@@ -261,7 +261,7 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 	}
 
 	// Override title and subtile for replies with CRT enabled
-	if a.isCRTEnabledForUser(recipient.Id) && post.RootId != "" {
+	if a.IsCRTEnabledForUser(recipient.Id) && post.RootId != "" {
 		// Title is the same in all cases
 		data.Props["Title"] = translateFunc("app.notification.body.thread.title", map[string]interface{}{"SenderName": senderName})
 

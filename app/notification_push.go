@@ -45,6 +45,7 @@ type PushNotification struct {
 	currentSessionId   string
 	userID             string
 	channelID          string
+	rootID             string
 	post               *model.Post
 	user               *model.User
 	channel            *model.Channel
@@ -174,7 +175,7 @@ func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, exp
 	}
 
 	if contentsConfig == model.FullNotification {
-		if channelType == model.ChannelTypeDirect {
+		if channelType == model.ChannelTypeDirect && replyToThreadType != model.CommentsNotifyCRT {
 			return model.ClearMentionTags(postMessage)
 		}
 		return senderName + ": " + model.ClearMentionTags(postMessage)
@@ -217,31 +218,41 @@ func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, exp
 	return senderName + userLocale("api.post.send_notifications_and_forget.push_general_message")
 }
 
-func (a *App) clearPushNotificationSync(currentSessionId, userID, channelID string) *model.AppError {
+func (a *App) clearPushNotificationSync(currentSessionId, userID, channelID, rootID string) *model.AppError {
 	msg := &model.PushNotification{
 		Type:             model.PushTypeClear,
 		Version:          model.PushMessageV2,
 		ChannelId:        channelID,
+		RootId:           rootID,
 		ContentAvailable: 1,
+		Badge:            0,
+		IsCRTEnabled:     a.IsCRTEnabledForUser(userID),
 	}
 
 	unreadCount, err := a.Srv().Store.User().GetUnreadCount(userID)
 	if err != nil {
 		return model.NewAppError("clearPushNotificationSync", "app.user.get_unread_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-
 	msg.Badge = int(unreadCount)
 
+	if msg.IsCRTEnabled {
+		data, err := a.Srv().Store.Thread().GetThreadsForUser(userID, "", model.GetUserThreadsOpts{TotalsOnly: true})
+		if err != nil {
+			return model.NewAppError("clearPushNotificationSync", "app.user.get_thread_count_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		msg.Badge += int(data.TotalUnreadMentions)
+	}
 	return a.sendPushNotificationToAllSessions(msg, userID, currentSessionId)
 }
 
-func (a *App) clearPushNotification(currentSessionId, userID, channelID string) {
+func (a *App) clearPushNotification(currentSessionId, userID, channelID, rootID string) {
 	select {
 	case a.Srv().PushNotificationsHub.notificationsChan <- PushNotification{
 		notificationType: notificationTypeClear,
 		currentSessionId: currentSessionId,
 		userID:           userID,
 		channelID:        channelID,
+		rootID:           rootID,
 	}:
 	case <-a.Srv().PushNotificationsHub.stopChan:
 		return
@@ -281,7 +292,7 @@ func (s *Server) createPushNotificationsHub() {
 	buffer := *s.Config().EmailSettings.PushNotificationBuffer
 	hub := PushNotificationsHub{
 		notificationsChan: make(chan PushNotification, buffer),
-		app:               New(ServerConnector(s)),
+		app:               New(ServerConnector(s.Channels())),
 		wg:                new(sync.WaitGroup),
 		semaWg:            new(sync.WaitGroup),
 		sema:              make(chan struct{}, runtime.NumCPU()*8), // numCPU * 8 is a good amount of concurrency.
@@ -319,7 +330,7 @@ func (hub *PushNotificationsHub) start() {
 				var err *model.AppError
 				switch notification.notificationType {
 				case notificationTypeClear:
-					err = hub.app.clearPushNotificationSync(notification.currentSessionId, notification.userID, notification.channelID)
+					err = hub.app.clearPushNotificationSync(notification.currentSessionId, notification.userID, notification.channelID, notification.rootID)
 				case notificationTypeMessage:
 					err = hub.app.sendPushNotificationSync(
 						notification.post,
@@ -543,7 +554,7 @@ func (a *App) BuildPushNotificationMessage(contentsConfig string, post *model.Po
 	}
 
 	if contentsConfig == model.IdLoadedNotification {
-		msg = a.buildIdLoadedPushNotificationMessage(post, user)
+		msg = a.buildIdLoadedPushNotificationMessage(channel, post, user)
 	} else {
 		msg = a.buildFullPushNotificationMessage(contentsConfig, post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
 	}
@@ -557,17 +568,20 @@ func (a *App) BuildPushNotificationMessage(contentsConfig string, post *model.Po
 	return msg, nil
 }
 
-func (a *App) buildIdLoadedPushNotificationMessage(post *model.Post, user *model.User) *model.PushNotification {
+func (a *App) buildIdLoadedPushNotificationMessage(channel *model.Channel, post *model.Post, user *model.User) *model.PushNotification {
 	userLocale := i18n.GetUserTranslations(user.Locale)
 	msg := &model.PushNotification{
-		PostId:     post.Id,
-		ChannelId:  post.ChannelId,
-		Category:   model.CategoryCanReply,
-		Version:    model.PushMessageV2,
-		Type:       model.PushTypeMessage,
-		IsIdLoaded: true,
-		SenderId:   user.Id,
-		Message:    userLocale("api.push_notification.id_loaded.default_message"),
+		PostId:       post.Id,
+		ChannelId:    post.ChannelId,
+		RootId:       post.RootId,
+		IsCRTEnabled: a.IsCRTEnabledForUser(user.Id),
+		Category:     model.CategoryCanReply,
+		Version:      model.PushMessageV2,
+		TeamId:       channel.TeamId,
+		Type:         model.PushTypeMessage,
+		IsIdLoaded:   true,
+		SenderId:     user.Id,
+		Message:      userLocale("api.push_notification.id_loaded.default_message"),
 	}
 
 	return msg
@@ -577,15 +591,16 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 	explicitMention bool, channelWideMention bool, replyToThreadType string) *model.PushNotification {
 
 	msg := &model.PushNotification{
-		Category:   model.CategoryCanReply,
-		Version:    model.PushMessageV2,
-		Type:       model.PushTypeMessage,
-		TeamId:     channel.TeamId,
-		ChannelId:  channel.Id,
-		PostId:     post.Id,
-		RootId:     post.RootId,
-		SenderId:   post.UserId,
-		IsIdLoaded: false,
+		Category:     model.CategoryCanReply,
+		Version:      model.PushMessageV2,
+		Type:         model.PushTypeMessage,
+		TeamId:       channel.TeamId,
+		ChannelId:    channel.Id,
+		PostId:       post.Id,
+		RootId:       post.RootId,
+		SenderId:     post.UserId,
+		IsCRTEnabled: false,
+		IsIdLoaded:   false,
 	}
 
 	userLocale := i18n.GetUserTranslations(user.Locale)
@@ -594,13 +609,16 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 		msg.ChannelName = channelName
 	}
 
-	if a.isCRTEnabledForUser(user.Id) && post.RootId != "" {
-		if contentsConfig != model.GenericNoChannelNotification {
-			props := map[string]interface{}{"channelName": channelName}
-			msg.ChannelName = userLocale("api.push_notification.title.collapsed_threads", props)
+	if a.IsCRTEnabledForUser(user.Id) {
+		msg.IsCRTEnabled = true
+		if post.RootId != "" {
+			if contentsConfig != model.GenericNoChannelNotification {
+				props := map[string]interface{}{"channelName": channelName}
+				msg.ChannelName = userLocale("api.push_notification.title.collapsed_threads", props)
 
-			if channel.Type == model.ChannelTypeDirect {
-				msg.ChannelName = userLocale("api.push_notification.title.collapsed_threads_dm")
+				if channel.Type == model.ChannelTypeDirect {
+					msg.ChannelName = userLocale("api.push_notification.title.collapsed_threads_dm")
+				}
 			}
 		}
 	}

@@ -97,13 +97,13 @@ func (_m *CloudInterface) GetCloudCustomer(userID string) (*model.CloudCustomer,
 	return r0, r1
 }
 
-// GetCloudProducts provides a mock function with given fields: userID
-func (_m *CloudInterface) GetCloudProducts(userID string) ([]*model.Product, error) {
-	ret := _m.Called(userID)
+// GetCloudProducts provides a mock function with given fields: userID, includeLegacyProducts
+func (_m *CloudInterface) GetCloudProducts(userID string, includeLegacyProducts bool) ([]*model.Product, error) {
+	ret := _m.Called(userID, includeLegacyProducts)
 
 	var r0 []*model.Product
-	if rf, ok := ret.Get(0).(func(string) []*model.Product); ok {
-		r0 = rf(userID)
+	if rf, ok := ret.Get(0).(func(string, bool) []*model.Product); ok {
+		r0 = rf(userID, includeLegacyProducts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Product)
@@ -111,8 +111,8 @@ func (_m *CloudInterface) GetCloudProducts(userID string) ([]*model.Product, err
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userID)
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
+		r1 = rf(userID, includeLegacyProducts)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -171,6 +171,20 @@ func (_m *CloudInterface) GetInvoicesForSubscription(userID string) ([]*model.In
 	}
 
 	return r0, r1
+}
+
+// GetLicenseRenewalStatus provides a mock function with given fields: userID, token
+func (_m *CloudInterface) GetLicenseRenewalStatus(userID string, token string) error {
+	ret := _m.Called(userID, token)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(userID, token)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // GetSubscription provides a mock function with given fields: userID

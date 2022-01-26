@@ -8,8 +8,8 @@ package gzip
 
 import (
 	"bufio"
+	"compress/gzip"
 	"encoding/binary"
-	"errors"
 	"hash/crc32"
 	"io"
 	"time"
@@ -30,9 +30,9 @@ const (
 
 var (
 	// ErrChecksum is returned when reading GZIP data that has an invalid checksum.
-	ErrChecksum = errors.New("gzip: invalid checksum")
+	ErrChecksum = gzip.ErrChecksum
 	// ErrHeader is returned when reading GZIP data that has an invalid header.
-	ErrHeader = errors.New("gzip: invalid header")
+	ErrHeader = gzip.ErrHeader
 )
 
 var le = binary.LittleEndian

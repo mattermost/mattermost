@@ -28,7 +28,7 @@ import (
 )
 
 // SetBucketEncryption sets the default encryption configuration on an existing bucket.
-func (c Client) SetBucketEncryption(ctx context.Context, bucketName string, config *sse.Configuration) error {
+func (c *Client) SetBucketEncryption(ctx context.Context, bucketName string, config *sse.Configuration) error {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return err
@@ -70,7 +70,7 @@ func (c Client) SetBucketEncryption(ctx context.Context, bucketName string, conf
 }
 
 // RemoveBucketEncryption removes the default encryption configuration on a bucket with a context to control cancellations and timeouts.
-func (c Client) RemoveBucketEncryption(ctx context.Context, bucketName string) error {
+func (c *Client) RemoveBucketEncryption(ctx context.Context, bucketName string) error {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return err
@@ -99,7 +99,7 @@ func (c Client) RemoveBucketEncryption(ctx context.Context, bucketName string) e
 
 // GetBucketEncryption gets the default encryption configuration
 // on an existing bucket with a context to control cancellations and timeouts.
-func (c Client) GetBucketEncryption(ctx context.Context, bucketName string) (*sse.Configuration, error) {
+func (c *Client) GetBucketEncryption(ctx context.Context, bucketName string) (*sse.Configuration, error) {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return nil, err

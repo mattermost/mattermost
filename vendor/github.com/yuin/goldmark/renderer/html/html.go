@@ -296,7 +296,7 @@ func (r *Renderer) renderHTMLBlock(w util.BufWriter, source []byte, node ast.Nod
 			l := n.Lines().Len()
 			for i := 0; i < l; i++ {
 				line := n.Lines().At(i)
-				_, _ = w.Write(line.Value(source))
+				r.Writer.SecureWrite(w, line.Value(source))
 			}
 		} else {
 			_, _ = w.WriteString("<!-- raw HTML omitted -->\n")
@@ -305,7 +305,7 @@ func (r *Renderer) renderHTMLBlock(w util.BufWriter, source []byte, node ast.Nod
 		if n.HasClosure() {
 			if r.Unsafe {
 				closure := n.ClosureLine
-				_, _ = w.Write(closure.Value(source))
+				r.Writer.SecureWrite(w, closure.Value(source))
 			} else {
 				_, _ = w.WriteString("<!-- raw HTML omitted -->\n")
 			}
@@ -477,9 +477,7 @@ func (r *Renderer) renderCodeSpan(w util.BufWriter, source []byte, n ast.Node, e
 			value := segment.Value(source)
 			if bytes.HasSuffix(value, []byte("\n")) {
 				r.Writer.RawWrite(w, value[:len(value)-1])
-				if c != n.LastChild() {
-					r.Writer.RawWrite(w, []byte(" "))
-				}
+				r.Writer.RawWrite(w, []byte(" "))
 			} else {
 				r.Writer.RawWrite(w, value)
 			}
@@ -670,7 +668,12 @@ type Writer interface {
 	// RawWrite writes the given source to writer without resolving references and
 	// unescaping backslash escaped characters.
 	RawWrite(writer util.BufWriter, source []byte)
+
+	// SecureWrite writes the given source to writer with replacing insecure characters.
+	SecureWrite(writer util.BufWriter, source []byte)
 }
+
+var replacementCharacter = []byte("\ufffd")
 
 type defaultWriter struct {
 }
@@ -684,6 +687,23 @@ func escapeRune(writer util.BufWriter, r rune) {
 		}
 	}
 	_, _ = writer.WriteRune(util.ToValidRune(r))
+}
+
+func (d *defaultWriter) SecureWrite(writer util.BufWriter, source []byte) {
+	n := 0
+	l := len(source)
+	for i := 0; i < l; i++ {
+		if source[i] == '\u0000' {
+			_, _ = writer.Write(source[i-n : i])
+			n = 0
+			_, _ = writer.Write(replacementCharacter)
+			continue
+		}
+		n++
+	}
+	if n != 0 {
+		_, _ = writer.Write(source[l-n:])
+	}
 }
 
 func (d *defaultWriter) RawWrite(writer util.BufWriter, source []byte) {
@@ -719,6 +739,12 @@ func (d *defaultWriter) Write(writer util.BufWriter, source []byte) {
 				continue
 			}
 		}
+		if c == '\x00' {
+			d.RawWrite(writer, source[n:i])
+			d.RawWrite(writer, replacementCharacter)
+			n = i + 1
+			continue
+		}
 		if c == '&' {
 			pos := i
 			next := i + 1
@@ -730,7 +756,7 @@ func (d *defaultWriter) Write(writer util.BufWriter, source []byte) {
 					if nnext < limit && nc == 'x' || nc == 'X' {
 						start := nnext + 1
 						i, ok = util.ReadWhile(source, [2]int{start, limit}, util.IsHexDecimal)
-						if ok && i < limit && source[i] == ';' {
+						if ok && i < limit && source[i] == ';' && i-start < 7 {
 							v, _ := strconv.ParseUint(util.BytesToReadOnlyString(source[start:i]), 16, 32)
 							d.RawWrite(writer, source[n:pos])
 							n = i + 1
@@ -742,7 +768,7 @@ func (d *defaultWriter) Write(writer util.BufWriter, source []byte) {
 						start := nnext
 						i, ok = util.ReadWhile(source, [2]int{start, limit}, util.IsNumeric)
 						if ok && i < limit && i-start < 8 && source[i] == ';' {
-							v, _ := strconv.ParseUint(util.BytesToReadOnlyString(source[start:i]), 0, 32)
+							v, _ := strconv.ParseUint(util.BytesToReadOnlyString(source[start:i]), 10, 32)
 							d.RawWrite(writer, source[n:pos])
 							n = i + 1
 							escapeRune(writer, rune(v))

@@ -60,7 +60,7 @@ func (a *App) PreparePostListForClient(originalList *model.PostList) *model.Post
 	}
 
 	for id, originalPost := range originalList.Posts {
-		post := a.PreparePostForClient(originalPost, false, false)
+		post := a.PreparePostForClientWithEmbedsAndImages(originalPost, false, false)
 
 		list.Posts[id] = post
 	}
@@ -94,19 +94,21 @@ func (a *App) overrideIconURLIfEmoji(post *model.Post) {
 	}
 }
 
-func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool, isEditPost bool) *model.Post {
+func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost, isEditPost bool) *model.Post {
 	post := originalPost.Clone()
 
 	// Proxy image links before constructing metadata so that requests go through the proxy
 	post = a.postWithProxyAddedToImageURLs(post)
 
 	a.overrideIconURLIfEmoji(post)
-
-	post.Metadata = &model.PostMetadata{}
+	if post.Metadata == nil {
+		post.Metadata = &model.PostMetadata{}
+	}
 
 	if post.DeleteAt > 0 {
 		// For deleted posts we don't fill out metadata nor do we return the post content
 		post.Message = ""
+		post.Metadata = &model.PostMetadata{}
 		return post
 	}
 
@@ -125,8 +127,26 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool, isE
 		post.Metadata.Files = fileInfos
 	}
 
+	return post
+}
+
+func (a *App) PreparePostForClientWithEmbedsAndImages(originalPost *model.Post, isNewPost, isEditPost bool) *model.Post {
+	post := a.PreparePostForClient(originalPost, isNewPost, isEditPost)
+	post = a.getEmbedsAndImages(post, isNewPost)
+	return post
+}
+
+func (a *App) getEmbedsAndImages(post *model.Post, isNewPost bool) *model.Post {
+	if post.Metadata == nil {
+		post.Metadata = &model.PostMetadata{}
+	}
+
 	// Embeds and image dimensions
 	firstLink, images := a.getFirstLinkAndImages(post.Message)
+
+	if post.Metadata.Embeds == nil {
+		post.Metadata.Embeds = []*model.PostEmbed{}
+	}
 
 	if embed, err := a.getEmbedForPost(post, firstLink, isNewPost); err != nil {
 		appErr, ok := err.(*model.AppError)
@@ -135,14 +155,10 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool, isE
 		if !isNotFound {
 			mlog.Debug("Failed to get embedded content for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 		}
-	} else if embed == nil {
-		post.Metadata.Embeds = []*model.PostEmbed{}
-	} else {
-		post.Metadata.Embeds = []*model.PostEmbed{embed}
+	} else if embed != nil {
+		post.Metadata.Embeds = append(post.Metadata.Embeds, embed)
 	}
-
 	post.Metadata.Images = a.getImagesForPost(post, images, isNewPost)
-
 	return post
 }
 
@@ -211,6 +227,13 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 	if _, ok := post.GetProps()["attachments"]; ok {
 		return &model.PostEmbed{
 			Type: model.PostEmbedMessageAttachment,
+		}, nil
+	}
+
+	if _, ok := post.GetProps()["boards"]; ok {
+		return &model.PostEmbed{
+			Type: model.PostEmbedBoards,
+			Data: post.GetProps()["boards"],
 		}, nil
 	}
 
@@ -492,7 +515,7 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 		referencedPostID := requestURL[len(requestURL)-26:]
 
 		referencedPost, appErr := a.GetSinglePost(referencedPostID)
-		// TODO: Look into saving a value in the LinkMetadat.Data field to prevent perpetually re-querying for the deleted post.
+		// TODO: Look into saving a value in the LinkMetadata.Data field to prevent perpetually re-querying for the deleted post.
 		if appErr != nil {
 			return nil, nil, nil, appErr
 		}
@@ -526,6 +549,7 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 		} else {
 			request.Header.Add("Accept", "image/*")
 			request.Header.Add("Accept", "text/html;q=0.8")
+			request.Header.Add("Accept-Language", *a.Config().LocalizationSettings.DefaultServerLocale)
 
 			client := a.HTTPService().MakeClient(false)
 			client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond

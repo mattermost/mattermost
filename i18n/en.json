@@ -1256,7 +1256,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "Open the Account Settings dialog"
+    "translation": "Open the Settings dialog"
   },
   {
     "id": "api.command_settings.name",
@@ -1455,6 +1455,10 @@
     "translation": "Failed to migrate config store."
   },
   {
+    "id": "api.config.migrate_config_restricted.app_error",
+    "translation": "Config migration is restricted due to instance type."
+  },
+  {
     "id": "api.config.patch_config.diff.app_error",
     "translation": "Failed to diff configs"
   },
@@ -1565,6 +1569,10 @@
   {
     "id": "api.custom_status.recent_custom_statuses.delete.app_error",
     "translation": "Failed to delete the recent status. Please try adding the status first or contact your system administrator for details."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Failed to update the custom status. Please add either emoji or custom text status or both."
   },
   {
     "id": "api.email.send_warn_metric_ack.failure.app_error",
@@ -1950,6 +1958,10 @@
     "translation": "Error getting the license renewal link"
   },
   {
+    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
+    "translation": "Renewing this license on the portal is not possible"
+  },
+  {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com."
   },
@@ -2150,10 +2162,6 @@
     "translation": "Invalid RootId parameter."
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "This channel is read-only. Only members with permission can post here."
-  },
-  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Error creating post."
   },
@@ -2216,8 +2224,8 @@
     "translation": "Can not update a post in a deleted channel."
   },
   {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "This channel is read-only. Only members with permission can pin or unpin posts here."
+    "id": "api.post.posts_by_ids.invalid_body.request_error",
+    "translation": "The number of Post IDs received has exceeded the maximum size of {{.MaxLength}}"
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",
@@ -2354,10 +2362,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "You cannot save reaction for the other user."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Reacting to posts is not possible in read-only channels."
   },
   {
     "id": "api.remote_cluster.delete.app_error",
@@ -3061,7 +3065,7 @@
   },
   {
     "id": "api.templates.at_limit_info1",
-    "translation": "It looks like you have 10 or more users in your workspace now — that’s great! If you want to invite more team members, consider upgrading Mattermost Cloud Professional now."
+    "translation": "It looks like you have 10 or more users in your workspace now — that’s great! If you want to invite more team members, consider upgrading Mattermost Cloud now."
   },
   {
     "id": "api.templates.at_limit_info2",
@@ -3089,7 +3093,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Professional has ended today, {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Professional."
+    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Enterprise has ended today, {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Enterprise."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
@@ -3105,7 +3109,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, your 14-day trial of Mattermost Cloud Professional is ending in 3 days, on {{.TrialEnd}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Professional."
+    "translation": "{{.Name}}, your 14-day trial of Mattermost is ending in 3 days, on {{.TrialEnd}}. Please add your payment information to ensure your team can continue enjoying the benefits of Mattermost Cloud."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.title",
@@ -3117,7 +3121,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Streamline your work with tools like Github, Google Calendar and Chrome. Explore all of the integrations we have on our"
+    "translation": "Streamline your work with tools like Github, Jira and Zoom. Explore all of the integrations we have on our"
   },
   {
     "id": "api.templates.cloud_welcome_email.app_market_place",
@@ -3157,7 +3161,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "for the best experience on PC, Mac, iOS and Android."
+    "translation": "for the best experience on Windows, Linux, Mac, iOS and Android."
   },
   {
     "id": "api.templates.cloud_welcome_email.start_questions",
@@ -3229,7 +3233,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "To change your notification preferences, log in to your team site and go to Account Settings > Notifications."
+    "translation": "To change your notification preferences, log in to your team site and go to Settings > Notifications."
   },
   {
     "id": "api.templates.email_footer_v2",
@@ -3270,6 +3274,10 @@
   {
     "id": "api.templates.invite_body.title",
     "translation": "{{ .SenderName }} invited you to join the {{ .TeamDisplayName }} team."
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "Reminder"
   },
   {
     "id": "api.templates.invite_body_footer.info",
@@ -3417,7 +3425,7 @@
   },
   {
     "id": "api.templates.over_limit_info1",
-    "translation": "It looks like you have more than 10 users in your workspace which is beyond the free tier limits of Mattermost Cloud Professional. To avoid any disruption in your Mattermost workspace, please upgrade."
+    "translation": "It looks like you have more than 10 users in your workspace which is beyond the free tier limits of Mattermost Cloud. To avoid any disruption in your Mattermost workspace, please upgrade."
   },
   {
     "id": "api.templates.over_limit_info2",
@@ -3880,6 +3888,10 @@
     "translation": "The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email."
   },
   {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "The email address in the token does not match the one in the user data."
+  },
+  {
     "id": "api.user.create_user.disabled.app_error",
     "translation": "User creation is disabled."
   },
@@ -4246,6 +4258,14 @@
   {
     "id": "api.user.verify_email.token_parse.error",
     "translation": "Failed to parse token data from email verification"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
+    "translation": "Cannot retrieve posts for an archived channel"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
+    "translation": "Cannot retrieve users for an archived channel"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -5505,7 +5525,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " and go to Account Settings > Notifications"
+    "translation": " and go to Settings > Notifications"
   },
   {
     "id": "app.notification.footer.infoLogin",
@@ -5908,6 +5928,10 @@
     "translation": "Unable to get role."
   },
   {
+    "id": "app.role.get_all.app_error",
+    "translation": "Unable to get all the roles."
+  },
+  {
     "id": "app.role.get_by_name.app_error",
     "translation": "Unable to get role."
   },
@@ -5962,6 +5986,10 @@
   {
     "id": "app.session.analytics_session_count.app_error",
     "translation": "Unable to count the sessions."
+  },
+  {
+    "id": "app.session.extend_session_expiry.app_error",
+    "translation": "Unable to extend session length"
   },
   {
     "id": "app.session.get.app_error",
@@ -6342,6 +6370,10 @@
   {
     "id": "app.user.get_recently_active_users.app_error",
     "translation": "We encountered an error while finding the recently active users."
+  },
+  {
+    "id": "app.user.get_thread_count_for_user.app_error",
+    "translation": "We could not get thread count for the user."
   },
   {
     "id": "app.user.get_thread_membership_for_user.app_error",
@@ -6998,6 +7030,14 @@
   {
     "id": "ent.elasticsearch.generic.disabled",
     "translation": "Elasticsearch search is not enabled on this server"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "Failed to get all channel members"
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "Failed to get all team members"
   },
   {
     "id": "ent.elasticsearch.index_channel.error",
@@ -7722,6 +7762,10 @@
   {
     "id": "model.channel_member.is_valid.push_level.app_error",
     "translation": "Invalid push notification level."
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "Invalid channel member roles longer than {{.Limit}} characters."
   },
   {
     "id": "model.channel_member.is_valid.unread_level.app_error",
@@ -8688,6 +8732,22 @@
     "translation": "All IncludeDeletedChannels params should have the same value."
   },
   {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "Invalid CreateAt field for session."
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "Invalid Id field for session."
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "Invalid session roles longer than {{.Limit}} characters."
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "Invalid UserId field for session."
+  },
+  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "Name must be 2 or more lowercase alphanumeric characters."
   },
@@ -8738,6 +8798,10 @@
   {
     "id": "model.team.is_valid.url.app_error",
     "translation": "Invalid URL Identifier."
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "Invalid team member roles longer than {{.Limit}} characters."
   },
   {
     "id": "model.team_member.is_valid.team_id.app_error",
@@ -8906,6 +8970,10 @@
   {
     "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
     "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "Invalid user roles longer than {{.Limit}} characters."
   },
   {
     "id": "model.user.is_valid.update_at.app_error",

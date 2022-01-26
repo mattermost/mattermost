@@ -186,11 +186,11 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 		var interval int64
 		preference, err := job.service.store.Preference().Get(userID, model.PreferenceCategoryNotifications, model.PreferenceNameEmailInterval)
 		if err != nil {
-			// use the default batching interval if an error ocurrs while fetching user preferences
+			// use the default batching interval if an error occurs while fetching user preferences
 			interval, _ = strconv.ParseInt(model.PreferenceEmailIntervalBatchingSeconds, 10, 64)
 		} else {
 			if value, err := strconv.ParseInt(preference.Value, 10, 64); err != nil {
-				// // use the default batching interval if an error ocurrs while deserializing user preferences
+				// // use the default batching interval if an error occurs while deserializing user preferences
 				interval, _ = strconv.ParseInt(model.PreferenceEmailIntervalBatchingSeconds, 10, 64)
 			} else {
 				interval = value
@@ -328,7 +328,7 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 
 	data := es.NewEmailTemplateData(user.Locale)
 	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = translateFunc("api.email_batching.send_batched_email_notification.title")
+	data.Props["Title"] = translateFunc("api.email_batching.send_batched_email_notification.title", len(notifications)-1)
 	data.Props["SubTitle"] = translateFunc("api.email_batching.send_batched_email_notification.subTitle")
 	data.Props["Button"] = translateFunc("api.email_batching.send_batched_email_notification.button")
 	data.Props["ButtonURL"] = siteURL

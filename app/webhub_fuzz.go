@@ -153,7 +153,7 @@ func Fuzz(data []byte) int {
 
 		s := httptest.NewServer(dummyWebsocketHandler())
 
-		th.App.HubStart()
+		th.Server.HubStart()
 
 		u1 := th.CreateUser()
 		u2 := th.CreateUser()
@@ -222,7 +222,7 @@ func Fuzz(data []byte) int {
 						// This hits some additional code paths.
 						go func() {
 							time.Sleep(2 * time.Second)
-							th.App.HubUnregister(conn)
+							th.App.hubUnregister(conn)
 						}()
 					}()
 

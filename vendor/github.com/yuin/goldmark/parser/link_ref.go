@@ -52,7 +52,7 @@ func (p *linkReferenceParagraphTransformer) Transform(node *ast.Paragraph, reade
 
 func parseLinkReferenceDefinition(block text.Reader, pc Context) (int, int) {
 	block.SkipSpaces()
-	line, segment := block.PeekLine()
+	line, _ := block.PeekLine()
 	if line == nil {
 		return -1, -1
 	}
@@ -67,39 +67,33 @@ func parseLinkReferenceDefinition(block text.Reader, pc Context) (int, int) {
 	if line[pos] != '[' {
 		return -1, -1
 	}
-	open := segment.Start + pos + 1
-	closes := -1
 	block.Advance(pos + 1)
-	for {
-		line, segment = block.PeekLine()
-		if line == nil {
-			return -1, -1
-		}
-		closure := util.FindClosure(line, '[', ']', false, false)
-		if closure > -1 {
-			closes = segment.Start + closure
-			next := closure + 1
-			if next >= len(line) || line[next] != ':' {
-				return -1, -1
-			}
-			block.Advance(next + 1)
-			break
-		}
-		block.AdvanceLine()
-	}
-	if closes < 0 {
+	segments, found := block.FindClosure('[', ']', linkFindClosureOptions)
+	if !found {
 		return -1, -1
 	}
-	label := block.Value(text.NewSegment(open, closes))
+	var label []byte
+	if segments.Len() == 1 {
+		label = block.Value(segments.At(0))
+	} else {
+		for i := 0; i < segments.Len(); i++ {
+			s := segments.At(i)
+			label = append(label, block.Value(s)...)
+		}
+	}
 	if util.IsBlank(label) {
 		return -1, -1
 	}
+	if block.Peek() != ':' {
+		return -1, -1
+	}
+	block.Advance(1)
 	block.SkipSpaces()
 	destination, ok := parseLinkDestination(block)
 	if !ok {
 		return -1, -1
 	}
-	line, segment = block.PeekLine()
+	line, _ = block.PeekLine()
 	isNewLine := line == nil || util.IsBlank(line)
 
 	endLine, _ := block.Position()
@@ -117,44 +111,39 @@ func parseLinkReferenceDefinition(block text.Reader, pc Context) (int, int) {
 		return -1, -1
 	}
 	block.Advance(1)
-	open = -1
-	closes = -1
 	closer := opener
 	if opener == '(' {
 		closer = ')'
 	}
-	for {
-		line, segment = block.PeekLine()
-		if line == nil {
+	segments, found = block.FindClosure(opener, closer, linkFindClosureOptions)
+	if !found {
+		if !isNewLine {
 			return -1, -1
 		}
-		if open < 0 {
-			open = segment.Start
-		}
-		closure := util.FindClosure(line, opener, closer, false, true)
-		if closure > -1 {
-			closes = segment.Start + closure
-			block.Advance(closure + 1)
-			break
-		}
+		ref := NewReference(label, destination, nil)
+		pc.AddReference(ref)
 		block.AdvanceLine()
+		return startLine, endLine + 1
 	}
-	if closes < 0 {
-		return -1, -1
+	var title []byte
+	if segments.Len() == 1 {
+		title = block.Value(segments.At(0))
+	} else {
+		for i := 0; i < segments.Len(); i++ {
+			s := segments.At(i)
+			title = append(title, block.Value(s)...)
+		}
 	}
 
-	line, segment = block.PeekLine()
+	line, _ = block.PeekLine()
 	if line != nil && !util.IsBlank(line) {
 		if !isNewLine {
 			return -1, -1
 		}
-		title := block.Value(text.NewSegment(open, closes))
 		ref := NewReference(label, destination, title)
 		pc.AddReference(ref)
 		return startLine, endLine
 	}
-
-	title := block.Value(text.NewSegment(open, closes))
 
 	endLine, _ = block.Position()
 	ref := NewReference(label, destination, title)

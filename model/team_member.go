@@ -69,6 +69,11 @@ type TeamMembersGetOptions struct {
 	ViewRestrictions *ViewUsersRestrictions
 }
 
+//msgp:ignore TeamInviteReminderData
+type TeamInviteReminderData struct {
+	Interval string
+}
+
 func EmailInviteWithErrorToEmails(o []*EmailInviteWithError) []string {
 	var ret []string
 	for _, o := range o {
@@ -98,13 +103,17 @@ func TeamMemberWithErrorToString(o *TeamMemberWithError) string {
 }
 
 func (o *TeamMember) IsValid() *AppError {
-
 	if !IsValidId(o.TeamId) {
 		return NewAppError("TeamMember.IsValid", "model.team_member.is_valid.team_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if !IsValidId(o.UserId) {
 		return NewAppError("TeamMember.IsValid", "model.team_member.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(o.Roles) > UserRolesMaxLength {
+		return NewAppError("TeamMember.IsValid", "model.team_member.is_valid.roles_limit.app_error",
+			map[string]interface{}{"Limit": UserRolesMaxLength}, "", http.StatusBadRequest)
 	}
 
 	return nil

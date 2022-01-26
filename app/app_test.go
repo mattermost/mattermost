@@ -50,7 +50,6 @@ func TestUnitUpdateConfig(t *testing.T) {
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
-	mockSystemStore.On("Get").Return(make(model.StringMap), nil)
 	mockLicenseStore := mocks.LicenseStore{}
 	mockLicenseStore.On("Get", "").Return(&model.LicenseRecord{}, nil)
 	mockStore.On("User").Return(&mockUserStore)
@@ -90,6 +89,10 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 		"system_user_access_token",
 		"team_post_all",
 		"team_post_all_public",
+		"playbook_admin",
+		"playbook_member",
+		"run_admin",
+		"run_member",
 	}
 
 	roles1, err1 := th.App.GetRolesByNames(roleNames)

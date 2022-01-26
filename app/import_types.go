@@ -124,8 +124,10 @@ type ReactionImportData struct {
 type ReplyImportData struct {
 	User *string `json:"user"`
 
+	Type     *string `json:"type"`
 	Message  *string `json:"message"`
 	CreateAt *int64  `json:"create_at"`
+	EditAt   *int64  `json:"edit_at"`
 
 	FlaggedBy   *[]string               `json:"flagged_by,omitempty"`
 	Reactions   *[]ReactionImportData   `json:"reactions,omitempty"`
@@ -137,9 +139,11 @@ type PostImportData struct {
 	Channel *string `json:"channel"`
 	User    *string `json:"user"`
 
+	Type     *string                `json:"type"`
 	Message  *string                `json:"message"`
 	Props    *model.StringInterface `json:"props"`
 	CreateAt *int64                 `json:"create_at"`
+	EditAt   *int64                 `json:"edit_at"`
 
 	FlaggedBy   *[]string               `json:"flagged_by,omitempty"`
 	Reactions   *[]ReactionImportData   `json:"reactions,omitempty"`
@@ -158,9 +162,11 @@ type DirectPostImportData struct {
 	ChannelMembers *[]string `json:"channel_members"`
 	User           *string   `json:"user"`
 
+	Type     *string                `json:"type"`
 	Message  *string                `json:"message"`
 	Props    *model.StringInterface `json:"props"`
 	CreateAt *int64                 `json:"create_at"`
+	EditAt   *int64                 `json:"edit_at"`
 
 	FlaggedBy   *[]string               `json:"flagged_by"`
 	Reactions   *[]ReactionImportData   `json:"reactions"`

@@ -166,23 +166,23 @@ func (a *App) GetUploadSessionsForUser(userID string) ([]*model.UploadSession, *
 func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError) {
 	// prevent more than one caller to upload data at the same time for a given upload session.
 	// This is to avoid possible inconsistencies.
-	a.Srv().uploadLockMapMut.Lock()
-	locked := a.Srv().uploadLockMap[us.Id]
+	a.ch.uploadLockMapMut.Lock()
+	locked := a.ch.uploadLockMap[us.Id]
 	if locked {
 		// session lock is already taken, return error.
-		a.Srv().uploadLockMapMut.Unlock()
+		a.ch.uploadLockMapMut.Unlock()
 		return nil, model.NewAppError("UploadData", "app.upload.upload_data.concurrent.app_error",
 			nil, "", http.StatusBadRequest)
 	}
 	// grab the session lock.
-	a.Srv().uploadLockMap[us.Id] = true
-	a.Srv().uploadLockMapMut.Unlock()
+	a.ch.uploadLockMap[us.Id] = true
+	a.ch.uploadLockMapMut.Unlock()
 
 	// reset the session lock on exit.
 	defer func() {
-		a.Srv().uploadLockMapMut.Lock()
-		delete(a.Srv().uploadLockMap, us.Id)
-		a.Srv().uploadLockMapMut.Unlock()
+		a.ch.uploadLockMapMut.Lock()
+		delete(a.ch.uploadLockMap, us.Id)
+		a.ch.uploadLockMapMut.Unlock()
 	}()
 
 	// fetch the session from store to check for inconsistencies.

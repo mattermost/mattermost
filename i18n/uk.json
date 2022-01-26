@@ -1316,10 +1316,6 @@
     "translation": "Недійсний параметр RootId"
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Цей канал доступний лише для читання. Тут можуть публікувати лише користувачі з дозволом."
-  },
-  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Помилка створення публікації"
   },
@@ -1378,10 +1374,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Цей канал доступний лише для читання. Тут можуть публікувати лише користувачі з дозволом."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1462,10 +1454,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Ви не можете зберегти реакцію для іншого користувача."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Реагування на повідомлення неможливе у каналах лише для читання."
   },
   {
     "id": "api.restricted_system_admin",

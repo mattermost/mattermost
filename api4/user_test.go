@@ -2657,6 +2657,51 @@ func TestGetUsersInChannel(t *testing.T) {
 
 	_, _, err = th.SystemAdminClient.GetUsersInChannel(channelId, 0, 60, "")
 	require.NoError(t, err)
+
+	t.Run("Should forbid getting the members of an archived channel if users are not allowed to view archived messages", func(t *testing.T) {
+		th.LoginBasic()
+		channel, _, appErr := th.SystemAdminClient.CreateChannel(&model.Channel{
+			DisplayName: "User Created Channel",
+			Name:        model.NewId(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      th.BasicTeam.Id,
+		})
+		require.NoError(t, appErr)
+		_, aErr := th.App.AddUserToChannel(th.BasicUser, channel, false)
+		require.Nil(t, aErr)
+		_, aErr = th.App.AddUserToChannel(th.BasicUser2, channel, false)
+		require.Nil(t, aErr)
+		th.SystemAdminClient.DeleteChannel(channel.Id)
+
+		experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalViewArchivedChannels = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.ExperimentalViewArchivedChannels = experimentalViewArchivedChannels
+		})
+
+		// the endpoint should work fine for all clients when viewing
+		// archived channels is enabled
+		for _, client := range []*model.Client4{th.SystemAdminClient, th.Client, th.LocalClient} {
+			users, _, userErr := client.GetUsersInChannel(channel.Id, 0, 1000, "")
+			require.NoError(t, userErr)
+			require.Len(t, users, 3)
+		}
+
+		// the endpoint should return forbidden if viewing archived
+		// channels is disabled for all clients but the Local one
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalViewArchivedChannels = false })
+		for _, client := range []*model.Client4{th.SystemAdminClient, th.Client} {
+			users, resp, userErr := client.GetUsersInChannel(channel.Id, 0, 1000, "")
+			require.Error(t, userErr)
+			require.Len(t, users, 0)
+			CheckForbiddenStatus(t, resp)
+		}
+
+		// local client should be able to get the users still
+		users, _, appErr := th.LocalClient.GetUsersInChannel(channel.Id, 0, 1000, "")
+		require.NoError(t, appErr)
+		require.Len(t, users, 3)
+	})
 }
 
 func TestGetUsersNotInChannel(t *testing.T) {
@@ -3594,6 +3639,65 @@ func TestLoginCookies(t *testing.T) {
 				assert.Regexp(t, tc.ExpectedSetCookieHeaderRegexp, cookies)
 			})
 		}
+	})
+
+	t.Run("should return cookie with MMCLOUDURL for cloud installations", func(t *testing.T) {
+		updateConfig := func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "https://testchips.cloud.mattermost.com"
+		}
+		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic()
+		defer th.TearDown()
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		_, resp, _ := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		val := strings.Split(resp.Header["Set-Cookie"][0], ";")
+		cloudSessionCookie := strings.Split(val[0], "=")[1]
+		domain := strings.Split(val[2], "=")[1]
+
+		assert.Equal(t, "testchips", cloudSessionCookie)
+		assert.Equal(t, "mattermost.com", domain)
+	})
+
+	t.Run("should NOT return cookie with MMCLOUDURL for cloud installations without expected format of cloud URL", func(t *testing.T) {
+		updateConfig := func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "https://testchips.com" // correct cloud URL would be https://testchips.cloud.mattermost.com
+		}
+		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic()
+		defer th.TearDown()
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		_, resp, _ := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		cloudSessionCookie := ""
+		for _, cookie := range resp.Header["Set-Cookie"] {
+			if match := regexp.MustCompile("^" + model.SessionCookieCloudUrl + "=([a-z0-9]+)").FindStringSubmatch(cookie); match != nil {
+				cloudSessionCookie = match[1]
+			}
+		}
+		// no cookie set
+		assert.Equal(t, "", cloudSessionCookie)
+	})
+
+	t.Run("should NOT return cookie with MMCLOUDURL for NON cloud installations", func(t *testing.T) {
+		updateConfig := func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "https://testchips.com"
+		}
+		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic()
+		defer th.TearDown()
+
+		_, resp, _ := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		cloudSessionCookie := ""
+		for _, cookie := range resp.Header["Set-Cookie"] {
+			if match := regexp.MustCompile("^" + model.SessionCookieCloudUrl + "=([a-z0-9]+)").FindStringSubmatch(cookie); match != nil {
+				cloudSessionCookie = match[1]
+			}
+		}
+		// no cookie set
+		assert.Equal(t, "", cloudSessionCookie)
 	})
 }
 
@@ -5443,6 +5547,19 @@ func TestConvertUserToBot(t *testing.T) {
 	})
 }
 
+func TestGetChannelMembersWithTeamData(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	channels, resp, err := th.Client.GetChannelMembersWithTeamData(th.BasicUser.Id, 0, 5)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	assert.Len(t, channels, 5)
+	for _, ch := range channels {
+		assert.Equal(t, th.BasicTeam.DisplayName, ch.TeamDisplayName)
+	}
+}
+
 func TestMigrateAuthToLDAP(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -5869,6 +5986,31 @@ func TestFollowThreads(t *testing.T) {
 		require.Len(t, uss.Threads, 1)
 		require.GreaterOrEqual(t, uss.Threads[0].LastViewedAt, uss.Threads[0].LastReplyAt)
 
+	})
+
+	t.Run("No permission to channel", func(t *testing.T) {
+		// Add user1 to private channel
+		_, appErr := th.App.AddUserToChannel(th.BasicUser, th.BasicPrivateChannel2, false)
+		require.Nil(t, appErr)
+		defer th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", th.BasicPrivateChannel2)
+
+		// create thread in private channel
+		rpost, resp, err := th.Client.CreatePost(&model.Post{ChannelId: th.BasicPrivateChannel2.Id, Message: "root post"})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		_, resp, err = th.Client.CreatePost(&model.Post{ChannelId: th.BasicPrivateChannel2.Id, Message: "testReply", RootId: rpost.Id})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		// Try to follow thread as other user who is not in the private channel
+		resp, err = th.Client.UpdateThreadFollowForUser(th.BasicUser2.Id, th.BasicTeam.Id, rpost.Id, true)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// Try to unfollow thread as other user who is not in the private channel
+		resp, err = th.Client.UpdateThreadFollowForUser(th.BasicUser2.Id, th.BasicTeam.Id, rpost.Id, false)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 }
 

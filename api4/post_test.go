@@ -35,7 +35,7 @@ func TestCreatePost(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a", Props: model.StringInterface{model.PropsAddChannelMember: "no good"}}
+	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a", Props: model.StringInterface{model.PropsAddChannelMember: "no good"}, DeleteAt: 101}
 
 	rpost, resp, err2 := client.CreatePost(post)
 	require.NoError(t, err2)
@@ -46,6 +46,7 @@ func TestCreatePost(t *testing.T) {
 	require.Empty(t, rpost.FileIds)
 	require.Equal(t, 0, int(rpost.EditAt), "newly created post shouldn't have EditAt set")
 	require.Nil(t, rpost.GetProp(model.PropsAddChannelMember), "newly created post shouldn't have Props['add_channel_member'] set")
+	require.Equal(t, 0, int(rpost.DeleteAt), "newly created post shouldn't have DeleteAt set")
 
 	post.RootId = rpost.Id
 	_, _, err2 = client.CreatePost(post)
@@ -601,7 +602,7 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	api := Init(th.App, th.Server.Router)
+	api := Init(th.Server)
 	session, _ := th.App.GetSession(th.Client.AuthToken)
 
 	cli := th.CreateClient()
@@ -1201,6 +1202,28 @@ func TestGetPostsForChannel(t *testing.T) {
 		require.Equal(t, "", posts.NextPostId, "should return an empty NextPostId")
 		require.Equal(t, "", posts.PrevPostId, "should return an empty PrevPostId")
 	})
+
+	th.TestForAllClients(t, func(t *testing.T, c *model.Client4) {
+		channel := th.CreatePublicChannel()
+		th.CreatePostWithClient(th.SystemAdminClient, channel)
+		th.SystemAdminClient.DeleteChannel(channel.Id)
+
+		experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalViewArchivedChannels = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.ExperimentalViewArchivedChannels = experimentalViewArchivedChannels
+		})
+
+		// the endpoint should work fine when viewing archived channels is enabled
+		_, _, err = c.GetPostsForChannel(channel.Id, 0, 10, "", false)
+		require.NoError(t, err)
+
+		// the endpoint should return forbidden if viewing archived channels is disabled
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalViewArchivedChannels = false })
+		_, resp, err = c.GetPostsForChannel(channel.Id, 0, 10, "", false)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	}, "Should forbid to retrieve posts if the channel is archived and users are not allowed to view archived messages")
 }
 
 func TestGetFlaggedPostsForUser(t *testing.T) {
@@ -2201,10 +2224,27 @@ func TestSearchPosts(t *testing.T) {
 	_ = th.CreateMessagePostWithClient(th.Client, archivedChannel, "#hashtag for post3")
 	th.Client.DeleteChannel(archivedChannel.Id)
 
+	otherTeam := th.CreateTeam()
+	channelInOtherTeam := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, otherTeam.Id)
+	_ = th.AddUserToChannel(th.BasicUser, channelInOtherTeam)
+	_ = th.CreateMessagePostWithClient(th.Client, channelInOtherTeam, "search for post 5")
+
 	terms := "search"
 	isOrSearch := false
 	timezoneOffset := 5
 	searchParams := model.SearchParameter{
+		Terms:          &terms,
+		IsOrSearch:     &isOrSearch,
+		TimeZoneOffset: &timezoneOffset,
+	}
+	allTeamsPosts, _, err := client.SearchPostsWithParams("", &searchParams)
+	require.NoError(t, err)
+	require.Len(t, allTeamsPosts.Order, 4, "wrong search along multiple teams")
+
+	terms = "search"
+	isOrSearch = false
+	timezoneOffset = 5
+	searchParams = model.SearchParameter{
 		Terms:          &terms,
 		IsOrSearch:     &isOrSearch,
 		TimeZoneOffset: &timezoneOffset,
@@ -2640,7 +2680,7 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 	// user2: first root mention @user1
 	//   - user1: hello
 	//   - user2: mention @u1
-	//   - user1: another repoy
+	//   - user1: another reply
 	//   - user2: another mention @u1
 	// user1: a root post
 	// user2: Another root mention @u1
@@ -2694,4 +2734,79 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 		require.Equal(t, int64(7), channelUnread.MsgCount)
 		require.Equal(t, int64(3), channelUnread.MsgCountRoot)
 	})
+}
+func TestGetPostsByIds(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	post1 := th.CreatePost()
+	post2 := th.CreatePost()
+
+	posts, response, err := client.GetPostsByIds([]string{post1.Id, post2.Id})
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
+	require.Len(t, posts, 2, "wrong number returned")
+	require.Equal(t, posts[0].Id, post2.Id)
+	require.Equal(t, posts[1].Id, post1.Id)
+
+	_, response, err = client.GetPostsByIds([]string{})
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
+
+	_, response, err = client.GetPostsByIds([]string{"abc123"})
+	require.Error(t, err)
+	CheckNotFoundStatus(t, response)
+}
+
+func TestGetPostStripActionIntegrations(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	post := &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   "with slack attachment action",
+	}
+	post.AddProp("attachments", []*model.SlackAttachment{
+		{
+			Text: "Slack Attachment Text",
+			Fields: []*model.SlackAttachmentField{
+				{
+					Title: "Test Field",
+					Value: "test value",
+					Short: true,
+				},
+			},
+			Actions: []*model.PostAction{
+				{
+					Type: "button",
+					Name: "test-name",
+					Integration: &model.PostActionIntegration{
+						URL: "https://test.test/action",
+						Context: map[string]interface{}{
+							"test-ctx": "some-value",
+						},
+					},
+				},
+			},
+		},
+	})
+
+	rpost, resp, err2 := client.CreatePost(post)
+	require.NoError(t, err2)
+	CheckCreatedStatus(t, resp)
+
+	actualPost, _, err := client.GetPost(rpost.Id, "")
+	require.NoError(t, err)
+	attachments, _ := actualPost.Props["attachments"].([]interface{})
+	require.Equal(t, 1, len(attachments))
+	att, _ := attachments[0].(map[string]interface{})
+	require.NotNil(t, att)
+	actions, _ := att["actions"].([]interface{})
+	require.Equal(t, 1, len(actions))
+	action, _ := actions[0].(map[string]interface{})
+	require.NotNil(t, action)
+	// integration must be omitted
+	require.Nil(t, action["integration"])
 }

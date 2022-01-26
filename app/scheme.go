@@ -52,7 +52,7 @@ func (a *App) GetSchemesPage(scope string, page int, perPage int) ([]*model.Sche
 		return nil, err
 	}
 
-	return a.getSchemes(scope, page*perPage, perPage)
+	return a.GetSchemes(scope, page*perPage, perPage)
 }
 
 func (s *Server) GetSchemes(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError) {
@@ -67,7 +67,7 @@ func (s *Server) GetSchemes(scope string, offset int, limit int) ([]*model.Schem
 	return scheme, nil
 }
 
-func (a *App) getSchemes(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError) {
+func (a *App) GetSchemes(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError) {
 	return a.Srv().GetSchemes(scope, offset, limit)
 }
 
@@ -83,6 +83,10 @@ func (a *App) CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError
 	scheme.DefaultChannelAdminRole = ""
 	scheme.DefaultChannelUserRole = ""
 	scheme.DefaultChannelGuestRole = ""
+	scheme.DefaultPlaybookAdminRole = ""
+	scheme.DefaultPlaybookMemberRole = ""
+	scheme.DefaultRunAdminRole = ""
+	scheme.DefaultRunMemberRole = ""
 	scheme.CreateAt = 0
 	scheme.UpdateAt = 0
 	scheme.DeleteAt = 0

@@ -18,6 +18,7 @@ type Options struct {
 	PrettyTables        bool                 // Turns on pretty ASCII rendering for table elements.
 	PrettyTablesOptions *PrettyTablesOptions // Configures pretty ASCII rendering for table elements.
 	OmitLinks           bool                 // Turns on omitting links
+	TextOnly            bool                 // Returns only plain text
 }
 
 // PrettyTablesOptions overrides tablewriter behaviors
@@ -157,6 +158,9 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		}
 
 		str := subCtx.buf.String()
+		if ctx.options.TextOnly {
+			return ctx.emit(str + ".\n\n")
+		}
 		dividerLen := 0
 		for _, line := range strings.Split(str, "\n") {
 			if lineLen := len([]rune(line)); lineLen-1 > dividerLen {
@@ -177,7 +181,9 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 
 	case atom.Blockquote:
 		ctx.blockquoteLevel++
-		ctx.prefix = strings.Repeat(">", ctx.blockquoteLevel) + " "
+		if !ctx.options.TextOnly {
+			ctx.prefix = strings.Repeat(">", ctx.blockquoteLevel) + " "
+		}
 		if err := ctx.emit("\n"); err != nil {
 			return err
 		}
@@ -190,7 +196,9 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 			return err
 		}
 		ctx.blockquoteLevel--
-		ctx.prefix = strings.Repeat(">", ctx.blockquoteLevel)
+		if !ctx.options.TextOnly {
+			ctx.prefix = strings.Repeat(">", ctx.blockquoteLevel)
+		}
 		if ctx.blockquoteLevel > 0 {
 			ctx.prefix += " "
 		}
@@ -213,8 +221,10 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		return err
 
 	case atom.Li:
-		if err := ctx.emit("* "); err != nil {
-			return err
+		if !ctx.options.TextOnly {
+			if err := ctx.emit("* "); err != nil {
+				return err
+			}
 		}
 
 		if err := ctx.traverseChildren(node); err != nil {
@@ -230,6 +240,9 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 			return err
 		}
 		str := subCtx.buf.String()
+		if ctx.options.TextOnly {
+			return ctx.emit(str + ".")
+		}
 		return ctx.emit("*" + str + "*")
 
 	case atom.A:
@@ -254,7 +267,7 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		if attrVal := getAttrVal(node, "href"); attrVal != "" {
 			attrVal = ctx.normalizeHrefLink(attrVal)
 			// Don't print link href if it matches link element content or if the link is empty.
-			if !ctx.options.OmitLinks && attrVal != "" && linkText != attrVal {
+			if (!ctx.options.OmitLinks && attrVal != "" && linkText != attrVal) || !ctx.options.TextOnly {
 				hrefLink = "( " + attrVal + " )"
 			}
 		}

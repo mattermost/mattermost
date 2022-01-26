@@ -12,7 +12,8 @@ import (
 	"time"
 
 	"github.com/cespare/xxhash/v2"
-	"github.com/dgryski/go-rendezvous"
+	rendezvous "github.com/dgryski/go-rendezvous" //nolint
+
 	"github.com/go-redis/redis/v8/internal"
 	"github.com/go-redis/redis/v8/internal/hashtag"
 	"github.com/go-redis/redis/v8/internal/pool"
@@ -78,6 +79,9 @@ type RingOptions struct {
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
 
+	// PoolFIFO uses FIFO mode for each node connection pool GET/PUT (default LIFO).
+	PoolFIFO bool
+
 	PoolSize           int
 	MinIdleConns       int
 	MaxConnAge         time.Duration
@@ -138,6 +142,7 @@ func (opt *RingOptions) clientOptions() *Options {
 		ReadTimeout:  opt.ReadTimeout,
 		WriteTimeout: opt.WriteTimeout,
 
+		PoolFIFO:           opt.PoolFIFO,
 		PoolSize:           opt.PoolSize,
 		MinIdleConns:       opt.MinIdleConns,
 		MaxConnAge:         opt.MaxConnAge,

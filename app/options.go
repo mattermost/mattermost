@@ -106,9 +106,8 @@ func SkipPostInitializiation() Option {
 type AppOption func(a *App)
 type AppOptionCreator func() []AppOption
 
-func ServerConnector(s *Server) AppOption {
+func ServerConnector(ch *Channels) AppOption {
 	return func(a *App) {
-		a.srv = s
-		a.searchEngine = s.SearchEngine
+		a.ch = ch
 	}
 }

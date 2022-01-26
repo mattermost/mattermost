@@ -60,6 +60,7 @@ const (
 	UserPasswordMaxLength = 72
 	UserLocaleMaxLength   = 5
 	UserTimezoneMaxRunes  = 256
+	UserRolesMaxLength    = 256
 )
 
 //msgp:tuple User
@@ -261,7 +262,6 @@ func (u *User) DeepCopy() *User {
 // IsValid validates the user and returns an error if it isn't configured
 // correctly.
 func (u *User) IsValid() *AppError {
-
 	if !IsValidId(u.Id) {
 		return InvalidUserError("id", "")
 	}
@@ -330,6 +330,11 @@ func (u *User) IsValid() *AppError {
 		} else if utf8.RuneCount(tzJSON) > UserTimezoneMaxRunes {
 			return InvalidUserError("timezone_limit", u.Id)
 		}
+	}
+
+	if len(u.Roles) > UserRolesMaxLength {
+		return NewAppError("User.IsValid", "model.user.is_valid.roles_limit.app_error",
+			map[string]interface{}{"Limit": UserRolesMaxLength}, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
 	return nil
@@ -616,6 +621,15 @@ func (u *User) SetCustomStatus(cs *CustomStatus) error {
 	return nil
 }
 
+func (u *User) GetCustomStatus() *CustomStatus {
+	var o *CustomStatus
+
+	data := u.Props[UserPropsKeyCustomStatus]
+	_ = json.Unmarshal([]byte(data), &o)
+
+	return o
+}
+
 func (u *User) ClearCustomStatus() {
 	u.MakeNonNil()
 	u.Props[UserPropsKeyCustomStatus] = ""
@@ -689,7 +703,7 @@ func IsValidUserRoles(userRoles string) bool {
 	return true
 }
 
-// Make sure you acually want to use this function. In context.go there are functions to check permissions
+// Make sure you actually want to use this function. In context.go there are functions to check permissions
 // This function should not be used to check permissions.
 func (u *User) IsGuest() bool {
 	return IsInRole(u.Roles, SystemGuestRoleId)
@@ -699,13 +713,13 @@ func (u *User) IsSystemAdmin() bool {
 	return IsInRole(u.Roles, SystemAdminRoleId)
 }
 
-// Make sure you acually want to use this function. In context.go there are functions to check permissions
+// Make sure you actually want to use this function. In context.go there are functions to check permissions
 // This function should not be used to check permissions.
 func (u *User) IsInRole(inRole string) bool {
 	return IsInRole(u.Roles, inRole)
 }
 
-// Make sure you acually want to use this function. In context.go there are functions to check permissions
+// Make sure you actually want to use this function. In context.go there are functions to check permissions
 // This function should not be used to check permissions.
 func IsInRole(userRoles string, inRole string) bool {
 	roles := strings.Split(userRoles, " ")

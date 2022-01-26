@@ -94,7 +94,7 @@ func TestPlugin(t *testing.T) {
 			assert.Equal(t, "testplugin", manifest.Id)
 		})
 
-		th.App.RemovePlugin(manifest.Id)
+		th.App.Channels().RemovePlugin(manifest.Id)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
 
@@ -1706,7 +1706,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		require.NoError(t, err)
 
 		th := SetupConfig(t, func(cfg *model.Config) {
-			// Disable auto-installing prepackged plugins
+			// Disable auto-installing prepackaged plugins
 			*cfg.PluginSettings.AutomaticPrepackagedPlugins = false
 		}).InitBasic()
 		defer th.TearDown()

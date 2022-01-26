@@ -115,6 +115,14 @@ func (p *PostAction) Equals(input *PostAction) bool {
 	}
 
 	// Compare PostActionIntegration
+
+	// If input is nil, then return true if original is also nil.
+	// Else return false.
+	if input.Integration == nil {
+		return p.Integration == nil
+	}
+
+	// Both are unequal and not nil.
 	if p.Integration.URL != input.Integration.URL {
 		return false
 	}

@@ -85,6 +85,10 @@ func (s *Server) IsLeader() bool {
 	return true
 }
 
+func (a *App) IsLeader() bool {
+	return a.Srv().IsLeader()
+}
+
 func (a *App) GetClusterId() string {
 	if a.Cluster() == nil {
 		return ""

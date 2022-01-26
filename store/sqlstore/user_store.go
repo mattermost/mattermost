@@ -68,7 +68,7 @@ func newSqlUserStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 		table.ColMap("Nickname").SetMaxSize(64)
 		table.ColMap("FirstName").SetMaxSize(64)
 		table.ColMap("LastName").SetMaxSize(64)
-		table.ColMap("Roles").SetMaxSize(256)
+		table.ColMap("Roles").SetMaxSize(model.UserRolesMaxLength)
 		table.ColMap("Props").SetDataType(sqlStore.jsonDataType())
 		table.ColMap("NotifyProps").SetDataType(sqlStore.jsonDataType())
 		table.ColMap("Locale").SetMaxSize(5)
@@ -79,25 +79,6 @@ func newSqlUserStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 	}
 
 	return us
-}
-
-func (us SqlUserStore) createIndexesIfNotExists() {
-	us.CreateIndexIfNotExists("idx_users_update_at", "Users", "UpdateAt")
-	us.CreateIndexIfNotExists("idx_users_create_at", "Users", "CreateAt")
-	us.CreateIndexIfNotExists("idx_users_delete_at", "Users", "DeleteAt")
-
-	if us.DriverName() == model.DatabaseDriverPostgres {
-		us.CreateIndexIfNotExists("idx_users_email_lower_textpattern", "Users", "lower(Email) text_pattern_ops")
-		us.CreateIndexIfNotExists("idx_users_username_lower_textpattern", "Users", "lower(Username) text_pattern_ops")
-		us.CreateIndexIfNotExists("idx_users_nickname_lower_textpattern", "Users", "lower(Nickname) text_pattern_ops")
-		us.CreateIndexIfNotExists("idx_users_firstname_lower_textpattern", "Users", "lower(FirstName) text_pattern_ops")
-		us.CreateIndexIfNotExists("idx_users_lastname_lower_textpattern", "Users", "lower(LastName) text_pattern_ops")
-	}
-
-	us.CreateFullTextIndexIfNotExists("idx_users_all_txt", "Users", strings.Join(UserSearchTypeAll, ", "))
-	us.CreateFullTextIndexIfNotExists("idx_users_all_no_full_name_txt", "Users", strings.Join(UserSearchTypeAllNoFullName, ", "))
-	us.CreateFullTextIndexIfNotExists("idx_users_names_txt", "Users", strings.Join(UserSearchTypeNames, ", "))
-	us.CreateFullTextIndexIfNotExists("idx_users_names_no_full_name_txt", "Users", strings.Join(UserSearchTypeNamesNoFullName, ", "))
 }
 
 func (us SqlUserStore) Save(user *model.User) (*model.User, error) {

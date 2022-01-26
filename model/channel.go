@@ -56,6 +56,7 @@ type Channel struct {
 	Shared            *bool                  `json:"shared"`
 	TotalMsgCountRoot int64                  `json:"total_msg_count_root"`
 	PolicyID          *string                `json:"policy_id" db:"-"`
+	LastRootPostAt    int64                  `json:"last_root_post_at"`
 }
 
 type ChannelWithTeamData struct {
@@ -143,9 +144,9 @@ type ChannelSearchOpts struct {
 }
 
 type ChannelMemberCountByGroup struct {
-	GroupId                     string `db:"-" json:"group_id"`
-	ChannelMemberCount          int64  `db:"-" json:"channel_member_count"`
-	ChannelMemberTimezonesCount int64  `db:"-" json:"channel_member_timezones_count"`
+	GroupId                     string `json:"group_id"`
+	ChannelMemberCount          int64  `json:"channel_member_count"`
+	ChannelMemberTimezonesCount int64  `json:"channel_member_timezones_count"`
 }
 
 type ChannelOption func(channel *Channel)

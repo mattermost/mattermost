@@ -1316,10 +1316,6 @@
     "translation": "Parametru invalid de RootId."
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Acest canal este doar-în-citire. Doar membrii cu permisiunea de a putea posta aici."
-  },
-  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Eroare la crearea de post."
   },
@@ -1378,10 +1374,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Nu se poate actualiza o postare într-un canal șters."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Acest canal este numai pentru citire. Numai membrii cu permisiune pot fixa sau debloca posturile aici."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1462,10 +1454,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Nu puteți salva reacția pentru celălalt utilizator."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Reacționarea la postări nu este posibilă în canalele read-only."
   },
   {
     "id": "api.restricted_system_admin",

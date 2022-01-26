@@ -199,6 +199,16 @@ func (_m *Hooks) OnPluginClusterEvent(c *plugin.Context, ev model.PluginClusterE
 	_m.Called(c, ev)
 }
 
+// OnWebSocketConnect provides a mock function with given fields: webConnID, userID
+func (_m *Hooks) OnWebSocketConnect(webConnID string, userID string) {
+	_m.Called(webConnID, userID)
+}
+
+// OnWebSocketDisconnect provides a mock function with given fields: webConnID, userID
+func (_m *Hooks) OnWebSocketDisconnect(webConnID string, userID string) {
+	_m.Called(webConnID, userID)
+}
+
 // ReactionHasBeenAdded provides a mock function with given fields: c, reaction
 func (_m *Hooks) ReactionHasBeenAdded(c *plugin.Context, reaction *model.Reaction) {
 	_m.Called(c, reaction)
@@ -207,6 +217,27 @@ func (_m *Hooks) ReactionHasBeenAdded(c *plugin.Context, reaction *model.Reactio
 // ReactionHasBeenRemoved provides a mock function with given fields: c, reaction
 func (_m *Hooks) ReactionHasBeenRemoved(c *plugin.Context, reaction *model.Reaction) {
 	_m.Called(c, reaction)
+}
+
+// RunDataRetention provides a mock function with given fields: nowTime, batchSize
+func (_m *Hooks) RunDataRetention(nowTime int64, batchSize int64) (int64, error) {
+	ret := _m.Called(nowTime, batchSize)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(int64, int64) int64); ok {
+		r0 = rf(nowTime, batchSize)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int64, int64) error); ok {
+		r1 = rf(nowTime, batchSize)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // ServeHTTP provides a mock function with given fields: c, w, r
@@ -256,4 +287,9 @@ func (_m *Hooks) UserWillLogIn(c *plugin.Context, user *model.User) string {
 	}
 
 	return r0
+}
+
+// WebSocketMessageHasBeenPosted provides a mock function with given fields: webConnID, userID, req
+func (_m *Hooks) WebSocketMessageHasBeenPosted(webConnID string, userID string, req *model.WebSocketRequest) {
+	_m.Called(webConnID, userID, req)
 }

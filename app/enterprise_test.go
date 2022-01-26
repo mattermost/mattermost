@@ -57,7 +57,7 @@ func TestSAMLSettings(t *testing.T) {
 			saml2.Mock.On("ConfigureSP").Return(nil)
 			saml2.Mock.On("GetMetadata").Return("samlTwo", nil)
 			if tc.setNewInterface {
-				RegisterNewSamlInterface(func(s *Server) einterfaces.SamlInterface {
+				RegisterNewSamlInterface(func(_ *Server) einterfaces.SamlInterface {
 					return saml2
 				})
 			} else {
