@@ -31,6 +31,15 @@ Table of Contents
 
 _Note: Heroku preview does not include email or persistent storage_
 
+### Deploying Mattermost Team to AWS Using Opta
+Just use the Deploy to AWS button below!
+
+[![Deploy](https://raw.githubusercontent.com/run-x/opta/main/assets/deploy-to-aws-button.svg)](https://app.runx.dev/deploy-with-aws?url=https%3A%2F%2Fgithub.com%2Fmattermost%2Fmattermost-server%2Fblob%2Fmaster%2Fopta%2Fmattermost-aws.yaml&name=Mattermost)
+
+Click [here](https://github.com/run-x/opta/tree/main/examples/mattermost-team) for more instructions.
+
+_Note: The Opta AWS deployment DOES include email and persistent storage_
+
 ## Install Mattermost
 
 - [Quick Install Guide](https://docs.mattermost.com/getting-started/light-install.html) - Deploy in minutes via Mattermost Omnibus on Ubuntu.

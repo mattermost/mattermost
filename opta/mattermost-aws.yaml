@@ -1,0 +1,50 @@
+name: mattermost-team
+org_name: <<org_name::org_name::Your Organization Name>>
+providers:
+  aws:
+    region: <<region::aws_region::Your AWS Region>>
+    account_id: <<account_id::aws_account_id::Your AWS Account ID>>
+modules:
+  - type: base
+  - type: k8s-cluster
+    node_instance_type: t3.medium
+    spot_instances: true
+  - type: k8s-base
+  - type: dns
+    domain: <<domain::string::The dns domain for your Mattermost deployment>>
+    delegated: false  # set this to true after setting dns records
+  - name: db
+    type: mysql
+  - type: helm-chart
+    repository: https://helm.mattermost.com
+    chart: mattermost-team-edition
+    namespace: mattermost
+    chart_version: 6.2.1
+    create_namespace: true
+    values:
+      extraPodAnnotations:
+        "linkerd.io/inject": enabled
+        "config.linkerd.io/skip-outbound-ports": "8126,5432,3306"
+      securityContext:
+        fsGroup: 2000
+        runAsGroup: 2000
+        runAsUser: 2000
+      mysql:
+        enabled: false
+      externalDB:
+        enabled: true
+        externalDriverType: "mysql"
+        externalConnectionString: "${{module.db.db_user}}:${{module.db.db_password}}@tcp(${{module.db.db_host}}:3306)/${{module.db.db_name}}?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s"
+      ingress:
+        enabled: true
+        hosts: [""]
+        annotations:
+          kubernetes.io/ingress.class: "nginx"
+      configJSON:
+        ServiceSettings:
+          SiteURL:  "${{module.dns.domain}}"
+        TeamSettings:
+          SiteName: "${{module.dns.domain}}"
+      serviceAccount:
+        create: true
+        name: "mattermost"
