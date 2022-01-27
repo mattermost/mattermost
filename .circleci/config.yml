@@ -579,9 +579,21 @@ workflows:
             - check-email-templates
             - check-gen-serialized
       - test:
-          name: test-postgres
+          name: test-postgres-normal
           dbdriver: postgres
           dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+          racemode: ""
+          requires:
+            - check-app-layers
+            - check-store-layers
+            - check-mocks
+            - check-migrations
+            - check-email-templates
+            - check-gen-serialized
+      - test:
+          name: test-postgres-binary
+          dbdriver: postgres
+          dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes
           racemode: ""
           requires:
             - check-app-layers
@@ -682,10 +694,22 @@ workflows:
             - check-email-templates
             - check-gen-serialized
       - test:
-          name: test-postgres
+          name: test-postgres-normal
           dbdriver: postgres
           dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
           racemode: "-race"
+          requires:
+            - check-app-layers
+            - check-store-layers
+            - check-mocks
+            - check-migrations
+            - check-email-templates
+            - check-gen-serialized
+      - test:
+          name: test-postgres-binary
+          dbdriver: postgres
+          dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes
+          racemode: ""
           requires:
             - check-app-layers
             - check-store-layers
