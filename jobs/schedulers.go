@@ -38,10 +38,6 @@ func (srv *JobServer) InitSchedulers() error {
 	if srv.schedulers != nil && srv.schedulers.running {
 		return ErrSchedulersRunning
 	}
-	if srv.initializedSchedulers {
-		return nil
-	}
-
 	mlog.Debug("Initialising schedulers.")
 
 	schedulers := &Schedulers{
@@ -56,7 +52,6 @@ func (srv *JobServer) InitSchedulers() error {
 	}
 
 	srv.schedulers = schedulers
-	srv.initializedSchedulers = true
 
 	return nil
 }

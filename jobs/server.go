@@ -18,11 +18,9 @@ type JobServer struct {
 	metrics       einterfaces.MetricsInterface
 
 	// mut is used to protect the following fields from concurrent access.
-	mut                   sync.Mutex
-	workers               *Workers
-	schedulers            *Schedulers
-	initializedSchedulers bool
-	initializedWorkers    bool
+	mut        sync.Mutex
+	workers    *Workers
+	schedulers *Schedulers
 }
 
 func NewJobServer(configService configservice.ConfigService, store store.Store, metrics einterfaces.MetricsInterface) *JobServer {
