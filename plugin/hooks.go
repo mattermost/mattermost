@@ -39,6 +39,7 @@ const (
 	OnWebSocketConnectID            = 21
 	OnWebSocketDisconnectID         = 22
 	WebSocketMessageHasBeenPostedID = 23
+	RunDataRetentionID              = 24
 	TotalHooksID                    = iota
 )
 
@@ -243,4 +244,9 @@ type Hooks interface {
 	//
 	// Minimum server version: 6.0
 	WebSocketMessageHasBeenPosted(webConnID, userID string, req *model.WebSocketRequest)
+
+	// RunDataRetention is invoked during a DataRetentionJob
+	//
+	// Minimum server version: 6.4
+	RunDataRetention(nowTime, batchSize int64) (int64, error)
 }

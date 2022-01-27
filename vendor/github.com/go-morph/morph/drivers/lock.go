@@ -76,3 +76,10 @@ type Locker interface {
 type Lockable interface {
 	DriverName() string
 }
+
+// IsLockable returns whether the given instance satisfies
+// drivers.Lockable or not.
+func IsLockable(x interface{}) bool {
+	_, ok := x.(Lockable)
+	return ok
+}
