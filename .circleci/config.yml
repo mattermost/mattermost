@@ -310,7 +310,6 @@ jobs:
       - run:
           name: Run Tests
           command: |
-            ulimit -n 8096
             mkdir -p mattermost-server/client/plugins
             cd mattermost-server/build
             docker run -it --net circleci_mm-test \
@@ -372,7 +371,6 @@ jobs:
           name: Postgres schema migration validation
           command: |
             cd mattermost-server/build
-            ulimit -n 8096
             mkdir -p mattermost-server/client/plugins
             echo "Creating databases"
             docker-compose --no-ansi exec -T postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
@@ -401,7 +399,6 @@ jobs:
           name: MySQL schema migration validation
           command: |
             cd mattermost-server/build
-            ulimit -n 8096
             mkdir -p mattermost-server/client/plugins
             echo "Creating databases"
             docker-compose --no-ansi exec -T mysql mysql -uroot -pmostest -e "CREATE DATABASE migrated; CREATE DATABASE latest; GRANT ALL PRIVILEGES ON migrated.* TO mmuser; GRANT ALL PRIVILEGES ON latest.* TO mmuser"
