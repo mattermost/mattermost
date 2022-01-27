@@ -290,7 +290,6 @@ func (s *FileBackendTestSuite) TestListDirectory() {
 	s.Nil(err)
 	found1 := false
 	found2 := false
-	found3 := false
 	for _, path := range paths {
 		if path == "19700101" {
 			found1 = true
