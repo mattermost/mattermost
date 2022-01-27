@@ -88,7 +88,7 @@ func (c *Client) GetPlugin(filter *model.MarketplacePluginFilter, pluginVersion 
 	return nil, errors.New("plugin not found")
 }
 
-func (c *Client) GetLastestPlugin(filter *model.MarketplacePluginFilter) (*model.BaseMarketplacePlugin, error) {
+func (c *Client) GetLatestPlugin(filter *model.MarketplacePluginFilter) (*model.BaseMarketplacePlugin, error) {
 	filter.ReturnAllVersions = false
 
 	if filter.PluginId == "" {

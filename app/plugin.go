@@ -575,7 +575,7 @@ func (ch *Channels) getRemoteMarketplacePlugin(pluginID, version string) (*model
 	if version != "" {
 		plugin, err = marketplaceClient.GetPlugin(filter, version)
 	} else {
-		plugin, err = marketplaceClient.GetLastestPlugin(filter)
+		plugin, err = marketplaceClient.GetLatestPlugin(filter)
 	}
 	if err != nil {
 		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, err.Error(), http.StatusInternalServerError)
