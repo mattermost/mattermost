@@ -31,6 +31,10 @@ func (srv *JobServer) InitWorkers() error {
 	srv.mut.Lock()
 	defer srv.mut.Unlock()
 
+	if srv.initializedWorkers {
+		return nil
+	}
+
 	if srv.workers != nil && srv.workers.running {
 		return ErrWorkersRunning
 	}
@@ -40,6 +44,7 @@ func (srv *JobServer) InitWorkers() error {
 	workers.Watcher = srv.MakeWatcher(workers, DefaultWatcherPollingInterval)
 
 	srv.workers = workers
+	srv.initializedWorkers = true
 
 	return nil
 }
