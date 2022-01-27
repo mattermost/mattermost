@@ -129,7 +129,7 @@ PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.5.0
-PLUGIN_PACKAGES += focalboard-v0.12.0
+PLUGIN_PACKAGES += focalboard-v0.12.1
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -580,7 +580,7 @@ config-reset: ## Resets the config/config.json file to the default.
 diff-config: ## Compares default configuration between two mattermost versions
 	@./scripts/diff-config.sh
 
-clean: stop-docker ## Clean up everything except persistant server data.
+clean: stop-docker ## Clean up everything except persistent server data.
 	@echo Cleaning
 
 	rm -Rf $(DIST_ROOT)
@@ -670,7 +670,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime '(TODO|XXX|FIXME|"FIX ME")[: ]+' enterprise/
 endif
 
-## Help documentatin à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
+## Help documentation à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help:
 	@grep -E '^[0-9a-zA-Z_-]+:.*?## .*$$' ./Makefile | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 	@echo

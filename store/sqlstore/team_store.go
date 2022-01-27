@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -246,7 +245,12 @@ func (s SqlTeamStore) Save(team *model.Team) (*model.Team, error) {
 		return nil, err
 	}
 
-	if err := s.GetMaster().Insert(team); err != nil {
+	if _, err := s.GetMasterX().NamedExec(`INSERT INTO Teams
+		(Id, CreateAt, UpdateAt, DeleteAt, DisplayName, Name, Description, Email, Type, CompanyName, AllowedDomains,
+		InviteId, AllowOpenInvite, LastTeamIconUpdate, SchemeId, GroupConstrained)
+		VALUES
+		(:Id, :CreateAt, :UpdateAt, :DeleteAt, :DisplayName, :Name, :Description, :Email, :Type, :CompanyName, :AllowedDomains,
+		:InviteId, :AllowOpenInvite, :LastTeamIconUpdate, :SchemeId, :GroupConstrained)`, team); err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "teams_name_key"}) {
 			return nil, store.NewErrInvalidInput("Team", "id", team.Id)
 		}
@@ -266,23 +270,33 @@ func (s SqlTeamStore) Update(team *model.Team) (*model.Team, error) {
 		return nil, err
 	}
 
-	oldResult, err := s.GetMaster().Get(model.Team{}, team.Id)
+	oldTeam := model.Team{}
+	err := s.GetMasterX().Get(&oldTeam, `SELECT * FROM Teams WHERE Id=?`, team.Id)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get Team with id=%s", team.Id)
 
 	}
 
-	if oldResult == nil {
+	if oldTeam.Id == "" {
 		return nil, store.NewErrInvalidInput("Team", "id", team.Id)
 	}
 
-	oldTeam := oldResult.(*model.Team)
 	team.CreateAt = oldTeam.CreateAt
 	team.UpdateAt = model.GetMillis()
 
-	count, err := s.GetMaster().Update(team)
+	res, err := s.GetMasterX().NamedExec(`UPDATE Teams
+			SET CreateAt=:CreateAt, UpdateAt=:UpdateAt, DeleteAt=:DeleteAt, DisplayName=:DisplayName, Name=:Name,
+				Description=:Description, Email=:Email, Type=:Type, CompanyName=:CompanyName, AllowedDomains=:AllowedDomains,
+				InviteId=:InviteId, AllowOpenInvite=:AllowOpenInvite, LastTeamIconUpdate=:LastTeamIconUpdate,
+				SchemeId=:SchemeId, GroupConstrained=:GroupConstrained
+			WHERE Id=:Id`, team)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update Team with id=%s", team.Id)
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get rows_affected")
 	}
 	if count > 1 {
 		return nil, errors.Wrapf(err, "multiple Teams updated with id=%s", team.Id)
@@ -295,15 +309,18 @@ func (s SqlTeamStore) Update(team *model.Team) (*model.Team, error) {
 // If the team doesn't exist it returns a model.AppError with a
 // http.StatusNotFound in the StatusCode field.
 func (s SqlTeamStore) Get(id string) (*model.Team, error) {
-	obj, err := s.GetReplica().Get(model.Team{}, id)
-	if err != nil {
+	team := model.Team{}
+	if err := s.GetReplicaX().Get(&team, `SELECT * FROM Teams WHERE Id=?`, id); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Team", id)
+		}
 		return nil, errors.Wrapf(err, "failed to get Team with id=%s", id)
 	}
-	if obj == nil {
+	if team.Id == "" {
 		return nil, store.NewErrNotFound("Team", id)
 	}
 
-	return obj.(*model.Team), nil
+	return &team, nil
 }
 
 // GetByInviteId returns from the database the team that matches the inviteId provided as parameter.
@@ -316,7 +333,7 @@ func (s SqlTeamStore) GetByInviteId(inviteId string) (*model.Team, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
-	err = s.GetReplica().SelectOne(&team, query, args...)
+	err = s.GetReplicaX().Get(&team, query, args...)
 	if err != nil {
 		return nil, store.NewErrNotFound("Team", fmt.Sprintf("inviteId=%s", inviteId))
 	}
@@ -337,7 +354,7 @@ func (s SqlTeamStore) GetByName(name string) (*model.Team, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
-	err = s.GetReplica().SelectOne(&team, query, args...)
+	err = s.GetReplicaX().Get(&team, query, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Team", fmt.Sprintf("name=%s", name))
@@ -357,7 +374,7 @@ func (s SqlTeamStore) GetByNames(names []string) ([]*model.Team, error) {
 	}
 
 	teams := []*model.Team{}
-	_, err = s.GetReplica().Select(&teams, query, args...)
+	err = s.GetReplicaX().Select(&teams, query, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Team", fmt.Sprintf("nameIn=%v", names))
@@ -377,7 +394,7 @@ func (s SqlTeamStore) teamSearchQuery(opts *model.TeamSearch, countQuery bool) s
 	} else {
 		selectStr = "t.*"
 		if opts.IncludePolicyID != nil && *opts.IncludePolicyID {
-			selectStr += ", RetentionPoliciesTeams.PolicyId"
+			selectStr += ", RetentionPoliciesTeams.PolicyId as PolicyID"
 		}
 	}
 
@@ -472,14 +489,14 @@ func (s SqlTeamStore) teamSearchQuery(opts *model.TeamSearch, countQuery bool) s
 // SearchAll returns from the database a list of teams that match the Name or DisplayName
 // passed as the term search parameter.
 func (s SqlTeamStore) SearchAll(opts *model.TeamSearch) ([]*model.Team, error) {
-	var teams []*model.Team
+	teams := []*model.Team{}
 
 	queryString, args, err := s.teamSearchQuery(opts, false).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
 
-	if _, err = s.GetReplica().Select(&teams, queryString, args...); err != nil {
+	if err = s.GetReplicaX().Select(&teams, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Teams with term=%s", opts.Term)
 	}
 
@@ -488,14 +505,14 @@ func (s SqlTeamStore) SearchAll(opts *model.TeamSearch) ([]*model.Team, error) {
 
 // SearchAllPaged returns a teams list and the total count of teams that matched the search.
 func (s SqlTeamStore) SearchAllPaged(opts *model.TeamSearch) ([]*model.Team, int64, error) {
-	var teams []*model.Team
+	teams := []*model.Team{}
 	var totalCount int64
 
 	queryString, args, err := s.teamSearchQuery(opts, false).ToSql()
 	if err != nil {
 		return nil, 0, errors.Wrap(err, "team_tosql")
 	}
-	if _, err = s.GetReplica().Select(&teams, queryString, args...); err != nil {
+	if err = s.GetReplicaX().Select(&teams, queryString, args...); err != nil {
 		return nil, 0, errors.Wrapf(err, "failed to find Teams with term=%s", opts.Term)
 	}
 
@@ -503,7 +520,8 @@ func (s SqlTeamStore) SearchAllPaged(opts *model.TeamSearch) ([]*model.Team, int
 	if err != nil {
 		return nil, 0, errors.Wrap(err, "team_tosql")
 	}
-	totalCount, err = s.GetReplica().SelectInt(queryString, args...)
+
+	err = s.GetReplicaX().Get(&totalCount, queryString, args...)
 	if err != nil {
 		return nil, 0, errors.Wrapf(err, "failed to count Teams with term=%s", opts.Term)
 	}
@@ -529,7 +547,7 @@ func (s SqlTeamStore) SearchPrivate(opts *model.TeamSearch) ([]*model.Team, erro
 
 // GetAll returns all teams
 func (s SqlTeamStore) GetAll() ([]*model.Team, error) {
-	var teams []*model.Team
+	teams := []*model.Team{}
 
 	query, args, err := s.teamsQuery.OrderBy("DisplayName").ToSql()
 
@@ -537,7 +555,7 @@ func (s SqlTeamStore) GetAll() ([]*model.Team, error) {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
 
-	_, err = s.GetReplica().Select(&teams, query, args...)
+	err = s.GetReplicaX().Select(&teams, query, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Teams")
 	}
@@ -546,11 +564,11 @@ func (s SqlTeamStore) GetAll() ([]*model.Team, error) {
 
 // GetAllPage returns teams, up to a total limit passed as parameter and paginated by offset number passed as parameter.
 func (s SqlTeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, error) {
-	var teams []*model.Team
+	teams := []*model.Team{}
 
 	selectString := "Teams.*"
 	if opts != nil && opts.IncludePolicyID != nil && *opts.IncludePolicyID {
-		selectString += ", RetentionPoliciesTeams.PolicyId"
+		selectString += ", RetentionPoliciesTeams.PolicyId as PolicyID"
 	}
 
 	builder := s.getQueryBuilder().
@@ -578,7 +596,7 @@ func (s SqlTeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) 
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
-	if _, err = s.GetReplica().Select(&teams, query, args...); err != nil {
+	if err = s.GetReplicaX().Select(&teams, query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Teams")
 	}
 
@@ -587,7 +605,7 @@ func (s SqlTeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) 
 
 // GetTeamsByUserId returns from the database all teams that userId belongs to.
 func (s SqlTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, error) {
-	var teams []*model.Team
+	teams := []*model.Team{}
 	query, args, err := s.teamsQuery.
 		Join("TeamMembers ON TeamMembers.TeamId = Teams.Id").
 		Where(sq.Eq{"TeamMembers.UserId": userId, "TeamMembers.DeleteAt": 0, "Teams.DeleteAt": 0}).ToSql()
@@ -596,7 +614,7 @@ func (s SqlTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, error) {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
 
-	if _, err = s.GetReplica().Select(&teams, query, args...); err != nil {
+	if err = s.GetReplicaX().Select(&teams, query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Teams")
 	}
 
@@ -610,8 +628,8 @@ func (s SqlTeamStore) GetAllPrivateTeamListing() ([]*model.Team, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
-	var data []*model.Team
-	if _, err = s.GetReplica().Select(&data, query, args...); err != nil {
+	data := []*model.Team{}
+	if err = s.GetReplicaX().Select(&data, query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Teams")
 	}
 	return data, nil
@@ -626,8 +644,8 @@ func (s SqlTeamStore) GetAllTeamListing() ([]*model.Team, error) {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
 
-	var data []*model.Team
-	if _, err = s.GetReplica().Select(&data, query, args...); err != nil {
+	data := []*model.Team{}
+	if err = s.GetReplicaX().Select(&data, query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Teams")
 	}
 
@@ -643,7 +661,7 @@ func (s SqlTeamStore) PermanentDelete(teamId string) error {
 	if err != nil {
 		return errors.Wrap(err, "team_tosql")
 	}
-	if _, err = s.GetMaster().Exec(sql, args...); err != nil {
+	if _, err = s.GetMasterX().Exec(sql, args...); err != nil {
 		return errors.Wrapf(err, "failed to delete Team with id=%s", teamId)
 	}
 	return nil
@@ -664,7 +682,8 @@ func (s SqlTeamStore) AnalyticsTeamCount(opts *model.TeamSearch) (int64, error) 
 		return 0, errors.Wrap(err, "team_tosql")
 	}
 
-	c, err := s.GetReplica().SelectInt(queryString, args...)
+	var c int64
+	err = s.GetReplicaX().Get(&c, queryString, args...)
 
 	if err != nil {
 		return int64(0), errors.Wrap(err, "failed to count Teams")
@@ -729,13 +748,13 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 	if err != nil {
 		return nil, errors.Wrap(err, "team_roles_tosql")
 	}
-	var defaultTeamsRoles []struct {
+	defaultTeamsRoles := []struct {
 		Id    string
 		Guest sql.NullString
 		User  sql.NullString
 		Admin sql.NullString
-	}
-	_, err = s.GetMaster().Select(&defaultTeamsRoles, sqlRolesQuery, argsRoles...)
+	}{}
+	err = s.GetMasterX().Select(&defaultTeamsRoles, sqlRolesQuery, argsRoles...)
 	if err != nil {
 		return nil, errors.Wrap(err, "default_team_roles_select")
 	}
@@ -761,12 +780,12 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 			return nil, errors.Wrap(err, "member_count_tosql")
 		}
 
-		var counters []struct {
-			Count  int    `db:"Count"`
-			TeamId string `db:"TeamId"`
-		}
+		counters := []struct {
+			Count  int
+			TeamId string
+		}{}
 
-		_, err = s.GetMaster().Select(&counters, sqlCountQuery, argsCount...)
+		err = s.GetMasterX().Select(&counters, sqlCountQuery, argsCount...)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to count users in the teams of the memberships")
 		}
@@ -794,7 +813,7 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 		return nil, errors.Wrap(err, "insert_members_to_sql")
 	}
 
-	if _, err = s.GetMaster().Exec(sql, args...); err != nil {
+	if _, err = s.GetMasterX().Exec(sql, args...); err != nil {
 		if IsUniqueConstraintError(err, []string{"TeamId", "teammembers_pkey", "PRIMARY"}) {
 			return nil, store.NewErrConflict("TeamMember", err, "")
 		}
@@ -833,11 +852,16 @@ func (s SqlTeamStore) UpdateMultipleMembers(members []*model.TeamMember) ([]*mod
 	for _, member := range members {
 		member.PreUpdate()
 
+		newTeamMember := NewTeamMemberFromModel(member)
+
 		if err := member.IsValid(); err != nil {
 			return nil, err
 		}
 
-		if _, err := s.GetMaster().Update(NewTeamMemberFromModel(member)); err != nil {
+		if _, err := s.GetMasterX().NamedExec(`UPDATE TeamMembers
+				SET Roles=:Roles, DeleteAt=:DeleteAt, SchemeGuest=:SchemeGuest,
+					SchemeUser=:SchemeUser, SchemeAdmin=:SchemeAdmin
+				WHERE TeamId=:TeamId AND UserId=:UserId`, newTeamMember); err != nil {
 			return nil, errors.Wrap(err, "failed to update TeamMember")
 		}
 		teams = append(teams, member.TeamId)
@@ -858,13 +882,13 @@ func (s SqlTeamStore) UpdateMultipleMembers(members []*model.TeamMember) ([]*mod
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
-	var defaultTeamsRoles []struct {
+	defaultTeamsRoles := []struct {
 		Id    string
 		Guest sql.NullString
 		User  sql.NullString
 		Admin sql.NullString
-	}
-	_, err = s.GetMaster().Select(&defaultTeamsRoles, sqlQuery, args...)
+	}{}
+	err = s.GetMasterX().Select(&defaultTeamsRoles, sqlQuery, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Teams")
 	}
@@ -968,8 +992,8 @@ func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, teamMembe
 		return nil, errors.Wrap(err, "team_tosql")
 	}
 
-	var dbMembers teamMemberWithSchemeRolesList
-	_, err = s.GetReplica().Select(&dbMembers, queryString, args...)
+	dbMembers := teamMemberWithSchemeRolesList{}
+	err = s.GetReplicaX().Select(&dbMembers, queryString, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers with teamId=%s", teamId)
 	}
@@ -993,7 +1017,8 @@ func (s SqlTeamStore) GetTotalMemberCount(teamId string, restrictions *model.Vie
 		return int64(0), errors.Wrap(err, "team_tosql")
 	}
 
-	count, err := s.GetReplica().SelectInt(queryString, args...)
+	var count int64
+	err = s.GetReplicaX().Get(&count, queryString, args...)
 	if err != nil {
 		return int64(0), errors.Wrap(err, "failed to count TeamMembers")
 	}
@@ -1017,7 +1042,8 @@ func (s SqlTeamStore) GetActiveMemberCount(teamId string, restrictions *model.Vi
 		return 0, errors.Wrap(err, "team_tosql")
 	}
 
-	count, err := s.GetReplica().SelectInt(queryString, args...)
+	var count int64
+	err = s.GetReplicaX().Get(&count, queryString, args...)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to count TeamMembers")
 	}
@@ -1044,8 +1070,8 @@ func (s SqlTeamStore) GetMembersByIds(teamId string, userIds []string, restricti
 		return nil, errors.Wrap(err, "team_tosql")
 	}
 
-	var dbMembers teamMemberWithSchemeRolesList
-	if _, err = s.GetReplica().Select(&dbMembers, queryString, args...); err != nil {
+	dbMembers := teamMemberWithSchemeRolesList{}
+	if err = s.GetReplicaX().Select(&dbMembers, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find TeamMembers")
 	}
 	return dbMembers.ToModel(), nil
@@ -1061,7 +1087,7 @@ func (s SqlTeamStore) GetTeamsForUser(ctx context.Context, userId string) ([]*mo
 		return nil, errors.Wrap(err, "team_tosql")
 	}
 
-	var dbMembers teamMemberWithSchemeRolesList
+	dbMembers := teamMemberWithSchemeRolesList{}
 	_, err = s.SqlStore.DBFromContext(ctx).Select(&dbMembers, queryString, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers with userId=%s", userId)
@@ -1083,8 +1109,8 @@ func (s SqlTeamStore) GetTeamsForUserWithPagination(userId string, page, perPage
 		return nil, errors.Wrap(err, "team_tosql")
 	}
 
-	var dbMembers teamMemberWithSchemeRolesList
-	_, err = s.GetReplica().Select(&dbMembers, queryString, args...)
+	dbMembers := teamMemberWithSchemeRolesList{}
+	err = s.GetReplicaX().Select(&dbMembers, queryString, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers with userId=%s", userId)
 	}
@@ -1105,8 +1131,8 @@ func (s SqlTeamStore) GetChannelUnreadsForAllTeams(excludeTeamId, userId string)
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
-	var data []*model.ChannelUnread
-	_, err = s.GetReplica().Select(&data, query, args...)
+	data := []*model.ChannelUnread{}
+	err = s.GetReplicaX().Select(&data, query, args...)
 
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Channels with userId=%s and teamId!=%s", userId, excludeTeamId)
@@ -1127,8 +1153,8 @@ func (s SqlTeamStore) GetChannelUnreadsForTeam(teamId, userId string) ([]*model.
 		return nil, errors.Wrap(err, "team_tosql")
 	}
 
-	var channels []*model.ChannelUnread
-	_, err = s.GetReplica().Select(&channels, query, args...)
+	channels := []*model.ChannelUnread{}
+	err = s.GetReplicaX().Select(&channels, query, args...)
 
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Channels with teamId=%s and userId=%s", teamId, userId)
@@ -1146,7 +1172,7 @@ func (s SqlTeamStore) RemoveMembers(teamId string, userIds []string) error {
 	if err != nil {
 		return errors.Wrap(err, "team_tosql")
 	}
-	_, err = s.GetMaster().Exec(query, args...)
+	_, err = s.GetMasterX().Exec(query, args...)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete TeamMembers with teamId=%s and userId in %v", teamId, userIds)
 	}
@@ -1167,7 +1193,7 @@ func (s SqlTeamStore) RemoveAllMembersByTeam(teamId string) error {
 		return errors.Wrap(err, "team_tosql")
 	}
 
-	_, err = s.GetMaster().Exec(query, args...)
+	_, err = s.GetMasterX().Exec(query, args...)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete TeamMembers with teamId=%s", teamId)
 	}
@@ -1182,7 +1208,7 @@ func (s SqlTeamStore) RemoveAllMembersByUser(userId string) error {
 	if err != nil {
 		return errors.Wrap(err, "team_tosql")
 	}
-	_, err = s.GetMaster().Exec(query, args...)
+	_, err = s.GetMasterX().Exec(query, args...)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete TeamMembers with userId=%s", userId)
 	}
@@ -1201,14 +1227,14 @@ func (s SqlTeamStore) UpdateLastTeamIconUpdate(teamId string, curTime int64) err
 		return errors.Wrap(err, "team_tosql")
 	}
 
-	if _, err = s.GetMaster().Exec(query, args...); err != nil {
+	if _, err = s.GetMasterX().Exec(query, args...); err != nil {
 		return errors.Wrap(err, "failed to update Team")
 	}
 	return nil
 }
 
 // GetTeamsByScheme returns from the database all teams that match the schemeId provided as parameter, up to
-// a total limit passed as paramater and paginated by offset number passed as parameter.
+// a total limit passed as parameter and paginated by offset number passed as parameter.
 func (s SqlTeamStore) GetTeamsByScheme(schemeId string, offset int, limit int) ([]*model.Team, error) {
 	query, args, err := s.teamsQuery.Where(sq.Eq{"SchemeId": schemeId}).
 		OrderBy("DisplayName").
@@ -1219,8 +1245,8 @@ func (s SqlTeamStore) GetTeamsByScheme(schemeId string, offset int, limit int) (
 		return nil, errors.Wrap(err, "team_tosql")
 	}
 
-	var teams []*model.Team
-	_, err = s.GetReplica().Select(&teams, query, args...)
+	teams := []*model.Team{}
+	err = s.GetReplicaX().Select(&teams, query, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Teams with schemeId=%s", schemeId)
 	}
@@ -1232,16 +1258,16 @@ func (s SqlTeamStore) GetTeamsByScheme(schemeId string, offset int, limit int) (
 // causing unnecessary table locks. **THIS FUNCTION SHOULD NOT BE USED FOR ANY OTHER PURPOSE.** Executing this function
 // *after* the new Schemes functionality has been used on an installation will have unintended consequences.
 func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) (map[string]string, error) {
-	var transaction *gorp.Transaction
+	var transaction *sqlxTxWrapper
 	var err error
 
-	if transaction, err = s.GetMaster().Begin(); err != nil {
+	if transaction, err = s.GetMasterX().Beginx(); err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
-	defer finalizeTransaction(transaction)
+	defer finalizeTransactionX(transaction)
 
-	var teamMembers []teamMember
-	if _, err := transaction.Select(&teamMembers, "SELECT * from TeamMembers WHERE (TeamId, UserId) > (:FromTeamId, :FromUserId) ORDER BY TeamId, UserId LIMIT 100", map[string]interface{}{"FromTeamId": fromTeamId, "FromUserId": fromUserId}); err != nil {
+	teamMembers := []teamMember{}
+	if err := transaction.Select(&teamMembers, "SELECT * from TeamMembers WHERE (TeamId, UserId) > (?, ?) ORDER BY TeamId, UserId LIMIT 100", fromTeamId, fromUserId); err != nil {
 		return nil, errors.Wrap(err, "failed to find TeamMembers")
 	}
 
@@ -1276,7 +1302,15 @@ func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) (
 		}
 		member.Roles = strings.Join(newRoles, " ")
 
-		if _, err := transaction.Update(&member); err != nil {
+		if _, err := transaction.NamedExec(`UPDATE TeamMembers
+			SET TeamId=:TeamId,
+				UserId=:UserId,
+				Roles=:Roles,
+				DeleteAt=:DeleteAt,
+				SchemeUser=:SchemeUser,
+				SchemeAdmin=:SchemeAdmin,
+				SchemeGuest=:SchemeGuest
+			WHERE TeamId=:TeamId AND UserId=:UserId`, &member); err != nil {
 			return nil, errors.Wrap(err, "failed to update TeamMember")
 		}
 
@@ -1295,7 +1329,7 @@ func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) (
 
 // ResetAllTeamSchemes Set all Team's SchemeId values to an empty string.
 func (s SqlTeamStore) ResetAllTeamSchemes() error {
-	if _, err := s.GetMaster().Exec("UPDATE Teams SET SchemeId=''"); err != nil {
+	if _, err := s.GetMasterX().Exec("UPDATE Teams SET SchemeId=''"); err != nil {
 		return errors.Wrap(err, "failed to update Teams")
 	}
 	return nil
@@ -1316,16 +1350,16 @@ func (s SqlTeamStore) ClearAllCustomRoleAssignments() error {
 	lastTeamId := strings.Repeat("0", 26)
 
 	for {
-		var transaction *gorp.Transaction
+		var transaction *sqlxTxWrapper
 		var err error
 
-		if transaction, err = s.GetMaster().Begin(); err != nil {
+		if transaction, err = s.GetMasterX().Beginx(); err != nil {
 			return errors.Wrap(err, "begin_transaction")
 		}
-		defer finalizeTransaction(transaction)
+		defer finalizeTransactionX(transaction)
 
-		var teamMembers []*teamMember
-		if _, err := transaction.Select(&teamMembers, "SELECT * from TeamMembers WHERE (TeamId, UserId) > (:TeamId, :UserId) ORDER BY TeamId, UserId LIMIT 1000", map[string]interface{}{"TeamId": lastTeamId, "UserId": lastUserId}); err != nil {
+		teamMembers := []*teamMember{}
+		if err := transaction.Select(&teamMembers, "SELECT * from TeamMembers WHERE (TeamId, UserId) > (?, ?) ORDER BY TeamId, UserId LIMIT 1000", lastTeamId, lastUserId); err != nil {
 			return errors.Wrap(err, "failed to find TeamMembers")
 		}
 
@@ -1350,7 +1384,7 @@ func (s SqlTeamStore) ClearAllCustomRoleAssignments() error {
 
 			newRolesString := strings.Join(newRoles, " ")
 			if newRolesString != member.Roles {
-				if _, err := transaction.Exec("UPDATE TeamMembers SET Roles = :Roles WHERE UserId = :UserId AND TeamId = :TeamId", map[string]interface{}{"Roles": newRolesString, "TeamId": member.TeamId, "UserId": member.UserId}); err != nil {
+				if _, err := transaction.Exec("UPDATE TeamMembers SET Roles = ? WHERE UserId = ? AND TeamId = ?", newRolesString, member.UserId, member.TeamId); err != nil {
 					return errors.Wrap(err, "failed to update TeamMembers")
 				}
 			}
@@ -1373,7 +1407,9 @@ func (s SqlTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) (int64, er
 	if err != nil {
 		return 0, errors.Wrap(err, "team_tosql")
 	}
-	count, err := s.GetReplica().SelectInt(query, args...)
+
+	var count int64
+	err = s.GetReplicaX().Get(&count, query, args...)
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to count Teams with schemdId=%s", schemeId)
 	}
@@ -1381,9 +1417,9 @@ func (s SqlTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) (int64, er
 	return count, nil
 }
 
-// GetAllForExportAfter returns teams for export, up to a total limit passed as paramater where Teams.Id is greater than the afterId passed as parameter.
+// GetAllForExportAfter returns teams for export, up to a total limit passed as parameter where Teams.Id is greater than the afterId passed as parameter.
 func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) ([]*model.TeamForExport, error) {
-	var data []*model.TeamForExport
+	data := []*model.TeamForExport{}
 	query, args, err := s.getQueryBuilder().
 		Select("Teams.*", "Schemes.Name as SchemeName").
 		From("Teams").
@@ -1395,7 +1431,7 @@ func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) ([]*model.
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
-	if _, err = s.GetReplica().Select(&data, query, args...); err != nil {
+	if err = s.GetReplicaX().Select(&data, query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Teams")
 	}
 
@@ -1405,7 +1441,7 @@ func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) ([]*model.
 // GetUserTeamIds get the team ids to which the user belongs to. allowFromCache parameter does not have any effect in this Store
 //nolint:unparam
 func (s SqlTeamStore) GetUserTeamIds(userId string, allowFromCache bool) ([]string, error) {
-	var teamIds []string
+	teamIds := []string{}
 	query, args, err := s.getQueryBuilder().
 		Select("TeamId").
 		From("TeamMembers").
@@ -1415,7 +1451,7 @@ func (s SqlTeamStore) GetUserTeamIds(userId string, allowFromCache bool) ([]stri
 	if err != nil {
 		return []string{}, errors.Wrap(err, "team_tosql")
 	}
-	_, err = s.GetReplica().Select(&teamIds, query, args...)
+	err = s.GetReplicaX().Select(&teamIds, query, args...)
 	if err != nil {
 		return []string{}, errors.Wrapf(err, "failed to find TeamMembers with userId=%s", userId)
 	}
@@ -1443,7 +1479,7 @@ func (s SqlTeamStore) GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
-	_, err = s.GetReplica().Select(&teamIDs, query, args...)
+	err = s.GetReplicaX().Select(&teamIDs, query, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers with user IDs %s and %s", userID, otherUserID)
 	}
@@ -1453,7 +1489,7 @@ func (s SqlTeamStore) GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([
 
 // GetTeamMembersForExport gets the various teams for which a user, denoted by userId, is a part of.
 func (s SqlTeamStore) GetTeamMembersForExport(userId string) ([]*model.TeamMemberForExport, error) {
-	var members []*model.TeamMemberForExport
+	members := []*model.TeamMemberForExport{}
 	query, args, err := s.getQueryBuilder().
 		Select("TeamMembers.TeamId", "TeamMembers.UserId", "TeamMembers.Roles", "TeamMembers.DeleteAt",
 			"(TeamMembers.SchemeGuest IS NOT NULL AND TeamMembers.SchemeGuest) as SchemeGuest",
@@ -1465,7 +1501,7 @@ func (s SqlTeamStore) GetTeamMembersForExport(userId string) ([]*model.TeamMembe
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
-	_, err = s.GetReplica().Select(&members, query, args...)
+	err = s.GetReplicaX().Select(&members, query, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers with userId=%s", userId)
 	}
@@ -1485,7 +1521,8 @@ func (s SqlTeamStore) UserBelongsToTeams(userId string, teamIds []string) (bool,
 		return false, errors.Wrap(err, "team_tosql")
 	}
 
-	c, err := s.GetReplica().SelectInt(query, params...)
+	var c int64
+	err = s.GetReplicaX().Get(&c, query, params...)
 	if err != nil {
 		return false, errors.Wrap(err, "failed to count TeamMembers")
 	}
@@ -1505,7 +1542,7 @@ func (s SqlTeamStore) UpdateMembersRole(teamID string, userIDs []string) error {
 		return errors.Wrap(err, "team_tosql")
 	}
 
-	if _, err = s.GetMaster().Exec(query, args...); err != nil {
+	if _, err = s.GetMasterX().Exec(query, args...); err != nil {
 		return errors.Wrap(err, "failed to update TeamMembers")
 	}
 
@@ -1581,7 +1618,8 @@ func (s SqlTeamStore) GroupSyncedTeamCount() (int64, error) {
 		return 0, errors.Wrap(err, "team_tosql")
 	}
 
-	count, err := s.GetReplica().SelectInt(query, args...)
+	var count int64
+	err = s.GetReplicaX().Get(&count, query, args...)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to count Teams")
 	}

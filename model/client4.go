@@ -1978,7 +1978,7 @@ func (c *Client4) GetBotsIncludeDeleted(page, perPage int, etag string) ([]*Bot,
 	return bots, BuildResponse(r), nil
 }
 
-// GetBotsOrphaned fetches the given page of bots, only including orphanded bots.
+// GetBotsOrphaned fetches the given page of bots, only including orphaned bots.
 func (c *Client4) GetBotsOrphaned(page, perPage int, etag string) ([]*Bot, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&only_orphaned="+c.boolString(true), page, perPage)
 	r, err := c.DoAPIGet(c.botsRoute()+query, etag)

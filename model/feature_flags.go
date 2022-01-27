@@ -73,6 +73,9 @@ type FeatureFlags struct {
 	// Enable inline post editing
 	InlinePostEditing bool
 
+	// Enable DataRetention for Boards
+	BoardsDataRetention bool
+
 	NormalizeLdapDNs bool
 }
 
@@ -99,6 +102,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.InviteToTeam = "none"
 	f.CustomGroups = true
 	f.InlinePostEditing = false
+	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
 }
 func (f *FeatureFlags) Plugins() map[string]string {
