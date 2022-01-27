@@ -9381,6 +9381,22 @@ func (s *TimerLayerUserStore) GetUsersBatchForIndexing(startTime int64, endTime 
 	return result, err
 }
 
+func (s *TimerLayerUserStore) GetUsersWithInvalidEmails(page int, perPage int, restrictedDomains string) ([]*model.User, error) {
+	start := timemodule.Now()
+
+	result, err := s.UserStore.GetUsersWithInvalidEmails(page, perPage, restrictedDomains)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetUsersWithInvalidEmails", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerUserStore) InferSystemInstallDate() (int64, error) {
 	start := timemodule.Now()
 

@@ -2021,3 +2021,32 @@ func (us SqlUserStore) IsEmpty(excludeBots bool) (bool, error) {
 	}
 	return !hasRows, nil
 }
+
+func (us SqlUserStore) GetUsersWithInvalidEmails(page int, perPage int, restrictedDomains string) ([]*model.User, error) {
+	domainArray := strings.Split(restrictedDomains, ",")
+	query := us.usersQuery.
+		Where("u.Roles != 'system_guest'").
+		Where("u.DeleteAt = 0")
+
+	for _, d := range domainArray {
+		query = query.Where("u.Email NOT LIKE LOWER(?)", wildcardSearchTerm(d))
+	}
+	query = query.Offset(uint64(page * perPage)).Limit(uint64(perPage))
+
+	queryString, args, err := query.ToSql()
+
+	if err != nil {
+		return nil, errors.Wrap(err, "users_get_many_tosql")
+	}
+
+	var users []*model.User
+	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+		return nil, errors.Wrap(err, "users_get_many_select")
+	}
+
+	for _, u := range users {
+		u.Sanitize(map[string]bool{})
+	}
+
+	return users, nil
+}

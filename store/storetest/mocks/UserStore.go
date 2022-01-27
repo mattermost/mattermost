@@ -1002,6 +1002,29 @@ func (_m *UserStore) GetUsersBatchForIndexing(startTime int64, endTime int64, li
 	return r0, r1
 }
 
+// GetUsersWithInvalidEmails provides a mock function with given fields: page, perPage, restrictedDomains
+func (_m *UserStore) GetUsersWithInvalidEmails(page int, perPage int, restrictedDomains string) ([]*model.User, error) {
+	ret := _m.Called(page, perPage, restrictedDomains)
+
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func(int, int, string) []*model.User); ok {
+		r0 = rf(page, perPage, restrictedDomains)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int, int, string) error); ok {
+		r1 = rf(page, perPage, restrictedDomains)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // InferSystemInstallDate provides a mock function with given fields:
 func (_m *UserStore) InferSystemInstallDate() (int64, error) {
 	ret := _m.Called()
