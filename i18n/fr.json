@@ -888,7 +888,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "Ouvre la page des Paramètres du compte"
+    "translation": "Ouvre la page des paramètres"
   },
   {
     "id": "api.command_settings.name",
@@ -8869,5 +8869,9 @@
   {
     "id": "app.user.get_threads_for_user.not_found",
     "translation": "Le fil de discussion de l'utilisateur n'existe pas ou n'est pas suivi"
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Impossible de mettre à jour le statut personnalisé. Merci d'ajouter une émoticône, un texte de statut personnalisé ou les deux."
   }
 ]

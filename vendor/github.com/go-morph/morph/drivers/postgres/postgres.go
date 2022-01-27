@@ -220,6 +220,11 @@ func (pg *postgres) Close() error {
 }
 
 func (pg *postgres) Lock() error {
+	if drivers.IsLockable(pg) {
+		// Supports lockable, so already locked at the global level.
+		return nil
+	}
+
 	aid, err := drivers.GenerateAdvisoryLockID(pg.config.databaseName, pg.config.schemaName)
 	if err != nil {
 		return err
@@ -244,6 +249,11 @@ func (pg *postgres) Lock() error {
 }
 
 func (pg *postgres) Unlock() error {
+	if drivers.IsLockable(pg) {
+		// Supports lockable, so already locked at the global level.
+		return nil
+	}
+
 	aid, err := drivers.GenerateAdvisoryLockID(pg.config.databaseName, pg.config.schemaName)
 	if err != nil {
 		return err
