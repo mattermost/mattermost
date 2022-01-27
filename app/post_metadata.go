@@ -486,6 +486,11 @@ func looksLikeAPermalink(url, siteURL string) bool {
 	return matched
 }
 
+func (a *App) containsPermalink(post *model.Post) bool {
+	link, _ := a.getFirstLinkAndImages(post.Message)
+	return looksLikeAPermalink(link, a.GetSiteURL())
+}
+
 func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool, previewedPostPropVal string) (*opengraph.OpenGraph, *model.PostImage, *model.Permalink, error) {
 	requestURL = resolveMetadataURL(requestURL, a.GetSiteURL())
 
@@ -530,10 +535,15 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 			return nil, nil, nil, appErr
 		}
 
-		// There is potential for looping with this function call if there are multiple nested permalink embeds.
-		referencedPostWithMetadata := a.PreparePostForClientWithEmbedsAndImages(referencedPost, false, false)
-
-		permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPostWithMetadata, referencedTeam, referencedChannel)}
+		// Get metadata for embedded post
+		if a.containsPermalink(referencedPost) {
+			// referencedPost contains a permalink: we don't get its metadata
+			permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPost, referencedTeam, referencedChannel)}
+		} else {
+			// referencedPost does not contain a permalink: we get its metadata
+			referencedPostWithMetadata := a.PreparePostForClientWithEmbedsAndImages(referencedPost, false, false)
+			permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPostWithMetadata, referencedTeam, referencedChannel)}
+		}
 	} else {
 
 		var request *http.Request
