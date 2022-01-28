@@ -27,12 +27,9 @@ func (s *Server) doInactivityCheck() {
 	systemValue, sysValErr := s.Store.System().GetByName("INACTIVITY")
 	if sysValErr != nil {
 		if _, ok := sysValErr.(*store.ErrNotFound); !ok {
-			mlog.Error("An error occurred while getting INACTIVITY from system store", mlog.Err(sysValErr))
+			mlog.Warn("An error occurred while getting INACTIVITY from system store", mlog.Err(sysValErr))
 		}
 	}
-
-	post, _ := s.Store.Post().GetLastPostRow()
-	session, _ := s.Store.Session().GetLastSessionRow()
 
 	// If we have a system value, it means this job already ran atleast once.
 	// we then check the last time the job ran plus the last time a post was made to determine if we
@@ -43,6 +40,7 @@ func (s *Server) doInactivityCheck() {
 		tt := time.Unix(sysT/1000, 0)
 		timeLastSentInativityEmail := time.Since(tt).Hours()
 
+		post, _ := s.Store.Post().GetLastPostRow()
 		if post != nil {
 			lastPostAt := post.CreateAt
 			posT := time.Unix(lastPostAt/1000, 0)
@@ -54,6 +52,7 @@ func (s *Server) doInactivityCheck() {
 			return
 		}
 
+		session, _ := s.Store.Session().GetLastSessionRow()
 		if session != nil {
 			lastSessionAt := session.CreateAt
 			sesT := time.Unix(lastSessionAt/1000, 0)
@@ -70,6 +69,7 @@ func (s *Server) doInactivityCheck() {
 	// and remind them to use the workspace. If no posts have been made. We check the last time
 	// they logged in (session) and send a reminder.
 
+	post, _ := s.Store.Post().GetLastPostRow()
 	if post != nil {
 		lastPostAt := post.CreateAt
 		posT := time.Unix(lastPostAt/1000, 0)
@@ -80,6 +80,7 @@ func (s *Server) doInactivityCheck() {
 		return
 	}
 
+	session, _ := s.Store.Session().GetLastSessionRow()
 	if session != nil {
 		lastSessionAt := session.CreateAt
 		sesT := time.Unix(lastSessionAt/1000, 0)

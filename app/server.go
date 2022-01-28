@@ -612,7 +612,11 @@ func NewServer(options ...Option) (*Server, error) {
 		s.Go(func() {
 			appInstance := New(ServerConnector(s.Channels()))
 			s.runLicenseExpirationCheckJob()
-			s.runInactivityCheckJob()
+
+			if s.Config().FeatureFlags.EnableInactivityCheckJob {
+				s.runInactivityCheckJob()
+			}
+
 			runCheckAdminSupportStatusJob(appInstance, request.EmptyContext())
 			runDNDStatusExpireJob(appInstance)
 		})
