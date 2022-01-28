@@ -2486,28 +2486,6 @@ func (a *App) SetActiveChannel(userID string, channelID string) *model.AppError 
 	return nil
 }
 
-func (a *App) UpdateChannelLastViewedAt(channelIDs []string, userID string) *model.AppError {
-	if _, err := a.Srv().Store.Channel().UpdateLastViewedAt(channelIDs, userID, *a.Config().ServiceSettings.ThreadAutoFollow); err != nil {
-		var invErr *store.ErrInvalidInput
-		switch {
-		case errors.As(err, &invErr):
-			return model.NewAppError("UpdateChannelLastViewedAt", "app.channel.update_last_viewed_at.app_error", nil, invErr.Error(), http.StatusBadRequest)
-		default:
-			return model.NewAppError("UpdateChannelLastViewedAt", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-	}
-
-	if *a.Config().ServiceSettings.EnableChannelViewedMessages {
-		for _, channelID := range channelIDs {
-			message := model.NewWebSocketEvent(model.WebsocketEventChannelViewed, "", "", userID, nil)
-			message.Add("channel_id", channelID)
-			a.Publish(message)
-		}
-	}
-
-	return nil
-}
-
 func (a *App) IsCRTEnabledForUser(userID string) bool {
 	if *a.Config().ServiceSettings.CollapsedThreads == model.CollapsedThreadsDisabled {
 		return false
