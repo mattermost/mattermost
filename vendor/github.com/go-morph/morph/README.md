@@ -16,6 +16,8 @@ It can be used as a library or a CLI tool.
 
 ```Go
 import (
+    "context"
+
     "github.com/go-morph/morph"
     "github.com/go-morph/morph/drivers/mysql"
     bindata "github.com/go-morph/morph/sources/go_bindata"
@@ -37,7 +39,7 @@ if err != nil {
     return err
 }
 
-engine, err := morph.New(driver, src)
+engine, err := morph.New(context.Background(), driver, src)
 if err != nil {
     return err
 }

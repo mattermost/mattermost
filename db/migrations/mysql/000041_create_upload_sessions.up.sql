@@ -85,3 +85,20 @@ SET @preparedStatement = (SELECT IF(
 PREPARE alterIfNotExists FROM @preparedStatement;
 EXECUTE alterIfNotExists;
 DEALLOCATE PREPARE alterIfNotExists;
+
+CREATE PROCEDURE Migrate_If_Version_Below_5350 ()
+BEGIN
+DECLARE
+	CURRENT_DB_VERSION TEXT;
+	SELECT
+		Value
+	FROM
+		Systems
+	WHERE
+		Name = 'Version' INTO CURRENT_DB_VERSION;
+	IF(INET_ATON(CURRENT_DB_VERSION) < INET_ATON('5.35.0')) THEN
+		UPDATE UploadSessions SET RemoteId='', ReqFileId='' WHERE RemoteId IS NULL;
+	END IF;
+END;
+	CALL Migrate_If_Version_Below_5350 ();
+	DROP PROCEDURE IF EXISTS Migrate_If_Version_Below_5350;

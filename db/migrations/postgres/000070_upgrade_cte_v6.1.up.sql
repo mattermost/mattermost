@@ -11,7 +11,7 @@ BEGIN
 		table_name = 'channels'
 		AND column_name = 'lastrootpostat';
 	IF NOT column_exist THEN
-		ALTER TABLE channels ADD COLUMN lastrootpostat bigint;
+		ALTER TABLE channels ADD COLUMN lastrootpostat bigint DEFAULT '0'::bigint;
 		WITH q AS (
 			SELECT
 				Channels.Id channelid,

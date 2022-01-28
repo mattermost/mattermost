@@ -83,7 +83,7 @@ func TestGetIPAddress(t *testing.T) {
 
 	assert.Equal(t, "10.1.0.1", GetIPAddress(&httpRequest3, []string{"X-Forwarded-For", "X-Real-Ip"}))
 
-	// Test without an X-Fowarded-For
+	// Test without an X-Forwarded-For
 	httpRequest4 := http.Request{
 		Header: http.Header{
 			"X-Real-Ip": []string{"10.1.0.1"},

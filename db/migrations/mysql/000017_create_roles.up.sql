@@ -27,8 +27,23 @@ PREPARE alterIfNotExists FROM @preparedStatement;
 EXECUTE alterIfNotExists;
 DEALLOCATE PREPARE alterIfNotExists;
 
-UPDATE Roles SET SchemeManaged = 0
-WHERE Name NOT IN ('system_user', 'system_admin', 'team_user', 'team_admin', 'channel_user', 'channel_admin');
+CREATE PROCEDURE Migrate_If_Version_Below_500 ()
+BEGIN
+DECLARE
+	CURRENT_DB_VERSION TEXT;
+	SELECT
+		Value
+	FROM
+		Systems
+	WHERE
+		Name = 'Version' INTO CURRENT_DB_VERSION;
+	IF(INET_ATON(CURRENT_DB_VERSION) < INET_ATON('5.0.0')) THEN
+		UPDATE Roles SET SchemeManaged = 0
+            WHERE Name NOT IN ('system_user', 'system_admin', 'team_user', 'team_admin', 'channel_user', 'channel_admin');
+	END IF;
+END;
+	CALL Migrate_If_Version_Below_500 ();
+	DROP PROCEDURE IF EXISTS Migrate_If_Version_Below_500;
 
 SET @preparedStatement = (SELECT IF(
     (

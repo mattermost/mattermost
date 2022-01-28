@@ -37,7 +37,6 @@ type JobServer struct {
 	Cloud                   ejobs.CloudJobInterface
 	ResendInvitationEmails  ejobs.ResendInvitationEmailJobInterface
 	ExtractContent          tjobs.ExtractContentInterface
-	FixCRTChannelUnreads    tjobs.FixCRTChannelUnreadsJobInterface
 
 	// mut is used to protect the following fields from concurrent access.
 	mut        sync.Mutex
