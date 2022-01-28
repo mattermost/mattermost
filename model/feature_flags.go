@@ -75,6 +75,8 @@ type FeatureFlags struct {
 	BoardsDataRetention bool
 
 	NormalizeLdapDNs bool
+
+	UseCaseOnboarding bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -101,6 +103,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.InlinePostEditing = false
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
+	f.UseCaseOnboarding = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
