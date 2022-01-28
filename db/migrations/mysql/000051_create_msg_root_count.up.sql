@@ -14,8 +14,8 @@ SET @tmp_count_root := 0;
 	IF(MentionCountRoot_EXIST = 1) THEN
 		SELECT @tmp_count_root := COUNT(*)
 		FROM ChannelMembers
-			WHERE MsgCountRoot = NULL
-			OR MentionCountRoot = NULL;
+			WHERE MsgCountRoot IS NULL
+			OR MentionCountRoot IS NULL;
 END IF;
 
 SET @preparedStatement =

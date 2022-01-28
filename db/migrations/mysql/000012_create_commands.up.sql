@@ -38,4 +38,28 @@ PREPARE alterIfNotExists FROM @preparedStatement;
 EXECUTE alterIfNotExists;
 DEALLOCATE PREPARE alterIfNotExists;
 
-UPDATE Commands SET PluginId = '' WHERE PluginId IS NULL;
+CREATE PROCEDURE Migrate_If_Version_Below_5280 ()
+BEGIN
+DECLARE
+	CURRENT_DB_VERSION TEXT;
+DECLARE
+    SYSTEMS_TABLE_EXISTS INT;
+    SELECT COUNT(*)
+        FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+        TABLE_NAME = 'Systems'
+    AND table_schema = DATABASE() INTO SYSTEMS_TABLE_EXISTS;
+    IF (SYSTEMS_TABLE_EXISTS > 0) THEN
+	    SELECT
+		    Value
+	    FROM
+		    Systems
+	    WHERE
+		    Name = 'Version' INTO CURRENT_DB_VERSION;
+	    IF(INET_ATON(CURRENT_DB_VERSION) < INET_ATON('5.28.0')) THEN
+		    UPDATE Commands SET PluginId = '' WHERE PluginId IS NULL;
+	    END IF;
+    END IF;
+END;
+	CALL Migrate_If_Version_Below_5280 ();
+	DROP PROCEDURE IF EXISTS Migrate_If_Version_Below_5280;

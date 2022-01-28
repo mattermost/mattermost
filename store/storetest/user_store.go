@@ -4028,7 +4028,7 @@ func testUserStoreAnalyticsActiveCountForPeriod(t *testing.T, ss store.Store, s 
 
 	// u0 last activity status is two months ago.
 	// u1 last activity status is one month ago
-	// u2 last activiy is two days ago
+	// u2 last activity is two days ago
 	// u2 last activity is one day ago
 	// u3 last activity is within last day
 	// u4 last activity is within last day
