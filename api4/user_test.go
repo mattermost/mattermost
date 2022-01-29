@@ -6548,7 +6548,6 @@ func TestUserUpdateEvents(t *testing.T) {
 
 	time.Sleep(1000 * time.Millisecond)
 
-
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		// trigger user update for onlineUser2
 		th.BasicUser.Nickname = "something_else"
