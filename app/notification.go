@@ -639,6 +639,11 @@ func (a *App) userAllowsEmail(user *model.User, channelMemberNotificationProps m
 		}
 	}
 
+	// if user is a bot account, then we do not send email
+	if user.IsBot {
+		userAllowsEmails = false
+	}
+
 	var status *model.Status
 	var err *model.AppError
 	if status, err = a.GetStatus(user.Id); err != nil {
