@@ -1024,18 +1024,21 @@ func (a *App) UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.Us
 }
 
 func (a *App) sendUpdatedUserEvent(user model.User) {
+	// exclude event creator user from admin, member user broadcast
+	omitUsers := make(map[string]bool, 1)
+	omitUsers[user.Id] = true
+
+	// declare admin and unsanitized copy of user
 	adminCopyOfUser := user.DeepCopy()
 	unsanitizedCopyOfUser := user.DeepCopy()
 
 	a.SanitizeProfile(adminCopyOfUser, true)
-	adminMessage := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", nil)
+	adminMessage := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", omitUsers)
 	adminMessage.Add("user", adminCopyOfUser)
 	adminMessage.GetBroadcast().ContainsSensitiveData = true
 	a.Publish(adminMessage)
 
-	// exclude event creator user from broadcast
-	omitUsers := make(map[string]bool, 1)
-	omitUsers[user.Id] = true
+
 	a.SanitizeProfile(&user, false)
 	message := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", omitUsers)
 	message.Add("user", &user)
@@ -1045,7 +1048,7 @@ func (a *App) sendUpdatedUserEvent(user model.User) {
 	// send unsanitized user to event creator
 	sourceUserMessage := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", unsanitizedCopyOfUser.Id, nil)
 	sourceUserMessage.Add("user", unsanitizedCopyOfUser)
-	adminMessage.GetBroadcast().ContainsSensitiveData = true
+	sourceUserMessage.GetBroadcast().ContainsSensitiveData = true
 	a.Publish(sourceUserMessage)
 }
 
