@@ -909,12 +909,12 @@ func (s SqlChannelStore) Get(id string, allowFromCache bool) (*model.Channel, er
 func (s SqlChannelStore) GetPinnedPosts(channelId string) (*model.PostList, error) {
 	pl := model.NewPostList()
 
-	posts := []*postInternal{}
+	posts := []*model.Post{}
 	if err := s.GetReplicaX().Select(&posts, "SELECT *, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount  FROM Posts p WHERE IsPinned = true AND ChannelId = ? AND DeleteAt = 0 ORDER BY CreateAt ASC", channelId); err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
 	for _, post := range posts {
-		pl.AddPost(post.ToModel())
+		pl.AddPost(post)
 		pl.AddOrder(post.Id)
 	}
 	return pl, nil
