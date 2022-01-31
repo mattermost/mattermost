@@ -17,6 +17,11 @@ import (
 const serverInactivityHours = 100
 
 func (s *Server) doInactivityCheck() {
+	if !s.Config().FeatureFlags.EnableInactivityCheckJob {
+		mlog.Info("No activity check because EnableInactivityCheckJob feature flag is disabled")
+		return
+	}
+
 	inactivityDurationHourseEnv := os.Getenv("MM_INACTIVITY_DURATION")
 	inactivityDurationHours, parseError := strconv.ParseFloat(inactivityDurationHourseEnv, 64)
 	if parseError != nil {
