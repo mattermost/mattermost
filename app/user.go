@@ -1047,7 +1047,6 @@ func (a *App) sendUpdatedUserEvent(user model.User) {
 	// send unsanitized user to event creator
 	sourceUserMessage := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", unsanitizedCopyOfUser.Id, nil)
 	sourceUserMessage.Add("user", unsanitizedCopyOfUser)
-	sourceUserMessage.GetBroadcast().ContainsSensitiveData = true
 	a.Publish(sourceUserMessage)
 }
 

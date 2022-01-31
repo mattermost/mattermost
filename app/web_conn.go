@@ -732,8 +732,7 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 			hasReadPrivateDataPermission = model.NewBool(wc.App.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PermissionManageSystem.Id))
 		}
 
-		// sensitive data should be allowed to be emitted back to source-user event.
-		if !*hasReadPrivateDataPermission && (wc.UserId != msg.GetBroadcast().UserId) {
+		if !*hasReadPrivateDataPermission {
 			return false
 		}
 	}
