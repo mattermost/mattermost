@@ -9308,6 +9308,6 @@
   },
   {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
-    "translation": "SAML-Antwort ist zu lang"
+    "translation": "SAML Antwort ist zu lang"
   }
 ]
