@@ -488,6 +488,9 @@ func looksLikeAPermalink(url, siteURL string) bool {
 
 func (a *App) containsPermalink(post *model.Post) bool {
 	link, _ := a.getFirstLinkAndImages(post.Message)
+	if link == "" {
+		return false
+	}
 	return looksLikeAPermalink(link, a.GetSiteURL())
 }
 
