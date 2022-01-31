@@ -2886,7 +2886,13 @@ func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSe
 			}
 		}
 	}
-	times, err := a.Srv().Store.Channel().UpdateLastViewedAt(channelIDs, userID, false)
+
+	updateThreads := false
+	if !collapsedThreadsSupported || !a.IsCRTEnabledForUser(userID) {
+		updateThreads = true
+	}
+
+	times, err := a.Srv().Store.Channel().UpdateLastViewedAt(channelIDs, userID, updateThreads)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -2908,18 +2914,12 @@ func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSe
 		a.clearPushNotification(currentSessionId, userID, channelID, "")
 	}
 
-	if *a.Config().ServiceSettings.ThreadAutoFollow && (!collapsedThreadsSupported || !a.IsCRTEnabledForUser(userID)) {
-		if err := a.Srv().Store.Thread().MarkAllAsReadInChannels(userID, channelIDs); err != nil {
-			return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-
-		if a.IsCRTEnabledForUser(userID) {
-			timestamp := model.GetMillis()
-			for _, channelID := range channelIDs {
-				message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, "", channelID, userID, nil)
-				message.Add("timestamp", timestamp)
-				a.Publish(message)
-			}
+	if updateThreads && a.IsCRTEnabledForUser(userID) {
+		timestamp := model.GetMillis()
+		for _, channelID := range channelIDs {
+			message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, "", channelID, userID, nil)
+			message.Add("timestamp", timestamp)
+			a.Publish(message)
 		}
 	}
 
