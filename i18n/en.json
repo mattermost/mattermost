@@ -3824,6 +3824,10 @@
     "translation": "Received invalid response from OAuth service provider."
   },
   {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "SAML response is too long"
+  },
+  {
     "id": "api.user.authorize_oauth_user.service.app_error",
     "translation": "Token request to {{.Service}} failed."
   },
@@ -9229,7 +9233,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 78+"
+    "translation": "Version 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -9241,7 +9245,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
