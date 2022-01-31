@@ -1038,7 +1038,6 @@ func (a *App) sendUpdatedUserEvent(user model.User) {
 	adminMessage.GetBroadcast().ContainsSensitiveData = true
 	a.Publish(adminMessage)
 
-
 	a.SanitizeProfile(&user, false)
 	message := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", omitUsers)
 	message.Add("user", &user)
