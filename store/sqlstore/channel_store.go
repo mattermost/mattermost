@@ -2311,17 +2311,7 @@ func (s SqlChannelStore) PermanentDeleteMembersByUser(userId string) error {
 	return nil
 }
 
-func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, updateThreads bool) (map[string]int64, error) {
-	var threadsToUpdate []string
-	now := model.GetMillis()
-	if updateThreads {
-		var err error
-		threadsToUpdate, err = s.Thread().CollectThreadsWithNewerReplies(userId, channelIds, now)
-		if err != nil {
-			return nil, err
-		}
-	}
-
+func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, error) {
 	lastPostAtTimes := []struct {
 		Id                string
 		LastPostAt        int64
@@ -2379,9 +2369,6 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 		for _, t := range lastPostAtTimes {
 			times[t.Id] = t.LastPostAt
 		}
-		if updateThreads {
-			s.Thread().UpdateLastViewedByThreadIds(userId, threadsToUpdate, now)
-		}
 		return times, nil
 	}
 
@@ -2424,9 +2411,6 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 		return nil, errors.Wrapf(err, "failed to update ChannelMembers with userId=%s and channelId in %v", userId, channelIds)
 	}
 
-	if updateThreads {
-		s.Thread().UpdateLastViewedByThreadIds(userId, threadsToUpdate, now)
-	}
 	return times, nil
 }
 
