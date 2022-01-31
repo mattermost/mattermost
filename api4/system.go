@@ -22,6 +22,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/services/cache"
 	"github.com/mattermost/mattermost-server/v6/services/upgrader"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 const (
@@ -68,6 +69,9 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.System.Handle("/notices/view", api.APISessionRequired(updateViewedProductNotices)).Methods("PUT")
 
 	api.BaseRoutes.System.Handle("/support_packet", api.APISessionRequired(generateSupportPacket)).Methods("GET")
+
+	api.BaseRoutes.System.Handle("/first_admin_setup", api.APISessionRequired(getFirstAdminCompleteSetup)).Methods("GET")
+	api.BaseRoutes.System.Handle("/first_admin_setup", api.APISessionRequired(setFirstAdminCompleteSetup)).Methods("PUT")
 }
 
 func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -857,4 +861,60 @@ func updateViewedProductNotices(c *Context, w http.ResponseWriter, r *http.Reque
 
 	auditRec.Success()
 	ReturnStatusOK(w)
+}
+
+func setFirstAdminCompleteSetup(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("setFirstAdminCompleteSetup", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	c.LogAudit("attempt")
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	firstAdminCompleteSetupObj := model.System{
+		Name:  model.SystemFirstAdminCompleteSetup,
+		Value: "true",
+	}
+
+	if err := c.App.Srv().Store.System().SaveOrUpdate(&firstAdminCompleteSetupObj); err != nil {
+		c.Err = model.NewAppError("setFirstAdminCompleteSetup", "api.error_set_first_admin_complete_setup", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+func getFirstAdminCompleteSetup(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("getFirstAdminCompleteSetup", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	c.LogAudit("attempt")
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	firstAdminCompleteSetupObj, err := c.App.Srv().Store.System().GetByName(model.SystemFirstAdminCompleteSetup)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			firstAdminCompleteSetupObj = &model.System{
+				Name:  model.SystemFirstAdminCompleteSetup,
+				Value: "false",
+			}
+		default:
+			c.Err = model.NewAppError("getFirstAdminCompleteSetup", "api.error_get_first_admin_complete_setup", nil, err.Error(), http.StatusInternalServerError)
+
+			return
+		}
+	}
+
+	auditRec.Success()
+	if err := json.NewEncoder(w).Encode(firstAdminCompleteSetupObj); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
