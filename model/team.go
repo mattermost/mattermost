@@ -40,7 +40,7 @@ type Team struct {
 	LastTeamIconUpdate int64   `json:"last_team_icon_update,omitempty"`
 	SchemeId           *string `json:"scheme_id"`
 	GroupConstrained   *bool   `json:"group_constrained"`
-	PolicyID           *string `json:"policy_id" db:"-"`
+	PolicyID           *string `json:"policy_id"`
 }
 
 type TeamPatch struct {
