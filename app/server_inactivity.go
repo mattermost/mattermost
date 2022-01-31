@@ -100,7 +100,7 @@ func (s *Server) takeInactivityAction() {
 	s.GetTelemetryService().SendTelemetry("inactive_server", properties)
 	users, err := s.Store.User().GetSystemAdminProfiles()
 	if err != nil {
-		mlog.Error("Failed to get system admins for license expired message from Mattermost.")
+		mlog.Error("Failed to get system admins for inactivity check from Mattermost.")
 		return
 	}
 
