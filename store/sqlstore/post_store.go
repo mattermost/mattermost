@@ -2145,15 +2145,15 @@ func (s *SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, must
 	return v, nil
 }
 
-func (s *SqlPostStore) GetLastPostRow() (lastPost *model.Post, _ error) {
-	query := `SELECT * FROM Posts ORDER BY CREATEAT DESC LIMIT 1`
-	posts := []*model.Post{}
-	err := s.GetReplicaX().Select(&posts, query)
+func (s *SqlPostStore) GetLastPostRowCreateAt() (int64, error) {
+	query := `SELECT CREATEAT FROM Posts ORDER BY CREATEAT DESC LIMIT 1`
+	var createAt int64
+	err := s.GetReplicaX().Get(&createAt, query)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get last post")
+		return 0, errors.Wrapf(err, "failed to get last post createat")
 	}
 
-	return posts[0], nil
+	return createAt, nil
 }
 
 func (s *SqlPostStore) GetPostsCreatedAt(channelId string, time int64) ([]*model.Post, error) {

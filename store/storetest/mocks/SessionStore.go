@@ -74,17 +74,15 @@ func (_m *SessionStore) Get(ctx context.Context, sessionIDOrToken string) (*mode
 	return r0, r1
 }
 
-// GetLastSessionRow provides a mock function with given fields:
-func (_m *SessionStore) GetLastSessionRow() (*model.Session, error) {
+// GetLastSessionRowCreateAt provides a mock function with given fields:
+func (_m *SessionStore) GetLastSessionRowCreateAt() (int64, error) {
 	ret := _m.Called()
 
-	var r0 *model.Session
-	if rf, ok := ret.Get(0).(func() *model.Session); ok {
+	var r0 int64
+	if rf, ok := ret.Get(0).(func() int64); ok {
 		r0 = rf()
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Session)
-		}
+		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 error

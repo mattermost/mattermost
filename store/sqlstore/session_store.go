@@ -229,14 +229,15 @@ func (me SqlSessionStore) UpdateExpiresAt(sessionId string, time int64) error {
 	return nil
 }
 
-func (me SqlSessionStore) GetLastSessionRow() (lastSession *model.Session, _ error) {
-	query := `SELECT * FROM Sessions ORDER BY CREATEAT DESC LIMIT 1`
-	sessions := []*model.Session{}
-
-	if err := me.GetReplicaX().Select(&sessions, query); err != nil {
-		return nil, errors.Wrapf(err, "failed to find Sessions")
+func (me *SqlSessionStore) GetLastSessionRowCreateAt() (int64, error) {
+	query := `SELECT CREATEAT FROM Sessions ORDER BY CREATEAT DESC LIMIT 1`
+	var createAt int64
+	err := me.GetReplicaX().Get(&createAt, query)
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to get last session creatat")
 	}
-	return sessions[0], nil
+
+	return createAt, nil
 }
 
 func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) error {

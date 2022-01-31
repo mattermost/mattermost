@@ -33,7 +33,7 @@ func TestSessionStore(t *testing.T, ss store.Store) {
 	t.Run("SessionUpdateDeviceId2", func(t *testing.T) { testSessionUpdateDeviceId2(t, ss) })
 	t.Run("UpdateExpiresAt", func(t *testing.T) { testSessionStoreUpdateExpiresAt(t, ss) })
 	t.Run("UpdateLastActivityAt", func(t *testing.T) { testSessionStoreUpdateLastActivityAt(t, ss) })
-	t.Run("GetLastSessionRow", func(t *testing.T) { testSessionStoreGetLastSessionRow(t, ss) })
+	t.Run("GetLastSessionRowCreateAt", func(t *testing.T) { testSessionStoreGetLastSessionRowCreateAt(t, ss) })
 	t.Run("SessionCount", func(t *testing.T) { testSessionCount(t, ss) })
 	t.Run("GetSessionsExpired", func(t *testing.T) { testGetSessionsExpired(t, ss) })
 	t.Run("UpdateExpiredNotify", func(t *testing.T) { testUpdateExpiredNotify(t, ss) })
@@ -47,7 +47,7 @@ func testSessionStoreSave(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 }
 
-func testSessionStoreGetLastSessionRow(t *testing.T, ss store.Store) {
+func testSessionStoreGetLastSessionRowCreateAt(t *testing.T, ss store.Store) {
 	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 	_, err := ss.Session().Save(s1)
@@ -56,12 +56,12 @@ func testSessionStoreGetLastSessionRow(t *testing.T, ss store.Store) {
 	latestSessionUserid := model.NewId()
 	s2 := &model.Session{}
 	s2.UserId = latestSessionUserid
-	_, err = ss.Session().Save(s2)
+	latestSession, err := ss.Session().Save(s2)
 	require.NoError(t, err)
 
-	latestSession, err := ss.Session().GetLastSessionRow()
+	createAt, err := ss.Session().GetLastSessionRowCreateAt()
 	require.NoError(t, err)
-	assert.Equal(t, latestSession.UserId, latestSessionUserid)
+	assert.Equal(t, latestSession.CreateAt, createAt)
 }
 
 func testSessionGet(t *testing.T, ss store.Store) {

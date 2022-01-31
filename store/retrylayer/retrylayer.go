@@ -6022,11 +6022,11 @@ func (s *RetryLayerPostStore) GetFlaggedPostsForTeam(userID string, teamID strin
 
 }
 
-func (s *RetryLayerPostStore) GetLastPostRow() (*model.Post, error) {
+func (s *RetryLayerPostStore) GetLastPostRowCreateAt() (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetLastPostRow()
+		result, err := s.PostStore.GetLastPostRowCreateAt()
 		if err == nil {
 			return result, nil
 		}
@@ -8092,11 +8092,11 @@ func (s *RetryLayerSessionStore) Get(ctx context.Context, sessionIDOrToken strin
 
 }
 
-func (s *RetryLayerSessionStore) GetLastSessionRow() (*model.Session, error) {
+func (s *RetryLayerSessionStore) GetLastSessionRowCreateAt() (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.SessionStore.GetLastSessionRow()
+		result, err := s.SessionStore.GetLastSessionRowCreateAt()
 		if err == nil {
 			return result, nil
 		}

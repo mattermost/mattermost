@@ -40,9 +40,8 @@ func (s *Server) doInactivityCheck() {
 		tt := time.Unix(sysT/1000, 0)
 		timeLastSentInativityEmail := time.Since(tt).Hours()
 
-		post, _ := s.Store.Post().GetLastPostRow()
-		if post != nil {
-			lastPostAt := post.CreateAt
+		lastPostAt, _ := s.Store.Post().GetLastPostRowCreateAt()
+		if lastPostAt != 0 {
 			posT := time.Unix(lastPostAt/1000, 0)
 			timeForLastPost := time.Since(posT).Hours()
 
@@ -52,9 +51,8 @@ func (s *Server) doInactivityCheck() {
 			return
 		}
 
-		session, _ := s.Store.Session().GetLastSessionRow()
-		if session != nil {
-			lastSessionAt := session.CreateAt
+		lastSessionAt, _ := s.Store.Session().GetLastSessionRowCreateAt()
+		if lastSessionAt != 0 {
 			sesT := time.Unix(lastSessionAt/1000, 0)
 			timeForLastSession := time.Since(sesT).Hours()
 
@@ -69,9 +67,8 @@ func (s *Server) doInactivityCheck() {
 	// and remind them to use the workspace. If no posts have been made. We check the last time
 	// they logged in (session) and send a reminder.
 
-	post, _ := s.Store.Post().GetLastPostRow()
-	if post != nil {
-		lastPostAt := post.CreateAt
+	lastPostAt, _ := s.Store.Post().GetLastPostRowCreateAt()
+	if lastPostAt != 0 {
 		posT := time.Unix(lastPostAt/1000, 0)
 		timeForLastPost := time.Since(posT).Hours()
 		if timeForLastPost > inactivityDurationHours {
@@ -80,9 +77,8 @@ func (s *Server) doInactivityCheck() {
 		return
 	}
 
-	session, _ := s.Store.Session().GetLastSessionRow()
-	if session != nil {
-		lastSessionAt := session.CreateAt
+	lastSessionAt, _ := s.Store.Session().GetLastSessionRowCreateAt()
+	if lastSessionAt != 0 {
 		sesT := time.Unix(lastSessionAt/1000, 0)
 		timeForLastSession := time.Since(sesT).Hours()
 		if timeForLastSession > inactivityDurationHours {

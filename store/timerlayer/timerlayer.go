@@ -4826,10 +4826,10 @@ func (s *TimerLayerPostStore) GetFlaggedPostsForTeam(userID string, teamID strin
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetLastPostRow() (*model.Post, error) {
+func (s *TimerLayerPostStore) GetLastPostRowCreateAt() (int64, error) {
 	start := timemodule.Now()
 
-	result, err := s.PostStore.GetLastPostRow()
+	result, err := s.PostStore.GetLastPostRowCreateAt()
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -4837,7 +4837,7 @@ func (s *TimerLayerPostStore) GetLastPostRow() (*model.Post, error) {
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetLastPostRow", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetLastPostRowCreateAt", success, elapsed)
 	}
 	return result, err
 }
@@ -6425,10 +6425,10 @@ func (s *TimerLayerSessionStore) Get(ctx context.Context, sessionIDOrToken strin
 	return result, err
 }
 
-func (s *TimerLayerSessionStore) GetLastSessionRow() (*model.Session, error) {
+func (s *TimerLayerSessionStore) GetLastSessionRowCreateAt() (int64, error) {
 	start := timemodule.Now()
 
-	result, err := s.SessionStore.GetLastSessionRow()
+	result, err := s.SessionStore.GetLastSessionRowCreateAt()
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6436,7 +6436,7 @@ func (s *TimerLayerSessionStore) GetLastSessionRow() (*model.Session, error) {
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.GetLastSessionRow", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.GetLastSessionRowCreateAt", success, elapsed)
 	}
 	return result, err
 }

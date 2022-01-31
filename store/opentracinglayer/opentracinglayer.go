@@ -5327,16 +5327,16 @@ func (s *OpenTracingLayerPostStore) GetFlaggedPostsForTeam(userID string, teamID
 	return result, err
 }
 
-func (s *OpenTracingLayerPostStore) GetLastPostRow() (*model.Post, error) {
+func (s *OpenTracingLayerPostStore) GetLastPostRowCreateAt() (int64, error) {
 	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetLastPostRow")
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetLastPostRowCreateAt")
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
 	}()
 
 	defer span.Finish()
-	result, err := s.PostStore.GetLastPostRow()
+	result, err := s.PostStore.GetLastPostRowCreateAt()
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -7117,16 +7117,16 @@ func (s *OpenTracingLayerSessionStore) Get(ctx context.Context, sessionIDOrToken
 	return result, err
 }
 
-func (s *OpenTracingLayerSessionStore) GetLastSessionRow() (*model.Session, error) {
+func (s *OpenTracingLayerSessionStore) GetLastSessionRowCreateAt() (int64, error) {
 	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SessionStore.GetLastSessionRow")
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SessionStore.GetLastSessionRowCreateAt")
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
 	}()
 
 	defer span.Finish()
-	result, err := s.SessionStore.GetLastSessionRow()
+	result, err := s.SessionStore.GetLastSessionRowCreateAt()
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
