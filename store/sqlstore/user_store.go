@@ -2026,7 +2026,8 @@ func (us SqlUserStore) GetUsersWithInvalidEmails(page int, perPage int, restrict
 	domainArray := strings.Split(restrictedDomains, ",")
 	query := us.usersQuery.
 		Where("u.Roles != 'system_guest'").
-		Where("u.DeleteAt = 0")
+		Where("u.DeleteAt = 0").
+		Where("(u.AuthService = '' OR u.AuthService IS NULL)")
 
 	for _, d := range domainArray {
 		query = query.Where("u.Email NOT LIKE LOWER(?)", wildcardSearchTerm(d))
