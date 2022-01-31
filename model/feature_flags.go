@@ -73,7 +73,7 @@ type FeatureFlags struct {
 
 	NormalizeLdapDNs bool
 
-	// Enable health of server dashbaord
+	// Enable health of server dashboard
 	HealthOfServerDashboard bool
 }
 
