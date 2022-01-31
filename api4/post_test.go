@@ -2759,6 +2759,161 @@ func TestGetPostsByIds(t *testing.T) {
 	CheckNotFoundStatus(t, response)
 }
 
+func TestCreatePostNotificationsWithCRT(t *testing.T) {
+	th := Setup(t).InitBasic()
+	rpost := th.CreatePost()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+	})
+
+	testCases := []struct {
+		name        string
+		post        *model.Post
+		notifyProps model.StringMap
+		mentions    bool
+		followers   bool
+	}{
+		{
+			name: "When default is NONE, comments is NEVER, desktop threads is ALL, and has no mentions",
+			post: &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				Message:   "reply",
+				UserId:    th.BasicUser2.Id,
+				RootId:    rpost.Id,
+			},
+			notifyProps: model.StringMap{
+				model.DesktopNotifyProp:        model.UserNotifyNone,
+				model.CommentsNotifyProp:       model.CommentsNotifyNever,
+				model.DesktopThreadsNotifyProp: model.UserNotifyAll,
+			},
+			mentions:  false,
+			followers: false,
+		},
+		{
+			name: "When default is NONE, comments is NEVER, desktop threads is ALL, and has mentions",
+			post: &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				Message:   "mention @" + th.BasicUser.Username,
+				UserId:    th.BasicUser2.Id,
+				RootId:    rpost.Id,
+			},
+			notifyProps: model.StringMap{
+				model.DesktopNotifyProp:        model.UserNotifyNone,
+				model.CommentsNotifyProp:       model.CommentsNotifyNever,
+				model.DesktopThreadsNotifyProp: model.UserNotifyAll,
+			},
+			mentions:  true,
+			followers: false,
+		},
+		{
+			name: "When default is MENTION, comments is NEVER, desktop threads is ALL, and has no mentions",
+			post: &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				Message:   "reply",
+				UserId:    th.BasicUser2.Id,
+				RootId:    rpost.Id,
+			},
+			notifyProps: model.StringMap{
+				model.DesktopNotifyProp:        model.UserNotifyMention,
+				model.CommentsNotifyProp:       model.CommentsNotifyNever,
+				model.DesktopThreadsNotifyProp: model.UserNotifyAll,
+			},
+			mentions:  false,
+			followers: true,
+		},
+		{
+			name: "When default is MENTION, comments is ANY, desktop threads is MENTION, and has no mentions",
+			post: &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				Message:   "reply",
+				UserId:    th.BasicUser2.Id,
+				RootId:    rpost.Id,
+			},
+			notifyProps: model.StringMap{
+				model.DesktopNotifyProp:        model.UserNotifyMention,
+				model.CommentsNotifyProp:       model.CommentsNotifyAny,
+				model.DesktopThreadsNotifyProp: model.UserNotifyMention,
+			},
+			mentions:  false,
+			followers: false,
+		},
+		{
+			name: "When default is MENTION, comments is NEVER, desktop threads is MENTION, and has mentions",
+			post: &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				Message:   "reply @" + th.BasicUser.Username,
+				UserId:    th.BasicUser2.Id,
+				RootId:    rpost.Id,
+			},
+			notifyProps: model.StringMap{
+				model.DesktopNotifyProp:        model.UserNotifyMention,
+				model.CommentsNotifyProp:       model.CommentsNotifyNever,
+				model.DesktopThreadsNotifyProp: model.UserNotifyMention,
+			},
+			mentions:  true,
+			followers: true,
+		},
+	}
+
+	// reset the cache so that channel member notify props includes all users
+	th.App.Srv().Store.Channel().ClearCaches()
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			userWSClient, err := th.CreateWebSocketClient()
+			require.NoError(t, err)
+			defer userWSClient.Close()
+			userWSClient.Listen()
+
+			patch := &model.UserPatch{}
+			patch.NotifyProps = model.CopyStringMap(th.BasicUser.NotifyProps)
+			for k, v := range tc.notifyProps {
+				patch.NotifyProps[k] = v
+			}
+
+			// update user's notify props
+			_, _, err = th.Client.PatchUser(th.BasicUser.Id, patch)
+			require.NoError(t, err)
+
+			// post a reply on the thread
+			_, appErr := th.App.CreatePostAsUser(th.Context, tc.post, th.Context.Session().Id, false)
+			require.Nil(t, appErr)
+
+			var caught bool
+			func() {
+				for {
+					select {
+					case ev := <-userWSClient.EventChannel:
+						if ev.EventType() == model.WebsocketEventPosted {
+							caught = true
+							data := ev.GetData()
+
+							users, ok := data["mentions"]
+							require.Equal(t, tc.mentions, ok)
+							if ok {
+								require.EqualValues(t, "[\""+th.BasicUser.Id+"\"]", users)
+							}
+
+							users, ok = data["followers"]
+							require.Equal(t, tc.followers, ok)
+
+							if ok {
+								require.EqualValues(t, "[\""+th.BasicUser.Id+"\"]", users)
+							}
+						}
+					case <-time.After(1 * time.Second):
+						return
+					}
+				}
+			}()
+
+			require.Truef(t, caught, "User should have received %s event", model.WebsocketEventPosted)
+		})
+	}
+}
+
 func TestGetPostStripActionIntegrations(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
