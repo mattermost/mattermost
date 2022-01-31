@@ -16,6 +16,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
+const maxSAMLResponseSize = 2 * 1024 * 1024 // 2MB
+
 func (w *Web) InitSaml() {
 	w.MainRouter.Handle("/login/sso/saml", w.ApiHandler(loginWithSaml)).Methods("GET")
 	w.MainRouter.Handle("/login/sso/saml", w.ApiHandlerTrustRequester(completeSaml)).Methods("POST")
@@ -120,6 +122,13 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			c.Err.StatusCode = http.StatusFound
 		}
+	}
+
+	if len(encodedXML) > maxSAMLResponseSize {
+		err := model.NewAppError("completeSaml", "api.user.authorize_oauth_user.saml_response_too_long.app_error", nil, "SAML response is too long", http.StatusBadRequest)
+		mlog.Error(err.Error())
+		handleError(err)
+		return
 	}
 
 	user, err := samlInterface.DoLogin(c.AppContext, encodedXML, relayProps)
