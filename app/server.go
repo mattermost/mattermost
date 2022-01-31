@@ -343,6 +343,9 @@ func NewServer(options ...Option) (*Server, error) {
 					}
 					return event
 				},
+				TracesSampler: sentry.TracesSamplerFunc(func(ctx sentry.SamplingContext) sentry.Sampled {
+					return sentry.SampledFalse
+				}),
 			}); err2 != nil {
 				mlog.Warn("Sentry could not be initiated, probably bad DSN?", mlog.Err(err2))
 			}

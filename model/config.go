@@ -202,6 +202,7 @@ const (
 
 	DataRetentionSettingsDefaultMessageRetentionDays = 365
 	DataRetentionSettingsDefaultFileRetentionDays    = 365
+	DataRetentionSettingsDefaultBoardsRetentionDays  = 365
 	DataRetentionSettingsDefaultDeletionJobStartTime = "02:00"
 	DataRetentionSettingsDefaultBatchSize            = 3000
 
@@ -2586,8 +2587,10 @@ func (bs *BleveSettings) SetDefaults() {
 type DataRetentionSettings struct {
 	EnableMessageDeletion *bool   `access:"compliance_data_retention_policy"`
 	EnableFileDeletion    *bool   `access:"compliance_data_retention_policy"`
+	EnableBoardsDeletion  *bool   `access:"compliance_data_retention_policy"`
 	MessageRetentionDays  *int    `access:"compliance_data_retention_policy"`
 	FileRetentionDays     *int    `access:"compliance_data_retention_policy"`
+	BoardsRetentionDays   *int    `access:"compliance_data_retention_policy"`
 	DeletionJobStartTime  *string `access:"compliance_data_retention_policy"`
 	BatchSize             *int    `access:"compliance_data_retention_policy"`
 }
@@ -2601,12 +2604,20 @@ func (s *DataRetentionSettings) SetDefaults() {
 		s.EnableFileDeletion = NewBool(false)
 	}
 
+	if s.EnableBoardsDeletion == nil {
+		s.EnableBoardsDeletion = NewBool(false)
+	}
+
 	if s.MessageRetentionDays == nil {
 		s.MessageRetentionDays = NewInt(DataRetentionSettingsDefaultMessageRetentionDays)
 	}
 
 	if s.FileRetentionDays == nil {
 		s.FileRetentionDays = NewInt(DataRetentionSettingsDefaultFileRetentionDays)
+	}
+
+	if s.BoardsRetentionDays == nil {
+		s.BoardsRetentionDays = NewInt(DataRetentionSettingsDefaultBoardsRetentionDays)
 	}
 
 	if s.DeletionJobStartTime == nil {

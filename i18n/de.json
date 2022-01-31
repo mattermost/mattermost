@@ -9301,5 +9301,9 @@
   {
     "id": "api.license.request_renewal_link.cannot_renew_on_cws",
     "translation": "Das Erneuern dieser Lizenz im Portal ist nicht möglich"
+  },
+  {
+    "id": "api.config.migrate_config_restricted.app_error",
+    "translation": "Die Migration von Konfigurationen ist aufgrund des Instanztyps eingeschränkt."
   }
 ]

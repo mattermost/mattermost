@@ -75,13 +75,13 @@ func (l *LRU) Set(key string, value interface{}) error {
 }
 
 // SetWithDefaultExpiry adds the given key and value to the store with the default expiry. If
-// the key already exists, it will overwrite the previoous value
+// the key already exists, it will overwrite the previous value
 func (l *LRU) SetWithDefaultExpiry(key string, value interface{}) error {
 	return l.SetWithExpiry(key, value, l.defaultExpiry)
 }
 
 // SetWithExpiry adds the given key and value to the cache with the given expiry. If the key
-// already exists, it will overwrite the previoous value
+// already exists, it will overwrite the previous value
 func (l *LRU) SetWithExpiry(key string, value interface{}, ttl time.Duration) error {
 	return l.set(key, value, ttl)
 }

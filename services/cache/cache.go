@@ -23,11 +23,11 @@ type Cache interface {
 	Set(key string, value interface{}) error
 
 	// SetWithDefaultExpiry adds the given key and value to the store with the default expiry. If
-	// the key already exists, it will overwrite the previoous value
+	// the key already exists, it will overwrite the previous value
 	SetWithDefaultExpiry(key string, value interface{}) error
 
 	// SetWithExpiry adds the given key and value to the cache with the given expiry. If the key
-	// already exists, it will overwrite the previoous value
+	// already exists, it will overwrite the previous value
 	SetWithExpiry(key string, value interface{}, ttl time.Duration) error
 
 	// Get the content stored in the cache for the given key, and decode it into the value interface.
