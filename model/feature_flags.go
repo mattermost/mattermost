@@ -72,6 +72,9 @@ type FeatureFlags struct {
 	BoardsDataRetention bool
 
 	NormalizeLdapDNs bool
+
+	// Enable health of server dashbaord
+	HealthOfServerDashboard bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -97,6 +100,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.InlinePostEditing = false
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
+	f.HealthOfServerDashboard = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
