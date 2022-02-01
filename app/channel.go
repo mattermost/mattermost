@@ -2871,11 +2871,7 @@ func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSe
 		a.clearPushNotification(currentSessionId, userID, channelID)
 	}
 
-<<<<<<< HEAD
-	if !collapsedThreadsSupported || !a.isCRTEnabledForUser(userID) {
-=======
 	if *a.Config().ServiceSettings.ThreadAutoFollow && (!collapsedThreadsSupported || !a.IsCRTEnabledForUser(userID)) {
->>>>>>> 58879719f ([MM-41350] All CRT server operations should only happen if ThreadAutoFollow is true (#19411))
 		if err := a.Srv().Store.Thread().MarkAllAsReadInChannels(userID, channelIDs); err != nil {
 			return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
