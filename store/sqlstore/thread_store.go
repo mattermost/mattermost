@@ -265,7 +265,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 				Where(unreadRepliesFetchConditions).
 				MustSql()
 
-			var threads []*JoinedThread
+			threads := []*JoinedThread{}
 			query, args, _ := s.getQueryBuilder().
 				Select(`Threads.*,
 				` + postSliceCoalesceQuery() + `,
@@ -305,7 +305,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	totalUnreadThreads := totalUnreadThreadsResult.Data.(int64)
 
 	// userIds is the de-duped list of participant ids from all threads.
-	var userIds []string
+	userIds := []string{}
 	// userIdMap is the map of participant ids from all threads.
 	// Used to generate userIds
 	userIdMap := map[string]bool{}
@@ -376,7 +376,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 }
 
 func (s *SqlThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error) {
-	var users []string
+	users := []string{}
 
 	fetchConditions := sq.And{
 		sq.Eq{"PostId": threadID},
@@ -452,7 +452,7 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 	thread.LastViewedAt = threadMembership.LastViewed
 	thread.UnreadMentions = threadMembership.UnreadMentions
 
-	var users []*model.User
+	users := []*model.User{}
 	if extended {
 		var err error
 		users, err = s.User().GetProfileByIds(context.Background(), thread.Participants, &store.UserGetByIdsOpts{}, true)
@@ -465,7 +465,7 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		}
 	}
 
-	var participants []*model.User
+	participants := []*model.User{}
 	for _, participantId := range thread.Participants {
 		var participant *model.User
 		for _, u := range users {
@@ -493,7 +493,7 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 	return result, nil
 }
 func (s *SqlThreadStore) MarkAllAsReadInChannels(userID string, channelIDs []string) error {
-	var threadIDs []string
+	threadIDs := []string{}
 
 	query, args, _ := s.getQueryBuilder().
 		Select("ThreadMemberships.PostId").
@@ -528,7 +528,7 @@ func (s *SqlThreadStore) MarkAllAsRead(userId, teamId string) error {
 	if err != nil {
 		return err
 	}
-	var membershipIds []string
+	membershipIds := []string{}
 	for _, m := range memberships {
 		membershipIds = append(membershipIds, m.PostId)
 	}
@@ -772,7 +772,7 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
 }
 
 func (s *SqlThreadStore) CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error) {
-	var changedThreads []string
+	changedThreads := []string{}
 	query, args, _ := s.getQueryBuilder().
 		Select("Threads.PostId").
 		From("Threads").
