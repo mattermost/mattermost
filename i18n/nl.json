@@ -4801,7 +4801,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -4813,7 +4813,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Versie 78+"
+    "translation": "Versie 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -9305,5 +9305,9 @@
   {
     "id": "api.config.migrate_config_restricted.app_error",
     "translation": "Configurariemigratie is beperkt vanwege het type instantie."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "SAML antwoord is te lang"
   }
 ]
