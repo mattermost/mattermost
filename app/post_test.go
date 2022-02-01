@@ -1871,7 +1871,7 @@ func TestThreadMembership(t *testing.T) {
 		defer th.TearDown()
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ThreadAutoFollow = true
-			*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+			*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
 		})
 
 		user1 := th.BasicUser
