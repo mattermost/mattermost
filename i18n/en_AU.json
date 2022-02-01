@@ -61,7 +61,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -73,7 +73,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 78+"
+    "translation": "Version 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -9305,5 +9305,9 @@
   {
     "id": "api.config.migrate_config_restricted.app_error",
     "translation": "Config migration is restricted due to instance type."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "SAML response is too long"
   }
 ]
