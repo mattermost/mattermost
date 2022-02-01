@@ -6061,7 +6061,7 @@
   },
   {
     "id": "app.system.complete_onboarding_request.no_first_user",
-    "translation": "Onboarding can only be completed by an System Administrator."
+    "translation": "Onboarding can only be completed by a System Administrator."
   },
   {
     "id": "app.system.get.app_error",

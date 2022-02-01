@@ -868,12 +868,12 @@ func TestCompleteOnboarding(t *testing.T) {
 			CheckOKStatus(t, resp)
 		})
 
-		installedPlugin, resp, err := th.SystemAdminClient.GetPlugins()
+		installedPlugins, resp, err := th.SystemAdminClient.GetPlugins()
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
 		found := false
-		for _, p := range installedPlugin.Active {
+		for _, p := range installedPlugins.Active {
 			if p.Id == "testplugin2" {
 				found = true
 			}
