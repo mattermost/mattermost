@@ -4,9 +4,12 @@
 package api4
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"math/rand"
 	"net"
@@ -19,6 +22,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	graphql "github.com/graph-gophers/graphql-go"
 	s3 "github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/stretchr/testify/require"
@@ -45,6 +49,7 @@ type TestHelper struct {
 
 	Context              *request.Context
 	Client               *model.Client4
+	GraphQLClient        *model.Client4
 	BasicUser            *model.User
 	BasicUser2           *model.User
 	TeamAdminUser        *model.User
@@ -191,6 +196,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	}
 
 	th.Client = th.CreateClient()
+	th.GraphQLClient = th.CreateClient()
 	th.SystemAdminClient = th.CreateClient()
 	th.SystemManagerClient = th.CreateClient()
 
@@ -372,6 +378,13 @@ func (th *TestHelper) TearDown() {
 		th.App.Srv().InvalidateAllCaches()
 	}
 	th.ShutdownApp()
+}
+
+func closeBody(r *http.Response) {
+	if r.Body != nil {
+		_, _ = io.Copy(ioutil.Discard, r.Body)
+		_ = r.Body.Close()
+	}
 }
 
 var initBasicOnce sync.Once
@@ -765,10 +778,12 @@ func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 
 func (th *TestHelper) LoginBasic() {
 	th.LoginBasicWithClient(th.Client)
+	th.LoginBasicWithClient(th.GraphQLClient)
 }
 
 func (th *TestHelper) LoginBasic2() {
 	th.LoginBasic2WithClient(th.Client)
+	th.LoginBasic2WithClient(th.GraphQLClient)
 }
 
 func (th *TestHelper) LoginTeamAdmin() {
@@ -1233,4 +1248,23 @@ func (th *TestHelper) SetupScheme(scope string) *model.Scheme {
 		panic(err)
 	}
 	return scheme
+}
+
+func (th *TestHelper) MakeGraphQLRequest(input *graphQLInput) (*graphql.Response, error) {
+	url := fmt.Sprintf("http://localhost:%v", th.App.Srv().ListenAddr.Port) + model.APIURLSuffixV5 + "/graphql"
+
+	buf, err := json.Marshal(input)
+	if err != nil {
+		panic(err)
+	}
+
+	resp, err := th.GraphQLClient.DoAPIRequestReaderRaw("POST", url, bytes.NewReader(buf), map[string]string{})
+	if err != nil {
+		panic(err)
+	}
+	defer closeBody(resp)
+
+	var gqlResp *graphql.Response
+	err = json.NewDecoder(resp.Body).Decode(&gqlResp)
+	return gqlResp, err
 }

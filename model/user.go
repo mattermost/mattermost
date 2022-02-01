@@ -409,6 +409,23 @@ func (u *User) PreSave() {
 	}
 }
 
+// The following are some GraphQL methods necessary to return the
+// data in float64 type. The spec doesn't support 64 bit integers,
+// so we have to pass the data in float64. The _ at the end is
+// a hack to keep the attribute name same in GraphQL schema.
+
+func (u *User) CreateAt_() float64 {
+	return float64(u.CreateAt)
+}
+
+func (u *User) DeleteAt_() float64 {
+	return float64(u.DeleteAt)
+}
+
+func (u *User) LastPictureUpdateAt() float64 {
+	return float64(u.LastPictureUpdate)
+}
+
 // PreUpdate should be run before updating the user in the db.
 func (u *User) PreUpdate() {
 	u.Username = SanitizeUnicode(u.Username)
@@ -622,6 +639,15 @@ func (u *User) SetCustomStatus(cs *CustomStatus) error {
 }
 
 func (u *User) GetCustomStatus() *CustomStatus {
+	var o *CustomStatus
+
+	data := u.Props[UserPropsKeyCustomStatus]
+	_ = json.Unmarshal([]byte(data), &o)
+
+	return o
+}
+
+func (u *User) CustomStatus() *CustomStatus {
 	var o *CustomStatus
 
 	data := u.Props[UserPropsKeyCustomStatus]

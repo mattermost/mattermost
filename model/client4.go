@@ -46,6 +46,7 @@ const (
 
 	APIURLSuffixV1 = "/api/v1"
 	APIURLSuffixV4 = "/api/v4"
+	APIURLSuffixV5 = "/api/v5"
 	APIURLSuffix   = APIURLSuffixV4
 )
 
@@ -592,6 +593,43 @@ func (c *Client4) DoAPIRequestBytes(method, url string, data []byte, etag string
 }
 
 func (c *Client4) DoAPIRequestReader(method, url string, data io.Reader, headers map[string]string) (*http.Response, error) {
+	rq, err := c.prepareRequest(method, url, data, headers)
+	if err != nil {
+		return nil, err
+	}
+
+	rp, err := c.HTTPClient.Do(rq)
+	if err != nil {
+		return rp, err
+	}
+
+	if rp.StatusCode == 304 {
+		return rp, nil
+	}
+
+	if rp.StatusCode >= 300 {
+		defer closeBody(rp)
+		return rp, AppErrorFromJSON(rp.Body)
+	}
+
+	return rp, nil
+}
+
+func (c *Client4) DoAPIRequestReaderRaw(method, url string, data io.Reader, headers map[string]string) (*http.Response, error) {
+	rq, err := c.prepareRequest(method, url, data, headers)
+	if err != nil {
+		return nil, err
+	}
+
+	rp, err := c.HTTPClient.Do(rq)
+	if err != nil {
+		return rp, err
+	}
+
+	return rp, nil
+}
+
+func (c *Client4) prepareRequest(method, url string, data io.Reader, headers map[string]string) (*http.Request, error) {
 	rq, err := http.NewRequest(method, url, data)
 	if err != nil {
 		return nil, err
@@ -611,21 +649,7 @@ func (c *Client4) DoAPIRequestReader(method, url string, data io.Reader, headers
 		}
 	}
 
-	rp, err := c.HTTPClient.Do(rq)
-	if err != nil {
-		return rp, err
-	}
-
-	if rp.StatusCode == 304 {
-		return rp, nil
-	}
-
-	if rp.StatusCode >= 300 {
-		defer closeBody(rp)
-		return rp, AppErrorFromJSON(rp.Body)
-	}
-
-	return rp, nil
+	return rq, nil
 }
 
 func (c *Client4) DoUploadFile(url string, data []byte, contentType string) (*FileUploadResponse, *Response, error) {
