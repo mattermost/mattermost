@@ -41,9 +41,6 @@ type FeatureFlags struct {
 	// Enable the Global Header
 	GlobalHeader bool
 
-	// Enable different team menu button treatments, possible values = ("none", "by_team_name", "inverted_sidebar_bg_color")
-	AddChannelButton string
-
 	// Determine whether when a user gets created, they'll have noisy notifications e.g. Send desktop notifications for all activity
 	NewAccountNoisy bool
 
@@ -91,7 +88,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PluginFocalboard = ""
 	f.PermalinkPreviews = true
 	f.GlobalHeader = true
-	f.AddChannelButton = "by_team_name"
 	f.NewAccountNoisy = false
 	f.CallsMobile = false
 	f.AutoTour = "none"

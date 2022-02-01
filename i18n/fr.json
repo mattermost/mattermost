@@ -1509,7 +1509,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\nCanaux ajoutés :\n"
+    "translation": "\nCanaux ajoutés :\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
@@ -7245,7 +7245,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "pour une expérience optimale sur PC, Mac, iOS et Android."
+    "translation": "pour une expérience optimale sur Windows, Linux, Mac, iOS et Android."
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info",
@@ -8145,7 +8145,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Simplifiez votre travail avec des outils tels que Github, Google Calendar et Chrome. Explorez toutes les intégrations que nous proposons sur notre"
+    "translation": "Simplifiez votre travail avec des outils tels que Github, Jora et Zoom. Explorez toutes les intégrations que nous proposons sur notre"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -8173,7 +8173,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, votre essai gratuit de 14 jours de Mattermost Cloud Professional a pris fin aujourd'hui, {{.TodayDate}}. Veuillez ajouter vos informations de paiement pour que votre équipe puisse continuer à profiter des avantages de la version Cloud Professional."
+    "translation": "{{.Name}}, votre essai gratuit de 14 jours de Mattermost Cloud Enterprise a pris fin aujourd'hui, {{.TodayDate}}. Veuillez ajouter vos informations de paiement pour que votre équipe puisse continuer à profiter des avantages de la version Cloud Enterprise."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -8201,7 +8201,7 @@
   },
   {
     "id": "api.templates.at_limit_info1",
-    "translation": "Il semble que vous avez 10 utilisateurs ou plus dans votre espace de travail maintenant - c'est génial ! Si vous voulez inviter plus de membres de votre équipe, envisagez de vous mettre à niveau vers la version Mattermost Cloud Professional maintenant."
+    "translation": "Il semble que vous avez 10 utilisateurs ou plus dans votre espace de travail maintenant - c'est génial ! Si vous voulez inviter plus de membres de votre équipe, envisagez de vous mettre à niveau vers la version Mattermost Cloud maintenant."
   },
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
@@ -8700,7 +8700,7 @@
   },
   {
     "id": "api.templates.over_limit_info1",
-    "translation": "Il semble que vous ayez plus de 10 utilisateurs dans votre espace de travail, ce qui dépasse les limites du niveau gratuit de Mattermost Cloud Professional. Pour éviter toute perturbation de votre espace de travail Mattermost, veuillez effectuer une mise à niveau maintenant."
+    "translation": "Il semble que vous ayez plus de 10 utilisateurs dans votre espace de travail, ce qui dépasse les limites du niveau gratuit de Mattermost Cloud. Pour éviter toute perturbation de votre espace de travail Mattermost, veuillez effectuer une mise à niveau maintenant."
   },
   {
     "id": "api.templates.over_limit_90_days_subject",
