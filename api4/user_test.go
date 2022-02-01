@@ -6523,3 +6523,47 @@ func TestSetProfileImageWithProviderAttributes(t *testing.T) {
 		doCleanup(t, th, user)
 	})
 }
+
+func TestGetUsersWithInvalidEmails(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	user := model.User{
+		Email:    "ben@invalid.mattermost.com",
+		Nickname: "Ben Cooke",
+		Password: "hello1",
+		Username: GenerateTestUsername(),
+		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId,
+	}
+
+	_, resp, err := client.CreateUser(&user)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.EnableOpenServer = false
+		*cfg.TeamSettings.RestrictCreationToDomains = "localhost,simulator.amazonses.com"
+	})
+
+	users, _, err := client.GetUsersWithInvalidEmails(0, 50)
+	require.NoError(t, err)
+	assert.Len(t, users, 1)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.EnableOpenServer = true
+	})
+
+	_, resp, err = client.GetUsersWithInvalidEmails(0, 50)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.EnableOpenServer = false
+		*cfg.TeamSettings.RestrictCreationToDomains = "localhost,simulator.amazonses.com,invalid.mattermost.com"
+	})
+
+	users, _, err = client.GetUsersWithInvalidEmails(0, 50)
+	require.NoError(t, err)
+	assert.Len(t, users, 0)
+}
