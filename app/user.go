@@ -868,7 +868,10 @@ func (a *App) invalidateUserChannelMembersCaches(userID string) *model.AppError 
 	}
 
 	for _, team := range teamsForUser {
-		channelsForUser, err := a.GetChannelsForTeamForUser(team.Id, userID, false, 0)
+		channelsForUser, err := a.GetChannelsForTeamForUser(team.Id, userID, &model.ChannelSearchOpts{
+			IncludeDeleted: false,
+			LastDeleteAt:   0,
+		})
 		if err != nil {
 			return err
 		}

@@ -885,7 +885,10 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	channels, err := c.App.GetChannelsForTeamForUser(c.Params.TeamId, c.Params.UserId, c.Params.IncludeDeleted, lastDeleteAt)
+	channels, err := c.App.GetChannelsForTeamForUser(c.Params.TeamId, c.Params.UserId, &model.ChannelSearchOpts{
+		IncludeDeleted: c.Params.IncludeDeleted,
+		LastDeleteAt:   lastDeleteAt,
+	})
 	if err != nil {
 		c.Err = err
 		return
