@@ -4781,7 +4781,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -4793,7 +4793,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Wersja 78+"
+    "translation": "Wersja 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -9306,5 +9306,9 @@
   {
     "id": "api.config.migrate_config_restricted.app_error",
     "translation": "Migracja konfiguracji jest ograniczona ze względu na typ instancji."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "Odpowiedź SAML jest zbyt długa"
   }
 ]
