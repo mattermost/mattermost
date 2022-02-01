@@ -746,10 +746,10 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
 
 	if opts.UpdateParticipants {
 		if s.DriverName() == model.DatabaseDriverPostgres {
-			if _, err2 := trx.Exec(`UPDATE Threads
-				SET participants = participants || ?::jsonb
-				WHERE postid=?
-				AND NOT participants=?`, jsonArray([]string{userId}), postId, userId); err2 != nil {
+			if _, err2 := trx.ExecRaw(`UPDATE Threads
+                        SET participants = participants || $1::jsonb
+                        WHERE postid=$2
+                        AND NOT participants ? $3`, jsonArray([]string{userId}), postId, userId); err2 != nil {
 				return nil, err2
 			}
 		} else {
