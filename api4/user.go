@@ -3180,6 +3180,11 @@ func getUsersWithInvalidEmails(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementUsers) {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementUsers)
+		return
+	}
+
 	users, err := c.App.GetUsersWithInvalidEmails(c.Params.Page, c.Params.PerPage)
 	if err != nil {
 		c.Err = err
