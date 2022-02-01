@@ -2661,7 +2661,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID st
 		a.sanitizeProfiles(thread.Participants, false)
 		thread.Post.SanitizeProps()
 
-		if a.IsCRTEnabledForUser(userID) {
+		if a.isCRTEnabledForUser(userID) {
 			payload, jsonErr := json.Marshal(thread)
 			if jsonErr != nil {
 				mlog.Warn("Failed to encode thread to JSON")
@@ -2871,7 +2871,7 @@ func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSe
 		a.clearPushNotification(currentSessionId, userID, channelID)
 	}
 
-	if *a.Config().ServiceSettings.ThreadAutoFollow && (!collapsedThreadsSupported || !a.IsCRTEnabledForUser(userID)) {
+	if *a.Config().ServiceSettings.ThreadAutoFollow && (!collapsedThreadsSupported || !a.isCRTEnabledForUser(userID)) {
 		if err := a.Srv().Store.Thread().MarkAllAsReadInChannels(userID, channelIDs); err != nil {
 			return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
