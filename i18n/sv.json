@@ -9301,5 +9301,9 @@
   {
     "id": "api.license.request_renewal_link.cannot_renew_on_cws",
     "translation": "Det går inte att förnya licensen via portalen"
+  },
+  {
+    "id": "api.config.migrate_config_restricted.app_error",
+    "translation": "Migrering av konfiguration är begränsad på grund av typen på din instans."
   }
 ]

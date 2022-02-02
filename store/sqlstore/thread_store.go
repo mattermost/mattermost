@@ -446,6 +446,9 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 
 	err := s.GetReplicaX().Get(&thread, query, args...)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Thread", threadMembership.PostId)
+		}
 		return nil, err
 	}
 
