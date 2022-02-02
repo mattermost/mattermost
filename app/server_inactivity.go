@@ -31,8 +31,10 @@ func (s *Server) doInactivityCheck() {
 
 	systemValue, sysValErr := s.Store.System().GetByName("INACTIVITY")
 	if sysValErr != nil {
+		// any other error apart from ErrNotFound we stop execution
 		if _, ok := sysValErr.(*store.ErrNotFound); !ok {
 			mlog.Warn("An error occurred while getting INACTIVITY from system store", mlog.Err(sysValErr))
+			return
 		}
 	}
 
@@ -95,6 +97,11 @@ func (s *Server) doInactivityCheck() {
 
 func (s *Server) takeInactivityAction() {
 	siteURL := *s.Config().ServiceSettings.SiteURL
+	if siteURL == "" {
+		mlog.Error("SiteURL needs to be set to run inactivity job")
+		return
+	}
+
 	properties := map[string]interface{}{
 		"SiteURL": siteURL,
 	}
@@ -106,7 +113,6 @@ func (s *Server) takeInactivityAction() {
 	}
 
 	for _, user := range users {
-		user := user
 		if user.Email == "" {
 			mlog.Error("Invalid system admin email.", mlog.String("user_email", user.Email))
 			continue
