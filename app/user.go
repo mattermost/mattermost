@@ -2049,7 +2049,7 @@ func (a *App) GetViewUsersRestrictions(userID string) (*model.ViewUsersRestricti
 	return &model.ViewUsersRestrictions{Teams: teamIDsWithPermission, Channels: channelIDs}, nil
 }
 
-// PromoteGuestToUser Convert user's roles and all his mermbership's roles from
+// PromoteGuestToUser Convert user's roles and all his membership's roles from
 // guest roles to regular user roles.
 func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestorId string) *model.AppError {
 	nErr := a.ch.srv.userService.PromoteGuestToUser(user)
@@ -2109,7 +2109,7 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 	return nil
 }
 
-// DemoteUserToGuest Convert user's roles and all his mermbership's roles from
+// DemoteUserToGuest Convert user's roles and all his membership's roles from
 // regular user roles to guest roles.
 func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 	demotedUser, nErr := a.ch.srv.userService.DemoteUserToGuest(user)
@@ -2309,6 +2309,64 @@ func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state b
 	message.Add("thread_id", threadID)
 	message.Add("state", state)
 	message.Add("reply_count", replyCount)
+	a.Publish(message)
+	return nil
+}
+
+func (a *App) UpdateThreadFollowForUserFromChannelAdd(userID, teamID, threadID string) *model.AppError {
+	opts := store.ThreadMembershipOpts{
+		Following:             true,
+		IncrementMentions:     false,
+		UpdateFollowing:       true,
+		UpdateViewedTimestamp: false,
+		UpdateParticipants:    false,
+	}
+	tm, err := a.Srv().Store.Thread().MaintainMembership(userID, threadID, opts)
+	if err != nil {
+		return model.NewAppError("UpdateThreadFollowForUserFromChannelAdd", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	post, appErr := a.GetSinglePost(threadID)
+	if appErr != nil {
+		return appErr
+	}
+	user, appErr := a.GetUser(userID)
+	if appErr != nil {
+		return appErr
+	}
+	tm.UnreadMentions, appErr = a.countThreadMentions(user, post, teamID, post.CreateAt-1)
+	if appErr != nil {
+		return appErr
+	}
+	tm.LastViewed = post.CreateAt - 1
+	_, err = a.Srv().Store.Thread().UpdateMembership(tm)
+	if err != nil {
+		return model.NewAppError("UpdateThreadFollowForUserFromChannelAdd", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, teamID, "", userID, nil)
+	userThread, err := a.Srv().Store.Thread().GetThreadForUser(teamID, tm, true)
+	if err != nil {
+		var errNotFound *store.ErrNotFound
+		if errors.As(err, &errNotFound) {
+			return nil
+		}
+		return model.NewAppError("UpdateThreadFollowForUserFromChannelAdd", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	a.sanitizeProfiles(userThread.Participants, false)
+	userThread.Post.SanitizeProps()
+	sanitizedPost, appErr := a.SanitizePostMetadataForUser(userThread.Post, userID)
+	if appErr != nil {
+		return appErr
+	}
+	userThread.Post = sanitizedPost
+
+	payload, jsonErr := json.Marshal(userThread)
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode thread to JSON")
+	}
+	message.Add("thread", string(payload))
+
 	a.Publish(message)
 	return nil
 }

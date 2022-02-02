@@ -18,7 +18,7 @@ SELECT count(*) != 0 INTO msg_count_root_exist
     AND column_name = 'mentioncountroot';
 
 IF mention_count_root_exist THEN
-	tmp_count_root := (SELECT count(*) FROM channelmembers WHERE msgcountroot = NULL OR mentioncountroot = NULL);
+	tmp_count_root := (SELECT count(*) FROM channelmembers WHERE msgcountroot IS NULL OR mentioncountroot IS NULL);
 END IF;
 
 ALTER TABLE channelmembers ADD COLUMN IF NOT EXISTS mentioncountroot bigint;

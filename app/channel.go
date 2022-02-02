@@ -2552,8 +2552,8 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
 			}
 			threadData, storeErr2 := a.Srv().Store.Thread().Get(threadId)
-			if storeErr2 != nil && !errors.As(storeErr2, &nfErr) {
-				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
+			if storeErr2 != nil {
+				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, storeErr2.Error(), http.StatusInternalServerError)
 			}
 			if threadData != nil && threadMembership != nil && threadMembership.Following {
 				channel, nErr := a.Srv().Store.Channel().Get(post.ChannelId, true)
@@ -2655,52 +2655,55 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID st
 		return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
-	threadMembership, nErr := a.Srv().Store.Thread().GetMembershipForUser(user.Id, threadId)
-	var errNotFound *store.ErrNotFound
-	if nErr != nil && !errors.As(nErr, &errNotFound) {
-		return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-	}
-	// Follow thread if we're not already following it
-	if threadMembership == nil {
-		opts := store.ThreadMembershipOpts{
-			Following:             true,
-			IncrementMentions:     false,
-			UpdateFollowing:       true,
-			UpdateViewedTimestamp: false,
-			UpdateParticipants:    false,
+	if *a.Config().ServiceSettings.ThreadAutoFollow {
+		threadMembership, sErr := a.Srv().Store.Thread().GetMembershipForUser(user.Id, threadId)
+		var errNotFound *store.ErrNotFound
+		if sErr != nil && !errors.As(sErr, &errNotFound) {
+			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, sErr.Error(), http.StatusInternalServerError)
 		}
-		threadMembership, nErr = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, opts)
-		if nErr != nil {
-			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		// Follow thread if we're not already following it
+		if threadMembership == nil {
+			opts := store.ThreadMembershipOpts{
+				Following:             true,
+				IncrementMentions:     false,
+				UpdateFollowing:       true,
+				UpdateViewedTimestamp: false,
+				UpdateParticipants:    false,
+			}
+			threadMembership, sErr = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, opts)
+			if sErr != nil {
+				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, sErr.Error(), http.StatusInternalServerError)
+			}
 		}
-	}
-	// If threadmembership already exists but user had previously unfollowed the thread, then follow the thread again.
-	threadMembership.Following = true
-	threadMembership.LastViewed = post.UpdateAt - 1
-	threadMembership.UnreadMentions, err = a.countThreadMentions(user, rootPost, channel.TeamId, post.UpdateAt-1)
-	if err != nil {
-		return nil, err
-	}
-	threadMembership, nErr = a.Srv().Store.Thread().UpdateMembership(threadMembership)
-	if nErr != nil {
-		return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-	}
-	thread, nErr := a.Srv().Store.Thread().GetThreadForUser(channel.TeamId, threadMembership, true)
-	if nErr != nil {
-		return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-	}
-	a.sanitizeProfiles(thread.Participants, false)
-	thread.Post.SanitizeProps()
+		// If threadmembership already exists but user had previously unfollowed the thread, then follow the thread again.
+		threadMembership.Following = true
+		threadMembership.LastViewed = post.UpdateAt - 1
+		threadMembership.UnreadMentions, err = a.countThreadMentions(user, rootPost, channel.TeamId, post.UpdateAt-1)
+		if err != nil {
+			return nil, err
+		}
+		threadMembership, sErr = a.Srv().Store.Thread().UpdateMembership(threadMembership)
+		if sErr != nil {
+			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, sErr.Error(), http.StatusInternalServerError)
+		}
+		thread, sErr := a.Srv().Store.Thread().GetThreadForUser(channel.TeamId, threadMembership, true)
+		if sErr != nil {
+			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, sErr.Error(), http.StatusInternalServerError)
+		}
+		a.sanitizeProfiles(thread.Participants, false)
+		thread.Post.SanitizeProps()
 
-	if a.IsCRTEnabledForUser(userID) {
-		payload, jsonErr := json.Marshal(thread)
-		if jsonErr != nil {
-			mlog.Warn("Failed to encode thread to JSON")
+		if a.IsCRTEnabledForUser(userID) {
+			payload, jsonErr := json.Marshal(thread)
+			if jsonErr != nil {
+				mlog.Warn("Failed to encode thread to JSON")
+			}
+			message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, channel.TeamId, "", userID, nil)
+			message.Add("thread", string(payload))
+			a.Publish(message)
 		}
-		message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, channel.TeamId, "", userID, nil)
-		message.Add("thread", string(payload))
-		a.Publish(message)
 	}
+
 	channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, 0, false, false)
 	if nErr != nil {
 		return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
@@ -2912,7 +2915,7 @@ func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSe
 		a.clearPushNotification(currentSessionId, userID, channelID, "")
 	}
 
-	if !collapsedThreadsSupported || !a.IsCRTEnabledForUser(userID) {
+	if *a.Config().ServiceSettings.ThreadAutoFollow && (!collapsedThreadsSupported || !a.IsCRTEnabledForUser(userID)) {
 		if err := a.Srv().Store.Thread().MarkAllAsReadInChannels(userID, channelIDs); err != nil {
 			return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}

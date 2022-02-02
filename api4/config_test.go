@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -776,15 +777,42 @@ func TestMigrateConfig(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		f, err := config.NewStoreFromDSN("from.json", false, nil)
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+
+		file, err := json.MarshalIndent(cfg, "", "  ")
+		require.NoError(t, err)
+
+		err = ioutil.WriteFile("from.json", file, 0644)
+		require.NoError(t, err)
+
+		defer os.Remove("from.json")
+
+		f, err := config.NewStoreFromDSN("from.json", false, nil, false)
 		require.NoError(t, err)
 		defer f.RemoveFile("from.json")
 
-		_, err = config.NewStoreFromDSN("to.json", false, nil)
+		_, err = config.NewStoreFromDSN("to.json", false, nil, true)
 		require.NoError(t, err)
 		defer f.RemoveFile("to.json")
 
 		_, err = client.MigrateConfig("from.json", "to.json")
 		require.NoError(t, err)
+	})
+
+	t.Run("Cloud instances should not access to this API", func(t *testing.T) {
+		require.True(t, th.App.Srv().SetLicense(model.NewTestLicense("cloud")))
+
+		f, err := config.NewStoreFromDSN("from.json", false, nil, true)
+		require.NoError(t, err)
+		defer f.RemoveFile("from.json")
+
+		_, err = config.NewStoreFromDSN("to.json", false, nil, false)
+		require.NoError(t, err)
+		defer f.RemoveFile("to.json")
+
+		response, cErr := th.SystemAdminClient.MigrateConfig("from.json", "to.json")
+		require.Error(t, cErr)
+		CheckForbiddenStatus(t, response)
 	})
 }
