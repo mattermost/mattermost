@@ -17,6 +17,7 @@ const GuestRolesCreationMigrationKey = "GuestRolesCreationMigrationComplete"
 const SystemConsoleRolesCreationMigrationKey = "SystemConsoleRolesCreationMigrationComplete"
 const ContentExtractionConfigDefaultTrueMigrationKey = "ContentExtractionConfigDefaultTrueMigrationComplete"
 const PlaybookRolesCreationMigrationKey = "PlaybookRolesCreationMigrationComplete"
+const FirstAdminCompleteSetupKey = "FirstAdminCompleteSetup"
 
 // This function migrates the default built in roles from code/config to the database.
 func (a *App) DoAdvancedPermissionsMigration() {
@@ -434,6 +435,39 @@ func (s *Server) doPlaybooksRolesCreationMigration() {
 
 }
 
+func (s *Server) doFirstAdminCompleteSetupMigration() {
+	// Don't run the migration until the flag is turned on.
+
+	if !s.Config().FeatureFlags.UseCaseOnboarding {
+		return
+	}
+
+	// If the migration is already marked as completed, don't do it again.
+	if _, err := s.Store.System().GetByName(FirstAdminCompleteSetupKey); err == nil {
+		return
+	}
+	teams, err := s.Store.Team().GetAll()
+	if err != nil {
+		// can not confirm that admin has started in this case.
+		return
+	}
+
+	if len(teams) == 0 {
+		// No teams, and no existing preference. This is most likely a new instance.
+		// So do not mark that the admin has already done the first time setup.
+		return
+	}
+
+	system := model.System{
+		Name:  FirstAdminCompleteSetupKey,
+		Value: "true",
+	}
+
+	if err := s.Store.System().Save(&system); err != nil {
+		mlog.Critical("Failed to mark playbook roles creation migration as completed.", mlog.Err(err))
+	}
+}
+
 func (a *App) DoAppMigrations() {
 	a.Srv().doAppMigrations()
 }
@@ -451,4 +485,5 @@ func (s *Server) doAppMigrations() {
 	}
 	s.doContentExtractionConfigDefaultTrueMigration()
 	s.doPlaybooksRolesCreationMigration()
+	s.doFirstAdminCompleteSetupMigration()
 }
