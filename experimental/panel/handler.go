@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/v6/model"
+
 	"github.com/mattermost/mattermost-plugin-api/experimental/common"
 	"github.com/mattermost/mattermost-plugin-api/experimental/panel/settings"
-
-	"github.com/gorilla/mux"
-	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type handler struct {
@@ -27,19 +29,19 @@ func Init(r *mux.Router, panel Panel) {
 func (sh *handler) handleAction(w http.ResponseWriter, r *http.Request) {
 	mattermostUserID := r.Header.Get("Mattermost-User-ID")
 	if mattermostUserID == "" {
-		common.SlackAttachmentError(w, "Error: Not authorized")
+		common.SlackAttachmentError(w, errors.New("Not authorized"))
 		return
 	}
 
 	var request model.PostActionIntegrationRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		common.SlackAttachmentError(w, "Error: invalid request")
+		common.SlackAttachmentError(w, errors.New("invalid request"))
 		return
 	}
 
 	id, ok := request.Context[settings.ContextIDKey]
 	if !ok {
-		common.SlackAttachmentError(w, "Error: missing setting id")
+		common.SlackAttachmentError(w, errors.New("missing setting id"))
 		return
 	}
 
@@ -47,7 +49,7 @@ func (sh *handler) handleAction(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		value, ok = request.Context[settings.ContextOptionValueKey]
 		if !ok {
-			common.SlackAttachmentError(w, "Error: valid key not found")
+			common.SlackAttachmentError(w, errors.New("valid key not found"))
 			return
 		}
 	}
@@ -55,7 +57,7 @@ func (sh *handler) handleAction(w http.ResponseWriter, r *http.Request) {
 	idString := id.(string)
 	err := sh.panel.Set(mattermostUserID, idString, value)
 	if err != nil {
-		common.SlackAttachmentError(w, "Error: cannot set the property, "+err.Error())
+		common.SlackAttachmentError(w, errors.Wrap(err, "cannot save setting"))
 		return
 	}
 

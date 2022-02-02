@@ -1,23 +1,34 @@
 package steps
 
 import (
-	"github.com/mattermost/mattermost-plugin-api/experimental/freetextfetcher"
-
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
-const (
-	ContextPropertyKey    = "property"
-	ContextButtonValueKey = "button_value"
-	ContextOptionValueKey = "selected_option"
-	ContextStepKey        = "step"
-)
-
 type Step interface {
-	PostSlackAttachment(flowHandler string, i int) *model.SlackAttachment
-	ResponseSlackAttachment(value interface{}) *model.SlackAttachment
-	GetPropertyName() string
-	ShouldSkip(value interface{}) int
+	Attachment(pluginURL string) Attachment
+	Name() string
 	IsEmpty() bool
-	GetFreetextFetcher() freetextfetcher.FreetextFetcher
+}
+
+type Attachment struct {
+	SlackAttachment *model.SlackAttachment
+	Actions         []Action
+}
+
+type Action struct {
+	model.PostAction
+	OnClick func(userID string) (int, Attachment)
+	Dialog  *Dialog
+}
+
+func (a *Attachment) ToSlackAttachment() *model.SlackAttachment {
+	ret := *a.SlackAttachment
+	ret.Actions = make([]*model.PostAction, len(a.Actions))
+
+	for i := 0; i < len(a.Actions); i++ {
+		postAction := a.Actions[i].PostAction
+		ret.Actions[i] = &postAction
+	}
+
+	return &ret
 }

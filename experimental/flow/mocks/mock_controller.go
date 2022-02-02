@@ -5,36 +5,37 @@
 package mock_flow
 
 import (
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	flow "github.com/mattermost/mattermost-plugin-api/experimental/flow"
 	steps "github.com/mattermost/mattermost-plugin-api/experimental/flow/steps"
-	reflect "reflect"
 )
 
-// MockController is a mock of Controller interface
+// MockController is a mock of Controller interface.
 type MockController struct {
 	ctrl     *gomock.Controller
 	recorder *MockControllerMockRecorder
 }
 
-// MockControllerMockRecorder is the mock recorder for MockController
+// MockControllerMockRecorder is the mock recorder for MockController.
 type MockControllerMockRecorder struct {
 	mock *MockController
 }
 
-// NewMockController creates a new mock instance
+// NewMockController creates a new mock instance.
 func NewMockController(ctrl *gomock.Controller) *MockController {
 	mock := &MockController{ctrl: ctrl}
 	mock.recorder = &MockControllerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockController) EXPECT() *MockControllerMockRecorder {
 	return m.recorder
 }
 
-// Cancel mocks base method
+// Cancel mocks base method.
 func (m *MockController) Cancel(arg0 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Cancel", arg0)
@@ -42,13 +43,13 @@ func (m *MockController) Cancel(arg0 string) error {
 	return ret0
 }
 
-// Cancel indicates an expected call of Cancel
+// Cancel indicates an expected call of Cancel.
 func (mr *MockControllerMockRecorder) Cancel(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Cancel", reflect.TypeOf((*MockController)(nil).Cancel), arg0)
 }
 
-// GetCurrentStep mocks base method
+// GetCurrentStep mocks base method.
 func (m *MockController) GetCurrentStep(arg0 string) (steps.Step, int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetCurrentStep", arg0)
@@ -58,13 +59,13 @@ func (m *MockController) GetCurrentStep(arg0 string) (steps.Step, int, error) {
 	return ret0, ret1, ret2
 }
 
-// GetCurrentStep indicates an expected call of GetCurrentStep
+// GetCurrentStep indicates an expected call of GetCurrentStep.
 func (mr *MockControllerMockRecorder) GetCurrentStep(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrentStep", reflect.TypeOf((*MockController)(nil).GetCurrentStep), arg0)
 }
 
-// GetFlow mocks base method
+// GetFlow mocks base method.
 func (m *MockController) GetFlow() flow.Flow {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFlow")
@@ -72,55 +73,27 @@ func (m *MockController) GetFlow() flow.Flow {
 	return ret0
 }
 
-// GetFlow indicates an expected call of GetFlow
+// GetFlow indicates an expected call of GetFlow.
 func (mr *MockControllerMockRecorder) GetFlow() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFlow", reflect.TypeOf((*MockController)(nil).GetFlow))
 }
 
-// GetHandlerURL mocks base method
-func (m *MockController) GetHandlerURL() string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetHandlerURL")
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// GetHandlerURL indicates an expected call of GetHandlerURL
-func (mr *MockControllerMockRecorder) GetHandlerURL() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHandlerURL", reflect.TypeOf((*MockController)(nil).GetHandlerURL))
-}
-
-// NextStep mocks base method
-func (m *MockController) NextStep(arg0 string, arg1 int, arg2 interface{}) error {
+// NextStep mocks base method.
+func (m *MockController) NextStep(arg0 string, arg1, arg2 int) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NextStep", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// NextStep indicates an expected call of NextStep
+// NextStep indicates an expected call of NextStep.
 func (mr *MockControllerMockRecorder) NextStep(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NextStep", reflect.TypeOf((*MockController)(nil).NextStep), arg0, arg1, arg2)
 }
 
-// SetProperty mocks base method
-func (m *MockController) SetProperty(arg0, arg1 string, arg2 interface{}) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetProperty", arg0, arg1, arg2)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SetProperty indicates an expected call of SetProperty
-func (mr *MockControllerMockRecorder) SetProperty(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetProperty", reflect.TypeOf((*MockController)(nil).SetProperty), arg0, arg1, arg2)
-}
-
-// Start mocks base method
+// Start mocks base method.
 func (m *MockController) Start(arg0 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Start", arg0)
@@ -128,7 +101,7 @@ func (m *MockController) Start(arg0 string) error {
 	return ret0
 }
 
-// Start indicates an expected call of Start
+// Start indicates an expected call of Start.
 func (mr *MockControllerMockRecorder) Start(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Start", reflect.TypeOf((*MockController)(nil).Start), arg0)

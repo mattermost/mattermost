@@ -6,69 +6,59 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/mattermost/mattermost-server/v6/model"
+
 	"github.com/mattermost/mattermost-plugin-api/experimental/bot/logger"
 	"github.com/mattermost/mattermost-plugin-api/experimental/bot/poster"
 	"github.com/mattermost/mattermost-plugin-api/experimental/flow/steps"
 )
 
+type DialogCreater interface {
+	OpenInteractiveDialog(dialog model.OpenDialogRequest) error
+}
+
 type Controller interface {
 	Start(userID string) error
-	NextStep(userID string, from int, value interface{}) error
+	NextStep(userID string, from int, skip int) error
 	GetCurrentStep(userID string) (steps.Step, int, error)
-	GetHandlerURL() string
 	GetFlow() Flow
 	Cancel(userID string) error
-	SetProperty(userID, propertyName string, value interface{}) error
 }
 
 type flowController struct {
-	poster.Poster
 	logger.Logger
-	flow          Flow
-	store         Store
-	propertyStore PropertyStore
-	pluginURL     string
+	poster.Poster
+	DialogCreater
+	flow      Flow
+	store     Store
+	pluginURL string
 }
 
 func NewFlowController(
-	p poster.Poster,
 	l logger.Logger,
 	r *mux.Router,
+	p poster.Poster,
+	d DialogCreater,
 	pluginURL string,
 	flow Flow,
 	flowStore Store,
-	propertyStore PropertyStore,
 ) Controller {
 	fc := &flowController{
 		Poster:        p,
 		Logger:        l,
+		DialogCreater: d,
 		flow:          flow,
 		store:         flowStore,
-		propertyStore: propertyStore,
 		pluginURL:     pluginURL,
 	}
 
 	initHandler(r, fc)
-
-	for _, step := range flow.Steps() {
-		ftf := step.GetFreetextFetcher()
-		if ftf != nil {
-			ftf.UpdateHooks(nil,
-				fc.ftOnFetch,
-				fc.ftOnCancel,
-			)
-		}
-	}
 
 	return fc
 }
 
 func (fc *flowController) GetFlow() Flow {
 	return fc.flow
-}
-
-func (fc *flowController) SetProperty(userID, propertyName string, value interface{}) error {
-	return fc.propertyStore.SetProperty(userID, propertyName, value)
 }
 
 func (fc *flowController) Start(userID string) error {
@@ -79,7 +69,7 @@ func (fc *flowController) Start(userID string) error {
 	return fc.processStep(userID, 1)
 }
 
-func (fc *flowController) NextStep(userID string, from int, value interface{}) error {
+func (fc *flowController) NextStep(userID string, from, skip int) error {
 	stepIndex, err := fc.getFlowStep(userID)
 	if err != nil {
 		return err
@@ -91,14 +81,18 @@ func (fc *flowController) NextStep(userID string, from int, value interface{}) e
 		return nil
 	}
 
-	step := fc.flow.Step(stepIndex)
-
-	err = fc.store.RemovePostID(userID, step.GetPropertyName())
-	if err != nil {
-		fc.Logger.Debugf("error removing post id, %s", err.Error())
+	if skip == -1 {
+		// Stay at the current step
+		return nil
 	}
 
-	skip := step.ShouldSkip(value)
+	step := fc.flow.Step(stepIndex)
+
+	err = fc.removePostID(userID, step)
+	if err != nil {
+		fc.Logger.WithError(err).Debugf("error removing post id")
+	}
+
 	stepIndex += 1 + skip
 	if stepIndex > fc.flow.Length() {
 		_ = fc.removeFlowStep(userID)
@@ -132,8 +126,37 @@ func (fc *flowController) GetCurrentStep(userID string) (steps.Step, int, error)
 	return step, index, nil
 }
 
-func (fc *flowController) GetHandlerURL() string {
-	return fc.pluginURL + fc.flow.URL()
+func (fc *flowController) getButtonHandlerURL() string {
+	return fc.pluginURL + fc.flow.Path() + "/button"
+}
+
+func (fc *flowController) getDialogHandlerURL() string {
+	return fc.pluginURL + fc.flow.Path() + "/dialog"
+}
+
+func (fc *flowController) toSlackAttachments(attachment steps.Attachment, stepNumber int) *model.SlackAttachment {
+	stepValue, _ := json.Marshal(stepNumber)
+
+	updatedActions := make([]steps.Action, len(attachment.Actions))
+	for i := 0; i < len(attachment.Actions); i++ {
+		buttonNumber, _ := json.Marshal(i)
+
+		updatedAction := attachment.Actions[i]
+
+		updatedAction.Integration = &model.PostActionIntegration{
+			URL: fc.getButtonHandlerURL(),
+			Context: map[string]interface{}{
+				contextStepKey:     string(stepValue),
+				contextButtonIDKey: string(buttonNumber),
+			},
+		}
+
+		updatedActions[i] = updatedAction
+	}
+
+	attachment.Actions = updatedActions
+
+	return attachment.ToSlackAttachment()
 }
 
 func (fc *flowController) Cancel(userID string) error {
@@ -147,7 +170,7 @@ func (fc *flowController) Cancel(userID string) error {
 		return nil
 	}
 
-	postID, err := fc.store.GetPostID(userID, step.GetPropertyName())
+	postID, err := fc.getPostID(userID, step)
 	if err != nil {
 		return err
 	}
@@ -161,15 +184,27 @@ func (fc *flowController) Cancel(userID string) error {
 }
 
 func (fc *flowController) setFlowStep(userID string, step int) error {
-	return fc.store.SetCurrentStep(userID, step)
+	return fc.store.SetCurrentStep(userID, fc.flow.Name(), step)
 }
 
 func (fc *flowController) getFlowStep(userID string) (int, error) {
-	return fc.store.GetCurrentStep(userID)
+	return fc.store.GetCurrentStep(userID, fc.flow.Name())
 }
 
 func (fc *flowController) removeFlowStep(userID string) error {
-	return fc.store.DeleteCurrentStep(userID)
+	return fc.store.DeleteCurrentStep(userID, fc.flow.Name())
+}
+
+func (fc *flowController) getPostID(userID string, step steps.Step) (string, error) {
+	return fc.store.GetPostID(userID, fc.flow.Name(), step.Name())
+}
+
+func (fc *flowController) setPostID(userID string, step steps.Step, postID string) error {
+	return fc.store.SetPostID(userID, fc.flow.Name(), step.Name(), postID)
+}
+
+func (fc *flowController) removePostID(userID string, step steps.Step) error {
+	return fc.store.RemovePostID(userID, fc.flow.Name(), step.Name())
 }
 
 func (fc *flowController) processStep(userID string, i int) error {
@@ -186,33 +221,20 @@ func (fc *flowController) processStep(userID string, i int) error {
 		fc.Errorf("Store nil")
 	}
 
-	postID, err := fc.DMWithAttachments(userID, step.PostSlackAttachment(fc.GetHandlerURL(), i))
+	attachements := fc.toSlackAttachments(step.Attachment(fc.pluginURL), i)
+	postID, err := fc.DMWithAttachments(userID, attachements)
 	if err != nil {
 		return err
 	}
 
 	if step.IsEmpty() {
-		return fc.NextStep(userID, i, false)
+		return fc.NextStep(userID, i, 0)
 	}
 
-	err = fc.store.SetPostID(userID, step.GetPropertyName(), postID)
+	err = fc.setPostID(userID, step, postID)
 	if err != nil {
 		return err
 	}
 
-	ftf := step.GetFreetextFetcher()
-	if ftf == nil {
-		return nil
-	}
-
-	payload, err := json.Marshal(freetextInfo{
-		Step:     i,
-		UserID:   userID,
-		Property: step.GetPropertyName(),
-	})
-	if err != nil {
-		return err
-	}
-	ftf.StartFetching(userID, string(payload))
 	return nil
 }

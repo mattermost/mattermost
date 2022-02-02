@@ -5,47 +5,48 @@
 package mock_flow
 
 import (
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	steps "github.com/mattermost/mattermost-plugin-api/experimental/flow/steps"
-	reflect "reflect"
 )
 
-// MockFlow is a mock of Flow interface
+// MockFlow is a mock of Flow interface.
 type MockFlow struct {
 	ctrl     *gomock.Controller
 	recorder *MockFlowMockRecorder
 }
 
-// MockFlowMockRecorder is the mock recorder for MockFlow
+// MockFlowMockRecorder is the mock recorder for MockFlow.
 type MockFlowMockRecorder struct {
 	mock *MockFlow
 }
 
-// NewMockFlow creates a new mock instance
+// NewMockFlow creates a new mock instance.
 func NewMockFlow(ctrl *gomock.Controller) *MockFlow {
 	mock := &MockFlow{ctrl: ctrl}
 	mock.recorder = &MockFlowMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFlow) EXPECT() *MockFlowMockRecorder {
 	return m.recorder
 }
 
-// FlowDone mocks base method
+// FlowDone mocks base method.
 func (m *MockFlow) FlowDone(arg0 string) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "FlowDone", arg0)
 }
 
-// FlowDone indicates an expected call of FlowDone
+// FlowDone indicates an expected call of FlowDone.
 func (mr *MockFlowMockRecorder) FlowDone(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FlowDone", reflect.TypeOf((*MockFlow)(nil).FlowDone), arg0)
 }
 
-// Length mocks base method
+// Length mocks base method.
 func (m *MockFlow) Length() int {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Length")
@@ -53,13 +54,27 @@ func (m *MockFlow) Length() int {
 	return ret0
 }
 
-// Length indicates an expected call of Length
+// Length indicates an expected call of Length.
 func (mr *MockFlowMockRecorder) Length() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Length", reflect.TypeOf((*MockFlow)(nil).Length))
 }
 
-// Step mocks base method
+// Path mocks base method.
+func (m *MockFlow) Path() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Path")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// Path indicates an expected call of Path.
+func (mr *MockFlowMockRecorder) Path() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Path", reflect.TypeOf((*MockFlow)(nil).Path))
+}
+
+// Step mocks base method.
 func (m *MockFlow) Step(arg0 int) steps.Step {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Step", arg0)
@@ -67,13 +82,13 @@ func (m *MockFlow) Step(arg0 int) steps.Step {
 	return ret0
 }
 
-// Step indicates an expected call of Step
+// Step indicates an expected call of Step.
 func (mr *MockFlowMockRecorder) Step(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Step", reflect.TypeOf((*MockFlow)(nil).Step), arg0)
 }
 
-// Steps mocks base method
+// Steps mocks base method.
 func (m *MockFlow) Steps() []steps.Step {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Steps")
@@ -81,22 +96,8 @@ func (m *MockFlow) Steps() []steps.Step {
 	return ret0
 }
 
-// Steps indicates an expected call of Steps
+// Steps indicates an expected call of Steps.
 func (mr *MockFlowMockRecorder) Steps() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Steps", reflect.TypeOf((*MockFlow)(nil).Steps))
-}
-
-// URL mocks base method
-func (m *MockFlow) URL() string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "URL")
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// URL indicates an expected call of URL
-func (mr *MockFlowMockRecorder) URL() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "URL", reflect.TypeOf((*MockFlow)(nil).URL))
 }

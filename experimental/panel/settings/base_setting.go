@@ -1,9 +1,5 @@
 package settings
 
-import (
-	"github.com/mattermost/mattermost-plugin-api/experimental/freetextfetcher"
-)
-
 type baseSetting struct {
 	title       string
 	description string
@@ -29,8 +25,4 @@ func (s *baseSetting) GetDependency() string {
 
 func (s *baseSetting) IsDisabled(foreignValue interface{}) bool {
 	return false
-}
-
-func (s *baseSetting) GetFreetextFetcher() freetextfetcher.FreetextFetcher {
-	return nil
 }

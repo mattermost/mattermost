@@ -13,19 +13,19 @@ type Store interface {
 }
 
 type panelStore struct {
-	client    pluginapi.Client
+	kv        *pluginapi.KVService
 	keyPrefix string
 }
 
-func NewPanelStore(apiClient pluginapi.Client, keyPrefix string) Store {
+func NewPanelStore(kv *pluginapi.KVService, keyPrefix string) Store {
 	return &panelStore{
-		client:    apiClient,
+		kv:        kv,
 		keyPrefix: keyPrefix,
 	}
 }
 
 func (ps *panelStore) SetPanelPostID(userID, postID string) error {
-	ok, err := ps.client.KV.Set(ps.getKey(userID), postID)
+	ok, err := ps.kv.Set(ps.getKey(userID), postID)
 	if err != nil {
 		return err
 	}
@@ -37,7 +37,7 @@ func (ps *panelStore) SetPanelPostID(userID, postID string) error {
 
 func (ps *panelStore) GetPanelPostID(userID string) (string, error) {
 	var postID string
-	err := ps.client.KV.Get(ps.getKey(userID), &postID)
+	err := ps.kv.Get(ps.getKey(userID), &postID)
 	if err != nil {
 		return "", err
 	}
@@ -45,7 +45,7 @@ func (ps *panelStore) GetPanelPostID(userID string) (string, error) {
 }
 
 func (ps *panelStore) DeletePanelPostID(userID string) error {
-	return ps.client.KV.Delete(ps.getKey(userID))
+	return ps.kv.Delete(ps.getKey(userID))
 }
 
 func (ps *panelStore) getKey(userID string) string {

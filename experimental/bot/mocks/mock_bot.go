@@ -5,35 +5,36 @@
 package mock_bot
 
 import (
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	model "github.com/mattermost/mattermost-server/v6/model"
-	reflect "reflect"
 )
 
-// MockBot is a mock of Bot interface
+// MockBot is a mock of Bot interface.
 type MockBot struct {
 	ctrl     *gomock.Controller
 	recorder *MockBotMockRecorder
 }
 
-// MockBotMockRecorder is the mock recorder for MockBot
+// MockBotMockRecorder is the mock recorder for MockBot.
 type MockBotMockRecorder struct {
 	mock *MockBot
 }
 
-// NewMockBot creates a new mock instance
+// NewMockBot creates a new mock instance.
 func NewMockBot(ctrl *gomock.Controller) *MockBot {
 	mock := &MockBot{ctrl: ctrl}
 	mock.recorder = &MockBotMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockBot) EXPECT() *MockBotMockRecorder {
 	return m.recorder
 }
 
-// Ensure mocks base method
+// Ensure mocks base method.
 func (m *MockBot) Ensure(arg0 *model.Bot, arg1 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Ensure", arg0, arg1)
@@ -41,13 +42,13 @@ func (m *MockBot) Ensure(arg0 *model.Bot, arg1 string) error {
 	return ret0
 }
 
-// Ensure indicates an expected call of Ensure
+// Ensure indicates an expected call of Ensure.
 func (mr *MockBotMockRecorder) Ensure(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Ensure", reflect.TypeOf((*MockBot)(nil).Ensure), arg0, arg1)
 }
 
-// MattermostUserID mocks base method
+// MattermostUserID mocks base method.
 func (m *MockBot) MattermostUserID() string {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MattermostUserID")
@@ -55,13 +56,13 @@ func (m *MockBot) MattermostUserID() string {
 	return ret0
 }
 
-// MattermostUserID indicates an expected call of MattermostUserID
+// MattermostUserID indicates an expected call of MattermostUserID.
 func (mr *MockBotMockRecorder) MattermostUserID() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MattermostUserID", reflect.TypeOf((*MockBot)(nil).MattermostUserID))
 }
 
-// String mocks base method
+// String mocks base method.
 func (m *MockBot) String() string {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "String")
@@ -69,7 +70,7 @@ func (m *MockBot) String() string {
 	return ret0
 }
 
-// String indicates an expected call of String
+// String indicates an expected call of String.
 func (mr *MockBotMockRecorder) String() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "String", reflect.TypeOf((*MockBot)(nil).String))

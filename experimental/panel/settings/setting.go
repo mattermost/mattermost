@@ -1,8 +1,6 @@
 package settings
 
 import (
-	"github.com/mattermost/mattermost-plugin-api/experimental/freetextfetcher"
-
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
@@ -32,5 +30,4 @@ type Setting interface {
 	GetTitle() string
 	GetDescription() string
 	GetSlackAttachments(userID, settingHandler string, disabled bool) (*model.SlackAttachment, error)
-	GetFreetextFetcher() freetextfetcher.FreetextFetcher
 }

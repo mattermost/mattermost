@@ -55,15 +55,6 @@ func NewSettingsPanel(
 		pluginURL:      pluginURL,
 	}
 
-	for _, s := range settingsMap {
-		ftf := s.GetFreetextFetcher()
-		if ftf == nil {
-			continue
-		}
-
-		ftf.UpdateHooks(nil, panel.ftOnFetch, panel.ftOnCancel)
-	}
-
 	return panel
 }
 
