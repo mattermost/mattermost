@@ -1177,7 +1177,7 @@ func (s *OpenTracingLayerChannelStore) GetChannelsByUser(userID string, includeD
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) GetChannelsWithCursor(teamId string, userId string, opts *model.ChannelSearchOpts, afterChannel string) (model.ChannelList, error) {
+func (s *OpenTracingLayerChannelStore) GetChannelsWithCursor(teamId string, userId string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetChannelsWithCursor")
 	s.Root.Store.SetContext(newCtx)
@@ -1186,7 +1186,7 @@ func (s *OpenTracingLayerChannelStore) GetChannelsWithCursor(teamId string, user
 	}()
 
 	defer span.Finish()
-	result, err := s.ChannelStore.GetChannelsWithCursor(teamId, userId, opts, afterChannel)
+	result, err := s.ChannelStore.GetChannelsWithCursor(teamId, userId, opts, afterChannelID)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

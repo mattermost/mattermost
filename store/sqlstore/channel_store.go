@@ -1139,7 +1139,7 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string, opts *model.C
 	return channels, nil
 }
 
-func (s SqlChannelStore) GetChannelsWithCursor(teamId string, userId string, opts *model.ChannelSearchOpts, afterChannel string) (model.ChannelList, error) {
+func (s SqlChannelStore) GetChannelsWithCursor(teamId string, userId string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, error) {
 	query := s.getQueryBuilder().
 		Select("ch.*").
 		From("Channels ch, ChannelMembers cm").
@@ -1156,8 +1156,8 @@ func (s SqlChannelStore) GetChannelsWithCursor(teamId string, userId string, opt
 		query = query.Limit(uint64(*opts.PerPage))
 	}
 
-	if afterChannel != "" {
-		query = query.Where(sq.Gt{"ch.Id": afterChannel})
+	if afterChannelID != "" {
+		query = query.Where(sq.Gt{"ch.Id": afterChannelID})
 	}
 
 	if teamId != "" {

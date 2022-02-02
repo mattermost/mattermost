@@ -1782,8 +1782,8 @@ func (a *App) GetChannelsForTeamForUser(teamID string, userID string, opts *mode
 	return list, nil
 }
 
-func (a *App) GetChannelsForTeamForUserWithCursor(teamID string, userID string, opts *model.ChannelSearchOpts, afterChannel string) (model.ChannelList, *model.AppError) {
-	list, err := a.Srv().Store.Channel().GetChannelsWithCursor(teamID, userID, opts, afterChannel)
+func (a *App) GetChannelsForTeamForUserWithCursor(teamID string, userID string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, *model.AppError) {
+	list, err := a.Srv().Store.Channel().GetChannelsWithCursor(teamID, userID, opts, afterChannelID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {

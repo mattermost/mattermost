@@ -789,13 +789,13 @@ func (_m *ChannelStore) GetChannelsByUser(userID string, includeDeleted bool, la
 	return r0, r1
 }
 
-// GetChannelsWithCursor provides a mock function with given fields: teamId, userId, opts, afterChannel
-func (_m *ChannelStore) GetChannelsWithCursor(teamId string, userId string, opts *model.ChannelSearchOpts, afterChannel string) (model.ChannelList, error) {
-	ret := _m.Called(teamId, userId, opts, afterChannel)
+// GetChannelsWithCursor provides a mock function with given fields: teamId, userId, opts, afterChannelID
+func (_m *ChannelStore) GetChannelsWithCursor(teamId string, userId string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, error) {
+	ret := _m.Called(teamId, userId, opts, afterChannelID)
 
 	var r0 model.ChannelList
 	if rf, ok := ret.Get(0).(func(string, string, *model.ChannelSearchOpts, string) model.ChannelList); ok {
-		r0 = rf(teamId, userId, opts, afterChannel)
+		r0 = rf(teamId, userId, opts, afterChannelID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.ChannelList)
@@ -804,7 +804,7 @@ func (_m *ChannelStore) GetChannelsWithCursor(teamId string, userId string, opts
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, *model.ChannelSearchOpts, string) error); ok {
-		r1 = rf(teamId, userId, opts, afterChannel)
+		r1 = rf(teamId, userId, opts, afterChannelID)
 	} else {
 		r1 = ret.Error(1)
 	}
