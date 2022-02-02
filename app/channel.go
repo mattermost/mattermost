@@ -1767,8 +1767,23 @@ func (a *App) GetChannelByNameForTeamName(channelName, teamName string, includeD
 	return result, nil
 }
 
-func (a *App) GetChannelsForTeamForUser(teamID string, userID string, includeDeleted bool, lastDeleteAt int) (model.ChannelList, *model.AppError) {
-	list, err := a.Srv().Store.Channel().GetChannels(teamID, userID, includeDeleted, lastDeleteAt)
+func (a *App) GetChannelsForTeamForUser(teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
+	list, err := a.Srv().Store.Channel().GetChannels(teamID, userID, opts)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.not_found.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return list, nil
+}
+
+func (a *App) GetChannelsForTeamForUserWithCursor(teamID string, userID string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, *model.AppError) {
+	list, err := a.Srv().Store.Channel().GetChannelsWithCursor(teamID, userID, opts, afterChannelID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {

@@ -141,6 +141,8 @@ type ChannelSearchOpts struct {
 	Private                  bool
 	Page                     *int
 	PerPage                  *int
+	LastDeleteAt             int
+	LastUpdateAt             int
 }
 
 type ChannelMemberCountByGroup struct {
