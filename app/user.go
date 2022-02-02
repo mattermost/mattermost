@@ -35,7 +35,7 @@ const (
 	TokenTypeTeamInvitation    = "team_invitation"
 	TokenTypeGuestInvitation   = "guest_invitation"
 	TokenTypeCWSAccess         = "cws_access_token"
-	PasswordRecoverExpiryTime  = 1000 * 60 * 60      // 1 hour
+	PasswordRecoverExpiryTime  = 1000 * 60 * 60 * 24 // 24 hours
 	InvitationExpiryTime       = 1000 * 60 * 60 * 48 // 48 hours
 	ImageProfilePixelDimension = 128
 )
@@ -1251,11 +1251,15 @@ func (a *App) UpdateHashedPassword(user *model.User, newHashedPassword string) *
 }
 
 func (a *App) ResetPasswordFromToken(userSuppliedTokenString, newPassword string) *model.AppError {
+	return a.resetPasswordFromToken(userSuppliedTokenString, newPassword, model.GetMillis())
+}
+
+func (a *App) resetPasswordFromToken(userSuppliedTokenString, newPassword string, nowMilli int64) *model.AppError {
 	token, err := a.GetPasswordRecoveryToken(userSuppliedTokenString)
 	if err != nil {
 		return err
 	}
-	if model.GetMillis()-token.CreateAt >= PasswordRecoverExpiryTime {
+	if nowMilli-token.CreateAt >= PasswordRecoverExpiryTime {
 		return model.NewAppError("resetPassword", "api.user.reset_password.link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
 
