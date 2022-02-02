@@ -255,3 +255,24 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit 
 	}
 	return rowsAffected, nil
 }
+
+// GetChannelsLeftSince returns list of channels that the user has left after a given time,
+// but has not rejoined again.
+func (s SqlChannelMemberHistoryStore) GetChannelsLeftSince(userID string, since int64) ([]string, error) {
+	query, params, err := s.getQueryBuilder().
+		Select("ChannelId").
+		From("ChannelMemberHistory").
+		GroupBy("ChannelId").
+		Where(sq.Eq{"UserId": userID}).
+		Having("MAX(LeaveTime) > MAX(JoinTime) AND MAX(LeaveTime) IS NOT NULL AND MAX(LeaveTime) >= ?", since).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "channel_member_history_to_sql")
+	}
+	channelIds := []string{}
+	err = s.GetReplicaX().Select(&channelIds, query, params...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "GetChannelsLeftSince userId=%s since=%d", userID, since)
+	}
+
+	return channelIds, nil
+}
