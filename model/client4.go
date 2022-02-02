@@ -7432,6 +7432,20 @@ func (c *Client4) MarkNoticesViewed(ids []string) (*Response, error) {
 	return BuildResponse(r), nil
 }
 
+func (c *Client4) CompleteOnboarding(request *CompleteOnboardingRequest) (*Response, error) {
+	buf, err := json.Marshal(request)
+	if err != nil {
+		return nil, NewAppError("CompleteOnboarding", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.DoAPIPost(c.systemRoute()+"/onboarding/complete", string(buf))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r), nil
+}
+
 // CreateUpload creates a new upload session.
 func (c *Client4) CreateUpload(us *UploadSession) (*UploadSession, *Response, error) {
 	buf, err := json.Marshal(us)
