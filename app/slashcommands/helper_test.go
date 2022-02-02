@@ -6,6 +6,7 @@ package slashcommands
 import (
 	"bytes"
 	"context"
+	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -177,7 +178,8 @@ func (th *TestHelper) initBasic() *TestHelper {
 	th.SystemAdminUser = userCache.SystemAdminUser.DeepCopy()
 	th.BasicUser = userCache.BasicUser.DeepCopy()
 	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
-	mainHelper.GetSQLStore().GetMaster().Insert(th.SystemAdminUser, th.BasicUser, th.BasicUser2)
+	users := []*model.User{th.SystemAdminUser, th.BasicUser, th.BasicUser2}
+	mainHelper.GetSQLStore().User().(*sqlstore.SqlUserStore).InsertUsers(users)
 
 	th.BasicTeam = th.createTeam()
 

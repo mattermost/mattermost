@@ -80,16 +80,7 @@ func newSqlUserStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 	return us
 }
 
-func (us SqlUserStore) Save(user *model.User) (*model.User, error) {
-	if user.Id != "" && !user.IsRemote() {
-		return nil, store.NewErrInvalidInput("User", "id", user.Id)
-	}
-
-	user.PreSave()
-	if err := user.IsValid(); err != nil {
-		return nil, err
-	}
-
+func (us SqlUserStore) insert(user *model.User) (sql.Result, error) {
 	query := `INSERT INTO Users
 		(Id, CreateAt, UpdateAt, DeleteAt, Username, Password, AuthData, AuthService,
 			Email, EmailVerified, Nickname, FirstName, LastName, Position, Roles, AllowMarketing,
@@ -101,7 +92,31 @@ func (us SqlUserStore) Save(user *model.User) (*model.User, error) {
 			:Props, :NotifyProps, :LastPasswordUpdate, :LastPictureUpdate, :FailedAttempts,
 			:Locale, :Timezone, :MfaActive, :MfaSecret, :RemoteId)`
 
-	if _, err := us.GetMasterX().NamedExec(query, user); err != nil {
+	return us.GetMasterX().NamedExec(query, user)
+}
+
+func (us SqlUserStore) InsertUsers(users []*model.User) error {
+	for _, user := range users {
+		_, err := us.insert(user)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (us SqlUserStore) Save(user *model.User) (*model.User, error) {
+	if user.Id != "" && !user.IsRemote() {
+		return nil, store.NewErrInvalidInput("User", "id", user.Id)
+	}
+
+	user.PreSave()
+	if err := user.IsValid(); err != nil {
+		return nil, err
+	}
+
+	if _, err := us.insert(user); err != nil {
 		if IsUniqueConstraintError(err, []string{"Email", "users_email_key", "idx_users_email_unique"}) {
 			return nil, store.NewErrInvalidInput("User", "email", user.Email)
 		}
@@ -198,7 +213,8 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 	}
 
 	query := `UPDATE Users
-			SET CreateAt=:CreateAt, DeleteAt=:DeleteAt,Username=:Username,Password=:Password,
+			SET FirstName=:FirstName, LastName=:LastName, Nickname=:NickName, NotifyProps=:NotifyProps,
+				UpdateAt=:UpdateAt, CreateAt=:CreateAt, DeleteAt=:DeleteAt,Username=:Username,Password=:Password,
 				AuthData=:AuthData,AuthService=:AuthService,Email=:Email,EmailVerified=:EmailVerified,
 				Roles=:Roles, LastPasswordUpdate=:LastPasswordUpdate, LastPictureUpdate=:LastPictureUpdate,
 				FailedAttempts=:FailedAttempts,MfaActive=:MfaActive,MfaSecret=:MfaSecret

@@ -227,7 +227,9 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.SystemAdminUser = userCache.SystemAdminUser.DeepCopy()
 	th.BasicUser = userCache.BasicUser.DeepCopy()
 	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
-	mainHelper.GetSQLStore().GetMaster().Insert(th.SystemAdminUser, th.BasicUser, th.BasicUser2)
+
+	users := []*model.User{th.SystemAdminUser, th.BasicUser, th.BasicUser2}
+	mainHelper.GetSQLStore().User().(*sqlstore.SqlUserStore).InsertUsers(users)
 
 	th.BasicTeam = th.CreateTeam()
 
