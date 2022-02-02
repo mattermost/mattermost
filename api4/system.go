@@ -51,6 +51,7 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/logs", api.APIHandler(postLog)).Methods("POST")
 
 	api.BaseRoutes.APIRoot.Handle("/analytics/old", api.APISessionRequired(getAnalytics)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/latest_version", api.APISessionRequired(getLatestVersion)).Methods("GET")
 
 	api.BaseRoutes.APIRoot.Handle("/redirect_location", api.APISessionRequiredTrustRequester(getRedirectLocation)).Methods("GET")
 
@@ -67,11 +68,9 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/warn_metrics/trial-license-ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.APIHandler(requestTrialLicenseAndAckWarnMetric)).Methods("POST")
 	api.BaseRoutes.System.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getProductNotices)).Methods("GET")
 	api.BaseRoutes.System.Handle("/notices/view", api.APISessionRequired(updateViewedProductNotices)).Methods("PUT")
-
 	api.BaseRoutes.System.Handle("/support_packet", api.APISessionRequired(generateSupportPacket)).Methods("GET")
-
 	api.BaseRoutes.System.Handle("/first_admin_setup", api.APISessionRequired(getFirstAdminCompleteSetup)).Methods("GET")
-	api.BaseRoutes.System.Handle("/first_admin_setup", api.APISessionRequired(setFirstAdminCompleteSetup)).Methods("PUT")
+	api.BaseRoutes.System.Handle("/onboarding/complete", api.APIHandler(completeOnboarding)).Methods("POST")
 }
 
 func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -404,6 +403,27 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(rows); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+func getLatestVersion(c *Context, w http.ResponseWriter, r *http.Request) {
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("latestVersion", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
+
+	resp, err := c.App.GetLatestVersion("https://api.github.com/repos/mattermost/mattermost-server/releases/latest")
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	b, jsonErr := json.Marshal(resp)
+	if jsonErr != nil {
+		c.Logger.Warn("Unable to marshal JSON for latest version.", mlog.Err(jsonErr))
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	w.Write(b)
 }
 
 func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -863,30 +883,6 @@ func updateViewedProductNotices(c *Context, w http.ResponseWriter, r *http.Reque
 	ReturnStatusOK(w)
 }
 
-func setFirstAdminCompleteSetup(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("setFirstAdminCompleteSetup", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	c.LogAudit("attempt")
-
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-
-	firstAdminCompleteSetupObj := model.System{
-		Name:  model.SystemFirstAdminCompleteSetup,
-		Value: "true",
-	}
-
-	if err := c.App.Srv().Store.System().SaveOrUpdate(&firstAdminCompleteSetupObj); err != nil {
-		c.Err = model.NewAppError("setFirstAdminCompleteSetup", "api.error_set_first_admin_complete_setup", nil, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	auditRec.Success()
-	ReturnStatusOK(w)
-}
-
 func getFirstAdminCompleteSetup(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("getFirstAdminCompleteSetup", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -917,4 +913,40 @@ func getFirstAdminCompleteSetup(c *Context, w http.ResponseWriter, r *http.Reque
 	if err := json.NewEncoder(w).Encode(firstAdminCompleteSetupObj); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+func completeOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.Err = model.NewAppError("completeOnboarding", "app.system.complete_onboarding_request.no_first_user", nil, "", http.StatusForbidden)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("completeOnboarding", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	onboardingRequest, err := model.CompleteOnboardingRequestFromReader(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("completeOnboarding", "app.system.complete_onboarding_request.app_error", nil, err.Error(), http.StatusBadRequest)
+		return
+	}
+	auditRec.AddMeta("install_plugin", onboardingRequest.InstallPlugins)
+
+	appErr := c.App.CompleteOnboarding(onboardingRequest)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	firstAdminCompleteSetupObj := model.System{
+		Name:  model.SystemFirstAdminCompleteSetup,
+		Value: "true",
+	}
+
+	if err := c.App.Srv().Store.System().SaveOrUpdate(&firstAdminCompleteSetupObj); err != nil {
+		c.Err = model.NewAppError("setFirstAdminCompleteSetup", "api.error_set_first_admin_complete_setup", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
 }

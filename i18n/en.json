@@ -3832,6 +3832,10 @@
     "translation": "Received invalid response from OAuth service provider."
   },
   {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "SAML response is too long"
+  },
+  {
     "id": "api.user.authorize_oauth_user.service.app_error",
     "translation": "Token request to {{.Service}} failed."
   },
@@ -4334,6 +4338,22 @@
   {
     "id": "api.websocket_handler.server_busy.app_error",
     "translation": "Server is busy, non-critical services are temporarily unavailable."
+  },
+  {
+    "id": "app.admin.latest_version_external_error.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_read_all.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_set_cache.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_unmarshal.failure",
+    "translation": " "
   },
   {
     "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
@@ -6062,6 +6082,14 @@
   {
     "id": "app.submit_interactive_dialog.json_error",
     "translation": "Encountered an error encoding JSON for the interactive dialog."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "Failed to decode the complete onboarding request."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "Onboarding can only be completed by a System Administrator."
   },
   {
     "id": "app.system.get.app_error",
@@ -8384,6 +8412,10 @@
     "translation": "Invalid value for user_id."
   },
   {
+    "id": "model.github_release_info.is_valid.id.app_error",
+    "translation": " "
+  },
+  {
     "id": "model.group.create_at.app_error",
     "translation": "invalid create at property for group."
   },
@@ -9237,7 +9269,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 78+"
+    "translation": "Version 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -9249,7 +9281,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",

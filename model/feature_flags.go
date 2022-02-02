@@ -41,9 +41,6 @@ type FeatureFlags struct {
 	// Enable the Global Header
 	GlobalHeader bool
 
-	// Enable different team menu button treatments, possible values = ("none", "by_team_name", "inverted_sidebar_bg_color")
-	AddChannelButton string
-
 	// Determine whether when a user gets created, they'll have noisy notifications e.g. Send desktop notifications for all activity
 	NewAccountNoisy bool
 
@@ -64,9 +61,6 @@ type FeatureFlags struct {
 
 	// Determine after which duration in hours to send a second invitation to someone that didn't join after the initial invite, possible values = ("48", "72")
 	ResendInviteEmailInterval string
-
-	// A/B test for whether radio buttons or toggle button is more effective in in-screen invite to team modal ("none", "toggle")
-	InviteToTeam string
 
 	// Enable inline post editing
 	InlinePostEditing bool
@@ -91,7 +85,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PluginFocalboard = ""
 	f.PermalinkPreviews = true
 	f.GlobalHeader = true
-	f.AddChannelButton = "by_team_name"
 	f.NewAccountNoisy = false
 	f.CallsMobile = false
 	f.AutoTour = "none"
@@ -99,7 +92,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AddMembersToChannel = "top"
 	f.GuidedChannelCreation = false
 	f.ResendInviteEmailInterval = ""
-	f.InviteToTeam = "none"
 	f.InlinePostEditing = false
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
