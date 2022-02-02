@@ -504,7 +504,7 @@ func (s *SqlThreadStore) MarkAllAsReadInChannels(userID string, channelIDs []str
 		Where(sq.Eq{"ThreadMemberships.UserId": userID}).
 		ToSql()
 
-	err := s.GetReplicaX().Get(&threadIDs, query, args...)
+	err := s.GetReplicaX().Select(&threadIDs, query, args...)
 	if err != nil {
 		return errors.Wrapf(err, "failed to get thread membership with userid=%s", userID)
 	}
