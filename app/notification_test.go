@@ -2432,14 +2432,14 @@ func TestUserAllowsEmail(t *testing.T) {
 	t.Run("should return false in the case user is a bot", func(t *testing.T) {
 		user := th.CreateUser()
 
-		user.IsBot = true
+		th.App.ConvertUserToBot(user)
 
-		channelMemberNotificationProps := model.StringMap{
+		channelMemberNotifcationProps := model.StringMap{
 			model.EmailNotifyProp:      model.ChannelNotifyDefault,
 			model.MarkUnreadNotifyProp: model.ChannelMarkUnreadAll,
 		}
 
-		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: "some-post-type"}))
+		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotifcationProps, &model.Post{Type: model.PostTypeAutoResponder}))
 	})
 
 }
