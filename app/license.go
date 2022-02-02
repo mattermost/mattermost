@@ -358,8 +358,11 @@ func (s *Server) renewalTokenValid(tokenString, signingKey string) (bool, error)
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(signingKey), nil
 	})
-	if err != nil && !token.Valid {
+	if err != nil {
 		return false, errors.Wrapf(err, "Error validating JWT token")
+	}
+	if !token.Valid {
+		return false, errors.New("invalid JWT token")
 	}
 	expirationTime := time.Unix(claims.ExpiresAt, 0)
 	if expirationTime.Before(time.Now().UTC()) {
