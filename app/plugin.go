@@ -538,6 +538,8 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 }
 
 // getPrepackagedPlugin returns a pre-packaged plugin.
+//
+// If version is empty, the first matching plugin is returned.
 func (ch *Channels) getPrepackagedPlugin(pluginID, version string) (*plugin.PrepackagedPlugin, *model.AppError) {
 	pluginsEnvironment := ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
@@ -546,7 +548,7 @@ func (ch *Channels) getPrepackagedPlugin(pluginID, version string) (*plugin.Prep
 
 	prepackagedPlugins := pluginsEnvironment.PrepackagedPlugins()
 	for _, p := range prepackagedPlugins {
-		if p.Manifest.Id == pluginID && p.Manifest.Version == version {
+		if p.Manifest.Id == pluginID && (version == "" || p.Manifest.Version == version) {
 			return p, nil
 		}
 	}
@@ -555,6 +557,8 @@ func (ch *Channels) getPrepackagedPlugin(pluginID, version string) (*plugin.Prep
 }
 
 // getRemoteMarketplacePlugin returns plugin from marketplace-server.
+//
+// If version is empty, the latest compatible version is used.
 func (ch *Channels) getRemoteMarketplacePlugin(pluginID, version string) (*model.BaseMarketplacePlugin, *model.AppError) {
 	marketplaceClient, err := marketplace.NewClient(
 		*ch.srv.Config().PluginSettings.MarketplaceURL,
@@ -566,9 +570,13 @@ func (ch *Channels) getRemoteMarketplacePlugin(pluginID, version string) (*model
 
 	filter := ch.getBaseMarketplaceFilter()
 	filter.PluginId = pluginID
-	filter.ReturnAllVersions = true
 
-	plugin, err := marketplaceClient.GetPlugin(filter, version)
+	var plugin *model.BaseMarketplacePlugin
+	if version != "" {
+		plugin, err = marketplaceClient.GetPlugin(filter, version)
+	} else {
+		plugin, err = marketplaceClient.GetLatestPlugin(filter)
+	}
 	if err != nil {
 		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
