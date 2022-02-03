@@ -4438,6 +4438,9 @@ func (c *Client4) UpdateConfig(config *Config) (*Config, *Response, error) {
 }
 
 // MigrateConfig will migrate existing config to the new one.
+// DEPRECATED: The config migrate API has been moved to be a purely
+// mmctl --local endpoint. This method will be removed in a
+// future major release.
 func (c *Client4) MigrateConfig(from, to string) (*Response, error) {
 	m := make(map[string]string, 2)
 	m["from"] = from
@@ -7429,6 +7432,20 @@ func (c *Client4) MarkNoticesViewed(ids []string) (*Response, error) {
 		return BuildResponse(r), err
 	}
 	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) CompleteOnboarding(request *CompleteOnboardingRequest) (*Response, error) {
+	buf, err := json.Marshal(request)
+	if err != nil {
+		return nil, NewAppError("CompleteOnboarding", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.DoAPIPost(c.systemRoute()+"/onboarding/complete", string(buf))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
 	return BuildResponse(r), nil
 }
 
