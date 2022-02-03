@@ -65,24 +65,24 @@ type ChannelMember struct {
 // so we have to pass the data in float64. The _ at the end is
 // a hack to keep the attribute name same in GraphQL schema.
 
-func (cm *ChannelMember) LastViewedAt_() float64 {
-	return float64(cm.LastViewedAt)
+func (o *ChannelMember) LastViewedAt_() float64 {
+	return float64(o.LastViewedAt)
 }
 
-func (cm *ChannelMember) MsgCount_() float64 {
-	return float64(cm.MsgCount)
+func (o *ChannelMember) MsgCount_() float64 {
+	return float64(o.MsgCount)
 }
 
-func (cm *ChannelMember) MentionCount_() float64 {
-	return float64(cm.MentionCount)
+func (o *ChannelMember) MentionCount_() float64 {
+	return float64(o.MentionCount)
 }
 
-func (cm *ChannelMember) MentionCountRoot_() float64 {
-	return float64(cm.MentionCountRoot)
+func (o *ChannelMember) MentionCountRoot_() float64 {
+	return float64(o.MentionCountRoot)
 }
 
-func (cm *ChannelMember) LastUpdateAt_() float64 {
-	return float64(cm.LastUpdateAt)
+func (o *ChannelMember) LastUpdateAt_() float64 {
+	return float64(o.LastUpdateAt)
 }
 
 // ChannelMemberWithTeamData contains ChannelMember appended with extra team information
