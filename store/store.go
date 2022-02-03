@@ -292,13 +292,10 @@ type ChannelMemberHistoryStore interface {
 type ThreadStore interface {
 	GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error)
 
-	SaveMultiple(thread []*model.Thread) ([]*model.Thread, int, error)
-	Save(thread *model.Thread) (*model.Thread, error)
-	Update(thread *model.Thread) (*model.Thread, error)
 	Get(id string) (*model.Thread, error)
 	GetThreadsForUser(userId, teamID string, opts model.GetUserThreadsOpts) (*model.Threads, error)
 	GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error)
-	Delete(postID string) error
+	// Delete(postID string) error
 	GetPosts(threadID string, since int64) ([]*model.Post, error)
 
 	MarkAllAsRead(userID, teamID string) error

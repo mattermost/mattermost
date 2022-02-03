@@ -16,13 +16,12 @@ import (
 )
 
 func TestThreadStore(t *testing.T, ss store.Store, s SqlStore) {
-	t.Run("ThreadSQLOperations", func(t *testing.T) { testThreadSQLOperations(t, ss, s) })
 	t.Run("ThreadStorePopulation", func(t *testing.T) { testThreadStorePopulation(t, ss) })
 	t.Run("ThreadStorePermanentDeleteBatchForRetentionPolicies", func(t *testing.T) {
 		testThreadStorePermanentDeleteBatchForRetentionPolicies(t, ss)
 	})
 	t.Run("ThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies", func(t *testing.T) {
-		testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t, ss)
+		testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t, ss, s)
 	})
 }
 
@@ -472,24 +471,6 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 	})
 }
 
-func testThreadSQLOperations(t *testing.T, ss store.Store, s SqlStore) {
-	t.Run("Save", func(t *testing.T) {
-		threadToSave := &model.Thread{
-			PostId:       model.NewId(),
-			ChannelId:    model.NewId(),
-			LastReplyAt:  10,
-			ReplyCount:   5,
-			Participants: model.StringArray{model.NewId(), model.NewId()},
-		}
-		_, err := ss.Thread().Save(threadToSave)
-		require.NoError(t, err)
-
-		th, err := ss.Thread().Get(threadToSave.PostId)
-		require.NoError(t, err)
-		require.Equal(t, threadToSave, th)
-	})
-}
-
 func threadStoreCreateReply(t *testing.T, ss store.Store, channelID, postID string, createAt int64) *model.Post {
 	reply, err := ss.Post().Save(&model.Post{
 		ChannelId: channelID,
@@ -575,7 +556,7 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, ss st
 	assert.Nil(t, thread, "thread should have been deleted by team policy")
 }
 
-func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t *testing.T, ss store.Store) {
+func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t *testing.T, ss store.Store, s SqlStore) {
 	const limit = 1000
 	userID := model.NewId()
 	createThreadMembership := func(userID, postID string) *model.ThreadMembership {
@@ -663,7 +644,7 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	// Delete team policy and thread
 	err = ss.RetentionPolicy().Delete(teamPolicy.ID)
 	require.NoError(t, err)
-	err = ss.Thread().Delete(post.Id)
+	_, err = s.GetMaster().Exec("DELETE FROM Threads WHERE PostId='" + post.Id + "'")
 	require.NoError(t, err)
 
 	deleted, err := ss.Thread().DeleteOrphanedRows(1000)

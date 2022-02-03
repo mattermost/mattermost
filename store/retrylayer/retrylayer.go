@@ -10372,27 +10372,6 @@ func (s *RetryLayerThreadStore) CollectThreadsWithNewerReplies(userId string, ch
 
 }
 
-func (s *RetryLayerThreadStore) Delete(postID string) error {
-
-	tries := 0
-	for {
-		err := s.ThreadStore.Delete(postID)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerThreadStore) DeleteMembershipForUser(userId string, postID string) error {
 
 	tries := 0
@@ -10708,74 +10687,11 @@ func (s *RetryLayerThreadStore) PermanentDeleteBatchThreadMembershipsForRetentio
 
 }
 
-func (s *RetryLayerThreadStore) Save(thread *model.Thread) (*model.Thread, error) {
-
-	tries := 0
-	for {
-		result, err := s.ThreadStore.Save(thread)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerThreadStore) SaveMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error) {
 
 	tries := 0
 	for {
 		result, err := s.ThreadStore.SaveMembership(membership)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerThreadStore) SaveMultiple(thread []*model.Thread) ([]*model.Thread, int, error) {
-
-	tries := 0
-	for {
-		result, resultVar1, err := s.ThreadStore.SaveMultiple(thread)
-		if err == nil {
-			return result, resultVar1, nil
-		}
-		if !isRepeatableError(err) {
-			return result, resultVar1, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, resultVar1, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerThreadStore) Update(thread *model.Thread) (*model.Thread, error) {
-
-	tries := 0
-	for {
-		result, err := s.ThreadStore.Update(thread)
 		if err == nil {
 			return result, nil
 		}

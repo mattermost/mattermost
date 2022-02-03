@@ -8183,22 +8183,6 @@ func (s *TimerLayerThreadStore) CollectThreadsWithNewerReplies(userId string, ch
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) Delete(postID string) error {
-	start := timemodule.Now()
-
-	err := s.ThreadStore.Delete(postID)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.Delete", success, elapsed)
-	}
-	return err
-}
-
 func (s *TimerLayerThreadStore) DeleteMembershipForUser(userId string, postID string) error {
 	start := timemodule.Now()
 
@@ -8439,22 +8423,6 @@ func (s *TimerLayerThreadStore) PermanentDeleteBatchThreadMembershipsForRetentio
 	return result, resultVar1, err
 }
 
-func (s *TimerLayerThreadStore) Save(thread *model.Thread) (*model.Thread, error) {
-	start := timemodule.Now()
-
-	result, err := s.ThreadStore.Save(thread)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.Save", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerThreadStore) SaveMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error) {
 	start := timemodule.Now()
 
@@ -8467,38 +8435,6 @@ func (s *TimerLayerThreadStore) SaveMembership(membership *model.ThreadMembershi
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.SaveMembership", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerThreadStore) SaveMultiple(thread []*model.Thread) ([]*model.Thread, int, error) {
-	start := timemodule.Now()
-
-	result, resultVar1, err := s.ThreadStore.SaveMultiple(thread)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.SaveMultiple", success, elapsed)
-	}
-	return result, resultVar1, err
-}
-
-func (s *TimerLayerThreadStore) Update(thread *model.Thread) (*model.Thread, error) {
-	start := timemodule.Now()
-
-	result, err := s.ThreadStore.Update(thread)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.Update", success, elapsed)
 	}
 	return result, err
 }

@@ -43,57 +43,6 @@ func newSqlThreadStore(sqlStore *SqlStore) store.ThreadStore {
 	return s
 }
 
-func threadSliceColumns() []string {
-	return []string{"PostId", "ChannelId", "LastReplyAt", "ReplyCount", "Participants"}
-}
-
-func threadToSlice(thread *model.Thread) []interface{} {
-	return []interface{}{
-		thread.PostId,
-		thread.ChannelId,
-		thread.LastReplyAt,
-		thread.ReplyCount,
-		model.ArrayToJSON(thread.Participants),
-	}
-}
-
-func (s *SqlThreadStore) SaveMultiple(threads []*model.Thread) ([]*model.Thread, int, error) {
-	builder := s.getQueryBuilder().Insert("Threads").Columns(threadSliceColumns()...)
-	for _, thread := range threads {
-		builder = builder.Values(threadToSlice(thread)...)
-	}
-	query, args, err := builder.ToSql()
-	if err != nil {
-		return nil, -1, errors.Wrap(err, "thread_tosql")
-	}
-
-	if _, err := s.GetMaster().Exec(query, args...); err != nil {
-		return nil, -1, errors.Wrap(err, "failed to save Post")
-	}
-
-	return threads, -1, nil
-}
-
-func (s *SqlThreadStore) Save(thread *model.Thread) (*model.Thread, error) {
-	threads, _, err := s.SaveMultiple([]*model.Thread{thread})
-	if err != nil {
-		return nil, err
-	}
-	return threads[0], nil
-}
-
-func (s *SqlThreadStore) Update(thread *model.Thread) (*model.Thread, error) {
-	return s.update(s.GetMaster(), thread)
-}
-
-func (s *SqlThreadStore) update(ex gorp.SqlExecutor, thread *model.Thread) (*model.Thread, error) {
-	if _, err := ex.Update(thread); err != nil {
-		return nil, errors.Wrapf(err, "failed to update thread with id=%s", thread.PostId)
-	}
-
-	return thread, nil
-}
-
 func (s *SqlThreadStore) Get(id string) (*model.Thread, error) {
 	return s.get(s.GetReplica(), id)
 }
@@ -538,15 +487,6 @@ func (s *SqlThreadStore) MarkAsRead(userId, threadId string, timestamp int64) er
 	if _, err := s.GetMaster().Exec(query, args...); err != nil {
 		return errors.Wrapf(err, "failed to update thread read state for user id=%s thread_id=%v", userId, threadId)
 	}
-	return nil
-}
-
-func (s *SqlThreadStore) Delete(threadId string) error {
-	query, args, _ := s.getQueryBuilder().Delete("Threads").Where(sq.Eq{"PostId": threadId}).ToSql()
-	if _, err := s.GetMaster().Exec(query, args...); err != nil {
-		return errors.Wrap(err, "failed to update threads")
-	}
-
 	return nil
 }
 
