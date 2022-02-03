@@ -6532,7 +6532,7 @@ func TestSetProfileImageWithProviderAttributes(t *testing.T) {
 func TestGetUsersWithInvalidEmails(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	client := th.Client
+	client := th.SystemAdminClient
 
 	user := model.User{
 		Email:    "ben@invalid.mattermost.com",
@@ -6571,6 +6571,10 @@ func TestGetUsersWithInvalidEmails(t *testing.T) {
 	users, _, err = client.GetUsersWithInvalidEmails(0, 50)
 	require.NoError(t, err)
 	assert.Len(t, users, 0)
+
+	_, resp, err = th.Client.GetUsersWithInvalidEmails(0, 50)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
 }
 func TestUserUpdateEvents(t *testing.T) {
 	th := Setup(t).InitBasic()
