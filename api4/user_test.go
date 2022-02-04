@@ -6661,3 +6661,54 @@ func TestSetProfileImageWithProviderAttributes(t *testing.T) {
 		doCleanup(t, th, user)
 	})
 }
+
+func TestUserUpdateEvents(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	client1 := th.CreateClient()
+	th.LoginBasicWithClient(client1)
+	WebSocketClient, err := th.CreateWebSocketClientWithClient(client1)
+	require.NoError(t, err)
+	defer WebSocketClient.Close()
+	WebSocketClient.Listen()
+	resp := <-WebSocketClient.ResponseChannel
+	require.Equal(t, resp.Status, model.StatusOk)
+
+	client2 := th.CreateClient()
+	th.LoginBasic2WithClient(client2)
+	WebSocketClient2, err := th.CreateWebSocketClientWithClient(client2)
+	require.NoError(t, err)
+	defer WebSocketClient2.Close()
+	WebSocketClient2.Listen()
+	resp = <-WebSocketClient2.ResponseChannel
+	require.Equal(t, resp.Status, model.StatusOk)
+
+	time.Sleep(1000 * time.Millisecond)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		// trigger user update for onlineUser2
+		th.BasicUser.Nickname = "something_else"
+		ruser, _, err := client1.UpdateUser(th.BasicUser)
+		require.NoError(t, err)
+		CheckUserSanitization(t, ruser)
+
+		assertExpectedWebsocketEvent(t, WebSocketClient, model.WebsocketEventUserUpdated, func(event *model.WebSocketEvent) {
+			eventUser, ok := event.GetData()["user"].(*model.User)
+			require.True(t, ok, "expected user")
+			// assert eventUser.Id is same as th.BasicUser.Id
+			assert.Equal(t, eventUser.Id, th.BasicUser.Id)
+			// assert eventUser.NotifyProps isn't empty
+			require.NotEmpty(t, eventUser.NotifyProps, "user event for source user should not be sanitized")
+		})
+		assertExpectedWebsocketEvent(t, WebSocketClient2, model.WebsocketEventUserUpdated, func(event *model.WebSocketEvent) {
+			eventUser, ok := event.GetData()["user"].(*model.User)
+			require.True(t, ok, "expected user")
+			// assert eventUser.Id is same as th.BasicUser.Id
+			assert.Equal(t, eventUser.Id, th.BasicUser.Id)
+			// assert eventUser.NotifyProps is an empty map
+			require.Empty(t, eventUser.NotifyProps, "user event for non-source users should be sanitized")
+		})
+	})
+
+}
