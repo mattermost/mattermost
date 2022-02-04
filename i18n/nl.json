@@ -888,7 +888,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "Open de accountinstellingen dialoog"
+    "translation": "Open het dialoogvenster Instellingen"
   },
   {
     "id": "api.command_settings.name",
@@ -1789,7 +1789,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "Om je notificatie instellingen te wijzigen moet je inloggen op je team site en ga naar Account Instellingen > Notificaties."
+    "translation": "Om je notificatie instellingen te wijzigen moet je inloggen op je team site en ga naar Instellingen > Notificaties."
   },
   {
     "id": "api.templates.email_info1",
@@ -4801,7 +4801,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -4813,7 +4813,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Versie 78+"
+    "translation": "Versie 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -7565,7 +7565,7 @@
   },
   {
     "id": "api.templates.at_limit_info1",
-    "translation": "Het lijkt dat je nu 10 of meer gebruikers hebt in je werkomgeving — Dat is fantastisch! Als je meer teamleden wil uitnodigen, overweeg dan een upgrade naar Mattermost Cloud Professional."
+    "translation": "Het lijkt dat je nu 10 of meer gebruikers hebt in je werkomgeving — Dat is fantastisch! Als je meer teamleden wil uitnodigen, overweeg dan een upgrade naar Mattermost Cloud."
   },
   {
     "id": "app.user.verify_email.app_error",
@@ -7713,7 +7713,7 @@
   },
   {
     "id": "api.templates.over_limit_info1",
-    "translation": "Je hebt meer dan 10 gebruikers in je werkplek en dat is overschrijdt de limiet binnen de gratis versie van Mattermost Cloud Professional. Om onderbrekingen te vermijden in je Mattermost werkplek, kan je upgraden."
+    "translation": "Je hebt meer dan 10 gebruikers in je werkplek en dat overschrijdt de limiet binnen de gratis versie van Mattermost Cloud. Om onderbrekingen te vermijden in je Mattermost werkplek, kan je upgraden."
   },
   {
     "id": "api.templates.over_limit_suspended_contact_support",
@@ -8441,7 +8441,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "voor de beste ervaring op PC, Mac, iOS en Android."
+    "translation": "voor de beste ervaring op Windows, Linux, Mac, iOS en Android."
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info",
@@ -8481,7 +8481,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Stroomlijn jE werk met tools als Github, Google Agenda en Chrome. Ontdek alle integraties die we hebben op onze"
+    "translation": "Streamline your work with tools like Github, Jira and Zoom. Explore all of the integrations we have on our"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -8945,7 +8945,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, je 14-daagse gratis proefperiode van Mattermost Cloud Professional eindigde vandaag {{.TodayDate}}. Voeg jouw betalingsgegevens toe om ervoor te zorgen dat jouw team kan blijven genieten van de voordelen van Cloud Professional."
+    "translation": "{{.Name}}, je 14-daagse gratis proefperiode van Mattermost Cloud Enterprise eindigde vandaag {{.TodayDate}}. Voeg jouw betalingsgegevens toe om ervoor te zorgen dat jouw team kan blijven genieten van de voordelen van Cloud Enterprise."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -8981,7 +8981,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " en ga naar Accountinstellingen > Meldingen"
+    "translation": " en ga naar Instellingen > Meldingen"
   },
   {
     "id": "app.notification.body.mention.title",
@@ -9233,5 +9233,81 @@
   {
     "id": "model.channel_member.is_valid.roles_limit.app_error",
     "translation": "Ongeldige kanaallidrol langer dan {{.Limit}} karakters."
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "Ongeldige gebruikersrollen langer dan {{.Limit}} tekens."
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "Ongeldig teamlid rollen langer dan {{.Limit}} tekens."
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "Ongeldig veld UserId voor sessie."
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "Ongeldige sessierollen langer dan {{.Limit}} tekens."
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "Ongeldig Id-veld voor sessie."
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "Het e-mailadres in het token komt niet overeen met dat in de gebruikersgegevens."
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "Het is niet gelukt om alle teamleden te verkrijgen"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "Mislukt om alle kanaalleden te verkrijgen"
+  },
+  {
+    "id": "app.user.get_thread_count_for_user.app_error",
+    "translation": "We konden het aantal draadjes voor de gebruiker niet ophalen."
+  },
+  {
+    "id": "app.session.extend_session_expiry.app_error",
+    "translation": "Kan sessielengte niet verlengen"
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "Alle rollen kunnen niet worden opgehaald."
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "Herinnering"
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Het is niet gelukt om de aangepaste status bij te werken. Voeg een emoji of een aangepaste tekststatus of beide toe."
+  },
+  {
+    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
+    "translation": "Kan geen berichten ophalen voor een gearchiveerd kanaal"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
+    "translation": "Kan geen berichten ophalen voor een gearchiveerd kanaal"
+  },
+  {
+    "id": "api.post.posts_by_ids.invalid_body.request_error",
+    "translation": "Het aantal ontvangen Post ID's heeft de maximumgrootte van {{.MaxLength}} overschreden"
+  },
+  {
+    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
+    "translation": "Vernieuwen van deze licentie op het portaal is niet mogelijk"
+  },
+  {
+    "id": "api.config.migrate_config_restricted.app_error",
+    "translation": "Configurariemigratie is beperkt vanwege het type instantie."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "SAML antwoord is te lang"
   }
 ]

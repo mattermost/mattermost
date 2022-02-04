@@ -20,6 +20,8 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/shared/templates"
 	"github.com/pkg/errors"
+
+	"github.com/microcosm-cc/bluemonday"
 )
 
 func (es *Service) SendChangeUsernameEmail(newUsername, email, locale, siteURL string) error {
@@ -426,7 +428,7 @@ func (es *Service) SendMfaChangeEmail(email string, activated bool, locale, site
 	return nil
 }
 
-func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string) error {
+func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string, reminderData *model.TeamInviteReminderData) error {
 	if es.PerHourEmailRateLimiter == nil {
 		return NoRateLimiterError
 	}
@@ -450,7 +452,6 @@ func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderU
 
 			data := es.NewEmailTemplateData("")
 			data.Props["SiteURL"] = siteURL
-			data.Props["Title"] = i18n.T("api.templates.invite_body.title", map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
 			data.Props["SubTitle"] = i18n.T("api.templates.invite_body.subTitle")
 			data.Props["Button"] = i18n.T("api.templates.invite_body.button")
 			data.Props["SenderName"] = senderName
@@ -467,6 +468,16 @@ func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderU
 			tokenProps["email"] = invite
 			tokenProps["display_name"] = team.DisplayName
 			tokenProps["name"] = team.Name
+
+			title := i18n.T("api.templates.invite_body.title", map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
+			if reminderData != nil {
+				reminder := i18n.T("api.templates.invite_body.title.reminder")
+				title = fmt.Sprintf("%s: %s", reminder, title)
+				tokenProps["reminder_interval"] = reminderData.Interval
+			}
+
+			data.Props["Title"] = title
+
 			tokenData := model.MapToJSON(tokenProps)
 
 			if err := es.store.Token().Save(token); err != nil {
@@ -515,6 +526,11 @@ func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Cha
 			data.Props["Title"] = i18n.T("api.templates.invite_body.title", map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
 			data.Props["SubTitle"] = i18n.T("api.templates.invite_body_guest.subTitle")
 			data.Props["Button"] = i18n.T("api.templates.invite_body.button")
+			data.Props["SenderName"] = senderName
+			if message != "" {
+				message = bluemonday.NewPolicy().Sanitize(message)
+			}
+			data.Props["Message"] = message
 			data.Props["InviteFooterTitle"] = i18n.T("api.templates.invite_body_footer.title")
 			data.Props["InviteFooterInfo"] = i18n.T("api.templates.invite_body_footer.info")
 			data.Props["InviteFooterLearnMore"] = i18n.T("api.templates.invite_body_footer.learn_more")

@@ -2657,6 +2657,51 @@ func TestGetUsersInChannel(t *testing.T) {
 
 	_, _, err = th.SystemAdminClient.GetUsersInChannel(channelId, 0, 60, "")
 	require.NoError(t, err)
+
+	t.Run("Should forbid getting the members of an archived channel if users are not allowed to view archived messages", func(t *testing.T) {
+		th.LoginBasic()
+		channel, _, appErr := th.SystemAdminClient.CreateChannel(&model.Channel{
+			DisplayName: "User Created Channel",
+			Name:        model.NewId(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      th.BasicTeam.Id,
+		})
+		require.NoError(t, appErr)
+		_, aErr := th.App.AddUserToChannel(th.BasicUser, channel, false)
+		require.Nil(t, aErr)
+		_, aErr = th.App.AddUserToChannel(th.BasicUser2, channel, false)
+		require.Nil(t, aErr)
+		th.SystemAdminClient.DeleteChannel(channel.Id)
+
+		experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalViewArchivedChannels = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.ExperimentalViewArchivedChannels = experimentalViewArchivedChannels
+		})
+
+		// the endpoint should work fine for all clients when viewing
+		// archived channels is enabled
+		for _, client := range []*model.Client4{th.SystemAdminClient, th.Client, th.LocalClient} {
+			users, _, userErr := client.GetUsersInChannel(channel.Id, 0, 1000, "")
+			require.NoError(t, userErr)
+			require.Len(t, users, 3)
+		}
+
+		// the endpoint should return forbidden if viewing archived
+		// channels is disabled for all clients but the Local one
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalViewArchivedChannels = false })
+		for _, client := range []*model.Client4{th.SystemAdminClient, th.Client} {
+			users, resp, userErr := client.GetUsersInChannel(channel.Id, 0, 1000, "")
+			require.Error(t, userErr)
+			require.Len(t, users, 0)
+			CheckForbiddenStatus(t, resp)
+		}
+
+		// local client should be able to get the users still
+		users, _, appErr := th.LocalClient.GetUsersInChannel(channel.Id, 0, 1000, "")
+		require.NoError(t, appErr)
+		require.Len(t, users, 3)
+	})
 }
 
 func TestGetUsersNotInChannel(t *testing.T) {
@@ -3594,6 +3639,65 @@ func TestLoginCookies(t *testing.T) {
 				assert.Regexp(t, tc.ExpectedSetCookieHeaderRegexp, cookies)
 			})
 		}
+	})
+
+	t.Run("should return cookie with MMCLOUDURL for cloud installations", func(t *testing.T) {
+		updateConfig := func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "https://testchips.cloud.mattermost.com"
+		}
+		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic()
+		defer th.TearDown()
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		_, resp, _ := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		val := strings.Split(resp.Header["Set-Cookie"][0], ";")
+		cloudSessionCookie := strings.Split(val[0], "=")[1]
+		domain := strings.Split(val[2], "=")[1]
+
+		assert.Equal(t, "testchips", cloudSessionCookie)
+		assert.Equal(t, "mattermost.com", domain)
+	})
+
+	t.Run("should NOT return cookie with MMCLOUDURL for cloud installations without expected format of cloud URL", func(t *testing.T) {
+		updateConfig := func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "https://testchips.com" // correct cloud URL would be https://testchips.cloud.mattermost.com
+		}
+		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic()
+		defer th.TearDown()
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		_, resp, _ := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		cloudSessionCookie := ""
+		for _, cookie := range resp.Header["Set-Cookie"] {
+			if match := regexp.MustCompile("^" + model.SessionCookieCloudUrl + "=([a-z0-9]+)").FindStringSubmatch(cookie); match != nil {
+				cloudSessionCookie = match[1]
+			}
+		}
+		// no cookie set
+		assert.Equal(t, "", cloudSessionCookie)
+	})
+
+	t.Run("should NOT return cookie with MMCLOUDURL for NON cloud installations", func(t *testing.T) {
+		updateConfig := func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "https://testchips.com"
+		}
+		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic()
+		defer th.TearDown()
+
+		_, resp, _ := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		cloudSessionCookie := ""
+		for _, cookie := range resp.Header["Set-Cookie"] {
+			if match := regexp.MustCompile("^" + model.SessionCookieCloudUrl + "=([a-z0-9]+)").FindStringSubmatch(cookie); match != nil {
+				cloudSessionCookie = match[1]
+			}
+		}
+		// no cookie set
+		assert.Equal(t, "", cloudSessionCookie)
 	})
 }
 
@@ -5443,6 +5547,19 @@ func TestConvertUserToBot(t *testing.T) {
 	})
 }
 
+func TestGetChannelMembersWithTeamData(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	channels, resp, err := th.Client.GetChannelMembersWithTeamData(th.BasicUser.Id, 0, 5)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	assert.Len(t, channels, 5)
+	for _, ch := range channels {
+		assert.Equal(t, th.BasicTeam.DisplayName, ch.TeamDisplayName)
+	}
+}
+
 func TestMigrateAuthToLDAP(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -5829,6 +5946,11 @@ func TestThreadSocketEvents(t *testing.T) {
 func TestFollowThreads(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+	})
 
 	t.Run("1 thread", func(t *testing.T) {
 		client := th.Client
@@ -6405,4 +6527,55 @@ func TestSetProfileImageWithProviderAttributes(t *testing.T) {
 		})
 		doCleanup(t, th, user)
 	})
+}
+
+func TestUserUpdateEvents(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	client1 := th.CreateClient()
+	th.LoginBasicWithClient(client1)
+	WebSocketClient, err := th.CreateWebSocketClientWithClient(client1)
+	require.NoError(t, err)
+	defer WebSocketClient.Close()
+	WebSocketClient.Listen()
+	resp := <-WebSocketClient.ResponseChannel
+	require.Equal(t, resp.Status, model.StatusOk)
+
+	client2 := th.CreateClient()
+	th.LoginBasic2WithClient(client2)
+	WebSocketClient2, err := th.CreateWebSocketClientWithClient(client2)
+	require.NoError(t, err)
+	defer WebSocketClient2.Close()
+	WebSocketClient2.Listen()
+	resp = <-WebSocketClient2.ResponseChannel
+	require.Equal(t, resp.Status, model.StatusOk)
+
+	time.Sleep(1000 * time.Millisecond)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		// trigger user update for onlineUser2
+		th.BasicUser.Nickname = "something_else"
+		ruser, _, err := client1.UpdateUser(th.BasicUser)
+		require.NoError(t, err)
+		CheckUserSanitization(t, ruser)
+
+		assertExpectedWebsocketEvent(t, WebSocketClient, model.WebsocketEventUserUpdated, func(event *model.WebSocketEvent) {
+			eventUser, ok := event.GetData()["user"].(*model.User)
+			require.True(t, ok, "expected user")
+			// assert eventUser.Id is same as th.BasicUser.Id
+			assert.Equal(t, eventUser.Id, th.BasicUser.Id)
+			// assert eventUser.NotifyProps isn't empty
+			require.NotEmpty(t, eventUser.NotifyProps, "user event for source user should not be sanitized")
+		})
+		assertExpectedWebsocketEvent(t, WebSocketClient2, model.WebsocketEventUserUpdated, func(event *model.WebSocketEvent) {
+			eventUser, ok := event.GetData()["user"].(*model.User)
+			require.True(t, ok, "expected user")
+			// assert eventUser.Id is same as th.BasicUser.Id
+			assert.Equal(t, eventUser.Id, th.BasicUser.Id)
+			// assert eventUser.NotifyProps is an empty map
+			require.Empty(t, eventUser.NotifyProps, "user event for non-source users should be sanitized")
+		})
+	})
+
 }

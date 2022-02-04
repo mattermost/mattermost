@@ -72,6 +72,11 @@ func (a *App) CreateUserWithToken(c *request.Context, user *model.User, token *m
 		return nil, model.NewAppError("CreateUserWithToken", "app.channel.get_channels_by_ids.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
+	emailFromToken := tokenData["email"]
+	if emailFromToken != user.Email {
+		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.bad_token_email_data.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	user.Email = tokenData["email"]
 	user.EmailVerified = true
 
@@ -762,7 +767,7 @@ func (a *App) SetProfileImageFromMultiPartFile(userID string, file multipart.Fil
 
 func (a *App) AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError) {
 	// Decode image into Image object
-	img, _, err := a.ch.srv.imgDecoder.Decode(file)
+	img, _, err := a.ch.imgDecoder.Decode(file)
 	if err != nil {
 		return nil, model.NewAppError("SetProfileImage", "api.user.upload_profile_user.decode.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -775,7 +780,7 @@ func (a *App) AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError) {
 	img = imaging.FillCenter(img, profileWidthAndHeight, profileWidthAndHeight)
 
 	buf := new(bytes.Buffer)
-	err = a.ch.srv.imgEncoder.EncodePNG(buf, img)
+	err = a.ch.imgEncoder.EncodePNG(buf, img)
 	if err != nil {
 		return nil, model.NewAppError("SetProfileImage", "api.user.upload_profile_user.encode.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -863,7 +868,10 @@ func (a *App) invalidateUserChannelMembersCaches(userID string) *model.AppError 
 	}
 
 	for _, team := range teamsForUser {
-		channelsForUser, err := a.GetChannelsForUser(team.Id, userID, false, 0)
+		channelsForUser, err := a.GetChannelsForTeamForUser(team.Id, userID, &model.ChannelSearchOpts{
+			IncludeDeleted: false,
+			LastDeleteAt:   0,
+		})
 		if err != nil {
 			return err
 		}
@@ -1019,18 +1027,30 @@ func (a *App) UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.Us
 }
 
 func (a *App) sendUpdatedUserEvent(user model.User) {
+	// exclude event creator user from admin, member user broadcast
+	omitUsers := make(map[string]bool, 1)
+	omitUsers[user.Id] = true
+
+	// declare admin and unsanitized copy of user
 	adminCopyOfUser := user.DeepCopy()
+	unsanitizedCopyOfUser := user.DeepCopy()
+
 	a.SanitizeProfile(adminCopyOfUser, true)
-	adminMessage := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", nil)
+	adminMessage := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", omitUsers)
 	adminMessage.Add("user", adminCopyOfUser)
 	adminMessage.GetBroadcast().ContainsSensitiveData = true
 	a.Publish(adminMessage)
 
 	a.SanitizeProfile(&user, false)
-	message := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", omitUsers)
 	message.Add("user", &user)
 	message.GetBroadcast().ContainsSanitizedData = true
 	a.Publish(message)
+
+	// send unsanitized user to event creator
+	sourceUserMessage := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", unsanitizedCopyOfUser.Id, nil)
+	sourceUserMessage.Add("user", unsanitizedCopyOfUser)
+	a.Publish(sourceUserMessage)
 }
 
 func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError) {
@@ -2032,7 +2052,7 @@ func (a *App) GetViewUsersRestrictions(userID string) (*model.ViewUsersRestricti
 	return &model.ViewUsersRestrictions{Teams: teamIDsWithPermission, Channels: channelIDs}, nil
 }
 
-// PromoteGuestToUser Convert user's roles and all his mermbership's roles from
+// PromoteGuestToUser Convert user's roles and all his membership's roles from
 // guest roles to regular user roles.
 func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestorId string) *model.AppError {
 	nErr := a.ch.srv.userService.PromoteGuestToUser(user)
@@ -2092,7 +2112,7 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 	return nil
 }
 
-// DemoteUserToGuest Convert user's roles and all his mermbership's roles from
+// DemoteUserToGuest Convert user's roles and all his membership's roles from
 // regular user roles to guest roles.
 func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 	demotedUser, nErr := a.ch.srv.userService.DemoteUserToGuest(user)
@@ -2296,7 +2316,65 @@ func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state b
 	return nil
 }
 
-func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError) {
+func (a *App) UpdateThreadFollowForUserFromChannelAdd(userID, teamID, threadID string) *model.AppError {
+	opts := store.ThreadMembershipOpts{
+		Following:             true,
+		IncrementMentions:     false,
+		UpdateFollowing:       true,
+		UpdateViewedTimestamp: false,
+		UpdateParticipants:    false,
+	}
+	tm, err := a.Srv().Store.Thread().MaintainMembership(userID, threadID, opts)
+	if err != nil {
+		return model.NewAppError("UpdateThreadFollowForUserFromChannelAdd", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	post, appErr := a.GetSinglePost(threadID)
+	if appErr != nil {
+		return appErr
+	}
+	user, appErr := a.GetUser(userID)
+	if appErr != nil {
+		return appErr
+	}
+	tm.UnreadMentions, appErr = a.countThreadMentions(user, post, teamID, post.CreateAt-1)
+	if appErr != nil {
+		return appErr
+	}
+	tm.LastViewed = post.CreateAt - 1
+	_, err = a.Srv().Store.Thread().UpdateMembership(tm)
+	if err != nil {
+		return model.NewAppError("UpdateThreadFollowForUserFromChannelAdd", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, teamID, "", userID, nil)
+	userThread, err := a.Srv().Store.Thread().GetThreadForUser(teamID, tm, true)
+	if err != nil {
+		var errNotFound *store.ErrNotFound
+		if errors.As(err, &errNotFound) {
+			return nil
+		}
+		return model.NewAppError("UpdateThreadFollowForUserFromChannelAdd", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	a.sanitizeProfiles(userThread.Participants, false)
+	userThread.Post.SanitizeProps()
+	sanitizedPost, appErr := a.SanitizePostMetadataForUser(userThread.Post, userID)
+	if appErr != nil {
+		return appErr
+	}
+	userThread.Post = sanitizedPost
+
+	payload, jsonErr := json.Marshal(userThread)
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode thread to JSON")
+	}
+	message.Add("thread", string(payload))
+
+	a.Publish(message)
+	return nil
+}
+
+func (a *App) UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError) {
 	user, err := a.GetUser(userID)
 	if err != nil {
 		return nil, err
@@ -2332,6 +2410,11 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 	thread, err := a.GetThreadForUser(teamID, membership, false)
 	if err != nil {
 		return nil, err
+	}
+
+	// Clear if user has read the messages
+	if thread.UnreadReplies == 0 && a.IsCRTEnabledForUser(userID) {
+		a.clearPushNotification(currentSessionId, userID, post.ChannelId, threadID)
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, teamID, "", userID, nil)

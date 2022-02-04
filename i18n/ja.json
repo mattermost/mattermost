@@ -887,7 +887,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "アカウント設定ダイアログを開く"
+    "translation": "設定ダイアログを開く"
   },
   {
     "id": "api.command_settings.name",
@@ -1785,7 +1785,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "通知設定を変更するには、チームにログインしアカウント設定から通知を選択してください。"
+    "translation": "通知設定を変更するには、チームにログインし設定から通知を選択してください。"
   },
   {
     "id": "api.templates.email_info1",
@@ -2857,7 +2857,7 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} @{{.SenderDisplayName}} からの新しいダイレクトメッセージ"
+    "translation": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} {{.SenderDisplayName}} からの新しいダイレクトメッセージ"
   },
   {
     "id": "app.notification.subject.group_message.full",
@@ -7557,7 +7557,7 @@
   },
   {
     "id": "api.templates.at_limit_info1",
-    "translation": "現在、ワークスペースには10名を超えるユーザーが存在します - 素晴らしい！さらにチームメンバーを招待する予定がある場合、Mattermost Cloud Professoinalへのアップグレードを是非ご検討ください。"
+    "translation": "現在、ワークスペースには10名を超えるユーザーが存在します - 素晴らしい！さらにチームメンバーを招待する予定がある場合、Mattermost Cloud Professのアップグレードを是非ご検討ください。"
   },
   {
     "id": "app.user.permanent_delete.app_error",
@@ -7653,7 +7653,7 @@
   },
   {
     "id": "api.templates.over_limit_info1",
-    "translation": "ワークスペースにMattermost Cloud Professionalの無料枠を超える10名以上のユーザーがいるようです。ワークスペースの混乱を避けるために、アップグレードしてください。"
+    "translation": "ワークスペースにMattermost Cloudの無料枠を超える10名以上のユーザーがいるようです。ワークスペースの混乱を避けるために、アップグレードしてください。"
   },
   {
     "id": "model.config.is_valid.import.retention_days_too_low.app_error",
@@ -8441,7 +8441,7 @@
   },
   {
     "id": "api.templates.invite_body_footer.learn_more",
-    "translation": "詳しく知る"
+    "translation": "さらに詳しく"
   },
   {
     "id": "api.templates.invite_body_footer.info",
@@ -8473,7 +8473,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "PC、Mac、iOS、Androidで最高の体験を。"
+    "translation": "Windows、Linux、Mac、iOS、Androidで最高の体験を。"
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info",
@@ -8509,7 +8509,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Github、Googleカレンダー、Chromeなどのツールを使って仕事を効率化しましょう。我々のマーケットプレースですべての統合機能をご覧ください"
+    "translation": "GitHub、Jira、Zoomなどのツールを使って仕事を効率化しましょう。我々のマーケットプレースですべての統合機能をご覧ください"
   },
   {
     "id": "api.templates.cloud_welcome_email.button",
@@ -8917,7 +8917,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}、Mattermost Cloud Professionalの14日間の無料トライアルが本日 {{.TodayDate}} 終了しました。引き続きCloud Professionalを利用するには、支払い情報を追加してください。"
+    "translation": "{{.Name}}、Mattermost Cloud Enterpriseの14日間の無料トライアルが本日 {{.TodayDate}} 終了しました。引き続きCloud Enterpriseを利用するには、支払い情報を追加してください。"
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -8981,7 +8981,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " 、アカウント設定 > 通知 へ移動してください"
+    "translation": " 、設定 > 通知 へ移動してください"
   },
   {
     "id": "app.notification.body.mention.title",
@@ -9097,7 +9097,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "このMattermost Enterprise Editionのトライアルライセンスキーは期限が切れており、有効ではありません。トライアル期間の延長をご希望の場合は[セールスチームまでご連絡ください](https://mattermost.com/contact-us/)。"
+    "translation": "このMattermost Enterprise Editionのトライアルライセンスキーは期限が切れており、有効ではありません。トライアル期間の延長をご希望の場合は[営業までご連絡ください](https://mattermost.com/contact-us/)。"
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -9246,5 +9246,57 @@
   {
     "id": "model.session.is_valid.create_at.app_error",
     "translation": "セッションのCreateAtフィールドが無効です。"
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "トークンの電子メールアドレスがユーザーデータのものと一致しません。"
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "すべてのチームメンバーを取得できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "すべてのチャンネルメンバーを取得できませんでした"
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "カスタムステータスを更新できませんでした。絵文字とテキストステータスのどちらかまたは両方を指定してください。"
+  },
+  {
+    "id": "app.user.get_thread_count_for_user.app_error",
+    "translation": "そのユーザーのスレッド数を取得できませんでした。"
+  },
+  {
+    "id": "app.session.extend_session_expiry.app_error",
+    "translation": "セッションの長さを延長できませんでした"
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "全ての役割を取得できませんでした。"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
+    "translation": "アーカイブされたチャネルのユーザーを取得できません"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
+    "translation": "アーカイブされたチャンネルの投稿を取得できません"
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "リマインダー"
+  },
+  {
+    "id": "api.post.posts_by_ids.invalid_body.request_error",
+    "translation": "受信したPost IDの数が{{.MaxLength}}の最大サイズを超えています"
+  },
+  {
+    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
+    "translation": "ポータルでこのライセンスを更新することはできません"
+  },
+  {
+    "id": "api.config.migrate_config_restricted.app_error",
+    "translation": "インスタンス種別により、設定の移行が制限されています。"
   }
 ]

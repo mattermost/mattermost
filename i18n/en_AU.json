@@ -61,7 +61,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -73,7 +73,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 78+"
+    "translation": "Version 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -2057,7 +2057,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " and go to Account Settings > Notifications"
+    "translation": " and go to Settings > Notifications"
   },
   {
     "id": "app.notification.body.mention.title",
@@ -5133,7 +5133,7 @@
   },
   {
     "id": "api.templates.over_limit_info1",
-    "translation": "It looks like you have more than 10 users in your workspace which is beyond the free tier limits of Mattermost Cloud Professional. To avoid any disruption in your Mattermost workspace, please upgrade."
+    "translation": "It looks like you have more than 10 users in your workspace which is beyond the free tier limits of Mattermost Cloud. To avoid any disruption in your Mattermost workspace, please upgrade."
   },
   {
     "id": "api.templates.over_limit_fix_now",
@@ -5405,7 +5405,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "To change your notification preferences, log in to your team site and go to Account Settings > Notifications."
+    "translation": "To change your notification preferences, log in to your team site and go to Settings > Notifications."
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -5477,7 +5477,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "for the best experience on PC, Mac, iOS and Android."
+    "translation": "for the best experience on Windows, Linux, Mac, iOS and Android."
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info",
@@ -5517,7 +5517,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Streamline your work with tools like GitHub, Google Calendar and Chrome. Explore all of the integrations we have on our"
+    "translation": "Streamline your work with tools like Github, Jira and Zoom. Explore all of the integrations we have on our"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -5545,7 +5545,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Professional ends today {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Professional."
+    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Enterprise ends today {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Enterprise."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -5573,7 +5573,7 @@
   },
   {
     "id": "api.templates.at_limit_info1",
-    "translation": "It looks like you have 10 or more users in your workspace now — that’s great! If you want to invite more team members, consider upgrading Mattermost Cloud Professional now."
+    "translation": "It looks like you have 10 or more users in your workspace now — that’s great! If you want to invite more team members, consider upgrading Mattermost Cloud now."
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
@@ -8668,7 +8668,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "Open the Account Settings dialog"
+    "translation": "Open the Settings dialog"
   },
   {
     "id": "api.command_search.unsupported.app_error",
@@ -9253,5 +9253,61 @@
   {
     "id": "model.channel_member.is_valid.roles_limit.app_error",
     "translation": "Invalid channel member roles longer than {{.Limit}} characters."
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "The email address in the token does not match the one in the user data."
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "Failed to retrieve all team members"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "Failed to retrieve all channel members"
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "Unable to retrieve all roles."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Failed to update the custom status. Please add either emoji, custom status text or both."
+  },
+  {
+    "id": "app.user.get_thread_count_for_user.app_error",
+    "translation": "Unable to retrieve user thread count."
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "Reminder"
+  },
+  {
+    "id": "app.session.extend_session_expiry.app_error",
+    "translation": "Unable to extend session length"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
+    "translation": "Cannot retrieve users for an archived channel"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
+    "translation": "Cannot retrieve posts for an archived channel"
+  },
+  {
+    "id": "api.post.posts_by_ids.invalid_body.request_error",
+    "translation": "The number of Post IDs received has exceeded the maximum size of {{.MaxLength}}"
+  },
+  {
+    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
+    "translation": "Renewing this licence on the portal is not possible"
+  },
+  {
+    "id": "api.config.migrate_config_restricted.app_error",
+    "translation": "Config migration is restricted due to instance type."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "SAML response is too long"
   }
 ]

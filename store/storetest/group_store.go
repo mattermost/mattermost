@@ -3879,7 +3879,7 @@ func groupTestAdminRoleGroupsForSyncableMemberChannel(t *testing.T, ss store.Sto
 	})
 	require.NoError(t, err)
 
-	// User is a member of both groups but only one is SchmeAdmin: true
+	// User is a member of both groups but only one is SchemeAdmin: true
 	actualGroupIDs, err := ss.Group().AdminRoleGroupsForSyncableMember(user.Id, channel.Id, model.GroupSyncableTypeChannel)
 	require.NoError(t, err)
 	require.ElementsMatch(t, []string{group1.Id}, actualGroupIDs)
@@ -3966,7 +3966,7 @@ func groupTestAdminRoleGroupsForSyncableMemberTeam(t *testing.T, ss store.Store)
 	})
 	require.NoError(t, err)
 
-	// User is a member of both groups but only one is SchmeAdmin: true
+	// User is a member of both groups but only one is SchemeAdmin: true
 	actualGroupIDs, err := ss.Group().AdminRoleGroupsForSyncableMember(user.Id, team.Id, model.GroupSyncableTypeTeam)
 	require.NoError(t, err)
 	require.ElementsMatch(t, []string{group1.Id}, actualGroupIDs)
@@ -4193,7 +4193,7 @@ func groupTestPermittedSyncableAdminsChannel(t *testing.T, ss store.Store) {
 	require.ElementsMatch(t, []string{user1.Id, user2.Id, user3.Id}, actualUserIDs)
 
 	// deleted group member should not be included
-	ss.Group().DeleteMember(group1.Id, user2.Id)
+	_, err = ss.Group().DeleteMember(group1.Id, user2.Id)
 	require.NoError(t, err)
 	actualUserIDs, err = ss.Group().PermittedSyncableAdmins(channel.Id, model.GroupSyncableTypeChannel)
 	require.NoError(t, err)

@@ -57,13 +57,6 @@ func threadToSlice(thread *model.Thread) []interface{} {
 	}
 }
 
-func (s *SqlThreadStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_thread_memberships_last_update_at", "ThreadMemberships", "LastUpdated")
-	s.CreateIndexIfNotExists("idx_thread_memberships_last_view_at", "ThreadMemberships", "LastViewed")
-	s.CreateIndexIfNotExists("idx_thread_memberships_user_id", "ThreadMemberships", "UserId")
-	s.CreateCompositeIndexIfNotExists("idx_threads_channel_id_last_reply_at", "Threads", []string{"ChannelId", "LastReplyAt"})
-}
-
 func (s *SqlThreadStore) SaveMultiple(threads []*model.Thread) ([]*model.Thread, int, error) {
 	builder := s.getQueryBuilder().Insert("Threads").Columns(threadSliceColumns()...)
 	for _, thread := range threads {
@@ -291,7 +284,10 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	}
 	totalUnreadThreads := totalUnreadThreadsResult.Data.(int64)
 
+	// userIds is the de-duped list of participant ids from all threads.
 	var userIds []string
+	// userIdMap is the map of participant ids from all threads.
+	// Used to generate userIds
 	userIdMap := map[string]bool{}
 
 	result := &model.Threads{
@@ -315,30 +311,30 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 				}
 			}
 		}
-		var users []*model.User
+		// usersMap is the global profile map of all participants from all threads.
+		usersMap := make(map[string]*model.User, len(userIds))
 		if opts.Extended {
-			var err error
-			users, err = s.User().GetProfileByIds(context.Background(), userIds, &store.UserGetByIdsOpts{}, true)
+			users, err := s.User().GetProfileByIds(context.Background(), userIds, &store.UserGetByIdsOpts{}, true)
 			if err != nil {
 				return nil, errors.Wrapf(err, "failed to get threads for user id=%s", userId)
 			}
+			for _, user := range users {
+				usersMap[user.Id] = user
+			}
 		} else {
 			for _, userId := range userIds {
-				users = append(users, &model.User{Id: userId})
+				usersMap[userId] = &model.User{Id: userId}
 			}
 		}
 
+		result.Threads = make([]*model.ThreadResponse, 0, len(threads))
 		for _, thread := range threads {
-			var participants []*model.User
+			participants := make([]*model.User, 0, len(thread.Participants))
+			// We get the user profiles for only a single thread filtered from the
+			// global users map.
 			for _, participantId := range thread.Participants {
-				var participant *model.User
-				for _, u := range users {
-					if u.Id == participantId {
-						participant = u
-						break
-					}
-				}
-				if participant == nil {
+				participant, ok := usersMap[participantId]
+				if !ok {
 					return nil, errors.New("cannot find thread participant with id=" + participantId)
 				}
 				participants = append(participants, participant)
@@ -429,6 +425,9 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 
 	err := s.GetReplica().SelectOne(&thread, query, args...)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Thread", threadMembership.PostId)
+		}
 		return nil, err
 	}
 
@@ -457,7 +456,9 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 				break
 			}
 		}
-		participants = append(participants, participant)
+		if participant != nil {
+			participants = append(participants, participant)
+		}
 	}
 
 	result := &model.ThreadResponse{
@@ -631,7 +632,7 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
 
 	membership, err := s.getMembershipForUser(trx, userId, postId)
 	now := utils.MillisFromTime(time.Now())
-	// if memebership exists, update it if:
+	// if membership exists, update it if:
 	// a. user started/stopped following a thread
 	// b. mention count changed
 	// c. user viewed a thread

@@ -621,6 +621,15 @@ func (u *User) SetCustomStatus(cs *CustomStatus) error {
 	return nil
 }
 
+func (u *User) GetCustomStatus() *CustomStatus {
+	var o *CustomStatus
+
+	data := u.Props[UserPropsKeyCustomStatus]
+	_ = json.Unmarshal([]byte(data), &o)
+
+	return o
+}
+
 func (u *User) ClearCustomStatus() {
 	u.MakeNonNil()
 	u.Props[UserPropsKeyCustomStatus] = ""
@@ -694,7 +703,7 @@ func IsValidUserRoles(userRoles string) bool {
 	return true
 }
 
-// Make sure you acually want to use this function. In context.go there are functions to check permissions
+// Make sure you actually want to use this function. In context.go there are functions to check permissions
 // This function should not be used to check permissions.
 func (u *User) IsGuest() bool {
 	return IsInRole(u.Roles, SystemGuestRoleId)
@@ -704,13 +713,13 @@ func (u *User) IsSystemAdmin() bool {
 	return IsInRole(u.Roles, SystemAdminRoleId)
 }
 
-// Make sure you acually want to use this function. In context.go there are functions to check permissions
+// Make sure you actually want to use this function. In context.go there are functions to check permissions
 // This function should not be used to check permissions.
 func (u *User) IsInRole(inRole string) bool {
 	return IsInRole(u.Roles, inRole)
 }
 
-// Make sure you acually want to use this function. In context.go there are functions to check permissions
+// Make sure you actually want to use this function. In context.go there are functions to check permissions
 // This function should not be used to check permissions.
 func IsInRole(userRoles string, inRole string) bool {
 	roles := strings.Split(userRoles, " ")

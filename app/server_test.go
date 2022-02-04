@@ -168,7 +168,7 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
 
 	s, err := NewServer(func(server *Server) error {
-		configStore, _ := config.NewFileStore("config.json")
+		configStore, _ := config.NewFileStore("config.json", true)
 		store, _ := config.NewStoreFromBacking(configStore, nil, false)
 		server.configStore = store
 		server.UpdateConfig(func(cfg *model.Config) {
@@ -182,10 +182,14 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 				AmazonS3PathPrefix:      model.NewString(""),
 				AmazonS3SSL:             model.NewBool(false),
 			}
+			*cfg.ServiceSettings.ListenAddress = ":0"
 		})
 		return nil
 	})
 	require.NoError(t, err)
+
+	require.NoError(t, s.Start())
+	defer s.Shutdown()
 
 	// ensure that a new bucket was created
 	backend, appErr := s.FileBackend()
