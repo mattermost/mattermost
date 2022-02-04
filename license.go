@@ -96,3 +96,12 @@ func IsConfiguredForDevelopment(config *model.Config) bool {
 
 	return false
 }
+
+// IsCloud returns true when the server is on cloud, and false otherwise.
+func IsCloud(license *model.License) bool {
+	if license == nil || license.Features == nil || license.Features.Cloud == nil {
+		return false
+	}
+
+	return *license.Features.Cloud
+}
