@@ -202,10 +202,11 @@ jobs:
             make gen-serialized
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the serialized files using 'make gen-serialized'"; exit 1; fi
 
-  # Dedicate job for golangci-lint it does not need anything only the server code for that
+  # Dedicated job for golangci-lint it does not need anything only the server code for that
   # and to make more clear when the job fails
   check-golangci-lint:
     docker:
+      # Keep the version in sync with the command in Makefile
       - image: golangci/golangci-lint:v1.39.0
     steps:
       - checkout
