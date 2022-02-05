@@ -15,7 +15,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/services/gomanager"
 	"github.com/mattermost/mattermost-server/v6/services/httpservice"
 	"github.com/mattermost/mattermost-server/v6/services/marketplace"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine"
@@ -95,7 +94,6 @@ type ServerIface interface {
 
 type TelemetryService struct {
 	srv                        ServerIface
-	goManager                  gomanager.GoManager
 	dbStore                    store.Store
 	searchEngine               *searchengine.Broker
 	log                        *mlog.Logger
@@ -904,11 +902,6 @@ func (ts *TelemetryService) trackPlugins() {
 		"plugins_with_settings":         settingsCount,
 		"plugins_with_broken_manifests": brokenManifestCount,
 	})
-
-	pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-		hooks.OnSendDailyTelemetry()
-		return true
-	}, plugin.OnSendDailyTelemetryID)
 }
 
 func (ts *TelemetryService) trackServer() {
@@ -1264,14 +1257,11 @@ func (ts *TelemetryService) doTelemetry() {
 	}
 }
 
-// Shutdown closes the telemetry client and waits for any running goroutines.
+// Shutdown closes the telemetry client.
 func (ts *TelemetryService) Shutdown() error {
-	ts.goManager.WaitForGoroutines()
-
 	if ts.rudderClient != nil {
 		return ts.rudderClient.Close()
 	}
-
 	return nil
 }
 
