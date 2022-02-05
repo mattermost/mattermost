@@ -905,12 +905,10 @@ func (ts *TelemetryService) trackPlugins() {
 		"plugins_with_broken_manifests": brokenManifestCount,
 	})
 
-	ts.goManager.Go(func() {
-		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-			hooks.OnSendDailyTelemetry()
-			return true
-		}, plugin.OnSendDailyTelemetryID)
-	})
+	pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		hooks.OnSendDailyTelemetry()
+		return true
+	}, plugin.OnSendDailyTelemetryID)
 }
 
 func (ts *TelemetryService) trackServer() {
