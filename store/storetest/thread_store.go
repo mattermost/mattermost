@@ -24,6 +24,7 @@ func TestThreadStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("ThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies", func(t *testing.T) {
 		testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t, ss)
 	})
+	t.Run("GetTeamsUnreadForUser", func(t *testing.T) { testGetTeamsUnreadForUser(t, ss) })
 }
 
 func testThreadStorePopulation(t *testing.T, ss store.Store) {
@@ -490,12 +491,13 @@ func testThreadSQLOperations(t *testing.T, ss store.Store, s SqlStore) {
 	})
 }
 
-func threadStoreCreateReply(t *testing.T, ss store.Store, channelID, postID string, createAt int64) *model.Post {
+func threadStoreCreateReply(t *testing.T, ss store.Store, channelID, postID, userID string, createAt int64) *model.Post {
 	reply, err := ss.Post().Save(&model.Post{
 		ChannelId: channelID,
-		UserId:    model.NewId(),
+		UserId:    userID,
 		CreateAt:  createAt,
 		RootId:    postID,
+		Message:   model.NewRandomString(10),
 	})
 	require.NoError(t, err)
 	return reply
@@ -523,7 +525,7 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, ss st
 		UserId:    model.NewId(),
 	})
 	require.NoError(t, err)
-	threadStoreCreateReply(t, ss, channel.Id, post.Id, 2000)
+	threadStoreCreateReply(t, ss, channel.Id, post.Id, post.UserId, 2000)
 
 	thread, err := ss.Thread().Get(post.Id)
 	require.NoError(t, err)
@@ -545,7 +547,7 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, ss st
 	assert.Nil(t, thread, "thread should have been deleted by channel policy")
 
 	// create a new thread
-	threadStoreCreateReply(t, ss, channel.Id, post.Id, 2000)
+	threadStoreCreateReply(t, ss, channel.Id, post.Id, post.UserId, 2000)
 	thread, err = ss.Thread().Get(post.Id)
 	require.NoError(t, err)
 
@@ -611,7 +613,7 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 		UserId:    model.NewId(),
 	})
 	require.NoError(t, err)
-	threadStoreCreateReply(t, ss, channel.Id, post.Id, 2000)
+	threadStoreCreateReply(t, ss, channel.Id, post.Id, post.UserId, 2000)
 
 	threadMembership := createThreadMembership(userID, post.Id)
 
@@ -671,4 +673,103 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	require.NotZero(t, deleted)
 	_, err = ss.Thread().GetMembershipForUser(userID, post.Id)
 	require.Error(t, err, "thread membership should have been deleted because thread no longer exists")
+}
+
+func testGetTeamsUnreadForUser(t *testing.T, ss store.Store) {
+	userID := model.NewId()
+	createThreadMembership := func(userID, postID string) {
+		t.Helper()
+		opts := store.ThreadMembershipOpts{
+			Following:             true,
+			IncrementMentions:     false,
+			UpdateFollowing:       true,
+			UpdateViewedTimestamp: false,
+			UpdateParticipants:    false,
+		}
+		_, err := ss.Thread().MaintainMembership(userID, postID, opts)
+		require.NoError(t, err)
+	}
+	team1, err := ss.Team().Save(&model.Team{
+		DisplayName: "DisplayName",
+		Name:        "team" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+	channel1, err := ss.Channel().Save(&model.Channel{
+		TeamId:      team1.Id,
+		DisplayName: "DisplayName",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+	post, err := ss.Post().Save(&model.Post{
+		ChannelId: channel1.Id,
+		UserId:    userID,
+		Message:   model.NewRandomString(10),
+	})
+	require.NoError(t, err)
+	threadStoreCreateReply(t, ss, channel1.Id, post.Id, post.UserId, model.GetMillis())
+	createThreadMembership(userID, post.Id)
+
+	teamsUnread, err := ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id})
+	require.NoError(t, err)
+	assert.Len(t, teamsUnread, 1)
+	assert.Equal(t, int64(1), teamsUnread[team1.Id].ThreadCount)
+
+	post, err = ss.Post().Save(&model.Post{
+		ChannelId: channel1.Id,
+		UserId:    userID,
+		Message:   model.NewRandomString(10),
+	})
+	require.NoError(t, err)
+	threadStoreCreateReply(t, ss, channel1.Id, post.Id, post.UserId, model.GetMillis())
+	createThreadMembership(userID, post.Id)
+
+	teamsUnread, err = ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id})
+	require.NoError(t, err)
+	assert.Len(t, teamsUnread, 1)
+	assert.Equal(t, int64(2), teamsUnread[team1.Id].ThreadCount)
+
+	team2, err := ss.Team().Save(&model.Team{
+		DisplayName: "DisplayName",
+		Name:        "team" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+	channel2, err := ss.Channel().Save(&model.Channel{
+		TeamId:      team2.Id,
+		DisplayName: "DisplayName",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+	post2, err := ss.Post().Save(&model.Post{
+		ChannelId: channel2.Id,
+		UserId:    userID,
+		Message:   model.NewRandomString(10),
+	})
+	require.NoError(t, err)
+	threadStoreCreateReply(t, ss, channel2.Id, post2.Id, post2.UserId, model.GetMillis())
+	createThreadMembership(userID, post2.Id)
+
+	teamsUnread, err = ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id, team2.Id})
+	require.NoError(t, err)
+	assert.Len(t, teamsUnread, 2)
+	assert.Equal(t, int64(2), teamsUnread[team1.Id].ThreadCount)
+	assert.Equal(t, int64(1), teamsUnread[team2.Id].ThreadCount)
+
+	opts := store.ThreadMembershipOpts{
+		Following:         true,
+		IncrementMentions: true,
+	}
+	_, err = ss.Thread().MaintainMembership(userID, post2.Id, opts)
+	require.NoError(t, err)
+
+	teamsUnread, err = ss.Thread().GetTeamsUnreadForUser(userID, []string{team2.Id})
+	require.NoError(t, err)
+	assert.Len(t, teamsUnread, 1)
+	assert.Equal(t, int64(1), teamsUnread[team2.Id].ThreadCount)
+	assert.Equal(t, int64(1), teamsUnread[team2.Id].ThreadMentionCount)
 }
