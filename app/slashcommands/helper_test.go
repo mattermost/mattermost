@@ -6,7 +6,6 @@ package slashcommands
 import (
 	"bytes"
 	"context"
-	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -22,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/store/localcachelayer"
+	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 )
 
 type TestHelper struct {

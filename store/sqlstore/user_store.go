@@ -213,11 +213,13 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 	}
 
 	query := `UPDATE Users
-			SET FirstName=:FirstName, LastName=:LastName, Nickname=:NickName, NotifyProps=:NotifyProps,
-				UpdateAt=:UpdateAt, CreateAt=:CreateAt, DeleteAt=:DeleteAt,Username=:Username,Password=:Password,
-				AuthData=:AuthData,AuthService=:AuthService,Email=:Email,EmailVerified=:EmailVerified,
-				Roles=:Roles, LastPasswordUpdate=:LastPasswordUpdate, LastPictureUpdate=:LastPictureUpdate,
-				FailedAttempts=:FailedAttempts,MfaActive=:MfaActive,MfaSecret=:MfaSecret
+			SET CreateAt=:CreateAt, UpdateAt=:UpdateAt, DeleteAt=:DeleteAt, Username=:Username, Password=:Password,
+				AuthData=:AuthData, AuthService=:AuthService,Email=:Email, EmailVerified=:EmailVerified,
+				Nickname=:Nickname, FirstName=:FirstName, LastName=:LastName, Position=:Position, Roles=:Roles,
+				AllowMarketing=:AllowMarketing, Props=:Props, NotifyProps=:NotifyProps,
+				LastPasswordUpdate=:LastPasswordUpdate, LastPictureUpdate=:LastPictureUpdate,
+				FailedAttempts=:FailedAttempts,Locale=:Locale, Timezone=:Timezone, MfaActive=:MfaActive,
+				MfaSecret=:MfaSecret, RemoteId=:RemoteId
 			WHERE Id=:Id`
 
 	res, err := us.GetMasterX().NamedExec(query, user)
