@@ -739,4 +739,8 @@ func TestExportDeletedTeams(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, len(channels1), len(channels2))
 	assert.ElementsMatch(t, channels1, channels2)
+	for _, team := range teams2 {
+		assert.NotContains(t, team.Name, team1.Name)
+		assert.NotContains(t, team.Id, team1.Id)
+	}
 }
