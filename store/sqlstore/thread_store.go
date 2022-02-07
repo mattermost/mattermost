@@ -423,6 +423,9 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 
 	return result, nil
 }
+
+// MarkAllAsReadInChannels marks all threads for the given user in the given channels as read from
+// the current time.
 func (s *SqlThreadStore) MarkAllAsReadInChannels(userID string, channelIDs []string) error {
 	var threadIDs []string
 
@@ -447,6 +450,7 @@ func (s *SqlThreadStore) MarkAllAsReadInChannels(userID string, channelIDs []str
 		Where(sq.Eq{"UserId": userID}).
 		Set("LastViewed", timestamp).
 		Set("UnreadMentions", 0).
+		Set("LastUpdated", timestamp).
 		ToSql()
 	if _, err := s.GetMaster().Exec(query, args...); err != nil {
 		return errors.Wrapf(err, "failed to update thread read state for user id=%s", userID)
@@ -454,6 +458,9 @@ func (s *SqlThreadStore) MarkAllAsReadInChannels(userID string, channelIDs []str
 	return nil
 
 }
+
+// MarkAllAsRead marks all threads for the given user in the given team as read from the current
+// time.
 func (s *SqlThreadStore) MarkAllAsRead(userId, teamId string) error {
 	memberships, err := s.GetMembershipsForUser(userId, teamId)
 	if err != nil {
@@ -470,6 +477,7 @@ func (s *SqlThreadStore) MarkAllAsRead(userId, teamId string) error {
 		Where(sq.Eq{"UserId": userId}).
 		Set("LastViewed", timestamp).
 		Set("UnreadMentions", 0).
+		Set("LastUpdated", timestamp).
 		ToSql()
 	if _, err := s.GetMaster().Exec(query, args...); err != nil {
 		return errors.Wrapf(err, "failed to update thread read state for user id=%s", userId)
@@ -477,12 +485,14 @@ func (s *SqlThreadStore) MarkAllAsRead(userId, teamId string) error {
 	return nil
 }
 
+// MarkAsRead marks the given thread for the given user as unread from the given timestamp.
 func (s *SqlThreadStore) MarkAsRead(userId, threadId string, timestamp int64) error {
 	query, args, _ := s.getQueryBuilder().
 		Update("ThreadMemberships").
 		Where(sq.Eq{"UserId": userId}).
 		Where(sq.Eq{"PostId": threadId}).
 		Set("LastViewed", timestamp).
+		Set("LastUpdated", timestamp).
 		ToSql()
 	if _, err := s.GetMaster().Exec(query, args...); err != nil {
 		return errors.Wrapf(err, "failed to update thread read state for user id=%s thread_id=%v", userId, threadId)
