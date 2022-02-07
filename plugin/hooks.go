@@ -251,10 +251,10 @@ type Hooks interface {
 	// Minimum server version: 6.4
 	RunDataRetention(nowTime, batchSize int64) (int64, error)
 
-	// OnInstall is invoked after the installation of a plugin as part of the unboarding.
+	// OnInstall is invoked after the installation of a plugin as part of the onboarding.
 	// It's called on every installation, not only once.
 	//
-	// In the future, other plugin installation method will trigger this hook, e.g. an installation via the Marketplace.
+	// In the future, other plugin installation methods will trigger this hook, e.g. an installation via the Marketplace.
 	//
 	// Minimum server version: 6.5
 	OnInstall(c *Context, event model.OnInstallEvent) error

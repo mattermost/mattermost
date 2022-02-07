@@ -3,7 +3,7 @@
 
 package model
 
-// OnInstallEvent is send to the plugin when it gets installed.
+// OnInstallEvent is sent to the plugin when it gets installed.
 type OnInstallEvent struct {
 	UserId string // The user who installed the plugin
 }
