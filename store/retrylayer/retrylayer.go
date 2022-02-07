@@ -11893,11 +11893,11 @@ func (s *RetryLayerUserStore) InferSystemInstallDate() (int64, error) {
 
 }
 
-func (s *RetryLayerUserStore) InsertUsers() error {
+func (s *RetryLayerUserStore) InsertUsers(users []*model.User) error {
 
 	tries := 0
 	for {
-		err := s.UserStore.InsertUsers()
+		err := s.UserStore.InsertUsers(users)
 		if err == nil {
 			return nil
 		}

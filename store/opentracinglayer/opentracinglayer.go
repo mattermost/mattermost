@@ -10430,7 +10430,7 @@ func (s *OpenTracingLayerUserStore) InferSystemInstallDate() (int64, error) {
 	return result, err
 }
 
-func (s *OpenTracingLayerUserStore) InsertUsers() error {
+func (s *OpenTracingLayerUserStore) InsertUsers(users []*model.User) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.InsertUsers")
 	s.Root.Store.SetContext(newCtx)
@@ -10439,7 +10439,7 @@ func (s *OpenTracingLayerUserStore) InsertUsers() error {
 	}()
 
 	defer span.Finish()
-	err := s.UserStore.InsertUsers()
+	err := s.UserStore.InsertUsers(users)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

@@ -9397,10 +9397,10 @@ func (s *TimerLayerUserStore) InferSystemInstallDate() (int64, error) {
 	return result, err
 }
 
-func (s *TimerLayerUserStore) InsertUsers() error {
+func (s *TimerLayerUserStore) InsertUsers(users []*model.User) error {
 	start := timemodule.Now()
 
-	err := s.UserStore.InsertUsers()
+	err := s.UserStore.InsertUsers(users)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
