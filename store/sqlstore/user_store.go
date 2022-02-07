@@ -306,31 +306,31 @@ func (us SqlUserStore) UpdateFailedPasswordAttempts(userId string, attempts int)
 
 func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *string, email string, resetMfa bool) (string, error) {
 	updateAt := model.GetMillis()
-	args := []interface{}{updateAt, updateAt, service, authData, userId}
 
-	query := `
-			UPDATE
-			     Users
-			SET
-			     Password = '',
-			     LastPasswordUpdate = ?,
-			     UpdateAt = ?,
-			     FailedAttempts = 0,
-			     AuthService = ?,
-			     AuthData = ?`
+	updateQuery := us.getQueryBuilder().Update("Users").
+		Set("Password", "").
+		Set("LastPasswordUpdate", updateAt).
+		Set("UpdateAt", updateAt).
+		Set("FailedAttempts", 0).
+		Set("AuthService", service).
+		Set("AuthData", authData).
+		Where(sq.Eq{"Id": userId})
 
 	if email != "" {
-		query += ", Email = lower(?)"
-		args = []interface{}{updateAt, updateAt, service, authData, email, userId}
+		updateQuery.Set("Email", strings.ToLower(email))
 	}
 
 	if resetMfa {
-		query += ", MfaActive = false, MfaSecret = ''"
+		updateQuery.Set("MfaActive", false).
+			Set("MfaSecret", "")
 	}
 
-	query += " WHERE Id = ?"
+	queryString, args, err := updateQuery.ToSql()
+	if err != nil {
+		return "", errors.Wrap(err, "update_auth_data_tosql")
+	}
 
-	if _, err := us.GetMasterX().Exec(query, args...); err != nil {
+	if _, err := us.GetMasterX().Exec(queryString, args...); err != nil {
 		if IsUniqueConstraintError(err, []string{"Email", "users_email_key", "idx_users_email_unique", "AuthData", "users_authdata_key"}) {
 			return "", store.NewErrInvalidInput("User", "id", userId)
 		}
@@ -2043,7 +2043,7 @@ func (us SqlUserStore) GetKnownUsers(userId string) ([]string, error) {
 		Where(sq.NotEq{"ocm.UserId": userId}).
 		Where(sq.Eq{"cm.UserId": userId}).
 		ToSql()
-	_, err := us.GetSearchReplica().Select(&userIds, usersQuery, args...)
+	err := us.GetSearchReplicaX().Select(&userIds, usersQuery, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find ChannelMembers")
 	}

@@ -32,7 +32,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/store/localcachelayer"
-	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/testlib"
 	"github.com/mattermost/mattermost-server/v6/web"
@@ -420,7 +419,7 @@ func (th *TestHelper) InitLogin() *TestHelper {
 	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
 
 	users := []*model.User{th.SystemAdminUser, th.TeamAdminUser, th.BasicUser, th.BasicUser2, th.SystemManagerUser}
-	mainHelper.GetSQLStore().User().(*sqlstore.SqlUserStore).InsertUsers(users)
+	mainHelper.GetSQLStore().User().InsertUsers(users)
 
 	// restore non hashed password for login
 	th.SystemAdminUser.Password = "Pa$$word11"
