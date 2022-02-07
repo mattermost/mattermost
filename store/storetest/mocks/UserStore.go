@@ -1023,13 +1023,13 @@ func (_m *UserStore) InferSystemInstallDate() (int64, error) {
 	return r0, r1
 }
 
-// InsertUsers provides a mock function with given fields: _a0
-func (_m *UserStore) InsertUsers(_a0 []*model.User) error {
-	ret := _m.Called(_a0)
+// InsertUsers provides a mock function with given fields: users
+func (_m *UserStore) InsertUsers(users []*model.User) error {
+	ret := _m.Called(users)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func([]*model.User) error); ok {
-		r0 = rf(_a0)
+		r0 = rf(users)
 	} else {
 		r0 = ret.Error(0)
 	}
