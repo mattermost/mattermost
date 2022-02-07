@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -1857,7 +1858,15 @@ func (s *Server) ClusterHealthScore() int {
 }
 
 func (ch *Channels) ClientConfigHash() string {
-	return ch.clientConfigHash.Load().(string)
+	b := make([]byte, 16)
+	_, err := rand.Read(b)
+	if err != nil {
+		return ""
+	}
+	// The slice should now contain random bytes instead of only zeroes.
+	return fmt.Sprintf("%x", b)
+	// fmt.Println(bytes.Equal(b, make([]byte, c)))
+	// return ch.clientConfigHash.Load().(string)
 }
 
 func (s *Server) initJobs() {
