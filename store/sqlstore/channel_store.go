@@ -13,6 +13,7 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/lib/pq"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
@@ -101,6 +102,37 @@ type channelMemberWithTeamWithSchemeRoles struct {
 }
 
 type channelMemberWithTeamWithSchemeRolesList []channelMemberWithTeamWithSchemeRoles
+
+func printPqError(err *pq.Error, sql string) {
+	print := fmt.Printf
+	pos, _ := strconv.Atoi(err.Position)
+	// var e pq.Error = *err
+	// print("ERROR %s", e.Message)
+	// print("POSTIION: %s", e.Position)
+	// print("Sql: %s", sql)
+	const linelen = 40
+	x := 0
+	y := linelen
+	for {
+		if x >= len(sql) {
+			break
+		} else if y > len(sql[x:y]) {
+			y = len(sql[x:y])
+		}
+		if x == y {
+			break
+		}
+		print(sql[x:y])
+		if x < pos && pos < y {
+			print(strings.Repeat(" ", pos-x), "^", "\n")
+		}
+		x = y
+		y += linelen
+		if y > len(sql) {
+			break
+		}
+	}
+}
 
 func channelMemberSliceColumns() []string {
 	return []string{"ChannelId", "UserId", "Roles", "LastViewedAt", "MsgCount", "MsgCountRoot", "MentionCount", "MentionCountRoot", "NotifyProps", "LastUpdateAt", "SchemeUser", "SchemeAdmin", "SchemeGuest"}
@@ -2921,7 +2953,7 @@ func (s SqlChannelStore) GetTeamMembersForChannel(channelID string) ([]string, e
 
 func (s SqlChannelStore) SquirrelAutocomplete(userID, term string, includeDeleted bool) (model.ChannelListWithTeamData, error) {
 
-	deleteFilter := sq.And{sq.Eq{"c.DeleteAt": sq.Expr("0")}}
+	deleteFilter := sq.And{sq.Eq{"c.DeleteAt": "0"}}
 	if includeDeleted {
 		deleteFilter := ""
 		_ = deleteFilter
@@ -2933,58 +2965,41 @@ func (s SqlChannelStore) SquirrelAutocomplete(userID, term string, includeDelete
 	).From(
 		"ChannelMembers",
 	).Where(sq.Eq{
-		"UserId": ":UserId",
+		"UserId": userID,
 	})
 
-	params := map[string]interface{}{
-		"UserId":   userID,
-		"DeleteAt": 0,
-	}
+	searchClause := s.squirrelSearchClause(term)
 
-	searchClause, _ := s.squirrelSearchClause(term, params)
-
-	// _ = channel_members
-
-	psql := sq.StatementBuilder.PlaceholderFormat(sq.Colon)
+	psql := sq.StatementBuilder
 
 	q := psql.Select(
 		"c.*",
-		"t.Display as TeamDisplayName",
+		"t.DisplayName as TeamDisplayName",
 		"t.Name as TeamName",
 		"t.UpdateAt as TeamUpdateAt",
 	).From(
 		"Channels c, Teams t, TeamMembers tm",
 	).Where(
 		sq.And{
-			// This has to be expressions
-			// otherwise t.id will be interpreted as a value
 			sq.Expr("c.TeamId = t.id"),
 			sq.Expr("t.id = tm.TeamId"),
-			sq.Expr("tm.UserId = UserId"),
+			sq.Eq{"tm.UserId": userID},
+			// sq.Eq{"c.TeamId": "t.id"},
+			// sq.Eq{"t.id": "tm.TeamId"},
+			// sq.Eq{"tm.UserId": userID},
 			deleteFilter,
 			searchClause,
 			sq.Or{
-				sq.NotEq{
-					"c.Type": sq.Expr("'P'"),
-				},
+				sq.Expr("c.Type <> 'P'"),
 				sq.And{
-					sq.Eq{
-						"c.Type": sq.Expr("'P'"),
-					},
+					sq.Expr("c.Type = 'P'"),
 					sq.Expr("c.Id IN (?)", channel_members),
 				},
 			},
 		},
 	).OrderBy("c.DisplayName")
 
-	// sql, args, err := q.ToSql()
-
-	// _ = args
-	// _ = err
-
-	results, err := s.squirrelPefromGlobalSearch(q, term, params)
-
-	return results, err
+	return s.squirrelPefromGlobalSearch(q, term)
 
 }
 
@@ -3459,34 +3474,37 @@ func (s SqlChannelStore) buildLIKEClause(term string, searchColumns string) (lik
 	return
 }
 
-func (s SqlChannelStore) squirrelBuildLIKEClause(term string, searchColumns string) (likeClause sq.Or, likeTerm string, err error) {
-	likeTerm = sanitizeSearchTerm(term, "*")
+func (s SqlChannelStore) squirrelBuildLIKEClause(term string, searchColumns string) (likeClause sq.Or, err error) {
+	likeTerm := sanitizeSearchTerm(term, "*")
 	if likeTerm == "" {
-		return nil, "", nil
+		return nil, nil
 	}
 
+	var value string
+	likeTerm = wildcardSearchTerm(likeTerm)
+
+	// This will be the same for every item in th eloop
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		value = ("lower(?) escape '*'")
+	} else {
+		value = "?"
+	}
 	// Prepare the LIKE portion of the query.
 	for _, field := range strings.Split(searchColumns, ", ") {
 		key := ""
-		value := ""
 		if s.DriverName() == model.DatabaseDriverPostgres {
 			key = fmt.Sprintf("lower(%s)", field)
-			value = fmt.Sprintf("lower(%s) escape '*'", ":LikeTerm")
-			_ = key
-			_ = value
 		} else {
 			key = field
-			value = ":LikeTerm"
 		}
 		if key == "" {
-			return nil, "", errors.New("Key is nil.")
+			return nil, errors.New("Key is nil.")
 		}
-		likeClause = append(likeClause, sq.Expr(fmt.Sprintf("%s LIKE %s", key, value)))
+		likeExpr := sq.Expr(fmt.Sprintf("%s LIKE %s", key, value), likeTerm)
+		likeClause = append(likeClause, likeExpr)
 	}
 
-	likeTerm = wildcardSearchTerm(likeTerm)
 	return
-	// return likeClause, likeTerm, nil
 }
 
 func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) (fulltextClause, fulltextTerm string) {
@@ -3528,9 +3546,9 @@ func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) 
 	return
 }
 
-func (s SqlChannelStore) squirrelBuildFulltextClause(term string, searchColumns string) (fulltextClause sq.Sqlizer, fulltextTerm string) {
+func (s SqlChannelStore) squirrelBuildFulltextClause(term string, searchColumns string) (fulltextClause sq.Sqlizer) {
 	// Copy the terms as we will need to prepare them differently for each search type.
-	fulltextTerm = term
+	fulltextTerm := term
 
 	// These chars must be treated as spaces in the fulltext query.
 	for _, c := range spaceFulltextSearchChar {
@@ -3553,9 +3571,9 @@ func (s SqlChannelStore) squirrelBuildFulltextClause(term string, searchColumns 
 		fulltextTerm = strings.Join(splitTerm, " ")
 
 		cols := convertMySQLFullTextColumnsToPostgres(searchColumns)
-		fullClauseFmt := "((to_tsvector('english', %s)) @@ to_tsquery('english', :FulltextTerm))"
+		fullClauseFmt := "((to_tsvector('english', %s)) @@ to_tsquery('english', ?))"
 
-		fulltextClause = sq.Expr(fmt.Sprintf(fullClauseFmt, cols))
+		fulltextClause = sq.Expr(fmt.Sprintf(fullClauseFmt, cols), fulltextTerm)
 	} else if s.DriverName() == model.DatabaseDriverMysql {
 		splitTerm := strings.Fields(fulltextTerm)
 		for i, t := range strings.Fields(fulltextTerm) {
@@ -3564,7 +3582,8 @@ func (s SqlChannelStore) squirrelBuildFulltextClause(term string, searchColumns 
 
 		fulltextTerm = strings.Join(splitTerm, " ")
 
-		fulltextClause = sq.Expr("MATCH(?) AGAINST (:FulltextTerm IN BOOLEAN MODE)", searchColumns)
+		fullClauseFmt := "MATCH('%s') AGAINST (? IN BOOLEAN MODE)"
+		fulltextClause = sq.Expr(fmt.Sprintf(fullClauseFmt, searchColumns), fulltextTerm)
 	}
 
 	return
@@ -3605,6 +3624,10 @@ func (s SqlChannelStore) performGlobalSearch(searchQuery string, term string, pa
 
 	var channels model.ChannelListWithTeamData
 
+	db := s.GetReplica().Db
+
+	_ = db
+
 	if _, err := s.GetReplica().Select(&channels, searchQuery, parameters); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
 	}
@@ -3612,44 +3635,47 @@ func (s SqlChannelStore) performGlobalSearch(searchQuery string, term string, pa
 	return channels, nil
 }
 
-func (s SqlChannelStore) squirrelSearchClause(term string, parameters map[string]interface{}) (searchQuery sq.Sqlizer, fulltextTerm string) {
-	likeClause, likeTerm, err := s.squirrelBuildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
+func (s SqlChannelStore) squirrelSearchClause(term string) (searchQuery sq.Sqlizer) {
+	likeClause, err := s.squirrelBuildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
+
 	_ = err
-	if likeTerm == "" {
+	if term == "" {
 		searchQuery = nil
 		// searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
 	} else {
-		parameters["LikeTerm"] = likeTerm
-	}
-	fulltextClause, fulltextTerm := s.squirrelBuildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
-	parameters["FulltextTerm"] = fulltextTerm
-	searchQuery = sq.Or{
-		likeClause,
-		fulltextClause,
+		fulltextClause := s.squirrelBuildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
+		searchQuery = sq.Or{
+			likeClause,
+			fulltextClause,
+		}
 	}
 	return
 }
 
-func (s SqlChannelStore) squirrelPefromGlobalSearch(searchQuery sq.Sqlizer, term string, parameters map[string]interface{}) (model.ChannelListWithTeamData, error) {
+func (s SqlChannelStore) squirrelPefromGlobalSearch(searchQuery sq.SelectBuilder, term string) (model.ChannelListWithTeamData, error) {
 
 	var channels model.ChannelListWithTeamData
-	var query string
-	var err error
-	var params []interface{}
 
-	if query, params, err = searchQuery.ToSql(); err != nil {
+	query, parameters, err := searchQuery.ToSql()
+
+	if err != nil {
 		_ = query
 		return nil, errors.Wrapf(err, "failed to construct query with term='%s'", term)
 	}
 
-	for _, param := range params {
-		_ = param
-	}
+	repl := s.GetReplicaX()
+	repl.trace = true
 
-	if _, err := s.GetReplica().Select(&channels, query, parameters); err != nil {
-		return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
+	err = repl.Select(&channels, query, parameters...)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Channel", "term")
+		} else if err, ok := err.(*pq.Error); ok {
+			// Here err is of type *pq.Error, you may inspect all its fields, e.g.:
+			printPqError(err, query)
+		}
+		return nil, errors.Wrapf(err, "could not find channel with term=%s", term)
 	}
-
 	return channels, nil
 }
 
