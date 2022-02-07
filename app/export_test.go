@@ -703,3 +703,44 @@ func TestBuildPostReplies(t *testing.T) {
 		}
 	})
 }
+
+func TestExportDeletedTeams(t *testing.T) {
+	th1 := Setup(t).InitBasic()
+	defer th1.TearDown()
+
+	team1 := th1.CreateTeam()
+	channel1 := th1.CreateChannel(team1)
+	th1.CreatePost(channel1)
+
+	// Delete the team to check that this is handled correctly on import.
+	err := th1.App.SoftDeleteTeam(team1.Id)
+	require.Nil(t, err)
+
+	var b bytes.Buffer
+	err = th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
+	require.Nil(t, err)
+
+	th2 := Setup(t)
+	defer th2.TearDown()
+	err, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
+	assert.Nil(t, err)
+	assert.Equal(t, 0, i)
+
+	teams1, err := th1.App.GetAllTeams()
+	assert.Nil(t, err)
+	teams2, err := th2.App.GetAllTeams()
+	assert.Nil(t, err)
+	assert.Equal(t, len(teams1), len(teams2))
+	assert.ElementsMatch(t, teams1, teams2)
+
+	channels1, err := th1.App.GetAllChannels(0, 10, model.ChannelSearchOpts{})
+	assert.Nil(t, err)
+	channels2, err := th2.App.GetAllChannels(0, 10, model.ChannelSearchOpts{})
+	assert.Nil(t, err)
+	assert.Equal(t, len(channels1), len(channels2))
+	assert.ElementsMatch(t, channels1, channels2)
+	for _, team := range teams2 {
+		assert.NotContains(t, team.Name, team1.Name)
+		assert.NotContains(t, team.Id, team1.Id)
+	}
+}
