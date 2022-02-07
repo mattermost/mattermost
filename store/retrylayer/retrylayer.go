@@ -11893,6 +11893,27 @@ func (s *RetryLayerUserStore) InferSystemInstallDate() (int64, error) {
 
 }
 
+func (s *RetryLayerUserStore) InsertUsers() error {
+
+	tries := 0
+	for {
+		err := s.UserStore.InsertUsers()
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerUserStore) InvalidateProfileCacheForUser(userID string) {
 
 	s.UserStore.InvalidateProfileCacheForUser(userID)

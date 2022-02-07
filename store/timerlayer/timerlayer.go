@@ -9397,6 +9397,22 @@ func (s *TimerLayerUserStore) InferSystemInstallDate() (int64, error) {
 	return result, err
 }
 
+func (s *TimerLayerUserStore) InsertUsers() error {
+	start := timemodule.Now()
+
+	err := s.UserStore.InsertUsers()
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.InsertUsers", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerUserStore) InvalidateProfileCacheForUser(userID string) {
 	start := timemodule.Now()
 
