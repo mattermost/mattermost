@@ -284,10 +284,10 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 		Type:        model.SidebarCategoryCustom,
 		Muted:       newCategory.Muted,
 	}
-	if _, err := transaction.NamedExec(`INSERT INTO
+	if _, err2 := transaction.NamedExec(`INSERT INTO
 			SidebarCategories(Id, UserId, TeamId, SortOrder, Sorting, Type, DisplayName, Muted, Collapsed)
-			VALUES(:Id, :UserId, :TeamId, :SortOrder, :Sorting, :Type, :DisplayName, :Muted, :Collapsed)`, category); err != nil {
-		return nil, errors.Wrap(err, "failed to save SidebarCategory")
+			VALUES(:Id, :UserId, :TeamId, :SortOrder, :Sorting, :Type, :DisplayName, :Muted, :Collapsed)`, category); err2 != nil {
+		return nil, errors.Wrap(err2, "failed to save SidebarCategory")
 	}
 
 	if len(newCategory.Channels) > 0 {
@@ -698,13 +698,13 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 			}
 
 			if len(category.Channels) > 0 {
-				sql, args, err := insertQuery.ToSql()
-				if err != nil {
-					return nil, nil, errors.Wrap(err, "InsertSidebarChannels_Tosql")
+				sql, args, err2 := insertQuery.ToSql()
+				if err2 != nil {
+					return nil, nil, errors.Wrap(err2, "InsertSidebarChannels_Tosql")
 				}
 
-				if _, err := transaction.Exec(sql, args...); err != nil {
-					return nil, nil, errors.Wrap(err, "failed to save SidebarChannels")
+				if _, err2 := transaction.Exec(sql, args...); err2 != nil {
+					return nil, nil, errors.Wrap(err2, "failed to save SidebarChannels")
 				}
 			}
 		}
