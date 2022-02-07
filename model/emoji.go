@@ -25,7 +25,7 @@ type Emoji struct {
 	Name      string `json:"name"`
 }
 
-func inSystemEmoji(emojiName string) bool {
+func InSystemEmoji(emojiName string) bool {
 	_, ok := SystemEmojis[emojiName]
 	return ok
 }
@@ -78,7 +78,7 @@ func (emoji *Emoji) IsValid() *AppError {
 }
 
 func IsValidEmojiName(name string) *AppError {
-	if name == "" || len(name) > EmojiNameMaxLength || !IsValidAlphaNumHyphenUnderscorePlus(name) || inSystemEmoji(name) {
+	if name == "" || len(name) > EmojiNameMaxLength || !IsValidAlphaNumHyphenUnderscorePlus(name) || InSystemEmoji(name) {
 		return NewAppError("Emoji.IsValid", "model.emoji.name.app_error", nil, "", http.StatusBadRequest)
 	}
 

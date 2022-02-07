@@ -1813,8 +1813,13 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 }
 
 func (a *App) importEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
-	if err := validateEmojiImportData(data); err != nil {
-		return err
+	systemEmoji, aerr := validateEmojiImportData(data)
+	if aerr != nil {
+		return aerr
+	}
+	if systemEmoji {
+		mlog.Warn("Skipping emoji import due to name conflict with system emoji", mlog.String("emoji_name", *data.Name))
+		return nil
 	}
 
 	// If this is a Dry Run, do not continue any further.
