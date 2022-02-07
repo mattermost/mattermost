@@ -2499,7 +2499,7 @@ func (a *App) IsCRTEnabledForUser(userID string) bool {
 }
 
 // MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
-func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapsedThreadsSupported, followThread bool) (*model.ChannelUnreadAt, *model.AppError) {
+func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapsedThreadsSupported bool) (*model.ChannelUnreadAt, *model.AppError) {
 	if !collapsedThreadsSupported || !a.IsCRTEnabledForUser(userID) {
 		return a.markChannelAsUnreadFromPostCRTUnsupported(postID, userID)
 	}
@@ -2534,7 +2534,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 		// if this post was not followed before, create thread membership and update mention count
 		if threadMembership == nil {
 			opts := store.ThreadMembershipOpts{
-				Following:             followThread,
+				Following:             false,
 				IncrementMentions:     false,
 				UpdateFollowing:       true,
 				UpdateViewedTimestamp: true,
@@ -2574,15 +2574,6 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, channel.TeamId, "", userID, nil)
 				message.Add("thread", string(payload))
 				a.Publish(message)
-			}
-		} else if !threadMembership.Following && followThread {
-			opts := store.ThreadMembershipOpts{
-				Following:       true,
-				UpdateFollowing: true,
-			}
-			_, storeErr = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, opts)
-			if storeErr != nil && !errors.As(storeErr, &nfErr) {
-				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
 			}
 		}
 	}
