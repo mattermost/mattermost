@@ -2519,7 +2519,7 @@ func TestAutofollowOnPostingAfterUnfollow(t *testing.T) {
 	require.Nil(t, err)
 
 	// unfollow thread
-	m, nErr := th.App.Srv().Store.Thread().MaintainMembership(user.Id, p1.Id, store.ThreadMembershipOpts{
+	m, _, nErr := th.App.Srv().Store.Thread().MaintainMembership(user.Id, p1.Id, store.ThreadMembershipOpts{
 		Following:       false,
 		UpdateFollowing: true,
 	})
@@ -2586,7 +2586,7 @@ func TestShouldNotRefollowOnOthersReply(t *testing.T) {
 	require.Nil(t, err)
 
 	// User2 unfollows thread
-	m, nErr := th.App.Srv().Store.Thread().MaintainMembership(user2.Id, p1.Id, store.ThreadMembershipOpts{
+	m, _, nErr := th.App.Srv().Store.Thread().MaintainMembership(user2.Id, p1.Id, store.ThreadMembershipOpts{
 		Following:       false,
 		UpdateFollowing: true,
 	})

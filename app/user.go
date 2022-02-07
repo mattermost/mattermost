@@ -2300,7 +2300,7 @@ func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state b
 		UpdateViewedTimestamp: state,
 		UpdateParticipants:    false,
 	}
-	_, err := a.Srv().Store.Thread().MaintainMembership(userID, threadID, opts)
+	_, _, err := a.Srv().Store.Thread().MaintainMembership(userID, threadID, opts)
 	if err != nil {
 		return model.NewAppError("UpdateThreadFollowForUser", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2328,7 +2328,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(userID, teamID, threadID s
 		UpdateViewedTimestamp: false,
 		UpdateParticipants:    false,
 	}
-	tm, err := a.Srv().Store.Thread().MaintainMembership(userID, threadID, opts)
+	tm, _, err := a.Srv().Store.Thread().MaintainMembership(userID, threadID, opts)
 	if err != nil {
 		return model.NewAppError("UpdateThreadFollowForUserFromChannelAdd", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2388,7 +2388,7 @@ func (a *App) UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID
 		Following:       true,
 		UpdateFollowing: true,
 	}
-	membership, storeErr := a.Srv().Store.Thread().MaintainMembership(userID, threadID, opts)
+	membership, _, storeErr := a.Srv().Store.Thread().MaintainMembership(userID, threadID, opts)
 	if storeErr != nil {
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
 	}
