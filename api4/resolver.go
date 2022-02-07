@@ -238,6 +238,11 @@ func (*resolver) ChannelMembers(ctx context.Context, args struct {
 		return []*channelMember{{*member}}, nil
 	}
 
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), args.UserID) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return nil, c.Err
+	}
+
 	limit := int(args.First)
 	// ensure args.First limit
 	if limit == 0 {

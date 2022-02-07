@@ -102,6 +102,32 @@ func TestGraphQLChannels(t *testing.T) {
 		assert.Equal(t, 2, numTownSquare)
 	})
 
+	t.Run("user_perms", func(t *testing.T) {
+		query := `query channels($userId: String = "") {
+	  channels(userId: $userId) {
+	  	id
+	  	createAt
+	  	updateAt
+	  	type
+	    cursor
+	  }
+	}
+	`
+		u1 := th.CreateUser()
+
+		input := graphQLInput{
+			OperationName: "channels",
+			Query:         query,
+			Variables: map[string]interface{}{
+				"userId": u1.Id,
+			},
+		}
+
+		resp, err := th.MakeGraphQLRequest(&input)
+		require.NoError(t, err)
+		require.Len(t, resp.Errors, 1)
+	})
+
 	t.Run("pagination", func(t *testing.T) {
 		query := `query channels($first: Int, $after: String = "") {
 	  channels(userId: "me", first: $first, after: $after) {

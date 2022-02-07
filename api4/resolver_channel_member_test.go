@@ -165,6 +165,33 @@ func TestGraphQLChannelMembers(t *testing.T) {
 		assert.Equal(t, 2, numTownSquare)
 	})
 
+	t.Run("user_perms", func(t *testing.T) {
+		input := graphQLInput{
+			OperationName: "channelMembers",
+			Query: `
+	query channelMembers($user: String!) {
+	  channelMembers(userId: $user) {
+	  	channel {
+		  	id
+		  	createAt
+		  	updateAt
+	  	}
+	  	msgCount
+	  	mentionCount
+	  	mentionCountRoot
+	  }
+	}
+	`,
+			Variables: map[string]interface{}{
+				"user": model.NewId(),
+			},
+		}
+
+		resp, err := th.MakeGraphQLRequest(&input)
+		require.NoError(t, err)
+		require.Len(t, resp.Errors, 1)
+	})
+
 	t.Run("pagination", func(t *testing.T) {
 		query := `query channelMembers($first: Int, $after: String = "") {
 	  channelMembers(userId: "me", first: $first, after: $after) {
