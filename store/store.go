@@ -433,7 +433,7 @@ type UserStore interface {
 	AutocompleteUsersInChannel(teamID, channelID, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error)
 	GetKnownUsers(userID string) ([]string, error)
 	IsEmpty(excludeBots bool) (bool, error)
-	InsertUsers([]*model.User) error
+	InsertUsers(users []*model.User) error
 }
 
 type BotStore interface {
