@@ -951,7 +951,7 @@ func (us SqlUserStore) GetRecentlyActiveUsersForTeam(teamId string, offset, limi
 		return nil, errors.Wrap(err, "get_recently_active_users_for_team_tosql")
 	}
 
-	var users []*UserWithLastActivityAt
+	users := []*UserWithLastActivityAt{}
 	if err := us.GetReplicaX().Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
