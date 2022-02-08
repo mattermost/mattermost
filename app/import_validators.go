@@ -562,28 +562,24 @@ func validateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 
 // validateEmojiImportData validates emoji data and returns if the import name
 // conflicts with a system emoji.
-func validateEmojiImportData(data *EmojiImportData) (bool, *model.AppError) {
+func validateEmojiImportData(data *EmojiImportData) *model.AppError {
 	if data == nil {
-		return false, model.NewAppError("BulkImport", "app.import.validate_emoji_import_data.empty.error", nil, "", http.StatusBadRequest)
+		return model.NewAppError("BulkImport", "app.import.validate_emoji_import_data.empty.error", nil, "", http.StatusBadRequest)
 	}
 
 	if data.Name == nil || *data.Name == "" {
-		return false, model.NewAppError("BulkImport", "app.import.validate_emoji_import_data.name_missing.error", nil, "", http.StatusBadRequest)
+		return model.NewAppError("BulkImport", "app.import.validate_emoji_import_data.name_missing.error", nil, "", http.StatusBadRequest)
 	}
 
 	if data.Image == nil || *data.Image == "" {
-		return false, model.NewAppError("BulkImport", "app.import.validate_emoji_import_data.image_missing.error", nil, "", http.StatusBadRequest)
-	}
-
-	if model.InSystemEmoji(*data.Name) {
-		return true, nil
+		return model.NewAppError("BulkImport", "app.import.validate_emoji_import_data.image_missing.error", nil, "", http.StatusBadRequest)
 	}
 
 	if err := model.IsValidEmojiName(*data.Name); err != nil {
-		return false, err
+		return err
 	}
 
-	return false, nil
+	return nil
 }
 
 func isValidTrueOrFalseString(value string) bool {

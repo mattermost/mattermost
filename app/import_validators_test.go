@@ -1351,7 +1351,7 @@ func TestImportValidateEmojiImportData(t *testing.T) {
 		expectSystemEmoji bool
 	}{
 		{"success", ptrStr("parrot2"), ptrStr("/path/to/image"), false, false},
-		{"system emoji", ptrStr("smiley"), ptrStr("/path/to/image"), false, true},
+		{"system emoji", ptrStr("smiley"), ptrStr("/path/to/image"), true, true},
 		{"empty name", ptrStr(""), ptrStr("/path/to/image"), true, false},
 		{"empty image", ptrStr("parrot2"), ptrStr(""), true, false},
 		{"empty name and image", ptrStr(""), ptrStr(""), true, false},
@@ -1367,16 +1367,12 @@ func TestImportValidateEmojiImportData(t *testing.T) {
 				Image: tc.image,
 			}
 
-			systemEmoji, err := validateEmojiImportData(&data)
+			err := validateEmojiImportData(&data)
 			if tc.expectError {
-				assert.NotNil(t, err)
+				require.NotNil(t, err)
+				assert.Equal(t, tc.expectSystemEmoji, err.Id == "model.emoji.system_emoji_name.app_error")
 			} else {
 				assert.Nil(t, err)
-			}
-
-			assert.Equal(t, tc.expectSystemEmoji, systemEmoji)
-			if systemEmoji {
-				assert.True(t, model.InSystemEmoji(*data.Name))
 			}
 		})
 	}
