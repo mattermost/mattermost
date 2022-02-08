@@ -8888,7 +8888,7 @@
   },
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
-    "translation": "Le nombre d'ID de poste reçu a dépassé la taille maximale de {{. MaxLength}}"
+    "translation": "Le nombre d'ID de poste reçu a dépassé la taille maximale de {{.MaxLength}}"
   },
   {
     "id": "api.license.request_renewal_link.cannot_renew_on_cws",
