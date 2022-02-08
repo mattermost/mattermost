@@ -9309,5 +9309,33 @@
   {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": "SAML Antwort ist zu lang"
+  },
+  {
+    "id": "model.github_release_info.is_valid.id.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_unmarshal.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_set_cache.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_read_all.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_external_error.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "Das Onboarding kann nur von einem Systemadministrator durchgeführt werden."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "Die vollständige Onboarding-Anfrage konnte nicht entschlüsselt werden."
   }
 ]
