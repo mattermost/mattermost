@@ -9303,10 +9303,6 @@
     "translation": "Das Erneuern dieser Lizenz im Portal ist nicht möglich"
   },
   {
-    "id": "api.config.migrate_config_restricted.app_error",
-    "translation": "Die Migration von Konfigurationen ist aufgrund des Instanztyps eingeschränkt."
-  },
-  {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": "SAML Antwort ist zu lang"
   },

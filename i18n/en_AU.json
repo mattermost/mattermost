@@ -9303,10 +9303,6 @@
     "translation": "Renewing this licence on the portal is not possible"
   },
   {
-    "id": "api.config.migrate_config_restricted.app_error",
-    "translation": "Config migration is restricted due to instance type."
-  },
-  {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": "SAML response is too long"
   },

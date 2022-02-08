@@ -9304,10 +9304,6 @@
     "translation": "Odnowienie tej licencji na portalu nie jest możliwe"
   },
   {
-    "id": "api.config.migrate_config_restricted.app_error",
-    "translation": "Migracja konfiguracji jest ograniczona ze względu na typ instancji."
-  },
-  {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": "Odpowiedź SAML jest zbyt długa"
   }
