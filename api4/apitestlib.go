@@ -49,7 +49,7 @@ type TestHelper struct {
 
 	Context              *request.Context
 	Client               *model.Client4
-	GraphQLClient        *model.Client4
+	GraphQLClient        *graphQLClient
 	BasicUser            *model.User
 	BasicUser2           *model.User
 	TeamAdminUser        *model.User
@@ -196,7 +196,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	}
 
 	th.Client = th.CreateClient()
-	th.GraphQLClient = th.CreateClient()
+	th.GraphQLClient = newGraphQLClient(fmt.Sprintf("http://localhost:%v", th.App.Srv().ListenAddr.Port))
 	th.SystemAdminClient = th.CreateClient()
 	th.SystemManagerClient = th.CreateClient()
 
@@ -779,14 +779,14 @@ func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 func (th *TestHelper) LoginBasic() {
 	th.LoginBasicWithClient(th.Client)
 	if os.Getenv("MM_FEATUREFLAGS_GRAPHQL") == "true" {
-		th.LoginBasicWithClient(th.GraphQLClient)
+		th.loginBasicWithGraphQL(th.GraphQLClient)
 	}
 }
 
 func (th *TestHelper) LoginBasic2() {
 	th.LoginBasic2WithClient(th.Client)
 	if os.Getenv("MM_FEATUREFLAGS_GRAPHQL") == "true" {
-		th.LoginBasicWithClient(th.GraphQLClient)
+		th.loginBasicWithGraphQL(th.GraphQLClient)
 	}
 }
 
@@ -804,6 +804,13 @@ func (th *TestHelper) LoginSystemManager() {
 
 func (th *TestHelper) LoginBasicWithClient(client *model.Client4) {
 	_, _, err := client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (th *TestHelper) loginBasicWithGraphQL(client *graphQLClient) {
+	_, _, err := client.login(th.BasicUser.Email, th.BasicUser.Password)
 	if err != nil {
 		panic(err)
 	}
@@ -1262,7 +1269,7 @@ func (th *TestHelper) MakeGraphQLRequest(input *graphQLInput) (*graphql.Response
 		panic(err)
 	}
 
-	resp, err := th.GraphQLClient.DoAPIRequestReaderRaw("POST", url, bytes.NewReader(buf), map[string]string{})
+	resp, err := th.GraphQLClient.doAPIRequest("POST", url, bytes.NewReader(buf), map[string]string{})
 	if err != nil {
 		panic(err)
 	}
