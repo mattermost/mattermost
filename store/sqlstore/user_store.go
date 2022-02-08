@@ -2030,12 +2030,13 @@ func (us SqlUserStore) GetUsersWithInvalidEmails(page int, perPage int, restrict
 		Where("(u.AuthService = '' OR u.AuthService IS NULL)")
 
 	for _, d := range domainArray {
-		query = query.Where("u.Email NOT LIKE LOWER(?)", wildcardSearchTerm(d))
+		if len(d) > 0 {
+			query = query.Where("u.Email NOT LIKE LOWER(?)", wildcardSearchTerm(d))
+		}
 	}
 	query = query.Offset(uint64(page * perPage)).Limit(uint64(perPage))
 
 	queryString, args, err := query.ToSql()
-
 	if err != nil {
 		return nil, errors.Wrap(err, "users_get_many_tosql")
 	}
