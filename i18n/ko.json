@@ -7834,5 +7834,9 @@
   {
     "id": "api.oauth.auth_complete",
     "translation": "인증 완료"
+  },
+  {
+    "id": "bleveengine.delete_files_batch.error",
+    "translation": "파일 삭제를 실패하였습니다."
   }
 ]
