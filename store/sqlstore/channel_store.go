@@ -2584,16 +2584,8 @@ func (s SqlChannelStore) CountPostsAfter(channelId string, timestamp int64, user
 // UpdateLastViewedAtPost updates a ChannelMember as if the user last read the channel at the time of the given post.
 // If the provided mentionCount is -1, the given post and all posts after it are considered to be mentions. Returns
 // an updated model.ChannelUnreadAt that can be returned to the client.
-func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount, mentionCountRoot int, updateThreads bool, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error) {
-	var threadsToUpdate []string
+func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount, mentionCountRoot int, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error) {
 	unreadDate := unreadPost.CreateAt - 1
-	if updateThreads {
-		var err error
-		threadsToUpdate, err = s.Thread().CollectThreadsWithNewerReplies(userID, []string{unreadPost.ChannelId}, unreadDate)
-		if err != nil {
-			return nil, err
-		}
-	}
 
 	unread, unreadRoot, err := s.CountPostsAfter(unreadPost.ChannelId, unreadDate, "")
 	if err != nil {
@@ -2660,9 +2652,6 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID s
 		return nil, errors.Wrapf(err, "failed to get ChannelMember with channelId=%s", unreadPost.ChannelId)
 	}
 
-	if updateThreads {
-		s.Thread().UpdateUnreadsByChannel(userID, threadsToUpdate, unreadDate, false)
-	}
 	return result, nil
 }
 

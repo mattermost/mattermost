@@ -38,20 +38,6 @@ func (_m *ThreadStore) CollectThreadsWithNewerReplies(userId string, channelIds 
 	return r0, r1
 }
 
-// Delete provides a mock function with given fields: postID
-func (_m *ThreadStore) Delete(postID string) error {
-	ret := _m.Called(postID)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(postID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // DeleteMembershipForUser provides a mock function with given fields: userId, postID
 func (_m *ThreadStore) DeleteMembershipForUser(userId string, postID string) error {
 	ret := _m.Called(userId, postID)
@@ -369,29 +355,6 @@ func (_m *ThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolicies
 	return r0, r1, r2
 }
 
-// Save provides a mock function with given fields: thread
-func (_m *ThreadStore) Save(thread *model.Thread) (*model.Thread, error) {
-	ret := _m.Called(thread)
-
-	var r0 *model.Thread
-	if rf, ok := ret.Get(0).(func(*model.Thread) *model.Thread); ok {
-		r0 = rf(thread)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Thread)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.Thread) error); ok {
-		r1 = rf(thread)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // SaveMembership provides a mock function with given fields: membership
 func (_m *ThreadStore) SaveMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error) {
 	ret := _m.Called(membership)
@@ -408,59 +371,6 @@ func (_m *ThreadStore) SaveMembership(membership *model.ThreadMembership) (*mode
 	var r1 error
 	if rf, ok := ret.Get(1).(func(*model.ThreadMembership) error); ok {
 		r1 = rf(membership)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// SaveMultiple provides a mock function with given fields: thread
-func (_m *ThreadStore) SaveMultiple(thread []*model.Thread) ([]*model.Thread, int, error) {
-	ret := _m.Called(thread)
-
-	var r0 []*model.Thread
-	if rf, ok := ret.Get(0).(func([]*model.Thread) []*model.Thread); ok {
-		r0 = rf(thread)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.Thread)
-		}
-	}
-
-	var r1 int
-	if rf, ok := ret.Get(1).(func([]*model.Thread) int); ok {
-		r1 = rf(thread)
-	} else {
-		r1 = ret.Get(1).(int)
-	}
-
-	var r2 error
-	if rf, ok := ret.Get(2).(func([]*model.Thread) error); ok {
-		r2 = rf(thread)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
-}
-
-// Update provides a mock function with given fields: thread
-func (_m *ThreadStore) Update(thread *model.Thread) (*model.Thread, error) {
-	ret := _m.Called(thread)
-
-	var r0 *model.Thread
-	if rf, ok := ret.Get(0).(func(*model.Thread) *model.Thread); ok {
-		r0 = rf(thread)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Thread)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.Thread) error); ok {
-		r1 = rf(thread)
 	} else {
 		r1 = ret.Error(1)
 	}

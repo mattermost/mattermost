@@ -261,33 +261,6 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		require.Nil(t, thread2)
 	})
 
-	t.Run("Thread last updated is changed when channel is updated after UpdateLastViewedAtPost", func(t *testing.T) {
-		newPosts := makeSomePosts()
-		opts := store.ThreadMembershipOpts{
-			Following:             true,
-			IncrementMentions:     false,
-			UpdateFollowing:       true,
-			UpdateViewedTimestamp: false,
-			UpdateParticipants:    false,
-		}
-		_, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
-		require.NoError(t, e)
-		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-		require.NoError(t, err1)
-		m.LastUpdated -= 1000
-		_, err := ss.Thread().UpdateMembership(m)
-		require.NoError(t, err)
-
-		_, err = ss.Channel().UpdateLastViewedAtPost(newPosts[0], newPosts[0].UserId, 0, 0, true, true)
-		require.NoError(t, err)
-
-		assert.Eventually(t, func() bool {
-			m2, err2 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-			require.NoError(t, err2)
-			return m2.LastUpdated > m.LastUpdated
-		}, time.Second, 10*time.Millisecond)
-	})
-
 	t.Run("Thread last updated is changed when channel is updated after IncrementMentionCount", func(t *testing.T) {
 		newPosts := makeSomePosts()
 
@@ -390,33 +363,6 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		tm, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
 		require.NoError(t, e)
 		require.NotEqual(t, int64(0), tm.LastViewed)
-	})
-
-	t.Run("Thread last updated is changed when channel is updated after UpdateLastViewedAtPost for mark unread", func(t *testing.T) {
-		newPosts := makeSomePosts()
-		opts := store.ThreadMembershipOpts{
-			Following:             true,
-			IncrementMentions:     false,
-			UpdateFollowing:       true,
-			UpdateViewedTimestamp: false,
-			UpdateParticipants:    false,
-		}
-		_, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
-		require.NoError(t, e)
-		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-		require.NoError(t, err1)
-		m.LastUpdated += 1000
-		_, err := ss.Thread().UpdateMembership(m)
-		require.NoError(t, err)
-
-		_, err = ss.Channel().UpdateLastViewedAtPost(newPosts[0], newPosts[0].UserId, 0, 0, true, true)
-		require.NoError(t, err)
-
-		assert.Eventually(t, func() bool {
-			m2, err2 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-			require.NoError(t, err2)
-			return m2.LastUpdated < m.LastUpdated
-		}, time.Second, 10*time.Millisecond)
 	})
 
 	t.Run("Updating post does not make thread unread", func(t *testing.T) {
