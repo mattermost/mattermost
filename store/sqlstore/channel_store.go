@@ -2953,12 +2953,12 @@ func (s SqlChannelStore) GetTeamMembersForChannel(channelID string) ([]string, e
 
 func (s SqlChannelStore) SquirrelAutocomplete(userID, term string, includeDeleted bool) (model.ChannelListWithTeamData, error) {
 
-	deleteFilter := sq.And{sq.Eq{"c.DeleteAt": "0"}}
+	deleteAt := 0
+
 	if includeDeleted {
-		deleteFilter := ""
-		_ = deleteFilter
+		deleteAt = 1
 	}
-	_ = deleteFilter
+	deleteFilter := sq.And{sq.Eq{"c.DeleteAt": deleteAt}}
 
 	channel_members := sq.Select(
 		"ChannelId",
@@ -2972,6 +2972,27 @@ func (s SqlChannelStore) SquirrelAutocomplete(userID, term string, includeDelete
 
 	psql := sq.StatementBuilder
 
+	where := sq.And{
+		sq.Expr("c.TeamId = t.id"),
+		sq.Expr("t.id = tm.TeamId"),
+		sq.Eq{"tm.UserId": userID},
+	}
+	if deleteFilter != nil {
+		where = append(where, deleteFilter)
+	}
+	if searchClause != nil {
+		where = append(where, searchClause)
+	}
+	where = append(where,
+		sq.Or{
+			sq.Expr("c.Type <> 'P'"),
+			sq.And{
+				sq.Expr("c.Type = 'P'"),
+				sq.Expr("c.Id IN (?)", channel_members),
+			},
+		},
+	)
+
 	q := psql.Select(
 		"c.*",
 		"t.DisplayName as TeamDisplayName",
@@ -2980,30 +3001,13 @@ func (s SqlChannelStore) SquirrelAutocomplete(userID, term string, includeDelete
 	).From(
 		"Channels c, Teams t, TeamMembers tm",
 	).Where(
-		sq.And{
-			sq.Expr("c.TeamId = t.id"),
-			sq.Expr("t.id = tm.TeamId"),
-			sq.Eq{"tm.UserId": userID},
-			// sq.Eq{"c.TeamId": "t.id"},
-			// sq.Eq{"t.id": "tm.TeamId"},
-			// sq.Eq{"tm.UserId": userID},
-			deleteFilter,
-			searchClause,
-			sq.Or{
-				sq.Expr("c.Type <> 'P'"),
-				sq.And{
-					sq.Expr("c.Type = 'P'"),
-					sq.Expr("c.Id IN (?)", channel_members),
-				},
-			},
-		},
+		where,
 	).OrderBy("c.DisplayName")
 
 	return s.squirrelPefromGlobalSearch(q, term)
 
 }
 
-// TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19333)
 func (s SqlChannelStore) SqlAutocomplete(userID, term string, includeDeleted bool) (model.ChannelListWithTeamData, error) {
 
 	deleteFilter := "AND c.DeleteAt = 0"
@@ -3042,6 +3046,7 @@ func (s SqlChannelStore) SqlAutocomplete(userID, term string, includeDeleted boo
 	return results, err
 }
 
+// DONE: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19333)
 func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) (model.ChannelListWithTeamData, error) {
 	// return s.SqlAutocomplete(userID, term, includeDeleted)
 	return s.SquirrelAutocomplete(userID, term, includeDeleted)
@@ -3176,7 +3181,7 @@ func (s SqlChannelStore) autocompleteInTeamForSearchDirectMessages(userId string
 }
 
 // TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19333)
-func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted bool) (model.ChannelList, error) {
+func (s SqlChannelStore) SqlSearchInTeam(teamId string, term string, includeDeleted bool) (model.ChannelList, error) {
 	deleteFilter := "AND c.DeleteAt = 0"
 	if includeDeleted {
 		deleteFilter = ""
@@ -3198,6 +3203,38 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted
 		`, term, map[string]interface{}{
 		"TeamId": teamId,
 	})
+}
+
+// TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19333)
+func (s SqlChannelStore) SquirrelSearchInTeam(teamId string, term string, includeDeleted bool) (model.ChannelList, error) {
+
+	where := sq.And{sq.Eq{"c.TeamId": teamId}}
+	if !includeDeleted {
+		where = append(where, sq.Eq{"c.DeleteAt": 0})
+	}
+
+	if term != "" {
+		searchClause := s.squirrelSearchClause(term)
+		where = append(where, searchClause)
+	}
+
+	query := sq.Select("Channels.*").
+		From("Channels").
+		Join("PublicChannels c ON (c.Id = Channels.Id)").
+		Where(where).
+		OrderBy("c.DisplayName").
+		Limit(100)
+
+	result, err := s.squirrelPerformSearch(query, term)
+	if result == nil {
+		return model.ChannelList{}, err
+	}
+	return result, err
+}
+
+func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted bool) (model.ChannelList, error) {
+	// return s.SqlSearchInTeam(teamId, term, includeDeleted)
+	return s.SquirrelSearchInTeam(teamId, term, includeDeleted)
 }
 
 // TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19334)
@@ -3419,8 +3456,46 @@ func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearch
 	return channelWithTeamDataSliceToModel(channels), totalCount, nil
 }
 
-// TODO: rewrite in squrrel
-func (s SqlChannelStore) SearchMore(userId string, teamId string, term string) (model.ChannelList, error) {
+func (s SqlChannelStore) SquirrelSearchMore(userId string, teamId string, term string) (model.ChannelList, error) {
+
+	teamQuery := sq.Select("c.Id").
+		From("PublicChannels c").
+		Join("ChannelMembers cm ON (cm.ChannelId = c.Id)").
+		Where(
+			sq.And{
+				sq.Eq{"c.TeamId": teamId},
+				sq.Eq{"cm.UserId": userId},
+				sq.Eq{"c.DeleteAt": 0},
+			},
+		)
+
+	join_where := sq.And{
+		sq.Eq{"c.TeamId": teamId},
+		sq.Eq{"c.DeleteAt": 0},
+		sq.Expr("c.Id NOT IN (?)", teamQuery),
+	}
+	if term != "" {
+		searchClause := s.squirrelSearchClause(term)
+		join_where = append(join_where, searchClause)
+	}
+
+	query := sq.Select("Channels.*").
+		From("Channels").
+		Join("PublicChannels c ON (c.Id=Channels.Id)").
+		Where(
+			join_where,
+		).
+		OrderBy("c.DisplayName").
+		Limit(100)
+
+	result, err := s.squirrelPerformSearch(query, term)
+	if result == nil {
+		return model.ChannelList{}, err
+	}
+	return result, err
+}
+
+func (s SqlChannelStore) SqlSearchMore(userId string, teamId string, term string) (model.ChannelList, error) {
 	return s.performSearch(`
 		SELECT
 			Channels.*
@@ -3450,6 +3525,12 @@ func (s SqlChannelStore) SearchMore(userId string, teamId string, term string) (
 		"TeamId": teamId,
 		"UserId": userId,
 	})
+}
+
+// DONE: rewrite in squrrel
+func (s SqlChannelStore) SearchMore(userId string, teamId string, term string) (model.ChannelList, error) {
+	// return s.SqlSearchMore(userId, teamId, term)
+	return s.SquirrelSearchMore(userId, teamId, term)
 }
 
 func (s SqlChannelStore) buildLIKEClause(term string, searchColumns string) (likeClause, likeTerm string) {
@@ -3582,7 +3663,7 @@ func (s SqlChannelStore) squirrelBuildFulltextClause(term string, searchColumns 
 
 		fulltextTerm = strings.Join(splitTerm, " ")
 
-		fullClauseFmt := "MATCH('%s') AGAINST (? IN BOOLEAN MODE)"
+		fullClauseFmt := "MATCH(%s) AGAINST (? IN BOOLEAN MODE)"
 		fulltextClause = sq.Expr(fmt.Sprintf(fullClauseFmt, searchColumns), fulltextTerm)
 	}
 
@@ -3605,6 +3686,31 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 
 	if _, err := s.GetReplica().Select(&channels, searchQuery, parameters); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
+	}
+
+	return channels, nil
+}
+
+func (s SqlChannelStore) squirrelPerformSearch(searchQuery sq.SelectBuilder, term string) (model.ChannelList, error) {
+	// likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
+	var sql string
+	var parameters []interface{}
+	// fulltextClause, fulltextTerm := s.buildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
+	// searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "AND ("+likeClause+" OR "+fulltextClause+")", 1)
+	sql, parameters, err := searchQuery.ToSql()
+	_ = parameters
+	_ = sql
+	if err != nil {
+		return model.ChannelList{}, errors.Wrapf(err, "failed to construct query with term='%s'", term)
+	}
+
+	var channels model.ChannelList
+
+	mlog.Debug("This should be the query:")
+	mlog.Debug(sql)
+
+	if err := s.GetReplicaX().Select(&channels, sql, parameters...); err != nil {
+		return model.ChannelList{}, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
 	}
 
 	return channels, nil
@@ -3639,7 +3745,7 @@ func (s SqlChannelStore) squirrelSearchClause(term string) (searchQuery sq.Sqliz
 	likeClause, err := s.squirrelBuildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
 
 	_ = err
-	if term == "" {
+	if likeClause == nil {
 		searchQuery = nil
 		// searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
 	} else {
@@ -3767,8 +3873,68 @@ func (s SqlChannelStore) getSearchGroupChannelsQuery(userId, term string, isPost
 	return query, args
 }
 
-// TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19335)
-func (s SqlChannelStore) SearchGroupChannels(userId, term string) (model.ChannelList, error) {
+func (s SqlChannelStore) squirrelGetSearchGroupChannelsQuery(userId, term string, isPostgreSQL bool) sq.SelectBuilder {
+	var baseLikeTerm string
+	var selectQuery sq.SelectBuilder
+
+	terms := strings.Split(strings.ToLower(strings.Trim(term, " ")), " ")
+
+	having := sq.And{}
+
+	if isPostgreSQL {
+		baseLikeTerm = "ARRAY_TO_STRING(ARRAY_AGG(u.Username), ', ') LIKE ?"
+		cc := sq.Select("c.Id").
+			From("Channels c").
+			Join("ChannelMembers cm ON c.Id=cm.ChannelId").
+			Join("Users u on u.Id = cm.UserId").
+			Where(sq.And{sq.Eq{"c.Type": "G"}, sq.Eq{"u.id": userId}}).
+			GroupBy("c.Id")
+
+		for _, term := range terms {
+			term = sanitizeSearchTerm(term, "\\")
+			having = append(having, sq.Expr(baseLikeTerm, "%"+term+"%"))
+		}
+
+		subq := sq.Select("cc.id").
+			FromSelect(cc, "cc").
+			Join("ChannelMembers cm On cc.Id = cm.ChannelId").
+			Join("Users u On u.Id = cm.UserId").
+			GroupBy("cc.Id").
+			Having(having).
+			Limit(model.ChannelSearchDefaultLimit)
+
+		selectQuery = sq.Select("*").
+			From("Channels").
+			Where(sq.Expr("Id IN (?)", subq))
+
+	} else {
+		baseLikeTerm = "GROUP_CONCAT(u.Username SEPARATOR ', ') LIKE ?"
+
+		for _, term := range terms {
+			term = sanitizeSearchTerm(term, "\\")
+			having = append(having, sq.Expr(baseLikeTerm, "%"+term+"%"))
+		}
+
+		cc := sq.Select("c.*").
+			From("Channels c").
+			Join("ChannelMembers cm ON c.Id=cm.ChannelId").
+			Join("Users u on u.Id = cm.UserId").
+			Where(sq.And{sq.Eq{"c.Type": "G"}, sq.Eq{"u.Id": userId}}).
+			GroupBy("c.Id")
+
+		selectQuery = sq.Select("cc.*").
+			FromSelect(cc, "cc").
+			Join("ChannelMembers cm on cc.Id = cm.ChannelId").
+			Join("Users u on u.Id = cm.UserId").
+			GroupBy("cc.Id").
+			Having(having).
+			Limit(model.ChannelSearchDefaultLimit)
+	}
+
+	return selectQuery
+}
+
+func (s SqlChannelStore) SqlSearchGroupChannels(userId, term string) (model.ChannelList, error) {
 	isPostgreSQL := s.DriverName() == model.DatabaseDriverPostgres
 	queryString, args := s.getSearchGroupChannelsQuery(userId, term, isPostgreSQL)
 
@@ -3777,6 +3943,31 @@ func (s SqlChannelStore) SearchGroupChannels(userId, term string) (model.Channel
 		return nil, errors.Wrapf(err, "failed to find Channels with term='%s' and userId=%s", term, userId)
 	}
 	return groupChannels, nil
+}
+
+func (s SqlChannelStore) SquirrelSearchGroupChannels(userId, term string) (model.ChannelList, error) {
+	isPostgreSQL := s.DriverName() == model.DatabaseDriverPostgres
+	query := s.squirrelGetSearchGroupChannelsQuery(userId, term, isPostgreSQL)
+
+	sql, params, err := query.ToSql()
+	if err != nil {
+		mlog.Error(sql)
+		return model.ChannelList{}, errors.Wrapf(err, "failed to build query term='%s' and userId=%s", term, userId)
+	}
+
+	var groupChannels model.ChannelList
+	if err := s.GetReplicaX().Select(&groupChannels, sql, params...); err != nil {
+		return model.ChannelList{}, errors.Wrapf(err, "failed to find Channels with term='%s' and userId=%s", term, userId)
+	}
+	return groupChannels, nil
+}
+
+// TestChannelStore/PostgreSQL/SearchGroupChannels/Get_all_group_channels_for_user1
+// break 3846
+// DONE: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19335)
+func (s SqlChannelStore) SearchGroupChannels(userId, term string) (model.ChannelList, error) {
+	// return s.SqlSearchGroupChannels(userId, term)
+	return s.SquirrelSearchGroupChannels(userId, term)
 }
 
 // TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19336)
