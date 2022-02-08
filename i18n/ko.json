@@ -7834,5 +7834,13 @@
   {
     "id": "bleveengine.delete_files_batch.error",
     "translation": "파일 삭제를 실패하였습니다."
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "최근 상태를 삭제하는 데 실패했습니다. 먼저 상태 추가를 시도해 보시고, 더 자세한 사항은 관리자에게 문의하세요."
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "커스텀 상태 기능이 비활성화 되어 있습니다. 자세한 내용은 관리자에게 문의하세요."
   }
 ]
