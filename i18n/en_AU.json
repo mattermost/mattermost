@@ -9309,5 +9309,13 @@
   {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": "SAML response is too long"
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "Onboarding can only be completed by a System Administrator."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "Failed to decode the complete onboarding request."
   }
 ]
