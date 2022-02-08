@@ -317,11 +317,11 @@ func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *s
 		Where(sq.Eq{"Id": userId})
 
 	if email != "" {
-		updateQuery.Set("Email", strings.ToLower(email))
+		updateQuery = updateQuery.Set("Email", sq.Expr("lower(?)", email))
 	}
 
 	if resetMfa {
-		updateQuery.Set("MfaActive", false).
+		updateQuery = updateQuery.Set("MfaActive", false).
 			Set("MfaSecret", "")
 	}
 
@@ -2035,7 +2035,7 @@ func (us SqlUserStore) AutocompleteUsersInChannel(teamId, channelId, term string
 // relationship with a user. That means any user sharing any channel, including
 // direct and group channels.
 func (us SqlUserStore) GetKnownUsers(userId string) ([]string, error) {
-	var userIds []string
+	userIds := []string{}
 	usersQuery, args, _ := us.getQueryBuilder().
 		Select("DISTINCT ocm.UserId").
 		From("ChannelMembers AS cm").
