@@ -9300,10 +9300,6 @@
     "translation": "Ennek a licensznek a portálon keresztüli megújítása nem lehetséges"
   },
   {
-    "id": "api.config.migrate_config_restricted.app_error",
-    "translation": "A konfiguráció migrációja a telepítés típusa miatt korlátozott."
-  },
-  {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": "SAML válasz túl hosszú"
   },
