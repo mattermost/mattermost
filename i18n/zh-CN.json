@@ -9294,9 +9294,5 @@
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
     "translation": "未能更新自定义状态。 请添加表情符或自定义文本。"
-  },
-  {
-    "id": "api.config.migrate_config_restricted.app_error",
-    "translation": "配置迁移因实例类型而受到限制。"
   }
 ]
