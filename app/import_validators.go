@@ -560,6 +560,8 @@ func validateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 	return nil
 }
 
+// validateEmojiImportData validates emoji data and returns if the import name
+// conflicts with a system emoji.
 func validateEmojiImportData(data *EmojiImportData) *model.AppError {
 	if data == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_emoji_import_data.empty.error", nil, "", http.StatusBadRequest)
@@ -569,12 +571,12 @@ func validateEmojiImportData(data *EmojiImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_emoji_import_data.name_missing.error", nil, "", http.StatusBadRequest)
 	}
 
-	if err := model.IsValidEmojiName(*data.Name); err != nil {
-		return err
-	}
-
 	if data.Image == nil || *data.Image == "" {
 		return model.NewAppError("BulkImport", "app.import.validate_emoji_import_data.image_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	if err := model.IsValidEmojiName(*data.Name); err != nil {
+		return err
 	}
 
 	return nil
