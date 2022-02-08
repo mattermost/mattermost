@@ -8873,5 +8873,25 @@
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
     "translation": "Impossible de mettre à jour le statut personnalisé. Merci d'ajouter une émoticône, un texte de statut personnalisé ou les deux."
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "L’adresse e-mail dans le  token ne correspond pas à celui des données utilisateur."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "La réponse SAML est trop longue"
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "rappel"
+  },
+  {
+    "id": "api.post.posts_by_ids.invalid_body.request_error",
+    "translation": "Le nombre d'ID de poste reçu a dépassé la taille maximale de {{. MaxLength}}"
+  },
+  {
+    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
+    "translation": "Le renouvellement de cette licence sur le portail n'est pas possible"
   }
 ]
