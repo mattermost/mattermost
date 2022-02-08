@@ -9303,10 +9303,6 @@
     "translation": "Vernieuwen van deze licentie op het portaal is niet mogelijk"
   },
   {
-    "id": "api.config.migrate_config_restricted.app_error",
-    "translation": "Configurariemigratie is beperkt vanwege het type instantie."
-  },
-  {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": "SAML antwoord is te lang"
   }
