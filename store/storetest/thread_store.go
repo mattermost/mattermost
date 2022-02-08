@@ -261,34 +261,6 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		require.Nil(t, thread2)
 	})
 
-	t.Run("Thread last updated is changed when channel is updated after IncrementMentionCount", func(t *testing.T) {
-		newPosts := makeSomePosts()
-
-		opts := store.ThreadMembershipOpts{
-			Following:             true,
-			IncrementMentions:     false,
-			UpdateFollowing:       true,
-			UpdateViewedTimestamp: false,
-			UpdateParticipants:    false,
-		}
-		_, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
-		require.NoError(t, e)
-		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-		require.NoError(t, err1)
-		m.LastUpdated -= 1000
-		_, err := ss.Thread().UpdateMembership(m)
-		require.NoError(t, err)
-
-		err = ss.Channel().IncrementMentionCount(newPosts[0].ChannelId, newPosts[0].UserId, true, false)
-		require.NoError(t, err)
-
-		assert.Eventually(t, func() bool {
-			m2, err2 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-			require.NoError(t, err2)
-			return m2.LastUpdated > m.LastUpdated
-		}, time.Second, 10*time.Millisecond)
-	})
-
 	t.Run("Thread last updated is changed when channel is updated after UpdateLastViewedAt", func(t *testing.T) {
 		newPosts := makeSomePosts()
 		opts := store.ThreadMembershipOpts{

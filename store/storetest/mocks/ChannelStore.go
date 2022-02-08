@@ -1508,13 +1508,13 @@ func (_m *ChannelStore) GroupSyncedChannelCount() (int64, error) {
 	return r0, r1
 }
 
-// IncrementMentionCount provides a mock function with given fields: channelID, userID, updateThreads, isRoot
-func (_m *ChannelStore) IncrementMentionCount(channelID string, userID string, updateThreads bool, isRoot bool) error {
-	ret := _m.Called(channelID, userID, updateThreads, isRoot)
+// IncrementMentionCount provides a mock function with given fields: channelID, userID, isRoot
+func (_m *ChannelStore) IncrementMentionCount(channelID string, userID string, isRoot bool) error {
+	ret := _m.Called(channelID, userID, isRoot)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, bool, bool) error); ok {
-		r0 = rf(channelID, userID, updateThreads, isRoot)
+	if rf, ok := ret.Get(0).(func(string, string, bool) error); ok {
+		r0 = rf(channelID, userID, isRoot)
 	} else {
 		r0 = ret.Error(0)
 	}

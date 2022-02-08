@@ -2655,16 +2655,8 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID s
 	return result, nil
 }
 
-func (s SqlChannelStore) IncrementMentionCount(channelId string, userId string, updateThreads, isRoot bool) error {
+func (s SqlChannelStore) IncrementMentionCount(channelId string, userId string, isRoot bool) error {
 	now := model.GetMillis()
-	var threadsToUpdate []string
-	if updateThreads {
-		var err error
-		threadsToUpdate, err = s.Thread().CollectThreadsWithNewerReplies(userId, []string{channelId}, now)
-		if err != nil {
-			return err
-		}
-	}
 	rootInc := 0
 	if isRoot {
 		rootInc = 1
@@ -2681,9 +2673,6 @@ func (s SqlChannelStore) IncrementMentionCount(channelId string, userId string, 
 			AND ChannelId = ?`, rootInc, now, userId, channelId)
 	if err != nil {
 		return errors.Wrapf(err, "failed to Update ChannelMembers with channelId=%s and userId=%s", channelId, userId)
-	}
-	if updateThreads {
-		s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now, false)
 	}
 	return nil
 }
