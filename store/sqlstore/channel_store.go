@@ -2489,7 +2489,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 			times[t.Id] = t.LastPostAt
 		}
 		if updateThreads {
-			s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now, true)
+			s.Thread().UpdateLastViewedByThreadIds(userId, threadsToUpdate, now)
 		}
 		return times, nil
 	}
@@ -2531,7 +2531,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 	}
 
 	if updateThreads {
-		s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now, true)
+		s.Thread().UpdateLastViewedByThreadIds(userId, threadsToUpdate, now)
 	}
 	return times, nil
 }

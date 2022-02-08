@@ -681,19 +681,20 @@ func (s *SqlThreadStore) CollectThreadsWithNewerReplies(userId string, channelId
 	return changedThreads, nil
 }
 
-func (s *SqlThreadStore) UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64, updateViewedTimestamp bool) error {
-	if len(changedThreads) == 0 {
+// UpdateLastViewedByThreadIds marks the given threads as read up to the given timestamp. If there
+// are no newer posts, it effectively marks the thread as read. If there are newer posts, say
+// because the user explicitly marked a past post as unread, the thread will be considered unread
+// past the given timestamp.
+func (s *SqlThreadStore) UpdateLastViewedByThreadIds(userId string, threadIds []string, timestamp int64) error {
+	if len(threadIds) == 0 {
 		return nil
 	}
 
 	qb := s.getQueryBuilder().
 		Update("ThreadMemberships").
-		Where(sq.Eq{"UserId": userId, "PostId": changedThreads}).
-		Set("LastUpdated", timestamp)
-
-	if updateViewedTimestamp {
-		qb = qb.Set("LastViewed", timestamp)
-	}
+		Where(sq.Eq{"UserId": userId, "PostId": threadIds}).
+		Set("LastViewed", timestamp).
+		Set("LastUpdated", model.GetMillis())
 	updateQuery, updateArgs, _ := qb.ToSql()
 
 	if _, err := s.GetMaster().Exec(updateQuery, updateArgs...); err != nil {

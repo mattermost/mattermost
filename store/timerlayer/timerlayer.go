@@ -8439,6 +8439,22 @@ func (s *TimerLayerThreadStore) SaveMembership(membership *model.ThreadMembershi
 	return result, err
 }
 
+func (s *TimerLayerThreadStore) UpdateLastViewedByThreadIds(userId string, threadIds []string, timestamp int64) error {
+	start := timemodule.Now()
+
+	err := s.ThreadStore.UpdateLastViewedByThreadIds(userId, threadIds, timestamp)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.UpdateLastViewedByThreadIds", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerThreadStore) UpdateMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error) {
 	start := timemodule.Now()
 
@@ -8453,22 +8469,6 @@ func (s *TimerLayerThreadStore) UpdateMembership(membership *model.ThreadMembers
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.UpdateMembership", success, elapsed)
 	}
 	return result, err
-}
-
-func (s *TimerLayerThreadStore) UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64, updateViewedTimestamp bool) error {
-	start := timemodule.Now()
-
-	err := s.ThreadStore.UpdateUnreadsByChannel(userId, changedThreads, timestamp, updateViewedTimestamp)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.UpdateUnreadsByChannel", success, elapsed)
-	}
-	return err
 }
 
 func (s *TimerLayerTokenStore) Cleanup(expiryTime int64) {
