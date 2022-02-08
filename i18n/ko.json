@@ -7692,10 +7692,6 @@
     "translation": "유효하지 않은 사용자 정의 URL 스키마가 지정되었습니다"
   },
   {
-    "id": "api.config.migrate_config_restricted.app_error",
-    "translation": "해당 인스턴스 유형에서는 설정 이관이 제한되어 있습니다."
-  },
-  {
     "id": "api.config.patch_config.diff.app_error",
     "translation": "설정을 비교하지 못했습니다"
   },
