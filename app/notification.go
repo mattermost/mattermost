@@ -622,12 +622,12 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 }
 
 func (a *App) userAllowsEmail(user *model.User, channelMemberNotificationProps model.StringMap, post *model.Post) bool {
-	userAllowsEmails := user.NotifyProps[model.EmailNotifyProp] != "false"
-
 	// if user is a bot account, then we do not send email
 	if user.IsBot {
 		return false
 	}
+
+	userAllowsEmails := user.NotifyProps[model.EmailNotifyProp] != "false"
 
 	// if CRT is ON for user and the post is a reply disregard the channelEmail setting
 	if channelEmail, ok := channelMemberNotificationProps[model.EmailNotifyProp]; ok && !(a.IsCRTEnabledForUser(user.Id) && post.RootId != "") {
