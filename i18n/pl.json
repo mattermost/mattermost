@@ -9306,5 +9306,33 @@
   {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": "Odpowiedź SAML jest zbyt długa"
+  },
+  {
+    "id": "model.github_release_info.is_valid.id.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "Onboarding może być ukończony tylko przez administratora systemu."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "Nie udało się zdekodować kompletnego żądania."
+  },
+  {
+    "id": "app.admin.latest_version_unmarshal.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_set_cache.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_read_all.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_external_error.failure",
+    "translation": " "
   }
 ]
