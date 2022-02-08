@@ -2328,7 +2328,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(userID, teamID, threadID s
 		UpdateViewedTimestamp: false,
 		UpdateParticipants:    false,
 	}
-	tm, _, err := a.Srv().Store.Thread().MaintainMembership(userID, threadID, opts)
+	tm, newMembership, err := a.Srv().Store.Thread().MaintainMembership(userID, threadID, opts)
 	if err != nil {
 		return model.NewAppError("UpdateThreadFollowForUserFromChannelAdd", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2373,6 +2373,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(userID, teamID, threadID s
 		mlog.Warn("Failed to encode thread to JSON")
 	}
 	message.Add("thread", string(payload))
+	message.Add("new_thread", newMembership)
 
 	a.Publish(message)
 	return nil

@@ -2595,6 +2595,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 				}
 				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, channel.TeamId, "", userID, nil)
 				message.Add("thread", string(payload))
+				message.Add("new_thread", true)
 				a.Publish(message)
 			}
 		} else if !threadMembership.Following && followThread {
@@ -2671,6 +2672,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID st
 	}
 
 	if *a.Config().ServiceSettings.ThreadAutoFollow {
+		newMembership := false
 		threadMembership, sErr := a.Srv().Store.Thread().GetMembershipForUser(user.Id, threadId)
 		var errNotFound *store.ErrNotFound
 		if sErr != nil && !errors.As(sErr, &errNotFound) {
@@ -2685,7 +2687,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID st
 				UpdateViewedTimestamp: false,
 				UpdateParticipants:    false,
 			}
-			threadMembership, _, sErr = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, opts)
+			threadMembership, newMembership, sErr = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, opts)
 			if sErr != nil {
 				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, sErr.Error(), http.StatusInternalServerError)
 			}
@@ -2715,6 +2717,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID st
 			}
 			message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, channel.TeamId, "", userID, nil)
 			message.Add("thread", string(payload))
+			message.Add("new_thread", newMembership)
 			a.Publish(message)
 		}
 	}

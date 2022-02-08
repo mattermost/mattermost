@@ -5879,7 +5879,39 @@ func TestThreadSocketEvents(t *testing.T) {
 					if ev.EventType() == model.WebsocketEventThreadUpdated {
 						caught = true
 						var thread model.ThreadResponse
-						jsonErr := json.Unmarshal([]byte(ev.GetData()["thread"].(string)), &thread)
+						data := ev.GetData()
+						jsonErr := json.Unmarshal([]byte(data["thread"].(string)), &thread)
+						require.Equal(t, data["new_thread"], true)
+						require.NoError(t, jsonErr)
+						for _, p := range thread.Participants {
+							if p.Id != th.BasicUser.Id && p.Id != th.BasicUser2.Id {
+								require.Fail(t, "invalid participants")
+							}
+						}
+					}
+				case <-time.After(1 * time.Second):
+					return
+				}
+			}
+		}()
+		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadUpdated)
+	})
+
+	_, appErr = th.App.CreatePostAsUser(th.Context, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", UserId: th.BasicUser2.Id, RootId: rpost.Id}, th.Context.Session().Id, false)
+	require.Nil(t, appErr)
+
+	t.Run("Listed for update event 2", func(t *testing.T) {
+		var caught bool
+		func() {
+			for {
+				select {
+				case ev := <-userWSClient.EventChannel:
+					if ev.EventType() == model.WebsocketEventThreadUpdated {
+						caught = true
+						var thread model.ThreadResponse
+						data := ev.GetData()
+						jsonErr := json.Unmarshal([]byte(data["thread"].(string)), &thread)
+						require.Equal(t, data["new_thread"], false)
 						require.NoError(t, jsonErr)
 						for _, p := range thread.Participants {
 							if p.Id != th.BasicUser.Id && p.Id != th.BasicUser2.Id {
@@ -5908,7 +5940,7 @@ func TestThreadSocketEvents(t *testing.T) {
 					if ev.EventType() == model.WebsocketEventThreadFollowChanged {
 						caught = true
 						require.Equal(t, ev.GetData()["state"], false)
-						require.Equal(t, ev.GetData()["reply_count"], float64(1))
+						require.Equal(t, ev.GetData()["reply_count"], float64(2))
 					}
 				case <-time.After(1 * time.Second):
 					return

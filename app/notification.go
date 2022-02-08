@@ -199,6 +199,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	updateMentionChans := []chan *model.AppError{}
 	mentionAutofollowChans := []chan *model.AppError{}
 	threadParticipants := map[string]bool{post.UserId: true}
+	newParticipants := map[string]bool{}
 	participantMemberships := map[string]*model.ThreadMembership{}
 	membershipsMutex := &sync.Mutex{}
 	followersMutex := &sync.Mutex{}
@@ -249,6 +250,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					if membership != nil && !membership.Following {
 						membershipsMutex.Lock()
 						participantMemberships[userID] = membership
+						newParticipants[userID] = false
 						membershipsMutex.Unlock()
 						return
 					}
@@ -266,7 +268,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					UpdateViewedTimestamp: userID == post.UserId,
 					UpdateParticipants:    userID == post.UserId,
 				}
-				threadMembership, _, err := a.Srv().Store.Thread().MaintainMembership(userID, post.RootId, opts)
+				threadMembership, newMembership, err := a.Srv().Store.Thread().MaintainMembership(userID, post.RootId, opts)
 				if err != nil {
 					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, err.Error(), http.StatusInternalServerError)
 					return
@@ -281,6 +283,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 				membershipsMutex.Lock()
 				participantMemberships[userID] = threadMembership
+				newParticipants[userID] = newMembership
 				membershipsMutex.Unlock()
 
 				mac <- nil
@@ -626,6 +629,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 						mlog.Warn("Failed to encode thread to JSON")
 					}
 					message.Add("thread", string(payload))
+					message.Add("new_thread", bool(newParticipants[uid]))
 
 					a.Publish(message)
 				}
