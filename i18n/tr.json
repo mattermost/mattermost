@@ -9303,10 +9303,6 @@
     "translation": "Bu lisans portal üzerinden yenilenemez"
   },
   {
-    "id": "api.config.migrate_config_restricted.app_error",
-    "translation": "Kopya türü nedeniyle yapılandırma aktarımı kısıtlı."
-  },
-  {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": "SAML yanıtı çok uzun"
   },

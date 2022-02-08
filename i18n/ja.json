@@ -9294,9 +9294,5 @@
   {
     "id": "api.license.request_renewal_link.cannot_renew_on_cws",
     "translation": "ポータルでこのライセンスを更新することはできません"
-  },
-  {
-    "id": "api.config.migrate_config_restricted.app_error",
-    "translation": "インスタンス種別により、設定の移行が制限されています。"
   }
 ]

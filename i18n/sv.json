@@ -9303,10 +9303,6 @@
     "translation": "Det går inte att förnya licensen via portalen"
   },
   {
-    "id": "api.config.migrate_config_restricted.app_error",
-    "translation": "Migrering av konfiguration är begränsad på grund av typen på din instans."
-  },
-  {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": "SAML-svaret är för långt"
   },
