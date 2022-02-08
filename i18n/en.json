@@ -8364,6 +8364,10 @@
     "translation": "Name must be 1 to 64 lowercase alphanumeric characters."
   },
   {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "Name conflicts with existing system emoji name."
+  },
+  {
     "id": "model.emoji.update_at.app_error",
     "translation": "Update at must be a valid time."
   },
