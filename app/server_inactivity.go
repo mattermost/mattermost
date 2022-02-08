@@ -98,8 +98,7 @@ func (s *Server) doInactivityCheck() {
 func (s *Server) takeInactivityAction() {
 	siteURL := *s.Config().ServiceSettings.SiteURL
 	if siteURL == "" {
-		mlog.Error("SiteURL needs to be set to run inactivity job")
-		return
+		mlog.Warn("No SiteURL configured")
 	}
 
 	properties := map[string]interface{}{

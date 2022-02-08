@@ -779,6 +779,9 @@ func (es *Service) SendLicenseInactivityEmail(email, name, locale, siteURL strin
 	data.Props["Button"] = T("api.templates.server_inactivity_button")
 	data.Props["SupportEmail"] = "feedback@mattermost.com"
 	data.Props["ButtonURL"] = siteURL
+	data.Props["Channels"] = T("Channels")
+	data.Props["Playbooks"] = T("Playbooks")
+	data.Props["Boards"] = T("Boards")
 
 	body, err := es.templatesContainer.RenderToString("inactivity_body", data)
 	if err != nil {

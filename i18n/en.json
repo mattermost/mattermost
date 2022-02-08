@@ -8,6 +8,14 @@
     "translation": "August"
   },
   {
+    "id": "Boards",
+    "translation": "Boards"
+  },
+  {
+    "id": "Channels",
+    "translation": "Channels"
+  },
+  {
     "id": "December",
     "translation": "December"
   },
@@ -42,6 +50,10 @@
   {
     "id": "October",
     "translation": "October"
+  },
+  {
+    "id": "Playbooks",
+    "translation": "Playbooks"
   },
   {
     "id": "September",
