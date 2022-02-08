@@ -17,7 +17,7 @@ const GuestRolesCreationMigrationKey = "GuestRolesCreationMigrationComplete"
 const SystemConsoleRolesCreationMigrationKey = "SystemConsoleRolesCreationMigrationComplete"
 const ContentExtractionConfigDefaultTrueMigrationKey = "ContentExtractionConfigDefaultTrueMigrationComplete"
 const PlaybookRolesCreationMigrationKey = "PlaybookRolesCreationMigrationComplete"
-const FirstAdminCompleteSetupKey = "FirstAdminCompleteSetup"
+const FirstAdminSetupCompleteKey = "FirstAdminSetupComplete"
 
 // This function migrates the default built in roles from code/config to the database.
 func (a *App) DoAdvancedPermissionsMigration() {
@@ -435,7 +435,11 @@ func (s *Server) doPlaybooksRolesCreationMigration() {
 
 }
 
-func (s *Server) doFirstAdminCompleteSetupMigration() {
+// arbitrary choice, though if there is an longstanding installation with less than 10 messages
+// putthing the first admin through onboarding shouldn't be very disruptive
+const existingInstallationPostsThreshold = 10
+
+func (s *Server) doFirstAdminSetupCompleteMigration() {
 	// Don't run the migration until the flag is turned on.
 
 	if !s.Config().FeatureFlags.UseCaseOnboarding {
@@ -443,9 +447,10 @@ func (s *Server) doFirstAdminCompleteSetupMigration() {
 	}
 
 	// If the migration is already marked as completed, don't do it again.
-	if _, err := s.Store.System().GetByName(FirstAdminCompleteSetupKey); err == nil {
+	if _, err := s.Store.System().GetByName(FirstAdminSetupCompleteKey); err == nil {
 		return
 	}
+
 	teams, err := s.Store.Team().GetAll()
 	if err != nil {
 		// can not confirm that admin has started in this case.
@@ -458,8 +463,14 @@ func (s *Server) doFirstAdminCompleteSetupMigration() {
 		return
 	}
 
+	// if there are teams, then if this isn't a new installation, there should be posts
+	postCount, err := s.Store.Post().AnalyticsPostCount("", false, false)
+	if err != nil || postCount < existingInstallationPostsThreshold {
+		return
+	}
+
 	system := model.System{
-		Name:  FirstAdminCompleteSetupKey,
+		Name:  FirstAdminSetupCompleteKey,
 		Value: "true",
 	}
 
@@ -485,5 +496,5 @@ func (s *Server) doAppMigrations() {
 	}
 	s.doContentExtractionConfigDefaultTrueMigration()
 	s.doPlaybooksRolesCreationMigration()
-	s.doFirstAdminCompleteSetupMigration()
+	s.doFirstAdminSetupCompleteMigration()
 }
