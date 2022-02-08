@@ -4781,7 +4781,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -4793,7 +4793,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Wersja 78+"
+    "translation": "Wersja 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -9304,7 +9304,35 @@
     "translation": "Odnowienie tej licencji na portalu nie jest możliwe"
   },
   {
-    "id": "api.config.migrate_config_restricted.app_error",
-    "translation": "Migracja konfiguracji jest ograniczona ze względu na typ instancji."
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "Odpowiedź SAML jest zbyt długa"
+  },
+  {
+    "id": "model.github_release_info.is_valid.id.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "Onboarding może być ukończony tylko przez administratora systemu."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "Nie udało się zdekodować kompletnego żądania."
+  },
+  {
+    "id": "app.admin.latest_version_unmarshal.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_set_cache.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_read_all.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_external_error.failure",
+    "translation": " "
   }
 ]
