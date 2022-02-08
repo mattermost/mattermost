@@ -87,7 +87,7 @@ type Post struct {
 	// MessageSource will contain the message as submitted by the user if Message has been modified
 	// by Mattermost for presentation (e.g if an image proxy is being used). It should be used to
 	// populate edit boxes if present.
-	MessageSource string `json:"message_source,omitempty" db:"-"`
+	MessageSource string `json:"message_source,omitempty"`
 
 	Type          string          `json:"type"`
 	propsMu       sync.RWMutex    `db:"-"`       // Unexported mutex used to guard Post.Props.
@@ -95,16 +95,16 @@ type Post struct {
 	Hashtags      string          `json:"hashtags"`
 	Filenames     StringArray     `json:"-"` // Deprecated, do not use this field any more
 	FileIds       StringArray     `json:"file_ids,omitempty"`
-	PendingPostId string          `json:"pending_post_id" db:"-"`
+	PendingPostId string          `json:"pending_post_id"`
 	HasReactions  bool            `json:"has_reactions,omitempty"`
 	RemoteId      *string         `json:"remote_id,omitempty"`
 
 	// Transient data populated before sending a post to the client
-	ReplyCount   int64         `json:"reply_count" db:"-"`
-	LastReplyAt  int64         `json:"last_reply_at" db:"-"`
-	Participants []*User       `json:"participants" db:"-"`
-	IsFollowing  *bool         `json:"is_following,omitempty" db:"-"` // for root posts in collapsed thread mode indicates if the current user is following this thread
-	Metadata     *PostMetadata `json:"metadata,omitempty" db:"-"`
+	ReplyCount   int64         `json:"reply_count"`
+	LastReplyAt  int64         `json:"last_reply_at"`
+	Participants []*User       `json:"participants"`
+	IsFollowing  *bool         `json:"is_following,omitempty"` // for root posts in collapsed thread mode indicates if the current user is following this thread
+	Metadata     *PostMetadata `json:"metadata,omitempty"`
 }
 
 type PostEphemeral struct {

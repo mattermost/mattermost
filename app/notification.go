@@ -156,6 +156,9 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				if threadPost.Id == parentPostList.Order[0] && threadPost.IsFromOAuthBot() {
 					continue
 				}
+				if a.IsCRTEnabledForUser(profile.Id) {
+					continue
+				}
 				if profile.NotifyProps[model.CommentsNotifyProp] == model.CommentsNotifyAny || (profile.NotifyProps[model.CommentsNotifyProp] == model.CommentsNotifyRoot && threadPost.Id == parentPostList.Order[0]) {
 					mentionType := ThreadMention
 					if threadPost.Id == parentPostList.Order[0] {
@@ -216,11 +219,22 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		for id := range mentions.Mentions {
 			threadParticipants[id] = true
 		}
+
+		// sema is a counting semaphore to throttle the number of concurrent DB requests.
+		// A concurrency of 8 should be sufficient.
+		// We don't want to set a higher limit which can bring down the DB.
+		sema := make(chan struct{}, 8)
 		// for each mention, make sure to update thread autofollow (if enabled) and update increment mention count
 		for id := range threadParticipants {
 			mac := make(chan *model.AppError, 1)
+			// Get token.
+			sema <- struct{}{}
 			go func(userID string) {
-				defer close(mac)
+				defer func() {
+					close(mac)
+					// Release token.
+					<-sema
+				}()
 				mentionType, incrementMentions := mentions.Mentions[userID]
 				// if the user was not explicitly mentioned, check if they explicitly unfollowed the thread
 				if !incrementMentions {
