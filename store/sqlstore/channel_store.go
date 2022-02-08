@@ -3422,32 +3422,25 @@ func (s SqlChannelStore) SqlSearchForUserInTeam(userId string, teamId string, te
 	})
 }
 func (s SqlChannelStore) SquirrelSearchForUserInTeam(userId string, teamId string, term string, includeDeleted bool) (model.ChannelList, error) {
-	deleteFilter := "AND c.DeleteAt = 0"
-	if includeDeleted {
-		deleteFilter = ""
+
+	query := sq.Select("Channels.*").
+		From("Channels").
+		Join("PublicChannels c ON (c.Id = Channels.Id)").
+		Join("ChannelMembers cm ON (c.Id = cm.ChannelId)").
+		Where(sq.Eq{"c.TeamId": teamId})
+
+	if !includeDeleted {
+		query = query.Where(sq.Eq{"c.DeleteAt": 0})
 	}
 
-	return s.performSearch(`
-		SELECT
-			Channels.*
-		FROM
-			Channels
-		JOIN
-			PublicChannels c ON (c.Id = Channels.Id)
-        JOIN
-            ChannelMembers cm ON (c.Id = cm.ChannelId)
-		WHERE
-			c.TeamId = :TeamId
-        AND
-            cm.UserId = :UserId
-			`+deleteFilter+`
-			SEARCH_CLAUSE
-		ORDER BY c.DisplayName
-		LIMIT 100
-		`, term, map[string]interface{}{
-		"TeamId": teamId,
-		"UserId": userId,
-	})
+	if term != "" {
+		searchClause := s.squirrelSearchClause(term)
+		query = query.Where(searchClause)
+	}
+
+	query = query.OrderBy("c.DisplayName").Limit(100)
+
+	return s.squirrelPerformSearch(query, term)
 }
 func (s SqlChannelStore) SearchForUserInTeam(userId string, teamId string, term string, includeDeleted bool) (model.ChannelList, error) {
 	return s.SquirrelSearchForUserInTeam(userId, teamId, term, includeDeleted)
