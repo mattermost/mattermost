@@ -9305,5 +9305,21 @@
   {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": "SAML antwoord is te lang"
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "Onboarding kan alleen worden voltooid door een systeembeheerder."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "Het is niet gelukt om de volledige onboarding-request te decoderen."
+  },
+  {
+    "id": "app.admin.latest_version_read_all.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_external_error.failure",
+    "translation": " "
   }
 ]
