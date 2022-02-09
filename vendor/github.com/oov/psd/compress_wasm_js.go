@@ -1,3 +1,4 @@
+//go:build wasm && js
 // +build wasm,js
 
 package psd
