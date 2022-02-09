@@ -644,11 +644,11 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
 			}
 			if opts.UpdateViewedTimestamp {
 				membership.LastViewed = now
-			}
-			membership.LastUpdated = now
-			if opts.IncrementMentions {
+				membership.UnreadMentions = 0
+			} else if opts.IncrementMentions {
 				membership.UnreadMentions += 1
 			}
+			membership.LastUpdated = now
 			if _, err = s.updateMembership(trx, membership); err != nil {
 				return nil, err
 			}
@@ -847,5 +847,25 @@ func (s *SqlThreadStore) DeleteOrphanedRows(limit int) (deleted int64, err error
 		return
 	}
 	deleted = rpcDeleted + rptDeleted
+	return
+}
+
+// return number of unread replies for a single thread
+func (s *SqlThreadStore) GetThreadUnreadReplyCount(threadMembership *model.ThreadMembership) (unreadReplies int64, err error) {
+	query, args := s.getQueryBuilder().
+		Select("COUNT(Posts.Id)").
+		From("Posts").
+		Where(sq.And{
+			sq.Eq{"Posts.RootId": threadMembership.PostId},
+			sq.Gt{"Posts.CreateAt": threadMembership.LastViewed},
+			sq.Eq{"Posts.DeleteAt": 0},
+		}).MustSql()
+
+	err = s.GetReplicaX().Get(&unreadReplies, query, args...)
+
+	if err != nil {
+		return
+	}
+
 	return
 }
