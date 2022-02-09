@@ -213,11 +213,9 @@ func (e *fastGen) Reset() {
 // matchLen returns the maximum length.
 // 'a' must be the shortest of the two.
 func matchLen(a, b []byte) int {
-	b = b[:len(a)]
 	var checked int
 
 	for len(a) >= 8 {
-		b = b[:len(a)]
 		if diff := binary.LittleEndian.Uint64(a) ^ binary.LittleEndian.Uint64(b); diff != 0 {
 			return checked + (bits.TrailingZeros64(diff) >> 3)
 		}

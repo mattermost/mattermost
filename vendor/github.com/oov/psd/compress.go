@@ -34,7 +34,7 @@ func (cm CompressionMethod) Decode(dest []byte, r io.Reader, sizeHint int64, rec
 	case CompressionMethodRLE:
 		var width int
 		if depth == 1 {
-			width = (rect.Dx()+7)>>3
+			width = (rect.Dx() + 7) >> 3
 		} else {
 			width = rect.Dx()
 		}
