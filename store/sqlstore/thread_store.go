@@ -87,7 +87,7 @@ func (s *SqlThreadStore) Save(thread *model.Thread) (*model.Thread, error) {
 func (s *SqlThreadStore) Update(thread *model.Thread) (*model.Thread, error) {
 	jsonParticipants, err := json.Marshal(thread.Participants)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed marshalling thread participants")
+		return nil, errors.Wrap(err, "failed marshaling thread participants")
 	}
 	query, args, err := s.getQueryBuilder().
 		Update("Threads").
@@ -675,7 +675,7 @@ func (s *SqlThreadStore) DeleteMembershipForUser(userId string, postId string) e
 		return errors.Wrap(err, "threadmembership_tosql")
 	}
 	if _, err := s.GetMasterX().Exec(query, args...); err != nil {
-		return errors.Wrap(err, "failed to update thread membership")
+		return errors.Wrap(err, "failed to delete thread membership")
 	}
 
 	return nil
