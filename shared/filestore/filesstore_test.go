@@ -252,7 +252,6 @@ func (s *FileBackendTestSuite) TestListDirectory() {
 	b := []byte("test")
 	path1 := "19700101/" + randomString()
 	path2 := "19800101/" + randomString()
-	longPath := "19800102/this/is/a/way/too/long/path/for/this/function/to/handle" + randomString()
 
 	paths, err := s.backend.ListDirectory("19700101")
 	s.Nil(err)
@@ -263,10 +262,6 @@ func (s *FileBackendTestSuite) TestListDirectory() {
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 
 	written, err = s.backend.WriteFile(bytes.NewReader(b), path2)
-	s.Nil(err)
-	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
-
-	written, err = s.backend.WriteFile(bytes.NewReader(b), longPath)
 	s.Nil(err)
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 
@@ -339,7 +334,7 @@ func (s *FileBackendTestSuite) TestListDirectoryRecursively() {
 	if s.settings.DriverName == driverLocal {
 		paths, err = s.backend.ListDirectory("19800102")
 		s.Nil(err)
-		s.Len(paths, 0)
+		s.Len(paths, 1)
 	}
 
 	paths, err = s.backend.ListDirectoryRecursively("")
