@@ -132,9 +132,7 @@ func getPrettyDNForUser(displaySetting string, user *model.User) string {
 		if displayName == "" {
 			displayName = user.Username
 		}
-	case "username":
-		displayName = user.Username
-	default:
+	default: // the "username" case also falls under this one.
 		displayName = user.Username
 	}
 

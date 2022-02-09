@@ -98,7 +98,16 @@ func (api *API) graphQL(c *Context, w http.ResponseWriter, r *http.Request) {
 		params.Variables)
 
 	if len(response.Errors) > 0 {
-		mlog.Error("Error executing request", mlog.String("operation", params.OperationName),
+		logFunc := mlog.Error
+		for _, gqlErr := range response.Errors {
+			if gqlErr.Err != nil {
+				if appErr, ok := gqlErr.Err.(*model.AppError); ok && appErr.StatusCode < http.StatusInternalServerError {
+					logFunc = mlog.Debug
+					break
+				}
+			}
+		}
+		logFunc("Error executing request", mlog.String("operation", params.OperationName),
 			mlog.Array("errors", response.Errors))
 	}
 }
