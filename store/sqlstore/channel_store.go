@@ -431,84 +431,6 @@ type publicChannel struct {
 	Purpose     string `json:"purpose"`
 }
 
-// channelInternal is a struct without the db:"-" tags
-// which does not work with sqlx. This would be removed once we
-// move to the new migration system.
-type channelInternal struct {
-	Id                string
-	CreateAt          int64
-	UpdateAt          int64
-	DeleteAt          int64
-	TeamId            string
-	Type              model.ChannelType
-	DisplayName       string
-	Name              string
-	Header            string
-	Purpose           string
-	LastPostAt        int64
-	TotalMsgCount     int64
-	ExtraUpdateAt     int64
-	CreatorId         string
-	SchemeId          *string
-	Props             map[string]interface{}
-	GroupConstrained  *bool
-	Shared            *bool
-	TotalMsgCountRoot int64
-	PolicyId          *string
-	LastRootPostAt    int64
-}
-
-func (ci *channelInternal) ToModel() *model.Channel {
-	return &model.Channel{
-		Id:                ci.Id,
-		CreateAt:          ci.CreateAt,
-		UpdateAt:          ci.UpdateAt,
-		DeleteAt:          ci.DeleteAt,
-		TeamId:            ci.TeamId,
-		Type:              ci.Type,
-		DisplayName:       ci.DisplayName,
-		Name:              ci.Name,
-		Header:            ci.Header,
-		Purpose:           ci.Purpose,
-		LastPostAt:        ci.LastPostAt,
-		TotalMsgCount:     ci.TotalMsgCount,
-		ExtraUpdateAt:     ci.ExtraUpdateAt,
-		CreatorId:         ci.CreatorId,
-		SchemeId:          ci.SchemeId,
-		Props:             ci.Props,
-		GroupConstrained:  ci.GroupConstrained,
-		Shared:            ci.Shared,
-		TotalMsgCountRoot: ci.TotalMsgCountRoot,
-		PolicyID:          ci.PolicyId,
-		LastRootPostAt:    ci.LastRootPostAt,
-	}
-}
-
-type channelWithTeamDataInternal struct {
-	channelInternal
-	TeamDisplayName string
-	TeamName        string
-	TeamUpdateAt    int64
-}
-
-func (ctd *channelWithTeamDataInternal) ToModel() *model.ChannelWithTeamData {
-	res := &model.ChannelWithTeamData{
-		TeamDisplayName: ctd.TeamDisplayName,
-		TeamName:        ctd.TeamName,
-		TeamUpdateAt:    ctd.TeamUpdateAt,
-	}
-	res.Channel = *ctd.channelInternal.ToModel()
-	return res
-}
-
-func channelWithTeamDataSliceToModel(channels []*channelWithTeamDataInternal) model.ChannelListWithTeamData {
-	res := make(model.ChannelListWithTeamData, 0, len(channels))
-	for _, ch := range channels {
-		res = append(res, ch.ToModel())
-	}
-	return res
-}
-
 var allChannelMembersForUserCache = cache.NewLRU(cache.LRUOptions{
 	Size: AllChannelMembersForUserCacheSize,
 })
@@ -1283,13 +1205,13 @@ func (s SqlChannelStore) GetAllChannels(offset, limit int, opts store.ChannelSea
 		return nil, errors.Wrap(err, "failed to create query")
 	}
 
-	data := []*channelWithTeamDataInternal{}
+	data := model.ChannelListWithTeamData{}
 	err = s.GetReplicaX().Select(&data, queryString, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get all channels")
 	}
 
-	return channelWithTeamDataSliceToModel(data), nil
+	return data, nil
 }
 
 func (s SqlChannelStore) GetAllChannelsCount(opts store.ChannelSearchOpts) (int64, error) {
@@ -1316,7 +1238,7 @@ func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCo
 	} else {
 		selectStr = "c.*, Teams.DisplayName AS TeamDisplayName, Teams.Name AS TeamName, Teams.UpdateAt AS TeamUpdateAt"
 		if opts.IncludePolicyID {
-			selectStr += ", RetentionPoliciesChannels.PolicyId"
+			selectStr += ", RetentionPoliciesChannels.PolicyId AS PolicyID"
 		}
 	}
 
@@ -3222,7 +3144,7 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 			selectStr += ", t.DisplayName AS TeamDisplayName, t.Name AS TeamName, t.UpdateAt as TeamUpdateAt"
 		}
 		if opts.IncludePolicyID {
-			selectStr += ", RetentionPoliciesChannels.PolicyId"
+			selectStr += ", RetentionPoliciesChannels.PolicyId AS PolicyID"
 		}
 	}
 
@@ -3314,7 +3236,7 @@ func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearch
 	if err != nil {
 		return nil, 0, errors.Wrap(err, "channel_tosql")
 	}
-	channels := []*channelWithTeamDataInternal{}
+	channels := model.ChannelListWithTeamData{}
 	if err2 := s.GetReplicaX().Select(&channels, queryString, args...); err2 != nil {
 		return nil, 0, errors.Wrapf(err2, "failed to find Channels with term='%s'", term)
 	}
@@ -3335,7 +3257,7 @@ func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearch
 		totalCount = int64(len(channels))
 	}
 
-	return channelWithTeamDataSliceToModel(channels), totalCount, nil
+	return channels, totalCount, nil
 }
 
 // TODO: rewrite in squrrel
