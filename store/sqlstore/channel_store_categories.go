@@ -447,7 +447,7 @@ func (s SqlChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCa
 	}
 
 	if _, err = s.GetReplica().Select(&categories, sql, args...); err != nil {
-		return nil, errors.Wrap(err, "hello error")
+		return nil, store.NewErrNotFound("SidebarCategories", categoryId)
 	}
 
 	if len(categories) == 0 {
@@ -487,7 +487,7 @@ func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId, teamId str
 	}
 
 	if err := db.Select(&categories, query, args...); err != nil {
-		return nil, errors.Wrap(err, "hello error")
+		return nil, store.NewErrNotFound("SidebarCategories", fmt.Sprintf("userId=%s,teamId=%s", userId, teamId))
 	}
 
 	for _, category := range categories {
