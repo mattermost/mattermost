@@ -74,6 +74,24 @@ func (key tsigHMACProvider) Verify(msg []byte, t *TSIG) error {
 	return nil
 }
 
+type tsigSecretProvider map[string]string
+
+func (ts tsigSecretProvider) Generate(msg []byte, t *TSIG) ([]byte, error) {
+	key, ok := ts[t.Hdr.Name]
+	if !ok {
+		return nil, ErrSecret
+	}
+	return tsigHMACProvider(key).Generate(msg, t)
+}
+
+func (ts tsigSecretProvider) Verify(msg []byte, t *TSIG) error {
+	key, ok := ts[t.Hdr.Name]
+	if !ok {
+		return ErrSecret
+	}
+	return tsigHMACProvider(key).Verify(msg, t)
+}
+
 // TSIG is the RR the holds the transaction signature of a message.
 // See RFC 2845 and RFC 4635.
 type TSIG struct {
@@ -162,20 +180,29 @@ func tsigGenerateProvider(m *Msg, provider TsigProvider, requestMAC string, time
 	if err != nil {
 		return nil, "", err
 	}
+
 	buf, err := tsigBuffer(mbuf, rr, requestMAC, timersOnly)
 	if err != nil {
 		return nil, "", err
 	}
 
 	t := new(TSIG)
-	// Copy all TSIG fields except MAC and its size, which are filled using the computed digest.
+	// Copy all TSIG fields except MAC, its size, and time signed which are filled when signing.
 	*t = *rr
-	mac, err := provider.Generate(buf, rr)
-	if err != nil {
-		return nil, "", err
+	t.TimeSigned = 0
+	t.MAC = ""
+	t.MACSize = 0
+
+	// Sign unless there is a key or MAC validation error (RFC 8945 5.3.2)
+	if rr.Error != RcodeBadKey && rr.Error != RcodeBadSig {
+		mac, err := provider.Generate(buf, rr)
+		if err != nil {
+			return nil, "", err
+		}
+		t.TimeSigned = rr.TimeSigned
+		t.MAC = hex.EncodeToString(mac)
+		t.MACSize = uint16(len(t.MAC) / 2) // Size is half!
 	}
-	t.MAC = hex.EncodeToString(mac)
-	t.MACSize = uint16(len(t.MAC) / 2) // Size is half!
 
 	tbuf := make([]byte, Len(t))
 	off, err := PackRR(t, tbuf, 0, nil, false)

@@ -194,6 +194,20 @@ func (_m *Hooks) OnDeactivate() error {
 	return r0
 }
 
+// OnInstall provides a mock function with given fields: c, event
+func (_m *Hooks) OnInstall(c *plugin.Context, event model.OnInstallEvent) error {
+	ret := _m.Called(c, event)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*plugin.Context, model.OnInstallEvent) error); ok {
+		r0 = rf(c, event)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // OnPluginClusterEvent provides a mock function with given fields: c, ev
 func (_m *Hooks) OnPluginClusterEvent(c *plugin.Context, ev model.PluginClusterEvent) {
 	_m.Called(c, ev)

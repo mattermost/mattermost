@@ -73,6 +73,10 @@ A not-so-up-to-date-list-that-may-be-actually-current:
 * https://github.com/bodgit/tsig
 * https://github.com/v2fly/v2ray-core (test only)
 * https://kuma.io/
+* https://www.misaka.io/services/dns
+* https://ping.sx/dig
+* https://fleetdeck.io/
+* https://github.com/markdingo/autoreverse
 
 
 Send pull request if you want to be listed here.

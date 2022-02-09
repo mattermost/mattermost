@@ -17,6 +17,13 @@ This package provides various compression algorithms.
 
 # changelog
 
+* Jan 11, 2022 (v1.14.1)
+	* s2: Add stream index in [#462](https://github.com/klauspost/compress/pull/462)
+	* flate: Speed and efficiency improvements in [#439](https://github.com/klauspost/compress/pull/439) [#461](https://github.com/klauspost/compress/pull/461) [#455](https://github.com/klauspost/compress/pull/455) [#452](https://github.com/klauspost/compress/pull/452) [#458](https://github.com/klauspost/compress/pull/458)
+	* zstd: Performance improvement in [#420]( https://github.com/klauspost/compress/pull/420) [#456](https://github.com/klauspost/compress/pull/456) [#437](https://github.com/klauspost/compress/pull/437) [#467](https://github.com/klauspost/compress/pull/467) [#468](https://github.com/klauspost/compress/pull/468)
+	* zstd: add arm64 xxhash assembly in [#464](https://github.com/klauspost/compress/pull/464)
+	* Add garbled for binaries for s2 in [#445](https://github.com/klauspost/compress/pull/445)
+
 * Aug 30, 2021 (v1.13.5)
 	* gz/zlib/flate: Alias stdlib errors [#425](https://github.com/klauspost/compress/pull/425)
 	* s2: Add block support to commandline tools [#413](https://github.com/klauspost/compress/pull/413)
@@ -432,6 +439,13 @@ For more information see my blog post on [Fast Linear Time Compression](http://b
 
 This is implemented on Go 1.7 as "Huffman Only" mode, though not exposed for gzip.
 
+# Other packages
+
+Here are other packages of good quality and pure Go (no cgo wrappers or autoconverted code):
+
+* [github.com/pierrec/lz4](https://github.com/pierrec/lz4) - strong multithreaded LZ4 compression.
+* [github.com/cosnicolaou/pbzip2](https://github.com/cosnicolaou/pbzip2) - multithreaded bzip2 decompression.
+* [github.com/dsnet/compress](https://github.com/dsnet/compress) - brotli decompression, bzip2 writer.
 
 # license
 
