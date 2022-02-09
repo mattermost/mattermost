@@ -178,8 +178,18 @@ type TransportCredentials interface {
 //
 // This API is experimental.
 type Bundle interface {
+	// TransportCredentials returns the transport credentials from the Bundle.
+	//
+	// Implementations must return non-nil transport credentials. If transport
+	// security is not needed by the Bundle, implementations may choose to
+	// return insecure.NewCredentials().
 	TransportCredentials() TransportCredentials
+
+	// PerRPCCredentials returns the per-RPC credentials from the Bundle.
+	//
+	// May be nil if per-RPC credentials are not needed.
 	PerRPCCredentials() PerRPCCredentials
+
 	// NewWithMode should make a copy of Bundle, and switch mode. Modifying the
 	// existing Bundle may cause races.
 	//
