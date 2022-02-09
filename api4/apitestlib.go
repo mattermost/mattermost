@@ -835,12 +835,26 @@ func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 	}
 }
 
+func (th *TestHelper) UnlinkUserFromTeam(user *model.User, team *model.Team) {
+	err := th.App.RemoveUserFromTeam(th.Context, team.Id, user.Id, "")
+	if err != nil {
+		panic(err)
+	}
+}
+
 func (th *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
 	member, err := th.App.AddUserToChannel(user, channel, false)
 	if err != nil {
 		panic(err)
 	}
 	return member
+}
+
+func (th *TestHelper) RemoveUserFromChannel(user *model.User, channel *model.Channel) {
+	err := th.App.RemoveUserFromChannel(th.Context, user.Id, "", channel)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (th *TestHelper) GenerateTestEmail() string {
