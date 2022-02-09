@@ -1455,10 +1455,6 @@
     "translation": "Failed to migrate config store."
   },
   {
-    "id": "api.config.migrate_config_restricted.app_error",
-    "translation": "Config migration is restricted due to instance type."
-  },
-  {
     "id": "api.config.patch_config.diff.app_error",
     "translation": "Failed to diff configs"
   },
@@ -6076,6 +6072,14 @@
     "translation": "Encountered an error encoding JSON for the interactive dialog."
   },
   {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "Failed to decode the complete onboarding request."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "Onboarding can only be completed by a System Administrator."
+  },
+  {
     "id": "app.system.get.app_error",
     "translation": "We encountered an error finding the system properties."
   },
@@ -8358,6 +8362,10 @@
   {
     "id": "model.emoji.name.app_error",
     "translation": "Name must be 1 to 64 lowercase alphanumeric characters."
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "Name conflicts with existing system emoji name."
   },
   {
     "id": "model.emoji.update_at.app_error",

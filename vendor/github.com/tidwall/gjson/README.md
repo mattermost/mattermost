@@ -4,7 +4,9 @@
     width="240" height="78" border="0" alt="GJSON">
 <br>
 <a href="https://godoc.org/github.com/tidwall/gjson"><img src="https://img.shields.io/badge/api-reference-blue.svg?style=flat-square" alt="GoDoc"></a>
-<a href="http://tidwall.com/gjson-play"><img src="https://img.shields.io/badge/%F0%9F%8F%90-playground-9900cc.svg?style=flat-square" alt="GJSON Playground"></a>
+<a href="https://tidwall.com/gjson-play"><img src="https://img.shields.io/badge/%F0%9F%8F%90-playground-9900cc.svg?style=flat-square" alt="GJSON Playground"></a>
+<a href="SYNTAX.md"><img src="https://img.shields.io/badge/{}-syntax-33aa33.svg?style=flat-square" alt="GJSON Syntax"></a>
+	
 </p>
 
 <p align="center">get json values quickly</a></p>
@@ -13,6 +15,8 @@ GJSON is a Go package that provides a [fast](#performance) and [simple](#get-a-v
 It has features such as [one line retrieval](#get-a-value), [dot notation paths](#path-syntax), [iteration](#iterate-through-an-object-or-array), and [parsing json lines](#json-lines).
 
 Also check out [SJSON](https://github.com/tidwall/sjson) for modifying json, and the [JJ](https://github.com/tidwall/jj) command line tool.
+
+This README is a quick overview of how to use GJSON, for more information check out [GJSON Syntax](SYNTAX.md).
 
 Getting Started
 ===============
@@ -202,6 +206,9 @@ There are currently the following built-in modifiers:
 - `@join`: Joins multiple objects into a single object.
 - `@keys`: Returns an array of keys for an object.
 - `@values`: Returns an array of values for an object.
+- `@tostr`: Converts json to a string. Wraps a json string.
+- `@fromstr`: Converts a string from json. Unwraps a json string.
+- `@group`: Groups arrays of objects. See [e4fc67c](https://github.com/tidwall/gjson/commit/e4fc67c92aeebf2089fabc7872f010e340d105db).
 
 ### Modifier arguments
 

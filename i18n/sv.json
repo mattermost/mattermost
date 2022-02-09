@@ -61,7 +61,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -73,7 +73,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 78+"
+    "translation": "Version 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -9303,7 +9303,15 @@
     "translation": "Det går inte att förnya licensen via portalen"
   },
   {
-    "id": "api.config.migrate_config_restricted.app_error",
-    "translation": "Migrering av konfiguration är begränsad på grund av typen på din instans."
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "SAML-svaret är för långt"
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "Onboarding kan bara slutföras av systemadministratören."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "Misslyckades att tolka onboarding-anropet."
   }
 ]

@@ -431,84 +431,6 @@ type publicChannel struct {
 	Purpose     string `json:"purpose"`
 }
 
-// channelInternal is a struct without the db:"-" tags
-// which does not work with sqlx. This would be removed once we
-// move to the new migration system.
-type channelInternal struct {
-	Id                string
-	CreateAt          int64
-	UpdateAt          int64
-	DeleteAt          int64
-	TeamId            string
-	Type              model.ChannelType
-	DisplayName       string
-	Name              string
-	Header            string
-	Purpose           string
-	LastPostAt        int64
-	TotalMsgCount     int64
-	ExtraUpdateAt     int64
-	CreatorId         string
-	SchemeId          *string
-	Props             map[string]interface{}
-	GroupConstrained  *bool
-	Shared            *bool
-	TotalMsgCountRoot int64
-	PolicyId          *string
-	LastRootPostAt    int64
-}
-
-func (ci *channelInternal) ToModel() *model.Channel {
-	return &model.Channel{
-		Id:                ci.Id,
-		CreateAt:          ci.CreateAt,
-		UpdateAt:          ci.UpdateAt,
-		DeleteAt:          ci.DeleteAt,
-		TeamId:            ci.TeamId,
-		Type:              ci.Type,
-		DisplayName:       ci.DisplayName,
-		Name:              ci.Name,
-		Header:            ci.Header,
-		Purpose:           ci.Purpose,
-		LastPostAt:        ci.LastPostAt,
-		TotalMsgCount:     ci.TotalMsgCount,
-		ExtraUpdateAt:     ci.ExtraUpdateAt,
-		CreatorId:         ci.CreatorId,
-		SchemeId:          ci.SchemeId,
-		Props:             ci.Props,
-		GroupConstrained:  ci.GroupConstrained,
-		Shared:            ci.Shared,
-		TotalMsgCountRoot: ci.TotalMsgCountRoot,
-		PolicyID:          ci.PolicyId,
-		LastRootPostAt:    ci.LastRootPostAt,
-	}
-}
-
-type channelWithTeamDataInternal struct {
-	channelInternal
-	TeamDisplayName string
-	TeamName        string
-	TeamUpdateAt    int64
-}
-
-func (ctd *channelWithTeamDataInternal) ToModel() *model.ChannelWithTeamData {
-	res := &model.ChannelWithTeamData{
-		TeamDisplayName: ctd.TeamDisplayName,
-		TeamName:        ctd.TeamName,
-		TeamUpdateAt:    ctd.TeamUpdateAt,
-	}
-	res.Channel = *ctd.channelInternal.ToModel()
-	return res
-}
-
-func channelWithTeamDataSliceToModel(channels []*channelWithTeamDataInternal) model.ChannelListWithTeamData {
-	res := make(model.ChannelListWithTeamData, 0, len(channels))
-	for _, ch := range channels {
-		res = append(res, ch.ToModel())
-	}
-	return res
-}
-
 var allChannelMembersForUserCache = cache.NewLRU(cache.LRUOptions{
 	Size: AllChannelMembersForUserCacheSize,
 })
@@ -1084,37 +1006,105 @@ func (s SqlChannelStore) PermanentDeleteMembersByChannel(channelId string) error
 	return nil
 }
 
-func (s SqlChannelStore) GetChannels(teamId string, userId string, includeDeleted bool, lastDeleteAt int) (model.ChannelList, error) {
+func (s SqlChannelStore) GetChannels(teamId string, userId string, opts *model.ChannelSearchOpts) (model.ChannelList, error) {
 	query := s.getQueryBuilder().
-		Select("Channels.*").
-		From("Channels, ChannelMembers").
+		Select("ch.*").
+		From("Channels ch, ChannelMembers cm").
 		Where(
 			sq.And{
-				sq.Expr("Id = ChannelId"),
-				sq.Eq{"UserId": userId},
+				sq.Expr("ch.Id = cm.ChannelId"),
+				sq.Eq{"cm.UserId": userId},
 			},
 		).
-		OrderBy("DisplayName")
+		OrderBy("ch.DisplayName")
 
 	if teamId != "" {
 		query = query.Where(sq.Or{
-			sq.Eq{"TeamId": teamId},
-			sq.Eq{"TeamId": ""},
+			sq.Eq{"ch.TeamId": teamId},
+			sq.Eq{"ch.TeamId": ""},
 		})
 	}
 
-	if includeDeleted {
-		if lastDeleteAt != 0 {
+	if opts.IncludeDeleted {
+		if opts.LastDeleteAt != 0 {
 			// We filter by non-archived, and archived >= a timestamp.
 			query = query.Where(sq.Or{
-				sq.Eq{"DeleteAt": 0},
-				sq.GtOrEq{"DeleteAt": lastDeleteAt},
+				sq.Eq{"ch.DeleteAt": 0},
+				sq.GtOrEq{"ch.DeleteAt": opts.LastDeleteAt},
 			})
 		}
-		// If lastDeleteAt is not set, we include everything. That means no filter is needed.
+		// If opts.LastDeleteAt is not set, we include everything. That means no filter is needed.
 	} else {
 		// Don't include archived channels.
-		query = query.Where(sq.Eq{"DeleteAt": 0})
+		query = query.Where(sq.Eq{"ch.DeleteAt": 0})
+	}
+
+	if opts.LastUpdateAt > 0 {
+		query = query.Where(sq.GtOrEq{"ch.UpdateAt": opts.LastUpdateAt})
+	}
+
+	channels := model.ChannelList{}
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "getchannels_tosql")
+	}
+
+	err = s.GetReplicaX().Select(&channels, sql, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get channels with TeamId=%s and UserId=%s", teamId, userId)
+	}
+
+	if len(channels) == 0 {
+		return nil, store.NewErrNotFound("Channel", "userId="+userId)
+	}
+
+	return channels, nil
+}
+
+func (s SqlChannelStore) GetChannelsWithCursor(teamId string, userId string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, error) {
+	query := s.getQueryBuilder().
+		Select("ch.*").
+		From("Channels ch, ChannelMembers cm").
+		Where(
+			sq.And{
+				sq.Expr("ch.Id = cm.ChannelId"),
+				sq.Eq{"cm.UserId": userId},
+			},
+		).
+		OrderBy("ch.Id")
+
+	if opts.PerPage != nil {
+		// The limit is verified at the GraphQL layer.
+		query = query.Limit(uint64(*opts.PerPage))
+	}
+
+	if afterChannelID != "" {
+		query = query.Where(sq.Gt{"ch.Id": afterChannelID})
+	}
+
+	if teamId != "" {
+		query = query.Where(sq.Or{
+			sq.Eq{"ch.TeamId": teamId},
+			sq.Eq{"ch.TeamId": ""},
+		})
+	}
+
+	if opts.IncludeDeleted {
+		if opts.LastDeleteAt != 0 {
+			// We filter by non-archived, and archived >= a timestamp.
+			query = query.Where(sq.Or{
+				sq.Eq{"ch.DeleteAt": 0},
+				sq.GtOrEq{"ch.DeleteAt": opts.LastDeleteAt},
+			})
+		}
+		// If opts.LastDeleteAt is not set, we include everything. That means no filter is needed.
+	} else {
+		// Don't include archived channels.
+		query = query.Where(sq.Eq{"ch.DeleteAt": 0})
+	}
+
+	if opts.LastUpdateAt > 0 {
+		query = query.Where(sq.GtOrEq{"ch.UpdateAt": opts.LastUpdateAt})
 	}
 
 	channels := model.ChannelList{}
@@ -1215,13 +1205,13 @@ func (s SqlChannelStore) GetAllChannels(offset, limit int, opts store.ChannelSea
 		return nil, errors.Wrap(err, "failed to create query")
 	}
 
-	data := []*channelWithTeamDataInternal{}
+	data := model.ChannelListWithTeamData{}
 	err = s.GetReplicaX().Select(&data, queryString, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get all channels")
 	}
 
-	return channelWithTeamDataSliceToModel(data), nil
+	return data, nil
 }
 
 func (s SqlChannelStore) GetAllChannelsCount(opts store.ChannelSearchOpts) (int64, error) {
@@ -1248,7 +1238,7 @@ func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCo
 	} else {
 		selectStr = "c.*, Teams.DisplayName AS TeamDisplayName, Teams.Name AS TeamName, Teams.UpdateAt AS TeamUpdateAt"
 		if opts.IncludePolicyID {
-			selectStr += ", RetentionPoliciesChannels.PolicyId"
+			selectStr += ", RetentionPoliciesChannels.PolicyId AS PolicyID"
 		}
 	}
 
@@ -2363,7 +2353,6 @@ func (s SqlChannelStore) PermanentDeleteMembersByUser(userId string) error {
 	return nil
 }
 
-// TODO: convert to squirrel (https://github.com/mattermost/mattermost-server/issues/19332)
 func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, updateThreads bool) (map[string]int64, error) {
 	var threadsToUpdate []string
 	now := model.GetMillis()
@@ -2375,38 +2364,50 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 		}
 	}
 
-	keys, props := MapStringsToQueryParams(channelIds, "Channel")
-	props["UserId"] = userId
-
-	var lastPostAtTimes []struct {
+	lastPostAtTimes := []struct {
 		Id                string
 		LastPostAt        int64
 		TotalMsgCount     int64
 		TotalMsgCountRoot int64
-	}
+	}{}
 
-	query := `SELECT Id, LastPostAt, TotalMsgCount, TotalMsgCountRoot FROM Channels WHERE Id IN ` + keys
+	// We use the question placeholder format for both databases, because
+	// we replace that with the dollar format later on.
+	// It's needed to support the prefix CTE query. See: https://github.com/Masterminds/squirrel/issues/285.
+	query := sq.StatementBuilder.PlaceholderFormat(sq.Question).
+		Select("Id, LastPostAt, TotalMsgCount, TotalMsgCountRoot").
+		From("Channels").
+		Where(sq.Eq{"Id": channelIds})
+
 	// TODO: use a CTE for mysql too when version 8 becomes the minimum supported version.
 	if s.DriverName() == model.DatabaseDriverPostgres {
-		query = `WITH c AS ( ` + query + `),
-	updated AS (
-	UPDATE
-		ChannelMembers cm
-	SET
-		MentionCount = 0,
-		MentionCountRoot = 0,
-		MsgCount = greatest(cm.MsgCount, c.TotalMsgCount),
-		MsgCountRoot = greatest(cm.MsgCountRoot, c.TotalMsgCountRoot),
-		LastViewedAt = greatest(cm.LastViewedAt, c.LastPostAt),
-		LastUpdateAt = greatest(cm.LastViewedAt, c.LastPostAt)
-	FROM c
-		WHERE cm.UserId = :UserId
-		AND c.Id=cm.ChannelId
-)
-	SELECT Id, LastPostAt FROM c`
+		with := query.Prefix("WITH c AS (").Suffix(") ,")
+		update := sq.StatementBuilder.PlaceholderFormat(sq.Question).
+			Update("ChannelMembers cm").
+			Set("MentionCount", 0).
+			Set("MentionCountRoot", 0).
+			Set("MsgCount", sq.Expr("greatest(cm.MsgCount, c.TotalMsgCount)")).
+			Set("MsgCountRoot", sq.Expr("greatest(cm.MsgCountRoot, c.TotalMsgCountRoot)")).
+			Set("LastViewedAt", sq.Expr("greatest(cm.LastViewedAt, c.LastPostAt)")).
+			Set("LastUpdateAt", sq.Expr("greatest(cm.LastViewedAt, c.LastPostAt)")).
+			SuffixExpr(sq.Expr("FROM c WHERE cm.UserId = ? AND c.Id = cm.ChannelId", userId))
+		updateWrap := update.Prefix("updated AS (").Suffix(")")
+		query = with.SuffixExpr(updateWrap).Suffix("SELECT Id, LastPostAt FROM c")
 	}
 
-	_, err := s.GetMaster().Select(&lastPostAtTimes, query, props)
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "UpdateLastViewedAt_CTE_Tosql")
+	}
+
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		sql, err = sq.Dollar.ReplacePlaceholders(sql)
+		if err != nil {
+			return nil, errors.Wrap(err, "UpdateLastViewedAt_ReplacePlaceholders")
+		}
+	}
+
+	err = s.GetMasterX().Select(&lastPostAtTimes, sql, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find ChannelMembers data with userId=%s and channelId in %v", userId, channelIds)
 	}
@@ -2426,39 +2427,42 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 		return times, nil
 	}
 
-	msgCountQuery := ""
-	msgCountQueryRoot := ""
-	lastViewedQuery := ""
+	var msgCountQuery, msgCountQueryRoot, lastViewedQuery = sq.Case("ChannelId"), sq.Case("ChannelId"), sq.Case("ChannelId")
 
-	for index, t := range lastPostAtTimes {
+	for _, t := range lastPostAtTimes {
 		times[t.Id] = t.LastPostAt
 
-		props["msgCount"+strconv.Itoa(index)] = t.TotalMsgCount
-		msgCountQuery += fmt.Sprintf("WHEN :channelId%d THEN GREATEST(MsgCount, :msgCount%d) ", index, index)
+		msgCountQuery = msgCountQuery.When(
+			sq.Expr("?", t.Id),
+			sq.Expr("GREATEST(MsgCount, ?)", t.TotalMsgCount))
 
-		props["msgCountRoot"+strconv.Itoa(index)] = t.TotalMsgCountRoot
-		msgCountQueryRoot += fmt.Sprintf("WHEN :channelId%d THEN GREATEST(MsgCountRoot, :msgCountRoot%d) ", index, index)
+		msgCountQueryRoot = msgCountQueryRoot.When(
+			sq.Expr("?", t.Id),
+			sq.Expr("GREATEST(MsgCountRoot, ?)", t.TotalMsgCountRoot))
 
-		props["lastViewed"+strconv.Itoa(index)] = t.LastPostAt
-		lastViewedQuery += fmt.Sprintf("WHEN :channelId%d THEN GREATEST(LastViewedAt, :lastViewed%d) ", index, index)
-
-		props["channelId"+strconv.Itoa(index)] = t.Id
+		lastViewedQuery = lastViewedQuery.When(
+			sq.Expr("?", t.Id),
+			sq.Expr("GREATEST(LastViewedAt, ?)", t.LastPostAt))
 	}
 
-	updateQuery := `UPDATE
-			ChannelMembers
-		SET
-			MentionCount = 0,
-			MentionCountRoot = 0,
-			MsgCount = CASE ChannelId ` + msgCountQuery + ` END,
-			MsgCountRoot = CASE ChannelId ` + msgCountQueryRoot + ` END,
-			LastViewedAt = CASE ChannelId ` + lastViewedQuery + ` END,
-			LastUpdateAt = LastViewedAt
-		WHERE
-				UserId = :UserId
-				AND ChannelId IN ` + keys
+	updateQuery := s.getQueryBuilder().Update("ChannelMembers").
+		Set("MentionCount", 0).
+		Set("MentionCountRoot", 0).
+		Set("MsgCount", msgCountQuery).
+		Set("MsgCountRoot", msgCountQueryRoot).
+		Set("LastViewedAt", lastViewedQuery).
+		Set("LastUpdateAt", sq.Expr("LastViewedAt")).
+		Where(sq.Eq{
+			"UserId":    userId,
+			"ChannelId": channelIds,
+		})
 
-	if _, err := s.GetMaster().Exec(updateQuery, props); err != nil {
+	sql, args, err = updateQuery.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "UpdateLastViewedAt_Update_Tosql")
+	}
+
+	if _, err := s.GetMasterX().Exec(sql, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to update ChannelMembers with userId=%s and channelId in %v", userId, channelIds)
 	}
 
@@ -2768,6 +2772,56 @@ func (s SqlChannelStore) GetMembersForUser(teamId string, userId string) (model.
 	err := s.GetReplicaX().Select(&dbMembers, channelMembersForTeamWithSchemeSelectQuery+"WHERE ChannelMembers.UserId = ? AND (Teams.Id = ? OR Teams.Id = '' OR Teams.Id IS NULL)", userId, teamId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find ChannelMembers data with teamId=%s and userId=%s", teamId, userId)
+	}
+
+	return dbMembers.ToModel(), nil
+}
+
+func (s SqlChannelStore) GetMembersForUserWithCursor(userID, afterChannel, afterUser string, limit, lastUpdateAt int) (model.ChannelMembers, error) {
+	query := s.getQueryBuilder().
+		Select("ChannelMembers.*",
+			"TeamScheme.DefaultChannelGuestRole TeamSchemeDefaultGuestRole",
+			"TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole",
+			"TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole",
+			"ChannelScheme.DefaultChannelGuestRole ChannelSchemeDefaultGuestRole",
+			"ChannelScheme.DefaultChannelUserRole ChannelSchemeDefaultUserRole",
+			"ChannelScheme.DefaultChannelAdminRole ChannelSchemeDefaultAdminRole").
+		From("ChannelMembers").
+		InnerJoin("Channels ON ChannelMembers.ChannelId = Channels.Id").
+		LeftJoin("Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id").
+		LeftJoin("Teams ON Channels.TeamId = Teams.Id").
+		LeftJoin("Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id").
+		Where(sq.Eq{
+			"ChannelMembers.UserId": userID,
+			"Channels.DeleteAt":     0,
+		}).
+		OrderBy("ChannelId, UserId ASC").
+		// The limit is verified at the GraphQL layer.
+		Limit(uint64(limit))
+
+	if afterChannel != "" && afterUser != "" {
+		query = query.Where(sq.Or{
+			sq.Gt{"ChannelMembers.ChannelId": afterChannel},
+			sq.And{
+				sq.Eq{"ChannelMembers.ChannelId": afterChannel},
+				sq.Gt{"ChannelMembers.UserId": afterUser},
+			},
+		})
+	}
+
+	if lastUpdateAt != 0 {
+		query = query.Where(sq.GtOrEq{"ChannelMembers.LastUpdateAt": lastUpdateAt})
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "getMembersForUserWithCursor_tosql")
+	}
+
+	dbMembers := channelMemberWithSchemeRolesList{}
+	err = s.GetReplicaX().Select(&dbMembers, queryString, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find ChannelMembers data with userId=%s", userID)
 	}
 
 	return dbMembers.ToModel(), nil
@@ -3090,7 +3144,7 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 			selectStr += ", t.DisplayName AS TeamDisplayName, t.Name AS TeamName, t.UpdateAt as TeamUpdateAt"
 		}
 		if opts.IncludePolicyID {
-			selectStr += ", RetentionPoliciesChannels.PolicyId"
+			selectStr += ", RetentionPoliciesChannels.PolicyId AS PolicyID"
 		}
 	}
 
@@ -3182,7 +3236,7 @@ func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearch
 	if err != nil {
 		return nil, 0, errors.Wrap(err, "channel_tosql")
 	}
-	channels := []*channelWithTeamDataInternal{}
+	channels := model.ChannelListWithTeamData{}
 	if err2 := s.GetReplicaX().Select(&channels, queryString, args...); err2 != nil {
 		return nil, 0, errors.Wrapf(err2, "failed to find Channels with term='%s'", term)
 	}
@@ -3203,7 +3257,7 @@ func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearch
 		totalCount = int64(len(channels))
 	}
 
-	return channelWithTeamDataSliceToModel(channels), totalCount, nil
+	return channels, totalCount, nil
 }
 
 // TODO: rewrite in squrrel
@@ -3468,6 +3522,43 @@ func (s SqlChannelStore) GetMembersByChannelIds(channelIds []string, userId stri
 	}
 
 	return dbMembers.ToModel(), nil
+}
+
+func (s SqlChannelStore) GetMembersInfoByChannelIds(channelIDs []string) (map[string][]*model.User, error) {
+	query := s.getQueryBuilder().
+		Select("Channels.Id as ChannelId, Users.Id, Users.FirstName, Users.LastName, Users.Nickname, Users.Username").
+		From("ChannelMembers as cm").
+		Join("Channels ON cm.ChannelId = Channels.Id").
+		Join("Users ON cm.UserId = Users.Id").
+		Where(sq.Eq{
+			"Channels.Id":       channelIDs,
+			"Channels.DeleteAt": 0,
+		})
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "dm_gm_names_tosql")
+	}
+
+	res := []*struct {
+		model.User
+		ChannelId string
+	}{}
+
+	if err := s.GetReplicaX().Select(&res, sql, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to find channels display name")
+	}
+
+	if len(res) == 0 {
+		return nil, store.NewErrNotFound("User", fmt.Sprintf("%v", channelIDs))
+	}
+
+	userInfo := make(map[string][]*model.User)
+	for _, item := range res {
+		userInfo[item.ChannelId] = append(userInfo[item.ChannelId], &item.User)
+	}
+
+	return userInfo, nil
 }
 
 func (s SqlChannelStore) GetChannelsByScheme(schemeId string, offset int, limit int) (model.ChannelList, error) {

@@ -35,7 +35,7 @@ const (
 	TokenTypeTeamInvitation    = "team_invitation"
 	TokenTypeGuestInvitation   = "guest_invitation"
 	TokenTypeCWSAccess         = "cws_access_token"
-	PasswordRecoverExpiryTime  = 1000 * 60 * 60      // 1 hour
+	PasswordRecoverExpiryTime  = 1000 * 60 * 60 * 24 // 24 hours
 	InvitationExpiryTime       = 1000 * 60 * 60 * 48 // 48 hours
 	ImageProfilePixelDimension = 128
 )
@@ -868,7 +868,10 @@ func (a *App) invalidateUserChannelMembersCaches(userID string) *model.AppError 
 	}
 
 	for _, team := range teamsForUser {
-		channelsForUser, err := a.GetChannelsForTeamForUser(team.Id, userID, false, 0)
+		channelsForUser, err := a.GetChannelsForTeamForUser(team.Id, userID, &model.ChannelSearchOpts{
+			IncludeDeleted: false,
+			LastDeleteAt:   0,
+		})
 		if err != nil {
 			return err
 		}
@@ -1024,18 +1027,30 @@ func (a *App) UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.Us
 }
 
 func (a *App) sendUpdatedUserEvent(user model.User) {
+	// exclude event creator user from admin, member user broadcast
+	omitUsers := make(map[string]bool, 1)
+	omitUsers[user.Id] = true
+
+	// declare admin and unsanitized copy of user
 	adminCopyOfUser := user.DeepCopy()
+	unsanitizedCopyOfUser := user.DeepCopy()
+
 	a.SanitizeProfile(adminCopyOfUser, true)
-	adminMessage := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", nil)
+	adminMessage := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", omitUsers)
 	adminMessage.Add("user", adminCopyOfUser)
 	adminMessage.GetBroadcast().ContainsSensitiveData = true
 	a.Publish(adminMessage)
 
 	a.SanitizeProfile(&user, false)
-	message := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", omitUsers)
 	message.Add("user", &user)
 	message.GetBroadcast().ContainsSanitizedData = true
 	a.Publish(message)
+
+	// send unsanitized user to event creator
+	sourceUserMessage := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", unsanitizedCopyOfUser.Id, nil)
+	sourceUserMessage.Add("user", unsanitizedCopyOfUser)
+	a.Publish(sourceUserMessage)
 }
 
 func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError) {
@@ -1251,11 +1266,15 @@ func (a *App) UpdateHashedPassword(user *model.User, newHashedPassword string) *
 }
 
 func (a *App) ResetPasswordFromToken(userSuppliedTokenString, newPassword string) *model.AppError {
+	return a.resetPasswordFromToken(userSuppliedTokenString, newPassword, model.GetMillis())
+}
+
+func (a *App) resetPasswordFromToken(userSuppliedTokenString, newPassword string, nowMilli int64) *model.AppError {
 	token, err := a.GetPasswordRecoveryToken(userSuppliedTokenString)
 	if err != nil {
 		return err
 	}
-	if model.GetMillis()-token.CreateAt >= PasswordRecoverExpiryTime {
+	if nowMilli-token.CreateAt >= PasswordRecoverExpiryTime {
 		return model.NewAppError("resetPassword", "api.user.reset_password.link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
 

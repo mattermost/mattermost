@@ -14,8 +14,6 @@
 
 /*
 Package jaeger implements an OpenTracing (http://opentracing.io) Tracer.
-It is currently using Zipkin-compatible data model and can be directly
-itegrated with Zipkin backend (http://zipkin.io).
 
 For integration instructions please refer to the README:
 
