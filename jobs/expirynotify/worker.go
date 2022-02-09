@@ -12,7 +12,7 @@ const (
 	JobName = "ExpiryNotify"
 )
 
-func MakeWorker(jobServer *jobs.JobServer, notifySessionsExpired func() *model.AppError) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, notifySessionsExpired func() error) model.Worker {
 	isEnabled := func(cfg *model.Config) bool {
 		return *cfg.ServiceSettings.ExtendSessionLengthWithActivity
 	}
