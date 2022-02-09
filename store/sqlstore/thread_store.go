@@ -450,7 +450,7 @@ func (s *SqlThreadStore) MarkAllAsReadInChannels(userID string, channelIDs []str
 		Where(sq.Eq{"UserId": userID}).
 		Set("LastViewed", timestamp).
 		Set("UnreadMentions", 0).
-		Set("LastUpdated", timestamp).
+		Set("LastUpdated", model.GetMillis()).
 		ToSql()
 	if _, err := s.GetMaster().Exec(query, args...); err != nil {
 		return errors.Wrapf(err, "failed to update thread read state for user id=%s", userID)
@@ -477,7 +477,7 @@ func (s *SqlThreadStore) MarkAllAsRead(userId, teamId string) error {
 		Where(sq.Eq{"UserId": userId}).
 		Set("LastViewed", timestamp).
 		Set("UnreadMentions", 0).
-		Set("LastUpdated", timestamp).
+		Set("LastUpdated", model.GetMillis()).
 		ToSql()
 	if _, err := s.GetMaster().Exec(query, args...); err != nil {
 		return errors.Wrapf(err, "failed to update thread read state for user id=%s", userId)
@@ -492,7 +492,7 @@ func (s *SqlThreadStore) MarkAsRead(userId, threadId string, timestamp int64) er
 		Where(sq.Eq{"UserId": userId}).
 		Where(sq.Eq{"PostId": threadId}).
 		Set("LastViewed", timestamp).
-		Set("LastUpdated", timestamp).
+		Set("LastUpdated", model.GetMillis()).
 		ToSql()
 	if _, err := s.GetMaster().Exec(query, args...); err != nil {
 		return errors.Wrapf(err, "failed to update thread read state for user id=%s thread_id=%v", userId, threadId)
