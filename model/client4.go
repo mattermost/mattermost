@@ -7848,3 +7848,20 @@ func (c *Client4) GetAncillaryPermissions(subsectionPermissions []string) ([]str
 	json.NewDecoder(r.Body).Decode(&returnedPermissions)
 	return returnedPermissions, BuildResponse(r), nil
 }
+
+func (c *Client4) GetUsersWithInvalidEmails(page, perPage int) ([]*User, *Response, error) {
+	query := fmt.Sprintf("/invalid_emails?page=%v&per_page=%v", page, perPage)
+	r, err := c.DoAPIGet(c.usersRoute()+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list []*User
+	if r.StatusCode == http.StatusNotModified {
+		return list, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetUsers", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
+}

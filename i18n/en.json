@@ -4272,6 +4272,10 @@
     "translation": "Cannot retrieve users for an archived channel"
   },
   {
+    "id": "api.users.invalid_emails.enable_open_server.app_error",
+    "translation": " "
+  },
+  {
     "id": "api.web_socket.connect.upgrade.app_error",
     "translation": "Failed to upgrade websocket connection."
   },
