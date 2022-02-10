@@ -2502,8 +2502,6 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	assert.Equal(t, 0, errLine)
 
 	// Create a pinned message.
-	pinnedValue := true
-	creationTime := model.GetMillis()
 	data = LineImportWorkerData{
 		LineImportData{
 			Post: &PostImportData{
@@ -2511,16 +2509,17 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Channel:  &channelName,
 				User:     &user2.Username,
 				Message:  ptrStr("Pinned Message"),
-				CreateAt: &creationTime,
-				IsPinned: &pinnedValue,
+				CreateAt: ptrInt64(model.GetMillis()),
+				IsPinned: ptrBool(true),
 			},
 		},
 		1,
 	}
-	errLine, err = th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data, data2}, false)
+	errLine, err = th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 	assert.Nil(t, err)
+	assert.Equal(t, 0, errLine)
 
-	resultPosts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, creationTime)
+	resultPosts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, *data.Post.CreateAt)
 	assert.NoError(t, nErr, "Expected success.")
 	resultPost := resultPosts[0]
 	pinnedStatus := resultPost.IsPinned
@@ -3586,6 +3585,37 @@ func TestImportImportDirectPost(t *testing.T) {
 		assert.Equal(t, post.UserId, th.BasicUser.Id)
 	})
 
+	t.Run("Test with IsPinned", func(t *testing.T) {
+		pinnedValue := true
+		creationTime := model.GetMillis()
+		data := LineImportWorkerData{
+			LineImportData{
+				DirectPost: &DirectPostImportData{
+					ChannelMembers: &[]string{
+						th.BasicUser.Username,
+						th.BasicUser2.Username,
+					},
+					User:     ptrStr(th.BasicUser.Username),
+					Message:  ptrStr("Message with EditAt"),
+					CreateAt: &creationTime,
+					IsPinned: &pinnedValue,
+				},
+			},
+			1,
+		}
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, false)
+		require.Nil(t, err)
+		require.Equal(t, 0, errLine)
+		AssertAllPostsCount(t, th.App, initialPostCount, 8, "")
+
+		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
+		require.NoError(t, nErr)
+		require.Len(t, posts, 1)
+
+		post := posts[0]
+		assert.True(t, post.IsPinned)
+	})
+
 	// ------------------ Group Channel -------------------------
 
 	// Create the GROUP channel.
@@ -3836,7 +3866,7 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser2.Username,
 					},
 					User:     ptrStr(th.BasicUser.Username),
-					Message:  ptrStr("Message"),
+					Message:  ptrStr("Pinned Message"),
 					CreateAt: ptrInt64(model.GetMillis()),
 				},
 			},
@@ -4058,6 +4088,38 @@ func TestImportImportDirectPost(t *testing.T) {
 		importReply := (*data.DirectPost.Replies)[0]
 		replyBool := reply.Type != *importReply.Type || reply.Message != *importReply.Message || reply.CreateAt != *importReply.CreateAt || reply.EditAt != *importReply.EditAt || reply.UserId != th.BasicUser.Id
 		require.False(t, replyBool, "Post properties not as expected")
+	})
+
+	t.Run("Test with IsPinned", func(t *testing.T) {
+		pinnedValue := true
+		creationTime := model.GetMillis()
+		data := LineImportWorkerData{
+			LineImportData{
+				DirectPost: &DirectPostImportData{
+					ChannelMembers: &[]string{
+						th.BasicUser.Username,
+						th.BasicUser2.Username,
+						user3.Username,
+					},
+					User:     ptrStr(th.BasicUser.Username),
+					Message:  ptrStr("Pinned Message"),
+					CreateAt: &creationTime,
+					IsPinned: &pinnedValue,
+				},
+			},
+			1,
+		}
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, false)
+		require.Nil(t, err)
+		require.Equal(t, 0, errLine)
+		AssertAllPostsCount(t, th.App, initialPostCount, 13, "")
+
+		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
+		require.NoError(t, nErr)
+		require.Len(t, posts, 1)
+
+		post := posts[0]
+		assert.True(t, post.IsPinned)
 	})
 }
 
