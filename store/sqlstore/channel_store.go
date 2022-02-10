@@ -15,6 +15,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/logr/v2"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/cache"
@@ -1599,6 +1600,8 @@ func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int, userId
 
 	return channels, nil
 }
+
+var channelMembersForTeamWithSchemeSelectQuerySquirrel = sq.Select("*").From("ChannelMembers").InnerJoin("Channels ON ChannelMembers.ChannelId = Channels.Id").LeftJoin("Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id").LeftJoin("Teams ON Channels.TeamId = Teams.Id").LeftJoin("Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id")
 
 var channelMembersForTeamWithSchemeSelectQuery = `
 	SELECT
@@ -3500,10 +3503,19 @@ func (s SqlChannelStore) SearchGroupChannels(userId, term string) (model.Channel
 func (s SqlChannelStore) GetMembersByIds(channelId string, userIds []string) (model.ChannelMembers, error) {
 	var dbMembers channelMemberWithSchemeRolesList
 
-	keys, props := MapStringsToQueryParams(userIds, "User")
-	props["ChannelId"] = channelId
+	// keys, props := MapStringsToQueryParams(userIds, "User")
+	// props["ChannelId"] = channelId
 
-	if _, err := s.GetReplica().Select(&dbMembers, channelMembersForTeamWithSchemeSelectQuery+"WHERE ChannelMembers.ChannelId = :ChannelId AND ChannelMembers.UserId IN "+keys, props); err != nil {
+	queryByUserIds, args, err := channelMembersForTeamWithSchemeSelectQuerySquirrel.Where(sq.And{sq.Eq{"ChannelMembers.UserId": userIds}, sq.Eq{"ChannelMembers.ChannelId": channelId}}).ToSql()
+
+	mlog.Log(logr.Info, "prakhar")
+	mlog.Log(logr.Info, queryByUserIds)
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "squirrel error : failed to construct query :  ChannelMembers with channelId=%s and userId in %v", channelId, userIds)
+	}
+
+	if _, err = s.GetReplica().Select(&dbMembers, queryByUserIds, args); err != nil {
 		return nil, errors.Wrapf(err, "failed to find ChannelMembers with channelId=%s and userId in %v", channelId, userIds)
 	}
 
@@ -3514,10 +3526,36 @@ func (s SqlChannelStore) GetMembersByIds(channelId string, userIds []string) (mo
 func (s SqlChannelStore) GetMembersByChannelIds(channelIds []string, userId string) (model.ChannelMembers, error) {
 	var dbMembers channelMemberWithSchemeRolesList
 
-	keys, props := MapStringsToQueryParams(channelIds, "Channel")
-	props["UserId"] = userId
+	// keys, props := MapStringsToQueryParams(channelIds, "Channel")
+	// props["UserId"] = userId
 
-	if _, err := s.GetReplica().Select(&dbMembers, channelMembersForTeamWithSchemeSelectQuery+"WHERE ChannelMembers.UserId = :UserId AND ChannelMembers.ChannelId IN "+keys, props); err != nil {
+	// SELECT
+	// 	ChannelMembers.*,
+	// 	TeamScheme.DefaultChannelGuestRole TeamSchemeDefaultGuestRole,
+	// 	TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole,
+	// 	TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole,
+	// 	ChannelScheme.DefaultChannelGuestRole ChannelSchemeDefaultGuestRole,
+	// 	ChannelScheme.DefaultChannelUserRole ChannelSchemeDefaultUserRole,
+	// 	ChannelScheme.DefaultChannelAdminRole ChannelSchemeDefaultAdminRole
+	// FROM
+	// 	ChannelMembers
+	// INNER JOIN
+	// 	Channels ON ChannelMembers.ChannelId = Channels.Id
+	// LEFT JOIN
+	// 	Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id
+	// LEFT JOIN
+	// 	Teams ON Channels.TeamId = Teams.Id
+	// LEFT JOIN
+	// 	Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
+
+	// channelMembersForTeamWithSchemeSelectQuery+"WHERE ChannelMembers.UserId = :UserId AND ChannelMembers.ChannelId IN "+keys
+	queryByChannelIds, args, err := channelMembersForTeamWithSchemeSelectQuerySquirrel.Where(sq.And{sq.Eq{"ChannelMembers.UserId": userId}, sq.Eq{"ChannelMembers.ChannelId": channelIds}}).ToSql()
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "squirrel error : failed to construct query : ChannelMembers with userId=%s and channelId in %v", userId, channelIds)
+	}
+
+	if _, err := s.GetReplica().Select(&dbMembers, queryByChannelIds, args); err != nil {
 		return nil, errors.Wrapf(err, "failed to find ChannelMembers with userId=%s and channelId in %v", userId, channelIds)
 	}
 
