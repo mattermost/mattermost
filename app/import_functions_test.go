@@ -3866,7 +3866,7 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser2.Username,
 					},
 					User:     ptrStr(th.BasicUser.Username),
-					Message:  ptrStr("Pinned Message"),
+					Message:  ptrStr("Message"),
 					CreateAt: ptrInt64(model.GetMillis()),
 				},
 			},
