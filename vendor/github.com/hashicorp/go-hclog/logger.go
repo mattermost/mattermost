@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 )
 
 var (
@@ -212,12 +213,23 @@ type StandardLoggerOptions struct {
 	// [DEBUG] and strip it off before reapplying it.
 	InferLevels bool
 
+	// Indicate that some minimal parsing should be done on strings to try
+	// and detect their level and re-emit them while ignoring possible
+	// timestamp values in the beginning of the string.
+	// This supports the strings like [ERROR], [ERR] [TRACE], [WARN], [INFO],
+	// [DEBUG] and strip it off before reapplying it.
+	// The timestamp detection may result in false positives and incomplete
+	// string outputs.
+	InferLevelsWithTimestamp bool
+
 	// ForceLevel is used to force all output from the standard logger to be at
 	// the specified level. Similar to InferLevels, this will strip any level
 	// prefix contained in the logged string before applying the forced level.
 	// If set, this override InferLevels.
 	ForceLevel Level
 }
+
+type TimeFunction = func() time.Time
 
 // LoggerOptions can be used to configure a new logger.
 type LoggerOptions struct {
@@ -247,6 +259,9 @@ type LoggerOptions struct {
 
 	// The time format to use instead of the default
 	TimeFormat string
+
+	// A function which is called to get the time object that is formatted using `TimeFormat`
+	TimeFn TimeFunction
 
 	// Control whether or not to display the time at all. This is required
 	// because setting TimeFormat to empty assumes the default format.

@@ -4075,6 +4075,10 @@ func TestImportImportEmoji(t *testing.T) {
 
 	err = th.App.importEmoji(&data, false)
 	assert.Nil(t, err, "Second run should have succeeded apply mode")
+
+	data = EmojiImportData{Name: ptrStr("smiley"), Image: ptrStr(testImage)}
+	err = th.App.importEmoji(&data, false)
+	assert.Nil(t, err, "System emoji should not fail")
 }
 
 func TestImportAttachment(t *testing.T) {

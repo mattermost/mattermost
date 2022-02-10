@@ -1046,6 +1046,20 @@ func (_m *UserStore) InferSystemInstallDate() (int64, error) {
 	return r0, r1
 }
 
+// InsertUsers provides a mock function with given fields: users
+func (_m *UserStore) InsertUsers(users []*model.User) error {
+	ret := _m.Called(users)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func([]*model.User) error); ok {
+		r0 = rf(users)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // InvalidateProfileCacheForUser provides a mock function with given fields: userID
 func (_m *UserStore) InvalidateProfileCacheForUser(userID string) {
 	_m.Called(userID)

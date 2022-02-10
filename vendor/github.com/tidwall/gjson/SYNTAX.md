@@ -13,16 +13,16 @@ This document is designed to explain the structure of a GJSON Path through examp
 - [Dot vs Pipe](#dot-vs-pipe)
 - [Modifiers](#modifiers)
 - [Multipaths](#multipaths)
+- [Literals](#literals)
 
 The definitive implemenation is [github.com/tidwall/gjson](https://github.com/tidwall/gjson).  
 Use the [GJSON Playground](https://gjson.dev) to experiment with the syntax online.
-
 
 ## Path structure
 
 A GJSON Path is intended to be easily expressed as a series of components seperated by a `.` character. 
 
-Along with `.` character, there are a few more that have special meaning, including `|`, `#`, `@`, `\`, `*`, and `?`.
+Along with `.` character, there are a few more that have special meaning, including `|`, `#`, `@`, `\`, `*`, `!`, and `?`.
 
 ## Example
 
@@ -77,7 +77,7 @@ Special purpose characters, such as `.`, `*`, and `?` can be escaped with `\`.
 fav\.movie             "Deer Hunter"
 ```
 
-You'll also need to make sure that the `\` character is correctly escaped when hardcoding a path in you source code.
+You'll also need to make sure that the `\` character is correctly escaped when hardcoding a path in your source code.
 
 ```go
 // Go
@@ -238,6 +238,9 @@ There are currently the following built-in modifiers:
 - `@join`: Joins multiple objects into a single object.
 - `@keys`: Returns an array of keys for an object.
 - `@values`: Returns an array of values for an object.
+- `@tostr`: Converts json to a string. Wraps a json string.
+- `@fromstr`: Converts a string from json. Unwraps a json string.
+- `@group`: Groups arrays of objects. See [e4fc67c](https://github.com/tidwall/gjson/commit/e4fc67c92aeebf2089fabc7872f010e340d105db).
 
 #### Modifier arguments
 
@@ -296,7 +299,7 @@ Starting with v1.3.0, GJSON added the ability to join multiple paths together
 to form new documents. Wrapping comma-separated paths between `[...]` or
 `{...}` will result in a new array or object, respectively.
 
-For example, using the given multipath 
+For example, using the given multipath:
 
 ```
 {name.first,age,"the_murphys":friends.#(last="Murphy")#.first}
@@ -312,8 +315,28 @@ determined, then "_" is used.
 
 This results in
 
-```
+```json
 {"first":"Tom","age":37,"the_murphys":["Dale","Jane"]}
 ```
 
+### Literals
 
+Starting with v1.12.0, GJSON added support of json literals, which provides a way for constructing static blocks of json. This is can be particularly useful when constructing a new json document using [multipaths](#multipaths).  
+
+A json literal begins with the '!' declaration character. 
+
+For example, using the given multipath:
+
+```
+{name.first,age,"company":!"Happysoft","employed":!true}
+```
+
+Here we selected the first name and age. Then add two new fields, "company" and "employed".
+
+This results in 
+
+```json
+{"first":"Tom","age":37,"company":"Happysoft","employed":true}
+```
+
+*See issue [#249](https://github.com/tidwall/gjson/issues/249) for additional context on JSON Literals.*

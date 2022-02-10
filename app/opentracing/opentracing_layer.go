@@ -1671,7 +1671,7 @@ func (a *OpenTracingAppLayer) CompleteOAuth(c *request.Context, service string, 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CompleteOnboarding(request *model.CompleteOnboardingRequest) *model.AppError {
+func (a *OpenTracingAppLayer) CompleteOnboarding(c *request.Context, request *model.CompleteOnboardingRequest) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CompleteOnboarding")
 
@@ -1683,7 +1683,7 @@ func (a *OpenTracingAppLayer) CompleteOnboarding(request *model.CompleteOnboardi
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.CompleteOnboarding(request)
+	resultVar0 := a.app.CompleteOnboarding(c, request)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

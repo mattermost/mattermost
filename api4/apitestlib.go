@@ -417,7 +417,10 @@ func (th *TestHelper) InitLogin() *TestHelper {
 	th.TeamAdminUser = userCache.TeamAdminUser.DeepCopy()
 	th.BasicUser = userCache.BasicUser.DeepCopy()
 	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
-	mainHelper.GetSQLStore().GetMaster().Insert(th.SystemAdminUser, th.TeamAdminUser, th.BasicUser, th.BasicUser2, th.SystemManagerUser)
+
+	users := []*model.User{th.SystemAdminUser, th.TeamAdminUser, th.BasicUser, th.BasicUser2, th.SystemManagerUser}
+	mainHelper.GetSQLStore().User().InsertUsers(users)
+
 	// restore non hashed password for login
 	th.SystemAdminUser.Password = "Pa$$word11"
 	th.TeamAdminUser.Password = "Pa$$word11"
@@ -832,12 +835,26 @@ func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 	}
 }
 
+func (th *TestHelper) UnlinkUserFromTeam(user *model.User, team *model.Team) {
+	err := th.App.RemoveUserFromTeam(th.Context, team.Id, user.Id, "")
+	if err != nil {
+		panic(err)
+	}
+}
+
 func (th *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
 	member, err := th.App.AddUserToChannel(user, channel, false)
 	if err != nil {
 		panic(err)
 	}
 	return member
+}
+
+func (th *TestHelper) RemoveUserFromChannel(user *model.User, channel *model.Channel) {
+	err := th.App.RemoveUserFromChannel(th.Context, user.Id, "", channel)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (th *TestHelper) GenerateTestEmail() string {

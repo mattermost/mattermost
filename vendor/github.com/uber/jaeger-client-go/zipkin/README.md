@@ -40,7 +40,7 @@ func main() {
 }
 ```
 
-If you'd like to follow the official guides from https://godoc.org/github.com/uber/jaeger-client-go/config#example-Configuration-InitGlobalTracer-Production, here is an example.
+If you'd like to follow the official guides from https://pkg.go.dev/github.com/uber/jaeger-client-go/config#example-Configuration-InitGlobalTracer-Production, here is an example.
 
 ```go
 import (

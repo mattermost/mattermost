@@ -470,6 +470,35 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 			require.NotNil(t, user)
 		}
 	})
+	t.Run("Get unread reply counts for thread", func(t *testing.T) {
+		newPosts := makeSomePosts()
+		opts := store.ThreadMembershipOpts{
+			Following:             true,
+			IncrementMentions:     false,
+			UpdateFollowing:       true,
+			UpdateViewedTimestamp: true,
+			UpdateParticipants:    false,
+		}
+
+		_, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
+		require.NoError(t, e)
+
+		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
+		require.NoError(t, err1)
+
+		unreads, err := ss.Thread().GetThreadUnreadReplyCount(m)
+		require.NoError(t, err)
+		require.Equal(t, int64(0), unreads)
+
+		err = ss.Thread().MarkAsRead(newPosts[0].UserId, newPosts[0].Id, newPosts[0].CreateAt)
+		require.NoError(t, err)
+		m, err = ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
+		require.NoError(t, err)
+
+		unreads, err = ss.Thread().GetThreadUnreadReplyCount(m)
+		require.NoError(t, err)
+		require.Equal(t, int64(2), unreads)
+	})
 }
 
 func testThreadSQLOperations(t *testing.T, ss store.Store, s SqlStore) {

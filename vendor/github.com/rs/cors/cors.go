@@ -65,6 +65,9 @@ type Options struct {
 	// OptionsPassthrough instructs preflight to let other potential next handlers to
 	// process the OPTIONS method. Turn this on if your application handles OPTIONS.
 	OptionsPassthrough bool
+	// Provides a status code to use for successful OPTIONS requests.
+	// Default value is http.StatusNoContent (204).
+	OptionsSuccessStatus int
 	// Debugging flag adds additional output to debug server side CORS issues
 	Debug bool
 }
@@ -97,8 +100,10 @@ type Cors struct {
 	allowedOriginsAll bool
 	// Set to true when allowed headers contains a "*"
 	allowedHeadersAll bool
-	allowCredentials  bool
-	optionPassthrough bool
+	// Status code to use for successful OPTIONS requests
+	optionsSuccessStatus int
+	allowCredentials     bool
+	optionPassthrough    bool
 }
 
 // New creates a new Cors handler with the provided options.
@@ -171,6 +176,13 @@ func New(options Options) *Cors {
 		c.allowedMethods = convert(options.AllowedMethods, strings.ToUpper)
 	}
 
+	// Options Success Status Code
+	if options.OptionsSuccessStatus == 0 {
+		c.optionsSuccessStatus = http.StatusNoContent
+	} else {
+		c.optionsSuccessStatus = options.OptionsSuccessStatus
+	}
+
 	return c
 }
 
@@ -211,7 +223,7 @@ func (c *Cors) Handler(h http.Handler) http.Handler {
 			if c.optionPassthrough {
 				h.ServeHTTP(w, r)
 			} else {
-				w.WriteHeader(http.StatusNoContent)
+				w.WriteHeader(c.optionsSuccessStatus)
 			}
 		} else {
 			c.logf("Handler: Actual request")
@@ -226,6 +238,8 @@ func (c *Cors) HandlerFunc(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodOptions && r.Header.Get("Access-Control-Request-Method") != "" {
 		c.logf("HandlerFunc: Preflight request")
 		c.handlePreflight(w, r)
+
+		w.WriteHeader(c.optionsSuccessStatus)
 	} else {
 		c.logf("HandlerFunc: Actual request")
 		c.handleActualRequest(w, r)
@@ -244,7 +258,7 @@ func (c *Cors) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.Handl
 		if c.optionPassthrough {
 			next(w, r)
 		} else {
-			w.WriteHeader(http.StatusNoContent)
+			w.WriteHeader(c.optionsSuccessStatus)
 		}
 	} else {
 		c.logf("ServeHTTP: Actual request")
