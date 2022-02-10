@@ -807,7 +807,7 @@ func upgradeDatabaseToVersion630(sqlStore *SqlStore) {
 }
 
 func upgradeDatabaseToVersion640(sqlStore *SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, Version640, Version650) {
-	// 	saveSchemaVersion(sqlStore, Version650)
-	// }
+	if shouldPerformUpgrade(sqlStore, Version630, Version640) {
+		saveSchemaVersion(sqlStore, Version640)
+	}
 }
