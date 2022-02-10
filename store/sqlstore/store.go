@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	dbsql "database/sql"
 	"fmt"
+	"log"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -27,7 +28,6 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
-	_ "github.com/lib/pq"
 	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
 
@@ -1012,7 +1012,11 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 		return err
 	}
 
-	engine, err := morph.New(context.Background(), driver, src, morph.WithLock("mm-lock-key"))
+	opts := []morph.EngineOption{
+		morph.WithLogger(log.New(newMorphWriter(), "", log.Lshortfile),),
+		morph.WithLock("mm-lock-key"),
+	}
+	engine, err := morph.New(context.Background(), driver, src, opts...)
 	if err != nil {
 		return err
 	}
