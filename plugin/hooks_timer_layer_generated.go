@@ -200,3 +200,9 @@ func (hooks *hooksTimerLayer) OnInstall(c *Context, event model.OnInstallEvent) 
 	hooks.recordTime(startTime, "OnInstall", _returnsA == nil)
 	return _returnsA
 }
+
+func (hooks *hooksTimerLayer) OnSendDailyTelemetry() {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.OnSendDailyTelemetry()
+	hooks.recordTime(startTime, "OnSendDailyTelemetry", true)
+}

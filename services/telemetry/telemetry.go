@@ -902,6 +902,11 @@ func (ts *TelemetryService) trackPlugins() {
 		"plugins_with_settings":         settingsCount,
 		"plugins_with_broken_manifests": brokenManifestCount,
 	})
+
+	pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		hooks.OnSendDailyTelemetry()
+		return true
+	}, plugin.OnSendDailyTelemetryID)
 }
 
 func (ts *TelemetryService) trackServer() {
