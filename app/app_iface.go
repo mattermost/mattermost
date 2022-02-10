@@ -785,6 +785,7 @@ type AppIface interface {
 	GetUsersNotInTeamEtag(teamID string, restrictionsHash string) string
 	GetUsersNotInTeamPage(teamID string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
+	GetUsersWithInvalidEmails(page int, perPage int) ([]*model.User, *model.AppError)
 	GetUsersWithoutTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError)
 	GetUsersWithoutTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
 	GetVerifyEmailToken(token string) (*model.Token, *model.AppError)

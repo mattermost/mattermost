@@ -2440,6 +2440,15 @@ func (a *App) UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID
 	return thread, nil
 }
 
+func (a *App) GetUsersWithInvalidEmails(page int, perPage int) ([]*model.User, *model.AppError) {
+	users, err := a.Srv().Store.User().GetUsersWithInvalidEmails(page, perPage, *a.Config().TeamSettings.RestrictCreationToDomains)
+	if err != nil {
+		return nil, model.NewAppError("GetUsersPage", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return users, nil
+}
+
 func getProfileImagePath(userID string) string {
 	return filepath.Join("users", userID, "profile.png")
 }
