@@ -2501,9 +2501,34 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, errLine)
 
+	// Create a pinned message.
+	pinnedValue := true
+	creationTime := model.GetMillis()
+	data = LineImportWorkerData{
+		LineImportData{
+			Post: &PostImportData{
+				Team:     &teamName,
+				Channel:  &channelName,
+				User:     &user2.Username,
+				Message:  ptrStr("Pinned Message"),
+				CreateAt: &creationTime,
+				IsPinned: &pinnedValue,
+			},
+		},
+		1,
+	}
+	errLine, err = th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data, data2}, false)
+	assert.Nil(t, err)
+
+	resultPosts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, creationTime)
+	assert.NoError(t, nErr, "Expected success.")
+	resultPost := resultPosts[0]
+	pinnedStatus := resultPost.IsPinned
+	require.True(t, pinnedStatus, "This post should be pinned.")
+
 	// Posts should be added to the right team
 	AssertAllPostsCount(t, th.App, initialPostCountForTeam2, 1, team2.Id)
-	AssertAllPostsCount(t, th.App, initialPostCount, 14, team.Id)
+	AssertAllPostsCount(t, th.App, initialPostCount, 15, team.Id)
 }
 
 func TestImportImportPost(t *testing.T) {
