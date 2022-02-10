@@ -1396,7 +1396,6 @@ func (a *App) importMultiplePostLines(c *request.Context, lines []LineImportWork
 		post.Message = *line.Post.Message
 		post.UserId = user.Id
 		post.CreateAt = *line.Post.CreateAt
-		post.IsPinned = *line.Post.IsPinned
 		post.Hashtags, _ = model.ParseHashtags(post.Message)
 
 		if line.Post.Type != nil {
@@ -1407,6 +1406,9 @@ func (a *App) importMultiplePostLines(c *request.Context, lines []LineImportWork
 		}
 		if line.Post.Props != nil {
 			post.Props = *line.Post.Props
+		}
+		if line.Post.IsPinned != nil {
+			post.IsPinned = *line.Post.IsPinned
 		}
 
 		fileIDs := a.uploadAttachments(c, line.Post.Attachments, post, team.Id)
@@ -1705,7 +1707,6 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 		post.Message = *line.DirectPost.Message
 		post.UserId = user.Id
 		post.CreateAt = *line.DirectPost.CreateAt
-		post.IsPinned = *line.DirectPost.IsPinned
 		post.Hashtags, _ = model.ParseHashtags(post.Message)
 
 		if line.DirectPost.Type != nil {
@@ -1716,6 +1717,9 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 		}
 		if line.DirectPost.Props != nil {
 			post.Props = *line.DirectPost.Props
+		}
+		if line.Post.IsPinned != nil {
+			post.IsPinned = *line.Post.IsPinned
 		}
 
 		fileIDs := a.uploadAttachments(c, line.DirectPost.Attachments, post, "noteam")
