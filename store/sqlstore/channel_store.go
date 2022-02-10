@@ -15,7 +15,6 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/logr/v2"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/cache"
@@ -3503,13 +3502,7 @@ func (s SqlChannelStore) SearchGroupChannels(userId, term string) (model.Channel
 func (s SqlChannelStore) GetMembersByIds(channelId string, userIds []string) (model.ChannelMembers, error) {
 	var dbMembers channelMemberWithSchemeRolesList
 
-	// keys, props := MapStringsToQueryParams(userIds, "User")
-	// props["ChannelId"] = channelId
-
 	queryByUserIds, args, err := channelMembersForTeamWithSchemeSelectQuerySquirrel.Where(sq.And{sq.Eq{"ChannelMembers.UserId": userIds}, sq.Eq{"ChannelMembers.ChannelId": channelId}}).ToSql()
-
-	mlog.Log(logr.Info, "prakhar")
-	mlog.Log(logr.Info, queryByUserIds)
 
 	if err != nil {
 		return nil, errors.Wrapf(err, "squirrel error : failed to construct query :  ChannelMembers with channelId=%s and userId in %v", channelId, userIds)
@@ -3525,28 +3518,6 @@ func (s SqlChannelStore) GetMembersByIds(channelId string, userIds []string) (mo
 // TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19336)
 func (s SqlChannelStore) GetMembersByChannelIds(channelIds []string, userId string) (model.ChannelMembers, error) {
 	var dbMembers channelMemberWithSchemeRolesList
-
-	// keys, props := MapStringsToQueryParams(channelIds, "Channel")
-	// props["UserId"] = userId
-
-	// SELECT
-	// 	ChannelMembers.*,
-	// 	TeamScheme.DefaultChannelGuestRole TeamSchemeDefaultGuestRole,
-	// 	TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole,
-	// 	TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole,
-	// 	ChannelScheme.DefaultChannelGuestRole ChannelSchemeDefaultGuestRole,
-	// 	ChannelScheme.DefaultChannelUserRole ChannelSchemeDefaultUserRole,
-	// 	ChannelScheme.DefaultChannelAdminRole ChannelSchemeDefaultAdminRole
-	// FROM
-	// 	ChannelMembers
-	// INNER JOIN
-	// 	Channels ON ChannelMembers.ChannelId = Channels.Id
-	// LEFT JOIN
-	// 	Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id
-	// LEFT JOIN
-	// 	Teams ON Channels.TeamId = Teams.Id
-	// LEFT JOIN
-	// 	Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
 
 	// channelMembersForTeamWithSchemeSelectQuery+"WHERE ChannelMembers.UserId = :UserId AND ChannelMembers.ChannelId IN "+keys
 	queryByChannelIds, args, err := channelMembersForTeamWithSchemeSelectQuerySquirrel.Where(sq.And{sq.Eq{"ChannelMembers.UserId": userId}, sq.Eq{"ChannelMembers.ChannelId": channelIds}}).ToSql()
