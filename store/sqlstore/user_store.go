@@ -2025,6 +2025,8 @@ func (us SqlUserStore) IsEmpty(excludeBots bool) (bool, error) {
 func (us SqlUserStore) GetUsersWithInvalidEmails(page int, perPage int, restrictedDomains string) ([]*model.User, error) {
 	domainArray := strings.Split(restrictedDomains, ",")
 	query := us.usersQuery.
+		LeftJoin("Bots ON u.Id = Bots.UserId").
+		Where("Bots.UserId IS NULL").
 		Where("u.Roles != 'system_guest'").
 		Where("u.DeleteAt = 0").
 		Where("(u.AuthService = '' OR u.AuthService IS NULL)")
