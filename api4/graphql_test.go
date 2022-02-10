@@ -22,7 +22,7 @@ func TestGraphQLPayload(t *testing.T) {
 
 	input := graphQLInput{
 		OperationName: "config",
-		Query: largeString,
+		Query:         largeString,
 	}
 
 	resp, err := th.MakeGraphQLRequest(&input)
