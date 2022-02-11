@@ -18,6 +18,7 @@
 package credentials
 
 import (
+	"bytes"
 	"encoding/hex"
 	"encoding/xml"
 	"errors"
@@ -184,11 +185,26 @@ func getAssumeRoleCredentials(clnt *http.Client, endpoint string, opts STSAssume
 	}
 	defer closeResponse(resp)
 	if resp.StatusCode != http.StatusOK {
-		return AssumeRoleResponse{}, errors.New(resp.Status)
+		var errResp ErrorResponse
+		buf, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return AssumeRoleResponse{}, err
+		}
+		_, err = xmlDecodeAndBody(bytes.NewReader(buf), &errResp)
+		if err != nil {
+			var s3Err Error
+			if _, err = xmlDecodeAndBody(bytes.NewReader(buf), &s3Err); err != nil {
+				return AssumeRoleResponse{}, err
+			}
+			errResp.RequestID = s3Err.RequestID
+			errResp.STSError.Code = s3Err.Code
+			errResp.STSError.Message = s3Err.Message
+		}
+		return AssumeRoleResponse{}, errResp
 	}
 
 	a := AssumeRoleResponse{}
-	if err = xml.NewDecoder(resp.Body).Decode(&a); err != nil {
+	if _, err = xmlDecodeAndBody(resp.Body, &a); err != nil {
 		return AssumeRoleResponse{}, err
 	}
 	return a, nil
