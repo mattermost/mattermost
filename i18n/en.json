@@ -3121,7 +3121,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Streamline your work with tools like Github, Jira and Zoom. Explore all of the integrations we have on our"
+    "translation": "Streamline your work with tools like GitHub, Jira and Zoom. Explore all of the integrations we have on our"
   },
   {
     "id": "api.templates.cloud_welcome_email.app_market_place",
@@ -3953,7 +3953,7 @@
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
-    "translation": "Error retreiving endpoint from Discovery Document."
+    "translation": "Error retrieving endpoint from Discovery Document."
   },
   {
     "id": "api.user.get_uploads_for_user.forbidden.app_error",
@@ -7461,7 +7461,7 @@
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": "Unable to migrate AD/LDAP users with specified field. Duplicate entry detected. Please remove all duplcates and try again."
+    "translation": "Unable to migrate AD/LDAP users with specified field. Duplicate entry detected. Please remove all duplicates and try again."
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
