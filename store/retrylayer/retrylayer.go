@@ -577,7 +577,7 @@ func (s *RetryLayerBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 
 }
 
-func (s *RetryLayerChannelStore) AnalyticsDeletedTypeCount(teamID string, channelType string) (int64, error) {
+func (s *RetryLayerChannelStore) AnalyticsDeletedTypeCount(teamID string, channelType model.ChannelType) (int64, error) {
 
 	tries := 0
 	for {
