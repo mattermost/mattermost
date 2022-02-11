@@ -1719,7 +1719,7 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 			post.Props = *line.DirectPost.Props
 		}
 		if line.DirectPost.IsPinned != nil {
-			post.IsPinned = *line.Post.IsPinned
+			post.IsPinned = *line.DirectPost.IsPinned
 		}
 
 		fileIDs := a.uploadAttachments(c, line.DirectPost.Attachments, post, "noteam")
