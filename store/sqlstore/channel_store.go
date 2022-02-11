@@ -618,14 +618,17 @@ func (s SqlChannelStore) upsertPublicChannelT(transaction *sqlxTxWrapper, channe
 			    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
 			VALUES
 			    (:id, :deleteat, :teamid, :displayname, :name, :header, :purpose)
-			ON DUPLICATE KEY UPDATE
-			    DeleteAt = :deleteat,
+		`, vals)
+		if err != nil && IsUniqueConstraintError(err, []string{"PRIMARY"}) {
+			_, err = transaction.NamedExec(`UPDATE PublicChannels
+				SET deleteAt = :deleteat,
 			    TeamId = :teamid,
 			    DisplayName = :displayname,
 			    Name = :name,
 			    Header = :header,
-			    Purpose = :purpose;
-		`, vals)
+			    Purpose = :purpose
+			    WHERE Id=:id`, vals)
+		}
 	} else {
 		_, err = transaction.NamedExec(`
 			INSERT INTO
