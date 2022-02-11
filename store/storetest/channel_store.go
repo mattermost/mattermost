@@ -6626,15 +6626,15 @@ func testChannelStoreAnalyticsDeletedTypeCount(t *testing.T, ss store.Store) {
 	}()
 
 	var openStartCount int64
-	openStartCount, nErr = ss.Channel().AnalyticsDeletedTypeCount("", model.ChannelTypeOpen)
+	openStartCount, nErr = ss.Channel().AnalyticsDeletedTypeCount("", "O")
 	require.NoError(t, nErr, nErr)
 
 	var privateStartCount int64
-	privateStartCount, nErr = ss.Channel().AnalyticsDeletedTypeCount("", model.ChannelTypePrivate)
+	privateStartCount, nErr = ss.Channel().AnalyticsDeletedTypeCount("", "P")
 	require.NoError(t, nErr, nErr)
 
 	var directStartCount int64
-	directStartCount, nErr = ss.Channel().AnalyticsDeletedTypeCount("", model.ChannelTypeDirect)
+	directStartCount, nErr = ss.Channel().AnalyticsDeletedTypeCount("", "D")
 	require.NoError(t, nErr, nErr)
 
 	nErr = ss.Channel().Delete(o1.Id, model.GetMillis())
@@ -6648,15 +6648,15 @@ func testChannelStoreAnalyticsDeletedTypeCount(t *testing.T, ss store.Store) {
 
 	var count int64
 
-	count, nErr = ss.Channel().AnalyticsDeletedTypeCount("", model.ChannelTypeOpen)
+	count, nErr = ss.Channel().AnalyticsDeletedTypeCount("", "O")
 	require.NoError(t, err, nErr)
 	assert.Equal(t, openStartCount+2, count, "Wrong open channel deleted count.")
 
-	count, nErr = ss.Channel().AnalyticsDeletedTypeCount("", model.ChannelTypePrivate)
+	count, nErr = ss.Channel().AnalyticsDeletedTypeCount("", "P")
 	require.NoError(t, nErr, nErr)
 	assert.Equal(t, privateStartCount+1, count, "Wrong private channel deleted count.")
 
-	count, nErr = ss.Channel().AnalyticsDeletedTypeCount("", model.ChannelTypeDirect)
+	count, nErr = ss.Channel().AnalyticsDeletedTypeCount("", "D")
 	require.NoError(t, nErr, nErr)
 	assert.Equal(t, directStartCount+1, count, "Wrong direct channel deleted count.")
 }

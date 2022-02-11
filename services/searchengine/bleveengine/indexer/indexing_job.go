@@ -200,7 +200,7 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 	}
 
 	// Same possible fail as above can happen when counting channels
-	if count, err := worker.jobServer.Store.Channel().AnalyticsTypeCount("", model.ChannelTypeOpen); err != nil {
+	if count, err := worker.jobServer.Store.Channel().AnalyticsTypeCount("", "O"); err != nil {
 		mlog.Warn("Worker: Failed to fetch total channel count for job. An estimated value will be used for progress reporting.", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
 		progress.TotalChannelsCount = EstimatedChannelCount
 	} else {

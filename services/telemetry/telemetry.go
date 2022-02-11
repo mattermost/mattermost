@@ -277,23 +277,23 @@ func (ts *TelemetryService) trackActivity() {
 		mlog.Info("Could not get team count", mlog.Err(err))
 	}
 
-	if ucc, err := ts.dbStore.Channel().AnalyticsTypeCount("", model.ChannelTypeOpen); err == nil {
+	if ucc, err := ts.dbStore.Channel().AnalyticsTypeCount("", "O"); err == nil {
 		publicChannelCount = ucc
 	}
 
-	if pcc, err := ts.dbStore.Channel().AnalyticsTypeCount("", model.ChannelTypePrivate); err == nil {
+	if pcc, err := ts.dbStore.Channel().AnalyticsTypeCount("", "P"); err == nil {
 		privateChannelCount = pcc
 	}
 
-	if dcc, err := ts.dbStore.Channel().AnalyticsTypeCount("", model.ChannelTypeDirect); err == nil {
+	if dcc, err := ts.dbStore.Channel().AnalyticsTypeCount("", "D"); err == nil {
 		directChannelCount = dcc
 	}
 
-	if duccr, err := ts.dbStore.Channel().AnalyticsDeletedTypeCount("", model.ChannelTypeOpen); err == nil {
+	if duccr, err := ts.dbStore.Channel().AnalyticsDeletedTypeCount("", "O"); err == nil {
 		deletedPublicChannelCount = duccr
 	}
 
-	if dpccr, err := ts.dbStore.Channel().AnalyticsDeletedTypeCount("", model.ChannelTypePrivate); err == nil {
+	if dpccr, err := ts.dbStore.Channel().AnalyticsDeletedTypeCount("", "P"); err == nil {
 		deletedPrivateChannelCount = dpccr
 	}
 
