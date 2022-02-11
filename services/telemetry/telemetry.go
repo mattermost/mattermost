@@ -277,23 +277,23 @@ func (ts *TelemetryService) trackActivity() {
 		mlog.Info("Could not get team count", mlog.Err(err))
 	}
 
-	if ucc, err := ts.dbStore.Channel().AnalyticsTypeCount("", "O"); err == nil {
+	if ucc, err := ts.dbStore.Channel().AnalyticsTypeCount("", model.ChannelTypeOpen); err == nil {
 		publicChannelCount = ucc
 	}
 
-	if pcc, err := ts.dbStore.Channel().AnalyticsTypeCount("", "P"); err == nil {
+	if pcc, err := ts.dbStore.Channel().AnalyticsTypeCount("", model.ChannelTypePrivate); err == nil {
 		privateChannelCount = pcc
 	}
 
-	if dcc, err := ts.dbStore.Channel().AnalyticsTypeCount("", "D"); err == nil {
+	if dcc, err := ts.dbStore.Channel().AnalyticsTypeCount("", model.ChannelTypeDirect); err == nil {
 		directChannelCount = dcc
 	}
 
-	if duccr, err := ts.dbStore.Channel().AnalyticsDeletedTypeCount("", "O"); err == nil {
+	if duccr, err := ts.dbStore.Channel().AnalyticsDeletedTypeCount("", model.ChannelTypeOpen); err == nil {
 		deletedPublicChannelCount = duccr
 	}
 
-	if dpccr, err := ts.dbStore.Channel().AnalyticsDeletedTypeCount("", "P"); err == nil {
+	if dpccr, err := ts.dbStore.Channel().AnalyticsDeletedTypeCount("", model.ChannelTypePrivate); err == nil {
 		deletedPrivateChannelCount = dpccr
 	}
 
@@ -903,6 +903,11 @@ func (ts *TelemetryService) trackPlugins() {
 		"plugins_with_settings":         settingsCount,
 		"plugins_with_broken_manifests": brokenManifestCount,
 	})
+
+	pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		hooks.OnSendDailyTelemetry()
+		return true
+	}, plugin.OnSendDailyTelemetryID)
 }
 
 func (ts *TelemetryService) trackServer() {

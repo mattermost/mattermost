@@ -87,6 +87,9 @@ const (
 	// minBlockSize is the minimum size of block setting when creating a writer.
 	minBlockSize = 4 << 10
 
+	skippableFrameHeader = 4
+	maxChunkSize         = 1<<24 - 1 // 16777215
+
 	// Default block size
 	defaultBlockSize = 1 << 20
 
@@ -99,6 +102,7 @@ const (
 const (
 	chunkTypeCompressedData   = 0x00
 	chunkTypeUncompressedData = 0x01
+	ChunkTypeIndex            = 0x99
 	chunkTypePadding          = 0xfe
 	chunkTypeStreamIdentifier = 0xff
 )

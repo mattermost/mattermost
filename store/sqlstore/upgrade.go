@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	CurrentSchemaVersion   = Version630
+	CurrentSchemaVersion   = Version640
 	Version640             = "6.4.0"
 	Version630             = "6.3.0"
 	Version620             = "6.2.0"
@@ -806,7 +806,7 @@ func upgradeDatabaseToVersion630(sqlStore *SqlStore) {
 }
 
 func upgradeDatabaseToVersion640(sqlStore *SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, Version630, Version640) {
-	// 	saveSchemaVersion(sqlStore, Version640)
-	// }
+	if shouldPerformUpgrade(sqlStore, Version630, Version640) {
+		saveSchemaVersion(sqlStore, Version640)
+	}
 }

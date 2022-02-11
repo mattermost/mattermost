@@ -113,6 +113,9 @@ func (k *Key) Value() string {
 // ValueWithShadows returns raw values of key and its shadows if any.
 func (k *Key) ValueWithShadows() []string {
 	if len(k.shadows) == 0 {
+		if k.value == "" {
+			return []string{}
+		}
 		return []string{k.value}
 	}
 	vals := make([]string, len(k.shadows)+1)

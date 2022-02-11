@@ -16,10 +16,12 @@
 package credentials
 
 import (
+	"bytes"
 	"crypto/tls"
 	"encoding/xml"
 	"errors"
 	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -149,7 +151,23 @@ func (i *STSCertificateIdentity) Retrieve() (Value, error) {
 		defer resp.Body.Close()
 	}
 	if resp.StatusCode != http.StatusOK {
-		return Value{}, errors.New(resp.Status)
+		var errResp ErrorResponse
+		buf, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return Value{}, err
+
+		}
+		_, err = xmlDecodeAndBody(bytes.NewReader(buf), &errResp)
+		if err != nil {
+			var s3Err Error
+			if _, err = xmlDecodeAndBody(bytes.NewReader(buf), &s3Err); err != nil {
+				return Value{}, err
+			}
+			errResp.RequestID = s3Err.RequestID
+			errResp.STSError.Code = s3Err.Code
+			errResp.STSError.Message = s3Err.Message
+		}
+		return Value{}, errResp
 	}
 
 	const MaxSize = 10 * 1 << 20

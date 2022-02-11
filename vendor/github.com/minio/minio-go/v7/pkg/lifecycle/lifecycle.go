@@ -53,12 +53,12 @@ func (n AbortIncompleteMultipartUpload) MarshalXML(e *xml.Encoder, start xml.Sta
 // (or suspended) to request server delete noncurrent object versions at a
 // specific period in the object's lifetime.
 type NoncurrentVersionExpiration struct {
-	XMLName               xml.Name       `xml:"NoncurrentVersionExpiration" json:"-"`
-	NoncurrentDays        ExpirationDays `xml:"NoncurrentDays,omitempty"`
-	MaxNoncurrentVersions int            `xml:"MaxNoncurrentVersions,omitempty"`
+	XMLName                 xml.Name       `xml:"NoncurrentVersionExpiration" json:"-"`
+	NoncurrentDays          ExpirationDays `xml:"NoncurrentDays,omitempty"`
+	NewerNoncurrentVersions int            `xml:"NewerNoncurrentVersions,omitempty"`
 }
 
-// MarshalXML if non-current days not set to non zero value
+// MarshalXML if n is non-empty, i.e has a non-zero NoncurrentDays or NewerNoncurrentVersions.
 func (n NoncurrentVersionExpiration) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	if n.isNull() {
 		return nil
@@ -73,16 +73,17 @@ func (n NoncurrentVersionExpiration) IsDaysNull() bool {
 }
 
 func (n NoncurrentVersionExpiration) isNull() bool {
-	return n.IsDaysNull() && n.MaxNoncurrentVersions == 0
+	return n.IsDaysNull() && n.NewerNoncurrentVersions == 0
 }
 
 // NoncurrentVersionTransition structure, set this action to request server to
 // transition noncurrent object versions to different set storage classes
 // at a specific period in the object's lifetime.
 type NoncurrentVersionTransition struct {
-	XMLName        xml.Name       `xml:"NoncurrentVersionTransition,omitempty"  json:"-"`
-	StorageClass   string         `xml:"StorageClass,omitempty" json:"StorageClass,omitempty"`
-	NoncurrentDays ExpirationDays `xml:"NoncurrentDays" json:"NoncurrentDays"`
+	XMLName                 xml.Name       `xml:"NoncurrentVersionTransition,omitempty"  json:"-"`
+	StorageClass            string         `xml:"StorageClass,omitempty" json:"StorageClass,omitempty"`
+	NoncurrentDays          ExpirationDays `xml:"NoncurrentDays" json:"NoncurrentDays"`
+	NewerNoncurrentVersions int            `xml:"NewerNoncurrentVersions,omitempty" json:"NewerNoncurrentVersions,omitempty"`
 }
 
 // IsDaysNull returns true if days field is null

@@ -8,7 +8,7 @@ const (
 	Block256Kb
 	Block1Mb
 	Block4Mb
-	Block8Mb        = 2 * Block4Mb
+	Block8Mb = 2 * Block4Mb
 )
 
 var (

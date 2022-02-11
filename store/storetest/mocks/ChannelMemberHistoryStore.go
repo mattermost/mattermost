@@ -35,6 +35,29 @@ func (_m *ChannelMemberHistoryStore) DeleteOrphanedRows(limit int) (int64, error
 	return r0, r1
 }
 
+// GetChannelsLeftSince provides a mock function with given fields: userID, since
+func (_m *ChannelMemberHistoryStore) GetChannelsLeftSince(userID string, since int64) ([]string, error) {
+	ret := _m.Called(userID, since)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(string, int64) []string); ok {
+		r0 = rf(userID, since)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
+		r1 = rf(userID, since)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetUsersInChannelDuring provides a mock function with given fields: startTime, endTime, channelID
 func (_m *ChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelID string) ([]*model.ChannelMemberHistoryResult, error) {
 	ret := _m.Called(startTime, endTime, channelID)

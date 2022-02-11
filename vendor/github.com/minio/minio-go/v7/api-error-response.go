@@ -47,6 +47,7 @@ type ErrorResponse struct {
 	Message    string
 	BucketName string
 	Key        string
+	Resource   string
 	RequestID  string `xml:"RequestId"`
 	HostID     string `xml:"HostId"`
 

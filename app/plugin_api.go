@@ -437,7 +437,10 @@ func (api *PluginAPI) GetChannelByNameForTeamName(teamName, channelName string, 
 }
 
 func (api *PluginAPI) GetChannelsForTeamForUser(teamID, userID string, includeDeleted bool) ([]*model.Channel, *model.AppError) {
-	channels, err := api.app.GetChannelsForTeamForUser(teamID, userID, includeDeleted, 0)
+	channels, err := api.app.GetChannelsForTeamForUser(teamID, userID, &model.ChannelSearchOpts{
+		IncludeDeleted: includeDeleted,
+		LastDeleteAt:   0,
+	})
 	if err != nil {
 		return nil, err
 	}
