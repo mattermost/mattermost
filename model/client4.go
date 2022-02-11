@@ -46,6 +46,7 @@ const (
 
 	APIURLSuffixV1 = "/api/v1"
 	APIURLSuffixV4 = "/api/v4"
+	APIURLSuffixV5 = "/api/v5"
 	APIURLSuffix   = APIURLSuffixV4
 )
 

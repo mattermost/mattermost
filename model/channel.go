@@ -6,6 +6,8 @@ package model
 import (
 	"crypto/sha1"
 	"encoding/hex"
+	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"sort"
@@ -159,6 +161,23 @@ func WithID(ID string) ChannelOption {
 	}
 }
 
+// The following are some GraphQL methods necessary to return the
+// data in float64 type. The spec doesn't support 64 bit integers,
+// so we have to pass the data in float64. The _ at the end is
+// a hack to keep the attribute name same in GraphQL schema.
+
+func (o *Channel) CreateAt_() float64 {
+	return float64(o.CreateAt)
+}
+
+func (o *Channel) UpdateAt_() float64 {
+	return float64(o.UpdateAt)
+}
+
+func (o *Channel) DeleteAt_() float64 {
+	return float64(o.DeleteAt)
+}
+
 func (o *Channel) DeepCopy() *Channel {
 	copy := *o
 	if copy.SchemeId != nil {
@@ -303,6 +322,24 @@ func (o *Channel) GetOtherUserIdForDM(userId string) string {
 	}
 
 	return otherUserId
+}
+
+func (ChannelType) ImplementsGraphQLType(name string) bool {
+	return name == "ChannelType"
+}
+
+func (t ChannelType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(string(t))
+}
+
+func (t *ChannelType) UnmarshalGraphQL(input interface{}) error {
+	chType, ok := input.(string)
+	if !ok {
+		return errors.New("wrong type")
+	}
+
+	*t = ChannelType(chType)
+	return nil
 }
 
 func GetDMNameFromIds(userId1, userId2 string) string {
