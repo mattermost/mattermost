@@ -3223,7 +3223,10 @@ func (s SqlChannelStore) SearchForUserInTeam(userId string, teamId string, term 
 		From("Channels").
 		Join("PublicChannels c ON (c.Id = Channels.Id)").
 		Join("ChannelMembers cm ON (c.Id = cm.ChannelId)").
-		Where(sq.Eq{"c.TeamId": teamId})
+		Where(sq.And{
+			sq.Eq{"c.TeamId": teamId},
+			sq.Eq{"c.UserId": userId},
+		})
 
 	if !includeDeleted {
 		query = query.Where(sq.Eq{"c.DeleteAt": 0})
