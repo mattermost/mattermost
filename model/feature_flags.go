@@ -69,6 +69,9 @@ type FeatureFlags struct {
 
 	// Enable Workspace optimization dashboard
 	WorkspaceOptimizationDashboard bool
+
+	// Enable GraphQL feature
+	GraphQL bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -93,6 +96,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
 	f.WorkspaceOptimizationDashboard = false
+	f.GraphQL = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
