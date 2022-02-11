@@ -17,7 +17,8 @@ func TestGraphQLConfig(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_GRAPHQL", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_GRAPHQL")
 
-	th := Setup(t).InitBasic()
+	th := Setup(t)
+	th.LoginBasicWithGraphQL()
 	defer th.TearDown()
 
 	var q struct {
@@ -47,7 +48,8 @@ func TestGraphQLLicense(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_GRAPHQL", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_GRAPHQL")
 
-	th := Setup(t).InitBasic()
+	th := Setup(t)
+	th.LoginBasicWithGraphQL()
 	defer th.TearDown()
 
 	var q struct {
