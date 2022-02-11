@@ -154,10 +154,6 @@ func constructArrayArgs(ids []string) (string, []interface{}) {
 type morphWriter struct {
 }
 
-func newMorphWriter() *morphWriter {
-	return &morphWriter{}
-}
-
 func (l *morphWriter) Write(in []byte) (int, error) {
 	mlog.Debug(string(in))
 	return len(in), nil

@@ -1013,7 +1013,7 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	}
 
 	opts := []morph.EngineOption{
-		morph.WithLogger(log.New(newMorphWriter(), "", log.Lshortfile)),
+		morph.WithLogger(log.New(&morphWriter{}, "", log.Lshortfile)),
 		morph.WithLock("mm-lock-key"),
 	}
 	engine, err := morph.New(context.Background(), driver, src, opts...)
