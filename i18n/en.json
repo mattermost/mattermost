@@ -1686,12 +1686,12 @@
     "translation": "Error trying to retrieve first admin complete setup from the store."
   },
   {
-    "id": "api.error_set_first_admin_complete_setup",
-    "translation": "Error trying to save first admin complete setup in the store."
-  },
-  {
     "id": "api.error_get_first_admin_visit_marketplace_status",
     "translation": "Error trying to retrieve the first admin visit marketplace status from the store."
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "Error trying to save first admin complete setup in the store."
   },
   {
     "id": "api.error_set_first_admin_visit_marketplace_status",
