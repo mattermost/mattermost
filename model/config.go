@@ -202,6 +202,7 @@ const (
 
 	DataRetentionSettingsDefaultMessageRetentionDays = 365
 	DataRetentionSettingsDefaultFileRetentionDays    = 365
+	DataRetentionSettingsDefaultBoardsRetentionDays  = 365
 	DataRetentionSettingsDefaultDeletionJobStartTime = "02:00"
 	DataRetentionSettingsDefaultBatchSize            = 3000
 
@@ -771,7 +772,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.ThreadAutoFollow == nil {
-		s.ThreadAutoFollow = NewBool(true)
+		s.ThreadAutoFollow = NewBool(false)
 	}
 
 	if s.CollapsedThreads == nil {
@@ -1074,19 +1075,20 @@ type ReplicaLagSettings struct {
 }
 
 type SqlSettings struct {
-	DriverName                  *string               `access:"environment_database,write_restrictable,cloud_restrictable"`
-	DataSource                  *string               `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
-	DataSourceReplicas          []string              `access:"environment_database,write_restrictable,cloud_restrictable"`
-	DataSourceSearchReplicas    []string              `access:"environment_database,write_restrictable,cloud_restrictable"`
-	MaxIdleConns                *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
-	ConnMaxLifetimeMilliseconds *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
-	ConnMaxIdleTimeMilliseconds *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
-	MaxOpenConns                *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
-	Trace                       *bool                 `access:"environment_database,write_restrictable,cloud_restrictable"`
-	AtRestEncryptKey            *string               `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
-	QueryTimeout                *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
-	DisableDatabaseSearch       *bool                 `access:"environment_database,write_restrictable,cloud_restrictable"`
-	ReplicaLagSettings          []*ReplicaLagSettings `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
+	DriverName                        *string               `access:"environment_database,write_restrictable,cloud_restrictable"`
+	DataSource                        *string               `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
+	DataSourceReplicas                []string              `access:"environment_database,write_restrictable,cloud_restrictable"`
+	DataSourceSearchReplicas          []string              `access:"environment_database,write_restrictable,cloud_restrictable"`
+	MaxIdleConns                      *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
+	ConnMaxLifetimeMilliseconds       *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
+	ConnMaxIdleTimeMilliseconds       *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
+	MaxOpenConns                      *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
+	Trace                             *bool                 `access:"environment_database,write_restrictable,cloud_restrictable"`
+	AtRestEncryptKey                  *string               `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
+	QueryTimeout                      *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
+	DisableDatabaseSearch             *bool                 `access:"environment_database,write_restrictable,cloud_restrictable"`
+	MigrationsStatementTimeoutSeconds *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
+	ReplicaLagSettings                []*ReplicaLagSettings `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *SqlSettings) SetDefaults(isUpdate bool) {
@@ -1142,6 +1144,10 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 
 	if s.DisableDatabaseSearch == nil {
 		s.DisableDatabaseSearch = NewBool(false)
+	}
+
+	if s.MigrationsStatementTimeoutSeconds == nil {
+		s.MigrationsStatementTimeoutSeconds = NewInt(100000)
 	}
 
 	if s.ReplicaLagSettings == nil {
@@ -2581,8 +2587,10 @@ func (bs *BleveSettings) SetDefaults() {
 type DataRetentionSettings struct {
 	EnableMessageDeletion *bool   `access:"compliance_data_retention_policy"`
 	EnableFileDeletion    *bool   `access:"compliance_data_retention_policy"`
+	EnableBoardsDeletion  *bool   `access:"compliance_data_retention_policy"`
 	MessageRetentionDays  *int    `access:"compliance_data_retention_policy"`
 	FileRetentionDays     *int    `access:"compliance_data_retention_policy"`
+	BoardsRetentionDays   *int    `access:"compliance_data_retention_policy"`
 	DeletionJobStartTime  *string `access:"compliance_data_retention_policy"`
 	BatchSize             *int    `access:"compliance_data_retention_policy"`
 }
@@ -2596,12 +2604,20 @@ func (s *DataRetentionSettings) SetDefaults() {
 		s.EnableFileDeletion = NewBool(false)
 	}
 
+	if s.EnableBoardsDeletion == nil {
+		s.EnableBoardsDeletion = NewBool(false)
+	}
+
 	if s.MessageRetentionDays == nil {
 		s.MessageRetentionDays = NewInt(DataRetentionSettingsDefaultMessageRetentionDays)
 	}
 
 	if s.FileRetentionDays == nil {
 		s.FileRetentionDays = NewInt(DataRetentionSettingsDefaultFileRetentionDays)
+	}
+
+	if s.BoardsRetentionDays == nil {
+		s.BoardsRetentionDays = NewInt(DataRetentionSettingsDefaultBoardsRetentionDays)
 	}
 
 	if s.DeletionJobStartTime == nil {

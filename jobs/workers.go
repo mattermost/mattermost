@@ -33,7 +33,6 @@ type Workers struct {
 	Cloud                    model.Worker
 	ResendInvitationEmail    model.Worker
 	ExtractContent           model.Worker
-	FixCRTChannelUnreads     model.Worker
 
 	listenerId string
 	running    bool
@@ -130,10 +129,6 @@ func (srv *JobServer) InitWorkers() error {
 		workers.ExtractContent = extractContentInterface.MakeWorker()
 	}
 
-	if fixCRTChannelUnreads := srv.FixCRTChannelUnreads; fixCRTChannelUnreads != nil {
-		workers.FixCRTChannelUnreads = fixCRTChannelUnreads.MakeWorker()
-	}
-
 	srv.workers = workers
 
 	return nil
@@ -216,10 +211,6 @@ func (workers *Workers) Start() {
 		go workers.ExtractContent.Run()
 	}
 
-	if workers.FixCRTChannelUnreads != nil {
-		go workers.FixCRTChannelUnreads.Run()
-	}
-
 	go workers.Watcher.Start()
 
 	workers.listenerId = workers.ConfigService.AddConfigListener(workers.handleConfigChange)
@@ -230,9 +221,9 @@ func (workers *Workers) handleConfigChange(oldConfig *model.Config, newConfig *m
 	mlog.Debug("Workers received config change.")
 
 	if workers.DataRetention != nil {
-		if (!*oldConfig.DataRetentionSettings.EnableMessageDeletion && !*oldConfig.DataRetentionSettings.EnableFileDeletion) && (*newConfig.DataRetentionSettings.EnableMessageDeletion || *newConfig.DataRetentionSettings.EnableFileDeletion) {
+		if (!*oldConfig.DataRetentionSettings.EnableMessageDeletion && !*oldConfig.DataRetentionSettings.EnableFileDeletion && !*oldConfig.DataRetentionSettings.EnableBoardsDeletion) && (*newConfig.DataRetentionSettings.EnableMessageDeletion || *newConfig.DataRetentionSettings.EnableFileDeletion || *newConfig.DataRetentionSettings.EnableBoardsDeletion) {
 			go workers.DataRetention.Run()
-		} else if (*oldConfig.DataRetentionSettings.EnableMessageDeletion || *oldConfig.DataRetentionSettings.EnableFileDeletion) && (!*newConfig.DataRetentionSettings.EnableMessageDeletion && !*newConfig.DataRetentionSettings.EnableFileDeletion) {
+		} else if (*oldConfig.DataRetentionSettings.EnableMessageDeletion || *oldConfig.DataRetentionSettings.EnableFileDeletion || *oldConfig.DataRetentionSettings.EnableBoardsDeletion) && (!*newConfig.DataRetentionSettings.EnableMessageDeletion && !*newConfig.DataRetentionSettings.EnableFileDeletion && !*newConfig.DataRetentionSettings.EnableBoardsDeletion) {
 			workers.DataRetention.Stop()
 		}
 	}
@@ -355,10 +346,6 @@ func (workers *Workers) Stop() {
 
 	if workers.ExtractContent != nil {
 		workers.ExtractContent.Stop()
-	}
-
-	if workers.FixCRTChannelUnreads != nil {
-		workers.FixCRTChannelUnreads.Stop()
 	}
 
 	workers.running = false

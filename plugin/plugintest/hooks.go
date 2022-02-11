@@ -194,9 +194,28 @@ func (_m *Hooks) OnDeactivate() error {
 	return r0
 }
 
+// OnInstall provides a mock function with given fields: c, event
+func (_m *Hooks) OnInstall(c *plugin.Context, event model.OnInstallEvent) error {
+	ret := _m.Called(c, event)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*plugin.Context, model.OnInstallEvent) error); ok {
+		r0 = rf(c, event)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // OnPluginClusterEvent provides a mock function with given fields: c, ev
 func (_m *Hooks) OnPluginClusterEvent(c *plugin.Context, ev model.PluginClusterEvent) {
 	_m.Called(c, ev)
+}
+
+// OnSendDailyTelemetry provides a mock function with given fields:
+func (_m *Hooks) OnSendDailyTelemetry() {
+	_m.Called()
 }
 
 // OnWebSocketConnect provides a mock function with given fields: webConnID, userID
@@ -217,6 +236,27 @@ func (_m *Hooks) ReactionHasBeenAdded(c *plugin.Context, reaction *model.Reactio
 // ReactionHasBeenRemoved provides a mock function with given fields: c, reaction
 func (_m *Hooks) ReactionHasBeenRemoved(c *plugin.Context, reaction *model.Reaction) {
 	_m.Called(c, reaction)
+}
+
+// RunDataRetention provides a mock function with given fields: nowTime, batchSize
+func (_m *Hooks) RunDataRetention(nowTime int64, batchSize int64) (int64, error) {
+	ret := _m.Called(nowTime, batchSize)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(int64, int64) int64); ok {
+		r0 = rf(nowTime, batchSize)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int64, int64) error); ok {
+		r1 = rf(nowTime, batchSize)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // ServeHTTP provides a mock function with given fields: c, w, r

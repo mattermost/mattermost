@@ -4,9 +4,11 @@
 package app
 
 import (
+	"errors"
 	"testing"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -79,6 +81,12 @@ func TestGetSanitizedClientLicense(t *testing.T) {
 func TestGenerateRenewalToken(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
+
+	t.Run("test invalid token", func(t *testing.T) {
+		_, err := th.App.Srv().renewalTokenValid("badtoken", "")
+		var vErr *jwt.ValidationError
+		require.True(t, errors.As(err, &vErr))
+	})
 
 	t.Run("renewal token generated correctly", func(t *testing.T) {
 		setLicense(th, nil)

@@ -2957,7 +2957,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -2969,7 +2969,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Verzió 78+"
+    "translation": "Verzió 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -5613,7 +5613,7 @@
   },
   {
     "id": "api.templates.over_limit_info1",
-    "translation": "Úgy tűnik, hogy több mint 10 felhasználója van a munkaterületén, amely meghaladja a Mattermost Cloud Professional ingyenes szintjét. Kérjük emelje meg előfizetését a Mattermost munkaterület további zavartalan működés érdekében."
+    "translation": "Úgy tűnik, hogy több mint 10 felhasználója van a munkaterületén, amely meghaladja a Mattermost Cloud ingyenes szintjét. Kérjük emelje meg előfizetését a Mattermost munkaterület további zavartalan működés érdekében."
   },
   {
     "id": "api.templates.over_limit_fix_now",
@@ -5889,7 +5889,7 @@
   },
   {
     "id": "api.templates.at_limit_info1",
-    "translation": "Úgy tűnik, hogy 10 vagy több felhasználója van a munkaterületben — ez remek! Ha több csapattagot szeretne meghívni, fontolja meg a Mattermost Cloud Professional-ra való frissítést."
+    "translation": "Úgy tűnik, hogy 10 vagy több felhasználója van a munkaterületben — ez remek! Ha több csapattagot szeretne meghívni, fontolja meg a Mattermost Cloud-ra való frissítést."
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
@@ -8937,7 +8937,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, a Mattermost Cloud Professional 14 napos ingyenes próbaverziója ma lejárt, {{.TodayDate}}. Kérjük adja hozzá fizetési adatait, hogy csapata továbbra is élvezhesse a Cloud Professional előnyeit."
+    "translation": "{{.Name}}, a Mattermost Cloud Enterprise 14 napos ingyenes próbaverziója ma lejárt, {{.TodayDate}}. Kérjük adja hozzá fizetési adatait, hogy csapata továbbra is élvezhesse a Cloud Enterprise előnyeit."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -9284,22 +9284,6 @@
     "translation": "Nem tudom megnövelni a munkamenet hosszát"
   },
   {
-    "id": "fix_crt_channel_unreads.worker.do_job.mark_channel_as_read",
-    "translation": "Nem sikerült a csatorna olvasottra állítása"
-  },
-  {
-    "id": "fix_crt_channel_unreads.worker.do_job.kill_orphan_jobs",
-    "translation": "Árván maradt feladatok kilövése"
-  },
-  {
-    "id": "fix_crt_channel_unreads.worker.do_job.get_post_types",
-    "translation": "Nem sikerült megszerezni az egyedi bejegyzés típusokat"
-  },
-  {
-    "id": "fix_crt_channel_unreads.worker.do_job.get_bad_channel_memberships",
-    "translation": "Nem sikerült a csatorna rossz tagi listájának megszerzése"
-  },
-  {
     "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
     "translation": "Nem sikerült lekérni egy archivált csatorna felhasználóit"
   },
@@ -9314,5 +9298,37 @@
   {
     "id": "api.license.request_renewal_link.cannot_renew_on_cws",
     "translation": "Ennek a licensznek a portálon keresztüli megújítása nem lehetséges"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "SAML válasz túl hosszú"
+  },
+  {
+    "id": "model.github_release_info.is_valid.id.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_unmarshal.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_set_cache.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_read_all.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_external_error.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "Nem sikerült dekódolni a teljes rendszerbeszállási kérelmet."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "A rendszerbeállítást csak egy rendszergazda végezheti el."
   }
 ]
