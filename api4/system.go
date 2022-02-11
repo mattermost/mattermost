@@ -931,7 +931,7 @@ func completeOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("install_plugin", onboardingRequest.InstallPlugins)
 
-	appErr := c.App.CompleteOnboarding(onboardingRequest)
+	appErr := c.App.CompleteOnboarding(c.AppContext, onboardingRequest)
 	if appErr != nil {
 		c.Err = appErr
 		return

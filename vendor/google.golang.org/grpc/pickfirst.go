@@ -125,7 +125,7 @@ func (b *pickfirstBalancer) Close() {
 }
 
 func (b *pickfirstBalancer) ExitIdle() {
-	if b.state == connectivity.Idle {
+	if b.sc != nil && b.state == connectivity.Idle {
 		b.sc.Connect()
 	}
 }

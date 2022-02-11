@@ -244,7 +244,7 @@ type ChannelStore interface {
 	GetMembersByIds(channelID string, userIds []string) (model.ChannelMembers, error)
 	GetMembersByChannelIds(channelIds []string, userID string) (model.ChannelMembers, error)
 	GetMembersInfoByChannelIds(channelIDs []string) (map[string][]*model.User, error)
-	AnalyticsDeletedTypeCount(teamID string, channelType string) (int64, error)
+	AnalyticsDeletedTypeCount(teamID string, channelType model.ChannelType) (int64, error)
 	GetChannelUnread(channelID, userID string) (*model.ChannelUnread, error)
 	ClearCaches()
 	GetChannelsByScheme(schemeID string, offset int, limit int) (model.ChannelList, error)
@@ -316,6 +316,7 @@ type ThreadStore interface {
 	PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
 	PermanentDeleteBatchThreadMembershipsForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
 	DeleteOrphanedRows(limit int) (deleted int64, err error)
+	GetThreadUnreadReplyCount(threadMembership *model.ThreadMembership) (int64, error)
 }
 
 type PostStore interface {
@@ -437,6 +438,8 @@ type UserStore interface {
 	AutocompleteUsersInChannel(teamID, channelID, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error)
 	GetKnownUsers(userID string) ([]string, error)
 	IsEmpty(excludeBots bool) (bool, error)
+	GetUsersWithInvalidEmails(page int, perPage int, restrictedDomains string) ([]*model.User, error)
+	InsertUsers(users []*model.User) error
 }
 
 type BotStore interface {

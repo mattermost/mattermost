@@ -46,6 +46,7 @@ const (
 
 	APIURLSuffixV1 = "/api/v1"
 	APIURLSuffixV4 = "/api/v4"
+	APIURLSuffixV5 = "/api/v5"
 	APIURLSuffix   = APIURLSuffixV4
 )
 
@@ -4438,6 +4439,9 @@ func (c *Client4) UpdateConfig(config *Config) (*Config, *Response, error) {
 }
 
 // MigrateConfig will migrate existing config to the new one.
+// DEPRECATED: The config migrate API has been moved to be a purely
+// mmctl --local endpoint. This method will be removed in a
+// future major release.
 func (c *Client4) MigrateConfig(from, to string) (*Response, error) {
 	m := make(map[string]string, 2)
 	m["from"] = from
@@ -7844,4 +7848,21 @@ func (c *Client4) GetAncillaryPermissions(subsectionPermissions []string) ([]str
 
 	json.NewDecoder(r.Body).Decode(&returnedPermissions)
 	return returnedPermissions, BuildResponse(r), nil
+}
+
+func (c *Client4) GetUsersWithInvalidEmails(page, perPage int) ([]*User, *Response, error) {
+	query := fmt.Sprintf("/invalid_emails?page=%v&per_page=%v", page, perPage)
+	r, err := c.DoAPIGet(c.usersRoute()+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list []*User
+	if r.StatusCode == http.StatusNotModified {
+		return list, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetUsers", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }

@@ -62,9 +62,8 @@ func (s symbolTransform) String() string {
 // To indicate that you have populated the histogram call HistogramFinished
 // with the value of the highest populated symbol, as well as the number of entries
 // in the most populated entry. These are accepted at face value.
-// The returned slice will always be length 256.
-func (s *fseEncoder) Histogram() []uint32 {
-	return s.count[:]
+func (s *fseEncoder) Histogram() *[256]uint32 {
+	return &s.count
 }
 
 // HistogramFinished can be called to indicate that the histogram has been populated.

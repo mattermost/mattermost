@@ -3,16 +3,22 @@ package hclog
 import (
 	"bytes"
 	"log"
+	"regexp"
 	"strings"
 )
+
+// Regex to ignore characters commonly found in timestamp formats from the
+// beginning of inputs.
+var logTimestampRegexp = regexp.MustCompile(`^[\d\s\:\/\.\+-TZ]*`)
 
 // Provides a io.Writer to shim the data out of *log.Logger
 // and back into our Logger. This is basically the only way to
 // build upon *log.Logger.
 type stdlogAdapter struct {
-	log         Logger
-	inferLevels bool
-	forceLevel  Level
+	log                      Logger
+	inferLevels              bool
+	inferLevelsWithTimestamp bool
+	forceLevel               Level
 }
 
 // Take the data, infer the levels if configured, and send it through
@@ -28,6 +34,10 @@ func (s *stdlogAdapter) Write(data []byte) (int, error) {
 		// Log at the forced level
 		s.dispatch(str, s.forceLevel)
 	} else if s.inferLevels {
+		if s.inferLevelsWithTimestamp {
+			str = s.trimTimestamp(str)
+		}
+
 		level, str := s.pickLevel(str)
 		s.dispatch(str, level)
 	} else {
@@ -72,6 +82,11 @@ func (s *stdlogAdapter) pickLevel(str string) (Level, string) {
 	default:
 		return Info, str
 	}
+}
+
+func (s *stdlogAdapter) trimTimestamp(str string) string {
+	idx := logTimestampRegexp.FindStringIndex(str)
+	return str[idx[1]:]
 }
 
 type logWriter struct {

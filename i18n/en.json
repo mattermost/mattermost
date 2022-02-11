@@ -1455,10 +1455,6 @@
     "translation": "Failed to migrate config store."
   },
   {
-    "id": "api.config.migrate_config_restricted.app_error",
-    "translation": "Config migration is restricted due to instance type."
-  },
-  {
     "id": "api.config.patch_config.diff.app_error",
     "translation": "Failed to diff configs"
   },
@@ -3133,7 +3129,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Streamline your work with tools like Github, Jira and Zoom. Explore all of the integrations we have on our"
+    "translation": "Streamline your work with tools like GitHub, Jira and Zoom. Explore all of the integrations we have on our"
   },
   {
     "id": "api.templates.cloud_welcome_email.app_market_place",
@@ -3965,7 +3961,7 @@
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
-    "translation": "Error retreiving endpoint from Discovery Document."
+    "translation": "Error retrieving endpoint from Discovery Document."
   },
   {
     "id": "api.user.get_uploads_for_user.forbidden.app_error",
@@ -4282,6 +4278,10 @@
   {
     "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
     "translation": "Cannot retrieve users for an archived channel"
+  },
+  {
+    "id": "api.users.invalid_emails.enable_open_server.app_error",
+    "translation": " "
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -7469,7 +7469,7 @@
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": "Unable to migrate AD/LDAP users with specified field. Duplicate entry detected. Please remove all duplcates and try again."
+    "translation": "Unable to migrate AD/LDAP users with specified field. Duplicate entry detected. Please remove all duplicates and try again."
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
@@ -8374,6 +8374,10 @@
   {
     "id": "model.emoji.name.app_error",
     "translation": "Name must be 1 to 64 lowercase alphanumeric characters."
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "Name conflicts with existing system emoji name."
   },
   {
     "id": "model.emoji.update_at.app_error",

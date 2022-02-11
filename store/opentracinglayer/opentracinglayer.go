@@ -534,7 +534,7 @@ func (s *OpenTracingLayerBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) AnalyticsDeletedTypeCount(teamID string, channelType string) (int64, error) {
+func (s *OpenTracingLayerChannelStore) AnalyticsDeletedTypeCount(teamID string, channelType model.ChannelType) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.AnalyticsDeletedTypeCount")
 	s.Root.Store.SetContext(newCtx)
@@ -9249,6 +9249,24 @@ func (s *OpenTracingLayerThreadStore) GetThreadForUser(teamID string, threadMemb
 	return result, err
 }
 
+func (s *OpenTracingLayerThreadStore) GetThreadUnreadReplyCount(threadMembership *model.ThreadMembership) (int64, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.GetThreadUnreadReplyCount")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ThreadStore.GetThreadUnreadReplyCount(threadMembership)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerThreadStore) GetThreadsForUser(userId string, teamID string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.GetThreadsForUser")
@@ -10484,6 +10502,24 @@ func (s *OpenTracingLayerUserStore) GetUsersBatchForIndexing(startTime int64, en
 	return result, err
 }
 
+func (s *OpenTracingLayerUserStore) GetUsersWithInvalidEmails(page int, perPage int, restrictedDomains string) ([]*model.User, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.GetUsersWithInvalidEmails")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.UserStore.GetUsersWithInvalidEmails(page, perPage, restrictedDomains)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerUserStore) InferSystemInstallDate() (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.InferSystemInstallDate")
@@ -10500,6 +10536,24 @@ func (s *OpenTracingLayerUserStore) InferSystemInstallDate() (int64, error) {
 	}
 
 	return result, err
+}
+
+func (s *OpenTracingLayerUserStore) InsertUsers(users []*model.User) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.InsertUsers")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.UserStore.InsertUsers(users)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
 }
 
 func (s *OpenTracingLayerUserStore) InvalidateProfileCacheForUser(userID string) {
