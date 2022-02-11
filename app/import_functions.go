@@ -1718,7 +1718,7 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 		if line.DirectPost.Props != nil {
 			post.Props = *line.DirectPost.Props
 		}
-		if line.Post.IsPinned != nil {
+		if line.DirectPost.IsPinned != nil {
 			post.IsPinned = *line.Post.IsPinned
 		}
 
