@@ -3598,6 +3598,10 @@ func (s SqlChannelStore) squirrelPerformSearch(searchQuery sq.SelectBuilder, ter
 	}
 	mlog.Debug("And these are the parameters: " + params)
 
+	for _, conn := range s.GetAllConns() {
+		_ = conn
+	}
+
 	if err := s.GetReplicaX().Select(&channels, sql, parameters...); err != nil {
 		return model.ChannelList{}, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
 	}
