@@ -77,6 +77,22 @@ func StoreTestWithSearchTestEngine(t *testing.T, f func(*testing.T, store.Store,
 	}
 }
 
+type StoreTestWrapper struct {
+	orig *SqlStore
+}
+
+func (w *StoreTestWrapper) GetMaster() *gorp.DbMap {
+	return w.orig.GetMaster()
+}
+
+func (w *StoreTestWrapper) GetMasterX() storetest.SqlXExecutor {
+	return w.orig.GetMasterX()
+}
+
+func (w *StoreTestWrapper) DriverName() string {
+	return w.orig.DriverName()
+}
+
 func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, store.Store, storetest.SqlStore)) {
 	defer func() {
 		if err := recover(); err != nil {
@@ -90,7 +106,7 @@ func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, store.Store, storete
 			if testing.Short() {
 				t.SkipNow()
 			}
-			f(t, st.Store, st.SqlStore)
+			f(t, st.Store, &StoreTestWrapper{st.SqlStore})
 		})
 	}
 }
@@ -760,7 +776,7 @@ func TestExecNoTimeout(t *testing.T) {
 		} else if sqlStore.DriverName() == model.DatabaseDriverPostgres {
 			query = `SELECT pg_sleep(2);`
 		}
-		_, err := sqlStore.GetMaster().ExecNoTimeout(query)
+		_, err := sqlStore.GetMasterX().ExecNoTimeout(query)
 		require.NoError(t, err)
 	})
 }
@@ -781,6 +797,6 @@ func TestMySQLReadTimeout(t *testing.T) {
 	store.initConnection()
 	defer store.Close()
 
-	_, err = store.GetMaster().ExecNoTimeout(`SELECT SLEEP(3)`)
+	_, err = store.GetMasterX().ExecNoTimeout(`SELECT SLEEP(3)`)
 	require.NoError(t, err)
 }

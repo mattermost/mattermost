@@ -106,6 +106,18 @@ func (w *sqlxDBWrapper) Exec(query string, args ...interface{}) (sql.Result, err
 	return w.ExecRaw(query, args...)
 }
 
+func (w *sqlxDBWrapper) ExecNoTimeout(query string, args ...interface{}) (sql.Result, error) {
+	query = w.DB.Rebind(query)
+
+	if w.trace {
+		defer func(then time.Time) {
+			printArgs(query, time.Since(then), args)
+		}(time.Now())
+	}
+
+	return w.DB.ExecContext(context.Background(), query, args...)
+}
+
 // ExecRaw is like Exec but without any rebinding of params. You need to pass
 // the exact param types of your target database.
 func (w *sqlxDBWrapper) ExecRaw(query string, args ...interface{}) (sql.Result, error) {
