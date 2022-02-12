@@ -3225,7 +3225,7 @@ func (s SqlChannelStore) SearchForUserInTeam(userId string, teamId string, term 
 		Join("ChannelMembers cm ON (c.Id = cm.ChannelId)").
 		Where(sq.And{
 			sq.Eq{"c.TeamId": teamId},
-			sq.Eq{"c.UserId": userId},
+			sq.Eq{"cm.UserId": userId},
 		})
 
 	if !includeDeleted {
