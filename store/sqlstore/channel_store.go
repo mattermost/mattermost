@@ -2960,9 +2960,6 @@ func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) 
 	).Where(sq.Eq{
 		"UserId": userID,
 	})
-	if !includeDeleted {
-		channel_members = channel_members.Where(sq.Eq{"c.DeleteAt": 0})
-	}
 
 	searchClause := s.squirrelSearchClause(term)
 
@@ -2972,6 +2969,9 @@ func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) 
 		sq.Expr("c.TeamId = t.id"),
 		sq.Expr("t.id = tm.TeamId"),
 		sq.Eq{"tm.UserId": userID},
+	}
+	if !includeDeleted {
+		where = append(where, sq.Eq{"c.DeleteAt": 0})
 	}
 	if searchClause != nil {
 		where = append(where, searchClause)
@@ -2997,7 +2997,7 @@ func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) 
 		where,
 	).OrderBy("c.DisplayName")
 
-	return s.squirrelPefromGlobalSearch(q, term)
+	return s.squirrelPerformGlobalSearch(q, term)
 
 }
 
@@ -3655,7 +3655,7 @@ func (s SqlChannelStore) squirrelSearchClause(term string) (searchQuery sq.Sqliz
 	return
 }
 
-func (s SqlChannelStore) squirrelPefromGlobalSearch(searchQuery sq.SelectBuilder, term string) (model.ChannelListWithTeamData, error) {
+func (s SqlChannelStore) squirrelPerformGlobalSearch(searchQuery sq.SelectBuilder, term string) (model.ChannelListWithTeamData, error) {
 
 	var channels model.ChannelListWithTeamData
 
