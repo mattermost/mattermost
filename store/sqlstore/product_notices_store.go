@@ -18,15 +18,7 @@ type SqlProductNoticesStore struct {
 }
 
 func newSqlProductNoticesStore(sqlStore *SqlStore) store.ProductNoticesStore {
-	s := SqlProductNoticesStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.ProductNoticeViewState{}, "ProductNoticeViewState").SetKeys(false, "UserId", "NoticeId")
-		table.ColMap("UserId").SetMaxSize(26)
-		table.ColMap("NoticeId").SetMaxSize(26)
-	}
-
-	return s
+	return &SqlProductNoticesStore{sqlStore}
 }
 
 func (s SqlProductNoticesStore) Clear(notices []string) error {

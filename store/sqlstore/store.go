@@ -934,7 +934,25 @@ func (ss *SqlStore) SharedChannel() store.SharedChannelStore {
 }
 
 func (ss *SqlStore) DropAllTables() {
-	ss.master.TruncateTables()
+	if ss.DriverName() == model.DatabaseDriverPostgres {
+		ss.masterX.Exec(`DO
+			$func$
+			BEGIN
+			   EXECUTE
+			   (SELECT 'TRUNCATE TABLE ' || string_agg(oid::regclass::text, ', ') || ' CASCADE'
+			    FROM   pg_class
+			    WHERE  relkind = 'r'  -- only tables
+			    AND    relnamespace = 'public'::regnamespace
+			   );
+			END
+			$func$;`)
+	} else {
+		tables := []string{}
+		ss.masterX.Select(&tables, `show tables`)
+		for _, t := range tables {
+			ss.masterX.Exec(`TRUNCATE TABLE ` + t)
+		}
+	}
 }
 
 func (ss *SqlStore) getQueryBuilder() sq.StatementBuilderType {
