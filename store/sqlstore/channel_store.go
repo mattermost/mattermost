@@ -2953,13 +2953,6 @@ func (s SqlChannelStore) GetTeamMembersForChannel(channelID string) ([]string, e
 
 func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) (model.ChannelListWithTeamData, error) {
 
-	deleteAt := 0
-
-	if includeDeleted {
-		deleteAt = 1
-	}
-	deleteFilter := sq.And{sq.Eq{"c.DeleteAt": deleteAt}}
-
 	channel_members := sq.Select(
 		"ChannelId",
 	).From(
@@ -2967,6 +2960,9 @@ func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) 
 	).Where(sq.Eq{
 		"UserId": userID,
 	})
+	if !includeDeleted {
+		channel_members = channel_members.Where(sq.Eq{"c.DeleteAt": 0})
+	}
 
 	searchClause := s.squirrelSearchClause(term)
 
@@ -2977,17 +2973,14 @@ func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) 
 		sq.Expr("t.id = tm.TeamId"),
 		sq.Eq{"tm.UserId": userID},
 	}
-	if deleteFilter != nil {
-		where = append(where, deleteFilter)
-	}
 	if searchClause != nil {
 		where = append(where, searchClause)
 	}
 	where = append(where,
 		sq.Or{
-			sq.Expr("c.Type <> 'P'"),
+			sq.NotEq{"c.Type": model.ChannelTypePrivate},
 			sq.And{
-				sq.Expr("c.Type = 'P'"),
+				sq.Eq{"c.Type": model.ChannelTypePrivate},
 				sq.Expr("c.Id IN (?)", channel_members),
 			},
 		},
@@ -2995,9 +2988,9 @@ func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) 
 
 	q := psql.Select(
 		"c.*",
-		"t.DisplayName as TeamDisplayName",
-		"t.Name as TeamName",
-		"t.UpdateAt as TeamUpdateAt",
+		"t.DisplayName AS TeamDisplayName",
+		"t.Name AS TeamName",
+		"t.UpdateAt AS TeamUpdateAt",
 	).From(
 		"Channels c, Teams t, TeamMembers tm",
 	).Where(
