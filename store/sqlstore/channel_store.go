@@ -2868,7 +2868,7 @@ func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) 
 		"UserId": userID,
 	})
 
-	searchClause := s.squirrelSearchClause(term)
+	searchClause := s.searchClause(term)
 
 	psql := sq.StatementBuilder
 
@@ -2904,7 +2904,7 @@ func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) 
 		where,
 	).OrderBy("c.DisplayName")
 
-	return s.squirrelPerformGlobalSearch(q, term)
+	return s.performGlobalSearch(q, term)
 
 }
 
@@ -2916,7 +2916,7 @@ func (s SqlChannelStore) AutocompleteInTeam(teamID, userID, term string, include
 	}
 
 	if term != "" {
-		searchClause := s.squirrelSearchClause(term)
+		searchClause := s.searchClause(term)
 		where = append(where, searchClause)
 	}
 
@@ -2943,7 +2943,7 @@ func (s SqlChannelStore) AutocompleteInTeam(teamID, userID, term string, include
 		OrderBy("c.DisplayName").
 		Limit(model.ChannelSearchDefaultLimit)
 
-	return s.squirrelPerformSearch(query, term)
+	return s.performSearch(query, term)
 }
 
 // TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19334)
@@ -3050,7 +3050,7 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted
 	}
 
 	if term != "" {
-		searchClause := s.squirrelSearchClause(term)
+		searchClause := s.searchClause(term)
 		where = append(where, searchClause)
 	}
 
@@ -3061,7 +3061,7 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted
 		OrderBy("c.DisplayName").
 		Limit(100)
 
-	result, err := s.squirrelPerformSearch(query, term)
+	result, err := s.performSearch(query, term)
 	if result == nil {
 		return model.ChannelList{}, err
 	}
@@ -3074,7 +3074,7 @@ func (s SqlChannelStore) SearchArchivedInTeam(teamId string, term string, userId
 		sq.Eq{"c.TeamId": teamId},
 	}
 	if term != "" {
-		searchClause := s.squirrelSearchClause(term)
+		searchClause := s.searchClause(term)
 		baseWhere = append(baseWhere, searchClause)
 	}
 	baseWhere = append(baseWhere, sq.NotEq{"c.DeleteAt": 0})
@@ -3098,8 +3098,8 @@ func (s SqlChannelStore) SearchArchivedInTeam(teamId string, term string, userId
 		Where(sq.Eq{"c.Type": "P"}).
 		Where(sq.Expr("c.Id IN (?)", members))
 
-	publicChannels, publicErr := s.squirrelPerformSearch(publicQuery, term)
-	privateChannels, privateErr := s.squirrelPerformSearch(privateQuery, term)
+	publicChannels, publicErr := s.performSearch(publicQuery, term)
+	privateChannels, privateErr := s.performSearch(privateQuery, term)
 
 	outputErr := publicErr
 	if privateErr != nil {
@@ -3133,13 +3133,13 @@ func (s SqlChannelStore) SearchForUserInTeam(userId string, teamId string, term 
 	}
 
 	if term != "" {
-		searchClause := s.squirrelSearchClause(term)
+		searchClause := s.searchClause(term)
 		query = query.Where(searchClause)
 	}
 
 	query = query.OrderBy("c.DisplayName").Limit(100)
 
-	return s.squirrelPerformSearch(query, term)
+	return s.performSearch(query, term)
 }
 
 func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.SelectBuilder {
@@ -3294,7 +3294,7 @@ func (s SqlChannelStore) SearchMore(userId string, teamId string, term string) (
 		sq.Expr("c.Id NOT IN (?)", teamQuery),
 	}
 	if term != "" {
-		searchClause := s.squirrelSearchClause(term)
+		searchClause := s.searchClause(term)
 		join_where = append(join_where, searchClause)
 	}
 
@@ -3307,7 +3307,7 @@ func (s SqlChannelStore) SearchMore(userId string, teamId string, term string) (
 		OrderBy("c.DisplayName").
 		Limit(100)
 
-	result, err := s.squirrelPerformSearch(query, term)
+	result, err := s.performSearch(query, term)
 	if result == nil {
 		return model.ChannelList{}, err
 	}
@@ -3451,40 +3451,9 @@ func (s SqlChannelStore) squirrelBuildFulltextClause(term string, searchColumns 
 	return
 }
 
-func (s SqlChannelStore) performSearch(searchQuery string, term string, parameters map[string]interface{}) (model.ChannelList, error) {
-	likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
-	if likeTerm == "" {
-		// If the likeTerm is empty after preparing, then don't bother searching.
-		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
-	} else {
-		parameters["LikeTerm"] = likeTerm
-		fulltextClause, fulltextTerm := s.buildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
-		parameters["FulltextTerm"] = fulltextTerm
-		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "AND ("+likeClause+" OR "+fulltextClause+")", 1)
-	}
-
-	var channels model.ChannelList
-
-	mlog.Debug("The old sql query: " + searchQuery)
-	params := ""
-	for k, v := range parameters {
-		params += fmt.Sprintf("'%s' => '%s', ", k, v)
-	}
-	mlog.Debug("Sql Parameters: " + params)
-
-	if _, err := s.GetReplica().Select(&channels, searchQuery, parameters); err != nil {
-		return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
-	}
-
-	return channels, nil
-}
-
-func (s SqlChannelStore) squirrelPerformSearch(searchQuery sq.SelectBuilder, term string) (model.ChannelList, error) {
-	// likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
+func (s SqlChannelStore) performSearch(searchQuery sq.SelectBuilder, term string) (model.ChannelList, error) {
 	var sql string
 	var parameters []interface{}
-	// fulltextClause, fulltextTerm := s.buildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
-	// searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "AND ("+likeClause+" OR "+fulltextClause+")", 1)
 	sql, parameters, err := searchQuery.ToSql()
 	_ = parameters
 	_ = sql
@@ -3493,21 +3462,6 @@ func (s SqlChannelStore) squirrelPerformSearch(searchQuery sq.SelectBuilder, ter
 	}
 
 	var channels model.ChannelList
-
-	mlog.Debug("This should be the query:")
-	mlog.Debug(sql)
-	params := ""
-	for i, p := range parameters {
-		params += fmt.Sprintf("%d => '%s'", i, p)
-		if i < len(parameters)-1 {
-			params += ", "
-		}
-	}
-	mlog.Debug("And these are the parameters: " + params)
-
-	for _, conn := range s.GetAllConns() {
-		_ = conn
-	}
 
 	if err := s.GetReplicaX().Select(&channels, sql, parameters...); err != nil {
 		return model.ChannelList{}, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
@@ -3520,32 +3474,7 @@ func (s SqlChannelStore) squirrelPerformSearch(searchQuery sq.SelectBuilder, ter
 	return channels, nil
 }
 
-func (s SqlChannelStore) performGlobalSearch(searchQuery string, term string, parameters map[string]interface{}) (model.ChannelListWithTeamData, error) {
-	likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
-	if likeTerm == "" {
-		// If the likeTerm is empty after preparing, then don't bother searching.
-		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
-	} else {
-		parameters["LikeTerm"] = likeTerm
-		fulltextClause, fulltextTerm := s.buildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
-		parameters["FulltextTerm"] = fulltextTerm
-		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "AND ("+likeClause+" OR "+fulltextClause+")", 1)
-	}
-
-	var channels model.ChannelListWithTeamData
-
-	db := s.GetReplica().Db
-
-	_ = db
-
-	if _, err := s.GetReplica().Select(&channels, searchQuery, parameters); err != nil {
-		return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
-	}
-
-	return channels, nil
-}
-
-func (s SqlChannelStore) squirrelSearchClause(term string) (searchQuery sq.Sqlizer) {
+func (s SqlChannelStore) searchClause(term string) (searchQuery sq.Sqlizer) {
 	likeClause, err := s.squirrelBuildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
 
 	_ = err
@@ -3562,7 +3491,7 @@ func (s SqlChannelStore) squirrelSearchClause(term string) (searchQuery sq.Sqliz
 	return
 }
 
-func (s SqlChannelStore) squirrelPerformGlobalSearch(searchQuery sq.SelectBuilder, term string) (model.ChannelListWithTeamData, error) {
+func (s SqlChannelStore) performGlobalSearch(searchQuery sq.SelectBuilder, term string) (model.ChannelListWithTeamData, error) {
 
 	var channels model.ChannelListWithTeamData
 
