@@ -531,7 +531,7 @@ func TestGetEmojiImage(t *testing.T) {
 	require.Greater(t, len(emojiImage), 0, "no image returned")
 
 	_, imageType, err = image.DecodeConfig(bytes.NewReader(emojiImage))
-	require.NoError(t, err, "unable to indentify received image")
+	require.NoError(t, err, "unable to identify received image")
 	require.Equal(t, imageType, "gif", "expected gif")
 
 	emoji3 := &model.Emoji{
@@ -546,7 +546,7 @@ func TestGetEmojiImage(t *testing.T) {
 	require.Greater(t, len(emojiImage), 0, "no image returned")
 
 	_, imageType, err = image.DecodeConfig(bytes.NewReader(emojiImage))
-	require.NoError(t, err, "unable to indentify received image")
+	require.NoError(t, err, "unable to identify received image")
 	require.Equal(t, imageType, "jpeg", "expected jpeg")
 
 	emoji4 := &model.Emoji{
@@ -561,7 +561,7 @@ func TestGetEmojiImage(t *testing.T) {
 	require.Greater(t, len(emojiImage), 0, "no image returned")
 
 	_, imageType, err = image.DecodeConfig(bytes.NewReader(emojiImage))
-	require.NoError(t, err, "unable to idenitify received image")
+	require.NoError(t, err, "unable to identify received image")
 	require.Equal(t, imageType, "png", "expected png")
 
 	_, err = client.DeleteEmoji(emoji4.Id)

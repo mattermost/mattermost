@@ -1458,7 +1458,7 @@ func TestGetMentionKeywords(t *testing.T) {
 
 	profiles = map[string]*model.User{userNoMentionKeys.Id: userNoMentionKeys}
 	mentions = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMapEmptyOff)
-	assert.Equal(t, 1, len(mentions), "should've returned one metion keyword")
+	assert.Equal(t, 1, len(mentions), "should've returned one mention keyword")
 	ids, ok = mentions["@user"]
 	assert.True(t, ok)
 	assert.Equal(t, userNoMentionKeys.Id, ids[0], "should've returned mention key of @user")
@@ -2320,7 +2320,7 @@ func TestProcessText(t *testing.T) {
 				ChannelMentioned: true,
 			},
 		},
-		"Mention other pontential users or system calls": {
+		"Mention other potential users or system calls": {
 			Text:     "hello @potentialuser and @otherpotentialuser",
 			Keywords: map[string][]string{},
 			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},

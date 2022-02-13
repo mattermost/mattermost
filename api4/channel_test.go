@@ -2503,7 +2503,7 @@ func TestGetChannelStats(t *testing.T) {
 	stats, _, err := client.GetChannelStats(channel.Id, "")
 	require.NoError(t, err)
 
-	require.Equal(t, channel.Id, stats.ChannelId, "couldnt't get extra info")
+	require.Equal(t, channel.Id, stats.ChannelId, "couldn't get extra info")
 	require.Equal(t, int64(1), stats.MemberCount, "got incorrect member count")
 	require.Equal(t, int64(0), stats.PinnedPostCount, "got incorrect pinned post count")
 
