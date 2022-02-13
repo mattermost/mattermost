@@ -260,7 +260,7 @@ type Hooks interface {
 	// Minimum server version: 6.5
 	OnInstall(c *Context, event model.OnInstallEvent) error
 
-	// OnSendDailyTelemetry is invoked when the server send the daily telemtry data.
+	// OnSendDailyTelemetry is invoked when the server send the daily telemetry data.
 	//
 	// Minimum server version: 6.5
 	OnSendDailyTelemetry()
