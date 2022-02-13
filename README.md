@@ -67,7 +67,7 @@ Receive notifications of critical security updates. The sophistication of online
 ## Learn More
 
 - [API Options - webhooks, slash commands, drivers and web service](https://api.mattermost.com/)
-- [See who's using Mattermost](https://mattermost.com/blog/category/customer-stories/)
+- [See who's using Mattermost](https://mattermost.com/customers/)
 - [Browse over 700 Mattermost integrations](https://integrations.mattermost.com/)
 
 ## License
