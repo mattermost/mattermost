@@ -14,9 +14,31 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
+	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store/storetest"
 )
+
+type StoreTestWrapper struct {
+	orig *SqlStore
+}
+
+func NewStoreTestWrapper(orig *SqlStore) *StoreTestWrapper {
+	return &StoreTestWrapper{orig}
+}
+
+func (w *StoreTestWrapper) GetMaster() *gorp.DbMap {
+	return w.orig.GetMaster()
+}
+
+func (w *StoreTestWrapper) GetMasterX() storetest.SqlXExecutor {
+	return w.orig.GetMasterX()
+}
+
+func (w *StoreTestWrapper) DriverName() string {
+	return w.orig.DriverName()
+}
 
 // sqlxExecutor exposes sqlx operations. It is used to enable some internal store methods to
 // accept both transactions (*sqlxTxWrapper) and common db handlers (*sqlxDbWrapper).

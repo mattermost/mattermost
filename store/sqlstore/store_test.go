@@ -77,22 +77,6 @@ func StoreTestWithSearchTestEngine(t *testing.T, f func(*testing.T, store.Store,
 	}
 }
 
-type StoreTestWrapper struct {
-	orig *SqlStore
-}
-
-func (w *StoreTestWrapper) GetMaster() *gorp.DbMap {
-	return w.orig.GetMaster()
-}
-
-func (w *StoreTestWrapper) GetMasterX() storetest.SqlXExecutor {
-	return w.orig.GetMasterX()
-}
-
-func (w *StoreTestWrapper) DriverName() string {
-	return w.orig.DriverName()
-}
-
 func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, store.Store, storetest.SqlStore)) {
 	defer func() {
 		if err := recover(); err != nil {
