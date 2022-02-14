@@ -9333,5 +9333,13 @@
   {
     "id": "app.admin.latest_version_external_error.failure",
     "translation": " "
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "Bu ad, var olan bir sistem emojisi adıyla çakışıyor."
+  },
+  {
+    "id": "api.users.invalid_emails.enable_open_server.app_error",
+    "translation": " "
   }
 ]
