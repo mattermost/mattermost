@@ -9313,5 +9313,9 @@
   {
     "id": "app.system.complete_onboarding_request.app_error",
     "translation": "Failed to decode the complete onboarding request."
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "Name conflicts with existing system emoji name."
   }
 ]

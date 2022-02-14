@@ -4865,7 +4865,7 @@
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
-    "translation": "Hiba történt a végpont lekérése során a Discovery dokumentumból."
+    "translation": "Hiba történt a végpont lekérése során a Discovery Dokumentumból."
   },
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
@@ -5849,7 +5849,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Egyszerűsítse munkáját olyan eszközökkel mint Github, Jira és Zoom. Fedezze fel további integrációinkat"
+    "translation": "Egyszerűsítse munkáját olyan eszközökkel mint GitHub, Jira és Zoom. Fedezze fel további integrációinkat"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -9330,5 +9330,13 @@
   {
     "id": "app.system.complete_onboarding_request.no_first_user",
     "translation": "A rendszerbeállítást csak egy rendszergazda végezheti el."
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "A név ütközik egy meglévő rendszer emoji nevével."
+  },
+  {
+    "id": "api.users.invalid_emails.enable_open_server.app_error",
+    "translation": " "
   }
 ]
