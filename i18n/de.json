@@ -8020,7 +8020,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Optimieren Sie Ihre Arbeit mit Werkzeugen wie Github, Jira und Zoom. Entdecken Sie alle Integrationen, die wir in unserem"
+    "translation": "Optimieren Sie Ihre Arbeit mit Werkzeugen wie GitHub, Jira und Zoom. Entdecken Sie alle Integrationen, die wir in unserem"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -9333,5 +9333,13 @@
   {
     "id": "app.system.complete_onboarding_request.app_error",
     "translation": "Die vollständige Onboarding-Anfrage konnte nicht entschlüsselt werden."
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "Der Name steht im Konflikt mit einem bestehenden System-Emoji-Namen."
+  },
+  {
+    "id": "api.users.invalid_emails.enable_open_server.app_error",
+    "translation": " "
   }
 ]
