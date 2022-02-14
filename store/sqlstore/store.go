@@ -1178,13 +1178,6 @@ func versionString(v int, driver string) string {
 	return ""
 }
 
-func (ss *SqlStore) jsonDataType() string {
-	if ss.DriverName() == model.DatabaseDriverPostgres {
-		return "jsonb"
-	}
-	return "json"
-}
-
 func (ss *SqlStore) toReserveCase(str string) string {
 	if ss.DriverName() == model.DatabaseDriverPostgres {
 		return fmt.Sprintf("%q", str)
