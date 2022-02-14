@@ -4089,38 +4089,6 @@ func TestImportImportDirectPost(t *testing.T) {
 		replyBool := reply.Type != *importReply.Type || reply.Message != *importReply.Message || reply.CreateAt != *importReply.CreateAt || reply.EditAt != *importReply.EditAt || reply.UserId != th.BasicUser.Id
 		require.False(t, replyBool, "Post properties not as expected")
 	})
-
-	t.Run("Test with IsPinned", func(t *testing.T) {
-		pinnedValue := true
-		creationTime := model.GetMillis()
-		data := LineImportWorkerData{
-			LineImportData{
-				DirectPost: &DirectPostImportData{
-					ChannelMembers: &[]string{
-						th.BasicUser.Username,
-						th.BasicUser2.Username,
-						user3.Username,
-					},
-					User:     ptrStr(th.BasicUser.Username),
-					Message:  ptrStr("Pinned Message"),
-					CreateAt: &creationTime,
-					IsPinned: &pinnedValue,
-				},
-			},
-			1,
-		}
-		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, false)
-		require.Nil(t, err)
-		require.Equal(t, 0, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 13, "")
-
-		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
-		require.NoError(t, nErr)
-		require.Len(t, posts, 1)
-
-		post := posts[0]
-		assert.True(t, post.IsPinned)
-	})
 }
 
 func TestImportImportEmoji(t *testing.T) {
