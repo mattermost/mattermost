@@ -7925,7 +7925,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Usprawnij swoją pracę dzięki narzędziom takim jak Github, Jira i Zoom. Poznaj wszystkie integracje, które mamy na naszej stronie"
+    "translation": "Usprawnij swoją pracę dzięki narzędziom takim jak GitHub, Jira i Zoom. Poznaj wszystkie integracje, które mamy na naszej stronie"
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
@@ -9333,6 +9333,14 @@
   },
   {
     "id": "app.admin.latest_version_external_error.failure",
+    "translation": " "
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "Nazwa koliduje z istniejącą nazwą systemową emoji."
+  },
+  {
+    "id": "api.users.invalid_emails.enable_open_server.app_error",
     "translation": " "
   }
 ]
