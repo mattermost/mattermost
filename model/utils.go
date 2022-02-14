@@ -76,7 +76,12 @@ func (sa StringArray) Equals(input StringArray) bool {
 
 // Value converts StringArray to database value
 func (sa StringArray) Value() (driver.Value, error) {
-	return json.Marshal(sa)
+	j, err := json.Marshal(sa)
+	if err != nil {
+		return nil, err
+	}
+	// non utf8 characters are not supported https://mattermost.atlassian.net/browse/MM-41066
+	return string(j), err
 }
 
 // Scan converts database column value to StringArray
@@ -119,7 +124,30 @@ func (m *StringMap) Scan(value interface{}) error {
 
 // Value converts StringMap to database value
 func (m StringMap) Value() (driver.Value, error) {
-	return json.Marshal(m)
+	j, err := json.Marshal(m)
+	if err != nil {
+		return nil, err
+	}
+	// non utf8 characters are not supported https://mattermost.atlassian.net/browse/MM-41066
+	return string(j), err
+}
+
+func (StringMap) ImplementsGraphQLType(name string) bool {
+	return name == "StringMap"
+}
+
+func (m StringMap) MarshalJSON() ([]byte, error) {
+	return json.Marshal((map[string]string)(m))
+}
+
+func (m *StringMap) UnmarshalGraphQL(input interface{}) error {
+	json, ok := input.(map[string]string)
+	if !ok {
+		return errors.New("wrong type")
+	}
+
+	*m = json
+	return nil
 }
 
 func (si *StringInterface) Scan(value interface{}) error {
@@ -142,7 +170,12 @@ func (si *StringInterface) Scan(value interface{}) error {
 
 // Value converts StringInterface to database value
 func (si StringInterface) Value() (driver.Value, error) {
-	return json.Marshal(si)
+	j, err := json.Marshal(si)
+	if err != nil {
+		return nil, err
+	}
+	// non utf8 characters are not supported https://mattermost.atlassian.net/browse/MM-41066
+	return string(j), err
 }
 
 var translateFunc i18n.TranslateFunc

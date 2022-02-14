@@ -304,6 +304,11 @@ type Options struct {
 	//
 	// AWS_EC2_METADATA_SERVICE_ENDPOINT_MODE=IPv6
 	EC2IMDSEndpointMode endpoints.EC2IMDSEndpointModeState
+
+	// Specifies options for creating credential providers.
+	// These are only used if the aws.Config does not already
+	// include credentials.
+	CredentialsProviderOptions *CredentialsProviderOptions
 }
 
 // NewSessionWithOptions returns a new Session created from SDK defaults, config files,

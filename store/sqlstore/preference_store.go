@@ -5,11 +5,11 @@ package sqlstore
 
 import (
 	sq "github.com/Masterminds/squirrel"
-	"github.com/mattermost/gorp"
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
-	"github.com/pkg/errors"
 )
 
 type SqlPreferenceStore struct {
@@ -67,7 +67,7 @@ func (s SqlPreferenceStore) Save(preferences model.Preferences) error {
 	return nil
 }
 
-func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *model.Preference) error {
+func (s SqlPreferenceStore) save(transaction *sqlxTxWrapper, preference *model.Preference) error {
 	preference.PreUpdate()
 
 	if err := preference.IsValid(); err != nil {

@@ -997,19 +997,28 @@ func TestGetChannelsForUser(t *testing.T) {
 	defer th.App.PermanentDeleteChannel(channel)
 	defer th.TearDown()
 
-	channelList, err := th.App.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false, 0)
+	channelList, err := th.App.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, &model.ChannelSearchOpts{
+		IncludeDeleted: false,
+		LastDeleteAt:   0,
+	})
 	require.Nil(t, err)
 	require.Len(t, channelList, 4)
 
 	th.App.DeleteChannel(th.Context, channel, th.BasicUser.Id)
 
 	// Now we get all the non-archived channels for the user
-	channelList, err = th.App.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false, 0)
+	channelList, err = th.App.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, &model.ChannelSearchOpts{
+		IncludeDeleted: false,
+		LastDeleteAt:   0,
+	})
 	require.Nil(t, err)
 	require.Len(t, channelList, 3)
 
 	// Now we get all the channels, even though are archived, for the user
-	channelList, err = th.App.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, true, 0)
+	channelList, err = th.App.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, &model.ChannelSearchOpts{
+		IncludeDeleted: true,
+		LastDeleteAt:   0,
+	})
 	require.Nil(t, err)
 	require.Len(t, channelList, 4)
 }

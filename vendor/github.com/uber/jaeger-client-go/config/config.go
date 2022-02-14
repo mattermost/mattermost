@@ -420,7 +420,7 @@ func (rc *ReporterConfig) NewReporter(
 		jaeger.ReporterOptions.Logger(logger),
 		jaeger.ReporterOptions.Metrics(metrics))
 	if rc.LogSpans && logger != nil {
-		logger.Infof("Initializing logging reporter\n")
+		logger.Infof("Initializing logging reporter")
 		reporter = jaeger.NewCompositeReporter(jaeger.NewLoggingReporter(logger), reporter)
 	}
 	return reporter, err

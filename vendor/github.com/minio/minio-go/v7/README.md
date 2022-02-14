@@ -8,7 +8,7 @@ This document assumes that you have a working [Go development environment](https
 
 ## Download from Github
 ```sh
-GO111MODULE=on go get github.com/minio/minio-go/v7
+go get github.com/minio/minio-go/v7
 ```
 
 ## Initialize MinIO Client
@@ -115,7 +115,6 @@ func main() {
 
 ### Run FileUploader
 ```sh
-export GO111MODULE=on
 go run file-uploader.go
 2016/08/13 17:03:28 Successfully created mymusic
 2016/08/13 17:03:40 Successfully uploaded golden-oldies.zip of size 16253413

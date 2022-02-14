@@ -5897,7 +5897,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Sürüm 78+"
+    "translation": "Sürüm 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -5909,7 +5909,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
@@ -7273,7 +7273,7 @@
   },
   {
     "id": "api.team.invite_members.limit_reached.app_error",
-    "translation": "Ücretsiz sürüm kullanıcı sayısı sınırına ulaştınız"
+    "translation": "Ücretsiz tarifenin kullanıcı sayısı sınırına ulaştınız"
   },
   {
     "id": "api.system.update_notices.validating_failed",
@@ -7593,7 +7593,7 @@
   },
   {
     "id": "api.templates.over_limit_title",
-    "translation": "Çalışma alanınız ücretsiz sürümün kullanıcı sınırını aşıyor"
+    "translation": "Çalışma alanınız ücretsiz tarifenin kullanıcı sayısı sınırını aşıyor"
   },
   {
     "id": "api.templates.over_limit_subject",
@@ -7605,7 +7605,7 @@
   },
   {
     "id": "api.templates.over_limit_info1",
-    "translation": "Çalışma alanınızda Mattermost Cloud ücretsiz sürümünün sağladığı 10 kullanıcıdan fazlası var gibi görünüyor. Lütfen Mattermost çalışma alanınızda herhangi bir kesinti yaşamamak için sürümünüzü yükseltin."
+    "translation": "Çalışma alanınızda Mattermost Cloud ücretsiz tarifesinin sağladığı 10 kullanıcıdan fazlası var gibi görünüyor. Lütfen Mattermost çalışma alanınızda herhangi bir kesinti yaşamamak için tarifenizi yükseltin."
   },
   {
     "id": "api.templates.email_us_anytime_at",
@@ -7617,7 +7617,7 @@
   },
   {
     "id": "api.templates.at_limit_title",
-    "translation": "Ücretsiz sürümün kullanıcı sınırına ulaştınız. "
+    "translation": "Ücretsiz tarifenin kullanıcı sayısı sınırına ulaştınız. "
   },
   {
     "id": "api.templates.at_limit_subject",
@@ -8161,7 +8161,7 @@
   },
   {
     "id": "app.user.get_threads_for_user.not_found",
-    "translation": "Kullanıcı işlemi bulunamadı ya da izlenmiyor"
+    "translation": "Kullanıcının konusu bulunamadı ya da takip edilmiyor"
   },
   {
     "id": "api.unable_to_read_file_from_backend",
@@ -9092,11 +9092,11 @@
   },
   {
     "id": "app.user.get_thread_membership_for_user.not_found",
-    "translation": "Kullanıcı işlemi üyeliği bulunamadı"
+    "translation": "Kullanıcının konu üyeliği bulunamadı"
   },
   {
     "id": "app.user.get_thread_membership_for_user.app_error",
-    "translation": "Kullanıcı işlemi üyeliği alınamadı"
+    "translation": "Kullanıcının konu üyeliği alınamadı"
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
@@ -9180,7 +9180,7 @@
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
-    "translation": " izlediğiniz bir konuyu yanıtladı."
+    "translation": " takip ettiğiniz bir konuyu yanıtladı."
   },
   {
     "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
@@ -9204,15 +9204,15 @@
   },
   {
     "id": "app.notification.body.thread_dm.subTitle",
-    "translation": "Siz uzaktayken, {{.SenderName}} doğrudan iletinizdeki bir konuyu yanıyı."
+    "translation": "Siz uzaktayken, {{.SenderName}} doğrudan iletinizdeki bir konuyu yanıtladı."
   },
   {
     "id": "app.notification.body.thread_channel_full.subTitle",
-    "translation": "Siz uzaktayken {{.SenderName}}, lzlediğiniz{{.ChannelName}} kanalında bir konuyu yanıtladı."
+    "translation": "Siz uzaktayken {{.SenderName}}, takip ettiğiniz {{.ChannelName}} kanalında bir konuyu yanıtladı."
   },
   {
     "id": "app.notification.body.thread_channel.subTitle",
-    "translation": "Siz uzaktayken, {{.SenderName}} izlediğiniz bir konuyu yanıtladı."
+    "translation": "Siz uzaktayken, {{.SenderName}} takip ettiğiniz bir konuyu yanıtladı."
   },
   {
     "id": "api.push_notification.title.collapsed_threads_dm",
@@ -9301,5 +9301,37 @@
   {
     "id": "api.license.request_renewal_link.cannot_renew_on_cws",
     "translation": "Bu lisans portal üzerinden yenilenemez"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "SAML yanıtı çok uzun"
+  },
+  {
+    "id": "model.github_release_info.is_valid.id.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "Başlamaya hazırlama yalnız bir sistem yöneticisi tarafından tamamlanabilir."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "Başlamaya hazırlama isteğinin tamamının şifresi çözülemedi."
+  },
+  {
+    "id": "app.admin.latest_version_unmarshal.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_set_cache.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_read_all.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_external_error.failure",
+    "translation": " "
   }
 ]
