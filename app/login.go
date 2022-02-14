@@ -273,14 +273,13 @@ func (a *App) AttachCloudSessionCookie(c *request.Context, w http.ResponseWriter
 	}
 
 	cookie := &http.Cookie{
-		Name:     model.SessionCookieCloudUrl,
-		Value:    workspaceName,
-		Path:     subpath,
-		MaxAge:   maxAge,
-		Expires:  expiresAt,
-		HttpOnly: true,
-		Domain:   domain,
-		Secure:   secure,
+		Name:    model.SessionCookieCloudUrl,
+		Value:   workspaceName,
+		Path:    subpath,
+		MaxAge:  maxAge,
+		Expires: expiresAt,
+		Domain:  domain,
+		Secure:  secure,
 	}
 
 	http.SetCookie(w, cookie)

@@ -123,7 +123,11 @@ const (
 	// ErrCodeTimestampOutOfBoundsException for service response error code
 	// "TimestampOutOfBoundsException".
 	//
-	// The timestamp value passed in the meterUsage() is out of allowed range.
+	// The timestamp value passed in the UsageRecord is out of allowed range.
+	//
+	// For BatchMeterUsage, if any of the records are outside of the allowed range,
+	// the entire batch is not processed. You must remove invalid records and try
+	// again.
 	ErrCodeTimestampOutOfBoundsException = "TimestampOutOfBoundsException"
 )
 

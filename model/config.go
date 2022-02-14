@@ -784,7 +784,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.ThreadAutoFollow == nil {
-		s.ThreadAutoFollow = NewBool(true)
+		s.ThreadAutoFollow = NewBool(false)
 	}
 
 	if s.CollapsedThreads == nil {

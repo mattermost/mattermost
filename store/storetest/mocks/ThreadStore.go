@@ -225,6 +225,27 @@ func (_m *ThreadStore) GetThreadForUser(teamID string, threadMembership *model.T
 	return r0, r1
 }
 
+// GetThreadUnreadReplyCount provides a mock function with given fields: threadMembership
+func (_m *ThreadStore) GetThreadUnreadReplyCount(threadMembership *model.ThreadMembership) (int64, error) {
+	ret := _m.Called(threadMembership)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(*model.ThreadMembership) int64); ok {
+		r0 = rf(threadMembership)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.ThreadMembership) error); ok {
+		r1 = rf(threadMembership)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetThreadsForUser provides a mock function with given fields: userId, teamID, opts
 func (_m *ThreadStore) GetThreadsForUser(userId string, teamID string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
 	ret := _m.Called(userId, teamID, opts)

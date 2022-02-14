@@ -123,13 +123,13 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.23.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.24.1
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.5.0
-PLUGIN_PACKAGES += focalboard-v0.12.1
+PLUGIN_PACKAGES += focalboard-v0.14.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -243,17 +243,14 @@ else
 endif
 
 golangci-lint: ## Run golangci-lint on codebase
-# https://stackoverflow.com/a/677212/1027058 (check if a command exists or not)
-	@if ! [ -x "$$(command -v golangci-lint)" ]; then \
-		echo "golangci-lint is not installed. Please see https://github.com/golangci/golangci-lint#install for installation instructions."; \
-		exit 1; \
-	fi; \
+	@# Keep the version in sync with the command in .circleci/config.yml
+	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.39.0
 
 	@echo Running golangci-lint
-	golangci-lint run ./...
+	$(GOBIN)/golangci-lint run ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-	golangci-lint run ./enterprise/...
+	$(GOBIN)/golangci-lint run ./enterprise/...
 endif
 endif
 

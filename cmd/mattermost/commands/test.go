@@ -58,7 +58,10 @@ func webClientTestsCmdF(command *cobra.Command, args []string) error {
 		return serverErr
 	}
 
-	api4.Init(a.Srv())
+	_, err = api4.Init(a.Srv())
+	if err != nil {
+		return err
+	}
 	wsapi.Init(a.Srv())
 	a.UpdateConfig(setupClientTests)
 	runWebClientTests()
@@ -79,7 +82,10 @@ func serverForWebClientTestsCmdF(command *cobra.Command, args []string) error {
 		return serverErr
 	}
 
-	api4.Init(a.Srv())
+	_, err = api4.Init(a.Srv())
+	if err != nil {
+		return err
+	}
 	wsapi.Init(a.Srv())
 	a.UpdateConfig(setupClientTests)
 

@@ -2100,6 +2100,10 @@ func TestThreadMembership(t *testing.T) {
 	t.Run("should update memberships for conversation participants", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ThreadAutoFollow = true
+			*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+		})
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
