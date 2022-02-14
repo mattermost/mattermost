@@ -973,7 +973,7 @@ func (a *OpenTracingAppLayer) BuildSamlMetadataObject(idpMetadata []byte) (*mode
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) BulkExport(writer io.Writer, outPath string, opts app.BulkExportOpts) *model.AppError {
+func (a *OpenTracingAppLayer) BulkExport(writer io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BulkExport")
 
@@ -11808,7 +11808,7 @@ func (a *OpenTracingAppLayer) NotifyAndSetWarnMetricAck(warnMetricId string, sen
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) NotifySessionsExpired() *model.AppError {
+func (a *OpenTracingAppLayer) NotifySessionsExpired() error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NotifySessionsExpired")
 
@@ -15143,9 +15143,9 @@ func (a *OpenTracingAppLayer) SetSearchEngine(se *searchengine.Broker) {
 	a.app.SetSearchEngine(se)
 }
 
-func (a *OpenTracingAppLayer) SetSessionExpireInDays(session *model.Session, days int) {
+func (a *OpenTracingAppLayer) SetSessionExpireInHours(session *model.Session, hours int) {
 	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetSessionExpireInDays")
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetSessionExpireInHours")
 
 	a.ctx = newCtx
 	a.app.Srv().Store.SetContext(newCtx)
@@ -15155,7 +15155,7 @@ func (a *OpenTracingAppLayer) SetSessionExpireInDays(session *model.Session, day
 	}()
 
 	defer span.Finish()
-	a.app.SetSessionExpireInDays(session, days)
+	a.app.SetSessionExpireInHours(session, hours)
 }
 
 func (a *OpenTracingAppLayer) SetStatusAwayIfNeeded(userID string, manual bool) {

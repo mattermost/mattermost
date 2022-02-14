@@ -320,7 +320,7 @@ type ServiceSettings struct {
 	ExtendSessionLengthWithActivity                   *bool    `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
 	SessionLengthWebInDays                            *int     `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
 	SessionLengthMobileInDays                         *int     `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
-	SessionLengthSSOInDays                            *int     `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
+	SessionLengthSSOInDays                            *float32 `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
 	SessionCacheInMinutes                             *int     `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
 	SessionIdleTimeoutInMinutes                       *int     `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
 	WebsocketSecurePort                               *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
@@ -367,6 +367,18 @@ type ServiceSettings struct {
 	CollapsedThreads                                  *string `access:"experimental_features"`
 	ManagedResourcePaths                              *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
+}
+
+func (s *ServiceSettings) SessionLengthWebInHours() *int {
+	return NewInt(*s.SessionLengthWebInDays * 24)
+}
+
+func (s *ServiceSettings) SessionLengthMobileInHours() *int {
+	return NewInt(*s.SessionLengthMobileInDays * 24)
+}
+
+func (s *ServiceSettings) SessionLengthSSOInHours() *int {
+	return NewInt(int(*s.SessionLengthSSOInDays * 24))
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -599,7 +611,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.SessionLengthSSOInDays == nil {
-		s.SessionLengthSSOInDays = NewInt(30)
+		s.SessionLengthSSOInDays = NewFloat32(30)
 	}
 
 	if s.SessionCacheInMinutes == nil {
@@ -3587,6 +3599,10 @@ func (s *ServiceSettings) isValid() *AppError {
 		*s.CollapsedThreads != CollapsedThreadsDefaultOn &&
 		*s.CollapsedThreads != CollapsedThreadsDefaultOff {
 		return NewAppError("Config.IsValid", "model.config.is_valid.collapsed_threads.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.SessionLengthSSOInHours() < 1 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.session_length_sso_in_days.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
