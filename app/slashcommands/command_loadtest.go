@@ -351,12 +351,7 @@ func (*LoadTestProvider) DMsCommand(a *app.App, c *request.Context, args *model.
 		channelsr = utils.Range{Begin: 2, End: 5}
 	}
 
-	team, err := a.Srv().Store.Team().Get(args.TeamId)
-	if err != nil {
-		return &model.CommandResponse{Text: "Failed to add DMs", ResponseType: model.CommandResponseTypeEphemeral}, err
-	}
-
-	channelCreator := NewAutoChannelCreator(a, team, args.UserId)
+	channelCreator := NewAutoChannelCreator(a, nil, args.UserId)
 	if _, err := channelCreator.CreateTestDMs(c, channelsr); err != nil {
 		return &model.CommandResponse{Text: "Failed to create test DMs: " + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
