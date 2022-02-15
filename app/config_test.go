@@ -79,6 +79,7 @@ func TestClientConfigWithComputed(t *testing.T) {
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	config := th.App.ClientConfigWithComputed()
 	_, ok := config["NoAccounts"]

@@ -784,3 +784,41 @@ func TestMySQLReadTimeout(t *testing.T) {
 	_, err = store.GetMaster().ExecNoTimeout(`SELECT SLEEP(3)`)
 	require.NoError(t, err)
 }
+
+func TestGetDBSchemaVersion(t *testing.T) {
+	testDrivers := []string{
+		model.DatabaseDriverPostgres,
+		model.DatabaseDriverMysql,
+	}
+
+	for _, driver := range testDrivers {
+		t.Run("Should return latest version number of applied migrations for "+driver, func(t *testing.T) {
+			t.Parallel()
+			settings := makeSqlSettings(driver)
+			store := New(*settings, nil)
+
+			version, err := store.GetDBSchemaVersion()
+			require.NoError(t, err)
+			require.NotZero(t, version)
+		})
+	}
+}
+
+func TestGetAppliedMigrations(t *testing.T) {
+	testDrivers := []string{
+		model.DatabaseDriverPostgres,
+		model.DatabaseDriverMysql,
+	}
+
+	for _, driver := range testDrivers {
+		t.Run("Should return db applied migrations for "+driver, func(t *testing.T) {
+			t.Parallel()
+			settings := makeSqlSettings(driver)
+			store := New(*settings, nil)
+
+			migrations, err := store.GetAppliedMigrations()
+			require.NoError(t, err)
+			require.NotEmpty(t, migrations)
+		})
+	}
+}

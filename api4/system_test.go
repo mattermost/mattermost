@@ -883,3 +883,20 @@ func TestCompleteOnboarding(t *testing.T) {
 		require.True(t, found, "testplugin2 should have been installed and enabled")
 	})
 }
+
+func TestGetAppliedSchemaMigrations(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t.Run("as a regular user", func(t *testing.T) {
+		_, resp, err := th.Client.GetAppliedSchemaMigrations()
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("as a system admin", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.GetAppliedSchemaMigrations()
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+}

@@ -238,7 +238,7 @@ func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
 
 	databaseType, mattermostVersion := th.Server.DatabaseTypeAndMattermostVersion()
 	assert.Equal(t, "postgres", databaseType)
-	assert.Equal(t, "5.31.0", mattermostVersion)
+	assert.Equal(t, "0", mattermostVersion)
 
 	os.Setenv("MM_SQLSETTINGS_DRIVERNAME", "mysql")
 
@@ -247,7 +247,7 @@ func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
 
 	databaseType, mattermostVersion = th2.Server.DatabaseTypeAndMattermostVersion()
 	assert.Equal(t, "mysql", databaseType)
-	assert.Equal(t, "5.31.0", mattermostVersion)
+	assert.Equal(t, "0", mattermostVersion)
 }
 
 func TestGenerateSupportPacket(t *testing.T) {

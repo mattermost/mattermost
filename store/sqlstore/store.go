@@ -1185,3 +1185,20 @@ func (ss *SqlStore) toReserveCase(str string) string {
 
 	return fmt.Sprintf("`%s`", strings.Title(str))
 }
+
+func (ss *SqlStore) GetDBSchemaVersion() (int, error) {
+	var version int
+	if err := ss.GetMasterX().Get(&version, "SELECT Version FROM db_migrations ORDER BY Version DESC LIMIT 1"); err != nil {
+		return 0, errors.Wrap(err, "unable to select from db_migrations")
+	}
+	return version, nil
+}
+
+func (ss *SqlStore) GetAppliedMigrations() ([]model.AppliedMigration, error) {
+	migrations := []model.AppliedMigration{}
+	if err := ss.GetMasterX().Select(&migrations, "SELECT Version, Name FROM db_migrations ORDER BY Version DESC"); err != nil {
+		return nil, errors.Wrap(err, "unable to select from db_migrations")
+	}
+
+	return migrations, nil
+}

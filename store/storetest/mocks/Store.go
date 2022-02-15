@@ -222,6 +222,29 @@ func (_m *Store) FileInfo() store.FileInfoStore {
 	return r0
 }
 
+// GetAppliedMigrations provides a mock function with given fields:
+func (_m *Store) GetAppliedMigrations() ([]model.AppliedMigration, error) {
+	ret := _m.Called()
+
+	var r0 []model.AppliedMigration
+	if rf, ok := ret.Get(0).(func() []model.AppliedMigration); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]model.AppliedMigration)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetCurrentSchemaVersion provides a mock function with given fields:
 func (_m *Store) GetCurrentSchemaVersion() string {
 	ret := _m.Called()
@@ -234,6 +257,27 @@ func (_m *Store) GetCurrentSchemaVersion() string {
 	}
 
 	return r0
+}
+
+// GetDBSchemaVersion provides a mock function with given fields:
+func (_m *Store) GetDBSchemaVersion() (int, error) {
+	ret := _m.Called()
+
+	var r0 int
+	if rf, ok := ret.Get(0).(func() int); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // GetDbVersion provides a mock function with given fields: numerical
