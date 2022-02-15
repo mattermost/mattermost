@@ -97,7 +97,13 @@ func (err *Error) Stack() string {
 // Global gives JavaScript's global object ("window" for browsers and "GLOBAL" for Node.js).
 var Global *Object
 
-// Module gives the value of the "module" variable set by Node.js. Hint: Set a module export with 'js.Module.Get("exports").Set("exportName", ...)'.
+// Module gives the value of the "module" variable set by Node.js. Hint: Set a
+// module export with 'js.Module.Get("exports").Set("exportName", ...)'.
+//
+// Note that js.Module is only defined in runtimes which support CommonJS
+// modules (https://nodejs.org/api/modules.html). NodeJS supports it natively,
+// but in browsers it can only be used if GopherJS output is passed through a
+// bundler which implements CommonJS (for example, webpack or esbuild).
 var Module *Object
 
 // Undefined gives the JavaScript value "undefined".

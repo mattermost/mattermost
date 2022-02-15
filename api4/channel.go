@@ -682,7 +682,7 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set(model.HeaderEtagServer, clientPostList.Etag())
-	if err := json.NewEncoder(w).Encode(clientPostList); err != nil {
+	if err := clientPostList.EncodeJSON(w); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -885,7 +885,10 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	channels, err := c.App.GetChannelsForTeamForUser(c.Params.TeamId, c.Params.UserId, c.Params.IncludeDeleted, lastDeleteAt)
+	channels, err := c.App.GetChannelsForTeamForUser(c.Params.TeamId, c.Params.UserId, &model.ChannelSearchOpts{
+		IncludeDeleted: c.Params.IncludeDeleted,
+		LastDeleteAt:   lastDeleteAt,
+	})
 	if err != nil {
 		c.Err = err
 		return
@@ -1696,6 +1699,14 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		return
+	}
+
+	if postRootId != "" {
+		err := c.App.UpdateThreadFollowForUserFromChannelAdd(cm.UserId, channel.TeamId, postRootId)
+		if err != nil {
+			c.Err = err
+			return
+		}
 	}
 
 	auditRec.Success()

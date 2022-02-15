@@ -1116,7 +1116,10 @@ func (a *App) LeaveTeam(c *request.Context, team *model.Team, user *model.User, 
 
 	var channelList model.ChannelList
 	var nErr error
-	if channelList, nErr = a.Srv().Store.Channel().GetChannels(team.Id, user.Id, true, 0); nErr != nil {
+	if channelList, nErr = a.Srv().Store.Channel().GetChannels(team.Id, user.Id, &model.ChannelSearchOpts{
+		IncludeDeleted: true,
+		LastDeleteAt:   0,
+	}); nErr != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(nErr, &nfErr) {
 			channelList = model.ChannelList{}
@@ -1158,7 +1161,7 @@ func (a *App) LeaveTeam(c *request.Context, team *model.Team, user *model.User, 
 	}
 
 	if err := a.ch.srv.teamService.RemoveTeamMember(teamMember); err != nil {
-		return model.NewAppError("RemoveTeamMemberFromTeam", "app.team.save_member.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return model.NewAppError("RemoveTeamMemberFromTeam", "app.team.save_member.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := a.postProcessTeamMemberLeave(c, teamMember, requestorId); err != nil {

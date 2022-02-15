@@ -1,10 +1,16 @@
 Changes by Version
 ==================
 
-2.29.2 (unreleased)
+2.30.0 (2021-12-07)
 -------------------
-- Nothing yet.
-
+- Add deprecation notice -- Yuri Shkuro
+- Use public struct for tracer options to document initialization better (#605) -- Yuri Shkuro
+- Remove redundant newline in NewReporter init message (#603) -- wwade
+- [zipkin] Encode span IDs as full 16-hex strings #601 -- Nathan
+- [docs] Replace godoc.org with pkg.go.dev (#591) -- Aaron Jheng
+- Remove outdated reference to Zipkin model. -- Yuri Shkuro
+- Move thrift compilation to a script (#590) -- Aaron Jheng
+- Document JAEGER_TRACEID_128BIT env var -- Yuri Shkuro
 
 2.29.1 (2021-05-24)
 -------------------

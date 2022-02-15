@@ -1200,6 +1200,10 @@ func validCert(ck certKey, der [][]byte, key crypto.Signer, now time.Time) (leaf
 	if err := leaf.VerifyHostname(ck.domain); err != nil {
 		return nil, err
 	}
+	// renew certificates revoked by Let's Encrypt in January 2022
+	if isRevokedLetsEncrypt(leaf) {
+		return nil, errors.New("acme/autocert: certificate was probably revoked by Let's Encrypt")
+	}
 	// ensure the leaf corresponds to the private key and matches the certKey type
 	switch pub := leaf.PublicKey.(type) {
 	case *rsa.PublicKey:
@@ -1228,6 +1232,18 @@ func validCert(ck certKey, der [][]byte, key crypto.Signer, now time.Time) (leaf
 		return nil, errors.New("acme/autocert: unknown public key algorithm")
 	}
 	return leaf, nil
+}
+
+// https://community.letsencrypt.org/t/2022-01-25-issue-with-tls-alpn-01-validation-method/170450
+var letsEncryptFixDeployTime = time.Date(2022, time.January, 26, 00, 48, 0, 0, time.UTC)
+
+// isRevokedLetsEncrypt returns whether the certificate is likely to be part of
+// a batch of certificates revoked by Let's Encrypt in January 2022. This check
+// can be safely removed from May 2022.
+func isRevokedLetsEncrypt(cert *x509.Certificate) bool {
+	O := cert.Issuer.Organization
+	return len(O) == 1 && O[0] == "Let's Encrypt" &&
+		cert.NotBefore.Before(letsEncryptFixDeployTime)
 }
 
 type lockedMathRand struct {
