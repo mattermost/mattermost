@@ -376,29 +376,6 @@ func (_m *ThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolicies
 	return r0, r1, r2
 }
 
-// SaveMembership provides a mock function with given fields: membership
-func (_m *ThreadStore) SaveMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error) {
-	ret := _m.Called(membership)
-
-	var r0 *model.ThreadMembership
-	if rf, ok := ret.Get(0).(func(*model.ThreadMembership) *model.ThreadMembership); ok {
-		r0 = rf(membership)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.ThreadMembership)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.ThreadMembership) error); ok {
-		r1 = rf(membership)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // UpdateLastViewedByThreadIds provides a mock function with given fields: userId, threadIds, timestamp
 func (_m *ThreadStore) UpdateLastViewedByThreadIds(userId string, threadIds []string, timestamp int64) error {
 	ret := _m.Called(userId, threadIds, timestamp)

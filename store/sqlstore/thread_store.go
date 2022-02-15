@@ -495,10 +495,6 @@ func (s *SqlThreadStore) MarkAsRead(userId, threadId string, timestamp int64) er
 	return nil
 }
 
-func (s *SqlThreadStore) SaveMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error) {
-	return s.saveMembership(s.GetMasterX(), membership)
-}
-
 func (s *SqlThreadStore) saveMembership(ex sqlxExecutor, membership *model.ThreadMembership) (*model.ThreadMembership, error) {
 	query, args, err := s.getQueryBuilder().
 		Insert("ThreadMemberships").
