@@ -1161,7 +1161,7 @@ func (a *App) LeaveTeam(c *request.Context, team *model.Team, user *model.User, 
 	}
 
 	if err := a.ch.srv.teamService.RemoveTeamMember(teamMember); err != nil {
-		return model.NewAppError("RemoveTeamMemberFromTeam", "app.team.save_member.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return model.NewAppError("RemoveTeamMemberFromTeam", "app.team.save_member.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := a.postProcessTeamMemberLeave(c, teamMember, requestorId); err != nil {

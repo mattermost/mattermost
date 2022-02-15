@@ -71,7 +71,7 @@ func (worker *Worker) runAdvancedPermissionsPhase2Migration(lastDone string) (bo
 
 	if progress.CurrentTable == "TeamMembers" {
 		// Run a TeamMembers migration batch.
-		result, err := worker.srv.Store.Team().MigrateTeamMembers(progress.LastTeamId, progress.LastUserId)
+		result, err := worker.store.Team().MigrateTeamMembers(progress.LastTeamId, progress.LastUserId)
 		if err != nil {
 			return false, progress.ToJSON(), model.NewAppError("MigrationsWorker.runAdvancedPermissionsPhase2Migration", "app.team.migrate_team_members.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -86,7 +86,7 @@ func (worker *Worker) runAdvancedPermissionsPhase2Migration(lastDone string) (bo
 		progress.LastUserId = result["UserId"]
 	} else if progress.CurrentTable == "ChannelMembers" {
 		// Run a ChannelMembers migration batch.
-		data, err := worker.srv.Store.Channel().MigrateChannelMembers(progress.LastChannelId, progress.LastUserId)
+		data, err := worker.store.Channel().MigrateChannelMembers(progress.LastChannelId, progress.LastUserId)
 		if err != nil {
 			return false, progress.ToJSON(), model.NewAppError("MigrationsWorker.runAdvancedPermissionsPhase2Migration", "app.channel.migrate_channel_members.select.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
