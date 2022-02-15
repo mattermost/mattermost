@@ -1822,6 +1822,10 @@
     "translation": "Unable to write the file."
   },
   {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "OnlyThreads and OnlyTotals parameters to getThreadsForUser are mutually exclusive"
+  },
+  {
     "id": "api.getThreadsForUser.bad_params",
     "translation": "Before and After parameters to getThreadsForUser are mutually exclusive"
   },

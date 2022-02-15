@@ -3033,8 +3033,14 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	options.ThreadsOnly, _ = strconv.ParseBool(threadsOnlyStr)
 
 	// parameters are mutually exclusive
-	if (options.Before != "" && options.After != "") || (options.TotalsOnly && options.ThreadsOnly) {
+	if options.Before != "" && options.After != "" {
 		c.Err = model.NewAppError("api.getThreadsForUser", "api.getThreadsForUser.bad_params", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	// parameters are mutually exclusive
+	if options.TotalsOnly && options.ThreadsOnly {
+		c.Err = model.NewAppError("api.getThreadsForUser", "api.getThreadsForUser.bad_only_params", nil, "", http.StatusBadRequest)
 		return
 	}
 
