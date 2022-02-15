@@ -1459,7 +1459,7 @@ func (us SqlUserStore) SearchInChannel(channelId string, term string, options *m
 
 func (us SqlUserStore) SearchInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 	query := us.usersQuery.
-		Join("GroupMembers gm ON ( gm.UserId = u.Id AND gm.GroupId = ? )", groupID).
+		Join("GroupMembers gm ON ( gm.UserId = u.Id AND gm.GroupId = ? AND gm.DeleteAt = 0 )", groupID).
 		OrderBy("Username ASC").
 		Limit(uint64(options.Limit))
 
@@ -2101,9 +2101,11 @@ func (us SqlUserStore) GetUsersWithInvalidEmails(page int, perPage int, restrict
 			query = query.Where("u.Email NOT LIKE LOWER(?)", wildcardSearchTerm(d))
 		}
 	}
+
 	query = query.Offset(uint64(page * perPage)).Limit(uint64(perPage))
 
 	queryString, args, err := query.ToSql()
+
 	if err != nil {
 		return nil, errors.Wrap(err, "users_get_many_tosql")
 	}
