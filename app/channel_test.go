@@ -2285,6 +2285,14 @@ func TestMarkChannelAsUnreadFromPostCollapsedThreadsTurnedOff(t *testing.T) {
 	})
 }
 
+// TestMarkUnreadWithThreads asserts the behaviour of App.MarkChannelAsUnreadFromPost, but was
+// originally written when that API accepted a followThread parameter. While tested, that parameter
+// was never actually called as true, resulting in deadcode.
+//
+// When removing the parameter, one of the following tests failed, as it covered behaviour that
+// was unused and now unsupported. The test has since been updated to reflect the new reality,
+// but a careful examination of MarkChannelAsUnreadFromPost should be conducted as it's unclear
+// why that API tries to manipulate thread memberships at all. Fixing that is left to another task.
 func TestMarkUnreadWithThreads(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
@@ -2388,7 +2396,7 @@ func TestMarkUnreadWithThreads(t *testing.T) {
 			threadMembership, appErr := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rootPost.Id)
 			require.Nil(t, appErr)
 			require.NotNil(t, threadMembership)
-			assert.Equal(t, int64(1), threadMembership.UnreadMentions)
+			assert.Zero(t, threadMembership.UnreadMentions)
 		})
 	})
 }
