@@ -8,8 +8,10 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/configservice"
+	"github.com/mattermost/mattermost-server/v6/services/telemetry"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
@@ -18,21 +20,34 @@ const TwentyFourHoursInMillis int64 = 86400000
 const FourtyEightHoursInMillis int64 = 172800000
 const SeventyTwoHoursInMillis int64 = 259200000
 
-type ResendInvitationEmailWorker struct {
-	name    string
-	stop    chan bool
-	stopped chan bool
-	jobs    chan model.Job
-	App     *app.App
+type AppIface interface {
+	configservice.ConfigService
+	GetUserByEmail(email string) (*model.User, *model.AppError)
+	GetTeamMembersByIds(teamID string, userIDs []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
+	InviteNewUsersToTeamGracefully(emailList []string, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError)
 }
 
-func (rse *ResendInvitationEmailJobInterfaceImpl) MakeWorker() model.Worker {
+type ResendInvitationEmailWorker struct {
+	name             string
+	stop             chan bool
+	stopped          chan bool
+	jobs             chan model.Job
+	jobServer        *jobs.JobServer
+	app              AppIface
+	store            store.Store
+	telemetryService *telemetry.TelemetryService
+}
+
+func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store, telemetryService *telemetry.TelemetryService) model.Worker {
 	worker := ResendInvitationEmailWorker{
-		name:    ResendInvitationEmailJob,
-		stop:    make(chan bool, 1),
-		stopped: make(chan bool, 1),
-		jobs:    make(chan model.Job),
-		App:     rse.App,
+		name:             model.JobTypeResendInvitationEmail,
+		stop:             make(chan bool, 1),
+		stopped:          make(chan bool, 1),
+		jobs:             make(chan model.Job),
+		jobServer:        jobServer,
+		app:              app,
+		store:            store,
+		telemetryService: telemetryService,
 	}
 	return &worker
 }
@@ -57,6 +72,10 @@ func (rseworker *ResendInvitationEmailWorker) Run() {
 	}
 }
 
+func (rseworker *ResendInvitationEmailWorker) IsEnabled(cfg *model.Config) bool {
+	return *cfg.ServiceSettings.EnableEmailInvitations
+}
+
 func (rseworker *ResendInvitationEmailWorker) Stop() {
 	mlog.Debug("Worker stopping", mlog.String("worker", rseworker.name))
 	rseworker.stop <- true
@@ -68,7 +87,7 @@ func (rseworker *ResendInvitationEmailWorker) JobChannel() chan<- model.Job {
 }
 
 func (rseworker *ResendInvitationEmailWorker) DoJob(job *model.Job) {
-	resendInviteEmailIntervalFlag := rseworker.App.Config().FeatureFlags.ResendInviteEmailInterval
+	resendInviteEmailIntervalFlag := rseworker.app.Config().FeatureFlags.ResendInviteEmailInterval
 
 	switch resendInviteEmailIntervalFlag {
 	case "48":
@@ -99,7 +118,7 @@ func (rseworker *ResendInvitationEmailWorker) DoJob_24_72(job *model.Job) {
 }
 
 func (rseworker *ResendInvitationEmailWorker) Execute(job *model.Job, elapsedTimeSinceSchedule, firstDuration, secondDuration int64, firstDurationTelemetryValue, secondDurationTelemetryValue string) {
-	systemValue, sysValErr := rseworker.App.Srv().Store.System().GetByName(job.Id)
+	systemValue, sysValErr := rseworker.store.System().GetByName(job.Id)
 	if sysValErr != nil {
 		if _, ok := sysValErr.(*store.ErrNotFound); !ok {
 			mlog.Error("An error occurred while getting NUMBER_OF_INVITE_EMAILS_SENT from system store", mlog.String("worker", rseworker.name), mlog.Err(sysValErr))
@@ -119,21 +138,21 @@ func (rseworker *ResendInvitationEmailWorker) Execute(job *model.Job, elapsedTim
 }
 
 func (rseworker *ResendInvitationEmailWorker) setJobSuccess(job *model.Job) {
-	if err := rseworker.App.Srv().Jobs.SetJobSuccess(job); err != nil {
+	if err := rseworker.jobServer.SetJobSuccess(job); err != nil {
 		mlog.Error("Worker: Failed to set success for job", mlog.String("worker", rseworker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 		rseworker.setJobError(job, err)
 	}
 }
 
 func (rseworker *ResendInvitationEmailWorker) setJobCancelled(job *model.Job) {
-	if err := rseworker.App.Srv().Jobs.SetJobCanceled(job); err != nil {
+	if err := rseworker.jobServer.SetJobCanceled(job); err != nil {
 		mlog.Error("Worker: Failed to cancel job", mlog.String("worker", rseworker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 		rseworker.setJobError(job, err)
 	}
 }
 
 func (rseworker *ResendInvitationEmailWorker) setJobError(job *model.Job, appError *model.AppError) {
-	if err := rseworker.App.Srv().Jobs.SetJobError(job, appError); err != nil {
+	if err := rseworker.jobServer.SetJobError(job, appError); err != nil {
 		mlog.Error("Worker: Failed to set job error", mlog.String("worker", rseworker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 	}
 }
@@ -153,14 +172,14 @@ func (rseworker *ResendInvitationEmailWorker) removeAlreadyJoined(teamID string,
 	var notJoinedYet []string
 	for _, email := range emailList {
 		// check if the user with this email is on the system already
-		user, appErr := rseworker.App.GetUserByEmail(email)
+		user, appErr := rseworker.app.GetUserByEmail(email)
 		if appErr != nil {
 			notJoinedYet = append(notJoinedYet, email)
 			continue
 		}
 		// now we check if they are part of the team already
 		userID := []string{user.Id}
-		members, appErr := rseworker.App.GetTeamMembersByIds(teamID, userID, nil)
+		members, appErr := rseworker.app.GetTeamMembersByIds(teamID, userID, nil)
 		if len(members) == 0 || appErr != nil {
 			notJoinedYet = append(notJoinedYet, email)
 		}
@@ -171,7 +190,7 @@ func (rseworker *ResendInvitationEmailWorker) removeAlreadyJoined(teamID string,
 
 func (rseworker *ResendInvitationEmailWorker) setNumResendEmailSent(job *model.Job, num string) {
 	sysVar := &model.System{Name: job.Id, Value: num}
-	if err := rseworker.App.Srv().Store.System().SaveOrUpdate(sysVar); err != nil {
+	if err := rseworker.store.System().SaveOrUpdate(sysVar); err != nil {
 		mlog.Error("Unable to save NUMBER_OF_INVITE_EMAIL_SENT", mlog.String("worker", rseworker.name), mlog.Err(err))
 	}
 }
@@ -208,7 +227,7 @@ func (rseworker *ResendInvitationEmailWorker) GetDurations(job *model.Job) (int6
 }
 
 func (rseworker *ResendInvitationEmailWorker) TearDown(job *model.Job) {
-	rseworker.App.Srv().Store.System().PermanentDeleteByName(job.Id)
+	rseworker.store.System().PermanentDeleteByName(job.Id)
 	rseworker.setJobSuccess(job)
 }
 
@@ -225,10 +244,10 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(job *model.Job, inter
 
 	emailList = rseworker.removeAlreadyJoined(teamID, emailList)
 
-	_, appErr := rseworker.App.InviteNewUsersToTeamGracefully(emailList, teamID, job.Data["senderID"], interval)
+	_, appErr := rseworker.app.InviteNewUsersToTeamGracefully(emailList, teamID, job.Data["senderID"], interval)
 	if appErr != nil {
 		mlog.Error("Worker: Failed to send emails", mlog.String("worker", rseworker.name), mlog.String("job_id", job.Id), mlog.String("error", appErr.Error()))
 		rseworker.setJobError(job, appErr)
 	}
-	rseworker.App.Srv().GetTelemetryService().SendTelemetry("track_invite_email_resend", map[string]interface{}{interval: interval})
+	rseworker.telemetryService.SendTelemetry("track_invite_email_resend", map[string]interface{}{interval: interval})
 }
