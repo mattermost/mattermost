@@ -124,7 +124,7 @@ func resetCmdF(command *cobra.Command, args []string) error {
 
 func migrateCmdF(command *cobra.Command, args []string) error {
 	cfgDSN := getConfigDSN(command, config.GetEnvironment())
-	cfgStore, err := config.NewStoreFromDSN(cfgDSN, true, nil)
+	cfgStore, err := config.NewStoreFromDSN(cfgDSN, true, nil, true)
 	if err != nil {
 		return errors.Wrap(err, "failed to load configuration")
 	}
