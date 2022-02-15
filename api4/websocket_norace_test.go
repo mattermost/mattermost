@@ -1,3 +1,4 @@
+//go:build !race
 // +build !race
 
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
