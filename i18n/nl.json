@@ -9155,18 +9155,6 @@
     "translation": "Voor deze functie is een upgrade naar Enterprise Editie vereist."
   },
   {
-    "id": "extract_content.worker.do_job.file_info",
-    "translation": "Mislukt om bestandsinformatie te krijgen voor inhoudsextractie."
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.to",
-    "translation": "Ongeldige invoerwaarde 'to'"
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.from",
-    "translation": "Ongeldige invoerwaarde 'From'"
-  },
-  {
     "id": "app.user.store_is_empty.app_error",
     "translation": "Fout bij het controleren of de 'user store' leeg is."
   },
