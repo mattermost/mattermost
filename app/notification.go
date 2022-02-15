@@ -626,7 +626,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 							UpdateViewedTimestamp: true,
 						}
 						// should set unread mentions, and unread replies to 0
-						_, err = a.Srv().Store.Thread().MaintainMembership(uid, post.RootId, opts)
+						_, _, err = a.Srv().Store.Thread().MaintainMembership(uid, post.RootId, opts)
 						if err != nil {
 							return nil, errors.Wrapf(err, "cannot maintain thread membership %q for user %q", post.RootId, uid)
 						}

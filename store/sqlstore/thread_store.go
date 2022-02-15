@@ -742,7 +742,7 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
                         SET participants = participants || $1::jsonb
                         WHERE postid=$2
                         AND NOT participants ? $3`, jsonArray([]string{userId}), postId, userId); err2 != nil {
-				return nil, err2
+				return nil, false, err2
 			}
 		} else {
 			// CONCAT('$[', JSON_LENGTH(Participants), ']') just generates $[n]

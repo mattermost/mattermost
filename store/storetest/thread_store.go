@@ -481,7 +481,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 			UpdateParticipants:    false,
 		}
 
-		_, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
+		_, _, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
 		require.NoError(t, e)
 
 		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
