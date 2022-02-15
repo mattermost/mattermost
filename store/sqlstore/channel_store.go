@@ -2891,13 +2891,13 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamId string, userId strin
 			// of columns (c.Name, c.DisplayName, c.Purpose)
 			sq.Expr(fulltextClause, fulltextTerm),
 		})
-	} 
+	}
 
 	sql, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "AutocompleteInTeamForSearch")
 	}
-	if _, err := s.GetReplica().Select(&channels, sql, args...); err != nil {
+	if _, err = s.GetReplica().Select(&channels, sql, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
 	}
 
@@ -2934,11 +2934,11 @@ func (s SqlChannelStore) autocompleteInTeamForSearchDirectMessages(userId string
 
 	var channels model.ChannelList
 	if likeClause, likeTerm := s.buildLIKEClause(term, "IU.Username, IU.Nickname"); likeClause == "" {
-		if _, err := s.GetReplica().Select(&channels, fmt.Sprintf(sql, ""), map[string]interface{}{"UserId": userId}); err != nil {
+		if _, err = s.GetReplica().Select(&channels, fmt.Sprintf(sql, ""), map[string]interface{}{"UserId": userId}); err != nil {
 			return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
 		}
 	} else {
-		if _, err := s.GetReplica().Select(&channels, fmt.Sprintf(sql, "AND "+likeClause), map[string]interface{}{"UserId": userId, "LikeTerm": likeTerm}); err != nil {
+		if _, err = s.GetReplica().Select(&channels, fmt.Sprintf(sql, "AND "+likeClause), map[string]interface{}{"UserId": userId, "LikeTerm": likeTerm}); err != nil {
 			return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
 		}
 	}
