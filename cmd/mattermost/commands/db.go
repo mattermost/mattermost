@@ -76,7 +76,7 @@ func initDbCmdF(command *cobra.Command, _ []string) error {
 		return errors.Wrap(err, "error loading custom configuration defaults")
 	}
 
-	configStore, err := config.NewStoreFromDSN(getConfigDSN(command, config.GetEnvironment()), false, customDefaults)
+	configStore, err := config.NewStoreFromDSN(getConfigDSN(command, config.GetEnvironment()), false, customDefaults, true)
 	if err != nil {
 		return errors.Wrap(err, "failed to load configuration")
 	}

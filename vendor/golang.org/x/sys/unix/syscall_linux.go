@@ -2318,7 +2318,6 @@ type RemoteIovec struct {
  * Unimplemented
  */
 // AfsSyscall
-// Alarm
 // ArchPrctl
 // Brk
 // ClockNanosleep

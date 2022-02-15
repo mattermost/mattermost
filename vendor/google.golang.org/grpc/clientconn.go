@@ -83,13 +83,13 @@ var (
 	// errTransportCredsAndBundle indicates that creds bundle is used together
 	// with other individual Transport Credentials.
 	errTransportCredsAndBundle = errors.New("grpc: credentials.Bundle may not be used with individual TransportCredentials")
-	// errTransportCredentialsMissing indicates that users want to transmit security
-	// information (e.g., OAuth2 token) which requires secure connection on an insecure
-	// connection.
+	// errNoTransportCredsInBundle indicated that the configured creds bundle
+	// returned a transport credentials which was nil.
+	errNoTransportCredsInBundle = errors.New("grpc: credentials.Bundle must return non-nil transport credentials")
+	// errTransportCredentialsMissing indicates that users want to transmit
+	// security information (e.g., OAuth2 token) which requires secure
+	// connection on an insecure connection.
 	errTransportCredentialsMissing = errors.New("grpc: the credentials require transport level security (use grpc.WithTransportCredentials() to set)")
-	// errCredentialsConflict indicates that grpc.WithTransportCredentials()
-	// and grpc.WithInsecure() are both called for a connection.
-	errCredentialsConflict = errors.New("grpc: transport credentials are set for an insecure connection (grpc.WithTransportCredentials() and grpc.WithInsecure() are both called)")
 )
 
 const (
@@ -177,17 +177,20 @@ func DialContext(ctx context.Context, target string, opts ...DialOption) (conn *
 		cc.csMgr.channelzID = cc.channelzID
 	}
 
-	if !cc.dopts.insecure {
-		if cc.dopts.copts.TransportCredentials == nil && cc.dopts.copts.CredsBundle == nil {
-			return nil, errNoTransportSecurity
-		}
-		if cc.dopts.copts.TransportCredentials != nil && cc.dopts.copts.CredsBundle != nil {
-			return nil, errTransportCredsAndBundle
-		}
-	} else {
-		if cc.dopts.copts.TransportCredentials != nil || cc.dopts.copts.CredsBundle != nil {
-			return nil, errCredentialsConflict
-		}
+	if cc.dopts.copts.TransportCredentials == nil && cc.dopts.copts.CredsBundle == nil {
+		return nil, errNoTransportSecurity
+	}
+	if cc.dopts.copts.TransportCredentials != nil && cc.dopts.copts.CredsBundle != nil {
+		return nil, errTransportCredsAndBundle
+	}
+	if cc.dopts.copts.CredsBundle != nil && cc.dopts.copts.CredsBundle.TransportCredentials() == nil {
+		return nil, errNoTransportCredsInBundle
+	}
+	transportCreds := cc.dopts.copts.TransportCredentials
+	if transportCreds == nil {
+		transportCreds = cc.dopts.copts.CredsBundle.TransportCredentials()
+	}
+	if transportCreds.Info().SecurityProtocol == "insecure" {
 		for _, cd := range cc.dopts.copts.PerRPCCredentials {
 			if cd.RequireTransportSecurity() {
 				return nil, errTransportCredentialsMissing
@@ -282,6 +285,7 @@ func DialContext(ctx context.Context, target string, opts ...DialOption) (conn *
 		DialCreds:        credsClone,
 		CredsBundle:      cc.dopts.copts.CredsBundle,
 		Dialer:           cc.dopts.copts.Dialer,
+		Authority:        cc.authority,
 		CustomUserAgent:  cc.dopts.copts.UserAgent,
 		ChannelzParentID: cc.channelzID,
 		Target:           cc.parsedTarget,
@@ -629,7 +633,10 @@ func (cc *ClientConn) updateResolverState(s resolver.State, err error) error {
 	}
 
 	var ret error
-	if cc.dopts.disableServiceConfig || s.ServiceConfig == nil {
+	if cc.dopts.disableServiceConfig {
+		channelz.Infof(logger, cc.channelzID, "ignoring service config from resolver (%v) and applying the default because service config is disabled", s.ServiceConfig)
+		cc.maybeApplyDefaultServiceConfig(s.Addresses)
+	} else if s.ServiceConfig == nil {
 		cc.maybeApplyDefaultServiceConfig(s.Addresses)
 		// TODO: do we need to apply a failing LB policy if there is no
 		// default, per the error handling design?

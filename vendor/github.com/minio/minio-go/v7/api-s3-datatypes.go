@@ -335,7 +335,7 @@ type deletedObject struct {
 	VersionID string `xml:"VersionId,omitempty"`
 	// These fields are ignored.
 	DeleteMarker          bool
-	DeleteMarkerVersionID string
+	DeleteMarkerVersionID string `xml:"DeleteMarkerVersionId,omitempty"`
 }
 
 // nonDeletedObject container for Error element (failed deletion) in MultiObjects Delete XML response

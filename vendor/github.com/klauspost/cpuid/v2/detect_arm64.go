@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Klaus Post, released under MIT License. See LICENSE file.
 
-//+build arm64,!gccgo,!noasm,!appengine
+//go:build arm64 && !gccgo && !noasm && !appengine
+// +build arm64,!gccgo,!noasm,!appengine
 
 package cpuid
 

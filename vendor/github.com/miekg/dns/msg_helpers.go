@@ -781,6 +781,8 @@ func unpackDataAplPrefix(msg []byte, off int) (APLPrefix, int, error) {
 	if off+afdlen > len(msg) {
 		return APLPrefix{}, len(msg), &Error{err: "overflow unpacking APL address"}
 	}
+
+	// Address MUST NOT contain trailing zero bytes per RFC3123 Sections 4.1 and 4.2.
 	off += copy(ip, msg[off:off+afdlen])
 	if afdlen > 0 {
 		last := ip[afdlen-1]
@@ -791,10 +793,6 @@ func unpackDataAplPrefix(msg []byte, off int) (APLPrefix, int, error) {
 	ipnet := net.IPNet{
 		IP:   ip,
 		Mask: net.CIDRMask(int(prefix), 8*len(ip)),
-	}
-	network := ipnet.IP.Mask(ipnet.Mask)
-	if !network.Equal(ipnet.IP) {
-		return APLPrefix{}, len(msg), &Error{err: "invalid APL address length"}
 	}
 
 	return APLPrefix{
