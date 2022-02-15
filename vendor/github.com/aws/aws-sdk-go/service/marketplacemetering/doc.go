@@ -9,25 +9,26 @@
 // AWS Marketplace sellers can use this API to submit usage data for custom
 // usage dimensions.
 //
-// For information on the permissions you need to use this API, see AWS Marketing
+// For information on the permissions you need to use this API, see AWS Marketplace
 // metering and entitlement API permissions (https://docs.aws.amazon.com/marketplace/latest/userguide/iam-user-policy-for-aws-marketplace-actions.html)
 // in the AWS Marketplace Seller Guide.
 //
 // Submitting Metering Records
 //
-//    * MeterUsage- Submits the metering record for a Marketplace product. MeterUsage
-//    is called from an EC2 instance or a container running on EKS or ECS.
+//    * MeterUsage - Submits the metering record for an AWS Marketplace product.
+//    MeterUsage is called from an EC2 instance or a container running on EKS
+//    or ECS.
 //
-//    * BatchMeterUsage- Submits the metering record for a set of customers.
+//    * BatchMeterUsage - Submits the metering record for a set of customers.
 //    BatchMeterUsage is called from a software-as-a-service (SaaS) application.
 //
 // Accepting New Customers
 //
-//    * ResolveCustomer- Called by a SaaS application during the registration
+//    * ResolveCustomer - Called by a SaaS application during the registration
 //    process. When a buyer visits your website during the registration process,
 //    the buyer submits a Registration Token through the browser. The Registration
-//    Token is resolved through this API to obtain a CustomerIdentifier and
-//    Product Code.
+//    Token is resolved through this API to obtain a CustomerIdentifier along
+//    with the CustomerAWSAccountId and ProductCode.
 //
 // Entitlement and Metering for Paid Container Products
 //
@@ -43,7 +44,7 @@
 // to verify that the SaaS metering records that you sent are accurate by searching
 // for records with the eventName of BatchMeterUsage. You can also use CloudTrail
 // to audit records over time. For more information, see the AWS CloudTrail
-// User Guide (http://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-concepts.html) .
+// User Guide (http://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-concepts.html).
 //
 // See https://docs.aws.amazon.com/goto/WebAPI/meteringmarketplace-2016-01-14 for more information on this service.
 //

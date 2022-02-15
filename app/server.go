@@ -45,13 +45,25 @@ import (
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/jobs"
+	"github.com/mattermost/mattermost-server/v6/jobs/active_users"
+	"github.com/mattermost/mattermost-server/v6/jobs/expirynotify"
+	"github.com/mattermost/mattermost-server/v6/jobs/export_delete"
+	"github.com/mattermost/mattermost-server/v6/jobs/export_process"
+	"github.com/mattermost/mattermost-server/v6/jobs/extract_content"
+	"github.com/mattermost/mattermost-server/v6/jobs/import_delete"
+	"github.com/mattermost/mattermost-server/v6/jobs/import_process"
+	"github.com/mattermost/mattermost-server/v6/jobs/migrations"
+	"github.com/mattermost/mattermost-server/v6/jobs/product_notices"
+	"github.com/mattermost/mattermost-server/v6/jobs/resend_invitation_email"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin/scheduler"
 	"github.com/mattermost/mattermost-server/v6/services/awsmeter"
 	"github.com/mattermost/mattermost-server/v6/services/cache"
 	"github.com/mattermost/mattermost-server/v6/services/httpservice"
 	"github.com/mattermost/mattermost-server/v6/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine/bleveengine"
+	"github.com/mattermost/mattermost-server/v6/services/searchengine/bleveengine/indexer"
 	"github.com/mattermost/mattermost-server/v6/services/sharedchannel"
 	"github.com/mattermost/mattermost-server/v6/services/telemetry"
 	"github.com/mattermost/mattermost-server/v6/services/timezones"
@@ -210,7 +222,7 @@ func NewServer(options ...Option) (*Server, error) {
 	//
 	// Step 1: Config.
 	if s.configStore == nil {
-		innerStore, err := config.NewFileStore("config.json")
+		innerStore, err := config.NewFileStore("config.json", true)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to load config")
 		}
@@ -343,6 +355,9 @@ func NewServer(options ...Option) (*Server, error) {
 					}
 					return event
 				},
+				TracesSampler: sentry.TracesSamplerFunc(func(ctx sentry.SamplingContext) sentry.Sampled {
+					return sentry.SampledFalse
+				}),
 			}); err2 != nil {
 				mlog.Warn("Sentry could not be initiated, probably bad DSN?", mlog.Err(err2))
 			}
@@ -1859,72 +1874,110 @@ func (ch *Channels) ClientConfigHash() string {
 
 func (s *Server) initJobs() {
 	s.Jobs = jobs.NewJobServer(s, s.Store, s.Metrics)
+	s.Jobs.InitWorkers()
+	s.Jobs.InitSchedulers()
+
 	if jobsDataRetentionJobInterface != nil {
-		s.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(s)
+		builder := jobsDataRetentionJobInterface(s)
+		s.Jobs.RegisterJobType(model.JobTypeDataRetention, builder.MakeWorker(), builder.MakeScheduler())
 	}
+
 	if jobsMessageExportJobInterface != nil {
-		s.Jobs.MessageExportJob = jobsMessageExportJobInterface(s)
+		builder := jobsMessageExportJobInterface(s)
+		s.Jobs.RegisterJobType(model.JobTypeMessageExport, builder.MakeWorker(), builder.MakeScheduler())
 	}
+
 	if jobsElasticsearchAggregatorInterface != nil {
-		s.Jobs.ElasticsearchAggregator = jobsElasticsearchAggregatorInterface(s)
+		builder := jobsElasticsearchAggregatorInterface(s)
+		s.Jobs.RegisterJobType(model.JobTypeElasticsearchPostAggregation, builder.MakeWorker(), builder.MakeScheduler())
 	}
+
 	if jobsElasticsearchIndexerInterface != nil {
-		s.Jobs.ElasticsearchIndexer = jobsElasticsearchIndexerInterface(s)
+		builder := jobsElasticsearchIndexerInterface(s)
+		s.Jobs.RegisterJobType(model.JobTypeElasticsearchPostIndexing, builder.MakeWorker(), nil)
 	}
-	if jobsBleveIndexerInterface != nil {
-		s.Jobs.BleveIndexer = jobsBleveIndexerInterface(s)
-	}
-	if jobsMigrationsInterface != nil {
-		s.Jobs.Migrations = jobsMigrationsInterface(s)
-	}
+
 	if jobsLdapSyncInterface != nil {
-		s.Jobs.LdapSync = jobsLdapSyncInterface(s)
-	}
-	if jobsPluginsInterface != nil {
-		s.Jobs.Plugins = jobsPluginsInterface(s)
-	}
-	if jobsExpiryNotifyInterface != nil {
-		s.Jobs.ExpiryNotify = jobsExpiryNotifyInterface(s)
-	}
-	if productNoticesJobInterface != nil {
-		s.Jobs.ProductNotices = productNoticesJobInterface(s)
-	}
-	if jobsImportProcessInterface != nil {
-		s.Jobs.ImportProcess = jobsImportProcessInterface(s)
-	}
-	if jobsImportDeleteInterface != nil {
-		s.Jobs.ImportDelete = jobsImportDeleteInterface(s)
-	}
-	if jobsExportDeleteInterface != nil {
-		s.Jobs.ExportDelete = jobsExportDeleteInterface(s)
-	}
-
-	if jobsExportProcessInterface != nil {
-		s.Jobs.ExportProcess = jobsExportProcessInterface(s)
-	}
-
-	if jobsExportProcessInterface != nil {
-		s.Jobs.ExportProcess = jobsExportProcessInterface(s)
-	}
-
-	if jobsActiveUsersInterface != nil {
-		s.Jobs.ActiveUsers = jobsActiveUsersInterface(s)
+		builder := jobsLdapSyncInterface(s)
+		s.Jobs.RegisterJobType(model.JobTypeLdapSync, builder.MakeWorker(), builder.MakeScheduler())
 	}
 
 	if jobsCloudInterface != nil {
-		s.Jobs.Cloud = jobsCloudInterface(s)
+		builder := jobsCloudInterface(s)
+		s.Jobs.RegisterJobType(model.JobTypeCloud, builder.MakeWorker(), builder.MakeScheduler())
 	}
 
-	if jobsResendInvitationEmailInterface != nil {
-		s.Jobs.ResendInvitationEmails = jobsResendInvitationEmailInterface(s)
-	}
+	s.Jobs.RegisterJobType(
+		model.JobTypeBlevePostIndexing,
+		indexer.MakeWorker(s.Jobs, s.SearchEngine.BleveEngine.(*bleveengine.BleveEngine)),
+		nil,
+	)
 
-	if jobsExtractContentInterface != nil {
-		s.Jobs.ExtractContent = jobsExtractContentInterface(s)
-	}
+	s.Jobs.RegisterJobType(
+		model.JobTypeMigrations,
+		migrations.MakeWorker(s.Jobs, s.Store),
+		migrations.MakeScheduler(s.Jobs, s.Store),
+	)
 
-	s.Jobs.InitWorkers()
-	s.Jobs.InitSchedulers()
+	s.Jobs.RegisterJobType(
+		model.JobTypePlugins,
+		scheduler.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
+		scheduler.MakeScheduler(s.Jobs),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeExpiryNotify,
+		expirynotify.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())).NotifySessionsExpired),
+		expirynotify.MakeScheduler(s.Jobs),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeProductNotices,
+		product_notices.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
+		product_notices.MakeScheduler(s.Jobs),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeImportProcess,
+		import_process.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
+		nil,
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeImportDelete,
+		import_delete.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store),
+		import_delete.MakeScheduler(s.Jobs),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeExportDelete,
+		export_delete.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
+		export_delete.MakeScheduler(s.Jobs),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeExportProcess,
+		export_process.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
+		nil,
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeActiveUsers,
+		active_users.MakeWorker(s.Jobs, s.Store, func() einterfaces.MetricsInterface { return s.Metrics }),
+		active_users.MakeScheduler(s.Jobs),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeResendInvitationEmail,
+		resend_invitation_email.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store, s.telemetryService),
+		nil,
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeExtractContent,
+		extract_content.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store),
+		nil,
+	)
 }
 
 func (s *Server) TelemetryId() string {

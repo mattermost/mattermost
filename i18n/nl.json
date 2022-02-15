@@ -4801,7 +4801,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -4813,7 +4813,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Versie 78+"
+    "translation": "Versie 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -9155,18 +9155,6 @@
     "translation": "Voor deze functie is een upgrade naar Enterprise Editie vereist."
   },
   {
-    "id": "extract_content.worker.do_job.file_info",
-    "translation": "Mislukt om bestandsinformatie te krijgen voor inhoudsextractie."
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.to",
-    "translation": "Ongeldige invoerwaarde 'to'"
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.from",
-    "translation": "Ongeldige invoerwaarde 'From'"
-  },
-  {
     "id": "app.user.store_is_empty.app_error",
     "translation": "Fout bij het controleren of de 'user store' leeg is."
   },
@@ -9301,5 +9289,25 @@
   {
     "id": "api.license.request_renewal_link.cannot_renew_on_cws",
     "translation": "Vernieuwen van deze licentie op het portaal is niet mogelijk"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "SAML antwoord is te lang"
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "Onboarding kan alleen worden voltooid door een systeembeheerder."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "Het is niet gelukt om de volledige onboarding-request te decoderen."
+  },
+  {
+    "id": "app.admin.latest_version_read_all.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_external_error.failure",
+    "translation": " "
   }
 ]

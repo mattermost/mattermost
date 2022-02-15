@@ -706,6 +706,74 @@ func (s *hooksRPCServer) RunDataRetention(args *Z_RunDataRetentionArgs, returns 
 	return nil
 }
 
+func init() {
+	hookNameToId["OnInstall"] = OnInstallID
+}
+
+type Z_OnInstallArgs struct {
+	A *Context
+	B model.OnInstallEvent
+}
+
+type Z_OnInstallReturns struct {
+	A error
+}
+
+func (g *hooksRPCClient) OnInstall(c *Context, event model.OnInstallEvent) error {
+	_args := &Z_OnInstallArgs{c, event}
+	_returns := &Z_OnInstallReturns{}
+	if g.implemented[OnInstallID] {
+		if err := g.client.Call("Plugin.OnInstall", _args, _returns); err != nil {
+			g.log.Error("RPC call OnInstall to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) OnInstall(args *Z_OnInstallArgs, returns *Z_OnInstallReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnInstall(c *Context, event model.OnInstallEvent) error
+	}); ok {
+		returns.A = hook.OnInstall(args.A, args.B)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnInstall called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["OnSendDailyTelemetry"] = OnSendDailyTelemetryID
+}
+
+type Z_OnSendDailyTelemetryArgs struct {
+}
+
+type Z_OnSendDailyTelemetryReturns struct {
+}
+
+func (g *hooksRPCClient) OnSendDailyTelemetry() {
+	_args := &Z_OnSendDailyTelemetryArgs{}
+	_returns := &Z_OnSendDailyTelemetryReturns{}
+	if g.implemented[OnSendDailyTelemetryID] {
+		if err := g.client.Call("Plugin.OnSendDailyTelemetry", _args, _returns); err != nil {
+			g.log.Error("RPC call OnSendDailyTelemetry to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) OnSendDailyTelemetry(args *Z_OnSendDailyTelemetryArgs, returns *Z_OnSendDailyTelemetryReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnSendDailyTelemetry()
+	}); ok {
+		hook.OnSendDailyTelemetry()
+	} else {
+		return encodableError(fmt.Errorf("Hook OnSendDailyTelemetry called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }

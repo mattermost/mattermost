@@ -76,6 +76,7 @@ func WithLock(key string) EngineOption {
 }
 
 // New creates a new instance of the migrations engine from an existing db instance and a migrations source.
+// If the driver implements the Lockable interface, it will also wait until it has acquired a lock.
 func New(ctx context.Context, driver drivers.Driver, source sources.Source, options ...EngineOption) (*Morph, error) {
 	engine := &Morph{
 		config: &Config{

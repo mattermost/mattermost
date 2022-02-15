@@ -19,16 +19,7 @@ type SqlLinkMetadataStore struct {
 }
 
 func newSqlLinkMetadataStore(sqlStore *SqlStore) store.LinkMetadataStore {
-	s := &SqlLinkMetadataStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.LinkMetadata{}, "LinkMetadata").SetKeys(false, "Hash")
-		table.ColMap("URL").SetMaxSize(2048)
-		table.ColMap("Type").SetMaxSize(16)
-		table.ColMap("Data").SetDataType(sqlStore.jsonDataType())
-	}
-
-	return s
+	return &SqlLinkMetadataStore{sqlStore}
 }
 
 func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMetadata, error) {

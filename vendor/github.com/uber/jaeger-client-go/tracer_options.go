@@ -27,27 +27,30 @@ import (
 // TracerOption is a function that sets some option on the tracer
 type TracerOption func(tracer *Tracer)
 
-// TracerOptions is a factory for all available TracerOption's
-var TracerOptions tracerOptions
+// TracerOptions is a factory for all available TracerOption's.
+var TracerOptions TracerOptionsFactory
 
-type tracerOptions struct{}
+// TracerOptionsFactory is a struct that defines functions for all available TracerOption's.
+type TracerOptionsFactory struct{}
 
 // Metrics creates a TracerOption that initializes Metrics on the tracer,
 // which is used to emit statistics.
-func (tracerOptions) Metrics(m *Metrics) TracerOption {
+func (TracerOptionsFactory) Metrics(m *Metrics) TracerOption {
 	return func(tracer *Tracer) {
 		tracer.metrics = *m
 	}
 }
 
 // Logger creates a TracerOption that gives the tracer a Logger.
-func (tracerOptions) Logger(logger Logger) TracerOption {
+func (TracerOptionsFactory) Logger(logger Logger) TracerOption {
 	return func(tracer *Tracer) {
 		tracer.logger = log.DebugLogAdapter(logger)
 	}
 }
 
-func (tracerOptions) CustomHeaderKeys(headerKeys *HeadersConfig) TracerOption {
+// CustomHeaderKeys allows to override default HTTP header keys used to propagate
+// tracing context.
+func (TracerOptionsFactory) CustomHeaderKeys(headerKeys *HeadersConfig) TracerOption {
 	return func(tracer *Tracer) {
 		if headerKeys == nil {
 			return
@@ -62,7 +65,7 @@ func (tracerOptions) CustomHeaderKeys(headerKeys *HeadersConfig) TracerOption {
 
 // TimeNow creates a TracerOption that gives the tracer a function
 // used to generate timestamps for spans.
-func (tracerOptions) TimeNow(timeNow func() time.Time) TracerOption {
+func (TracerOptionsFactory) TimeNow(timeNow func() time.Time) TracerOption {
 	return func(tracer *Tracer) {
 		tracer.timeNow = timeNow
 	}
@@ -70,7 +73,7 @@ func (tracerOptions) TimeNow(timeNow func() time.Time) TracerOption {
 
 // RandomNumber creates a TracerOption that gives the tracer
 // a thread-safe random number generator function for generating trace IDs.
-func (tracerOptions) RandomNumber(randomNumber func() uint64) TracerOption {
+func (TracerOptionsFactory) RandomNumber(randomNumber func() uint64) TracerOption {
 	return func(tracer *Tracer) {
 		tracer.randomNumber = randomNumber
 	}
@@ -80,7 +83,7 @@ func (tracerOptions) RandomNumber(randomNumber func() uint64) TracerOption {
 // an object pool to minimize span allocations.
 // This should be used with care, only if the service is not running any async tasks
 // that can access parent spans after those spans have been finished.
-func (tracerOptions) PoolSpans(poolSpans bool) TracerOption {
+func (TracerOptionsFactory) PoolSpans(poolSpans bool) TracerOption {
 	return func(tracer *Tracer) {
 		if poolSpans {
 			tracer.spanAllocator = newSyncPollSpanAllocator()
@@ -90,56 +93,67 @@ func (tracerOptions) PoolSpans(poolSpans bool) TracerOption {
 	}
 }
 
-// Deprecated: HostIPv4 creates a TracerOption that identifies the current service/process.
+// HostIPv4 creates a TracerOption that identifies the current service/process.
 // If not set, the factory method will obtain the current IP address.
 // The TracerOption is deprecated; the tracer will attempt to automatically detect the IP.
-func (tracerOptions) HostIPv4(hostIPv4 uint32) TracerOption {
+//
+// Deprecated.
+func (TracerOptionsFactory) HostIPv4(hostIPv4 uint32) TracerOption {
 	return func(tracer *Tracer) {
 		tracer.hostIPv4 = hostIPv4
 	}
 }
 
-func (tracerOptions) Injector(format interface{}, injector Injector) TracerOption {
+// Injector registers a Injector for given format.
+func (TracerOptionsFactory) Injector(format interface{}, injector Injector) TracerOption {
 	return func(tracer *Tracer) {
 		tracer.injectors[format] = injector
 	}
 }
 
-func (tracerOptions) Extractor(format interface{}, extractor Extractor) TracerOption {
+// Extractor registers an Extractor for given format.
+func (TracerOptionsFactory) Extractor(format interface{}, extractor Extractor) TracerOption {
 	return func(tracer *Tracer) {
 		tracer.extractors[format] = extractor
 	}
 }
 
-func (t tracerOptions) Observer(observer Observer) TracerOption {
+// Observer registers an Observer.
+func (t TracerOptionsFactory) Observer(observer Observer) TracerOption {
 	return t.ContribObserver(&oldObserver{obs: observer})
 }
 
-func (tracerOptions) ContribObserver(observer ContribObserver) TracerOption {
+// ContribObserver registers a ContribObserver.
+func (TracerOptionsFactory) ContribObserver(observer ContribObserver) TracerOption {
 	return func(tracer *Tracer) {
 		tracer.observer.append(observer)
 	}
 }
 
-func (tracerOptions) Gen128Bit(gen128Bit bool) TracerOption {
+// Gen128Bit enables generation of 128bit trace IDs.
+func (TracerOptionsFactory) Gen128Bit(gen128Bit bool) TracerOption {
 	return func(tracer *Tracer) {
 		tracer.options.gen128Bit = gen128Bit
 	}
 }
 
-func (tracerOptions) NoDebugFlagOnForcedSampling(noDebugFlagOnForcedSampling bool) TracerOption {
+// NoDebugFlagOnForcedSampling turns off setting the debug flag in the trace context
+// when the trace is force-started via sampling=1 span tag.
+func (TracerOptionsFactory) NoDebugFlagOnForcedSampling(noDebugFlagOnForcedSampling bool) TracerOption {
 	return func(tracer *Tracer) {
 		tracer.options.noDebugFlagOnForcedSampling = noDebugFlagOnForcedSampling
 	}
 }
 
-func (tracerOptions) HighTraceIDGenerator(highTraceIDGenerator func() uint64) TracerOption {
+// HighTraceIDGenerator allows to override define ID generator.
+func (TracerOptionsFactory) HighTraceIDGenerator(highTraceIDGenerator func() uint64) TracerOption {
 	return func(tracer *Tracer) {
 		tracer.options.highTraceIDGenerator = highTraceIDGenerator
 	}
 }
 
-func (tracerOptions) MaxTagValueLength(maxTagValueLength int) TracerOption {
+// MaxTagValueLength sets the limit on the max length of tag values.
+func (TracerOptionsFactory) MaxTagValueLength(maxTagValueLength int) TracerOption {
 	return func(tracer *Tracer) {
 		tracer.options.maxTagValueLength = maxTagValueLength
 	}
@@ -151,31 +165,37 @@ func (tracerOptions) MaxTagValueLength(maxTagValueLength int) TracerOption {
 //
 // About half of the MaxLogsPerSpan logs kept are the oldest logs, and about
 // half are the newest logs.
-func (tracerOptions) MaxLogsPerSpan(maxLogsPerSpan int) TracerOption {
+func (TracerOptionsFactory) MaxLogsPerSpan(maxLogsPerSpan int) TracerOption {
 	return func(tracer *Tracer) {
 		tracer.options.maxLogsPerSpan = maxLogsPerSpan
 	}
 }
 
-func (tracerOptions) ZipkinSharedRPCSpan(zipkinSharedRPCSpan bool) TracerOption {
+// ZipkinSharedRPCSpan enables a mode where server-side span shares the span ID
+// from the client span from the incoming request, for compatibility with Zipkin's
+// "one span per RPC" model.
+func (TracerOptionsFactory) ZipkinSharedRPCSpan(zipkinSharedRPCSpan bool) TracerOption {
 	return func(tracer *Tracer) {
 		tracer.options.zipkinSharedRPCSpan = zipkinSharedRPCSpan
 	}
 }
 
-func (tracerOptions) Tag(key string, value interface{}) TracerOption {
+// Tag adds a tracer-level tag that will be added to all spans.
+func (TracerOptionsFactory) Tag(key string, value interface{}) TracerOption {
 	return func(tracer *Tracer) {
 		tracer.tags = append(tracer.tags, Tag{key: key, value: value})
 	}
 }
 
-func (tracerOptions) BaggageRestrictionManager(mgr baggage.RestrictionManager) TracerOption {
+// BaggageRestrictionManager registers BaggageRestrictionManager.
+func (TracerOptionsFactory) BaggageRestrictionManager(mgr baggage.RestrictionManager) TracerOption {
 	return func(tracer *Tracer) {
 		tracer.baggageRestrictionManager = mgr
 	}
 }
 
-func (tracerOptions) DebugThrottler(throttler throttler.Throttler) TracerOption {
+// DebugThrottler registers a Throttler for debug spans.
+func (TracerOptionsFactory) DebugThrottler(throttler throttler.Throttler) TracerOption {
 	return func(tracer *Tracer) {
 		tracer.debugThrottler = throttler
 	}
