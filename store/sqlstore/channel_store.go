@@ -3463,8 +3463,8 @@ func (s SqlChannelStore) performSearch(searchQuery sq.SelectBuilder, term string
 
 	var channels model.ChannelList
 
-	err = s.GetReplicaX().Select(&channels, sql, parameters...)
-	if err != nil {
+	err2 := s.GetReplicaX().Select(&channels, sql, parameters...)
+	if err2 != nil {
 		return model.ChannelList{}, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
 	}
 
