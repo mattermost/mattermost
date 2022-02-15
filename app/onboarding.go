@@ -7,9 +7,12 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnboardingRequest) *model.AppError {
@@ -56,7 +59,33 @@ func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnbo
 		}(pluginID)
 	}
 
+	firstAdminCompleteSetupObj := model.System{
+		Name:  model.SystemFirstAdminCompleteSetup,
+		Value: "true",
+	}
+
+	if err := a.Srv().Store.System().SaveOrUpdate(&firstAdminCompleteSetupObj); err != nil {
+		return model.NewAppError("setFirstAdminCompleteSetup", "api.error_set_first_admin_complete_setup", nil, err.Error(), http.StatusInternalServerError)
+	}
+
 	wg.Wait()
 
 	return nil
+}
+
+func (a *App) GetOnboarding() (*model.System, *model.AppError) {
+	firstAdminCompleteSetupObj, err := a.Srv().Store.System().GetByName(model.SystemFirstAdminCompleteSetup)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return &model.System{
+				Name:  model.SystemFirstAdminCompleteSetup,
+				Value: "false",
+			}, nil
+		default:
+			return nil, model.NewAppError("getFirstAdminCompleteSetup", "api.error_get_first_admin_complete_setup", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+	return firstAdminCompleteSetupObj, nil
 }

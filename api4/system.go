@@ -68,7 +68,8 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.System.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getProductNotices)).Methods("GET")
 	api.BaseRoutes.System.Handle("/notices/view", api.APISessionRequired(updateViewedProductNotices)).Methods("PUT")
 	api.BaseRoutes.System.Handle("/support_packet", api.APISessionRequired(generateSupportPacket)).Methods("GET")
-	api.BaseRoutes.System.Handle("/onboarding/complete", api.APIHandler(completeOnboarding)).Methods("POST")
+	api.BaseRoutes.System.Handle("/onboarding/complete", api.APISessionRequired(getOnboarding)).Methods("GET")
+	api.BaseRoutes.System.Handle("/onboarding/complete", api.APISessionRequired(completeOnboarding)).Methods("POST")
 }
 
 func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -879,6 +880,29 @@ func updateViewedProductNotices(c *Context, w http.ResponseWriter, r *http.Reque
 
 	auditRec.Success()
 	ReturnStatusOK(w)
+}
+
+func getOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("getOnboarding", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	c.LogAudit("attempt")
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	firstAdminCompleteSetupObj, err := c.App.GetOnboarding()
+
+	if err != nil {
+		c.Err = model.NewAppError("getOnboarding", "app.system.get_onboarding_request.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	auditRec.Success()
+	if err := json.NewEncoder(w).Encode(firstAdminCompleteSetupObj); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func completeOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
