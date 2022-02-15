@@ -6,8 +6,6 @@ package migrations
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v6/app"
-	tjobs "github.com/mattermost/mattermost-server/v6/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
@@ -20,16 +18,6 @@ const (
 	JobDataKeyMigration         = "migration_key"
 	JobDataKeyMigrationLastDone = "last_done"
 )
-
-type MigrationsJobInterfaceImpl struct {
-	srv *app.Server
-}
-
-func init() {
-	app.RegisterJobsMigrationsJobInterface(func(s *app.Server) tjobs.MigrationsJobInterface {
-		return &MigrationsJobInterfaceImpl{s}
-	})
-}
 
 func MakeMigrationsList() []string {
 	return []string{

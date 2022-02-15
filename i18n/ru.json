@@ -9268,18 +9268,6 @@
     "translation": "Недопустимые роли участников канала длиннее {{.Limit}} символов."
   },
   {
-    "id": "extract_content.worker.do_job.file_info",
-    "translation": "Не удалось получить информацию о файле для извлечения содержимого."
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.to",
-    "translation": "Неверное входное значение 'кому'"
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.from",
-    "translation": "Недопустимое входное значение 'от'"
-  },
-  {
     "id": "ent.elasticsearch.getAllTeamMembers.error",
     "translation": "Не удалось получить список всех членов команды"
   },

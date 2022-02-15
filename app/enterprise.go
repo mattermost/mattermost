@@ -6,7 +6,6 @@ package app
 import (
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	ejobs "github.com/mattermost/mattermost-server/v6/einterfaces/jobs"
-	tjobs "github.com/mattermost/mattermost-server/v6/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -60,9 +59,9 @@ func RegisterJobsElasticsearchAggregatorInterface(f func(*Server) ejobs.Elastics
 	jobsElasticsearchAggregatorInterface = f
 }
 
-var jobsElasticsearchIndexerInterface func(*Server) tjobs.IndexerJobInterface
+var jobsElasticsearchIndexerInterface func(*Server) ejobs.IndexerJobInterface
 
-func RegisterJobsElasticsearchIndexerInterface(f func(*Server) tjobs.IndexerJobInterface) {
+func RegisterJobsElasticsearchIndexerInterface(f func(*Server) ejobs.IndexerJobInterface) {
 	jobsElasticsearchIndexerInterface = f
 }
 
@@ -72,83 +71,10 @@ func RegisterJobsLdapSyncInterface(f func(*Server) ejobs.LdapSyncInterface) {
 	jobsLdapSyncInterface = f
 }
 
-var jobsMigrationsInterface func(*Server) tjobs.MigrationsJobInterface
-
-func RegisterJobsMigrationsJobInterface(f func(*Server) tjobs.MigrationsJobInterface) {
-	jobsMigrationsInterface = f
-}
-
-var jobsPluginsInterface func(*Server) tjobs.PluginsJobInterface
-
-func RegisterJobsPluginsJobInterface(f func(*Server) tjobs.PluginsJobInterface) {
-	jobsPluginsInterface = f
-}
-
-var jobsBleveIndexerInterface func(*Server) tjobs.IndexerJobInterface
-
-func RegisterJobsBleveIndexerInterface(f func(*Server) tjobs.IndexerJobInterface) {
-	jobsBleveIndexerInterface = f
-}
-
-var jobsActiveUsersInterface func(*Server) tjobs.ActiveUsersJobInterface
-
-func RegisterJobsActiveUsersInterface(f func(*Server) tjobs.ActiveUsersJobInterface) {
-	jobsActiveUsersInterface = f
-}
-
-var jobsResendInvitationEmailInterface func(*Server) ejobs.ResendInvitationEmailJobInterface
-
-// RegisterJobsResendInvitationEmailInterface is used to register or initialize the jobsResendInvitationEmailInterface
-func RegisterJobsResendInvitationEmailInterface(f func(*Server) ejobs.ResendInvitationEmailJobInterface) {
-	jobsResendInvitationEmailInterface = f
-}
-
 var jobsCloudInterface func(*Server) ejobs.CloudJobInterface
 
 func RegisterJobsCloudInterface(f func(*Server) ejobs.CloudJobInterface) {
 	jobsCloudInterface = f
-}
-
-var jobsExpiryNotifyInterface func(*Server) tjobs.ExpiryNotifyJobInterface
-
-func RegisterJobsExpiryNotifyJobInterface(f func(*Server) tjobs.ExpiryNotifyJobInterface) {
-	jobsExpiryNotifyInterface = f
-}
-
-var jobsImportProcessInterface func(*Server) tjobs.ImportProcessInterface
-
-func RegisterJobsImportProcessInterface(f func(*Server) tjobs.ImportProcessInterface) {
-	jobsImportProcessInterface = f
-}
-
-var jobsImportDeleteInterface func(*Server) tjobs.ImportDeleteInterface
-
-func RegisterJobsImportDeleteInterface(f func(*Server) tjobs.ImportDeleteInterface) {
-	jobsImportDeleteInterface = f
-}
-
-var jobsExportProcessInterface func(*Server) tjobs.ExportProcessInterface
-
-func RegisterJobsExportProcessInterface(f func(*Server) tjobs.ExportProcessInterface) {
-	jobsExportProcessInterface = f
-}
-
-var jobsExportDeleteInterface func(*Server) tjobs.ExportDeleteInterface
-
-func RegisterJobsExportDeleteInterface(f func(*Server) tjobs.ExportDeleteInterface) {
-	jobsExportDeleteInterface = f
-}
-
-var jobsExtractContentInterface func(*Server) tjobs.ExtractContentInterface
-
-func RegisterJobsExtractContentInterface(f func(*Server) tjobs.ExtractContentInterface) {
-	jobsExtractContentInterface = f
-}
-
-var productNoticesJobInterface func(*Server) tjobs.ProductNoticesJobInterface
-
-func RegisterProductNoticesJobInterface(f func(*Server) tjobs.ProductNoticesJobInterface) {
-	productNoticesJobInterface = f
 }
 
 var ldapInterface func(*Server) einterfaces.LdapInterface
