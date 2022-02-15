@@ -523,29 +523,34 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 func (s *SqlThreadStore) MarkAllAsReadByChannels(userID string, channelIDs []string) error {
 	now := model.GetMillis()
 
-	subquery, subqueryArgs, _ := s.getQueryBuilder().
-		PlaceholderFormat(sq.Question).
-		Select("Threads.PostId").
-		From("Threads").
-		Join("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId").
-		Where(sq.Eq{"Threads.ChannelId": channelIDs}).
-		Where(sq.Eq{"ThreadMemberships.UserId": userID}).
-		Where(sq.Expr("Threads.LastReplyAt > ThreadMemberships.LastViewed")).
-		ToSql()
+	// TODO: Fork squirrel to include https://github.com/Masterminds/squirrel/pull/256 and
+	// support FROM in an UPDATE query.
+	channelIDsSql, channelIDsArgs := constructArrayArgs(channelIDs)
 
-	if s.DriverName() == model.DatabaseDriverMysql {
-		// Workaround #1093 - You can't specify target table 'xxx' for update in FROM clause
-		subquery = "SELECT PostId FROM (" + subquery + ") as t"
+	var query string
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		query = `
+			UPDATE ThreadMemberships
+			SET LastViewed = ?, UnreadMentions = ?, LastUpdated = ?
+			FROM Threads
+			WHERE ThreadMemberships.UserId = ?
+			AND Threads.PostId = ThreadMemberships.PostId
+			AND Threads.ChannelID IN ` + channelIDsSql + `
+			AND Threads.LastReplyAt > ThreadMemberships.LastViewed
+		`
+	} else {
+		query = `
+			UPDATE ThreadMemberships, Threads
+			SET ThreadMemberships.LastViewed = ?, ThreadMemberships.UnreadMentions = ?, ThreadMemberships.LastUpdated = ?
+			WHERE ThreadMemberships.UserId = ?
+			AND Threads.PostId = ThreadMemberships.PostId
+			AND Threads.ChannelID IN ` + channelIDsSql + `
+			AND Threads.LastReplyAt > ThreadMemberships.LastViewed
+		`
 	}
 
-	query, args, _ := s.getQueryBuilder().
-		Update("ThreadMemberships").
-		Where(sq.Eq{"UserId": userID}).
-		Where(sq.Expr("PostId IN ("+subquery+")", subqueryArgs...)).
-		Set("LastViewed", now).
-		Set("UnreadMentions", 0).
-		Set("LastUpdated", now).
-		ToSql()
+	args := []interface{}{now, 0, now, userID}
+	args = append(args, channelIDsArgs...)
 
 	if _, err := s.GetMasterX().Exec(query, args...); err != nil {
 		return errors.Wrapf(err, "failed to mark all threads as read by channels for user id=%s", userID)
