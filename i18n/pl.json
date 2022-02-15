@@ -8604,18 +8604,6 @@
     "translation": "Nie można przetworzyć importu: plik nie istnieje."
   },
   {
-    "id": "extract_content.worker.do_job.file_info",
-    "translation": "Nie udało się uzyskać informacji o pliku do ekstrakcji zawartości."
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.to",
-    "translation": "Nieprawidłowa wartość w p[olu 'do'"
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.from",
-    "translation": "Nieprawidłowa wartość w polu 'od'"
-  },
-  {
     "id": "error",
     "translation": "Błąd"
   },
