@@ -47,9 +47,6 @@ type FeatureFlags struct {
 	// Enable Calls plugin support in the mobile app
 	CallsMobile bool
 
-	// Start A/B tour tips automatically, possible values = ("none", "auto")
-	AutoTour string
-
 	// A dash separated list for feature flags to turn on for Boards
 	BoardsFeatureFlags string
 
@@ -69,6 +66,12 @@ type FeatureFlags struct {
 	BoardsDataRetention bool
 
 	NormalizeLdapDNs bool
+
+	// Enable Workspace optimization dashboard
+	WorkspaceOptimizationDashboard bool
+
+	// Enable GraphQL feature
+	GraphQL bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -85,7 +88,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.GlobalHeader = true
 	f.NewAccountNoisy = false
 	f.CallsMobile = false
-	f.AutoTour = "none"
 	f.BoardsFeatureFlags = ""
 	f.AddMembersToChannel = "top"
 	f.GuidedChannelCreation = false
@@ -93,6 +95,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.InlinePostEditing = false
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
+	f.WorkspaceOptimizationDashboard = false
+	f.GraphQL = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

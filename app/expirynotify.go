@@ -16,7 +16,7 @@ const (
 )
 
 // NotifySessionsExpired is called periodically from the job server to notify any mobile sessions that have expired.
-func (a *App) NotifySessionsExpired() *model.AppError {
+func (a *App) NotifySessionsExpired() error {
 	if *a.Config().EmailSettings.SendPushNotifications {
 		pushServer := *a.Config().EmailSettings.PushNotificationServer
 		if license := a.ch.srv.License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {

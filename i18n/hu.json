@@ -2957,7 +2957,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -2969,7 +2969,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Verzió 78+"
+    "translation": "Verzió 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -4865,7 +4865,7 @@
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
-    "translation": "Hiba történt a végpont lekérése során a Discovery dokumentumból."
+    "translation": "Hiba történt a végpont lekérése során a Discovery Dokumentumból."
   },
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
@@ -5849,7 +5849,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Egyszerűsítse munkáját olyan eszközökkel mint Github, Jira és Zoom. Fedezze fel további integrációinkat"
+    "translation": "Egyszerűsítse munkáját olyan eszközökkel mint GitHub, Jira és Zoom. Fedezze fel további integrációinkat"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -9148,18 +9148,6 @@
     "translation": "Ehhez a funkcióhoz szükséges az Enterprise Kiadásra frissítenie."
   },
   {
-    "id": "extract_content.worker.do_job.file_info",
-    "translation": "Hiba történt a fájl információk beolvasása közben a tartalom kicsomagolásához."
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.to",
-    "translation": "Érvénytelen érték 'to'"
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.from",
-    "translation": "Érvénytelen érték 'from'"
-  },
-  {
     "id": "app.user.store_is_empty.app_error",
     "translation": "Nem sikerült leellenőrizni, hogy a felhasználói tár üres-e."
   },
@@ -9300,7 +9288,47 @@
     "translation": "Ennek a licensznek a portálon keresztüli megújítása nem lehetséges"
   },
   {
-    "id": "api.config.migrate_config_restricted.app_error",
-    "translation": "A konfiguráció migrációja a telepítés típusa miatt korlátozott."
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "SAML válasz túl hosszú"
+  },
+  {
+    "id": "model.github_release_info.is_valid.id.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_unmarshal.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_set_cache.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_read_all.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_external_error.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "Nem sikerült dekódolni a teljes rendszerbeszállási kérelmet."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "A rendszerbeállítást csak egy rendszergazda végezheti el."
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "A név ütközik egy meglévő rendszer emoji nevével."
+  },
+  {
+    "id": "api.users.invalid_emails.enable_open_server.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.config.is_valid.session_length_sso_in_days.app_error",
+    "translation": " "
   }
 ]

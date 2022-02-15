@@ -8908,18 +8908,6 @@
     "translation": "No se puede procesar la importación: el archivo no existe."
   },
   {
-    "id": "extract_content.worker.do_job.file_info",
-    "translation": "Fallo en la obtención de la información del archivo para la extracción del contenido."
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.to",
-    "translation": "Valor de entrada 'to' no válido"
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.from",
-    "translation": "Valor de entrada inválido 'from'"
-  },
-  {
     "id": "error",
     "translation": "Error"
   },
@@ -9298,9 +9286,5 @@
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
     "translation": "No se ha podido actualizar el estado personalizado. Por favor, añade un emoji o un estado de texto personalizado o ambos."
-  },
-  {
-    "id": "api.config.migrate_config_restricted.app_error",
-    "translation": "Migración de la configuración está restringida debido al tipo de instancia."
   }
 ]

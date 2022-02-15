@@ -129,11 +129,11 @@ var offsetCodes14 = [256]uint32{
 type token uint32
 
 type tokens struct {
-	nLits     int
 	extraHist [32]uint16  // codes 256->maxnumlit
 	offHist   [32]uint16  // offset codes
 	litHist   [256]uint16 // codes 0->255
-	n         uint16      // Must be able to contain maxStoreBlockSize
+	nFilled   int
+	n         uint16 // Must be able to contain maxStoreBlockSize
 	tokens    [maxStoreBlockSize + 1]token
 }
 
@@ -142,7 +142,7 @@ func (t *tokens) Reset() {
 		return
 	}
 	t.n = 0
-	t.nLits = 0
+	t.nFilled = 0
 	for i := range t.litHist[:] {
 		t.litHist[i] = 0
 	}
@@ -161,12 +161,12 @@ func (t *tokens) Fill() {
 	for i, v := range t.litHist[:] {
 		if v == 0 {
 			t.litHist[i] = 1
-			t.nLits++
+			t.nFilled++
 		}
 	}
 	for i, v := range t.extraHist[:literalCount-256] {
 		if v == 0 {
-			t.nLits++
+			t.nFilled++
 			t.extraHist[i] = 1
 		}
 	}
@@ -202,14 +202,12 @@ func emitLiteral(dst *tokens, lit []byte) {
 		dst.litHist[v]++
 	}
 	dst.n += uint16(len(lit))
-	dst.nLits += len(lit)
 }
 
 func (t *tokens) AddLiteral(lit byte) {
 	t.tokens[t.n] = token(lit)
 	t.litHist[lit]++
 	t.n++
-	t.nLits++
 }
 
 // from https://stackoverflow.com/a/28730362
@@ -230,8 +228,9 @@ func (t *tokens) EstimatedBits() int {
 	shannon := float32(0)
 	bits := int(0)
 	nMatches := 0
-	if t.nLits > 0 {
-		invTotal := 1.0 / float32(t.nLits)
+	total := int(t.n) + t.nFilled
+	if total > 0 {
+		invTotal := 1.0 / float32(total)
 		for _, v := range t.litHist[:] {
 			if v > 0 {
 				n := float32(v)
@@ -275,7 +274,6 @@ func (t *tokens) AddMatch(xlength uint32, xoffset uint32) {
 	}
 	oCode := offsetCode(xoffset)
 	xoffset |= oCode << 16
-	t.nLits++
 
 	t.extraHist[lengthCodes1[uint8(xlength)]]++
 	t.offHist[oCode]++
@@ -301,7 +299,6 @@ func (t *tokens) AddMatchLong(xlength int32, xoffset uint32) {
 		}
 		xlength -= xl
 		xl -= baseMatchLength
-		t.nLits++
 		t.extraHist[lengthCodes1[uint8(xl)]]++
 		t.offHist[oc]++
 		t.tokens[t.n] = token(matchType | uint32(xl)<<lengthShift | xoffset)
