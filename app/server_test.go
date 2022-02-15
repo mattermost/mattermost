@@ -720,49 +720,7 @@ func TestAdminAdvisor(t *testing.T) {
 		AuthService: "",
 		Roles:       model.SystemAdminRoleId,
 	}
-	ruser, err := th.App.CreateUser(th.Context, &user)
-	assert.Nil(t, err, "User should be created")
 	defer th.App.PermanentDeleteUser(th.Context, &user)
-
-	t.Run("Should notify admin of un-configured support email", func(t *testing.T) {
-		doCheckAdminSupportStatus(th.App, th.Context)
-
-		bot, err := th.App.GetUserByUsername(model.BotWarnMetricBotUsername)
-		assert.NotNil(t, bot, "Bot should have been created now")
-		assert.Nil(t, err, "No error should be generated")
-
-		channel, err := th.App.getDirectChannel(bot.Id, ruser.Id)
-		assert.NotNil(t, channel, "DM channel should exist between Admin Advisor and system admin")
-		assert.Nil(t, err, "No error should be generated")
-	})
-
-	t.Run("Should NOT notify admin when support email is configured", func(t *testing.T) {
-		th.App.UpdateConfig(func(m *model.Config) {
-			email := "success+test@example.com"
-			m.SupportSettings.SupportEmail = &email
-		})
-
-		bot, err := th.App.GetUserByUsername(model.BotWarnMetricBotUsername)
-		assert.NotNil(t, bot, "Bot should be already created")
-		assert.Nil(t, err, "No error should be generated")
-
-		channel, err := th.App.getDirectChannel(bot.Id, ruser.Id)
-		assert.NotNil(t, channel, "DM channel should already exist")
-		assert.Nil(t, err, "No error should be generated")
-
-		err = th.App.PermanentDeleteChannel(channel)
-		assert.Nil(t, err, "No error should be generated")
-
-		doCheckAdminSupportStatus(th.App, th.Context)
-
-		channel, err = th.App.getDirectChannel(bot.Id, ruser.Id)
-		assert.NotNil(t, channel, "DM channel should exist between Admin Advisor and system admin")
-		assert.Nil(t, err, "No error should be generated")
-
-		posts, err := th.App.GetPosts(channel.Id, 0, 100)
-		assert.Nil(t, err, "No error should be generated")
-		assert.Equal(t, 0, len(posts.Posts))
-	})
 
 	t.Run("Should not break in case of many sysadmins", func(t *testing.T) {
 		var userList []*model.User
