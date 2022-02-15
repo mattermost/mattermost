@@ -91,6 +91,7 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("DeactivateGuests", func(t *testing.T) { testDeactivateGuests(t, ss) })
 	t.Run("ResetLastPictureUpdate", func(t *testing.T) { testUserStoreResetLastPictureUpdate(t, ss) })
 	t.Run("GetKnownUsers", func(t *testing.T) { testGetKnownUsers(t, ss) })
+	t.Run("GetUsersWithInvalidEmails", func(t *testing.T) { testGetUsersWithInvalidEmails(t, ss) })
 }
 
 func testUserStoreSave(t *testing.T, ss store.Store) {
@@ -4656,6 +4657,7 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 		require.NoError(t, userErr)
 		require.NotNil(t, user)
 		testUsers = append(testUsers, user)
+		defer func() { require.NoError(t, ss.User().PermanentDelete(user.Id)) }()
 	}
 	require.Len(t, testUsers, 3, "testUsers length doesn't meet required length")
 	userGroupA, userGroupB, userNoGroup := testUsers[0], testUsers[1], testUsers[2]
@@ -4776,6 +4778,7 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 		require.NoError(t, userErr)
 		require.NotNil(t, user)
 		testUsers = append(testUsers, user)
+		defer func() { require.NoError(t, ss.User().PermanentDelete(user.Id)) }()
 	}
 	require.Len(t, testUsers, 3, "testUsers length doesn't meet required length")
 	userGroupA, userGroupB, userNoGroup := testUsers[0], testUsers[1], testUsers[2]
@@ -5777,4 +5780,18 @@ func testIsEmpty(t *testing.T, ss store.Store) {
 	ok, err = ss.User().IsEmpty(false)
 	require.NoError(t, err)
 	require.True(t, ok)
+}
+
+func testGetUsersWithInvalidEmails(t *testing.T, ss store.Store) {
+	u1, err := ss.User().Save(&model.User{
+		Email:    "ben@invalid.mattermost.com",
+		Username: "u1" + model.NewId(),
+	})
+
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
+
+	users, err := ss.User().GetUsersWithInvalidEmails(0, 50, "localhost,simulator.amazonses.com")
+	require.NoError(t, err)
+	assert.Len(t, users, 1)
 }

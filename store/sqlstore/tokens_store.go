@@ -20,16 +20,7 @@ type SqlTokenStore struct {
 }
 
 func newSqlTokenStore(sqlStore *SqlStore) store.TokenStore {
-	s := &SqlTokenStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Token{}, "Tokens").SetKeys(false, "Token")
-		table.ColMap("Token").SetMaxSize(64)
-		table.ColMap("Type").SetMaxSize(64)
-		table.ColMap("Extra").SetMaxSize(2048)
-	}
-
-	return s
+	return &SqlTokenStore{sqlStore}
 }
 
 func (s SqlTokenStore) Save(token *model.Token) error {

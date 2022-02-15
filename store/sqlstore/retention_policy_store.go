@@ -24,29 +24,10 @@ type SqlRetentionPolicyStore struct {
 }
 
 func newSqlRetentionPolicyStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.RetentionPolicyStore {
-	s := &SqlRetentionPolicyStore{
+	return &SqlRetentionPolicyStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
 	}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.RetentionPolicy{}, "RetentionPolicies")
-		table.SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("DisplayName").SetMaxSize(64)
-
-		tableC := db.AddTableWithName(model.RetentionPolicyChannel{}, "RetentionPoliciesChannels")
-		tableC.SetKeys(false, "ChannelId")
-		tableC.ColMap("PolicyId").SetMaxSize(26)
-		tableC.ColMap("ChannelId").SetMaxSize(26)
-
-		tableT := db.AddTableWithName(model.RetentionPolicyTeam{}, "RetentionPoliciesTeams")
-		tableT.SetKeys(false, "TeamId")
-		tableT.ColMap("PolicyId").SetMaxSize(26)
-		tableT.ColMap("TeamId").SetMaxSize(26)
-	}
-
-	return s
 }
 
 // executePossiblyEmptyQuery only executes the query if it is non-empty. This helps avoid

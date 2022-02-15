@@ -73,7 +73,6 @@ type http2Server struct {
 	writerDone  chan struct{} // sync point to enable testing.
 	remoteAddr  net.Addr
 	localAddr   net.Addr
-	maxStreamID uint32               // max stream ID ever seen
 	authInfo    credentials.AuthInfo // auth info about the connection
 	inTapHandle tap.ServerInHandle
 	framer      *framer
@@ -123,6 +122,11 @@ type http2Server struct {
 	bufferPool *bufferPool
 
 	connectionID uint64
+
+	// maxStreamMu guards the maximum stream ID
+	// This lock may not be taken if mu is already held.
+	maxStreamMu sync.Mutex
+	maxStreamID uint32 // max stream ID ever seen
 }
 
 // NewServerTransport creates a http2 transport with conn and configuration
@@ -334,6 +338,10 @@ func NewServerTransport(conn net.Conn, config *ServerConfig) (_ ServerTransport,
 
 // operateHeader takes action on the decoded headers.
 func (t *http2Server) operateHeaders(frame *http2.MetaHeadersFrame, handle func(*Stream), traceCtx func(context.Context, string) context.Context) (fatal bool) {
+	// Acquire max stream ID lock for entire duration
+	t.maxStreamMu.Lock()
+	defer t.maxStreamMu.Unlock()
+
 	streamID := frame.Header().StreamID
 
 	// frame.Truncated is set to true when framer detects that the current header
@@ -348,6 +356,15 @@ func (t *http2Server) operateHeaders(frame *http2.MetaHeadersFrame, handle func(
 		return false
 	}
 
+	if streamID%2 != 1 || streamID <= t.maxStreamID {
+		// illegal gRPC stream id.
+		if logger.V(logLevel) {
+			logger.Errorf("transport: http2Server.HandleStreams received an illegal stream id: %v", streamID)
+		}
+		return true
+	}
+	t.maxStreamID = streamID
+
 	buf := newRecvBuffer()
 	s := &Stream{
 		id:  streamID,
@@ -355,7 +372,6 @@ func (t *http2Server) operateHeaders(frame *http2.MetaHeadersFrame, handle func(
 		buf: buf,
 		fc:  &inFlow{limit: uint32(t.initialWindowSize)},
 	}
-
 	var (
 		// If a gRPC Response-Headers has already been received, then it means
 		// that the peer is speaking gRPC and we are in gRPC mode.
@@ -498,16 +514,6 @@ func (t *http2Server) operateHeaders(frame *http2.MetaHeadersFrame, handle func(
 		s.cancel()
 		return false
 	}
-	if streamID%2 != 1 || streamID <= t.maxStreamID {
-		t.mu.Unlock()
-		// illegal gRPC stream id.
-		if logger.V(logLevel) {
-			logger.Errorf("transport: http2Server.HandleStreams received an illegal stream id: %v", streamID)
-		}
-		s.cancel()
-		return true
-	}
-	t.maxStreamID = streamID
 	if httpMethod != http.MethodPost {
 		t.mu.Unlock()
 		if logger.V(logLevel) {
@@ -1293,20 +1299,23 @@ var goAwayPing = &ping{data: [8]byte{1, 6, 1, 8, 0, 3, 3, 9}}
 // Handles outgoing GoAway and returns true if loopy needs to put itself
 // in draining mode.
 func (t *http2Server) outgoingGoAwayHandler(g *goAway) (bool, error) {
+	t.maxStreamMu.Lock()
 	t.mu.Lock()
 	if t.state == closing { // TODO(mmukhi): This seems unnecessary.
 		t.mu.Unlock()
+		t.maxStreamMu.Unlock()
 		// The transport is closing.
 		return false, ErrConnClosing
 	}
-	sid := t.maxStreamID
 	if !g.headsUp {
 		// Stop accepting more streams now.
 		t.state = draining
+		sid := t.maxStreamID
 		if len(t.activeStreams) == 0 {
 			g.closeConn = true
 		}
 		t.mu.Unlock()
+		t.maxStreamMu.Unlock()
 		if err := t.framer.fr.WriteGoAway(sid, g.code, g.debugData); err != nil {
 			return false, err
 		}
@@ -1319,6 +1328,7 @@ func (t *http2Server) outgoingGoAwayHandler(g *goAway) (bool, error) {
 		return true, nil
 	}
 	t.mu.Unlock()
+	t.maxStreamMu.Unlock()
 	// For a graceful close, send out a GoAway with stream ID of MaxUInt32,
 	// Follow that with a ping and wait for the ack to come back or a timer
 	// to expire. During this time accept new streams since they might have
