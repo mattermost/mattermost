@@ -436,7 +436,7 @@ func (s *Server) doPlaybooksRolesCreationMigration() {
 }
 
 // arbitrary choice, though if there is an longstanding installation with less than 10 messages,
-// putting the first admin through onboarding shouldn't be very disruptive
+// putting the first admin through onboarding shouldn't be very disruptive.
 const existingInstallationPostsThreshold = 10
 
 func (s *Server) doFirstAdminSetupCompleteMigration() {
