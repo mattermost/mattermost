@@ -95,10 +95,13 @@ const (
 	AVXSLOW                             // Indicates the CPU performs 2 128 bit operations instead of one.
 	BMI1                                // Bit Manipulation Instruction Set 1
 	BMI2                                // Bit Manipulation Instruction Set 2
+	CETIBT                              // Intel CET Indirect Branch Tracking
+	CETSS                               // Intel CET Shadow Stack
 	CLDEMOTE                            // Cache Line Demote
 	CLMUL                               // Carry-less Multiplication
 	CLZERO                              // CLZERO instruction supported
 	CMOV                                // i686 CMOV
+	CMPXCHG8                            // CMPXCHG8 instruction
 	CPBOOST                             // Core Performance Boost
 	CX16                                // CMPXCHG16B Instruction
 	ENQCMD                              // Enqueue Command
@@ -106,6 +109,8 @@ const (
 	F16C                                // Half-precision floating-point conversion
 	FMA3                                // Intel FMA 3. Does not imply AVX.
 	FMA4                                // Bulldozer FMA4 functions
+	FXSR                                // FXSAVE, FXRESTOR instructions, CR4 bit 9
+	FXSROPT                             // FXSAVE/FXRSTOR optimizations
 	GFNI                                // Galois Field New Instructions
 	HLE                                 // Hardware Lock Elision
 	HTT                                 // Hyperthreading (enabled)
@@ -123,16 +128,19 @@ const (
 	IBSRIPINVALIDCHK                    // Instruction Based Sampling Feature (AMD)
 	INT_WBINVD                          // WBINVD/WBNOINVD are interruptible.
 	INVLPGB                             // NVLPGB and TLBSYNC instruction supported
+	LAHF                                // LAHF/SAHF in long mode
 	LZCNT                               // LZCNT instruction
 	MCAOVERFLOW                         // MCA overflow recovery support.
 	MCOMMIT                             // MCOMMIT instruction supported
 	MMX                                 // standard MMX
 	MMXEXT                              // SSE integer functions or AMD MMX ext
+	MOVBE                               // MOVBE instruction (big-endian)
 	MOVDIR64B                           // Move 64 Bytes as Direct Store
 	MOVDIRI                             // Move Doubleword as Direct Store
 	MPX                                 // Intel MPX (Memory Protection Extensions)
 	MSRIRC                              // Instruction Retired Counter MSR available
 	NX                                  // NX (No-Execute) bit
+	OSXSAVE                             // XSAVE enabled by OS
 	POPCNT                              // POPCNT instruction
 	RDPRU                               // RDPRU instruction supported
 	RDRAND                              // RDRAND instruction is available
@@ -140,6 +148,7 @@ const (
 	RDTSCP                              // RDTSCP Instruction
 	RTM                                 // Restricted Transactional Memory
 	RTM_ALWAYS_ABORT                    // Indicates that the loaded microcode is forcing RTM abort.
+	SCE                                 // SYSENTER and SYSEXIT instructions
 	SERIALIZE                           // Serialize Instruction Execution
 	SGX                                 // Software Guard Extensions
 	SGXLC                               // Software Guard Extensions Launch Control
@@ -160,7 +169,9 @@ const (
 	VPCLMULQDQ                          // Carry-Less Multiplication Quadword
 	WAITPKG                             // TPAUSE, UMONITOR, UMWAIT
 	WBNOINVD                            // Write Back and Do Not Invalidate Cache
+	X87                                 // FPU
 	XOP                                 // Bulldozer XOP functions
+	XSAVE                               // XSAVE, XRESTOR, XSETBV, XGETBV
 
 	// ARM features:
 	AESARM   // AES instructions
@@ -311,6 +322,31 @@ func (c CPUInfo) Has(id FeatureID) bool {
 	return c.featureSet.inSet(id)
 }
 
+// https://en.wikipedia.org/wiki/X86-64#Microarchitecture_levels
+var level1Features = flagSetWith(CMOV, CMPXCHG8, X87, FXSR, MMX, SCE, SSE, SSE2)
+var level2Features = flagSetWith(CMOV, CMPXCHG8, X87, FXSR, MMX, SCE, SSE, SSE2, CX16, LAHF, POPCNT, SSE3, SSE4, SSE42, SSSE3)
+var level3Features = flagSetWith(CMOV, CMPXCHG8, X87, FXSR, MMX, SCE, SSE, SSE2, CX16, LAHF, POPCNT, SSE3, SSE4, SSE42, SSSE3, AVX, AVX2, BMI1, BMI2, F16C, FMA3, LZCNT, MOVBE, OSXSAVE)
+var level4Features = flagSetWith(CMOV, CMPXCHG8, X87, FXSR, MMX, SCE, SSE, SSE2, CX16, LAHF, POPCNT, SSE3, SSE4, SSE42, SSSE3, AVX, AVX2, BMI1, BMI2, F16C, FMA3, LZCNT, MOVBE, OSXSAVE, AVX512F, AVX512BW, AVX512CD, AVX512DQ, AVX512VL)
+
+// X64Level returns the microarchitecture level detected on the CPU.
+// If features are lacking or non x64 mode, 0 is returned.
+// See https://en.wikipedia.org/wiki/X86-64#Microarchitecture_levels
+func (c CPUInfo) X64Level() int {
+	if c.featureSet.hasSet(level4Features) {
+		return 4
+	}
+	if c.featureSet.hasSet(level3Features) {
+		return 3
+	}
+	if c.featureSet.hasSet(level2Features) {
+		return 2
+	}
+	if c.featureSet.hasSet(level1Features) {
+		return 1
+	}
+	return 0
+}
+
 // Disable will disable one or several features.
 func (c *CPUInfo) Disable(ids ...FeatureID) bool {
 	for _, id := range ids {
@@ -335,9 +371,7 @@ func (c CPUInfo) IsVendor(v Vendor) bool {
 
 func (c CPUInfo) FeatureSet() []string {
 	s := make([]string, 0)
-	for _, f := range c.featureSet.Strings() {
-		s = append(s, f)
-	}
+	s = append(s, c.featureSet.Strings()...)
 	return s
 }
 
@@ -497,6 +531,24 @@ func (s *flagSet) or(other flagSet) {
 	for i, v := range other[:] {
 		s[i] |= v
 	}
+}
+
+// hasSet returns whether all features are present.
+func (s flagSet) hasSet(other flagSet) bool {
+	for i, v := range other[:] {
+		if s[i]&v != v {
+			return false
+		}
+	}
+	return true
+}
+
+func flagSetWith(feat ...FeatureID) flagSet {
+	var res flagSet
+	for _, f := range feat {
+		res.set(f)
+	}
+	return res
 }
 
 // ParseFeature will parse the string and return the ID of the matching feature.
@@ -708,6 +760,7 @@ func (c *CPUInfo) cacheSize() {
 		if maxFunctionID() < 4 {
 			return
 		}
+		c.Cache.L1I, c.Cache.L1D, c.Cache.L2, c.Cache.L3 = 0, 0, 0, 0
 		for i := uint32(0); ; i++ {
 			eax, ebx, ecx, _ := cpuidex(4, i)
 			cacheType := eax & 15
@@ -800,8 +853,6 @@ func (c *CPUInfo) cacheSize() {
 			}
 		}
 	}
-
-	return
 }
 
 type SGXEPCSection struct {
@@ -865,9 +916,14 @@ func support() flagSet {
 	family, model := familyModel()
 
 	_, _, c, d := cpuid(1)
+	fs.setIf((d&(1<<0)) != 0, X87)
+	fs.setIf((d&(1<<8)) != 0, CMPXCHG8)
+	fs.setIf((d&(1<<11)) != 0, SCE)
 	fs.setIf((d&(1<<15)) != 0, CMOV)
+	fs.setIf((d&(1<<22)) != 0, MMXEXT)
 	fs.setIf((d&(1<<23)) != 0, MMX)
-	fs.setIf((d&(1<<25)) != 0, MMXEXT)
+	fs.setIf((d&(1<<24)) != 0, FXSR)
+	fs.setIf((d&(1<<25)) != 0, FXSROPT)
 	fs.setIf((d&(1<<25)) != 0, SSE)
 	fs.setIf((d&(1<<26)) != 0, SSE2)
 	fs.setIf((c&1) != 0, SSE3)
@@ -877,6 +933,7 @@ func support() flagSet {
 	fs.setIf((c&0x00100000) != 0, SSE42)
 	fs.setIf((c&(1<<25)) != 0, AESNI)
 	fs.setIf((c&(1<<1)) != 0, CLMUL)
+	fs.setIf(c&(1<<22) != 0, MOVBE)
 	fs.setIf(c&(1<<23) != 0, POPCNT)
 	fs.setIf(c&(1<<30) != 0, RDRAND)
 
@@ -892,6 +949,8 @@ func support() flagSet {
 	if vend == AMD && (d&(1<<28)) != 0 && mfi >= 4 {
 		fs.setIf(threadsPerCore() > 1, HTT)
 	}
+	fs.setIf(c&1<<26 != 0, XSAVE)
+	fs.setIf(c&1<<27 != 0, OSXSAVE)
 	// Check XGETBV/XSAVE (26), OXSAVE (27) and AVX (28) bits
 	const avxCheck = 1<<26 | 1<<27 | 1<<28
 	if c&avxCheck == avxCheck {
@@ -936,6 +995,7 @@ func support() flagSet {
 		fs.setIf(ebx&(1<<29) != 0, SHA)
 		// CPUID.(EAX=7, ECX=0).ECX
 		fs.setIf(ecx&(1<<5) != 0, WAITPKG)
+		fs.setIf(ecx&(1<<7) != 0, CETSS)
 		fs.setIf(ecx&(1<<25) != 0, CLDEMOTE)
 		fs.setIf(ecx&(1<<27) != 0, MOVDIRI)
 		fs.setIf(ecx&(1<<28) != 0, MOVDIR64B)
@@ -945,6 +1005,7 @@ func support() flagSet {
 		fs.setIf(edx&(1<<11) != 0, RTM_ALWAYS_ABORT)
 		fs.setIf(edx&(1<<14) != 0, SERIALIZE)
 		fs.setIf(edx&(1<<16) != 0, TSXLDTRK)
+		fs.setIf(edx&(1<<20) != 0, CETIBT)
 		fs.setIf(edx&(1<<26) != 0, IBPB)
 		fs.setIf(edx&(1<<27) != 0, STIBP)
 
@@ -996,6 +1057,7 @@ func support() flagSet {
 			fs.set(LZCNT)
 			fs.set(POPCNT)
 		}
+		fs.setIf((c&(1<<0)) != 0, LAHF)
 		fs.setIf((c&(1<<10)) != 0, IBS)
 		fs.setIf((d&(1<<31)) != 0, AMD3DNOW)
 		fs.setIf((d&(1<<30)) != 0, AMD3DNOWEXT)

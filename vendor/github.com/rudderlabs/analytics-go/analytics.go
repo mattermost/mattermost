@@ -537,7 +537,7 @@ func (c *client) push(q *messageQueue, m Message, wg *sync.WaitGroup, ex *execut
 	var msg message
 	var err error
 
-	if msg, err = makeMessage(m, maxMessageBytes); err != nil {
+	if msg, err = makeMessage(m, c.MaxMessageBytes); err != nil {
 		c.errorf("%s - %v", err, m)
 		c.notifyFailure([]message{{m, nil}}, err)
 		return
@@ -578,7 +578,7 @@ func (c *client) maxBatchBytes() int {
 		SentAt:    c.now(),
 		Context:   c.DefaultContext,
 	})
-	return maxBatchBytes - len(b)
+	return c.MaxBatchBytes - len(b)
 }
 
 func (c *client) notifySuccess(msgs []message) {

@@ -423,20 +423,15 @@ func readLayerInfo(r io.Reader, cfg *Config, o *DecodeOptions) (layer []Layer, r
 			return nil, read, err
 		}
 		read += l
-		if l, err = adjustAlign4(r, read+4-layerInfoLen); err != nil {
-			return nil, read, err
-		}
-		read += l
-	} else {
-		if l, err = discard(r, layerInfoLen+4-read); err != nil {
+	}
+	// Discard any remaining data.
+	if layerInfoLen+intSize > read {
+		if l, err = discard(r, layerInfoLen+intSize-read); err != nil {
 			return nil, read, err
 		}
 		read += l
 	}
 
-	if layerInfoLen+intSize != read {
-		return nil, read, errors.New("psd: layer info read size mismatched. expected " + itoa(layerInfoLen+4) + " actual " + itoa(read))
-	}
 	if Debug != nil {
 		Debug.Println("end - layer info section")
 	}

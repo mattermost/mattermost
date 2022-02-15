@@ -265,7 +265,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					Following:             true,
 					IncrementMentions:     incrementMentions,
 					UpdateFollowing:       updateFollowing,
-					UpdateViewedTimestamp: userID == post.UserId,
+					UpdateViewedTimestamp: false,
 					UpdateParticipants:    userID == post.UserId,
 				}
 				threadMembership, newMembership, err := a.Srv().Store.Thread().MaintainMembership(userID, post.RootId, opts)
@@ -615,6 +615,24 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					return nil, errors.Wrapf(err, "cannot get thread %q for user %q", post.RootId, uid)
 				}
 				if userThread != nil {
+					previousUnreadMentions := userThread.UnreadMentions
+					previousUnreadReplies := max(userThread.UnreadReplies-1, 0)
+					if mentions.isUserMentioned(uid) {
+						previousUnreadMentions = max(userThread.UnreadMentions-1, 0)
+					}
+					// set LastViewed to now for commenter
+					if uid == post.UserId {
+						opts := store.ThreadMembershipOpts{
+							UpdateViewedTimestamp: true,
+						}
+						// should set unread mentions, and unread replies to 0
+						_, err = a.Srv().Store.Thread().MaintainMembership(uid, post.RootId, opts)
+						if err != nil {
+							return nil, errors.Wrapf(err, "cannot maintain thread membership %q for user %q", post.RootId, uid)
+						}
+						userThread.UnreadMentions = 0
+						userThread.UnreadReplies = 0
+					}
 					a.sanitizeProfiles(userThread.Participants, false)
 					userThread.Post.SanitizeProps()
 
@@ -630,6 +648,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					}
 					message.Add("thread", string(payload))
 					message.Add("new_thread", bool(newParticipants[uid]))
+					message.Add("previous_unread_mentions", previousUnreadMentions)
+					message.Add("previous_unread_replies", previousUnreadReplies)
 
 					a.Publish(message)
 				}
@@ -637,6 +657,13 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 	}
 	return mentionedUsersList, nil
+}
+
+func max(a, b int64) int64 {
+	if a < b {
+		return b
+	}
+	return a
 }
 
 func (a *App) userAllowsEmail(user *model.User, channelMemberNotificationProps model.StringMap, post *model.Post) bool {
@@ -894,6 +921,18 @@ const (
 	// The post contains a group mention for the user
 	GroupMention
 )
+
+func (m *ExplicitMentions) isUserMentioned(userID string) bool {
+	if _, ok := m.Mentions[userID]; ok {
+		return true
+	}
+
+	if _, ok := m.GroupMentions[userID]; ok {
+		return true
+	}
+
+	return m.HereMentioned || m.AllMentioned || m.ChannelMentioned
+}
 
 func (m *ExplicitMentions) addMention(userID string, mentionType MentionType) {
 	if m.Mentions == nil {

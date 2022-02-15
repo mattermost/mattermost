@@ -1,6 +1,7 @@
 // Copyright (c) 2021 Klaus Post, released under MIT License. See LICENSE file.
 
-//+build !nounsafe
+//go:build !nounsafe
+// +build !nounsafe
 
 package cpuid
 

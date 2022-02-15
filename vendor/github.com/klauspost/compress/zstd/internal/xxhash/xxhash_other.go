@@ -1,5 +1,5 @@
-//go:build !amd64 || appengine || !gc || purego
-// +build !amd64 appengine !gc purego
+//go:build (!amd64 && !arm64) || appengine || !gc || purego || noasm
+// +build !amd64,!arm64 appengine !gc purego noasm
 
 package xxhash
 
