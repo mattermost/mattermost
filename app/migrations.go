@@ -475,7 +475,7 @@ func (s *Server) doFirstAdminSetupCompleteMigration() {
 	}
 
 	if err := s.Store.System().Save(&system); err != nil {
-		mlog.Critical("Failed to mark playbook roles creation migration as completed.", mlog.Err(err))
+		mlog.Critical("Failed to mark first admin setup migration as completed.", mlog.Err(err))
 	}
 }
 
