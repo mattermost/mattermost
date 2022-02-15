@@ -9155,18 +9155,6 @@
     "translation": "Bu özellik Enterprise sürüme yükseltmesi ile kullanılabilir."
   },
   {
-    "id": "extract_content.worker.do_job.file_info",
-    "translation": "İçeriği ayıklanacak dosya bilgileri alınamadı."
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.to",
-    "translation": "Belirtilen 'nereye' değeri geçersiz"
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.from",
-    "translation": "Belirtilen 'nereden' değeri geçersiz"
-  },
-  {
     "id": "app.user.store_is_empty.app_error",
     "translation": "Kullanıcı mağazasının boş olup olmadığı denetlenemedi."
   },
