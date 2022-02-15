@@ -52,29 +52,7 @@ type SqlGroupStore struct {
 }
 
 func newSqlGroupStore(sqlStore *SqlStore) store.GroupStore {
-	s := &SqlGroupStore{SqlStore: sqlStore}
-	for _, db := range sqlStore.GetAllConns() {
-		groups := db.AddTableWithName(model.Group{}, "UserGroups").SetKeys(false, "Id")
-		groups.ColMap("Id").SetMaxSize(26)
-		groups.ColMap("Name").SetMaxSize(model.GroupNameMaxLength).SetUnique(true)
-		groups.ColMap("DisplayName").SetMaxSize(model.GroupDisplayNameMaxLength)
-		groups.ColMap("Description").SetMaxSize(model.GroupDescriptionMaxLength)
-		groups.ColMap("Source").SetMaxSize(model.GroupSourceMaxLength)
-		groups.ColMap("RemoteId").SetMaxSize(model.GroupRemoteIDMaxLength)
-
-		groupMembers := db.AddTableWithName(model.GroupMember{}, "GroupMembers").SetKeys(false, "GroupId", "UserId")
-		groupMembers.ColMap("GroupId").SetMaxSize(26)
-		groupMembers.ColMap("UserId").SetMaxSize(26)
-
-		groupTeams := db.AddTableWithName(groupTeam{}, "GroupTeams").SetKeys(false, "GroupId", "TeamId")
-		groupTeams.ColMap("GroupId").SetMaxSize(26)
-		groupTeams.ColMap("TeamId").SetMaxSize(26)
-
-		groupChannels := db.AddTableWithName(groupChannel{}, "GroupChannels").SetKeys(false, "GroupId", "ChannelId")
-		groupChannels.ColMap("GroupId").SetMaxSize(26)
-		groupChannels.ColMap("ChannelId").SetMaxSize(26)
-	}
-	return s
+	return &SqlGroupStore{SqlStore: sqlStore}
 }
 
 func (s *SqlGroupStore) Create(group *model.Group) (*model.Group, error) {
