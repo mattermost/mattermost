@@ -647,7 +647,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 						mlog.Warn("Failed to encode thread to JSON")
 					}
 					message.Add("thread", string(payload))
-					message.Add("new_thread", bool(newParticipants[uid]))
+					message.Add("new_thread", newParticipants[uid])
 					message.Add("previous_unread_mentions", previousUnreadMentions)
 					message.Add("previous_unread_replies", previousUnreadReplies)
 
