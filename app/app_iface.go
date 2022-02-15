@@ -653,6 +653,7 @@ type AppIface interface {
 	GetOAuthLoginEndpoint(w http.ResponseWriter, r *http.Request, service, teamID, action, redirectTo, loginHint string, isMobile bool) (string, *model.AppError)
 	GetOAuthSignupEndpoint(w http.ResponseWriter, r *http.Request, service, teamID string) (string, *model.AppError)
 	GetOAuthStateToken(token string) (*model.Token, *model.AppError)
+	GetOnboarding() (*model.System, *model.AppError)
 	GetOpenGraphMetadata(requestURL string) ([]byte, error)
 	GetOrCreateDirectChannel(c *request.Context, userID, otherUserID string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError)
 	GetOutgoingWebhook(hookID string) (*model.OutgoingWebhook, *model.AppError)

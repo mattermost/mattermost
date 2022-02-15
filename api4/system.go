@@ -22,7 +22,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/services/cache"
 	"github.com/mattermost/mattermost-server/v6/services/upgrader"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 const (
@@ -69,8 +68,8 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.System.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getProductNotices)).Methods("GET")
 	api.BaseRoutes.System.Handle("/notices/view", api.APISessionRequired(updateViewedProductNotices)).Methods("PUT")
 	api.BaseRoutes.System.Handle("/support_packet", api.APISessionRequired(generateSupportPacket)).Methods("GET")
-	api.BaseRoutes.System.Handle("/first_admin_setup", api.APISessionRequired(getFirstAdminCompleteSetup)).Methods("GET")
-	api.BaseRoutes.System.Handle("/onboarding/complete", api.APIHandler(completeOnboarding)).Methods("POST")
+	api.BaseRoutes.System.Handle("/onboarding/complete", api.APISessionRequired(getOnboarding)).Methods("GET")
+	api.BaseRoutes.System.Handle("/onboarding/complete", api.APISessionRequired(completeOnboarding)).Methods("POST")
 }
 
 func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -883,8 +882,8 @@ func updateViewedProductNotices(c *Context, w http.ResponseWriter, r *http.Reque
 	ReturnStatusOK(w)
 }
 
-func getFirstAdminCompleteSetup(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("getFirstAdminCompleteSetup", audit.Fail)
+func getOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("getOnboarding", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -893,20 +892,11 @@ func getFirstAdminCompleteSetup(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	firstAdminCompleteSetupObj, err := c.App.Srv().Store.System().GetByName(model.SystemFirstAdminCompleteSetup)
-	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			firstAdminCompleteSetupObj = &model.System{
-				Name:  model.SystemFirstAdminCompleteSetup,
-				Value: "false",
-			}
-		default:
-			c.Err = model.NewAppError("getFirstAdminCompleteSetup", "api.error_get_first_admin_complete_setup", nil, err.Error(), http.StatusInternalServerError)
+	firstAdminCompleteSetupObj, err := c.App.GetOnboarding()
 
-			return
-		}
+	if err != nil {
+		c.Err = model.NewAppError("getOnboarding", "app.system.get_onboarding_request.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	auditRec.Success()
@@ -934,16 +924,6 @@ func completeOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
 	appErr := c.App.CompleteOnboarding(c.AppContext, onboardingRequest)
 	if appErr != nil {
 		c.Err = appErr
-		return
-	}
-
-	firstAdminCompleteSetupObj := model.System{
-		Name:  model.SystemFirstAdminCompleteSetup,
-		Value: "true",
-	}
-
-	if err := c.App.Srv().Store.System().SaveOrUpdate(&firstAdminCompleteSetupObj); err != nil {
-		c.Err = model.NewAppError("setFirstAdminCompleteSetup", "api.error_set_first_admin_complete_setup", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

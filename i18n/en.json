@@ -6100,6 +6100,10 @@
     "translation": "Unable to find the system variable."
   },
   {
+    "id": "app.system.get_onboarding_request.app_error",
+    "translation": "Failed to get onboarding completion status."
+  },
+  {
     "id": "app.system.permanent_delete_by_name.app_error",
     "translation": "We could not permanently delete the system table entry."
   },
