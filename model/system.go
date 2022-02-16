@@ -32,6 +32,7 @@ const (
 	SystemWarnMetricLastRunTimestampKey    = "LastWarnMetricRunTimestamp"
 	SystemMetricSupportEmailNotConfigured  = "warn_metric_support_email_not_configured"
 	SystemFirstAdminVisitMarketplace       = "FirstAdminVisitMarketplace"
+	SystemFirstAdminCompleteSetup          = "FirstAdminCompleteSetup"
 	AwsMeteringReportInterval              = 1
 	AwsMeteringDimensionUsageHrs           = "UsageHrs"
 	UserLimitOverageCycleEndDate           = "UserLimitOverageCycleEndDate"

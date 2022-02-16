@@ -202,10 +202,11 @@ jobs:
             make gen-serialized
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the serialized files using 'make gen-serialized'"; exit 1; fi
 
-  # Dedicate job for golangci-lint it does not need anything only the server code for that
+  # Dedicated job for golangci-lint it does not need anything only the server code for that
   # and to make more clear when the job fails
   check-golangci-lint:
     docker:
+      # Keep the version in sync with the command in Makefile
       - image: golangci/golangci-lint:v1.39.0
     steps:
       - checkout
@@ -397,7 +398,7 @@ jobs:
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
               mattermost/mattermost-build-server:20210810_golang-1.16.7 \
-              bash -c "ulimit -n 8096; make ARGS='version' run-cli && make MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10' ARGS='version' run-cli"
+              bash -c "ulimit -n 8096; make ARGS='db migrate' run-cli && make MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10' ARGS='db migrate' run-cli"
 
             echo "Generating dump"
             docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d migrated -U mmuser > migrated.sql
@@ -426,7 +427,7 @@ jobs:
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
               mattermost/mattermost-build-server:20210810_golang-1.16.7 \
-              bash -c "ulimit -n 8096; make ARGS='version' run-cli && make MM_SQLSETTINGS_DATASOURCE='mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s' ARGS='version' run-cli"
+              bash -c "ulimit -n 8096; make ARGS='db migrate' run-cli && make MM_SQLSETTINGS_DATASOURCE='mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s' ARGS='db migrate' run-cli"
 
             echo "Generating dump"
             docker-compose --no-ansi exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest migrated > migrated.sql

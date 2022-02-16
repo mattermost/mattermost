@@ -21,7 +21,7 @@ type relationalCheckConfig struct {
 }
 
 func getOrphanedRecords(ss *SqlStore, cfg relationalCheckConfig) ([]model.OrphanedRecord, error) {
-	var records []model.OrphanedRecord
+	records := []model.OrphanedRecord{}
 
 	sub := ss.getQueryBuilder().
 		Select("TRUE").
@@ -54,8 +54,7 @@ func getOrphanedRecords(ss *SqlStore, cfg relationalCheckConfig) ([]model.Orphan
 
 	query, args, _ := main.ToSql()
 
-	_, err := ss.GetMaster().Select(&records, query, args...)
-
+	err := ss.GetMasterX().Select(&records, query, args...)
 	return records, err
 }
 

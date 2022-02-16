@@ -24,16 +24,7 @@ type SqlPluginStore struct {
 }
 
 func newSqlPluginStore(sqlStore *SqlStore) store.PluginStore {
-	s := &SqlPluginStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.PluginKeyValue{}, "PluginKeyValueStore").SetKeys(false, "PluginId", "Key")
-		table.ColMap("PluginId").SetMaxSize(190)
-		table.ColMap("Key").SetMaxSize(150)
-		table.ColMap("Value").SetMaxSize(8192)
-	}
-
-	return s
+	return &SqlPluginStore{sqlStore}
 }
 
 func (ps SqlPluginStore) SaveOrUpdate(kv *model.PluginKeyValue) (*model.PluginKeyValue, error) {

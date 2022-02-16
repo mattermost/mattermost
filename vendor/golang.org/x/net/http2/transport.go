@@ -1252,12 +1252,12 @@ func (cs *clientStream) writeRequest(req *http.Request) (err error) {
 	}
 
 	continueTimeout := cc.t.expectContinueTimeout()
-	if continueTimeout != 0 &&
-		!httpguts.HeaderValuesContainsToken(
-			req.Header["Expect"],
-			"100-continue") {
-		continueTimeout = 0
-		cs.on100 = make(chan struct{}, 1)
+	if continueTimeout != 0 {
+		if !httpguts.HeaderValuesContainsToken(req.Header["Expect"], "100-continue") {
+			continueTimeout = 0
+		} else {
+			cs.on100 = make(chan struct{}, 1)
+		}
 	}
 
 	// Past this point (where we send request headers), it is possible for

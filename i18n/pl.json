@@ -4781,7 +4781,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -4793,7 +4793,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Wersja 78+"
+    "translation": "Wersja 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -7925,7 +7925,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Usprawnij swoją pracę dzięki narzędziom takim jak Github, Jira i Zoom. Poznaj wszystkie integracje, które mamy na naszej stronie"
+    "translation": "Usprawnij swoją pracę dzięki narzędziom takim jak GitHub, Jira i Zoom. Poznaj wszystkie integracje, które mamy na naszej stronie"
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
@@ -8602,18 +8602,6 @@
   {
     "id": "import_process.worker.do_job.file_exists",
     "translation": "Nie można przetworzyć importu: plik nie istnieje."
-  },
-  {
-    "id": "extract_content.worker.do_job.file_info",
-    "translation": "Nie udało się uzyskać informacji o pliku do ekstrakcji zawartości."
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.to",
-    "translation": "Nieprawidłowa wartość w p[olu 'do'"
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.from",
-    "translation": "Nieprawidłowa wartość w polu 'od'"
   },
   {
     "id": "error",
@@ -9304,7 +9292,43 @@
     "translation": "Odnowienie tej licencji na portalu nie jest możliwe"
   },
   {
-    "id": "api.config.migrate_config_restricted.app_error",
-    "translation": "Migracja konfiguracji jest ograniczona ze względu na typ instancji."
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "Odpowiedź SAML jest zbyt długa"
+  },
+  {
+    "id": "model.github_release_info.is_valid.id.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "Onboarding może być ukończony tylko przez administratora systemu."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "Nie udało się zdekodować kompletnego żądania."
+  },
+  {
+    "id": "app.admin.latest_version_unmarshal.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_set_cache.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_read_all.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_external_error.failure",
+    "translation": " "
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "Nazwa koliduje z istniejącą nazwą systemową emoji."
+  },
+  {
+    "id": "api.users.invalid_emails.enable_open_server.app_error",
+    "translation": " "
   }
 ]

@@ -5897,7 +5897,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Sürüm 78+"
+    "translation": "Sürüm 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -5909,7 +5909,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
@@ -9155,18 +9155,6 @@
     "translation": "Bu özellik Enterprise sürüme yükseltmesi ile kullanılabilir."
   },
   {
-    "id": "extract_content.worker.do_job.file_info",
-    "translation": "İçeriği ayıklanacak dosya bilgileri alınamadı."
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.to",
-    "translation": "Belirtilen 'nereye' değeri geçersiz"
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.from",
-    "translation": "Belirtilen 'nereden' değeri geçersiz"
-  },
-  {
     "id": "app.user.store_is_empty.app_error",
     "translation": "Kullanıcı mağazasının boş olup olmadığı denetlenemedi."
   },
@@ -9303,7 +9291,47 @@
     "translation": "Bu lisans portal üzerinden yenilenemez"
   },
   {
-    "id": "api.config.migrate_config_restricted.app_error",
-    "translation": "Kopya türü nedeniyle yapılandırma aktarımı kısıtlı."
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "SAML yanıtı çok uzun"
+  },
+  {
+    "id": "model.github_release_info.is_valid.id.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "Başlamaya hazırlama yalnız bir sistem yöneticisi tarafından tamamlanabilir."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "Başlamaya hazırlama isteğinin tamamının şifresi çözülemedi."
+  },
+  {
+    "id": "app.admin.latest_version_unmarshal.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_set_cache.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_read_all.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_external_error.failure",
+    "translation": " "
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "Bu ad, var olan bir sistem emojisi adıyla çakışıyor."
+  },
+  {
+    "id": "api.users.invalid_emails.enable_open_server.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.config.is_valid.session_length_sso_in_days.app_error",
+    "translation": " "
   }
 ]

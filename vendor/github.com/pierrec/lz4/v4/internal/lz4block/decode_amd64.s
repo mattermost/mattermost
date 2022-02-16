@@ -58,6 +58,7 @@ loop:
 	// CX = lit_len
 	MOVQ DX, CX
 	SHRQ $4, CX
+	JZ   finish_lit_copy
 
 	// if lit_len != 0xF
 	CMPQ CX, $0xF
@@ -125,9 +126,6 @@ loop:
 	JMP loop
 
 lit_len_loop_pre:
-	// if lit_len > 0
-	CMPQ CX, $0
-	JEQ offset
 	CMPQ CX, $0xF
 	JNE copy_literal
 
@@ -157,24 +155,28 @@ copy_literal:
 	CMPQ BX, R8
 	JA err_short_buf
 
-	// whats a good cut off to call memmove?
-	CMPQ CX, $16
+	// Copy matches of <=48 bytes through the XMM registers.
+	CMPQ CX, $48
 	JGT memmove_lit
 
-	// if len(dst[di:]) < 16
+	// if len(dst[di:]) < 48
 	MOVQ R8, AX
 	SUBQ DI, AX
-	CMPQ AX, $16
+	CMPQ AX, $48
 	JLT memmove_lit
 
-	// if len(src[si:]) < 16
-	MOVQ R9, AX
-	SUBQ SI, AX
-	CMPQ AX, $16
+	// if len(src[si:]) < 48
+	MOVQ R9, BX
+	SUBQ SI, BX
+	CMPQ BX, $48
 	JLT memmove_lit
 
 	MOVOU (SI), X0
+	MOVOU 16(SI), X1
+	MOVOU 32(SI), X2
 	MOVOU X0, (DI)
+	MOVOU X1, 16(DI)
+	MOVOU X2, 32(DI)
 
 	ADDQ CX, SI
 	ADDQ CX, DI
