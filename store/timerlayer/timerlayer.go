@@ -518,7 +518,7 @@ func (s *TimerLayerBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) AnalyticsDeletedTypeCount(teamID string, channelType string) (int64, error) {
+func (s *TimerLayerChannelStore) AnalyticsDeletedTypeCount(teamID string, channelType model.ChannelType) (int64, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.AnalyticsDeletedTypeCount(teamID, channelType)
@@ -8327,6 +8327,22 @@ func (s *TimerLayerThreadStore) GetThreadForUser(teamID string, threadMembership
 	return result, err
 }
 
+func (s *TimerLayerThreadStore) GetThreadUnreadReplyCount(threadMembership *model.ThreadMembership) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.GetThreadUnreadReplyCount(threadMembership)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetThreadUnreadReplyCount", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerThreadStore) GetThreadsForUser(userId string, teamID string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
 	start := timemodule.Now()
 
@@ -9445,6 +9461,22 @@ func (s *TimerLayerUserStore) GetUsersBatchForIndexing(startTime int64, endTime 
 	return result, err
 }
 
+func (s *TimerLayerUserStore) GetUsersWithInvalidEmails(page int, perPage int, restrictedDomains string) ([]*model.User, error) {
+	start := timemodule.Now()
+
+	result, err := s.UserStore.GetUsersWithInvalidEmails(page, perPage, restrictedDomains)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetUsersWithInvalidEmails", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerUserStore) InferSystemInstallDate() (int64, error) {
 	start := timemodule.Now()
 
@@ -9459,6 +9491,22 @@ func (s *TimerLayerUserStore) InferSystemInstallDate() (int64, error) {
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.InferSystemInstallDate", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerUserStore) InsertUsers(users []*model.User) error {
+	start := timemodule.Now()
+
+	err := s.UserStore.InsertUsers(users)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.InsertUsers", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerUserStore) InvalidateProfileCacheForUser(userID string) {

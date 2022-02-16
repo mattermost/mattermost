@@ -1682,8 +1682,16 @@
     "translation": "Unable to create the emoji. An error occurred when trying to open the attached image."
   },
   {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "Error trying to retrieve first admin complete setup from the store."
+  },
+  {
     "id": "api.error_get_first_admin_visit_marketplace_status",
     "translation": "Error trying to retrieve the first admin visit marketplace status from the store."
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "Error trying to save first admin complete setup in the store."
   },
   {
     "id": "api.error_set_first_admin_visit_marketplace_status",
@@ -3121,7 +3129,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Streamline your work with tools like Github, Jira and Zoom. Explore all of the integrations we have on our"
+    "translation": "Streamline your work with tools like GitHub, Jira and Zoom. Explore all of the integrations we have on our"
   },
   {
     "id": "api.templates.cloud_welcome_email.app_market_place",
@@ -3953,7 +3961,7 @@
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
-    "translation": "Error retreiving endpoint from Discovery Document."
+    "translation": "Error retrieving endpoint from Discovery Document."
   },
   {
     "id": "api.user.get_uploads_for_user.forbidden.app_error",
@@ -4270,6 +4278,10 @@
   {
     "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
     "translation": "Cannot retrieve users for an archived channel"
+  },
+  {
+    "id": "api.users.invalid_emails.enable_open_server.app_error",
+    "translation": " "
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -6088,6 +6100,10 @@
     "translation": "Unable to find the system variable."
   },
   {
+    "id": "app.system.get_onboarding_request.app_error",
+    "translation": "Failed to get onboarding completion status."
+  },
+  {
     "id": "app.system.permanent_delete_by_name.app_error",
     "translation": "We could not permanently delete the system table entry."
   },
@@ -7457,7 +7473,7 @@
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": "Unable to migrate AD/LDAP users with specified field. Duplicate entry detected. Please remove all duplcates and try again."
+    "translation": "Unable to migrate AD/LDAP users with specified field. Duplicate entry detected. Please remove all duplicates and try again."
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
@@ -7554,18 +7570,6 @@
   {
     "id": "error",
     "translation": "Error"
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.from",
-    "translation": "Invalid input value 'from'"
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.to",
-    "translation": "Invalid input value 'to'"
-  },
-  {
-    "id": "extract_content.worker.do_job.file_info",
-    "translation": "Failed to get file information for content extraction."
   },
   {
     "id": "group_not_associated_to_synced_team",
@@ -8362,6 +8366,10 @@
   {
     "id": "model.emoji.name.app_error",
     "translation": "Name must be 1 to 64 lowercase alphanumeric characters."
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "Name conflicts with existing system emoji name."
   },
   {
     "id": "model.emoji.update_at.app_error",

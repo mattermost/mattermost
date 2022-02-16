@@ -195,14 +195,21 @@ func (r *Reader) setMiniStream() error {
 	// build a slice of ministream sectors
 	c = int(r.sectorSize / 4 * r.header.numMiniFatSectors)
 	r.header.miniStreamLocs = make([]uint32, 0, c)
+	cycles := make(map[uint32]bool)
 	sn := r.direntries[0].startingSectorLoc
-	var err error
 	for sn != endOfChain {
 		r.header.miniStreamLocs = append(r.header.miniStreamLocs, sn)
-		sn, err = r.findNext(sn, false)
+		nsn, err := r.findNext(sn, false)
 		if err != nil {
 			return Error{ErrFormat, "setting mini stream (" + err.Error() + ")", int64(sn)}
 		}
+		if nsn <= sn {
+			if nsn == sn || cycles[nsn] {
+				return Error{ErrRead, "cycle detected in mini stream", int64(nsn)}
+			}
+			cycles[nsn] = true
+		}
+		sn = nsn
 	}
 	return nil
 }

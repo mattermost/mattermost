@@ -602,11 +602,12 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	api := Init(th.Server)
+	api, err := Init(th.Server)
+	require.NoError(t, err)
 	session, _ := th.App.GetSession(th.Client.AuthToken)
 
 	cli := th.CreateClient()
-	_, _, err := cli.Login(th.BasicUser2.Username, th.BasicUser2.Password)
+	_, _, err = cli.Login(th.BasicUser2.Username, th.BasicUser2.Password)
 	require.NoError(t, err)
 
 	wsClient, err := th.CreateWebSocketClientWithClient(cli)

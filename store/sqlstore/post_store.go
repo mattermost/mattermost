@@ -125,29 +125,11 @@ func postSliceCoalesceQuery() string {
 }
 
 func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.PostStore {
-	s := &SqlPostStore{
+	return &SqlPostStore{
 		SqlStore:          sqlStore,
 		metrics:           metrics,
 		maxPostSizeCached: model.PostMessageMaxRunesV1,
 	}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Post{}, "Posts").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("UserId").SetMaxSize(26)
-		table.ColMap("ChannelId").SetMaxSize(26)
-		table.ColMap("RootId").SetMaxSize(26)
-		table.ColMap("OriginalId").SetMaxSize(26)
-		table.ColMap("Message").SetMaxSize(model.PostMessageMaxBytesV2)
-		table.ColMap("Type").SetMaxSize(26)
-		table.ColMap("Hashtags").SetMaxSize(1000)
-		table.ColMap("Props").SetDataType(sqlStore.jsonDataType())
-		table.ColMap("Filenames").SetMaxSize(model.PostFilenamesMaxRunes)
-		table.ColMap("FileIds").SetMaxSize(model.PostFileidsMaxRunes)
-		table.ColMap("RemoteId").SetMaxSize(26)
-	}
-
-	return s
 }
 
 func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, error) {
@@ -2492,7 +2474,7 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 			sq.Eq{"p.DeleteAt": 0},
 			sq.Eq{"Channels.DeleteAt": 0},
 			sq.Eq{"Users.DeleteAt": 0},
-			sq.Eq{"Channels.Type": []string{"D", "G"}},
+			sq.Eq{"Channels.Type": []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}},
 		}).
 		OrderBy("p.Id").
 		Limit(uint64(limit))

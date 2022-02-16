@@ -4,97 +4,28 @@
 package product_notices
 
 import (
-	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
-const (
-	JobName = "ProductNotices"
-)
+const jobName = "ProductNotices"
 
-type Worker struct {
-	name      string
-	stop      chan bool
-	stopped   chan bool
-	jobs      chan model.Job
-	jobServer *jobs.JobServer
-	app       *app.App
+type AppIface interface {
+	UpdateProductNotices() *model.AppError
 }
 
-func (m *ProductNoticesJobInterfaceImpl) MakeWorker() model.Worker {
-	worker := Worker{
-		name:      JobName,
-		stop:      make(chan bool, 1),
-		stopped:   make(chan bool, 1),
-		jobs:      make(chan model.Job),
-		jobServer: m.App.Srv().Jobs,
-		app:       m.App,
+func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
+	isEnabled := func(cfg *model.Config) bool {
+		return *cfg.AnnouncementSettings.AdminNoticesEnabled || *cfg.AnnouncementSettings.UserNoticesEnabled
 	}
-	return &worker
-}
-
-func (worker *Worker) Run() {
-	mlog.Debug("Worker started", mlog.String("worker", worker.name))
-
-	defer func() {
-		mlog.Debug("Worker finished", mlog.String("worker", worker.name))
-		worker.stopped <- true
-	}()
-
-	for {
-		select {
-		case <-worker.stop:
-			mlog.Debug("Worker received stop signal", mlog.String("worker", worker.name))
-			return
-		case job := <-worker.jobs:
-			mlog.Debug("Worker received a new candidate job.", mlog.String("worker", worker.name))
-			worker.DoJob(&job)
+	execute := func(job *model.Job) error {
+		if err := app.UpdateProductNotices(); err != nil {
+			mlog.Error("Worker: Failed to fetch product notices", mlog.String("worker", model.JobTypeProductNotices), mlog.String("job_id", job.Id), mlog.Err(err))
+			return err
 		}
+		return nil
 	}
-}
-
-func (worker *Worker) Stop() {
-	mlog.Debug("Worker stopping", mlog.String("worker", worker.name))
-	worker.stop <- true
-	<-worker.stopped
-}
-
-func (worker *Worker) JobChannel() chan<- model.Job {
-	return worker.jobs
-}
-
-func (worker *Worker) DoJob(job *model.Job) {
-	if claimed, err := worker.jobServer.ClaimJob(job); err != nil {
-		mlog.Warn("Worker experienced an error while trying to claim job",
-			mlog.String("worker", worker.name),
-			mlog.String("job_id", job.Id),
-			mlog.String("error", err.Error()))
-		return
-	} else if !claimed {
-		return
-	}
-
-	if err := worker.app.UpdateProductNotices(); err != nil {
-		mlog.Error("Worker: Failed to fetch product notices", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
-		worker.setJobError(job, err)
-		return
-	}
-
-	mlog.Info("Worker: Job is complete", mlog.String("worker", worker.name), mlog.String("job_id", job.Id))
-	worker.setJobSuccess(job)
-}
-
-func (worker *Worker) setJobSuccess(job *model.Job) {
-	if err := worker.app.Srv().Jobs.SetJobSuccess(job); err != nil {
-		mlog.Error("Worker: Failed to set success for job", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
-		worker.setJobError(job, err)
-	}
-}
-
-func (worker *Worker) setJobError(job *model.Job, appError *model.AppError) {
-	if err := worker.app.Srv().Jobs.SetJobError(job, appError); err != nil {
-		mlog.Error("Worker: Failed to set job error", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
-	}
+	worker := jobs.NewSimpleWorker(jobName, jobServer, execute, isEnabled)
+	return worker
 }

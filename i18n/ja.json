@@ -4773,7 +4773,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -4785,7 +4785,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 78+"
+    "translation": "Version 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -9144,18 +9144,6 @@
     "translation": "電子メール確認トークンを無効にする際にタイプ別のトークンを取得できませんでした"
   },
   {
-    "id": "extract_content.worker.do_job.file_info",
-    "translation": "コンテンツ抽出中、ファイル情報を取得できませんでした。"
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.to",
-    "translation": "不正な入力値 'to'"
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.from",
-    "translation": "不正な入力値 'from'"
-  },
-  {
     "id": "api.license.upgrade_needed.app_error",
     "translation": "この機能を利用するには、Enterprise Editionへのアップグレードが必要です。"
   },
@@ -9296,7 +9284,23 @@
     "translation": "ポータルでこのライセンスを更新することはできません"
   },
   {
-    "id": "api.config.migrate_config_restricted.app_error",
-    "translation": "インスタンス種別により、設定の移行が制限されています。"
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "オリエンテーションの完了はシステム管理者のみが行えます。"
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "オリエンテーションの完了リクエストをデコードできませんでした。"
+  },
+  {
+    "id": "app.admin.latest_version_read_all.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_external_error.failure",
+    "translation": " "
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "SAMLの応答が長すぎます"
   }
 ]

@@ -129,9 +129,7 @@ func (h *huffmanEncoder) bitLength(freq []uint16) int {
 func (h *huffmanEncoder) bitLengthRaw(b []byte) int {
 	var total int
 	for _, f := range b {
-		if f != 0 {
-			total += int(h.codes[f].len)
-		}
+		total += int(h.codes[f].len)
 	}
 	return total
 }
