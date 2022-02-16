@@ -2882,7 +2882,7 @@ func (s SqlChannelStore) AutocompleteInTeam(teamID, userID, term string, include
 
 // TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19334)
 func (s SqlChannelStore) AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) (model.ChannelList, error) {
-	query := s.getQueryBuilder().
+	query := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
 		Select("C.*").
 		From("Channels AS C").
 		Join("ChannelMembers AS CM ON CM.ChannelId = C.Id").
@@ -2930,12 +2930,12 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamId string, userId strin
 
 // TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19334)
 func (s SqlChannelStore) autocompleteInTeamForSearchDirectMessages(userId string, term string) ([]*model.Channel, error) {
-	query := s.getQueryBuilder().
+	query := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
 		Select("C.*", "OtherUsers.Username as DisplayName").
 		From("Channels AS C").
 		Join("ChannelMembers AS CM ON CM.ChannelId = C.Id")
 
-	innerJoinQuery := s.getQueryBuilder().
+	innerJoinQuery := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
 		Select("ICM.ChannelId AS ChannelId, IU.Username AS Username").
 		Prefix("(").
 		From("Users as IU").
