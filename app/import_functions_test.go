@@ -6,6 +6,7 @@ package app
 import (
 	"archive/zip"
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -2521,9 +2522,11 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 
 	resultPosts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, *data.Post.CreateAt)
 	assert.NoError(t, nErr, "Expected success.")
+	// Should be one post only created at this time.
+	fmt.Println("Result Posts ", len(resultPosts))
+	assert.Equal(t, 1, len(resultPosts))
 	resultPost := resultPosts[0]
-	pinnedStatus := resultPost.IsPinned
-	require.True(t, pinnedStatus, "This post should be pinned.")
+	require.True(t, resultPost.IsPinned, "This post should be pinned.")
 
 	// Posts should be added to the right team
 	AssertAllPostsCount(t, th.App, initialPostCountForTeam2, 1, team2.Id)
