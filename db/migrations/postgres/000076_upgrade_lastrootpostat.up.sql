@@ -20,8 +20,6 @@ FROM
 	q
 WHERE
 	q.channelid = Channels.Id AND Channels.LastRootPostAt IS NULL;
-END fixes_migrate_cte
-$$;
 
 -- sets LastRootPostAt to 0, for channels with no posts
 UPDATE Channels SET LastRootPostAt=0 WHERE LastRootPostAt is NULL;
