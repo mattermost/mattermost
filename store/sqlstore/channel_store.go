@@ -2911,7 +2911,7 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamId string, userId strin
 	if err != nil {
 		return nil, errors.Wrap(err, "AutocompleteInTeamForSearch")
 	}
-	if _, err = s.GetReplica().Select(&channels, sql, args...); err != nil {
+	if err = s.GetReplicaX().Select(&channels, sql, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
 	}
 
@@ -2933,27 +2933,34 @@ func (s SqlChannelStore) autocompleteInTeamForSearchDirectMessages(userId string
 	query := s.getQueryBuilder().
 		Select("C.*", "OtherUsers.Username as DisplayName").
 		From("Channels AS C").
-		Join("ChannelMembers AS CM ON CM.ChannelId = C.Id").
-		InnerJoin(`(SELECT ICM.ChannelId AS ChannelId, IU.Username AS Username
-					FROM Users as IU
-					JOIN ChannelMembers AS ICM ON ICM.UserId = IU.Id
-					WHERE IU.Id != :UserId %v ) AS OtherUsers ON OtherUsers.ChannelId = C.Id`).
-		Where("C.Type = 'D' AND CM.UserId = :UserId").
-		Limit(50)
-	sql, _, err := query.ToSql()
+		Join("ChannelMembers AS CM ON CM.ChannelId = C.Id")
+
+	innerJoinQuery := s.getQueryBuilder().
+		Select("ICM.ChannelId AS ChannelId, IU.Username AS Username").
+		Prefix("(").
+		From("Users as IU").
+		Join("ChannelMembers AS ICM ON ICM.UserId = IU.Id").
+		Where("IU.Id != ? ", userId).
+		Suffix(") AS OtherUsers ON OtherUsers.ChannelId = C.Id")
+
+	likeClause, likeTerm := s.buildLIKEClause(term, "IU.Username, IU.Nickname")
+	var channels model.ChannelList
+	if likeTerm != "" {
+		likeClause = strings.ReplaceAll(likeClause, ":LikeTerm", "?")
+		innerJoinQuery = innerJoinQuery.Where(sq.And{sq.Expr(likeClause, likeTerm, likeTerm)})
+	}
+	innerSQL, args, err := innerJoinQuery.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "autocompleteInTeamForSearchDirectMessages")
 	}
 
-	var channels model.ChannelList
-	if likeClause, likeTerm := s.buildLIKEClause(term, "IU.Username, IU.Nickname"); likeClause == "" {
-		if _, err = s.GetReplica().Select(&channels, fmt.Sprintf(sql, ""), map[string]interface{}{"UserId": userId}); err != nil {
-			return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
-		}
-	} else {
-		if _, err = s.GetReplica().Select(&channels, fmt.Sprintf(sql, "AND "+likeClause), map[string]interface{}{"UserId": userId, "LikeTerm": likeTerm}); err != nil {
-			return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
-		}
+	sql, args, err := query.InnerJoin(innerSQL, args...).Where("C.Type = 'D' AND CM.UserId = ? ").Limit(50).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "autocompleteInTeamForSearchDirectMessages")
+	}
+
+	if err = s.GetReplicaX().Select(&channels, sql, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
 	}
 	return channels, nil
 }
