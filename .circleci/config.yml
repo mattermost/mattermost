@@ -17,7 +17,7 @@ jobs:
   setup:
     working_directory: ~/mattermost/mattermost-server
     docker:
-      - image: mattermost/mattermost-build-webapp:20210524_node-16
+      - image: mattermost/mattermost-build-webapp@sha256:2ff4817f555946073de037450de94f32620a0610870941c59761199b62f54245 # mattermost/mattermost-build-webapp:20210524_node-16, Wed Feb 16 02:19:30 PM EET 2022
     resource_class: xlarge
     # Use `--retry-all-errors` instead of `until` after curl version >= 7.71.0; `retry` will not work, since it only retries on transient errors, 403 is not one of them.
     steps:
@@ -109,7 +109,7 @@ jobs:
   # and not depend on both mm-server/enterprise
   # check-i18n:
   #   docker:
-  #   - image: circleci/golang:1.12
+  #   - image: circleci/golang@sha256:ae191834590b2cdee6ca9bb6985f02e05b3f9b326536f83494f788889481b408 # circleci/golang:1.12, Wed Feb 16 02:19:16 PM EET 2022
   #   working_directory: ~/mattermost/
   #   steps:
   #     - attach_workspace:
@@ -123,7 +123,7 @@ jobs:
 
   check-app-layers:
     docker:
-      - image: mattermost/mattermost-build-server:20210810_golang-1.16.7
+      - image: mattermost/mattermost-build-server@sha256:2de50c8a3f977704074c321dd964d435df9bdc9823eb7d3382a43aef16963964 # mattermost/mattermost-build-server:20210810_golang-1.16.7, Wed Feb 16 02:19:27 PM EET 2022
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
@@ -136,7 +136,7 @@ jobs:
 
   check-store-layers:
     docker:
-      - image: mattermost/mattermost-build-server:20210810_golang-1.16.7
+      - image: mattermost/mattermost-build-server@sha256:2de50c8a3f977704074c321dd964d435df9bdc9823eb7d3382a43aef16963964 # mattermost/mattermost-build-server:20210810_golang-1.16.7, Wed Feb 16 02:19:27 PM EET 2022
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
@@ -149,7 +149,7 @@ jobs:
 
   check-mocks:
     docker:
-      - image: mattermost/mattermost-build-server:20210810_golang-1.16.7
+      - image: mattermost/mattermost-build-server@sha256:2de50c8a3f977704074c321dd964d435df9bdc9823eb7d3382a43aef16963964 # mattermost/mattermost-build-server:20210810_golang-1.16.7, Wed Feb 16 02:19:27 PM EET 2022
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
@@ -162,7 +162,7 @@ jobs:
 
   check-migrations:
     docker:
-      - image: mattermost/mattermost-build-server:20210810_golang-1.16.7
+      - image: mattermost/mattermost-build-server@sha256:2de50c8a3f977704074c321dd964d435df9bdc9823eb7d3382a43aef16963964 # mattermost/mattermost-build-server:20210810_golang-1.16.7, Wed Feb 16 02:19:27 PM EET 2022
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
@@ -177,7 +177,7 @@ jobs:
 
   check-email-templates:
     docker:
-      - image: cimg/go:1.17-node
+      - image: cimg/go@sha256:1a164c32a25fb88acfbbda2634f0dd96975ee471a23721eda0f9f2ca16662db1 # cimg/go:1.17, Wed Feb 16 02:19:10 PM EET 2022-node
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
@@ -191,7 +191,7 @@ jobs:
 
   check-gen-serialized:
     docker:
-      - image: cimg/go:1.17
+      - image: cimg/go@sha256:1a164c32a25fb88acfbbda2634f0dd96975ee471a23721eda0f9f2ca16662db1 # cimg/go:1.17, Wed Feb 16 02:19:10 PM EET 2022
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
@@ -216,7 +216,7 @@ jobs:
   # Dedicate job for mattermost-vet to make more clear when the job fails
   check-mattermost-vet:
     docker:
-      - image: mattermost/mattermost-build-server:20210810_golang-1.16.7
+      - image: mattermost/mattermost-build-server@sha256:2de50c8a3f977704074c321dd964d435df9bdc9823eb7d3382a43aef16963964 # mattermost/mattermost-build-server:20210810_golang-1.16.7, Wed Feb 16 02:19:27 PM EET 2022
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
@@ -234,7 +234,7 @@ jobs:
   # and to make more clear when the job fails
   sentry:
     docker:
-      - image: getsentry/sentry-cli:1.64.1
+      - image: getsentry/sentry-cli@sha256:ccbf7b6312aebae76af9ddc4abdc2403e055e19ec44d9fa07e2a0b9d95473a98 # getsentry/sentry-cli:1.64.1, Wed Feb 16 02:19:24 PM EET 2022
     steps:
       - checkout
       - run:
@@ -246,7 +246,7 @@ jobs:
 
   build-api-spec:
     docker:
-      - image: circleci/node:lts
+      - image: circleci/node@sha256:1803e9ed7deec9456ad2609124b7333d40b2eec0cf34998ae766cbf90c9a3625 # circleci/node:lts, Wed Feb 16 02:19:19 PM EET 2022
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
@@ -265,7 +265,7 @@ jobs:
 
   build:
     docker:
-      - image: mattermost/mattermost-build-server:20210810_golang-1.16.7
+      - image: mattermost/mattermost-build-server@sha256:2de50c8a3f977704074c321dd964d435df9bdc9823eb7d3382a43aef16963964 # mattermost/mattermost-build-server:20210810_golang-1.16.7, Wed Feb 16 02:19:27 PM EET 2022
     resource_class: xlarge
     working_directory: ~/mattermost
     steps:
@@ -332,7 +332,7 @@ jobs:
               --env MM_SQLSETTINGS_DRIVERNAME=<<parameters.dbdriver>> \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:20210810_golang-1.16.7 \
+              mattermost/mattermost-build-server@sha256:2de50c8a3f977704074c321dd964d435df9bdc9823eb7d3382a43aef16963964 # mattermost/mattermost-build-server:20210810_golang-1.16.7, Wed Feb 16 02:19:27 PM EET 2022 \
               bash -c "ulimit -n 8096; make test-server<< parameters.racemode >> BUILD_NUMBER=$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM TESTFLAGS= TESTFLAGSEE=" \
               bash -c scripts/diff-email-templates.sh
           no_output_timeout: 2h
@@ -397,7 +397,7 @@ jobs:
               --env MM_SQLSETTINGS_DRIVERNAME=postgres \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:20210810_golang-1.16.7 \
+              mattermost/mattermost-build-server@sha256:2de50c8a3f977704074c321dd964d435df9bdc9823eb7d3382a43aef16963964 # mattermost/mattermost-build-server:20210810_golang-1.16.7, Wed Feb 16 02:19:27 PM EET 2022 \
               bash -c "ulimit -n 8096; make ARGS='db migrate' run-cli && make MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10' ARGS='db migrate' run-cli"
 
             echo "Generating dump"
@@ -426,7 +426,7 @@ jobs:
               --env MM_SQLSETTINGS_DRIVERNAME=mysql \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:20210810_golang-1.16.7 \
+              mattermost/mattermost-build-server@sha256:2de50c8a3f977704074c321dd964d435df9bdc9823eb7d3382a43aef16963964 # mattermost/mattermost-build-server:20210810_golang-1.16.7, Wed Feb 16 02:19:27 PM EET 2022 \
               bash -c "ulimit -n 8096; make ARGS='db migrate' run-cli && make MM_SQLSETTINGS_DATASOURCE='mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s' ARGS='db migrate' run-cli"
 
             echo "Generating dump"
@@ -442,7 +442,7 @@ jobs:
 
   upload-s3-sha:
     docker:
-      - image: 'circleci/python:2.7'
+      - image: 'circleci/python@sha256:98b4aaa4e9b4f80bc3ba12a04888028fa154f172e93fb21ae1971677caf01553 # circleci/python:2.7, Wed Feb 16 02:19:22 PM EET 2022'
     working_directory: ~/mattermost/enterprise
     steps:
       - attach_workspace:
@@ -458,7 +458,7 @@ jobs:
 
   upload-s3:
     docker:
-      - image: 'circleci/python:2.7'
+      - image: 'circleci/python@sha256:98b4aaa4e9b4f80bc3ba12a04888028fa154f172e93fb21ae1971677caf01553 # circleci/python:2.7, Wed Feb 16 02:19:22 PM EET 2022'
     working_directory: ~/mattermost/enterprise
     steps:
       - attach_workspace:
@@ -475,7 +475,7 @@ jobs:
   build-docker:
     working_directory: ~/
     docker:
-      - image: cimg/base:stable
+      - image: cimg/base@sha256:c14e6c92ef2dcf98debc6ecfdbb6963414d4db5b39044f738c52cf6c47c7ad0e # cimg/base:stable, Wed Feb 16 02:19:07 PM EET 2022
     steps:
       - attach_workspace:
           at: .
