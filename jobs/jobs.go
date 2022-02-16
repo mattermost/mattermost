@@ -31,6 +31,10 @@ func (srv *JobServer) CreateJob(jobType string, jobData map[string]string) (*mod
 		return nil, err
 	}
 
+	if srv.workers.Get(job.Type) == nil {
+		return nil, model.NewAppError("Job.IsValid", "model.job.is_valid.type.app_error", nil, "id="+job.Id, http.StatusBadRequest)
+	}
+
 	if _, err := srv.Store.Job().Save(&job); err != nil {
 		return nil, model.NewAppError("CreateJob", "app.job.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

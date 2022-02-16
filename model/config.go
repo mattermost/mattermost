@@ -305,6 +305,7 @@ type ServiceSettings struct {
 	EnableTesting                                     *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	EnableDeveloper                                   *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	DeveloperFlags                                    *string  `access:"environment_developer"`
+	EnableClientPerformanceDebugging                  *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	EnableOpenTracing                                 *bool    `access:"write_restrictable,cloud_restrictable"`
 	EnableSecurityFixAlert                            *bool    `access:"environment_smtp,write_restrictable,cloud_restrictable"`
 	EnableInsecureOutgoingConnections                 *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
@@ -420,6 +421,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.DeveloperFlags == nil {
 		s.DeveloperFlags = NewString("")
+	}
+
+	if s.EnableClientPerformanceDebugging == nil {
+		s.EnableClientPerformanceDebugging = NewBool(false)
 	}
 
 	if s.EnableOpenTracing == nil {
