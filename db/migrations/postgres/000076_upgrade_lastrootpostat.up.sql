@@ -1,3 +1,5 @@
+ALTER TABLE channels ALTER COLUMN LastRootPostAt SET DEFAULT '0'::bigint;
+
 -- fixes migrate cte and sets the LastRootPostAt for channels that don't have it set
 WITH q AS (
 		SELECT

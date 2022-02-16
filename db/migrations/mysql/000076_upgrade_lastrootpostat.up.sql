@@ -1,3 +1,5 @@
+ALTER TABLE Channels ALTER COLUMN LastRootPostAt DEFAULT 0;
+
 -- fixes migrate cte and sets the LastRootPostAt for channels that don't have it set
 UPDATE
 	Channels
