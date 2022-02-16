@@ -34,7 +34,7 @@ func (ch *Channels) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	hooks, err := pluginsEnvironment.HooksForPlugin(params["plugin_id"])
 	if err != nil {
-		mlog.Error("Access to route for non-existent plugin",
+		mlog.Debug("Access to route for non-existent plugin",
 			mlog.String("missing_plugin_id", params["plugin_id"]),
 			mlog.String("url", r.URL.String()),
 			mlog.Err(err))
