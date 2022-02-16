@@ -2953,13 +2953,13 @@ func (s SqlChannelStore) autocompleteInTeamForSearchDirectMessages(userId string
 	if err != nil {
 		return nil, errors.Wrap(err, "autocompleteInTeamForSearchDirectMessages")
 	}
-    
+
 	if s.DriverName() == model.DatabaseDriverMysql {
-		sql, args, err = query.InnerJoin(sql, args...).Where("C.Type = 'D' AND CM.UserId = ? ",userId).Limit(50).ToSql()
+		sql, args, err = query.InnerJoin(sql, args...).Where("C.Type = 'D' AND CM.UserId = ? ", userId).Limit(50).ToSql()
 	} else {
 		sql, args, err = query.InnerJoin(sql, args...).Where("C.Type = 'D' AND CM.UserId = ? ").Limit(50).ToSql()
 	}
-	
+
 	if err != nil {
 		return nil, errors.Wrap(err, "autocompleteInTeamForSearchDirectMessages")
 	}
