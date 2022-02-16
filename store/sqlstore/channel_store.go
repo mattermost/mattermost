@@ -2882,7 +2882,7 @@ func (s SqlChannelStore) AutocompleteInTeam(teamID, userID, term string, include
 
 // TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19334)
 func (s SqlChannelStore) AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) (model.ChannelList, error) {
-	query := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
+	query := s.getQueryBuilder().
 		Select("C.*").
 		From("Channels AS C").
 		Join("ChannelMembers AS CM ON CM.ChannelId = C.Id").
@@ -2930,12 +2930,12 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamId string, userId strin
 
 // TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19334)
 func (s SqlChannelStore) autocompleteInTeamForSearchDirectMessages(userId string, term string) ([]*model.Channel, error) {
-	query := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
+	query := s.getQueryBuilder().
 		Select("C.*", "OtherUsers.Username as DisplayName").
 		From("Channels AS C").
 		Join("ChannelMembers AS CM ON CM.ChannelId = C.Id")
 
-	innerJoinQuery := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
+	innerJoinQuery := s.getQueryBuilder().
 		Select("ICM.ChannelId AS ChannelId, IU.Username AS Username").
 		Prefix("(").
 		From("Users as IU").
@@ -2949,12 +2949,17 @@ func (s SqlChannelStore) autocompleteInTeamForSearchDirectMessages(userId string
 		likeClause = strings.ReplaceAll(likeClause, ":LikeTerm", "?")
 		innerJoinQuery = innerJoinQuery.Where(sq.And{sq.Expr(likeClause, likeTerm, likeTerm)})
 	}
-	innerSQL, args, err := innerJoinQuery.ToSql()
+	sql, args, err := innerJoinQuery.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "autocompleteInTeamForSearchDirectMessages")
 	}
-
-	sql, args, err := query.InnerJoin(innerSQL, args...).Where("C.Type = 'D' AND CM.UserId = ? ").Limit(50).ToSql()
+    
+	if s.DriverName() == model.DatabaseDriverMysql {
+		sql, args, err = query.InnerJoin(sql, args...).Where("C.Type = 'D' AND CM.UserId = ? ",userId).Limit(50).ToSql()
+	} else {
+		sql, args, err = query.InnerJoin(sql, args...).Where("C.Type = 'D' AND CM.UserId = ? ").Limit(50).ToSql()
+	}
+	
 	if err != nil {
 		return nil, errors.Wrap(err, "autocompleteInTeamForSearchDirectMessages")
 	}
