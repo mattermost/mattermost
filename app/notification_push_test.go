@@ -1408,7 +1408,10 @@ func TestPushNotificationRace(t *testing.T) {
 		products:    make(map[string]Product),
 		Router:      mux.NewRouter(),
 	}
-	ch, err := NewChannels(s)
+	serviceMap := map[ServiceKey]interface{}{
+		ConfigKey: s, // TODO: pass an adapter struct instead
+	}
+	ch, err := NewChannels(s, serviceMap)
 	require.NoError(t, err)
 	s.products["channels"] = ch
 
