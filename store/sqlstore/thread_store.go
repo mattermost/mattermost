@@ -441,6 +441,11 @@ func (s *SqlThreadStore) MarkAllAsReadByChannels(userID string, channelIDs []str
 		Where(sq.Expr("Threads.LastReplyAt > ThreadMemberships.LastViewed")).
 		ToSql()
 
+	if s.DriverName() == model.DatabaseDriverMysql {
+		// Workaround #1093 - You can't specify target table 'xxx' for update in FROM clause
+		subquery = "SELECT PostId FROM (" + subquery + ") as t"
+	}
+
 	query, args, _ := s.getQueryBuilder().
 		Update("ThreadMemberships").
 		Where(sq.Eq{"UserId": userID}).
