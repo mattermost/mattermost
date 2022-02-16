@@ -48,19 +48,10 @@ type SqlBotStore struct {
 
 // newSqlBotStore creates an instance of SqlBotStore, registering the table schema in question.
 func newSqlBotStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.BotStore {
-	us := &SqlBotStore{
+	return &SqlBotStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
 	}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(bot{}, "Bots").SetKeys(false, "UserId")
-		table.ColMap("UserId").SetMaxSize(26)
-		table.ColMap("Description").SetMaxSize(1024)
-		table.ColMap("OwnerId").SetMaxSize(model.BotCreatorIdMaxRunes)
-	}
-
-	return us
 }
 
 // Get fetches the given bot in the database.

@@ -489,7 +489,7 @@ func TestImportBulkImportWithAttachments(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = model.NewInt(1000) })
 
-	appErr, _ := th.App.BulkImportWithPath(th.Context, jsonFile, importZipReader, false, 1, ExportDataDir)
+	appErr, _ := th.App.BulkImportWithPath(th.Context, jsonFile, importZipReader, false, 1, model.ExportDataDir)
 	require.Nil(t, appErr)
 
 	adminUser, appErr := th.App.GetUserByUsername("sysadmin")

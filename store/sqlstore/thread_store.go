@@ -26,21 +26,9 @@ func (s *SqlThreadStore) ClearCaches() {
 }
 
 func newSqlThreadStore(sqlStore *SqlStore) store.ThreadStore {
-	s := &SqlThreadStore{
+	return &SqlThreadStore{
 		SqlStore: sqlStore,
 	}
-
-	for _, db := range sqlStore.GetAllConns() {
-		tableThreads := db.AddTableWithName(model.Thread{}, "Threads").SetKeys(false, "PostId")
-		tableThreads.ColMap("PostId").SetMaxSize(26)
-		tableThreads.ColMap("ChannelId").SetMaxSize(26)
-		tableThreads.ColMap("Participants").SetDataType(sqlStore.jsonDataType())
-		tableThreadMemberships := db.AddTableWithName(model.ThreadMembership{}, "ThreadMemberships").SetKeys(false, "PostId", "UserId")
-		tableThreadMemberships.ColMap("PostId").SetMaxSize(26)
-		tableThreadMemberships.ColMap("UserId").SetMaxSize(26)
-	}
-
-	return s
 }
 
 func threadSliceColumns() []string {

@@ -471,6 +471,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		}
 	})
 	t.Run("Get unread reply counts for thread", func(t *testing.T) {
+		t.Skip("MM-41797")
 		newPosts := makeSomePosts()
 		opts := store.ThreadMembershipOpts{
 			Following:             true,
