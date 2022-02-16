@@ -86,6 +86,12 @@ import (
 // declaring this as var to allow overriding in tests
 var SentryDSN = "placeholder_sentry_dsn"
 
+type ServiceKey string
+
+const (
+	ConfigKey ServiceKey = "config"
+)
+
 type Server struct {
 	sqlStore        *sqlstore.SqlStore
 	Store           store.Store
@@ -250,10 +256,13 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.httpService = httpservice.MakeHTTPService(s)
 
+	serviceMap := map[ServiceKey]interface{}{
+		ConfigKey: s, // TODO: pass an adapter struct instead
+	}
 	// Step 3: Initialize products.
 	// Depends on s.httpService.
 	for name, initializer := range products {
-		prod, err2 := initializer(s)
+		prod, err2 := initializer(s, serviceMap)
 		if err2 != nil {
 			return nil, errors.Wrapf(err2, "error initializing product: %s", name)
 		}

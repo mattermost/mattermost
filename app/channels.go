@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"runtime"
 	"strings"
 	"sync"
@@ -20,9 +21,20 @@ import (
 	"github.com/pkg/errors"
 )
 
+// configSvc is a consumer interface to work
+// with any config related task with the server.
+type configSvc interface {
+	Config() *model.Config
+	AddConfigListener(listener func(*model.Config, *model.Config)) string
+	RemoveConfigListener(id string)
+	UpdateConfig(f func(*model.Config))
+	SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError)
+}
+
 // Channels contains all channels related state.
 type Channels struct {
-	srv *Server
+	srv    *Server
+	cfgSvc configSvc
 
 	postActionCookieSecret []byte
 
@@ -65,16 +77,39 @@ type Channels struct {
 }
 
 func init() {
-	RegisterProduct("channels", func(s *Server) (Product, error) {
-		return NewChannels(s)
+	RegisterProduct("channels", func(s *Server, services map[ServiceKey]interface{}) (Product, error) {
+		return NewChannels(s, services)
 	})
 }
 
-func NewChannels(s *Server) (*Channels, error) {
+func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, error) {
+
 	ch := &Channels{
 		srv:           s,
 		imageProxy:    imageproxy.MakeImageProxy(s, s.httpService, s.Log),
 		uploadLockMap: map[string]bool{},
+	}
+
+	// To get another service:
+	// 1. Prepare the service interface
+	// 2. Add the field to *Channels
+	// 3. Add the service key to the slice.
+	// 4. Add a new case in the switch statement.
+	requiredServices := []ServiceKey{ConfigKey}
+	for _, svcKey := range requiredServices {
+		svc, ok := services[svcKey]
+		if !ok {
+			return nil, fmt.Errorf("Service %s not passed", svcKey)
+		}
+		switch svcKey {
+		// Keep adding more services here
+		case ConfigKey:
+			cfgSvc, ok := svc.(configSvc)
+			if !ok {
+				return nil, errors.New("Config service did not satisfy ConfigSvc interface")
+			}
+			ch.cfgSvc = cfgSvc
+		}
 	}
 	// We are passing a partially filled Channels struct so that the enterprise
 	// methods can have access to app methods.
