@@ -40,6 +40,8 @@ const (
 	OnWebSocketDisconnectID         = 22
 	WebSocketMessageHasBeenPostedID = 23
 	RunDataRetentionID              = 24
+	OnInstallID                     = 25
+	OnSendDailyTelemetryID          = 26
 	TotalHooksID                    = iota
 )
 
@@ -245,8 +247,21 @@ type Hooks interface {
 	// Minimum server version: 6.0
 	WebSocketMessageHasBeenPosted(webConnID, userID string, req *model.WebSocketRequest)
 
-	// RunDataRetention is invoked during a DataRetentionJob
+	// RunDataRetention is invoked during a DataRetentionJob.
 	//
 	// Minimum server version: 6.4
 	RunDataRetention(nowTime, batchSize int64) (int64, error)
+
+	// OnInstall is invoked after the installation of a plugin as part of the onboarding.
+	// It's called on every installation, not only once.
+	//
+	// In the future, other plugin installation methods will trigger this hook, e.g. an installation via the Marketplace.
+	//
+	// Minimum server version: 6.5
+	OnInstall(c *Context, event model.OnInstallEvent) error
+
+	// OnSendDailyTelemetry is invoked when the server send the daily telemtry data.
+	//
+	// Minimum server version: 6.5
+	OnSendDailyTelemetry()
 }
