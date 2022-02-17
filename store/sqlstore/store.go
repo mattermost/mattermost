@@ -540,7 +540,8 @@ func (ss *SqlStore) MarkSystemRanUnitTests() {
 
 func (ss *SqlStore) DoesTableExist(tableName string) bool {
 	if ss.DriverName() == model.DatabaseDriverPostgres {
-		count, err := ss.GetMaster().SelectInt(
+		var count int64
+		err := ss.GetMasterX().Get(&count,
 			`SELECT count(relname) FROM pg_class WHERE relname=$1`,
 			strings.ToLower(tableName),
 		)
@@ -552,8 +553,8 @@ func (ss *SqlStore) DoesTableExist(tableName string) bool {
 		return count > 0
 
 	} else if ss.DriverName() == model.DatabaseDriverMysql {
-
-		count, err := ss.GetMaster().SelectInt(
+		var count int64
+		err := ss.GetMasterX().Get(&count,
 			`SELECT
 		    COUNT(0) AS table_exists
 			FROM
@@ -579,7 +580,8 @@ func (ss *SqlStore) DoesTableExist(tableName string) bool {
 
 func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 	if ss.DriverName() == model.DatabaseDriverPostgres {
-		count, err := ss.GetMaster().SelectInt(
+		var count int64
+		err := ss.GetMasterX().Get(&count,
 			`SELECT COUNT(0)
 			FROM   pg_attribute
 			WHERE  attrelid = $1::regclass
@@ -600,8 +602,8 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 		return count > 0
 
 	} else if ss.DriverName() == model.DatabaseDriverMysql {
-
-		count, err := ss.GetMaster().SelectInt(
+		var count int64
+		err := ss.GetMasterX().Get(&count,
 			`SELECT
 		    COUNT(0) AS column_exists
 		FROM
@@ -628,7 +630,8 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 
 func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
 	if ss.DriverName() == model.DatabaseDriverPostgres {
-		count, err := ss.GetMaster().SelectInt(`
+		var count int64
+		err := ss.GetMasterX().Get(&count, `
 			SELECT
 				COUNT(0)
 			FROM
@@ -644,7 +647,8 @@ func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
 		return count > 0
 
 	} else if ss.DriverName() == model.DatabaseDriverMysql {
-		count, err := ss.GetMaster().SelectInt(`
+		var count int64
+		err := ss.GetMasterX().Get(&count, `
 			SELECT
 				COUNT(0)
 			FROM
@@ -673,7 +677,7 @@ func (ss *SqlStore) CreateColumnIfNotExists(tableName string, columnName string,
 	}
 
 	if ss.DriverName() == model.DatabaseDriverPostgres {
-		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType + " DEFAULT '" + defaultValue + "'")
+		_, err := ss.GetMasterX().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
 			mlog.Fatal("Failed to create column", mlog.Err(err))
 		}
@@ -681,7 +685,7 @@ func (ss *SqlStore) CreateColumnIfNotExists(tableName string, columnName string,
 		return true
 
 	} else if ss.DriverName() == model.DatabaseDriverMysql {
-		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType + " DEFAULT '" + defaultValue + "'")
+		_, err := ss.GetMasterX().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
 			mlog.Fatal("Failed to create column", mlog.Err(err))
 		}
@@ -699,7 +703,7 @@ func (ss *SqlStore) RemoveTableIfExists(tableName string) bool {
 		return false
 	}
 
-	_, err := ss.GetMaster().ExecNoTimeout("DROP TABLE " + tableName)
+	_, err := ss.GetMasterX().ExecNoTimeout("DROP TABLE " + tableName)
 	if err != nil {
 		mlog.Fatal("Failed to drop table", mlog.Err(err))
 	}

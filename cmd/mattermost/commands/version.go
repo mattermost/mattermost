@@ -4,11 +4,8 @@
 package commands
 
 import (
-	"strconv"
-
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
@@ -20,42 +17,16 @@ var VersionCmd = &cobra.Command{
 
 func init() {
 	VersionCmd.Flags().Bool("skip-server-start", false, "Skip the server initialization and return the Mattermost version without the DB version.")
-
+	VersionCmd.Flags().MarkDeprecated("skip-server-start", "This flag is not necessary anymore and the flag will be removed in the future releases. Consider removing it from your scripts.")
 	RootCmd.AddCommand(VersionCmd)
 }
 
 func versionCmdF(command *cobra.Command, args []string) error {
-	skipStart, _ := command.Flags().GetBool("skip-server-start")
-	if skipStart {
-		printVersionNoDB()
-		return nil
-	}
-
-	a, err := InitDBCommandContextCobra(command)
-	if err != nil {
-		return err
-	}
-	defer a.Srv().Shutdown()
-
-	printVersion(a)
-
-	return nil
-}
-
-func printVersion(a *app.App) {
-	printVersionNoDB()
-	v, err := a.Srv().Store.GetDBSchemaVersion()
-	if err != nil {
-		CommandPrintErrorln(err)
-		return
-	}
-	CommandPrintln("DB Version: " + strconv.Itoa(v))
-}
-
-func printVersionNoDB() {
 	CommandPrintln("Version: " + model.CurrentVersion)
 	CommandPrintln("Build Number: " + model.BuildNumber)
 	CommandPrintln("Build Date: " + model.BuildDate)
 	CommandPrintln("Build Hash: " + model.BuildHash)
 	CommandPrintln("Build Enterprise Ready: " + model.BuildEnterpriseReady)
+
+	return nil
 }
