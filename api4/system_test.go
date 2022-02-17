@@ -890,7 +890,7 @@ func TestCompleteOnboarding(t *testing.T) {
 		}()
 
 		select {
-		case _ = <-received:
+		case <-received:
 			break
 		case <-time.After(15 * time.Second):
 			require.Fail(t, "timed out waiting testplugin2 to be installed and enabled ")
