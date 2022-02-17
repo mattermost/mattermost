@@ -479,7 +479,7 @@ func (th *TestHelper) CreateGroup() *model.Group {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 
 	var err *model.AppError
