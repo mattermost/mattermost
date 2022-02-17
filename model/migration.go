@@ -36,4 +36,5 @@ const (
 	MigrationKeyAddAboutSubsectionPermissions          = "about_subsection_permissions"
 	MigrationKeyAddIntegrationsSubsectionPermissions   = "integrations_subsection_permissions"
 	MigrationKeyAddPlaybooksPermissions                = "playbooks_permissions"
+	MigrationKeyAddCustomUserGroupsPermissions         = "custom_groups_permissions"
 )

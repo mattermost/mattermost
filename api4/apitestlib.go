@@ -894,7 +894,7 @@ func (th *TestHelper) CreateGroup() *model.Group {
 		Name:        model.NewString("n-" + id),
 		DisplayName: "dn_" + id,
 		Source:      model.GroupSourceLdap,
-		RemoteId:    "ri_" + id,
+		RemoteId:    model.NewString("ri_" + model.NewId()),
 	}
 
 	group, err := th.App.CreateGroup(group)

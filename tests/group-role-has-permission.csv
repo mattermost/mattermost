@@ -1,0 +1,8 @@
+"let p be ""system role has permission""","let q be ""is group member""","let r be ""group role has permission""","""permission granted"" = p ∨ (q ∧ r)"
+TRUE,TRUE,TRUE,TRUE
+TRUE,TRUE,FALSE,TRUE
+TRUE,FALSE,TRUE,TRUE
+TRUE,FALSE,FALSE,TRUE
+FALSE,TRUE,TRUE,TRUE
+FALSE,TRUE,FALSE,FALSE
+FALSE,FALSE,TRUE,FALSE
