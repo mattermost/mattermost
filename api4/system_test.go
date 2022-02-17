@@ -894,8 +894,8 @@ func TestGetAppliedSchemaMigrations(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("as a system admin", func(t *testing.T) {
-		_, resp, err := th.SystemAdminClient.GetAppliedSchemaMigrations()
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		_, resp, err := c.GetAppliedSchemaMigrations()
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})

@@ -69,8 +69,8 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.System.Handle("/notices/view", api.APISessionRequired(updateViewedProductNotices)).Methods("PUT")
 	api.BaseRoutes.System.Handle("/support_packet", api.APISessionRequired(generateSupportPacket)).Methods("GET")
 	api.BaseRoutes.System.Handle("/onboarding/complete", api.APISessionRequired(getOnboarding)).Methods("GET")
-	api.BaseRoutes.System.Handle("/onboarding/complete", api.APIHandler(completeOnboarding)).Methods("POST")
-	api.BaseRoutes.System.Handle("/schema/version", api.APIHandler(getAppliedSchemaMigrations)).Methods("GET")
+	api.BaseRoutes.System.Handle("/onboarding/complete", api.APISessionRequired(completeOnboarding)).Methods("POST")
+	api.BaseRoutes.System.Handle("/schema/version", api.APISessionRequired(getAppliedSchemaMigrations)).Methods("GET")
 }
 
 func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -938,7 +938,7 @@ func getAppliedSchemaMigrations(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("migrationsTable", audit.Fail)
+	auditRec := c.MakeAuditRecord("getAppliedSchemaMigrations", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	migrations, appErr := c.App.GetAppliedSchemaMigrations()
