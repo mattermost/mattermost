@@ -1671,9 +1671,9 @@ func (s *SqlPostStore) buildSearchChannelFilterClause(channels []string, paramPr
 	return builder.Where("Id IN (" + clause + ")"), queryParams
 }
 
-func (s *SqlPostStore) buildSearchUserFilterClause(users []string, paramPrefix string, exclusion bool, queryParams map[string]interface{}, byUsername bool) (string, map[string]interface{}) {
+func (s *SqlPostStore) buildSearchUserFilterClause(users []string, paramPrefix string, exclusion bool, queryParams map[string]interface{}, byUsername bool, builder sq.SelectBuilder) (sq.SelectBuilder, map[string]interface{}) {
 	if len(users) == 0 {
-		return "", queryParams
+		return builder, queryParams
 	}
 	clauseSlice := []string{}
 	for i, user := range users {
@@ -1684,14 +1684,14 @@ func (s *SqlPostStore) buildSearchUserFilterClause(users []string, paramPrefix s
 	clause := strings.Join(clauseSlice, ", ")
 	if byUsername {
 		if exclusion {
-			return "AND Username NOT IN (" + clause + ")", queryParams
+			return builder.Where("Username NOT IN (" + clause + ")"), queryParams
 		}
-		return "AND Username IN (" + clause + ")", queryParams
+		return builder.Where("Username IN (" + clause + ")"), queryParams
 	}
 	if exclusion {
-		return "AND Id NOT IN (" + clause + ")", queryParams
+		return builder.Where("Id NOT IN (" + clause + ")"), queryParams
 	}
-	return "AND Id IN (" + clause + ")", queryParams
+	return builder.Where("Id IN (" + clause + ")"), queryParams
 }
 
 func (s *SqlPostStore) buildSearchPostFilterClause(fromUsers []string, excludedUsers []string, queryParams map[string]interface{}, userByUsername bool, builder sq.SelectBuilder) (sq.SelectBuilder, map[string]interface{}) {
@@ -1699,26 +1699,21 @@ func (s *SqlPostStore) buildSearchPostFilterClause(fromUsers []string, excludedU
 		return builder, queryParams
 	}
 
-	filterQuery := `
-		UserId IN (
-			SELECT
-				Id
-			FROM
-				Users,
-				TeamMembers
-			WHERE
-				TeamMembers.TeamId = :TeamId
-				AND Users.Id = TeamMembers.UserId
-				FROM_USER_FILTER
-				EXCLUDED_USER_FILTER)`
+	// Sub-query builder.
+	sb := sq.Select("Id").From("Users, TeamMembers").Where("TeamMembers.TeamId = :TeamId").Where("Users.Id = TeamMembers.UserId")
+	sb, queryParams = s.buildSearchUserFilterClause(fromUsers, "FromUser", false, queryParams, userByUsername, sb)
+	sb, queryParams = s.buildSearchUserFilterClause(excludedUsers, "ExcludedUser", true, queryParams, userByUsername, sb)
+	subQuery, _, err := sb.ToSql()
+	// This should not fail.
+	if err != nil {
+		panic(err)
+	}
 
-	fromUserClause, queryParams := s.buildSearchUserFilterClause(fromUsers, "FromUser", false, queryParams, userByUsername)
-	filterQuery = strings.Replace(filterQuery, "FROM_USER_FILTER", fromUserClause, 1)
-
-	excludedUserClause, queryParams := s.buildSearchUserFilterClause(excludedUsers, "ExcludedUser", true, queryParams, userByUsername)
-	filterQuery = strings.Replace(filterQuery, "EXCLUDED_USER_FILTER", excludedUserClause, 1)
-
-	return builder.Where(filterQuery), queryParams
+	/*
+	 * Squirrel does not support a sub-query in the WHERE condition.
+	 * https://github.com/Masterminds/squirrel/issues/299
+	 */
+	return builder.Where("UserId IN (" + subQuery + ")"), queryParams
 }
 
 func (s *SqlPostStore) Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, error) {
