@@ -420,6 +420,7 @@ type UserStore interface {
 	SearchNotInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) ([]*model.User, error)
 	SearchWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, error)
 	SearchInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, error)
+	SearchNotInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, error)
 	AnalyticsGetInactiveUsersCount() (int64, error)
 	AnalyticsGetExternalUsers(hostDomain string) (bool, error)
 	AnalyticsGetSystemAdminCount() (int64, error)
@@ -774,6 +775,7 @@ type UserTermsOfServiceStore interface {
 
 type GroupStore interface {
 	Create(group *model.Group) (*model.Group, error)
+	CreateWithUserIds(group *model.GroupWithUserIds) (*model.Group, error)
 	Get(groupID string) (*model.Group, error)
 	GetByName(name string, opts model.GroupSearchOpts) (*model.Group, error)
 	GetByIDs(groupIDs []string) ([]*model.Group, error)
@@ -786,6 +788,8 @@ type GroupStore interface {
 	GetMemberUsers(groupID string) ([]*model.User, error)
 	GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error)
 	GetMemberCount(groupID string) (int64, error)
+
+	GetNonMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error)
 
 	GetMemberUsersInTeam(groupID string, teamID string) ([]*model.User, error)
 	GetMemberUsersNotInChannel(groupID string, channelID string) ([]*model.User, error)
@@ -861,6 +865,11 @@ type GroupStore interface {
 
 	// GroupCountWithAllowReference returns the count of records in the Groups table with AllowReference set to true.
 	GroupCountWithAllowReference() (int64, error)
+
+	UpsertMembers(groupID string, userIDs []string) ([]*model.GroupMember, error)
+	DeleteMembers(groupID string, userIDs []string) ([]*model.GroupMember, error)
+
+	GetMember(groupID string, userID string) (*model.GroupMember, error)
 }
 
 type LinkMetadataStore interface {
