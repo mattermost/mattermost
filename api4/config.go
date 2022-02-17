@@ -161,12 +161,6 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := cfg.IsValid()
-	if err != nil {
-		c.Err = err
-		return
-	}
-
 	oldCfg, newCfg, err := c.App.SaveConfig(cfg, true)
 	if err != nil {
 		c.Err = err
