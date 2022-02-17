@@ -18,7 +18,7 @@ BEGIN
         a.attnum = ANY(ix.indkey) AND
         indisprimary;
 
-    IF COALESCE (column_name, '') != text('userid') THEN
+    IF column_name = text('userid') THEN
         ALTER TABLE usertermsofservice
             DROP CONSTRAINT IF EXISTS usertermsofservice_pkey,
             ADD PRIMARY KEY (userid, termsofserviceid);
