@@ -353,7 +353,7 @@ func (ss *SqlStore) DriverName() string {
 	return *ss.settings.DriverName
 }
 
-func (ss *SqlStore) GetCurrentSchemaVersion() string {
+func (ss *SqlStore) getCurrentSchemaVersion() string {
 	version, _ := ss.GetMaster().SelectStr("SELECT Value FROM Systems WHERE Name='Version'")
 	return version
 }

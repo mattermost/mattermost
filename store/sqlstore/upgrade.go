@@ -115,7 +115,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	}
 
 	var currentSchemaVersion *semver.Version
-	currentSchemaVersionString := sqlStore.GetCurrentSchemaVersion()
+	currentSchemaVersionString := sqlStore.getCurrentSchemaVersion()
 	if currentSchemaVersionString != "" {
 		currentSchemaVersion, err = semver.New(currentSchemaVersionString)
 		if err != nil {
@@ -232,7 +232,7 @@ func saveSchemaVersion(sqlStore *SqlStore, version string) {
 }
 
 func shouldPerformUpgrade(sqlStore *SqlStore, currentSchemaVersion string, expectedSchemaVersion string) bool {
-	storedSchemaVersion := sqlStore.GetCurrentSchemaVersion()
+	storedSchemaVersion := sqlStore.getCurrentSchemaVersion()
 
 	storedVersion, err := semver.Parse(storedSchemaVersion)
 	if err != nil {

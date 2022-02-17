@@ -10552,10 +10552,6 @@ func (s *TimerLayer) DropAllTables() {
 	s.Store.DropAllTables()
 }
 
-func (s *TimerLayer) GetCurrentSchemaVersion() string {
-	return s.Store.GetCurrentSchemaVersion()
-}
-
 func (s *TimerLayer) LockToMaster() {
 	s.Store.LockToMaster()
 }

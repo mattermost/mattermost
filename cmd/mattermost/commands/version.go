@@ -4,6 +4,8 @@
 package commands
 
 import (
+	"strconv"
+
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost-server/v6/app"
@@ -42,7 +44,12 @@ func versionCmdF(command *cobra.Command, args []string) error {
 
 func printVersion(a *app.App) {
 	printVersionNoDB()
-	CommandPrintln("DB Version: " + a.Srv().Store.GetCurrentSchemaVersion())
+	v, err := a.Srv().Store.GetDBSchemaVersion()
+	if err != nil {
+		CommandPrintErrorln(err)
+		return
+	}
+	CommandPrintln("DB Version: " + strconv.Itoa(v))
 }
 
 func printVersionNoDB() {

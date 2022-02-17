@@ -245,20 +245,6 @@ func (_m *Store) GetAppliedMigrations() ([]model.AppliedMigration, error) {
 	return r0, r1
 }
 
-// GetCurrentSchemaVersion provides a mock function with given fields:
-func (_m *Store) GetCurrentSchemaVersion() string {
-	ret := _m.Called()
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func() string); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	return r0
-}
-
 // GetDBSchemaVersion provides a mock function with given fields:
 func (_m *Store) GetDBSchemaVersion() (int, error) {
 	ret := _m.Called()
