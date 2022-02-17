@@ -1734,7 +1734,7 @@ type SupportSettings struct {
 	AboutLink                              *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	HelpLink                               *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	ReportAProblemLink                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
-	SupportEmail                           *string `access:"site_customization"`
+	SupportEmail                           *string `access:"site_notifications"`
 	CustomTermsOfServiceEnabled            *bool   `access:"compliance_custom_terms_of_service"`
 	CustomTermsOfServiceReAcceptancePeriod *int    `access:"compliance_custom_terms_of_service"`
 	EnableAskCommunityLink                 *bool   `access:"site_customization"`
@@ -3244,6 +3244,30 @@ func (o *Config) IsValid() *AppError {
 	if err := o.ImportSettings.isValid(); err != nil {
 		return err
 	}
+	return nil
+}
+
+const (
+	SchemaIdNotifications = "notifications"
+)
+
+// UIExtraValidation adds additional validation rules on the config when it's submitted through the UI
+func (o *Config) UIExtraValidation(oldConfig *Config, schemaId string) *AppError {
+	switch schemaId {
+	case SchemaIdNotifications:
+		if o.SupportSettings.SupportEmail == nil || *o.SupportSettings.SupportEmail == "" {
+			return NewAppError("Config.UIExtraValidation", "model.config.ui_validation.support_email.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if o.EmailSettings.FeedbackName == nil || *o.EmailSettings.FeedbackName == "" {
+			return NewAppError("Config.UIExtraValidation", "model.config.ui_validation.feedback_name.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if o.EmailSettings.FeedbackEmail == nil || *o.EmailSettings.FeedbackEmail == "" {
+			return NewAppError("Config.UIExtraValidation", "model.config.ui_validation.feedback_email.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	return nil
 }
 
