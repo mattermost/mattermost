@@ -16,6 +16,20 @@ import (
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
+func getLicWithSkuShortName(skuShortName string) *model.License {
+	return &model.License{
+		Features: &model.Features{},
+		Customer: &model.Customer{
+			Name:  "TestName",
+			Email: "test@example.com",
+		},
+		SkuName:      "SKU NAME",
+		SkuShortName: skuShortName,
+		StartsAt:     model.GetMillis() - 1000,
+		ExpiresAt:    model.GetMillis() + 100000,
+	}
+}
+
 func TestSendNotifications(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -35,6 +49,37 @@ func TestSendNotifications(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, mentions)
 	require.True(t, utils.StringInSlice(th.BasicUser2.Id, mentions), "mentions", mentions)
+
+	t.Run("license is required for group mention", func(t *testing.T) {
+		group := th.CreateGroup()
+		group.AllowReference = true
+		group, err = th.App.UpdateGroup(group)
+		require.Nil(t, err)
+
+		_, err = th.App.UpsertGroupMember(group.Id, th.BasicUser2.Id)
+		require.Nil(t, err)
+
+		groupMentionPost := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   fmt.Sprintf("hello @%s group", *group.Name),
+			CreateAt:  model.GetMillis() - 10000,
+		}
+		groupMentionPost, err = th.App.CreatePost(th.Context, groupMentionPost, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		mentions, err = th.App.SendNotifications(groupMentionPost, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
+		require.NoError(t, err)
+		require.NotNil(t, mentions)
+		require.Len(t, mentions, 0)
+
+		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
+
+		mentions, err = th.App.SendNotifications(groupMentionPost, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
+		require.NoError(t, err)
+		require.NotNil(t, mentions)
+		require.Len(t, mentions, 1)
+	})
 
 	dm, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
 	require.Nil(t, appErr)
@@ -1049,20 +1094,6 @@ func TestAllowGroupMentions(t *testing.T) {
 	post := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id}
 
 	t.Run("should return false without the correct license sku short name", func(t *testing.T) {
-		getLicWithSkuShortName := func(skuShortName string) *model.License {
-			return &model.License{
-				Features: &model.Features{},
-				Customer: &model.Customer{
-					Name:  "TestName",
-					Email: "test@example.com",
-				},
-				SkuName:      "SKU NAME",
-				SkuShortName: skuShortName,
-				StartsAt:     model.GetMillis() - 1000,
-				ExpiresAt:    model.GetMillis() + 100000,
-			}
-		}
-
 		tests := map[string]struct {
 			license *model.License
 			want    bool
