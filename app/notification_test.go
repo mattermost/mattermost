@@ -1048,12 +1048,21 @@ func TestAllowGroupMentions(t *testing.T) {
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id}
 
-	t.Run("should return false without ldap groups license", func(t *testing.T) {
+	t.Run("should return false without professional or enterprise license", func(t *testing.T) {
 		allowGroupMentions := th.App.allowGroupMentions(post)
 		assert.False(t, allowGroupMentions)
 	})
 
-	th.App.Srv().SetLicense(model.NewTestLicense("ldap_groups"))
+	lic := &model.License{}
+	lic.Features = &model.Features{}
+	lic.Customer = &model.Customer{}
+	lic.Customer.Name = "TestName"
+	lic.Customer.Email = "test@example.com"
+	lic.SkuName = "SKU NAME"
+	lic.SkuShortName = model.LicenseShortSkuProfessional
+	lic.StartsAt = model.GetMillis() - 1000
+	lic.ExpiresAt = model.GetMillis() + 100000
+	th.App.Srv().SetLicense(lic)
 
 	t.Run("should return true for a regular post with few channel members", func(t *testing.T) {
 		allowGroupMentions := th.App.allowGroupMentions(post)
