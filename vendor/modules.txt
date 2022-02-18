@@ -215,7 +215,7 @@ github.com/gigawattio/window
 # github.com/go-asn1-ber/asn1-ber v1.5.3
 ## explicit
 github.com/go-asn1-ber/asn1-ber
-# github.com/go-morph/morph v0.2.3-0.20220126093237-74bffc135498
+# github.com/go-morph/morph v0.2.3-0.20220215130848-76392b135ee5
 ## explicit
 github.com/go-morph/morph
 github.com/go-morph/morph/drivers
