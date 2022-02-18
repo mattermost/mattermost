@@ -1065,6 +1065,10 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 		}
 	}
 
+	if prev.CreateAt != user.CreateAt {
+		user.CreateAt = prev.CreateAt
+	}
+
 	var newEmail string
 	if user.Email != prev.Email {
 		if !users.CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
