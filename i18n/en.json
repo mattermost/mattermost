@@ -1559,6 +1559,26 @@
     "translation": "Please enter text for your Custom Terms of Service."
   },
   {
+    "id": "api.custom_groups.count_err",
+    "translation": "error counting groups"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "custom groups feature is disabled"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "not licensed for custom groups"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference must be 'true' for custom groups"
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id must be blank for custom group"
+  },
+  {
     "id": "api.custom_status.disabled",
     "translation": "Custom status feature has been disabled. Please contact your system administrator for details."
   },
@@ -1980,6 +2000,10 @@
   {
     "id": "api.license.upgrade_needed.app_error",
     "translation": "Feature requires an upgrade to Enterprise Edition."
+  },
+  {
+    "id": "api.license_error",
+    "translation": "api endpoint requires a license"
   },
   {
     "id": "api.marshal_error",
@@ -4776,6 +4800,10 @@
     "translation": "Unable to create default team membership because no more members are allowed in that team"
   },
   {
+    "id": "app.custom_group.unique_name",
+    "translation": "group name is not unique"
+  },
+  {
     "id": "app.email.no_rate_limiter.app_error",
     "translation": "Rate limiter is not set up."
   },
@@ -4874,6 +4902,10 @@
   {
     "id": "app.file_info.save.app_error",
     "translation": "Unable to save the file info."
+  },
+  {
+    "id": "app.group.crud_permission",
+    "translation": "Unable to perform operation for that source type."
   },
   {
     "id": "app.group.group_syncable_already_deleted",
@@ -5514,6 +5546,10 @@
   {
     "id": "app.license.generate_renewal_token.no_license",
     "translation": "No license present"
+  },
+  {
+    "id": "app.member_count",
+    "translation": "error retrieving member count"
   },
   {
     "id": "app.notification.body.dm.subTitle",

@@ -14,9 +14,31 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
+	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store/storetest"
 )
+
+type StoreTestWrapper struct {
+	orig *SqlStore
+}
+
+func NewStoreTestWrapper(orig *SqlStore) *StoreTestWrapper {
+	return &StoreTestWrapper{orig}
+}
+
+func (w *StoreTestWrapper) GetMaster() *gorp.DbMap {
+	return w.orig.GetMaster()
+}
+
+func (w *StoreTestWrapper) GetMasterX() storetest.SqlXExecutor {
+	return w.orig.GetMasterX()
+}
+
+func (w *StoreTestWrapper) DriverName() string {
+	return w.orig.DriverName()
+}
 
 // sqlxExecutor exposes sqlx operations. It is used to enable some internal store methods to
 // accept both transactions (*sqlxTxWrapper) and common db handlers (*sqlxDbWrapper).
@@ -104,6 +126,18 @@ func (w *sqlxDBWrapper) Exec(query string, args ...interface{}) (sql.Result, err
 	query = w.DB.Rebind(query)
 
 	return w.ExecRaw(query, args...)
+}
+
+func (w *sqlxDBWrapper) ExecNoTimeout(query string, args ...interface{}) (sql.Result, error) {
+	query = w.DB.Rebind(query)
+
+	if w.trace {
+		defer func(then time.Time) {
+			printArgs(query, time.Since(then), args)
+		}(time.Now())
+	}
+
+	return w.DB.ExecContext(context.Background(), query, args...)
 }
 
 // ExecRaw is like Exec but without any rebinding of params. You need to pass

@@ -275,7 +275,7 @@ i18n-check: ## Exit on empty translation strings and translation source strings
 
 store-mocks: ## Creates mock files.
 	$(GO) install github.com/vektra/mockery/...@v1.1.2
-	$(GOBIN)/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
+	$(GOBIN)/mockery -dir store -name ".*Store" -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
 
 telemetry-mocks: ## Creates mock files.
 	$(GO) install github.com/vektra/mockery/...@v1.1.2

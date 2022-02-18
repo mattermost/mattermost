@@ -59,6 +59,11 @@ type FeatureFlags struct {
 	// Determine after which duration in hours to send a second invitation to someone that didn't join after the initial invite, possible values = ("48", "72")
 	ResendInviteEmailInterval string
 
+	// A/B test for whether radio buttons or toggle button is more effective in in-screen invite to team modal ("none", "toggle")
+	InviteToTeam string
+
+	CustomGroups bool
+
 	// Enable inline post editing
 	InlinePostEditing bool
 
@@ -95,6 +100,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AddMembersToChannel = "top"
 	f.GuidedChannelCreation = false
 	f.ResendInviteEmailInterval = ""
+	f.InviteToTeam = "none"
+	f.CustomGroups = true
 	f.InlinePostEditing = false
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
@@ -102,7 +109,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.WorkspaceOptimizationDashboard = false
 	f.GraphQL = false
 }
-
 func (f *FeatureFlags) Plugins() map[string]string {
 	rFFVal := reflect.ValueOf(f).Elem()
 	rFFType := reflect.TypeOf(f).Elem()
