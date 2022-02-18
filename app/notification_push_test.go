@@ -1403,13 +1403,13 @@ func TestPushNotificationRace(t *testing.T) {
 		Return(&model.Preference{Value: "test"}, nil)
 	mockStore.On("Preference").Return(&mockPreferenceStore)
 	s := &Server{
-		configStore: memoryStore,
-		Store:       mockStore,
-		products:    make(map[string]Product),
-		Router:      mux.NewRouter(),
+		Store:    mockStore,
+		products: make(map[string]Product),
+		Router:   mux.NewRouter(),
 	}
+	s.configStore = &configWrapper{srv: s, Store: memoryStore}
 	serviceMap := map[ServiceKey]interface{}{
-		ConfigKey: s, // TODO: pass an adapter struct instead
+		ConfigKey: s.configStore,
 	}
 	ch, err := NewChannels(s, serviceMap)
 	require.NoError(t, err)

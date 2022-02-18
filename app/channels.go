@@ -31,6 +31,12 @@ type configSvc interface {
 	SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError)
 }
 
+// namer is an interface which enforces that
+// all services can return their names.
+type namer interface {
+	Name() ServiceKey
+}
+
 // Channels contains all channels related state.
 type Channels struct {
 	srv    *Server
@@ -108,6 +114,10 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 			if !ok {
 				return nil, errors.New("Config service did not satisfy ConfigSvc interface")
 			}
+			_, ok = svc.(namer)
+			if !ok {
+				return nil, errors.New("Config service does not contain Name method")
+			}
 			ch.cfgSvc = cfgSvc
 		}
 	}
@@ -154,7 +164,7 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 func (ch *Channels) Start() error {
 	// Start plugins
 	ctx := request.EmptyContext()
-	ch.initPlugins(ctx, *ch.srv.Config().PluginSettings.Directory, *ch.srv.Config().PluginSettings.ClientDirectory)
+	ch.initPlugins(ctx, *ch.cfgSvc.Config().PluginSettings.Directory, *ch.cfgSvc.Config().PluginSettings.ClientDirectory)
 
 	ch.AddConfigListener(func(prevCfg, cfg *model.Config) {
 		// We compute the difference between configs
@@ -177,7 +187,7 @@ func (ch *Channels) Start() error {
 		// Do only if some plugin related settings has changed.
 		if hasDiff {
 			if *cfg.PluginSettings.Enable {
-				ch.initPlugins(ctx, *cfg.PluginSettings.Directory, *ch.srv.Config().PluginSettings.ClientDirectory)
+				ch.initPlugins(ctx, *cfg.PluginSettings.Directory, *ch.cfgSvc.Config().PluginSettings.ClientDirectory)
 			} else {
 				ch.ShutDownPlugins()
 			}

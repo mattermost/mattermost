@@ -86,7 +86,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 		s, err := NewServer(func(server *Server) error {
 			configStore := config.NewTestMemoryStore()
 			configStore.Set(&cfg)
-			server.configStore = configStore
+			server.configStore = &configWrapper{srv: server, Store: configStore}
 			return nil
 		})
 		require.NoError(t, err)
@@ -112,7 +112,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 		s, err := NewServer(func(server *Server) error {
 			configStore := config.NewTestMemoryStore()
 			configStore.Set(&cfg)
-			server.configStore = configStore
+			server.configStore = &configWrapper{srv: server, Store: configStore}
 			return nil
 		})
 		require.NoError(t, err)
@@ -125,7 +125,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 		s, err := NewServer(func(server *Server) error {
 			configStore := config.NewTestMemoryStore()
 			configStore.Set(&cfg)
-			server.configStore = configStore
+			server.configStore = &configWrapper{srv: server, Store: configStore}
 			server.licenseValue.Store(model.NewTestLicense())
 			return nil
 		})
@@ -170,7 +170,7 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 	s, err := NewServer(func(server *Server) error {
 		configStore, _ := config.NewFileStore("config.json", true)
 		store, _ := config.NewStoreFromBacking(configStore, nil, false)
-		server.configStore = store
+		server.configStore = &configWrapper{srv: server, Store: store}
 		server.UpdateConfig(func(cfg *model.Config) {
 			cfg.FileSettings = model.FileSettings{
 				DriverName:              model.NewString(model.ImageDriverS3),
