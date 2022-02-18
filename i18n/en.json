@@ -8356,18 +8356,6 @@
     "translation": "Invalid value for write timeout."
   },
   {
-    "id": "model.config.ui_validation.feedback_email.app_error",
-    "translation": "The field \"Notification From Address\" cannot be empty."
-  },
-  {
-    "id": "model.config.ui_validation.feedback_name.app_error",
-    "translation": "The field \"Notification Display Name\" cannot be empty."
-  },
-  {
-    "id": "model.config.ui_validation.support_email.app_error",
-    "translation": "The field \"Support Email Address\" cannot be empty."
-  },
-  {
     "id": "model.emoji.create_at.app_error",
     "translation": "Create at must be a valid time."
   },
