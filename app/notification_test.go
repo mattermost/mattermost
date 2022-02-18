@@ -53,11 +53,11 @@ func TestSendNotifications(t *testing.T) {
 	t.Run("license is required for group mention", func(t *testing.T) {
 		group := th.CreateGroup()
 		group.AllowReference = true
-		group, err = th.App.UpdateGroup(group)
-		require.NoError(t, err)
+		group, appErr := th.App.UpdateGroup(group)
+		require.Nil(t, appErr)
 
-		_, err = th.App.UpsertGroupMember(group.Id, th.BasicUser2.Id)
-		require.NoError(t, err)
+		_, appErr = th.App.UpsertGroupMember(group.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
 
 		groupMentionPost := &model.Post{
 			UserId:    th.BasicUser.Id,
@@ -65,8 +65,8 @@ func TestSendNotifications(t *testing.T) {
 			Message:   fmt.Sprintf("hello @%s group", *group.Name),
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		groupMentionPost, err = th.App.CreatePost(th.Context, groupMentionPost, th.BasicChannel, false, true)
-		require.NoError(t, err)
+		groupMentionPost, appErr = th.App.CreatePost(th.Context, groupMentionPost, th.BasicChannel, false, true)
+		require.Nil(t, appErr)
 
 		mentions, err = th.App.SendNotifications(groupMentionPost, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
 		require.NoError(t, err)
