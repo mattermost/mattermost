@@ -1048,21 +1048,44 @@ func TestAllowGroupMentions(t *testing.T) {
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id}
 
-	t.Run("should return false without professional or enterprise license", func(t *testing.T) {
+	t.Run("should return false without a license", func(t *testing.T) {
 		allowGroupMentions := th.App.allowGroupMentions(post)
 		assert.False(t, allowGroupMentions)
 	})
 
-	lic := &model.License{}
-	lic.Features = &model.Features{}
-	lic.Customer = &model.Customer{}
-	lic.Customer.Name = "TestName"
-	lic.Customer.Email = "test@example.com"
-	lic.SkuName = "SKU NAME"
-	lic.SkuShortName = model.LicenseShortSkuProfessional
-	lic.StartsAt = model.GetMillis() - 1000
-	lic.ExpiresAt = model.GetMillis() + 100000
-	th.App.Srv().SetLicense(lic)
+	t.Run("should return false without the correct license sku short name", func(t *testing.T) {
+		getLicWithSkuShortName := func(skuShortName string) *model.License {
+			return &model.License{
+				Features: &model.Features{},
+				Customer: &model.Customer{
+					Name:  "TestName",
+					Email: "test@example.com",
+				},
+				SkuName:      "SKU NAME",
+				SkuShortName: skuShortName,
+				StartsAt:     model.GetMillis() - 1000,
+				ExpiresAt:    model.GetMillis() + 100000,
+			}
+		}
+
+		tests := map[string]struct {
+			license *model.License
+			want    bool
+		}{
+			"no license":                        {nil, false},
+			"license with wrong SKU short name": {getLicWithSkuShortName("foobar"), false},
+			"'professional' license":            {getLicWithSkuShortName(model.LicenseShortSkuProfessional), true},
+			"'enterprise' license":              {getLicWithSkuShortName(model.LicenseShortSkuEnterprise), true},
+		}
+
+		for name, tc := range tests {
+			t.Run(name, func(t *testing.T) {
+				th.App.Srv().SetLicense(tc.license)
+				got := th.App.allowGroupMentions(post)
+				assert.Equal(t, tc.want, got)
+			})
+		}
+	})
 
 	t.Run("should return true for a regular post with few channel members", func(t *testing.T) {
 		allowGroupMentions := th.App.allowGroupMentions(post)
