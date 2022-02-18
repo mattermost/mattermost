@@ -1048,11 +1048,6 @@ func TestAllowGroupMentions(t *testing.T) {
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id}
 
-	t.Run("should return false without a license", func(t *testing.T) {
-		allowGroupMentions := th.App.allowGroupMentions(post)
-		assert.False(t, allowGroupMentions)
-	})
-
 	t.Run("should return false without the correct license sku short name", func(t *testing.T) {
 		getLicWithSkuShortName := func(skuShortName string) *model.License {
 			return &model.License{
