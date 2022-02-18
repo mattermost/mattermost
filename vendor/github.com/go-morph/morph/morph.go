@@ -108,7 +108,10 @@ func New(ctx context.Context, driver drivers.Driver, source sources.Source, opti
 		}
 
 		engine.mutex = mx
-		_ = mx.LockWithContext(ctx)
+		err = mx.LockWithContext(ctx)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return engine, nil
@@ -117,7 +120,10 @@ func New(ctx context.Context, driver drivers.Driver, source sources.Source, opti
 // Close closes the underlying database connection of the engine.
 func (m *Morph) Close() error {
 	if m.mutex != nil {
-		m.mutex.Unlock()
+		err := m.mutex.Unlock()
+		if err != nil {
+			return err
+		}
 	}
 
 	return m.driver.Close()

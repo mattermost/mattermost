@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"math/rand"
-	"sync"
 	"time"
 )
 
@@ -64,7 +63,8 @@ func NextWaitInterval(lastWaitInterval time.Duration, err error) time.Duration {
 }
 
 type Locker interface {
-	sync.Locker
+	Lock() error
+	Unlock() error
 	// LockWithContext locks m unless the context is canceled. If the mutex is already locked by any other
 	// instance, including the current one, the calling goroutine blocks until the mutex can be locked,
 	// or the context is canceled.
