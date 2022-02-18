@@ -105,6 +105,10 @@ func (s *Server) Config() *model.Config {
 	return s.configStore.Config()
 }
 
+func (s *Server) ConfigStore() *configWrapper {
+	return s.configStore
+}
+
 func (a *App) Config() *model.Config {
 	return a.Srv().Config()
 }
