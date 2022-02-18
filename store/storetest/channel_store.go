@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"sort"
@@ -13,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/gorp"
+	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -24,8 +25,19 @@ import (
 )
 
 type SqlStore interface {
-	GetMaster() *gorp.DbMap
+	GetMasterX() SqlXExecutor
 	DriverName() string
+}
+
+type SqlXExecutor interface {
+	Get(dest interface{}, query string, args ...interface{}) error
+	NamedExec(query string, arg interface{}) (sql.Result, error)
+	Exec(query string, args ...interface{}) (sql.Result, error)
+	ExecRaw(query string, args ...interface{}) (sql.Result, error)
+	NamedQuery(query string, arg interface{}) (*sqlx.Rows, error)
+	QueryRowX(query string, args ...interface{}) *sqlx.Row
+	QueryX(query string, args ...interface{}) (*sqlx.Rows, error)
+	Select(dest interface{}, query string, args ...interface{}) error
 }
 
 func cleanupChannels(t *testing.T, ss store.Store) {
@@ -267,7 +279,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlStore)
 	require.Len(t, members, 1, "should have saved just 1 member")
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMaster().Exec("TRUNCATE Channels")
+	s.GetMasterX().Exec("TRUNCATE Channels")
 }
 
 func testChannelStoreCreateDirectChannel(t *testing.T, ss store.Store) {
@@ -461,7 +473,7 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlStore) {
 	require.True(t, errors.As(err, &nfErr))
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMaster().Exec("TRUNCATE Channels")
+	s.GetMasterX().Exec("TRUNCATE Channels")
 }
 
 func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
@@ -3706,7 +3718,7 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlStore) {
 		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	_, err = ss.Group().Create(group)
 	require.NoError(t, err)
@@ -3818,7 +3830,7 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlStore) {
 	assert.Equal(t, *list[0].PolicyID, policy.ID)
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMaster().Exec("TRUNCATE Channels")
+	s.GetMasterX().Exec("TRUNCATE Channels")
 }
 
 func testChannelStoreGetMoreChannels(t *testing.T, ss store.Store) {
@@ -5032,7 +5044,7 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	_, err := ss.Group().Create(g1)
 	require.NoError(t, err)
@@ -5104,7 +5116,7 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	_, err = ss.Group().Create(g2)
 	require.NoError(t, err)
@@ -5143,7 +5155,7 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 
 	_, err = ss.Group().Create(g3)
@@ -5544,8 +5556,8 @@ func testChannelStoreSearchArchivedInTeam(t *testing.T, ss store.Store, s SqlSto
 
 	t.Run("error", func(t *testing.T) {
 		// trigger a SQL error
-		s.GetMaster().Exec("ALTER TABLE Channels RENAME TO Channels_renamed")
-		defer s.GetMaster().Exec("ALTER TABLE Channels_renamed RENAME TO Channels")
+		s.GetMasterX().Exec("ALTER TABLE Channels RENAME TO Channels_renamed")
+		defer s.GetMasterX().Exec("ALTER TABLE Channels_renamed RENAME TO Channels")
 
 		list, err := ss.Channel().SearchArchivedInTeam(teamId, "term", userId)
 		require.Error(t, err)
@@ -6134,7 +6146,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	_, err = ss.Group().Create(group)
 	require.NoError(t, err)
@@ -7145,45 +7157,45 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 		Type:        model.ChannelTypeOpen,
 	}
 
-	_, execerr := s.GetMaster().ExecNoTimeout(`
+	_, execerr := s.GetMasterX().NamedExec(`
 		INSERT INTO
 		    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
 		VALUES
-		    (:Id, :DeleteAt, :TeamId, :DisplayName, :Name, :Header, :Purpose);
+		    (:id, :deleteat, :teamid, :displayname, :name, :header, :purpose);
 	`, map[string]interface{}{
-		"Id":          o3.Id,
-		"DeleteAt":    o3.DeleteAt,
-		"TeamId":      o3.TeamId,
-		"DisplayName": o3.DisplayName,
-		"Name":        o3.Name,
-		"Header":      o3.Header,
-		"Purpose":     o3.Purpose,
+		"id":          o3.Id,
+		"deleteat":    o3.DeleteAt,
+		"teamid":      o3.TeamId,
+		"displayname": o3.DisplayName,
+		"name":        o3.Name,
+		"header":      o3.Header,
+		"purpose":     o3.Purpose,
 	})
 	require.NoError(t, execerr)
 
 	o3.DisplayName = "Open Channel 3 - Modified"
 
-	_, execerr = s.GetMaster().ExecNoTimeout(`
+	_, execerr = s.GetMasterX().NamedExec(`
 		INSERT INTO
 		    Channels(Id, CreateAt, UpdateAt, DeleteAt, TeamId, Type, DisplayName, Name, Header, Purpose, LastPostAt, LastRootPostAt, TotalMsgCount, ExtraUpdateAt, CreatorId, TotalMsgCountRoot)
 		VALUES
-				(:Id, :CreateAt, :UpdateAt, :DeleteAt, :TeamId, :Type, :DisplayName, :Name, :Header, :Purpose, :LastPostAt, :LastRootPostAt, :TotalMsgCount, :ExtraUpdateAt, :CreatorId, 0);
+				(:id, :createat, :updateat, :deleteat, :teamid, :type, :displayname, :name, :header, :purpose, :lastpostat, :lastrootpostat, :totalmsgcount, :extraupdateat, :creatorid, 0);
 	`, map[string]interface{}{
-		"Id":             o3.Id,
-		"CreateAt":       o3.CreateAt,
-		"UpdateAt":       o3.UpdateAt,
-		"DeleteAt":       o3.DeleteAt,
-		"TeamId":         o3.TeamId,
-		"Type":           o3.Type,
-		"DisplayName":    o3.DisplayName,
-		"Name":           o3.Name,
-		"Header":         o3.Header,
-		"Purpose":        o3.Purpose,
-		"LastPostAt":     o3.LastPostAt,
-		"LastRootPostAt": o3.LastRootPostAt,
-		"TotalMsgCount":  o3.TotalMsgCount,
-		"ExtraUpdateAt":  o3.ExtraUpdateAt,
-		"CreatorId":      o3.CreatorId,
+		"id":             o3.Id,
+		"createat":       o3.CreateAt,
+		"updateat":       o3.UpdateAt,
+		"deleteat":       o3.DeleteAt,
+		"teamid":         o3.TeamId,
+		"type":           o3.Type,
+		"displayname":    o3.DisplayName,
+		"name":           o3.Name,
+		"header":         o3.Header,
+		"purpose":        o3.Purpose,
+		"lastpostat":     o3.LastPostAt,
+		"lastrootpostat": o3.LastRootPostAt,
+		"totalmsgcount":  o3.TotalMsgCount,
+		"extraupdateat":  o3.ExtraUpdateAt,
+		"creatorid":      o3.CreatorId,
 	})
 	require.NoError(t, execerr)
 
@@ -7204,14 +7216,12 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 	_, nErr = ss.Channel().Save(&o4, -1)
 	require.NoError(t, nErr)
 
-	_, execerr = s.GetMaster().ExecNoTimeout(`
+	_, execerr = s.GetMasterX().Exec(`
 		DELETE FROM
 		    PublicChannels
 		WHERE
-		    Id = :Id
-	`, map[string]interface{}{
-		"Id": o4.Id,
-	})
+		    Id = ?
+	`, o4.Id)
 	require.NoError(t, execerr)
 
 	o4.DisplayName += " - Modified"
@@ -7393,7 +7403,7 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store, s
 	assert.Equal(t, u3.Id, d2[0].UserId)
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMaster().Exec("TRUNCATE Channels")
+	s.GetMasterX().Exec("TRUNCATE Channels")
 }
 
 func testChannelStoreExportAllDirectChannels(t *testing.T, ss store.Store, s SqlStore) {
@@ -7450,7 +7460,7 @@ func testChannelStoreExportAllDirectChannels(t *testing.T, ss store.Store, s Sql
 	assert.ElementsMatch(t, []string{o1.DisplayName, o2.DisplayName}, []string{d1[0].DisplayName, d1[1].DisplayName})
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMaster().Exec("TRUNCATE Channels")
+	s.GetMasterX().Exec("TRUNCATE Channels")
 }
 
 func testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t *testing.T, ss store.Store, s SqlStore) {
@@ -7512,7 +7522,7 @@ func testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t *testing.T
 	assert.Equal(t, o1.DisplayName, d1[0].DisplayName)
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMaster().Exec("TRUNCATE Channels")
+	s.GetMasterX().Exec("TRUNCATE Channels")
 }
 
 func testChannelStoreExportAllDirectChannelsDeletedChannel(t *testing.T, ss store.Store, s SqlStore) {
@@ -7562,7 +7572,7 @@ func testChannelStoreExportAllDirectChannelsDeletedChannel(t *testing.T, ss stor
 	assert.Equal(t, 0, len(d1))
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMaster().Exec("TRUNCATE Channels")
+	s.GetMasterX().Exec("TRUNCATE Channels")
 }
 
 func testChannelStoreGetChannelsBatchForIndexing(t *testing.T, ss store.Store) {
