@@ -147,16 +147,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.HandleMessageExportConfig(cfg, appCfg)
 
-	if utils.RequestIsAjax(r) {
-		err := cfg.UIExtraValidation(appCfg, r.Header.Get("X-Sys-Schema-Id"))
-		if err != nil {
-			c.Err = err
-			return
-		}
-	}
-
-	err := cfg.IsValid()
-	if err != nil {
+	if err := cfg.IsValid(); err != nil {
 		c.Err = err
 		return
 	}
