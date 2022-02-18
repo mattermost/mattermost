@@ -54,10 +54,10 @@ func TestSendNotifications(t *testing.T) {
 		group := th.CreateGroup()
 		group.AllowReference = true
 		group, err = th.App.UpdateGroup(group)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		_, err = th.App.UpsertGroupMember(group.Id, th.BasicUser2.Id)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		groupMentionPost := &model.Post{
 			UserId:    th.BasicUser.Id,
@@ -66,7 +66,7 @@ func TestSendNotifications(t *testing.T) {
 			CreateAt:  model.GetMillis() - 10000,
 		}
 		groupMentionPost, err = th.App.CreatePost(th.Context, groupMentionPost, th.BasicChannel, false, true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		mentions, err = th.App.SendNotifications(groupMentionPost, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
 		require.NoError(t, err)
