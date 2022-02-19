@@ -2815,38 +2815,17 @@ func (s SqlChannelStore) GetTeamMembersForChannel(channelID string) ([]string, e
 
 func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) (model.ChannelListWithTeamData, error) {
 
-	channel_members := sq.Select(
-		"ChannelId",
-	).From(
-		"ChannelMembers",
-	).Where(sq.Eq{
-		"UserId": userID,
-	})
+	channelMembers := sq.Select("ChannelId").
+		From("ChannelMembers").
+		Where(sq.Eq{"UserId": userID})
 
-	searchClause := s.searchClause(term)
+	searchClause, err := s.searchClause(term)
 
-	psql := sq.StatementBuilder
+	if err != nil {
+		return nil, errors.Wrapf(err, "autocomplete_searchClause")
+	}
 
-	where := sq.And{
-		sq.Expr("c.TeamId = t.id"),
-		sq.Expr("t.id = tm.TeamId"),
-		sq.Eq{"tm.UserId": userID},
-	}
-	if !includeDeleted {
-		where = append(where, sq.Eq{"c.DeleteAt": 0})
-	}
-	if searchClause != nil {
-		where = append(where, searchClause)
-	}
-	where = append(where,
-		sq.Or{
-			sq.NotEq{"c.Type": model.ChannelTypePrivate},
-			sq.And{
-				sq.Eq{"c.Type": model.ChannelTypePrivate},
-				sq.Expr("c.Id IN (?)", channel_members),
-			},
-		},
-	)
+	psql := s.getQueryBuilder()
 
 	q := psql.Select(
 		"c.*",
@@ -2855,9 +2834,26 @@ func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) 
 		"t.UpdateAt AS TeamUpdateAt",
 	).From(
 		"Channels c, Teams t, TeamMembers tm",
-	).Where(
-		where,
-	).OrderBy("c.DisplayName")
+	)
+
+	q = q.Where(sq.And{
+		sq.Expr("c.TeamId = t.id"),
+		sq.Expr("t.id = tm.TeamId"),
+		sq.Eq{"tm.UserId": userID},
+	})
+	if !includeDeleted {
+		q = q.Where(sq.Eq{"c.DeleteAt": 0})
+	}
+	if searchClause != nil {
+		q = q.Where(searchClause)
+	}
+	q = q.Where(sq.Or{
+		sq.NotEq{"c.Type": model.ChannelTypePrivate},
+		sq.And{
+			sq.Eq{"c.Type": model.ChannelTypePrivate},
+			sq.Expr("c.Id IN (?)", channelMembers),
+		}}).
+		OrderBy("c.DisplayName")
 
 	return s.performGlobalSearch(q, term)
 
@@ -2865,36 +2861,38 @@ func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) 
 
 func (s SqlChannelStore) AutocompleteInTeam(teamID, userID, term string, includeDeleted bool) (model.ChannelList, error) {
 
-	where := sq.And{sq.Eq{"c.TeamId": teamID}}
+	query := sq.Select("*").
+		From("Channels c")
+
+	query = query.Where(sq.Eq{"c.TeamId": teamID})
 	if !includeDeleted {
-		where = append(where, sq.Eq{"c.DeleteAt": 0})
+		query = query.Where(sq.Eq{"c.DeleteAt": 0})
 	}
 
 	if term != "" {
-		searchClause := s.searchClause(term)
-		where = append(where, searchClause)
+		searchClause, err := s.searchClause(term)
+
+		if err != nil {
+			return nil, errors.Wrapf(err, "AutocompleteInTeam_searchClause")
+		}
+		query = query.Where(searchClause)
 	}
 
 	channel := sq.Select("ChannelId").
 		From("ChannelMembers").
-		Where(
-			sq.Eq{
-				"UserId": userID,
-			},
-		)
+		Where(sq.Eq{"UserId": userID})
 
-	where = append(where, sq.Or{
-		sq.NotEq{"c.Type": "P"},
-		sq.And{
-			sq.Eq{"c.Type": "P"},
-			sq.Expr("c.Id IN (?)", channel),
+	query = query.Where(
+		sq.Or{
+			sq.NotEq{"c.Type": "P"},
+			sq.And{
+				sq.Eq{"c.Type": "P"},
+				sq.Expr("c.Id IN (?)", channel),
+			},
 		},
-	},
 	)
 
-	query := sq.Select("*").
-		From("Channels c").
-		Where(where).
+	query = query.
 		OrderBy("c.DisplayName").
 		Limit(model.ChannelSearchDefaultLimit)
 
@@ -3005,7 +3003,10 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted
 	}
 
 	if term != "" {
-		searchClause := s.searchClause(term)
+		searchClause, err := s.searchClause(term)
+		if err != nil {
+			return nil, errors.Wrapf(err, "SearchInTeam_searchClause")
+		}
 		where = append(where, searchClause)
 	}
 
@@ -3029,7 +3030,11 @@ func (s SqlChannelStore) SearchArchivedInTeam(teamId string, term string, userId
 		sq.Eq{"c.TeamId": teamId},
 	}
 	if term != "" {
-		searchClause := s.searchClause(term)
+		searchClause, err := s.searchClause(term)
+
+		if err != nil {
+			return nil, errors.Wrapf(err, "SearchArchivedInTeam_searchClause")
+		}
 		baseWhere = append(baseWhere, searchClause)
 	}
 	baseWhere = append(baseWhere, sq.NotEq{"c.DeleteAt": 0})
@@ -3088,7 +3093,11 @@ func (s SqlChannelStore) SearchForUserInTeam(userId string, teamId string, term 
 	}
 
 	if term != "" {
-		searchClause := s.searchClause(term)
+		searchClause, err := s.searchClause(term)
+
+		if err != nil {
+			return nil, errors.Wrapf(err, "SearchForUserInTeam_searchClause")
+		}
 		query = query.Where(searchClause)
 	}
 
@@ -3249,7 +3258,11 @@ func (s SqlChannelStore) SearchMore(userId string, teamId string, term string) (
 		sq.Expr("c.Id NOT IN (?)", teamQuery),
 	}
 	if term != "" {
-		searchClause := s.searchClause(term)
+		searchClause, err := s.searchClause(term)
+
+		if err != nil {
+			return nil, errors.Wrapf(err, "autocomplete_searchClause")
+		}
 		join_where = append(join_where, searchClause)
 	}
 
@@ -3407,65 +3420,58 @@ func (s SqlChannelStore) squirrelBuildFulltextClause(term string, searchColumns 
 }
 
 func (s SqlChannelStore) performSearch(searchQuery sq.SelectBuilder, term string) (model.ChannelList, error) {
-	var sql string
-	var parameters []interface{}
 	sql, parameters, err := searchQuery.ToSql()
-	_ = parameters
-	_ = sql
 	if err != nil {
-		return model.ChannelList{}, errors.Wrapf(err, "failed to construct query with term='%s'", term)
+		return model.ChannelList{}, errors.Wrapf(err, "performSearch_ToSql")
 	}
 
-	var channels model.ChannelList
+	channels := model.ChannelList{}
 
-	err2 := s.GetReplicaX().Select(&channels, sql, parameters...)
-	if err2 != nil {
-		return model.ChannelList{}, errors.Wrapf(err2, "failed to find Channels with term='%s'", term)
-	}
-
-	if channels == nil {
-		return model.ChannelList{}, err2
+	err = s.GetReplicaX().Select(&channels, sql, parameters...)
+	if err != nil {
+		return channels, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
 	}
 
 	return channels, nil
 }
 
-func (s SqlChannelStore) searchClause(term string) (searchQuery sq.Sqlizer) {
+func (s SqlChannelStore) searchClause(term string) (searchQuery sq.Sqlizer, err error) {
 	likeClause, err := s.squirrelBuildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to construct query with term='%s'", term)
+	}
 
 	_ = err
 	if likeClause == nil {
-		searchQuery = nil
-		// searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
+		return nil, nil
 	} else {
 		fulltextClause := s.squirrelBuildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
-		searchQuery = sq.Or{
+		return sq.Or{
 			likeClause,
 			fulltextClause,
-		}
+		}, nil
 	}
-	return
 }
 
 func (s SqlChannelStore) performGlobalSearch(searchQuery sq.SelectBuilder, term string) (model.ChannelListWithTeamData, error) {
 
-	var channels model.ChannelListWithTeamData
+	channels := model.ChannelListWithTeamData{}
 
 	query, parameters, err := searchQuery.ToSql()
 
 	if err != nil {
-		_ = query
 		return nil, errors.Wrapf(err, "failed to construct query with term='%s'", term)
 	}
 
 	repl := s.GetReplicaX()
-	repl.trace = true
 
 	err = repl.Select(&channels, query, parameters...)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("Channel", "term")
-		}
+		/* TODO verify I don't need this */
+		// if err == sql.ErrNoRows {
+		// 	return nil, store.NewErrNotFound("Channel", "term")
+		// }
 		return nil, errors.Wrapf(err, "could not find channel with term=%s", term)
 	}
 	return channels, nil
@@ -3631,29 +3637,20 @@ func (s SqlChannelStore) SqlSearchGroupChannels(userId, term string) (model.Chan
 	return groupChannels, nil
 }
 
-func (s SqlChannelStore) SquirrelSearchGroupChannels(userId, term string) (model.ChannelList, error) {
+func (s SqlChannelStore) SearchGroupChannels(userId, term string) (model.ChannelList, error) {
 	isPostgreSQL := s.DriverName() == model.DatabaseDriverPostgres
 	query := s.squirrelGetSearchGroupChannelsQuery(userId, term, isPostgreSQL)
 
 	sql, params, err := query.ToSql()
 	if err != nil {
-		mlog.Error(sql)
 		return model.ChannelList{}, errors.Wrapf(err, "failed to build query term='%s' and userId=%s", term, userId)
 	}
 
-	var groupChannels model.ChannelList
+	groupChannels := model.ChannelList{}
 	if err := s.GetReplicaX().Select(&groupChannels, sql, params...); err != nil {
 		return model.ChannelList{}, errors.Wrapf(err, "failed to find Channels with term='%s' and userId=%s", term, userId)
 	}
 	return groupChannels, nil
-}
-
-// TestChannelStore/PostgreSQL/SearchGroupChannels/Get_all_group_channels_for_user1
-// break 3846
-// DONE: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19335)
-func (s SqlChannelStore) SearchGroupChannels(userId, term string) (model.ChannelList, error) {
-	// return s.SqlSearchGroupChannels(userId, term)
-	return s.SquirrelSearchGroupChannels(userId, term)
 }
 
 // TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19336)
