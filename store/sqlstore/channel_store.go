@@ -3445,13 +3445,12 @@ func (s SqlChannelStore) searchClause(term string) (searchQuery sq.Sqlizer, err 
 	_ = err
 	if likeClause == nil {
 		return nil, nil
-	} else {
-		fulltextClause := s.squirrelBuildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
-		return sq.Or{
-			likeClause,
-			fulltextClause,
-		}, nil
 	}
+	fulltextClause := s.squirrelBuildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
+	return sq.Or{
+		likeClause,
+		fulltextClause,
+	}, nil
 }
 
 func (s SqlChannelStore) performGlobalSearch(searchQuery sq.SelectBuilder, term string) (model.ChannelListWithTeamData, error) {
