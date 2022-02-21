@@ -1559,6 +1559,26 @@
     "translation": "Please enter text for your Custom Terms of Service."
   },
   {
+    "id": "api.custom_groups.count_err",
+    "translation": "error counting groups"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "custom groups feature is disabled"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "not licensed for custom groups"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference must be 'true' for custom groups"
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id must be blank for custom group"
+  },
+  {
     "id": "api.custom_status.disabled",
     "translation": "Custom status feature has been disabled. Please contact your system administrator for details."
   },
@@ -1682,8 +1702,16 @@
     "translation": "Unable to create the emoji. An error occurred when trying to open the attached image."
   },
   {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "Error trying to retrieve first admin complete setup from the store."
+  },
+  {
     "id": "api.error_get_first_admin_visit_marketplace_status",
     "translation": "Error trying to retrieve the first admin visit marketplace status from the store."
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "Error trying to save first admin complete setup in the store."
   },
   {
     "id": "api.error_set_first_admin_visit_marketplace_status",
@@ -1972,6 +2000,10 @@
   {
     "id": "api.license.upgrade_needed.app_error",
     "translation": "Feature requires an upgrade to Enterprise Edition."
+  },
+  {
+    "id": "api.license_error",
+    "translation": "api endpoint requires a license"
   },
   {
     "id": "api.marshal_error",
@@ -2504,14 +2536,6 @@
     "translation": "Trial license could not be retrieved. Visit https://mattermost.com/trial/ to request a license."
   },
   {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Contact Us"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Contacting Us"
-  },
-  {
     "id": "api.server.warn_metric.email_domain.contact_us.email_body",
     "translation": "Mattermost contact us request. I'm interested in learning more about using Guest Accounts.\r\n"
   },
@@ -2694,22 +2718,6 @@
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
     "translation": "Your Enterprise trial is now active. Go to **System Console > User Management > Permissions** to enable Advanced Permissions."
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Start Trial"
-  },
-  {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Getting Trial"
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "Set Your Support Email Address"
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "Please go to **System Console > Site Configuration > Customization** to set the [Support Email](https://docs.mattermost.com/administration/config-settings.html#support-email) as your organization's internal IT Support Desk email address for end user feedback, email notifications, and support requests."
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
@@ -4768,6 +4776,10 @@
     "translation": "Unable to create default team membership because no more members are allowed in that team"
   },
   {
+    "id": "app.custom_group.unique_name",
+    "translation": "group name is not unique"
+  },
+  {
     "id": "app.email.no_rate_limiter.app_error",
     "translation": "Rate limiter is not set up."
   },
@@ -4866,6 +4878,10 @@
   {
     "id": "app.file_info.save.app_error",
     "translation": "Unable to save the file info."
+  },
+  {
+    "id": "app.group.crud_permission",
+    "translation": "Unable to perform operation for that source type."
   },
   {
     "id": "app.group.group_syncable_already_deleted",
@@ -5508,6 +5524,10 @@
     "translation": "No license present"
   },
   {
+    "id": "app.member_count",
+    "translation": "error retrieving member count"
+  },
+  {
     "id": "app.notification.body.dm.subTitle",
     "translation": "While you were away, {{.SenderName}} sent you a new Direct Message."
   },
@@ -6092,6 +6112,10 @@
     "translation": "Unable to find the system variable."
   },
   {
+    "id": "app.system.get_onboarding_request.app_error",
+    "translation": "Failed to get onboarding completion status."
+  },
+  {
     "id": "app.system.permanent_delete_by_name.app_error",
     "translation": "We could not permanently delete the system table entry."
   },
@@ -6104,20 +6128,8 @@
     "translation": "System"
   },
   {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Learn more about the Mattermost Advisor](https://about.mattermost.com/default-channel-handle-documentation)"
-  },
-  {
     "id": "app.system.warn_metric.bot_displayname",
     "translation": "Mattermost Advisor"
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "List of admins is empty."
-  },
-  {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Could not find metric."
   },
   {
     "id": "app.system.warn_metric.store.app_error",
@@ -8270,10 +8282,6 @@
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
     "translation": "Invalid Username attribute. Must be set."
-  },
-  {
-    "id": "model.config.is_valid.session_length_sso_in_days.app_error",
-    "translation": " "
   },
   {
     "id": "model.config.is_valid.site_url.app_error",
