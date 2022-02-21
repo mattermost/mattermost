@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v6/app/imaging"
 	"github.com/mattermost/mattermost-server/v6/app/request"
@@ -31,6 +32,22 @@ type configSvc interface {
 	SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError)
 }
 
+type licenseSvc interface { // nolint: unused
+	License() *model.License
+	LoadLicense()
+	SaveLicense(licenseBytes []byte) (*model.License, *model.AppError)
+	SetLicense(license *model.License) bool
+	ValidateAndSetLicenseBytes(b []byte) bool
+	SetClientLicense(m map[string]string)
+	ClientLicense() map[string]string
+	RemoveLicense() *model.AppError
+	AddLicenseListener(listener func(oldLicense, newLicense *model.License)) string
+	RemoveLicenseListener(id string)
+	RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *model.AppError
+	GenerateRenewalToken(expiration time.Duration) (string, *model.AppError)
+	GenerateLicenseRenewalLink() (string, string, *model.AppError)
+}
+
 // namer is an interface which enforces that
 // all services can return their names.
 type namer interface {
@@ -39,8 +56,9 @@ type namer interface {
 
 // Channels contains all channels related state.
 type Channels struct {
-	srv    *Server
-	cfgSvc configSvc
+	srv        *Server
+	cfgSvc     configSvc
+	licenseSvc licenseSvc // nolint: structcheck,unused
 
 	postActionCookieSecret []byte
 
