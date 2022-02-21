@@ -24,7 +24,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
@@ -86,7 +85,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 		s, err := NewServer(func(server *Server) error {
 			configStore := config.NewTestMemoryStore()
 			configStore.Set(&cfg)
-			server.configStore = configStore
+			server.configStore = &configWrapper{srv: server, Store: configStore}
 			return nil
 		})
 		require.NoError(t, err)
@@ -112,7 +111,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 		s, err := NewServer(func(server *Server) error {
 			configStore := config.NewTestMemoryStore()
 			configStore.Set(&cfg)
-			server.configStore = configStore
+			server.configStore = &configWrapper{srv: server, Store: configStore}
 			return nil
 		})
 		require.NoError(t, err)
@@ -125,7 +124,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 		s, err := NewServer(func(server *Server) error {
 			configStore := config.NewTestMemoryStore()
 			configStore.Set(&cfg)
-			server.configStore = configStore
+			server.configStore = &configWrapper{srv: server, Store: configStore}
 			server.licenseValue.Store(model.NewTestLicense())
 			return nil
 		})
@@ -168,9 +167,9 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
 
 	s, err := NewServer(func(server *Server) error {
-		configStore, _ := config.NewFileStore("config.json")
+		configStore, _ := config.NewFileStore("config.json", true)
 		store, _ := config.NewStoreFromBacking(configStore, nil, false)
-		server.configStore = store
+		server.configStore = &configWrapper{srv: server, Store: store}
 		server.UpdateConfig(func(cfg *model.Config) {
 			cfg.FileSettings = model.FileSettings{
 				DriverName:              model.NewString(model.ImageDriverS3),
@@ -703,94 +702,6 @@ func TestSentry(t *testing.T) {
 			t.Log("Sentry request arrived. Good!")
 		case <-time.After(time.Second * 10):
 			require.Fail(t, "Sentry report didn't arrive")
-		}
-	})
-}
-
-func TestAdminAdvisor(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	// creating a system user to whole admin advisor will send post
-	user := model.User{
-		Email:       strings.ToLower(model.NewId()) + "success+test@example.com",
-		Nickname:    "Darth Vader",
-		Username:    "vader" + model.NewId(),
-		Password:    "passwd1",
-		AuthService: "",
-		Roles:       model.SystemAdminRoleId,
-	}
-	ruser, err := th.App.CreateUser(th.Context, &user)
-	assert.Nil(t, err, "User should be created")
-	defer th.App.PermanentDeleteUser(th.Context, &user)
-
-	t.Run("Should notify admin of un-configured support email", func(t *testing.T) {
-		doCheckAdminSupportStatus(th.App, th.Context)
-
-		bot, err := th.App.GetUserByUsername(model.BotWarnMetricBotUsername)
-		assert.NotNil(t, bot, "Bot should have been created now")
-		assert.Nil(t, err, "No error should be generated")
-
-		channel, err := th.App.getDirectChannel(bot.Id, ruser.Id)
-		assert.NotNil(t, channel, "DM channel should exist between Admin Advisor and system admin")
-		assert.Nil(t, err, "No error should be generated")
-	})
-
-	t.Run("Should NOT notify admin when support email is configured", func(t *testing.T) {
-		th.App.UpdateConfig(func(m *model.Config) {
-			email := "success+test@example.com"
-			m.SupportSettings.SupportEmail = &email
-		})
-
-		bot, err := th.App.GetUserByUsername(model.BotWarnMetricBotUsername)
-		assert.NotNil(t, bot, "Bot should be already created")
-		assert.Nil(t, err, "No error should be generated")
-
-		channel, err := th.App.getDirectChannel(bot.Id, ruser.Id)
-		assert.NotNil(t, channel, "DM channel should already exist")
-		assert.Nil(t, err, "No error should be generated")
-
-		err = th.App.PermanentDeleteChannel(channel)
-		assert.Nil(t, err, "No error should be generated")
-
-		doCheckAdminSupportStatus(th.App, th.Context)
-
-		channel, err = th.App.getDirectChannel(bot.Id, ruser.Id)
-		assert.NotNil(t, channel, "DM channel should exist between Admin Advisor and system admin")
-		assert.Nil(t, err, "No error should be generated")
-
-		posts, err := th.App.GetPosts(channel.Id, 0, 100)
-		assert.Nil(t, err, "No error should be generated")
-		assert.Equal(t, 0, len(posts.Posts))
-	})
-
-	t.Run("Should not break in case of many sysadmins", func(t *testing.T) {
-		var userList []*model.User
-		for i := 0; i < 50; i++ {
-			user := model.User{
-				Email:       strings.ToLower(NewTestId()) + "success+test@example.com",
-				Nickname:    "Admin",
-				Username:    "admin" + NewTestId(),
-				Password:    "password",
-				AuthService: "",
-				Roles:       model.SystemAdminRoleId + " " + model.SystemUserRoleId,
-			}
-			ruser, err := th.App.ch.srv.userService.CreateUser(&user, users.UserCreateOptions{FromImport: true})
-			assert.NoError(t, err, "User should be created")
-			userList = append(userList, ruser)
-			defer th.App.PermanentDeleteUser(th.Context, ruser)
-		}
-
-		th.App.notifyAdminsOfWarnMetricStatus(th.Context, model.SystemMetricSupportEmailNotConfigured, true)
-
-		bot, err := th.App.GetUserByUsername(model.BotWarnMetricBotUsername)
-		assert.NotNil(t, bot, "Bot should have been created now")
-		assert.Nil(t, err, "No error should be generated")
-
-		for _, user := range userList {
-			channel, err := th.App.getDirectChannel(bot.Id, user.Id)
-			assert.NotNil(t, channel, "DM channel should exist between Admin Advisor and system admin")
-			assert.Nil(t, err, "No error should be generated")
 		}
 	})
 }

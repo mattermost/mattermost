@@ -888,7 +888,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "Ouvre la page des Paramètres du compte"
+    "translation": "Ouvre la page des paramètres"
   },
   {
     "id": "api.command_settings.name",
@@ -1509,7 +1509,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\nCanaux ajoutés :\n"
+    "translation": "\nCanaux ajoutés :\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
@@ -7245,7 +7245,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "pour une expérience optimale sur PC, Mac, iOS et Android."
+    "translation": "pour une expérience optimale sur Windows, Linux, Mac, iOS et Android."
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info",
@@ -8145,7 +8145,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Simplifiez votre travail avec des outils tels que Github, Google Calendar et Chrome. Explorez toutes les intégrations que nous proposons sur notre"
+    "translation": "Simplifiez votre travail avec des outils tels que Github, Jora et Zoom. Explorez toutes les intégrations que nous proposons sur notre"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -8173,7 +8173,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, votre essai gratuit de 14 jours de Mattermost Cloud Professional a pris fin aujourd'hui, {{.TodayDate}}. Veuillez ajouter vos informations de paiement pour que votre équipe puisse continuer à profiter des avantages de la version Cloud Professional."
+    "translation": "{{.Name}}, votre essai gratuit de 14 jours de Mattermost Cloud Enterprise a pris fin aujourd'hui, {{.TodayDate}}. Veuillez ajouter vos informations de paiement pour que votre équipe puisse continuer à profiter des avantages de la version Cloud Enterprise."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -8201,7 +8201,7 @@
   },
   {
     "id": "api.templates.at_limit_info1",
-    "translation": "Il semble que vous avez 10 utilisateurs ou plus dans votre espace de travail maintenant - c'est génial ! Si vous voulez inviter plus de membres de votre équipe, envisagez de vous mettre à niveau vers la version Mattermost Cloud Professional maintenant."
+    "translation": "Il semble que vous avez 10 utilisateurs ou plus dans votre espace de travail maintenant - c'est génial ! Si vous voulez inviter plus de membres de votre équipe, envisagez de vous mettre à niveau vers la version Mattermost Cloud maintenant."
   },
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
@@ -8700,7 +8700,7 @@
   },
   {
     "id": "api.templates.over_limit_info1",
-    "translation": "Il semble que vous ayez plus de 10 utilisateurs dans votre espace de travail, ce qui dépasse les limites du niveau gratuit de Mattermost Cloud Professional. Pour éviter toute perturbation de votre espace de travail Mattermost, veuillez effectuer une mise à niveau maintenant."
+    "translation": "Il semble que vous ayez plus de 10 utilisateurs dans votre espace de travail, ce qui dépasse les limites du niveau gratuit de Mattermost Cloud. Pour éviter toute perturbation de votre espace de travail Mattermost, veuillez effectuer une mise à niveau maintenant."
   },
   {
     "id": "api.templates.over_limit_90_days_subject",
@@ -8869,5 +8869,29 @@
   {
     "id": "app.user.get_threads_for_user.not_found",
     "translation": "Le fil de discussion de l'utilisateur n'existe pas ou n'est pas suivi"
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Impossible de mettre à jour le statut personnalisé. Merci d'ajouter une émoticône, un texte de statut personnalisé ou les deux."
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "L’adresse e-mail dans le  token ne correspond pas à celui des données utilisateur."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "La réponse SAML est trop longue"
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "rappel"
+  },
+  {
+    "id": "api.post.posts_by_ids.invalid_body.request_error",
+    "translation": "Le nombre d'ID de poste reçu a dépassé la taille maximale de {{.MaxLength}}"
+  },
+  {
+    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
+    "translation": "Le renouvellement de cette licence sur le portail n'est pas possible"
   }
 ]

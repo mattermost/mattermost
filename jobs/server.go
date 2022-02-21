@@ -7,8 +7,6 @@ import (
 	"sync"
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
-	ejobs "github.com/mattermost/mattermost-server/v6/einterfaces/jobs"
-	tjobs "github.com/mattermost/mattermost-server/v6/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/configservice"
 	"github.com/mattermost/mattermost-server/v6/store"
@@ -18,26 +16,6 @@ type JobServer struct {
 	ConfigService configservice.ConfigService
 	Store         store.Store
 	metrics       einterfaces.MetricsInterface
-
-	DataRetentionJob        ejobs.DataRetentionJobInterface
-	MessageExportJob        ejobs.MessageExportJobInterface
-	ElasticsearchAggregator ejobs.ElasticsearchAggregatorInterface
-	ElasticsearchIndexer    tjobs.IndexerJobInterface
-	LdapSync                ejobs.LdapSyncInterface
-	Migrations              tjobs.MigrationsJobInterface
-	Plugins                 tjobs.PluginsJobInterface
-	BleveIndexer            tjobs.IndexerJobInterface
-	ExpiryNotify            tjobs.ExpiryNotifyJobInterface
-	ProductNotices          tjobs.ProductNoticesJobInterface
-	ActiveUsers             tjobs.ActiveUsersJobInterface
-	ImportProcess           tjobs.ImportProcessInterface
-	ImportDelete            tjobs.ImportDeleteInterface
-	ExportProcess           tjobs.ExportProcessInterface
-	ExportDelete            tjobs.ExportDeleteInterface
-	Cloud                   ejobs.CloudJobInterface
-	ResendInvitationEmails  ejobs.ResendInvitationEmailJobInterface
-	ExtractContent          tjobs.ExtractContentInterface
-	FixCRTChannelUnreads    tjobs.FixCRTChannelUnreadsJobInterface
 
 	// mut is used to protect the following fields from concurrent access.
 	mut        sync.Mutex
@@ -55,6 +33,17 @@ func NewJobServer(configService configservice.ConfigService, store store.Store, 
 
 func (srv *JobServer) Config() *model.Config {
 	return srv.ConfigService.Config()
+}
+
+func (srv *JobServer) RegisterJobType(name string, worker model.Worker, scheduler model.Scheduler) {
+	srv.mut.Lock()
+	defer srv.mut.Unlock()
+	if worker != nil {
+		srv.workers.AddWorker(name, worker)
+	}
+	if scheduler != nil {
+		srv.schedulers.AddScheduler(name, scheduler)
+	}
 }
 
 func (srv *JobServer) StartWorkers() error {

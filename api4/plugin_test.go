@@ -1472,8 +1472,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceURL = testServer.URL
 		})
 
-		// The content of the request is irrelevant. This test only cares about enterprise_plugins.
-		pRequest := &model.InstallMarketplacePluginRequest{}
+		pRequest := &model.InstallMarketplacePluginRequest{Id: "testplugin"}
 		manifest, resp, err := client.InstallMarketplacePlugin(pRequest)
 		require.Error(t, err)
 		CheckInternalErrorStatus(t, resp)
@@ -1511,8 +1510,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		*l.Features.EnterprisePlugins = false
 		th.App.Srv().SetLicense(l)
 
-		// The content of the request is irrelevant. This test only cares about enterprise_plugins.
-		pRequest := &model.InstallMarketplacePluginRequest{}
+		pRequest := &model.InstallMarketplacePluginRequest{Id: "testplugin"}
 		manifest, resp, err := client.InstallMarketplacePlugin(pRequest)
 		require.Error(t, err)
 		CheckInternalErrorStatus(t, resp)
@@ -1546,8 +1544,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 
 		th.App.Srv().SetLicense(model.NewTestLicense("enterprise_plugins"))
 
-		// The content of the request is irrelevant. This test only cares about enterprise_plugins.
-		pRequest := &model.InstallMarketplacePluginRequest{}
+		pRequest := &model.InstallMarketplacePluginRequest{Id: "testplugin"}
 		manifest, resp, err := client.InstallMarketplacePlugin(pRequest)
 		require.Error(t, err)
 		CheckInternalErrorStatus(t, resp)
@@ -1706,7 +1703,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		require.NoError(t, err)
 
 		th := SetupConfig(t, func(cfg *model.Config) {
-			// Disable auto-installing prepackged plugins
+			// Disable auto-installing prepackaged plugins
 			*cfg.PluginSettings.AutomaticPrepackagedPlugins = false
 		}).InitBasic()
 		defer th.TearDown()

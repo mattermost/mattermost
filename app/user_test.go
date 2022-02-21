@@ -120,7 +120,7 @@ func TestAdjustProfileImage(t *testing.T) {
 	assert.True(t, adjusted.Len() > 0)
 	assert.NotEqual(t, testjpg, adjusted)
 
-	// default image should require adjustement
+	// default image should require adjustment
 	user := th.BasicUser
 	image, err := th.App.GetDefaultProfileImage(user)
 	require.Nil(t, err)
@@ -524,7 +524,7 @@ func TestUpdateUserEmail(t *testing.T) {
 			tokens, err = th.App.Srv().Store.Token().GetAllTokensByType(TokenTypeVerifyEmail)
 			// We verify the same conditions as the earlier function,
 			// but we also need to ensure that this is not the same token
-			// as before, which is possible if the token updation goroutine
+			// as before, which is possible if the token update goroutine
 			// hasn't yet run.
 			return err == nil && len(tokens) == 1 && tokens[0].Token != firstToken.Token
 		}, 100*time.Millisecond, 10*time.Millisecond)
@@ -927,11 +927,11 @@ func TestPermanentDeleteUser(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	var bots1 []*model.Bot
-	var bots2 []*model.Bot
+	bots1 := []*model.Bot{}
+	bots2 := []*model.Bot{}
 
 	sqlStore := mainHelper.GetSQLStore()
-	_, err1 := sqlStore.GetMaster().Select(&bots1, "SELECT * FROM Bots")
+	err1 := sqlStore.GetMasterX().Select(&bots1, "SELECT * FROM Bots")
 	assert.NoError(t, err1)
 	assert.Equal(t, 1, len(bots1))
 
@@ -942,7 +942,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 	err = th.App.PermanentDeleteUser(th.Context, retUser1)
 	assert.Nil(t, err)
 
-	_, err1 = sqlStore.GetMaster().Select(&bots2, "SELECT * FROM Bots")
+	err1 = sqlStore.GetMasterX().Select(&bots2, "SELECT * FROM Bots")
 	assert.NoError(t, err1)
 	assert.Equal(t, 0, len(bots2))
 
@@ -966,37 +966,56 @@ func TestPasswordRecovery(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	token, err := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
-	assert.Nil(t, err)
+	t.Run("password token with same email as during creation", func(t *testing.T) {
+		token, err := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+		assert.Nil(t, err)
 
-	tokenData := struct {
-		UserId string
-		Email  string
-	}{}
+		tokenData := struct {
+			UserId string
+			Email  string
+		}{}
 
-	err2 := json.Unmarshal([]byte(token.Extra), &tokenData)
-	assert.NoError(t, err2)
-	assert.Equal(t, th.BasicUser.Id, tokenData.UserId)
-	assert.Equal(t, th.BasicUser.Email, tokenData.Email)
+		err2 := json.Unmarshal([]byte(token.Extra), &tokenData)
+		assert.NoError(t, err2)
+		assert.Equal(t, th.BasicUser.Id, tokenData.UserId)
+		assert.Equal(t, th.BasicUser.Email, tokenData.Email)
 
-	// Password token with same eMail as during creation
-	err = th.App.ResetPasswordFromToken(token.Token, "abcdefgh")
-	assert.Nil(t, err)
-
-	// Password token with modified eMail after creation
-	token, err = th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
-	assert.Nil(t, err)
-
-	th.App.UpdateConfig(func(c *model.Config) {
-		*c.EmailSettings.RequireEmailVerification = false
+		err = th.App.ResetPasswordFromToken(token.Token, "abcdefgh")
+		assert.Nil(t, err)
 	})
 
-	th.BasicUser.Email = th.MakeEmail()
-	_, err = th.App.UpdateUser(th.BasicUser, false)
-	assert.Nil(t, err)
+	t.Run("password token with modified email as during creation", func(t *testing.T) {
+		token, err := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+		assert.Nil(t, err)
 
-	err = th.App.ResetPasswordFromToken(token.Token, "abcdefgh")
-	assert.NotNil(t, err)
+		th.App.UpdateConfig(func(c *model.Config) {
+			*c.EmailSettings.RequireEmailVerification = false
+		})
+
+		th.BasicUser.Email = th.MakeEmail()
+		_, err = th.App.UpdateUser(th.BasicUser, false)
+		assert.Nil(t, err)
+
+		err = th.App.ResetPasswordFromToken(token.Token, "abcdefgh")
+		assert.NotNil(t, err)
+	})
+
+	t.Run("non-expired token", func(t *testing.T) {
+		token, err := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+		assert.Nil(t, err)
+
+		err = th.App.resetPasswordFromToken(token.Token, "abcdefgh", model.GetMillis())
+		assert.Nil(t, err)
+	})
+
+	t.Run("expired token", func(t *testing.T) {
+		token, err := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+		assert.Nil(t, err)
+
+		err = th.App.resetPasswordFromToken(token.Token, "abcdefgh", model.GetMillisForTime(time.Now().Add(25*time.Hour)))
+		assert.NotNil(t, err)
+	})
+
 }
 
 func TestGetViewUsersRestrictions(t *testing.T) {

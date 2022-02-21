@@ -669,6 +669,111 @@ func (s *hooksRPCServer) WebSocketMessageHasBeenPosted(args *Z_WebSocketMessageH
 	return nil
 }
 
+func init() {
+	hookNameToId["RunDataRetention"] = RunDataRetentionID
+}
+
+type Z_RunDataRetentionArgs struct {
+	A int64
+	B int64
+}
+
+type Z_RunDataRetentionReturns struct {
+	A int64
+	B error
+}
+
+func (g *hooksRPCClient) RunDataRetention(nowTime, batchSize int64) (int64, error) {
+	_args := &Z_RunDataRetentionArgs{nowTime, batchSize}
+	_returns := &Z_RunDataRetentionReturns{}
+	if g.implemented[RunDataRetentionID] {
+		if err := g.client.Call("Plugin.RunDataRetention", _args, _returns); err != nil {
+			g.log.Error("RPC call RunDataRetention to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *hooksRPCServer) RunDataRetention(args *Z_RunDataRetentionArgs, returns *Z_RunDataRetentionReturns) error {
+	if hook, ok := s.impl.(interface {
+		RunDataRetention(nowTime, batchSize int64) (int64, error)
+	}); ok {
+		returns.A, returns.B = hook.RunDataRetention(args.A, args.B)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook RunDataRetention called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["OnInstall"] = OnInstallID
+}
+
+type Z_OnInstallArgs struct {
+	A *Context
+	B model.OnInstallEvent
+}
+
+type Z_OnInstallReturns struct {
+	A error
+}
+
+func (g *hooksRPCClient) OnInstall(c *Context, event model.OnInstallEvent) error {
+	_args := &Z_OnInstallArgs{c, event}
+	_returns := &Z_OnInstallReturns{}
+	if g.implemented[OnInstallID] {
+		if err := g.client.Call("Plugin.OnInstall", _args, _returns); err != nil {
+			g.log.Error("RPC call OnInstall to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) OnInstall(args *Z_OnInstallArgs, returns *Z_OnInstallReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnInstall(c *Context, event model.OnInstallEvent) error
+	}); ok {
+		returns.A = hook.OnInstall(args.A, args.B)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnInstall called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["OnSendDailyTelemetry"] = OnSendDailyTelemetryID
+}
+
+type Z_OnSendDailyTelemetryArgs struct {
+}
+
+type Z_OnSendDailyTelemetryReturns struct {
+}
+
+func (g *hooksRPCClient) OnSendDailyTelemetry() {
+	_args := &Z_OnSendDailyTelemetryArgs{}
+	_returns := &Z_OnSendDailyTelemetryReturns{}
+	if g.implemented[OnSendDailyTelemetryID] {
+		if err := g.client.Call("Plugin.OnSendDailyTelemetry", _args, _returns); err != nil {
+			g.log.Error("RPC call OnSendDailyTelemetry to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) OnSendDailyTelemetry(args *Z_OnSendDailyTelemetryArgs, returns *Z_OnSendDailyTelemetryReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnSendDailyTelemetry()
+	}); ok {
+		hook.OnSendDailyTelemetry()
+	} else {
+		return encodableError(fmt.Errorf("Hook OnSendDailyTelemetry called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }

@@ -84,7 +84,18 @@ func CurrentHub() *Hub {
 	return currentHub
 }
 
-// LastEventID returns an ID of last captured event for the current Hub.
+// LastEventID returns the ID of the last event (error or message) captured
+// through the hub and sent to the underlying transport.
+//
+// Transactions and events dropped by sampling or event processors do not change
+// the last event ID.
+//
+// LastEventID is a convenience method to cover use cases in which errors are
+// captured indirectly and the ID is needed. For example, it can be used as part
+// of an HTTP middleware to log the ID of the last error, if any.
+//
+// For more flexibility, consider instead using the ClientOptions.BeforeSend
+// function or event processors.
 func (hub *Hub) LastEventID() EventID {
 	hub.mu.RLock()
 	defer hub.mu.RUnlock()
@@ -212,12 +223,10 @@ func (hub *Hub) CaptureEvent(event *Event) *EventID {
 	}
 	eventID := client.CaptureEvent(event, nil, scope)
 
-	hub.mu.Lock()
-	defer hub.mu.Unlock()
-	if eventID != nil {
+	if event.Type != transactionType && eventID != nil {
+		hub.mu.Lock()
 		hub.lastEventID = *eventID
-	} else {
-		hub.lastEventID = ""
+		hub.mu.Unlock()
 	}
 	return eventID
 }
@@ -232,12 +241,10 @@ func (hub *Hub) CaptureMessage(message string) *EventID {
 	}
 	eventID := client.CaptureMessage(message, nil, scope)
 
-	hub.mu.Lock()
-	defer hub.mu.Unlock()
 	if eventID != nil {
+		hub.mu.Lock()
 		hub.lastEventID = *eventID
-	} else {
-		hub.lastEventID = ""
+		hub.mu.Unlock()
 	}
 	return eventID
 }
@@ -252,12 +259,10 @@ func (hub *Hub) CaptureException(exception error) *EventID {
 	}
 	eventID := client.CaptureException(exception, &EventHint{OriginalException: exception}, scope)
 
-	hub.mu.Lock()
-	defer hub.mu.Unlock()
 	if eventID != nil {
+		hub.mu.Lock()
 		hub.lastEventID = *eventID
-	} else {
-		hub.lastEventID = ""
+		hub.mu.Unlock()
 	}
 	return eventID
 }

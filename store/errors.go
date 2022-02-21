@@ -5,6 +5,7 @@ package store
 
 import (
 	"fmt"
+	"strings"
 )
 
 // ErrInvalidInput indicates an error that has occurred due to an invalid input.
@@ -131,4 +132,30 @@ func (e *ErrNotImplemented) Error() string {
 
 func NewErrNotImplemented(detail string) *ErrNotImplemented {
 	return &ErrNotImplemented{detail: detail}
+}
+
+type ErrUniqueConstraint struct {
+	Columns []string
+}
+
+// NewErrUniqueConstraint creates a uniqueness constraint error for the given column(s).
+//
+// Examples:
+//
+//  store.NewErrUniqueConstraint("DisplayName") // single column constraint
+//  store.NewErrUniqueConstraint("Name", "Source") // multi-column constaint
+func NewErrUniqueConstraint(columns ...string) *ErrUniqueConstraint {
+	return &ErrUniqueConstraint{
+		Columns: columns,
+	}
+}
+
+func (e *ErrUniqueConstraint) Error() string {
+	var tmpl string
+	if len(e.Columns) > 1 {
+		tmpl = "unique constraint: (%s)"
+	} else {
+		tmpl = "unique constraint: %s"
+	}
+	return fmt.Sprintf(tmpl, strings.Join(e.Columns, ","))
 }

@@ -26,22 +26,7 @@ type SqlJobStore struct {
 }
 
 func newSqlJobStore(sqlStore *SqlStore) store.JobStore {
-	s := &SqlJobStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Job{}, "Jobs").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("Type").SetMaxSize(32)
-		table.ColMap("Status").SetMaxSize(32)
-		table.ColMap("Data").SetDataType(sqlStore.jsonDataType())
-	}
-
-	return s
-}
-
-func (jss SqlJobStore) createIndexesIfNotExists() {
-	jss.CreateIndexIfNotExists("idx_jobs_type", "Jobs", "Type")
-	jss.CreateCompositeIndexIfNotExists("idx_jobs_status_type", "Jobs", []string{"Status", "Type"})
+	return &SqlJobStore{sqlStore}
 }
 
 func (jss SqlJobStore) Save(job *model.Job) (*model.Job, error) {

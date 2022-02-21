@@ -719,7 +719,7 @@ func TestGetOutgoingWebhook(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		nonExistentHook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id}
+		nonExistentHook := &model.OutgoingWebhook{}
 		_, resp, err = client.GetOutgoingWebhook(nonExistentHook.Id)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
@@ -752,7 +752,7 @@ func TestUpdateIncomingHook(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostIconOverride = false })
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		// webhook creations are allways performed by a sysadmin
+		// webhook creations are always performed by a sysadmin
 		// because it's not currently possible to create a webhook via
 		// local mode
 		var err error

@@ -19,24 +19,7 @@ type SqlLinkMetadataStore struct {
 }
 
 func newSqlLinkMetadataStore(sqlStore *SqlStore) store.LinkMetadataStore {
-	s := &SqlLinkMetadataStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.LinkMetadata{}, "LinkMetadata").SetKeys(false, "Hash")
-		table.ColMap("URL").SetMaxSize(2048)
-		table.ColMap("Type").SetMaxSize(16)
-		table.ColMap("Data").SetDataType(sqlStore.jsonDataType())
-	}
-
-	return s
-}
-
-func (s SqlLinkMetadataStore) createIndexesIfNotExists() {
-	if s.DriverName() == model.DatabaseDriverMysql {
-		s.CreateCompositeIndexIfNotExists("idx_link_metadata_url_timestamp", "LinkMetadata", []string{"URL(512)", "Timestamp"})
-	} else {
-		s.CreateCompositeIndexIfNotExists("idx_link_metadata_url_timestamp", "LinkMetadata", []string{"URL", "Timestamp"})
-	}
+	return &SqlLinkMetadataStore{sqlStore}
 }
 
 func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMetadata, error) {

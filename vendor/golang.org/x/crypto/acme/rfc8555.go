@@ -78,7 +78,7 @@ func (c *Client) registerRFC(ctx context.Context, acct *Account, prompt func(tos
 	}
 	// Cache Account URL even if we return an error to the caller.
 	// It is by all means a valid and usable "kid" value for future requests.
-	c.kid = keyID(a.URI)
+	c.KID = KeyID(a.URI)
 	if res.StatusCode == http.StatusOK {
 		return nil, ErrAccountAlreadyExists
 	}

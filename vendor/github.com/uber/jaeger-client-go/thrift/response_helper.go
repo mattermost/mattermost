@@ -23,7 +23,7 @@ import (
 	"context"
 )
 
-// See https://godoc.org/context#WithValue on why do we need the unexported typedefs.
+// See https://pkg.go.dev/context#WithValue on why do we need the unexported typedefs.
 type responseHelperKey struct{}
 
 // TResponseHelper defines a object with a set of helper functions that can be

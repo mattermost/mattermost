@@ -1123,6 +1123,19 @@ func TestGetAllTeams(t *testing.T) {
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
+
+	t.Run("Sanitize the teams in the response with total count", func(t *testing.T) {
+		otherUser := th.CreateUser()
+		client.Login(otherUser.Email, otherUser.Password)
+		teams, _, _, err := client.GetAllTeamsWithTotalCount("", 0, 10)
+		require.NoError(t, err)
+		for _, team := range teams {
+			if team.Email != "" {
+				require.Nil(t, team.Email)
+				break
+			}
+		}
+	})
 }
 
 func TestGetAllTeamsSanitization(t *testing.T) {
@@ -2902,7 +2915,7 @@ func TestImportTeam(t *testing.T) {
 		fileData, err := base64.StdEncoding.DecodeString(fileResp["results"])
 		require.NoError(t, err, "failed to decode base64 results data")
 
-		fileReturned := fmt.Sprintf("%s", fileData)
+		fileReturned := string(fileData)
 		require.Truef(t, strings.Contains(fileReturned, "darth.vader@stardeath.com"), "failed to report the user was imported, fileReturned: %s", fileReturned)
 
 		// Checking the imported users

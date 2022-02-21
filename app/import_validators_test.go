@@ -617,7 +617,7 @@ func TestImportValidateUserImportData(t *testing.T) {
 	data.NotifyProps.MentionKeys = ptrStr("valid")
 	checkNoError(t, validateUserImportData(&data))
 
-	//Test the emai batching interval validators
+	//Test the email batching interval validators
 	//Happy paths
 	data.EmailInterval = ptrStr("immediately")
 	checkNoError(t, validateUserImportData(&data))
@@ -1343,34 +1343,37 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 }
 
 func TestImportValidateEmojiImportData(t *testing.T) {
-	data := EmojiImportData{
-		Name:  ptrStr("parrot2"),
-		Image: ptrStr("/path/to/image"),
+	var testCases = []struct {
+		testName          string
+		name              *string
+		image             *string
+		expectError       bool
+		expectSystemEmoji bool
+	}{
+		{"success", ptrStr("parrot2"), ptrStr("/path/to/image"), false, false},
+		{"system emoji", ptrStr("smiley"), ptrStr("/path/to/image"), true, true},
+		{"empty name", ptrStr(""), ptrStr("/path/to/image"), true, false},
+		{"empty image", ptrStr("parrot2"), ptrStr(""), true, false},
+		{"empty name and image", ptrStr(""), ptrStr(""), true, false},
+		{"nil name", nil, ptrStr("/path/to/image"), true, false},
+		{"nil image", ptrStr("parrot2"), nil, true, false},
+		{"nil name and image", nil, nil, true, false},
 	}
 
-	err := validateEmojiImportData(&data)
-	assert.Nil(t, err, "Validation should succeed")
+	for _, tc := range testCases {
+		t.Run(tc.testName, func(t *testing.T) {
+			data := EmojiImportData{
+				Name:  tc.name,
+				Image: tc.image,
+			}
 
-	*data.Name = "smiley"
-	err = validateEmojiImportData(&data)
-	assert.NotNil(t, err)
-
-	*data.Name = ""
-	err = validateEmojiImportData(&data)
-	assert.NotNil(t, err)
-
-	*data.Name = ""
-	*data.Image = ""
-	err = validateEmojiImportData(&data)
-	assert.NotNil(t, err)
-
-	*data.Image = "/path/to/image"
-	data.Name = nil
-	err = validateEmojiImportData(&data)
-	assert.NotNil(t, err)
-
-	data.Name = ptrStr("parrot")
-	data.Image = nil
-	err = validateEmojiImportData(&data)
-	assert.NotNil(t, err)
+			err := validateEmojiImportData(&data)
+			if tc.expectError {
+				require.NotNil(t, err)
+				assert.Equal(t, tc.expectSystemEmoji, err.Id == "model.emoji.system_emoji_name.app_error")
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
 }
