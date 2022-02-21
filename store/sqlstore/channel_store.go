@@ -3467,10 +3467,6 @@ func (s SqlChannelStore) performGlobalSearch(searchQuery sq.SelectBuilder, term 
 
 	err = repl.Select(&channels, query, parameters...)
 	if err != nil {
-		/* TODO verify I don't need this */
-		// if err == sql.ErrNoRows {
-		// 	return nil, store.NewErrNotFound("Channel", "term")
-		// }
 		return nil, errors.Wrapf(err, "could not find channel with term=%s", term)
 	}
 	return channels, nil
