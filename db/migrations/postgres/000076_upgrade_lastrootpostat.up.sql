@@ -18,7 +18,6 @@ BEGIN
 		SELECT count(*)
 		FROM Channels
 		WHERE LastRootPostAt IS NULL
-		LIMIT 1
 	) > 0 THEN
 		-- fixes migrate cte and sets the LastRootPostAt for channels that don't have it set
 		WITH q AS (
