@@ -454,55 +454,10 @@ func (s SqlChannelStore) ClearCaches() {
 }
 
 func newSqlChannelStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.ChannelStore {
-	s := &SqlChannelStore{
+	return &SqlChannelStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
 	}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Channel{}, "Channels").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("TeamId").SetMaxSize(26)
-		table.ColMap("Type").SetMaxSize(1)
-		table.ColMap("DisplayName").SetMaxSize(64)
-		table.ColMap("Name").SetMaxSize(64)
-		table.SetUniqueTogether("Name", "TeamId")
-		table.ColMap("Header").SetMaxSize(1024)
-		table.ColMap("Purpose").SetMaxSize(250)
-		table.ColMap("CreatorId").SetMaxSize(26)
-		table.ColMap("SchemeId").SetMaxSize(26)
-		table.ColMap("LastRootPostAt").SetDefaultConstraint(model.NewString("0"))
-
-		tablem := db.AddTableWithName(channelMember{}, "ChannelMembers").SetKeys(false, "ChannelId", "UserId")
-		tablem.ColMap("ChannelId").SetMaxSize(26)
-		tablem.ColMap("UserId").SetMaxSize(26)
-		tablem.ColMap("Roles").SetMaxSize(model.UserRolesMaxLength)
-		tablem.ColMap("NotifyProps").SetDataType(sqlStore.jsonDataType())
-
-		tablePublicChannels := db.AddTableWithName(publicChannel{}, "PublicChannels").SetKeys(false, "Id")
-		tablePublicChannels.ColMap("Id").SetMaxSize(26)
-		tablePublicChannels.ColMap("TeamId").SetMaxSize(26)
-		tablePublicChannels.ColMap("DisplayName").SetMaxSize(64)
-		tablePublicChannels.ColMap("Name").SetMaxSize(64)
-		tablePublicChannels.SetUniqueTogether("Name", "TeamId")
-		tablePublicChannels.ColMap("Header").SetMaxSize(1024)
-		tablePublicChannels.ColMap("Purpose").SetMaxSize(250)
-
-		tableSidebarCategories := db.AddTableWithName(model.SidebarCategory{}, "SidebarCategories").SetKeys(false, "Id")
-		tableSidebarCategories.ColMap("Id").SetMaxSize(128)
-		tableSidebarCategories.ColMap("UserId").SetMaxSize(26)
-		tableSidebarCategories.ColMap("TeamId").SetMaxSize(26)
-		tableSidebarCategories.ColMap("Sorting").SetMaxSize(64)
-		tableSidebarCategories.ColMap("Type").SetMaxSize(64)
-		tableSidebarCategories.ColMap("DisplayName").SetMaxSize(64)
-
-		tableSidebarChannels := db.AddTableWithName(model.SidebarChannel{}, "SidebarChannels").SetKeys(false, "ChannelId", "UserId", "CategoryId")
-		tableSidebarChannels.ColMap("ChannelId").SetMaxSize(26)
-		tableSidebarChannels.ColMap("UserId").SetMaxSize(26)
-		tableSidebarChannels.ColMap("CategoryId").SetMaxSize(128)
-	}
-
-	return s
 }
 
 func (s SqlChannelStore) upsertPublicChannelT(transaction *sqlxTxWrapper, channel *model.Channel) error {
@@ -2218,7 +2173,7 @@ func (s SqlChannelStore) GetMemberCountsByGroup(ctx context.Context, channelID s
 	query := s.getQueryBuilder().
 		Select(selectStr).
 		From("ChannelMembers").
-		Join("GroupMembers ON GroupMembers.UserId = ChannelMembers.UserId")
+		Join("GroupMembers ON GroupMembers.UserId = ChannelMembers.UserId AND GroupMembers.DeleteAt = 0")
 
 	if includeTimezones {
 		query = query.Join("Users ON Users.Id = GroupMembers.UserId")

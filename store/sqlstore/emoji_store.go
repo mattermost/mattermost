@@ -22,21 +22,10 @@ type SqlEmojiStore struct {
 }
 
 func newSqlEmojiStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.EmojiStore {
-	s := &SqlEmojiStore{
+	return &SqlEmojiStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
 	}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Emoji{}, "Emoji").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("CreatorId").SetMaxSize(26)
-		table.ColMap("Name").SetMaxSize(64)
-
-		table.SetUniqueTogether("Name", "DeleteAt")
-	}
-
-	return s
 }
 
 func (es SqlEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, error) {

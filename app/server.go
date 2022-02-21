@@ -624,7 +624,6 @@ func NewServer(options ...Option) (*Server, error) {
 		s.Go(func() {
 			appInstance := New(ServerConnector(s.Channels()))
 			s.runLicenseExpirationCheckJob()
-			runCheckAdminSupportStatusJob(appInstance, request.EmptyContext())
 			runDNDStatusExpireJob(appInstance)
 		})
 		s.runJobs()
@@ -1495,12 +1494,6 @@ func doReportUsageToAWSMeteringService(s *Server) {
 	awsMeter.ReportUserCategoryUsage(reports)
 }
 
-func runCheckAdminSupportStatusJob(a *App, c *request.Context) {
-	model.CreateRecurringTask("Check Admin Support Status Job", func() {
-		doCheckAdminSupportStatus(a, c)
-	}, time.Hour*model.WarnMetricJobInterval)
-}
-
 func doSecurity(s *Server) {
 	s.DoSecurityUpdateCheck()
 }
@@ -1541,16 +1534,6 @@ func doJobsCleanup(s *Server) {
 	err := s.Store.Job().Cleanup(expiry, jobsCleanupBatchSize)
 	if err != nil {
 		mlog.Warn("Error while cleaning up jobs", mlog.Err(err))
-	}
-}
-
-func doCheckAdminSupportStatus(a *App, c *request.Context) {
-	isE0Edition := model.BuildEnterpriseReady == "true"
-
-	if strings.TrimSpace(*a.Config().SupportSettings.SupportEmail) == model.SupportSettingsDefaultSupportEmail {
-		if err := a.notifyAdminsOfWarnMetricStatus(c, model.SystemMetricSupportEmailNotConfigured, isE0Edition); err != nil {
-			mlog.Error("Failed to send notifications to admin users.", mlog.Err(err))
-		}
 	}
 }
 

@@ -163,6 +163,11 @@ ifeq ($(RUN_SERVER_IN_BACKGROUND),true)
 	RUN_IN_BACKGROUND := &
 endif
 
+DOCKER_COMPOSE_OVERRIDE=
+ifneq ("$(wildcard ./docker-compose.override.yaml)","")
+    DOCKER_COMPOSE_OVERRIDE=-f docker-compose.override.yaml
+endif
+
 start-docker-check:
 ifeq (,$(findstring minio,$(ENABLED_DOCKER_SERVICES)))
   TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) minio
@@ -185,9 +190,9 @@ else ifeq ($(MM_NO_DOCKER),true)
 else
 	@echo Starting docker containers
 
-	$(GO) run ./build/docker-compose-generator/main.go $(ENABLED_DOCKER_SERVICES) | docker-compose -f docker-compose.makefile.yml -f /dev/stdin run --rm start_dependencies
+	$(GO) run ./build/docker-compose-generator/main.go $(ENABLED_DOCKER_SERVICES) | docker-compose -f docker-compose.makefile.yml -f /dev/stdin $(DOCKER_COMPOSE_OVERRIDE) run --rm start_dependencies
 ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
-	cat tests/${LDAP_DATA}-data.ldif | docker-compose -f docker-compose.makefile.yml exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
+	cat tests/${LDAP_DATA}-data.ldif | docker-compose -f docker-compose.makefile.yml $(DOCKER_COMPOSE_OVERRIDE) exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
 endif
 ifneq (,$(findstring mysql-read-replica,$(ENABLED_DOCKER_SERVICES)))
 	./scripts/replica-mysql-config.sh
@@ -198,7 +203,7 @@ run-haserver:
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Starting mattermost in an HA topology '(3 node cluster)'
 
-	docker-compose -f docker-compose.yaml up --remove-orphans haproxy
+	docker-compose -f docker-compose.yaml $(DOCKER_COMPOSE_OVERRIDE) up --remove-orphans haproxy
 endif
 
 stop-haserver:
@@ -270,7 +275,7 @@ i18n-check: ## Exit on empty translation strings and translation source strings
 
 store-mocks: ## Creates mock files.
 	$(GO) install github.com/vektra/mockery/...@v1.1.2
-	$(GOBIN)/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
+	$(GOBIN)/mockery -dir store -name ".*Store" -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
 
 telemetry-mocks: ## Creates mock files.
 	$(GO) install github.com/vektra/mockery/...@v1.1.2

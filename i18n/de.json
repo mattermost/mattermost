@@ -9155,18 +9155,6 @@
     "translation": "Diese Funktion erfordert ein Upgrade auf die Enterprise Edition."
   },
   {
-    "id": "extract_content.worker.do_job.file_info",
-    "translation": "Es konnten keine Dateiinformationen für die Inhaltsextraktion abgerufen werden."
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.to",
-    "translation": "Ungültiger Eingabewert 'to'"
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.from",
-    "translation": "Ungültiger Eingabewert 'von'"
-  },
-  {
     "id": "app.user.store_is_empty.app_error",
     "translation": "Es konnte nicht geprüft werden, ob der Benutzerspeicher leer ist."
   },
@@ -9340,6 +9328,10 @@
   },
   {
     "id": "api.users.invalid_emails.enable_open_server.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.config.is_valid.session_length_sso_in_days.app_error",
     "translation": " "
   }
 ]

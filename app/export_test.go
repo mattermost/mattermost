@@ -717,7 +717,7 @@ func TestExportDeletedTeams(t *testing.T) {
 	require.Nil(t, err)
 
 	var b bytes.Buffer
-	err = th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
+	err = th1.App.BulkExport(&b, "somePath", model.BulkExportOpts{})
 	require.Nil(t, err)
 
 	th2 := Setup(t)
