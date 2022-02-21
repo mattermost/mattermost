@@ -50,7 +50,7 @@ func Config(dsn string, readOnly bool, configDefaults *model.Config) Option {
 			return errors.Wrap(err, "failed to apply Config option")
 		}
 
-		s.configStore = configStore
+		s.configStore = &configWrapper{srv: s, Store: configStore}
 		return nil
 	}
 }
@@ -58,7 +58,7 @@ func Config(dsn string, readOnly bool, configDefaults *model.Config) Option {
 // ConfigStore applies the given config store, typically to replace the traditional sources with a memory store for testing.
 func ConfigStore(configStore *config.Store) Option {
 	return func(s *Server) error {
-		s.configStore = configStore
+		s.configStore = &configWrapper{srv: s, Store: configStore}
 
 		return nil
 	}
