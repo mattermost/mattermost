@@ -86,6 +86,12 @@ import (
 // declaring this as var to allow overriding in tests
 var SentryDSN = "placeholder_sentry_dsn"
 
+type ServiceKey string
+
+const (
+	ConfigKey ServiceKey = "config"
+)
+
 type Server struct {
 	sqlStore        *sqlstore.SqlStore
 	Store           store.Store
@@ -150,7 +156,7 @@ type Server struct {
 	searchConfigListenerId  string
 	searchLicenseListenerId string
 	loggerLicenseListenerId string
-	configStore             *config.Store
+	configStore             *configWrapper
 
 	telemetryService *telemetry.TelemetryService
 	userService      *users.UserService
@@ -231,7 +237,7 @@ func NewServer(options ...Option) (*Server, error) {
 			return nil, errors.Wrap(err, "failed to load config")
 		}
 
-		s.configStore = configStore
+		s.configStore = &configWrapper{srv: s, Store: configStore}
 	}
 
 	// Step 2: Logging
@@ -250,10 +256,13 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.httpService = httpservice.MakeHTTPService(s)
 
+	serviceMap := map[ServiceKey]interface{}{
+		ConfigKey: s.configStore,
+	}
 	// Step 3: Initialize products.
 	// Depends on s.httpService.
 	for name, initializer := range products {
-		prod, err2 := initializer(s)
+		prod, err2 := initializer(s, serviceMap)
 		if err2 != nil {
 			return nil, errors.Wrapf(err2, "error initializing product: %s", name)
 		}
@@ -755,7 +764,7 @@ func (s *Server) initLogging() error {
 		s.NotificationsLog = l.With(mlog.String("logSource", "notifications"))
 	}
 
-	if err := s.configureLogger("logging", s.Log, &s.Config().LogSettings, s.configStore, config.GetLogFileLocation); err != nil {
+	if err := s.configureLogger("logging", s.Log, &s.Config().LogSettings, s.configStore.Store, config.GetLogFileLocation); err != nil {
 		// if the config is locked then a unit test has already configured and locked the logger; not an error.
 		if !errors.Is(err, mlog.ErrConfigurationLock) {
 			// revert to default logger if the config is invalid
@@ -771,7 +780,7 @@ func (s *Server) initLogging() error {
 	mlog.InitGlobalLogger(s.Log)
 
 	notificationLogSettings := config.GetLogSettingsFromNotificationsLogSettings(&s.Config().NotificationLogSettings)
-	if err := s.configureLogger("notification logging", s.NotificationsLog, notificationLogSettings, s.configStore, config.GetNotificationsLogFileLocation); err != nil {
+	if err := s.configureLogger("notification logging", s.NotificationsLog, notificationLogSettings, s.configStore.Store, config.GetNotificationsLogFileLocation); err != nil {
 		if !errors.Is(err, mlog.ErrConfigurationLock) {
 			mlog.Error("Error configuring notification logger", mlog.Err(err))
 			return err
