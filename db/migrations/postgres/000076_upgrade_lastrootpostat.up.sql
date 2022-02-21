@@ -7,7 +7,7 @@ BEGIN
 		AND table_name='channels'
 		AND column_name='lastrootpostat'
 		AND (column_default IS NULL OR column_default != '''0''::bigint')
-		) = 1 THEN
+	) = 1 THEN
 		ALTER TABLE channels ALTER COLUMN lastrootpostat SET DEFAULT '0'::bigint;
 	END IF;
 END$$;
@@ -15,14 +15,11 @@ END$$;
 DO $$
 BEGIN
 	IF (
-	SELECT
-		count(*)
-	FROM
-		Channels
-	WHERE
-		LastRootPostAt IS NULL
+		SELECT count(*)
+		FROM Channels
+		WHERE LastRootPostAt IS NULL
 		LIMIT 1
-		) > 0 THEN
+	) > 0 THEN
 		-- fixes migrate cte and sets the LastRootPostAt for channels that don't have it set
 		WITH q AS (
 			SELECT
