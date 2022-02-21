@@ -1088,6 +1088,7 @@ func TestAllowChannelMentions(t *testing.T) {
 }
 
 func TestAllowGroupMentions(t *testing.T) {
+	t.Skip("MM-41972")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
