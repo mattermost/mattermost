@@ -118,6 +118,43 @@ func TestSendInviteEmails(t *testing.T) {
 		verifyMailbox(t)
 	})
 
+	t.Run("SendGuestInviteEmail can return error when SMTP connection fails", func(t *testing.T) {
+		originalPort := ""
+		th.UpdateConfig(func(cfg *model.Config) {
+			originalPort = *cfg.EmailSettings.SMTPPort
+			cfg.EmailSettings.SMTPPort = model.NewString("12345")
+		})
+		defer th.UpdateConfig(func(cfg *model.Config) {
+			cfg.EmailSettings.SMTPPort = model.NewString(originalPort)
+		})
+
+		err := th.service.SendGuestInviteEmails(
+			th.BasicTeam,
+			[]*model.Channel{th.BasicChannel},
+			"test-user",
+			th.BasicUser.Id,
+			nil,
+			[]string{emailTo},
+			"http://testserver",
+			"hello world",
+			false,
+		)
+		require.NoError(t, err)
+
+		err = th.service.SendGuestInviteEmails(
+			th.BasicTeam,
+			[]*model.Channel{th.BasicChannel},
+			"test-user",
+			th.BasicUser.Id,
+			nil,
+			[]string{emailTo},
+			"http://testserver",
+			"hello world",
+			true,
+		)
+		require.Error(t, err)
+	})
+
 	t.Run("SendGuestInviteEmails should sanitize HTML input", func(t *testing.T) {
 		mail.DeleteMailBox(emailTo)
 
