@@ -632,7 +632,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Konnte den Kanal {{.Channel}} nicht finden. Bitte nutzen Sie den [Kanal-Handle](https://about.mattermost.com/default-channel-handle-documentation), um Kanäle zu identifizieren."
+    "translation": "Konnte den Kanal {{.Channel}} nicht finden. Bitte nutzen Sie den [Kanal-Handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) to identify channels), um Kanäle zu identifizieren."
   },
   {
     "id": "api.command_invite.desc",
@@ -776,7 +776,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Konnte den Kanal {{.Channel}} nicht finden. Bitte nutzen Sie den [Kanal-Handle](https://about.mattermost.com/default-channel-handle-documentation), um Kanäle zu identifizieren."
+    "translation": "Konnte den Kanal {{.Channel}} nicht finden. Bitte nutzen Sie den [Kanal-Handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) to identify channels), um Kanäle zu identifizieren."
   },
   {
     "id": "api.command_mute.hint",
@@ -788,7 +788,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Konnte den Kanal nicht finden. Bitte nutzen Sie den [Kanal-Handle](https://about.mattermost.com/default-channel-handle-documentation), um Kanäle zu identifizieren."
+    "translation": "Konnte den Kanal nicht finden. Bitte nutzen Sie den [Kanal-Handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) to identify channels), um Kanäle zu identifizieren."
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -8624,7 +8624,7 @@
   },
   {
     "id": "app.system.warn_metric.bot_description",
-    "translation": "[Mehr über den Mattermost Ratgeber erfahren](https://about.mattermost.com/default-channel-handle-documentation)"
+    "translation": "[Mehr über den Mattermost Ratgeber erfahren](https://docs.mattermost.com/manage/in-product-notices.html#admin-advisor-notices)"
   },
   {
     "id": "app.system.system_bot.bot_displayname",

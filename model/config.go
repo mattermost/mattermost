@@ -128,9 +128,9 @@ const (
 
 	SupportSettingsDefaultTermsOfServiceLink = "https://mattermost.com/terms-of-use/"
 	SupportSettingsDefaultPrivacyPolicyLink  = "https://mattermost.com/privacy-policy/"
-	SupportSettingsDefaultAboutLink          = "https://about.mattermost.com/default-about/"
-	SupportSettingsDefaultHelpLink           = "https://about.mattermost.com/default-help/"
-	SupportSettingsDefaultReportAProblemLink = "https://about.mattermost.com/default-report-a-problem/"
+	SupportSettingsDefaultAboutLink          = "https://docs.mattermost.com/about/product.html/"
+	SupportSettingsDefaultHelpLink           = "https://docs.mattermost.com//"
+	SupportSettingsDefaultReportAProblemLink = "https://handbook.mattermost.com/contributors/contributors/ways-to-contribute#report-a-bug/"
 	SupportSettingsDefaultSupportEmail       = ""
 	SupportSettingsDefaultReAcceptancePeriod = 365
 
@@ -167,8 +167,8 @@ const (
 	SamlSettingsDefaultCanonicalAlgorithm = SamlSettingsCanonicalAlgorithmC14n
 
 	NativeappSettingsDefaultAppDownloadLink        = "https://mattermost.com/download/#mattermostApps"
-	NativeappSettingsDefaultAndroidAppDownloadLink = "https://about.mattermost.com/mattermost-android-app/"
-	NativeappSettingsDefaultIosAppDownloadLink     = "https://about.mattermost.com/mattermost-ios-app/"
+	NativeappSettingsDefaultAndroidAppDownloadLink = "https://play.google.com/store/apps/details?id=com.mattermost.rn/"
+	NativeappSettingsDefaultIosAppDownloadLink     = "https://apps.apple.com/us/app/mattermost/id1257222717/"
 
 	ExperimentalSettingsDefaultLinkMetadataTimeoutMilliseconds = 5000
 

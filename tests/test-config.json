@@ -180,11 +180,11 @@
         "ShowFullName": true
     },
     "SupportSettings": {
-        "TermsOfServiceLink": "https://about.mattermost.com/default-terms/",
-        "PrivacyPolicyLink": "https://about.mattermost.com/default-privacy-policy/",
-        "AboutLink": "https://about.mattermost.com/default-about/",
-        "HelpLink": "https://about.mattermost.com/default-help/",
-        "ReportAProblemLink": "https://about.mattermost.com/default-report-a-problem/",
+        "TermsOfServiceLink": "https://mattermost.com/terms-of-use//",
+        "PrivacyPolicyLink": "https://mattermost.com/privacy-policy/",
+        "AboutLink": "https://mattermost.com/platform-overview/",
+        "HelpLink": "https://docs.mattermost.com/",
+        "ReportAProblemLink": "https://handbook.mattermost.com/contributors/contributors/ways-to-contribute#report-a-bug/",
         "SupportEmail": "feedback@mattermost.com"
     },
     "AnnouncementSettings": {
@@ -292,9 +292,9 @@
         "LoginButtonTextColor": ""
     },
     "NativeAppSettings": {
-        "AppDownloadLink": "https://about.mattermost.com/downloads/",
-        "AndroidAppDownloadLink": "https://about.mattermost.com/mattermost-android-app/",
-        "IosAppDownloadLink": "https://about.mattermost.com/mattermost-ios-app/"
+        "AppDownloadLink": "https://mattermost.com/download/",
+        "AndroidAppDownloadLink": "https://play.google.com/store/apps/details?id=com.mattermost.rn",
+        "IosAppDownloadLink": "https://apps.apple.com/us/app/mattermost/id1257222717"
     },
     "ClusterSettings": {
         "Enable": false,
