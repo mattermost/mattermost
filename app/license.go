@@ -50,7 +50,7 @@ func (s *Server) LoadLicense() {
 		if !license.IsSanctionedTrial() && license.IsTrialLicense() {
 			canStartTrialLicense, err := s.LicenseManager.CanStartTrial()
 			if err != nil {
-				mlog.Info("Failed to validate trial eligibility.", mlog.Err(err))
+				mlog.Error("Failed to validate trial eligibility.", mlog.Err(err))
 				return
 			}
 
@@ -78,7 +78,7 @@ func (s *Server) LoadLicense() {
 
 		if license != nil {
 			if _, err := s.SaveLicense(licenseBytes); err != nil {
-				mlog.Info("Failed to save license key loaded from disk.", mlog.Err(err))
+				mlog.Error("Failed to save license key loaded from disk.", mlog.Err(err))
 			} else {
 				licenseId = license.Id
 			}
@@ -87,7 +87,7 @@ func (s *Server) LoadLicense() {
 
 	record, nErr := s.Store.License().Get(licenseId)
 	if nErr != nil {
-		mlog.Info("License key from https://mattermost.com required to unlock enterprise features.")
+		mlog.Error("License key from https://mattermost.com required to unlock enterprise features.", mlog.Err(nErr))
 		s.SetLicense(nil)
 		return
 	}

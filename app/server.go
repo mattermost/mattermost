@@ -45,13 +45,25 @@ import (
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/jobs"
+	"github.com/mattermost/mattermost-server/v6/jobs/active_users"
+	"github.com/mattermost/mattermost-server/v6/jobs/expirynotify"
+	"github.com/mattermost/mattermost-server/v6/jobs/export_delete"
+	"github.com/mattermost/mattermost-server/v6/jobs/export_process"
+	"github.com/mattermost/mattermost-server/v6/jobs/extract_content"
+	"github.com/mattermost/mattermost-server/v6/jobs/import_delete"
+	"github.com/mattermost/mattermost-server/v6/jobs/import_process"
+	"github.com/mattermost/mattermost-server/v6/jobs/migrations"
+	"github.com/mattermost/mattermost-server/v6/jobs/product_notices"
+	"github.com/mattermost/mattermost-server/v6/jobs/resend_invitation_email"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin/scheduler"
 	"github.com/mattermost/mattermost-server/v6/services/awsmeter"
 	"github.com/mattermost/mattermost-server/v6/services/cache"
 	"github.com/mattermost/mattermost-server/v6/services/httpservice"
 	"github.com/mattermost/mattermost-server/v6/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine/bleveengine"
+	"github.com/mattermost/mattermost-server/v6/services/searchengine/bleveengine/indexer"
 	"github.com/mattermost/mattermost-server/v6/services/sharedchannel"
 	"github.com/mattermost/mattermost-server/v6/services/telemetry"
 	"github.com/mattermost/mattermost-server/v6/services/timezones"
@@ -73,6 +85,12 @@ import (
 
 // declaring this as var to allow overriding in tests
 var SentryDSN = "placeholder_sentry_dsn"
+
+type ServiceKey string
+
+const (
+	ConfigKey ServiceKey = "config"
+)
 
 type Server struct {
 	sqlStore        *sqlstore.SqlStore
@@ -138,7 +156,7 @@ type Server struct {
 	searchConfigListenerId  string
 	searchLicenseListenerId string
 	loggerLicenseListenerId string
-	configStore             *config.Store
+	configStore             *configWrapper
 
 	telemetryService *telemetry.TelemetryService
 	userService      *users.UserService
@@ -219,7 +237,7 @@ func NewServer(options ...Option) (*Server, error) {
 			return nil, errors.Wrap(err, "failed to load config")
 		}
 
-		s.configStore = configStore
+		s.configStore = &configWrapper{srv: s, Store: configStore}
 	}
 
 	// Step 2: Logging
@@ -238,10 +256,13 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.httpService = httpservice.MakeHTTPService(s)
 
+	serviceMap := map[ServiceKey]interface{}{
+		ConfigKey: s.configStore,
+	}
 	// Step 3: Initialize products.
 	// Depends on s.httpService.
 	for name, initializer := range products {
-		prod, err2 := initializer(s)
+		prod, err2 := initializer(s, serviceMap)
 		if err2 != nil {
 			return nil, errors.Wrapf(err2, "error initializing product: %s", name)
 		}
@@ -613,7 +634,6 @@ func NewServer(options ...Option) (*Server, error) {
 			appInstance := New(ServerConnector(s.Channels()))
 			s.runLicenseExpirationCheckJob()
 			s.runInactivityCheckJob()
-			runCheckAdminSupportStatusJob(appInstance, request.EmptyContext())
 			runDNDStatusExpireJob(appInstance)
 		})
 		s.runJobs()
@@ -745,7 +765,7 @@ func (s *Server) initLogging() error {
 		s.NotificationsLog = l.With(mlog.String("logSource", "notifications"))
 	}
 
-	if err := s.configureLogger("logging", s.Log, &s.Config().LogSettings, s.configStore, config.GetLogFileLocation); err != nil {
+	if err := s.configureLogger("logging", s.Log, &s.Config().LogSettings, s.configStore.Store, config.GetLogFileLocation); err != nil {
 		// if the config is locked then a unit test has already configured and locked the logger; not an error.
 		if !errors.Is(err, mlog.ErrConfigurationLock) {
 			// revert to default logger if the config is invalid
@@ -761,7 +781,7 @@ func (s *Server) initLogging() error {
 	mlog.InitGlobalLogger(s.Log)
 
 	notificationLogSettings := config.GetLogSettingsFromNotificationsLogSettings(&s.Config().NotificationLogSettings)
-	if err := s.configureLogger("notification logging", s.NotificationsLog, notificationLogSettings, s.configStore, config.GetNotificationsLogFileLocation); err != nil {
+	if err := s.configureLogger("notification logging", s.NotificationsLog, notificationLogSettings, s.configStore.Store, config.GetNotificationsLogFileLocation); err != nil {
 		if !errors.Is(err, mlog.ErrConfigurationLock) {
 			mlog.Error("Error configuring notification logger", mlog.Err(err))
 			return err
@@ -1490,12 +1510,6 @@ func doReportUsageToAWSMeteringService(s *Server) {
 	awsMeter.ReportUserCategoryUsage(reports)
 }
 
-func runCheckAdminSupportStatusJob(a *App, c *request.Context) {
-	model.CreateRecurringTask("Check Admin Support Status Job", func() {
-		doCheckAdminSupportStatus(a, c)
-	}, time.Hour*model.WarnMetricJobInterval)
-}
-
 func doSecurity(s *Server) {
 	s.DoSecurityUpdateCheck()
 }
@@ -1536,16 +1550,6 @@ func doJobsCleanup(s *Server) {
 	err := s.Store.Job().Cleanup(expiry, jobsCleanupBatchSize)
 	if err != nil {
 		mlog.Warn("Error while cleaning up jobs", mlog.Err(err))
-	}
-}
-
-func doCheckAdminSupportStatus(a *App, c *request.Context) {
-	isE0Edition := model.BuildEnterpriseReady == "true"
-
-	if strings.TrimSpace(*a.Config().SupportSettings.SupportEmail) == model.SupportSettingsDefaultSupportEmail {
-		if err := a.notifyAdminsOfWarnMetricStatus(c, model.SystemMetricSupportEmailNotConfigured, isE0Edition); err != nil {
-			mlog.Error("Failed to send notifications to admin users.", mlog.Err(err))
-		}
 	}
 }
 
@@ -1869,72 +1873,110 @@ func (ch *Channels) ClientConfigHash() string {
 
 func (s *Server) initJobs() {
 	s.Jobs = jobs.NewJobServer(s, s.Store, s.Metrics)
+	s.Jobs.InitWorkers()
+	s.Jobs.InitSchedulers()
+
 	if jobsDataRetentionJobInterface != nil {
-		s.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(s)
+		builder := jobsDataRetentionJobInterface(s)
+		s.Jobs.RegisterJobType(model.JobTypeDataRetention, builder.MakeWorker(), builder.MakeScheduler())
 	}
+
 	if jobsMessageExportJobInterface != nil {
-		s.Jobs.MessageExportJob = jobsMessageExportJobInterface(s)
+		builder := jobsMessageExportJobInterface(s)
+		s.Jobs.RegisterJobType(model.JobTypeMessageExport, builder.MakeWorker(), builder.MakeScheduler())
 	}
+
 	if jobsElasticsearchAggregatorInterface != nil {
-		s.Jobs.ElasticsearchAggregator = jobsElasticsearchAggregatorInterface(s)
+		builder := jobsElasticsearchAggregatorInterface(s)
+		s.Jobs.RegisterJobType(model.JobTypeElasticsearchPostAggregation, builder.MakeWorker(), builder.MakeScheduler())
 	}
+
 	if jobsElasticsearchIndexerInterface != nil {
-		s.Jobs.ElasticsearchIndexer = jobsElasticsearchIndexerInterface(s)
+		builder := jobsElasticsearchIndexerInterface(s)
+		s.Jobs.RegisterJobType(model.JobTypeElasticsearchPostIndexing, builder.MakeWorker(), nil)
 	}
-	if jobsBleveIndexerInterface != nil {
-		s.Jobs.BleveIndexer = jobsBleveIndexerInterface(s)
-	}
-	if jobsMigrationsInterface != nil {
-		s.Jobs.Migrations = jobsMigrationsInterface(s)
-	}
+
 	if jobsLdapSyncInterface != nil {
-		s.Jobs.LdapSync = jobsLdapSyncInterface(s)
-	}
-	if jobsPluginsInterface != nil {
-		s.Jobs.Plugins = jobsPluginsInterface(s)
-	}
-	if jobsExpiryNotifyInterface != nil {
-		s.Jobs.ExpiryNotify = jobsExpiryNotifyInterface(s)
-	}
-	if productNoticesJobInterface != nil {
-		s.Jobs.ProductNotices = productNoticesJobInterface(s)
-	}
-	if jobsImportProcessInterface != nil {
-		s.Jobs.ImportProcess = jobsImportProcessInterface(s)
-	}
-	if jobsImportDeleteInterface != nil {
-		s.Jobs.ImportDelete = jobsImportDeleteInterface(s)
-	}
-	if jobsExportDeleteInterface != nil {
-		s.Jobs.ExportDelete = jobsExportDeleteInterface(s)
-	}
-
-	if jobsExportProcessInterface != nil {
-		s.Jobs.ExportProcess = jobsExportProcessInterface(s)
-	}
-
-	if jobsExportProcessInterface != nil {
-		s.Jobs.ExportProcess = jobsExportProcessInterface(s)
-	}
-
-	if jobsActiveUsersInterface != nil {
-		s.Jobs.ActiveUsers = jobsActiveUsersInterface(s)
+		builder := jobsLdapSyncInterface(s)
+		s.Jobs.RegisterJobType(model.JobTypeLdapSync, builder.MakeWorker(), builder.MakeScheduler())
 	}
 
 	if jobsCloudInterface != nil {
-		s.Jobs.Cloud = jobsCloudInterface(s)
+		builder := jobsCloudInterface(s)
+		s.Jobs.RegisterJobType(model.JobTypeCloud, builder.MakeWorker(), builder.MakeScheduler())
 	}
 
-	if jobsResendInvitationEmailInterface != nil {
-		s.Jobs.ResendInvitationEmails = jobsResendInvitationEmailInterface(s)
-	}
+	s.Jobs.RegisterJobType(
+		model.JobTypeBlevePostIndexing,
+		indexer.MakeWorker(s.Jobs, s.SearchEngine.BleveEngine.(*bleveengine.BleveEngine)),
+		nil,
+	)
 
-	if jobsExtractContentInterface != nil {
-		s.Jobs.ExtractContent = jobsExtractContentInterface(s)
-	}
+	s.Jobs.RegisterJobType(
+		model.JobTypeMigrations,
+		migrations.MakeWorker(s.Jobs, s.Store),
+		migrations.MakeScheduler(s.Jobs, s.Store),
+	)
 
-	s.Jobs.InitWorkers()
-	s.Jobs.InitSchedulers()
+	s.Jobs.RegisterJobType(
+		model.JobTypePlugins,
+		scheduler.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
+		scheduler.MakeScheduler(s.Jobs),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeExpiryNotify,
+		expirynotify.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())).NotifySessionsExpired),
+		expirynotify.MakeScheduler(s.Jobs),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeProductNotices,
+		product_notices.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
+		product_notices.MakeScheduler(s.Jobs),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeImportProcess,
+		import_process.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
+		nil,
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeImportDelete,
+		import_delete.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store),
+		import_delete.MakeScheduler(s.Jobs),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeExportDelete,
+		export_delete.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
+		export_delete.MakeScheduler(s.Jobs),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeExportProcess,
+		export_process.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
+		nil,
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeActiveUsers,
+		active_users.MakeWorker(s.Jobs, s.Store, func() einterfaces.MetricsInterface { return s.Metrics }),
+		active_users.MakeScheduler(s.Jobs),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeResendInvitationEmail,
+		resend_invitation_email.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store, s.telemetryService),
+		nil,
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeExtractContent,
+		extract_content.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store),
+		nil,
+	)
 }
 
 func (s *Server) TelemetryId() string {

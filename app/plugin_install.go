@@ -83,7 +83,7 @@ func (ch *Channels) installPluginFromData(data model.PluginEventData) {
 	defer reader.Close()
 
 	var signature filestore.ReadCloseSeeker
-	if *ch.srv.Config().PluginSettings.RequirePluginSignature {
+	if *ch.cfgSvc.Config().PluginSettings.RequirePluginSignature {
 		signature, appErr = ch.srv.fileReader(plugin.signaturePath)
 		if appErr != nil {
 			mlog.Error("Failed to open plugin signature from file store.", mlog.Err(appErr))
@@ -196,7 +196,7 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 		signatureFile = bytes.NewReader(prepackagedPlugin.Signature)
 	}
 
-	if *ch.srv.Config().PluginSettings.EnableRemoteMarketplace && pluginFile == nil {
+	if *ch.cfgSvc.Config().PluginSettings.EnableRemoteMarketplace && pluginFile == nil {
 		var plugin *model.BaseMarketplacePlugin
 		plugin, appErr = ch.getRemoteMarketplacePlugin(request.Id, request.Version)
 		if appErr != nil {
@@ -353,7 +353,7 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 		}
 	}
 
-	pluginPath := filepath.Join(*ch.srv.Config().PluginSettings.Directory, manifest.Id)
+	pluginPath := filepath.Join(*ch.cfgSvc.Config().PluginSettings.Directory, manifest.Id)
 	err = utils.CopyDir(fromPluginDir, pluginPath)
 	if err != nil {
 		return nil, model.NewAppError("installExtractedPlugin", "app.plugin.mvdir.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -375,9 +375,9 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 	}
 
 	// Activate the plugin if enabled.
-	pluginState := ch.srv.Config().PluginSettings.PluginStates[manifest.Id]
+	pluginState := ch.cfgSvc.Config().PluginSettings.PluginStates[manifest.Id]
 	if pluginState != nil && pluginState.Enable {
-		if manifest.Id == "com.mattermost.apps" && !ch.srv.Config().FeatureFlags.AppsEnabled {
+		if manifest.Id == "com.mattermost.apps" && !ch.cfgSvc.Config().FeatureFlags.AppsEnabled {
 			return manifest, nil
 		}
 		updatedManifest, _, err := pluginsEnvironment.Activate(manifest.Id)

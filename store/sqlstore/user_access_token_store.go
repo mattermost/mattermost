@@ -18,17 +18,7 @@ type SqlUserAccessTokenStore struct {
 }
 
 func newSqlUserAccessTokenStore(sqlStore *SqlStore) store.UserAccessTokenStore {
-	s := &SqlUserAccessTokenStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.UserAccessToken{}, "UserAccessTokens").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("Token").SetMaxSize(26).SetUnique(true)
-		table.ColMap("UserId").SetMaxSize(26)
-		table.ColMap("Description").SetMaxSize(512)
-	}
-
-	return s
+	return &SqlUserAccessTokenStore{sqlStore}
 }
 
 func (s SqlUserAccessTokenStore) Save(token *model.UserAccessToken) (*model.UserAccessToken, error) {

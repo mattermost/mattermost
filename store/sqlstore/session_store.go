@@ -25,19 +25,7 @@ type SqlSessionStore struct {
 }
 
 func newSqlSessionStore(sqlStore *SqlStore) store.SessionStore {
-	us := &SqlSessionStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Session{}, "Sessions").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("Token").SetMaxSize(26)
-		table.ColMap("UserId").SetMaxSize(26)
-		table.ColMap("DeviceId").SetMaxSize(512)
-		table.ColMap("Roles").SetMaxSize(model.UserRolesMaxLength)
-		table.ColMap("Props").SetDataType(sqlStore.jsonDataType())
-	}
-
-	return us
+	return &SqlSessionStore{sqlStore}
 }
 
 func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {

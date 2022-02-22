@@ -90,7 +90,7 @@ func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, store.Store, storete
 			if testing.Short() {
 				t.SkipNow()
 			}
-			f(t, st.Store, st.SqlStore)
+			f(t, st.Store, &StoreTestWrapper{st.SqlStore})
 		})
 	}
 }
@@ -686,7 +686,7 @@ func TestReplicaLagQuery(t *testing.T) {
 
 		store.initConnection()
 		store.stores.post = newSqlPostStore(store, mockMetrics)
-		err := store.GetMaster().CreateTablesIfNotExists()
+		err := store.migrate(migrationsDirectionUp)
 		require.NoError(t, err)
 
 		defer store.Close()
@@ -760,7 +760,7 @@ func TestExecNoTimeout(t *testing.T) {
 		} else if sqlStore.DriverName() == model.DatabaseDriverPostgres {
 			query = `SELECT pg_sleep(2);`
 		}
-		_, err := sqlStore.GetMaster().ExecNoTimeout(query)
+		_, err := sqlStore.GetMasterX().ExecNoTimeout(query)
 		require.NoError(t, err)
 	})
 }
@@ -781,6 +781,6 @@ func TestMySQLReadTimeout(t *testing.T) {
 	store.initConnection()
 	defer store.Close()
 
-	_, err = store.GetMaster().ExecNoTimeout(`SELECT SLEEP(3)`)
+	_, err = store.GetMasterX().ExecNoTimeout(`SELECT SLEEP(3)`)
 	require.NoError(t, err)
 }

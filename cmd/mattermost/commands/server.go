@@ -73,7 +73,7 @@ func runServer(configStore *config.Store, interruptChan chan os.Signal) error {
 	}
 	server, err := app.NewServer(options...)
 	if err != nil {
-		mlog.Critical(err.Error())
+		mlog.Error(err.Error())
 		return err
 	}
 	defer server.Shutdown()
@@ -86,20 +86,24 @@ func runServer(configStore *config.Store, interruptChan chan os.Signal) error {
 		if x := recover(); x != nil {
 			var buf bytes.Buffer
 			pprof.Lookup("goroutine").WriteTo(&buf, 2)
-			mlog.Critical("A panic occurred",
+			mlog.Error("A panic occurred",
 				mlog.Any("error", x),
 				mlog.String("stack", buf.String()))
 			panic(x)
 		}
 	}()
 
-	api := api4.Init(server)
+	api, err := api4.Init(server)
+	if err != nil {
+		mlog.Error(err.Error())
+		return err
+	}
 	wsapi.Init(server)
 	web.New(server)
 
 	err = server.Start()
 	if err != nil {
-		mlog.Critical(err.Error())
+		mlog.Error(err.Error())
 		return err
 	}
 

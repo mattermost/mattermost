@@ -1735,6 +1735,9 @@ func (a *App) SearchUsers(props *model.UserSearch, options *model.UserSearchOpti
 	if props.InGroupId != "" {
 		return a.SearchUsersInGroup(props.InGroupId, props.Term, options)
 	}
+	if props.NotInGroupId != "" {
+		return a.SearchUsersNotInGroup(props.NotInGroupId, props.Term, options)
+	}
 	return a.SearchUsersInTeam(props.TeamId, props.Term, options)
 }
 
@@ -1813,6 +1816,20 @@ func (a *App) SearchUsersInGroup(groupID string, term string, options *model.Use
 	users, err := a.Srv().Store.User().SearchInGroup(groupID, term, options)
 	if err != nil {
 		return nil, model.NewAppError("SearchUsersInGroup", "app.user.search.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	for _, user := range users {
+		a.SanitizeProfile(user, options.IsAdmin)
+	}
+
+	return users, nil
+}
+
+func (a *App) SearchUsersNotInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	term = strings.TrimSpace(term)
+	users, err := a.Srv().Store.User().SearchNotInGroup(groupID, term, options)
+	if err != nil {
+		return nil, model.NewAppError("SearchUsersNotInGroup", "app.user.search.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	for _, user := range users {
@@ -2393,6 +2410,12 @@ func (a *App) UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
 	}
 
+	previousUnreadMentions := membership.UnreadMentions
+	previousUnreadReplies, nErr := a.Srv().Store.Thread().GetThreadUnreadReplyCount(membership)
+	if nErr != nil {
+		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+
 	post, err := a.GetSinglePost(threadID)
 	if err != nil {
 		return nil, err
@@ -2401,12 +2424,13 @@ func (a *App) UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID
 	if err != nil {
 		return nil, err
 	}
-	_, nErr := a.Srv().Store.Thread().UpdateMembership(membership)
+	_, nErr = a.Srv().Store.Thread().UpdateMembership(membership)
 	if nErr != nil {
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	membership.LastViewed = timestamp
+
 	nErr = a.Srv().Store.Thread().MarkAsRead(userID, threadID, timestamp)
 	if nErr != nil {
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
@@ -2426,9 +2450,20 @@ func (a *App) UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID
 	message.Add("timestamp", timestamp)
 	message.Add("unread_mentions", membership.UnreadMentions)
 	message.Add("unread_replies", thread.UnreadReplies)
+	message.Add("previous_unread_mentions", previousUnreadMentions)
+	message.Add("previous_unread_replies", previousUnreadReplies)
 	message.Add("channel_id", post.ChannelId)
 	a.Publish(message)
 	return thread, nil
+}
+
+func (a *App) GetUsersWithInvalidEmails(page int, perPage int) ([]*model.User, *model.AppError) {
+	users, err := a.Srv().Store.User().GetUsersWithInvalidEmails(page, perPage, *a.Config().TeamSettings.RestrictCreationToDomains)
+	if err != nil {
+		return nil, model.NewAppError("GetUsersPage", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return users, nil
 }
 
 func getProfileImagePath(userID string) string {

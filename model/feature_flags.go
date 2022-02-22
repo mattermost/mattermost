@@ -47,9 +47,6 @@ type FeatureFlags struct {
 	// Enable Calls plugin support in the mobile app
 	CallsMobile bool
 
-	// Start A/B tour tips automatically, possible values = ("none", "auto")
-	AutoTour string
-
 	// A dash separated list for feature flags to turn on for Boards
 	BoardsFeatureFlags string
 
@@ -62,6 +59,11 @@ type FeatureFlags struct {
 	// Determine after which duration in hours to send a second invitation to someone that didn't join after the initial invite, possible values = ("48", "72")
 	ResendInviteEmailInterval string
 
+	// A/B test for whether radio buttons or toggle button is more effective in in-screen invite to team modal ("none", "toggle")
+	InviteToTeam string
+
+	CustomGroups bool
+
 	// Enable inline post editing
 	InlinePostEditing bool
 
@@ -71,8 +73,15 @@ type FeatureFlags struct {
 	NormalizeLdapDNs bool
 
 	EnableInactivityCheckJob bool
+  
+	// Enable special onboarding flow for first admin
+	UseCaseOnboarding bool
+
 	// Enable Workspace optimization dashboard
 	WorkspaceOptimizationDashboard bool
+
+	// Enable GraphQL feature
+	GraphQL bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -89,18 +98,20 @@ func (f *FeatureFlags) SetDefaults() {
 	f.GlobalHeader = true
 	f.NewAccountNoisy = false
 	f.CallsMobile = false
-	f.AutoTour = "none"
 	f.BoardsFeatureFlags = ""
 	f.AddMembersToChannel = "top"
 	f.GuidedChannelCreation = false
 	f.ResendInviteEmailInterval = ""
+	f.InviteToTeam = "none"
+	f.CustomGroups = true
 	f.InlinePostEditing = false
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
 	f.EnableInactivityCheckJob = true
+	f.UseCaseOnboarding = false
 	f.WorkspaceOptimizationDashboard = false
+	f.GraphQL = false
 }
-
 func (f *FeatureFlags) Plugins() map[string]string {
 	rFFVal := reflect.ValueOf(f).Elem()
 	rFFType := reflect.TypeOf(f).Elem()
