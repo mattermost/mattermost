@@ -6228,10 +6228,6 @@
     "translation": "SMTP-server is verplicht"
   },
   {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Contacteer ons"
-  },
-  {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
     "translation": "Dank je om Mattermost te contacteren. We nemen spoedig contact op met jou."
   },
@@ -6254,18 +6250,6 @@
   {
     "id": "app.system.warn_metric.store.app_error",
     "translation": "Fout bij het bewaren van waarde voor {{.WarnMetricName}}"
-  },
-  {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Kon geen metrics vinden."
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "Lijst van beheerders is leeg."
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Meer informatie over the Mattermost Adviseur](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.system.warn_metric.bot_displayname",
@@ -6322,10 +6306,6 @@
   {
     "id": "api.server.warn_metric.email_us",
     "translation": "Stuur ons een e-mail"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Contacteer ons"
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_failure.message",
@@ -6942,14 +6922,6 @@
   {
     "id": "api.system.update_notices.clear_failed",
     "translation": "Het wissen van oude productmeldingen is mislukt"
-  },
-  {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Proefversie verkrijgen"
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Start proefversie"
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
@@ -8954,14 +8926,6 @@
   {
     "id": "api.templates.cloud_trial_ended_email.start_subscription",
     "translation": "Start abonnement"
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "Ga naar **Systeem console > Site Configuratie > Customisatie om het [ondersteuningse-mailadres](https://docs.mattermost.com/administration/config-settings.html#support-email) in te stellen als het interne IT helpdesk e-mailadres van je organisatie voor feedback van eindgebruikers, e-mail notificaties en support verzoeken."
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "Stel je e-mailadres voor ondersteuning in"
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",
