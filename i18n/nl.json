@@ -8453,7 +8453,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Streamline your work with tools like Github, Jira and Zoom. Explore all of the integrations we have on our"
+    "translation": "Stroomlijn je werk met tools al GitHub, Jira and Zoom. Verken al onze integraties die we hebben in onze"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -9273,5 +9273,57 @@
   {
     "id": "app.admin.latest_version_external_error.failure",
     "translation": " "
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "Naam conflicteert met bestaande systeem emoticonnaam."
+  },
+  {
+    "id": "app.system.get_onboarding_request.app_error",
+    "translation": "Fout bij het ophalen van de status van het voltooien van de verwelkoming."
+  },
+  {
+    "id": "app.member_count",
+    "translation": "fout bij ophalen ledenaantal"
+  },
+  {
+    "id": "app.group.crud_permission",
+    "translation": "Kan geen bewerking uitvoeren voor dat brontype."
+  },
+  {
+    "id": "app.custom_group.unique_name",
+    "translation": "de groepsnaam is niet uniek"
+  },
+  {
+    "id": "api.license_error",
+    "translation": "api endpoint vereist een licentie"
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "Fout bij het opslaan van de eerste admin complete setup in de store."
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "Fout bij het ophalen van de eerste admin complete setup uit de winkel."
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id moet leeg zijn voor aangepaste groep"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference moet zijn 'true' voor aangepaste groepen"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "geen licentie voor aangepaste groepen"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "de functie aangepaste groepen is uitgeschakeld"
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "groepen die fouten tellen"
   }
 ]
