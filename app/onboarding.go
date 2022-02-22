@@ -5,7 +5,6 @@ package app
 
 import (
 	"net/http"
-	"sync"
 
 	"github.com/pkg/errors"
 
@@ -23,12 +22,9 @@ func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnbo
 
 	pluginContext := pluginContext(c)
 
-	var wg sync.WaitGroup
 	for _, pluginID := range request.InstallPlugins {
-		wg.Add(1)
 
 		go func(id string) {
-			defer wg.Done()
 			installRequest := &model.InstallMarketplacePluginRequest{
 				Id: id,
 			}
@@ -67,8 +63,6 @@ func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnbo
 	if err := a.Srv().Store.System().SaveOrUpdate(&firstAdminCompleteSetupObj); err != nil {
 		return model.NewAppError("setFirstAdminCompleteSetup", "api.error_set_first_admin_complete_setup", nil, err.Error(), http.StatusInternalServerError)
 	}
-
-	wg.Wait()
 
 	return nil
 }

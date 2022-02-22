@@ -1179,7 +1179,7 @@ func TestSearchUsers(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -2751,7 +2751,7 @@ func TestGetUsersInGroup(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
