@@ -20,18 +20,9 @@ type SqlChannelMemberHistoryStore struct {
 }
 
 func newSqlChannelMemberHistoryStore(sqlStore *SqlStore) store.ChannelMemberHistoryStore {
-	s := &SqlChannelMemberHistoryStore{
+	return &SqlChannelMemberHistoryStore{
 		SqlStore: sqlStore,
 	}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.ChannelMemberHistory{}, "ChannelMemberHistory").SetKeys(false, "ChannelId", "UserId", "JoinTime")
-		table.ColMap("ChannelId").SetMaxSize(26)
-		table.ColMap("UserId").SetMaxSize(26)
-		table.ColMap("JoinTime").SetNotNull(true)
-	}
-
-	return s
 }
 
 func (s SqlChannelMemberHistoryStore) LogJoinEvent(userId string, channelId string, joinTime int64) error {

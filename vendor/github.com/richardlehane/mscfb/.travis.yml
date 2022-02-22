@@ -1,5 +1,4 @@
 language: go
 go:
-  - 1.2
   - stable
   - tip

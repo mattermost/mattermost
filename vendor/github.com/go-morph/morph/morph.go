@@ -42,7 +42,7 @@ type Config struct {
 
 type EngineOption func(*Morph)
 
-func WithLogger(logger *log.Logger) EngineOption {
+func WithLogger(logger Logger) EngineOption {
 	return func(m *Morph) {
 		m.config.Logger = logger
 	}
@@ -80,7 +80,7 @@ func WithLock(key string) EngineOption {
 func New(ctx context.Context, driver drivers.Driver, source sources.Source, options ...EngineOption) (*Morph, error) {
 	engine := &Morph{
 		config: &Config{
-			Logger: log.New(os.Stderr, "", log.LstdFlags), // add default logger
+			Logger: newColorLogger(log.New(os.Stderr, "", log.LstdFlags)), // add default logger
 		},
 		source: source,
 		driver: driver,
@@ -164,14 +164,14 @@ func (m *Morph) Apply(limit int) (int, error) {
 	for i := 0; i < steps; i++ {
 		start := time.Now()
 		migrationName := migrations[i].Name
-		m.config.Logger.Println(InfoLoggerLight.Sprint(formatProgress(fmt.Sprintf(migrationProgressStart, migrationName))))
+		m.config.Logger.Println(formatProgress(fmt.Sprintf(migrationProgressStart, migrationName)))
 		if err := m.driver.Apply(migrations[i], true); err != nil {
 			return applied, err
 		}
 
 		applied++
 		elapsed := time.Since(start)
-		m.config.Logger.Println(InfoLoggerLight.Sprint(formatProgress(fmt.Sprintf(migrationProgressFinished, migrationName, fmt.Sprintf("%.4fs", elapsed.Seconds())))))
+		m.config.Logger.Println(formatProgress(fmt.Sprintf(migrationProgressFinished, migrationName, fmt.Sprintf("%.4fs", elapsed.Seconds()))))
 	}
 
 	return applied, nil
@@ -204,7 +204,7 @@ func (m *Morph) ApplyDown(limit int) (int, error) {
 	for i := 0; i < steps; i++ {
 		start := time.Now()
 		migrationName := sortedMigrations[i].Name
-		m.config.Logger.Println(InfoLoggerLight.Sprint(formatProgress(fmt.Sprintf(migrationProgressStart, migrationName))))
+		m.config.Logger.Println(formatProgress(fmt.Sprintf(migrationProgressStart, migrationName)))
 
 		down := downMigrations[migrationName]
 		if err := m.driver.Apply(down, true); err != nil {
@@ -213,7 +213,7 @@ func (m *Morph) ApplyDown(limit int) (int, error) {
 
 		applied++
 		elapsed := time.Since(start)
-		m.config.Logger.Println(InfoLoggerLight.Sprint(formatProgress(fmt.Sprintf(migrationProgressFinished, migrationName, fmt.Sprintf("%.4fs", elapsed.Seconds())))))
+		m.config.Logger.Println(formatProgress(fmt.Sprintf(migrationProgressFinished, migrationName, fmt.Sprintf("%.4fs", elapsed.Seconds()))))
 	}
 
 	return applied, nil

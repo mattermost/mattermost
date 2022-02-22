@@ -114,7 +114,7 @@ const (
 	TeamSettingsDefaultCustomDescriptionText = ""
 	TeamSettingsDefaultUserStatusAwayTimeout = 300
 
-	SqlSettingsDefaultDataSource = "postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10"
+	SqlSettingsDefaultDataSource = "postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
 
 	FileSettingsDefaultDirectory = "./data/"
 
@@ -305,6 +305,7 @@ type ServiceSettings struct {
 	EnableTesting                                     *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	EnableDeveloper                                   *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	DeveloperFlags                                    *string  `access:"environment_developer"`
+	EnableClientPerformanceDebugging                  *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	EnableOpenTracing                                 *bool    `access:"write_restrictable,cloud_restrictable"`
 	EnableSecurityFixAlert                            *bool    `access:"environment_smtp,write_restrictable,cloud_restrictable"`
 	EnableInsecureOutgoingConnections                 *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
@@ -366,6 +367,7 @@ type ServiceSettings struct {
 	ThreadAutoFollow                                  *bool   `access:"experimental_features"`
 	CollapsedThreads                                  *string `access:"experimental_features"`
 	ManagedResourcePaths                              *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -420,6 +422,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.DeveloperFlags == nil {
 		s.DeveloperFlags = NewString("")
+	}
+
+	if s.EnableClientPerformanceDebugging == nil {
+		s.EnableClientPerformanceDebugging = NewBool(false)
 	}
 
 	if s.EnableOpenTracing == nil {
@@ -781,6 +787,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.ManagedResourcePaths == nil {
 		s.ManagedResourcePaths = NewString("")
+	}
+
+	if s.EnableCustomGroups == nil {
+		s.EnableCustomGroups = NewBool(true)
 	}
 }
 

@@ -9111,18 +9111,6 @@
     "translation": "Datagallringsjobbet misslyckades."
   },
   {
-    "id": "extract_content.worker.do_job.file_info",
-    "translation": "Misslyckades med att hämta filinformation för innehållsanalys."
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.to",
-    "translation": "Felaktigt värde i 'till'"
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.from",
-    "translation": "Felaktigt värde i 'från'"
-  },
-  {
     "id": "api.user.invalidate_verify_email_tokens_parse.error",
     "translation": "Det går inte att analysera token för att göra mejlverifieringstoken ogiltiga"
   },

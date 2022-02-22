@@ -23,39 +23,10 @@ func (s SqlWebhookStore) ClearCaches() {
 }
 
 func newSqlWebhookStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.WebhookStore {
-	s := &SqlWebhookStore{
+	return &SqlWebhookStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
 	}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.IncomingWebhook{}, "IncomingWebhooks").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("UserId").SetMaxSize(26)
-		table.ColMap("ChannelId").SetMaxSize(26)
-		table.ColMap("TeamId").SetMaxSize(26)
-		table.ColMap("DisplayName").SetMaxSize(64)
-		table.ColMap("Description").SetMaxSize(500)
-		table.ColMap("Username").SetMaxSize(255)
-		table.ColMap("IconURL").SetMaxSize(1024)
-
-		tableo := db.AddTableWithName(model.OutgoingWebhook{}, "OutgoingWebhooks").SetKeys(false, "Id")
-		tableo.ColMap("Id").SetMaxSize(26)
-		tableo.ColMap("Token").SetMaxSize(26)
-		tableo.ColMap("CreatorId").SetMaxSize(26)
-		tableo.ColMap("ChannelId").SetMaxSize(26)
-		tableo.ColMap("TeamId").SetMaxSize(26)
-		tableo.ColMap("TriggerWords").SetMaxSize(1024)
-		tableo.ColMap("CallbackURLs").SetMaxSize(1024)
-		tableo.ColMap("DisplayName").SetMaxSize(64)
-		tableo.ColMap("Description").SetMaxSize(500)
-		tableo.ColMap("ContentType").SetMaxSize(128)
-		tableo.ColMap("TriggerWhen").SetMaxSize(1)
-		tableo.ColMap("Username").SetMaxSize(64)
-		tableo.ColMap("IconURL").SetMaxSize(1024)
-	}
-
-	return s
 }
 
 func (s SqlWebhookStore) InvalidateWebhookCache(webhookId string) {

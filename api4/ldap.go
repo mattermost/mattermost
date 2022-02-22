@@ -117,7 +117,7 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	for _, group := range groups {
 		mug := &mixedUnlinkedGroup{
 			DisplayName: group.DisplayName,
-			RemoteId:    group.RemoteId,
+			RemoteId:    group.GetRemoteId(),
 		}
 		if len(group.Id) == 26 {
 			mug.Id = &group.Id
@@ -170,7 +170,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, err := c.App.GetGroupByRemoteID(ldapGroup.RemoteId, model.GroupSourceLdap)
+	group, err := c.App.GetGroupByRemoteID(ldapGroup.GetRemoteId(), model.GroupSourceLdap)
 	if err != nil && err.Id != "app.group.no_rows" {
 		c.Err = err
 		return
