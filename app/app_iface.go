@@ -1027,6 +1027,7 @@ type AppIface interface {
 	TestFileStoreConnection() *model.AppError
 	TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError
 	TestLdap() *model.AppError
+	TestPushNotification(deviceID string) (canSend bool, err error)
 	TestSiteURL(siteURL string) *model.AppError
 	Timezones() *timezones.Timezones
 	ToggleMuteChannel(channelID, userID string) (*model.ChannelMember, *model.AppError)

@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -390,6 +391,8 @@ func (a *App) sendToPushProxy(msg *model.PushNotification, session *model.Sessio
 		mlog.String("status", model.PushSendPrepare),
 	)
 
+	fmt.Printf("%s %s\n", msg.DeviceId, msg.Platform)
+
 	msgJSON, jsonErr := json.Marshal(msg)
 	if jsonErr != nil {
 		return errors.Wrap(jsonErr, "failed to encode to JSON")
@@ -566,6 +569,42 @@ func (a *App) BuildPushNotificationMessage(contentsConfig string, post *model.Po
 	msg.Badge = int(unreadCount)
 
 	return msg, nil
+}
+
+func (a *App) TestPushNotification(deviceID string) (canSend bool, err error) {
+	var msg *model.PushNotification = &model.PushNotification{}
+	msg.SetDeviceIdAndPlatform(deviceID)
+
+	msgJSON, jsonErr := json.Marshal(msg)
+	if jsonErr != nil {
+		return false, errors.Wrap(jsonErr, "failed to encode to JSON")
+	}
+
+	url := strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/") + model.APIURLSuffixV1 + "/send_push"
+	request, err := http.NewRequest("POST", url, bytes.NewReader(msgJSON))
+	if err != nil {
+		return false, err
+	}
+
+	resp, err := a.Srv().pushNotificationClient.Do(request)
+	if err != nil {
+		return false, err
+	}
+	defer resp.Body.Close()
+
+	var pushResponse model.PushResponse
+	if jsonErr := json.NewDecoder(resp.Body).Decode(&pushResponse); jsonErr != nil {
+		return false, errors.Wrap(jsonErr, "failed to decode from JSON")
+	}
+
+	switch pushResponse[model.PushStatus] {
+	case model.PushStatusRemove:
+		return false, nil
+	case model.PushStatusFail:
+		return false, errors.New(pushResponse[model.PushStatusErrorMsg])
+	}
+
+	return true, nil
 }
 
 func (a *App) buildIdLoadedPushNotificationMessage(channel *model.Channel, post *model.Post, user *model.User) *model.PushNotification {
