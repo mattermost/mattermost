@@ -9331,7 +9331,51 @@
     "translation": " "
   },
   {
-    "id": "model.config.is_valid.session_length_sso_in_days.app_error",
-    "translation": " "
+    "id": "app.system.get_onboarding_request.app_error",
+    "translation": "Fehlschlag beim Holen des Onboarding-abgeschlossen Status."
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "Fehler beim Versuch das erste komplette Admin Setup zu speichern."
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "Fehler beim Holen des ersten kompletten Admin Setups vom Speicher."
+  },
+  {
+    "id": "app.member_count",
+    "translation": "Fehler beim Holen der Mitgliederanzahl"
+  },
+  {
+    "id": "app.group.crud_permission",
+    "translation": "Kann die Operation für diesen Quell-Typ nicht durchführen."
+  },
+  {
+    "id": "app.custom_group.unique_name",
+    "translation": "Gruppenname ist nicht eindeutig"
+  },
+  {
+    "id": "api.license_error",
+    "translation": "API Endpunkt benötigt eine Lizenz"
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id muss leer sein für benutzerdefinierte Gruppen"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference muss 'wahr' sein für benutzerdefinierte Gruppen"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "Nicht lizensiert für benutzerdefinierte Gruppen"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "Feature Benutzerdefinierte Gruppen ist deaktiviert"
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "Fehler beim Zählen der Gruppen"
   }
 ]
