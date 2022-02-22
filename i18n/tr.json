@@ -6264,24 +6264,12 @@
     "translation": "Mattermost danışmanı"
   },
   {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Mattermost danışmanı hakkında ayrıntılı bilgi alın](https://about.mattermost.com/default-channel-handle-documentation)"
-  },
-  {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
     "translation": "Mattermost, 500 üzerinde kullanıcı için, kullanıcı yönetimi, sunucu kümeleme ve başarım izleme gibi özelliklerin kullanılmasını önerir. Ayrıntılı bilgi almak ve size nasıl yardımcı olabileceğimizi anlatmak için bizimle görüşün.\n\nBizimle görüşün üzerine tıkladığınızda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "app.system.warn_metric.store.app_error",
     "translation": "{{.WarnMetricName}} değeri kaydedilemedi"
-  },
-  {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Ölçüt bulunamadı."
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "Yönetici listesi boş."
   },
   {
     "id": "api.templates.warn_metric_ack.subject",
@@ -6322,14 +6310,6 @@
   {
     "id": "api.server.warn_metric.email_us",
     "translation": "Bize e-posta gönderin"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Bizimle görüşmek"
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Bizimle görüşün"
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
@@ -6978,14 +6958,6 @@
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Kanal üyeleri alınamadı."
-  },
-  {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Deneme sürümünü edinmek"
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Denemeyi başlat"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
@@ -8956,20 +8928,12 @@
     "translation": "Aboneliği başlat"
   },
   {
-    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "Destek e-posta adresinizi yazın"
-  },
-  {
     "id": "api.command_channel_purpose.update_channel.max_length",
     "translation": "Yazılan metin karakter sayısı sınırını aşıyor. Kanal amacı en fazla {{.MaxLength}} karakter uzunluğunda olabilir."
   },
   {
     "id": "api.command_channel_header.update_channel.max_length",
     "translation": "Yazılan metin karakter sayısı sınırını aşıyor. Kanal başlığı en fazla {{.MaxLength}} karakter uzunluğunda olabilir."
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "Lütfen **Sistem panosu > Site yapılandırması > Özelleştirme** bölümüne giderek [Destek e-posta adresi](https://docs.mattermost.com/administration/config-settings.html#support-email) olarak kuruluşunuzun iç BT destek ekibi e-posta adresini yazın. Böylece son kullanıcı geri bildirimleri, e-posta bildirimleri ve destek istekleri alınabilir."
   },
   {
     "id": "app.notification.footer.title",
@@ -9328,10 +9292,6 @@
   },
   {
     "id": "api.users.invalid_emails.enable_open_server.app_error",
-    "translation": " "
-  },
-  {
-    "id": "model.config.is_valid.session_length_sso_in_days.app_error",
     "translation": " "
   }
 ]

@@ -4348,20 +4348,8 @@
     "translation": "Nem sikerült eltárolni az értéket {{.WarnMetricName}} számára"
   },
   {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Nem található metrika."
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "Az adminok listája üres."
-  },
-  {
     "id": "app.system.warn_metric.bot_displayname",
     "translation": "Mattermost Tanácsadó"
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[További információk a Mattermost Advisor-ról](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.system.save.app_error",
@@ -6240,14 +6228,6 @@
     "translation": "Az integráció/Slack Bot felhasználó ezzel az emaillel {{.Email}} és jelszóval {{.Password}} sikeresen importálva.\n"
   },
   {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Próbaidőszak kérése"
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Próbaidőszak elkezdése"
-  },
-  {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
     "translation": "Az Ön Enterprise próbalicence mostantól aktív. Menjen a **Rendszerkonzol > Felhasználó kezelés > Jogosultságok** menübe a haladó jogosultságok engedélyezéséhez."
   },
@@ -6434,14 +6414,6 @@
   {
     "id": "api.server.warn_metric.email_domain.contact_us.email_body",
     "translation": "Mattermost kapcsolat felvételi kérés. Szeretnék többet megtudni a vendégfiókok használatáról.\n"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Kapcsolat felvétel"
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Kapcsolat felvétel"
   },
   {
     "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
@@ -8944,16 +8916,8 @@
     "translation": "Mattermost cloud próbaidőszak véget ért"
   },
   {
-    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "A vállalata belső IT [támogatási e-mail cím](https://docs.mattermost.com/administration/config-settings.html#support-email) beállításához a **Rendszerkonzol > Weboldal beállítások > Testreszabás** oldalon adja meg a végfelhasználói visszajelzésekhez, e-mailes értesítésekhez és támogatási kérelmekhez."
-  },
-  {
     "id": "api.templates.cloud_trial_ended_email.start_subscription",
     "translation": "Előfizetés indítása"
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "Állítsa be támogatási e-mail címét"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subTitle",
@@ -9325,10 +9289,6 @@
   },
   {
     "id": "api.users.invalid_emails.enable_open_server.app_error",
-    "translation": " "
-  },
-  {
-    "id": "model.config.is_valid.session_length_sso_in_days.app_error",
     "translation": " "
   }
 ]
