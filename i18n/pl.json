@@ -6520,10 +6520,6 @@
     "translation": "Nie udało się pobrać członków kanału."
   },
   {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Request trial"
-  },
-  {
     "id": "api.server.warn_metric.mfa.notification_title",
     "translation": "Wymuszaj uwierzytelnianie wieloskładnikowe"
   },
@@ -7624,14 +7620,6 @@
     "translation": "Prośba o kontakt z firmą Mattermost. Chcę dowiedzieć się więcej na temat korzystania z Kont Gości.\n"
   },
   {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Kontakt z nami"
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Skontaktuj się z nami"
-  },
-  {
     "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
     "translation": "Nie można pobrać licencji próbnej. Odwiedź stronę https://mattermost.com/trial/, aby poprosić o licencję."
   },
@@ -8018,18 +8006,6 @@
   {
     "id": "api.system.update_notices.clear_failed",
     "translation": "Usuwanie starych ogłoszeń o produktach nie powiodło się"
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "Przejdź do **Konsola Systemu > Konfiguracja Strony > Dostosowywanie**, aby ustawić adres [Support Email](https://docs.mattermost.com/administration/config-settings.html#support-email) jako wewnętrzny adres e-mail działu wsparcia IT Twojej organizacji, służący do przesyłania opinii użytkowników końcowych, powiadomień e-mail oraz zgłoszeń pomocy technicznej."
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "Ustaw adres e-mail pomocy technicznej"
-  },
-  {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Pobieranie wersji testowej"
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
@@ -9024,20 +9000,8 @@
     "translation": "Błąd zapisu wartości dla {{.WarnMetricName}}"
   },
   {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Nie można znaleźć metryki."
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "Lista administratorów jest pusta."
-  },
-  {
     "id": "app.system.warn_metric.bot_displayname",
     "translation": "Doradca Mattermost"
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Dowiedz się więcej o Mattermost Advisor](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.system.system_bot.bot_displayname",

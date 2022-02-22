@@ -1408,20 +1408,8 @@
     "translation": "Failed to store value for {{.WarnMetricName}}"
   },
   {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Could not find metric."
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "List of admins is empty."
-  },
-  {
     "id": "app.system.warn_metric.bot_displayname",
     "translation": "Mattermost Advisor"
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Learn more about the Mattermost Advisor](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.system.save.app_error",
@@ -7665,18 +7653,6 @@
     "translation": "The Integration/Slack Bot user with email {{.Email}} and password {{.Password}} has been imported.\n"
   },
   {
-    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "Please go to **System Console > Site Configuration > Customisation** to set the [Support Email](https://docs.mattermost.com/administration/config-settings.html#support-email) as your organisation's internal IT Support Desk email address for end user feedback, email notifications, and support requests."
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "Set your 'Contact Support' email address"
-  },
-  {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Getting Trial"
-  },
-  {
     "id": "api.server.warn_metric.start_trial",
     "translation": "Start Trial"
   },
@@ -7863,14 +7839,6 @@
   {
     "id": "api.server.warn_metric.email_domain.contact_us.email_body",
     "translation": "Mattermost contact us request. I'm interested in learning more about using Guest Accounts.\n"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Contacting Us"
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Contact Us"
   },
   {
     "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
