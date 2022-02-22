@@ -428,7 +428,7 @@ func (es *Service) SendMfaChangeEmail(email string, activated bool, locale, site
 	return nil
 }
 
-func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string, reminderData *model.TeamInviteReminderData) error {
+func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, errorWhenNotSent bool) error {
 	if es.PerHourEmailRateLimiter == nil {
 		return NoRateLimiterError
 	}
@@ -493,13 +493,16 @@ func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderU
 
 			if err := es.sendMail(invite, subject, body); err != nil {
 				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
+				if errorWhenNotSent {
+					return SendMailError
+				}
 			}
 		}
 	}
 	return nil
 }
 
-func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string) error {
+func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string, errorWhenNotSent bool) error {
 	if es.PerHourEmailRateLimiter == nil {
 		return NoRateLimiterError
 	}
@@ -592,6 +595,9 @@ func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Cha
 
 			if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, embeddedFiles); nErr != nil {
 				mlog.Error("Failed to send invite email successfully", mlog.Err(nErr))
+				if errorWhenNotSent {
+					return SendMailError
+				}
 			}
 		}
 	}

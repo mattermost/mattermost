@@ -2952,6 +2952,14 @@
     "translation": "No one to invite."
   },
   {
+    "id": "api.team.invite_members.unable_to_send_email.app_error",
+    "translation": "Error while sending the email"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
+    "translation": "SMTP is not configured in System Console"
+  },
+  {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
     "translation": "Team creation has been disabled. Please ask your System Administrator for details."
   },

@@ -1325,9 +1325,19 @@ func (a *App) InviteNewUsersToTeamGracefully(emailList []string, teamID, senderI
 
 	if len(goodEmails) > 0 {
 		nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
-		eErr := a.Srv().EmailService.SendInviteEmails(team, user.GetDisplayName(nameFormat), user.Id, goodEmails, a.GetSiteURL(), reminderData)
+		eErr := a.Srv().EmailService.SendInviteEmails(team, user.GetDisplayName(nameFormat), user.Id, goodEmails, a.GetSiteURL(), reminderData, true)
 		if eErr != nil {
 			switch {
+			case errors.Is(eErr, email.SendMailError):
+				for i := range inviteListWithErrors {
+					if inviteListWithErrors[i].Error == nil {
+						if *a.Config().EmailSettings.SMTPServer == model.EmailSMTPDefaultServer && *a.Config().EmailSettings.SMTPPort == model.EmailSMTPDefaultPort {
+							inviteListWithErrors[i].Error = model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.unable_to_send_email_with_defaults.app_error", nil, "", http.StatusInternalServerError)
+						} else {
+							inviteListWithErrors[i].Error = model.NewAppError("SendInviteEmails", "api.team.invite_members.unable_to_send_email.app_error", nil, "", http.StatusInternalServerError)
+						}
+					}
+				}
 			case errors.Is(eErr, email.NoRateLimiterError):
 				return nil, model.NewAppError("SendInviteEmails", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s", user.Id, team.Id), http.StatusInternalServerError)
 			case errors.Is(eErr, email.SetupRateLimiterError):
@@ -1434,9 +1444,20 @@ func (a *App) InviteGuestsToChannelsGracefully(teamID string, guestsInvite *mode
 		if err != nil {
 			a.Log().Warn("Unable to get the sender user profile image.", mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.Err(err))
 		}
-		eErr := a.Srv().EmailService.SendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, senderProfileImage, goodEmails, a.GetSiteURL(), guestsInvite.Message)
+		eErr := a.Srv().EmailService.SendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, senderProfileImage, goodEmails, a.GetSiteURL(), guestsInvite.Message, true)
 		if eErr != nil {
 			switch {
+			case errors.Is(eErr, email.SendMailError):
+				for i := range inviteListWithErrors {
+					if inviteListWithErrors[i].Error == nil {
+						if *a.Config().EmailSettings.SMTPServer == model.EmailSMTPDefaultServer && *a.Config().EmailSettings.SMTPPort == model.EmailSMTPDefaultPort {
+							inviteListWithErrors[i].Error = model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.unable_to_send_email_with_defaults.app_error", nil, "", http.StatusInternalServerError)
+						} else {
+							inviteListWithErrors[i].Error = model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.unable_to_send_email.app_error", nil, "", http.StatusInternalServerError)
+						}
+
+					}
+				}
 			case errors.Is(eErr, email.NoRateLimiterError):
 				return nil, model.NewAppError("SendInviteEmails", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s", user.Id, team.Id), http.StatusInternalServerError)
 			case errors.Is(eErr, email.SetupRateLimiterError):
@@ -1480,7 +1501,7 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamID, senderId string) 
 	}
 
 	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
-	eErr := a.Srv().EmailService.SendInviteEmails(team, user.GetDisplayName(nameFormat), user.Id, emailList, a.GetSiteURL(), nil)
+	eErr := a.Srv().EmailService.SendInviteEmails(team, user.GetDisplayName(nameFormat), user.Id, emailList, a.GetSiteURL(), nil, false)
 	if eErr != nil {
 		switch {
 		case errors.Is(eErr, email.NoRateLimiterError):
@@ -1522,7 +1543,7 @@ func (a *App) InviteGuestsToChannels(teamID string, guestsInvite *model.GuestsIn
 	if err != nil {
 		a.Log().Warn("Unable to get the sender user profile image.", mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.Err(err))
 	}
-	eErr := a.Srv().EmailService.SendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, senderProfileImage, guestsInvite.Emails, a.GetSiteURL(), guestsInvite.Message)
+	eErr := a.Srv().EmailService.SendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, senderProfileImage, guestsInvite.Emails, a.GetSiteURL(), guestsInvite.Message, false)
 	if eErr != nil {
 		switch {
 		case errors.Is(eErr, email.NoRateLimiterError):
