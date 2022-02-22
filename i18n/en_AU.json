@@ -9305,5 +9305,53 @@
   {
     "id": "model.emoji.system_emoji_name.app_error",
     "translation": "Name conflicts with existing system emoji name."
+  },
+  {
+    "id": "app.system.get_onboarding_request.app_error",
+    "translation": "Failed to get onboarding completion status."
+  },
+  {
+    "id": "app.member_count",
+    "translation": "error retrieving member count"
+  },
+  {
+    "id": "app.group.crud_permission",
+    "translation": "Unable to perform operation for that source type."
+  },
+  {
+    "id": "app.custom_group.unique_name",
+    "translation": "group name is not unique"
+  },
+  {
+    "id": "api.license_error",
+    "translation": "API endpoint requires a licence"
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "Error trying to save first admin complete setup in the store."
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "Error trying to retrieve first admin complete setup from the store."
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id must be blank for custom group"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference must be 'true' for custom groups"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "not licensed for custom groups"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "custom groups feature is disabled"
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "error counting groups"
   }
 ]
