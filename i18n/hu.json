@@ -9328,7 +9328,51 @@
     "translation": " "
   },
   {
-    "id": "model.config.is_valid.session_length_sso_in_days.app_error",
-    "translation": " "
+    "id": "app.system.get_onboarding_request.app_error",
+    "translation": "Nem sikerült lekérni az induló beállítás állapotát."
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "Hiba az első admin teljes beállításának mentésekor a tárolóba."
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "Hiba az első admin teljes beállításának lekérdezésénél a tárolóból."
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "hiba a csoportok megszámolása közben"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "egyéni csoportok funkció kikapcsolva"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "nincs licencelve az egyéni csoportok"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference értékének 'true' -nak kell lennie az egyéni csoporthoz"
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id -nak üresnek kell lennie az egyéni csoporthoz"
+  },
+  {
+    "id": "api.license_error",
+    "translation": "api végponthoz licenc szükséges"
+  },
+  {
+    "id": "app.custom_group.unique_name",
+    "translation": "a csoport neve nem egyedi"
+  },
+  {
+    "id": "app.group.crud_permission",
+    "translation": "Nem lehet műveletet végrehajtani az adott forrás típushoz."
+  },
+  {
+    "id": "app.member_count",
+    "translation": "hiba a tagok számának lekérdezésében"
   }
 ]
