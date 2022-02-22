@@ -9294,5 +9294,53 @@
   {
     "id": "api.users.invalid_emails.enable_open_server.app_error",
     "translation": " "
+  },
+  {
+    "id": "app.system.get_onboarding_request.app_error",
+    "translation": "Nie udało się uzyskać statusu ukończenia onboardingu."
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "Błąd przy próbie zapisania pierwszej konfiguracji administratora w sklepie."
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "Błąd przy próbie pobrania ze sklepu pierwszej kompletnej konfiguracji administratora."
+  },
+  {
+    "id": "app.member_count",
+    "translation": "błąd pobierania liczby członków"
+  },
+  {
+    "id": "app.group.crud_permission",
+    "translation": "Nie można wykonać operacji dla tego typu źródła."
+  },
+  {
+    "id": "app.custom_group.unique_name",
+    "translation": "nazwa grupy nie jest unikalna"
+  },
+  {
+    "id": "api.license_error",
+    "translation": "punkt końcowy api wymaga licencji"
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id musi być puste dla grupy niestandardowej"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference musi być 'true' dla grup niestandardowych"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "nie jest licencjonowany dla grup niestandardowych"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "funkcja grup niestandardowych jest wyłączona"
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "błąd liczenia grup"
   }
 ]
