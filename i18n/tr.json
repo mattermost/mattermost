@@ -9300,11 +9300,11 @@
   },
   {
     "id": "app.system.complete_onboarding_request.no_first_user",
-    "translation": "Başlamaya hazırlama yalnız bir sistem yöneticisi tarafından tamamlanabilir."
+    "translation": "Başlamaya hazırlık işlemi yalnız bir sistem yöneticisi tarafından tamamlanabilir."
   },
   {
     "id": "app.system.complete_onboarding_request.app_error",
-    "translation": "Başlamaya hazırlama isteğinin tamamının şifresi çözülemedi."
+    "translation": "Başlamaya hazırlık isteğinin tamamının şifresi çözülemedi."
   },
   {
     "id": "app.admin.latest_version_unmarshal.failure",
@@ -9331,7 +9331,51 @@
     "translation": " "
   },
   {
-    "id": "model.config.is_valid.session_length_sso_in_days.app_error",
-    "translation": " "
+    "id": "app.system.get_onboarding_request.app_error",
+    "translation": "Başlamaya hazırlık işleminin tamamlanma durumu alınamadı."
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "Mağazada ilk yönetici tam kurulumu kaydedilmeye çalışılırken sorun çıktı."
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "Mağazadan ilk yönetici tam kurulumu alınmaya çalışılırken sorun çıktı."
+  },
+  {
+    "id": "app.member_count",
+    "translation": "üye sayısı alınırken sorun çıktı"
+  },
+  {
+    "id": "app.group.crud_permission",
+    "translation": "İşlem bu kaynak türü için yürütülemedi."
+  },
+  {
+    "id": "app.custom_group.unique_name",
+    "translation": "grup adı eşsiz değil"
+  },
+  {
+    "id": "api.license_error",
+    "translation": "abi uç noktası için bir lisans gereklidir"
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "özel grup için remote_id seçeneği boş olmalıdır"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "özel gruplar için allow_reference seçeneği 'true' olarak ayarlanmalıdır"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "lisansta özel grupları kullanma özelliği yok"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "özel gruplar özelliği devre dışı bırakılmış"
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "gruplar sayılırken sorun çıktı"
   }
 ]
