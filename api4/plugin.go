@@ -151,6 +151,8 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 	}
 	auditRec.AddMeta("plugin_id", pluginRequest.Id)
 
+	pluginRequest.Version = "" // Always install the latest compatible version
+
 	manifest, appErr := c.App.Channels().InstallMarketplacePlugin(pluginRequest)
 	if appErr != nil {
 		c.Err = appErr
