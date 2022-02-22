@@ -90,6 +90,9 @@ type WebsocketBroadcast struct {
 	TeamId                string          `json:"team_id"`    // broadcast only occurs for users in this team
 	ContainsSanitizedData bool            `json:"-"`
 	ContainsSensitiveData bool            `json:"-"`
+	// ReliableClusterSend indicates whether or not the message should
+	// be sent through the cluster using the reliable, TCP backed channel.
+	ReliableClusterSend bool `json:"-"`
 }
 
 func (wb *WebsocketBroadcast) copy() *WebsocketBroadcast {
