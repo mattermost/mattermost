@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/go-morph/morph/models"
+	"github.com/mattermost/morph/models"
 )
 
 var sourcesMu sync.RWMutex
