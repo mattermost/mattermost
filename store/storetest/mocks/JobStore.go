@@ -118,6 +118,29 @@ func (_m *JobStore) GetAllByType(jobType string) ([]*model.Job, error) {
 	return r0, r1
 }
 
+// GetAllByTypeAndStatus provides a mock function with given fields: jobType, status
+func (_m *JobStore) GetAllByTypeAndStatus(jobType string, status string) ([]*model.Job, error) {
+	ret := _m.Called(jobType, status)
+
+	var r0 []*model.Job
+	if rf, ok := ret.Get(0).(func(string, string) []*model.Job); ok {
+		r0 = rf(jobType, status)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Job)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(jobType, status)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetAllByTypePage provides a mock function with given fields: jobType, offset, limit
 func (_m *JobStore) GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, error) {
 	ret := _m.Called(jobType, offset, limit)

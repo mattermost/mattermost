@@ -1906,6 +1906,21 @@ func (a *App) InvalidateAllEmailInvites() *model.AppError {
 	if err := a.Srv().Store.Token().RemoveAllTokensByType(TokenTypeGuestInvitation); err != nil {
 		return model.NewAppError("InvalidateAllEmailInvites", "api.team.invalidate_all_email_invites.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
+	if err := a.InvalidateAllResendInviteEmailJobs(); err != nil {
+		return model.NewAppError("InvalidateAllEmailInvites", "api.team.invalidate_all_email_invites.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+	return nil
+}
+
+func (a *App) InvalidateAllResendInviteEmailJobs() *model.AppError {
+	jobs, _ := a.Srv().Jobs.GetJobsByTypeAndStatus(model.JobTypeResendInvitationEmail, model.JobStatusPending)
+
+	for _, j := range jobs {
+		a.Srv().Jobs.SetJobCanceled(j)
+		// clean up any system values this job was using
+		a.Srv().Store.System().PermanentDeleteByName(j.Id)
+	}
+
 	return nil
 }
 

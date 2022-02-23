@@ -5544,6 +5544,10 @@
     "translation": "Unable to get the job count by status and type."
   },
   {
+    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
+    "translation": "Unable to get the all jobs by type and status."
+  },
+  {
     "id": "app.job.get_newest_job_by_status_and_type.app_error",
     "translation": "Unable to get the newest job by status and type."
   },
