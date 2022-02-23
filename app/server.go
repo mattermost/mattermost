@@ -124,7 +124,7 @@ type Server struct {
 	goroutineCount      int32
 	goroutineExitSignal chan struct{}
 
-	EmailService *email.Service
+	EmailService email.ServiceInterface
 
 	hubs     []*Hub
 	hashSeed maphash.Seed

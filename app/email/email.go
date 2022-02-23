@@ -429,10 +429,10 @@ func (es *Service) SendMfaChangeEmail(email string, activated bool, locale, site
 }
 
 func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, errorWhenNotSent bool) error {
-	if es.PerHourEmailRateLimiter == nil {
+	if es.perHourEmailRateLimiter == nil {
 		return NoRateLimiterError
 	}
-	rateLimited, result, err := es.PerHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
+	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
 	if err != nil {
 		return SetupRateLimiterError
 	}
@@ -503,10 +503,10 @@ func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderU
 }
 
 func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string, errorWhenNotSent bool) error {
-	if es.PerHourEmailRateLimiter == nil {
+	if es.perHourEmailRateLimiter == nil {
 		return NoRateLimiterError
 	}
-	rateLimited, result, err := es.PerHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
+	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
 	if err != nil {
 		return SetupRateLimiterError
 	}
