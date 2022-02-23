@@ -184,7 +184,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if deviceID := r.FormValue("device_id"); deviceID != "" {
-		canSend, err := c.App.TestPushNotification(deviceID)
+		canSend, err := c.App.SendTestPushNotification(deviceID)
 		if err != nil {
 			s["CanReceiveNotifications"] = err.Error()
 		} else if canSend {
