@@ -6,7 +6,6 @@ package app
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -391,8 +390,6 @@ func (a *App) sendToPushProxy(msg *model.PushNotification, session *model.Sessio
 		mlog.String("status", model.PushSendPrepare),
 	)
 
-	fmt.Printf("%s %s\n", msg.DeviceId, msg.Platform)
-
 	msgJSON, jsonErr := json.Marshal(msg)
 	if jsonErr != nil {
 		return errors.Wrap(jsonErr, "failed to encode to JSON")
@@ -571,7 +568,7 @@ func (a *App) BuildPushNotificationMessage(contentsConfig string, post *model.Po
 	return msg, nil
 }
 
-func (a *App) TestPushNotification(deviceID string) (canSend bool, err error) {
+func (a *App) SendTestPushNotification(deviceID string) (canSend bool, err error) {
 	var msg *model.PushNotification = &model.PushNotification{
 		Version:  "2",
 		Type:     model.PushTypeTest,
