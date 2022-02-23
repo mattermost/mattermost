@@ -4091,6 +4091,22 @@ func (s *TimerLayerJobStore) GetAllByType(jobType string) ([]*model.Job, error) 
 	return result, err
 }
 
+func (s *TimerLayerJobStore) GetAllByTypeAndStatus(jobType string, status string) ([]*model.Job, error) {
+	start := timemodule.Now()
+
+	result, err := s.JobStore.GetAllByTypeAndStatus(jobType, status)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("JobStore.GetAllByTypeAndStatus", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerJobStore) GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, error) {
 	start := timemodule.Now()
 

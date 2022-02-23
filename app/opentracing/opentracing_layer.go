@@ -10912,6 +10912,28 @@ func (a *OpenTracingAppLayer) InvalidateAllEmailInvites() *model.AppError {
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) InvalidateAllResendInviteEmailJobs() *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InvalidateAllResendInviteEmailJobs")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.InvalidateAllResendInviteEmailJobs()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) InvalidateCacheForUser(userID string) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InvalidateCacheForUser")
