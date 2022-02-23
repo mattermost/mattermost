@@ -114,8 +114,12 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 		return errors.Wrapf(err, "failed to parse oldest supported version %s", OldestSupportedVersion)
 	}
 
+	currentSchemaVersionString, err := sqlStore.getCurrentSchemaVersion()
+	if err != nil {
+		return err
+	}
+
 	var currentSchemaVersion *semver.Version
-	currentSchemaVersionString := sqlStore.getCurrentSchemaVersion()
 	if currentSchemaVersionString != "" {
 		currentSchemaVersion, err = semver.New(currentSchemaVersionString)
 		if err != nil {
@@ -232,7 +236,10 @@ func saveSchemaVersion(sqlStore *SqlStore, version string) {
 }
 
 func shouldPerformUpgrade(sqlStore *SqlStore, currentSchemaVersion string, expectedSchemaVersion string) bool {
-	storedSchemaVersion := sqlStore.getCurrentSchemaVersion()
+	storedSchemaVersion, err := sqlStore.getCurrentSchemaVersion()
+	if err != nil {
+		return false
+	}
 
 	storedVersion, err := semver.Parse(storedSchemaVersion)
 	if err != nil {

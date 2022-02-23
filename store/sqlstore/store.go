@@ -353,9 +353,10 @@ func (ss *SqlStore) DriverName() string {
 	return *ss.settings.DriverName
 }
 
-func (ss *SqlStore) getCurrentSchemaVersion() string {
-	version, _ := ss.GetMaster().SelectStr("SELECT Value FROM Systems WHERE Name='Version'")
-	return version
+func (ss *SqlStore) getCurrentSchemaVersion() (string, error) {
+	var version string
+	err := ss.GetMasterX().Get(&version, "SELECT Value FROM Systems WHERE Name='Version'")
+	return version, err
 }
 
 // GetDbVersion returns the version of the database being used.
