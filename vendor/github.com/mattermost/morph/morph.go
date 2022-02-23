@@ -10,16 +10,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-morph/morph/models"
+	"github.com/mattermost/morph/models"
 
-	"github.com/go-morph/morph/drivers"
-	"github.com/go-morph/morph/sources"
+	"github.com/mattermost/morph/drivers"
+	"github.com/mattermost/morph/sources"
 
-	ms "github.com/go-morph/morph/drivers/mysql"
-	ps "github.com/go-morph/morph/drivers/postgres"
+	ms "github.com/mattermost/morph/drivers/mysql"
+	ps "github.com/mattermost/morph/drivers/postgres"
 
-	_ "github.com/go-morph/morph/sources/file"
-	_ "github.com/go-morph/morph/sources/go_bindata"
+	_ "github.com/mattermost/morph/sources/file"
+	_ "github.com/mattermost/morph/sources/go_bindata"
 )
 
 var migrationProgressStart = "==  %s: migrating  ================================================="
@@ -102,13 +102,18 @@ func New(ctx context.Context, driver drivers.Driver, source sources.Source, opti
 			mx, err = ms.NewMutex(engine.config.LockKey, driver)
 		case "postgres":
 			mx, err = ps.NewMutex(engine.config.LockKey, driver)
+		default:
+			err = errors.New("driver does not support locking")
 		}
 		if err != nil {
 			return nil, err
 		}
 
 		engine.mutex = mx
-		_ = mx.LockWithContext(ctx)
+		err = mx.LockWithContext(ctx)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return engine, nil
@@ -117,7 +122,10 @@ func New(ctx context.Context, driver drivers.Driver, source sources.Source, opti
 // Close closes the underlying database connection of the engine.
 func (m *Morph) Close() error {
 	if m.mutex != nil {
-		m.mutex.Unlock()
+		err := m.mutex.Unlock()
+		if err != nil {
+			return err
+		}
 	}
 
 	return m.driver.Close()
