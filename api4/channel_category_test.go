@@ -71,6 +71,23 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 		assert.NotContains(t, received.Channels, channel.Id)
 		assert.Equal(t, []string{th.BasicChannel.Id}, received.Channels)
 	})
+
+	t.Run("should return expected sort order value", func(t *testing.T) {
+		user, client := setupUserForSubtest(t, th)
+
+		customCategory, _, err := client.CreateSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				UserId:      user.Id,
+				TeamId:      th.BasicTeam.Id,
+				DisplayName: "custom123",
+			},
+		})
+		require.NoError(t, err)
+
+		// Initial new category sort order is 10 (first)
+		require.Equal(t, int64(10), customCategory.SortOrder)
+	})
+
 }
 
 func TestUpdateCategoryForTeamForUser(t *testing.T) {
