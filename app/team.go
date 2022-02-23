@@ -1913,7 +1913,10 @@ func (a *App) InvalidateAllEmailInvites() *model.AppError {
 }
 
 func (a *App) InvalidateAllResendInviteEmailJobs() *model.AppError {
-	jobs, _ := a.Srv().Jobs.GetJobsByTypeAndStatus(model.JobTypeResendInvitationEmail, model.JobStatusPending)
+	jobs, appErr := a.Srv().Jobs.GetJobsByTypeAndStatus(model.JobTypeResendInvitationEmail, model.JobStatusPending)
+	if appErr != nil {
+		return appErr
+	}
 
 	for _, j := range jobs {
 		a.Srv().Jobs.SetJobCanceled(j)
