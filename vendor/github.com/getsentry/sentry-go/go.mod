@@ -1,6 +1,6 @@
 module github.com/getsentry/sentry-go
 
-go 1.14
+go 1.15
 
 require (
 	github.com/ajg/form v1.5.1 // indirect
@@ -14,7 +14,8 @@ require (
 	github.com/imkira/go-interpol v1.1.0 // indirect
 	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
 	github.com/kataras/iris/v12 v12.1.8
-	github.com/labstack/echo/v4 v4.1.11
+	github.com/labstack/echo/v4 v4.5.0
+	github.com/mattn/go-colorable v0.1.11 // indirect
 	github.com/moul/http2curl v1.0.0 // indirect
 	github.com/onsi/ginkgo v1.10.3 // indirect
 	github.com/onsi/gomega v1.7.1 // indirect
@@ -31,4 +32,8 @@ require (
 	github.com/yudai/gojsondiff v1.0.0 // indirect
 	github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82 // indirect
 	github.com/yudai/pp v2.0.1+incompatible // indirect
+	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
+	golang.org/x/net v0.0.0-20211008194852-3b03d305991f // indirect
+	golang.org/x/sys v0.0.0-20211007075335-d3039528d8ac
+	golang.org/x/text v0.3.7 // indirect
 )

@@ -61,7 +61,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -73,7 +73,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 78+"
+    "translation": "Version 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -3089,7 +3089,7 @@
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": "Unable to migrate AD/LDAP users with specified field. Duplicate entry detected. Please remove all duplcates and try again."
+    "translation": "Unable to migrate AD/LDAP users with specified field. Duplicate entry detected. Please remove all duplicates and try again."
   },
   {
     "id": "ent.message_export.run_export.app_error",
@@ -5517,7 +5517,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Streamline your work with tools like Github, Jira and Zoom. Explore all of the integrations we have on our"
+    "translation": "Streamline your work with tools like GitHub, Jira and Zoom. Explore all of the integrations we have on our"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -6449,7 +6449,7 @@
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
-    "translation": "Error retreiving endpoint from Discovery Document."
+    "translation": "Error retrieving endpoint from Discovery Document."
   },
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
@@ -9155,18 +9155,6 @@
     "translation": "Feature requires an upgrade to Enterprise Edition."
   },
   {
-    "id": "extract_content.worker.do_job.file_info",
-    "translation": "Failed to get file information for content extraction."
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.to",
-    "translation": "Invalid input value 'to'"
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.from",
-    "translation": "Invalid input value 'from'"
-  },
-  {
     "id": "app.user.store_is_empty.app_error",
     "translation": "Failed to check if user store is empty."
   },
@@ -9303,7 +9291,19 @@
     "translation": "Renewing this licence on the portal is not possible"
   },
   {
-    "id": "api.config.migrate_config_restricted.app_error",
-    "translation": "Config migration is restricted due to instance type."
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "SAML response is too long"
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "Onboarding can only be completed by a System Administrator."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "Failed to decode the complete onboarding request."
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "Name conflicts with existing system emoji name."
   }
 ]

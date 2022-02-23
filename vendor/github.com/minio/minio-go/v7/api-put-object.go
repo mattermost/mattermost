@@ -214,13 +214,20 @@ func (a completedParts) Less(i, j int) bool { return a[i].PartNumber < a[j].Part
 //
 // You must have WRITE permissions on a bucket to create an object.
 //
-//  - For size smaller than 128MiB PutObject automatically does a
-//    single atomic Put operation.
-//  - For size larger than 128MiB PutObject automatically does a
-//    multipart Put operation.
+//  - For size smaller than 16MiB PutObject automatically does a
+//    single atomic PUT operation.
+//
+//  - For size larger than 16MiB PutObject automatically does a
+//    multipart upload operation.
+//
 //  - For size input as -1 PutObject does a multipart Put operation
 //    until input stream reaches EOF. Maximum object size that can
 //    be uploaded through this operation will be 5TiB.
+//
+//    WARNING: Passing down '-1' will use memory and these cannot
+//    be reused for best outcomes for PutObject(), pass the size always.
+//
+// NOTE: Upon errors during upload multipart operation is entirely aborted.
 func (c *Client) PutObject(ctx context.Context, bucketName, objectName string, reader io.Reader, objectSize int64,
 	opts PutObjectOptions) (info UploadInfo, err error) {
 	if objectSize < 0 && opts.DisableMultipart {

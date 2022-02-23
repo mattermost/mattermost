@@ -193,3 +193,16 @@ func (hooks *hooksTimerLayer) RunDataRetention(nowTime, batchSize int64) (int64,
 	hooks.recordTime(startTime, "RunDataRetention", _returnsB == nil)
 	return _returnsA, _returnsB
 }
+
+func (hooks *hooksTimerLayer) OnInstall(c *Context, event model.OnInstallEvent) error {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.OnInstall(c, event)
+	hooks.recordTime(startTime, "OnInstall", _returnsA == nil)
+	return _returnsA
+}
+
+func (hooks *hooksTimerLayer) OnSendDailyTelemetry() {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.OnSendDailyTelemetry()
+	hooks.recordTime(startTime, "OnSendDailyTelemetry", true)
+}

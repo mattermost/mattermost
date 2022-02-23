@@ -50,7 +50,7 @@ func (s *Server) LoadLicense() {
 		if !license.IsSanctionedTrial() && license.IsTrialLicense() {
 			canStartTrialLicense, err := s.LicenseManager.CanStartTrial()
 			if err != nil {
-				mlog.Info("Failed to validate trial eligibility.", mlog.Err(err))
+				mlog.Error("Failed to validate trial eligibility.", mlog.Err(err))
 				return
 			}
 
@@ -78,7 +78,7 @@ func (s *Server) LoadLicense() {
 
 		if license != nil {
 			if _, err := s.SaveLicense(licenseBytes); err != nil {
-				mlog.Info("Failed to save license key loaded from disk.", mlog.Err(err))
+				mlog.Error("Failed to save license key loaded from disk.", mlog.Err(err))
 			} else {
 				licenseId = license.Id
 			}
@@ -87,7 +87,7 @@ func (s *Server) LoadLicense() {
 
 	record, nErr := s.Store.License().Get(licenseId)
 	if nErr != nil {
-		mlog.Info("License key from https://mattermost.com required to unlock enterprise features.")
+		mlog.Error("License key from https://mattermost.com required to unlock enterprise features.", mlog.Err(nErr))
 		s.SetLicense(nil)
 		return
 	}
@@ -358,8 +358,11 @@ func (s *Server) renewalTokenValid(tokenString, signingKey string) (bool, error)
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(signingKey), nil
 	})
-	if err != nil && !token.Valid {
+	if err != nil {
 		return false, errors.Wrapf(err, "Error validating JWT token")
+	}
+	if !token.Valid {
+		return false, errors.New("invalid JWT token")
 	}
 	expirationTime := time.Unix(claims.ExpiresAt, 0)
 	if expirationTime.Before(time.Now().UTC()) {

@@ -4,6 +4,8 @@
 package app
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"math/rand"
 	"sort"
@@ -14,7 +16,10 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/app/teams"
+	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
@@ -821,6 +826,81 @@ func TestJoinUserToTeam(t *testing.T) {
 		require.Nil(t, appErr)
 		require.True(t, tm2.SchemeAdmin)
 	})
+}
+
+func TestLeaveTeamPanic(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockUserStore := mocks.UserStore{}
+	mockUserStore.On("Get", context.Background(), "userID").Return(&model.User{Id: "userID"}, nil)
+	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
+
+	mockChannelStore := mocks.ChannelStore{}
+	mockChannelStore.On("Get", "channelID", true).Return(&model.Channel{Id: "channelID"}, nil)
+	mockChannelStore.On("GetMember", context.Background(), "channelID", "userID").Return(&model.ChannelMember{
+		NotifyProps: model.StringMap{
+			model.PushNotifyProp: model.ChannelNotifyDefault,
+		}}, nil)
+	mockChannelStore.On("GetChannels", "myteam", "userID", mock.Anything).Return(model.ChannelList{}, nil)
+
+	var err error
+	th.App.ch.srv.userService, err = users.New(users.ServiceConfig{
+		UserStore:    &mockUserStore,
+		SessionStore: &mocks.SessionStore{},
+		OAuthStore:   &mocks.OAuthStore{},
+		ConfigFn:     th.App.ch.srv.Config,
+		LicenseFn:    th.App.ch.srv.License,
+	})
+	require.NoError(t, err)
+
+	mockPreferenceStore := mocks.PreferenceStore{}
+	mockPreferenceStore.On("Get", "userID", model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled).Return(&model.Preference{Value: "on"}, nil)
+
+	mockPostStore := mocks.PostStore{}
+	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+
+	mockSystemStore := mocks.SystemStore{}
+	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
+	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
+	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+	mockLicenseStore := mocks.LicenseStore{}
+	mockLicenseStore.On("Get", "").Return(&model.LicenseRecord{}, nil)
+
+	mockTeamStore := mocks.TeamStore{}
+	mockTeamStore.On("GetMember", sqlstore.WithMaster(context.Background()), "myteam", "userID").Return(&model.TeamMember{TeamId: "myteam", UserId: "userID"}, nil)
+	mockTeamStore.On("UpdateMember", mock.Anything).Return(nil, errors.New("repro error")) // This is the line that triggers the error
+
+	mockStore.On("Channel").Return(&mockChannelStore)
+	mockStore.On("Preference").Return(&mockPreferenceStore)
+	mockStore.On("Post").Return(&mockPostStore)
+	mockStore.On("User").Return(&mockUserStore)
+	mockStore.On("System").Return(&mockSystemStore)
+	mockStore.On("License").Return(&mockLicenseStore)
+	mockStore.On("Team").Return(&mockTeamStore)
+
+	team := &model.Team{Id: "myteam"}
+	user := &model.User{Id: "userID"}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages = false
+	})
+
+	th.App.ch.srv.teamService, err = teams.New(teams.ServiceConfig{
+		TeamStore:    &mockTeamStore,
+		ChannelStore: &mockChannelStore,
+		GroupStore:   &mocks.GroupStore{},
+		Users:        th.App.ch.srv.userService,
+		WebHub:       th.App.ch.srv,
+		ConfigFn:     th.App.ch.srv.Config,
+		LicenseFn:    th.App.ch.srv.License,
+	})
+	require.NoError(t, err)
+
+	require.NotPanics(t, func() {
+		th.App.LeaveTeam(th.Context, team, user, user.Id)
+	}, "unexpected panic from LeaveTeam")
 }
 
 func TestAppUpdateTeamScheme(t *testing.T) {
