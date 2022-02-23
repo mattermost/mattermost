@@ -572,7 +572,12 @@ func (a *App) BuildPushNotificationMessage(contentsConfig string, post *model.Po
 }
 
 func (a *App) TestPushNotification(deviceID string) (canSend bool, err error) {
-	var msg *model.PushNotification = &model.PushNotification{}
+	var msg *model.PushNotification = &model.PushNotification{
+		Version:  "2",
+		Type:     model.PushTypeTest,
+		ServerId: a.TelemetryId(),
+		Badge:    -1,
+	}
 	msg.SetDeviceIdAndPlatform(deviceID)
 
 	msgJSON, jsonErr := json.Marshal(msg)
