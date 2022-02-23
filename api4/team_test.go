@@ -2915,7 +2915,7 @@ func TestImportTeam(t *testing.T) {
 		fileData, err := base64.StdEncoding.DecodeString(fileResp["results"])
 		require.NoError(t, err, "failed to decode base64 results data")
 
-		fileReturned := fmt.Sprintf("%s", fileData)
+		fileReturned := string(fileData)
 		require.Truef(t, strings.Contains(fileReturned, "darth.vader@stardeath.com"), "failed to report the user was imported, fileReturned: %s", fileReturned)
 
 		// Checking the imported users

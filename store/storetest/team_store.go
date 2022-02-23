@@ -625,12 +625,6 @@ func testTeamStoreGetByInviteId(t *testing.T, ss store.Store) {
 	save1, err := ss.Team().Save(&o1)
 	require.NoError(t, err)
 
-	o2 := model.Team{}
-	o2.DisplayName = "DisplayName"
-	o2.Name = NewTestId()
-	o2.Email = MakeEmail()
-	o2.Type = model.TeamOpen
-
 	r1, err := ss.Team().GetByInviteId(save1.InviteId)
 	require.NoError(t, err)
 	require.Equal(t, *r1, o1, "invalid returned team")

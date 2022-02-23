@@ -178,7 +178,8 @@ func (s *Server) Publish(message *model.WebSocketEvent) {
 			message.EventType() == model.WebsocketEventPostEdited ||
 			message.EventType() == model.WebsocketEventDirectAdded ||
 			message.EventType() == model.WebsocketEventGroupAdded ||
-			message.EventType() == model.WebsocketEventAddedToTeam {
+			message.EventType() == model.WebsocketEventAddedToTeam ||
+			message.GetBroadcast().ReliableClusterSend {
 			cm.SendType = model.ClusterSendReliable
 		}
 

@@ -17,13 +17,21 @@ func TestGetGroup(t *testing.T) {
 	defer th.TearDown()
 	group := th.CreateGroup()
 
-	group, err := th.App.GetGroup(group.Id)
+	group, err := th.App.GetGroup(group.Id, nil)
 	require.Nil(t, err)
 	require.NotNil(t, group)
 
-	group, err = th.App.GetGroup(model.NewId())
+	nilGroup, err := th.App.GetGroup(model.NewId(), nil)
 	require.NotNil(t, err)
-	require.Nil(t, group)
+	require.Nil(t, nilGroup)
+
+	group, err = th.App.GetGroup(group.Id, &model.GetGroupOpts{IncludeMemberCount: false})
+	require.Nil(t, err)
+	require.Nil(t, group.MemberCount)
+
+	group, err = th.App.GetGroup(group.Id, &model.GetGroupOpts{IncludeMemberCount: true})
+	require.Nil(t, err)
+	require.NotNil(t, group.MemberCount)
 }
 
 func TestGetGroupByRemoteID(t *testing.T) {
@@ -31,7 +39,7 @@ func TestGetGroupByRemoteID(t *testing.T) {
 	defer th.TearDown()
 	group := th.CreateGroup()
 
-	g, err := th.App.GetGroupByRemoteID(group.RemoteId, model.GroupSourceLdap)
+	g, err := th.App.GetGroupByRemoteID(*group.RemoteId, model.GroupSourceLdap)
 	require.Nil(t, err)
 	require.NotNil(t, g)
 
@@ -65,7 +73,7 @@ func TestCreateGroup(t *testing.T) {
 		DisplayName: "dn_" + id,
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 
 	g, err := th.App.CreateGroup(group)
