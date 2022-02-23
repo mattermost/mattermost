@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/go-morph/morph/models"
-	"github.com/go-morph/morph/sources"
+	"github.com/mattermost/morph/models"
+	"github.com/mattermost/morph/sources"
 )
 
 func init() {

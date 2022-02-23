@@ -9,9 +9,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/go-morph/morph/drivers"
-	"github.com/go-morph/morph/models"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/mattermost/morph/drivers"
+	"github.com/mattermost/morph/models"
 )
 
 const driverName = "mysql"
@@ -131,74 +131,6 @@ func (driver *mysql) Close() error {
 	return nil
 }
 
-func (driver *mysql) Lock() error {
-	if drivers.IsLockable(driver) {
-		// Supports lockable, so already locked at the global level.
-		return nil
-	}
-
-	aid, err := drivers.GenerateAdvisoryLockID(driver.config.databaseName, driver.config.MigrationsTable)
-	if err != nil {
-		return err
-	}
-
-	// This will wait until the lock can be acquired or until the statement timeout has reached.
-	query := fmt.Sprintf("SELECT GET_LOCK(?, %d)", driver.config.StatementTimeoutInSecs)
-	var success bool
-	ctx, cancel := drivers.GetContext(driver.config.StatementTimeoutInSecs)
-	defer cancel()
-
-	if err := driver.conn.QueryRowContext(ctx, query, aid).Scan(&success); err != nil {
-		return &drivers.DatabaseError{
-			OrigErr: err,
-			Driver:  driverName,
-			Message: "failed to obtain advisory lock due to error",
-			Command: "lock_migrations_table",
-			Query:   []byte(query),
-		}
-	}
-
-	if !success {
-		return &drivers.DatabaseError{
-			OrigErr: err,
-			Driver:  driverName,
-			Message: "failed to obtain advisory lock, potentially due to timeout",
-			Command: "lock_migrations_table",
-			Query:   []byte(query),
-		}
-	}
-
-	return nil
-}
-
-func (driver *mysql) Unlock() error {
-	if drivers.IsLockable(driver) {
-		// Supports lockable, so already locked at the global level.
-		return nil
-	}
-
-	aid, err := drivers.GenerateAdvisoryLockID(driver.config.databaseName, driver.config.MigrationsTable)
-	if err != nil {
-		return err
-	}
-
-	query := `SELECT RELEASE_LOCK(?)`
-	ctx, cancel := drivers.GetContext(driver.config.StatementTimeoutInSecs)
-	defer cancel()
-
-	if _, err := driver.conn.ExecContext(ctx, query, aid); err != nil {
-		return &drivers.DatabaseError{
-			OrigErr: err,
-			Driver:  driverName,
-			Message: "failed to unlock advisory lock",
-			Command: "unlock_migrations_table",
-			Query:   []byte(query),
-		}
-	}
-
-	return nil
-}
-
 func (driver *mysql) createSchemaTableIfNotExists() (err error) {
 	ctx, cancel := drivers.GetContext(driver.config.StatementTimeoutInSecs)
 	defer cancel()
@@ -218,17 +150,6 @@ func (driver *mysql) createSchemaTableIfNotExists() (err error) {
 }
 
 func (driver *mysql) Apply(migration *models.Migration, saveVersion bool) (err error) {
-	if err = driver.Lock(); err != nil {
-		return err
-	}
-	defer func() {
-		// If we saw no error prior to unlocking and unlocking returns an error we need to
-		// assign the unlocking error to err
-		if unlockErr := driver.Unlock(); unlockErr != nil && err == nil {
-			err = unlockErr
-		}
-	}()
-
 	query, readErr := migration.Query()
 	if readErr != nil {
 		return &drivers.AppError{
@@ -280,17 +201,6 @@ func (driver *mysql) AppliedMigrations() (migrations []*models.Migration, err er
 			Driver:  driverName,
 		}
 	}
-
-	if err = driver.Lock(); err != nil {
-		return nil, err
-	}
-	defer func() {
-		// If we saw no error prior to unlocking and unlocking returns an error we need to
-		// assign the unlocking error to err
-		if unlockErr := driver.Unlock(); unlockErr != nil && err == nil {
-			err = unlockErr
-		}
-	}()
 
 	if err := driver.createSchemaTableIfNotExists(); err != nil {
 		return nil, err
