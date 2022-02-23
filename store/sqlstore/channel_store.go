@@ -3025,7 +3025,7 @@ func (s SqlChannelStore) SearchArchivedInTeam(teamId string, term string, userId
 		}
 		queryBase.Where(searchClause)
 	}
-	queryBase.Where(sq.NotEq{"c.DeleteAt": 0})
+	queryBase = queryBase.Where(sq.NotEq{"c.DeleteAt": 0})
 
 	queryBase = queryBase.
 		Join("Channels c ON (c.Id = Channels.Id)").
@@ -3033,10 +3033,10 @@ func (s SqlChannelStore) SearchArchivedInTeam(teamId string, term string, userId
 		Limit(100)
 
 	publicQuery := queryBase.
-		Where(sq.NotEq{"c.Type": "P"})
+		Where(sq.NotEq{"c.Type": model.ChannelTypePrivate})
 
 	privateQuery := queryBase.
-		Where(sq.Eq{"c.Type": "P"}).
+		Where(sq.Eq{"c.Type": model.ChannelTypePrivate}).
 		Where(sq.Expr("c.Id IN (?)", sq.Select("ChannelId").
 			From("ChannelMembers").
 			Where(sq.Eq{"UserId": userId})))
