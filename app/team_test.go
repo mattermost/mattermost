@@ -1262,7 +1262,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		res, err := th.App.InviteNewUsersToTeamGracefully([]string{"idontexist@mattermost.com"}, th.BasicTeam.Id, th.BasicUser.Id, "")
 		require.Nil(t, err)
 		require.Len(t, res, 1)
-		require.Error(t, res[0].Error)
+		require.NotNil(t, res[0].Error)
 	})
 }
 
@@ -1320,6 +1320,6 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 
 		require.Nil(t, err)
 		require.Len(t, res, 1)
-		require.Error(t, res[0].Error)
+		require.NotNil(t, res[0].Error)
 	})
 }

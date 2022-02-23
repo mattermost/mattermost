@@ -161,10 +161,10 @@ type ServiceInterface interface {
 	CreateVerifyEmailToken(userID string, newEmail string) (*model.Token, error)
 }
 
-func (s *Service) GetPerDayEmailRateLimiter() *throttled.GCRARateLimiter {
-	return s.perDayEmailRateLimiter
+func (es *Service) GetPerDayEmailRateLimiter() *throttled.GCRARateLimiter {
+	return es.perDayEmailRateLimiter
 }
 
-func (s *Service) GetPerHourEmailRateLimiter() *throttled.GCRARateLimiter {
-	return s.perHourEmailRateLimiter
+func (es *Service) GetPerHourEmailRateLimiter() *throttled.GCRARateLimiter {
+	return es.perHourEmailRateLimiter
 }
