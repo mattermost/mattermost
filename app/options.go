@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
@@ -109,5 +110,12 @@ type AppOptionCreator func() []AppOption
 func ServerConnector(ch *Channels) AppOption {
 	return func(a *App) {
 		a.ch = ch
+	}
+}
+
+func setCluster(cluster einterfaces.ClusterInterface) Option {
+	return func(s *Server) error {
+		s.Cluster = cluster
+		return nil
 	}
 }
