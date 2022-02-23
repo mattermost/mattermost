@@ -72,6 +72,8 @@ type FeatureFlags struct {
 
 	NormalizeLdapDNs bool
 
+	EnableInactivityCheckJob bool
+
 	// Enable special onboarding flow for first admin
 	UseCaseOnboarding bool
 
@@ -105,6 +107,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.InlinePostEditing = false
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
+	f.EnableInactivityCheckJob = true
 	f.UseCaseOnboarding = false
 	f.WorkspaceOptimizationDashboard = false
 	f.GraphQL = false
