@@ -116,7 +116,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 
 	currentSchemaVersionString, err := sqlStore.getCurrentSchemaVersion()
 	if err != nil {
-		return err
+		mlog.Warn("could not receive the schema version from systems table", mlog.Err(err))
 	}
 
 	var currentSchemaVersion *semver.Version
@@ -238,6 +238,7 @@ func saveSchemaVersion(sqlStore *SqlStore, version string) {
 func shouldPerformUpgrade(sqlStore *SqlStore, currentSchemaVersion string, expectedSchemaVersion string) bool {
 	storedSchemaVersion, err := sqlStore.getCurrentSchemaVersion()
 	if err != nil {
+		mlog.Error("could not receive the schema version from systems table", mlog.Err(err))
 		return false
 	}
 

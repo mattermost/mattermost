@@ -108,10 +108,9 @@ func (s *Store) GetDBSchemaVersion() (int, error)        { return 1, nil }
 func (s *Store) GetAppliedMigrations() ([]model.AppliedMigration, error) {
 	return []model.AppliedMigration{}, nil
 }
-func (s *Store) TotalMasterDbConnections() int   { return 1 }
-func (s *Store) TotalReadDbConnections() int     { return 1 }
-func (s *Store) TotalSearchDbConnections() int   { return 1 }
-func (s *Store) GetCurrentSchemaVersion() string { return "" }
+func (s *Store) TotalMasterDbConnections() int { return 1 }
+func (s *Store) TotalReadDbConnections() int   { return 1 }
+func (s *Store) TotalSearchDbConnections() int { return 1 }
 func (s *Store) CheckIntegrity() <-chan model.IntegrityCheckResult {
 	return make(chan model.IntegrityCheckResult)
 }
