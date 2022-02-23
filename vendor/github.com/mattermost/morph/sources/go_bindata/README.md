@@ -10,9 +10,9 @@ To read the embedded data, create a migration source through the
 
 ```go
 import (
-    "github.com/go-morph/morph"
-    "github.com/go-morph/morph/sources/go_bindata"
-    "github.com/go-morph/morph/sources/go_bindata/testdata"
+    "github.com/mattermost/morph"
+    "github.com/mattermost/morph/sources/go_bindata"
+    "github.com/mattermost/morph/sources/go_bindata/testdata"
 )
 
 func main() {
