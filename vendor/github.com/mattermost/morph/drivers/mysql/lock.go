@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-morph/morph/drivers"
+	"github.com/mattermost/morph/drivers"
 )
 
 // Mutex is similar to sync.Mutex, except usable by morph to lock the db.
@@ -169,8 +169,8 @@ func (m *Mutex) refreshLock(ctx context.Context) error {
 
 // Lock locks m. If the mutex is already locked by any other morph instance, including the current one,
 // the calling goroutine blocks until the mutex can be locked.
-func (m *Mutex) Lock() {
-	_ = m.LockWithContext(context.Background())
+func (m *Mutex) Lock() error {
+	return m.LockWithContext(context.Background())
 }
 
 // LockWithContext locks m unless the context is canceled. If the mutex is already locked by any other
@@ -226,7 +226,7 @@ func (m *Mutex) LockWithContext(ctx context.Context) error {
 // Unlock unlocks m. It is a run-time error if m is not locked on entry to Unlock.
 //
 // Just like sync.Mutex, a locked Lock is not associated with a particular goroutine or a process.
-func (m *Mutex) Unlock() {
+func (m *Mutex) Unlock() error {
 	m.lock.Lock()
 	if m.stopRefresh == nil {
 		m.lock.Unlock()
@@ -242,7 +242,8 @@ func (m *Mutex) Unlock() {
 
 	// If an error occurs deleting, the mutex will still expire, allowing later retry.
 	query := fmt.Sprintf("DELETE FROM %s WHERE Id = ?", drivers.MutexTableName)
-	_, _ = m.conn.ExecContext(context.Background(), query, m.key)
+	_, err := m.conn.ExecContext(context.Background(), query, m.key)
+	return err
 }
 
 func executeTx(tx *sql.Tx, query string, args ...interface{}) error {

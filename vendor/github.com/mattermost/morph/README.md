@@ -1,8 +1,8 @@
 ![](https://avatars.githubusercontent.com/u/80110794?s=200&v=4)
 
 
-[![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/go-morph/morph/CI)](https://github.com/go-morph/morph/actions/workflows/ci.yml?query=branch%3Amaster)
-[![GoDoc](https://pkg.go.dev/badge/github.com/go-morph/migrate)](https://pkg.go.dev/github.com/go-morph/morph)
+[![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/mattermost/morph/CI)](https://github.com/mattermost/morph/actions/workflows/ci.yml?query=branch%3Amaster)
+[![GoDoc](https://pkg.go.dev/badge/github.com/mattermost/migrate)](https://pkg.go.dev/github.com/mattermost/morph)
 
 # Morph
 
@@ -18,9 +18,9 @@ It can be used as a library or a CLI tool.
 import (
     "context"
 
-    "github.com/go-morph/morph"
-    "github.com/go-morph/morph/drivers/mysql"
-    bindata "github.com/go-morph/morph/sources/go_bindata"
+    "github.com/mattermost/morph"
+    "github.com/mattermost/morph/drivers/mysql"
+    bindata "github.com/mattermost/morph/sources/go_bindata"
 )
 
 src, err := bindata.WithInstance(&bindata.AssetSource{
@@ -54,7 +54,7 @@ engine.ApplyAll()
 To install `morph` you can use:
 
 ```bash
-go install github.com/go-morph/morph/cmd/morph@latest
+go install github.com/mattermost/morph/cmd/morph@latest
 ```
 
 Then you can apply your migrations like below:

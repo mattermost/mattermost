@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"runtime"
 	"strings"
 	"sync"
@@ -20,9 +21,26 @@ import (
 	"github.com/pkg/errors"
 )
 
+// configSvc is a consumer interface to work
+// with any config related task with the server.
+type configSvc interface {
+	Config() *model.Config
+	AddConfigListener(listener func(*model.Config, *model.Config)) string
+	RemoveConfigListener(id string)
+	UpdateConfig(f func(*model.Config))
+	SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError)
+}
+
+// namer is an interface which enforces that
+// all services can return their names.
+type namer interface {
+	Name() ServiceKey
+}
+
 // Channels contains all channels related state.
 type Channels struct {
-	srv *Server
+	srv    *Server
+	cfgSvc configSvc
 
 	postActionCookieSecret []byte
 
@@ -65,16 +83,43 @@ type Channels struct {
 }
 
 func init() {
-	RegisterProduct("channels", func(s *Server) (Product, error) {
-		return NewChannels(s)
+	RegisterProduct("channels", func(s *Server, services map[ServiceKey]interface{}) (Product, error) {
+		return NewChannels(s, services)
 	})
 }
 
-func NewChannels(s *Server) (*Channels, error) {
+func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, error) {
+
 	ch := &Channels{
 		srv:           s,
 		imageProxy:    imageproxy.MakeImageProxy(s, s.httpService, s.Log),
 		uploadLockMap: map[string]bool{},
+	}
+
+	// To get another service:
+	// 1. Prepare the service interface
+	// 2. Add the field to *Channels
+	// 3. Add the service key to the slice.
+	// 4. Add a new case in the switch statement.
+	requiredServices := []ServiceKey{ConfigKey}
+	for _, svcKey := range requiredServices {
+		svc, ok := services[svcKey]
+		if !ok {
+			return nil, fmt.Errorf("Service %s not passed", svcKey)
+		}
+		switch svcKey {
+		// Keep adding more services here
+		case ConfigKey:
+			cfgSvc, ok := svc.(configSvc)
+			if !ok {
+				return nil, errors.New("Config service did not satisfy ConfigSvc interface")
+			}
+			_, ok = svc.(namer)
+			if !ok {
+				return nil, errors.New("Config service does not contain Name method")
+			}
+			ch.cfgSvc = cfgSvc
+		}
 	}
 	// We are passing a partially filled Channels struct so that the enterprise
 	// methods can have access to app methods.
@@ -119,7 +164,7 @@ func NewChannels(s *Server) (*Channels, error) {
 func (ch *Channels) Start() error {
 	// Start plugins
 	ctx := request.EmptyContext()
-	ch.initPlugins(ctx, *ch.srv.Config().PluginSettings.Directory, *ch.srv.Config().PluginSettings.ClientDirectory)
+	ch.initPlugins(ctx, *ch.cfgSvc.Config().PluginSettings.Directory, *ch.cfgSvc.Config().PluginSettings.ClientDirectory)
 
 	ch.AddConfigListener(func(prevCfg, cfg *model.Config) {
 		// We compute the difference between configs
@@ -142,7 +187,7 @@ func (ch *Channels) Start() error {
 		// Do only if some plugin related settings has changed.
 		if hasDiff {
 			if *cfg.PluginSettings.Enable {
-				ch.initPlugins(ctx, *cfg.PluginSettings.Directory, *ch.srv.Config().PluginSettings.ClientDirectory)
+				ch.initPlugins(ctx, *cfg.PluginSettings.Directory, *ch.cfgSvc.Config().PluginSettings.ClientDirectory)
 			} else {
 				ch.ShutDownPlugins()
 			}
