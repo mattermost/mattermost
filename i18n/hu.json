@@ -2965,7 +2965,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Verzió 12+"
+    "translation": "Verzió 14.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -5765,7 +5765,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.email_footer",
@@ -9338,5 +9338,49 @@
   {
     "id": "app.member_count",
     "translation": "hiba a tagok számának lekérdezésében"
+  },
+  {
+    "id": "Boards",
+    "translation": "Táblák"
+  },
+  {
+    "id": "Channels",
+    "translation": "Csatornák"
+  },
+  {
+    "id": "Playbooks",
+    "translation": "Forgatókönyvek"
+  },
+  {
+    "id": "api.templates.server_inactivity_button",
+    "translation": "Mattermost megnyitása"
+  },
+  {
+    "id": "api.templates.server_inactivity_subtitle",
+    "translation": "Helló {{.Name}}, észrevettük, hogy a Mattermost szervered egy kicsit porosodik. Vess egy pillantást néhány funkcióra, amelyek segíthetnek könnyíteni csapatod munkaterhét."
+  },
+  {
+    "id": "api.templates.server_inactivity_subject",
+    "translation": "ÜDV! Nyissa meg a Mattermostot, hogy növelje csapata termelékenységét!"
+  },
+  {
+    "id": "api.templates.server_inactivity_title",
+    "translation": "Növelje a termelékenységet ezekkel a fantasztikus funkciókkal"
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet2",
+    "translation": "Feladatok kezelése a "
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet1",
+    "translation": "Munkafolyamatok kezelése a "
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet",
+    "translation": "Vendég hozzáférés a megadott "
+  },
+  {
+    "id": "api.templates.server_inactivity_info",
+    "translation": "Jöjjön és nézze meg!"
   }
 ]
