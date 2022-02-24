@@ -9266,5 +9266,37 @@
   {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": "SAMLの応答が長すぎます"
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "カスタムグループの場合、remote_idは空白でなければなりません。"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "カスタムグループの場合、allow_referenceは 'true'でなければなりません。"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "カスタムグループのためのライセンスがありません"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "カスタムグループ機能は無効化されています"
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "グループのカウント中にエラーが発生しました"
+  },
+  {
+    "id": "Playbooks",
+    "translation": "プレイブック"
+  },
+  {
+    "id": "Channels",
+    "translation": "チャンネル"
+  },
+  {
+    "id": "Boards",
+    "translation": "ボード"
   }
 ]
