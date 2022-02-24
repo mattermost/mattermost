@@ -23,7 +23,7 @@ const (
 )
 
 func cleanupStatusStore(t *testing.T, s SqlStore) {
-	_, execerr := s.GetMaster().ExecNoTimeout(` DELETE FROM Status `)
+	_, execerr := s.GetMasterX().Exec(`DELETE FROM Status`)
 	require.NoError(t, execerr)
 }
 
@@ -80,6 +80,7 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("SearchNotInTeam", func(t *testing.T) { testUserStoreSearchNotInTeam(t, ss) })
 	t.Run("SearchWithoutTeam", func(t *testing.T) { testUserStoreSearchWithoutTeam(t, ss) })
 	t.Run("SearchInGroup", func(t *testing.T) { testUserStoreSearchInGroup(t, ss) })
+	t.Run("SearchNotInGroup", func(t *testing.T) { testUserStoreSearchNotInGroup(t, ss) })
 	t.Run("GetProfilesNotInTeam", func(t *testing.T) { testUserStoreGetProfilesNotInTeam(t, ss) })
 	t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testUserStoreClearAllCustomRoleAssignments(t, ss) })
 	t.Run("GetAllAfter", func(t *testing.T) { testUserStoreGetAllAfter(t, ss) })
@@ -1467,7 +1468,7 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 		Name:        model.NewString("n_" + model.NewId()),
 		DisplayName: "dn_" + model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    "ri_" + model.NewId(),
+		RemoteId:    model.NewString("ri_" + model.NewId()),
 	})
 	require.NoError(t, err)
 
@@ -3489,7 +3490,6 @@ func testUserStoreSearchInGroup(t *testing.T, ss store.Store) {
 	u3 := &model.User{
 		Username: "jimbo3" + model.NewId(),
 		Email:    MakeEmail(),
-		DeleteAt: 1,
 	}
 	_, err = ss.User().Save(u3)
 	require.NoError(t, err)
@@ -3507,7 +3507,7 @@ func testUserStoreSearchInGroup(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	_, err = ss.Group().Create(g1)
 	require.NoError(t, err)
@@ -3517,7 +3517,7 @@ func testUserStoreSearchInGroup(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 	_, err = ss.Group().Create(g2)
 	require.NoError(t, err)
@@ -3529,6 +3529,10 @@ func testUserStoreSearchInGroup(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	_, err = ss.Group().UpsertMember(g1.Id, u3.Id)
+	require.NoError(t, err)
+
+	u3.DeleteAt = 1
+	_, err = ss.User().Update(u3, true)
 	require.NoError(t, err)
 
 	testCases := []struct {
@@ -3596,6 +3600,138 @@ func testUserStoreSearchInGroup(t *testing.T, ss store.Store) {
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
 			users, err := ss.User().SearchInGroup(
+				testCase.GroupId,
+				testCase.Term,
+				testCase.Options,
+			)
+			require.NoError(t, err)
+			assertUsers(t, testCase.Expected, users)
+		})
+	}
+}
+
+func testUserStoreSearchNotInGroup(t *testing.T, ss store.Store) {
+	u1 := &model.User{
+		Username:  "jimbo1" + model.NewId(),
+		FirstName: "Tim",
+		LastName:  "Bill",
+		Nickname:  "Rob",
+		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+	}
+	_, err := ss.User().Save(u1)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
+
+	u2 := &model.User{
+		Username: "jim-bobby" + model.NewId(),
+		Email:    MakeEmail(),
+	}
+	_, err = ss.User().Save(u2)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
+
+	u3 := &model.User{
+		Username: "jimbo3" + model.NewId(),
+		Email:    MakeEmail(),
+	}
+	_, err = ss.User().Save(u3)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
+
+	// The users returned from the database will have AuthData as an empty string.
+	nilAuthData := model.NewString("")
+
+	u1.AuthData = nilAuthData
+	u2.AuthData = nilAuthData
+	u3.AuthData = nilAuthData
+
+	g1 := &model.Group{
+		Name:        model.NewString(model.NewId()),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceCustom,
+		RemoteId:    model.NewString(model.NewId()),
+	}
+	_, err = ss.Group().Create(g1)
+	require.NoError(t, err)
+
+	g2 := &model.Group{
+		Name:        model.NewString(model.NewId()),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceCustom,
+		RemoteId:    model.NewString(model.NewId()),
+	}
+	_, err = ss.Group().Create(g2)
+	require.NoError(t, err)
+
+	_, err = ss.Group().UpsertMember(g1.Id, u1.Id)
+	require.NoError(t, err)
+
+	_, err = ss.Group().UpsertMember(g2.Id, u2.Id)
+	require.NoError(t, err)
+
+	_, err = ss.Group().UpsertMember(g1.Id, u3.Id)
+	require.NoError(t, err)
+
+	u3.DeleteAt = 1
+	_, err = ss.User().Update(u3, true)
+	require.NoError(t, err)
+
+	testCases := []struct {
+		Description string
+		GroupId     string
+		Term        string
+		Options     *model.UserSearchOptions
+		Expected    []*model.User
+	}{
+		{
+			"search jimb, not in group 1",
+			g1.Id,
+			"jimb",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.UserSearchDefaultLimit,
+			},
+			[]*model.User{},
+		},
+		{
+			"search jim, not in group 1",
+			g1.Id,
+			"jim",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.UserSearchDefaultLimit,
+			},
+			[]*model.User{u2},
+		},
+		{
+			"search jimb, not in group 3, allow inactive",
+			g2.Id,
+			"jimb",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				AllowInactive:  true,
+				Limit:          model.UserSearchDefaultLimit,
+			},
+			[]*model.User{u1, u3},
+		},
+		{
+			"search jim, not in group 2",
+			g2.Id,
+			"jimb",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				AllowInactive:  true,
+				Limit:          model.UserSearchDefaultLimit,
+			},
+			[]*model.User{u1, u3},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			users, err := ss.User().SearchNotInGroup(
 				testCase.GroupId,
 				testCase.Term,
 				testCase.Options,
@@ -4362,7 +4498,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 		Name:        model.NewString("n_" + model.NewId()),
 		DisplayName: "dn_" + model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    "ri_" + model.NewId(),
+		RemoteId:    model.NewString("ri_" + model.NewId()),
 	})
 	require.NoError(t, err)
 
@@ -4679,7 +4815,7 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 			Name:        model.NewString("n_" + id),
 			DisplayName: "dn_" + id,
 			Source:      model.GroupSourceLdap,
-			RemoteId:    "ri_" + id,
+			RemoteId:    model.NewString("ri_" + id),
 		})
 		require.NoError(t, err)
 		require.NotNil(t, group)
@@ -4800,7 +4936,7 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 			Name:        model.NewString("n_" + id),
 			DisplayName: "dn_" + id,
 			Source:      model.GroupSourceLdap,
-			RemoteId:    "ri_" + id,
+			RemoteId:    model.NewString("ri_" + id),
 		})
 		require.NoError(t, err)
 		require.NotNil(t, group)
