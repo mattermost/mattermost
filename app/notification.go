@@ -1041,7 +1041,7 @@ func (a *App) allowChannelMentions(post *model.Post, numProfiles int) bool {
 
 // allowGroupMentions returns whether or not the group mentions are allowed for the given post.
 func (a *App) allowGroupMentions(post *model.Post) bool {
-	if license := a.Srv().License(); license == nil || !*license.Features.LDAPGroups {
+	if license := a.Srv().License(); license == nil || (license.SkuShortName != model.LicenseShortSkuProfessional && license.SkuShortName != model.LicenseShortSkuEnterprise) {
 		return false
 	}
 

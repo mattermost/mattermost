@@ -8,8 +8,8 @@ type Product interface {
 	Stop() error
 }
 
-var products = make(map[string]func(*Server) (Product, error))
+var products = make(map[string]func(*Server, map[ServiceKey]interface{}) (Product, error))
 
-func RegisterProduct(name string, f func(*Server) (Product, error)) {
+func RegisterProduct(name string, f func(*Server, map[ServiceKey]interface{}) (Product, error)) {
 	products[name] = f
 }
