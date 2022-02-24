@@ -258,6 +258,20 @@ func (_m *ServiceInterface) SendInviteEmails(team *model.Team, senderName string
 	return r0
 }
 
+// SendLicenseInactivityEmail provides a mock function with given fields: _a0, name, locale, siteURL
+func (_m *ServiceInterface) SendLicenseInactivityEmail(_a0 string, name string, locale string, siteURL string) error {
+	ret := _m.Called(_a0, name, locale, siteURL)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string, string) error); ok {
+		r0 = rf(_a0, name, locale, siteURL)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // SendLicenseUpForRenewalEmail provides a mock function with given fields: _a0, name, locale, siteURL, renewalLink, daysToExpiration
 func (_m *ServiceInterface) SendLicenseUpForRenewalEmail(_a0 string, name string, locale string, siteURL string, renewalLink string, daysToExpiration int) error {
 	ret := _m.Called(_a0, name, locale, siteURL, renewalLink, daysToExpiration)
