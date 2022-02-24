@@ -151,7 +151,9 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 	}
 	auditRec.AddMeta("plugin_id", pluginRequest.Id)
 
-	pluginRequest.Version = "" // Always install the latest compatible version
+	// Always install the latest compatible version
+	// https://mattermost.atlassian.net/browse/MM-41981
+	pluginRequest.Version = ""
 
 	manifest, appErr := c.App.Channels().InstallMarketplacePlugin(pluginRequest)
 	if appErr != nil {
