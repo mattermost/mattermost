@@ -35,6 +35,7 @@ require (
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/golang-migrate/migrate/v4 v4.15.1
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
+	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/google/btree v1.0.1 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20211111143520-d0d5ecc1a356 // indirect
 	github.com/gorilla/handlers v1.5.1
@@ -55,7 +56,6 @@ require (
 	github.com/hashicorp/yamux v0.0.0-20211028200310-0bc27b27de87 // indirect
 	github.com/jaytaylor/html2text v0.0.0-20211105163654-bc68cce691ba
 	github.com/jmoiron/sqlx v1.3.4
-	github.com/jonboulle/clockwork v0.2.2
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
 	github.com/ledongthuc/pdf v0.0.0-20210621053716-e28cb8259002
@@ -89,14 +89,13 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.11 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.11.0
-	github.com/prometheus/client_model v0.2.0
 	github.com/prometheus/common v0.32.1 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/reflog/dateconstraints v0.2.1
 	github.com/rs/cors v1.8.0
 	github.com/rs/xid v1.3.0 // indirect
 	github.com/rudderlabs/analytics-go v3.3.1+incompatible
-	github.com/russellhaering/goxmldsig v1.1.1
+	github.com/russellhaering/goxmldsig v1.1.1 // indirect
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/segmentio/backo-go v0.0.0-20200129164019-23eae7c10bd3 // indirect
 	github.com/spf13/cobra v1.2.1
@@ -131,7 +130,6 @@ require (
 	gopkg.in/mail.v2 v2.3.1
 	gopkg.in/olivere/elastic.v6 v6.2.37
 	gopkg.in/yaml.v2 v2.4.0
-	willnorris.com/go/imageproxy v0.11.2
 )
 
 // Hack to prevent the willf/bitset module from being upgraded to 1.2.0.
