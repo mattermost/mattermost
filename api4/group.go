@@ -297,6 +297,17 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	group, groupErr := c.App.GetGroup(c.Params.GroupId, nil)
+	if groupErr != nil {
+		c.Err = groupErr
+		return
+	}
+
+	if group.Source == model.GroupSourceCustom {
+		c.Err = model.NewAppError("Api4.linkGroupSyncable", "app.group.crud_permission", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	auditRec := c.MakeAuditRecord("linkGroupSyncable", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("group_id", c.Params.GroupId)
