@@ -379,6 +379,32 @@ func (s *Server) StopPushNotificationsHubWorkers() {
 	s.PushNotificationsHub.stop()
 }
 
+func (a *App) rawSendToPushProxy(msg *model.PushNotification) (model.PushResponse, error) {
+	msgJSON, jsonErr := json.Marshal(msg)
+	if jsonErr != nil {
+		return nil, errors.Wrap(jsonErr, "failed to encode to JSON")
+	}
+
+	url := strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/") + model.APIURLSuffixV1 + "/send_push"
+	request, err := http.NewRequest("POST", url, bytes.NewReader(msgJSON))
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := a.Srv().pushNotificationClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var pushResponse model.PushResponse
+	if jsonErr := json.NewDecoder(resp.Body).Decode(&pushResponse); jsonErr != nil {
+		return nil, errors.Wrap(jsonErr, "failed to decode from JSON")
+	}
+
+	return pushResponse, nil
+}
+
 func (a *App) sendToPushProxy(msg *model.PushNotification, session *model.Session) error {
 	msg.ServerId = a.TelemetryId()
 
@@ -390,26 +416,9 @@ func (a *App) sendToPushProxy(msg *model.PushNotification, session *model.Sessio
 		mlog.String("status", model.PushSendPrepare),
 	)
 
-	msgJSON, jsonErr := json.Marshal(msg)
-	if jsonErr != nil {
-		return errors.Wrap(jsonErr, "failed to encode to JSON")
-	}
-
-	url := strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/") + model.APIURLSuffixV1 + "/send_push"
-	request, err := http.NewRequest("POST", url, bytes.NewReader(msgJSON))
+	pushResponse, err := a.rawSendToPushProxy(msg)
 	if err != nil {
 		return err
-	}
-
-	resp, err := a.Srv().pushNotificationClient.Do(request)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	var pushResponse model.PushResponse
-	if jsonErr := json.NewDecoder(resp.Body).Decode(&pushResponse); jsonErr != nil {
-		return errors.Wrap(jsonErr, "failed to decode from JSON")
 	}
 
 	switch pushResponse[model.PushStatus] {
@@ -568,8 +577,8 @@ func (a *App) BuildPushNotificationMessage(contentsConfig string, post *model.Po
 	return msg, nil
 }
 
-func (a *App) SendTestPushNotification(deviceID string) (canSend bool, err error) {
-	var msg *model.PushNotification = &model.PushNotification{
+func (a *App) SendTestPushNotification(deviceID string) string {
+	msg := &model.PushNotification{
 		Version:  "2",
 		Type:     model.PushTypeTest,
 		ServerId: a.TelemetryId(),
@@ -577,36 +586,29 @@ func (a *App) SendTestPushNotification(deviceID string) (canSend bool, err error
 	}
 	msg.SetDeviceIdAndPlatform(deviceID)
 
-	msgJSON, jsonErr := json.Marshal(msg)
-	if jsonErr != nil {
-		return false, errors.Wrap(jsonErr, "failed to encode to JSON")
-	}
-
-	url := strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/") + model.APIURLSuffixV1 + "/send_push"
-	request, err := http.NewRequest("POST", url, bytes.NewReader(msgJSON))
+	pushResponse, err := a.rawSendToPushProxy(msg)
 	if err != nil {
-		return false, err
-	}
-
-	resp, err := a.Srv().pushNotificationClient.Do(request)
-	if err != nil {
-		return false, err
-	}
-	defer resp.Body.Close()
-
-	var pushResponse model.PushResponse
-	if jsonErr := json.NewDecoder(resp.Body).Decode(&pushResponse); jsonErr != nil {
-		return false, errors.Wrap(jsonErr, "failed to decode from JSON")
+		a.NotificationsLog().Error("Notification error",
+			mlog.String("type", msg.Type),
+			mlog.String("deviceId", msg.DeviceId),
+			mlog.String("status", err.Error()),
+		)
+		return "unknown"
 	}
 
 	switch pushResponse[model.PushStatus] {
 	case model.PushStatusRemove:
-		return false, nil
+		return "false"
 	case model.PushStatusFail:
-		return false, errors.New(pushResponse[model.PushStatusErrorMsg])
+		a.NotificationsLog().Error("Notification error",
+			mlog.String("type", msg.Type),
+			mlog.String("deviceId", msg.DeviceId),
+			mlog.String("status", pushResponse[model.PushStatusErrorMsg]),
+		)
+		return "unknown"
 	}
 
-	return true, nil
+	return "true"
 }
 
 func (a *App) buildIdLoadedPushNotificationMessage(channel *model.Channel, post *model.Post, user *model.User) *model.PushNotification {
