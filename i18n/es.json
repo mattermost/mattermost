@@ -6260,20 +6260,8 @@
     "translation": "Error al almacenar el valor para {{.WarnMetricName}}"
   },
   {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "No se pudo encontrar la métrica."
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "La lista de administradores está vacía."
-  },
-  {
     "id": "app.system.warn_metric.bot_displayname",
     "translation": "Asesor de Mattermost"
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Obtenga más información sobre el Asesor de Mattermost] (https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.job.download_export_results_not_enabled",
@@ -6330,14 +6318,6 @@
   {
     "id": "api.server.warn_metric.email_us",
     "translation": "Envíanos un correo electrónico"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Contactándonos"
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Contáctenos"
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
@@ -7142,14 +7122,6 @@
   {
     "id": "api.cloud.app_error",
     "translation": "Error interno durante nube api petición."
-  },
-  {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Obtener prueba"
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Comenzar prueba"
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
@@ -8418,14 +8390,6 @@
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
     "translation": "La comprobación de los límites de la imagen ha fallado. La resolución es demasiado alta."
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "Por favor, vaya a **Consola del sistema > Configuración del sitio > Personalización** para establecer el [correo electrónico de soporte](https://docs.mattermost.com/administration/config-settings.html#support-email) como la dirección de correo electrónico del servicio de soporte de IT interno de su organización para los comentarios de los usuarios finales, las notificaciones por correo electrónico y las solicitudes de soporte."
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "Establezca su dirección de correo electrónico de soporte"
   },
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",

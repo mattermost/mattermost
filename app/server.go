@@ -633,6 +633,7 @@ func NewServer(options ...Option) (*Server, error) {
 		s.Go(func() {
 			appInstance := New(ServerConnector(s.Channels()))
 			s.runLicenseExpirationCheckJob()
+			s.runInactivityCheckJob()
 			runDNDStatusExpireJob(appInstance)
 		})
 		s.runJobs()
@@ -1475,6 +1476,12 @@ func runJobsCleanupJob(s *Server) {
 	doJobsCleanup(s)
 	model.CreateRecurringTask("Job Cleanup", func() {
 		doJobsCleanup(s)
+	}, time.Hour*24)
+}
+
+func (s *Server) runInactivityCheckJob() {
+	model.CreateRecurringTask("Server inactivity Check", func() {
+		s.doInactivityCheck()
 	}, time.Hour*24)
 }
 

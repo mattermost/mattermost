@@ -6352,10 +6352,6 @@
     "translation": "Não foi possível contar os wehooks de entrada."
   },
   {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Não foi possível encontrar a métrica de aviso."
-  },
-  {
     "id": "app.role.save.invalid_role.app_error",
     "translation": "A função não é válida."
   },
@@ -6382,14 +6378,6 @@
   {
     "id": "api.server.warn_metric.email_us",
     "translation": "Envie-nos um email"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Contatando-Nos"
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Contate-Nos"
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
@@ -6480,16 +6468,8 @@
     "translation": "Falha ao armazenar valor para {{.WarnMetricName}}"
   },
   {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "A lista de administradores está vazia."
-  },
-  {
     "id": "app.system.warn_metric.bot_displayname",
     "translation": "Mattermost Advisor"
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Saiba mais sobre o Mattermost Advisor](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.job.download_export_results_not_enabled",
@@ -6834,14 +6814,6 @@
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Falha ao obter os membros do canal."
-  },
-  {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Obter avaliação"
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Iniciar avaliação"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",

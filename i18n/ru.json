@@ -6260,10 +6260,6 @@
     "translation": "Не удалось отправить администратору письмо с подтверждением"
   },
   {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Связаться с нами"
-  },
-  {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
     "translation": "Спасибо, что связались с Mattermost. Мы свяжемся с вами в ближайшее время."
   },
@@ -6272,20 +6268,8 @@
     "translation": "Не удалось сохранить значение для {{.WarnMetricName}}"
   },
   {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Не удалось найти метрику."
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "Список админов пуст."
-  },
-  {
     "id": "app.system.warn_metric.bot_displayname",
     "translation": "Mattermost Советник"
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Узнайте больше о Mattermost Советник] (https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "api.server.warn_metric.bot_response.mailto_contact_header",
@@ -6342,10 +6326,6 @@
   {
     "id": "api.server.warn_metric.email_us",
     "translation": "Свяжитесь с нами по электронной почте"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Связаться с нами"
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_failure.message",
@@ -6890,14 +6870,6 @@
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Не удалось получить участников канала."
-  },
-  {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Получение пробной версии"
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Начать использовать пробную версию"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
@@ -8948,10 +8920,6 @@
     "translation": "Начать подписку"
   },
   {
-    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "Установите email-адрес службы поддержки"
-  },
-  {
     "id": "api.command_channel_purpose.update_channel.max_length",
     "translation": "Введенный текст превышает лимит символов. Назначение канала ограничено {{.MaxLength}} символами."
   },
@@ -9206,10 +9174,6 @@
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
     "translation": "Ошибка проверки ограничений изображения. Разрешение слишком высокое."
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "Перейдите в **Системная консоль > Конфигурация сайта > Настройка**, чтобы установить [электронную почту техподдержки](https://docs.mattermost.com/administration/config-settings.html#support-email) в качестве внутреннего адреса электронной почты ИТ-поддержки Вашей организации для обратной связи с конечными пользователями, уведомлений по электронной почте и запросов в службу техподдержки."
   },
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
