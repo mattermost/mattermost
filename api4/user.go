@@ -1938,7 +1938,7 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.LogAuditWithUserId("", "failure - login_id="+loginID)
 		c.LogErrorByCode(err)
-		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, http.StatusNotFound)
+		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, http.StatusFound)
 		return
 	}
 	auditRec.AddMeta("user", user)
@@ -1946,12 +1946,12 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	err = c.App.DoLogin(c.AppContext, w, r, user, "", false, false, false)
 	if err != nil {
 		c.LogErrorByCode(err)
-		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, http.StatusNotFound)
+		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, http.StatusFound)
 		return
 	}
 	c.LogAuditWithUserId(user.Id, "success")
 	c.App.AttachSessionCookies(c.AppContext, w, r)
-	http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, http.StatusNotFound)
+	http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, http.StatusFound)
 }
 
 func logout(c *Context, w http.ResponseWriter, r *http.Request) {
