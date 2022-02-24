@@ -6508,10 +6508,6 @@
     "translation": "Impossible de récupérer les membres du canal."
   },
   {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Commencer l'essai"
-  },
-  {
     "id": "api.server.warn_metric.mfa.notification_title",
     "translation": "Imposer l'authentification multi-facteurs"
   },
@@ -6820,10 +6816,6 @@
     "translation": "La connexion de bot est interdite."
   },
   {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Impossible de trouver la valeur déclenchant un avertissement."
-  },
-  {
     "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
     "translation": "Impossible de trouver la valeur déclenchant un avertissement."
   },
@@ -6866,10 +6858,6 @@
   {
     "id": "api.admin.ldap.not_available.app_error",
     "translation": "LDAP n'est pas disponible."
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[En savoir plus à propos du conseiller Mattermost] (https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "api.templates.invite_body_footer.learn_more",
@@ -6934,14 +6922,6 @@
   {
     "id": "api.server.warn_metric.email_domain.notification_title",
     "translation": "Création de comptes d'invités"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Nous contacter"
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Nous contacter"
   },
   {
     "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
@@ -7578,10 +7558,6 @@
   {
     "id": "app.system.warn_metric.store.app_error",
     "translation": "Impossible d'enregistrer la valeur pour {{.WarnMetricName}}"
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "La liste des admins est vide."
   },
   {
     "id": "app.system.warn_metric.bot_displayname",
@@ -8230,18 +8206,6 @@
   {
     "id": "api.system.update_notices.fetch_failed",
     "translation": "La récupération des avis sur le produit a échoué"
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "Allez dans **Console système > Configuration du site > Personnalisation** pour définir l'adresse [e-mail d'assistance](https://docs.mattermost.com/administration/config-settings.html#support-email) comme l'adresse électronique du service d'assistance informatique interne de votre organisation pour les commentaires des utilisateurs finaux, les notifications par courriel et les demandes d'assistance."
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "Définissez votre adresse e-mail d'assistance"
-  },
-  {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Obtenir une version d'essai"
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",

@@ -165,6 +165,10 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PermissionCreateGroupChannel.Id,
 			model.PermissionViewMembers.Id,
 			model.PermissionCreateTeam.Id,
+			model.PermissionCreateCustomGroup.Id,
+			model.PermissionEditCustomGroup.Id,
+			model.PermissionDeleteCustomGroup.Id,
+			model.PermissionManageCustomGroupMembers.Id,
 		},
 		"system_post_all": {
 			model.PermissionCreatePost.Id,
@@ -220,6 +224,10 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 	role3, err3 := th.App.GetRoleByName(context.Background(), model.SystemUserRoleId)
 	assert.Nil(t, err3)
 	expected3 := []string{
+		model.PermissionCreateCustomGroup.Id,
+		model.PermissionEditCustomGroup.Id,
+		model.PermissionDeleteCustomGroup.Id,
+		model.PermissionManageCustomGroupMembers.Id,
 		model.PermissionListPublicTeams.Id,
 		model.PermissionJoinPublicTeams.Id,
 		model.PermissionCreateDirectChannel.Id,

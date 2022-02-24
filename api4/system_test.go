@@ -869,18 +869,33 @@ func TestCompleteOnboarding(t *testing.T) {
 			CheckOKStatus(t, resp)
 		})
 
-		installedPlugins, resp, err := th.SystemAdminClient.GetPlugins()
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
+		received := make(chan struct{})
 
-		found := false
-		for _, p := range installedPlugins.Active {
-			if p.Id == "testplugin2" {
-				found = true
+		go func() {
+			for {
+				installedPlugins, resp, err := th.SystemAdminClient.GetPlugins()
+				if err != nil || resp.StatusCode != http.StatusOK {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				for _, p := range installedPlugins.Active {
+					if p.Id == "testplugin2" {
+						received <- struct{}{}
+						return
+					}
+				}
+				time.Sleep(500 * time.Millisecond)
 			}
+		}()
+
+		select {
+		case <-received:
+			break
+		case <-time.After(15 * time.Second):
+			require.Fail(t, "timed out waiting testplugin2 to be installed and enabled ")
 		}
 
-		require.True(t, found, "testplugin2 should have been installed and enabled")
 	})
 }
 

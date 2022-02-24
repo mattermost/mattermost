@@ -111,7 +111,7 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 	dsn := *s.Config().ExperimentalAuditSettings.AdvancedLoggingConfig
 	if bAllowAdvancedLogging && dsn != "" {
 		var err error
-		logConfigSrc, err = config.NewLogConfigSrc(dsn, s.configStore)
+		logConfigSrc, err = config.NewLogConfigSrc(dsn, s.configStore.Store)
 		if err != nil {
 			return fmt.Errorf("invalid config source for audit, %w", err)
 		}
