@@ -7653,10 +7653,6 @@
     "translation": "The Integration/Slack Bot user with email {{.Email}} and password {{.Password}} has been imported.\n"
   },
   {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Start Trial"
-  },
-  {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
     "translation": "Your Enterprise trial is now active. Go to **System Console > User Management > Permissions** to enable Advanced Permissions."
   },
