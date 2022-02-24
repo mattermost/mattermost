@@ -2,6 +2,7 @@ package flow
 
 import (
 	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -80,9 +81,13 @@ func (s Step) Next(name Name) Step {
 	return s
 }
 
-func (s Step) WithImage(pluginURL, path string) Step {
-	if path != "" {
-		s.template.ImageURL = pluginURL + "/" + strings.TrimPrefix(path, "/")
+func (s Step) WithImage(imageURL string) Step {
+	if u, err := url.Parse(imageURL); err == nil {
+		if u.Host != "" && (u.Scheme == "http" || u.Scheme == "https") {
+			s.template.ImageURL = imageURL
+		} else {
+			s.template.ImageURL = u.Path
+		}
 	}
 	return s
 }
@@ -129,7 +134,7 @@ func (s Step) done(f *Flow, selectedButton int) (*model.Post, error) {
 }
 
 func (s Step) render(f *Flow, done bool, selectedButton int) (*model.Post, bool, error) {
-	sa := processAttachment(s.template, f.state.AppState)
+	sa := f.processAttachment(s.template)
 	post := model.Post{}
 	model.ParseSlackAttachment(&post, []*model.SlackAttachment{sa})
 
@@ -160,24 +165,35 @@ func (s Step) render(f *Flow, done bool, selectedButton int) (*model.Post, bool,
 	return &post, false, nil
 }
 
-func processAttachment(attachment *model.SlackAttachment, state State) *model.SlackAttachment {
+func (f *Flow) processAttachment(attachment *model.SlackAttachment) *model.SlackAttachment {
 	if attachment == nil {
 		return &model.SlackAttachment{Text: "ERROR"}
 	}
 	a := *attachment
-	a.Pretext = formatState(attachment.Pretext, state)
-	a.Title = formatState(attachment.Title, state)
-	a.Text = formatState(attachment.Text, state)
+	a.Pretext = formatState(attachment.Pretext, f.state.AppState)
+	a.Title = formatState(attachment.Title, f.state.AppState)
+	a.Text = formatState(attachment.Text, f.state.AppState)
 
 	for _, field := range a.Fields {
-		field.Title = formatState(field.Title, state)
+		field.Title = formatState(field.Title, f.state.AppState)
 		v := field.Value.(string)
 		if v != "" {
-			field.Value = formatState(v, state)
+			field.Value = formatState(v, f.state.AppState)
 		}
 	}
 
 	a.Fallback = fmt.Sprintf("%s: %s", a.Title, a.Text)
+
+	if attachment.ImageURL != "" {
+		if u, err := url.Parse(attachment.ImageURL); err == nil {
+			if u.Host != "" && (u.Scheme == "http" || u.Scheme == "https") {
+				a.ImageURL = attachment.ImageURL
+			} else {
+				a.ImageURL = f.pluginURL + "/" + strings.TrimPrefix(attachment.ImageURL, "/")
+			}
+		}
+	}
+
 	return &a
 }
 
