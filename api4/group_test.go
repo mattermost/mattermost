@@ -1201,6 +1201,28 @@ func TestGetGroups(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, groups, 1)
 	assert.Equal(t, groups[0].Id, group2.Id)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableCustomGroups = false
+	})
+
+	// Specify custom groups source when feature is disabled
+	opts.Source = model.GroupSourceCustom
+	_, response, err := th.Client.GetGroups(opts)
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, response)
+
+	// Specify ldap groups source when custom groups feature is disabled
+	opts.Source = model.GroupSourceLdap
+	groups, _, err = th.Client.GetGroups(opts)
+	assert.NoError(t, err)
+	assert.Len(t, groups, 1)
+
+	// don't include source and should only get ldap groups in response
+	opts.Source = ""
+	groups, _, err = th.Client.GetGroups(opts)
+	assert.NoError(t, err)
+	assert.Len(t, groups, 1)
 }
 
 func TestGetGroupsByUserId(t *testing.T) {
