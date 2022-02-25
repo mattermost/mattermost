@@ -6208,28 +6208,12 @@
     "translation": "Serverul SMTP este necesar"
   },
   {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Contactează-ne"
-  },
-  {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
     "translation": "Vă mulțumim că ați contactat Mattermost. Vă vom contacta în curând."
   },
   {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Nu s-a putut găsi metrică."
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "Lista administratorilor este goală."
-  },
-  {
     "id": "app.system.warn_metric.bot_displayname",
     "translation": "Consilier Mattermost"
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Aflați mai multe despre Consilier Mattermost](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.command.tryexecutecustomcommand.internal_error",
@@ -6306,10 +6290,6 @@
   {
     "id": "api.server.warn_metric.email_us",
     "translation": "Trimite-ti-ne un e-mail"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Contactându-ne"
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_failure.message",
@@ -7102,14 +7082,6 @@
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Eșuarea la preluarea membrilor canalului."
-  },
-  {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Primeste versiune de test"
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Solicitați versiune de test"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
@@ -8958,14 +8930,6 @@
   {
     "id": "api.templates.cloud_trial_ended_email.start_subscription",
     "translation": "Începeți abonamentul"
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "Vă rugăm să accesați **System Console > Site Configuration > Customization** pentru a seta [Support Email](https://docs.mattermost.com/administration/config-settings.html#support-email) ca adresă de e-mail a biroului de asistență IT intern al organizației dumneavoastră pentru feedback-ul utilizatorului final, notificări prin e-mail și cereri de asistență."
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "Setați adresa de e-mail de asistență"
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",

@@ -6272,14 +6272,6 @@
     "translation": "Scrivici"
   },
   {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Contattaci"
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Contattaci"
-  },
-  {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
     "translation": "Grazie per aver contattato Mattermost. Ti daremo riscontro presto."
   },
@@ -6374,10 +6366,6 @@
   {
     "id": "app.preference.delete.app_error",
     "translation": "Errore riscontrato durante l'eliminazione delle preferenze."
-  },
-  {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Impossibile trovare la metrica di avviso."
   },
   {
     "id": "api.user.delete_user.not_enabled.app_error",
@@ -6526,14 +6514,6 @@
   {
     "id": "app.system.warn_metric.store.app_error",
     "translation": "Errore durante il salvataggio del valore di {{.WarnMetricName}}"
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "La lista degli amministratori è vuota."
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Per saperne di più sul consigliere di Mattermost](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.system.warn_metric.bot_displayname",
@@ -6722,14 +6702,6 @@
   {
     "id": "api.user.delete_channel.not_enabled.app_error",
     "translation": "La funzione di eliminazione definitiva squadra non è attiva. Contattare l'Amministratore di Sistema."
-  },
-  {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Ottieni prova"
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Richiedi prova"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
