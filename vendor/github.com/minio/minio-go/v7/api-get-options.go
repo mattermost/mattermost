@@ -37,6 +37,7 @@ type GetObjectOptions struct {
 	headers              map[string]string
 	ServerSideEncryption encrypt.ServerSide
 	VersionID            string
+	PartNumber           int
 	// To be not used by external applications
 	Internal AdvancedGetOptions
 }

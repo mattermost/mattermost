@@ -372,7 +372,7 @@ func (c conj) join(sep, defaultExpr string) (sql string, args []interface{}, err
 	}
 	var sqlParts []string
 	for _, sqlizer := range c {
-		partSQL, partArgs, err := sqlizer.ToSql()
+		partSQL, partArgs, err := nestedToSql(sqlizer)
 		if err != nil {
 			return "", nil, err
 		}

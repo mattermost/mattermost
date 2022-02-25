@@ -61,7 +61,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -73,7 +73,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 78+"
+    "translation": "Version 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -1408,20 +1408,8 @@
     "translation": "Failed to store value for {{.WarnMetricName}}"
   },
   {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Could not find metric."
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "List of admins is empty."
-  },
-  {
     "id": "app.system.warn_metric.bot_displayname",
     "translation": "Mattermost Advisor"
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Learn more about the Mattermost Advisor](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.system.save.app_error",
@@ -3089,7 +3077,7 @@
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": "Unable to migrate AD/LDAP users with specified field. Duplicate entry detected. Please remove all duplcates and try again."
+    "translation": "Unable to migrate AD/LDAP users with specified field. Duplicate entry detected. Please remove all duplicates and try again."
   },
   {
     "id": "ent.message_export.run_export.app_error",
@@ -5517,7 +5505,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Streamline your work with tools like Github, Jira and Zoom. Explore all of the integrations we have on our"
+    "translation": "Streamline your work with tools like GitHub, Jira and Zoom. Explore all of the integrations we have on our"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -6449,7 +6437,7 @@
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
-    "translation": "Error retreiving endpoint from Discovery Document."
+    "translation": "Error retrieving endpoint from Discovery Document."
   },
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
@@ -7665,22 +7653,6 @@
     "translation": "The Integration/Slack Bot user with email {{.Email}} and password {{.Password}} has been imported.\n"
   },
   {
-    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "Please go to **System Console > Site Configuration > Customisation** to set the [Support Email](https://docs.mattermost.com/administration/config-settings.html#support-email) as your organisation's internal IT Support Desk email address for end user feedback, email notifications, and support requests."
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "Set your 'Contact Support' email address"
-  },
-  {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Getting Trial"
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Start Trial"
-  },
-  {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
     "translation": "Your Enterprise trial is now active. Go to **System Console > User Management > Permissions** to enable Advanced Permissions."
   },
@@ -7863,14 +7835,6 @@
   {
     "id": "api.server.warn_metric.email_domain.contact_us.email_body",
     "translation": "Mattermost contact us request. I'm interested in learning more about using Guest Accounts.\n"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Contacting Us"
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Contact Us"
   },
   {
     "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
@@ -9155,18 +9119,6 @@
     "translation": "Feature requires an upgrade to Enterprise Edition."
   },
   {
-    "id": "extract_content.worker.do_job.file_info",
-    "translation": "Failed to get file information for content extraction."
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.to",
-    "translation": "Invalid input value 'to'"
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.from",
-    "translation": "Invalid input value 'from'"
-  },
-  {
     "id": "app.user.store_is_empty.app_error",
     "translation": "Failed to check if user store is empty."
   },
@@ -9301,5 +9253,69 @@
   {
     "id": "api.license.request_renewal_link.cannot_renew_on_cws",
     "translation": "Renewing this licence on the portal is not possible"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "SAML response is too long"
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "Onboarding can only be completed by a System Administrator."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "Failed to decode the complete onboarding request."
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "Name conflicts with existing system emoji name."
+  },
+  {
+    "id": "app.system.get_onboarding_request.app_error",
+    "translation": "Failed to get onboarding completion status."
+  },
+  {
+    "id": "app.member_count",
+    "translation": "error retrieving member count"
+  },
+  {
+    "id": "app.group.crud_permission",
+    "translation": "Unable to perform operation for that source type."
+  },
+  {
+    "id": "app.custom_group.unique_name",
+    "translation": "group name is not unique"
+  },
+  {
+    "id": "api.license_error",
+    "translation": "API endpoint requires a licence"
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "Error trying to save first admin complete setup in the store."
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "Error trying to retrieve first admin complete setup from the store."
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id must be blank for custom group"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference must be 'true' for custom groups"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "not licensed for custom groups"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "custom groups feature is disabled"
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "error counting groups"
   }
 ]

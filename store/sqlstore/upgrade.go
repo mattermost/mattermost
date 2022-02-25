@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	CurrentSchemaVersion   = Version630
+	CurrentSchemaVersion   = Version640
 	Version640             = "6.4.0"
 	Version630             = "6.3.0"
 	Version620             = "6.2.0"
@@ -323,10 +323,10 @@ func upgradeDatabaseToVersion34(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion35(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version340, Version350) {
-		sqlStore.GetMaster().Exec("UPDATE TeamMembers SET Roles = 'team_user' WHERE Roles = ''")
-		sqlStore.GetMaster().Exec("UPDATE TeamMembers SET Roles = 'team_user team_admin' WHERE Roles = 'admin'")
-		sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user' WHERE Roles = ''")
-		sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user channel_admin' WHERE Roles = 'admin'")
+		sqlStore.GetMasterX().Exec("UPDATE TeamMembers SET Roles = 'team_user' WHERE Roles = ''")
+		sqlStore.GetMasterX().Exec("UPDATE TeamMembers SET Roles = 'team_user team_admin' WHERE Roles = 'admin'")
+		sqlStore.GetMasterX().Exec("UPDATE ChannelMembers SET Roles = 'channel_user' WHERE Roles = ''")
+		sqlStore.GetMasterX().Exec("UPDATE ChannelMembers SET Roles = 'channel_user channel_admin' WHERE Roles = 'admin'")
 
 		// The rest of the migration from Filenames -> FileIds is done lazily in api.GetFileInfosForPost
 		sqlStore.CreateColumnIfNotExists("Posts", "FileIds", "varchar(150)", "varchar(150)", "[]")
@@ -806,9 +806,7 @@ func upgradeDatabaseToVersion630(sqlStore *SqlStore) {
 }
 
 func upgradeDatabaseToVersion640(sqlStore *SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, Version630, Version640) {
-	sqlStore.CreateColumnIfNotExists("OAuthApps", "MattermostAppID", "VARCHAR(32)", "VARCHAR(32)", "")
-
-	// 	saveSchemaVersion(sqlStore, Version640)
-	// }
+	if shouldPerformUpgrade(sqlStore, Version630, Version640) {
+		saveSchemaVersion(sqlStore, Version640)
+	}
 }

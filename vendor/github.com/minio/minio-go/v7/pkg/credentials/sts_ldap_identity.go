@@ -18,9 +18,10 @@
 package credentials
 
 import (
+	"bytes"
 	"encoding/xml"
-	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"time"
@@ -169,7 +170,23 @@ func (k *LDAPIdentity) Retrieve() (value Value, err error) {
 
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return value, errors.New(resp.Status)
+		var errResp ErrorResponse
+		buf, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return value, err
+
+		}
+		_, err = xmlDecodeAndBody(bytes.NewReader(buf), &errResp)
+		if err != nil {
+			var s3Err Error
+			if _, err = xmlDecodeAndBody(bytes.NewReader(buf), &s3Err); err != nil {
+				return value, err
+			}
+			errResp.RequestID = s3Err.RequestID
+			errResp.STSError.Code = s3Err.Code
+			errResp.STSError.Message = s3Err.Message
+		}
+		return value, errResp
 	}
 
 	r := AssumeRoleWithLDAPResponse{}

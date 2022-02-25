@@ -4801,7 +4801,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -4813,7 +4813,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Versie 78+"
+    "translation": "Versie 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -6228,10 +6228,6 @@
     "translation": "SMTP-server is verplicht"
   },
   {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Contacteer ons"
-  },
-  {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
     "translation": "Dank je om Mattermost te contacteren. We nemen spoedig contact op met jou."
   },
@@ -6254,18 +6250,6 @@
   {
     "id": "app.system.warn_metric.store.app_error",
     "translation": "Fout bij het bewaren van waarde voor {{.WarnMetricName}}"
-  },
-  {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Kon geen metrics vinden."
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "Lijst van beheerders is leeg."
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Meer informatie over the Mattermost Adviseur](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.system.warn_metric.bot_displayname",
@@ -6322,10 +6306,6 @@
   {
     "id": "api.server.warn_metric.email_us",
     "translation": "Stuur ons een e-mail"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Contacteer ons"
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_failure.message",
@@ -6942,14 +6922,6 @@
   {
     "id": "api.system.update_notices.clear_failed",
     "translation": "Het wissen van oude productmeldingen is mislukt"
-  },
-  {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Proefversie verkrijgen"
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Start proefversie"
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
@@ -8481,7 +8453,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Streamline your work with tools like Github, Jira and Zoom. Explore all of the integrations we have on our"
+    "translation": "Stroomlijn je werk met tools al GitHub, Jira and Zoom. Verken al onze integraties die we hebben in onze"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -8956,14 +8928,6 @@
     "translation": "Start abonnement"
   },
   {
-    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "Ga naar **Systeem console > Site Configuratie > Customisatie om het [ondersteuningse-mailadres](https://docs.mattermost.com/administration/config-settings.html#support-email) in te stellen als het interne IT helpdesk e-mailadres van je organisatie voor feedback van eindgebruikers, e-mail notificaties en support verzoeken."
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "Stel je e-mailadres voor ondersteuning in"
-  },
-  {
     "id": "api.command_channel_purpose.update_channel.max_length",
     "translation": "De ingevoerde tekst overschrijdt de karakterlimiet. Het doel van het kanaal is beperkt tot {{.MaxLength}} tekens."
   },
@@ -9155,18 +9119,6 @@
     "translation": "Voor deze functie is een upgrade naar Enterprise Editie vereist."
   },
   {
-    "id": "extract_content.worker.do_job.file_info",
-    "translation": "Mislukt om bestandsinformatie te krijgen voor inhoudsextractie."
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.to",
-    "translation": "Ongeldige invoerwaarde 'to'"
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.from",
-    "translation": "Ongeldige invoerwaarde 'From'"
-  },
-  {
     "id": "app.user.store_is_empty.app_error",
     "translation": "Fout bij het controleren of de 'user store' leeg is."
   },
@@ -9301,5 +9253,77 @@
   {
     "id": "api.license.request_renewal_link.cannot_renew_on_cws",
     "translation": "Vernieuwen van deze licentie op het portaal is niet mogelijk"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "SAML antwoord is te lang"
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "Onboarding kan alleen worden voltooid door een systeembeheerder."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "Het is niet gelukt om de volledige onboarding-request te decoderen."
+  },
+  {
+    "id": "app.admin.latest_version_read_all.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_external_error.failure",
+    "translation": " "
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "Naam conflicteert met bestaande systeem emoticonnaam."
+  },
+  {
+    "id": "app.system.get_onboarding_request.app_error",
+    "translation": "Fout bij het ophalen van de status van het voltooien van de verwelkoming."
+  },
+  {
+    "id": "app.member_count",
+    "translation": "fout bij ophalen ledenaantal"
+  },
+  {
+    "id": "app.group.crud_permission",
+    "translation": "Kan geen bewerking uitvoeren voor dat brontype."
+  },
+  {
+    "id": "app.custom_group.unique_name",
+    "translation": "de groepsnaam is niet uniek"
+  },
+  {
+    "id": "api.license_error",
+    "translation": "api endpoint vereist een licentie"
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "Fout bij het opslaan van de eerste admin complete setup in de store."
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "Fout bij het ophalen van de eerste admin complete setup uit de winkel."
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id moet leeg zijn voor aangepaste groep"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference moet zijn 'true' voor aangepaste groepen"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "geen licentie voor aangepaste groepen"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "de functie aangepaste groepen is uitgeschakeld"
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "groepen die fouten tellen"
   }
 ]

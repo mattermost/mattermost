@@ -437,7 +437,10 @@ func (api *PluginAPI) GetChannelByNameForTeamName(teamName, channelName string, 
 }
 
 func (api *PluginAPI) GetChannelsForTeamForUser(teamID, userID string, includeDeleted bool) ([]*model.Channel, *model.AppError) {
-	channels, err := api.app.GetChannelsForTeamForUser(teamID, userID, includeDeleted, 0)
+	channels, err := api.app.GetChannelsForTeamForUser(teamID, userID, &model.ChannelSearchOpts{
+		IncludeDeleted: includeDeleted,
+		LastDeleteAt:   0,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -594,7 +597,7 @@ func (api *PluginAPI) DeleteChannelMember(channelID, userID string) *model.AppEr
 }
 
 func (api *PluginAPI) GetGroup(groupId string) (*model.Group, *model.AppError) {
-	return api.app.GetGroup(groupId)
+	return api.app.GetGroup(groupId, nil)
 }
 
 func (api *PluginAPI) GetGroupByName(name string) (*model.Group, *model.AppError) {

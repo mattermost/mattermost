@@ -1116,7 +1116,10 @@ func (a *App) LeaveTeam(c *request.Context, team *model.Team, user *model.User, 
 
 	var channelList model.ChannelList
 	var nErr error
-	if channelList, nErr = a.Srv().Store.Channel().GetChannels(team.Id, user.Id, true, 0); nErr != nil {
+	if channelList, nErr = a.Srv().Store.Channel().GetChannels(team.Id, user.Id, &model.ChannelSearchOpts{
+		IncludeDeleted: true,
+		LastDeleteAt:   0,
+	}); nErr != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(nErr, &nfErr) {
 			channelList = model.ChannelList{}
@@ -1158,7 +1161,7 @@ func (a *App) LeaveTeam(c *request.Context, team *model.Team, user *model.User, 
 	}
 
 	if err := a.ch.srv.teamService.RemoveTeamMember(teamMember); err != nil {
-		return model.NewAppError("RemoveTeamMemberFromTeam", "app.team.save_member.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return model.NewAppError("RemoveTeamMemberFromTeam", "app.team.save_member.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := a.postProcessTeamMemberLeave(c, teamMember, requestorId); err != nil {
@@ -1562,11 +1565,13 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string, include
 		return tu
 	}
 
+	teamIDs := make([]string, 0, len(data))
 	for i := range data {
 		id := data[i].TeamId
 		if mu, ok := membersMap[id]; ok {
 			membersMap[id] = unreads(data[i], mu)
 		} else {
+			teamIDs = append(teamIDs, id)
 			membersMap[id] = unreads(data[i], &model.TeamUnread{
 				MsgCount:           0,
 				MentionCount:       0,
@@ -1581,18 +1586,22 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string, include
 
 	includeCollapsedThreads = includeCollapsedThreads && *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
 
-	for _, member := range membersMap {
-		if includeCollapsedThreads {
-			data, err := a.Srv().Store.Thread().GetThreadsForUser(userID, member.TeamId, model.GetUserThreadsOpts{TotalsOnly: true, TeamOnly: true})
-			if err != nil {
-				return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, err.Error(), http.StatusInternalServerError)
-			}
-			member.ThreadCount = data.TotalUnreadThreads
-			member.ThreadMentionCount = data.TotalUnreadMentions
+	if includeCollapsedThreads {
+		teamUnreads, err := a.Srv().Store.Thread().GetTeamsUnreadForUser(userID, teamIDs)
+		if err != nil {
+			return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
-		members = append(members, member)
+		for teamID, member := range membersMap {
+			if _, ok := teamUnreads[teamID]; ok {
+				member.ThreadCount = teamUnreads[teamID].ThreadCount
+				member.ThreadMentionCount = teamUnreads[teamID].ThreadMentionCount
+			}
+		}
 	}
 
+	for _, member := range membersMap {
+		members = append(members, member)
+	}
 	return members, nil
 }
 

@@ -14,9 +14,44 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
+	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store/storetest"
 )
+
+type StoreTestWrapper struct {
+	orig *SqlStore
+}
+
+func NewStoreTestWrapper(orig *SqlStore) *StoreTestWrapper {
+	return &StoreTestWrapper{orig}
+}
+
+func (w *StoreTestWrapper) GetMaster() *gorp.DbMap {
+	return w.orig.GetMaster()
+}
+
+func (w *StoreTestWrapper) GetMasterX() storetest.SqlXExecutor {
+	return w.orig.GetMasterX()
+}
+
+func (w *StoreTestWrapper) DriverName() string {
+	return w.orig.DriverName()
+}
+
+// sqlxExecutor exposes sqlx operations. It is used to enable some internal store methods to
+// accept both transactions (*sqlxTxWrapper) and common db handlers (*sqlxDbWrapper).
+type sqlxExecutor interface {
+	Get(dest interface{}, query string, args ...interface{}) error
+	NamedExec(query string, arg interface{}) (sql.Result, error)
+	Exec(query string, args ...interface{}) (sql.Result, error)
+	ExecRaw(query string, args ...interface{}) (sql.Result, error)
+	NamedQuery(query string, arg interface{}) (*sqlx.Rows, error)
+	QueryRowX(query string, args ...interface{}) *sqlx.Row
+	QueryX(query string, args ...interface{}) (*sqlx.Rows, error)
+	Select(dest interface{}, query string, args ...interface{}) error
+}
 
 // namedParamRegex is used to capture all named parameters and convert them
 // to lowercase. This is necessary to be able to use a single query for both
@@ -90,6 +125,24 @@ func (w *sqlxDBWrapper) NamedExec(query string, arg interface{}) (sql.Result, er
 func (w *sqlxDBWrapper) Exec(query string, args ...interface{}) (sql.Result, error) {
 	query = w.DB.Rebind(query)
 
+	return w.ExecRaw(query, args...)
+}
+
+func (w *sqlxDBWrapper) ExecNoTimeout(query string, args ...interface{}) (sql.Result, error) {
+	query = w.DB.Rebind(query)
+
+	if w.trace {
+		defer func(then time.Time) {
+			printArgs(query, time.Since(then), args)
+		}(time.Now())
+	}
+
+	return w.DB.ExecContext(context.Background(), query, args...)
+}
+
+// ExecRaw is like Exec but without any rebinding of params. You need to pass
+// the exact param types of your target database.
+func (w *sqlxDBWrapper) ExecRaw(query string, args ...interface{}) (sql.Result, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 	defer cancel()
 
@@ -191,6 +244,12 @@ func (w *sqlxTxWrapper) Get(dest interface{}, query string, args ...interface{})
 func (w *sqlxTxWrapper) Exec(query string, args ...interface{}) (sql.Result, error) {
 	query = w.Tx.Rebind(query)
 
+	return w.ExecRaw(query, args...)
+}
+
+// ExecRaw is like Exec but without any rebinding of params. You need to pass
+// the exact param types of your target database.
+func (w *sqlxTxWrapper) ExecRaw(query string, args ...interface{}) (sql.Result, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 	defer cancel()
 

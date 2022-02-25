@@ -202,10 +202,11 @@ jobs:
             make gen-serialized
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the serialized files using 'make gen-serialized'"; exit 1; fi
 
-  # Dedicate job for golangci-lint it does not need anything only the server code for that
+  # Dedicated job for golangci-lint it does not need anything only the server code for that
   # and to make more clear when the job fails
   check-golangci-lint:
     docker:
+      # Keep the version in sync with the command in Makefile
       - image: golangci/golangci-lint:v1.39.0
     steps:
       - checkout
@@ -323,7 +324,6 @@ jobs:
       - run:
           name: Run Tests
           command: |
-            ulimit -n 8096
             mkdir -p mattermost-server/client/plugins
             cd mattermost-server/build
             docker run -it --net circleci_mm-test \
@@ -385,7 +385,6 @@ jobs:
           name: Postgres schema migration validation
           command: |
             cd mattermost-server/build
-            ulimit -n 8096
             mkdir -p mattermost-server/client/plugins
             echo "Creating databases"
             docker-compose --no-ansi exec -T postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
@@ -399,7 +398,7 @@ jobs:
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
               mattermost/mattermost-build-server:20210810_golang-1.16.7 \
-              bash -c "ulimit -n 8096; make ARGS='version' run-cli && make MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10' ARGS='version' run-cli"
+              bash -c "ulimit -n 8096; make ARGS='db migrate' run-cli && make MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10' ARGS='db migrate' run-cli"
 
             echo "Generating dump"
             docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d migrated -U mmuser > migrated.sql
@@ -414,7 +413,6 @@ jobs:
           name: MySQL schema migration validation
           command: |
             cd mattermost-server/build
-            ulimit -n 8096
             mkdir -p mattermost-server/client/plugins
             echo "Creating databases"
             docker-compose --no-ansi exec -T mysql mysql -uroot -pmostest -e "CREATE DATABASE migrated; CREATE DATABASE latest; GRANT ALL PRIVILEGES ON migrated.* TO mmuser; GRANT ALL PRIVILEGES ON latest.* TO mmuser"
@@ -429,7 +427,7 @@ jobs:
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
               mattermost/mattermost-build-server:20210810_golang-1.16.7 \
-              bash -c "ulimit -n 8096; make ARGS='version' run-cli && make MM_SQLSETTINGS_DATASOURCE='mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s' ARGS='version' run-cli"
+              bash -c "ulimit -n 8096; make ARGS='db migrate' run-cli && make MM_SQLSETTINGS_DATASOURCE='mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s' ARGS='db migrate' run-cli"
 
             echo "Generating dump"
             docker-compose --no-ansi exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest migrated > migrated.sql
@@ -579,9 +577,21 @@ workflows:
             - check-email-templates
             - check-gen-serialized
       - test:
-          name: test-postgres
+          name: test-postgres-normal
           dbdriver: postgres
           dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+          racemode: ""
+          requires:
+            - check-app-layers
+            - check-store-layers
+            - check-mocks
+            - check-migrations
+            - check-email-templates
+            - check-gen-serialized
+      - test:
+          name: test-postgres-binary
+          dbdriver: postgres
+          dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes
           racemode: ""
           requires:
             - check-app-layers
@@ -682,10 +692,22 @@ workflows:
             - check-email-templates
             - check-gen-serialized
       - test:
-          name: test-postgres
+          name: test-postgres-normal
           dbdriver: postgres
           dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
           racemode: "-race"
+          requires:
+            - check-app-layers
+            - check-store-layers
+            - check-mocks
+            - check-migrations
+            - check-email-templates
+            - check-gen-serialized
+      - test:
+          name: test-postgres-binary
+          dbdriver: postgres
+          dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes
+          racemode: ""
           requires:
             - check-app-layers
             - check-store-layers

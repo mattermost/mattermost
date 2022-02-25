@@ -11,6 +11,7 @@ package gcimporter
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"go/ast"
 	"go/constant"
 	"go/token"
@@ -19,6 +20,8 @@ import (
 	"math/big"
 	"reflect"
 	"sort"
+	"strconv"
+	"strings"
 
 	"golang.org/x/tools/internal/typeparams"
 )
@@ -33,15 +36,15 @@ const bundleVersion = 0
 // The package path of the top-level package will not be recorded,
 // so that calls to IImportData can override with a provided package path.
 func IExportData(out io.Writer, fset *token.FileSet, pkg *types.Package) error {
-	return iexportCommon(out, fset, false, []*types.Package{pkg})
+	return iexportCommon(out, fset, false, iexportVersion, []*types.Package{pkg})
 }
 
 // IExportBundle writes an indexed export bundle for pkgs to out.
 func IExportBundle(out io.Writer, fset *token.FileSet, pkgs []*types.Package) error {
-	return iexportCommon(out, fset, true, pkgs)
+	return iexportCommon(out, fset, true, iexportVersion, pkgs)
 }
 
-func iexportCommon(out io.Writer, fset *token.FileSet, bundle bool, pkgs []*types.Package) (err error) {
+func iexportCommon(out io.Writer, fset *token.FileSet, bundle bool, version int, pkgs []*types.Package) (err error) {
 	if !debug {
 		defer func() {
 			if e := recover(); e != nil {
@@ -57,9 +60,11 @@ func iexportCommon(out io.Writer, fset *token.FileSet, bundle bool, pkgs []*type
 
 	p := iexporter{
 		fset:        fset,
+		version:     version,
 		allPkgs:     map[*types.Package]bool{},
 		stringIndex: map[string]uint64{},
 		declIndex:   map[types.Object]uint64{},
+		tparamNames: map[types.Object]string{},
 		typIndex:    map[types.Type]uint64{},
 	}
 	if !bundle {
@@ -119,7 +124,7 @@ func iexportCommon(out io.Writer, fset *token.FileSet, bundle bool, pkgs []*type
 	if bundle {
 		hdr.uint64(bundleVersion)
 	}
-	hdr.uint64(iexportVersion)
+	hdr.uint64(uint64(p.version))
 	hdr.uint64(uint64(p.strings.Len()))
 	hdr.uint64(dataLen)
 
@@ -136,8 +141,12 @@ func iexportCommon(out io.Writer, fset *token.FileSet, bundle bool, pkgs []*type
 // non-compiler tools and includes a complete package description
 // (i.e., name and height).
 func (w *exportWriter) writeIndex(index map[types.Object]uint64) {
+	type pkgObj struct {
+		obj  types.Object
+		name string // qualified name; differs from obj.Name for type params
+	}
 	// Build a map from packages to objects from that package.
-	pkgObjs := map[*types.Package][]types.Object{}
+	pkgObjs := map[*types.Package][]pkgObj{}
 
 	// For the main index, make sure to include every package that
 	// we reference, even if we're not exporting (or reexporting)
@@ -150,7 +159,8 @@ func (w *exportWriter) writeIndex(index map[types.Object]uint64) {
 	}
 
 	for obj := range index {
-		pkgObjs[obj.Pkg()] = append(pkgObjs[obj.Pkg()], obj)
+		name := w.p.exportName(obj)
+		pkgObjs[obj.Pkg()] = append(pkgObjs[obj.Pkg()], pkgObj{obj, name})
 	}
 
 	var pkgs []*types.Package
@@ -158,7 +168,7 @@ func (w *exportWriter) writeIndex(index map[types.Object]uint64) {
 		pkgs = append(pkgs, pkg)
 
 		sort.Slice(objs, func(i, j int) bool {
-			return indexName(objs[i]) < indexName(objs[j])
+			return objs[i].name < objs[j].name
 		})
 	}
 
@@ -175,29 +185,25 @@ func (w *exportWriter) writeIndex(index map[types.Object]uint64) {
 		objs := pkgObjs[pkg]
 		w.uint64(uint64(len(objs)))
 		for _, obj := range objs {
-			w.string(indexName(obj))
-			w.uint64(index[obj])
+			w.string(obj.name)
+			w.uint64(index[obj.obj])
 		}
 	}
 }
 
-// indexName returns the 'indexed' name of an object. It differs from
-// obj.Name() only for type parameter names, where we include the subscripted
-// type parameter ID.
-//
-// TODO(rfindley): remove this once we no longer need subscripts.
-func indexName(obj types.Object) (res string) {
-	if _, ok := obj.(*types.TypeName); ok {
-		if tparam, ok := obj.Type().(*typeparams.TypeParam); ok {
-			return types.TypeString(tparam, func(*types.Package) string { return "" })
-		}
+// exportName returns the 'exported' name of an object. It differs from
+// obj.Name() only for type parameters (see tparamExportName for details).
+func (p *iexporter) exportName(obj types.Object) (res string) {
+	if name := p.tparamNames[obj]; name != "" {
+		return name
 	}
 	return obj.Name()
 }
 
 type iexporter struct {
-	fset *token.FileSet
-	out  *bytes.Buffer
+	fset    *token.FileSet
+	out     *bytes.Buffer
+	version int
 
 	localpkg *types.Package
 
@@ -211,9 +217,21 @@ type iexporter struct {
 	strings     intWriter
 	stringIndex map[string]uint64
 
-	data0     intWriter
-	declIndex map[types.Object]uint64
-	typIndex  map[types.Type]uint64
+	data0       intWriter
+	declIndex   map[types.Object]uint64
+	tparamNames map[types.Object]string // typeparam->exported name
+	typIndex    map[types.Type]uint64
+
+	indent int // for tracing support
+}
+
+func (p *iexporter) trace(format string, args ...interface{}) {
+	if !trace {
+		// Call sites should also be guarded, but having this check here allows
+		// easily enabling/disabling debug trace statements.
+		return
+	}
+	fmt.Printf(strings.Repeat("..", p.indent)+format+"\n", args...)
 }
 
 // stringOff returns the offset of s within the string section.
@@ -239,7 +257,7 @@ func (p *iexporter) pushDecl(obj types.Object) {
 		return
 	}
 
-	p.declIndex[obj] = ^uint64(0) // mark n present in work queue
+	p.declIndex[obj] = ^uint64(0) // mark obj present in work queue
 	p.declTodo.pushTail(obj)
 }
 
@@ -262,6 +280,14 @@ func (w *exportWriter) exportPath(pkg *types.Package) string {
 }
 
 func (p *iexporter) doDecl(obj types.Object) {
+	if trace {
+		p.trace("exporting decl %v (%T)", obj, obj)
+		p.indent++
+		defer func() {
+			p.indent--
+			p.trace("=> %s", obj)
+		}()
+	}
 	w := p.newWriter()
 	w.setPkg(obj.Pkg(), false)
 
@@ -284,14 +310,15 @@ func (p *iexporter) doDecl(obj types.Object) {
 			w.tag('G')
 		}
 		w.pos(obj.Pos())
-		// The tparam list of the function type is the
-		// declaration of the type params. So, write out the type
-		// params right now. Then those type params will be
-		// referenced via their type offset (via typOff) in all
-		// other places in the signature and function that they
-		// are used.
+		// The tparam list of the function type is the declaration of the type
+		// params. So, write out the type params right now. Then those type params
+		// will be referenced via their type offset (via typOff) in all other
+		// places in the signature and function where they are used.
+		//
+		// While importing the type parameters, tparamList computes and records
+		// their export name, so that it can be later used when writing the index.
 		if tparams := typeparams.ForSignature(sig); tparams.Len() > 0 {
-			w.tparamList(tparams, obj.Pkg())
+			w.tparamList(obj.Name(), tparams, obj.Pkg())
 		}
 		w.signature(sig)
 
@@ -306,7 +333,15 @@ func (p *iexporter) doDecl(obj types.Object) {
 		if tparam, ok := t.(*typeparams.TypeParam); ok {
 			w.tag('P')
 			w.pos(obj.Pos())
-			w.typ(tparam.Constraint(), obj.Pkg())
+			constraint := tparam.Constraint()
+			if p.version >= iexportVersionGo1_18 {
+				implicit := false
+				if iface, _ := constraint.(*types.Interface); iface != nil {
+					implicit = typeparams.IsImplicit(iface)
+				}
+				w.bool(implicit)
+			}
+			w.typ(constraint, obj.Pkg())
 			break
 		}
 
@@ -331,7 +366,9 @@ func (p *iexporter) doDecl(obj types.Object) {
 		w.pos(obj.Pos())
 
 		if typeparams.ForNamed(named).Len() > 0 {
-			w.tparamList(typeparams.ForNamed(named), obj.Pkg())
+			// While importing the type parameters, tparamList computes and records
+			// their export name, so that it can be later used when writing the index.
+			w.tparamList(obj.Name(), typeparams.ForNamed(named), obj.Pkg())
 		}
 
 		underlying := obj.Type().Underlying()
@@ -348,6 +385,17 @@ func (p *iexporter) doDecl(obj types.Object) {
 			w.pos(m.Pos())
 			w.string(m.Name())
 			sig, _ := m.Type().(*types.Signature)
+
+			// Receiver type parameters are type arguments of the receiver type, so
+			// their name must be qualified before exporting recv.
+			if rparams := typeparams.RecvTypeParams(sig); rparams.Len() > 0 {
+				prefix := obj.Name() + "." + m.Name()
+				for i := 0; i < rparams.Len(); i++ {
+					rparam := rparams.At(i)
+					name := tparamExportName(prefix, rparam)
+					w.p.tparamNames[rparam.Obj()] = name
+				}
+			}
 			w.param(sig.Recv())
 			w.signature(sig)
 		}
@@ -364,7 +412,7 @@ func (w *exportWriter) tag(tag byte) {
 }
 
 func (w *exportWriter) pos(pos token.Pos) {
-	if iexportVersion >= iexportVersionPosCol {
+	if w.p.version >= iexportVersionPosCol {
 		w.posV1(pos)
 	} else {
 		w.posV0(pos)
@@ -447,9 +495,11 @@ func (w *exportWriter) pkg(pkg *types.Package) {
 }
 
 func (w *exportWriter) qualifiedIdent(obj types.Object) {
+	name := w.p.exportName(obj)
+
 	// Ensure any referenced declarations are written out too.
 	w.p.pushDecl(obj)
-	w.string(indexName(obj))
+	w.string(name)
 	w.pkg(obj.Pkg())
 }
 
@@ -483,6 +533,14 @@ func (w *exportWriter) startType(k itag) {
 }
 
 func (w *exportWriter) doTyp(t types.Type, pkg *types.Package) {
+	if trace {
+		w.p.trace("exporting type %s (%T)", t, t)
+		w.p.indent++
+		defer func() {
+			w.p.indent--
+			w.p.trace("=> %s", t)
+		}()
+	}
 	switch t := t.(type) {
 	case *types.Named:
 		if targs := typeparams.NamedTypeArgs(t); targs.Len() > 0 {
@@ -619,12 +677,47 @@ func (w *exportWriter) typeList(ts *typeparams.TypeList, pkg *types.Package) {
 	}
 }
 
-func (w *exportWriter) tparamList(list *typeparams.TypeParamList, pkg *types.Package) {
+func (w *exportWriter) tparamList(prefix string, list *typeparams.TypeParamList, pkg *types.Package) {
 	ll := uint64(list.Len())
 	w.uint64(ll)
 	for i := 0; i < list.Len(); i++ {
+		tparam := list.At(i)
+		// Set the type parameter exportName before exporting its type.
+		exportName := tparamExportName(prefix, tparam)
+		w.p.tparamNames[tparam.Obj()] = exportName
 		w.typ(list.At(i), pkg)
 	}
+}
+
+const blankMarker = "$"
+
+// tparamExportName returns the 'exported' name of a type parameter, which
+// differs from its actual object name: it is prefixed with a qualifier, and
+// blank type parameter names are disambiguated by their index in the type
+// parameter list.
+func tparamExportName(prefix string, tparam *typeparams.TypeParam) string {
+	assert(prefix != "")
+	name := tparam.Obj().Name()
+	if name == "_" {
+		name = blankMarker + strconv.Itoa(tparam.Index())
+	}
+	return prefix + "." + name
+}
+
+// tparamName returns the real name of a type parameter, after stripping its
+// qualifying prefix and reverting blank-name encoding. See tparamExportName
+// for details.
+func tparamName(exportName string) string {
+	// Remove the "path" from the type param name that makes it unique.
+	ix := strings.LastIndex(exportName, ".")
+	if ix < 0 {
+		errorf("malformed type parameter export name %s: missing prefix", exportName)
+	}
+	name := exportName[ix+1:]
+	if strings.HasPrefix(name, blankMarker) {
+		return "_"
+	}
+	return name
 }
 
 func (w *exportWriter) paramList(tup *types.Tuple) {
@@ -643,6 +736,9 @@ func (w *exportWriter) param(obj types.Object) {
 
 func (w *exportWriter) value(typ types.Type, v constant.Value) {
 	w.typ(typ, nil)
+	if w.p.version >= iexportVersionGo1_18 {
+		w.int64(int64(v.Kind()))
+	}
 
 	switch b := typ.Underlying().(*types.Basic); b.Info() & types.IsConstType {
 	case types.IsBoolean:
@@ -832,7 +928,7 @@ func (w *exportWriter) localIdent(obj types.Object) {
 		return
 	}
 
-	name := indexName(obj)
+	name := obj.Name()
 	if name == "_" {
 		w.string("_")
 		return
