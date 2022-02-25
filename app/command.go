@@ -25,7 +25,7 @@ import (
 const (
 	CmdCustomStatusTrigger = "status"
 	usernameSpecialChars   = ".-_"
-	maxTriggerLen = 512
+	maxTriggerLen          = 512
 )
 
 var atMentionRegexp = regexp.MustCompile(`\B@[[:alnum:]][[:alnum:]\.\-_:]*`)
