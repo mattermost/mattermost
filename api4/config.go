@@ -147,8 +147,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.HandleMessageExportConfig(cfg, appCfg)
 
-	err := cfg.IsValid()
-	if err != nil {
+	if err := cfg.IsValid(); err != nil {
 		c.Err = err
 		return
 	}

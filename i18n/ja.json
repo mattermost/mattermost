@@ -6392,18 +6392,6 @@
     "translation": "{{.WarnMetricName}}に値を保存できませんでした"
   },
   {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "メトリックが見つかりませんでした。"
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "管理者リストが空です。"
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Mattermostアドバイザーについて詳しく知る](https://about.mattermost.com/default-channel-handle-documentation)"
-  },
-  {
     "id": "app.system.warn_metric.bot_displayname",
     "translation": "Mattermostアドバイザー"
   },
@@ -6434,14 +6422,6 @@
   {
     "id": "api.server.warn_metric.email_us",
     "translation": "メールにてお問い合わせください"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "問い合わせ中"
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "問い合わせ"
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
@@ -7218,14 +7198,6 @@
   {
     "id": "api.team.add_team_member.invalid_body.app_error",
     "translation": "リクエストボディを解析できませんでした。"
-  },
-  {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "トライアルを開始する"
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "トライアル開始"
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
@@ -8940,14 +8912,6 @@
     "translation": "サブスクリプションを開始する"
   },
   {
-    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "利用者のフィードバック、電子メール通知、サポートリクエストを受け付けるために、**システムコンソール > サイト設定 > カスタマイズ**に移動し、あなたの組織の内部ITサポートデスクの電子メールアドレスを [サポート電子メールアドレス](https://docs.mattermost.com/administration/config-settings.html#support-email)として設定してください。"
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "サポート電子メールアドレスを設定してください"
-  },
-  {
     "id": "api.command_remote.displayname.hint",
     "translation": "安全な接続のための表示名"
   },
@@ -9302,5 +9266,37 @@
   {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": "SAMLの応答が長すぎます"
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "カスタムグループの場合、remote_idは空白でなければなりません。"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "カスタムグループの場合、allow_referenceは 'true'でなければなりません。"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "カスタムグループのためのライセンスがありません"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "カスタムグループ機能は無効化されています"
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "グループのカウント中にエラーが発生しました"
+  },
+  {
+    "id": "Playbooks",
+    "translation": "プレイブック"
+  },
+  {
+    "id": "Channels",
+    "translation": "チャンネル"
+  },
+  {
+    "id": "Boards",
+    "translation": "ボード"
   }
 ]

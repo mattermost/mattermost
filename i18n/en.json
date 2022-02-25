@@ -8,6 +8,14 @@
     "translation": "August"
   },
   {
+    "id": "Boards",
+    "translation": "Boards"
+  },
+  {
+    "id": "Channels",
+    "translation": "Channels"
+  },
+  {
     "id": "December",
     "translation": "December"
   },
@@ -42,6 +50,10 @@
   {
     "id": "October",
     "translation": "October"
+  },
+  {
+    "id": "Playbooks",
+    "translation": "Playbooks"
   },
   {
     "id": "September",
@@ -3245,7 +3257,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.email_info1",
@@ -3562,6 +3574,38 @@
   {
     "id": "api.templates.reset_subject",
     "translation": "[{{ .SiteName }}] Reset your password"
+  },
+  {
+    "id": "api.templates.server_inactivity_button",
+    "translation": "Open Mattermost"
+  },
+  {
+    "id": "api.templates.server_inactivity_info",
+    "translation": "Come and check it out!"
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet",
+    "translation": "Guest Access to specified "
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet1",
+    "translation": "Workflow management with "
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet2",
+    "translation": "Manage tasks using "
+  },
+  {
+    "id": "api.templates.server_inactivity_subject",
+    "translation": "HEY! Open Mattermost to increase your team’s productivity!"
+  },
+  {
+    "id": "api.templates.server_inactivity_subtitle",
+    "translation": "Hey {{.Name}}, we’ve noticed that your Mattermost server is collecting a bit of dust. Take a look at some features that can help lighten your team's workload."
+  },
+  {
+    "id": "api.templates.server_inactivity_title",
+    "translation": "Unlock increased productivity with these awesome features"
   },
   {
     "id": "api.templates.signin_change_email.body.info",
@@ -9269,7 +9313,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 12+"
+    "translation": "Version 14.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
