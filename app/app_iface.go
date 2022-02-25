@@ -817,6 +817,7 @@ type AppIface interface {
 	ImportPermissions(jsonl io.Reader) error
 	InitPlugins(c *request.Context, pluginDir, webappPluginDir string)
 	InvalidateAllEmailInvites() *model.AppError
+	InvalidateAllResendInviteEmailJobs() *model.AppError
 	InvalidateCacheForUser(userID string)
 	InviteGuestsToChannels(teamID string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError
 	InviteGuestsToChannelsGracefully(teamID string, guestsInvite *model.GuestsInvite, senderId string) ([]*model.EmailInviteWithError, *model.AppError)

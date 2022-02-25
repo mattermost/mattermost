@@ -4501,6 +4501,24 @@ func (s *OpenTracingLayerJobStore) GetAllByType(jobType string) ([]*model.Job, e
 	return result, err
 }
 
+func (s *OpenTracingLayerJobStore) GetAllByTypeAndStatus(jobType string, status string) ([]*model.Job, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "JobStore.GetAllByTypeAndStatus")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.JobStore.GetAllByTypeAndStatus(jobType, status)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerJobStore) GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "JobStore.GetAllByTypePage")
