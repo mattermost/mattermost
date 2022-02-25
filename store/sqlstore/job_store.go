@@ -201,6 +201,22 @@ func (jss SqlJobStore) GetAllByType(jobType string) ([]*model.Job, error) {
 	return statuses, nil
 }
 
+func (jss SqlJobStore) GetAllByTypeAndStatus(jobType string, status string) ([]*model.Job, error) {
+	query, args, err := jss.getQueryBuilder().
+		Select("*").
+		From("Jobs").
+		Where(sq.Eq{"Type": jobType, "Status": status}).
+		OrderBy("CreateAt DESC").ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "job_tosql")
+	}
+	jobs := []*model.Job{}
+	if err = jss.GetReplicaX().Select(&jobs, query, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find Jobs with type=%s", jobType)
+	}
+	return jobs, nil
+}
+
 func (jss SqlJobStore) GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, error) {
 	query, args, err := jss.getQueryBuilder().
 		Select("*").
