@@ -6188,10 +6188,6 @@
     "translation": "Es trat ein Fehler beim Löschen der Einstellungen auf."
   },
   {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Warnmetrik konnte nicht gefunden werden."
-  },
-  {
     "id": "api.templates.warn_metric_ack.body.site_url_header",
     "translation": "Seiten-URL: "
   },
@@ -6526,10 +6522,6 @@
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Fehler beim Abrufen der Kanalmitglieder."
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Request trial"
   },
   {
     "id": "api.server.warn_metric.mfa.notification_title",
@@ -7583,14 +7575,6 @@
     "translation": "Mattermost kontaktieren Anfrage. Ich bin daran interessiert, mehr über Gastkonten zu erfahren.\n"
   },
   {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Kontaktiert uns"
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Kontaktieren Sie uns"
-  },
-  {
     "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
     "translation": "Testlizenz konnte nicht empfangen werden. Besuchen Sie https://mattermost.com/trial/ um eine Lizenz anzufragen."
   },
@@ -7837,18 +7821,6 @@
   {
     "id": "api.system.update_notices.clear_failed",
     "translation": "Das Löschen alter Produkthinweise ist fehlgeschlagen"
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "Bitte gehen Sie zu **Systemkonsole > Systemkonfiguration > Anpassung** um die [Support-E-Mail-Adresse](https://docs.mattermost.com/administration/config-settings.html#support-email) als E-Mail-Adresse des internen IT-Supports für Benutzerfeedback, E-Mail Benachrichtigungen und Support-Anfragen festzulegen."
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "Setzen Ihre Support E-Mail Adresse"
-  },
-  {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Starte Test"
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
@@ -8615,16 +8587,8 @@
     "translation": "Fehlschlag beim Speichern des Wertes für {{.WarnMetricName}}"
   },
   {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "Liste der Administratoren ist leer."
-  },
-  {
     "id": "app.system.warn_metric.bot_displayname",
     "translation": "Mattermost Ratgeber"
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Mehr über den Mattermost Ratgeber erfahren](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.system.system_bot.bot_displayname",
@@ -9331,7 +9295,51 @@
     "translation": " "
   },
   {
-    "id": "model.config.is_valid.session_length_sso_in_days.app_error",
-    "translation": " "
+    "id": "app.system.get_onboarding_request.app_error",
+    "translation": "Fehlschlag beim Holen des Onboarding-abgeschlossen Status."
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "Fehler beim Versuch das erste komplette Admin Setup zu speichern."
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "Fehler beim Holen des ersten kompletten Admin Setups vom Speicher."
+  },
+  {
+    "id": "app.member_count",
+    "translation": "Fehler beim Holen der Mitgliederanzahl"
+  },
+  {
+    "id": "app.group.crud_permission",
+    "translation": "Kann die Operation für diesen Quell-Typ nicht durchführen."
+  },
+  {
+    "id": "app.custom_group.unique_name",
+    "translation": "Gruppenname ist nicht eindeutig"
+  },
+  {
+    "id": "api.license_error",
+    "translation": "API Endpunkt benötigt eine Lizenz"
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id muss leer sein für benutzerdefinierte Gruppen"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference muss 'wahr' sein für benutzerdefinierte Gruppen"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "Nicht lizensiert für benutzerdefinierte Gruppen"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "Feature Benutzerdefinierte Gruppen ist deaktiviert"
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "Fehler beim Zählen der Gruppen"
   }
 ]
