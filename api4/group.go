@@ -303,8 +303,8 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if group.Source == model.GroupSourceCustom {
-		c.Err = model.NewAppError("Api4.linkGroupSyncable", "app.group.crud_permission", nil, "", http.StatusNotImplemented)
+	if group.Source != model.GroupSourceLdap {
+		c.Err = model.NewAppError("Api4.linkGroupSyncable", "app.group.crud_permission", nil, "", http.StatusBadRequest)
 		return
 	}
 

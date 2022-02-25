@@ -339,8 +339,9 @@ func TestLinkGroupTeam(t *testing.T) {
 	})
 	assert.Nil(t, app2Err)
 
-	_, _, err = th.Client.LinkGroupSyncable(g2.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	_, response, err = th.Client.LinkGroupSyncable(g2.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
 }
 
 func TestLinkGroupChannel(t *testing.T) {
@@ -394,8 +395,9 @@ func TestLinkGroupChannel(t *testing.T) {
 	})
 	assert.Nil(t, app2Err)
 
-	_, _, err = th.Client.LinkGroupSyncable(g2.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	_, response, err = th.Client.LinkGroupSyncable(g2.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
 }
 
 func TestUnlinkGroupTeam(t *testing.T) {
