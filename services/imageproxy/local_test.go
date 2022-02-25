@@ -154,7 +154,7 @@ func TestLocalBackend_GetImage(t *testing.T) {
 		proxy := makeTestLocalProxy()
 
 		// Modify the timeout to be much shorter than the default 30 seconds
-		proxy.backend.(*LocalBackend).impl.Timeout = time.Millisecond
+		proxy.backend.(*LocalBackend).client.Timeout = time.Millisecond
 
 		recorder := httptest.NewRecorder()
 		request, _ := http.NewRequest(http.MethodGet, "", nil)
@@ -310,7 +310,7 @@ func TestLocalBackend_GetImageDirect(t *testing.T) {
 		proxy := makeTestLocalProxy()
 
 		// Modify the timeout to be much shorter than the default 30 seconds
-		proxy.backend.(*LocalBackend).impl.Timeout = time.Millisecond
+		proxy.backend.(*LocalBackend).client.Timeout = time.Millisecond
 
 		body, contentType, err := proxy.GetImageDirect(mock.URL + "/image.png")
 

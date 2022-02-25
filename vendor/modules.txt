@@ -253,6 +253,8 @@ github.com/golang/protobuf/ptypes/empty
 github.com/golang/protobuf/ptypes/timestamp
 # github.com/golang/snappy v0.0.3
 github.com/golang/snappy
+# github.com/gomodule/redigo v2.0.0+incompatible
+## explicit
 # github.com/google/btree v1.0.1
 ## explicit
 github.com/google/btree
@@ -274,9 +276,6 @@ github.com/gorilla/schema
 # github.com/gorilla/websocket v1.4.2
 ## explicit
 github.com/gorilla/websocket
-# github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
-## explicit
-github.com/gregjones/httpcache
 # github.com/h2non/go-is-svg v0.0.0-20160927212452-35e8c4b0612c
 ## explicit
 github.com/h2non/go-is-svg
@@ -448,13 +447,6 @@ github.com/modern-go/concurrent
 github.com/modern-go/reflect2
 # github.com/mschoch/smat v0.2.0
 github.com/mschoch/smat
-# github.com/muesli/smartcrop v0.3.0
-## explicit
-github.com/muesli/smartcrop
-github.com/muesli/smartcrop/nfnt
-github.com/muesli/smartcrop/options
-# github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
-github.com/nfnt/resize
 # github.com/nwaples/rardecode v1.1.0
 github.com/nwaples/rardecode
 # github.com/oklog/run v1.1.0
@@ -505,7 +497,6 @@ github.com/prometheus/client_golang/prometheus
 github.com/prometheus/client_golang/prometheus/internal
 github.com/prometheus/client_golang/prometheus/promhttp
 # github.com/prometheus/client_model v0.2.0
-## explicit
 github.com/prometheus/client_model/go
 # github.com/prometheus/common v0.25.0
 ## explicit
@@ -749,16 +740,10 @@ golang.org/x/crypto/scrypt
 ## explicit
 golang.org/x/image/bmp
 golang.org/x/image/ccitt
-golang.org/x/image/draw
 golang.org/x/image/font
-golang.org/x/image/math/f64
 golang.org/x/image/math/fixed
-golang.org/x/image/riff
 golang.org/x/image/tiff
 golang.org/x/image/tiff/lzw
-golang.org/x/image/vp8
-golang.org/x/image/vp8l
-golang.org/x/image/webp
 # golang.org/x/mod v0.4.2
 golang.org/x/mod/module
 golang.org/x/mod/semver
@@ -937,10 +922,4 @@ gopkg.in/olivere/elastic.v6
 gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 gopkg.in/yaml.v3
-# willnorris.com/go/gifresize v1.0.0
-willnorris.com/go/gifresize
-# willnorris.com/go/imageproxy v0.10.0
-## explicit
-willnorris.com/go/imageproxy
-willnorris.com/go/imageproxy/third_party/http
 # github.com/dyatlov/go-opengraph => github.com/agnivade/go-opengraph v0.0.0-20201221052033-34e69ee2a627
