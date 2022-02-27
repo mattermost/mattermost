@@ -9346,5 +9346,17 @@
   {
     "id": "api.file.test_connection_s3_auth.app_error",
     "translation": ""
+  },
+  {
+    "id": "Playbooks",
+    "translation": ""
+  },
+  {
+    "id": "Channels",
+    "translation": ""
+  },
+  {
+    "id": "Boards",
+    "translation": ""
   }
 ]
