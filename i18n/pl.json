@@ -9386,5 +9386,9 @@
   {
     "id": "Boards",
     "translation": "Tablice"
+  },
+  {
+    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
+    "translation": "Nie można uzyskać wszystkich zadań według typu i statusu."
   }
 ]
