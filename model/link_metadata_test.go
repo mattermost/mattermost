@@ -253,7 +253,7 @@ func TestTruncateText(t *testing.T) {
 	t.Run("Truncates string to 300 + 5", func(t *testing.T) {
 		assert.Equal(t, utf8.RuneCountInString(truncateText(BigText)), 305, "should be 300 chars + 5")
 	})
-	t.Run("Truncated text ends in elipsis", func(t *testing.T) {
+	t.Run("Truncated text ends in ellipsis", func(t *testing.T) {
 		assert.True(t, strings.HasSuffix(truncateText(BigText), "[...]"))
 	})
 }
