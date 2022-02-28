@@ -9,7 +9,6 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	"github.com/mattermost/mattermost-server/v6/app/imaging"
 	"github.com/mattermost/mattermost-server/v6/app/request"
@@ -33,19 +32,8 @@ type configSvc interface {
 }
 
 type licenseSvc interface { // nolint: unused
-	License() *model.License
-	LoadLicense()
-	SaveLicense(licenseBytes []byte) (*model.License, *model.AppError)
-	SetLicense(license *model.License) bool
-	ValidateAndSetLicenseBytes(b []byte) bool
-	SetClientLicense(m map[string]string)
-	ClientLicense() map[string]string
-	RemoveLicense() *model.AppError
-	AddLicenseListener(listener func(oldLicense, newLicense *model.License)) string
-	RemoveLicenseListener(id string)
-	RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *model.AppError
-	GenerateRenewalToken(expiration time.Duration) (string, *model.AppError)
-	GenerateLicenseRenewalLink() (string, string, *model.AppError)
+	GetLicense() *model.License
+	RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError
 }
 
 // namer is an interface which enforces that
@@ -58,7 +46,7 @@ type namer interface {
 type Channels struct {
 	srv        *Server
 	cfgSvc     configSvc
-	licenseSvc licenseSvc // nolint: structcheck,unused
+	licenseSvc licenseSvc
 
 	postActionCookieSecret []byte
 
@@ -119,7 +107,7 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 	// 2. Add the field to *Channels
 	// 3. Add the service key to the slice.
 	// 4. Add a new case in the switch statement.
-	requiredServices := []ServiceKey{ConfigKey}
+	requiredServices := []ServiceKey{ConfigKey, LicenseKey}
 	for _, svcKey := range requiredServices {
 		svc, ok := services[svcKey]
 		if !ok {
@@ -137,7 +125,18 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 				return nil, errors.New("Config service does not contain Name method")
 			}
 			ch.cfgSvc = cfgSvc
+		case LicenseKey:
+			lcsSvc, ok := svc.(licenseSvc)
+			if !ok {
+				return nil, errors.New("License service did not satisfy licenseSvc interface")
+			}
+			_, ok = svc.(namer)
+			if !ok {
+				return nil, errors.New("License service does not contain Name method")
+			}
+			ch.licenseSvc = lcsSvc
 		}
+
 	}
 	// We are passing a partially filled Channels struct so that the enterprise
 	// methods can have access to app methods.

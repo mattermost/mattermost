@@ -89,7 +89,8 @@ var SentryDSN = "placeholder_sentry_dsn"
 type ServiceKey string
 
 const (
-	ConfigKey ServiceKey = "config"
+	ConfigKey  ServiceKey = "config"
+	LicenseKey ServiceKey = "license"
 )
 
 type Server struct {
@@ -141,6 +142,7 @@ type Server struct {
 	licenseValue       atomic.Value
 	clientLicenseValue atomic.Value
 	licenseListeners   map[string]func(*model.License, *model.License)
+	licenseWrapper     *licenseWrapper
 
 	timezones *timezones.Timezones
 
@@ -255,10 +257,15 @@ func NewServer(options ...Option) (*Server, error) {
 	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
 
 	s.httpService = httpservice.MakeHTTPService(s)
+	s.licenseWrapper = &licenseWrapper{
+		srv: s,
+	}
 
 	serviceMap := map[ServiceKey]interface{}{
-		ConfigKey: s.configStore,
+		ConfigKey:  s.configStore,
+		LicenseKey: s.licenseWrapper,
 	}
+
 	// Step 3: Initialize products.
 	// Depends on s.httpService.
 	for name, initializer := range products {
