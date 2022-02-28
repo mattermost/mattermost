@@ -7,6 +7,7 @@ import (
 	"context"
 	"database/sql"
 	"strconv"
+	"sync"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -66,17 +67,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	fetchConditions := sq.And{
 		sq.Eq{"ThreadMemberships.UserId": userId},
 		sq.Eq{"ThreadMemberships.Following": true},
-	}
-	if opts.TeamOnly {
-		fetchConditions = sq.And{
-			sq.Eq{"Channels.TeamId": teamId},
-			fetchConditions,
-		}
-	} else {
-		fetchConditions = sq.And{
-			sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": ""}},
-			fetchConditions,
-		}
+		sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": ""}},
 	}
 	if !opts.Deleted {
 		fetchConditions = sq.And{
@@ -296,6 +287,107 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	}
 
 	return result, nil
+}
+
+// GetTeamsUnreadForUser returns the total unread threads and unread mentions
+// for a user from all teams.
+func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) (map[string]*model.TeamUnread, error) {
+	fetchConditions := sq.And{
+		sq.Eq{"ThreadMemberships.UserId": userID},
+		sq.Eq{"ThreadMemberships.Following": true},
+		sq.Eq{"Channels.TeamId": teamIDs},
+		sq.Eq{"COALESCE(Posts.DeleteAt, 0)": 0},
+	}
+
+	var wg sync.WaitGroup
+	var err1, err2 error
+
+	unreadThreads := []struct {
+		Count  int64
+		TeamId string
+	}{}
+	unreadMentions := []struct {
+		Count  int64
+		TeamId string
+	}{}
+
+	// Running these concurrently hasn't shown any major downside
+	// than running them serially. So using a bit of perf boost.
+	// In any case, they will be replaced by computed columns later.
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		repliesQuery, repliesQueryArgs, err := s.getQueryBuilder().
+			Select("COUNT(DISTINCT(Posts.RootId)) AS Count, TeamId").
+			From("Posts").
+			LeftJoin("ThreadMemberships ON Posts.RootId = ThreadMemberships.PostId").
+			LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
+			Where(fetchConditions).
+			Where("Posts.CreateAt > ThreadMemberships.LastViewed").
+			GroupBy("Channels.TeamId").
+			ToSql()
+		if err != nil {
+			err1 = errors.Wrap(err, "GetTotalUnreadThreads_Tosql")
+			return
+		}
+
+		err = s.GetReplicaX().Select(&unreadThreads, repliesQuery, repliesQueryArgs...)
+		if err != nil {
+			err1 = errors.Wrap(err, "failed to get total unread threads")
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		mentionsQuery, mentionsQueryArgs, err := s.getQueryBuilder().
+			Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0) AS Count, TeamId").
+			From("ThreadMemberships").
+			LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
+			LeftJoin("Posts ON Posts.Id = ThreadMemberships.PostId").
+			LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
+			Where(fetchConditions).
+			GroupBy("Channels.TeamId").
+			ToSql()
+		if err != nil {
+			err2 = errors.Wrap(err, "GetTotalUnreadMentions_Tosql")
+		}
+
+		err = s.GetReplicaX().Select(&unreadMentions, mentionsQuery, mentionsQueryArgs...)
+		if err != nil {
+			err2 = errors.Wrap(err, "failed to get total unread mentions")
+		}
+	}()
+
+	// Wait for them to be over
+	wg.Wait()
+
+	if err1 != nil {
+		return nil, err1
+	}
+	if err2 != nil {
+		return nil, err2
+	}
+
+	res := make(map[string]*model.TeamUnread)
+	// A bit of linear complexity here to create and return the map.
+	// This makes it easy to consume the output in the app layer.
+	for _, item := range unreadThreads {
+		res[item.TeamId] = &model.TeamUnread{
+			ThreadCount: item.Count,
+		}
+	}
+	for _, item := range unreadMentions {
+		if _, ok := res[item.TeamId]; ok {
+			res[item.TeamId].ThreadMentionCount = item.Count
+		} else {
+			res[item.TeamId] = &model.TeamUnread{
+				ThreadMentionCount: item.Count,
+			}
+		}
+	}
+
+	return res, nil
 }
 
 func (s *SqlThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error) {

@@ -88,15 +88,15 @@ func TestRemoveAllDeactivatedMembersFromChannel(t *testing.T) {
 	_, _, err = th.App.AddUserToTeam(th.Context, team.Id, th.BasicUser.Id, "")
 	require.Nil(t, err)
 
-	deacivatedUser := th.CreateUser()
-	_, _, err = th.App.AddUserToTeam(th.Context, team.Id, deacivatedUser.Id, "")
+	deactivatedUser := th.CreateUser()
+	_, _, err = th.App.AddUserToTeam(th.Context, team.Id, deactivatedUser.Id, "")
 	require.Nil(t, err)
-	_, err = th.App.AddUserToChannel(deacivatedUser, channel, false)
+	_, err = th.App.AddUserToChannel(deactivatedUser, channel, false)
 	require.Nil(t, err)
 	channelMembers, err := th.App.GetChannelMembersPage(channel.Id, 0, 10000000)
 	require.Nil(t, err)
 	require.Len(t, channelMembers, 2)
-	_, err = th.App.UpdateActive(th.Context, deacivatedUser, false)
+	_, err = th.App.UpdateActive(th.Context, deactivatedUser, false)
 	require.Nil(t, err)
 
 	err = th.App.RemoveAllDeactivatedMembersFromChannel(channel)
@@ -148,23 +148,23 @@ func TestMoveChannel(t *testing.T) {
 
 		// Test moving a channel with a deactivated user who isn't in the destination team.
 		// It should fail, unless removeDeactivatedMembers is true.
-		deacivatedUser := th.CreateUser()
+		deactivatedUser := th.CreateUser()
 		channel2 := th.CreateChannel(sourceTeam)
 		defer th.App.PermanentDeleteChannel(channel2)
 
-		_, _, err = th.App.AddUserToTeam(th.Context, sourceTeam.Id, deacivatedUser.Id, "")
+		_, _, err = th.App.AddUserToTeam(th.Context, sourceTeam.Id, deactivatedUser.Id, "")
 		require.Nil(t, err)
 		_, err = th.App.AddUserToChannel(th.BasicUser, channel2, false)
 		require.Nil(t, err)
 
-		_, err = th.App.AddUserToChannel(deacivatedUser, channel2, false)
+		_, err = th.App.AddUserToChannel(deactivatedUser, channel2, false)
 		require.Nil(t, err)
 
-		_, err = th.App.UpdateActive(th.Context, deacivatedUser, false)
+		_, err = th.App.UpdateActive(th.Context, deactivatedUser, false)
 		require.Nil(t, err)
 
 		err = th.App.MoveChannel(th.Context, targetTeam, channel2, th.BasicUser)
-		require.NotNil(t, err, "Should have failed due to mismatched deacivated member.")
+		require.NotNil(t, err, "Should have failed due to mismatched deactivated member.")
 
 		// Test moving a channel with no members.
 		channel3 := &model.Channel{
@@ -1821,9 +1821,9 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			higherScopedPermissionsOverriden := tc.HigherScopedMemberPermissions != nil || tc.HigherScopedGuestPermissions != nil
+			higherScopedPermissionsOverridden := tc.HigherScopedMemberPermissions != nil || tc.HigherScopedGuestPermissions != nil
 			// If the test case restricts higher scoped permissions.
-			if higherScopedPermissionsOverriden {
+			if higherScopedPermissionsOverridden {
 				higherScopedGuestRoleName, higherScopedMemberRoleName, _, _ := th.App.GetTeamSchemeChannelRoles(channel.TeamId)
 				if tc.HigherScopedMemberPermissions != nil {
 					higherScopedMemberRole, err := th.App.GetRoleByName(context.Background(), higherScopedMemberRoleName)

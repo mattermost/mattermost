@@ -915,6 +915,29 @@ func (a *App) getAddTestEmailAncillaryPermission() (permissionsMap, error) {
 	return transformations, nil
 }
 
+func (a *App) getAddCustomUserGroupsPermissions() (permissionsMap, error) {
+	t := []permissionTransformation{}
+
+	customGroupPermissions := []string{
+		model.PermissionCreateCustomGroup.Id,
+		model.PermissionManageCustomGroupMembers.Id,
+		model.PermissionEditCustomGroup.Id,
+		model.PermissionDeleteCustomGroup.Id,
+	}
+
+	t = append(t, permissionTransformation{
+		On:  isRole(model.SystemUserRoleId),
+		Add: customGroupPermissions,
+	})
+
+	t = append(t, permissionTransformation{
+		On:  isRole(model.SystemAdminRoleId),
+		Add: customGroupPermissions,
+	})
+
+	return t, nil
+}
+
 func (a *App) getAddPlaybooksPermissions() (permissionsMap, error) {
 	transformations := []permissionTransformation{}
 
@@ -989,6 +1012,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddReportingSubsectionPermissions, Migration: a.getAddReportingSubsectionPermissions},
 		{Key: model.MigrationKeyAddTestEmailAncillaryPermission, Migration: a.getAddTestEmailAncillaryPermission},
 		{Key: model.MigrationKeyAddPlaybooksPermissions, Migration: a.getAddPlaybooksPermissions},
+		{Key: model.MigrationKeyAddCustomUserGroupsPermissions, Migration: a.getAddCustomUserGroupsPermissions},
 	}
 
 	roles, err := s.Store.Role().GetAll()

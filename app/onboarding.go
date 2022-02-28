@@ -5,7 +5,6 @@ package app
 
 import (
 	"net/http"
-	"sync"
 
 	"github.com/pkg/errors"
 
@@ -23,12 +22,9 @@ func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnbo
 
 	pluginContext := pluginContext(c)
 
-	var wg sync.WaitGroup
 	for _, pluginID := range request.InstallPlugins {
-		wg.Add(1)
 
 		go func(id string) {
-			defer wg.Done()
 			installRequest := &model.InstallMarketplacePluginRequest{
 				Id: id,
 			}
@@ -60,7 +56,7 @@ func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnbo
 	}
 
 	firstAdminCompleteSetupObj := model.System{
-		Name:  model.SystemFirstAdminCompleteSetup,
+		Name:  model.SystemFirstAdminSetupComplete,
 		Value: "true",
 	}
 
@@ -68,19 +64,17 @@ func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnbo
 		return model.NewAppError("setFirstAdminCompleteSetup", "api.error_set_first_admin_complete_setup", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	wg.Wait()
-
 	return nil
 }
 
 func (a *App) GetOnboarding() (*model.System, *model.AppError) {
-	firstAdminCompleteSetupObj, err := a.Srv().Store.System().GetByName(model.SystemFirstAdminCompleteSetup)
+	firstAdminCompleteSetupObj, err := a.Srv().Store.System().GetByName(model.SystemFirstAdminSetupComplete)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
 			return &model.System{
-				Name:  model.SystemFirstAdminCompleteSetup,
+				Name:  model.SystemFirstAdminSetupComplete,
 				Value: "false",
 			}, nil
 		default:

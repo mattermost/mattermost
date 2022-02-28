@@ -111,7 +111,7 @@ type Options struct {
 // Global constants.
 const (
 	libraryName    = "minio-go"
-	libraryVersion = "v7.0.21"
+	libraryVersion = "v7.0.23"
 )
 
 // User Agent should always following the below style.
@@ -875,10 +875,14 @@ func (c *Client) makeTargetURL(bucketName, objectName, bucketLocation string, is
 	if h, p, err := net.SplitHostPort(host); err == nil {
 		if scheme == "http" && p == "80" || scheme == "https" && p == "443" {
 			host = h
+			if ip := net.ParseIP(h); ip != nil && ip.To16() != nil {
+				host = "[" + h + "]"
+			}
 		}
 	}
 
 	urlStr := scheme + "://" + host + "/"
+
 	// Make URL only if bucketName is available, otherwise use the
 	// endpoint URL.
 	if bucketName != "" {
