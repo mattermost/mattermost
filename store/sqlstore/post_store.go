@@ -1823,8 +1823,6 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	if err != nil {
 		return nil, err
 	}
-	// TODO: DEBUG
-	fmt.Printf("qry: %v, args: %v\n", searchQuery, searchQueryArgs)
 
 	var posts []*model.Post
 
