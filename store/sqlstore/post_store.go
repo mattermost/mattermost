@@ -1694,9 +1694,9 @@ func (s *SqlPostStore) buildSearchUserFilterClause(users []string, paramPrefix s
 	return builder.Where("Id IN (" + clause + ")"), queryParams
 }
 
-func (s *SqlPostStore) buildSearchPostFilterClause(fromUsers []string, excludedUsers []string, queryParams map[string]interface{}, userByUsername bool, builder sq.SelectBuilder) (sq.SelectBuilder, map[string]interface{}) {
+func (s *SqlPostStore) buildSearchPostFilterClause(fromUsers []string, excludedUsers []string, queryParams map[string]interface{}, userByUsername bool, builder sq.SelectBuilder) (sq.SelectBuilder, map[string]interface{}, error) {
 	if len(fromUsers) == 0 && len(excludedUsers) == 0 {
-		return builder, queryParams
+		return builder, queryParams, nil
 	}
 
 	// Sub-query builder.
@@ -1704,16 +1704,15 @@ func (s *SqlPostStore) buildSearchPostFilterClause(fromUsers []string, excludedU
 	sb, queryParams = s.buildSearchUserFilterClause(fromUsers, "FromUser", false, queryParams, userByUsername, sb)
 	sb, queryParams = s.buildSearchUserFilterClause(excludedUsers, "ExcludedUser", true, queryParams, userByUsername, sb)
 	subQuery, _, err := sb.ToSql()
-	// This should not fail.
 	if err != nil {
-		panic(err)
+		return sq.SelectBuilder{}, nil, err
 	}
 
 	/*
 	 * Squirrel does not support a sub-query in the WHERE condition.
 	 * https://github.com/Masterminds/squirrel/issues/299
 	 */
-	return builder.Where("UserId IN (" + subQuery + ")"), queryParams
+	return builder.Where("UserId IN (" + subQuery + ")"), queryParams, nil
 }
 
 func (s *SqlPostStore) Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, error) {
@@ -1743,7 +1742,11 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		OrderByClause("CreateAt DESC").
 		Limit(100)
 
-	baseQuery, queryParams = s.buildSearchPostFilterClause(params.FromUsers, params.ExcludedUsers, queryParams, userByUsername, baseQuery)
+	var err error
+	baseQuery, queryParams, err = s.buildSearchPostFilterClause(params.FromUsers, params.ExcludedUsers, queryParams, userByUsername, baseQuery)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to build search post filter clause")
+	}
 	baseQuery, queryParams = s.buildCreateDateFilterClause(params, queryParams, baseQuery)
 
 	termMap := map[string]bool{}
