@@ -56,7 +56,7 @@ func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnbo
 	}
 
 	firstAdminCompleteSetupObj := model.System{
-		Name:  model.SystemFirstAdminCompleteSetup,
+		Name:  model.SystemFirstAdminSetupComplete,
 		Value: "true",
 	}
 
@@ -68,13 +68,13 @@ func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnbo
 }
 
 func (a *App) GetOnboarding() (*model.System, *model.AppError) {
-	firstAdminCompleteSetupObj, err := a.Srv().Store.System().GetByName(model.SystemFirstAdminCompleteSetup)
+	firstAdminCompleteSetupObj, err := a.Srv().Store.System().GetByName(model.SystemFirstAdminSetupComplete)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
 			return &model.System{
-				Name:  model.SystemFirstAdminCompleteSetup,
+				Name:  model.SystemFirstAdminSetupComplete,
 				Value: "false",
 			}, nil
 		default:

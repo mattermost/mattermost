@@ -5540,6 +5540,10 @@
     "translation": "Unable to get the jobs."
   },
   {
+    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
+    "translation": "Unable to get the all jobs by type and status."
+  },
+  {
     "id": "app.job.get_count_by_status_and_type.app_error",
     "translation": "Unable to get the job count by status and type."
   },

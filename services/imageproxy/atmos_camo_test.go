@@ -76,6 +76,7 @@ func TestAtmosCamoBackend_GetImageDirect(t *testing.T) {
 		proxy:     proxy,
 		siteURL:   parsedURL,
 		remoteURL: remoteURL,
+		client:    proxy.HTTPService.MakeClient(false),
 	}
 
 	body, contentType, err := backend.GetImageDirect("https://example.com/image.png")
