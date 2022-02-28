@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/teams"
 	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
@@ -1150,6 +1151,29 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 		_, err = th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, "team_guest team_user")
 		require.NotNil(t, err, "Should work when you not modify guest role")
 	})
+}
+
+func TestInvalidateAllResendInviteEmailJobs(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	job, err := th.App.Srv().Jobs.CreateJob(model.JobTypeResendInvitationEmail, map[string]string{})
+	require.Nil(t, err)
+
+	sysVar := &model.System{Name: job.Id, Value: "0"}
+	e := th.App.Srv().Store.System().SaveOrUpdate(sysVar)
+	require.NoError(t, e)
+
+	appErr := th.App.InvalidateAllResendInviteEmailJobs()
+	require.Nil(t, appErr)
+
+	j, e := th.App.Srv().Store.Job().Get(job.Id)
+	require.NoError(t, e)
+	require.Equal(t, j.Status, model.JobStatusCanceled)
+
+	_, sysValErr := th.App.Srv().Store.System().GetByName(job.Id)
+	var errNotFound *store.ErrNotFound
+	require.ErrorAs(t, sysValErr, &errNotFound)
 }
 
 func TestInvalidateAllEmailInvites(t *testing.T) {

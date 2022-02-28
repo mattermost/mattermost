@@ -35,7 +35,7 @@ github.com/armon/go-metrics
 # github.com/avct/uasurfer v0.0.0-20191028135549-26b5daa857f1
 ## explicit
 github.com/avct/uasurfer
-# github.com/aws/aws-sdk-go v1.42.49
+# github.com/aws/aws-sdk-go v1.43.6
 ## explicit
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/awserr
@@ -92,7 +92,7 @@ github.com/bits-and-blooms/bitset
 # github.com/blang/semver v3.5.1+incompatible
 ## explicit
 github.com/blang/semver
-# github.com/blevesearch/bleve/v2 v2.3.0
+# github.com/blevesearch/bleve/v2 v2.3.1
 ## explicit
 github.com/blevesearch/bleve/v2
 github.com/blevesearch/bleve/v2/analysis
@@ -148,15 +148,15 @@ github.com/blevesearch/vellum
 github.com/blevesearch/vellum/levenshtein
 github.com/blevesearch/vellum/regexp
 github.com/blevesearch/vellum/utf8
-# github.com/blevesearch/zapx/v11 v11.3.2
+# github.com/blevesearch/zapx/v11 v11.3.3
 github.com/blevesearch/zapx/v11
-# github.com/blevesearch/zapx/v12 v12.3.2
+# github.com/blevesearch/zapx/v12 v12.3.3
 github.com/blevesearch/zapx/v12
-# github.com/blevesearch/zapx/v13 v13.3.2
+# github.com/blevesearch/zapx/v13 v13.3.3
 github.com/blevesearch/zapx/v13
-# github.com/blevesearch/zapx/v14 v14.3.2
+# github.com/blevesearch/zapx/v14 v14.3.3
 github.com/blevesearch/zapx/v14
-# github.com/blevesearch/zapx/v15 v15.3.2
+# github.com/blevesearch/zapx/v15 v15.3.3
 github.com/blevesearch/zapx/v15
 # github.com/cespare/xxhash/v2 v2.1.2
 ## explicit
@@ -256,7 +256,7 @@ github.com/golang/snappy
 github.com/google/btree
 # github.com/google/uuid v1.3.0
 github.com/google/uuid
-# github.com/gopherjs/gopherjs v0.0.0-20220104163920-15ed2e8cf2bd
+# github.com/gopherjs/gopherjs v0.0.0-20220221023154-0b2280d3ff96
 ## explicit
 github.com/gopherjs/gopherjs/js
 # github.com/gorilla/css v1.0.0
@@ -270,7 +270,7 @@ github.com/gorilla/mux
 # github.com/gorilla/schema v1.2.0
 ## explicit
 github.com/gorilla/schema
-# github.com/gorilla/websocket v1.4.2
+# github.com/gorilla/websocket v1.5.0
 ## explicit
 github.com/gorilla/websocket
 # github.com/graph-gophers/graphql-go v1.3.0
@@ -344,7 +344,7 @@ github.com/jonboulle/clockwork
 github.com/josharian/intern
 # github.com/json-iterator/go v1.1.12
 github.com/json-iterator/go
-# github.com/klauspost/compress v1.14.2
+# github.com/klauspost/compress v1.14.4
 ## explicit
 github.com/klauspost/compress
 github.com/klauspost/compress/flate
@@ -444,7 +444,7 @@ github.com/miekg/dns
 # github.com/minio/md5-simd v1.1.2
 ## explicit
 github.com/minio/md5-simd
-# github.com/minio/minio-go/v7 v7.0.21
+# github.com/minio/minio-go/v7 v7.0.23
 ## explicit
 github.com/minio/minio-go/v7
 github.com/minio/minio-go/v7/pkg/credentials
@@ -705,7 +705,7 @@ github.com/xi2/xz
 # github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
 ## explicit
 github.com/xtgo/uuid
-# github.com/yuin/goldmark v1.4.5
+# github.com/yuin/goldmark v1.4.7
 ## explicit
 github.com/yuin/goldmark
 github.com/yuin/goldmark/ast
@@ -722,7 +722,7 @@ go.etcd.io/bbolt
 # go.uber.org/atomic v1.9.0
 ## explicit
 go.uber.org/atomic
-# golang.org/x/crypto v0.0.0-20220208233918-bba287dce954
+# golang.org/x/crypto v0.0.0-20220214200702-86341886e292
 ## explicit
 golang.org/x/crypto/acme
 golang.org/x/crypto/acme/autocert
@@ -772,7 +772,7 @@ golang.org/x/net/trace
 # golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 ## explicit
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.0.0-20220207234003-57398862261d
+# golang.org/x/sys v0.0.0-20220224120231-95c6836cb0e7
 ## explicit
 golang.org/x/sys/cpu
 golang.org/x/sys/execabs
@@ -823,7 +823,7 @@ golang.org/x/tools/internal/typesinternal
 # golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
-# google.golang.org/genproto v0.0.0-20220208230804-65c12eb4c068
+# google.golang.org/genproto v0.0.0-20220222213610-43724f9ea8cf
 ## explicit
 google.golang.org/genproto/googleapis/rpc/status
 # google.golang.org/grpc v1.44.0
@@ -911,7 +911,7 @@ google.golang.org/protobuf/types/known/timestamppb
 # gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc
 ## explicit
 gopkg.in/alexcesaro/quotedprintable.v3
-# gopkg.in/ini.v1 v1.66.3
+# gopkg.in/ini.v1 v1.66.4
 ## explicit
 gopkg.in/ini.v1
 # gopkg.in/mail.v2 v2.3.1

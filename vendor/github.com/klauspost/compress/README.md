@@ -17,6 +17,19 @@ This package provides various compression algorithms.
 
 # changelog
 
+* Feb 17, 2022 (v1.14.3)
+	* flate: Improve fastest levels compression speed ~10% more throughput. [#482](https://github.com/klauspost/compress/pull/482) [#489](https://github.com/klauspost/compress/pull/489) [#490](https://github.com/klauspost/compress/pull/490) [#491](https://github.com/klauspost/compress/pull/491) [#494](https://github.com/klauspost/compress/pull/494)  [#478](https://github.com/klauspost/compress/pull/478)
+	* flate: Faster decompression speed, ~5-10%. [#483](https://github.com/klauspost/compress/pull/483)
+	* s2: Faster compression with Go v1.18 and amd64 microarch level 3+. [#484](https://github.com/klauspost/compress/pull/484) [#486](https://github.com/klauspost/compress/pull/486)
+
+* Jan 25, 2022 (v1.14.2)
+	* zstd: improve header decoder by @dsnet  [#476](https://github.com/klauspost/compress/pull/476)
+	* zstd: Add bigger default blocks  [#469](https://github.com/klauspost/compress/pull/469)
+	* zstd: Remove unused decompression buffer [#470](https://github.com/klauspost/compress/pull/470)
+	* zstd: Fix logically dead code by @ningmingxiao [#472](https://github.com/klauspost/compress/pull/472)
+	* flate: Improve level 7-9 [#471](https://github.com/klauspost/compress/pull/471) [#473](https://github.com/klauspost/compress/pull/473)
+	* zstd: Add noasm tag for xxhash [#475](https://github.com/klauspost/compress/pull/475)
+
 * Jan 11, 2022 (v1.14.1)
 	* s2: Add stream index in [#462](https://github.com/klauspost/compress/pull/462)
 	* flate: Speed and efficiency improvements in [#439](https://github.com/klauspost/compress/pull/439) [#461](https://github.com/klauspost/compress/pull/461) [#455](https://github.com/klauspost/compress/pull/455) [#452](https://github.com/klauspost/compress/pull/452) [#458](https://github.com/klauspost/compress/pull/458)
@@ -53,6 +66,9 @@ This package provides various compression algorithms.
 	* zstd: Detect short invalid signatures [#382](https://github.com/klauspost/compress/pull/382)
 	* zstd: Spawn decoder goroutine only if needed. [#380](https://github.com/klauspost/compress/pull/380)
 
+<details>
+	<summary>See changes to v1.12.x</summary>
+	
 * May 25, 2021 (v1.12.3)
 	* deflate: Better/faster Huffman encoding [#374](https://github.com/klauspost/compress/pull/374)
 	* deflate: Allocate less for history. [#375](https://github.com/klauspost/compress/pull/375)
@@ -74,9 +90,10 @@ This package provides various compression algorithms.
 	* s2c/s2d/s2sx: Always truncate when writing files [#352](https://github.com/klauspost/compress/pull/352)
 	* zstd: Reduce memory usage further when using [WithLowerEncoderMem](https://pkg.go.dev/github.com/klauspost/compress/zstd#WithLowerEncoderMem) [#346](https://github.com/klauspost/compress/pull/346)
 	* s2: Fix potential problem with amd64 assembly and profilers [#349](https://github.com/klauspost/compress/pull/349)
+</details>
 
 <details>
-	<summary>See changes prior to v1.12.1</summary>
+	<summary>See changes to v1.11.x</summary>
 	
 * Mar 26, 2021 (v1.11.13)
 	* zstd: Big speedup on small dictionary encodes [#344](https://github.com/klauspost/compress/pull/344) [#345](https://github.com/klauspost/compress/pull/345)
@@ -135,7 +152,7 @@ This package provides various compression algorithms.
 </details>
 
 <details>
-	<summary>See changes prior to v1.11.0</summary>
+	<summary>See changes to v1.10.x</summary>
  
 * July 8, 2020 (v1.10.11) 
 	* zstd: Fix extra block when compressing with ReadFrom. [#278](https://github.com/klauspost/compress/pull/278)
@@ -297,11 +314,6 @@ This package provides various compression algorithms.
 
 # deflate usage
 
-* [High Throughput Benchmark](http://blog.klauspost.com/go-gzipdeflate-benchmarks/).
-* [Small Payload/Webserver Benchmarks](http://blog.klauspost.com/gzip-performance-for-go-webservers/).
-* [Linear Time Compression](http://blog.klauspost.com/constant-time-gzipzip-compression/).
-* [Re-balancing Deflate Compression Levels](https://blog.klauspost.com/rebalancing-deflate-compression-levels/)
-
 The packages are drop-in replacements for standard libraries. Simply replace the import path to use them:
 
 | old import         | new import                              | Documentation
@@ -322,6 +334,8 @@ Currently there is only minor speedup on decompression (mostly CRC32 calculation
 Memory usage is typically 1MB for a Writer. stdlib is in the same range. 
 If you expect to have a lot of concurrently allocated Writers consider using 
 the stateless compress described below.
+
+For compression performance, see: [this spreadsheet](https://docs.google.com/spreadsheets/d/1nuNE2nPfuINCZJRMt6wFWhKpToF95I47XjSsc-1rbPQ/edit?usp=sharing).
 
 # Stateless compression
 
