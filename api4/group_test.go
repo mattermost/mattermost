@@ -1217,12 +1217,14 @@ func TestGetGroups(t *testing.T) {
 	groups, _, err = th.Client.GetGroups(opts)
 	assert.NoError(t, err)
 	assert.Len(t, groups, 1)
+	assert.Equal(t, groups[0].Source, model.GroupSourceLdap)
 
 	// don't include source and should only get ldap groups in response
 	opts.Source = ""
 	groups, _, err = th.Client.GetGroups(opts)
 	assert.NoError(t, err)
 	assert.Len(t, groups, 1)
+	assert.Equal(t, groups[0].Source, model.GroupSourceLdap)
 }
 
 func TestGetGroupsByUserId(t *testing.T) {
