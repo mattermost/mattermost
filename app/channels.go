@@ -75,6 +75,9 @@ type Channels struct {
 	Compliance       einterfaces.ComplianceInterface
 	DataRetention    einterfaces.DataRetentionInterface
 	MessageExport    einterfaces.MessageExportInterface
+	Saml             einterfaces.SamlInterface
+	Notification     einterfaces.NotificationInterface
+	Ldap             einterfaces.LdapInterface
 
 	// These are used to prevent concurrent upload requests
 	// for a given upload session which could cause inconsistencies
@@ -145,6 +148,18 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 	if accountMigrationInterface != nil {
 		ch.AccountMigration = accountMigrationInterface(New(ServerConnector(ch)))
 	}
+	if ldapInterface != nil {
+		ch.Ldap = ldapInterface(New(ServerConnector(ch)))
+	}
+	if notificationInterface != nil {
+		ch.Notification = notificationInterface(New(ServerConnector(ch)))
+	}
+	if samlInterfaceNew != nil {
+		ch.Saml = samlInterfaceNew(New(ServerConnector(ch)))
+		if err := ch.Saml.ConfigureSP(); err != nil {
+			mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+		}
+	}
 
 	var imgErr error
 	ch.imgDecoder, imgErr = imaging.NewDecoder(imaging.DecoderOptions{
@@ -201,6 +216,12 @@ func (ch *Channels) Start() error {
 			}
 		}
 
+	})
+
+	ch.AddConfigListener(func(_, cfg *model.Config) {
+		if err := ch.Saml.ConfigureSP(); err != nil {
+			mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+		}
 	})
 
 	if err := ch.ensureAsymmetricSigningKey(); err != nil {
