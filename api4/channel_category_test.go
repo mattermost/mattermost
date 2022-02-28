@@ -125,7 +125,7 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 		require.NoError(t, err)
 
 		b, err := json.Marshal(testCategories)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		expected := string(b)
 
 		var caught bool
