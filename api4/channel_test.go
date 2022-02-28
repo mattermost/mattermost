@@ -1736,6 +1736,7 @@ func TestSearchGroupChannels(t *testing.T) {
 }
 
 func TestDeleteChannel(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-42092")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	c := th.Client
