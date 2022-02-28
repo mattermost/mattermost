@@ -517,11 +517,11 @@ var md5Pool = sync.Pool{New: func() interface{} { return md5.New() }}
 var sha256Pool = sync.Pool{New: func() interface{} { return sha256.New() }}
 
 func newMd5Hasher() md5simd.Hasher {
-	return hashWrapper{Hash: md5Pool.New().(hash.Hash), isMD5: true}
+	return hashWrapper{Hash: md5Pool.Get().(hash.Hash), isMD5: true}
 }
 
 func newSHA256Hasher() md5simd.Hasher {
-	return hashWrapper{Hash: sha256Pool.New().(hash.Hash), isSHA256: true}
+	return hashWrapper{Hash: sha256Pool.Get().(hash.Hash), isSHA256: true}
 }
 
 // hashWrapper implements the md5simd.Hasher interface.

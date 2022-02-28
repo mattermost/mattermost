@@ -2151,10 +2151,10 @@ func (s SqlChannelStore) GetMemberCountsByGroup(ctx context.Context, channelID s
 			selectStr += `,
 				COUNT(DISTINCT
 				(
-					CASE WHEN Timezone->"$.useAutomaticTimezone" = 'true' AND LENGTH(JSON_UNQUOTE(Timezone->"$.automaticTimezone")) > 0
-					THEN Timezone->"$.automaticTimezone"
-					WHEN Timezone->"$.useAutomaticTimezone" = 'false' AND LENGTH(JSON_UNQUOTE(Timezone->"$.manualTimezone")) > 0
-					THEN Timezone->"$.manualTimezone"
+					CASE WHEN JSON_EXTRACT(Timezone, '$.useAutomaticTimezone') = 'true' AND LENGTH(JSON_UNQUOTE(JSON_EXTRACT(Timezone, '$.automaticTimezone'))) > 0
+					THEN JSON_EXTRACT(Timezone, '$.automaticTimezone')
+					WHEN JSON_EXTRACT(Timezone, '$.useAutomaticTimezone') = 'false' AND LENGTH(JSON_UNQUOTE(JSON_EXTRACT(Timezone, '$.manualTimezone'))) > 0
+					THEN JSON_EXTRACT(Timezone, '$.manualTimezone')
 					END
 				)) AS ChannelMemberTimezonesCount`
 		} else if s.DriverName() == model.DatabaseDriverPostgres {

@@ -3466,7 +3466,7 @@ func TestSetDefaultProfileImage(t *testing.T) {
 
 	ruser, appErr := th.App.GetUser(user.Id)
 	require.Nil(t, appErr)
-	assert.Equal(t, int64(0), ruser.LastPictureUpdate, "Picture should have resetted to default")
+	assert.Equal(t, int64(0), ruser.LastPictureUpdate, "Picture should have reset to default")
 
 	info := &model.FileInfo{Path: "users/" + user.Id + "/profile.png"}
 	err = th.cleanupTestFile(info)
@@ -5269,7 +5269,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 		require.NoError(t, err)
 
 		defer require.Nil(t, th.App.DemoteUserToGuest(user))
-	}, "promete a guest to user")
+	}, "promote a guest to user")
 
 	t.Run("websocket update user event", func(t *testing.T) {
 		webSocketClient, err := th.CreateWebSocketClient()

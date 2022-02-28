@@ -347,6 +347,7 @@ type PostStore interface {
 	AnalyticsPostCount(teamID string, mustHaveFile bool, mustHaveHashtag bool) (int64, error)
 	ClearCaches()
 	InvalidateLastPostTimeCache(channelID string)
+	GetLastPostRowCreateAt() (int64, error)
 	GetPostsCreatedAt(channelID string, time int64) ([]*model.Post, error)
 	Overwrite(post *model.Post) (*model.Post, error)
 	OverwriteMultiple(posts []*model.Post) ([]*model.Post, int, error)
@@ -462,6 +463,7 @@ type SessionStore interface {
 	Remove(sessionIDOrToken string) error
 	RemoveAllSessions() error
 	PermanentDeleteSessionsByUser(teamID string) error
+	GetLastSessionRowCreateAt() (int64, error)
 	UpdateExpiresAt(sessionID string, time int64) error
 	UpdateLastActivityAt(sessionID string, time int64) error
 	UpdateRoles(userID string, roles string) (string, error)
@@ -687,6 +689,7 @@ type JobStore interface {
 	Get(id string) (*model.Job, error)
 	GetAllPage(offset int, limit int) ([]*model.Job, error)
 	GetAllByType(jobType string) ([]*model.Job, error)
+	GetAllByTypeAndStatus(jobType string, status string) ([]*model.Job, error)
 	GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, error)
 	GetAllByTypesPage(jobTypes []string, offset int, limit int) ([]*model.Job, error)
 	GetAllByStatus(status string) ([]*model.Job, error)
