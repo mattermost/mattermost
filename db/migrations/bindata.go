@@ -154,8 +154,8 @@
 // mysql/000076_upgrade_lastrootpostat.up.sql
 // mysql/000077_upgrade_users_v6.5.down.sql
 // mysql/000077_upgrade_users_v6.5.up.sql
-// mysql/000078_create_oauth_mattermostAppID.down.sql
-// mysql/000078_create_oauth_mattermostAppID.up.sql
+// mysql/000078_create_oauth_mattermost_app_id.down.sql
+// mysql/000078_create_oauth_mattermost_app_id.up.sql
 // postgres/000001_create_teams.down.sql
 // postgres/000001_create_teams.up.sql
 // postgres/000002_create_team_members.down.sql
@@ -310,8 +310,8 @@
 // postgres/000076_upgrade_lastrootpostat.up.sql
 // postgres/000077_upgrade_users_v6.5.down.sql
 // postgres/000077_upgrade_users_v6.5.up.sql
-// postgres/000078_create_oauth_mattermostAppID.down.sql
-// postgres/000078_create_oauth_mattermostAppID.up.sql
+// postgres/000078_create_oauth_mattermost_app_id.down.sql
+// postgres/000078_create_oauth_mattermost_app_id.up.sql
 package migrations
 
 import (
@@ -3468,42 +3468,42 @@ func mysql000077_upgrade_users_v65UpSql() (*asset, error) {
 	return a, nil
 }
 
-var _mysql000078_create_oauth_mattermostappidDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x90\x51\x4b\xc3\x30\x14\x85\xdf\xf3\x2b\xce\x5b\x5b\x11\xd1\xe7\x32\xf1\x2e\xbd\x63\x85\xb4\x19\x49\x86\xbe\x8d\x38\x23\x13\xd6\x2d\xb4\x19\xf8\xf3\x45\x5b\x0a\x4e\xf3\x10\x02\xf9\xce\x97\xdc\x63\xd9\xe1\x29\xf6\x21\xfa\x3e\xbc\xd9\xe4\x53\xe8\xc2\x29\x61\x81\xdc\xb2\x62\xe9\x50\xaf\x72\x01\x00\xe3\xfe\xbd\xa6\x0b\xa9\xb7\xad\xcb\x6f\x0a\xac\x8c\x6e\x50\xb7\x2b\x6d\x1a\x72\xb5\x6e\x77\x56\xae\xb9\xa1\x3b\xa9\xd5\xb6\x69\xed\x9c\x7b\x5e\xb3\x61\x24\xff\x7a\x0c\xbb\x93\xef\x02\x16\xc8\x34\x5d\xd2\x81\x62\x1c\xb2\x19\xa3\xb6\x9a\xa0\x61\x7f\x08\x9d\xc7\x02\x15\x39\x5a\x92\xe5\xbc\xf8\x45\xed\xcf\xc7\x4b\x77\x9a\x5d\x8d\x4f\x29\xf4\xdd\x79\x48\x14\x63\x5d\x8d\xc6\x02\x8f\xb8\xbf\xfd\x39\x66\xa4\x1c\x1b\x38\x5a\x2a\xc6\xfc\x30\x2a\xa3\x37\x18\xff\x8a\x2b\x45\x99\x4d\xc9\x69\xe4\x87\x4c\x14\x45\x29\xc4\xc6\xf0\x86\x0c\xc3\x1f\x53\xe8\xeb\x77\xfe\xfc\x18\xd2\x30\xf6\xf0\xb7\xcb\x52\xf0\x0b\xcb\xad\xbb\xc2\x4b\x51\x31\x29\xa5\x25\x39\xc6\xbf\xc2\x52\x7c\x05\x00\x00\xff\xff\x7e\x70\x6d\x80\x9d\x01\x00\x00")
+var _mysql000078_create_oauth_mattermost_app_idDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x90\x51\x4b\xc3\x30\x14\x85\xdf\xf3\x2b\xce\x5b\x5b\x11\xd1\xe7\x32\xf1\x2e\xbd\x63\x85\xb4\x19\x49\x86\xbe\x8d\x38\x23\x13\xd6\x2d\xb4\x19\xf8\xf3\x45\x5b\x0a\x4e\xf3\x10\x02\xf9\xce\x97\xdc\x63\xd9\xe1\x29\xf6\x21\xfa\x3e\xbc\xd9\xe4\x53\xe8\xc2\x29\x61\x81\xdc\xb2\x62\xe9\x50\xaf\x72\x01\x00\xe3\xfe\xbd\xa6\x0b\xa9\xb7\xad\xcb\x6f\x0a\xac\x8c\x6e\x50\xb7\x2b\x6d\x1a\x72\xb5\x6e\x77\x56\xae\xb9\xa1\x3b\xa9\xd5\xb6\x69\xed\x9c\x7b\x5e\xb3\x61\x24\xff\x7a\x0c\xbb\x93\xef\x02\x16\xc8\x34\x5d\xd2\x81\x62\x1c\xb2\x19\xa3\xb6\x9a\xa0\x61\x7f\x08\x9d\xc7\x02\x15\x39\x5a\x92\xe5\xbc\xf8\x45\xed\xcf\xc7\x4b\x77\x9a\x5d\x8d\x4f\x29\xf4\xdd\x79\x48\x14\x63\x5d\x8d\xc6\x02\x8f\xb8\xbf\xfd\x39\x66\xa4\x1c\x1b\x38\x5a\x2a\xc6\xfc\x30\x2a\xa3\x37\x18\xff\x8a\x2b\x45\x99\x4d\xc9\x69\xe4\x87\x4c\x14\x45\x29\xc4\xc6\xf0\x86\x0c\xc3\x1f\x53\xe8\xeb\x77\xfe\xfc\x18\xd2\x30\xf6\xf0\xb7\xcb\x52\xf0\x0b\xcb\xad\xbb\xc2\x4b\x51\x31\x29\xa5\x25\x39\xc6\xbf\xc2\x52\x7c\x05\x00\x00\xff\xff\x7e\x70\x6d\x80\x9d\x01\x00\x00")
 
-func mysql000078_create_oauth_mattermostappidDownSqlBytes() ([]byte, error) {
+func mysql000078_create_oauth_mattermost_app_idDownSqlBytes() ([]byte, error) {
 	return bindataRead(
-		_mysql000078_create_oauth_mattermostappidDownSql,
-		"mysql/000078_create_oauth_mattermostAppID.down.sql",
+		_mysql000078_create_oauth_mattermost_app_idDownSql,
+		"mysql/000078_create_oauth_mattermost_app_id.down.sql",
 	)
 }
 
-func mysql000078_create_oauth_mattermostappidDownSql() (*asset, error) {
-	bytes, err := mysql000078_create_oauth_mattermostappidDownSqlBytes()
+func mysql000078_create_oauth_mattermost_app_idDownSql() (*asset, error) {
+	bytes, err := mysql000078_create_oauth_mattermost_app_idDownSqlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "mysql/000078_create_oauth_mattermostAppID.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "mysql/000078_create_oauth_mattermost_app_id.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _mysql000078_create_oauth_mattermostappidUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x90\xcd\x6a\xeb\x30\x10\x85\xf7\x7a\x8a\xb3\xb3\x7d\xb9\x94\xfe\x2c\x4d\x4a\x27\xf6\x84\x18\x6c\x2b\x48\x0a\xed\x2e\xa8\xa9\x4a\x0a\xb1\x23\x64\xa5\xf4\xf1\x4b\x6b\x63\x68\x5a\x2d\x84\x40\xdf\x7c\x33\x73\x34\x1b\x3c\xf8\xe0\xbc\x0d\xee\x45\x47\x1b\x5d\xe7\xfa\x88\x05\x52\xcd\x35\x17\x06\xd5\x2a\x15\x00\x30\xde\x5f\x67\xfa\x28\xe4\xb6\x35\xe9\xbf\x0c\x2b\x25\x1b\x54\xed\x4a\xaa\x86\x4c\x25\xdb\x9d\x2e\xd6\xdc\xd0\x55\x21\xeb\x6d\xd3\xea\xb9\xee\x71\xcd\x8a\x11\xed\xf3\xd1\xed\x7a\xdb\x39\x2c\x90\x48\x3a\xc7\x03\x79\x3f\x24\x33\x46\x6d\x39\x41\xc3\xfe\xe0\x3a\x8b\x05\x4a\x32\xb4\x24\xcd\x69\xf6\x83\xda\x9f\x8e\xe7\xae\x9f\x5d\x8d\x8d\xd1\x85\xee\x34\x44\xf2\xbe\x2a\x47\x63\x86\x7b\x5c\xff\xff\x7e\x26\x54\x1b\x56\x30\xb4\xac\x19\x73\x63\x50\x59\x62\x1c\x15\x17\x06\xbc\xdb\xb0\x3f\xd8\x90\xde\xdd\x66\x79\x32\x49\xa6\xed\x6f\x12\x91\x65\xb9\x10\x1b\xc5\x1b\x52\x0c\x7b\x8c\x2e\x54\xaf\xfc\xf1\x36\xc4\x61\x8c\xe4\x77\xac\xb9\xe0\x27\x2e\xb6\xe6\x02\xcf\x45\xc9\x54\xd7\xb2\x20\xc3\xf8\x53\x98\x8b\xcf\x00\x00\x00\xff\xff\xab\x14\x10\xf9\xa8\x01\x00\x00")
+var _mysql000078_create_oauth_mattermost_app_idUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x90\xcd\x6a\xeb\x30\x10\x85\xd7\x57\x4f\x71\x76\xb6\x2f\xa1\xf4\x67\x69\x52\x3a\xb1\x27\xc4\x60\x5b\x41\x52\x68\x77\x41\x4d\x55\x52\x88\x13\x21\x2b\xa5\x8f\x5f\x5a\x1b\x43\xd3\x6a\xa1\xc5\xcc\x37\x1f\x87\xa3\xd9\xe0\xc1\x07\xe7\x6d\x70\x2f\x3a\xda\xe8\x3a\x77\x8c\x98\x23\xd5\x5c\x73\x61\x50\x2d\x53\x01\x00\xc3\xff\xf5\xc6\x45\x21\x37\xad\x49\xff\x67\x58\x2a\xd9\xa0\x6a\x97\x52\x35\x64\x2a\xd9\x6e\x75\xb1\xe2\x86\xae\x0a\x59\x6f\x9a\x56\x4f\x77\x8f\x2b\x56\x8c\x68\x9f\x0f\x6e\x7b\xb4\x9d\xc3\x1c\x89\xa4\x73\xdc\x93\xf7\x7d\x32\x61\xd4\x96\x23\xd4\xef\xf6\xae\xb3\x98\xa3\x24\x43\x0b\xd2\x9c\x66\x3f\xa8\xdd\xe9\x70\xee\x8e\x93\xab\xb1\x31\xba\xd0\x9d\xfa\x48\xde\x57\xe5\x60\xcc\x70\x8f\xeb\x99\xf8\x97\x8c\xa9\x6f\x92\xd9\xf7\x3c\xa1\xda\xb0\x82\xa1\x45\xcd\x98\x52\x80\xca\x12\x43\x6e\x5c\xe8\xf0\x6e\xc3\x6e\x6f\x43\x7a\x77\x9b\xe5\x89\xc8\xb2\x5c\x88\xb5\xe2\x35\x29\x86\x3d\x44\x17\xaa\x57\xfe\x78\xeb\x63\x3f\xf4\xf1\xbb\xd3\x5c\xf0\x13\x17\x1b\x73\x81\xe7\xa2\x64\xaa\x6b\x59\x90\x61\xfc\x29\xcc\xc5\x67\x00\x00\x00\xff\xff\xb8\x33\xe4\xb0\xa5\x01\x00\x00")
 
-func mysql000078_create_oauth_mattermostappidUpSqlBytes() ([]byte, error) {
+func mysql000078_create_oauth_mattermost_app_idUpSqlBytes() ([]byte, error) {
 	return bindataRead(
-		_mysql000078_create_oauth_mattermostappidUpSql,
-		"mysql/000078_create_oauth_mattermostAppID.up.sql",
+		_mysql000078_create_oauth_mattermost_app_idUpSql,
+		"mysql/000078_create_oauth_mattermost_app_id.up.sql",
 	)
 }
 
-func mysql000078_create_oauth_mattermostappidUpSql() (*asset, error) {
-	bytes, err := mysql000078_create_oauth_mattermostappidUpSqlBytes()
+func mysql000078_create_oauth_mattermost_app_idUpSql() (*asset, error) {
+	bytes, err := mysql000078_create_oauth_mattermost_app_idUpSqlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "mysql/000078_create_oauth_mattermostAppID.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "mysql/000078_create_oauth_mattermost_app_id.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -6588,42 +6588,42 @@ func postgres000077_upgrade_users_v65UpSql() (*asset, error) {
 	return a, nil
 }
 
-var _postgres000078_create_oauth_mattermostappidDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\xf4\x09\x71\x0d\x52\x08\x71\x74\xf2\x71\x55\xf0\x77\x2c\x2d\xc9\x70\x2c\x28\x28\x56\x70\x09\xf2\x0f\x50\x70\xf6\xf7\x09\xf5\xf5\x53\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\xf0\x4d\x2c\x29\x49\x2d\xca\xcd\x2f\x2e\x71\x2c\x28\xf0\x74\xb1\xe6\x02\x04\x00\x00\xff\xff\x60\x77\x5a\x7a\x3d\x00\x00\x00")
+var _postgres000078_create_oauth_mattermost_app_idDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\xf4\x09\x71\x0d\x52\x08\x71\x74\xf2\x71\x55\xf0\x77\x2c\x2d\xc9\x70\x2c\x28\x28\x56\x70\x09\xf2\x0f\x50\x70\xf6\xf7\x09\xf5\xf5\x53\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\xf0\x4d\x2c\x29\x49\x2d\xca\xcd\x2f\x2e\x71\x2c\x28\xf0\x74\xb1\xe6\x02\x04\x00\x00\xff\xff\x60\x77\x5a\x7a\x3d\x00\x00\x00")
 
-func postgres000078_create_oauth_mattermostappidDownSqlBytes() ([]byte, error) {
+func postgres000078_create_oauth_mattermost_app_idDownSqlBytes() ([]byte, error) {
 	return bindataRead(
-		_postgres000078_create_oauth_mattermostappidDownSql,
-		"postgres/000078_create_oauth_mattermostAppID.down.sql",
+		_postgres000078_create_oauth_mattermost_app_idDownSql,
+		"postgres/000078_create_oauth_mattermost_app_id.down.sql",
 	)
 }
 
-func postgres000078_create_oauth_mattermostappidDownSql() (*asset, error) {
-	bytes, err := postgres000078_create_oauth_mattermostappidDownSqlBytes()
+func postgres000078_create_oauth_mattermost_app_idDownSql() (*asset, error) {
+	bytes, err := postgres000078_create_oauth_mattermost_app_idDownSqlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "postgres/000078_create_oauth_mattermostAppID.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "postgres/000078_create_oauth_mattermost_app_id.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _postgres000078_create_oauth_mattermostappidUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\xf4\x09\x71\x0d\x52\x08\x71\x74\xf2\x71\x55\xf0\x77\x2c\x2d\xc9\x70\x2c\x28\x28\x56\x70\x74\x71\x51\x70\xf6\xf7\x09\xf5\xf5\x53\xf0\x74\x53\xf0\xf3\x0f\x51\x70\x8d\xf0\x0c\x0e\x09\x56\xf0\x4d\x2c\x29\x49\x2d\xca\xcd\x2f\x2e\x71\x2c\x28\xf0\x74\x51\x28\x4b\x2c\x4a\xce\x48\x2c\xd2\x30\x36\xd2\xb4\xe6\x02\x04\x00\x00\xff\xff\x7c\xd8\x0f\x6f\x4c\x00\x00\x00")
+var _postgres000078_create_oauth_mattermost_app_idUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\xf4\x09\x71\x0d\x52\x08\x71\x74\xf2\x71\x55\xf0\x77\x2c\x2d\xc9\x70\x2c\x28\x28\x56\x70\x74\x71\x51\x70\xf6\xf7\x09\xf5\xf5\x53\xf0\x74\x53\xf0\xf3\x0f\x51\x70\x8d\xf0\x0c\x0e\x09\x56\xf0\x4d\x2c\x29\x49\x2d\xca\xcd\x2f\x2e\x71\x2c\x28\xf0\x74\x51\x28\x4b\x2c\x4a\xce\x48\x2c\xd2\x30\x36\xd2\xb4\xe6\x02\x04\x00\x00\xff\xff\x7c\xd8\x0f\x6f\x4c\x00\x00\x00")
 
-func postgres000078_create_oauth_mattermostappidUpSqlBytes() ([]byte, error) {
+func postgres000078_create_oauth_mattermost_app_idUpSqlBytes() ([]byte, error) {
 	return bindataRead(
-		_postgres000078_create_oauth_mattermostappidUpSql,
-		"postgres/000078_create_oauth_mattermostAppID.up.sql",
+		_postgres000078_create_oauth_mattermost_app_idUpSql,
+		"postgres/000078_create_oauth_mattermost_app_id.up.sql",
 	)
 }
 
-func postgres000078_create_oauth_mattermostappidUpSql() (*asset, error) {
-	bytes, err := postgres000078_create_oauth_mattermostappidUpSqlBytes()
+func postgres000078_create_oauth_mattermost_app_idUpSql() (*asset, error) {
+	bytes, err := postgres000078_create_oauth_mattermost_app_idUpSqlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "postgres/000078_create_oauth_mattermostAppID.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "postgres/000078_create_oauth_mattermost_app_id.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -6834,8 +6834,8 @@ var _bindata = map[string]func() (*asset, error){
 	"mysql/000076_upgrade_lastrootpostat.up.sql":                   mysql000076_upgrade_lastrootpostatUpSql,
 	"mysql/000077_upgrade_users_v6.5.down.sql":                     mysql000077_upgrade_users_v65DownSql,
 	"mysql/000077_upgrade_users_v6.5.up.sql":                       mysql000077_upgrade_users_v65UpSql,
-	"mysql/000078_create_oauth_mattermostAppID.down.sql":           mysql000078_create_oauth_mattermostappidDownSql,
-	"mysql/000078_create_oauth_mattermostAppID.up.sql":             mysql000078_create_oauth_mattermostappidUpSql,
+	"mysql/000078_create_oauth_mattermost_app_id.down.sql":         mysql000078_create_oauth_mattermost_app_idDownSql,
+	"mysql/000078_create_oauth_mattermost_app_id.up.sql":           mysql000078_create_oauth_mattermost_app_idUpSql,
 	"postgres/000001_create_teams.down.sql":                        postgres000001_create_teamsDownSql,
 	"postgres/000001_create_teams.up.sql":                          postgres000001_create_teamsUpSql,
 	"postgres/000002_create_team_members.down.sql":                 postgres000002_create_team_membersDownSql,
@@ -6990,8 +6990,8 @@ var _bindata = map[string]func() (*asset, error){
 	"postgres/000076_upgrade_lastrootpostat.up.sql":                postgres000076_upgrade_lastrootpostatUpSql,
 	"postgres/000077_upgrade_users_v6.5.down.sql":                  postgres000077_upgrade_users_v65DownSql,
 	"postgres/000077_upgrade_users_v6.5.up.sql":                    postgres000077_upgrade_users_v65UpSql,
-	"postgres/000078_create_oauth_mattermostAppID.down.sql":        postgres000078_create_oauth_mattermostappidDownSql,
-	"postgres/000078_create_oauth_mattermostAppID.up.sql":          postgres000078_create_oauth_mattermostappidUpSql,
+	"postgres/000078_create_oauth_mattermost_app_id.down.sql":      postgres000078_create_oauth_mattermost_app_idDownSql,
+	"postgres/000078_create_oauth_mattermost_app_id.up.sql":        postgres000078_create_oauth_mattermost_app_idUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -7190,8 +7190,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"000076_upgrade_lastrootpostat.up.sql":                &bintree{mysql000076_upgrade_lastrootpostatUpSql, map[string]*bintree{}},
 		"000077_upgrade_users_v6.5.down.sql":                  &bintree{mysql000077_upgrade_users_v65DownSql, map[string]*bintree{}},
 		"000077_upgrade_users_v6.5.up.sql":                    &bintree{mysql000077_upgrade_users_v65UpSql, map[string]*bintree{}},
-		"000078_create_oauth_mattermostAppID.down.sql":        &bintree{mysql000078_create_oauth_mattermostappidDownSql, map[string]*bintree{}},
-		"000078_create_oauth_mattermostAppID.up.sql":          &bintree{mysql000078_create_oauth_mattermostappidUpSql, map[string]*bintree{}},
+		"000078_create_oauth_mattermost_app_id.down.sql":      &bintree{mysql000078_create_oauth_mattermost_app_idDownSql, map[string]*bintree{}},
+		"000078_create_oauth_mattermost_app_id.up.sql":        &bintree{mysql000078_create_oauth_mattermost_app_idUpSql, map[string]*bintree{}},
 	}},
 	"postgres": &bintree{nil, map[string]*bintree{
 		"000001_create_teams.down.sql":                        &bintree{postgres000001_create_teamsDownSql, map[string]*bintree{}},
@@ -7348,8 +7348,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"000076_upgrade_lastrootpostat.up.sql":                &bintree{postgres000076_upgrade_lastrootpostatUpSql, map[string]*bintree{}},
 		"000077_upgrade_users_v6.5.down.sql":                  &bintree{postgres000077_upgrade_users_v65DownSql, map[string]*bintree{}},
 		"000077_upgrade_users_v6.5.up.sql":                    &bintree{postgres000077_upgrade_users_v65UpSql, map[string]*bintree{}},
-		"000078_create_oauth_mattermostAppID.down.sql":        &bintree{postgres000078_create_oauth_mattermostappidDownSql, map[string]*bintree{}},
-		"000078_create_oauth_mattermostAppID.up.sql":          &bintree{postgres000078_create_oauth_mattermostappidUpSql, map[string]*bintree{}},
+		"000078_create_oauth_mattermost_app_id.down.sql":      &bintree{postgres000078_create_oauth_mattermost_app_idDownSql, map[string]*bintree{}},
+		"000078_create_oauth_mattermost_app_id.up.sql":        &bintree{postgres000078_create_oauth_mattermost_app_idUpSql, map[string]*bintree{}},
 	}},
 }}
 
