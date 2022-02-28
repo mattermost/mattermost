@@ -246,12 +246,42 @@ func (c *Client) resetBucketReplicationOnTarget(ctx context.Context, bucketName 
 	if resp.StatusCode != http.StatusOK {
 		return rinfo, httpRespToErrorResponse(resp, bucketName, "")
 	}
-	respBytes, err := ioutil.ReadAll(resp.Body)
+
+	if err = json.NewDecoder(resp.Body).Decode(&rinfo); err != nil {
+		return rinfo, err
+	}
+	return rinfo, nil
+}
+
+// GetBucketReplicationResyncStatus gets the status of replication resync
+func (c *Client) GetBucketReplicationResyncStatus(ctx context.Context, bucketName, arn string) (rinfo replication.ResyncTargetsInfo, err error) {
+	// Input validation.
+	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
+		return rinfo, err
+	}
+	// Get resources properly escaped and lined up before
+	// using them in http request.
+	urlValues := make(url.Values)
+	urlValues.Set("replication-reset-status", "")
+	if arn != "" {
+		urlValues.Set("arn", arn)
+	}
+	// Execute GET on bucket to get replication config.
+	resp, err := c.executeMethod(ctx, http.MethodGet, requestMetadata{
+		bucketName:  bucketName,
+		queryValues: urlValues,
+	})
+
+	defer closeResponse(resp)
 	if err != nil {
 		return rinfo, err
 	}
 
-	if err := json.Unmarshal(respBytes, &rinfo); err != nil {
+	if resp.StatusCode != http.StatusOK {
+		return rinfo, httpRespToErrorResponse(resp, bucketName, "")
+	}
+
+	if err = json.NewDecoder(resp.Body).Decode(&rinfo); err != nil {
 		return rinfo, err
 	}
 	return rinfo, nil
