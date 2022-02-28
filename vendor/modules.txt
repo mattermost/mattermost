@@ -189,8 +189,6 @@ github.com/dyatlov/go-opengraph/opengraph
 github.com/fatih/color
 # github.com/fatih/set v0.2.1
 github.com/fatih/set
-# github.com/fcjr/aia-transport-go v1.2.2
-github.com/fcjr/aia-transport-go
 # github.com/felixge/httpsnoop v1.0.2
 ## explicit
 github.com/felixge/httpsnoop
@@ -257,6 +255,8 @@ github.com/golang/protobuf/ptypes/empty
 github.com/golang/protobuf/ptypes/timestamp
 # github.com/golang/snappy v0.0.4
 github.com/golang/snappy
+# github.com/gomodule/redigo v2.0.0+incompatible
+## explicit
 # github.com/google/btree v1.0.1
 ## explicit
 github.com/google/btree
@@ -277,8 +277,6 @@ github.com/gorilla/schema
 # github.com/gorilla/websocket v1.4.2
 ## explicit
 github.com/gorilla/websocket
-# github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
-github.com/gregjones/httpcache
 # github.com/h2non/go-is-svg v0.0.0-20160927212452-35e8c4b0612c
 ## explicit
 github.com/h2non/go-is-svg
@@ -449,12 +447,6 @@ github.com/modern-go/concurrent
 github.com/modern-go/reflect2
 # github.com/mschoch/smat v0.2.0
 github.com/mschoch/smat
-# github.com/muesli/smartcrop v0.3.0
-github.com/muesli/smartcrop
-github.com/muesli/smartcrop/nfnt
-github.com/muesli/smartcrop/options
-# github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
-github.com/nfnt/resize
 # github.com/nwaples/rardecode v1.1.2
 ## explicit
 github.com/nwaples/rardecode
@@ -729,16 +721,10 @@ golang.org/x/crypto/scrypt
 ## explicit
 golang.org/x/image/bmp
 golang.org/x/image/ccitt
-golang.org/x/image/draw
 golang.org/x/image/font
-golang.org/x/image/math/f64
 golang.org/x/image/math/fixed
-golang.org/x/image/riff
 golang.org/x/image/tiff
 golang.org/x/image/tiff/lzw
-golang.org/x/image/vp8
-golang.org/x/image/vp8l
-golang.org/x/image/webp
 # golang.org/x/mod v0.5.1
 ## explicit
 golang.org/x/mod/internal/lazyregexp
@@ -921,9 +907,3 @@ gopkg.in/olivere/elastic.v6
 gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 gopkg.in/yaml.v3
-# willnorris.com/go/gifresize v1.0.0
-willnorris.com/go/gifresize
-# willnorris.com/go/imageproxy v0.11.2
-## explicit
-willnorris.com/go/imageproxy
-willnorris.com/go/imageproxy/third_party/http
