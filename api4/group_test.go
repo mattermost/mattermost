@@ -328,6 +328,20 @@ func TestLinkGroupTeam(t *testing.T) {
 	groupTeam, response, _ := th.Client.LinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 	assert.Equal(t, http.StatusCreated, response.StatusCode)
 	assert.NotNil(t, groupTeam)
+
+	gid := model.NewId()
+	g2, app2Err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + gid,
+		Name:        model.NewString("name" + gid),
+		Source:      model.GroupSourceCustom,
+		Description: "description_" + gid,
+		RemoteId:    model.NewString(model.NewId()),
+	})
+	assert.Nil(t, app2Err)
+
+	_, response, err = th.Client.LinkGroupSyncable(g2.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
 }
 
 func TestLinkGroupChannel(t *testing.T) {
@@ -370,6 +384,20 @@ func TestLinkGroupChannel(t *testing.T) {
 
 	_, _, err = th.Client.LinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	assert.Error(t, err)
+
+	gid := model.NewId()
+	g2, app2Err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + gid,
+		Name:        model.NewString("name" + gid),
+		Source:      model.GroupSourceCustom,
+		Description: "description_" + gid,
+		RemoteId:    model.NewString(model.NewId()),
+	})
+	assert.Nil(t, app2Err)
+
+	_, response, err = th.Client.LinkGroupSyncable(g2.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
 }
 
 func TestUnlinkGroupTeam(t *testing.T) {
