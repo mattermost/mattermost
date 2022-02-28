@@ -5,8 +5,8 @@ SET @preparedStatement = (SELECT IF(
         AND table_schema = DATABASE()
         AND column_name = 'MattermostAppID'
     ) > 0,
-    'ALTER TABLE OAuthApps ADD COLUMN MattermostAppID varchar(32);',
-    'SELECT 1'
+	'SELECT 1',
+    'ALTER TABLE OAuthApps ADD COLUMN MattermostAppID varchar(32);'
 ));
 
 PREPARE alterIfExists FROM @preparedStatement;
