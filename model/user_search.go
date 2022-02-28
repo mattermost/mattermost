@@ -22,6 +22,7 @@ type UserSearch struct {
 	Roles            []string `json:"roles"`
 	ChannelRoles     []string `json:"channel_roles"`
 	TeamRoles        []string `json:"team_roles"`
+	NotInGroupId     string   `json:"not_in_group_id"`
 }
 
 // UserSearchOptions captures internal parameters derived from the user's permissions and a

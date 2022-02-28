@@ -214,14 +214,10 @@ The full API Reference is available here.
 ### Full Examples : File Object Operations
 * [fputobject.go](https://github.com/minio/minio-go/blob/master/examples/s3/fputobject.go)
 * [fgetobject.go](https://github.com/minio/minio-go/blob/master/examples/s3/fgetobject.go)
-* [fputobject-context.go](https://github.com/minio/minio-go/blob/master/examples/s3/fputobject-context.go)
-* [fgetobject-context.go](https://github.com/minio/minio-go/blob/master/examples/s3/fgetobject-context.go)
 
 ### Full Examples : Object Operations
 * [putobject.go](https://github.com/minio/minio-go/blob/master/examples/s3/putobject.go)
 * [getobject.go](https://github.com/minio/minio-go/blob/master/examples/s3/getobject.go)
-* [putobject-context.go](https://github.com/minio/minio-go/blob/master/examples/s3/putobject-context.go)
-* [getobject-context.go](https://github.com/minio/minio-go/blob/master/examples/s3/getobject-context.go)
 * [statobject.go](https://github.com/minio/minio-go/blob/master/examples/s3/statobject.go)
 * [copyobject.go](https://github.com/minio/minio-go/blob/master/examples/s3/copyobject.go)
 * [removeobject.go](https://github.com/minio/minio-go/blob/master/examples/s3/removeobject.go)

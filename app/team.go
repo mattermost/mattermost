@@ -1565,11 +1565,13 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string, include
 		return tu
 	}
 
+	teamIDs := make([]string, 0, len(data))
 	for i := range data {
 		id := data[i].TeamId
 		if mu, ok := membersMap[id]; ok {
 			membersMap[id] = unreads(data[i], mu)
 		} else {
+			teamIDs = append(teamIDs, id)
 			membersMap[id] = unreads(data[i], &model.TeamUnread{
 				MsgCount:           0,
 				MentionCount:       0,
@@ -1584,18 +1586,22 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string, include
 
 	includeCollapsedThreads = includeCollapsedThreads && *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
 
-	for _, member := range membersMap {
-		if includeCollapsedThreads {
-			data, err := a.Srv().Store.Thread().GetThreadsForUser(userID, member.TeamId, model.GetUserThreadsOpts{TotalsOnly: true, TeamOnly: true})
-			if err != nil {
-				return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, err.Error(), http.StatusInternalServerError)
-			}
-			member.ThreadCount = data.TotalUnreadThreads
-			member.ThreadMentionCount = data.TotalUnreadMentions
+	if includeCollapsedThreads {
+		teamUnreads, err := a.Srv().Store.Thread().GetTeamsUnreadForUser(userID, teamIDs)
+		if err != nil {
+			return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
-		members = append(members, member)
+		for teamID, member := range membersMap {
+			if _, ok := teamUnreads[teamID]; ok {
+				member.ThreadCount = teamUnreads[teamID].ThreadCount
+				member.ThreadMentionCount = teamUnreads[teamID].ThreadMentionCount
+			}
+		}
 	}
 
+	for _, member := range membersMap {
+		members = append(members, member)
+	}
 	return members, nil
 }
 
@@ -1895,11 +1901,29 @@ func (a *App) RemoveTeamIcon(teamID string) *model.AppError {
 
 func (a *App) InvalidateAllEmailInvites() *model.AppError {
 	if err := a.Srv().Store.Token().RemoveAllTokensByType(TokenTypeTeamInvitation); err != nil {
-		return model.NewAppError("InvalidateAllEmailInvites", "api.team.invalidate_all_email_invites.app_error", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("InvalidateAllEmailInvites", "api.team.invalidate_all_email_invites.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if err := a.Srv().Store.Token().RemoveAllTokensByType(TokenTypeGuestInvitation); err != nil {
-		return model.NewAppError("InvalidateAllEmailInvites", "api.team.invalidate_all_email_invites.app_error", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("InvalidateAllEmailInvites", "api.team.invalidate_all_email_invites.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+	if err := a.InvalidateAllResendInviteEmailJobs(); err != nil {
+		return model.NewAppError("InvalidateAllEmailInvites", "api.team.invalidate_all_email_invites.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
+func (a *App) InvalidateAllResendInviteEmailJobs() *model.AppError {
+	jobs, appErr := a.Srv().Jobs.GetJobsByTypeAndStatus(model.JobTypeResendInvitationEmail, model.JobStatusPending)
+	if appErr != nil {
+		return appErr
+	}
+
+	for _, j := range jobs {
+		a.Srv().Jobs.SetJobCanceled(j)
+		// clean up any system values this job was using
+		a.Srv().Store.System().PermanentDeleteByName(j.Id)
+	}
+
 	return nil
 }
 

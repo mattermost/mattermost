@@ -827,10 +827,10 @@ func TestCreateUserWithToken(t *testing.T) {
 	})
 
 	t.Run("create guest having email domain restrictions", func(t *testing.T) {
-		enableGuestDomainRestricions := *th.App.Config().GuestAccountsSettings.RestrictCreationToDomains
+		enableGuestDomainRestrictions := *th.App.Config().GuestAccountsSettings.RestrictCreationToDomains
 		defer func() {
 			th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.GuestAccountsSettings.RestrictCreationToDomains = &enableGuestDomainRestricions
+				cfg.GuestAccountsSettings.RestrictCreationToDomains = &enableGuestDomainRestrictions
 			})
 		}()
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.RestrictCreationToDomains = "restricted.com" })
@@ -876,10 +876,10 @@ func TestCreateUserWithToken(t *testing.T) {
 		th.BasicTeam.AllowedDomains = "restricted-team.com"
 		_, err := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
-		enableGuestDomainRestricions := *th.App.Config().TeamSettings.RestrictCreationToDomains
+		enableGuestDomainRestrictions := *th.App.Config().TeamSettings.RestrictCreationToDomains
 		defer func() {
 			th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.TeamSettings.RestrictCreationToDomains = &enableGuestDomainRestricions
+				cfg.TeamSettings.RestrictCreationToDomains = &enableGuestDomainRestrictions
 			})
 		}()
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictCreationToDomains = "restricted.com" })
@@ -927,11 +927,11 @@ func TestPermanentDeleteUser(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	var bots1 []*model.Bot
-	var bots2 []*model.Bot
+	bots1 := []*model.Bot{}
+	bots2 := []*model.Bot{}
 
 	sqlStore := mainHelper.GetSQLStore()
-	_, err1 := sqlStore.GetMaster().Select(&bots1, "SELECT * FROM Bots")
+	err1 := sqlStore.GetMasterX().Select(&bots1, "SELECT * FROM Bots")
 	assert.NoError(t, err1)
 	assert.Equal(t, 1, len(bots1))
 
@@ -942,7 +942,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 	err = th.App.PermanentDeleteUser(th.Context, retUser1)
 	assert.Nil(t, err)
 
-	_, err1 = sqlStore.GetMaster().Select(&bots2, "SELECT * FROM Bots")
+	err1 = sqlStore.GetMasterX().Select(&bots2, "SELECT * FROM Bots")
 	assert.NoError(t, err1)
 	assert.Equal(t, 0, len(bots2))
 
