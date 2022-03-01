@@ -50,14 +50,14 @@ func (s *Server) doInactivityCheck() {
 	if systemValue != nil {
 		sysT, _ := strconv.ParseInt(systemValue.Value, 10, 64)
 		tt := time.Unix(sysT/1000, 0)
-		timeLastSentInativityEmail := time.Since(tt).Hours()
+		timeLastSentInactivityEmail := time.Since(tt).Hours()
 
 		lastPostAt, _ := s.Store.Post().GetLastPostRowCreateAt()
 		if lastPostAt != 0 {
 			posT := time.Unix(lastPostAt/1000, 0)
 			timeForLastPost := time.Since(posT).Hours()
 
-			if timeLastSentInativityEmail > inactivityDurationHours && timeForLastPost > inactivityDurationHours {
+			if timeLastSentInactivityEmail > inactivityDurationHours && timeForLastPost > inactivityDurationHours {
 				s.takeInactivityAction()
 			}
 			return
@@ -68,7 +68,7 @@ func (s *Server) doInactivityCheck() {
 			sesT := time.Unix(lastSessionAt/1000, 0)
 			timeForLastSession := time.Since(sesT).Hours()
 
-			if timeLastSentInativityEmail > inactivityDurationHours && timeForLastSession > inactivityDurationHours {
+			if timeLastSentInactivityEmail > inactivityDurationHours && timeForLastSession > inactivityDurationHours {
 				s.takeInactivityAction()
 			}
 			return
