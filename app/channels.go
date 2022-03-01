@@ -31,7 +31,7 @@ type configSvc interface {
 	SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError)
 }
 
-type licenseSvc interface { // nolint: unused
+type licenseSvc interface { // nolint: unused,deadcode
 	GetLicense() *model.License
 	RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError
 }
@@ -44,9 +44,8 @@ type namer interface {
 
 // Channels contains all channels related state.
 type Channels struct {
-	srv        *Server
-	cfgSvc     configSvc
-	licenseSvc licenseSvc
+	srv    *Server
+	cfgSvc configSvc
 
 	postActionCookieSecret []byte
 
@@ -107,7 +106,7 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 	// 2. Add the field to *Channels
 	// 3. Add the service key to the slice.
 	// 4. Add a new case in the switch statement.
-	requiredServices := []ServiceKey{ConfigKey, LicenseKey}
+	requiredServices := []ServiceKey{ConfigKey}
 	for _, svcKey := range requiredServices {
 		svc, ok := services[svcKey]
 		if !ok {
@@ -125,16 +124,6 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 				return nil, errors.New("Config service does not contain Name method")
 			}
 			ch.cfgSvc = cfgSvc
-		case LicenseKey:
-			lcsSvc, ok := svc.(licenseSvc)
-			if !ok {
-				return nil, errors.New("License service did not satisfy licenseSvc interface")
-			}
-			_, ok = svc.(namer)
-			if !ok {
-				return nil, errors.New("License service does not contain Name method")
-			}
-			ch.licenseSvc = lcsSvc
 		}
 
 	}
