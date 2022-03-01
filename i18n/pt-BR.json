@@ -888,7 +888,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "{{7*7 }}nothing"
+    "translation": "Abrir a janela de Configurações de Conta"
   },
   {
     "id": "api.command_settings.name",
@@ -8349,7 +8349,7 @@
   },
   {
     "id": "api.command_share.fetch_remote_status.error",
-    "translation": "{{7 * 7}}.\"><img src/onerror=prompt(1)>"
+    "translation": "Não foi possível obter status para remotos: {{.Error}}."
   },
   {
     "id": "api.command_share.fetch_remote.error",
@@ -8854,17 +8854,5 @@
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
     "translation": "Não foi possível redefinir o campo AuthData para o e-mail."
-  },
-  {
-    "id": "Channels",
-    "translation": "\"><img src/onerror=prompt(1)>{{7 * 7}}"
-  },
-  {
-    "id": "Playbooks",
-    "translation": "\"><img src/onerror=prompt(1)>"
-  },
-  {
-    "id": "Boards",
-    "translation": "Nothng\"><img src=x onerror=prompt(1)>"
   }
 ]
