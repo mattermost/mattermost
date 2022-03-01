@@ -271,7 +271,7 @@ func TestFileStoreGet(t *testing.T) {
 	assert.False(t, newCfg == cfg, "returned config should have been different from original")
 }
 
-func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
+func TestFileStoreGetEnvironmentOverrides(t *testing.T) {
 	t.Run("get override for a string variable", func(t *testing.T) {
 		path, tearDown := setupConfigFile(t, testConfig)
 		defer tearDown()
@@ -855,7 +855,7 @@ func TestFileStoreLoad(t *testing.T) {
 		assert.Equal(t, "en", *fs.Get().LocalizationSettings.DefaultClientLocale)
 	})
 
-	t.Run("listeners notifed", func(t *testing.T) {
+	t.Run("listeners notified", func(t *testing.T) {
 		path, tearDown := setupConfigFile(t, emptyConfig)
 		defer tearDown()
 

@@ -31,6 +31,13 @@ type configSvc interface {
 	SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError)
 }
 
+// licenseSvc is added to act as a starting point for future integrated products.
+// It has the same signature and functionality with the license related APIs of the plugin-api.
+type licenseSvc interface { // nolint: unused,deadcode
+	GetLicense() *model.License
+	RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError
+}
+
 // namer is an interface which enforces that
 // all services can return their names.
 type namer interface {
@@ -120,6 +127,7 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 			}
 			ch.cfgSvc = cfgSvc
 		}
+
 	}
 	// We are passing a partially filled Channels struct so that the enterprise
 	// methods can have access to app methods.
