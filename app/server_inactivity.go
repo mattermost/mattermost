@@ -27,8 +27,8 @@ func (s *Server) doInactivityCheck() {
 		return
 	}
 
-	inactivityDurationHourseEnv := os.Getenv("MM_INACTIVITY_DURATION")
-	inactivityDurationHours, parseError := strconv.ParseFloat(inactivityDurationHourseEnv, 64)
+	inactivityDurationHoursEnv := os.Getenv("MM_INACTIVITY_DURATION")
+	inactivityDurationHours, parseError := strconv.ParseFloat(inactivityDurationHoursEnv, 64)
 	if parseError != nil {
 		// default to 100 hours
 		inactivityDurationHours = serverInactivityHours
