@@ -2332,10 +2332,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	// Post one message with mention to open channel
 	_, nErr = ss.Post().Save(&p1)
 	require.NoError(t, nErr)
-	nErr = ss.Channel().IncrementMentionCount(c1.Id, []string{u2.Id}, false)
-	require.NoError(t, nErr)
-
-	nErr = ss.Channel().IncrementMentionCount(c1.Id, []string{u3.Id}, false)
+	nErr = ss.Channel().IncrementMentionCount(c1.Id, []string{u2.Id, u3.Id}, false)
 	require.NoError(t, nErr)
 
 	// Post 2 messages without mention to direct channel
