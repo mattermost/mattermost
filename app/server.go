@@ -89,7 +89,8 @@ var SentryDSN = "placeholder_sentry_dsn"
 type ServiceKey string
 
 const (
-	ConfigKey ServiceKey = "config"
+	ConfigKey  ServiceKey = "config"
+	LicenseKey ServiceKey = "license"
 )
 
 type Server struct {
@@ -141,6 +142,7 @@ type Server struct {
 	licenseValue       atomic.Value
 	clientLicenseValue atomic.Value
 	licenseListeners   map[string]func(*model.License, *model.License)
+	licenseWrapper     *licenseWrapper
 
 	timezones *timezones.Timezones
 
@@ -255,10 +257,15 @@ func NewServer(options ...Option) (*Server, error) {
 	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
 
 	s.httpService = httpservice.MakeHTTPService(s)
+	s.licenseWrapper = &licenseWrapper{
+		srv: s,
+	}
 
 	serviceMap := map[ServiceKey]interface{}{
-		ConfigKey: s.configStore,
+		ConfigKey:  s.configStore,
+		LicenseKey: s.licenseWrapper,
 	}
+
 	// Step 3: Initialize products.
 	// Depends on s.httpService.
 	for name, initializer := range products {
@@ -633,6 +640,7 @@ func NewServer(options ...Option) (*Server, error) {
 		s.Go(func() {
 			appInstance := New(ServerConnector(s.Channels()))
 			s.runLicenseExpirationCheckJob()
+			s.runInactivityCheckJob()
 			runDNDStatusExpireJob(appInstance)
 		})
 		s.runJobs()
@@ -1475,6 +1483,12 @@ func runJobsCleanupJob(s *Server) {
 	doJobsCleanup(s)
 	model.CreateRecurringTask("Job Cleanup", func() {
 		doJobsCleanup(s)
+	}, time.Hour*24)
+}
+
+func (s *Server) runInactivityCheckJob() {
+	model.CreateRecurringTask("Server inactivity Check", func() {
+		s.doInactivityCheck()
 	}, time.Hour*24)
 }
 

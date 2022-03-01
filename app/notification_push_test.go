@@ -1434,7 +1434,8 @@ func TestPushNotificationRace(t *testing.T) {
 	}
 	s.configStore = &configWrapper{srv: s, Store: memoryStore}
 	serviceMap := map[ServiceKey]interface{}{
-		ConfigKey: s.configStore,
+		ConfigKey:  s.configStore,
+		LicenseKey: &licenseWrapper{s},
 	}
 	ch, err := NewChannels(s, serviceMap)
 	require.NoError(t, err)
