@@ -9385,9 +9385,5 @@
   {
     "id": "Boards",
     "translation": "Panolar"
-  },
-  {
-    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
-    "translation": "Tüm görevler türe ve duruma göre alınamadı."
   }
 ]
