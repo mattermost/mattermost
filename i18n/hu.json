@@ -9382,9 +9382,5 @@
   {
     "id": "api.templates.server_inactivity_info",
     "translation": "Jöjjön és nézze meg!"
-  },
-  {
-    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
-    "translation": "Nem lehet az összes munkát típus és státusz szerint lekérni."
   }
 ]
