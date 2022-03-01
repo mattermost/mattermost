@@ -309,7 +309,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		emoji := "basketball"
 		url := "http://host.com/image.png"
-		overridenURL := "/static/emoji/1f3c0.png"
+		overriddenURL := "/static/emoji/1f3c0.png"
 
 		t.Run("does not override icon URL", func(t *testing.T) {
 			clientPost := prepare(false, url, emoji)
@@ -327,7 +327,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 			s, ok := clientPost.GetProps()[model.PostPropsOverrideIconURL]
 			assert.True(t, ok)
-			assert.EqualValues(t, overridenURL, s)
+			assert.EqualValues(t, overriddenURL, s)
 			s, ok = clientPost.GetProps()[model.PostPropsOverrideIconEmoji]
 			assert.True(t, ok)
 			assert.EqualValues(t, emoji, s)
@@ -339,7 +339,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 			s, ok := clientPost.GetProps()[model.PostPropsOverrideIconURL]
 			assert.True(t, ok)
-			assert.EqualValues(t, overridenURL, s)
+			assert.EqualValues(t, overriddenURL, s)
 			s, ok = clientPost.GetProps()[model.PostPropsOverrideIconEmoji]
 			assert.True(t, ok)
 			assert.EqualValues(t, colonEmoji, s)
@@ -1505,7 +1505,7 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 		"markdown links (not returned)": {
 			Input: `this is a [our page](http://example.com) and [another page][]
 
-[another page]: http://www.exaple.com/another_page`,
+[another page]: http://www.example.com/another_page`,
 			ExpectedFirstLink: "",
 			ExpectedImages:    []string{},
 		},
