@@ -31,6 +31,8 @@ type configSvc interface {
 	SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError)
 }
 
+// licenseSvc is added to act as a starting point for future integrated products.
+// It has the same signature and functionality with the license related APIs of the plugin-api.
 type licenseSvc interface { // nolint: unused,deadcode
 	GetLicense() *model.License
 	RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError
