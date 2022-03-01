@@ -93,7 +93,7 @@ func TestCreateGroup(t *testing.T) {
 	}
 	g, err = th.App.CreateGroup(usernameGroup)
 	require.NotNil(t, err)
-	require.Equal(t, "app.custom_group.username_conflict", err.Id)
+	require.Equal(t, "app.group.username_conflict", err.Id)
 	require.Nil(t, g)
 }
 
@@ -111,7 +111,7 @@ func TestUpdateGroup(t *testing.T) {
 	g.Name = &user.Username
 	g, err = th.App.UpdateGroup(g)
 	require.NotNil(t, err)
-	require.Equal(t, "app.custom_group.username_conflict", err.Id)
+	require.Equal(t, "app.group.username_conflict", err.Id)
 	require.Nil(t, g)
 }
 
