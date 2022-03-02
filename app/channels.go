@@ -159,6 +159,12 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 		if err := ch.Saml.ConfigureSP(); err != nil {
 			mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 		}
+
+		ch.AddConfigListener(func(_, _ *model.Config) {
+			if err := ch.Saml.ConfigureSP(); err != nil {
+				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+			}
+		})
 	}
 
 	var imgErr error
@@ -216,12 +222,6 @@ func (ch *Channels) Start() error {
 			}
 		}
 
-	})
-
-	ch.AddConfigListener(func(_, cfg *model.Config) {
-		if err := ch.Saml.ConfigureSP(); err != nil {
-			mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
-		}
 	})
 
 	if err := ch.ensureAsymmetricSigningKey(); err != nil {
