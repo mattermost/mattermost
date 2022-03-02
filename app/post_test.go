@@ -469,7 +469,7 @@ func TestImageProxy(t *testing.T) {
 		*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 	})
 
-	th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
+	th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
 
 	for name, tc := range map[string]struct {
 		ProxyType              string
@@ -606,8 +606,10 @@ func TestMaxPostSize(t *testing.T) {
 			mockStore.PostStore.On("GetMaxPostSize").Return(testCase.StoreMaxPostSize)
 
 			app := App{
-				srv: &Server{
-					Store: mockStore,
+				ch: &Channels{
+					srv: &Server{
+						Store: mockStore,
+					},
 				},
 			}
 
@@ -684,7 +686,7 @@ func TestCreatePost(t *testing.T) {
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 		})
 
-		th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
+		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
 
 		imageURL := "http://mydomain.com/myimage"
 		proxiedImageURL := "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage"
@@ -819,10 +821,61 @@ func TestCreatePost(t *testing.T) {
 
 		sqlStore := th.GetSqlStore()
 		sql := fmt.Sprintf("select count(*) from Posts where Id = '%[1]s' or OriginalId = '%[1]s';", previewPost.Id)
-		val, err2 := sqlStore.GetMaster().SelectInt(sql)
+		var val int64
+		err2 := sqlStore.GetMasterX().Get(&val, sql)
 		require.NoError(t, err2)
 
 		require.EqualValues(t, int64(1), val)
+	})
+
+	t.Run("MM-40016 should not panic with `concurrent map read and map write`", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		channelForPreview := th.CreateChannel(th.BasicTeam)
+
+		for i := 0; i < 20; i++ {
+			user := th.CreateUser()
+			th.LinkUserToTeam(user, th.BasicTeam)
+			th.AddUserToChannel(user, channelForPreview)
+		}
+
+		referencedPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "hello world",
+			UserId:    th.BasicUser.Id,
+		}
+		referencedPost, err := th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, false, false)
+		require.Nil(t, err)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://example.com"
+			*cfg.ServiceSettings.EnablePermalinkPreviews = true
+		})
+
+		permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
+
+		previewPost := &model.Post{
+			ChannelId: channelForPreview.Id,
+			Message:   permalink,
+			UserId:    th.BasicUser.Id,
+		}
+
+		previewPost, err = th.App.CreatePost(th.Context, previewPost, channelForPreview, false, false)
+		require.Nil(t, err)
+
+		n := 1000
+		var wg sync.WaitGroup
+		wg.Add(n)
+		for i := 0; i < n; i++ {
+			go func() {
+				defer wg.Done()
+				post := previewPost.Clone()
+				th.App.UpdatePost(th.Context, post, false)
+			}()
+		}
+
+		wg.Wait()
 	})
 }
 
@@ -839,7 +892,7 @@ func TestPatchPost(t *testing.T) {
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 		})
 
-		th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
+		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
 
 		imageURL := "http://mydomain.com/myimage"
 		proxiedImageURL := "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage"
@@ -995,7 +1048,6 @@ func TestCreatePostAsUser(t *testing.T) {
 	t.Run("logs warning for user not in channel", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
-
 		user := th.CreateUser()
 		th.LinkUserToTeam(user, th.BasicTeam)
 
@@ -1132,7 +1184,7 @@ func TestUpdatePost(t *testing.T) {
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 		})
 
-		th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
+		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
 
 		imageURL := "http://mydomain.com/myimage"
 		proxiedImageURL := "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage"
@@ -2049,6 +2101,10 @@ func TestThreadMembership(t *testing.T) {
 	t.Run("should update memberships for conversation participants", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ThreadAutoFollow = true
+			*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+		})
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
@@ -2258,7 +2314,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		thread, nErr := th.App.Srv().Store.Thread().Get(postRoot.Id)
 		require.NoError(t, nErr)
 		require.Len(t, thread.Participants, 1)
-		th.App.MarkChannelAsUnreadFromPost(postRoot.Id, user1.Id, true, true)
+		th.App.MarkChannelAsUnreadFromPost(postRoot.Id, user1.Id, true)
 		l, err := th.App.GetPostsForChannelAroundLastUnread(channel.Id, user1.Id, 10, 10, true, true, false)
 		require.Nil(t, err)
 		require.Len(t, l.Order, 1)
@@ -2360,7 +2416,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		defer th.TearDown()
 
 		remoteClusterService := NewMockSharedChannelService(nil)
-		th.App.srv.sharedChannelService = remoteClusterService
+		th.App.ch.srv.sharedChannelService = remoteClusterService
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Cluster = testCluster
 
@@ -2384,7 +2440,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		defer th.TearDown()
 
 		remoteClusterService := NewMockSharedChannelService(nil)
-		th.App.srv.sharedChannelService = remoteClusterService
+		th.App.ch.srv.sharedChannelService = remoteClusterService
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Cluster = testCluster
 
@@ -2412,7 +2468,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		defer th.TearDown()
 
 		remoteClusterService := NewMockSharedChannelService(nil)
-		th.App.srv.sharedChannelService = remoteClusterService
+		th.App.ch.srv.sharedChannelService = remoteClusterService
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Cluster = testCluster
 

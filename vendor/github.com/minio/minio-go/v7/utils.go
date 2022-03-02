@@ -18,14 +18,17 @@
 package minio
 
 import (
+	"context"
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"hash"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"net"
 	"net/http"
 	"net/url"
@@ -49,13 +52,33 @@ var expirationRegex = regexp.MustCompile(`expiry-date="(.*?)", rule-id="(.*?)"`)
 
 func amzExpirationToExpiryDateRuleID(expiration string) (time.Time, string) {
 	if matches := expirationRegex.FindStringSubmatch(expiration); len(matches) == 3 {
-		expTime, err := time.Parse(http.TimeFormat, matches[1])
+		expTime, err := parseRFC7231Time(matches[1])
 		if err != nil {
 			return time.Time{}, ""
 		}
 		return expTime, matches[2]
 	}
 	return time.Time{}, ""
+}
+
+var restoreRegex = regexp.MustCompile(`ongoing-request="(.*?)"(, expiry-date="(.*?)")?`)
+
+func amzRestoreToStruct(restore string) (ongoing bool, expTime time.Time, err error) {
+	matches := restoreRegex.FindStringSubmatch(restore)
+	if len(matches) != 4 {
+		return false, time.Time{}, errors.New("unexpected restore header")
+	}
+	ongoing, err = strconv.ParseBool(matches[1])
+	if err != nil {
+		return false, time.Time{}, err
+	}
+	if matches[3] != "" {
+		expTime, err = parseRFC7231Time(matches[3])
+		if err != nil {
+			return false, time.Time{}, err
+		}
+	}
+	return
 }
 
 // xmlDecoder provide decoded value in xml.
@@ -217,6 +240,27 @@ func extractObjMetadata(header http.Header) http.Header {
 	return filteredHeader
 }
 
+const (
+	// RFC 7231#section-7.1.1.1 timetamp format. e.g Tue, 29 Apr 2014 18:30:38 GMT
+	rfc822TimeFormat                           = "Mon, 2 Jan 2006 15:04:05 GMT"
+	rfc822TimeFormatSingleDigitDay             = "Mon, _2 Jan 2006 15:04:05 GMT"
+	rfc822TimeFormatSingleDigitDayTwoDigitYear = "Mon, _2 Jan 06 15:04:05 GMT"
+)
+
+func parseTime(t string, formats ...string) (time.Time, error) {
+	for _, format := range formats {
+		tt, err := time.Parse(format, t)
+		if err == nil {
+			return tt, nil
+		}
+	}
+	return time.Time{}, fmt.Errorf("unable to parse %s in any of the input formats: %s", t, formats)
+}
+
+func parseRFC7231Time(lastModified string) (time.Time, error) {
+	return parseTime(lastModified, rfc822TimeFormat, rfc822TimeFormatSingleDigitDay, rfc822TimeFormatSingleDigitDayTwoDigitYear)
+}
+
 // ToObjectInfo converts http header values into ObjectInfo type,
 // extracts metadata and fills in all the necessary fields in ObjectInfo.
 func ToObjectInfo(bucketName string, objectName string, h http.Header) (ObjectInfo, error) {
@@ -244,7 +288,7 @@ func ToObjectInfo(bucketName string, objectName string, h http.Header) (ObjectIn
 	}
 
 	// Parse Last-Modified has http time format.
-	date, err := time.Parse(http.TimeFormat, h.Get("Last-Modified"))
+	mtime, err := parseRFC7231Time(h.Get("Last-Modified"))
 	if err != nil {
 		return ObjectInfo{}, ErrorResponse{
 			Code:       "InternalError",
@@ -266,7 +310,18 @@ func ToObjectInfo(bucketName string, objectName string, h http.Header) (ObjectIn
 	expiryStr := h.Get("Expires")
 	var expiry time.Time
 	if expiryStr != "" {
-		expiry, _ = time.Parse(http.TimeFormat, expiryStr)
+		expiry, err = parseRFC7231Time(expiryStr)
+		if err != nil {
+			return ObjectInfo{}, ErrorResponse{
+				Code:       "InternalError",
+				Message:    fmt.Sprintf("'Expiry' is not in supported format: %v", err),
+				BucketName: bucketName,
+				Key:        objectName,
+				RequestID:  h.Get("x-amz-request-id"),
+				HostID:     h.Get("x-amz-id-2"),
+				Region:     h.Get("x-amz-bucket-region"),
+			}
+		}
 	}
 
 	metadata := extractObjMetadata(h)
@@ -294,6 +349,16 @@ func ToObjectInfo(bucketName string, objectName string, h http.Header) (ObjectIn
 		}
 	}
 
+	// Nil if not found
+	var restore *RestoreInfo
+	if restoreHdr := h.Get(amzRestore); restoreHdr != "" {
+		ongoing, expTime, err := amzRestoreToStruct(restoreHdr)
+		if err != nil {
+			return ObjectInfo{}, err
+		}
+		restore = &RestoreInfo{OngoingRestore: ongoing, ExpiryTime: expTime}
+	}
+
 	// extract lifecycle expiry date and rule ID
 	expTime, ruleID := amzExpirationToExpiryDateRuleID(h.Get(amzExpiration))
 
@@ -304,7 +369,7 @@ func ToObjectInfo(bucketName string, objectName string, h http.Header) (ObjectIn
 		ETag:              etag,
 		Key:               objectName,
 		Size:              size,
-		LastModified:      date,
+		LastModified:      mtime,
 		ContentType:       contentType,
 		Expires:           expiry,
 		VersionID:         h.Get(amzVersionID),
@@ -319,6 +384,7 @@ func ToObjectInfo(bucketName string, objectName string, h http.Header) (ObjectIn
 		UserMetadata: userMetadata,
 		UserTags:     userTags,
 		UserTagCount: tagCount,
+		Restore:      restore,
 	}, nil
 }
 
@@ -370,7 +436,7 @@ func redactSignature(origAuth string) string {
 		return "AWS **REDACTED**:**REDACTED**"
 	}
 
-	/// Signature V4 authorization header.
+	// Signature V4 authorization header.
 
 	// Strip out accessKeyID from:
 	// Credential=<access-key-id>/<date>/<aws-region>/<aws-service>/aws4_request
@@ -397,19 +463,20 @@ func getDefaultLocation(u url.URL, regionOverride string) (location string) {
 	return region
 }
 
-var supportedHeaders = []string{
-	"content-type",
-	"cache-control",
-	"content-encoding",
-	"content-disposition",
-	"content-language",
-	"x-amz-website-redirect-location",
-	"x-amz-object-lock-mode",
-	"x-amz-metadata-directive",
-	"x-amz-object-lock-retain-until-date",
-	"expires",
-	"x-amz-replication-status",
+var supportedHeaders = map[string]bool{
+	"content-type":                        true,
+	"cache-control":                       true,
+	"content-encoding":                    true,
+	"content-disposition":                 true,
+	"content-language":                    true,
+	"x-amz-website-redirect-location":     true,
+	"x-amz-object-lock-mode":              true,
+	"x-amz-metadata-directive":            true,
+	"x-amz-object-lock-retain-until-date": true,
+	"expires":                             true,
+	"x-amz-replication-status":            true,
 	// Add more supported headers here.
+	// Must be lower case.
 }
 
 // isStorageClassHeader returns true if the header is a supported storage class header
@@ -419,34 +486,24 @@ func isStorageClassHeader(headerKey string) bool {
 
 // isStandardHeader returns true if header is a supported header and not a custom header
 func isStandardHeader(headerKey string) bool {
-	key := strings.ToLower(headerKey)
-	for _, header := range supportedHeaders {
-		if strings.ToLower(header) == key {
-			return true
-		}
-	}
-	return false
+	return supportedHeaders[strings.ToLower(headerKey)]
 }
 
 // sseHeaders is list of server side encryption headers
-var sseHeaders = []string{
-	"x-amz-server-side-encryption",
-	"x-amz-server-side-encryption-aws-kms-key-id",
-	"x-amz-server-side-encryption-context",
-	"x-amz-server-side-encryption-customer-algorithm",
-	"x-amz-server-side-encryption-customer-key",
-	"x-amz-server-side-encryption-customer-key-MD5",
+var sseHeaders = map[string]bool{
+	"x-amz-server-side-encryption":                    true,
+	"x-amz-server-side-encryption-aws-kms-key-id":     true,
+	"x-amz-server-side-encryption-context":            true,
+	"x-amz-server-side-encryption-customer-algorithm": true,
+	"x-amz-server-side-encryption-customer-key":       true,
+	"x-amz-server-side-encryption-customer-key-md5":   true,
+	// Add more supported headers here.
+	// Must be lower case.
 }
 
 // isSSEHeader returns true if header is a server side encryption header.
 func isSSEHeader(headerKey string) bool {
-	key := strings.ToLower(headerKey)
-	for _, h := range sseHeaders {
-		if strings.ToLower(h) == key {
-			return true
-		}
-	}
-	return false
+	return sseHeaders[strings.ToLower(headerKey)]
 }
 
 // isAmzHeader returns true if header is a x-amz-meta-* or x-amz-acl header.
@@ -460,11 +517,11 @@ var md5Pool = sync.Pool{New: func() interface{} { return md5.New() }}
 var sha256Pool = sync.Pool{New: func() interface{} { return sha256.New() }}
 
 func newMd5Hasher() md5simd.Hasher {
-	return hashWrapper{Hash: md5Pool.New().(hash.Hash), isMD5: true}
+	return hashWrapper{Hash: md5Pool.Get().(hash.Hash), isMD5: true}
 }
 
 func newSHA256Hasher() md5simd.Hasher {
-	return hashWrapper{Hash: sha256Pool.New().(hash.Hash), isSHA256: true}
+	return hashWrapper{Hash: sha256Pool.Get().(hash.Hash), isSHA256: true}
 }
 
 // hashWrapper implements the md5simd.Hasher interface.
@@ -485,4 +542,89 @@ func (m hashWrapper) Close() {
 		sha256Pool.Put(m.Hash)
 	}
 	m.Hash = nil
+}
+
+const letterBytes = "abcdefghijklmnopqrstuvwxyz01234569"
+const (
+	letterIdxBits = 6                    // 6 bits to represent a letter index
+	letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
+	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
+)
+
+// randString generates random names and prepends them with a known prefix.
+func randString(n int, src rand.Source, prefix string) string {
+	b := make([]byte, n)
+	// A rand.Int63() generates 63 random bits, enough for letterIdxMax letters!
+	for i, cache, remain := n-1, src.Int63(), letterIdxMax; i >= 0; {
+		if remain == 0 {
+			cache, remain = src.Int63(), letterIdxMax
+		}
+		if idx := int(cache & letterIdxMask); idx < len(letterBytes) {
+			b[i] = letterBytes[idx]
+			i--
+		}
+		cache >>= letterIdxBits
+		remain--
+	}
+	return prefix + string(b[0:30-len(prefix)])
+}
+
+// IsNetworkOrHostDown - if there was a network error or if the host is down.
+// expectTimeouts indicates that *context* timeouts are expected and does not
+// indicate a downed host. Other timeouts still returns down.
+func IsNetworkOrHostDown(err error, expectTimeouts bool) bool {
+	if err == nil {
+		return false
+	}
+
+	if errors.Is(err, context.Canceled) {
+		return false
+	}
+
+	if expectTimeouts && errors.Is(err, context.DeadlineExceeded) {
+		return false
+	}
+
+	if errors.Is(err, context.DeadlineExceeded) {
+		return true
+	}
+
+	// We need to figure if the error either a timeout
+	// or a non-temporary error.
+	urlErr := &url.Error{}
+	if errors.As(err, &urlErr) {
+		switch urlErr.Err.(type) {
+		case *net.DNSError, *net.OpError, net.UnknownNetworkError:
+			return true
+		}
+	}
+	var e net.Error
+	if errors.As(err, &e) {
+		if e.Timeout() {
+			return true
+		}
+	}
+
+	// Fallback to other mechanisms.
+	switch {
+	case strings.Contains(err.Error(), "Connection closed by foreign host"):
+		return true
+	case strings.Contains(err.Error(), "TLS handshake timeout"):
+		// If error is - tlsHandshakeTimeoutError.
+		return true
+	case strings.Contains(err.Error(), "i/o timeout"):
+		// If error is - tcp timeoutError.
+		return true
+	case strings.Contains(err.Error(), "connection timed out"):
+		// If err is a net.Dial timeout.
+		return true
+	case strings.Contains(err.Error(), "connection refused"):
+		// If err is connection refused
+		return true
+
+	case strings.Contains(strings.ToLower(err.Error()), "503 service unavailable"):
+		// Denial errors
+		return true
+	}
+	return false
 }

@@ -8,6 +8,14 @@
     "translation": "August"
   },
   {
+    "id": "Boards",
+    "translation": "Boards"
+  },
+  {
+    "id": "Channels",
+    "translation": "Channels"
+  },
+  {
     "id": "December",
     "translation": "December"
   },
@@ -42,6 +50,10 @@
   {
     "id": "October",
     "translation": "October"
+  },
+  {
+    "id": "Playbooks",
+    "translation": "Playbooks"
   },
   {
     "id": "September",
@@ -1256,7 +1268,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "Open the Account Settings dialog"
+    "translation": "Open the Settings dialog"
   },
   {
     "id": "api.command_settings.name",
@@ -1559,12 +1571,36 @@
     "translation": "Please enter text for your Custom Terms of Service."
   },
   {
+    "id": "api.custom_groups.count_err",
+    "translation": "error counting groups"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "custom groups feature is disabled"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "not licensed for custom groups"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference must be 'true' for custom groups"
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id must be blank for custom group"
+  },
+  {
     "id": "api.custom_status.disabled",
     "translation": "Custom status feature has been disabled. Please contact your system administrator for details."
   },
   {
     "id": "api.custom_status.recent_custom_statuses.delete.app_error",
     "translation": "Failed to delete the recent status. Please try adding the status first or contact your system administrator for details."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Failed to update the custom status. Please add either emoji or custom text status or both."
   },
   {
     "id": "api.email.send_warn_metric_ack.failure.app_error",
@@ -1678,8 +1714,16 @@
     "translation": "Unable to create the emoji. An error occurred when trying to open the attached image."
   },
   {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "Error trying to retrieve first admin complete setup from the store."
+  },
+  {
     "id": "api.error_get_first_admin_visit_marketplace_status",
     "translation": "Error trying to retrieve the first admin visit marketplace status from the store."
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "Error trying to save first admin complete setup in the store."
   },
   {
     "id": "api.error_set_first_admin_visit_marketplace_status",
@@ -1950,6 +1994,10 @@
     "translation": "Error getting the license renewal link"
   },
   {
+    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
+    "translation": "Renewing this license on the portal is not possible"
+  },
+  {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com."
   },
@@ -1964,6 +2012,10 @@
   {
     "id": "api.license.upgrade_needed.app_error",
     "translation": "Feature requires an upgrade to Enterprise Edition."
+  },
+  {
+    "id": "api.license_error",
+    "translation": "api endpoint requires a license"
   },
   {
     "id": "api.marshal_error",
@@ -2210,6 +2262,10 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
+  },
+  {
+    "id": "api.post.posts_by_ids.invalid_body.request_error",
+    "translation": "The number of Post IDs received has exceeded the maximum size of {{.MaxLength}}"
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",
@@ -2492,14 +2548,6 @@
     "translation": "Trial license could not be retrieved. Visit https://mattermost.com/trial/ to request a license."
   },
   {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Contact Us"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Contacting Us"
-  },
-  {
     "id": "api.server.warn_metric.email_domain.contact_us.email_body",
     "translation": "Mattermost contact us request. I'm interested in learning more about using Guest Accounts.\r\n"
   },
@@ -2682,22 +2730,6 @@
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
     "translation": "Your Enterprise trial is now active. Go to **System Console > User Management > Permissions** to enable Advanced Permissions."
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Start Trial"
-  },
-  {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Getting Trial"
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "Set Your Support Email Address"
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "Please go to **System Console > Site Configuration > Customization** to set the [Support Email](https://docs.mattermost.com/administration/config-settings.html#support-email) as your organization's internal IT Support Desk email address for end user feedback, email notifications, and support requests."
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
@@ -3053,7 +3085,7 @@
   },
   {
     "id": "api.templates.at_limit_info1",
-    "translation": "It looks like you have 10 or more users in your workspace now — that’s great! If you want to invite more team members, consider upgrading Mattermost Cloud Professional now."
+    "translation": "It looks like you have 10 or more users in your workspace now — that’s great! If you want to invite more team members, consider upgrading Mattermost Cloud now."
   },
   {
     "id": "api.templates.at_limit_info2",
@@ -3081,7 +3113,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Professional has ended today, {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Professional."
+    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Enterprise has ended today, {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Enterprise."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
@@ -3097,7 +3129,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, your 14-day trial of Mattermost Cloud Professional is ending in 3 days, on {{.TrialEnd}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Professional."
+    "translation": "{{.Name}}, your 14-day trial of Mattermost is ending in 3 days, on {{.TrialEnd}}. Please add your payment information to ensure your team can continue enjoying the benefits of Mattermost Cloud."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.title",
@@ -3109,7 +3141,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Streamline your work with tools like Github, Google Calendar and Chrome. Explore all of the integrations we have on our"
+    "translation": "Streamline your work with tools like GitHub, Jira and Zoom. Explore all of the integrations we have on our"
   },
   {
     "id": "api.templates.cloud_welcome_email.app_market_place",
@@ -3149,7 +3181,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "for the best experience on PC, Mac, iOS and Android."
+    "translation": "for the best experience on Windows, Linux, Mac, iOS and Android."
   },
   {
     "id": "api.templates.cloud_welcome_email.start_questions",
@@ -3221,11 +3253,11 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "To change your notification preferences, log in to your team site and go to Account Settings > Notifications."
+    "translation": "To change your notification preferences, log in to your team site and go to Settings > Notifications."
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.email_info1",
@@ -3262,6 +3294,10 @@
   {
     "id": "api.templates.invite_body.title",
     "translation": "{{ .SenderName }} invited you to join the {{ .TeamDisplayName }} team."
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "Reminder"
   },
   {
     "id": "api.templates.invite_body_footer.info",
@@ -3409,7 +3445,7 @@
   },
   {
     "id": "api.templates.over_limit_info1",
-    "translation": "It looks like you have more than 10 users in your workspace which is beyond the free tier limits of Mattermost Cloud Professional. To avoid any disruption in your Mattermost workspace, please upgrade."
+    "translation": "It looks like you have more than 10 users in your workspace which is beyond the free tier limits of Mattermost Cloud. To avoid any disruption in your Mattermost workspace, please upgrade."
   },
   {
     "id": "api.templates.over_limit_info2",
@@ -3538,6 +3574,38 @@
   {
     "id": "api.templates.reset_subject",
     "translation": "[{{ .SiteName }}] Reset your password"
+  },
+  {
+    "id": "api.templates.server_inactivity_button",
+    "translation": "Open Mattermost"
+  },
+  {
+    "id": "api.templates.server_inactivity_info",
+    "translation": "Come and check it out!"
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet",
+    "translation": "Guest Access to specified "
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet1",
+    "translation": "Workflow management with "
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet2",
+    "translation": "Manage tasks using "
+  },
+  {
+    "id": "api.templates.server_inactivity_subject",
+    "translation": "HEY! Open Mattermost to increase your team’s productivity!"
+  },
+  {
+    "id": "api.templates.server_inactivity_subtitle",
+    "translation": "Hey {{.Name}}, we’ve noticed that your Mattermost server is collecting a bit of dust. Take a look at some features that can help lighten your team's workload."
+  },
+  {
+    "id": "api.templates.server_inactivity_title",
+    "translation": "Unlock increased productivity with these awesome features"
   },
   {
     "id": "api.templates.signin_change_email.body.info",
@@ -3804,6 +3872,10 @@
     "translation": "Received invalid response from OAuth service provider."
   },
   {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "SAML response is too long"
+  },
+  {
     "id": "api.user.authorize_oauth_user.service.app_error",
     "translation": "Token request to {{.Service}} failed."
   },
@@ -3872,6 +3944,10 @@
     "translation": "The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email."
   },
   {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "The email address in the token does not match the one in the user data."
+  },
+  {
     "id": "api.user.create_user.disabled.app_error",
     "translation": "User creation is disabled."
   },
@@ -3929,7 +4005,7 @@
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
-    "translation": "Error retreiving endpoint from Discovery Document."
+    "translation": "Error retrieving endpoint from Discovery Document."
   },
   {
     "id": "api.user.get_uploads_for_user.forbidden.app_error",
@@ -4240,6 +4316,18 @@
     "translation": "Failed to parse token data from email verification"
   },
   {
+    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
+    "translation": "Cannot retrieve posts for an archived channel"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
+    "translation": "Cannot retrieve users for an archived channel"
+  },
+  {
+    "id": "api.users.invalid_emails.enable_open_server.app_error",
+    "translation": " "
+  },
+  {
     "id": "api.web_socket.connect.upgrade.app_error",
     "translation": "Failed to upgrade websocket connection."
   },
@@ -4294,6 +4382,22 @@
   {
     "id": "api.websocket_handler.server_busy.app_error",
     "translation": "Server is busy, non-critical services are temporarily unavailable."
+  },
+  {
+    "id": "app.admin.latest_version_external_error.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_read_all.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_set_cache.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_unmarshal.failure",
+    "translation": " "
   },
   {
     "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
@@ -4716,6 +4820,10 @@
     "translation": "Unable to create default team membership because no more members are allowed in that team"
   },
   {
+    "id": "app.custom_group.unique_name",
+    "translation": "group name is not unique"
+  },
+  {
     "id": "app.email.no_rate_limiter.app_error",
     "translation": "Rate limiter is not set up."
   },
@@ -4814,6 +4922,10 @@
   {
     "id": "app.file_info.save.app_error",
     "translation": "Unable to save the file info."
+  },
+  {
+    "id": "app.group.crud_permission",
+    "translation": "Unable to perform operation for that source type."
   },
   {
     "id": "app.group.group_syncable_already_deleted",
@@ -5010,10 +5122,6 @@
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
     "translation": "Channel display_name is not within permitted length constraints."
-  },
-  {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Missing required channel property: display_name"
   },
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
@@ -5428,6 +5536,10 @@
     "translation": "Unable to get the jobs."
   },
   {
+    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
+    "translation": "Unable to get the all jobs by type and status."
+  },
+  {
     "id": "app.job.get_count_by_status_and_type.app_error",
     "translation": "Unable to get the job count by status and type."
   },
@@ -5454,6 +5566,10 @@
   {
     "id": "app.license.generate_renewal_token.no_license",
     "translation": "No license present"
+  },
+  {
+    "id": "app.member_count",
+    "translation": "error retrieving member count"
   },
   {
     "id": "app.notification.body.dm.subTitle",
@@ -5505,7 +5621,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " and go to Account Settings > Notifications"
+    "translation": " and go to Settings > Notifications"
   },
   {
     "id": "app.notification.footer.infoLogin",
@@ -5912,6 +6028,10 @@
     "translation": "Unable to get role."
   },
   {
+    "id": "app.role.get_all.app_error",
+    "translation": "Unable to get all the roles."
+  },
+  {
     "id": "app.role.get_by_name.app_error",
     "translation": "Unable to get role."
   },
@@ -5968,6 +6088,10 @@
     "translation": "Unable to count the sessions."
   },
   {
+    "id": "app.session.extend_session_expiry.app_error",
+    "translation": "Unable to extend session length"
+  },
+  {
     "id": "app.session.get.app_error",
     "translation": "We encountered an error finding the session."
   },
@@ -6016,12 +6140,24 @@
     "translation": "Encountered an error encoding JSON for the interactive dialog."
   },
   {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "Failed to decode the complete onboarding request."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "Onboarding can only be completed by a System Administrator."
+  },
+  {
     "id": "app.system.get.app_error",
     "translation": "We encountered an error finding the system properties."
   },
   {
     "id": "app.system.get_by_name.app_error",
     "translation": "Unable to find the system variable."
+  },
+  {
+    "id": "app.system.get_onboarding_request.app_error",
+    "translation": "Failed to get onboarding completion status."
   },
   {
     "id": "app.system.permanent_delete_by_name.app_error",
@@ -6036,20 +6172,8 @@
     "translation": "System"
   },
   {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Learn more about the Mattermost Advisor](https://about.mattermost.com/default-channel-handle-documentation)"
-  },
-  {
     "id": "app.system.warn_metric.bot_displayname",
     "translation": "Mattermost Advisor"
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "List of admins is empty."
-  },
-  {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Could not find metric."
   },
   {
     "id": "app.system.warn_metric.store.app_error",
@@ -6358,6 +6482,10 @@
   {
     "id": "app.user.get_recently_active_users.app_error",
     "translation": "We encountered an error while finding the recently active users."
+  },
+  {
+    "id": "app.user.get_thread_count_for_user.app_error",
+    "translation": "We could not get thread count for the user."
   },
   {
     "id": "app.user.get_thread_membership_for_user.app_error",
@@ -7016,6 +7144,14 @@
     "translation": "Elasticsearch search is not enabled on this server"
   },
   {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "Failed to get all channel members"
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "Failed to get all team members"
+  },
+  {
     "id": "ent.elasticsearch.index_channel.error",
     "translation": "Failed to index the channel"
   },
@@ -7381,7 +7517,7 @@
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": "Unable to migrate AD/LDAP users with specified field. Duplicate entry detected. Please remove all duplcates and try again."
+    "translation": "Unable to migrate AD/LDAP users with specified field. Duplicate entry detected. Please remove all duplicates and try again."
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
@@ -7478,18 +7614,6 @@
   {
     "id": "error",
     "translation": "Error"
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.from",
-    "translation": "Invalid input value 'from'"
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.to",
-    "translation": "Invalid input value 'to'"
-  },
-  {
-    "id": "extract_content.worker.do_job.file_info",
-    "translation": "Failed to get file information for content extraction."
   },
   {
     "id": "group_not_associated_to_synced_team",
@@ -8288,6 +8412,10 @@
     "translation": "Name must be 1 to 64 lowercase alphanumeric characters."
   },
   {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "Name conflicts with existing system emoji name."
+  },
+  {
     "id": "model.emoji.update_at.app_error",
     "translation": "Update at must be a valid time."
   },
@@ -8322,6 +8450,10 @@
   {
     "id": "model.file_info.is_valid.user_id.app_error",
     "translation": "Invalid value for user_id."
+  },
+  {
+    "id": "model.github_release_info.is_valid.id.app_error",
+    "translation": " "
   },
   {
     "id": "model.group.create_at.app_error",
@@ -9177,11 +9309,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 78+"
+    "translation": "Version 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 12+"
+    "translation": "Version 14.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -9189,7 +9321,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",

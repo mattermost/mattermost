@@ -24,13 +24,14 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"sync"
 
 	"github.com/minio/minio-go/v7/pkg/s3utils"
 )
 
 // GetObject wrapper function that accepts a request context
-func (c Client) GetObject(ctx context.Context, bucketName, objectName string, opts GetObjectOptions) (*Object, error) {
+func (c *Client) GetObject(ctx context.Context, bucketName, objectName string, opts GetObjectOptions) (*Object, error) {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return nil, err
@@ -139,7 +140,7 @@ func (c Client) GetObject(ctx context.Context, bucketName, objectName string, op
 
 						// Remove range header if already set, for stat Operations to get original file size.
 						delete(opts.headers, "Range")
-						objectInfo, err = c.statObject(ctx, bucketName, objectName, StatObjectOptions(opts))
+						objectInfo, err = c.StatObject(ctx, bucketName, objectName, StatObjectOptions(opts))
 						if err != nil {
 							resCh <- getResponse{
 								Error: err,
@@ -162,7 +163,7 @@ func (c Client) GetObject(ctx context.Context, bucketName, objectName string, op
 					if etag != "" && !snowball {
 						opts.SetMatchETag(etag)
 					}
-					objectInfo, err := c.statObject(ctx, bucketName, objectName, StatObjectOptions(opts))
+					objectInfo, err := c.StatObject(ctx, bucketName, objectName, StatObjectOptions(opts))
 					if err != nil {
 						resCh <- getResponse{
 							Error: err,
@@ -639,7 +640,7 @@ func newObject(reqCh chan<- getRequest, resCh <-chan getResponse, doneCh chan<- 
 //
 // For more information about the HTTP Range header.
 // go to http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35.
-func (c Client) getObject(ctx context.Context, bucketName, objectName string, opts GetObjectOptions) (io.ReadCloser, ObjectInfo, http.Header, error) {
+func (c *Client) getObject(ctx context.Context, bucketName, objectName string, opts GetObjectOptions) (io.ReadCloser, ObjectInfo, http.Header, error) {
 	// Validate input arguments.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return nil, ObjectInfo{}, nil, err
@@ -651,6 +652,9 @@ func (c Client) getObject(ctx context.Context, bucketName, objectName string, op
 	urlValues := make(url.Values)
 	if opts.VersionID != "" {
 		urlValues.Set("versionId", opts.VersionID)
+	}
+	if opts.PartNumber > 0 {
+		urlValues.Set("partNumber", strconv.Itoa(opts.PartNumber))
 	}
 
 	// Execute GET on objectName.

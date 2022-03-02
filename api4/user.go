@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/utils"
+	"github.com/mattermost/mattermost-server/v6/web"
 )
 
 func (api *API) InitUser() {
@@ -90,6 +91,9 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/migrate_auth/saml", api.APISessionRequired(migrateAuthToSaml)).Methods("POST")
 
 	api.BaseRoutes.User.Handle("/uploads", api.APISessionRequired(getUploadsForUser)).Methods("GET")
+	api.BaseRoutes.User.Handle("/channel_members", api.APISessionRequired(getChannelMembersForUser)).Methods("GET")
+
+	api.BaseRoutes.Users.Handle("/invalid_emails", api.APISessionRequired(getUsersWithInvalidEmails)).Methods("GET")
 
 	api.BaseRoutes.UserThreads.Handle("", api.APISessionRequired(getThreadsForUser)).Methods("GET")
 	api.BaseRoutes.UserThreads.Handle("/read", api.APISessionRequired(updateReadStateAllThreadsByUser)).Methods("PUT")
@@ -123,16 +127,9 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	var ruser *model.User
 	var err *model.AppError
 	if tokenId != "" {
-		token, nErr := c.App.Srv().Store.Token().GetByToken(tokenId)
-		if nErr != nil {
-			var status int
-			switch nErr.(type) {
-			case *store.ErrNotFound:
-				status = http.StatusNotFound
-			default:
-				status = http.StatusInternalServerError
-			}
-			c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, nErr.Error(), status)
+		token, appErr := c.App.GetTokenById(tokenId)
+		if appErr != nil {
+			c.Err = appErr
 			return
 		}
 		auditRec.AddMeta("token_type", token.Type)
@@ -645,6 +642,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	notInTeamId := r.URL.Query().Get("not_in_team")
 	inChannelId := r.URL.Query().Get("in_channel")
 	inGroupId := r.URL.Query().Get("in_group")
+	notInGroupId := r.URL.Query().Get("not_in_group")
 	notInChannelId := r.URL.Query().Get("not_in_channel")
 	groupConstrained := r.URL.Query().Get("group_constrained")
 	withoutTeam := r.URL.Query().Get("without_team")
@@ -668,7 +666,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Currently only supports sorting on a team
 	// or sort="status" on inChannelId
-	if (sort == "last_activity_at" || sort == "create_at") && (inTeamId == "" || notInTeamId != "" || inChannelId != "" || notInChannelId != "" || withoutTeam != "" || inGroupId != "") {
+	if (sort == "last_activity_at" || sort == "create_at") && (inTeamId == "" || notInTeamId != "" || inChannelId != "" || notInChannelId != "" || withoutTeam != "" || inGroupId != "" || notInGroupId != "") {
 		c.SetInvalidURLParam("sort")
 		return
 	}
@@ -724,6 +722,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		NotInTeamId:      notInTeamId,
 		NotInChannelId:   notInChannelId,
 		InGroupId:        inGroupId,
+		NotInGroupId:     notInGroupId,
 		GroupConstrained: groupConstrainedBool,
 		WithoutTeam:      withoutTeamBool,
 		Inactive:         inactiveBool,
@@ -740,6 +739,20 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var profiles []*model.User
 	etag := ""
+
+	if inChannelId != "" {
+		if !*c.App.Config().TeamSettings.ExperimentalViewArchivedChannels {
+			channel, appErr := c.App.GetChannel(inChannelId)
+			if appErr != nil {
+				c.Err = appErr
+				return
+			}
+			if channel.DeleteAt != 0 {
+				c.Err = model.NewAppError("Api4.getUsersInChannel", "api.user.view_archived_channels.get_users_in_channel.app_error", nil, "", http.StatusForbidden)
+				return
+			}
+		}
+	}
 
 	if withoutTeamBool, _ := strconv.ParseBool(withoutTeam); withoutTeamBool {
 		// Use a special permission for now
@@ -790,23 +803,32 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
+
 		if sort == "status" {
 			profiles, err = c.App.GetUsersInChannelPageByStatus(userGetOptions, c.IsSystemAdmin())
 		} else {
 			profiles, err = c.App.GetUsersInChannelPage(userGetOptions, c.IsSystemAdmin())
 		}
 	} else if inGroupId != "" {
-		if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
-			c.Err = model.NewAppError("Api4.getUsersInGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
-			return
-		}
-
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
-			c.SetPermissionError(model.PermissionSysconsoleReadUserManagementGroups)
+		if gErr := requireGroupAccess(c, inGroupId); gErr != nil {
+			gErr.Where = "Api.getUsers"
+			c.Err = gErr
 			return
 		}
 
 		profiles, _, err = c.App.GetGroupMemberUsersPage(inGroupId, c.Params.Page, c.Params.PerPage)
+		if err != nil {
+			c.Err = err
+			return
+		}
+	} else if notInGroupId != "" {
+		if gErr := requireGroupAccess(c, notInGroupId); gErr != nil {
+			gErr.Where = "Api.getUsers"
+			c.Err = gErr
+			return
+		}
+
+		profiles, err = c.App.GetUsersNotInGroupPage(notInGroupId, c.Params.Page, c.Params.PerPage)
 		if err != nil {
 			c.Err = err
 			return
@@ -837,6 +859,25 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(js)
+}
+
+func requireGroupAccess(c *web.Context, groupID string) *model.AppError {
+	group, err := c.App.GetGroup(groupID, nil)
+	if err != nil {
+		return err
+	}
+
+	if lcErr := licensedAndConfiguredForGroupBySource(c.App, group.Source); lcErr != nil {
+		return lcErr
+	}
+
+	if group.Source == model.GroupSourceLdap {
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
+			return c.App.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionSysconsoleReadUserManagementGroups})
+		}
+	}
+
+	return nil
 }
 
 func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -947,13 +988,17 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if props.InGroupId != "" {
-		if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
-			c.Err = model.NewAppError("Api4.searchUsers", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		if gErr := requireGroupAccess(c, props.InGroupId); gErr != nil {
+			gErr.Where = "Api.searchUsers"
+			c.Err = gErr
 			return
 		}
+	}
 
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-			c.SetPermissionError(model.PermissionManageSystem)
+	if props.NotInGroupId != "" {
+		if gErr := requireGroupAccess(c, props.NotInGroupId); gErr != nil {
+			gErr.Where = "Api.searchUsers"
+			c.Err = gErr
 			return
 		}
 	}
@@ -1843,6 +1888,11 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.App.AttachSessionCookies(c.AppContext, w, r)
 	}
 
+	// For context see: https://mattermost.atlassian.net/browse/MM-39583
+	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
+		c.App.AttachCloudSessionCookie(c.AppContext, w, r)
+	}
+
 	userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
 	if err != nil && err.StatusCode != http.StatusNotFound {
 		c.Err = err
@@ -1888,7 +1938,7 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.LogAuditWithUserId("", "failure - login_id="+loginID)
 		c.LogErrorByCode(err)
-		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
+		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, http.StatusFound)
 		return
 	}
 	auditRec.AddMeta("user", user)
@@ -1896,12 +1946,12 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	err = c.App.DoLogin(c.AppContext, w, r, user, "", false, false, false)
 	if err != nil {
 		c.LogErrorByCode(err)
-		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
+		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, http.StatusFound)
 		return
 	}
 	c.LogAuditWithUserId(user.Id, "success")
 	c.App.AttachSessionCookies(c.AppContext, w, r)
-	http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
+	http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, http.StatusFound)
 }
 
 func logout(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2807,6 +2857,28 @@ func getUploadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
+func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	members, err := c.App.GetChannelMembersWithTeamDataForUserWithPagination(c.Params.UserId, c.Params.Page, c.Params.PerPage)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(members); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
 func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.StringInterfaceFromJSON(r.Body)
 	from, ok := props["from"].(string)
@@ -2966,13 +3038,14 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	options := model.GetUserThreadsOpts{
-		Since:    0,
-		Before:   "",
-		After:    "",
-		PageSize: uint64(c.Params.PerPage),
-		Unread:   false,
-		Extended: false,
-		Deleted:  false,
+		Since:      0,
+		Before:     "",
+		After:      "",
+		PageSize:   uint64(c.Params.PerPage),
+		Unread:     false,
+		Extended:   false,
+		Deleted:    false,
+		TotalsOnly: false,
 	}
 
 	sinceString := r.URL.Query().Get("since")
@@ -2996,10 +3069,12 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	deletedStr := r.URL.Query().Get("deleted")
 	unreadStr := r.URL.Query().Get("unread")
 	extendedStr := r.URL.Query().Get("extended")
+	totalsOnlyStr := r.URL.Query().Get("totalsOnly")
 
 	options.Deleted, _ = strconv.ParseBool(deletedStr)
 	options.Unread, _ = strconv.ParseBool(unreadStr)
 	options.Extended, _ = strconv.ParseBool(extendedStr)
+	options.TotalsOnly, _ = strconv.ParseBool(totalsOnlyStr)
 
 	threads, err := c.App.GetThreadsForUser(c.Params.UserId, c.Params.TeamId, options)
 	if err != nil {
@@ -3029,7 +3104,7 @@ func updateReadStateThreadByUser(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	thread, err := c.App.UpdateThreadReadForUser(c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, c.Params.Timestamp)
+	thread, err := c.App.UpdateThreadReadForUser(c.AppContext.Session().Id, c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, c.Params.Timestamp)
 	if err != nil {
 		c.Err = err
 		return
@@ -3131,4 +3206,25 @@ func updateReadStateAllThreadsByUser(c *Context, w http.ResponseWriter, r *http.
 
 	ReturnStatusOK(w)
 	auditRec.Success()
+}
+
+func getUsersWithInvalidEmails(c *Context, w http.ResponseWriter, r *http.Request) {
+	if *c.App.Config().TeamSettings.EnableOpenServer {
+		c.Err = model.NewAppError("GetUsersWithInvalidEmails", "api.users.invalid_emails.enable_open_server.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementUsers) {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementUsers)
+		return
+	}
+
+	users, err := c.App.GetUsersWithInvalidEmails(c.Params.Page, c.Params.PerPage)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	b, _ := json.Marshal(users)
+	w.Write(b)
 }

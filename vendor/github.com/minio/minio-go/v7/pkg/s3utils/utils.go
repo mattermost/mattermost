@@ -104,6 +104,9 @@ var elbAmazonRegex = regexp.MustCompile(`elb(.*?).amazonaws.com$`)
 // Regular expression used to determine if the arg is elb host in china.
 var elbAmazonCnRegex = regexp.MustCompile(`elb(.*?).amazonaws.com.cn$`)
 
+// amazonS3HostPrivateLink - regular expression used to determine if an arg is s3 host in AWS PrivateLink interface endpoints style
+var amazonS3HostPrivateLink = regexp.MustCompile(`^(?:bucket|accesspoint).vpce-.*?.s3.(.*?).vpce.amazonaws.com$`)
+
 // GetRegionFromURL - returns a region from url host.
 func GetRegionFromURL(endpointURL url.URL) string {
 	if endpointURL == sentinelURL {
@@ -139,6 +142,10 @@ func GetRegionFromURL(endpointURL url.URL) string {
 	if len(parts) > 1 {
 		return parts[1]
 	}
+	parts = amazonS3HostPrivateLink.FindStringSubmatch(endpointURL.Host)
+	if len(parts) > 1 {
+		return parts[1]
+	}
 	return ""
 }
 
@@ -171,6 +178,7 @@ func IsAmazonFIPSGovCloudEndpoint(endpointURL url.URL) bool {
 		return false
 	}
 	return endpointURL.Host == "s3-fips-us-gov-west-1.amazonaws.com" ||
+		endpointURL.Host == "s3-fips.us-gov-west-1.amazonaws.com" ||
 		endpointURL.Host == "s3-fips.dualstack.us-gov-west-1.amazonaws.com"
 }
 
@@ -201,6 +209,15 @@ func IsAmazonFIPSEndpoint(endpointURL url.URL) bool {
 	return IsAmazonFIPSUSEastWestEndpoint(endpointURL) || IsAmazonFIPSGovCloudEndpoint(endpointURL)
 }
 
+// IsAmazonPrivateLinkEndpoint - Match if it is exactly Amazon S3 PrivateLink interface endpoint
+// See https://docs.aws.amazon.com/AmazonS3/latest/userguide/privatelink-interface-endpoints.html.
+func IsAmazonPrivateLinkEndpoint(endpointURL url.URL) bool {
+	if endpointURL == sentinelURL {
+		return false
+	}
+	return amazonS3HostPrivateLink.MatchString(endpointURL.Host)
+}
+
 // IsGoogleEndpoint - Match if it is exactly Google cloud storage endpoint.
 func IsGoogleEndpoint(endpointURL url.URL) bool {
 	if endpointURL == sentinelURL {
@@ -211,7 +228,7 @@ func IsGoogleEndpoint(endpointURL url.URL) bool {
 
 // Expects ascii encoded strings - from output of urlEncodePath
 func percentEncodeSlash(s string) string {
-	return strings.Replace(s, "/", "%2F", -1)
+	return strings.ReplaceAll(s, "/", "%2F")
 }
 
 // QueryEncode - encodes query values in their URL encoded form. In

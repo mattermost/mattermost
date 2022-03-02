@@ -604,7 +604,7 @@ emit_commands:
 				assert(candidate < ip)
 
 				table[hash] = int(ip - base_ip)
-				if !(!isMatch5(in[ip:], in[candidate:])) {
+				if isMatch5(in[ip:], in[candidate:]) {
 					break
 				}
 			}

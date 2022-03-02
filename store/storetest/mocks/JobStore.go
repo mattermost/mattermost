@@ -14,6 +14,20 @@ type JobStore struct {
 	mock.Mock
 }
 
+// Cleanup provides a mock function with given fields: expiryTime, batchSize
+func (_m *JobStore) Cleanup(expiryTime int64, batchSize int) error {
+	ret := _m.Called(expiryTime, batchSize)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(int64, int) error); ok {
+		r0 = rf(expiryTime, batchSize)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Delete provides a mock function with given fields: id
 func (_m *JobStore) Delete(id string) (string, error) {
 	ret := _m.Called(id)
@@ -97,6 +111,29 @@ func (_m *JobStore) GetAllByType(jobType string) ([]*model.Job, error) {
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(jobType)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetAllByTypeAndStatus provides a mock function with given fields: jobType, status
+func (_m *JobStore) GetAllByTypeAndStatus(jobType string, status string) ([]*model.Job, error) {
+	ret := _m.Called(jobType, status)
+
+	var r0 []*model.Job
+	if rf, ok := ret.Get(0).(func(string, string) []*model.Job); ok {
+		r0 = rf(jobType, status)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Job)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(jobType, status)
 	} else {
 		r1 = ret.Error(1)
 	}

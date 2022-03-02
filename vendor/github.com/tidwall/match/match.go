@@ -1,7 +1,9 @@
 // Package match provides a simple pattern matcher with unicode support.
 package match
 
-import "unicode/utf8"
+import (
+	"unicode/utf8"
+)
 
 // Match returns true if str matches pattern. This is a very
 // simple wildcard match where '*' matches on any number characters
@@ -16,127 +18,170 @@ import "unicode/utf8"
 // 	'\\' c      matches character c
 //
 func Match(str, pattern string) bool {
-	return deepMatch(str, pattern)
-}
-
-func deepMatch(str, pattern string) bool {
 	if pattern == "*" {
 		return true
 	}
-	for len(pattern) > 1 && pattern[0] == '*' && pattern[1] == '*' {
-		pattern = pattern[1:]
-	}
-	for len(pattern) > 0 {
-		if pattern[0] > 0x7f {
-			return deepMatchRune(str, pattern)
-		}
-		switch pattern[0] {
-		default:
-			if len(str) == 0 {
-				return false
-			}
-			if str[0] > 0x7f {
-				return deepMatchRune(str, pattern)
-			}
-			if str[0] != pattern[0] {
-				return false
-			}
-		case '?':
-			if len(str) == 0 {
-				return false
-			}
-		case '*':
-			return deepMatch(str, pattern[1:]) ||
-				(len(str) > 0 && deepMatch(str[1:], pattern))
-		}
-		str = str[1:]
-		pattern = pattern[1:]
-	}
-	return len(str) == 0 && len(pattern) == 0
+	return match(str, pattern, 0, nil, -1) == rMatch
 }
 
-func deepMatchRune(str, pattern string) bool {
+// MatchLimit is the same as Match but will limit the complexity of the match
+// operation. This is to avoid long running matches, specifically to avoid ReDos
+// attacks from arbritary inputs.
+//
+// How it works:
+// The underlying match routine is recursive and may call itself when it
+// encounters a sandwiched wildcard pattern, such as: `user:*:name`.
+// Everytime it calls itself a counter is incremented.
+// The operation is stopped when counter > maxcomp*len(str).
+func MatchLimit(str, pattern string, maxcomp int) (matched, stopped bool) {
 	if pattern == "*" {
-		return true
+		return true, false
 	}
-	for len(pattern) > 1 && pattern[0] == '*' && pattern[1] == '*' {
-		pattern = pattern[1:]
+	counter := 0
+	r := match(str, pattern, len(str), &counter, maxcomp)
+	if r == rStop {
+		return false, true
+	}
+	return r == rMatch, false
+}
+
+type result int
+
+const (
+	rNoMatch result = iota
+	rMatch
+	rStop
+)
+
+func match(str, pat string, slen int, counter *int, maxcomp int) result {
+	// check complexity limit
+	if maxcomp > -1 {
+		if *counter > slen*maxcomp {
+			return rStop
+		}
+		*counter++
 	}
 
-	var sr, pr rune
-	var srsz, prsz int
-
-	// read the first rune ahead of time
-	if len(str) > 0 {
-		if str[0] > 0x7f {
-			sr, srsz = utf8.DecodeRuneInString(str)
-		} else {
-			sr, srsz = rune(str[0]), 1
+	for len(pat) > 0 {
+		var wild bool
+		pc, ps := rune(pat[0]), 1
+		if pc > 0x7f {
+			pc, ps = utf8.DecodeRuneInString(pat)
 		}
-	} else {
-		sr, srsz = utf8.RuneError, 0
-	}
-	if len(pattern) > 0 {
-		if pattern[0] > 0x7f {
-			pr, prsz = utf8.DecodeRuneInString(pattern)
-		} else {
-			pr, prsz = rune(pattern[0]), 1
-		}
-	} else {
-		pr, prsz = utf8.RuneError, 0
-	}
-	// done reading
-	for pr != utf8.RuneError {
-		switch pr {
-		default:
-			if srsz == utf8.RuneError {
-				return false
-			}
-			if sr != pr {
-				return false
-			}
-		case '?':
-			if srsz == utf8.RuneError {
-				return false
-			}
-		case '*':
-			return deepMatchRune(str, pattern[prsz:]) ||
-				(srsz > 0 && deepMatchRune(str[srsz:], pattern))
-		}
-		str = str[srsz:]
-		pattern = pattern[prsz:]
-		// read the next runes
+		var sc rune
+		var ss int
 		if len(str) > 0 {
-			if str[0] > 0x7f {
-				sr, srsz = utf8.DecodeRuneInString(str)
-			} else {
-				sr, srsz = rune(str[0]), 1
+			sc, ss = rune(str[0]), 1
+			if sc > 0x7f {
+				sc, ss = utf8.DecodeRuneInString(str)
 			}
-		} else {
-			sr, srsz = utf8.RuneError, 0
 		}
-		if len(pattern) > 0 {
-			if pattern[0] > 0x7f {
-				pr, prsz = utf8.DecodeRuneInString(pattern)
-			} else {
-				pr, prsz = rune(pattern[0]), 1
+		switch pc {
+		case '?':
+			if ss == 0 {
+				return rNoMatch
 			}
-		} else {
-			pr, prsz = utf8.RuneError, 0
-		}
-		// done reading
-	}
+		case '*':
+			// Ignore repeating stars.
+			for len(pat) > 1 && pat[1] == '*' {
+				pat = pat[1:]
+			}
 
-	return srsz == 0 && prsz == 0
+			// If this star is the last character then it must be a match.
+			if len(pat) == 1 {
+				return rMatch
+			}
+
+			// Match and trim any non-wildcard suffix characters.
+			var ok bool
+			str, pat, ok = matchTrimSuffix(str, pat)
+			if !ok {
+				return rNoMatch
+			}
+
+			// Check for single star again.
+			if len(pat) == 1 {
+				return rMatch
+			}
+
+			// Perform recursive wildcard search.
+			r := match(str, pat[1:], slen, counter, maxcomp)
+			if r != rNoMatch {
+				return r
+			}
+			if len(str) == 0 {
+				return rNoMatch
+			}
+			wild = true
+		default:
+			if ss == 0 {
+				return rNoMatch
+			}
+			if pc == '\\' {
+				pat = pat[ps:]
+				pc, ps = utf8.DecodeRuneInString(pat)
+				if ps == 0 {
+					return rNoMatch
+				}
+			}
+			if sc != pc {
+				return rNoMatch
+			}
+		}
+		str = str[ss:]
+		if !wild {
+			pat = pat[ps:]
+		}
+	}
+	if len(str) == 0 {
+		return rMatch
+	}
+	return rNoMatch
 }
 
-var maxRuneBytes = func() []byte {
-	b := make([]byte, 4)
-	if utf8.EncodeRune(b, '\U0010FFFF') != 4 {
-		panic("invalid rune encoding")
+// matchTrimSuffix matches and trims any non-wildcard suffix characters.
+// Returns the trimed string and pattern.
+//
+// This is called because the pattern contains extra data after the wildcard
+// star. Here we compare any suffix characters in the pattern to the suffix of
+// the target string. Basically a reverse match that stops when a wildcard
+// character is reached. This is a little trickier than a forward match because
+// we need to evaluate an escaped character in reverse.
+//
+// Any matched characters will be trimmed from both the target
+// string and the pattern.
+func matchTrimSuffix(str, pat string) (string, string, bool) {
+	// It's expected that the pattern has at least two bytes and the first byte
+	// is a wildcard star '*'
+	match := true
+	for len(str) > 0 && len(pat) > 1 {
+		pc, ps := utf8.DecodeLastRuneInString(pat)
+		var esc bool
+		for i := 0; ; i++ {
+			if pat[len(pat)-ps-i-1] != '\\' {
+				if i&1 == 1 {
+					esc = true
+					ps++
+				}
+				break
+			}
+		}
+		if pc == '*' && !esc {
+			match = true
+			break
+		}
+		sc, ss := utf8.DecodeLastRuneInString(str)
+		if !((pc == '?' && !esc) || pc == sc) {
+			match = false
+			break
+		}
+		str = str[:len(str)-ss]
+		pat = pat[:len(pat)-ps]
 	}
-	return b
-}()
+	return str, pat, match
+}
+
+var maxRuneBytes = [...]byte{244, 143, 191, 191}
 
 // Allowable parses the pattern and determines the minimum and maximum allowable
 // values that the pattern can represent.
@@ -157,7 +202,7 @@ func Allowable(pattern string) (min, max string) {
 		}
 		if pattern[i] == '?' {
 			minb = append(minb, 0)
-			maxb = append(maxb, maxRuneBytes...)
+			maxb = append(maxb, maxRuneBytes[:]...)
 		} else {
 			minb = append(minb, pattern[i])
 			maxb = append(maxb, pattern[i])

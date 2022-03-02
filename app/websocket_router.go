@@ -16,7 +16,6 @@ type webSocketHandler interface {
 }
 
 type WebSocketRouter struct {
-	app      *App
 	handlers map[string]webSocketHandler
 }
 
@@ -27,13 +26,13 @@ func (wr *WebSocketRouter) Handle(action string, handler webSocketHandler) {
 func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketRequest) {
 	if r.Action == "" {
 		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.no_action.app_error", nil, "", http.StatusBadRequest)
-		returnWebSocketError(wr.app, conn, r, err)
+		returnWebSocketError(conn.App, conn, r, err)
 		return
 	}
 
 	if r.Seq <= 0 {
 		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.bad_seq.app_error", nil, "", http.StatusBadRequest)
-		returnWebSocketError(wr.app, conn, r, err)
+		returnWebSocketError(conn.App, conn, r, err)
 		return
 	}
 
@@ -48,7 +47,7 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 			return
 		}
 
-		session, err := wr.app.GetSession(token)
+		session, err := conn.App.GetSession(token)
 		if err != nil {
 			conn.WebSocket.Close()
 			return
@@ -57,17 +56,15 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		conn.SetSessionToken(session.Token)
 		conn.UserId = session.UserId
 
-		// TODO: Same logic to reconnect queue as api4/websocket.go
+		conn.App.HubRegister(conn)
 
-		wr.app.HubRegister(conn)
-
-		wr.app.Srv().Go(func() {
-			wr.app.SetStatusOnline(session.UserId, false)
-			wr.app.UpdateLastActivityAtIfNeeded(*session)
+		conn.App.Srv().Go(func() {
+			conn.App.SetStatusOnline(session.UserId, false)
+			conn.App.UpdateLastActivityAtIfNeeded(*session)
 		})
 
 		resp := model.NewWebSocketResponse(model.StatusOk, r.Seq, nil)
-		hub := wr.app.GetHubForUserId(conn.UserId)
+		hub := conn.App.GetHubForUserId(conn.UserId)
 		if hub == nil {
 			return
 		}
@@ -78,14 +75,14 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 
 	if !conn.IsAuthenticated() {
 		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.not_authenticated.app_error", nil, "", http.StatusUnauthorized)
-		returnWebSocketError(wr.app, conn, r, err)
+		returnWebSocketError(conn.App, conn, r, err)
 		return
 	}
 
 	handler, ok := wr.handlers[r.Action]
 	if !ok {
 		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.bad_action.app_error", nil, "", http.StatusInternalServerError)
-		returnWebSocketError(wr.app, conn, r, err)
+		returnWebSocketError(conn.App, conn, r, err)
 		return
 	}
 

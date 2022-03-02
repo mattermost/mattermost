@@ -132,3 +132,29 @@ func makeStringArgs(params []string) []interface{} {
 	}
 	return args
 }
+
+func constructArrayArgs(ids []string) (string, []interface{}) {
+	var placeholder strings.Builder
+	values := make([]interface{}, 0, len(ids))
+	for _, entry := range ids {
+		if placeholder.Len() > 0 {
+			placeholder.WriteString(",")
+		}
+
+		placeholder.WriteString("?")
+		values = append(values, entry)
+	}
+
+	return "(" + placeholder.String() + ")", values
+}
+
+// morphWriter is a target to pass to the logger instance of morph.
+// For now, everything is just logged at a debug level. If we need to log
+// errors/warnings from the library also, that needs to be seen later.
+type morphWriter struct {
+}
+
+func (l *morphWriter) Write(in []byte) (int, error) {
+	mlog.Debug(string(in))
+	return len(in), nil
+}

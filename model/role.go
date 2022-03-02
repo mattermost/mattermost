@@ -4,6 +4,7 @@
 package model
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -41,6 +42,13 @@ func init() {
 		ChannelGuestRoleId,
 		ChannelUserRoleId,
 		ChannelAdminRoleId,
+
+		CustomGroupUserRoleId,
+
+		PlaybookAdminRoleId,
+		PlaybookMemberRoleId,
+		RunAdminRoleId,
+		RunMemberRoleId,
 	}, NewSystemRoleIDs...)
 
 	// When updating the values here, the values in mattermost-redux must also be updated.
@@ -362,6 +370,13 @@ const (
 	ChannelUserRoleId  = "channel_user"
 	ChannelAdminRoleId = "channel_admin"
 
+	CustomGroupUserRoleId = "custom_group_user"
+
+	PlaybookAdminRoleId  = "playbook_admin"
+	PlaybookMemberRoleId = "playbook_member"
+	RunAdminRoleId       = "run_admin"
+	RunMemberRoleId      = "run_member"
+
 	RoleNameMaxLength        = 64
 	RoleDisplayNameMaxLength = 128
 	RoleDescriptionMaxLength = 1024
@@ -369,6 +384,7 @@ const (
 	RoleScopeSystem  RoleScope = "System"
 	RoleScopeTeam    RoleScope = "Team"
 	RoleScopeChannel RoleScope = "Channel"
+	RoleScopeGroup   RoleScope = "Group"
 
 	RoleTypeGuest RoleType = "Guest"
 	RoleTypeUser  RoleType = "User"
@@ -548,7 +564,7 @@ func (r *Role) GetChannelModeratedPermissions(channelType ChannelType) map[strin
 	return moderatedPermissions
 }
 
-// RolePatchFromChannelModerationsPatch Creates and returns a RolePatch based on a slice of ChannelModerationPatchs, roleName is expected to be either "members" or "guests".
+// RolePatchFromChannelModerationsPatch Creates and returns a RolePatch based on a slice of ChannelModerationPatches, roleName is expected to be either "members" or "guests".
 func (r *Role) RolePatchFromChannelModerationsPatch(channelModerationsPatch []*ChannelModerationPatch, roleName string) *RolePatch {
 	permissionsToAddToPatch := make(map[string]bool)
 
@@ -672,6 +688,13 @@ func IsValidRoleName(roleName string) bool {
 
 func MakeDefaultRoles() map[string]*Role {
 	roles := make(map[string]*Role)
+
+	roles[CustomGroupUserRoleId] = &Role{
+		Name:        CustomGroupUserRoleId,
+		DisplayName: fmt.Sprintf("authentication.roles.%s.name", CustomGroupUserRoleId),
+		Description: fmt.Sprintf("authentication.roles.%s.description", CustomGroupUserRoleId),
+		Permissions: []string{},
+	}
 
 	roles[ChannelGuestRoleId] = &Role{
 		Name:        "channel_guest",
@@ -807,6 +830,61 @@ func MakeDefaultRoles() map[string]*Role {
 		BuiltIn:       true,
 	}
 
+	roles[PlaybookAdminRoleId] = &Role{
+		Name:        PlaybookAdminRoleId,
+		DisplayName: "authentication.roles.playbook_admin.name",
+		Description: "authentication.roles.playbook_admin.description",
+		Permissions: []string{
+			PermissionPublicPlaybookManageMembers.Id,
+			PermissionPublicPlaybookManageProperties.Id,
+			PermissionPrivatePlaybookManageMembers.Id,
+			PermissionPrivatePlaybookManageProperties.Id,
+			PermissionPublicPlaybookMakePrivate.Id,
+		},
+		SchemeManaged: true,
+		BuiltIn:       true,
+	}
+
+	roles[PlaybookMemberRoleId] = &Role{
+		Name:        PlaybookMemberRoleId,
+		DisplayName: "authentication.roles.playbook_member.name",
+		Description: "authentication.roles.playbook_member.description",
+		Permissions: []string{
+			PermissionPublicPlaybookView.Id,
+			PermissionPublicPlaybookManageMembers.Id,
+			PermissionPublicPlaybookManageProperties.Id,
+			PermissionPrivatePlaybookView.Id,
+			PermissionPrivatePlaybookManageMembers.Id,
+			PermissionPrivatePlaybookManageProperties.Id,
+			PermissionRunCreate.Id,
+		},
+		SchemeManaged: true,
+		BuiltIn:       true,
+	}
+
+	roles[RunAdminRoleId] = &Role{
+		Name:        RunAdminRoleId,
+		DisplayName: "authentication.roles.run_admin.name",
+		Description: "authentication.roles.run_admin.description",
+		Permissions: []string{
+			PermissionRunManageMembers.Id,
+			PermissionRunManageProperties.Id,
+		},
+		SchemeManaged: true,
+		BuiltIn:       true,
+	}
+
+	roles[RunMemberRoleId] = &Role{
+		Name:        RunMemberRoleId,
+		DisplayName: "authentication.roles.run_member.name",
+		Description: "authentication.roles.run_member.description",
+		Permissions: []string{
+			PermissionRunView.Id,
+		},
+		SchemeManaged: true,
+		BuiltIn:       true,
+	}
+
 	roles[SystemGuestRoleId] = &Role{
 		Name:        "system_guest",
 		DisplayName: "authentication.roles.global_guest.name",
@@ -830,6 +908,10 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionCreateGroupChannel.Id,
 			PermissionViewMembers.Id,
 			PermissionCreateTeam.Id,
+			PermissionCreateCustomGroup.Id,
+			PermissionEditCustomGroup.Id,
+			PermissionDeleteCustomGroup.Id,
+			PermissionManageCustomGroupMembers.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,

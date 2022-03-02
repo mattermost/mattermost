@@ -79,6 +79,38 @@ func createDefaultRoles(ss store.Store) {
 			model.PermissionCreatePost.Id,
 		},
 	})
+
+	ss.Role().Save(&model.Role{
+		Name:        model.PlaybookAdminRoleId,
+		DisplayName: model.PlaybookAdminRoleId,
+		Permissions: []string{
+			model.PermissionPrivatePlaybookManageMembers.Id,
+		},
+	})
+
+	ss.Role().Save(&model.Role{
+		Name:        model.PlaybookMemberRoleId,
+		DisplayName: model.PlaybookMemberRoleId,
+		Permissions: []string{
+			model.PermissionPrivatePlaybookManageMembers.Id,
+		},
+	})
+
+	ss.Role().Save(&model.Role{
+		Name:        model.RunAdminRoleId,
+		DisplayName: model.RunAdminRoleId,
+		Permissions: []string{
+			model.PermissionRunManageMembers.Id,
+		},
+	})
+
+	ss.Role().Save(&model.Role{
+		Name:        model.RunMemberRoleId,
+		DisplayName: model.RunMemberRoleId,
+		Permissions: []string{
+			model.PermissionRunManageMembers.Id,
+		},
+	})
 }
 
 func testSchemeStoreSave(t *testing.T, ss store.Store) {

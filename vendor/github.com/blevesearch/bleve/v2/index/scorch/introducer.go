@@ -16,6 +16,7 @@ package scorch
 
 import (
 	"fmt"
+	"path/filepath"
 	"sync/atomic"
 
 	"github.com/RoaringBitmap/roaring"
@@ -46,6 +47,17 @@ type epochWatcher struct {
 }
 
 func (s *Scorch) introducerLoop() {
+	defer func() {
+		if r := recover(); r != nil {
+			s.fireAsyncError(&AsyncPanicError{
+				Source: "introducer",
+				Path:   s.path,
+			})
+		}
+
+		s.asyncTasks.Done()
+	}()
+
 	var epochWatchers []*epochWatcher
 OUTER:
 	for {
@@ -88,8 +100,6 @@ OUTER:
 		}
 		epochWatchers = epochWatchersNext
 	}
-
-	s.asyncTasks.Done()
 }
 
 func (s *Scorch) introduceSegment(next *segmentIntroduction) error {
@@ -118,6 +128,7 @@ func (s *Scorch) introduceSegment(next *segmentIntroduction) error {
 	// iterate through current segments
 	var running uint64
 	var docsToPersistCount, memSegments, fileSegments uint64
+	var droppedSegmentFiles []string
 	for i := range root.segment {
 		// see if optimistic work included this segment
 		delta, ok := next.obsoletes[root.segment[i].id]
@@ -155,6 +166,9 @@ func (s *Scorch) introduceSegment(next *segmentIntroduction) error {
 			root.segment[i].segment.AddRef()
 			newSnapshot.offsets = append(newSnapshot.offsets, running)
 			running += newss.segment.Count()
+		} else if seg, ok := newss.segment.(segment.PersistedSegment); ok {
+			droppedSegmentFiles = append(droppedSegmentFiles,
+				filepath.Base(seg.Path()))
 		}
 
 		if isMemorySegment(root.segment[i]) {
@@ -217,6 +231,12 @@ func (s *Scorch) introduceSegment(next *segmentIntroduction) error {
 
 	if rootPrev != nil {
 		_ = rootPrev.DecRef()
+	}
+
+	// update the removal eligibility for those segment files
+	// that are not a part of the latest root.
+	for _, filename := range droppedSegmentFiles {
+		s.unmarkIneligibleForRemoval(filename)
 	}
 
 	close(next.applied)
@@ -323,6 +343,7 @@ func (s *Scorch) introduceMerge(nextMerge *segmentMerge) {
 	// iterate through current segments
 	newSegmentDeleted := roaring.NewBitmap()
 	var running, docsToPersistCount, memSegments, fileSegments uint64
+	var droppedSegmentFiles []string
 	for i := range root.segment {
 		segmentID := root.segment[i].id
 		if segSnapAtMerge, ok := nextMerge.old[segmentID]; ok {
@@ -365,8 +386,12 @@ func (s *Scorch) introduceMerge(nextMerge *segmentMerge) {
 			} else {
 				fileSegments++
 			}
+		} else if root.segment[i].LiveSize() == 0 {
+			if seg, ok := root.segment[i].segment.(segment.PersistedSegment); ok {
+				droppedSegmentFiles = append(droppedSegmentFiles,
+					filepath.Base(seg.Path()))
+			}
 		}
-
 	}
 
 	// before the newMerge introduction, need to clean the newly
@@ -430,6 +455,12 @@ func (s *Scorch) introduceMerge(nextMerge *segmentMerge) {
 
 	if rootPrev != nil {
 		_ = rootPrev.DecRef()
+	}
+
+	// update the removal eligibility for those segment files
+	// that are not a part of the latest root.
+	for _, filename := range droppedSegmentFiles {
+		s.unmarkIneligibleForRemoval(filename)
 	}
 
 	// notify requester that we incorporated this

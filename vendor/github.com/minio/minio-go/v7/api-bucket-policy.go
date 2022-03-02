@@ -27,7 +27,7 @@ import (
 )
 
 // SetBucketPolicy sets the access permissions on an existing bucket.
-func (c Client) SetBucketPolicy(ctx context.Context, bucketName, policy string) error {
+func (c *Client) SetBucketPolicy(ctx context.Context, bucketName, policy string) error {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return err
@@ -43,7 +43,7 @@ func (c Client) SetBucketPolicy(ctx context.Context, bucketName, policy string) 
 }
 
 // Saves a new bucket policy.
-func (c Client) putBucketPolicy(ctx context.Context, bucketName, policy string) error {
+func (c *Client) putBucketPolicy(ctx context.Context, bucketName, policy string) error {
 	// Get resources properly escaped and lined up before
 	// using them in http request.
 	urlValues := make(url.Values)
@@ -71,7 +71,7 @@ func (c Client) putBucketPolicy(ctx context.Context, bucketName, policy string) 
 }
 
 // Removes all policies on a bucket.
-func (c Client) removeBucketPolicy(ctx context.Context, bucketName string) error {
+func (c *Client) removeBucketPolicy(ctx context.Context, bucketName string) error {
 	// Get resources properly escaped and lined up before
 	// using them in http request.
 	urlValues := make(url.Values)
@@ -87,11 +87,16 @@ func (c Client) removeBucketPolicy(ctx context.Context, bucketName string) error
 	if err != nil {
 		return err
 	}
+
+	if resp.StatusCode != http.StatusNoContent {
+		return httpRespToErrorResponse(resp, bucketName, "")
+	}
+
 	return nil
 }
 
 // GetBucketPolicy returns the current policy
-func (c Client) GetBucketPolicy(ctx context.Context, bucketName string) (string, error) {
+func (c *Client) GetBucketPolicy(ctx context.Context, bucketName string) (string, error) {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return "", err
@@ -108,7 +113,7 @@ func (c Client) GetBucketPolicy(ctx context.Context, bucketName string) (string,
 }
 
 // Request server for current bucket policy.
-func (c Client) getBucketPolicy(ctx context.Context, bucketName string) (string, error) {
+func (c *Client) getBucketPolicy(ctx context.Context, bucketName string) (string, error) {
 	// Get resources properly escaped and lined up before
 	// using them in http request.
 	urlValues := make(url.Values)

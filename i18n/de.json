@@ -888,7 +888,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "Kontoeinstellungen öffnen"
+    "translation": "Öffnen Sie den Dialog Einstellungen"
   },
   {
     "id": "api.command_settings.name",
@@ -1314,10 +1314,6 @@
     "translation": "Ungültiger RootId Parameter."
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Der Kanal ist nur lesbar. Nur Mitglieder mit Berechtigung können hier schreiben."
-  },
-  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Fehler beim Erstellen des Eintrages."
   },
@@ -1374,10 +1370,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Kann eine Nachricht in einem gelöschten Kanal nicht aktualisieren."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Der Kanal ist nur lesbar. Nur Mitglieder mit Berechtigung können hier Nachrichten an- oder abheften."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1458,10 +1450,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Sie können keine Reaktion für den anderen Benutzer sichern."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Reaktionen auf Nachrichte sind in Nur-Lesen-Kanälen nicht möglich."
   },
   {
     "id": "api.restricted_system_admin",
@@ -1801,7 +1789,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "Um ihre Benachrichtigungseinstellungen zu ändern, melden Sie sich an ihrer Team-Site an und wählen dann Kontoeinstellungen > Benachrichtigungen."
+    "translation": "Um ihre Benachrichtigungseinstellungen zu ändern, melden Sie sich an ihrer Team-Site an und wählen dann Einstellungen > Benachrichtigungen."
   },
   {
     "id": "api.templates.email_info1",
@@ -4833,7 +4821,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -4841,11 +4829,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 12+"
+    "translation": "Version 14.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 78+"
+    "translation": "Version 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -6145,7 +6133,7 @@
   },
   {
     "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "SMTP-Server wird benötigt"
+    "translation": "SMTP-Server benötigt"
   },
   {
     "id": "api.emoji.create.internal_error",
@@ -6198,10 +6186,6 @@
   {
     "id": "app.preference.delete.app_error",
     "translation": "Es trat ein Fehler beim Löschen der Einstellungen auf."
-  },
-  {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Warnmetrik konnte nicht gefunden werden."
   },
   {
     "id": "api.templates.warn_metric_ack.body.site_url_header",
@@ -6538,10 +6522,6 @@
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Fehler beim Abrufen der Kanalmitglieder."
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Request trial"
   },
   {
     "id": "api.server.warn_metric.mfa.notification_title",
@@ -7345,7 +7325,7 @@
   },
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
-    "translation": "Der Job-Typ, den Sie versuchen runterzuladen, wird momentan nicht unterstützt"
+    "translation": "Der Job-Typ, den Sie versuchen herunterzuladen, wird momentan nicht unterstützt"
   },
   {
     "id": "api.job.unable_to_download_job",
@@ -7357,7 +7337,7 @@
   },
   {
     "id": "api.job.retrieve.nopermissions",
-    "translation": "Die Job Typen eines Jobs, den Sie versuchen zu holen, enthalten keine Berechtigungen"
+    "translation": "Die Job-Typen eines Jobs, den Sie versuchen zu holen, enthalten keine Berechtigungen"
   },
   {
     "id": "api.invalid_custom_url_scheme",
@@ -7381,7 +7361,7 @@
   },
   {
     "id": "api.file.file_mod_time.app_error",
-    "translation": "Kann den letzten Änderungszeitpunkt der Datei nicht holen."
+    "translation": "Kann den letzten Änderungszeitpunkt der Datei nicht ermitteln."
   },
   {
     "id": "api.file.file_exists.app_error",
@@ -7595,14 +7575,6 @@
     "translation": "Mattermost kontaktieren Anfrage. Ich bin daran interessiert, mehr über Gastkonten zu erfahren.\n"
   },
   {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Kontaktiert uns"
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Kontaktieren Sie uns"
-  },
-  {
     "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
     "translation": "Testlizenz konnte nicht empfangen werden. Besuchen Sie https://mattermost.com/trial/ um eine Lizenz anzufragen."
   },
@@ -7804,7 +7776,7 @@
   },
   {
     "id": "api.templates.at_limit_info1",
-    "translation": "Es sieht so aus, als ob Sie 10 oder mehr Benutzer in Ihrem Arbeitsbereich haben — das ist großartig! Wenn Sie mehr Team Mitglieder einladen wollen, sollten Sie jetzt in Betracht ziehen, auf Mattermost Cloud Professional upzugraden."
+    "translation": "Es sieht so aus, als ob Sie 10 oder mehr Benutzer in Ihrem Arbeitsbereich haben — das ist großartig! Wenn Sie mehr Team Mitglieder einladen wollen, sollten Sie jetzt in Betracht ziehen, auf Mattermost Cloud upzugraden."
   },
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
@@ -7849,18 +7821,6 @@
   {
     "id": "api.system.update_notices.clear_failed",
     "translation": "Das Löschen alter Produkthinweise ist fehlgeschlagen"
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "Bitte gehen Sie zu **Systemkonsole > Systemkonfiguration > Anpassung** um die [Support-E-Mail-Adresse](https://docs.mattermost.com/administration/config-settings.html#support-email) als E-Mail-Adresse des internen IT-Supports für Benutzerfeedback, E-Mail Benachrichtigungen und Support-Anfragen festzulegen."
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "Setzen Ihre Support E-Mail Adresse"
-  },
-  {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Starte Test"
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
@@ -7964,7 +7924,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.copyright",
@@ -7992,7 +7952,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "für die beste Benutzererfahrung auf PC, Mac, iOS und Android."
+    "translation": "für die beste Benutzererfahrung auf Windows, Linux, Mac, iOS und Android."
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info",
@@ -8032,7 +7992,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Optimieren Sie Ihre Arbeit mit Werkzeugen wie Github, Google Calendar und Chrome. Entdecken Sie alle Integrationen, die wir in unserem"
+    "translation": "Optimieren Sie Ihre Arbeit mit Werkzeugen wie GitHub, Jira und Zoom. Entdecken Sie alle Integrationen, die wir in unserem"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -8044,7 +8004,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, ihr 14-tägiger freier Test von Mattermost Cloud Professional endet in 3 Tagen, am {{.TrialEnd}}. Bitte fügen Sie Ihre Bezahlinformationen hinzu, um sicherzustellen, dass Ihr Team weiterhin die Vorteile von Cloud Professional genießen kann."
+    "translation": "{{.Name}}, ihr 14-tägiger freier Test von Mattermost endet in 3 Tagen, am {{.TrialEnd}}. Bitte fügen Sie Ihre Bezahlinformationen hinzu, um sicherzustellen, dass Ihr Team weiterhin die Vorteile von Mattermost Cloud genießen kann."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -8060,7 +8020,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, ihr 14-tägiger freier Test von Mattermost Cloud Professional ist heute zuende, {{.TodayDate}}. Bitte fügen Sie Ihre Bezahlinformationen hinzu, um sicherzustellen, dass Ihr Team weiterhin die Vorteile von Cloud Professional genießen kann."
+    "translation": "{{.Name}}, ihr 14-tägiger freier Test von Mattermost Cloud Enterprise ist heute zuende, {{.TodayDate}}. Bitte fügen Sie Ihre Bezahlinformationen hinzu, um sicherzustellen, dass Ihr Team weiterhin die Vorteile von Cloud Professional genießen kann."
   },
   {
     "id": "api.unable_to_read_file_from_backend",
@@ -8240,7 +8200,7 @@
   },
   {
     "id": "api.templates.over_limit_info1",
-    "translation": "Es sieht so aus, als ob Sie mehr als 10 Benutzer in Ihrem Arbeitsbereich haben, was über der Grenze für die freie Nutzung von Mattermost Cloud Professional ist. Um jegliche Unterbrechung in Ihrem Arbeitsbereich zu vermeiden, bitte upgraden."
+    "translation": "Es sieht so aus, als ob Sie mehr als 10 Benutzer in Ihrem Arbeitsbereich haben, was über der Grenze für die freie Nutzung von Mattermost Cloud ist. Um jegliche Unterbrechung in Ihrem Arbeitsbereich zu vermeiden, bitte upgraden."
   },
   {
     "id": "api.templates.over_limit_fix_now",
@@ -8627,16 +8587,8 @@
     "translation": "Fehlschlag beim Speichern des Wertes für {{.WarnMetricName}}"
   },
   {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "Liste der Administratoren ist leer."
-  },
-  {
     "id": "app.system.warn_metric.bot_displayname",
     "translation": "Mattermost Ratgeber"
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Mehr über den Mattermost Ratgeber erfahren](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.system.system_bot.bot_displayname",
@@ -8668,7 +8620,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " und gehen Sie zu Kontoeinstellungen > Benachrichtigungen"
+    "translation": " und gehen Sie zu Einstellungen > Benachrichtigungen"
   },
   {
     "id": "app.notification.body.mention.title",
@@ -9167,18 +9119,6 @@
     "translation": "Diese Funktion erfordert ein Upgrade auf die Enterprise Edition."
   },
   {
-    "id": "extract_content.worker.do_job.file_info",
-    "translation": "Es konnten keine Dateiinformationen für die Inhaltsextraktion abgerufen werden."
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.to",
-    "translation": "Ungültiger Eingabewert 'to'"
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.from",
-    "translation": "Ungültiger Eingabewert 'von'"
-  },
-  {
     "id": "app.user.store_is_empty.app_error",
     "translation": "Es konnte nicht geprüft werden, ob der Benutzerspeicher leer ist."
   },
@@ -9237,5 +9177,213 @@
   {
     "id": "app.import.bulk_import.process_attachments.error",
     "translation": "Fehler bei der Verarbeitung von Anhängen beim Massenimport."
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "Ungültige Benutzerrollen mit mehr als {{.Limit}} Zeichen."
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "Ungültige Rollen von Teammitgliedern mit mehr als {{.Limit}} Zeichen."
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "Ungültiges Feld UserId für Sitzung."
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "Ungültige Sitzungsrollen mit mehr als {{.Limit}} Zeichen."
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "Ungültiges ID-Feld für Sitzung."
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "Ungültiges CreateAt-Feld für Sitzung."
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "Ungültige Kanalmitgliederrollen mit mehr als {{.Limit}} Zeichen."
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "Die Email-Adresse im Token stimmt nicht mit der in den Benutzerdaten überein."
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "Nicht alle Teammitglieder konnten ermittelt werden"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "Nicht alle Kanalmitglieder konnten ermittelt werden"
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "NIcht alle Rollen konnten abgerufen werden."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Eigener Status konnte nicht aktualisiert werden. Bitte ein Emojis oder einen Text oder beides hinzufügen."
+  },
+  {
+    "id": "app.user.get_thread_count_for_user.app_error",
+    "translation": "Konnten Anzahl der Unterhaltungen des Benutzers nicht holen."
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "Erinnerung"
+  },
+  {
+    "id": "app.session.extend_session_expiry.app_error",
+    "translation": "Kann Sitzungsdauer nicht verlängern"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
+    "translation": "Kann keine Benutzer für einen archivierten Kanal holen"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
+    "translation": "Kann keine Nachrichten für einen archivierten Kanal holen"
+  },
+  {
+    "id": "api.post.posts_by_ids.invalid_body.request_error",
+    "translation": "Die Anzahl der erhaltenen Post IDs hat die maximale Größe von {{.MaxLength}} überschritten"
+  },
+  {
+    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
+    "translation": "Das Erneuern dieser Lizenz im Portal ist nicht möglich"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "SAML Antwort ist zu lang"
+  },
+  {
+    "id": "model.github_release_info.is_valid.id.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_unmarshal.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_set_cache.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_read_all.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_external_error.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "Das Onboarding kann nur von einem Systemadministrator durchgeführt werden."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "Die vollständige Onboarding-Anfrage konnte nicht entschlüsselt werden."
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "Der Name steht im Konflikt mit einem bestehenden System-Emoji-Namen."
+  },
+  {
+    "id": "api.users.invalid_emails.enable_open_server.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.system.get_onboarding_request.app_error",
+    "translation": "Fehlschlag beim Holen des Onboarding-abgeschlossen Status."
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "Fehler beim Versuch das erste komplette Admin Setup zu speichern."
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "Fehler beim Holen des ersten kompletten Admin Setups vom Speicher."
+  },
+  {
+    "id": "app.member_count",
+    "translation": "Fehler beim Holen der Mitgliederanzahl"
+  },
+  {
+    "id": "app.group.crud_permission",
+    "translation": "Kann die Operation für diesen Quell-Typ nicht durchführen."
+  },
+  {
+    "id": "app.custom_group.unique_name",
+    "translation": "Gruppenname ist nicht eindeutig"
+  },
+  {
+    "id": "api.license_error",
+    "translation": "API Endpunkt benötigt eine Lizenz"
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id muss leer sein für benutzerdefinierte Gruppen"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference muss 'wahr' sein für benutzerdefinierte Gruppen"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "Nicht lizensiert für benutzerdefinierte Gruppen"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "Feature Benutzerdefinierte Gruppen ist deaktiviert"
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "Fehler beim Zählen der Gruppen"
+  },
+  {
+    "id": "api.templates.server_inactivity_title",
+    "translation": "Erhöhe die Produktivität mit diesen tollen Funktionen"
+  },
+  {
+    "id": "api.templates.server_inactivity_subtitle",
+    "translation": "Hi {{.Name}}, wir haben bemerkt, dass Dein Mattermost Server etwas Staub ansetzt, Schau mal auf die neuen Funktionen, die Dir helfen die Belastung Deines Team zu senken."
+  },
+  {
+    "id": "api.templates.server_inactivity_subject",
+    "translation": "HE! Öffne Mattermost um Dein Team produktiver zu machen!"
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet2",
+    "translation": "Verwalte Aufgaben mit "
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet1",
+    "translation": "Arbeitsablauf-Verwaltung mit "
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet",
+    "translation": "Gastzugriff auf angegebene "
+  },
+  {
+    "id": "api.templates.server_inactivity_info",
+    "translation": "Komm und teste es!"
+  },
+  {
+    "id": "api.templates.server_inactivity_button",
+    "translation": "Öffne Mattermost"
+  },
+  {
+    "id": "Playbooks",
+    "translation": "Playbooks"
+  },
+  {
+    "id": "Channels",
+    "translation": "Kanäle"
+  },
+  {
+    "id": "Boards",
+    "translation": "Boards"
   }
 ]

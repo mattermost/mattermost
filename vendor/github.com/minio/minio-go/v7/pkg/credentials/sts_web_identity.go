@@ -18,9 +18,11 @@
 package credentials
 
 import (
+	"bytes"
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -54,8 +56,9 @@ type WebIdentityResult struct {
 
 // WebIdentityToken - web identity token with expiry.
 type WebIdentityToken struct {
-	Token  string
-	Expiry int
+	Token       string
+	AccessToken string
+	Expiry      int
 }
 
 // A STSWebIdentity retrieves credentials from MinIO service, and keeps track if
@@ -77,9 +80,9 @@ type STSWebIdentity struct {
 	// This is a customer provided function and is mandatory.
 	GetWebIDTokenExpiry func() (*WebIdentityToken, error)
 
-	// roleARN is the Amazon Resource Name (ARN) of the role that the caller is
+	// RoleARN is the Amazon Resource Name (ARN) of the role that the caller is
 	// assuming.
-	roleARN string
+	RoleARN string
 
 	// roleSessionName is the identifier for the assumed role session.
 	roleSessionName string
@@ -121,6 +124,10 @@ func getWebIdentityCredentials(clnt *http.Client, endpoint, roleARN, roleSession
 		v.Set("RoleSessionName", roleSessionName)
 	}
 	v.Set("WebIdentityToken", idToken.Token)
+	if idToken.AccessToken != "" {
+		// Usually set when server is using extended userInfo endpoint.
+		v.Set("WebIdentityAccessToken", idToken.AccessToken)
+	}
 	if idToken.Expiry > 0 {
 		v.Set("DurationSeconds", fmt.Sprintf("%d", idToken.Expiry))
 	}
@@ -145,7 +152,23 @@ func getWebIdentityCredentials(clnt *http.Client, endpoint, roleARN, roleSession
 
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return AssumeRoleWithWebIdentityResponse{}, errors.New(resp.Status)
+		var errResp ErrorResponse
+		buf, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return AssumeRoleWithWebIdentityResponse{}, err
+
+		}
+		_, err = xmlDecodeAndBody(bytes.NewReader(buf), &errResp)
+		if err != nil {
+			var s3Err Error
+			if _, err = xmlDecodeAndBody(bytes.NewReader(buf), &s3Err); err != nil {
+				return AssumeRoleWithWebIdentityResponse{}, err
+			}
+			errResp.RequestID = s3Err.RequestID
+			errResp.STSError.Code = s3Err.Code
+			errResp.STSError.Message = s3Err.Message
+		}
+		return AssumeRoleWithWebIdentityResponse{}, errResp
 	}
 
 	a := AssumeRoleWithWebIdentityResponse{}
@@ -159,7 +182,7 @@ func getWebIdentityCredentials(clnt *http.Client, endpoint, roleARN, roleSession
 // Retrieve retrieves credentials from the MinIO service.
 // Error will be returned if the request fails.
 func (m *STSWebIdentity) Retrieve() (Value, error) {
-	a, err := getWebIdentityCredentials(m.Client, m.STSEndpoint, m.roleARN, m.roleSessionName, m.GetWebIDTokenExpiry)
+	a, err := getWebIdentityCredentials(m.Client, m.STSEndpoint, m.RoleARN, m.roleSessionName, m.GetWebIDTokenExpiry)
 	if err != nil {
 		return Value{}, err
 	}

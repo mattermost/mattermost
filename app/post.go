@@ -66,7 +66,7 @@ func (a *App) CreatePostAsUser(c *request.Context, post *model.Post, currentSess
 	// the post is NOT a reply post with CRT enabled
 	_, fromWebhook := post.GetProps()["from_webhook"]
 	_, fromBot := post.GetProps()["from_bot"]
-	isCRTReply := post.RootId != "" && a.isCRTEnabledForUser(post.UserId)
+	isCRTReply := post.RootId != "" && a.IsCRTEnabledForUser(post.UserId)
 	if !fromWebhook && !fromBot && !isCRTReply {
 		if _, err := a.MarkChannelsAsViewed([]string{post.ChannelId}, post.UserId, currentSessionId, true); err != nil {
 			mlog.Warn(
@@ -266,6 +266,11 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 		}
 	}
 
+	// Pre-fill the CreateAt field for link previews to get the correct timestamp.
+	if post.CreateAt == 0 {
+		post.CreateAt = model.GetMillis()
+	}
+
 	post = a.getEmbedsAndImages(post, true)
 	previewPost := post.GetPreviewPost()
 	if previewPost != nil {
@@ -292,6 +297,14 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 
 	// We make a copy of the post for the plugin hook to avoid a race condition.
 	rPostCopy := rpost.Clone()
+
+	// FIXME: Removes PreviewPost from the post payload sent to the MessageHasBeenPosted hook so that plugins compiled with older versions of
+	// Mattermost—without the gob registration of the PreviewPost struct—won't crash.
+	if rPostCopy.Metadata != nil {
+		rPostCopy.Metadata = rPostCopy.Metadata.Copy()
+	}
+	rPostCopy.RemovePreviewPost()
+
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
 			pluginContext := pluginContext(c)
@@ -708,26 +721,23 @@ func (a *App) publishWebsocketEventForPermalinkPost(post *model.Post, message *m
 		return false, err
 	}
 
-	previewedChannel, err := a.GetChannel(previewedPost.ChannelId)
-	if err != nil {
-		if err.StatusCode == http.StatusNotFound {
-			mlog.Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
-			return false, nil
-		}
-		return false, err
-	}
-
 	channelMembers, err := a.GetChannelMembersPage(post.ChannelId, 0, 10000000)
 	if err != nil {
 		return false, err
 	}
 
 	for _, cm := range channelMembers {
-		postForUser := post.Clone()
-		if !a.HasPermissionToReadChannel(cm.UserId, previewedChannel) {
-			postForUser.Metadata.Embeds[0].Data = nil
+		postForUser, err := a.SanitizePostMetadataForUser(post, cm.UserId)
+		if err != nil {
+			if err.StatusCode == http.StatusNotFound {
+				mlog.Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
+				return false, nil
+			}
+			return false, err
 		}
-		messageCopy := message.Copy()
+		// Using DeepCopy here to avoid a race condition
+		// between publishing the event and setting the "post" data value below.
+		messageCopy := message.DeepCopy()
 		broadcastCopy := messageCopy.GetBroadcast()
 		broadcastCopy.UserId = cm.UserId
 		messageCopy.SetBroadcast(broadcastCopy)
@@ -1400,7 +1410,7 @@ func (a *App) ImageProxyAdder() func(string) string {
 	}
 
 	return func(url string) string {
-		return a.Srv().ImageProxy.GetProxiedImageURL(url)
+		return a.ImageProxy().GetProxiedImageURL(url)
 	}
 }
 
@@ -1410,7 +1420,7 @@ func (a *App) ImageProxyRemover() (f func(string) string) {
 	}
 
 	return func(url string) string {
-		return a.Srv().ImageProxy.GetUnproxiedImageURL(url)
+		return a.ImageProxy().GetUnproxiedImageURL(url)
 	}
 }
 
@@ -1659,4 +1669,19 @@ func (a *App) GetPostIfAuthorized(postID string, session *model.Session) (*model
 	}
 
 	return post, nil
+}
+
+func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, *model.AppError) {
+	posts, err := a.Srv().Store.Post().GetPostsByIds(postIDs)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetPostsByIds", "app.post.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetPostsByIds", "app.post.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return posts, nil
 }

@@ -106,6 +106,7 @@ const (
 	ServiceSettingsDefaultListenAndAddress = ":8065"
 	ServiceSettingsDefaultGfycatAPIKey     = "2_KtH_W5"
 	ServiceSettingsDefaultGfycatAPISecret  = "3wLVZPiswc3DnaiaFoLkDvB4X0IV6CpMkj4tf2inJRsBY6-FnkT08zGmppWFgeof"
+	ServiceSettingsDefaultDeveloperFlags   = ""
 
 	TeamSettingsDefaultSiteName              = "Mattermost"
 	TeamSettingsDefaultMaxUsersPerTeam       = 50
@@ -113,7 +114,7 @@ const (
 	TeamSettingsDefaultCustomDescriptionText = ""
 	TeamSettingsDefaultUserStatusAwayTimeout = 300
 
-	SqlSettingsDefaultDataSource = "postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10"
+	SqlSettingsDefaultDataSource = "postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
 
 	FileSettingsDefaultDirectory = "./data/"
 
@@ -125,7 +126,7 @@ const (
 
 	EmailSettingsDefaultFeedbackOrganization = ""
 
-	SupportSettingsDefaultTermsOfServiceLink = "https://mattermost.com/terms-of-service/"
+	SupportSettingsDefaultTermsOfServiceLink = "https://mattermost.com/terms-of-use/"
 	SupportSettingsDefaultPrivacyPolicyLink  = "https://mattermost.com/privacy-policy/"
 	SupportSettingsDefaultAboutLink          = "https://about.mattermost.com/default-about/"
 	SupportSettingsDefaultHelpLink           = "https://about.mattermost.com/default-help/"
@@ -201,6 +202,7 @@ const (
 
 	DataRetentionSettingsDefaultMessageRetentionDays = 365
 	DataRetentionSettingsDefaultFileRetentionDays    = 365
+	DataRetentionSettingsDefaultBoardsRetentionDays  = 365
 	DataRetentionSettingsDefaultDeletionJobStartTime = "02:00"
 	DataRetentionSettingsDefaultBatchSize            = 3000
 
@@ -302,6 +304,8 @@ type ServiceSettings struct {
 	RestrictLinkPreviews                              *string  `access:"site_posts"`
 	EnableTesting                                     *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	EnableDeveloper                                   *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
+	DeveloperFlags                                    *string  `access:"environment_developer"`
+	EnableClientPerformanceDebugging                  *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	EnableOpenTracing                                 *bool    `access:"write_restrictable,cloud_restrictable"`
 	EnableSecurityFixAlert                            *bool    `access:"environment_smtp,write_restrictable,cloud_restrictable"`
 	EnableInsecureOutgoingConnections                 *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
@@ -363,7 +367,7 @@ type ServiceSettings struct {
 	ThreadAutoFollow                                  *bool   `access:"experimental_features"`
 	CollapsedThreads                                  *string `access:"experimental_features"`
 	ManagedResourcePaths                              *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	EnableReliableWebSockets                          *bool   `access:"experimental_features"` // telemetry: none
+	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -414,6 +418,14 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableDeveloper == nil {
 		s.EnableDeveloper = NewBool(false)
+	}
+
+	if s.DeveloperFlags == nil {
+		s.DeveloperFlags = NewString("")
+	}
+
+	if s.EnableClientPerformanceDebugging == nil {
+		s.EnableClientPerformanceDebugging = NewBool(false)
 	}
 
 	if s.EnableOpenTracing == nil {
@@ -766,7 +778,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.ThreadAutoFollow == nil {
-		s.ThreadAutoFollow = NewBool(true)
+		s.ThreadAutoFollow = NewBool(false)
 	}
 
 	if s.CollapsedThreads == nil {
@@ -777,8 +789,8 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.ManagedResourcePaths = NewString("")
 	}
 
-	if s.EnableReliableWebSockets == nil {
-		s.EnableReliableWebSockets = NewBool(true)
+	if s.EnableCustomGroups == nil {
+		s.EnableCustomGroups = NewBool(true)
 	}
 }
 
@@ -1073,19 +1085,20 @@ type ReplicaLagSettings struct {
 }
 
 type SqlSettings struct {
-	DriverName                  *string               `access:"environment_database,write_restrictable,cloud_restrictable"`
-	DataSource                  *string               `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
-	DataSourceReplicas          []string              `access:"environment_database,write_restrictable,cloud_restrictable"`
-	DataSourceSearchReplicas    []string              `access:"environment_database,write_restrictable,cloud_restrictable"`
-	MaxIdleConns                *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
-	ConnMaxLifetimeMilliseconds *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
-	ConnMaxIdleTimeMilliseconds *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
-	MaxOpenConns                *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
-	Trace                       *bool                 `access:"environment_database,write_restrictable,cloud_restrictable"`
-	AtRestEncryptKey            *string               `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
-	QueryTimeout                *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
-	DisableDatabaseSearch       *bool                 `access:"environment_database,write_restrictable,cloud_restrictable"`
-	ReplicaLagSettings          []*ReplicaLagSettings `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
+	DriverName                        *string               `access:"environment_database,write_restrictable,cloud_restrictable"`
+	DataSource                        *string               `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
+	DataSourceReplicas                []string              `access:"environment_database,write_restrictable,cloud_restrictable"`
+	DataSourceSearchReplicas          []string              `access:"environment_database,write_restrictable,cloud_restrictable"`
+	MaxIdleConns                      *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
+	ConnMaxLifetimeMilliseconds       *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
+	ConnMaxIdleTimeMilliseconds       *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
+	MaxOpenConns                      *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
+	Trace                             *bool                 `access:"environment_database,write_restrictable,cloud_restrictable"`
+	AtRestEncryptKey                  *string               `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
+	QueryTimeout                      *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
+	DisableDatabaseSearch             *bool                 `access:"environment_database,write_restrictable,cloud_restrictable"`
+	MigrationsStatementTimeoutSeconds *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
+	ReplicaLagSettings                []*ReplicaLagSettings `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *SqlSettings) SetDefaults(isUpdate bool) {
@@ -1141,6 +1154,10 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 
 	if s.DisableDatabaseSearch == nil {
 		s.DisableDatabaseSearch = NewBool(false)
+	}
+
+	if s.MigrationsStatementTimeoutSeconds == nil {
+		s.MigrationsStatementTimeoutSeconds = NewInt(100000)
 	}
 
 	if s.ReplicaLagSettings == nil {
@@ -1722,7 +1739,7 @@ type SupportSettings struct {
 	AboutLink                              *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	HelpLink                               *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	ReportAProblemLink                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
-	SupportEmail                           *string `access:"site_customization"`
+	SupportEmail                           *string `access:"site_notifications"`
 	CustomTermsOfServiceEnabled            *bool   `access:"compliance_custom_terms_of_service"`
 	CustomTermsOfServiceReAcceptancePeriod *int    `access:"compliance_custom_terms_of_service"`
 	EnableAskCommunityLink                 *bool   `access:"site_customization"`
@@ -1978,8 +1995,6 @@ func (s *TeamSettings) SetDefaults() {
 type ClientRequirements struct {
 	AndroidLatestVersion string `access:"write_restrictable,cloud_restrictable"`
 	AndroidMinVersion    string `access:"write_restrictable,cloud_restrictable"`
-	DesktopLatestVersion string `access:"write_restrictable,cloud_restrictable"`
-	DesktopMinVersion    string `access:"write_restrictable,cloud_restrictable"`
 	IosLatestVersion     string `access:"write_restrictable,cloud_restrictable"`
 	IosMinVersion        string `access:"write_restrictable,cloud_restrictable"`
 }
@@ -2582,8 +2597,10 @@ func (bs *BleveSettings) SetDefaults() {
 type DataRetentionSettings struct {
 	EnableMessageDeletion *bool   `access:"compliance_data_retention_policy"`
 	EnableFileDeletion    *bool   `access:"compliance_data_retention_policy"`
+	EnableBoardsDeletion  *bool   `access:"compliance_data_retention_policy"`
 	MessageRetentionDays  *int    `access:"compliance_data_retention_policy"`
 	FileRetentionDays     *int    `access:"compliance_data_retention_policy"`
+	BoardsRetentionDays   *int    `access:"compliance_data_retention_policy"`
 	DeletionJobStartTime  *string `access:"compliance_data_retention_policy"`
 	BatchSize             *int    `access:"compliance_data_retention_policy"`
 }
@@ -2597,12 +2614,20 @@ func (s *DataRetentionSettings) SetDefaults() {
 		s.EnableFileDeletion = NewBool(false)
 	}
 
+	if s.EnableBoardsDeletion == nil {
+		s.EnableBoardsDeletion = NewBool(false)
+	}
+
 	if s.MessageRetentionDays == nil {
 		s.MessageRetentionDays = NewInt(DataRetentionSettingsDefaultMessageRetentionDays)
 	}
 
 	if s.FileRetentionDays == nil {
 		s.FileRetentionDays = NewInt(DataRetentionSettingsDefaultFileRetentionDays)
+	}
+
+	if s.BoardsRetentionDays == nil {
+		s.BoardsRetentionDays = NewInt(DataRetentionSettingsDefaultBoardsRetentionDays)
 	}
 
 	if s.DeletionJobStartTime == nil {
@@ -2615,8 +2640,9 @@ func (s *DataRetentionSettings) SetDefaults() {
 }
 
 type JobSettings struct {
-	RunJobs      *bool `access:"write_restrictable,cloud_restrictable"`
-	RunScheduler *bool `access:"write_restrictable,cloud_restrictable"`
+	RunJobs                  *bool `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	RunScheduler             *bool `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	CleanupJobsThresholdDays *int  `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *JobSettings) SetDefaults() {
@@ -2626,6 +2652,10 @@ func (s *JobSettings) SetDefaults() {
 
 	if s.RunScheduler == nil {
 		s.RunScheduler = NewBool(true)
+	}
+
+	if s.CleanupJobsThresholdDays == nil {
+		s.CleanupJobsThresholdDays = NewInt(-1)
 	}
 }
 
@@ -2711,6 +2741,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	if s.PluginStates["com.mattermost.plugin-channel-export"] == nil && BuildEnterpriseReady == "true" {
 		// Enable the channel export plugin by default
 		s.PluginStates["com.mattermost.plugin-channel-export"] = &PluginState{Enable: true}
+	}
+
+	if s.PluginStates["focalboard"] == nil {
+		// Enable the focalboard plugin by default
+		s.PluginStates["focalboard"] = &PluginState{Enable: true}
 	}
 
 	if s.EnableMarketplace == nil {
@@ -3015,7 +3050,7 @@ type Config struct {
 	BleveSettings             BleveSettings
 	DataRetentionSettings     DataRetentionSettings
 	MessageExportSettings     MessageExportSettings
-	JobSettings               JobSettings // telemetry: none
+	JobSettings               JobSettings
 	PluginSettings            PluginSettings
 	DisplaySettings           DisplaySettings
 	GuestAccountsSettings     GuestAccountsSettings
@@ -3736,9 +3771,11 @@ func (o *Config) Sanitize() {
 		*o.LdapSettings.BindPassword = FakeSetting
 	}
 
-	*o.FileSettings.PublicLinkSalt = FakeSetting
+	if o.FileSettings.PublicLinkSalt != nil {
+		*o.FileSettings.PublicLinkSalt = FakeSetting
+	}
 
-	if *o.FileSettings.AmazonS3SecretAccessKey != "" {
+	if o.FileSettings.AmazonS3SecretAccessKey != nil && *o.FileSettings.AmazonS3SecretAccessKey != "" {
 		*o.FileSettings.AmazonS3SecretAccessKey = FakeSetting
 	}
 
@@ -3746,7 +3783,7 @@ func (o *Config) Sanitize() {
 		*o.EmailSettings.SMTPPassword = FakeSetting
 	}
 
-	if *o.GitLabSettings.Secret != "" {
+	if o.GitLabSettings.Secret != nil && *o.GitLabSettings.Secret != "" {
 		*o.GitLabSettings.Secret = FakeSetting
 	}
 
@@ -3762,10 +3799,17 @@ func (o *Config) Sanitize() {
 		*o.OpenIdSettings.Secret = FakeSetting
 	}
 
-	*o.SqlSettings.DataSource = FakeSetting
-	*o.SqlSettings.AtRestEncryptKey = FakeSetting
+	if o.SqlSettings.DataSource != nil {
+		*o.SqlSettings.DataSource = FakeSetting
+	}
 
-	*o.ElasticsearchSettings.Password = FakeSetting
+	if o.SqlSettings.AtRestEncryptKey != nil {
+		*o.SqlSettings.AtRestEncryptKey = FakeSetting
+	}
+
+	if o.ElasticsearchSettings.Password != nil {
+		*o.ElasticsearchSettings.Password = FakeSetting
+	}
 
 	for i := range o.SqlSettings.DataSourceReplicas {
 		o.SqlSettings.DataSourceReplicas[i] = FakeSetting
@@ -3775,7 +3819,9 @@ func (o *Config) Sanitize() {
 		o.SqlSettings.DataSourceSearchReplicas[i] = FakeSetting
 	}
 
-	if o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != nil && *o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != "" {
+	if o.MessageExportSettings.GlobalRelaySettings != nil &&
+		o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != nil &&
+		*o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != "" {
 		*o.MessageExportSettings.GlobalRelaySettings.SMTPPassword = FakeSetting
 	}
 
@@ -3783,7 +3829,9 @@ func (o *Config) Sanitize() {
 		*o.ServiceSettings.GfycatAPISecret = FakeSetting
 	}
 
-	*o.ServiceSettings.SplitKey = FakeSetting
+	if o.ServiceSettings.SplitKey != nil {
+		*o.ServiceSettings.SplitKey = FakeSetting
+	}
 }
 
 // structToMapFilteredByTag converts a struct into a map removing those fields that has the tag passed

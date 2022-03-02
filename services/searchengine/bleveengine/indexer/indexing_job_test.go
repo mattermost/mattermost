@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package ebleveengine
+package indexer
 
 import (
 	"errors"
@@ -54,7 +54,7 @@ func TestBleveIndexer(t *testing.T) {
 			},
 		}
 
-		bleveEngine := bleveengine.NewBleveEngine(cfg, jobServer)
+		bleveEngine := bleveengine.NewBleveEngine(cfg)
 		aErr := bleveEngine.Start()
 		require.Nil(t, aErr)
 

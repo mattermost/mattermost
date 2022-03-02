@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -676,6 +677,12 @@ func TestGetPushNotificationMessage(t *testing.T) {
 			ChannelType:       model.ChannelTypeDirect,
 			ExpectedMessage:   "this is a message",
 		},
+		"full message, direct message channel, commented on CRT enabled thread": {
+			Message:           "this is a message",
+			replyToThreadType: model.CommentsNotifyCRT,
+			ChannelType:       model.ChannelTypeDirect,
+			ExpectedMessage:   "user: this is a message",
+		},
 		"generic message with channel, public channel, no mention": {
 			Message:                  "this is a message",
 			PushNotificationContents: model.GenericNotification,
@@ -1024,9 +1031,7 @@ func (h *testPushNotificationHandler) handleReq(w http.ResponseWriter, r *http.R
 
 		// Don't do any checking if it's a benchmark
 		if _, ok := h.t.(*testing.B); ok {
-			resp := model.NewOkPushResponse()
-			jsonData, _ := json.Marshal(&resp)
-			fmt.Fprintln(w, jsonData)
+			h.printResponse(w, model.NewOkPushResponse())
 			return
 		}
 
@@ -1035,9 +1040,7 @@ func (h *testPushNotificationHandler) handleReq(w http.ResponseWriter, r *http.R
 		var err error
 		if r.URL.Path == "/api/v1/send_push" {
 			if err = json.NewDecoder(r.Body).Decode(&notification); err != nil {
-				resp := model.NewErrorPushResponse("fail")
-				jsonData, _ := json.Marshal(&resp)
-				fmt.Fprintln(w, jsonData)
+				h.printResponse(w, model.NewErrorPushResponse("fail"))
 				return
 			}
 			// We verify that messages are being sent in order per-device.
@@ -1050,9 +1053,7 @@ func (h *testPushNotificationHandler) handleReq(w http.ResponseWriter, r *http.R
 			}
 		} else {
 			if err = json.NewDecoder(r.Body).Decode(&notificationAck); err != nil {
-				resp := model.NewErrorPushResponse("fail")
-				jsonData, _ := json.Marshal(&resp)
-				fmt.Fprintln(w, jsonData)
+				h.printResponse(w, model.NewErrorPushResponse("fail"))
 				return
 			}
 		}
@@ -1079,9 +1080,13 @@ func (h *testPushNotificationHandler) handleReq(w http.ResponseWriter, r *http.R
 				resp = model.NewRemovePushResponse()
 			}
 		}
-		jsonData, _ := json.Marshal(&resp)
-		fmt.Fprintln(w, jsonData)
+		h.printResponse(w, resp)
 	}
+}
+
+func (h *testPushNotificationHandler) printResponse(w http.ResponseWriter, resp model.PushResponse) {
+	jsonData, _ := json.Marshal(&resp)
+	fmt.Fprintln(w, string(jsonData))
 }
 
 func (h *testPushNotificationHandler) numReqs() int {
@@ -1148,13 +1153,31 @@ func TestClearPushNotificationSync(t *testing.T) {
 		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
 	})
 
-	err := th.App.clearPushNotificationSync(sess1.Id, "user1", "channel1")
+	err := th.App.clearPushNotificationSync(sess1.Id, "user1", "channel1", "")
 	require.Nil(t, err)
 	// Server side verification.
 	// We verify that 1 request has been sent, and also check the message contents.
 	require.Equal(t, 1, handler.numReqs())
 	assert.Equal(t, "channel1", handler.notifications()[0].ChannelId)
 	assert.Equal(t, model.PushTypeClear, handler.notifications()[0].Type)
+
+	// When CRT is enabled, Send badge count adding both "User unreads" + "User thread mentions"
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+	})
+
+	mockPreferenceStore := mocks.PreferenceStore{}
+	mockPreferenceStore.On("Get", mock.AnythingOfType("string"), model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled).Return(&model.Preference{Value: "on"}, nil)
+	mockStore.On("Preference").Return(&mockPreferenceStore)
+
+	mockThreadStore := mocks.ThreadStore{}
+	mockThreadStore.On("GetThreadsForUser", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.Anything).Return(&model.Threads{TotalUnreadMentions: 3}, nil)
+	mockStore.On("Thread").Return(&mockThreadStore)
+
+	err = th.App.clearPushNotificationSync(sess1.Id, "user1", "channel1", "")
+	require.Nil(t, err)
+	assert.Equal(t, handler.notifications()[1].Badge, 4)
 }
 
 func TestUpdateMobileAppBadgeSync(t *testing.T) {
@@ -1212,6 +1235,33 @@ func TestUpdateMobileAppBadgeSync(t *testing.T) {
 	assert.Equal(t, model.PushTypeUpdateBadge, handler.notifications()[0].Type)
 	assert.Equal(t, 1, handler.notifications()[1].ContentAvailable)
 	assert.Equal(t, model.PushTypeUpdateBadge, handler.notifications()[1].Type)
+}
+
+func TestSendTestPushNotification(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	handler := &testPushNotificationHandler{t: t}
+	pushServer := httptest.NewServer(
+		http.HandlerFunc(handler.handleReq),
+	)
+	defer pushServer.Close()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+	})
+
+	// Per mock definition, first time will send remove, second time will send OK
+	result := th.App.SendTestPushNotification("platform:id")
+	assert.Equal(t, "false", result)
+	result = th.App.SendTestPushNotification("platform:id")
+	assert.Equal(t, "true", result)
+
+	// Server side verification.
+	// We verify that 2 requests have been sent, and also check the message contents.
+	require.Equal(t, 2, handler.numReqs())
+	assert.Equal(t, model.PushTypeTest, handler.notifications()[0].Type)
+	assert.Equal(t, model.PushTypeTest, handler.notifications()[1].Type)
 }
 
 func TestSendAckToPushProxy(t *testing.T) {
@@ -1336,7 +1386,7 @@ func TestAllPushNotifications(t *testing.T) {
 		case 2:
 			go func(sessID, userID string) {
 				defer wg.Done()
-				th.App.clearPushNotification(sessID, userID, th.BasicChannel.Id)
+				th.App.clearPushNotification(sessID, userID, th.BasicChannel.Id, "")
 			}(data.session.Id, data.user.Id)
 		}
 	}
@@ -1378,10 +1428,20 @@ func TestPushNotificationRace(t *testing.T) {
 		Return(&model.Preference{Value: "test"}, nil)
 	mockStore.On("Preference").Return(&mockPreferenceStore)
 	s := &Server{
-		configStore: memoryStore,
-		Store:       mockStore,
+		Store:    mockStore,
+		products: make(map[string]Product),
+		Router:   mux.NewRouter(),
 	}
-	app := New(ServerConnector(s))
+	s.configStore = &configWrapper{srv: s, Store: memoryStore}
+	serviceMap := map[ServiceKey]interface{}{
+		ConfigKey:  s.configStore,
+		LicenseKey: &licenseWrapper{s},
+	}
+	ch, err := NewChannels(s, serviceMap)
+	require.NoError(t, err)
+	s.products["channels"] = ch
+
+	app := New(ServerConnector(s.Channels()))
 	require.NotPanics(t, func() {
 		s.createPushNotificationsHub()
 
@@ -1389,7 +1449,7 @@ func TestPushNotificationRace(t *testing.T) {
 
 		// Now we start sending messages after the PN hub is shut down.
 		// We test all 3 notification types.
-		app.clearPushNotification("currentSessionId", "userId", "channelId")
+		app.clearPushNotification("currentSessionId", "userId", "channelId", "")
 
 		app.UpdateMobileAppBadge("userId")
 
@@ -1558,7 +1618,7 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 			case 2:
 				go func(sessID, userID string) {
 					defer wg.Done()
-					th.App.clearPushNotification(sessID, userID, ch.Id)
+					th.App.clearPushNotification(sessID, userID, ch.Id, "")
 				}(data.session.Id, data.user.Id)
 			}
 		}

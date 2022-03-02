@@ -309,7 +309,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		emoji := "basketball"
 		url := "http://host.com/image.png"
-		overridenURL := "/static/emoji/1f3c0.png"
+		overriddenURL := "/static/emoji/1f3c0.png"
 
 		t.Run("does not override icon URL", func(t *testing.T) {
 			clientPost := prepare(false, url, emoji)
@@ -327,7 +327,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 			s, ok := clientPost.GetProps()[model.PostPropsOverrideIconURL]
 			assert.True(t, ok)
-			assert.EqualValues(t, overridenURL, s)
+			assert.EqualValues(t, overriddenURL, s)
 			s, ok = clientPost.GetProps()[model.PostPropsOverrideIconEmoji]
 			assert.True(t, ok)
 			assert.EqualValues(t, emoji, s)
@@ -339,7 +339,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 			s, ok := clientPost.GetProps()[model.PostPropsOverrideIconURL]
 			assert.True(t, ok)
-			assert.EqualValues(t, overridenURL, s)
+			assert.EqualValues(t, overriddenURL, s)
 			s, ok = clientPost.GetProps()[model.PostPropsOverrideIconEmoji]
 			assert.True(t, ok)
 			assert.EqualValues(t, colonEmoji, s)
@@ -420,8 +420,8 @@ func TestPreparePostForClient(t *testing.T) {
 	And this is our icon: ` + server.URL + `/test-image1.png`,
 		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
-
-		clientPost := th.App.PreparePostForClient(post, false, false)
+		post.Metadata.Embeds = nil
+		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(post, false, false)
 
 		// Reminder that only the first link gets an embed and dimensions
 
@@ -498,8 +498,8 @@ func TestPreparePostForClient(t *testing.T) {
 			},
 		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
-
-		clientPost := th.App.PreparePostForClient(post, false, false)
+		post.Metadata.Embeds = nil
+		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(post, false, false)
 
 		t.Run("populates embeds", func(t *testing.T) {
 			assert.ElementsMatch(t, []*model.PostEmbed{
@@ -534,6 +534,7 @@ func TestPreparePostForClient(t *testing.T) {
 			ChannelId: th.BasicChannel.Id,
 		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
+		post.Metadata.Embeds = nil
 
 		th.AddReactionToPost(post, th.BasicUser, "taco")
 
@@ -567,6 +568,7 @@ func TestPreparePostForClient(t *testing.T) {
 			Message:   "hello world",
 		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
+		referencedPost.Metadata.Embeds = nil
 
 		link := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
 
@@ -576,11 +578,95 @@ func TestPreparePostForClient(t *testing.T) {
 			Message:   link,
 		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
-
-		clientPost := th.App.PreparePostForClient(previewPost, false, false)
+		previewPost.Metadata.Embeds = nil
+		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(previewPost, false, false)
 		firstEmbed := clientPost.Metadata.Embeds[0]
 		preview := firstEmbed.Data.(*model.PreviewPost)
 		require.Equal(t, referencedPost.Id, preview.PostID)
+	})
+
+	t.Run("permalink with nested preview should have referenced post metadata", func(t *testing.T) {
+		th := setup(t)
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
+		})
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		referencedPost, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   `This is our logo: ` + server.URL + `/test-image2.png`,
+		}, th.BasicChannel, false, true)
+		require.Nil(t, err)
+		referencedPost.Metadata.Embeds = nil
+
+		link := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
+
+		previewPost, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   link,
+		}, th.BasicChannel, false, true)
+		require.Nil(t, err)
+		previewPost.Metadata.Embeds = nil
+
+		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(previewPost, false, false)
+		firstEmbed := clientPost.Metadata.Embeds[0]
+		preview := firstEmbed.Data.(*model.PreviewPost)
+		referencedPostFirstEmbed := preview.Post.Metadata.Embeds[0]
+
+		require.Equal(t, referencedPost.Id, preview.PostID)
+		require.Equal(t, referencedPostFirstEmbed.URL, serverURL+`/test-image2.png`)
+	})
+
+	t.Run("permalink with nested permalink should not have referenced post metadata", func(t *testing.T) {
+		th := setup(t)
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
+		})
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		nestedPermalinkPost, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   `This is our logo: ` + server.URL + `/test-image2.png`,
+		}, th.BasicChannel, false, true)
+		require.Nil(t, err)
+		nestedPermalinkPost.Metadata.Embeds = nil
+
+		nestedLink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, nestedPermalinkPost.Id)
+
+		referencedPost, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   nestedLink,
+		}, th.BasicChannel, false, true)
+		require.Nil(t, err)
+		referencedPost.Metadata.Embeds = nil
+
+		link := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
+
+		previewPost, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   link,
+		}, th.BasicChannel, false, true)
+		require.Nil(t, err)
+		previewPost.Metadata.Embeds = nil
+
+		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(previewPost, false, false)
+		firstEmbed := clientPost.Metadata.Embeds[0]
+		preview := firstEmbed.Data.(*model.PreviewPost)
+		referencedPostMetadata := preview.Post.Metadata
+
+		require.Equal(t, referencedPost.Id, preview.PostID)
+		require.Equal(t, referencedPostMetadata, (*model.PostMetadata)(nil))
 	})
 
 	t.Run("permalink preview renders after toggling off the feature", func(t *testing.T) {
@@ -645,7 +731,7 @@ func TestPreparePostForClientWithImageProxy(t *testing.T) {
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 		})
 
-		th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
+		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
 
 		return th
 	}
@@ -723,7 +809,8 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 	}, th.BasicChannel, false, true)
 	require.Nil(t, err)
 
-	embeds := th.App.PreparePostForClient(post, false, false).Metadata.Embeds
+	post.Metadata.Embeds = nil
+	embeds := th.App.PreparePostForClientWithEmbedsAndImages(post, false, false).Metadata.Embeds
 	require.Len(t, embeds, 1, "should have one embed")
 
 	embed := embeds[0]
@@ -751,12 +838,24 @@ func TestGetEmbedForPost(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/index.html" {
 			w.Header().Set("Content-Type", "text/html")
-			w.Write([]byte(`
-			<html>
-			<head>
-			<meta property="og:title" content="Title" />
-			</head>
-			</html>`))
+			if r.Header.Get("Accept-Language") == "fr" {
+				w.Header().Set("Content-Language", "fr")
+				w.Write([]byte(`
+				<html>
+				<head>
+				<meta property="og:title" content="Title-FR" />
+				<meta property="og:description" content="Bonjour le monde" />
+				</head>
+				</html>`))
+			} else {
+				w.Write([]byte(`
+				<html>
+				<head>
+				<meta property="og:title" content="Title" />
+				<meta property="og:description" content="Hello world" />
+				</head>
+				</html>`))
+			}
 		} else if r.URL.Path == "/image.png" {
 			file, err := testutils.ReadTestFile("test.png")
 			require.NoError(t, err)
@@ -816,14 +915,32 @@ func TestGetEmbedForPost(t *testing.T) {
 			assert.NoError(t, err)
 		})
 
-		t.Run("should return an image embed when the first link is an image", func(t *testing.T) {
+		t.Run("should return an opengraph embed", func(t *testing.T) {
 			embed, err := th.App.getEmbedForPost(&model.Post{}, ogURL, false)
 
 			assert.Equal(t, &model.PostEmbed{
 				Type: model.PostEmbedOpengraph,
 				URL:  ogURL,
 				Data: &opengraph.OpenGraph{
-					Title: "Title",
+					Title:       "Title",
+					Description: "Hello world",
+				},
+			}, embed)
+			assert.NoError(t, err)
+		})
+
+		t.Run("should return an opengraph embed in different Server Language", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.LocalizationSettings.DefaultServerLocale = "fr"
+			})
+			embed, err := th.App.getEmbedForPost(&model.Post{}, ogURL, false)
+
+			assert.Equal(t, &model.PostEmbed{
+				Type: model.PostEmbedOpengraph,
+				URL:  ogURL,
+				Data: &opengraph.OpenGraph{
+					Title:       "Title-FR",
+					Description: "Bonjour le monde",
 				},
 			}, embed)
 			assert.NoError(t, err)
@@ -1388,7 +1505,7 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 		"markdown links (not returned)": {
 			Input: `this is a [our page](http://example.com) and [another page][]
 
-[another page]: http://www.exaple.com/another_page`,
+[another page]: http://www.example.com/another_page`,
 			ExpectedFirstLink: "",
 			ExpectedImages:    []string{},
 		},
@@ -2446,6 +2563,42 @@ func TestLooksLikeAPermalink(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			actual := looksLikeAPermalink(tc.input, tc.siteURL)
 			assert.Equal(t, tc.expect, actual)
+		})
+	}
+}
+
+func TestContainsPermalink(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	const siteURLWithSubpath = "http://localhost:8065/foo"
+
+	testCases := []struct {
+		Description string
+		Post        *model.Post
+		Expected    bool
+	}{
+		{
+			Description: "contains a permalink",
+			Post: &model.Post{
+				Message: fmt.Sprintf("%s/private-core/pl/dppezk51jp8afbhwxf1jpag66r", siteURLWithSubpath),
+			},
+			Expected: true,
+		},
+		{
+			Description: "does not contain a permalink",
+			Post: &model.Post{
+				Message: "foobar",
+			},
+			Expected: false,
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+		t.Run(testCase.Description, func(t *testing.T) {
+			actual := th.App.containsPermalink(testCase.Post)
+			assert.Equal(t, testCase.Expected, actual)
 		})
 	}
 }

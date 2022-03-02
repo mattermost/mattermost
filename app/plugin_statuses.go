@@ -10,8 +10,8 @@ import (
 )
 
 // GetPluginStatus returns the status for a plugin installed on this server.
-func (s *Server) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
-	pluginsEnvironment := s.GetPluginsEnvironment()
+func (ch *Channels) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
+	pluginsEnvironment := ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("GetPluginStatus", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -24,8 +24,8 @@ func (s *Server) GetPluginStatus(id string) (*model.PluginStatus, *model.AppErro
 	for _, status := range pluginStatuses {
 		if status.PluginId == id {
 			// Add our cluster ID
-			if s.Cluster != nil {
-				status.ClusterId = s.Cluster.GetClusterId()
+			if ch.srv.Cluster != nil {
+				status.ClusterId = ch.srv.Cluster.GetClusterId()
 			}
 
 			return status, nil
@@ -37,12 +37,12 @@ func (s *Server) GetPluginStatus(id string) (*model.PluginStatus, *model.AppErro
 
 // GetPluginStatus returns the status for a plugin installed on this server.
 func (a *App) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
-	return a.Srv().GetPluginStatus(id)
+	return a.ch.GetPluginStatus(id)
 }
 
 // GetPluginStatuses returns the status for plugins installed on this server.
-func (s *Server) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
-	pluginsEnvironment := s.GetPluginsEnvironment()
+func (ch *Channels) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
+	pluginsEnvironment := ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("GetPluginStatuses", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -54,8 +54,8 @@ func (s *Server) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
 
 	// Add our cluster ID
 	for _, status := range pluginStatuses {
-		if s.Cluster != nil {
-			status.ClusterId = s.Cluster.GetClusterId()
+		if ch.srv.Cluster != nil {
+			status.ClusterId = ch.srv.Cluster.GetClusterId()
 		} else {
 			status.ClusterId = ""
 		}
@@ -66,22 +66,22 @@ func (s *Server) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
 
 // GetPluginStatuses returns the status for plugins installed on this server.
 func (a *App) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
-	return a.Srv().GetPluginStatuses()
+	return a.ch.GetPluginStatuses()
 }
 
 // GetClusterPluginStatuses returns the status for plugins installed anywhere in the cluster.
 func (a *App) GetClusterPluginStatuses() (model.PluginStatuses, *model.AppError) {
-	return a.Srv().getClusterPluginStatuses()
+	return a.ch.getClusterPluginStatuses()
 }
 
-func (s *Server) getClusterPluginStatuses() (model.PluginStatuses, *model.AppError) {
-	pluginStatuses, err := s.GetPluginStatuses()
+func (ch *Channels) getClusterPluginStatuses() (model.PluginStatuses, *model.AppError) {
+	pluginStatuses, err := ch.GetPluginStatuses()
 	if err != nil {
 		return nil, err
 	}
 
-	if s.Cluster != nil && *s.Config().ClusterSettings.Enable {
-		clusterPluginStatuses, err := s.Cluster.GetPluginStatuses()
+	if ch.srv.Cluster != nil && *ch.cfgSvc.Config().ClusterSettings.Enable {
+		clusterPluginStatuses, err := ch.srv.Cluster.GetPluginStatuses()
 		if err != nil {
 			return nil, model.NewAppError("GetClusterPluginStatuses", "app.plugin.get_cluster_plugin_statuses.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -92,8 +92,8 @@ func (s *Server) getClusterPluginStatuses() (model.PluginStatuses, *model.AppErr
 	return pluginStatuses, nil
 }
 
-func (s *Server) notifyPluginStatusesChanged() error {
-	pluginStatuses, err := s.getClusterPluginStatuses()
+func (ch *Channels) notifyPluginStatusesChanged() error {
+	pluginStatuses, err := ch.getClusterPluginStatuses()
 	if err != nil {
 		return err
 	}
@@ -102,7 +102,7 @@ func (s *Server) notifyPluginStatusesChanged() error {
 	message := model.NewWebSocketEvent(model.WebsocketEventPluginStatusesChanged, "", "", "", nil)
 	message.Add("plugin_statuses", pluginStatuses)
 	message.GetBroadcast().ContainsSensitiveData = true
-	s.Publish(message)
+	ch.srv.Publish(message)
 
 	return nil
 }

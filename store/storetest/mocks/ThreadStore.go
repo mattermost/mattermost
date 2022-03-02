@@ -38,20 +38,6 @@ func (_m *ThreadStore) CollectThreadsWithNewerReplies(userId string, channelIds 
 	return r0, r1
 }
 
-// Delete provides a mock function with given fields: postID
-func (_m *ThreadStore) Delete(postID string) error {
-	ret := _m.Called(postID)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(postID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // DeleteMembershipForUser provides a mock function with given fields: userId, postID
 func (_m *ThreadStore) DeleteMembershipForUser(userId string, postID string) error {
 	ret := _m.Called(userId, postID)
@@ -179,6 +165,29 @@ func (_m *ThreadStore) GetPosts(threadID string, since int64) ([]*model.Post, er
 	return r0, r1
 }
 
+// GetTeamsUnreadForUser provides a mock function with given fields: userID, teamIDs
+func (_m *ThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) (map[string]*model.TeamUnread, error) {
+	ret := _m.Called(userID, teamIDs)
+
+	var r0 map[string]*model.TeamUnread
+	if rf, ok := ret.Get(0).(func(string, []string) map[string]*model.TeamUnread); ok {
+		r0 = rf(userID, teamIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]*model.TeamUnread)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
+		r1 = rf(userID, teamIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetThreadFollowers provides a mock function with given fields: threadID, fetchOnlyActive
 func (_m *ThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error) {
 	ret := _m.Called(threadID, fetchOnlyActive)
@@ -218,6 +227,27 @@ func (_m *ThreadStore) GetThreadForUser(teamID string, threadMembership *model.T
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, *model.ThreadMembership, bool) error); ok {
 		r1 = rf(teamID, threadMembership, extended)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetThreadUnreadReplyCount provides a mock function with given fields: threadMembership
+func (_m *ThreadStore) GetThreadUnreadReplyCount(threadMembership *model.ThreadMembership) (int64, error) {
+	ret := _m.Called(threadMembership)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(*model.ThreadMembership) int64); ok {
+		r0 = rf(threadMembership)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.ThreadMembership) error); ok {
+		r1 = rf(threadMembership)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -369,103 +399,18 @@ func (_m *ThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolicies
 	return r0, r1, r2
 }
 
-// Save provides a mock function with given fields: thread
-func (_m *ThreadStore) Save(thread *model.Thread) (*model.Thread, error) {
-	ret := _m.Called(thread)
+// UpdateLastViewedByThreadIds provides a mock function with given fields: userId, threadIds, timestamp
+func (_m *ThreadStore) UpdateLastViewedByThreadIds(userId string, threadIds []string, timestamp int64) error {
+	ret := _m.Called(userId, threadIds, timestamp)
 
-	var r0 *model.Thread
-	if rf, ok := ret.Get(0).(func(*model.Thread) *model.Thread); ok {
-		r0 = rf(thread)
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, []string, int64) error); ok {
+		r0 = rf(userId, threadIds, timestamp)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Thread)
-		}
+		r0 = ret.Error(0)
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.Thread) error); ok {
-		r1 = rf(thread)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// SaveMembership provides a mock function with given fields: membership
-func (_m *ThreadStore) SaveMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error) {
-	ret := _m.Called(membership)
-
-	var r0 *model.ThreadMembership
-	if rf, ok := ret.Get(0).(func(*model.ThreadMembership) *model.ThreadMembership); ok {
-		r0 = rf(membership)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.ThreadMembership)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.ThreadMembership) error); ok {
-		r1 = rf(membership)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// SaveMultiple provides a mock function with given fields: thread
-func (_m *ThreadStore) SaveMultiple(thread []*model.Thread) ([]*model.Thread, int, error) {
-	ret := _m.Called(thread)
-
-	var r0 []*model.Thread
-	if rf, ok := ret.Get(0).(func([]*model.Thread) []*model.Thread); ok {
-		r0 = rf(thread)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.Thread)
-		}
-	}
-
-	var r1 int
-	if rf, ok := ret.Get(1).(func([]*model.Thread) int); ok {
-		r1 = rf(thread)
-	} else {
-		r1 = ret.Get(1).(int)
-	}
-
-	var r2 error
-	if rf, ok := ret.Get(2).(func([]*model.Thread) error); ok {
-		r2 = rf(thread)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
-}
-
-// Update provides a mock function with given fields: thread
-func (_m *ThreadStore) Update(thread *model.Thread) (*model.Thread, error) {
-	ret := _m.Called(thread)
-
-	var r0 *model.Thread
-	if rf, ok := ret.Get(0).(func(*model.Thread) *model.Thread); ok {
-		r0 = rf(thread)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Thread)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.Thread) error); ok {
-		r1 = rf(thread)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // UpdateMembership provides a mock function with given fields: membership
@@ -489,18 +434,4 @@ func (_m *ThreadStore) UpdateMembership(membership *model.ThreadMembership) (*mo
 	}
 
 	return r0, r1
-}
-
-// UpdateUnreadsByChannel provides a mock function with given fields: userId, changedThreads, timestamp, updateViewedTimestamp
-func (_m *ThreadStore) UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64, updateViewedTimestamp bool) error {
-	ret := _m.Called(userId, changedThreads, timestamp, updateViewedTimestamp)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, []string, int64, bool) error); ok {
-		r0 = rf(userId, changedThreads, timestamp, updateViewedTimestamp)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
 }

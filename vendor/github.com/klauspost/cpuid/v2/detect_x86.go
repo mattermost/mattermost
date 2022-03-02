@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Klaus Post, released under MIT License. See LICENSE file.
 
-//+build 386,!gccgo,!noasm,!appengine amd64,!gccgo,!noasm,!appengine
+//go:build (386 && !gccgo && !noasm && !appengine) || (amd64 && !gccgo && !noasm && !appengine)
+// +build 386,!gccgo,!noasm,!appengine amd64,!gccgo,!noasm,!appengine
 
 package cpuid
 
@@ -30,6 +31,6 @@ func addInfo(c *CPUInfo, safe bool) {
 	c.LogicalCores = logicalCores()
 	c.PhysicalCores = physicalCores()
 	c.VendorID, c.VendorString = vendorID()
-	c.Hz = hertz(c.BrandName)
 	c.cacheSize()
+	c.frequencies()
 }

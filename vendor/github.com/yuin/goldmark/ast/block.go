@@ -87,7 +87,20 @@ func (n *Document) Meta() map[string]interface{} {
 
 // SetMeta sets given metadata to this document.
 func (n *Document) SetMeta(meta map[string]interface{}) {
-	n.meta = meta
+	if n.meta == nil {
+		n.meta = map[string]interface{}{}
+	}
+	for k, v := range meta {
+		n.meta[k] = v
+	}
+}
+
+// AddMeta adds given metadata to this document.
+func (n *Document) AddMeta(key string, value interface{}) {
+	if n.meta == nil {
+		n.meta = map[string]interface{}{}
+	}
+	n.meta[key] = value
 }
 
 // NewDocument returns a new Document node.
@@ -332,7 +345,7 @@ type List struct {
 	Marker byte
 
 	// IsTight is a true if this list is a 'tight' list.
-	// See https://spec.commonmark.org/0.29/#loose for details.
+	// See https://spec.commonmark.org/0.30/#loose for details.
 	IsTight bool
 
 	// Start is an initial number of this ordered list.
@@ -414,7 +427,7 @@ func NewListItem(offset int) *ListItem {
 }
 
 // HTMLBlockType represents kinds of an html blocks.
-// See https://spec.commonmark.org/0.29/#html-blocks
+// See https://spec.commonmark.org/0.30/#html-blocks
 type HTMLBlockType int
 
 const (

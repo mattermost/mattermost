@@ -24,8 +24,9 @@ docker run --net $DOCKER_NETWORK "$CI_REGISTRY"/mattermost/ci/images/curl:7.59.0
 
 echo "Creating databases"
 docker exec $CONTAINER_DB mysql -uroot -pmostest -e "CREATE DATABASE migrated; CREATE DATABASE latest; GRANT ALL PRIVILEGES ON migrated.* TO mmuser; GRANT ALL PRIVILEGES ON latest.* TO mmuser; "
-echo "Importing mysql dump from version 6.0"
-docker exec $CONTAINER_DB mysql -D migrated -uroot -pmostest < "$CI_PROJECT_DIR"/scripts/mattermost-mysql-6.0.sql
+echo "Importing mysql dump from version 6.0.0"
+docker exec -i $CONTAINER_DB mysql -D migrated -uroot -pmostest < "$CI_PROJECT_DIR"/scripts/mattermost-mysql-6.0.0.sql
+docker exec -i $CONTAINER_DB mysql -D migrated -uroot -pmostest -e "INSERT INTO Systems (Name, Value) VALUES ('Version', '6.0.0')"
 docker run -d -it --rm --name "$CONTAINER_SERVER" --net $DOCKER_NETWORK \
   --env-file="dotenv/test-schema-validation.env" \
   --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/migrated?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s" \
@@ -33,7 +34,7 @@ docker run -d -it --rm --name "$CONTAINER_SERVER" --net $DOCKER_NETWORK \
   -v "$CI_PROJECT_DIR":/mattermost-server \
   -w /mattermost-server \
   $IMAGE_BUILD_SERVER \
-  bash -c "ulimit -n 8096; make ARGS='version' run-cli && make MM_SQLSETTINGS_DATASOURCE='mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s' ARGS='version' run-cli"
+  bash -c "ulimit -n 8096; make ARGS='db migrate' run-cli && make MM_SQLSETTINGS_DATASOURCE='mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s' ARGS='db migrate' run-cli"
 mkdir -p logs
 docker-compose logs --tail="all" -t --no-color > logs/docker-compose_logs_$COMPOSE_PROJECT_NAME
 docker logs -f $CONTAINER_SERVER

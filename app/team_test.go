@@ -4,6 +4,8 @@
 package app
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"math/rand"
 	"sort"
@@ -14,7 +16,11 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/app/teams"
+	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
@@ -740,37 +746,8 @@ func TestJoinUserToTeam(t *testing.T) {
 		ruser, _ := th.App.CreateUser(th.Context, &user)
 		defer th.App.PermanentDeleteUser(th.Context, &user)
 
-		var alreadyAdded bool
-		_, alreadyAdded, err = th.App.joinUserToTeam(team, ruser)
-		require.False(t, alreadyAdded, "Should return already added equal to false")
-		require.Nil(t, err, "Should return no error")
-	})
-
-	t.Run("join when you are a member", func(t *testing.T) {
-		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser, _ := th.App.CreateUser(th.Context, &user)
-		defer th.App.PermanentDeleteUser(th.Context, &user)
-
-		th.App.joinUserToTeam(team, ruser)
-
-		var alreadyAdded bool
-		_, alreadyAdded, err = th.App.joinUserToTeam(team, ruser)
-		require.True(t, alreadyAdded, "Should return already added")
-		require.Nil(t, err, "Should return no error")
-	})
-
-	t.Run("re-join after leaving", func(t *testing.T) {
-		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser, _ := th.App.CreateUser(th.Context, &user)
-		defer th.App.PermanentDeleteUser(th.Context, &user)
-
-		th.App.joinUserToTeam(team, ruser)
-		th.App.LeaveTeam(th.Context, team, ruser, ruser.Id)
-
-		var alreadyAdded bool
-		_, alreadyAdded, err = th.App.joinUserToTeam(team, ruser)
-		require.False(t, alreadyAdded, "Should return already added equal to false")
-		require.Nil(t, err, "Should return no error")
+		_, appErr := th.App.JoinUserToTeam(th.Context, team, ruser, "")
+		require.Nil(t, appErr, "Should return no error")
 	})
 
 	t.Run("new join with limit problem", func(t *testing.T) {
@@ -781,13 +758,15 @@ func TestJoinUserToTeam(t *testing.T) {
 
 		defer th.App.PermanentDeleteUser(th.Context, &user1)
 		defer th.App.PermanentDeleteUser(th.Context, &user2)
-		th.App.joinUserToTeam(team, ruser1)
 
-		_, _, err = th.App.joinUserToTeam(team, ruser2)
-		require.NotNil(t, err, "Should fail")
+		_, appErr := th.App.JoinUserToTeam(th.Context, team, ruser1, ruser2.Id)
+		require.Nil(t, appErr, "Should return no error")
+
+		_, appErr = th.App.JoinUserToTeam(th.Context, team, ruser2, ruser1.Id)
+		require.NotNil(t, appErr, "Should fail")
 	})
 
-	t.Run("re-join alfter leaving with limit problem", func(t *testing.T) {
+	t.Run("re-join after leaving with limit problem", func(t *testing.T) {
 		user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		ruser1, _ := th.App.CreateUser(th.Context, &user1)
 
@@ -797,12 +776,15 @@ func TestJoinUserToTeam(t *testing.T) {
 		defer th.App.PermanentDeleteUser(th.Context, &user1)
 		defer th.App.PermanentDeleteUser(th.Context, &user2)
 
-		th.App.joinUserToTeam(team, ruser1)
-		th.App.LeaveTeam(th.Context, team, ruser1, ruser1.Id)
-		th.App.joinUserToTeam(team, ruser2)
+		_, appErr := th.App.JoinUserToTeam(th.Context, team, ruser1, ruser2.Id)
+		require.Nil(t, appErr, "Should return no error")
+		appErr = th.App.LeaveTeam(th.Context, team, ruser1, ruser1.Id)
+		require.Nil(t, appErr, "Should return no error")
+		_, appErr = th.App.JoinUserToTeam(th.Context, team, ruser2, ruser2.Id)
+		require.Nil(t, appErr, "Should return no error")
 
-		_, _, err = th.App.joinUserToTeam(team, ruser1)
-		require.NotNil(t, err, "Should fail")
+		_, appErr = th.App.JoinUserToTeam(th.Context, team, ruser1, ruser2.Id)
+		require.NotNil(t, appErr, "Should fail")
 	})
 
 	t.Run("new join with correct scheme_admin value from group syncable", func(t *testing.T) {
@@ -826,8 +808,8 @@ func TestJoinUserToTeam(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = model.NewInt(999) })
 
-		tm1, _, err := th.App.joinUserToTeam(team, ruser1)
-		require.Nil(t, err)
+		tm1, appErr := th.App.JoinUserToTeam(th.Context, team, ruser1, "")
+		require.Nil(t, appErr)
 		require.False(t, tm1.SchemeAdmin)
 
 		user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
@@ -841,10 +823,85 @@ func TestJoinUserToTeam(t *testing.T) {
 		_, err = th.App.UpdateGroupSyncable(gs)
 		require.Nil(t, err)
 
-		tm2, _, err := th.App.joinUserToTeam(team, ruser2)
-		require.Nil(t, err)
+		tm2, appErr := th.App.JoinUserToTeam(th.Context, team, ruser2, "")
+		require.Nil(t, appErr)
 		require.True(t, tm2.SchemeAdmin)
 	})
+}
+
+func TestLeaveTeamPanic(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockUserStore := mocks.UserStore{}
+	mockUserStore.On("Get", context.Background(), "userID").Return(&model.User{Id: "userID"}, nil)
+	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
+
+	mockChannelStore := mocks.ChannelStore{}
+	mockChannelStore.On("Get", "channelID", true).Return(&model.Channel{Id: "channelID"}, nil)
+	mockChannelStore.On("GetMember", context.Background(), "channelID", "userID").Return(&model.ChannelMember{
+		NotifyProps: model.StringMap{
+			model.PushNotifyProp: model.ChannelNotifyDefault,
+		}}, nil)
+	mockChannelStore.On("GetChannels", "myteam", "userID", mock.Anything).Return(model.ChannelList{}, nil)
+
+	var err error
+	th.App.ch.srv.userService, err = users.New(users.ServiceConfig{
+		UserStore:    &mockUserStore,
+		SessionStore: &mocks.SessionStore{},
+		OAuthStore:   &mocks.OAuthStore{},
+		ConfigFn:     th.App.ch.srv.Config,
+		LicenseFn:    th.App.ch.srv.License,
+	})
+	require.NoError(t, err)
+
+	mockPreferenceStore := mocks.PreferenceStore{}
+	mockPreferenceStore.On("Get", "userID", model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled).Return(&model.Preference{Value: "on"}, nil)
+
+	mockPostStore := mocks.PostStore{}
+	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+
+	mockSystemStore := mocks.SystemStore{}
+	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
+	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
+	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+	mockLicenseStore := mocks.LicenseStore{}
+	mockLicenseStore.On("Get", "").Return(&model.LicenseRecord{}, nil)
+
+	mockTeamStore := mocks.TeamStore{}
+	mockTeamStore.On("GetMember", sqlstore.WithMaster(context.Background()), "myteam", "userID").Return(&model.TeamMember{TeamId: "myteam", UserId: "userID"}, nil)
+	mockTeamStore.On("UpdateMember", mock.Anything).Return(nil, errors.New("repro error")) // This is the line that triggers the error
+
+	mockStore.On("Channel").Return(&mockChannelStore)
+	mockStore.On("Preference").Return(&mockPreferenceStore)
+	mockStore.On("Post").Return(&mockPostStore)
+	mockStore.On("User").Return(&mockUserStore)
+	mockStore.On("System").Return(&mockSystemStore)
+	mockStore.On("License").Return(&mockLicenseStore)
+	mockStore.On("Team").Return(&mockTeamStore)
+
+	team := &model.Team{Id: "myteam"}
+	user := &model.User{Id: "userID"}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages = false
+	})
+
+	th.App.ch.srv.teamService, err = teams.New(teams.ServiceConfig{
+		TeamStore:    &mockTeamStore,
+		ChannelStore: &mockChannelStore,
+		GroupStore:   &mocks.GroupStore{},
+		Users:        th.App.ch.srv.userService,
+		WebHub:       th.App.ch.srv,
+		ConfigFn:     th.App.ch.srv.Config,
+		LicenseFn:    th.App.ch.srv.License,
+	})
+	require.NoError(t, err)
+
+	require.NotPanics(t, func() {
+		th.App.LeaveTeam(th.Context, team, user, user.Id)
+	}, "unexpected panic from LeaveTeam")
 }
 
 func TestAppUpdateTeamScheme(t *testing.T) {
@@ -953,7 +1010,7 @@ func TestGetTeamMembers(t *testing.T) {
 			return users[i].Id < users[j].Id
 		})
 
-		// Fetch team members multipile times
+		// Fetch team members multiple times
 		members, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 5, nil)
 		require.Nil(t, err)
 
@@ -1094,6 +1151,29 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 		_, err = th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, "team_guest team_user")
 		require.NotNil(t, err, "Should work when you not modify guest role")
 	})
+}
+
+func TestInvalidateAllResendInviteEmailJobs(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	job, err := th.App.Srv().Jobs.CreateJob(model.JobTypeResendInvitationEmail, map[string]string{})
+	require.Nil(t, err)
+
+	sysVar := &model.System{Name: job.Id, Value: "0"}
+	e := th.App.Srv().Store.System().SaveOrUpdate(sysVar)
+	require.NoError(t, e)
+
+	appErr := th.App.InvalidateAllResendInviteEmailJobs()
+	require.Nil(t, appErr)
+
+	j, e := th.App.Srv().Store.Job().Get(job.Id)
+	require.NoError(t, e)
+	require.Equal(t, j.Status, model.JobStatusCanceled)
+
+	_, sysValErr := th.App.Srv().Store.System().GetByName(job.Id)
+	var errNotFound *store.ErrNotFound
+	require.ErrorAs(t, sysValErr, &errNotFound)
 }
 
 func TestInvalidateAllEmailInvites(t *testing.T) {

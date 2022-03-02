@@ -1,4 +1,3 @@
-
 ###  Developer Guidelines
 
 ``minio-go`` welcomes your contribution. To make the process as seamless as possible, we ask for the following:

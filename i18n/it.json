@@ -1175,7 +1175,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "errore raccolta"
+    "translation": "Errore nella raccolta."
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1314,10 +1314,6 @@
     "translation": "Parametro RooId non valido."
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Il canale è in sola lettura. Solo i membri con i permessi corretti possono pubblicare qui."
-  },
-  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Errore nel creare la pubblicazione."
   },
@@ -1374,10 +1370,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Impossibile aggiornare una pubblicazione in un canale eliminato."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Il canale è in sola lettura. Solo i membri con i permessi corretti possono bloccare o sbloccare le pubblicazioni in questo canale."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1458,10 +1450,6 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Non puoi salvare le reazioni di un altro utente."
-  },
-  {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Non è possibile reagire alle pubblicazioni nei canali in sola lettura."
   },
   {
     "id": "api.restricted_system_admin",
@@ -1829,7 +1817,7 @@
   },
   {
     "id": "api.templates.invite_body.title",
-    "translation": "Sei stato invitato"
+    "translation": "{{ .SenderName }} ti ha invitato ad unirti alla squadra {{ .TeamDisplayName }}."
   },
   {
     "id": "api.templates.invite_subject",
@@ -6284,14 +6272,6 @@
     "translation": "Scrivici"
   },
   {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Contattaci"
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Contattaci"
-  },
-  {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
     "translation": "Grazie per aver contattato Mattermost. Ti daremo riscontro presto."
   },
@@ -6386,10 +6366,6 @@
   {
     "id": "app.preference.delete.app_error",
     "translation": "Errore riscontrato durante l'eliminazione delle preferenze."
-  },
-  {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Impossibile trovare la metrica di avviso."
   },
   {
     "id": "api.user.delete_user.not_enabled.app_error",
@@ -6538,14 +6514,6 @@
   {
     "id": "app.system.warn_metric.store.app_error",
     "translation": "Errore durante il salvataggio del valore di {{.WarnMetricName}}"
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "La lista degli amministratori è vuota."
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Per saperne di più sul consigliere di Mattermost](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.system.warn_metric.bot_displayname",
@@ -6736,14 +6704,6 @@
     "translation": "La funzione di eliminazione definitiva squadra non è attiva. Contattare l'Amministratore di Sistema."
   },
   {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Ottieni prova"
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Richiedi prova"
-  },
-  {
     "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
     "translation": "Richiesta di contatto con Mattermost. La mia squadra adesso ha {{.Limit}} utenti e sto considerando l'edizione Enteprise di Mattermost.\n"
   },
@@ -6765,7 +6725,7 @@
   },
   {
     "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Forza Autenticazione Multifattore:"
+    "translation": "Forza Autenticazione Multifattore"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
@@ -7138,5 +7098,45 @@
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Impossibile recuperare i membri del canale"
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "La tua licenza non supporta le richieste di cloud."
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "Errore nell'ottenere l'abbonamento al cloud."
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "Impossibile ottenere le email degli amministratori di sistema."
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "L'evento webhook non è stato gestito. Manca oppure non è valido."
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "Errore interno durante la richiesta della cloud api."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Errore nell'invalidazione della cache"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "Un canale diretto non può essere creato tra questi utenti perché non condividono alcun team in comune."
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Ritorna a {{.SiteName}}"
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Impossibile azzerare il campo AuthData all'Email."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP non è disponibile."
   }
 ]

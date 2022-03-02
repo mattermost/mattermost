@@ -180,9 +180,10 @@ func (i *interceptLogger) StandardWriterIntercept(opts *StandardLoggerOptions) i
 
 func (i *interceptLogger) StandardWriter(opts *StandardLoggerOptions) io.Writer {
 	return &stdlogAdapter{
-		log:         i,
-		inferLevels: opts.InferLevels,
-		forceLevel:  opts.ForceLevel,
+		log:                      i,
+		inferLevels:              opts.InferLevels,
+		inferLevelsWithTimestamp: opts.InferLevelsWithTimestamp,
+		forceLevel:               opts.ForceLevel,
 	}
 }
 

@@ -888,7 +888,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "Ouvre la page des Paramètres du compte"
+    "translation": "Ouvre la page des paramètres"
   },
   {
     "id": "api.command_settings.name",
@@ -1314,10 +1314,6 @@
     "translation": "Paramètre RootId invalide"
   },
   {
-    "id": "api.post.create_post.town_square_read_only",
-    "translation": "Le canal est en lecture seule. Seuls les membres disposant de la permission peuvent poster ici."
-  },
-  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Une erreur s'est produite lors de la création du message"
   },
@@ -1374,10 +1370,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Le canal est en lecture seule. Seuls les membres disposant de la permission peuvent épingler ou désépingler des messages au canal."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1460,10 +1452,6 @@
     "translation": "Vous ne pouvez pas sauvegarder la réaction pour l'autre utilisateur."
   },
   {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Réagir aux messages n'est pas possible dans les canaux en lecture seule."
-  },
-  {
     "id": "api.restricted_system_admin",
     "translation": "This action is forbidden to a restricted system admin."
   },
@@ -1521,7 +1509,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\nCanaux ajoutés :\n"
+    "translation": "\nCanaux ajoutés :\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
@@ -1801,7 +1789,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "Pour modifier vos préférences de notification, connectez-vous à votre équipe et allez dans Paramètres du compte > Notifications."
+    "translation": "Pour modifier vos préférences de notification, connectez-vous à votre équipe et allez dans Paramètres > Notifications."
   },
   {
     "id": "api.templates.email_info1",
@@ -4365,7 +4353,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Identifiants de fichier invalide. Notez que les envois sont limités à 5 fichiers maximum. Veuillez utiliser d'autres messages pour envoyer plus de fichiers."
+    "translation": "Identifiants de fichier invalide. Notez que les envois sont limités à 10 fichiers maximum. Veuillez utiliser d'autres messages pour envoyer plus de fichiers."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4793,7 +4781,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.9+"
+    "translation": "macOS 10.14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -4801,7 +4789,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 60+"
+    "translation": "Version 78+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -4809,7 +4797,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 61+"
+    "translation": "Version 89+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -6520,10 +6508,6 @@
     "translation": "Impossible de récupérer les membres du canal."
   },
   {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Commencer l'essai"
-  },
-  {
     "id": "api.server.warn_metric.mfa.notification_title",
     "translation": "Imposer l'authentification multi-facteurs"
   },
@@ -6832,10 +6816,6 @@
     "translation": "La connexion de bot est interdite."
   },
   {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Impossible de trouver la valeur déclenchant un avertissement."
-  },
-  {
     "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
     "translation": "Impossible de trouver la valeur déclenchant un avertissement."
   },
@@ -6849,7 +6829,7 @@
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
-    "translation": "Vous devez accepter la contrat d'évaluation du logiciel Mattermost et la politique de confidentialité pour demander une licence."
+    "translation": "Vous devez accepter le contrat d'évaluation du logiciel Mattermost et la politique de confidentialité pour demander une licence."
   },
   {
     "id": "api.license.request_trial_license.no-site-url.app_error",
@@ -6878,10 +6858,6 @@
   {
     "id": "api.admin.ldap.not_available.app_error",
     "translation": "LDAP n'est pas disponible."
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[En savoir plus à propos du conseiller Mattermost] (https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "api.templates.invite_body_footer.learn_more",
@@ -6946,14 +6922,6 @@
   {
     "id": "api.server.warn_metric.email_domain.notification_title",
     "translation": "Création de comptes d'invités"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Nous contacter"
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Nous contacter"
   },
   {
     "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
@@ -7257,7 +7225,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "pour une expérience optimale sur PC, Mac, iOS et Android."
+    "translation": "pour une expérience optimale sur Windows, Linux, Mac, iOS et Android."
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info",
@@ -7592,10 +7560,6 @@
     "translation": "Impossible d'enregistrer la valeur pour {{.WarnMetricName}}"
   },
   {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "La liste des admins est vide."
-  },
-  {
     "id": "app.system.warn_metric.bot_displayname",
     "translation": "Conseiller Mattermost"
   },
@@ -7629,7 +7593,7 @@
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " et allez dans Paramètres du compte > Notifications"
+    "translation": " et allez dans Paramètres > Notifications"
   },
   {
     "id": "app.notification.body.mention.title",
@@ -8157,7 +8121,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Simplifiez votre travail avec des outils tels que Github, Google Calendar et Chrome. Explorez toutes les intégrations que nous proposons sur notre"
+    "translation": "Simplifiez votre travail avec des outils tels que Github, Jora et Zoom. Explorez toutes les intégrations que nous proposons sur notre"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -8169,7 +8133,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, votre essai de 14 jours de Mattermost Cloud Professional se termine dans 3 jours, le {{.TrialEnd}}. Veuillez ajouter vos informations de paiement pour que votre équipe puisse continuer à profiter des avantages de la version Cloud Professional."
+    "translation": "{{.Name}}, votre essai de 14 jours de Mattermost se termine dans 3 jours, le {{.TrialEnd}}. Veuillez ajouter vos informations de paiement pour que votre équipe puisse continuer à profiter des avantages de la version Mattermost Cloud."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -8185,7 +8149,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, votre essai gratuit de 14 jours de Mattermost Cloud Professional a pris fin aujourd'hui, {{.TodayDate}}. Veuillez ajouter vos informations de paiement pour que votre équipe puisse continuer à profiter des avantages de la version Cloud Professional."
+    "translation": "{{.Name}}, votre essai gratuit de 14 jours de Mattermost Cloud Enterprise a pris fin aujourd'hui, {{.TodayDate}}. Veuillez ajouter vos informations de paiement pour que votre équipe puisse continuer à profiter des avantages de la version Cloud Enterprise."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -8213,7 +8177,7 @@
   },
   {
     "id": "api.templates.at_limit_info1",
-    "translation": "Il semble que vous avez 10 utilisateurs ou plus dans votre espace de travail maintenant - c'est génial ! Si vous voulez inviter plus de membres de votre équipe, envisagez de vous mettre à niveau vers la version Mattermost Cloud Professional maintenant."
+    "translation": "Il semble que vous avez 10 utilisateurs ou plus dans votre espace de travail maintenant - c'est génial ! Si vous voulez inviter plus de membres de votre équipe, envisagez de vous mettre à niveau vers la version Mattermost Cloud maintenant."
   },
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
@@ -8242,18 +8206,6 @@
   {
     "id": "api.system.update_notices.fetch_failed",
     "translation": "La récupération des avis sur le produit a échoué"
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "Allez dans **Console système > Configuration du site > Personnalisation** pour définir l'adresse [e-mail d'assistance](https://docs.mattermost.com/administration/config-settings.html#support-email) comme l'adresse électronique du service d'assistance informatique interne de votre organisation pour les commentaires des utilisateurs finaux, les notifications par courriel et les demandes d'assistance."
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "Définissez votre adresse e-mail d'assistance"
-  },
-  {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Obtenir une version d'essai"
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
@@ -8712,7 +8664,7 @@
   },
   {
     "id": "api.templates.over_limit_info1",
-    "translation": "Il semble que vous ayez plus de 10 utilisateurs dans votre espace de travail, ce qui dépasse les limites du niveau gratuit de Mattermost Cloud Professional. Pour éviter toute perturbation de votre espace de travail Mattermost, veuillez effectuer une mise à niveau maintenant."
+    "translation": "Il semble que vous ayez plus de 10 utilisateurs dans votre espace de travail, ce qui dépasse les limites du niveau gratuit de Mattermost Cloud. Pour éviter toute perturbation de votre espace de travail Mattermost, veuillez effectuer une mise à niveau maintenant."
   },
   {
     "id": "api.templates.over_limit_90_days_subject",
@@ -8821,5 +8773,89 @@
   {
     "id": "api.config.reload_config.app_error",
     "translation": "Échec lors du rechargement de la configuration."
+  },
+  {
+    "id": "app.user.get_unread_count.app_error",
+    "translation": "Impossible de récupérer le nombre de messages non-lus pour cet utilisateur."
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "L'appartenance à des fils de cet utilisateur n'existe pas"
+  },
+  {
+    "id": "app.post.marshal.app_error",
+    "translation": "Impossible de préparer le message."
+  },
+  {
+    "id": "app.user.promote_guest.user_update.app_error",
+    "translation": "Échec de mise à jour de l'utilisateur."
+  },
+  {
+    "id": "app.user.missing_account.const",
+    "translation": "Impossible de trouver l'utilisateur."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "ThreadAutoFollow doit être à vrai pour activer CollapsedThreads"
+  },
+  {
+    "id": "app.user.update_thread_follow_for_user.app_error",
+    "translation": "Impossible de mettre à jour le statut de suivi pour le fil de discussion"
+  },
+  {
+    "id": "app.user.search.app_error",
+    "translation": "Impossible de trouver des utilisateurs qui correspondent aux paramètres de recherche spécifiés."
+  },
+  {
+    "id": "app.user.save.username_exists.app_error",
+    "translation": "Un compte avec ce nom d'utilisateur existe déjà."
+  },
+  {
+    "id": "app.user.save.existing.app_error",
+    "translation": "Il faut appeler la mise à jour pour un utilisateur existant."
+  },
+  {
+    "id": "app.user.save.email_exists.app_error",
+    "translation": "Un compte avec cette adresse e-mail existe déjà."
+  },
+  {
+    "id": "app.user.save.app_error",
+    "translation": "Impossible de sauvegarder le compte."
+  },
+  {
+    "id": "app.user.permanent_delete.app_error",
+    "translation": "Impossible de supprimer le compte existant."
+  },
+  {
+    "id": "app.user.get_users_batch_for_indexing.get_users.app_error",
+    "translation": "Impossible de récupérer le lot d'utilisateurs à indexer."
+  },
+  {
+    "id": "app.user.get_threads_for_user.not_found",
+    "translation": "Le fil de discussion de l'utilisateur n'existe pas ou n'est pas suivi"
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Impossible de mettre à jour le statut personnalisé. Merci d'ajouter une émoticône, un texte de statut personnalisé ou les deux."
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "L’adresse e-mail dans le  token ne correspond pas à celui des données utilisateur."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "La réponse SAML est trop longue"
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "rappel"
+  },
+  {
+    "id": "api.post.posts_by_ids.invalid_body.request_error",
+    "translation": "Le nombre d'ID de poste reçu a dépassé la taille maximale de {{.MaxLength}}"
+  },
+  {
+    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
+    "translation": "Le renouvellement de cette licence sur le portail n'est pas possible"
   }
 ]

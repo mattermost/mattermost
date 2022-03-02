@@ -76,8 +76,8 @@ var allowedBlockTags = map[string]bool{
 	"ul":         true,
 }
 
-var htmlBlockType1OpenRegexp = regexp.MustCompile(`(?i)^[ ]{0,3}<(script|pre|style)(?:\s.*|>.*|/>.*|)\n?$`)
-var htmlBlockType1CloseRegexp = regexp.MustCompile(`(?i)^.*</(?:script|pre|style)>.*`)
+var htmlBlockType1OpenRegexp = regexp.MustCompile(`(?i)^[ ]{0,3}<(script|pre|style|textarea)(?:\s.*|>.*|/>.*|)(?:\r\n|\n)?$`)
+var htmlBlockType1CloseRegexp = regexp.MustCompile(`(?i)^.*</(?:script|pre|style|textarea)>.*`)
 
 var htmlBlockType2OpenRegexp = regexp.MustCompile(`^[ ]{0,3}<!\-\-`)
 var htmlBlockType2Close = []byte{'-', '-', '>'}
@@ -85,15 +85,15 @@ var htmlBlockType2Close = []byte{'-', '-', '>'}
 var htmlBlockType3OpenRegexp = regexp.MustCompile(`^[ ]{0,3}<\?`)
 var htmlBlockType3Close = []byte{'?', '>'}
 
-var htmlBlockType4OpenRegexp = regexp.MustCompile(`^[ ]{0,3}<![A-Z]+.*\n?$`)
+var htmlBlockType4OpenRegexp = regexp.MustCompile(`^[ ]{0,3}<![A-Z]+.*(?:\r\n|\n)?$`)
 var htmlBlockType4Close = []byte{'>'}
 
 var htmlBlockType5OpenRegexp = regexp.MustCompile(`^[ ]{0,3}<\!\[CDATA\[`)
 var htmlBlockType5Close = []byte{']', ']', '>'}
 
-var htmlBlockType6Regexp = regexp.MustCompile(`^[ ]{0,3}</?([a-zA-Z0-9]+)(?:\s.*|>.*|/>.*|)\n?$`)
+var htmlBlockType6Regexp = regexp.MustCompile(`^[ ]{0,3}<(?:/[ ]*)?([a-zA-Z]+[a-zA-Z0-9\-]*)(?:[ ].*|>.*|/>.*|)(?:\r\n|\n)?$`)
 
-var htmlBlockType7Regexp = regexp.MustCompile(`^[ ]{0,3}<(/)?([a-zA-Z0-9\-]+)(` + attributePattern + `*)(:?>|/>)\s*\n?$`)
+var htmlBlockType7Regexp = regexp.MustCompile(`^[ ]{0,3}<(/[ ]*)?([a-zA-Z]+[a-zA-Z0-9\-]*)(` + attributePattern + `*)[ ]*(?:>|/>)[ ]*(?:\r\n|\n)?$`)
 
 type htmlBlockParser struct {
 }
@@ -201,7 +201,7 @@ func (b *htmlBlockParser) Continue(node ast.Node, reader text.Reader, pc Context
 		}
 		if bytes.Contains(line, closurePattern) {
 			htmlBlock.ClosureLine = segment
-			reader.Advance(segment.Len() - 1)
+			reader.Advance(segment.Len())
 			return Close
 		}
 

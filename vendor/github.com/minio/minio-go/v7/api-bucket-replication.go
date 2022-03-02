@@ -27,17 +27,18 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7/pkg/replication"
 	"github.com/minio/minio-go/v7/pkg/s3utils"
 )
 
 // RemoveBucketReplication removes a replication config on an existing bucket.
-func (c Client) RemoveBucketReplication(ctx context.Context, bucketName string) error {
+func (c *Client) RemoveBucketReplication(ctx context.Context, bucketName string) error {
 	return c.removeBucketReplication(ctx, bucketName)
 }
 
 // SetBucketReplication sets a replication config on an existing bucket.
-func (c Client) SetBucketReplication(ctx context.Context, bucketName string, cfg replication.Config) error {
+func (c *Client) SetBucketReplication(ctx context.Context, bucketName string, cfg replication.Config) error {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return err
@@ -52,7 +53,7 @@ func (c Client) SetBucketReplication(ctx context.Context, bucketName string, cfg
 }
 
 // Saves a new bucket replication.
-func (c Client) putBucketReplication(ctx context.Context, bucketName string, cfg replication.Config) error {
+func (c *Client) putBucketReplication(ctx context.Context, bucketName string, cfg replication.Config) error {
 	// Get resources properly escaped and lined up before
 	// using them in http request.
 	urlValues := make(url.Values)
@@ -85,7 +86,7 @@ func (c Client) putBucketReplication(ctx context.Context, bucketName string, cfg
 }
 
 // Remove replication from a bucket.
-func (c Client) removeBucketReplication(ctx context.Context, bucketName string) error {
+func (c *Client) removeBucketReplication(ctx context.Context, bucketName string) error {
 	// Get resources properly escaped and lined up before
 	// using them in http request.
 	urlValues := make(url.Values)
@@ -106,7 +107,7 @@ func (c Client) removeBucketReplication(ctx context.Context, bucketName string) 
 
 // GetBucketReplication fetches bucket replication configuration.If config is not
 // found, returns empty config with nil error.
-func (c Client) GetBucketReplication(ctx context.Context, bucketName string) (cfg replication.Config, err error) {
+func (c *Client) GetBucketReplication(ctx context.Context, bucketName string) (cfg replication.Config, err error) {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return cfg, err
@@ -123,7 +124,7 @@ func (c Client) GetBucketReplication(ctx context.Context, bucketName string) (cf
 }
 
 // Request server for current bucket replication config.
-func (c Client) getBucketReplication(ctx context.Context, bucketName string) (cfg replication.Config, err error) {
+func (c *Client) getBucketReplication(ctx context.Context, bucketName string) (cfg replication.Config, err error) {
 	// Get resources properly escaped and lined up before
 	// using them in http request.
 	urlValues := make(url.Values)
@@ -152,7 +153,7 @@ func (c Client) getBucketReplication(ctx context.Context, bucketName string) (cf
 }
 
 // GetBucketReplicationMetrics fetches bucket replication status metrics
-func (c Client) GetBucketReplicationMetrics(ctx context.Context, bucketName string) (s replication.Metrics, err error) {
+func (c *Client) GetBucketReplicationMetrics(ctx context.Context, bucketName string) (s replication.Metrics, err error) {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return s, err
@@ -187,12 +188,38 @@ func (c Client) GetBucketReplicationMetrics(ctx context.Context, bucketName stri
 	return s, nil
 }
 
+// mustGetUUID - get a random UUID.
+func mustGetUUID() string {
+	u, err := uuid.NewRandom()
+	if err != nil {
+		return ""
+	}
+	return u.String()
+}
+
 // ResetBucketReplication kicks off replication of previously replicated objects if ExistingObjectReplication
 // is enabled in the replication config
-func (c Client) ResetBucketReplication(ctx context.Context, bucketName string, olderThan time.Duration) (resetID string, err error) {
+func (c *Client) ResetBucketReplication(ctx context.Context, bucketName string, olderThan time.Duration) (rID string, err error) {
+	rID = mustGetUUID()
+	_, err = c.resetBucketReplicationOnTarget(ctx, bucketName, olderThan, "", rID)
+	if err != nil {
+		return rID, err
+	}
+	return rID, nil
+}
+
+// ResetBucketReplicationOnTarget kicks off replication of previously replicated objects if
+// ExistingObjectReplication is enabled in the replication config
+func (c *Client) ResetBucketReplicationOnTarget(ctx context.Context, bucketName string, olderThan time.Duration, tgtArn string) (replication.ResyncTargetsInfo, error) {
+	return c.resetBucketReplicationOnTarget(ctx, bucketName, olderThan, tgtArn, mustGetUUID())
+}
+
+// ResetBucketReplication kicks off replication of previously replicated objects if ExistingObjectReplication
+// is enabled in the replication config
+func (c *Client) resetBucketReplicationOnTarget(ctx context.Context, bucketName string, olderThan time.Duration, tgtArn string, resetID string) (rinfo replication.ResyncTargetsInfo, err error) {
 	// Input validation.
-	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
-		return "", err
+	if err = s3utils.CheckValidBucketName(bucketName); err != nil {
+		return
 	}
 	// Get resources properly escaped and lined up before
 	// using them in http request.
@@ -201,7 +228,10 @@ func (c Client) ResetBucketReplication(ctx context.Context, bucketName string, o
 	if olderThan > 0 {
 		urlValues.Set("older-than", olderThan.String())
 	}
-
+	if tgtArn != "" {
+		urlValues.Set("arn", tgtArn)
+	}
+	urlValues.Set("reset-id", resetID)
 	// Execute GET on bucket to get replication config.
 	resp, err := c.executeMethod(ctx, http.MethodPut, requestMetadata{
 		bucketName:  bucketName,
@@ -210,19 +240,49 @@ func (c Client) ResetBucketReplication(ctx context.Context, bucketName string, o
 
 	defer closeResponse(resp)
 	if err != nil {
-		return "", err
+		return rinfo, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return "", httpRespToErrorResponse(resp, bucketName, "")
-	}
-	respBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
+		return rinfo, httpRespToErrorResponse(resp, bucketName, "")
 	}
 
-	if err := json.Unmarshal(respBytes, &resetID); err != nil {
-		return "", err
+	if err = json.NewDecoder(resp.Body).Decode(&rinfo); err != nil {
+		return rinfo, err
 	}
-	return resetID, nil
+	return rinfo, nil
+}
+
+// GetBucketReplicationResyncStatus gets the status of replication resync
+func (c *Client) GetBucketReplicationResyncStatus(ctx context.Context, bucketName, arn string) (rinfo replication.ResyncTargetsInfo, err error) {
+	// Input validation.
+	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
+		return rinfo, err
+	}
+	// Get resources properly escaped and lined up before
+	// using them in http request.
+	urlValues := make(url.Values)
+	urlValues.Set("replication-reset-status", "")
+	if arn != "" {
+		urlValues.Set("arn", arn)
+	}
+	// Execute GET on bucket to get replication config.
+	resp, err := c.executeMethod(ctx, http.MethodGet, requestMetadata{
+		bucketName:  bucketName,
+		queryValues: urlValues,
+	})
+
+	defer closeResponse(resp)
+	if err != nil {
+		return rinfo, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return rinfo, httpRespToErrorResponse(resp, bucketName, "")
+	}
+
+	if err = json.NewDecoder(resp.Body).Decode(&rinfo); err != nil {
+		return rinfo, err
+	}
+	return rinfo, nil
 }

@@ -17,6 +17,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/app/teams"
 	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -209,8 +210,17 @@ func (a *App) importTeam(c *request.Context, data *TeamImportData, dryRun bool) 
 			return err
 		}
 	} else {
-		if _, err := a.updateTeamUnsanitized(team); err != nil {
-			return err
+		if _, err := a.ch.srv.teamService.UpdateTeam(team, teams.UpdateOptions{Imported: true}); err != nil {
+			var invErr *store.ErrInvalidInput
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(err, &nfErr):
+				return model.NewAppError("BulkImport", "app.team.get.find.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			case errors.As(err, &invErr):
+				return model.NewAppError("BulkImport", "app.team.update.find.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			default:
+				return model.NewAppError("BulkImport", "app.team.update.updating.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
 		}
 	}
 
@@ -485,7 +495,7 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 	var savedUser *model.User
 	var err error
 	if user.Id == "" {
-		if savedUser, err = a.srv.userService.CreateUser(user, users.UserCreateOptions{FromImport: true}); err != nil {
+		if savedUser, err = a.ch.srv.userService.CreateUser(user, users.UserCreateOptions{FromImport: true}); err != nil {
 			var appErr *model.AppError
 			var invErr *store.ErrInvalidInput
 			switch {
@@ -1108,6 +1118,12 @@ func (a *App) importReplies(c *request.Context, data []ReplyImportData, post *mo
 		reply.RootId = post.Id
 		reply.Message = *replyData.Message
 		reply.CreateAt = *replyData.CreateAt
+		if replyData.Type != nil {
+			reply.Type = *replyData.Type
+		}
+		if replyData.EditAt != nil {
+			reply.EditAt = *replyData.EditAt
+		}
 
 		fileIDs := a.uploadAttachments(c, replyData.Attachments, reply, teamID)
 		for _, fileID := range reply.FileIds {
@@ -1382,6 +1398,12 @@ func (a *App) importMultiplePostLines(c *request.Context, lines []LineImportWork
 		post.CreateAt = *line.Post.CreateAt
 		post.Hashtags, _ = model.ParseHashtags(post.Message)
 
+		if line.Post.Type != nil {
+			post.Type = *line.Post.Type
+		}
+		if line.Post.EditAt != nil {
+			post.EditAt = *line.Post.EditAt
+		}
 		if line.Post.Props != nil {
 			post.Props = *line.Post.Props
 		}
@@ -1684,6 +1706,12 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 		post.CreateAt = *line.DirectPost.CreateAt
 		post.Hashtags, _ = model.ParseHashtags(post.Message)
 
+		if line.DirectPost.Type != nil {
+			post.Type = *line.DirectPost.Type
+		}
+		if line.DirectPost.EditAt != nil {
+			post.EditAt = *line.DirectPost.EditAt
+		}
 		if line.DirectPost.Props != nil {
 			post.Props = *line.DirectPost.Props
 		}
@@ -1785,8 +1813,13 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 }
 
 func (a *App) importEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
-	if err := validateEmojiImportData(data); err != nil {
-		return err
+	aerr := validateEmojiImportData(data)
+	if aerr != nil {
+		if aerr.Id == "model.emoji.system_emoji_name.app_error" {
+			mlog.Warn("Skipping emoji import due to name conflict with system emoji", mlog.String("emoji_name", *data.Name))
+			return nil
+		}
+		return aerr
 	}
 
 	// If this is a Dry Run, do not continue any further.

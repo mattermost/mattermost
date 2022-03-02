@@ -19,29 +19,41 @@ package minio
 
 import (
 	"context"
+	"encoding/xml"
 	"net/http"
 	"net/url"
 )
 
+// Grantee represents the person being granted permissions.
+type Grantee struct {
+	XMLName     xml.Name `xml:"Grantee"`
+	ID          string   `xml:"ID"`
+	DisplayName string   `xml:"DisplayName"`
+	URI         string   `xml:"URI"`
+}
+
+// Grant holds grant information
+type Grant struct {
+	XMLName    xml.Name `xml:"Grant"`
+	Grantee    Grantee
+	Permission string `xml:"Permission"`
+}
+
+// AccessControlList contains the set of grantees and the permissions assigned to each grantee.
+type AccessControlList struct {
+	XMLName    xml.Name `xml:"AccessControlList"`
+	Grant      []Grant
+	Permission string `xml:"Permission"`
+}
+
 type accessControlPolicy struct {
-	Owner struct {
-		ID          string `xml:"ID"`
-		DisplayName string `xml:"DisplayName"`
-	} `xml:"Owner"`
-	AccessControlList struct {
-		Grant []struct {
-			Grantee struct {
-				ID          string `xml:"ID"`
-				DisplayName string `xml:"DisplayName"`
-				URI         string `xml:"URI"`
-			} `xml:"Grantee"`
-			Permission string `xml:"Permission"`
-		} `xml:"Grant"`
-	} `xml:"AccessControlList"`
+	XMLName           xml.Name `xml:"AccessControlPolicy"`
+	Owner             Owner
+	AccessControlList AccessControlList
 }
 
 // GetObjectACL get object ACLs
-func (c Client) GetObjectACL(ctx context.Context, bucketName, objectName string) (*ObjectInfo, error) {
+func (c *Client) GetObjectACL(ctx context.Context, bucketName, objectName string) (*ObjectInfo, error) {
 	resp, err := c.executeMethod(ctx, http.MethodGet, requestMetadata{
 		bucketName: bucketName,
 		objectName: objectName,
@@ -64,7 +76,7 @@ func (c Client) GetObjectACL(ctx context.Context, bucketName, objectName string)
 		return nil, err
 	}
 
-	objInfo, err := c.statObject(ctx, bucketName, objectName, StatObjectOptions{})
+	objInfo, err := c.StatObject(ctx, bucketName, objectName, StatObjectOptions{})
 	if err != nil {
 		return nil, err
 	}

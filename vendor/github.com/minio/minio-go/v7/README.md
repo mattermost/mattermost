@@ -1,4 +1,4 @@
-# MinIO Go Client SDK for Amazon S3 Compatible Cloud Storage [![Slack](https://slack.min.io/slack?type=svg)](https://slack.min.io) [![Sourcegraph](https://sourcegraph.com/github.com/minio/minio-go/-/badge.svg)](https://sourcegraph.com/github.com/minio/minio-go?badge) [![Apache V2 License](http://img.shields.io/badge/license-Apache%20V2-blue.svg)](https://github.com/minio/minio-go/blob/master/LICENSE)
+# MinIO Go Client SDK for Amazon S3 Compatible Cloud Storage [![Slack](https://slack.min.io/slack?type=svg)](https://slack.min.io) [![Sourcegraph](https://sourcegraph.com/github.com/minio/minio-go/-/badge.svg)](https://sourcegraph.com/github.com/minio/minio-go?badge) [![Apache V2 License](https://img.shields.io/badge/license-Apache%20V2-blue.svg)](https://github.com/minio/minio-go/blob/master/LICENSE)
 
 The MinIO Go Client SDK provides simple APIs to access any Amazon S3 compatible object storage.
 
@@ -8,7 +8,7 @@ This document assumes that you have a working [Go development environment](https
 
 ## Download from Github
 ```sh
-GO111MODULE=on go get github.com/minio/minio-go/v7
+go get github.com/minio/minio-go/v7
 ```
 
 ## Initialize MinIO Client
@@ -115,7 +115,6 @@ func main() {
 
 ### Run FileUploader
 ```sh
-export GO111MODULE=on
 go run file-uploader.go
 2016/08/13 17:03:28 Successfully created mymusic
 2016/08/13 17:03:40 Successfully uploaded golden-oldies.zip of size 16253413
@@ -171,9 +170,9 @@ The full API Reference is available here.
 * [`PresignedPostPolicy`](https://docs.min.io/docs/golang-client-api-reference#PresignedPostPolicy)
 
 ### API Reference : Client custom settings
-* [`SetAppInfo`](http://docs.min.io/docs/golang-client-api-reference#SetAppInfo)
-* [`TraceOn`](http://docs.min.io/docs/golang-client-api-reference#TraceOn)
-* [`TraceOff`](http://docs.min.io/docs/golang-client-api-reference#TraceOff)
+* [`SetAppInfo`](https://docs.min.io/docs/golang-client-api-reference#SetAppInfo)
+* [`TraceOn`](https://docs.min.io/docs/golang-client-api-reference#TraceOn)
+* [`TraceOff`](https://docs.min.io/docs/golang-client-api-reference#TraceOff)
 
 ## Full Examples
 
@@ -215,14 +214,10 @@ The full API Reference is available here.
 ### Full Examples : File Object Operations
 * [fputobject.go](https://github.com/minio/minio-go/blob/master/examples/s3/fputobject.go)
 * [fgetobject.go](https://github.com/minio/minio-go/blob/master/examples/s3/fgetobject.go)
-* [fputobject-context.go](https://github.com/minio/minio-go/blob/master/examples/s3/fputobject-context.go)
-* [fgetobject-context.go](https://github.com/minio/minio-go/blob/master/examples/s3/fgetobject-context.go)
 
 ### Full Examples : Object Operations
 * [putobject.go](https://github.com/minio/minio-go/blob/master/examples/s3/putobject.go)
 * [getobject.go](https://github.com/minio/minio-go/blob/master/examples/s3/getobject.go)
-* [putobject-context.go](https://github.com/minio/minio-go/blob/master/examples/s3/putobject-context.go)
-* [getobject-context.go](https://github.com/minio/minio-go/blob/master/examples/s3/getobject-context.go)
 * [statobject.go](https://github.com/minio/minio-go/blob/master/examples/s3/statobject.go)
 * [copyobject.go](https://github.com/minio/minio-go/blob/master/examples/s3/copyobject.go)
 * [removeobject.go](https://github.com/minio/minio-go/blob/master/examples/s3/removeobject.go)
@@ -248,4 +243,4 @@ The full API Reference is available here.
 [Contributors Guide](https://github.com/minio/minio-go/blob/master/CONTRIBUTING.md)
 
 ## License
-This SDK is distributed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0), see [LICENSE](https://github.com/minio/minio-go/blob/master/LICENSE) and [NOTICE](https://github.com/minio/minio-go/blob/master/NOTICE) for more information.
+This SDK is distributed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0), see [LICENSE](https://github.com/minio/minio-go/blob/master/LICENSE) and [NOTICE](https://github.com/minio/minio-go/blob/master/NOTICE) for more information.
