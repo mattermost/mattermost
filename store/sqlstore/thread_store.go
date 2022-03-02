@@ -514,12 +514,6 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 // MarkAllAsReadByChannels marks thread membership for the given users in the given channels
 // as read. This is used by the application layer to keep threads up-to-date when CRT is disabled
 // for the enduser, avoiding an influx of unread threads when first turning the feature on.
-//
-// Note that an alternate implementation of this method using UPDATE FROM actually performed worse
-// than the subquery with the extra JOIN below. Since the query constrains itself only to threads
-// which have been updated since the last time the channel was viewed, the subquery outperforms
-// the UPDATE FROM as it forces a lookup of a small number of post ids (on average) instead of
-// using other indexes less efficiently to reach the same conclusion.
 func (s *SqlThreadStore) MarkAllAsReadByChannels(userID string, channelIDs []string) error {
 	now := model.GetMillis()
 
