@@ -187,6 +187,10 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(filestoreStatusKey, s[filestoreStatusKey])
 	}
 
+	if deviceID := r.FormValue("device_id"); deviceID != "" {
+		s["CanReceiveNotifications"] = c.App.SendTestPushNotification(deviceID)
+	}
+
 	if s[model.STATUS] != model.StatusOk {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
