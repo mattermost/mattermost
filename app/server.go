@@ -278,9 +278,6 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err2, "Unable to connect to cache provider")
 	}
 
-	// It is important to initialize the hub only after the global logger is set
-	// to avoid race conditions while logging from inside the hub.
-	s.HubStart()
 
 	// Step 6: Store.
 	// Depends on Step 1 (config), 4 (metrics, cluster) and 5 (cacheProvider).
@@ -355,6 +352,11 @@ func NewServer(options ...Option) (*Server, error) {
 
 		s.products[name] = prod
 	}
+
+	// It is important to initialize the hub only after the global logger is set
+	// to avoid race conditions while logging from inside the hub.
+	// Step 9: Hub depends on s.Channels() (step 8)
+	s.HubStart()
 
 	// -------------------------------------------------------------------------
 	// Everything below this is not order sensitive and safe to be moved around.
