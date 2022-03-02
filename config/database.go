@@ -27,6 +27,9 @@ import (
 // It is imposed by MySQL's default max_allowed_packet value of 4Mb.
 const MaxWriteLength = 4 * 1024 * 1024
 
+// We use the default migration table name of morph
+const migrationsTableName = "db_migrations"
+
 // DatabaseStore is a config store backed by a database.
 // Not to be used directly. Only to be used as a backing store for config.Store
 type DatabaseStore struct {
@@ -75,12 +78,18 @@ func NewDatabaseStore(dsn string) (ds *DatabaseStore, err error) {
 //
 // Uses MEDIUMTEXT on MySQL, and TEXT on sane databases.
 func initializeConfigurationsTable(db *sqlx.DB) error {
+	var count int
+	err := db.Get(&count, `SELECT COUNT(*) FROM `+migrationsTableName+` WHERE Name = 'create_configurations'`)
+	if err == nil && count != 0 {
+		return nil
+	}
+
 	mysqlCharset := ""
 	if db.DriverName() == "mysql" {
 		mysqlCharset = "DEFAULT CHARACTER SET utf8mb4"
 	}
 
-	_, err := db.Exec(`
+	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS Configurations (
 		    Id VARCHAR(26) PRIMARY KEY,
 		    Value TEXT NOT NULL,
@@ -91,18 +100,6 @@ func initializeConfigurationsTable(db *sqlx.DB) error {
 
 	if err != nil {
 		return errors.Wrap(err, "failed to create Configurations table")
-	}
-
-	_, err = db.Exec(`
-		CREATE TABLE IF NOT EXISTS ConfigurationFiles (
-		    Name VARCHAR(64) PRIMARY KEY,
-		    Data TEXT NOT NULL,
-		    CreateAt BIGINT NOT NULL,
-		    UpdateAt BIGINT NOT NULL
-		)
-	` + mysqlCharset)
-	if err != nil {
-		return errors.Wrap(err, "failed to create ConfigurationFiles table")
 	}
 
 	// Change from TEXT (65535 limit) to MEDIUM TEXT (16777215) on MySQL. This is a
@@ -117,7 +114,26 @@ func initializeConfigurationsTable(db *sqlx.DB) error {
 		if err != nil {
 			return errors.Wrap(err, "failed to alter Configurations table character set")
 		}
+	}
 
+	err = db.Get(&count, `SELECT COUNT(*) FROM `+migrationsTableName+` WHERE Name = 'create_configuration_files'`)
+	if err == nil && count != 0 {
+		return nil
+	}
+
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS ConfigurationFiles (
+		    Name VARCHAR(64) PRIMARY KEY,
+		    Data TEXT NOT NULL,
+		    CreateAt BIGINT NOT NULL,
+		    UpdateAt BIGINT NOT NULL
+		)
+	` + mysqlCharset)
+	if err != nil {
+		return errors.Wrap(err, "failed to create ConfigurationFiles table")
+	}
+
+	if db.DriverName() == "mysql" {
 		_, err = db.Exec(`ALTER TABLE ConfigurationFiles MODIFY Data MEDIUMTEXT`)
 		if err != nil {
 			return errors.Wrap(err, "failed to alter ConfigurationFiles table")
