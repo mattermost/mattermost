@@ -278,7 +278,6 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err2, "Unable to connect to cache provider")
 	}
 
-
 	// Step 6: Store.
 	// Depends on Step 1 (config), 4 (metrics, cluster) and 5 (cacheProvider).
 	if s.newStore == nil {
