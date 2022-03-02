@@ -515,6 +515,10 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 // as read. This is used by the application layer to keep threads up-to-date when CRT is disabled
 // for the enduser, avoiding an influx of unread threads when first turning the feature on.
 func (s *SqlThreadStore) MarkAllAsReadByChannels(userID string, channelIDs []string) error {
+	if len(channelIDs) == 0 {
+		return nil
+	}
+
 	now := model.GetMillis()
 
 	// TODO: Fork squirrel to include https://github.com/Masterminds/squirrel/pull/256 and
