@@ -14637,6 +14637,23 @@ func (a *OpenTracingAppLayer) SendPaymentFailedEmail(failedPayment *model.Failed
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) SendTestPushNotification(deviceID string) string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendTestPushNotification")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.SendTestPushNotification(deviceID)
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId string, destinationPluginId string) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ServeInterPluginRequest")

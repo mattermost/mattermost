@@ -1031,9 +1031,7 @@ func (h *testPushNotificationHandler) handleReq(w http.ResponseWriter, r *http.R
 
 		// Don't do any checking if it's a benchmark
 		if _, ok := h.t.(*testing.B); ok {
-			resp := model.NewOkPushResponse()
-			jsonData, _ := json.Marshal(&resp)
-			fmt.Fprintln(w, jsonData)
+			h.printResponse(w, model.NewOkPushResponse())
 			return
 		}
 
@@ -1042,9 +1040,7 @@ func (h *testPushNotificationHandler) handleReq(w http.ResponseWriter, r *http.R
 		var err error
 		if r.URL.Path == "/api/v1/send_push" {
 			if err = json.NewDecoder(r.Body).Decode(&notification); err != nil {
-				resp := model.NewErrorPushResponse("fail")
-				jsonData, _ := json.Marshal(&resp)
-				fmt.Fprintln(w, jsonData)
+				h.printResponse(w, model.NewErrorPushResponse("fail"))
 				return
 			}
 			// We verify that messages are being sent in order per-device.
@@ -1057,9 +1053,7 @@ func (h *testPushNotificationHandler) handleReq(w http.ResponseWriter, r *http.R
 			}
 		} else {
 			if err = json.NewDecoder(r.Body).Decode(&notificationAck); err != nil {
-				resp := model.NewErrorPushResponse("fail")
-				jsonData, _ := json.Marshal(&resp)
-				fmt.Fprintln(w, jsonData)
+				h.printResponse(w, model.NewErrorPushResponse("fail"))
 				return
 			}
 		}
@@ -1086,9 +1080,13 @@ func (h *testPushNotificationHandler) handleReq(w http.ResponseWriter, r *http.R
 				resp = model.NewRemovePushResponse()
 			}
 		}
-		jsonData, _ := json.Marshal(&resp)
-		fmt.Fprintln(w, jsonData)
+		h.printResponse(w, resp)
 	}
+}
+
+func (h *testPushNotificationHandler) printResponse(w http.ResponseWriter, resp model.PushResponse) {
+	jsonData, _ := json.Marshal(&resp)
+	fmt.Fprintln(w, string(jsonData))
 }
 
 func (h *testPushNotificationHandler) numReqs() int {
@@ -1237,6 +1235,33 @@ func TestUpdateMobileAppBadgeSync(t *testing.T) {
 	assert.Equal(t, model.PushTypeUpdateBadge, handler.notifications()[0].Type)
 	assert.Equal(t, 1, handler.notifications()[1].ContentAvailable)
 	assert.Equal(t, model.PushTypeUpdateBadge, handler.notifications()[1].Type)
+}
+
+func TestSendTestPushNotification(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	handler := &testPushNotificationHandler{t: t}
+	pushServer := httptest.NewServer(
+		http.HandlerFunc(handler.handleReq),
+	)
+	defer pushServer.Close()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+	})
+
+	// Per mock definition, first time will send remove, second time will send OK
+	result := th.App.SendTestPushNotification("platform:id")
+	assert.Equal(t, "false", result)
+	result = th.App.SendTestPushNotification("platform:id")
+	assert.Equal(t, "true", result)
+
+	// Server side verification.
+	// We verify that 2 requests have been sent, and also check the message contents.
+	require.Equal(t, 2, handler.numReqs())
+	assert.Equal(t, model.PushTypeTest, handler.notifications()[0].Type)
+	assert.Equal(t, model.PushTypeTest, handler.notifications()[1].Type)
 }
 
 func TestSendAckToPushProxy(t *testing.T) {
