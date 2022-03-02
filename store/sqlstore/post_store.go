@@ -1672,7 +1672,7 @@ func (s *SqlPostStore) buildSearchPostFilterClause(teamID string, fromUsers []st
 	}
 
 	// Sub-query builder.
-	sb := sq.Select("Id").From("Users, TeamMembers").Where(
+	sb := s.getSubQueryBuilder().Select("Id").From("Users, TeamMembers").Where(
 		sq.And{
 			sq.Eq{"TeamMembers.TeamId": teamID},
 			sq.Expr("Users.Id = TeamMembers.UserId"),
@@ -1796,9 +1796,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		baseQuery = baseQuery.Where(searchClause, termsClause)
 	}
 
-	inQuery := s.getQueryBuilder().Select("Id").
-		From("Channels, ChannelMembers").
-		Where("Id = ChannelId")
+	inQuery := s.getSubQueryBuilder().Select("Id").From("Channels, ChannelMembers").Where("Id = ChannelId")
 
 	if !params.IncludeDeletedChannels {
 		inQuery = inQuery.Where("DeleteAt = 0")

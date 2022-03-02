@@ -968,6 +968,10 @@ func (ss *SqlStore) getQueryBuilder() sq.StatementBuilderType {
 	return builder
 }
 
+func (ss *SqlStore) getSubQueryBuilder() sq.StatementBuilderType {
+	return sq.StatementBuilder.PlaceholderFormat(sq.Question)
+}
+
 func (ss *SqlStore) CheckIntegrity() <-chan model.IntegrityCheckResult {
 	results := make(chan model.IntegrityCheckResult)
 	go CheckRelationalIntegrity(ss, results)
