@@ -112,6 +112,7 @@ func (s *Server) takeInactivityAction() {
 	}
 
 	for _, user := range users {
+		user := user
 		if user.Email == "" {
 			mlog.Error("Invalid system admin email.", mlog.String("user_email", user.Email))
 			continue
