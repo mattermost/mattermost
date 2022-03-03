@@ -4636,10 +4636,6 @@
     "translation": "Unable to get the channel unread messages."
   },
   {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Unable to increment the mention count."
-  },
-  {
     "id": "app.channel.migrate_channel_members.select.app_error",
     "translation": "Failed to select the batch of channel members."
   },
