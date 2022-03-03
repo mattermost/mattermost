@@ -4,6 +4,7 @@
 package email
 
 import (
+	"os"
 	"strings"
 	"testing"
 
@@ -75,10 +76,28 @@ func TestSendInviteEmails(t *testing.T) {
 	t.Run("SendInviteEmails", func(t *testing.T) {
 		mail.DeleteMailBox(emailTo)
 
-		err := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil)
+		err := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false)
 		require.NoError(t, err)
 
 		verifyMailbox(t)
+	})
+
+	t.Run("SendInviteEmails can return error when SMTP connection fails", func(t *testing.T) {
+		originalPort := *th.service.config().EmailSettings.SMTPPort
+		th.UpdateConfig(func(cfg *model.Config) {
+			os.Setenv("MM_EMAILSETTINGS_SMTPPORT", "5432")
+			*cfg.EmailSettings.SMTPPort = "5432"
+		})
+		defer th.UpdateConfig(func(cfg *model.Config) {
+			os.Setenv("MM_EMAILSETTINGS_SMTPPORT", originalPort)
+			*cfg.EmailSettings.SMTPPort = originalPort
+		})
+
+		err := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, true)
+		require.Error(t, err)
+
+		err = th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false)
+		require.NoError(t, err)
 	})
 
 	t.Run("SendGuestInviteEmails", func(t *testing.T) {
@@ -93,10 +112,50 @@ func TestSendInviteEmails(t *testing.T) {
 			[]string{emailTo},
 			"http://testserver",
 			"hello world",
+			false,
 		)
 		require.NoError(t, err)
 
 		verifyMailbox(t)
+	})
+
+	t.Run("SendGuestInviteEmail can return error when SMTP connection fails", func(t *testing.T) {
+		originalPort := *th.service.config().EmailSettings.SMTPPort
+		th.UpdateConfig(func(cfg *model.Config) {
+			os.Setenv("MM_EMAILSETTINGS_SMTPPORT", "5432")
+			*cfg.EmailSettings.SMTPPort = "5432"
+		})
+		defer th.UpdateConfig(func(cfg *model.Config) {
+			os.Setenv("MM_EMAILSETTINGS_SMTPPORT", originalPort)
+			*cfg.EmailSettings.SMTPPort = originalPort
+		})
+
+		err := th.service.SendGuestInviteEmails(
+			th.BasicTeam,
+			[]*model.Channel{th.BasicChannel},
+			"test-user",
+			th.BasicUser.Id,
+			nil,
+			[]string{emailTo},
+			"http://testserver",
+			"hello world",
+			false,
+		)
+		require.NoError(t, err)
+
+		err = th.service.SendGuestInviteEmails(
+			th.BasicTeam,
+			[]*model.Channel{th.BasicChannel},
+			"test-user",
+			th.BasicUser.Id,
+			nil,
+			[]string{emailTo},
+			"http://testserver",
+			"hello world",
+			true,
+		)
+		require.Error(t, err)
+
 	})
 
 	t.Run("SendGuestInviteEmails should sanitize HTML input", func(t *testing.T) {
@@ -112,6 +171,7 @@ func TestSendInviteEmails(t *testing.T) {
 			[]string{emailTo},
 			"http://testserver",
 			message,
+			false,
 		)
 		require.NoError(t, err)
 

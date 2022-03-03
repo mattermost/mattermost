@@ -2549,24 +2549,32 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID s
 	return result, nil
 }
 
-func (s SqlChannelStore) IncrementMentionCount(channelId string, userId string, isRoot bool) error {
+func (s SqlChannelStore) IncrementMentionCount(channelId string, userIDs []string, isRoot bool) error {
 	now := model.GetMillis()
+
 	rootInc := 0
 	if isRoot {
 		rootInc = 1
 	}
-	_, err := s.GetMasterX().Exec(
-		`UPDATE
-			ChannelMembers
-		SET
-			MentionCount = MentionCount + 1,
-			MentionCountRoot = MentionCountRoot + ?,
-			LastUpdateAt = ?
-		WHERE
-			UserId = ?
-			AND ChannelId = ?`, rootInc, now, userId, channelId)
+
+	sql, args, err := s.getQueryBuilder().
+		Update("ChannelMembers").
+		Set("MentionCount", sq.Expr("MentionCount + 1")).
+		Set("MentionCountRoot", sq.Expr("MentionCountRoot + ?", rootInc)).
+		Set("LastUpdateAt", now).
+		Where(sq.Eq{
+			"UserId":    userIDs,
+			"ChannelId": channelId,
+		}).
+		ToSql()
+
 	if err != nil {
-		return errors.Wrapf(err, "failed to Update ChannelMembers with channelId=%s and userId=%s", channelId, userId)
+		return errors.Wrap(err, "IncrementMentionCount_Tosql")
+	}
+
+	_, err = s.GetMasterX().Exec(sql, args...)
+	if err != nil {
+		return errors.Wrapf(err, "failed to Update ChannelMembers with channelId=%s and userId=%v", channelId, userIDs)
 	}
 	return nil
 }
