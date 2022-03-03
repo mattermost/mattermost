@@ -4013,7 +4013,7 @@ func (a *OpenTracingAppLayer) FetchSamlMetadataFromIdp(url string) ([]byte, *mod
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) FileBackend() (filestore.FileBackend, *model.AppError) {
+func (a *OpenTracingAppLayer) FileBackend() filestore.FileBackend {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FileBackend")
 
@@ -4025,14 +4025,9 @@ func (a *OpenTracingAppLayer) FileBackend() (filestore.FileBackend, *model.AppEr
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.FileBackend()
+	resultVar0 := a.app.FileBackend()
 
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) FileExists(path string) (bool, *model.AppError) {
