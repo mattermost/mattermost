@@ -8455,7 +8455,7 @@ func (s *TimerLayerThreadStore) GetThreadUnreadReplyCount(threadMembership *mode
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) GetThreadsForUser(userId string, teamID string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
+func (s *TimerLayerThreadStore) GetThreadsForUser(userId string, teamID string, opts model.GetUserThreadsOpts) ([]*model.ThreadResponse, error) {
 	start := timemodule.Now()
 
 	result, err := s.ThreadStore.GetThreadsForUser(userId, teamID, opts)
@@ -8467,6 +8467,54 @@ func (s *TimerLayerThreadStore) GetThreadsForUser(userId string, teamID string, 
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetThreadsForUser", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) GetTotalThreads(userId string, teamID string, opts model.GetUserThreadsOpts) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.GetTotalThreads(userId, teamID, opts)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetTotalThreads", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) GetTotalUnreadMentions(userId string, teamID string, opts model.GetUserThreadsOpts) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.GetTotalUnreadMentions(userId, teamID, opts)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetTotalUnreadMentions", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) GetTotalUnreadThreads(userId string, teamID string, opts model.GetUserThreadsOpts) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.GetTotalUnreadThreads(userId, teamID, opts)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetTotalUnreadThreads", success, elapsed)
 	}
 	return result, err
 }
