@@ -17,6 +17,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
+	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/pkg/errors"
 )
@@ -48,6 +49,7 @@ type namer interface {
 type Channels struct {
 	srv    *Server
 	cfgSvc configSvc
+	filestore filestore.FileBackend
 
 	postActionCookieSecret []byte
 
@@ -129,6 +131,12 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 				return nil, errors.New("Config service does not contain Name method")
 			}
 			ch.cfgSvc = cfgSvc
+		case FilestoreKey:
+			filestore, ok := svc.(filestore.FileBackend)
+			if !ok {
+				return nil, errors.New("Filestore service did not satisfy FileBackend interface")
+			}
+			ch.filestore = filestore
 		}
 
 	}
