@@ -2086,9 +2086,9 @@ func (a *App) getNotificationsLog() (*model.FileData, string) {
 	var warning string
 
 	// Getting notifications.log
-	if *a.Srv().Config().NotificationLogSettings.EnableFile {
+	if *a.Config().NotificationLogSettings.EnableFile {
 		// notifications.log
-		notificationsLog := config.GetNotificationsLogFileLocation(*a.Srv().Config().LogSettings.FileLocation)
+		notificationsLog := config.GetNotificationsLogFileLocation(*a.Config().LogSettings.FileLocation)
 
 		notificationsLogFileData, notificationsLogFileDataErr := ioutil.ReadFile(notificationsLog)
 
@@ -2113,9 +2113,9 @@ func (a *App) getMattermostLog() (*model.FileData, string) {
 	var warning string
 
 	// Getting mattermost.log
-	if *a.Srv().Config().LogSettings.EnableFile {
+	if *a.Config().LogSettings.EnableFile {
 		// mattermost.log
-		mattermostLog := config.GetLogFileLocation(*a.Srv().Config().LogSettings.FileLocation)
+		mattermostLog := config.GetLogFileLocation(*a.Config().LogSettings.FileLocation)
 
 		mattermostLogFileData, mattermostLogFileDataErr := ioutil.ReadFile(mattermostLog)
 
