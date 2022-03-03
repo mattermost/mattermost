@@ -31,6 +31,13 @@ type configSvc interface {
 	SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError)
 }
 
+// licenseSvc is added to act as a starting point for future integrated products.
+// It has the same signature and functionality with the license related APIs of the plugin-api.
+type licenseSvc interface { // nolint: unused,deadcode
+	GetLicense() *model.License
+	RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError
+}
+
 // namer is an interface which enforces that
 // all services can return their names.
 type namer interface {
@@ -68,6 +75,9 @@ type Channels struct {
 	Compliance       einterfaces.ComplianceInterface
 	DataRetention    einterfaces.DataRetentionInterface
 	MessageExport    einterfaces.MessageExportInterface
+	Saml             einterfaces.SamlInterface
+	Notification     einterfaces.NotificationInterface
+	Ldap             einterfaces.LdapInterface
 
 	// These are used to prevent concurrent upload requests
 	// for a given upload session which could cause inconsistencies
@@ -120,6 +130,7 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 			}
 			ch.cfgSvc = cfgSvc
 		}
+
 	}
 	// We are passing a partially filled Channels struct so that the enterprise
 	// methods can have access to app methods.
@@ -136,6 +147,24 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 	}
 	if accountMigrationInterface != nil {
 		ch.AccountMigration = accountMigrationInterface(New(ServerConnector(ch)))
+	}
+	if ldapInterface != nil {
+		ch.Ldap = ldapInterface(New(ServerConnector(ch)))
+	}
+	if notificationInterface != nil {
+		ch.Notification = notificationInterface(New(ServerConnector(ch)))
+	}
+	if samlInterfaceNew != nil {
+		ch.Saml = samlInterfaceNew(New(ServerConnector(ch)))
+		if err := ch.Saml.ConfigureSP(); err != nil {
+			mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+		}
+
+		ch.AddConfigListener(func(_, _ *model.Config) {
+			if err := ch.Saml.ConfigureSP(); err != nil {
+				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+			}
+		})
 	}
 
 	var imgErr error

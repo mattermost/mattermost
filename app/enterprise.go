@@ -6,9 +6,7 @@ package app
 import (
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	ejobs "github.com/mattermost/mattermost-server/v6/einterfaces/jobs"
-	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface
@@ -65,9 +63,9 @@ func RegisterJobsElasticsearchIndexerInterface(f func(*Server) ejobs.IndexerJobI
 	jobsElasticsearchIndexerInterface = f
 }
 
-var jobsLdapSyncInterface func(*Server) ejobs.LdapSyncInterface
+var jobsLdapSyncInterface func(*App) ejobs.LdapSyncInterface
 
-func RegisterJobsLdapSyncInterface(f func(*Server) ejobs.LdapSyncInterface) {
+func RegisterJobsLdapSyncInterface(f func(*App) ejobs.LdapSyncInterface) {
 	jobsLdapSyncInterface = f
 }
 
@@ -77,9 +75,9 @@ func RegisterJobsCloudInterface(f func(*Server) ejobs.CloudJobInterface) {
 	jobsCloudInterface = f
 }
 
-var ldapInterface func(*Server) einterfaces.LdapInterface
+var ldapInterface func(*App) einterfaces.LdapInterface
 
-func RegisterLdapInterface(f func(*Server) einterfaces.LdapInterface) {
+func RegisterLdapInterface(f func(*App) einterfaces.LdapInterface) {
 	ldapInterface = f
 }
 
@@ -101,15 +99,15 @@ func RegisterMetricsInterface(f func(*Server) einterfaces.MetricsInterface) {
 	metricsInterface = f
 }
 
-var samlInterfaceNew func(*Server) einterfaces.SamlInterface
+var samlInterfaceNew func(*App) einterfaces.SamlInterface
 
-func RegisterNewSamlInterface(f func(*Server) einterfaces.SamlInterface) {
+func RegisterNewSamlInterface(f func(*App) einterfaces.SamlInterface) {
 	samlInterfaceNew = f
 }
 
-var notificationInterface func(*Server) einterfaces.NotificationInterface
+var notificationInterface func(*App) einterfaces.NotificationInterface
 
-func RegisterNotificationInterface(f func(*Server) einterfaces.NotificationInterface) {
+func RegisterNotificationInterface(f func(*App) einterfaces.NotificationInterface) {
 	notificationInterface = f
 }
 
@@ -133,27 +131,6 @@ func (s *Server) initEnterprise() {
 
 	if licenseInterface != nil {
 		s.LicenseManager = licenseInterface(s)
-	}
-
-	if ldapInterface != nil {
-		s.Ldap = ldapInterface(s)
-	}
-
-	if notificationInterface != nil {
-		s.Notification = notificationInterface(s)
-	}
-
-	if samlInterfaceNew != nil {
-		mlog.Debug("Loading SAML2 library")
-		s.Saml = samlInterfaceNew(s)
-		if err := s.Saml.ConfigureSP(); err != nil {
-			mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
-		}
-		s.AddConfigListener(func(_, cfg *model.Config) {
-			if err := s.Saml.ConfigureSP(); err != nil {
-				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
-			}
-		})
 	}
 
 	if cloudInterface != nil {

@@ -6,7 +6,6 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"strconv"
 	"sync"
 	"time"
@@ -30,70 +29,6 @@ func newSqlThreadStore(sqlStore *SqlStore) store.ThreadStore {
 	return &SqlThreadStore{
 		SqlStore: sqlStore,
 	}
-}
-
-func threadSliceColumns() []string {
-	return []string{"PostId", "ChannelId", "LastReplyAt", "ReplyCount", "Participants"}
-}
-
-func threadToSlice(thread *model.Thread) []interface{} {
-	return []interface{}{
-		thread.PostId,
-		thread.ChannelId,
-		thread.LastReplyAt,
-		thread.ReplyCount,
-		model.ArrayToJSON(thread.Participants),
-	}
-}
-
-func (s *SqlThreadStore) SaveMultiple(threads []*model.Thread) ([]*model.Thread, int, error) {
-	builder := s.getQueryBuilder().
-		Insert("Threads").
-		Columns(threadSliceColumns()...)
-	for _, thread := range threads {
-		builder = builder.Values(threadToSlice(thread)...)
-	}
-	query, args, err := builder.ToSql()
-	if err != nil {
-		return nil, -1, errors.Wrap(err, "thread_tosql")
-	}
-
-	if _, err := s.GetMasterX().Exec(query, args...); err != nil {
-		return nil, -1, errors.Wrap(err, "failed to save Post")
-	}
-
-	return threads, -1, nil
-}
-
-func (s *SqlThreadStore) Save(thread *model.Thread) (*model.Thread, error) {
-	threads, _, err := s.SaveMultiple([]*model.Thread{thread})
-	if err != nil {
-		return nil, err
-	}
-	return threads[0], nil
-}
-
-func (s *SqlThreadStore) Update(thread *model.Thread) (*model.Thread, error) {
-	jsonParticipants, err := json.Marshal(thread.Participants)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed marshaling thread participants")
-	}
-	query, args, err := s.getQueryBuilder().
-		Update("Threads").
-		Set("ChannelId", thread.ChannelId).
-		Set("ReplyCount", thread.ReplyCount).
-		Set("LastReplyAt", thread.LastReplyAt).
-		Set("Participants", string(jsonParticipants)).
-		Where(sq.Eq{"PostId": thread.PostId}).
-		ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "thread_tosql")
-	}
-	if _, err := s.GetMasterX().Exec(query, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to update thread with id=%s", thread.PostId)
-	}
-
-	return thread, nil
 }
 
 func (s *SqlThreadStore) Get(id string) (*model.Thread, error) {
@@ -575,6 +510,9 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 
 	return result, nil
 }
+
+// MarkAllAsReadInChannels marks all threads for the given user in the given channels as read from
+// the current time.
 func (s *SqlThreadStore) MarkAllAsReadInChannels(userID string, channelIDs []string) error {
 	threadIDs := []string{}
 
@@ -599,6 +537,7 @@ func (s *SqlThreadStore) MarkAllAsReadInChannels(userID string, channelIDs []str
 		Where(sq.Eq{"UserId": userID}).
 		Set("LastViewed", timestamp).
 		Set("UnreadMentions", 0).
+		Set("LastUpdated", model.GetMillis()).
 		ToSql()
 	if _, err := s.GetMasterX().Exec(query, args...); err != nil {
 		return errors.Wrapf(err, "failed to update thread read state for user id=%s", userID)
@@ -606,6 +545,9 @@ func (s *SqlThreadStore) MarkAllAsReadInChannels(userID string, channelIDs []str
 	return nil
 
 }
+
+// MarkAllAsRead marks all threads for the given user in the given team as read from the current
+// time.
 func (s *SqlThreadStore) MarkAllAsRead(userId, teamId string) error {
 	memberships, err := s.GetMembershipsForUser(userId, teamId)
 	if err != nil {
@@ -622,6 +564,7 @@ func (s *SqlThreadStore) MarkAllAsRead(userId, teamId string) error {
 		Where(sq.Eq{"UserId": userId}).
 		Set("LastViewed", timestamp).
 		Set("UnreadMentions", 0).
+		Set("LastUpdated", model.GetMillis()).
 		ToSql()
 	if _, err := s.GetMasterX().Exec(query, args...); err != nil {
 		return errors.Wrapf(err, "failed to update thread read state for user id=%s", userId)
@@ -629,30 +572,19 @@ func (s *SqlThreadStore) MarkAllAsRead(userId, teamId string) error {
 	return nil
 }
 
+// MarkAsRead marks the given thread for the given user as unread from the given timestamp.
 func (s *SqlThreadStore) MarkAsRead(userId, threadId string, timestamp int64) error {
 	query, args, _ := s.getQueryBuilder().
 		Update("ThreadMemberships").
 		Where(sq.Eq{"UserId": userId}).
 		Where(sq.Eq{"PostId": threadId}).
 		Set("LastViewed", timestamp).
+		Set("LastUpdated", model.GetMillis()).
 		ToSql()
 	if _, err := s.GetMasterX().Exec(query, args...); err != nil {
 		return errors.Wrapf(err, "failed to update thread read state for user id=%s thread_id=%v", userId, threadId)
 	}
 	return nil
-}
-
-func (s *SqlThreadStore) Delete(threadId string) error {
-	query, args, _ := s.getQueryBuilder().Delete("Threads").Where(sq.Eq{"PostId": threadId}).ToSql()
-	if _, err := s.GetMasterX().Exec(query, args...); err != nil {
-		return errors.Wrap(err, "failed to update threads")
-	}
-
-	return nil
-}
-
-func (s *SqlThreadStore) SaveMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error) {
-	return s.saveMembership(s.GetMasterX(), membership)
 }
 
 func (s *SqlThreadStore) saveMembership(ex sqlxExecutor, membership *model.ThreadMembership) (*model.ThreadMembership, error) {
@@ -875,19 +807,20 @@ func (s *SqlThreadStore) CollectThreadsWithNewerReplies(userId string, channelId
 	return changedThreads, nil
 }
 
-func (s *SqlThreadStore) UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64, updateViewedTimestamp bool) error {
-	if len(changedThreads) == 0 {
+// UpdateLastViewedByThreadIds marks the given threads as read up to the given timestamp. If there
+// are no newer posts, it effectively marks the thread as read. If there are newer posts, say
+// because the user explicitly marked a past post as unread, the thread will be considered unread
+// past the given timestamp.
+func (s *SqlThreadStore) UpdateLastViewedByThreadIds(userId string, threadIds []string, timestamp int64) error {
+	if len(threadIds) == 0 {
 		return nil
 	}
 
 	qb := s.getQueryBuilder().
 		Update("ThreadMemberships").
-		Where(sq.Eq{"UserId": userId, "PostId": changedThreads}).
-		Set("LastUpdated", timestamp)
-
-	if updateViewedTimestamp {
-		qb = qb.Set("LastViewed", timestamp)
-	}
+		Where(sq.Eq{"UserId": userId, "PostId": threadIds}).
+		Set("LastViewed", timestamp).
+		Set("LastUpdated", model.GetMillis())
 	updateQuery, updateArgs, _ := qb.ToSql()
 
 	if _, err := s.GetMasterX().Exec(updateQuery, updateArgs...); err != nil {
