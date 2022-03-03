@@ -41,8 +41,6 @@ func (srv *JobServer) InitSchedulers() error {
 	mlog.Debug("Initialising schedulers.")
 
 	schedulers := &Schedulers{
-		stop:                 make(chan bool),
-		stopped:              make(chan bool),
 		configChanged:        make(chan *model.Config),
 		clusterLeaderChanged: make(chan bool, 1),
 		jobs:                 srv,
@@ -63,6 +61,8 @@ func (schedulers *Schedulers) AddScheduler(name string, scheduler model.Schedule
 // Start starts the schedulers. This call is not safe for concurrent use.
 // Synchronization should be implemented by the caller.
 func (schedulers *Schedulers) Start() {
+	schedulers.stop = make(chan bool)
+	schedulers.stopped = make(chan bool)
 	schedulers.listenerId = schedulers.jobs.ConfigService.AddConfigListener(schedulers.handleConfigChange)
 
 	go func() {

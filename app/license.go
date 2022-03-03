@@ -132,8 +132,6 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 		}
 	}
 
-	fmt.Println("si está guardado 2")
-
 	defer func() {
 		// restart job server workers - this handles the edge case where a license file is uploaded, but the job server
 		// doesn't start until the server is restarted, which prevents the 'run job now' buttons in system console from
