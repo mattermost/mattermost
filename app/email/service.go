@@ -4,6 +4,7 @@
 package email
 
 import (
+	"io"
 	"net/url"
 	"path"
 
@@ -13,6 +14,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/templates"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
@@ -47,8 +49,8 @@ type Service struct {
 	store       store.Store
 
 	templatesContainer      *templates.Container
-	PerHourEmailRateLimiter *throttled.GCRARateLimiter
-	PerDayEmailRateLimiter  *throttled.GCRARateLimiter
+	perHourEmailRateLimiter *throttled.GCRARateLimiter
+	perDayEmailRateLimiter  *throttled.GCRARateLimiter
 	EmailBatching           *EmailBatchingJob
 }
 
@@ -114,7 +116,56 @@ func (es *Service) setUpRateLimiters() error {
 		return errors.Wrap(err, "Unable to setup per day email rate limiting GCRA rate limiter.")
 	}
 
-	es.PerHourEmailRateLimiter = perHourRateLimiter
-	es.PerDayEmailRateLimiter = perDayRateLimiter
+	es.perHourEmailRateLimiter = perHourRateLimiter
+	es.perDayEmailRateLimiter = perDayRateLimiter
 	return nil
+}
+
+type ServiceInterface interface {
+	GetPerDayEmailRateLimiter() *throttled.GCRARateLimiter
+	NewEmailTemplateData(locale string) templates.Data
+	SendEmailChangeVerifyEmail(newUserEmail, locale, siteURL, token string) error
+	SendEmailChangeEmail(oldEmail, newEmail, locale, siteURL string) error
+	SendVerifyEmail(userEmail, locale, siteURL, token, redirect string) error
+	SendSignInChangeEmail(email, method, locale, siteURL string) error
+	SendWelcomeEmail(userID string, email string, verified bool, disableWelcomeEmail bool, locale, siteURL, redirect string) error
+	SendCloudTrialEndWarningEmail(userEmail, name, trialEndDate, locale, siteURL string) error
+	SendCloudTrialEndedEmail(userEmail, name, locale, siteURL string) error
+	SendCloudWelcomeEmail(userEmail, locale, teamInviteID, workSpaceName, dns, siteURL string) error
+	SendPasswordChangeEmail(email, method, locale, siteURL string) error
+	SendUserAccessTokenAddedEmail(email, locale, siteURL string) error
+	SendPasswordResetEmail(email string, token *model.Token, locale, siteURL string) (bool, error)
+	SendMfaChangeEmail(email string, activated bool, locale, siteURL string) error
+	SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, errorWhenNotSent bool) error
+	SendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string, errorWhenNotSent bool) error
+	SendDeactivateAccountEmail(email string, locale, siteURL string) error
+	SendNotificationMail(to, subject, htmlBody string) error
+	SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader) error
+	SendAtUserLimitWarningEmail(email string, locale string, siteURL string) (bool, error)
+	SendLicenseUpForRenewalEmail(email, name, locale, siteURL, renewalLink string, daysToExpiration int) error
+	SendUpgradeEmail(user, email, locale, siteURL, action string) (bool, error)
+	SendOverUserLimitWarningEmail(email string, locale string, siteURL string) (bool, error)
+	SendOverUserLimitThirtyDayWarningEmail(email string, locale string, siteURL string) (bool, error)
+	SendOverUserLimitNinetyDayWarningEmail(email string, locale string, siteURL string, overLimitDate string) (bool, error)
+	SendOverUserLimitWorkspaceSuspendedWarningEmail(email string, locale string, siteURL string) (bool, error)
+	SendOverUserFourteenDayWarningEmail(email string, locale string, siteURL string, overLimitDate string) (bool, error)
+	SendOverUserSevenDayWarningEmail(email string, locale string, siteURL string) (bool, error)
+	SendSuspensionEmailToSupport(email string, installationID string, customerID string, subscriptionID string, siteURL string, userCount int64) (bool, error)
+	SendPaymentFailedEmail(email string, locale string, failedPayment *model.FailedPayment, siteURL string) (bool, error)
+	SendNoCardPaymentFailedEmail(email string, locale string, siteURL string) error
+	SendRemoveExpiredLicenseEmail(renewalLink, email string, locale, siteURL string) error
+	AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError
+	GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string
+	InitEmailBatching()
+	SendChangeUsernameEmail(newUsername, email, locale, siteURL string) error
+	CreateVerifyEmailToken(userID string, newEmail string) (*model.Token, error)
+	SendLicenseInactivityEmail(email, name, locale, siteURL string) error
+}
+
+func (es *Service) GetPerDayEmailRateLimiter() *throttled.GCRARateLimiter {
+	return es.perDayEmailRateLimiter
+}
+
+func (es *Service) GetPerHourEmailRateLimiter() *throttled.GCRARateLimiter {
+	return es.perHourEmailRateLimiter
 }

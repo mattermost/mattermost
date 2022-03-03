@@ -16,13 +16,12 @@ import (
 )
 
 func TestThreadStore(t *testing.T, ss store.Store, s SqlStore) {
-	t.Run("ThreadSQLOperations", func(t *testing.T) { testThreadSQLOperations(t, ss, s) })
 	t.Run("ThreadStorePopulation", func(t *testing.T) { testThreadStorePopulation(t, ss) })
 	t.Run("ThreadStorePermanentDeleteBatchForRetentionPolicies", func(t *testing.T) {
 		testThreadStorePermanentDeleteBatchForRetentionPolicies(t, ss)
 	})
 	t.Run("ThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies", func(t *testing.T) {
-		testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t, ss)
+		testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t, ss, s)
 	})
 	t.Run("GetTeamsUnreadForUser", func(t *testing.T) { testGetTeamsUnreadForUser(t, ss) })
 }
@@ -263,61 +262,6 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		require.Nil(t, thread2)
 	})
 
-	t.Run("Thread last updated is changed when channel is updated after UpdateLastViewedAtPost", func(t *testing.T) {
-		newPosts := makeSomePosts()
-		opts := store.ThreadMembershipOpts{
-			Following:             true,
-			IncrementMentions:     false,
-			UpdateFollowing:       true,
-			UpdateViewedTimestamp: false,
-			UpdateParticipants:    false,
-		}
-		_, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
-		require.NoError(t, e)
-		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-		require.NoError(t, err1)
-		m.LastUpdated -= 1000
-		_, err := ss.Thread().UpdateMembership(m)
-		require.NoError(t, err)
-
-		_, err = ss.Channel().UpdateLastViewedAtPost(newPosts[0], newPosts[0].UserId, 0, 0, true, true)
-		require.NoError(t, err)
-
-		assert.Eventually(t, func() bool {
-			m2, err2 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-			require.NoError(t, err2)
-			return m2.LastUpdated > m.LastUpdated
-		}, time.Second, 10*time.Millisecond)
-	})
-
-	t.Run("Thread last updated is changed when channel is updated after IncrementMentionCount", func(t *testing.T) {
-		newPosts := makeSomePosts()
-
-		opts := store.ThreadMembershipOpts{
-			Following:             true,
-			IncrementMentions:     false,
-			UpdateFollowing:       true,
-			UpdateViewedTimestamp: false,
-			UpdateParticipants:    false,
-		}
-		_, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
-		require.NoError(t, e)
-		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-		require.NoError(t, err1)
-		m.LastUpdated -= 1000
-		_, err := ss.Thread().UpdateMembership(m)
-		require.NoError(t, err)
-
-		err = ss.Channel().IncrementMentionCount(newPosts[0].ChannelId, newPosts[0].UserId, true, false)
-		require.NoError(t, err)
-
-		assert.Eventually(t, func() bool {
-			m2, err2 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-			require.NoError(t, err2)
-			return m2.LastUpdated > m.LastUpdated
-		}, time.Second, 10*time.Millisecond)
-	})
-
 	t.Run("Thread last updated is changed when channel is updated after UpdateLastViewedAt", func(t *testing.T) {
 		newPosts := makeSomePosts()
 		opts := store.ThreadMembershipOpts{
@@ -392,33 +336,6 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		tm, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
 		require.NoError(t, e)
 		require.NotEqual(t, int64(0), tm.LastViewed)
-	})
-
-	t.Run("Thread last updated is changed when channel is updated after UpdateLastViewedAtPost for mark unread", func(t *testing.T) {
-		newPosts := makeSomePosts()
-		opts := store.ThreadMembershipOpts{
-			Following:             true,
-			IncrementMentions:     false,
-			UpdateFollowing:       true,
-			UpdateViewedTimestamp: false,
-			UpdateParticipants:    false,
-		}
-		_, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
-		require.NoError(t, e)
-		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-		require.NoError(t, err1)
-		m.LastUpdated += 1000
-		_, err := ss.Thread().UpdateMembership(m)
-		require.NoError(t, err)
-
-		_, err = ss.Channel().UpdateLastViewedAtPost(newPosts[0], newPosts[0].UserId, 0, 0, true, true)
-		require.NoError(t, err)
-
-		assert.Eventually(t, func() bool {
-			m2, err2 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-			require.NoError(t, err2)
-			return m2.LastUpdated < m.LastUpdated
-		}, time.Second, 10*time.Millisecond)
 	})
 
 	t.Run("Updating post does not make thread unread", func(t *testing.T) {
@@ -500,24 +417,6 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		unreads, err = ss.Thread().GetThreadUnreadReplyCount(m)
 		require.NoError(t, err)
 		require.Equal(t, int64(2), unreads)
-	})
-}
-
-func testThreadSQLOperations(t *testing.T, ss store.Store, s SqlStore) {
-	t.Run("Save", func(t *testing.T) {
-		threadToSave := &model.Thread{
-			PostId:       model.NewId(),
-			ChannelId:    model.NewId(),
-			LastReplyAt:  10,
-			ReplyCount:   5,
-			Participants: model.StringArray{model.NewId(), model.NewId()},
-		}
-		_, err := ss.Thread().Save(threadToSave)
-		require.NoError(t, err)
-
-		th, err := ss.Thread().Get(threadToSave.PostId)
-		require.NoError(t, err)
-		require.Equal(t, threadToSave, th)
 	})
 }
 
@@ -607,7 +506,7 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, ss st
 	assert.Nil(t, thread, "thread should have been deleted by team policy")
 }
 
-func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t *testing.T, ss store.Store) {
+func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t *testing.T, ss store.Store, s SqlStore) {
 	const limit = 1000
 	userID := model.NewId()
 	createThreadMembership := func(userID, postID string) *model.ThreadMembership {
@@ -695,7 +594,7 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	// Delete team policy and thread
 	err = ss.RetentionPolicy().Delete(teamPolicy.ID)
 	require.NoError(t, err)
-	err = ss.Thread().Delete(post.Id)
+	_, err = s.GetMasterX().Exec("DELETE FROM Threads WHERE PostId='" + post.Id + "'")
 	require.NoError(t, err)
 
 	deleted, err := ss.Thread().DeleteOrphanedRows(1000)
