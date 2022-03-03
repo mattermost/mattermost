@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
-	"strconv"
 	"strings"
 	"sync"
 
@@ -1588,35 +1587,35 @@ func (s *SqlPostStore) buildCreateDateFilterClause(params *model.SearchParams, b
 	if params.OnDate != "" {
 		onDateStart, onDateEnd := params.GetOnDateMillis()
 		// between `on date` start of day and end of day
-		builder = builder.Where("CreateAt BETWEEN ? AND ?", strconv.FormatInt(onDateStart, 10), strconv.FormatInt(onDateEnd, 10))
+		builder = builder.Where("CreateAt BETWEEN ? AND ?", onDateStart, onDateEnd)
 		return builder
 	}
 
 	if params.ExcludedDate != "" {
 		excludedDateStart, excludedDateEnd := params.GetExcludedDateMillis()
-		builder = builder.Where("CreateAt NOT BETWEEN ? AND ?", strconv.FormatInt(excludedDateStart, 10), strconv.FormatInt(excludedDateEnd, 10))
+		builder = builder.Where("CreateAt NOT BETWEEN ? AND ?", excludedDateStart, excludedDateEnd)
 	}
 
 	if params.AfterDate != "" {
 		afterDate := params.GetAfterDateMillis()
 		// greater than `after date`
-		builder = builder.Where("CreateAt >= ?", strconv.FormatInt(afterDate, 10))
+		builder = builder.Where("CreateAt >= ?", afterDate)
 	}
 
 	if params.BeforeDate != "" {
 		beforeDate := params.GetBeforeDateMillis()
 		// less than `before date`
-		builder = builder.Where("CreateAt <= ?", strconv.FormatInt(beforeDate, 10))
+		builder = builder.Where("CreateAt <= ?", beforeDate)
 	}
 
 	if params.ExcludedAfterDate != "" {
 		afterDate := params.GetExcludedAfterDateMillis()
-		builder = builder.Where("CreateAt < ?", strconv.FormatInt(afterDate, 10))
+		builder = builder.Where("CreateAt < ?", afterDate)
 	}
 
 	if params.ExcludedBeforeDate != "" {
 		beforeDate := params.GetExcludedBeforeDateMillis()
-		builder = builder.Where("CreateAt > ?", strconv.FormatInt(beforeDate, 10))
+		builder = builder.Where("CreateAt > ?", beforeDate)
 	}
 
 	return builder
@@ -1627,7 +1626,10 @@ func (s *SqlPostStore) buildSearchTeamFilterClause(teamId string, builder sq.Sel
 		return builder
 	}
 
-	return builder.Where("(TeamId = ? OR TeamId = '')", teamId)
+	return builder.Where(sq.Or{
+		sq.Eq{"TeamId": teamId},
+		sq.Eq{"TeamId": ""},
+	})
 }
 
 func (s *SqlPostStore) buildSearchChannelFilterClause(channels []string, exclusion bool, byName bool, builder sq.SelectBuilder) sq.SelectBuilder {
@@ -1742,7 +1744,8 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		// we've already confirmed that we have a channel or user to search for
 	} else if s.DriverName() == model.DatabaseDriverPostgres {
 		// Parse text for wildcards
-		if wildcard, err := regexp.Compile(`\*($| )`); err == nil {
+		var wildcard *regexp.Regexp
+		if wildcard, err = regexp.Compile(`\*($| )`); err == nil {
 			terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
 			excludedTerms = wildcard.ReplaceAllLiteralString(excludedTerms, ":* ")
 		}
@@ -1765,7 +1768,6 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		baseQuery = baseQuery.Where(searchClause, termsClause)
 	} else if s.DriverName() == model.DatabaseDriverMysql {
 		if searchType == "Message" {
-			var err error
 			terms, err = removeMysqlStopWordsFromTerms(terms)
 			if err != nil {
 				return nil, errors.Wrap(err, "failed to remove Mysql stop-words from terms")
@@ -1796,7 +1798,9 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		baseQuery = baseQuery.Where(searchClause, termsClause)
 	}
 
-	inQuery := s.getSubQueryBuilder().Select("Id").From("Channels, ChannelMembers").Where("Id = ChannelId")
+	inQuery := s.getSubQueryBuilder().Select("Id").
+		From("Channels, ChannelMembers").
+		Where("Id = ChannelId")
 
 	if !params.IncludeDeletedChannels {
 		inQuery = inQuery.Where("DeleteAt = 0")
