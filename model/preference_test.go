@@ -51,7 +51,7 @@ func TestPreferenceIsValid(t *testing.T) {
 func TestPreferencePreUpdate(t *testing.T) {
 	preference := Preference{
 		Category: PreferenceCategoryTheme,
-		Value:    `{"color": "#ff0000", "color2": "#faf", "codeTheme": "github", "invalid": "invalid"}`,
+		Value:    `{"color": "#ff0000", "color2": "#faf", "codeTheme": "github", "invalid": "invalid", "hideInVisualTesting": ".hide-post-header-time"}`,
 	}
 
 	preference.PreUpdate()
@@ -62,6 +62,7 @@ func TestPreferencePreUpdate(t *testing.T) {
 	require.Equal(t, "#ff0000", props["color"], "shouldn't have changed valid props")
 	require.Equal(t, "#faf", props["color2"], "shouldn't have changed valid props")
 	require.Equal(t, "github", props["codeTheme"], "shouldn't have changed valid props")
+	require.Equal(t, ".hide-post-header-time", props["hideInVisualTesting"], "shouldn't have changed valid props")
 
 	require.NotEqual(t, "invalid", props["invalid"], "should have changed invalid prop")
 }
