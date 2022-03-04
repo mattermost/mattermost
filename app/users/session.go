@@ -199,14 +199,14 @@ func (us *UserService) RevokeAccessToken(token string) error {
 	return nil
 }
 
-// SetSessionExpireInDays sets the session's expiry the specified number of days
+// SetSessionExpireInHours sets the session's expiry the specified number of hours
 // relative to either the session creation date or the current time, depending
 // on the `ExtendSessionOnActivity` config setting.
-func (us *UserService) SetSessionExpireInDays(session *model.Session, days int) {
+func (us *UserService) SetSessionExpireInHours(session *model.Session, hours int) {
 	if session.CreateAt == 0 || *us.config().ServiceSettings.ExtendSessionLengthWithActivity {
-		session.ExpiresAt = model.GetMillis() + (1000 * 60 * 60 * 24 * int64(days))
+		session.ExpiresAt = model.GetMillis() + (1000 * 60 * 60 * int64(hours))
 	} else {
-		session.ExpiresAt = session.CreateAt + (1000 * 60 * 60 * 24 * int64(days))
+		session.ExpiresAt = session.CreateAt + (1000 * 60 * 60 * int64(hours))
 	}
 }
 
