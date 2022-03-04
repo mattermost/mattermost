@@ -3121,7 +3121,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Enterprise has ended today, {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Enterprise."
+    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Enterprise has ended today, {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Enterprise. If you do not add your payment information within 30 days, we will delete your Cloud workspace permanently and you will lose any associated data."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
@@ -5998,6 +5998,10 @@
   {
     "id": "app.preference.save.updating.app_error",
     "translation": "We encountered an error while updating preferences."
+  },
+  {
+    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "translation": "Prepackged plugin version could not be parsed."
   },
   {
     "id": "app.reaction.bulk_get_for_post_ids.app_error",
