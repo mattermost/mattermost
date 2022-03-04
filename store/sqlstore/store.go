@@ -152,6 +152,11 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 		mlog.Fatal("Error while checking DB version.", mlog.Err(err))
 	}
 
+	err = store.ensureDatabaseCollation()
+	if err != nil {
+		mlog.Fatal("Error while checking DB collation.", mlog.Err(err))
+	}
+
 	err = store.migrate(migrationsDirectionUp)
 	if err != nil {
 		mlog.Fatal("Failed to apply database migrations.", mlog.Err(err))
@@ -1165,6 +1170,24 @@ func (ss *SqlStore) ensureMinimumDBVersion(ver string) (bool, error) {
 		}
 	}
 	return true, nil
+}
+
+func (ss *SqlStore) ensureDatabaseCollation() error {
+	if *ss.settings.DriverName == model.DatabaseDriverMysql {
+		var dbCollation struct {
+			Variable_name string
+			Value         string
+		}
+		if err := ss.GetMasterX().Get(&dbCollation, "SHOW VARIABLES LIKE 'collation_database'"); err != nil {
+			return errors.Wrap(err, "unable to select variables")
+		}
+
+		if dbCollation.Value != "utf8mb4_general_ci" {
+			mlog.Warn("Database collation is not compatible", mlog.String("expected", "utf8mb4_general_ci"), mlog.String("found", dbCollation.Value))
+		}
+	}
+
+	return nil
 }
 
 // versionString converts an integer representation of a DB version
