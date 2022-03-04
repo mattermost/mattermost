@@ -57,20 +57,6 @@ func TestGetPing(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, model.StatusOk, status)
 		})
-
-		t.Run("unhealthy", func(t *testing.T) {
-			oldDriver := th.App.Config().FileSettings.DriverName
-			badDriver := "badDriverName"
-			th.App.Config().FileSettings.DriverName = &badDriver
-			defer func() {
-				th.App.Config().FileSettings.DriverName = oldDriver
-			}()
-
-			status, resp, err := client.GetPingWithServerStatus()
-			require.Error(t, err)
-			CheckInternalErrorStatus(t, resp)
-			assert.Equal(t, model.StatusUnhealthy, status)
-		})
 	}, "with server status")
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
