@@ -315,12 +315,18 @@ func (a *App) GetOrCreateDirectChannel(c *request.Context, userID, otherUserID s
 
 	if *a.Config().TeamSettings.RestrictDirectMessage == model.DirectMessageTeam &&
 		!a.SessionHasPermissionTo(*c.Session(), model.PermissionManageSystem) {
-		commonTeamIDs, err := a.GetCommonTeamIDsForTwoUsers(userID, otherUserID)
+		user, err := a.GetUser(userID)
 		if err != nil {
 			return nil, err
 		}
-		if len(commonTeamIDs) == 0 {
-			return nil, model.NewAppError("createDirectChannel", "api.channel.create_channel.direct_channel.team_restricted_error", nil, "", http.StatusForbidden)
+		if !user.IsBot {
+			commonTeamIDs, err := a.GetCommonTeamIDsForTwoUsers(userID, otherUserID)
+			if err != nil {
+				return nil, err
+			}
+			if len(commonTeamIDs) == 0 {
+				return nil, model.NewAppError("createDirectChannel", "api.channel.create_channel.direct_channel.team_restricted_error", nil, "", http.StatusForbidden)
+			}
 		}
 	}
 
@@ -398,10 +404,10 @@ func (a *App) createDirectChannel(userID string, otherUserID string, channelOpti
 		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, fmt.Sprintf("No users found for ids: %s. %s", userID, otherUserID), http.StatusBadRequest)
 	}
 
-	// The potential swap dance bellow is necessary in order to guarantee determinism when creating a direct channel.
+	// The potential swap dance below is necessary in order to guarantee determinism when creating a direct channel.
 	// When we query the database for some given user ids, the database result is not deterministic, meaning we can get
 	// the same results but in different order. In order to conform the contract of Channel.CreateDirectChannel method
-	// bellow we need to identify which user is who.
+	// below we need to identify which user is who.
 	user := users[0]
 	otherUser := users[1]
 	if user.Id != userID {
