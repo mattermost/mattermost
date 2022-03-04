@@ -1605,10 +1605,10 @@ func (s *TimerLayerChannelStore) GroupSyncedChannelCount() (int64, error) {
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) IncrementMentionCount(channelID string, userID string, isRoot bool) error {
+func (s *TimerLayerChannelStore) IncrementMentionCount(channelID string, userIDs []string, isRoot bool) error {
 	start := timemodule.Now()
 
-	err := s.ChannelStore.IncrementMentionCount(channelID, userID, isRoot)
+	err := s.ChannelStore.IncrementMentionCount(channelID, userIDs, isRoot)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

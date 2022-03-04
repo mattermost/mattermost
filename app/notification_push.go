@@ -557,7 +557,7 @@ func (a *App) BuildPushNotificationMessage(contentsConfig string, post *model.Po
 
 	var msg *model.PushNotification
 
-	notificationInterface := a.Srv().Notification
+	notificationInterface := a.ch.Notification
 	if (notificationInterface == nil || notificationInterface.CheckLicense() != nil) && contentsConfig == model.IdLoadedNotification {
 		contentsConfig = model.GenericNotification
 	}
