@@ -3,6 +3,7 @@
 before:
   hooks:
     - ./gen.sh
+    - go install mvdan.cc/garble@latest
 
 builds:
   -
@@ -31,6 +32,7 @@ builds:
       - mips64le
     goarm:
       - 7
+    gobinary: garble
   -
     id: "s2d"
     binary: s2d
@@ -57,6 +59,7 @@ builds:
       - mips64le
     goarm:
       - 7
+    gobinary: garble
   -
     id: "s2sx"
     binary: s2sx
@@ -84,6 +87,7 @@ builds:
       - mips64le
     goarm:
       - 7
+    gobinary: garble
 
 archives:
   -

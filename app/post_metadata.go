@@ -230,7 +230,7 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 		}, nil
 	}
 
-	if _, ok := post.GetProps()["boards"]; ok && a.Config().FeatureFlags.BoardsUnfurl {
+	if _, ok := post.GetProps()["boards"]; ok {
 		return &model.PostEmbed{
 			Type: model.PostEmbedBoards,
 			Data: post.GetProps()["boards"],
@@ -486,6 +486,14 @@ func looksLikeAPermalink(url, siteURL string) bool {
 	return matched
 }
 
+func (a *App) containsPermalink(post *model.Post) bool {
+	link, _ := a.getFirstLinkAndImages(post.Message)
+	if link == "" {
+		return false
+	}
+	return looksLikeAPermalink(link, a.GetSiteURL())
+}
+
 func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool, previewedPostPropVal string) (*opengraph.OpenGraph, *model.PostImage, *model.Permalink, error) {
 	requestURL = resolveMetadataURL(requestURL, a.GetSiteURL())
 
@@ -515,7 +523,7 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 		referencedPostID := requestURL[len(requestURL)-26:]
 
 		referencedPost, appErr := a.GetSinglePost(referencedPostID)
-		// TODO: Look into saving a value in the LinkMetadat.Data field to prevent perpetually re-querying for the deleted post.
+		// TODO: Look into saving a value in the LinkMetadata.Data field to prevent perpetually re-querying for the deleted post.
 		if appErr != nil {
 			return nil, nil, nil, appErr
 		}
@@ -530,7 +538,15 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 			return nil, nil, nil, appErr
 		}
 
-		permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPost, referencedTeam, referencedChannel)}
+		// Get metadata for embedded post
+		if a.containsPermalink(referencedPost) {
+			// referencedPost contains a permalink: we don't get its metadata
+			permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPost, referencedTeam, referencedChannel)}
+		} else {
+			// referencedPost does not contain a permalink: we get its metadata
+			referencedPostWithMetadata := a.PreparePostForClientWithEmbedsAndImages(referencedPost, false, false)
+			permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPostWithMetadata, referencedTeam, referencedChannel)}
+		}
 	} else {
 
 		var request *http.Request
@@ -549,6 +565,7 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 		} else {
 			request.Header.Add("Accept", "image/*")
 			request.Header.Add("Accept", "text/html;q=0.8")
+			request.Header.Add("Accept-Language", *a.Config().LocalizationSettings.DefaultServerLocale)
 
 			client := a.HTTPService().MakeClient(false)
 			client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond

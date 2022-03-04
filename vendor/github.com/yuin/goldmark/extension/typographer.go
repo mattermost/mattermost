@@ -160,7 +160,7 @@ func NewTypographerParser(opts ...TypographerOption) parser.InlineParser {
 }
 
 func (s *typographerParser) Trigger() []byte {
-	return []byte{'\'', '"', '-', '.', '<', '>'}
+	return []byte{'\'', '"', '-', '.', ',', '<', '>', '*', '['}
 }
 
 func (s *typographerParser) Parse(parent gast.Node, block text.Reader, pc parser.Context) gast.Node {
@@ -230,6 +230,13 @@ func (s *typographerParser) Parse(parent gast.Node, block text.Reader, pc parser
 						return node
 					}
 				}
+				// special cases: 'twas, 'em, 'net
+				if len(line) > 1 && (unicode.IsPunct(before) || unicode.IsSpace(before)) && (line[1] == 't' || line[1] == 'e' || line[1] == 'n' || line[1] == 'l') {
+					node := gast.NewString(s.Substitutions[Apostrophe])
+					node.SetCode(true)
+					block.Advance(1)
+					return node
+				}
 				// Convert normal apostrophes. This is probably more flexible than necessary but
 				// converts any apostrophe in between two alphanumerics.
 				if len(line) > 1 && (unicode.IsDigit(before) || unicode.IsLetter(before)) && (unicode.IsLetter(util.ToRune(line, 1))) {
@@ -241,7 +248,7 @@ func (s *typographerParser) Parse(parent gast.Node, block text.Reader, pc parser
 			}
 			if s.Substitutions[LeftSingleQuote] != nil && d.CanOpen && !d.CanClose {
 				nt := LeftSingleQuote
-				// special cases: Alice's, I'm ,Don't, You'd
+				// special cases: Alice's, I'm, Don't, You'd
 				if len(line) > 1 && (line[1] == 's' || line[1] == 'm' || line[1] == 't' || line[1] == 'd') && (len(line) < 3 || util.IsPunct(line[2]) || util.IsSpace(line[2])) {
 					nt = RightSingleQuote
 				}
@@ -258,9 +265,18 @@ func (s *typographerParser) Parse(parent gast.Node, block text.Reader, pc parser
 				block.Advance(1)
 				return node
 			}
+			if s.Substitutions[RightSingleQuote] != nil {
+				// plural possesives and abbreviations: Smiths', doin'
+				if len(line) > 1 && unicode.IsSpace(util.ToRune(line, 0)) || unicode.IsPunct(util.ToRune(line, 0)) && (len(line) > 2 && !unicode.IsDigit(util.ToRune(line, 1))) {
+					node := gast.NewString(s.Substitutions[RightSingleQuote])
+					node.SetCode(true)
+					block.Advance(1)
+					return node
+				}
+			}
 			if s.Substitutions[RightSingleQuote] != nil && counter.Single > 0 {
 				isClose := d.CanClose && !d.CanOpen
-				maybeClose := d.CanClose && d.CanOpen && len(line) > 1 && (line[1] == ',' || line[1] == '.' || line[1] == '!' || line[1] == '?') && (len(line) == 2 || (len(line) > 2 && util.IsPunct(line[2]) || util.IsSpace(line[2])))
+				maybeClose := d.CanClose && d.CanOpen && len(line) > 1 && unicode.IsPunct(util.ToRune(line, 1)) && (len(line) == 2 || (len(line) > 2 && util.IsPunct(line[2]) || util.IsSpace(line[2])))
 				if isClose || maybeClose {
 					node := gast.NewString(s.Substitutions[RightSingleQuote])
 					node.SetCode(true)
@@ -280,7 +296,7 @@ func (s *typographerParser) Parse(parent gast.Node, block text.Reader, pc parser
 			}
 			if s.Substitutions[RightDoubleQuote] != nil && counter.Double > 0 {
 				isClose := d.CanClose && !d.CanOpen
-				maybeClose := d.CanClose && d.CanOpen && len(line) > 1 && (line[1] == ',' || line[1] == '.' || line[1] == '!' || line[1] == '?') && (len(line) == 2 || (len(line) > 2 && util.IsPunct(line[2]) || util.IsSpace(line[2])))
+				maybeClose := d.CanClose && d.CanOpen && len(line) > 1 && (unicode.IsPunct(util.ToRune(line, 1))) && (len(line) == 2 || (len(line) > 2 && util.IsPunct(line[2]) || util.IsSpace(line[2])))
 				if isClose || maybeClose {
 					// special case: "Monitor 21""
 					if len(line) > 1 && line[1] == '"' && unicode.IsDigit(before) {

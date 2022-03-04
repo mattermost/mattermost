@@ -821,7 +821,8 @@ func TestCreatePost(t *testing.T) {
 
 		sqlStore := th.GetSqlStore()
 		sql := fmt.Sprintf("select count(*) from Posts where Id = '%[1]s' or OriginalId = '%[1]s';", previewPost.Id)
-		val, err2 := sqlStore.GetMaster().SelectInt(sql)
+		var val int64
+		err2 := sqlStore.GetMasterX().Get(&val, sql)
 		require.NoError(t, err2)
 
 		require.EqualValues(t, int64(1), val)
@@ -2100,6 +2101,10 @@ func TestThreadMembership(t *testing.T) {
 	t.Run("should update memberships for conversation participants", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ThreadAutoFollow = true
+			*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+		})
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
@@ -2309,7 +2314,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		thread, nErr := th.App.Srv().Store.Thread().Get(postRoot.Id)
 		require.NoError(t, nErr)
 		require.Len(t, thread.Participants, 1)
-		th.App.MarkChannelAsUnreadFromPost(postRoot.Id, user1.Id, true, true)
+		th.App.MarkChannelAsUnreadFromPost(postRoot.Id, user1.Id, true)
 		l, err := th.App.GetPostsForChannelAroundLastUnread(channel.Id, user1.Id, 10, 10, true, true, false)
 		require.Nil(t, err)
 		require.Len(t, l.Order, 1)

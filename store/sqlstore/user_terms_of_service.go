@@ -28,9 +28,6 @@ func newSqlUserTermsOfServiceStore(sqlStore *SqlStore) store.UserTermsOfServiceS
 	return s
 }
 
-func (s SqlUserTermsOfServiceStore) createIndexesIfNotExists() {
-}
-
 func (s SqlUserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfService, error) {
 	var userTermsOfService model.UserTermsOfService
 	query := `
@@ -58,7 +55,7 @@ func (s SqlUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfSe
 	query := `
 		UPDATE UserTermsOfService
 		SET UserId = :UserId, TermsOfServiceId = :TermsOfServiceId, CreateAt = :CreateAt
-		WHERE UserId = :UserId AND TermsOfServiceId = :TermsOfServiceId
+		WHERE UserId = :UserId
 	`
 	result, err := s.GetMasterX().NamedExec(query, userTermsOfService)
 	if err != nil {

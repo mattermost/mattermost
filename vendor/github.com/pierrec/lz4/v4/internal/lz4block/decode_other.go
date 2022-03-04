@@ -1,3 +1,4 @@
+//go:build (!amd64 && !arm && !arm64) || appengine || !gc || noasm
 // +build !amd64,!arm,!arm64 appengine !gc noasm
 
 package lz4block
@@ -10,9 +11,13 @@ func decodeBlock(dst, src, dict []byte) (ret int) {
 	// Restrict capacities so we don't read or write out of bounds.
 	dst = dst[:len(dst):len(dst)]
 	src = src[:len(src):len(src)]
-	dictLen := uint(len(dict))
 
 	const hasError = -2
+
+	if len(src) == 0 {
+		return hasError
+	}
+
 	defer func() {
 		if recover() != nil {
 			ret = hasError
@@ -20,7 +25,7 @@ func decodeBlock(dst, src, dict []byte) (ret int) {
 	}()
 
 	var si, di uint
-	for {
+	for si < uint(len(src)) {
 		// Literals and match lengths (token).
 		b := uint(src[si])
 		si++
@@ -74,7 +79,7 @@ func decodeBlock(dst, src, dict []byte) (ret int) {
 			}
 		}
 		if si == uint(len(src)) {
-			return int(di)
+			break
 		} else if si > uint(len(src)) {
 			return hasError
 		}
@@ -102,35 +107,17 @@ func decodeBlock(dst, src, dict []byte) (ret int) {
 
 		// Copy the match.
 		if di < offset {
-			// The match is beyond our block, meaning in the dictionary
-			if offset-di > mLen {
-				// The match is entirely contained in the dictionary. Just copy!
-				copy(dst[di:di+mLen], dict[dictLen+di-offset:dictLen+di-offset+mLen])
-				di = di + mLen
-			} else {
-				// The match stretches over the dictionary and our block
-				copySize := offset - di
-				restSize := mLen - copySize
-
-				copy(dst[di:di+copySize], dict[dictLen-copySize:])
-				di = di + copySize
-
-				if di < restSize {
-					// Overlap - we want to copy more than what we have available,
-					// so copy byte per byte.
-					copyFrom := 0
-					endOfMatch := di + restSize
-					for di < endOfMatch {
-						dst[di] = dst[copyFrom]
-						di = di + 1
-						copyFrom = copyFrom + 1
-					}
-				} else {
-					copy(dst[di:di+restSize], dst[0:restSize])
-					di = di + restSize
-				}
+			// The match is beyond our block, meaning the first part
+			// is in the dictionary.
+			fromDict := dict[uint(len(dict))+di-offset:]
+			n := uint(copy(dst[di:di+mLen], fromDict))
+			di += n
+			if mLen -= n; mLen == 0 {
+				continue
 			}
-			continue
+			// We copied n = offset-di bytes from the dictionary,
+			// then set di = di+n = offset, so the following code
+			// copies from dst[di-offset:] = dst[0:].
 		}
 
 		expanded := dst[di-offset:]
@@ -145,6 +132,8 @@ func decodeBlock(dst, src, dict []byte) (ret int) {
 		}
 		di += uint(copy(dst[di:di+mLen], expanded[:mLen]))
 	}
+
+	return int(di)
 }
 
 func u16(p []byte) uint { return uint(binary.LittleEndian.Uint16(p)) }

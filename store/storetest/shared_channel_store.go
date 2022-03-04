@@ -278,7 +278,7 @@ func testGetSharedChannels(t *testing.T, ss store.Store) {
 		}
 	})
 
-	t.Run("Get shared channels invalid pagnation", func(t *testing.T) {
+	t.Run("Get shared channels invalid pagination", func(t *testing.T) {
 		opts := model.SharedChannelFilterOpts{
 			TeamId: team1,
 		}

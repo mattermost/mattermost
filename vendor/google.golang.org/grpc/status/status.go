@@ -29,6 +29,7 @@ package status
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	spb "google.golang.org/genproto/googleapis/rpc/status"
@@ -117,18 +118,18 @@ func Code(err error) codes.Code {
 	return codes.Unknown
 }
 
-// FromContextError converts a context error into a Status.  It returns a
-// Status with codes.OK if err is nil, or a Status with codes.Unknown if err is
-// non-nil and not a context error.
+// FromContextError converts a context error or wrapped context error into a
+// Status.  It returns a Status with codes.OK if err is nil, or a Status with
+// codes.Unknown if err is non-nil and not a context error.
 func FromContextError(err error) *Status {
-	switch err {
-	case nil:
+	if err == nil {
 		return nil
-	case context.DeadlineExceeded:
-		return New(codes.DeadlineExceeded, err.Error())
-	case context.Canceled:
-		return New(codes.Canceled, err.Error())
-	default:
-		return New(codes.Unknown, err.Error())
 	}
+	if errors.Is(err, context.DeadlineExceeded) {
+		return New(codes.DeadlineExceeded, err.Error())
+	}
+	if errors.Is(err, context.Canceled) {
+		return New(codes.Canceled, err.Error())
+	}
+	return New(codes.Unknown, err.Error())
 }

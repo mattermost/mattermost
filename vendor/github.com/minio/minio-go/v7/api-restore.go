@@ -175,7 +175,7 @@ func (c *Client) RestoreObject(ctx context.Context, bucketName, objectName, vers
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode != http.StatusAccepted {
+	if resp.StatusCode != http.StatusAccepted && resp.StatusCode != http.StatusOK {
 		return httpRespToErrorResponse(resp, bucketName, "")
 	}
 	return nil

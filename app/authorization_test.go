@@ -4,7 +4,13 @@
 package app
 
 import (
+	"context"
+	"encoding/csv"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -117,4 +123,88 @@ func TestHasPermissionToCategory(t *testing.T) {
 	categories2, err := th.App.GetSidebarCategories(th.BasicUser2.Id, th.BasicTeam.Id)
 	require.Nil(t, err)
 	require.False(t, th.App.SessionHasPermissionToCategory(*session, th.BasicUser.Id, th.BasicTeam.Id, categories2.Order[0]))
+}
+
+func TestSessionHasPermissionToGroup(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	file, e := os.Open("tests/group-role-has-permission.csv")
+	require.NoError(t, e)
+	defer file.Close()
+
+	b, e := ioutil.ReadAll(file)
+	require.NoError(t, e)
+
+	r := csv.NewReader(strings.NewReader(string(b)))
+	records, e := r.ReadAll()
+	require.NoError(t, e)
+
+	systemRole, err := th.App.GetRoleByName(context.Background(), model.SystemUserRoleId)
+	require.Nil(t, err)
+
+	groupRole, err := th.App.GetRoleByName(context.Background(), model.CustomGroupUserRoleId)
+	require.Nil(t, err)
+
+	group, err := th.App.CreateGroup(&model.Group{
+		Name:           model.NewString(model.NewId()),
+		DisplayName:    model.NewId(),
+		Source:         model.GroupSourceCustom,
+		AllowReference: true,
+	})
+	require.Nil(t, err)
+
+	permission := model.PermissionDeleteCustomGroup
+
+	for i, row := range records {
+		// skip csv header
+		if i == 0 {
+			continue
+		}
+
+		systemRoleHasPermission, e := strconv.ParseBool(row[0])
+		require.NoError(t, e)
+
+		isGroupMember, e := strconv.ParseBool(row[1])
+		require.NoError(t, e)
+
+		groupRoleHasPermission, e := strconv.ParseBool(row[2])
+		require.NoError(t, e)
+
+		permissionShouldBeGranted, e := strconv.ParseBool(row[3])
+		require.NoError(t, e)
+
+		if systemRoleHasPermission {
+			th.AddPermissionToRole(permission.Id, systemRole.Name)
+		} else {
+			th.RemovePermissionFromRole(permission.Id, systemRole.Name)
+		}
+
+		if isGroupMember {
+			_, err := th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
+			require.Nil(t, err)
+		} else {
+			_, err := th.App.DeleteGroupMember(group.Id, th.BasicUser.Id)
+			if err != nil && err.Id != "app.group.no_rows" {
+				t.Error(err)
+			}
+		}
+
+		if groupRoleHasPermission {
+			th.AddPermissionToRole(permission.Id, groupRole.Name)
+		} else {
+			th.RemovePermissionFromRole(permission.Id, groupRole.Name)
+		}
+
+		session, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}, Roles: systemRole.Name})
+		require.Nil(t, err)
+
+		result := th.App.SessionHasPermissionToGroup(*session, group.Id, permission)
+
+		if permissionShouldBeGranted {
+			require.True(t, result, fmt.Sprintf("row: %v", row))
+		} else {
+			require.False(t, result, fmt.Sprintf("row: %v", row))
+		}
+	}
 }

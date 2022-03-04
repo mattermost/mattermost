@@ -214,6 +214,11 @@ func (t Result) IsArray() bool {
 	return t.Type == JSON && len(t.Raw) > 0 && t.Raw[0] == '['
 }
 
+// IsBool returns true if the result value is a JSON boolean.
+func (t Result) IsBool() bool {
+	return t.Type == True || t.Type == False
+}
+
 // ForEach iterates through values.
 // If the result represents a non-existent value, then no values will be
 // iterated. If the result is an Object, the iterator will pass the key and
@@ -229,17 +234,19 @@ func (t Result) ForEach(iterator func(key, value Result) bool) {
 		return
 	}
 	json := t.Raw
-	var keys bool
+	var obj bool
 	var i int
 	var key, value Result
 	for ; i < len(json); i++ {
 		if json[i] == '{' {
 			i++
 			key.Type = String
-			keys = true
+			obj = true
 			break
 		} else if json[i] == '[' {
 			i++
+			key.Type = Number
+			key.Num = -1
 			break
 		}
 		if json[i] > ' ' {
@@ -251,7 +258,7 @@ func (t Result) ForEach(iterator func(key, value Result) bool) {
 	var ok bool
 	var idx int
 	for ; i < len(json); i++ {
-		if keys {
+		if obj {
 			if json[i] != '"' {
 				continue
 			}
@@ -267,6 +274,8 @@ func (t Result) ForEach(iterator func(key, value Result) bool) {
 			}
 			key.Raw = str
 			key.Index = s + t.Index
+		} else {
+			key.Num += 1
 		}
 		for ; i < len(json); i++ {
 			if json[i] <= ' ' || json[i] == ',' || json[i] == ':' {
@@ -1728,7 +1737,7 @@ type subSelector struct {
 // first character in path is either '[' or '{', and has already been checked
 // prior to calling this function.
 func parseSubSelectors(path string) (sels []subSelector, out string, ok bool) {
-	modifer := 0
+	modifier := 0
 	depth := 1
 	colon := 0
 	start := 1
@@ -1743,6 +1752,7 @@ func parseSubSelectors(path string) (sels []subSelector, out string, ok bool) {
 		}
 		sels = append(sels, sel)
 		colon = 0
+		modifier = 0
 		start = i + 1
 	}
 	for ; i < len(path); i++ {
@@ -1750,11 +1760,11 @@ func parseSubSelectors(path string) (sels []subSelector, out string, ok bool) {
 		case '\\':
 			i++
 		case '@':
-			if modifer == 0 && i > 0 && (path[i-1] == '.' || path[i-1] == '|') {
-				modifer = i
+			if modifier == 0 && i > 0 && (path[i-1] == '.' || path[i-1] == '|') {
+				modifier = i
 			}
 		case ':':
-			if modifer == 0 && colon == 0 && depth == 1 {
+			if modifier == 0 && colon == 0 && depth == 1 {
 				colon = i
 			}
 		case ',':
@@ -1807,7 +1817,7 @@ func isSimpleName(component string) bool {
 			return false
 		}
 		switch component[i] {
-		case '[', ']', '{', '}', '(', ')', '#', '|':
+		case '[', ']', '{', '}', '(', ')', '#', '|', '!':
 			return false
 		}
 	}
@@ -1871,23 +1881,25 @@ type parseContext struct {
 // use the Valid function first.
 func Get(json, path string) Result {
 	if len(path) > 1 {
-		if !DisableModifiers {
-			if path[0] == '@' {
-				// possible modifier
-				var ok bool
-				var npath string
-				var rjson string
+		if (path[0] == '@' && !DisableModifiers) || path[0] == '!' {
+			// possible modifier
+			var ok bool
+			var npath string
+			var rjson string
+			if path[0] == '@' && !DisableModifiers {
 				npath, rjson, ok = execModifier(json, path)
-				if ok {
-					path = npath
-					if len(path) > 0 && (path[0] == '|' || path[0] == '.') {
-						res := Get(rjson, path[1:])
-						res.Index = 0
-						res.Indexes = nil
-						return res
-					}
-					return Parse(rjson)
+			} else if path[0] == '!' {
+				npath, rjson, ok = execStatic(json, path)
+			}
+			if ok {
+				path = npath
+				if len(path) > 0 && (path[0] == '|' || path[0] == '.') {
+					res := Get(rjson, path[1:])
+					res.Index = 0
+					res.Indexes = nil
+					return res
 				}
+				return Parse(rjson)
 			}
 		}
 		if path[0] == '[' || path[0] == '{' {
@@ -2556,8 +2568,40 @@ func safeInt(f float64) (n int64, ok bool) {
 	return int64(f), true
 }
 
+// execStatic parses the path to find a static value.
+// The input expects that the path already starts with a '!'
+func execStatic(json, path string) (pathOut, res string, ok bool) {
+	name := path[1:]
+	if len(name) > 0 {
+		switch name[0] {
+		case '{', '[', '"', '+', '-', '0', '1', '2', '3', '4', '5', '6', '7',
+			'8', '9':
+			_, res = parseSquash(name, 0)
+			pathOut = name[len(res):]
+			return pathOut, res, true
+		}
+	}
+	for i := 1; i < len(path); i++ {
+		if path[i] == '|' {
+			pathOut = path[i:]
+			name = path[1:i]
+			break
+		}
+		if path[i] == '.' {
+			pathOut = path[i:]
+			name = path[1:i]
+			break
+		}
+	}
+	switch strings.ToLower(name) {
+	case "true", "false", "null", "nan", "inf":
+		return pathOut, name, true
+	}
+	return pathOut, res, false
+}
+
 // execModifier parses the path to find a matching modifier function.
-// then input expects that the path already starts with a '@'
+// The input expects that the path already starts with a '@'
 func execModifier(json, path string) (pathOut, res string, ok bool) {
 	name := path[1:]
 	var hasArgs bool
@@ -2630,6 +2674,9 @@ var modifiers = map[string]func(json, arg string) string{
 	"valid":   modValid,
 	"keys":    modKeys,
 	"values":  modValues,
+	"tostr":   modToStr,
+	"fromstr": modFromStr,
+	"group":   modGroup,
 }
 
 // AddModifier binds a custom modifier command to the GJSON syntax.
@@ -2913,6 +2960,57 @@ func modValid(json, arg string) string {
 		return ""
 	}
 	return json
+}
+
+// @fromstr converts a string to json
+//   "{\"id\":1023,\"name\":\"alert\"}" -> {"id":1023,"name":"alert"}
+func modFromStr(json, arg string) string {
+	if !Valid(json) {
+		return ""
+	}
+	return Parse(json).String()
+}
+
+// @tostr converts a string to json
+//   {"id":1023,"name":"alert"} -> "{\"id\":1023,\"name\":\"alert\"}"
+func modToStr(str, arg string) string {
+	data, _ := json.Marshal(str)
+	return string(data)
+}
+
+func modGroup(json, arg string) string {
+	res := Parse(json)
+	if !res.IsObject() {
+		return ""
+	}
+	var all [][]byte
+	res.ForEach(func(key, value Result) bool {
+		if !value.IsArray() {
+			return true
+		}
+		var idx int
+		value.ForEach(func(_, value Result) bool {
+			if idx == len(all) {
+				all = append(all, []byte{})
+			}
+			all[idx] = append(all[idx], ("," + key.Raw + ":" + value.Raw)...)
+			idx++
+			return true
+		})
+		return true
+	})
+	var data []byte
+	data = append(data, '[')
+	for i, item := range all {
+		if i > 0 {
+			data = append(data, ',')
+		}
+		data = append(data, '{')
+		data = append(data, item[1:]...)
+		data = append(data, '}')
+	}
+	data = append(data, ']')
+	return string(data)
 }
 
 // stringHeader instead of reflect.StringHeader

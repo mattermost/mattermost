@@ -61,7 +61,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -73,7 +73,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 78+"
+    "translation": "Version 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -2352,20 +2352,8 @@
     "translation": "Misslyckades spara värdet för {{.WarnMetricName}}"
   },
   {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Kunde inte hitta mätdata."
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "Listan med administratörer är tom."
-  },
-  {
     "id": "app.system.warn_metric.bot_displayname",
     "translation": "Mattermost-råd"
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Läs mer om Mattermost Advisor](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.system.save.app_error",
@@ -5045,7 +5033,7 @@
   },
   {
     "id": "api.templates.over_limit_info1",
-    "translation": "Det ser ut som om du har fler än 10 användare i din miljö och det är över gränsen för den kostnadsfria versionen av Mattermost Cloud Professional. För att undvika avbrott i din Mattermostmiljö bör du uppgradera."
+    "translation": "Det ser ut som om du har fler än 10 användare i din miljö och det är över gränsen för den kostnadsfria versionen av Mattermost Cloud. För att undvika avbrott i din Mattermostmiljö bör du uppgradera."
   },
   {
     "id": "api.templates.over_limit_fix_now",
@@ -5253,7 +5241,7 @@
   },
   {
     "id": "api.templates.at_limit_info1",
-    "translation": "Det ser ut som om du nu har 10 användare eller fler — Vad kul! Om du vill bjuda in fler teammedlemmar bör du nu uppgradera till Mattermost Cloud Professional."
+    "translation": "Det ser ut som om du nu har 10 användare eller fler — Vad kul! Om du vill bjuda in fler teammedlemmar bör du nu uppgradera till Mattermost Cloud."
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
@@ -5672,14 +5660,6 @@
     "translation": "Integrations-/Slack Bot-Användaren med epost {{.Email}} och lösenord {{.Password}} har importerats.\n"
   },
   {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Hämtar prova-på"
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Starta prova-på-period"
-  },
-  {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
     "translation": "Din Enterprise prova-på är nu aktiv. Gå till **Systemkonsol > Användaradministration > Behörigheter** för att aktivera Avancerade Behörigheter."
   },
@@ -5862,14 +5842,6 @@
   {
     "id": "api.server.warn_metric.email_domain.contact_us.email_body",
     "translation": "Mattermost contact us request. I'm interested in learning more about using Guest Accounts.\n"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Kontakta oss"
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Kontakta oss"
   },
   {
     "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
@@ -6728,7 +6700,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "Öppna kontoinställningar"
+    "translation": "Öppna inställningar"
   },
   {
     "id": "api.command_search.unsupported.app_error",
@@ -8449,7 +8421,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "för bästa upplevelsen på PC, Mac, iOS och Android."
+    "translation": "för bästa upplevelsen på Windows, Linux, Mac, iOS och Android."
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info",
@@ -8489,7 +8461,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Effektivisera ditt arbete med verktyg som Github, Google kalender chrome. Utforska alla integrationer vi har på vår"
+    "translation": "Effektivisera ditt arbete med verktyg som Github, Jira och Zoom. Utforska alla integrationer vi har på vår"
   },
   {
     "id": "model.user.is_valid.marshal.app_error",
@@ -8945,7 +8917,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, din 14-dagars kostnadsfria testperiod av Mattermost Cloud Professional avslutas idag, {{.TodayDate}}. Uppdatera din betalinformation för att säkerställa att ditt team kan fortsätta nyttja funktionerna i Cloud Professional."
+    "translation": "{{.Name}}, din 14-dagars kostnadsfria testperiod av Mattermost Cloud Enterprise avslutas idag, {{.TodayDate}}. Uppdatera din betalinformation för att säkerställa att ditt team kan fortsätta nyttja funktionerna i Cloud Enterprise."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -8954,14 +8926,6 @@
   {
     "id": "api.templates.cloud_trial_ended_email.start_subscription",
     "translation": "Börja din prenumeration"
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "Gå till **Systemkonsolen > Sajtkonfiguration > Anpassa** för att ställa in [Support mejl](https://docs.mattermost.com/administration/config-settings.html#support-email) till organisationens interna e-postadress för it-support för återkoppling från slutanvändare, e-postmeddelanden och supportförfrågningar."
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "Konfigurera mejladress för support"
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",
@@ -9109,18 +9073,6 @@
   {
     "id": "ent.data_retention.run_failed.error",
     "translation": "Datagallringsjobbet misslyckades."
-  },
-  {
-    "id": "extract_content.worker.do_job.file_info",
-    "translation": "Misslyckades med att hämta filinformation för innehållsanalys."
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.to",
-    "translation": "Felaktigt värde i 'till'"
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.from",
-    "translation": "Felaktigt värde i 'från'"
   },
   {
     "id": "api.user.invalidate_verify_email_tokens_parse.error",
@@ -9287,22 +9239,6 @@
     "translation": "Påminnelse"
   },
   {
-    "id": "fix_crt_channel_unreads.worker.do_job.mark_channel_as_read",
-    "translation": "Kan inte markera kanalen som läst"
-  },
-  {
-    "id": "fix_crt_channel_unreads.worker.do_job.kill_orphan_jobs",
-    "translation": "Döda föräldralösa jobb"
-  },
-  {
-    "id": "fix_crt_channel_unreads.worker.do_job.get_post_types",
-    "translation": "Det gick inte att hämta unika typer av inlägg"
-  },
-  {
-    "id": "fix_crt_channel_unreads.worker.do_job.get_bad_channel_memberships",
-    "translation": "Misslyckades att hämta felaktiga kanalmedlemskap"
-  },
-  {
     "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
     "translation": "Det går inte att hämta användare från en arkiverad kanal"
   },
@@ -9313,5 +9249,21 @@
   {
     "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
     "translation": "Det går inte att hämta inlägg från en arkiverad kanal"
+  },
+  {
+    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
+    "translation": "Det går inte att förnya licensen via portalen"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "SAML-svaret är för långt"
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "Onboarding kan bara slutföras av systemadministratören."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "Misslyckades att tolka onboarding-anropet."
   }
 ]

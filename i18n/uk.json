@@ -6504,10 +6504,6 @@
     "translation": "Не вдалося оновити заголовок прямого каналу"
   },
   {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Request trial"
-  },
-  {
     "id": "api.server.warn_metric.mfa.notification_title",
     "translation": "Забезпечити багатофакторну автентифікацію:"
   },

@@ -1736,6 +1736,7 @@ func TestSearchGroupChannels(t *testing.T) {
 }
 
 func TestDeleteChannel(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-42092")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	c := th.Client
@@ -2503,7 +2504,7 @@ func TestGetChannelStats(t *testing.T) {
 	stats, _, err := client.GetChannelStats(channel.Id, "")
 	require.NoError(t, err)
 
-	require.Equal(t, channel.Id, stats.ChannelId, "couldnt't get extra info")
+	require.Equal(t, channel.Id, stats.ChannelId, "couldn't get extra info")
 	require.Equal(t, int64(1), stats.MemberCount, "got incorrect member count")
 	require.Equal(t, int64(0), stats.PinnedPostCount, "got incorrect pinned post count")
 
@@ -3010,6 +3011,64 @@ func TestAddChannelMember(t *testing.T) {
 		_, _, err = client.AddChannelMember(privateChannel.Id, user.Id)
 		require.NoError(t, err)
 	})
+}
+
+func TestAddChannelMemberFromThread(t *testing.T) {
+	t.Skip("MM-41285")
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	team := th.BasicTeam
+	user := th.BasicUser
+	user2 := th.BasicUser2
+	user3 := th.CreateUserWithClient(th.SystemAdminClient)
+	_, _, err := th.SystemAdminClient.AddTeamMember(team.Id, user3.Id)
+	require.NoError(t, err)
+
+	publicChannel := th.CreatePublicChannel()
+
+	_, resp, err := th.Client.AddChannelMember(publicChannel.Id, user.Id)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+	_, resp, err = th.Client.AddChannelMember(publicChannel.Id, user2.Id)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+
+	post := &model.Post{
+		ChannelId: publicChannel.Id,
+		Message:   "A root post",
+		UserId:    user.Id,
+	}
+	rpost, _, err := th.SystemAdminClient.CreatePost(post)
+	require.NoError(t, err)
+
+	_, _, err = th.SystemAdminClient.CreatePost(
+		&model.Post{
+			ChannelId: publicChannel.Id,
+			Message:   "A reply post with mention @" + user3.Username,
+			UserId:    user2.Id,
+			RootId:    rpost.Id,
+		})
+	require.NoError(t, err)
+
+	_, _, err = th.SystemAdminClient.CreatePost(
+		&model.Post{
+			ChannelId: publicChannel.Id,
+			Message:   "Another reply post with mention @" + user3.Username,
+			UserId:    user2.Id,
+			RootId:    rpost.Id,
+		})
+	require.NoError(t, err)
+
+	// Simulate adding a user to a channel from a thread
+	_, _, err = th.SystemAdminClient.AddChannelMemberWithRootId(publicChannel.Id, user3.Id, rpost.Id)
+	require.NoError(t, err)
+
+	// Threadmembership should exist for added user
+	ut, _, err := th.SystemAdminClient.GetUserThread(user3.Id, team.Id, rpost.Id, false)
+	require.NoError(t, err)
+	// Should have two mentions. There might be a race condition
+	// here between the "added user to the channel" message and the GetUserThread call
+	require.LessOrEqual(t, int64(2), ut.UnreadMentions)
 }
 
 func TestAddChannelMemberAddMyself(t *testing.T) {
@@ -4262,7 +4321,7 @@ func TestGetChannelMemberCountsByGroup(t *testing.T) {
 		DisplayName: "dn_" + id,
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 
 	_, appErr = th.App.CreateGroup(group)
