@@ -209,9 +209,6 @@ func TestGenerateSupportPacket(t *testing.T) {
 	})
 
 	t.Run("As a System Administrator but with RestrictSystemAdmin true", func(t *testing.T) {
-		l := model.NewTestLicense()
-		th.App.Srv().SetLicense(l)
-
 		originalRestrictSystemAdminVal := *th.App.Config().ExperimentalSettings.RestrictSystemAdmin
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 		defer func() {
