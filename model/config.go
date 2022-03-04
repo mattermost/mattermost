@@ -332,7 +332,7 @@ type ServiceSettings struct {
 	// SessionLengthMobileInMinutes *int `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
 
 	// Deprecated
-	SessionLengthSSOInDays    *int `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
+	SessionLengthSSOInDays    *int `access:"environment_session_lengths,write_restrictable,cloud_restrictable"` // telemetry: none
 	SessionLengthSSOInMinutes *int `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
 
 	SessionCacheInMinutes                             *int    `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
