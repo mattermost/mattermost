@@ -338,7 +338,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectURI, c
 				AccessToken:  session.Token,
 				TokenType:    model.AccessTokenType,
 				RefreshToken: accessData.RefreshToken,
-				ExpiresIn:    int32(*a.Config().ServiceSettings.SessionLengthSSOInDays * 60 * 60 * 24),
+				ExpiresIn:    int32(*a.Config().ServiceSettings.SessionLengthSSOInMinutes * 60),
 			}
 		}
 
@@ -371,7 +371,7 @@ func (a *App) newSession(appName string, user *model.User) (*model.Session, *mod
 	// Set new token an session
 	session := &model.Session{UserId: user.Id, Roles: user.Roles, IsOAuth: true}
 	session.GenerateCSRF()
-	a.ch.srv.userService.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthSSOInDays)
+	a.ch.srv.userService.SetSessionExpireInMinutes(session, *a.Config().ServiceSettings.SessionLengthSSOInMinutes)
 	session.AddProp(model.SessionPropPlatform, appName)
 	session.AddProp(model.SessionPropOs, "OAuth2")
 	session.AddProp(model.SessionPropBrowser, "OAuth2")
@@ -408,7 +408,7 @@ func (a *App) newSessionUpdateToken(appName string, accessData *model.AccessData
 		AccessToken:  session.Token,
 		RefreshToken: accessData.RefreshToken,
 		TokenType:    model.AccessTokenType,
-		ExpiresIn:    int32(*a.Config().ServiceSettings.SessionLengthSSOInDays * 60 * 60 * 24),
+		ExpiresIn:    int32(*a.Config().ServiceSettings.SessionLengthSSOInMinutes * 60),
 	}
 
 	return accessRsp, nil

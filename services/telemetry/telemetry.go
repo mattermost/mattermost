@@ -386,7 +386,7 @@ func (ts *TelemetryService) trackConfig() {
 		"extend_session_length_with_activity":                     *cfg.ServiceSettings.ExtendSessionLengthWithActivity,
 		"session_length_web_in_days":                              *cfg.ServiceSettings.SessionLengthWebInDays,
 		"session_length_mobile_in_days":                           *cfg.ServiceSettings.SessionLengthMobileInDays,
-		"session_length_sso_in_days":                              *cfg.ServiceSettings.SessionLengthSSOInDays,
+		"session_length_sso_in_minutes":                           *cfg.ServiceSettings.SessionLengthSSOInMinutes,
 		"session_cache_in_minutes":                                *cfg.ServiceSettings.SessionCacheInMinutes,
 		"session_idle_timeout_in_minutes":                         *cfg.ServiceSettings.SessionIdleTimeoutInMinutes,
 		"isdefault_site_url":                                      isDefault(*cfg.ServiceSettings.SiteURL, model.ServiceSettingsDefaultSiteURL),

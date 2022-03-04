@@ -12,9 +12,11 @@ import (
 )
 
 const (
-	dayInMillis = 86400000
-	grace       = 5 * 1000
-	thirtyDays  = dayInMillis * 30
+	dayInMillis    = 86400000
+	minuteInMillis = 60000
+	grace          = 5 * 1000
+	thirtyDays     = dayInMillis * 30
+	thirtyMinutes  = minuteInMillis * 30
 )
 
 func TestCache(t *testing.T) {
@@ -54,7 +56,7 @@ func TestCache(t *testing.T) {
 	require.Empty(t, rkeys)
 }
 
-func TestSetSessionExpireInDays(t *testing.T) {
+func TestSetSessionExpireInMinutes(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -62,20 +64,20 @@ func TestSetSessionExpireInDays(t *testing.T) {
 	createAt := now - (dayInMillis * 20)
 
 	tests := []struct {
-		name   string
-		extend bool
-		create bool
-		days   int
-		want   int64
+		name    string
+		extend  bool
+		create  bool
+		minutes int
+		want    int64
 	}{
-		{name: "zero days, extend", extend: true, create: true, days: 0, want: now},
-		{name: "zero days, extend", extend: true, create: false, days: 0, want: now},
-		{name: "zero days, no extend", extend: false, create: true, days: 0, want: createAt},
-		{name: "zero days, no extend", extend: false, create: false, days: 0, want: now},
-		{name: "thirty days, extend", extend: true, create: true, days: 30, want: now + thirtyDays},
-		{name: "thirty days, extend", extend: true, create: false, days: 30, want: now + thirtyDays},
-		{name: "thirty days, no extend", extend: false, create: true, days: 30, want: createAt + thirtyDays},
-		{name: "thirty days, no extend", extend: false, create: false, days: 30, want: now + thirtyDays},
+		{name: "zero minutes, extend", extend: true, create: true, minutes: 0, want: now},
+		{name: "zero minutes, extend", extend: true, create: false, minutes: 0, want: now},
+		{name: "zero minutes, no extend", extend: false, create: true, minutes: 0, want: createAt},
+		{name: "zero minutes, no extend", extend: false, create: false, minutes: 0, want: now},
+		{name: "thirty minutes, extend", extend: true, create: true, minutes: 30, want: now + thirtyMinutes},
+		{name: "thirty minutes, extend", extend: true, create: false, minutes: 30, want: now + thirtyMinutes},
+		{name: "thirty minutes, no extend", extend: false, create: true, minutes: 30, want: createAt + thirtyMinutes},
+		{name: "thirty minutes, no extend", extend: false, create: false, minutes: 30, want: now + thirtyMinutes},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -91,7 +93,7 @@ func TestSetSessionExpireInDays(t *testing.T) {
 				CreateAt:  create,
 				ExpiresAt: model.GetMillis() + dayInMillis,
 			}
-			th.service.SetSessionExpireInDays(session, tt.days)
+			th.service.SetSessionExpireInMinutes(session, tt.minutes)
 
 			// must be within 5 seconds of expected time.
 			require.GreaterOrEqual(t, session.ExpiresAt, tt.want-grace)
@@ -112,7 +114,7 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	session.UserId = model.NewId()
 	session.Token = model.NewId()
 	session.Roles = model.SystemUserRoleId
-	th.service.SetSessionExpireInDays(session, 1)
+	th.service.SetSessionExpireInMinutes(session, 1)
 
 	session, _ = th.service.CreateSession(session)
 	err = th.service.RevokeAccessToken(session.Token)

@@ -325,18 +325,18 @@ func (a *App) GetSessionLengthInMillis(session *model.Session) int64 {
 	if session.IsMobileApp() {
 		days = *a.Config().ServiceSettings.SessionLengthMobileInDays
 	} else if session.IsSSOLogin() {
-		days = *a.Config().ServiceSettings.SessionLengthSSOInDays
+		return int64(*a.Config().ServiceSettings.SessionLengthSSOInMinutes * 60 * 1000)
 	} else {
 		days = *a.Config().ServiceSettings.SessionLengthWebInDays
 	}
 	return int64(days * 24 * 60 * 60 * 1000)
 }
 
-// SetSessionExpireInDays sets the session's expiry the specified number of days
+// SetSessionExpireInMinutes sets the session's expiry the specified number of minutes
 // relative to either the session creation date or the current time, depending
 // on the `ExtendSessionOnActivity` config setting.
-func (a *App) SetSessionExpireInDays(session *model.Session, days int) {
-	a.ch.srv.userService.SetSessionExpireInDays(session, days)
+func (a *App) SetSessionExpireInMinutes(session *model.Session, minutes int) {
+	a.ch.srv.userService.SetSessionExpireInMinutes(session, minutes)
 }
 
 func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
@@ -425,7 +425,7 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 	} else {
 		session.AddProp(model.SessionPropIsGuest, "false")
 	}
-	a.ch.srv.userService.SetSessionExpireInDays(session, model.SessionUserAccessTokenExpiry)
+	a.ch.srv.userService.SetSessionExpireInMinutes(session, model.SessionUserAccessTokenExpiry)
 
 	session, nErr = a.Srv().Store.Session().Save(session)
 	if nErr != nil {

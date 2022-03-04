@@ -156,7 +156,7 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthMobileInDays = 3 })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthSSOInDays = 2 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthSSOInMinutes = 2 * 24 * 60 })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthWebInDays = 1 })
 
 	t.Run("get session length mobile", func(t *testing.T) {
@@ -245,7 +245,7 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExtendSessionLengthWithActivity = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthMobileInDays = 3 })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthSSOInDays = 2 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthSSOInMinutes = 2 * 24 * 60 })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthWebInDays = 1 })
 
 	t.Run("expired session should not be extended", func(t *testing.T) {

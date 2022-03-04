@@ -275,81 +275,91 @@ var ServerTLSSupportedCiphers = map[string]uint16{
 }
 
 type ServiceSettings struct {
-	SiteURL                                           *string  `access:"environment_web_server,authentication_saml,write_restrictable"`
-	WebsocketURL                                      *string  `access:"write_restrictable,cloud_restrictable"`
-	LicenseFileLocation                               *string  `access:"write_restrictable,cloud_restrictable"`                        // telemetry: none
-	ListenAddress                                     *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"` // telemetry: none
-	ConnectionSecurity                                *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	TLSCertFile                                       *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	TLSKeyFile                                        *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	TLSMinVer                                         *string  `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	TLSStrictTransport                                *bool    `access:"write_restrictable,cloud_restrictable"`
-	TLSStrictTransportMaxAge                          *int64   `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	TLSOverwriteCiphers                               []string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	UseLetsEncrypt                                    *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	LetsEncryptCertificateCacheFile                   *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"` // telemetry: none
-	Forward80To443                                    *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	TrustedProxyIPHeader                              []string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	ReadTimeout                                       *int     `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	WriteTimeout                                      *int     `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	IdleTimeout                                       *int     `access:"write_restrictable,cloud_restrictable"`
-	MaximumLoginAttempts                              *int     `access:"authentication_password,write_restrictable,cloud_restrictable"`
-	GoroutineHealthThreshold                          *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	EnableOAuthServiceProvider                        *bool    `access:"integrations_integration_management"`
-	EnableIncomingWebhooks                            *bool    `access:"integrations_integration_management"`
-	EnableOutgoingWebhooks                            *bool    `access:"integrations_integration_management"`
-	EnableCommands                                    *bool    `access:"integrations_integration_management"`
-	EnablePostUsernameOverride                        *bool    `access:"integrations_integration_management"`
-	EnablePostIconOverride                            *bool    `access:"integrations_integration_management"`
-	GoogleDeveloperKey                                *string  `access:"site_posts,write_restrictable,cloud_restrictable"`
-	EnableLinkPreviews                                *bool    `access:"site_posts"`
-	EnablePermalinkPreviews                           *bool    `access:"site_posts"`
-	RestrictLinkPreviews                              *string  `access:"site_posts"`
-	EnableTesting                                     *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
-	EnableDeveloper                                   *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
-	DeveloperFlags                                    *string  `access:"environment_developer"`
-	EnableClientPerformanceDebugging                  *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
-	EnableOpenTracing                                 *bool    `access:"write_restrictable,cloud_restrictable"`
-	EnableSecurityFixAlert                            *bool    `access:"environment_smtp,write_restrictable,cloud_restrictable"`
-	EnableInsecureOutgoingConnections                 *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	AllowedUntrustedInternalConnections               *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	EnableMultifactorAuthentication                   *bool    `access:"authentication_mfa"`
-	EnforceMultifactorAuthentication                  *bool    `access:"authentication_mfa"`
-	EnableUserAccessTokens                            *bool    `access:"integrations_integration_management"`
-	AllowCorsFrom                                     *string  `access:"integrations_cors,write_restrictable,cloud_restrictable"`
-	CorsExposedHeaders                                *string  `access:"integrations_cors,write_restrictable,cloud_restrictable"`
-	CorsAllowCredentials                              *bool    `access:"integrations_cors,write_restrictable,cloud_restrictable"`
-	CorsDebug                                         *bool    `access:"integrations_cors,write_restrictable,cloud_restrictable"`
-	AllowCookiesForSubdomains                         *bool    `access:"write_restrictable,cloud_restrictable"`
-	ExtendSessionLengthWithActivity                   *bool    `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
-	SessionLengthWebInDays                            *int     `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
-	SessionLengthMobileInDays                         *int     `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
-	SessionLengthSSOInDays                            *int     `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
-	SessionCacheInMinutes                             *int     `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
-	SessionIdleTimeoutInMinutes                       *int     `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
-	WebsocketSecurePort                               *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	WebsocketPort                                     *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	WebserverMode                                     *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	EnableGifPicker                                   *bool    `access:"integrations_gif"`
-	GfycatAPIKey                                      *string  `access:"integrations_gif"`
-	GfycatAPISecret                                   *string  `access:"integrations_gif"`
-	EnableCustomEmoji                                 *bool    `access:"site_emoji"`
-	EnableEmojiPicker                                 *bool    `access:"site_emoji"`
-	PostEditTimeLimit                                 *int     `access:"user_management_permissions"`
-	TimeBetweenUserTypingUpdatesMilliseconds          *int64   `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	EnablePostSearch                                  *bool    `access:"write_restrictable,cloud_restrictable"`
-	EnableFileSearch                                  *bool    `access:"write_restrictable"`
-	MinimumHashtagLength                              *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
-	EnableUserTypingMessages                          *bool    `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	EnableChannelViewedMessages                       *bool    `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	EnableUserStatuses                                *bool    `access:"write_restrictable,cloud_restrictable"`
-	ExperimentalEnableAuthenticationTransfer          *bool    `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	ClusterLogTimeoutMilliseconds                     *int     `access:"write_restrictable,cloud_restrictable"`
-	EnablePreviewFeatures                             *bool    `access:"experimental_features"`
-	EnableTutorial                                    *bool    `access:"experimental_features"`
-	EnableOnboardingFlow                              *bool    `access:"experimental_features"`
-	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool    `access:"experimental_features"`
-	ExperimentalGroupUnreadChannels                   *string  `access:"experimental_features"`
+	SiteURL                             *string  `access:"environment_web_server,authentication_saml,write_restrictable"`
+	WebsocketURL                        *string  `access:"write_restrictable,cloud_restrictable"`
+	LicenseFileLocation                 *string  `access:"write_restrictable,cloud_restrictable"`                        // telemetry: none
+	ListenAddress                       *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"` // telemetry: none
+	ConnectionSecurity                  *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	TLSCertFile                         *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	TLSKeyFile                          *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	TLSMinVer                           *string  `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	TLSStrictTransport                  *bool    `access:"write_restrictable,cloud_restrictable"`
+	TLSStrictTransportMaxAge            *int64   `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	TLSOverwriteCiphers                 []string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	UseLetsEncrypt                      *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	LetsEncryptCertificateCacheFile     *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"` // telemetry: none
+	Forward80To443                      *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	TrustedProxyIPHeader                []string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	ReadTimeout                         *int     `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	WriteTimeout                        *int     `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	IdleTimeout                         *int     `access:"write_restrictable,cloud_restrictable"`
+	MaximumLoginAttempts                *int     `access:"authentication_password,write_restrictable,cloud_restrictable"`
+	GoroutineHealthThreshold            *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableOAuthServiceProvider          *bool    `access:"integrations_integration_management"`
+	EnableIncomingWebhooks              *bool    `access:"integrations_integration_management"`
+	EnableOutgoingWebhooks              *bool    `access:"integrations_integration_management"`
+	EnableCommands                      *bool    `access:"integrations_integration_management"`
+	EnablePostUsernameOverride          *bool    `access:"integrations_integration_management"`
+	EnablePostIconOverride              *bool    `access:"integrations_integration_management"`
+	GoogleDeveloperKey                  *string  `access:"site_posts,write_restrictable,cloud_restrictable"`
+	EnableLinkPreviews                  *bool    `access:"site_posts"`
+	EnablePermalinkPreviews             *bool    `access:"site_posts"`
+	RestrictLinkPreviews                *string  `access:"site_posts"`
+	EnableTesting                       *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
+	EnableDeveloper                     *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
+	DeveloperFlags                      *string  `access:"environment_developer"`
+	EnableClientPerformanceDebugging    *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
+	EnableOpenTracing                   *bool    `access:"write_restrictable,cloud_restrictable"`
+	EnableSecurityFixAlert              *bool    `access:"environment_smtp,write_restrictable,cloud_restrictable"`
+	EnableInsecureOutgoingConnections   *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	AllowedUntrustedInternalConnections *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	EnableMultifactorAuthentication     *bool    `access:"authentication_mfa"`
+	EnforceMultifactorAuthentication    *bool    `access:"authentication_mfa"`
+	EnableUserAccessTokens              *bool    `access:"integrations_integration_management"`
+	AllowCorsFrom                       *string  `access:"integrations_cors,write_restrictable,cloud_restrictable"`
+	CorsExposedHeaders                  *string  `access:"integrations_cors,write_restrictable,cloud_restrictable"`
+	CorsAllowCredentials                *bool    `access:"integrations_cors,write_restrictable,cloud_restrictable"`
+	CorsDebug                           *bool    `access:"integrations_cors,write_restrictable,cloud_restrictable"`
+	AllowCookiesForSubdomains           *bool    `access:"write_restrictable,cloud_restrictable"`
+	ExtendSessionLengthWithActivity     *bool    `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
+
+	// Deprecated
+	SessionLengthWebInDays *int `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
+	// SessionLengthWebInMinutes *int `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
+
+	// Deprecated
+	SessionLengthMobileInDays *int `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
+	// SessionLengthMobileInMinutes *int `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
+
+	// Deprecated
+	SessionLengthSSOInDays    *int `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
+	SessionLengthSSOInMinutes *int `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
+
+	SessionCacheInMinutes                             *int    `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
+	SessionIdleTimeoutInMinutes                       *int    `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
+	WebsocketSecurePort                               *int    `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	WebsocketPort                                     *int    `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	WebserverMode                                     *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	EnableGifPicker                                   *bool   `access:"integrations_gif"`
+	GfycatAPIKey                                      *string `access:"integrations_gif"`
+	GfycatAPISecret                                   *string `access:"integrations_gif"`
+	EnableCustomEmoji                                 *bool   `access:"site_emoji"`
+	EnableEmojiPicker                                 *bool   `access:"site_emoji"`
+	PostEditTimeLimit                                 *int    `access:"user_management_permissions"`
+	TimeBetweenUserTypingUpdatesMilliseconds          *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	EnablePostSearch                                  *bool   `access:"write_restrictable,cloud_restrictable"`
+	EnableFileSearch                                  *bool   `access:"write_restrictable"`
+	MinimumHashtagLength                              *int    `access:"environment_database,write_restrictable,cloud_restrictable"`
+	EnableUserTypingMessages                          *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	EnableChannelViewedMessages                       *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	EnableUserStatuses                                *bool   `access:"write_restrictable,cloud_restrictable"`
+	ExperimentalEnableAuthenticationTransfer          *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	ClusterLogTimeoutMilliseconds                     *int    `access:"write_restrictable,cloud_restrictable"`
+	EnablePreviewFeatures                             *bool   `access:"experimental_features"`
+	EnableTutorial                                    *bool   `access:"experimental_features"`
+	EnableOnboardingFlow                              *bool   `access:"experimental_features"`
+	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool   `access:"experimental_features"`
+	ExperimentalGroupUnreadChannels                   *string `access:"experimental_features"`
 	EnableAPITeamDeletion                             *bool
 	EnableAPIUserDeletion                             *bool
 	ExperimentalEnableHardenedMode                    *bool `access:"experimental_features"`
@@ -606,8 +616,17 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		}
 	}
 
-	if s.SessionLengthSSOInDays == nil {
-		s.SessionLengthSSOInDays = NewInt(30)
+	if s.SessionLengthSSOInMinutes == nil {
+		var ttlDays int
+
+		if s.SessionLengthSSOInDays == nil {
+			ttlDays = 30
+		} else {
+			ttlDays = *s.SessionLengthSSOInDays
+			s.SessionLengthSSOInDays = nil
+		}
+
+		s.SessionLengthSSOInMinutes = NewInt(ttlDays * 24 * 60)
 	}
 
 	if s.SessionCacheInMinutes == nil {
