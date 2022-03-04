@@ -338,7 +338,7 @@ func TestHubConnIndexInactive(t *testing.T) {
 }
 
 func TestReliableWebSocketSend(t *testing.T) {
-        t.Skip("MM-42033")
+	t.Skip("MM-42033")
 	th := Setup(t)
 	defer th.TearDown()
 
