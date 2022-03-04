@@ -104,7 +104,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
 	f.EnableInactivityCheckJob = true
-	f.UseCaseOnboarding = false
+	f.UseCaseOnboarding = true
 	f.WorkspaceOptimizationDashboard = false
 	f.GraphQL = false
 }
