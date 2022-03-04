@@ -32,28 +32,6 @@ var (
 	ErrSchedulersUninitialized = errors.New("job schedulers are not initialized")
 )
 
-func (srv *JobServer) InitSchedulers() error {
-	srv.mut.Lock()
-	defer srv.mut.Unlock()
-	if srv.schedulers != nil && srv.schedulers.running {
-		return ErrSchedulersRunning
-	}
-	mlog.Debug("Initialising schedulers.")
-
-	schedulers := &Schedulers{
-		configChanged:        make(chan *model.Config),
-		clusterLeaderChanged: make(chan bool, 1),
-		jobs:                 srv,
-		isLeader:             true,
-		schedulers:           make(map[string]model.Scheduler),
-		nextRunTimes:         make(map[string]*time.Time),
-	}
-
-	srv.schedulers = schedulers
-
-	return nil
-}
-
 func (schedulers *Schedulers) AddScheduler(name string, scheduler model.Scheduler) {
 	schedulers.schedulers[name] = scheduler
 }
