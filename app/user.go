@@ -2327,7 +2327,7 @@ func (a *App) GetThreadForUser(teamID string, threadMembership *model.ThreadMemb
 }
 
 func (a *App) UpdateThreadsReadForUser(userID, teamID string) *model.AppError {
-	nErr := a.Srv().Store.Thread().MarkAllAsRead(userID, teamID)
+	nErr := a.Srv().Store.Thread().MarkAllAsReadByTeam(userID, teamID)
 	if nErr != nil {
 		return model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
