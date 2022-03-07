@@ -836,8 +836,10 @@ func MakeDefaultRoles() map[string]*Role {
 		Description: "authentication.roles.playbook_admin.description",
 		Permissions: []string{
 			PermissionPublicPlaybookManageMembers.Id,
+			PermissionPublicPlaybookManageRoles.Id,
 			PermissionPublicPlaybookManageProperties.Id,
 			PermissionPrivatePlaybookManageMembers.Id,
+			PermissionPrivatePlaybookManageRoles.Id,
 			PermissionPrivatePlaybookManageProperties.Id,
 			PermissionPublicPlaybookMakePrivate.Id,
 		},

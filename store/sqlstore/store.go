@@ -17,18 +17,18 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/go-morph/morph"
+	"github.com/mattermost/morph"
 
-	"github.com/go-morph/morph/drivers"
-	ms "github.com/go-morph/morph/drivers/mysql"
-	ps "github.com/go-morph/morph/drivers/postgres"
+	"github.com/mattermost/morph/drivers"
+	ms "github.com/mattermost/morph/drivers/mysql"
+	ps "github.com/mattermost/morph/drivers/postgres"
 
-	mbindata "github.com/go-morph/morph/sources/go_bindata"
 	"github.com/go-sql-driver/mysql"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/mattermost/gorp"
+	mbindata "github.com/mattermost/morph/sources/go_bindata"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/db/migrations"
@@ -966,6 +966,11 @@ func (ss *SqlStore) getQueryBuilder() sq.StatementBuilderType {
 		builder = builder.PlaceholderFormat(sq.Dollar)
 	}
 	return builder
+}
+
+// getSubQueryBuilder is necessary to generate the SQL query and args to pass to sub-queries because squirrel does not support WHERE clause in sub-queries.
+func (ss *SqlStore) getSubQueryBuilder() sq.StatementBuilderType {
+	return sq.StatementBuilder.PlaceholderFormat(sq.Question)
 }
 
 func (ss *SqlStore) CheckIntegrity() <-chan model.IntegrityCheckResult {

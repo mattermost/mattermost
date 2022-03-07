@@ -8,6 +8,14 @@
     "translation": "August"
   },
   {
+    "id": "Boards",
+    "translation": "Boards"
+  },
+  {
+    "id": "Channels",
+    "translation": "Channels"
+  },
+  {
     "id": "December",
     "translation": "December"
   },
@@ -42,6 +50,10 @@
   {
     "id": "October",
     "translation": "October"
+  },
+  {
+    "id": "Playbooks",
+    "translation": "Playbooks"
   },
   {
     "id": "September",
@@ -2952,6 +2964,14 @@
     "translation": "No one to invite."
   },
   {
+    "id": "api.team.invite_members.unable_to_send_email.app_error",
+    "translation": "Error while sending the email"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
+    "translation": "SMTP is not configured in System Console"
+  },
+  {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
     "translation": "Team creation has been disabled. Please ask your System Administrator for details."
   },
@@ -3101,7 +3121,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Enterprise has ended today, {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Enterprise."
+    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Enterprise has ended today, {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Enterprise. If you do not add your payment information within 30 days, we will delete your Cloud workspace permanently and you will lose any associated data."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
@@ -3245,7 +3265,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.email_info1",
@@ -3562,6 +3582,38 @@
   {
     "id": "api.templates.reset_subject",
     "translation": "[{{ .SiteName }}] Reset your password"
+  },
+  {
+    "id": "api.templates.server_inactivity_button",
+    "translation": "Open Mattermost"
+  },
+  {
+    "id": "api.templates.server_inactivity_info",
+    "translation": "Come and check it out!"
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet",
+    "translation": "Guest Access to specified "
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet1",
+    "translation": "Workflow management with "
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet2",
+    "translation": "Manage tasks using "
+  },
+  {
+    "id": "api.templates.server_inactivity_subject",
+    "translation": "HEY! Open Mattermost to increase your team’s productivity!"
+  },
+  {
+    "id": "api.templates.server_inactivity_subtitle",
+    "translation": "Hey {{.Name}}, we’ve noticed that your Mattermost server is collecting a bit of dust. Take a look at some features that can help lighten your team's workload."
+  },
+  {
+    "id": "api.templates.server_inactivity_title",
+    "translation": "Unlock increased productivity with these awesome features"
   },
   {
     "id": "api.templates.signin_change_email.body.info",
@@ -4584,10 +4636,6 @@
     "translation": "Unable to get the channel unread messages."
   },
   {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Unable to increment the mention count."
-  },
-  {
     "id": "app.channel.migrate_channel_members.select.app_error",
     "translation": "Failed to select the batch of channel members."
   },
@@ -5080,10 +5128,6 @@
     "translation": "Channel display_name is not within permitted length constraints."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Missing required channel property: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "Channel header is too long."
   },
@@ -5494,6 +5538,10 @@
   {
     "id": "app.job.get_all.app_error",
     "translation": "Unable to get the jobs."
+  },
+  {
+    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
+    "translation": "Unable to get the all jobs by type and status."
   },
   {
     "id": "app.job.get_count_by_status_and_type.app_error",
@@ -5950,6 +5998,10 @@
   {
     "id": "app.preference.save.updating.app_error",
     "translation": "We encountered an error while updating preferences."
+  },
+  {
+    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "translation": "Prepackged plugin version could not be parsed."
   },
   {
     "id": "app.reaction.bulk_get_for_post_ids.app_error",
@@ -9269,7 +9321,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 12+"
+    "translation": "Version 14.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",

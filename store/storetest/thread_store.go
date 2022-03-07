@@ -6,7 +6,6 @@ package storetest
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -16,15 +15,15 @@ import (
 )
 
 func TestThreadStore(t *testing.T, ss store.Store, s SqlStore) {
-	t.Run("ThreadSQLOperations", func(t *testing.T) { testThreadSQLOperations(t, ss, s) })
 	t.Run("ThreadStorePopulation", func(t *testing.T) { testThreadStorePopulation(t, ss) })
 	t.Run("ThreadStorePermanentDeleteBatchForRetentionPolicies", func(t *testing.T) {
 		testThreadStorePermanentDeleteBatchForRetentionPolicies(t, ss)
 	})
 	t.Run("ThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies", func(t *testing.T) {
-		testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t, ss)
+		testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t, ss, s)
 	})
 	t.Run("GetTeamsUnreadForUser", func(t *testing.T) { testGetTeamsUnreadForUser(t, ss) })
+	t.Run("MarkAllAsReadByChannels", func(t *testing.T) { testMarkAllAsReadByChannels(t, ss) })
 }
 
 func testThreadStorePopulation(t *testing.T, ss store.Store) {
@@ -263,88 +262,6 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		require.Nil(t, thread2)
 	})
 
-	t.Run("Thread last updated is changed when channel is updated after UpdateLastViewedAtPost", func(t *testing.T) {
-		newPosts := makeSomePosts()
-		opts := store.ThreadMembershipOpts{
-			Following:             true,
-			IncrementMentions:     false,
-			UpdateFollowing:       true,
-			UpdateViewedTimestamp: false,
-			UpdateParticipants:    false,
-		}
-		_, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
-		require.NoError(t, e)
-		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-		require.NoError(t, err1)
-		m.LastUpdated -= 1000
-		_, err := ss.Thread().UpdateMembership(m)
-		require.NoError(t, err)
-
-		_, err = ss.Channel().UpdateLastViewedAtPost(newPosts[0], newPosts[0].UserId, 0, 0, true, true)
-		require.NoError(t, err)
-
-		assert.Eventually(t, func() bool {
-			m2, err2 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-			require.NoError(t, err2)
-			return m2.LastUpdated > m.LastUpdated
-		}, time.Second, 10*time.Millisecond)
-	})
-
-	t.Run("Thread last updated is changed when channel is updated after IncrementMentionCount", func(t *testing.T) {
-		newPosts := makeSomePosts()
-
-		opts := store.ThreadMembershipOpts{
-			Following:             true,
-			IncrementMentions:     false,
-			UpdateFollowing:       true,
-			UpdateViewedTimestamp: false,
-			UpdateParticipants:    false,
-		}
-		_, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
-		require.NoError(t, e)
-		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-		require.NoError(t, err1)
-		m.LastUpdated -= 1000
-		_, err := ss.Thread().UpdateMembership(m)
-		require.NoError(t, err)
-
-		err = ss.Channel().IncrementMentionCount(newPosts[0].ChannelId, newPosts[0].UserId, true, false)
-		require.NoError(t, err)
-
-		assert.Eventually(t, func() bool {
-			m2, err2 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-			require.NoError(t, err2)
-			return m2.LastUpdated > m.LastUpdated
-		}, time.Second, 10*time.Millisecond)
-	})
-
-	t.Run("Thread last updated is changed when channel is updated after UpdateLastViewedAt", func(t *testing.T) {
-		newPosts := makeSomePosts()
-		opts := store.ThreadMembershipOpts{
-			Following:             true,
-			IncrementMentions:     false,
-			UpdateFollowing:       true,
-			UpdateViewedTimestamp: false,
-			UpdateParticipants:    false,
-		}
-		_, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
-		require.NoError(t, e)
-		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-		require.NoError(t, err1)
-		m.LastUpdated -= 1000
-		_, err := ss.Thread().UpdateMembership(m)
-		require.NoError(t, err)
-
-		_, err = ss.Channel().UpdateLastViewedAt([]string{newPosts[0].ChannelId}, newPosts[0].UserId, true)
-		require.NoError(t, err)
-
-		assert.Eventually(t, func() bool {
-			m2, err2 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-			require.NoError(t, err2)
-			return m2.LastUpdated > m.LastUpdated
-		}, time.Second, 10*time.Millisecond)
-	})
-
 	t.Run("Thread membership 'viewed' timestamp is updated properly", func(t *testing.T) {
 		newPosts := makeSomePosts()
 
@@ -392,33 +309,6 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		tm, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
 		require.NoError(t, e)
 		require.NotEqual(t, int64(0), tm.LastViewed)
-	})
-
-	t.Run("Thread last updated is changed when channel is updated after UpdateLastViewedAtPost for mark unread", func(t *testing.T) {
-		newPosts := makeSomePosts()
-		opts := store.ThreadMembershipOpts{
-			Following:             true,
-			IncrementMentions:     false,
-			UpdateFollowing:       true,
-			UpdateViewedTimestamp: false,
-			UpdateParticipants:    false,
-		}
-		_, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
-		require.NoError(t, e)
-		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-		require.NoError(t, err1)
-		m.LastUpdated += 1000
-		_, err := ss.Thread().UpdateMembership(m)
-		require.NoError(t, err)
-
-		_, err = ss.Channel().UpdateLastViewedAtPost(newPosts[0], newPosts[0].UserId, 0, 0, true, true)
-		require.NoError(t, err)
-
-		assert.Eventually(t, func() bool {
-			m2, err2 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-			require.NoError(t, err2)
-			return m2.LastUpdated < m.LastUpdated
-		}, time.Second, 10*time.Millisecond)
 	})
 
 	t.Run("Updating post does not make thread unread", func(t *testing.T) {
@@ -503,25 +393,9 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 	})
 }
 
-func testThreadSQLOperations(t *testing.T, ss store.Store, s SqlStore) {
-	t.Run("Save", func(t *testing.T) {
-		threadToSave := &model.Thread{
-			PostId:       model.NewId(),
-			ChannelId:    model.NewId(),
-			LastReplyAt:  10,
-			ReplyCount:   5,
-			Participants: model.StringArray{model.NewId(), model.NewId()},
-		}
-		_, err := ss.Thread().Save(threadToSave)
-		require.NoError(t, err)
-
-		th, err := ss.Thread().Get(threadToSave.PostId)
-		require.NoError(t, err)
-		require.Equal(t, threadToSave, th)
-	})
-}
-
 func threadStoreCreateReply(t *testing.T, ss store.Store, channelID, postID, userID string, createAt int64) *model.Post {
+	t.Helper()
+
 	reply, err := ss.Post().Save(&model.Post{
 		ChannelId: channelID,
 		UserId:    userID,
@@ -607,7 +481,7 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, ss st
 	assert.Nil(t, thread, "thread should have been deleted by team policy")
 }
 
-func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t *testing.T, ss store.Store) {
+func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t *testing.T, ss store.Store, s SqlStore) {
 	const limit = 1000
 	userID := model.NewId()
 	createThreadMembership := func(userID, postID string) *model.ThreadMembership {
@@ -695,7 +569,7 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	// Delete team policy and thread
 	err = ss.RetentionPolicy().Delete(teamPolicy.ID)
 	require.NoError(t, err)
-	err = ss.Thread().Delete(post.Id)
+	_, err = s.GetMasterX().Exec("DELETE FROM Threads WHERE PostId='" + post.Id + "'")
 	require.NoError(t, err)
 
 	deleted, err := ss.Thread().DeleteOrphanedRows(1000)
@@ -802,4 +676,148 @@ func testGetTeamsUnreadForUser(t *testing.T, ss store.Store) {
 	assert.Len(t, teamsUnread, 1)
 	assert.Equal(t, int64(1), teamsUnread[team2.Id].ThreadCount)
 	assert.Equal(t, int64(1), teamsUnread[team2.Id].ThreadMentionCount)
+}
+
+func testMarkAllAsReadByChannels(t *testing.T, ss store.Store) {
+	postingUserId := model.NewId()
+	userAID := model.NewId()
+	userBID := model.NewId()
+
+	team1, err := ss.Team().Save(&model.Team{
+		DisplayName: "Team1",
+		Name:        "team" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+
+	channel1, err := ss.Channel().Save(&model.Channel{
+		TeamId:      team1.Id,
+		DisplayName: "Channel1",
+		Name:        "channel1" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	channel2, err := ss.Channel().Save(&model.Channel{
+		TeamId:      team1.Id,
+		DisplayName: "Channel2",
+		Name:        "channel2" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	createThreadMembership := func(userID, postID string) {
+		t.Helper()
+		opts := store.ThreadMembershipOpts{
+			Following:             true,
+			IncrementMentions:     false,
+			UpdateFollowing:       true,
+			UpdateViewedTimestamp: false,
+			UpdateParticipants:    false,
+		}
+		_, err := ss.Thread().MaintainMembership(userID, postID, opts)
+		require.NoError(t, err)
+	}
+
+	assertThreadReplyCount := func(t *testing.T, userID string, count int64) {
+		t.Helper()
+
+		teamsUnread, err := ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id})
+		require.NoError(t, err)
+		require.Len(t, teamsUnread, 1, "unexpected unread teams count")
+		assert.Equal(t, count, teamsUnread[team1.Id].ThreadCount, "unexpected thread count")
+	}
+
+	t.Run("empty set of channels", func(t *testing.T) {
+		err := ss.Thread().MarkAllAsReadByChannels(model.NewId(), []string{})
+		require.NoError(t, err)
+	})
+
+	t.Run("single channel", func(t *testing.T) {
+		post, err := ss.Post().Save(&model.Post{
+			ChannelId: channel1.Id,
+			UserId:    postingUserId,
+			Message:   "Root",
+		})
+		require.NoError(t, err)
+
+		_, err = ss.Post().Save(&model.Post{
+			ChannelId: channel1.Id,
+			UserId:    postingUserId,
+			RootId:    post.Id,
+			Message:   "Reply",
+		})
+		require.NoError(t, err)
+
+		createThreadMembership(userAID, post.Id)
+		createThreadMembership(userBID, post.Id)
+
+		assertThreadReplyCount(t, userAID, 1)
+		assertThreadReplyCount(t, userBID, 1)
+
+		err = ss.Thread().MarkAllAsReadByChannels(userAID, []string{channel1.Id})
+		require.NoError(t, err)
+
+		assertThreadReplyCount(t, userAID, 0)
+		assertThreadReplyCount(t, userBID, 1)
+
+		err = ss.Thread().MarkAllAsReadByChannels(userBID, []string{channel1.Id})
+		require.NoError(t, err)
+
+		assertThreadReplyCount(t, userAID, 0)
+		assertThreadReplyCount(t, userBID, 0)
+	})
+
+	t.Run("multiple channels", func(t *testing.T) {
+		post1, err := ss.Post().Save(&model.Post{
+			ChannelId: channel1.Id,
+			UserId:    postingUserId,
+			Message:   "Root",
+		})
+		require.NoError(t, err)
+
+		_, err = ss.Post().Save(&model.Post{
+			ChannelId: channel1.Id,
+			UserId:    postingUserId,
+			RootId:    post1.Id,
+			Message:   "Reply",
+		})
+		require.NoError(t, err)
+
+		post2, err := ss.Post().Save(&model.Post{
+			ChannelId: channel2.Id,
+			UserId:    postingUserId,
+			Message:   "Root",
+		})
+		require.NoError(t, err)
+
+		_, err = ss.Post().Save(&model.Post{
+			ChannelId: channel2.Id,
+			UserId:    postingUserId,
+			RootId:    post2.Id,
+			Message:   "Reply",
+		})
+		require.NoError(t, err)
+
+		createThreadMembership(userAID, post1.Id)
+		createThreadMembership(userBID, post1.Id)
+		createThreadMembership(userAID, post2.Id)
+		createThreadMembership(userBID, post2.Id)
+
+		assertThreadReplyCount(t, userAID, 2)
+		assertThreadReplyCount(t, userBID, 2)
+
+		err = ss.Thread().MarkAllAsReadByChannels(userAID, []string{channel1.Id, channel2.Id})
+		require.NoError(t, err)
+
+		assertThreadReplyCount(t, userAID, 0)
+		assertThreadReplyCount(t, userBID, 2)
+
+		err = ss.Thread().MarkAllAsReadByChannels(userBID, []string{channel1.Id, channel2.Id})
+		require.NoError(t, err)
+
+		assertThreadReplyCount(t, userAID, 0)
+		assertThreadReplyCount(t, userBID, 0)
+	})
 }
