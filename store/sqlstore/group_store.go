@@ -328,7 +328,7 @@ func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, error) {
 		WHERE Id=:Id`, group)
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "groups_name_key"}) {
-			return nil, errors.Wrapf(err, "Group with name %s already exists", *group.Name)
+			return nil, store.NewErrUniqueConstraint("Name")
 		}
 		return nil, errors.Wrap(err, "failed to update Group")
 	}
