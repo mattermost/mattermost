@@ -2851,8 +2851,6 @@ func (s SqlChannelStore) AutocompleteInTeam(teamID, userID, term string, include
 }
 
 func (s SqlChannelStore) AutocompleteInTeamForSearch(teamID string, userID string, term string, includeDeleted bool) (model.ChannelList, error) {
-	qb := s.getQueryBuilder()
-
 	// shared where clause for all queries
 	baseWhere := sq.And{
 		sq.Or{
@@ -2870,7 +2868,7 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamID string, userID strin
 	}
 
 	// shared query
-	baseQuery := qb.Select("C.*").
+	baseQuery := sq.Select("C.*").
 		From("Channels AS C").
 		Join("ChannelMembers AS CM ON CM.ChannelId = C.Id").
 		Limit(50)
@@ -2921,8 +2919,19 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamID string, userID strin
 		args = append(likeArgs, fullArgs...)
 	}
 
+	var err error
+
+	// since the UNION is not part of squirrel, we need to assemble it and then update
+	// the placeholders manually
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		sql, err = sq.Dollar.ReplacePlaceholders(sql)
+		if err != nil {
+			return nil, errors.Wrap(err, "AutocompleteInTeamForSearch_Placeholder")
+		}
+	}
+
 	// query the database
-	err := s.GetReplicaX().Select(&channels, sql, args...)
+	err = s.GetReplicaX().Select(&channels, sql, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
 	}
@@ -2945,7 +2954,7 @@ func (s SqlChannelStore) autocompleteInTeamForSearchDirectMessages(userID string
 	qb := s.getQueryBuilder()
 
 	// create the subquery first
-	subQuery := qb.Select("ICM.ChannelId AS ChannelId", "IU.Username AS Username").
+	subQuery := sq.Select("ICM.ChannelId AS ChannelId", "IU.Username AS Username").
 		From("Users AS IU").
 		Join("ChannelMembers AS ICM ON ICM.UserId = IU.Id")
 
@@ -2986,7 +2995,7 @@ func (s SqlChannelStore) autocompleteInTeamForSearchDirectMessages(userID string
 	var channels model.ChannelList
 	err = s.GetReplicaX().Select(&channels, sql, args...)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
+		return nil, errors.Wrapf(err, "failed to find Channels with term='%s' (%s %% %v)", term, sql, args)
 	}
 
 	return channels, nil
