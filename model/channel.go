@@ -178,6 +178,14 @@ func (o *Channel) DeleteAt_() float64 {
 	return float64(o.DeleteAt)
 }
 
+func (o *Channel) LastPostAt_() float64 {
+	return float64(o.LastPostAt)
+}
+
+func (o *Channel) TotalMsgCount_() float64 {
+	return float64(o.TotalMsgCount)
+}
+
 func (o *Channel) DeepCopy() *Channel {
 	copy := *o
 	if copy.SchemeId != nil {
