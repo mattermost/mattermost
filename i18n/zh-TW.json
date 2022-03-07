@@ -2484,10 +2484,6 @@
     "translation": "頻道顯示名稱長度不符要求。"
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "缺少必要的頻道屬性：顯示名稱。"
-  },
-  {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "頻道標題過長。"
   },
@@ -7058,10 +7054,6 @@
   {
     "id": "app.channel.pinned_posts.app_error",
     "translation": "無法找到被釘選的訊息。"
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "無法增加提及計數。"
   },
   {
     "id": "app.channel.get_private_channels.get.app_error",

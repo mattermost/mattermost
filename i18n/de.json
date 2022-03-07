@@ -2488,10 +2488,6 @@
     "translation": "Kanal display_name befindet sich nicht innerhalb der Längenbegrenzung."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Fehlende erforderliche Kanaleigenschaft: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "Kanalüberschrift ist zu lang."
   },
@@ -6678,10 +6674,6 @@
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "Konnte das Kanalmitglied nicht entfernen."
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Konnte Erwähnungs-Zähler nicht erhöhen."
   },
   {
     "id": "app.channel.get_pinnedpost_count.app_error",
