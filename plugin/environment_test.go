@@ -15,7 +15,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
-func TestAvaliablePlugins(t *testing.T) {
+func TestAvailablePlugins(t *testing.T) {
 	dir, err1 := ioutil.TempDir("", "mm-plugin-test")
 	require.NoError(t, err1)
 	t.Cleanup(func() {

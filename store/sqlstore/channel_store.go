@@ -2311,17 +2311,7 @@ func (s SqlChannelStore) PermanentDeleteMembersByUser(userId string) error {
 	return nil
 }
 
-func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, updateThreads bool) (map[string]int64, error) {
-	var threadsToUpdate []string
-	now := model.GetMillis()
-	if updateThreads {
-		var err error
-		threadsToUpdate, err = s.Thread().CollectThreadsWithNewerReplies(userId, channelIds, now)
-		if err != nil {
-			return nil, err
-		}
-	}
-
+func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, error) {
 	lastPostAtTimes := []struct {
 		Id                string
 		LastPostAt        int64
@@ -2379,9 +2369,6 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 		for _, t := range lastPostAtTimes {
 			times[t.Id] = t.LastPostAt
 		}
-		if updateThreads {
-			s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now, true)
-		}
 		return times, nil
 	}
 
@@ -2424,9 +2411,6 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 		return nil, errors.Wrapf(err, "failed to update ChannelMembers with userId=%s and channelId in %v", userId, channelIds)
 	}
 
-	if updateThreads {
-		s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now, true)
-	}
 	return times, nil
 }
 
@@ -2478,16 +2462,8 @@ func (s SqlChannelStore) CountPostsAfter(channelId string, timestamp int64, user
 // UpdateLastViewedAtPost updates a ChannelMember as if the user last read the channel at the time of the given post.
 // If the provided mentionCount is -1, the given post and all posts after it are considered to be mentions. Returns
 // an updated model.ChannelUnreadAt that can be returned to the client.
-func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount, mentionCountRoot int, updateThreads bool, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error) {
-	var threadsToUpdate []string
+func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount, mentionCountRoot int, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error) {
 	unreadDate := unreadPost.CreateAt - 1
-	if updateThreads {
-		var err error
-		threadsToUpdate, err = s.Thread().CollectThreadsWithNewerReplies(userID, []string{unreadPost.ChannelId}, unreadDate)
-		if err != nil {
-			return nil, err
-		}
-	}
 
 	unread, unreadRoot, err := s.CountPostsAfter(unreadPost.ChannelId, unreadDate, "")
 	if err != nil {
@@ -2554,41 +2530,35 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID s
 		return nil, errors.Wrapf(err, "failed to get ChannelMember with channelId=%s", unreadPost.ChannelId)
 	}
 
-	if updateThreads {
-		s.Thread().UpdateUnreadsByChannel(userID, threadsToUpdate, unreadDate, false)
-	}
 	return result, nil
 }
 
-func (s SqlChannelStore) IncrementMentionCount(channelId string, userId string, updateThreads, isRoot bool) error {
+func (s SqlChannelStore) IncrementMentionCount(channelId string, userIDs []string, isRoot bool) error {
 	now := model.GetMillis()
-	var threadsToUpdate []string
-	if updateThreads {
-		var err error
-		threadsToUpdate, err = s.Thread().CollectThreadsWithNewerReplies(userId, []string{channelId}, now)
-		if err != nil {
-			return err
-		}
-	}
+
 	rootInc := 0
 	if isRoot {
 		rootInc = 1
 	}
-	_, err := s.GetMasterX().Exec(
-		`UPDATE
-			ChannelMembers
-		SET
-			MentionCount = MentionCount + 1,
-			MentionCountRoot = MentionCountRoot + ?,
-			LastUpdateAt = ?
-		WHERE
-			UserId = ?
-			AND ChannelId = ?`, rootInc, now, userId, channelId)
+
+	sql, args, err := s.getQueryBuilder().
+		Update("ChannelMembers").
+		Set("MentionCount", sq.Expr("MentionCount + 1")).
+		Set("MentionCountRoot", sq.Expr("MentionCountRoot + ?", rootInc)).
+		Set("LastUpdateAt", now).
+		Where(sq.Eq{
+			"UserId":    userIDs,
+			"ChannelId": channelId,
+		}).
+		ToSql()
+
 	if err != nil {
-		return errors.Wrapf(err, "failed to Update ChannelMembers with channelId=%s and userId=%s", channelId, userId)
+		return errors.Wrap(err, "IncrementMentionCount_Tosql")
 	}
-	if updateThreads {
-		s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now, false)
+
+	_, err = s.GetMasterX().Exec(sql, args...)
+	if err != nil {
+		return errors.Wrapf(err, "failed to Update ChannelMembers with channelId=%s and userId=%v", channelId, userIDs)
 	}
 	return nil
 }

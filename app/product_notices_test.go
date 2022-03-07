@@ -544,7 +544,7 @@ func TestNoticeValidation(t *testing.T) {
 			wantOk:  true,
 		},
 		{
-			name: "notice with depreacting an external dependency",
+			name: "notice with deprecating an external dependency",
 			args: args{
 				dbmsName: "mysql",
 				dbmsVer:  "5.6",
@@ -561,7 +561,7 @@ func TestNoticeValidation(t *testing.T) {
 			wantOk:  true,
 		},
 		{
-			name: "notice with depreacting an external dependency, on a future version",
+			name: "notice with deprecating an external dependency, on a future version",
 			args: args{
 				dbmsName:      "mysql",
 				dbmsVer:       "5.6",

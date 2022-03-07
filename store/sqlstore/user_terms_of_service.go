@@ -55,7 +55,7 @@ func (s SqlUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfSe
 	query := `
 		UPDATE UserTermsOfService
 		SET UserId = :UserId, TermsOfServiceId = :TermsOfServiceId, CreateAt = :CreateAt
-		WHERE UserId = :UserId AND TermsOfServiceId = :TermsOfServiceId
+		WHERE UserId = :UserId
 	`
 	result, err := s.GetMasterX().NamedExec(query, userTermsOfService)
 	if err != nil {
