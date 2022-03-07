@@ -122,7 +122,7 @@ func (s *Server) initEnterprise() {
 		s.Metrics = metricsInterface(s)
 	}
 
-	if clusterInterface != nil {
+	if clusterInterface != nil && s.Cluster == nil {
 		s.Cluster = clusterInterface(s)
 	}
 	if elasticsearchInterface != nil {
