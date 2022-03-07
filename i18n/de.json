@@ -9385,5 +9385,17 @@
   {
     "id": "Boards",
     "translation": "Boards"
+  },
+  {
+    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
+    "translation": "Kann nicht alle Jobs nach Typ und Status holen."
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
+    "translation": "SMTP ist in der Systemkonsole nicht konfiguriert"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email.app_error",
+    "translation": "Fehler beim Senden der Email"
   }
 ]
