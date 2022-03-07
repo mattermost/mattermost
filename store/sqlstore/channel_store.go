@@ -1558,6 +1558,21 @@ func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int, userId
 	return channels, nil
 }
 
+var channelMembersForTeamWithSchemeSelectQueryX = sq.Select(
+	"ChannelMembers.*",
+	"TeamScheme.DefaultChannelGuestRole TeamSchemeDefaultGuestRole",
+	"TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole",
+	"TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole",
+	"ChannelScheme.DefaultChannelGuestRole ChannelSchemeDefaultGuestRole",
+	"ChannelScheme.DefaultChannelUserRole ChannelSchemeDefaultUserRole",
+	"ChannelScheme.DefaultChannelAdminRole ChannelSchemeDefaultAdminRole",
+).
+	From("ChannelMembers").
+	InnerJoin("Channels ON ChannelMembers.ChannelId = Channels.Id").
+	LeftJoin("Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id").
+	LeftJoin("Teams ON Channels.TeamId = Teams.Id").
+	LeftJoin("Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id")
+
 var channelMembersForTeamWithSchemeSelectQuery = `
 	SELECT
 		ChannelMembers.*,
@@ -3428,29 +3443,51 @@ func (s SqlChannelStore) SearchGroupChannels(userId, term string) (model.Channel
 	return groupChannels, nil
 }
 
-// TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19336)
-func (s SqlChannelStore) GetMembersByIds(channelId string, userIds []string) (model.ChannelMembers, error) {
+func (s SqlChannelStore) GetMembersByIds(channelID string, userIDs []string) (model.ChannelMembers, error) {
 	var dbMembers channelMemberWithSchemeRolesList
 
-	keys, props := MapStringsToQueryParams(userIds, "User")
-	props["ChannelId"] = channelId
+	query := channelMembersForTeamWithSchemeSelectQueryX.Where(
+		sq.Eq{
+			"ChannelMembers.ChannelId": channelID,
+			"ChannelMembers.UserId":    userIDs,
+		},
+	)
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		query = query.PlaceholderFormat(sq.Dollar)
+	}
 
-	if _, err := s.GetReplica().Select(&dbMembers, channelMembersForTeamWithSchemeSelectQuery+"WHERE ChannelMembers.ChannelId = :ChannelId AND ChannelMembers.UserId IN "+keys, props); err != nil {
-		return nil, errors.Wrapf(err, "failed to find ChannelMembers with channelId=%s and userId in %v", channelId, userIds)
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetMembersByIds_ToSql")
+	}
+
+	if err := s.GetReplicaX().Select(&dbMembers, sql, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find ChannelMembers with channelId=%s and userId in %v", channelID, userIDs)
 	}
 
 	return dbMembers.ToModel(), nil
 }
 
-// TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19336)
-func (s SqlChannelStore) GetMembersByChannelIds(channelIds []string, userId string) (model.ChannelMembers, error) {
+func (s SqlChannelStore) GetMembersByChannelIds(channelIDs []string, userID string) (model.ChannelMembers, error) {
 	var dbMembers channelMemberWithSchemeRolesList
 
-	keys, props := MapStringsToQueryParams(channelIds, "Channel")
-	props["UserId"] = userId
+	query := channelMembersForTeamWithSchemeSelectQueryX.Where(
+		sq.Eq{
+			"ChannelMembers.ChannelId": channelIDs,
+			"ChannelMembers.UserId":    userID,
+		},
+	)
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		query = query.PlaceholderFormat(sq.Dollar)
+	}
 
-	if _, err := s.GetReplica().Select(&dbMembers, channelMembersForTeamWithSchemeSelectQuery+"WHERE ChannelMembers.UserId = :UserId AND ChannelMembers.ChannelId IN "+keys, props); err != nil {
-		return nil, errors.Wrapf(err, "failed to find ChannelMembers with userId=%s and channelId in %v", userId, channelIds)
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetMembersByChannelIds_ToSql")
+	}
+
+	if err := s.GetReplicaX().Select(&dbMembers, sql, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find ChannelMembers with userId=%s and channelId in %v", userID, channelIDs)
 	}
 
 	return dbMembers.ToModel(), nil
