@@ -76,6 +76,11 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	const FileMime = "application/zip"
 	const OutputDirectory = "support_packet"
 
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("generateSupportPacket", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
+
 	// Checking to see if the user is a admin of any sort or not
 	// If they are a admin, they should theoretically have access to one or more of the system console read permissions
 	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleReadPermissions) {
