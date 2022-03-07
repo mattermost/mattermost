@@ -2492,10 +2492,6 @@
     "translation": "Canal display_name nu este în termen de constrângerile de durata."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Lipsesc necesare canal proprietate: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "Canal antet este prea lung."
   },
@@ -6926,10 +6922,6 @@
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "Nu se poate elimina membrul canalului."
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Nu se poate mări numărarea numelor."
   },
   {
     "id": "app.channel.get_public_channels.get.app_error",

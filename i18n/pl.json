@@ -2492,10 +2492,6 @@
     "translation": "Kanał display_name nie jest w żądanych limitach długości."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Brak wymaganej właściwości kanału: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "Nagłówek kanału jest za długi."
   },
@@ -6674,10 +6670,6 @@
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "Nie można usunąć członka kanału."
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Nie można zwiększyć liczby wzmianek."
   },
   {
     "id": "app.channel.get_pinnedpost_count.app_error",

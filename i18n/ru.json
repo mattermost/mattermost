@@ -2492,10 +2492,6 @@
     "translation": "Свойство Channel display_name не находится в пределах допустимых ограничений длины."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Пропущено обязательное свойство канала: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "Длина заголовка канала слишком большая."
   },
@@ -7062,10 +7058,6 @@
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "Невозможно удалить участника канала."
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Не удалось увеличить счетчик упоминаний."
   },
   {
     "id": "app.channel.get_pinnedpost_count.app_error",
