@@ -208,6 +208,20 @@ func TestGenerateSupportPacket(t *testing.T) {
 		require.NotZero(t, len(file))
 	})
 
+	t.Run("As a System Administrator but with RestrictSystemAdmin true", func(t *testing.T) {
+		originalRestrictSystemAdminVal := *th.App.Config().ExperimentalSettings.RestrictSystemAdmin
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ExperimentalSettings.RestrictSystemAdmin = originalRestrictSystemAdminVal
+			})
+		}()
+
+		_, resp, err := th.SystemAdminClient.GenerateSupportPacket()
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
 	t.Run("As a Regular User", func(t *testing.T) {
 		_, resp, err := th.Client.GenerateSupportPacket()
 		require.Error(t, err)
