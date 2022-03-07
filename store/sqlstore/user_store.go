@@ -1332,7 +1332,7 @@ func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime in
 
 func (us SqlUserStore) GetUnreadCount(userId string) (int64, error) {
 	query := `
-		SELECT SUM(CASE WHEN c.Type = ? THEN (c.TotalMsgCount - cm.MsgCount) ELSE cm.MentionCount END)
+		SELECT SUM(CASE WHEN c.Type = 'D' THEN (c.TotalMsgCount - cm.MsgCount) ELSE cm.MentionCount END)
 		FROM Channels c
 		INNER JOIN ChannelMembers cm
 			ON cm.ChannelId = c.Id
@@ -1341,7 +1341,7 @@ func (us SqlUserStore) GetUnreadCount(userId string) (int64, error) {
 	`
 
 	var count int64
-	err := us.GetReplicaX().Get(&count, query, model.ChannelTypeDirect, userId)
+	err := us.GetReplicaX().Get(&count, query, userId)
 	if err != nil {
 		return count, errors.Wrapf(err, "failed to count unread Channels for userId=%s", userId)
 	}
@@ -1351,7 +1351,7 @@ func (us SqlUserStore) GetUnreadCount(userId string) (int64, error) {
 
 func (us SqlUserStore) GetUnreadCountForChannel(userId string, channelId string) (int64, error) {
 	var count int64
-	err := us.GetReplicaX().Get(&count, "SELECT SUM(CASE WHEN c.Type = ? THEN (c.TotalMsgCount - cm.MsgCount) ELSE cm.MentionCount END) FROM Channels c INNER JOIN ChannelMembers cm ON c.Id = cm.ChannelId AND cm.ChannelId = ? AND cm.UserId = ?", model.ChannelTypeDirect, channelId, userId)
+	err := us.GetReplicaX().Get(&count, "SELECT SUM(CASE WHEN c.Type = 'D' THEN (c.TotalMsgCount - cm.MsgCount) ELSE cm.MentionCount END) FROM Channels c INNER JOIN ChannelMembers cm ON c.Id = cm.ChannelId AND cm.ChannelId = ? AND cm.UserId = ?", channelId, userId)
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to get unread count for channelId=%s and userId=%s", channelId, userId)
 	}
@@ -1722,7 +1722,7 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 			`).
 		From("ChannelMembers cm").
 		Join("Channels c ON cm.ChannelId = c.Id").
-		Where(sq.Eq{"c.Type": model.ChannelTypeOpen, "cm.UserId": userIds}).
+		Where(sq.Eq{"c.Type": "O", "cm.UserId": userIds}).
 		ToSql()
 	_, err = us.GetSearchReplica().Select(&channelMembers, channelMembersQuery, args...)
 	if err != nil {

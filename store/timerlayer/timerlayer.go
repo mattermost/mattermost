@@ -518,7 +518,7 @@ func (s *TimerLayerBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) AnalyticsDeletedTypeCount(teamID string, channelType model.ChannelType) (int64, error) {
+func (s *TimerLayerChannelStore) AnalyticsDeletedTypeCount(teamID string, channelType string) (int64, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.AnalyticsDeletedTypeCount(teamID, channelType)
