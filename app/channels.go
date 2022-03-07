@@ -112,7 +112,10 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 	// 2. Add the field to *Channels
 	// 3. Add the service key to the slice.
 	// 4. Add a new case in the switch statement.
-	requiredServices := []ServiceKey{ConfigKey}
+	requiredServices := []ServiceKey{
+		ConfigKey,
+		LicenseKey,
+	}
 	for _, svcKey := range requiredServices {
 		svc, ok := services[svcKey]
 		if !ok {
