@@ -3247,14 +3247,19 @@ func (s SqlChannelStore) buildLIKEClause(term string, searchColumns string) (lik
 	return
 }
 
+const spaceFulltextSearchChars = "<>+-()~:*\"!@"
+
 func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) (fulltextClause, fulltextTerm string) {
 	// Copy the terms as we will need to prepare them differently for each search type.
 	fulltextTerm = term
 
 	// These chars must be treated as spaces in the fulltext query.
-	for _, c := range spaceFulltextSearchChar {
-		fulltextTerm = strings.Replace(fulltextTerm, c, " ", -1)
+	fulltextTerm = strings.Map(func(r rune) rune {
+		if strings.ContainsRune(spaceFulltextSearchChars, r) {
+			return ' '
 	}
+		return r
+	}, fulltextTerm)
 
 	// Prepare the FULLTEXT portion of the query.
 	if s.DriverName() == model.DatabaseDriverPostgres {
@@ -3284,6 +3289,51 @@ func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) 
 	}
 
 	return
+}
+
+func (s SqlChannelStore) buildFulltextClauseX(term string, searchColumns ...string) sq.Sqlizer {
+	// Copy the terms as we will need to prepare them differently for each search type.
+	fulltextTerm := term
+
+	// These chars must be treated as spaces in the fulltext query.
+	fulltextTerm = strings.Map(func(r rune) rune {
+		if strings.ContainsRune(spaceFulltextSearchChars, r) {
+			return ' '
+		}
+		return r
+	}, fulltextTerm)
+
+	// Prepare the FULLTEXT portion of the query.
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		// remove all pipes |
+		fulltextTerm = strings.ReplaceAll(fulltextTerm, "|", "")
+
+		// split the search term and append :* to each part
+		splitTerm := strings.Fields(fulltextTerm)
+		for i, t := range splitTerm {
+			splitTerm[i] = t + ":*"
+		}
+
+		// join the search term with &
+		fulltextTerm = strings.Join(splitTerm, " & ")
+
+		expr := fmt.Sprintf("((to_tsvector('english', %s)) @@ to_tsquery('english', ?))", strings.Join(searchColumns, " || ' ' || "))
+		return sq.Expr(expr, fulltextTerm)
+
+	} else if s.DriverName() == model.DatabaseDriverMysql {
+
+		splitTerm := strings.Fields(fulltextTerm)
+		for i, t := range splitTerm {
+			splitTerm[i] = "+" + t + "*"
+		}
+
+		fulltextTerm = strings.Join(splitTerm, " ")
+
+		expr := fmt.Sprintf("MATCH(%s) AGAINST (? IN BOOLEAN MODE)", strings.Join(searchColumns, ", "))
+		return sq.Expr(expr, fulltextTerm)
+	}
+
+	return nil
 }
 
 func (s SqlChannelStore) performSearch(searchQuery string, term string, parameters map[string]interface{}) (model.ChannelList, error) {
