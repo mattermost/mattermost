@@ -440,7 +440,7 @@ func TestGetOrCreateDirectChannel(t *testing.T) {
 
 		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, user1.Id, user2.Id)
 		require.Nil(t, channel, "channel should be nil")
-		require.Error(t, appErr)
+		require.NotNil(t, appErr)
 	})
 }
 
