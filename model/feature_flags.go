@@ -53,9 +53,6 @@ type FeatureFlags struct {
 	// A/B test for the add members to channel button, possible values = ("top", "bottom")
 	AddMembersToChannel string
 
-	// Enable Create First Channel
-	GuidedChannelCreation bool
-
 	// Determine after which duration in hours to send a second invitation to someone that didn't join after the initial invite, possible values = ("48", "72")
 	ResendInviteEmailInterval string
 
@@ -100,7 +97,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CallsMobile = false
 	f.BoardsFeatureFlags = ""
 	f.AddMembersToChannel = "top"
-	f.GuidedChannelCreation = false
 	f.ResendInviteEmailInterval = ""
 	f.InviteToTeam = "none"
 	f.CustomGroups = true
@@ -108,7 +104,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
 	f.EnableInactivityCheckJob = true
-	f.UseCaseOnboarding = false
+	f.UseCaseOnboarding = true
 	f.WorkspaceOptimizationDashboard = false
 	f.GraphQL = false
 }
