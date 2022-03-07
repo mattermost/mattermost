@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -119,6 +120,14 @@ func (a *App) UpdateSidebarCategories(userID, teamID string, categories []*model
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryUpdated, teamID, "", userID, nil)
+
+	updatedCategoriesJSON, jsonErr := json.Marshal(updatedCategories)
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode original categories to JSON", mlog.Err(jsonErr))
+	}
+
+	message.Add("updatedCategories", string(updatedCategoriesJSON))
+
 	a.Publish(message)
 
 	a.muteChannelsForUpdatedCategories(userID, updatedCategories, originalCategories)
