@@ -318,7 +318,7 @@ jobs:
       - run:
           name: Wait for docker compose
           command: |
-            sleep 5
+            until docker network inspect circleci_mm-test; do echo "Waiting for Docker Compose Network..."; sleep 1; done;
             docker run --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
             docker run --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
       - run:
