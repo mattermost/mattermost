@@ -338,7 +338,6 @@ func TestHubConnIndexInactive(t *testing.T) {
 }
 
 func TestReliableWebSocketSend(t *testing.T) {
-	t.Skip("MM-42033")
 	testCluster := &testlib.FakeClusterInterface{}
 
 	th := SetupWithClusterMock(t, testCluster)
