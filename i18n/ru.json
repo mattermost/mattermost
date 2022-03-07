@@ -9266,5 +9266,21 @@
   {
     "id": "Boards",
     "translation": "Доски"
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "Ошибка при попытке получить первую завершенную настройку администратора из магазина."
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id должен быть пустым для пользовательской группы"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference должно быть 'true' для пользовательских групп"
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "ошибка подсчета групп"
   }
 ]
