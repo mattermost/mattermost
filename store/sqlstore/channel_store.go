@@ -2914,7 +2914,8 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamID string, userID strin
 			return nil, errors.Wrap(err, "AutocompleteInTeamForSearch_Full_Tosql")
 		}
 
-		// put both queries in a UNION
+		// Using a UNION results in index_merge and fulltext queries and is much faster than the ref
+		// query you would get using an OR of the LIKE and full-text clauses.
 		sql = fmt.Sprintf("(%s) UNION (%s) LIMIT 50", likeSQL, fullSQL)
 		args = append(likeArgs, fullArgs...)
 	}
