@@ -2879,12 +2879,13 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamID string, userID strin
 		channels model.ChannelList
 		sql      string
 		args     []interface{}
-		err      error
 	)
 
 	// build the like clause
 	like := s.buildLIKEClauseX(term, "Name", "DisplayName", "Purpose")
 	if like == nil {
+		var err error
+
 		// use the base query for this request
 		query := baseQuery.Where(baseWhere)
 
@@ -2921,7 +2922,7 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamID string, userID strin
 	}
 
 	// query the database
-	err = s.GetReplicaX().Select(&channels, sql, args...)
+	err := s.GetReplicaX().Select(&channels, sql, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
 	}
