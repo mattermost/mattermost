@@ -47,8 +47,8 @@ type namer interface {
 
 // Channels contains all channels related state.
 type Channels struct {
-	srv    *Server
-	cfgSvc configSvc
+	srv       *Server
+	cfgSvc    configSvc
 	filestore filestore.FileBackend
 
 	postActionCookieSecret []byte
