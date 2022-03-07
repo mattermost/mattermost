@@ -79,7 +79,7 @@ func NewDatabaseStore(dsn string) (ds *DatabaseStore, err error) {
 		dataSourceName: dataSourceName,
 		db:             db,
 	}
-	if err = initializeConfigurationsTable(ds.db); err != nil {
+	if err = ds.initializeConfigurationsTable(); err != nil {
 		err = errors.Wrap(err, "failed to initialize")
 		return nil, err
 	}
@@ -90,10 +90,10 @@ func NewDatabaseStore(dsn string) (ds *DatabaseStore, err error) {
 // initializeConfigurationsTable ensures the requisite tables in place to form the backing store.
 //
 // Uses MEDIUMTEXT on MySQL, and TEXT on sane databases.
-func initializeConfigurationsTable(db *sqlx.DB) error {
+func (ds *DatabaseStore) initializeConfigurationsTable() error {
 	var assetNamesForDriver []string
 	for _, assetName := range migrations.AssetNames() {
-		if strings.HasPrefix(assetName, db.DriverName()) {
+		if strings.HasPrefix(assetName, ds.driverName) {
 			assetNamesForDriver = append(assetNamesForDriver, filepath.Base(assetName))
 		}
 	}
@@ -101,7 +101,7 @@ func initializeConfigurationsTable(db *sqlx.DB) error {
 	src, err := mbindata.WithInstance(&mbindata.AssetSource{
 		Names: assetNamesForDriver,
 		AssetFunc: func(name string) ([]byte, error) {
-			return migrations.Asset(filepath.Join(db.DriverName(), name))
+			return migrations.Asset(filepath.Join(ds.driverName, name))
 		},
 	})
 	if err != nil {
@@ -115,24 +115,42 @@ func initializeConfigurationsTable(db *sqlx.DB) error {
 	}
 
 	var driver drivers.Driver
-	switch db.DriverName() {
+	switch ds.driverName {
 	case model.DatabaseDriverMysql:
+		dataSource, rErr := resetReadTimeout(ds.dataSourceName)
+		if rErr != nil {
+			return fmt.Errorf("failed to reset read timeout from datasource: %w", rErr)
+		}
+
+		dataSource, err = appendMultipleStatementsFlag(dataSource)
+		if err != nil {
+			return err
+		}
+
+		var db *sqlx.DB
+		db, err = sqlx.Open(ds.driverName, dataSource)
+		if err != nil {
+			return errors.Wrapf(err, "failed to connect to %s database", ds.driverName)
+		}
+
 		driver, err = ms.WithInstance(db.DB, &ms.Config{
 			Config: cfg,
 		})
+
+		defer db.Close()
 	case model.DatabaseDriverPostgres:
-		driver, err = ps.WithInstance(db.DB, &ps.Config{
+		driver, err = ps.WithInstance(ds.db.DB, &ps.Config{
 			Config: cfg,
 		})
 	default:
-		err = fmt.Errorf("unsupported database type %s for migration", db.DriverName())
+		err = fmt.Errorf("unsupported database type %s for migration", ds.driverName)
 	}
 	if err != nil {
 		return err
 	}
 
 	opts := []morph.EngineOption{
-		morph.WithLock("mm-lock-key"),
+		morph.WithLock("mm--config-lock-key"),
 	}
 	engine, err := morph.New(context.Background(), driver, src, opts...)
 	if err != nil {
