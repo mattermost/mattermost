@@ -222,6 +222,12 @@ func TestGenerateSupportPacket(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
+	t.Run("As a system role, not system admin", func(t *testing.T) {
+		_, resp, err := th.SystemManagerClient.GenerateSupportPacket()
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
 	t.Run("As a Regular User", func(t *testing.T) {
 		_, resp, err := th.Client.GenerateSupportPacket()
 		require.Error(t, err)
