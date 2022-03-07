@@ -2488,10 +2488,6 @@
     "translation": "Il campo display_name del canale non è nella gamma di lunghezze consentita."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Manca la proprietà del canale richiesta: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "L'intestazione del canale è troppo lunga."
   },
@@ -6878,10 +6874,6 @@
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "Impossibile eliminare il membro del canale"
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Impossibile incrementare il conteggio della citazione"
   },
   {
     "id": "app.channel.get_pinnedpost_count.app_error",

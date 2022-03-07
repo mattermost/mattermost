@@ -2488,10 +2488,6 @@
     "translation": "De display_name van het kanaal valt niet binnen de toegestane lengtebeperkingen."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Ontbrekende vereiste kanaaleigenschap: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "Kanaalhoofding is te lang."
   },
@@ -6770,10 +6766,6 @@
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "Fout bij het verwijderen van het kanaallid."
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Fout bij het verhogen van de teller van de meldingen."
   },
   {
     "id": "app.channel.get_private_channels.get.app_error",
