@@ -302,6 +302,9 @@ migrations-bindata: ## Generates bindata migrations
 	@echo Generating bindata for migrations
 	$(GO) generate $(GOFLAGS) ./db/migrations/
 
+	@echo Generating bindata for configuration migrations
+	$(GO) generate $(GOFLAGS) ./config/migrations/
+
 filestore-mocks: ## Creates mock files.
 	$(GO) install github.com/vektra/mockery/...@v1.1.2
 	$(GOBIN)/mockery -dir shared/filestore -all -output shared/filestore/mocks -note 'Regenerate this file using `make filestore-mocks`.'
