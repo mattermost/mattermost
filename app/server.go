@@ -525,11 +525,6 @@ func NewServer(options ...Option) (*Server, error) {
 		s.setupFeatureFlags()
 	})
 
-	if s.joinCluster && s.Cluster != nil {
-		s.registerClusterHandlers()
-		s.Cluster.StartInterNodeCommunication()
-	}
-
 	// If configured with a subpath, redirect 404s at the root back into the subpath.
 	if subpath != "/" {
 		s.RootRouter.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -1160,6 +1155,11 @@ func (s *Server) Start() error {
 		if err := product.Start(); err != nil {
 			return errors.Wrapf(err, "Unable to start %s", name)
 		}
+	}
+
+	if s.joinCluster && s.Cluster != nil {
+		s.registerClusterHandlers()
+		s.Cluster.StartInterNodeCommunication()
 	}
 
 	if err := s.ensureInstallationDate(); err != nil {
