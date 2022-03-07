@@ -4806,10 +4806,6 @@
     "translation": "Неуспешно избиране на пакета от членове на канала."
   },
   {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Броят на споменаванията не може да се увеличи."
-  },
-  {
     "id": "app.channel.get_unread.app_error",
     "translation": "Неуспешно получаване на непрочетени съобщения на канала."
   },
@@ -6462,10 +6458,6 @@
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "Заглавката на канала е твърде дълга."
-  },
-  {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Липсва задължително свойство на канала: display_name"
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",

@@ -2488,10 +2488,6 @@
     "translation": "La propriété de canal display_name ne respecte pas les contraintes de longueur autorisées."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "La propriété de canal requise est manquante : display_name."
-  },
-  {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "L'entête du canal est trop long."
   },
@@ -6662,10 +6658,6 @@
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "Impossible de récupérer le membre du canal."
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Impossible d'incrémenter le nombre de mentions."
   },
   {
     "id": "app.channel.get_pinnedpost_count.app_error",
