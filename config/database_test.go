@@ -37,8 +37,11 @@ func setupConfigDatabase(t *testing.T, cfg *model.Config, files map[string][]byt
 	cfgData, err := marshalConfig(cfg)
 	require.NoError(t, err)
 
-	ds, err := NewDatabaseStore(*mainHelper.Settings.DataSource)
-	require.NoError(t, err)
+	ds := &DatabaseStore{
+		driverName:     *mainHelper.GetSQLSettings().DriverName,
+		db:             mainHelper.GetSQLStore().GetMasterX().DB,
+		dataSourceName: *mainHelper.Settings.DataSource,
+	}
 
 	err = ds.initializeConfigurationsTable()
 	require.NoError(t, err)
