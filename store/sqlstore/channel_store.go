@@ -2868,7 +2868,7 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamID string, userID strin
 	}
 
 	// shared query
-	baseQuery := sq.Select("C.*").
+	baseQuery := s.getSubQueryBuilder().Select("C.*").
 		From("Channels AS C").
 		Join("ChannelMembers AS CM ON CM.ChannelId = C.Id").
 		Limit(50)
@@ -2954,7 +2954,7 @@ func (s SqlChannelStore) autocompleteInTeamForSearchDirectMessages(userID string
 	qb := s.getQueryBuilder()
 
 	// create the subquery first
-	subQuery := sq.Select("ICM.ChannelId AS ChannelId", "IU.Username AS Username").
+	subQuery := s.getSubQueryBuilder().Select("ICM.ChannelId AS ChannelId", "IU.Username AS Username").
 		From("Users AS IU").
 		Join("ChannelMembers AS ICM ON ICM.UserId = IU.Id")
 
