@@ -1,7 +1,7 @@
-Per Mattermost guidelines, GitHub issues are for bug reports: <http://www.mattermost.org/filing-issues/>.
+Per Mattermost guidelines, GitHub issues are for bug reports: <https://handbook.mattermost.com/contributors/contributors/ways-to-contribute/>.
 
 For troubleshooting see: http://forum.mattermost.org/.
-For feature proposals see: http://www.mattermost.org/feature-requests/
+For feature proposals see: https://www.mattermost.org/feature-ideas/
 
 If you've found a bug--something appears unintentional--please follow these steps:
 
