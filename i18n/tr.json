@@ -8913,7 +8913,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, 14 günlük Mattermost Cloud Enterprise ücretsiz deneme süreniz bugün sona erdi. Takımınızın Cloud Enterprise özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi ekleyebilirsiniz."
+    "translation": "{{.Name}}, 14 günlük Mattermost Cloud Enterprise ücretsiz deneme süreniz bugün sona erdi. Takımınızın Cloud Enterprise özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi ekleyebilirsiniz. 30 gün içinde ödeme bilgilerinizi eklemezseniz Cloud çalışma alanınız ve ilgili verileri kalıcı olarak silinecek."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
@@ -9385,5 +9385,21 @@
   {
     "id": "Boards",
     "translation": "Panolar"
+  },
+  {
+    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
+    "translation": "Türe ve duruma göre tüm görevler alınamadı."
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
+    "translation": "SMTP sistem panosunda yapılandırılmamış"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email.app_error",
+    "translation": "E-posta gönderilirken sorun çıktı"
+  },
+  {
+    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "translation": "Önceden hazırlanmış uygulama eki sürümü işlenemedi."
   }
 ]
