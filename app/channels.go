@@ -257,11 +257,11 @@ func (ch *Channels) Stop() error {
 }
 
 func (ch *Channels) AddConfigListener(listener func(*model.Config, *model.Config)) string {
-	return ch.srv.AddConfigListener(listener)
+	return ch.cfgSvc.AddConfigListener(listener)
 }
 
 func (ch *Channels) RemoveConfigListener(id string) {
-	ch.srv.RemoveConfigListener(id)
+	ch.cfgSvc.RemoveConfigListener(id)
 }
 
 func (ch *Channels) License() *model.License {
