@@ -336,6 +336,10 @@ misc-mocks: ## Creates mocks for misc interfaces.
 	$(GO) install github.com/vektra/mockery/...@v1.1.2
 	$(GOBIN)/mockery -dir utils --name LicenseValidatorIface -output utils/mocks -note 'Regenerate this file using `make misc-mocks`.'
 
+email-mocks: ## Creates mocks for misc interfaces.
+	$(GO) install github.com/vektra/mockery/...@v1.1.2
+	$(GOBIN)/mockery -dir app/email --name ServiceInterface -output app/email/mocks -note 'Regenerate this file using `make email-mocks`.'
+
 pluginapi: ## Generates api and hooks glue code for plugins
 	$(GO) generate $(GOFLAGS) ./plugin
 
