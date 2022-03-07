@@ -5,7 +5,7 @@ import "fmt"
 // fastEncL3
 type fastEncL3 struct {
 	fastGen
-	table [tableSize]tableEntryPrev
+	table [1 << 16]tableEntryPrev
 }
 
 // Encode uses a similar algorithm to level 2, will check up to two candidates.
@@ -13,6 +13,8 @@ func (e *fastEncL3) Encode(dst *tokens, src []byte) {
 	const (
 		inputMargin            = 8 - 1
 		minNonLiteralBlockSize = 1 + 1 + inputMargin
+		tableBits              = 16
+		tableSize              = 1 << tableBits
 	)
 
 	if debugDeflate && e.cur < 0 {
@@ -73,7 +75,7 @@ func (e *fastEncL3) Encode(dst *tokens, src []byte) {
 		nextS := s
 		var candidate tableEntry
 		for {
-			nextHash := hash(cv)
+			nextHash := hash4u(cv, tableBits)
 			s = nextS
 			nextS = s + 1 + (s-nextEmit)>>skipLog
 			if nextS > sLimit {
@@ -156,7 +158,7 @@ func (e *fastEncL3) Encode(dst *tokens, src []byte) {
 				// Index first pair after match end.
 				if int(t+4) < len(src) && t > 0 {
 					cv := load3232(src, t)
-					nextHash := hash(cv)
+					nextHash := hash4u(cv, tableBits)
 					e.table[nextHash] = tableEntryPrev{
 						Prev: e.table[nextHash].Cur,
 						Cur:  tableEntry{offset: e.cur + t},
@@ -165,30 +167,31 @@ func (e *fastEncL3) Encode(dst *tokens, src []byte) {
 				goto emitRemainder
 			}
 
-			// We could immediately start working at s now, but to improve
-			// compression we first update the hash table at s-3 to s.
-			x := load6432(src, s-3)
-			prevHash := hash(uint32(x))
-			e.table[prevHash] = tableEntryPrev{
-				Prev: e.table[prevHash].Cur,
-				Cur:  tableEntry{offset: e.cur + s - 3},
+			// Store every 5th hash in-between.
+			for i := s - l + 2; i < s-5; i += 5 {
+				nextHash := hash4u(load3232(src, i), tableBits)
+				e.table[nextHash] = tableEntryPrev{
+					Prev: e.table[nextHash].Cur,
+					Cur:  tableEntry{offset: e.cur + i}}
 			}
-			x >>= 8
-			prevHash = hash(uint32(x))
+			// We could immediately start working at s now, but to improve
+			// compression we first update the hash table at s-2 to s.
+			x := load6432(src, s-2)
+			prevHash := hash4u(uint32(x), tableBits)
 
 			e.table[prevHash] = tableEntryPrev{
 				Prev: e.table[prevHash].Cur,
 				Cur:  tableEntry{offset: e.cur + s - 2},
 			}
 			x >>= 8
-			prevHash = hash(uint32(x))
+			prevHash = hash4u(uint32(x), tableBits)
 
 			e.table[prevHash] = tableEntryPrev{
 				Prev: e.table[prevHash].Cur,
 				Cur:  tableEntry{offset: e.cur + s - 1},
 			}
 			x >>= 8
-			currHash := hash(uint32(x))
+			currHash := hash4u(uint32(x), tableBits)
 			candidates := e.table[currHash]
 			cv = uint32(x)
 			e.table[currHash] = tableEntryPrev{
@@ -200,15 +203,15 @@ func (e *fastEncL3) Encode(dst *tokens, src []byte) {
 			candidate = candidates.Cur
 			minOffset := e.cur + s - (maxMatchOffset - 4)
 
-			if candidate.offset > minOffset && cv != load3232(src, candidate.offset-e.cur) {
-				// We only check if value mismatches.
-				// Offset will always be invalid in other cases.
+			if candidate.offset > minOffset {
+				if cv == load3232(src, candidate.offset-e.cur) {
+					// Found a match...
+					continue
+				}
 				candidate = candidates.Prev
 				if candidate.offset > minOffset && cv == load3232(src, candidate.offset-e.cur) {
-					offset := s - (candidate.offset - e.cur)
-					if offset <= maxMatchOffset {
-						continue
-					}
+					// Match at prev...
+					continue
 				}
 			}
 			cv = uint32(x >> 8)

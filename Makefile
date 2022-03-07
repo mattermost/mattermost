@@ -123,7 +123,7 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.24.1
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.25.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
@@ -333,6 +333,10 @@ misc-mocks: ## Creates mocks for misc interfaces.
 	$(GO) install github.com/vektra/mockery/...@v1.1.2
 	$(GOBIN)/mockery -dir utils --name LicenseValidatorIface -output utils/mocks -note 'Regenerate this file using `make misc-mocks`.'
 
+email-mocks: ## Creates mocks for misc interfaces.
+	$(GO) install github.com/vektra/mockery/...@v1.1.2
+	$(GOBIN)/mockery -dir app/email --name ServiceInterface -output app/email/mocks -note 'Regenerate this file using `make email-mocks`.'
+
 pluginapi: ## Generates api and hooks glue code for plugins
 	$(GO) generate $(GOFLAGS) ./plugin
 
@@ -440,7 +444,9 @@ cover: ## Runs the golang coverage tool. You must run the unit tests first.
 	$(GO) tool cover -html=cover.out
 	$(GO) tool cover -html=ecover.out
 
-test-data: run-server ## Add test data to the local instance.
+test-data: run-server inject-test-data ## start a local instance and add test data to it.
+
+inject-test-data: # add test data to the local instance.
 	@if ! ./scripts/wait-for-system-start.sh; then \
 		make stop; \
 	fi

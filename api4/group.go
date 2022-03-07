@@ -297,6 +297,17 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	group, groupErr := c.App.GetGroup(c.Params.GroupId, nil)
+	if groupErr != nil {
+		c.Err = groupErr
+		return
+	}
+
+	if group.Source != model.GroupSourceLdap {
+		c.Err = model.NewAppError("Api4.linkGroupSyncable", "app.group.crud_permission", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	auditRec := c.MakeAuditRecord("linkGroupSyncable", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("group_id", c.Params.GroupId)
@@ -836,6 +847,8 @@ func getGroupsAssociatedToChannelsByTeam(c *Context, w http.ResponseWriter, r *h
 func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	var teamID, channelID string
 
+	source := c.Params.GroupSource
+
 	if id := c.Params.NotAssociatedToTeam; model.IsValidId(id) {
 		teamID = id
 	}
@@ -844,24 +857,25 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		channelID = id
 	}
 
+	// If they specify the group_source as custom when the feature is disabled, throw an error
+	if lcErr := licensedAndConfiguredForGroupBySource(c.App, source); lcErr != nil {
+		lcErr.Where = "Api4.getGroups"
+		c.Err = lcErr
+		return
+	}
+
+	// If they don't specify a source and custom groups are disabled, ensure they only get ldap groups in the response
+	if !c.App.Config().FeatureFlags.CustomGroups || !*c.App.Config().ServiceSettings.EnableCustomGroups {
+		source = model.GroupSourceLdap
+	}
+
 	opts := model.GroupSearchOpts{
 		Q:                         c.Params.Q,
 		IncludeMemberCount:        c.Params.IncludeMemberCount,
 		FilterAllowReference:      c.Params.FilterAllowReference,
 		FilterParentTeamPermitted: c.Params.FilterParentTeamPermitted,
-		Source:                    c.Params.GroupSource,
+		Source:                    source,
 		FilterHasMember:           c.Params.FilterHasMember,
-	}
-
-	if !c.App.Config().FeatureFlags.CustomGroups && opts.Source == model.GroupSourceCustom {
-		c.Err = model.NewAppError("getGroups", "api.custom_groups.feature_disabled", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	if lcErr := licensedAndConfiguredForGroupBySource(c.App, opts.Source); lcErr != nil {
-		lcErr.Where = "Api4.getGroups"
-		c.Err = lcErr
-		return
 	}
 
 	if teamID != "" {

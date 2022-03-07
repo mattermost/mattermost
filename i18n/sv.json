@@ -2352,20 +2352,8 @@
     "translation": "Misslyckades spara värdet för {{.WarnMetricName}}"
   },
   {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Kunde inte hitta mätdata."
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "Listan med administratörer är tom."
-  },
-  {
     "id": "app.system.warn_metric.bot_displayname",
     "translation": "Mattermost-råd"
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Läs mer om Mattermost Advisor](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.system.save.app_error",
@@ -5672,14 +5660,6 @@
     "translation": "Integrations-/Slack Bot-Användaren med epost {{.Email}} och lösenord {{.Password}} har importerats.\n"
   },
   {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Hämtar prova-på"
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Starta prova-på-period"
-  },
-  {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
     "translation": "Din Enterprise prova-på är nu aktiv. Gå till **Systemkonsol > Användaradministration > Behörigheter** för att aktivera Avancerade Behörigheter."
   },
@@ -5862,14 +5842,6 @@
   {
     "id": "api.server.warn_metric.email_domain.contact_us.email_body",
     "translation": "Mattermost contact us request. I'm interested in learning more about using Guest Accounts.\n"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Kontakta oss"
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Kontakta oss"
   },
   {
     "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
@@ -8954,14 +8926,6 @@
   {
     "id": "api.templates.cloud_trial_ended_email.start_subscription",
     "translation": "Börja din prenumeration"
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "Gå till **Systemkonsolen > Sajtkonfiguration > Anpassa** för att ställa in [Support mejl](https://docs.mattermost.com/administration/config-settings.html#support-email) till organisationens interna e-postadress för it-support för återkoppling från slutanvändare, e-postmeddelanden och supportförfrågningar."
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "Konfigurera mejladress för support"
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",

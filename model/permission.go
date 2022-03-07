@@ -337,12 +337,14 @@ var PermissionSysconsoleWriteExperimentalBleve *Permission
 var PermissionPublicPlaybookCreate *Permission
 var PermissionPublicPlaybookManageProperties *Permission
 var PermissionPublicPlaybookManageMembers *Permission
+var PermissionPublicPlaybookManageRoles *Permission
 var PermissionPublicPlaybookView *Permission
 var PermissionPublicPlaybookMakePrivate *Permission
 
 var PermissionPrivatePlaybookCreate *Permission
 var PermissionPrivatePlaybookManageProperties *Permission
 var PermissionPrivatePlaybookManageMembers *Permission
+var PermissionPrivatePlaybookManageRoles *Permission
 var PermissionPrivatePlaybookView *Permission
 var PermissionPrivatePlaybookMakePublic *Permission
 
@@ -1970,6 +1972,13 @@ func initializePermissions() {
 		PermissionScopePlaybook,
 	}
 
+	PermissionPublicPlaybookManageRoles = &Permission{
+		"playbook_public_manage_roles",
+		"",
+		"",
+		PermissionScopePlaybook,
+	}
+
 	PermissionPublicPlaybookView = &Permission{
 		"playbook_public_view",
 		"",
@@ -2000,6 +2009,13 @@ func initializePermissions() {
 
 	PermissionPrivatePlaybookManageMembers = &Permission{
 		"playbook_private_manage_members",
+		"",
+		"",
+		PermissionScopePlaybook,
+	}
+
+	PermissionPrivatePlaybookManageRoles = &Permission{
+		"playbook_private_manage_roles",
 		"",
 		"",
 		PermissionScopePlaybook,
@@ -2327,10 +2343,12 @@ func initializePermissions() {
 	PlaybookScopedPermissions := []*Permission{
 		PermissionPublicPlaybookManageProperties,
 		PermissionPublicPlaybookManageMembers,
+		PermissionPublicPlaybookManageRoles,
 		PermissionPublicPlaybookView,
 		PermissionPublicPlaybookMakePrivate,
 		PermissionPrivatePlaybookManageProperties,
 		PermissionPrivatePlaybookManageMembers,
+		PermissionPrivatePlaybookManageRoles,
 		PermissionPrivatePlaybookView,
 		PermissionPrivatePlaybookMakePublic,
 		PermissionRunCreate,

@@ -37,12 +37,12 @@ func (a *App) SendAdminUpgradeRequestEmail(username string, subscription *model.
 	year, month, day := time.Now().Date()
 	key := fmt.Sprintf("%s-%d-%s-%d", action, day, month, year)
 
-	if a.Srv().EmailService.PerDayEmailRateLimiter == nil {
+	if a.Srv().EmailService.GetPerDayEmailRateLimiter() == nil {
 		return model.NewAppError("app.SendAdminUpgradeRequestEmail", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("for key=%s", key), http.StatusInternalServerError)
 	}
 
 	// rate limit based on combination of date and action as key
-	rateLimited, result, err := a.Srv().EmailService.PerDayEmailRateLimiter.RateLimit(key, 1)
+	rateLimited, result, err := a.Srv().EmailService.GetPerDayEmailRateLimiter().RateLimit(key, 1)
 	if err != nil {
 		return model.NewAppError("app.SendAdminUpgradeRequestEmail", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("for key=%s, error=%v", key, err), http.StatusInternalServerError)
 	}

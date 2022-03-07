@@ -223,7 +223,7 @@ type AppIface interface {
 	// MakeAuditRecord creates a audit record pre-populated with defaults.
 	MakeAuditRecord(event string, initialStatus string) *audit.Record
 	// MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
-	MarkChannelAsUnreadFromPost(postID string, userID string, collapsedThreadsSupported, followThread bool) (*model.ChannelUnreadAt, *model.AppError)
+	MarkChannelAsUnreadFromPost(postID string, userID string, collapsedThreadsSupported bool) (*model.ChannelUnreadAt, *model.AppError)
 	// MentionsToPublicChannels returns all the mentions to public channels,
 	// linking them to their channels
 	MentionsToPublicChannels(message, teamID string) model.ChannelMentionMap
@@ -527,7 +527,7 @@ type AppIface interface {
 	ExportPermissions(w io.Writer) error
 	ExtractContentFromFileInfo(fileInfo *model.FileInfo) error
 	FetchSamlMetadataFromIdp(url string) ([]byte, *model.AppError)
-	FileBackend() (filestore.FileBackend, *model.AppError)
+	FileBackend() filestore.FileBackend
 	FileExists(path string) (bool, *model.AppError)
 	FileModTime(path string) (time.Time, *model.AppError)
 	FileSize(path string) (int64, *model.AppError)
@@ -817,6 +817,7 @@ type AppIface interface {
 	ImportPermissions(jsonl io.Reader) error
 	InitPlugins(c *request.Context, pluginDir, webappPluginDir string)
 	InvalidateAllEmailInvites() *model.AppError
+	InvalidateAllResendInviteEmailJobs() *model.AppError
 	InvalidateCacheForUser(userID string)
 	InviteGuestsToChannels(teamID string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError
 	InviteGuestsToChannelsGracefully(teamID string, guestsInvite *model.GuestsInvite, senderId string) ([]*model.EmailInviteWithError, *model.AppError)
@@ -976,6 +977,7 @@ type AppIface interface {
 	SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error)
 	SendPasswordReset(email string, siteURL string) (bool, *model.AppError)
 	SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.AppError
+	SendTestPushNotification(deviceID string) string
 	ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string)
 	SessionHasPermissionTo(session model.Session, permission *model.Permission) bool
 	SessionHasPermissionToAny(session model.Session, permissions []*model.Permission) bool
@@ -1034,7 +1036,6 @@ type AppIface interface {
 	TriggerWebhook(c *request.Context, payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel)
 	UnregisterPluginCommand(pluginID, teamID, trigger string)
 	UpdateActive(c *request.Context, user *model.User, active bool) (*model.User, *model.AppError)
-	UpdateChannelLastViewedAt(channelIDs []string, userID string) *model.AppError
 	UpdateChannelMemberNotifyProps(data map[string]string, channelID string, userID string) (*model.ChannelMember, *model.AppError)
 	UpdateChannelMemberRoles(channelID string, userID string, newRoles string) (*model.ChannelMember, *model.AppError)
 	UpdateChannelMemberSchemeRoles(channelID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, *model.AppError)
