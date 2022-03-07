@@ -3247,6 +3247,33 @@ func (s SqlChannelStore) buildLIKEClause(term string, searchColumns string) (lik
 	return
 }
 
+func (s SqlChannelStore) buildLIKEClauseX(term string, searchColumns ...string) sq.Sqlizer {
+	// escape the special characters with *
+	likeTerm := sanitizeSearchTerm(term, "*")
+
+	if likeTerm == "" {
+		return nil
+	}
+
+	// add a placeholder at the beginning and end
+	likeTerm = "%" + likeTerm + "%"
+
+	// Prepare the LIKE portion of the query.
+	var searchFields sq.Or
+
+	for _, field := range searchColumns {
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			expr := fmt.Sprintf("LOWER(%s) LIKE LOWER(?) ESCAPE '*'", field)
+			searchFields = append(searchFields, sq.Expr(expr, likeTerm))
+		} else {
+			expr := fmt.Sprintf("%s LIKE ? ESCAPE '*'", field)
+			searchFields = append(searchFields, sq.Expr(expr, likeTerm))
+		}
+	}
+
+	return searchFields
+}
+
 const spaceFulltextSearchChars = "<>+-()~:*\"!@"
 
 func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) (fulltextClause, fulltextTerm string) {
