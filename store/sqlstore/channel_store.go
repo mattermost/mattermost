@@ -2903,44 +2903,52 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamId string, userId strin
 	return channels, nil
 }
 
-// TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19334)
-func (s SqlChannelStore) autocompleteInTeamForSearchDirectMessages(userId string, term string) ([]*model.Channel, error) {
-	queryFormat := `
-			SELECT
-				C.*,
-				OtherUsers.Username as DisplayName
-			FROM
-				Channels AS C
-			JOIN
-				ChannelMembers AS CM ON CM.ChannelId = C.Id
-			INNER JOIN (
-				SELECT
-					ICM.ChannelId AS ChannelId, IU.Username AS Username
-				FROM
-					Users as IU
-				JOIN
-					ChannelMembers AS ICM ON ICM.UserId = IU.Id
-				WHERE
-					IU.Id != :UserId
-					%v
-				) AS OtherUsers ON OtherUsers.ChannelId = C.Id
-			WHERE
-			    C.Type = :ChannelType
-				AND CM.UserId = :UserId
-			LIMIT 50`
+func (s SqlChannelStore) autocompleteInTeamForSearchDirectMessages(userID string, term string) ([]*model.Channel, error) {
+	qb := s.getQueryBuilder()
 
+	// create the subquery first
+	subQuery := qb.Select("ICM.ChannelId AS ChannelId", "IU.Username AS Username").
+		From("Users AS IU").
+		Join("ChannelMembers AS ICM ON ICM.UserId = IU.Id")
+
+	// this AND will be extended, depending on the LIKE clause
+	subWhere := sq.And{
+		sq.NotEq{"IU.Id": userID},
+	}
+
+	// try to create a LIKE clause from the search term
+	if like := s.buildLIKEClauseX(term, "IU.Username", "IU.Nickname"); like != nil {
+		subWhere = append(subWhere, like)
+	}
+	subQuery = subQuery.Where(subWhere)
+
+	// put the subquery into an INNER JOIN
+	innerJoin := subQuery.
+		Prefix("INNER JOIN (").
+		Suffix(") AS OtherUsers ON OtherUsers.ChannelId = C.Id")
+
+	// create the main query
+	query := qb.Select("C.*", "OtherUsers.Username as DisplayName").
+		From("Channels AS C").
+		Join("ChannelMembers AS CM ON CM.ChannelId = C.Id").
+		JoinClause(innerJoin).
+		Where(sq.Eq{
+			"C.Type":    model.ChannelTypeDirect,
+			"CM.UserId": userID,
+		}).
+		Limit(50)
+
+	// create the SQL query and argument list
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "autocompleteInTeamForSearchDirectMessages_InnerJoin_Tosql")
+		}
+
+	// query the channel list from the database using SQLX
 	var channels model.ChannelList
-
-	if likeClause, likeTerm := s.buildLIKEClause(term, "IU.Username, IU.Nickname"); likeClause == "" {
-		if _, err := s.GetReplica().Select(&channels, fmt.Sprintf(queryFormat, ""), map[string]interface{}{"UserId": userId, "ChannelType": model.ChannelTypeDirect}); err != nil {
+	err = s.GetReplicaX().Select(&channels, sql, args...)
+	if err != nil {
 			return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
-		}
-	} else {
-		query := fmt.Sprintf(queryFormat, "AND "+likeClause)
-
-		if _, err := s.GetReplica().Select(&channels, query, map[string]interface{}{"UserId": userId, "LikeTerm": likeTerm, "ChannelType": model.ChannelTypeDirect}); err != nil {
-			return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
-		}
 	}
 
 	return channels, nil
