@@ -19,9 +19,7 @@ BIN_PATH=${2:-bin}
 THIS_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 if [[ "$THIS_BRANCH" =~ 'release-'[0-9] ]];
 then
-  # prefix to remove for lock release branches
-  PREFIX_REMOVE="lock-"
-  RELEASE_TO_DOWNLOAD=${THIS_BRANCH#"$PREFIX_REMOVE"}
+  RELEASE_TO_DOWNLOAD=$(echo $THIS_BRANCH | grep -Eo 'release-.*')
 else
   RELEASE_TO_DOWNLOAD=master
 fi
