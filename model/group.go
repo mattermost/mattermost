@@ -211,6 +211,13 @@ func (group *Group) IsValidName() *AppError {
 	return nil
 }
 
+func (group *Group) GetName() string {
+	if group.Name == nil {
+		return ""
+	}
+	return *group.Name
+}
+
 func (group *Group) GetRemoteId() string {
 	if group.RemoteId == nil {
 		return ""
