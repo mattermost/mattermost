@@ -1737,7 +1737,6 @@ func TestSearchGroupChannels(t *testing.T) {
 }
 
 func TestDeleteChannel(t *testing.T) {
-	t.Skip("https://mattermost.atlassian.net/browse/MM-42092")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	c := th.Client
@@ -1752,7 +1751,8 @@ func TestDeleteChannel(t *testing.T) {
 		require.NoError(t, err)
 
 		ch, appErr := th.App.GetChannel(publicChannel1.Id)
-		require.True(t, appErr != nil || ch.DeleteAt != 0, "should have failed to get deleted channel, or returned one with a populated DeleteAt.")
+		require.Nilf(t, appErr, "Expected nil, Got %v", appErr)
+		require.True(t, ch.DeleteAt != 0, "should have returned one with a populated DeleteAt.")
 
 		post1 := &model.Post{ChannelId: publicChannel1.Id, Message: "a" + GenerateTestId() + "a"}
 		_, resp, _ := client.CreatePost(post1)
