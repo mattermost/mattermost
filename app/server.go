@@ -335,6 +335,15 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to create users service")
 	}
 
+	// Needed before loading license
+	if s.statusCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
+		Size:           model.StatusCacheSize,
+		Striped:        true,
+		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
+	}); err != nil {
+		return nil, errors.Wrap(err, "Unable to create status cache")
+	}
+
 	if model.BuildEnterpriseReady == "true" {
 		// Dependent on user service
 		s.LoadLicense()
@@ -424,13 +433,6 @@ func NewServer(options ...Option) (*Server, error) {
 		Size: PendingPostIDsCacheSize,
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create pending post ids cache")
-	}
-	if s.statusCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
-		Size:           model.StatusCacheSize,
-		Striped:        true,
-		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
-	}); err != nil {
-		return nil, errors.Wrap(err, "Unable to create status cache")
 	}
 	if s.openGraphDataCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
 		Size: openGraphMetadataCacheSize,
