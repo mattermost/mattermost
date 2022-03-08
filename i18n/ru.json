@@ -9246,5 +9246,25 @@
   {
     "id": "app.valid_password_generic.app_error",
     "translation": "Пароль недействителен"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "не лицензировано для пользовательских групп"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "функция пользовательских групп отключена"
+  },
+  {
+    "id": "Playbooks",
+    "translation": "Сценарии"
+  },
+  {
+    "id": "Channels",
+    "translation": "Каналы"
+  },
+  {
+    "id": "Boards",
+    "translation": "Доски"
   }
 ]
