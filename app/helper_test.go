@@ -134,8 +134,6 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	if enterprise {
 		th.App.Srv().SetLicense(model.NewTestLicense())
-		th.App.Srv().Jobs.InitWorkers()
-		th.App.Srv().Jobs.InitSchedulers()
 	} else {
 		th.App.Srv().SetLicense(nil)
 	}
