@@ -150,7 +150,7 @@ func (ds *DatabaseStore) initializeConfigurationsTable() error {
 	}
 
 	opts := []morph.EngineOption{
-		morph.WithLock("mm--config-lock-key"),
+		morph.WithLock("mm-config-lock-key"),
 	}
 	engine, err := morph.New(context.Background(), driver, src, opts...)
 	if err != nil {
