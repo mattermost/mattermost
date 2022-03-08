@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/testlib"
 )
 
 func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
@@ -334,6 +335,28 @@ func TestHubConnIndexInactive(t *testing.T) {
 	assert.False(t, connIndex.Has(wc3))
 	assert.Len(t, connIndex.ForUser(wc2.UserId), 1)
 	assert.Len(t, connIndex.All(), 2)
+}
+
+func TestReliableWebSocketSend(t *testing.T) {
+	t.Skip("MM-42033")
+	th := Setup(t)
+	defer th.TearDown()
+
+	testCluster := &testlib.FakeClusterInterface{}
+	th.Server.Cluster = testCluster
+
+	ev := model.NewWebSocketEvent("test_reliable_event", "", "", "", nil)
+	ev = ev.SetBroadcast(&model.WebsocketBroadcast{})
+	th.App.Publish(ev)
+	ev = ev.SetBroadcast(&model.WebsocketBroadcast{
+		ReliableClusterSend: true,
+	})
+	th.App.Publish(ev)
+
+	messages := testCluster.GetMessages()
+	require.Len(t, messages, 2)
+	require.Equal(t, model.ClusterSendBestEffort, messages[0].SendType)
+	require.Equal(t, model.ClusterSendReliable, messages[1].SendType)
 }
 
 func TestHubIsRegistered(t *testing.T) {
