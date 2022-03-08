@@ -105,7 +105,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.NormalizeLdapDNs = false
 	f.EnableInactivityCheckJob = true
 	f.UseCaseOnboarding = true
-	f.WorkspaceOptimizationDashboard = false
+	f.WorkspaceOptimizationDashboard = true
 	f.GraphQL = false
 }
 func (f *FeatureFlags) Plugins() map[string]string {
