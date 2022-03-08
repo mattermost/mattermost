@@ -8012,7 +8012,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, ihr 14-tägiger freier Test von Mattermost Cloud Enterprise ist heute zuende, {{.TodayDate}}. Bitte fügen Sie Ihre Bezahlinformationen hinzu, um sicherzustellen, dass Ihr Team weiterhin die Vorteile von Cloud Professional genießen kann."
+    "translation": "{{.Name}}, dein 14-tägiger freier Test von Mattermost Cloud Enterprise ist heute zuende, {{.TodayDate}}. Bitte füge deine Bezahlinformationen hinzu, um sicherzustellen, dass dein Team weiterhin die Vorteile von Cloud Professional genießen kann. Wenn Du deine Zahlungsinformationen nicht innerhalb von 30 Tagen hinzufügst, werden wir deinen Cloud-Arbeitsbereich endgültig löschen und Du wirst alle damit verbundenen Daten verlieren."
   },
   {
     "id": "api.unable_to_read_file_from_backend",
@@ -9389,5 +9389,9 @@
   {
     "id": "api.team.invite_members.unable_to_send_email.app_error",
     "translation": "Fehler beim Senden der Email"
+  },
+  {
+    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "translation": "Die vorgepackte Plugin-Version konnte nicht geparst werden."
   }
 ]
