@@ -13422,10 +13422,6 @@ func (s *RetryLayer) DropAllTables() {
 	s.Store.DropAllTables()
 }
 
-func (s *RetryLayer) GetCurrentSchemaVersion() string {
-	return s.Store.GetCurrentSchemaVersion()
-}
-
 func (s *RetryLayer) LockToMaster() {
 	s.Store.LockToMaster()
 }

@@ -909,3 +909,20 @@ func TestCompleteOnboarding(t *testing.T) {
 
 	})
 }
+
+func TestGetAppliedSchemaMigrations(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t.Run("as a regular user", func(t *testing.T) {
+		_, resp, err := th.Client.GetAppliedSchemaMigrations()
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		_, resp, err := c.GetAppliedSchemaMigrations()
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+}
