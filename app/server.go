@@ -321,7 +321,31 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrap(err, "cannot create store")
 	}
 
+	// Needed to run before loading license.
+	s.userService, err = users.New(users.ServiceConfig{
+		UserStore:    s.Store.User(),
+		SessionStore: s.Store.Session(),
+		OAuthStore:   s.Store.OAuth(),
+		ConfigFn:     s.Config,
+		Metrics:      s.Metrics,
+		Cluster:      s.Cluster,
+		LicenseFn:    s.License,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to create users service")
+	}
+
+	// Needed before loading license
+	if s.statusCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
+		Size:           model.StatusCacheSize,
+		Striped:        true,
+		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
+	}); err != nil {
+		return nil, errors.Wrap(err, "Unable to create status cache")
+	}
+
 	if model.BuildEnterpriseReady == "true" {
+		// Dependent on user service
 		s.LoadLicense()
 	}
 
@@ -410,13 +434,6 @@ func NewServer(options ...Option) (*Server, error) {
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create pending post ids cache")
 	}
-	if s.statusCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
-		Size:           model.StatusCacheSize,
-		Striped:        true,
-		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
-	}); err != nil {
-		return nil, errors.Wrap(err, "Unable to create status cache")
-	}
 	if s.openGraphDataCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
 		Size: openGraphMetadataCacheSize,
 	}); err != nil {
@@ -443,19 +460,6 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	})
 	s.htmlTemplateWatcher = htmlTemplateWatcher
-
-	s.userService, err = users.New(users.ServiceConfig{
-		UserStore:    s.Store.User(),
-		SessionStore: s.Store.Session(),
-		OAuthStore:   s.Store.OAuth(),
-		ConfigFn:     s.Config,
-		Metrics:      s.Metrics,
-		Cluster:      s.Cluster,
-		LicenseFn:    s.License,
-	})
-	if err != nil {
-		return nil, errors.Wrapf(err, "unable to create users service")
-	}
 
 	s.teamService, err = teams.New(teams.ServiceConfig{
 		TeamStore:    s.Store.Team(),
