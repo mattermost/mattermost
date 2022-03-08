@@ -116,3 +116,27 @@ func (u *user) Status(ctx context.Context) (*model.Status, error) {
 
 	return statuses[0], nil
 }
+
+// match with api4.getSessions
+func (u *user) Sessions(ctx context.Context) ([]*model.Session, error) {
+	c, err := getCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), u.Id) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return nil, c.Err
+	}
+
+	sessions, appErr := c.App.GetSessions(u.Id)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	for _, session := range sessions {
+		session.Sanitize()
+	}
+
+	return sessions, nil
+}
