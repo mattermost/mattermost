@@ -577,7 +577,7 @@ func TestGetOldClientConfig(t *testing.T) {
 		config, _, err := client.GetOldClientConfig("")
 		require.NoError(t, err)
 
-		require.NotEmpty(t, config["Version"], "config not returned correctly")
+		require.Empty(t, config["Version"], "config not returned correctly")
 		require.Empty(t, config["GoogleDeveloperKey"], "config should be missing developer key")
 	})
 
