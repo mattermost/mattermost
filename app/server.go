@@ -90,7 +90,8 @@ var SentryDSN = "placeholder_sentry_dsn"
 type ServiceKey string
 
 const (
-	ConfigKey ServiceKey = "config"
+	ConfigKey  ServiceKey = "config"
+	LicenseKey ServiceKey = "license"
 )
 
 type Server struct {
@@ -125,7 +126,7 @@ type Server struct {
 	goroutineCount      int32
 	goroutineExitSignal chan struct{}
 
-	EmailService *email.Service
+	EmailService email.ServiceInterface
 
 	hubs     []*Hub
 	hashSeed maphash.Seed
@@ -142,6 +143,7 @@ type Server struct {
 	licenseValue       atomic.Value
 	clientLicenseValue atomic.Value
 	licenseListeners   map[string]func(*model.License, *model.License)
+	licenseWrapper     *licenseWrapper
 
 	timezones *timezones.Timezones
 
@@ -158,6 +160,7 @@ type Server struct {
 	searchLicenseListenerId string
 	loggerLicenseListenerId string
 	configStore             *configWrapper
+	filestore               filestore.FileBackend
 
 	telemetryService *telemetry.TelemetryService
 	userService      *users.UserService
@@ -183,10 +186,7 @@ type Server struct {
 	Cluster        einterfaces.ClusterInterface
 	Cloud          einterfaces.CloudInterface
 	Metrics        einterfaces.MetricsInterface
-	Notification   einterfaces.NotificationInterface
 	LicenseManager einterfaces.LicenseInterface
-	Saml           einterfaces.SamlInterface
-	Ldap           einterfaces.LdapInterface
 
 	CacheProvider cache.Provider
 
@@ -257,21 +257,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.httpService = httpservice.MakeHTTPService(s)
 
-	serviceMap := map[ServiceKey]interface{}{
-		ConfigKey: s.configStore,
-	}
-	// Step 3: Initialize products.
-	// Depends on s.httpService.
-	for name, initializer := range products {
-		prod, err2 := initializer(s, serviceMap)
-		if err2 != nil {
-			return nil, errors.Wrapf(err2, "error initializing product: %s", name)
-		}
-
-		s.products[name] = prod
-	}
-
-	// Step 4: Search Engine
+	// Step 3: Search Engine
 	// Depends on Step 1 (config).
 	searchEngine := searchengine.NewBroker(s.Config())
 	bleveEngine := bleveengine.NewBleveEngine(s.Config())
@@ -281,12 +267,11 @@ func NewServer(options ...Option) (*Server, error) {
 	searchEngine.RegisterBleveEngine(bleveEngine)
 	s.SearchEngine = searchEngine
 
-	// Step 5: Init Enterprise
-	// Depends on step 3 (s.Channels() must be non-nil)
-	// and step 4 (s.SearchEngine must be non-nil)
+	// Step 4: Init Enterprise
+	// Depends on step 3 (s.SearchEngine must be non-nil)
 	s.initEnterprise()
 
-	// Step 6: Cache provider.
+	// Step 5: Cache provider.
 	// At the moment we only have this implementation
 	// in the future the cache provider will be built based on the loaded config
 	s.CacheProvider = cache.NewProvider()
@@ -294,12 +279,8 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err2, "Unable to connect to cache provider")
 	}
 
-	// It is important to initialize the hub only after the global logger is set
-	// to avoid race conditions while logging from inside the hub.
-	s.HubStart()
-
-	// Step 7: Store.
-	// Depends on Step 1 (config), 5 (metrics, cluster) and 6 (cacheProvider).
+	// Step 6: Store.
+	// Depends on Step 1 (config), 4 (metrics, cluster) and 5 (cacheProvider).
 	if s.newStore == nil {
 		s.newStore = func() (store.Store, error) {
 			s.sqlStore = sqlstore.New(s.Config().SqlSettings, s.Metrics)
@@ -340,6 +321,42 @@ func NewServer(options ...Option) (*Server, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot create store")
 	}
+
+	if model.BuildEnterpriseReady == "true" {
+		s.LoadLicense()
+	}
+
+	license := s.License()
+	// Step 7: Initialize filestore
+	backend, err := filestore.NewFileBackend(s.Config().FileSettings.ToFileBackendSettings(license != nil && *license.Features.Compliance))
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to initialize filebackend")
+	}
+	s.filestore = backend
+
+	s.licenseWrapper = &licenseWrapper{
+		srv: s,
+	}
+
+	serviceMap := map[ServiceKey]interface{}{
+		ConfigKey:  s.configStore,
+		LicenseKey: s.licenseWrapper,
+	}
+	// Step 8: Initialize products.
+	// Depends on s.httpService.
+	for name, initializer := range products {
+		prod, err2 := initializer(s, serviceMap)
+		if err2 != nil {
+			return nil, errors.Wrapf(err2, "error initializing product: %s", name)
+		}
+
+		s.products[name] = prod
+	}
+
+	// It is important to initialize the hub only after the global logger is set
+	// to avoid race conditions while logging from inside the hub.
+	// Step 9: Hub depends on s.Channels() (step 8)
+	s.HubStart()
 
 	// -------------------------------------------------------------------------
 	// Everything below this is not order sensitive and safe to be moved around.
@@ -497,10 +514,6 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	s.EmailService = emailService
 
-	if model.BuildEnterpriseReady == "true" {
-		s.LoadLicense()
-	}
-
 	s.setupFeatureFlags()
 
 	s.initJobs()
@@ -512,11 +525,6 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 		s.setupFeatureFlags()
 	})
-
-	if s.joinCluster && s.Cluster != nil {
-		s.registerClusterHandlers()
-		s.Cluster.StartInterNodeCommunication()
-	}
 
 	// If configured with a subpath, redirect 404s at the root back into the subpath.
 	if subpath != "/" {
@@ -554,7 +562,6 @@ func NewServer(options ...Option) (*Server, error) {
 	mlog.Info("Printing current working", mlog.String("directory", pwd))
 	mlog.Info("Loaded config", mlog.String("source", s.configStore.String()))
 
-	license := s.License()
 	allowAdvancedLogging := license != nil && *license.Features.AdvancedLogging
 
 	if s.Audit == nil {
@@ -1151,6 +1158,11 @@ func (s *Server) Start() error {
 		}
 	}
 
+	if s.joinCluster && s.Cluster != nil {
+		s.registerClusterHandlers()
+		s.Cluster.StartInterNodeCommunication()
+	}
+
 	if err := s.ensureInstallationDate(); err != nil {
 		return errors.Wrapf(err, "unable to ensure installation date")
 	}
@@ -1166,18 +1178,13 @@ func (s *Server) Start() error {
 		mlog.Error("Mail server connection test is failed", mlog.Err(err))
 	}
 
-	backend, appErr := s.FileBackend()
-	if appErr != nil {
-		mlog.Error("Problem with file storage settings", mlog.Err(appErr))
-	} else {
-		err := backend.TestConnection()
+	err := s.FileBackend().TestConnection()
+	if err != nil {
+		if _, ok := err.(*filestore.S3FileBackendNoBucketError); ok {
+			err = s.FileBackend().(*filestore.S3FileBackend).MakeBucket()
+		}
 		if err != nil {
-			if _, ok := err.(*filestore.S3FileBackendNoBucketError); ok {
-				err = backend.(*filestore.S3FileBackend).MakeBucket()
-			}
-			if err != nil {
-				mlog.Error("Problem with file storage settings", mlog.Err(err))
-			}
+			mlog.Error("Problem with file storage settings", mlog.Err(err))
 		}
 	}
 
@@ -1221,9 +1228,9 @@ func (s *Server) Start() error {
 	if *s.Config().RateLimitSettings.Enable {
 		mlog.Info("RateLimiter is enabled")
 
-		rateLimiter, err := NewRateLimiter(&s.Config().RateLimitSettings, s.Config().ServiceSettings.TrustedProxyIPHeader)
-		if err != nil {
-			return err
+		rateLimiter, err2 := NewRateLimiter(&s.Config().RateLimitSettings, s.Config().ServiceSettings.TrustedProxyIPHeader)
+		if err2 != nil {
+			return err2
 		}
 
 		s.RateLimiter = rateLimiter
@@ -1844,13 +1851,8 @@ func (s *Server) stopSearchEngine() {
 	}
 }
 
-func (s *Server) FileBackend() (filestore.FileBackend, *model.AppError) {
-	license := s.License()
-	backend, err := filestore.NewFileBackend(s.Config().FileSettings.ToFileBackendSettings(license != nil && *license.Features.Compliance))
-	if err != nil {
-		return nil, model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return backend, nil
+func (s *Server) FileBackend() filestore.FileBackend {
+	return s.filestore
 }
 
 func (s *Server) TotalWebsocketConnections() int {
@@ -1898,7 +1900,7 @@ func (s *Server) initJobs() {
 	}
 
 	if jobsLdapSyncInterface != nil {
-		builder := jobsLdapSyncInterface(s)
+		builder := jobsLdapSyncInterface(New(ServerConnector(s.Channels())))
 		s.Jobs.RegisterJobType(model.JobTypeLdapSync, builder.MakeWorker(), builder.MakeScheduler())
 	}
 
@@ -2085,9 +2087,9 @@ func (a *App) getNotificationsLog() (*model.FileData, string) {
 	var warning string
 
 	// Getting notifications.log
-	if *a.Srv().Config().NotificationLogSettings.EnableFile {
+	if *a.Config().NotificationLogSettings.EnableFile {
 		// notifications.log
-		notificationsLog := config.GetNotificationsLogFileLocation(*a.Srv().Config().LogSettings.FileLocation)
+		notificationsLog := config.GetNotificationsLogFileLocation(*a.Config().LogSettings.FileLocation)
 
 		notificationsLogFileData, notificationsLogFileDataErr := ioutil.ReadFile(notificationsLog)
 
@@ -2112,9 +2114,9 @@ func (a *App) getMattermostLog() (*model.FileData, string) {
 	var warning string
 
 	// Getting mattermost.log
-	if *a.Srv().Config().LogSettings.EnableFile {
+	if *a.Config().LogSettings.EnableFile {
 		// mattermost.log
-		mattermostLog := config.GetLogFileLocation(*a.Srv().Config().LogSettings.FileLocation)
+		mattermostLog := config.GetLogFileLocation(*a.Config().LogSettings.FileLocation)
 
 		mattermostLogFileData, mattermostLogFileDataErr := ioutil.ReadFile(mattermostLog)
 
@@ -2183,7 +2185,7 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
 	}
 
 	// Here we are getting information regarding LDAP
-	ldapInterface := a.ch.srv.Ldap
+	ldapInterface := a.ch.Ldap
 	var vendorName, vendorVersion string
 	if ldapInterface != nil {
 		vendorName, vendorVersion = ldapInterface.GetVendorNameAndVendorVersion()
@@ -2264,11 +2266,7 @@ func (s *Server) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppErr
 }
 
 func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
-	backend, err := s.FileBackend()
-	if err != nil {
-		return nil, err
-	}
-	result, nErr := backend.ReadFile(path)
+	result, nErr := s.FileBackend().ReadFile(path)
 	if nErr != nil {
 		return nil, model.NewAppError("ReadFile", "api.file.read_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}

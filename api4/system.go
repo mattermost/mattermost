@@ -77,6 +77,11 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	const FileMime = "application/zip"
 	const OutputDirectory = "support_packet"
 
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("generateSupportPacket", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
+
 	// Checking to see if the user is a admin of any sort or not
 	// If they are a admin, they should theoretically have access to one or more of the system console read permissions
 	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleReadPermissions) {
@@ -96,11 +101,7 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	outputZipFilename := fmt.Sprintf("mattermost_support_packet_%s.zip", now.Format("2006-01-02-03-04"))
 
-	fileStorageBackend, fileBackendErr := c.App.FileBackend()
-	if fileBackendErr != nil {
-		c.Err = fileBackendErr
-		return
-	}
+	fileStorageBackend := c.App.FileBackend()
 
 	// We do this incase we get concurrent requests, we will always have a unique directory.
 	// This is to avoid the situation where we try to write to the same directory while we are trying to delete it (further down)
@@ -182,6 +183,10 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(model.STATUS, s[model.STATUS])
 		w.Header().Set(dbStatusKey, s[dbStatusKey])
 		w.Header().Set(filestoreStatusKey, s[filestoreStatusKey])
+	}
+
+	if deviceID := r.FormValue("device_id"); deviceID != "" {
+		s["CanReceiveNotifications"] = c.App.SendTestPushNotification(deviceID)
 	}
 
 	if s[model.STATUS] != model.StatusOk {

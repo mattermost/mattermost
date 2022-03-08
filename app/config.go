@@ -110,7 +110,7 @@ func (s *Server) ConfigStore() *configWrapper {
 }
 
 func (a *App) Config() *model.Config {
-	return a.Srv().Config()
+	return a.ch.cfgSvc.Config()
 }
 
 func (s *Server) EnvironmentConfig(filter func(reflect.StructField) bool) map[string]interface{} {

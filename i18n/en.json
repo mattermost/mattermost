@@ -2964,6 +2964,14 @@
     "translation": "No one to invite."
   },
   {
+    "id": "api.team.invite_members.unable_to_send_email.app_error",
+    "translation": "Error while sending the email"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
+    "translation": "SMTP is not configured in System Console"
+  },
+  {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
     "translation": "Team creation has been disabled. Please ask your System Administrator for details."
   },
@@ -3113,7 +3121,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Enterprise has ended today, {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Enterprise."
+    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Enterprise has ended today, {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Enterprise. If you do not add your payment information within 30 days, we will delete your Cloud workspace permanently and you will lose any associated data."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
@@ -4628,10 +4636,6 @@
     "translation": "Unable to get the channel unread messages."
   },
   {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Unable to increment the mention count."
-  },
-  {
     "id": "app.channel.migrate_channel_members.select.app_error",
     "translation": "Failed to select the batch of channel members."
   },
@@ -5124,10 +5128,6 @@
     "translation": "Channel display_name is not within permitted length constraints."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Missing required channel property: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "Channel header is too long."
   },
@@ -5538,6 +5538,10 @@
   {
     "id": "app.job.get_all.app_error",
     "translation": "Unable to get the jobs."
+  },
+  {
+    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
+    "translation": "Unable to get the all jobs by type and status."
   },
   {
     "id": "app.job.get_count_by_status_and_type.app_error",
@@ -5994,6 +5998,10 @@
   {
     "id": "app.preference.save.updating.app_error",
     "translation": "We encountered an error while updating preferences."
+  },
+  {
+    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "translation": "Prepackged plugin version could not be parsed."
   },
   {
     "id": "app.reaction.bulk_get_for_post_ids.app_error",

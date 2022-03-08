@@ -31,7 +31,7 @@ const (
 	SystemWarnMetricNumberOfPosts2m        = "warn_metric_number_of_posts_2M"
 	SystemWarnMetricLastRunTimestampKey    = "LastWarnMetricRunTimestamp"
 	SystemFirstAdminVisitMarketplace       = "FirstAdminVisitMarketplace"
-	SystemFirstAdminCompleteSetup          = "FirstAdminCompleteSetup"
+	SystemFirstAdminSetupComplete          = "FirstAdminSetupComplete"
 	AwsMeteringReportInterval              = 1
 	AwsMeteringDimensionUsageHrs           = "UsageHrs"
 	UserLimitOverageCycleEndDate           = "UserLimitOverageCycleEndDate"
