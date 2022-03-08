@@ -20,7 +20,6 @@ import (
 	"os/exec"
 	"path"
 	"runtime"
-	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -753,8 +752,8 @@ func (s *Server) Channels() *Channels {
 
 // Return Database type (postgres or mysql) and current version of Mattermost
 func (s *Server) DatabaseTypeAndMattermostVersion() (string, string) {
-	schemaVersion, _ := s.Store.GetDBSchemaVersion()
-	return *s.Config().SqlSettings.DriverName, strconv.Itoa(schemaVersion)
+	mattermostVersion, _ := s.Store.System().GetByName("Version")
+	return *s.Config().SqlSettings.DriverName, mattermostVersion.Value
 }
 
 // initLogging initializes and configures the logger(s). This may be called more than once.
@@ -1880,6 +1879,8 @@ func (ch *Channels) ClientConfigHash() string {
 
 func (s *Server) initJobs() {
 	s.Jobs = jobs.NewJobServer(s, s.Store, s.Metrics)
+	s.Jobs.InitWorkers()
+	s.Jobs.InitSchedulers()
 
 	if jobsDataRetentionJobInterface != nil {
 		builder := jobsDataRetentionJobInterface(s)
@@ -2302,12 +2303,4 @@ func runDNDStatusExpireJob(a *App) {
 			cancelDNDStatusExpirationRecurringTask(a)
 		}
 	})
-}
-
-func (a *App) GetAppliedSchemaMigrations() ([]model.AppliedMigration, *model.AppError) {
-	table, err := a.Srv().Store.GetAppliedMigrations()
-	if err != nil {
-		return nil, model.NewAppError("GetDBSchemaTable", "api.file.read_file.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return table, nil
 }

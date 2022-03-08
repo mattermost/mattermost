@@ -110,7 +110,5 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	mockStore.On("Session").Return(&sessionStore)
 	mockStore.On("OAuth").Return(&oAuthStore)
 	mockStore.On("Group").Return(&groupStore)
-	mockStore.On("GetDBSchemaVersion").Return(1, nil)
-
 	return &mockStore
 }
