@@ -4928,6 +4928,10 @@
     "translation": "Unable to perform operation for that source type."
   },
   {
+    "id": "app.group.get_by_username_failure",
+    "translation": " "
+  },
+  {
     "id": "app.group.group_syncable_already_deleted",
     "translation": "group syncable was already deleted"
   },
@@ -4946,6 +4950,10 @@
   {
     "id": "app.group.uniqueness_error",
     "translation": "group member already exists"
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": " "
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -6464,6 +6472,10 @@
     "translation": "We encountered an error trying to find the account by authentication type."
   },
   {
+    "id": "app.user.get_by_name_failure",
+    "translation": " "
+  },
+  {
     "id": "app.user.get_by_username.app_error",
     "translation": "Unable to find an existing account matching your username for this team. This team may require an invite from the team owner to join."
   },
@@ -6518,6 +6530,10 @@
   {
     "id": "app.user.get_users_batch_for_indexing.get_users.app_error",
     "translation": "Unable to get the users batch for indexing."
+  },
+  {
+    "id": "app.user.group_name_conflict",
+    "translation": " "
   },
   {
     "id": "app.user.missing_account.const",
