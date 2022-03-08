@@ -353,10 +353,10 @@ func (ss *SqlStore) DriverName() string {
 	return *ss.settings.DriverName
 }
 
-func (ss *SqlStore) getCurrentSchemaVersion() (string, error) {
+func (ss *SqlStore) GetCurrentSchemaVersion() string {
 	var version string
-	err := ss.GetMasterX().Get(&version, "SELECT Value FROM Systems WHERE Name='Version'")
-	return version, err
+	_ = ss.GetMasterX().Get(&version, "SELECT Value FROM Systems WHERE Name='Version'")
+	return version
 }
 
 // GetDbVersion returns the version of the database being used.
@@ -948,7 +948,6 @@ func (ss *SqlStore) DropAllTables() {
 			    FROM   pg_class
 			    WHERE  relkind = 'r'  -- only tables
 			    AND    relnamespace = 'public'::regnamespace
-				AND NOT relname = 'db_migrations'
 			   );
 			END
 			$func$;`)
@@ -956,9 +955,7 @@ func (ss *SqlStore) DropAllTables() {
 		tables := []string{}
 		ss.masterX.Select(&tables, `show tables`)
 		for _, t := range tables {
-			if t != "db_migrations" {
-				ss.masterX.Exec(`TRUNCATE TABLE ` + t)
-			}
+			ss.masterX.Exec(`TRUNCATE TABLE ` + t)
 		}
 	}
 }
@@ -1197,21 +1194,4 @@ func (ss *SqlStore) toReserveCase(str string) string {
 	}
 
 	return fmt.Sprintf("`%s`", strings.Title(str))
-}
-
-func (ss *SqlStore) GetDBSchemaVersion() (int, error) {
-	var version int
-	if err := ss.GetMasterX().Get(&version, "SELECT Version FROM db_migrations ORDER BY Version DESC LIMIT 1"); err != nil {
-		return 0, errors.Wrap(err, "unable to select from db_migrations")
-	}
-	return version, nil
-}
-
-func (ss *SqlStore) GetAppliedMigrations() ([]model.AppliedMigration, error) {
-	migrations := []model.AppliedMigration{}
-	if err := ss.GetMasterX().Select(&migrations, "SELECT Version, Name FROM db_migrations ORDER BY Version DESC"); err != nil {
-		return nil, errors.Wrap(err, "unable to select from db_migrations")
-	}
-
-	return migrations, nil
 }

@@ -6,11 +6,7 @@ package sqlstore
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"regexp"
-	"sort"
-	"strconv"
-	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -22,7 +18,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/db/migrations"
 	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
@@ -788,72 +783,4 @@ func TestMySQLReadTimeout(t *testing.T) {
 
 	_, err = store.GetMasterX().ExecNoTimeout(`SELECT SLEEP(3)`)
 	require.NoError(t, err)
-}
-
-func TestGetDBSchemaVersion(t *testing.T) {
-	testDrivers := []string{
-		model.DatabaseDriverPostgres,
-		model.DatabaseDriverMysql,
-	}
-
-	for _, driver := range testDrivers {
-		t.Run("Should return latest version number of applied migrations for "+driver, func(t *testing.T) {
-			t.Parallel()
-			settings := makeSqlSettings(driver)
-			store := New(*settings, nil)
-
-			var assetNamesForDriver []string
-			for _, assetName := range migrations.AssetNames() {
-				if strings.HasPrefix(assetName, store.DriverName()) {
-					assetNamesForDriver = append(assetNamesForDriver, filepath.Base(assetName))
-				}
-			}
-			sort.Strings(assetNamesForDriver)
-
-			require.NotEmpty(t, assetNamesForDriver)
-			lastMigration := assetNamesForDriver[len(assetNamesForDriver)-1]
-			expectedVersion := strings.Split(lastMigration, "_")[0]
-
-			version, err := store.GetDBSchemaVersion()
-			require.NoError(t, err)
-			require.Equal(t, expectedVersion, fmt.Sprintf("%06d", version))
-		})
-	}
-}
-
-func TestGetAppliedMigrations(t *testing.T) {
-	testDrivers := []string{
-		model.DatabaseDriverPostgres,
-		model.DatabaseDriverMysql,
-	}
-
-	for _, driver := range testDrivers {
-		t.Run("Should return db applied migrations for "+driver, func(t *testing.T) {
-			t.Parallel()
-			settings := makeSqlSettings(driver)
-			store := New(*settings, nil)
-
-			var migrationsFromFiles []model.AppliedMigration
-			for _, assetName := range migrations.AssetNames() {
-				if strings.HasPrefix(assetName, store.DriverName()) && strings.HasSuffix(assetName, ".up.sql") {
-					versionString := strings.Split(filepath.Base(assetName), "_")[0]
-					version, err := strconv.Atoi(versionString)
-					require.NoError(t, err)
-
-					name := strings.TrimSuffix(strings.TrimLeft(filepath.Base(assetName), versionString+"_"), ".up.sql")
-
-					migrationsFromFiles = append(migrationsFromFiles, model.AppliedMigration{
-						Version: version,
-						Name:    name,
-					})
-				}
-			}
-
-			require.NotEmpty(t, migrationsFromFiles)
-
-			migrations, err := store.GetAppliedMigrations()
-			require.NoError(t, err)
-			require.ElementsMatch(t, migrationsFromFiles, migrations)
-		})
-	}
 }
