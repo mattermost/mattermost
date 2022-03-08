@@ -2448,10 +2448,6 @@
     "translation": "Channel header is too long."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Missing required channel property: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
     "translation": "Channel display_name is not within permitted length constraints."
   },
@@ -4510,10 +4506,6 @@
   {
     "id": "app.channel.migrate_channel_members.select.app_error",
     "translation": "Failed to select the batch of channel members."
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Unable to increment the mention count."
   },
   {
     "id": "app.channel.get_unread.app_error",

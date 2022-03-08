@@ -2868,10 +2868,6 @@
     "translation": "Nem sikerült kiválasztani a csatornatagok kötegét."
   },
   {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Nem sikerült növelni az említések számlálóját."
-  },
-  {
     "id": "app.channel.get_unread.app_error",
     "translation": "Nem sikerült lekérni a csatorna olvasatlan üzeneteit."
   },
@@ -5374,10 +5370,6 @@
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "Csatorna fejléc túl hosszú."
-  },
-  {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Hiányzó kötelező csatorna tulajdonság: display_name"
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",

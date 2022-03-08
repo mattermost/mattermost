@@ -2484,10 +2484,6 @@
     "translation": "チャンネルの表示名の長さが制限を超えています。"
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "必須のチャンネル設定値 display_name が存在しません"
-  },
-  {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "チャンネルヘッダーが長すぎます。"
   },
@@ -7002,10 +6998,6 @@
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "チャンネルメンバーを削除できませんでした。"
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "誰かについての投稿数を増加できませんでした。"
   },
   {
     "id": "app.channel.get_public_channels.get.app_error",

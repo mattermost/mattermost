@@ -2488,10 +2488,6 @@
     "translation": "Görüntülenecek kanal adı izin verilen uzunluk aralığında değil."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Zorunlu kanal özelliği eksik: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "Kanal başlığı çok uzun."
   },
@@ -6742,10 +6738,6 @@
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "Kanal üyesi silinemedi."
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Anma sayısı arttırılamadı."
   },
   {
     "id": "app.channel.get_public_channels.get.app_error",
