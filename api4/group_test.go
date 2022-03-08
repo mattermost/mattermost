@@ -119,6 +119,16 @@ func TestCreateGroup(t *testing.T) {
 	require.NoError(t, err)
 	CheckCreatedStatus(t, response)
 
+	usernameGroup := &model.Group{
+		DisplayName:    "dn_" + model.NewId(),
+		Name:           &th.BasicUser.Username,
+		Source:         model.GroupSourceCustom,
+		AllowReference: true,
+	}
+	_, response, err = th.SystemAdminClient.CreateGroup(usernameGroup)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
+
 	unReferenceableCustomGroup := &model.Group{
 		DisplayName:    "dn_" + model.NewId(),
 		Name:           model.NewString("name" + model.NewId()),
