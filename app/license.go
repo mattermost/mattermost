@@ -177,34 +177,6 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 		return nil, model.NewAppError("addLicense", model.ExpiredLicenseError, nil, "", http.StatusBadRequest)
 	}
 
-	if *s.Config().JobSettings.RunJobs && s.Jobs != nil {
-		if err := s.Jobs.StopWorkers(); err != nil && !errors.Is(err, jobs.ErrWorkersNotRunning) {
-			mlog.Warn("Stopping job server workers failed", mlog.Err(err))
-		}
-	}
-
-	if *s.Config().JobSettings.RunScheduler && s.Jobs != nil {
-		if err := s.Jobs.StopSchedulers(); err != nil && !errors.Is(err, jobs.ErrSchedulersNotRunning) {
-			mlog.Error("Stopping job server schedulers failed", mlog.Err(err))
-		}
-	}
-
-	defer func() {
-		// restart job server workers - this handles the edge case where a license file is uploaded, but the job server
-		// doesn't start until the server is restarted, which prevents the 'run job now' buttons in system console from
-		// functioning as expected
-		if *s.Config().JobSettings.RunJobs && s.Jobs != nil {
-			if err := s.Jobs.StartWorkers(); err != nil {
-				mlog.Error("Starting job server workers failed", mlog.Err(err))
-			}
-		}
-		if *s.Config().JobSettings.RunScheduler && s.Jobs != nil {
-			if err := s.Jobs.StartSchedulers(); err != nil && !errors.Is(err, jobs.ErrSchedulersRunning) {
-				mlog.Error("Starting job server schedulers failed", mlog.Err(err))
-			}
-		}
-	}()
-
 	if ok := s.SetLicense(&license); !ok {
 		return nil, model.NewAppError("addLicense", model.ExpiredLicenseError, nil, "", http.StatusBadRequest)
 	}
@@ -235,6 +207,25 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 
 	s.ReloadConfig()
 	s.InvalidateAllCaches()
+
+	// restart job server workers - this handles the edge case where a license file is uploaded, but the job server
+	// doesn't start until the server is restarted, which prevents the 'run job now' buttons in system console from
+	// functioning as expected
+	if *s.Config().JobSettings.RunJobs && s.Jobs != nil {
+		if err := s.Jobs.StopWorkers(); err != nil && !errors.Is(err, jobs.ErrWorkersNotRunning) {
+			mlog.Warn("Stopping job server workers failed", mlog.Err(err))
+		}
+		if err := s.Jobs.InitWorkers(); err != nil {
+			mlog.Error("Initializing job server workers failed", mlog.Err(err))
+		} else if err := s.Jobs.StartWorkers(); err != nil {
+			mlog.Error("Starting job server workers failed", mlog.Err(err))
+		}
+	}
+	if *s.Config().JobSettings.RunScheduler && s.Jobs != nil {
+		if err := s.Jobs.StartSchedulers(); err != nil && !errors.Is(err, jobs.ErrSchedulersRunning) {
+			mlog.Error("Starting job server schedulers failed", mlog.Err(err))
+		}
+	}
 
 	return &license, nil
 }

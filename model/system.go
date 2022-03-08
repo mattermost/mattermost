@@ -173,8 +173,3 @@ type WarnMetricStatus struct {
 type SendWarnMetricAck struct {
 	ForceAck bool `json:"forceAck"`
 }
-
-type AppliedMigration struct {
-	Version int    `json:"version"`
-	Name    string `json:"name"`
-}

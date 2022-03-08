@@ -5,7 +5,6 @@ package jobs
 
 import (
 	"sync"
-	"time"
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -25,33 +24,11 @@ type JobServer struct {
 }
 
 func NewJobServer(configService configservice.ConfigService, store store.Store, metrics einterfaces.MetricsInterface) *JobServer {
-	srv := &JobServer{
+	return &JobServer{
 		ConfigService: configService,
 		Store:         store,
 		metrics:       metrics,
 	}
-	srv.initWorkers()
-	srv.initSchedulers()
-	return srv
-}
-
-func (srv *JobServer) initWorkers() {
-	workers := NewWorkers(srv.ConfigService)
-	workers.Watcher = srv.MakeWatcher(workers, DefaultWatcherPollingInterval)
-	srv.workers = workers
-}
-
-func (srv *JobServer) initSchedulers() {
-	schedulers := &Schedulers{
-		configChanged:        make(chan *model.Config),
-		clusterLeaderChanged: make(chan bool, 1),
-		jobs:                 srv,
-		isLeader:             true,
-		schedulers:           make(map[string]model.Scheduler),
-		nextRunTimes:         make(map[string]*time.Time),
-	}
-
-	srv.schedulers = schedulers
 }
 
 func (srv *JobServer) Config() *model.Config {

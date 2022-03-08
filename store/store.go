@@ -63,8 +63,7 @@ type Store interface {
 	UnlockFromMaster()
 	DropAllTables()
 	RecycleDBConnections(d time.Duration)
-	GetDBSchemaVersion() (int, error)
-	GetAppliedMigrations() ([]model.AppliedMigration, error)
+	GetCurrentSchemaVersion() string
 	GetDbVersion(numerical bool) (string, error)
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int

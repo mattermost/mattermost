@@ -6156,10 +6156,6 @@
     "translation": "Encountered an error encoding JSON for the interactive dialog."
   },
   {
-    "id": "app.system.applied_migrations.not_authorized",
-    "translation": "You don't have the appropriate permissions."
-  },
-  {
     "id": "app.system.complete_onboarding_request.app_error",
     "translation": "Failed to decode the complete onboarding request."
   },
