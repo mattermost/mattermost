@@ -525,11 +525,6 @@ func NewServer(options ...Option) (*Server, error) {
 		s.setupFeatureFlags()
 	})
 
-	if s.joinCluster && s.Cluster != nil {
-		s.registerClusterHandlers()
-		s.Cluster.StartInterNodeCommunication()
-	}
-
 	// If configured with a subpath, redirect 404s at the root back into the subpath.
 	if subpath != "/" {
 		s.RootRouter.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -1160,6 +1155,11 @@ func (s *Server) Start() error {
 		if err := product.Start(); err != nil {
 			return errors.Wrapf(err, "Unable to start %s", name)
 		}
+	}
+
+	if s.joinCluster && s.Cluster != nil {
+		s.registerClusterHandlers()
+		s.Cluster.StartInterNodeCommunication()
 	}
 
 	if err := s.ensureInstallationDate(); err != nil {
@@ -2086,9 +2086,9 @@ func (a *App) getNotificationsLog() (*model.FileData, string) {
 	var warning string
 
 	// Getting notifications.log
-	if *a.Srv().Config().NotificationLogSettings.EnableFile {
+	if *a.Config().NotificationLogSettings.EnableFile {
 		// notifications.log
-		notificationsLog := config.GetNotificationsLogFileLocation(*a.Srv().Config().LogSettings.FileLocation)
+		notificationsLog := config.GetNotificationsLogFileLocation(*a.Config().LogSettings.FileLocation)
 
 		notificationsLogFileData, notificationsLogFileDataErr := ioutil.ReadFile(notificationsLog)
 
@@ -2113,9 +2113,9 @@ func (a *App) getMattermostLog() (*model.FileData, string) {
 	var warning string
 
 	// Getting mattermost.log
-	if *a.Srv().Config().LogSettings.EnableFile {
+	if *a.Config().LogSettings.EnableFile {
 		// mattermost.log
-		mattermostLog := config.GetLogFileLocation(*a.Srv().Config().LogSettings.FileLocation)
+		mattermostLog := config.GetLogFileLocation(*a.Config().LogSettings.FileLocation)
 
 		mattermostLogFileData, mattermostLogFileDataErr := ioutil.ReadFile(mattermostLog)
 

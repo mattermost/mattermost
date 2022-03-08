@@ -37,12 +37,17 @@ func setupConfigDatabase(t *testing.T, cfg *model.Config, files map[string][]byt
 	cfgData, err := marshalConfig(cfg)
 	require.NoError(t, err)
 
-	db := sqlx.NewDb(mainHelper.GetSQLStore().GetMaster().Db, *mainHelper.GetSQLSettings().DriverName)
-	err = initializeConfigurationsTable(db)
+	ds := &DatabaseStore{
+		driverName:     *mainHelper.GetSQLSettings().DriverName,
+		db:             mainHelper.GetSQLStore().GetMasterX().DB,
+		dataSourceName: *mainHelper.Settings.DataSource,
+	}
+
+	err = ds.initializeConfigurationsTable()
 	require.NoError(t, err)
 
 	id := model.NewId()
-	_, err = db.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt, Active) VALUES(:Id, :Value, :CreateAt, TRUE)", map[string]interface{}{
+	_, err = ds.db.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt, Active) VALUES(:Id, :Value, :CreateAt, TRUE)", map[string]interface{}{
 		"Id":       id,
 		"Value":    cfgData,
 		"CreateAt": model.GetMillis(),
@@ -57,7 +62,7 @@ func setupConfigDatabase(t *testing.T, cfg *model.Config, files map[string][]byt
 			"update_at": model.GetMillis(),
 		}
 
-		_, err = db.NamedExec("INSERT INTO ConfigurationFiles (Name, Data, CreateAt, UpdateAt) VALUES (:name, :data, :create_at, :update_at)", params)
+		_, err = ds.db.NamedExec("INSERT INTO ConfigurationFiles (Name, Data, CreateAt, UpdateAt) VALUES (:name, :data, :create_at, :update_at)", params)
 		require.NoError(t, err)
 	}
 
