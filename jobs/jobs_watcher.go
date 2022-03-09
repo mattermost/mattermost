@@ -5,6 +5,7 @@ package jobs
 
 import (
 	"math/rand"
+	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -22,6 +23,7 @@ type Watcher struct {
 	stop            chan struct{}
 	stopped         chan struct{}
 	pollingInterval int
+	mut             sync.Mutex
 }
 
 func (srv *JobServer) MakeWatcher(workers *Workers, pollingInterval int) *Watcher {
@@ -34,8 +36,10 @@ func (srv *JobServer) MakeWatcher(workers *Workers, pollingInterval int) *Watche
 
 func (watcher *Watcher) Start() {
 	mlog.Debug("Watcher Started")
+	watcher.mut.Lock()
 	watcher.stop = make(chan struct{})
 	watcher.stopped = make(chan struct{})
+	watcher.mut.Unlock()
 	// Delay for some random number of milliseconds before starting to ensure that multiple
 	// instances of the jobserver  don't poll at a time too close to each other.
 	rand.Seed(time.Now().UTC().UnixNano())
@@ -59,8 +63,10 @@ func (watcher *Watcher) Start() {
 
 func (watcher *Watcher) Stop() {
 	mlog.Debug("Watcher Stopping")
+	watcher.mut.Lock()
 	close(watcher.stop)
 	<-watcher.stopped
+	watcher.mut.Unlock()
 }
 
 func (watcher *Watcher) PollAndNotify() {
