@@ -1801,33 +1801,43 @@ func (s SqlChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) (
 
 	updatedMembers := []*model.ChannelMember{}
 	for _, member := range members {
-		if _, err := transaction.NamedExec(`UPDATE ChannelMembers
-			SET Roles=:Roles,
-			LastViewedAt=:LastViewedAt,
-			MsgCount=:MsgCount,
-			MentionCount=:MentionCount,
-			NotifyProps=:NotifyProps,
-			LastUpdateAt=:LastUpdateAt,
-			SchemeUser=:SchemeUser,
-			SchemeAdmin=:SchemeAdmin,
-			SchemeGuest=:SchemeGuest,
-			MentionCountRoot=:MentionCountRoot,
-			MsgCountRoot=:MsgCountRoot
-			WHERE ChannelId=:ChannelId AND UserId=:UserId`, NewChannelMemberFromModel(member)); err != nil {
+		update := s.getQueryBuilder().Update("ChannelMembers").SetMap(map[string]interface{}{
+			"Roles":            member.Roles,
+			"LastViewedAt":     member.LastViewedAt,
+			"MsgCount":         member.MsgCount,
+			"MentionCount":     member.MentionCount,
+			"NotifyProps":      member.NotifyProps,
+			"LastUpdateAt":     member.LastUpdateAt,
+			"SchemeUser":       member.SchemeUser,
+			"SchemeAdmin":      member.SchemeAdmin,
+			"SchemeGuest":      member.SchemeGuest,
+			"MentionCountRoot": member.MentionCountRoot,
+			"MsgCountRoot":     member.MsgCountRoot,
+		}).Where(sq.Eq{
+			"ChannelId": member.ChannelId,
+			"UserId":    member.UserId,
+		})
+
+		sqlUpdate, args, err := update.ToSql()
+		if err != nil {
+			return nil, errors.Wrapf(err, "UpdateMultipleMembers_Update_ToSql ChannelID=%s UserID=%s", member.ChannelId, member.UserId)
+		}
+
+		if _, err := transaction.Exec(sqlUpdate, args...); err != nil {
 			return nil, errors.Wrap(err, "failed to update ChannelMember")
 		}
 
-		sqlMember, args, err := query.Where(sq.Eq{
+		sqlSelect, args, err := query.Where(sq.Eq{
 			"ChannelMembers.ChannelId": member.ChannelId,
 			"ChannelMembers.UserId":    member.UserId,
 		}).ToSql()
 		if err != nil {
-			return nil, errors.Wrapf(err, "UpdateMultipleMembers_ToSql ChannelID=%s UserID=%s", member.ChannelId, member.UserId)
+			return nil, errors.Wrapf(err, "UpdateMultipleMembers_Select_ToSql ChannelID=%s UserID=%s", member.ChannelId, member.UserId)
 		}
 
 		// TODO: Get this out of the transaction when is possible
 		var dbMember channelMemberWithSchemeRoles
-		if err := transaction.Get(&dbMember, sqlMember, args); err != nil {
+		if err := transaction.Get(&dbMember, sqlSelect, args); err != nil {
 			if err == sql.ErrNoRows {
 				return nil, store.NewErrNotFound("ChannelMember", fmt.Sprintf("channelId=%s, userId=%s", member.ChannelId, member.UserId))
 			}
