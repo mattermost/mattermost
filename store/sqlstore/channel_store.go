@@ -1882,32 +1882,49 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 				"channelid": channelID,
 			}).ToSql()
 		if err != nil {
-			errors.Wrapf(err, "UpdateMemberNotifyProps_Update_ToSql channelID=%s and userID=%s", channelID, userID)
+			return nil, errors.Wrapf(err, "UpdateMemberNotifyProps_Update_Postgres_ToSql channelID=%s and userID=%s", channelID, userID)
 		}
 
 		_, err = tx.Exec(sql, args...)
-	} else {
+	} else if len(props) > 0 {
 		// It's difficult to construct a SQL query for MySQL
 		// to handle a case of empty map. So we just ignore it.
-		if len(props) > 0 {
-			// unpack the keys and values to pass to MySQL.
-			args, argString := constructMySQLJSONArgs(props)
-			args = append(args, userID, channelID)
 
-			// Example: UPDATE ChannelMembers
-			// SET NotifyProps = JSON_SET(NotifyProps, '$.mark_unread', '"yes"' [, ...])
-			// WHERE ...
-			_, err = tx.Exec(`UPDATE ChannelMembers
-				SET NotifyProps = JSON_SET(NotifyProps, `+argString+`)
-				WHERE UserId=? AND ChannelId=?`, args...)
+		// unpack the keys and values to pass to MySQL.
+		jsonArgs, jsonSQL := constructMySQLJSONArgs(props)
+		jsonExpr := sq.Expr(fmt.Sprintf("JSON_SET(NotifyProps, %s)", jsonSQL), jsonArgs...)
+
+		// Example: UPDATE ChannelMembers
+		// SET NotifyProps = JSON_SET(NotifyProps, '$.mark_unread', '"yes"' [, ...])
+		// WHERE ...
+		sql, args, err := s.getQueryBuilder().
+			Update("ChannelMembers").
+			Set("NotifyProps", jsonExpr).
+			Where(sq.Eq{
+				"UserId":    userID,
+				"ChannelId": channelID,
+			}).ToSql()
+		if err != nil {
+			return nil, errors.Wrapf(err, "UpdateMemberNotifyProps_Update_MySQL_ToSql channelID=%s and userID=%s", channelID, userID)
 		}
+
+		_, err = tx.Exec(sql, args...)
 	}
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update ChannelMember with channelID=%s and userID=%s", channelID, userID)
 	}
 
+	selectSQL, args, err := s.channelMembersForTeamWithSchemeSelectQuery.
+		Where(sq.Eq{
+			"ChannelMembers.ChannelId": channelID,
+			"ChannelMembers.UserId":    userID,
+		}).ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "UpdateMemberNotifyProps_Select_ToSql channelID=%s and userID=%s", channelID, userID)
+	}
+
 	var dbMember channelMemberWithSchemeRoles
-	if err2 := tx.Get(&dbMember, channelMembersForTeamWithSchemeSelectQuery+"WHERE ChannelMembers.ChannelId = ? AND ChannelMembers.UserId = ?", channelID, userID); err2 != nil {
+	if err2 := tx.Get(&dbMember, selectSQL, args...); err2 != nil {
 		if err2 == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("ChannelMember", fmt.Sprintf("channelId=%s, userId=%s", channelID, userID))
 		}
