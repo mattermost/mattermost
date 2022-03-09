@@ -2868,10 +2868,6 @@
     "translation": "Nem sikerült kiválasztani a csatornatagok kötegét."
   },
   {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Nem sikerült növelni az említések számlálóját."
-  },
-  {
     "id": "app.channel.get_unread.app_error",
     "translation": "Nem sikerült lekérni a csatorna olvasatlan üzeneteit."
   },
@@ -5376,10 +5372,6 @@
     "translation": "Csatorna fejléc túl hosszú."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Hiányzó kötelező csatorna tulajdonság: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
     "translation": "A csatorna display_name nem az engedélyezett hosszúságon belül van."
   },
@@ -6473,7 +6465,7 @@
   },
   {
     "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
-    "translation": "Nem lehet továbbítani a 80-as portot a 443-masra miközben a %s porton figyelünk: kapcsolja ki a Forward80To443 -at ha proxy szervert használ"
+    "translation": "Nem lehet továbbítani a 80-as portot a 443-asra miközben a %s porton figyelünk: kapcsolja ki a Forward80To443 -at ha proxy szervert használ"
   },
   {
     "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
@@ -8909,7 +8901,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, a Mattermost Cloud Enterprise 14 napos ingyenes próbaverziója ma lejárt, {{.TodayDate}}. Kérjük adja hozzá fizetési adatait, hogy csapata továbbra is élvezhesse a Cloud Enterprise előnyeit."
+    "translation": "{{.Name}}, a Mattermost Cloud Enterprise 14 napos ingyenes próbaverziója ma lejárt, {{.TodayDate}}. Kérjük adja hozzá fizetési adatait, hogy csapata továbbra is élvezhesse a Cloud Enterprise előnyeit. Ha 30 napon belül nem adja meg a fizetési adatait, a Cloud munkaterületét véglegesen töröljük, és a kapcsolódó adatokat elveszíti."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -9382,5 +9374,21 @@
   {
     "id": "api.templates.server_inactivity_info",
     "translation": "Jöjjön és nézze meg!"
+  },
+  {
+    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
+    "translation": "Nem lehet lekérni az összes munkát típus és státusz szerint."
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
+    "translation": "SMTP nincs beállítva a Rendszerkonzolban"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email.app_error",
+    "translation": "Hiba az e-mail küldése során"
+  },
+  {
+    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "translation": "Az előre becsomagolt plugin verzióját nem lehetett értelmezni."
   }
 ]
