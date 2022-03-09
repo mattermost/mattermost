@@ -2764,9 +2764,13 @@ func (s SqlChannelStore) AnalyticsDeletedTypeCount(teamId string, channelType mo
 
 func (s SqlChannelStore) GetMembersForUser(teamID string, userID string) (model.ChannelMembers, error) {
 	sql, args, err := s.channelMembersForTeamWithSchemeSelectQuery.
-		Where(sq.Eq{
-			"ChannelMembers.UserId": userID,
-			"Teams.Id":              []interface{}{teamID, "", nil},
+		Where(sq.And{
+			sq.Eq{"ChannelMembers.UserId": userID},
+			sq.Or{
+				sq.Eq{"Teams.Id": teamID},
+				sq.Eq{"Teams.Id": ""},
+				sq.Eq{"Teams.Id": nil},
+			},
 		}).ToSql()
 	if err != nil {
 		return nil, errors.Wrapf(err, "GetMembersForUser_ToSql teamID=%s userID=%s", teamID, userID)
