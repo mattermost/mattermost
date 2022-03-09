@@ -1789,6 +1789,8 @@ func (s SqlChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) (
 		}
 	}
 
+	query := channelMembersForTeamWithSchemeSelectQueryX.PlaceholderFormat(s.getQueryPlaceholder())
+
 	var transaction *sqlxTxWrapper
 	var err error
 
@@ -1815,9 +1817,17 @@ func (s SqlChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) (
 			return nil, errors.Wrap(err, "failed to update ChannelMember")
 		}
 
+		sqlMember, args, err := query.Where(sq.Eq{
+			"ChannelMembers.ChannelId": member.ChannelId,
+			"ChannelMembers.UserId":    member.UserId,
+		}).ToSql()
+		if err != nil {
+			return nil, errors.Wrapf(err, "UpdateMultipleMembers_ToSql ChannelID=%s UserID=%s", member.ChannelId, member.UserId)
+		}
+
 		// TODO: Get this out of the transaction when is possible
 		var dbMember channelMemberWithSchemeRoles
-		if err := transaction.Get(&dbMember, channelMembersForTeamWithSchemeSelectQuery+"WHERE ChannelMembers.ChannelId = ? AND ChannelMembers.UserId = ?", member.ChannelId, member.UserId); err != nil {
+		if err := transaction.Get(&dbMember, sqlMember, args); err != nil {
 			if err == sql.ErrNoRows {
 				return nil, store.NewErrNotFound("ChannelMember", fmt.Sprintf("channelId=%s, userId=%s", member.ChannelId, member.UserId))
 			}
