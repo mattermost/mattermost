@@ -2873,7 +2873,7 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamID string, userID strin
 	}
 
 	var (
-		channels model.ChannelList
+		channels = model.ChannelList{}
 		sql      string
 		args     []interface{}
 	)
