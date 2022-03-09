@@ -423,7 +423,7 @@ func (a *App) ClientConfigWithComputed() map[string]string {
 	if ver, err := a.ch.srv.Store.GetDBSchemaVersion(); err != nil {
 		mlog.Error("Could not get the schema version", mlog.Err(err))
 	} else {
-		respCfg["Version"] = strconv.Itoa(ver)
+		respCfg["SchemaVersion"] = strconv.Itoa(ver)
 	}
 
 	return respCfg
