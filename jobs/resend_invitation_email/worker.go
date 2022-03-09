@@ -85,12 +85,8 @@ func (rseworker *ResendInvitationEmailWorker) JobChannel() chan<- model.Job {
 }
 
 func (rseworker *ResendInvitationEmailWorker) DoJob(job *model.Job) {
-	rseworker.DoJob_48(job)
-}
-
-func (rseworker *ResendInvitationEmailWorker) DoJob_48(job *model.Job) {
-	elapsedTimeSinceSchedule, DurationInMillis_48 := rseworker.GetDurations(job)
-	if elapsedTimeSinceSchedule > DurationInMillis_48 {
+	elapsedTimeSinceSchedule, DurationInMillis := rseworker.GetDurations(job)
+	if elapsedTimeSinceSchedule > DurationInMillis {
 		rseworker.ResendEmails(job, "48")
 		rseworker.TearDown(job)
 	}
@@ -146,14 +142,14 @@ func (rseworker *ResendInvitationEmailWorker) GetDurations(job *model.Job) (int6
 
 	elapsedTimeSinceSchedule := now - scheduledAt
 
-	duration_48 := os.Getenv("MM_RESEND_INVITATION_EMAIL_JOB_DURATION")
-	DurationInMillis_48, parseError := strconv.ParseInt(duration_48, 10, 64)
+	duration := os.Getenv("MM_RESEND_INVITATION_EMAIL_JOB_DURATION")
+	DurationInMillis, parseError := strconv.ParseInt(duration, 10, 64)
 	if parseError != nil {
 		// default to 48 hours
-		DurationInMillis_48 = FourtyEightHoursInMillis
+		DurationInMillis = FourtyEightHoursInMillis
 	}
 
-	return elapsedTimeSinceSchedule, DurationInMillis_48
+	return elapsedTimeSinceSchedule, DurationInMillis
 
 }
 
