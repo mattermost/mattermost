@@ -1136,15 +1136,28 @@ func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, l
 }
 
 func (s SqlChannelStore) GetAllChannelMembersById(channelID string) ([]string, error) {
+	query := channelMembersForTeamWithSchemeSelectQueryX.Where(sq.Eq{
+		"ChannelId": channelID,
+	})
+
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		query = query.PlaceholderFormat(sq.Dollar)
+	}
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetAllChannelMembersById_ToSql")
+	}
+
 	dbMembers := channelMemberWithSchemeRolesList{}
-	err := s.GetReplicaX().Select(&dbMembers, channelMembersForTeamWithSchemeSelectQuery+"WHERE ChannelId = ?", channelID)
+	err = s.GetReplicaX().Select(&dbMembers, sql, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get ChannelMembers with channelID=%s", channelID)
 	}
 
-	res := make([]string, 0, len(dbMembers))
-	for _, member := range dbMembers.ToModel() {
-		res = append(res, member.UserId)
+	res := make([]string, len(dbMembers))
+	for i, member := range dbMembers.ToModel() {
+		res[i] = member.UserId
 	}
 
 	return res, nil
@@ -1572,27 +1585,6 @@ var channelMembersForTeamWithSchemeSelectQueryX = sq.Select(
 	LeftJoin("Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id").
 	LeftJoin("Teams ON Channels.TeamId = Teams.Id").
 	LeftJoin("Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id")
-
-var channelMembersForTeamWithSchemeSelectQuery = `
-	SELECT
-		ChannelMembers.*,
-		TeamScheme.DefaultChannelGuestRole TeamSchemeDefaultGuestRole,
-		TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole,
-		TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole,
-		ChannelScheme.DefaultChannelGuestRole ChannelSchemeDefaultGuestRole,
-		ChannelScheme.DefaultChannelUserRole ChannelSchemeDefaultUserRole,
-		ChannelScheme.DefaultChannelAdminRole ChannelSchemeDefaultAdminRole
-	FROM
-		ChannelMembers
-	INNER JOIN
-		Channels ON ChannelMembers.ChannelId = Channels.Id
-	LEFT JOIN
-		Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id
-	LEFT JOIN
-		Teams ON Channels.TeamId = Teams.Id
-	LEFT JOIN
-		Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
-`
 
 var channelMembersWithSchemeSelectQuery = `
 	SELECT
