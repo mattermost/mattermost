@@ -2964,6 +2964,14 @@
     "translation": "No one to invite."
   },
   {
+    "id": "api.team.invite_members.unable_to_send_email.app_error",
+    "translation": "Error while sending the email"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
+    "translation": "SMTP is not configured in System Console"
+  },
+  {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
     "translation": "Team creation has been disabled. Please ask your System Administrator for details."
   },
@@ -3113,7 +3121,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Enterprise has ended today, {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Enterprise."
+    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Enterprise has ended today, {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Enterprise. If you do not add your payment information within 30 days, we will delete your Cloud workspace permanently and you will lose any associated data."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
@@ -4628,10 +4636,6 @@
     "translation": "Unable to get the channel unread messages."
   },
   {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Unable to increment the mention count."
-  },
-  {
     "id": "app.channel.migrate_channel_members.select.app_error",
     "translation": "Failed to select the batch of channel members."
   },
@@ -4928,6 +4932,10 @@
     "translation": "Unable to perform operation for that source type."
   },
   {
+    "id": "app.group.get_by_username_failure",
+    "translation": " "
+  },
+  {
     "id": "app.group.group_syncable_already_deleted",
     "translation": "group syncable was already deleted"
   },
@@ -4946,6 +4954,10 @@
   {
     "id": "app.group.uniqueness_error",
     "translation": "group member already exists"
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": " "
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -5122,10 +5134,6 @@
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
     "translation": "Channel display_name is not within permitted length constraints."
-  },
-  {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Missing required channel property: display_name"
   },
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
@@ -6000,6 +6008,10 @@
     "translation": "We encountered an error while updating preferences."
   },
   {
+    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "translation": "Prepackged plugin version could not be parsed."
+  },
+  {
     "id": "app.reaction.bulk_get_for_post_ids.app_error",
     "translation": "Unable to get reactions for post."
   },
@@ -6464,6 +6476,10 @@
     "translation": "We encountered an error trying to find the account by authentication type."
   },
   {
+    "id": "app.user.get_by_name_failure",
+    "translation": " "
+  },
+  {
     "id": "app.user.get_by_username.app_error",
     "translation": "Unable to find an existing account matching your username for this team. This team may require an invite from the team owner to join."
   },
@@ -6518,6 +6534,10 @@
   {
     "id": "app.user.get_users_batch_for_indexing.get_users.app_error",
     "translation": "Unable to get the users batch for indexing."
+  },
+  {
+    "id": "app.user.group_name_conflict",
+    "translation": " "
   },
   {
     "id": "app.user.missing_account.const",

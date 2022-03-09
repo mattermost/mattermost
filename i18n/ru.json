@@ -2492,10 +2492,6 @@
     "translation": "Свойство Channel display_name не находится в пределах допустимых ограничений длины."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Пропущено обязательное свойство канала: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "Длина заголовка канала слишком большая."
   },
@@ -7064,10 +7060,6 @@
     "translation": "Невозможно удалить участника канала."
   },
   {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Не удалось увеличить счетчик упоминаний."
-  },
-  {
     "id": "app.channel.get_pinnedpost_count.app_error",
     "translation": "Не удалось получить количество прикрепленных сообщений."
   },
@@ -9254,5 +9246,41 @@
   {
     "id": "app.valid_password_generic.app_error",
     "translation": "Пароль недействителен"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "не лицензировано для пользовательских групп"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "функция пользовательских групп отключена"
+  },
+  {
+    "id": "Playbooks",
+    "translation": "Сценарии"
+  },
+  {
+    "id": "Channels",
+    "translation": "Каналы"
+  },
+  {
+    "id": "Boards",
+    "translation": "Доски"
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "Ошибка при попытке получить первую завершенную настройку администратора из магазина."
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id должен быть пустым для пользовательской группы"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference должно быть 'true' для пользовательских групп"
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "ошибка подсчета групп"
   }
 ]

@@ -119,6 +119,16 @@ func TestCreateGroup(t *testing.T) {
 	require.NoError(t, err)
 	CheckCreatedStatus(t, response)
 
+	usernameGroup := &model.Group{
+		DisplayName:    "dn_" + model.NewId(),
+		Name:           &th.BasicUser.Username,
+		Source:         model.GroupSourceCustom,
+		AllowReference: true,
+	}
+	_, response, err = th.SystemAdminClient.CreateGroup(usernameGroup)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
+
 	unReferenceableCustomGroup := &model.Group{
 		DisplayName:    "dn_" + model.NewId(),
 		Name:           model.NewString("name" + model.NewId()),
@@ -1229,6 +1239,30 @@ func TestGetGroups(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, groups, 1)
 	assert.Equal(t, groups[0].Id, group2.Id)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableCustomGroups = false
+	})
+
+	// Specify custom groups source when feature is disabled
+	opts.Source = model.GroupSourceCustom
+	_, response, err := th.Client.GetGroups(opts)
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, response)
+
+	// Specify ldap groups source when custom groups feature is disabled
+	opts.Source = model.GroupSourceLdap
+	groups, _, err = th.Client.GetGroups(opts)
+	assert.NoError(t, err)
+	assert.Len(t, groups, 1)
+	assert.Equal(t, groups[0].Source, model.GroupSourceLdap)
+
+	// don't include source and should only get ldap groups in response
+	opts.Source = ""
+	groups, _, err = th.Client.GetGroups(opts)
+	assert.NoError(t, err)
+	assert.Len(t, groups, 1)
+	assert.Equal(t, groups[0].Source, model.GroupSourceLdap)
 }
 
 func TestGetGroupsByUserId(t *testing.T) {

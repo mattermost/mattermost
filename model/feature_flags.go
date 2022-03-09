@@ -104,8 +104,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
 	f.EnableInactivityCheckJob = true
-	f.UseCaseOnboarding = false
-	f.WorkspaceOptimizationDashboard = false
+	f.UseCaseOnboarding = true
+	f.WorkspaceOptimizationDashboard = true
 	f.GraphQL = false
 }
 func (f *FeatureFlags) Plugins() map[string]string {

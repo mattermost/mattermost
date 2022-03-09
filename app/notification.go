@@ -196,7 +196,6 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 
 	mentionedUsersList := make(model.StringArray, 0, len(mentions.Mentions))
-	updateMentionChans := []chan *model.AppError{}
 	mentionAutofollowChans := []chan *model.AppError{}
 	threadParticipants := map[string]bool{post.UserId: true}
 	participantMemberships := map[string]*model.ThreadMembership{}
@@ -290,32 +289,16 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 	for id := range mentions.Mentions {
 		mentionedUsersList = append(mentionedUsersList, id)
-
-		umc := make(chan *model.AppError, 1)
-		go func(userID string) {
-			defer close(umc)
-			nErr := a.Srv().Store.Channel().IncrementMentionCount(post.ChannelId, userID, post.RootId == "")
-			if nErr != nil {
-				umc <- model.NewAppError("SendNotifications", "app.channel.increment_mention_count.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-				return
-			}
-			umc <- nil
-		}(id)
-		updateMentionChans = append(updateMentionChans, umc)
 	}
 
-	// Make sure all mention updates are complete to prevent race conditions.
-	// Probably better to batch these DB updates in the future
-	// MUST be completed before push notifications send
-	for _, umc := range updateMentionChans {
-		if err := <-umc; err != nil {
-			mlog.Warn(
-				"Failed to update mention count",
-				mlog.String("post_id", post.Id),
-				mlog.String("channel_id", post.ChannelId),
-				mlog.Err(err),
-			)
-		}
+	nErr := a.Srv().Store.Channel().IncrementMentionCount(post.ChannelId, mentionedUsersList, post.RootId == "")
+	if nErr != nil {
+		mlog.Warn(
+			"Failed to update mention count",
+			mlog.String("post_id", post.Id),
+			mlog.String("channel_id", post.ChannelId),
+			mlog.Err(nErr),
+		)
 	}
 
 	// Log the problems that might have occurred while auto following the thread
@@ -663,6 +646,11 @@ func max(a, b int64) int64 {
 }
 
 func (a *App) userAllowsEmail(user *model.User, channelMemberNotificationProps model.StringMap, post *model.Post) bool {
+	// if user is a bot account, then we do not send email
+	if user.IsBot {
+		return false
+	}
+
 	userAllowsEmails := user.NotifyProps[model.EmailNotifyProp] != "false"
 
 	// if CRT is ON for user and the post is a reply disregard the channelEmail setting
