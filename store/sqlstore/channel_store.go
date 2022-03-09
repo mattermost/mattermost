@@ -1793,8 +1793,6 @@ func (s SqlChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) (
 		}
 	}
 
-	query := s.channelMembersForTeamWithSchemeSelectQuery
-
 	var transaction *sqlxTxWrapper
 	var err error
 
@@ -1831,7 +1829,8 @@ func (s SqlChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) (
 			return nil, errors.Wrap(err, "failed to update ChannelMember")
 		}
 
-		sqlSelect, args, err := query.Where(sq.Eq{
+		sqlSelect, args, err := s.channelMembersForTeamWithSchemeSelectQuery.
+			Where(sq.Eq{
 			"ChannelMembers.ChannelId": member.ChannelId,
 			"ChannelMembers.UserId":    member.UserId,
 		}).ToSql()
