@@ -3338,14 +3338,10 @@ func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) 
 
 		splitTerm := strings.Fields(fulltextTerm)
 		for i, t := range strings.Fields(fulltextTerm) {
-			if i == len(splitTerm)-1 {
-				splitTerm[i] = t + ":*"
-			} else {
-				splitTerm[i] = t + ":* &"
-			}
+			splitTerm[i] = t + ":*"
 		}
 
-		fulltextTerm = strings.Join(splitTerm, " ")
+		fulltextTerm = strings.Join(splitTerm, " & ")
 
 		fulltextClause = fmt.Sprintf("((to_tsvector('english', %s)) @@ to_tsquery('english', :FulltextTerm))", convertMySQLFullTextColumnsToPostgres(searchColumns))
 	} else if s.DriverName() == model.DatabaseDriverMysql {
