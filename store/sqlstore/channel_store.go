@@ -1816,7 +1816,7 @@ func (s SqlChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) (
 			return nil, errors.Wrapf(err, "UpdateMultipleMembers_Update_ToSql ChannelID=%s UserID=%s", member.ChannelId, member.UserId)
 		}
 
-		if _, err := transaction.Exec(sqlUpdate, args...); err != nil {
+		if _, err = transaction.Exec(sqlUpdate, args...); err != nil {
 			return nil, errors.Wrap(err, "failed to update ChannelMember")
 		}
 
