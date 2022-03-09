@@ -35,6 +35,9 @@ const (
 type SqlChannelStore struct {
 	*SqlStore
 	metrics einterfaces.MetricsInterface
+
+	// prepared query builders for use in multiple methods
+	channelMembersForTeamWithSchemeSelectQuery sq.SelectBuilder
 }
 
 type channelMember struct {
@@ -454,10 +457,32 @@ func (s SqlChannelStore) ClearCaches() {
 }
 
 func newSqlChannelStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.ChannelStore {
-	return &SqlChannelStore{
+	s := &SqlChannelStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
 	}
+
+	s.initializeQueries()
+
+	return s
+}
+
+func (s SqlChannelStore) initializeQueries() {
+	s.channelMembersForTeamWithSchemeSelectQuery = s.getQueryBuilder().
+		Select(
+			"ChannelMembers.*",
+			"TeamScheme.DefaultChannelGuestRole TeamSchemeDefaultGuestRole",
+			"TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole",
+			"TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole",
+			"ChannelScheme.DefaultChannelGuestRole ChannelSchemeDefaultGuestRole",
+			"ChannelScheme.DefaultChannelUserRole ChannelSchemeDefaultUserRole",
+			"ChannelScheme.DefaultChannelAdminRole ChannelSchemeDefaultAdminRole",
+		).
+		From("ChannelMembers").
+		InnerJoin("Channels ON ChannelMembers.ChannelId = Channels.Id").
+		LeftJoin("Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id").
+		LeftJoin("Teams ON Channels.TeamId = Teams.Id").
+		LeftJoin("Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id")
 }
 
 func (s SqlChannelStore) upsertPublicChannelT(transaction *sqlxTxWrapper, channel *model.Channel) error {
@@ -1136,13 +1161,9 @@ func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, l
 }
 
 func (s SqlChannelStore) GetAllChannelMembersById(channelID string) ([]string, error) {
-	query := channelMembersForTeamWithSchemeSelectQueryX.Where(sq.Eq{
+	query := s.channelMembersForTeamWithSchemeSelectQuery.Where(sq.Eq{
 		"ChannelId": channelID,
 	})
-
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		query = query.PlaceholderFormat(sq.Dollar)
-	}
 
 	sql, args, err := query.ToSql()
 	if err != nil {
@@ -1571,21 +1592,6 @@ func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int, userId
 	return channels, nil
 }
 
-var channelMembersForTeamWithSchemeSelectQueryX = sq.Select(
-	"ChannelMembers.*",
-	"TeamScheme.DefaultChannelGuestRole TeamSchemeDefaultGuestRole",
-	"TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole",
-	"TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole",
-	"ChannelScheme.DefaultChannelGuestRole ChannelSchemeDefaultGuestRole",
-	"ChannelScheme.DefaultChannelUserRole ChannelSchemeDefaultUserRole",
-	"ChannelScheme.DefaultChannelAdminRole ChannelSchemeDefaultAdminRole",
-).
-	From("ChannelMembers").
-	InnerJoin("Channels ON ChannelMembers.ChannelId = Channels.Id").
-	LeftJoin("Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id").
-	LeftJoin("Teams ON Channels.TeamId = Teams.Id").
-	LeftJoin("Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id")
-
 var channelMembersWithSchemeSelectQuery = `
 	SELECT
 		ChannelMembers.*,
@@ -1789,7 +1795,7 @@ func (s SqlChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) (
 		}
 	}
 
-	query := channelMembersForTeamWithSchemeSelectQueryX.PlaceholderFormat(s.getQueryPlaceholder())
+	query := s.channelMembersForTeamWithSchemeSelectQuery
 
 	var transaction *sqlxTxWrapper
 	var err error
@@ -1868,9 +1874,18 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 	defer finalizeTransactionX(tx)
 
 	if s.DriverName() == model.DatabaseDriverPostgres {
-		_, err = tx.Exec(`UPDATE channelmembers
-			SET notifyprops = notifyprops || ?::jsonb
-			WHERE userid=? AND channelid=?`, model.MapToJSON(props), userID, channelID)
+		sql, args, err := s.getQueryBuilder().
+			Update("channelmembers").
+			Set("notifyprops", sq.Expr("notifyprops || ?::jsonb", model.MapToJSON(props))).
+			Where(sq.Eq{
+				"userid":    userID,
+				"channelid": channelID,
+			}).ToSql()
+		if err != nil {
+			errors.Wrapf(err, "UpdateMemberNotifyProps_Update_ToSql channelID=%s and userID=%s", channelID, userID)
+		}
+
+		_, err = tx.Exec(sql, args...)
 	} else {
 		// It's difficult to construct a SQL query for MySQL
 		// to handle a case of empty map. So we just ignore it.
@@ -3460,15 +3475,12 @@ func (s SqlChannelStore) GetMembersByIds(channelID string, userIDs []string) (mo
 		return nil, errors.New("no user IDs were provided")
 	}
 
-	query := channelMembersForTeamWithSchemeSelectQueryX.Where(
+	query := s.channelMembersForTeamWithSchemeSelectQuery.Where(
 		sq.Eq{
 			"ChannelMembers.ChannelId": channelID,
 			"ChannelMembers.UserId":    userIDs,
 		},
 	)
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		query = query.PlaceholderFormat(sq.Dollar)
-	}
 
 	sql, args, err := query.ToSql()
 	if err != nil {
@@ -3489,15 +3501,12 @@ func (s SqlChannelStore) GetMembersByChannelIds(channelIDs []string, userID stri
 		return nil, errors.New("no channel IDs were provided")
 	}
 
-	query := channelMembersForTeamWithSchemeSelectQueryX.Where(
+	query := s.channelMembersForTeamWithSchemeSelectQuery.Where(
 		sq.Eq{
 			"ChannelMembers.ChannelId": channelIDs,
 			"ChannelMembers.UserId":    userID,
 		},
 	)
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		query = query.PlaceholderFormat(sq.Dollar)
-	}
 
 	sql, args, err := query.ToSql()
 	if err != nil {
