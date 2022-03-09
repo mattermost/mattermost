@@ -467,7 +467,7 @@ func newSqlChannelStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface
 	return s
 }
 
-func (s SqlChannelStore) initializeQueries() {
+func (s *SqlChannelStore) initializeQueries() {
 	s.channelMembersForTeamWithSchemeSelectQuery = s.getQueryBuilder().
 		Select(
 			"ChannelMembers.*",
