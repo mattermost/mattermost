@@ -3535,10 +3535,6 @@ func (s SqlChannelStore) GetMembersByIds(channelID string, userIDs []string) (mo
 }
 
 func (s SqlChannelStore) GetMembersByChannelIds(channelIDs []string, userID string) (model.ChannelMembers, error) {
-	if len(channelIDs) == 0 {
-		return nil, errors.New("no channel IDs were provided")
-	}
-
 	query := s.channelMembersForTeamWithSchemeSelectQuery.Where(
 		sq.Eq{
 			"ChannelMembers.ChannelId": channelIDs,
