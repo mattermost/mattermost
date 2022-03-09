@@ -1947,7 +1947,7 @@ func (s SqlChannelStore) GetMembers(channelID string, offset, limit int) (model.
 		Offset(uint64(offset)).
 		ToSql()
 	if err != nil {
-		return nil, errors.Wrapf(err, "GetMembers_ToSql ChannelID=%s", channelID)
+		return nil, errors.Wrapf(err, "GetMember_ToSql ChannelID=%s", channelID)
 	}
 
 	dbMembers := channelMemberWithSchemeRolesList{}
