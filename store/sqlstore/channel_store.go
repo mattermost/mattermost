@@ -2851,27 +2851,26 @@ func (s SqlChannelStore) AutocompleteInTeam(teamID, userID, term string, include
 }
 
 func (s SqlChannelStore) AutocompleteInTeamForSearch(teamID string, userID string, term string, includeDeleted bool) (model.ChannelList, error) {
-	// shared where clause for all queries
-	baseWhere := sq.And{
-		sq.Or{
-			sq.Eq{"C.TeamId": teamID},
-			sq.Eq{
-				"C.TeamId": "",
-				"C.Type":   model.ChannelTypeGroup,
-			},
-		},
-		sq.Eq{"CM.UserId": userID},
-	}
-	if !includeDeleted {
-		// include the DeleteAt = 0 condition
-		baseWhere = append(baseWhere, sq.Eq{"DeleteAt": 0})
-	}
-
 	// shared query
-	baseQuery := s.getSubQueryBuilder().Select("C.*").
+	query := s.getSubQueryBuilder().Select("C.*").
 		From("Channels AS C").
 		Join("ChannelMembers AS CM ON CM.ChannelId = C.Id").
-		Limit(50)
+		Limit(50).
+		Where(sq.And{
+			sq.Or{
+				sq.Eq{"C.TeamId": teamID},
+				sq.Eq{
+					"C.TeamId": "",
+					"C.Type":   model.ChannelTypeGroup,
+				},
+			},
+			sq.Eq{"CM.UserId": userID},
+		})
+
+	if !includeDeleted {
+		// include the DeleteAt = 0 condition
+		query.Where(sq.Eq{"DeleteAt": 0})
+	}
 
 	var (
 		channels model.ChannelList
@@ -2883,9 +2882,6 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamID string, userID strin
 	like := s.buildLIKEClauseX(term, "Name", "DisplayName", "Purpose")
 	if like == nil {
 		var err error
-
-		// use the base query for this request
-		query := baseQuery.Where(baseWhere)
 
 		// generate the SQL query
 		sql, args, err = query.ToSql()
@@ -2900,15 +2896,13 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamID string, userID strin
 		}
 
 		// build the LIKE query
-		likeWhere := append(baseWhere, like)
-		likeSQL, likeArgs, err := baseQuery.Where(likeWhere).ToSql()
+		likeSQL, likeArgs, err := query.Where(like).ToSql()
 		if err != nil {
 			return nil, errors.Wrap(err, "AutocompleteInTeamForSearch_Like_Tosql")
 		}
 
 		// build the full text query
-		fullWhere := append(baseWhere, full)
-		fullSQL, fullArgs, err := baseQuery.Where(fullWhere).ToSql()
+		fullSQL, fullArgs, err := query.Where(full).ToSql()
 		if err != nil {
 			return nil, errors.Wrap(err, "AutocompleteInTeamForSearch_Full_Tosql")
 		}
