@@ -1873,8 +1873,6 @@ func (ch *Channels) ClientConfigHash() string {
 
 func (s *Server) initJobs() {
 	s.Jobs = jobs.NewJobServer(s, s.Store, s.Metrics)
-	s.Jobs.InitWorkers()
-	s.Jobs.InitSchedulers()
 
 	if jobsDataRetentionJobInterface != nil {
 		builder := jobsDataRetentionJobInterface(s)
