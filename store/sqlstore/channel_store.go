@@ -3334,7 +3334,7 @@ func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) 
 
 	// Prepare the FULLTEXT portion of the query.
 	if s.DriverName() == model.DatabaseDriverPostgres {
-		fulltextTerm = strings.Replace(fulltextTerm, "|", "", -1)
+		fulltextTerm = strings.ReplaceAll(fulltextTerm, "|", "")
 
 		splitTerm := strings.Fields(fulltextTerm)
 		for i, t := range strings.Fields(fulltextTerm) {
