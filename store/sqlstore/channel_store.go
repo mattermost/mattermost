@@ -1938,11 +1938,22 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 	return dbMember.ToModel(), err
 }
 
-func (s SqlChannelStore) GetMembers(channelId string, offset, limit int) (model.ChannelMembers, error) {
-	dbMembers := channelMemberWithSchemeRolesList{}
-	err := s.GetReplicaX().Select(&dbMembers, channelMembersForTeamWithSchemeSelectQuery+"WHERE ChannelId = ? LIMIT ? OFFSET ?", channelId, limit, offset)
+func (s SqlChannelStore) GetMembers(channelID string, offset, limit int) (model.ChannelMembers, error) {
+	sql, args, err := s.channelMembersForTeamWithSchemeSelectQuery.
+		Where(sq.Eq{
+			"ChannelId": channelID,
+		}).
+		Limit(uint64(limit)).
+		Offset(uint64(offset)).
+		ToSql()
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get ChannelMembers with channelId=%s", channelId)
+		return nil, errors.Wrapf(err, "GetMembers_ToSql ChannelID=%s", channelID)
+	}
+
+	dbMembers := channelMemberWithSchemeRolesList{}
+	err = s.GetReplicaX().Select(&dbMembers, sql, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get ChannelMembers with channelId=%s", channelID)
 	}
 
 	return dbMembers.ToModel(), nil
