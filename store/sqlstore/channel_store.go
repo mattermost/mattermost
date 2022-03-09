@@ -2737,11 +2737,20 @@ func (s SqlChannelStore) AnalyticsDeletedTypeCount(teamId string, channelType mo
 	return v, nil
 }
 
-func (s SqlChannelStore) GetMembersForUser(teamId string, userId string) (model.ChannelMembers, error) {
-	dbMembers := channelMemberWithSchemeRolesList{}
-	err := s.GetReplicaX().Select(&dbMembers, channelMembersForTeamWithSchemeSelectQuery+"WHERE ChannelMembers.UserId = ? AND (Teams.Id = ? OR Teams.Id = '' OR Teams.Id IS NULL)", userId, teamId)
+func (s SqlChannelStore) GetMembersForUser(teamID string, userID string) (model.ChannelMembers, error) {
+	sql, args, err := s.channelMembersForTeamWithSchemeSelectQuery.
+		Where(sq.Eq{
+			"ChannelMembers.UserId": userID,
+			"Teams.Id":              []interface{}{teamID, "", nil},
+		}).ToSql()
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to find ChannelMembers data with teamId=%s and userId=%s", teamId, userId)
+		return nil, errors.Wrapf(err, "GetMembersForUser_ToSql teamID=%s userID=%s", teamID, userID)
+	}
+
+	dbMembers := channelMemberWithSchemeRolesList{}
+	err = s.GetReplicaX().Select(&dbMembers, sql, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find ChannelMembers data with teamId=%s and userId=%s", teamID, userID)
 	}
 
 	return dbMembers.ToModel(), nil
