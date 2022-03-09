@@ -1161,11 +1161,9 @@ func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, l
 }
 
 func (s SqlChannelStore) GetAllChannelMembersById(channelID string) ([]string, error) {
-	query := s.channelMembersForTeamWithSchemeSelectQuery.Where(sq.Eq{
+	sql, args, err := s.channelMembersForTeamWithSchemeSelectQuery.Where(sq.Eq{
 		"ChannelId": channelID,
-	})
-
-	sql, args, err := query.ToSql()
+	}).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "GetAllChannelMembersById_ToSql")
 	}
