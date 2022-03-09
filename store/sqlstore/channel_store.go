@@ -3300,7 +3300,7 @@ func (s SqlChannelStore) buildLIKEClauseX(term string, searchColumns ...string) 
 	}
 
 	// add a placeholder at the beginning and end
-	likeTerm = "%" + likeTerm + "%"
+	likeTerm = wildcardSearchTerm(likeTerm)
 
 	// Prepare the LIKE portion of the query.
 	var searchFields sq.Or
