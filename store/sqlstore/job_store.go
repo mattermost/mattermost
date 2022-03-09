@@ -26,22 +26,7 @@ type SqlJobStore struct {
 }
 
 func newSqlJobStore(sqlStore *SqlStore) store.JobStore {
-	s := &SqlJobStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Job{}, "Jobs").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("Type").SetMaxSize(32)
-		table.ColMap("Status").SetMaxSize(32)
-		table.ColMap("Data").SetDataType(sqlStore.jsonDataType())
-	}
-
-	return s
-}
-
-func (jss SqlJobStore) createIndexesIfNotExists() {
-	jss.CreateIndexIfNotExists("idx_jobs_type", "Jobs", "Type")
-	jss.CreateCompositeIndexIfNotExists("idx_jobs_status_type", "Jobs", []string{"Status", "Type"})
+	return &SqlJobStore{sqlStore}
 }
 
 func (jss SqlJobStore) Save(job *model.Job) (*model.Job, error) {
@@ -214,6 +199,22 @@ func (jss SqlJobStore) GetAllByType(jobType string) ([]*model.Job, error) {
 		return nil, errors.Wrapf(err, "failed to find Jobs with type=%s", jobType)
 	}
 	return statuses, nil
+}
+
+func (jss SqlJobStore) GetAllByTypeAndStatus(jobType string, status string) ([]*model.Job, error) {
+	query, args, err := jss.getQueryBuilder().
+		Select("*").
+		From("Jobs").
+		Where(sq.Eq{"Type": jobType, "Status": status}).
+		OrderBy("CreateAt DESC").ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "job_tosql")
+	}
+	jobs := []*model.Job{}
+	if err = jss.GetReplicaX().Select(&jobs, query, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find Jobs with type=%s", jobType)
+	}
+	return jobs, nil
 }
 
 func (jss SqlJobStore) GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, error) {

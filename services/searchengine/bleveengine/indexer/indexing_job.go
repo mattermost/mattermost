@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package ebleveengine
+package indexer
 
 import (
 	"context"
@@ -9,9 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/jobs"
-	tjobs "github.com/mattermost/mattermost-server/v6/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -26,28 +24,17 @@ const (
 	EstimatedUserCount    = 10000
 )
 
-func init() {
-	app.RegisterJobsBleveIndexerInterface(func(s *app.Server) tjobs.IndexerJobInterface {
-		return &BleveIndexerInterfaceImpl{s}
-	})
-}
-
-type BleveIndexerInterfaceImpl struct {
-	Server *app.Server
-}
-
 type BleveIndexerWorker struct {
 	name      string
 	stop      chan bool
 	stopped   chan bool
 	jobs      chan model.Job
 	jobServer *jobs.JobServer
-
-	engine *bleveengine.BleveEngine
+	engine    *bleveengine.BleveEngine
 }
 
-func (bi *BleveIndexerInterfaceImpl) MakeWorker() model.Worker {
-	if bi.Server.SearchEngine.BleveEngine == nil {
+func MakeWorker(jobServer *jobs.JobServer, engine *bleveengine.BleveEngine) model.Worker {
+	if engine == nil {
 		return nil
 	}
 	return &BleveIndexerWorker{
@@ -55,9 +42,8 @@ func (bi *BleveIndexerInterfaceImpl) MakeWorker() model.Worker {
 		stop:      make(chan bool, 1),
 		stopped:   make(chan bool, 1),
 		jobs:      make(chan model.Job),
-		jobServer: bi.Server.Jobs,
-
-		engine: bi.Server.SearchEngine.BleveEngine.(*bleveengine.BleveEngine),
+		jobServer: jobServer,
+		engine:    engine,
 	}
 }
 
@@ -90,6 +76,10 @@ func (ip *IndexingProgress) IsDone() bool {
 
 func (worker *BleveIndexerWorker) JobChannel() chan<- model.Job {
 	return worker.jobs
+}
+
+func (worker *BleveIndexerWorker) IsEnabled(cfg *model.Config) bool {
+	return true
 }
 
 func (worker *BleveIndexerWorker) Run() {
@@ -200,7 +190,7 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 	}
 
 	// Same possible fail as above can happen when counting channels
-	if count, err := worker.jobServer.Store.Channel().AnalyticsTypeCount("", "O"); err != nil {
+	if count, err := worker.jobServer.Store.Channel().AnalyticsTypeCount("", model.ChannelTypeOpen); err != nil {
 		mlog.Warn("Worker: Failed to fetch total channel count for job. An estimated value will be used for progress reporting.", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
 		progress.TotalChannelsCount = EstimatedChannelCount
 	} else {

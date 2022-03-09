@@ -2488,10 +2488,6 @@
     "translation": "A propriedade display_name do canal não está dentro das restrições de comprimento permitidas."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Faltando a propriedade obrigatória do canal: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "O cabeçalho do canal é muito longo."
   },
@@ -6352,10 +6348,6 @@
     "translation": "Não foi possível contar os wehooks de entrada."
   },
   {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Não foi possível encontrar a métrica de aviso."
-  },
-  {
     "id": "app.role.save.invalid_role.app_error",
     "translation": "A função não é válida."
   },
@@ -6382,14 +6374,6 @@
   {
     "id": "api.server.warn_metric.email_us",
     "translation": "Envie-nos um email"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Contatando-Nos"
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Contate-Nos"
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
@@ -6480,16 +6464,8 @@
     "translation": "Falha ao armazenar valor para {{.WarnMetricName}}"
   },
   {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "A lista de administradores está vazia."
-  },
-  {
     "id": "app.system.warn_metric.bot_displayname",
     "translation": "Mattermost Advisor"
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Saiba mais sobre o Mattermost Advisor](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.job.download_export_results_not_enabled",
@@ -6836,14 +6812,6 @@
     "translation": "Falha ao obter os membros do canal."
   },
   {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Obter avaliação"
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Iniciar avaliação"
-  },
-  {
     "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
     "translation": "Mattermost Solicitação de contato. Agora, minha equipe tem {{.Limit}} usuários e estou considerando o Mattermost Enterprise Edition.\n"
   },
@@ -7014,10 +6982,6 @@
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "Não foi possível remover o membro do canal."
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Não foi possível incrementar a contagem de menções."
   },
   {
     "id": "app.channel.get_pinnedpost_count.app_error",

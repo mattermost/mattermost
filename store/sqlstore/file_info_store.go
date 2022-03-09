@@ -104,35 +104,7 @@ func newSqlFileInfoStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterfac
 		"Coalesce(FileInfo.RemoteId, '') AS RemoteId",
 	}
 
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.FileInfo{}, "FileInfo").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("CreatorId").SetMaxSize(26)
-		table.ColMap("PostId").SetMaxSize(26)
-		table.ColMap("Path").SetMaxSize(512)
-		table.ColMap("ThumbnailPath").SetMaxSize(512)
-		table.ColMap("PreviewPath").SetMaxSize(512)
-		table.ColMap("Name").SetMaxSize(256)
-		table.ColMap("Content").SetMaxSize(0)
-		table.ColMap("Extension").SetMaxSize(64)
-		table.ColMap("MimeType").SetMaxSize(256)
-		table.ColMap("RemoteId").SetMaxSize(26)
-	}
-
 	return s
-}
-
-func (fs SqlFileInfoStore) createIndexesIfNotExists() {
-	fs.CreateIndexIfNotExists("idx_fileinfo_update_at", "FileInfo", "UpdateAt")
-	fs.CreateIndexIfNotExists("idx_fileinfo_create_at", "FileInfo", "CreateAt")
-	fs.CreateIndexIfNotExists("idx_fileinfo_delete_at", "FileInfo", "DeleteAt")
-	fs.CreateIndexIfNotExists("idx_fileinfo_postid_at", "FileInfo", "PostId")
-	fs.CreateIndexIfNotExists("idx_fileinfo_extension_at", "FileInfo", "Extension")
-	fs.CreateFullTextIndexIfNotExists("idx_fileinfo_name_txt", "FileInfo", "Name")
-	if fs.DriverName() == model.DatabaseDriverPostgres {
-		fs.CreateFullTextFuncIndexIfNotExists("idx_fileinfo_name_splitted", "FileInfo", "Translate(Name, '.,-', '   ')")
-	}
-	fs.CreateFullTextIndexIfNotExists("idx_fileinfo_content_txt", "FileInfo", "Content")
 }
 
 func (fs SqlFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, error) {

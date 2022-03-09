@@ -5,11 +5,14 @@ package api4
 
 import (
 	"bytes"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
@@ -20,6 +23,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
 func TestGetPing(t *testing.T) {
@@ -53,20 +57,6 @@ func TestGetPing(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, model.StatusOk, status)
 		})
-
-		t.Run("unhealthy", func(t *testing.T) {
-			oldDriver := th.App.Config().FileSettings.DriverName
-			badDriver := "badDriverName"
-			th.App.Config().FileSettings.DriverName = &badDriver
-			defer func() {
-				th.App.Config().FileSettings.DriverName = oldDriver
-			}()
-
-			status, resp, err := client.GetPingWithServerStatus()
-			require.Error(t, err)
-			CheckInternalErrorStatus(t, resp)
-			assert.Equal(t, model.StatusUnhealthy, status)
-		})
 	}, "with server status")
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
@@ -92,6 +82,17 @@ func TestGetPing(t *testing.T) {
 		respString = string(respBytes)
 		require.Contains(t, respString, "testvalue")
 	}, "ping feature flag test")
+
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		th.App.ReloadConfig()
+		resp, err := client.DoAPIGet("/system/ping?device_id=platform:id", "")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		var respMap map[string]string
+		err = json.NewDecoder(resp.Body).Decode(&respMap)
+		require.NoError(t, err)
+		assert.Equal(t, "unknown", respMap["CanReceiveNotifications"]) // Unrecognized platform
+	}, "ping and test push notification")
 }
 
 func TestGetAudits(t *testing.T) {
@@ -205,6 +206,20 @@ func TestGenerateSupportPacket(t *testing.T) {
 		file, _, err := th.SystemAdminClient.GenerateSupportPacket()
 		require.NoError(t, err)
 		require.NotZero(t, len(file))
+	})
+
+	t.Run("As a System Administrator but with RestrictSystemAdmin true", func(t *testing.T) {
+		originalRestrictSystemAdminVal := *th.App.Config().ExperimentalSettings.RestrictSystemAdmin
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ExperimentalSettings.RestrictSystemAdmin = originalRestrictSystemAdminVal
+			})
+		}()
+
+		_, resp, err := th.SystemAdminClient.GenerateSupportPacket()
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("As a Regular User", func(t *testing.T) {
@@ -748,7 +763,8 @@ func TestServerBusy503(t *testing.T) {
 
 func TestPushNotificationAck(t *testing.T) {
 	th := Setup(t).InitBasic()
-	api := Init(th.Server)
+	api, err := Init(th.Server)
+	require.NoError(t, err)
 	session, _ := th.App.GetSession(th.Client.AuthToken)
 	defer th.TearDown()
 
@@ -776,5 +792,120 @@ func TestPushNotificationAck(t *testing.T) {
 		handler.ServeHTTP(resp, req)
 		assert.Equal(t, http.StatusForbidden, resp.Code)
 		assert.NotNil(t, resp.Body)
+	})
+}
+
+func TestCompleteOnboarding(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	path, _ := fileutils.FindDir("tests")
+	signatureFilename := "testplugin2.tar.gz.sig"
+	signatureFileReader, err := os.Open(filepath.Join(path, signatureFilename))
+	require.NoError(t, err)
+	sigFile, err := ioutil.ReadAll(signatureFileReader)
+	require.NoError(t, err)
+	pluginSignature := base64.StdEncoding.EncodeToString(sigFile)
+
+	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin2.tar.gz"))
+	require.NoError(t, err)
+	pluginServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(http.StatusOK)
+		res.Write(tarData)
+	}))
+	defer pluginServer.Close()
+
+	samplePlugins := []*model.MarketplacePlugin{{
+		BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+			HomepageURL: "https://example.com/mattermost/mattermost-plugin-nps",
+			IconData:    "https://example.com/icon.svg",
+			DownloadURL: pluginServer.URL,
+			Manifest: &model.Manifest{
+				Id:               "testplugin2",
+				Name:             "testplugin2",
+				Description:      "a second plugin",
+				Version:          "1.2.3",
+				MinServerVersion: "",
+			},
+			Signature: pluginSignature,
+		},
+		InstalledVersion: "",
+	}}
+
+	marketplaceServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(http.StatusOK)
+		var data []byte
+		data, err = json.Marshal(samplePlugins)
+		require.NoError(t, err)
+		res.Write(data)
+	}))
+	defer marketplaceServer.Close()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableMarketplace = false
+		*cfg.PluginSettings.EnableRemoteMarketplace = true
+		*cfg.PluginSettings.MarketplaceURL = marketplaceServer.URL
+		*cfg.PluginSettings.AllowInsecureDownloadURL = true
+	})
+
+	key, err := os.Open(filepath.Join(path, "development-private-key.asc"))
+	require.NoError(t, err)
+	appErr := th.App.AddPublicKey("pub_key", key)
+	require.Nil(t, appErr)
+
+	t.Cleanup(func() {
+		appErr = th.App.DeletePublicKey("pub_key")
+		require.Nil(t, appErr)
+	})
+
+	req := &model.CompleteOnboardingRequest{
+		InstallPlugins: []string{"testplugin2"},
+	}
+
+	t.Run("as a regular user", func(t *testing.T) {
+		resp, err := th.Client.CompleteOnboarding(req)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("as a system admin", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.CompleteOnboarding(req)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		t.Cleanup(func() {
+			resp, err = th.SystemAdminClient.RemovePlugin("testplugin2")
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+		})
+
+		received := make(chan struct{})
+
+		go func() {
+			for {
+				installedPlugins, resp, err := th.SystemAdminClient.GetPlugins()
+				if err != nil || resp.StatusCode != http.StatusOK {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				for _, p := range installedPlugins.Active {
+					if p.Id == "testplugin2" {
+						received <- struct{}{}
+						return
+					}
+				}
+				time.Sleep(500 * time.Millisecond)
+			}
+		}()
+
+		select {
+		case <-received:
+			break
+		case <-time.After(15 * time.Second):
+			require.Fail(t, "timed out waiting testplugin2 to be installed and enabled ")
+		}
+
 	})
 }

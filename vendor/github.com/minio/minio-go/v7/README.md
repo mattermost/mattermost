@@ -8,7 +8,7 @@ This document assumes that you have a working [Go development environment](https
 
 ## Download from Github
 ```sh
-GO111MODULE=on go get github.com/minio/minio-go/v7
+go get github.com/minio/minio-go/v7
 ```
 
 ## Initialize MinIO Client
@@ -115,7 +115,6 @@ func main() {
 
 ### Run FileUploader
 ```sh
-export GO111MODULE=on
 go run file-uploader.go
 2016/08/13 17:03:28 Successfully created mymusic
 2016/08/13 17:03:40 Successfully uploaded golden-oldies.zip of size 16253413
@@ -215,14 +214,10 @@ The full API Reference is available here.
 ### Full Examples : File Object Operations
 * [fputobject.go](https://github.com/minio/minio-go/blob/master/examples/s3/fputobject.go)
 * [fgetobject.go](https://github.com/minio/minio-go/blob/master/examples/s3/fgetobject.go)
-* [fputobject-context.go](https://github.com/minio/minio-go/blob/master/examples/s3/fputobject-context.go)
-* [fgetobject-context.go](https://github.com/minio/minio-go/blob/master/examples/s3/fgetobject-context.go)
 
 ### Full Examples : Object Operations
 * [putobject.go](https://github.com/minio/minio-go/blob/master/examples/s3/putobject.go)
 * [getobject.go](https://github.com/minio/minio-go/blob/master/examples/s3/getobject.go)
-* [putobject-context.go](https://github.com/minio/minio-go/blob/master/examples/s3/putobject-context.go)
-* [getobject-context.go](https://github.com/minio/minio-go/blob/master/examples/s3/getobject-context.go)
 * [statobject.go](https://github.com/minio/minio-go/blob/master/examples/s3/statobject.go)
 * [copyobject.go](https://github.com/minio/minio-go/blob/master/examples/s3/copyobject.go)
 * [removeobject.go](https://github.com/minio/minio-go/blob/master/examples/s3/removeobject.go)

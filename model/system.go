@@ -30,8 +30,8 @@ const (
 	SystemWarnMetricNumberOfActiveUsers500 = "warn_metric_number_of_active_users_500"
 	SystemWarnMetricNumberOfPosts2m        = "warn_metric_number_of_posts_2M"
 	SystemWarnMetricLastRunTimestampKey    = "LastWarnMetricRunTimestamp"
-	SystemMetricSupportEmailNotConfigured  = "warn_metric_support_email_not_configured"
 	SystemFirstAdminVisitMarketplace       = "FirstAdminVisitMarketplace"
+	SystemFirstAdminSetupComplete          = "FirstAdminSetupComplete"
 	AwsMeteringReportInterval              = 1
 	AwsMeteringDimensionUsageHrs           = "UsageHrs"
 	UserLimitOverageCycleEndDate           = "UserLimitOverageCycleEndDate"
@@ -146,13 +146,6 @@ var WarnMetricsTable = map[string]WarnMetric{
 		Limit:     2000000,
 		IsBotOnly: false,
 		IsRunOnce: true,
-	},
-	SystemMetricSupportEmailNotConfigured: {
-		Id:         SystemMetricSupportEmailNotConfigured,
-		Limit:      -1,
-		IsBotOnly:  true,
-		IsRunOnce:  false,
-		SkipAction: true,
 	},
 }
 

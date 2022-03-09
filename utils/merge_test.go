@@ -448,7 +448,7 @@ func TestMergeWithSlices(t *testing.T) {
 		assert.Equal(t, expected, merged)
 	})
 
-	t.Run("patch overwites when patch is empty struct", func(t *testing.T) {
+	t.Run("patch overwrites when patch is empty struct", func(t *testing.T) {
 		m1 := []string{"this", "will", "be", "overwritten"}
 		m2 := []string{}
 		expected := []string{}

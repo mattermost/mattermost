@@ -93,6 +93,9 @@ const (
 	EmailNotificationContentsFull    = "full"
 	EmailNotificationContentsGeneric = "generic"
 
+	EmailSMTPDefaultServer = "localhost"
+	EmailSMTPDefaultPort   = "10025"
+
 	SitenameMaxLength = 30
 
 	ServiceSettingsDefaultSiteURL          = "http://localhost:8065"
@@ -114,7 +117,7 @@ const (
 	TeamSettingsDefaultCustomDescriptionText = ""
 	TeamSettingsDefaultUserStatusAwayTimeout = 300
 
-	SqlSettingsDefaultDataSource = "postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10"
+	SqlSettingsDefaultDataSource = "postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
 
 	FileSettingsDefaultDirectory = "./data/"
 
@@ -202,6 +205,7 @@ const (
 
 	DataRetentionSettingsDefaultMessageRetentionDays = 365
 	DataRetentionSettingsDefaultFileRetentionDays    = 365
+	DataRetentionSettingsDefaultBoardsRetentionDays  = 365
 	DataRetentionSettingsDefaultDeletionJobStartTime = "02:00"
 	DataRetentionSettingsDefaultBatchSize            = 3000
 
@@ -304,6 +308,7 @@ type ServiceSettings struct {
 	EnableTesting                                     *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	EnableDeveloper                                   *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	DeveloperFlags                                    *string  `access:"environment_developer"`
+	EnableClientPerformanceDebugging                  *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	EnableOpenTracing                                 *bool    `access:"write_restrictable,cloud_restrictable"`
 	EnableSecurityFixAlert                            *bool    `access:"environment_smtp,write_restrictable,cloud_restrictable"`
 	EnableInsecureOutgoingConnections                 *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
@@ -365,6 +370,7 @@ type ServiceSettings struct {
 	ThreadAutoFollow                                  *bool   `access:"experimental_features"`
 	CollapsedThreads                                  *string `access:"experimental_features"`
 	ManagedResourcePaths                              *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -419,6 +425,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.DeveloperFlags == nil {
 		s.DeveloperFlags = NewString("")
+	}
+
+	if s.EnableClientPerformanceDebugging == nil {
+		s.EnableClientPerformanceDebugging = NewBool(false)
 	}
 
 	if s.EnableOpenTracing == nil {
@@ -771,7 +781,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.ThreadAutoFollow == nil {
-		s.ThreadAutoFollow = NewBool(true)
+		s.ThreadAutoFollow = NewBool(false)
 	}
 
 	if s.CollapsedThreads == nil {
@@ -780,6 +790,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.ManagedResourcePaths == nil {
 		s.ManagedResourcePaths = NewString("")
+	}
+
+	if s.EnableCustomGroups == nil {
+		s.EnableCustomGroups = NewBool(true)
 	}
 }
 
@@ -1074,19 +1088,20 @@ type ReplicaLagSettings struct {
 }
 
 type SqlSettings struct {
-	DriverName                  *string               `access:"environment_database,write_restrictable,cloud_restrictable"`
-	DataSource                  *string               `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
-	DataSourceReplicas          []string              `access:"environment_database,write_restrictable,cloud_restrictable"`
-	DataSourceSearchReplicas    []string              `access:"environment_database,write_restrictable,cloud_restrictable"`
-	MaxIdleConns                *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
-	ConnMaxLifetimeMilliseconds *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
-	ConnMaxIdleTimeMilliseconds *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
-	MaxOpenConns                *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
-	Trace                       *bool                 `access:"environment_database,write_restrictable,cloud_restrictable"`
-	AtRestEncryptKey            *string               `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
-	QueryTimeout                *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
-	DisableDatabaseSearch       *bool                 `access:"environment_database,write_restrictable,cloud_restrictable"`
-	ReplicaLagSettings          []*ReplicaLagSettings `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
+	DriverName                        *string               `access:"environment_database,write_restrictable,cloud_restrictable"`
+	DataSource                        *string               `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
+	DataSourceReplicas                []string              `access:"environment_database,write_restrictable,cloud_restrictable"`
+	DataSourceSearchReplicas          []string              `access:"environment_database,write_restrictable,cloud_restrictable"`
+	MaxIdleConns                      *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
+	ConnMaxLifetimeMilliseconds       *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
+	ConnMaxIdleTimeMilliseconds       *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
+	MaxOpenConns                      *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
+	Trace                             *bool                 `access:"environment_database,write_restrictable,cloud_restrictable"`
+	AtRestEncryptKey                  *string               `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
+	QueryTimeout                      *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
+	DisableDatabaseSearch             *bool                 `access:"environment_database,write_restrictable,cloud_restrictable"`
+	MigrationsStatementTimeoutSeconds *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
+	ReplicaLagSettings                []*ReplicaLagSettings `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *SqlSettings) SetDefaults(isUpdate bool) {
@@ -1142,6 +1157,10 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 
 	if s.DisableDatabaseSearch == nil {
 		s.DisableDatabaseSearch = NewBool(false)
+	}
+
+	if s.MigrationsStatementTimeoutSeconds == nil {
+		s.MigrationsStatementTimeoutSeconds = NewInt(100000)
 	}
 
 	if s.ReplicaLagSettings == nil {
@@ -1582,11 +1601,11 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.SMTPServer == nil || *s.SMTPServer == "" {
-		s.SMTPServer = NewString("localhost")
+		s.SMTPServer = NewString(EmailSMTPDefaultServer)
 	}
 
 	if s.SMTPPort == nil || *s.SMTPPort == "" {
-		s.SMTPPort = NewString("10025")
+		s.SMTPPort = NewString(EmailSMTPDefaultPort)
 	}
 
 	if s.SMTPServerTimeout == nil || *s.SMTPServerTimeout == 0 {
@@ -1723,7 +1742,7 @@ type SupportSettings struct {
 	AboutLink                              *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	HelpLink                               *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	ReportAProblemLink                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
-	SupportEmail                           *string `access:"site_customization"`
+	SupportEmail                           *string `access:"site_notifications"`
 	CustomTermsOfServiceEnabled            *bool   `access:"compliance_custom_terms_of_service"`
 	CustomTermsOfServiceReAcceptancePeriod *int    `access:"compliance_custom_terms_of_service"`
 	EnableAskCommunityLink                 *bool   `access:"site_customization"`
@@ -2581,8 +2600,10 @@ func (bs *BleveSettings) SetDefaults() {
 type DataRetentionSettings struct {
 	EnableMessageDeletion *bool   `access:"compliance_data_retention_policy"`
 	EnableFileDeletion    *bool   `access:"compliance_data_retention_policy"`
+	EnableBoardsDeletion  *bool   `access:"compliance_data_retention_policy"`
 	MessageRetentionDays  *int    `access:"compliance_data_retention_policy"`
 	FileRetentionDays     *int    `access:"compliance_data_retention_policy"`
+	BoardsRetentionDays   *int    `access:"compliance_data_retention_policy"`
 	DeletionJobStartTime  *string `access:"compliance_data_retention_policy"`
 	BatchSize             *int    `access:"compliance_data_retention_policy"`
 }
@@ -2596,12 +2617,20 @@ func (s *DataRetentionSettings) SetDefaults() {
 		s.EnableFileDeletion = NewBool(false)
 	}
 
+	if s.EnableBoardsDeletion == nil {
+		s.EnableBoardsDeletion = NewBool(false)
+	}
+
 	if s.MessageRetentionDays == nil {
 		s.MessageRetentionDays = NewInt(DataRetentionSettingsDefaultMessageRetentionDays)
 	}
 
 	if s.FileRetentionDays == nil {
 		s.FileRetentionDays = NewInt(DataRetentionSettingsDefaultFileRetentionDays)
+	}
+
+	if s.BoardsRetentionDays == nil {
+		s.BoardsRetentionDays = NewInt(DataRetentionSettingsDefaultBoardsRetentionDays)
 	}
 
 	if s.DeletionJobStartTime == nil {

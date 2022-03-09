@@ -691,7 +691,7 @@ func TestGetBots(t *testing.T) {
 	th.LoginBasic2()
 	orphanedBot, resp, err := th.Client.CreateBot(&model.Bot{
 		Username:    GenerateTestUsername(),
-		Description: "an oprphaned bot",
+		Description: "an orphaned bot",
 	})
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)

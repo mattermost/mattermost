@@ -19,6 +19,7 @@ import (
 func TestJobStore(t *testing.T, ss store.Store) {
 	t.Run("JobSaveGet", func(t *testing.T) { testJobSaveGet(t, ss) })
 	t.Run("JobGetAllByType", func(t *testing.T) { testJobGetAllByType(t, ss) })
+	t.Run("JobGetAllByTypeAndStatus", func(t *testing.T) { testJobGetAllByTypeAndStatus(t, ss) })
 	t.Run("JobGetAllByTypePage", func(t *testing.T) { testJobGetAllByTypePage(t, ss) })
 	t.Run("JobGetAllByTypesPage", func(t *testing.T) { testJobGetAllByTypesPage(t, ss) })
 	t.Run("JobGetAllPage", func(t *testing.T) { testJobGetAllPage(t, ss) })
@@ -80,6 +81,34 @@ func testJobGetAllByType(t *testing.T, ss store.Store) {
 	}
 
 	received, err := ss.Job().GetAllByType(jobType)
+	require.NoError(t, err)
+	require.Len(t, received, 2)
+	require.ElementsMatch(t, []string{jobs[0].Id, jobs[1].Id}, []string{received[0].Id, received[1].Id})
+}
+
+func testJobGetAllByTypeAndStatus(t *testing.T, ss store.Store) {
+	jobType := model.NewId()
+
+	jobs := []*model.Job{
+		{
+			Id:     model.NewId(),
+			Type:   jobType,
+			Status: model.JobStatusPending,
+		},
+		{
+			Id:     model.NewId(),
+			Type:   jobType,
+			Status: model.JobStatusPending,
+		},
+	}
+
+	for _, job := range jobs {
+		_, err := ss.Job().Save(job)
+		require.NoError(t, err)
+		defer ss.Job().Delete(job.Id)
+	}
+
+	received, err := ss.Job().GetAllByTypeAndStatus(jobType, model.JobStatusPending)
 	require.NoError(t, err)
 	require.Len(t, received, 2)
 	require.ElementsMatch(t, []string{jobs[0].Id, jobs[1].Id}, []string{received[0].Id, received[1].Id})

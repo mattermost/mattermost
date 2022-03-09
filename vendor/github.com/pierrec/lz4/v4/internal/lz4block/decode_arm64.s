@@ -8,23 +8,25 @@
 #include "textflag.h"
 
 // Register allocation.
-#define dst	R0
-#define dstorig	R1
-#define src	R2
-#define dstend	R3
-#define srcend	R4
-#define match	R5	// Match address.
-#define dict	R6
-#define dictlen	R7
-#define dictend	R8
-#define token	R9
-#define len	R10	// Literal and match lengths.
-#define lenRem	R11
-#define offset	R12	// Match offset.
-#define tmp1	R13
-#define tmp2	R14
-#define tmp3	R15
-#define tmp4	R16
+#define dst		R0
+#define dstorig		R1
+#define src		R2
+#define dstend		R3
+#define dstend16	R4	// dstend - 16
+#define srcend		R5
+#define srcend16	R6	// srcend - 16
+#define match		R7	// Match address.
+#define dict		R8
+#define dictlen		R9
+#define dictend		R10
+#define token		R11
+#define len		R12	// Literal and match lengths.
+#define lenRem		R13
+#define offset		R14	// Match offset.
+#define tmp1		R15
+#define tmp2		R16
+#define tmp3		R17
+#define tmp4		R19
 
 // func decodeBlock(dst, src, dict []byte) int
 TEXT ·decodeBlock(SB), NOFRAME+NOSPLIT, $0-80
@@ -35,6 +37,12 @@ TEXT ·decodeBlock(SB), NOFRAME+NOSPLIT, $0-80
 	LDP src_base+24(FP), (src, srcend)
 	CBZ srcend, shortSrc
 	ADD src, srcend
+
+	// dstend16 = max(dstend-16, 0) and similarly for srcend16.
+	SUBS $16, dstend, dstend16
+	CSEL LO, ZR, dstend16, dstend16
+	SUBS $16, srcend, srcend16
+	CSEL LO, ZR, srcend16, srcend16
 
 	LDP dict_base+48(FP), (dict, dictlen)
 	ADD dict, dictlen, dictend
@@ -71,27 +79,31 @@ readLitlenDone:
 	// Copy literal.
 	SUBS $16, len
 	BLO  copyLiteralShort
-	AND  $15, len, lenRem
 
 copyLiteralLoop:
-	SUBS  $16, len
 	LDP.P 16(src), (tmp1, tmp2)
 	STP.P (tmp1, tmp2), 16(dst)
+	SUBS  $16, len
 	BPL   copyLiteralLoop
 
-	// lenRem = len%16 is the remaining number of bytes we need to copy.
-	// Since len was >= 16, we can do this in one load and one store,
-	// overlapping with the last load and store, without worrying about
-	// writing out of bounds.
-	ADD lenRem, src
-	ADD lenRem, dst
-	LDP -16(src), (tmp1, tmp2)
-	STP (tmp1, tmp2), -16(dst)
+	// Copy (final part of) literal of length 0-15.
+	// If we have >=16 bytes left in src and dst, just copy 16 bytes.
+copyLiteralShort:
+	CMP  dstend16, dst
+	CCMP LO, src, srcend16, $0b0010 // 0010 = preserve carry (LO).
+	BHS  copyLiteralShortEnd
+
+	AND $15, len
+
+	LDP (src), (tmp1, tmp2)
+	ADD len, src
+	STP (tmp1, tmp2), (dst)
+	ADD len, dst
 
 	B copyLiteralDone
 
-	// Copy literal of length 0-15.
-copyLiteralShort:
+	// Safe but slow copy near the end of src, dst.
+copyLiteralShortEnd:
 	TBZ     $3, len, 3(PC)
 	MOVD.P  8(src), tmp1
 	MOVD.P  tmp1, 8(dst)
@@ -159,7 +171,7 @@ copyDict:
 	CCMP    NE, dictend, match, $0b0100 // 0100 sets the Z (EQ) flag.
 	BNE     copyDict
 
-	CBZ  len, copyMatchDone
+	CBZ len, copyMatchDone
 
 	// If the match extends beyond the dictionary, the rest is at dstorig.
 	MOVD dstorig, match

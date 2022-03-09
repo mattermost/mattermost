@@ -11,7 +11,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"image"
-	"image/gif"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -48,7 +47,7 @@ const (
 	maxContentExtractionSize   = 1024 * 1024 // 1MB
 )
 
-func (a *App) FileBackend() (filestore.FileBackend, *model.AppError) {
+func (a *App) FileBackend() filestore.FileBackend {
 	return a.Srv().FileBackend()
 }
 
@@ -73,11 +72,7 @@ func connectionTestErrorToAppError(connTestErr error) *model.AppError {
 }
 
 func (a *App) TestFileStoreConnection() *model.AppError {
-	backend, err := a.FileBackend()
-	if err != nil {
-		return err
-	}
-	nErr := backend.TestConnection()
+	nErr := a.FileBackend().TestConnection()
 	if nErr != nil {
 		return connectionTestErrorToAppError(nErr)
 	}
@@ -102,11 +97,7 @@ func (a *App) ReadFile(path string) ([]byte, *model.AppError) {
 }
 
 func (s *Server) fileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
-	backend, err := s.FileBackend()
-	if err != nil {
-		return nil, err
-	}
-	result, nErr := backend.Reader(path)
+	result, nErr := s.FileBackend().Reader(path)
 	if nErr != nil {
 		return nil, model.NewAppError("FileReader", "api.file.file_reader.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
@@ -123,11 +114,7 @@ func (a *App) FileExists(path string) (bool, *model.AppError) {
 }
 
 func (s *Server) fileExists(path string) (bool, *model.AppError) {
-	backend, err := s.FileBackend()
-	if err != nil {
-		return false, err
-	}
-	result, nErr := backend.FileExists(path)
+	result, nErr := s.FileBackend().FileExists(path)
 	if nErr != nil {
 		return false, model.NewAppError("FileExists", "api.file.file_exists.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
@@ -135,11 +122,7 @@ func (s *Server) fileExists(path string) (bool, *model.AppError) {
 }
 
 func (a *App) FileSize(path string) (int64, *model.AppError) {
-	backend, err := a.FileBackend()
-	if err != nil {
-		return 0, err
-	}
-	size, nErr := backend.FileSize(path)
+	size, nErr := a.FileBackend().FileSize(path)
 	if nErr != nil {
 		return 0, model.NewAppError("FileSize", "api.file.file_size.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
@@ -147,11 +130,7 @@ func (a *App) FileSize(path string) (int64, *model.AppError) {
 }
 
 func (a *App) FileModTime(path string) (time.Time, *model.AppError) {
-	backend, err := a.FileBackend()
-	if err != nil {
-		return time.Time{}, err
-	}
-	modTime, nErr := backend.FileModTime(path)
+	modTime, nErr := a.FileBackend().FileModTime(path)
 	if nErr != nil {
 		return time.Time{}, model.NewAppError("FileModTime", "api.file.file_mod_time.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
@@ -160,11 +139,7 @@ func (a *App) FileModTime(path string) (time.Time, *model.AppError) {
 }
 
 func (a *App) MoveFile(oldPath, newPath string) *model.AppError {
-	backend, err := a.FileBackend()
-	if err != nil {
-		return err
-	}
-	nErr := backend.MoveFile(oldPath, newPath)
+	nErr := a.FileBackend().MoveFile(oldPath, newPath)
 	if nErr != nil {
 		return model.NewAppError("MoveFile", "api.file.move_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
@@ -176,12 +151,7 @@ func (a *App) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
 }
 
 func (s *Server) writeFile(fr io.Reader, path string) (int64, *model.AppError) {
-	backend, err := s.FileBackend()
-	if err != nil {
-		return 0, err
-	}
-
-	result, nErr := backend.WriteFile(fr, path)
+	result, nErr := s.FileBackend().WriteFile(fr, path)
 	if nErr != nil {
 		return result, model.NewAppError("WriteFile", "api.file.write_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
@@ -189,12 +159,7 @@ func (s *Server) writeFile(fr io.Reader, path string) (int64, *model.AppError) {
 }
 
 func (a *App) AppendFile(fr io.Reader, path string) (int64, *model.AppError) {
-	backend, err := a.FileBackend()
-	if err != nil {
-		return 0, err
-	}
-
-	result, nErr := backend.AppendFile(fr, path)
+	result, nErr := a.FileBackend().AppendFile(fr, path)
 	if nErr != nil {
 		return result, model.NewAppError("AppendFile", "api.file.append_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
@@ -206,11 +171,7 @@ func (a *App) RemoveFile(path string) *model.AppError {
 }
 
 func (s *Server) removeFile(path string) *model.AppError {
-	backend, err := s.FileBackend()
-	if err != nil {
-		return err
-	}
-	nErr := backend.RemoveFile(path)
+	nErr := s.FileBackend().RemoveFile(path)
 	if nErr != nil {
 		return model.NewAppError("RemoveFile", "api.file.remove_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
@@ -222,11 +183,7 @@ func (a *App) ListDirectory(path string) ([]string, *model.AppError) {
 }
 
 func (s *Server) listDirectory(path string) ([]string, *model.AppError) {
-	backend, err := s.FileBackend()
-	if err != nil {
-		return nil, err
-	}
-	paths, nErr := backend.ListDirectory(path)
+	paths, nErr := s.FileBackend().ListDirectory(path)
 	if nErr != nil {
 		return nil, model.NewAppError("ListDirectory", "api.file.list_directory.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
@@ -235,11 +192,7 @@ func (s *Server) listDirectory(path string) ([]string, *model.AppError) {
 }
 
 func (a *App) RemoveDirectory(path string) *model.AppError {
-	backend, err := a.FileBackend()
-	if err != nil {
-		return err
-	}
-	nErr := backend.RemoveDirectory(path)
+	nErr := a.FileBackend().RemoveDirectory(path)
 	if nErr != nil {
 		return model.NewAppError("RemoveDirectory", "api.file.remove_directory.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
@@ -649,7 +602,7 @@ type UploadFileTask struct {
 	imageType        string
 	imageOrientation int
 
-	// Testing: overrideable dependency functions
+	// Testing: overridable dependency functions
 	pluginsEnvironment *plugin.Environment
 	writeFile          func(io.Reader, string) (int64, *model.AppError)
 	saveToDatabase     func(*model.FileInfo) (*model.FileInfo, error)
@@ -830,13 +783,11 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	// For animated GIFs disable the preview; since we have to Decode gifs
 	// anyway, cache the decoded image for later.
 	if t.fileinfo.MimeType == "image/gif" {
-		gifConfig, err := gif.DecodeAll(io.MultiReader(bytes.NewReader(t.buf.Bytes()), t.teeInput))
-		if err == nil {
-			if len(gifConfig.Image) > 0 {
-				t.fileinfo.HasPreviewImage = false
-				t.decoded = gifConfig.Image[0]
-				t.imageType = "gif"
-			}
+		image, format, err := t.imgDecoder.Decode(io.MultiReader(bytes.NewReader(t.buf.Bytes()), t.teeInput))
+		if err == nil && image != nil {
+			t.fileinfo.HasPreviewImage = false
+			t.decoded = image
+			t.imageType = format
 		}
 	}
 

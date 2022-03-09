@@ -4,6 +4,7 @@
 package model
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -41,6 +42,8 @@ func init() {
 		ChannelGuestRoleId,
 		ChannelUserRoleId,
 		ChannelAdminRoleId,
+
+		CustomGroupUserRoleId,
 
 		PlaybookAdminRoleId,
 		PlaybookMemberRoleId,
@@ -367,6 +370,8 @@ const (
 	ChannelUserRoleId  = "channel_user"
 	ChannelAdminRoleId = "channel_admin"
 
+	CustomGroupUserRoleId = "custom_group_user"
+
 	PlaybookAdminRoleId  = "playbook_admin"
 	PlaybookMemberRoleId = "playbook_member"
 	RunAdminRoleId       = "run_admin"
@@ -379,6 +384,7 @@ const (
 	RoleScopeSystem  RoleScope = "System"
 	RoleScopeTeam    RoleScope = "Team"
 	RoleScopeChannel RoleScope = "Channel"
+	RoleScopeGroup   RoleScope = "Group"
 
 	RoleTypeGuest RoleType = "Guest"
 	RoleTypeUser  RoleType = "User"
@@ -558,7 +564,7 @@ func (r *Role) GetChannelModeratedPermissions(channelType ChannelType) map[strin
 	return moderatedPermissions
 }
 
-// RolePatchFromChannelModerationsPatch Creates and returns a RolePatch based on a slice of ChannelModerationPatchs, roleName is expected to be either "members" or "guests".
+// RolePatchFromChannelModerationsPatch Creates and returns a RolePatch based on a slice of ChannelModerationPatches, roleName is expected to be either "members" or "guests".
 func (r *Role) RolePatchFromChannelModerationsPatch(channelModerationsPatch []*ChannelModerationPatch, roleName string) *RolePatch {
 	permissionsToAddToPatch := make(map[string]bool)
 
@@ -682,6 +688,13 @@ func IsValidRoleName(roleName string) bool {
 
 func MakeDefaultRoles() map[string]*Role {
 	roles := make(map[string]*Role)
+
+	roles[CustomGroupUserRoleId] = &Role{
+		Name:        CustomGroupUserRoleId,
+		DisplayName: fmt.Sprintf("authentication.roles.%s.name", CustomGroupUserRoleId),
+		Description: fmt.Sprintf("authentication.roles.%s.description", CustomGroupUserRoleId),
+		Permissions: []string{},
+	}
 
 	roles[ChannelGuestRoleId] = &Role{
 		Name:        "channel_guest",
@@ -823,8 +836,10 @@ func MakeDefaultRoles() map[string]*Role {
 		Description: "authentication.roles.playbook_admin.description",
 		Permissions: []string{
 			PermissionPublicPlaybookManageMembers.Id,
+			PermissionPublicPlaybookManageRoles.Id,
 			PermissionPublicPlaybookManageProperties.Id,
 			PermissionPrivatePlaybookManageMembers.Id,
+			PermissionPrivatePlaybookManageRoles.Id,
 			PermissionPrivatePlaybookManageProperties.Id,
 			PermissionPublicPlaybookMakePrivate.Id,
 		},
@@ -895,6 +910,10 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionCreateGroupChannel.Id,
 			PermissionViewMembers.Id,
 			PermissionCreateTeam.Id,
+			PermissionCreateCustomGroup.Id,
+			PermissionEditCustomGroup.Id,
+			PermissionDeleteCustomGroup.Id,
+			PermissionManageCustomGroupMembers.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,
