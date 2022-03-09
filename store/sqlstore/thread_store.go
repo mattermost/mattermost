@@ -212,7 +212,10 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		unreadRepliesQuery = unreadRepliesQuery.Where(sq.Eq{"Posts.DeleteAt": 0})
 	}
 
-	unreadRepliesSql, unreadRepliesArgs := unreadRepliesQuery.MustSql()
+	unreadRepliesSql, unreadRepliesArgs, err := unreadRepliesQuery.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to build subquery to count unread replies when getting threads for user id=%s", userId)
+	}
 
 	query := s.getQueryBuilder().
 		Select(`Threads.*,
@@ -475,14 +478,17 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		model.Post
 	}
 
-	unreadRepliesQuery, unreadRepliesArgs := sq.
+	unreadRepliesQuery, unreadRepliesArgs, err := sq.
 		Select("COUNT(Posts.Id)").
 		From("Posts").
 		Where(sq.And{
 			sq.Eq{"Posts.RootId": threadMembership.PostId},
 			sq.Gt{"Posts.CreateAt": threadMembership.LastViewed},
 			sq.Eq{"Posts.DeleteAt": 0},
-		}).MustSql()
+		}).ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to build subquery to count unread replies for getting thread for user id=%s, post id=%s", threadMembership.UserId, threadMembership.PostId)
+	}
 
 	fetchConditions := sq.And{
 		sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": ""}},
@@ -989,19 +995,21 @@ func (s *SqlThreadStore) DeleteOrphanedRows(limit int) (deleted int64, err error
 
 // return number of unread replies for a single thread
 func (s *SqlThreadStore) GetThreadUnreadReplyCount(threadMembership *model.ThreadMembership) (unreadReplies int64, err error) {
-	query, args := s.getQueryBuilder().
+	query, args, err := s.getQueryBuilder().
 		Select("COUNT(Posts.Id)").
 		From("Posts").
 		Where(sq.And{
 			sq.Eq{"Posts.RootId": threadMembership.PostId},
 			sq.Gt{"Posts.CreateAt": threadMembership.LastViewed},
 			sq.Eq{"Posts.DeleteAt": 0},
-		}).MustSql()
+		}).ToSql()
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to build query to count unread reply count for post id=%s", threadMembership.PostId)
+	}
 
 	err = s.GetReplicaX().Get(&unreadReplies, query, args...)
-
 	if err != nil {
-		return
+		return 0, errors.Wrapf(err, "failed to count unread reply count for post id=%s", threadMembership.PostId)
 	}
 
 	return
