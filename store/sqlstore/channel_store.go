@@ -3525,7 +3525,7 @@ func (s SqlChannelStore) GetMembersByIds(channelID string, userIDs []string) (mo
 		return nil, errors.Wrap(err, "GetMembersByIds_ToSql")
 	}
 
-	var dbMembers channelMemberWithSchemeRolesList
+	dbMembers := channelMemberWithSchemeRolesList{}
 
 	if err := s.GetReplicaX().Select(&dbMembers, sql, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find ChannelMembers with channelId=%s and userId in %v", channelID, userIDs)
@@ -3551,7 +3551,7 @@ func (s SqlChannelStore) GetMembersByChannelIds(channelIDs []string, userID stri
 		return nil, errors.Wrap(err, "GetMembersByChannelIds_ToSql")
 	}
 
-	var dbMembers channelMemberWithSchemeRolesList
+	dbMembers := channelMemberWithSchemeRolesList{}
 
 	if err := s.GetReplicaX().Select(&dbMembers, sql, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find ChannelMembers with userId=%s and channelId in %v", userID, channelIDs)
