@@ -3509,10 +3509,6 @@ func (s SqlChannelStore) SearchGroupChannels(userId, term string) (model.Channel
 }
 
 func (s SqlChannelStore) GetMembersByIds(channelID string, userIDs []string) (model.ChannelMembers, error) {
-	if len(userIDs) == 0 {
-		return nil, errors.New("no user IDs were provided")
-	}
-
 	query := s.channelMembersForTeamWithSchemeSelectQuery.Where(
 		sq.Eq{
 			"ChannelMembers.ChannelId": channelID,
@@ -3526,7 +3522,6 @@ func (s SqlChannelStore) GetMembersByIds(channelID string, userIDs []string) (mo
 	}
 
 	dbMembers := channelMemberWithSchemeRolesList{}
-
 	if err := s.GetReplicaX().Select(&dbMembers, sql, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find ChannelMembers with channelId=%s and userId in %v", channelID, userIDs)
 	}
@@ -3548,7 +3543,6 @@ func (s SqlChannelStore) GetMembersByChannelIds(channelIDs []string, userID stri
 	}
 
 	dbMembers := channelMemberWithSchemeRolesList{}
-
 	if err := s.GetReplicaX().Select(&dbMembers, sql, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find ChannelMembers with userId=%s and channelId in %v", userID, channelIDs)
 	}
