@@ -1311,28 +1311,6 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		// we get the emailList after it has finished checks like the emails over the list
-
-		scheduledAt := model.GetMillis()
-		jobData := map[string]string{
-			"emailList":   model.ArrayToJSON(emailList),
-			"teamID":      c.Params.TeamId,
-			"senderID":    c.AppContext.Session().UserId,
-			"scheduledAt": strconv.FormatInt(scheduledAt, 10),
-		}
-
-		// we then manually schedule the job
-		j, e := c.App.Srv().Jobs.CreateJob(model.JobTypeResendInvitationEmail, jobData)
-		if e != nil {
-			c.Err = model.NewAppError("Api4.inviteUsersToTeam", e.Id, nil, e.Error(), e.StatusCode)
-			return
-		}
-
-		sysVar := &model.System{Name: j.Id, Value: "0"}
-		if sysValErr := c.App.Srv().Store.System().SaveOrUpdate(sysVar); sysValErr != nil {
-			mlog.Warn("Error while saving system value", mlog.Err(sysValErr))
-		}
-
 		var invitesWithError []*model.EmailInviteWithError
 		var err *model.AppError
 		if emailList != nil {
@@ -1356,6 +1334,23 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
+
+		// we get the emailList after it has finished checks like the emails over the list
+		scheduledAt := model.GetMillis()
+		jobData := map[string]string{
+			"emailList":   model.ArrayToJSON(emailList),
+			"teamID":      c.Params.TeamId,
+			"senderID":    c.AppContext.Session().UserId,
+			"scheduledAt": strconv.FormatInt(scheduledAt, 10),
+		}
+
+		// we then manually schedule the job to send another invite after 48 hours
+		_, e := c.App.Srv().Jobs.CreateJob(model.JobTypeResendInvitationEmail, jobData)
+		if e != nil {
+			c.Err = model.NewAppError("Api4.inviteUsersToTeam", e.Id, nil, e.Error(), e.StatusCode)
+			return
+		}
+
 		// in graceful mode we return both the successful ones and the failed ones
 		js, jsonErr := json.Marshal(invitesWithError)
 		if jsonErr != nil {
