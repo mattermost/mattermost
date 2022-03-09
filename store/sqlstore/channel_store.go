@@ -1978,14 +1978,23 @@ func (s SqlChannelStore) GetChannelMembersTimezones(channelId string) ([]model.S
 	return dbMembersTimezone, nil
 }
 
-func (s SqlChannelStore) GetMember(ctx context.Context, channelId string, userId string) (*model.ChannelMember, error) {
+func (s SqlChannelStore) GetMember(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error) {
+	selectSQL, args, err := s.channelMembersForTeamWithSchemeSelectQuery.
+		Where(sq.Eq{
+			"ChannelMembers.ChannelId": channelID,
+			"ChannelMembers.UserId":    userID,
+		}).ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "GetMember_ToSql ChannelID=%s UserID=%s", channelID, userID)
+	}
+
 	var dbMember channelMemberWithSchemeRoles
 
-	if err := s.DBXFromContext(ctx).Get(&dbMember, channelMembersForTeamWithSchemeSelectQuery+"WHERE ChannelMembers.ChannelId = ? AND ChannelMembers.UserId = ?", channelId, userId); err != nil {
+	if err := s.DBXFromContext(ctx).Get(&dbMember, selectSQL, args...); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("ChannelMember", fmt.Sprintf("channelId=%s, userId=%s", channelId, userId))
+			return nil, store.NewErrNotFound("ChannelMember", fmt.Sprintf("channelId=%s, userId=%s", channelID, userID))
 		}
-		return nil, errors.Wrapf(err, "failed to get ChannelMember with channelId=%s and userId=%s", channelId, userId)
+		return nil, errors.Wrapf(err, "failed to get ChannelMember with channelId=%s and userId=%s", channelID, userID)
 	}
 
 	return dbMember.ToModel(), nil
