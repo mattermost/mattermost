@@ -56,21 +56,21 @@ type channelMember struct {
 	MsgCountRoot     int64
 }
 
-func NewChannelMemberFromModel(cm *model.ChannelMember) *channelMember {
-	return &channelMember{
-		ChannelId:        cm.ChannelId,
-		UserId:           cm.UserId,
-		Roles:            cm.ExplicitRoles,
-		LastViewedAt:     cm.LastViewedAt,
-		MsgCount:         cm.MsgCount,
-		MentionCount:     cm.MentionCount,
-		MentionCountRoot: cm.MentionCountRoot,
-		MsgCountRoot:     cm.MsgCountRoot,
-		NotifyProps:      cm.NotifyProps,
-		LastUpdateAt:     cm.LastUpdateAt,
-		SchemeGuest:      sql.NullBool{Valid: true, Bool: cm.SchemeGuest},
-		SchemeUser:       sql.NullBool{Valid: true, Bool: cm.SchemeUser},
-		SchemeAdmin:      sql.NullBool{Valid: true, Bool: cm.SchemeAdmin},
+func NewMapFromChannelMemberModel(cm *model.ChannelMember) map[string]interface{} {
+	return map[string]interface{}{
+		"ChannelId":        cm.ChannelId,
+		"UserId":           cm.UserId,
+		"Roles":            cm.ExplicitRoles,
+		"LastViewedAt":     cm.LastViewedAt,
+		"MsgCount":         cm.MsgCount,
+		"MentionCount":     cm.MentionCount,
+		"MentionCountRoot": cm.MentionCountRoot,
+		"MsgCountRoot":     cm.MsgCountRoot,
+		"NotifyProps":      cm.NotifyProps,
+		"LastUpdateAt":     cm.LastUpdateAt,
+		"SchemeGuest":      sql.NullBool{Valid: true, Bool: cm.SchemeGuest},
+		"SchemeUser":       sql.NullBool{Valid: true, Bool: cm.SchemeUser},
+		"SchemeAdmin":      sql.NullBool{Valid: true, Bool: cm.SchemeAdmin},
 	}
 }
 
@@ -1803,22 +1803,13 @@ func (s SqlChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) (
 
 	updatedMembers := []*model.ChannelMember{}
 	for _, member := range members {
-		update := s.getQueryBuilder().Update("ChannelMembers").SetMap(map[string]interface{}{
-			"Roles":            member.Roles,
-			"LastViewedAt":     member.LastViewedAt,
-			"MsgCount":         member.MsgCount,
-			"MentionCount":     member.MentionCount,
-			"NotifyProps":      member.NotifyProps,
-			"LastUpdateAt":     member.LastUpdateAt,
-			"SchemeUser":       member.SchemeUser,
-			"SchemeAdmin":      member.SchemeAdmin,
-			"SchemeGuest":      member.SchemeGuest,
-			"MentionCountRoot": member.MentionCountRoot,
-			"MsgCountRoot":     member.MsgCountRoot,
-		}).Where(sq.Eq{
-			"ChannelId": member.ChannelId,
-			"UserId":    member.UserId,
-		})
+		update := s.getQueryBuilder().
+			Update("ChannelMembers").
+			SetMap(NewMapFromChannelMemberModel(member)).
+			Where(sq.Eq{
+				"ChannelId": member.ChannelId,
+				"UserId":    member.UserId,
+			})
 
 		sqlUpdate, args, err := update.ToSql()
 		if err != nil {
@@ -1831,9 +1822,9 @@ func (s SqlChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) (
 
 		sqlSelect, args, err := s.channelMembersForTeamWithSchemeSelectQuery.
 			Where(sq.Eq{
-			"ChannelMembers.ChannelId": member.ChannelId,
-			"ChannelMembers.UserId":    member.UserId,
-		}).ToSql()
+				"ChannelMembers.ChannelId": member.ChannelId,
+				"ChannelMembers.UserId":    member.UserId,
+			}).ToSql()
 		if err != nil {
 			return nil, errors.Wrapf(err, "UpdateMultipleMembers_Select_ToSql ChannelID=%s UserID=%s", member.ChannelId, member.UserId)
 		}
