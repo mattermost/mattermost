@@ -2945,39 +2945,34 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamID string, userID strin
 }
 
 func (s SqlChannelStore) autocompleteInTeamForSearchDirectMessages(userID string, term string) ([]*model.Channel, error) {
-	qb := s.getQueryBuilder()
+	// create the main query
+	query := s.getQueryBuilder().Select("C.*", "OtherUsers.Username as DisplayName").
+		From("Channels AS C").
+		Join("ChannelMembers AS CM ON CM.ChannelId = C.Id").
+		Where(sq.Eq{
+			"C.Type":    model.ChannelTypeDirect,
+			"CM.UserId": userID,
+		}).
+		Limit(50)
 
-	// create the subquery first
+	// create the subquery
 	subQuery := s.getSubQueryBuilder().Select("ICM.ChannelId AS ChannelId", "IU.Username AS Username").
 		From("Users AS IU").
-		Join("ChannelMembers AS ICM ON ICM.UserId = IU.Id")
-
-	// this AND will be extended, depending on the LIKE clause
-	subWhere := sq.And{
-		sq.NotEq{"IU.Id": userID},
-	}
+		Join("ChannelMembers AS ICM ON ICM.UserId = IU.Id").
+		Where(sq.NotEq{"IU.Id": userID})
 
 	// try to create a LIKE clause from the search term
 	if like := s.buildLIKEClauseX(term, "IU.Username", "IU.Nickname"); like != nil {
-		subWhere = append(subWhere, like)
+		subQuery = subQuery.Where(like)
 	}
-	subQuery = subQuery.Where(subWhere)
 
 	// put the subquery into an INNER JOIN
 	innerJoin := subQuery.
 		Prefix("INNER JOIN (").
 		Suffix(") AS OtherUsers ON OtherUsers.ChannelId = C.Id")
 
-	// create the main query
-	query := qb.Select("C.*", "OtherUsers.Username as DisplayName").
-		From("Channels AS C").
-		Join("ChannelMembers AS CM ON CM.ChannelId = C.Id").
-		JoinClause(innerJoin).
-		Where(sq.Eq{
-			"C.Type":    model.ChannelTypeDirect,
-			"CM.UserId": userID,
-		}).
-		Limit(50)
+	// add the subquery to the main query
+	query = query.JoinClause(innerJoin)
 
 	// create the SQL query and argument list
 	sql, args, err := query.ToSql()
