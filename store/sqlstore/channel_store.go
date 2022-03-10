@@ -2850,47 +2850,87 @@ func (s SqlChannelStore) AutocompleteInTeam(teamID, userID, term string, include
 	})
 }
 
-// TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19334)
-func (s SqlChannelStore) AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) (model.ChannelList, error) {
-	deleteFilter := "AND DeleteAt = 0"
-	if includeDeleted {
-		deleteFilter = ""
+func (s SqlChannelStore) AutocompleteInTeamForSearch(teamID string, userID string, term string, includeDeleted bool) (model.ChannelList, error) {
+	// shared query
+	query := s.getSubQueryBuilder().Select("C.*").
+		From("Channels AS C").
+		Join("ChannelMembers AS CM ON CM.ChannelId = C.Id").
+		Limit(50).
+		Where(sq.And{
+			sq.Or{
+				sq.Eq{"C.TeamId": teamID},
+				sq.Eq{
+					"C.TeamId": "",
+					"C.Type":   model.ChannelTypeGroup,
+				},
+			},
+			sq.Eq{"CM.UserId": userID},
+		})
+
+	if !includeDeleted {
+		// include the DeleteAt = 0 condition
+		query.Where(sq.Eq{"DeleteAt": 0})
 	}
 
-	queryFormat := `
-		SELECT
-			C.*
-		FROM
-			Channels AS C
-		JOIN
-			ChannelMembers AS CM ON CM.ChannelId = C.Id
-		WHERE
-			(C.TeamId = :TeamId OR (C.TeamId = '' AND C.Type = :ChannelType))
-			AND CM.UserId = :UserId
-			` + deleteFilter + `
-			%v
-		LIMIT 50`
+	var (
+		channels = model.ChannelList{}
+		sql      string
+		args     []interface{}
+	)
 
-	var channels model.ChannelList
+	// build the like clause
+	like := s.buildLIKEClauseX(term, "Name", "DisplayName", "Purpose")
+	if like == nil {
+		var err error
 
-	if likeClause, likeTerm := s.buildLIKEClause(term, "Name, DisplayName, Purpose"); likeClause == "" {
-		if _, err := s.GetReplica().Select(&channels, fmt.Sprintf(queryFormat, ""), map[string]interface{}{"TeamId": teamId, "UserId": userId, "ChannelType": model.ChannelTypeGroup}); err != nil {
-			return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
+		// generate the SQL query
+		sql, args, err = query.ToSql()
+		if err != nil {
+			return nil, errors.Wrap(err, "AutocompleteInTeamForSearch_Tosql")
 		}
 	} else {
+		// build the full text search clause
+		full := s.buildFulltextClauseX(term, "Name", "DisplayName", "Purpose")
+		if full == nil {
+			return nil, errors.New("failed to build full text query for term=" + term)
+		}
+
+		// build the LIKE query
+		likeSQL, likeArgs, err := query.Where(like).ToSql()
+		if err != nil {
+			return nil, errors.Wrap(err, "AutocompleteInTeamForSearch_Like_Tosql")
+		}
+
+		// build the full text query
+		fullSQL, fullArgs, err := query.Where(full).ToSql()
+		if err != nil {
+			return nil, errors.Wrap(err, "AutocompleteInTeamForSearch_Full_Tosql")
+		}
+
 		// Using a UNION results in index_merge and fulltext queries and is much faster than the ref
 		// query you would get using an OR of the LIKE and full-text clauses.
-		fulltextClause, fulltextTerm := s.buildFulltextClause(term, "Name, DisplayName, Purpose")
-		likeQuery := fmt.Sprintf(queryFormat, "AND "+likeClause)
-		fulltextQuery := fmt.Sprintf(queryFormat, "AND "+fulltextClause)
-		query := fmt.Sprintf("(%v) UNION (%v) LIMIT 50", likeQuery, fulltextQuery)
+		sql = fmt.Sprintf("(%s) UNION (%s) LIMIT 50", likeSQL, fullSQL)
+		args = append(likeArgs, fullArgs...)
+	}
 
-		if _, err := s.GetReplica().Select(&channels, query, map[string]interface{}{"TeamId": teamId, "UserId": userId, "LikeTerm": likeTerm, "FulltextTerm": fulltextTerm, "ChannelType": model.ChannelTypeGroup}); err != nil {
-			return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
+	var err error
+
+	// since the UNION is not part of squirrel, we need to assemble it and then update
+	// the placeholders manually
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		sql, err = sq.Dollar.ReplacePlaceholders(sql)
+		if err != nil {
+			return nil, errors.Wrap(err, "AutocompleteInTeamForSearch_Placeholder")
 		}
 	}
 
-	directChannels, err := s.autocompleteInTeamForSearchDirectMessages(userId, term)
+	// query the database
+	err = s.GetReplicaX().Select(&channels, sql, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
+	}
+
+	directChannels, err := s.autocompleteInTeamForSearchDirectMessages(userID, term)
 	if err != nil {
 		return nil, err
 	}
@@ -2900,47 +2940,51 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamId string, userId strin
 	sort.Slice(channels, func(a, b int) bool {
 		return strings.ToLower(channels[a].DisplayName) < strings.ToLower(channels[b].DisplayName)
 	})
+
 	return channels, nil
 }
 
-// TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19334)
-func (s SqlChannelStore) autocompleteInTeamForSearchDirectMessages(userId string, term string) ([]*model.Channel, error) {
-	queryFormat := `
-			SELECT
-				C.*,
-				OtherUsers.Username as DisplayName
-			FROM
-				Channels AS C
-			JOIN
-				ChannelMembers AS CM ON CM.ChannelId = C.Id
-			INNER JOIN (
-				SELECT
-					ICM.ChannelId AS ChannelId, IU.Username AS Username
-				FROM
-					Users as IU
-				JOIN
-					ChannelMembers AS ICM ON ICM.UserId = IU.Id
-				WHERE
-					IU.Id != :UserId
-					%v
-				) AS OtherUsers ON OtherUsers.ChannelId = C.Id
-			WHERE
-			    C.Type = :ChannelType
-				AND CM.UserId = :UserId
-			LIMIT 50`
+func (s SqlChannelStore) autocompleteInTeamForSearchDirectMessages(userID string, term string) ([]*model.Channel, error) {
+	// create the main query
+	query := s.getQueryBuilder().Select("C.*", "OtherUsers.Username as DisplayName").
+		From("Channels AS C").
+		Join("ChannelMembers AS CM ON CM.ChannelId = C.Id").
+		Where(sq.Eq{
+			"C.Type":    model.ChannelTypeDirect,
+			"CM.UserId": userID,
+		}).
+		Limit(50)
 
-	var channels model.ChannelList
+	// create the subquery
+	subQuery := s.getSubQueryBuilder().Select("ICM.ChannelId AS ChannelId", "IU.Username AS Username").
+		From("Users AS IU").
+		Join("ChannelMembers AS ICM ON ICM.UserId = IU.Id").
+		Where(sq.NotEq{"IU.Id": userID})
 
-	if likeClause, likeTerm := s.buildLIKEClause(term, "IU.Username, IU.Nickname"); likeClause == "" {
-		if _, err := s.GetReplica().Select(&channels, fmt.Sprintf(queryFormat, ""), map[string]interface{}{"UserId": userId, "ChannelType": model.ChannelTypeDirect}); err != nil {
-			return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
-		}
-	} else {
-		query := fmt.Sprintf(queryFormat, "AND "+likeClause)
+	// try to create a LIKE clause from the search term
+	if like := s.buildLIKEClauseX(term, "IU.Username", "IU.Nickname"); like != nil {
+		subQuery = subQuery.Where(like)
+	}
 
-		if _, err := s.GetReplica().Select(&channels, query, map[string]interface{}{"UserId": userId, "LikeTerm": likeTerm, "ChannelType": model.ChannelTypeDirect}); err != nil {
-			return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
-		}
+	// put the subquery into an INNER JOIN
+	innerJoin := subQuery.
+		Prefix("INNER JOIN (").
+		Suffix(") AS OtherUsers ON OtherUsers.ChannelId = C.Id")
+
+	// add the subquery to the main query
+	query = query.JoinClause(innerJoin)
+
+	// create the SQL query and argument list
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "autocompleteInTeamForSearchDirectMessages_InnerJoin_Tosql")
+	}
+
+	// query the channel list from the database using SQLX
+	channels := model.ChannelList{}
+	err = s.GetReplicaX().Select(&channels, sql, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find Channels with term='%s' (%s %% %v)", term, sql, args)
 	}
 
 	return channels, nil
@@ -3247,29 +3291,57 @@ func (s SqlChannelStore) buildLIKEClause(term string, searchColumns string) (lik
 	return
 }
 
+func (s SqlChannelStore) buildLIKEClauseX(term string, searchColumns ...string) sq.Sqlizer {
+	// escape the special characters with *
+	likeTerm := sanitizeSearchTerm(term, "*")
+
+	if likeTerm == "" {
+		return nil
+	}
+
+	// add a placeholder at the beginning and end
+	likeTerm = wildcardSearchTerm(likeTerm)
+
+	// Prepare the LIKE portion of the query.
+	var searchFields sq.Or
+
+	for _, field := range searchColumns {
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			expr := fmt.Sprintf("LOWER(%s) LIKE LOWER(?) ESCAPE '*'", field)
+			searchFields = append(searchFields, sq.Expr(expr, likeTerm))
+		} else {
+			expr := fmt.Sprintf("%s LIKE ? ESCAPE '*'", field)
+			searchFields = append(searchFields, sq.Expr(expr, likeTerm))
+		}
+	}
+
+	return searchFields
+}
+
+const spaceFulltextSearchChars = "<>+-()~:*\"!@"
+
 func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) (fulltextClause, fulltextTerm string) {
 	// Copy the terms as we will need to prepare them differently for each search type.
 	fulltextTerm = term
 
 	// These chars must be treated as spaces in the fulltext query.
-	for _, c := range spaceFulltextSearchChar {
-		fulltextTerm = strings.Replace(fulltextTerm, c, " ", -1)
-	}
+	fulltextTerm = strings.Map(func(r rune) rune {
+		if strings.ContainsRune(spaceFulltextSearchChars, r) {
+			return ' '
+		}
+		return r
+	}, fulltextTerm)
 
 	// Prepare the FULLTEXT portion of the query.
 	if s.DriverName() == model.DatabaseDriverPostgres {
-		fulltextTerm = strings.Replace(fulltextTerm, "|", "", -1)
+		fulltextTerm = strings.ReplaceAll(fulltextTerm, "|", "")
 
 		splitTerm := strings.Fields(fulltextTerm)
 		for i, t := range strings.Fields(fulltextTerm) {
-			if i == len(splitTerm)-1 {
-				splitTerm[i] = t + ":*"
-			} else {
-				splitTerm[i] = t + ":* &"
-			}
+			splitTerm[i] = t + ":*"
 		}
 
-		fulltextTerm = strings.Join(splitTerm, " ")
+		fulltextTerm = strings.Join(splitTerm, " & ")
 
 		fulltextClause = fmt.Sprintf("((to_tsvector('english', %s)) @@ to_tsquery('english', :FulltextTerm))", convertMySQLFullTextColumnsToPostgres(searchColumns))
 	} else if s.DriverName() == model.DatabaseDriverMysql {
@@ -3284,6 +3356,51 @@ func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) 
 	}
 
 	return
+}
+
+func (s SqlChannelStore) buildFulltextClauseX(term string, searchColumns ...string) sq.Sqlizer {
+	// Copy the terms as we will need to prepare them differently for each search type.
+	fulltextTerm := term
+
+	// These chars must be treated as spaces in the fulltext query.
+	fulltextTerm = strings.Map(func(r rune) rune {
+		if strings.ContainsRune(spaceFulltextSearchChars, r) {
+			return ' '
+		}
+		return r
+	}, fulltextTerm)
+
+	// Prepare the FULLTEXT portion of the query.
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		// remove all pipes |
+		fulltextTerm = strings.ReplaceAll(fulltextTerm, "|", "")
+
+		// split the search term and append :* to each part
+		splitTerm := strings.Fields(fulltextTerm)
+		for i, t := range splitTerm {
+			splitTerm[i] = t + ":*"
+		}
+
+		// join the search term with &
+		fulltextTerm = strings.Join(splitTerm, " & ")
+
+		expr := fmt.Sprintf("((to_tsvector('english', %s)) @@ to_tsquery('english', ?))", strings.Join(searchColumns, " || ' ' || "))
+		return sq.Expr(expr, fulltextTerm)
+
+	} else if s.DriverName() == model.DatabaseDriverMysql {
+
+		splitTerm := strings.Fields(fulltextTerm)
+		for i, t := range splitTerm {
+			splitTerm[i] = "+" + t + "*"
+		}
+
+		fulltextTerm = strings.Join(splitTerm, " ")
+
+		expr := fmt.Sprintf("MATCH(%s) AGAINST (? IN BOOLEAN MODE)", strings.Join(searchColumns, ", "))
+		return sq.Expr(expr, fulltextTerm)
+	}
+
+	return nil
 }
 
 func (s SqlChannelStore) performSearch(searchQuery string, term string, parameters map[string]interface{}) (model.ChannelList, error) {
