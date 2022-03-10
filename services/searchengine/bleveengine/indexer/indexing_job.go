@@ -215,7 +215,7 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 	}
 
 	cancelCtx, cancelCancelWatcher := context.WithCancel(context.Background())
-	cancelWatcherChan := make(chan interface{}, 1)
+	cancelWatcherChan := make(chan struct{}, 1)
 	go worker.jobServer.CancellationWatcher(cancelCtx, job.Id, cancelWatcherChan)
 
 	defer cancelCancelWatcher()
