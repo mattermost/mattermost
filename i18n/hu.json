@@ -1309,11 +1309,11 @@
   },
   {
     "id": "app.plugin.config.app_error",
-    "translation": "Hiba történt a plugin állapotának konfigurációba mentésekor."
+    "translation": "Hiba történt a bővítmény állapotának konfigurációba mentésekor."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
-    "translation": "A config.json fájl plugin konfigurációját manuálisan kell frissíteni, ha fürtözés használata mellett használja a ReadOnlyConfig kapcsolót."
+    "translation": "A config.json fájl bővítmény konfigurációját manuálisan kell frissíteni, ha fürtözés használata mellett használja a ReadOnlyConfig kapcsolót."
   },
   {
     "id": "app.oauth.update_app.updating.app_error",
@@ -8038,7 +8038,7 @@
   },
   {
     "id": "api.plugin.verify_plugin.app_error",
-    "translation": "Nem sikerült ellenőrizni a beépülő modul aláírását."
+    "translation": "Nem sikerült ellenőrizni a bővítmény aláírását."
   },
   {
     "id": "api.plugin.upload.no_file.app_error",
@@ -8054,7 +8054,7 @@
   },
   {
     "id": "api.plugin.install.download_failed.app_error",
-    "translation": "Hiba történt a plugin letöltése közben."
+    "translation": "Hiba történt a bővítmény letöltése közben."
   },
   {
     "id": "api.outgoing_webhook.disabled.app_error",
