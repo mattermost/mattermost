@@ -2981,7 +2981,7 @@ func (s SqlChannelStore) autocompleteInTeamForSearchDirectMessages(userID string
 	}
 
 	// query the channel list from the database using SQLX
-	var channels model.ChannelList
+	channels := model.ChannelList{}
 	err = s.GetReplicaX().Select(&channels, sql, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Channels with term='%s' (%s %% %v)", term, sql, args)
