@@ -20,7 +20,7 @@ const (
 
 type Worker struct {
 	name      string
-	stop      chan bool
+	stop      chan struct{}
 	stopped   chan bool
 	jobs      chan model.Job
 	jobServer *jobs.JobServer
@@ -30,7 +30,7 @@ type Worker struct {
 func MakeWorker(jobServer *jobs.JobServer, store store.Store) model.Worker {
 	worker := Worker{
 		name:      "Migrations",
-		stop:      make(chan bool, 1),
+		stop:      make(chan struct{}),
 		stopped:   make(chan bool, 1),
 		jobs:      make(chan model.Job),
 		jobServer: jobServer,
@@ -62,7 +62,7 @@ func (worker *Worker) Run() {
 
 func (worker *Worker) Stop() {
 	mlog.Debug("Worker stopping", mlog.String("worker", worker.name))
-	worker.stop <- true
+	close(worker.stop)
 	<-worker.stopped
 }
 
