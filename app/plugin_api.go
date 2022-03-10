@@ -1168,33 +1168,5 @@ func (api *PluginAPI) RequestTrialLicense(requesterID string, users int, termsAc
 		return model.NewAppError("RequestTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 	}
 
-	if !termsAccepted {
-		return model.NewAppError("RequestTrialLicense", "api.license.request-trial.bad-request.terms-not-accepted", nil, "", http.StatusBadRequest)
-	}
-
-	if users == 0 {
-		return model.NewAppError("RequestTrialLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
-	}
-
-	requester, err := api.app.GetUser(requesterID)
-	if err != nil {
-		return err
-	}
-
-	trialLicenseRequest := &model.TrialLicenseRequest{
-		ServerID:              api.app.TelemetryId(),
-		Name:                  requester.GetDisplayName(model.ShowFullName),
-		Email:                 requester.Email,
-		SiteName:              *api.app.Config().TeamSettings.SiteName,
-		SiteURL:               *api.app.Config().ServiceSettings.SiteURL,
-		Users:                 users,
-		TermsAccepted:         termsAccepted,
-		ReceiveEmailsAccepted: receiveEmailsAccepted,
-	}
-
-	if trialLicenseRequest.SiteURL == "" {
-		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.no-site-url.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	return api.app.Srv().RequestTrialLicense(trialLicenseRequest)
+	return api.app.Channels().RequestTrialLicense(requesterID, users, termsAccepted, receiveEmailsAccepted)
 }

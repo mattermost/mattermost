@@ -28,7 +28,11 @@ func makeJobServer(t *testing.T) (*JobServer, *storetest.Store, *mocks.MetricsIn
 		mockMetrics.AssertExpectations(t)
 	})
 
-	jobServer := NewJobServer(configService, mockStore, mockMetrics)
+	jobServer := &JobServer{
+		ConfigService: configService,
+		Store:         mockStore,
+		metrics:       mockMetrics,
+	}
 
 	return jobServer, mockStore, mockMetrics
 }
