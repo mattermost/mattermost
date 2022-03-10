@@ -191,9 +191,7 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 	defer s.Shutdown()
 
 	// ensure that a new bucket was created
-	backend, appErr := s.FileBackend()
-	require.Nil(t, appErr)
-	err = backend.(*filestore.S3FileBackend).TestConnection()
+	err = s.FileBackend().(*filestore.S3FileBackend).TestConnection()
 	require.NoError(t, err)
 }
 
@@ -547,7 +545,7 @@ func TestPanicLog(t *testing.T) {
 	s, err := NewServer(SetLogger(logger))
 	require.NoError(t, err)
 
-	// Route for just panicing
+	// Route for just panicking
 	s.Router.HandleFunc("/panic", func(writer http.ResponseWriter, request *http.Request) {
 		s.Log.Info("inside panic handler")
 		panic("log this panic")
@@ -684,7 +682,7 @@ func TestSentry(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		// Route for just panicing
+		// Route for just panicking
 		s.Router.HandleFunc("/panic", func(writer http.ResponseWriter, request *http.Request) {
 			panic("log this panic")
 		})

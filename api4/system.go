@@ -76,15 +76,19 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	const FileMime = "application/zip"
 	const OutputDirectory = "support_packet"
 
-	// Checking to see if the user is a admin of any sort or not
-	// If they are a admin, they should theoretically have access to one or more of the system console read permissions
-	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleReadPermissions) {
-		c.SetPermissionError(model.SysconsoleReadPermissions...)
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("generateSupportPacket", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
+
+	// Support packet generation is limited to system admins (MM-42271).
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
 	// Checking to see if the server has a e10 or e20 license (this feature is only permitted for servers with licenses)
-	if c.App.Srv().License() == nil {
+	if c.App.Channels().License() == nil {
 		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.no_license", nil, "", http.StatusForbidden)
 		return
 	}
@@ -95,11 +99,7 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	outputZipFilename := fmt.Sprintf("mattermost_support_packet_%s.zip", now.Format("2006-01-02-03-04"))
 
-	fileStorageBackend, fileBackendErr := c.App.FileBackend()
-	if fileBackendErr != nil {
-		c.Err = fileBackendErr
-		return
-	}
+	fileStorageBackend := c.App.FileBackend()
 
 	// We do this incase we get concurrent requests, we will always have a unique directory.
 	// This is to avoid the situation where we try to write to the same directory while we are trying to delete it (further down)
@@ -181,6 +181,10 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(model.STATUS, s[model.STATUS])
 		w.Header().Set(dbStatusKey, s[dbStatusKey])
 		w.Header().Set(filestoreStatusKey, s[filestoreStatusKey])
+	}
+
+	if deviceID := r.FormValue("device_id"); deviceID != "" {
+		s["CanReceiveNotifications"] = c.App.SendTestPushNotification(deviceID)
 	}
 
 	if s[model.STATUS] != model.StatusOk {
@@ -755,7 +759,7 @@ func getWarnMetricsStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	license := c.App.Srv().License()
+	license := c.App.Channels().License()
 	if license != nil {
 		mlog.Debug("License is present, skip.")
 		return
@@ -785,7 +789,7 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	license := c.App.Srv().License()
+	license := c.App.Channels().License()
 	if license != nil {
 		mlog.Debug("License is present, skip.")
 		return
@@ -827,7 +831,7 @@ func requestTrialLicenseAndAckWarnMetric(c *Context, w http.ResponseWriter, r *h
 		return
 	}
 
-	license := c.App.Srv().License()
+	license := c.App.Channels().License()
 	if license != nil {
 		mlog.Debug("License is present, skip.")
 		return

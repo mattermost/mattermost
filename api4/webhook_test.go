@@ -331,7 +331,7 @@ func TestGetIncomingWebhook(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	}, "WhenInvalidHookID")
 
-	t.Run("WhenUserDoesNotHavePemissions", func(t *testing.T) {
+	t.Run("WhenUserDoesNotHavePermissions", func(t *testing.T) {
 		th.LoginBasic()
 		_, resp, err := th.Client.GetIncomingWebhook(rhook.Id, "")
 		require.Error(t, err)
@@ -378,7 +378,7 @@ func TestDeleteIncomingWebhook(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	}, "WhenHookExists")
 
-	t.Run("WhenUserDoesNotHavePemissions", func(t *testing.T) {
+	t.Run("WhenUserDoesNotHavePermissions", func(t *testing.T) {
 		hook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id}
 		rhook, _, err := th.SystemAdminClient.CreateIncomingWebhook(hook)
 		require.NoError(t, err)
@@ -1264,7 +1264,7 @@ func TestDeleteOutgoingHook(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	}, "WhenHookExists")
 
-	t.Run("WhenUserDoesNotHavePemissions", func(t *testing.T) {
+	t.Run("WhenUserDoesNotHavePermissions", func(t *testing.T) {
 		hook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId,
 			CallbackURLs: []string{"http://nowhere.com"}, TriggerWords: []string{"dogs"}}
 		rhook, _, err := th.SystemAdminClient.CreateOutgoingWebhook(hook)
