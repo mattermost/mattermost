@@ -1455,21 +1455,6 @@ func (us SqlUserStore) SearchNotInGroup(groupID string, term string, options *mo
 	return us.performSearch(query, term, options)
 }
 
-var spaceFulltextSearchChar = []string{
-	"<",
-	">",
-	"+",
-	"-",
-	"(",
-	")",
-	"~",
-	":",
-	"*",
-	"\"",
-	"!",
-	"@",
-}
-
 func generateSearchQuery(query sq.SelectBuilder, terms []string, fields []string, isPostgreSQL bool) sq.SelectBuilder {
 	for _, term := range terms {
 		searchFields := []string{}

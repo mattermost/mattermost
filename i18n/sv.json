@@ -3740,10 +3740,6 @@
     "translation": "Kanalrubriken är för lång."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Det fattas en obligatorisk kanalegenskap: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
     "translation": "Kanalens display_name är för långt."
   },
@@ -4114,10 +4110,6 @@
   {
     "id": "app.channel.migrate_channel_members.select.app_error",
     "translation": "Misslyckades att ta fram batchen med kanalmedlemmar."
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Kunde inte öka värdet för antal omnämnanden."
   },
   {
     "id": "app.channel.get_unread.app_error",
