@@ -1862,14 +1862,14 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 	defer finalizeTransactionX(tx)
 
 	if s.DriverName() == model.DatabaseDriverPostgres {
-		sql, args, eerr := s.getQueryBuilder().
+		sql, args, err2 := s.getQueryBuilder().
 			Update("channelmembers").
 			Set("notifyprops", sq.Expr("notifyprops || ?::jsonb", model.MapToJSON(props))).
 			Where(sq.Eq{
 				"userid":    userID,
 				"channelid": channelID,
 			}).ToSql()
-		if eerr != nil {
+		if err2 != nil {
 			return nil, errors.Wrapf(err, "UpdateMemberNotifyProps_Update_Postgres_ToSql channelID=%s and userID=%s", channelID, userID)
 		}
 
@@ -1885,14 +1885,14 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 		// Example: UPDATE ChannelMembers
 		// SET NotifyProps = JSON_SET(NotifyProps, '$.mark_unread', '"yes"' [, ...])
 		// WHERE ...
-		sql, args, eerr := s.getQueryBuilder().
+		sql, args, err2 := s.getQueryBuilder().
 			Update("ChannelMembers").
 			Set("NotifyProps", jsonExpr).
 			Where(sq.Eq{
 				"UserId":    userID,
 				"ChannelId": channelID,
 			}).ToSql()
-		if eerr != nil {
+		if err2 != nil {
 			return nil, errors.Wrapf(err, "UpdateMemberNotifyProps_Update_MySQL_ToSql channelID=%s and userID=%s", channelID, userID)
 		}
 
