@@ -6321,8 +6321,9 @@ func testChannelStoreGetMembersByIds(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr, nErr)
 	require.Len(t, members, 2, "return wrong number of results")
 
-	_, nErr = ss.Channel().GetMembersByIds(m1.ChannelId, []string{})
-	require.Error(t, nErr, "empty user ids - should have failed")
+	members, nErr = ss.Channel().GetMembersByIds(m1.ChannelId, []string{})
+	require.NoError(t, nErr)
+	require.Len(t, members, 0)
 }
 
 func testChannelStoreGetMembersByChannelIds(t *testing.T, ss store.Store) {
