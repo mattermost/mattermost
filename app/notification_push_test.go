@@ -19,6 +19,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
+	fmocks "github.com/mattermost/mattermost-server/v6/shared/filestore/mocks"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/testlib"
@@ -1428,14 +1429,16 @@ func TestPushNotificationRace(t *testing.T) {
 		Return(&model.Preference{Value: "test"}, nil)
 	mockStore.On("Preference").Return(&mockPreferenceStore)
 	s := &Server{
-		Store:    mockStore,
-		products: make(map[string]Product),
-		Router:   mux.NewRouter(),
+		Store:     mockStore,
+		products:  make(map[string]Product),
+		Router:    mux.NewRouter(),
+		filestore: &fmocks.FileBackend{},
 	}
 	s.configStore = &configWrapper{srv: s, Store: memoryStore}
 	serviceMap := map[ServiceKey]interface{}{
-		ConfigKey:  s.configStore,
-		LicenseKey: &licenseWrapper{s},
+		ConfigKey:    s.configStore,
+		LicenseKey:   &licenseWrapper{s},
+		FilestoreKey: s.filestore,
 	}
 	ch, err := NewChannels(s, serviceMap)
 	require.NoError(t, err)

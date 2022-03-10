@@ -2488,10 +2488,6 @@
     "translation": "A propriedade display_name do canal não está dentro das restrições de comprimento permitidas."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Faltando a propriedade obrigatória do canal: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "O cabeçalho do canal é muito longo."
   },
@@ -6986,10 +6982,6 @@
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "Não foi possível remover o membro do canal."
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Não foi possível incrementar a contagem de menções."
   },
   {
     "id": "app.channel.get_pinnedpost_count.app_error",
