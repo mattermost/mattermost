@@ -31,7 +31,7 @@ import (
 	mbindata "github.com/mattermost/morph/sources/go_bindata"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/db/migrations"
+	"github.com/mattermost/mattermost-server/v6/db"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -990,17 +990,22 @@ func (ss *SqlStore) GetLicense() *model.License {
 }
 
 func (ss *SqlStore) migrate(direction migrationDirection) error {
-	var assetNamesForDriver []string
-	for _, assetName := range migrations.AssetNames() {
-		if strings.HasPrefix(assetName, ss.DriverName()) {
-			assetNamesForDriver = append(assetNamesForDriver, filepath.Base(assetName))
-		}
+	assets := db.Assets()
+
+	assetsList, err := assets.ReadDir(filepath.Join("migrations", ss.DriverName()))
+	if err != nil {
+		return err
+	}
+
+	assetNamesForDriver := make([]string, len(assetsList))
+	for i, entry := range assetsList {
+		assetNamesForDriver[i] = entry.Name()
 	}
 
 	src, err := mbindata.WithInstance(&mbindata.AssetSource{
 		Names: assetNamesForDriver,
 		AssetFunc: func(name string) ([]byte, error) {
-			return migrations.Asset(filepath.Join(ss.DriverName(), name))
+			return assets.ReadFile(filepath.Join("migrations", ss.DriverName(), name))
 		},
 	})
 	if err != nil {
