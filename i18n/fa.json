@@ -2540,10 +2540,6 @@
     "translation": "سرصفحه کانال خیلی طولانی است."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "ویژگی کانال مورد نیاز وجود ندارد: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
     "translation": "display_name کانال در محدودیت های مجاز نیست."
   },
@@ -3026,10 +3022,6 @@
   {
     "id": "app.channel.migrate_channel_members.select.app_error",
     "translation": "دسته اعضای کانال انتخاب نشد."
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "نمی توان تعداد اشاره را افزایش داد."
   },
   {
     "id": "app.channel.get_unread.app_error",

@@ -53,8 +53,8 @@ type FeatureFlags struct {
 	// A/B test for the add members to channel button, possible values = ("top", "bottom")
 	AddMembersToChannel string
 
-	// Determine after which duration in hours to send a second invitation to someone that didn't join after the initial invite, possible values = ("48", "72")
-	ResendInviteEmailInterval string
+	// Enable Create First Channel
+	GuidedChannelCreation bool
 
 	// A/B test for whether radio buttons or toggle button is more effective in in-screen invite to team modal ("none", "toggle")
 	InviteToTeam string
@@ -97,7 +97,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CallsMobile = false
 	f.BoardsFeatureFlags = ""
 	f.AddMembersToChannel = "top"
-	f.ResendInviteEmailInterval = ""
+	f.GuidedChannelCreation = false
 	f.InviteToTeam = "none"
 	f.CustomGroups = true
 	f.InlinePostEditing = false
@@ -105,7 +105,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.NormalizeLdapDNs = false
 	f.EnableInactivityCheckJob = true
 	f.UseCaseOnboarding = true
-	f.WorkspaceOptimizationDashboard = false
+	f.WorkspaceOptimizationDashboard = true
 	f.GraphQL = false
 }
 func (f *FeatureFlags) Plugins() map[string]string {
