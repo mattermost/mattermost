@@ -33,7 +33,7 @@ type configSvc interface {
 
 // licenseSvc is added to act as a starting point for future integrated products.
 // It has the same signature and functionality with the license related APIs of the plugin-api.
-type licenseSvc interface { // nolint: unused,deadcode
+type licenseSvc interface {
 	GetLicense() *model.License
 	RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError
 }
@@ -46,8 +46,9 @@ type namer interface {
 
 // Channels contains all channels related state.
 type Channels struct {
-	srv    *Server
-	cfgSvc configSvc
+	srv        *Server
+	cfgSvc     configSvc
+	licenseSvc licenseSvc
 
 	postActionCookieSecret []byte
 
@@ -111,7 +112,10 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 	// 2. Add the field to *Channels
 	// 3. Add the service key to the slice.
 	// 4. Add a new case in the switch statement.
-	requiredServices := []ServiceKey{ConfigKey}
+	requiredServices := []ServiceKey{
+		ConfigKey,
+		LicenseKey,
+	}
 	for _, svcKey := range requiredServices {
 		svc, ok := services[svcKey]
 		if !ok {
@@ -129,8 +133,17 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 				return nil, errors.New("Config service does not contain Name method")
 			}
 			ch.cfgSvc = cfgSvc
+		case LicenseKey:
+			svc, ok := svc.(licenseSvc)
+			if !ok {
+				return nil, errors.New("License service did not satisfy licenseSvc interface")
+			}
+			_, ok = svc.(namer)
+			if !ok {
+				return nil, errors.New("License service does not contain Name method")
+			}
+			ch.licenseSvc = svc
 		}
-
 	}
 	// We are passing a partially filled Channels struct so that the enterprise
 	// methods can have access to app methods.
@@ -252,4 +265,13 @@ func (ch *Channels) AddConfigListener(listener func(*model.Config, *model.Config
 
 func (ch *Channels) RemoveConfigListener(id string) {
 	ch.cfgSvc.RemoveConfigListener(id)
+}
+
+func (ch *Channels) License() *model.License {
+	return ch.licenseSvc.GetLicense()
+}
+
+func (ch *Channels) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
+	return ch.licenseSvc.RequestTrialLicense(requesterID, users, termsAccepted,
+		receiveEmailsAccepted)
 }
