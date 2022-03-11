@@ -3144,9 +3144,9 @@ func (s SqlChannelStore) SearchForUserInTeam(userId string, teamId string, term 
 		From("Channels").
 		Join("PublicChannels c ON (c.Id = Channels.Id)").
 		Join("ChannelMembers cm ON (c.Id = cm.ChannelId)").
-		Where(sq.And{
-			sq.Eq{"c.TeamId": teamId},
-			sq.Eq{"cm.UserId": userId},
+		Where(sq.Eq{
+			"c.TeamId":  teamId,
+			"cm.UserId": userId,
 		}).
 		OrderBy("c.DisplayName").
 		Limit(100)
@@ -3300,10 +3300,10 @@ func (s SqlChannelStore) SearchMore(userId string, teamId string, term string) (
 	teamQuery := s.getSubQueryBuilder().Select("c.Id").
 		From("PublicChannels c").
 		Join("ChannelMembers cm ON (cm.ChannelId = c.Id)").
-		Where(sq.And{
-			sq.Eq{"c.TeamId": teamId},
-			sq.Eq{"cm.UserId": userId},
-			sq.Eq{"c.DeleteAt": 0},
+		Where(sq.Eq{
+			"c.TeamId":   teamId,
+			"cm.UserId":  userId,
+			"c.DeleteAt": 0,
 		})
 
 	query := s.getQueryBuilder().Select("Channels.*").
@@ -3495,9 +3495,9 @@ func (s SqlChannelStore) searchGroupChannelsQuery(userId, term string, isPostgre
 			From("Channels c").
 			Join("ChannelMembers cm ON c.Id=cm.ChannelId").
 			Join("Users u on u.Id = cm.UserId").
-			Where(sq.And{
-				sq.Eq{"c.Type": model.ChannelTypeGroup},
-				sq.Eq{"u.id": userId},
+			Where(sq.Eq{
+				"c.Type": model.ChannelTypeGroup,
+				"u.id":   userId,
 			}).
 			GroupBy("c.Id")
 
