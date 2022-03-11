@@ -22,7 +22,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/db/migrations"
+	"github.com/mattermost/mattermost-server/v6/db"
 	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
@@ -796,17 +796,20 @@ func TestGetDBSchemaVersion(t *testing.T) {
 		model.DatabaseDriverMysql,
 	}
 
+	assets := db.Assets()
+
 	for _, driver := range testDrivers {
 		t.Run("Should return latest version number of applied migrations for "+driver, func(t *testing.T) {
 			t.Parallel()
 			settings := makeSqlSettings(driver)
 			store := New(*settings, nil)
 
+			assetsList, err := assets.ReadDir(filepath.Join("migrations", driver))
+			require.NoError(t, err)
+
 			var assetNamesForDriver []string
-			for _, assetName := range migrations.AssetNames() {
-				if strings.HasPrefix(assetName, store.DriverName()) {
-					assetNamesForDriver = append(assetNamesForDriver, filepath.Base(assetName))
-				}
+			for _, entry := range assetsList {
+				assetNamesForDriver = append(assetNamesForDriver, entry.Name())
 			}
 			sort.Strings(assetNamesForDriver)
 
@@ -827,20 +830,25 @@ func TestGetAppliedMigrations(t *testing.T) {
 		model.DatabaseDriverMysql,
 	}
 
+	assets := db.Assets()
+
 	for _, driver := range testDrivers {
 		t.Run("Should return db applied migrations for "+driver, func(t *testing.T) {
 			t.Parallel()
 			settings := makeSqlSettings(driver)
 			store := New(*settings, nil)
 
-			var migrationsFromFiles []model.AppliedMigration
-			for _, assetName := range migrations.AssetNames() {
-				if strings.HasPrefix(assetName, store.DriverName()) && strings.HasSuffix(assetName, ".up.sql") {
-					versionString := strings.Split(filepath.Base(assetName), "_")[0]
-					version, err := strconv.Atoi(versionString)
-					require.NoError(t, err)
+			assetsList, err := assets.ReadDir(filepath.Join("migrations", driver))
+			require.NoError(t, err)
 
-					name := strings.TrimSuffix(strings.TrimLeft(filepath.Base(assetName), versionString+"_"), ".up.sql")
+			var migrationsFromFiles []model.AppliedMigration
+			for _, entry := range assetsList {
+				if strings.HasSuffix(entry.Name(), ".up.sql") {
+					versionString := strings.Split(entry.Name(), "_")[0]
+					version, vErr := strconv.Atoi(versionString)
+					require.NoError(t, vErr)
+
+					name := strings.TrimSuffix(strings.TrimLeft(entry.Name(), versionString+"_"), ".up.sql")
 
 					migrationsFromFiles = append(migrationsFromFiles, model.AppliedMigration{
 						Version: version,
