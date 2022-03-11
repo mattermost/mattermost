@@ -123,7 +123,7 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.24.1
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.25.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
@@ -295,12 +295,6 @@ new-migration: migration-prereqs ## Creates a new migration
 	$(GOBIN)/migrate create -ext sql -dir db/migrations/postgres -seq $(name)
 
 	@echo "When you are done writing your migration, run 'make migrations-bindata'"
-
-migrations-bindata: ## Generates bindata migrations
-	$(GO) install github.com/go-bindata/go-bindata/...@v3.1.2
-
-	@echo Generating bindata for migrations
-	$(GO) generate $(GOFLAGS) ./db/migrations/
 
 filestore-mocks: ## Creates mock files.
 	$(GO) install github.com/vektra/mockery/...@v1.1.2

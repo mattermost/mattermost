@@ -256,22 +256,7 @@ func (a *App) RequestLicenseAndAckWarnMetric(c *request.Context, warnMetricId st
 		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.license.request_trial_license.fail_get_user_count.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	trialLicenseRequest := &model.TrialLicenseRequest{
-		ServerID:              a.TelemetryId(),
-		Name:                  currentUser.GetDisplayName(model.ShowFullName),
-		Email:                 currentUser.Email,
-		SiteName:              *a.Config().TeamSettings.SiteName,
-		SiteURL:               *a.Config().ServiceSettings.SiteURL,
-		Users:                 int(registeredUsersCount),
-		TermsAccepted:         true,
-		ReceiveEmailsAccepted: true,
-	}
-
-	if trialLicenseRequest.SiteURL == "" {
-		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.license.request_trial_license.no-site-url.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if err := a.Srv().RequestTrialLicense(trialLicenseRequest); err != nil {
+	if err := a.Channels().RequestTrialLicense(c.Session().UserId, int(registeredUsersCount), true, true); err != nil {
 		// turn off warn metric warning even in case of StartTrial failure
 		if nerr := a.setWarnMetricsStatusAndNotify(warnMetricId); nerr != nil {
 			return nerr
