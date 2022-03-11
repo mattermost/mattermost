@@ -8143,6 +8143,8 @@ func testDecryptedCopyObject() {
 		return
 	}
 
+	defer cleanupBucket(bucketName, c)
+
 	encryption := encrypt.DefaultPBKDF([]byte("correct horse battery staple"), []byte(bucketName+objectName))
 	_, err = c.PutObject(context.Background(), bucketName, objectName, bytes.NewReader(bytes.Repeat([]byte("a"), 1024*1024)), 1024*1024, minio.PutObjectOptions{
 		ServerSideEncryption: encryption,

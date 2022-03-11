@@ -2484,10 +2484,6 @@
     "translation": "Channel display_name is not within permitted length constraints."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Missing required channel property: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "Channel header is too long."
   },
@@ -6196,20 +6192,8 @@
     "translation": "{{.WarnMetricName}}의 값을 저장하지 못했습니다"
   },
   {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "측정 항목을 찾을 수 없습니다."
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "관리자 목록이 비어 있습니다."
-  },
-  {
     "id": "app.system.warn_metric.bot_displayname",
     "translation": "Mattermost Advisor"
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Mattermost Advisor에 대해 자세히 알아보기](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.job.download_export_results_not_enabled",
@@ -6836,10 +6820,6 @@
     "translation": "채널 구성원을 제거할 수 없습니다."
   },
   {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "멘션 수를 증가시키지 못했습니다."
-  },
-  {
     "id": "app.channel.get_public_channels.get.app_error",
     "translation": "공개 채널을 가져올 수 없습니다."
   },
@@ -6974,14 +6954,6 @@
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "채널 구성원을 검색하지 못했습니다."
-  },
-  {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "체험판 얻기"
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "체험 시작"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
@@ -7842,10 +7814,6 @@
   {
     "id": "api.custom_status.disabled",
     "translation": "커스텀 상태 기능이 비활성화 되어 있습니다. 자세한 내용은 관리자에게 문의하세요."
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Contact Us"
   },
   {
     "id": "api.server.license_up_for_renewal.error_generating_link",

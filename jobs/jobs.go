@@ -230,6 +230,15 @@ func (srv *JobServer) CheckForPendingJobsByType(jobType string) (bool, *model.Ap
 	return count > 0, nil
 }
 
+func (srv *JobServer) GetJobsByTypeAndStatus(jobType string, status string) ([]*model.Job, *model.AppError) {
+	jobs, err := srv.Store.Job().GetAllByTypeAndStatus(jobType, status)
+	if err != nil {
+		return nil, model.NewAppError("GetJobsByTypeAndStatus", "app.job.get_all_jobs_by_type_and_status.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return jobs, nil
+}
+
 func (srv *JobServer) GetLastSuccessfulJobByType(jobType string) (*model.Job, *model.AppError) {
 	statuses := []string{model.JobStatusSuccess}
 	if jobType == model.JobTypeMessageExport {

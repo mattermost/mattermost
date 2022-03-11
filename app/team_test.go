@@ -16,9 +16,12 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/app/email"
+	emailmocks "github.com/mattermost/mattermost-server/v6/app/email/mocks"
 	"github.com/mattermost/mattermost-server/v6/app/teams"
 	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
@@ -765,7 +768,7 @@ func TestJoinUserToTeam(t *testing.T) {
 		require.NotNil(t, appErr, "Should fail")
 	})
 
-	t.Run("re-join alfter leaving with limit problem", func(t *testing.T) {
+	t.Run("re-join after leaving with limit problem", func(t *testing.T) {
 		user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		ruser1, _ := th.App.CreateUser(th.Context, &user1)
 
@@ -1152,6 +1155,29 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 	})
 }
 
+func TestInvalidateAllResendInviteEmailJobs(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	job, err := th.App.Srv().Jobs.CreateJob(model.JobTypeResendInvitationEmail, map[string]string{})
+	require.Nil(t, err)
+
+	sysVar := &model.System{Name: job.Id, Value: "0"}
+	e := th.App.Srv().Store.System().SaveOrUpdate(sysVar)
+	require.NoError(t, e)
+
+	appErr := th.App.InvalidateAllResendInviteEmailJobs()
+	require.Nil(t, appErr)
+
+	j, e := th.App.Srv().Store.Job().Get(job.Id)
+	require.NoError(t, e)
+	require.Equal(t, j.Status, model.JobStatusCanceled)
+
+	_, sysValErr := th.App.Srv().Store.System().GetByName(job.Id)
+	var errNotFound *store.ErrNotFound
+	require.ErrorAs(t, sysValErr, &errNotFound)
+}
+
 func TestInvalidateAllEmailInvites(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -1215,4 +1241,109 @@ func TestClearTeamMembersCache(t *testing.T) {
 	mockStore.On("Team").Return(&mockTeamStore)
 
 	th.App.ClearTeamMembersCache("teamID")
+}
+
+func TestInviteNewUsersToTeamGracefully(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableEmailInvitations = true
+	})
+
+	t.Run("it return list of email with no error on success", func(t *testing.T) {
+		emailServiceMock := emailmocks.ServiceInterface{}
+		emailServiceMock.On("SendInviteEmails",
+			mock.AnythingOfType("*model.Team"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			[]string{"idontexist@mattermost.com"},
+			"",
+			mock.Anything,
+			true,
+		).Once().Return(nil)
+		th.App.Srv().EmailService = &emailServiceMock
+
+		res, err := th.App.InviteNewUsersToTeamGracefully([]string{"idontexist@mattermost.com"}, th.BasicTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, err)
+		require.Len(t, res, 1)
+		require.Nil(t, res[0].Error)
+	})
+
+	t.Run("it should assign errors to emails when failing to send", func(t *testing.T) {
+		emailServiceMock := emailmocks.ServiceInterface{}
+		emailServiceMock.On("SendInviteEmails",
+			mock.AnythingOfType("*model.Team"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			[]string{"idontexist@mattermost.com"},
+			"",
+			mock.Anything,
+			true,
+		).Once().Return(email.SendMailError)
+		th.App.Srv().EmailService = &emailServiceMock
+
+		res, err := th.App.InviteNewUsersToTeamGracefully([]string{"idontexist@mattermost.com"}, th.BasicTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, err)
+		require.Len(t, res, 1)
+		require.NotNil(t, res[0].Error)
+	})
+}
+
+func TestInviteGuestsToChannelsGracefully(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableEmailInvitations = true
+	})
+
+	t.Run("it return list of email with no error on success", func(t *testing.T) {
+		emailServiceMock := emailmocks.ServiceInterface{}
+		emailServiceMock.On("SendGuestInviteEmails",
+			mock.AnythingOfType("*model.Team"),
+			mock.AnythingOfType("[]*model.Channel"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("[]uint8"),
+			[]string{"idontexist@mattermost.com"},
+			"",
+			"",
+			true,
+		).Once().Return(nil)
+		th.App.Srv().EmailService = &emailServiceMock
+
+		res, err := th.App.InviteGuestsToChannelsGracefully(th.BasicTeam.Id, &model.GuestsInvite{
+			Emails:   []string{"idontexist@mattermost.com"},
+			Channels: []string{th.BasicChannel.Id},
+		}, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.Len(t, res, 1)
+		require.Nil(t, res[0].Error)
+	})
+
+	t.Run("it should assign errors to emails when failing to send", func(t *testing.T) {
+		emailServiceMock := emailmocks.ServiceInterface{}
+		emailServiceMock.On("SendGuestInviteEmails",
+			mock.AnythingOfType("*model.Team"),
+			mock.AnythingOfType("[]*model.Channel"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("[]uint8"),
+			[]string{"idontexist@mattermost.com"},
+			"",
+			"",
+			true,
+		).Once().Return(email.SendMailError)
+		th.App.Srv().EmailService = &emailServiceMock
+
+		res, err := th.App.InviteGuestsToChannelsGracefully(th.BasicTeam.Id, &model.GuestsInvite{
+			Emails:   []string{"idontexist@mattermost.com"},
+			Channels: []string{th.BasicChannel.Id},
+		}, th.BasicUser.Id)
+
+		require.Nil(t, err)
+		require.Len(t, res, 1)
+		require.NotNil(t, res[0].Error)
+	})
 }

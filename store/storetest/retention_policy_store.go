@@ -153,7 +153,7 @@ func cleanupRetentionPolicyTest(s SqlStore) {
 	// Manually clear tables until testlib can handle cleanups
 	tables := []string{"RetentionPolicies", "RetentionPoliciesChannels", "RetentionPoliciesTeams"}
 	for _, table := range tables {
-		if _, err := s.GetMaster().Exec("DELETE FROM " + table); err != nil {
+		if _, err := s.GetMasterX().Exec("DELETE FROM " + table); err != nil {
 			panic(err)
 		}
 	}
