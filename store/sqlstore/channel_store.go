@@ -3351,41 +3351,6 @@ func (s SqlChannelStore) buildLIKEClause(term string, searchColumns string) (lik
 	return
 }
 
-// <<<<<<< HEAD
-// func (s SqlChannelStore) squirrelBuildLIKEClause(term string, searchColumns string) (likeClause sq.Or, err error) {
-// 	likeTerm := sanitizeSearchTerm(term, "*")
-// 	if likeTerm == "" {
-// 		return nil, nil
-// 	}
-
-// 	var value string
-// 	likeTerm = wildcardSearchTerm(likeTerm)
-
-// 	// This will be the same for every item in th eloop
-// 	if s.DriverName() == model.DatabaseDriverPostgres {
-// 		value = ("lower(?) escape '*'")
-// 	} else {
-// 		value = "?"
-// 	}
-// 	// Prepare the LIKE portion of the query.
-// 	for _, field := range strings.Split(searchColumns, ", ") {
-// 		key := ""
-// 		if s.DriverName() == model.DatabaseDriverPostgres {
-// 			key = fmt.Sprintf("lower(%s)", field)
-// 		} else {
-// 			key = field
-// 		}
-// 		if key == "" {
-// 			return nil, errors.New("Key is nil.")
-// 		}
-// 		likeExpr := sq.Expr(fmt.Sprintf("%s LIKE %s", key, value), likeTerm)
-// 		likeClause = append(likeClause, likeExpr)
-// 	}
-
-// 	return
-// }
-
-// =======
 func (s SqlChannelStore) buildLIKEClauseX(term string, searchColumns ...string) sq.Sqlizer {
 	// escape the special characters with *
 	likeTerm := sanitizeSearchTerm(term, "*")
@@ -3452,19 +3417,11 @@ func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) 
 	return
 }
 
-// <<<<<<< HEAD
-// func (s SqlChannelStore) squirrelBuildFulltextClause(term string, searchColumns string) (fulltextClause sq.Sqlizer) {
-// =======
 func (s SqlChannelStore) buildFulltextClauseX(term string, searchColumns ...string) sq.Sqlizer {
-	// >>>>>>> origin/master
 	// Copy the terms as we will need to prepare them differently for each search type.
 	fulltextTerm := term
 
 	// These chars must be treated as spaces in the fulltext query.
-	// <<<<<<< HEAD
-	// 	for _, c := range spaceFulltextSearchChar {
-	// 		fulltextTerm = strings.Replace(fulltextTerm, c, " ", -1)
-	// =======
 	fulltextTerm = strings.Map(func(r rune) rune {
 		if strings.ContainsRune(spaceFulltextSearchChars, r) {
 			return ' '
@@ -3502,53 +3459,6 @@ func (s SqlChannelStore) buildFulltextClauseX(term string, searchColumns ...stri
 	return sq.Expr(expr, fulltextTerm)
 }
 
-// func (s SqlChannelStore) performSearch(searchQuery string, term string, parameters map[string]interface{}) (model.ChannelList, error) {
-// 	likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
-// 	if likeTerm == "" {
-// 		// If the likeTerm is empty after preparing, then don't bother searching.
-// 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
-// 	} else {
-// 		parameters["LikeTerm"] = likeTerm
-// 		fulltextClause, fulltextTerm := s.buildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
-// 		parameters["FulltextTerm"] = fulltextTerm
-// 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "AND ("+likeClause+" OR "+fulltextClause+")", 1)
-// // >>>>>>> origin/master
-// 	}
-
-// 	// Prepare the FULLTEXT portion of the query.
-// 	if s.DriverName() == model.DatabaseDriverPostgres {
-// 		fulltextTerm = strings.Replace(fulltextTerm, "|", "", -1)
-
-// 		splitTerm := strings.Fields(fulltextTerm)
-// 		for i, t := range strings.Fields(fulltextTerm) {
-// 			if i == len(splitTerm)-1 {
-// 				splitTerm[i] = t + ":*"
-// 			} else {
-// 				splitTerm[i] = t + ":* &"
-// 			}
-// 		}
-
-// 		fulltextTerm = strings.Join(splitTerm, " ")
-
-// 		cols := convertMySQLFullTextColumnsToPostgres(searchColumns)
-// 		fullClauseFmt := "((to_tsvector('english', %s)) @@ to_tsquery('english', ?))"
-
-// 		fulltextClause = sq.Expr(fmt.Sprintf(fullClauseFmt, cols), fulltextTerm)
-// 	} else if s.DriverName() == model.DatabaseDriverMysql {
-// 		splitTerm := strings.Fields(fulltextTerm)
-// 		for i, t := range strings.Fields(fulltextTerm) {
-// 			splitTerm[i] = "+" + t + "*"
-// 		}
-
-// 		fulltextTerm = strings.Join(splitTerm, " ")
-
-// 		fullClauseFmt := "MATCH(%s) AGAINST (? IN BOOLEAN MODE)"
-// 		fulltextClause = sq.Expr(fmt.Sprintf(fullClauseFmt, searchColumns), fulltextTerm)
-// 	}
-
-// 	return
-// }
-
 func (s SqlChannelStore) performSearch(searchQuery sq.SelectBuilder, term string) (model.ChannelList, error) {
 	sql, args, err := searchQuery.ToSql()
 	if err != nil {
@@ -3577,10 +3487,6 @@ func (s SqlChannelStore) searchClause(term string) sq.Sqlizer {
 	}
 }
 
-// func (s SqlChannelStore) performGlobalSearch(searchQuery sq.SelectBuilder, term string) (model.ChannelListWithTeamData, error) {
-
-// }
-
 func (s SqlChannelStore) searchGroupChannelsQuery(userId, term string, isPostgreSQL bool) sq.SelectBuilder {
 	var baseLikeTerm string
 
@@ -3594,7 +3500,10 @@ func (s SqlChannelStore) searchGroupChannelsQuery(userId, term string, isPostgre
 			From("Channels c").
 			Join("ChannelMembers cm ON c.Id=cm.ChannelId").
 			Join("Users u on u.Id = cm.UserId").
-			Where(sq.And{sq.Eq{"c.Type": "G"}, sq.Eq{"u.id": userId}}).
+			Where(sq.And{
+				sq.Eq{"c.Type": model.ChannelTypeGroup},
+				sq.Eq{"u.id": userId},
+			}).
 			GroupBy("c.Id")
 
 		for _, term := range terms {
@@ -3627,7 +3536,10 @@ func (s SqlChannelStore) searchGroupChannelsQuery(userId, term string, isPostgre
 		From("Channels c").
 		Join("ChannelMembers cm ON c.Id=cm.ChannelId").
 		Join("Users u on u.Id = cm.UserId").
-		Where(sq.And{sq.Eq{"c.Type": "G"}, sq.Eq{"u.Id": userId}}).
+		Where(sq.And{
+			sq.Eq{"c.Type": model.ChannelTypeGroup},
+			sq.Eq{"u.Id": userId},
+		}).
 		GroupBy("c.Id")
 
 	return s.getQueryBuilder().Select("cc.*").
