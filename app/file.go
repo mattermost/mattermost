@@ -48,7 +48,7 @@ const (
 )
 
 func (a *App) FileBackend() filestore.FileBackend {
-	return a.Srv().FileBackend()
+	return a.ch.filestore
 }
 
 func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
