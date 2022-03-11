@@ -3091,8 +3091,7 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted
 		}
 	}
 
-	result, err := s.performSearch(query, term)
-	return result, err
+	return s.performSearch(query, term)
 }
 
 func (s SqlChannelStore) SearchArchivedInTeam(teamId string, term string, userId string) (model.ChannelList, error) {
@@ -3157,11 +3156,9 @@ func (s SqlChannelStore) SearchForUserInTeam(userId string, teamId string, term 
 		query = query.Where(sq.Eq{"c.DeleteAt": 0})
 	}
 
-	if term != "" {
-		searchClause := s.searchClause(term)
-		if searchClause != nil {
-			query = query.Where(searchClause)
-		}
+	searchClause := s.searchClause(term)
+	if searchClause != nil {
+		query = query.Where(searchClause)
 	}
 
 	return s.performSearch(query, term)
