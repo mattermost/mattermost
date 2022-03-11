@@ -648,7 +648,7 @@ func (th *TestHelper) SetupSamlConfig() {
 		*cfg.SamlSettings.Enable = true
 		*cfg.SamlSettings.Verify = false
 		*cfg.SamlSettings.Encrypt = false
-		*cfg.SamlSettings.IdpURL = "https://does.notmatter.com"
+		*cfg.SamlSettings.IdpURL = "https://does.notmatter.example"
 		*cfg.SamlSettings.IdpDescriptorURL = "https://localhost/adfs/services/trust"
 		*cfg.SamlSettings.AssertionConsumerServiceURL = "https://localhost/login/sso/saml"
 		*cfg.SamlSettings.ServiceProviderIdentifier = "https://localhost/login/sso/saml"

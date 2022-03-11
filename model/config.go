@@ -93,6 +93,9 @@ const (
 	EmailNotificationContentsFull    = "full"
 	EmailNotificationContentsGeneric = "generic"
 
+	EmailSMTPDefaultServer = "localhost"
+	EmailSMTPDefaultPort   = "10025"
+
 	SitenameMaxLength = 30
 
 	ServiceSettingsDefaultSiteURL          = "http://localhost:8065"
@@ -1598,11 +1601,11 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.SMTPServer == nil || *s.SMTPServer == "" {
-		s.SMTPServer = NewString("localhost")
+		s.SMTPServer = NewString(EmailSMTPDefaultServer)
 	}
 
 	if s.SMTPPort == nil || *s.SMTPPort == "" {
-		s.SMTPPort = NewString("10025")
+		s.SMTPPort = NewString(EmailSMTPDefaultPort)
 	}
 
 	if s.SMTPServerTimeout == nil || *s.SMTPServerTimeout == 0 {
@@ -1739,7 +1742,7 @@ type SupportSettings struct {
 	AboutLink                              *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	HelpLink                               *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	ReportAProblemLink                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
-	SupportEmail                           *string `access:"site_customization"`
+	SupportEmail                           *string `access:"site_notifications"`
 	CustomTermsOfServiceEnabled            *bool   `access:"compliance_custom_terms_of_service"`
 	CustomTermsOfServiceReAcceptancePeriod *int    `access:"compliance_custom_terms_of_service"`
 	EnableAskCommunityLink                 *bool   `access:"site_customization"`

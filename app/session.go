@@ -255,7 +255,7 @@ func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
 // A new ExpiresAt is only written if enough time has elapsed since last update.
 // Returns true only if the session was extended.
 func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) bool {
-	if !*a.Srv().Config().ServiceSettings.ExtendSessionLengthWithActivity {
+	if !*a.Config().ServiceSettings.ExtendSessionLengthWithActivity {
 		return false
 	}
 

@@ -2492,10 +2492,6 @@
     "translation": "Ім'я дисплея каналу не в межах дозволених обмежень довжини."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Відсутнє необхідне властивість каналу: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "Заголовок каналу задовгий."
   },
@@ -6504,10 +6500,6 @@
     "translation": "Не вдалося оновити заголовок прямого каналу"
   },
   {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Request trial"
-  },
-  {
     "id": "api.server.warn_metric.mfa.notification_title",
     "translation": "Забезпечити багатофакторну автентифікацію:"
   },
@@ -6662,10 +6654,6 @@
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "Не вдалося оновити заголовок прямого каналу"
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Не вдається збільшити кількість згадок"
   },
   {
     "id": "app.channel.get_pinnedpost_count.app_error",

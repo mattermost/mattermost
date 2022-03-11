@@ -387,28 +387,29 @@ blackfriday v2 seems to be the fastest, but as it is not CommonMark compliant, i
 goldmark, meanwhile, builds a clean, extensible AST structure, achieves full compliance with
 CommonMark, and consumes less memory, all while being reasonably fast.
 
+- MBP 2019 13″(i5, 16GB), Go1.17
+
 ```
-goos: darwin
-goarch: amd64
-BenchmarkMarkdown/Blackfriday-v2-12                  326           3465240 ns/op         3298861 B/op      20047 allocs/op
-BenchmarkMarkdown/GoldMark-12                        303           3927494 ns/op         2574809 B/op      13853 allocs/op
-BenchmarkMarkdown/CommonMark-12                      244           4900853 ns/op         2753851 B/op      20527 allocs/op
-BenchmarkMarkdown/Lute-12                            130           9195245 ns/op         9175030 B/op     123534 allocs/op
-BenchmarkMarkdown/GoMarkdown-12                        9         113541994 ns/op         2187472 B/op      22173 allocs/op
+BenchmarkMarkdown/Blackfriday-v2-8                   302           3743747 ns/op         3290445 B/op      20050 allocs/op
+BenchmarkMarkdown/GoldMark-8                         280           4200974 ns/op         2559738 B/op      13435 allocs/op
+BenchmarkMarkdown/CommonMark-8                       226           5283686 ns/op         2702490 B/op      20792 allocs/op
+BenchmarkMarkdown/Lute-8                              12          92652857 ns/op        10602649 B/op      40555 allocs/op
+BenchmarkMarkdown/GoMarkdown-8                        13          81380167 ns/op         2245002 B/op      22889 allocs/op
 ```
 
 ### against cmark (CommonMark reference implementation written in C)
+
+- MBP 2019 13″(i5, 16GB), Go1.17
 
 ```
 ----------- cmark -----------
 file: _data.md
 iteration: 50
-average: 0.0037760639 sec
-go run ./goldmark_benchmark.go
+average: 0.0044073057 sec
 ------- goldmark -------
 file: _data.md
 iteration: 50
-average: 0.0040964230 sec
+average: 0.0041611990 sec
 ```
 
 As you can see, goldmark's performance is on par with cmark's.

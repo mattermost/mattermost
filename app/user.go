@@ -219,6 +219,11 @@ func (a *App) CreateGuest(c *request.Context, user *model.User) (*model.User, *m
 }
 
 func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool) (*model.User, *model.AppError) {
+	if err := a.isUniqueToGroupNames(user.Username); err != nil {
+		err.Where = "createUserOrGuest"
+		return nil, err
+	}
+
 	ruser, nErr := a.ch.srv.userService.CreateUser(user, users.UserCreateOptions{Guest: guest})
 	if nErr != nil {
 		var appErr *model.AppError
@@ -1053,6 +1058,21 @@ func (a *App) sendUpdatedUserEvent(user model.User) {
 	a.Publish(sourceUserMessage)
 }
 
+func (a *App) isUniqueToGroupNames(val string) *model.AppError {
+	if val == "" {
+		return nil
+	}
+	var notFoundErr *store.ErrNotFound
+	group, err := a.Srv().Store.Group().GetByName(val, model.GroupSearchOpts{})
+	if err != nil && !errors.As(err, &notFoundErr) {
+		return model.NewAppError("", "app.user.get_by_name_failure", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if group != nil {
+		return model.NewAppError("", "app.user.group_name_conflict", nil, "", http.StatusBadRequest)
+	}
+	return nil
+}
+
 func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError) {
 	prev, err := a.ch.srv.userService.GetUser(user.Id)
 	if err != nil {
@@ -1062,6 +1082,13 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 			return nil, model.NewAppError("UpdateUser", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("UpdateUser", "app.user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	if user.Username != prev.Username {
+		if err := a.isUniqueToGroupNames(user.Username); err != nil {
+			err.Where = "UpdateUser"
+			return nil, err
 		}
 	}
 
@@ -2300,7 +2327,7 @@ func (a *App) GetThreadForUser(teamID string, threadMembership *model.ThreadMemb
 }
 
 func (a *App) UpdateThreadsReadForUser(userID, teamID string) *model.AppError {
-	nErr := a.Srv().Store.Thread().MarkAllAsRead(userID, teamID)
+	nErr := a.Srv().Store.Thread().MarkAllAsReadByTeam(userID, teamID)
 	if nErr != nil {
 		return model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}

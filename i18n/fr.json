@@ -2488,10 +2488,6 @@
     "translation": "La propriété de canal display_name ne respecte pas les contraintes de longueur autorisées."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "La propriété de canal requise est manquante : display_name."
-  },
-  {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "L'entête du canal est trop long."
   },
@@ -6508,10 +6504,6 @@
     "translation": "Impossible de récupérer les membres du canal."
   },
   {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Commencer l'essai"
-  },
-  {
     "id": "api.server.warn_metric.mfa.notification_title",
     "translation": "Imposer l'authentification multi-facteurs"
   },
@@ -6668,10 +6660,6 @@
     "translation": "Impossible de récupérer le membre du canal."
   },
   {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Impossible d'incrémenter le nombre de mentions."
-  },
-  {
     "id": "app.channel.get_pinnedpost_count.app_error",
     "translation": "Impossible de récupérer le nombre de messages épinglés au canal."
   },
@@ -6820,10 +6808,6 @@
     "translation": "La connexion de bot est interdite."
   },
   {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Impossible de trouver la valeur déclenchant un avertissement."
-  },
-  {
     "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
     "translation": "Impossible de trouver la valeur déclenchant un avertissement."
   },
@@ -6866,10 +6850,6 @@
   {
     "id": "api.admin.ldap.not_available.app_error",
     "translation": "LDAP n'est pas disponible."
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[En savoir plus à propos du conseiller Mattermost] (https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "api.templates.invite_body_footer.learn_more",
@@ -6934,14 +6914,6 @@
   {
     "id": "api.server.warn_metric.email_domain.notification_title",
     "translation": "Création de comptes d'invités"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Nous contacter"
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Nous contacter"
   },
   {
     "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
@@ -7217,7 +7189,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Deuxième étage, Palo Alto, CA, 94301"
+    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Deuxième étage, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.copyright",
@@ -7578,10 +7550,6 @@
   {
     "id": "app.system.warn_metric.store.app_error",
     "translation": "Impossible d'enregistrer la valeur pour {{.WarnMetricName}}"
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "La liste des admins est vide."
   },
   {
     "id": "app.system.warn_metric.bot_displayname",
@@ -8145,7 +8113,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Simplifiez votre travail avec des outils tels que Github, Jora et Zoom. Explorez toutes les intégrations que nous proposons sur notre"
+    "translation": "Simplifiez votre travail avec des outils tels que GitHub, Jira et Zoom. Explorez toutes les intégrations que nous proposons sur notre"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -8173,7 +8141,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, votre essai gratuit de 14 jours de Mattermost Cloud Enterprise a pris fin aujourd'hui, {{.TodayDate}}. Veuillez ajouter vos informations de paiement pour que votre équipe puisse continuer à profiter des avantages de la version Cloud Enterprise."
+    "translation": "{{.Name}}, votre essai gratuit de 14 jours de Mattermost Cloud Enterprise a pris fin aujourd'hui, {{.TodayDate}}. Veuillez ajouter vos informations de paiement pour que votre équipe puisse continuer à profiter des avantages de la version Cloud Enterprise. Si vous n'ajoutez pas vos informations de paiement dans les 30 jours, votre espace de travail Cloud sera supprimé définitivement et vous perdrez toutes les données associées."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -8230,18 +8198,6 @@
   {
     "id": "api.system.update_notices.fetch_failed",
     "translation": "La récupération des avis sur le produit a échoué"
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "Allez dans **Console système > Configuration du site > Personnalisation** pour définir l'adresse [e-mail d'assistance](https://docs.mattermost.com/administration/config-settings.html#support-email) comme l'adresse électronique du service d'assistance informatique interne de votre organisation pour les commentaires des utilisateurs finaux, les notifications par courriel et les demandes d'assistance."
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "Définissez votre adresse e-mail d'assistance"
-  },
-  {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Obtenir une version d'essai"
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
@@ -8876,7 +8832,7 @@
   },
   {
     "id": "api.user.create_user.bad_token_email_data.app_error",
-    "translation": "L’adresse e-mail dans le  token ne correspond pas à celui des données utilisateur."
+    "translation": "L’adresse e-mail dans le token ne correspond pas à celui des données utilisateur."
   },
   {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
@@ -8893,5 +8849,33 @@
   {
     "id": "api.license.request_renewal_link.cannot_renew_on_cws",
     "translation": "Le renouvellement de cette licence sur le portail n'est pas possible"
+  },
+  {
+    "id": "api.templates.server_inactivity_subtitle",
+    "translation": "Bonjour {{.Name}}, nous avons remarqué que votre serveur Mattermost collecte un peu la poussière. Découvrez quelques fonctionnalités qui peuvent vous aider à alléger la charge de travail de votre équipe."
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet2",
+    "translation": "Gérez des tâches en utilisant "
+  },
+  {
+    "id": "api.templates.server_inactivity_info",
+    "translation": "Venez et regarder ça !"
+  },
+  {
+    "id": "api.templates.server_inactivity_button",
+    "translation": "Ouvrir Mattermost"
+  },
+  {
+    "id": "Playbooks",
+    "translation": "Playbooks"
+  },
+  {
+    "id": "Channels",
+    "translation": "Channels"
+  },
+  {
+    "id": "Boards",
+    "translation": "Boards"
   }
 ]
