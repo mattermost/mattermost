@@ -2200,6 +2200,8 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
 	supportPacket := model.SupportPacket{
 		ServerOS:             runtime.GOOS,
 		ServerArchitecture:   runtime.GOARCH,
+		ServerVersion:        model.CurrentVersion,
+		BuildHash:            model.BuildHash,
 		DatabaseType:         databaseType,
 		DatabaseVersion:      databaseVersion,
 		LdapVendorName:       vendorName,
