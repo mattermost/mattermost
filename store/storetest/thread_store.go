@@ -23,6 +23,7 @@ func TestThreadStore(t *testing.T, ss store.Store, s SqlStore) {
 		testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t, ss, s)
 	})
 	t.Run("GetTeamsUnreadForUser", func(t *testing.T) { testGetTeamsUnreadForUser(t, ss) })
+	t.Run("GetThreadsForUser", func(t *testing.T) { testGetThreadsForUser(t, ss) })
 	t.Run("MarkAllAsReadByChannels", func(t *testing.T) { testMarkAllAsReadByChannels(t, ss) })
 }
 
@@ -676,6 +677,158 @@ func testGetTeamsUnreadForUser(t *testing.T, ss store.Store) {
 	assert.Len(t, teamsUnread, 1)
 	assert.Equal(t, int64(1), teamsUnread[team2.Id].ThreadCount)
 	assert.Equal(t, int64(1), teamsUnread[team2.Id].ThreadMentionCount)
+}
+
+func testGetThreadsForUser(t *testing.T, ss store.Store) {
+	user1, err := ss.User().Save(&model.User{
+		Username: "user1" + model.NewId(),
+		Email:    MakeEmail(),
+	})
+	require.NoError(t, err)
+	user2, err := ss.User().Save(&model.User{
+		Username: "user2" + model.NewId(),
+		Email:    MakeEmail(),
+	})
+	require.NoError(t, err)
+
+	user1ID := user1.Id
+	user2ID := user2.Id
+
+	team1, err := ss.Team().Save(&model.Team{
+		DisplayName: "Team1",
+		Name:        "team" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+
+	team2, err := ss.Team().Save(&model.Team{
+		DisplayName: "Team2",
+		Name:        "team" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+
+	team1channel1, err := ss.Channel().Save(&model.Channel{
+		TeamId:      team1.Id,
+		DisplayName: "Channel1",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	team2channel1, err := ss.Channel().Save(&model.Channel{
+		TeamId:      team2.Id,
+		DisplayName: "Channel2",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	dm1, err := ss.Channel().CreateDirectChannel(&model.User{Id: user1ID}, &model.User{Id: user2ID})
+	require.NoError(t, err)
+
+	gm1, err := ss.Channel().Save(&model.Channel{
+		DisplayName: "GM",
+		Name:        "gm" + model.NewId(),
+		Type:        model.ChannelTypeGroup,
+	}, -1)
+	require.NoError(t, err)
+
+	team1channel1post1, err := ss.Post().Save(&model.Post{
+		ChannelId: team1channel1.Id,
+		UserId:    user1ID,
+		Message:   model.NewRandomString(10),
+	})
+	require.NoError(t, err)
+
+	team1channel1post2, err := ss.Post().Save(&model.Post{
+		ChannelId: team1channel1.Id,
+		UserId:    user1ID,
+		Message:   model.NewRandomString(10),
+	})
+	require.NoError(t, err)
+
+	team2channel1post1, err := ss.Post().Save(&model.Post{
+		ChannelId: team2channel1.Id,
+		UserId:    user1ID,
+		Message:   model.NewRandomString(10),
+	})
+	require.NoError(t, err)
+
+	dm1post1, err := ss.Post().Save(&model.Post{
+		ChannelId: dm1.Id,
+		UserId:    user1ID,
+		Message:   model.NewRandomString(10),
+	})
+	require.NoError(t, err)
+
+	gm1post1, err := ss.Post().Save(&model.Post{
+		ChannelId: gm1.Id,
+		UserId:    user1ID,
+		Message:   model.NewRandomString(10),
+	})
+	require.NoError(t, err)
+
+	threadStoreCreateReply(t, ss, team1channel1.Id, team1channel1post1.Id, user2ID, model.GetMillis())
+	threadStoreCreateReply(t, ss, team1channel1.Id, team1channel1post2.Id, user2ID, model.GetMillis())
+	threadStoreCreateReply(t, ss, team2channel1.Id, team2channel1post1.Id, user2ID, model.GetMillis())
+	threadStoreCreateReply(t, ss, dm1.Id, dm1post1.Id, user2ID, model.GetMillis())
+	threadStoreCreateReply(t, ss, gm1.Id, gm1post1.Id, user2ID, model.GetMillis())
+
+	createThreadMembership := func(userID, postID string) {
+		t.Helper()
+
+		opts := store.ThreadMembershipOpts{
+			Following:             true,
+			IncrementMentions:     false,
+			UpdateFollowing:       true,
+			UpdateViewedTimestamp: false,
+			UpdateParticipants:    false,
+		}
+		_, err := ss.Thread().MaintainMembership(userID, postID, opts)
+		require.NoError(t, err)
+	}
+
+	createThreadMembership(user1ID, team1channel1post1.Id)
+	createThreadMembership(user1ID, team1channel1post2.Id)
+	createThreadMembership(user1ID, team2channel1post1.Id)
+	createThreadMembership(user1ID, dm1post1.Id)
+	createThreadMembership(user1ID, gm1post1.Id)
+
+	t.Run("no team specified, user1", func(t *testing.T) {
+		threads, err := ss.Thread().GetThreadsForUser(user1ID, "", model.GetUserThreadsOpts{})
+		require.NoError(t, err)
+
+		// 2 threads from team1, 1 threads from team2, 1 dm thread, 1 gm thread
+		assert.EqualValues(t, 5, threads.Total)
+		assert.EqualValues(t, 5, threads.TotalUnreadThreads)
+		assert.EqualValues(t, 0, threads.TotalUnreadMentions)
+		assert.Len(t, threads.Threads, 5)
+	})
+
+	t.Run("team1 specified, user1", func(t *testing.T) {
+		threads, err := ss.Thread().GetThreadsForUser(user1ID, team1.Id, model.GetUserThreadsOpts{})
+		require.NoError(t, err)
+
+		// 2 threads from team1, 1 dm thread, 1 gm thread
+		assert.EqualValues(t, 4, threads.Total)
+		assert.EqualValues(t, 4, threads.TotalUnreadThreads)
+		assert.EqualValues(t, 0, threads.TotalUnreadMentions)
+		assert.Len(t, threads.Threads, 4)
+	})
+
+	t.Run("team2 specified, user1", func(t *testing.T) {
+		threads, err := ss.Thread().GetThreadsForUser(user1ID, team2.Id, model.GetUserThreadsOpts{})
+		require.NoError(t, err)
+
+		// 1 thread from team1, 1 dm thread, 1 gm thread
+		assert.EqualValues(t, 3, threads.Total)
+		assert.EqualValues(t, 3, threads.TotalUnreadThreads)
+		assert.EqualValues(t, 0, threads.TotalUnreadMentions)
+		assert.Len(t, threads.Threads, 3)
+	})
 }
 
 func testMarkAllAsReadByChannels(t *testing.T, ss store.Store) {
