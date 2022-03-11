@@ -2864,7 +2864,7 @@ func (s SqlChannelStore) GetTeamMembersForChannel(channelID string) ([]string, e
 }
 
 func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) (model.ChannelListWithTeamData, error) {
-	q := s.getQueryBuilder().Select("c.*",
+	query := s.getQueryBuilder().Select("c.*",
 		"t.DisplayName AS TeamDisplayName",
 		"t.Name AS TeamName",
 		"t.UpdateAt AS TeamUpdateAt").
@@ -2886,14 +2886,14 @@ func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) 
 		OrderBy("c.DisplayName")
 
 	if !includeDeleted {
-		q = q.Where(sq.Eq{"c.DeleteAt": 0})
+		query = query.Where(sq.Eq{"c.DeleteAt": 0})
 	}
 	searchClause := s.searchClause(term)
 	if searchClause != nil {
-		q = q.Where(searchClause)
+		query = query.Where(searchClause)
 	}
 
-	sql, args, err := q.ToSql()
+	sql, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "Autocomplete_Tosql")
 	}
@@ -2907,7 +2907,7 @@ func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) 
 }
 
 func (s SqlChannelStore) AutocompleteInTeam(teamID, userID, term string, includeDeleted bool) (model.ChannelList, error) {
-	query := sq.Select("*").
+	query := s.getQueryBuilder().Select("*").
 		From("Channels c").
 		Where(sq.And{
 			sq.Eq{"c.TeamId": teamID},
@@ -3064,8 +3064,7 @@ func (s SqlChannelStore) autocompleteInTeamForSearchDirectMessages(userID string
 
 	// query the channel list from the database using SQLX
 	channels := model.ChannelList{}
-	err = s.GetReplicaX().Select(&channels, sql, args...)
-	if err != nil {
+	if err := s.GetReplicaX().Select(&channels, sql, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Channels with term='%s' (%s %% %v)", term, sql, args)
 	}
 
@@ -3095,7 +3094,7 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted
 }
 
 func (s SqlChannelStore) SearchArchivedInTeam(teamId string, term string, userId string) (model.ChannelList, error) {
-	queryBase := sq.Select("Channels.*").
+	queryBase := s.getQueryBuilder().Select("Channels.*").
 		From("Channels").
 		Join("Channels c ON (c.Id = Channels.Id)").
 		Where(sq.And{
@@ -3486,14 +3485,13 @@ func (s SqlChannelStore) searchClause(term string) sq.Sqlizer {
 
 func (s SqlChannelStore) searchGroupChannelsQuery(userId, term string, isPostgreSQL bool) sq.SelectBuilder {
 	var baseLikeTerm string
-
-	terms := strings.Split(strings.ToLower(strings.Trim(term, " ")), " ")
+	terms := strings.Fields((strings.ToLower(term)))
 
 	having := sq.And{}
 
 	if isPostgreSQL {
 		baseLikeTerm = "ARRAY_TO_STRING(ARRAY_AGG(u.Username), ', ') LIKE ?"
-		cc := sq.Select("c.Id").
+		cc := s.getSubQueryBuilder().Select("c.Id").
 			From("Channels c").
 			Join("ChannelMembers cm ON c.Id=cm.ChannelId").
 			Join("Users u on u.Id = cm.UserId").
@@ -3508,7 +3506,7 @@ func (s SqlChannelStore) searchGroupChannelsQuery(userId, term string, isPostgre
 			having = append(having, sq.Expr(baseLikeTerm, "%"+term+"%"))
 		}
 
-		subq := sq.Select("cc.id").
+		subq := s.getSubQueryBuilder().Select("cc.id").
 			FromSelect(cc, "cc").
 			Join("ChannelMembers cm On cc.Id = cm.ChannelId").
 			Join("Users u On u.Id = cm.UserId").
@@ -3529,13 +3527,13 @@ func (s SqlChannelStore) searchGroupChannelsQuery(userId, term string, isPostgre
 		having = append(having, sq.Expr(baseLikeTerm, "%"+term+"%"))
 	}
 
-	cc := sq.Select("c.*").
+	cc := s.getSubQueryBuilder().Select("c.*").
 		From("Channels c").
 		Join("ChannelMembers cm ON c.Id=cm.ChannelId").
 		Join("Users u on u.Id = cm.UserId").
-		Where(sq.And{
-			sq.Eq{"c.Type": model.ChannelTypeGroup},
-			sq.Eq{"u.Id": userId},
+		Where(sq.Eq{
+			"c.Type": model.ChannelTypeGroup,
+			"u.Id":   userId,
 		}).
 		GroupBy("c.Id")
 
