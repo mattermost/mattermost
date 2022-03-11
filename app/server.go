@@ -89,8 +89,9 @@ var SentryDSN = "placeholder_sentry_dsn"
 type ServiceKey string
 
 const (
-	ConfigKey  ServiceKey = "config"
-	LicenseKey ServiceKey = "license"
+	ConfigKey    ServiceKey = "config"
+	LicenseKey   ServiceKey = "license"
+	FilestoreKey ServiceKey = "filestore"
 )
 
 type Server struct {
@@ -362,8 +363,9 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	serviceMap := map[ServiceKey]interface{}{
-		ConfigKey:  s.configStore,
-		LicenseKey: s.licenseWrapper,
+		ConfigKey:    s.configStore,
+		LicenseKey:   s.licenseWrapper,
+		FilestoreKey: s.filestore,
 	}
 	// Step 8: Initialize products.
 	// Depends on s.httpService.
@@ -1879,8 +1881,6 @@ func (ch *Channels) ClientConfigHash() string {
 
 func (s *Server) initJobs() {
 	s.Jobs = jobs.NewJobServer(s, s.Store, s.Metrics)
-	s.Jobs.InitWorkers()
-	s.Jobs.InitSchedulers()
 
 	if jobsDataRetentionJobInterface != nil {
 		builder := jobsDataRetentionJobInterface(s)
