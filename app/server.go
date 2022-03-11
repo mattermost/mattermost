@@ -751,8 +751,8 @@ func (s *Server) Channels() *Channels {
 	return ch
 }
 
-// Return Database type (postgres or mysql) and current version of Mattermost
-func (s *Server) DatabaseTypeAndMattermostVersion() (string, string) {
+// Return Database type (postgres or mysql) and current version of the schema
+func (s *Server) DatabaseTypeAndSchemaVersion() (string, string) {
 	schemaVersion, _ := s.Store.GetDBSchemaVersion()
 	return *s.Config().SqlSettings.DriverName, strconv.Itoa(schemaVersion)
 }
@@ -2193,8 +2193,8 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
 		vendorName, vendorVersion = ldapInterface.GetVendorNameAndVendorVersion()
 	}
 
-	// Here we are getting information regarding the database (mysql/postgres + current Mattermost version)
-	databaseType, databaseVersion := a.Srv().DatabaseTypeAndMattermostVersion()
+	// Here we are getting information regarding the database (mysql/postgres + current schema version)
+	databaseType, databaseVersion := a.Srv().DatabaseTypeAndSchemaVersion()
 
 	// Creating the struct for support packet yaml file
 	supportPacket := model.SupportPacket{

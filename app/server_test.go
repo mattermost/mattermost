@@ -233,7 +233,7 @@ func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	databaseType, mattermostVersion := th.Server.DatabaseTypeAndMattermostVersion()
+	databaseType, mattermostVersion := th.Server.DatabaseTypeAndSchemaVersion()
 	assert.Equal(t, "postgres", databaseType)
 	assert.GreaterOrEqual(t, mattermostVersion, strconv.Itoa(1))
 
@@ -242,7 +242,7 @@ func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
 	th2 := Setup(t)
 	defer th2.TearDown()
 
-	databaseType, mattermostVersion = th2.Server.DatabaseTypeAndMattermostVersion()
+	databaseType, mattermostVersion = th2.Server.DatabaseTypeAndSchemaVersion()
 	assert.Equal(t, "mysql", databaseType)
 	assert.GreaterOrEqual(t, mattermostVersion, strconv.Itoa(1))
 }
