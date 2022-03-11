@@ -914,4 +914,20 @@ func TestCompleteOnboarding(t *testing.T) {
 		}
 
 	})
+
+	t.Run("as a system admin when plugins are disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = false
+		})
+
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PluginSettings.Enable = true
+			})
+		})
+
+		resp, err := th.SystemAdminClient.CompleteOnboarding(req)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
 }
