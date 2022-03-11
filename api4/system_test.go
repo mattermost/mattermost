@@ -222,6 +222,12 @@ func TestGenerateSupportPacket(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
+	t.Run("As a system role, not system admin", func(t *testing.T) {
+		_, resp, err := th.SystemManagerClient.GenerateSupportPacket()
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
 	t.Run("As a Regular User", func(t *testing.T) {
 		_, resp, err := th.Client.GenerateSupportPacket()
 		require.Error(t, err)
@@ -907,6 +913,22 @@ func TestCompleteOnboarding(t *testing.T) {
 			require.Fail(t, "timed out waiting testplugin2 to be installed and enabled ")
 		}
 
+	})
+
+	t.Run("as a system admin when plugins are disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = false
+		})
+
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PluginSettings.Enable = true
+			})
+		})
+
+		resp, err := th.SystemAdminClient.CompleteOnboarding(req)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 	})
 }
 
