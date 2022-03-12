@@ -4,6 +4,7 @@
 package wsapi
 
 import (
+	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
@@ -13,12 +14,12 @@ func (api *API) InitStatus() {
 	api.Router.Handle("get_statuses_by_ids", api.APIWebSocketHandler(api.getStatusesByIds))
 }
 
-func (api *API) getStatuses(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) getStatuses(req *model.WebSocketRequest, _ *app.WebConn) (map[string]interface{}, *model.AppError) {
 	statusMap := api.App.GetAllStatuses()
 	return model.StatusMapToInterfaceMap(statusMap), nil
 }
 
-func (api *API) getStatusesByIds(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) getStatusesByIds(req *model.WebSocketRequest, _ *app.WebConn) (map[string]interface{}, *model.AppError) {
 	var userIds []string
 	if userIds = model.ArrayFromInterface(req.Data["user_ids"]); len(userIds) == 0 {
 		mlog.Debug("Error while parsing user_ids", mlog.String("data", model.StringInterfaceToJSON(req.Data)))

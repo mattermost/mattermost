@@ -339,3 +339,108 @@ func TestWebConnDrainDeadQueue(t *testing.T) {
 		t.Run("Overwritten First", func(t *testing.T) { run(int64(128), deadQueueSize+10) })
 	})
 }
+
+func TestWebConnSubscriptions(t *testing.T) {
+	t.Run("Subscribe/Unsubscribe", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		wc := th.App.NewWebConn(&WebConnConfig{
+			WebSocket: &websocket.Conn{},
+		})
+
+		fakeSubjectID1 := model.WebsocketSubjectID("foo")
+		fakeSubjectID2 := model.WebsocketSubjectID("bar")
+
+		require.False(t, wc.IsSubscribed(fakeSubjectID1))
+		require.False(t, wc.subscriptions[fakeSubjectID1])
+		require.False(t, wc.IsSubscribed(fakeSubjectID2))
+		require.False(t, wc.subscriptions[fakeSubjectID2])
+
+		wc.Subscribe(fakeSubjectID1)
+		require.True(t, wc.IsSubscribed(fakeSubjectID1))
+		require.True(t, wc.subscriptions[fakeSubjectID1])
+		require.False(t, wc.IsSubscribed(fakeSubjectID2))
+		require.False(t, wc.subscriptions[fakeSubjectID2])
+
+		wc.Subscribe(fakeSubjectID2)
+		require.True(t, wc.IsSubscribed(fakeSubjectID2))
+		require.True(t, wc.subscriptions[fakeSubjectID2])
+
+		wc.Unsubscribe(fakeSubjectID1)
+		require.False(t, wc.IsSubscribed(fakeSubjectID1))
+		require.False(t, wc.subscriptions[fakeSubjectID1])
+		require.True(t, wc.IsSubscribed(fakeSubjectID2))
+		require.True(t, wc.subscriptions[fakeSubjectID2])
+	})
+
+	t.Run("Only subscribed connection receives broadcast", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		fakeSubjectID := model.WebsocketSubjectID("foo")
+
+		session1, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Roles: th.BasicUser.GetRawRoles(), TeamMembers: []*model.TeamMember{
+			{
+				UserId: th.BasicUser.Id,
+				TeamId: th.BasicTeam.Id,
+				Roles:  model.TeamUserRoleId,
+			},
+		}})
+		require.Nil(t, err)
+
+		basicUser1Wc := &WebConn{
+			App:           th.App,
+			UserId:        th.BasicUser.Id,
+			T:             i18n.T,
+			subscriptions: make(map[model.WebsocketSubjectID]bool),
+		}
+		basicUser1Wc.Subscribe(fakeSubjectID)
+
+		basicUser1Wc.SetSession(session1)
+		basicUser1Wc.SetSessionToken(session1.Token)
+		basicUser1Wc.SetSessionExpiresAt(session1.ExpiresAt)
+
+		session2, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser2.Id, Roles: th.BasicUser2.GetRawRoles(), TeamMembers: []*model.TeamMember{
+			{
+				UserId: th.BasicUser2.Id,
+				TeamId: th.BasicTeam.Id,
+				Roles:  model.TeamAdminRoleId,
+			},
+		}})
+		require.Nil(t, err)
+
+		basicUser2Wc := &WebConn{
+			App:           th.App,
+			UserId:        th.BasicUser2.Id,
+			T:             i18n.T,
+			subscriptions: make(map[model.WebsocketSubjectID]bool),
+		}
+
+		basicUser2Wc.SetSession(session2)
+		basicUser2Wc.SetSessionToken(session2.Token)
+		basicUser2Wc.SetSessionExpiresAt(session2.ExpiresAt)
+
+		event := model.NewWebSocketEvent("some_event", "", "", "", nil)
+		event = event.SetBroadcast(&model.WebsocketBroadcast{})
+
+		// subscription associated to the event, both should receive it
+		assert.True(t, basicUser1Wc.shouldSendEvent(event))
+		assert.True(t, basicUser2Wc.shouldSendEvent(event))
+
+		// subscribe one
+		event.SetSubject(fakeSubjectID)
+		assert.True(t, basicUser1Wc.shouldSendEvent(event))
+		assert.False(t, basicUser2Wc.shouldSendEvent(event))
+
+		// subscribe the other too
+		basicUser2Wc.Subscribe(fakeSubjectID)
+		assert.True(t, basicUser1Wc.shouldSendEvent(event))
+		assert.True(t, basicUser2Wc.shouldSendEvent(event))
+
+		// unsubscribe one
+		basicUser1Wc.Unsubscribe(fakeSubjectID)
+		assert.False(t, basicUser1Wc.shouldSendEvent(event))
+		assert.True(t, basicUser2Wc.shouldSendEvent(event))
+	})
+}

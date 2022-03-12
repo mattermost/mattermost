@@ -4,6 +4,7 @@
 package wsapi
 
 import (
+	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
@@ -11,7 +12,7 @@ func (api *API) InitSystem() {
 	api.Router.Handle("ping", api.APIWebSocketHandler(ping))
 }
 
-func ping(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func ping(req *model.WebSocketRequest, _ *app.WebConn) (map[string]interface{}, *model.AppError) {
 	data := map[string]interface{}{}
 	data["text"] = "pong"
 	data["version"] = model.CurrentVersion

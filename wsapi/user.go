@@ -4,6 +4,7 @@
 package wsapi
 
 import (
+	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
@@ -12,7 +13,7 @@ func (api *API) InitUser() {
 	api.Router.Handle("user_update_active_status", api.APIWebSocketHandler(api.userUpdateActiveStatus))
 }
 
-func (api *API) userTyping(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) userTyping(req *model.WebSocketRequest, _ *app.WebConn) (map[string]interface{}, *model.AppError) {
 	api.App.ExtendSessionExpiryIfNeeded(&req.Session)
 
 	if api.App.Srv().Busy.IsBusy() {
@@ -40,7 +41,7 @@ func (api *API) userTyping(req *model.WebSocketRequest) (map[string]interface{},
 	return nil, appErr
 }
 
-func (api *API) userUpdateActiveStatus(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) userUpdateActiveStatus(req *model.WebSocketRequest, _ *app.WebConn) (map[string]interface{}, *model.AppError) {
 	var ok bool
 	var userIsActive bool
 	if userIsActive, ok = req.Data["user_is_active"].(bool); !ok {

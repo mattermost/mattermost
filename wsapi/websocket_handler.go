@@ -12,13 +12,13 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
-func (api *API) APIWebSocketHandler(wh func(*model.WebSocketRequest) (map[string]interface{}, *model.AppError)) webSocketHandler {
+func (api *API) APIWebSocketHandler(wh func(*model.WebSocketRequest, *app.WebConn) (map[string]interface{}, *model.AppError)) webSocketHandler {
 	return webSocketHandler{api.App, wh}
 }
 
 type webSocketHandler struct {
 	app         *app.App
-	handlerFunc func(*model.WebSocketRequest) (map[string]interface{}, *model.AppError)
+	handlerFunc func(*model.WebSocketRequest, *app.WebConn) (map[string]interface{}, *model.AppError)
 }
 
 func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketRequest) {
@@ -53,7 +53,7 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 	var data map[string]interface{}
 	var err *model.AppError
 
-	if data, err = wh.handlerFunc(r); err != nil {
+	if data, err = wh.handlerFunc(r, conn); err != nil {
 		mlog.Error(
 			"websocket request handling error",
 			mlog.String("action", r.Action),
