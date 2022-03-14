@@ -13,6 +13,7 @@ type PreviewPost struct {
 	TeamName           string      `json:"team_name"`
 	ChannelDisplayName string      `json:"channel_display_name"`
 	ChannelType        ChannelType `json:"channel_type"`
+	ChannelID          string      `json:"channel_id"`
 }
 
 func NewPreviewPost(post *Post, team *Team, channel *Channel) *PreviewPost {
@@ -25,5 +26,6 @@ func NewPreviewPost(post *Post, team *Team, channel *Channel) *PreviewPost {
 		TeamName:           team.Name,
 		ChannelDisplayName: channel.DisplayName,
 		ChannelType:        channel.Type,
+		ChannelID:          channel.Id,
 	}
 }
