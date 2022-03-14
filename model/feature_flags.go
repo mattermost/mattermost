@@ -74,9 +74,6 @@ type FeatureFlags struct {
 	// Enable special onboarding flow for first admin
 	UseCaseOnboarding bool
 
-	// Enable Workspace optimization dashboard
-	WorkspaceOptimizationDashboard bool
-
 	// Enable GraphQL feature
 	GraphQL bool
 }
@@ -105,7 +102,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.NormalizeLdapDNs = false
 	f.EnableInactivityCheckJob = true
 	f.UseCaseOnboarding = true
-	f.WorkspaceOptimizationDashboard = true
 	f.GraphQL = false
 }
 func (f *FeatureFlags) Plugins() map[string]string {
