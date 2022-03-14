@@ -58,9 +58,6 @@ type FeatureFlags struct {
 
 	CustomGroups bool
 
-	// Enable inline post editing
-	InlinePostEditing bool
-
 	// Enable DataRetention for Boards
 	BoardsDataRetention bool
 
@@ -93,7 +90,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.GuidedChannelCreation = false
 	f.InviteToTeam = "none"
 	f.CustomGroups = true
-	f.InlinePostEditing = false
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
 	f.EnableInactivityCheckJob = true
