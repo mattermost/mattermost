@@ -38,9 +38,6 @@ type FeatureFlags struct {
 
 	PermalinkPreviews bool
 
-	// Enable the Global Header
-	GlobalHeader bool
-
 	// Determine whether when a user gets created, they'll have noisy notifications e.g. Send desktop notifications for all activity
 	NewAccountNoisy bool
 
@@ -89,7 +86,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
 	f.PermalinkPreviews = true
-	f.GlobalHeader = true
 	f.NewAccountNoisy = false
 	f.CallsMobile = false
 	f.BoardsFeatureFlags = ""
