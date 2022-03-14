@@ -418,7 +418,7 @@ func (a *App) SetCustomStatus(userID string, cs *model.CustomStatus) *model.AppE
 	user.SetCustomStatus(cs)
 	_, updateErr := a.UpdateUser(user, true)
 	if updateErr != nil {
-		return err
+		return updateErr
 	}
 
 	if err := a.addRecentCustomStatus(userID, cs); err != nil {
@@ -437,7 +437,7 @@ func (a *App) RemoveCustomStatus(userID string) *model.AppError {
 	user.ClearCustomStatus()
 	_, updateErr := a.UpdateUser(user, true)
 	if updateErr != nil {
-		return err
+		return updateErr
 	}
 
 	return nil

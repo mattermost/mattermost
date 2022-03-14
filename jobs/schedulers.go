@@ -32,30 +32,6 @@ var (
 	ErrSchedulersUninitialized = errors.New("job schedulers are not initialized")
 )
 
-func (srv *JobServer) InitSchedulers() error {
-	srv.mut.Lock()
-	defer srv.mut.Unlock()
-	if srv.schedulers != nil && srv.schedulers.running {
-		return ErrSchedulersRunning
-	}
-	mlog.Debug("Initialising schedulers.")
-
-	schedulers := &Schedulers{
-		stop:                 make(chan bool),
-		stopped:              make(chan bool),
-		configChanged:        make(chan *model.Config),
-		clusterLeaderChanged: make(chan bool, 1),
-		jobs:                 srv,
-		isLeader:             true,
-		schedulers:           make(map[string]model.Scheduler),
-		nextRunTimes:         make(map[string]*time.Time),
-	}
-
-	srv.schedulers = schedulers
-
-	return nil
-}
-
 func (schedulers *Schedulers) AddScheduler(name string, scheduler model.Scheduler) {
 	schedulers.schedulers[name] = scheduler
 }
@@ -63,6 +39,8 @@ func (schedulers *Schedulers) AddScheduler(name string, scheduler model.Schedule
 // Start starts the schedulers. This call is not safe for concurrent use.
 // Synchronization should be implemented by the caller.
 func (schedulers *Schedulers) Start() {
+	schedulers.stop = make(chan bool)
+	schedulers.stopped = make(chan bool)
 	schedulers.listenerId = schedulers.jobs.ConfigService.AddConfigListener(schedulers.handleConfigChange)
 
 	go func() {

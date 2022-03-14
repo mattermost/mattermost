@@ -2484,10 +2484,6 @@
     "translation": "Channel display_name is not within permitted length constraints."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Missing required channel property: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "Channel header is too long."
   },
@@ -6822,10 +6818,6 @@
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "채널 구성원을 제거할 수 없습니다."
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "멘션 수를 증가시키지 못했습니다."
   },
   {
     "id": "app.channel.get_public_channels.get.app_error",

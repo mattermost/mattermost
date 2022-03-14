@@ -9,6 +9,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
@@ -61,6 +62,13 @@ func ConfigStore(configStore *config.Store) Option {
 	return func(s *Server) error {
 		s.configStore = &configWrapper{srv: s, Store: configStore}
 
+		return nil
+	}
+}
+
+func SetFileStore(filestore filestore.FileBackend) Option {
+	return func(s *Server) error {
+		s.filestore = filestore
 		return nil
 	}
 }

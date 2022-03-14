@@ -113,14 +113,13 @@ func constructMySQLJSONArgs(props map[string]string) ([]interface{}, string) {
 	// Unpack the keys and values to pass to MySQL.
 	args := make([]interface{}, 0, len(props))
 	for k, v := range props {
-		args = append(args, "$."+k)
-		args = append(args, v)
+		args = append(args, "$."+k, v)
 	}
 
 	// We calculate the number of ? to set in the query string.
 	argString := strings.Repeat("?, ", len(props)*2)
 	// Strip off the trailing comma.
-	argString = strings.TrimSuffix(strings.TrimSpace(argString), ",")
+	argString = strings.TrimSuffix(argString, ", ")
 
 	return args, argString
 }
