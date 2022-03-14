@@ -386,7 +386,7 @@ func TestGetPrettyDNForUsers(t *testing.T) {
 				LastName:  "last2",
 			},
 		}
-		assert.Equal(t, "nick1, nick2", getPrettyDNForUsers("nickname_full_name", users))
+		assert.Equal(t, "nick2", getPrettyDNForUsers("nickname_full_name", users, "user1"))
 
 		users = []*model.User{
 			{
@@ -400,7 +400,7 @@ func TestGetPrettyDNForUsers(t *testing.T) {
 				LastName:  "last2",
 			},
 		}
-		assert.Equal(t, "first1 last1, first2 last2", getPrettyDNForUsers("nickname_full_name", users))
+		assert.Equal(t, "first2 last2", getPrettyDNForUsers("nickname_full_name", users, "user1"))
 	})
 
 	t.Run("full_name", func(t *testing.T) {
@@ -418,7 +418,7 @@ func TestGetPrettyDNForUsers(t *testing.T) {
 				LastName:  "last2",
 			},
 		}
-		assert.Equal(t, "first1 last1, first2 last2", getPrettyDNForUsers("full_name", users))
+		assert.Equal(t, "first2 last2", getPrettyDNForUsers("full_name", users, "user1"))
 
 		users = []*model.User{
 			{
@@ -428,7 +428,7 @@ func TestGetPrettyDNForUsers(t *testing.T) {
 				Username: "user2",
 			},
 		}
-		assert.Equal(t, "user1, user2", getPrettyDNForUsers("full_name", users))
+		assert.Equal(t, "user2", getPrettyDNForUsers("full_name", users, "user1"))
 	})
 
 	t.Run("username", func(t *testing.T) {
@@ -446,7 +446,7 @@ func TestGetPrettyDNForUsers(t *testing.T) {
 				LastName:  "last2",
 			},
 		}
-		assert.Equal(t, "user1, user2", getPrettyDNForUsers("username", users))
+		assert.Equal(t, "user2", getPrettyDNForUsers("username", users, "user1"))
 	})
 }
 
