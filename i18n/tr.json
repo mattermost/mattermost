@@ -9403,10 +9403,6 @@
     "translation": " "
   },
   {
-    "id": "app.system.applied_migrations.not_authorized",
-    "translation": "İzinleriniz yeterli değil."
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": " "
   },
