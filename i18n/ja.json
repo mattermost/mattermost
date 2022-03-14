@@ -9386,5 +9386,21 @@
   {
     "id": "api.team.invite_members.unable_to_send_email.app_error",
     "translation": "メール送信時にエラーが発生しました"
+  },
+  {
+    "id": "app.user.group_name_conflict",
+    "translation": " "
+  },
+  {
+    "id": "app.user.get_by_name_failure",
+    "translation": " "
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": " "
+  },
+  {
+    "id": "app.group.get_by_username_failure",
+    "translation": " "
   }
 ]
