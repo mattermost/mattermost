@@ -435,7 +435,6 @@ func (s SqlChannelStore) completePopulatingCategoryChannelsT(db dbSelecter, cate
 }
 
 func (s SqlChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, error) {
-	var categories []*sidebarCategoryForJoin
 	sql, args, err := s.getQueryBuilder().
 		Select("SidebarCategories.*", "SidebarChannels.ChannelId").
 		From("SidebarCategories").
@@ -446,7 +445,8 @@ func (s SqlChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCa
 		return nil, errors.Wrap(err, "sidebar_category_tosql")
 	}
 
-	if _, err = s.GetReplica().Select(&categories, sql, args...); err != nil {
+	categories := []*sidebarCategoryForJoin{}
+	if err = s.GetReplicaX().Select(&categories, sql, args...); err != nil {
 		return nil, store.NewErrNotFound("SidebarCategories", categoryId)
 	}
 

@@ -2074,8 +2074,8 @@ func (us SqlUserStore) GetUsersWithInvalidEmails(page int, perPage int, restrict
 		return nil, errors.Wrap(err, "users_get_many_tosql")
 	}
 
-	var users []*model.User
-	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+	users := []*model.User{}
+	if err := us.GetReplicaX().Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "users_get_many_select")
 	}
 
