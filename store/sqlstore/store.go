@@ -27,7 +27,6 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
-	"github.com/mattermost/gorp"
 	mbindata "github.com/mattermost/morph/sources/go_bindata"
 	"github.com/pkg/errors"
 
@@ -113,13 +112,10 @@ type SqlStore struct {
 	rrCounter int64
 	srCounter int64
 
-	master  *gorp.DbMap
 	masterX *sqlxDBWrapper
 
-	Replicas  []*gorp.DbMap
 	ReplicaXs []*sqlxDBWrapper
 
-	searchReplicas  []*gorp.DbMap
 	searchReplicaXs []*sqlxDBWrapper
 
 	replicaLagHandles []*dbsql.DB
@@ -248,34 +244,6 @@ func setupConnection(connType string, dataSource string, settings *model.SqlSett
 	return db
 }
 
-func getDBMap(settings *model.SqlSettings, db *dbsql.DB) *gorp.DbMap {
-	connectionTimeout := time.Duration(*settings.QueryTimeout) * time.Second
-	var dbMap *gorp.DbMap
-	switch *settings.DriverName {
-	case model.DatabaseDriverMysql:
-		dbMap = &gorp.DbMap{
-			Db:            db,
-			TypeConverter: mattermConverter{},
-			Dialect:       gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8MB4"},
-			QueryTimeout:  connectionTimeout,
-		}
-	case model.DatabaseDriverPostgres:
-		dbMap = &gorp.DbMap{
-			Db:            db,
-			TypeConverter: mattermConverter{},
-			Dialect:       gorp.PostgresDialect{},
-			QueryTimeout:  connectionTimeout,
-		}
-	default:
-		mlog.Fatal("Failed to create dialect specific driver")
-		return nil
-	}
-	if settings.Trace != nil && *settings.Trace {
-		dbMap.TraceOn("sql-trace:", &TraceOnAdapter{})
-	}
-	return dbMap
-}
-
 func (ss *SqlStore) SetContext(context context.Context) {
 	ss.context = context
 }
@@ -300,7 +268,6 @@ func (ss *SqlStore) initConnection() {
 	}
 
 	handle := setupConnection("master", dataSource, ss.settings)
-	ss.master = getDBMap(ss.settings, handle)
 	ss.masterX = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 		time.Duration(*ss.settings.QueryTimeout)*time.Second,
 		*ss.settings.Trace)
@@ -309,11 +276,9 @@ func (ss *SqlStore) initConnection() {
 	}
 
 	if len(ss.settings.DataSourceReplicas) > 0 {
-		ss.Replicas = make([]*gorp.DbMap, len(ss.settings.DataSourceReplicas))
 		ss.ReplicaXs = make([]*sqlxDBWrapper, len(ss.settings.DataSourceReplicas))
 		for i, replica := range ss.settings.DataSourceReplicas {
 			handle := setupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
-			ss.Replicas[i] = getDBMap(ss.settings, handle)
 			ss.ReplicaXs[i] = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 				time.Duration(*ss.settings.QueryTimeout)*time.Second,
 				*ss.settings.Trace)
@@ -324,11 +289,9 @@ func (ss *SqlStore) initConnection() {
 	}
 
 	if len(ss.settings.DataSourceSearchReplicas) > 0 {
-		ss.searchReplicas = make([]*gorp.DbMap, len(ss.settings.DataSourceSearchReplicas))
 		ss.searchReplicaXs = make([]*sqlxDBWrapper, len(ss.settings.DataSourceSearchReplicas))
 		for i, replica := range ss.settings.DataSourceSearchReplicas {
 			handle := setupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings)
-			ss.searchReplicas[i] = getDBMap(ss.settings, handle)
 			ss.searchReplicaXs[i] = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 				time.Duration(*ss.settings.QueryTimeout)*time.Second,
 				*ss.settings.Trace)
@@ -386,10 +349,6 @@ func (ss *SqlStore) GetDbVersion(numerical bool) (string, error) {
 
 }
 
-func (ss *SqlStore) GetMaster() *gorp.DbMap {
-	return ss.master
-}
-
 func (ss *SqlStore) GetMasterX() *sqlxDBWrapper {
 	return ss.masterX
 }
@@ -401,22 +360,6 @@ func (ss *SqlStore) SetMasterX(db *sql.DB) {
 	if ss.DriverName() == model.DatabaseDriverMysql {
 		ss.masterX.MapperFunc(noOpMapper)
 	}
-}
-
-func (ss *SqlStore) GetSearchReplica() *gorp.DbMap {
-	ss.licenseMutex.RLock()
-	license := ss.license
-	ss.licenseMutex.RUnlock()
-	if license == nil {
-		return ss.GetMaster()
-	}
-
-	if len(ss.settings.DataSourceSearchReplicas) == 0 {
-		return ss.GetReplica()
-	}
-
-	rrNum := atomic.AddInt64(&ss.srCounter, 1) % int64(len(ss.searchReplicas))
-	return ss.searchReplicas[rrNum]
 }
 
 func (ss *SqlStore) GetSearchReplicaX() *sqlxDBWrapper {
@@ -435,18 +378,6 @@ func (ss *SqlStore) GetSearchReplicaX() *sqlxDBWrapper {
 	return ss.searchReplicaXs[rrNum]
 }
 
-func (ss *SqlStore) GetReplica() *gorp.DbMap {
-	ss.licenseMutex.RLock()
-	license := ss.license
-	ss.licenseMutex.RUnlock()
-	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || license == nil {
-		return ss.GetMaster()
-	}
-
-	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.Replicas))
-	return ss.Replicas[rrNum]
-}
-
 func (ss *SqlStore) GetReplicaX() *sqlxDBWrapper {
 	ss.licenseMutex.RLock()
 	license := ss.license
@@ -455,7 +386,7 @@ func (ss *SqlStore) GetReplicaX() *sqlxDBWrapper {
 		return ss.GetMasterX()
 	}
 
-	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.Replicas))
+	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.ReplicaXs))
 	return ss.ReplicaXs[rrNum]
 }
 
@@ -507,8 +438,8 @@ func (ss *SqlStore) TotalReadDbConnections() int {
 	}
 
 	count := 0
-	for _, db := range ss.Replicas {
-		count = count + db.Db.Stats().OpenConnections
+	for _, db := range ss.ReplicaXs {
+		count = count + db.Stats().OpenConnections
 	}
 
 	return count
@@ -520,8 +451,8 @@ func (ss *SqlStore) TotalSearchDbConnections() int {
 	}
 
 	count := 0
-	for _, db := range ss.searchReplicas {
-		count = count + db.Db.Stats().OpenConnections
+	for _, db := range ss.searchReplicaXs {
+		count = count + db.Stats().OpenConnections
 	}
 
 	return count
@@ -748,10 +679,10 @@ func IsUniqueConstraintError(err error, indexName []string) bool {
 	return unique && field
 }
 
-func (ss *SqlStore) GetAllConns() []*gorp.DbMap {
-	all := make([]*gorp.DbMap, len(ss.Replicas)+1)
-	copy(all, ss.Replicas)
-	all[len(ss.Replicas)] = ss.master
+func (ss *SqlStore) GetAllConns() []*sqlxDBWrapper {
+	all := make([]*sqlxDBWrapper, len(ss.ReplicaXs)+1)
+	copy(all, ss.ReplicaXs)
+	all[len(ss.ReplicaXs)] = ss.masterX
 	return all
 }
 
@@ -762,24 +693,24 @@ func (ss *SqlStore) RecycleDBConnections(d time.Duration) {
 	originalDuration := time.Duration(*ss.settings.ConnMaxLifetimeMilliseconds) * time.Millisecond
 	// Set the max lifetimes for all connections.
 	for _, conn := range ss.GetAllConns() {
-		conn.Db.SetConnMaxLifetime(d)
+		conn.SetConnMaxLifetime(d)
 	}
 	// Wait for that period with an additional 2 seconds of scheduling delay.
 	time.Sleep(d + 2*time.Second)
 	// Reset max lifetime back to original value.
 	for _, conn := range ss.GetAllConns() {
-		conn.Db.SetConnMaxLifetime(originalDuration)
+		conn.SetConnMaxLifetime(originalDuration)
 	}
 }
 
 func (ss *SqlStore) Close() {
-	ss.master.Db.Close()
-	for _, replica := range ss.Replicas {
-		replica.Db.Close()
+	ss.masterX.Close()
+	for _, replica := range ss.ReplicaXs {
+		replica.Close()
 	}
 
-	for _, replica := range ss.searchReplicas {
-		replica.Db.Close()
+	for _, replica := range ss.searchReplicaXs {
+		replica.Close()
 	}
 }
 
