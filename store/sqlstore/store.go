@@ -112,13 +112,10 @@ type SqlStore struct {
 	rrCounter int64
 	srCounter int64
 
-	// master  *gorp.DbMap
 	masterX *sqlxDBWrapper
 
-	// Replicas  []*gorp.DbMap
 	ReplicaXs []*sqlxDBWrapper
 
-	// searchReplicas  []*gorp.DbMap
 	searchReplicaXs []*sqlxDBWrapper
 
 	replicaLagHandles []*dbsql.DB
@@ -247,34 +244,6 @@ func setupConnection(connType string, dataSource string, settings *model.SqlSett
 	return db
 }
 
-// func getDBMap(settings *model.SqlSettings, db *dbsql.DB) *gorp.DbMap {
-// 	connectionTimeout := time.Duration(*settings.QueryTimeout) * time.Second
-// 	var dbMap *gorp.DbMap
-// 	switch *settings.DriverName {
-// 	case model.DatabaseDriverMysql:
-// 		dbMap = &gorp.DbMap{
-// 			Db:            db,
-// 			TypeConverter: mattermConverter{},
-// 			Dialect:       gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8MB4"},
-// 			QueryTimeout:  connectionTimeout,
-// 		}
-// 	case model.DatabaseDriverPostgres:
-// 		dbMap = &gorp.DbMap{
-// 			Db:            db,
-// 			TypeConverter: mattermConverter{},
-// 			Dialect:       gorp.PostgresDialect{},
-// 			QueryTimeout:  connectionTimeout,
-// 		}
-// 	default:
-// 		mlog.Fatal("Failed to create dialect specific driver")
-// 		return nil
-// 	}
-// 	if settings.Trace != nil && *settings.Trace {
-// 		dbMap.TraceOn("sql-trace:", &TraceOnAdapter{})
-// 	}
-// 	return dbMap
-// }
-
 func (ss *SqlStore) SetContext(context context.Context) {
 	ss.context = context
 }
@@ -299,7 +268,6 @@ func (ss *SqlStore) initConnection() {
 	}
 
 	handle := setupConnection("master", dataSource, ss.settings)
-	// ss.master = getDBMap(ss.settings, handle)
 	ss.masterX = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 		time.Duration(*ss.settings.QueryTimeout)*time.Second,
 		*ss.settings.Trace)
@@ -308,11 +276,9 @@ func (ss *SqlStore) initConnection() {
 	}
 
 	if len(ss.settings.DataSourceReplicas) > 0 {
-		// ss.Replicas = make([]*gorp.DbMap, len(ss.settings.DataSourceReplicas))
 		ss.ReplicaXs = make([]*sqlxDBWrapper, len(ss.settings.DataSourceReplicas))
 		for i, replica := range ss.settings.DataSourceReplicas {
 			handle := setupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
-			// ss.Replicas[i] = getDBMap(ss.settings, handle)
 			ss.ReplicaXs[i] = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 				time.Duration(*ss.settings.QueryTimeout)*time.Second,
 				*ss.settings.Trace)
@@ -323,11 +289,9 @@ func (ss *SqlStore) initConnection() {
 	}
 
 	if len(ss.settings.DataSourceSearchReplicas) > 0 {
-		// ss.searchReplicas = make([]*gorp.DbMap, len(ss.settings.DataSourceSearchReplicas))
 		ss.searchReplicaXs = make([]*sqlxDBWrapper, len(ss.settings.DataSourceSearchReplicas))
 		for i, replica := range ss.settings.DataSourceSearchReplicas {
 			handle := setupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings)
-			// ss.searchReplicas[i] = getDBMap(ss.settings, handle)
 			ss.searchReplicaXs[i] = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 				time.Duration(*ss.settings.QueryTimeout)*time.Second,
 				*ss.settings.Trace)
