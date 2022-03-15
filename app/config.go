@@ -420,6 +420,11 @@ func (a *App) ClientConfigWithComputed() map[string]string {
 	if installationDate, err := a.ch.srv.getSystemInstallDate(); err == nil {
 		respCfg["InstallationDate"] = strconv.FormatInt(installationDate, 10)
 	}
+	if ver, err := a.ch.srv.Store.GetDBSchemaVersion(); err != nil {
+		mlog.Error("Could not get the schema version", mlog.Err(err))
+	} else {
+		respCfg["SchemaVersion"] = strconv.Itoa(ver)
+	}
 
 	return respCfg
 }

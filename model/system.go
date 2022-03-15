@@ -79,6 +79,8 @@ type ServerBusyState struct {
 type SupportPacket struct {
 	ServerOS             string   `yaml:"server_os"`
 	ServerArchitecture   string   `yaml:"server_architecture"`
+	ServerVersion        string   `yaml:"server_version"`
+	BuildHash            string   `yaml:"build_hash,omitempty"`
 	DatabaseType         string   `yaml:"database_type"`
 	DatabaseVersion      string   `yaml:"database_version"`
 	LdapVendorName       string   `yaml:"ldap_vendor_name,omitempty"`
@@ -172,4 +174,9 @@ type WarnMetricStatus struct {
 
 type SendWarnMetricAck struct {
 	ForceAck bool `json:"forceAck"`
+}
+
+type AppliedMigration struct {
+	Version int    `json:"version"`
+	Name    string `json:"name"`
 }
