@@ -67,6 +67,10 @@ const (
 	replicaLagPrefix = "replica-lag"
 )
 
+var invalidMySQLCollations = map[string]interface{}{
+	"utf8mb4_unicode_ci": nil,
+}
+
 type SqlStoreStores struct {
 	team                 store.TeamStore
 	channel              store.ChannelStore
@@ -1191,7 +1195,7 @@ func (ss *SqlStore) ensureDatabaseCollation() error {
 			return errors.Wrap(err, "unable to select variables")
 		}
 
-		if dbCollation.Value != "utf8mb4_general_ci" {
+		if _, ok := invalidMySQLCollations[dbCollation.Value]; ok {
 			mlog.Warn("Database collation is not compatible", mlog.String("expected", "utf8mb4_general_ci"), mlog.String("found", dbCollation.Value))
 		}
 	}
