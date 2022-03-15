@@ -374,12 +374,14 @@ func TestGetPrettyDNForUsers(t *testing.T) {
 	t.Run("nickname_full_name", func(t *testing.T) {
 		users := []*model.User{
 			{
+				Id:        "user1",
 				Nickname:  "nick1",
 				Username:  "user1",
 				FirstName: "first1",
 				LastName:  "last1",
 			},
 			{
+				Id:        "user2",
 				Nickname:  "nick2",
 				Username:  "user2",
 				FirstName: "first2",
@@ -390,11 +392,13 @@ func TestGetPrettyDNForUsers(t *testing.T) {
 
 		users = []*model.User{
 			{
+				Id:        "user1",
 				Username:  "user1",
 				FirstName: "first1",
 				LastName:  "last1",
 			},
 			{
+				Id:        "user2",
 				Username:  "user2",
 				FirstName: "first2",
 				LastName:  "last2",
@@ -406,12 +410,14 @@ func TestGetPrettyDNForUsers(t *testing.T) {
 	t.Run("full_name", func(t *testing.T) {
 		users := []*model.User{
 			{
+				Id:        "user1",
 				Nickname:  "nick1",
 				Username:  "user1",
 				FirstName: "first1",
 				LastName:  "last1",
 			},
 			{
+				Id:        "user2",
 				Nickname:  "nick2",
 				Username:  "user2",
 				FirstName: "first2",
@@ -422,9 +428,11 @@ func TestGetPrettyDNForUsers(t *testing.T) {
 
 		users = []*model.User{
 			{
+				Id:       "user1",
 				Username: "user1",
 			},
 			{
+				Id:       "user2",
 				Username: "user2",
 			},
 		}
@@ -434,12 +442,14 @@ func TestGetPrettyDNForUsers(t *testing.T) {
 	t.Run("username", func(t *testing.T) {
 		users := []*model.User{
 			{
+				Id:        "user1",
 				Nickname:  "nick1",
 				Username:  "user1",
 				FirstName: "first1",
 				LastName:  "last1",
 			},
 			{
+				Id:        "user2",
 				Nickname:  "nick2",
 				Username:  "user2",
 				FirstName: "first2",
