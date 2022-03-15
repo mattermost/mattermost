@@ -8672,6 +8672,10 @@
     "translation": "Icon URL must be a valid URL and start with http:// or https://."
   },
   {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "The maximum length of MattermostAppID is 32 characters."
+  },
+  {
     "id": "model.oauth.is_valid.name.app_error",
     "translation": "Invalid name."
   },
