@@ -376,7 +376,8 @@ func (ss *SqlStore) GetDbVersion(numerical bool) (string, error) {
 		return "", errors.New("Not supported driver")
 	}
 
-	version, err := ss.GetReplica().SelectStr(sqlVersion)
+	var version string
+	err := ss.GetReplicaX().Get(&version, sqlVersion)
 	if err != nil {
 		return "", err
 	}
@@ -459,7 +460,7 @@ func (ss *SqlStore) GetReplicaX() *sqlxDBWrapper {
 }
 
 func (ss *SqlStore) TotalMasterDbConnections() int {
-	return ss.GetMaster().Db.Stats().OpenConnections
+	return ss.GetMasterX().Stats().OpenConnections
 }
 
 // ReplicaLagAbs queries all the replica databases to get the absolute replica lag value

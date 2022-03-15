@@ -38,9 +38,6 @@ type FeatureFlags struct {
 
 	PermalinkPreviews bool
 
-	// Enable the Global Header
-	GlobalHeader bool
-
 	// Determine whether when a user gets created, they'll have noisy notifications e.g. Send desktop notifications for all activity
 	NewAccountNoisy bool
 
@@ -61,9 +58,6 @@ type FeatureFlags struct {
 
 	CustomGroups bool
 
-	// Enable inline post editing
-	InlinePostEditing bool
-
 	// Enable DataRetention for Boards
 	BoardsDataRetention bool
 
@@ -73,9 +67,6 @@ type FeatureFlags struct {
 
 	// Enable special onboarding flow for first admin
 	UseCaseOnboarding bool
-
-	// Enable Workspace optimization dashboard
-	WorkspaceOptimizationDashboard bool
 
 	// Enable GraphQL feature
 	GraphQL bool
@@ -92,7 +83,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
 	f.PermalinkPreviews = true
-	f.GlobalHeader = true
 	f.NewAccountNoisy = false
 	f.CallsMobile = false
 	f.BoardsFeatureFlags = ""
@@ -100,12 +90,10 @@ func (f *FeatureFlags) SetDefaults() {
 	f.GuidedChannelCreation = false
 	f.InviteToTeam = "none"
 	f.CustomGroups = true
-	f.InlinePostEditing = false
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
 	f.EnableInactivityCheckJob = true
 	f.UseCaseOnboarding = true
-	f.WorkspaceOptimizationDashboard = true
 	f.GraphQL = false
 }
 func (f *FeatureFlags) Plugins() map[string]string {
