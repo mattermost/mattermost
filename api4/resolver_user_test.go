@@ -56,6 +56,10 @@ func TestGraphQLUser(t *testing.T) {
 				Name     string `json:"name"`
 				Value    string `json:"value"`
 			} `json:"preferences"`
+			Sessions []struct {
+				ID       string  `json:"id"`
+				CreateAt float64 `json:"createAt"`
+			} `json:"sessions"`
 		} `json:"user"`
 	}
 
@@ -64,27 +68,31 @@ func TestGraphQLUser(t *testing.T) {
 			OperationName: "user",
 			Query: `
 	query user($id: String = "me") {
-	  user(id: $id) {
-	  	id
-	  	username
-	  	email
-	  	firstName
-	  	lastName
-	  	isBot
-	  	isGuest
-	  	isSystemAdmin
-	  	timezone
-	  	props
-	  	notifyProps
-	  	roles {
-	  		id
-	  		name
-	  	}
-	  	preferences {
-	  		name
-	  		value
-	  	}
-	  }
+		user(id: $id) {
+			id
+			username
+			email
+			firstName
+			lastName
+			isBot
+			isGuest
+			isSystemAdmin
+			timezone
+			props
+			notifyProps
+			roles {
+				id
+				name
+			}
+			preferences {
+				name
+				value
+			}
+			sessions {
+				id
+				createAt
+			}
+		}
 	}
 	`,
 		}
@@ -125,6 +133,13 @@ func TestGraphQLUser(t *testing.T) {
 		for i := range prefs {
 			assert.Equal(t, q.User.Preferences[i].Name, prefs[i].Name)
 			assert.Equal(t, q.User.Preferences[i].Value, prefs[i].Value)
+		}
+
+		assert.Len(t, q.User.Sessions, 2)
+		now := float64(model.GetMillis())
+		for _, session := range q.User.Sessions {
+			assert.NotEmpty(t, session.ID)
+			assert.Less(t, session.CreateAt, now)
 		}
 	})
 

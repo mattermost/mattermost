@@ -70,4 +70,5 @@ func truncateTables(t *testing.T) {
 
 	truncateTable(t, "Configurations")
 	truncateTable(t, "ConfigurationFiles")
+	truncateTable(t, migrationsTableName)
 }

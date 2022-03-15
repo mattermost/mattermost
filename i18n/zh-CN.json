@@ -2484,10 +2484,6 @@
     "translation": "频道 display_name 不在允许的长度范围内。"
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "缺少频道必须属性：display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "频道标题过长。"
   },
@@ -6918,10 +6914,6 @@
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "无法移除频道成员。"
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "无法增加提及数。"
   },
   {
     "id": "app.channel.get_public_channels.get.app_error",

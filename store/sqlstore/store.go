@@ -31,7 +31,7 @@ import (
 	mbindata "github.com/mattermost/morph/sources/go_bindata"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/db/migrations"
+	"github.com/mattermost/mattermost-server/v6/db"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -381,7 +381,8 @@ func (ss *SqlStore) GetDbVersion(numerical bool) (string, error) {
 		return "", errors.New("Not supported driver")
 	}
 
-	version, err := ss.GetReplica().SelectStr(sqlVersion)
+	var version string
+	err := ss.GetReplicaX().Get(&version, sqlVersion)
 	if err != nil {
 		return "", err
 	}
@@ -464,7 +465,7 @@ func (ss *SqlStore) GetReplicaX() *sqlxDBWrapper {
 }
 
 func (ss *SqlStore) TotalMasterDbConnections() int {
-	return ss.GetMaster().Db.Stats().OpenConnections
+	return ss.GetMasterX().Stats().OpenConnections
 }
 
 // ReplicaLagAbs queries all the replica databases to get the absolute replica lag value
@@ -966,11 +967,14 @@ func (ss *SqlStore) DropAllTables() {
 }
 
 func (ss *SqlStore) getQueryBuilder() sq.StatementBuilderType {
-	builder := sq.StatementBuilder.PlaceholderFormat(sq.Question)
+	return sq.StatementBuilder.PlaceholderFormat(ss.getQueryPlaceholder())
+}
+
+func (ss *SqlStore) getQueryPlaceholder() sq.PlaceholderFormat {
 	if ss.DriverName() == model.DatabaseDriverPostgres {
-		builder = builder.PlaceholderFormat(sq.Dollar)
+		return sq.Dollar
 	}
-	return builder
+	return sq.Question
 }
 
 // getSubQueryBuilder is necessary to generate the SQL query and args to pass to sub-queries because squirrel does not support WHERE clause in sub-queries.
@@ -995,17 +999,22 @@ func (ss *SqlStore) GetLicense() *model.License {
 }
 
 func (ss *SqlStore) migrate(direction migrationDirection) error {
-	var assetNamesForDriver []string
-	for _, assetName := range migrations.AssetNames() {
-		if strings.HasPrefix(assetName, ss.DriverName()) {
-			assetNamesForDriver = append(assetNamesForDriver, filepath.Base(assetName))
-		}
+	assets := db.Assets()
+
+	assetsList, err := assets.ReadDir(filepath.Join("migrations", ss.DriverName()))
+	if err != nil {
+		return err
+	}
+
+	assetNamesForDriver := make([]string, len(assetsList))
+	for i, entry := range assetsList {
+		assetNamesForDriver[i] = entry.Name()
 	}
 
 	src, err := mbindata.WithInstance(&mbindata.AssetSource{
 		Names: assetNamesForDriver,
 		AssetFunc: func(name string) ([]byte, error) {
-			return migrations.Asset(filepath.Join(ss.DriverName(), name))
+			return assets.ReadFile(filepath.Join("migrations", ss.DriverName(), name))
 		},
 	})
 	if err != nil {
