@@ -12,7 +12,7 @@ func HandleJobOnceCalls(key string) {
 	}
 }
 
-func ExampleScheduleOnce() {
+func ExampleJobOnceScheduler_ScheduleOnce() {
 	// Use p.API from your plugin instead.
 	pluginAPI := plugin.API(nil)
 

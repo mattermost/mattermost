@@ -4,11 +4,9 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/pkg/errors"
-)
 
-// ErrNotFound is returned by the plugin API when an object is not found.
-var ErrNotFound = errors.New("not found")
+	"github.com/mattermost/mattermost-plugin-api/errors"
+)
 
 // normalizeAppError returns a truly nil error if appErr is nil as well as normalizing a class
 // of non-nil AppErrors to simplify use within plugins.
@@ -31,7 +29,7 @@ func normalizeAppErr(appErr *model.AppError) error {
 	}
 
 	if appErr.StatusCode == http.StatusNotFound {
-		return ErrNotFound
+		return errors.ErrNotFound
 	}
 
 	return appErr

@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/pkg/errors"
 
-	pluginapi "github.com/mattermost/mattermost-plugin-api"
+	apierrors "github.com/mattermost/mattermost-plugin-api/errors"
 )
 
 const (
@@ -217,7 +217,7 @@ func normalizeAppErr(appErr *model.AppError) error {
 	}
 
 	if appErr.StatusCode == http.StatusNotFound {
-		return pluginapi.ErrNotFound
+		return apierrors.ErrNotFound
 	}
 
 	return appErr
