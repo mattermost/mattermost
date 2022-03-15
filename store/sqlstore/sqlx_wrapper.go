@@ -74,6 +74,10 @@ func newSqlxDBWrapper(db *sqlx.DB, timeout time.Duration, trace bool) *sqlxDBWra
 	}
 }
 
+func (w *sqlxDBWrapper) Stats() sql.DBStats {
+	return w.DB.Stats()
+}
+
 func (w *sqlxDBWrapper) Beginx() (*sqlxTxWrapper, error) {
 	tx, err := w.DB.Beginx()
 	if err != nil {
