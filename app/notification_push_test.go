@@ -1173,7 +1173,7 @@ func TestClearPushNotificationSync(t *testing.T) {
 	mockStore.On("Preference").Return(&mockPreferenceStore)
 
 	mockThreadStore := mocks.ThreadStore{}
-	mockThreadStore.On("GetThreadsForUser", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.Anything).Return(&model.Threads{TotalUnreadMentions: 3}, nil)
+	mockThreadStore.On("GetTotalUnreadMentions", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.Anything).Return(int64(3), nil)
 	mockStore.On("Thread").Return(&mockThreadStore)
 
 	err = th.App.clearPushNotificationSync(sess1.Id, "user1", "channel1", "")

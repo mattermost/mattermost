@@ -233,16 +233,79 @@ func (_m *ThreadStore) GetThreadUnreadReplyCount(threadMembership *model.ThreadM
 }
 
 // GetThreadsForUser provides a mock function with given fields: userId, teamID, opts
-func (_m *ThreadStore) GetThreadsForUser(userId string, teamID string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
+func (_m *ThreadStore) GetThreadsForUser(userId string, teamID string, opts model.GetUserThreadsOpts) ([]*model.ThreadResponse, error) {
 	ret := _m.Called(userId, teamID, opts)
 
-	var r0 *model.Threads
-	if rf, ok := ret.Get(0).(func(string, string, model.GetUserThreadsOpts) *model.Threads); ok {
+	var r0 []*model.ThreadResponse
+	if rf, ok := ret.Get(0).(func(string, string, model.GetUserThreadsOpts) []*model.ThreadResponse); ok {
 		r0 = rf(userId, teamID, opts)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Threads)
+			r0 = ret.Get(0).([]*model.ThreadResponse)
 		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, model.GetUserThreadsOpts) error); ok {
+		r1 = rf(userId, teamID, opts)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTotalThreads provides a mock function with given fields: userId, teamID, opts
+func (_m *ThreadStore) GetTotalThreads(userId string, teamID string, opts model.GetUserThreadsOpts) (int64, error) {
+	ret := _m.Called(userId, teamID, opts)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string, string, model.GetUserThreadsOpts) int64); ok {
+		r0 = rf(userId, teamID, opts)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, model.GetUserThreadsOpts) error); ok {
+		r1 = rf(userId, teamID, opts)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTotalUnreadMentions provides a mock function with given fields: userId, teamID, opts
+func (_m *ThreadStore) GetTotalUnreadMentions(userId string, teamID string, opts model.GetUserThreadsOpts) (int64, error) {
+	ret := _m.Called(userId, teamID, opts)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string, string, model.GetUserThreadsOpts) int64); ok {
+		r0 = rf(userId, teamID, opts)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, model.GetUserThreadsOpts) error); ok {
+		r1 = rf(userId, teamID, opts)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTotalUnreadThreads provides a mock function with given fields: userId, teamID, opts
+func (_m *ThreadStore) GetTotalUnreadThreads(userId string, teamID string, opts model.GetUserThreadsOpts) (int64, error) {
+	ret := _m.Called(userId, teamID, opts)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string, string, model.GetUserThreadsOpts) int64); ok {
+		r0 = rf(userId, teamID, opts)
+	} else {
+		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 error
