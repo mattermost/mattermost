@@ -59,7 +59,6 @@ require (
 	github.com/lib/pq v1.10.4
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404
-	github.com/mattermost/gorp v1.6.2-0.20210714143452-8b50f5209a7f
 	github.com/mattermost/gosaml2 v0.3.3
 	github.com/mattermost/gziphandler v0.0.1
 	github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
@@ -67,6 +66,7 @@ require (
 	github.com/mattermost/morph v0.0.0-20220222074146-cff3f12ff131
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattn/go-runewidth v0.0.13 // indirect
+	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/microcosm-cc/bluemonday v1.0.18
 	github.com/miekg/dns v1.1.46 // indirect
