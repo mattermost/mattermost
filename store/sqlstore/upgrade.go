@@ -285,7 +285,7 @@ func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 				`INSERT INTO
 					Preferences(UserId, Category, Name, Value)
 				SELECT
-					Id, '`+model.PreferenceCategoryTheme+`', '', ThemeProps
+					Id, '` + model.PreferenceCategoryTheme + `', '', ThemeProps
 				FROM
 					Users
 				WHERE
