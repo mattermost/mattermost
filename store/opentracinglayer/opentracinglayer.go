@@ -11835,10 +11835,6 @@ func (s *OpenTracingLayer) DropAllTables() {
 	s.Store.DropAllTables()
 }
 
-func (s *OpenTracingLayer) GetCurrentSchemaVersion() string {
-	return s.Store.GetCurrentSchemaVersion()
-}
-
 func (s *OpenTracingLayer) LockToMaster() {
 	s.Store.LockToMaster()
 }

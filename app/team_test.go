@@ -882,6 +882,7 @@ func TestLeaveTeamPanic(t *testing.T) {
 	mockStore.On("System").Return(&mockSystemStore)
 	mockStore.On("License").Return(&mockLicenseStore)
 	mockStore.On("Team").Return(&mockTeamStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	team := &model.Team{Id: "myteam"}
 	user := &model.User{Id: "userID"}
@@ -1239,6 +1240,7 @@ func TestClearTeamMembersCache(t *testing.T) {
 		TeamId: "1",
 	}}, nil)
 	mockStore.On("Team").Return(&mockTeamStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	th.App.ClearTeamMembersCache("teamID")
 }
