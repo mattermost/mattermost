@@ -289,7 +289,16 @@ func (api *PluginAPI) CreateSession(session *model.Session) (*model.Session, *mo
 }
 
 func (api *PluginAPI) ExtendSessionExpiry(sessionID string, expiresAt int64) *model.AppError {
-	return api.app.extendSessionExpiry(sessionID, expiresAt)
+	session, err := api.app.ch.srv.userService.GetSessionByID(sessionID)
+	if err != nil {
+		return model.NewAppError("extendSessionExpiry", "app.session.get_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if err := api.app.ch.srv.userService.ExtendSessionExpiry(session, expiresAt); err != nil {
+		return model.NewAppError("extendSessionExpiry", "app.session.extend_session_expiry.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
 func (api *PluginAPI) RevokeSession(sessionID string) *model.AppError {
