@@ -387,9 +387,6 @@ github.com/mattermost/go-i18n/i18n
 github.com/mattermost/go-i18n/i18n/bundle
 github.com/mattermost/go-i18n/i18n/language
 github.com/mattermost/go-i18n/i18n/translation
-# github.com/mattermost/gorp v1.6.2-0.20210714143452-8b50f5209a7f
-## explicit
-github.com/mattermost/gorp
 # github.com/mattermost/gosaml2 v0.3.3
 ## explicit
 github.com/mattermost/gosaml2
@@ -429,6 +426,8 @@ github.com/mattn/go-isatty
 # github.com/mattn/go-runewidth v0.0.13
 ## explicit
 github.com/mattn/go-runewidth
+# github.com/mattn/go-sqlite3 v2.0.3+incompatible
+## explicit
 # github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369
 github.com/matttproud/golang_protobuf_extensions/pbutil
 # github.com/mholt/archiver/v3 v3.5.1

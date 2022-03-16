@@ -852,7 +852,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
+    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) to identify channels."
   },
   {
     "id": "api.command_invite.desc",
@@ -1004,7 +1004,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
+    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) to identify channels."
   },
   {
     "id": "api.command_mute.hint",
@@ -1016,7 +1016,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Could not find the specified channel. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
+    "translation": "Could not find the specified channel. Please use the [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) to identify channels."
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -4932,6 +4932,10 @@
     "translation": "Unable to perform operation for that source type."
   },
   {
+    "id": "app.group.get_by_username_failure",
+    "translation": " "
+  },
+  {
     "id": "app.group.group_syncable_already_deleted",
     "translation": "group syncable was already deleted"
   },
@@ -4950,6 +4954,10 @@
   {
     "id": "app.group.uniqueness_error",
     "translation": "group member already exists"
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": " "
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -6148,6 +6156,10 @@
     "translation": "Encountered an error encoding JSON for the interactive dialog."
   },
   {
+    "id": "app.system.applied_migrations.not_authorized",
+    "translation": "You don't have the appropriate permissions."
+  },
+  {
     "id": "app.system.complete_onboarding_request.app_error",
     "translation": "Failed to decode the complete onboarding request."
   },
@@ -6468,6 +6480,10 @@
     "translation": "We encountered an error trying to find the account by authentication type."
   },
   {
+    "id": "app.user.get_by_name_failure",
+    "translation": " "
+  },
+  {
     "id": "app.user.get_by_username.app_error",
     "translation": "Unable to find an existing account matching your username for this team. This team may require an invite from the team owner to join."
   },
@@ -6522,6 +6538,10 @@
   {
     "id": "app.user.get_users_batch_for_indexing.get_users.app_error",
     "translation": "Unable to get the users batch for indexing."
+  },
+  {
+    "id": "app.user.group_name_conflict",
+    "translation": " "
   },
   {
     "id": "app.user.missing_account.const",
@@ -8652,6 +8672,10 @@
     "translation": "Icon URL must be a valid URL and start with http:// or https://."
   },
   {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "The maximum length of MattermostAppID is 32 characters."
+  },
+  {
     "id": "model.oauth.is_valid.name.app_error",
     "translation": "Invalid name."
   },
@@ -9170,18 +9194,6 @@
   {
     "id": "sharedchannel.permalink.not_found",
     "translation": "This post contains permalinks to other channels which may not be visible to users in other sites."
-  },
-  {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Unable to convert StringArray to *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Unable to convert StringInterface to *string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Unable to convert StringMap to *string"
   },
   {
     "id": "store.sql_bot.get.missing.app_error",

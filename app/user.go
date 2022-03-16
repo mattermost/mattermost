@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -15,6 +14,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/app/email"
 	"github.com/mattermost/mattermost-server/v6/app/imaging"
@@ -27,6 +28,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mfa"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -219,6 +221,11 @@ func (a *App) CreateGuest(c *request.Context, user *model.User) (*model.User, *m
 }
 
 func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool) (*model.User, *model.AppError) {
+	if err := a.isUniqueToGroupNames(user.Username); err != nil {
+		err.Where = "createUserOrGuest"
+		return nil, err
+	}
+
 	ruser, nErr := a.ch.srv.userService.CreateUser(user, users.UserCreateOptions{Guest: guest})
 	if nErr != nil {
 		var appErr *model.AppError
@@ -1053,6 +1060,21 @@ func (a *App) sendUpdatedUserEvent(user model.User) {
 	a.Publish(sourceUserMessage)
 }
 
+func (a *App) isUniqueToGroupNames(val string) *model.AppError {
+	if val == "" {
+		return nil
+	}
+	var notFoundErr *store.ErrNotFound
+	group, err := a.Srv().Store.Group().GetByName(val, model.GroupSearchOpts{})
+	if err != nil && !errors.As(err, &notFoundErr) {
+		return model.NewAppError("", "app.user.get_by_name_failure", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if group != nil {
+		return model.NewAppError("", "app.user.group_name_conflict", nil, "", http.StatusBadRequest)
+	}
+	return nil
+}
+
 func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError) {
 	prev, err := a.ch.srv.userService.GetUser(user.Id)
 	if err != nil {
@@ -1062,6 +1084,13 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 			return nil, model.NewAppError("UpdateUser", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("UpdateUser", "app.user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	if user.Username != prev.Username {
+		if err := a.isUniqueToGroupNames(user.Username); err != nil {
+			err.Where = "UpdateUser"
+			return nil, err
 		}
 	}
 
@@ -2264,15 +2293,61 @@ func (a *App) ConvertBotToUser(bot *model.Bot, userPatch *model.UserPatch, sysad
 }
 
 func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError) {
-	threads, err := a.Srv().Store.Thread().GetThreadsForUser(userID, teamID, options)
-	if err != nil {
+	var result model.Threads
+	var eg errgroup.Group
+
+	eg.Go(func() error {
+		totalUnreadThreads, err := a.Srv().Store.Thread().GetTotalUnreadThreads(userID, teamID, options)
+		if err != nil {
+			return errors.Wrapf(err, "failed to count unread threads for user id=%s", userID)
+		}
+		result.TotalUnreadThreads = totalUnreadThreads
+
+		return nil
+	})
+
+	eg.Go(func() error {
+		totalCount, err := a.Srv().Store.Thread().GetTotalThreads(userID, teamID, options)
+		if err != nil {
+			return errors.Wrapf(err, "failed to count threads for user id=%s", userID)
+		}
+		result.Total = totalCount
+
+		return nil
+	})
+
+	eg.Go(func() error {
+		totalUnreadMentions, err := a.Srv().Store.Thread().GetTotalUnreadMentions(userID, teamID, options)
+		if err != nil {
+			return errors.Wrapf(err, "failed to count threads for user id=%s", userID)
+		}
+		result.TotalUnreadMentions = totalUnreadMentions
+
+		return nil
+	})
+
+	if !options.TotalsOnly {
+		eg.Go(func() error {
+			threads, err := a.Srv().Store.Thread().GetThreadsForUser(userID, teamID, options)
+			if err != nil {
+				return errors.Wrapf(err, "failed to get threads for user id=%s", userID)
+			}
+			result.Threads = threads
+
+			return nil
+		})
+	}
+
+	if err := eg.Wait(); err != nil {
 		return nil, model.NewAppError("GetThreadsForUser", "app.user.get_threads_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	for _, thread := range threads.Threads {
+
+	for _, thread := range result.Threads {
 		a.sanitizeProfiles(thread.Participants, false)
 		thread.Post.SanitizeProps()
 	}
-	return threads, nil
+
+	return &result, nil
 }
 
 func (a *App) GetThreadMembershipForUser(userId, threadId string) (*model.ThreadMembership, *model.AppError) {

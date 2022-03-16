@@ -396,7 +396,7 @@ func getPathsFromObjectInfos(in <-chan s3.ObjectInfo) <-chan s3.ObjectInfo {
 	return out
 }
 
-func (b *S3FileBackend) ListDirectory(path string) ([]string, error) {
+func (b *S3FileBackend) listDirectory(path string, recursion bool) ([]string, error) {
 	path = filepath.Join(b.pathPrefix, path)
 	if !strings.HasSuffix(path, "/") && path != "" {
 		// s3Clnt returns only the path itself when "/" is not present
@@ -405,7 +405,8 @@ func (b *S3FileBackend) ListDirectory(path string) ([]string, error) {
 	}
 
 	opts := s3.ListObjectsOptions{
-		Prefix: path,
+		Prefix:    path,
+		Recursive: recursion,
 	}
 	var paths []string
 	for object := range b.client.ListObjects(context.Background(), b.bucket, opts) {
@@ -422,6 +423,14 @@ func (b *S3FileBackend) ListDirectory(path string) ([]string, error) {
 	}
 
 	return paths, nil
+}
+
+func (b *S3FileBackend) ListDirectory(path string) ([]string, error) {
+	return b.listDirectory(path, false)
+}
+
+func (b *S3FileBackend) ListDirectoryRecursively(path string) ([]string, error) {
+	return b.listDirectory(path, true)
 }
 
 func (b *S3FileBackend) RemoveDirectory(path string) error {

@@ -209,38 +209,8 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	json.Unmarshal(b, &trialRequest)
-	if !trialRequest.TermsAccepted {
-		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.bad-request.terms-not-accepted", nil, "", http.StatusBadRequest)
-		return
-	}
-	if trialRequest.Users == 0 {
-		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
-		return
-	}
 
-	currentUser, appErr := c.App.GetUser(c.AppContext.Session().UserId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	trialLicenseRequest := &model.TrialLicenseRequest{
-		ServerID:              c.App.TelemetryId(),
-		Name:                  currentUser.GetDisplayName(model.ShowFullName),
-		Email:                 currentUser.Email,
-		SiteName:              *c.App.Config().TeamSettings.SiteName,
-		SiteURL:               *c.App.Config().ServiceSettings.SiteURL,
-		Users:                 trialRequest.Users,
-		TermsAccepted:         trialRequest.TermsAccepted,
-		ReceiveEmailsAccepted: trialRequest.ReceiveEmailsAccepted,
-	}
-
-	if trialLicenseRequest.SiteURL == "" {
-		c.Err = model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.no-site-url.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	if err := c.App.Srv().RequestTrialLicense(trialLicenseRequest); err != nil {
+	if err := c.App.Channels().RequestTrialLicense(c.AppContext.Session().UserId, trialRequest.Users, trialRequest.TermsAccepted, trialRequest.ReceiveEmailsAccepted); err != nil {
 		c.Err = err
 		return
 	}

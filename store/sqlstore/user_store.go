@@ -390,7 +390,7 @@ func (us SqlUserStore) GetMany(ctx context.Context, ids []string) ([]*model.User
 	}
 
 	users := []*model.User{}
-	if _, err := us.SqlStore.DBFromContext(ctx).Select(&users, queryString, args...); err != nil {
+	if err := us.SqlStore.DBXFromContext(ctx).Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "users_get_many_select")
 	}
 
@@ -403,7 +403,7 @@ func (us SqlUserStore) Get(ctx context.Context, id string) (*model.User, error) 
 	if err != nil {
 		return nil, errors.Wrap(err, "users_get_tosql")
 	}
-	row := us.SqlStore.DBFromContext(ctx).Db.QueryRow(queryString, args...)
+	row := us.SqlStore.DBXFromContext(ctx).QueryRow(queryString, args...)
 
 	var user model.User
 	var props, notifyProps, timezone []byte
@@ -774,7 +774,7 @@ func (us SqlUserStore) GetAllProfilesInChannel(ctx context.Context, channelID st
 	}
 
 	users := []*model.User{}
-	rows, err := us.SqlStore.DBFromContext(ctx).Db.Query(queryString, args...)
+	rows, err := us.SqlStore.DBXFromContext(ctx).Query(queryString, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
@@ -998,7 +998,7 @@ func (us SqlUserStore) GetProfileByIds(ctx context.Context, userIds []string, op
 		return nil, errors.Wrap(err, "get_profile_by_ids_tosql")
 	}
 
-	if _, err := us.SqlStore.DBFromContext(ctx).Select(&users, queryString, args...); err != nil {
+	if err := us.SqlStore.DBXFromContext(ctx).Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
 
@@ -1455,21 +1455,6 @@ func (us SqlUserStore) SearchNotInGroup(groupID string, term string, options *mo
 	return us.performSearch(query, term, options)
 }
 
-var spaceFulltextSearchChar = []string{
-	"<",
-	">",
-	"+",
-	"-",
-	"(",
-	")",
-	"~",
-	":",
-	"*",
-	"\"",
-	"!",
-	"@",
-}
-
 func generateSearchQuery(query sq.SelectBuilder, terms []string, fields []string, isPostgreSQL bool) sq.SelectBuilder {
 	for _, term := range terms {
 		searchFields := []string{}
@@ -1694,7 +1679,7 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 		OrderBy("u.CreateAt").
 		Limit(uint64(limit)).
 		ToSql()
-	_, err := us.GetSearchReplica().Select(&users, usersQuery, args...)
+	err := us.GetSearchReplicaX().Select(&users, usersQuery, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
@@ -1704,7 +1689,7 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 		userIds = append(userIds, user.Id)
 	}
 
-	var channelMembers []*model.ChannelMember
+	channelMembers := []*model.ChannelMember{}
 	channelMembersQuery, args, _ := us.getQueryBuilder().
 		Select(`
 				cm.ChannelId,
@@ -1724,18 +1709,18 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 		Join("Channels c ON cm.ChannelId = c.Id").
 		Where(sq.Eq{"c.Type": model.ChannelTypeOpen, "cm.UserId": userIds}).
 		ToSql()
-	_, err = us.GetSearchReplica().Select(&channelMembers, channelMembersQuery, args...)
+	err = us.GetSearchReplicaX().Select(&channelMembers, channelMembersQuery, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find ChannelMembers")
 	}
 
-	var teamMembers []*model.TeamMember
+	teamMembers := []*model.TeamMember{}
 	teamMembersQuery, args, _ := us.getQueryBuilder().
 		Select("TeamId, UserId, Roles, DeleteAt, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest, SchemeUser, SchemeAdmin").
 		From("TeamMembers").
 		Where(sq.Eq{"UserId": userIds, "DeleteAt": 0}).
 		ToSql()
-	_, err = us.GetSearchReplica().Select(&teamMembers, teamMembersQuery, args...)
+	err = us.GetSearchReplicaX().Select(&teamMembers, teamMembersQuery, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find TeamMembers")
 	}
@@ -2089,8 +2074,8 @@ func (us SqlUserStore) GetUsersWithInvalidEmails(page int, perPage int, restrict
 		return nil, errors.Wrap(err, "users_get_many_tosql")
 	}
 
-	var users []*model.User
-	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+	users := []*model.User{}
+	if err := us.GetReplicaX().Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "users_get_many_select")
 	}
 
