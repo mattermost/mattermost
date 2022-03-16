@@ -48,6 +48,6 @@ If "Account Settings > Display > Default appearance of image link previews" is s
 
 Link 1 example: https://www.yahoo.com/news/panasonic-unveils-solar-roof-may-212400917.html
 
-Link 2 example: https://about.mattermost.com
+Link 2 example: https://mattermost.com
 
 ```
