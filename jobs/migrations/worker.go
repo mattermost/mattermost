@@ -6,6 +6,7 @@ package migrations
 import (
 	"context"
 	"net/http"
+	"sync/atomic"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/jobs"
@@ -25,6 +26,7 @@ type Worker struct {
 	jobs      chan model.Job
 	jobServer *jobs.JobServer
 	store     store.Store
+	closed    int32
 }
 
 func MakeWorker(jobServer *jobs.JobServer, store store.Store) model.Worker {
@@ -41,6 +43,10 @@ func MakeWorker(jobServer *jobs.JobServer, store store.Store) model.Worker {
 }
 
 func (worker *Worker) Run() {
+	// Set to open if closed before. We are not bothered about multiple opens.
+	if atomic.CompareAndSwapInt32(&worker.closed, 1, 0) {
+		worker.stop = make(chan struct{})
+	}
 	mlog.Debug("Worker started", mlog.String("worker", worker.name))
 
 	defer func() {
@@ -61,6 +67,10 @@ func (worker *Worker) Run() {
 }
 
 func (worker *Worker) Stop() {
+	// Set to close, and if already closed before, then return.
+	if !atomic.CompareAndSwapInt32(&worker.closed, 0, 1) {
+		return
+	}
 	mlog.Debug("Worker stopping", mlog.String("worker", worker.name))
 	close(worker.stop)
 	<-worker.stopped
