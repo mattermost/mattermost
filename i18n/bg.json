@@ -204,18 +204,6 @@
     "translation": "Бота не съществува."
   },
   {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Не може да конвертира StringMap в *низ"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Не може да конвертира StringInterface в *низ"
-  },
-  {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Не може да конвертира StringArray в *низ"
-  },
-  {
     "id": "searchengine.bleve.disabled.error",
     "translation": "Грешка при прочистване на Bleve индекси: двигателят е забранен"
   },

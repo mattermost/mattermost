@@ -4620,18 +4620,6 @@
     "translation": "Brak adresu DO."
   },
   {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Nie udało się skonwertować StringArray do *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Nie udało się skonwertować StringInterface do *string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Nie udało się skonwertować StringMap do *string"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot does not exist."
   },

@@ -4616,18 +4616,6 @@
     "translation": "Fehlende TO-Adresse."
   },
   {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Konnte StringArray nicht zu *string konvertieren"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Konnte StringInterface nicht zu *string konvertieren"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Konnte StringMap nicht zu *string konvertieren"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot existiert nicht."
   },

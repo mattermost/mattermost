@@ -3096,18 +3096,6 @@
     "translation": "Bot nem létezik."
   },
   {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Nem lehet átalakítani a StringMap -ot *string -é"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Nem lehet átalakítani a StringInterface -t *string -é"
-  },
-  {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Nem lehet átalakítani a String Array -t *string -é"
-  },
-  {
     "id": "sharedchannel.permalink.not_found",
     "translation": "Ez a bejegyzés más csatornákra hivatkozást tartalmaz, amelyek nem feltétlenül láthatók más szerverek felhasználói számára."
   },

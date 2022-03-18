@@ -1244,18 +1244,6 @@
     "translation": "ربات وجود ندارد."
   },
   {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: تبدیل StringMap به *string امکان پذیر نیست"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: تبدیل StringInterface به *string امکان پذیر نیست"
-  },
-  {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: تبدیل StringArray به *string امکان پذیر نیست"
-  },
-  {
     "id": "sharedchannel.permalink.not_found",
     "translation": "این پست حاوی لینک های دائمی به کانال های دیگر است که ممکن است برای کاربران سایت های دیگر قابل مشاهده نباشد."
   },
