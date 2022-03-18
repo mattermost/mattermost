@@ -9229,11 +9229,11 @@
   },
   {
     "id": "app.system.complete_onboarding_request.no_first_user",
-    "translation": "オリエンテーションの完了はシステム管理者のみが行えます。"
+    "translation": "オンボーディングの完了はシステム管理者のみが行えます。"
   },
   {
     "id": "app.system.complete_onboarding_request.app_error",
-    "translation": "オリエンテーションの完了リクエストをデコードできませんでした。"
+    "translation": "オンボーディングの完了リクエストをデコードできませんでした。"
   },
   {
     "id": "app.admin.latest_version_read_all.failure",
