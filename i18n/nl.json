@@ -4616,18 +4616,6 @@
     "translation": "Aan-adres ontbreekt."
   },
   {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Kan StringArray niet naar *string omzetten"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Kan StringInterface niet naar *string omzetten"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Kan StringMap niet naar *string omzetten"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot does not exist"
   },

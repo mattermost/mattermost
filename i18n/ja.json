@@ -4612,18 +4612,6 @@
     "translation": "送信先アドレスが存在しません。"
   },
   {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: StringArrayを*stringに変換できません"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: StringInterfaceを*stringに変換できません"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: StringMapを*stringに変換できません"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot does not exist。"
   },

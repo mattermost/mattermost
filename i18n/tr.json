@@ -4616,18 +4616,6 @@
     "translation": "KİME adresi eksik."
   },
   {
-    "id": "store.sql.convert_string_array",
-    "translation": "Veritabanından: StringArray *string olarak dönüştürülemedi"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "Veritabanından: StringInterface *string olarak dönüştürülemedi"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "Veritabanından: StringMap *string olarak dönüştürülemedi"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot bulunamadı."
   },

@@ -4620,18 +4620,6 @@
     "translation": "Отсутствует адрес \"Кому\"."
   },
   {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Невозможно преобразовать StringArray в *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Невозможно преобразовать StringInterface в *string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Невозможно преобразовать StringMap в *string"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Бот не существует."
   },
