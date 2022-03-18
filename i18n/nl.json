@@ -9381,5 +9381,13 @@
   {
     "id": "app.prepackged-plugin.invalid_version.app_error",
     "translation": "Voorverpakte plugin versie kon niet geparsed worden."
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "De maximale lengte van MattermostAppID is 32 tekens."
+  },
+  {
+    "id": "app.system.applied_migrations.not_authorized",
+    "translation": "Je hebt niet de juiste rechten."
   }
 ]
