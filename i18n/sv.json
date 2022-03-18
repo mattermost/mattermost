@@ -204,18 +204,6 @@
     "translation": "Bot:en finns inte."
   },
   {
-    "id": "store.sql.convert_string_map",
-    "translation": "Från Db: Kunde inte konvertera StringMap till *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "Från Db: Kunde inte konvertera StringInterface till *string"
-  },
-  {
-    "id": "store.sql.convert_string_array",
-    "translation": "Från Db: Kunde inte konvertera StringArray till *string"
-  },
-  {
     "id": "searchengine.bleve.disabled.error",
     "translation": "Fel vid rensning av Bleve-index: Funktionen är inaktiverad"
   },
