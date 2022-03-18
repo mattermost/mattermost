@@ -9398,5 +9398,13 @@
   {
     "id": "app.group.get_by_username_failure",
     "translation": " "
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "Максимальная длина MattermostAppID — 32 символа."
+  },
+  {
+    "id": "app.system.applied_migrations.not_authorized",
+    "translation": "У Вас нет соответствующих разрешений."
   }
 ]
