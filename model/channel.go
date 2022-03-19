@@ -27,7 +27,7 @@ const (
 	ChannelGroupMinUsers       = 3
 	DefaultChannelName         = "town-square"
 	ChannelDisplayNameMaxRunes = 64
-	ChannelNameMinLength       = 2
+	ChannelNameMinLength       = 1
 	ChannelNameMaxLength       = 64
 	ChannelHeaderMaxRunes      = 1024
 	ChannelPurposeMaxRunes     = 250
@@ -216,7 +216,7 @@ func (o *Channel) IsValid() *AppError {
 	}
 
 	if !IsValidChannelIdentifier(o.Name) {
-		return NewAppError("Channel.IsValid", "model.channel.is_valid.2_or_more.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+		return NewAppError("Channel.IsValid", "model.channel.is_valid.1_or_more.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if !(o.Type == ChannelTypeOpen || o.Type == ChannelTypePrivate || o.Type == ChannelTypeDirect || o.Type == ChannelTypeGroup) {

@@ -51,7 +51,7 @@ func (sc *SharedChannel) IsValid() *AppError {
 	}
 
 	if !IsValidChannelIdentifier(sc.ShareName) {
-		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.2_or_more.app_error", nil, "id="+sc.ChannelId, http.StatusBadRequest)
+		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.1_or_more.app_error", nil, "id="+sc.ChannelId, http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(sc.ShareHeader) > ChannelHeaderMaxRunes {
