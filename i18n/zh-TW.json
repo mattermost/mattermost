@@ -4612,18 +4612,6 @@
     "translation": "缺少收件人位址。"
   },
   {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: 無法將 StringArray 轉換為 *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: 無法將 StringInterface 轉換為 *string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: 無法將 StringMap 轉換為 *string"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot does not exist"
   },

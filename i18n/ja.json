@@ -4612,18 +4612,6 @@
     "translation": "送信先アドレスが存在しません。"
   },
   {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: StringArrayを*stringに変換できません"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: StringInterfaceを*stringに変換できません"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: StringMapを*stringに変換できません"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot does not exist。"
   },
@@ -9241,11 +9229,11 @@
   },
   {
     "id": "app.system.complete_onboarding_request.no_first_user",
-    "translation": "オリエンテーションの完了はシステム管理者のみが行えます。"
+    "translation": "オンボーディングの完了はシステム管理者のみが行えます。"
   },
   {
     "id": "app.system.complete_onboarding_request.app_error",
-    "translation": "オリエンテーションの完了リクエストをデコードできませんでした。"
+    "translation": "オンボーディングの完了リクエストをデコードできませんでした。"
   },
   {
     "id": "app.admin.latest_version_read_all.failure",
@@ -9386,5 +9374,21 @@
   {
     "id": "api.team.invite_members.unable_to_send_email.app_error",
     "translation": "メール送信時にエラーが発生しました"
+  },
+  {
+    "id": "app.user.group_name_conflict",
+    "translation": " "
+  },
+  {
+    "id": "app.user.get_by_name_failure",
+    "translation": " "
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": " "
+  },
+  {
+    "id": "app.group.get_by_username_failure",
+    "translation": " "
   }
 ]

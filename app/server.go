@@ -20,6 +20,7 @@ import (
 	"os/exec"
 	"path"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -540,7 +541,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if _, err = url.ParseRequestURI(*s.Config().ServiceSettings.SiteURL); err != nil {
-		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: http://about.mattermost.com/default-site-url")
+		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://docs.mattermost.com/configure/configuration-settings.html#site-url")
 	}
 
 	// Start email batching because it's not like the other jobs
@@ -752,10 +753,10 @@ func (s *Server) Channels() *Channels {
 	return ch
 }
 
-// Return Database type (postgres or mysql) and current version of Mattermost
-func (s *Server) DatabaseTypeAndMattermostVersion() (string, string) {
-	mattermostVersion, _ := s.Store.System().GetByName("Version")
-	return *s.Config().SqlSettings.DriverName, mattermostVersion.Value
+// Return Database type (postgres or mysql) and current version of the schema
+func (s *Server) DatabaseTypeAndSchemaVersion() (string, string) {
+	schemaVersion, _ := s.Store.GetDBSchemaVersion()
+	return *s.Config().SqlSettings.DriverName, strconv.Itoa(schemaVersion)
 }
 
 // initLogging initializes and configures the logger(s). This may be called more than once.
@@ -2194,13 +2195,15 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
 		vendorName, vendorVersion = ldapInterface.GetVendorNameAndVendorVersion()
 	}
 
-	// Here we are getting information regarding the database (mysql/postgres + current Mattermost version)
-	databaseType, databaseVersion := a.Srv().DatabaseTypeAndMattermostVersion()
+	// Here we are getting information regarding the database (mysql/postgres + current schema version)
+	databaseType, databaseVersion := a.Srv().DatabaseTypeAndSchemaVersion()
 
 	// Creating the struct for support packet yaml file
 	supportPacket := model.SupportPacket{
 		ServerOS:             runtime.GOOS,
 		ServerArchitecture:   runtime.GOARCH,
+		ServerVersion:        model.CurrentVersion,
+		BuildHash:            model.BuildHash,
 		DatabaseType:         databaseType,
 		DatabaseVersion:      databaseVersion,
 		LdapVendorName:       vendorName,
@@ -2303,4 +2306,12 @@ func runDNDStatusExpireJob(a *App) {
 			cancelDNDStatusExpirationRecurringTask(a)
 		}
 	})
+}
+
+func (a *App) GetAppliedSchemaMigrations() ([]model.AppliedMigration, *model.AppError) {
+	table, err := a.Srv().Store.GetAppliedMigrations()
+	if err != nil {
+		return nil, model.NewAppError("GetDBSchemaTable", "api.file.read_file.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return table, nil
 }

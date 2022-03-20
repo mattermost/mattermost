@@ -236,11 +236,11 @@ func (a *App) clearPushNotificationSync(currentSessionId, userID, channelID, roo
 	msg.Badge = int(unreadCount)
 
 	if msg.IsCRTEnabled {
-		data, err := a.Srv().Store.Thread().GetThreadsForUser(userID, "", model.GetUserThreadsOpts{TotalsOnly: true})
+		totalUnreadMentions, err := a.Srv().Store.Thread().GetTotalUnreadMentions(userID, "", model.GetUserThreadsOpts{})
 		if err != nil {
 			return model.NewAppError("clearPushNotificationSync", "app.user.get_thread_count_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
-		msg.Badge += int(data.TotalUnreadMentions)
+		msg.Badge += int(totalUnreadMentions)
 	}
 	return a.sendPushNotificationToAllSessions(msg, userID, currentSessionId)
 }
