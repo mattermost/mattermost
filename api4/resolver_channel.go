@@ -36,6 +36,11 @@ func (ch *channel) Stats(ctx context.Context) (*model.ChannelStats, error) {
 		return nil, err
 	}
 
+	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), ch.Id, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
+		return nil, c.Err
+	}
+
 	memberCount, appErr := c.App.GetChannelMemberCount(ch.Id)
 	if appErr != nil {
 		return nil, appErr
