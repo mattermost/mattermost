@@ -194,7 +194,7 @@ func (srv *JobServer) RequestCancellation(jobId string) *model.AppError {
 	return model.NewAppError("RequestCancellation", "jobs.request_cancellation.status.error", nil, "id="+jobId, http.StatusInternalServerError)
 }
 
-func (srv *JobServer) CancellationWatcher(ctx context.Context, jobId string, cancelChan chan interface{}) {
+func (srv *JobServer) CancellationWatcher(ctx context.Context, jobId string, cancelChan chan struct{}) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -202,11 +202,14 @@ func (srv *JobServer) CancellationWatcher(ctx context.Context, jobId string, can
 			return
 		case <-time.After(CancelWatcherPollingInterval * time.Millisecond):
 			mlog.Debug("CancellationWatcher for Job started polling.", mlog.String("job_id", jobId))
-			if jobStatus, err := srv.Store.Job().Get(jobId); err == nil {
-				if jobStatus.Status == model.JobStatusCancelRequested {
-					close(cancelChan)
-					return
-				}
+			jobStatus, err := srv.Store.Job().Get(jobId)
+			if err != nil {
+				mlog.Warn("Error getting job", mlog.String("job_id", jobId), mlog.Err(err))
+				continue
+			}
+			if jobStatus.Status == model.JobStatusCancelRequested {
+				close(cancelChan)
+				return
 			}
 		}
 	}
