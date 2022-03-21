@@ -4620,18 +4620,6 @@
     "translation": "Отсутствует адрес \"Кому\"."
   },
   {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Невозможно преобразовать StringArray в *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Невозможно преобразовать StringInterface в *string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Невозможно преобразовать StringMap в *string"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Бот не существует."
   },
@@ -9390,5 +9378,33 @@
   {
     "id": "api.error_set_first_admin_complete_setup",
     "translation": "Ошибка при попытке сохранить первую полную настройку администратора в магазине."
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet",
+    "translation": "Гостевой доступ к указанному "
+  },
+  {
+    "id": "app.user.group_name_conflict",
+    "translation": " "
+  },
+  {
+    "id": "app.user.get_by_name_failure",
+    "translation": " "
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": " "
+  },
+  {
+    "id": "app.group.get_by_username_failure",
+    "translation": " "
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "Максимальная длина MattermostAppID — 32 символа."
+  },
+  {
+    "id": "app.system.applied_migrations.not_authorized",
+    "translation": "У Вас нет соответствующих разрешений."
   }
 ]

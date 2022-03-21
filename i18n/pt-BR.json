@@ -4616,18 +4616,6 @@
     "translation": "Endereço PARA ausente."
   },
   {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Não foi possível converter StringArray para *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Não foi possível converter StringInterface para *string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Não foi possível converter StringMap para *string"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot does not exist"
   },

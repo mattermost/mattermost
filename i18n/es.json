@@ -4616,18 +4616,6 @@
     "translation": "Falta la dirección PARA."
   },
   {
-    "id": "store.sql.convert_string_array",
-    "translation": "Desde BD: No se puede convertir StringArray a *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "Desde BD: No se puede convertir StringInterface a *string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "Desde BD: No se puede convertir StringMap a *string"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "El Bot no existe."
   },

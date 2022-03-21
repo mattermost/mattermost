@@ -208,18 +208,6 @@
     "translation": "Bot does not exist."
   },
   {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Unable to convert StringMap to *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Unable to convert StringInterface to *string"
-  },
-  {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Unable to convert StringArray to *string"
-  },
-  {
     "id": "sharedchannel.permalink.not_found",
     "translation": "This post contains permalinks to other channels which may not be visible to users in other sites."
   },

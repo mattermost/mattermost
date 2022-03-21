@@ -4620,18 +4620,6 @@
     "translation": "Lipsește adresa CATRE."
   },
   {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Imposibil de convertit StringArray la *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Imposibil de convertit StringInterface la *string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Imposibil de convertit StringMap în *string"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Botul nu există."
   },
