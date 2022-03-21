@@ -35,6 +35,7 @@ type FileBackend interface {
 	FileModTime(path string) (time.Time, error)
 
 	ListDirectory(path string) ([]string, error)
+	ListDirectoryRecursively(path string) ([]string, error)
 	RemoveDirectory(path string) error
 }
 

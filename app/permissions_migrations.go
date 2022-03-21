@@ -973,6 +973,24 @@ func (a *App) getAddPlaybooksPermissions() (permissionsMap, error) {
 	return transformations, nil
 }
 
+func (a *App) getPlaybooksPermissionsAddManageRoles() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	transformations = append(transformations, permissionTransformation{
+		On: permissionOr(
+			isRole(model.PlaybookAdminRoleId),
+			isRole(model.TeamAdminRoleId),
+			isRole(model.SystemAdminRoleId),
+		),
+		Add: []string{
+			model.PermissionPublicPlaybookManageRoles.Id,
+			model.PermissionPrivatePlaybookManageRoles.Id,
+		},
+	})
+
+	return transformations, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	return a.Srv().doPermissionsMigrations()
@@ -1013,6 +1031,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddTestEmailAncillaryPermission, Migration: a.getAddTestEmailAncillaryPermission},
 		{Key: model.MigrationKeyAddPlaybooksPermissions, Migration: a.getAddPlaybooksPermissions},
 		{Key: model.MigrationKeyAddCustomUserGroupsPermissions, Migration: a.getAddCustomUserGroupsPermissions},
+		{Key: model.MigrationKeyAddPlayboosksManageRolesPermissions, Migration: a.getPlaybooksPermissionsAddManageRoles},
 	}
 
 	roles, err := s.Store.Role().GetAll()

@@ -8,6 +8,14 @@
     "translation": "August"
   },
   {
+    "id": "Boards",
+    "translation": "Boards"
+  },
+  {
+    "id": "Channels",
+    "translation": "Channels"
+  },
+  {
     "id": "December",
     "translation": "December"
   },
@@ -42,6 +50,10 @@
   {
     "id": "October",
     "translation": "October"
+  },
+  {
+    "id": "Playbooks",
+    "translation": "Playbooks"
   },
   {
     "id": "September",
@@ -840,7 +852,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
+    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) to identify channels."
   },
   {
     "id": "api.command_invite.desc",
@@ -992,7 +1004,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
+    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) to identify channels."
   },
   {
     "id": "api.command_mute.hint",
@@ -1004,7 +1016,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Could not find the specified channel. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
+    "translation": "Could not find the specified channel. Please use the [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) to identify channels."
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -2536,14 +2548,6 @@
     "translation": "Trial license could not be retrieved. Visit https://mattermost.com/trial/ to request a license."
   },
   {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Contact Us"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Contacting Us"
-  },
-  {
     "id": "api.server.warn_metric.email_domain.contact_us.email_body",
     "translation": "Mattermost contact us request. I'm interested in learning more about using Guest Accounts.\r\n"
   },
@@ -2726,22 +2730,6 @@
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
     "translation": "Your Enterprise trial is now active. Go to **System Console > User Management > Permissions** to enable Advanced Permissions."
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Start Trial"
-  },
-  {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Getting Trial"
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "Set Your Support Email Address"
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "Please go to **System Console > Site Configuration > Customization** to set the [Support Email](https://docs.mattermost.com/administration/config-settings.html#support-email) as your organization's internal IT Support Desk email address for end user feedback, email notifications, and support requests."
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
@@ -2976,6 +2964,14 @@
     "translation": "No one to invite."
   },
   {
+    "id": "api.team.invite_members.unable_to_send_email.app_error",
+    "translation": "Error while sending the email"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
+    "translation": "SMTP is not configured in System Console"
+  },
+  {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
     "translation": "Team creation has been disabled. Please ask your System Administrator for details."
   },
@@ -3125,7 +3121,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Enterprise has ended today, {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Enterprise."
+    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Enterprise has ended today, {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Enterprise. If you do not add your payment information within 30 days, we will delete your Cloud workspace permanently and you will lose any associated data."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
@@ -3269,7 +3265,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.email_info1",
@@ -3586,6 +3582,38 @@
   {
     "id": "api.templates.reset_subject",
     "translation": "[{{ .SiteName }}] Reset your password"
+  },
+  {
+    "id": "api.templates.server_inactivity_button",
+    "translation": "Open Mattermost"
+  },
+  {
+    "id": "api.templates.server_inactivity_info",
+    "translation": "Come and check it out!"
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet",
+    "translation": "Guest Access to specified "
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet1",
+    "translation": "Workflow management with "
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet2",
+    "translation": "Manage tasks using "
+  },
+  {
+    "id": "api.templates.server_inactivity_subject",
+    "translation": "HEY! Open Mattermost to increase your team’s productivity!"
+  },
+  {
+    "id": "api.templates.server_inactivity_subtitle",
+    "translation": "Hey {{.Name}}, we’ve noticed that your Mattermost server is collecting a bit of dust. Take a look at some features that can help lighten your team's workload."
+  },
+  {
+    "id": "api.templates.server_inactivity_title",
+    "translation": "Unlock increased productivity with these awesome features"
   },
   {
     "id": "api.templates.signin_change_email.body.info",
@@ -4608,10 +4636,6 @@
     "translation": "Unable to get the channel unread messages."
   },
   {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Unable to increment the mention count."
-  },
-  {
     "id": "app.channel.migrate_channel_members.select.app_error",
     "translation": "Failed to select the batch of channel members."
   },
@@ -4908,6 +4932,10 @@
     "translation": "Unable to perform operation for that source type."
   },
   {
+    "id": "app.group.get_by_username_failure",
+    "translation": " "
+  },
+  {
     "id": "app.group.group_syncable_already_deleted",
     "translation": "group syncable was already deleted"
   },
@@ -4926,6 +4954,10 @@
   {
     "id": "app.group.uniqueness_error",
     "translation": "group member already exists"
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": " "
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -5102,10 +5134,6 @@
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
     "translation": "Channel display_name is not within permitted length constraints."
-  },
-  {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Missing required channel property: display_name"
   },
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
@@ -5518,6 +5546,10 @@
   {
     "id": "app.job.get_all.app_error",
     "translation": "Unable to get the jobs."
+  },
+  {
+    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
+    "translation": "Unable to get the all jobs by type and status."
   },
   {
     "id": "app.job.get_count_by_status_and_type.app_error",
@@ -5976,6 +6008,10 @@
     "translation": "We encountered an error while updating preferences."
   },
   {
+    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "translation": "Prepackged plugin version could not be parsed."
+  },
+  {
     "id": "app.reaction.bulk_get_for_post_ids.app_error",
     "translation": "Unable to get reactions for post."
   },
@@ -6120,6 +6156,10 @@
     "translation": "Encountered an error encoding JSON for the interactive dialog."
   },
   {
+    "id": "app.system.applied_migrations.not_authorized",
+    "translation": "You don't have the appropriate permissions."
+  },
+  {
     "id": "app.system.complete_onboarding_request.app_error",
     "translation": "Failed to decode the complete onboarding request."
   },
@@ -6152,20 +6192,8 @@
     "translation": "System"
   },
   {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Learn more about the Mattermost Advisor](https://about.mattermost.com/default-channel-handle-documentation)"
-  },
-  {
     "id": "app.system.warn_metric.bot_displayname",
     "translation": "Mattermost Advisor"
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "List of admins is empty."
-  },
-  {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Could not find metric."
   },
   {
     "id": "app.system.warn_metric.store.app_error",
@@ -6452,6 +6480,10 @@
     "translation": "We encountered an error trying to find the account by authentication type."
   },
   {
+    "id": "app.user.get_by_name_failure",
+    "translation": " "
+  },
+  {
     "id": "app.user.get_by_username.app_error",
     "translation": "Unable to find an existing account matching your username for this team. This team may require an invite from the team owner to join."
   },
@@ -6506,6 +6538,10 @@
   {
     "id": "app.user.get_users_batch_for_indexing.get_users.app_error",
     "translation": "Unable to get the users batch for indexing."
+  },
+  {
+    "id": "app.user.group_name_conflict",
+    "translation": " "
   },
   {
     "id": "app.user.missing_account.const",
@@ -8636,6 +8672,10 @@
     "translation": "Icon URL must be a valid URL and start with http:// or https://."
   },
   {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "The maximum length of MattermostAppID is 32 characters."
+  },
+  {
     "id": "model.oauth.is_valid.name.app_error",
     "translation": "Invalid name."
   },
@@ -9156,18 +9196,6 @@
     "translation": "This post contains permalinks to other channels which may not be visible to users in other sites."
   },
   {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Unable to convert StringArray to *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Unable to convert StringInterface to *string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Unable to convert StringMap to *string"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot does not exist."
   },
@@ -9305,7 +9333,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 12+"
+    "translation": "Version 14.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",

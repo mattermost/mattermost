@@ -79,12 +79,16 @@ func TestClientConfigWithComputed(t *testing.T) {
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	config := th.App.ClientConfigWithComputed()
 	_, ok := config["NoAccounts"]
 	assert.True(t, ok, "expected NoAccounts in returned config")
 	_, ok = config["MaxPostSize"]
 	assert.True(t, ok, "expected MaxPostSize in returned config")
+	v, ok := config["SchemaVersion"]
+	assert.True(t, ok, "expected SchemaVersion in returned config")
+	assert.Equal(t, "1", v)
 }
 
 func TestEnsureInstallationDate(t *testing.T) {

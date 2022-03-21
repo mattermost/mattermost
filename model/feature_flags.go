@@ -38,9 +38,6 @@ type FeatureFlags struct {
 
 	PermalinkPreviews bool
 
-	// Enable the Global Header
-	GlobalHeader bool
-
 	// Determine whether when a user gets created, they'll have noisy notifications e.g. Send desktop notifications for all activity
 	NewAccountNoisy bool
 
@@ -56,27 +53,20 @@ type FeatureFlags struct {
 	// Enable Create First Channel
 	GuidedChannelCreation bool
 
-	// Determine after which duration in hours to send a second invitation to someone that didn't join after the initial invite, possible values = ("48", "72")
-	ResendInviteEmailInterval string
-
 	// A/B test for whether radio buttons or toggle button is more effective in in-screen invite to team modal ("none", "toggle")
 	InviteToTeam string
 
 	CustomGroups bool
-
-	// Enable inline post editing
-	InlinePostEditing bool
 
 	// Enable DataRetention for Boards
 	BoardsDataRetention bool
 
 	NormalizeLdapDNs bool
 
+	EnableInactivityCheckJob bool
+
 	// Enable special onboarding flow for first admin
 	UseCaseOnboarding bool
-
-	// Enable Workspace optimization dashboard
-	WorkspaceOptimizationDashboard bool
 
 	// Enable GraphQL feature
 	GraphQL bool
@@ -93,20 +83,17 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
 	f.PermalinkPreviews = true
-	f.GlobalHeader = true
 	f.NewAccountNoisy = false
 	f.CallsMobile = false
 	f.BoardsFeatureFlags = ""
 	f.AddMembersToChannel = "top"
 	f.GuidedChannelCreation = false
-	f.ResendInviteEmailInterval = ""
 	f.InviteToTeam = "none"
 	f.CustomGroups = true
-	f.InlinePostEditing = false
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
-	f.UseCaseOnboarding = false
-	f.WorkspaceOptimizationDashboard = false
+	f.EnableInactivityCheckJob = true
+	f.UseCaseOnboarding = true
 	f.GraphQL = false
 }
 func (f *FeatureFlags) Plugins() map[string]string {

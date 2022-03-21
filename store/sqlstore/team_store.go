@@ -922,7 +922,7 @@ func (s SqlTeamStore) GetMember(ctx context.Context, teamId string, userId strin
 	}
 
 	var dbMember teamMemberWithSchemeRoles
-	err = s.DBFromContext(ctx).SelectOne(&dbMember, queryString, args...)
+	err = s.DBXFromContext(ctx).Get(&dbMember, queryString, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("TeamMember", fmt.Sprintf("teamId=%s, userId=%s", teamId, userId))
@@ -1068,7 +1068,7 @@ func (s SqlTeamStore) GetTeamsForUser(ctx context.Context, userId string) ([]*mo
 	}
 
 	dbMembers := teamMemberWithSchemeRolesList{}
-	_, err = s.SqlStore.DBFromContext(ctx).Select(&dbMembers, queryString, args...)
+	err = s.SqlStore.DBXFromContext(ctx).Select(&dbMembers, queryString, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers with userId=%s", userId)
 	}

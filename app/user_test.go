@@ -180,6 +180,22 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 	})
 }
 
+func TestUpdateUser(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	user := th.CreateUser()
+	group := th.CreateGroup()
+
+	t.Run("fails if the username matches a group name", func(t *testing.T) {
+		user.Username = *group.Name
+		u, err := th.App.UpdateUser(user, false)
+		require.NotNil(t, err)
+		require.Equal(t, "app.user.group_name_conflict", err.Id)
+		require.Nil(t, u)
+	})
+}
+
 func TestUpdateUserMissingFields(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -208,6 +224,30 @@ func TestUpdateUserMissingFields(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestCreateUser(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	group := th.CreateGroup()
+
+	id := model.NewId()
+	user := &model.User{
+		Email:         "success+" + id + "@simulator.amazonses.com",
+		Username:      *group.Name,
+		Nickname:      "nn_" + id,
+		Password:      "Password1",
+		EmailVerified: true,
+	}
+
+	t.Run("fails if the username matches a group name", func(t *testing.T) {
+		user.Username = *group.Name
+		u, err := th.App.CreateUser(th.Context, user)
+		require.NotNil(t, err)
+		require.Equal(t, "app.user.group_name_conflict", err.Id)
+		require.Nil(t, u)
+	})
 }
 
 func TestUpdateUserActive(t *testing.T) {
@@ -857,10 +897,10 @@ func TestCreateUserWithToken(t *testing.T) {
 	})
 
 	t.Run("create guest having email domain restrictions", func(t *testing.T) {
-		enableGuestDomainRestricions := *th.App.Config().GuestAccountsSettings.RestrictCreationToDomains
+		enableGuestDomainRestrictions := *th.App.Config().GuestAccountsSettings.RestrictCreationToDomains
 		defer func() {
 			th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.GuestAccountsSettings.RestrictCreationToDomains = &enableGuestDomainRestricions
+				cfg.GuestAccountsSettings.RestrictCreationToDomains = &enableGuestDomainRestrictions
 			})
 		}()
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.RestrictCreationToDomains = "restricted.com" })
@@ -906,10 +946,10 @@ func TestCreateUserWithToken(t *testing.T) {
 		th.BasicTeam.AllowedDomains = "restricted-team.com"
 		_, err := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
-		enableGuestDomainRestricions := *th.App.Config().TeamSettings.RestrictCreationToDomains
+		enableGuestDomainRestrictions := *th.App.Config().TeamSettings.RestrictCreationToDomains
 		defer func() {
 			th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.TeamSettings.RestrictCreationToDomains = &enableGuestDomainRestricions
+				cfg.TeamSettings.RestrictCreationToDomains = &enableGuestDomainRestrictions
 			})
 		}()
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictCreationToDomains = "restricted.com" })

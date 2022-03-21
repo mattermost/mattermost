@@ -48,6 +48,10 @@ type Channel {
 	creatorId: String!
 	schemeId: String
 	team: Team
+	groupConstrained: Boolean
+	shared: Boolean
+	lastPostAt: Float!
+	totalMsgCount: Float!
 	cursor: String
 }
 
@@ -91,6 +95,7 @@ type User {
 	position: String!
 	roles: [Role]!
 	preferences: [Preference!]!
+	sessions: [Session]!
 }
 
 type CustomStatus {
@@ -127,12 +132,16 @@ type Team {
 	id: String!
 	displayName    :    String!
 	name           :    String!
+	updateAt       :    Float!
 	description    :    String!
 	email          :    String!
 	type           :    String!
 	companyName    :    String!
 	allowedDomains :    String!
 	inviteId       :    String!
+	lastTeamIconUpdate: Float!
+	groupConstrained:   Boolean
+	allowOpenInvite:    Boolean!
 }
 
 type TeamMember {
@@ -154,4 +163,11 @@ type SidebarCategory {
 	muted: Boolean!
 	collapsed: Boolean!
 	channelIds: [String!]!
+}
+
+type Session {
+	id: String!
+	token: String!
+	createAt: Float!
+	expiresAt: Float!
 }
