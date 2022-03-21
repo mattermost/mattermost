@@ -38,7 +38,7 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf", api.APISessionRequired(getSubscriptionInvoicePDF)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription/limitreached/invite", api.APISessionRequired(sendAdminUpgradeRequestEmail)).Methods("POST")
 	api.BaseRoutes.Cloud.Handle("/subscription/limitreached/join", api.APIHandler(sendAdminUpgradeRequestEmailOnJoin)).Methods("POST")
-	api.BaseRoutes.Cloud.Handle("/subscription/stats", api.APIHandler(getSubscriptionStats)).Methods("GET")
+	api.BaseRoutes.Cloud.Handle("/subscription/stats", api.APISessionRequired(getSubscriptionStats)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription", api.APISessionRequired(changeSubscription)).Methods("PUT")
 
 	// POST /api/v4/cloud/webhook
@@ -116,10 +116,6 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getSubscriptionStats(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadBilling) {
-		c.SetPermissionError(model.PermissionSysconsoleReadBilling)
-		return
-	}
 	s, err := c.App.GetSubscriptionStats()
 	if err != nil {
 		c.Err = err
