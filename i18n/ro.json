@@ -633,7 +633,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Canalul nu a putut fi găsit {{.Channel}}. Utilizați [mânerul canalului](https://about.mattermost.com/default-channel-handle-documentation) pentru a identifica canalele."
+    "translation": "Canalul nu a putut fi găsit {{.Channel}}. Utilizați [mânerul canalului](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) pentru a identifica canalele."
   },
   {
     "id": "api.command_invite.desc",
@@ -777,7 +777,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Canalul nu a putut fi găsit {{.Channel}}. Utilizați [mânerul canalului](https://about.mattermost.com/default-channel-handle-documentation) pentru a identifica canalele."
+    "translation": "Canalul nu a putut fi găsit {{.Channel}}. Utilizați [mânerul canalului](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) pentru a identifica canalele."
   },
   {
     "id": "api.command_mute.hint",
@@ -789,7 +789,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Canalul specificat nu a putut găsi. Vă rugăm să folosiţi [mâner canal](https://about.mattermost.com/default-channel-handle-documentation) pentru a identifica canalele."
+    "translation": "Canalul specificat nu a putut găsi. Vă rugăm să folosiţi [mâner canal](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) pentru a identifica canalele."
   },
   {
     "id": "api.command_mute.not_member.error",

@@ -632,7 +632,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Impossible de trouver le canal {{.Channel}}. Veuillez utiliser l'[identifiant de canal](https://about.mattermost.com/default-channel-handle-documentation) pour identifier les canaux."
+    "translation": "Impossible de trouver le canal {{.Channel}}. Veuillez utiliser l'[identifiant de canal](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) pour identifier les canaux."
   },
   {
     "id": "api.command_invite.desc",
@@ -776,7 +776,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Impossible de trouver le canal {{.Channel}}. Veuillez utiliser l'[identifiant de canal](https://about.mattermost.com/default-channel-handle-documentation) pour identifier les canaux."
+    "translation": "Impossible de trouver le canal {{.Channel}}. Veuillez utiliser l'[identifiant de canal](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) pour identifier les canaux."
   },
   {
     "id": "api.command_mute.hint",
@@ -788,7 +788,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Impossible de trouver le canal spécifié. Veuillez utiliser l'[identifiant de canal](https://about.mattermost.com/default-channel-handle-documentation) pour identifier les canaux."
+    "translation": "Impossible de trouver le canal spécifié. Veuillez utiliser l'[identifiant de canal](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) pour identifier les canaux."
   },
   {
     "id": "api.command_mute.not_member.error",
