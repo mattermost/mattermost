@@ -32,6 +32,14 @@ const (
 
 var atMentionPattern = regexp.MustCompile(`\B@`)
 
+type postServiceWrapper struct {
+	app AppIface
+}
+
+func (s *postServiceWrapper) CreatePost(ctx *request.Context, post *model.Post) (*model.Post, *model.AppError) {
+	return s.app.CreatePostMissingChannel(ctx, post, true)
+}
+
 func (a *App) CreatePostAsUser(c *request.Context, post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
 	channel, errCh := a.Srv().Store.Channel().Get(post.ChannelId, true)

@@ -209,6 +209,10 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 	pluginsRoute.HandleFunc("/public/{public_file:.*}", ch.ServePluginPublicRequest)
 	pluginsRoute.HandleFunc("/{anything:.*}", ch.ServePluginRequest)
 
+	services[PostKey] = &postServiceWrapper{
+		app: &App{ch: ch},
+	}
+
 	return ch, nil
 }
 
