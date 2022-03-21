@@ -116,6 +116,10 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getSubscriptionStats(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadBilling) {
+		c.SetPermissionError(model.PermissionSysconsoleReadBilling)
+		return
+	}
 	s, err := c.App.GetSubscriptionStats()
 	if err != nil {
 		c.Err = err
