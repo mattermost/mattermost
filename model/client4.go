@@ -7931,3 +7931,16 @@ func (c *Client4) GetUsersWithInvalidEmails(page, perPage int) ([]*User, *Respon
 	}
 	return list, BuildResponse(r), nil
 }
+
+func (c *Client4) GetAppliedSchemaMigrations() ([]AppliedMigration, *Response, error) {
+	r, err := c.DoAPIGet(c.systemRoute()+"/schema/version", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list []AppliedMigration
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetUsers", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
+}

@@ -70,6 +70,7 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.System.Handle("/support_packet", api.APISessionRequired(generateSupportPacket)).Methods("GET")
 	api.BaseRoutes.System.Handle("/onboarding/complete", api.APISessionRequired(getOnboarding)).Methods("GET")
 	api.BaseRoutes.System.Handle("/onboarding/complete", api.APISessionRequired(completeOnboarding)).Methods("POST")
+	api.BaseRoutes.System.Handle("/schema/version", api.APISessionRequired(getAppliedSchemaMigrations)).Methods("GET")
 }
 
 func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -88,7 +89,7 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Checking to see if the server has a e10 or e20 license (this feature is only permitted for servers with licenses)
-	if c.App.Srv().License() == nil {
+	if c.App.Channels().License() == nil {
 		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.no_license", nil, "", http.StatusForbidden)
 		return
 	}
@@ -759,7 +760,7 @@ func getWarnMetricsStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	license := c.App.Srv().License()
+	license := c.App.Channels().License()
 	if license != nil {
 		mlog.Debug("License is present, skip.")
 		return
@@ -789,7 +790,7 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	license := c.App.Srv().License()
+	license := c.App.Channels().License()
 	if license != nil {
 		mlog.Debug("License is present, skip.")
 		return
@@ -831,7 +832,7 @@ func requestTrialLicenseAndAckWarnMetric(c *Context, w http.ResponseWriter, r *h
 		return
 	}
 
-	license := c.App.Srv().License()
+	license := c.App.Channels().License()
 	if license != nil {
 		mlog.Debug("License is present, skip.")
 		return
@@ -933,4 +934,29 @@ func completeOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	ReturnStatusOK(w)
+}
+
+func getAppliedSchemaMigrations(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.Err = model.NewAppError("getAppliedMigrations", "app.system.applied_migrations.not_authorized", nil, "", http.StatusForbidden)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("getAppliedSchemaMigrations", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	migrations, appErr := c.App.GetAppliedSchemaMigrations()
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	js, jsonErr := json.Marshal(migrations)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getAppliedMigrations", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
+	auditRec.Success()
 }

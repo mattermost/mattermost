@@ -632,7 +632,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "{{.Channel}} kanalı bulunamadı. Lütfen kanalları belirtmek için [kanal kısaltması] kullanın (https://about.mattermost.com/default-channel-handle-documentation)."
+    "translation": "{{.Channel}} kanalı bulunamadı. Lütfen kanalları belirtmek için [kanal kısaltması](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) kullanın."
   },
   {
     "id": "api.command_invite.desc",
@@ -776,7 +776,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "{{.Channel}} kanalı bulunamadı. Lütfen kanalları belirtmek için [kanal kısaltması](https://about.mattermost.com/default-channel-handle-documentation) kullanın."
+    "translation": "{{.Channel}} kanalı bulunamadı. Lütfen kanalları belirtmek için [kanal kısaltması](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) kullanın."
   },
   {
     "id": "api.command_mute.hint",
@@ -788,7 +788,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Belirtilen kanal bulunamadı. Lütfen kanalları belirtmek için [kanal kısaltması] kullanın (https://about.mattermost.com/default-channel-handle-documentation)."
+    "translation": "Belirtilen kanal bulunamadı. Lütfen kanalları belirtmek için [kanal kısaltması](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) kullanın."
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -4614,18 +4614,6 @@
   {
     "id": "plugin_api.send_mail.missing_to",
     "translation": "KİME adresi eksik."
-  },
-  {
-    "id": "store.sql.convert_string_array",
-    "translation": "Veritabanından: StringArray *string olarak dönüştürülemedi"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "Veritabanından: StringInterface *string olarak dönüştürülemedi"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "Veritabanından: StringMap *string olarak dönüştürülemedi"
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
@@ -9393,5 +9381,29 @@
   {
     "id": "app.prepackged-plugin.invalid_version.app_error",
     "translation": "Önceden hazırlanmış uygulama eki sürümü işlenemedi."
+  },
+  {
+    "id": "app.user.group_name_conflict",
+    "translation": " "
+  },
+  {
+    "id": "app.user.get_by_name_failure",
+    "translation": " "
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": " "
+  },
+  {
+    "id": "app.group.get_by_username_failure",
+    "translation": " "
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "MattermostAppID en fazla 32 karakter uzunluğunda olabilir."
+  },
+  {
+    "id": "app.system.applied_migrations.not_authorized",
+    "translation": "Yeterli izinleriniz yok."
   }
 ]

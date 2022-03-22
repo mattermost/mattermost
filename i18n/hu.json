@@ -1309,11 +1309,11 @@
   },
   {
     "id": "app.plugin.config.app_error",
-    "translation": "Hiba történt a plugin állapotának konfigurációba mentésekor."
+    "translation": "Hiba történt a bővítmény állapotának konfigurációba mentésekor."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
-    "translation": "A config.json fájl plugin konfigurációját manuálisan kell frissíteni, ha fürtözés használata mellett használja a ReadOnlyConfig kapcsolót."
+    "translation": "A config.json fájl bővítmény konfigurációját manuálisan kell frissíteni, ha fürtözés használata mellett használja a ReadOnlyConfig kapcsolót."
   },
   {
     "id": "app.oauth.update_app.updating.app_error",
@@ -3094,18 +3094,6 @@
   {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot nem létezik."
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Nem lehet átalakítani a StringMap -ot *string -é"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Nem lehet átalakítani a StringInterface -t *string -é"
-  },
-  {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Nem lehet átalakítani a String Array -t *string -é"
   },
   {
     "id": "sharedchannel.permalink.not_found",
@@ -8038,7 +8026,7 @@
   },
   {
     "id": "api.plugin.verify_plugin.app_error",
-    "translation": "Nem sikerült ellenőrizni a beépülő modul aláírását."
+    "translation": "Nem sikerült ellenőrizni a bővítmény aláírását."
   },
   {
     "id": "api.plugin.upload.no_file.app_error",
@@ -8054,7 +8042,7 @@
   },
   {
     "id": "api.plugin.install.download_failed.app_error",
-    "translation": "Hiba történt a plugin letöltése közben."
+    "translation": "Hiba történt a bővítmény letöltése közben."
   },
   {
     "id": "api.outgoing_webhook.disabled.app_error",
@@ -8414,7 +8402,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Nem található a megadott csatorna. A csatornák azonosításához használja a [csatorna azonosítót](https://about.mattermost.com/default-channel-handle-documentation)."
+    "translation": "Nem található a megadott csatorna. A csatornák azonosításához használja a [csatorna azonosítót](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)."
   },
   {
     "id": "api.command_mute.name",
@@ -8426,7 +8414,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Nem sikerült megtalálni a {{.Channel}} csatornát. A csatornák azonosításához használja a [csatorna azonosítót](https://about.mattermost.com/default-channel-handle-documentation)."
+    "translation": "Nem sikerült megtalálni a {{.Channel}} csatornát. A csatornák azonosításához használja a [csatorna azonosítót](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)."
   },
   {
     "id": "api.command_mute.desc",
@@ -8578,7 +8566,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Nem sikerült megtalálni a {{.Channel}} csatornát. A csatornák azonosításához használja a [csatorna azonosítót](https://about.mattermost.com/default-channel-handle-documentation)."
+    "translation": "Nem sikerült megtalálni a {{.Channel}} csatornát. A csatornák azonosításához használja a [csatorna azonosítót](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)."
   },
   {
     "id": "api.command_invite.channel.app_error",
@@ -9390,5 +9378,13 @@
   {
     "id": "app.prepackged-plugin.invalid_version.app_error",
     "translation": "Az előre becsomagolt plugin verzióját nem lehetett értelmezni."
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "A MattermostAppID maximális hossza 32 karakter."
+  },
+  {
+    "id": "app.system.applied_migrations.not_authorized",
+    "translation": "Ön nem rendelkezik a megfelelő jogosultságokkal."
   }
 ]

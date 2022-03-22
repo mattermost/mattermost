@@ -38,7 +38,7 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf", api.APISessionRequired(getSubscriptionInvoicePDF)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription/limitreached/invite", api.APISessionRequired(sendAdminUpgradeRequestEmail)).Methods("POST")
 	api.BaseRoutes.Cloud.Handle("/subscription/limitreached/join", api.APIHandler(sendAdminUpgradeRequestEmailOnJoin)).Methods("POST")
-	api.BaseRoutes.Cloud.Handle("/subscription/stats", api.APIHandler(getSubscriptionStats)).Methods("GET")
+	api.BaseRoutes.Cloud.Handle("/subscription/stats", api.APISessionRequired(getSubscriptionStats)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription", api.APISessionRequired(changeSubscription)).Methods("PUT")
 
 	// POST /api/v4/cloud/webhook
@@ -46,7 +46,7 @@ func (api *API) InitCloud() {
 }
 
 func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
 		c.Err = model.NewAppError("Api4.getSubscription", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -72,7 +72,7 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
 		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.license_error", nil, "", http.StatusInternalServerError)
 		return
 	}
@@ -128,7 +128,7 @@ func getSubscriptionStats(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
 		c.Err = model.NewAppError("Api4.getCloudProducts", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -157,7 +157,7 @@ func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
 		c.Err = model.NewAppError("Api4.getCloudCustomer", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -183,7 +183,7 @@ func getCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
 		c.Err = model.NewAppError("Api4.updateCloudCustomer", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -221,7 +221,7 @@ func updateCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateCloudCustomerAddress(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
 		c.Err = model.NewAppError("Api4.updateCloudCustomerAddress", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -259,7 +259,7 @@ func updateCloudCustomerAddress(c *Context, w http.ResponseWriter, r *http.Reque
 }
 
 func createCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
 		c.Err = model.NewAppError("Api4.createCustomerPayment", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -290,7 +290,7 @@ func createCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func confirmCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
 		c.Err = model.NewAppError("Api4.confirmCustomerPayment", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -327,7 +327,7 @@ func confirmCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func getInvoicesForSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
 		c.Err = model.NewAppError("Api4.getInvoicesForSubscription", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -353,7 +353,7 @@ func getInvoicesForSubscription(c *Context, w http.ResponseWriter, r *http.Reque
 }
 
 func getSubscriptionInvoicePDF(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
 		c.Err = model.NewAppError("Api4.getSuscriptionInvoicePDF", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -388,7 +388,7 @@ func getSubscriptionInvoicePDF(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
 		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -466,7 +466,7 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func sendAdminUpgradeRequestEmail(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
 		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -492,7 +492,7 @@ func sendAdminUpgradeRequestEmail(c *Context, w http.ResponseWriter, r *http.Req
 }
 
 func sendAdminUpgradeRequestEmailOnJoin(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
 		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmailOnJoin", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}

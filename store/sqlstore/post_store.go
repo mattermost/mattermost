@@ -1498,34 +1498,36 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 	if len(roots) == 0 {
 		return nil, nil
 	}
-	// TODO: convert to squirrel HW
-	params := make(map[string]interface{})
-	placeholders := make([]string, len(roots))
-	for idx, r := range roots {
-		key := fmt.Sprintf(":Root%v", idx)
-		params[key[1:]] = r
-		placeholders[idx] = key
-	}
-	placeholderString := strings.Join(placeholders, ", ")
-	params["ChannelId"] = channelId
-	replyCountQuery := ""
-	whereStatement := "p.Id IN (" + placeholderString + ")"
+
+	cols := []string{"p.*"}
+	var where sq.Sqlizer
+	where = sq.Eq{"p.Id": roots}
 	if skipFetchThreads {
-		replyCountQuery = `, (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount`
+		cols = append(cols, "(SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount")
 	} else {
-		whereStatement += " OR p.RootId IN (" + placeholderString + ")"
+		where = sq.Or{
+			where,
+			sq.Eq{"p.RootId": roots},
+		}
 	}
-	var posts []*model.Post
-	_, err = s.GetReplica().Select(&posts, `
-		SELECT p.*`+replyCountQuery+`
-		FROM
-			Posts p
-		WHERE
-			(`+whereStatement+`)
-				AND ChannelId = :ChannelId
-				AND DeleteAt = 0
-		ORDER BY CreateAt`,
-		params)
+
+	query := s.getQueryBuilder().
+		Select(cols...).
+		From("Posts p").
+		Where(sq.And{
+			where,
+			sq.Eq{"ChannelId": channelId},
+			sq.Eq{"DeleteAt": 0},
+		}).
+		OrderBy("CreateAt")
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "ParentPosts_Tosql")
+	}
+
+	posts := []*model.Post{}
+	err = s.GetReplicaX().Select(&posts, sql, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}

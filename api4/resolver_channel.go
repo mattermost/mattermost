@@ -94,7 +94,7 @@ func postProcessChannels(c *web.Context, channels []*model.Channel) ([]*channel,
 			if users == nil {
 				return nil, fmt.Errorf("user info not found for channel id: %s", ch.Id)
 			}
-			prettyName = getPrettyDNForUsers(pref.Value, users)
+			prettyName = getPrettyDNForUsers(pref.Value, users, c.AppContext.Session().UserId)
 		}
 
 		res = append(res, &channel{Channel: *ch, PrettyDisplayName: prettyName})
@@ -103,17 +103,25 @@ func postProcessChannels(c *web.Context, channels []*model.Channel) ([]*channel,
 	return res, nil
 }
 
-func getPrettyDNForUsers(displaySetting string, users []*model.User) string {
+func getPrettyDNForUsers(displaySetting string, users []*model.User, omitUserId string) string {
 	displayNames := make([]string, 0, len(users))
 	// TODO: optimize this logic.
 	// Name computation happens repeatedly for the same user from
 	// multiple channels.
 	for _, u := range users {
+		if u.Id == omitUserId {
+			continue
+		}
 		displayNames = append(displayNames, getPrettyDNForUser(displaySetting, u))
 	}
 
 	sort.Strings(displayNames)
-	return strings.Join(displayNames, ", ")
+	result := strings.Join(displayNames, ", ")
+	if result == "" {
+		// Self DM
+		result = getPrettyDNForUser(displaySetting, users[0])
+	}
+	return result
 }
 
 func getPrettyDNForUser(displaySetting string, user *model.User) string {
@@ -121,15 +129,15 @@ func getPrettyDNForUser(displaySetting string, user *model.User) string {
 	switch displaySetting {
 	case "nickname_full_name":
 		displayName = user.Nickname
-		if displayName == "" {
+		if strings.TrimSpace(displayName) == "" {
 			displayName = user.GetFullName()
 		}
-		if displayName == "" {
+		if strings.TrimSpace(displayName) == "" {
 			displayName = user.Username
 		}
 	case "full_name":
 		displayName = user.GetFullName()
-		if displayName == "" {
+		if strings.TrimSpace(displayName) == "" {
 			displayName = user.Username
 		}
 	default: // the "username" case also falls under this one.

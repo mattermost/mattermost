@@ -129,7 +129,7 @@ PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.5.0
-PLUGIN_PACKAGES += focalboard-v0.14.0
+PLUGIN_PACKAGES += focalboard-v0.15.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -295,15 +295,6 @@ new-migration: migration-prereqs ## Creates a new migration
 	$(GOBIN)/migrate create -ext sql -dir db/migrations/postgres -seq $(name)
 
 	@echo "When you are done writing your migration, run 'make migrations-bindata'"
-
-migrations-bindata: ## Generates bindata migrations
-	$(GO) install github.com/go-bindata/go-bindata/...@v3.1.2
-
-	@echo Generating bindata for migrations
-	$(GO) generate $(GOFLAGS) ./db/migrations/
-
-	@echo Generating bindata for configuration migrations
-	$(GO) generate $(GOFLAGS) ./config/migrations/
 
 filestore-mocks: ## Creates mock files.
 	$(GO) install github.com/vektra/mockery/...@v1.1.2

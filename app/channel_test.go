@@ -2103,6 +2103,7 @@ func TestMarkChannelAsUnreadFromPostPanic(t *testing.T) {
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("System").Return(&mockSystemStore)
 	mockStore.On("License").Return(&mockLicenseStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -2132,6 +2133,7 @@ func TestClearChannelMembersCache(t *testing.T) {
 			ChannelId: "1",
 		}}, nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	th.App.ClearChannelMembersCache("channelID")
 }
@@ -2152,6 +2154,7 @@ func TestGetMemberCountsByGroup(t *testing.T) {
 	}
 	mockChannelStore.On("GetMemberCountsByGroup", context.Background(), "channelID", true).Return(cmc, nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 	resp, err := th.App.GetMemberCountsByGroup(context.Background(), "channelID", true)
 	require.Nil(t, err)
 	require.ElementsMatch(t, cmc, resp)
