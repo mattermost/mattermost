@@ -2189,6 +2189,26 @@ func (s SqlChannelStore) GetMemberCountFromCache(channelId string) int64 {
 }
 
 //nolint:unparam
+func (s SqlChannelStore) GetFileCount(channelId string) (int64, error) {
+	var count int64
+	err := s.GetReplicaX().Get(&count, `
+		SELECT
+			COUNT(*)
+		FROM
+			FileInfo
+                LEFT JOIN Posts as P ON FileInfo.PostId=P.Id
+                LEFT JOIN Channels as C on C.Id=P.ChannelId
+		WHERE
+                        FileInfo.DeleteAt = 0
+			AND C.Id = ?`, channelId)
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to count files with channelId=%s", channelId)
+	}
+
+	return count, nil
+}
+
+//nolint:unparam
 func (s SqlChannelStore) GetMemberCount(channelId string, allowFromCache bool) (int64, error) {
 	var count int64
 	err := s.GetReplicaX().Get(&count, `

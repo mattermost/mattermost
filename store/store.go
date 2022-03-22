@@ -213,6 +213,7 @@ type ChannelStore interface {
 	GetMemberForPost(postID string, userID string) (*model.ChannelMember, error)
 	InvalidateMemberCount(channelID string)
 	GetMemberCountFromCache(channelID string) int64
+	GetFileCount(channelID string) (int64, error)
 	GetMemberCount(channelID string, allowFromCache bool) (int64, error)
 	GetMemberCountsByGroup(ctx context.Context, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, error)
 	InvalidatePinnedPostCount(channelID string)

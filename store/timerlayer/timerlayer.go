@@ -1221,6 +1221,22 @@ func (s *TimerLayerChannelStore) GetMember(ctx context.Context, channelID string
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) GetFileCount(channelID string) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.ChannelStore.GetFileCount(channelID)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetFileCount", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) GetMemberCount(channelID string, allowFromCache bool) (int64, error) {
 	start := timemodule.Now()
 
