@@ -428,11 +428,11 @@ func (es *Service) SendMfaChangeEmail(email string, activated bool, locale, site
 	return nil
 }
 
-func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string, reminderData *model.TeamInviteReminderData) error {
-	if es.PerHourEmailRateLimiter == nil {
+func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, errorWhenNotSent bool) error {
+	if es.perHourEmailRateLimiter == nil {
 		return NoRateLimiterError
 	}
-	rateLimited, result, err := es.PerHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
+	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
 	if err != nil {
 		return SetupRateLimiterError
 	}
@@ -493,17 +493,20 @@ func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderU
 
 			if err := es.sendMail(invite, subject, body); err != nil {
 				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
+				if errorWhenNotSent {
+					return SendMailError
+				}
 			}
 		}
 	}
 	return nil
 }
 
-func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string) error {
-	if es.PerHourEmailRateLimiter == nil {
+func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string, errorWhenNotSent bool) error {
+	if es.perHourEmailRateLimiter == nil {
 		return NoRateLimiterError
 	}
-	rateLimited, result, err := es.PerHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
+	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
 	if err != nil {
 		return SetupRateLimiterError
 	}
@@ -592,6 +595,9 @@ func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Cha
 
 			if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, embeddedFiles); nErr != nil {
 				mlog.Error("Failed to send invite email successfully", mlog.Err(nErr))
+				if errorWhenNotSent {
+					return SendMailError
+				}
 			}
 		}
 	}
@@ -762,6 +768,39 @@ func (es *Service) SendAtUserLimitWarningEmail(email string, locale string, site
 	return true, nil
 }
 
+func (es *Service) SendLicenseInactivityEmail(email, name, locale, siteURL string) error {
+	T := i18n.GetUserTranslations(locale)
+	subject := T("api.templates.server_inactivity_subject")
+	data := es.NewEmailTemplateData(locale)
+	data.Props["SiteURL"] = siteURL
+	data.Props["Title"] = T("api.templates.server_inactivity_title")
+	data.Props["SubTitle"] = T("api.templates.server_inactivity_subtitle", map[string]interface{}{"Name": name})
+	data.Props["InfoBullet"] = T("api.templates.server_inactivity_info_bullet")
+	data.Props["InfoBullet1"] = T("api.templates.server_inactivity_info_bullet1")
+	data.Props["InfoBullet2"] = T("api.templates.server_inactivity_info_bullet2")
+	data.Props["Info"] = T("api.templates.server_inactivity_info")
+	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
+	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
+	data.Props["Button"] = T("api.templates.server_inactivity_button")
+	data.Props["SupportEmail"] = "feedback@mattermost.com"
+	data.Props["ButtonURL"] = siteURL
+	data.Props["Channels"] = T("Channels")
+	data.Props["Playbooks"] = T("Playbooks")
+	data.Props["Boards"] = T("Boards")
+
+	body, err := es.templatesContainer.RenderToString("inactivity_body", data)
+	if err != nil {
+		return err
+	}
+
+	if err := es.sendMail(email, subject, body); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, renewalLink string, daysToExpiration int) error {
 	T := i18n.GetUserTranslations(locale)
 	subject := T("api.templates.license_up_for_renewal_subject")
@@ -775,6 +814,7 @@ func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, re
 	data.Props["Button"] = T("api.templates.license_up_for_renewal_renew_now")
 	data.Props["ButtonURL"] = renewalLink
 	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
+	data.Props["SupportEmail"] = "feedback@mattermost.com"
 	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
 
 	body, err := es.templatesContainer.RenderToString("license_up_for_renewal", data)

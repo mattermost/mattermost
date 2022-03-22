@@ -194,7 +194,7 @@ func (srv *JobServer) RequestCancellation(jobId string) *model.AppError {
 	return model.NewAppError("RequestCancellation", "jobs.request_cancellation.status.error", nil, "id="+jobId, http.StatusInternalServerError)
 }
 
-func (srv *JobServer) CancellationWatcher(ctx context.Context, jobId string, cancelChan chan interface{}) {
+func (srv *JobServer) CancellationWatcher(ctx context.Context, jobId string, cancelChan chan struct{}) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -202,11 +202,14 @@ func (srv *JobServer) CancellationWatcher(ctx context.Context, jobId string, can
 			return
 		case <-time.After(CancelWatcherPollingInterval * time.Millisecond):
 			mlog.Debug("CancellationWatcher for Job started polling.", mlog.String("job_id", jobId))
-			if jobStatus, err := srv.Store.Job().Get(jobId); err == nil {
-				if jobStatus.Status == model.JobStatusCancelRequested {
-					close(cancelChan)
-					return
-				}
+			jobStatus, err := srv.Store.Job().Get(jobId)
+			if err != nil {
+				mlog.Warn("Error getting job", mlog.String("job_id", jobId), mlog.Err(err))
+				continue
+			}
+			if jobStatus.Status == model.JobStatusCancelRequested {
+				close(cancelChan)
+				return
 			}
 		}
 	}
@@ -228,6 +231,15 @@ func (srv *JobServer) CheckForPendingJobsByType(jobType string) (bool, *model.Ap
 		return false, model.NewAppError("CheckForPendingJobsByType", "app.job.get_count_by_status_and_type.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return count > 0, nil
+}
+
+func (srv *JobServer) GetJobsByTypeAndStatus(jobType string, status string) ([]*model.Job, *model.AppError) {
+	jobs, err := srv.Store.Job().GetAllByTypeAndStatus(jobType, status)
+	if err != nil {
+		return nil, model.NewAppError("GetJobsByTypeAndStatus", "app.job.get_all_jobs_by_type_and_status.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return jobs, nil
 }
 
 func (srv *JobServer) GetLastSuccessfulJobByType(jobType string) (*model.Job, *model.AppError) {

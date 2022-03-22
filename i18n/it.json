@@ -2488,10 +2488,6 @@
     "translation": "Il campo display_name del canale non è nella gamma di lunghezze consentita."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Manca la proprietà del canale richiesta: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "L'intestazione del canale è troppo lunga."
   },
@@ -4620,18 +4616,6 @@
     "translation": "Manca l'indirizzo del destinatario."
   },
   {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Impossibile convertire StringArray a *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Impossibile convertire StringInterface a *string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Impossibile convertire StringMap a *string"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Il bot non esiste."
   },
@@ -6272,14 +6256,6 @@
     "translation": "Scrivici"
   },
   {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Contattaci"
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Contattaci"
-  },
-  {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
     "translation": "Grazie per aver contattato Mattermost. Ti daremo riscontro presto."
   },
@@ -6374,10 +6350,6 @@
   {
     "id": "app.preference.delete.app_error",
     "translation": "Errore riscontrato durante l'eliminazione delle preferenze."
-  },
-  {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Impossibile trovare la metrica di avviso."
   },
   {
     "id": "api.user.delete_user.not_enabled.app_error",
@@ -6526,14 +6498,6 @@
   {
     "id": "app.system.warn_metric.store.app_error",
     "translation": "Errore durante il salvataggio del valore di {{.WarnMetricName}}"
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "La lista degli amministratori è vuota."
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Per saperne di più sul consigliere di Mattermost](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.system.warn_metric.bot_displayname",
@@ -6724,14 +6688,6 @@
     "translation": "La funzione di eliminazione definitiva squadra non è attiva. Contattare l'Amministratore di Sistema."
   },
   {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Ottieni prova"
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Richiedi prova"
-  },
-  {
     "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
     "translation": "Richiesta di contatto con Mattermost. La mia squadra adesso ha {{.Limit}} utenti e sto considerando l'edizione Enteprise di Mattermost.\n"
   },
@@ -6906,10 +6862,6 @@
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "Impossibile eliminare il membro del canale"
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Impossibile incrementare il conteggio della citazione"
   },
   {
     "id": "app.channel.get_pinnedpost_count.app_error",

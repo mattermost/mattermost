@@ -384,21 +384,21 @@ func testReactionGetForPostSince(t *testing.T, ss store.Store, s SqlStore) {
 
 func forceUpdateAt(reaction *model.Reaction, updateAt int64, s SqlStore) error {
 	params := map[string]interface{}{
-		"UserId":    reaction.UserId,
-		"PostId":    reaction.PostId,
-		"EmojiName": reaction.EmojiName,
-		"UpdateAt":  updateAt,
+		"userid":    reaction.UserId,
+		"postid":    reaction.PostId,
+		"emojiname": reaction.EmojiName,
+		"updateat":  updateAt,
 	}
 
-	sqlResult, err := s.GetMaster().Exec(`
+	sqlResult, err := s.GetMasterX().NamedExec(`
 		UPDATE
 			Reactions
 		SET
-			UpdateAt=:UpdateAt
+			UpdateAt=:updateat
 		WHERE
-			UserId = :UserId AND
-			PostId = :PostId AND
-			EmojiName = :EmojiName`, params,
+			UserId = :userid AND
+			PostId = :postid AND
+			EmojiName = :emojiname`, params,
 	)
 
 	if err != nil {
@@ -417,10 +417,10 @@ func forceUpdateAt(reaction *model.Reaction, updateAt int64, s SqlStore) error {
 }
 
 func forceNULL(reaction *model.Reaction, s SqlStore) error {
-	if _, err := s.GetMaster().Exec(`UPDATE Reactions SET UpdateAt = NULL WHERE UpdateAt = 0`); err != nil {
+	if _, err := s.GetMasterX().Exec(`UPDATE Reactions SET UpdateAt = NULL WHERE UpdateAt = 0`); err != nil {
 		return err
 	}
-	if _, err := s.GetMaster().Exec(`UPDATE Reactions SET DeleteAt = NULL WHERE DeleteAt = 0`); err != nil {
+	if _, err := s.GetMasterX().Exec(`UPDATE Reactions SET DeleteAt = NULL WHERE DeleteAt = 0`); err != nil {
 		return err
 	}
 	return nil

@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
-	"strconv"
 	"strings"
 	"sync"
 
@@ -1622,34 +1621,36 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 	if len(roots) == 0 {
 		return nil, nil
 	}
-	// TODO: convert to squirrel HW
-	params := make(map[string]interface{})
-	placeholders := make([]string, len(roots))
-	for idx, r := range roots {
-		key := fmt.Sprintf(":Root%v", idx)
-		params[key[1:]] = r
-		placeholders[idx] = key
-	}
-	placeholderString := strings.Join(placeholders, ", ")
-	params["ChannelId"] = channelId
-	replyCountQuery := ""
-	whereStatement := "p.Id IN (" + placeholderString + ")"
+
+	cols := []string{"p.*"}
+	var where sq.Sqlizer
+	where = sq.Eq{"p.Id": roots}
 	if skipFetchThreads {
-		replyCountQuery = `, (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount`
+		cols = append(cols, "(SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount")
 	} else {
-		whereStatement += " OR p.RootId IN (" + placeholderString + ")"
+		where = sq.Or{
+			where,
+			sq.Eq{"p.RootId": roots},
+		}
 	}
-	var posts []*model.Post
-	_, err = s.GetReplica().Select(&posts, `
-		SELECT p.*`+replyCountQuery+`
-		FROM
-			Posts p
-		WHERE
-			(`+whereStatement+`)
-				AND ChannelId = :ChannelId
-				AND DeleteAt = 0
-		ORDER BY CreateAt`,
-		params)
+
+	query := s.getQueryBuilder().
+		Select(cols...).
+		From("Posts p").
+		Where(sq.And{
+			where,
+			sq.Eq{"ChannelId": channelId},
+			sq.Eq{"DeleteAt": 0},
+		}).
+		OrderBy("CreateAt")
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "ParentPosts_Tosql")
+	}
+
+	posts := []*model.Post{}
+	err = s.GetReplicaX().Select(&posts, sql, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
@@ -1706,154 +1707,122 @@ var specialSearchChar = []string{
 	":",
 }
 
-func (s *SqlPostStore) buildCreateDateFilterClause(params *model.SearchParams, queryParams map[string]interface{}, builder sq.SelectBuilder) (sq.SelectBuilder, map[string]interface{}) {
+func (s *SqlPostStore) buildCreateDateFilterClause(params *model.SearchParams, builder sq.SelectBuilder) sq.SelectBuilder {
 	// handle after: before: on: filters
 	if params.OnDate != "" {
 		onDateStart, onDateEnd := params.GetOnDateMillis()
-		queryParams["OnDateStart"] = strconv.FormatInt(onDateStart, 10)
-		queryParams["OnDateEnd"] = strconv.FormatInt(onDateEnd, 10)
-
 		// between `on date` start of day and end of day
-		builder = builder.Where("CreateAt BETWEEN :OnDateStart AND :OnDateEnd")
-		return builder, queryParams
+		builder = builder.Where("CreateAt BETWEEN ? AND ?", onDateStart, onDateEnd)
+		return builder
 	}
 
 	if params.ExcludedDate != "" {
 		excludedDateStart, excludedDateEnd := params.GetExcludedDateMillis()
-		queryParams["ExcludedDateStart"] = strconv.FormatInt(excludedDateStart, 10)
-		queryParams["ExcludedDateEnd"] = strconv.FormatInt(excludedDateEnd, 10)
-
-		builder = builder.Where("CreateAt NOT BETWEEN :ExcludedDateStart AND :ExcludedDateEnd")
+		builder = builder.Where("CreateAt NOT BETWEEN ? AND ?", excludedDateStart, excludedDateEnd)
 	}
 
 	if params.AfterDate != "" {
 		afterDate := params.GetAfterDateMillis()
-		queryParams["AfterDate"] = strconv.FormatInt(afterDate, 10)
-
 		// greater than `after date`
-		builder = builder.Where("CreateAt >= :AfterDate")
+		builder = builder.Where("CreateAt >= ?", afterDate)
 	}
 
 	if params.BeforeDate != "" {
 		beforeDate := params.GetBeforeDateMillis()
-		queryParams["BeforeDate"] = strconv.FormatInt(beforeDate, 10)
-
 		// less than `before date`
-		builder = builder.Where("CreateAt <= :BeforeDate")
+		builder = builder.Where("CreateAt <= ?", beforeDate)
 	}
 
 	if params.ExcludedAfterDate != "" {
 		afterDate := params.GetExcludedAfterDateMillis()
-		queryParams["ExcludedAfterDate"] = strconv.FormatInt(afterDate, 10)
-
-		builder = builder.Where("CreateAt < :ExcludedAfterDate")
+		builder = builder.Where("CreateAt < ?", afterDate)
 	}
 
 	if params.ExcludedBeforeDate != "" {
 		beforeDate := params.GetExcludedBeforeDateMillis()
-		queryParams["ExcludedBeforeDate"] = strconv.FormatInt(beforeDate, 10)
-
-		builder = builder.Where("CreateAt > :ExcludedBeforeDate")
+		builder = builder.Where("CreateAt > ?", beforeDate)
 	}
 
-	return builder, queryParams
+	return builder
 }
 
-func (s *SqlPostStore) buildSearchTeamFilterClause(teamId string, queryParams map[string]interface{}, builder sq.SelectBuilder) (sq.SelectBuilder, map[string]interface{}) {
+func (s *SqlPostStore) buildSearchTeamFilterClause(teamId string, builder sq.SelectBuilder) sq.SelectBuilder {
 	if teamId == "" {
-		return builder, queryParams
+		return builder
 	}
 
-	queryParams["TeamId"] = teamId
-
-	return builder.Where("(TeamId = :TeamId OR TeamId = '')"), queryParams
+	return builder.Where(sq.Or{
+		sq.Eq{"TeamId": teamId},
+		sq.Eq{"TeamId": ""},
+	})
 }
 
-func (s *SqlPostStore) buildSearchChannelFilterClause(channels []string, paramPrefix string, exclusion bool, queryParams map[string]interface{}, byName bool, builder sq.SelectBuilder) (sq.SelectBuilder, map[string]interface{}) {
+func (s *SqlPostStore) buildSearchChannelFilterClause(channels []string, exclusion bool, byName bool, builder sq.SelectBuilder) sq.SelectBuilder {
 	if len(channels) == 0 {
-		return builder, queryParams
+		return builder
 	}
 
-	clauseSlice := []string{}
-	for i, channel := range channels {
-		paramName := paramPrefix + strconv.FormatInt(int64(i), 10)
-		clauseSlice = append(clauseSlice, ":"+paramName)
-		queryParams[paramName] = channel
-	}
-	clause := strings.Join(clauseSlice, ", ")
 	if byName {
 		if exclusion {
-			return builder.Where("Name NOT IN (" + clause + ")"), queryParams
+			return builder.Where(sq.NotEq{"Name": channels})
 		}
-		return builder.Where("Name IN (" + clause + ")"), queryParams
+		return builder.Where(sq.Eq{"Name": channels})
 	}
 
 	if exclusion {
-		return builder.Where("Id NOT IN (" + clause + ")"), queryParams
+		return builder.Where(sq.NotEq{"Id": channels})
 	}
-	return builder.Where("Id IN (" + clause + ")"), queryParams
+	return builder.Where(sq.Eq{"Id": channels})
 }
 
-func (s *SqlPostStore) buildSearchUserFilterClause(users []string, paramPrefix string, exclusion bool, queryParams map[string]interface{}, byUsername bool) (string, map[string]interface{}) {
+func (s *SqlPostStore) buildSearchUserFilterClause(users []string, exclusion bool, byUsername bool, builder sq.SelectBuilder) sq.SelectBuilder {
 	if len(users) == 0 {
-		return "", queryParams
+		return builder
 	}
-	clauseSlice := []string{}
-	for i, user := range users {
-		paramName := paramPrefix + strconv.FormatInt(int64(i), 10)
-		clauseSlice = append(clauseSlice, ":"+paramName)
-		queryParams[paramName] = user
-	}
-	clause := strings.Join(clauseSlice, ", ")
+
 	if byUsername {
 		if exclusion {
-			return "AND Username NOT IN (" + clause + ")", queryParams
+			return builder.Where(sq.NotEq{"Username": users})
 		}
-		return "AND Username IN (" + clause + ")", queryParams
+		return builder.Where(sq.Eq{"Username": users})
 	}
+
 	if exclusion {
-		return "AND Id NOT IN (" + clause + ")", queryParams
+		return builder.Where(sq.NotEq{"Id": users})
 	}
-	return "AND Id IN (" + clause + ")", queryParams
+	return builder.Where(sq.Eq{"Id": users})
 }
 
-func (s *SqlPostStore) buildSearchPostFilterClause(fromUsers []string, excludedUsers []string, queryParams map[string]interface{}, userByUsername bool, builder sq.SelectBuilder) (sq.SelectBuilder, map[string]interface{}) {
+func (s *SqlPostStore) buildSearchPostFilterClause(teamID string, fromUsers []string, excludedUsers []string, userByUsername bool, builder sq.SelectBuilder) (sq.SelectBuilder, error) {
 	if len(fromUsers) == 0 && len(excludedUsers) == 0 {
-		return builder, queryParams
+		return builder, nil
 	}
 
-	filterQuery := `
-		UserId IN (
-			SELECT
-				Id
-			FROM
-				Users,
-				TeamMembers
-			WHERE
-				TeamMembers.TeamId = :TeamId
-				AND Users.Id = TeamMembers.UserId
-				FROM_USER_FILTER
-				EXCLUDED_USER_FILTER)`
+	// Sub-query builder.
+	sb := s.getSubQueryBuilder().Select("Id").From("Users, TeamMembers").Where(
+		sq.And{
+			sq.Eq{"TeamMembers.TeamId": teamID},
+			sq.Expr("Users.Id = TeamMembers.UserId"),
+		})
+	sb = s.buildSearchUserFilterClause(fromUsers, false, userByUsername, sb)
+	sb = s.buildSearchUserFilterClause(excludedUsers, true, userByUsername, sb)
+	subQuery, subQueryArgs, err := sb.ToSql()
+	if err != nil {
+		return sq.SelectBuilder{}, err
+	}
 
-	fromUserClause, queryParams := s.buildSearchUserFilterClause(fromUsers, "FromUser", false, queryParams, userByUsername)
-	filterQuery = strings.Replace(filterQuery, "FROM_USER_FILTER", fromUserClause, 1)
-
-	excludedUserClause, queryParams := s.buildSearchUserFilterClause(excludedUsers, "ExcludedUser", true, queryParams, userByUsername)
-	filterQuery = strings.Replace(filterQuery, "EXCLUDED_USER_FILTER", excludedUserClause, 1)
-
-	return builder.Where(filterQuery), queryParams
+	/*
+	 * Squirrel does not support a sub-query in the WHERE condition.
+	 * https://github.com/Masterminds/squirrel/issues/299
+	 */
+	return builder.Where("UserId IN ("+subQuery+")", subQueryArgs...), nil
 }
 
 func (s *SqlPostStore) Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, error) {
 	return s.search(teamId, userId, params, true, true)
 }
 
-// TODO: convert to squirrel
 func (s *SqlPostStore) search(teamId string, userId string, params *model.SearchParams, channelsByName bool, userByUsername bool) (*model.PostList, error) {
-	queryParams := map[string]interface{}{
-		"UserId": userId,
-	}
-
 	list := model.NewPostList()
 	if params.Terms == "" && params.ExcludedTerms == "" &&
 		len(params.InChannels) == 0 && len(params.ExcludedChannels) == 0 &&
@@ -1871,8 +1840,12 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		OrderByClause("CreateAt DESC").
 		Limit(100)
 
-	baseQuery, queryParams = s.buildSearchPostFilterClause(params.FromUsers, params.ExcludedUsers, queryParams, userByUsername, baseQuery)
-	baseQuery, queryParams = s.buildCreateDateFilterClause(params, queryParams, baseQuery)
+	var err error
+	baseQuery, err = s.buildSearchPostFilterClause(teamId, params.FromUsers, params.ExcludedUsers, userByUsername, baseQuery)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to build search post filter clause")
+	}
+	baseQuery = s.buildCreateDateFilterClause(params, baseQuery)
 
 	termMap := map[string]bool{}
 	terms := params.Terms
@@ -1896,7 +1869,8 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		// we've already confirmed that we have a channel or user to search for
 	} else if s.DriverName() == model.DatabaseDriverPostgres {
 		// Parse text for wildcards
-		if wildcard, err := regexp.Compile(`\*($| )`); err == nil {
+		var wildcard *regexp.Regexp
+		if wildcard, err = regexp.Compile(`\*($| )`); err == nil {
 			terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
 			excludedTerms = wildcard.ReplaceAllLiteralString(excludedTerms, ":* ")
 		}
@@ -1906,19 +1880,19 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			excludeClause = " & !(" + strings.Join(strings.Fields(excludedTerms), " | ") + ")"
 		}
 
+		var termsClause string
 		if params.OrTerms {
-			queryParams["Terms"] = "(" + strings.Join(strings.Fields(terms), " | ") + ")" + excludeClause
+			termsClause = "(" + strings.Join(strings.Fields(terms), " | ") + ")" + excludeClause
 		} else if strings.HasPrefix(terms, `"`) && strings.HasSuffix(terms, `"`) {
-			queryParams["Terms"] = "(" + strings.Join(strings.Fields(terms), " <-> ") + ")" + excludeClause
+			termsClause = "(" + strings.Join(strings.Fields(terms), " <-> ") + ")" + excludeClause
 		} else {
-			queryParams["Terms"] = "(" + strings.Join(strings.Fields(terms), " & ") + ")" + excludeClause
+			termsClause = "(" + strings.Join(strings.Fields(terms), " & ") + ")" + excludeClause
 		}
 
-		searchClause := fmt.Sprintf("to_tsvector('english', %s) @@  to_tsquery('english', :Terms)", searchType)
-		baseQuery = baseQuery.Where(searchClause)
+		searchClause := fmt.Sprintf("to_tsvector('english', %s) @@  to_tsquery('english', ?)", searchType)
+		baseQuery = baseQuery.Where(searchClause, termsClause)
 	} else if s.DriverName() == model.DatabaseDriverMysql {
 		if searchType == "Message" {
-			var err error
 			terms, err = removeMysqlStopWordsFromTerms(terms)
 			if err != nil {
 				return nil, errors.Wrap(err, "failed to remove Mysql stop-words from terms")
@@ -1929,26 +1903,27 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			}
 		}
 
-		searchClause := fmt.Sprintf("MATCH (%s) AGAINST (:Terms IN BOOLEAN MODE)", searchType)
-		baseQuery = baseQuery.Where(searchClause)
-
 		excludeClause := ""
 		if excludedTerms != "" {
 			excludeClause = " -(" + excludedTerms + ")"
 		}
 
+		var termsClause string
 		if params.OrTerms {
-			queryParams["Terms"] = terms + excludeClause
+			termsClause = terms + excludeClause
 		} else {
 			splitTerms := []string{}
 			for _, t := range strings.Fields(terms) {
 				splitTerms = append(splitTerms, "+"+t)
 			}
-			queryParams["Terms"] = strings.Join(splitTerms, " ") + excludeClause
+			termsClause = strings.Join(splitTerms, " ") + excludeClause
 		}
+
+		searchClause := fmt.Sprintf("MATCH (%s) AGAINST (? IN BOOLEAN MODE)", searchType)
+		baseQuery = baseQuery.Where(searchClause, termsClause)
 	}
 
-	inQuery := s.getQueryBuilder().Select("Id").
+	inQuery := s.getSubQueryBuilder().Select("Id").
 		From("Channels, ChannelMembers").
 		Where("Id = ChannelId")
 
@@ -1957,29 +1932,28 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	}
 
 	if !params.SearchWithoutUserId {
-		inQuery = inQuery.Where("UserId = :UserId")
+		inQuery = inQuery.Where("UserId = ?", userId)
 	}
 
-	inQuery, queryParams = s.buildSearchTeamFilterClause(teamId, queryParams, inQuery)
-	inQuery, queryParams = s.buildSearchChannelFilterClause(params.InChannels, "InChannel", false, queryParams, channelsByName, inQuery)
-	inQuery, queryParams = s.buildSearchChannelFilterClause(params.ExcludedChannels, "ExcludedChannel", true, queryParams, channelsByName, inQuery)
+	inQuery = s.buildSearchTeamFilterClause(teamId, inQuery)
+	inQuery = s.buildSearchChannelFilterClause(params.InChannels, false, channelsByName, inQuery)
+	inQuery = s.buildSearchChannelFilterClause(params.ExcludedChannels, true, channelsByName, inQuery)
 
-	inQueryClause, _, err := inQuery.ToSql()
+	inQueryClause, inQueryClauseArgs, err := inQuery.ToSql()
 	if err != nil {
 		return nil, err
 	}
 
-	baseQuery = baseQuery.Where(fmt.Sprintf("ChannelId IN (%s)", inQueryClause))
+	baseQuery = baseQuery.Where(fmt.Sprintf("ChannelId IN (%s)", inQueryClause), inQueryClauseArgs...)
 
-	searchQuery, _, err := baseQuery.ToSql()
+	searchQuery, searchQueryArgs, err := baseQuery.ToSql()
 	if err != nil {
 		return nil, err
 	}
 
 	var posts []*model.Post
 
-	_, err = s.GetSearchReplica().Select(&posts, searchQuery, queryParams)
-	if err != nil {
+	if err := s.GetSearchReplicaX().Select(&posts, searchQuery, searchQueryArgs...); err != nil {
 		mlog.Warn("Query error searching posts.", mlog.Err(err))
 		// Don't return the error to the caller as it is of no use to the user. Instead return an empty set of search results.
 	} else {
@@ -2178,6 +2152,17 @@ func (s *SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, must
 	}
 
 	return v, nil
+}
+
+func (s *SqlPostStore) GetLastPostRowCreateAt() (int64, error) {
+	query := `SELECT CREATEAT FROM Posts ORDER BY CREATEAT DESC LIMIT 1`
+	var createAt int64
+	err := s.GetReplicaX().Get(&createAt, query)
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to get last post createat")
+	}
+
+	return createAt, nil
 }
 
 func (s *SqlPostStore) GetPostsCreatedAt(channelId string, time int64) ([]*model.Post, error) {

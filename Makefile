@@ -123,13 +123,13 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.24.1
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.25.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.5.0
-PLUGIN_PACKAGES += focalboard-v0.14.0
+PLUGIN_PACKAGES += focalboard-v0.15.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -275,7 +275,7 @@ i18n-check: ## Exit on empty translation strings and translation source strings
 
 store-mocks: ## Creates mock files.
 	$(GO) install github.com/vektra/mockery/...@v1.1.2
-	$(GOBIN)/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
+	$(GOBIN)/mockery -dir store -name ".*Store" -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
 
 telemetry-mocks: ## Creates mock files.
 	$(GO) install github.com/vektra/mockery/...@v1.1.2
@@ -295,12 +295,6 @@ new-migration: migration-prereqs ## Creates a new migration
 	$(GOBIN)/migrate create -ext sql -dir db/migrations/postgres -seq $(name)
 
 	@echo "When you are done writing your migration, run 'make migrations-bindata'"
-
-migrations-bindata: ## Generates bindata migrations
-	$(GO) install github.com/go-bindata/go-bindata/...@v3.1.2
-
-	@echo Generating bindata for migrations
-	$(GO) generate $(GOFLAGS) ./db/migrations/
 
 filestore-mocks: ## Creates mock files.
 	$(GO) install github.com/vektra/mockery/...@v1.1.2
@@ -332,6 +326,10 @@ sharedchannel-mocks: ## Creates mock files for shared channels.
 misc-mocks: ## Creates mocks for misc interfaces.
 	$(GO) install github.com/vektra/mockery/...@v1.1.2
 	$(GOBIN)/mockery -dir utils --name LicenseValidatorIface -output utils/mocks -note 'Regenerate this file using `make misc-mocks`.'
+
+email-mocks: ## Creates mocks for misc interfaces.
+	$(GO) install github.com/vektra/mockery/...@v1.1.2
+	$(GOBIN)/mockery -dir app/email --name ServiceInterface -output app/email/mocks -note 'Regenerate this file using `make email-mocks`.'
 
 pluginapi: ## Generates api and hooks glue code for plugins
 	$(GO) generate $(GOFLAGS) ./plugin
@@ -440,7 +438,9 @@ cover: ## Runs the golang coverage tool. You must run the unit tests first.
 	$(GO) tool cover -html=cover.out
 	$(GO) tool cover -html=ecover.out
 
-test-data: run-server ## Add test data to the local instance.
+test-data: run-server inject-test-data ## start a local instance and add test data to it.
+
+inject-test-data: # add test data to the local instance.
 	@if ! ./scripts/wait-for-system-start.sh; then \
 		make stop; \
 	fi

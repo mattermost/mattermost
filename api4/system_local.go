@@ -18,6 +18,7 @@ func (api *API) InitSystemLocal() {
 	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APILocal(getServerBusyExpires)).Methods("GET")
 	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APILocal(clearServerBusy)).Methods("DELETE")
 	api.BaseRoutes.APIRoot.Handle("/integrity", api.APILocal(localCheckIntegrity)).Methods("POST")
+	api.BaseRoutes.System.Handle("/schema/version", api.APILocal(getAppliedSchemaMigrations)).Methods("GET")
 }
 
 func localCheckIntegrity(c *Context, w http.ResponseWriter, r *http.Request) {

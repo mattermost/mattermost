@@ -2484,10 +2484,6 @@
     "translation": "频道 display_name 不在允许的长度范围内。"
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "缺少频道必须属性：display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "频道标题过长。"
   },
@@ -4616,18 +4612,6 @@
     "translation": "缺少 TO 地址。"
   },
   {
-    "id": "store.sql.convert_string_array",
-    "translation": "来自数据库：不能从 StringArray 转换到 *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "来自数据库：不能从 StringInterface 转换到 *string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "来自数据库：不能从 StringMap 转换到 *string"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "机器人不存在。"
   },
@@ -6292,10 +6276,6 @@
     "translation": "永久删除用户功能未开启。请联系系统管理员。"
   },
   {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "管理列表为空。"
-  },
-  {
     "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
     "translation": "诊断 Id： "
   },
@@ -6310,14 +6290,6 @@
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
     "translation": "与 Mattermost 扩展"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "联系我们"
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "联系我们"
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
@@ -6800,16 +6772,8 @@
     "translation": "储存 {{.WarnMetricName}} 值失败"
   },
   {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "未找到指标。"
-  },
-  {
     "id": "app.system.warn_metric.bot_displayname",
     "translation": "Mattermost Advisor"
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[了解更多关于 Mattermost Advisor](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.post.search.app_error",
@@ -6938,10 +6902,6 @@
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "无法移除频道成员。"
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "无法增加提及数。"
   },
   {
     "id": "app.channel.get_public_channels.get.app_error",
@@ -7182,14 +7142,6 @@
   {
     "id": "app.team.get_by_scheme.app_error",
     "translation": "无法用提供的方案获取频道。"
-  },
-  {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "获取试用"
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "开始试用"
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
@@ -8774,14 +8726,6 @@
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
     "translation": "图像限制检查失败。分辨率过高。"
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "请转到**系统控制台 > 站点配置 > 自定义**将 [支持电子邮件](https://docs.mattermost.com/administration/config-settings.html#support-email) 设置为您组织的内部 IT 支持用于最终用户反馈、电子邮件通知以及支持请求的电子邮件地址。"
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "设置您的支持电子邮件地址"
   },
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
