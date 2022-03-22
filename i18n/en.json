@@ -4592,6 +4592,10 @@
     "translation": "No deleted channels exist."
   },
   {
+    "id": "app.channel.get_file_count.app_error",
+    "translation": "Unable to get the file count for the channel"
+  },
+  {
     "id": "app.channel.get_for_post.app_error",
     "translation": "Unable to get the channel for the given post."
   },
