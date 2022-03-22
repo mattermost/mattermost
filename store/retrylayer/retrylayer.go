@@ -1402,6 +1402,27 @@ func (s *RetryLayerChannelStore) GetDeletedByName(team_id string, name string) (
 
 }
 
+func (s *RetryLayerChannelStore) GetFileCount(channelID string) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetFileCount(channelID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) GetForPost(postID string) (*model.Channel, error) {
 
 	tries := 0
@@ -1505,25 +1526,6 @@ func (s *RetryLayerChannelStore) GetMemberCount(channelID string, allowFromCache
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
 
-}
-
-func (s *RetryLayerChannelStore) GetFileCount(channelID string) (int64, error) {
-	tries := 0
-	for {
-		result, err := s.ChannelStore.GetFileCount(channelID)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
 }
 
 func (s *RetryLayerChannelStore) GetMemberCountFromCache(channelID string) int64 {
