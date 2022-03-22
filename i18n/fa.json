@@ -7998,7 +7998,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "کانال مشخص شده یافت نشد. برای شناسایی کانال ها لطفاً از [هندل کانال](https://about.mattermost.com/default-channel-handle-documentation) استفاده کنید."
+    "translation": "کانال مشخص شده یافت نشد. برای شناسایی کانال ها لطفاً از [هندل کانال](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) استفاده کنید."
   },
   {
     "id": "api.command_mute.name",
@@ -8010,7 +8010,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "کانال {{.Channel}} پیدا نشد. برای شناسایی کانال ها لطفاً از [هندل کانال](https://about.mattermost.com/default-channel-handle-documentation) استفاده کنید."
+    "translation": "کانال {{.Channel}} پیدا نشد. برای شناسایی کانال ها لطفاً از [هندل کانال](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) استفاده کنید."
   },
   {
     "id": "api.command_mute.desc",
@@ -8162,7 +8162,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "کانال {{.Channel}} پیدا نشد. برای شناسایی کانال ها لطفاً از [هندل کانال](https://about.mattermost.com/default-channel-handle-documentation) استفاده کنید."
+    "translation": "کانال {{.Channel}} پیدا نشد. برای شناسایی کانال ها لطفاً از [هندل کانال](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) استفاده کنید."
   },
   {
     "id": "api.oauth.revoke_access_token.del_token.app_error",
