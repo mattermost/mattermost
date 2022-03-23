@@ -9401,9 +9401,5 @@
   {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
     "translation": "MattermostAppID en fazla 32 karakter uzunluğunda olabilir."
-  },
-  {
-    "id": "app.system.applied_migrations.not_authorized",
-    "translation": "Yeterli izinleriniz yok."
   }
 ]
