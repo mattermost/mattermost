@@ -66,6 +66,8 @@ const (
 	replicaLagPrefix = "replica-lag"
 )
 
+var tablesToCheckForCollation = []string{"incomingwebhooks", "preferences", "users", "uploadsessions", "channels", "publicchannels"}
+
 type SqlStoreStores struct {
 	team                 store.TeamStore
 	channel              store.ChannelStore
@@ -146,6 +148,11 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	ok, err := store.ensureMinimumDBVersion(ver)
 	if !ok {
 		mlog.Fatal("Error while checking DB version.", mlog.Err(err))
+	}
+
+	err = store.ensureDatabaseCollation()
+	if err != nil {
+		mlog.Fatal("Error while checking DB collation.", mlog.Err(err))
 	}
 
 	err = store.migrate(migrationsDirectionUp)
@@ -1108,6 +1115,44 @@ func (ss *SqlStore) ensureMinimumDBVersion(ver string) (bool, error) {
 		}
 	}
 	return true, nil
+}
+
+func (ss *SqlStore) ensureDatabaseCollation() error {
+	if *ss.settings.DriverName != model.DatabaseDriverMysql {
+		return nil
+	}
+
+	var connCollation struct {
+		Variable_name string
+		Value         string
+	}
+	if err := ss.GetMasterX().Get(&connCollation, "SHOW VARIABLES LIKE 'collation_connection'"); err != nil {
+		return errors.Wrap(err, "unable to select variables")
+	}
+
+	// we compare table collation with the connection collation value so that we can
+	// catch collation mismatches for tables we have a migration for.
+	for _, tableName := range tablesToCheckForCollation {
+		// we check if table exists because this code runs before the migrations applied
+		// which means if there is a fresh db, we may fail on selecting the table_collation
+		var exists int
+		if err := ss.GetMasterX().Get(&exists, "SELECT count(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND LOWER(table_name) = ?", tableName); err != nil {
+			return errors.Wrap(err, fmt.Sprintf("unable to check if table exists for collation check: %q", tableName))
+		} else if exists == 0 {
+			continue
+		}
+
+		var tableCollation string
+		if err := ss.GetMasterX().Get(&tableCollation, "SELECT table_collation FROM information_schema.tables WHERE table_schema = DATABASE() AND LOWER(table_name) = ?", tableName); err != nil {
+			return errors.Wrap(err, fmt.Sprintf("unable to get table collation: %q", tableName))
+		}
+
+		if tableCollation != connCollation.Value {
+			mlog.Warn("Table collation mismatch", mlog.String("table_name", tableName), mlog.String("expected", connCollation.Value), mlog.String("found", tableCollation))
+		}
+	}
+
+	return nil
 }
 
 // versionString converts an integer representation of a DB version

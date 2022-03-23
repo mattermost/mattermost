@@ -210,6 +210,20 @@ func (_m *CloudInterface) GetSubscription(userID string) (*model.Subscription, e
 	return r0, r1
 }
 
+// InvalidateCaches provides a mock function with given fields:
+func (_m *CloudInterface) InvalidateCaches() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // UpdateCloudCustomer provides a mock function with given fields: userID, customerInfo
 func (_m *CloudInterface) UpdateCloudCustomer(userID string, customerInfo *model.CloudCustomerInfo) (*model.CloudCustomer, error) {
 	ret := _m.Called(userID, customerInfo)

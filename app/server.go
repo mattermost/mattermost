@@ -93,6 +93,7 @@ const (
 	ConfigKey    ServiceKey = "config"
 	LicenseKey   ServiceKey = "license"
 	FilestoreKey ServiceKey = "filestore"
+	ClusterKey   ServiceKey = "cluster"
 )
 
 type Server struct {
@@ -140,6 +141,7 @@ type Server struct {
 	Jobs             *jobs.JobServer
 
 	clusterLeaderListeners sync.Map
+	clusterWrapper         *clusterWrapper
 
 	licenseValue       atomic.Value
 	clientLicenseValue atomic.Value
@@ -363,11 +365,17 @@ func NewServer(options ...Option) (*Server, error) {
 		srv: s,
 	}
 
+	s.clusterWrapper = &clusterWrapper{
+		srv: s,
+	}
+
 	serviceMap := map[ServiceKey]interface{}{
 		ConfigKey:    s.configStore,
 		LicenseKey:   s.licenseWrapper,
 		FilestoreKey: s.filestore,
+		ClusterKey:   s.clusterWrapper,
 	}
+
 	// Step 8: Initialize products.
 	// Depends on s.httpService.
 	for name, initializer := range products {
@@ -541,7 +549,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if _, err = url.ParseRequestURI(*s.Config().ServiceSettings.SiteURL); err != nil {
-		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: http://about.mattermost.com/default-site-url")
+		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://docs.mattermost.com/configure/configuration-settings.html#site-url")
 	}
 
 	// Start email batching because it's not like the other jobs
