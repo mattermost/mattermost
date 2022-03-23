@@ -3979,6 +3979,12 @@ func testChannelStoreGetMoreChannels(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.EqualValues(t, 2, count)
 	})
+
+	t.Run("verify analytics for all channels", func(t *testing.T) {
+		count, err := ss.Channel().AnalyticsTypeCount(teamId, "")
+		require.NoError(t, err)
+		require.EqualValues(t, 6, count)
+	})
 }
 
 func testChannelStoreGetPrivateChannelsForTeam(t *testing.T, ss store.Store) {
