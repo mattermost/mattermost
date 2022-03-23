@@ -1722,6 +1722,11 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 
 func (s *Server) doLicenseExpirationCheck() {
 
+	if model.BuildEnterpriseReady != "true" {
+		mlog.Debug("Skipping license expiraion check because no license is expected on Team Edition")
+		return
+	}
+
 	license := s.License()
 
 	if license == nil {
