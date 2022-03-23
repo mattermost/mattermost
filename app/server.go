@@ -1721,7 +1721,7 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 }
 
 func (s *Server) doLicenseExpirationCheck() {
-	s.LoadLicense()
+
 	license := s.License()
 
 	if license == nil {
@@ -1745,40 +1745,41 @@ func (s *Server) doLicenseExpirationCheck() {
 		if appErr != nil {
 			mlog.Debug(appErr.Error())
 		}
-	}
 
-	if !license.IsPastGracePeriod() {
-		mlog.Debug("License is not past the grace period.")
 		return
 	}
 
-	//send email to admin(s)
-	for _, user := range users {
-		user := user
-		if user.Email == "" {
-			mlog.Error("Invalid system admin email.", mlog.String("user_email", user.Email))
-			continue
+	if license.IsPastGracePeriod() {
+		mlog.Debug("License is past the grace period.")
+
+		renewalLink, _, err := s.GenerateLicenseRenewalLink()
+		if err != nil {
+			mlog.Error("Error while sending the license expired email.", mlog.Err(err))
+			return
 		}
 
-		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
-		s.Go(func() {
-			if err := s.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *s.Config().ServiceSettings.SiteURL); err != nil {
-				mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
+		//send email to admin(s)
+		for _, user := range users {
+			user := user
+			if user.Email == "" {
+				mlog.Error("Invalid system admin email.", mlog.String("user_email", user.Email))
+				continue
 			}
-		})
+
+			mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
+			s.Go(func() {
+				if err := s.SendRemoveExpiredLicenseEmail(user.Email, renewalLink, user.Locale, *s.Config().ServiceSettings.SiteURL); err != nil {
+					mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
+				}
+			})
+		}
 	}
 
-	//remove the license
-	s.RemoveLicense()
 }
 
 // SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
 // to renew the user license
-func (s *Server) SendRemoveExpiredLicenseEmail(email string, locale, siteURL string) *model.AppError {
-	renewalLink, _, err := s.GenerateLicenseRenewalLink()
-	if err != nil {
-		return err
-	}
+func (s *Server) SendRemoveExpiredLicenseEmail(email string, renewalLink, locale, siteURL string) *model.AppError {
 
 	if err := s.EmailService.SendRemoveExpiredLicenseEmail(renewalLink, email, locale, siteURL); err != nil {
 		return model.NewAppError("SendRemoveExpiredLicenseEmail", "api.license.remove_expired_license.failed.error", nil, err.Error(), http.StatusInternalServerError)

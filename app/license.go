@@ -379,7 +379,10 @@ func (s *Server) GenerateRenewalToken(expiration time.Duration) (string, *model.
 
 	currentToken, _ := s.Store.System().GetByName(model.SystemLicenseRenewalToken)
 	if currentToken != nil {
-		tokenIsValid, _ := s.renewalTokenValid(currentToken.Value, license.Customer.Email)
+		tokenIsValid, err := s.renewalTokenValid(currentToken.Value, license.Customer.Email)
+		if err != nil {
+			mlog.Warn("error checking license renewal token validation", mlog.Err(err))
+		}
 		if currentToken.Value != "" && tokenIsValid {
 			return currentToken.Value, nil
 		}
