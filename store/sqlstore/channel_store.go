@@ -2188,7 +2188,6 @@ func (s SqlChannelStore) GetMemberCountFromCache(channelId string) int64 {
 	return count
 }
 
-//nolint:unparam
 func (s SqlChannelStore) GetFileCount(channelId string) (int64, error) {
 	var count int64
 	err := s.GetReplicaX().Get(&count, `
