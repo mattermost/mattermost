@@ -2712,7 +2712,6 @@ func (s SqlChannelStore) GetForPost(postId string) (*model.Channel, error) {
 }
 
 func (s SqlChannelStore) AnalyticsTypeCount(teamId string, channelType model.ChannelType) (int64, error) {
-
 	query := s.getQueryBuilder().
 		Select("COUNT(*) AS Value").
 		From("Channels")
