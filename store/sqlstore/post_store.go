@@ -2198,22 +2198,22 @@ func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, error) {
 	return posts, nil
 }
 
-func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.PostForIndexing, error) {
+func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, startPostID string, limit int) ([]*model.PostForIndexing, error) {
 	posts := []*model.PostForIndexing{}
 	err := s.GetSearchReplicaX().Select(&posts,
 		`SELECT
-			PostsQuery.*, Channels.TeamId, ParentPosts.CreateAt ParentCreateAt
+			PostsQuery.*, Channels.TeamId
 		FROM (
 			SELECT
 				*
 			FROM
 				Posts
 			WHERE
-				Posts.CreateAt >= ?
-			AND
-				Posts.CreateAt < ?
+				Posts.CreateAt > ?
+			OR
+				(Posts.CreateAt = ? AND Posts.Id > ?)
 			ORDER BY
-				CreateAt ASC
+				CreateAt ASC, Id ASC
 			LIMIT
 				?
 			)
@@ -2223,11 +2223,8 @@ func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, 
 			Channels
 		ON
 			PostsQuery.ChannelId = Channels.Id
-		LEFT JOIN
-			Posts ParentPosts
-		ON
-			PostsQuery.RootId = ParentPosts.Id`,
-		startTime, endTime, limit)
+		ORDER BY CreateAt ASC, Id ASC`,
+		startTime, startTime, startPostID, limit)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
