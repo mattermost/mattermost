@@ -2731,11 +2731,13 @@ func (s SqlChannelStore) GetForPost(postId string) (*model.Channel, error) {
 }
 
 func (s SqlChannelStore) AnalyticsTypeCount(teamId string, channelType model.ChannelType) (int64, error) {
-
 	query := s.getQueryBuilder().
-		Select("COUNT(Id) AS Value").
-		From("Channels").
-		Where(sq.Eq{"Type": channelType})
+		Select("COUNT(*) AS Value").
+		From("Channels")
+
+	if channelType != "" {
+		query = query.Where(sq.Eq{"Type": channelType})
+	}
 
 	if teamId != "" {
 		query = query.Where(sq.Eq{"TeamId": teamId})
