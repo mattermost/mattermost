@@ -263,6 +263,9 @@ type GetPostsOptions struct {
 	SkipFetchThreads         bool
 	CollapsedThreads         bool
 	CollapsedThreadsExtended bool
+	FromPost                 string // PostId after which to send the items
+	FromCreateAt             int64  // CreateAt after which to send the items
+	Direction                string // Only accepts up|down. Indicates the order in which to send the items.
 }
 
 func (o *Post) Etag() string {

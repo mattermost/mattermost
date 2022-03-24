@@ -7,6 +7,7 @@ import (
 	"context"
 	"net/http"
 	"strconv"
+	"sync/atomic"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/jobs"
@@ -26,11 +27,12 @@ const (
 
 type BleveIndexerWorker struct {
 	name      string
-	stop      chan bool
+	stop      chan struct{}
 	stopped   chan bool
 	jobs      chan model.Job
 	jobServer *jobs.JobServer
 	engine    *bleveengine.BleveEngine
+	closed    int32
 }
 
 func MakeWorker(jobServer *jobs.JobServer, engine *bleveengine.BleveEngine) model.Worker {
@@ -39,7 +41,7 @@ func MakeWorker(jobServer *jobs.JobServer, engine *bleveengine.BleveEngine) mode
 	}
 	return &BleveIndexerWorker{
 		name:      "BleveIndexer",
-		stop:      make(chan bool, 1),
+		stop:      make(chan struct{}),
 		stopped:   make(chan bool, 1),
 		jobs:      make(chan model.Job),
 		jobServer: jobServer,
@@ -83,6 +85,10 @@ func (worker *BleveIndexerWorker) IsEnabled(cfg *model.Config) bool {
 }
 
 func (worker *BleveIndexerWorker) Run() {
+	// Set to open if closed before. We are not bothered about multiple opens.
+	if atomic.CompareAndSwapInt32(&worker.closed, 1, 0) {
+		worker.stop = make(chan struct{})
+	}
 	mlog.Debug("Worker Started", mlog.String("workername", worker.name))
 
 	defer func() {
@@ -103,8 +109,12 @@ func (worker *BleveIndexerWorker) Run() {
 }
 
 func (worker *BleveIndexerWorker) Stop() {
+	// Set to close, and if already closed before, then return.
+	if !atomic.CompareAndSwapInt32(&worker.closed, 0, 1) {
+		return
+	}
 	mlog.Debug("Worker Stopping", mlog.String("workername", worker.name))
-	worker.stop <- true
+	close(worker.stop)
 	<-worker.stopped
 }
 
@@ -215,7 +225,7 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 	}
 
 	cancelCtx, cancelCancelWatcher := context.WithCancel(context.Background())
-	cancelWatcherChan := make(chan interface{}, 1)
+	cancelWatcherChan := make(chan struct{}, 1)
 	go worker.jobServer.CancellationWatcher(cancelCtx, job.Id, cancelWatcherChan)
 
 	defer cancelCancelWatcher()
