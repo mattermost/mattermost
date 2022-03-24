@@ -741,33 +741,6 @@ func (es *Service) CreateVerifyEmailToken(userID string, newEmail string) (*mode
 	return token, nil
 }
 
-func (es *Service) SendAtUserLimitWarningEmail(email string, locale string, siteURL string) (bool, error) {
-	T := i18n.GetUserTranslations(locale)
-
-	subject := T("api.templates.at_limit_subject")
-
-	data := es.NewEmailTemplateData(locale)
-	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = T("api.templates.at_limit_title")
-	data.Props["Info1"] = T("api.templates.at_limit_info1")
-	data.Props["Info2"] = T("api.templates.at_limit_info2")
-	data.Props["Button"] = T("api.templates.upgrade_mattermost_cloud")
-	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-
-	data.Props["Footer"] = T("api.templates.copyright")
-
-	body, err := es.templatesContainer.RenderToString("reached_user_limit_body", data)
-	if err != nil {
-		return false, err
-	}
-
-	if err := es.sendMail(email, subject, body); err != nil {
-		return false, err
-	}
-
-	return true, nil
-}
-
 func (es *Service) SendLicenseInactivityEmail(email, name, locale, siteURL string) error {
 	T := i18n.GetUserTranslations(locale)
 	subject := T("api.templates.server_inactivity_subject")
@@ -829,67 +802,7 @@ func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, re
 	return nil
 }
 
-// SendUpgradeEmail formats an email template and sends an email to an admin specified in the email arg
-func (es *Service) SendUpgradeEmail(user, email, locale, siteURL, action string) (bool, error) {
-	T := i18n.GetUserTranslations(locale)
-
-	subject := T("api.templates.upgrade_request_subject")
-
-	data := es.NewEmailTemplateData(locale)
-	data.Props["Info5"] = T("api.templates.at_limit_info5")
-	data.Props["BillingPath"] = "admin_console/billing/subscription"
-	data.Props["SiteURL"] = siteURL
-	data.Props["Button"] = T("api.templates.upgrade_mattermost_cloud")
-	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-	data.Props["Footer"] = T("api.templates.copyright")
-
-	if action == model.InviteLimitation {
-		data.Props["Title"] = T("api.templates.upgrade_request_title", map[string]interface{}{"UserName": user})
-		data.Props["Info4"] = T("api.templates.upgrade_request_info4")
-	} else {
-		data.Props["Title"] = T("api.templates.upgrade_request_title2")
-		data.Props["Info4"] = T("api.templates.upgrade_request_info4_2")
-	}
-
-	body, err := es.templatesContainer.RenderToString("cloud_upgrade_request_email", data)
-	if err != nil {
-		return false, err
-	}
-
-	if err := es.sendMail(email, subject, body); err != nil {
-		return false, err
-	}
-
-	return true, nil
-}
-
-func (es *Service) SendOverUserLimitWarningEmail(email string, locale string, siteURL string) (bool, error) {
-	T := i18n.GetUserTranslations(locale)
-
-	subject := T("api.templates.over_limit_subject")
-
-	data := es.NewEmailTemplateData(locale)
-	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = T("api.templates.over_limit_title")
-	data.Props["Info1"] = T("api.templates.over_limit_info1")
-	data.Props["Info2"] = T("api.templates.over_limit_info2")
-	data.Props["Button"] = T("api.templates.upgrade_mattermost_cloud")
-	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-
-	data.Props["Footer"] = T("api.templates.copyright")
-
-	body, err := es.templatesContainer.RenderToString("reached_user_limit_body", data)
-	if err != nil {
-		return false, err
-	}
-
-	if err := es.sendMail(email, subject, body); err != nil {
-		return false, err
-	}
-
-	return true, nil
-}
-
+// TODO: Check enterprise repo to remove
 func (es *Service) SendOverUserLimitThirtyDayWarningEmail(email string, locale string, siteURL string) (bool, error) {
 	T := i18n.GetUserTranslations(locale)
 

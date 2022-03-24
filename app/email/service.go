@@ -141,10 +141,7 @@ type ServiceInterface interface {
 	SendDeactivateAccountEmail(email string, locale, siteURL string) error
 	SendNotificationMail(to, subject, htmlBody string) error
 	SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader) error
-	SendAtUserLimitWarningEmail(email string, locale string, siteURL string) (bool, error)
 	SendLicenseUpForRenewalEmail(email, name, locale, siteURL, renewalLink string, daysToExpiration int) error
-	SendUpgradeEmail(user, email, locale, siteURL, action string) (bool, error)
-	SendOverUserLimitWarningEmail(email string, locale string, siteURL string) (bool, error)
 	SendOverUserLimitThirtyDayWarningEmail(email string, locale string, siteURL string) (bool, error)
 	SendOverUserLimitNinetyDayWarningEmail(email string, locale string, siteURL string, overLimitDate string) (bool, error)
 	SendOverUserLimitWorkspaceSuspendedWarningEmail(email string, locale string, siteURL string) (bool, error)
