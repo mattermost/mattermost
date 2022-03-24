@@ -374,6 +374,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_testing":                                          cfg.ServiceSettings.EnableTesting,
 		"enable_developer":                                        *cfg.ServiceSettings.EnableDeveloper,
 		"developer_flags":                                         isDefault(*cfg.ServiceSettings.DeveloperFlags, model.ServiceSettingsDefaultDeveloperFlags),
+		"enable_client_performance_debugging":                     *cfg.ServiceSettings.EnableClientPerformanceDebugging,
 		"enable_multifactor_authentication":                       *cfg.ServiceSettings.EnableMultifactorAuthentication,
 		"enforce_multifactor_authentication":                      *cfg.ServiceSettings.EnforceMultifactorAuthentication,
 		"enable_oauth_service_provider":                           cfg.ServiceSettings.EnableOAuthServiceProvider,
@@ -435,6 +436,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_permalink_previews":                               *cfg.ServiceSettings.EnablePermalinkPreviews,
 		"enable_file_search":                                      *cfg.ServiceSettings.EnableFileSearch,
 		"restrict_link_previews":                                  isDefault(*cfg.ServiceSettings.RestrictLinkPreviews, ""),
+		"enable_custom_groups":                                    *cfg.ServiceSettings.EnableCustomGroups,
 	})
 
 	ts.SendTelemetry(TrackConfigTeam, map[string]interface{}{

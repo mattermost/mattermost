@@ -83,7 +83,7 @@ func (ch *Channels) installPluginFromData(data model.PluginEventData) {
 	defer reader.Close()
 
 	var signature filestore.ReadCloseSeeker
-	if *ch.srv.Config().PluginSettings.RequirePluginSignature {
+	if *ch.cfgSvc.Config().PluginSettings.RequirePluginSignature {
 		signature, appErr = ch.srv.fileReader(plugin.signaturePath)
 		if appErr != nil {
 			mlog.Error("Failed to open plugin signature from file store.", mlog.Err(appErr))
@@ -196,23 +196,39 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 		signatureFile = bytes.NewReader(prepackagedPlugin.Signature)
 	}
 
-	if *ch.srv.Config().PluginSettings.EnableRemoteMarketplace && pluginFile == nil {
+	if *ch.cfgSvc.Config().PluginSettings.EnableRemoteMarketplace {
 		var plugin *model.BaseMarketplacePlugin
 		plugin, appErr = ch.getRemoteMarketplacePlugin(request.Id, request.Version)
 		if appErr != nil {
 			return nil, appErr
 		}
 
-		downloadedPluginBytes, err := ch.srv.downloadFromURL(plugin.DownloadURL)
-		if err != nil {
-			return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.install_marketplace_plugin.app_error", nil, err.Error(), http.StatusInternalServerError)
+		var prepackagedVersion semver.Version
+		if prepackagedPlugin != nil {
+			var err error
+			prepackagedVersion, err = semver.Parse(prepackagedPlugin.Manifest.Version)
+			if err != nil {
+				return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.invalid_version.app_error", nil, err.Error(), http.StatusBadRequest)
+			}
 		}
-		signature, err := plugin.DecodeSignature()
+
+		marketplaceVersion, err := semver.Parse(plugin.Manifest.Version)
 		if err != nil {
-			return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.signature_decode.app_error", nil, err.Error(), http.StatusNotImplemented)
+			return nil, model.NewAppError("InstallMarketplacePlugin", "app.prepackged-plugin.invalid_version.app_error", nil, err.Error(), http.StatusBadRequest)
 		}
-		pluginFile = bytes.NewReader(downloadedPluginBytes)
-		signatureFile = signature
+
+		if prepackagedVersion.LT(marketplaceVersion) { // Always true if no prepackaged plugin was found
+			downloadedPluginBytes, err := ch.srv.downloadFromURL(plugin.DownloadURL)
+			if err != nil {
+				return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.install_marketplace_plugin.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+			signature, err := plugin.DecodeSignature()
+			if err != nil {
+				return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.signature_decode.app_error", nil, err.Error(), http.StatusNotImplemented)
+			}
+			pluginFile = bytes.NewReader(downloadedPluginBytes)
+			signatureFile = signature
+		}
 	}
 
 	if pluginFile == nil {
@@ -353,7 +369,7 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 		}
 	}
 
-	pluginPath := filepath.Join(*ch.srv.Config().PluginSettings.Directory, manifest.Id)
+	pluginPath := filepath.Join(*ch.cfgSvc.Config().PluginSettings.Directory, manifest.Id)
 	err = utils.CopyDir(fromPluginDir, pluginPath)
 	if err != nil {
 		return nil, model.NewAppError("installExtractedPlugin", "app.plugin.mvdir.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -375,9 +391,9 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 	}
 
 	// Activate the plugin if enabled.
-	pluginState := ch.srv.Config().PluginSettings.PluginStates[manifest.Id]
+	pluginState := ch.cfgSvc.Config().PluginSettings.PluginStates[manifest.Id]
 	if pluginState != nil && pluginState.Enable {
-		if manifest.Id == "com.mattermost.apps" && !ch.srv.Config().FeatureFlags.AppsEnabled {
+		if manifest.Id == "com.mattermost.apps" && !ch.cfgSvc.Config().FeatureFlags.AppsEnabled {
 			return manifest, nil
 		}
 		updatedManifest, _, err := pluginsEnvironment.Activate(manifest.Id)

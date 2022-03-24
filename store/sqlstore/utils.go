@@ -9,8 +9,6 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/mattermost/gorp"
-
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
@@ -45,14 +43,6 @@ func MapStringsToQueryParams(list []string, paramPrefix string) (string, map[str
 	}
 
 	return "(" + keys.String() + ")", params
-}
-
-// finalizeTransaction ensures a transaction is closed after use, rolling back if not already committed.
-func finalizeTransaction(transaction *gorp.Transaction) {
-	// Rollback returns sql.ErrTxDone if the transaction was already closed.
-	if err := transaction.Rollback(); err != nil && err != sql.ErrTxDone {
-		mlog.Error("Failed to rollback transaction", mlog.Err(err))
-	}
 }
 
 // finalizeTransactionX ensures a transaction is closed after use, rolling back if not already committed.
@@ -113,14 +103,13 @@ func constructMySQLJSONArgs(props map[string]string) ([]interface{}, string) {
 	// Unpack the keys and values to pass to MySQL.
 	args := make([]interface{}, 0, len(props))
 	for k, v := range props {
-		args = append(args, "$."+k)
-		args = append(args, v)
+		args = append(args, "$."+k, v)
 	}
 
 	// We calculate the number of ? to set in the query string.
 	argString := strings.Repeat("?, ", len(props)*2)
 	// Strip off the trailing comma.
-	argString = strings.TrimSuffix(strings.TrimSpace(argString), ",")
+	argString = strings.TrimSuffix(argString, ", ")
 
 	return args, argString
 }

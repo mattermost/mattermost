@@ -4,7 +4,6 @@
 package app
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -137,9 +136,6 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 				warnMetricDisplayTexts.EmailBody = T("api.server.warn_metric.number_of_posts_2M.contact_us.email_body")
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_posts_2M.notification_body")
 			}
-		case model.SystemMetricSupportEmailNotConfigured:
-			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.support_email_not_configured.notification_title")
-			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.support_email_not_configured.start_trial.notification_body")
 		default:
 			mlog.Debug("Invalid metric id", mlog.String("id", warnMetricId))
 			return nil, nil
@@ -148,128 +144,6 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 		return warnMetricStatus, warnMetricDisplayTexts
 	}
 	return nil, nil
-}
-
-func (a *App) notifyAdminsOfWarnMetricStatus(c *request.Context, warnMetricId string, isE0Edition bool) *model.AppError {
-	// get warn metrics bot
-	warnMetricsBot, err := a.GetWarnMetricsBot()
-	if err != nil {
-		return err
-	}
-
-	warnMetric, ok := model.WarnMetricsTable[warnMetricId]
-	if !ok {
-		return model.NewAppError("NotifyAdminsOfWarnMetricStatus", "app.system.warn_metric.notification.invalid_metric.app_error", nil, "", http.StatusInternalServerError)
-	}
-
-	perPage := 25
-	userOptions := &model.UserGetOptions{
-		Page:     0,
-		PerPage:  perPage,
-		Role:     model.SystemAdminRoleId,
-		Inactive: false,
-	}
-
-	// get sysadmins
-	var sysAdmins []*model.User
-	for {
-		sysAdminsList, err := a.GetUsers(userOptions)
-		if err != nil {
-			return err
-		}
-
-		if len(sysAdmins) == 0 && len(sysAdminsList) == 0 {
-			return model.NewAppError("NotifyAdminsOfWarnMetricStatus", "app.system.warn_metric.notification.empty_admin_list.app_error", nil, "", http.StatusInternalServerError)
-		}
-		sysAdmins = append(sysAdmins, sysAdminsList...)
-
-		if len(sysAdminsList) < perPage {
-			mlog.Debug("Number of system admins is less than page limit", mlog.Int("count", len(sysAdminsList)))
-			break
-		}
-
-		userOptions.Page++
-	}
-
-	for _, sysAdmin := range sysAdmins {
-		T := i18n.GetUserTranslations(sysAdmin.Locale)
-		warnMetricsBot.DisplayName = T("app.system.warn_metric.bot_displayname")
-		warnMetricsBot.Description = T("app.system.warn_metric.bot_description")
-
-		channel, appErr := a.GetOrCreateDirectChannel(c, warnMetricsBot.UserId, sysAdmin.Id)
-		if appErr != nil {
-			return appErr
-		}
-
-		warnMetricStatus, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, T, isE0Edition)
-		if warnMetricStatus == nil {
-			return model.NewAppError("NotifyAdminsOfWarnMetricStatus", "app.system.warn_metric.notification.invalid_metric.app_error", nil, "", http.StatusInternalServerError)
-		}
-
-		botPost := &model.Post{
-			UserId:    warnMetricsBot.UserId,
-			ChannelId: channel.Id,
-			Type:      model.PostTypeSystemWarnMetricStatus,
-			Message:   "",
-		}
-
-		actionId := "contactUs"
-		actionName := T("api.server.warn_metric.contact_us")
-		postActionValue := T("api.server.warn_metric.contacting_us")
-		postActionURL := fmt.Sprintf("/warn_metrics/ack/%s", warnMetricId)
-
-		if isE0Edition {
-			actionId = "startTrial"
-			actionName = T("api.server.warn_metric.start_trial")
-			postActionValue = T("api.server.warn_metric.starting_trial")
-			postActionURL = fmt.Sprintf("/warn_metrics/trial-license-ack/%s", warnMetricId)
-		}
-
-		actions := []*model.PostAction{}
-		actions = append(actions,
-			&model.PostAction{
-				Id:   actionId,
-				Name: actionName,
-				Type: model.PostActionTypeButton,
-				Options: []*model.PostActionOptions{
-					{
-						Text:  "TrackEventId",
-						Value: warnMetricId,
-					},
-					{
-						Text:  "ActionExecutingMessage",
-						Value: postActionValue,
-					},
-				},
-				Integration: &model.PostActionIntegration{
-					Context: model.StringInterface{
-						"bot_user_id": warnMetricsBot.UserId,
-						"force_ack":   false,
-					},
-					URL: postActionURL,
-				},
-			},
-		)
-
-		attachments := []*model.SlackAttachment{{
-			AuthorName: "",
-			Title:      warnMetricDisplayTexts.BotTitle,
-			Text:       warnMetricDisplayTexts.BotMessageBody,
-		}}
-
-		if !warnMetric.SkipAction {
-			attachments[0].Actions = actions
-		}
-
-		model.ParseSlackAttachment(botPost, attachments)
-
-		mlog.Debug("Post admin advisory for metric", mlog.String("warnMetricId", warnMetricId), mlog.String("userid", botPost.UserId))
-		if _, err := a.CreatePostAsUser(c, botPost, c.Session().Id, true); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User, forceAck bool, isBot bool) *model.AppError {
@@ -382,22 +256,7 @@ func (a *App) RequestLicenseAndAckWarnMetric(c *request.Context, warnMetricId st
 		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.license.request_trial_license.fail_get_user_count.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	trialLicenseRequest := &model.TrialLicenseRequest{
-		ServerID:              a.TelemetryId(),
-		Name:                  currentUser.GetDisplayName(model.ShowFullName),
-		Email:                 currentUser.Email,
-		SiteName:              *a.Config().TeamSettings.SiteName,
-		SiteURL:               *a.Config().ServiceSettings.SiteURL,
-		Users:                 int(registeredUsersCount),
-		TermsAccepted:         true,
-		ReceiveEmailsAccepted: true,
-	}
-
-	if trialLicenseRequest.SiteURL == "" {
-		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.license.request_trial_license.no-site-url.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if err := a.Srv().RequestTrialLicense(trialLicenseRequest); err != nil {
+	if err := a.Channels().RequestTrialLicense(c.Session().UserId, int(registeredUsersCount), true, true); err != nil {
 		// turn off warn metric warning even in case of StartTrial failure
 		if nerr := a.setWarnMetricsStatusAndNotify(warnMetricId); nerr != nil {
 			return nerr

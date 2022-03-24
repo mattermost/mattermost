@@ -93,6 +93,9 @@ const (
 	EmailNotificationContentsFull    = "full"
 	EmailNotificationContentsGeneric = "generic"
 
+	EmailSMTPDefaultServer = "localhost"
+	EmailSMTPDefaultPort   = "10025"
+
 	SitenameMaxLength = 30
 
 	ServiceSettingsDefaultSiteURL          = "http://localhost:8065"
@@ -114,7 +117,7 @@ const (
 	TeamSettingsDefaultCustomDescriptionText = ""
 	TeamSettingsDefaultUserStatusAwayTimeout = 300
 
-	SqlSettingsDefaultDataSource = "postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10"
+	SqlSettingsDefaultDataSource = "postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
 
 	FileSettingsDefaultDirectory = "./data/"
 
@@ -128,9 +131,9 @@ const (
 
 	SupportSettingsDefaultTermsOfServiceLink = "https://mattermost.com/terms-of-use/"
 	SupportSettingsDefaultPrivacyPolicyLink  = "https://mattermost.com/privacy-policy/"
-	SupportSettingsDefaultAboutLink          = "https://about.mattermost.com/default-about/"
-	SupportSettingsDefaultHelpLink           = "https://about.mattermost.com/default-help/"
-	SupportSettingsDefaultReportAProblemLink = "https://about.mattermost.com/default-report-a-problem/"
+	SupportSettingsDefaultAboutLink          = "https://docs.mattermost.com/about/product.html/"
+	SupportSettingsDefaultHelpLink           = "https://mattermost.com/default-help/"
+	SupportSettingsDefaultReportAProblemLink = "https://mattermost.com/default-report-a-problem/"
 	SupportSettingsDefaultSupportEmail       = ""
 	SupportSettingsDefaultReAcceptancePeriod = 365
 
@@ -167,8 +170,8 @@ const (
 	SamlSettingsDefaultCanonicalAlgorithm = SamlSettingsCanonicalAlgorithmC14n
 
 	NativeappSettingsDefaultAppDownloadLink        = "https://mattermost.com/download/#mattermostApps"
-	NativeappSettingsDefaultAndroidAppDownloadLink = "https://about.mattermost.com/mattermost-android-app/"
-	NativeappSettingsDefaultIosAppDownloadLink     = "https://about.mattermost.com/mattermost-ios-app/"
+	NativeappSettingsDefaultAndroidAppDownloadLink = "https://mattermost.com/mattermost-android-app/"
+	NativeappSettingsDefaultIosAppDownloadLink     = "https://mattermost.com/mattermost-ios-app/"
 
 	ExperimentalSettingsDefaultLinkMetadataTimeoutMilliseconds = 5000
 
@@ -305,6 +308,7 @@ type ServiceSettings struct {
 	EnableTesting                                     *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	EnableDeveloper                                   *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	DeveloperFlags                                    *string  `access:"environment_developer"`
+	EnableClientPerformanceDebugging                  *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	EnableOpenTracing                                 *bool    `access:"write_restrictable,cloud_restrictable"`
 	EnableSecurityFixAlert                            *bool    `access:"environment_smtp,write_restrictable,cloud_restrictable"`
 	EnableInsecureOutgoingConnections                 *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
@@ -320,7 +324,7 @@ type ServiceSettings struct {
 	ExtendSessionLengthWithActivity                   *bool    `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
 	SessionLengthWebInDays                            *int     `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
 	SessionLengthMobileInDays                         *int     `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
-	SessionLengthSSOInDays                            *float32 `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
+	SessionLengthSSOInDays                            *int     `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
 	SessionCacheInMinutes                             *int     `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
 	SessionIdleTimeoutInMinutes                       *int     `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
 	WebsocketSecurePort                               *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
@@ -366,18 +370,7 @@ type ServiceSettings struct {
 	ThreadAutoFollow                                  *bool   `access:"experimental_features"`
 	CollapsedThreads                                  *string `access:"experimental_features"`
 	ManagedResourcePaths                              *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-}
-
-func (s *ServiceSettings) SessionLengthWebInHours() *int {
-	return NewInt(*s.SessionLengthWebInDays * 24)
-}
-
-func (s *ServiceSettings) SessionLengthMobileInHours() *int {
-	return NewInt(*s.SessionLengthMobileInDays * 24)
-}
-
-func (s *ServiceSettings) SessionLengthSSOInHours() *int {
-	return NewInt(int(*s.SessionLengthSSOInDays * 24))
+	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -432,6 +425,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.DeveloperFlags == nil {
 		s.DeveloperFlags = NewString("")
+	}
+
+	if s.EnableClientPerformanceDebugging == nil {
+		s.EnableClientPerformanceDebugging = NewBool(false)
 	}
 
 	if s.EnableOpenTracing == nil {
@@ -610,7 +607,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.SessionLengthSSOInDays == nil {
-		s.SessionLengthSSOInDays = NewFloat32(30)
+		s.SessionLengthSSOInDays = NewInt(30)
 	}
 
 	if s.SessionCacheInMinutes == nil {
@@ -784,7 +781,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.ThreadAutoFollow == nil {
-		s.ThreadAutoFollow = NewBool(false)
+		s.ThreadAutoFollow = NewBool(true)
 	}
 
 	if s.CollapsedThreads == nil {
@@ -793,6 +790,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.ManagedResourcePaths == nil {
 		s.ManagedResourcePaths = NewString("")
+	}
+
+	if s.EnableCustomGroups == nil {
+		s.EnableCustomGroups = NewBool(true)
 	}
 }
 
@@ -1600,11 +1601,11 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.SMTPServer == nil || *s.SMTPServer == "" {
-		s.SMTPServer = NewString("localhost")
+		s.SMTPServer = NewString(EmailSMTPDefaultServer)
 	}
 
 	if s.SMTPPort == nil || *s.SMTPPort == "" {
-		s.SMTPPort = NewString("10025")
+		s.SMTPPort = NewString(EmailSMTPDefaultPort)
 	}
 
 	if s.SMTPServerTimeout == nil || *s.SMTPServerTimeout == 0 {
@@ -1741,7 +1742,7 @@ type SupportSettings struct {
 	AboutLink                              *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	HelpLink                               *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	ReportAProblemLink                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
-	SupportEmail                           *string `access:"site_customization"`
+	SupportEmail                           *string `access:"site_notifications"`
 	CustomTermsOfServiceEnabled            *bool   `access:"compliance_custom_terms_of_service"`
 	CustomTermsOfServiceReAcceptancePeriod *int    `access:"compliance_custom_terms_of_service"`
 	EnableAskCommunityLink                 *bool   `access:"site_customization"`
@@ -3594,10 +3595,6 @@ func (s *ServiceSettings) isValid() *AppError {
 		*s.CollapsedThreads != CollapsedThreadsDefaultOn &&
 		*s.CollapsedThreads != CollapsedThreadsDefaultOff {
 		return NewAppError("Config.IsValid", "model.config.is_valid.collapsed_threads.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if *s.SessionLengthSSOInHours() < 1 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.session_length_sso_in_days.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

@@ -239,7 +239,7 @@ func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
 
 	a.UpdateWebConnUserActivity(session, now)
 
-	if now-session.LastActivityAt < model.SessionActivityTimeoutMiliseconds {
+	if now-session.LastActivityAt < model.SessionActivityTimeout {
 		return
 	}
 
@@ -255,7 +255,7 @@ func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
 // A new ExpiresAt is only written if enough time has elapsed since last update.
 // Returns true only if the session was extended.
 func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) bool {
-	if !*a.Srv().Config().ServiceSettings.ExtendSessionLengthWithActivity {
+	if !*a.Config().ServiceSettings.ExtendSessionLengthWithActivity {
 		return false
 	}
 
@@ -286,17 +286,11 @@ func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) bool {
 	auditRec.AddMeta("session", session)
 
 	newExpiry := now + sessionLength
-	if err := a.Srv().Store.Session().UpdateExpiresAt(session.Id, newExpiry); err != nil {
+	if err := a.ch.srv.userService.ExtendSessionExpiry(session, newExpiry); err != nil {
 		mlog.Error("Failed to update ExpiresAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
 		auditRec.AddMeta("err", err.Error())
 		return false
 	}
-
-	// Update local cache. No need to invalidate cache for cluster as the session cache timeout
-	// ensures each node will get an extended expiry within the next 10 minutes.
-	// Worst case is another node may generate a redundant expiry update.
-	session.ExpiresAt = newExpiry
-	a.ch.srv.userService.AddSessionToCache(session)
 
 	mlog.Debug("Session extended", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id),
 		mlog.Int64("newExpiry", newExpiry), mlog.Int64("session_length", sessionLength))
@@ -306,14 +300,6 @@ func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) bool {
 	return true
 }
 
-func (a *App) extendSessionExpiry(sessionID string, newExpiry int64) *model.AppError {
-	if err := a.Srv().Store.Session().UpdateExpiresAt(sessionID, newExpiry); err != nil {
-		return model.NewAppError("ExtendSessionExpiry", "app.session.extend_session_expiry.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	return nil
-}
-
 // GetSessionLengthInMillis returns the session length, in milliseconds,
 // based on the type of session (Mobile, SSO, Web/LDAP).
 func (a *App) GetSessionLengthInMillis(session *model.Session) int64 {
@@ -321,22 +307,22 @@ func (a *App) GetSessionLengthInMillis(session *model.Session) int64 {
 		return 0
 	}
 
-	var hours int
+	var days int
 	if session.IsMobileApp() {
-		hours = *a.Config().ServiceSettings.SessionLengthMobileInHours()
+		days = *a.Config().ServiceSettings.SessionLengthMobileInDays
 	} else if session.IsSSOLogin() {
-		hours = *a.Config().ServiceSettings.SessionLengthSSOInHours()
+		days = *a.Config().ServiceSettings.SessionLengthSSOInDays
 	} else {
-		hours = *a.Config().ServiceSettings.SessionLengthWebInHours()
+		days = *a.Config().ServiceSettings.SessionLengthWebInDays
 	}
-	return int64(hours * 60 * 60 * 1000)
+	return int64(days * 24 * 60 * 60 * 1000)
 }
 
-// SetSessionExpireInHours sets the session's expiry the specified number of days
+// SetSessionExpireInDays sets the session's expiry the specified number of days
 // relative to either the session creation date or the current time, depending
 // on the `ExtendSessionOnActivity` config setting.
-func (a *App) SetSessionExpireInHours(session *model.Session, hours int) {
-	a.ch.srv.userService.SetSessionExpireInHours(session, hours)
+func (a *App) SetSessionExpireInDays(session *model.Session, days int) {
+	a.ch.srv.userService.SetSessionExpireInDays(session, days)
 }
 
 func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
@@ -425,7 +411,7 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 	} else {
 		session.AddProp(model.SessionPropIsGuest, "false")
 	}
-	a.ch.srv.userService.SetSessionExpireInHours(session, model.SessionUserAccessTokenExpiryHours)
+	a.ch.srv.userService.SetSessionExpireInDays(session, model.SessionUserAccessTokenExpiry)
 
 	session, nErr = a.Srv().Store.Session().Save(session)
 	if nErr != nil {
