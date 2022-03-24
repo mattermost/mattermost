@@ -164,7 +164,8 @@
         "EmailNotificationContentsType": "full",
         "LoginButtonColor": "",
         "LoginButtonBorderColor": "",
-        "LoginButtonTextColor": ""
+        "LoginButtonTextColor": "",
+        "EnableInactivityEmail": true
     },
     "RateLimitSettings": {
         "Enable": false,
