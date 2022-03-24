@@ -116,8 +116,6 @@ func (s *Server) takeInactivityAction() {
 		return
 	}
 
-	mlog.Debug("Sending...")
-
 	for _, user := range users {
 
 		// See https://go.dev/doc/faq#closures_and_goroutines for why we make this assignment
