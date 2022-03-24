@@ -632,7 +632,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Konnte den Kanal {{.Channel}} nicht finden. Bitte nutze den [Kanal-Handle](https://about.mattermost.com/default-channel-handle-documentation), um Kanäle zu identifizieren."
+    "translation": "Konnte den Kanal {{.Channel}} nicht finden. Bitte nutze den [Kanal-Handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel), um Kanäle zu identifizieren."
   },
   {
     "id": "api.command_invite.desc",
@@ -776,7 +776,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Konnte den Kanal {{.Channel}} nicht finden. Bitte nutze den [Kanal-Handle](https://about.mattermost.com/default-channel-handle-documentation), um Kanäle zu identifizieren."
+    "translation": "Konnte den Kanal {{.Channel}} nicht finden. Bitte nutze den [Kanal-Handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel), um Kanäle zu identifizieren."
   },
   {
     "id": "api.command_mute.hint",
@@ -788,7 +788,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Konnte den Kanal nicht finden. Bitte nutze den [Kanal-Handle](https://about.mattermost.com/default-channel-handle-documentation), um Kanäle zu identifizieren."
+    "translation": "Konnte den Kanal nicht finden. Bitte nutze den [Kanal-Handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel), um Kanäle zu identifizieren."
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -4614,18 +4614,6 @@
   {
     "id": "plugin_api.send_mail.missing_to",
     "translation": "Fehlende TO-Adresse."
-  },
-  {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Konnte StringArray nicht zu *string konvertieren"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Konnte StringInterface nicht zu *string konvertieren"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Konnte StringMap nicht zu *string konvertieren"
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
@@ -9409,5 +9397,9 @@
   {
     "id": "app.group.get_by_username_failure",
     "translation": " "
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "Die maximale Länge der MattermostAppID ist 32 Zeichen."
   }
 ]
