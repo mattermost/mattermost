@@ -2972,6 +2972,10 @@
     "translation": "SMTP is not configured in System Console"
   },
   {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
+    "translation": ""
+  },
+  {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
     "translation": "Team creation has been disabled. Please ask your System Administrator for details."
   },
@@ -3310,6 +3314,22 @@
   {
     "id": "api.templates.invite_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .TeamDisplayName }} Team"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title_a",
+    "translation": "{{ .SenderName }} invited you to join {{ .ChannelsLen }} channels on the {{ .TeamDisplayName }} Team"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title_b",
+    "translation": "{{ .SenderName }} invited you to join {{ .ChannelName }} on the {{ .TeamDisplayName }} Team"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject_a",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .ChannelsLen }} channels on the {{ .TeamDisplayName }} Team"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject_b",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .ChannelName }} on the {{ .TeamDisplayName }} Team"
   },
   {
     "id": "api.templates.license_up_for_renewal_renew_now",
@@ -8470,6 +8490,18 @@
   {
     "id": "model.link_metadata.is_valid.url.app_error",
     "translation": "Link metadata URL must be set."
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.member.is_valid.email.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": ""
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",

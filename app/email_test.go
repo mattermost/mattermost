@@ -25,16 +25,17 @@ func TestSendInviteEmailRateLimits(t *testing.T) {
 		*cfg.ServiceSettings.EnableEmailInvitations = true
 	})
 
-	emailList := make([]string, 22)
+	memberInvite := &model.MemberInvite{}
+	memberInvite.Emails = make([]string, 22)
 	for i := 0; i < 22; i++ {
-		emailList[i] = "test-" + strconv.Itoa(i) + "@common.com"
+		memberInvite.Emails[i] = "test-" + strconv.Itoa(i) + "@common.com"
 	}
-	err = th.App.InviteNewUsersToTeam(emailList, th.BasicTeam.Id, th.BasicUser.Id)
+	err = th.App.InviteNewUsersToTeam(memberInvite.Emails, th.BasicTeam.Id, th.BasicUser.Id)
 	require.NotNil(t, err)
 	assert.Equal(t, "app.email.rate_limit_exceeded.app_error", err.Id)
 	assert.Equal(t, http.StatusRequestEntityTooLarge, err.StatusCode)
 
-	_, err = th.App.InviteNewUsersToTeamGracefully(emailList, th.BasicTeam.Id, th.BasicUser.Id, "")
+	_, err = th.App.InviteNewUsersToTeamGracefully(memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
 	require.NotNil(t, err)
 	assert.Equal(t, "app.email.rate_limit_exceeded.app_error", err.Id)
 	assert.Equal(t, http.StatusRequestEntityTooLarge, err.StatusCode)

@@ -1275,10 +1275,21 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emailList := model.ArrayFromJSON(r.Body)
+	memberInvite := model.MemberInvite{}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&memberInvite); jsonErr != nil {
+		c.Err = model.NewAppError("Api4.inviteUsersToTeams", "api.team.invite_members_to_team_and_channels.invalid_body.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		return
+	}
+
+	emailList := memberInvite.Emails
 
 	for i := range emailList {
 		emailList[i] = strings.ToLower(emailList[i])
+	}
+
+	if err := memberInvite.IsValid(); err != nil {
+		c.Err = err
+		return
 	}
 
 	if len(emailList) == 0 {
@@ -1291,12 +1302,14 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("team_id", c.Params.TeamId)
 	auditRec.AddMeta("count", len(emailList))
 	auditRec.AddMeta("emails", emailList)
+	auditRec.AddMeta("channel_count", len(memberInvite.Channels))
+	auditRec.AddMeta("channels", memberInvite.Channels)
 
 	if graceful {
 		var invitesWithError []*model.EmailInviteWithError
 		var err *model.AppError
 		if emailList != nil {
-			invitesWithError, err = c.App.InviteNewUsersToTeamGracefully(emailList, c.Params.TeamId, c.AppContext.Session().UserId, "")
+			invitesWithError, err = c.App.InviteNewUsersToTeamGracefully(&memberInvite, c.Params.TeamId, c.AppContext.Session().UserId, "")
 		}
 
 		if invitesWithError != nil {
@@ -1320,6 +1333,10 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			"teamID":      c.Params.TeamId,
 			"senderID":    c.AppContext.Session().UserId,
 			"scheduledAt": strconv.FormatInt(scheduledAt, 10),
+		}
+
+		if len(memberInvite.Channels) > 0 {
+			jobData["channelList"] = model.ArrayToJSON(memberInvite.Channels)
 		}
 
 		// we then manually schedule the job to send another invite after 48 hours
