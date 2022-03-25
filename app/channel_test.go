@@ -2038,6 +2038,9 @@ func TestMarkChannelsAsViewedPanic(t *testing.T) {
 	mockPreferenceStore.On("Get", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(&model.Preference{Value: "test"}, nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
 	mockStore.On("Preference").Return(&mockPreferenceStore)
+	mockThreadStore := mocks.ThreadStore{}
+	mockThreadStore.On("MarkAllAsReadByChannels", "userID", []string{"channelID"}).Return(nil)
+	mockStore.On("Thread").Return(&mockThreadStore)
 
 	_, appErr := th.App.MarkChannelsAsViewed([]string{"channelID"}, "userID", th.Context.Session().Id, false)
 	require.Nil(t, appErr)
@@ -2081,7 +2084,7 @@ func TestMarkChannelAsUnreadFromPostPanic(t *testing.T) {
 
 	mockPostStore := mocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
-	mockPostStore.On("Get", context.Background(), "postID", false, false, false, "userID").Return(&model.PostList{}, nil)
+	mockPostStore.On("Get", context.Background(), "postID", model.GetPostsOptions{}, "userID").Return(&model.PostList{}, nil)
 	mockPostStore.On("GetPostsAfter", mock.AnythingOfType("model.GetPostsOptions")).Return(&model.PostList{}, nil)
 	mockPostStore.On("GetSingle", "postID", false).Return(&model.Post{
 		Id:        "postID",

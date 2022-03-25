@@ -633,7 +633,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Не удалось найти канал {{.Channel}}. Для идентификации каналов используйте [название канала] (https://about.mattermost.com/default-channel-handle-documentation)."
+    "translation": "Не удалось найти канал {{.Channel}}. Для идентификации каналов используйте [название канала] (https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)."
   },
   {
     "id": "api.command_invite.desc",
@@ -777,7 +777,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Не удалось найти канал {{.Channel}}. Для идентификации каналов используйте [название канала] (https://about.mattermost.com/default-channel-handle-documentation)."
+    "translation": "Не удалось найти канал {{.Channel}}. Для идентификации каналов используйте [название канала] (https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)."
   },
   {
     "id": "api.command_mute.hint",
@@ -789,7 +789,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Не удалось найти указанный канал. Пожалуйста, используйте [дескриптор канала] (https://about.mattermost.com/default-channel-handle-documentation) для идентификации каналов."
+    "translation": "Не удалось найти указанный канал. Пожалуйста, используйте [дескриптор канала] (https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для идентификации каналов."
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -9402,9 +9402,5 @@
   {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
     "translation": "Максимальная длина MattermostAppID — 32 символа."
-  },
-  {
-    "id": "app.system.applied_migrations.not_authorized",
-    "translation": "У Вас нет соответствующих разрешений."
   }
 ]

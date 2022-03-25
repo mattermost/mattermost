@@ -155,6 +155,18 @@ func (srv *JobServer) SetJobCanceled(job *model.Job) *model.AppError {
 	return nil
 }
 
+func (srv *JobServer) SetJobPending(job *model.Job) *model.AppError {
+	if _, err := srv.Store.Job().UpdateStatus(job.Id, model.JobStatusPending); err != nil {
+		return model.NewAppError("SetJobPending", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if srv.metrics != nil {
+		srv.metrics.DecrementJobActive(job.Type)
+	}
+
+	return nil
+}
+
 func (srv *JobServer) UpdateInProgressJobData(job *model.Job) *model.AppError {
 	job.Status = model.JobStatusInProgress
 	job.LastActivityAt = model.GetMillis()
