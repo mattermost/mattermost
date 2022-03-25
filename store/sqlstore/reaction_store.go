@@ -228,6 +228,129 @@ func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int
 	return rowsAffected, nil
 }
 
+func (s *SqlReactionStore) GetTopForTeamSince(teamID string, userID string, since int64, offset int, limit int) ([]*model.TopReactions, error) {
+	var reactions []*model.TopReactions
+
+	// Get reactions from all public channels within the team, and private channels that the user is a member
+	query := `
+		SELECT DISTINCT
+			EmojiName,
+			SUM(EmojiCount) OVER (PARTITION BY EmojiName) AS Count
+		FROM ((
+				SELECT
+					EmojiName,
+					count(EmojiName) AS EmojiCount
+				FROM
+					ChannelMembers
+					INNER JOIN Channels ON ChannelMembers.ChannelId = Channels.Id
+					INNER JOIN Posts ON Channels.Id = Posts.ChannelId
+					INNER JOIN Reactions ON Posts.Id = Reactions.PostId			
+				WHERE
+					ChannelMembers.UserId = ?
+					AND Channels.Type = 'P'
+					AND Reactions.DeleteAt = 0
+					AND Channels.TeamId = ?
+					AND Reactions.CreateAt > ?
+				GROUP BY
+					Reactions.EmojiName)
+			UNION ALL (
+				SELECT
+					EmojiName,
+					count(EmojiName) AS EmojiCount
+				FROM
+					Reactions
+					INNER JOIN Posts ON Reactions.PostId = Posts.Id
+					INNER JOIN Channels ON Posts.ChannelId = Channels.Id
+				WHERE
+					Reactions.DeleteAt = 0
+					AND Channels.Type = 'O'
+					AND Channels.TeamId = ?
+					AND Reactions.CreateAt > ?
+				GROUP BY
+					Reactions.EmojiName)) AS A
+		ORDER BY
+			Count DESC
+		LIMIT ?
+		OFFSET ?`
+
+	if err := s.GetReplicaX().Select(&reactions, query, userID, teamID, since, teamID, since, limit, offset); err != nil {
+		return nil, errors.Wrap(err, "failed to get top Reactions")
+	}
+	return reactions, nil
+}
+
+func (s *SqlReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) ([]*model.TopReactions, error) {
+	var reactions []*model.TopReactions
+	var args []interface{}
+	var query string
+
+	if teamID != "" {
+		query = `
+			SELECT DISTINCT
+				EmojiName,
+				SUM(EmojiCount) OVER (PARTITION BY EmojiName) AS Count
+			FROM ((
+				SELECT
+					EmojiName,
+					count(EmojiName) as EmojiCount
+				FROM
+					Reactions
+					INNER JOIN Posts ON Reactions.PostId = Posts.Id
+					INNER JOIN Channels ON Posts.ChannelId = Channels.id
+				WHERE
+					Reactions.DeleteAt = 0
+					AND Channels.TeamId = ?
+					AND Reactions.UserId = ? 
+					AND Reactions.CreateAt > ?
+				GROUP BY
+						Reactions.EmojiName)
+			UNION ALL (
+				SELECT
+					EmojiName,
+					count(EmojiName) as EmojiCount
+				FROM
+					Reactions
+					INNER JOIN Posts ON Reactions.PostId = Posts.Id
+					INNER JOIN Channels ON Posts.ChannelId = Channels.id
+				WHERE
+					Reactions.DeleteAt = 0
+					AND Reactions.UserId = ?
+					AND (Channels.type = 'D' OR Channels.type = 'G')
+					AND Reactions.CreateAt > ?
+				GROUP BY
+					Reactions.EmojiName
+			)) AS A
+			ORDER BY
+				Count DESC
+			LIMIT ?
+			OFFSET ?`
+		args = []interface{}{teamID, userID, since, userID, since, limit, offset}
+	} else {
+		query = `
+			SELECT
+				EmojiName,
+				count(EmojiName) as Count
+			FROM
+				Reactions
+			WHERE
+				Reactions.DeleteAt = 0
+				AND Reactions.UserId = ?
+				AND Reactions.CreateAt > ?
+			GROUP BY
+				Reactions.EmojiName
+			ORDER BY
+				Count DESC
+			LIMIT ?
+			OFFSET ?`
+		args = []interface{}{userID, since, limit, offset}
+	}
+
+	if err := s.GetReplicaX().Select(&reactions, query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to get top Reactions")
+	}
+	return reactions, nil
+}
+
 func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *sqlxTxWrapper, reaction *model.Reaction) error {
 	reaction.DeleteAt = 0
 

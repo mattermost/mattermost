@@ -678,6 +678,8 @@ type ReactionStore interface {
 	BulkGetForPosts(postIds []string) ([]*model.Reaction, error)
 	DeleteOrphanedRows(limit int) (int64, error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
+	GetTopForTeamSince(teamID string, userID string, since int64, offset int, perPage int) ([]*model.TopReactions, error)
+	GetTopForUserSince(userID string, teamID string, since int64, offset int, perPage int) ([]*model.TopReactions, error)
 }
 
 type JobStore interface {

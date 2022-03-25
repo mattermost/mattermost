@@ -84,3 +84,298 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 		assert.Equal(t, channel.Id, sharedChannelService.channelNotifications[1])
 	})
 }
+
+func TestGetTopReactionsForTeamSince(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.Server.configStore.SetReadOnlyFF(false)
+	defer th.Server.configStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+
+	userId := th.BasicUser.Id
+	user2Id := th.BasicUser2.Id
+
+	post1 := th.CreatePost(th.BasicChannel)
+	post2 := th.CreatePost(th.BasicChannel)
+	post3 := th.CreatePost(th.BasicChannel)
+	post4 := th.CreatePost(th.BasicChannel)
+	post5 := th.CreatePost(th.BasicChannel)
+
+	userReactions := []*model.Reaction{
+		{
+			UserId:    userId,
+			PostId:    post1.Id,
+			EmojiName: "happy",
+		},
+		{
+			UserId:    user2Id,
+			PostId:    post1.Id,
+			EmojiName: "happy",
+		},
+		{
+			UserId:    userId,
+			PostId:    post1.Id,
+			EmojiName: "sad",
+		},
+		{
+			UserId:    user2Id,
+			PostId:    post1.Id,
+			EmojiName: "sad",
+		},
+		{
+			UserId:    userId,
+			PostId:    post1.Id,
+			EmojiName: "smile",
+		},
+		{
+			UserId:    userId,
+			PostId:    post1.Id,
+			EmojiName: "joy",
+		},
+		{
+			UserId:    userId,
+			PostId:    post1.Id,
+			EmojiName: "100",
+		},
+		{
+			UserId:    userId,
+			PostId:    post2.Id,
+			EmojiName: "sad",
+		},
+		{
+			UserId:    userId,
+			PostId:    post2.Id,
+			EmojiName: "smile",
+		},
+		{
+			UserId:    userId,
+			PostId:    post2.Id,
+			EmojiName: "joy",
+		},
+		{
+			UserId:    userId,
+			PostId:    post2.Id,
+			EmojiName: "100",
+		},
+		{
+			UserId:    userId,
+			PostId:    post3.Id,
+			EmojiName: "smile",
+		},
+		{
+			UserId:    user2Id,
+			PostId:    post3.Id,
+			EmojiName: "smile",
+		},
+		{
+			UserId:    userId,
+			PostId:    post3.Id,
+			EmojiName: "joy",
+		},
+		{
+			UserId:    userId,
+			PostId:    post3.Id,
+			EmojiName: "100",
+		},
+		{
+			UserId:    userId,
+			PostId:    post4.Id,
+			EmojiName: "joy",
+		},
+		{
+			UserId:    user2Id,
+			PostId:    post4.Id,
+			EmojiName: "joy",
+		},
+		{
+			UserId:    userId,
+			PostId:    post4.Id,
+			EmojiName: "100",
+		},
+		{
+			UserId:    userId,
+			PostId:    post5.Id,
+			EmojiName: "100",
+		},
+		{
+			UserId:    user2Id,
+			PostId:    post5.Id,
+			EmojiName: "100",
+		},
+	}
+
+	for _, userReaction := range userReactions {
+		_, err := th.App.Srv().Store.Reaction().Save(userReaction)
+		require.NoError(t, err)
+	}
+
+	teamId := th.BasicChannel.TeamId
+
+	var expectedTopReactions [5]*model.TopReactions
+	expectedTopReactions[0] = &model.TopReactions{EmojiName: "100", Count: int64(6)}
+	expectedTopReactions[1] = &model.TopReactions{EmojiName: "joy", Count: int64(5)}
+	expectedTopReactions[2] = &model.TopReactions{EmojiName: "smile", Count: int64(4)}
+	expectedTopReactions[3] = &model.TopReactions{EmojiName: "sad", Count: int64(3)}
+	expectedTopReactions[4] = &model.TopReactions{EmojiName: "happy", Count: int64(2)}
+
+	t.Run("get top reactions for team", func(t *testing.T) {
+		topReactions, err := th.App.GetTopReactionsForTeamSince(teamId, userId, &model.InsightsOpts{TimeRange: "1_day", Page: 0, PerPage: 5})
+		require.Nil(t, err)
+
+		for i, reaction := range topReactions {
+			assert.Equal(t, expectedTopReactions[i].EmojiName, reaction.EmojiName)
+			assert.Equal(t, expectedTopReactions[i].Count, reaction.Count)
+		}
+	})
+}
+
+func TestGetTopReactionsForUserSince(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.Server.configStore.SetReadOnlyFF(false)
+	defer th.Server.configStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+
+	userId := th.BasicUser.Id
+
+	post1 := th.CreatePost(th.BasicChannel)
+	post2 := th.CreatePost(th.BasicChannel)
+	post3 := th.CreatePost(th.BasicChannel)
+	post4 := th.CreatePost(th.BasicChannel)
+	post5 := th.CreatePost(th.BasicChannel)
+	post6 := th.CreatePost(th.BasicChannel)
+
+	userReactions := []*model.Reaction{
+		{
+			UserId:    userId,
+			PostId:    post1.Id,
+			EmojiName: "happy",
+		},
+		{
+			UserId:    userId,
+			PostId:    post2.Id,
+			EmojiName: "happy",
+		},
+		{
+			UserId:    userId,
+			PostId:    post3.Id,
+			EmojiName: "happy",
+		},
+		{
+			UserId:    userId,
+			PostId:    post4.Id,
+			EmojiName: "happy",
+		},
+		{
+			UserId:    userId,
+			PostId:    post5.Id,
+			EmojiName: "happy",
+		},
+		{
+			UserId:    userId,
+			PostId:    post6.Id,
+			EmojiName: "happy",
+		},
+		{
+			UserId:    userId,
+			PostId:    post1.Id,
+			EmojiName: "smile",
+		},
+		{
+			UserId:    userId,
+			PostId:    post2.Id,
+			EmojiName: "smile",
+		},
+		{
+			UserId:    userId,
+			PostId:    post3.Id,
+			EmojiName: "smile",
+		},
+		{
+			UserId:    userId,
+			PostId:    post4.Id,
+			EmojiName: "smile",
+		},
+		{
+			UserId:    userId,
+			PostId:    post5.Id,
+			EmojiName: "smile",
+		},
+		{
+			UserId:    userId,
+			PostId:    post1.Id,
+			EmojiName: "+1",
+		},
+		{
+			UserId:    userId,
+			PostId:    post2.Id,
+			EmojiName: "+1",
+		},
+		{
+			UserId:    userId,
+			PostId:    post3.Id,
+			EmojiName: "+1",
+		},
+		{
+			UserId:    userId,
+			PostId:    post4.Id,
+			EmojiName: "+1",
+		},
+		{
+			UserId:    userId,
+			PostId:    post1.Id,
+			EmojiName: "heart",
+		},
+		{
+			UserId:    userId,
+			PostId:    post2.Id,
+			EmojiName: "heart",
+		},
+		{
+			UserId:    userId,
+			PostId:    post3.Id,
+			EmojiName: "heart",
+		},
+		{
+			UserId:    userId,
+			PostId:    post1.Id,
+			EmojiName: "blush",
+		},
+		{
+			UserId:    userId,
+			PostId:    post2.Id,
+			EmojiName: "blush",
+		},
+		{
+			UserId:    userId,
+			PostId:    post1.Id,
+			EmojiName: "100",
+		},
+	}
+
+	for _, userReaction := range userReactions {
+		_, err := th.App.Srv().Store.Reaction().Save(userReaction)
+		require.NoError(t, err)
+	}
+
+	teamId := th.BasicChannel.TeamId
+
+	var expectedTopReactions [5]*model.TopReactions
+	expectedTopReactions[0] = &model.TopReactions{EmojiName: "happy", Count: int64(6)}
+	expectedTopReactions[1] = &model.TopReactions{EmojiName: "smile", Count: int64(5)}
+	expectedTopReactions[2] = &model.TopReactions{EmojiName: "+1", Count: int64(4)}
+	expectedTopReactions[3] = &model.TopReactions{EmojiName: "heart", Count: int64(3)}
+	expectedTopReactions[4] = &model.TopReactions{EmojiName: "blush", Count: int64(2)}
+
+	t.Run("get-top-reactions-for-team-since", func(t *testing.T) {
+		topReactions, err := th.App.GetTopReactionsForUserSince(userId, teamId, &model.InsightsOpts{TimeRange: "1_day", Page: 0, PerPage: 5})
+		require.Nil(t, err)
+
+		for i, reaction := range topReactions {
+			assert.Equal(t, expectedTopReactions[i].EmojiName, reaction.EmojiName)
+			assert.Equal(t, expectedTopReactions[i].Count, reaction.Count)
+		}
+	})
+}

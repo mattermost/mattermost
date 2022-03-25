@@ -16,6 +16,9 @@ func (api *API) InitReaction() {
 	api.BaseRoutes.Post.Handle("/reactions", api.APISessionRequired(getReactions)).Methods("GET")
 	api.BaseRoutes.ReactionByNameForPostForUser.Handle("", api.APISessionRequired(deleteReaction)).Methods("DELETE")
 	api.BaseRoutes.Posts.Handle("/ids/reactions", api.APISessionRequired(getBulkReactions)).Methods("POST")
+
+	api.BaseRoutes.Reactions.Handle("/top/team/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getTopReactionsForTeamSince)).Methods("GET")
+	api.BaseRoutes.Reactions.Handle("/top/user/{user_id:[A-Za-z0-9]+}", api.APISessionRequired(getTopReactionsForUserSince)).Methods("GET")
 }
 
 func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -136,5 +139,79 @@ func getBulkReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("getBulkReactions", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 		return
 	}
+	w.Write(js)
+}
+
+func getTopReactionsForTeamSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionViewTeam) {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
+	reactions, err := c.App.GetTopReactionsForTeamSince(c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
+		TimeRange: c.Params.TimeRange,
+		Page:      c.Params.Page,
+		PerPage:   c.Params.PerPage,
+	})
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	js, jsonErr := json.Marshal(reactions)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getTopReactionsForTeamSince", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
+}
+
+func getTopReactionsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	c.Params.TeamId = r.URL.Query().Get("team_id")
+
+	// TeamId is an optional parameter
+	if c.Params.TeamId != "" {
+		if !model.IsValidId(c.Params.TeamId) {
+			c.SetInvalidURLParam("team_id")
+			return
+		} else if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionViewTeam) {
+			c.SetPermissionError(model.PermissionViewTeam)
+			return
+		}
+	}
+
+	// TODO: Check if we're allowing users to get insights of other users.
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	reactions, err := c.App.GetTopReactionsForUserSince(c.Params.UserId, c.Params.TeamId, &model.InsightsOpts{
+		TimeRange: c.Params.TimeRange,
+		Page:      c.Params.Page,
+		PerPage:   c.Params.PerPage,
+	})
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	js, jsonErr := json.Marshal(reactions)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getTopReactionsForUserSince", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.Write(js)
 }

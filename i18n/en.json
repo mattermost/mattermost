@@ -1882,6 +1882,10 @@
     "translation": "Invalid username."
   },
   {
+    "id": "api.insights.feature_disabled",
+    "translation": "Insights feature is disabled."
+  },
+  {
     "id": "api.invalid_channel",
     "translation": "Channel listed in the request doesn't belong to the user"
   },
@@ -5864,6 +5868,14 @@
     "translation": "Unable to get reactions for post."
   },
   {
+    "id": "app.reaction.get_top_for_team_since.app_error",
+    "translation": "Unable to get top reactions for team."
+  },
+  {
+    "id": "app.reaction.get_top_for_user_since.app_error",
+    "translation": "Unable to get top reactions for user."
+  },
+  {
     "id": "app.reaction.save.save.app_error",
     "translation": "Unable to save reaction."
   },
@@ -8426,6 +8438,10 @@
   {
     "id": "model.incoming_hook.username.app_error",
     "translation": "Invalid username."
+  },
+  {
+    "id": "model.insights.time_range.app_error",
+    "translation": "Invalid time range."
   },
   {
     "id": "model.job.is_valid.create_at.app_error",

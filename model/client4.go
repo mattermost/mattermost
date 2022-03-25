@@ -6472,6 +6472,39 @@ func (c *Client4) GetBulkReactions(postIds []string) (map[string][]*Reaction, *R
 	return reactions, BuildResponse(r), nil
 }
 
+func (c *Client4) GetTopReactionsForTeamSince(teamId string, opts InsightsOpts) ([]*TopReactions, *Response, error) {
+	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", opts.TimeRange, opts.Page, opts.PerPage)
+	r, err := c.DoAPIGet(c.reactionsRoute()+"/top/team/"+teamId+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	topReactions := []*TopReactions{}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&topReactions); jsonErr != nil {
+		return nil, nil, NewAppError("GetTopReactionsForTeamSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return topReactions, BuildResponse(r), nil
+}
+
+func (c *Client4) GetTopReactionsForUserSince(userId string, teamId string, opts InsightsOpts) ([]*TopReactions, *Response, error) {
+	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", opts.TimeRange, opts.Page, opts.PerPage)
+
+	if teamId != "" {
+		query += fmt.Sprintf("&team_id=%v", teamId)
+	}
+
+	r, err := c.DoAPIGet(c.reactionsRoute()+"/top/user/"+userId+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	topReactions := []*TopReactions{}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&topReactions); jsonErr != nil {
+		return nil, nil, NewAppError("GetTopReactionsForUserSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return topReactions, BuildResponse(r), nil
+}
+
 // Timezone Section
 
 // GetSupportedTimezone returns a page of supported timezones on the system.

@@ -141,6 +141,52 @@ func (_m *ReactionStore) GetForPostSince(postId string, since int64, excludeRemo
 	return r0, r1
 }
 
+// GetTopForTeamSince provides a mock function with given fields: teamID, userID, since, offset, perPage
+func (_m *ReactionStore) GetTopForTeamSince(teamID string, userID string, since int64, offset int, perPage int) ([]*model.TopReactions, error) {
+	ret := _m.Called(teamID, userID, since, offset, perPage)
+
+	var r0 []*model.TopReactions
+	if rf, ok := ret.Get(0).(func(string, string, int64, int, int) []*model.TopReactions); ok {
+		r0 = rf(teamID, userID, since, offset, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.TopReactions)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, int64, int, int) error); ok {
+		r1 = rf(teamID, userID, since, offset, perPage)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTopForUserSince provides a mock function with given fields: userID, teamID, since, offset, perPage
+func (_m *ReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, perPage int) ([]*model.TopReactions, error) {
+	ret := _m.Called(userID, teamID, since, offset, perPage)
+
+	var r0 []*model.TopReactions
+	if rf, ok := ret.Get(0).(func(string, string, int64, int, int) []*model.TopReactions); ok {
+		r0 = rf(userID, teamID, since, offset, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.TopReactions)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, int64, int, int) error); ok {
+		r1 = rf(userID, teamID, since, offset, perPage)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // PermanentDeleteBatch provides a mock function with given fields: endTime, limit
 func (_m *ReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	ret := _m.Called(endTime, limit)
