@@ -288,7 +288,7 @@ func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool
 		a.Srv().Go(func() {
 			pluginContext := pluginContext(c)
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.UserHasBeenCreated(pluginContext, user)
+				hooks.UserHasBeenCreated(pluginContext, ruser)
 				return true
 			}, plugin.UserHasBeenCreatedID)
 		})
