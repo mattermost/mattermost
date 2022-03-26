@@ -26,8 +26,6 @@ jobs:
       uses: Wandalen/wretry.action@v1.0.11
       with:
         action: github/codeql-action/init@v1
-        with: |
-          languages: ${{ matrix.language }}
         attempt_limit: 3
         attempt_delay: 5000        
     - name: Autobuild
