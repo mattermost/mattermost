@@ -855,46 +855,46 @@ func TestSanitizeUnicode(t *testing.T) {
 	}
 }
 
-func TestIsValidChannelIdentifier(t *testing.T){
+func TestIsValidChannelIdentifier(t *testing.T) {
 	cases := []struct {
 		Description string
-		Input  string
-		Expected bool
+		Input       string
+		Expected    bool
 	}{
 		{
 			Description: "less than min length",
-			Input: "",
-			Expected: false,
+			Input:       "",
+			Expected:    false,
 		},
 		{
 			Description: "single alphabetical char",
-			Input: "a",
-			Expected: true,
+			Input:       "a",
+			Expected:    true,
 		},
 		{
 			Description: "single underscore",
-			Input: "_",
-			Expected: false,
+			Input:       "_",
+			Expected:    false,
 		},
 		{
 			Description: "single hyphen",
-			Input: "-",
-			Expected: false,
+			Input:       "-",
+			Expected:    false,
 		},
 		{
 			Description: "empty string",
-			Input: " ",
-			Expected: false,
+			Input:       " ",
+			Expected:    false,
 		},
 		{
 			Description: "multiple with hyphen",
-			Input: "a-a",
-			Expected: true,
+			Input:       "a-a",
+			Expected:    true,
 		},
 		{
 			Description: "multiple with hyphen",
-			Input: "a_a",
-			Expected: true,
+			Input:       "a_a",
+			Expected:    true,
 		},
 	}
 
