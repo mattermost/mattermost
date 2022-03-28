@@ -36,7 +36,7 @@
         "ExtendSessionLengthWithActivity": true,
         "SessionLengthWebInDays": 30,
         "SessionLengthMobileInDays": 30,
-        "SessionLengthSSOInDays": null,
+        "SessionLengthSSOInDays": -1,
         "SessionLengthSSOInHours": 720,
         "SessionCacheInMinutes": 10,
         "SessionIdleTimeoutInMinutes": 0,
