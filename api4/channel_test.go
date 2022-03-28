@@ -22,6 +22,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 )
 
 func TestCreateChannel(t *testing.T) {
@@ -2507,11 +2508,23 @@ func TestGetChannelStats(t *testing.T) {
 	require.Equal(t, channel.Id, stats.ChannelId, "couldn't get extra info")
 	require.Equal(t, int64(1), stats.MemberCount, "got incorrect member count")
 	require.Equal(t, int64(0), stats.PinnedPostCount, "got incorrect pinned post count")
+	require.Equal(t, int64(0), stats.FilesCount, "got incorrect file count")
 
 	th.CreatePinnedPostWithClient(th.Client, channel)
 	stats, _, err = client.GetChannelStats(channel.Id, "")
 	require.NoError(t, err)
 	require.Equal(t, int64(1), stats.PinnedPostCount, "should have returned 1 pinned post count")
+
+	// create a post with a file
+	sent, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
+	fileResp, _, err := client.UploadFile(sent, channel.Id, "test.png")
+	require.NoError(t, err)
+	th.CreatePostInChannelWithFiles(channel, fileResp.FileInfos...)
+	// make sure the file count channel stats is updated
+	stats, _, err = client.GetChannelStats(channel.Id, "")
+	require.NoError(t, err)
+	require.Equal(t, int64(1), stats.FilesCount, "should have returned 1 file count")
 
 	_, resp, err := client.GetChannelStats("junk", "")
 	require.Error(t, err)
