@@ -13,7 +13,7 @@ type MemberInvite struct {
 	Message  string   `json:"message"`
 }
 
-// IsValid validates the user and returns an error if it isn't configured correctly.
+// IsValid validates that the invitation info is loaded correctly and with the correct structure
 func (i *MemberInvite) IsValid() *AppError {
 	if len(i.Emails) == 0 {
 		return NewAppError("MemberInvite.IsValid", "model.member.is_valid.emails.app_error", nil, "", http.StatusBadRequest)

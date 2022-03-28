@@ -1207,7 +1207,7 @@ func (a *App) postRemoveFromTeamMessage(c *request.Context, user *model.User, ch
 	return nil
 }
 
-func (a *App) prepareInviteNewUsersToTeam(teamID string, senderId string, memberInvite *model.MemberInvite) (*model.User, *model.Team, []*model.Channel, *model.AppError) {
+func (a *App) prepareInviteNewUsersToTeam(teamID string, senderId string, channelIds []string) (*model.User, *model.Team, []*model.Channel, *model.AppError) {
 	tchan := make(chan store.StoreResult, 1)
 	go func() {
 		team, err := a.Srv().Store.Team().Get(teamID)
@@ -1223,10 +1223,10 @@ func (a *App) prepareInviteNewUsersToTeam(teamID string, senderId string, member
 	}()
 
 	var channels []*model.Channel
-	if memberInvite != nil {
+	if len(channelIds) > 0 {
 		cchan := make(chan store.StoreResult, 1)
 		go func() {
-			channelsById, err := a.Srv().Store.Channel().GetChannelsByIds(memberInvite.Channels, false)
+			channelsById, err := a.Srv().Store.Channel().GetChannelsByIds(channelIds, false)
 			cchan <- store.StoreResult{Data: channelsById, NErr: err}
 			close(cchan)
 		}()
@@ -1282,7 +1282,7 @@ func (a *App) InviteNewUsersToTeamGracefully(memberInvite *model.MemberInvite, t
 		err := model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.no_one.app_error", nil, "", http.StatusBadRequest)
 		return nil, err
 	}
-	user, team, channels, err := a.prepareInviteNewUsersToTeam(teamID, senderId, memberInvite)
+	user, team, channels, err := a.prepareInviteNewUsersToTeam(teamID, senderId, memberInvite.Channels)
 	if err != nil {
 		return nil, err
 	}
@@ -1474,10 +1474,7 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamID, senderId string) 
 		return err
 	}
 
-	// empty struct since this method won't be used by invite-to-team-and-channel
-	var mi *model.MemberInvite
-
-	user, team, _, err := a.prepareInviteNewUsersToTeam(teamID, senderId, mi)
+	user, team, _, err := a.prepareInviteNewUsersToTeam(teamID, senderId, []string{})
 	if err != nil {
 		return err
 	}

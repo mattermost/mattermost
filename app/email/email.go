@@ -663,84 +663,85 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 	}
 
 	for _, invite := range invites {
-		if invite != "" {
-			channelIDs := []string{}
-			for _, channel := range channels {
-				channelIDs = append(channelIDs, channel.Id)
-			}
+		if invite == "" {
+			continue
+		}
+		channelIDs := []string{}
+		for _, channel := range channels {
+			channelIDs = append(channelIDs, channel.Id)
+		}
 
-			data := es.NewEmailTemplateData("")
-			data.Props["SiteURL"] = siteURL
-			data.Props["SubTitle"] = i18n.T("api.templates.invite_body.subTitle")
-			data.Props["Button"] = i18n.T("api.templates.invite_body.button")
-			data.Props["SenderName"] = senderName
-			data.Props["InviteFooterTitle"] = i18n.T("api.templates.invite_body_footer.title")
-			data.Props["InviteFooterInfo"] = i18n.T("api.templates.invite_body_footer.info")
-			data.Props["InviteFooterLearnMore"] = i18n.T("api.templates.invite_body_footer.learn_more")
+		data := es.NewEmailTemplateData("")
+		data.Props["SiteURL"] = siteURL
+		data.Props["SubTitle"] = i18n.T("api.templates.invite_body.subTitle")
+		data.Props["Button"] = i18n.T("api.templates.invite_body.button")
+		data.Props["SenderName"] = senderName
+		data.Props["InviteFooterTitle"] = i18n.T("api.templates.invite_body_footer.title")
+		data.Props["InviteFooterInfo"] = i18n.T("api.templates.invite_body_footer.info")
+		data.Props["InviteFooterLearnMore"] = i18n.T("api.templates.invite_body_footer.learn_more")
 
-			if message != "" {
-				message = bluemonday.NewPolicy().Sanitize(message)
-			}
-			data.Props["Message"] = message
+		if message != "" {
+			message = bluemonday.NewPolicy().Sanitize(message)
+		}
+		data.Props["Message"] = message
 
-			token := model.NewToken(
-				TokenTypeTeamInvitation,
-				model.MapToJSON(map[string]string{
-					"teamId":   team.Id,
-					"email":    invite,
-					"channels": strings.Join(channelIDs, " "),
-				}),
-			)
+		token := model.NewToken(
+			TokenTypeTeamInvitation,
+			model.MapToJSON(map[string]string{
+				"teamId":   team.Id,
+				"email":    invite,
+				"channels": strings.Join(channelIDs, " "),
+			}),
+		)
 
-			tokenProps := make(map[string]string)
-			tokenProps["email"] = invite
-			tokenProps["display_name"] = team.DisplayName
-			tokenProps["name"] = team.Name
+		tokenProps := make(map[string]string)
+		tokenProps["email"] = invite
+		tokenProps["display_name"] = team.DisplayName
+		tokenProps["name"] = team.Name
 
-			if reminderData != nil {
-				reminder := i18n.T("api.templates.invite_body.title.reminder")
-				title = fmt.Sprintf("%s: %s", reminder, title)
-				tokenProps["reminder_interval"] = reminderData.Interval
-			}
+		if reminderData != nil {
+			reminder := i18n.T("api.templates.invite_body.title.reminder")
+			title = fmt.Sprintf("%s: %s", reminder, title)
+			tokenProps["reminder_interval"] = reminderData.Interval
+		}
 
-			data.Props["Title"] = title
+		data.Props["Title"] = title
 
-			tokenData := model.MapToJSON(tokenProps)
+		tokenData := model.MapToJSON(tokenProps)
 
-			if err := es.store.Token().Save(token); err != nil {
-				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
-				continue
-			}
-			data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token))
+		if err := es.store.Token().Save(token); err != nil {
+			mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
+			continue
+		}
+		data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token))
 
-			senderPhoto := ""
-			embeddedFiles := make(map[string]io.Reader)
-			if message != "" {
-				if senderProfileImage != nil {
-					senderPhoto = "user-avatar.png"
-					embeddedFiles = map[string]io.Reader{
-						senderPhoto: bytes.NewReader(senderProfileImage),
-					}
+		senderPhoto := ""
+		embeddedFiles := make(map[string]io.Reader)
+		if message != "" {
+			if senderProfileImage != nil {
+				senderPhoto = "user-avatar.png"
+				embeddedFiles = map[string]io.Reader{
+					senderPhoto: bytes.NewReader(senderProfileImage),
 				}
 			}
-			pData := postData{
-				SenderName:  senderName,
-				Message:     template.HTML(message),
-				SenderPhoto: senderPhoto,
-			}
+		}
+		pData := postData{
+			SenderName:  senderName,
+			Message:     template.HTML(message),
+			SenderPhoto: senderPhoto,
+		}
 
-			data.Props["Posts"] = []postData{pData}
+		data.Props["Posts"] = []postData{pData}
 
-			body, err := es.templatesContainer.RenderToString("invite_body", data)
-			if err != nil {
-				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
-			}
+		body, err := es.templatesContainer.RenderToString("invite_body", data)
+		if err != nil {
+			mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
+		}
 
-			if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, embeddedFiles); nErr != nil {
-				mlog.Error("Failed to send invite email successfully", mlog.Err(nErr))
-				if errorWhenNotSent {
-					return SendMailError
-				}
+		if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, embeddedFiles); nErr != nil {
+			mlog.Error("Failed to send invite email successfully", mlog.Err(nErr))
+			if errorWhenNotSent {
+				return SendMailError
 			}
 		}
 	}

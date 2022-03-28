@@ -2953,7 +2953,7 @@
   },
   {
     "id": "api.team.invite_members.channel_in_invalid_team.app_error",
-    "translation": ""
+    "translation": "Channel invalid team id."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -2977,7 +2977,7 @@
   },
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
-    "translation": ""
+    "translation": "Invalid request body."
   },
   {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
@@ -8497,15 +8497,15 @@
   },
   {
     "id": "model.member.is_valid.channel.app_error",
-    "translation": ""
+    "translation": "Channel name is not valid"
   },
   {
     "id": "model.member.is_valid.email.app_error",
-    "translation": ""
+    "translation": "Email is not valid"
   },
   {
     "id": "model.member.is_valid.emails.app_error",
-    "translation": ""
+    "translation": "Email list is empty"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
