@@ -2982,7 +2982,8 @@ func TestInviteUsersToTeam(t *testing.T) {
 	user1 := th.GenerateTestEmail()
 	user2 := th.GenerateTestEmail()
 
-	emailList := []string{user1, user2}
+	memberInvite := &model.MemberInvite{Emails: []string{user1, user2}}
+	emailList := memberInvite.Emails
 
 	//Delete all the messages before check the sample email
 	mail.DeleteMailBox(user1)

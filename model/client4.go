@@ -2608,7 +2608,14 @@ func (c *Client4) ImportTeam(data []byte, filesize int, importFrom, filename, te
 
 // InviteUsersToTeam invite users by email to the team.
 func (c *Client4) InviteUsersToTeam(teamId string, userEmails []string) (*Response, error) {
-	r, err := c.DoAPIPost(c.teamRoute(teamId)+"/invite/email", ArrayToJSON(userEmails))
+	memberInvite := MemberInvite{
+		Emails: userEmails,
+	}
+	buf, err := json.Marshal(memberInvite)
+	if err != nil {
+		return nil, NewAppError("InviteMembersToTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.DoAPIPostBytes(c.teamRoute(teamId)+"/invite/email", buf)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -2637,7 +2644,14 @@ func (c *Client4) InviteGuestsToTeam(teamId string, userEmails []string, channel
 
 // InviteUsersToTeam invite users by email to the team.
 func (c *Client4) InviteUsersToTeamGracefully(teamId string, userEmails []string) ([]*EmailInviteWithError, *Response, error) {
-	r, err := c.DoAPIPost(c.teamRoute(teamId)+"/invite/email?graceful="+c.boolString(true), ArrayToJSON(userEmails))
+	memberInvite := MemberInvite{
+		Emails: userEmails,
+	}
+	buf, err := json.Marshal(memberInvite)
+	if err != nil {
+		return nil, nil, NewAppError("InviteMembersToTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.DoAPIPostBytes(c.teamRoute(teamId)+"/invite/email?graceful="+c.boolString(true), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

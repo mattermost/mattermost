@@ -1235,13 +1235,7 @@ func (a *App) prepareInviteNewUsersToTeam(teamID string, senderId string, channe
 		if result.NErr != nil {
 			return nil, nil, nil, model.NewAppError("prepareInviteNewUsersToTeam", "app.channel.get_channels_by_ids.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
 		}
-		channels := result.Data.([]*model.Channel)
-
-		for _, channel := range channels {
-			if channel.TeamId != teamID {
-				return nil, nil, nil, model.NewAppError("prepareInviteNewUsersToTeam", "api.team.invite_members.channel_in_invalid_team.app_error", nil, "", http.StatusBadRequest)
-			}
-		}
+		channels = result.Data.([]*model.Channel)
 	}
 
 	result := <-tchan
@@ -1267,6 +1261,12 @@ func (a *App) prepareInviteNewUsersToTeam(teamID string, senderId string, channe
 		}
 	}
 	user := result.Data.(*model.User)
+
+	for _, channel := range channels {
+		if channel.TeamId != teamID {
+			return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", "api.team.invite_guests.channel_in_invalid_team.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
 
 	return user, team, channels, nil
 }
