@@ -9401,5 +9401,9 @@
   {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
     "translation": "MattermostAppID en fazla 32 karakter uzunluğunda olabilir."
+  },
+  {
+    "id": "app.channel.get_file_count.app_error",
+    "translation": "Kanalın dosya sayısı alınamadı"
   }
 ]
