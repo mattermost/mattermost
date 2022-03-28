@@ -1222,26 +1222,29 @@ func (a *App) prepareInviteNewUsersToTeam(teamID string, senderId string, member
 		close(uchan)
 	}()
 
-	cchan := make(chan store.StoreResult, 1)
-	go func() {
-		channels, err := a.Srv().Store.Channel().GetChannelsByIds(memberInvite.Channels, false)
-		cchan <- store.StoreResult{Data: channels, NErr: err}
-		close(cchan)
-	}()
+	var channels []*model.Channel
+	if memberInvite != nil {
+		cchan := make(chan store.StoreResult, 1)
+		go func() {
+			channels, err := a.Srv().Store.Channel().GetChannelsByIds(memberInvite.Channels, false)
+			cchan <- store.StoreResult{Data: channels, NErr: err}
+			close(cchan)
+		}()
 
-	result := <-cchan
-	if result.NErr != nil {
-		return nil, nil, nil, model.NewAppError("prepareInviteNewUsersToTeam", "app.channel.get_channels_by_ids.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
-	}
-	channels := result.Data.([]*model.Channel)
+		result := <-cchan
+		if result.NErr != nil {
+			return nil, nil, nil, model.NewAppError("prepareInviteNewUsersToTeam", "app.channel.get_channels_by_ids.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+		}
+		channels := result.Data.([]*model.Channel)
 
-	for _, channel := range channels {
-		if channel.TeamId != teamID {
-			return nil, nil, nil, model.NewAppError("prepareInviteNewUsersToTeam", "api.team.invite_members.channel_in_invalid_team.app_error", nil, "", http.StatusBadRequest)
+		for _, channel := range channels {
+			if channel.TeamId != teamID {
+				return nil, nil, nil, model.NewAppError("prepareInviteNewUsersToTeam", "api.team.invite_members.channel_in_invalid_team.app_error", nil, "", http.StatusBadRequest)
+			}
 		}
 	}
 
-	result = <-tchan
+	result := <-tchan
 	if result.NErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
