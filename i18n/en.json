@@ -2952,6 +2952,10 @@
     "translation": "Invalid or missing request body."
   },
   {
+    "id": "api.team.invite_members.channel_in_invalid_team.app_error",
+    "translation": ""
+  },
+  {
     "id": "api.team.invite_members.disabled.app_error",
     "translation": "Email invitations are disabled."
   },
