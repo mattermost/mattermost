@@ -9361,9 +9361,5 @@
   {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
     "translation": "The maximum length of MattermostAppID is 32 characters."
-  },
-  {
-    "id": "app.system.applied_migrations.not_authorized",
-    "translation": "You don't have the appropriate permissions."
   }
 ]
