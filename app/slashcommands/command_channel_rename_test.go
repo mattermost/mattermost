@@ -28,7 +28,7 @@ func TestRenameProviderDoCommand(t *testing.T) {
 	// Table Test for basic cases. Blank text in response indicates success
 	for msg, expected := range map[string]string{
 		"":                                    "api.command_channel_rename.message.app_error",
-		"o":                                   "api.command_channel_rename.too_short.app_error",
+		"o":                                   "",
 		"joram":                               "",
 		"More than 22 chars but less than 64": "",
 		strings.Repeat("12345", 13):           "api.command_channel_rename.too_long.app_error",
