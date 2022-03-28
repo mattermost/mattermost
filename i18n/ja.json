@@ -9390,5 +9390,9 @@
   {
     "id": "app.group.get_by_username_failure",
     "translation": " "
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "MattermostAppIDの最大文字数は32文字です。"
   }
 ]
