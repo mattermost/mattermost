@@ -805,7 +805,7 @@
   },
   {
     "id": "api.command_mute.success_unmute",
-    "translation": "{{.Channel}} больше не отключен."
+    "translation": "Уведомления в {{.Channel}} включены."
   },
   {
     "id": "api.command_mute.success_unmute_direct_msg",
