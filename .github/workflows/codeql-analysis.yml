@@ -23,11 +23,10 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
     - name: Initialize CodeQL
-      uses: Wandalen/wretry.action@v1.0.11
+      uses: github/codeql-action/init@v1
       with:
-        action: github/codeql-action/init@v1
-        attempt_limit: 3
-        attempt_delay: 5000        
+        languages: ${{ matrix.language }}
+        debug: true
     - name: Autobuild
       uses: github/codeql-action/autobuild@v1
     - name: Perform CodeQL Analysis
