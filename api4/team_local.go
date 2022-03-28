@@ -76,7 +76,14 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	emailList := model.ArrayFromJSON(r.Body)
+	memberInvite := model.MemberInvite{}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&memberInvite); jsonErr != nil {
+		c.Err = model.NewAppError("Api4.inviteUsersToTeams", "api.team.invite_members_to_team_and_channels.invalid_body.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		return
+	}
+
+	emailList := memberInvite.Emails
+
 	if len(emailList) == 0 {
 		c.SetInvalidParam("user_email")
 		return
