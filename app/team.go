@@ -1226,8 +1226,8 @@ func (a *App) prepareInviteNewUsersToTeam(teamID string, senderId string, member
 	if memberInvite != nil {
 		cchan := make(chan store.StoreResult, 1)
 		go func() {
-			channels, err := a.Srv().Store.Channel().GetChannelsByIds(memberInvite.Channels, false)
-			cchan <- store.StoreResult{Data: channels, NErr: err}
+			channelsById, err := a.Srv().Store.Channel().GetChannelsByIds(memberInvite.Channels, false)
+			cchan <- store.StoreResult{Data: channelsById, NErr: err}
 			close(cchan)
 		}()
 
