@@ -145,7 +145,7 @@
   },
   {
     "id": "api.channel.change_channel_privacy.public_to_private",
-    "translation": "Канал преобразован в приватный."
+    "translation": "Канал преобразован в частный."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -209,7 +209,7 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "Вы единственный оставшийся участник, попробуйте удалить приватный канал вместо того, чтобы покинуть."
+    "translation": "Вы единственный оставшийся участник, попробуйте удалить частный канал вместо того, чтобы покинуть."
   },
   {
     "id": "api.channel.leave.left",
@@ -773,7 +773,7 @@
   },
   {
     "id": "api.command_mute.desc",
-    "translation": "Отключить уведомления на рабочем столе, электронной почте и push для текущего или указанного канала [канала]."
+    "translation": "Отключить уведомления на рабочем столе, электронной почте и push-уведомления для текущего канала или указанного [канала]."
   },
   {
     "id": "api.command_mute.error",
@@ -793,7 +793,7 @@
   },
   {
     "id": "api.command_mute.not_member.error",
-    "translation": "Не удалось отключить канал {{.Channel}}, поскольку вы не являетесь его членом."
+    "translation": "Не удалось отключить канал {{.Channel}}, поскольку вы не являетесь его участником."
   },
   {
     "id": "api.command_mute.success_mute",
@@ -2329,7 +2329,7 @@
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
-    "translation": "Невозможно переместить канал, если все его участники уже не являются членами Команды."
+    "translation": "Невозможно переместить канал, если все его участники уже не являются участниками Команды."
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -2545,7 +2545,7 @@
   },
   {
     "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
-    "translation": "Текущий канал может быть добавлен в избранное только членами команды. \"{{.Username}}\" не является членом данной команды."
+    "translation": "Текущий канал может быть добавлен в избранное только участниками команды. \"{{.Username}}\" не является участником этой команды."
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
@@ -2577,7 +2577,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
-    "translation": "Только члены канала могут помечать флагами прямое сообщения в этом канале. \"{{.Username}}\" не учачастник."
+    "translation": "Только участники канала могут помечать флагами прямое сообщения в этом канале. \"{{.Username}}\" не участник."
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
@@ -3357,7 +3357,7 @@
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
-    "translation": "Попытка входа с использованием SAML не удалась по причине того, что не был обнаружен приватный ключ поставщика службы. Пожалуйста, свяжитесь с системным администратором."
+    "translation": "Попытка входа с использованием SAML не удалась по причине того, что не был обнаружен частный ключ поставщика службы. Пожалуйста, свяжитесь с системным администратором."
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
@@ -3969,7 +3969,7 @@
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
-    "translation": "Приватный ключ поставщика службы отсутствует. Вы забыли его загрузить?"
+    "translation": "Частный ключ поставщика службы отсутствует. Вы забыли его загрузить?"
   },
   {
     "id": "model.config.is_valid.saml_public_cert.app_error",
@@ -4809,7 +4809,7 @@
   },
   {
     "id": "api.channel.add_members.user_denied",
-    "translation": "Членство в канале запрещено следующим пользователям из-за ограничений группы: {{ .UserIDs }}"
+    "translation": "Участие в канале запрещено следующим пользователям из-за ограничений группы: {{ .UserIDs }}"
   },
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",
@@ -5193,7 +5193,7 @@
   },
   {
     "id": "api.command_remove.group_constrained_user_denied",
-    "translation": "Пользователь не может быть удален из канала, поскольку он является членом групп, связанных с этим каналом. Чтобы удалить его из этого канала, он должен быть удален из связанных групп."
+    "translation": "Пользователь не может быть удален из канала, поскольку он является участником групп, связанных с этим каналом. Чтобы удалить его из этого канала, он должен быть удален из связанных групп."
   },
   {
     "id": "api.config.update_config.clear_siteurl.app_error",
@@ -6537,39 +6537,39 @@
   },
   {
     "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
-    "translation": "Невозможно создать новое членство в команде, потому что команда достигла предела участников"
+    "translation": "Невозможно создать новое участие в команде, потому что команда достигла предела участников"
   },
   {
     "id": "app.team.join_user_to_team.save_member.conflict.app_error",
-    "translation": "Невозможно создать новое членство в команде, потому что оно уже существует"
+    "translation": "Невозможно создать новое участие в команде, потому что оно уже существует"
   },
   {
     "id": "app.team.join_user_to_team.save_member.app_error",
-    "translation": "Невозможно создать новое членство в команде"
+    "translation": "Невозможно создать новое участие в команде"
   },
   {
     "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
-    "translation": "Невозможно импортировать членство в команде, потому что в этой команде не разрешены дополнительные участники"
+    "translation": "Невозможно импортировать участие в команде, потому что в этой команде не разрешены дополнительные участники"
   },
   {
     "id": "app.import.import_user_teams.save_members.error",
-    "translation": "Невозможно импортировать членство в команде"
+    "translation": "Невозможно импортировать участие в команде"
   },
   {
     "id": "app.import.import_user_teams.save_members.conflict.app_error",
-    "translation": "Невозможно импортировать новое членство в команде, потому что оно уже существует"
+    "translation": "Невозможно импортировать новое участие в команде, потому что оно уже существует"
   },
   {
     "id": "app.create_basic_user.save_member.max_accounts.app_error",
-    "translation": "Невозможно создать членство в команде по умолчанию, потому что в этой команде не разрешены дополнительные участники"
+    "translation": "Невозможно создать участие в команде по умолчанию, потому что в этой команде не разрешены дополнительные участники"
   },
   {
     "id": "app.create_basic_user.save_member.conflict.app_error",
-    "translation": "Невозможно создать членство в команде по умолчанию, потому что оно уже существует"
+    "translation": "Невозможно создать участие в команде по умолчанию, потому что оно уже существует"
   },
   {
     "id": "app.create_basic_user.save_member.app_error",
-    "translation": "Невозможно создать членство в команде по умолчанию"
+    "translation": "Невозможно создать участие в команде по умолчанию"
   },
   {
     "id": "app.status.get.missing.app_error",
