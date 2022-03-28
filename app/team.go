@@ -1248,18 +1248,6 @@ func (a *App) prepareInviteNewUsersToTeam(teamID, senderId string) (*model.User,
 	return user, team, nil
 }
 
-func genEmailInviteWithErrorList(emailList []string) []*model.EmailInviteWithError {
-	invitesNotSent := make([]*model.EmailInviteWithError, len(emailList))
-	for i := range emailList {
-		invite := &model.EmailInviteWithError{
-			Email: emailList[i],
-			Error: model.NewAppError("inviteUsersToTeam", "api.team.invite_members.limit_reached.app_error", map[string]interface{}{"Addresses": emailList[i]}, "", http.StatusBadRequest),
-		}
-		invitesNotSent[i] = invite
-	}
-	return invitesNotSent
-}
-
 func (a *App) InviteNewUsersToTeamGracefully(emailList []string, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableEmailInvitations {
 		return nil, model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
