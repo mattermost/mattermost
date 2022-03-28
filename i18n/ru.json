@@ -633,7 +633,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Не удалось найти канал {{.Channel}}. Для идентификации каналов используйте [название канала] (https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)."
+    "translation": "Не удалось найти канал {{.Channel}}. Для идентификации каналов используйте [название канала](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)."
   },
   {
     "id": "api.command_invite.desc",
@@ -777,7 +777,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Не удалось найти канал {{.Channel}}. Для идентификации каналов используйте [название канала] (https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)."
+    "translation": "Не удалось найти канал {{.Channel}}. Для идентификации каналов используйте [название канала](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)."
   },
   {
     "id": "api.command_mute.hint",
@@ -789,7 +789,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Не удалось найти указанный канал. Пожалуйста, используйте [дескриптор канала] (https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для идентификации каналов."
+    "translation": "Не удалось найти указанный канал. Пожалуйста, используйте [дескриптор канала](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для идентификации каналов."
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -5881,15 +5881,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Версия 78+"
+    "translation": "Версия 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Версия 12+"
+    "translation": "Версия 14.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
@@ -8045,7 +8045,7 @@
   },
   {
     "id": "api.templates.over_limit_info1",
-    "translation": "Похоже, что в вашем рабочем пространстве более 10 пользователей, что выходит за рамки бесплатного уровня Mattermost Cloud Professional. Чтобы избежать сбоев в работе Mattermost workspace, пожалуйста, обновите его."
+    "translation": "Похоже, что в вашем рабочем пространстве более 10 пользователей, что выходит за рамки бесплатного уровня Mattermost Cloud. Чтобы избежать сбоев в работе вашего рабочего пространства Mattermost, пожалуйста, обновите его."
   },
   {
     "id": "api.templates.over_limit_fix_now",
@@ -8153,7 +8153,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.copyright",
@@ -8245,7 +8245,7 @@
   },
   {
     "id": "api.templates.at_limit_info1",
-    "translation": "Похоже, что теперь у Вас в рабочем пространстве 10 и более пользователей — это здорово! Если Вы хотите пригласить больше участников команды, подумайте об обновлении Mattermost Cloud Professional прямо сейчас."
+    "translation": "Похоже, что теперь у Вас в рабочем пространстве 10 и более пользователей — это здорово! Если Вы хотите пригласить больше участников команды, подумайте об обновлении Mattermost Cloud прямо сейчас."
   },
   {
     "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
@@ -8273,7 +8273,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.notification_body",
-    "translation": "В вашей системе Mattermost теперь есть несколько команд. У многих команд есть свой предпочитаемый способ координации и сотрудничества, включая то, как создаются каналы, кто может приглашать новых участников команды и как осуществляется интеграция. Схемы группового управления позволяют вам настраивать права пользователей в каждой команде в соответствии с их конкретными потребностями.\n\n[Подробнее об использовании расширенных прав] (https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nНажав кнопку \"Связаться с нами\", вы поделитесь своей информацией с компанией Mattermost, Inc. [Подробнее] (https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "В вашей системе Mattermost теперь есть несколько команд. У многих команд есть свой предпочитаемый способ координации и сотрудничества, включая то, как создаются каналы, кто может приглашать новых участников команды и как осуществляется интеграция. Схемы группового управления позволяют вам настраивать права пользователей в каждой команде в соответствии с их конкретными потребностями.\n\n[Подробнее об использовании расширенных прав] (https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nНажав кнопку \"Связаться с нами\", вы поделитесь своей информацией с компанией Mattermost, Inc. [Подробнее](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
@@ -8993,7 +8993,7 @@
   },
   {
     "id": "app.team.get_common_team_ids_for_users.app_error",
-    "translation": "Не удалось получить ID команды."
+    "translation": "Не удалось получить IDы команды."
   },
   {
     "id": "app.system.system_bot.bot_displayname",
@@ -9149,7 +9149,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, Ваша 14-дневная бесплатная пробная версия Mattermost Cloud Professional закончилась сегодня, {{.TodayDate}}. Добавьте платежную информацию, чтобы Ваша команда могла продолжать пользоваться преимуществами Cloud Professional."
+    "translation": "{{.Name}}, ваша 14-дневная бесплатная пробная версия Mattermost Cloud Enterprise закончилась сегодня, {{.TodayDate}}. Добавьте платежную информацию, чтобы ваша команда могла продолжать пользоваться преимуществами Cloud Enterprise. Если вы не добавите свою платежную информацию в течение 30 дней, мы навсегда удалим вашу рабочую область в облаке, и вы потеряете все связанные с ней данные."
   },
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
@@ -9402,5 +9402,9 @@
   {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
     "translation": "Максимальная длина MattermostAppID — 32 символа."
+  },
+  {
+    "id": "app.channel.get_file_count.app_error",
+    "translation": "Не удалось получить количество файлов для канала"
   }
 ]
