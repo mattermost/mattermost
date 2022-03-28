@@ -1293,11 +1293,11 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}}と@{{.LastUsername}}についての投稿が行われましたが、彼らはこのチャンネルには属していないため通知を受け取ることができませんでした。"
+    "translation": "@{{.Usernames}}と@{{.LastUsername}}にメンションしましたが、彼らはこのチャンネルには属していないため通知を受け取ることができませんでした。"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Usernames}}についての投稿が行われましたが、彼らはこのチャンネルには属していないため通知を受け取ることができませんでした。"
+    "translation": "@{{.Usernames}}にメンションしましたが、彼らはこのチャンネルには属していないため通知を受け取ることができませんでした。"
   },
   {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
@@ -1381,7 +1381,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_explicit_mention",
-    "translation": " があなたについての投稿を行いました。"
+    "translation": " があなたにメンションしました。"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_general_message",
@@ -8929,11 +8929,11 @@
   },
   {
     "id": "app.notification.body.mention.title",
-    "translation": "{{.SenderName}} がメッセージであなたについて投稿しました"
+    "translation": "{{.SenderName}} がメッセージであなたにメンションしました"
   },
   {
     "id": "app.notification.body.mention.subTitle",
-    "translation": "あなたがいない間に、{{.SenderName}} が {{.ChannelName}}チャンネルであなたについて投稿しました。"
+    "translation": "あなたがいない間に、{{.SenderName}} が {{.ChannelName}}チャンネルであなたにメンションしました。"
   },
   {
     "id": "app.notification.body.group.title",
