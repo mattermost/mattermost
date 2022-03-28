@@ -284,13 +284,13 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 				job.Data = make(model.StringMap)
 			}
 
-			job.Data["start_time"] = strconv.Itoa(int(progress.LastEntityTime))
+			job.Data["start_time"] = strconv.FormatInt(progress.LastEntityTime, 10)
 			job.Data["start_post_id"] = progress.LastPostID
 			job.Data["start_channel_id"] = progress.LastChannelID
 			job.Data["start_user_id"] = progress.LastUserID
 			job.Data["start_file_id"] = progress.LastFileID
-			job.Data["original_start_time"] = strconv.Itoa(int(progress.StartAtTime))
-			job.Data["end_time"] = strconv.Itoa(int(progress.EndAtTime))
+			job.Data["original_start_time"] = strconv.FormatInt(progress.StartAtTime, 10)
+			job.Data["end_time"] = strconv.FormatInt(progress.EndAtTime, 10)
 
 			if err := worker.jobServer.SetJobProgress(job, progress.CurrentProgress()); err != nil {
 				mlog.Error("Worker: Failed to set progress for job", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
