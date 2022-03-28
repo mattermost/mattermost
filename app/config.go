@@ -31,12 +31,86 @@ const (
 	ErrorTermsOfServiceNoRowsFound = "app.terms_of_service.get.no_rows.app_error"
 )
 
+// configWrapper is an adapter struct that only exposes the
+// config related functionality to be passed down to other products.
+type configWrapper struct {
+	srv *Server
+	*config.Store
+}
+
+func (w *configWrapper) Name() ServiceKey {
+	return ConfigKey
+}
+
+func (w *configWrapper) Config() *model.Config {
+	return w.Store.Get()
+}
+
+func (w *configWrapper) AddConfigListener(listener func(*model.Config, *model.Config)) string {
+	return w.Store.AddListener(listener)
+}
+
+func (w *configWrapper) RemoveConfigListener(id string) {
+	w.Store.RemoveListener(id)
+}
+
+func (w *configWrapper) UpdateConfig(f func(*model.Config)) {
+	if w.Store.IsReadOnly() {
+		return
+	}
+	old := w.Config()
+	updated := old.Clone()
+	f(updated)
+	if _, _, err := w.Store.Set(updated); err != nil {
+		mlog.Error("Failed to update config", mlog.Err(err))
+	}
+}
+
+func (w *configWrapper) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
+	oldCfg, newCfg, err := w.Store.Set(newCfg)
+	if errors.Cause(err) == config.ErrReadOnlyConfiguration {
+		return nil, nil, model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, err.Error(), http.StatusForbidden)
+	} else if err != nil {
+		return nil, nil, model.NewAppError("saveConfig", "app.save_config.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if w.srv.startMetrics && *w.Config().MetricsSettings.Enable {
+		if w.srv.Metrics != nil {
+			w.srv.Metrics.Register()
+		}
+		w.srv.SetupMetricsServer()
+	} else {
+		w.srv.StopMetricsServer()
+	}
+
+	if w.srv.Cluster != nil {
+		err := w.srv.Cluster.ConfigChanged(w.Store.RemoveEnvironmentOverrides(oldCfg),
+			w.Store.RemoveEnvironmentOverrides(newCfg), sendConfigChangeClusterMessage)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
+	return oldCfg, newCfg, nil
+}
+
+func (w *configWrapper) ReloadConfig() error {
+	if err := w.Store.Load(); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *Server) Config() *model.Config {
-	return s.configStore.Get()
+	return s.configStore.Config()
+}
+
+func (s *Server) ConfigStore() *configWrapper {
+	return s.configStore
 }
 
 func (a *App) Config() *model.Config {
-	return a.Srv().Config()
+	return a.ch.cfgSvc.Config()
 }
 
 func (s *Server) EnvironmentConfig(filter func(reflect.StructField) bool) map[string]interface{} {
@@ -48,15 +122,7 @@ func (a *App) EnvironmentConfig(filter func(reflect.StructField) bool) map[strin
 }
 
 func (s *Server) UpdateConfig(f func(*model.Config)) {
-	if s.configStore.IsReadOnly() {
-		return
-	}
-	old := s.Config()
-	updated := old.Clone()
-	f(updated)
-	if _, _, err := s.configStore.Set(updated); err != nil {
-		mlog.Error("Failed to update config", mlog.Err(err))
-	}
+	s.configStore.UpdateConfig(f)
 }
 
 func (a *App) UpdateConfig(f func(*model.Config)) {
@@ -64,10 +130,7 @@ func (a *App) UpdateConfig(f func(*model.Config)) {
 }
 
 func (s *Server) ReloadConfig() error {
-	if err := s.configStore.Load(); err != nil {
-		return err
-	}
-	return nil
+	return s.configStore.ReloadConfig()
 }
 
 func (a *App) ReloadConfig() error {
@@ -90,7 +153,7 @@ func (a *App) LimitedClientConfig() map[string]string {
 // will be called with two arguments: the old config and the new config. AddConfigListener returns a unique ID
 // for the listener that can later be used to remove it.
 func (s *Server) AddConfigListener(listener func(*model.Config, *model.Config)) string {
-	return s.configStore.AddListener(listener)
+	return s.configStore.AddConfigListener(listener)
 }
 
 func (a *App) AddConfigListener(listener func(*model.Config, *model.Config)) string {
@@ -99,7 +162,7 @@ func (a *App) AddConfigListener(listener func(*model.Config, *model.Config)) str
 
 // Removes a listener function by the unique ID returned when AddConfigListener was called
 func (s *Server) RemoveConfigListener(id string) {
-	s.configStore.RemoveListener(id)
+	s.configStore.RemoveConfigListener(id)
 }
 
 func (a *App) RemoveConfigListener(id string) {
@@ -303,8 +366,8 @@ func (a *App) PostActionCookieSecret() []byte {
 }
 
 func (ch *Channels) regenerateClientConfig() {
-	clientConfig := config.GenerateClientConfig(ch.srv.Config(), ch.srv.TelemetryId(), ch.srv.License())
-	limitedClientConfig := config.GenerateLimitedClientConfig(ch.srv.Config(), ch.srv.TelemetryId(), ch.srv.License())
+	clientConfig := config.GenerateClientConfig(ch.cfgSvc.Config(), ch.srv.TelemetryId(), ch.srv.License())
+	limitedClientConfig := config.GenerateLimitedClientConfig(ch.cfgSvc.Config(), ch.srv.TelemetryId(), ch.srv.License())
 
 	if clientConfig["EnableCustomTermsOfService"] == "true" {
 		termsOfService, err := ch.srv.Store.TermsOfService().GetLatest(true)
@@ -357,6 +420,11 @@ func (a *App) ClientConfigWithComputed() map[string]string {
 	if installationDate, err := a.ch.srv.getSystemInstallDate(); err == nil {
 		respCfg["InstallationDate"] = strconv.FormatInt(installationDate, 10)
 	}
+	if ver, err := a.ch.srv.Store.GetDBSchemaVersion(); err != nil {
+		mlog.Error("Could not get the schema version", mlog.Err(err))
+	} else {
+		respCfg["SchemaVersion"] = strconv.Itoa(ver)
+	}
 
 	return respCfg
 }
@@ -402,31 +470,7 @@ func (a *App) GetEnvironmentConfig(filter func(reflect.StructField) bool) map[st
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.
 // It returns both the previous and current configs.
 func (s *Server) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
-	oldCfg, newCfg, err := s.configStore.Set(newCfg)
-	if errors.Cause(err) == config.ErrReadOnlyConfiguration {
-		return nil, nil, model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, err.Error(), http.StatusForbidden)
-	} else if err != nil {
-		return nil, nil, model.NewAppError("saveConfig", "app.save_config.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	if s.startMetrics && *s.Config().MetricsSettings.Enable {
-		if s.Metrics != nil {
-			s.Metrics.Register()
-		}
-		s.SetupMetricsServer()
-	} else {
-		s.StopMetricsServer()
-	}
-
-	if s.Cluster != nil {
-		err := s.Cluster.ConfigChanged(s.configStore.RemoveEnvironmentOverrides(oldCfg),
-			s.configStore.RemoveEnvironmentOverrides(newCfg), sendConfigChangeClusterMessage)
-		if err != nil {
-			return nil, nil, err
-		}
-	}
-
-	return oldCfg, newCfg, nil
+	return s.configStore.SaveConfig(newCfg, sendConfigChangeClusterMessage)
 }
 
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.

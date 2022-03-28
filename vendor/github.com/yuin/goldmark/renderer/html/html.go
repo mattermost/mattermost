@@ -743,6 +743,7 @@ func (d *defaultWriter) Write(writer util.BufWriter, source []byte) {
 			d.RawWrite(writer, source[n:i])
 			d.RawWrite(writer, replacementCharacter)
 			n = i + 1
+			escaped = false
 			continue
 		}
 		if c == '&' {

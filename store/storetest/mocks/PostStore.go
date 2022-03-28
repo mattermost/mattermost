@@ -123,13 +123,13 @@ func (_m *PostStore) DeleteOrphanedRows(limit int) (int64, error) {
 	return r0, r1
 }
 
-// Get provides a mock function with given fields: ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID
-func (_m *PostStore) Get(ctx context.Context, id string, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool, userID string) (*model.PostList, error) {
-	ret := _m.Called(ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID)
+// Get provides a mock function with given fields: ctx, id, opts, userID
+func (_m *PostStore) Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string) (*model.PostList, error) {
+	ret := _m.Called(ctx, id, opts, userID)
 
 	var r0 *model.PostList
-	if rf, ok := ret.Get(0).(func(context.Context, string, bool, bool, bool, string) *model.PostList); ok {
-		r0 = rf(ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID)
+	if rf, ok := ret.Get(0).(func(context.Context, string, model.GetPostsOptions, string) *model.PostList); ok {
+		r0 = rf(ctx, id, opts, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostList)
@@ -137,8 +137,8 @@ func (_m *PostStore) Get(ctx context.Context, id string, skipFetchThreads bool, 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string, bool, bool, bool, string) error); ok {
-		r1 = rf(ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID)
+	if rf, ok := ret.Get(1).(func(context.Context, string, model.GetPostsOptions, string) error); ok {
+		r1 = rf(ctx, id, opts, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -245,6 +245,27 @@ func (_m *PostStore) GetFlaggedPostsForTeam(userID string, teamID string, offset
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, int, int) error); ok {
 		r1 = rf(userID, teamID, offset, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetLastPostRowCreateAt provides a mock function with given fields:
+func (_m *PostStore) GetLastPostRowCreateAt() (int64, error) {
+	ret := _m.Called()
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func() int64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
 	} else {
 		r1 = ret.Error(1)
 	}

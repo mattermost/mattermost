@@ -676,7 +676,7 @@ func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
 	msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion,
 		model.BuildNumber,
 		wc.App.ClientConfigHash(),
-		wc.App.Srv().License() != nil))
+		wc.App.Channels().License() != nil))
 	msg.Add("connection_id", wc.connectionID.Load())
 	return msg
 }
@@ -811,6 +811,10 @@ func (wc *WebConn) logSocketErr(source string, err error) {
 	if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
 		mlog.Debug(source+": client side closed socket", mlog.String("user_id", wc.UserId))
 	} else {
-		mlog.Debug(source+": closing websocket", mlog.String("user_id", wc.UserId), mlog.Err(err))
+		logFunc := mlog.Debug
+		if e, ok := err.(net.Error); ok && e.Timeout() {
+			logFunc = mlog.Error
+		}
+		logFunc(source+": closing websocket", mlog.String("user_id", wc.UserId), mlog.Err(err))
 	}
 }

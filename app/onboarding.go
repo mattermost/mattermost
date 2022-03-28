@@ -5,24 +5,39 @@ package app
 
 import (
 	"net/http"
-	"sync"
 
+	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
-func (a *App) CompleteOnboarding(request *model.CompleteOnboardingRequest) *model.AppError {
-	var wg sync.WaitGroup
-
-	if !*a.Config().PluginSettings.Enable {
-		return model.NewAppError("completeOnboarding", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+func (a *App) markAdminOnboardingComplete(c *request.Context) *model.AppError {
+	firstAdminCompleteSetupObj := model.System{
+		Name:  model.SystemFirstAdminSetupComplete,
+		Value: "true",
 	}
 
-	for _, id := range request.InstallPlugins {
-		wg.Add(1)
+	if err := a.Srv().Store.System().SaveOrUpdate(&firstAdminCompleteSetupObj); err != nil {
+		return model.NewAppError("setFirstAdminCompleteSetup", "api.error_set_first_admin_complete_setup", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnboardingRequest) *model.AppError {
+	pluginsEnvironment := a.Channels().GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return a.markAdminOnboardingComplete(c)
+	}
+
+	pluginContext := pluginContext(c)
+
+	for _, pluginID := range request.InstallPlugins {
 
 		go func(id string) {
-			defer wg.Done()
 			installRequest := &model.InstallMarketplacePluginRequest{
 				Id: id,
 			}
@@ -37,10 +52,38 @@ func (a *App) CompleteOnboarding(request *model.CompleteOnboardingRequest) *mode
 				mlog.Error("Failed to enable plugin for onboarding", mlog.String("id", id), mlog.Err(appErr))
 				return
 			}
-		}(id)
+
+			hooks, err := pluginsEnvironment.HooksForPlugin(id)
+			if err != nil {
+				mlog.Warn("Getting hooks for plugin failed", mlog.String("plugin_id", id), mlog.Err(err))
+				return
+			}
+
+			event := model.OnInstallEvent{
+				UserId: c.Session().UserId,
+			}
+			if err = hooks.OnInstall(pluginContext, event); err != nil {
+				mlog.Error("Plugin OnInstall hook failed", mlog.String("plugin_id", id), mlog.Err(err))
+			}
+		}(pluginID)
 	}
 
-	wg.Wait()
+	return a.markAdminOnboardingComplete(c)
+}
 
-	return nil
+func (a *App) GetOnboarding() (*model.System, *model.AppError) {
+	firstAdminCompleteSetupObj, err := a.Srv().Store.System().GetByName(model.SystemFirstAdminSetupComplete)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return &model.System{
+				Name:  model.SystemFirstAdminSetupComplete,
+				Value: "false",
+			}, nil
+		default:
+			return nil, model.NewAppError("getFirstAdminCompleteSetup", "api.error_get_first_admin_complete_setup", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+	return firstAdminCompleteSetupObj, nil
 }

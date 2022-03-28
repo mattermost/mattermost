@@ -7,6 +7,7 @@ const (
 	PermissionScopeSystem   = "system_scope"
 	PermissionScopeTeam     = "team_scope"
 	PermissionScopeChannel  = "channel_scope"
+	PermissionScopeGroup    = "group_scope"
 	PermissionScopePlaybook = "playbook_scope"
 	PermissionScopeRun      = "run_scope"
 )
@@ -336,12 +337,14 @@ var PermissionSysconsoleWriteExperimentalBleve *Permission
 var PermissionPublicPlaybookCreate *Permission
 var PermissionPublicPlaybookManageProperties *Permission
 var PermissionPublicPlaybookManageMembers *Permission
+var PermissionPublicPlaybookManageRoles *Permission
 var PermissionPublicPlaybookView *Permission
 var PermissionPublicPlaybookMakePrivate *Permission
 
 var PermissionPrivatePlaybookCreate *Permission
 var PermissionPrivatePlaybookManageProperties *Permission
 var PermissionPrivatePlaybookManageMembers *Permission
+var PermissionPrivatePlaybookManageRoles *Permission
 var PermissionPrivatePlaybookView *Permission
 var PermissionPrivatePlaybookMakePublic *Permission
 
@@ -354,6 +357,11 @@ var PermissionRunView *Permission
 // in the future this could be broken up to allow access to some
 // admin functions but not others
 var PermissionManageSystem *Permission
+
+var PermissionCreateCustomGroup *Permission
+var PermissionManageCustomGroupMembers *Permission
+var PermissionEditCustomGroup *Permission
+var PermissionDeleteCustomGroup *Permission
 
 var AllPermissions []*Permission
 var DeprecatedPermissions []*Permission
@@ -1914,6 +1922,34 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	PermissionCreateCustomGroup = &Permission{
+		"create_custom_group",
+		"authentication.permissions.create_custom_group.name",
+		"authentication.permissions.create_custom_group.description",
+		PermissionScopeSystem,
+	}
+
+	PermissionManageCustomGroupMembers = &Permission{
+		"manage_custom_group_members",
+		"authentication.permissions.manage_custom_group_members.name",
+		"authentication.permissions.manage_custom_group_members.description",
+		PermissionScopeGroup,
+	}
+
+	PermissionEditCustomGroup = &Permission{
+		"edit_custom_group",
+		"authentication.permissions.edit_custom_group.name",
+		"authentication.permissions.edit_custom_group.description",
+		PermissionScopeGroup,
+	}
+
+	PermissionDeleteCustomGroup = &Permission{
+		"delete_custom_group",
+		"authentication.permissions.delete_custom_group.name",
+		"authentication.permissions.delete_custom_group.description",
+		PermissionScopeGroup,
+	}
+
 	// Playbooks
 	PermissionPublicPlaybookCreate = &Permission{
 		"playbook_public_create",
@@ -1931,6 +1967,13 @@ func initializePermissions() {
 
 	PermissionPublicPlaybookManageMembers = &Permission{
 		"playbook_public_manage_members",
+		"",
+		"",
+		PermissionScopePlaybook,
+	}
+
+	PermissionPublicPlaybookManageRoles = &Permission{
+		"playbook_public_manage_roles",
 		"",
 		"",
 		PermissionScopePlaybook,
@@ -1966,6 +2009,13 @@ func initializePermissions() {
 
 	PermissionPrivatePlaybookManageMembers = &Permission{
 		"playbook_private_manage_members",
+		"",
+		"",
+		PermissionScopePlaybook,
+	}
+
+	PermissionPrivatePlaybookManageRoles = &Permission{
+		"playbook_private_manage_roles",
 		"",
 		"",
 		PermissionScopePlaybook,
@@ -2200,6 +2250,7 @@ func initializePermissions() {
 		PermissionGetLogs,
 		PermissionReadLicenseInformation,
 		PermissionManageLicenseInformation,
+		PermissionCreateCustomGroup,
 	}
 
 	TeamScopedPermissions := []*Permission{
@@ -2259,6 +2310,12 @@ func initializePermissions() {
 		PermissionUseGroupMentions,
 	}
 
+	GroupScopedPermissions := []*Permission{
+		PermissionManageCustomGroupMembers,
+		PermissionEditCustomGroup,
+		PermissionDeleteCustomGroup,
+	}
+
 	DeprecatedPermissions = []*Permission{
 		PermissionPermanentDeleteUser,
 		PermissionManageWebhooks,
@@ -2286,10 +2343,12 @@ func initializePermissions() {
 	PlaybookScopedPermissions := []*Permission{
 		PermissionPublicPlaybookManageProperties,
 		PermissionPublicPlaybookManageMembers,
+		PermissionPublicPlaybookManageRoles,
 		PermissionPublicPlaybookView,
 		PermissionPublicPlaybookMakePrivate,
 		PermissionPrivatePlaybookManageProperties,
 		PermissionPrivatePlaybookManageMembers,
+		PermissionPrivatePlaybookManageRoles,
 		PermissionPrivatePlaybookView,
 		PermissionPrivatePlaybookMakePublic,
 		PermissionRunCreate,
@@ -2307,6 +2366,7 @@ func initializePermissions() {
 	AllPermissions = append(AllPermissions, ChannelScopedPermissions...)
 	AllPermissions = append(AllPermissions, SysconsoleReadPermissions...)
 	AllPermissions = append(AllPermissions, SysconsoleWritePermissions...)
+	AllPermissions = append(AllPermissions, GroupScopedPermissions...)
 	AllPermissions = append(AllPermissions, PlaybookScopedPermissions...)
 	AllPermissions = append(AllPermissions, RunScopedPermissions...)
 

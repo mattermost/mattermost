@@ -61,9 +61,9 @@ func (p Propagator) Inject(
 
 	textMapWriter.Set("x-b3-traceid", sc.TraceID().String())
 	if sc.ParentID() != 0 {
-		textMapWriter.Set("x-b3-parentspanid", strconv.FormatUint(uint64(sc.ParentID()), 16))
+		textMapWriter.Set("x-b3-parentspanid", sc.ParentID().String())
 	}
-	textMapWriter.Set("x-b3-spanid", strconv.FormatUint(uint64(sc.SpanID()), 16))
+	textMapWriter.Set("x-b3-spanid", sc.SpanID().String())
 	if sc.IsSampled() {
 		textMapWriter.Set("x-b3-sampled", "1")
 	} else {
