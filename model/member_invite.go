@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"net/http"
 )
 
@@ -27,5 +28,22 @@ func (i *MemberInvite) IsValid() *AppError {
 		}
 	}
 
+	return nil
+}
+
+func (o *MemberInvite) UnmarshalJSON(b []byte) error {
+	var emails []string
+	if err := json.Unmarshal(b, &emails); err == nil {
+		*o = MemberInvite{}
+		o.Emails = emails
+		return nil
+	}
+
+	type TempMemberInvite MemberInvite
+	var o2 TempMemberInvite
+	if err := json.Unmarshal(b, &o2); err != nil {
+		return err
+	}
+	*o = MemberInvite(o2)
 	return nil
 }

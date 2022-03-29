@@ -1276,7 +1276,8 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	memberInvite := &model.MemberInvite{}
-	if jsonErr := json.NewDecoder(r.Body).Decode(memberInvite); jsonErr != nil {
+	bf, _ := io.ReadAll(r.Body)
+	if jsonErr := json.Unmarshal(bf, &memberInvite); jsonErr != nil {
 		c.Err = model.NewAppError("Api4.inviteUsersToTeams", "api.team.invite_members_to_team_and_channels.invalid_body.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
 		return
 	}
