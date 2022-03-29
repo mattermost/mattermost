@@ -43,30 +43,31 @@ func TestInitializeProducts(t *testing.T) {
 			ClusterKey:   nil,
 		}
 
-		dependencies := map[string]map[ServiceKey]struct{}{
+		products := map[string]ProductManifest{
 			"productA": {
-				ConfigKey:    {},
-				LicenseKey:   {},
-				FilestoreKey: {},
-				ClusterKey:   {},
+				Initializer: newProductA,
+				Dependencies: map[ServiceKey]struct{}{
+					ConfigKey:    {},
+					LicenseKey:   {},
+					FilestoreKey: {},
+					ClusterKey:   {},
+				},
 			},
 			"productB": {
-				ConfigKey:    {},
-				testSrvKey1:  {},
-				FilestoreKey: {},
-				ClusterKey:   {},
+				Initializer: newProductB,
+				Dependencies: map[ServiceKey]struct{}{
+					ConfigKey:    {},
+					testSrvKey1:  {},
+					FilestoreKey: {},
+					ClusterKey:   {},
+				},
 			},
-		}
-
-		products := map[string]ProductInitializer{
-			"productA": newProductA,
-			"productB": newProductB,
 		}
 		server := &Server{
 			products: make(map[string]Product),
 		}
 
-		err := server.initializeProducts(products, serviceMap, dependencies)
+		err := server.initializeProducts(products, serviceMap)
 		require.NoError(t, err)
 		require.Len(t, server.products, 2)
 	})
@@ -79,31 +80,32 @@ func TestInitializeProducts(t *testing.T) {
 			ClusterKey:   nil,
 		}
 
-		dependencies := map[string]map[ServiceKey]struct{}{
+		products := map[string]ProductManifest{
 			"productA": {
-				ConfigKey:    {},
-				LicenseKey:   {},
-				FilestoreKey: {},
-				ClusterKey:   {},
-				testSrvKey2:  {},
+				Initializer: newProductA,
+				Dependencies: map[ServiceKey]struct{}{
+					ConfigKey:    {},
+					LicenseKey:   {},
+					FilestoreKey: {},
+					ClusterKey:   {},
+					testSrvKey2:  {},
+				},
 			},
 			"productB": {
-				ConfigKey:    {},
-				testSrvKey1:  {},
-				FilestoreKey: {},
-				ClusterKey:   {},
+				Initializer: newProductB,
+				Dependencies: map[ServiceKey]struct{}{
+					ConfigKey:    {},
+					testSrvKey1:  {},
+					FilestoreKey: {},
+					ClusterKey:   {},
+				},
 			},
-		}
-
-		products := map[string]ProductInitializer{
-			"productA": newProductA,
-			"productB": newProductB,
 		}
 		server := &Server{
 			products: make(map[string]Product),
 		}
 
-		err := server.initializeProducts(products, serviceMap, dependencies)
+		err := server.initializeProducts(products, serviceMap)
 		require.Error(t, err)
 	})
 
@@ -115,22 +117,23 @@ func TestInitializeProducts(t *testing.T) {
 			ClusterKey:   nil,
 		}
 
-		dependencies := map[string]map[ServiceKey]struct{}{
+		products := map[string]ProductManifest{
 			"productA": {
-				ConfigKey:  {},
-				LicenseKey: {},
+				Initializer: newProductA,
+				Dependencies: map[ServiceKey]struct{}{
+					ConfigKey:  {},
+					LicenseKey: {},
+				},
 			},
-		}
-
-		products := map[string]ProductInitializer{
-			"productA": newProductA,
-			"productB": newProductB,
+			"productB": {
+				Initializer: newProductB,
+			},
 		}
 		server := &Server{
 			products: make(map[string]Product),
 		}
 
-		err := server.initializeProducts(products, serviceMap, dependencies)
+		err := server.initializeProducts(products, serviceMap)
 		require.NoError(t, err)
 		require.Len(t, server.products, 2)
 	})

@@ -96,13 +96,15 @@ type Channels struct {
 }
 
 func init() {
-	RegisterProduct("channels", func(s *Server, services map[ServiceKey]interface{}) (Product, error) {
-		return NewChannels(s, services)
-	})
-	RegisterProductDependencies("channels", map[ServiceKey]struct{}{
-		ConfigKey:    {},
-		LicenseKey:   {},
-		FilestoreKey: {},
+	RegisterProduct("channels", ProductManifest{
+		Initializer: func(s *Server, services map[ServiceKey]interface{}) (Product, error) {
+			return NewChannels(s, services)
+		},
+		Dependencies: map[ServiceKey]struct{}{
+			ConfigKey:    {},
+			LicenseKey:   {},
+			FilestoreKey: {},
+		},
 	})
 }
 

@@ -4,7 +4,8 @@
 package app
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
+	"strings"
 )
 
 type Product interface {
@@ -12,24 +13,20 @@ type Product interface {
 	Stop() error
 }
 
-type ProductInitializer func(*Server, map[ServiceKey]interface{}) (Product, error)
-
-var products = make(map[string]ProductInitializer)
-
-var dependencies = make(map[string]map[ServiceKey]struct{})
-
-func RegisterProduct(name string, f ProductInitializer) {
-	products[name] = f
+type ProductManifest struct {
+	Initializer  func(*Server, map[ServiceKey]interface{}) (Product, error)
+	Dependencies map[ServiceKey]struct{}
 }
 
-func RegisterProductDependencies(name string, dependencyMap map[ServiceKey]struct{}) {
-	dependencies[name] = dependencyMap
+var products = make(map[string]ProductManifest)
+
+func RegisterProduct(name string, m ProductManifest) {
+	products[name] = m
 }
 
 func (s *Server) initializeProducts(
-	productMap map[string]ProductInitializer,
+	productMap map[string]ProductManifest,
 	serviceMap map[ServiceKey]interface{},
-	dependencyMap map[string]map[ServiceKey]struct{},
 ) error {
 	// create a product map to consume
 	pmap := make(map[string]struct{})
@@ -37,30 +34,32 @@ func (s *Server) initializeProducts(
 		pmap[name] = struct{}{}
 	}
 
+	// We figure out the initialization order by trial and error fashion hence maxTry
+	// is the maximum possible trials of initialization attempts. The order is not
+	// determined elsewhere therefore we do a on the fly sorting here. Which means the
+	// initialization order will be resolved during the loop.
 	maxTry := len(pmap) * len(pmap)
 
 	for len(pmap) > 0 && maxTry != 0 {
 	initLoop:
 		for product := range pmap {
-			productDependencies, ok := dependencyMap[product]
-			if ok {
-				// we have dependencies defined. Here we check if the serviceMap
-				// has all the dependencies registered. If not, we continue to the
-				// loop to let other products initialize and register their services
-				// if they have any.
-				for key := range productDependencies {
-					if _, ok := serviceMap[key]; !ok {
-						maxTry--
-						continue initLoop
-					}
+			manifest := productMap[product]
+			// we have dependencies defined. Here we check if the serviceMap
+			// has all the dependencies registered. If not, we continue to the
+			// loop to let other products initialize and register their services
+			// if they have any.
+			for key := range manifest.Dependencies {
+				if _, ok := serviceMap[key]; !ok {
+					maxTry--
+					continue initLoop
 				}
 			}
 
 			// some products can register themselves/their services
-			initializer := productMap[product]
-			prod, err2 := initializer(s, serviceMap)
-			if err2 != nil {
-				return errors.Wrapf(err2, "error initializing product: %s", product)
+			initializer := manifest.Initializer
+			prod, err := initializer(s, serviceMap)
+			if err != nil {
+				return fmt.Errorf("error initializing product %q: %w", product, err)
 			}
 			s.products[product] = prod
 
@@ -70,7 +69,11 @@ func (s *Server) initializeProducts(
 	}
 
 	if maxTry == 0 && len(pmap) != 0 {
-		return errors.New("could not initialize products, possible circular dependency occurred")
+		var products string
+		for p := range pmap {
+			products = strings.Join([]string{products, fmt.Sprintf("%q", p)}, " ")
+		}
+		return fmt.Errorf("could not initialize product(s) due to circular dependency: %s", products)
 	}
 
 	return nil

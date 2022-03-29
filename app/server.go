@@ -378,7 +378,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// Step 8: Initialize products.
 	// Depends on s.httpService.
-	err = s.initializeProducts(products, serviceMap, dependencies)
+	err = s.initializeProducts(products, serviceMap)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize products")
 	}
