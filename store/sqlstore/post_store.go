@@ -2200,14 +2200,18 @@ func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, error) {
 
 func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, startPostID string, limit int) ([]*model.PostForIndexing, error) {
 	posts := []*model.PostForIndexing{}
-	err := s.GetSearchReplicaX().Select(&posts,
-		`SELECT
+	table := "Posts"
+	// We force this index to avoid any chances of index merge intersection.
+	if s.DriverName() == model.DatabaseDriverMysql {
+		table += " USE INDEX(idx_posts_create_at_id)"
+	}
+	query := `SELECT
 			PostsQuery.*, Channels.TeamId
 		FROM (
 			SELECT
 				*
 			FROM
-				Posts
+				` + table + `
 			WHERE
 				Posts.CreateAt > ?
 			OR
@@ -2223,8 +2227,8 @@ func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, startPostID str
 			Channels
 		ON
 			PostsQuery.ChannelId = Channels.Id
-		ORDER BY CreateAt ASC, Id ASC`,
-		startTime, startTime, startPostID, limit)
+		ORDER BY CreateAt ASC, Id ASC`
+	err := s.GetSearchReplicaX().Select(&posts, query, startTime, startTime, startPostID, limit)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
