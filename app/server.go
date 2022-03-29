@@ -378,13 +378,9 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// Step 8: Initialize products.
 	// Depends on s.httpService.
-	for name, initializer := range products {
-		prod, err2 := initializer(s, serviceMap)
-		if err2 != nil {
-			return nil, errors.Wrapf(err2, "error initializing product: %s", name)
-		}
-
-		s.products[name] = prod
+	err = s.initializeProducts(products, serviceMap)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to initialize products")
 	}
 
 	// It is important to initialize the hub only after the global logger is set
