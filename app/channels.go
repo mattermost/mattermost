@@ -96,13 +96,19 @@ type Channels struct {
 }
 
 func init() {
-	RegisterProduct("channels", func(s *Server, services map[ServiceKey]interface{}) (Product, error) {
-		return NewChannels(s, services)
+	RegisterProduct("channels", ProductManifest{
+		Initializer: func(s *Server, services map[ServiceKey]interface{}) (Product, error) {
+			return NewChannels(s, services)
+		},
+		Dependencies: map[ServiceKey]struct{}{
+			ConfigKey:    {},
+			LicenseKey:   {},
+			FilestoreKey: {},
+		},
 	})
 }
 
 func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, error) {
-
 	ch := &Channels{
 		srv:           s,
 		imageProxy:    imageproxy.MakeImageProxy(s, s.httpService, s.Log),
