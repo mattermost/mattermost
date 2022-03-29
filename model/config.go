@@ -2751,6 +2751,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates["focalboard"] = &PluginState{Enable: true}
 	}
 
+	if s.PluginStates["com.mattermost.apps"] == nil {
+		// Enable the Apps plugin by default
+		s.PluginStates["com.mattermost.apps"] = &PluginState{Enable: true}
+	}
+
 	if s.EnableMarketplace == nil {
 		s.EnableMarketplace = NewBool(PluginSettingsDefaultEnableMarketplace)
 	}
