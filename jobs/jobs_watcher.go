@@ -36,7 +36,6 @@ func (srv *JobServer) MakeWatcher(workers *Workers, pollingInterval int) *Watche
 
 func (watcher *Watcher) Start() {
 	mlog.Debug("Watcher Started")
-
 	// Delay for some random number of milliseconds before starting to ensure that multiple
 	// instances of the jobserver  don't poll at a time too close to each other.
 	rand.Seed(time.Now().UTC().UnixNano())
@@ -62,6 +61,9 @@ func (watcher *Watcher) Stop() {
 	mlog.Debug("Watcher Stopping")
 	close(watcher.stop)
 	<-watcher.stopped
+
+	watcher.stop = make(chan struct{})
+	watcher.stopped = make(chan struct{})
 }
 
 func (watcher *Watcher) PollAndNotify() {

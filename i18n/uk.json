@@ -633,7 +633,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://about.mattermost.com/default-channel-handle-documentation) для ідентифікаціі каналів."
+    "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для ідентифікаціі каналів."
   },
   {
     "id": "api.command_invite.desc",
@@ -777,7 +777,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://about.mattermost.com/default-channel-handle-documentation) для ідентифікаціі каналів. "
+    "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для ідентифікаціі каналів. "
   },
   {
     "id": "api.command_mute.hint",
@@ -789,7 +789,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://about.mattermost.com/default-channel-handle-documentation) для ідентифікаціі каналів. "
+    "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для ідентифікаціі каналів. "
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -2490,10 +2490,6 @@
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
     "translation": "Ім'я дисплея каналу не в межах дозволених обмежень довжини."
-  },
-  {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Відсутнє необхідне властивість каналу: display_name"
   },
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
@@ -4624,18 +4620,6 @@
     "translation": "Missing TO address."
   },
   {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Неможливо перетворити StringArray в * string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Неможливо перетворити StringInterface в * string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Неможливо перетворити StringMap в * string"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot does not exist"
   },
@@ -6658,10 +6642,6 @@
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "Не вдалося оновити заголовок прямого каналу"
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Не вдається збільшити кількість згадок"
   },
   {
     "id": "app.channel.get_pinnedpost_count.app_error",

@@ -63,7 +63,8 @@ type Store interface {
 	UnlockFromMaster()
 	DropAllTables()
 	RecycleDBConnections(d time.Duration)
-	GetCurrentSchemaVersion() string
+	GetDBSchemaVersion() (int, error)
+	GetAppliedMigrations() ([]model.AppliedMigration, error)
 	GetDbVersion(numerical bool) (string, error)
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
@@ -212,6 +213,7 @@ type ChannelStore interface {
 	GetMemberForPost(postID string, userID string) (*model.ChannelMember, error)
 	InvalidateMemberCount(channelID string)
 	GetMemberCountFromCache(channelID string) int64
+	GetFileCount(channelID string) (int64, error)
 	GetMemberCount(channelID string, allowFromCache bool) (int64, error)
 	GetMemberCountsByGroup(ctx context.Context, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, error)
 	InvalidatePinnedPostCount(channelID string)
@@ -223,10 +225,10 @@ type ChannelStore interface {
 	RemoveMembers(channelID string, userIds []string) error
 	PermanentDeleteMembersByUser(userID string) error
 	PermanentDeleteMembersByChannel(channelID string) error
-	UpdateLastViewedAt(channelIds []string, userID string, updateThreads bool) (map[string]int64, error)
+	UpdateLastViewedAt(channelIds []string, userID string) (map[string]int64, error)
 	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount, mentionCountRoot int, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error)
 	CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, error)
-	IncrementMentionCount(channelID string, userID string, isRoot bool) error
+	IncrementMentionCount(channelID string, userIDs []string, isRoot bool) error
 	AnalyticsTypeCount(teamID string, channelType model.ChannelType) (int64, error)
 	GetMembersForUser(teamID string, userID string) (model.ChannelMembers, error)
 	GetTeamMembersForChannel(channelID string) ([]string, error)
@@ -293,13 +295,17 @@ type ThreadStore interface {
 	GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error)
 
 	Get(id string) (*model.Thread, error)
-	GetThreadsForUser(userId, teamID string, opts model.GetUserThreadsOpts) (*model.Threads, error)
+	GetTotalUnreadThreads(userId, teamID string, opts model.GetUserThreadsOpts) (int64, error)
+	GetTotalThreads(userId, teamID string, opts model.GetUserThreadsOpts) (int64, error)
+	GetTotalUnreadMentions(userId, teamID string, opts model.GetUserThreadsOpts) (int64, error)
+	GetThreadsForUser(userId, teamID string, opts model.GetUserThreadsOpts) ([]*model.ThreadResponse, error)
 	GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error)
 	GetTeamsUnreadForUser(userID string, teamIDs []string) (map[string]*model.TeamUnread, error)
 	GetPosts(threadID string, since int64) ([]*model.Post, error)
 
-	MarkAllAsRead(userID, teamID string) error
-	MarkAllAsReadInChannels(userID string, channelIDs []string) error
+	MarkAllAsRead(userID string, threadIds []string) error
+	MarkAllAsReadByTeam(userID, teamID string) error
+	MarkAllAsReadByChannels(userID string, channelIDs []string) error
 	MarkAsRead(userID, threadID string, timestamp int64) error
 
 	UpdateMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error)
@@ -307,8 +313,6 @@ type ThreadStore interface {
 	GetMembershipForUser(userId, postID string) (*model.ThreadMembership, error)
 	DeleteMembershipForUser(userId, postID string) error
 	MaintainMembership(userID, postID string, opts ThreadMembershipOpts) (*model.ThreadMembership, error)
-	CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error)
-	UpdateLastViewedByThreadIds(userId string, threadIds []string, timestamp int64) error
 	PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
 	PermanentDeleteBatchThreadMembershipsForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
 	DeleteOrphanedRows(limit int) (deleted int64, err error)
@@ -319,7 +323,7 @@ type PostStore interface {
 	SaveMultiple(posts []*model.Post) ([]*model.Post, int, error)
 	Save(post *model.Post) (*model.Post, error)
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error)
-	Get(ctx context.Context, id string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool, userID string) (*model.PostList, error)
+	Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string) (*model.PostList, error)
 	GetSingle(id string, inclDeleted bool) (*model.Post, error)
 	Delete(postID string, time int64, deleteByID string) error
 	PermanentDeleteByUser(userID string) error

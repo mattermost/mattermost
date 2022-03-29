@@ -631,7 +631,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "无法找到频道{{.Channel}}。请使用[频道识别](https://about.mattermost.com/default-channel-handle-documentation)以分辨频道。"
+    "translation": "无法找到频道{{.Channel}}。请使用[频道识别](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)以分辨频道。"
   },
   {
     "id": "api.command_invite.desc",
@@ -775,7 +775,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "无法找到频道{{.Channel}}。请使用[频道识别](https://about.mattermost.com/default-channel-handle-documentation)以分辨频道。"
+    "translation": "无法找到频道{{.Channel}}。请使用[频道识别](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)以分辨频道。"
   },
   {
     "id": "api.command_mute.hint",
@@ -787,7 +787,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "无法找到指定的频道。请使用[频道识别](https://about.mattermost.com/default-channel-handle-documentation) 以分辨频道。"
+    "translation": "无法找到指定的频道。请使用[频道识别](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) 以分辨频道。"
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -2482,10 +2482,6 @@
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
     "translation": "频道 display_name 不在允许的长度范围内。"
-  },
-  {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "缺少频道必须属性：display_name"
   },
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
@@ -4614,18 +4610,6 @@
   {
     "id": "plugin_api.send_mail.missing_to",
     "translation": "缺少 TO 地址。"
-  },
-  {
-    "id": "store.sql.convert_string_array",
-    "translation": "来自数据库：不能从 StringArray 转换到 *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "来自数据库：不能从 StringInterface 转换到 *string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "来自数据库：不能从 StringMap 转换到 *string"
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
@@ -6918,10 +6902,6 @@
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "无法移除频道成员。"
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "无法增加提及数。"
   },
   {
     "id": "app.channel.get_public_channels.get.app_error",

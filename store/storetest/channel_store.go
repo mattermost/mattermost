@@ -3979,6 +3979,12 @@ func testChannelStoreGetMoreChannels(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.EqualValues(t, 2, count)
 	})
+
+	t.Run("verify analytics for all channels", func(t *testing.T) {
+		count, err := ss.Channel().AnalyticsTypeCount(teamId, "")
+		require.NoError(t, err)
+		require.EqualValues(t, 6, count)
+	})
 }
 
 func testChannelStoreGetPrivateChannelsForTeam(t *testing.T, ss store.Store) {
@@ -4749,11 +4755,11 @@ func testChannelStoreUpdateLastViewedAt(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	var times map[string]int64
-	times, err = ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, m1.UserId, false)
+	times, err = ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, m1.UserId)
 	require.NoError(t, err, "failed to update ", err)
 	require.Equal(t, o1.LastPostAt, times[o1.Id], "last viewed at time incorrect")
 
-	times, err = ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId, m2.ChannelId}, m1.UserId, false)
+	times, err = ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId, m2.ChannelId}, m1.UserId)
 	require.NoError(t, err, "failed to update ", err)
 	require.Equal(t, o2.LastPostAt, times[o2.Id], "last viewed at time incorrect")
 
@@ -4769,7 +4775,7 @@ func testChannelStoreUpdateLastViewedAt(t *testing.T, ss store.Store) {
 	assert.Equal(t, o2.LastPostAt, rm2.LastUpdateAt)
 	assert.Equal(t, o2.TotalMsgCount, rm2.MsgCount)
 
-	_, err = ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, "missing id", false)
+	_, err = ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, "missing id")
 	require.NoError(t, err, "failed to update")
 }
 
@@ -4790,16 +4796,16 @@ func testChannelStoreIncrementMentionCount(t *testing.T, ss store.Store) {
 	_, err := ss.Channel().SaveMember(&m1)
 	require.NoError(t, err)
 
-	err = ss.Channel().IncrementMentionCount(m1.ChannelId, m1.UserId, false)
+	err = ss.Channel().IncrementMentionCount(m1.ChannelId, []string{m1.UserId}, false)
 	require.NoError(t, err, "failed to update")
 
-	err = ss.Channel().IncrementMentionCount(m1.ChannelId, "missing id", false)
+	err = ss.Channel().IncrementMentionCount(m1.ChannelId, []string{"missing id"}, false)
 	require.NoError(t, err, "failed to update")
 
-	err = ss.Channel().IncrementMentionCount("missing id", m1.UserId, false)
+	err = ss.Channel().IncrementMentionCount("missing id", []string{m1.UserId}, false)
 	require.NoError(t, err, "failed to update")
 
-	err = ss.Channel().IncrementMentionCount("missing id", "missing id", false)
+	err = ss.Channel().IncrementMentionCount("missing id", []string{"missing id"}, false)
 	require.NoError(t, err, "failed to update")
 }
 
@@ -6321,8 +6327,9 @@ func testChannelStoreGetMembersByIds(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr, nErr)
 	require.Len(t, members, 2, "return wrong number of results")
 
-	_, nErr = ss.Channel().GetMembersByIds(m1.ChannelId, []string{})
-	require.Error(t, nErr, "empty user ids - should have failed")
+	members, nErr = ss.Channel().GetMembersByIds(m1.ChannelId, []string{})
+	require.NoError(t, nErr)
+	require.Len(t, members, 0)
 }
 
 func testChannelStoreGetMembersByChannelIds(t *testing.T, ss store.Store) {

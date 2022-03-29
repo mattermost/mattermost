@@ -204,18 +204,6 @@
     "translation": "Bot:en finns inte."
   },
   {
-    "id": "store.sql.convert_string_map",
-    "translation": "Från Db: Kunde inte konvertera StringMap till *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "Från Db: Kunde inte konvertera StringInterface till *string"
-  },
-  {
-    "id": "store.sql.convert_string_array",
-    "translation": "Från Db: Kunde inte konvertera StringArray till *string"
-  },
-  {
     "id": "searchengine.bleve.disabled.error",
     "translation": "Fel vid rensning av Bleve-index: Funktionen är inaktiverad"
   },
@@ -3740,10 +3728,6 @@
     "translation": "Kanalrubriken är för lång."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Det fattas en obligatorisk kanalegenskap: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
     "translation": "Kanalens display_name är för långt."
   },
@@ -4114,10 +4098,6 @@
   {
     "id": "app.channel.migrate_channel_members.select.app_error",
     "translation": "Misslyckades att ta fram batchen med kanalmedlemmar."
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Kunde inte öka värdet för antal omnämnanden."
   },
   {
     "id": "app.channel.get_unread.app_error",
@@ -6804,7 +6784,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Hittar ej den utpekade kanalen. Använd [channel handle](https://about.mattermost.com/default-channel-handle-documentation) för att identifiera kanaler."
+    "translation": "Hittar ej den utpekade kanalen. Använd [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) för att identifiera kanaler."
   },
   {
     "id": "api.command_mute.name",
@@ -6816,7 +6796,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Hittar ej kanalen {{.Channel}}. Använd [channel handle](https://about.mattermost.com/default-channel-handle-documentation) för att identifiera kanaler."
+    "translation": "Hittar ej kanalen {{.Channel}}. Använd [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) för att identifiera kanaler."
   },
   {
     "id": "api.command_mute.desc",
@@ -6968,7 +6948,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Hittar ej kanalen {{.Channel}}. Använd [channel handle](https://about.mattermost.com/default-channel-handle-documentation) för att identifiera kanaler."
+    "translation": "Hittar ej kanalen {{.Channel}}. Använd [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) för att identifiera kanaler."
   },
   {
     "id": "api.command_invite.channel.app_error",
@@ -9265,5 +9245,17 @@
   {
     "id": "app.system.complete_onboarding_request.app_error",
     "translation": "Misslyckades att tolka onboarding-anropet."
+  },
+  {
+    "id": "Playbooks",
+    "translation": "Playbooks"
+  },
+  {
+    "id": "Channels",
+    "translation": "Kanaler"
+  },
+  {
+    "id": "Boards",
+    "translation": "Boards"
   }
 ]

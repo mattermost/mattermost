@@ -632,7 +632,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "No se encontró el canal {{.Channel}}. Por favor utiliza el [identificador del canal](https://about.mattermost.com/default-channel-handle-documentation) para identificar canales."
+    "translation": "No se encontró el canal {{.Channel}}. Por favor utiliza el [identificador del canal](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) para identificar canales."
   },
   {
     "id": "api.command_invite.desc",
@@ -776,7 +776,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "No se encontró el canal {{.Channel}}. Por favor utiliza el [identificador del canal](https://about.mattermost.com/default-channel-handle-documentation) para identificar los canales."
+    "translation": "No se encontró el canal {{.Channel}}. Por favor utiliza el [identificador del canal](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) para identificar los canales."
   },
   {
     "id": "api.command_mute.hint",
@@ -788,7 +788,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "No se encontró el canal especificado. Por favor utiliza el [identificador del canal](https://about.mattermost.com/default-channel-handle-documentation) para identificar canales."
+    "translation": "No se encontró el canal especificado. Por favor utiliza el [identificador del canal](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) para identificar canales."
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -2486,10 +2486,6 @@
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
     "translation": "La propiedad del canal display_name no se encuentra dentro de las restricciones de longitud permitida."
-  },
-  {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Falta la propiedad obligatoria del canal: display_name"
   },
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
@@ -4618,18 +4614,6 @@
   {
     "id": "plugin_api.send_mail.missing_to",
     "translation": "Falta la dirección PARA."
-  },
-  {
-    "id": "store.sql.convert_string_array",
-    "translation": "Desde BD: No se puede convertir StringArray a *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "Desde BD: No se puede convertir StringInterface a *string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "Desde BD: No se puede convertir StringMap a *string"
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
@@ -6978,10 +6962,6 @@
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "Error al remover los miembros del canal."
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "No se puede incrementar el número de menciones."
   },
   {
     "id": "app.channel.get_public_channels.get.app_error",

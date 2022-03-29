@@ -527,7 +527,7 @@ type AppIface interface {
 	ExportPermissions(w io.Writer) error
 	ExtractContentFromFileInfo(fileInfo *model.FileInfo) error
 	FetchSamlMetadataFromIdp(url string) ([]byte, *model.AppError)
-	FileBackend() (filestore.FileBackend, *model.AppError)
+	FileBackend() filestore.FileBackend
 	FileExists(path string) (bool, *model.AppError)
 	FileModTime(path string) (time.Time, *model.AppError)
 	FileSize(path string) (int64, *model.AppError)
@@ -550,6 +550,7 @@ type AppIface interface {
 	GetAllTeamsPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, *model.AppError)
 	GetAllTeamsPageWithCount(offset int, limit int, opts *model.TeamSearch) (*model.TeamsWithCount, *model.AppError)
 	GetAnalytics(name string, teamID string) (model.AnalyticsRows, *model.AppError)
+	GetAppliedSchemaMigrations() ([]model.AppliedMigration, *model.AppError)
 	GetAudits(userID string, limit int) (model.Audits, *model.AppError)
 	GetAuditsPage(userID string, page int, perPage int) (model.Audits, *model.AppError)
 	GetAuthorizationCode(w http.ResponseWriter, r *http.Request, service string, props map[string]string, loginHint string) (string, *model.AppError)
@@ -560,6 +561,7 @@ type AppIface interface {
 	GetChannelByName(channelName, teamID string, includeDeleted bool) (*model.Channel, *model.AppError)
 	GetChannelByNameForTeamName(channelName, teamName string, includeDeleted bool) (*model.Channel, *model.AppError)
 	GetChannelCounts(teamID string, userID string) (*model.ChannelCounts, *model.AppError)
+	GetChannelFileCount(channelID string) (int64, *model.AppError)
 	GetChannelGuestCount(channelID string) (int64, *model.AppError)
 	GetChannelMember(ctx context.Context, channelID string, userID string) (*model.ChannelMember, *model.AppError)
 	GetChannelMemberCount(channelID string) (int64, *model.AppError)
@@ -673,7 +675,7 @@ type AppIface interface {
 	GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError)
 	GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError)
 	GetPostIfAuthorized(postID string, session *model.Session) (*model.Post, *model.AppError)
-	GetPostThread(postID string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool, userID string) (*model.PostList, *model.AppError)
+	GetPostThread(postID string, opts model.GetPostsOptions, userID string) (*model.PostList, *model.AppError)
 	GetPosts(channelID string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList, *model.AppError)
 	GetPostsAroundPost(before bool, options model.GetPostsOptions) (*model.PostList, *model.AppError)
@@ -840,6 +842,7 @@ type AppIface interface {
 	LimitedClientConfig() map[string]string
 	ListAllCommands(teamID string, T i18n.TranslateFunc) ([]*model.Command, *model.AppError)
 	ListDirectory(path string) ([]string, *model.AppError)
+	ListDirectoryRecursively(path string) ([]string, *model.AppError)
 	ListExports() ([]string, *model.AppError)
 	ListImports() ([]string, *model.AppError)
 	ListPluginKeys(pluginID string, page, perPage int) ([]string, *model.AppError)

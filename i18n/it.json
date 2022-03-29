@@ -632,7 +632,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Impossibile trovare il canale {{.Channel}}. Usare [channel handle](https://about.mattermost.com/default-channel-handle-documentation) per identificare i canali."
+    "translation": "Impossibile trovare il canale {{.Channel}}. Usare [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) per identificare i canali."
   },
   {
     "id": "api.command_invite.desc",
@@ -776,7 +776,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Impossibile trovare il canale {{.Channel}}. Usare [channel handle](https://about.mattermost.com/default-channel-handle-documentation) per identificare i canali."
+    "translation": "Impossibile trovare il canale {{.Channel}}. Usare [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) per identificare i canali."
   },
   {
     "id": "api.command_mute.hint",
@@ -788,7 +788,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Impossibile trovare il canale specificato. Usare [channel handle](https://about.mattermost.com/default-channel-handle-documentation) per identificare i canali."
+    "translation": "Impossibile trovare il canale specificato. Usare [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) per identificare i canali."
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -2486,10 +2486,6 @@
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
     "translation": "Il campo display_name del canale non è nella gamma di lunghezze consentita."
-  },
-  {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Manca la proprietà del canale richiesta: display_name"
   },
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
@@ -4618,18 +4614,6 @@
   {
     "id": "plugin_api.send_mail.missing_to",
     "translation": "Manca l'indirizzo del destinatario."
-  },
-  {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Impossibile convertire StringArray a *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Impossibile convertire StringInterface a *string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Impossibile convertire StringMap a *string"
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
@@ -6878,10 +6862,6 @@
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "Impossibile eliminare il membro del canale"
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Impossibile incrementare il conteggio della citazione"
   },
   {
     "id": "app.channel.get_pinnedpost_count.app_error",

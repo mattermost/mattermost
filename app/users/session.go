@@ -210,6 +210,20 @@ func (us *UserService) SetSessionExpireInDays(session *model.Session, days int) 
 	}
 }
 
+func (us *UserService) ExtendSessionExpiry(session *model.Session, newExpiry int64) error {
+	if err := us.sessionStore.UpdateExpiresAt(session.Id, newExpiry); err != nil {
+		return err
+	}
+
+	// Update local cache. No need to invalidate cache for cluster as the session cache timeout
+	// ensures each node will get an extended expiry within the next 10 minutes.
+	// Worst case is another node may generate a redundant expiry update.
+	session.ExpiresAt = newExpiry
+	us.AddSessionToCache(session)
+
+	return nil
+}
+
 func (us *UserService) UpdateSessionsIsGuest(userID string, isGuest bool) error {
 	sessions, err := us.GetSessions(userID)
 	if err != nil {

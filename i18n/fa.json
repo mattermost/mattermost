@@ -1244,18 +1244,6 @@
     "translation": "ربات وجود ندارد."
   },
   {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: تبدیل StringMap به *string امکان پذیر نیست"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: تبدیل StringInterface به *string امکان پذیر نیست"
-  },
-  {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: تبدیل StringArray به *string امکان پذیر نیست"
-  },
-  {
     "id": "sharedchannel.permalink.not_found",
     "translation": "این پست حاوی لینک های دائمی به کانال های دیگر است که ممکن است برای کاربران سایت های دیگر قابل مشاهده نباشد."
   },
@@ -2540,10 +2528,6 @@
     "translation": "سرصفحه کانال خیلی طولانی است."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "ویژگی کانال مورد نیاز وجود ندارد: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
     "translation": "display_name کانال در محدودیت های مجاز نیست."
   },
@@ -3026,10 +3010,6 @@
   {
     "id": "app.channel.migrate_channel_members.select.app_error",
     "translation": "دسته اعضای کانال انتخاب نشد."
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "نمی توان تعداد اشاره را افزایش داد."
   },
   {
     "id": "app.channel.get_unread.app_error",
@@ -8018,7 +7998,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "کانال مشخص شده یافت نشد. برای شناسایی کانال ها لطفاً از [هندل کانال](https://about.mattermost.com/default-channel-handle-documentation) استفاده کنید."
+    "translation": "کانال مشخص شده یافت نشد. برای شناسایی کانال ها لطفاً از [هندل کانال](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) استفاده کنید."
   },
   {
     "id": "api.command_mute.name",
@@ -8030,7 +8010,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "کانال {{.Channel}} پیدا نشد. برای شناسایی کانال ها لطفاً از [هندل کانال](https://about.mattermost.com/default-channel-handle-documentation) استفاده کنید."
+    "translation": "کانال {{.Channel}} پیدا نشد. برای شناسایی کانال ها لطفاً از [هندل کانال](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) استفاده کنید."
   },
   {
     "id": "api.command_mute.desc",
@@ -8182,7 +8162,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "کانال {{.Channel}} پیدا نشد. برای شناسایی کانال ها لطفاً از [هندل کانال](https://about.mattermost.com/default-channel-handle-documentation) استفاده کنید."
+    "translation": "کانال {{.Channel}} پیدا نشد. برای شناسایی کانال ها لطفاً از [هندل کانال](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) استفاده کنید."
   },
   {
     "id": "api.oauth.revoke_access_token.del_token.app_error",

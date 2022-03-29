@@ -632,7 +632,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "{{.Channel}} kanalı bulunamadı. Lütfen kanalları belirtmek için [kanal kısaltması] kullanın (https://about.mattermost.com/default-channel-handle-documentation)."
+    "translation": "{{.Channel}} kanalı bulunamadı. Lütfen kanalları belirtmek için [kanal kısaltması](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) kullanın."
   },
   {
     "id": "api.command_invite.desc",
@@ -776,7 +776,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "{{.Channel}} kanalı bulunamadı. Lütfen kanalları belirtmek için [kanal kısaltması](https://about.mattermost.com/default-channel-handle-documentation) kullanın."
+    "translation": "{{.Channel}} kanalı bulunamadı. Lütfen kanalları belirtmek için [kanal kısaltması](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) kullanın."
   },
   {
     "id": "api.command_mute.hint",
@@ -788,7 +788,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Belirtilen kanal bulunamadı. Lütfen kanalları belirtmek için [kanal kısaltması] kullanın (https://about.mattermost.com/default-channel-handle-documentation)."
+    "translation": "Belirtilen kanal bulunamadı. Lütfen kanalları belirtmek için [kanal kısaltması](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) kullanın."
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -2486,10 +2486,6 @@
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
     "translation": "Görüntülenecek kanal adı izin verilen uzunluk aralığında değil."
-  },
-  {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Zorunlu kanal özelliği eksik: display_name"
   },
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
@@ -4620,18 +4616,6 @@
     "translation": "KİME adresi eksik."
   },
   {
-    "id": "store.sql.convert_string_array",
-    "translation": "Veritabanından: StringArray *string olarak dönüştürülemedi"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "Veritabanından: StringInterface *string olarak dönüştürülemedi"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "Veritabanından: StringMap *string olarak dönüştürülemedi"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot bulunamadı."
   },
@@ -6742,10 +6726,6 @@
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "Kanal üyesi silinemedi."
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Anma sayısı arttırılamadı."
   },
   {
     "id": "app.channel.get_public_channels.get.app_error",
@@ -8913,7 +8893,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, 14 günlük Mattermost Cloud Enterprise ücretsiz deneme süreniz bugün sona erdi. Takımınızın Cloud Enterprise özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi ekleyebilirsiniz."
+    "translation": "{{.Name}}, 14 günlük Mattermost Cloud Enterprise ücretsiz deneme süreniz bugün sona erdi. Takımınızın Cloud Enterprise özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi ekleyebilirsiniz. 30 gün içinde ödeme bilgilerinizi eklemezseniz Cloud çalışma alanınız ve ilgili verileri kalıcı olarak silinecek."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
@@ -9385,5 +9365,45 @@
   {
     "id": "Boards",
     "translation": "Panolar"
+  },
+  {
+    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
+    "translation": "Türe ve duruma göre tüm görevler alınamadı."
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
+    "translation": "SMTP sistem panosunda yapılandırılmamış"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email.app_error",
+    "translation": "E-posta gönderilirken sorun çıktı"
+  },
+  {
+    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "translation": "Önceden hazırlanmış uygulama eki sürümü işlenemedi."
+  },
+  {
+    "id": "app.user.group_name_conflict",
+    "translation": " "
+  },
+  {
+    "id": "app.user.get_by_name_failure",
+    "translation": " "
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": " "
+  },
+  {
+    "id": "app.group.get_by_username_failure",
+    "translation": " "
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "MattermostAppID en fazla 32 karakter uzunluğunda olabilir."
+  },
+  {
+    "id": "app.channel.get_file_count.app_error",
+    "translation": "Kanalın dosya sayısı alınamadı"
   }
 ]

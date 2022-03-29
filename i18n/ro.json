@@ -633,7 +633,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Canalul nu a putut fi găsit {{.Channel}}. Utilizați [mânerul canalului](https://about.mattermost.com/default-channel-handle-documentation) pentru a identifica canalele."
+    "translation": "Canalul nu a putut fi găsit {{.Channel}}. Utilizați [mânerul canalului](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) pentru a identifica canalele."
   },
   {
     "id": "api.command_invite.desc",
@@ -777,7 +777,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Canalul nu a putut fi găsit {{.Channel}}. Utilizați [mânerul canalului](https://about.mattermost.com/default-channel-handle-documentation) pentru a identifica canalele."
+    "translation": "Canalul nu a putut fi găsit {{.Channel}}. Utilizați [mânerul canalului](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) pentru a identifica canalele."
   },
   {
     "id": "api.command_mute.hint",
@@ -789,7 +789,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Canalul specificat nu a putut găsi. Vă rugăm să folosiţi [mâner canal](https://about.mattermost.com/default-channel-handle-documentation) pentru a identifica canalele."
+    "translation": "Canalul specificat nu a putut găsi. Vă rugăm să folosiţi [mâner canal](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) pentru a identifica canalele."
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -2490,10 +2490,6 @@
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
     "translation": "Canal display_name nu este în termen de constrângerile de durata."
-  },
-  {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Lipsesc necesare canal proprietate: display_name"
   },
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
@@ -4622,18 +4618,6 @@
   {
     "id": "plugin_api.send_mail.missing_to",
     "translation": "Lipsește adresa CATRE."
-  },
-  {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Imposibil de convertit StringArray la *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Imposibil de convertit StringInterface la *string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Imposibil de convertit StringMap în *string"
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
@@ -6926,10 +6910,6 @@
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "Nu se poate elimina membrul canalului."
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Nu se poate mări numărarea numelor."
   },
   {
     "id": "app.channel.get_public_channels.get.app_error",

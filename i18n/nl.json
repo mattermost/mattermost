@@ -632,7 +632,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Kan het kanaal {{.Channel}} niet vinden. Gebruik de [kanaalaanduiding](https://about.mattermost.com/default-channel-handle-documentation) om kanalen aan te duiden."
+    "translation": "Kan het kanaal {{.Channel}} niet vinden. Gebruik de [kanaalaanduiding](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) om kanalen aan te duiden."
   },
   {
     "id": "api.command_invite.desc",
@@ -776,7 +776,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Kan het kanaal {{.Channel}} niet vinden. Gebruik de [kanaalaanduiding](https://about.mattermost.com/default-channel-handle-documentation) om kanalen aan te duiden."
+    "translation": "Kan het kanaal {{.Channel}} niet vinden. Gebruik de [kanaalaanduiding](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) om kanalen aan te duiden."
   },
   {
     "id": "api.command_mute.hint",
@@ -788,7 +788,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Kan het opgegeven kanaal niet vinden. Gebruik de [kanaalaanduiding](https://about.mattermost.com/default-channel-handle-documentation) om kanalen aan te duiden."
+    "translation": "Kan het opgegeven kanaal niet vinden. Gebruik de [kanaalaanduiding](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) om kanalen aan te duiden."
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -2486,10 +2486,6 @@
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
     "translation": "De display_name van het kanaal valt niet binnen de toegestane lengtebeperkingen."
-  },
-  {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Ontbrekende vereiste kanaaleigenschap: display_name"
   },
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
@@ -4620,18 +4616,6 @@
     "translation": "Aan-adres ontbreekt."
   },
   {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Kan StringArray niet naar *string omzetten"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Kan StringInterface niet naar *string omzetten"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Kan StringMap niet naar *string omzetten"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot does not exist"
   },
@@ -4809,7 +4793,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Versie 12+"
+    "translation": "Versie 14.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -6772,10 +6756,6 @@
     "translation": "Fout bij het verwijderen van het kanaallid."
   },
   {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Fout bij het verhogen van de teller van de meldingen."
-  },
-  {
     "id": "app.channel.get_private_channels.get.app_error",
     "translation": "Kan private kanalen niet ophalen."
   },
@@ -8333,7 +8313,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second Floor, Palo Alto, CA, 94301"
+    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second Floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",
@@ -8917,7 +8897,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, je 14-daagse gratis proefperiode van Mattermost Cloud Enterprise eindigde vandaag {{.TodayDate}}. Voeg jouw betalingsgegevens toe om ervoor te zorgen dat jouw team kan blijven genieten van de voordelen van Cloud Enterprise."
+    "translation": "{{.Name}}, jouw 14-daagse gratis proefperiode van Mattermost Cloud Enterprise is vandaag beëindigd, {{.TodayDate}}. Voeg aub. jouw betalingsgegevens toe om ervoor te zorgen dat jouw team kan blijven genieten van de voordelen van Cloud Enterprise. Als je jouw betalingsgegevens niet binnen 30 dagen toevoegt, zullen wij jouw Cloud-werkruimte definitief verwijderen en verliest je alle bijbehorende gegevens."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -9325,5 +9305,85 @@
   {
     "id": "api.custom_groups.count_err",
     "translation": "groepen die fouten tellen"
+  },
+  {
+    "id": "model.github_release_info.is_valid.id.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
+    "translation": "Het lukt niet om alle jobs op type en status op te halen."
+  },
+  {
+    "id": "app.admin.latest_version_unmarshal.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_set_cache.failure",
+    "translation": " "
+  },
+  {
+    "id": "api.users.invalid_emails.enable_open_server.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.server_inactivity_title",
+    "translation": "Verhoog jouw productiviteit met deze geweldige functies"
+  },
+  {
+    "id": "api.templates.server_inactivity_subtitle",
+    "translation": "Hey {{.Naam}}, we hebben gemerkt dat jouw Mattermost server een beetje stof aan het verzamelen is. Kijk eens naar enkele functies die kunnen helpen om de werklast van jouw team te verlichten."
+  },
+  {
+    "id": "api.templates.server_inactivity_subject",
+    "translation": "HEY! Open Mattermost om de productiviteit van je team te verhogen!"
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet2",
+    "translation": "Beheer taken met "
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet1",
+    "translation": "Workflowbeheer met "
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet",
+    "translation": "Gast-toegang tot gespecificeerd(e) "
+  },
+  {
+    "id": "api.templates.server_inactivity_info",
+    "translation": "Kom maar eens kijken!"
+  },
+  {
+    "id": "api.templates.server_inactivity_button",
+    "translation": "Mattermost openen"
+  },
+  {
+    "id": "Playbooks",
+    "translation": "Playbooks"
+  },
+  {
+    "id": "Channels",
+    "translation": "Kanalen"
+  },
+  {
+    "id": "Boards",
+    "translation": "Boards"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
+    "translation": "SMTP is niet geconfigureerd in Systeem Console"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email.app_error",
+    "translation": "Fout bij het verzenden van de e-mail"
+  },
+  {
+    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "translation": "Voorverpakte plugin versie kon niet geparsed worden."
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "De maximale lengte van MattermostAppID is 32 tekens."
   }
 ]

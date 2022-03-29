@@ -2285,6 +2285,15 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
 	require.NoError(t, nErr)
 
+	u3 := &model.User{}
+	u3.Email = MakeEmail()
+	u3.Username = "user3" + model.NewId()
+	_, err = ss.User().Save(u3)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
+	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
+	require.NoError(t, nErr)
+
 	_, nErr = ss.Channel().Save(&c1, -1)
 	require.NoError(t, nErr, "couldn't save item")
 
@@ -2301,6 +2310,14 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	_, nErr = ss.Channel().SaveMember(&m2)
 	require.NoError(t, nErr)
 
+	m3 := model.ChannelMember{}
+	m3.ChannelId = c1.Id
+	m3.UserId = u3.Id
+	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	_, nErr = ss.Channel().SaveMember(&m3)
+	require.NoError(t, nErr)
+
 	m1.ChannelId = c2.Id
 	m2.ChannelId = c2.Id
 
@@ -2310,12 +2327,12 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	p1 := model.Post{}
 	p1.ChannelId = c1.Id
 	p1.UserId = u1.Id
-	p1.Message = "this is a message for @" + u2.Username
+	p1.Message = "this is a message for @" + u2.Username + " and " + "@" + u3.Username
 
 	// Post one message with mention to open channel
 	_, nErr = ss.Post().Save(&p1)
 	require.NoError(t, nErr)
-	nErr = ss.Channel().IncrementMentionCount(c1.Id, u2.Id, false)
+	nErr = ss.Channel().IncrementMentionCount(c1.Id, []string{u2.Id, u3.Id}, false)
 	require.NoError(t, nErr)
 
 	// Post 2 messages without mention to direct channel
@@ -2326,7 +2343,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 
 	_, nErr = ss.Post().Save(&p2)
 	require.NoError(t, nErr)
-	nErr = ss.Channel().IncrementMentionCount(c2.Id, u2.Id, false)
+	nErr = ss.Channel().IncrementMentionCount(c2.Id, []string{u2.Id}, false)
 	require.NoError(t, nErr)
 
 	p3 := model.Post{}
@@ -2336,12 +2353,16 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	_, nErr = ss.Post().Save(&p3)
 	require.NoError(t, nErr)
 
-	nErr = ss.Channel().IncrementMentionCount(c2.Id, u2.Id, false)
+	nErr = ss.Channel().IncrementMentionCount(c2.Id, []string{u2.Id}, false)
 	require.NoError(t, nErr)
 
 	badge, unreadCountErr := ss.User().GetUnreadCount(u2.Id)
 	require.NoError(t, unreadCountErr)
 	require.Equal(t, int64(3), badge, "should have 3 unread messages")
+
+	badge, unreadCountErr = ss.User().GetUnreadCount(u3.Id)
+	require.NoError(t, unreadCountErr)
+	require.Equal(t, int64(1), badge, "should have 1 unread message")
 
 	badge, unreadCountErr = ss.User().GetUnreadCountForChannel(u2.Id, c1.Id)
 	require.NoError(t, unreadCountErr)

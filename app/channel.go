@@ -315,12 +315,26 @@ func (a *App) GetOrCreateDirectChannel(c *request.Context, userID, otherUserID s
 
 	if *a.Config().TeamSettings.RestrictDirectMessage == model.DirectMessageTeam &&
 		!a.SessionHasPermissionTo(*c.Session(), model.PermissionManageSystem) {
-		commonTeamIDs, err := a.GetCommonTeamIDsForTwoUsers(userID, otherUserID)
+		users, err := a.GetUsersByIds([]string{userID, otherUserID}, &store.UserGetByIdsOpts{})
 		if err != nil {
 			return nil, err
 		}
-		if len(commonTeamIDs) == 0 {
-			return nil, model.NewAppError("createDirectChannel", "api.channel.create_channel.direct_channel.team_restricted_error", nil, "", http.StatusForbidden)
+		var isBot bool
+		for _, user := range users {
+			if user.IsBot {
+				isBot = true
+				break
+			}
+		}
+		// if one of the users is a bot, don't restrict to team members
+		if !isBot {
+			commonTeamIDs, err := a.GetCommonTeamIDsForTwoUsers(userID, otherUserID)
+			if err != nil {
+				return nil, err
+			}
+			if len(commonTeamIDs) == 0 {
+				return nil, model.NewAppError("createDirectChannel", "api.channel.create_channel.direct_channel.team_restricted_error", nil, "", http.StatusForbidden)
+			}
 		}
 	}
 
@@ -398,10 +412,10 @@ func (a *App) createDirectChannel(userID string, otherUserID string, channelOpti
 		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, fmt.Sprintf("No users found for ids: %s. %s", userID, otherUserID), http.StatusBadRequest)
 	}
 
-	// The potential swap dance bellow is necessary in order to guarantee determinism when creating a direct channel.
+	// The potential swap dance below is necessary in order to guarantee determinism when creating a direct channel.
 	// When we query the database for some given user ids, the database result is not deterministic, meaning we can get
 	// the same results but in different order. In order to conform the contract of Channel.CreateDirectChannel method
-	// bellow we need to identify which user is who.
+	// below we need to identify which user is who.
 	user := users[0]
 	otherUser := users[1]
 	if user.Id != userID {
@@ -1995,6 +2009,15 @@ func (a *App) GetChannelMemberCount(channelID string) (int64, *model.AppError) {
 	return count, nil
 }
 
+func (a *App) GetChannelFileCount(channelID string) (int64, *model.AppError) {
+	count, err := a.Srv().Store.Channel().GetFileCount(channelID)
+	if err != nil {
+		return 0, model.NewAppError("SqlChannelStore.GetFileCount", "app.channel.get_file_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return count, nil
+}
+
 func (a *App) GetChannelGuestCount(channelID string) (int64, *model.AppError) {
 	count, err := a.Srv().Store.Channel().GetGuestCount(channelID, true)
 	if err != nil {
@@ -2877,7 +2900,17 @@ func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSe
 			}
 		}
 	}
-	times, err := a.Srv().Store.Channel().UpdateLastViewedAt(channelIDs, userID, false)
+
+	var err error
+	updateThreads := *a.Config().ServiceSettings.ThreadAutoFollow && (!collapsedThreadsSupported || !a.IsCRTEnabledForUser(userID))
+	if updateThreads {
+		err = a.Srv().Store.Thread().MarkAllAsReadByChannels(userID, channelIDs)
+		if err != nil {
+			return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	times, err := a.Srv().Store.Channel().UpdateLastViewedAt(channelIDs, userID)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -2899,18 +2932,12 @@ func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSe
 		a.clearPushNotification(currentSessionId, userID, channelID, "")
 	}
 
-	if *a.Config().ServiceSettings.ThreadAutoFollow && (!collapsedThreadsSupported || !a.IsCRTEnabledForUser(userID)) {
-		if err := a.Srv().Store.Thread().MarkAllAsReadInChannels(userID, channelIDs); err != nil {
-			return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-
-		if a.IsCRTEnabledForUser(userID) {
-			timestamp := model.GetMillis()
-			for _, channelID := range channelIDs {
-				message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, "", channelID, userID, nil)
-				message.Add("timestamp", timestamp)
-				a.Publish(message)
-			}
+	if updateThreads && a.IsCRTEnabledForUser(userID) {
+		timestamp := model.GetMillis()
+		for _, channelID := range channelIDs {
+			message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, "", channelID, userID, nil)
+			message.Add("timestamp", timestamp)
+			a.Publish(message)
 		}
 	}
 

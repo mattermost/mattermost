@@ -70,21 +70,26 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.System.Handle("/support_packet", api.APISessionRequired(generateSupportPacket)).Methods("GET")
 	api.BaseRoutes.System.Handle("/onboarding/complete", api.APISessionRequired(getOnboarding)).Methods("GET")
 	api.BaseRoutes.System.Handle("/onboarding/complete", api.APISessionRequired(completeOnboarding)).Methods("POST")
+	api.BaseRoutes.System.Handle("/schema/version", api.APISessionRequired(getAppliedSchemaMigrations)).Methods("GET")
 }
 
 func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	const FileMime = "application/zip"
 	const OutputDirectory = "support_packet"
 
-	// Checking to see if the user is a admin of any sort or not
-	// If they are a admin, they should theoretically have access to one or more of the system console read permissions
-	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleReadPermissions) {
-		c.SetPermissionError(model.SysconsoleReadPermissions...)
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("generateSupportPacket", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
+
+	// Support packet generation is limited to system admins (MM-42271).
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
 	// Checking to see if the server has a e10 or e20 license (this feature is only permitted for servers with licenses)
-	if c.App.Srv().License() == nil {
+	if c.App.Channels().License() == nil {
 		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.no_license", nil, "", http.StatusForbidden)
 		return
 	}
@@ -95,11 +100,7 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	outputZipFilename := fmt.Sprintf("mattermost_support_packet_%s.zip", now.Format("2006-01-02-03-04"))
 
-	fileStorageBackend, fileBackendErr := c.App.FileBackend()
-	if fileBackendErr != nil {
-		c.Err = fileBackendErr
-		return
-	}
+	fileStorageBackend := c.App.FileBackend()
 
 	// We do this incase we get concurrent requests, we will always have a unique directory.
 	// This is to avoid the situation where we try to write to the same directory while we are trying to delete it (further down)
@@ -759,7 +760,7 @@ func getWarnMetricsStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	license := c.App.Srv().License()
+	license := c.App.Channels().License()
 	if license != nil {
 		mlog.Debug("License is present, skip.")
 		return
@@ -789,7 +790,7 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	license := c.App.Srv().License()
+	license := c.App.Channels().License()
 	if license != nil {
 		mlog.Debug("License is present, skip.")
 		return
@@ -831,7 +832,7 @@ func requestTrialLicenseAndAckWarnMetric(c *Context, w http.ResponseWriter, r *h
 		return
 	}
 
-	license := c.App.Srv().License()
+	license := c.App.Channels().License()
 	if license != nil {
 		mlog.Debug("License is present, skip.")
 		return
@@ -933,4 +934,29 @@ func completeOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	ReturnStatusOK(w)
+}
+
+func getAppliedSchemaMigrations(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleReadPermissions) {
+		c.SetPermissionError(model.SysconsoleReadPermissions...)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("getAppliedSchemaMigrations", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	migrations, appErr := c.App.GetAppliedSchemaMigrations()
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	js, jsonErr := json.Marshal(migrations)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getAppliedMigrations", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
+	auditRec.Success()
 }

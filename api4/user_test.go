@@ -3542,7 +3542,7 @@ func TestLoginWithLag(t *testing.T) {
 			t.Skipf("requires test flag: -mysql-replica")
 		}
 
-		if *th.App.Srv().Config().SqlSettings.DriverName != model.DatabaseDriverMysql {
+		if *th.App.Config().SqlSettings.DriverName != model.DatabaseDriverMysql {
 			t.Skipf("requires %q database driver", model.DatabaseDriverMysql)
 		}
 
@@ -6503,7 +6503,7 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 			mock.Anything, // *model.User
 			mock.Anything, // *model.Patch
 		).Return("")
-		th.App.Srv().Ldap = ldapMock
+		th.App.Channels().Ldap = ldapMock
 		// CheckProviderAttributes should be called for both Patch and Update
 		th.SystemAdminClient.PatchUser(user.Id, &model.UserPatch{})
 		ldapMock.AssertNumberOfCalls(t, "CheckProviderAttributes", 1)
@@ -6524,7 +6524,7 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 			ldapMock.Mock.On(
 				"CheckProviderAttributes", mock.Anything, mock.Anything, mock.Anything,
 			).Return("")
-			th.App.Srv().Ldap = ldapMock
+			th.App.Channels().Ldap = ldapMock
 			th.SystemAdminClient.PatchUser(user.Id, &model.UserPatch{})
 			ldapMock.AssertNumberOfCalls(t, "CheckProviderAttributes", 1)
 			th.SystemAdminClient.UpdateUser(user)
@@ -6538,7 +6538,7 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 			samlMock.Mock.On(
 				"CheckProviderAttributes", mock.Anything, mock.Anything, mock.Anything,
 			).Return("")
-			th.App.Srv().Saml = samlMock
+			th.App.Channels().Saml = samlMock
 			th.SystemAdminClient.PatchUser(user.Id, &model.UserPatch{})
 			samlMock.AssertNumberOfCalls(t, "CheckProviderAttributes", 1)
 			th.SystemAdminClient.UpdateUser(user)

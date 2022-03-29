@@ -633,7 +633,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Nie można znaleźć kanału {{.Channel}}. Użyj [uchwytu kanału](https://about.mattermost.com/default-channel-handle-documentation), aby zidentyfikować kanały."
+    "translation": "Nie można znaleźć kanału {{.Channel}}. Użyj [uchwytu kanału](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel), aby zidentyfikować kanały."
   },
   {
     "id": "api.command_invite.desc",
@@ -777,7 +777,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Nie można znaleźć kanału {{.Channel}}. Użyj [uchwytu kanału](https://about.mattermost.com/default-channel-handle-documentation), aby zidentyfikować kanały."
+    "translation": "Nie można znaleźć kanału {{.Channel}}. Użyj [uchwytu kanału](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel), aby zidentyfikować kanały."
   },
   {
     "id": "api.command_mute.hint",
@@ -789,7 +789,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Nie można znaleźć określonego kanału. Użyj [uchwytu kanału](https://about.mattermost.com/default-channel-handle-documentation), aby zidentyfikować kanały."
+    "translation": "Nie można znaleźć określonego kanału. Użyj [uchwytu kanału](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel), aby zidentyfikować kanały."
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -2490,10 +2490,6 @@
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
     "translation": "Kanał display_name nie jest w żądanych limitach długości."
-  },
-  {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Brak wymaganej właściwości kanału: display_name"
   },
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
@@ -4624,18 +4620,6 @@
     "translation": "Brak adresu DO."
   },
   {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Nie udało się skonwertować StringArray do *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Nie udało się skonwertować StringInterface do *string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Nie udało się skonwertować StringMap do *string"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot does not exist."
   },
@@ -6674,10 +6658,6 @@
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "Nie można usunąć członka kanału."
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Nie można zwiększyć liczby wzmianek."
   },
   {
     "id": "app.channel.get_pinnedpost_count.app_error",

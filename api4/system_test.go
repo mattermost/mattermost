@@ -57,20 +57,6 @@ func TestGetPing(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, model.StatusOk, status)
 		})
-
-		t.Run("unhealthy", func(t *testing.T) {
-			oldDriver := th.App.Config().FileSettings.DriverName
-			badDriver := "badDriverName"
-			th.App.Config().FileSettings.DriverName = &badDriver
-			defer func() {
-				th.App.Config().FileSettings.DriverName = oldDriver
-			}()
-
-			status, resp, err := client.GetPingWithServerStatus()
-			require.Error(t, err)
-			CheckInternalErrorStatus(t, resp)
-			assert.Equal(t, model.StatusUnhealthy, status)
-		})
 	}, "with server status")
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
@@ -220,6 +206,26 @@ func TestGenerateSupportPacket(t *testing.T) {
 		file, _, err := th.SystemAdminClient.GenerateSupportPacket()
 		require.NoError(t, err)
 		require.NotZero(t, len(file))
+	})
+
+	t.Run("As a System Administrator but with RestrictSystemAdmin true", func(t *testing.T) {
+		originalRestrictSystemAdminVal := *th.App.Config().ExperimentalSettings.RestrictSystemAdmin
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ExperimentalSettings.RestrictSystemAdmin = originalRestrictSystemAdminVal
+			})
+		}()
+
+		_, resp, err := th.SystemAdminClient.GenerateSupportPacket()
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("As a system role, not system admin", func(t *testing.T) {
+		_, resp, err := th.SystemManagerClient.GenerateSupportPacket()
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("As a Regular User", func(t *testing.T) {
@@ -907,5 +913,48 @@ func TestCompleteOnboarding(t *testing.T) {
 			require.Fail(t, "timed out waiting testplugin2 to be installed and enabled ")
 		}
 
+	})
+
+	t.Run("as a system admin when plugins are disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = false
+		})
+
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PluginSettings.Enable = true
+			})
+		})
+
+		resp, err := th.SystemAdminClient.CompleteOnboarding(req)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+}
+
+func TestGetAppliedSchemaMigrations(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t.Run("as a regular user", func(t *testing.T) {
+		_, resp, err := th.Client.GetAppliedSchemaMigrations()
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("as a system manager role", func(t *testing.T) {
+		_, appErr := th.App.UpdateUserRoles(th.BasicUser2.Id, model.SystemManagerRoleId, false)
+		require.Nil(t, appErr)
+		th.LoginBasic2()
+
+		_, resp, err := th.Client.GetAppliedSchemaMigrations()
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		_, resp, err := c.GetAppliedSchemaMigrations()
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 	})
 }

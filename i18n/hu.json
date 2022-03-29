@@ -1309,11 +1309,11 @@
   },
   {
     "id": "app.plugin.config.app_error",
-    "translation": "Hiba történt a plugin állapotának konfigurációba mentésekor."
+    "translation": "Hiba történt a bővítmény állapotának konfigurációba mentésekor."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
-    "translation": "A config.json fájl plugin konfigurációját manuálisan kell frissíteni, ha fürtözés használata mellett használja a ReadOnlyConfig kapcsolót."
+    "translation": "A config.json fájl bővítmény konfigurációját manuálisan kell frissíteni, ha fürtözés használata mellett használja a ReadOnlyConfig kapcsolót."
   },
   {
     "id": "app.oauth.update_app.updating.app_error",
@@ -2868,10 +2868,6 @@
     "translation": "Nem sikerült kiválasztani a csatornatagok kötegét."
   },
   {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Nem sikerült növelni az említések számlálóját."
-  },
-  {
     "id": "app.channel.get_unread.app_error",
     "translation": "Nem sikerült lekérni a csatorna olvasatlan üzeneteit."
   },
@@ -3098,18 +3094,6 @@
   {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot nem létezik."
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Nem lehet átalakítani a StringMap -ot *string -é"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Nem lehet átalakítani a StringInterface -t *string -é"
-  },
-  {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Nem lehet átalakítani a String Array -t *string -é"
   },
   {
     "id": "sharedchannel.permalink.not_found",
@@ -5376,10 +5360,6 @@
     "translation": "Csatorna fejléc túl hosszú."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Hiányzó kötelező csatorna tulajdonság: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
     "translation": "A csatorna display_name nem az engedélyezett hosszúságon belül van."
   },
@@ -6473,7 +6453,7 @@
   },
   {
     "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
-    "translation": "Nem lehet továbbítani a 80-as portot a 443-masra miközben a %s porton figyelünk: kapcsolja ki a Forward80To443 -at ha proxy szervert használ"
+    "translation": "Nem lehet továbbítani a 80-as portot a 443-asra miközben a %s porton figyelünk: kapcsolja ki a Forward80To443 -at ha proxy szervert használ"
   },
   {
     "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
@@ -8046,7 +8026,7 @@
   },
   {
     "id": "api.plugin.verify_plugin.app_error",
-    "translation": "Nem sikerült ellenőrizni a beépülő modul aláírását."
+    "translation": "Nem sikerült ellenőrizni a bővítmény aláírását."
   },
   {
     "id": "api.plugin.upload.no_file.app_error",
@@ -8062,7 +8042,7 @@
   },
   {
     "id": "api.plugin.install.download_failed.app_error",
-    "translation": "Hiba történt a plugin letöltése közben."
+    "translation": "Hiba történt a bővítmény letöltése közben."
   },
   {
     "id": "api.outgoing_webhook.disabled.app_error",
@@ -8422,7 +8402,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Nem található a megadott csatorna. A csatornák azonosításához használja a [csatorna azonosítót](https://about.mattermost.com/default-channel-handle-documentation)."
+    "translation": "Nem található a megadott csatorna. A csatornák azonosításához használja a [csatorna azonosítót](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)."
   },
   {
     "id": "api.command_mute.name",
@@ -8434,7 +8414,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Nem sikerült megtalálni a {{.Channel}} csatornát. A csatornák azonosításához használja a [csatorna azonosítót](https://about.mattermost.com/default-channel-handle-documentation)."
+    "translation": "Nem sikerült megtalálni a {{.Channel}} csatornát. A csatornák azonosításához használja a [csatorna azonosítót](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)."
   },
   {
     "id": "api.command_mute.desc",
@@ -8586,7 +8566,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Nem sikerült megtalálni a {{.Channel}} csatornát. A csatornák azonosításához használja a [csatorna azonosítót](https://about.mattermost.com/default-channel-handle-documentation)."
+    "translation": "Nem sikerült megtalálni a {{.Channel}} csatornát. A csatornák azonosításához használja a [csatorna azonosítót](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)."
   },
   {
     "id": "api.command_invite.channel.app_error",
@@ -8909,7 +8889,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, a Mattermost Cloud Enterprise 14 napos ingyenes próbaverziója ma lejárt, {{.TodayDate}}. Kérjük adja hozzá fizetési adatait, hogy csapata továbbra is élvezhesse a Cloud Enterprise előnyeit."
+    "translation": "{{.Name}}, a Mattermost Cloud Enterprise 14 napos ingyenes próbaverziója ma lejárt, {{.TodayDate}}. Kérjük adja hozzá fizetési adatait, hogy csapata továbbra is élvezhesse a Cloud Enterprise előnyeit. Ha 30 napon belül nem adja meg a fizetési adatait, a Cloud munkaterületét véglegesen töröljük, és a kapcsolódó adatokat elveszíti."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -9382,5 +9362,25 @@
   {
     "id": "api.templates.server_inactivity_info",
     "translation": "Jöjjön és nézze meg!"
+  },
+  {
+    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
+    "translation": "Nem lehet lekérni az összes munkát típus és státusz szerint."
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
+    "translation": "SMTP nincs beállítva a Rendszerkonzolban"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email.app_error",
+    "translation": "Hiba az e-mail küldése során"
+  },
+  {
+    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "translation": "Az előre becsomagolt plugin verzióját nem lehetett értelmezni."
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "A MattermostAppID maximális hossza 32 karakter."
   }
 ]

@@ -631,7 +631,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "找不到頻道 {{.Channel}}. 請用[頻道識別](https://about.mattermost.com/default-channel-handle-documentation)以分辨頻道。"
+    "translation": "找不到頻道 {{.Channel}}. 請用[頻道識別](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)以分辨頻道。"
   },
   {
     "id": "api.command_invite.desc",
@@ -775,7 +775,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "找不到頻道 {{.Channel}}. 請用[頻道識別](https://about.mattermost.com/default-channel-handle-documentation)以分辨頻道。"
+    "translation": "找不到頻道 {{.Channel}}. 請用[頻道識別](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)以分辨頻道。"
   },
   {
     "id": "api.command_mute.hint",
@@ -787,7 +787,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "找不到特定的頻道。 請用[頻道識別](https://about.mattermost.com/default-channel-handle-documentation)以分辨頻道。"
+    "translation": "找不到特定的頻道。 請用[頻道識別](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)以分辨頻道。"
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -2482,10 +2482,6 @@
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
     "translation": "頻道顯示名稱長度不符要求。"
-  },
-  {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "缺少必要的頻道屬性：顯示名稱。"
   },
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
@@ -4614,18 +4610,6 @@
   {
     "id": "plugin_api.send_mail.missing_to",
     "translation": "缺少收件人位址。"
-  },
-  {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: 無法將 StringArray 轉換為 *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: 無法將 StringInterface 轉換為 *string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: 無法將 StringMap 轉換為 *string"
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
@@ -7058,10 +7042,6 @@
   {
     "id": "app.channel.pinned_posts.app_error",
     "translation": "無法找到被釘選的訊息。"
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "無法增加提及計數。"
   },
   {
     "id": "app.channel.get_private_channels.get.app_error",
