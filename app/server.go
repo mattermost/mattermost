@@ -94,6 +94,7 @@ const (
 	LicenseKey   ServiceKey = "license"
 	FilestoreKey ServiceKey = "filestore"
 	ClusterKey   ServiceKey = "cluster"
+	PostKey      ServiceKey = "post"
 )
 
 type Server struct {
