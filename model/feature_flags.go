@@ -38,9 +38,6 @@ type FeatureFlags struct {
 
 	PermalinkPreviews bool
 
-	// Determine whether when a user gets created, they'll have noisy notifications e.g. Send desktop notifications for all activity
-	NewAccountNoisy bool
-
 	// Enable Calls plugin support in the mobile app
 	CallsMobile bool
 
@@ -85,7 +82,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
 	f.PermalinkPreviews = true
-	f.NewAccountNoisy = false
 	f.CallsMobile = false
 	f.BoardsFeatureFlags = ""
 	f.AddMembersToChannel = "top"
