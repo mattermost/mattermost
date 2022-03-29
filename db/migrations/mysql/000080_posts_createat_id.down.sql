@@ -5,8 +5,8 @@ SET @preparedStatement = (SELECT IF(
         AND table_schema = DATABASE()
         AND index_name = 'idx_posts_create_at_id'
     ) > 0,
-    'DROP INDEX idx_posts_create_at_id on Posts;'
-    'SELECT 1;',
+    'DROP INDEX idx_posts_create_at_id on Posts;',
+    'SELECT 1;'
 ));
 
 PREPARE removeIndexIfExists FROM @preparedStatement;
