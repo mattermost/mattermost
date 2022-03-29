@@ -8496,10 +8496,6 @@
     "translation": "Channel name is not valid"
   },
   {
-    "id": "model.member.is_valid.email.app_error",
-    "translation": "Email is not valid"
-  },
-  {
     "id": "model.member.is_valid.emails.app_error",
     "translation": "Email list is empty"
   },
