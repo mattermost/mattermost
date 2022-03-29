@@ -3,7 +3,7 @@ on:
   # Only the default branch is supported.
   branch_protection_rule:
   schedule:
-    - cron: '30 10,20 * * *'
+    - cron: '44 6 * * *'
   pull_request:
     branches: [ master ]
 
