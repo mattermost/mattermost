@@ -1314,7 +1314,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			mock.Anything,
 			mock.AnythingOfType("string"),
 			true,
-		).Once().Return(nil)
+		).Once().Return(nil, []*model.EmailInviteWithError{})
 		th.App.Srv().EmailService = &emailServiceMock
 
 		res, err := th.App.InviteNewUsersToTeamGracefully(memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")

@@ -238,17 +238,26 @@ func (_m *ServiceInterface) SendInviteEmails(team *model.Team, senderName string
 }
 
 // SendInviteEmailsToTeamAndChannels provides a mock function with given fields: team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, reminderData, message, errorWhenNotSent
-func (_m *ServiceInterface) SendInviteEmailsToTeamAndChannels(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, message string, errorWhenNotSent bool) error {
+func (_m *ServiceInterface) SendInviteEmailsToTeamAndChannels(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, message string, errorWhenNotSent bool) ([]*model.EmailInviteWithError, error) {
 	ret := _m.Called(team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, reminderData, message, errorWhenNotSent)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.Team, []*model.Channel, string, string, []byte, []string, string, *model.TeamInviteReminderData, string, bool) error); ok {
+	var r0 []*model.EmailInviteWithError
+	if rf, ok := ret.Get(0).(func(*model.Team, []*model.Channel, string, string, []byte, []string, string, *model.TeamInviteReminderData, string, bool) []*model.EmailInviteWithError); ok {
 		r0 = rf(team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, reminderData, message, errorWhenNotSent)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.EmailInviteWithError)
+		}
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Team, []*model.Channel, string, string, []byte, []string, string, *model.TeamInviteReminderData, string, bool) error); ok {
+		r1 = rf(team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, reminderData, message, errorWhenNotSent)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // SendLicenseInactivityEmail provides a mock function with given fields: _a0, name, locale, siteURL

@@ -617,19 +617,19 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 	reminderData *model.TeamInviteReminderData,
 	message string,
 	errorWhenNotSent bool,
-) error {
+) ([]*model.EmailInviteWithError, error) {
 	if es.perHourEmailRateLimiter == nil {
-		return NoRateLimiterError
+		return nil, NoRateLimiterError
 	}
 	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
 	if err != nil {
-		return SetupRateLimiterError
+		return nil, SetupRateLimiterError
 	}
 
 	if rateLimited {
 		mlog.Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("user_id", senderUserId),
 			mlog.String("team_id", team.Id), mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
-		return RateLimitExceededError
+		return nil, RateLimitExceededError
 	}
 
 	channelsLen := len(channels)
@@ -662,6 +662,7 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 		})
 	}
 
+	var invitesWithErrors []*model.EmailInviteWithError
 	for _, invite := range invites {
 		if invite == "" {
 			continue
@@ -741,11 +742,15 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 		if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, embeddedFiles); nErr != nil {
 			mlog.Error("Failed to send invite email successfully", mlog.Err(nErr))
 			if errorWhenNotSent {
-				return SendMailError
+				inviteWithError := &model.EmailInviteWithError{
+					Email: invite,
+					Error: &model.AppError{Message: nErr.Error()},
+				}
+				invitesWithErrors = append(invitesWithErrors, inviteWithError)
 			}
 		}
 	}
-	return nil
+	return invitesWithErrors, nil
 }
 
 func (es *Service) NewEmailTemplateData(locale string) templates.Data {
