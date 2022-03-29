@@ -1296,6 +1296,32 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		require.Len(t, res, 1)
 		require.NotNil(t, res[0].Error)
 	})
+
+	t.Run("it return list of email with no error when inviting to team and channels", func(t *testing.T) {
+		emailServiceMock := emailmocks.ServiceInterface{}
+		memberInvite := &model.MemberInvite{
+			Emails:   []string{"idontexist@mattermost.com"},
+			Channels: []string{th.BasicChannel.Id},
+		}
+		emailServiceMock.On("SendInviteEmailsToTeamAndChannels",
+			mock.AnythingOfType("*model.Team"),
+			mock.AnythingOfType("[]*model.Channel"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("[]uint8"),
+			memberInvite.Emails,
+			"",
+			mock.Anything,
+			mock.AnythingOfType("string"),
+			true,
+		).Once().Return(nil)
+		th.App.Srv().EmailService = &emailServiceMock
+
+		res, err := th.App.InviteNewUsersToTeamGracefully(memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, err)
+		require.Len(t, res, 1)
+		require.Nil(t, res[0].Error)
+	})
 }
 
 func TestInviteGuestsToChannelsGracefully(t *testing.T) {
