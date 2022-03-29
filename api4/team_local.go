@@ -83,7 +83,7 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	memberInvite := &model.MemberInvite{}
-	if jsonErr := json.Unmarshal(bf, &memberInvite); jsonErr != nil {
+	if jsonErr := json.Unmarshal(bf, memberInvite); jsonErr != nil {
 		c.Err = model.NewAppError("Api4.inviteUsersToTeams", "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
 		return
 	}
