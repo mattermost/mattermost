@@ -1275,8 +1275,8 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	memberInvite := model.MemberInvite{}
-	if jsonErr := json.NewDecoder(r.Body).Decode(&memberInvite); jsonErr != nil {
+	memberInvite := &model.MemberInvite{}
+	if jsonErr := json.NewDecoder(r.Body).Decode(memberInvite); jsonErr != nil {
 		c.Err = model.NewAppError("Api4.inviteUsersToTeams", "api.team.invite_members_to_team_and_channels.invalid_body.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
 		return
 	}
@@ -1309,7 +1309,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		var invitesWithError []*model.EmailInviteWithError
 		var err *model.AppError
 		if emailList != nil {
-			invitesWithError, err = c.App.InviteNewUsersToTeamGracefully(&memberInvite, c.Params.TeamId, c.AppContext.Session().UserId, "")
+			invitesWithError, err = c.App.InviteNewUsersToTeamGracefully(memberInvite, c.Params.TeamId, c.AppContext.Session().UserId, "")
 		}
 
 		if invitesWithError != nil {

@@ -634,13 +634,13 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 
 	channelsLen := len(channels)
 
-	subject := i18n.T("api.templates.invite_team_and_channels_subject_a", map[string]interface{}{
+	subject := i18n.T("api.templates.invite_team_and_channels_subject", map[string]interface{}{
 		"SenderName":      senderName,
 		"TeamDisplayName": team.DisplayName,
 		"ChannelsLen":     channelsLen,
 		"SiteName":        es.config().TeamSettings.SiteName})
 
-	title := i18n.T("api.templates.invite_team_and_channels_body.title_a", map[string]interface{}{
+	title := i18n.T("api.templates.invite_team_and_channels_body.title", map[string]interface{}{
 		"SenderName":      senderName,
 		"ChannelsLen":     channelsLen,
 		"TeamDisplayName": team.DisplayName})
@@ -648,14 +648,14 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 	if channelsLen == 1 {
 		channelName := channels[0].DisplayName
 
-		subject = i18n.T("api.templates.invite_team_and_channels_subject_b",
+		subject = i18n.T("api.templates.invite_team_and_channel_subject",
 			map[string]interface{}{"SenderName": senderName,
 				"TeamDisplayName": team.DisplayName,
 				"ChannelName":     channelName,
 				"SiteName":        es.config().TeamSettings.SiteName},
 		)
 
-		title = i18n.T("api.templates.invite_team_and_channels_body.title_b", map[string]interface{}{
+		title = i18n.T("api.templates.invite_team_and_channel_body.title", map[string]interface{}{
 			"SenderName":      senderName,
 			"ChannelName":     channelName,
 			"TeamDisplayName": team.DisplayName,

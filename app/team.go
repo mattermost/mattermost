@@ -1207,7 +1207,7 @@ func (a *App) postRemoveFromTeamMessage(c *request.Context, user *model.User, ch
 	return nil
 }
 
-func (a *App) prepareInviteNewUsersToTeam(teamID string, senderId string, channelIds []string) (*model.User, *model.Team, []*model.Channel, *model.AppError) {
+func (a *App) prepareInviteNewUsersToTeam(teamID, senderId string, channelIds []string) (*model.User, *model.Team, []*model.Channel, *model.AppError) {
 	tchan := make(chan store.StoreResult, 1)
 	go func() {
 		team, err := a.Srv().Store.Team().Get(teamID)
