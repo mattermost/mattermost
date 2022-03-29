@@ -19,12 +19,6 @@ func (i *MemberInvite) IsValid() *AppError {
 		return NewAppError("MemberInvite.IsValid", "model.member.is_valid.emails.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	for _, email := range i.Emails {
-		if len(email) > UserEmailMaxLength || email == "" || !IsValidEmail(email) {
-			return NewAppError("MemberInvite.IsValid", "model.member.is_valid.email.app_error", nil, "email="+email, http.StatusBadRequest)
-		}
-	}
-
 	if len(i.Channels) > 0 {
 		for _, channel := range i.Channels {
 			if len(channel) != 26 {

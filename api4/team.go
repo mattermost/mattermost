@@ -1287,11 +1287,6 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		emailList[i] = strings.ToLower(emailList[i])
 	}
 
-	if err := memberInvite.IsValid(); err != nil {
-		c.Err = err
-		return
-	}
-
 	if len(emailList) == 0 {
 		c.SetInvalidParam("user_email")
 		return
