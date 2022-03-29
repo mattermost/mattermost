@@ -1223,21 +1223,13 @@ func (a *App) prepareInviteNewUsersToTeam(teamID, senderId string, channelIds []
 	}()
 
 	var channels []*model.Channel
+	var err error
 	if len(channelIds) > 0 {
-		cchan := make(chan store.StoreResult, 1)
-		go func() {
-			channelsById, err := a.Srv().Store.Channel().GetChannelsByIds(channelIds, false)
-			cchan <- store.StoreResult{Data: channelsById, NErr: err}
-			close(cchan)
-		}()
-
-		result := <-cchan
-		if result.NErr != nil {
-			return nil, nil, nil, model.NewAppError("prepareInviteNewUsersToTeam", "app.channel.get_channels_by_ids.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+		channels, err = a.Srv().Store.Channel().GetChannelsByIds(channelIds, false)
+		if err != nil {
+			return nil, nil, nil, model.NewAppError("prepareInviteNewUsersToTeam", "app.channel.get_channels_by_ids.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
-		channels = result.Data.([]*model.Channel)
 	}
-
 	result := <-tchan
 	if result.NErr != nil {
 		var nfErr *store.ErrNotFound
