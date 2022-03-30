@@ -3324,6 +3324,37 @@ func (s *SqlSettings) isValid() *AppError {
 	return nil
 }
 
+func (s *FileSettings) IsEmpty() bool {
+	if s.DriverName == nil {
+		return true
+	}
+	if *s.DriverName == ImageDriverLocal {
+		if s.DriverName == nil {
+			return true
+		}
+
+		return false
+	} else if *s.DriverName == ImageDriverS3 {
+		if s.AmazonS3AccessKeyId == nil {
+			return true
+		}
+		if s.AmazonS3SecretAccessKey == nil {
+			return true
+		}
+		if s.AmazonS3Bucket == nil {
+			return true
+		}
+		if s.AmazonS3PathPrefix == nil {
+			return true
+		}
+		if s.AmazonS3Region == nil {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (s *FileSettings) isValid() *AppError {
 	if *s.MaxFileSize <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_file_size.app_error", nil, "", http.StatusBadRequest)

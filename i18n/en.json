@@ -1818,6 +1818,10 @@
     "translation": "Ensure your Amazon S3 bucket is available, and verify your bucket permissions."
   },
   {
+    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "translation": "File storage is not configured properly."
+  },
+  {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
     "translation": "Unable to upload the file. Incorrect channel ID: {{.channelId}}"
   },

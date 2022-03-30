@@ -461,6 +461,11 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if cfg.FileSettings.IsEmpty() {
+		c.Err = model.NewAppError("testS3", "api.file.test_connection_s3_settings_nil.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	err := c.App.CheckMandatoryS3Fields(&cfg.FileSettings)
 	if err != nil {
 		c.Err = err
