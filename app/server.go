@@ -20,6 +20,7 @@ import (
 	"os/exec"
 	"path"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -92,6 +93,9 @@ const (
 	ConfigKey    ServiceKey = "config"
 	LicenseKey   ServiceKey = "license"
 	FilestoreKey ServiceKey = "filestore"
+	ClusterKey   ServiceKey = "cluster"
+	PostKey      ServiceKey = "post"
+	TeamKey      ServiceKey = "team"
 )
 
 type Server struct {
@@ -139,6 +143,7 @@ type Server struct {
 	Jobs             *jobs.JobServer
 
 	clusterLeaderListeners sync.Map
+	clusterWrapper         *clusterWrapper
 
 	licenseValue       atomic.Value
 	clientLicenseValue atomic.Value
@@ -362,20 +367,36 @@ func NewServer(options ...Option) (*Server, error) {
 		srv: s,
 	}
 
+	s.clusterWrapper = &clusterWrapper{
+		srv: s,
+	}
+
+	s.teamService, err = teams.New(teams.ServiceConfig{
+		TeamStore:    s.Store.Team(),
+		ChannelStore: s.Store.Channel(),
+		GroupStore:   s.Store.Group(),
+		Users:        s.userService,
+		WebHub:       s,
+		ConfigFn:     s.Config,
+		LicenseFn:    s.License,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to create teams service")
+	}
+
 	serviceMap := map[ServiceKey]interface{}{
 		ConfigKey:    s.configStore,
 		LicenseKey:   s.licenseWrapper,
 		FilestoreKey: s.filestore,
+		ClusterKey:   s.clusterWrapper,
+		TeamKey:      s.teamService,
 	}
+
 	// Step 8: Initialize products.
 	// Depends on s.httpService.
-	for name, initializer := range products {
-		prod, err2 := initializer(s, serviceMap)
-		if err2 != nil {
-			return nil, errors.Wrapf(err2, "error initializing product: %s", name)
-		}
-
-		s.products[name] = prod
+	err = s.initializeProducts(products, serviceMap)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to initialize products")
 	}
 
 	// It is important to initialize the hub only after the global logger is set
@@ -463,19 +484,6 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 	s.htmlTemplateWatcher = htmlTemplateWatcher
 
-	s.teamService, err = teams.New(teams.ServiceConfig{
-		TeamStore:    s.Store.Team(),
-		ChannelStore: s.Store.Channel(),
-		GroupStore:   s.Store.Group(),
-		Users:        s.userService,
-		WebHub:       s,
-		ConfigFn:     s.Config,
-		LicenseFn:    s.License,
-	})
-	if err != nil {
-		return nil, errors.Wrapf(err, "unable to create teams service")
-	}
-
 	s.configListenerId = s.AddConfigListener(func(_, _ *model.Config) {
 		ch := s.Channels()
 		ch.regenerateClientConfig()
@@ -540,7 +548,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if _, err = url.ParseRequestURI(*s.Config().ServiceSettings.SiteURL); err != nil {
-		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: http://about.mattermost.com/default-site-url")
+		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://docs.mattermost.com/configure/configuration-settings.html#site-url")
 	}
 
 	// Start email batching because it's not like the other jobs
@@ -752,10 +760,10 @@ func (s *Server) Channels() *Channels {
 	return ch
 }
 
-// Return Database type (postgres or mysql) and current version of Mattermost
-func (s *Server) DatabaseTypeAndMattermostVersion() (string, string) {
-	mattermostVersion, _ := s.Store.System().GetByName("Version")
-	return *s.Config().SqlSettings.DriverName, mattermostVersion.Value
+// Return Database type (postgres or mysql) and current version of the schema
+func (s *Server) DatabaseTypeAndSchemaVersion() (string, string) {
+	schemaVersion, _ := s.Store.GetDBSchemaVersion()
+	return *s.Config().SqlSettings.DriverName, strconv.Itoa(schemaVersion)
 }
 
 // initLogging initializes and configures the logger(s). This may be called more than once.
@@ -2194,13 +2202,15 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
 		vendorName, vendorVersion = ldapInterface.GetVendorNameAndVendorVersion()
 	}
 
-	// Here we are getting information regarding the database (mysql/postgres + current Mattermost version)
-	databaseType, databaseVersion := a.Srv().DatabaseTypeAndMattermostVersion()
+	// Here we are getting information regarding the database (mysql/postgres + current schema version)
+	databaseType, databaseVersion := a.Srv().DatabaseTypeAndSchemaVersion()
 
 	// Creating the struct for support packet yaml file
 	supportPacket := model.SupportPacket{
 		ServerOS:             runtime.GOOS,
 		ServerArchitecture:   runtime.GOARCH,
+		ServerVersion:        model.CurrentVersion,
+		BuildHash:            model.BuildHash,
 		DatabaseType:         databaseType,
 		DatabaseVersion:      databaseVersion,
 		LdapVendorName:       vendorName,
@@ -2303,4 +2313,12 @@ func runDNDStatusExpireJob(a *App) {
 			cancelDNDStatusExpirationRecurringTask(a)
 		}
 	})
+}
+
+func (a *App) GetAppliedSchemaMigrations() ([]model.AppliedMigration, *model.AppError) {
+	table, err := a.Srv().Store.GetAppliedMigrations()
+	if err != nil {
+		return nil, model.NewAppError("GetDBSchemaTable", "api.file.read_file.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return table, nil
 }

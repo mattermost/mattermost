@@ -4604,6 +4604,28 @@ func (a *OpenTracingAppLayer) GetAnalytics(name string, teamID string) (model.An
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetAppliedSchemaMigrations() ([]model.AppliedMigration, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAppliedSchemaMigrations")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetAppliedSchemaMigrations()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetAudits(userID string, limit int) (model.Audits, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAudits")
@@ -4859,6 +4881,28 @@ func (a *OpenTracingAppLayer) GetChannelCounts(teamID string, userID string) (*m
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.GetChannelCounts(teamID, userID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) GetChannelFileCount(channelID string) (int64, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelFileCount")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetChannelFileCount(channelID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7617,7 +7661,7 @@ func (a *OpenTracingAppLayer) GetPostIfAuthorized(postID string, session *model.
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetPostThread(postID string, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool, userID string) (*model.PostList, *model.AppError) {
+func (a *OpenTracingAppLayer) GetPostThread(postID string, opts model.GetPostsOptions, userID string) (*model.PostList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostThread")
 
@@ -7629,7 +7673,7 @@ func (a *OpenTracingAppLayer) GetPostThread(postID string, skipFetchThreads bool
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetPostThread(postID, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID)
+	resultVar0, resultVar1 := a.app.GetPostThread(postID, opts, userID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -11386,6 +11430,28 @@ func (a *OpenTracingAppLayer) ListDirectory(path string) ([]string, *model.AppEr
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.ListDirectory(path)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) ListDirectoryRecursively(path string) ([]string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ListDirectoryRecursively")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.ListDirectoryRecursively(path)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

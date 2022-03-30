@@ -633,7 +633,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://about.mattermost.com/default-channel-handle-documentation) для ідентифікаціі каналів."
+    "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для ідентифікаціі каналів."
   },
   {
     "id": "api.command_invite.desc",
@@ -777,7 +777,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://about.mattermost.com/default-channel-handle-documentation) для ідентифікаціі каналів. "
+    "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для ідентифікаціі каналів. "
   },
   {
     "id": "api.command_mute.hint",
@@ -789,7 +789,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://about.mattermost.com/default-channel-handle-documentation) для ідентифікаціі каналів. "
+    "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для ідентифікаціі каналів. "
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -4618,18 +4618,6 @@
   {
     "id": "plugin_api.send_mail.missing_to",
     "translation": "Missing TO address."
-  },
-  {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Неможливо перетворити StringArray в * string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Неможливо перетворити StringInterface в * string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Неможливо перетворити StringMap в * string"
   },
   {
     "id": "store.sql_bot.get.missing.app_error",

@@ -1157,6 +1157,22 @@ func (s *TimerLayerChannelStore) GetDeletedByName(team_id string, name string) (
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) GetFileCount(channelID string) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.ChannelStore.GetFileCount(channelID)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetFileCount", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) GetForPost(postID string) (*model.Channel, error) {
 	start := timemodule.Now()
 
@@ -4890,10 +4906,10 @@ func (s *TimerLayerPostStore) DeleteOrphanedRows(limit int) (int64, error) {
 	return result, err
 }
 
-func (s *TimerLayerPostStore) Get(ctx context.Context, id string, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool, userID string) (*model.PostList, error) {
+func (s *TimerLayerPostStore) Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string) (*model.PostList, error) {
 	start := timemodule.Now()
 
-	result, err := s.PostStore.Get(ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID)
+	result, err := s.PostStore.Get(ctx, id, opts, userID)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -8455,7 +8471,7 @@ func (s *TimerLayerThreadStore) GetThreadUnreadReplyCount(threadMembership *mode
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) GetThreadsForUser(userId string, teamID string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
+func (s *TimerLayerThreadStore) GetThreadsForUser(userId string, teamID string, opts model.GetUserThreadsOpts) ([]*model.ThreadResponse, error) {
 	start := timemodule.Now()
 
 	result, err := s.ThreadStore.GetThreadsForUser(userId, teamID, opts)
@@ -8467,6 +8483,54 @@ func (s *TimerLayerThreadStore) GetThreadsForUser(userId string, teamID string, 
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetThreadsForUser", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) GetTotalThreads(userId string, teamID string, opts model.GetUserThreadsOpts) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.GetTotalThreads(userId, teamID, opts)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetTotalThreads", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) GetTotalUnreadMentions(userId string, teamID string, opts model.GetUserThreadsOpts) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.GetTotalUnreadMentions(userId, teamID, opts)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetTotalUnreadMentions", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) GetTotalUnreadThreads(userId string, teamID string, opts model.GetUserThreadsOpts) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.GetTotalUnreadThreads(userId, teamID, opts)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetTotalUnreadThreads", success, elapsed)
 	}
 	return result, err
 }
@@ -10614,10 +10678,6 @@ func (s *TimerLayer) Close() {
 
 func (s *TimerLayer) DropAllTables() {
 	s.Store.DropAllTables()
-}
-
-func (s *TimerLayer) GetCurrentSchemaVersion() string {
-	return s.Store.GetCurrentSchemaVersion()
 }
 
 func (s *TimerLayer) LockToMaster() {
