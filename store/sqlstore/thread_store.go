@@ -358,12 +358,13 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) 
 	go func() {
 		defer wg.Done()
 		repliesQuery, repliesQueryArgs, err := s.getQueryBuilder().
-			Select("COUNT(DISTINCT(Posts.RootId)) AS Count, TeamId").
-			From("Posts").
-			LeftJoin("ThreadMemberships ON Posts.RootId = ThreadMemberships.PostId").
-			LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
+			Select("COUNT(Threads.PostId) AS Count, TeamId").
+			From("Threads").
+			LeftJoin("ThreadMemberships ON Threads.PostId = ThreadMemberships.PostId").
+			LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
+			LeftJoin("Posts ON Posts.Id = Threads.PostId").
 			Where(fetchConditions).
-			Where("Posts.CreateAt > ThreadMemberships.LastViewed").
+			Where("Threads.LastReplyAt > ThreadMemberships.LastViewed").
 			GroupBy("Channels.TeamId").
 			ToSql()
 		if err != nil {
