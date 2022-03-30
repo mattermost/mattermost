@@ -255,7 +255,7 @@ func TestRequestTrialLicense(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
-	t.Run("returns 451 when it receives 451", func(t *testing.T) {
+	t.Run("returns status 451 when it receives status 451", func(t *testing.T) {
 		nUsers := 1
 		license := model.NewTestLicense()
 		license.Features.Users = model.NewInt(nUsers)
