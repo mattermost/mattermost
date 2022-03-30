@@ -1757,7 +1757,7 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
-	if license.IsPastGracePeriod() {
+	if !license.IsPastGracePeriod() {
 		mlog.Debug("License is not past the grace period.")
 		return
 	}
