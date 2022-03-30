@@ -34,9 +34,6 @@ const (
 	SystemFirstAdminSetupComplete          = "FirstAdminSetupComplete"
 	AwsMeteringReportInterval              = 1
 	AwsMeteringDimensionUsageHrs           = "UsageHrs"
-	UserLimitOverageCycleEndDate           = "UserLimitOverageCycleEndDate"
-	OverUserLimitForgivenCount             = "OverUserLimitForgivenCount"
-	OverUserLimitLastEmailSent             = "OverUserLimitLastEmailSent"
 )
 
 const (

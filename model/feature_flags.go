@@ -16,9 +16,6 @@ type FeatureFlags struct {
 	// all other values as false.
 	TestBoolFeature bool
 
-	// Toggle on and off scheduled jobs for cloud user limit emails see MM-29999
-	CloudDelinquentEmailJobsEnabled bool
-
 	// Toggle on and off support for Collapsed Threads
 	CollapsedThreads bool
 
@@ -75,7 +72,6 @@ type FeatureFlags struct {
 func (f *FeatureFlags) SetDefaults() {
 	f.TestFeature = "off"
 	f.TestBoolFeature = false
-	f.CloudDelinquentEmailJobsEnabled = false
 	f.CollapsedThreads = true
 	f.EnableRemoteClusterService = false
 	f.AppsEnabled = false
