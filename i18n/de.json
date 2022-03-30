@@ -9399,10 +9399,6 @@
     "translation": " "
   },
   {
-    "id": "app.system.applied_migrations.not_authorized",
-    "translation": "Dir fehlen die notwendigen Berechtigungen."
-  },
-  {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
     "translation": "Die maximale Länge der MattermostAppID ist 32 Zeichen."
   }

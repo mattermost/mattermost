@@ -9,3 +9,15 @@ type ChannelStats struct {
 	GuestCount      int64  `json:"guest_count"`
 	PinnedPostCount int64  `json:"pinnedpost_count"`
 }
+
+func (o *ChannelStats) MemberCount_() float64 {
+	return float64(o.MemberCount)
+}
+
+func (o *ChannelStats) GuestCount_() float64 {
+	return float64(o.GuestCount)
+}
+
+func (o *ChannelStats) PinnedPostCount_() float64 {
+	return float64(o.PinnedPostCount)
+}

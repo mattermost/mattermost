@@ -57,6 +57,7 @@ func (a *App) PreparePostListForClient(originalList *model.PostList) *model.Post
 		Order:      originalList.Order,
 		NextPostId: originalList.NextPostId,
 		PrevPostId: originalList.PrevPostId,
+		HasNext:    originalList.HasNext,
 	}
 
 	for id, originalPost := range originalList.Posts {

@@ -631,7 +631,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "无法找到频道{{.Channel}}。请使用[频道识别](https://about.mattermost.com/default-channel-handle-documentation)以分辨频道。"
+    "translation": "无法找到频道{{.Channel}}。请使用[频道识别](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)以分辨频道。"
   },
   {
     "id": "api.command_invite.desc",
@@ -775,7 +775,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "无法找到频道{{.Channel}}。请使用[频道识别](https://about.mattermost.com/default-channel-handle-documentation)以分辨频道。"
+    "translation": "无法找到频道{{.Channel}}。请使用[频道识别](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)以分辨频道。"
   },
   {
     "id": "api.command_mute.hint",
@@ -787,7 +787,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "无法找到指定的频道。请使用[频道识别](https://about.mattermost.com/default-channel-handle-documentation) 以分辨频道。"
+    "translation": "无法找到指定的频道。请使用[频道识别](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) 以分辨频道。"
   },
   {
     "id": "api.command_mute.not_member.error",
