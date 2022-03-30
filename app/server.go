@@ -95,6 +95,7 @@ const (
 	FilestoreKey ServiceKey = "filestore"
 	ClusterKey   ServiceKey = "cluster"
 	PostKey      ServiceKey = "post"
+	TeamKey      ServiceKey = "team"
 )
 
 type Server struct {
@@ -370,11 +371,25 @@ func NewServer(options ...Option) (*Server, error) {
 		srv: s,
 	}
 
+	s.teamService, err = teams.New(teams.ServiceConfig{
+		TeamStore:    s.Store.Team(),
+		ChannelStore: s.Store.Channel(),
+		GroupStore:   s.Store.Group(),
+		Users:        s.userService,
+		WebHub:       s,
+		ConfigFn:     s.Config,
+		LicenseFn:    s.License,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to create teams service")
+	}
+
 	serviceMap := map[ServiceKey]interface{}{
 		ConfigKey:    s.configStore,
 		LicenseKey:   s.licenseWrapper,
 		FilestoreKey: s.filestore,
 		ClusterKey:   s.clusterWrapper,
+		TeamKey:      s.teamService,
 	}
 
 	// Step 8: Initialize products.
@@ -468,19 +483,6 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	})
 	s.htmlTemplateWatcher = htmlTemplateWatcher
-
-	s.teamService, err = teams.New(teams.ServiceConfig{
-		TeamStore:    s.Store.Team(),
-		ChannelStore: s.Store.Channel(),
-		GroupStore:   s.Store.Group(),
-		Users:        s.userService,
-		WebHub:       s,
-		ConfigFn:     s.Config,
-		LicenseFn:    s.License,
-	})
-	if err != nil {
-		return nil, errors.Wrapf(err, "unable to create teams service")
-	}
 
 	s.configListenerId = s.AddConfigListener(func(_, _ *model.Config) {
 		ch := s.Channels()
