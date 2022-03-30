@@ -57,7 +57,7 @@ func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndC
 	policyInsertQuery, policyInsertArgs, err := s.getQueryBuilder().
 		Insert("RetentionPolicies").
 		Columns("Id", "DisplayName", "PostDuration").
-		Values(policy.ID, policy.DisplayName, policy.PostDuration).
+		Values(policy.ID, policy.DisplayName, policy.PostDurationDays).
 		ToSql()
 	if err != nil {
 		return nil, err
@@ -214,13 +214,13 @@ func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndC
 
 	policyUpdateQuery := ""
 	policyUpdateArgs := []interface{}{}
-	if patch.DisplayName != "" || patch.PostDuration != nil {
+	if patch.DisplayName != "" || patch.PostDurationDays != nil {
 		builder := s.getQueryBuilder().Update("RetentionPolicies")
 		if patch.DisplayName != "" {
 			builder = builder.Set("DisplayName", patch.DisplayName)
 		}
-		if patch.PostDuration != nil {
-			builder = builder.Set("PostDuration", *patch.PostDuration)
+		if patch.PostDurationDays != nil {
+			builder = builder.Set("PostDuration", *patch.PostDurationDays)
 		}
 		policyUpdateQuery, policyUpdateArgs, err = builder.
 			Where(sq.Eq{"Id": patch.ID}).
