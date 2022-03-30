@@ -142,12 +142,6 @@ type ServiceInterface interface {
 	SendNotificationMail(to, subject, htmlBody string) error
 	SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader) error
 	SendLicenseUpForRenewalEmail(email, name, locale, siteURL, renewalLink string, daysToExpiration int) error
-	SendOverUserLimitThirtyDayWarningEmail(email string, locale string, siteURL string) (bool, error)
-	SendOverUserLimitNinetyDayWarningEmail(email string, locale string, siteURL string, overLimitDate string) (bool, error)
-	SendOverUserLimitWorkspaceSuspendedWarningEmail(email string, locale string, siteURL string) (bool, error)
-	SendOverUserFourteenDayWarningEmail(email string, locale string, siteURL string, overLimitDate string) (bool, error)
-	SendOverUserSevenDayWarningEmail(email string, locale string, siteURL string) (bool, error)
-	SendSuspensionEmailToSupport(email string, installationID string, customerID string, subscriptionID string, siteURL string, userCount int64) (bool, error)
 	SendPaymentFailedEmail(email string, locale string, failedPayment *model.FailedPayment, siteURL string) (bool, error)
 	SendNoCardPaymentFailedEmail(email string, locale string, siteURL string) error
 	SendRemoveExpiredLicenseEmail(renewalLink, email string, locale, siteURL string) error
