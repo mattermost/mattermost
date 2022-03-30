@@ -178,12 +178,6 @@ type FailedPayment struct {
 type CloudWorkspaceOwner struct {
 	UserName string `json:"username"`
 }
-type SubscriptionStats struct {
-	RemainingSeats int    `json:"remaining_seats"`
-	IsPaidTier     string `json:"is_paid_tier"`
-	IsFreeTrial    string `json:"is_free_trial"`
-}
-
 type SubscriptionChange struct {
 	ProductID string `json:"product_id"`
 }

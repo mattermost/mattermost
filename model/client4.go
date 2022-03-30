@@ -7885,26 +7885,6 @@ func (c *Client4) UpdateThreadFollowForUser(userId, teamId, threadId string, sta
 	return BuildResponse(r), nil
 }
 
-// func (c *Client4) SendAdminUpgradeRequestEmail() (*Response, error) {
-// 	r, err := c.DoAPIPost(c.cloudRoute()+"/subscription/limitreached/invite", "")
-// 	if err != nil {
-// 		return BuildResponse(r), err
-// 	}
-// 	defer closeBody(r)
-
-// 	return BuildResponse(r), nil
-// }
-
-// func (c *Client4) SendAdminUpgradeRequestEmailOnJoin() (*Response, error) {
-// 	r, err := c.DoAPIPost(c.cloudRoute()+"/subscription/limitreached/join", "")
-// 	if err != nil {
-// 		return BuildResponse(r), err
-// 	}
-// 	defer closeBody(r)
-
-// 	return BuildResponse(r), nil
-// }
-
 func (c *Client4) GetAllSharedChannels(teamID string, page, perPage int) ([]*SharedChannel, *Response, error) {
 	url := fmt.Sprintf("%s/%s?page=%d&per_page=%d", c.sharedChannelsRoute(), teamID, page, perPage)
 	r, err := c.DoAPIGet(url, "")
