@@ -1721,12 +1721,13 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 }
 
 func (s *Server) doLicenseExpirationCheck() {
+	s.LoadLicense()
 
 	// This takes care of a rare edge case reported here https://mattermost.atlassian.net/browse/MM-40962
 	// To reproduce that case locally, attach a license to a server that was started with enterprise enabled
 	// Then restart using BUILD_ENTERPRISE=false make restart-server to enter Team Edition
 	if model.BuildEnterpriseReady != "true" {
-		mlog.Debug("Skipping license expiraion check because no license is expected on Team Edition")
+		mlog.Debug("Skipping license expiration check because no license is expected on Team Edition")
 		return
 	}
 
@@ -1753,36 +1754,38 @@ func (s *Server) doLicenseExpirationCheck() {
 		if appErr != nil {
 			mlog.Debug(appErr.Error())
 		}
-
 		return
 	}
 
 	if license.IsPastGracePeriod() {
-		mlog.Debug("License is past the grace period.")
-
-		renewalLink, _, err := s.GenerateLicenseRenewalLink()
-		if err != nil {
-			mlog.Error("Error while sending the license expired email.", mlog.Err(err))
-			return
-		}
-
-		//send email to admin(s)
-		for _, user := range users {
-			user := user
-			if user.Email == "" {
-				mlog.Error("Invalid system admin email.", mlog.String("user_email", user.Email))
-				continue
-			}
-
-			mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
-			s.Go(func() {
-				if err := s.SendRemoveExpiredLicenseEmail(user.Email, renewalLink, user.Locale, *s.Config().ServiceSettings.SiteURL); err != nil {
-					mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
-				}
-			})
-		}
+		mlog.Debug("License is not past the grace period.")
+		return
 	}
 
+	renewalLink, _, err := s.GenerateLicenseRenewalLink()
+	if err != nil {
+		mlog.Error("Error while sending the license expired email.", mlog.Err(err))
+		return
+	}
+
+	//send email to admin(s)
+	for _, user := range users {
+		user := user
+		if user.Email == "" {
+			mlog.Error("Invalid system admin email.", mlog.String("user_email", user.Email))
+			continue
+		}
+
+		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
+		s.Go(func() {
+			if err := s.SendRemoveExpiredLicenseEmail(user.Email, renewalLink, user.Locale, *s.Config().ServiceSettings.SiteURL); err != nil {
+				mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
+			}
+		})
+	}
+
+	//remove the license
+	s.RemoveLicense()
 }
 
 // SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
