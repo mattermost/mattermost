@@ -94,6 +94,8 @@ const (
 	LicenseKey   ServiceKey = "license"
 	FilestoreKey ServiceKey = "filestore"
 	ClusterKey   ServiceKey = "cluster"
+	PostKey      ServiceKey = "post"
+	TeamKey      ServiceKey = "team"
 )
 
 type Server struct {
@@ -369,22 +371,32 @@ func NewServer(options ...Option) (*Server, error) {
 		srv: s,
 	}
 
+	s.teamService, err = teams.New(teams.ServiceConfig{
+		TeamStore:    s.Store.Team(),
+		ChannelStore: s.Store.Channel(),
+		GroupStore:   s.Store.Group(),
+		Users:        s.userService,
+		WebHub:       s,
+		ConfigFn:     s.Config,
+		LicenseFn:    s.License,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to create teams service")
+	}
+
 	serviceMap := map[ServiceKey]interface{}{
 		ConfigKey:    s.configStore,
 		LicenseKey:   s.licenseWrapper,
 		FilestoreKey: s.filestore,
 		ClusterKey:   s.clusterWrapper,
+		TeamKey:      s.teamService,
 	}
 
 	// Step 8: Initialize products.
 	// Depends on s.httpService.
-	for name, initializer := range products {
-		prod, err2 := initializer(s, serviceMap)
-		if err2 != nil {
-			return nil, errors.Wrapf(err2, "error initializing product: %s", name)
-		}
-
-		s.products[name] = prod
+	err = s.initializeProducts(products, serviceMap)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to initialize products")
 	}
 
 	// It is important to initialize the hub only after the global logger is set
@@ -471,19 +483,6 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	})
 	s.htmlTemplateWatcher = htmlTemplateWatcher
-
-	s.teamService, err = teams.New(teams.ServiceConfig{
-		TeamStore:    s.Store.Team(),
-		ChannelStore: s.Store.Channel(),
-		GroupStore:   s.Store.Group(),
-		Users:        s.userService,
-		WebHub:       s,
-		ConfigFn:     s.Config,
-		LicenseFn:    s.License,
-	})
-	if err != nil {
-		return nil, errors.Wrapf(err, "unable to create teams service")
-	}
 
 	s.configListenerId = s.AddConfigListener(func(_, _ *model.Config) {
 		ch := s.Channels()

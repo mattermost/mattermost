@@ -2009,6 +2009,15 @@ func (a *App) GetChannelMemberCount(channelID string) (int64, *model.AppError) {
 	return count, nil
 }
 
+func (a *App) GetChannelFileCount(channelID string) (int64, *model.AppError) {
+	count, err := a.Srv().Store.Channel().GetFileCount(channelID)
+	if err != nil {
+		return 0, model.NewAppError("SqlChannelStore.GetFileCount", "app.channel.get_file_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return count, nil
+}
+
 func (a *App) GetChannelGuestCount(channelID string) (int64, *model.AppError) {
 	count, err := a.Srv().Store.Channel().GetGuestCount(channelID, true)
 	if err != nil {

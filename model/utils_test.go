@@ -778,6 +778,13 @@ func checkNowhereNil(t *testing.T, name string, value interface{}) bool {
 	v := reflect.ValueOf(value)
 	switch v.Type().Kind() {
 	case reflect.Ptr:
+		// Ignoring these 2 settings.
+		// TODO: remove them completely in v8.0.
+		if name == "config.BleveSettings.BulkIndexingTimeWindowSeconds" ||
+			name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" {
+			return true
+		}
+
 		if v.IsNil() {
 			t.Logf("%s was nil", name)
 			return false

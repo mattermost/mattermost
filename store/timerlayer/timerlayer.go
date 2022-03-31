@@ -1029,10 +1029,10 @@ func (s *TimerLayerChannelStore) GetChannels(teamID string, userID string, opts 
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetChannelsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.Channel, error) {
+func (s *TimerLayerChannelStore) GetChannelsBatchForIndexing(startTime int64, startChannelID string, limit int) ([]*model.Channel, error) {
 	start := timemodule.Now()
 
-	result, err := s.ChannelStore.GetChannelsBatchForIndexing(startTime, endTime, limit)
+	result, err := s.ChannelStore.GetChannelsBatchForIndexing(startTime, startChannelID, limit)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -1153,6 +1153,22 @@ func (s *TimerLayerChannelStore) GetDeletedByName(team_id string, name string) (
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetDeletedByName", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) GetFileCount(channelID string) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.ChannelStore.GetFileCount(channelID)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetFileCount", success, elapsed)
 	}
 	return result, err
 }
@@ -3020,10 +3036,10 @@ func (s *TimerLayerFileInfoStore) GetByPath(path string) (*model.FileInfo, error
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) GetFilesBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.FileForIndexing, error) {
+func (s *TimerLayerFileInfoStore) GetFilesBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.FileForIndexing, error) {
 	start := timemodule.Now()
 
-	result, err := s.FileInfoStore.GetFilesBatchForIndexing(startTime, endTime, limit)
+	result, err := s.FileInfoStore.GetFilesBatchForIndexing(startTime, startFileID, limit)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -5146,10 +5162,10 @@ func (s *TimerLayerPostStore) GetPostsAfter(options model.GetPostsOptions) (*mod
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.PostForIndexing, error) {
+func (s *TimerLayerPostStore) GetPostsBatchForIndexing(startTime int64, startPostID string, limit int) ([]*model.PostForIndexing, error) {
 	start := timemodule.Now()
 
-	result, err := s.PostStore.GetPostsBatchForIndexing(startTime, endTime, limit)
+	result, err := s.PostStore.GetPostsBatchForIndexing(startTime, startPostID, limit)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -9541,10 +9557,10 @@ func (s *TimerLayerUserStore) GetUnreadCountForChannel(userID string, channelID 
 	return result, err
 }
 
-func (s *TimerLayerUserStore) GetUsersBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.UserForIndexing, error) {
+func (s *TimerLayerUserStore) GetUsersBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.UserForIndexing, error) {
 	start := timemodule.Now()
 
-	result, err := s.UserStore.GetUsersBatchForIndexing(startTime, endTime, limit)
+	result, err := s.UserStore.GetUsersBatchForIndexing(startTime, startFileID, limit)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
