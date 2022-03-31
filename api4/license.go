@@ -242,6 +242,11 @@ func requestRenewalLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.App.Cloud() == nil {
+		c.Err = model.NewAppError("requestRenewalLink", "api.license.upgrade_needed.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	// check if it is possible to renew license on the portal with generated token
 	e := c.App.Cloud().GetLicenseRenewalStatus(c.AppContext.Session().UserId, token)
 	if e != nil {

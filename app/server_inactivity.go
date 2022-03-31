@@ -17,6 +17,11 @@ import (
 const serverInactivityHours = 100
 
 func (s *Server) doInactivityCheck() {
+	if !*s.Config().EmailSettings.EnableInactivityEmail {
+		mlog.Info("No activity check because EnableInactivityEmail is false")
+		return
+	}
+
 	if !s.Config().FeatureFlags.EnableInactivityCheckJob {
 		mlog.Info("No activity check because EnableInactivityCheckJob feature flag is disabled")
 		return
