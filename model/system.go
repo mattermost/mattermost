@@ -8,11 +8,10 @@ import (
 )
 
 const (
-	SystemTelemetryId      = "DiagnosticId"
-	SystemRanUnitTests     = "RanUnitTests"
-	SystemLastSecurityTime = "LastSecurityTime"
-	SystemActiveLicenseId  = "ActiveLicenseId"
-	// SystemLicenseRenewalToken              = "LicenseRenewalToken"
+	SystemTelemetryId                      = "DiagnosticId"
+	SystemRanUnitTests                     = "RanUnitTests"
+	SystemLastSecurityTime                 = "LastSecurityTime"
+	SystemActiveLicenseId                  = "ActiveLicenseId"
 	SystemLastComplianceTime               = "LastComplianceTime"
 	SystemAsymmetricSigningKeyKey          = "AsymmetricSigningKey"
 	SystemPostActionCookieSecretKey        = "PostActionCookieSecret"
