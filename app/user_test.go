@@ -200,23 +200,69 @@ func TestCreateUser(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	group := th.CreateGroup()
-
-	id := model.NewId()
-	user := &model.User{
-		Email:         "success+" + id + "@simulator.amazonses.com",
-		Username:      *group.Name,
-		Nickname:      "nn_" + id,
-		Password:      "Password1",
-		EmailVerified: true,
-	}
-
 	t.Run("fails if the username matches a group name", func(t *testing.T) {
+		group := th.CreateGroup()
+
+		id := model.NewId()
+		user := &model.User{
+			Email:         "success+" + id + "@simulator.amazonses.com",
+			Username:      *group.Name,
+			Nickname:      "nn_" + id,
+			Password:      "Password1",
+			EmailVerified: true,
+		}
+
 		user.Username = *group.Name
 		u, err := th.App.CreateUser(th.Context, user)
 		require.NotNil(t, err)
 		require.Equal(t, "app.user.group_name_conflict", err.Id)
 		require.Nil(t, u)
+	})
+
+	t.Run("should sanitize user authdata before publishing to plugin hooks", func(t *testing.T) {
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
+			[]string{
+				`
+			package main
+	
+			import (
+				"github.com/mattermost/mattermost-server/v6/plugin"
+				"github.com/mattermost/mattermost-server/v6/model"
+			)
+	
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+	
+			func (p *MyPlugin) UserHasBeenCreated(c *plugin.Context, user *model.User) {
+				user.Nickname = "sanitized"
+				if len(user.Password) > 0 {
+					user.Nickname = "not-sanitized"
+				}
+				p.API.UpdateUser(user)
+			}
+	
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		user := &model.User{
+			Email:       model.NewId() + "success+test@example.com",
+			Nickname:    "Darth Vader",
+			Username:    "vader" + model.NewId(),
+			Password:    "passwd12345",
+			AuthService: "",
+		}
+		_, err := th.App.CreateUser(th.Context, user)
+		require.Nil(t, err)
+
+		time.Sleep(1 * time.Second)
+
+		user, err = th.App.GetUser(user.Id)
+		require.Nil(t, err)
+		require.Equal(t, "sanitized", user.Nickname)
 	})
 }
 
