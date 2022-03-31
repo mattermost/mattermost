@@ -1293,32 +1293,10 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("emails", emailList)
 
 	if graceful {
-		cloudUserLimit := *c.App.Config().ExperimentalSettings.CloudUserLimit
-		var invitesOverLimit []*model.EmailInviteWithError
-		if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud && cloudUserLimit > 0 {
-			subscription, subErr := c.App.Cloud().GetSubscription(c.AppContext.Session().UserId)
-			if subErr != nil {
-				c.Err = model.NewAppError(
-					"Api4.inviteUsersToTeam",
-					"api.team.cloud.subscription.error",
-					nil,
-					subErr.Error(),
-					http.StatusInternalServerError)
-				return
-			}
-			if subscription == nil || subscription.IsPaidTier != "true" {
-				emailList, invitesOverLimit, _ = c.App.GetErrorListForEmailsOverLimit(emailList, cloudUserLimit)
-			}
-		}
-
 		var invitesWithError []*model.EmailInviteWithError
 		var err *model.AppError
 		if emailList != nil {
 			invitesWithError, err = c.App.InviteNewUsersToTeamGracefully(emailList, c.Params.TeamId, c.AppContext.Session().UserId, "")
-		}
-
-		if len(invitesOverLimit) > 0 {
-			invitesWithError = append(invitesWithError, invitesOverLimit...)
 		}
 
 		if invitesWithError != nil {
@@ -1414,33 +1392,11 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 	auditRec.AddMeta("channels", guestsInvite.Channels)
 
 	if graceful {
-		cloudUserLimit := *c.App.Config().ExperimentalSettings.CloudUserLimit
-		var invitesOverLimit []*model.EmailInviteWithError
-		if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud && cloudUserLimit > 0 && c.IsSystemAdmin() {
-			subscription, err := c.App.Cloud().GetSubscription(c.AppContext.Session().UserId)
-			if err != nil {
-				c.Err = model.NewAppError(
-					"Api4.inviteGuestsToChannel",
-					"api.team.cloud.subscription.error",
-					nil,
-					err.Error(),
-					http.StatusInternalServerError)
-				return
-			}
-			if subscription == nil || subscription.IsPaidTier != "true" {
-				guestsInvite.Emails, invitesOverLimit, _ = c.App.GetErrorListForEmailsOverLimit(guestsInvite.Emails, cloudUserLimit)
-			}
-		}
-
 		var invitesWithError []*model.EmailInviteWithError
 		var err *model.AppError
 
 		if guestsInvite.Emails != nil {
 			invitesWithError, err = c.App.InviteGuestsToChannelsGracefully(c.Params.TeamId, &guestsInvite, c.AppContext.Session().UserId)
-		}
-
-		if len(invitesOverLimit) > 0 {
-			invitesWithError = append(invitesWithError, invitesOverLimit...)
 		}
 
 		if err != nil {
