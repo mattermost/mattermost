@@ -10,6 +10,9 @@ import "regexp"
 type WebsocketSubjectID string
 
 func (si WebsocketSubjectID) IsValid() bool {
+	if si == "" {
+		return false
+	}
 	patterns := []*regexp.Regexp{
 		regexp.MustCompile(`^activity_feed$`),
 		regexp.MustCompile(`channels/[a-z,0-9]{26}/typing`),

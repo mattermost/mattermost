@@ -14,6 +14,7 @@ func TestWebsocketSubjectIDIsValid(t *testing.T) {
 		input  string
 		expect bool
 	}{
+		"blank":                                     {input: "", expect: false},
 		"activity feed":                             {input: "activity_feed", expect: true},
 		"activity feed, leader space":               {input: " activity_feed", expect: false},
 		"activity feed, trailing space":             {input: "activity_feed ", expect: false},
