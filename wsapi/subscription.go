@@ -43,8 +43,13 @@ func subjectIDFromRequest(req *model.WebSocketRequest) (model.WebsocketSubjectID
 		return "", NewInvalidWebSocketParamError(req.Action, paramKey)
 	}
 
-	id, ok := paramVal.(model.WebsocketSubjectID)
-	if !ok || !id.IsValid() {
+	idString, ok := paramVal.(string)
+	if !ok {
+		return "", NewInvalidWebSocketParamError(req.Action, paramKey)
+	}
+
+	id := model.WebsocketSubjectID(idString)
+	if !id.IsValid() {
 		return "", NewInvalidWebSocketParamError(req.Action, paramKey)
 	}
 
