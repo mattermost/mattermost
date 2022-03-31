@@ -12,7 +12,6 @@ const (
 	SystemRanUnitTests                     = "RanUnitTests"
 	SystemLastSecurityTime                 = "LastSecurityTime"
 	SystemActiveLicenseId                  = "ActiveLicenseId"
-	SystemLicenseRenewalToken              = "LicenseRenewalToken"
 	SystemLastComplianceTime               = "LastComplianceTime"
 	SystemAsymmetricSigningKeyKey          = "AsymmetricSigningKey"
 	SystemPostActionCookieSecretKey        = "PostActionCookieSecret"
