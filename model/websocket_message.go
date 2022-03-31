@@ -77,9 +77,6 @@ const (
 	WebsocketFirstAdminVisitMarketplaceStatusReceived = "first_admin_visit_marketplace_status_received"
 	WebsocketEventSubscribe                           = "subscribe"
 	WebsocketEventUnsubscribe                         = "unsubscribe"
-
-	WebsocketSubjectActivityFeed WebsocketSubjectID = "activity_feed"
-	WebsocketSubjectActiveCalls  WebsocketSubjectID = "active_calls"
 )
 
 type WebSocketMessage interface {
@@ -159,17 +156,6 @@ type webSocketEventJSON struct {
 	Data      map[string]interface{} `json:"data"`
 	Broadcast *WebsocketBroadcast    `json:"broadcast"`
 	Sequence  int64                  `json:"seq"`
-}
-
-// WebsocketSubjectID represents the identifier that associates subjects (websockets messages) with observers (websocket connections).
-// An example of which is "insights", however, this could support more complex strings like "channels/wds7jxtetjgjue9yca5i5r1cjc".
-type WebsocketSubjectID string
-
-func (si WebsocketSubjectID) IsValid() bool {
-	return map[WebsocketSubjectID]bool{
-		WebsocketSubjectActivityFeed: true,
-		WebsocketSubjectActiveCalls:  true,
-	}[si]
 }
 
 type WebSocketEvent struct {
