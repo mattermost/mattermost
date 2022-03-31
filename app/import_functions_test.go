@@ -2516,13 +2516,13 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		1,
 	}
 	errLine, err = th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
-	assert.Nil(t, err)
-	assert.Equal(t, 0, errLine)
+	require.Nil(t, err)
+	require.Equal(t, 0, errLine)
 
 	resultPosts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, *data.Post.CreateAt)
-	assert.NoError(t, nErr, "Expected success.")
+	require.NoError(t, nErr, "Expected success.")
 	// Should be one post only created at this time.
-	assert.Equal(t, 1, len(resultPosts))
+	require.Equal(t, 1, len(resultPosts))
 	resultPost := resultPosts[0]
 	require.True(t, resultPost.IsPinned, "This post should be pinned.")
 
@@ -3614,7 +3614,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.Len(t, posts, 1)
 
 		post := posts[0]
-		assert.True(t, post.IsPinned)
+		require.True(t, post.IsPinned)
 	})
 
 	// ------------------ Group Channel -------------------------
