@@ -17,9 +17,7 @@ func wsConditionAuth(wc *WebConn, _ *model.WebSocketEvent) bool {
 
 func wsConditionSubject(wc *WebConn, evt *model.WebSocketEvent) bool {
 	if subjectID := evt.GetBroadcast().SubjectID; subjectID != "" {
-		if !wc.IsSubscribed(subjectID) {
-			return false
-		}
+		return wc.IsSubscribed(subjectID)
 	}
 	return true
 }
