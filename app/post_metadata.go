@@ -57,6 +57,7 @@ func (a *App) PreparePostListForClient(originalList *model.PostList) *model.Post
 		Order:      originalList.Order,
 		NextPostId: originalList.NextPostId,
 		PrevPostId: originalList.PrevPostId,
+		HasNext:    originalList.HasNext,
 	}
 
 	for id, originalPost := range originalList.Posts {
@@ -486,6 +487,14 @@ func looksLikeAPermalink(url, siteURL string) bool {
 	return matched
 }
 
+func (a *App) containsPermalink(post *model.Post) bool {
+	link, _ := a.getFirstLinkAndImages(post.Message)
+	if link == "" {
+		return false
+	}
+	return looksLikeAPermalink(link, a.GetSiteURL())
+}
+
 func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool, previewedPostPropVal string) (*opengraph.OpenGraph, *model.PostImage, *model.Permalink, error) {
 	requestURL = resolveMetadataURL(requestURL, a.GetSiteURL())
 
@@ -530,7 +539,15 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 			return nil, nil, nil, appErr
 		}
 
-		permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPost, referencedTeam, referencedChannel)}
+		// Get metadata for embedded post
+		if a.containsPermalink(referencedPost) {
+			// referencedPost contains a permalink: we don't get its metadata
+			permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPost, referencedTeam, referencedChannel)}
+		} else {
+			// referencedPost does not contain a permalink: we get its metadata
+			referencedPostWithMetadata := a.PreparePostForClientWithEmbedsAndImages(referencedPost, false, false)
+			permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPostWithMetadata, referencedTeam, referencedChannel)}
+		}
 	} else {
 
 		var request *http.Request

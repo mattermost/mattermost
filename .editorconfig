@@ -8,7 +8,7 @@ insert_final_newline = true
 charset = utf-8
 trim_trailing_whitespace = true
 
-[*.go]
+[*.{go,sql}]
 indent_style = tab
 
 [*.{js,jsx,json,html}]

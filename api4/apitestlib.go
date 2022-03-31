@@ -4,9 +4,12 @@
 package api4
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"math/rand"
 	"net"
@@ -19,6 +22,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	graphql "github.com/graph-gophers/graphql-go"
 	s3 "github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/stretchr/testify/require"
@@ -45,6 +49,7 @@ type TestHelper struct {
 
 	Context              *request.Context
 	Client               *model.Client4
+	GraphQLClient        *graphQLClient
 	BasicUser            *model.User
 	BasicUser2           *model.User
 	TeamAdminUser        *model.User
@@ -184,13 +189,12 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 
 	if enterprise {
 		th.App.Srv().SetLicense(model.NewTestLicense())
-		th.App.Srv().Jobs.InitWorkers()
-		th.App.Srv().Jobs.InitSchedulers()
 	} else {
 		th.App.Srv().SetLicense(nil)
 	}
 
 	th.Client = th.CreateClient()
+	th.GraphQLClient = newGraphQLClient(fmt.Sprintf("http://localhost:%v", th.App.Srv().ListenAddr.Port))
 	th.SystemAdminClient = th.CreateClient()
 	th.SystemManagerClient = th.CreateClient()
 
@@ -374,6 +378,13 @@ func (th *TestHelper) TearDown() {
 	th.ShutdownApp()
 }
 
+func closeBody(r *http.Response) {
+	if r.Body != nil {
+		_, _ = io.Copy(ioutil.Discard, r.Body)
+		_ = r.Body.Close()
+	}
+}
+
 var initBasicOnce sync.Once
 var userCache struct {
 	SystemAdminUser   *model.User
@@ -417,7 +428,10 @@ func (th *TestHelper) InitLogin() *TestHelper {
 	th.TeamAdminUser = userCache.TeamAdminUser.DeepCopy()
 	th.BasicUser = userCache.BasicUser.DeepCopy()
 	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
-	mainHelper.GetSQLStore().GetMaster().Insert(th.SystemAdminUser, th.TeamAdminUser, th.BasicUser, th.BasicUser2, th.SystemManagerUser)
+
+	users := []*model.User{th.SystemAdminUser, th.TeamAdminUser, th.BasicUser, th.BasicUser2, th.SystemManagerUser}
+	mainHelper.GetSQLStore().User().InsertUsers(users)
+
 	// restore non hashed password for login
 	th.SystemAdminUser.Password = "Pa$$word11"
 	th.TeamAdminUser.Password = "Pa$$word11"
@@ -634,7 +648,7 @@ func (th *TestHelper) SetupSamlConfig() {
 		*cfg.SamlSettings.Enable = true
 		*cfg.SamlSettings.Verify = false
 		*cfg.SamlSettings.Encrypt = false
-		*cfg.SamlSettings.IdpURL = "https://does.notmatter.com"
+		*cfg.SamlSettings.IdpURL = "https://does.notmatter.example"
 		*cfg.SamlSettings.IdpDescriptorURL = "https://localhost/adfs/services/trust"
 		*cfg.SamlSettings.AssertionConsumerServiceURL = "https://localhost/login/sso/saml"
 		*cfg.SamlSettings.ServiceProviderIdentifier = "https://localhost/login/sso/saml"
@@ -693,6 +707,33 @@ func (th *TestHelper) CreatePinnedPost() *model.Post {
 
 func (th *TestHelper) CreateMessagePost(message string) *model.Post {
 	return th.CreateMessagePostWithClient(th.Client, th.BasicChannel, message)
+}
+
+func (th *TestHelper) CreatePostWithFiles(files ...*model.FileInfo) *model.Post {
+	return th.CreatePostWithFilesWithClient(th.Client, th.BasicChannel, files...)
+}
+
+func (th *TestHelper) CreatePostInChannelWithFiles(channel *model.Channel, files ...*model.FileInfo) *model.Post {
+	return th.CreatePostWithFilesWithClient(th.Client, channel, files...)
+}
+
+func (th *TestHelper) CreatePostWithFilesWithClient(client *model.Client4, channel *model.Channel, files ...*model.FileInfo) *model.Post {
+	var fileIds model.StringArray
+	for i := range files {
+		fileIds = append(fileIds, files[i].Id)
+	}
+
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   "message_" + model.NewId(),
+		FileIds:   fileIds,
+	}
+
+	rpost, _, err := client.CreatePost(post)
+	if err != nil {
+		panic(err)
+	}
+	return rpost
 }
 
 func (th *TestHelper) CreatePostWithClient(client *model.Client4, channel *model.Channel) *model.Post {
@@ -765,10 +806,16 @@ func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 
 func (th *TestHelper) LoginBasic() {
 	th.LoginBasicWithClient(th.Client)
+	if os.Getenv("MM_FEATUREFLAGS_GRAPHQL") == "true" {
+		th.LoginBasicWithGraphQL()
+	}
 }
 
 func (th *TestHelper) LoginBasic2() {
 	th.LoginBasic2WithClient(th.Client)
+	if os.Getenv("MM_FEATUREFLAGS_GRAPHQL") == "true" {
+		th.LoginBasicWithGraphQL()
+	}
 }
 
 func (th *TestHelper) LoginTeamAdmin() {
@@ -785,6 +832,13 @@ func (th *TestHelper) LoginSystemManager() {
 
 func (th *TestHelper) LoginBasicWithClient(client *model.Client4) {
 	_, _, err := client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (th *TestHelper) LoginBasicWithGraphQL() {
+	_, _, err := th.GraphQLClient.login(th.BasicUser.Email, th.BasicUser.Password)
 	if err != nil {
 		panic(err)
 	}
@@ -832,12 +886,26 @@ func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 	}
 }
 
+func (th *TestHelper) UnlinkUserFromTeam(user *model.User, team *model.Team) {
+	err := th.App.RemoveUserFromTeam(th.Context, team.Id, user.Id, "")
+	if err != nil {
+		panic(err)
+	}
+}
+
 func (th *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
 	member, err := th.App.AddUserToChannel(user, channel, false)
 	if err != nil {
 		panic(err)
 	}
 	return member
+}
+
+func (th *TestHelper) RemoveUserFromChannel(user *model.User, channel *model.Channel) {
+	err := th.App.RemoveUserFromChannel(th.Context, user.Id, "", channel)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (th *TestHelper) GenerateTestEmail() string {
@@ -853,7 +921,7 @@ func (th *TestHelper) CreateGroup() *model.Group {
 		Name:        model.NewString("n-" + id),
 		DisplayName: "dn_" + id,
 		Source:      model.GroupSourceLdap,
-		RemoteId:    "ri_" + id,
+		RemoteId:    model.NewString("ri_" + model.NewId()),
 	}
 
 	group, err := th.App.CreateGroup(group)
@@ -1233,4 +1301,23 @@ func (th *TestHelper) SetupScheme(scope string) *model.Scheme {
 		panic(err)
 	}
 	return scheme
+}
+
+func (th *TestHelper) MakeGraphQLRequest(input *graphQLInput) (*graphql.Response, error) {
+	url := fmt.Sprintf("http://localhost:%v", th.App.Srv().ListenAddr.Port) + model.APIURLSuffixV5 + "/graphql"
+
+	buf, err := json.Marshal(input)
+	if err != nil {
+		panic(err)
+	}
+
+	resp, err := th.GraphQLClient.doAPIRequest("POST", url, bytes.NewReader(buf), map[string]string{})
+	if err != nil {
+		panic(err)
+	}
+	defer closeBody(resp)
+
+	var gqlResp *graphql.Response
+	err = json.NewDecoder(resp.Body).Decode(&gqlResp)
+	return gqlResp, err
 }

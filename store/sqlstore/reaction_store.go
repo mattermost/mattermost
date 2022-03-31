@@ -18,17 +18,7 @@ type SqlReactionStore struct {
 }
 
 func newSqlReactionStore(sqlStore *SqlStore) store.ReactionStore {
-	s := &SqlReactionStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Reaction{}, "Reactions").SetKeys(false, "PostId", "UserId", "EmojiName")
-		table.ColMap("UserId").SetMaxSize(26)
-		table.ColMap("PostId").SetMaxSize(26)
-		table.ColMap("EmojiName").SetMaxSize(64)
-		table.ColMap("RemoteId").SetMaxSize(26)
-	}
-
-	return s
+	return &SqlReactionStore{sqlStore}
 }
 
 func (s *SqlReactionStore) Save(reaction *model.Reaction) (*model.Reaction, error) {

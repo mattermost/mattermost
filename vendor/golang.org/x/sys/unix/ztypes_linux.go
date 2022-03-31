@@ -24,6 +24,11 @@ type ItimerSpec struct {
 	Value    Timespec
 }
 
+type Itimerval struct {
+	Interval Timeval
+	Value    Timeval
+}
+
 const (
 	TIME_OK    = 0x0
 	TIME_INS   = 0x1
@@ -1144,7 +1149,8 @@ const (
 	PERF_RECORD_BPF_EVENT                 = 0x12
 	PERF_RECORD_CGROUP                    = 0x13
 	PERF_RECORD_TEXT_POKE                 = 0x14
-	PERF_RECORD_MAX                       = 0x15
+	PERF_RECORD_AUX_OUTPUT_HW_ID          = 0x15
+	PERF_RECORD_MAX                       = 0x16
 	PERF_RECORD_KSYMBOL_TYPE_UNKNOWN      = 0x0
 	PERF_RECORD_KSYMBOL_TYPE_BPF          = 0x1
 	PERF_RECORD_KSYMBOL_TYPE_OOL          = 0x2
@@ -1784,7 +1790,8 @@ const (
 
 const (
 	NF_NETDEV_INGRESS  = 0x0
-	NF_NETDEV_NUMHOOKS = 0x1
+	NF_NETDEV_EGRESS   = 0x1
+	NF_NETDEV_NUMHOOKS = 0x2
 )
 
 const (
@@ -3166,7 +3173,13 @@ const (
 	DEVLINK_ATTR_RELOAD_ACTION_INFO                    = 0xa2
 	DEVLINK_ATTR_RELOAD_ACTION_STATS                   = 0xa3
 	DEVLINK_ATTR_PORT_PCI_SF_NUMBER                    = 0xa4
-	DEVLINK_ATTR_MAX                                   = 0xa9
+	DEVLINK_ATTR_RATE_TYPE                             = 0xa5
+	DEVLINK_ATTR_RATE_TX_SHARE                         = 0xa6
+	DEVLINK_ATTR_RATE_TX_MAX                           = 0xa7
+	DEVLINK_ATTR_RATE_NODE_NAME                        = 0xa8
+	DEVLINK_ATTR_RATE_PARENT_NODE_NAME                 = 0xa9
+	DEVLINK_ATTR_REGION_MAX_SNAPSHOTS                  = 0xaa
+	DEVLINK_ATTR_MAX                                   = 0xaa
 	DEVLINK_DPIPE_FIELD_MAPPING_TYPE_NONE              = 0x0
 	DEVLINK_DPIPE_FIELD_MAPPING_TYPE_IFINDEX           = 0x1
 	DEVLINK_DPIPE_MATCH_TYPE_FIELD_EXACT               = 0x0
@@ -3463,7 +3476,14 @@ const (
 	ETHTOOL_MSG_CABLE_TEST_ACT                = 0x1a
 	ETHTOOL_MSG_CABLE_TEST_TDR_ACT            = 0x1b
 	ETHTOOL_MSG_TUNNEL_INFO_GET               = 0x1c
-	ETHTOOL_MSG_USER_MAX                      = 0x21
+	ETHTOOL_MSG_FEC_GET                       = 0x1d
+	ETHTOOL_MSG_FEC_SET                       = 0x1e
+	ETHTOOL_MSG_MODULE_EEPROM_GET             = 0x1f
+	ETHTOOL_MSG_STATS_GET                     = 0x20
+	ETHTOOL_MSG_PHC_VCLOCKS_GET               = 0x21
+	ETHTOOL_MSG_MODULE_GET                    = 0x22
+	ETHTOOL_MSG_MODULE_SET                    = 0x23
+	ETHTOOL_MSG_USER_MAX                      = 0x23
 	ETHTOOL_MSG_KERNEL_NONE                   = 0x0
 	ETHTOOL_MSG_STRSET_GET_REPLY              = 0x1
 	ETHTOOL_MSG_LINKINFO_GET_REPLY            = 0x2
@@ -3494,7 +3514,14 @@ const (
 	ETHTOOL_MSG_CABLE_TEST_NTF                = 0x1b
 	ETHTOOL_MSG_CABLE_TEST_TDR_NTF            = 0x1c
 	ETHTOOL_MSG_TUNNEL_INFO_GET_REPLY         = 0x1d
-	ETHTOOL_MSG_KERNEL_MAX                    = 0x22
+	ETHTOOL_MSG_FEC_GET_REPLY                 = 0x1e
+	ETHTOOL_MSG_FEC_NTF                       = 0x1f
+	ETHTOOL_MSG_MODULE_EEPROM_GET_REPLY       = 0x20
+	ETHTOOL_MSG_STATS_GET_REPLY               = 0x21
+	ETHTOOL_MSG_PHC_VCLOCKS_GET_REPLY         = 0x22
+	ETHTOOL_MSG_MODULE_GET_REPLY              = 0x23
+	ETHTOOL_MSG_MODULE_NTF                    = 0x24
+	ETHTOOL_MSG_KERNEL_MAX                    = 0x24
 	ETHTOOL_A_HEADER_UNSPEC                   = 0x0
 	ETHTOOL_A_HEADER_DEV_INDEX                = 0x1
 	ETHTOOL_A_HEADER_DEV_NAME                 = 0x2
@@ -4043,3 +4070,91 @@ const (
 	NL_POLICY_TYPE_ATTR_MASK            = 0xc
 	NL_POLICY_TYPE_ATTR_MAX             = 0xc
 )
+
+type CANBitTiming struct {
+	Bitrate      uint32
+	Sample_point uint32
+	Tq           uint32
+	Prop_seg     uint32
+	Phase_seg1   uint32
+	Phase_seg2   uint32
+	Sjw          uint32
+	Brp          uint32
+}
+
+type CANBitTimingConst struct {
+	Name      [16]uint8
+	Tseg1_min uint32
+	Tseg1_max uint32
+	Tseg2_min uint32
+	Tseg2_max uint32
+	Sjw_max   uint32
+	Brp_min   uint32
+	Brp_max   uint32
+	Brp_inc   uint32
+}
+
+type CANClock struct {
+	Freq uint32
+}
+
+type CANBusErrorCounters struct {
+	Txerr uint16
+	Rxerr uint16
+}
+
+type CANCtrlMode struct {
+	Mask  uint32
+	Flags uint32
+}
+
+type CANDeviceStats struct {
+	Bus_error        uint32
+	Error_warning    uint32
+	Error_passive    uint32
+	Bus_off          uint32
+	Arbitration_lost uint32
+	Restarts         uint32
+}
+
+const (
+	CAN_STATE_ERROR_ACTIVE  = 0x0
+	CAN_STATE_ERROR_WARNING = 0x1
+	CAN_STATE_ERROR_PASSIVE = 0x2
+	CAN_STATE_BUS_OFF       = 0x3
+	CAN_STATE_STOPPED       = 0x4
+	CAN_STATE_SLEEPING      = 0x5
+	CAN_STATE_MAX           = 0x6
+)
+
+const (
+	IFLA_CAN_UNSPEC               = 0x0
+	IFLA_CAN_BITTIMING            = 0x1
+	IFLA_CAN_BITTIMING_CONST      = 0x2
+	IFLA_CAN_CLOCK                = 0x3
+	IFLA_CAN_STATE                = 0x4
+	IFLA_CAN_CTRLMODE             = 0x5
+	IFLA_CAN_RESTART_MS           = 0x6
+	IFLA_CAN_RESTART              = 0x7
+	IFLA_CAN_BERR_COUNTER         = 0x8
+	IFLA_CAN_DATA_BITTIMING       = 0x9
+	IFLA_CAN_DATA_BITTIMING_CONST = 0xa
+	IFLA_CAN_TERMINATION          = 0xb
+	IFLA_CAN_TERMINATION_CONST    = 0xc
+	IFLA_CAN_BITRATE_CONST        = 0xd
+	IFLA_CAN_DATA_BITRATE_CONST   = 0xe
+	IFLA_CAN_BITRATE_MAX          = 0xf
+)
+
+type KCMAttach struct {
+	Fd     int32
+	Bpf_fd int32
+}
+
+type KCMUnattach struct {
+	Fd int32
+}
+
+type KCMClone struct {
+	Fd int32
+}

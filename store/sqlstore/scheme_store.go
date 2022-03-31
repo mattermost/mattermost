@@ -19,28 +19,7 @@ type SqlSchemeStore struct {
 }
 
 func newSqlSchemeStore(sqlStore *SqlStore) store.SchemeStore {
-	s := &SqlSchemeStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Scheme{}, "Schemes").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("Name").SetMaxSize(model.SchemeNameMaxLength).SetUnique(true)
-		table.ColMap("DisplayName").SetMaxSize(model.SchemeDisplayNameMaxLength)
-		table.ColMap("Description").SetMaxSize(model.SchemeDescriptionMaxLength)
-		table.ColMap("Scope").SetMaxSize(32)
-		table.ColMap("DefaultTeamAdminRole").SetMaxSize(64)
-		table.ColMap("DefaultTeamUserRole").SetMaxSize(64)
-		table.ColMap("DefaultTeamGuestRole").SetMaxSize(64)
-		table.ColMap("DefaultChannelAdminRole").SetMaxSize(64)
-		table.ColMap("DefaultChannelUserRole").SetMaxSize(64)
-		table.ColMap("DefaultChannelGuestRole").SetMaxSize(64)
-		table.ColMap("DefaultPlaybookAdminRole").SetMaxSize(64).SetDefaultConstraint(model.NewString(""))
-		table.ColMap("DefaultPlaybookMemberRole").SetMaxSize(64).SetDefaultConstraint(model.NewString(""))
-		table.ColMap("DefaultRunAdminRole").SetMaxSize(64).SetDefaultConstraint(model.NewString(""))
-		table.ColMap("DefaultRunMemberRole").SetMaxSize(64).SetDefaultConstraint(model.NewString(""))
-	}
-
-	return s
+	return &SqlSchemeStore{sqlStore}
 }
 
 func (s *SqlSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error) {

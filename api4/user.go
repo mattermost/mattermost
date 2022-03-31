@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/utils"
+	"github.com/mattermost/mattermost-server/v6/web"
 )
 
 func (api *API) InitUser() {
@@ -92,6 +93,8 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/uploads", api.APISessionRequired(getUploadsForUser)).Methods("GET")
 	api.BaseRoutes.User.Handle("/channel_members", api.APISessionRequired(getChannelMembersForUser)).Methods("GET")
 
+	api.BaseRoutes.Users.Handle("/invalid_emails", api.APISessionRequired(getUsersWithInvalidEmails)).Methods("GET")
+
 	api.BaseRoutes.UserThreads.Handle("", api.APISessionRequired(getThreadsForUser)).Methods("GET")
 	api.BaseRoutes.UserThreads.Handle("/read", api.APISessionRequired(updateReadStateAllThreadsByUser)).Methods("PUT")
 
@@ -132,7 +135,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		auditRec.AddMeta("token_type", token.Type)
 
 		if token.Type == app.TokenTypeGuestInvitation {
-			if c.App.Srv().License() == nil {
+			if c.App.Channels().License() == nil {
 				c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.guest_accounts.license.app_error", nil, "", http.StatusBadRequest)
 				return
 			}
@@ -639,6 +642,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	notInTeamId := r.URL.Query().Get("not_in_team")
 	inChannelId := r.URL.Query().Get("in_channel")
 	inGroupId := r.URL.Query().Get("in_group")
+	notInGroupId := r.URL.Query().Get("not_in_group")
 	notInChannelId := r.URL.Query().Get("not_in_channel")
 	groupConstrained := r.URL.Query().Get("group_constrained")
 	withoutTeam := r.URL.Query().Get("without_team")
@@ -662,7 +666,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Currently only supports sorting on a team
 	// or sort="status" on inChannelId
-	if (sort == "last_activity_at" || sort == "create_at") && (inTeamId == "" || notInTeamId != "" || inChannelId != "" || notInChannelId != "" || withoutTeam != "" || inGroupId != "") {
+	if (sort == "last_activity_at" || sort == "create_at") && (inTeamId == "" || notInTeamId != "" || inChannelId != "" || notInChannelId != "" || withoutTeam != "" || inGroupId != "" || notInGroupId != "") {
 		c.SetInvalidURLParam("sort")
 		return
 	}
@@ -718,6 +722,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		NotInTeamId:      notInTeamId,
 		NotInChannelId:   notInChannelId,
 		InGroupId:        inGroupId,
+		NotInGroupId:     notInGroupId,
 		GroupConstrained: groupConstrainedBool,
 		WithoutTeam:      withoutTeamBool,
 		Inactive:         inactiveBool,
@@ -805,17 +810,25 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			profiles, err = c.App.GetUsersInChannelPage(userGetOptions, c.IsSystemAdmin())
 		}
 	} else if inGroupId != "" {
-		if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
-			c.Err = model.NewAppError("Api4.getUsersInGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
-			return
-		}
-
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
-			c.SetPermissionError(model.PermissionSysconsoleReadUserManagementGroups)
+		if gErr := requireGroupAccess(c, inGroupId); gErr != nil {
+			gErr.Where = "Api.getUsers"
+			c.Err = gErr
 			return
 		}
 
 		profiles, _, err = c.App.GetGroupMemberUsersPage(inGroupId, c.Params.Page, c.Params.PerPage)
+		if err != nil {
+			c.Err = err
+			return
+		}
+	} else if notInGroupId != "" {
+		if gErr := requireGroupAccess(c, notInGroupId); gErr != nil {
+			gErr.Where = "Api.getUsers"
+			c.Err = gErr
+			return
+		}
+
+		profiles, err = c.App.GetUsersNotInGroupPage(notInGroupId, c.Params.Page, c.Params.PerPage)
 		if err != nil {
 			c.Err = err
 			return
@@ -846,6 +859,25 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(js)
+}
+
+func requireGroupAccess(c *web.Context, groupID string) *model.AppError {
+	group, err := c.App.GetGroup(groupID, nil)
+	if err != nil {
+		return err
+	}
+
+	if lcErr := licensedAndConfiguredForGroupBySource(c.App, group.Source); lcErr != nil {
+		return lcErr
+	}
+
+	if group.Source == model.GroupSourceLdap {
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
+			return c.App.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionSysconsoleReadUserManagementGroups})
+		}
+	}
+
+	return nil
 }
 
 func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -956,13 +988,17 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if props.InGroupId != "" {
-		if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
-			c.Err = model.NewAppError("Api4.searchUsers", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		if gErr := requireGroupAccess(c, props.InGroupId); gErr != nil {
+			gErr.Where = "Api.searchUsers"
+			c.Err = gErr
 			return
 		}
+	}
 
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-			c.SetPermissionError(model.PermissionManageSystem)
+	if props.NotInGroupId != "" {
+		if gErr := requireGroupAccess(c, props.NotInGroupId); gErr != nil {
+			gErr.Where = "Api.searchUsers"
+			c.Err = gErr
 			return
 		}
 	}
@@ -1353,7 +1389,7 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	for _, roleName := range strings.Fields(newRoles) {
 		for _, id := range model.NewSystemRoleIDs {
 			if roleName == id {
-				if license := c.App.Srv().License(); license == nil || !*license.Features.CustomPermissionsSchemes {
+				if license := c.App.Channels().License(); license == nil || !*license.Features.CustomPermissionsSchemes {
 					c.Err = model.NewAppError("updateUserRoles", "api.user.update_user_roles.license.app_error", nil, "", http.StatusBadRequest)
 					return
 				}
@@ -1794,7 +1830,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	ldapOnly := props["ldap_only"] == "true"
 
 	if *c.App.Config().ExperimentalSettings.ClientSideCertEnable {
-		if license := c.App.Srv().License(); license == nil || !*license.Features.FutureFeatures {
+		if license := c.App.Channels().License(); license == nil || !*license.Features.FutureFeatures {
 			c.Err = model.NewAppError("ClientSideCertNotAllowed", "api.user.login.client_side_cert.license.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
@@ -1828,7 +1864,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("user", user)
 
 	if user.IsGuest() {
-		if c.App.Srv().License() == nil {
+		if c.App.Channels().License() == nil {
 			c.Err = model.NewAppError("login", "api.user.login.guest_accounts.license.error", nil, "", http.StatusUnauthorized)
 			return
 		}
@@ -1853,7 +1889,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// For context see: https://mattermost.atlassian.net/browse/MM-39583
-	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
+	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
 		c.App.AttachCloudSessionCookie(c.AppContext, w, r)
 	}
 
@@ -1877,7 +1913,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
 		c.Err = model.NewAppError("loginCWS", "api.user.login_cws.license.error", nil, "", http.StatusUnauthorized)
 		return
 	}
@@ -1902,7 +1938,7 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.LogAuditWithUserId("", "failure - login_id="+loginID)
 		c.LogErrorByCode(err)
-		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
+		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, http.StatusFound)
 		return
 	}
 	auditRec.AddMeta("user", user)
@@ -1910,12 +1946,12 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	err = c.App.DoLogin(c.AppContext, w, r, user, "", false, false, false)
 	if err != nil {
 		c.LogErrorByCode(err)
-		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
+		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, http.StatusFound)
 		return
 	}
 	c.LogAuditWithUserId(user.Id, "success")
 	c.App.AttachSessionCookies(c.AppContext, w, r)
-	http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
+	http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, http.StatusFound)
 }
 
 func logout(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2647,7 +2683,7 @@ func demoteUserToGuest(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Srv().License() == nil {
+	if c.App.Channels().License() == nil {
 		c.Err = model.NewAppError("Api4.demoteUserToGuest", "api.team.demote_user_to_guest.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -2878,7 +2914,7 @@ func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAP {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAP {
 		c.Err = model.NewAppError("api.migrateAuthToLDAP", "api.admin.ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -2937,7 +2973,7 @@ func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.SAML {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.SAML {
 		c.Err = model.NewAppError("api.migrateAuthToSaml", "api.admin.saml.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -3170,4 +3206,25 @@ func updateReadStateAllThreadsByUser(c *Context, w http.ResponseWriter, r *http.
 
 	ReturnStatusOK(w)
 	auditRec.Success()
+}
+
+func getUsersWithInvalidEmails(c *Context, w http.ResponseWriter, r *http.Request) {
+	if *c.App.Config().TeamSettings.EnableOpenServer {
+		c.Err = model.NewAppError("GetUsersWithInvalidEmails", "api.users.invalid_emails.enable_open_server.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementUsers) {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementUsers)
+		return
+	}
+
+	users, err := c.App.GetUsersWithInvalidEmails(c.Params.Page, c.Params.PerPage)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	b, _ := json.Marshal(users)
+	w.Write(b)
 }

@@ -17,7 +17,8 @@ const (
 
 // hcode is a huffman code with a bit code and bit length.
 type hcode struct {
-	code, len uint16
+	code uint16
+	len  uint8
 }
 
 type huffmanEncoder struct {
@@ -56,7 +57,7 @@ type levelInfo struct {
 }
 
 // set sets the code and length of an hcode.
-func (h *hcode) set(code uint16, length uint16) {
+func (h *hcode) set(code uint16, length uint8) {
 	h.len = length
 	h.code = code
 }
@@ -80,7 +81,7 @@ func generateFixedLiteralEncoding() *huffmanEncoder {
 	var ch uint16
 	for ch = 0; ch < literalCount; ch++ {
 		var bits uint16
-		var size uint16
+		var size uint8
 		switch {
 		case ch < 144:
 			// size 8, 000110000  .. 10111111
@@ -99,7 +100,7 @@ func generateFixedLiteralEncoding() *huffmanEncoder {
 			bits = ch + 192 - 280
 			size = 8
 		}
-		codes[ch] = hcode{code: reverseBits(bits, byte(size)), len: size}
+		codes[ch] = hcode{code: reverseBits(bits, size), len: size}
 	}
 	return h
 }
@@ -129,9 +130,7 @@ func (h *huffmanEncoder) bitLength(freq []uint16) int {
 func (h *huffmanEncoder) bitLengthRaw(b []byte) int {
 	var total int
 	for _, f := range b {
-		if f != 0 {
-			total += int(h.codes[f].len)
-		}
+		total += int(h.codes[f].len)
 	}
 	return total
 }
@@ -189,14 +188,19 @@ func (h *huffmanEncoder) bitCounts(list []literalNode, maxBits int32) []int32 {
 	// of the level j ancestor.
 	var leafCounts [maxBitsLimit][maxBitsLimit]int32
 
+	// Descending to only have 1 bounds check.
+	l2f := int32(list[2].freq)
+	l1f := int32(list[1].freq)
+	l0f := int32(list[0].freq) + int32(list[1].freq)
+
 	for level := int32(1); level <= maxBits; level++ {
 		// For every level, the first two items are the first two characters.
 		// We initialize the levels as if we had already figured this out.
 		levels[level] = levelInfo{
 			level:        level,
-			lastFreq:     int32(list[1].freq),
-			nextCharFreq: int32(list[2].freq),
-			nextPairFreq: int32(list[0].freq) + int32(list[1].freq),
+			lastFreq:     l1f,
+			nextCharFreq: l2f,
+			nextPairFreq: l0f,
 		}
 		leafCounts[level][level] = 2
 		if level == 1 {
@@ -207,8 +211,8 @@ func (h *huffmanEncoder) bitCounts(list []literalNode, maxBits int32) []int32 {
 	// We need a total of 2*n - 2 items at top level and have already generated 2.
 	levels[maxBits].needed = 2*n - 4
 
-	level := maxBits
-	for {
+	level := uint32(maxBits)
+	for level < 16 {
 		l := &levels[level]
 		if l.nextPairFreq == math.MaxInt32 && l.nextCharFreq == math.MaxInt32 {
 			// We've run out of both leafs and pairs.
@@ -240,7 +244,13 @@ func (h *huffmanEncoder) bitCounts(list []literalNode, maxBits int32) []int32 {
 			// more values in the level below
 			l.lastFreq = l.nextPairFreq
 			// Take leaf counts from the lower level, except counts[level] remains the same.
-			copy(leafCounts[level][:level], leafCounts[level-1][:level])
+			if true {
+				save := leafCounts[level][level]
+				leafCounts[level] = leafCounts[level-1]
+				leafCounts[level][level] = save
+			} else {
+				copy(leafCounts[level][:level], leafCounts[level-1][:level])
+			}
 			levels[l.level-1].needed = 2
 		}
 
@@ -298,7 +308,7 @@ func (h *huffmanEncoder) assignEncodingAndSize(bitCount []int32, list []literalN
 
 		sortByLiteral(chunk)
 		for _, node := range chunk {
-			h.codes[node.literal] = hcode{code: reverseBits(code, uint8(n)), len: uint16(n)}
+			h.codes[node.literal] = hcode{code: reverseBits(code, uint8(n)), len: uint8(n)}
 			code++
 		}
 		list = list[0 : len(list)-int(bits)]
@@ -311,6 +321,7 @@ func (h *huffmanEncoder) assignEncodingAndSize(bitCount []int32, list []literalN
 // maxBits  The maximum number of bits to use for any literal.
 func (h *huffmanEncoder) generate(freq []uint16, maxBits int32) {
 	list := h.freqcache[:len(freq)+1]
+	codes := h.codes[:len(freq)]
 	// Number of non-zero literals
 	count := 0
 	// Set list to be the set of all non-zero literals and their frequencies
@@ -319,11 +330,10 @@ func (h *huffmanEncoder) generate(freq []uint16, maxBits int32) {
 			list[count] = literalNode{uint16(i), f}
 			count++
 		} else {
-			list[count] = literalNode{}
-			h.codes[i].len = 0
+			codes[i].len = 0
 		}
 	}
-	list[len(freq)] = literalNode{}
+	list[count] = literalNode{}
 
 	list = list[:count]
 	if count <= 2 {

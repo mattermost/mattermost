@@ -47,8 +47,9 @@ type AccessControlList struct {
 }
 
 type accessControlPolicy struct {
-	Owner
-	AccessControlList
+	XMLName           xml.Name `xml:"AccessControlPolicy"`
+	Owner             Owner
+	AccessControlList AccessControlList
 }
 
 // GetObjectACL get object ACLs

@@ -26,6 +26,7 @@ const (
 	ClusterEventInvalidateCacheForWebhooks                  ClusterEvent = "inv_webhooks"
 	ClusterEventInvalidateCacheForEmojisById                ClusterEvent = "inv_emojis_by_id"
 	ClusterEventInvalidateCacheForEmojisIdByName            ClusterEvent = "inv_emojis_id_by_name"
+	ClusterEventInvalidateCacheForChannelFileCount          ClusterEvent = "inv_channel_file_count"
 	ClusterEventInvalidateCacheForChannelPinnedpostsCounts  ClusterEvent = "inv_channel_pinnedposts_counts"
 	ClusterEventInvalidateCacheForChannelMemberCounts       ClusterEvent = "inv_channel_member_counts"
 	ClusterEventInvalidateCacheForLastPosts                 ClusterEvent = "inv_last_posts"

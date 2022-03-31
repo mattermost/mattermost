@@ -32,6 +32,7 @@ func TestNoticeValidation(t *testing.T) {
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("Preference").Return(&mockPreferenceStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 	mockSystemStore.On("SaveOrUpdate", &model.System{Name: "ActiveLicenseId", Value: ""}).Return(nil)
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
@@ -544,7 +545,7 @@ func TestNoticeValidation(t *testing.T) {
 			wantOk:  true,
 		},
 		{
-			name: "notice with depreacting an external dependency",
+			name: "notice with deprecating an external dependency",
 			args: args{
 				dbmsName: "mysql",
 				dbmsVer:  "5.6",
@@ -561,7 +562,7 @@ func TestNoticeValidation(t *testing.T) {
 			wantOk:  true,
 		},
 		{
-			name: "notice with depreacting an external dependency, on a future version",
+			name: "notice with deprecating an external dependency, on a future version",
 			args: args{
 				dbmsName:      "mysql",
 				dbmsVer:       "5.6",

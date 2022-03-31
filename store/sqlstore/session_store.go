@@ -25,19 +25,7 @@ type SqlSessionStore struct {
 }
 
 func newSqlSessionStore(sqlStore *SqlStore) store.SessionStore {
-	us := &SqlSessionStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Session{}, "Sessions").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("Token").SetMaxSize(26)
-		table.ColMap("UserId").SetMaxSize(26)
-		table.ColMap("DeviceId").SetMaxSize(512)
-		table.ColMap("Roles").SetMaxSize(model.UserRolesMaxLength)
-		table.ColMap("Props").SetDataType(sqlStore.jsonDataType())
-	}
-
-	return us
+	return &SqlSessionStore{sqlStore}
 }
 
 func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {
@@ -227,6 +215,17 @@ func (me SqlSessionStore) UpdateExpiresAt(sessionId string, time int64) error {
 		return errors.Wrapf(err, "failed to update Session with sessionId=%s", sessionId)
 	}
 	return nil
+}
+
+func (me *SqlSessionStore) GetLastSessionRowCreateAt() (int64, error) {
+	query := `SELECT CREATEAT FROM Sessions ORDER BY CREATEAT DESC LIMIT 1`
+	var createAt int64
+	err := me.GetReplicaX().Get(&createAt, query)
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to get last session creatat")
+	}
+
+	return createAt, nil
 }
 
 func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) error {

@@ -165,9 +165,9 @@ func validateChannelImportData(data *ChannelImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.name_characters.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.DisplayName == nil {
-		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.display_name_missing.error", nil, "", http.StatusBadRequest)
-	} else if utf8.RuneCountInString(*data.DisplayName) == 0 || utf8.RuneCountInString(*data.DisplayName) > model.ChannelDisplayNameMaxRunes {
+	if data.DisplayName == nil || utf8.RuneCountInString(*data.DisplayName) == 0 {
+		data.DisplayName = data.Name // when displayName is missing we use name instead for displaying so we might as well convert it here.
+	} else if utf8.RuneCountInString(*data.DisplayName) > model.ChannelDisplayNameMaxRunes {
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.display_name_length.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -560,6 +560,8 @@ func validateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 	return nil
 }
 
+// validateEmojiImportData validates emoji data and returns if the import name
+// conflicts with a system emoji.
 func validateEmojiImportData(data *EmojiImportData) *model.AppError {
 	if data == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_emoji_import_data.empty.error", nil, "", http.StatusBadRequest)
@@ -569,12 +571,12 @@ func validateEmojiImportData(data *EmojiImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_emoji_import_data.name_missing.error", nil, "", http.StatusBadRequest)
 	}
 
-	if err := model.IsValidEmojiName(*data.Name); err != nil {
-		return err
-	}
-
 	if data.Image == nil || *data.Image == "" {
 		return model.NewAppError("BulkImport", "app.import.validate_emoji_import_data.image_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	if err := model.IsValidEmojiName(*data.Name); err != nil {
+		return err
 	}
 
 	return nil

@@ -24,6 +24,8 @@ const (
 	SessionPropUserAccessTokenId  = "user_access_token_id"
 	SessionPropIsBot              = "is_bot"
 	SessionPropIsBotValue         = "true"
+	SessionPropOAuthAppID         = "oauth_app_id"
+	SessionPropMattermostAppID    = "mattermost_app_id"
 	SessionTypeUserAccessToken    = "UserAccessToken"
 	SessionTypeCloudKey           = "CloudKey"
 	SessionTypeRemoteclusterToken = "RemoteClusterToken"
@@ -217,4 +219,12 @@ func (s *Session) GetCSRF() string {
 	}
 
 	return s.Props["csrf"]
+}
+
+func (s *Session) CreateAt_() float64 {
+	return float64(s.CreateAt)
+}
+
+func (s *Session) ExpiresAt_() float64 {
+	return float64(s.ExpiresAt)
 }
