@@ -226,12 +226,12 @@ func TestUpdateConfig(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceURL = oldURL
 		})
 
-		cfg := th.App.Config().Clone()
-		*cfg.PluginSettings.MarketplaceURL = newURL
+		cfg2 := th.App.Config().Clone()
+		*cfg2.PluginSettings.MarketplaceURL = newURL
 
-		cfg, _, err = th.SystemAdminClient.UpdateConfig(cfg)
+		cfg2, _, err = th.SystemAdminClient.UpdateConfig(cfg2)
 		require.NoError(t, err)
-		assert.Equal(t, oldURL, *cfg.PluginSettings.MarketplaceURL)
+		assert.Equal(t, oldURL, *cfg2.PluginSettings.MarketplaceURL)
 
 		// Allowing uploads
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -239,12 +239,12 @@ func TestUpdateConfig(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceURL = oldURL
 		})
 
-		cfg = th.App.Config().Clone()
-		*cfg.PluginSettings.MarketplaceURL = newURL
+		cfg2 = th.App.Config().Clone()
+		*cfg2.PluginSettings.MarketplaceURL = newURL
 
-		cfg, _, err = th.SystemAdminClient.UpdateConfig(cfg)
+		cfg2, _, err = th.SystemAdminClient.UpdateConfig(cfg2)
 		require.NoError(t, err)
-		assert.Equal(t, newURL, *cfg.PluginSettings.MarketplaceURL)
+		assert.Equal(t, newURL, *cfg2.PluginSettings.MarketplaceURL)
 	})
 
 	t.Run("System Admin should not be able to clear Site URL", func(t *testing.T) {
@@ -767,7 +767,7 @@ func TestPatchConfig(t *testing.T) {
 		cfg := th.App.Config().Clone()
 		*cfg.PluginSettings.MarketplaceURL = newURL
 
-		cfg, _, err := th.SystemAdminClient.PatchConfig(cfg)
+		_, _, err := th.SystemAdminClient.PatchConfig(cfg)
 		require.Error(t, err)
 
 		// Allowing uploads
