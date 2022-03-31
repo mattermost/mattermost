@@ -110,6 +110,7 @@ type WebConn struct {
 	pumpFinished  chan struct{}
 	pluginPosted  chan pluginWSPostedHook
 	subscriptions map[model.WebsocketSubjectID]bool
+	mu            sync.Mutex
 }
 
 // CheckConnResult indicates whether a connectionID was present in the hub or not.
@@ -383,14 +384,20 @@ func (wc *WebConn) readPump() {
 }
 
 func (wc *WebConn) Subscribe(id model.WebsocketSubjectID) {
+	wc.mu.Lock()
+	defer wc.mu.Unlock()
 	wc.subscriptions[id] = true
 }
 
 func (wc *WebConn) Unsubscribe(id model.WebsocketSubjectID) {
+	wc.mu.Lock()
+	defer wc.mu.Unlock()
 	delete(wc.subscriptions, id)
 }
 
 func (wc *WebConn) IsSubscribed(id model.WebsocketSubjectID) bool {
+	wc.mu.Lock()
+	defer wc.mu.Unlock()
 	return wc.subscriptions[id]
 }
 
