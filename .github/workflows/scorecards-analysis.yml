@@ -3,9 +3,7 @@ on:
   # Only the default branch is supported.
   branch_protection_rule:
   schedule:
-    - cron: '44 6 * * 4'
-  push:
-    branches: [ master ]
+    - cron: '44 6 * * *'
 
 # Declare default permissions as read only.
 permissions: read-all
@@ -27,7 +25,7 @@ jobs:
           persist-credentials: false
 
       - name: "Run analysis"
-        uses: ossf/scorecard-action@c8416b0b2bf627c349ca92fc8e3de51a64b005cf # v1.0.2
+        uses: ossf/scorecard-action@c1aec4ac820532bab364f02a81873c555a0ba3a1 # v1.0.4
         with:
           results_file: results.sarif
           results_format: sarif

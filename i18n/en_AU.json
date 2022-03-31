@@ -9357,5 +9357,13 @@
   {
     "id": "api.team.invite_members.unable_to_send_email.app_error",
     "translation": "An error occurred while sending the email"
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "The maximum length of MattermostAppID is 32 characters."
+  },
+  {
+    "id": "app.channel.get_file_count.app_error",
+    "translation": "Unable to retrieve the file count for the channel"
   }
 ]
