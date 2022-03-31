@@ -673,42 +673,23 @@ func testFileInfoStoreGetFilesBatchForIndexing(t *testing.T, ss store.Store) {
 		ss.FileInfo().PermanentDelete(f3.Id)
 	}()
 
-	t.Run("get all files", func(t *testing.T) {
-		r, err := ss.FileInfo().GetFilesBatchForIndexing(f1.CreateAt, model.GetMillis()+100000, 100)
-		require.NoError(t, err)
-		require.Len(t, r, 3, "Expected 3 posts in results. Got %v", len(r))
-		for _, f := range r {
-			if f.Id == f1.Id {
-				require.Equal(t, f.ChannelId, o1.ChannelId, "Unexpected channel ID")
-				require.Equal(t, f.Path, "file1.txt", "Unexpected filename")
-			} else if f.Id == f2.Id {
-				require.Equal(t, f.ChannelId, o2.ChannelId, "Unexpected channel ID")
-				require.Equal(t, f.Path, "file2.txt", "Unexpected filename")
-			} else if f.Id == f3.Id {
-				require.Equal(t, f.ChannelId, o3.ChannelId, "Unexpected channel ID")
-				require.Equal(t, f.Path, "file3.txt", "Unexpected filename")
-			} else {
-				require.Fail(t, "unexpected file returned")
-			}
-		}
-	})
+	// Getting all
+	r, err := ss.FileInfo().GetFilesBatchForIndexing(f1.CreateAt-1, "", 100)
+	require.NoError(t, err)
+	require.Len(t, r, 3, "Expected 3 posts in results. Got %v", len(r))
 
-	t.Run("get files after certain date", func(t *testing.T) {
-		r, err := ss.FileInfo().GetFilesBatchForIndexing(f1.CreateAt+1, model.GetMillis()+100000, 100)
-		require.NoError(t, err)
-		require.Len(t, r, 2, "Expected 2 posts in results. Got %v", len(r))
-		for _, f := range r {
-			if f.Id == f2.Id {
-				require.Equal(t, f.ChannelId, o2.ChannelId, "Unexpected channel ID")
-				require.Equal(t, f.Path, "file2.txt", "Unexpected filename")
-			} else if f.Id == f3.Id {
-				require.Equal(t, f.ChannelId, o3.ChannelId, "Unexpected channel ID")
-				require.Equal(t, f.Path, "file3.txt", "Unexpected filename")
-			} else {
-				require.Fail(t, "unexpected file returned")
-			}
-		}
-	})
+	// Testing pagination
+	r, err = ss.FileInfo().GetFilesBatchForIndexing(f1.CreateAt-1, "", 2)
+	require.NoError(t, err)
+	require.Len(t, r, 2, "Expected 2 posts in results. Got %v", len(r))
+
+	r, err = ss.FileInfo().GetFilesBatchForIndexing(r[1].CreateAt, r[1].Id, 2)
+	require.NoError(t, err)
+	require.Len(t, r, 1, "Expected 1 post in results. Got %v", len(r))
+
+	r, err = ss.FileInfo().GetFilesBatchForIndexing(r[0].CreateAt, r[0].Id, 2)
+	require.NoError(t, err)
+	require.Len(t, r, 0, "Expected 0 posts in results. Got %v", len(r))
 }
 
 func testFileInfoStoreCountAll(t *testing.T, ss store.Store) {

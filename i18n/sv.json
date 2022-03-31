@@ -9245,5 +9245,17 @@
   {
     "id": "app.system.complete_onboarding_request.app_error",
     "translation": "Misslyckades att tolka onboarding-anropet."
+  },
+  {
+    "id": "Playbooks",
+    "translation": "Playbooks"
+  },
+  {
+    "id": "Channels",
+    "translation": "Kanaler"
+  },
+  {
+    "id": "Boards",
+    "translation": "Boards"
   }
 ]

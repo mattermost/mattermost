@@ -1234,11 +1234,11 @@ func (s *RetryLayerChannelStore) GetChannels(teamID string, userID string, opts 
 
 }
 
-func (s *RetryLayerChannelStore) GetChannelsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.Channel, error) {
+func (s *RetryLayerChannelStore) GetChannelsBatchForIndexing(startTime int64, startChannelID string, limit int) ([]*model.Channel, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetChannelsBatchForIndexing(startTime, endTime, limit)
+		result, err := s.ChannelStore.GetChannelsBatchForIndexing(startTime, startChannelID, limit)
 		if err == nil {
 			return result, nil
 		}
@@ -3715,11 +3715,11 @@ func (s *RetryLayerFileInfoStore) GetByPath(path string) (*model.FileInfo, error
 
 }
 
-func (s *RetryLayerFileInfoStore) GetFilesBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.FileForIndexing, error) {
+func (s *RetryLayerFileInfoStore) GetFilesBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.FileForIndexing, error) {
 
 	tries := 0
 	for {
-		result, err := s.FileInfoStore.GetFilesBatchForIndexing(startTime, endTime, limit)
+		result, err := s.FileInfoStore.GetFilesBatchForIndexing(startTime, startFileID, limit)
 		if err == nil {
 			return result, nil
 		}
@@ -6448,11 +6448,11 @@ func (s *RetryLayerPostStore) GetPostsAfter(options model.GetPostsOptions) (*mod
 
 }
 
-func (s *RetryLayerPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.PostForIndexing, error) {
+func (s *RetryLayerPostStore) GetPostsBatchForIndexing(startTime int64, startPostID string, limit int) ([]*model.PostForIndexing, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetPostsBatchForIndexing(startTime, endTime, limit)
+		result, err := s.PostStore.GetPostsBatchForIndexing(startTime, startPostID, limit)
 		if err == nil {
 			return result, nil
 		}
@@ -12103,11 +12103,11 @@ func (s *RetryLayerUserStore) GetUnreadCountForChannel(userID string, channelID 
 
 }
 
-func (s *RetryLayerUserStore) GetUsersBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.UserForIndexing, error) {
+func (s *RetryLayerUserStore) GetUsersBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.UserForIndexing, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.GetUsersBatchForIndexing(startTime, endTime, limit)
+		result, err := s.UserStore.GetUsersBatchForIndexing(startTime, startFileID, limit)
 		if err == nil {
 			return result, nil
 		}

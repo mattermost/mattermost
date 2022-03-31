@@ -7601,7 +7601,6 @@ func testChannelStoreGetChannelsBatchForIndexing(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	time.Sleep(10 * time.Millisecond)
-	startTime := c2.CreateAt
 
 	c3 := &model.Channel{}
 	c3.DisplayName = "Channel3"
@@ -7633,23 +7632,20 @@ func testChannelStoreGetChannelsBatchForIndexing(t *testing.T, ss store.Store) {
 	_, nErr = ss.Channel().Save(c6, -1)
 	require.NoError(t, nErr)
 
-	endTime := c6.CreateAt
-
 	// First and last channel should be outside the range
-	channels, err := ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 1000)
+	channels, err := ss.Channel().GetChannelsBatchForIndexing(c1.CreateAt, "", 4)
 	assert.NoError(t, err)
-	assert.ElementsMatch(t, []*model.Channel{c2, c3, c4, c5}, channels)
+	assert.Len(t, channels, 4)
 
-	// Update the endTime, last channel should be in
-	endTime = model.GetMillis()
-	channels, err = ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 1000)
+	// From 4th createat+id
+	channels, err = ss.Channel().GetChannelsBatchForIndexing(channels[3].CreateAt, channels[3].Id, 5)
 	assert.NoError(t, err)
-	assert.ElementsMatch(t, []*model.Channel{c2, c3, c4, c5, c6}, channels)
+	assert.Len(t, channels, 2)
 
 	// Testing the limit
-	channels, err = ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 2)
+	channels, err = ss.Channel().GetChannelsBatchForIndexing(channels[1].CreateAt, channels[1].Id, 1)
 	assert.NoError(t, err)
-	assert.ElementsMatch(t, []*model.Channel{c2, c3}, channels)
+	assert.Len(t, channels, 0)
 }
 
 func testGroupSyncedChannelCount(t *testing.T, ss store.Store) {
