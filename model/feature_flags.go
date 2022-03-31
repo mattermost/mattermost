@@ -38,9 +38,6 @@ type FeatureFlags struct {
 
 	PermalinkPreviews bool
 
-	// Determine whether when a user gets created, they'll have noisy notifications e.g. Send desktop notifications for all activity
-	NewAccountNoisy bool
-
 	// Enable Calls plugin support in the mobile app
 	CallsMobile bool
 
@@ -70,6 +67,8 @@ type FeatureFlags struct {
 
 	// Enable GraphQL feature
 	GraphQL bool
+
+	InsightsEnabled bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -83,7 +82,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
 	f.PermalinkPreviews = true
-	f.NewAccountNoisy = false
 	f.CallsMobile = false
 	f.BoardsFeatureFlags = ""
 	f.AddMembersToChannel = "top"
@@ -95,6 +93,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableInactivityCheckJob = true
 	f.UseCaseOnboarding = true
 	f.GraphQL = false
+	f.InsightsEnabled = false
 }
 func (f *FeatureFlags) Plugins() map[string]string {
 	rFFVal := reflect.ValueOf(f).Elem()
