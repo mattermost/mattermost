@@ -1810,6 +1810,10 @@
     "translation": "Unable to access the file storage."
   },
   {
+    "id": "api.file.test_connection_email_settings_nil.app_error",
+    "translation": "Email settings has unset values."
+  },
+  {
     "id": "api.file.test_connection_s3_auth.app_error",
     "translation": "Unable to connect to S3. Verify your Amazon S3 connection authorization parameters and authentication settings."
   },
@@ -1819,7 +1823,7 @@
   },
   {
     "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "File storage is not configured properly."
+    "translation": "File storage settings has unset values."
   },
   {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
