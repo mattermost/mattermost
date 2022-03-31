@@ -95,7 +95,7 @@ type WebsocketBroadcast struct {
 	// ReliableClusterSend indicates whether or not the message should
 	// be sent through the cluster using the reliable, TCP backed channel.
 	ReliableClusterSend bool               `json:"-"`
-	SubjectID           WebsocketSubjectID `json:"-"`
+	SubjectID           WebsocketSubjectID `json:"subject_id"`
 }
 
 func (wb *WebsocketBroadcast) copy() *WebsocketBroadcast {
