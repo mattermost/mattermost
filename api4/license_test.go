@@ -38,8 +38,8 @@ func TestGetOldClientLicense(t *testing.T) {
 
 	resp, err := client.DoAPIGet("/license/client", "")
 	require.Error(t, err, "get /license/client did not return an error")
-	require.Equal(t, http.StatusNotImplemented, resp.StatusCode,
-		"expected 501 Not Implemented")
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode,
+		"expected 400 bad request")
 
 	resp, err = client.DoAPIGet("/license/client?format=junk", "")
 	require.Error(t, err, "get /license/client?format=junk did not return an error")
