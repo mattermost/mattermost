@@ -184,24 +184,24 @@ const (
 
 	TeamSettingsDefaultTeamText = "default"
 
-	ElasticsearchSettingsDefaultConnectionURL                 = "http://localhost:9200"
-	ElasticsearchSettingsDefaultUsername                      = "elastic"
-	ElasticsearchSettingsDefaultPassword                      = "changeme"
-	ElasticsearchSettingsDefaultPostIndexReplicas             = 1
-	ElasticsearchSettingsDefaultPostIndexShards               = 1
-	ElasticsearchSettingsDefaultChannelIndexReplicas          = 1
-	ElasticsearchSettingsDefaultChannelIndexShards            = 1
-	ElasticsearchSettingsDefaultUserIndexReplicas             = 1
-	ElasticsearchSettingsDefaultUserIndexShards               = 1
-	ElasticsearchSettingsDefaultAggregatePostsAfterDays       = 365
-	ElasticsearchSettingsDefaultPostsAggregatorJobStartTime   = "03:00"
-	ElasticsearchSettingsDefaultIndexPrefix                   = ""
-	ElasticsearchSettingsDefaultLiveIndexingBatchSize         = 1
-	ElasticsearchSettingsDefaultBulkIndexingTimeWindowSeconds = 3600
-	ElasticsearchSettingsDefaultRequestTimeoutSeconds         = 30
+	ElasticsearchSettingsDefaultConnectionURL               = "http://localhost:9200"
+	ElasticsearchSettingsDefaultUsername                    = "elastic"
+	ElasticsearchSettingsDefaultPassword                    = "changeme"
+	ElasticsearchSettingsDefaultPostIndexReplicas           = 1
+	ElasticsearchSettingsDefaultPostIndexShards             = 1
+	ElasticsearchSettingsDefaultChannelIndexReplicas        = 1
+	ElasticsearchSettingsDefaultChannelIndexShards          = 1
+	ElasticsearchSettingsDefaultUserIndexReplicas           = 1
+	ElasticsearchSettingsDefaultUserIndexShards             = 1
+	ElasticsearchSettingsDefaultAggregatePostsAfterDays     = 365
+	ElasticsearchSettingsDefaultPostsAggregatorJobStartTime = "03:00"
+	ElasticsearchSettingsDefaultIndexPrefix                 = ""
+	ElasticsearchSettingsDefaultLiveIndexingBatchSize       = 1
+	ElasticsearchSettingsDefaultRequestTimeoutSeconds       = 30
+	ElasticsearchSettingsDefaultBatchSize                   = 10000
 
-	BleveSettingsDefaultIndexDir                      = ""
-	BleveSettingsDefaultBulkIndexingTimeWindowSeconds = 3600
+	BleveSettingsDefaultIndexDir  = ""
+	BleveSettingsDefaultBatchSize = 10000
 
 	DataRetentionSettingsDefaultMessageRetentionDays = 365
 	DataRetentionSettingsDefaultFileRetentionDays    = 365
@@ -2480,7 +2480,8 @@ type ElasticsearchSettings struct {
 	PostsAggregatorJobStartTime   *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
 	IndexPrefix                   *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	LiveIndexingBatchSize         *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	BulkIndexingTimeWindowSeconds *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	BulkIndexingTimeWindowSeconds *int    `json:",omitempty"` // telemetry: none
+	BatchSize                     *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	RequestTimeoutSeconds         *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	SkipTLSVerification           *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	Trace                         *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
@@ -2555,8 +2556,8 @@ func (s *ElasticsearchSettings) SetDefaults() {
 		s.LiveIndexingBatchSize = NewInt(ElasticsearchSettingsDefaultLiveIndexingBatchSize)
 	}
 
-	if s.BulkIndexingTimeWindowSeconds == nil {
-		s.BulkIndexingTimeWindowSeconds = NewInt(ElasticsearchSettingsDefaultBulkIndexingTimeWindowSeconds)
+	if s.BatchSize == nil {
+		s.BatchSize = NewInt(ElasticsearchSettingsDefaultBatchSize)
 	}
 
 	if s.RequestTimeoutSeconds == nil {
@@ -2577,7 +2578,8 @@ type BleveSettings struct {
 	EnableIndexing                *bool   `access:"experimental_bleve"`
 	EnableSearching               *bool   `access:"experimental_bleve"`
 	EnableAutocomplete            *bool   `access:"experimental_bleve"`
-	BulkIndexingTimeWindowSeconds *int    `access:"experimental_bleve"`
+	BulkIndexingTimeWindowSeconds *int    `json:",omitempty"` // telemetry: none
+	BatchSize                     *int    `access:"experimental_bleve"`
 }
 
 func (bs *BleveSettings) SetDefaults() {
@@ -2597,8 +2599,8 @@ func (bs *BleveSettings) SetDefaults() {
 		bs.EnableAutocomplete = NewBool(false)
 	}
 
-	if bs.BulkIndexingTimeWindowSeconds == nil {
-		bs.BulkIndexingTimeWindowSeconds = NewInt(BleveSettingsDefaultBulkIndexingTimeWindowSeconds)
+	if bs.BatchSize == nil {
+		bs.BatchSize = NewInt(BleveSettingsDefaultBatchSize)
 	}
 }
 
@@ -3632,8 +3634,9 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *s.BulkIndexingTimeWindowSeconds < 1 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error", nil, "", http.StatusBadRequest)
+	minBatchSize := 1
+	if *s.BatchSize < minBatchSize {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error", map[string]interface{}{"BatchSize": minBatchSize}, "", http.StatusBadRequest)
 	}
 
 	if *s.RequestTimeoutSeconds < 1 {
@@ -3656,8 +3659,9 @@ func (bs *BleveSettings) isValid() *AppError {
 			return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.enable_autocomplete.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
-	if *bs.BulkIndexingTimeWindowSeconds < 1 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error", nil, "", http.StatusBadRequest)
+	minBatchSize := 1
+	if *bs.BatchSize < minBatchSize {
+		return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error", map[string]interface{}{"BatchSize": minBatchSize}, "", http.StatusBadRequest)
 	}
 
 	return nil
