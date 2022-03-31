@@ -1762,9 +1762,9 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
-	renewalLink, _, err := s.GenerateLicenseRenewalLink()
-	if err != nil {
-		mlog.Error("Error while sending the license expired email.", mlog.Err(err))
+	renewalLink, _, appErr := s.GenerateLicenseRenewalLink()
+	if appErr != nil {
+		mlog.Error("Error while sending the license expired email.", mlog.Err(appErr))
 		return
 	}
 
