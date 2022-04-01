@@ -697,13 +697,13 @@ func (_m *ChannelStore) GetChannels(teamID string, userID string, opts *model.Ch
 	return r0, r1
 }
 
-// GetChannelsBatchForIndexing provides a mock function with given fields: startTime, endTime, limit
-func (_m *ChannelStore) GetChannelsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.Channel, error) {
-	ret := _m.Called(startTime, endTime, limit)
+// GetChannelsBatchForIndexing provides a mock function with given fields: startTime, startChannelID, limit
+func (_m *ChannelStore) GetChannelsBatchForIndexing(startTime int64, startChannelID string, limit int) ([]*model.Channel, error) {
+	ret := _m.Called(startTime, startChannelID, limit)
 
 	var r0 []*model.Channel
-	if rf, ok := ret.Get(0).(func(int64, int64, int) []*model.Channel); ok {
-		r0 = rf(startTime, endTime, limit)
+	if rf, ok := ret.Get(0).(func(int64, string, int) []*model.Channel); ok {
+		r0 = rf(startTime, startChannelID, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Channel)
@@ -711,8 +711,8 @@ func (_m *ChannelStore) GetChannelsBatchForIndexing(startTime int64, endTime int
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(int64, int64, int) error); ok {
-		r1 = rf(startTime, endTime, limit)
+	if rf, ok := ret.Get(1).(func(int64, string, int) error); ok {
+		r1 = rf(startTime, startChannelID, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -874,6 +874,27 @@ func (_m *ChannelStore) GetDeletedByName(team_id string, name string) (*model.Ch
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(team_id, name)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetFileCount provides a mock function with given fields: channelID
+func (_m *ChannelStore) GetFileCount(channelID string) (int64, error) {
+	ret := _m.Called(channelID)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string) int64); ok {
+		r0 = rf(channelID)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(channelID)
 	} else {
 		r1 = ret.Error(1)
 	}

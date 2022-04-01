@@ -12,7 +12,6 @@ const (
 	SystemRanUnitTests                     = "RanUnitTests"
 	SystemLastSecurityTime                 = "LastSecurityTime"
 	SystemActiveLicenseId                  = "ActiveLicenseId"
-	SystemLicenseRenewalToken              = "LicenseRenewalToken"
 	SystemLastComplianceTime               = "LastComplianceTime"
 	SystemAsymmetricSigningKeyKey          = "AsymmetricSigningKey"
 	SystemPostActionCookieSecretKey        = "PostActionCookieSecret"
@@ -34,9 +33,6 @@ const (
 	SystemFirstAdminSetupComplete          = "FirstAdminSetupComplete"
 	AwsMeteringReportInterval              = 1
 	AwsMeteringDimensionUsageHrs           = "UsageHrs"
-	UserLimitOverageCycleEndDate           = "UserLimitOverageCycleEndDate"
-	OverUserLimitForgivenCount             = "OverUserLimitForgivenCount"
-	OverUserLimitLastEmailSent             = "OverUserLimitLastEmailSent"
 )
 
 const (

@@ -547,7 +547,7 @@ func (s *SqlPostStore) buildFlaggedPostChannelFilterClause(channelId string, que
 	return "AND ChannelId = ?", append(queryParams, channelId)
 }
 
-func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, extended bool) (*model.PostList, error) {
+func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model.GetPostsOptions) (*model.PostList, error) {
 	if id == "" {
 		return nil, store.NewErrInvalidInput("Post", "id", id)
 	}
@@ -582,12 +582,71 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, extended b
 	}
 
 	posts := []*model.Post{}
-	err = s.GetReplicaX().Select(&posts, "SELECT * FROM Posts WHERE Posts.RootId = ? AND DeleteAt = 0", id)
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.Eq{
+			"RootId":   id,
+			"DeleteAt": 0,
+		})
+
+	var sort string
+	if opts.Direction != "" {
+		if opts.Direction == "up" {
+			sort = "DESC"
+		} else if opts.Direction == "down" {
+			sort = "ASC"
+		}
+	}
+	if sort != "" {
+		query = query.OrderBy("CreateAt " + sort + ", Id " + sort)
+	}
+
+	if opts.FromPost != "" && opts.FromCreateAt != 0 {
+		if opts.Direction == "down" {
+			query = query.Where(sq.Or{
+				sq.Gt{"Posts.CreateAt": opts.FromCreateAt},
+				sq.And{
+					sq.Eq{"Posts.CreateAt": opts.FromCreateAt},
+					sq.Gt{"Posts.Id": opts.FromPost},
+				},
+			})
+		} else {
+			query = query.Where(sq.Or{
+				sq.Lt{"Posts.CreateAt": opts.FromCreateAt},
+				sq.And{
+					sq.Eq{"Posts.CreateAt": opts.FromCreateAt},
+					sq.Lt{"Posts.Id": opts.FromPost},
+				},
+			})
+		}
+	}
+
+	if opts.PerPage != 0 {
+		query = query.Limit(uint64(opts.PerPage + 1))
+	}
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "getPostWithCollapsedThreads_Tosql")
+	}
+	err = s.GetReplicaX().Select(&posts, sql, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts for thread %s", id)
 	}
 
-	list, err := s.prepareThreadedResponse([]*postWithExtra{&post}, extended, false)
+	var hasNext bool
+	if opts.PerPage != 0 {
+		if len(posts) == opts.PerPage+1 {
+			hasNext = true
+		}
+	}
+	if hasNext {
+		// Shave off the last item.
+		posts = posts[:len(posts)-1]
+	}
+
+	list, err := s.prepareThreadedResponse([]*postWithExtra{&post}, opts.CollapsedThreadsExtended, false)
 	if err != nil {
 		return nil, err
 	}
@@ -595,12 +654,14 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, extended b
 		list.AddPost(p)
 		list.AddOrder(p.Id)
 	}
+	list.HasNext = hasNext
+
 	return list, nil
 }
 
-func (s *SqlPostStore) Get(ctx context.Context, id string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool, userID string) (*model.PostList, error) {
-	if collapsedThreads {
-		return s.getPostWithCollapsedThreads(id, userID, collapsedThreadsExtended)
+func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string) (*model.PostList, error) {
+	if opts.CollapsedThreads {
+		return s.getPostWithCollapsedThreads(id, userID, opts)
 	}
 	pl := model.NewPostList()
 
@@ -620,7 +681,7 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, skipFetchThreads, col
 	}
 	pl.AddPost(&post)
 	pl.AddOrder(id)
-	if !skipFetchThreads {
+	if !opts.SkipFetchThreads {
 		rootId := post.RootId
 
 		if rootId == "" {
@@ -631,16 +692,78 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, skipFetchThreads, col
 			return nil, errors.Wrapf(err, "invalid rootId with value=%s", rootId)
 		}
 
+		query := s.getQueryBuilder().
+			Select("p.*, (SELECT count(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount").
+			From("Posts p").
+			Where(sq.Or{
+				sq.Eq{"p.Id": rootId},
+				sq.Eq{"p.RootId": rootId},
+			}).
+			Where(sq.Eq{"p.DeleteAt": 0})
+
+		var sort string
+		if opts.Direction != "" {
+			if opts.Direction == "up" {
+				sort = "DESC"
+			} else if opts.Direction == "down" {
+				sort = "ASC"
+			}
+		}
+		if sort != "" {
+			query = query.OrderBy("CreateAt " + sort + ", Id " + sort)
+		}
+
+		if opts.FromPost != "" && opts.FromCreateAt != 0 {
+			if opts.Direction == "down" {
+				query = query.Where(sq.Or{
+					sq.Gt{"p.CreateAt": opts.FromCreateAt},
+					sq.And{
+						sq.Eq{"p.CreateAt": opts.FromCreateAt},
+						sq.Gt{"p.Id": opts.FromPost},
+					},
+				})
+			} else {
+				query = query.Where(sq.Or{
+					sq.Lt{"p.CreateAt": opts.FromCreateAt},
+					sq.And{
+						sq.Eq{"p.CreateAt": opts.FromCreateAt},
+						sq.Lt{"p.Id": opts.FromPost},
+					},
+				})
+			}
+		}
+
+		if opts.PerPage != 0 {
+			query = query.Limit(uint64(opts.PerPage + 1))
+		}
+
+		sql, args, err := query.ToSql()
+		if err != nil {
+			return nil, errors.Wrap(err, "Get_Tosql")
+		}
+
 		posts := []*model.Post{}
-		err = s.GetReplicaX().Select(&posts, "SELECT *, (SELECT count(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE (Id = ? OR RootId = ?) AND DeleteAt = 0", rootId, rootId)
+		err = s.GetReplicaX().Select(&posts, sql, args...)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to find Posts")
+		}
+
+		var hasNext bool
+		if opts.PerPage != 0 {
+			if len(posts) == opts.PerPage+1 {
+				hasNext = true
+			}
+		}
+		if hasNext {
+			// Shave off the last item
+			posts = posts[:len(posts)-1]
 		}
 
 		for _, p := range posts {
 			pl.AddPost(p)
 			pl.AddOrder(p.Id)
 		}
+		pl.HasNext = hasNext
 	}
 	return pl, nil
 }
@@ -2075,22 +2198,26 @@ func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, error) {
 	return posts, nil
 }
 
-func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.PostForIndexing, error) {
+func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, startPostID string, limit int) ([]*model.PostForIndexing, error) {
 	posts := []*model.PostForIndexing{}
-	err := s.GetSearchReplicaX().Select(&posts,
-		`SELECT
-			PostsQuery.*, Channels.TeamId, ParentPosts.CreateAt ParentCreateAt
+	table := "Posts"
+	// We force this index to avoid any chances of index merge intersection.
+	if s.DriverName() == model.DatabaseDriverMysql {
+		table += " USE INDEX(idx_posts_create_at_id)"
+	}
+	query := `SELECT
+			PostsQuery.*, Channels.TeamId
 		FROM (
 			SELECT
 				*
 			FROM
-				Posts
+				` + table + `
 			WHERE
-				Posts.CreateAt >= ?
-			AND
-				Posts.CreateAt < ?
+				Posts.CreateAt > ?
+			OR
+				(Posts.CreateAt = ? AND Posts.Id > ?)
 			ORDER BY
-				CreateAt ASC
+				CreateAt ASC, Id ASC
 			LIMIT
 				?
 			)
@@ -2100,11 +2227,8 @@ func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, 
 			Channels
 		ON
 			PostsQuery.ChannelId = Channels.Id
-		LEFT JOIN
-			Posts ParentPosts
-		ON
-			PostsQuery.RootId = ParentPosts.Id`,
-		startTime, endTime, limit)
+		ORDER BY CreateAt ASC, Id ASC`
+	err := s.GetSearchReplicaX().Select(&posts, query, startTime, startTime, startPostID, limit)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")

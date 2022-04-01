@@ -9382,9 +9382,5 @@
   {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
     "translation": "A MattermostAppID maximális hossza 32 karakter."
-  },
-  {
-    "id": "app.system.applied_migrations.not_authorized",
-    "translation": "Ön nem rendelkezik a megfelelő jogosultságokkal."
   }
 ]

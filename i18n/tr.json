@@ -9403,7 +9403,7 @@
     "translation": "MattermostAppID en fazla 32 karakter uzunluğunda olabilir."
   },
   {
-    "id": "app.system.applied_migrations.not_authorized",
-    "translation": "Yeterli izinleriniz yok."
+    "id": "app.channel.get_file_count.app_error",
+    "translation": "Kanalın dosya sayısı alınamadı"
   }
 ]
