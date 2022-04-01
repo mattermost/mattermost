@@ -711,6 +711,11 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 			PostId:    post5.Id,
 			EmojiName: "100",
 		},
+		{
+			UserId:    user2Id,
+			PostId:    post5.Id,
+			EmojiName: "+1",
+		},
 	}
 
 	for _, userReaction := range userReactions {
@@ -735,6 +740,21 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 			assert.Equal(t, expectedTopReactions[i].EmojiName, reaction.EmojiName)
 			assert.Equal(t, expectedTopReactions[i].Count, reaction.Count)
 		}
+
+		topReactions, _, err = client.GetTopReactionsForTeamSince(teamId, model.InsightsOpts{TimeRange: "1_day", Page: 1, PerPage: 5})
+		require.NoError(t, err)
+		assert.Equal(t, "+1", topReactions[0].EmojiName)
+		assert.Equal(t, int64(1), topReactions[0].Count)
+	})
+
+	t.Run("get-top-reactions-for-team-since invalid team id", func(t *testing.T) {
+		_, resp, err := client.GetTopReactionsForTeamSince("12345", model.InsightsOpts{TimeRange: "1_day", Page: 0, PerPage: 5})
+		assert.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		_, resp, err = client.GetTopReactionsForTeamSince(model.NewId(), model.InsightsOpts{TimeRange: "1_day", Page: 0, PerPage: 5})
+		assert.Error(t, err)
+		CheckNotFoundStatus(t, resp)
 	})
 }
 
@@ -886,7 +906,7 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 	expectedTopReactions[3] = &model.TopReactions{EmojiName: "heart", Count: int64(3)}
 	expectedTopReactions[4] = &model.TopReactions{EmojiName: "blush", Count: int64(2)}
 
-	t.Run("get-top-reactions-for-team-since", func(t *testing.T) {
+	t.Run("get-top-reactions-for-user-since", func(t *testing.T) {
 		topReactions, _, err := client.GetTopReactionsForUserSince(userId, teamId, model.InsightsOpts{TimeRange: "1_day", Page: 0, PerPage: 5})
 		require.NoError(t, err)
 
@@ -894,5 +914,30 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 			assert.Equal(t, expectedTopReactions[i].EmojiName, reaction.EmojiName)
 			assert.Equal(t, expectedTopReactions[i].Count, reaction.Count)
 		}
+
+		topReactions, _, err = client.GetTopReactionsForUserSince(userId, teamId, model.InsightsOpts{TimeRange: "1_day", Page: 1, PerPage: 5})
+		require.NoError(t, err)
+		assert.Equal(t, "100", topReactions[0].EmojiName)
+		assert.Equal(t, int64(1), topReactions[0].Count)
+	})
+
+	t.Run("get-top-reactions-for-user-since invalid user id", func(t *testing.T) {
+		_, resp, err := client.GetTopReactionsForUserSince("12345", "", model.InsightsOpts{TimeRange: "1_day", Page: 0, PerPage: 5})
+		assert.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		_, resp, err = client.GetTopReactionsForUserSince(model.NewId(), "", model.InsightsOpts{TimeRange: "1_day", Page: 0, PerPage: 5})
+		assert.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("get-top-reactions-for-user-since invalid team id", func(t *testing.T) {
+		_, resp, err := client.GetTopReactionsForUserSince(userId, "invalid_team_id", model.InsightsOpts{TimeRange: "1_day", Page: 0, PerPage: 5})
+		assert.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		_, resp, err = client.GetTopReactionsForUserSince(userId, model.NewId(), model.InsightsOpts{TimeRange: "1_day", Page: 0, PerPage: 5})
+		assert.Error(t, err)
+		CheckNotFoundStatus(t, resp)
 	})
 }
