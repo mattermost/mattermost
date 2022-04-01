@@ -159,15 +159,6 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// New user created, check cloud limits and send emails if needed
-	// Soft fail on error since user is already created
-	if ruser != nil {
-		err = c.App.CheckAndSendUserLimitWarningEmails(c.AppContext)
-		if err != nil {
-			c.LogErrorByCode(err)
-		}
-	}
-
 	auditRec.Success()
 	auditRec.AddMeta("user", ruser) // overwrite meta
 
@@ -1468,18 +1459,6 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// if non cloud instances, isOverLimit is false and no error
-	isAtLimit, err := c.App.CheckCloudAccountAtLimit()
-	if err != nil {
-		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.cloud_at_limit_check_error", nil, "userId="+c.Params.UserId, http.StatusInternalServerError)
-		return
-	}
-
-	if active && isAtLimit {
-		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.cloud_at_or_over_limit_check_overcapacity", nil, "userId="+c.Params.UserId, http.StatusBadRequest)
-		return
-	}
-
 	if _, err = c.App.UpdateActive(c.AppContext, user, active); err != nil {
 		c.Err = err
 	}
@@ -1497,15 +1476,6 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	message := model.NewWebSocketEvent(model.WebsocketEventUserActivationStatusChange, "", "", "", nil)
 	c.App.Publish(message)
-
-	// If activating, run cloud check for limit overages
-	if active {
-		emailErr := c.App.CheckAndSendUserLimitWarningEmails(c.AppContext)
-		if emailErr != nil {
-			c.Err = emailErr
-			return
-		}
-	}
 
 	ReturnStatusOK(w)
 }
