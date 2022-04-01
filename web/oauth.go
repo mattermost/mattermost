@@ -273,7 +273,11 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	state := r.URL.Query().Get("state")
 
-	uri := c.GetSiteURLHeader() + "/signup/" + service + "/complete"
+	siteURL := *c.App.Config().ServiceSettings.SiteURL
+	if strings.TrimSpace(siteURL) == "" {
+		siteURL = c.GetSiteURLHeader()
+	}
+	uri := siteURL + "/signup/" + service + "/complete"
 
 	body, teamId, props, tokenUser, err := c.App.AuthorizeOAuthUser(w, r, service, code, state, uri)
 
