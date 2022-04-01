@@ -14,8 +14,9 @@ type updateData struct {
 	PlaceholderFormat PlaceholderFormat
 	RunWith           BaseRunner
 	Prefixes          []Sqlizer
-	Table             string
+	Tables            []string
 	SetClauses        []setClause
+	From              []Sqlizer
 	WhereParts        []Sqlizer
 	OrderBys          []string
 	Limit             string
@@ -54,7 +55,7 @@ func (d *updateData) QueryRow() RowScanner {
 }
 
 func (d *updateData) ToSql() (sqlStr string, args []interface{}, err error) {
-	if len(d.Table) == 0 {
+	if len(d.Tables) == 0 {
 		err = fmt.Errorf("update statements must specify a table")
 		return
 	}
@@ -75,7 +76,7 @@ func (d *updateData) ToSql() (sqlStr string, args []interface{}, err error) {
 	}
 
 	sql.WriteString("UPDATE ")
-	sql.WriteString(d.Table)
+	sql.WriteString(strings.Join(d.Tables, ", "))
 
 	sql.WriteString(" SET ")
 	setSqls := make([]string, len(d.SetClauses))
@@ -99,6 +100,14 @@ func (d *updateData) ToSql() (sqlStr string, args []interface{}, err error) {
 		setSqls[i] = fmt.Sprintf("%s = %s", setClause.column, valSql)
 	}
 	sql.WriteString(strings.Join(setSqls, ", "))
+
+	if len(d.From) > 0 {
+		sql.WriteString(" FROM ")
+		args, err = appendToSql(d.From, sql, ", ", args)
+		if err != nil {
+			return
+		}
+	}
 
 	if len(d.WhereParts) > 0 {
 		sql.WriteString(" WHERE ")
@@ -208,8 +217,16 @@ func (b UpdateBuilder) PrefixExpr(expr Sqlizer) UpdateBuilder {
 }
 
 // Table sets the table to be updated.
-func (b UpdateBuilder) Table(table string) UpdateBuilder {
-	return builder.Set(b, "Table", table).(UpdateBuilder)
+// Additional tables are used with supporting databases to implicitly join.
+func (b UpdateBuilder) Table(tables ...string) UpdateBuilder {
+	nonEmptyTables := make([]string, 0, len(tables))
+	for _, table := range tables {
+		if table != "" {
+			nonEmptyTables = append(nonEmptyTables, table)
+		}
+	}
+
+	return builder.Set(b, "Tables", nonEmptyTables).(UpdateBuilder)
 }
 
 // Set adds SET clauses to the query.
@@ -231,6 +248,19 @@ func (b UpdateBuilder) SetMap(clauses map[string]interface{}) UpdateBuilder {
 		b = b.Set(key, val)
 	}
 	return b
+}
+
+// From adds FROM clause to the query
+// FROM is valid construct in postgresql only.
+func (b UpdateBuilder) From(from string) UpdateBuilder {
+	return builder.Append(b, "From", newPart(from)).(UpdateBuilder)
+}
+
+// FromSelect sets a subquery into the FROM clause of the query.
+func (b UpdateBuilder) FromSelect(from SelectBuilder, alias string) UpdateBuilder {
+	// Prevent misnumbered parameters in nested selects (#183).
+	from = from.PlaceholderFormat(Question)
+	return builder.Append(b, "From", Alias(from, alias)).(UpdateBuilder)
 }
 
 // Where adds WHERE expressions to the query.

@@ -126,6 +126,8 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
+replace github.com/Masterminds/squirrel v1.5.2 => github.com/lieut-data/squirrel v1.5.4
+
 // Hack to prevent the willf/bitset module from being upgraded to 1.2.0.
 // They changed the module path from github.com/willf/bitset to
 // github.com/bits-and-blooms/bitset and a couple of dependent repos are yet

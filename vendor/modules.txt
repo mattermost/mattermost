@@ -10,7 +10,7 @@ github.com/JalfResi/justext
 # github.com/Masterminds/semver/v3 v3.1.1
 ## explicit
 github.com/Masterminds/semver/v3
-# github.com/Masterminds/squirrel v1.5.2
+# github.com/Masterminds/squirrel v1.5.2 => github.com/lieut-data/squirrel v1.5.4
 ## explicit
 github.com/Masterminds/squirrel
 # github.com/PuerkitoBio/goquery v1.8.0
