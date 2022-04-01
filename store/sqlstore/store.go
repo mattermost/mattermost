@@ -9,6 +9,7 @@ import (
 	dbsql "database/sql"
 	"fmt"
 	"log"
+	"net/url"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -321,6 +322,25 @@ func (ss *SqlStore) initConnection() {
 
 func (ss *SqlStore) DriverName() string {
 	return *ss.settings.DriverName
+}
+
+// IsBinaryParamEnabled returns whether the data source uses binary_parameters
+// when using Postgres
+func (ss *SqlStore) IsBinaryParamEnabled() (bool, error) {
+	if ss.DriverName() != model.DatabaseDriverPostgres {
+		return false, nil
+	}
+
+	url, err := url.Parse(*ss.settings.DataSource)
+	if err != nil {
+		return false, err
+	}
+	return url.Query().Get("binary_parameters") == "yes", nil
+}
+
+// AppendBinaryFlag updates the byte slice to work using binary_parameters=yes.
+func (ss *SqlStore) AppendBinaryFlag(buf []byte) []byte {
+	return append([]byte{0x01}, buf...)
 }
 
 func (ss *SqlStore) getCurrentSchemaVersion() (string, error) {

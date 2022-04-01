@@ -43,10 +43,18 @@ func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {
 		return nil, errors.Wrap(err, "failed marshalling session props")
 	}
 
+	ok, err := me.IsBinaryParamEnabled()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to detect binary parameters from dsn")
+	}
+	if ok {
+		jsonProps = me.AppendBinaryFlag(jsonProps)
+	}
+
 	query, args, err := me.getQueryBuilder().
 		Insert("Sessions").
 		Columns("Id", "Token", "CreateAt", "ExpiresAt", "LastActivityAt", "UserId", "DeviceId", "Roles", "IsOAuth", "ExpiredNotify", "Props").
-		Values(session.Id, session.Token, session.CreateAt, session.ExpiresAt, session.LastActivityAt, session.UserId, session.DeviceId, session.Roles, session.IsOAuth, session.ExpiredNotify, string(jsonProps)).
+		Values(session.Id, session.Token, session.CreateAt, session.ExpiresAt, session.LastActivityAt, session.UserId, session.DeviceId, session.Roles, session.IsOAuth, session.ExpiredNotify, jsonProps).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "sessions_tosql")
@@ -263,9 +271,16 @@ func (me SqlSessionStore) UpdateProps(session *model.Session) error {
 	if err != nil {
 		return errors.Wrap(err, "failed marshalling session props")
 	}
+	ok, err := me.IsBinaryParamEnabled()
+	if err != nil {
+		return errors.Wrap(err, "failed to detect binary parameters from dsn")
+	}
+	if ok {
+		jsonProps = me.AppendBinaryFlag(jsonProps)
+	}
 	query, args, err := me.getQueryBuilder().
 		Update("Sessions").
-		Set("Props", string(jsonProps)).
+		Set("Props", jsonProps).
 		Where(sq.Eq{"Id": session.Id}).
 		ToSql()
 	if err != nil {

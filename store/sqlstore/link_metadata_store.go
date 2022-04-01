@@ -32,16 +32,23 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 	if err != nil {
 		return nil, errors.Wrap(err, "could not serialize metadataBytes to JSON")
 	}
+	ok, err := s.IsBinaryParamEnabled()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to detect binary parameters from dsn")
+	}
+	if ok {
+		metadataBytes = s.AppendBinaryFlag(metadataBytes)
+	}
 
 	query := s.getQueryBuilder().
 		Insert("LinkMetadata").
 		Columns("Hash", "URL", "Timestamp", "Type", "Data").
-		Values(metadata.Hash, metadata.URL, metadata.Timestamp, metadata.Type, string(metadataBytes))
+		Values(metadata.Hash, metadata.URL, metadata.Timestamp, metadata.Type, metadataBytes)
 
 	if s.DriverName() == model.DatabaseDriverMysql {
-		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE URL = ?, Timestamp = ?, Type = ?, Data = ?", metadata.URL, metadata.Timestamp, metadata.Type, string(metadataBytes)))
+		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE URL = ?, Timestamp = ?, Type = ?, Data = ?", metadata.URL, metadata.Timestamp, metadata.Type, metadataBytes))
 	} else {
-		query = query.SuffixExpr(sq.Expr("ON CONFLICT (hash) DO UPDATE SET URL = ?, Timestamp = ?, Type = ?, Data = ?", metadata.URL, metadata.Timestamp, metadata.Type, string(metadataBytes)))
+		query = query.SuffixExpr(sq.Expr("ON CONFLICT (hash) DO UPDATE SET URL = ?, Timestamp = ?, Type = ?, Data = ?", metadata.URL, metadata.Timestamp, metadata.Type, metadataBytes))
 	}
 
 	q, args, err := query.ToSql()
