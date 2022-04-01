@@ -18,8 +18,8 @@ import (
 	ms "github.com/mattermost/morph/drivers/mysql"
 	ps "github.com/mattermost/morph/drivers/postgres"
 
+	_ "github.com/mattermost/morph/sources/embedded"
 	_ "github.com/mattermost/morph/sources/file"
-	_ "github.com/mattermost/morph/sources/go_bindata"
 )
 
 var migrationProgressStart = "==  %s: migrating  ================================================="
@@ -99,9 +99,9 @@ func New(ctx context.Context, driver drivers.Driver, source sources.Source, opti
 		var err error
 		switch impl.DriverName() {
 		case "mysql":
-			mx, err = ms.NewMutex(engine.config.LockKey, driver)
+			mx, err = ms.NewMutex(engine.config.LockKey, driver, engine.config.Logger)
 		case "postgres":
-			mx, err = ps.NewMutex(engine.config.LockKey, driver)
+			mx, err = ps.NewMutex(engine.config.LockKey, driver, engine.config.Logger)
 		default:
 			err = errors.New("driver does not support locking")
 		}
@@ -110,7 +110,7 @@ func New(ctx context.Context, driver drivers.Driver, source sources.Source, opti
 		}
 
 		engine.mutex = mx
-		err = mx.LockWithContext(ctx)
+		err = mx.Lock(ctx)
 		if err != nil {
 			return nil, err
 		}
