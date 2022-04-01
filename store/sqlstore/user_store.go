@@ -1671,12 +1671,17 @@ func (us SqlUserStore) InferSystemInstallDate() (int64, error) {
 	return createAt, nil
 }
 
-func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit int) ([]*model.UserForIndexing, error) {
+func (us SqlUserStore) GetUsersBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.UserForIndexing, error) {
 	users := []*model.User{}
 	usersQuery, args, _ := us.usersQuery.
-		Where(sq.GtOrEq{"u.CreateAt": startTime}).
-		Where(sq.Lt{"u.CreateAt": endTime}).
-		OrderBy("u.CreateAt").
+		Where(sq.Or{
+			sq.Gt{"u.CreateAt": startTime},
+			sq.And{
+				sq.Eq{"u.CreateAt": startTime},
+				sq.Gt{"u.Id": startFileID},
+			},
+		}).
+		OrderBy("u.CreateAt ASC, u.Id ASC").
 		Limit(uint64(limit)).
 		ToSql()
 	err := us.GetSearchReplicaX().Select(&users, usersQuery, args...)
