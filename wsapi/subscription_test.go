@@ -32,9 +32,10 @@ func TestSubscription(t *testing.T) {
 	tests := map[string]struct {
 		data        map[string]interface{}
 		expectError bool
+		errorID     string
 	}{
-		"no data":         {data: nil, expectError: true},
-		"invalid subject": {data: map[string]interface{}{"subscription_id": "foobar"}, expectError: true},
+		"no data":         {data: nil, expectError: true, errorID: "api.websocket_handler.invalid_param.app_error"},
+		"invalid subject": {data: map[string]interface{}{"subscription_id": "foobar"}, expectError: true, errorID: "api.websocket_handler.invalid_param.app_error"},
 		"valid subject":   {data: map[string]interface{}{"subscription_id": "activity_feed"}, expectError: false},
 	}
 
@@ -44,7 +45,9 @@ func TestSubscription(t *testing.T) {
 			resp2, err2 := api.unsubscribe(&model.WebSocketRequest{Data: tc.data}, wc)
 			if tc.expectError {
 				require.NotNil(t, err1)
+				require.Equal(t, err1.Id, tc.errorID)
 				require.NotNil(t, err2)
+				require.Equal(t, err2.Id, tc.errorID)
 			} else {
 				require.Nil(t, err1)
 				require.Nil(t, err2)
