@@ -140,14 +140,16 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Do not allow plugin uploads to be toggled through the API
-	cfg.PluginSettings.EnableUploads = appCfg.PluginSettings.EnableUploads
+	*cfg.PluginSettings.EnableUploads = *appCfg.PluginSettings.EnableUploads
 
 	// Do not allow certificates to be changed through the API
+	// This shallow-copies the slice header. So be careful if there are concurrent
+	// modifications to the slice.
 	cfg.PluginSettings.SignaturePublicKeyFiles = appCfg.PluginSettings.SignaturePublicKeyFiles
 
 	// Do not allow marketplace URL to be toggled through the API if EnableUploads are disabled.
-	if cfg.PluginSettings.EnableUploads != nil && !*cfg.PluginSettings.EnableUploads {
-		cfg.PluginSettings.MarketplaceURL = appCfg.PluginSettings.MarketplaceURL
+	if cfg.PluginSettings.EnableUploads != nil && !*appCfg.PluginSettings.EnableUploads {
+		*cfg.PluginSettings.MarketplaceURL = *appCfg.PluginSettings.MarketplaceURL
 	}
 
 	c.App.HandleMessageExportConfig(cfg, appCfg)
