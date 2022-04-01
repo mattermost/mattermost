@@ -69,12 +69,6 @@ func RegisterJobsLdapSyncInterface(f func(*App) ejobs.LdapSyncInterface) {
 	jobsLdapSyncInterface = f
 }
 
-var jobsCloudInterface func(*Server) ejobs.CloudJobInterface
-
-func RegisterJobsCloudInterface(f func(*Server) ejobs.CloudJobInterface) {
-	jobsCloudInterface = f
-}
-
 var ldapInterface func(*App) einterfaces.LdapInterface
 
 func RegisterLdapInterface(f func(*App) einterfaces.LdapInterface) {
