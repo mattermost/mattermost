@@ -297,7 +297,7 @@ func (a *App) getImagesForPost(post *model.Post, imageURLs []string, isNewPost b
 		case model.PostEmbedOpengraph:
 			openGraph, ok := embed.Data.(*opengraph.OpenGraph)
 			if !ok {
-				mlog.Debug("Could not read the image data: the data could not be casted to OpenGraph",
+				mlog.Warn("Could not read the image data: the data could not be casted to OpenGraph",
 					mlog.String("post_id", post.Id), mlog.String("data type", fmt.Sprintf("%t", embed.Data)))
 				continue
 			}
