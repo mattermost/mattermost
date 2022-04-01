@@ -361,28 +361,15 @@ func (s *Server) RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *m
 	return nil
 }
 
-// GenerateRenewalToken returns the current active token or generate a new one if
-// the current active one has expired
+// GenerateRenewalToken returns a renewal token that expires after duration expiration
 func (s *Server) GenerateRenewalToken(expiration time.Duration) (string, *model.AppError) {
 	license := s.License()
 	if license == nil {
-		// Clean renewal token if there is no license present
-		if _, err := s.Store.System().PermanentDeleteByName(model.SystemLicenseRenewalToken); err != nil {
-			mlog.Warn("error removing the renewal token", mlog.Err(err))
-		}
 		return "", model.NewAppError("GenerateRenewalToken", "app.license.generate_renewal_token.no_license", nil, "", http.StatusBadRequest)
 	}
 
 	if *license.Features.Cloud {
 		return "", model.NewAppError("GenerateRenewalToken", "app.license.generate_renewal_token.bad_license", nil, "", http.StatusBadRequest)
-	}
-
-	currentToken, _ := s.Store.System().GetByName(model.SystemLicenseRenewalToken)
-	if currentToken != nil {
-		tokenIsValid, _ := s.renewalTokenValid(currentToken.Value, license.Customer.Email)
-		if currentToken.Value != "" && tokenIsValid {
-			return currentToken.Value, nil
-		}
 	}
 
 	activeUsers, err := s.Store.User().Count(model.UserCountOptions{})
@@ -405,33 +392,8 @@ func (s *Server) GenerateRenewalToken(expiration time.Duration) (string, *model.
 	if err != nil {
 		return "", model.NewAppError("GenerateRenewalToken", "app.license.generate_renewal_token.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	err = s.Store.System().SaveOrUpdate(&model.System{
-		Name:  model.SystemLicenseRenewalToken,
-		Value: tokenString,
-	})
-	if err != nil {
-		return "", model.NewAppError("GenerateRenewalToken", "app.license.generate_renewal_token.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
+
 	return tokenString, nil
-}
-
-func (s *Server) renewalTokenValid(tokenString, signingKey string) (bool, error) {
-	claims := &JWTClaims{}
-
-	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte(signingKey), nil
-	})
-	if err != nil {
-		return false, errors.Wrapf(err, "Error validating JWT token")
-	}
-	if !token.Valid {
-		return false, errors.New("invalid JWT token")
-	}
-	expirationTime := time.Unix(claims.ExpiresAt, 0)
-	if expirationTime.Before(time.Now().UTC()) {
-		return false, nil
-	}
-	return true, nil
 }
 
 // GenerateLicenseRenewalLink returns a link that points to the CWS where clients can renew license
