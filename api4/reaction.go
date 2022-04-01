@@ -148,7 +148,13 @@ func getTopReactionsForTeamSince(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionViewTeam) {
+	team, err := c.App.GetTeam(c.Params.TeamId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if (!team.AllowOpenInvite || team.Type != model.TeamOpen) && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
 		c.SetPermissionError(model.PermissionViewTeam)
 		return
 	}
@@ -178,6 +184,18 @@ func getTopReactionsForUserSince(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	canSee, userErr := c.App.UserCanSeeOtherUser(c.AppContext.Session().UserId, c.Params.UserId)
+	if userErr != nil || !canSee {
+		c.SetPermissionError(model.PermissionViewMembers)
+		return
+	}
+
+	_, userErr = c.App.GetUser(c.Params.UserId)
+	if userErr != nil {
+		c.Err = userErr
+		return
+	}
+
 	c.Params.TeamId = r.URL.Query().Get("team_id")
 
 	// TeamId is an optional parameter
@@ -185,16 +203,18 @@ func getTopReactionsForUserSince(c *Context, w http.ResponseWriter, r *http.Requ
 		if !model.IsValidId(c.Params.TeamId) {
 			c.SetInvalidURLParam("team_id")
 			return
-		} else if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionViewTeam) {
+		}
+
+		team, teamErr := c.App.GetTeam(c.Params.TeamId)
+		if teamErr != nil {
+			c.Err = teamErr
+			return
+		}
+
+		if (!team.AllowOpenInvite || team.Type != model.TeamOpen) && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
 			c.SetPermissionError(model.PermissionViewTeam)
 			return
 		}
-	}
-
-	// TODO: Check if we're allowing users to get insights of other users.
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PermissionEditOtherUsers)
-		return
 	}
 
 	reactions, err := c.App.GetTopReactionsForUserSince(c.Params.UserId, c.Params.TeamId, &model.InsightsOpts{
