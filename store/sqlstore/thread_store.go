@@ -20,21 +20,25 @@ import (
 
 type SqlThreadStore struct {
 	*SqlStore
+
+	threadsSelectQuery sq.SelectBuilder
 }
 
 func (s *SqlThreadStore) ClearCaches() {
 }
 
 func newSqlThreadStore(sqlStore *SqlStore) store.ThreadStore {
-	return &SqlThreadStore{
+	s := SqlThreadStore{
 		SqlStore: sqlStore,
 	}
+
+	s.initializeQueries()
+
+	return &s
 }
 
-func (s *SqlThreadStore) Get(id string) (*model.Thread, error) {
-	var thread model.Thread
-
-	query, args, err := s.getQueryBuilder().
+func (s *SqlThreadStore) initializeQueries() {
+	s.threadsSelectQuery = s.getQueryBuilder().
 		Select(
 			"Threads.PostId",
 			"Threads.ChannelId",
@@ -43,6 +47,13 @@ func (s *SqlThreadStore) Get(id string) (*model.Thread, error) {
 			"Threads.Participants",
 			"COALESCE(Threads.DeleteAt, 0) AS DeleteAt",
 		).
+		From("Threads")
+}
+
+func (s *SqlThreadStore) Get(id string) (*model.Thread, error) {
+	var thread model.Thread
+
+	query, args, err := s.threadsSelectQuery.
 		From("Threads").
 		Where(sq.Eq{"PostId": id}).
 		ToSql()
@@ -226,15 +237,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		return nil, errors.Wrapf(err, "failed to build subquery to count unread replies when getting threads for user id=%s", userId)
 	}
 
-	query := s.getQueryBuilder().
-		Select(
-			"Threads.PostId",
-			"Threads.ChannelId",
-			"Threads.ReplyCount",
-			"Threads.LastReplyAt",
-			"Threads.Participants",
-			"COALESCE(Threads.DeleteAt, 0) AS DeleteAt",
-		).
+	query := s.threadsSelectQuery.
 		Column(postSliceCoalesceQuery()).
 		Columns(
 			"ThreadMemberships.LastViewed as LastViewedAt",
@@ -515,16 +518,7 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		sq.Eq{"Threads.PostId": threadMembership.PostId},
 	}
 
-	query := s.getQueryBuilder().
-		Select(
-			"Threads.PostId",
-			"Threads.ChannelId",
-			"Threads.ReplyCount",
-			"Threads.LastReplyAt",
-			"Threads.Participants",
-			"COALESCE(Threads.DeleteAt, 0) AS DeleteAt",
-		).
-		From("Threads")
+	query := s.threadsSelectQuery
 
 	for _, c := range postSliceColumns() {
 		query = query.Column("Posts." + c)
