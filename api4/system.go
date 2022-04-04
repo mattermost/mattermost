@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"path"
+	"reflect"
 	"runtime"
 	"strconv"
 	"time"
@@ -195,9 +196,16 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJSON(r.Body)
-	if cfg == nil {
-		cfg = c.App.Config()
+	var cfg *model.Config
+	jsonErr := json.NewDecoder(r.Body).Decode(&cfg)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("testEmail", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if checkHasNilFields(&cfg.EmailSettings) {
+		c.Err = model.NewAppError("testEmail", "api.file.test_connection_email_settings_nil.app_error", nil, "", http.StatusBadRequest)
+		return
 	}
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestEmail) {
@@ -446,9 +454,16 @@ func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJSON(r.Body)
-	if cfg == nil {
-		cfg = c.App.Config()
+	var cfg *model.Config
+	jsonErr := json.NewDecoder(r.Body).Decode(&cfg)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("testS3", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if checkHasNilFields(&cfg.FileSettings) {
+		c.Err = model.NewAppError("testS3", "api.file.test_connection_s3_settings_nil.app_error", nil, "", http.StatusBadRequest)
+		return
 	}
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestS3) {
@@ -959,4 +974,22 @@ func getAppliedSchemaMigrations(c *Context, w http.ResponseWriter, r *http.Reque
 
 	w.Write(js)
 	auditRec.Success()
+}
+
+// returns true if the data has nil fields
+// this is being used for testS3 and testEmail methods
+func checkHasNilFields(value interface{}) bool {
+	v := reflect.Indirect(reflect.ValueOf(value))
+	if v.Kind() != reflect.Struct {
+		return false
+	}
+
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		if field.Kind() == reflect.Ptr && field.IsNil() {
+			return true
+		}
+	}
+
+	return false
 }
