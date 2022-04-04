@@ -41,6 +41,7 @@ func (s *SqlThreadStore) Get(id string) (*model.Thread, error) {
 			"Threads.ReplyCount",
 			"Threads.LastReplyAt",
 			"Threads.Participants",
+			"COALESCE(Threads.DeleteAt, 0) AS DeleteAt",
 		).
 		From("Threads").
 		Where(sq.Eq{"PostId": id}).
@@ -232,6 +233,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 			"Threads.ReplyCount",
 			"Threads.LastReplyAt",
 			"Threads.Participants",
+			"COALESCE(Threads.DeleteAt, 0) AS DeleteAt",
 		).
 		Column(postSliceCoalesceQuery()).
 		Columns(
@@ -492,6 +494,7 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		UnreadReplies  int64
 		UnreadMentions int64
 		Participants   model.StringArray
+		DeleteAt       int64
 		model.Post
 	}
 
@@ -519,6 +522,7 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 			"Threads.ReplyCount",
 			"Threads.LastReplyAt",
 			"Threads.Participants",
+			"COALESCE(Threads.DeleteAt, 0) AS DeleteAt",
 		).
 		From("Threads")
 
@@ -586,6 +590,7 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		UnreadMentions: thread.UnreadMentions,
 		Participants:   participants,
 		Post:           thread.Post.ToNilIfInvalid(),
+		DeleteAt:       thread.DeleteAt,
 	}
 
 	return result, nil

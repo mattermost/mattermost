@@ -873,7 +873,11 @@ func (s *SqlPostStore) Delete(postID string, time int64, deleteByID string) erro
 		return errors.Wrap(err, "failed to update Posts")
 	}
 
-	err = s.cleanupThreadComments(transaction, postID, id.RootId, id.UserId)
+	if id.RootId == "" {
+		err = s.deleteThread(transaction, postID, time)
+	} else {
+		err = s.updateThreadAfterReplyDeletion(transaction, id.RootId, id.UserId)
+	}
 
 	if err != nil {
 		return errors.Wrapf(err, "failed to cleanup Thread with postid=%s", id.RootId)
@@ -933,13 +937,12 @@ func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) error {
 	}
 
 	_, err = transaction.Exec("DELETE FROM Posts WHERE UserId = ? AND RootId != ''", userId)
-
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete Posts with userId=%s", userId)
 	}
 
 	for _, ids := range results {
-		if err = s.cleanupThreadComments(transaction, ids.Id, ids.RootId, userId); err != nil {
+		if err = s.updateThreadAfterReplyDeletion(transaction, ids.RootId, userId); err != nil {
 			return err
 		}
 	}
@@ -2598,11 +2601,28 @@ func (s *SqlPostStore) permanentDeleteThreads(transaction *sqlxTxWrapper, postId
 	return nil
 }
 
-// Thread cleanup upon post deletion
-// if the post is a comment
-// reply count is reduced by 1 and,
-// the user is removed from participants if the comment deleted is the last reply from said user.
-func (s *SqlPostStore) cleanupThreadComments(transaction *sqlxTxWrapper, postId, rootId string, userId string) error {
+// deleteThread marks a thread as deleted at the given time.
+func (s *SqlPostStore) deleteThread(transaction *sqlxTxWrapper, postId string, deleteAtTime int64) error {
+	queryString, args, err := s.getQueryBuilder().
+		Update("Threads").
+		Set("DeleteAt", deleteAtTime).
+		Where(sq.Eq{"PostId": postId}).
+		ToSql()
+	if err != nil {
+		return errors.Wrapf(err, "failed to create SQL query to mark thread for root post %s as deleted", postId)
+	}
+
+	_, err = transaction.Exec(queryString, args...)
+	if err != nil {
+		return errors.Wrapf(err, "failed to mark thread for root post %s as deleted", postId)
+	}
+
+	return nil
+}
+
+// updateThreadAfterReplyDeletion decrements the thread reply count and adjusts the participants
+// list as necessary.
+func (s *SqlPostStore) updateThreadAfterReplyDeletion(transaction *sqlxTxWrapper, rootId string, userId string) error {
 	if rootId != "" {
 		queryString, args, err := s.getQueryBuilder().
 			Select("COUNT(Posts.Id)").
@@ -2681,6 +2701,7 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 			"Threads.ReplyCount",
 			"Threads.LastReplyAt",
 			"Threads.Participants",
+			"COALESCE(Threads.DeleteAt, 0) AS DeleteAt",
 		).
 		From("Threads").
 		Where(sq.Eq{"Threads.PostId": rootIds}).
