@@ -17,8 +17,8 @@ func (api *API) InitReaction() {
 	api.BaseRoutes.ReactionByNameForPostForUser.Handle("", api.APISessionRequired(deleteReaction)).Methods("DELETE")
 	api.BaseRoutes.Posts.Handle("/ids/reactions", api.APISessionRequired(getBulkReactions)).Methods("POST")
 
-	api.BaseRoutes.Reactions.Handle("/top/team/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getTopReactionsForTeamSince)).Methods("GET")
-	api.BaseRoutes.Reactions.Handle("/top/user/{user_id:[A-Za-z0-9]+}", api.APISessionRequired(getTopReactionsForUserSince)).Methods("GET")
+	api.BaseRoutes.Reactions.Handle("/team/{team_id:[A-Za-z0-9]+}/top", api.APISessionRequired(getTopReactionsForTeamSince)).Methods("GET")
+	api.BaseRoutes.Reactions.Handle("/user/me/top", api.APISessionRequired(getTopReactionsForUserSince)).Methods("GET")
 }
 
 func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -179,23 +179,6 @@ func getTopReactionsForTeamSince(c *Context, w http.ResponseWriter, r *http.Requ
 }
 
 func getTopReactionsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId()
-	if c.Err != nil {
-		return
-	}
-
-	canSee, userErr := c.App.UserCanSeeOtherUser(c.AppContext.Session().UserId, c.Params.UserId)
-	if userErr != nil || !canSee {
-		c.SetPermissionError(model.PermissionViewMembers)
-		return
-	}
-
-	_, userErr = c.App.GetUser(c.Params.UserId)
-	if userErr != nil {
-		c.Err = userErr
-		return
-	}
-
 	c.Params.TeamId = r.URL.Query().Get("team_id")
 
 	// TeamId is an optional parameter
@@ -217,7 +200,7 @@ func getTopReactionsForUserSince(c *Context, w http.ResponseWriter, r *http.Requ
 		}
 	}
 
-	reactions, err := c.App.GetTopReactionsForUserSince(c.Params.UserId, c.Params.TeamId, &model.InsightsOpts{
+	reactions, err := c.App.GetTopReactionsForUserSince(c.AppContext.Session().UserId, c.Params.TeamId, &model.InsightsOpts{
 		TimeRange: c.Params.TimeRange,
 		Page:      c.Params.Page,
 		PerPage:   c.Params.PerPage,
