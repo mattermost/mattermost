@@ -6472,9 +6472,9 @@ func (c *Client4) GetBulkReactions(postIds []string) (map[string][]*Reaction, *R
 	return reactions, BuildResponse(r), nil
 }
 
-func (c *Client4) GetTopReactionsForTeamSince(teamId string, opts InsightsOpts) ([]*TopReactions, *Response, error) {
-	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", opts.TimeRange, opts.Page, opts.PerPage)
-	r, err := c.DoAPIGet(c.reactionsRoute()+"/top/team/"+teamId+query, "")
+func (c *Client4) GetTopReactionsForTeamSince(teamId string, timeRange string, page int, perPage int) ([]*TopReactions, *Response, error) {
+	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
+	r, err := c.DoAPIGet(c.reactionsRoute()+"/team/"+teamId+"/top"+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6486,14 +6486,14 @@ func (c *Client4) GetTopReactionsForTeamSince(teamId string, opts InsightsOpts) 
 	return topReactions, BuildResponse(r), nil
 }
 
-func (c *Client4) GetTopReactionsForUserSince(userId string, teamId string, opts InsightsOpts) ([]*TopReactions, *Response, error) {
-	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", opts.TimeRange, opts.Page, opts.PerPage)
+func (c *Client4) GetTopReactionsForUserSince(teamId string, timeRange string, page int, perPage int) ([]*TopReactions, *Response, error) {
+	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
 
 	if teamId != "" {
 		query += fmt.Sprintf("&team_id=%v", teamId)
 	}
 
-	r, err := c.DoAPIGet(c.reactionsRoute()+"/top/user/"+userId+query, "")
+	r, err := c.DoAPIGet(c.reactionsRoute()+"/user/me/top"+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

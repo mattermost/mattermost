@@ -143,7 +143,7 @@ func getBulkReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getTopReactionsForTeamSince(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireTeamId()
+	c.RequireTeamId().RequireTimeRange()
 	if c.Err != nil {
 		return
 	}
@@ -179,6 +179,11 @@ func getTopReactionsForTeamSince(c *Context, w http.ResponseWriter, r *http.Requ
 }
 
 func getTopReactionsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTimeRange()
+	if c.Err != nil {
+		return
+	}
+
 	c.Params.TeamId = r.URL.Query().Get("team_id")
 
 	// TeamId is an optional parameter

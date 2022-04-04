@@ -224,15 +224,17 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 	expectedTopReactions[3] = &model.TopReactions{EmojiName: "sad", Count: int64(3)}
 	expectedTopReactions[4] = &model.TopReactions{EmojiName: "happy", Count: int64(2)}
 
+	timeRange, _ := model.GetTimeRange("1_day")
+
 	t.Run("get-top-reactions-for-team-since", func(t *testing.T) {
-		topReactions, err := th.App.GetTopReactionsForTeamSince(teamId, userId, &model.InsightsOpts{TimeRange: "1_day", Page: 0, PerPage: 5})
+		topReactions, err := th.App.GetTopReactionsForTeamSince(teamId, userId, &model.InsightsOpts{TimeRange: timeRange, Page: 0, PerPage: 5})
 		require.Nil(t, err)
 
 		for i, reaction := range topReactions {
 			assert.Equal(t, expectedTopReactions[i].EmojiName, reaction.EmojiName)
 			assert.Equal(t, expectedTopReactions[i].Count, reaction.Count)
 		}
-		topReactions, err = th.App.GetTopReactionsForTeamSince(teamId, userId, &model.InsightsOpts{TimeRange: "1_day", Page: 1, PerPage: 5})
+		topReactions, err = th.App.GetTopReactionsForTeamSince(teamId, userId, &model.InsightsOpts{TimeRange: timeRange, Page: 1, PerPage: 5})
 		require.Nil(t, err)
 		assert.Equal(t, "+1", topReactions[0].EmojiName)
 		assert.Equal(t, int64(1), topReactions[0].Count)
@@ -240,7 +242,7 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 
 	t.Run("get-top-reactions-for-team-since feature flag", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = false })
-		_, err := th.App.GetTopReactionsForTeamSince(userId, teamId, &model.InsightsOpts{TimeRange: "1_day", Page: 0, PerPage: 5})
+		_, err := th.App.GetTopReactionsForTeamSince(userId, teamId, &model.InsightsOpts{TimeRange: timeRange, Page: 0, PerPage: 5})
 		assert.NotNil(t, err)
 	})
 }
@@ -384,8 +386,10 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 	expectedTopReactions[3] = &model.TopReactions{EmojiName: "heart", Count: int64(3)}
 	expectedTopReactions[4] = &model.TopReactions{EmojiName: "blush", Count: int64(2)}
 
+	timeRange, _ := model.GetTimeRange("1_day")
+
 	t.Run("get-top-reactions-for-user-since", func(t *testing.T) {
-		topReactions, err := th.App.GetTopReactionsForUserSince(userId, teamId, &model.InsightsOpts{TimeRange: "1_day", Page: 0, PerPage: 5})
+		topReactions, err := th.App.GetTopReactionsForUserSince(userId, teamId, &model.InsightsOpts{TimeRange: timeRange, Page: 0, PerPage: 5})
 		require.Nil(t, err)
 
 		for i, reaction := range topReactions {
@@ -393,7 +397,7 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 			assert.Equal(t, expectedTopReactions[i].Count, reaction.Count)
 		}
 
-		topReactions, err = th.App.GetTopReactionsForUserSince(userId, teamId, &model.InsightsOpts{TimeRange: "1_day", Page: 1, PerPage: 5})
+		topReactions, err = th.App.GetTopReactionsForUserSince(userId, teamId, &model.InsightsOpts{TimeRange: timeRange, Page: 1, PerPage: 5})
 		require.Nil(t, err)
 		assert.Equal(t, "100", topReactions[0].EmojiName)
 		assert.Equal(t, int64(1), topReactions[0].Count)
@@ -401,7 +405,7 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 
 	t.Run("get-top-reactions-for-user-since feature flag", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = false })
-		_, err := th.App.GetTopReactionsForUserSince(userId, teamId, &model.InsightsOpts{TimeRange: "1_day", Page: 0, PerPage: 5})
+		_, err := th.App.GetTopReactionsForUserSince(userId, teamId, &model.InsightsOpts{TimeRange: timeRange, Page: 0, PerPage: 5})
 		assert.NotNil(t, err)
 	})
 }

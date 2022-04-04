@@ -31,7 +31,7 @@ type Params struct {
 	TokenId                   string
 	ThreadId                  string
 	Timestamp                 int64
-	TimeRange                 string
+	TimeRange                 int64
 	ChannelId                 string
 	PostId                    string
 	PolicyId                  string
@@ -255,7 +255,9 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.Timestamp = val
 	}
 
-	params.TimeRange = query.Get("time_range")
+	if val, err := model.GetTimeRange(query.Get("time_range")); err == nil {
+		params.TimeRange = val
+	}
 
 	if val, err := strconv.ParseBool(query.Get("permanent")); err == nil {
 		params.Permanent = val

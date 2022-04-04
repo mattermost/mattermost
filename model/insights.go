@@ -8,8 +8,14 @@ import (
 	"time"
 )
 
+const (
+	TimeRange1Day  string = "1_day"
+	TimeRange7Day  string = "7_day"
+	TimeRange28Day string = "28_day"
+)
+
 type InsightsOpts struct {
-	TimeRange string
+	TimeRange int64
 	Page      int
 	PerPage   int
 }
@@ -23,11 +29,11 @@ type TopReactions struct {
 // timeRange can be one of: "1_day", "7_day", "28_day"
 func GetTimeRange(timeRange string) (int64, *AppError) {
 	switch timeRange {
-	case "1_day":
+	case TimeRange1Day:
 		return time.Now().Add(time.Hour * time.Duration(-24)).Unix(), nil
-	case "7_day":
+	case TimeRange7Day:
 		return time.Now().Add(time.Hour * time.Duration(-168)).Unix(), nil
-	case "28_day":
+	case TimeRange28Day:
 		return time.Now().Add(time.Hour * time.Duration(-672)).Unix(), nil
 	}
 
