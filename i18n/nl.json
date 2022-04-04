@@ -7696,10 +7696,6 @@
     "translation": "Los het nu op"
   },
   {
-    "id": "api.templates.over_limit_7_days_subject",
-    "translation": "Achterstallige betaling voor jouw Mattermost Cloud abonnement"
-  },
-  {
     "id": "api.templates.over_limit_30_days_info1",
     "translation": "Er is nog tijd om jouw Mattermost Cloud workspace actief te houden door problemen met jouw betaalmethode op te lossen. Om opschorting te voorkomen kan je jouw betaalmethode bijwerken."
   },

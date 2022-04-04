@@ -5400,10 +5400,6 @@
     "translation": "Személyes hozzáférési tokent adtunk a fiókjához a {{ .SiteURL }} rendszerben. Ezek arra használhatóak, hogy a {{.SiteName}} rendszert a fiókjával elérje."
   },
   {
-    "id": "api.templates.upgrade_request_info4_2",
-    "translation": "Valaki nemrég megpróbált csatlakozni a munkaterületéhez, de nem sikerült, mivel a munkaterülete elérte az Mattermost Cloud ingyenes verziójának felhasználói korlátját. Emelje meg előfizetését most, hogy több felhasználó is csatlakozhasson a munkaterületéhez."
-  },
-  {
     "id": "api.templates.signin_change_email.subject",
     "translation": "[{{ .SiteName }}] Bejelentkezési módszere frissítve"
   },
@@ -5516,10 +5512,6 @@
     "translation": "Jelszava frissítésre került a {{.TeamDisplayName}} ({{ .TeamURL }}) csapatban {{.Method}} által."
   },
   {
-    "id": "api.templates.over_limit_suspended_info2",
-    "translation": "Vegye fel velünk a kapcsolatot a munkaterülete újra aktiválásához."
-  },
-  {
     "id": "api.templates.over_limit_info2",
     "translation": "Alternatív megoldásként letilthatja a felhasználókat az Admin konzolban, hogy több felhasználó számára nyíljon hely, hogy az ingyenes felhasználói korlát alatt maradhasson."
   },
@@ -5528,16 +5520,8 @@
     "translation": "Javítás most"
   },
   {
-    "id": "api.templates.over_limit_90_days_info3",
-    "translation": "A munkaterület felfüggesztését követően nem tud bejelentkezni a fiókjába, és nem frissítheti a fizetési információkat. A szolgáltatás újbóli aktiválásához kapcsolatba kell lépnie ügyfélszolgálati csapatunkkal."
-  },
-  {
     "id": "api.templates.over_limit_7_days_subject",
     "translation": "A fizetési határidő lejárt a Mattermost Cloud előfizetéséhez"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item3",
-    "translation": "Elveszíti hozzáférését az üzenet előzményekhez"
   },
   {
     "id": "api.templates.over_limit_30_days_info1",
@@ -5718,10 +5702,6 @@
   {
     "id": "api.templates.cloud_trial_ending_email.add_payment_method",
     "translation": "Fizetési mód hozzáadása"
-  },
-  {
-    "id": "api.templates.at_limit_info2",
-    "translation": "Alternatív megoldásként letilthatja a felhasználókat az Admin konzolban, hogy több felhasználó számára nyíljon hely, hogy az ingyenes felhasználói limit alatt maradhasson."
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
