@@ -2053,6 +2053,7 @@ func TestDeletePost(t *testing.T) {
 }
 
 func TestDeletePostEvent(t *testing.T) {
+	t.Skip("MM-42997")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
