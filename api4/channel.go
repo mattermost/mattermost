@@ -76,6 +76,8 @@ func (api *API) InitChannel() {
 
 	api.BaseRoutes.ChannelModerations.Handle("", api.APISessionRequired(getChannelModerations)).Methods("GET")
 	api.BaseRoutes.ChannelModerations.Handle("/patch", api.APISessionRequired(patchChannelModerations)).Methods("PUT")
+
+	api.BaseRoutes.Channels.Handle("/top/team/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getTopChannelsForTeamSince)).Methods("GET")
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2093,4 +2095,41 @@ func moveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(channel); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+func getTopChannelsForTeamSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	team, err := c.App.GetTeam(c.Params.TeamId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if (!team.AllowOpenInvite || team.Type != model.TeamOpen) && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
+	channels, err := c.App.GetTopChannelsForTeamSince(c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
+		TimeRange: c.Params.TimeRange,
+		Page:      c.Params.Page,
+		PerPage:   c.Params.PerPage,
+	})
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	js, jsonErr := json.Marshal(channels)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getTopChannelsForTeamSince", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
 }

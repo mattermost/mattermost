@@ -280,6 +280,9 @@ type ChannelStore interface {
 	SetShared(channelId string, shared bool) error
 	// GetTeamForChannel returns the team for a given channelID.
 	GetTeamForChannel(channelID string) (*model.Team, error)
+
+	// Insights
+	GetTopChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) ([]*model.TopChannels, error)
 }
 
 type ChannelMemberHistoryStore interface {

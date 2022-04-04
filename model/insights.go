@@ -25,6 +25,14 @@ type TopReactions struct {
 	Count     int64  `json:"count"`
 }
 
+type TopChannels struct {
+	ID          string      `json:"id"`
+	Type        ChannelType `json:"type"`
+	DisplayName string      `json:"display_name"`
+	Name        string      `json:"name"`
+	Score       int64       `json:"score"`
+}
+
 // GetTimeRange converts the timeRange string to an int64 Unix time
 // timeRange can be one of: "1_day", "7_day", "28_day"
 func GetTimeRange(timeRange string) (int64, *AppError) {

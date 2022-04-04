@@ -4086,3 +4086,41 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 	}
 	return &team, nil
 }
+
+func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) ([]*model.TopChannels, error) {
+	var channels []*model.TopChannels
+
+	query := `
+		SELECT
+			Posts.ChannelId as ID,
+			Channels.Type as Type,
+			Channels.DisplayName as DisplayName,
+			Channels.Name as Name,
+			count(Posts.Id) AS Score
+		FROM
+			Posts 
+			LEFT JOIN Channels on Posts.ChannelId = Channels.Id
+			LEFT JOIN ChannelMembers on Posts.ChannelId = ChannelMembers.ChannelId and ChannelMembers.UserId = ?
+		WHERE 
+			Posts.DeleteAt = 0 
+			AND Posts.CreateAt > ?
+			AND Posts.Type = ''
+			AND (Posts.Props->>'from_bot' IS NULL OR Posts.Props->>'from_bot' = 'false')
+			AND Channels.deleteat = 0
+			AND Channels.TeamId = ?
+			AND (Channels.Type = 'O' OR (Channels.Type = 'P' AND (ChannelMembers.UserId = ?)))
+		Group By 
+			Posts.ChannelId,
+			Channels.Type,
+			Channels.DisplayName,
+			Channels.Name
+		ORDER BY 
+			Score DESC
+		LIMIT ?
+		OFFSET ?`
+
+	if err := s.GetReplicaX().Select(&channels, query, userID, since, teamID, userID, limit, offset); err != nil {
+		return nil, errors.Wrap(err, "failed to get top Channels")
+	}
+	return channels, nil
+}
