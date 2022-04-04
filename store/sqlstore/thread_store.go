@@ -571,36 +571,28 @@ func (s *SqlThreadStore) MarkAllAsReadByChannels(userID string, channelIDs []str
 
 	now := model.GetMillis()
 
-	// TODO: Fork squirrel to include https://github.com/Masterminds/squirrel/pull/256 and
-	// support FROM in an UPDATE query.
-	channelIDsSql, channelIDsArgs := constructArrayArgs(channelIDs)
-
-	var query string
+	var query sq.UpdateBuilder
 	if s.DriverName() == model.DatabaseDriverPostgres {
-		query = `
-			UPDATE ThreadMemberships
-			SET LastViewed = ?, UnreadMentions = ?, LastUpdated = ?
-			FROM Threads
-			WHERE ThreadMemberships.UserId = ?
-			AND Threads.PostId = ThreadMemberships.PostId
-			AND Threads.ChannelID IN ` + channelIDsSql + `
-			AND Threads.LastReplyAt > ThreadMemberships.LastViewed
-		`
+		query = s.getQueryBuilder().Update("ThreadMemberships").From("Threads")
+
 	} else {
-		query = `
-			UPDATE ThreadMemberships, Threads
-			SET ThreadMemberships.LastViewed = ?, ThreadMemberships.UnreadMentions = ?, ThreadMemberships.LastUpdated = ?
-			WHERE ThreadMemberships.UserId = ?
-			AND Threads.PostId = ThreadMemberships.PostId
-			AND Threads.ChannelID IN ` + channelIDsSql + `
-			AND Threads.LastReplyAt > ThreadMemberships.LastViewed
-		`
+		query = s.getQueryBuilder().Update("ThreadMemberships", "Threads")
 	}
 
-	args := []interface{}{now, 0, now, userID}
-	args = append(args, channelIDsArgs...)
+	query = query.Set("LastViewed", now).
+		Set("UnreadMentions", 0).
+		Set("LastUpdated", now).
+		Where(sq.Eq{"ThreadMemberships.UserId": userID}).
+		Where(sq.Expr("Threads.PostId = ThreadMemberships.PostId")).
+		Where(sq.Eq{"Threads.ChannelId": channelIDs}).
+		Where(sq.Expr("Threads.LastReplyAt > ThreadMemberships.LastViewed"))
 
-	if _, err := s.GetMasterX().Exec(query, args...); err != nil {
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return errors.Wrapf(err, "failed to build query to mark all as read by %d channels for user id=%s", len(channelIDs), userID)
+	}
+
+	if _, err := s.GetMasterX().Exec(sql, args...); err != nil {
 		return errors.Wrapf(err, "failed to mark all threads as read by channels for user id=%s", userID)
 	}
 
