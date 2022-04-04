@@ -7492,10 +7492,6 @@
     "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second Floor, Palo Alto, CA, 94301"
   },
   {
-    "id": "api.templates.at_limit_info1",
-    "translation": "Het lijkt dat je nu 10 of meer gebruikers hebt in je werkomgeving — Dat is fantastisch! Als je meer teamleden wil uitnodigen, overweeg dan een upgrade naar Mattermost Cloud."
-  },
-  {
     "id": "app.user.verify_email.app_error",
     "translation": "Het verificatie e-mail adres kan niet bijgewerkt worden."
   },
@@ -7624,10 +7620,6 @@
     "translation": "Fout bij het ophalen van de actieve gebruikers gedurende de opgegeven periode."
   },
   {
-    "id": "api.templates.over_limit_info2",
-    "translation": "Maar je kan gebruikers ook uitschakelen in de Beheerdersconsole en zo plaatsen openen voor meer gebruikers of onder de gratis gebruikerslimiet blijven."
-  },
-  {
     "id": "model.config.is_valid.collapsed_threads.app_error",
     "translation": "Ingeklapte draadjesinstelling moet ofwel uitgeschakeld zijn, default_on of default_off"
   },
@@ -7700,24 +7692,12 @@
     "translation": "Jouw financiële instelling weigerde een betaling van uw {{.CardBrand}} ****{{.LastFour}} geassocieerd met uw Mattermost Cloud werkruimte."
   },
   {
-    "id": "api.templates.over_limit_suspended_info1",
-    "translation": "Jouw Mattermost-werkruimte is opgeschort. Alle inhoud en gegevens binnen jouw werkruimte worden binnen 1-3 maanden verwijderd."
-  },
-  {
     "id": "api.templates.over_limit_fix_now",
     "translation": "Los het nu op"
   },
   {
-    "id": "api.templates.over_limit_90_days_info3",
-    "translation": "Zodra jouw werkruimte is geschorst, kan niet meer inloggen op jouw account of de betalingsgegevens bijwerken. Je moet contact opnemen met onze helpdesk om jouw service opnieuw te activeren."
-  },
-  {
     "id": "api.templates.over_limit_7_days_subject",
     "translation": "Achterstallige betaling voor jouw Mattermost Cloud abonnement"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item3",
-    "translation": "Je verliest de toegang tot jouw berichtgeschiedenis"
   },
   {
     "id": "api.templates.over_limit_30_days_info1",
@@ -8064,10 +8044,6 @@
     "translation": "Geen enkele e-mail werd succesvol verzonden"
   },
   {
-    "id": "api.templates.at_limit_info5",
-    "translation": "Maar je kan gebruikers ook uitschakelen in de Systeem Console en zo plaatsen openen voor meer gebruikers of onder de gratis gebruikerslimiet blijven."
-  },
-  {
     "id": "mfa.deactivate.app_error",
     "translation": "De MFA-actief status kan niet worden bijgewerkt voor de gebruiker."
   },
@@ -8182,10 +8158,6 @@
   {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Fout bij het verwerken van request body."
-  },
-  {
-    "id": "api.cloud.get_admins_emails.error",
-    "translation": "Fout bij het ophalen van de e-mail van de systeembeheerder."
   },
   {
     "id": "api.templates.reset_body.subTitle",
@@ -9229,5 +9201,33 @@
   {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
     "translation": "De maximale lengte van MattermostAppID is 32 tekens."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "Elasticsearch Bulk Indexering Batchgrootte moet ten minste {{.BatchSize}} zijn."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
+    "translation": "Bleve Bulk Indexering Batchgrootte moet ten minste {{.BatchSize}} zijn."
+  },
+  {
+    "id": "app.user.group_name_conflict",
+    "translation": " "
+  },
+  {
+    "id": "app.user.get_by_name_failure",
+    "translation": " "
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": " "
+  },
+  {
+    "id": "app.group.get_by_username_failure",
+    "translation": " "
+  },
+  {
+    "id": "app.channel.get_file_count.app_error",
+    "translation": "Fout bij het opvragen van het aantal bestanden van het kanaal"
   }
 ]
