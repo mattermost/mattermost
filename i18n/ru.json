@@ -7916,10 +7916,6 @@
     "translation": "Если это были не вы, вы можете смело игнорировать это письмо."
   },
   {
-    "id": "api.templates.upgrade_request_info4_2",
-    "translation": "Недавно кто-то пытался присоединиться к вашему рабочему пространству, но не смог, так как ваше рабочее пространство достигло лимита количества пользователей для бесплатной версии Mattermost Cloud. Обновите подписку, чтобы позволить большему количеству пользователей присоединиться к вашему рабочему пространству."
-  },
-  {
     "id": "api.templates.reset_body.subTitle",
     "translation": "Нажмите на кнопку ниже, чтобы сбросить пароль. Если вы не запрашивали его, вы можете безопасно проигнорировать это письмо."
   },
@@ -7976,10 +7972,6 @@
     "translation": "Ваше финансовое учреждение отклонило платёж вашей карты {{.CardBrand}}. ****{{.LastFour}}, связанный с вашим рабочим пространством Mattermost Cloud."
   },
   {
-    "id": "api.templates.over_limit_suspended_info2",
-    "translation": "Свяжитесь с нами, чтобы активировать заново ваше рабочее пространство."
-  },
-  {
     "id": "api.templates.over_limit_info2",
     "translation": "Кроме того, вы можете отключить пользователей в консоли администрирования, чтобы освободить места для большего количества пользователей или остаться ниже лимита количества бесплатных пользователей."
   },
@@ -7988,16 +7980,8 @@
     "translation": "Исправить сейчас"
   },
   {
-    "id": "api.templates.over_limit_90_days_info3",
-    "translation": "Как только ваше рабочее пространство будет приостановлено, вы не сможете войти в свой аккаунт или обновить платёжную информацию. Вам необходимо будет связаться с нашей службой поддержки для повторной активации вашего сервиса."
-  },
-  {
     "id": "api.templates.over_limit_7_days_subject",
     "translation": "Оплата за подписку Mattermost Cloud просрочена"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item3",
-    "translation": "Вы потеряете доступ к истории сообщений"
   },
   {
     "id": "api.templates.over_limit_30_days_info1",
@@ -8102,10 +8086,6 @@
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
     "translation": "Добавить приложения в ваше рабочее пространство"
-  },
-  {
-    "id": "api.templates.at_limit_info2",
-    "translation": "Кроме того, вы можете отключить пользователей в консоли администрирования, чтобы освободить места для большего количества пользователей или остаться ниже лимита количества бесплатных пользователей."
   },
   {
     "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
@@ -9246,5 +9226,13 @@
   {
     "id": "app.channel.get_file_count.app_error",
     "translation": "Не удалось получить количество файлов для канала"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "Размер пакета массового индексирования Elasticsearch должен быть не менее {{.BatchSize}}."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
+    "translation": "Размер пакета массового индексирования Bleve должен быть не менее {{.BatchSize}}."
   }
 ]
