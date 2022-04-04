@@ -1,12 +1,12 @@
-package bindata
+package embedded
 
 import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
 
-	"github.com/go-morph/morph/models"
-	"github.com/go-morph/morph/sources"
+	"github.com/mattermost/morph/models"
+	"github.com/mattermost/morph/sources"
 )
 
 type AssetFunc func(name string) ([]byte, error)
@@ -23,21 +23,13 @@ type AssetSource struct {
 	AssetFunc AssetFunc
 }
 
-func init() {
-	sources.Register("go-bindata", &Bindata{})
-}
-
-type Bindata struct {
+type Embedded struct {
 	assetSource *AssetSource
 	migrations  []*models.Migration
 }
 
-func (b *Bindata) Open(url string) (sources.Source, error) {
-	return nil, fmt.Errorf("not implemented")
-}
-
 func WithInstance(assetSource *AssetSource) (sources.Source, error) {
-	b := &Bindata{
+	b := &Embedded{
 		assetSource: assetSource,
 		migrations:  []*models.Migration{},
 	}
@@ -59,10 +51,6 @@ func WithInstance(assetSource *AssetSource) (sources.Source, error) {
 	return b, nil
 }
 
-func (b *Bindata) Close() error {
-	return nil
-}
-
-func (b *Bindata) Migrations() []*models.Migration {
+func (b *Embedded) Migrations() []*models.Migration {
 	return b.migrations
 }

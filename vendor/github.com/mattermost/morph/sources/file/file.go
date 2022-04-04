@@ -6,13 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/go-morph/morph/models"
-	"github.com/go-morph/morph/sources"
+	"github.com/mattermost/morph/models"
 )
-
-func init() {
-	sources.Register("file", &File{})
-}
 
 type File struct {
 	url        string
@@ -20,7 +15,7 @@ type File struct {
 	migrations []*models.Migration
 }
 
-func (f *File) Open(sourceURL string) (sources.Source, error) {
+func Open(sourceURL string) (*File, error) {
 	uri, err := url.Parse(sourceURL)
 	if err != nil {
 		return nil, err
@@ -93,10 +88,6 @@ func (f *File) readMigrations() error {
 	}
 
 	f.migrations = migrations
-	return nil
-}
-
-func (f *File) Close() error {
 	return nil
 }
 
