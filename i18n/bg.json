@@ -4032,10 +4032,6 @@
     "translation": "Вашата парола е актуализирана за {{.TeamDisplayName}} на {{.TeamURL}} от {{.Method}}."
   },
   {
-    "id": "api.templates.over_limit_suspended_info2",
-    "translation": "Свържете се с нас, за да активирате отново работното си пространство."
-  },
-  {
     "id": "api.templates.over_limit_info2",
     "translation": "Като алтернатива можете да деактивирате потребителите в Системна конзола, за да отворите места за повече потребители или да останете под безплатния потребителски лимит."
   },
@@ -4044,16 +4040,8 @@
     "translation": "Оправи сега"
   },
   {
-    "id": "api.templates.over_limit_90_days_info3",
-    "translation": "След като работното Ви пространство бъде спряно, няма да можете да влезете в акаунта си или да актуализирате данните за плащане. Ще трябва да се свържете с нашия екип за поддръжка, за да активирате отново Вашата услуга."
-  },
-  {
     "id": "api.templates.over_limit_7_days_subject",
     "translation": "Плащането е просрочено за вашия Mattermost Cloud абонамент"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item3",
-    "translation": "Ще загубите достъп до историята на съобщенията си"
   },
   {
     "id": "api.templates.over_limit_30_days_info1",
@@ -4170,10 +4158,6 @@
   {
     "id": "api.templates.copyright",
     "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, втори етаж, Пало Алто, Калифорния, 94301"
-  },
-  {
-    "id": "api.templates.at_limit_info1",
-    "translation": "Изглежда, че вече имате 10 или повече потребители в работното си пространство - това е страхотно! Ако искате да поканите повече членове на екипа, помислете за надграждане на Mattermost Cloud Professional сега."
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
@@ -8064,10 +8048,6 @@
     "translation": "Няма успешно изпратена ел.поща"
   },
   {
-    "id": "api.templates.at_limit_info5",
-    "translation": "Като алтернатива можете да деактивирате потребителите в системната конзола, за да отворите места за потребители и да останете под безплатния потребителски лимит."
-  },
-  {
     "id": "mfa.deactivate.app_error",
     "translation": "Не може да се актуализира състоянието на активност за МФУ потребител."
   },
@@ -8138,10 +8118,6 @@
   {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Не можа да се анализира тялото на заявката."
-  },
-  {
-    "id": "api.cloud.get_admins_emails.error",
-    "translation": "Грешка при вземане на администраторската ел.поща."
   },
   {
     "id": "store.sql_file_info.search.disabled",

@@ -4920,10 +4920,6 @@
     "translation": "A personal access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account."
   },
   {
-    "id": "api.templates.upgrade_request_info4_2",
-    "translation": "Someone recently tried to join your workspace but was unable to as your workspace has reached the user limit for the free version of Mattermost cloud. Upgrade now to allow more users to join your workspace."
-  },
-  {
     "id": "api.templates.signin_change_email.subject",
     "translation": "[{{ .SiteName }}] Your sign-in method has been updated"
   },
@@ -5036,10 +5032,6 @@
     "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .TeamURL }} by {{.Method}}."
   },
   {
-    "id": "api.templates.over_limit_suspended_info2",
-    "translation": "Contact us to reactivate your workspace."
-  },
-  {
     "id": "api.templates.over_limit_info2",
     "translation": "Alternatively, you can disable users in the Admin Console to open up spots for more users or stay below the free user limit."
   },
@@ -5048,16 +5040,8 @@
     "translation": "Fix Now"
   },
   {
-    "id": "api.templates.over_limit_90_days_info3",
-    "translation": "Once your workspace has been suspended, you will not be able to log in to your account or update payment information. You will need to contact our support team to re-activate your service."
-  },
-  {
     "id": "api.templates.over_limit_7_days_subject",
     "translation": "Payment is overdue for your Mattermost Cloud subscription"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item3",
-    "translation": "You will lose access to your message history"
   },
   {
     "id": "api.templates.over_limit_30_days_info1",
@@ -5402,10 +5386,6 @@
   {
     "id": "api.templates.cloud_trial_ended_email.start_subscription",
     "translation": "Start subscription"
-  },
-  {
-    "id": "api.templates.at_limit_info2",
-    "translation": "Alternatively, you can disable users in the Admin Console to open up spots for more users or stay below the free user limit."
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",

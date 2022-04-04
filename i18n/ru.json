@@ -7972,16 +7972,8 @@
     "translation": "Ваше финансовое учреждение отклонило платёж вашей карты {{.CardBrand}}. ****{{.LastFour}}, связанный с вашим рабочим пространством Mattermost Cloud."
   },
   {
-    "id": "api.templates.over_limit_info2",
-    "translation": "Кроме того, вы можете отключить пользователей в консоли администрирования, чтобы освободить места для большего количества пользователей или остаться ниже лимита количества бесплатных пользователей."
-  },
-  {
     "id": "api.templates.over_limit_fix_now",
     "translation": "Исправить сейчас"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_subject",
-    "translation": "Оплата за подписку Mattermost Cloud просрочена"
   },
   {
     "id": "api.templates.over_limit_30_days_info1",

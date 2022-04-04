@@ -4972,10 +4972,6 @@
     "translation": "Ditt lösenord har uppdaterats av {{.Method}} för {{.TeamDisplayName}} på {{ .TeamURL }}."
   },
   {
-    "id": "api.templates.over_limit_suspended_info2",
-    "translation": "Kontakta oss för att återaktivera din arbetsyta."
-  },
-  {
     "id": "api.templates.over_limit_info2",
     "translation": "Alternativt kan du öppna upp möjligheter för nya användare och hålla dig under användargränsen genom att spärra konton via Administrationskonsolen."
   },
@@ -4984,16 +4980,8 @@
     "translation": "Fixa nu"
   },
   {
-    "id": "api.templates.over_limit_90_days_info3",
-    "translation": "När din arbetsyta har stängts av kan du inte logga in på ditt konto eller uppdatera betalningsinformation. Du behöver kontakta vår support för att återaktivera din tjänst."
-  },
-  {
     "id": "api.templates.over_limit_7_days_subject",
     "translation": "Din betalning av Mattermost Cloud prenumerationen är försenad"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item3",
-    "translation": "Du kommer tappa åtkomst till din meddelandehistorik"
   },
   {
     "id": "api.templates.over_limit_30_days_info1",
@@ -5110,10 +5098,6 @@
   {
     "id": "api.templates.copyright",
     "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
-  },
-  {
-    "id": "api.templates.at_limit_info1",
-    "translation": "Det ser ut som om du nu har 10 användare eller fler — Vad kul! Om du vill bjuda in fler teammedlemmar bör du nu uppgradera till Mattermost Cloud."
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
@@ -8178,10 +8162,6 @@
   {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Kunde inte bearbeta förfrågan."
-  },
-  {
-    "id": "api.cloud.get_admins_emails.error",
-    "translation": "Fel när systemadministratörens mejl skulle hämtas."
   },
   {
     "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
