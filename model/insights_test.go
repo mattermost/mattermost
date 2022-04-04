@@ -10,7 +10,7 @@ import (
 )
 
 func TestGetTimeRange(t *testing.T) {
-	tc := [3]string{"1_day", "7_day", "30_day"}
+	tc := [3]string{"1_day", "7_day", "28_day"}
 
 	for _, timeRange := range tc {
 		t.Run(timeRange, func(t *testing.T) {
