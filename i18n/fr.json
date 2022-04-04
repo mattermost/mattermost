@@ -7928,10 +7928,6 @@
     "translation": "Si ce n'était pas vous, vous pouvez ignorer cet e-mail."
   },
   {
-    "id": "api.templates.upgrade_mattermost_cloud",
-    "translation": "Mettre à niveau"
-  },
-  {
     "id": "api.templates.reset_body.info",
     "translation": "Le lien de réinitialisation du mot de passe expire dans 24 heures."
   },
@@ -7956,16 +7952,8 @@
     "translation": "Résoudre maintenant"
   },
   {
-    "id": "api.templates.over_limit_90_days_info2",
-    "translation": "Pour éviter toute suspension, ajoutez vos informations de paiement"
-  },
-  {
     "id": "api.templates.over_limit_30_days_title",
     "translation": "Suspension de l'espace de travail Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item1",
-    "translation": "Vous ne pourrez pas vous connecter à votre espace de travail"
   },
   {
     "id": "api.templates.over_limit_14_days_info1",
@@ -8034,10 +8022,6 @@
   {
     "id": "api.templates.cloud_trial_ended_email.start_subscription",
     "translation": "Démarrer l'abonnement"
-  },
-  {
-    "id": "api.templates.at_limit_info2",
-    "translation": "Vous pouvez également désactiver des utilisateurs dans la console d'administration afin de libérer des places pour d'autres utilisateurs ou de rester en dessous de la limite du nombre d'utilisateurs gratuits."
   },
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
@@ -8493,10 +8477,6 @@
   {
     "id": "api.templates.payment_failed.info1",
     "translation": "Votre institution financière a refusé un paiement de votre {{.CardBrand}} ****{{.LastFour}} associé à votre espace de travail Mattermost Cloud."
-  },
-  {
-    "id": "api.templates.over_limit_subject",
-    "translation": "Espace de travail Mattermost Cloud : limite d'utilisateurs dépassée"
   },
   {
     "id": "api.templates.over_limit_90_days_info1",

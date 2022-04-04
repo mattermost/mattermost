@@ -7484,20 +7484,12 @@
     "translation": "立刻修复"
   },
   {
-    "id": "api.templates.over_limit_14_days_info1",
-    "translation": "提醒您，我们尚未收到您在 {{.OverLimitDate}} 开具的 Mattermost 订阅的付款。如果未收到付款，我们将在近期开始冻结您的服务。"
-  },
-  {
     "id": "api.templates.email_us_anytime_at",
     "translation": "随时通过电子邮件发送给我们 "
   },
   {
     "id": "api.templates.copyright",
     "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
-  },
-  {
-    "id": "api.templates.at_limit_info1",
-    "translation": "看来您的工作区中现在有10个或更多用户 - 太好了！如果您想邀请更多的团队成员，请考虑立即升级到 Mattermost 云。"
   },
   {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
@@ -7656,24 +7648,12 @@
     "translation": "您的金融机构拒绝了与您的 Mattermost Cloud 工作区相关的 {{.CardBrand}} ****{{.LastFour}} 的付款。"
   },
   {
-    "id": "api.templates.over_limit_suspended_info2",
-    "translation": "与我们联系以重新激活您的工作区。"
-  },
-  {
     "id": "api.templates.over_limit_suspended_info1",
     "translation": "您的 Mattermost 工作区已被暂停。工作区中的所有内容和数据将在 1-3 个月内删除。"
   },
   {
-    "id": "api.templates.over_limit_90_days_info4",
-    "translation": "工作区暂停后，工作区中的所有内容和数据将在 1-3 个月内删除。"
-  },
-  {
     "id": "api.templates.over_limit_7_days_subject",
     "translation": "您的 Mattermost Cloud 订阅逾期付款"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item2",
-    "translation": "如果不联系我们的支持团队，您将无法更新付款信息"
   },
   {
     "id": "api.system.update_viewed_notices.failed",
@@ -8070,10 +8050,6 @@
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
     "translation": "从发现文档检索端点时出错。"
-  },
-  {
-    "id": "api.templates.at_limit_info5",
-    "translation": "或者，您可以在系统控制台中禁止以释放用户位数并保持在免费用户限制内。"
   },
   {
     "id": "api.export.export_not_found.app_error",

@@ -7620,16 +7620,8 @@
     "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
   },
   {
-    "id": "api.templates.at_limit_info1",
-    "translation": "Parece que você tem 10 ou mais usuários em seu espaço de trabalho agora - isso é ótimo! Se você quiser convidar mais membros da equipe, considere atualizar o Mattermost Cloud Professional agora."
-  },
-  {
     "id": "api.templates.over_limit_30_days_info2_item3",
     "translation": "Você perderá o acesso ao seu histórico de mensagens"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info1",
-    "translation": "Ainda dá tempo de manter seu espaço de trabalho Mattermost Cloud ativo resolvendo problemas com sua forma de pagamento. Para evitar a suspensão, atualize seu método de pagamento."
   },
   {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
@@ -7692,16 +7684,8 @@
     "translation": "Sua instituição financeira recusou um pagamento de seu {{.CardBrand}} ****{{.LastFour}} associado ao seu espaço de trabalho Mattermost Cloud."
   },
   {
-    "id": "api.templates.over_limit_suspended_info1",
-    "translation": "Seu espaço de trabalho Mattermost foi suspenso. Todos os conteúdos e dados em seu espaço de trabalho serão excluídos dentro de 1-3 meses."
-  },
-  {
     "id": "api.templates.over_limit_fix_now",
     "translation": "Corrigir Agora"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info3",
-    "translation": "Depois que seu espaço de trabalho for suspenso, você não poderá fazer login em sua conta ou atualizar as informações de pagamento. Você precisará entrar em contato com nossa equipe de suporte para reativar seu serviço."
   },
   {
     "id": "api.templates.over_limit_7_days_subject",
@@ -8158,10 +8142,6 @@
   {
     "id": "api.templates.verify_body.info1",
     "translation": "Se não foi você, você pode ignorar este e-mail com segurança."
-  },
-  {
-    "id": "api.templates.upgrade_request_info4_2",
-    "translation": "Alguém recentemente tentou entrar em seu espaço de trabalho, mas não conseguiu, pois seu espaço de trabalho atingiu o limite de usuários para a versão gratuita da nuvem Mattermost. Atualize agora para permitir que mais usuários ingressem em seu espaço de trabalho."
   },
   {
     "id": "api.templates.questions_footer.title",
