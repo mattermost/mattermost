@@ -17,6 +17,7 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/mattermost/gorp"
 	"github.com/mattermost/morph"
 
 	"github.com/mattermost/morph/drivers"
