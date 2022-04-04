@@ -7648,14 +7648,6 @@
     "translation": "您的金融机构拒绝了与您的 Mattermost Cloud 工作区相关的 {{.CardBrand}} ****{{.LastFour}} 的付款。"
   },
   {
-    "id": "api.templates.over_limit_suspended_info1",
-    "translation": "您的 Mattermost 工作区已被暂停。工作区中的所有内容和数据将在 1-3 个月内删除。"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_subject",
-    "translation": "您的 Mattermost Cloud 订阅逾期付款"
-  },
-  {
     "id": "api.system.update_viewed_notices.failed",
     "translation": "更新查看的通知失败"
   },
