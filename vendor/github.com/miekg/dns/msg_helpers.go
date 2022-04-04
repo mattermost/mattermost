@@ -558,6 +558,16 @@ func packDataNsec(bitmap []uint16, msg []byte, off int) (int, error) {
 	if len(bitmap) == 0 {
 		return off, nil
 	}
+	if off > len(msg) {
+		return off, &Error{err: "overflow packing nsec"}
+	}
+	toZero := msg[off:]
+	if maxLen := typeBitMapLen(bitmap); maxLen < len(toZero) {
+		toZero = toZero[:maxLen]
+	}
+	for i := range toZero {
+		toZero[i] = 0
+	}
 	var lastwindow, lastlength uint16
 	for _, t := range bitmap {
 		window := t / 256
