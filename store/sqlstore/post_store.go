@@ -2675,9 +2675,15 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 		return nil
 	}
 	threadsByRootsSql, threadsByRootsArgs, _ := s.getQueryBuilder().
-		Select("*").
+		Select(
+			"Threads.PostId",
+			"Threads.ChannelId",
+			"Threads.ReplyCount",
+			"Threads.LastReplyAt",
+			"Threads.Participants",
+		).
 		From("Threads").
-		Where(sq.Eq{"PostId": rootIds}).
+		Where(sq.Eq{"Threads.PostId": rootIds}).
 		ToSql()
 	threadsByRoots := []*model.Thread{}
 	if err := transaction.Select(&threadsByRoots, threadsByRootsSql, threadsByRootsArgs...); err != nil {
