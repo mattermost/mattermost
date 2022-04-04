@@ -139,6 +139,9 @@ func constructArrayArgs(ids []string) (string, []interface{}) {
 }
 
 func wrapBinaryParamStringMap(ok bool, props model.StringMap) model.StringMap {
+	if props == nil {
+		props = make(model.StringMap)
+	}
 	props[model.BinaryParamKey] = strconv.FormatBool(ok)
 	return props
 }
