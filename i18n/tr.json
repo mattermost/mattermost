@@ -7660,10 +7660,6 @@
     "translation": "Şimdi düzelt"
   },
   {
-    "id": "api.templates.over_limit_7_days_subject",
-    "translation": "Mattermost Cloud aboneliğinizin ödemesi yapılmadı"
-  },
-  {
     "id": "api.templates.over_limit_14_days_info1",
     "translation": "{{ .OverLimitDate }}. tarihli Mattermost aboneliği faturanızın ödenmediğini hatırlatırız. Ödeme yapılmaz ise yakında hizmetinizi duraklatmak zorunda kalacağız."
   },
@@ -9221,5 +9217,13 @@
   {
     "id": "app.channel.get_file_count.app_error",
     "translation": "Kanalın dosya sayısı alınamadı"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "Elasticsearch toplu dizine ekleme işlem boyutu en az {{.BatchSize}} olmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
+    "translation": "Bleve toplu dizine ekleme işlem boyutu en az {{.BatchSize}} olmalıdır."
   }
 ]
