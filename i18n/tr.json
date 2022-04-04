@@ -7660,10 +7660,6 @@
     "translation": "Şimdi düzelt"
   },
   {
-    "id": "api.templates.over_limit_14_days_info1",
-    "translation": "{{ .OverLimitDate }}. tarihli Mattermost aboneliği faturanızın ödenmediğini hatırlatırız. Ödeme yapılmaz ise yakında hizmetinizi duraklatmak zorunda kalacağız."
-  },
-  {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
     "translation": "Eklemek ya da silmek istediğiniz bir ya da bir kaç yetkiye izin verilmiyor"
   },

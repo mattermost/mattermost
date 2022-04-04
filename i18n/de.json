@@ -8079,20 +8079,8 @@
     "translation": "Dein Finanzinstitut hat ein Zahlung mit deiner {{.CardBrand}} Kreditkarte mit der Nummer ****{{.LastFour}}, die für deinen Mattermost Cloud Arbeitsbereich hinterlegt ist, abgelehnt."
   },
   {
-    "id": "api.templates.over_limit_info2",
-    "translation": "Als Alternative kannst du Benutzer in der Admin Konsole deaktivieren um Platz für andere Benutzer zu schaffen oder um unter der Grenze für die freie Benutzung zu bleiben."
-  },
-  {
     "id": "api.templates.over_limit_fix_now",
     "translation": "Jetzt beheben"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_subject",
-    "translation": "Zahlung überfällig für dein Mattermost Cloud Abonnement"
-  },
-  {
-    "id": "api.templates.over_limit_14_days_info1",
-    "translation": "Nur eine Erinnerung, dass wir keine Zahlung für das Mattermost Abonnement mit Rechnungsdatum vom {{ .OverLimitDate }} erhalten habe. Wir werden in Kürze einen Prozess starten den Dienst auszusetzen, wenn wir keinen Zahlungseingang feststellen können."
   },
   {
     "id": "api.upload.upload_data.multipart_error",

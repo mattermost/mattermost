@@ -4972,20 +4972,8 @@
     "translation": "Ditt lösenord har uppdaterats av {{.Method}} för {{.TeamDisplayName}} på {{ .TeamURL }}."
   },
   {
-    "id": "api.templates.over_limit_info2",
-    "translation": "Alternativt kan du öppna upp möjligheter för nya användare och hålla dig under användargränsen genom att spärra konton via Administrationskonsolen."
-  },
-  {
     "id": "api.templates.over_limit_fix_now",
     "translation": "Fixa nu"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_subject",
-    "translation": "Din betalning av Mattermost Cloud prenumerationen är försenad"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info1",
-    "translation": "Det finns fortfarande tid att behålla din Mattermost Cloud workspace aktiv genom att lösa problemen med din betalning. För att undvika avbrott bör du uppdatera din betalningsmetod."
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",

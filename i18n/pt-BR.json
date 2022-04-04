@@ -7620,10 +7620,6 @@
     "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
   },
   {
-    "id": "api.templates.over_limit_30_days_info2_item3",
-    "translation": "Você perderá o acesso ao seu histórico de mensagens"
-  },
-  {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
     "translation": "Uma ou mais das seguintes permissões que você está tentando adicionar ou remover não são permitidas"
   },
@@ -7686,10 +7682,6 @@
   {
     "id": "api.templates.over_limit_fix_now",
     "translation": "Corrigir Agora"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_subject",
-    "translation": "O pagamento da sua assinatura do Mattermost Cloud está vencido"
   },
   {
     "id": "model.config.is_valid.import.retention_days_too_low.app_error",

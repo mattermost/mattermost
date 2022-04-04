@@ -7308,14 +7308,6 @@
     "translation": "Repară acum"
   },
   {
-    "id": "api.templates.over_limit_7_days_subject",
-    "translation": "Plata este întârziată pentru abonamentul dvs. Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info1",
-    "translation": "Mai este timp să vă mențineți activ spațiul de lucru Mattermost Cloud rezolvând problemele legate de metoda dvs. de plată. Pentru a evita suspendarea, actualizați-vă metoda de plată."
-  },
-  {
     "id": "api.templates.email_us_anytime_at",
     "translation": "Trimiteți-ne un e-mail oricând la "
   },
