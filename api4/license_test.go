@@ -255,6 +255,36 @@ func TestRequestTrialLicense(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
+	t.Run("returns status 451 when it receives status 451", func(t *testing.T) {
+		nUsers := 1
+		license := model.NewTestLicense()
+		license.Features.Users = model.NewInt(nUsers)
+		licenseJSON, jsonErr := json.Marshal(license)
+		require.NoError(t, jsonErr)
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			res.WriteHeader(http.StatusUnavailableForLegalReasons)
+		}))
+		defer testServer.Close()
+
+		mockLicenseValidator := mocks2.LicenseValidatorIface{}
+		defer testutils.ResetLicenseValidator()
+
+		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, string(licenseJSON))
+		utils.LicenseValidator = &mockLicenseValidator
+		licenseManagerMock := &mocks.LicenseInterface{}
+		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
+		th.App.Srv().LicenseManager = licenseManagerMock
+
+		defer func(requestTrialURL string) {
+			app.RequestTrialURL = requestTrialURL
+		}(app.RequestTrialURL)
+		app.RequestTrialURL = testServer.URL
+
+		resp, err := th.SystemAdminClient.RequestTrialLicense(nUsers)
+		require.Error(t, err)
+		require.Equal(t, resp.StatusCode, 451)
+	})
+
 	th.App.Srv().LicenseManager = nil
 	t.Run("trial license should fail if LicenseManager is nil", func(t *testing.T) {
 		resp, err := th.SystemAdminClient.RequestTrialLicense(1)

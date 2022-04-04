@@ -2006,6 +2006,10 @@
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com."
   },
   {
+    "id": "api.license.request_trial_license.embargoed",
+    "translation": "We were unable to process the request due to limitations for embargoed countries. [Learn more in our documentation](https://mattermost.com/pl/limitations-for-embargoed-countries), or reach out to legal@mattermost.com for questions around export limitations."
+  },
+  {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com. Cannot obtain the number of registered users."
   },
