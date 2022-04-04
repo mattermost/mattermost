@@ -4916,20 +4916,8 @@
     "translation": "رمز ورود شما برای {{.TeamDisplayName}} در {{.TeamURL}} توسط {{.Method}} به روز شده است."
   },
   {
-    "id": "api.templates.over_limit_info2",
-    "translation": "از طرف دیگر، می‌توانید کاربران را در کنسول مدیریت غیرفعال کنید تا نقاطی را برای کاربران بیشتری باز کنند یا کمتر از محدودیت کاربر رایگان باقی بمانند."
-  },
-  {
     "id": "api.templates.over_limit_fix_now",
     "translation": "اکنون رفع کنید"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_subject",
-    "translation": "پرداخت برای اشتراک Mattermost Cloud شما به تاخیر افتاده است"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info1",
-    "translation": "هنوز فرصت دارید تا با حل مشکلات روش پرداخت خود، فضای کاری Mattermost Cloud خود را فعال نگه دارید. برای جلوگیری از تعلیق، روش پرداخت خود را به‌روزرسانی کنید."
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",

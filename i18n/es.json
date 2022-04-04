@@ -7684,16 +7684,8 @@
     "translation": "Su institución financiera rechazó un pago de su {{.CardBrand}} ****{{.LastFour}} asociado a su espacio de trabajo de Mattermost Cloud."
   },
   {
-    "id": "api.templates.over_limit_info1",
-    "translation": "Parece que tienes más de 10 usuarios en tu espacio de trabajo, lo cual está más allá de los límites de la versión gratuita de Mattermost Cloud. Para evitar cualquier interrupción en su espacio de trabajo de Mattermost, por favor, actualícelo."
-  },
-  {
     "id": "api.templates.over_limit_fix_now",
     "translation": "Arreglar ahora"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_subject",
-    "translation": "El pago de su suscripción a Mattermost Cloud está atrasado"
   },
   {
     "id": "api.oauth.redirecting_back",

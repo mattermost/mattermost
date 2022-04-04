@@ -7952,14 +7952,6 @@
     "translation": "Résoudre maintenant"
   },
   {
-    "id": "api.templates.over_limit_30_days_title",
-    "translation": "Suspension de l'espace de travail Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.over_limit_14_days_info1",
-    "translation": "Nous nous permettons de vous rappeler que nous n'avons pas encore reçu le paiement de votre abonnement à Mattermost pour la facture datée du {{ .OverLimitDate }}.  Nous devrons bientôt entamer une procédure de suspension de service si le paiement n'est pas reçu rapidement."
-  },
-  {
     "id": "api.templates.license_up_for_renewal_title",
     "translation": "Votre abonnement à Mattermost doit être renouvelé"
   },
@@ -8477,10 +8469,6 @@
   {
     "id": "api.templates.payment_failed.info1",
     "translation": "Votre institution financière a refusé un paiement de votre {{.CardBrand}} ****{{.LastFour}} associé à votre espace de travail Mattermost Cloud."
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info1",
-    "translation": "Ceci est le dernier rappel. Nous n'avons pas encore reçu le paiement de votre espace de travail Mattermost Cloud, qui est en retard depuis {{ .OverLimitDate }}. Demain, votre service sera suspendu."
   },
   {
     "id": "app.user.get_total_users_count.app_error",

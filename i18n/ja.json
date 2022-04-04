@@ -7752,10 +7752,6 @@
     "translation": "今すぐ対応する"
   },
   {
-    "id": "api.templates.over_limit_30_days_info1",
-    "translation": "支払い方法に関する問題を解決することで、Mattermost Cloudのワークスペースを有効なままにし続けることができます。ワークスペースが停止されるのを避けるために、支払い方法を更新してください。"
-  },
-  {
     "id": "api.system.update_viewed_notices.failed",
     "translation": "閲覧済みのお知らせを更新できませんでした"
   },

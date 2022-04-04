@@ -4032,20 +4032,8 @@
     "translation": "Вашата парола е актуализирана за {{.TeamDisplayName}} на {{.TeamURL}} от {{.Method}}."
   },
   {
-    "id": "api.templates.over_limit_info2",
-    "translation": "Като алтернатива можете да деактивирате потребителите в Системна конзола, за да отворите места за повече потребители или да останете под безплатния потребителски лимит."
-  },
-  {
     "id": "api.templates.over_limit_fix_now",
     "translation": "Оправи сега"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_subject",
-    "translation": "Плащането е просрочено за вашия Mattermost Cloud абонамент"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info1",
-    "translation": "Все още има време да поддържате работното си пространство на Mattermost Cloud активно чрез разрешаване на проблема с начина на плащане. За да избегнете спиране, актуализирайте начина си на плащане."
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
