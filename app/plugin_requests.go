@@ -21,6 +21,23 @@ import (
 )
 
 func (ch *Channels) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
+	if strings.HasPrefix(r.URL.Path, "/plugins/com.mattermost.apps") && r.URL.Path != "/plugins/com.mattermost.apps/api/v1/call" && r.URL.Path != "/plugins/com.mattermost.apps/api/v1/bindings" {
+		auth := r.Header.Get("Authorization")
+
+		b, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			ch.srv.Log.Error("APPS_DEBUG error reading body", mlog.Err(err))
+			return
+		}
+
+		r.Body.Close()
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(b))
+
+		message := fmt.Sprintf("APPS_DEBUG\n%s\n%s\n%v\n", r.URL.Path, auth, string(b))
+
+		ch.srv.Log.Info(message)
+	}
+
 	pluginsEnvironment := ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		err := model.NewAppError("ServePluginRequest", "app.plugin.disabled.app_error", nil, "Enable plugins to serve plugin requests", http.StatusNotImplemented)
@@ -127,6 +144,7 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 	authHeader := r.Header.Get(model.HeaderAuth)
 	if strings.HasPrefix(strings.ToUpper(authHeader), model.HeaderBearer+" ") {
 		token = authHeader[len(model.HeaderBearer)+1:]
+		ch.srv.Log.Info(fmt.Sprintf("APPS_DEBUG auth1\n%s\n", token))
 	} else if strings.HasPrefix(strings.ToLower(authHeader), model.HeaderToken+" ") {
 		token = authHeader[len(model.HeaderToken)+1:]
 	} else if cookie, _ := r.Cookie(model.SessionCookieToken); cookie != nil {
@@ -135,6 +153,8 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 	} else {
 		token = r.URL.Query().Get("access_token")
 	}
+
+	ch.srv.Log.Info(fmt.Sprintf("APPS_DEBUG auth2\n%s\n", token))
 
 	// Mattermost-Plugin-ID can only be set by inter-plugin requests
 	r.Header.Del("Mattermost-Plugin-ID")
