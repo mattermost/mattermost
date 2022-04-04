@@ -1,8 +1,8 @@
 package mysql
 
 import (
-	"github.com/go-morph/morph/drivers"
 	mysqlDriver "github.com/go-sql-driver/mysql"
+	"github.com/mattermost/morph/drivers"
 )
 
 func ExtractMysqlDSNParams(conn string) (map[string]string, error) {
