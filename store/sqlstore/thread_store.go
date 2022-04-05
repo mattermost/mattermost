@@ -61,7 +61,7 @@ func (s *SqlThreadStore) Get(id string) (*model.Thread, error) {
 		return nil, errors.Wrap(err, "thread_tosql")
 	}
 
-	err = s.GetMasterX().Get(&thread, query, args...)
+	err = s.GetReplicaX().Get(&thread, query, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -110,7 +110,7 @@ func (s *SqlThreadStore) GetTotalUnreadThreads(userId, teamId string, opts model
 	}
 
 	var totalUnreadThreads int64
-	err = s.GetMasterX().Get(&totalUnreadThreads, sql, args...)
+	err = s.GetReplicaX().Get(&totalUnreadThreads, sql, args...)
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to count threads for user id=%s", userId)
 	}
@@ -133,7 +133,7 @@ func (s *SqlThreadStore) GetTotalThreads(userId, teamId string, opts model.GetUs
 	}
 
 	var totalThreads int64
-	err = s.GetMasterX().Get(&totalThreads, sql, args...)
+	err = s.GetReplicaX().Get(&totalThreads, sql, args...)
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to count threads for user id=%s", userId)
 	}
@@ -173,7 +173,7 @@ func (s *SqlThreadStore) GetTotalUnreadMentions(userId, teamId string, opts mode
 		return 0, errors.Wrapf(err, "failed to build query to count unread mentions for user id=%s", userId)
 	}
 
-	err = s.GetMasterX().Get(&totalUnreadMentions, sql, args...)
+	err = s.GetReplicaX().Get(&totalUnreadMentions, sql, args...)
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to count unread mentions for user id=%s", userId)
 	}
