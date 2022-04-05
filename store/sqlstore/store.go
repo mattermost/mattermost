@@ -129,6 +129,8 @@ type SqlStore struct {
 	license           *model.License
 	licenseMutex      sync.RWMutex
 	metrics           einterfaces.MetricsInterface
+
+	isBinaryParam bool
 }
 
 func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlStore {
@@ -159,6 +161,11 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	err = store.migrate(migrationsDirectionUp)
 	if err != nil {
 		mlog.Fatal("Failed to apply database migrations.", mlog.Err(err))
+	}
+
+	store.isBinaryParam, err = store.computeBinaryParam()
+	if err != nil {
+		mlog.Fatal("Failed to compute binary param", mlog.Err(err))
 	}
 
 	store.stores.team = newSqlTeamStore(store)
@@ -324,9 +331,9 @@ func (ss *SqlStore) DriverName() string {
 	return *ss.settings.DriverName
 }
 
-// IsBinaryParamEnabled returns whether the data source uses binary_parameters
+// computeBinaryParam returns whether the data source uses binary_parameters
 // when using Postgres
-func (ss *SqlStore) IsBinaryParamEnabled() (bool, error) {
+func (ss *SqlStore) computeBinaryParam() (bool, error) {
 	if ss.DriverName() != model.DatabaseDriverPostgres {
 		return false, nil
 	}
@@ -336,6 +343,10 @@ func (ss *SqlStore) IsBinaryParamEnabled() (bool, error) {
 		return false, err
 	}
 	return url.Query().Get("binary_parameters") == "yes", nil
+}
+
+func (ss *SqlStore) IsBinaryParamEnabled() bool {
+	return ss.isBinaryParam
 }
 
 // AppendBinaryFlag updates the byte slice to work using binary_parameters=yes.

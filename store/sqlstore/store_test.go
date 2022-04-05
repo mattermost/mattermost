@@ -529,7 +529,7 @@ func TestIsBinaryParamEnabled(t *testing.T) {
 	}
 
 	for i := range tests {
-		ok, err := tests[i].store.IsBinaryParamEnabled()
+		ok, err := tests[i].store.computeBinaryParam()
 		require.NoError(t, err)
 		assert.Equal(t, tests[i].expected, ok)
 	}

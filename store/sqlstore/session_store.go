@@ -43,11 +43,7 @@ func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {
 		return nil, errors.Wrap(err, "failed marshalling session props")
 	}
 
-	ok, err := me.IsBinaryParamEnabled()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to detect binary parameters from dsn")
-	}
-	if ok {
+	if me.IsBinaryParamEnabled() {
 		jsonProps = me.AppendBinaryFlag(jsonProps)
 	}
 
@@ -271,11 +267,7 @@ func (me SqlSessionStore) UpdateProps(session *model.Session) error {
 	if err != nil {
 		return errors.Wrap(err, "failed marshalling session props")
 	}
-	ok, err := me.IsBinaryParamEnabled()
-	if err != nil {
-		return errors.Wrap(err, "failed to detect binary parameters from dsn")
-	}
-	if ok {
+	if me.IsBinaryParamEnabled() {
 		jsonProps = me.AppendBinaryFlag(jsonProps)
 	}
 	query, args, err := me.getQueryBuilder().

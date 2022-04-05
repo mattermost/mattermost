@@ -34,11 +34,7 @@ func (jss SqlJobStore) Save(job *model.Job) (*model.Job, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed marshalling job data")
 	}
-	ok, err := jss.IsBinaryParamEnabled()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to detect binary parameters from dsn")
-	}
-	if ok {
+	if jss.IsBinaryParamEnabled() {
 		jsonData = jss.AppendBinaryFlag(jsonData)
 	}
 	query := jss.getQueryBuilder().
@@ -63,11 +59,7 @@ func (jss SqlJobStore) UpdateOptimistically(job *model.Job, currentStatus string
 	if jsonErr != nil {
 		return false, errors.Wrap(jsonErr, "failed to encode job's data to JSON")
 	}
-	ok, err := jss.IsBinaryParamEnabled()
-	if err != nil {
-		return false, errors.Wrap(err, "failed to detect binary parameters from dsn")
-	}
-	if ok {
+	if jss.IsBinaryParamEnabled() {
 		dataJSON = jss.AppendBinaryFlag(dataJSON)
 	}
 	query, args, err := jss.getQueryBuilder().

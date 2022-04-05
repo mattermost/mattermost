@@ -32,11 +32,7 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 	if err != nil {
 		return nil, errors.Wrap(err, "could not serialize metadataBytes to JSON")
 	}
-	ok, err := s.IsBinaryParamEnabled()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to detect binary parameters from dsn")
-	}
-	if ok {
+	if s.IsBinaryParamEnabled() {
 		metadataBytes = s.AppendBinaryFlag(metadataBytes)
 	}
 
