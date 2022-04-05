@@ -33,6 +33,11 @@ type TopChannels struct {
 	Score       int64       `json:"score"`
 }
 
+type TopChannelsByDate struct {
+	Date     string         `json:"date"`
+	Channels *[]TopChannels `json:"channels"`
+}
+
 // GetTimeRange converts the timeRange string to an int64 Unix time
 // timeRange can be one of: "1_day", "7_day", "28_day"
 func GetTimeRange(timeRange string) (int64, *AppError) {
