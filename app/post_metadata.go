@@ -545,9 +545,9 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 			return nil, nil, nil, appErr
 		}
 
-		referencedTeam := &model.Team{}
+		var referencedTeam *model.Team
 		if referencedChannel.Type == model.ChannelTypeDirect || referencedChannel.Type == model.ChannelTypeGroup {
-			referencedTeam.Name = ""
+			referencedTeam = &model.Team{}
 		} else {
 			referencedTeam, appErr = a.GetTeam(referencedChannel.TeamId)
 			if appErr != nil {
