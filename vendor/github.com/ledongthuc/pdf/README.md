@@ -94,7 +94,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/dcu/pdf"
+	"github.com/ledongthuc/pdf"
 )
 
 func main() {

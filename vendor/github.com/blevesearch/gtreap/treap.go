@@ -165,9 +165,10 @@ func (t *Treap) join(this *node, that *node) *node {
 	}
 }
 
+// ItemVistor callback should return true to keep going on the visitation.
 type ItemVisitor func(i Item) bool
 
-// Visit items greater-than-or-equal to the pivot.
+// Visit items greater-than-or-equal to the pivot, in ascending order.
 func (t *Treap) VisitAscend(pivot Item, visitor ItemVisitor) {
 	t.visitAscend(t.root, pivot, visitor)
 }
@@ -176,13 +177,31 @@ func (t *Treap) visitAscend(n *node, pivot Item, visitor ItemVisitor) bool {
 	if n == nil {
 		return true
 	}
-	if t.compare(pivot, n.item) <= 0 {
-		if !t.visitAscend(n.left, pivot, visitor) {
-			return false
-		}
-		if !visitor(n.item) {
-			return false
-		}
+	c := t.compare(pivot, n.item)
+	if c < 0 && !t.visitAscend(n.left, pivot, visitor) {
+		return false
+	}
+	if c <= 0 && !visitor(n.item) {
+		return false
 	}
 	return t.visitAscend(n.right, pivot, visitor)
+}
+
+// Visit items less-than-or-equal to the pivot, in descending order.
+func (t *Treap) VisitDescend(pivot Item, visitor ItemVisitor) {
+	t.visitDescend(t.root, pivot, visitor)
+}
+
+func (t *Treap) visitDescend(n *node, pivot Item, visitor ItemVisitor) bool {
+	if n == nil {
+		return true
+	}
+	c := t.compare(pivot, n.item)
+	if c > 0 && !t.visitDescend(n.right, pivot, visitor) {
+		return false
+	}
+	if c >= 0 && !visitor(n.item) {
+		return false
+	}
+	return t.visitDescend(n.left, pivot, visitor)
 }

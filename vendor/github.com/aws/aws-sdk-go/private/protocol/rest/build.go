@@ -276,6 +276,25 @@ func convertType(v reflect.Value, tag reflect.StructTag) (str string, err error)
 			value = base64.StdEncoding.EncodeToString([]byte(value))
 		}
 		str = value
+	case []*string:
+		if tag.Get("location") != "header" || tag.Get("enum") == "" {
+			return "", fmt.Errorf("%T is only supported with location header and enum shapes", value)
+		}
+		buff := &bytes.Buffer{}
+		for i, sv := range value {
+			if sv == nil || len(*sv) == 0 {
+				continue
+			}
+			if i != 0 {
+				buff.WriteRune(',')
+			}
+			item := *sv
+			if strings.Index(item, `,`) != -1 || strings.Index(item, `"`) != -1 {
+				item = strconv.Quote(item)
+			}
+			buff.WriteString(item)
+		}
+		str = string(buff.Bytes())
 	case []byte:
 		str = base64.StdEncoding.EncodeToString(value)
 	case bool:

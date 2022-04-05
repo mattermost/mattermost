@@ -143,7 +143,15 @@ func (e *fastEncL3) Encode(dst *tokens, src []byte) {
 				l++
 			}
 			if nextEmit < s {
-				emitLiteral(dst, src[nextEmit:s])
+				if false {
+					emitLiteral(dst, src[nextEmit:s])
+				} else {
+					for _, v := range src[nextEmit:s] {
+						dst.tokens[dst.n] = token(v)
+						dst.litHist[v]++
+						dst.n++
+					}
+				}
 			}
 
 			dst.AddMatchLong(l, uint32(s-t-baseMatchOffset))
