@@ -576,7 +576,7 @@ func (c *Ring) cmdInfo(ctx context.Context, name string) *CommandInfo {
 	}
 	info := cmdsInfo[name]
 	if info == nil {
-		internal.Logger.Printf(c.Context(), "info for cmd=%s not found", name)
+		internal.Logger.Printf(ctx, "info for cmd=%s not found", name)
 	}
 	return info
 }

@@ -20,7 +20,7 @@ package gtreap
 import (
 	"github.com/blevesearch/upsidedown_store_api"
 
-	"github.com/steveyen/gtreap"
+	"github.com/blevesearch/gtreap"
 )
 
 type Reader struct {
