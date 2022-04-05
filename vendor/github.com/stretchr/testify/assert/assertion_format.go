@@ -123,6 +123,18 @@ func ErrorAsf(t TestingT, err error, target interface{}, msg string, args ...int
 	return ErrorAs(t, err, target, append([]interface{}{msg}, args...)...)
 }
 
+// ErrorContainsf asserts that a function returned an error (i.e. not `nil`)
+// and that the error contains the specified substring.
+//
+//   actualObj, err := SomeFunction()
+//   assert.ErrorContainsf(t, err,  expectedErrorSubString, "error message %s", "formatted")
+func ErrorContainsf(t TestingT, theError error, contains string, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return ErrorContains(t, theError, contains, append([]interface{}{msg}, args...)...)
+}
+
 // ErrorIsf asserts that at least one of the errors in err's chain matches target.
 // This is a wrapper for errors.Is.
 func ErrorIsf(t TestingT, err error, target error, msg string, args ...interface{}) bool {
