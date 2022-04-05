@@ -3399,12 +3399,7 @@ func (a *App) GetTopChannelsForTeamSince(teamID, userID string, opts *model.Insi
 		return nil, model.NewAppError("GetTopChannelsForTeamSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	since, timeRangeErr := model.GetTimeRange(opts.TimeRange)
-	if timeRangeErr != nil {
-		return nil, timeRangeErr
-	}
-
-	channels, err := a.Srv().Store.Channel().GetTopChannelsForTeamSince(teamID, userID, since, opts.Page*opts.PerPage, opts.PerPage)
+	channels, err := a.Srv().Store.Channel().GetTopChannelsForTeamSince(teamID, userID, opts.TimeRange, opts.Page*opts.PerPage, opts.PerPage)
 	if err != nil {
 		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.reaction.get_top_for_team_since.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
