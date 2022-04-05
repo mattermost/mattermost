@@ -63,7 +63,7 @@ require (
 	github.com/mattermost/gziphandler v0.0.1
 	github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
 	github.com/mattermost/logr/v2 v2.0.15
-	github.com/mattermost/morph v0.0.0-20220222074146-cff3f12ff131
+	github.com/mattermost/morph v0.0.0-20220401091636-39f834798da8
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
@@ -125,6 +125,8 @@ require (
 	gopkg.in/olivere/elastic.v6 v6.2.37
 	gopkg.in/yaml.v2 v2.4.0
 )
+
+replace github.com/Masterminds/squirrel v1.5.2 => github.com/lieut-data/squirrel v1.5.4
 
 // Hack to prevent the willf/bitset module from being upgraded to 1.2.0.
 // They changed the module path from github.com/willf/bitset to

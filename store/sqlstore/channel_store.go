@@ -3949,23 +3949,23 @@ func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId s
 	return directChannelsForExport, nil
 }
 
-func (s SqlChannelStore) GetChannelsBatchForIndexing(startTime, endTime int64, limit int) ([]*model.Channel, error) {
+func (s SqlChannelStore) GetChannelsBatchForIndexing(startTime int64, startChannelID string, limit int) ([]*model.Channel, error) {
 	query :=
 		`SELECT
 			 *
 		 FROM
 			 Channels
 		 WHERE
-			 CreateAt >= ?
-		 AND
-			 CreateAt < ?
+			 CreateAt > ?
+		OR
+			(CreateAt = ? AND Id > ?)
 		 ORDER BY
-			 CreateAt
+			 CreateAt ASC, Id ASC
 		 LIMIT
 			 ?`
 
 	channels := []*model.Channel{}
-	err := s.GetSearchReplicaX().Select(&channels, query, startTime, endTime, limit)
+	err := s.GetSearchReplicaX().Select(&channels, query, startTime, startTime, startChannelID, limit)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Channels")
 	}
