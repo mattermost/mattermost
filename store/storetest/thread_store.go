@@ -909,26 +909,14 @@ func testVarious(t *testing.T, ss store.Store) {
 			{"team1, user1", user1ID, team1.Id, model.GetUserThreadsOpts{}, []*model.Post{
 				team1channel1post1, team1channel1post2, team1channel1post3, dm1post1, gm1post1,
 			}},
-			{"team1, user1, unread", user1ID, team1.Id, model.GetUserThreadsOpts{Unread: true}, []*model.Post{
-				team1channel1post2, team1channel1post3, gm1post1,
-			}},
 			{"team1, user1, deleted", user1ID, team1.Id, model.GetUserThreadsOpts{Deleted: true}, []*model.Post{
 				team1channel1post1, team1channel1post2, team1channel1post3, dm1post1, gm1post1, // (no deleted threads in team1)
-			}},
-			{"team1, user1, unread + deleted", user1ID, team1.Id, model.GetUserThreadsOpts{Unread: true, Deleted: true}, []*model.Post{
-				team1channel1post2, team1channel1post3, gm1post1, // (no deleted threads in team1)
 			}},
 			{"team2, user1", user1ID, team2.Id, model.GetUserThreadsOpts{}, []*model.Post{
 				team2channel1post1, dm1post1, gm1post1,
 			}},
-			{"team2, user1, unread", user1ID, team2.Id, model.GetUserThreadsOpts{Unread: true}, []*model.Post{
-				gm1post1, // (no unread in team2)
-			}},
 			{"team2, user1, deleted", user1ID, team2.Id, model.GetUserThreadsOpts{Deleted: true}, []*model.Post{
 				team2channel1post1, team2channel1post2deleted, dm1post1, gm1post1,
-			}},
-			{"team2, user1, unread + deleted", user1ID, team2.Id, model.GetUserThreadsOpts{Unread: true, Deleted: true}, []*model.Post{
-				team2channel1post2deleted, gm1post1,
 			}},
 		}
 

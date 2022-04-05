@@ -72,55 +72,7 @@ func (s *SqlThreadStore) Get(id string) (*model.Thread, error) {
 	return &thread, nil
 }
 
-// GetTotalUnreadThreads counts the number of unread threads for the given user, optionally
-// constrained to the given team + DMs/GMs.
-func (s *SqlThreadStore) GetTotalUnreadThreads(userId, teamId string, opts model.GetUserThreadsOpts) (int64, error) {
-	var totalUnreadThreads int64
-
-	query := s.getQueryBuilder().
-		Select("COUNT(DISTINCT(Posts.RootId))").
-		From("Posts").
-		LeftJoin("ThreadMemberships ON Posts.RootId = ThreadMemberships.PostId").
-		Where("Posts.CreateAt > ThreadMemberships.LastViewed").
-		Where(sq.Eq{
-			"ThreadMemberships.UserId":    userId,
-			"ThreadMemberships.Following": true,
-		})
-
-	if teamId != "" {
-		query = query.
-			LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
-			Where(sq.Or{
-				sq.Eq{"Channels.TeamId": teamId},
-				sq.Eq{"Channels.TeamId": ""},
-			})
-	}
-
-	if !opts.Deleted {
-		query = query.Where(sq.Eq{"COALESCE(Posts.DeleteAt, 0)": 0})
-	}
-
-	sql, args, err := query.ToSql()
-	if err != nil {
-		return 0, errors.Wrapf(err, "failed to build query to count unread threads for user id=%s", userId)
-	}
-
-	err = s.GetMasterX().Get(&totalUnreadThreads, sql, args...)
-	if err != nil {
-		return 0, errors.Wrapf(err, "failed to count unread threads for user id=%s", userId)
-	}
-
-	return totalUnreadThreads, nil
-}
-
-// GetTotalUnreadThreads counts the number of threads for the given user, optionally constrained
-// to the given team + DMs/GMs.
-//
-// TODO: Why do we support an Unread flag here? It's basically the same as GetTotalUnreadThreads,
-// but with different comparison semantics.
-func (s *SqlThreadStore) GetTotalThreads(userId, teamId string, opts model.GetUserThreadsOpts) (int64, error) {
-	var totalCount int64
-
+func (s *SqlThreadStore) getTotalThreadsQuery(userId, teamId string, opts model.GetUserThreadsOpts) sq.SelectBuilder {
 	query := s.getQueryBuilder().
 		Select("COUNT(ThreadMemberships.PostId)").
 		From("ThreadMemberships").
@@ -143,22 +95,50 @@ func (s *SqlThreadStore) GetTotalThreads(userId, teamId string, opts model.GetUs
 		query = query.Where(sq.Eq{"COALESCE(Threads.DeleteAt, 0)": 0})
 	}
 
-	if opts.Unread {
-		query = query.
-			Where(sq.Expr("ThreadMemberships.LastViewed < Threads.LastReplyAt"))
-	}
+	return query
+}
+
+// GetTotalUnreadThreads counts the number of unread threads for the given user, optionally
+// constrained to the given team + DMs/GMs.
+func (s *SqlThreadStore) GetTotalUnreadThreads(userId, teamId string, opts model.GetUserThreadsOpts) (int64, error) {
+	query := s.getTotalThreadsQuery(userId, teamId, opts).
+		Where(sq.Expr("ThreadMemberships.LastViewed < Threads.LastReplyAt"))
 
 	sql, args, err := query.ToSql()
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to build query to count threads for user id=%s", userId)
 	}
 
-	err = s.GetMasterX().Get(&totalCount, sql, args...)
+	var totalUnreadThreads int64
+	err = s.GetMasterX().Get(&totalUnreadThreads, sql, args...)
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to count threads for user id=%s", userId)
 	}
 
-	return totalCount, nil
+	return totalUnreadThreads, nil
+}
+
+// GetTotalUnreadThreads counts the number of threads for the given user, optionally constrained
+// to the given team + DMs/GMs.
+func (s *SqlThreadStore) GetTotalThreads(userId, teamId string, opts model.GetUserThreadsOpts) (int64, error) {
+	if opts.Unread {
+		return 0, errors.New("GetTotalThreads does not support the Unread flag; use GetTotalUnreadThreads instead")
+	}
+
+	query := s.getTotalThreadsQuery(userId, teamId, opts)
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to build query to count threads for user id=%s", userId)
+	}
+
+	var totalThreads int64
+	err = s.GetMasterX().Get(&totalThreads, sql, args...)
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to count threads for user id=%s", userId)
+	}
+
+	return totalThreads, nil
 }
 
 // GetTotalUnreadMentions counts the number of unread mentions for the given user, optionally
