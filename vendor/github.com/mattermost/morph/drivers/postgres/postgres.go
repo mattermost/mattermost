@@ -8,9 +8,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/go-morph/morph/drivers"
-	"github.com/go-morph/morph/models"
 	_ "github.com/lib/pq"
+	"github.com/mattermost/morph/drivers"
+	"github.com/mattermost/morph/models"
 )
 
 var (
@@ -219,75 +219,7 @@ func (pg *postgres) Close() error {
 	return nil
 }
 
-func (pg *postgres) Lock() error {
-	if drivers.IsLockable(pg) {
-		// Supports lockable, so already locked at the global level.
-		return nil
-	}
-
-	aid, err := drivers.GenerateAdvisoryLockID(pg.config.databaseName, pg.config.schemaName)
-	if err != nil {
-		return err
-	}
-
-	// This will wait until the lock can be acquired or until the statement timeout has reached.
-	query := "SELECT pg_advisory_lock($1)"
-	ctx, cancel := drivers.GetContext(pg.config.StatementTimeoutInSecs)
-	defer cancel()
-
-	if _, err := pg.conn.ExecContext(ctx, query, aid); err != nil {
-		return &drivers.DatabaseError{
-			OrigErr: err,
-			Driver:  driverName,
-			Message: "failed to obtain advisory lock",
-			Command: "lock_migrations_table",
-			Query:   []byte(query),
-		}
-	}
-
-	return nil
-}
-
-func (pg *postgres) Unlock() error {
-	if drivers.IsLockable(pg) {
-		// Supports lockable, so already locked at the global level.
-		return nil
-	}
-
-	aid, err := drivers.GenerateAdvisoryLockID(pg.config.databaseName, pg.config.schemaName)
-	if err != nil {
-		return err
-	}
-
-	query := "SELECT pg_advisory_unlock($1)"
-	ctx, cancel := drivers.GetContext(pg.config.StatementTimeoutInSecs)
-	defer cancel()
-
-	if _, err := pg.conn.ExecContext(ctx, query, aid); err != nil {
-		return &drivers.DatabaseError{
-			OrigErr: err,
-			Driver:  driverName,
-			Message: "failed to unlock advisory lock",
-			Command: "unlock_migrations_table",
-			Query:   []byte(query),
-		}
-	}
-
-	return nil
-}
-
 func (pg *postgres) Apply(migration *models.Migration, saveVersion bool) (err error) {
-	if err = pg.Lock(); err != nil {
-		return err
-	}
-	defer func() {
-		// If we saw no error prior to unlocking and unlocking returns an error we need to
-		// assign the unlocking error to err
-		if unlockErr := pg.Unlock(); unlockErr != nil && err == nil {
-			err = unlockErr
-		}
-	}()
-
 	query, readErr := migration.Query()
 	if readErr != nil {
 		return &drivers.AppError{
@@ -342,17 +274,6 @@ func (pg *postgres) AppliedMigrations() (migrations []*models.Migration, err err
 			Driver:  driverName,
 		}
 	}
-
-	if err = pg.Lock(); err != nil {
-		return nil, err
-	}
-	defer func() {
-		// If we saw no error prior to unlocking and unlocking returns an error we need to
-		// assign the unlocking error to err
-		if unlockErr := pg.Unlock(); unlockErr != nil && err == nil {
-			err = unlockErr
-		}
-	}()
 
 	if err := pg.createSchemaTableIfNotExists(); err != nil {
 		return nil, err

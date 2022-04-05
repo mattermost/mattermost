@@ -10,16 +10,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-morph/morph/models"
+	"github.com/mattermost/morph/models"
 
-	"github.com/go-morph/morph/drivers"
-	"github.com/go-morph/morph/sources"
+	"github.com/mattermost/morph/drivers"
+	"github.com/mattermost/morph/sources"
 
-	ms "github.com/go-morph/morph/drivers/mysql"
-	ps "github.com/go-morph/morph/drivers/postgres"
+	ms "github.com/mattermost/morph/drivers/mysql"
+	ps "github.com/mattermost/morph/drivers/postgres"
 
-	_ "github.com/go-morph/morph/sources/file"
-	_ "github.com/go-morph/morph/sources/go_bindata"
+	_ "github.com/mattermost/morph/sources/embedded"
+	_ "github.com/mattermost/morph/sources/file"
 )
 
 var migrationProgressStart = "==  %s: migrating  ================================================="
@@ -42,7 +42,7 @@ type Config struct {
 
 type EngineOption func(*Morph)
 
-func WithLogger(logger *log.Logger) EngineOption {
+func WithLogger(logger Logger) EngineOption {
 	return func(m *Morph) {
 		m.config.Logger = logger
 	}
@@ -80,7 +80,7 @@ func WithLock(key string) EngineOption {
 func New(ctx context.Context, driver drivers.Driver, source sources.Source, options ...EngineOption) (*Morph, error) {
 	engine := &Morph{
 		config: &Config{
-			Logger: log.New(os.Stderr, "", log.LstdFlags), // add default logger
+			Logger: newColorLogger(log.New(os.Stderr, "", log.LstdFlags)), // add default logger
 		},
 		source: source,
 		driver: driver,
@@ -99,16 +99,21 @@ func New(ctx context.Context, driver drivers.Driver, source sources.Source, opti
 		var err error
 		switch impl.DriverName() {
 		case "mysql":
-			mx, err = ms.NewMutex(engine.config.LockKey, driver)
+			mx, err = ms.NewMutex(engine.config.LockKey, driver, engine.config.Logger)
 		case "postgres":
-			mx, err = ps.NewMutex(engine.config.LockKey, driver)
+			mx, err = ps.NewMutex(engine.config.LockKey, driver, engine.config.Logger)
+		default:
+			err = errors.New("driver does not support locking")
 		}
 		if err != nil {
 			return nil, err
 		}
 
 		engine.mutex = mx
-		_ = mx.LockWithContext(ctx)
+		err = mx.Lock(ctx)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return engine, nil
@@ -117,7 +122,10 @@ func New(ctx context.Context, driver drivers.Driver, source sources.Source, opti
 // Close closes the underlying database connection of the engine.
 func (m *Morph) Close() error {
 	if m.mutex != nil {
-		m.mutex.Unlock()
+		err := m.mutex.Unlock()
+		if err != nil {
+			return err
+		}
 	}
 
 	return m.driver.Close()
@@ -164,14 +172,14 @@ func (m *Morph) Apply(limit int) (int, error) {
 	for i := 0; i < steps; i++ {
 		start := time.Now()
 		migrationName := migrations[i].Name
-		m.config.Logger.Println(InfoLoggerLight.Sprint(formatProgress(fmt.Sprintf(migrationProgressStart, migrationName))))
+		m.config.Logger.Println(formatProgress(fmt.Sprintf(migrationProgressStart, migrationName)))
 		if err := m.driver.Apply(migrations[i], true); err != nil {
 			return applied, err
 		}
 
 		applied++
 		elapsed := time.Since(start)
-		m.config.Logger.Println(InfoLoggerLight.Sprint(formatProgress(fmt.Sprintf(migrationProgressFinished, migrationName, fmt.Sprintf("%.4fs", elapsed.Seconds())))))
+		m.config.Logger.Println(formatProgress(fmt.Sprintf(migrationProgressFinished, migrationName, fmt.Sprintf("%.4fs", elapsed.Seconds()))))
 	}
 
 	return applied, nil
@@ -204,7 +212,7 @@ func (m *Morph) ApplyDown(limit int) (int, error) {
 	for i := 0; i < steps; i++ {
 		start := time.Now()
 		migrationName := sortedMigrations[i].Name
-		m.config.Logger.Println(InfoLoggerLight.Sprint(formatProgress(fmt.Sprintf(migrationProgressStart, migrationName))))
+		m.config.Logger.Println(formatProgress(fmt.Sprintf(migrationProgressStart, migrationName)))
 
 		down := downMigrations[migrationName]
 		if err := m.driver.Apply(down, true); err != nil {
@@ -213,7 +221,7 @@ func (m *Morph) ApplyDown(limit int) (int, error) {
 
 		applied++
 		elapsed := time.Since(start)
-		m.config.Logger.Println(InfoLoggerLight.Sprint(formatProgress(fmt.Sprintf(migrationProgressFinished, migrationName, fmt.Sprintf("%.4fs", elapsed.Seconds())))))
+		m.config.Logger.Println(formatProgress(fmt.Sprintf(migrationProgressFinished, migrationName, fmt.Sprintf("%.4fs", elapsed.Seconds()))))
 	}
 
 	return applied, nil
