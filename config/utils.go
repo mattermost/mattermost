@@ -8,9 +8,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/go-sql-driver/mysql"
+
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -201,9 +203,36 @@ func stripPassword(dsn, schema string) string {
 	return prefix + dsn[:i+1] + dsn[j:]
 }
 
-func isJSONMap(data string) bool {
+func isJSONMap(data []byte) bool {
 	var m map[string]interface{}
-	return json.Unmarshal([]byte(data), &m) == nil
+	return json.Unmarshal(data, &m) == nil
+}
+
+func isEmbeddedJSONMap(data string) bool {
+	s, err := Unquote(data)
+	if err != nil {
+		return false
+	}
+	return isJSONMap([]byte(s))
+}
+
+func Unquote(data string) (string, error) {
+	addQuotes := true
+	if (strings.HasPrefix(data, "\"") && strings.HasSuffix(data, "\"")) ||
+		(strings.HasPrefix(data, "`") && strings.HasSuffix(data, "`")) ||
+		(strings.HasPrefix(data, "'") && strings.HasSuffix(data, "'")) {
+		addQuotes = false
+	}
+
+	if addQuotes {
+		data = "\"" + data + "\""
+	}
+
+	s, err := strconv.Unquote(data)
+	if err != nil {
+		return "", err
+	}
+	return s, nil
 }
 
 func GetValueByPath(path []string, obj interface{}) (interface{}, bool) {

@@ -4,8 +4,10 @@
 package config
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -22,16 +24,19 @@ type LogConfigSrc interface {
 	Get() mlog.LoggerConfiguration
 
 	// Set updates the dsn specifying the source and reloads
-	Set(dsn string, configStore *Store) (err error)
+	Set(dsn []byte, configStore *Store) (err error)
 
 	// Close cleans up resources.
 	Close() error
+
+	// String provides a description of the LogConfigSrc
+	String() string
 }
 
 // NewLogConfigSrc creates an advanced logging configuration source, backed by a
-// file, JSON string, or database.
-func NewLogConfigSrc(dsn string, configStore *Store) (LogConfigSrc, error) {
-	if dsn == "" {
+// file, JSON bytes, or database.
+func NewLogConfigSrc(dsn []byte, configStore *Store) (LogConfigSrc, error) {
+	if len(dsn) == 0 {
 		return nil, errors.New("dsn should not be empty")
 	}
 
@@ -39,17 +44,30 @@ func NewLogConfigSrc(dsn string, configStore *Store) (LogConfigSrc, error) {
 		return nil, errors.New("configStore should not be nil")
 	}
 
-	dsn = strings.TrimSpace(dsn)
+	dsn = bytes.TrimSpace(dsn)
 
+	// check if the config is already JSON
 	if isJSONMap(dsn) {
 		return newJSONSrc(dsn)
 	}
 
-	path := dsn
+	// check if the config is a escaped JSON string
+	if isEmbeddedJSONMap(string(dsn)) {
+		s, err := Unquote(string(dsn))
+		if err == nil {
+			return newJSONSrc([]byte(s))
+		}
+	}
+
+	path, err := Unquote(string(dsn))
+	if err != nil {
+		return nil, err
+	}
+
 	// If this is a file based config we need the full path so it can be watched.
-	if strings.HasPrefix(configStore.String(), "file://") && !filepath.IsAbs(dsn) {
+	if strings.HasPrefix(configStore.String(), "file://") && !filepath.IsAbs(path) {
 		configPath := strings.TrimPrefix(configStore.String(), "file://")
-		path = filepath.Join(filepath.Dir(configPath), dsn)
+		path = filepath.Join(filepath.Dir(configPath), path)
 	}
 
 	return newFileSrc(path, configStore)
@@ -63,7 +81,7 @@ type jsonSrc struct {
 	cfg   mlog.LoggerConfiguration
 }
 
-func newJSONSrc(data string) (*jsonSrc, error) {
+func newJSONSrc(data []byte) (*jsonSrc, error) {
 	src := &jsonSrc{}
 	return src, src.Set(data, nil)
 }
@@ -76,8 +94,8 @@ func (src *jsonSrc) Get() mlog.LoggerConfiguration {
 }
 
 // Set updates the JSON specifying the source and reloads
-func (src *jsonSrc) Set(data string, _ *Store) error {
-	cfg, err := logTargetCfgFromJSON([]byte(data))
+func (src *jsonSrc) Set(data []byte, _ *Store) error {
+	cfg, err := logTargetCfgFromJSON(data)
 	if err != nil {
 		return err
 	}
@@ -100,6 +118,11 @@ func (src *jsonSrc) Close() error {
 	return nil
 }
 
+// String provides a description of this jsonSrc
+func (src *jsonSrc) String() string {
+	return fmt.Sprintf("inline JSON; %d targets", len(src.cfg))
+}
+
 // fileSrc
 
 type fileSrc struct {
@@ -112,7 +135,7 @@ func newFileSrc(path string, configStore *Store) (*fileSrc, error) {
 	src := &fileSrc{
 		path: path,
 	}
-	if err := src.Set(path, configStore); err != nil {
+	if err := src.Set([]byte(path), configStore); err != nil {
 		return nil, err
 	}
 	return src, nil
@@ -128,8 +151,8 @@ func (src *fileSrc) Get() mlog.LoggerConfiguration {
 // Set updates the dsn specifying the file source and reloads.
 // The file will be watched for changes and reloaded as needed,
 // and all listeners notified.
-func (src *fileSrc) Set(path string, configStore *Store) error {
-	data, err := configStore.GetFile(path)
+func (src *fileSrc) Set(path []byte, configStore *Store) error {
+	data, err := configStore.GetFile(string(path))
 	if err != nil {
 		return err
 	}
@@ -140,6 +163,7 @@ func (src *fileSrc) Set(path string, configStore *Store) error {
 	}
 
 	src.set(cfg)
+	src.path = string(path)
 	return nil
 }
 
@@ -153,6 +177,11 @@ func (src *fileSrc) set(cfg mlog.LoggerConfiguration) {
 // Close cleans up resources.
 func (src *fileSrc) Close() error {
 	return nil
+}
+
+// String provides a description of this fileSrc
+func (src *fileSrc) String() string {
+	return src.path
 }
 
 func logTargetCfgFromJSON(data []byte) (mlog.LoggerConfiguration, error) {

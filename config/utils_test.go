@@ -4,6 +4,7 @@
 package config
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -255,18 +256,45 @@ func TestStripPassword(t *testing.T) {
 func TestIsJSONMap(t *testing.T) {
 	tests := []struct {
 		name string
-		data string
+		data json.RawMessage
 		want bool
 	}{
-		{name: "good json", data: `{"local_tcp": {
+		{name: "good json", data: json.RawMessage(`{"local_tcp": {
 			"Type": "tcp","Format": "json","Levels": [
 				{"ID": 5,"Name": "debug","Stacktrace": false}
 			],
 			"Options": {"ip": "localhost","port": 18065},
 			"MaxQueueSize": 1000}}
-			`, want: true,
+			`), want: true,
+		},
+		{name: "empty json", data: []byte("{}"), want: true},
+		{name: "string json", data: []byte(`"test"`), want: false},
+		{name: "array json", data: []byte(`["test1", "test2"]`), want: false},
+		{name: "bad json", data: []byte(`{huh?}`), want: false},
+		{name: "filename", data: []byte("/tmp/logger.conf"), want: false},
+		{name: "mysql dsn", data: []byte("mysql://mmuser:@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s"), want: false},
+		{name: "postgres dsn", data: []byte("postgres://mmuser:passwordlocalhost:5432/mattermost?sslmode=disable&connect_timeout=10"), want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := isJSONMap(tt.data); got != tt.want {
+				t.Errorf("isJSONMap() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestIsEmbeddedJSONMap(t *testing.T) {
+	tests := []struct {
+		name string
+		data string
+		want bool
+	}{
+		{name: "good embedded json", data: (`{\"local_tcp\":{\"Type\":\"tcp\",\"Format\":\"json\",\"Levels\":[{\"ID\":5,\"Name\":\"debug\",\"Stacktrace\":false}],\"Options\":{\"ip\":\"localhost\",\"port\":18065},\"MaxQueueSize\":1000}}`),
+			want: true,
 		},
 		{name: "empty json", data: "{}", want: true},
+		{name: "empty json quoted", data: "\"{}\"", want: true},
 		{name: "string json", data: `"test"`, want: false},
 		{name: "array json", data: `["test1", "test2"]`, want: false},
 		{name: "bad json", data: `{huh?}`, want: false},
@@ -276,8 +304,8 @@ func TestIsJSONMap(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := isJSONMap(tt.data); got != tt.want {
-				t.Errorf("isJSONMap() = %v, want %v", got, tt.want)
+			if got := isEmbeddedJSONMap(tt.data); got != tt.want {
+				t.Errorf("isEmbeddedJSONMap() = %v, want %v", got, tt.want)
 			}
 		})
 	}

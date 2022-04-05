@@ -817,14 +817,14 @@ func (s *Server) configureLogger(name string, logger *mlog.Logger, logSettings *
 	// file is loaded.  If no valid E20 license exists then advanced logging will be
 	// shutdown once license is loaded/checked.
 	var err error
-	dsn := *logSettings.AdvancedLoggingConfig
+	dsn := logSettings.AdvancedLoggingConfig
 	var logConfigSrc config.LogConfigSrc
-	if dsn != "" {
+	if len(dsn) > 2 {
 		logConfigSrc, err = config.NewLogConfigSrc(dsn, configStore)
 		if err != nil {
 			return fmt.Errorf("invalid config source for %s, %w", name, err)
 		}
-		mlog.Info("Loaded configuration for "+name, mlog.String("source", dsn))
+		mlog.Info("Loaded configuration for "+name, mlog.String("source", logConfigSrc.String()))
 	}
 
 	cfg, err := config.MloggerConfigFromLoggerConfig(logSettings, logConfigSrc, getPath)

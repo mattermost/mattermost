@@ -4,6 +4,7 @@
 package config
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,8 +12,11 @@ import (
 )
 
 const (
-	validJSON = `{"file":{ "Type":"file"}}`
-	badJSON   = `{"file":{ Type="file"}}`
+	validJSON               = `{"file":{ "Type":"file"}}`
+	badJSON                 = `{"file":{ Type="file"}}`
+	validEmbeddedJSON       = `{\"file\":{\"Type\":\"file\"}}`
+	validEmbeddedQuotedJSON = `"{\"file\":{\"Type\":\"file\"}}"`
+	badEmbeddedJSON         = `"{\"file\":{ Type=\"file\"}}"`
 )
 
 func TestNewLogConfigSrc(t *testing.T) {
@@ -20,20 +24,26 @@ func TestNewLogConfigSrc(t *testing.T) {
 	require.NotNil(t, store)
 	err := store.SetFile("advancedlogging.conf", []byte(validJSON))
 	require.NoError(t, err)
+	err = store.SetFile("/home/user/test/logging.conf", []byte(validJSON))
+	require.NoError(t, err)
 
 	tests := []struct {
 		name        string
-		dsn         string
+		dsn         json.RawMessage
 		configStore *Store
 		wantErr     bool
 		wantType    LogConfigSrc
 	}{
-		{name: "empty dsn", dsn: "", configStore: store, wantErr: true, wantType: nil},
-		{name: "garbage dsn", dsn: "!@wfejwcevioj", configStore: store, wantErr: true, wantType: nil},
-		{name: "valid json dsn", dsn: validJSON, configStore: store, wantErr: false, wantType: &jsonSrc{}},
-		{name: "invalid json dsn", dsn: badJSON, configStore: store, wantErr: true, wantType: nil},
-		{name: "valid filespec dsn", dsn: "advancedlogging.conf", configStore: store, wantErr: false, wantType: &fileSrc{}},
-		{name: "invalid filespec dsn", dsn: "/nobody/here.conf", configStore: store, wantErr: true, wantType: nil},
+		{name: "empty dsn", dsn: json.RawMessage(""), configStore: store, wantErr: true, wantType: nil},
+		{name: "garbage dsn", dsn: json.RawMessage("!@wfejwcevioj"), configStore: store, wantErr: true, wantType: nil},
+		{name: "valid json dsn", dsn: json.RawMessage(validJSON), configStore: store, wantErr: false, wantType: &jsonSrc{}},
+		{name: "invalid json dsn", dsn: json.RawMessage(badJSON), configStore: store, wantErr: true, wantType: nil},
+		{name: "valid embedded json dsn", dsn: json.RawMessage(validEmbeddedJSON), configStore: store, wantErr: false, wantType: &jsonSrc{}},
+		{name: "valid embedded quoted json dsn", dsn: json.RawMessage(validEmbeddedQuotedJSON), configStore: store, wantErr: false, wantType: &jsonSrc{}},
+		{name: "invalid embedded json dsn", dsn: json.RawMessage(badEmbeddedJSON), configStore: store, wantErr: true, wantType: nil},
+		{name: "valid relative filespec dsn", dsn: json.RawMessage("advancedlogging.conf"), configStore: store, wantErr: false, wantType: &fileSrc{}},
+		{name: "valid absolute filespec dsn", dsn: json.RawMessage("/home/user/test/logging.conf"), configStore: store, wantErr: false, wantType: &fileSrc{}},
+		{name: "invalid filespec dsn", dsn: json.RawMessage("/nobody/here.conf"), configStore: store, wantErr: true, wantType: nil},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -108,14 +108,14 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 	adt.OnError = s.onAuditError
 
 	var logConfigSrc config.LogConfigSrc
-	dsn := *s.Config().ExperimentalAuditSettings.AdvancedLoggingConfig
-	if bAllowAdvancedLogging && dsn != "" {
+	dsn := s.Config().ExperimentalAuditSettings.AdvancedLoggingConfig
+	if bAllowAdvancedLogging && len(dsn) > 2 {
 		var err error
 		logConfigSrc, err = config.NewLogConfigSrc(dsn, s.configStore.Store)
 		if err != nil {
 			return fmt.Errorf("invalid config source for audit, %w", err)
 		}
-		mlog.Debug("Loaded audit configuration", mlog.String("source", dsn))
+		mlog.Debug("Loaded audit configuration", mlog.String("source", string(dsn)))
 	}
 
 	// ExperimentalAuditSettings provides basic file audit (E0, E10); logConfigSrc provides advanced config (E20).
