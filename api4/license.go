@@ -31,7 +31,7 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	format := r.URL.Query().Get("format")
 
 	if format == "" {
-		c.Err = model.NewAppError("getClientLicense", "api.license.client.old_format.app_error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("getClientLicense", "api.license.client.old_format.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -239,6 +239,11 @@ func requestRenewalLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	renewalLink, token, err := c.App.Srv().GenerateLicenseRenewalLink()
 	if err != nil {
 		c.Err = err
+		return
+	}
+
+	if c.App.Cloud() == nil {
+		c.Err = model.NewAppError("requestRenewalLink", "api.license.upgrade_needed.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 

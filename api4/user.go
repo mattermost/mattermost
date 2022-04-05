@@ -159,15 +159,6 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// New user created, check cloud limits and send emails if needed
-	// Soft fail on error since user is already created
-	if ruser != nil {
-		err = c.App.CheckAndSendUserLimitWarningEmails(c.AppContext)
-		if err != nil {
-			c.LogErrorByCode(err)
-		}
-	}
-
 	auditRec.Success()
 	auditRec.AddMeta("user", ruser) // overwrite meta
 
@@ -1468,18 +1459,6 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// if non cloud instances, isOverLimit is false and no error
-	isAtLimit, err := c.App.CheckCloudAccountAtLimit()
-	if err != nil {
-		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.cloud_at_limit_check_error", nil, "userId="+c.Params.UserId, http.StatusInternalServerError)
-		return
-	}
-
-	if active && isAtLimit {
-		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.cloud_at_or_over_limit_check_overcapacity", nil, "userId="+c.Params.UserId, http.StatusBadRequest)
-		return
-	}
-
 	if _, err = c.App.UpdateActive(c.AppContext, user, active); err != nil {
 		c.Err = err
 	}
@@ -1497,15 +1476,6 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	message := model.NewWebSocketEvent(model.WebsocketEventUserActivationStatusChange, "", "", "", nil)
 	c.App.Publish(message)
-
-	// If activating, run cloud check for limit overages
-	if active {
-		emailErr := c.App.CheckAndSendUserLimitWarningEmails(c.AppContext)
-		if emailErr != nil {
-			c.Err = emailErr
-			return
-		}
-	}
 
 	ReturnStatusOK(w)
 }
@@ -3038,14 +3008,15 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	options := model.GetUserThreadsOpts{
-		Since:      0,
-		Before:     "",
-		After:      "",
-		PageSize:   uint64(c.Params.PerPage),
-		Unread:     false,
-		Extended:   false,
-		Deleted:    false,
-		TotalsOnly: false,
+		Since:       0,
+		Before:      "",
+		After:       "",
+		PageSize:    uint64(c.Params.PerPage),
+		Unread:      false,
+		Extended:    false,
+		Deleted:     false,
+		TotalsOnly:  false,
+		ThreadsOnly: false,
 	}
 
 	sinceString := r.URL.Query().Get("since")
@@ -3060,21 +3031,30 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	options.Before = r.URL.Query().Get("before")
 	options.After = r.URL.Query().Get("after")
+	totalsOnlyStr := r.URL.Query().Get("totalsOnly")
+	threadsOnlyStr := r.URL.Query().Get("threadsOnly")
+	options.TotalsOnly, _ = strconv.ParseBool(totalsOnlyStr)
+	options.ThreadsOnly, _ = strconv.ParseBool(threadsOnlyStr)
+
 	// parameters are mutually exclusive
 	if options.Before != "" && options.After != "" {
 		c.Err = model.NewAppError("api.getThreadsForUser", "api.getThreadsForUser.bad_params", nil, "", http.StatusBadRequest)
 		return
 	}
 
+	// parameters are mutually exclusive
+	if options.TotalsOnly && options.ThreadsOnly {
+		c.Err = model.NewAppError("api.getThreadsForUser", "api.getThreadsForUser.bad_only_params", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	deletedStr := r.URL.Query().Get("deleted")
 	unreadStr := r.URL.Query().Get("unread")
 	extendedStr := r.URL.Query().Get("extended")
-	totalsOnlyStr := r.URL.Query().Get("totalsOnly")
 
 	options.Deleted, _ = strconv.ParseBool(deletedStr)
 	options.Unread, _ = strconv.ParseBool(unreadStr)
 	options.Extended, _ = strconv.ParseBool(extendedStr)
-	options.TotalsOnly, _ = strconv.ParseBool(totalsOnlyStr)
 
 	threads, err := c.App.GetThreadsForUser(c.Params.UserId, c.Params.TeamId, options)
 	if err != nil {
