@@ -33,7 +33,7 @@ func Migrate(from, to string) error {
 	}
 
 	// Only migrate advanced logging config if it is not embedded JSON.
-	if !isJSONMap(sourceConfig.LogSettings.AdvancedLoggingConfig) {
+	if !isJSONMap(sourceConfig.LogSettings.AdvancedLoggingConfig) && !isEmbeddedJSONMap(string(sourceConfig.LogSettings.AdvancedLoggingConfig)) {
 		files = append(files, string(sourceConfig.LogSettings.AdvancedLoggingConfig))
 	}
 
