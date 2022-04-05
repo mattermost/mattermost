@@ -77,7 +77,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelModerations.Handle("", api.APISessionRequired(getChannelModerations)).Methods("GET")
 	api.BaseRoutes.ChannelModerations.Handle("/patch", api.APISessionRequired(patchChannelModerations)).Methods("PUT")
 
-	api.BaseRoutes.Channels.Handle("/team/{team_id:[A-Za-z0-9]+}/top", api.APISessionRequired(getTopChannelsForTeamSince)).Methods("GET")
+	api.BaseRoutes.Team.Handle("/top/channels", api.APISessionRequired(getTopChannelsForTeamSince)).Methods("GET")
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
