@@ -1300,8 +1300,8 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 	t.Run("it return list of email with no error when inviting to team and channels using memberInvite struct", func(t *testing.T) {
 		emailServiceMock := emailmocks.ServiceInterface{}
 		memberInvite := &model.MemberInvite{
-			Emails:   []string{"idontexist@mattermost.com"},
-			Channels: []string{th.BasicChannel.Id},
+			Emails:     []string{"idontexist@mattermost.com"},
+			ChannelIds: []string{th.BasicChannel.Id},
 		}
 		emailServiceMock.On("SendInviteEmailsToTeamAndChannels",
 			mock.AnythingOfType("*model.Team"),
