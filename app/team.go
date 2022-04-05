@@ -1274,7 +1274,7 @@ func (a *App) InviteNewUsersToTeamGracefully(memberInvite *model.MemberInvite, t
 		err := model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.no_one.app_error", nil, "", http.StatusBadRequest)
 		return nil, err
 	}
-	user, team, channels, err := a.prepareInviteNewUsersToTeam(teamID, senderId, memberInvite.Channels)
+	user, team, channels, err := a.prepareInviteNewUsersToTeam(teamID, senderId, memberInvite.ChannelIds)
 	if err != nil {
 		return nil, err
 	}

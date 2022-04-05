@@ -195,7 +195,7 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(job *model.Job, inter
 	}
 
 	if len(channelList) > 0 {
-		memberInvite.Channels = channelList
+		memberInvite.ChannelIds = channelList
 	}
 
 	_, appErr := rseworker.app.InviteNewUsersToTeamGracefully(&memberInvite, teamID, job.Data["senderID"], interval)

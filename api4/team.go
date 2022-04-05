@@ -1302,8 +1302,8 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("team_id", c.Params.TeamId)
 	auditRec.AddMeta("count", len(emailList))
 	auditRec.AddMeta("emails", emailList)
-	auditRec.AddMeta("channel_count", len(memberInvite.Channels))
-	auditRec.AddMeta("channels", memberInvite.Channels)
+	auditRec.AddMeta("channel_count", len(memberInvite.ChannelIds))
+	auditRec.AddMeta("channels", memberInvite.ChannelIds)
 
 	if graceful {
 		var invitesWithError []*model.EmailInviteWithError
@@ -1335,8 +1335,8 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			"scheduledAt": strconv.FormatInt(scheduledAt, 10),
 		}
 
-		if len(memberInvite.Channels) > 0 {
-			jobData["channelList"] = model.ArrayToJSON(memberInvite.Channels)
+		if len(memberInvite.ChannelIds) > 0 {
+			jobData["channelList"] = model.ArrayToJSON(memberInvite.ChannelIds)
 		}
 
 		// we then manually schedule the job to send another invite after 48 hours

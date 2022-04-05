@@ -9,9 +9,9 @@ import (
 )
 
 type MemberInvite struct {
-	Emails   []string `json:"emails"`
-	Channels []string `json:"channels,omitempty"`
-	Message  string   `json:"message"`
+	Emails     []string `json:"emails"`
+	ChannelIds []string `json:"channels,omitempty"`
+	Message    string   `json:"message"`
 }
 
 // IsValid validates that the invitation info is loaded correctly and with the correct structure
@@ -20,8 +20,8 @@ func (i *MemberInvite) IsValid() *AppError {
 		return NewAppError("MemberInvite.IsValid", "model.member.is_valid.emails.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(i.Channels) > 0 {
-		for _, channel := range i.Channels {
+	if len(i.ChannelIds) > 0 {
+		for _, channel := range i.ChannelIds {
 			if len(channel) != 26 {
 				return NewAppError("MemberInvite.IsValid", "model.member.is_valid.channel.app_error", nil, "channel="+channel, http.StatusBadRequest)
 			}
