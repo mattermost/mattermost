@@ -204,18 +204,6 @@
     "translation": "Бота не съществува."
   },
   {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Не може да конвертира StringMap в *низ"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Не може да конвертира StringInterface в *низ"
-  },
-  {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Не може да конвертира StringArray в *низ"
-  },
-  {
     "id": "searchengine.bleve.disabled.error",
     "translation": "Грешка при прочистване на Bleve индекси: двигателят е забранен"
   },
@@ -6054,7 +6042,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Не е намерен зададения канал. Моля, използвайте [адреса на канала](https://about.mattermost.com/default-channel-handle-documentation) за да определяте канали."
+    "translation": "Не е намерен зададения канал. Моля, използвайте [адреса на канала](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) за да определяте канали."
   },
   {
     "id": "api.command_mute.name",
@@ -6066,7 +6054,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Не е намерен канала {{.Channel}}. Моля, използвайте [адреса на канала](https://about.mattermost.com/default-channel-handle-documentation) за да определяте канали."
+    "translation": "Не е намерен канала {{.Channel}}. Моля, използвайте [адреса на канала](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) за да определяте канали."
   },
   {
     "id": "api.command_mute.desc",
@@ -6218,7 +6206,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Не е намерен канала {{.Channel}}. Моля, използвайте [адреса на канала](https://about.mattermost.com/default-channel-handle-documentation) за да определяте канали."
+    "translation": "Не е намерен канала {{.Channel}}. Моля, използвайте [адреса на канала](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) за да определяте канали."
   },
   {
     "id": "api.command_invite.channel.app_error",

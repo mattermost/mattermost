@@ -70,6 +70,7 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.System.Handle("/support_packet", api.APISessionRequired(generateSupportPacket)).Methods("GET")
 	api.BaseRoutes.System.Handle("/onboarding/complete", api.APISessionRequired(getOnboarding)).Methods("GET")
 	api.BaseRoutes.System.Handle("/onboarding/complete", api.APISessionRequired(completeOnboarding)).Methods("POST")
+	api.BaseRoutes.System.Handle("/schema/version", api.APISessionRequired(getAppliedSchemaMigrations)).Methods("GET")
 }
 
 func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -933,4 +934,29 @@ func completeOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	ReturnStatusOK(w)
+}
+
+func getAppliedSchemaMigrations(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleReadPermissions) {
+		c.SetPermissionError(model.SysconsoleReadPermissions...)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("getAppliedSchemaMigrations", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	migrations, appErr := c.App.GetAppliedSchemaMigrations()
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	js, jsonErr := json.Marshal(migrations)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getAppliedMigrations", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
+	auditRec.Success()
 }

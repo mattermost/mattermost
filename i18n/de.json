@@ -632,7 +632,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Konnte den Kanal {{.Channel}} nicht finden. Bitte nutze den [Kanal-Handle](https://about.mattermost.com/default-channel-handle-documentation), um Kanäle zu identifizieren."
+    "translation": "Konnte den Kanal {{.Channel}} nicht finden. Bitte nutze den [Kanal-Handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel), um Kanäle zu identifizieren."
   },
   {
     "id": "api.command_invite.desc",
@@ -776,7 +776,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Konnte den Kanal {{.Channel}} nicht finden. Bitte nutze den [Kanal-Handle](https://about.mattermost.com/default-channel-handle-documentation), um Kanäle zu identifizieren."
+    "translation": "Konnte den Kanal {{.Channel}} nicht finden. Bitte nutze den [Kanal-Handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel), um Kanäle zu identifizieren."
   },
   {
     "id": "api.command_mute.hint",
@@ -788,7 +788,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Konnte den Kanal nicht finden. Bitte nutze den [Kanal-Handle](https://about.mattermost.com/default-channel-handle-documentation), um Kanäle zu identifizieren."
+    "translation": "Konnte den Kanal nicht finden. Bitte nutze den [Kanal-Handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel), um Kanäle zu identifizieren."
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -1207,7 +1207,7 @@
   },
   {
     "id": "api.oauth.get_access_token.disabled.app_error",
-    "translation": "Der Systemadministrator hat den OAuth2 Service Provider deaktiviert."
+    "translation": "Der Systemadministrator hat den OAuth2 Service Provider abgeschaltet."
   },
   {
     "id": "api.oauth.get_access_token.expired_code.app_error",
@@ -1251,7 +1251,7 @@
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
-    "translation": "Der Systemadministrator hat den OAuth2 Service Provider deaktiviert."
+    "translation": "Der Systemadministrator hat den OAuth2 Service Provider abgeschaltet."
   },
   {
     "id": "api.oauth.revoke_access_token.del_session.app_error",
@@ -4616,18 +4616,6 @@
     "translation": "Fehlende TO-Adresse."
   },
   {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Konnte StringArray nicht zu *string konvertieren"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Konnte StringInterface nicht zu *string konvertieren"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Konnte StringMap nicht zu *string konvertieren"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot existiert nicht."
   },
@@ -5729,7 +5717,7 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
-    "translation": "@{{.Username}}} wurde durch diese Erwähnung nicht benachrichtigt, da sich der Benutzer nicht im Kanal befindet. Er kann dem Kanal nicht hinzugefügt werden, da er nicht Mitglied der verknüpften Gruppen ist. Um ihn diesem Kanal hinzuzufügen, muss er den verknüpften Gruppen hinzugefügt werden."
+    "translation": "@{{.Username}}} wurden durch diese Erwähnung nicht benachrichtigt, da sich die Benutzer nicht im Kanal befinden. Sie können dem Kanal nicht hinzugefügt werden, da sie nicht Mitglied der verknüpften Gruppen sind. Um sie diesem Kanal hinzuzufügen, müssen sie den verknüpften Gruppen hinzugefügt werden."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
@@ -6129,7 +6117,7 @@
   },
   {
     "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "SMTP-Server benötigt"
+    "translation": "SMTP-Server wird benötigt"
   },
   {
     "id": "api.emoji.create.internal_error",
@@ -6917,7 +6905,7 @@
   },
   {
     "id": "api.license.request-trial.bad-request",
-    "translation": "Die Anzahl der angeforderten Benutzer in ungültig."
+    "translation": "Die Anzahl der angeforderten Benutzer ist nicht korrekt."
   },
   {
     "id": "api.invalid_redirect_url",
@@ -6929,7 +6917,7 @@
   },
   {
     "id": "api.file.write_file.app_error",
-    "translation": "Die Datei konnte nicht geschrieben werden."
+    "translation": "Datei konnte nicht geschrieben werden."
   },
   {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
@@ -6937,27 +6925,27 @@
   },
   {
     "id": "api.file.test_connection.app_error",
-    "translation": "Auf den Dateispeicher konnte nicht zugegriffen werden."
+    "translation": "Auf den Dateispeicher kann nicht zugegriffen werden."
   },
   {
     "id": "api.file.remove_file.app_error",
-    "translation": "Die Datei konnte nicht gelöscht werden."
+    "translation": "Datei kann nicht gelöscht werden."
   },
   {
     "id": "api.file.remove_directory.app_error",
-    "translation": "Der Ordner konnte nicht gelöscht werden."
+    "translation": "Ordner kann nicht gelöscht werden."
   },
   {
     "id": "api.file.read_file.app_error",
-    "translation": "Die Datei konnte nicht gelesen werden."
+    "translation": "Datei kann nicht gelesen werden."
   },
   {
     "id": "api.file.move_file.app_error",
-    "translation": "Die Datei konnte nicht verschoben werden."
+    "translation": "Datei kann nicht verschoben werden."
   },
   {
     "id": "api.file.list_directory.app_error",
-    "translation": "Der Inhalt des Ordners konnte nicht geladen werden."
+    "translation": "Verzeichnis kann nicht angezeigt werden."
   },
   {
     "id": "api.file.file_size.app_error",
@@ -7265,11 +7253,11 @@
   },
   {
     "id": "api.post.search_posts.invalid_body.app_error",
-    "translation": "Der Request Body kann nicht analysiert werden."
+    "translation": "Der Request Body kann nicht verarbeitet werden."
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",
-    "translation": "Der Request Body kann nicht analysiert werden."
+    "translation": "Der Request Body kann nicht verarbeitet werden."
   },
   {
     "id": "api.post.error_get_post_id.pending",
@@ -7289,7 +7277,7 @@
   },
   {
     "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Konnte keine Test-Lizenz anfragen. Bitte eine Seiten URL in der Webserver Sektion der Mattermost Systemkonsole konfigurieren."
+    "translation": "Konnte keine Test-Lizenz anfragen. Bitte eine Site-URL in der Webserver-Sektion der Mattermost Systemkonsole konfigurieren."
   },
   {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
@@ -7309,7 +7297,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
-    "translation": "Konnte nicht prüfen, ob eine Testphase gestartet werden kann"
+    "translation": "Konnte nicht prüfen, ob ein Test gestartet werden kann"
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
@@ -7337,7 +7325,7 @@
   },
   {
     "id": "api.getThreadsForUser.bad_params",
-    "translation": "Before und After Parameter für getThreadsForUser schließen sich gegenseitig aus"
+    "translation": "Bevor- und Danach-Parameter für getThreadsForUser schließen sich gegenseitig aus"
   },
   {
     "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
@@ -7528,7 +7516,7 @@
   },
   {
     "id": "api.admin.add_certificate.parseform.app_error",
-    "translation": "Fehler beim Analysieren einer Multiform-Anfrage"
+    "translation": "Fehler beim Verarbeiten einer Multiform-Anfrage"
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial.notification_body",
@@ -7608,31 +7596,31 @@
   },
   {
     "id": "api.remote_cluster.update_not_unique.app_error",
-    "translation": "Eine sichere Verbindung mit der gleichen URL existiert schon."
+    "translation": "Gesicherte Verbindung mit der gleichen URL existiert schon."
   },
   {
     "id": "api.remote_cluster.update.app_error",
-    "translation": "Bei Aktualisieren der sicheren Verbindung trat ein Fehler auf."
+    "translation": "Bei Aktualisieren der gesicherten Verbindung trat ein Fehler auf."
   },
   {
     "id": "api.remote_cluster.service_not_enabled.app_error",
-    "translation": "Der \"Remote Cluster Dienst\" ist nicht aktiviert."
+    "translation": "Der Remote Cluster Dienst ist nicht aktiviert."
   },
   {
     "id": "api.remote_cluster.save_not_unique.app_error",
-    "translation": "Die sichere Verbindung wurde bereits hinzugefügt."
+    "translation": "Gesicherte Verbindung wurde bereits hinzugefügt."
   },
   {
     "id": "api.remote_cluster.save.app_error",
-    "translation": "Beim Speichern der sicheren Verbindung trat ein Fehler auf."
+    "translation": "Beim Speichern der gesicherten Verbindung trat ein Fehler auf."
   },
   {
     "id": "api.remote_cluster.get.app_error",
-    "translation": "Beim Empfangen einer sichern Verbindung trat ein Fehler auf."
+    "translation": "Beim Empfangen einer gesicherten Verbindung trat ein Fehler auf."
   },
   {
     "id": "api.remote_cluster.delete.app_error",
-    "translation": "Beim Löschen der sicheren Verbindung trat ein Fehler auf."
+    "translation": "Beim Löschen der gesicherten Verbindung trat ein Fehler auf."
   },
   {
     "id": "api.push_notifications.session.expired",
@@ -7692,7 +7680,7 @@
   },
   {
     "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
-    "translation": "Diagnose Nr: {{.DiagnosticId}}"
+    "translation": "Diagnose Id: {{.DiagnosticId}}"
   },
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
@@ -9160,7 +9148,7 @@
   },
   {
     "id": "api.push_notification.title.collapsed_threads_dm",
-    "translation": "Antwort in Direktnachricht"
+    "translation": "Antworte in Direktnachricht"
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
@@ -9216,7 +9204,7 @@
   },
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
-    "translation": "Eigener Status konnte nicht aktualisiert werden. Bitte ein Emojis oder einen Text oder beides hinzufügen."
+    "translation": "Dein eigener Status konnte nicht aktualisiert werden. Bitte Emojis oder einen Statustext oder beides hinzufügen."
   },
   {
     "id": "app.user.get_thread_count_for_user.app_error",
@@ -9409,5 +9397,9 @@
   {
     "id": "app.group.get_by_username_failure",
     "translation": " "
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "Die maximale Länge der MattermostAppID ist 32 Zeichen."
   }
 ]

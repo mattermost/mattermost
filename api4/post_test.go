@@ -338,7 +338,7 @@ func testCreatePostWithOutgoingHook(
 		outGoingHookResponse := &model.OutgoingWebhookResponse{
 			Text:         model.NewString("some test text"),
 			Username:     "TestCommandServer",
-			IconURL:      "https://www.mattermost.org/wp-content/uploads/2016/04/icon.png",
+			IconURL:      "https://mattermost.com/wp-content/uploads/2022/02/icon.png",
 			Type:         "custom_as",
 			ResponseType: respPostType,
 		}
@@ -2183,6 +2183,22 @@ func TestGetPostThread(t *testing.T) {
 	_, resp, err = client.GetPostThread(privatePost.Id, "", false)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
+
+	// Sending some bad params
+	_, resp, err = client.GetPostThreadWithOpts(th.BasicPost.Id, "", model.GetPostsOptions{
+		CollapsedThreads: true,
+		FromPost:         "something",
+		PerPage:          10,
+	})
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp, err = client.GetPostThreadWithOpts(th.BasicPost.Id, "", model.GetPostsOptions{
+		CollapsedThreads: true,
+		Direction:        "sideways",
+	})
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
 
 	client.Logout()
 	_, resp, err = client.GetPostThread(model.NewId(), "", false)

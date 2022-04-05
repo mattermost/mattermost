@@ -3748,6 +3748,49 @@ func (c *Client4) GetPostThread(postId string, etag string, collapsedThreads boo
 	return &list, BuildResponse(r), nil
 }
 
+// GetPostThreadWithOpts gets a post with all the other posts in the same thread.
+func (c *Client4) GetPostThreadWithOpts(postID string, etag string, opts GetPostsOptions) (*PostList, *Response, error) {
+	urlVal := c.postRoute(postID) + "/thread"
+
+	values := url.Values{}
+	if opts.CollapsedThreads {
+		values.Set("collapsedThreads", "true")
+	}
+	if opts.CollapsedThreadsExtended {
+		values.Set("collapsedThreadsExtended", "true")
+	}
+	if opts.SkipFetchThreads {
+		values.Set("skipFetchThreads", "true")
+	}
+	if opts.PerPage != 0 {
+		values.Set("perPage", strconv.Itoa(opts.PerPage))
+	}
+	if opts.FromPost != "" {
+		values.Set("fromPost", opts.FromPost)
+	}
+	if opts.FromCreateAt != 0 {
+		values.Set("fromCreateAt", strconv.FormatInt(opts.FromCreateAt, 10))
+	}
+	if opts.Direction != "" {
+		values.Set("direction", opts.Direction)
+	}
+	urlVal += "?" + values.Encode()
+
+	r, err := c.DoAPIGet(urlVal, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list PostList
+	if r.StatusCode == http.StatusNotModified {
+		return &list, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetPostThread", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &list, BuildResponse(r), nil
+}
+
 // GetPostsForChannel gets a page of posts with an array for ordering for a channel.
 func (c *Client4) GetPostsForChannel(channelId string, page, perPage int, etag string, collapsedThreads bool) (*PostList, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
@@ -7658,18 +7701,6 @@ func (c *Client4) GetSubscription() (*Subscription, *Response, error) {
 	return subscription, BuildResponse(r), nil
 }
 
-func (c *Client4) GetSubscriptionStats() (*SubscriptionStats, *Response, error) {
-	r, err := c.DoAPIGet(c.cloudRoute()+"/subscription/stats", "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	var stats *SubscriptionStats
-	json.NewDecoder(r.Body).Decode(&stats)
-	return stats, BuildResponse(r), nil
-}
-
 func (c *Client4) GetInvoicesForSubscription() ([]*Invoice, *Response, error) {
 	r, err := c.DoAPIGet(c.cloudRoute()+"/subscription/invoices", "")
 	if err != nil {
@@ -7854,26 +7885,6 @@ func (c *Client4) UpdateThreadFollowForUser(userId, teamId, threadId string, sta
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) SendAdminUpgradeRequestEmail() (*Response, error) {
-	r, err := c.DoAPIPost(c.cloudRoute()+"/subscription/limitreached/invite", "")
-	if err != nil {
-		return BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	return BuildResponse(r), nil
-}
-
-func (c *Client4) SendAdminUpgradeRequestEmailOnJoin() (*Response, error) {
-	r, err := c.DoAPIPost(c.cloudRoute()+"/subscription/limitreached/join", "")
-	if err != nil {
-		return BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	return BuildResponse(r), nil
-}
-
 func (c *Client4) GetAllSharedChannels(teamID string, page, perPage int) ([]*SharedChannel, *Response, error) {
 	url := fmt.Sprintf("%s/%s?page=%d&per_page=%d", c.sharedChannelsRoute(), teamID, page, perPage)
 	r, err := c.DoAPIGet(url, "")
@@ -7926,6 +7937,19 @@ func (c *Client4) GetUsersWithInvalidEmails(page, perPage int) ([]*User, *Respon
 	if r.StatusCode == http.StatusNotModified {
 		return list, BuildResponse(r), nil
 	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetUsers", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
+}
+
+func (c *Client4) GetAppliedSchemaMigrations() ([]AppliedMigration, *Response, error) {
+	r, err := c.DoAPIGet(c.systemRoute()+"/schema/version", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list []AppliedMigration
 	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
 		return nil, nil, NewAppError("GetUsers", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
