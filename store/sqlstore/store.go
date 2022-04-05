@@ -27,7 +27,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
-	mbindata "github.com/mattermost/morph/sources/go_bindata"
+	mbindata "github.com/mattermost/morph/sources/embedded"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/db"
@@ -956,7 +956,6 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	if err != nil {
 		return err
 	}
-	defer src.Close()
 
 	var driver drivers.Driver
 	switch ss.DriverName() {

@@ -10,7 +10,7 @@ github.com/JalfResi/justext
 # github.com/Masterminds/semver/v3 v3.1.1
 ## explicit
 github.com/Masterminds/semver/v3
-# github.com/Masterminds/squirrel v1.5.2
+# github.com/Masterminds/squirrel v1.5.2 => github.com/lieut-data/squirrel v1.5.4
 ## explicit
 github.com/Masterminds/squirrel
 # github.com/PuerkitoBio/goquery v1.8.0
@@ -404,7 +404,7 @@ github.com/mattermost/logr/v2
 github.com/mattermost/logr/v2/config
 github.com/mattermost/logr/v2/formatters
 github.com/mattermost/logr/v2/targets
-# github.com/mattermost/morph v0.0.0-20220222074146-cff3f12ff131
+# github.com/mattermost/morph v0.0.0-20220401091636-39f834798da8
 ## explicit
 github.com/mattermost/morph
 github.com/mattermost/morph/drivers
@@ -412,8 +412,8 @@ github.com/mattermost/morph/drivers/mysql
 github.com/mattermost/morph/drivers/postgres
 github.com/mattermost/morph/models
 github.com/mattermost/morph/sources
+github.com/mattermost/morph/sources/embedded
 github.com/mattermost/morph/sources/file
-github.com/mattermost/morph/sources/go_bindata
 # github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 ## explicit
 github.com/mattermost/rsc/gf256
