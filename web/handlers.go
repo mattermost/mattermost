@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -136,6 +137,8 @@ func generateDevCSP(c Context) string {
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	h.Srv.Log.Info("APPS_REQUEST_DEBUG", mlog.String("Hostname", os.Getenv("HOSTNAME")), mlog.String("Path", r.URL.Path))
+
 	w = newWrappedWriter(w)
 	now := time.Now()
 
