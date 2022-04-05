@@ -132,6 +132,8 @@ func (ch *Channels) ServePluginPublicRequest(w http.ResponseWriter, r *http.Requ
 }
 
 func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, handler func(*plugin.Context, http.ResponseWriter, *http.Request)) {
+	shouldLog := strings.HasPrefix(r.URL.Path, "/plugins/com.mattermost.apps") && r.URL.Path != "/plugins/com.mattermost.apps/api/v1/call" && r.URL.Path != "/plugins/com.mattermost.apps/api/v1/bindings"
+
 	token := ""
 	context := &plugin.Context{
 		RequestId:      model.NewId(),
@@ -144,7 +146,10 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 	authHeader := r.Header.Get(model.HeaderAuth)
 	if strings.HasPrefix(strings.ToUpper(authHeader), model.HeaderBearer+" ") {
 		token = authHeader[len(model.HeaderBearer)+1:]
-		ch.srv.Log.Info(fmt.Sprintf("APPS_DEBUG auth1\n%s\n", token))
+
+		if shouldLog {
+			ch.srv.Log.Info(fmt.Sprintf("APPS_DEBUG auth1\n%s\n", token))
+		}
 	} else if strings.HasPrefix(strings.ToLower(authHeader), model.HeaderToken+" ") {
 		token = authHeader[len(model.HeaderToken)+1:]
 	} else if cookie, _ := r.Cookie(model.SessionCookieToken); cookie != nil {
@@ -154,7 +159,9 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 		token = r.URL.Query().Get("access_token")
 	}
 
-	ch.srv.Log.Info(fmt.Sprintf("APPS_DEBUG auth2\n%s\n", token))
+	if shouldLog {
+		ch.srv.Log.Info(fmt.Sprintf("APPS_DEBUG auth2\n%s\n", token))
+	}
 
 	// Mattermost-Plugin-ID can only be set by inter-plugin requests
 	r.Header.Del("Mattermost-Plugin-ID")
@@ -163,6 +170,11 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 	if token != "" {
 		session, err := New(ServerConnector(ch)).GetSession(token)
 		defer ch.srv.userService.ReturnSessionToPool(session)
+
+		if shouldLog {
+			message := fmt.Sprintf("APPS_DEBUG auth3: %v, err: %v", session, err)
+			ch.srv.Log.Info(message)
+		}
 
 		csrfCheckPassed := false
 
