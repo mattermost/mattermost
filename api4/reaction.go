@@ -17,8 +17,8 @@ func (api *API) InitReaction() {
 	api.BaseRoutes.ReactionByNameForPostForUser.Handle("", api.APISessionRequired(deleteReaction)).Methods("DELETE")
 	api.BaseRoutes.Posts.Handle("/ids/reactions", api.APISessionRequired(getBulkReactions)).Methods("POST")
 
-	api.BaseRoutes.Reactions.Handle("/team/{team_id:[A-Za-z0-9]+}/top", api.APISessionRequired(getTopReactionsForTeamSince)).Methods("GET")
-	api.BaseRoutes.Reactions.Handle("/user/me/top", api.APISessionRequired(getTopReactionsForUserSince)).Methods("GET")
+	api.BaseRoutes.Team.Handle("/top/reactions", api.APISessionRequired(getTopReactionsForTeamSince)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/me/top/reactions", api.APISessionRequired(getTopReactionsForUserSince)).Methods("GET")
 }
 
 func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
