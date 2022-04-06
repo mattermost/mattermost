@@ -6474,7 +6474,7 @@ func (c *Client4) GetBulkReactions(postIds []string) (map[string][]*Reaction, *R
 
 func (c *Client4) GetTopReactionsForTeamSince(teamId string, timeRange string, page int, perPage int) ([]*TopReactions, *Response, error) {
 	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
-	r, err := c.DoAPIGet(c.reactionsRoute()+"/team/"+teamId+"/top"+query, "")
+	r, err := c.DoAPIGet(c.teamRoute(teamId)+"/top/reactions"+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6493,7 +6493,7 @@ func (c *Client4) GetTopReactionsForUserSince(teamId string, timeRange string, p
 		query += fmt.Sprintf("&team_id=%v", teamId)
 	}
 
-	r, err := c.DoAPIGet(c.reactionsRoute()+"/user/me/top"+query, "")
+	r, err := c.DoAPIGet(c.usersRoute()+"/me/top/reactions"+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
