@@ -15,7 +15,7 @@ type GlobalRetentionPolicy struct {
 type RetentionPolicy struct {
 	ID               string `db:"Id" json:"id"`
 	DisplayName      string `json:"display_name"`
-	PostDurationDays *int64 `json:"post_duration"`
+	PostDurationDays *int64 `db:"postduration" json:"post_duration"`
 }
 
 type RetentionPolicyWithTeamAndChannelIDs struct {
@@ -47,7 +47,7 @@ type RetentionPolicyWithTeamAndChannelCountsList struct {
 
 type RetentionPolicyForTeam struct {
 	TeamID           string `db:"Id" json:"team_id"`
-	PostDurationDays int64  `json:"post_duration"`
+	PostDurationDays int64  `db:"postduration" json:"post_duration"`
 }
 
 type RetentionPolicyForTeamList struct {
@@ -57,7 +57,7 @@ type RetentionPolicyForTeamList struct {
 
 type RetentionPolicyForChannel struct {
 	ChannelID        string `db:"Id" json:"channel_id"`
-	PostDurationDays int64  `json:"post_duration"`
+	PostDurationDays int64  `db:"postduration" json:"post_duration"`
 }
 
 type RetentionPolicyForChannelList struct {
