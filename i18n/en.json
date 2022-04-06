@@ -1883,7 +1883,7 @@
   },
   {
     "id": "api.insights.feature_disabled",
-    "translation": "Insights feature is disabled."
+    "translation": " "
   },
   {
     "id": "api.invalid_channel",
@@ -5869,11 +5869,11 @@
   },
   {
     "id": "app.reaction.get_top_for_team_since.app_error",
-    "translation": "Unable to get top reactions for team."
+    "translation": " "
   },
   {
     "id": "app.reaction.get_top_for_user_since.app_error",
-    "translation": "Unable to get top reactions for user."
+    "translation": " "
   },
   {
     "id": "app.reaction.save.save.app_error",
@@ -8441,7 +8441,7 @@
   },
   {
     "id": "model.insights.time_range.app_error",
-    "translation": "Invalid time range."
+    "translation": " "
   },
   {
     "id": "model.job.is_valid.create_at.app_error",
