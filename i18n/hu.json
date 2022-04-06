@@ -5512,20 +5512,8 @@
     "translation": "Jelszava frissítésre került a {{.TeamDisplayName}} ({{ .TeamURL }}) csapatban {{.Method}} által."
   },
   {
-    "id": "api.templates.over_limit_info2",
-    "translation": "Alternatív megoldásként letilthatja a felhasználókat az Admin konzolban, hogy több felhasználó számára nyíljon hely, hogy az ingyenes felhasználói korlát alatt maradhasson."
-  },
-  {
     "id": "api.templates.over_limit_fix_now",
     "translation": "Javítás most"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_subject",
-    "translation": "A fizetési határidő lejárt a Mattermost Cloud előfizetéséhez"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info1",
-    "translation": "Van még idő arra, hogy a fizetési móddal kapcsolatos problémák megoldásával aktív maradjon a Mattermost Cloud munkaterülete. A felfüggesztés elkerülése érdekében frissítse a fizetési módot."
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",

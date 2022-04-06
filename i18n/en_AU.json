@@ -5036,10 +5036,6 @@
     "translation": "Fix Now"
   },
   {
-    "id": "api.templates.over_limit_30_days_info1",
-    "translation": "There’s still time to keep your Mattermost Cloud workspace active by resolving issues with your payment method. To avoid suspension update your method of payment."
-  },
-  {
     "id": "ent.compliance.csv.metadata.export.appError",
     "translation": "Unable to add metadata file to the zip file."
   },
