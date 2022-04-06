@@ -9222,5 +9222,21 @@
   {
     "id": "api.team.invite_members.unable_to_send_email.app_error",
     "translation": "Błąd podczas wysyłania wiadomości e-mail"
+  },
+  {
+    "id": "api.license.request_trial_license.embargoed",
+    "translation": "Nie mogliśmy przetworzyć tego żądania z powodu ograniczeń dotyczących krajów objętych embargiem. [Dowiedz się więcej w naszej dokumentacji] (https://mattermost.com/pl/limitations-for-embargoed-countries), a w przypadku pytań dotyczących ograniczeń eksportu skontaktuj się z legal@mattermost.com."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "Parametry OnlyThreads i OnlyTotals funkcji getThreadsForUser wzajemnie się wykluczają"
+  },
+  {
+    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "translation": "Ustawienia przechowywania plików nie mają ustawionych wartości."
+  },
+  {
+    "id": "api.file.test_connection_email_settings_nil.app_error",
+    "translation": "W ustawieniach poczty e-mail nie ustawiono wartości."
   }
 ]
