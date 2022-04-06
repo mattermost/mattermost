@@ -277,23 +277,23 @@ func (ts *TelemetryService) trackActivity() {
 		mlog.Info("Could not get team count", mlog.Err(err))
 	}
 
-	if ucc, err := ts.dbStore.Channel().AnalyticsTypeCount("", "O"); err == nil {
+	if ucc, err := ts.dbStore.Channel().AnalyticsTypeCount("", model.ChannelTypeOpen); err == nil {
 		publicChannelCount = ucc
 	}
 
-	if pcc, err := ts.dbStore.Channel().AnalyticsTypeCount("", "P"); err == nil {
+	if pcc, err := ts.dbStore.Channel().AnalyticsTypeCount("", model.ChannelTypePrivate); err == nil {
 		privateChannelCount = pcc
 	}
 
-	if dcc, err := ts.dbStore.Channel().AnalyticsTypeCount("", "D"); err == nil {
+	if dcc, err := ts.dbStore.Channel().AnalyticsTypeCount("", model.ChannelTypeDirect); err == nil {
 		directChannelCount = dcc
 	}
 
-	if duccr, err := ts.dbStore.Channel().AnalyticsDeletedTypeCount("", "O"); err == nil {
+	if duccr, err := ts.dbStore.Channel().AnalyticsDeletedTypeCount("", model.ChannelTypeOpen); err == nil {
 		deletedPublicChannelCount = duccr
 	}
 
-	if dpccr, err := ts.dbStore.Channel().AnalyticsDeletedTypeCount("", "P"); err == nil {
+	if dpccr, err := ts.dbStore.Channel().AnalyticsDeletedTypeCount("", model.ChannelTypePrivate); err == nil {
 		deletedPrivateChannelCount = dpccr
 	}
 
@@ -374,6 +374,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_testing":                                          cfg.ServiceSettings.EnableTesting,
 		"enable_developer":                                        *cfg.ServiceSettings.EnableDeveloper,
 		"developer_flags":                                         isDefault(*cfg.ServiceSettings.DeveloperFlags, model.ServiceSettingsDefaultDeveloperFlags),
+		"enable_client_performance_debugging":                     *cfg.ServiceSettings.EnableClientPerformanceDebugging,
 		"enable_multifactor_authentication":                       *cfg.ServiceSettings.EnableMultifactorAuthentication,
 		"enforce_multifactor_authentication":                      *cfg.ServiceSettings.EnforceMultifactorAuthentication,
 		"enable_oauth_service_provider":                           cfg.ServiceSettings.EnableOAuthServiceProvider,
@@ -435,6 +436,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_permalink_previews":                               *cfg.ServiceSettings.EnablePermalinkPreviews,
 		"enable_file_search":                                      *cfg.ServiceSettings.EnableFileSearch,
 		"restrict_link_previews":                                  isDefault(*cfg.ServiceSettings.RestrictLinkPreviews, ""),
+		"enable_custom_groups":                                    *cfg.ServiceSettings.EnableCustomGroups,
 	})
 
 	ts.SendTelemetry(TrackConfigTeam, map[string]interface{}{
@@ -468,16 +470,17 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.SendTelemetry(TrackConfigSQL, map[string]interface{}{
-		"driver_name":                    *cfg.SqlSettings.DriverName,
-		"trace":                          cfg.SqlSettings.Trace,
-		"max_idle_conns":                 *cfg.SqlSettings.MaxIdleConns,
-		"conn_max_lifetime_milliseconds": *cfg.SqlSettings.ConnMaxLifetimeMilliseconds,
-		"conn_max_idletime_milliseconds": *cfg.SqlSettings.ConnMaxIdleTimeMilliseconds,
-		"max_open_conns":                 *cfg.SqlSettings.MaxOpenConns,
-		"data_source_replicas":           len(cfg.SqlSettings.DataSourceReplicas),
-		"data_source_search_replicas":    len(cfg.SqlSettings.DataSourceSearchReplicas),
-		"query_timeout":                  *cfg.SqlSettings.QueryTimeout,
-		"disable_database_search":        *cfg.SqlSettings.DisableDatabaseSearch,
+		"driver_name":                          *cfg.SqlSettings.DriverName,
+		"trace":                                cfg.SqlSettings.Trace,
+		"max_idle_conns":                       *cfg.SqlSettings.MaxIdleConns,
+		"conn_max_lifetime_milliseconds":       *cfg.SqlSettings.ConnMaxLifetimeMilliseconds,
+		"conn_max_idletime_milliseconds":       *cfg.SqlSettings.ConnMaxIdleTimeMilliseconds,
+		"max_open_conns":                       *cfg.SqlSettings.MaxOpenConns,
+		"data_source_replicas":                 len(cfg.SqlSettings.DataSourceReplicas),
+		"data_source_search_replicas":          len(cfg.SqlSettings.DataSourceSearchReplicas),
+		"query_timeout":                        *cfg.SqlSettings.QueryTimeout,
+		"disable_database_search":              *cfg.SqlSettings.DisableDatabaseSearch,
+		"migrations_statement_timeout_seconds": *cfg.SqlSettings.MigrationsStatementTimeoutSeconds,
 	})
 
 	ts.SendTelemetry(TrackConfigLog, map[string]interface{}{
@@ -564,6 +567,7 @@ func (ts *TelemetryService) trackConfig() {
 		"isdefault_login_button_border_color":  isDefault(*cfg.EmailSettings.LoginButtonBorderColor, ""),
 		"isdefault_login_button_text_color":    isDefault(*cfg.EmailSettings.LoginButtonTextColor, ""),
 		"smtp_server_timeout":                  *cfg.EmailSettings.SMTPServerTimeout,
+		"enable_inactivity_email":              *cfg.EmailSettings.EnableInactivityEmail,
 	})
 
 	ts.SendTelemetry(TrackConfigRate, map[string]interface{}{
@@ -712,7 +716,6 @@ func (ts *TelemetryService) trackConfig() {
 		"restrict_system_admin":              *cfg.ExperimentalSettings.RestrictSystemAdmin,
 		"use_new_saml_library":               *cfg.ExperimentalSettings.UseNewSAMLLibrary,
 		"cloud_billing":                      *cfg.ExperimentalSettings.CloudBilling,
-		"cloud_user_limit":                   *cfg.ExperimentalSettings.CloudUserLimit,
 		"enable_shared_channels":             *cfg.ExperimentalSettings.EnableSharedChannels,
 		"enable_remote_cluster_service":      *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
 	})
@@ -731,25 +734,25 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.SendTelemetry(TrackConfigElasticsearch, map[string]interface{}{
-		"isdefault_connection_url":          isDefault(*cfg.ElasticsearchSettings.ConnectionURL, model.ElasticsearchSettingsDefaultConnectionURL),
-		"isdefault_username":                isDefault(*cfg.ElasticsearchSettings.Username, model.ElasticsearchSettingsDefaultUsername),
-		"isdefault_password":                isDefault(*cfg.ElasticsearchSettings.Password, model.ElasticsearchSettingsDefaultPassword),
-		"enable_indexing":                   *cfg.ElasticsearchSettings.EnableIndexing,
-		"enable_searching":                  *cfg.ElasticsearchSettings.EnableSearching,
-		"enable_autocomplete":               *cfg.ElasticsearchSettings.EnableAutocomplete,
-		"sniff":                             *cfg.ElasticsearchSettings.Sniff,
-		"post_index_replicas":               *cfg.ElasticsearchSettings.PostIndexReplicas,
-		"post_index_shards":                 *cfg.ElasticsearchSettings.PostIndexShards,
-		"channel_index_replicas":            *cfg.ElasticsearchSettings.ChannelIndexReplicas,
-		"channel_index_shards":              *cfg.ElasticsearchSettings.ChannelIndexShards,
-		"user_index_replicas":               *cfg.ElasticsearchSettings.UserIndexReplicas,
-		"user_index_shards":                 *cfg.ElasticsearchSettings.UserIndexShards,
-		"isdefault_index_prefix":            isDefault(*cfg.ElasticsearchSettings.IndexPrefix, model.ElasticsearchSettingsDefaultIndexPrefix),
-		"live_indexing_batch_size":          *cfg.ElasticsearchSettings.LiveIndexingBatchSize,
-		"bulk_indexing_time_window_seconds": *cfg.ElasticsearchSettings.BulkIndexingTimeWindowSeconds,
-		"request_timeout_seconds":           *cfg.ElasticsearchSettings.RequestTimeoutSeconds,
-		"skip_tls_verification":             *cfg.ElasticsearchSettings.SkipTLSVerification,
-		"trace":                             *cfg.ElasticsearchSettings.Trace,
+		"isdefault_connection_url": isDefault(*cfg.ElasticsearchSettings.ConnectionURL, model.ElasticsearchSettingsDefaultConnectionURL),
+		"isdefault_username":       isDefault(*cfg.ElasticsearchSettings.Username, model.ElasticsearchSettingsDefaultUsername),
+		"isdefault_password":       isDefault(*cfg.ElasticsearchSettings.Password, model.ElasticsearchSettingsDefaultPassword),
+		"enable_indexing":          *cfg.ElasticsearchSettings.EnableIndexing,
+		"enable_searching":         *cfg.ElasticsearchSettings.EnableSearching,
+		"enable_autocomplete":      *cfg.ElasticsearchSettings.EnableAutocomplete,
+		"sniff":                    *cfg.ElasticsearchSettings.Sniff,
+		"post_index_replicas":      *cfg.ElasticsearchSettings.PostIndexReplicas,
+		"post_index_shards":        *cfg.ElasticsearchSettings.PostIndexShards,
+		"channel_index_replicas":   *cfg.ElasticsearchSettings.ChannelIndexReplicas,
+		"channel_index_shards":     *cfg.ElasticsearchSettings.ChannelIndexShards,
+		"user_index_replicas":      *cfg.ElasticsearchSettings.UserIndexReplicas,
+		"user_index_shards":        *cfg.ElasticsearchSettings.UserIndexShards,
+		"isdefault_index_prefix":   isDefault(*cfg.ElasticsearchSettings.IndexPrefix, model.ElasticsearchSettingsDefaultIndexPrefix),
+		"live_indexing_batch_size": *cfg.ElasticsearchSettings.LiveIndexingBatchSize,
+		"bulk_indexing_batch_size": *cfg.ElasticsearchSettings.BatchSize,
+		"request_timeout_seconds":  *cfg.ElasticsearchSettings.RequestTimeoutSeconds,
+		"skip_tls_verification":    *cfg.ElasticsearchSettings.SkipTLSVerification,
+		"trace":                    *cfg.ElasticsearchSettings.Trace,
 	})
 
 	ts.trackPluginConfig(cfg, model.PluginSettingsDefaultMarketplaceURL)
@@ -757,8 +760,10 @@ func (ts *TelemetryService) trackConfig() {
 	ts.SendTelemetry(TrackConfigDataRetention, map[string]interface{}{
 		"enable_message_deletion":     *cfg.DataRetentionSettings.EnableMessageDeletion,
 		"enable_file_deletion":        *cfg.DataRetentionSettings.EnableFileDeletion,
+		"enable_boards_deletion":      *cfg.DataRetentionSettings.EnableBoardsDeletion,
 		"message_retention_days":      *cfg.DataRetentionSettings.MessageRetentionDays,
 		"file_retention_days":         *cfg.DataRetentionSettings.FileRetentionDays,
+		"boards_retention_days":       *cfg.DataRetentionSettings.BoardsRetentionDays,
 		"deletion_job_start_time":     *cfg.DataRetentionSettings.DeletionJobStartTime,
 		"batch_size":                  *cfg.DataRetentionSettings.BatchSize,
 		"cleanup_jobs_threshold_days": *cfg.JobSettings.CleanupJobsThresholdDays,
@@ -798,10 +803,10 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.SendTelemetry(TrackConfigBleve, map[string]interface{}{
-		"enable_indexing":                   *cfg.BleveSettings.EnableIndexing,
-		"enable_searching":                  *cfg.BleveSettings.EnableSearching,
-		"enable_autocomplete":               *cfg.BleveSettings.EnableAutocomplete,
-		"bulk_indexing_time_window_seconds": *cfg.BleveSettings.BulkIndexingTimeWindowSeconds,
+		"enable_indexing":          *cfg.BleveSettings.EnableIndexing,
+		"enable_searching":         *cfg.BleveSettings.EnableSearching,
+		"enable_autocomplete":      *cfg.BleveSettings.EnableAutocomplete,
+		"bulk_indexing_batch_size": *cfg.BleveSettings.BatchSize,
 	})
 
 	ts.SendTelemetry(TrackConfigExport, map[string]interface{}{
@@ -899,6 +904,11 @@ func (ts *TelemetryService) trackPlugins() {
 		"plugins_with_settings":         settingsCount,
 		"plugins_with_broken_manifests": brokenManifestCount,
 	})
+
+	pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		hooks.OnSendDailyTelemetry()
+		return true
+	}, plugin.OnSendDailyTelemetryID)
 }
 
 func (ts *TelemetryService) trackServer() {

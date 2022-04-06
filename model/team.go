@@ -40,7 +40,7 @@ type Team struct {
 	LastTeamIconUpdate int64   `json:"last_team_icon_update,omitempty"`
 	SchemeId           *string `json:"scheme_id"`
 	GroupConstrained   *bool   `json:"group_constrained"`
-	PolicyID           *string `json:"policy_id" db:"-"`
+	PolicyID           *string `json:"policy_id"`
 }
 
 type TeamPatch struct {
@@ -250,4 +250,17 @@ func (o *Team) Patch(patch *TeamPatch) {
 
 func (o *Team) IsGroupConstrained() bool {
 	return o.GroupConstrained != nil && *o.GroupConstrained
+}
+
+// The following are some GraphQL methods necessary to return the
+// data in float64 type. The spec doesn't support 64 bit integers,
+// so we have to pass the data in float64. The _ at the end is
+// a hack to keep the attribute name same in GraphQL schema.
+
+func (o *Team) UpdateAt_() float64 {
+	return float64(o.UpdateAt)
+}
+
+func (o *Team) LastTeamIconUpdate_() float64 {
+	return float64(o.LastTeamIconUpdate)
 }

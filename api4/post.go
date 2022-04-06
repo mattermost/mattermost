@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/web"
 )
 
 func (api *API) InitPost() {
@@ -101,7 +102,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 
 	// Note that rp has already had PreparePostForClient called on it by App.CreatePost
-	if err := json.NewEncoder(w).Encode(rp); err != nil {
+	if err := rp.EncodeJSON(w); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -138,7 +139,7 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	if err := json.NewEncoder(w).Encode(rp); err != nil {
+	if err := rp.EncodeJSON(w); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -244,7 +245,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(clientPostList); err != nil {
+	if err := clientPostList.EncodeJSON(w); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -310,7 +311,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 	if etag != "" {
 		w.Header().Set(model.HeaderEtagServer, etag)
 	}
-	if err := json.NewEncoder(w).Encode(clientPostList); err != nil {
+	if err := clientPostList.EncodeJSON(w); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -375,7 +376,7 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.Err = err
 		return
 	}
-	if err := json.NewEncoder(w).Encode(clientPostList); err != nil {
+	if err := clientPostList.EncodeJSON(w); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -404,7 +405,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set(model.HeaderEtagServer, post.Etag())
-	if err := json.NewEncoder(w).Encode(post); err != nil {
+	if err := post.EncodeJSON(w); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -451,7 +452,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		post = c.App.PreparePostForClient(post, false, false)
-
+		post.StripActionIntegrations()
 		posts = append(posts, post)
 	}
 
@@ -503,10 +504,56 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-	skipFetchThreads := r.URL.Query().Get("skipFetchThreads") == "true"
-	collapsedThreads := r.URL.Query().Get("collapsedThreads") == "true"
-	collapsedThreadsExtended := r.URL.Query().Get("collapsedThreadsExtended") == "true"
-	list, err := c.App.GetPostThread(c.Params.PostId, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, c.AppContext.Session().UserId)
+
+	// For now, by default we return all items unless it's set to maintain
+	// backwards compatibility with mobile. But when the next ESR passes, we need to
+	// change this to web.PerPageDefault.
+	perPage := 0
+	if perPageStr := r.URL.Query().Get("perPage"); perPageStr != "" {
+		var err error
+		perPage, err = strconv.Atoi(perPageStr)
+		if err != nil || perPage > web.PerPageMaximum {
+			c.SetInvalidParam("perPage")
+			return
+		}
+	}
+
+	var fromCreateAt int64
+	if fromCreateAtStr := r.URL.Query().Get("fromCreateAt"); fromCreateAtStr != "" {
+		var err error
+		fromCreateAt, err = strconv.ParseInt(fromCreateAtStr, 10, 64)
+		if err != nil {
+			c.SetInvalidParam("fromCreateAt")
+			return
+		}
+	}
+
+	fromPost := r.URL.Query().Get("fromPost")
+	// Either both have to be set, or none have to be set.
+	// Setting one and not setting the other is an error.
+	if (fromPost == "" && fromCreateAt != 0) || (fromPost != "" && fromCreateAt == 0) {
+		c.SetInvalidParam("fromPost/fromCreateAt")
+		return
+	}
+
+	direction := ""
+	if dir := r.URL.Query().Get("direction"); dir != "" {
+		if dir != "up" && dir != "down" {
+			c.SetInvalidParam("direction")
+			return
+		}
+		direction = dir
+	}
+	opts := model.GetPostsOptions{
+		SkipFetchThreads:         r.URL.Query().Get("skipFetchThreads") == "true",
+		CollapsedThreads:         r.URL.Query().Get("collapsedThreads") == "true",
+		CollapsedThreadsExtended: r.URL.Query().Get("collapsedThreadsExtended") == "true",
+		PerPage:                  perPage,
+		Direction:                direction,
+		FromPost:                 fromPost,
+		FromCreateAt:             fromCreateAt,
+	}
+	list, err := c.App.GetPostThread(c.Params.PostId, opts, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -536,7 +583,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set(model.HeaderEtagServer, clientPostList.Etag())
 
-	if err := json.NewEncoder(w).Encode(clientPostList); err != nil {
+	if err := clientPostList.EncodeJSON(w); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -623,7 +670,7 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 	results = model.MakePostSearchResults(clientPostList, results.Matches)
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	if err := json.NewEncoder(w).Encode(results); err != nil {
+	if err := results.EncodeJSON(w); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -682,7 +729,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	auditRec.AddMeta("update", rpost)
 
-	if err := json.NewEncoder(w).Encode(rpost); err != nil {
+	if err := rpost.EncodeJSON(w); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -733,7 +780,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	auditRec.AddMeta("patch", patchedPost)
 
-	if err := json.NewEncoder(w).Encode(patchedPost); err != nil {
+	if err := patchedPost.EncodeJSON(w); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -756,7 +803,7 @@ func setPostUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	state, err := c.App.MarkChannelAsUnreadFromPost(c.Params.PostId, c.Params.UserId, collapsedThreadsSupported, false)
+	state, err := c.App.MarkChannelAsUnreadFromPost(c.Params.PostId, c.Params.UserId, collapsedThreadsSupported)
 	if err != nil {
 		c.Err = err
 		return

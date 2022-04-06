@@ -156,6 +156,9 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				if threadPost.Id == parentPostList.Order[0] && threadPost.IsFromOAuthBot() {
 					continue
 				}
+				if a.IsCRTEnabledForUser(profile.Id) {
+					continue
+				}
 				if profile.NotifyProps[model.CommentsNotifyProp] == model.CommentsNotifyAny || (profile.NotifyProps[model.CommentsNotifyProp] == model.CommentsNotifyRoot && threadPost.Id == parentPostList.Order[0]) {
 					mentionType := ThreadMention
 					if threadPost.Id == parentPostList.Order[0] {
@@ -193,7 +196,6 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 
 	mentionedUsersList := make(model.StringArray, 0, len(mentions.Mentions))
-	updateMentionChans := []chan *model.AppError{}
 	mentionAutofollowChans := []chan *model.AppError{}
 	threadParticipants := map[string]bool{post.UserId: true}
 	participantMemberships := map[string]*model.ThreadMembership{}
@@ -216,11 +218,22 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		for id := range mentions.Mentions {
 			threadParticipants[id] = true
 		}
+
+		// sema is a counting semaphore to throttle the number of concurrent DB requests.
+		// A concurrency of 8 should be sufficient.
+		// We don't want to set a higher limit which can bring down the DB.
+		sema := make(chan struct{}, 8)
 		// for each mention, make sure to update thread autofollow (if enabled) and update increment mention count
 		for id := range threadParticipants {
 			mac := make(chan *model.AppError, 1)
+			// Get token.
+			sema <- struct{}{}
 			go func(userID string) {
-				defer close(mac)
+				defer func() {
+					close(mac)
+					// Release token.
+					<-sema
+				}()
 				mentionType, incrementMentions := mentions.Mentions[userID]
 				// if the user was not explicitly mentioned, check if they explicitly unfollowed the thread
 				if !incrementMentions {
@@ -249,7 +262,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					Following:             true,
 					IncrementMentions:     incrementMentions,
 					UpdateFollowing:       updateFollowing,
-					UpdateViewedTimestamp: userID == post.UserId,
+					UpdateViewedTimestamp: false,
 					UpdateParticipants:    userID == post.UserId,
 				}
 				threadMembership, err := a.Srv().Store.Thread().MaintainMembership(userID, post.RootId, opts)
@@ -276,32 +289,16 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 	for id := range mentions.Mentions {
 		mentionedUsersList = append(mentionedUsersList, id)
-
-		umc := make(chan *model.AppError, 1)
-		go func(userID string) {
-			defer close(umc)
-			nErr := a.Srv().Store.Channel().IncrementMentionCount(post.ChannelId, userID, *a.Config().ServiceSettings.ThreadAutoFollow, post.RootId == "")
-			if nErr != nil {
-				umc <- model.NewAppError("SendNotifications", "app.channel.increment_mention_count.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-				return
-			}
-			umc <- nil
-		}(id)
-		updateMentionChans = append(updateMentionChans, umc)
 	}
 
-	// Make sure all mention updates are complete to prevent race conditions.
-	// Probably better to batch these DB updates in the future
-	// MUST be completed before push notifications send
-	for _, umc := range updateMentionChans {
-		if err := <-umc; err != nil {
-			mlog.Warn(
-				"Failed to update mention count",
-				mlog.String("post_id", post.Id),
-				mlog.String("channel_id", post.ChannelId),
-				mlog.Err(err),
-			)
-		}
+	nErr := a.Srv().Store.Channel().IncrementMentionCount(post.ChannelId, mentionedUsersList, post.RootId == "")
+	if nErr != nil {
+		mlog.Warn(
+			"Failed to update mention count",
+			mlog.String("post_id", post.Id),
+			mlog.String("channel_id", post.ChannelId),
+			mlog.Err(nErr),
+		)
 	}
 
 	// Log the problems that might have occurred while auto following the thread
@@ -598,6 +595,24 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					return nil, errors.Wrapf(err, "cannot get thread %q for user %q", post.RootId, uid)
 				}
 				if userThread != nil {
+					previousUnreadMentions := userThread.UnreadMentions
+					previousUnreadReplies := max(userThread.UnreadReplies-1, 0)
+					if mentions.isUserMentioned(uid) {
+						previousUnreadMentions = max(userThread.UnreadMentions-1, 0)
+					}
+					// set LastViewed to now for commenter
+					if uid == post.UserId {
+						opts := store.ThreadMembershipOpts{
+							UpdateViewedTimestamp: true,
+						}
+						// should set unread mentions, and unread replies to 0
+						_, err = a.Srv().Store.Thread().MaintainMembership(uid, post.RootId, opts)
+						if err != nil {
+							return nil, errors.Wrapf(err, "cannot maintain thread membership %q for user %q", post.RootId, uid)
+						}
+						userThread.UnreadMentions = 0
+						userThread.UnreadReplies = 0
+					}
 					a.sanitizeProfiles(userThread.Participants, false)
 					userThread.Post.SanitizeProps()
 
@@ -612,6 +627,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 						mlog.Warn("Failed to encode thread to JSON")
 					}
 					message.Add("thread", string(payload))
+					message.Add("previous_unread_mentions", previousUnreadMentions)
+					message.Add("previous_unread_replies", previousUnreadReplies)
 
 					a.Publish(message)
 				}
@@ -621,7 +638,19 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	return mentionedUsersList, nil
 }
 
+func max(a, b int64) int64 {
+	if a < b {
+		return b
+	}
+	return a
+}
+
 func (a *App) userAllowsEmail(user *model.User, channelMemberNotificationProps model.StringMap, post *model.Post) bool {
+	// if user is a bot account, then we do not send email
+	if user.IsBot {
+		return false
+	}
+
 	userAllowsEmails := user.NotifyProps[model.EmailNotifyProp] != "false"
 
 	// if CRT is ON for user and the post is a reply disregard the channelEmail setting
@@ -877,6 +906,18 @@ const (
 	GroupMention
 )
 
+func (m *ExplicitMentions) isUserMentioned(userID string) bool {
+	if _, ok := m.Mentions[userID]; ok {
+		return true
+	}
+
+	if _, ok := m.GroupMentions[userID]; ok {
+		return true
+	}
+
+	return m.HereMentioned || m.AllMentioned || m.ChannelMentioned
+}
+
 func (m *ExplicitMentions) addMention(userID string, mentionType MentionType) {
 	if m.Mentions == nil {
 		m.Mentions = make(map[string]MentionType)
@@ -988,7 +1029,7 @@ func (a *App) allowChannelMentions(post *model.Post, numProfiles int) bool {
 
 // allowGroupMentions returns whether or not the group mentions are allowed for the given post.
 func (a *App) allowGroupMentions(post *model.Post) bool {
-	if license := a.Srv().License(); license == nil || !*license.Features.LDAPGroups {
+	if license := a.Srv().License(); license == nil || (license.SkuShortName != model.LicenseShortSkuProfessional && license.SkuShortName != model.LicenseShortSkuEnterprise) {
 		return false
 	}
 
@@ -1007,7 +1048,7 @@ func (a *App) allowGroupMentions(post *model.Post) bool {
 func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team *model.Team) (map[string]*model.Group, error) {
 	var err error
 	groupsMap := make(map[string]*model.Group)
-	opts := model.GroupSearchOpts{FilterAllowReference: true}
+	opts := model.GroupSearchOpts{FilterAllowReference: true, IncludeMemberCount: true}
 
 	if channel.IsGroupConstrained() || (team != nil && team.IsGroupConstrained()) {
 		var groups []*model.GroupWithSchemeAdmin

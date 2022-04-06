@@ -1,5 +1,27 @@
 # Changelog
 
+## v0.13.0
+
+- ref: Change DSN ProjectID to be a string (#420)
+- fix: When extracting PCs from stack frames, try the `PC` field (#393)
+- build: Bump gin-gonic/gin from v1.4.0 to v1.7.7 (#412)
+- build: Bump Go version in go.mod (#410)
+- ci: Bump golangci-lint version in GH workflow (#419)
+- ci: Update GraphQL config with appropriate permissions (#417)
+- ci: ci: Add craft release automation (#422)
+
+## v0.12.0
+
+- feat: Automatic Release detection (#363, #369, #386, #400)
+- fix: Do not change Hub.lastEventID for transactions (#379)
+- fix: Do not clear LastEventID when events are dropped (#382)
+- Updates to documentation (#366, #385)
+
+_NOTE:_
+This version drops support for Go 1.14, however no changes have been made that would make the SDK not work with Go 1.14. The currently supported Go versions are the last 3 stable releases: 1.15, 1.16 and 1.17.
+There are two behavior changes related to `LastEventID`, both of which were intended to align the behavior of the Sentry Go SDK with other Sentry SDKs.
+The new [automatic release detection feature](https://github.com/getsentry/sentry-go/issues/335) makes it easier to use Sentry and separate events per release without requiring extra work from users. We intend to improve this functionality in a future release by utilizing information that will be available in runtime starting with Go 1.18. The tracking issue is [#401](https://github.com/getsentry/sentry-go/issues/401).
+
 ## v0.11.0
 
 - feat(transports): Category-based Rate Limiting ([#354](https://github.com/getsentry/sentry-go/pull/354))

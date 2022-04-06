@@ -204,18 +204,6 @@
     "translation": "Бота не съществува."
   },
   {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Не може да конвертира StringMap в *низ"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Не може да конвертира StringInterface в *низ"
-  },
-  {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Не може да конвертира StringArray в *низ"
-  },
-  {
     "id": "searchengine.bleve.disabled.error",
     "translation": "Грешка при прочистване на Bleve индекси: двигателят е забранен"
   },
@@ -2460,20 +2448,8 @@
     "translation": "Не можа да се запази стойността за {{.WarnMetricName}}"
   },
   {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Не може да се намери показател."
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "Списъкът на администраторите е празен."
-  },
-  {
     "id": "app.system.warn_metric.bot_displayname",
     "translation": "Mattermost съветник"
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Научете повече за Mattermost съветника](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.system.save.app_error",
@@ -4818,10 +4794,6 @@
     "translation": "Неуспешно избиране на пакета от членове на канала."
   },
   {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Броят на споменаванията не може да се увеличи."
-  },
-  {
     "id": "app.channel.get_unread.app_error",
     "translation": "Неуспешно получаване на непрочетени съобщения на канала."
   },
@@ -6070,7 +6042,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Не е намерен зададения канал. Моля, използвайте [адреса на канала](https://about.mattermost.com/default-channel-handle-documentation) за да определяте канали."
+    "translation": "Не е намерен зададения канал. Моля, използвайте [адреса на канала](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) за да определяте канали."
   },
   {
     "id": "api.command_mute.name",
@@ -6082,7 +6054,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Не е намерен канала {{.Channel}}. Моля, използвайте [адреса на канала](https://about.mattermost.com/default-channel-handle-documentation) за да определяте канали."
+    "translation": "Не е намерен канала {{.Channel}}. Моля, използвайте [адреса на канала](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) за да определяте канали."
   },
   {
     "id": "api.command_mute.desc",
@@ -6234,7 +6206,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Не е намерен канала {{.Channel}}. Моля, използвайте [адреса на канала](https://about.mattermost.com/default-channel-handle-documentation) за да определяте канали."
+    "translation": "Не е намерен канала {{.Channel}}. Моля, използвайте [адреса на канала](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) за да определяте канали."
   },
   {
     "id": "api.command_invite.channel.app_error",
@@ -6474,10 +6446,6 @@
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "Заглавката на канала е твърде дълга."
-  },
-  {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Липсва задължително свойство на канала: display_name"
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
@@ -6888,14 +6856,6 @@
     "translation": "Интеграцията/Slack Bot потребителя с ел.поща {{.Email}} и парола {{.Password}} е внесен.\n"
   },
   {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Вземи пробно"
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Започни пробен период"
-  },
-  {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
     "translation": "Пробната версия на Enterprise вече е активна. Отидете на **Системна конзола > Управление на потребители > Права**, за да активирате разширени права."
   },
@@ -7078,14 +7038,6 @@
   {
     "id": "api.server.warn_metric.email_domain.contact_us.email_body",
     "translation": "Заявка Mattermost свържете с нас. Интересно ми е да науча повече за използването на профили за гости.\n"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Свързване с нас"
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Свържете се с нас"
   },
   {
     "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
@@ -8816,14 +8768,6 @@
     "translation": "Започни абонамент"
   },
   {
-    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "Моля, отидете в **Системна конзола > Конфигурация на сайта > Персонализиране**, за да зададете [ел.поща за поддръжка](https://docs.mattermost.com/administration/config-settings.html#support-email) като вътрешен адрес за ел.поща на бюрото за ИТ поддръжка на вашата организация за обратна връзка с крайните потребители, известия по ел.поща и заявки за поддръжка."
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "Задайте адрес на ел.поща за поддръжка"
-  },
-  {
     "id": "api.remote_cluster.update_not_unique.app_error",
     "translation": "Вече съществува защитена връзка със същия url адрес."
   },
@@ -9142,18 +9086,6 @@
   {
     "id": "api.user.invalidate_verify_email_tokens.error",
     "translation": "Невъзможно получаването на маркери по тип при анулирането на маркери за проверка по ел.поща"
-  },
-  {
-    "id": "extract_content.worker.do_job.file_info",
-    "translation": "Неуспешно получаване на информация за файла при извличане на съдържание."
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.to",
-    "translation": "Невалидна входна стойност 'До'"
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.from",
-    "translation": "Невалидна входна стойност 'От'"
   },
   {
     "id": "app.user.store_is_empty.app_error",

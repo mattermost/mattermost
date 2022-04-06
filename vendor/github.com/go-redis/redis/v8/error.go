@@ -134,7 +134,7 @@ func isMovedSameConnAddr(err error, addr string) bool {
 	if !strings.HasPrefix(redisError, "MOVED ") {
 		return false
 	}
-	return strings.HasSuffix(redisError, addr)
+	return strings.HasSuffix(redisError, " "+addr)
 }
 
 //------------------------------------------------------------------------------

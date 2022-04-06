@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -215,6 +216,35 @@ func TestUpdateConfig(t *testing.T) {
 			assert.Equal(t, oldPublicKeys, cfg.PluginSettings.SignaturePublicKeyFiles)
 			assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
 		})
+	})
+
+	t.Run("Should not be able to modify PluginSettings.MarketplaceURL if EnableUploads is disabled", func(t *testing.T) {
+		oldURL := "hello.com"
+		newURL := "new.com"
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableUploads = false
+			*cfg.PluginSettings.MarketplaceURL = oldURL
+		})
+
+		cfg2 := th.App.Config().Clone()
+		*cfg2.PluginSettings.MarketplaceURL = newURL
+
+		cfg2, _, err = th.SystemAdminClient.UpdateConfig(cfg2)
+		require.NoError(t, err)
+		assert.Equal(t, oldURL, *cfg2.PluginSettings.MarketplaceURL)
+
+		// Allowing uploads
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableUploads = true
+			*cfg.PluginSettings.MarketplaceURL = oldURL
+		})
+
+		cfg2 = th.App.Config().Clone()
+		*cfg2.PluginSettings.MarketplaceURL = newURL
+
+		cfg2, _, err = th.SystemAdminClient.UpdateConfig(cfg2)
+		require.NoError(t, err)
+		assert.Equal(t, newURL, *cfg2.PluginSettings.MarketplaceURL)
 	})
 
 	t.Run("System Admin should not be able to clear Site URL", func(t *testing.T) {
@@ -726,6 +756,34 @@ func TestPatchConfig(t *testing.T) {
 		})
 	})
 
+	t.Run("Should not be able to modify PluginSettings.MarketplaceURL if EnableUploads is disabled", func(t *testing.T) {
+		oldURL := "hello.com"
+		newURL := "new.com"
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableUploads = false
+			*cfg.PluginSettings.MarketplaceURL = oldURL
+		})
+
+		cfg := th.App.Config().Clone()
+		*cfg.PluginSettings.MarketplaceURL = newURL
+
+		_, _, err := th.SystemAdminClient.PatchConfig(cfg)
+		require.Error(t, err)
+
+		// Allowing uploads
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableUploads = true
+			*cfg.PluginSettings.MarketplaceURL = oldURL
+		})
+
+		cfg = th.App.Config().Clone()
+		*cfg.PluginSettings.MarketplaceURL = newURL
+
+		cfg, _, err = th.SystemAdminClient.PatchConfig(cfg)
+		require.NoError(t, err)
+		assert.Equal(t, newURL, *cfg.PluginSettings.MarketplaceURL)
+	})
+
 	t.Run("System Admin should not be able to clear Site URL", func(t *testing.T) {
 		cfg, _, err := th.SystemAdminClient.GetConfig()
 		require.NoError(t, err)
@@ -769,22 +827,27 @@ func TestMigrateConfig(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	t.Run("user is not system admin", func(t *testing.T) {
-		response, err := th.Client.MigrateConfig("from", "to")
-		require.Error(t, err)
-		CheckForbiddenStatus(t, response)
-	})
+	t.Run("LocalClient", func(t *testing.T) {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
 
-	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		f, err := config.NewStoreFromDSN("from.json", false, nil)
+		file, err := json.MarshalIndent(cfg, "", "  ")
+		require.NoError(t, err)
+
+		err = ioutil.WriteFile("from.json", file, 0644)
+		require.NoError(t, err)
+
+		defer os.Remove("from.json")
+
+		f, err := config.NewStoreFromDSN("from.json", false, nil, false)
 		require.NoError(t, err)
 		defer f.RemoveFile("from.json")
 
-		_, err = config.NewStoreFromDSN("to.json", false, nil)
+		_, err = config.NewStoreFromDSN("to.json", false, nil, true)
 		require.NoError(t, err)
 		defer f.RemoveFile("to.json")
 
-		_, err = client.MigrateConfig("from.json", "to.json")
+		_, err = th.LocalClient.MigrateConfig("from.json", "to.json")
 		require.NoError(t, err)
 	})
 }

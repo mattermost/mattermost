@@ -46,6 +46,7 @@ const (
 
 	APIURLSuffixV1 = "/api/v1"
 	APIURLSuffixV4 = "/api/v4"
+	APIURLSuffixV5 = "/api/v5"
 	APIURLSuffix   = APIURLSuffixV4
 )
 
@@ -1978,7 +1979,7 @@ func (c *Client4) GetBotsIncludeDeleted(page, perPage int, etag string) ([]*Bot,
 	return bots, BuildResponse(r), nil
 }
 
-// GetBotsOrphaned fetches the given page of bots, only including orphanded bots.
+// GetBotsOrphaned fetches the given page of bots, only including orphaned bots.
 func (c *Client4) GetBotsOrphaned(page, perPage int, etag string) ([]*Bot, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&only_orphaned="+c.boolString(true), page, perPage)
 	r, err := c.DoAPIGet(c.botsRoute()+query, etag)
@@ -3747,6 +3748,49 @@ func (c *Client4) GetPostThread(postId string, etag string, collapsedThreads boo
 	return &list, BuildResponse(r), nil
 }
 
+// GetPostThreadWithOpts gets a post with all the other posts in the same thread.
+func (c *Client4) GetPostThreadWithOpts(postID string, etag string, opts GetPostsOptions) (*PostList, *Response, error) {
+	urlVal := c.postRoute(postID) + "/thread"
+
+	values := url.Values{}
+	if opts.CollapsedThreads {
+		values.Set("collapsedThreads", "true")
+	}
+	if opts.CollapsedThreadsExtended {
+		values.Set("collapsedThreadsExtended", "true")
+	}
+	if opts.SkipFetchThreads {
+		values.Set("skipFetchThreads", "true")
+	}
+	if opts.PerPage != 0 {
+		values.Set("perPage", strconv.Itoa(opts.PerPage))
+	}
+	if opts.FromPost != "" {
+		values.Set("fromPost", opts.FromPost)
+	}
+	if opts.FromCreateAt != 0 {
+		values.Set("fromCreateAt", strconv.FormatInt(opts.FromCreateAt, 10))
+	}
+	if opts.Direction != "" {
+		values.Set("direction", opts.Direction)
+	}
+	urlVal += "?" + values.Encode()
+
+	r, err := c.DoAPIGet(urlVal, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list PostList
+	if r.StatusCode == http.StatusNotModified {
+		return &list, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetPostThread", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &list, BuildResponse(r), nil
+}
+
 // GetPostsForChannel gets a page of posts with an array for ordering for a channel.
 func (c *Client4) GetPostsForChannel(channelId string, page, perPage int, etag string, collapsedThreads bool) (*PostList, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
@@ -4438,6 +4482,9 @@ func (c *Client4) UpdateConfig(config *Config) (*Config, *Response, error) {
 }
 
 // MigrateConfig will migrate existing config to the new one.
+// DEPRECATED: The config migrate API has been moved to be a purely
+// mmctl --local endpoint. This method will be removed in a
+// future major release.
 func (c *Client4) MigrateConfig(from, to string) (*Response, error) {
 	m := make(map[string]string, 2)
 	m["from"] = from
@@ -5249,7 +5296,7 @@ func (c *Client4) GetGroupsAssociatedToChannelsByTeam(teamId string, opts GroupS
 // GetGroups retrieves Mattermost Groups
 func (c *Client4) GetGroups(opts GroupSearchOpts) ([]*Group, *Response, error) {
 	path := fmt.Sprintf(
-		"%s?include_member_count=%v&not_associated_to_team=%v&not_associated_to_channel=%v&filter_allow_reference=%v&q=%v&filter_parent_team_permitted=%v",
+		"%s?include_member_count=%v&not_associated_to_team=%v&not_associated_to_channel=%v&filter_allow_reference=%v&q=%v&filter_parent_team_permitted=%v&group_source=%v",
 		c.groupsRoute(),
 		opts.IncludeMemberCount,
 		opts.NotAssociatedToTeam,
@@ -5257,6 +5304,7 @@ func (c *Client4) GetGroups(opts GroupSearchOpts) ([]*Group, *Response, error) {
 		opts.FilterAllowReference,
 		opts.Q,
 		opts.FilterParentTeamPermitted,
+		opts.Source,
 	)
 	if opts.Since > 0 {
 		path = fmt.Sprintf("%s&since=%v", path, opts.Since)
@@ -7068,6 +7116,36 @@ func (c *Client4) GetGroup(groupID, etag string) (*Group, *Response, error) {
 	return &g, BuildResponse(r), nil
 }
 
+func (c *Client4) CreateGroup(group *Group) (*Group, *Response, error) {
+	groupJSON, jsonErr := json.Marshal(group)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("CreateGroup", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.DoAPIPostBytes("/groups", groupJSON)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var p Group
+	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil {
+		return nil, nil, NewAppError("CreateGroup", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &p, BuildResponse(r), nil
+}
+
+func (c *Client4) DeleteGroup(groupID string) (*Group, *Response, error) {
+	r, err := c.DoAPIDelete(c.groupRoute(groupID))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var p Group
+	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil {
+		return nil, nil, NewAppError("DeleteGroup", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &p, BuildResponse(r), nil
+}
+
 func (c *Client4) PatchGroup(groupID string, patch *GroupPatch) (*Group, *Response, error) {
 	payload, _ := json.Marshal(patch)
 	r, err := c.DoAPIPut(c.groupRoute(groupID)+"/patch", string(payload))
@@ -7080,6 +7158,40 @@ func (c *Client4) PatchGroup(groupID string, patch *GroupPatch) (*Group, *Respon
 		return nil, nil, NewAppError("PatchGroup", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
 	return &g, BuildResponse(r), nil
+}
+
+func (c *Client4) UpsertGroupMembers(groupID string, userIds *GroupModifyMembers) ([]*GroupMember, *Response, error) {
+	payload, jsonErr := json.Marshal(userIds)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("UpsertGroupMembers", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.DoAPIPostBytes(c.groupRoute(groupID)+"/members", payload)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var g []*GroupMember
+	if jsonErr := json.NewDecoder(r.Body).Decode(&g); jsonErr != nil {
+		return nil, nil, NewAppError("UpsertGroupMembers", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return g, BuildResponse(r), nil
+}
+
+func (c *Client4) DeleteGroupMembers(groupID string, userIds *GroupModifyMembers) ([]*GroupMember, *Response, error) {
+	payload, jsonErr := json.Marshal(userIds)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("DeleteGroupMembers", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.DoAPIDeleteBytes(c.groupRoute(groupID)+"/members", payload)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var g []*GroupMember
+	if jsonErr := json.NewDecoder(r.Body).Decode(&g); jsonErr != nil {
+		return nil, nil, NewAppError("DeleteGroupMembers", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return g, BuildResponse(r), nil
 }
 
 func (c *Client4) LinkGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType, patch *GroupSyncablePatch) (*GroupSyncable, *Response, error) {
@@ -7432,6 +7544,20 @@ func (c *Client4) MarkNoticesViewed(ids []string) (*Response, error) {
 	return BuildResponse(r), nil
 }
 
+func (c *Client4) CompleteOnboarding(request *CompleteOnboardingRequest) (*Response, error) {
+	buf, err := json.Marshal(request)
+	if err != nil {
+		return nil, NewAppError("CompleteOnboarding", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.DoAPIPost(c.systemRoute()+"/onboarding/complete", string(buf))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r), nil
+}
+
 // CreateUpload creates a new upload session.
 func (c *Client4) CreateUpload(us *UploadSession) (*UploadSession, *Response, error) {
 	buf, err := json.Marshal(us)
@@ -7575,18 +7701,6 @@ func (c *Client4) GetSubscription() (*Subscription, *Response, error) {
 	return subscription, BuildResponse(r), nil
 }
 
-func (c *Client4) GetSubscriptionStats() (*SubscriptionStats, *Response, error) {
-	r, err := c.DoAPIGet(c.cloudRoute()+"/subscription/stats", "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	var stats *SubscriptionStats
-	json.NewDecoder(r.Body).Decode(&stats)
-	return stats, BuildResponse(r), nil
-}
-
 func (c *Client4) GetInvoicesForSubscription() ([]*Invoice, *Response, error) {
 	r, err := c.DoAPIGet(c.cloudRoute()+"/subscription/invoices", "")
 	if err != nil {
@@ -7699,6 +7813,12 @@ func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOp
 	if options.Unread {
 		v.Set("unread", "true")
 	}
+	if options.ThreadsOnly {
+		v.Set("threadsOnly", "true")
+	}
+	if options.TotalsOnly {
+		v.Set("totalsOnly", "true")
+	}
 	url := c.userThreadsRoute(userId, teamId)
 	if len(v) > 0 {
 		url += "?" + v.Encode()
@@ -7771,26 +7891,6 @@ func (c *Client4) UpdateThreadFollowForUser(userId, teamId, threadId string, sta
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) SendAdminUpgradeRequestEmail() (*Response, error) {
-	r, err := c.DoAPIPost(c.cloudRoute()+"/subscription/limitreached/invite", "")
-	if err != nil {
-		return BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	return BuildResponse(r), nil
-}
-
-func (c *Client4) SendAdminUpgradeRequestEmailOnJoin() (*Response, error) {
-	r, err := c.DoAPIPost(c.cloudRoute()+"/subscription/limitreached/join", "")
-	if err != nil {
-		return BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	return BuildResponse(r), nil
-}
-
 func (c *Client4) GetAllSharedChannels(teamID string, page, perPage int) ([]*SharedChannel, *Response, error) {
 	url := fmt.Sprintf("%s/%s?page=%d&per_page=%d", c.sharedChannelsRoute(), teamID, page, perPage)
 	r, err := c.DoAPIGet(url, "")
@@ -7830,4 +7930,34 @@ func (c *Client4) GetAncillaryPermissions(subsectionPermissions []string) ([]str
 
 	json.NewDecoder(r.Body).Decode(&returnedPermissions)
 	return returnedPermissions, BuildResponse(r), nil
+}
+
+func (c *Client4) GetUsersWithInvalidEmails(page, perPage int) ([]*User, *Response, error) {
+	query := fmt.Sprintf("/invalid_emails?page=%v&per_page=%v", page, perPage)
+	r, err := c.DoAPIGet(c.usersRoute()+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list []*User
+	if r.StatusCode == http.StatusNotModified {
+		return list, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetUsers", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
+}
+
+func (c *Client4) GetAppliedSchemaMigrations() ([]AppliedMigration, *Response, error) {
+	r, err := c.DoAPIGet(c.systemRoute()+"/schema/version", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list []AppliedMigration
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetUsers", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
 }

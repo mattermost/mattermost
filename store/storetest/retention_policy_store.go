@@ -153,7 +153,7 @@ func cleanupRetentionPolicyTest(s SqlStore) {
 	// Manually clear tables until testlib can handle cleanups
 	tables := []string{"RetentionPolicies", "RetentionPoliciesChannels", "RetentionPoliciesTeams"}
 	for _, table := range tables {
-		if _, err := s.GetMaster().Exec("DELETE FROM " + table); err != nil {
+		if _, err := s.GetMasterX().Exec("DELETE FROM " + table); err != nil {
 			panic(err)
 		}
 	}
@@ -326,6 +326,13 @@ func testRetentionPolicyStorePatch(t *testing.T, ss store.Store, s SqlStore) {
 }
 
 func testRetentionPolicyStoreGet(t *testing.T, ss store.Store, s SqlStore) {
+	t.Run("get none", func(t *testing.T) {
+		retrievedPolicies, err := ss.RetentionPolicy().GetAll(0, 10)
+		require.NoError(t, err)
+		require.NotNil(t, retrievedPolicies)
+		require.Equal(t, 0, len(retrievedPolicies))
+	})
+
 	// create multiple policies
 	policiesWithCounts := make([]*model.RetentionPolicyWithTeamAndChannelCounts, 0)
 	for i := 0; i < 3; i++ {

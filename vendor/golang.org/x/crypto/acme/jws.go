@@ -20,12 +20,12 @@ import (
 	"math/big"
 )
 
-// keyID is the account identity provided by a CA during registration.
-type keyID string
+// KeyID is the account key identity provided by a CA during registration.
+type KeyID string
 
 // noKeyID indicates that jwsEncodeJSON should compute and use JWK instead of a KID.
 // See jwsEncodeJSON for details.
-const noKeyID = keyID("")
+const noKeyID = KeyID("")
 
 // noPayload indicates jwsEncodeJSON will encode zero-length octet string
 // in a JWS request. This is called POST-as-GET in RFC 8555 and is used to make
@@ -43,14 +43,17 @@ type jsonWebSignature struct {
 
 // jwsEncodeJSON signs claimset using provided key and a nonce.
 // The result is serialized in JSON format containing either kid or jwk
-// fields based on the provided keyID value.
+// fields based on the provided KeyID value.
 //
 // If kid is non-empty, its quoted value is inserted in the protected head
 // as "kid" field value. Otherwise, JWK is computed using jwkEncode and inserted
 // as "jwk" field value. The "jwk" and "kid" fields are mutually exclusive.
 //
 // See https://tools.ietf.org/html/rfc7515#section-7.
-func jwsEncodeJSON(claimset interface{}, key crypto.Signer, kid keyID, nonce, url string) ([]byte, error) {
+func jwsEncodeJSON(claimset interface{}, key crypto.Signer, kid KeyID, nonce, url string) ([]byte, error) {
+	if key == nil {
+		return nil, errors.New("nil key")
+	}
 	alg, sha := jwsHasher(key.Public())
 	if alg == "" || !sha.Available() {
 		return nil, ErrUnsupportedKey

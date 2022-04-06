@@ -22,6 +22,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 )
 
 func TestCreateChannel(t *testing.T) {
@@ -1750,7 +1751,8 @@ func TestDeleteChannel(t *testing.T) {
 		require.NoError(t, err)
 
 		ch, appErr := th.App.GetChannel(publicChannel1.Id)
-		require.True(t, appErr != nil || ch.DeleteAt != 0, "should have failed to get deleted channel, or returned one with a populated DeleteAt.")
+		require.Nilf(t, appErr, "Expected nil, Got %v", appErr)
+		require.True(t, ch.DeleteAt != 0, "should have returned one with a populated DeleteAt.")
 
 		post1 := &model.Post{ChannelId: publicChannel1.Id, Message: "a" + GenerateTestId() + "a"}
 		_, resp, _ := client.CreatePost(post1)
@@ -2503,14 +2505,26 @@ func TestGetChannelStats(t *testing.T) {
 	stats, _, err := client.GetChannelStats(channel.Id, "")
 	require.NoError(t, err)
 
-	require.Equal(t, channel.Id, stats.ChannelId, "couldnt't get extra info")
+	require.Equal(t, channel.Id, stats.ChannelId, "couldn't get extra info")
 	require.Equal(t, int64(1), stats.MemberCount, "got incorrect member count")
 	require.Equal(t, int64(0), stats.PinnedPostCount, "got incorrect pinned post count")
+	require.Equal(t, int64(0), stats.FilesCount, "got incorrect file count")
 
 	th.CreatePinnedPostWithClient(th.Client, channel)
 	stats, _, err = client.GetChannelStats(channel.Id, "")
 	require.NoError(t, err)
 	require.Equal(t, int64(1), stats.PinnedPostCount, "should have returned 1 pinned post count")
+
+	// create a post with a file
+	sent, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
+	fileResp, _, err := client.UploadFile(sent, channel.Id, "test.png")
+	require.NoError(t, err)
+	th.CreatePostInChannelWithFiles(channel, fileResp.FileInfos...)
+	// make sure the file count channel stats is updated
+	stats, _, err = client.GetChannelStats(channel.Id, "")
+	require.NoError(t, err)
+	require.Equal(t, int64(1), stats.FilesCount, "should have returned 1 file count")
 
 	_, resp, err := client.GetChannelStats("junk", "")
 	require.Error(t, err)
@@ -3010,6 +3024,64 @@ func TestAddChannelMember(t *testing.T) {
 		_, _, err = client.AddChannelMember(privateChannel.Id, user.Id)
 		require.NoError(t, err)
 	})
+}
+
+func TestAddChannelMemberFromThread(t *testing.T) {
+	t.Skip("MM-41285")
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	team := th.BasicTeam
+	user := th.BasicUser
+	user2 := th.BasicUser2
+	user3 := th.CreateUserWithClient(th.SystemAdminClient)
+	_, _, err := th.SystemAdminClient.AddTeamMember(team.Id, user3.Id)
+	require.NoError(t, err)
+
+	publicChannel := th.CreatePublicChannel()
+
+	_, resp, err := th.Client.AddChannelMember(publicChannel.Id, user.Id)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+	_, resp, err = th.Client.AddChannelMember(publicChannel.Id, user2.Id)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+
+	post := &model.Post{
+		ChannelId: publicChannel.Id,
+		Message:   "A root post",
+		UserId:    user.Id,
+	}
+	rpost, _, err := th.SystemAdminClient.CreatePost(post)
+	require.NoError(t, err)
+
+	_, _, err = th.SystemAdminClient.CreatePost(
+		&model.Post{
+			ChannelId: publicChannel.Id,
+			Message:   "A reply post with mention @" + user3.Username,
+			UserId:    user2.Id,
+			RootId:    rpost.Id,
+		})
+	require.NoError(t, err)
+
+	_, _, err = th.SystemAdminClient.CreatePost(
+		&model.Post{
+			ChannelId: publicChannel.Id,
+			Message:   "Another reply post with mention @" + user3.Username,
+			UserId:    user2.Id,
+			RootId:    rpost.Id,
+		})
+	require.NoError(t, err)
+
+	// Simulate adding a user to a channel from a thread
+	_, _, err = th.SystemAdminClient.AddChannelMemberWithRootId(publicChannel.Id, user3.Id, rpost.Id)
+	require.NoError(t, err)
+
+	// Threadmembership should exist for added user
+	ut, _, err := th.SystemAdminClient.GetUserThread(user3.Id, team.Id, rpost.Id, false)
+	require.NoError(t, err)
+	// Should have two mentions. There might be a race condition
+	// here between the "added user to the channel" message and the GetUserThread call
+	require.LessOrEqual(t, int64(2), ut.UnreadMentions)
 }
 
 func TestAddChannelMemberAddMyself(t *testing.T) {
@@ -4262,7 +4334,7 @@ func TestGetChannelMemberCountsByGroup(t *testing.T) {
 		DisplayName: "dn_" + id,
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 
 	_, appErr = th.App.CreateGroup(group)

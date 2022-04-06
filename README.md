@@ -7,8 +7,8 @@
 Useful Resources:
 
 - [Deployment Guide](https://docs.mattermost.com/guides/deployment.html) - Install, setup, and configure your own Mattermost instance.
-- [Admin and User Documentation](http://docs.mattermost.com/) - Learn how to run a Mattermost instance and take advantage of all the features.
-- [Developer Documentation](http://developers.mattermost.com/) - Contribute code to Mattermost or build an integration via APIs, Webhooks, slash commands, Apps, and plugins.
+- [Admin and User Documentation](https://docs.mattermost.com/) - Learn how to run a Mattermost instance and take advantage of all the features.
+- [Developer Documentation](https://developers.mattermost.com/) - Contribute code to Mattermost or build an integration via APIs, Webhooks, slash commands, Apps, and plugins.
 
 Table of Contents
 =================
@@ -47,9 +47,9 @@ Other Install Guides:
 
 ## Native Mobile and Desktop Apps
 
-In addition to the web interface, you can also download Mattermost clients for [Android](https://play.google.com/store/apps/details?id=com.mattermost.rn), [iOS](https://itunes.apple.com/us/app/mattermost/id1257222717?mt=8), [Windows PC](https://docs.mattermost.com/install/desktop.html#windows-10-windows-8-1-windows-7), [Mac OSX](https://docs.mattermost.com/install/desktop.html#macos-10-9), and [Linux](https://docs.mattermost.com/install/desktop.html#linux).
+In addition to the web interface, you can also download Mattermost clients for [Android](https://mattermost.com/mattermost-android-app/), [iOS](https://mattermost.com/mattermost-ios-app/), [Windows PC](https://docs.mattermost.com/install/desktop-app-install.html#windows-10-windows-8-1), [Mac OSX](https://docs.mattermost.com/install/desktop-app-install.html#macos-10-9), and [Linux](https://docs.mattermost.com/install/desktop-app-install.html#linux).
 
-[![Google Play](https://user-images.githubusercontent.com/33878967/33095356-39b6fbf8-ceb8-11e7-8a61-c3a18fa5e658.png)](https://play.google.com/store/apps/details?id=com.mattermost.rn)  [![App Store](https://user-images.githubusercontent.com/33878967/33095353-397e69b4-ceb8-11e7-8175-f95a97d5274f.png)](https://itunes.apple.com/us/app/mattermost/id1257222717?mt=8)  [![Windows PC](https://user-images.githubusercontent.com/33878967/33095357-39cab8d2-ceb8-11e7-89a6-67dccc571ca3.png)](https://docs.mattermost.com/install/desktop.html#windows-10-windows-8-1-windows-7)  [![Mac OSX](https://user-images.githubusercontent.com/33878967/33095355-39a36f2a-ceb8-11e7-9b33-73d4f6d5d6c1.png)](https://docs.mattermost.com/install/desktop.html#macos-10-9)  [![Linux](https://user-images.githubusercontent.com/33878967/33095354-3990e256-ceb8-11e7-965d-b00a16e578de.png)](https://docs.mattermost.com/install/desktop.html#linux)
+[![Google Play](https://user-images.githubusercontent.com/33878967/33095356-39b6fbf8-ceb8-11e7-8a61-c3a18fa5e658.png)](https://mattermost.com/mattermost-android-app/)  [![App Store](https://user-images.githubusercontent.com/33878967/33095353-397e69b4-ceb8-11e7-8175-f95a97d5274f.png)](https://itunes.apple.com/us/app/mattermost/id1257222717?mt=8)  [![Windows PC](https://user-images.githubusercontent.com/33878967/33095357-39cab8d2-ceb8-11e7-89a6-67dccc571ca3.png)](https://docs.mattermost.com/install/desktop.html#windows-10-windows-8-1-windows-7)  [![Mac OSX](https://user-images.githubusercontent.com/33878967/33095355-39a36f2a-ceb8-11e7-9b33-73d4f6d5d6c1.png)](https://docs.mattermost.com/install/desktop.html#macos-10-9)  [![Linux](https://user-images.githubusercontent.com/33878967/33095354-3990e256-ceb8-11e7-965d-b00a16e578de.png)](https://docs.mattermost.com/install/desktop.html#linux)
 
 ## Get Security Bulletins
 
@@ -80,7 +80,7 @@ See the [LICENSE file](LICENSE.txt) for license rights and limitations.
 - **Blog** - Get the latest updates from the [Mattermost blog](https://mattermost.com/blog/).
 - **Facebook** - Follow [Mattermost](https://www.facebook.com/MattermostHQ).
 - **LinkedIn** - Follow [Mattermost](https://www.linkedin.com/company/mattermost/).
-- **Email** - Subscribe to our [newsletter](http://mattermost.us11.list-manage.com/subscribe?u=6cdba22349ae374e188e7ab8e&id=2add1c8034) (1 or 2 per month).
+- **Email** - Subscribe to our [newsletter](https://mattermost.us11.list-manage.com/subscribe?u=6cdba22349ae374e188e7ab8e&id=2add1c8034) (1 or 2 per month).
 - **Mattermost** - Join the ~contributors channel on [the Mattermost Community Server](https://community.mattermost.com). 
 - **IRC** - Join the #matterbridge channel on [Freenode](https://freenode.net/) (thanks to [matterircd](https://github.com/42wim/matterircd)).
 

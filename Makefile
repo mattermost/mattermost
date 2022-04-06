@@ -17,6 +17,12 @@ else
 	export IS_LINUX =
 endif
 
+define LICENSE_HEADER
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+endef
+
 IS_CI ?= false
 # Build Flags
 BUILD_NUMBER ?= $(BUILD_NUMBER:)
@@ -117,13 +123,13 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.22.1
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.26.2
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.5.0
-PLUGIN_PACKAGES += focalboard-v0.11.0
+PLUGIN_PACKAGES += focalboard-v0.15.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -157,6 +163,11 @@ ifeq ($(RUN_SERVER_IN_BACKGROUND),true)
 	RUN_IN_BACKGROUND := &
 endif
 
+DOCKER_COMPOSE_OVERRIDE=
+ifneq ("$(wildcard ./docker-compose.override.yaml)","")
+    DOCKER_COMPOSE_OVERRIDE=-f docker-compose.override.yaml
+endif
+
 start-docker-check:
 ifeq (,$(findstring minio,$(ENABLED_DOCKER_SERVICES)))
   TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) minio
@@ -179,9 +190,9 @@ else ifeq ($(MM_NO_DOCKER),true)
 else
 	@echo Starting docker containers
 
-	$(GO) run ./build/docker-compose-generator/main.go $(ENABLED_DOCKER_SERVICES) | docker-compose -f docker-compose.makefile.yml -f /dev/stdin run --rm start_dependencies
+	$(GO) run ./build/docker-compose-generator/main.go $(ENABLED_DOCKER_SERVICES) | docker-compose -f docker-compose.makefile.yml -f /dev/stdin $(DOCKER_COMPOSE_OVERRIDE) run --rm start_dependencies
 ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
-	cat tests/${LDAP_DATA}-data.ldif | docker-compose -f docker-compose.makefile.yml exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
+	cat tests/${LDAP_DATA}-data.ldif | docker-compose -f docker-compose.makefile.yml $(DOCKER_COMPOSE_OVERRIDE) exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
 endif
 ifneq (,$(findstring mysql-read-replica,$(ENABLED_DOCKER_SERVICES)))
 	./scripts/replica-mysql-config.sh
@@ -192,7 +203,7 @@ run-haserver:
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Starting mattermost in an HA topology '(3 node cluster)'
 
-	docker-compose -f docker-compose.yaml up --remove-orphans haproxy
+	docker-compose -f docker-compose.yaml $(DOCKER_COMPOSE_OVERRIDE) up --remove-orphans haproxy
 endif
 
 stop-haserver:
@@ -237,47 +248,44 @@ else
 endif
 
 golangci-lint: ## Run golangci-lint on codebase
-# https://stackoverflow.com/a/677212/1027058 (check if a command exists or not)
-	@if ! [ -x "$$(command -v golangci-lint)" ]; then \
-		echo "golangci-lint is not installed. Please see https://github.com/golangci/golangci-lint#install for installation instructions."; \
-		exit 1; \
-	fi; \
+	@# Keep the version in sync with the command in .circleci/config.yml
+	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.39.0
 
 	@echo Running golangci-lint
-	golangci-lint run ./...
+	$(GOBIN)/golangci-lint run ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-	golangci-lint run ./enterprise/...
+	$(GOBIN)/golangci-lint run ./enterprise/...
 endif
 endif
 
 app-layers: ## Extract interface from App struct
-	$(GO) get -modfile=go.tools.mod github.com/reflog/struct2interface
+	$(GO) install github.com/reflog/struct2interface@v0.6.1
 	$(GOBIN)/struct2interface -f "app" -o "app/app_iface.go" -p "app" -s "App" -i "AppIface" -t ./app/layer_generators/app_iface.go.tmpl
 	$(GO) run ./app/layer_generators -in ./app/app_iface.go -out ./app/opentracing/opentracing_layer.go -template ./app/layer_generators/opentracing_layer.go.tmpl
 
 i18n-extract: ## Extract strings for translation from the source code
-	$(GO) get -modfile=go.tools.mod github.com/mattermost/mattermost-utilities/mmgotool
+	$(GO) install github.com/mattermost/mattermost-utilities/mmgotool@v0.0.0-20210721133912-8b250bf4d0f6
 	$(GOBIN)/mmgotool i18n extract --portal-dir=""
 
 i18n-check: ## Exit on empty translation strings and translation source strings
-	$(GO) get -modfile=go.tools.mod github.com/mattermost/mattermost-utilities/mmgotool
+	$(GO) install github.com/mattermost/mattermost-utilities/mmgotool@v0.0.0-20210721133912-8b250bf4d0f6
 	$(GOBIN)/mmgotool i18n clean-empty --portal-dir="" --check
 	$(GOBIN)/mmgotool i18n check-empty-src --portal-dir=""
 
 store-mocks: ## Creates mock files.
-	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
-	$(GOBIN)/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
+	$(GO) install github.com/vektra/mockery/...@v1.1.2
+	$(GOBIN)/mockery -dir store -name ".*Store" -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
 
 telemetry-mocks: ## Creates mock files.
-	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
+	$(GO) install github.com/vektra/mockery/...@v1.1.2
 	$(GOBIN)/mockery -dir services/telemetry -all -output services/telemetry/mocks -note 'Regenerate this file using `make telemetry-mocks`.'
 
 store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./store
 
 migration-prereqs: ## Builds prerequisite packages for migrations
-	$(GO) get -modfile=go.tools.mod github.com/golang-migrate/migrate/v4/cmd/migrate
+	$(GO) install github.com/golang-migrate/migrate/v4/cmd/migrate@v4.14.1
 
 new-migration: migration-prereqs ## Creates a new migration
 	@echo "Generating new migration for mysql"
@@ -286,44 +294,42 @@ new-migration: migration-prereqs ## Creates a new migration
 	@echo "Generating new migration for postgres"
 	$(GOBIN)/migrate create -ext sql -dir db/migrations/postgres -seq $(name)
 
-	@echo "When you are done writing your migration, run 'make migrations'"
-
-migrations-bindata: ## Generates bindata migrations
-	$(GO) get -modfile=go.tools.mod github.com/go-bindata/go-bindata/...
-
-	@echo Generating bindata for migrations
-	$(GO) generate $(GOFLAGS) ./db/migrations/
+	@echo "When you are done writing your migration, run 'make migrations-bindata'"
 
 filestore-mocks: ## Creates mock files.
-	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
+	$(GO) install github.com/vektra/mockery/...@v1.1.2
 	$(GOBIN)/mockery -dir shared/filestore -all -output shared/filestore/mocks -note 'Regenerate this file using `make filestore-mocks`.'
 
 ldap-mocks: ## Creates mock files for ldap.
-	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
+	$(GO) install github.com/vektra/mockery/...@v1.1.2
 	$(GOBIN)/mockery -dir enterprise/ldap -all -output enterprise/ldap/mocks -note 'Regenerate this file using `make ldap-mocks`.'
 
 plugin-mocks: ## Creates mock files for plugins.
-	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
+	$(GO) install github.com/vektra/mockery/...@v1.1.2
 	$(GOBIN)/mockery -dir plugin -name API -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 	$(GOBIN)/mockery -dir plugin -name Hooks -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 	$(GOBIN)/mockery -dir plugin -name Driver -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 
 einterfaces-mocks: ## Creates mock files for einterfaces.
-	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
+	$(GO) install github.com/vektra/mockery/...@v1.1.2
 	$(GOBIN)/mockery -dir einterfaces -all -output einterfaces/mocks -note 'Regenerate this file using `make einterfaces-mocks`.'
 
 searchengine-mocks: ## Creates mock files for searchengines.
-	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
+	$(GO) install github.com/vektra/mockery/...@v1.1.2
 	$(GOBIN)/mockery -dir services/searchengine -all -output services/searchengine/mocks -note 'Regenerate this file using `make searchengine-mocks`.'
 
 sharedchannel-mocks: ## Creates mock files for shared channels.
-	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
+	$(GO) install github.com/vektra/mockery/...@v1.1.2
 	$(GOBIN)/mockery -dir=./services/sharedchannel -name=ServerIface -output=./services/sharedchannel -inpkg -outpkg=sharedchannel -testonly -note 'Regenerate this file using `make sharedchannel-mocks`.'
 	$(GOBIN)/mockery -dir=./services/sharedchannel -name=AppIface -output=./services/sharedchannel -inpkg -outpkg=sharedchannel -testonly -note 'Regenerate this file using `make sharedchannel-mocks`.'
 
 misc-mocks: ## Creates mocks for misc interfaces.
-	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
-	$(GOPATH)/bin/mockery -dir utils --name LicenseValidatorIface -output utils/mocks -note 'Regenerate this file using `make misc-mocks`.'
+	$(GO) install github.com/vektra/mockery/...@v1.1.2
+	$(GOBIN)/mockery -dir utils --name LicenseValidatorIface -output utils/mocks -note 'Regenerate this file using `make misc-mocks`.'
+
+email-mocks: ## Creates mocks for misc interfaces.
+	$(GO) install github.com/vektra/mockery/...@v1.1.2
+	$(GOBIN)/mockery -dir app/email --name ServiceInterface -output app/email/mocks -note 'Regenerate this file using `make email-mocks`.'
 
 pluginapi: ## Generates api and hooks glue code for plugins
 	$(GO) generate $(GOFLAGS) ./plugin
@@ -343,7 +349,7 @@ do-cover-file: ## Creates the test coverage report file.
 	@echo "mode: count" > cover.out
 
 go-junit-report:
-	$(GO) get -modfile=go.tools.mod github.com/jstemmer/go-junit-report
+	$(GO) install github.com/jstemmer/go-junit-report@v0.9.1
 
 test-compile: ## Compile tests.
 	@echo COMPILE TESTS
@@ -432,7 +438,9 @@ cover: ## Runs the golang coverage tool. You must run the unit tests first.
 	$(GO) tool cover -html=cover.out
 	$(GO) tool cover -html=ecover.out
 
-test-data: run-server ## Add test data to the local instance.
+test-data: run-server inject-test-data ## start a local instance and add test data to it.
+
+inject-test-data: # add test data to the local instance.
 	@if ! ./scripts/wait-for-system-start.sh; then \
 		make stop; \
 	fi
@@ -574,7 +582,7 @@ config-reset: ## Resets the config/config.json file to the default.
 diff-config: ## Compares default configuration between two mattermost versions
 	@./scripts/diff-config.sh
 
-clean: stop-docker ## Clean up everything except persistant server data.
+clean: stop-docker ## Clean up everything except persistent server data.
 	@echo Cleaning
 
 	rm -Rf $(DIST_ROOT)
@@ -635,6 +643,7 @@ ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 endif
 endif
 
+gen-serialized:	export LICENSE_HEADER:=$(LICENSE_HEADER)
 gen-serialized: ## Generates serialization methods for hot structs
 	# This tool only works at a file level, not at a package level.
 	# There will be some warnings about "unresolved identifiers",
@@ -643,24 +652,27 @@ gen-serialized: ## Generates serialization methods for hot structs
 	# identifiers will be resolved. An alternative to remove the warnings
 	# would be to temporarily move all the structs to the same file,
 	# but that involves a lot of manual work.
-	$(GO) get -modfile=go.tools.mod github.com/tinylib/msgp
+	$(GO) install github.com/tinylib/msgp@v1.1.6
 	$(GOBIN)/msgp -file=./model/session.go -tests=false -o=./model/session_serial_gen.go
+	@echo "$$LICENSE_HEADER" > tmp.go
+	@cat ./model/session_serial_gen.go >> tmp.go
+	@mv tmp.go ./model/session_serial_gen.go
 	$(GOBIN)/msgp -file=./model/user.go -tests=false -o=./model/user_serial_gen.go
+	@echo "$$LICENSE_HEADER" > tmp.go
+	@cat ./model/user_serial_gen.go >> tmp.go
+	@mv tmp.go ./model/user_serial_gen.go
 	$(GOBIN)/msgp -file=./model/team_member.go -tests=false -o=./model/team_member_serial_gen.go
+	@echo "$$LICENSE_HEADER" > tmp.go
+	@cat ./model/team_member_serial_gen.go >> tmp.go
+	@mv tmp.go ./model/team_member_serial_gen.go
 
 todo: ## Display TODO and FIXME items in the source code.
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime TODO
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime XXX
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime FIXME
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime "FIX ME"
+	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime '(TODO|XXX|FIXME|"FIX ME")[: ]+' 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime TODO enterprise/
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime XXX enterprise/
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime FIXME enterprise/
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime "FIX ME" enterprise/
+	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime '(TODO|XXX|FIXME|"FIX ME")[: ]+' enterprise/
 endif
 
-## Help documentatin à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
+## Help documentation à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help:
 	@grep -E '^[0-9a-zA-Z_-]+:.*?## .*$$' ./Makefile | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 	@echo

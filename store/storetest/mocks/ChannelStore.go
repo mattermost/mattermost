@@ -19,18 +19,18 @@ type ChannelStore struct {
 }
 
 // AnalyticsDeletedTypeCount provides a mock function with given fields: teamID, channelType
-func (_m *ChannelStore) AnalyticsDeletedTypeCount(teamID string, channelType string) (int64, error) {
+func (_m *ChannelStore) AnalyticsDeletedTypeCount(teamID string, channelType model.ChannelType) (int64, error) {
 	ret := _m.Called(teamID, channelType)
 
 	var r0 int64
-	if rf, ok := ret.Get(0).(func(string, string) int64); ok {
+	if rf, ok := ret.Get(0).(func(string, model.ChannelType) int64); ok {
 		r0 = rf(teamID, channelType)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+	if rf, ok := ret.Get(1).(func(string, model.ChannelType) error); ok {
 		r1 = rf(teamID, channelType)
 	} else {
 		r1 = ret.Error(1)
@@ -582,29 +582,6 @@ func (_m *ChannelStore) GetByNames(team_id string, names []string, allowFromCach
 	return r0, r1
 }
 
-// GetCRTUnfixedChannelMembershipsAfter provides a mock function with given fields: channelID, userID, count
-func (_m *ChannelStore) GetCRTUnfixedChannelMembershipsAfter(channelID string, userID string, count int) ([]model.ChannelMember, error) {
-	ret := _m.Called(channelID, userID, count)
-
-	var r0 []model.ChannelMember
-	if rf, ok := ret.Get(0).(func(string, string, int) []model.ChannelMember); ok {
-		r0 = rf(channelID, userID, count)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]model.ChannelMember)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, int) error); ok {
-		r1 = rf(channelID, userID, count)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetChannelCounts provides a mock function with given fields: teamID, userID
 func (_m *ChannelStore) GetChannelCounts(teamID string, userID string) (*model.ChannelCounts, error) {
 	ret := _m.Called(teamID, userID)
@@ -697,13 +674,13 @@ func (_m *ChannelStore) GetChannelUnread(channelID string, userID string) (*mode
 	return r0, r1
 }
 
-// GetChannels provides a mock function with given fields: teamID, userID, includeDeleted, lastDeleteAt
-func (_m *ChannelStore) GetChannels(teamID string, userID string, includeDeleted bool, lastDeleteAt int) (model.ChannelList, error) {
-	ret := _m.Called(teamID, userID, includeDeleted, lastDeleteAt)
+// GetChannels provides a mock function with given fields: teamID, userID, opts
+func (_m *ChannelStore) GetChannels(teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, error) {
+	ret := _m.Called(teamID, userID, opts)
 
 	var r0 model.ChannelList
-	if rf, ok := ret.Get(0).(func(string, string, bool, int) model.ChannelList); ok {
-		r0 = rf(teamID, userID, includeDeleted, lastDeleteAt)
+	if rf, ok := ret.Get(0).(func(string, string, *model.ChannelSearchOpts) model.ChannelList); ok {
+		r0 = rf(teamID, userID, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.ChannelList)
@@ -711,8 +688,8 @@ func (_m *ChannelStore) GetChannels(teamID string, userID string, includeDeleted
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, bool, int) error); ok {
-		r1 = rf(teamID, userID, includeDeleted, lastDeleteAt)
+	if rf, ok := ret.Get(1).(func(string, string, *model.ChannelSearchOpts) error); ok {
+		r1 = rf(teamID, userID, opts)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -720,13 +697,13 @@ func (_m *ChannelStore) GetChannels(teamID string, userID string, includeDeleted
 	return r0, r1
 }
 
-// GetChannelsBatchForIndexing provides a mock function with given fields: startTime, endTime, limit
-func (_m *ChannelStore) GetChannelsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.Channel, error) {
-	ret := _m.Called(startTime, endTime, limit)
+// GetChannelsBatchForIndexing provides a mock function with given fields: startTime, startChannelID, limit
+func (_m *ChannelStore) GetChannelsBatchForIndexing(startTime int64, startChannelID string, limit int) ([]*model.Channel, error) {
+	ret := _m.Called(startTime, startChannelID, limit)
 
 	var r0 []*model.Channel
-	if rf, ok := ret.Get(0).(func(int64, int64, int) []*model.Channel); ok {
-		r0 = rf(startTime, endTime, limit)
+	if rf, ok := ret.Get(0).(func(int64, string, int) []*model.Channel); ok {
+		r0 = rf(startTime, startChannelID, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Channel)
@@ -734,8 +711,8 @@ func (_m *ChannelStore) GetChannelsBatchForIndexing(startTime int64, endTime int
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(int64, int64, int) error); ok {
-		r1 = rf(startTime, endTime, limit)
+	if rf, ok := ret.Get(1).(func(int64, string, int) error); ok {
+		r1 = rf(startTime, startChannelID, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -812,6 +789,29 @@ func (_m *ChannelStore) GetChannelsByUser(userID string, includeDeleted bool, la
 	return r0, r1
 }
 
+// GetChannelsWithCursor provides a mock function with given fields: teamId, userId, opts, afterChannelID
+func (_m *ChannelStore) GetChannelsWithCursor(teamId string, userId string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, error) {
+	ret := _m.Called(teamId, userId, opts, afterChannelID)
+
+	var r0 model.ChannelList
+	if rf, ok := ret.Get(0).(func(string, string, *model.ChannelSearchOpts, string) model.ChannelList); ok {
+		r0 = rf(teamId, userId, opts, afterChannelID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(model.ChannelList)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, *model.ChannelSearchOpts, string) error); ok {
+		r1 = rf(teamId, userId, opts, afterChannelID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetChannelsWithTeamDataByIds provides a mock function with given fields: channelIds, includeDeleted
 func (_m *ChannelStore) GetChannelsWithTeamDataByIds(channelIds []string, includeDeleted bool) ([]*model.ChannelWithTeamData, error) {
 	ret := _m.Called(channelIds, includeDeleted)
@@ -874,6 +874,27 @@ func (_m *ChannelStore) GetDeletedByName(team_id string, name string) (*model.Ch
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(team_id, name)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetFileCount provides a mock function with given fields: channelID
+func (_m *ChannelStore) GetFileCount(channelID string) (int64, error) {
+	ret := _m.Called(channelID)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string) int64); ok {
+		r0 = rf(channelID)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(channelID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1144,6 +1165,29 @@ func (_m *ChannelStore) GetMembersForUser(teamID string, userID string) (model.C
 	return r0, r1
 }
 
+// GetMembersForUserWithCursor provides a mock function with given fields: userID, afterChannel, afterUser, limit, lastUpdateAt
+func (_m *ChannelStore) GetMembersForUserWithCursor(userID string, afterChannel string, afterUser string, limit int, lastUpdateAt int) (model.ChannelMembers, error) {
+	ret := _m.Called(userID, afterChannel, afterUser, limit, lastUpdateAt)
+
+	var r0 model.ChannelMembers
+	if rf, ok := ret.Get(0).(func(string, string, string, int, int) model.ChannelMembers); ok {
+		r0 = rf(userID, afterChannel, afterUser, limit, lastUpdateAt)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(model.ChannelMembers)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, string, int, int) error); ok {
+		r1 = rf(userID, afterChannel, afterUser, limit, lastUpdateAt)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetMembersForUserWithPagination provides a mock function with given fields: userID, page, perPage
 func (_m *ChannelStore) GetMembersForUserWithPagination(userID string, page int, perPage int) (model.ChannelMembersWithTeamData, error) {
 	ret := _m.Called(userID, page, perPage)
@@ -1160,6 +1204,29 @@ func (_m *ChannelStore) GetMembersForUserWithPagination(userID string, page int,
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(userID, page, perPage)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetMembersInfoByChannelIds provides a mock function with given fields: channelIDs
+func (_m *ChannelStore) GetMembersInfoByChannelIds(channelIDs []string) (map[string][]*model.User, error) {
+	ret := _m.Called(channelIDs)
+
+	var r0 map[string][]*model.User
+	if rf, ok := ret.Get(0).(func([]string) map[string][]*model.User); ok {
+		r0 = rf(channelIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string][]*model.User)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]string) error); ok {
+		r1 = rf(channelIDs)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1462,13 +1529,13 @@ func (_m *ChannelStore) GroupSyncedChannelCount() (int64, error) {
 	return r0, r1
 }
 
-// IncrementMentionCount provides a mock function with given fields: channelID, userID, updateThreads, isRoot
-func (_m *ChannelStore) IncrementMentionCount(channelID string, userID string, updateThreads bool, isRoot bool) error {
-	ret := _m.Called(channelID, userID, updateThreads, isRoot)
+// IncrementMentionCount provides a mock function with given fields: channelID, userIDs, isRoot
+func (_m *ChannelStore) IncrementMentionCount(channelID string, userIDs []string, isRoot bool) error {
+	ret := _m.Called(channelID, userIDs, isRoot)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, bool, bool) error); ok {
-		r0 = rf(channelID, userID, updateThreads, isRoot)
+	if rf, ok := ret.Get(0).(func(string, []string, bool) error); ok {
+		r0 = rf(channelID, userIDs, isRoot)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1546,20 +1613,6 @@ func (_m *ChannelStore) MigrateChannelMembers(fromChannelID string, fromUserID s
 	}
 
 	return r0, r1
-}
-
-// MigratePublicChannels provides a mock function with given fields:
-func (_m *ChannelStore) MigratePublicChannels() error {
-	ret := _m.Called()
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func() error); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
 }
 
 // PermanentDelete provides a mock function with given fields: channelID
@@ -1976,13 +2029,13 @@ func (_m *ChannelStore) Update(channel *model.Channel) (*model.Channel, error) {
 	return r0, r1
 }
 
-// UpdateLastViewedAt provides a mock function with given fields: channelIds, userID, updateThreads
-func (_m *ChannelStore) UpdateLastViewedAt(channelIds []string, userID string, updateThreads bool) (map[string]int64, error) {
-	ret := _m.Called(channelIds, userID, updateThreads)
+// UpdateLastViewedAt provides a mock function with given fields: channelIds, userID
+func (_m *ChannelStore) UpdateLastViewedAt(channelIds []string, userID string) (map[string]int64, error) {
+	ret := _m.Called(channelIds, userID)
 
 	var r0 map[string]int64
-	if rf, ok := ret.Get(0).(func([]string, string, bool) map[string]int64); ok {
-		r0 = rf(channelIds, userID, updateThreads)
+	if rf, ok := ret.Get(0).(func([]string, string) map[string]int64); ok {
+		r0 = rf(channelIds, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string]int64)
@@ -1990,8 +2043,8 @@ func (_m *ChannelStore) UpdateLastViewedAt(channelIds []string, userID string, u
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func([]string, string, bool) error); ok {
-		r1 = rf(channelIds, userID, updateThreads)
+	if rf, ok := ret.Get(1).(func([]string, string) error); ok {
+		r1 = rf(channelIds, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1999,13 +2052,13 @@ func (_m *ChannelStore) UpdateLastViewedAt(channelIds []string, userID string, u
 	return r0, r1
 }
 
-// UpdateLastViewedAtPost provides a mock function with given fields: unreadPost, userID, mentionCount, mentionCountRoot, updateThreads, setUnreadCountRoot
-func (_m *ChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int, mentionCountRoot int, updateThreads bool, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error) {
-	ret := _m.Called(unreadPost, userID, mentionCount, mentionCountRoot, updateThreads, setUnreadCountRoot)
+// UpdateLastViewedAtPost provides a mock function with given fields: unreadPost, userID, mentionCount, mentionCountRoot, setUnreadCountRoot
+func (_m *ChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int, mentionCountRoot int, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error) {
+	ret := _m.Called(unreadPost, userID, mentionCount, mentionCountRoot, setUnreadCountRoot)
 
 	var r0 *model.ChannelUnreadAt
-	if rf, ok := ret.Get(0).(func(*model.Post, string, int, int, bool, bool) *model.ChannelUnreadAt); ok {
-		r0 = rf(unreadPost, userID, mentionCount, mentionCountRoot, updateThreads, setUnreadCountRoot)
+	if rf, ok := ret.Get(0).(func(*model.Post, string, int, int, bool) *model.ChannelUnreadAt); ok {
+		r0 = rf(unreadPost, userID, mentionCount, mentionCountRoot, setUnreadCountRoot)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ChannelUnreadAt)
@@ -2013,8 +2066,8 @@ func (_m *ChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID st
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.Post, string, int, int, bool, bool) error); ok {
-		r1 = rf(unreadPost, userID, mentionCount, mentionCountRoot, updateThreads, setUnreadCountRoot)
+	if rf, ok := ret.Get(1).(func(*model.Post, string, int, int, bool) error); ok {
+		r1 = rf(unreadPost, userID, mentionCount, mentionCountRoot, setUnreadCountRoot)
 	} else {
 		r1 = ret.Error(1)
 	}

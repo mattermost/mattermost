@@ -114,16 +114,19 @@ func extractPcs(method reflect.Value) []uintptr {
 	for i := 0; i < stacktrace.Len(); i++ {
 		pc := stacktrace.Index(i)
 
-		if pc.Kind() == reflect.Uintptr {
+		switch pc.Kind() {
+		case reflect.Uintptr:
 			pcs = append(pcs, uintptr(pc.Uint()))
-			continue
-		}
-
-		if pc.Kind() == reflect.Struct {
-			field := pc.FieldByName("ProgramCounter")
-			if field.IsValid() && field.Kind() == reflect.Uintptr {
-				pcs = append(pcs, uintptr(field.Uint()))
-				continue
+		case reflect.Struct:
+			for _, fieldName := range []string{"ProgramCounter", "PC"} {
+				field := pc.FieldByName(fieldName)
+				if !field.IsValid() {
+					continue
+				}
+				if field.Kind() == reflect.Uintptr {
+					pcs = append(pcs, uintptr(field.Uint()))
+					break
+				}
 			}
 		}
 	}
@@ -160,9 +163,16 @@ func extractXErrorsPC(err error) []uintptr {
 // Frame represents a function call and it's metadata. Frames are associated
 // with a Stacktrace.
 type Frame struct {
-	Function    string                 `json:"function,omitempty"`
-	Symbol      string                 `json:"symbol,omitempty"`
-	Module      string                 `json:"module,omitempty"`
+	Function string `json:"function,omitempty"`
+	Symbol   string `json:"symbol,omitempty"`
+	// Module is, despite the name, the Sentry protocol equivalent of a Go
+	// package's import path.
+	Module string `json:"module,omitempty"`
+	// Package is not used for Go stack trace frames. In other platforms it
+	// refers to a container where the Module can be found. For example, a
+	// Java JAR, a .NET Assembly, or a native dynamic library.
+	// It exists for completeness, allowing the construction and reporting
+	// of custom event payloads.
 	Package     string                 `json:"package,omitempty"`
 	Filename    string                 `json:"filename,omitempty"`
 	AbsPath     string                 `json:"abs_path,omitempty"`

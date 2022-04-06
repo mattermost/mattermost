@@ -60,6 +60,7 @@ type intLogger struct {
 	callerOffset int
 	name         string
 	timeFormat   string
+	timeFn       TimeFunction
 	disableTime  bool
 
 	// This is an interface so that it's shared by any derived loggers, since
@@ -67,6 +68,8 @@ type intLogger struct {
 	mutex  Locker
 	writer *writer
 	level  *int32
+
+	headerColor ColorOption
 
 	implied []interface{}
 
@@ -112,16 +115,28 @@ func newLogger(opts *LoggerOptions) *intLogger {
 		mutex = new(sync.Mutex)
 	}
 
+	var primaryColor, headerColor ColorOption
+
+	if opts.ColorHeaderOnly {
+		primaryColor = ColorOff
+		headerColor = opts.Color
+	} else {
+		primaryColor = opts.Color
+		headerColor = ColorOff
+	}
+
 	l := &intLogger{
 		json:              opts.JSONFormat,
 		name:              opts.Name,
 		timeFormat:        TimeFormat,
+		timeFn:            time.Now,
 		disableTime:       opts.DisableTime,
 		mutex:             mutex,
-		writer:            newWriter(output, opts.Color),
+		writer:            newWriter(output, primaryColor),
 		level:             new(int32),
 		exclude:           opts.Exclude,
 		independentLevels: opts.IndependentLevels,
+		headerColor:       headerColor,
 	}
 	if opts.IncludeLocation {
 		l.callerOffset = offsetIntLogger + opts.AdditionalLocationOffset
@@ -129,6 +144,9 @@ func newLogger(opts *LoggerOptions) *intLogger {
 
 	if l.json {
 		l.timeFormat = TimeFormatJSON
+	}
+	if opts.TimeFn != nil {
+		l.timeFn = opts.TimeFn
 	}
 	if opts.TimeFormat != "" {
 		l.timeFormat = opts.TimeFormat
@@ -152,7 +170,7 @@ func (l *intLogger) log(name string, level Level, msg string, args ...interface{
 		return
 	}
 
-	t := time.Now()
+	t := l.timeFn()
 
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
@@ -227,7 +245,12 @@ func (l *intLogger) logPlain(t time.Time, name string, level Level, msg string, 
 
 	s, ok := _levelToBracket[level]
 	if ok {
-		l.writer.WriteString(s)
+		if l.headerColor != ColorOff {
+			color := _levelToColor[level]
+			color.Fprint(l.writer, s)
+		} else {
+			l.writer.WriteString(s)
+		}
 	} else {
 		l.writer.WriteString("[?????]")
 	}
@@ -281,6 +304,7 @@ func (l *intLogger) logPlain(t time.Time, name string, level Level, msg string, 
 				val = st
 				if st == "" {
 					val = `""`
+					raw = true
 				}
 			case int:
 				val = strconv.FormatInt(int64(st), 10)
@@ -703,9 +727,10 @@ func (l *intLogger) StandardWriter(opts *StandardLoggerOptions) io.Writer {
 		newLog.callerOffset = l.callerOffset + 4
 	}
 	return &stdlogAdapter{
-		log:         &newLog,
-		inferLevels: opts.InferLevels,
-		forceLevel:  opts.ForceLevel,
+		log:                      &newLog,
+		inferLevels:              opts.InferLevels,
+		inferLevelsWithTimestamp: opts.InferLevelsWithTimestamp,
+		forceLevel:               opts.ForceLevel,
 	}
 }
 

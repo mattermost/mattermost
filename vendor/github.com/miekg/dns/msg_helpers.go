@@ -558,6 +558,16 @@ func packDataNsec(bitmap []uint16, msg []byte, off int) (int, error) {
 	if len(bitmap) == 0 {
 		return off, nil
 	}
+	if off > len(msg) {
+		return off, &Error{err: "overflow packing nsec"}
+	}
+	toZero := msg[off:]
+	if maxLen := typeBitMapLen(bitmap); maxLen < len(toZero) {
+		toZero = toZero[:maxLen]
+	}
+	for i := range toZero {
+		toZero[i] = 0
+	}
 	var lastwindow, lastlength uint16
 	for _, t := range bitmap {
 		window := t / 256
@@ -781,6 +791,8 @@ func unpackDataAplPrefix(msg []byte, off int) (APLPrefix, int, error) {
 	if off+afdlen > len(msg) {
 		return APLPrefix{}, len(msg), &Error{err: "overflow unpacking APL address"}
 	}
+
+	// Address MUST NOT contain trailing zero bytes per RFC3123 Sections 4.1 and 4.2.
 	off += copy(ip, msg[off:off+afdlen])
 	if afdlen > 0 {
 		last := ip[afdlen-1]
@@ -791,10 +803,6 @@ func unpackDataAplPrefix(msg []byte, off int) (APLPrefix, int, error) {
 	ipnet := net.IPNet{
 		IP:   ip,
 		Mask: net.CIDRMask(int(prefix), 8*len(ip)),
-	}
-	network := ipnet.IP.Mask(ipnet.Mask)
-	if !network.Equal(ipnet.IP) {
-		return APLPrefix{}, len(msg), &Error{err: "invalid APL address length"}
 	}
 
 	return APLPrefix{

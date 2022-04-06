@@ -901,6 +901,11 @@ func (dns *Msg) String() string {
 	s += "ANSWER: " + strconv.Itoa(len(dns.Answer)) + ", "
 	s += "AUTHORITY: " + strconv.Itoa(len(dns.Ns)) + ", "
 	s += "ADDITIONAL: " + strconv.Itoa(len(dns.Extra)) + "\n"
+	opt := dns.IsEdns0()
+	if opt != nil {
+		// OPT PSEUDOSECTION
+		s += opt.String() + "\n"
+	}
 	if len(dns.Question) > 0 {
 		s += "\n;; QUESTION SECTION:\n"
 		for _, r := range dns.Question {
@@ -923,10 +928,10 @@ func (dns *Msg) String() string {
 			}
 		}
 	}
-	if len(dns.Extra) > 0 {
+	if len(dns.Extra) > 0 && (opt == nil || len(dns.Extra) > 1) {
 		s += "\n;; ADDITIONAL SECTION:\n"
 		for _, r := range dns.Extra {
-			if r != nil {
+			if r != nil && r.Header().Rrtype != TypeOPT {
 				s += r.String() + "\n"
 			}
 		}

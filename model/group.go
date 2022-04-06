@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	GroupSourceLdap GroupSource = "ldap"
+	GroupSourceLdap   GroupSource = "ldap"
+	GroupSourceCustom GroupSource = "custom"
 
 	GroupNameMaxLength        = 64
 	GroupSourceMaxLength      = 64
@@ -22,6 +23,7 @@ type GroupSource string
 
 var allGroupSources = []GroupSource{
 	GroupSourceLdap,
+	GroupSourceCustom,
 }
 
 var groupSourcesRequiringRemoteID = []GroupSource{
@@ -34,13 +36,18 @@ type Group struct {
 	DisplayName    string      `json:"display_name"`
 	Description    string      `json:"description"`
 	Source         GroupSource `json:"source"`
-	RemoteId       string      `json:"remote_id"`
+	RemoteId       *string     `json:"remote_id"`
 	CreateAt       int64       `json:"create_at"`
 	UpdateAt       int64       `json:"update_at"`
 	DeleteAt       int64       `json:"delete_at"`
 	HasSyncables   bool        `db:"-" json:"has_syncables"`
 	MemberCount    *int        `db:"-" json:"member_count,omitempty"`
 	AllowReference bool        `json:"allow_reference"`
+}
+
+type GroupWithUserIds struct {
+	Group
+	UserIds []string `json:"user_ids"`
 }
 
 type GroupWithSchemeAdmin struct {
@@ -63,6 +70,8 @@ type GroupPatch struct {
 	DisplayName    *string `json:"display_name"`
 	Description    *string `json:"description"`
 	AllowReference *bool   `json:"allow_reference"`
+	// For security reasons (including preventing unintended LDAP group synchronization) do no allow a Group's RemoteId or Source field to be
+	// included in patches.
 }
 
 type LdapGroupSearchOpts struct {
@@ -79,12 +88,21 @@ type GroupSearchOpts struct {
 	FilterAllowReference   bool
 	PageOpts               *PageOpts
 	Since                  int64
+	Source                 GroupSource
 
 	// FilterParentTeamPermitted filters the groups to the intersect of the
 	// set associated to the parent team and those returned by the query.
 	// If the parent team is not group-constrained or if NotAssociatedToChannel
 	// is not set then this option is ignored.
 	FilterParentTeamPermitted bool
+
+	// FilterHasMember filters the groups to the intersect of the
+	// set returned by the query and those that have the given user as a member.
+	FilterHasMember string
+}
+
+type GetGroupOpts struct {
+	IncludeMemberCount bool
 }
 
 type PageOpts struct {
@@ -95,6 +113,10 @@ type PageOpts struct {
 type GroupStats struct {
 	GroupID          string `json:"group_id"`
 	TotalMemberCount int64  `json:"total_member_count"`
+}
+
+type GroupModifyMembers struct {
+	UserIds []string `json:"user_ids"`
 }
 
 func (group *Group) Patch(patch *GroupPatch) {
@@ -137,7 +159,7 @@ func (group *Group) IsValidForCreate() *AppError {
 		return NewAppError("Group.IsValidForCreate", "model.group.source.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(group.RemoteId) > GroupRemoteIDMaxLength || (group.RemoteId == "" && group.requiresRemoteId()) {
+	if (group.GetRemoteId() == "" && group.requiresRemoteId()) || len(group.GetRemoteId()) > GroupRemoteIDMaxLength {
 		return NewAppError("Group.IsValidForCreate", "model.group.remote_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -187,4 +209,23 @@ func (group *Group) IsValidName() *AppError {
 		}
 	}
 	return nil
+}
+
+func (group *Group) GetName() string {
+	if group.Name == nil {
+		return ""
+	}
+	return *group.Name
+}
+
+func (group *Group) GetRemoteId() string {
+	if group.RemoteId == nil {
+		return ""
+	}
+	return *group.RemoteId
+}
+
+type GroupsWithCount struct {
+	Groups     []*Group `json:"groups"`
+	TotalCount int64    `json:"total_count"`
 }

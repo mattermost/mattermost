@@ -110,7 +110,10 @@ func (s SearchPostStore) Delete(postId string, date int64, deletedByID string) e
 	err := s.PostStore.Delete(postId, date, deletedByID)
 
 	if err == nil {
-		postList, err2 := s.PostStore.Get(context.Background(), postId, true, false, false, "")
+		opts := model.GetPostsOptions{
+			SkipFetchThreads: true,
+		}
+		postList, err2 := s.PostStore.Get(context.Background(), postId, opts, "")
 		if postList != nil && len(postList.Order) > 0 {
 			if err2 != nil {
 				s.deletePostIndex(postList.Posts[postList.Order[0]])
@@ -142,7 +145,11 @@ func (s SearchPostStore) searchPostsForUserByEngine(engine searchengine.SearchEn
 	}
 
 	// We only allow the user to search in channels they are a member of.
-	userChannels, err2 := s.rootStore.Channel().GetChannels(teamId, userId, paramsList[0].IncludeDeletedChannels, 0)
+	userChannels, err2 := s.rootStore.Channel().GetChannels(teamId, userId,
+		&model.ChannelSearchOpts{
+			IncludeDeleted: paramsList[0].IncludeDeletedChannels,
+			LastDeleteAt:   0,
+		})
 	if err2 != nil {
 		return nil, errors.Wrap(err2, "error getting channel for user")
 	}

@@ -345,7 +345,7 @@ func TestPublicFilesRequest(t *testing.T) {
 	assert.Equal(t, 301, res.Code)
 }
 
-/* Test disabled for now so we don't requrie the client to build. Maybe re-enable after client gets moved out.
+/* Test disabled for now so we don't require the client to build. Maybe re-enable after client gets moved out.
 func TestStatic(t *testing.T) {
 	Setup()
 

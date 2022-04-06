@@ -56,7 +56,7 @@ func (c *MarketplaceMetering) BatchMeterUsageRequest(input *BatchMeterUsageInput
 
 // BatchMeterUsage API operation for AWSMarketplace Metering.
 //
-// BatchMeterUsage is called from a SaaS application listed on the AWS Marketplace
+// BatchMeterUsage is called from a SaaS application listed on AWS Marketplace
 // to post metering records for a set of customers.
 //
 // For identical requests, the API is idempotent; requests can be retried with
@@ -65,13 +65,25 @@ func (c *MarketplaceMetering) BatchMeterUsageRequest(input *BatchMeterUsageInput
 // Every request to BatchMeterUsage is for one product. If you need to meter
 // usage for multiple products, you must make multiple calls to BatchMeterUsage.
 //
+// Usage records are expected to be submitted as quickly as possible after the
+// event that is being recorded, and are not accepted more than 6 hours after
+// the event.
+//
 // BatchMeterUsage can process up to 25 UsageRecords at a time.
 //
 // A UsageRecord can optionally include multiple usage allocations, to provide
-// customers with usagedata split into buckets by tags that you define (or allow
-// the customer to define).
+// customers with usage data split into buckets by tags that you define (or
+// allow the customer to define).
+//
+// BatchMeterUsage returns a list of UsageRecordResult objects, showing the
+// result for each UsageRecord, as well as a list of UnprocessedRecords, indicating
+// errors in the service side that you should retry.
 //
 // BatchMeterUsage requests must be less than 1MB in size.
+//
+// For an example of using BatchMeterUsage, see BatchMeterUsage code example
+// (https://docs.aws.amazon.com/marketplace/latest/userguide/saas-code-examples.html#saas-batchmeterusage-example)
+// in the AWS Marketplace Seller Guide.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -104,7 +116,11 @@ func (c *MarketplaceMetering) BatchMeterUsageRequest(input *BatchMeterUsageInput
 //   You have metered usage for a CustomerIdentifier that does not exist.
 //
 //   * TimestampOutOfBoundsException
-//   The timestamp value passed in the meterUsage() is out of allowed range.
+//   The timestamp value passed in the UsageRecord is out of allowed range.
+//
+//   For BatchMeterUsage, if any of the records are outside of the allowed range,
+//   the entire batch is not processed. You must remove invalid records and try
+//   again.
 //
 //   * ThrottlingException
 //   The calls to the API are throttled.
@@ -188,6 +204,10 @@ func (c *MarketplaceMetering) MeterUsageRequest(input *MeterUsageInput) (req *re
 // customers with usage data split into buckets by tags that you define (or
 // allow the customer to define).
 //
+// Usage records are expected to be submitted as quickly as possible after the
+// event that is being recorded, and are not accepted more than 6 hours after
+// the event.
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -221,7 +241,11 @@ func (c *MarketplaceMetering) MeterUsageRequest(input *MeterUsageInput) (req *re
 //   AWS Region of the resource must match.
 //
 //   * TimestampOutOfBoundsException
-//   The timestamp value passed in the meterUsage() is out of allowed range.
+//   The timestamp value passed in the UsageRecord is out of allowed range.
+//
+//   For BatchMeterUsage, if any of the records are outside of the allowed range,
+//   the entire batch is not processed. You must remove invalid records and try
+//   again.
 //
 //   * DuplicateRequestException
 //   A metering record has already been emitted by the same EC2 instance, ECS
@@ -313,7 +337,7 @@ func (c *MarketplaceMetering) RegisterUsageRequest(input *RegisterUsageInput) (r
 //    your paid software is subscribed to your product on AWS Marketplace, enabling
 //    you to guard against unauthorized use. Your container image that integrates
 //    with RegisterUsage is only required to guard against unauthorized use
-//    at container startup, as such a CustomerNotSubscribedException/PlatformNotSupportedException
+//    at container startup, as such a CustomerNotSubscribedException or PlatformNotSupportedException
 //    will only be thrown on the initial call to RegisterUsage. Subsequent calls
 //    from the same Amazon ECS task instance (e.g. task-id) or Amazon EKS pod
 //    will not throw a CustomerNotSubscribedException, even if the customer
@@ -440,7 +464,15 @@ func (c *MarketplaceMetering) ResolveCustomerRequest(input *ResolveCustomerInput
 // ResolveCustomer is called by a SaaS application during the registration process.
 // When a buyer visits your website during the registration process, the buyer
 // submits a registration token through their browser. The registration token
-// is resolved through this API to obtain a CustomerIdentifier and product code.
+// is resolved through this API to obtain a CustomerIdentifier along with the
+// CustomerAWSAccountId and ProductCode.
+//
+// The API needs to called from the seller account id used to publish the SaaS
+// application to successfully resolve the token.
+//
+// For an example of using ResolveCustomer, see ResolveCustomer code example
+// (https://docs.aws.amazon.com/marketplace/latest/userguide/saas-code-examples.html#saas-resolvecustomer-example)
+// in the AWS Marketplace Seller Guide.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -576,7 +608,8 @@ type BatchMeterUsageOutput struct {
 	_ struct{} `type:"structure"`
 
 	// Contains all UsageRecords processed by BatchMeterUsage. These records were
-	// either honored by AWS Marketplace Metering Service or were invalid.
+	// either honored by AWS Marketplace Metering Service or were invalid. Invalid
+	// records should be fixed before being resubmitted.
 	Results []*UsageRecordResult `type:"list"`
 
 	// Contains all UsageRecords that were not processed by BatchMeterUsage. This
@@ -1877,7 +1910,8 @@ type ResolveCustomerInput struct {
 
 	// When a buyer visits your website during the registration process, the buyer
 	// submits a registration token through the browser. The registration token
-	// is resolved to obtain a CustomerIdentifier and product code.
+	// is resolved to obtain a CustomerIdentifier along with the CustomerAWSAccountId
+	// and ProductCode.
 	//
 	// RegistrationToken is a required field
 	RegistrationToken *string `type:"string" required:"true"`
@@ -1921,9 +1955,13 @@ func (s *ResolveCustomerInput) SetRegistrationToken(v string) *ResolveCustomerIn
 }
 
 // The result of the ResolveCustomer operation. Contains the CustomerIdentifier
-// and product code.
+// along with the CustomerAWSAccountId and ProductCode.
 type ResolveCustomerOutput struct {
 	_ struct{} `type:"structure"`
+
+	// The CustomerAWSAccountId provides the AWS account ID associated with the
+	// CustomerIdentifier for the individual customer.
+	CustomerAWSAccountId *string `min:"1" type:"string"`
 
 	// The CustomerIdentifier is used to identify an individual customer in your
 	// application. Calls to BatchMeterUsage require CustomerIdentifiers for each
@@ -1952,6 +1990,12 @@ func (s ResolveCustomerOutput) String() string {
 // value will be replaced with "sensitive".
 func (s ResolveCustomerOutput) GoString() string {
 	return s.String()
+}
+
+// SetCustomerAWSAccountId sets the CustomerAWSAccountId field's value.
+func (s *ResolveCustomerOutput) SetCustomerAWSAccountId(v string) *ResolveCustomerOutput {
+	s.CustomerAWSAccountId = &v
+	return s
 }
 
 // SetCustomerIdentifier sets the CustomerIdentifier field's value.
@@ -2099,7 +2143,11 @@ func (s *ThrottlingException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
-// The timestamp value passed in the meterUsage() is out of allowed range.
+// The timestamp value passed in the UsageRecord is out of allowed range.
+//
+// For BatchMeterUsage, if any of the records are outside of the allowed range,
+// the entire batch is not processed. You must remove invalid records and try
+// again.
 type TimestampOutOfBoundsException struct {
 	_            struct{}                  `type:"structure"`
 	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
@@ -2238,7 +2286,7 @@ func (s *UsageAllocation) SetTags(v []*Tag) *UsageAllocation {
 // A UsageRecord indicates a quantity of usage for a given product, customer,
 // dimension and time.
 //
-// Multiple requests with the same UsageRecords as input will be deduplicated
+// Multiple requests with the same UsageRecords as input will be de-duplicated
 // to prevent double charges.
 type UsageRecord struct {
 	_ struct{} `type:"structure"`
@@ -2249,9 +2297,8 @@ type UsageRecord struct {
 	// CustomerIdentifier is a required field
 	CustomerIdentifier *string `min:"1" type:"string" required:"true"`
 
-	// During the process of registering a product on AWS Marketplace, up to eight
-	// dimensions are specified. These represent different units of value in your
-	// application.
+	// During the process of registering a product on AWS Marketplace, dimensions
+	// are specified. These represent different units of value in your application.
 	//
 	// Dimension is a required field
 	Dimension *string `min:"1" type:"string" required:"true"`
@@ -2372,9 +2419,13 @@ type UsageRecordResult struct {
 	//
 	//    * Success- The UsageRecord was accepted and honored by BatchMeterUsage.
 	//
-	//    * CustomerNotSubscribed- The CustomerIdentifier specified is not subscribed
-	//    to your product. The UsageRecord was not honored. Future UsageRecords
-	//    for this customer will fail until the customer subscribes to your product.
+	//    * CustomerNotSubscribed- The CustomerIdentifier specified is not able
+	//    to use your product. The UsageRecord was not honored. There are three
+	//    causes for this result: The customer identifier is invalid. The customer
+	//    identifier provided in the metering record does not have an active agreement
+	//    or subscription with this product. Future UsageRecords for this customer
+	//    will fail until the customer subscribes to your product. The customer's
+	//    AWS account was suspended.
 	//
 	//    * DuplicateRecord- Indicates that the UsageRecord was invalid and not
 	//    honored. A previously metered UsageRecord had the same customer, dimension,

@@ -20,6 +20,8 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/shared/templates"
 	"github.com/pkg/errors"
+
+	"github.com/microcosm-cc/bluemonday"
 )
 
 func (es *Service) SendChangeUsernameEmail(newUsername, email, locale, siteURL string) error {
@@ -426,11 +428,11 @@ func (es *Service) SendMfaChangeEmail(email string, activated bool, locale, site
 	return nil
 }
 
-func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string, reminderData *model.TeamInviteReminderData) error {
-	if es.PerHourEmailRateLimiter == nil {
+func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, errorWhenNotSent bool) error {
+	if es.perHourEmailRateLimiter == nil {
 		return NoRateLimiterError
 	}
-	rateLimited, result, err := es.PerHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
+	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
 	if err != nil {
 		return SetupRateLimiterError
 	}
@@ -491,17 +493,20 @@ func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderU
 
 			if err := es.sendMail(invite, subject, body); err != nil {
 				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
+				if errorWhenNotSent {
+					return SendMailError
+				}
 			}
 		}
 	}
 	return nil
 }
 
-func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string) error {
-	if es.PerHourEmailRateLimiter == nil {
+func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string, errorWhenNotSent bool) error {
+	if es.perHourEmailRateLimiter == nil {
 		return NoRateLimiterError
 	}
-	rateLimited, result, err := es.PerHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
+	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
 	if err != nil {
 		return SetupRateLimiterError
 	}
@@ -525,10 +530,10 @@ func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Cha
 			data.Props["SubTitle"] = i18n.T("api.templates.invite_body_guest.subTitle")
 			data.Props["Button"] = i18n.T("api.templates.invite_body.button")
 			data.Props["SenderName"] = senderName
-			data.Props["Message"] = ""
 			if message != "" {
-				data.Props["Message"] = message
+				message = bluemonday.NewPolicy().Sanitize(message)
 			}
+			data.Props["Message"] = message
 			data.Props["InviteFooterTitle"] = i18n.T("api.templates.invite_body_footer.title")
 			data.Props["InviteFooterInfo"] = i18n.T("api.templates.invite_body_footer.info")
 			data.Props["InviteFooterLearnMore"] = i18n.T("api.templates.invite_body_footer.learn_more")
@@ -590,6 +595,9 @@ func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Cha
 
 			if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, embeddedFiles); nErr != nil {
 				mlog.Error("Failed to send invite email successfully", mlog.Err(nErr))
+				if errorWhenNotSent {
+					return SendMailError
+				}
 			}
 		}
 	}
@@ -733,31 +741,37 @@ func (es *Service) CreateVerifyEmailToken(userID string, newEmail string) (*mode
 	return token, nil
 }
 
-func (es *Service) SendAtUserLimitWarningEmail(email string, locale string, siteURL string) (bool, error) {
+func (es *Service) SendLicenseInactivityEmail(email, name, locale, siteURL string) error {
 	T := i18n.GetUserTranslations(locale)
-
-	subject := T("api.templates.at_limit_subject")
-
+	subject := T("api.templates.server_inactivity_subject")
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = T("api.templates.at_limit_title")
-	data.Props["Info1"] = T("api.templates.at_limit_info1")
-	data.Props["Info2"] = T("api.templates.at_limit_info2")
-	data.Props["Button"] = T("api.templates.upgrade_mattermost_cloud")
+	data.Props["Title"] = T("api.templates.server_inactivity_title")
+	data.Props["SubTitle"] = T("api.templates.server_inactivity_subtitle", map[string]interface{}{"Name": name})
+	data.Props["InfoBullet"] = T("api.templates.server_inactivity_info_bullet")
+	data.Props["InfoBullet1"] = T("api.templates.server_inactivity_info_bullet1")
+	data.Props["InfoBullet2"] = T("api.templates.server_inactivity_info_bullet2")
+	data.Props["Info"] = T("api.templates.server_inactivity_info")
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
+	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
+	data.Props["Button"] = T("api.templates.server_inactivity_button")
+	data.Props["SupportEmail"] = "feedback@mattermost.com"
+	data.Props["ButtonURL"] = siteURL
+	data.Props["Channels"] = T("Channels")
+	data.Props["Playbooks"] = T("Playbooks")
+	data.Props["Boards"] = T("Boards")
 
-	data.Props["Footer"] = T("api.templates.copyright")
-
-	body, err := es.templatesContainer.RenderToString("reached_user_limit_body", data)
+	body, err := es.templatesContainer.RenderToString("inactivity_body", data)
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	if err := es.sendMail(email, subject, body); err != nil {
-		return false, err
+		return err
 	}
 
-	return true, nil
+	return nil
 }
 
 func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, renewalLink string, daysToExpiration int) error {
@@ -773,6 +787,7 @@ func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, re
 	data.Props["Button"] = T("api.templates.license_up_for_renewal_renew_now")
 	data.Props["ButtonURL"] = renewalLink
 	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
+	data.Props["SupportEmail"] = "feedback@mattermost.com"
 	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
 
 	body, err := es.templatesContainer.RenderToString("license_up_for_renewal", data)
@@ -785,229 +800,6 @@ func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, re
 	}
 
 	return nil
-}
-
-// SendUpgradeEmail formats an email template and sends an email to an admin specified in the email arg
-func (es *Service) SendUpgradeEmail(user, email, locale, siteURL, action string) (bool, error) {
-	T := i18n.GetUserTranslations(locale)
-
-	subject := T("api.templates.upgrade_request_subject")
-
-	data := es.NewEmailTemplateData(locale)
-	data.Props["Info5"] = T("api.templates.at_limit_info5")
-	data.Props["BillingPath"] = "admin_console/billing/subscription"
-	data.Props["SiteURL"] = siteURL
-	data.Props["Button"] = T("api.templates.upgrade_mattermost_cloud")
-	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-	data.Props["Footer"] = T("api.templates.copyright")
-
-	if action == model.InviteLimitation {
-		data.Props["Title"] = T("api.templates.upgrade_request_title", map[string]interface{}{"UserName": user})
-		data.Props["Info4"] = T("api.templates.upgrade_request_info4")
-	} else {
-		data.Props["Title"] = T("api.templates.upgrade_request_title2")
-		data.Props["Info4"] = T("api.templates.upgrade_request_info4_2")
-	}
-
-	body, err := es.templatesContainer.RenderToString("cloud_upgrade_request_email", data)
-	if err != nil {
-		return false, err
-	}
-
-	if err := es.sendMail(email, subject, body); err != nil {
-		return false, err
-	}
-
-	return true, nil
-}
-
-func (es *Service) SendOverUserLimitWarningEmail(email string, locale string, siteURL string) (bool, error) {
-	T := i18n.GetUserTranslations(locale)
-
-	subject := T("api.templates.over_limit_subject")
-
-	data := es.NewEmailTemplateData(locale)
-	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = T("api.templates.over_limit_title")
-	data.Props["Info1"] = T("api.templates.over_limit_info1")
-	data.Props["Info2"] = T("api.templates.over_limit_info2")
-	data.Props["Button"] = T("api.templates.upgrade_mattermost_cloud")
-	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-
-	data.Props["Footer"] = T("api.templates.copyright")
-
-	body, err := es.templatesContainer.RenderToString("reached_user_limit_body", data)
-	if err != nil {
-		return false, err
-	}
-
-	if err := es.sendMail(email, subject, body); err != nil {
-		return false, err
-	}
-
-	return true, nil
-}
-
-func (es *Service) SendOverUserLimitThirtyDayWarningEmail(email string, locale string, siteURL string) (bool, error) {
-	T := i18n.GetUserTranslations(locale)
-
-	subject := T("api.templates.over_limit_30_days_subject")
-
-	data := es.NewEmailTemplateData(locale)
-	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = T("api.templates.over_limit_30_days_title")
-	data.Props["Info1"] = T("api.templates.over_limit_30_days_info1")
-	data.Props["Info2"] = T("api.templates.over_limit_30_days_info2")
-	data.Props["Info2Item1"] = T("api.templates.over_limit_30_days_info2_item1")
-	data.Props["Info2Item2"] = T("api.templates.over_limit_30_days_info2_item2")
-	data.Props["Info2Item3"] = T("api.templates.over_limit_30_days_info2_item3")
-	data.Props["Button"] = T("api.templates.over_limit_fix_now")
-	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-
-	data.Props["Footer"] = T("api.templates.copyright")
-
-	body, err := es.templatesContainer.RenderToString("over_user_limit_30_days_body", data)
-	if err != nil {
-		return false, err
-	}
-
-	if err := es.sendMail(email, subject, body); err != nil {
-		return false, err
-	}
-
-	return true, nil
-}
-
-func (es *Service) SendOverUserLimitNinetyDayWarningEmail(email string, locale string, siteURL string, overLimitDate string) (bool, error) {
-	T := i18n.GetUserTranslations(locale)
-
-	subject := T("api.templates.over_limit_90_days_subject")
-
-	data := es.NewEmailTemplateData(locale)
-	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = T("api.templates.over_limit_90_days_title")
-	data.Props["Info1"] = T("api.templates.over_limit_90_days_info1", map[string]interface{}{"OverLimitDate": overLimitDate})
-	data.Props["Info2"] = T("api.templates.over_limit_90_days_info2")
-	data.Props["Info3"] = T("api.templates.over_limit_90_days_info3")
-	data.Props["Info4"] = T("api.templates.over_limit_90_days_info4")
-	data.Props["Button"] = T("api.templates.over_limit_fix_now")
-	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-
-	data.Props["Footer"] = T("api.templates.copyright")
-
-	body, err := es.templatesContainer.RenderToString("over_user_limit_90_days_body", data)
-	if err != nil {
-		return false, err
-	}
-
-	if err := es.sendMail(email, subject, body); err != nil {
-		return false, err
-	}
-
-	return true, nil
-}
-
-func (es *Service) SendOverUserLimitWorkspaceSuspendedWarningEmail(email string, locale string, siteURL string) (bool, error) {
-	T := i18n.GetUserTranslations(locale)
-
-	subject := T("api.templates.over_limit_suspended_subject")
-
-	data := es.NewEmailTemplateData(locale)
-	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = T("api.templates.over_limit_suspended_title")
-	data.Props["Info1"] = T("api.templates.over_limit_suspended_info1")
-	data.Props["Info2"] = T("api.templates.over_limit_suspended_info2")
-	data.Props["Button"] = T("api.templates.over_limit_suspended_contact_support")
-	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-
-	data.Props["Footer"] = T("api.templates.copyright")
-
-	body, err := es.templatesContainer.RenderToString("over_user_limit_workspace_suspended_body", data)
-	if err != nil {
-		return false, err
-	}
-
-	if err := es.sendMail(email, subject, body); err != nil {
-		return false, err
-	}
-
-	return true, nil
-}
-
-func (es *Service) SendOverUserFourteenDayWarningEmail(email string, locale string, siteURL string, overLimitDate string) (bool, error) {
-	T := i18n.GetUserTranslations(locale)
-
-	subject := T("api.templates.over_limit_14_days_subject")
-
-	data := es.NewEmailTemplateData(locale)
-	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = T("api.templates.over_limit_14_days_title")
-	data.Props["Info1"] = T("api.templates.over_limit_14_days_info1", map[string]interface{}{"OverLimitDate": overLimitDate})
-	data.Props["Button"] = T("api.templates.over_limit_fix_now")
-	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-
-	data.Props["Footer"] = T("api.templates.copyright")
-
-	body, err := es.templatesContainer.RenderToString("over_user_limit_7_days_body", data)
-	if err != nil {
-		return false, err
-	}
-
-	if err := es.sendMail(email, subject, body); err != nil {
-		return false, err
-	}
-
-	return true, nil
-}
-
-func (es *Service) SendOverUserSevenDayWarningEmail(email string, locale string, siteURL string) (bool, error) {
-	T := i18n.GetUserTranslations(locale)
-
-	subject := T("api.templates.over_limit_7_days_subject")
-
-	data := es.NewEmailTemplateData(locale)
-	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = T("api.templates.over_limit_7_days_title")
-	data.Props["Info1"] = T("api.templates.over_limit_7_days_info1")
-	data.Props["Button"] = T("api.templates.over_limit_fix_now")
-	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-
-	data.Props["Footer"] = T("api.templates.copyright")
-
-	body, err := es.templatesContainer.RenderToString("over_user_limit_7_days_body", data)
-	if err != nil {
-		return false, err
-	}
-
-	if err := es.sendMail(email, subject, body); err != nil {
-		return false, err
-	}
-
-	return true, nil
-}
-
-func (es *Service) SendSuspensionEmailToSupport(email string, installationID string, customerID string, subscriptionID string, siteURL string, userCount int64) (bool, error) {
-	// Localization not needed
-
-	subject := fmt.Sprintf("Cloud Installation %s Scheduled Suspension", installationID)
-	data := es.NewEmailTemplateData("en")
-	data.Props["CustomerID"] = customerID
-	data.Props["SiteURL"] = siteURL
-	data.Props["SubscriptionID"] = subscriptionID
-	data.Props["InstallationID"] = installationID
-	data.Props["SuspensionDate"] = time.Now().AddDate(0, 0, 61).Format("2006-01-02")
-	data.Props["UserCount"] = userCount
-
-	body, err := es.templatesContainer.RenderToString("over_user_limit_support_body", data)
-	if err != nil {
-		return false, err
-	}
-
-	if err := es.sendMail(email, subject, body); err != nil {
-		return false, err
-	}
-
-	return true, nil
 }
 
 func (es *Service) SendPaymentFailedEmail(email string, locale string, failedPayment *model.FailedPayment, siteURL string) (bool, error) {

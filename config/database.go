@@ -5,8 +5,12 @@ package config
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
+	"embed"
 	"encoding/json"
+	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -19,13 +23,28 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/morph"
+
+	"github.com/mattermost/morph/drivers"
+	ms "github.com/mattermost/morph/drivers/mysql"
+	ps "github.com/mattermost/morph/drivers/postgres"
+	mbindata "github.com/mattermost/morph/sources/embedded"
 )
+
+//go:embed migrations
+var assets embed.FS
 
 // MaxWriteLength defines the maximum length accepted for write to the Configurations or
 // ConfigurationFiles table.
 //
 // It is imposed by MySQL's default max_allowed_packet value of 4Mb.
 const MaxWriteLength = 4 * 1024 * 1024
+
+// We use the something different from the default migration table name of morph
+const migrationsTableName = "db_config_migrations"
+
+// The timeout value for each migration file to run.
+const migrationsTimeoutInSeconds = 100000
 
 // DatabaseStore is a config store backed by a database.
 // Not to be used directly. Only to be used as a backing store for config.Store
@@ -63,7 +82,7 @@ func NewDatabaseStore(dsn string) (ds *DatabaseStore, err error) {
 		dataSourceName: dataSourceName,
 		db:             db,
 	}
-	if err = initializeConfigurationsTable(ds.db); err != nil {
+	if err = ds.initializeConfigurationsTable(); err != nil {
 		err = errors.Wrap(err, "failed to initialize")
 		return nil, err
 	}
@@ -74,61 +93,77 @@ func NewDatabaseStore(dsn string) (ds *DatabaseStore, err error) {
 // initializeConfigurationsTable ensures the requisite tables in place to form the backing store.
 //
 // Uses MEDIUMTEXT on MySQL, and TEXT on sane databases.
-func initializeConfigurationsTable(db *sqlx.DB) error {
-	mysqlCharset := ""
-	if db.DriverName() == "mysql" {
-		mysqlCharset = "DEFAULT CHARACTER SET utf8mb4"
-	}
-
-	_, err := db.Exec(`
-		CREATE TABLE IF NOT EXISTS Configurations (
-		    Id VARCHAR(26) PRIMARY KEY,
-		    Value TEXT NOT NULL,
-		    CreateAt BIGINT NOT NULL,
-		    Active BOOLEAN NULL UNIQUE
-		)
-	` + mysqlCharset)
-
+func (ds *DatabaseStore) initializeConfigurationsTable() error {
+	assetsList, err := assets.ReadDir(filepath.Join("migrations", ds.driverName))
 	if err != nil {
-		return errors.Wrap(err, "failed to create Configurations table")
+		return err
 	}
 
-	_, err = db.Exec(`
-		CREATE TABLE IF NOT EXISTS ConfigurationFiles (
-		    Name VARCHAR(64) PRIMARY KEY,
-		    Data TEXT NOT NULL,
-		    CreateAt BIGINT NOT NULL,
-		    UpdateAt BIGINT NOT NULL
-		)
-	` + mysqlCharset)
+	assetNamesForDriver := make([]string, len(assetsList))
+	for i, entry := range assetsList {
+		assetNamesForDriver[i] = entry.Name()
+	}
+
+	src, err := mbindata.WithInstance(&mbindata.AssetSource{
+		Names: assetNamesForDriver,
+		AssetFunc: func(name string) ([]byte, error) {
+			return assets.ReadFile(filepath.Join("migrations", ds.driverName, name))
+		},
+	})
 	if err != nil {
-		return errors.Wrap(err, "failed to create ConfigurationFiles table")
+		return err
 	}
 
-	// Change from TEXT (65535 limit) to MEDIUM TEXT (16777215) on MySQL. This is a
-	// backwards-compatible migration for any existing schema.
-	// Also fix using the wrong encoding initially
-	if db.DriverName() == "mysql" {
-		_, err = db.Exec(`ALTER TABLE Configurations MODIFY Value MEDIUMTEXT`)
-		if err != nil {
-			return errors.Wrap(err, "failed to alter Configurations table")
-		}
-		_, err = db.Exec(`ALTER TABLE Configurations CONVERT TO CHARACTER SET utf8mb4`)
-		if err != nil {
-			return errors.Wrap(err, "failed to alter Configurations table character set")
-		}
-
-		_, err = db.Exec(`ALTER TABLE ConfigurationFiles MODIFY Data MEDIUMTEXT`)
-		if err != nil {
-			return errors.Wrap(err, "failed to alter ConfigurationFiles table")
-		}
-		_, err = db.Exec(`ALTER TABLE ConfigurationFiles CONVERT TO CHARACTER SET utf8mb4`)
-		if err != nil {
-			return errors.Wrap(err, "failed to alter ConfigurationFiles table character set")
-		}
+	cfg := drivers.Config{
+		MigrationsTable:        migrationsTableName,
+		StatementTimeoutInSecs: migrationsTimeoutInSeconds,
 	}
 
-	return nil
+	var driver drivers.Driver
+	switch ds.driverName {
+	case model.DatabaseDriverMysql:
+		dataSource, rErr := resetReadTimeout(ds.dataSourceName)
+		if rErr != nil {
+			return fmt.Errorf("failed to reset read timeout from datasource: %w", rErr)
+		}
+
+		dataSource, err = appendMultipleStatementsFlag(dataSource)
+		if err != nil {
+			return err
+		}
+
+		var db *sqlx.DB
+		db, err = sqlx.Open(ds.driverName, dataSource)
+		if err != nil {
+			return errors.Wrapf(err, "failed to connect to %s database", ds.driverName)
+		}
+
+		driver, err = ms.WithInstance(db.DB, &ms.Config{
+			Config: cfg,
+		})
+
+		defer db.Close()
+	case model.DatabaseDriverPostgres:
+		driver, err = ps.WithInstance(ds.db.DB, &ps.Config{
+			Config: cfg,
+		})
+	default:
+		err = fmt.Errorf("unsupported database type %s for migration", ds.driverName)
+	}
+	if err != nil {
+		return err
+	}
+
+	opts := []morph.EngineOption{
+		morph.WithLock("mm-config-lock-key"),
+	}
+	engine, err := morph.New(context.Background(), driver, src, opts...)
+	if err != nil {
+		return err
+	}
+	defer engine.Close()
+
+	return engine.ApplyAll()
 }
 
 // parseDSN splits up a connection string into a driver name and data source name.
@@ -153,7 +188,7 @@ func parseDSN(dsn string) (string, string, error) {
 		// Strip off the mysql:// for the dsn with which to connect.
 		dsn = s[1]
 
-	case "postgres":
+	case "postgres", "postgresql":
 		// No changes required
 
 	default:
