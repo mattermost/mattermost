@@ -96,19 +96,19 @@ func populateEmptyReactions(postIDs []string, reactions map[string][]*model.Reac
 	return reactions
 }
 
-func (a *App) GetTopReactionsForTeamSince(teamID string, userID string, opts *model.InsightsOpts) ([]*model.TopReactions, *model.AppError) {
+func (a *App) GetTopReactionsForTeamSince(teamID string, userID string, opts *model.InsightsOpts) (*model.TopReactionList, *model.AppError) {
 	if !a.Config().FeatureFlags.InsightsEnabled {
 		return nil, model.NewAppError("GetTopReactionsForTeamSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	reactions, err := a.Srv().Store.Reaction().GetTopForTeamSince(teamID, userID, opts.TimeRange, opts.Page*opts.PerPage, opts.PerPage)
+	topReactionList, err := a.Srv().Store.Reaction().GetTopForTeamSince(teamID, userID, opts.TimeRange, opts.Page*opts.PerPage, opts.PerPage)
 	if err != nil {
 		return nil, model.NewAppError("GetTopReactionsForTeamSince", "app.reaction.get_top_for_team_since.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	return reactions, nil
+	return topReactionList, nil
 }
 
-func (a *App) GetTopReactionsForUserSince(userID string, teamID string, opts *model.InsightsOpts) ([]*model.TopReactions, *model.AppError) {
+func (a *App) GetTopReactionsForUserSince(userID string, teamID string, opts *model.InsightsOpts) ([]*model.TopReaction, *model.AppError) {
 	if !a.Config().FeatureFlags.InsightsEnabled {
 		return nil, model.NewAppError("GetTopReactionsForUserSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
 	}

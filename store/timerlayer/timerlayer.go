@@ -5817,7 +5817,7 @@ func (s *TimerLayerReactionStore) GetForPostSince(postId string, since int64, ex
 	return result, err
 }
 
-func (s *TimerLayerReactionStore) GetTopForTeamSince(teamID string, userID string, since int64, offset int, limit int) ([]*model.TopReactions, error) {
+func (s *TimerLayerReactionStore) GetTopForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopReactionList, error) {
 	start := timemodule.Now()
 
 	result, err := s.ReactionStore.GetTopForTeamSince(teamID, userID, since, offset, limit)
@@ -5833,7 +5833,7 @@ func (s *TimerLayerReactionStore) GetTopForTeamSince(teamID string, userID strin
 	return result, err
 }
 
-func (s *TimerLayerReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) ([]*model.TopReactions, error) {
+func (s *TimerLayerReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) ([]*model.TopReaction, error) {
 	start := timemodule.Now()
 
 	result, err := s.ReactionStore.GetTopForUserSince(userID, teamID, since, offset, limit)

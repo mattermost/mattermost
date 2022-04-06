@@ -142,15 +142,15 @@ func (_m *ReactionStore) GetForPostSince(postId string, since int64, excludeRemo
 }
 
 // GetTopForTeamSince provides a mock function with given fields: teamID, userID, since, offset, limit
-func (_m *ReactionStore) GetTopForTeamSince(teamID string, userID string, since int64, offset int, limit int) ([]*model.TopReactions, error) {
+func (_m *ReactionStore) GetTopForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopReactionList, error) {
 	ret := _m.Called(teamID, userID, since, offset, limit)
 
-	var r0 []*model.TopReactions
-	if rf, ok := ret.Get(0).(func(string, string, int64, int, int) []*model.TopReactions); ok {
+	var r0 *model.TopReactionList
+	if rf, ok := ret.Get(0).(func(string, string, int64, int, int) *model.TopReactionList); ok {
 		r0 = rf(teamID, userID, since, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.TopReactions)
+			r0 = ret.Get(0).(*model.TopReactionList)
 		}
 	}
 
@@ -165,15 +165,15 @@ func (_m *ReactionStore) GetTopForTeamSince(teamID string, userID string, since 
 }
 
 // GetTopForUserSince provides a mock function with given fields: userID, teamID, since, offset, limit
-func (_m *ReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) ([]*model.TopReactions, error) {
+func (_m *ReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) ([]*model.TopReaction, error) {
 	ret := _m.Called(userID, teamID, since, offset, limit)
 
-	var r0 []*model.TopReactions
-	if rf, ok := ret.Get(0).(func(string, string, int64, int, int) []*model.TopReactions); ok {
+	var r0 []*model.TopReaction
+	if rf, ok := ret.Get(0).(func(string, string, int64, int, int) []*model.TopReaction); ok {
 		r0 = rf(userID, teamID, since, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.TopReactions)
+			r0 = ret.Get(0).([]*model.TopReaction)
 		}
 	}
 

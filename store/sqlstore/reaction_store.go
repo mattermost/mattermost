@@ -231,13 +231,14 @@ func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int
 // GetTopForTeamSince returns the instance counts of the following Reactions sets:
 // a) those created by anyone in private channels in the given user's membership graph on the given team, and
 // b) those created by anyone in public channels on the given team.
-func (s *SqlReactionStore) GetTopForTeamSince(teamID string, userID string, since int64, offset int, limit int) ([]*model.TopReactions, error) {
-	var reactions []*model.TopReactions
+func (s *SqlReactionStore) GetTopForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopReactionList, error) {
+	var reactions []*model.TopReaction
 
 	query := `
 		SELECT
 			EmojiName,
-			sum(EmojiCount) AS Count
+			sum(EmojiCount) AS Count,
+			RANK() OVER (ORDER BY sum(EmojiCount) DESC) As Rank
 		FROM ((
 				SELECT
 					EmojiName,
@@ -277,17 +278,29 @@ func (s *SqlReactionStore) GetTopForTeamSince(teamID string, userID string, sinc
 		LIMIT ?
 		OFFSET ?`
 
-	if err := s.GetReplicaX().Select(&reactions, query, userID, teamID, since, teamID, since, limit, offset); err != nil {
+	if err := s.GetReplicaX().Select(&reactions, query, userID, teamID, since, teamID, since, limit+1, offset); err != nil {
 		return nil, errors.Wrap(err, "failed to get top Reactions")
 	}
-	return reactions, nil
+
+	var hasNext bool
+	if limit != 0 {
+		if len(reactions) == limit+1 {
+			hasNext = true
+		}
+	}
+
+	if hasNext {
+		reactions = reactions[:len(reactions)-1]
+	}
+
+	return &model.TopReactionList{HasNext: hasNext, Items: reactions}, nil
 }
 
 // GetTopForUserSince returns the instance counts of the following Reactions sets:
 // a) those created by the given user in any channel type on the given team (across the workspace if no team is given), and
 // b) those created by the given user in DM or group channels.
-func (s *SqlReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) ([]*model.TopReactions, error) {
-	var reactions []*model.TopReactions
+func (s *SqlReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) ([]*model.TopReaction, error) {
+	var reactions []*model.TopReaction
 	var args []interface{}
 	var query string
 

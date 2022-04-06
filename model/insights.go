@@ -20,9 +20,15 @@ type InsightsOpts struct {
 	PerPage   int
 }
 
-type TopReactions struct {
+type TopReactionList struct {
+	HasNext bool           `json:"has_next"`
+	Items   []*TopReaction `json:"items"`
+}
+
+type TopReaction struct {
 	EmojiName string `json:"emoji_name"`
 	Count     int64  `json:"count"`
+	Rank      int    `json:"rank"`
 }
 
 // GetTimeRange converts the timeRange string to an int64 Unix time

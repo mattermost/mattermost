@@ -725,26 +725,29 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 
 	teamId := th.BasicChannel.TeamId
 
-	var expectedTopReactions [5]*model.TopReactions
-	expectedTopReactions[0] = &model.TopReactions{EmojiName: "100", Count: int64(6)}
-	expectedTopReactions[1] = &model.TopReactions{EmojiName: "joy", Count: int64(5)}
-	expectedTopReactions[2] = &model.TopReactions{EmojiName: "smile", Count: int64(4)}
-	expectedTopReactions[3] = &model.TopReactions{EmojiName: "sad", Count: int64(3)}
-	expectedTopReactions[4] = &model.TopReactions{EmojiName: "happy", Count: int64(2)}
+	var expectedTopReactions [5]*model.TopReaction
+	expectedTopReactions[0] = &model.TopReaction{EmojiName: "100", Count: int64(6)}
+	expectedTopReactions[1] = &model.TopReaction{EmojiName: "joy", Count: int64(5)}
+	expectedTopReactions[2] = &model.TopReaction{EmojiName: "smile", Count: int64(4)}
+	expectedTopReactions[3] = &model.TopReaction{EmojiName: "sad", Count: int64(3)}
+	expectedTopReactions[4] = &model.TopReaction{EmojiName: "happy", Count: int64(2)}
 
 	t.Run("get-top-reactions-for-team-since", func(t *testing.T) {
 		topReactions, _, err := client.GetTopReactionsForTeamSince(teamId, "1_day", 0, 5)
 		require.NoError(t, err)
+		reactions := topReactions.Items
 
-		for i, reaction := range topReactions {
+		for i, reaction := range reactions {
 			assert.Equal(t, expectedTopReactions[i].EmojiName, reaction.EmojiName)
 			assert.Equal(t, expectedTopReactions[i].Count, reaction.Count)
 		}
 
 		topReactions, _, err = client.GetTopReactionsForTeamSince(teamId, "1_day", 1, 5)
 		require.NoError(t, err)
-		assert.Equal(t, "+1", topReactions[0].EmojiName)
-		assert.Equal(t, int64(1), topReactions[0].Count)
+		reactions = topReactions.Items
+
+		assert.Equal(t, "+1", reactions[0].EmojiName)
+		assert.Equal(t, int64(1), reactions[0].Count)
 	})
 
 	t.Run("get-top-reactions-for-team-since invalid team id", func(t *testing.T) {
@@ -899,12 +902,12 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 
 	teamId := th.BasicChannel.TeamId
 
-	var expectedTopReactions [5]*model.TopReactions
-	expectedTopReactions[0] = &model.TopReactions{EmojiName: "happy", Count: int64(6)}
-	expectedTopReactions[1] = &model.TopReactions{EmojiName: "smile", Count: int64(5)}
-	expectedTopReactions[2] = &model.TopReactions{EmojiName: "+1", Count: int64(4)}
-	expectedTopReactions[3] = &model.TopReactions{EmojiName: "heart", Count: int64(3)}
-	expectedTopReactions[4] = &model.TopReactions{EmojiName: "blush", Count: int64(2)}
+	var expectedTopReactions [5]*model.TopReaction
+	expectedTopReactions[0] = &model.TopReaction{EmojiName: "happy", Count: int64(6)}
+	expectedTopReactions[1] = &model.TopReaction{EmojiName: "smile", Count: int64(5)}
+	expectedTopReactions[2] = &model.TopReaction{EmojiName: "+1", Count: int64(4)}
+	expectedTopReactions[3] = &model.TopReaction{EmojiName: "heart", Count: int64(3)}
+	expectedTopReactions[4] = &model.TopReaction{EmojiName: "blush", Count: int64(2)}
 
 	t.Run("get-top-reactions-for-user-since", func(t *testing.T) {
 		topReactions, _, err := client.GetTopReactionsForUserSince(teamId, "1_day", 0, 5)
