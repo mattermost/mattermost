@@ -293,46 +293,25 @@ func (s *SqlReactionStore) GetTopForUserSince(userID string, teamID string, sinc
 
 	if teamID != "" {
 		query = `
-			SELECT
-				EmojiName,
-				sum(EmojiCount) AS Count
-			FROM ((
-					SELECT
-						EmojiName,
-						count(EmojiName) AS EmojiCount
-					FROM
-						Reactions
-						INNER JOIN Posts ON Reactions.PostId = Posts.Id
-						INNER JOIN Channels ON Posts.ChannelId = Channels.Id
-					WHERE
-						Reactions.DeleteAt = 0
-						AND Reactions.UserId = ?
-						AND Channels.TeamId = ?
-						AND Reactions.CreateAt > ?
-					GROUP BY
-						Reactions.EmojiName)
-				UNION ALL (
-					SELECT
-						EmojiName,
-						count(EmojiName) AS EmojiCount
-					FROM
-						Reactions
-						INNER JOIN Posts ON Reactions.PostId = Posts.Id
-						INNER JOIN Channels ON Posts.ChannelId = Channels.Id
-					WHERE
-						Reactions.DeleteAt = 0
-						AND Reactions.UserId = ?
-						AND (Channels.Type = 'D' OR Channels.Type = 'G')
-						AND Reactions.CreateAt > ?
-					GROUP BY
-						Reactions.EmojiName)) AS A
-			GROUP BY
-				EmojiName
-			ORDER BY
-				Count DESC
-			LIMIT ?
-			OFFSET ?`
-		args = []interface{}{userID, teamID, since, userID, since, limit, offset}
+		SELECT
+			EmojiName,
+			count(EmojiName) AS Count
+		FROM
+			Reactions
+			INNER JOIN Posts ON Reactions.PostId = Posts.Id
+			INNER JOIN Channels ON Posts.ChannelId = Channels.Id
+		WHERE
+			Reactions.DeleteAt = 0
+			AND Reactions.UserId = ?
+			AND (Channels.TeamId = ? OR Channels.Type = 'D' OR Channels.Type = 'G')
+			AND Reactions.CreateAt > ?
+		GROUP BY
+			EmojiName
+		ORDER BY
+			Count DESC
+		LIMIT ?
+		OFFSET ?`
+		args = []interface{}{userID, teamID, since, limit, offset}
 	} else {
 		query = `
 			SELECT
