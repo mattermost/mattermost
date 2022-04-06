@@ -9233,5 +9233,9 @@
   {
     "id": "api.getThreadsForUser.bad_only_params",
     "translation": "OnlyThreads und OnlyTotals Parameter für getThreadsForUser schließen sich gegenseitig aus"
+  },
+  {
+    "id": "api.license.request_trial_license.embargoed",
+    "translation": "Wir konnten die Anfrage aufgrund von Einschränkungen für Embargoländer nicht verarbeiten. [Lerne mehr in unserer Dokumentation](https://mattermost.com/pl/limitations-for-embargoed-countries), oder kontaktiere legal@mattermost.com für Fragen rund um Exportbeschränkungen."
   }
 ]
