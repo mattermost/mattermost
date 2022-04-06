@@ -818,6 +818,16 @@ func testVarious(t *testing.T, ss store.Store) {
 	})
 	require.NoError(t, err)
 
+	postNames := map[string]string{
+		team1channel1post1.Id:        "team1channel1post1",
+		team1channel1post2.Id:        "team1channel1post2",
+		team1channel1post3.Id:        "team1channel1post3",
+		team2channel1post1.Id:        "team2channel1post1",
+		team2channel1post2deleted.Id: "team2channel1post2deleted",
+		dm1post1.Id:                  "dm1post1",
+		gm1post1.Id:                  "gm1post1",
+	}
+
 	threadStoreCreateReply(t, ss, team1channel1.Id, team1channel1post1.Id, user2ID, model.GetMillis())
 	threadStoreCreateReply(t, ss, team1channel1.Id, team1channel1post2.Id, user2ID, model.GetMillis())
 	threadStoreCreateReply(t, ss, team1channel1.Id, team1channel1post3.Id, user2ID, model.GetMillis())
@@ -962,6 +972,28 @@ func testVarious(t *testing.T, ss store.Store) {
 		}
 	})
 
+	assertThreadPosts := func(t *testing.T, threads []*model.ThreadResponse, expectedPosts []*model.Post) {
+		t.Helper()
+
+		actualPostNames := make([]string, 0, len(threads))
+		for _, thread := range threads {
+			postName, ok := postNames[thread.PostId]
+			assert.True(t, ok, "failed to find actual %s in post names", thread.PostId)
+			actualPostNames = append(actualPostNames, postName)
+		}
+		sort.Strings(actualPostNames)
+
+		expectedPostNames := make([]string, 0, len(expectedPosts))
+		for _, post := range expectedPosts {
+			postName, ok := postNames[post.Id]
+			assert.True(t, ok, "failed to find expected %s in post names", post.Id)
+			expectedPostNames = append(expectedPostNames, postName)
+		}
+		sort.Strings(expectedPostNames)
+
+		assert.Equal(t, expectedPostNames, actualPostNames)
+	}
+
 	t.Run("GetThreadsForUser", func(t *testing.T) {
 		testCases := []struct {
 			Description string
@@ -1005,19 +1037,7 @@ func testVarious(t *testing.T, ss store.Store) {
 				threads, err := ss.Thread().GetThreadsForUser(testCase.UserID, testCase.TeamID, testCase.Options)
 				require.NoError(t, err)
 
-				postIDs := make([]string, 0, len(threads))
-				for _, thread := range threads {
-					postIDs = append(postIDs, thread.PostId)
-				}
-				sort.Strings(postIDs)
-
-				expectedPostIDs := make([]string, 0, len(testCase.ExpectedThreads))
-				for _, post := range testCase.ExpectedThreads {
-					expectedPostIDs = append(expectedPostIDs, post.Id)
-				}
-				sort.Strings(expectedPostIDs)
-
-				assert.Equal(t, expectedPostIDs, postIDs)
+				assertThreadPosts(t, threads, testCase.ExpectedThreads)
 			})
 		}
 	})
