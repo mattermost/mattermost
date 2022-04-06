@@ -507,8 +507,9 @@ func (c *STS) AssumeRoleWithWebIdentityRequest(input *AssumeRoleWithWebIdentityI
 //
 // Returns a set of temporary security credentials for users who have been authenticated
 // in a mobile or web application with a web identity provider. Example providers
-// include Amazon Cognito, Login with Amazon, Facebook, Google, or any OpenID
-// Connect-compatible identity provider.
+// include the OAuth 2.0 providers Login with Amazon and Facebook, or any OpenID
+// Connect-compatible identity provider such as Google or Amazon Cognito federated
+// identities (https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-identity.html).
 //
 // For mobile applications, we recommend that you use Amazon Cognito. You can
 // use Amazon Cognito with the Amazon Web Services SDK for iOS Developer Guide
@@ -1537,7 +1538,7 @@ type AssumeRoleInput struct {
 	// the new session inherits any transitive session tags from the calling session.
 	// If you pass a session tag with the same key as an inherited tag, the operation
 	// fails. To view the inherited tags for a session, see the CloudTrail logs.
-	// For more information, see Viewing Session Tags in CloudTrail (https://docs.aws.amazon.com/IAM/latest/UserGuide/session-tags.html#id_session-tags_ctlogs)
+	// For more information, see Viewing Session Tags in CloudTrail (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_session-tags.html#id_session-tags_ctlogs)
 	// in the IAM User Guide.
 	Tags []*Tag `type:"list"`
 
@@ -2220,11 +2221,12 @@ type AssumeRoleWithWebIdentityInput struct {
 	// in the IAM User Guide.
 	PolicyArns []*PolicyDescriptorType `type:"list"`
 
-	// The fully qualified host component of the domain name of the identity provider.
+	// The fully qualified host component of the domain name of the OAuth 2.0 identity
+	// provider. Do not specify this value for an OpenID Connect identity provider.
 	//
-	// Specify this value only for OAuth 2.0 access tokens. Currently www.amazon.com
-	// and graph.facebook.com are the only supported identity providers for OAuth
-	// 2.0 access tokens. Do not include URL schemes and port numbers.
+	// Currently www.amazon.com and graph.facebook.com are the only supported identity
+	// providers for OAuth 2.0 access tokens. Do not include URL schemes and port
+	// numbers.
 	//
 	// Do not specify this value for OpenID Connect ID tokens.
 	ProviderId *string `min:"4" type:"string"`

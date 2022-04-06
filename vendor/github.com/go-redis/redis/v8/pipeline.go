@@ -24,6 +24,7 @@ type pipelineExecer func(context.Context, []Cmder) error
 // depends of your batch size and/or use TxPipeline.
 type Pipeliner interface {
 	StatefulCmdable
+	Len() int
 	Do(ctx context.Context, args ...interface{}) *Cmd
 	Process(ctx context.Context, cmd Cmder) error
 	Close() error
@@ -53,6 +54,15 @@ func (c *Pipeline) init() {
 	c.statefulCmdable = c.Process
 }
 
+// Len returns the number of queued commands.
+func (c *Pipeline) Len() int {
+	c.mu.Lock()
+	ln := len(c.cmds)
+	c.mu.Unlock()
+	return ln
+}
+
+// Do queues the custom command for later execution.
 func (c *Pipeline) Do(ctx context.Context, args ...interface{}) *Cmd {
 	cmd := NewCmd(ctx, args...)
 	_ = c.Process(ctx, cmd)

@@ -2953,7 +2953,7 @@ func testPostStoreGetPostsBatchForIndexing(t *testing.T, ss store.Store) {
 	o2.ChannelId = c2.Id
 	o2.UserId = model.NewId()
 	o2.Message = NewTestId()
-	o2, err = ss.Post().Save(o2)
+	_, err = ss.Post().Save(o2)
 	require.NoError(t, err)
 
 	o3 := &model.Post{}
@@ -2961,26 +2961,30 @@ func testPostStoreGetPostsBatchForIndexing(t *testing.T, ss store.Store) {
 	o3.UserId = model.NewId()
 	o3.RootId = o1.Id
 	o3.Message = NewTestId()
-	o3, err = ss.Post().Save(o3)
+	_, err = ss.Post().Save(o3)
 	require.NoError(t, err)
 
-	r, err := ss.Post().GetPostsBatchForIndexing(o1.CreateAt, model.GetMillis()+100000, 100)
+	// Getting all
+	r, err := ss.Post().GetPostsBatchForIndexing(o1.CreateAt-1, "", 100)
 	require.NoError(t, err)
 	require.Len(t, r, 3, "Expected 3 posts in results. Got %v", len(r))
-	for _, p := range r {
-		if p.Id == o1.Id {
-			require.Equal(t, p.TeamId, c1.TeamId, "Unexpected team ID")
-			require.Nil(t, p.ParentCreateAt, "Unexpected parent create at")
-		} else if p.Id == o2.Id {
-			require.Equal(t, p.TeamId, c2.TeamId, "Unexpected team ID")
-			require.Nil(t, p.ParentCreateAt, "Unexpected parent create at")
-		} else if p.Id == o3.Id {
-			require.Equal(t, p.TeamId, c1.TeamId, "Unexpected team ID")
-			require.Equal(t, *p.ParentCreateAt, o1.CreateAt, "Unexpected parent create at")
-		} else {
-			require.Fail(t, "unexpected post returned")
-		}
-	}
+
+	// Testing pagination
+	r, err = ss.Post().GetPostsBatchForIndexing(o1.CreateAt-1, "", 1)
+	require.NoError(t, err)
+	require.Len(t, r, 1, "Expected 1 post in results. Got %v", len(r))
+
+	r, err = ss.Post().GetPostsBatchForIndexing(r[0].CreateAt, r[0].Id, 1)
+	require.NoError(t, err)
+	require.Len(t, r, 1, "Expected 1 post in results. Got %v", len(r))
+
+	r, err = ss.Post().GetPostsBatchForIndexing(r[0].CreateAt, r[0].Id, 1)
+	require.NoError(t, err)
+	require.Len(t, r, 1, "Expected 1 post in results. Got %v", len(r))
+
+	r, err = ss.Post().GetPostsBatchForIndexing(r[0].CreateAt, r[0].Id, 1)
+	require.NoError(t, err)
+	require.Len(t, r, 0, "Expected 0 post in results. Got %v", len(r))
 }
 
 func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {

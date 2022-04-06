@@ -10,6 +10,7 @@ import (
 )
 
 // Scan parses bytes `b` to `v` with appropriate type.
+//nolint:gocyclo
 func Scan(b []byte, v interface{}) error {
 	switch v := v.(type) {
 	case nil:
@@ -105,6 +106,13 @@ func Scan(b []byte, v interface{}) error {
 		var err error
 		*v, err = time.Parse(time.RFC3339Nano, util.BytesToString(b))
 		return err
+	case *time.Duration:
+		n, err := util.ParseInt(b, 10, 64)
+		if err != nil {
+			return err
+		}
+		*v = time.Duration(n)
+		return nil
 	case encoding.BinaryUnmarshaler:
 		return v.UnmarshalBinary(b)
 	default:

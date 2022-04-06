@@ -30,7 +30,7 @@ Aldus "off by one" algorithm.
 
 The Go code doesn't read (invalid) TIFF files written by old versions of
 libtiff, but the LZW algorithm in this package still differs from the one in
-Go's standard package library to accomodate this "off by one" in valid TIFFs.
+Go's standard package library to accommodate this "off by one" in valid TIFFs.
 */
 
 import (
