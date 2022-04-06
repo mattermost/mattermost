@@ -7752,10 +7752,6 @@
     "translation": "Twój darmowy 14-dniowy okres próbny Mattermost wkrótce się kończy"
   },
   {
-    "id": "api.templates.over_limit_30_days_info2_item3",
-    "translation": "Stracisz dostęp do historii swoich wiadomości"
-  },
-  {
     "id": "api.templates.over_limit_14_days_title",
     "translation": "Płatność nie została otrzymana"
   },
@@ -7857,7 +7853,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, 14-dniowa bezpłatna wersja próbna Mattermost Cloud została zakończona dzisiaj, {{.TodayDate}}. Proszę dodać informacje o płatności, aby Twój zespół mógł dalej korzystać z zalet Cloud."
+    "translation": "{{.Name}}, 14-dniowy bezpłatny okres próbny Mattermost Cloud Enterprise zakończył się dzisiaj, {{.TodayDate}}. Prosimy o podanie informacji o płatności, aby zespół mógł nadal korzystać z zalet usługi Cloud Enterprise. Jeśli nie dodasz informacji o płatności w ciągu 30 dni, trwale usuniemy przestrzeń roboczą w chmurze i utracisz wszystkie powiązane dane."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -7866,10 +7862,6 @@
   {
     "id": "api.templates.cloud_trial_ended_email.start_subscription",
     "translation": "Rozpocznij subskrypcję"
-  },
-  {
-    "id": "api.templates.at_limit_info2",
-    "translation": "Alternatywnie, możesz wyłączyć użytkowników w Konsoli Administracyjnej, aby otworzyć miejsca dla większej liczby użytkowników lub pozostać poniżej limitu darmowych użytkowników."
   },
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
@@ -8180,10 +8172,6 @@
     "translation": "Jeśli to nie byłeś Ty, możesz spokojnie zignorować tego maila."
   },
   {
-    "id": "api.templates.upgrade_mattermost_cloud",
-    "translation": "Aktualizuj"
-  },
-  {
     "id": "api.templates.reset_body.subTitle",
     "translation": "Kliknij poniższy przycisk, aby zresetować swoje hasło. Jeśli nie prosiłeś o to, możesz zignorować ten e-mail."
   },
@@ -8236,16 +8224,8 @@
     "translation": "Twoja instytucja finansowa odrzuciła płatność z Twojej {{.CardBrand}} ****{{.LastFour}} powiązanej z obszarem roboczym Mattermost Cloud."
   },
   {
-    "id": "api.templates.over_limit_suspended_info1",
-    "translation": "Twoja przestrzeń robocza Mattermost została zawieszona. Cała zawartość i dane w Twojej przestrzeni roboczej zostaną usunięte w ciągu 1-3 miesięcy."
-  },
-  {
     "id": "api.templates.over_limit_fix_now",
     "translation": "Napraw teraz"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info3",
-    "translation": "Po zawieszeniu przestrzeni roboczej nie będziesz mógł zalogować się na swoje konto ani zaktualizować informacji o płatnościach. Będziesz musiał skontaktować się z naszym zespołem pomocy technicznej, aby ponownie aktywować swoją usługę."
   },
   {
     "id": "store.sql_file_info.search.disabled",
@@ -9198,5 +9178,69 @@
   {
     "id": "Boards",
     "translation": "Tablice"
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "Maksymalna długość identyfikatora MattermostAppID wynosi 32 znaki."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "Rozmiar partii indeksowania zbiorczego Elasticsearch musi wynosić co najmniej {{.BatchSize}}."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
+    "translation": "Bleve Bulk Indexing Batch Size musi wynosić co najmniej {{.BatchSize}}."
+  },
+  {
+    "id": "app.user.group_name_conflict",
+    "translation": " "
+  },
+  {
+    "id": "app.user.get_by_name_failure",
+    "translation": " "
+  },
+  {
+    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "translation": "Przygotowana wersja wtyczki nie może być przetworzona."
+  },
+  {
+    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
+    "translation": "Nie można uzyskać wszystkich zadań według typu i statusu."
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": " "
+  },
+  {
+    "id": "app.group.get_by_username_failure",
+    "translation": " "
+  },
+  {
+    "id": "app.channel.get_file_count.app_error",
+    "translation": "Nie można uzyskać liczby plików dla kanału"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
+    "translation": "SMTP nie jest skonfigurowany w Konsoli systemowej"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email.app_error",
+    "translation": "Błąd podczas wysyłania wiadomości e-mail"
+  },
+  {
+    "id": "api.license.request_trial_license.embargoed",
+    "translation": "Nie mogliśmy przetworzyć tego żądania z powodu ograniczeń dotyczących krajów objętych embargiem. [Dowiedz się więcej w naszej dokumentacji] (https://mattermost.com/pl/limitations-for-embargoed-countries), a w przypadku pytań dotyczących ograniczeń eksportu skontaktuj się z legal@mattermost.com."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "Parametry OnlyThreads i OnlyTotals funkcji getThreadsForUser wzajemnie się wykluczają"
+  },
+  {
+    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "translation": "Ustawienia przechowywania plików nie mają ustawionych wartości."
+  },
+  {
+    "id": "api.file.test_connection_email_settings_nil.app_error",
+    "translation": "W ustawieniach poczty e-mail nie ustawiono wartości."
   }
 ]
