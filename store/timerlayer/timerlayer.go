@@ -5817,10 +5817,10 @@ func (s *TimerLayerReactionStore) GetForPostSince(postId string, since int64, ex
 	return result, err
 }
 
-func (s *TimerLayerReactionStore) GetTopForTeamSince(teamID string, userID string, since int64, offset int, perPage int) ([]*model.TopReactions, error) {
+func (s *TimerLayerReactionStore) GetTopForTeamSince(teamID string, userID string, since int64, offset int, limit int) ([]*model.TopReactions, error) {
 	start := timemodule.Now()
 
-	result, err := s.ReactionStore.GetTopForTeamSince(teamID, userID, since, offset, perPage)
+	result, err := s.ReactionStore.GetTopForTeamSince(teamID, userID, since, offset, limit)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -5833,10 +5833,10 @@ func (s *TimerLayerReactionStore) GetTopForTeamSince(teamID string, userID strin
 	return result, err
 }
 
-func (s *TimerLayerReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, perPage int) ([]*model.TopReactions, error) {
+func (s *TimerLayerReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) ([]*model.TopReactions, error) {
 	start := timemodule.Now()
 
-	result, err := s.ReactionStore.GetTopForUserSince(userID, teamID, since, offset, perPage)
+	result, err := s.ReactionStore.GetTopForUserSince(userID, teamID, since, offset, limit)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

@@ -7294,11 +7294,11 @@ func (s *RetryLayerReactionStore) GetForPostSince(postId string, since int64, ex
 
 }
 
-func (s *RetryLayerReactionStore) GetTopForTeamSince(teamID string, userID string, since int64, offset int, perPage int) ([]*model.TopReactions, error) {
+func (s *RetryLayerReactionStore) GetTopForTeamSince(teamID string, userID string, since int64, offset int, limit int) ([]*model.TopReactions, error) {
 
 	tries := 0
 	for {
-		result, err := s.ReactionStore.GetTopForTeamSince(teamID, userID, since, offset, perPage)
+		result, err := s.ReactionStore.GetTopForTeamSince(teamID, userID, since, offset, limit)
 		if err == nil {
 			return result, nil
 		}
@@ -7315,11 +7315,11 @@ func (s *RetryLayerReactionStore) GetTopForTeamSince(teamID string, userID strin
 
 }
 
-func (s *RetryLayerReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, perPage int) ([]*model.TopReactions, error) {
+func (s *RetryLayerReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) ([]*model.TopReactions, error) {
 
 	tries := 0
 	for {
-		result, err := s.ReactionStore.GetTopForUserSince(userID, teamID, since, offset, perPage)
+		result, err := s.ReactionStore.GetTopForUserSince(userID, teamID, since, offset, limit)
 		if err == nil {
 			return result, nil
 		}

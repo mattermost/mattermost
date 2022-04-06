@@ -6433,7 +6433,7 @@ func (s *OpenTracingLayerReactionStore) GetForPostSince(postId string, since int
 	return result, err
 }
 
-func (s *OpenTracingLayerReactionStore) GetTopForTeamSince(teamID string, userID string, since int64, offset int, perPage int) ([]*model.TopReactions, error) {
+func (s *OpenTracingLayerReactionStore) GetTopForTeamSince(teamID string, userID string, since int64, offset int, limit int) ([]*model.TopReactions, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ReactionStore.GetTopForTeamSince")
 	s.Root.Store.SetContext(newCtx)
@@ -6442,7 +6442,7 @@ func (s *OpenTracingLayerReactionStore) GetTopForTeamSince(teamID string, userID
 	}()
 
 	defer span.Finish()
-	result, err := s.ReactionStore.GetTopForTeamSince(teamID, userID, since, offset, perPage)
+	result, err := s.ReactionStore.GetTopForTeamSince(teamID, userID, since, offset, limit)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -6451,7 +6451,7 @@ func (s *OpenTracingLayerReactionStore) GetTopForTeamSince(teamID string, userID
 	return result, err
 }
 
-func (s *OpenTracingLayerReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, perPage int) ([]*model.TopReactions, error) {
+func (s *OpenTracingLayerReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) ([]*model.TopReactions, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ReactionStore.GetTopForUserSince")
 	s.Root.Store.SetContext(newCtx)
@@ -6460,7 +6460,7 @@ func (s *OpenTracingLayerReactionStore) GetTopForUserSince(userID string, teamID
 	}()
 
 	defer span.Finish()
-	result, err := s.ReactionStore.GetTopForUserSince(userID, teamID, since, offset, perPage)
+	result, err := s.ReactionStore.GetTopForUserSince(userID, teamID, since, offset, limit)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
