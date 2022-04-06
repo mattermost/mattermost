@@ -130,7 +130,7 @@ PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.5.0
 PLUGIN_PACKAGES += focalboard-v0.15.0
-PLUGIN_PACKAGES += mattermost-plugin-apps-v1.0.0
+PLUGIN_PACKAGES += mattermost-plugin-apps-v1.0.1
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
