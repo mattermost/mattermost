@@ -130,7 +130,7 @@ PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.5.0
 PLUGIN_PACKAGES += focalboard-v0.15.0
-PLUGIN_PACKAGES += mattermost-plugin-apps-v0.7.0
+PLUGIN_PACKAGES += mattermost-plugin-apps-v1.0.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -668,7 +668,7 @@ gen-serialized: ## Generates serialization methods for hot structs
 	@mv tmp.go ./model/team_member_serial_gen.go
 
 todo: ## Display TODO and FIXME items in the source code.
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime '(TODO|XXX|FIXME|"FIX ME")[: ]+' 
+	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime '(TODO|XXX|FIXME|"FIX ME")[: ]+'
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime '(TODO|XXX|FIXME|"FIX ME")[: ]+' enterprise/
 endif
