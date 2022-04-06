@@ -4804,10 +4804,6 @@
     "translation": "یک توکن دسترسی شخصی به حساب شما در {{.SiteURL}} اضافه شد. می توان از آنها برای دسترسی به {{.SiteName}} با حساب شما استفاده کرد."
   },
   {
-    "id": "api.templates.upgrade_request_info4_2",
-    "translation": "فردی اخیراً سعی کرد به فضای کاری شما بپیوندد اما نتوانست به دلیل اینکه فضای کاری شما به حد مجاز کاربر نسخه رایگان Mattermost ابری رسیده است. اکنون ارتقا دهید تا کاربران بیشتری به فضای کاری شما بپیوندند."
-  },
-  {
     "id": "api.templates.signin_change_email.subject",
     "translation": "[{{ .SiteName }}] روش ورود به سیستم شما به روز شده است"
   },
@@ -4920,10 +4916,6 @@
     "translation": "رمز ورود شما برای {{.TeamDisplayName}} در {{.TeamURL}} توسط {{.Method}} به روز شده است."
   },
   {
-    "id": "api.templates.over_limit_suspended_info2",
-    "translation": "برای فعال سازی مجدد فضای کاری خود با ما تماس بگیرید."
-  },
-  {
     "id": "api.templates.over_limit_info2",
     "translation": "از طرف دیگر، می‌توانید کاربران را در کنسول مدیریت غیرفعال کنید تا نقاطی را برای کاربران بیشتری باز کنند یا کمتر از محدودیت کاربر رایگان باقی بمانند."
   },
@@ -4932,16 +4924,8 @@
     "translation": "اکنون رفع کنید"
   },
   {
-    "id": "api.templates.over_limit_90_days_info3",
-    "translation": "هنگامی که فضای کاری شما به حالت تعلیق درآمد، نمی توانید به حساب خود وارد شوید یا اطلاعات پرداخت را به روز کنید. برای فعال سازی مجدد سرویس خود باید با تیم پشتیبانی ما تماس بگیرید."
-  },
-  {
     "id": "api.templates.over_limit_7_days_subject",
     "translation": "پرداخت برای اشتراک Mattermost Cloud شما به تاخیر افتاده است"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item3",
-    "translation": "دسترسی به تاریخچه پیام خود را از دست خواهید داد"
   },
   {
     "id": "api.templates.over_limit_30_days_info1",

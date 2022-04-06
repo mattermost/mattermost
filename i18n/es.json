@@ -7484,20 +7484,12 @@
     "translation": "No se pudo actualizar la membresía de la conversación para el usuario mencionado"
   },
   {
-    "id": "api.templates.over_limit_14_days_subject",
-    "translation": "El pago de su suscripción a Mattermost Cloud está atrasado"
-  },
-  {
     "id": "api.templates.email_us_anytime_at",
     "translation": "Envíenos un correo electrónico en cualquier momento a "
   },
   {
     "id": "api.templates.copyright",
     "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
-  },
-  {
-    "id": "api.templates.at_limit_info1",
-    "translation": "Parece que ahora tienes 10 o más usuarios en tu espacio de trabajo — ¡eso es genial! Si quieres invitar a más miembros del equipo, considera actualizar a Mattermost Cloud ahora."
   },
   {
     "id": "api.system.update_viewed_notices.failed",
@@ -7692,10 +7684,6 @@
     "translation": "Su institución financiera rechazó un pago de su {{.CardBrand}} ****{{.LastFour}} asociado a su espacio de trabajo de Mattermost Cloud."
   },
   {
-    "id": "api.templates.over_limit_suspended_info2",
-    "translation": "Contáctenos para reactivar su espacio de trabajo."
-  },
-  {
     "id": "api.templates.over_limit_info1",
     "translation": "Parece que tienes más de 10 usuarios en tu espacio de trabajo, lo cual está más allá de los límites de la versión gratuita de Mattermost Cloud. Para evitar cualquier interrupción en su espacio de trabajo de Mattermost, por favor, actualícelo."
   },
@@ -7704,16 +7692,8 @@
     "translation": "Arreglar ahora"
   },
   {
-    "id": "api.templates.over_limit_90_days_info3",
-    "translation": "Una vez que su espacio de trabajo se haya suspendido, no podrá acceder a su cuenta ni actualizar la información de pago. Tendrá que contactar a nuestro equipo de soporte para reactivar su servicio."
-  },
-  {
     "id": "api.templates.over_limit_7_days_subject",
     "translation": "El pago de su suscripción a Mattermost Cloud está atrasado"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item3",
-    "translation": "Perderá el acceso a su historial de mensajes"
   },
   {
     "id": "api.oauth.redirecting_back",
@@ -8022,10 +8002,6 @@
   {
     "id": "api.templates.verify_body.info1",
     "translation": "Si no ha sido usted, puede ignorar este correo electrónico."
-  },
-  {
-    "id": "api.templates.upgrade_request_info4_2",
-    "translation": "Alguien ha intentado recientemente unirse a tu espacio de trabajo pero no ha podido hacerlo porque tu espacio de trabajo ha alcanzado el límite de usuarios para la versión gratuita de Mattermost cloud. Actualice ahora para permitir que más usuarios se unan a su espacio de trabajo."
   },
   {
     "id": "api.templates.reset_body.subTitle",

@@ -7723,10 +7723,6 @@
     "translation": "Starte Abonnement"
   },
   {
-    "id": "api.templates.at_limit_info2",
-    "translation": "Alternativ kannst du Benutzer in der Verwaltungskonsole deaktivieren um Plätze für mehr Benutzer bereitzustellen oder um unterhalb des Limits für freie Benutzer zu bleiben."
-  },
-  {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
     "translation": "Prüfung der Bildbeschränkungen ist fehlgeschlagen. Auflösung ist zu hoch."
   },
@@ -8027,10 +8023,6 @@
     "translation": "Wenn du das nicht warst, kannst du diese Mail gefahrlos ignorieren."
   },
   {
-    "id": "api.templates.upgrade_request_info4_2",
-    "translation": "Jemand hat kürzlich erfolglos versucht deinem Arbeitsbereich beizutreten, da die maximale Benutzeranzahl für die freie Nutzung von Mattermost Cloud erreicht war. Aktualisiere jetzt, um mehr Benutzer beitreten zu lassen."
-  },
-  {
     "id": "api.templates.reset_body.subTitle",
     "translation": "Klicke unten auf den Button um dein Passwort zurückzusetzen. Wenn du dies nicht angefragt hast, kannst du diese Mail gefahrlos ignorieren."
   },
@@ -8087,10 +8079,6 @@
     "translation": "Dein Finanzinstitut hat ein Zahlung mit deiner {{.CardBrand}} Kreditkarte mit der Nummer ****{{.LastFour}}, die für deinen Mattermost Cloud Arbeitsbereich hinterlegt ist, abgelehnt."
   },
   {
-    "id": "api.templates.over_limit_suspended_info2",
-    "translation": "Kontaktiere uns um deinen Arbeitsbereich wieder zu aktivieren."
-  },
-  {
     "id": "api.templates.over_limit_info2",
     "translation": "Als Alternative kannst du Benutzer in der Admin Konsole deaktivieren um Platz für andere Benutzer zu schaffen oder um unter der Grenze für die freie Benutzung zu bleiben."
   },
@@ -8099,16 +8087,8 @@
     "translation": "Jetzt beheben"
   },
   {
-    "id": "api.templates.over_limit_90_days_info3",
-    "translation": "Sobald dein Arbeitsbereich ausgesetzt wurde, kannst du dich nicht mehr an deinem Konto anmelden oder Zahlungsinformationen aktualisieren. Du wirst unser Support Team kontaktieren müssen, um den Dienst wieder zu aktivieren."
-  },
-  {
     "id": "api.templates.over_limit_7_days_subject",
     "translation": "Zahlung überfällig für dein Mattermost Cloud Abonnement"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item3",
-    "translation": "Du wirst den Zugang zu deinem Nachrichtenverlauf verlieren"
   },
   {
     "id": "api.templates.over_limit_14_days_info1",

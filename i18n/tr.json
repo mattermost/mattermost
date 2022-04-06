@@ -7528,20 +7528,12 @@
     "translation": "Çok parçalı yükleme için içerik türü geçersiz."
   },
   {
-    "id": "api.templates.over_limit_info2",
-    "translation": "Alternatif olarak, daha fazla kullanıcıya yer açmak ya da ücretsiz kullanıcı sınırının altında kalmak için yönetici panosundan bazı kullanıcıları devre dışı bırakabilirsiniz."
-  },
-  {
     "id": "api.templates.email_us_anytime_at",
     "translation": "İstediğiniz zaman bize şu adresten e-posta gönderebilirsiniz "
   },
   {
     "id": "api.templates.copyright",
     "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
-  },
-  {
-    "id": "api.templates.at_limit_info1",
-    "translation": "Görünüşe göre şu anda çalışma alanınızda 10 ya da üzerinde kullanıcı var - bu harika! Daha fazla takım üyesi çağırmak istiyorsanız, Mattermost Cloud sürümüne yükseltmeyi düşünün."
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
@@ -7664,24 +7656,12 @@
     "translation": "Kullanıcı konuları alınamadı"
   },
   {
-    "id": "api.templates.over_limit_suspended_info1",
-    "translation": "Çalışma alanınız duraklatıldı. 1-3 ay içinde çalışma alanındaki tüm içerik ve veriler silinecek."
-  },
-  {
     "id": "api.templates.over_limit_fix_now",
     "translation": "Şimdi düzelt"
   },
   {
-    "id": "api.templates.over_limit_90_days_info3",
-    "translation": "Çalışma alanınız duraklatıldığında hesabınızla oturum açamayacağınız için ödeme bilgilerinizi güncelleyemeyeceksiniz. Hizmetinizi yeniden etkinleştirmeniz için destek ekibimiz ile görüşmeniz gerekecek."
-  },
-  {
     "id": "api.templates.over_limit_7_days_subject",
     "translation": "Mattermost Cloud aboneliğinizin ödemesi yapılmadı"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item3",
-    "translation": "İleti geçmişinize erişemeyeceksiniz"
   },
   {
     "id": "api.templates.over_limit_14_days_info1",
@@ -8062,10 +8042,6 @@
   {
     "id": "app.user.send_emails.app_error",
     "translation": "Hiç bir e-posta gönderilemedi"
-  },
-  {
-    "id": "api.templates.at_limit_info5",
-    "translation": "Alternatif olarak, sistem panosundan bazı kullanıcıları devre dışı bırakarak yeni kullanıcılara yer açabilir ve ücretsiz sürümün sınırlarına uyabilirsiniz."
   },
   {
     "id": "mfa.deactivate.app_error",

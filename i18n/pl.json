@@ -7752,10 +7752,6 @@
     "translation": "Twój darmowy 14-dniowy okres próbny Mattermost wkrótce się kończy"
   },
   {
-    "id": "api.templates.over_limit_14_days_title",
-    "translation": "Płatność nie została otrzymana"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_title",
     "translation": "Twoja subskrypcja Mattermost została przedłużona"
   },
