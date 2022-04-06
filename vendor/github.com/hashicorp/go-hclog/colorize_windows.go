@@ -1,3 +1,4 @@
+//go:build windows
 // +build windows
 
 package hclog
@@ -26,8 +27,12 @@ func (l *intLogger) setColorization(opts *LoggerOptions) {
 		isTerm := isUnixTerm || isCygwinTerm
 		if !isTerm {
 			l.writer.color = ColorOff
+			l.headerColor = ColorOff
 			return
 		}
-		l.writer.w = colorable.NewColorable(fi)
+
+		if l.headerColor == ColorOff {
+			l.writer.w = colorable.NewColorable(fi)
+		}
 	}
 }

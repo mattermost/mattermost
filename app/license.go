@@ -340,6 +340,11 @@ func (s *Server) RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *m
 	}
 	defer resp.Body.Close()
 
+	// CloudFlare sitting in front of the Customer Portal will block this request with a 451 response code in the event that the request originates from a country sanctioned by the U.S. Government.
+	if resp.StatusCode == http.StatusUnavailableForLegalReasons {
+		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.embargoed", nil, "Request for trial license came from an embargoed country", http.StatusUnavailableForLegalReasons)
+	}
+
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.app_error", nil,
 			fmt.Sprintf("Unexpected HTTP status code %q returned by server", resp.Status), http.StatusInternalServerError)
