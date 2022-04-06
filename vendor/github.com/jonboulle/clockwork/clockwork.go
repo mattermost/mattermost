@@ -113,12 +113,12 @@ func (fc *fakeClock) After(d time.Duration) <-chan time.Time {
 	return done
 }
 
-// notifyBlockers notifies all the blockers waiting until the
-// given number of sleepers are waiting on the fakeClock. It
-// returns an updated slice of blockers (i.e. those still waiting)
+// notifyBlockers notifies all the blockers waiting until the at least the given
+// number of sleepers are waiting on the fakeClock. It returns an updated slice
+// of blockers (i.e. those still waiting)
 func notifyBlockers(blockers []*blocker, count int) (newBlockers []*blocker) {
 	for _, b := range blockers {
-		if b.count == count {
+		if b.count <= count {
 			close(b.ch)
 		} else {
 			newBlockers = append(newBlockers, b)
@@ -179,12 +179,12 @@ func (fc *fakeClock) Advance(d time.Duration) {
 // (callers of Sleep or After)
 func (fc *fakeClock) BlockUntil(n int) {
 	fc.l.Lock()
-	// Fast path: current number of sleepers is what we're looking for
-	if len(fc.sleepers) == n {
+	// Fast path: we already have >= n sleepers.
+	if len(fc.sleepers) >= n {
 		fc.l.Unlock()
 		return
 	}
-	// Otherwise, set up a new blocker
+	// Otherwise, we have < n sleepers. Set up a new blocker to wait for more.
 	b := &blocker{
 		count: n,
 		ch:    make(chan struct{}),

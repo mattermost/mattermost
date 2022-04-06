@@ -222,6 +222,30 @@ func (a *Assertions) ErrorAsf(err error, target interface{}, msg string, args ..
 	return ErrorAsf(a.t, err, target, msg, args...)
 }
 
+// ErrorContains asserts that a function returned an error (i.e. not `nil`)
+// and that the error contains the specified substring.
+//
+//   actualObj, err := SomeFunction()
+//   a.ErrorContains(err,  expectedErrorSubString)
+func (a *Assertions) ErrorContains(theError error, contains string, msgAndArgs ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return ErrorContains(a.t, theError, contains, msgAndArgs...)
+}
+
+// ErrorContainsf asserts that a function returned an error (i.e. not `nil`)
+// and that the error contains the specified substring.
+//
+//   actualObj, err := SomeFunction()
+//   a.ErrorContainsf(err,  expectedErrorSubString, "error message %s", "formatted")
+func (a *Assertions) ErrorContainsf(theError error, contains string, msg string, args ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return ErrorContainsf(a.t, theError, contains, msg, args...)
+}
+
 // ErrorIs asserts that at least one of the errors in err's chain matches target.
 // This is a wrapper for errors.Is.
 func (a *Assertions) ErrorIs(err error, target error, msgAndArgs ...interface{}) bool {

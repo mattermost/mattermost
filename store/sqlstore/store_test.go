@@ -485,6 +485,57 @@ func TestEnsureMinimumDBVersion(t *testing.T) {
 	}
 }
 
+func TestIsBinaryParamEnabled(t *testing.T) {
+	tests := []struct {
+		store    SqlStore
+		expected bool
+	}{
+		{
+			store: SqlStore{
+				settings: &model.SqlSettings{
+					DriverName: model.NewString(model.DatabaseDriverPostgres),
+					DataSource: model.NewString("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable\u0026binary_parameters=yes"),
+				},
+			},
+			expected: true,
+		},
+		{
+			store: SqlStore{
+				settings: &model.SqlSettings{
+					DriverName: model.NewString(model.DatabaseDriverMysql),
+					DataSource: model.NewString("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable\u0026binary_parameters=yes"),
+				},
+			},
+			expected: false,
+		},
+		{
+			store: SqlStore{
+				settings: &model.SqlSettings{
+					DriverName: model.NewString(model.DatabaseDriverPostgres),
+					DataSource: model.NewString("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable&binary_parameters=yes"),
+				},
+			},
+			expected: true,
+		},
+		{
+			store: SqlStore{
+				settings: &model.SqlSettings{
+					DriverName: model.NewString(model.DatabaseDriverPostgres),
+					DataSource: model.NewString("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable"),
+				},
+			},
+			expected: false,
+		},
+	}
+
+	for i := range tests {
+		ok, err := tests[i].store.computeBinaryParam()
+		require.NoError(t, err)
+		assert.Equal(t, tests[i].expected, ok)
+	}
+
+}
+
 func TestUpAndDownMigrations(t *testing.T) {
 	testDrivers := []string{
 		model.DatabaseDriverPostgres,

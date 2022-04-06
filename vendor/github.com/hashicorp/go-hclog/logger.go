@@ -271,6 +271,9 @@ type LoggerOptions struct {
 	// are concretely instances of *os.File.
 	Color ColorOption
 
+	// Only color the header, not the body. This can help with readability of long messages.
+	ColorHeaderOnly bool
+
 	// A function which is called with the log information and if it returns true the value
 	// should not be logged.
 	// This is useful when interacting with a system that you wish to suppress the log
