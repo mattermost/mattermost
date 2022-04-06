@@ -36,12 +36,12 @@ type TopReaction struct {
 func GetTimeRange(timeRange string) (int64, *AppError) {
 	switch timeRange {
 	case TimeRange1Day:
-		return time.Now().Add(time.Hour * time.Duration(-24)).UnixMilli(), nil
+		return GetMillisForTime(time.Now().Add(time.Hour * time.Duration(-24))), nil
 	case TimeRange7Day:
-		return time.Now().Add(time.Hour * time.Duration(-168)).UnixMilli(), nil
+		return GetMillisForTime(time.Now().Add(time.Hour * time.Duration(-168))), nil
 	case TimeRange28Day:
-		return time.Now().Add(time.Hour * time.Duration(-672)).UnixMilli(), nil
+		return GetMillisForTime(time.Now().Add(time.Hour * time.Duration(-672))), nil
 	}
 
-	return time.Now().UnixMilli(), NewAppError("Insights.IsValidRequest", "model.insights.time_range.app_error", nil, "", http.StatusBadRequest)
+	return GetMillisForTime(time.Now()), NewAppError("Insights.IsValidRequest", "model.insights.time_range.app_error", nil, "", http.StatusBadRequest)
 }
