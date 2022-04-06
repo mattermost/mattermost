@@ -9,6 +9,7 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
@@ -135,6 +136,14 @@ func constructArrayArgs(ids []string) (string, []interface{}) {
 	}
 
 	return "(" + placeholder.String() + ")", values
+}
+
+func wrapBinaryParamStringMap(ok bool, props model.StringMap) model.StringMap {
+	if props == nil {
+		props = make(model.StringMap)
+	}
+	props[model.BinaryParamKey] = strconv.FormatBool(ok)
+	return props
 }
 
 // morphWriter is a target to pass to the logger instance of morph.
