@@ -3008,14 +3008,15 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	options := model.GetUserThreadsOpts{
-		Since:      0,
-		Before:     "",
-		After:      "",
-		PageSize:   uint64(c.Params.PerPage),
-		Unread:     false,
-		Extended:   false,
-		Deleted:    false,
-		TotalsOnly: false,
+		Since:       0,
+		Before:      "",
+		After:       "",
+		PageSize:    uint64(c.Params.PerPage),
+		Unread:      false,
+		Extended:    false,
+		Deleted:     false,
+		TotalsOnly:  false,
+		ThreadsOnly: false,
 	}
 
 	sinceString := r.URL.Query().Get("since")
@@ -3030,21 +3031,30 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	options.Before = r.URL.Query().Get("before")
 	options.After = r.URL.Query().Get("after")
+	totalsOnlyStr := r.URL.Query().Get("totalsOnly")
+	threadsOnlyStr := r.URL.Query().Get("threadsOnly")
+	options.TotalsOnly, _ = strconv.ParseBool(totalsOnlyStr)
+	options.ThreadsOnly, _ = strconv.ParseBool(threadsOnlyStr)
+
 	// parameters are mutually exclusive
 	if options.Before != "" && options.After != "" {
 		c.Err = model.NewAppError("api.getThreadsForUser", "api.getThreadsForUser.bad_params", nil, "", http.StatusBadRequest)
 		return
 	}
 
+	// parameters are mutually exclusive
+	if options.TotalsOnly && options.ThreadsOnly {
+		c.Err = model.NewAppError("api.getThreadsForUser", "api.getThreadsForUser.bad_only_params", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	deletedStr := r.URL.Query().Get("deleted")
 	unreadStr := r.URL.Query().Get("unread")
 	extendedStr := r.URL.Query().Get("extended")
-	totalsOnlyStr := r.URL.Query().Get("totalsOnly")
 
 	options.Deleted, _ = strconv.ParseBool(deletedStr)
 	options.Unread, _ = strconv.ParseBool(unreadStr)
 	options.Extended, _ = strconv.ParseBool(extendedStr)
-	options.TotalsOnly, _ = strconv.ParseBool(totalsOnlyStr)
 
 	threads, err := c.App.GetThreadsForUser(c.Params.UserId, c.Params.TeamId, options)
 	if err != nil {

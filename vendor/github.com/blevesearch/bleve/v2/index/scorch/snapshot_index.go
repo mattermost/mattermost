@@ -51,6 +51,15 @@ type asynchSegmentResult struct {
 
 var reflectStaticSizeIndexSnapshot int
 
+// DefaultFieldTFRCacheThreshold limits the number of TermFieldReaders(TFR) for
+// a field in an index snapshot. Without this limit, when recycling TFRs, it is
+// possible that a very large number of TFRs may be added to the recycle
+// cache, which could eventually lead to significant memory consumption.
+// This threshold can be overwritten by users at the library level by changing the
+// exported variable, or at the index level by setting the FieldTFRCacheThreshold
+// in the kvConfig.
+var DefaultFieldTFRCacheThreshold uint64 = 10
+
 func init() {
 	var is interface{} = IndexSnapshot{}
 	reflectStaticSizeIndexSnapshot = int(reflect.TypeOf(is).Size())
@@ -558,6 +567,15 @@ func (i *IndexSnapshot) allocTermFieldReaderDicts(field string) (tfr *IndexSnaps
 	}
 }
 
+func (i *IndexSnapshot) getFieldTFRCacheThreshold() uint64 {
+	if i.parent.config != nil {
+		if _, ok := i.parent.config["FieldTFRCacheThreshold"]; ok {
+			return i.parent.config["FieldTFRCacheThreshold"].(uint64)
+		}
+	}
+	return DefaultFieldTFRCacheThreshold
+}
+
 func (i *IndexSnapshot) recycleTermFieldReader(tfr *IndexSnapshotTermFieldReader) {
 	if !tfr.recycle {
 		// Do not recycle an optimized unadorned term field reader (used for
@@ -579,7 +597,9 @@ func (i *IndexSnapshot) recycleTermFieldReader(tfr *IndexSnapshotTermFieldReader
 	if i.fieldTFRs == nil {
 		i.fieldTFRs = map[string][]*IndexSnapshotTermFieldReader{}
 	}
-	i.fieldTFRs[tfr.field] = append(i.fieldTFRs[tfr.field], tfr)
+	if uint64(len(i.fieldTFRs[tfr.field])) < i.getFieldTFRCacheThreshold() {
+		i.fieldTFRs[tfr.field] = append(i.fieldTFRs[tfr.field], tfr)
+	}
 	i.m2.Unlock()
 }
 

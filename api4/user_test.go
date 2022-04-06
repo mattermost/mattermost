@@ -5754,6 +5754,96 @@ func TestGetThreadsForUser(t *testing.T) {
 		require.Len(t, uss3.Threads, 0)
 	})
 
+	t.Run("totalsOnly param", func(t *testing.T) {
+		client := th.Client
+		sysadminClient := th.SystemAdminClient
+
+		var rootIds []*model.Post
+		for i := 0; i < 10; i++ {
+			rpost, resp, err := client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
+			require.NoError(t, err)
+			CheckCreatedStatus(t, resp)
+			rootIds = append(rootIds, rpost)
+			if i%2 == 0 {
+				_, resp, err = client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
+			} else {
+				_, resp, err = sysadminClient.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply @" + th.BasicUser.Username, RootId: rpost.Id})
+			}
+			require.NoError(t, err)
+			CheckCreatedStatus(t, resp)
+		}
+
+		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+
+		uss, _, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Deleted:    false,
+			TotalsOnly: true,
+			PageSize:   30,
+		})
+		require.NoError(t, err)
+		require.Len(t, uss.Threads, 0)
+		require.Len(t, rootIds, 10)
+		require.Equal(t, int64(10), uss.Total)
+		require.Equal(t, int64(5), uss.TotalUnreadThreads)
+		require.Equal(t, int64(5), uss.TotalUnreadMentions)
+	})
+
+	t.Run("threadsOnly param", func(t *testing.T) {
+		client := th.Client
+		sysadminClient := th.SystemAdminClient
+
+		var rootIds []*model.Post
+		for i := 0; i < 10; i++ {
+			rpost, resp, err := client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
+			require.NoError(t, err)
+			CheckCreatedStatus(t, resp)
+			rootIds = append(rootIds, rpost)
+			if i%2 == 0 {
+				_, resp, err = client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
+			} else {
+				_, resp, err = sysadminClient.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply @" + th.BasicUser.Username, RootId: rpost.Id})
+			}
+
+			require.NoError(t, err)
+			CheckCreatedStatus(t, resp)
+		}
+
+		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+
+		uss, _, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Deleted:     false,
+			ThreadsOnly: true,
+			PageSize:    30,
+		})
+
+		require.NoError(t, err)
+		require.Len(t, rootIds, 10)
+		require.Len(t, uss.Threads, 10)
+		require.Equal(t, int64(0), uss.Total)
+		require.Equal(t, int64(0), uss.TotalUnreadThreads)
+		require.Equal(t, int64(0), uss.TotalUnreadMentions)
+		require.Equal(t, int64(1), uss.Threads[0].ReplyCount)
+
+		require.Equal(t, rootIds[9].Id, uss.Threads[0].PostId)
+		require.Equal(t, th.SystemAdminUser.Id, uss.Threads[0].Participants[0].Id)
+		require.Equal(t, th.BasicUser.Id, uss.Threads[1].Participants[0].Id)
+	})
+
+	t.Run("setting both threadsOnly, and totalsOnly params is not allowed", func(t *testing.T) {
+		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+
+		_, resp, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			ThreadsOnly: true,
+			TotalsOnly:  true,
+			PageSize:    30,
+		})
+
+		require.Error(t, err)
+		checkHTTPStatus(t, resp, http.StatusBadRequest)
+	})
+
 	t.Run("editing or reacting to reply post does not make thread unread", func(t *testing.T) {
 		client := th.Client
 

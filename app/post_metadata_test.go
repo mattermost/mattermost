@@ -1222,6 +1222,29 @@ func TestGetImagesForPost(t *testing.T) {
 			},
 		})
 	})
+
+	t.Run("with an invalid OpenGraph image data", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
+		})
+
+		post := &model.Post{
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.PostEmbedOpengraph,
+						Data: map[string]interface{}{},
+					},
+				},
+			},
+		}
+
+		images := th.App.getImagesForPost(post, []string{}, false)
+		assert.Equal(t, images, map[string]*model.PostImage{})
+	})
 }
 
 func TestGetEmojiNamesForString(t *testing.T) {
