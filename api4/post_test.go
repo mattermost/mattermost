@@ -2719,7 +2719,12 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 	require.Nil(t, appErr)
 
 	t.Run("Mark reply post as unread", func(t *testing.T) {
-		_, err := th.Client.SetPostUnread(th.BasicUser.Id, replyPost1.Id, false)
+		userWSClient, err := th.CreateWebSocketClient()
+		require.NoError(t, err)
+		defer userWSClient.Close()
+		userWSClient.Listen()
+
+		_, err = th.Client.SetPostUnread(th.BasicUser.Id, replyPost1.Id, false)
 		require.NoError(t, err)
 		channelUnread, appErr := th.App.GetChannelUnread(th.BasicChannel.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
@@ -2731,6 +2736,32 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 		require.Equal(t, int64(5), channelUnread.MsgCount)
 		//  MentionCountRoot should be zero so that supported clients don't show the channel as unread
 		require.Equal(t, channelUnread.MsgCountRoot, int64(0))
+
+		// test websocket event for marking post as unread
+		var caught bool
+		var exit bool
+		var data map[string]interface{}
+		for {
+			select {
+			case ev := <-userWSClient.EventChannel:
+				if ev.EventType() == model.WebsocketEventPostUnread {
+					caught = true
+					data = ev.GetData()
+				}
+			case <-time.After(1 * time.Second):
+				exit = true
+			}
+			if exit {
+				break
+			}
+		}
+		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventPostUnread)
+		msgCount, ok := data["msg_count"]
+		require.True(t, ok)
+		require.EqualValues(t, 3, msgCount)
+		mentionCount, ok := data["mention_count"]
+		require.True(t, ok)
+		require.EqualValues(t, 3, mentionCount)
 
 		threadMembership, appErr := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rootPost1.Id)
 		require.Nil(t, appErr)
