@@ -228,10 +228,12 @@ func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int
 	return rowsAffected, nil
 }
 
+// GetTopForTeamSince returns the instance counts of the following Reactions sets:
+// a) those created by anyone in private channels in the given user's membership graph on the given team, and
+// b) those created by anyone in public channels on the given team.
 func (s *SqlReactionStore) GetTopForTeamSince(teamID string, userID string, since int64, offset int, limit int) ([]*model.TopReactions, error) {
 	var reactions []*model.TopReactions
 
-	// Get reactions from all public channels within the team, and private channels that the user is a member of
 	query := `
 		SELECT
 			EmojiName,
@@ -281,6 +283,9 @@ func (s *SqlReactionStore) GetTopForTeamSince(teamID string, userID string, sinc
 	return reactions, nil
 }
 
+// GetTopForUserSince returns the instance counts of the following Reactions sets:
+// a) those created by the given user in any channel type on the given team (across the workspace if no team is given), and
+// b) those created by the given user in DM or group channels.
 func (s *SqlReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) ([]*model.TopReactions, error) {
 	var reactions []*model.TopReactions
 	var args []interface{}
