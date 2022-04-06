@@ -2715,6 +2715,9 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID st
 	if nErr != nil {
 		return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
+	fmt.Println("EREREREREREREREER ")
+	a.sendWebSocketPostUnreadEvent(channelUnread, postID, false)
+	a.UpdateMobileAppBadge(userID)
 	return channelUnread, nil
 }
 
