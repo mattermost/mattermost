@@ -1087,6 +1087,10 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 		}
 	}
 
+	if prev.CreateAt != user.CreateAt {
+		user.CreateAt = prev.CreateAt
+	}
+
 	if user.Username != prev.Username {
 		if err := a.isUniqueToGroupNames(user.Username); err != nil {
 			err.Where = "UpdateUser"
