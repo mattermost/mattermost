@@ -3083,7 +3083,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		_, err2 = ss.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "")
 		require.NoError(t, err2, "global policy should have been ignored due to granular policy")
 
-		nowMillis := post.CreateAt + *channelPolicy.PostDurationDays*24*60*60*1000 + 1
+		nowMillis := post.CreateAt + *channelPolicy.PostDurationDays*model.DayInMilliseconds + 1
 		_, _, err2 = ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 0, 1000, model.RetentionPolicyCursor{})
 		require.NoError(t, err2)
 		_, err2 = ss.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "")
@@ -3102,7 +3102,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		post, err2 = ss.Post().Save(post)
 		require.NoError(t, err2)
 
-		nowMillis = post.CreateAt + *teamPolicy.PostDurationDays*24*60*60*1000 + 1
+		nowMillis = post.CreateAt + *teamPolicy.PostDurationDays*model.DayInMilliseconds + 1
 		_, _, err2 = ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 0, 1000, model.RetentionPolicyCursor{})
 		require.NoError(t, err2)
 		_, err2 = ss.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "")
@@ -3186,7 +3186,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		})
 		require.NoError(t, err2)
 
-		nowMillis := int64(1 + 30*24*60*60*1000 + 1)
+		nowMillis := int64(1 + 30*model.DayInMilliseconds + 1)
 		deleted, _, err2 := ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 2, 1000, model.RetentionPolicyCursor{})
 		require.NoError(t, err2)
 		require.Equal(t, int64(3), deleted)

@@ -449,7 +449,7 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, ss st
 	})
 	require.NoError(t, err)
 
-	nowMillis := thread.LastReplyAt + *channelPolicy.PostDurationDays*24*60*60*1000 + 1
+	nowMillis := thread.LastReplyAt + *channelPolicy.PostDurationDays*model.DayInMilliseconds + 1
 	_, _, err = ss.Thread().PermanentDeleteBatchForRetentionPolicies(nowMillis, 0, limit, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 	thread, err = ss.Thread().Get(post.Id)
@@ -471,7 +471,7 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, ss st
 	})
 	require.NoError(t, err)
 
-	nowMillis = thread.LastReplyAt + *teamPolicy.PostDurationDays*24*60*60*1000 + 1
+	nowMillis = thread.LastReplyAt + *teamPolicy.PostDurationDays*model.DayInMilliseconds + 1
 	_, _, err = ss.Thread().PermanentDeleteBatchForRetentionPolicies(nowMillis, 0, limit, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 	_, err = ss.Thread().Get(post.Id)
@@ -536,7 +536,7 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	})
 	require.NoError(t, err)
 
-	nowMillis := threadMembership.LastUpdated + *channelPolicy.PostDurationDays*24*60*60*1000 + 1
+	nowMillis := threadMembership.LastUpdated + *channelPolicy.PostDurationDays*model.DayInMilliseconds + 1
 	_, _, err = ss.Thread().PermanentDeleteBatchThreadMembershipsForRetentionPolicies(nowMillis, 0, limit, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 	_, err = ss.Thread().GetMembershipForUser(userID, post.Id)
@@ -555,7 +555,7 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	})
 	require.NoError(t, err)
 
-	nowMillis = threadMembership.LastUpdated + *teamPolicy.PostDurationDays*24*60*60*1000 + 1
+	nowMillis = threadMembership.LastUpdated + *teamPolicy.PostDurationDays*model.DayInMilliseconds + 1
 	_, _, err = ss.Thread().PermanentDeleteBatchThreadMembershipsForRetentionPolicies(nowMillis, 0, limit, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 	_, err = ss.Thread().GetMembershipForUser(userID, post.Id)

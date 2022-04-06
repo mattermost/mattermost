@@ -382,7 +382,7 @@ func testPermanentDeleteBatchForRetentionPolicies(t *testing.T, ss store.Store) 
 	})
 	require.NoError(t, err)
 
-	nowMillis := leaveTime + *channelPolicy.PostDurationDays*24*60*60*1000 + 1
+	nowMillis := leaveTime + *channelPolicy.PostDurationDays*model.DayInMilliseconds + 1
 	_, _, err = ss.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
 		nowMillis, 0, limit, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
