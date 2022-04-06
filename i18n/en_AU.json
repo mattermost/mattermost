@@ -5032,16 +5032,8 @@
     "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .TeamURL }} by {{.Method}}."
   },
   {
-    "id": "api.templates.over_limit_info2",
-    "translation": "Alternatively, you can disable users in the Admin Console to open up spots for more users or stay below the free user limit."
-  },
-  {
     "id": "api.templates.over_limit_fix_now",
     "translation": "Fix Now"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_subject",
-    "translation": "Payment is overdue for your Mattermost Cloud subscription"
   },
   {
     "id": "api.templates.over_limit_30_days_info1",
@@ -9185,5 +9177,29 @@
   {
     "id": "app.channel.get_file_count.app_error",
     "translation": "Unable to retrieve the file count for the channel"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "Elasticsearch Bulk Indexing Batch Size must be at least {{.BatchSize}}."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
+    "translation": "Bleve Bulk Indexing Batch Size must be at least {{.BatchSize}}."
+  },
+  {
+    "id": "api.license.request_trial_license.embargoed",
+    "translation": "We were unable to process the request due to limitations for embargoed countries. [Learn more in our documentation](https://mattermost.com/pl/limitations-for-embargoed-countries), or reach out to legal@mattermost.com for questions around export limitations."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "OnlyThreads and OnlyTotals parameters to getThreadsForUser are mutually exclusive"
+  },
+  {
+    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "translation": "The file storage settings have unset values."
+  },
+  {
+    "id": "api.file.test_connection_email_settings_nil.app_error",
+    "translation": "The email settings have unset values."
   }
 ]
