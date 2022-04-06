@@ -33,9 +33,8 @@ _Note: Heroku preview does not include email or persistent storage_
 
 ## Install Mattermost
 
-- [Quick Install Guide](https://docs.mattermost.com/getting-started/light-install.html) - Deploy in minutes via Mattermost Omnibus on Ubuntu.
-- [Docker Deployment](https://docs.mattermost.com/install/install-docker) - Preview Mattermost instantly or deploy via Docker for production use.
-- [Developer Machine Setup](https://developers.mattermost.com/contribute/server/developer-setup) - Follow this guide if you want to write code for Mattermost.
+- [Deploy Guide](https://docs.mattermost.com/guides/deployment.html) - Deploy Mattermost in minutes via Docker, tar, or the Omnibus
+- [Developer Machine Setup](https://developers.mattermost.com/contribute/server/developer-setup) - Follow this guide if you want to write code for Mattermost
 
 Other Install Guides:
 - [Ubuntu 20.04 LTS](https://docs.mattermost.com/install/installing-ubuntu-2004-LTS.html)
