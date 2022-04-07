@@ -357,7 +357,7 @@ func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset, limit
 		Select(`
 			RetentionPolicies.Id as "Id",
 			RetentionPolicies.DisplayName,
-			RetentionPolicies.PostDuration,
+			RetentionPolicies.PostDuration as "PostDuration",
 			A.Count AS ChannelCount,
 			B.Count AS TeamCount
 	  `).
