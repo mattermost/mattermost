@@ -697,7 +697,7 @@ func (s *SqlRetentionPolicyStore) DeleteOrphanedRows(limit int) (deleted int64, 
 
 func (s *SqlRetentionPolicyStore) GetTeamPoliciesForUser(userID string, offset, limit int) ([]*model.RetentionPolicyForTeam, error) {
 	query := s.getQueryBuilder().
-		Select(`Teams.Id AS "Id", RetentionPolicies.PostDuration`).
+		Select(`Teams.Id AS "Id", RetentionPolicies.PostDuration AS "PostDuration"`).
 		From("Users").
 		InnerJoin("TeamMembers ON Users.Id = TeamMembers.UserId").
 		InnerJoin("Teams ON TeamMembers.TeamId = Teams.Id").
@@ -758,7 +758,7 @@ func (s *SqlRetentionPolicyStore) GetTeamPoliciesCountForUser(userID string) (in
 
 func (s *SqlRetentionPolicyStore) GetChannelPoliciesForUser(userID string, offset, limit int) ([]*model.RetentionPolicyForChannel, error) {
 	query := s.getQueryBuilder().
-		Select(`Channels.Id as "Id", RetentionPolicies.PostDuration`).
+		Select(`Channels.Id as "Id", RetentionPolicies.PostDuration as "PostDuration"`).
 		From("Users").
 		InnerJoin("ChannelMembers ON Users.Id = ChannelMembers.UserId").
 		InnerJoin("Channels ON ChannelMembers.ChannelId = Channels.Id").
