@@ -2893,7 +2893,6 @@ func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) 
 		Where(sq.And{
 			sq.Expr("c.TeamId = t.id"),
 			sq.Expr("t.id = tm.TeamId"),
-			sq.Eq{"tm.DeleteAt": 0},
 			sq.Eq{"tm.UserId": userID},
 			sq.Or{
 				sq.NotEq{"c.Type": model.ChannelTypePrivate},
@@ -2908,7 +2907,10 @@ func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) 
 		OrderBy("c.DisplayName")
 
 	if !includeDeleted {
-		query = query.Where(sq.Eq{"c.DeleteAt": 0})
+		query = query.Where(sq.And{
+			sq.Eq{"c.DeleteAt": 0},
+			sq.Eq{"tm.DeleteAt": 0},
+		})
 	}
 	searchClause := s.searchClause(term)
 	if searchClause != nil {
