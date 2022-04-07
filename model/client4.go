@@ -6486,7 +6486,7 @@ func (c *Client4) GetTopReactionsForTeamSince(teamId string, timeRange string, p
 	return topReactions, BuildResponse(r), nil
 }
 
-func (c *Client4) GetTopReactionsForUserSince(teamId string, timeRange string, page int, perPage int) ([]*TopReaction, *Response, error) {
+func (c *Client4) GetTopReactionsForUserSince(teamId string, timeRange string, page int, perPage int) (*TopReactionList, *Response, error) {
 	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
 
 	if teamId != "" {
@@ -6498,7 +6498,7 @@ func (c *Client4) GetTopReactionsForUserSince(teamId string, timeRange string, p
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	topReactions := []*TopReaction{}
+	var topReactions *TopReactionList
 	if jsonErr := json.NewDecoder(r.Body).Decode(&topReactions); jsonErr != nil {
 		return nil, nil, NewAppError("GetTopReactionsForUserSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}

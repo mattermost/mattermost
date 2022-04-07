@@ -679,7 +679,7 @@ type ReactionStore interface {
 	DeleteOrphanedRows(limit int) (int64, error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	GetTopForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopReactionList, error)
-	GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) ([]*model.TopReaction, error)
+	GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopReactionList, error)
 }
 
 type JobStore interface {

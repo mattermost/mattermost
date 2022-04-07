@@ -205,7 +205,7 @@ func getTopReactionsForUserSince(c *Context, w http.ResponseWriter, r *http.Requ
 		}
 	}
 
-	reactions, err := c.App.GetTopReactionsForUserSince(c.AppContext.Session().UserId, c.Params.TeamId, &model.InsightsOpts{
+	topReactionList, err := c.App.GetTopReactionsForUserSince(c.AppContext.Session().UserId, c.Params.TeamId, &model.InsightsOpts{
 		TimeRange: c.Params.TimeRange,
 		Page:      c.Params.Page,
 		PerPage:   c.Params.PerPage,
@@ -215,7 +215,7 @@ func getTopReactionsForUserSince(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	js, jsonErr := json.Marshal(reactions)
+	js, jsonErr := json.Marshal(topReactionList)
 	if jsonErr != nil {
 		c.Err = model.NewAppError("getTopReactionsForUserSince", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 		return

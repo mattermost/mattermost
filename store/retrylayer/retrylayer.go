@@ -7315,7 +7315,7 @@ func (s *RetryLayerReactionStore) GetTopForTeamSince(teamID string, userID strin
 
 }
 
-func (s *RetryLayerReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) ([]*model.TopReaction, error) {
+func (s *RetryLayerReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopReactionList, error) {
 
 	tries := 0
 	for {

@@ -912,16 +912,18 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 	t.Run("get-top-reactions-for-user-since", func(t *testing.T) {
 		topReactions, _, err := client.GetTopReactionsForUserSince(teamId, "1_day", 0, 5)
 		require.NoError(t, err)
+		reactions := topReactions.Items
 
-		for i, reaction := range topReactions {
+		for i, reaction := range reactions {
 			assert.Equal(t, expectedTopReactions[i].EmojiName, reaction.EmojiName)
 			assert.Equal(t, expectedTopReactions[i].Count, reaction.Count)
 		}
 
 		topReactions, _, err = client.GetTopReactionsForUserSince(teamId, "1_day", 1, 5)
 		require.NoError(t, err)
-		assert.Equal(t, "100", topReactions[0].EmojiName)
-		assert.Equal(t, int64(1), topReactions[0].Count)
+		reactions = topReactions.Items
+		assert.Equal(t, "100", reactions[0].EmojiName)
+		assert.Equal(t, int64(1), reactions[0].Count)
 	})
 
 	t.Run("get-top-reactions-for-user-since invalid team id", func(t *testing.T) {

@@ -394,16 +394,18 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 	t.Run("get-top-reactions-for-user-since", func(t *testing.T) {
 		topReactions, err := th.App.GetTopReactionsForUserSince(userId, teamId, &model.InsightsOpts{TimeRange: timeRange, Page: 0, PerPage: 5})
 		require.Nil(t, err)
+		reactions := topReactions.Items
 
-		for i, reaction := range topReactions {
+		for i, reaction := range reactions {
 			assert.Equal(t, expectedTopReactions[i].EmojiName, reaction.EmojiName)
 			assert.Equal(t, expectedTopReactions[i].Count, reaction.Count)
 		}
 
 		topReactions, err = th.App.GetTopReactionsForUserSince(userId, teamId, &model.InsightsOpts{TimeRange: timeRange, Page: 1, PerPage: 5})
 		require.Nil(t, err)
-		assert.Equal(t, "100", topReactions[0].EmojiName)
-		assert.Equal(t, int64(1), topReactions[0].Count)
+		reactions = topReactions.Items
+		assert.Equal(t, "100", reactions[0].EmojiName)
+		assert.Equal(t, int64(1), reactions[0].Count)
 	})
 
 	t.Run("get-top-reactions-for-user-since feature flag", func(t *testing.T) {

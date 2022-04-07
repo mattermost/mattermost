@@ -108,16 +108,16 @@ func (a *App) GetTopReactionsForTeamSince(teamID string, userID string, opts *mo
 	return topReactionList, nil
 }
 
-func (a *App) GetTopReactionsForUserSince(userID string, teamID string, opts *model.InsightsOpts) ([]*model.TopReaction, *model.AppError) {
+func (a *App) GetTopReactionsForUserSince(userID string, teamID string, opts *model.InsightsOpts) (*model.TopReactionList, *model.AppError) {
 	if !a.Config().FeatureFlags.InsightsEnabled {
 		return nil, model.NewAppError("GetTopReactionsForUserSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	reactions, err := a.Srv().Store.Reaction().GetTopForUserSince(userID, teamID, opts.TimeRange, opts.Page*opts.PerPage, opts.PerPage)
+	topReactionList, err := a.Srv().Store.Reaction().GetTopForUserSince(userID, teamID, opts.TimeRange, opts.Page*opts.PerPage, opts.PerPage)
 	if err != nil {
 		return nil, model.NewAppError("GetTopReactionsForUserSince", "app.reaction.get_top_for_user_since.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	return reactions, nil
+	return topReactionList, nil
 }
 
 func (a *App) DeleteReactionForPost(c *request.Context, reaction *model.Reaction) *model.AppError {

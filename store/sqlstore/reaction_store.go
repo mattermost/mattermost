@@ -304,7 +304,7 @@ func (s *SqlReactionStore) GetTopForTeamSince(teamID string, userID string, sinc
 // GetTopForUserSince returns the instance counts of the following Reactions sets:
 // a) those created by the given user in any channel type on the given team (across the workspace if no team is given), and
 // b) those created by the given user in DM or group channels.
-func (s *SqlReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) ([]*model.TopReaction, error) {
+func (s *SqlReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopReactionList, error) {
 	var reactions []*model.TopReaction
 	var args []interface{}
 	var query string
@@ -329,7 +329,7 @@ func (s *SqlReactionStore) GetTopForUserSince(userID string, teamID string, sinc
 			Count DESC
 		LIMIT ?
 		OFFSET ?`
-		args = []interface{}{userID, teamID, since, limit, offset}
+		args = []interface{}{userID, teamID, since, limit + 1, offset}
 	} else {
 		query = `
 			SELECT
@@ -347,13 +347,31 @@ func (s *SqlReactionStore) GetTopForUserSince(userID string, teamID string, sinc
 				Count DESC
 			LIMIT ?
 			OFFSET ?`
-		args = []interface{}{userID, since, limit, offset}
+		args = []interface{}{userID, since, limit + 1, offset}
 	}
 
 	if err := s.GetReplicaX().Select(&reactions, query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to get top Reactions")
 	}
-	return reactions, nil
+
+	// Add pagination support
+	var hasNext bool
+	if limit != 0 {
+		if len(reactions) == limit+1 {
+			hasNext = true
+		}
+	}
+
+	if hasNext {
+		reactions = reactions[:len(reactions)-1]
+	}
+
+	// Assign rank to each reaction
+	for i, reaction := range reactions {
+		reaction.Rank = offset + i + 1
+	}
+
+	return &model.TopReactionList{HasNext: hasNext, Items: reactions}, nil
 }
 
 func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *sqlxTxWrapper, reaction *model.Reaction) error {

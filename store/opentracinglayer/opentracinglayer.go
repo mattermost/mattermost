@@ -6451,7 +6451,7 @@ func (s *OpenTracingLayerReactionStore) GetTopForTeamSince(teamID string, userID
 	return result, err
 }
 
-func (s *OpenTracingLayerReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) ([]*model.TopReaction, error) {
+func (s *OpenTracingLayerReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopReactionList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ReactionStore.GetTopForUserSince")
 	s.Root.Store.SetContext(newCtx)
