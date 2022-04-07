@@ -259,8 +259,8 @@ func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 
 	_, err = ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
-			DisplayName:  "Policy 1",
-			PostDuration: model.NewInt64(20),
+			DisplayName:      "Policy 1",
+			PostDurationDays: model.NewInt64(20),
 		},
 		TeamIDs: []string{q.Id},
 	})
@@ -665,8 +665,8 @@ func testTeamStoreGetAllPage(t *testing.T, ss store.Store) {
 
 	policy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
-			DisplayName:  "Policy 1",
-			PostDuration: model.NewInt64(30),
+			DisplayName:      "Policy 1",
+			PostDurationDays: model.NewInt64(30),
 		},
 		TeamIDs: []string{o.Id},
 	})
