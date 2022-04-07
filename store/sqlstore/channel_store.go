@@ -3372,7 +3372,6 @@ func (s SqlChannelStore) buildLIKEClauseX(term string, searchColumns ...string) 
 	// escape the special characters with *
 	likeTerm := sanitizeSearchTerm(term, "*")
 	if likeTerm == "" {
-		mlog.Warn("likeTerm is nil")
 		return nil
 	}
 
@@ -3392,7 +3391,7 @@ func (s SqlChannelStore) buildLIKEClauseX(term string, searchColumns ...string) 
 		}
 	}
 	sf, _, _ := searchFields.ToSql()
-	mlog.Warn("Search fields: %s", mlog.String("sf", sf))
+
 	return searchFields
 }
 
