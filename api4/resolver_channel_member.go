@@ -126,6 +126,17 @@ func getGraphQLRoles(c *web.Context, roleNames []string) ([]*model.Role, error) 
 		return nil, appErr
 	}
 
+	// The roles need to be in the exact same order as the input slice.
+	tmp := make(map[string]*model.Role)
+	for _, r := range roles {
+		tmp[r.Name] = r
+	}
+
+	// We reuse the same slice and just rewrite the roles.
+	for i, roleName := range roleNames {
+		roles[i] = tmp[roleName]
+	}
+
 	return roles, nil
 }
 
