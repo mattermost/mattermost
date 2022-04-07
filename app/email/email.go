@@ -244,9 +244,10 @@ func (es *Service) SendCloudTrialEndWarningEmail(userEmail, name, trialEndDate, 
 		return err
 	}
 
-	if err := es.sendMail(userEmail, subject, body); err != nil {
+	if err := es.sendEmailWithCustomReplyTo(userEmail, subject, body, *es.config().SupportSettings.SupportEmail); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -271,9 +272,10 @@ func (es *Service) SendCloudTrialEndedEmail(userEmail, name, locale, siteURL str
 		return err
 	}
 
-	if err := es.sendMail(userEmail, subject, body); err != nil {
+	if err := es.sendEmailWithCustomReplyTo(userEmail, subject, body, *es.config().SupportSettings.SupportEmail); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -310,7 +312,7 @@ func (es *Service) SendCloudWelcomeEmail(userEmail, locale, teamInviteID, workSp
 		return err
 	}
 
-	if err := es.sendMail(userEmail, subject, body); err != nil {
+	if err := es.sendEmailWithCustomReplyTo(userEmail, subject, body, *es.config().SupportSettings.SupportEmail); err != nil {
 		return err
 	}
 
@@ -671,16 +673,23 @@ func (es *Service) sendMail(to, subject, htmlBody string) error {
 	return es.sendMailWithCC(to, subject, htmlBody, "")
 }
 
+func (es *Service) sendEmailWithCustomReplyTo(to, subject, htmlBody, replyToAddress string) error {
+	license := es.license()
+	mailConfig := es.mailServiceConfig(replyToAddress)
+
+	return mail.SendMailUsingConfig(to, subject, htmlBody, mailConfig, license != nil && *license.Features.Compliance, "")
+}
+
 func (es *Service) sendMailWithCC(to, subject, htmlBody string, ccMail string) error {
 	license := es.license()
-	mailConfig := es.mailServiceConfig()
+	mailConfig := es.mailServiceConfig("")
 
 	return mail.SendMailUsingConfig(to, subject, htmlBody, mailConfig, license != nil && *license.Features.Compliance, ccMail)
 }
 
 func (es *Service) SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader) error {
 	license := es.license()
-	mailConfig := es.mailServiceConfig()
+	mailConfig := es.mailServiceConfig("")
 
 	return mail.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, mailConfig, license != nil && *license.Features.Compliance, "")
 }
@@ -825,7 +834,7 @@ func (es *Service) SendPaymentFailedEmail(email string, locale string, failedPay
 		return false, err
 	}
 
-	if err := es.sendMail(email, subject, body); err != nil {
+	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail); err != nil {
 		return false, err
 	}
 
@@ -852,7 +861,7 @@ func (es *Service) SendNoCardPaymentFailedEmail(email string, locale string, sit
 		return err
 	}
 
-	if err := es.sendMail(email, subject, body); err != nil {
+	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail); err != nil {
 		return err
 	}
 
