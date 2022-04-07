@@ -3127,7 +3127,7 @@ func (s SqlChannelStore) SearchArchivedInTeam(teamId string, term string, userId
 
 	searchClause := s.searchClause(term)
 	if searchClause != nil {
-		queryBase.Where(searchClause)
+		queryBase = queryBase.Where(searchClause)
 	}
 
 	publicQuery := queryBase.
