@@ -7,6 +7,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/graph-gophers/dataloader/v6"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
@@ -60,10 +61,22 @@ func (tm *teamMember) SidebarCategories(ctx context.Context) ([]*model.SidebarCa
 
 // match with api4.getRolesByNames
 func (tm *teamMember) Roles_(ctx context.Context) ([]*model.Role, error) {
-	c, err := getCtx(ctx)
+	loader, err := getRolesLoader(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return getGraphQLRoles(c, strings.Fields(tm.Roles))
+	thunk := loader.LoadMany(ctx, dataloader.NewKeysFromStrings(strings.Fields(tm.Roles)))
+	results, errs := thunk()
+	// All errors are the same. We just return the first one.
+	if len(errs) > 0 && errs[0] != nil {
+		return nil, err
+	}
+
+	roles := make([]*model.Role, len(results))
+	for i, res := range results {
+		roles[i] = res.(*model.Role)
+	}
+
+	return roles, nil
 }

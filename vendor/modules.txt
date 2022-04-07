@@ -276,6 +276,9 @@ github.com/gorilla/schema
 # github.com/gorilla/websocket v1.5.0
 ## explicit
 github.com/gorilla/websocket
+# github.com/graph-gophers/dataloader/v6 v6.0.0
+## explicit
+github.com/graph-gophers/dataloader/v6
 # github.com/graph-gophers/graphql-go v1.3.0
 ## explicit
 github.com/graph-gophers/graphql-go
@@ -322,7 +325,6 @@ github.com/hashicorp/go-plugin/internal/plugin
 ## explicit
 github.com/hashicorp/go-sockaddr
 # github.com/hashicorp/golang-lru v0.5.4
-## explicit
 github.com/hashicorp/golang-lru
 github.com/hashicorp/golang-lru/simplelru
 # github.com/hashicorp/memberlist v0.3.1
