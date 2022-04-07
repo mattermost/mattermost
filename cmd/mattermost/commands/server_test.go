@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	UnitTestListeningPort = ":0"
+	unitTestListeningPort = ":0"
 )
 
 //nolint:golint,unused
@@ -65,7 +65,7 @@ func TestRunServerSuccess(t *testing.T) {
 
 	// Use non-default listening port in case another server instance is already running.
 	cfg := configStore.Get()
-	*cfg.ServiceSettings.ListenAddress = UnitTestListeningPort
+	*cfg.ServiceSettings.ListenAddress = unitTestListeningPort
 	configStore.Set(cfg)
 
 	err := runServer(configStore, th.interruptChan)
@@ -116,7 +116,9 @@ func TestRunServerSystemdNotification(t *testing.T) {
 	configStore := config.NewTestMemoryStore()
 
 	// Use non-default listening port in case another server instance is already running.
-	*configStore.Get().ServiceSettings.ListenAddress = UnitTestListeningPort
+	cfg := configStore.Get()
+	*cfg.ServiceSettings.ListenAddress = unitTestListeningPort
+	configStore.Set(cfg)
 
 	// Start and stop the server
 	err = runServer(configStore, th.interruptChan)
@@ -139,7 +141,9 @@ func TestRunServerNoSystemd(t *testing.T) {
 	configStore := config.NewTestMemoryStore()
 
 	// Use non-default listening port in case another server instance is already running.
-	*configStore.Get().ServiceSettings.ListenAddress = UnitTestListeningPort
+	cfg := configStore.Get()
+	*cfg.ServiceSettings.ListenAddress = unitTestListeningPort
+	configStore.Set(cfg)
 
 	err := runServer(configStore, th.interruptChan)
 	require.NoError(t, err)
