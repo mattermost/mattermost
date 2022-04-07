@@ -273,7 +273,8 @@ func (s *SqlReactionStore) GetTopForTeamSince(teamID string, userID string, sinc
 		GROUP BY
 			EmojiName
 		ORDER BY
-			Count DESC
+			Count DESC,
+			EmojiName ASC
 		LIMIT ?
 		OFFSET ?`
 
@@ -281,24 +282,7 @@ func (s *SqlReactionStore) GetTopForTeamSince(teamID string, userID string, sinc
 		return nil, errors.Wrap(err, "failed to get top Reactions")
 	}
 
-	// Add pagination support
-	var hasNext bool
-	if limit != 0 {
-		if len(reactions) == limit+1 {
-			hasNext = true
-		}
-	}
-
-	if hasNext {
-		reactions = reactions[:len(reactions)-1]
-	}
-
-	// Assign rank to each reaction
-	for i, reaction := range reactions {
-		reaction.Rank = offset + i + 1
-	}
-
-	return &model.TopReactionList{HasNext: hasNext, Items: reactions}, nil
+	return model.GetTopReactionListWithRankAndPagination(reactions, limit, offset), nil
 }
 
 // GetTopForUserSince returns the instance counts of the following Reactions sets:
@@ -326,7 +310,8 @@ func (s *SqlReactionStore) GetTopForUserSince(userID string, teamID string, sinc
 		GROUP BY
 			EmojiName
 		ORDER BY
-			Count DESC
+			Count DESC,
+			EmojiName ASC
 		LIMIT ?
 		OFFSET ?`
 		args = []interface{}{userID, teamID, since, limit + 1, offset}
@@ -344,7 +329,8 @@ func (s *SqlReactionStore) GetTopForUserSince(userID string, teamID string, sinc
 			GROUP BY
 				Reactions.EmojiName
 			ORDER BY
-				Count DESC
+				Count DESC,
+				EmojiName ASC
 			LIMIT ?
 			OFFSET ?`
 		args = []interface{}{userID, since, limit + 1, offset}
@@ -354,24 +340,7 @@ func (s *SqlReactionStore) GetTopForUserSince(userID string, teamID string, sinc
 		return nil, errors.Wrap(err, "failed to get top Reactions")
 	}
 
-	// Add pagination support
-	var hasNext bool
-	if limit != 0 {
-		if len(reactions) == limit+1 {
-			hasNext = true
-		}
-	}
-
-	if hasNext {
-		reactions = reactions[:len(reactions)-1]
-	}
-
-	// Assign rank to each reaction
-	for i, reaction := range reactions {
-		reaction.Rank = offset + i + 1
-	}
-
-	return &model.TopReactionList{HasNext: hasNext, Items: reactions}, nil
+	return model.GetTopReactionListWithRankAndPagination(reactions, limit, offset), nil
 }
 
 func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *sqlxTxWrapper, reaction *model.Reaction) error {

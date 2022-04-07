@@ -45,3 +45,22 @@ func GetStartUnixMilliForTimeRange(timeRange string) (int64, *AppError) {
 
 	return GetMillisForTime(time.Now()), NewAppError("Insights.IsValidRequest", "model.insights.time_range.app_error", nil, "", http.StatusBadRequest)
 }
+
+// GetTopReactionListWithRankAndPagination adds a rank to each item in the given list of TopReaction and checks if there is
+// another page that can be fetched based on the given limit and offset. The given list of TopReaction is assumed to be
+// sorted by Count. Returns a TopReactionList.
+func GetTopReactionListWithRankAndPagination(reactions []*TopReaction, limit int, offset int) *TopReactionList {
+	// Add pagination support
+	var hasNext bool
+	if (limit != 0) && (len(reactions) == limit+1) {
+		hasNext = true
+		reactions = reactions[:len(reactions)-1]
+	}
+
+	// Assign rank to each reaction
+	for i, reaction := range reactions {
+		reaction.Rank = offset + i + 1
+	}
+
+	return &TopReactionList{HasNext: hasNext, Items: reactions}
+}
