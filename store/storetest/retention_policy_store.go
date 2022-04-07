@@ -34,9 +34,9 @@ func getRetentionPolicyWithTeamAndChannelIds(t *testing.T, ss store.Store, polic
 	require.NoError(t, err)
 	policyWithIds := model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
-			ID:           policyID,
-			DisplayName:  policyWithCounts.DisplayName,
-			PostDuration: policyWithCounts.PostDuration,
+			ID:               policyID,
+			DisplayName:      policyWithCounts.DisplayName,
+			PostDurationDays: policyWithCounts.PostDurationDays,
 		},
 		ChannelIDs: make([]string, int(policyWithCounts.ChannelCount)),
 		TeamIDs:    make([]string, int(policyWithCounts.TeamCount)),
@@ -57,7 +57,7 @@ func getRetentionPolicyWithTeamAndChannelIds(t *testing.T, ss store.Store, polic
 func CheckRetentionPolicyWithTeamAndChannelIdsAreEqual(t *testing.T, p1, p2 *model.RetentionPolicyWithTeamAndChannelIDs) {
 	require.Equal(t, p1.ID, p2.ID)
 	require.Equal(t, p1.DisplayName, p2.DisplayName)
-	require.Equal(t, p1.PostDuration, p2.PostDuration)
+	require.Equal(t, p1.PostDurationDays, p2.PostDurationDays)
 	require.Equal(t, len(p1.ChannelIDs), len(p2.ChannelIDs))
 	if p1.ChannelIDs == nil || p2.ChannelIDs == nil {
 		require.Equal(t, p1.ChannelIDs, p2.ChannelIDs)
@@ -83,7 +83,7 @@ func CheckRetentionPolicyWithTeamAndChannelIdsAreEqual(t *testing.T, p1, p2 *mod
 func CheckRetentionPolicyWithTeamAndChannelCountsAreEqual(t *testing.T, p1, p2 *model.RetentionPolicyWithTeamAndChannelCounts) {
 	require.Equal(t, p1.ID, p2.ID)
 	require.Equal(t, p1.DisplayName, p2.DisplayName)
-	require.Equal(t, p1.PostDuration, p2.PostDuration)
+	require.Equal(t, p1.PostDurationDays, p2.PostDurationDays)
 	require.Equal(t, p1.ChannelCount, p2.ChannelCount)
 	require.Equal(t, p1.TeamCount, p2.TeamCount)
 }
@@ -175,8 +175,8 @@ func deleteTeamsAndChannels(ss store.Store, teamIDs, channelIDs []string) {
 func createRetentionPolicyWithTeamAndChannelIds(displayName string, teamIDs, channelIDs []string) *model.RetentionPolicyWithTeamAndChannelIDs {
 	return &model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
-			DisplayName:  displayName,
-			PostDuration: model.NewInt64(30),
+			DisplayName:      displayName,
+			PostDurationDays: model.NewInt64(30),
 		},
 		TeamIDs:    teamIDs,
 		ChannelIDs: channelIDs,
@@ -255,22 +255,22 @@ func testRetentionPolicyStorePatch(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("modify PostDuration", func(t *testing.T) {
 		patch := &model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
-				ID:           policy.ID,
-				PostDuration: model.NewInt64(10000),
+				ID:               policy.ID,
+				PostDurationDays: model.NewInt64(10000),
 			},
 		}
 		_, err := ss.RetentionPolicy().Patch(patch)
 		require.NoError(t, err)
 		expected := copyRetentionPolicyWithTeamAndChannelIds(policy)
-		expected.PostDuration = patch.PostDuration
+		expected.PostDurationDays = patch.PostDurationDays
 		checkRetentionPolicyLikeThisExists(t, ss, expected)
 
 		// Store a negative value (= infinity)
-		patch.PostDuration = model.NewInt64(-1)
+		patch.PostDurationDays = model.NewInt64(-1)
 		_, err = ss.RetentionPolicy().Patch(patch)
 		require.NoError(t, err)
 		expected = copyRetentionPolicyWithTeamAndChannelIds(policy)
-		expected.PostDuration = patch.PostDuration
+		expected.PostDurationDays = patch.PostDurationDays
 		checkRetentionPolicyLikeThisExists(t, ss, expected)
 
 		restoreRetentionPolicy(t, ss, policy)
