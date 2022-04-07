@@ -14,7 +14,7 @@ func TestGetTimeRange(t *testing.T) {
 
 	for _, timeRange := range tc {
 		t.Run(timeRange, func(t *testing.T) {
-			_, err := GetTimeRange(timeRange)
+			_, err := GetStartUnixMilliForTimeRange(timeRange)
 			assert.Nil(t, err)
 		})
 	}
@@ -23,7 +23,7 @@ func TestGetTimeRange(t *testing.T) {
 
 	for _, timeRange := range invalidTimeRanges {
 		t.Run(timeRange, func(t *testing.T) {
-			_, err := GetTimeRange(timeRange)
+			_, err := GetStartUnixMilliForTimeRange(timeRange)
 			assert.NotNil(t, err)
 		})
 	}

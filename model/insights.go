@@ -15,9 +15,9 @@ const (
 )
 
 type InsightsOpts struct {
-	TimeRange int64
-	Page      int
-	PerPage   int
+	StartUnixMilli int64
+	Page           int
+	PerPage        int
 }
 
 type TopReactionList struct {
@@ -31,9 +31,9 @@ type TopReaction struct {
 	Rank      int    `json:"rank"`
 }
 
-// GetTimeRange converts the timeRange string to an int64 Unix time
-// timeRange can be one of: "1_day", "7_day", "28_day"
-func GetTimeRange(timeRange string) (int64, *AppError) {
+// GetStartUnixMilliForTimeRange gets the unix start time in milliseconds from the given time range.
+// Time range can be one of: "1_day", "7_day", or "28_day".
+func GetStartUnixMilliForTimeRange(timeRange string) (int64, *AppError) {
 	switch timeRange {
 	case TimeRange1Day:
 		return GetMillisForTime(time.Now().Add(time.Hour * time.Duration(-24))), nil

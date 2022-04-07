@@ -101,7 +101,7 @@ func (a *App) GetTopReactionsForTeamSince(teamID string, userID string, opts *mo
 		return nil, model.NewAppError("GetTopReactionsForTeamSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	topReactionList, err := a.Srv().Store.Reaction().GetTopForTeamSince(teamID, userID, opts.TimeRange, opts.Page*opts.PerPage, opts.PerPage)
+	topReactionList, err := a.Srv().Store.Reaction().GetTopForTeamSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
 	if err != nil {
 		return nil, model.NewAppError("GetTopReactionsForTeamSince", "app.reaction.get_top_for_team_since.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -113,7 +113,7 @@ func (a *App) GetTopReactionsForUserSince(userID string, teamID string, opts *mo
 		return nil, model.NewAppError("GetTopReactionsForUserSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	topReactionList, err := a.Srv().Store.Reaction().GetTopForUserSince(userID, teamID, opts.TimeRange, opts.Page*opts.PerPage, opts.PerPage)
+	topReactionList, err := a.Srv().Store.Reaction().GetTopForUserSince(userID, teamID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
 	if err != nil {
 		return nil, model.NewAppError("GetTopReactionsForUserSince", "app.reaction.get_top_for_user_since.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

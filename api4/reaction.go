@@ -160,9 +160,9 @@ func getTopReactionsForTeamSince(c *Context, w http.ResponseWriter, r *http.Requ
 	}
 
 	topReactionList, err := c.App.GetTopReactionsForTeamSince(c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
-		TimeRange: c.Params.TimeRange,
-		Page:      c.Params.Page,
-		PerPage:   c.Params.PerPage,
+		StartUnixMilli: c.Params.TimeRange,
+		Page:           c.Params.Page,
+		PerPage:        c.Params.PerPage,
 	})
 	if err != nil {
 		c.Err = err
@@ -206,9 +206,9 @@ func getTopReactionsForUserSince(c *Context, w http.ResponseWriter, r *http.Requ
 	}
 
 	topReactionList, err := c.App.GetTopReactionsForUserSince(c.AppContext.Session().UserId, c.Params.TeamId, &model.InsightsOpts{
-		TimeRange: c.Params.TimeRange,
-		Page:      c.Params.Page,
-		PerPage:   c.Params.PerPage,
+		StartUnixMilli: c.Params.TimeRange,
+		Page:           c.Params.Page,
+		PerPage:        c.Params.PerPage,
 	})
 	if err != nil {
 		c.Err = err

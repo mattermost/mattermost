@@ -255,7 +255,9 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.Timestamp = val
 	}
 
-	if val, err := model.GetTimeRange(query.Get("time_range")); err == nil {
+	if val, err := model.GetStartUnixMilliForTimeRange(query.Get("time_range")); err != nil {
+		params.TimeRange = 0
+	} else {
 		params.TimeRange = val
 	}
 

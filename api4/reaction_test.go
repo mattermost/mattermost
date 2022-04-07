@@ -6,6 +6,7 @@ package api4
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -716,6 +717,12 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 			PostId:    post5.Id,
 			EmojiName: "+1",
 		},
+		{
+			UserId:    userId,
+			PostId:    post1.Id,
+			EmojiName: "100",
+			CreateAt:  model.GetMillisForTime(time.Now().Add(time.Hour * time.Duration(-25))),
+		},
 	}
 
 	for _, userReaction := range userReactions {
@@ -733,7 +740,7 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 	expectedTopReactions[4] = &model.TopReaction{EmojiName: "happy", Count: int64(2)}
 
 	t.Run("get-top-reactions-for-team-since", func(t *testing.T) {
-		topReactions, _, err := client.GetTopReactionsForTeamSince(teamId, "1_day", 0, 5)
+		topReactions, _, err := client.GetTopReactionsForTeamSince(teamId, model.TimeRange1Day, 0, 5)
 		require.NoError(t, err)
 		reactions := topReactions.Items
 
@@ -742,7 +749,7 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 			assert.Equal(t, expectedTopReactions[i].Count, reaction.Count)
 		}
 
-		topReactions, _, err = client.GetTopReactionsForTeamSince(teamId, "1_day", 1, 5)
+		topReactions, _, err = client.GetTopReactionsForTeamSince(teamId, model.TimeRange1Day, 1, 5)
 		require.NoError(t, err)
 		reactions = topReactions.Items
 
@@ -751,11 +758,11 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 	})
 
 	t.Run("get-top-reactions-for-team-since invalid team id", func(t *testing.T) {
-		_, resp, err := client.GetTopReactionsForTeamSince("12345", "1_day", 0, 5)
+		_, resp, err := client.GetTopReactionsForTeamSince("12345", model.TimeRange1Day, 0, 5)
 		assert.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		_, resp, err = client.GetTopReactionsForTeamSince(model.NewId(), "1_day", 0, 5)
+		_, resp, err = client.GetTopReactionsForTeamSince(model.NewId(), model.TimeRange1Day, 0, 5)
 		assert.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
@@ -893,6 +900,12 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 			PostId:    post1.Id,
 			EmojiName: "100",
 		},
+		{
+			UserId:    userId,
+			PostId:    post1.Id,
+			EmojiName: "100",
+			CreateAt:  model.GetMillisForTime(time.Now().Add(time.Hour * time.Duration(-25))),
+		},
 	}
 
 	for _, userReaction := range userReactions {
@@ -910,7 +923,7 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 	expectedTopReactions[4] = &model.TopReaction{EmojiName: "blush", Count: int64(2)}
 
 	t.Run("get-top-reactions-for-user-since", func(t *testing.T) {
-		topReactions, _, err := client.GetTopReactionsForUserSince(teamId, "1_day", 0, 5)
+		topReactions, _, err := client.GetTopReactionsForUserSince(teamId, model.TimeRange1Day, 0, 5)
 		require.NoError(t, err)
 		reactions := topReactions.Items
 
@@ -919,7 +932,7 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 			assert.Equal(t, expectedTopReactions[i].Count, reaction.Count)
 		}
 
-		topReactions, _, err = client.GetTopReactionsForUserSince(teamId, "1_day", 1, 5)
+		topReactions, _, err = client.GetTopReactionsForUserSince(teamId, model.TimeRange1Day, 1, 5)
 		require.NoError(t, err)
 		reactions = topReactions.Items
 		assert.Equal(t, "100", reactions[0].EmojiName)
@@ -927,11 +940,11 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 	})
 
 	t.Run("get-top-reactions-for-user-since invalid team id", func(t *testing.T) {
-		_, resp, err := client.GetTopReactionsForUserSince("invalid_team_id", "1_day", 0, 5)
+		_, resp, err := client.GetTopReactionsForUserSince("invalid_team_id", model.TimeRange1Day, 0, 5)
 		assert.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		_, resp, err = client.GetTopReactionsForUserSince(model.NewId(), "1_day", 0, 5)
+		_, resp, err = client.GetTopReactionsForUserSince(model.NewId(), model.TimeRange1Day, 0, 5)
 		assert.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
