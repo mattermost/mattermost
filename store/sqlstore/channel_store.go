@@ -2893,6 +2893,7 @@ func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) 
 		Where(sq.And{
 			sq.Expr("c.TeamId = t.id"),
 			sq.Expr("t.id = tm.TeamId"),
+			sq.Eq{"tm.DeleteAt": 0},
 			sq.Eq{"tm.UserId": userID},
 			sq.Or{
 				sq.NotEq{"c.Type": model.ChannelTypePrivate},
