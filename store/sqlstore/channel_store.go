@@ -3390,7 +3390,6 @@ func (s SqlChannelStore) buildLIKEClauseX(term string, searchColumns ...string) 
 			searchFields = append(searchFields, sq.Expr(expr, likeTerm))
 		}
 	}
-	sf, _, _ := searchFields.ToSql()
 
 	return searchFields
 }
