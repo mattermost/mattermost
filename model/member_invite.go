@@ -10,7 +10,7 @@ import (
 
 type MemberInvite struct {
 	Emails     []string `json:"emails"`
-	ChannelIds []string `json:"channels,omitempty"`
+	ChannelIds []string `json:"channelIds,omitempty"`
 	Message    string   `json:"message"`
 }
 

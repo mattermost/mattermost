@@ -1302,8 +1302,11 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("team_id", c.Params.TeamId)
 	auditRec.AddMeta("count", len(emailList))
 	auditRec.AddMeta("emails", emailList)
-	auditRec.AddMeta("channel_count", len(memberInvite.ChannelIds))
-	auditRec.AddMeta("channels", memberInvite.ChannelIds)
+
+	if len(memberInvite.ChannelIds) > 0 {
+		auditRec.AddMeta("channel_count", len(memberInvite.ChannelIds))
+		auditRec.AddMeta("channels", memberInvite.ChannelIds)
+	}
 
 	if graceful {
 		var invitesWithError []*model.EmailInviteWithError
