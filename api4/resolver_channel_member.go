@@ -31,10 +31,17 @@ func (cm *channelMember) Channel(ctx context.Context) (*channel, error) {
 		return nil, err
 	}
 
-	channel, appErr := c.App.GetChannel(cm.ChannelId)
-	if appErr != nil {
-		return nil, appErr
+	loader, err := getChannelsLoader(ctx)
+	if err != nil {
+		return nil, err
 	}
+
+	thunk := loader.Load(ctx, dataloader.StringKey(cm.ChannelId))
+	result, err := thunk()
+	if err != nil {
+		return nil, err
+	}
+	channel := result.(*model.Channel)
 
 	if channel.Type == model.ChannelTypeOpen {
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) &&
@@ -49,7 +56,7 @@ func (cm *channelMember) Channel(ctx context.Context) (*channel, error) {
 		}
 	}
 
-	appErr = c.App.FillInChannelProps(channel)
+	appErr := c.App.FillInChannelProps(channel)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -63,6 +70,56 @@ func (cm *channelMember) Channel(ctx context.Context) (*channel, error) {
 		return nil, fmt.Errorf("postProcessChannels: incorrect number of channels returned %d", len(res))
 	}
 	return res[0], nil
+}
+
+func graphQLChannelsLoader(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+	stringKeys := keys.Keys()
+	result := make([]*dataloader.Result, len(stringKeys))
+
+	c, err := getCtx(ctx)
+	if err != nil {
+		for i := range result {
+			result[i] = &dataloader.Result{Error: err}
+		}
+		return result
+	}
+
+	channels, err := getGraphQLChannels(c, stringKeys)
+	if err != nil {
+		for i := range result {
+			result[i] = &dataloader.Result{Error: err}
+		}
+		return result
+	}
+
+	for i, ch := range channels {
+		result[i] = &dataloader.Result{Data: ch}
+	}
+	return result
+}
+
+func getGraphQLChannels(c *web.Context, channelIDs []string) ([]*model.Channel, error) {
+	channels, appErr := c.App.GetChannels(channelIDs)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if len(channels) != len(channelIDs) {
+		return nil, fmt.Errorf("All channels were not found. Got %d; Passed %d", len(channels), len(channelIDs))
+	}
+
+	// The channels need to be in the exact same order as the input slice.
+	tmp := make(map[string]*model.Channel)
+	for _, ch := range channels {
+		tmp[ch.Id] = ch
+	}
+
+	// We reuse the same slice and just rewrite the channels.
+	for i, id := range channelIDs {
+		channels[i] = tmp[id]
+	}
+
+	return channels, nil
 }
 
 func (cm *channelMember) Roles_(ctx context.Context) ([]*model.Role, error) {
@@ -98,13 +155,17 @@ func graphQLRolesLoader(ctx context.Context, keys dataloader.Keys) []*dataloader
 
 	c, err := getCtx(ctx)
 	if err != nil {
-		result[0] = &dataloader.Result{Error: err}
+		for i := range result {
+			result[i] = &dataloader.Result{Error: err}
+		}
 		return result
 	}
 
 	roles, err := getGraphQLRoles(c, stringKeys)
 	if err != nil {
-		result[0] = &dataloader.Result{Error: err}
+		for i := range result {
+			result[i] = &dataloader.Result{Error: err}
+		}
 		return result
 	}
 

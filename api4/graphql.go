@@ -62,8 +62,9 @@ func (api *API) InitGraphQL() error {
 type ctxKey int
 
 const (
-	webCtx         ctxKey = 0
-	rolesLoaderCtx ctxKey = 1
+	webCtx            ctxKey = 0
+	rolesLoaderCtx    ctxKey = 1
+	channelsLoaderCtx ctxKey = 2
 )
 
 func (api *API) graphQL(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -100,6 +101,9 @@ func (api *API) graphQL(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	rolesLoader := dataloader.NewBatchedLoader(graphQLRolesLoader, dataloader.WithBatchCapacity(200))
 	reqCtx = context.WithValue(reqCtx, rolesLoaderCtx, rolesLoader)
+
+	channelsLoader := dataloader.NewBatchedLoader(graphQLChannelsLoader, dataloader.WithBatchCapacity(200))
+	reqCtx = context.WithValue(reqCtx, channelsLoaderCtx, channelsLoader)
 
 	response = api.schema.Exec(reqCtx,
 		params.Query,
