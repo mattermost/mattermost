@@ -73,7 +73,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.TestBoolFeature = false
 	f.CollapsedThreads = true
 	f.EnableRemoteClusterService = false
-	f.AppsEnabled = false
+	f.AppsEnabled = true
 	f.AppBarEnabled = false
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
