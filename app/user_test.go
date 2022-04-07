@@ -196,6 +196,36 @@ func TestUpdateUser(t *testing.T) {
 	})
 }
 
+func TestUpdateUserMissingFields(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	user := th.CreateUser()
+	defer th.App.PermanentDeleteUser(th.Context, user)
+
+	tests := map[string]struct {
+		input  *model.User
+		expect string
+	}{
+		"no missing fields": {input: &model.User{Id: user.Id, Username: user.Username, Email: user.Email}, expect: ""},
+		"missing id":        {input: &model.User{Username: user.Username, Email: user.Email}, expect: "app.user.missing_account.const"},
+		"missing username":  {input: &model.User{Id: user.Id, Email: user.Email}, expect: "model.user.is_valid.username.app_error"},
+		"missing email":     {input: &model.User{Id: user.Id, Username: user.Username}, expect: "model.user.is_valid.email.app_error"},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			_, err := th.App.UpdateUser(tc.input, false)
+
+			if name == "no missing fields" {
+				assert.Nil(t, err)
+			} else {
+				assert.Equal(t, tc.expect, err.Id)
+			}
+		})
+	}
+}
+
 func TestCreateUser(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()

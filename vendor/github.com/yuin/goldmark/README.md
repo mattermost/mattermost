@@ -429,6 +429,8 @@ Extensions
 - [goldmark-wikilink](https://github.com/abhinav/goldmark-wikilink): Adds support for `[[wiki]]`-style links to goldmark.
 - [goldmark-toc](https://github.com/abhinav/goldmark-toc): Adds support for generating tables-of-contents for goldmark documents.
 - [goldmark-mermaid](https://github.com/abhinav/goldmark-mermaid): Adds support for renderng [Mermaid](https://mermaid-js.github.io/mermaid/) diagrams in goldmark documents.
+- [goldmark-pikchr](https://github.com/jchenry/goldmark-pikchr): Adds support for renderng [Pikchr](https://pikchr.org/home/doc/trunk/homepage.md) diagrams in goldmark documents.
+
 
 goldmark internal(for extension developers)
 ----------------------------------------------
