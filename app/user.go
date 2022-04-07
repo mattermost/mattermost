@@ -912,7 +912,7 @@ func (a *App) UpdateActive(c *request.Context, user *model.User, active bool) (*
 			return nil, model.NewAppError("UpdateActive", "app.user.update.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	ruser := userUpdate.New
+	ruser := userUpdate.New.DeepCopy()
 
 	if !active {
 		if err := a.RevokeAllSessions(ruser.Id); err != nil {
