@@ -3127,7 +3127,7 @@ func (s SqlChannelStore) SearchArchivedInTeam(teamId string, term string, userId
 
 	searchClause := s.searchClause(term)
 	if searchClause != nil {
-		queryBase.Where(searchClause)
+		queryBase = queryBase.Where(searchClause)
 	}
 
 	publicQuery := queryBase.
@@ -3372,6 +3372,7 @@ func (s SqlChannelStore) buildLIKEClauseX(term string, searchColumns ...string) 
 	// escape the special characters with *
 	likeTerm := sanitizeSearchTerm(term, "*")
 	if likeTerm == "" {
+		mlog.Warn("likeTerm is nil")
 		return nil
 	}
 
@@ -3390,7 +3391,8 @@ func (s SqlChannelStore) buildLIKEClauseX(term string, searchColumns ...string) 
 			searchFields = append(searchFields, sq.Expr(expr, likeTerm))
 		}
 	}
-
+	sf, _, _ := searchFields.ToSql()
+	mlog.Warn("Search fields: %s", mlog.String("sf", sf))
 	return searchFields
 }
 
