@@ -237,8 +237,7 @@ func (s *SqlReactionStore) GetTopForTeamSince(teamID string, userID string, sinc
 	query := `
 		SELECT
 			EmojiName,
-			sum(EmojiCount) AS Count,
-			RANK() OVER (ORDER BY sum(EmojiCount) DESC) As Rank
+			sum(EmojiCount) AS Count
 		FROM ((
 				SELECT
 					EmojiName,
@@ -282,6 +281,7 @@ func (s *SqlReactionStore) GetTopForTeamSince(teamID string, userID string, sinc
 		return nil, errors.Wrap(err, "failed to get top Reactions")
 	}
 
+	// Add pagination support
 	var hasNext bool
 	if limit != 0 {
 		if len(reactions) == limit+1 {
@@ -291,6 +291,11 @@ func (s *SqlReactionStore) GetTopForTeamSince(teamID string, userID string, sinc
 
 	if hasNext {
 		reactions = reactions[:len(reactions)-1]
+	}
+
+	// Assign rank to each reaction
+	for i, reaction := range reactions {
+		reaction.Rank = offset + i + 1
 	}
 
 	return &model.TopReactionList{HasNext: hasNext, Items: reactions}, nil
