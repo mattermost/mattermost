@@ -4549,3 +4549,56 @@ func TestViewChannelWithoutCollapsedThreads(t *testing.T) {
 	require.NoError(t, err)
 	require.Zero(t, threads.TotalUnreadMentions)
 }
+
+func TestGetTopChannelsForTeamSince(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+
+	client := th.Client
+	userId := th.BasicUser.Id
+	channelIDs := [3]string{th.BasicChannel.Id, th.BasicChannel2.Id, th.BasicPrivateChannel.Id}
+
+	i := 3
+	for _, channelID := range channelIDs {
+		for j := i; j >= 0; j-- {
+			_, _, err := client.CreatePost(&model.Post{UserId: userId, ChannelId: channelID, Message: "zz" + model.NewId() + "a"})
+			require.NoError(t, err)
+		}
+		i--
+	}
+
+	teamId := th.BasicChannel.TeamId
+
+	expectedTopChannels := []struct {
+		ID    string
+		Score int64
+	}{
+		{ID: th.BasicChannel.Id, Score: 5},
+		{ID: th.BasicChannel2.Id, Score: 3},
+		{ID: th.BasicPrivateChannel.Id, Score: 2},
+	}
+
+	t.Run("get-top-channels-for-team-since", func(t *testing.T) {
+		topChannels, _, err := client.GetTopChannelsForTeamSince(teamId, "1_day", 0, 5)
+		require.NoError(t, err)
+
+		for i, channel := range topChannels.Items {
+			assert.Equal(t, expectedTopChannels[i].ID, channel.ID)
+			assert.Equal(t, expectedTopChannels[i].Score, channel.MessageCount)
+		}
+	})
+
+	t.Run("get-top-channels-for-team-since invalid team id", func(t *testing.T) {
+		_, resp, err := client.GetTopChannelsForTeamSince("12345", "1_day", 0, 5)
+		assert.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		_, resp, err = client.GetTopChannelsForTeamSince(model.NewId(), "1_day", 0, 5)
+		assert.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+}

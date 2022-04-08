@@ -2446,3 +2446,48 @@ func TestMarkUnreadWithThreads(t *testing.T) {
 		})
 	})
 }
+
+func TestGetTopChannelsForTeamSince(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.Server.configStore.SetReadOnlyFF(false)
+	defer th.Server.configStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+
+	channel2 := th.CreateChannel(th.BasicTeam)
+	channel3 := th.CreatePrivateChannel(th.BasicTeam)
+	th.AddUserToChannel(th.BasicUser, channel2)
+	th.AddUserToChannel(th.BasicUser, channel3)
+
+	channels := [3]*model.Channel{th.BasicChannel, channel2, channel3}
+
+	i := 3
+	for _, channel := range channels {
+		for j := i; j >= 0; j-- {
+			th.CreatePost(channel)
+		}
+		i--
+	}
+
+	expectedTopChannels := []struct {
+		ID    string
+		Score int64
+	}{
+		{ID: th.BasicChannel.Id, Score: 5},
+		{ID: channel2.Id, Score: 3},
+		{ID: channel3.Id, Score: 2},
+	}
+
+	timeRange, _ := model.GetStartUnixMilliForTimeRange("1_day")
+
+	t.Run("get-top-channels-for-team-since", func(t *testing.T) {
+		topChannels, err := th.App.GetTopChannelsForTeamSince(th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange, Page: 0, PerPage: 5})
+		require.Nil(t, err)
+
+		for i, channel := range topChannels.Items {
+			assert.Equal(t, expectedTopChannels[i].ID, channel.ID)
+			assert.Equal(t, expectedTopChannels[i].Score, channel.MessageCount)
+		}
+	})
+}
