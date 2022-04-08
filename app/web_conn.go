@@ -110,7 +110,6 @@ type WebConn struct {
 	pumpFinished  chan struct{}
 	pluginPosted  chan pluginWSPostedHook
 	subscriptions map[model.WebsocketSubjectID]bool
-	mu            sync.RWMutex
 }
 
 // CheckConnResult indicates whether a connectionID was present in the hub or not.
