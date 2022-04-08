@@ -210,16 +210,16 @@ func TestGraphQLRolesLoader(t *testing.T) {
 	require.Len(t, resp.Errors, 0)
 	require.NoError(t, json.Unmarshal(resp.Data, &q))
 
-	assert.Len(t, q.User.Roles, 1)
+	require.Len(t, q.User.Roles, 1)
 	assert.Equal(t, "system_user", q.User.Roles[0].Name)
 
-	assert.Len(t, q.ChannelMembers, 5)
+	require.Len(t, q.ChannelMembers, 5)
 	for _, cm := range q.ChannelMembers {
 		assert.Len(t, cm.Roles, 1)
 		assert.Equal(t, "channel_user", cm.Roles[0].Name)
 	}
 
-	assert.Len(t, q.TeamMembers, 1)
+	require.Len(t, q.TeamMembers, 1)
 	for _, tm := range q.TeamMembers {
 		assert.Len(t, tm.Roles, 1)
 		assert.Equal(t, "team_user", tm.Roles[0].Name)
