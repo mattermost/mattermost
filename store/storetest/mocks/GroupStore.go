@@ -849,6 +849,27 @@ func (_m *GroupStore) GroupCount() (int64, error) {
 	return r0, r1
 }
 
+// GroupCountBySource provides a mock function with given fields: source
+func (_m *GroupStore) GroupCountBySource(source model.GroupSource) (int64, error) {
+	ret := _m.Called(source)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(model.GroupSource) int64); ok {
+		r0 = rf(source)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(model.GroupSource) error); ok {
+		r1 = rf(source)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GroupCountWithAllowReference provides a mock function with given fields:
 func (_m *GroupStore) GroupCountWithAllowReference() (int64, error) {
 	ret := _m.Called()
