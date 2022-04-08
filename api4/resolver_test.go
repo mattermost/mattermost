@@ -215,13 +215,13 @@ func TestGraphQLRolesLoader(t *testing.T) {
 
 	require.Len(t, q.ChannelMembers, 5)
 	for _, cm := range q.ChannelMembers {
-		assert.Len(t, cm.Roles, 1)
+		require.Len(t, cm.Roles, 1)
 		assert.Equal(t, "channel_user", cm.Roles[0].Name)
 	}
 
 	require.Len(t, q.TeamMembers, 1)
 	for _, tm := range q.TeamMembers {
-		assert.Len(t, tm.Roles, 1)
+		require.Len(t, tm.Roles, 1)
 		assert.Equal(t, "team_user", tm.Roles[0].Name)
 	}
 }
