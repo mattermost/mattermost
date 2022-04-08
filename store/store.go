@@ -853,6 +853,8 @@ type GroupStore interface {
 	// GroupCount returns the total count of records in the UserGroups table.
 	GroupCount() (int64, error)
 
+	GroupCountBySource(source model.GroupSource) (int64, error)
+
 	// GroupTeamCount returns the total count of records in the GroupTeams table.
 	GroupTeamCount() (int64, error)
 
