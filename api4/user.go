@@ -102,7 +102,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.UserThread.Handle("/following", api.APISessionRequired(followThreadByUser)).Methods("PUT")
 	api.BaseRoutes.UserThread.Handle("/following", api.APISessionRequired(unfollowThreadByUser)).Methods("DELETE")
 	api.BaseRoutes.UserThread.Handle("/read/{timestamp:[0-9]+}", api.APISessionRequired(updateReadStateThreadByUser)).Methods("PUT")
-	api.BaseRoutes.UserThread.Handle("/set_unread/{post_id:[A-Za-z0-9]+}", api.APISessionRequired(updateUnreadStateThreadByPostId)).Methods("POST")
+	api.BaseRoutes.UserThread.Handle("/set_unread/{post_id:[A-Za-z0-9]+}", api.APISessionRequired(setUnreadThreadByPostId)).Methods("POST")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -3098,7 +3098,7 @@ func updateReadStateThreadByUser(c *Context, w http.ResponseWriter, r *http.Requ
 	auditRec.Success()
 }
 
-func updateUnreadStateThreadByPostId(c *Context, w http.ResponseWriter, r *http.Request) {
+func setUnreadThreadByPostId(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId().RequireThreadId().RequirePostId().RequireTeamId()
 	if c.Err != nil {
 		return
