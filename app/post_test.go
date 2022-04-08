@@ -829,6 +829,70 @@ func TestCreatePost(t *testing.T) {
 		require.EqualValues(t, int64(1), val)
 	})
 
+	t.Run("sanitizes post metadata appropriately", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
+		})
+
+		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
+
+		user1 := th.CreateUser()
+		user2 := th.CreateUser()
+		directChannel, err := th.App.createDirectChannel(user1.Id, user2.Id)
+		require.Nil(t, err)
+
+		referencedPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "hello world",
+			UserId:    th.BasicUser.Id,
+		}
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		referencedPost, err = th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, false, false)
+		require.Nil(t, err)
+
+		permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
+
+		testCases := []struct {
+			Description string
+			Channel     *model.Channel
+			Author      string
+			Assert      func(t assert.TestingT, object interface{}, msgAndArgs ...interface{}) bool
+		}{
+			{
+				Description: "removes metadata from post for members who cannot read channel",
+				Channel:     directChannel,
+				Author:      user1.Id,
+				Assert:      assert.Nil,
+			},
+			{
+				Description: "does not remove metadata from post for members who can read channel",
+				Channel:     th.BasicChannel,
+				Author:      th.BasicUser.Id,
+				Assert:      assert.NotNil,
+			},
+		}
+
+		for _, testCase := range testCases {
+			t.Run(testCase.Description, func(t *testing.T) {
+				previewPost := &model.Post{
+					ChannelId: testCase.Channel.Id,
+					Message:   permalink,
+					UserId:    testCase.Author,
+				}
+
+				previewPost, err = th.App.CreatePost(th.Context, previewPost, testCase.Channel, false, false)
+				require.Nil(t, err)
+
+				testCase.Assert(t, previewPost.Metadata.Embeds[0].Data)
+			})
+		}
+	})
+
 	t.Run("MM-40016 should not panic with `concurrent map read and map write`", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -1245,6 +1309,74 @@ func TestUpdatePost(t *testing.T) {
 		testPost, err = th.App.UpdatePost(th.Context, testPost, false)
 		require.Nil(t, err)
 		assert.Equal(t, testPost.GetProps(), model.StringInterface{"previewed_post": referencedPost.Id})
+	})
+
+	t.Run("sanitizes post metadata appropriately", func(t *testing.T) {
+
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
+		})
+
+		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
+
+		user1 := th.CreateUser()
+		user2 := th.CreateUser()
+		directChannel, err := th.App.createDirectChannel(user1.Id, user2.Id)
+		require.Nil(t, err)
+
+		referencedPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "hello world",
+			UserId:    th.BasicUser.Id,
+		}
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		referencedPost, err = th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, false, false)
+		require.Nil(t, err)
+
+		permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
+
+		testCases := []struct {
+			Description string
+			Channel     *model.Channel
+			Author      string
+			Assert      func(t assert.TestingT, object interface{}, msgAndArgs ...interface{}) bool
+		}{
+			{
+				Description: "removes metadata from post for members who cannot read channel",
+				Channel:     directChannel,
+				Author:      user1.Id,
+				Assert:      assert.Nil,
+			},
+			{
+				Description: "does not remove metadata from post for members who can read channel",
+				Channel:     th.BasicChannel,
+				Author:      th.BasicUser.Id,
+				Assert:      assert.NotNil,
+			},
+		}
+
+		for _, testCase := range testCases {
+			t.Run(testCase.Description, func(t *testing.T) {
+				previewPost := &model.Post{
+					ChannelId: testCase.Channel.Id,
+					UserId:    testCase.Author,
+				}
+
+				previewPost, err = th.App.CreatePost(th.Context, previewPost, testCase.Channel, false, false)
+				require.Nil(t, err)
+
+				previewPost.Message = permalink
+				previewPost, err = th.App.UpdatePost(th.Context, previewPost, false)
+				require.Nil(t, err)
+
+				testCase.Assert(t, previewPost.Metadata.Embeds[0].Data)
+			})
+		}
 	})
 }
 
