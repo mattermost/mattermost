@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetTimeRange(t *testing.T) {
+func TestGetStartUnixMilliForTimeRang(t *testing.T) {
 	tc := [3]string{"1_day", "7_day", "28_day"}
 
 	for _, timeRange := range tc {
@@ -49,13 +49,13 @@ func TestGetTopReactionListWithRankAndPagination(t *testing.T) {
 			Description: "has one page",
 			Limit:       len(reactions),
 			Offset:      0,
-			Expected:    &TopReactionList{HasNext: false, Items: reactions},
+			Expected:    &TopReactionList{InsightsListData: InsightsListData{HasNext: false}, Items: reactions},
 		},
 		{
 			Description: "has more than one page",
 			Limit:       len(reactions) - 1,
 			Offset:      0,
-			Expected:    &TopReactionList{HasNext: true, Items: reactions},
+			Expected:    &TopReactionList{InsightsListData: InsightsListData{HasNext: true}, Items: reactions},
 		},
 	}
 

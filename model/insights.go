@@ -20,15 +20,23 @@ type InsightsOpts struct {
 	PerPage        int
 }
 
+type InsightsListData struct {
+	HasNext bool `json:"has_next"`
+}
+
+type InsightsData struct {
+	Rank int `json:"rank"`
+}
+
 type TopReactionList struct {
-	HasNext bool           `json:"has_next"`
-	Items   []*TopReaction `json:"items"`
+	InsightsListData
+	Items []*TopReaction `json:"items"`
 }
 
 type TopReaction struct {
+	InsightsData
 	EmojiName string `json:"emoji_name"`
 	Count     int64  `json:"count"`
-	Rank      int    `json:"rank"`
 }
 
 // GetStartUnixMilliForTimeRange gets the unix start time in milliseconds from the given time range.
@@ -62,5 +70,5 @@ func GetTopReactionListWithRankAndPagination(reactions []*TopReaction, limit int
 		reaction.Rank = offset + i + 1
 	}
 
-	return &TopReactionList{HasNext: hasNext, Items: reactions}
+	return &TopReactionList{InsightsListData: InsightsListData{HasNext: hasNext}, Items: reactions}
 }
