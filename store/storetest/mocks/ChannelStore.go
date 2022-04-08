@@ -1508,6 +1508,29 @@ func (_m *ChannelStore) GetTeamMembersForChannel(channelID string) ([]string, er
 	return r0, r1
 }
 
+// GetTopChannelsForTeamSince provides a mock function with given fields: teamID, userID, since, offset, limit
+func (_m *ChannelStore) GetTopChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopChannelList, error) {
+	ret := _m.Called(teamID, userID, since, offset, limit)
+
+	var r0 *model.TopChannelList
+	if rf, ok := ret.Get(0).(func(string, string, int64, int, int) *model.TopChannelList); ok {
+		r0 = rf(teamID, userID, since, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.TopChannelList)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, int64, int, int) error); ok {
+		r1 = rf(teamID, userID, since, offset, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GroupSyncedChannelCount provides a mock function with given fields:
 func (_m *ChannelStore) GroupSyncedChannelCount() (int64, error) {
 	ret := _m.Called()
