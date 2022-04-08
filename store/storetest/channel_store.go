@@ -5569,6 +5569,13 @@ func testChannelStoreSearchArchivedInTeam(t *testing.T, ss store.Store, s SqlSto
 		require.Error(t, err)
 		require.Nil(t, list)
 	})
+
+	t.Run("empty term", func(t *testing.T) {
+		list, err := ss.Channel().SearchArchivedInTeam(teamId, "", userId)
+		require.NoError(t, err)
+		require.NotNil(t, list)
+		require.NotEmpty(t, list)
+	})
 }
 
 func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
