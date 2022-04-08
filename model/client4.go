@@ -7864,7 +7864,7 @@ func (c *Client4) UpdateThreadsReadForUser(userId, teamId string) (*Response, er
 }
 
 func (c *Client4) SetThreadUnreadByPostId(userId, teamId, threadId, postId string) (*ThreadResponse, *Response, error) {
-	r, err := c.DoAPIPut(fmt.Sprintf("%s/set_unread/%s", c.userThreadRoute(userId, teamId, threadId), postId), "")
+	r, err := c.DoAPIPost(fmt.Sprintf("%s/set_unread/%s", c.userThreadRoute(userId, teamId, threadId), postId), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

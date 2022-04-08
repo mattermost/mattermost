@@ -3104,7 +3104,7 @@ func setUnreadThreadByPostId(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateReadStateThreadByUser", audit.Fail)
+	auditRec := c.MakeAuditRecord("setUnreadThreadByPostId", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("user_id", c.Params.UserId)
 	auditRec.AddMeta("thread_id", c.Params.ThreadId)
@@ -3115,15 +3115,7 @@ func setUnreadThreadByPostId(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	post, err := c.App.GetSinglePost(c.Params.PostId)
-
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	var thread *model.ThreadResponse
-	thread, err = c.App.UpdateThreadReadForUser(c.AppContext.Session().Id, c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, post.CreateAt-1)
+	thread, err := c.App.UpdateThreadReadForUserByPost(c.AppContext.Session().Id, c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, c.Params.PostId)
 	if err != nil {
 		c.Err = err
 		return
