@@ -3063,8 +3063,8 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	t.Run("with data retention policies", func(t *testing.T) {
 		channelPolicy, err2 := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
-				DisplayName:  "DisplayName",
-				PostDuration: model.NewInt64(30),
+				DisplayName:      "DisplayName",
+				PostDurationDays: model.NewInt64(30),
 			},
 			ChannelIDs: []string{channel.Id},
 		})
@@ -3083,7 +3083,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		_, err2 = ss.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "")
 		require.NoError(t, err2, "global policy should have been ignored due to granular policy")
 
-		nowMillis := post.CreateAt + *channelPolicy.PostDuration*24*60*60*1000 + 1
+		nowMillis := post.CreateAt + *channelPolicy.PostDurationDays*model.DayInMilliseconds + 1
 		_, _, err2 = ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 0, 1000, model.RetentionPolicyCursor{})
 		require.NoError(t, err2)
 		_, err2 = ss.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "")
@@ -3092,8 +3092,8 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		// Create a team policy which is stricter than the channel policy
 		teamPolicy, err2 := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
-				DisplayName:  "DisplayName",
-				PostDuration: model.NewInt64(20),
+				DisplayName:      "DisplayName",
+				PostDurationDays: model.NewInt64(20),
 			},
 			TeamIDs: []string{team.Id},
 		})
@@ -3102,7 +3102,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		post, err2 = ss.Post().Save(post)
 		require.NoError(t, err2)
 
-		nowMillis = post.CreateAt + *teamPolicy.PostDuration*24*60*60*1000 + 1
+		nowMillis = post.CreateAt + *teamPolicy.PostDurationDays*model.DayInMilliseconds + 1
 		_, _, err2 = ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 0, 1000, model.RetentionPolicyCursor{})
 		require.NoError(t, err2)
 		_, err2 = ss.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "")
@@ -3144,8 +3144,8 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 
 		channelPolicy, err2 := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
-				DisplayName:  "DisplayName",
-				PostDuration: model.NewInt64(30),
+				DisplayName:      "DisplayName",
+				PostDurationDays: model.NewInt64(30),
 			},
 			ChannelIDs: []string{c1.Id},
 		})
@@ -3153,8 +3153,8 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		defer ss.RetentionPolicy().Delete(channelPolicy.ID)
 		teamPolicy, err2 := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
-				DisplayName:  "DisplayName",
-				PostDuration: model.NewInt64(30),
+				DisplayName:      "DisplayName",
+				PostDurationDays: model.NewInt64(30),
 			},
 			TeamIDs: []string{team.Id},
 		})
@@ -3186,7 +3186,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		})
 		require.NoError(t, err2)
 
-		nowMillis := int64(1 + 30*24*60*60*1000 + 1)
+		nowMillis := int64(1 + 30*model.DayInMilliseconds + 1)
 		deleted, _, err2 := ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 2, 1000, model.RetentionPolicyCursor{})
 		require.NoError(t, err2)
 		require.Equal(t, int64(3), deleted)

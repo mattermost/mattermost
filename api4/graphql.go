@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/graph-gophers/dataloader/v6"
 	graphql "github.com/graph-gophers/graphql-go"
 	gqlerrors "github.com/graph-gophers/graphql-go/errors"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -58,7 +59,12 @@ func (api *API) InitGraphQL() error {
 }
 
 // Unique type to hold our context.
-type ctxKey struct{}
+type ctxKey int
+
+const (
+	webCtx         ctxKey = 0
+	rolesLoaderCtx ctxKey = 1
+)
 
 func (api *API) graphQL(c *Context, w http.ResponseWriter, r *http.Request) {
 	var response *graphql.Response
@@ -90,7 +96,10 @@ func (api *API) graphQL(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Populate the context with required info.
 	reqCtx := r.Context()
-	reqCtx = context.WithValue(reqCtx, ctxKey{}, c)
+	reqCtx = context.WithValue(reqCtx, webCtx, c)
+
+	rolesLoader := dataloader.NewBatchedLoader(graphQLRolesLoader, dataloader.WithBatchCapacity(200))
+	reqCtx = context.WithValue(reqCtx, rolesLoaderCtx, rolesLoader)
 
 	response = api.schema.Exec(reqCtx,
 		params.Query,

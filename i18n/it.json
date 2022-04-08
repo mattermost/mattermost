@@ -3756,10 +3756,6 @@
     "translation": "L'impostazione AggregatePostsAfterDays di Elasticsearch deve essere un numero maggiore o uguale a 1."
   },
   {
-    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "La finestra temporale per il lavoro di indicizzazione massiva di Elasticsearch deve essere di almeno 1 secondo."
-  },
-  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "Il ConnectionUrl di Elastich Search deve essere fornito quando l'indicizzazione di Elastic Search è abilitata."
   },
@@ -5432,10 +5428,6 @@
     "translation": "Dati autocompletamento non validi"
   },
   {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "La finestra temporale per il lavoro di indicizzazione massiva di Bleve deve essere di almeno 1 secondo."
-  },
-  {
     "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
     "translation": "L'impostazione Bleve IndexingEnabled deve essere abilitata quando l'impostazione Bleve SearchEnabled è abilitata"
   },
@@ -7082,14 +7074,6 @@
   {
     "id": "api.cloud.license_error",
     "translation": "La tua licenza non supporta le richieste di cloud."
-  },
-  {
-    "id": "api.cloud.get_subscription.error",
-    "translation": "Errore nell'ottenere l'abbonamento al cloud."
-  },
-  {
-    "id": "api.cloud.get_admins_emails.error",
-    "translation": "Impossibile ottenere le email degli amministratori di sistema."
   },
   {
     "id": "api.cloud.cws_webhook_event_missing_error",

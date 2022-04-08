@@ -1106,6 +1106,16 @@ func (ts *TelemetryService) trackGroups() {
 		mlog.Debug("Could not get group_count", mlog.Err(err))
 	}
 
+	ldapGroupCount, err := ts.dbStore.Group().GroupCountBySource(model.GroupSourceLdap)
+	if err != nil {
+		mlog.Debug("Could not get group_count", mlog.Err(err))
+	}
+
+	customGroupCount, err := ts.dbStore.Group().GroupCountBySource(model.GroupSourceCustom)
+	if err != nil {
+		mlog.Debug("Could not get group_count", mlog.Err(err))
+	}
+
 	groupTeamCount, err := ts.dbStore.Group().GroupTeamCount()
 	if err != nil {
 		mlog.Debug("Could not get group_team_count", mlog.Err(err))
@@ -1143,6 +1153,8 @@ func (ts *TelemetryService) trackGroups() {
 
 	ts.SendTelemetry(TrackGroups, map[string]interface{}{
 		"group_count":                      groupCount,
+		"ldap_group_count":                 ldapGroupCount,
+		"custom_group_count":               customGroupCount,
 		"group_team_count":                 groupTeamCount,
 		"group_channel_count":              groupChannelCount,
 		"group_synced_team_count":          groupSyncedTeamCount,

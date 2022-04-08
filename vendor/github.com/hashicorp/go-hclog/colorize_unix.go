@@ -1,3 +1,4 @@
+//go:build !windows
 // +build !windows
 
 package hclog
@@ -21,6 +22,7 @@ func (l *intLogger) setColorization(opts *LoggerOptions) {
 		isCygwinTerm := isatty.IsCygwinTerminal(fi.Fd())
 		isTerm := isUnixTerm || isCygwinTerm
 		if !isTerm {
+			l.headerColor = ColorOff
 			l.writer.color = ColorOff
 		}
 	}

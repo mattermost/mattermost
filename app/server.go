@@ -90,6 +90,7 @@ var SentryDSN = "placeholder_sentry_dsn"
 type ServiceKey string
 
 const (
+	ChannelKey   ServiceKey = "channel"
 	ConfigKey    ServiceKey = "config"
 	LicenseKey   ServiceKey = "license"
 	FilestoreKey ServiceKey = "filestore"
@@ -363,6 +364,10 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	s.filestore = backend
 
+	channelWrapper := &channelsWrapper{
+		srv: s,
+	}
+
 	s.licenseWrapper = &licenseWrapper{
 		srv: s,
 	}
@@ -385,6 +390,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	serviceMap := map[ServiceKey]interface{}{
+		ChannelKey:   channelWrapper,
 		ConfigKey:    s.configStore,
 		LicenseKey:   s.licenseWrapper,
 		FilestoreKey: s.filestore,

@@ -1087,6 +1087,10 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 		}
 	}
 
+	if prev.CreateAt != user.CreateAt {
+		user.CreateAt = prev.CreateAt
+	}
+
 	if user.Username != prev.Username {
 		if err := a.isUniqueToGroupNames(user.Username); err != nil {
 			err.Where = "UpdateUser"
@@ -2296,35 +2300,37 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 	var result model.Threads
 	var eg errgroup.Group
 
-	eg.Go(func() error {
-		totalUnreadThreads, err := a.Srv().Store.Thread().GetTotalUnreadThreads(userID, teamID, options)
-		if err != nil {
-			return errors.Wrapf(err, "failed to count unread threads for user id=%s", userID)
-		}
-		result.TotalUnreadThreads = totalUnreadThreads
+	if !options.ThreadsOnly {
+		eg.Go(func() error {
+			totalUnreadThreads, err := a.Srv().Store.Thread().GetTotalUnreadThreads(userID, teamID, options)
+			if err != nil {
+				return errors.Wrapf(err, "failed to count unread threads for user id=%s", userID)
+			}
+			result.TotalUnreadThreads = totalUnreadThreads
 
-		return nil
-	})
+			return nil
+		})
 
-	eg.Go(func() error {
-		totalCount, err := a.Srv().Store.Thread().GetTotalThreads(userID, teamID, options)
-		if err != nil {
-			return errors.Wrapf(err, "failed to count threads for user id=%s", userID)
-		}
-		result.Total = totalCount
+		eg.Go(func() error {
+			totalCount, err := a.Srv().Store.Thread().GetTotalThreads(userID, teamID, options)
+			if err != nil {
+				return errors.Wrapf(err, "failed to count threads for user id=%s", userID)
+			}
+			result.Total = totalCount
 
-		return nil
-	})
+			return nil
+		})
 
-	eg.Go(func() error {
-		totalUnreadMentions, err := a.Srv().Store.Thread().GetTotalUnreadMentions(userID, teamID, options)
-		if err != nil {
-			return errors.Wrapf(err, "failed to count threads for user id=%s", userID)
-		}
-		result.TotalUnreadMentions = totalUnreadMentions
+		eg.Go(func() error {
+			totalUnreadMentions, err := a.Srv().Store.Thread().GetTotalUnreadMentions(userID, teamID, options)
+			if err != nil {
+				return errors.Wrapf(err, "failed to count threads for user id=%s", userID)
+			}
+			result.TotalUnreadMentions = totalUnreadMentions
 
-		return nil
-	})
+			return nil
+		})
+	}
 
 	if !options.TotalsOnly {
 		eg.Go(func() error {
