@@ -384,20 +384,14 @@ func (wc *WebConn) readPump() {
 }
 
 func (wc *WebConn) Subscribe(id model.WebsocketSubjectID) {
-	wc.mu.RLock()
-	defer wc.mu.RUnlock()
 	wc.subscriptions[id] = true
 }
 
 func (wc *WebConn) Unsubscribe(id model.WebsocketSubjectID) {
-	wc.mu.RLock()
-	defer wc.mu.RUnlock()
 	delete(wc.subscriptions, id)
 }
 
 func (wc *WebConn) IsSubscribed(id model.WebsocketSubjectID) bool {
-	wc.mu.RLock()
-	defer wc.mu.RUnlock()
 	return wc.subscriptions[id]
 }
 
