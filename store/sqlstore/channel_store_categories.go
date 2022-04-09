@@ -396,6 +396,8 @@ func (s SqlChannelStore) completePopulatingCategoryChannelsT(db dbSelecter, cate
 			sq.Eq{"Channels.Type": []model.ChannelType{model.ChannelTypeOpen, model.ChannelTypePrivate}},
 			sq.Eq{"Channels.TeamId": category.TeamId},
 		}
+	} else {
+		return nil, fmt.Errorf("invalid category type: %q", category.Type)
 	}
 
 	// A subquery that is true if the channel does not have a SidebarChannel entry for the current user on the current team

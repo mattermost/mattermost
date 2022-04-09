@@ -2907,7 +2907,10 @@ func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) 
 		OrderBy("c.DisplayName")
 
 	if !includeDeleted {
-		query = query.Where(sq.Eq{"c.DeleteAt": 0})
+		query = query.Where(sq.And{
+			sq.Eq{"c.DeleteAt": 0},
+			sq.Eq{"tm.DeleteAt": 0},
+		})
 	}
 	searchClause := s.searchClause(term)
 	if searchClause != nil {
@@ -3127,7 +3130,7 @@ func (s SqlChannelStore) SearchArchivedInTeam(teamId string, term string, userId
 
 	searchClause := s.searchClause(term)
 	if searchClause != nil {
-		queryBase.Where(searchClause)
+		queryBase = queryBase.Where(searchClause)
 	}
 
 	publicQuery := queryBase.

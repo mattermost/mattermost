@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/graph-gophers/dataloader/v6"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/web"
 )
@@ -65,18 +66,52 @@ func (cm *channelMember) Channel(ctx context.Context) (*channel, error) {
 }
 
 func (cm *channelMember) Roles_(ctx context.Context) ([]*model.Role, error) {
-	c, err := getCtx(ctx)
+	loader, err := getRolesLoader(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return getGraphQLRoles(c, strings.Fields(cm.Roles))
+	thunk := loader.LoadMany(ctx, dataloader.NewKeysFromStrings(strings.Fields(cm.Roles)))
+	results, errs := thunk()
+	// All errors are the same. We just return the first one.
+	if len(errs) > 0 && errs[0] != nil {
+		return nil, err
+	}
+
+	roles := make([]*model.Role, len(results))
+	for i, res := range results {
+		roles[i] = res.(*model.Role)
+	}
+
+	return roles, nil
 }
 
 func (cm *channelMember) Cursor() *string {
 	cursor := string(channelMemberCursorPrefix) + "-" + cm.ChannelId + "-" + cm.UserId
 	encoded := base64.StdEncoding.EncodeToString([]byte(cursor))
 	return model.NewString(encoded)
+}
+
+func graphQLRolesLoader(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+	stringKeys := keys.Keys()
+	result := make([]*dataloader.Result, len(stringKeys))
+
+	c, err := getCtx(ctx)
+	if err != nil {
+		result[0] = &dataloader.Result{Error: err}
+		return result
+	}
+
+	roles, err := getGraphQLRoles(c, stringKeys)
+	if err != nil {
+		result[0] = &dataloader.Result{Error: err}
+		return result
+	}
+
+	for i, role := range roles {
+		result[i] = &dataloader.Result{Data: role}
+	}
+	return result
 }
 
 func getGraphQLRoles(c *web.Context, roleNames []string) ([]*model.Role, error) {
@@ -89,6 +124,17 @@ func getGraphQLRoles(c *web.Context, roleNames []string) ([]*model.Role, error) 
 	roles, appErr := c.App.GetRolesByNames(cleanedRoleNames)
 	if appErr != nil {
 		return nil, appErr
+	}
+
+	// The roles need to be in the exact same order as the input slice.
+	tmp := make(map[string]*model.Role)
+	for _, r := range roles {
+		tmp[r.Name] = r
+	}
+
+	// We reuse the same slice and just rewrite the roles.
+	for i, roleName := range roleNames {
+		roles[i] = tmp[roleName]
 	}
 
 	return roles, nil

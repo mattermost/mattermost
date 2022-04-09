@@ -154,7 +154,15 @@ func (e *fastEncL1) Encode(dst *tokens, src []byte) {
 				l++
 			}
 			if nextEmit < s {
-				emitLiteral(dst, src[nextEmit:s])
+				if false {
+					emitLiteral(dst, src[nextEmit:s])
+				} else {
+					for _, v := range src[nextEmit:s] {
+						dst.tokens[dst.n] = token(v)
+						dst.litHist[v]++
+						dst.n++
+					}
+				}
 			}
 
 			// Save the match found
@@ -169,8 +177,11 @@ func (e *fastEncL1) Encode(dst *tokens, src []byte) {
 				for xlength > 0 {
 					xl := xlength
 					if xl > 258 {
-						// We need to have at least baseMatchLength left over for next loop.
-						xl = 258 - baseMatchLength
+						if xl > 258+baseMatchLength {
+							xl = 258
+						} else {
+							xl = 258 - baseMatchLength
+						}
 					}
 					xlength -= xl
 					xl -= baseMatchLength

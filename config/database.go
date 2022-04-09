@@ -28,7 +28,7 @@ import (
 	"github.com/mattermost/morph/drivers"
 	ms "github.com/mattermost/morph/drivers/mysql"
 	ps "github.com/mattermost/morph/drivers/postgres"
-	mbindata "github.com/mattermost/morph/sources/go_bindata"
+	mbindata "github.com/mattermost/morph/sources/embedded"
 )
 
 //go:embed migrations
@@ -113,7 +113,6 @@ func (ds *DatabaseStore) initializeConfigurationsTable() error {
 	if err != nil {
 		return err
 	}
-	defer src.Close()
 
 	cfg := drivers.Config{
 		MigrationsTable:        migrationsTableName,

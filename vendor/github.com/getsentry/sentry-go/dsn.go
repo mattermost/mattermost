@@ -45,7 +45,7 @@ type Dsn struct {
 	host      string
 	port      int
 	path      string
-	projectID int
+	projectID string
 }
 
 // NewDsn creates a Dsn by parsing rawURL. Most users will never call this
@@ -104,9 +104,10 @@ func NewDsn(rawURL string) (*Dsn, error) {
 		return nil, &DsnParseError{"empty project id"}
 	}
 	pathSegments := strings.Split(parsedURL.Path[1:], "/")
-	projectID, err := strconv.Atoi(pathSegments[len(pathSegments)-1])
-	if err != nil {
-		return nil, &DsnParseError{"invalid project id"}
+	projectID := pathSegments[len(pathSegments)-1]
+
+	if projectID == "" {
+		return nil, &DsnParseError{"empty project id"}
 	}
 
 	// Path
@@ -140,7 +141,7 @@ func (dsn Dsn) String() string {
 	if dsn.path != "" {
 		url += dsn.path
 	}
-	url += fmt.Sprintf("/%d", dsn.projectID)
+	url += fmt.Sprintf("/%s", dsn.projectID)
 	return url
 }
 
@@ -165,7 +166,7 @@ func (dsn Dsn) getAPIURL(s string) *url.URL {
 	if dsn.path != "" {
 		rawURL += dsn.path
 	}
-	rawURL += fmt.Sprintf("/api/%d/%s/", dsn.projectID, s)
+	rawURL += fmt.Sprintf("/api/%s/%s/", dsn.projectID, s)
 	parsedURL, _ := url.Parse(rawURL)
 	return parsedURL
 }
