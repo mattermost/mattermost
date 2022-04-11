@@ -1444,11 +1444,11 @@ func (s *RetryLayerChannelStore) GetForPost(postID string) (*model.Channel, erro
 
 }
 
-func (s *RetryLayerChannelStore) GetFromMaster(id string) (*model.Channel, error) {
+func (s *RetryLayerChannelStore) GetGuestCount(channelID string, allowFromCache bool) (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetFromMaster(id)
+		result, err := s.ChannelStore.GetGuestCount(channelID, allowFromCache)
 		if err == nil {
 			return result, nil
 		}
@@ -1465,11 +1465,11 @@ func (s *RetryLayerChannelStore) GetFromMaster(id string) (*model.Channel, error
 
 }
 
-func (s *RetryLayerChannelStore) GetGuestCount(channelID string, allowFromCache bool) (int64, error) {
+func (s *RetryLayerChannelStore) GetMany(ids []string, allowFromCache bool) (model.ChannelList, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetGuestCount(channelID, allowFromCache)
+		result, err := s.ChannelStore.GetMany(ids, allowFromCache)
 		if err == nil {
 			return result, nil
 		}
