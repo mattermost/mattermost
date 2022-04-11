@@ -74,7 +74,7 @@ func getGraphQLTeams(c *web.Context, teamIDs []string) ([]*model.Team, error) {
 	}
 
 	if len(teams) != len(teamIDs) {
-		return nil, fmt.Errorf("All teams were not found. Got %d; Passed %d", len(teams), len(teamIDs))
+		return nil, fmt.Errorf("All teams were not found. Requested %d; Found %d", len(teamIDs), len(teams))
 	}
 
 	// The teams need to be in the exact same order as the input slice.
