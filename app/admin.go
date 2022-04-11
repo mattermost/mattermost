@@ -242,7 +242,7 @@ func (a *App) TestEmail(userID string, cfg *model.Config) *model.AppError {
 func (s *Server) serverBusyStateChanged(sbs *model.ServerBusyState) {
 	s.Busy.ClusterEventChanged(sbs)
 	if sbs.Busy {
-		mlog.Warn("server busy state activitated via cluster event - non-critical services disabled", mlog.Int64("expires_sec", sbs.Expires))
+		mlog.Warn("server busy state activated via cluster event - non-critical services disabled", mlog.Int64("expires_sec", sbs.Expires))
 	} else {
 		mlog.Info("server busy state cleared via cluster event - non-critical services enabled")
 	}
