@@ -732,15 +732,23 @@ func (a *App) publishWebsocketEventForPermalinkPost(post *model.Post, message *m
 		return false, err
 	}
 
-	for _, cm := range channelMembers {
-		postForUser, err := a.SanitizePostMetadataForUser(post, cm.UserId)
-		if err != nil {
-			if err.StatusCode == http.StatusNotFound {
-				mlog.Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
-				return false, nil
-			}
-			return false, err
+	permalinkPreviewedChannel, err := a.GetChannel(previewedPost.ChannelId)
+	if err != nil {
+		if err.StatusCode == http.StatusNotFound {
+			mlog.Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
+			return false, nil
 		}
+		return false, err
+	}
+
+	permalinkPreviewedPost := post.GetPreviewPost()
+	for _, cm := range channelMembers {
+		if permalinkPreviewedPost != nil {
+			post.Metadata.Embeds[0].Data = permalinkPreviewedPost
+		}
+
+		postForUser := a.sanitizePostMetadataForUserAndChannel(post, permalinkPreviewedPost, permalinkPreviewedChannel, cm.UserId)
+
 		// Using DeepCopy here to avoid a race condition
 		// between publishing the event and setting the "post" data value below.
 		messageCopy := message.DeepCopy()
@@ -1494,7 +1502,6 @@ func (a *App) countThreadMentions(user *model.User, post *model.Post, teamID str
 	if nErr != nil {
 		return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
-	posts = append(posts, post)
 
 	for _, p := range posts {
 		if p.CreateAt >= timestamp {

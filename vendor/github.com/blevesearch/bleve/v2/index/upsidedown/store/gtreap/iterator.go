@@ -21,7 +21,7 @@ import (
 	"bytes"
 	"sync"
 
-	"github.com/steveyen/gtreap"
+	"github.com/blevesearch/gtreap"
 )
 
 type Iterator struct {

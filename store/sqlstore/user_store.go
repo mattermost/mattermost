@@ -71,6 +71,7 @@ func (us SqlUserStore) insert(user *model.User) (sql.Result, error) {
 			:Props, :NotifyProps, :LastPasswordUpdate, :LastPictureUpdate, :FailedAttempts,
 			:Locale, :Timezone, :MfaActive, :MfaSecret, :RemoteId)`
 
+	user.Props = wrapBinaryParamStringMap(us.IsBinaryParamEnabled(), user.Props)
 	return us.GetMasterX().NamedExec(query, user)
 }
 
@@ -201,6 +202,7 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 				MfaSecret=:MfaSecret, RemoteId=:RemoteId
 			WHERE Id=:Id`
 
+	user.Props = wrapBinaryParamStringMap(us.IsBinaryParamEnabled(), user.Props)
 	res, err := us.GetMasterX().NamedExec(query, user)
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Email", "users_email_key", "idx_users_email_unique"}) {
@@ -222,13 +224,21 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 
 	user.Sanitize(map[string]bool{})
 	oldUser.Sanitize(map[string]bool{})
-	return &model.UserUpdate{New: user, Old: &oldUser}, nil
+	return &model.UserUpdate{New: user.DeepCopy(), Old: &oldUser}, nil
 }
 
 func (us SqlUserStore) UpdateNotifyProps(userID string, props map[string]string) error {
+	buf, err := json.Marshal(props)
+	if err != nil {
+		return errors.Wrap(err, "failed marshalling session props")
+	}
+	if us.IsBinaryParamEnabled() {
+		buf = us.AppendBinaryFlag(buf)
+	}
+
 	if _, err := us.GetMasterX().Exec(`UPDATE Users
 		SET NotifyProps = ?
-		WHERE Id = ?`, model.MapToJSON(props), userID); err != nil {
+		WHERE Id = ?`, buf, userID); err != nil {
 		return errors.Wrapf(err, "failed to update User with userId=%s", userID)
 	}
 

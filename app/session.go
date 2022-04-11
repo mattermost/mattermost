@@ -267,7 +267,7 @@ func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) bool {
 
 	// Only extend the expiry if the lessor of 1% or 1 day has elapsed within the
 	// current session duration.
-	threshold := int64(math.Min(float64(sessionLength)*0.01, float64(24*60*60*1000)))
+	threshold := int64(math.Min(float64(sessionLength)*0.01, float64(model.DayInMilliseconds)))
 	// Minimum session length is 1 day as of this writing, therefore a minimum ~14 minutes threshold.
 	// However we'll add a sanity check here in case that changes. Minimum 5 minute threshold,
 	// meaning we won't write a new expiry more than every 5 minutes.

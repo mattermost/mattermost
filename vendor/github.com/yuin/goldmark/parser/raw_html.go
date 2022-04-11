@@ -32,17 +32,17 @@ func (s *rawHTMLParser) Parse(parent ast.Node, block text.Reader, pc Context) as
 	if len(line) > 2 && line[1] == '/' && util.IsAlphaNumeric(line[2]) {
 		return s.parseMultiLineRegexp(closeTagRegexp, block, pc)
 	}
-	if bytes.HasPrefix(line, []byte("<!--")) {
-		return s.parseMultiLineRegexp(commentRegexp, block, pc)
+	if bytes.HasPrefix(line, openComment) {
+		return s.parseComment(block, pc)
 	}
-	if bytes.HasPrefix(line, []byte("<?")) {
-		return s.parseSingleLineRegexp(processingInstructionRegexp, block, pc)
+	if bytes.HasPrefix(line, openProcessingInstruction) {
+		return s.parseUntil(block, closeProcessingInstruction, pc)
 	}
 	if len(line) > 2 && line[1] == '!' && line[2] >= 'A' && line[2] <= 'Z' {
-		return s.parseSingleLineRegexp(declRegexp, block, pc)
+		return s.parseUntil(block, closeDecl, pc)
 	}
-	if bytes.HasPrefix(line, []byte("<![CDATA[")) {
-		return s.parseMultiLineRegexp(cdataRegexp, block, pc)
+	if bytes.HasPrefix(line, openCDATA) {
+		return s.parseUntil(block, closeCDATA, pc)
 	}
 	return nil
 }
@@ -52,21 +52,80 @@ var tagnamePattern = `([A-Za-z][A-Za-z0-9-]*)`
 var attributePattern = `(?:[\r\n \t]+[a-zA-Z_:][a-zA-Z0-9:._-]*(?:[\r\n \t]*=[\r\n \t]*(?:[^\"'=<>` + "`" + `\x00-\x20]+|'[^']*'|"[^"]*"))?)`
 var openTagRegexp = regexp.MustCompile("^<" + tagnamePattern + attributePattern + `*[ \t]*/?>`)
 var closeTagRegexp = regexp.MustCompile("^</" + tagnamePattern + `\s*>`)
-var commentRegexp = regexp.MustCompile(`^<!---->|<!--(?:-?[^>-])(?:-?[^-])*-->`)
-var processingInstructionRegexp = regexp.MustCompile(`^(?:<\?).*?(?:\?>)`)
-var declRegexp = regexp.MustCompile(`^<![A-Z]+\s+[^>]*>`)
-var cdataRegexp = regexp.MustCompile(`<!\[CDATA\[[\s\S]*?\]\]>`)
 
-func (s *rawHTMLParser) parseSingleLineRegexp(reg *regexp.Regexp, block text.Reader, pc Context) ast.Node {
+var openProcessingInstruction = []byte("<?")
+var closeProcessingInstruction = []byte("?>")
+var openCDATA = []byte("<![CDATA[")
+var closeCDATA = []byte("]]>")
+var closeDecl = []byte(">")
+var emptyComment = []byte("<!---->")
+var invalidComment1 = []byte("<!-->")
+var invalidComment2 = []byte("<!--->")
+var openComment = []byte("<!--")
+var closeComment = []byte("-->")
+var doubleHyphen = []byte("--")
+
+func (s *rawHTMLParser) parseComment(block text.Reader, pc Context) ast.Node {
+	savedLine, savedSegment := block.Position()
+	node := ast.NewRawHTML()
 	line, segment := block.PeekLine()
-	match := reg.FindSubmatchIndex(line)
-	if match == nil {
+	if bytes.HasPrefix(line, emptyComment) {
+		node.Segments.Append(segment.WithStop(segment.Start + len(emptyComment)))
+		block.Advance(len(emptyComment))
+		return node
+	}
+	if bytes.HasPrefix(line, invalidComment1) || bytes.HasPrefix(line, invalidComment2) {
 		return nil
 	}
+	offset := len(openComment)
+	line = line[offset:]
+	for {
+		hindex := bytes.Index(line, doubleHyphen)
+		if hindex > -1 {
+			hindex += offset
+		}
+		index := bytes.Index(line, closeComment) + offset
+		if index > -1 && hindex == index {
+			if index == 0 || len(line) < 2 || line[index-offset-1] != '-' {
+				node.Segments.Append(segment.WithStop(segment.Start + index + len(closeComment)))
+				block.Advance(index + len(closeComment))
+				return node
+			}
+		}
+		if hindex > 0 {
+			break
+		}
+		node.Segments.Append(segment)
+		block.AdvanceLine()
+		line, segment = block.PeekLine()
+		offset = 0
+		if line == nil {
+			break
+		}
+	}
+	block.SetPosition(savedLine, savedSegment)
+	return nil
+}
+
+func (s *rawHTMLParser) parseUntil(block text.Reader, closer []byte, pc Context) ast.Node {
+	savedLine, savedSegment := block.Position()
 	node := ast.NewRawHTML()
-	node.Segments.Append(segment.WithStop(segment.Start + match[1]))
-	block.Advance(match[1])
-	return node
+	for {
+		line, segment := block.PeekLine()
+		if line == nil {
+			break
+		}
+		index := bytes.Index(line, closer)
+		if index > -1 {
+			node.Segments.Append(segment.WithStop(segment.Start + index + len(closer)))
+			block.Advance(index + len(closer))
+			return node
+		}
+		node.Segments.Append(segment)
+		block.AdvanceLine()
+	}
+	block.SetPosition(savedLine, savedSegment)
+	return nil
 }
 
 func (s *rawHTMLParser) parseMultiLineRegexp(reg *regexp.Regexp, block text.Reader, pc Context) ast.Node {

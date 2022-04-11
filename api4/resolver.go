@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/graph-gophers/dataloader/v6"
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/web"
@@ -278,9 +279,36 @@ func (*resolver) ChannelMembers(ctx context.Context, args struct {
 // Kind of an anti-pattern, but there are lots of methods attached to *web.Context
 // so we use it for now.
 func getCtx(ctx context.Context) (*web.Context, error) {
-	c, ok := ctx.Value(ctxKey{}).(*web.Context)
+	c, ok := ctx.Value(webCtx).(*web.Context)
 	if !ok {
 		return nil, errors.New("no web.Context found in context")
 	}
 	return c, nil
+}
+
+// getRolesLoader returns the roles loader out of the context.
+func getRolesLoader(ctx context.Context) (*dataloader.Loader, error) {
+	l, ok := ctx.Value(rolesLoaderCtx).(*dataloader.Loader)
+	if !ok {
+		return nil, errors.New("no dataloader.Loader found in context")
+	}
+	return l, nil
+}
+
+// getChannelsLoader returns the channels loader out of the context.
+func getChannelsLoader(ctx context.Context) (*dataloader.Loader, error) {
+	l, ok := ctx.Value(channelsLoaderCtx).(*dataloader.Loader)
+	if !ok {
+		return nil, errors.New("no dataloader.Loader found in context")
+	}
+	return l, nil
+}
+
+// getTeamsLoader returns the teams loader out of the context.
+func getTeamsLoader(ctx context.Context) (*dataloader.Loader, error) {
+	l, ok := ctx.Value(teamsLoaderCtx).(*dataloader.Loader)
+	if !ok {
+		return nil, errors.New("no dataloader.Loader found in context")
+	}
+	return l, nil
 }

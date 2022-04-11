@@ -303,6 +303,29 @@ func (s SqlTeamStore) Get(id string) (*model.Team, error) {
 	return &team, nil
 }
 
+func (s SqlTeamStore) GetMany(ids []string) ([]*model.Team, error) {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Teams").
+		Where(sq.Eq{"Id": ids})
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "getmany_tosql")
+	}
+
+	teams := []*model.Team{}
+	err = s.GetReplicaX().Select(&teams, sql, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get teams with ids %v", ids)
+	}
+
+	if len(teams) == 0 {
+		return nil, store.NewErrNotFound("Team", fmt.Sprintf("ids=%v", ids))
+	}
+
+	return teams, nil
+}
+
 // GetByInviteId returns from the database the team that matches the inviteId provided as parameter.
 // If the parameter provided is empty or if there is no match in the database, it returns a model.AppError
 // with a http.StatusNotFound in the StatusCode field.
@@ -1391,7 +1414,7 @@ func (s SqlTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) (int64, er
 	var count int64
 	err = s.GetReplicaX().Get(&count, query, args...)
 	if err != nil {
-		return 0, errors.Wrapf(err, "failed to count Teams with schemdId=%s", schemeId)
+		return 0, errors.Wrapf(err, "failed to count Teams with schemeId=%s", schemeId)
 	}
 
 	return count, nil

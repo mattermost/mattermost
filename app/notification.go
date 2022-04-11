@@ -338,10 +338,10 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 
 	if *a.Config().EmailSettings.SendEmailNotifications {
-		emailReceipients := append(mentionedUsersList, notificationsForCRT.Email...)
-		emailReceipients = model.RemoveDuplicateStrings(emailReceipients)
+		emailRecipients := append(mentionedUsersList, notificationsForCRT.Email...)
+		emailRecipients = model.RemoveDuplicateStrings(emailRecipients)
 
-		for _, id := range emailReceipients {
+		for _, id := range emailRecipients {
 			if profileMap[id] == nil {
 				continue
 			}

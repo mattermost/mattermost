@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 
@@ -76,7 +77,19 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	emailList := model.ArrayFromJSON(r.Body)
+	bf, err := io.ReadAll(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.inviteUsersToTeams", "api.team.invite_members_to_team_and_channels.invalid_body.app_error", nil, err.Error(), http.StatusBadRequest)
+		return
+	}
+	memberInvite := &model.MemberInvite{}
+	if jsonErr := json.Unmarshal(bf, memberInvite); jsonErr != nil {
+		c.Err = model.NewAppError("Api4.inviteUsersToTeams", "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		return
+	}
+
+	emailList := memberInvite.Emails
+
 	if len(emailList) == 0 {
 		c.SetInvalidParam("user_email")
 		return
@@ -96,6 +109,11 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 	auditRec.AddMeta("count", len(emailList))
 	auditRec.AddMeta("emails", emailList)
 
+	if len(memberInvite.ChannelIds) > 0 {
+		auditRec.AddMeta("channel_count", len(memberInvite.ChannelIds))
+		auditRec.AddMeta("channels", memberInvite.ChannelIds)
+	}
+
 	team, nErr := c.App.Srv().Store.Team().Get(c.Params.TeamId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
@@ -109,6 +127,14 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	allowedDomains := []string{team.AllowedDomains, *c.App.Config().TeamSettings.RestrictCreationToDomains}
+
+	var channels []*model.Channel
+	if len(memberInvite.ChannelIds) > 0 {
+		channels, err = c.App.Srv().Store.Channel().GetChannelsByIds(memberInvite.ChannelIds, false)
+		if err != nil {
+			c.Err = model.NewAppError("prepareLocalInviteNewUsersToTeam", "app.channel.get_channels_by_ids.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
 
 	if r.URL.Query().Get("graceful") != "" {
 		var invitesWithErrors []*model.EmailInviteWithError
@@ -128,8 +154,16 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 		}
 		auditRec.AddMeta("errors", errList)
 		if len(goodEmails) > 0 {
-			err := c.App.Srv().EmailService.SendInviteEmails(team, "Administrator", "mmctl "+model.NewId(), goodEmails, *c.App.Config().ServiceSettings.SiteURL, nil, false)
-			if err != nil {
+			var eErr error
+			var invitesWithErrors2 []*model.EmailInviteWithError
+			if len(channels) > 0 {
+				invitesWithErrors2, eErr = c.App.Srv().EmailService.SendInviteEmailsToTeamAndChannels(team, channels, "Administrator", "mmctl "+model.NewId(), nil, goodEmails, *c.App.Config().ServiceSettings.SiteURL, nil, memberInvite.Message, true)
+				invitesWithErrors = append(invitesWithErrors, invitesWithErrors2...)
+			} else {
+				eErr = c.App.Srv().EmailService.SendInviteEmails(team, "Administrator", "mmctl "+model.NewId(), goodEmails, *c.App.Config().ServiceSettings.SiteURL, nil, false)
+			}
+
+			if eErr != nil {
 				switch {
 				case errors.Is(err, email.NoRateLimiterError):
 					c.Err = model.NewAppError("SendInviteEmails", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("team_id=%s", team.Id), http.StatusInternalServerError)

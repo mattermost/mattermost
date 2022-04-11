@@ -1275,7 +1275,18 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emailList := model.ArrayFromJSON(r.Body)
+	bf, err := io.ReadAll(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.inviteUsersToTeams", "api.team.invite_members_to_team_and_channels.invalid_body.app_error", nil, err.Error(), http.StatusBadRequest)
+		return
+	}
+	memberInvite := &model.MemberInvite{}
+	if jsonErr := json.Unmarshal(bf, memberInvite); jsonErr != nil {
+		c.Err = model.NewAppError("Api4.inviteUsersToTeams", "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		return
+	}
+
+	emailList := memberInvite.Emails
 
 	for i := range emailList {
 		emailList[i] = strings.ToLower(emailList[i])
@@ -1292,11 +1303,16 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("count", len(emailList))
 	auditRec.AddMeta("emails", emailList)
 
+	if len(memberInvite.ChannelIds) > 0 {
+		auditRec.AddMeta("channel_count", len(memberInvite.ChannelIds))
+		auditRec.AddMeta("channels", memberInvite.ChannelIds)
+	}
+
 	if graceful {
 		var invitesWithError []*model.EmailInviteWithError
 		var err *model.AppError
 		if emailList != nil {
-			invitesWithError, err = c.App.InviteNewUsersToTeamGracefully(emailList, c.Params.TeamId, c.AppContext.Session().UserId, "")
+			invitesWithError, err = c.App.InviteNewUsersToTeamGracefully(memberInvite, c.Params.TeamId, c.AppContext.Session().UserId, "")
 		}
 
 		if invitesWithError != nil {
@@ -1320,6 +1336,10 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			"teamID":      c.Params.TeamId,
 			"senderID":    c.AppContext.Session().UserId,
 			"scheduledAt": strconv.FormatInt(scheduledAt, 10),
+		}
+
+		if len(memberInvite.ChannelIds) > 0 {
+			jobData["channelList"] = model.ArrayToJSON(memberInvite.ChannelIds)
 		}
 
 		// we then manually schedule the job to send another invite after 48 hours
@@ -1501,7 +1521,7 @@ func getTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "image/png")
-	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", 24*60*60)) // 24 hrs
+	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", model.DayInSeconds)) // 24 hrs
 	w.Header().Set(model.HeaderEtagServer, etag)
 	w.Write(img)
 }
