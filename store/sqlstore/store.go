@@ -17,18 +17,18 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/go-morph/morph"
+	"github.com/mattermost/gorp"
+	"github.com/mattermost/morph"
 
-	"github.com/go-morph/morph/drivers"
-	ms "github.com/go-morph/morph/drivers/mysql"
-	ps "github.com/go-morph/morph/drivers/postgres"
+	"github.com/mattermost/morph/drivers"
+	ms "github.com/mattermost/morph/drivers/mysql"
+	ps "github.com/mattermost/morph/drivers/postgres"
 
-	mbindata "github.com/go-morph/morph/sources/go_bindata"
 	"github.com/go-sql-driver/mysql"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
-	"github.com/mattermost/gorp"
+	mbindata "github.com/mattermost/morph/sources/embedded"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/db/migrations"
@@ -1001,7 +1001,6 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	if err != nil {
 		return err
 	}
-	defer src.Close()
 
 	var driver drivers.Driver
 	switch ss.DriverName() {

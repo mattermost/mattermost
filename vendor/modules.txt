@@ -213,16 +213,6 @@ github.com/gigawattio/window
 # github.com/go-asn1-ber/asn1-ber v1.5.3
 ## explicit
 github.com/go-asn1-ber/asn1-ber
-# github.com/go-morph/morph v0.2.3-0.20220215130848-76392b135ee5
-## explicit
-github.com/go-morph/morph
-github.com/go-morph/morph/drivers
-github.com/go-morph/morph/drivers/mysql
-github.com/go-morph/morph/drivers/postgres
-github.com/go-morph/morph/models
-github.com/go-morph/morph/sources
-github.com/go-morph/morph/sources/file
-github.com/go-morph/morph/sources/go_bindata
 # github.com/go-redis/redis/v8 v8.11.4
 ## explicit
 github.com/go-redis/redis/v8
@@ -417,6 +407,16 @@ github.com/mattermost/logr/v2
 github.com/mattermost/logr/v2/config
 github.com/mattermost/logr/v2/formatters
 github.com/mattermost/logr/v2/targets
+# github.com/mattermost/morph v0.0.0-20220401091636-39f834798da8
+## explicit
+github.com/mattermost/morph
+github.com/mattermost/morph/drivers
+github.com/mattermost/morph/drivers/mysql
+github.com/mattermost/morph/drivers/postgres
+github.com/mattermost/morph/models
+github.com/mattermost/morph/sources
+github.com/mattermost/morph/sources/embedded
+github.com/mattermost/morph/sources/file
 # github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 ## explicit
 github.com/mattermost/rsc/gf256
