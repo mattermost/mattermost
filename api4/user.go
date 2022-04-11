@@ -3110,8 +3110,14 @@ func setUnreadThreadByPostId(c *Context, w http.ResponseWriter, r *http.Request)
 	auditRec.AddMeta("thread_id", c.Params.ThreadId)
 	auditRec.AddMeta("team_id", c.Params.TeamId)
 	auditRec.AddMeta("post_id", c.Params.PostId)
+
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
