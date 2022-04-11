@@ -7,7 +7,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/graph-gophers/dataloader/v6"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/web"
 )
@@ -77,19 +76,14 @@ func (u *user) Roles(ctx context.Context) ([]*model.Role, error) {
 		return nil, err
 	}
 
-	thunk := loader.LoadMany(ctx, dataloader.NewKeysFromStrings(roleNames))
+	thunk := loader.LoadMany(ctx, roleNames)
 	results, errs := thunk()
 	// All errors are the same. We just return the first one.
 	if len(errs) > 0 && errs[0] != nil {
 		return nil, err
 	}
 
-	roles := make([]*model.Role, len(results))
-	for i, res := range results {
-		roles[i] = res.(*model.Role)
-	}
-
-	return roles, nil
+	return results, nil
 }
 
 // match with api4.getPreferences

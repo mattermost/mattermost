@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/graph-gophers/dataloader/v6"
+	dataloaderv7 "github.com/graph-gophers/dataloader/v7"
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/web"
@@ -287,8 +288,8 @@ func getCtx(ctx context.Context) (*web.Context, error) {
 }
 
 // getRolesLoader returns the roles loader out of the context.
-func getRolesLoader(ctx context.Context) (*dataloader.Loader, error) {
-	l, ok := ctx.Value(rolesLoaderCtx).(*dataloader.Loader)
+func getRolesLoader(ctx context.Context) (*dataloaderv7.Loader[string, *model.Role], error) {
+	l, ok := ctx.Value(rolesLoaderCtx).(*dataloaderv7.Loader[string, *model.Role])
 	if !ok {
 		return nil, errors.New("no dataloader.Loader found in context")
 	}
