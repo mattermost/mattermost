@@ -630,7 +630,7 @@ func NewServer(options ...Option) (*Server, error) {
 		go func() {
 			appInstance := New(ServerConnector(s.Channels()))
 			if err := appInstance.UpdateProductNotices(); err != nil {
-				mlog.Warn("Failied to perform initial product notices fetch", mlog.Err(err))
+				mlog.Warn("Failed to perform initial product notices fetch", mlog.Err(err))
 			}
 		}()
 	}
