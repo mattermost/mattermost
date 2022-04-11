@@ -317,7 +317,7 @@ einterfaces-mocks: ## Creates mock files for einterfaces.
 
 searchengine-mocks: ## Creates mock files for searchengines.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
-	$(GOBIN)/mockery --dir services/searchengine --all --output services/searchengine/mocks -note 'Regenerate this file using `make searchengine-mocks`.'
+	$(GOBIN)/mockery --dir services/searchengine --all --output services/searchengine/mocks --note 'Regenerate this file using `make searchengine-mocks`.'
 
 sharedchannel-mocks: ## Creates mock files for shared channels.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
