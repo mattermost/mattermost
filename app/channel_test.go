@@ -2457,26 +2457,34 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 
 	channel2 := th.CreateChannel(th.BasicTeam)
 	channel3 := th.CreatePrivateChannel(th.BasicTeam)
+	channel4 := th.CreatePrivateChannel(th.BasicTeam)
+	channel5 := th.CreateChannel(th.BasicTeam)
+	channel6 := th.CreatePrivateChannel(th.BasicTeam)
 	th.AddUserToChannel(th.BasicUser, channel2)
 	th.AddUserToChannel(th.BasicUser, channel3)
+	th.AddUserToChannel(th.BasicUser, channel4)
+	th.AddUserToChannel(th.BasicUser, channel5)
+	th.AddUserToChannel(th.BasicUser, channel6)
 
-	channels := [3]*model.Channel{th.BasicChannel, channel2, channel3}
+	channels := [6]*model.Channel{th.BasicChannel, channel2, channel3, channel4, channel5, channel6}
 
-	i := 3
+	i := len(channels)
 	for _, channel := range channels {
-		for j := i; j >= 0; j-- {
+		for j := i; j > 0; j-- {
 			th.CreatePost(channel)
 		}
 		i--
 	}
 
 	expectedTopChannels := []struct {
-		ID    string
-		Score int64
+		ID           string
+		MessageCount int64
 	}{
-		{ID: th.BasicChannel.Id, Score: 5},
-		{ID: channel2.Id, Score: 3},
-		{ID: channel3.Id, Score: 2},
+		{ID: th.BasicChannel.Id, MessageCount: 7},
+		{ID: channel2.Id, MessageCount: 5},
+		{ID: channel3.Id, MessageCount: 4},
+		{ID: channel4.Id, MessageCount: 3},
+		{ID: channel5.Id, MessageCount: 2},
 	}
 
 	timeRange, _ := model.GetStartUnixMilliForTimeRange("1_day")
@@ -2487,7 +2495,12 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 
 		for i, channel := range topChannels.Items {
 			assert.Equal(t, expectedTopChannels[i].ID, channel.ID)
-			assert.Equal(t, expectedTopChannels[i].Score, channel.MessageCount)
+			assert.Equal(t, expectedTopChannels[i].MessageCount, channel.MessageCount)
 		}
+
+		topChannels, err = th.App.GetTopChannelsForTeamSince(th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange, Page: 1, PerPage: 5})
+		require.Nil(t, err)
+		assert.Equal(t, channel6.Id, topChannels.Items[0].ID)
+		assert.Equal(t, int64(1), topChannels.Items[0].MessageCount)
 	})
 }

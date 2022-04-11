@@ -4560,11 +4560,19 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 
 	client := th.Client
 	userId := th.BasicUser.Id
-	channelIDs := [3]string{th.BasicChannel.Id, th.BasicChannel2.Id, th.BasicPrivateChannel.Id}
 
-	i := 3
+	channel4 := th.CreatePublicChannel()
+	channel5 := th.CreatePrivateChannel()
+	channel6 := th.CreatePrivateChannel()
+	th.App.AddUserToChannel(th.BasicUser, channel4, false)
+	th.App.AddUserToChannel(th.BasicUser, channel5, false)
+	th.App.AddUserToChannel(th.BasicUser, channel6, false)
+
+	channelIDs := [6]string{th.BasicChannel.Id, th.BasicChannel2.Id, th.BasicPrivateChannel.Id, channel4.Id, channel5.Id, channel6.Id}
+
+	i := len(channelIDs)
 	for _, channelID := range channelIDs {
-		for j := i; j >= 0; j-- {
+		for j := i; j > 0; j-- {
 			_, _, err := client.CreatePost(&model.Post{UserId: userId, ChannelId: channelID, Message: "zz" + model.NewId() + "a"})
 			require.NoError(t, err)
 		}
@@ -4574,12 +4582,14 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 	teamId := th.BasicChannel.TeamId
 
 	expectedTopChannels := []struct {
-		ID    string
-		Score int64
+		ID           string
+		MessageCount int64
 	}{
-		{ID: th.BasicChannel.Id, Score: 5},
-		{ID: th.BasicChannel2.Id, Score: 3},
-		{ID: th.BasicPrivateChannel.Id, Score: 2},
+		{ID: th.BasicChannel.Id, MessageCount: 7},
+		{ID: th.BasicChannel2.Id, MessageCount: 5},
+		{ID: th.BasicPrivateChannel.Id, MessageCount: 4},
+		{ID: channel4.Id, MessageCount: 3},
+		{ID: channel5.Id, MessageCount: 2},
 	}
 
 	t.Run("get-top-channels-for-team-since", func(t *testing.T) {
@@ -4588,8 +4598,13 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 
 		for i, channel := range topChannels.Items {
 			assert.Equal(t, expectedTopChannels[i].ID, channel.ID)
-			assert.Equal(t, expectedTopChannels[i].Score, channel.MessageCount)
+			assert.Equal(t, expectedTopChannels[i].MessageCount, channel.MessageCount)
 		}
+
+		topChannels, _, err = client.GetTopChannelsForTeamSince(teamId, "1_day", 1, 5)
+		require.NoError(t, err)
+		assert.Equal(t, channel6.Id, topChannels.Items[0].ID)
+		assert.Equal(t, int64(1), topChannels.Items[0].MessageCount)
 	})
 
 	t.Run("get-top-channels-for-team-since invalid team id", func(t *testing.T) {
