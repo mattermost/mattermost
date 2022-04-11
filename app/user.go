@@ -2482,6 +2482,10 @@ func (a *App) UpdateThreadReadForUserByPost(currentSessionId, userID, teamID, th
 		return nil, err
 	}
 
+	if post.RootId != threadID {
+		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user_by_post.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	return a.UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID, post.CreateAt-1)
 }
 
