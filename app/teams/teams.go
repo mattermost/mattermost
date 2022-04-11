@@ -33,6 +33,15 @@ func (ts *TeamService) GetTeam(teamID string) (*model.Team, error) {
 	return team, nil
 }
 
+func (ts *TeamService) GetTeams(teamIDs []string) ([]*model.Team, error) {
+	teams, err := ts.store.GetMany(teamIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	return teams, nil
+}
+
 // CreateDefaultChannels creates channels in the given team for each channel returned by (*App).DefaultChannelNames.
 //
 func (ts *TeamService) createDefaultChannels(teamID string) ([]*model.Channel, error) {
