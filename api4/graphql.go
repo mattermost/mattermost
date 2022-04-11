@@ -65,6 +65,7 @@ const (
 	webCtx            ctxKey = 0
 	rolesLoaderCtx    ctxKey = 1
 	channelsLoaderCtx ctxKey = 2
+	teamsLoaderCtx    ctxKey = 3
 )
 
 const loaderBatchCapacity = 200
@@ -106,6 +107,9 @@ func (api *API) graphQL(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	channelsLoader := dataloader.NewBatchedLoader(graphQLChannelsLoader, dataloader.WithBatchCapacity(loaderBatchCapacity))
 	reqCtx = context.WithValue(reqCtx, channelsLoaderCtx, channelsLoader)
+
+	teamsLoader := dataloader.NewBatchedLoader(graphQLTeamsLoader, dataloader.WithBatchCapacity(loaderBatchCapacity))
+	reqCtx = context.WithValue(reqCtx, teamsLoaderCtx, teamsLoader)
 
 	response = api.schema.Exec(reqCtx,
 		params.Query,
