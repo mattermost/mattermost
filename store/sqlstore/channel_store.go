@@ -4098,7 +4098,7 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 	return &team, nil
 }
 
-// GetTopForTeamSince returns the instance counts of the following Channels sets:
+// GetTopChannelsForTeamSince returns the filtered post counts of the following Channels sets:
 // a) those that are private channels in the given user's membership graph on the given team, and
 // b) those that are public channels in the given team.
 func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopChannelList, error) {
@@ -4110,11 +4110,12 @@ func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string
 			Channels.Type as Type,
 			Channels.DisplayName as DisplayName,
 			Channels.Name as Name,
+			Channels.TeamId as TeamID,
 			count(Posts.Id) AS MessageCount
 		FROM
 			Posts 
 			LEFT JOIN Channels on Posts.ChannelId = Channels.Id
-			LEFT JOIN ChannelMembers on Posts.ChannelId = ChannelMembers.ChannelId and ChannelMembers.UserId = ?`
+			LEFT JOIN ChannelMembers on Posts.ChannelId = ChannelMembers.ChannelId AND ChannelMembers.UserId = ?`
 
 	if s.DriverName() == model.DatabaseDriverMysql {
 		query += `
@@ -4123,7 +4124,7 @@ func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string
 				AND Posts.CreateAt > ?
 				AND Posts.Type = ''
 				AND (JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false')
-				AND Channels.deleteat = 0
+				AND Channels.DeleteAt = 0
 				AND Channels.TeamId = ?
 				AND (Channels.Type = 'O' OR (Channels.Type = 'P' AND (ChannelMembers.UserId = ?)))`
 	} else if s.DriverName() == model.DatabaseDriverPostgres {
@@ -4133,7 +4134,7 @@ func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string
 				AND Posts.CreateAt > ?
 				AND Posts.Type = ''
 				AND (Posts.Props->>'from_bot' IS NULL OR Posts.Props->>'from_bot' = 'false')
-				AND Channels.deleteat = 0
+				AND Channels.DeleteAt = 0
 				AND Channels.TeamId = ?
 				AND (Channels.Type = 'O' OR (Channels.Type = 'P' AND (ChannelMembers.UserId = ?)))`
 	}
@@ -4151,6 +4152,61 @@ func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string
 		OFFSET ?`
 
 	if err := s.GetReplicaX().Select(&channels, query, userID, since, teamID, userID, limit+1, offset); err != nil {
+		return nil, errors.Wrap(err, "failed to get top Channels")
+	}
+
+	return model.GetTopChannelListWithRankAndPagination(channels, limit, offset), nil
+}
+
+// GetTopChannelsForUserSince returns the filtered post counts of channels with with posts created by the user
+// after the given timestamp within the given team (or across the workspace if no team is given). Excludes DM and GM channels.
+func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopChannelList, error) {
+	var channels []*model.TopChannel
+	var args []interface{}
+	var query string
+
+	query = `
+		SELECT
+			Posts.ChannelId as ID,
+			Channels.Type as Type,
+			Channels.DisplayName as DisplayName,
+			Channels.Name as Name,
+			Channels.TeamId as TeamID,
+			count(Posts.Id) AS MessageCount
+		FROM
+			Posts 
+			LEFT JOIN Channels on Posts.ChannelId = Channels.Id
+			LEFT JOIN ChannelMembers on Posts.ChannelId = ChannelMembers.ChannelId AND ChannelMembers.UserId = ?
+		WHERE 
+			Posts.DeleteAt = 0 
+			AND Posts.CreateAt > ?
+			AND Posts.Type = ''
+			AND Posts.UserId = ?
+			AND Channels.DeleteAt = 0
+			AND (Channels.Type = 'O' OR Channels.Type = 'P') 
+			AND ChannelMembers.UserId = ?`
+	args = []interface{}{userID, since, userID, userID}
+
+	if teamID != "" {
+		query += `
+			AND Channels.TeamID = ?`
+		args = append(args, teamID)
+	}
+
+	query += `
+		Group By 
+			Posts.ChannelId,
+			Channels.Type,
+			Channels.DisplayName,
+			Channels.Name
+		ORDER BY 
+			MessageCount DESC,
+			Name ASC
+		LIMIT ?
+		OFFSET ?`
+	args = append(args, limit+1, offset)
+
+	if err := s.GetReplicaX().Select(&channels, query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to get top Channels")
 	}
 

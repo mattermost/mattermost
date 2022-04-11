@@ -52,6 +52,7 @@ type TopChannel struct {
 	Type         ChannelType `json:"type"`
 	DisplayName  string      `json:"display_name"`
 	Name         string      `json:"name"`
+	TeamID       string      `json:"team_id"`
 	MessageCount int64       `json:"message_count"`
 }
 

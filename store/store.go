@@ -284,6 +284,7 @@ type ChannelStore interface {
 
 	// Insights
 	GetTopChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopChannelList, error)
+	GetTopChannelsForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopChannelList, error)
 }
 
 type ChannelMemberHistoryStore interface {
