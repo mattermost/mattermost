@@ -890,7 +890,7 @@ func (s *SqlThreadStore) GetPosts(threadId string, since int64) ([]*model.Post, 
 		From("Posts").
 		Where(sq.Eq{"RootId": threadId}).
 		Where(sq.Eq{"DeleteAt": 0}).
-		Where(sq.GtOrEq{"UpdateAt": since}).ToSql()
+		Where(sq.GtOrEq{"CreateAt": since}).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to build query to fetch thread posts")
 	}
