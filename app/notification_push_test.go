@@ -19,6 +19,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
+	fmocks "github.com/mattermost/mattermost-server/v6/shared/filestore/mocks"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/testlib"
@@ -566,6 +567,7 @@ func TestGetPushNotificationMessage(t *testing.T) {
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	for name, tc := range map[string]struct {
 		Message                  string
@@ -1148,6 +1150,7 @@ func TestClearPushNotificationSync(t *testing.T) {
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
 	mockStore.On("Session").Return(&mockSessionStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
@@ -1172,7 +1175,7 @@ func TestClearPushNotificationSync(t *testing.T) {
 	mockStore.On("Preference").Return(&mockPreferenceStore)
 
 	mockThreadStore := mocks.ThreadStore{}
-	mockThreadStore.On("GetThreadsForUser", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.Anything).Return(&model.Threads{TotalUnreadMentions: 3}, nil)
+	mockThreadStore.On("GetTotalUnreadMentions", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.Anything).Return(int64(3), nil)
 	mockStore.On("Thread").Return(&mockThreadStore)
 
 	err = th.App.clearPushNotificationSync(sess1.Id, "user1", "channel1", "")
@@ -1221,6 +1224,7 @@ func TestUpdateMobileAppBadgeSync(t *testing.T) {
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
 	mockStore.On("Session").Return(&mockSessionStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
@@ -1287,6 +1291,7 @@ func TestSendAckToPushProxy(t *testing.T) {
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
@@ -1428,14 +1433,16 @@ func TestPushNotificationRace(t *testing.T) {
 		Return(&model.Preference{Value: "test"}, nil)
 	mockStore.On("Preference").Return(&mockPreferenceStore)
 	s := &Server{
-		Store:    mockStore,
-		products: make(map[string]Product),
-		Router:   mux.NewRouter(),
+		Store:     mockStore,
+		products:  make(map[string]Product),
+		Router:    mux.NewRouter(),
+		filestore: &fmocks.FileBackend{},
 	}
 	s.configStore = &configWrapper{srv: s, Store: memoryStore}
 	serviceMap := map[ServiceKey]interface{}{
-		ConfigKey:  s.configStore,
-		LicenseKey: &licenseWrapper{s},
+		ConfigKey:    s.configStore,
+		LicenseKey:   &licenseWrapper{s},
+		FilestoreKey: s.filestore,
 	}
 	ch, err := NewChannels(s, serviceMap)
 	require.NoError(t, err)
@@ -1528,6 +1535,7 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 	mockStore.On("System").Return(&mockSystemStore)
 	mockStore.On("Session").Return(&mockSessionStore)
 	mockStore.On("Preference").Return(&mockPreferenceStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	// create 50 users, each having 2 sessions.
 	type userSession struct {

@@ -22,8 +22,8 @@ func (b StatementBuilderType) Replace(into string) InsertBuilder {
 }
 
 // Update returns a UpdateBuilder for this StatementBuilderType.
-func (b StatementBuilderType) Update(table string) UpdateBuilder {
-	return UpdateBuilder(b).Table(table)
+func (b StatementBuilderType) Update(tables ...string) UpdateBuilder {
+	return UpdateBuilder(b).Table(tables...)
 }
 
 // Delete returns a DeleteBuilder for this StatementBuilderType.
@@ -76,8 +76,8 @@ func Replace(into string) InsertBuilder {
 // Update returns a new UpdateBuilder with the given table name.
 //
 // See UpdateBuilder.Table.
-func Update(table string) UpdateBuilder {
-	return StatementBuilder.Update(table)
+func Update(tables ...string) UpdateBuilder {
+	return StatementBuilder.Update(tables...)
 }
 
 // Delete returns a new DeleteBuilder with the given table name.

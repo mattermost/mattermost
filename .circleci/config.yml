@@ -160,21 +160,6 @@ jobs:
             make einterfaces-mocks store-mocks
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using `make einterfaces-mocks store-mocks`"; exit 1; fi
 
-  check-migrations:
-    docker:
-      - image: mattermost/mattermost-build-server:20210810_golang-1.16.7
-    working_directory: ~/mattermost
-    steps:
-      - attach_workspace:
-          at: ~/mattermost/
-      - run:
-          command: |
-            export GOBIN=${PWD}/mattermost-server/bin
-            cd mattermost-server
-            export PATH=$PATH:$GOBIN
-            make migrations-bindata
-            if [[ -n $(git status --porcelain) ]]; then echo "Please update the migration bindata using `make migrations-bindata`"; exit 1; fi
-
   check-email-templates:
     docker:
       - image: cimg/go:1.17-node
@@ -526,9 +511,6 @@ workflows:
       - check-mocks:
           requires:
             - setup
-      - check-migrations:
-          requires:
-            - setup
       - check-email-templates:
           requires:
             - setup
@@ -546,7 +528,6 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
             - check-email-templates
             - check-gen-serialized
             - check-mattermost-vet
@@ -573,7 +554,6 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
             - check-email-templates
             - check-gen-serialized
       - test:
@@ -585,7 +565,6 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
             - check-email-templates
             - check-gen-serialized
       - test:
@@ -597,7 +576,6 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
             - check-email-templates
             - check-gen-serialized
       - test-schema:
@@ -605,7 +583,6 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
             - check-email-templates
             - check-gen-serialized
   release-build:
@@ -645,9 +622,6 @@ workflows:
       - check-mocks:
           requires:
             - setup
-      - check-migrations:
-          requires:
-            - setup
       - check-email-templates:
           requires:
             - setup
@@ -663,7 +637,6 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
             - check-email-templates
             - check-gen-serialized
             - check-mattermost-vet
@@ -674,7 +647,6 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
             - check-email-templates
             - check-gen-serialized
             - check-mattermost-vet
@@ -688,7 +660,6 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
             - check-email-templates
             - check-gen-serialized
       - test:
@@ -700,7 +671,6 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
             - check-email-templates
             - check-gen-serialized
       - test:
@@ -712,7 +682,6 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
             - check-email-templates
             - check-gen-serialized
       # test-schema for master run in .gitlab-ci.yml

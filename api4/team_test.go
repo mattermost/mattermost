@@ -1066,8 +1066,8 @@ func TestGetAllTeams(t *testing.T) {
 	// Now actually create the policy and assign the team to it
 	policy, savePolicyErr := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
-			DisplayName:  "Policy 1",
-			PostDuration: model.NewInt64(30),
+			DisplayName:      "Policy 1",
+			PostDurationDays: model.NewInt64(30),
 		},
 		TeamIDs: []string{policyTeam.Id},
 	})
@@ -1379,8 +1379,8 @@ func TestSearchAllTeams(t *testing.T) {
 	// Now actually create the policy and assign the team to it
 	policy, savePolicyErr := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
-			DisplayName:  "Policy 1",
-			PostDuration: model.NewInt64(30),
+			DisplayName:      "Policy 1",
+			PostDurationDays: model.NewInt64(30),
 		},
 		TeamIDs: []string{policyTeam.Id},
 	})
@@ -2982,7 +2982,8 @@ func TestInviteUsersToTeam(t *testing.T) {
 	user1 := th.GenerateTestEmail()
 	user2 := th.GenerateTestEmail()
 
-	emailList := []string{user1, user2}
+	memberInvite := &model.MemberInvite{Emails: []string{user1, user2}}
+	emailList := memberInvite.Emails
 
 	//Delete all the messages before check the sample email
 	mail.DeleteMailBox(user1)
@@ -3018,7 +3019,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 				require.True(t, strings.ContainsAny(resultsMailbox[len(resultsMailbox)-1].To[0], email), "Wrong To recipient")
 				resultsEmail, err := mail.GetMessageFromMailbox(email, resultsMailbox[len(resultsMailbox)-1].ID)
 				if err == nil {
-					require.Equalf(t, resultsEmail.Subject, expectedSubject, "Wrong Subject, actual: %s, expected: %s", resultsEmail.Subject, expectedSubject)
+					require.Equalf(t, resultsEmail.Subject, expectedSubject, "Wrong Subject, \nactual: %s, \nexpected: %s", resultsEmail.Subject, expectedSubject)
 				}
 			}
 		}
@@ -3034,6 +3035,18 @@ func TestInviteUsersToTeam(t *testing.T) {
 			"SiteName":        th.App.ClientConfig()["SiteName"]})
 	checkEmail(t, expectedSubject)
 
+	// Test the invite to team and channel
+	mail.DeleteMailBox(user1)
+	mail.DeleteMailBox(user2)
+	_, _, err = th.SystemAdminClient.InviteUsersToTeamAndChannelsGracefully(th.BasicTeam.Id, []string{user1, user2}, []string{th.BasicChannel.Id}, "")
+	require.NoError(t, err)
+	expectedSubject = i18n.T("api.templates.invite_team_and_channel_subject",
+		map[string]interface{}{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
+			"TeamDisplayName": th.BasicTeam.DisplayName,
+			"ChannelName":     th.BasicChannel.DisplayName,
+			"SiteName":        th.App.ClientConfig()["SiteName"]})
+	checkEmail(t, expectedSubject)
+
 	mail.DeleteMailBox(user1)
 	mail.DeleteMailBox(user2)
 	_, err = th.LocalClient.InviteUsersToTeam(th.BasicTeam.Id, emailList)
@@ -3041,6 +3054,18 @@ func TestInviteUsersToTeam(t *testing.T) {
 	expectedSubject = i18n.T("api.templates.invite_subject",
 		map[string]interface{}{"SenderName": "Administrator",
 			"TeamDisplayName": th.BasicTeam.DisplayName,
+			"SiteName":        th.App.ClientConfig()["SiteName"]})
+	checkEmail(t, expectedSubject)
+
+	// Test the invite local to team and channel
+	mail.DeleteMailBox(user1)
+	mail.DeleteMailBox(user2)
+	_, _, err = th.LocalClient.InviteUsersToTeamAndChannelsGracefully(th.BasicTeam.Id, []string{user1, user2}, []string{th.BasicChannel.Id}, "")
+	require.NoError(t, err)
+	expectedSubject = i18n.T("api.templates.invite_team_and_channel_subject",
+		map[string]interface{}{"SenderName": "Administrator",
+			"TeamDisplayName": th.BasicTeam.DisplayName,
+			"ChannelName":     th.BasicChannel.DisplayName,
 			"SiteName":        th.App.ClientConfig()["SiteName"]})
 	checkEmail(t, expectedSubject)
 

@@ -32,6 +32,7 @@ func TestNoticeValidation(t *testing.T) {
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("Preference").Return(&mockPreferenceStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 	mockSystemStore.On("SaveOrUpdate", &model.System{Name: "ActiveLicenseId", Value: ""}).Return(nil)
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)

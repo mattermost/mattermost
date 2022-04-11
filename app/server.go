@@ -20,6 +20,7 @@ import (
 	"os/exec"
 	"path"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -89,8 +90,13 @@ var SentryDSN = "placeholder_sentry_dsn"
 type ServiceKey string
 
 const (
-	ConfigKey  ServiceKey = "config"
-	LicenseKey ServiceKey = "license"
+	ChannelKey   ServiceKey = "channel"
+	ConfigKey    ServiceKey = "config"
+	LicenseKey   ServiceKey = "license"
+	FilestoreKey ServiceKey = "filestore"
+	ClusterKey   ServiceKey = "cluster"
+	PostKey      ServiceKey = "post"
+	TeamKey      ServiceKey = "team"
 )
 
 type Server struct {
@@ -138,6 +144,7 @@ type Server struct {
 	Jobs             *jobs.JobServer
 
 	clusterLeaderListeners sync.Map
+	clusterWrapper         *clusterWrapper
 
 	licenseValue       atomic.Value
 	clientLicenseValue atomic.Value
@@ -357,23 +364,45 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	s.filestore = backend
 
+	channelWrapper := &channelsWrapper{
+		srv: s,
+	}
+
 	s.licenseWrapper = &licenseWrapper{
 		srv: s,
 	}
 
-	serviceMap := map[ServiceKey]interface{}{
-		ConfigKey:  s.configStore,
-		LicenseKey: s.licenseWrapper,
+	s.clusterWrapper = &clusterWrapper{
+		srv: s,
 	}
+
+	s.teamService, err = teams.New(teams.ServiceConfig{
+		TeamStore:    s.Store.Team(),
+		ChannelStore: s.Store.Channel(),
+		GroupStore:   s.Store.Group(),
+		Users:        s.userService,
+		WebHub:       s,
+		ConfigFn:     s.Config,
+		LicenseFn:    s.License,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to create teams service")
+	}
+
+	serviceMap := map[ServiceKey]interface{}{
+		ChannelKey:   channelWrapper,
+		ConfigKey:    s.configStore,
+		LicenseKey:   s.licenseWrapper,
+		FilestoreKey: s.filestore,
+		ClusterKey:   s.clusterWrapper,
+		TeamKey:      s.teamService,
+	}
+
 	// Step 8: Initialize products.
 	// Depends on s.httpService.
-	for name, initializer := range products {
-		prod, err2 := initializer(s, serviceMap)
-		if err2 != nil {
-			return nil, errors.Wrapf(err2, "error initializing product: %s", name)
-		}
-
-		s.products[name] = prod
+	err = s.initializeProducts(products, serviceMap)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to initialize products")
 	}
 
 	// It is important to initialize the hub only after the global logger is set
@@ -461,19 +490,6 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 	s.htmlTemplateWatcher = htmlTemplateWatcher
 
-	s.teamService, err = teams.New(teams.ServiceConfig{
-		TeamStore:    s.Store.Team(),
-		ChannelStore: s.Store.Channel(),
-		GroupStore:   s.Store.Group(),
-		Users:        s.userService,
-		WebHub:       s,
-		ConfigFn:     s.Config,
-		LicenseFn:    s.License,
-	})
-	if err != nil {
-		return nil, errors.Wrapf(err, "unable to create teams service")
-	}
-
 	s.configListenerId = s.AddConfigListener(func(_, _ *model.Config) {
 		ch := s.Channels()
 		ch.regenerateClientConfig()
@@ -538,7 +554,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if _, err = url.ParseRequestURI(*s.Config().ServiceSettings.SiteURL); err != nil {
-		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: http://about.mattermost.com/default-site-url")
+		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://docs.mattermost.com/configure/configuration-settings.html#site-url")
 	}
 
 	// Start email batching because it's not like the other jobs
@@ -614,7 +630,7 @@ func NewServer(options ...Option) (*Server, error) {
 		go func() {
 			appInstance := New(ServerConnector(s.Channels()))
 			if err := appInstance.UpdateProductNotices(); err != nil {
-				mlog.Warn("Failied to perform initial product notices fetch", mlog.Err(err))
+				mlog.Warn("Failed to perform initial product notices fetch", mlog.Err(err))
 			}
 		}()
 	}
@@ -750,10 +766,10 @@ func (s *Server) Channels() *Channels {
 	return ch
 }
 
-// Return Database type (postgres or mysql) and current version of Mattermost
-func (s *Server) DatabaseTypeAndMattermostVersion() (string, string) {
-	mattermostVersion, _ := s.Store.System().GetByName("Version")
-	return *s.Config().SqlSettings.DriverName, mattermostVersion.Value
+// Return Database type (postgres or mysql) and current version of the schema
+func (s *Server) DatabaseTypeAndSchemaVersion() (string, string) {
+	schemaVersion, _ := s.Store.GetDBSchemaVersion()
+	return *s.Config().SqlSettings.DriverName, strconv.Itoa(schemaVersion)
 }
 
 // initLogging initializes and configures the logger(s). This may be called more than once.
@@ -1711,6 +1727,15 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 
 func (s *Server) doLicenseExpirationCheck() {
 	s.LoadLicense()
+
+	// This takes care of a rare edge case reported here https://mattermost.atlassian.net/browse/MM-40962
+	// To reproduce that case locally, attach a license to a server that was started with enterprise enabled
+	// Then restart using BUILD_ENTERPRISE=false make restart-server to enter Team Edition
+	if model.BuildEnterpriseReady != "true" {
+		mlog.Debug("Skipping license expiration check because no license is expected on Team Edition")
+		return
+	}
+
 	license := s.License()
 
 	if license == nil {
@@ -1734,10 +1759,17 @@ func (s *Server) doLicenseExpirationCheck() {
 		if appErr != nil {
 			mlog.Debug(appErr.Error())
 		}
+		return
 	}
 
 	if !license.IsPastGracePeriod() {
 		mlog.Debug("License is not past the grace period.")
+		return
+	}
+
+	renewalLink, _, appErr := s.GenerateLicenseRenewalLink()
+	if appErr != nil {
+		mlog.Error("Error while sending the license expired email.", mlog.Err(appErr))
 		return
 	}
 
@@ -1751,7 +1783,7 @@ func (s *Server) doLicenseExpirationCheck() {
 
 		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
 		s.Go(func() {
-			if err := s.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *s.Config().ServiceSettings.SiteURL); err != nil {
+			if err := s.SendRemoveExpiredLicenseEmail(user.Email, renewalLink, user.Locale, *s.Config().ServiceSettings.SiteURL); err != nil {
 				mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
 			}
 		})
@@ -1763,11 +1795,7 @@ func (s *Server) doLicenseExpirationCheck() {
 
 // SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
 // to renew the user license
-func (s *Server) SendRemoveExpiredLicenseEmail(email string, locale, siteURL string) *model.AppError {
-	renewalLink, _, err := s.GenerateLicenseRenewalLink()
-	if err != nil {
-		return err
-	}
+func (s *Server) SendRemoveExpiredLicenseEmail(email string, renewalLink, locale, siteURL string) *model.AppError {
 
 	if err := s.EmailService.SendRemoveExpiredLicenseEmail(renewalLink, email, locale, siteURL); err != nil {
 		return model.NewAppError("SendRemoveExpiredLicenseEmail", "api.license.remove_expired_license.failed.error", nil, err.Error(), http.StatusInternalServerError)
@@ -1903,11 +1931,6 @@ func (s *Server) initJobs() {
 	if jobsLdapSyncInterface != nil {
 		builder := jobsLdapSyncInterface(New(ServerConnector(s.Channels())))
 		s.Jobs.RegisterJobType(model.JobTypeLdapSync, builder.MakeWorker(), builder.MakeScheduler())
-	}
-
-	if jobsCloudInterface != nil {
-		builder := jobsCloudInterface(s)
-		s.Jobs.RegisterJobType(model.JobTypeCloud, builder.MakeWorker(), builder.MakeScheduler())
 	}
 
 	s.Jobs.RegisterJobType(
@@ -2192,13 +2215,15 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
 		vendorName, vendorVersion = ldapInterface.GetVendorNameAndVendorVersion()
 	}
 
-	// Here we are getting information regarding the database (mysql/postgres + current Mattermost version)
-	databaseType, databaseVersion := a.Srv().DatabaseTypeAndMattermostVersion()
+	// Here we are getting information regarding the database (mysql/postgres + current schema version)
+	databaseType, databaseVersion := a.Srv().DatabaseTypeAndSchemaVersion()
 
 	// Creating the struct for support packet yaml file
 	supportPacket := model.SupportPacket{
 		ServerOS:             runtime.GOOS,
 		ServerArchitecture:   runtime.GOARCH,
+		ServerVersion:        model.CurrentVersion,
+		BuildHash:            model.BuildHash,
 		DatabaseType:         databaseType,
 		DatabaseVersion:      databaseVersion,
 		LdapVendorName:       vendorName,
@@ -2301,4 +2326,12 @@ func runDNDStatusExpireJob(a *App) {
 			cancelDNDStatusExpirationRecurringTask(a)
 		}
 	})
+}
+
+func (a *App) GetAppliedSchemaMigrations() ([]model.AppliedMigration, *model.AppError) {
+	table, err := a.Srv().Store.GetAppliedMigrations()
+	if err != nil {
+		return nil, model.NewAppError("GetDBSchemaTable", "api.file.read_file.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return table, nil
 }

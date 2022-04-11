@@ -260,3 +260,61 @@ func TestSendCloudTrialEndedEmail(t *testing.T) {
 		verifyMailbox(t)
 	})
 }
+
+func TestMailServiceConfig(t *testing.T) {
+	configuredReplyTo := "feedbackexample@test.com"
+	customReplyTo := "customreplyto@test.com"
+
+	emailService := Service{
+		config: func() *model.Config {
+			return &model.Config{
+				ServiceSettings: model.ServiceSettings{
+					SiteURL: model.NewString(""),
+				},
+				EmailSettings: model.EmailSettings{
+					EnableSignUpWithEmail:             new(bool),
+					EnableSignInWithEmail:             new(bool),
+					EnableSignInWithUsername:          new(bool),
+					SendEmailNotifications:            new(bool),
+					UseChannelInEmailNotifications:    new(bool),
+					RequireEmailVerification:          new(bool),
+					FeedbackName:                      new(string),
+					FeedbackEmail:                     new(string),
+					ReplyToAddress:                    model.NewString(configuredReplyTo),
+					FeedbackOrganization:              new(string),
+					EnableSMTPAuth:                    new(bool),
+					SMTPUsername:                      new(string),
+					SMTPPassword:                      new(string),
+					SMTPServer:                        new(string),
+					SMTPPort:                          new(string),
+					SMTPServerTimeout:                 new(int),
+					ConnectionSecurity:                new(string),
+					SendPushNotifications:             new(bool),
+					PushNotificationServer:            new(string),
+					PushNotificationContents:          new(string),
+					PushNotificationBuffer:            new(int),
+					EnableEmailBatching:               new(bool),
+					EmailBatchingBufferSize:           new(int),
+					EmailBatchingInterval:             new(int),
+					EnablePreviewModeBanner:           new(bool),
+					SkipServerCertificateVerification: new(bool),
+					EmailNotificationContentsType:     new(string),
+					LoginButtonColor:                  new(string),
+					LoginButtonBorderColor:            new(string),
+					LoginButtonTextColor:              new(string),
+					EnableInactivityEmail:             new(bool),
+				},
+			}
+		},
+	}
+
+	t.Run("use custom replyto instead of configured replyto", func(t *testing.T) {
+		mailConfig := emailService.mailServiceConfig(customReplyTo)
+		require.Equal(t, customReplyTo, mailConfig.ReplyToAddress)
+	})
+
+	t.Run("use configured replyto", func(t *testing.T) {
+		mailConfig := emailService.mailServiceConfig("")
+		require.Equal(t, configuredReplyTo, mailConfig.ReplyToAddress)
+	})
+}

@@ -48,7 +48,7 @@ const (
 )
 
 func (a *App) FileBackend() filestore.FileBackend {
-	return a.Srv().FileBackend()
+	return a.ch.filestore
 }
 
 func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
@@ -179,11 +179,24 @@ func (s *Server) removeFile(path string) *model.AppError {
 }
 
 func (a *App) ListDirectory(path string) ([]string, *model.AppError) {
-	return a.Srv().listDirectory(path)
+	return a.Srv().listDirectory(path, false)
 }
 
-func (s *Server) listDirectory(path string) ([]string, *model.AppError) {
-	paths, nErr := s.FileBackend().ListDirectory(path)
+func (a *App) ListDirectoryRecursively(path string) ([]string, *model.AppError) {
+	return a.Srv().listDirectory(path, true)
+}
+
+func (s *Server) listDirectory(path string, recursion bool) ([]string, *model.AppError) {
+	backend := s.FileBackend()
+	var paths []string
+	var nErr error
+
+	if recursion {
+		paths, nErr = backend.ListDirectoryRecursively(path)
+	} else {
+		paths, nErr = backend.ListDirectory(path)
+	}
+
 	if nErr != nil {
 		return nil, model.NewAppError("ListDirectory", "api.file.list_directory.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
@@ -354,7 +367,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	fileMigrationLock.Lock()
 	defer fileMigrationLock.Unlock()
 
-	result, nErr := a.Srv().Store.Post().Get(context.Background(), post.Id, false, false, false, "")
+	result, nErr := a.Srv().Store.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "")
 	if nErr != nil {
 		mlog.Error("Unable to get post when migrating post to use FileInfos", mlog.Err(nErr), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}

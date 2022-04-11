@@ -20,10 +20,10 @@ import (
 
     "github.com/mattermost/morph"
     "github.com/mattermost/morph/drivers/mysql"
-    bindata "github.com/mattermost/morph/sources/go_bindata"
+    "github.com/mattermost/morph/sources/embedded"
 )
 
-src, err := bindata.WithInstance(&bindata.AssetSource{
+src, err := embedded.WithInstance(&embedded.AssetSource{
     Names: []string{}, // add migration file names
     AssetFunc: func(name string) ([]byte, error) {
         return []byte{}, nil // should return the file contents

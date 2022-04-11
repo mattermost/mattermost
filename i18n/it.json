@@ -632,7 +632,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Impossibile trovare il canale {{.Channel}}. Usare [channel handle](https://about.mattermost.com/default-channel-handle-documentation) per identificare i canali."
+    "translation": "Impossibile trovare il canale {{.Channel}}. Usare [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) per identificare i canali."
   },
   {
     "id": "api.command_invite.desc",
@@ -776,7 +776,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Impossibile trovare il canale {{.Channel}}. Usare [channel handle](https://about.mattermost.com/default-channel-handle-documentation) per identificare i canali."
+    "translation": "Impossibile trovare il canale {{.Channel}}. Usare [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) per identificare i canali."
   },
   {
     "id": "api.command_mute.hint",
@@ -788,7 +788,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Impossibile trovare il canale specificato. Usare [channel handle](https://about.mattermost.com/default-channel-handle-documentation) per identificare i canali."
+    "translation": "Impossibile trovare il canale specificato. Usare [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) per identificare i canali."
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -3756,10 +3756,6 @@
     "translation": "L'impostazione AggregatePostsAfterDays di Elasticsearch deve essere un numero maggiore o uguale a 1."
   },
   {
-    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "La finestra temporale per il lavoro di indicizzazione massiva di Elasticsearch deve essere di almeno 1 secondo."
-  },
-  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "Il ConnectionUrl di Elastich Search deve essere fornito quando l'indicizzazione di Elastic Search è abilitata."
   },
@@ -4616,18 +4612,6 @@
     "translation": "Manca l'indirizzo del destinatario."
   },
   {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Impossibile convertire StringArray a *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Impossibile convertire StringInterface a *string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Impossibile convertire StringMap a *string"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Il bot non esiste."
   },
@@ -5442,10 +5426,6 @@
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
     "translation": "Dati autocompletamento non validi"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "La finestra temporale per il lavoro di indicizzazione massiva di Bleve deve essere di almeno 1 secondo."
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
@@ -7094,14 +7074,6 @@
   {
     "id": "api.cloud.license_error",
     "translation": "La tua licenza non supporta le richieste di cloud."
-  },
-  {
-    "id": "api.cloud.get_subscription.error",
-    "translation": "Errore nell'ottenere l'abbonamento al cloud."
-  },
-  {
-    "id": "api.cloud.get_admins_emails.error",
-    "translation": "Impossibile ottenere le email degli amministratori di sistema."
   },
   {
     "id": "api.cloud.cws_webhook_event_missing_error",

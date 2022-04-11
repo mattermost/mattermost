@@ -32,7 +32,7 @@ type QueryRowerContext interface {
 	QueryRowContext(ctx context.Context, query string, args ...interface{}) RowScanner
 }
 
-// RunnerContext groups the Runner interface, along with the Contect versions of each of
+// RunnerContext groups the Runner interface, along with the Context versions of each of
 // its methods
 type RunnerContext interface {
 	Runner

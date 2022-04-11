@@ -31,6 +31,7 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("Save", func(t *testing.T) { testTeamStoreSave(t, ss) })
 	t.Run("Update", func(t *testing.T) { testTeamStoreUpdate(t, ss) })
 	t.Run("Get", func(t *testing.T) { testTeamStoreGet(t, ss) })
+	t.Run("GetMany", func(t *testing.T) { testTeamStoreGetMany(t, ss) })
 	t.Run("GetByName", func(t *testing.T) { testTeamStoreGetByName(t, ss) })
 	t.Run("GetByNames", func(t *testing.T) { testTeamStoreGetByNames(t, ss) })
 	t.Run("SearchAll", func(t *testing.T) { testTeamStoreSearchAll(t, ss) })
@@ -130,6 +131,37 @@ func testTeamStoreGet(t *testing.T, ss store.Store) {
 
 	_, err = ss.Team().Get("")
 	require.Error(t, err, "Missing id should have failed")
+}
+
+func testTeamStoreGetMany(t *testing.T, ss store.Store) {
+	o1, err := ss.Team().Save(&model.Team{
+		DisplayName: "DisplayName",
+		Name:        NewTestId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+
+	o2, err := ss.Team().Save(&model.Team{
+		DisplayName: "DisplayName2",
+		Name:        NewTestId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+
+	res, err := ss.Team().GetMany([]string{o1.Id, o2.Id})
+	require.NoError(t, err)
+	assert.Len(t, res, 2)
+
+	res, err = ss.Team().GetMany([]string{o1.Id, "notexists"})
+	require.NoError(t, err)
+	assert.Len(t, res, 1)
+
+	_, err = ss.Team().GetMany([]string{"whereisit", "notexists"})
+	require.Error(t, err)
+	var nfErr *store.ErrNotFound
+	assert.True(t, errors.As(err, &nfErr))
 }
 
 func testTeamStoreGetByNames(t *testing.T, ss store.Store) {
@@ -259,8 +291,8 @@ func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 
 	_, err = ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
-			DisplayName:  "Policy 1",
-			PostDuration: model.NewInt64(20),
+			DisplayName:      "Policy 1",
+			PostDurationDays: model.NewInt64(20),
 		},
 		TeamIDs: []string{q.Id},
 	})
@@ -665,8 +697,8 @@ func testTeamStoreGetAllPage(t *testing.T, ss store.Store) {
 
 	policy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
-			DisplayName:  "Policy 1",
-			PostDuration: model.NewInt64(30),
+			DisplayName:      "Policy 1",
+			PostDurationDays: model.NewInt64(30),
 		},
 		TeamIDs: []string{o.Id},
 	})

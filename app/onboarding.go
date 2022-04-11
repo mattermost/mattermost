@@ -14,10 +14,23 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
+func (a *App) markAdminOnboardingComplete(c *request.Context) *model.AppError {
+	firstAdminCompleteSetupObj := model.System{
+		Name:  model.SystemFirstAdminSetupComplete,
+		Value: "true",
+	}
+
+	if err := a.Srv().Store.System().SaveOrUpdate(&firstAdminCompleteSetupObj); err != nil {
+		return model.NewAppError("setFirstAdminCompleteSetup", "api.error_set_first_admin_complete_setup", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
 func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnboardingRequest) *model.AppError {
 	pluginsEnvironment := a.Channels().GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
-		return model.NewAppError("CompleteOnboarding", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return a.markAdminOnboardingComplete(c)
 	}
 
 	pluginContext := pluginContext(c)
@@ -55,16 +68,7 @@ func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnbo
 		}(pluginID)
 	}
 
-	firstAdminCompleteSetupObj := model.System{
-		Name:  model.SystemFirstAdminSetupComplete,
-		Value: "true",
-	}
-
-	if err := a.Srv().Store.System().SaveOrUpdate(&firstAdminCompleteSetupObj); err != nil {
-		return model.NewAppError("setFirstAdminCompleteSetup", "api.error_set_first_admin_complete_setup", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	return nil
+	return a.markAdminOnboardingComplete(c)
 }
 
 func (a *App) GetOnboarding() (*model.System, *model.AppError) {

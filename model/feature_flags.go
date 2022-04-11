@@ -16,9 +16,6 @@ type FeatureFlags struct {
 	// all other values as false.
 	TestBoolFeature bool
 
-	// Toggle on and off scheduled jobs for cloud user limit emails see MM-29999
-	CloudDelinquentEmailJobsEnabled bool
-
 	// Toggle on and off support for Collapsed Threads
 	CollapsedThreads bool
 
@@ -38,12 +35,6 @@ type FeatureFlags struct {
 
 	PermalinkPreviews bool
 
-	// Enable the Global Header
-	GlobalHeader bool
-
-	// Determine whether when a user gets created, they'll have noisy notifications e.g. Send desktop notifications for all activity
-	NewAccountNoisy bool
-
 	// Enable Calls plugin support in the mobile app
 	CallsMobile bool
 
@@ -53,16 +44,13 @@ type FeatureFlags struct {
 	// A/B test for the add members to channel button, possible values = ("top", "bottom")
 	AddMembersToChannel string
 
-	// Determine after which duration in hours to send a second invitation to someone that didn't join after the initial invite, possible values = ("48", "72")
-	ResendInviteEmailInterval string
+	// Enable Create First Channel
+	GuidedChannelCreation bool
 
 	// A/B test for whether radio buttons or toggle button is more effective in in-screen invite to team modal ("none", "toggle")
 	InviteToTeam string
 
 	CustomGroups bool
-
-	// Enable inline post editing
-	InlinePostEditing bool
 
 	// Enable DataRetention for Boards
 	BoardsDataRetention bool
@@ -74,39 +62,34 @@ type FeatureFlags struct {
 	// Enable special onboarding flow for first admin
 	UseCaseOnboarding bool
 
-	// Enable Workspace optimization dashboard
-	WorkspaceOptimizationDashboard bool
-
 	// Enable GraphQL feature
 	GraphQL bool
+
+	InsightsEnabled bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
 	f.TestFeature = "off"
 	f.TestBoolFeature = false
-	f.CloudDelinquentEmailJobsEnabled = false
 	f.CollapsedThreads = true
 	f.EnableRemoteClusterService = false
-	f.AppsEnabled = false
+	f.AppsEnabled = true
 	f.AppBarEnabled = false
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
 	f.PermalinkPreviews = true
-	f.GlobalHeader = true
-	f.NewAccountNoisy = false
 	f.CallsMobile = false
 	f.BoardsFeatureFlags = ""
 	f.AddMembersToChannel = "top"
-	f.ResendInviteEmailInterval = ""
+	f.GuidedChannelCreation = false
 	f.InviteToTeam = "none"
 	f.CustomGroups = true
-	f.InlinePostEditing = false
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
 	f.EnableInactivityCheckJob = true
 	f.UseCaseOnboarding = true
-	f.WorkspaceOptimizationDashboard = true
 	f.GraphQL = false
+	f.InsightsEnabled = false
 }
 func (f *FeatureFlags) Plugins() map[string]string {
 	rFFVal := reflect.ValueOf(f).Elem()

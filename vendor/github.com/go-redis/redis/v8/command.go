@@ -20,7 +20,7 @@ type Cmder interface {
 	String() string
 	stringArg(int) string
 	firstKeyPos() int8
-	setFirstKeyPos(int8)
+	SetFirstKeyPos(int8)
 
 	readTimeout() *time.Duration
 	readReply(rd *proto.Reader) error
@@ -151,15 +151,21 @@ func (cmd *baseCmd) stringArg(pos int) string {
 	if pos < 0 || pos >= len(cmd.args) {
 		return ""
 	}
-	s, _ := cmd.args[pos].(string)
-	return s
+	arg := cmd.args[pos]
+	switch v := arg.(type) {
+	case string:
+		return v
+	default:
+		// TODO: consider using appendArg
+		return fmt.Sprint(v)
+	}
 }
 
 func (cmd *baseCmd) firstKeyPos() int8 {
 	return cmd.keyPos
 }
 
-func (cmd *baseCmd) setFirstKeyPos(keyPos int8) {
+func (cmd *baseCmd) SetFirstKeyPos(keyPos int8) {
 	cmd.keyPos = keyPos
 }
 

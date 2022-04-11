@@ -34,6 +34,7 @@ func TestPluginPublicKeys(t *testing.T) {
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	path, _ := fileutils.FindDir("tests")
 	publicKeyFilename := "test-public-key.plugin.gpg"

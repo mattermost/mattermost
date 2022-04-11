@@ -29,6 +29,36 @@ func (ch *channel) Team(ctx context.Context) (*model.Team, error) {
 	return getGraphQLTeam(ctx, ch.TeamId)
 }
 
+// match with api4.getChannelStats
+func (ch *channel) Stats(ctx context.Context) (*model.ChannelStats, error) {
+	c, err := getCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), ch.Id, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
+		return nil, c.Err
+	}
+
+	memberCount, appErr := c.App.GetChannelMemberCount(ch.Id)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	guestCount, appErr := c.App.GetChannelGuestCount(ch.Id)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	pinnedPostCount, appErr := c.App.GetChannelPinnedPostCount(ch.Id)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	return &model.ChannelStats{ChannelId: ch.Id, MemberCount: memberCount, GuestCount: guestCount, PinnedPostCount: pinnedPostCount}, nil
+}
+
 func (ch *channel) Cursor() *string {
 	cursor := string(channelCursorPrefix) + "-" + ch.Id
 	encoded := base64.StdEncoding.EncodeToString([]byte(cursor))
@@ -94,7 +124,7 @@ func postProcessChannels(c *web.Context, channels []*model.Channel) ([]*channel,
 			if users == nil {
 				return nil, fmt.Errorf("user info not found for channel id: %s", ch.Id)
 			}
-			prettyName = getPrettyDNForUsers(pref.Value, users)
+			prettyName = getPrettyDNForUsers(pref.Value, users, c.AppContext.Session().UserId)
 		}
 
 		res = append(res, &channel{Channel: *ch, PrettyDisplayName: prettyName})
@@ -103,17 +133,25 @@ func postProcessChannels(c *web.Context, channels []*model.Channel) ([]*channel,
 	return res, nil
 }
 
-func getPrettyDNForUsers(displaySetting string, users []*model.User) string {
+func getPrettyDNForUsers(displaySetting string, users []*model.User, omitUserId string) string {
 	displayNames := make([]string, 0, len(users))
 	// TODO: optimize this logic.
 	// Name computation happens repeatedly for the same user from
 	// multiple channels.
 	for _, u := range users {
+		if u.Id == omitUserId {
+			continue
+		}
 		displayNames = append(displayNames, getPrettyDNForUser(displaySetting, u))
 	}
 
 	sort.Strings(displayNames)
-	return strings.Join(displayNames, ", ")
+	result := strings.Join(displayNames, ", ")
+	if result == "" {
+		// Self DM
+		result = getPrettyDNForUser(displaySetting, users[0])
+	}
+	return result
 }
 
 func getPrettyDNForUser(displaySetting string, user *model.User) string {
@@ -121,15 +159,15 @@ func getPrettyDNForUser(displaySetting string, user *model.User) string {
 	switch displaySetting {
 	case "nickname_full_name":
 		displayName = user.Nickname
-		if displayName == "" {
+		if strings.TrimSpace(displayName) == "" {
 			displayName = user.GetFullName()
 		}
-		if displayName == "" {
+		if strings.TrimSpace(displayName) == "" {
 			displayName = user.Username
 		}
 	case "full_name":
 		displayName = user.GetFullName()
-		if displayName == "" {
+		if strings.TrimSpace(displayName) == "" {
 			displayName = user.Username
 		}
 	default: // the "username" case also falls under this one.

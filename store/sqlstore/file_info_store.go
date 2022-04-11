@@ -688,17 +688,23 @@ func (fs SqlFileInfoStore) CountAll() (int64, error) {
 	return count, nil
 }
 
-func (fs SqlFileInfoStore) GetFilesBatchForIndexing(startTime, endTime int64, limit int) ([]*model.FileForIndexing, error) {
+func (fs SqlFileInfoStore) GetFilesBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.FileForIndexing, error) {
 	files := []*model.FileForIndexing{}
 	sql, args, _ := fs.getQueryBuilder().
 		Select(append(fs.queryFields, "Coalesce(p.ChannelId, '') AS ChannelId")...).
 		From("FileInfo").
 		LeftJoin("Posts AS p ON FileInfo.PostId = p.Id").
-		Where(sq.GtOrEq{"FileInfo.CreateAt": startTime}).
-		Where(sq.Lt{"FileInfo.CreateAt": endTime}).
-		OrderBy("FileInfo.CreateAt").
+		Where(sq.Or{
+			sq.Gt{"FileInfo.CreateAt": startTime},
+			sq.And{
+				sq.Eq{"FileInfo.CreateAt": startTime},
+				sq.Gt{"FileInfo.Id": startFileID},
+			},
+		}).
+		OrderBy("FileInfo.CreateAt ASC, FileInfo.Id ASC").
 		Limit(uint64(limit)).
 		ToSql()
+
 	err := fs.GetSearchReplicaX().Select(&files, sql, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Files")

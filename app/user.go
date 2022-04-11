@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -15,6 +14,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/app/email"
 	"github.com/mattermost/mattermost-server/v6/app/imaging"
@@ -27,6 +28,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mfa"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -97,7 +99,7 @@ func (a *App) CreateUserWithToken(c *request.Context, user *model.User, token *m
 
 	a.AddDirectChannels(team.Id, ruser)
 
-	if token.Type == TokenTypeGuestInvitation {
+	if token.Type == TokenTypeGuestInvitation || (token.Type == TokenTypeTeamInvitation && len(channels) > 0) {
 		for _, channel := range channels {
 			_, err := a.AddChannelMember(c, ruser.Id, channel, ChannelMemberOpts{})
 			if err != nil {
@@ -286,7 +288,7 @@ func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool
 		a.Srv().Go(func() {
 			pluginContext := pluginContext(c)
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.UserHasBeenCreated(pluginContext, user)
+				hooks.UserHasBeenCreated(pluginContext, ruser)
 				return true
 			}, plugin.UserHasBeenCreatedID)
 		})
@@ -1083,6 +1085,10 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 		default:
 			return nil, model.NewAppError("UpdateUser", "app.user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
+	}
+
+	if prev.CreateAt != user.CreateAt {
+		user.CreateAt = prev.CreateAt
 	}
 
 	if user.Username != prev.Username {
@@ -2291,15 +2297,63 @@ func (a *App) ConvertBotToUser(bot *model.Bot, userPatch *model.UserPatch, sysad
 }
 
 func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError) {
-	threads, err := a.Srv().Store.Thread().GetThreadsForUser(userID, teamID, options)
-	if err != nil {
+	var result model.Threads
+	var eg errgroup.Group
+
+	if !options.ThreadsOnly {
+		eg.Go(func() error {
+			totalUnreadThreads, err := a.Srv().Store.Thread().GetTotalUnreadThreads(userID, teamID, options)
+			if err != nil {
+				return errors.Wrapf(err, "failed to count unread threads for user id=%s", userID)
+			}
+			result.TotalUnreadThreads = totalUnreadThreads
+
+			return nil
+		})
+
+		eg.Go(func() error {
+			totalCount, err := a.Srv().Store.Thread().GetTotalThreads(userID, teamID, options)
+			if err != nil {
+				return errors.Wrapf(err, "failed to count threads for user id=%s", userID)
+			}
+			result.Total = totalCount
+
+			return nil
+		})
+
+		eg.Go(func() error {
+			totalUnreadMentions, err := a.Srv().Store.Thread().GetTotalUnreadMentions(userID, teamID, options)
+			if err != nil {
+				return errors.Wrapf(err, "failed to count threads for user id=%s", userID)
+			}
+			result.TotalUnreadMentions = totalUnreadMentions
+
+			return nil
+		})
+	}
+
+	if !options.TotalsOnly {
+		eg.Go(func() error {
+			threads, err := a.Srv().Store.Thread().GetThreadsForUser(userID, teamID, options)
+			if err != nil {
+				return errors.Wrapf(err, "failed to get threads for user id=%s", userID)
+			}
+			result.Threads = threads
+
+			return nil
+		})
+	}
+
+	if err := eg.Wait(); err != nil {
 		return nil, model.NewAppError("GetThreadsForUser", "app.user.get_threads_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	for _, thread := range threads.Threads {
+
+	for _, thread := range result.Threads {
 		a.sanitizeProfiles(thread.Participants, false)
 		thread.Post.SanitizeProps()
 	}
-	return threads, nil
+
+	return &result, nil
 }
 
 func (a *App) GetThreadMembershipForUser(userId, threadId string) (*model.ThreadMembership, *model.AppError) {

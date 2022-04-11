@@ -14,7 +14,6 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store/storetest"
@@ -26,10 +25,6 @@ type StoreTestWrapper struct {
 
 func NewStoreTestWrapper(orig *SqlStore) *StoreTestWrapper {
 	return &StoreTestWrapper{orig}
-}
-
-func (w *StoreTestWrapper) GetMaster() *gorp.DbMap {
-	return w.orig.GetMaster()
 }
 
 func (w *StoreTestWrapper) GetMasterX() storetest.SqlXExecutor {
@@ -72,6 +67,10 @@ func newSqlxDBWrapper(db *sqlx.DB, timeout time.Duration, trace bool) *sqlxDBWra
 		queryTimeout: timeout,
 		trace:        trace,
 	}
+}
+
+func (w *sqlxDBWrapper) Stats() sql.DBStats {
+	return w.DB.Stats()
 }
 
 func (w *sqlxDBWrapper) Beginx() (*sqlxTxWrapper, error) {
@@ -245,6 +244,18 @@ func (w *sqlxTxWrapper) Exec(query string, args ...interface{}) (sql.Result, err
 	query = w.Tx.Rebind(query)
 
 	return w.ExecRaw(query, args...)
+}
+
+func (w *sqlxTxWrapper) ExecNoTimeout(query string, args ...interface{}) (sql.Result, error) {
+	query = w.Tx.Rebind(query)
+
+	if w.trace {
+		defer func(then time.Time) {
+			printArgs(query, time.Since(then), args)
+		}(time.Now())
+	}
+
+	return w.Tx.ExecContext(context.Background(), query, args...)
 }
 
 // ExecRaw is like Exec but without any rebinding of params. You need to pass

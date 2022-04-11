@@ -150,6 +150,7 @@ type PostImportData struct {
 	Reactions   *[]ReactionImportData   `json:"reactions,omitempty"`
 	Replies     *[]ReplyImportData      `json:"replies,omitempty"`
 	Attachments *[]AttachmentImportData `json:"attachments,omitempty"`
+	IsPinned    *bool                   `json:"is_pinned,omitempty"`
 }
 
 type DirectChannelImportData struct {
@@ -173,6 +174,7 @@ type DirectPostImportData struct {
 	Reactions   *[]ReactionImportData   `json:"reactions"`
 	Replies     *[]ReplyImportData      `json:"replies"`
 	Attachments *[]AttachmentImportData `json:"attachments"`
+	IsPinned    *bool                   `json:"is_pinned,omitempty"`
 }
 
 type SchemeImportData struct {

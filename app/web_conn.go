@@ -676,7 +676,7 @@ func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
 	msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion,
 		model.BuildNumber,
 		wc.App.ClientConfigHash(),
-		wc.App.Srv().License() != nil))
+		wc.App.Channels().License() != nil))
 	msg.Add("connection_id", wc.connectionID.Load())
 	return msg
 }

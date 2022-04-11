@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"embed"
 	"encoding/json"
 	"fmt"
 	"path/filepath"
@@ -20,7 +21,6 @@ import (
 	// Load the Postgres driver
 	_ "github.com/lib/pq"
 
-	"github.com/mattermost/mattermost-server/v6/config/migrations"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/morph"
@@ -28,8 +28,11 @@ import (
 	"github.com/mattermost/morph/drivers"
 	ms "github.com/mattermost/morph/drivers/mysql"
 	ps "github.com/mattermost/morph/drivers/postgres"
-	mbindata "github.com/mattermost/morph/sources/go_bindata"
+	mbindata "github.com/mattermost/morph/sources/embedded"
 )
+
+//go:embed migrations
+var assets embed.FS
 
 // MaxWriteLength defines the maximum length accepted for write to the Configurations or
 // ConfigurationFiles table.
@@ -91,23 +94,25 @@ func NewDatabaseStore(dsn string) (ds *DatabaseStore, err error) {
 //
 // Uses MEDIUMTEXT on MySQL, and TEXT on sane databases.
 func (ds *DatabaseStore) initializeConfigurationsTable() error {
-	var assetNamesForDriver []string
-	for _, assetName := range migrations.AssetNames() {
-		if strings.HasPrefix(assetName, ds.driverName) {
-			assetNamesForDriver = append(assetNamesForDriver, filepath.Base(assetName))
-		}
+	assetsList, err := assets.ReadDir(filepath.Join("migrations", ds.driverName))
+	if err != nil {
+		return err
+	}
+
+	assetNamesForDriver := make([]string, len(assetsList))
+	for i, entry := range assetsList {
+		assetNamesForDriver[i] = entry.Name()
 	}
 
 	src, err := mbindata.WithInstance(&mbindata.AssetSource{
 		Names: assetNamesForDriver,
 		AssetFunc: func(name string) ([]byte, error) {
-			return migrations.Asset(filepath.Join(ds.driverName, name))
+			return assets.ReadFile(filepath.Join("migrations", ds.driverName, name))
 		},
 	})
 	if err != nil {
 		return err
 	}
-	defer src.Close()
 
 	cfg := drivers.Config{
 		MigrationsTable:        migrationsTableName,

@@ -5,7 +5,9 @@ package storetest
 
 import (
 	"context"
+	"sort"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,6 +25,7 @@ func TestThreadStore(t *testing.T, ss store.Store, s SqlStore) {
 		testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t, ss, s)
 	})
 	t.Run("GetTeamsUnreadForUser", func(t *testing.T) { testGetTeamsUnreadForUser(t, ss) })
+	t.Run("GetVarious", func(t *testing.T) { testVarious(t, ss) })
 	t.Run("MarkAllAsReadByChannels", func(t *testing.T) { testMarkAllAsReadByChannels(t, ss) })
 }
 
@@ -77,7 +80,10 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 
 		newPosts, errIdx, err3 := ss.Post().SaveMultiple([]*model.Post{&o2, &o3, &o4})
 
-		olist, _ := ss.Post().Get(context.Background(), otmp.Id, true, false, false, "")
+		opts := model.GetPostsOptions{
+			SkipFetchThreads: true,
+		}
+		olist, _ := ss.Post().Get(context.Background(), otmp.Id, opts, "")
 		o1 := olist.Posts[olist.Order[0]]
 
 		newPosts = append([]*model.Post{o1}, newPosts...)
@@ -436,14 +442,14 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, ss st
 
 	channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
-			DisplayName:  "DisplayName",
-			PostDuration: model.NewInt64(30),
+			DisplayName:      "DisplayName",
+			PostDurationDays: model.NewInt64(30),
 		},
 		ChannelIDs: []string{channel.Id},
 	})
 	require.NoError(t, err)
 
-	nowMillis := thread.LastReplyAt + *channelPolicy.PostDuration*24*60*60*1000 + 1
+	nowMillis := thread.LastReplyAt + *channelPolicy.PostDurationDays*model.DayInMilliseconds + 1
 	_, _, err = ss.Thread().PermanentDeleteBatchForRetentionPolicies(nowMillis, 0, limit, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 	thread, err = ss.Thread().Get(post.Id)
@@ -458,14 +464,14 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, ss st
 	// Create a team policy which is stricter than the channel policy
 	teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
-			DisplayName:  "DisplayName",
-			PostDuration: model.NewInt64(20),
+			DisplayName:      "DisplayName",
+			PostDurationDays: model.NewInt64(20),
 		},
 		TeamIDs: []string{team.Id},
 	})
 	require.NoError(t, err)
 
-	nowMillis = thread.LastReplyAt + *teamPolicy.PostDuration*24*60*60*1000 + 1
+	nowMillis = thread.LastReplyAt + *teamPolicy.PostDurationDays*model.DayInMilliseconds + 1
 	_, _, err = ss.Thread().PermanentDeleteBatchForRetentionPolicies(nowMillis, 0, limit, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 	_, err = ss.Thread().Get(post.Id)
@@ -523,14 +529,14 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 
 	channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
-			DisplayName:  "DisplayName",
-			PostDuration: model.NewInt64(30),
+			DisplayName:      "DisplayName",
+			PostDurationDays: model.NewInt64(30),
 		},
 		ChannelIDs: []string{channel.Id},
 	})
 	require.NoError(t, err)
 
-	nowMillis := threadMembership.LastUpdated + *channelPolicy.PostDuration*24*60*60*1000 + 1
+	nowMillis := threadMembership.LastUpdated + *channelPolicy.PostDurationDays*model.DayInMilliseconds + 1
 	_, _, err = ss.Thread().PermanentDeleteBatchThreadMembershipsForRetentionPolicies(nowMillis, 0, limit, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 	_, err = ss.Thread().GetMembershipForUser(userID, post.Id)
@@ -542,14 +548,14 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	// Create a team policy which is stricter than the channel policy
 	teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
-			DisplayName:  "DisplayName",
-			PostDuration: model.NewInt64(20),
+			DisplayName:      "DisplayName",
+			PostDurationDays: model.NewInt64(20),
 		},
 		TeamIDs: []string{team.Id},
 	})
 	require.NoError(t, err)
 
-	nowMillis = threadMembership.LastUpdated + *teamPolicy.PostDuration*24*60*60*1000 + 1
+	nowMillis = threadMembership.LastUpdated + *teamPolicy.PostDurationDays*model.DayInMilliseconds + 1
 	_, _, err = ss.Thread().PermanentDeleteBatchThreadMembershipsForRetentionPolicies(nowMillis, 0, limit, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 	_, err = ss.Thread().GetMembershipForUser(userID, post.Id)
@@ -676,6 +682,345 @@ func testGetTeamsUnreadForUser(t *testing.T, ss store.Store) {
 	assert.Len(t, teamsUnread, 1)
 	assert.Equal(t, int64(1), teamsUnread[team2.Id].ThreadCount)
 	assert.Equal(t, int64(1), teamsUnread[team2.Id].ThreadMentionCount)
+}
+
+func testVarious(t *testing.T, ss store.Store) {
+	createThreadMembership := func(userID, postID string, isMention bool) {
+		t.Helper()
+
+		opts := store.ThreadMembershipOpts{
+			Following:             true,
+			IncrementMentions:     isMention,
+			UpdateFollowing:       true,
+			UpdateViewedTimestamp: false,
+			UpdateParticipants:    false,
+		}
+		_, err := ss.Thread().MaintainMembership(userID, postID, opts)
+		require.NoError(t, err)
+	}
+
+	viewThread := func(userID, postID string) {
+		t.Helper()
+
+		opts := store.ThreadMembershipOpts{
+			Following:             true,
+			IncrementMentions:     false,
+			UpdateFollowing:       true,
+			UpdateViewedTimestamp: true,
+			UpdateParticipants:    false,
+		}
+		_, err := ss.Thread().MaintainMembership(userID, postID, opts)
+		require.NoError(t, err)
+	}
+
+	user1, err := ss.User().Save(&model.User{
+		Username: "user1" + model.NewId(),
+		Email:    MakeEmail(),
+	})
+	require.NoError(t, err)
+	user2, err := ss.User().Save(&model.User{
+		Username: "user2" + model.NewId(),
+		Email:    MakeEmail(),
+	})
+	require.NoError(t, err)
+
+	user1ID := user1.Id
+	user2ID := user2.Id
+
+	team1, err := ss.Team().Save(&model.Team{
+		DisplayName: "Team1",
+		Name:        "team" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+
+	team2, err := ss.Team().Save(&model.Team{
+		DisplayName: "Team2",
+		Name:        "team" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+
+	team1channel1, err := ss.Channel().Save(&model.Channel{
+		TeamId:      team1.Id,
+		DisplayName: "Channel1",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	team2channel1, err := ss.Channel().Save(&model.Channel{
+		TeamId:      team2.Id,
+		DisplayName: "Channel2",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	dm1, err := ss.Channel().CreateDirectChannel(&model.User{Id: user1ID}, &model.User{Id: user2ID})
+	require.NoError(t, err)
+
+	gm1, err := ss.Channel().Save(&model.Channel{
+		DisplayName: "GM",
+		Name:        "gm" + model.NewId(),
+		Type:        model.ChannelTypeGroup,
+	}, -1)
+	require.NoError(t, err)
+
+	team1channel1post1, err := ss.Post().Save(&model.Post{
+		ChannelId: team1channel1.Id,
+		UserId:    user1ID,
+		Message:   model.NewRandomString(10),
+	})
+	require.NoError(t, err)
+
+	team1channel1post2, err := ss.Post().Save(&model.Post{
+		ChannelId: team1channel1.Id,
+		UserId:    user1ID,
+		Message:   model.NewRandomString(10),
+	})
+	require.NoError(t, err)
+
+	team1channel1post3, err := ss.Post().Save(&model.Post{
+		ChannelId: team1channel1.Id,
+		UserId:    user1ID,
+		Message:   model.NewRandomString(10),
+	})
+	require.NoError(t, err)
+
+	team2channel1post1, err := ss.Post().Save(&model.Post{
+		ChannelId: team2channel1.Id,
+		UserId:    user1ID,
+		Message:   model.NewRandomString(10),
+	})
+	require.NoError(t, err)
+
+	team2channel1post2deleted, err := ss.Post().Save(&model.Post{
+		ChannelId: team2channel1.Id,
+		UserId:    user1ID,
+		Message:   model.NewRandomString(10),
+	})
+	require.NoError(t, err)
+
+	dm1post1, err := ss.Post().Save(&model.Post{
+		ChannelId: dm1.Id,
+		UserId:    user1ID,
+		Message:   model.NewRandomString(10),
+	})
+	require.NoError(t, err)
+
+	gm1post1, err := ss.Post().Save(&model.Post{
+		ChannelId: gm1.Id,
+		UserId:    user1ID,
+		Message:   model.NewRandomString(10),
+	})
+	require.NoError(t, err)
+
+	threadStoreCreateReply(t, ss, team1channel1.Id, team1channel1post1.Id, user2ID, model.GetMillis())
+	threadStoreCreateReply(t, ss, team1channel1.Id, team1channel1post2.Id, user2ID, model.GetMillis())
+	threadStoreCreateReply(t, ss, team1channel1.Id, team1channel1post3.Id, user2ID, model.GetMillis())
+	threadStoreCreateReply(t, ss, team2channel1.Id, team2channel1post1.Id, user2ID, model.GetMillis())
+	threadStoreCreateReply(t, ss, team2channel1.Id, team2channel1post2deleted.Id, user2ID, model.GetMillis())
+	threadStoreCreateReply(t, ss, dm1.Id, dm1post1.Id, user2ID, model.GetMillis())
+	threadStoreCreateReply(t, ss, gm1.Id, gm1post1.Id, user2ID, model.GetMillis())
+
+	// Create thread memberships, with simulated unread mentions.
+	createThreadMembership(user1ID, team1channel1post1.Id, false)
+	createThreadMembership(user1ID, team1channel1post2.Id, false)
+	createThreadMembership(user1ID, team1channel1post3.Id, true)
+	createThreadMembership(user1ID, team2channel1post1.Id, false)
+	createThreadMembership(user1ID, team2channel1post2deleted.Id, false)
+	createThreadMembership(user1ID, dm1post1.Id, false)
+	createThreadMembership(user1ID, gm1post1.Id, true)
+
+	// Have user1 view a subset of the threads
+	viewThread(user1ID, team1channel1post1.Id)
+	viewThread(user2ID, team1channel1post2.Id)
+	viewThread(user1ID, team2channel1post1.Id)
+	viewThread(user1ID, dm1post1.Id)
+
+	// Add reply to a viewed thread to confirm it's unread again.
+	time.Sleep(1 * time.Millisecond)
+	threadStoreCreateReply(t, ss, team1channel1.Id, team1channel1post2.Id, user2ID, model.GetMillis())
+
+	err = ss.Post().Delete(team2channel1post2deleted.Id, model.GetMillis(), user1ID)
+	require.NoError(t, err)
+
+	t.Run("GetTotalUnreadThreads", func(t *testing.T) {
+		testCases := []struct {
+			Description string
+			UserID      string
+			TeamID      string
+			Options     model.GetUserThreadsOpts
+
+			ExpectedThreads []*model.Post
+		}{
+			{"all teams, user1", user1ID, "", model.GetUserThreadsOpts{}, []*model.Post{
+				team1channel1post2, team1channel1post3, gm1post1,
+			}},
+			{"team1, user1", user1ID, team1.Id, model.GetUserThreadsOpts{}, []*model.Post{
+				team1channel1post2, team1channel1post3, gm1post1,
+			}},
+			{"team1, user1, deleted", user1ID, team1.Id, model.GetUserThreadsOpts{Deleted: true}, []*model.Post{
+				team1channel1post2, team1channel1post3, gm1post1, // (no deleted threads in team1)
+			}},
+			{"team2, user1", user1ID, team2.Id, model.GetUserThreadsOpts{}, []*model.Post{
+				gm1post1, // (no unread threads in team2)
+			}},
+			{"team2, user1, deleted", user1ID, team2.Id, model.GetUserThreadsOpts{Deleted: true}, []*model.Post{
+				team2channel1post2deleted, gm1post1,
+			}},
+		}
+
+		for _, testCase := range testCases {
+			t.Run(testCase.Description, func(t *testing.T) {
+				totalUnreadThreads, err := ss.Thread().GetTotalUnreadThreads(testCase.UserID, testCase.TeamID, testCase.Options)
+				require.NoError(t, err)
+
+				assert.EqualValues(t, int64(len(testCase.ExpectedThreads)), totalUnreadThreads)
+			})
+		}
+	})
+
+	t.Run("GetTotalThreads", func(t *testing.T) {
+		testCases := []struct {
+			Description string
+			UserID      string
+			TeamID      string
+			Options     model.GetUserThreadsOpts
+
+			ExpectedThreads []*model.Post
+		}{
+			{"all teams, user1", user1ID, "", model.GetUserThreadsOpts{}, []*model.Post{
+				team1channel1post1, team1channel1post2, team1channel1post3, team2channel1post1, dm1post1, gm1post1,
+			}},
+			{"team1, user1", user1ID, team1.Id, model.GetUserThreadsOpts{}, []*model.Post{
+				team1channel1post1, team1channel1post2, team1channel1post3, dm1post1, gm1post1,
+			}},
+			{"team1, user1, unread", user1ID, team1.Id, model.GetUserThreadsOpts{Unread: true}, []*model.Post{
+				team1channel1post2, team1channel1post3, gm1post1,
+			}},
+			{"team1, user1, deleted", user1ID, team1.Id, model.GetUserThreadsOpts{Deleted: true}, []*model.Post{
+				team1channel1post1, team1channel1post2, team1channel1post3, dm1post1, gm1post1, // (no deleted threads in team1)
+			}},
+			{"team1, user1, unread + deleted", user1ID, team1.Id, model.GetUserThreadsOpts{Unread: true, Deleted: true}, []*model.Post{
+				team1channel1post2, team1channel1post3, gm1post1, // (no deleted threads in team1)
+			}},
+			{"team2, user1", user1ID, team2.Id, model.GetUserThreadsOpts{}, []*model.Post{
+				team2channel1post1, dm1post1, gm1post1,
+			}},
+			{"team2, user1, unread", user1ID, team2.Id, model.GetUserThreadsOpts{Unread: true}, []*model.Post{
+				gm1post1, // (no unread in team2)
+			}},
+			{"team2, user1, deleted", user1ID, team2.Id, model.GetUserThreadsOpts{Deleted: true}, []*model.Post{
+				team2channel1post1, team2channel1post2deleted, dm1post1, gm1post1,
+			}},
+			{"team2, user1, unread + deleted", user1ID, team2.Id, model.GetUserThreadsOpts{Unread: true, Deleted: true}, []*model.Post{
+				team2channel1post2deleted, gm1post1,
+			}},
+		}
+
+		for _, testCase := range testCases {
+			t.Run(testCase.Description, func(t *testing.T) {
+				totalThreads, err := ss.Thread().GetTotalThreads(testCase.UserID, testCase.TeamID, testCase.Options)
+				require.NoError(t, err)
+
+				assert.EqualValues(t, int64(len(testCase.ExpectedThreads)), totalThreads)
+			})
+		}
+	})
+
+	t.Run("GetTotalUnreadMentions", func(t *testing.T) {
+		testCases := []struct {
+			Description string
+			UserID      string
+			TeamID      string
+			Options     model.GetUserThreadsOpts
+
+			ExpectedThreads []*model.Post
+		}{
+			{"all teams, user1", user1ID, "", model.GetUserThreadsOpts{}, []*model.Post{
+				team1channel1post3, gm1post1,
+			}},
+			{"team1, user1", user1ID, team1.Id, model.GetUserThreadsOpts{}, []*model.Post{
+				team1channel1post3, gm1post1,
+			}},
+			{"team2, user1", user1ID, team2.Id, model.GetUserThreadsOpts{}, []*model.Post{
+				gm1post1,
+			}},
+		}
+
+		for _, testCase := range testCases {
+			t.Run(testCase.Description, func(t *testing.T) {
+				totalUnreadMentions, err := ss.Thread().GetTotalUnreadMentions(testCase.UserID, testCase.TeamID, testCase.Options)
+				require.NoError(t, err)
+
+				assert.EqualValues(t, int64(len(testCase.ExpectedThreads)), totalUnreadMentions)
+			})
+		}
+	})
+
+	t.Run("GetThreadsForUser", func(t *testing.T) {
+		testCases := []struct {
+			Description string
+			UserID      string
+			TeamID      string
+			Options     model.GetUserThreadsOpts
+
+			ExpectedThreads []*model.Post
+		}{
+			{"all teams, user1", user1ID, "", model.GetUserThreadsOpts{}, []*model.Post{
+				team1channel1post1, team1channel1post2, team1channel1post3, team2channel1post1, dm1post1, gm1post1,
+			}},
+			{"team1, user1", user1ID, team1.Id, model.GetUserThreadsOpts{}, []*model.Post{
+				team1channel1post1, team1channel1post2, team1channel1post3, dm1post1, gm1post1,
+			}},
+			{"team1, user1, unread", user1ID, team1.Id, model.GetUserThreadsOpts{Unread: true}, []*model.Post{
+				team1channel1post2, team1channel1post3, gm1post1,
+			}},
+			{"team1, user1, deleted", user1ID, team1.Id, model.GetUserThreadsOpts{Deleted: true}, []*model.Post{
+				team1channel1post1, team1channel1post2, team1channel1post3, dm1post1, gm1post1, // (no deleted threads in team1)
+			}},
+			{"team1, user1, unread + deleted", user1ID, team1.Id, model.GetUserThreadsOpts{Unread: true, Deleted: true}, []*model.Post{
+				team1channel1post2, team1channel1post3, gm1post1, // (no deleted threads in team1)
+			}},
+			{"team2, user1", user1ID, team2.Id, model.GetUserThreadsOpts{}, []*model.Post{
+				team2channel1post1, dm1post1, gm1post1,
+			}},
+			{"team2, user1, unread", user1ID, team2.Id, model.GetUserThreadsOpts{Unread: true}, []*model.Post{
+				gm1post1, // (no unread in team2)
+			}},
+			{"team2, user1, deleted", user1ID, team2.Id, model.GetUserThreadsOpts{Deleted: true}, []*model.Post{
+				team2channel1post1, team2channel1post2deleted, dm1post1, gm1post1,
+			}},
+			{"team2, user1, unread + deleted", user1ID, team2.Id, model.GetUserThreadsOpts{Unread: true, Deleted: true}, []*model.Post{
+				team2channel1post2deleted, gm1post1,
+			}},
+		}
+
+		for _, testCase := range testCases {
+			t.Run(testCase.Description, func(t *testing.T) {
+				threads, err := ss.Thread().GetThreadsForUser(testCase.UserID, testCase.TeamID, testCase.Options)
+				require.NoError(t, err)
+
+				postIDs := make([]string, 0, len(threads))
+				for _, thread := range threads {
+					postIDs = append(postIDs, thread.PostId)
+				}
+				sort.Strings(postIDs)
+
+				expectedPostIDs := make([]string, 0, len(testCase.ExpectedThreads))
+				for _, post := range testCase.ExpectedThreads {
+					expectedPostIDs = append(expectedPostIDs, post.Id)
+				}
+				sort.Strings(expectedPostIDs)
+
+				assert.Equal(t, expectedPostIDs, postIDs)
+			})
+		}
+	})
 }
 
 func testMarkAllAsReadByChannels(t *testing.T, ss store.Store) {
