@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/graph-gophers/dataloader/v6"
+	dataloaderv7 "github.com/graph-gophers/dataloader/v7"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/web"
 )
@@ -128,19 +129,14 @@ func (cm *channelMember) Roles_(ctx context.Context) ([]*model.Role, error) {
 		return nil, err
 	}
 
-	thunk := loader.LoadMany(ctx, dataloader.NewKeysFromStrings(strings.Fields(cm.Roles)))
+	thunk := loader.LoadMany(ctx, strings.Fields(cm.Roles))
 	results, errs := thunk()
 	// All errors are the same. We just return the first one.
 	if len(errs) > 0 && errs[0] != nil {
 		return nil, err
 	}
 
-	roles := make([]*model.Role, len(results))
-	for i, res := range results {
-		roles[i] = res.(*model.Role)
-	}
-
-	return roles, nil
+	return results, nil
 }
 
 func (cm *channelMember) Cursor() *string {
@@ -149,28 +145,27 @@ func (cm *channelMember) Cursor() *string {
 	return model.NewString(encoded)
 }
 
-func graphQLRolesLoader(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
-	stringKeys := keys.Keys()
-	result := make([]*dataloader.Result, len(stringKeys))
+func graphQLRolesLoader(ctx context.Context, keys []string) []*dataloaderv7.Result[*model.Role] {
+	result := make([]*dataloaderv7.Result[*model.Role], len(keys))
 
 	c, err := getCtx(ctx)
 	if err != nil {
 		for i := range result {
-			result[i] = &dataloader.Result{Error: err}
+			result[i] = &dataloaderv7.Result[*model.Role]{Error: err}
 		}
 		return result
 	}
 
-	roles, err := getGraphQLRoles(c, stringKeys)
+	roles, err := getGraphQLRoles(c, keys)
 	if err != nil {
 		for i := range result {
-			result[i] = &dataloader.Result{Error: err}
+			result[i] = &dataloaderv7.Result[*model.Role]{Error: err}
 		}
 		return result
 	}
 
 	for i, role := range roles {
-		result[i] = &dataloader.Result{Data: role}
+		result[i] = &dataloaderv7.Result[*model.Role]{Data: role}
 	}
 	return result
 }

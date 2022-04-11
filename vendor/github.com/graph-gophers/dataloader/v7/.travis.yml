@@ -1,0 +1,13 @@
+language: go
+
+go:
+  - 1.18
+
+env:
+  - GO111MODULE=on
+
+script:
+  - go test -v -race -coverprofile=coverage.txt -covermode=atomic
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

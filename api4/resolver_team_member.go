@@ -7,7 +7,6 @@ import (
 	"context"
 	"strings"
 
-	"github.com/graph-gophers/dataloader/v6"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
@@ -66,7 +65,7 @@ func (tm *teamMember) Roles_(ctx context.Context) ([]*model.Role, error) {
 		return nil, err
 	}
 
-	thunk := loader.LoadMany(ctx, dataloader.NewKeysFromStrings(strings.Fields(tm.Roles)))
+	thunk := loader.LoadMany(ctx, strings.Fields(tm.Roles))
 	results, errs := thunk()
 	// All errors are the same. We just return the first one.
 	if len(errs) > 0 && errs[0] != nil {
@@ -75,7 +74,7 @@ func (tm *teamMember) Roles_(ctx context.Context) ([]*model.Role, error) {
 
 	roles := make([]*model.Role, len(results))
 	for i, res := range results {
-		roles[i] = res.(*model.Role)
+		roles[i] = res
 	}
 
 	return roles, nil

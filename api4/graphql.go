@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"github.com/graph-gophers/dataloader/v6"
+	dataloaderv7 "github.com/graph-gophers/dataloader/v7"
 	graphql "github.com/graph-gophers/graphql-go"
 	gqlerrors "github.com/graph-gophers/graphql-go/errors"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -102,7 +103,7 @@ func (api *API) graphQL(c *Context, w http.ResponseWriter, r *http.Request) {
 	reqCtx := r.Context()
 	reqCtx = context.WithValue(reqCtx, webCtx, c)
 
-	rolesLoader := dataloader.NewBatchedLoader(graphQLRolesLoader, dataloader.WithBatchCapacity(loaderBatchCapacity))
+	rolesLoader := dataloaderv7.NewBatchedLoader(graphQLRolesLoader, dataloaderv7.WithBatchCapacity[string, *model.Role](loaderBatchCapacity))
 	reqCtx = context.WithValue(reqCtx, rolesLoaderCtx, rolesLoader)
 
 	channelsLoader := dataloader.NewBatchedLoader(graphQLChannelsLoader, dataloader.WithBatchCapacity(loaderBatchCapacity))
