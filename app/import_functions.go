@@ -1407,6 +1407,9 @@ func (a *App) importMultiplePostLines(c *request.Context, lines []LineImportWork
 		if line.Post.Props != nil {
 			post.Props = *line.Post.Props
 		}
+		if line.Post.IsPinned != nil {
+			post.IsPinned = *line.Post.IsPinned
+		}
 
 		fileIDs := a.uploadAttachments(c, line.Post.Attachments, post, team.Id)
 		for _, fileID := range post.FileIds {
@@ -1714,6 +1717,9 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 		}
 		if line.DirectPost.Props != nil {
 			post.Props = *line.DirectPost.Props
+		}
+		if line.DirectPost.IsPinned != nil {
+			post.IsPinned = *line.DirectPost.IsPinned
 		}
 
 		fileIDs := a.uploadAttachments(c, line.DirectPost.Attachments, post, "noteam")

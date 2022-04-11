@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.13.0
+
+- ref: Change DSN ProjectID to be a string (#420)
+- fix: When extracting PCs from stack frames, try the `PC` field (#393)
+- build: Bump gin-gonic/gin from v1.4.0 to v1.7.7 (#412)
+- build: Bump Go version in go.mod (#410)
+- ci: Bump golangci-lint version in GH workflow (#419)
+- ci: Update GraphQL config with appropriate permissions (#417)
+- ci: ci: Add craft release automation (#422)
+
 ## v0.12.0
 
 - feat: Automatic Release detection (#363, #369, #386, #400)

@@ -196,11 +196,9 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
-	var cfg *model.Config
-	jsonErr := json.NewDecoder(r.Body).Decode(&cfg)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("testEmail", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusBadRequest)
-		return
+	cfg := model.ConfigFromJSON(r.Body)
+	if cfg == nil {
+		cfg = c.App.Config()
 	}
 
 	if checkHasNilFields(&cfg.EmailSettings) {
@@ -454,11 +452,9 @@ func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
-	var cfg *model.Config
-	jsonErr := json.NewDecoder(r.Body).Decode(&cfg)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("testS3", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusBadRequest)
-		return
+	cfg := model.ConfigFromJSON(r.Body)
+	if cfg == nil {
+		cfg = c.App.Config()
 	}
 
 	if checkHasNilFields(&cfg.FileSettings) {

@@ -3760,10 +3760,6 @@
     "translation": "Параметр Elasticsearch AggregatePostsAfterDays повинен бути числом, більшим або рівним 1"
   },
   {
-    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Вікно масове індексування часу служби Elasticsearch повинно бути не менше 1 секунди."
-  },
-  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "Параметр Elastic Search ConnectionUrl повинен бути встановлений, якщо ввімкнено інсталяцію Elastic Search."
   },
@@ -4962,10 +4958,6 @@
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
     "translation": "Параметр Elastic Searching IndexingEnabled повинен бути встановлений як true, коли Elastic SearchEnabled встановлено як true."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Вікно масове індексування часу служби Elasticsearch повинно бути не менше 1 секунди."
   },
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
@@ -6826,10 +6818,6 @@
   {
     "id": "api.license.request-trial.bad-request",
     "translation": "Кількість запитаних користувачів невірна."
-  },
-  {
-    "id": "api.templates.upgrade_mattermost_cloud",
-    "translation": "Оновити"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_title",

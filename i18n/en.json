@@ -2006,6 +2006,10 @@
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com."
   },
   {
+    "id": "api.license.request_trial_license.embargoed",
+    "translation": "We were unable to process the request due to limitations for embargoed countries. [Learn more in our documentation](https://mattermost.com/pl/limitations-for-embargoed-countries), or reach out to legal@mattermost.com for questions around export limitations."
+  },
+  {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com. Cannot obtain the number of registered users."
   },
@@ -2968,6 +2972,14 @@
     "translation": "SMTP is not configured in System Console"
   },
   {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
+    "translation": "Invalid request body."
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
+    "translation": "Error while parsing the body data."
+  },
+  {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
     "translation": "Team creation has been disabled. Please ask your System Administrator for details."
   },
@@ -3306,6 +3318,22 @@
   {
     "id": "api.templates.invite_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .TeamDisplayName }} Team"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_body.title",
+    "translation": "{{ .SenderName }} invited you to join {{ .ChannelName }} on the {{ .TeamDisplayName }} Team"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .ChannelName }} on the {{ .TeamDisplayName }} Team"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title",
+    "translation": "{{ .SenderName }} invited you to join {{ .ChannelsLen }} channels on the {{ .TeamDisplayName }} Team"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .ChannelsLen }} channels on the {{ .TeamDisplayName }} Team"
   },
   {
     "id": "api.templates.license_up_for_renewal_renew_now",
@@ -8466,6 +8494,14 @@
   {
     "id": "model.link_metadata.is_valid.url.app_error",
     "translation": "Link metadata URL must be set."
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "Channel name is not valid"
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "Email list is empty"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",

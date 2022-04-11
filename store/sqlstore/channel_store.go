@@ -806,11 +806,6 @@ func (s SqlChannelStore) InvalidateChannelByName(teamId, name string) {
 	}
 }
 
-//nolint:unparam
-func (s SqlChannelStore) Get(id string, allowFromCache bool) (*model.Channel, error) {
-	return s.get(id, false)
-}
-
 func (s SqlChannelStore) GetPinnedPosts(channelId string) (*model.PostList, error) {
 	pl := model.NewPostList()
 
@@ -825,21 +820,10 @@ func (s SqlChannelStore) GetPinnedPosts(channelId string) (*model.PostList, erro
 	return pl, nil
 }
 
-func (s SqlChannelStore) GetFromMaster(id string) (*model.Channel, error) {
-	return s.get(id, true)
-}
-
-func (s SqlChannelStore) get(id string, master bool) (*model.Channel, error) {
-	var db *sqlxDBWrapper
-
-	if master {
-		db = s.GetMasterX()
-	} else {
-		db = s.GetReplicaX()
-	}
-
+//nolint:unparam
+func (s SqlChannelStore) Get(id string, allowFromCache bool) (*model.Channel, error) {
 	ch := model.Channel{}
-	err := db.Get(&ch, `SELECT * FROM Channels WHERE Id=?`, id)
+	err := s.GetReplicaX().Get(&ch, `SELECT * FROM Channels WHERE Id=?`, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Channel", id)
@@ -848,6 +832,30 @@ func (s SqlChannelStore) get(id string, master bool) (*model.Channel, error) {
 	}
 
 	return &ch, nil
+}
+
+//nolint:unparam
+func (s SqlChannelStore) GetMany(ids []string, allowFromCache bool) (model.ChannelList, error) {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Channels").
+		Where(sq.Eq{"Id": ids})
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "getmany_tosql")
+	}
+
+	channels := model.ChannelList{}
+	err = s.GetReplicaX().Select(&channels, sql, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get channels with ids %v", ids)
+	}
+
+	if len(channels) == 0 {
+		return nil, store.NewErrNotFound("Channel", fmt.Sprintf("ids=%v", ids))
+	}
+
+	return channels, nil
 }
 
 // Delete records the given deleted timestamp to the channel in question.
@@ -2907,7 +2915,10 @@ func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) 
 		OrderBy("c.DisplayName")
 
 	if !includeDeleted {
-		query = query.Where(sq.Eq{"c.DeleteAt": 0})
+		query = query.Where(sq.And{
+			sq.Eq{"c.DeleteAt": 0},
+			sq.Eq{"tm.DeleteAt": 0},
+		})
 	}
 	searchClause := s.searchClause(term)
 	if searchClause != nil {
@@ -3127,7 +3138,7 @@ func (s SqlChannelStore) SearchArchivedInTeam(teamId string, term string, userId
 
 	searchClause := s.searchClause(term)
 	if searchClause != nil {
-		queryBase.Where(searchClause)
+		queryBase = queryBase.Where(searchClause)
 	}
 
 	publicQuery := queryBase.
