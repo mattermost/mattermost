@@ -7768,6 +7768,22 @@ func (s *TimerLayerTeamStore) GetCommonTeamIDsForTwoUsers(userID string, otherUs
 	return result, err
 }
 
+func (s *TimerLayerTeamStore) GetMany(ids []string) ([]*model.Team, error) {
+	start := timemodule.Now()
+
+	result, err := s.TeamStore.GetMany(ids)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.GetMany", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerTeamStore) GetMember(ctx context.Context, teamID string, userID string) (*model.TeamMember, error) {
 	start := timemodule.Now()
 
