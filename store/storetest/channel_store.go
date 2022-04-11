@@ -479,18 +479,18 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlStore) {
 
 func testChannelStoreGetMany(t *testing.T, ss store.Store, s SqlStore) {
 	o1, nErr := ss.Channel().Save(&model.Channel{
-		TeamId: model.NewId(),
+		TeamId:      model.NewId(),
 		DisplayName: "Name",
-		Name: NewTestId(),
-		Type: model.ChannelTypeOpen,
+		Name:        NewTestId(),
+		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, nErr)
 
 	o2, nErr := ss.Channel().Save(&model.Channel{
-		TeamId: model.NewId(),
+		TeamId:      model.NewId(),
 		DisplayName: "Name2",
-		Name: NewTestId(),
-		Type: model.ChannelTypeOpen,
+		Name:        NewTestId(),
+		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, nErr)
 
@@ -502,7 +502,7 @@ func testChannelStoreGetMany(t *testing.T, ss store.Store, s SqlStore) {
 	require.NoError(t, err)
 	assert.Len(t, res, 1)
 
-	res, err = ss.Channel().GetMany([]string{"notexists"}, true)
+	_, err = ss.Channel().GetMany([]string{"notexists"}, true)
 	require.Error(t, err)
 	var nfErr *store.ErrNotFound
 	require.True(t, errors.As(err, &nfErr))
