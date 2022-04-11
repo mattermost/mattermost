@@ -756,7 +756,6 @@ func (a *App) GetTeams(teamIDs []string) ([]*model.Team, *model.AppError) {
 	return teams, nil
 }
 
-
 func (a *App) GetTeamByName(name string) (*model.Team, *model.AppError) {
 	team, err := a.Srv().Store.Team().GetByName(name)
 	if err != nil {

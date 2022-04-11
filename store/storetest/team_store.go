@@ -136,17 +136,17 @@ func testTeamStoreGet(t *testing.T, ss store.Store) {
 func testTeamStoreGetMany(t *testing.T, ss store.Store) {
 	o1, err := ss.Team().Save(&model.Team{
 		DisplayName: "DisplayName",
-		Name: NewTestId(),
-		Email: MakeEmail(),
-		Type: model.TeamOpen,
+		Name:        NewTestId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
 	})
 	require.NoError(t, err)
 
 	o2, err := ss.Team().Save(&model.Team{
 		DisplayName: "DisplayName2",
-		Name: NewTestId(),
-		Email: MakeEmail(),
-		Type: model.TeamOpen,
+		Name:        NewTestId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
 	})
 	require.NoError(t, err)
 
@@ -158,7 +158,7 @@ func testTeamStoreGetMany(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	assert.Len(t, res, 1)
 
-	res, err = ss.Team().GetMany([]string{"whereisit", "notexists"})
+	_, err = ss.Team().GetMany([]string{"whereisit", "notexists"})
 	require.Error(t, err)
 	var nfErr *store.ErrNotFound
 	assert.True(t, errors.As(err, &nfErr))
