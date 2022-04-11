@@ -105,7 +105,7 @@ func getGraphQLChannels(c *web.Context, channelIDs []string) ([]*model.Channel, 
 	}
 
 	if len(channels) != len(channelIDs) {
-		return nil, fmt.Errorf("All channels were not found. Got %d; Passed %d", len(channels), len(channelIDs))
+		return nil, fmt.Errorf("all channels were not found. Requested %d; Found %d", len(channelIDs), len(channels))
 	}
 
 	// The channels need to be in the exact same order as the input slice.

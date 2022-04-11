@@ -67,6 +67,8 @@ const (
 	channelsLoaderCtx ctxKey = 2
 )
 
+const loaderBatchCapacity = 200
+
 func (api *API) graphQL(c *Context, w http.ResponseWriter, r *http.Request) {
 	var response *graphql.Response
 	defer func() {
@@ -99,10 +101,10 @@ func (api *API) graphQL(c *Context, w http.ResponseWriter, r *http.Request) {
 	reqCtx := r.Context()
 	reqCtx = context.WithValue(reqCtx, webCtx, c)
 
-	rolesLoader := dataloader.NewBatchedLoader(graphQLRolesLoader, dataloader.WithBatchCapacity(200))
+	rolesLoader := dataloader.NewBatchedLoader(graphQLRolesLoader, dataloader.WithBatchCapacity(loaderBatchCapacity))
 	reqCtx = context.WithValue(reqCtx, rolesLoaderCtx, rolesLoader)
 
-	channelsLoader := dataloader.NewBatchedLoader(graphQLChannelsLoader, dataloader.WithBatchCapacity(200))
+	channelsLoader := dataloader.NewBatchedLoader(graphQLChannelsLoader, dataloader.WithBatchCapacity(loaderBatchCapacity))
 	reqCtx = context.WithValue(reqCtx, channelsLoaderCtx, channelsLoader)
 
 	response = api.schema.Exec(reqCtx,
