@@ -6,8 +6,10 @@ package config
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"embed"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"path/filepath"
@@ -234,33 +236,47 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 	}
 	defer func() {
 		// Rollback after Commit just returns sql.ErrTxDone.
-		if err := tx.Rollback(); err != nil && err != sql.ErrTxDone {
+		if err = tx.Rollback(); err != nil && err != sql.ErrTxDone {
 			mlog.Error("Failed to rollback configuration transaction", mlog.Err(err))
 		}
 	}()
 
+	sum := sha256.Sum256(b)
 	params := map[string]interface{}{
 		"id":        id,
 		"value":     value,
 		"create_at": createAt,
 		"key":       "ConfigurationId",
+		"sha":       hex.EncodeToString(sum[0:]),
 	}
 
 	// Skip the persist altogether if we're effectively writing the same configuration.
-	var oldValue []byte
-	row := ds.db.QueryRow("SELECT Value FROM Configurations WHERE Active")
-	if err := row.Scan(&oldValue); err != nil && err != sql.ErrNoRows {
+	var oldValue string
+	row := ds.db.QueryRow("SELECT SHA FROM Configurations WHERE Active")
+	if err = row.Scan(&oldValue); err != nil && err != sql.ErrNoRows {
 		return errors.Wrap(err, "failed to query active configuration")
 	}
-	if bytes.Equal(oldValue, b) {
+
+	oldSum, err := hex.DecodeString(oldValue)
+	if err != nil {
+		return errors.Wrap(err, "could not encode value")
+	}
+	if bytes.Equal(oldSum, sum[0:]) {
 		return nil
 	}
 
-	if _, err := tx.Exec("UPDATE Configurations SET Active = NULL WHERE Active"); err != nil {
-		return errors.Wrap(err, "failed to deactivate current configuration")
+	var oldId string
+	row = tx.QueryRow("SELECT Id FROM Configurations WHERE Active")
+	if err = row.Scan(&oldId); err != nil && err != sql.ErrNoRows {
+		return errors.Wrap(err, "failed to query active configuration")
+	}
+	if oldId != "" {
+		if _, err := tx.NamedExec("UPDATE Configurations SET Active = NULL WHERE Id = :id", map[string]interface{}{"id": oldId}); err != nil {
+			return errors.Wrap(err, "failed to deactivate current configuration")
+		}
 	}
 
-	if _, err := tx.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt, Active) VALUES (:id, :value, :create_at, TRUE)", params); err != nil {
+	if _, err := tx.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt, Active, SHA) VALUES (:id, :value, :create_at, TRUE, :sha)", params); err != nil {
 		return errors.Wrap(err, "failed to record new configuration")
 	}
 
