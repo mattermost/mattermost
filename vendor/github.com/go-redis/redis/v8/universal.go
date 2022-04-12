@@ -25,6 +25,7 @@ type UniversalOptions struct {
 
 	Username         string
 	Password         string
+	SentinelUsername string
 	SentinelPassword string
 
 	MaxRetries      int
@@ -114,6 +115,7 @@ func (o *UniversalOptions) Failover() *FailoverOptions {
 		DB:               o.DB,
 		Username:         o.Username,
 		Password:         o.Password,
+		SentinelUsername: o.SentinelUsername,
 		SentinelPassword: o.SentinelPassword,
 
 		MaxRetries:      o.MaxRetries,

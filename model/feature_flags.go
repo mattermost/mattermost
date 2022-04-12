@@ -16,9 +16,6 @@ type FeatureFlags struct {
 	// all other values as false.
 	TestBoolFeature bool
 
-	// Toggle on and off scheduled jobs for cloud user limit emails see MM-29999
-	CloudDelinquentEmailJobsEnabled bool
-
 	// Toggle on and off support for Collapsed Threads
 	CollapsedThreads bool
 
@@ -37,9 +34,6 @@ type FeatureFlags struct {
 	PluginFocalboard string `plugin_id:"focalboard"`
 
 	PermalinkPreviews bool
-
-	// Determine whether when a user gets created, they'll have noisy notifications e.g. Send desktop notifications for all activity
-	NewAccountNoisy bool
 
 	// Enable Calls plugin support in the mobile app
 	CallsMobile bool
@@ -70,20 +64,20 @@ type FeatureFlags struct {
 
 	// Enable GraphQL feature
 	GraphQL bool
+
+	InsightsEnabled bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
 	f.TestFeature = "off"
 	f.TestBoolFeature = false
-	f.CloudDelinquentEmailJobsEnabled = false
 	f.CollapsedThreads = true
 	f.EnableRemoteClusterService = false
-	f.AppsEnabled = false
+	f.AppsEnabled = true
 	f.AppBarEnabled = false
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
 	f.PermalinkPreviews = true
-	f.NewAccountNoisy = false
 	f.CallsMobile = false
 	f.BoardsFeatureFlags = ""
 	f.AddMembersToChannel = "top"
@@ -95,6 +89,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableInactivityCheckJob = true
 	f.UseCaseOnboarding = true
 	f.GraphQL = false
+	f.InsightsEnabled = false
 }
 func (f *FeatureFlags) Plugins() map[string]string {
 	rFFVal := reflect.ValueOf(f).Elem()
