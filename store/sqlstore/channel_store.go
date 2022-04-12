@@ -4144,7 +4144,8 @@ func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string
 			Posts.ChannelId,
 			Channels.Type,
 			Channels.DisplayName,
-			Channels.Name
+			Channels.Name,
+			Channels.TeamId
 		ORDER BY 
 			MessageCount DESC,
 			Name ASC
@@ -4198,7 +4199,8 @@ func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string
 			Posts.ChannelId,
 			Channels.Type,
 			Channels.DisplayName,
-			Channels.Name
+			Channels.Name,
+			Channels.TeamId
 		ORDER BY 
 			MessageCount DESC,
 			Name ASC
