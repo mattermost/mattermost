@@ -7674,17 +7674,17 @@ func (c *Client4) GetCloudProducts() ([]*Product, *Response, error) {
 	return cloudProducts, BuildResponse(r), nil
 }
 
-func (c *Client4) GetProductLimits() (ProductLimits, *Response, error) {
+func (c *Client4) GetProductLimits() (*ProductLimits, *Response, error) {
 	r, err := c.DoAPIGet(c.cloudRoute()+"/limits", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
-	var cloudProducts []*Product
-	json.NewDecoder(r.Body).Decode(&cloudProducts)
+	var productLimits *ProductLimits
+	json.NewDecoder(r.Body).Decode(&productLimits)
 
-	return cloudProducts, BuildResponse(r), nil
+	return productLimits, BuildResponse(r), nil
 }
 
 func (c *Client4) CreateCustomerPayment() (*StripeSetupIntent, *Response, error) {
