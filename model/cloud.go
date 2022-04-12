@@ -194,7 +194,7 @@ type FilesLimit struct {
 	TotalStorage int64 `json:"total_storage"`
 }
 
-type TeamLimit struct {
+type TeamsLimit struct {
 	Active int `json:"active"`
 }
 
@@ -210,7 +210,7 @@ type ProductLimits struct {
 	Integrations *IntegrationsLimit `json:"integrations,omitempty"`
 	Messages     *MessagesLimit     `json:"messages,omitempty"`
 	Files        *FilesLimit        `json:"files,omitempty"`
-	Teams        *TeamLimit         `json:"teams,omitempty"`
+	Teams        *TeamsLimit        `json:"teams,omitempty"`
 	Boards       *BoardsLimit       `json:"boards,omitempty"`
 	Calls        *CallsLimit        `json:"calls,omitempty"`
 }

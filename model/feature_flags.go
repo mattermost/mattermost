@@ -66,6 +66,9 @@ type FeatureFlags struct {
 	GraphQL bool
 
 	InsightsEnabled bool
+
+	// Features related to CloudFree should
+	CloudFree bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -90,6 +93,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.UseCaseOnboarding = true
 	f.GraphQL = false
 	f.InsightsEnabled = false
+	f.CloudFree = false
 }
 func (f *FeatureFlags) Plugins() map[string]string {
 	rFFVal := reflect.ValueOf(f).Elem()
