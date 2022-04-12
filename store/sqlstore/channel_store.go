@@ -4103,56 +4103,94 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 // b) those that are public channels in the given team.
 func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopChannelList, error) {
 	var channels []*model.TopChannel
+	var args []interface{}
+	postgresPropQuery := `AND (Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false')`
+	mySqlPropsQuery := `AND (JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false')`
 
 	query := `
 		SELECT
-			Posts.ChannelId as ID,
-			Channels.Type as Type,
-			Channels.DisplayName as DisplayName,
-			Channels.Name as Name,
-			Channels.TeamId as TeamID,
-			count(Posts.Id) AS MessageCount
+			ID,
+			Type,
+			DisplayName,
+			Name,
+			TeamID,
+			MessageCount
 		FROM
-			Posts 
-			LEFT JOIN Channels on Posts.ChannelId = Channels.Id
-			LEFT JOIN ChannelMembers on Posts.ChannelId = ChannelMembers.ChannelId`
+			((SELECT
+				Posts.ChannelId AS ID,
+				Channels.Type AS Type,
+				Channels.DisplayName AS DisplayName,
+				Channels.Name AS Name,
+				Channels.TeamId AS TeamID,
+				count(Posts.Id) AS MessageCount
+			FROM
+				Posts
+				LEFT JOIN Channels on Posts.ChannelId = Channels.Id
+			WHERE
+				Posts.DeleteAt = 0
+				AND Posts.CreateAt > ?
+				AND Posts.Type = ''`
+	args = []interface{}{since}
 
 	if s.DriverName() == model.DatabaseDriverMysql {
-		query += `
-			WHERE 
-				Posts.DeleteAt = 0 
-				AND Posts.CreateAt > ?
-				AND Posts.Type = ''
-				AND (JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false')
-				AND Channels.DeleteAt = 0
-				AND Channels.TeamId = ?
-				AND (Channels.Type = 'O' OR (Channels.Type = 'P' AND (ChannelMembers.UserId = ?)))`
+		query += mySqlPropsQuery
 	} else if s.DriverName() == model.DatabaseDriverPostgres {
-		query += `
-			WHERE 
-				Posts.DeleteAt = 0 
-				AND Posts.CreateAt > ?
-				AND Posts.Type = ''
-				AND (Posts.Props->>'from_bot' IS NULL OR Posts.Props->>'from_bot' = 'false')
-				AND Channels.DeleteAt = 0
-				AND Channels.TeamId = ?
-				AND (Channels.Type = 'O' OR (Channels.Type = 'P' AND (ChannelMembers.UserId = ?)))`
+		query += postgresPropQuery
 	}
 
 	query += `
-		Group By 
-			Posts.ChannelId,
-			Channels.Type,
-			Channels.DisplayName,
-			Channels.Name,
-			Channels.TeamId
-		ORDER BY 
+				AND Channels.DeleteAt = 0
+				AND Channels.TeamId = ?
+				AND Channels.Type = 'O'
+			GROUP BY
+				Posts.ChannelId,
+				Channels.Type,
+				Channels.DisplayName,
+				Channels.Name,
+				Channels.TeamId)
+		UNION ALL
+			(SELECT
+				Posts.ChannelId AS ID,
+				Channels.Type AS Type,
+				Channels.DisplayName AS DisplayName,
+				Channels.Name AS Name,
+				Channels.TeamId AS TeamID,
+				count(Posts.Id) AS MessageCount
+			FROM
+				Posts
+				LEFT JOIN Channels on Posts.ChannelId = Channels.Id
+				LEFT JOIN ChannelMembers on Posts.ChannelId = ChannelMembers.ChannelId
+			WHERE
+				Posts.DeleteAt = 0
+				AND Posts.CreateAt > ?
+				AND Posts.Type = ''`
+	args = append(args, teamID, since)
+
+	if s.DriverName() == model.DatabaseDriverMysql {
+		query += mySqlPropsQuery
+	} else if s.DriverName() == model.DatabaseDriverPostgres {
+		query += postgresPropQuery
+	}
+
+	query += `
+				AND Channels.DeleteAt = 0
+				AND Channels.TeamId = ?
+				AND Channels.Type = 'P'
+				AND ChannelMembers.UserId = ?
+			GROUP BY
+				Posts.ChannelId,
+				Channels.Type,
+				Channels.DisplayName,
+				Channels.Name,
+				Channels.TeamId)) AS A
+		ORDER BY
 			MessageCount DESC,
 			Name ASC
 		LIMIT ?
 		OFFSET ?`
+	args = append(args, teamID, userID, limit+1, offset)
 
-	if err := s.GetReplicaX().Select(&channels, query, since, teamID, userID, limit+1, offset); err != nil {
+	if err := s.GetReplicaX().Select(&channels, query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to get top Channels")
 	}
 
@@ -4182,11 +4220,12 @@ func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string
 			Posts.DeleteAt = 0 
 			AND Posts.CreateAt > ?
 			AND Posts.Type = ''
-			AND Posts.UserId = ?
+			AND Posts.UserID = ?
 			AND Channels.DeleteAt = 0
 			AND (Channels.Type = 'O' OR Channels.Type = 'P') 
 			AND ChannelMembers.UserId = ?`
-	args = []interface{}{userID, since, userID, userID}
+
+	args = []interface{}{since, userID, userID}
 
 	if teamID != "" {
 		query += `
