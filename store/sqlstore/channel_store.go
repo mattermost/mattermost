@@ -4115,7 +4115,7 @@ func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string
 		FROM
 			Posts 
 			LEFT JOIN Channels on Posts.ChannelId = Channels.Id
-			LEFT JOIN ChannelMembers on Posts.ChannelId = ChannelMembers.ChannelId AND ChannelMembers.UserId = ?`
+			LEFT JOIN ChannelMembers on Posts.ChannelId = ChannelMembers.ChannelId`
 
 	if s.DriverName() == model.DatabaseDriverMysql {
 		query += `
@@ -4152,7 +4152,7 @@ func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string
 		LIMIT ?
 		OFFSET ?`
 
-	if err := s.GetReplicaX().Select(&channels, query, userID, since, teamID, userID, limit+1, offset); err != nil {
+	if err := s.GetReplicaX().Select(&channels, query, since, teamID, userID, limit+1, offset); err != nil {
 		return nil, errors.Wrap(err, "failed to get top Channels")
 	}
 
@@ -4177,7 +4177,7 @@ func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string
 		FROM
 			Posts 
 			LEFT JOIN Channels on Posts.ChannelId = Channels.Id
-			LEFT JOIN ChannelMembers on Posts.ChannelId = ChannelMembers.ChannelId AND ChannelMembers.UserId = ?
+			LEFT JOIN ChannelMembers on Posts.ChannelId = ChannelMembers.ChannelId
 		WHERE 
 			Posts.DeleteAt = 0 
 			AND Posts.CreateAt > ?
