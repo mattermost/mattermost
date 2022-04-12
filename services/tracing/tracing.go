@@ -62,7 +62,7 @@ func New() (*Tracer, error) {
 	if err != nil {
 		return nil, err
 	}
-	mlog.Info("Opentracing initialzed")
+	mlog.Info("Opentracing initialized")
 	return &Tracer{
 		closer: closer,
 	}, nil

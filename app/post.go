@@ -1502,7 +1502,6 @@ func (a *App) countThreadMentions(user *model.User, post *model.Post, teamID str
 	if nErr != nil {
 		return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
-	posts = append(posts, post)
 
 	for _, p := range posts {
 		if p.CreateAt >= timestamp {
