@@ -7674,7 +7674,7 @@ func (c *Client4) GetCloudProducts() ([]*Product, *Response, error) {
 	return cloudProducts, BuildResponse(r), nil
 }
 
-func (c *Client4) GetProductLimits() ([]*Product, *Response, error) {
+func (c *Client4) GetProductLimits() (ProductLimits, *Response, error) {
 	r, err := c.DoAPIGet(c.cloudRoute()+"/limits", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
