@@ -230,17 +230,6 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 		return errors.Wrap(err, "marshalled configuration failed length check")
 	}
 
-	tx, err := ds.db.Beginx()
-	if err != nil {
-		return errors.Wrap(err, "failed to begin transaction")
-	}
-	defer func() {
-		// Rollback after Commit just returns sql.ErrTxDone.
-		if err = tx.Rollback(); err != nil && err != sql.ErrTxDone {
-			mlog.Error("Failed to rollback configuration transaction", mlog.Err(err))
-		}
-	}()
-
 	sum := sha256.Sum256(b)
 	params := map[string]interface{}{
 		"id":        id,
@@ -264,6 +253,17 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 	if bytes.Equal(oldSum, sum[0:]) {
 		return nil
 	}
+
+	tx, err := ds.db.Beginx()
+	if err != nil {
+		return errors.Wrap(err, "failed to begin transaction")
+	}
+	defer func() {
+		// Rollback after Commit just returns sql.ErrTxDone.
+		if err = tx.Rollback(); err != nil && err != sql.ErrTxDone {
+			mlog.Error("Failed to rollback configuration transaction", mlog.Err(err))
+		}
+	}()
 
 	var oldId string
 	row = tx.QueryRow("SELECT Id FROM Configurations WHERE Active")
