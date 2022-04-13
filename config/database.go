@@ -268,7 +268,7 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 		}
 	}()
 
-	// the query doesn't use active index if we query for value (mysql, no suprise)
+	// the query doesn't use active index if we query for value (mysql, no surprise)
 	// we select Id column which triggers using index hence we do quicker reads
 	// that's the reason we select id first then query against id to get the value.
 	var oldId string
