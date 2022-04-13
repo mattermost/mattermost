@@ -231,7 +231,7 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 	expectedTopReactions[3] = &model.TopReaction{EmojiName: "sad", Count: int64(3)}
 	expectedTopReactions[4] = &model.TopReaction{EmojiName: "happy", Count: int64(2)}
 
-	timeRange, _ := model.GetStartUnixMilliForTimeRange(model.TimeRange1Day)
+	timeRange, _ := model.GetStartUnixMilliForTimeRange(model.TimeRangeToday)
 
 	t.Run("get-top-reactions-for-team-since", func(t *testing.T) {
 		topReactions, err := th.App.GetTopReactionsForTeamSince(teamId, userId, &model.InsightsOpts{StartUnixMilli: timeRange, Page: 0, PerPage: 5})
@@ -402,7 +402,7 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 	expectedTopReactions[3] = &model.TopReaction{EmojiName: "heart", Count: int64(3)}
 	expectedTopReactions[4] = &model.TopReaction{EmojiName: "blush", Count: int64(2)}
 
-	timeRange, _ := model.GetStartUnixMilliForTimeRange(model.TimeRange1Day)
+	timeRange, _ := model.GetStartUnixMilliForTimeRange(model.TimeRangeToday)
 
 	t.Run("get-top-reactions-for-user-since", func(t *testing.T) {
 		topReactions, err := th.App.GetTopReactionsForUserSince(userId, teamId, &model.InsightsOpts{StartUnixMilli: timeRange, Page: 0, PerPage: 5})

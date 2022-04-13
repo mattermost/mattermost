@@ -10,7 +10,7 @@ import (
 )
 
 func TestGetStartUnixMilliForTimeRang(t *testing.T) {
-	tc := [3]string{"1_day", "7_day", "28_day"}
+	tc := [3]string{"today", "7_day", "28_day"}
 
 	for _, timeRange := range tc {
 		t.Run(timeRange, func(t *testing.T) {
@@ -19,7 +19,7 @@ func TestGetStartUnixMilliForTimeRang(t *testing.T) {
 		})
 	}
 
-	invalidTimeRanges := [3]string{"", "1_days", "10_day"}
+	invalidTimeRanges := [3]string{"", "1_day", "10_day"}
 
 	for _, timeRange := range invalidTimeRanges {
 		t.Run(timeRange, func(t *testing.T) {

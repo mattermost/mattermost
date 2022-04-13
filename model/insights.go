@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	TimeRange1Day  string = "1_day"
+	TimeRangeToday string = "today"
 	TimeRange7Day  string = "7_day"
 	TimeRange28Day string = "28_day"
 )
@@ -42,16 +42,18 @@ type TopReaction struct {
 // GetStartUnixMilliForTimeRange gets the unix start time in milliseconds from the given time range.
 // Time range can be one of: "1_day", "7_day", or "28_day".
 func GetStartUnixMilliForTimeRange(timeRange string) (int64, *AppError) {
+	now := time.Now()
+	_, offset := now.Zone()
 	switch timeRange {
-	case TimeRange1Day:
-		return GetMillisForTime(time.Now().Add(time.Hour * time.Duration(-24))), nil
+	case TimeRangeToday:
+		return GetStartOfDayMillis(now, offset), nil
 	case TimeRange7Day:
-		return GetMillisForTime(time.Now().Add(time.Hour * time.Duration(-168))), nil
+		return GetStartOfDayMillis(now.Add(time.Hour*time.Duration(-168)), offset), nil
 	case TimeRange28Day:
-		return GetMillisForTime(time.Now().Add(time.Hour * time.Duration(-672))), nil
+		return GetStartOfDayMillis(now.Add(time.Hour*time.Duration(-672)), offset), nil
 	}
 
-	return GetMillisForTime(time.Now()), NewAppError("Insights.IsValidRequest", "model.insights.time_range.app_error", nil, "", http.StatusBadRequest)
+	return GetStartOfDayMillis(now, offset), NewAppError("Insights.IsValidRequest", "model.insights.time_range.app_error", nil, "", http.StatusBadRequest)
 }
 
 // GetTopReactionListWithRankAndPagination adds a rank to each item in the given list of TopReaction and checks if there is
