@@ -246,10 +246,13 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 		return errors.Wrap(err, "failed to query active configuration")
 	}
 
-	oldSum, err := hex.DecodeString(oldValue)
+	// postgres retruns blank-padded therefore we trim the space
+	oldSum, err := hex.DecodeString(strings.TrimSpace(oldValue))
 	if err != nil {
 		return errors.Wrap(err, "could not encode value")
 	}
+
+	// compare checksums, it's more efficient rather than comparing entire config itself
 	if bytes.Equal(oldSum, sum[0:]) {
 		return nil
 	}
@@ -265,6 +268,9 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 		}
 	}()
 
+	// the query doesn't use active index if we query for value (mysql, no suprise)
+	// we select Id column which triggers using index hence we do quicker reads
+	// that's the reason we select id first then query against id to get the value.
 	var oldId string
 	row = tx.QueryRow("SELECT Id FROM Configurations WHERE Active")
 	if err = row.Scan(&oldId); err != nil && err != sql.ErrNoRows {
