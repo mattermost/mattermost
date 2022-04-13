@@ -189,6 +189,9 @@ func TestSendCloudTrialEndWarningEmail(t *testing.T) {
 
 	emailTo := "testclouduser@example.com"
 	emailToUsername := strings.Split(emailTo, "@")[0]
+	th.UpdateConfig(func(cfg *model.Config) {
+		*cfg.SupportSettings.SupportEmail = "support@mattermost.com"
+	})
 
 	t.Run("SendCloudTrialEndWarningEmail", func(t *testing.T) {
 		verifyMailbox := func(t *testing.T) {
@@ -212,7 +215,7 @@ func TestSendCloudTrialEndWarningEmail(t *testing.T) {
 			require.Contains(t, resultsEmail.Body.HTML, emailToUsername, "Wrong received message %s", resultsEmail.Body.Text)
 			require.Contains(t, resultsEmail.Body.Text, "http://testserver", "Wrong received message %s", resultsEmail.Body.Text)
 			require.Contains(t, resultsEmail.Body.Text, emailToUsername, "Wrong received message %s", resultsEmail.Body.Text)
-			require.Contains(t, resultsEmail.Body.Text, "feedback-cloud@mattermost.com")
+			require.Contains(t, resultsEmail.Body.Text, "support@mattermost.com")
 		}
 		mail.DeleteMailBox(emailTo)
 
