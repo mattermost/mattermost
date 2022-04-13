@@ -4194,7 +4194,7 @@ func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string
 		return nil, errors.Wrap(err, "failed to get top Channels")
 	}
 
-	return model.GetTopChannelListWithRankAndPagination(channels, limit, offset), nil
+	return model.GetTopChannelListWithPagination(channels, limit), nil
 }
 
 // GetTopChannelsForUserSince returns the filtered post counts of channels with with posts created by the user
@@ -4251,5 +4251,5 @@ func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string
 		return nil, errors.Wrap(err, "failed to get top Channels")
 	}
 
-	return model.GetTopChannelListWithRankAndPagination(channels, limit, offset), nil
+	return model.GetTopChannelListWithPagination(channels, limit), nil
 }

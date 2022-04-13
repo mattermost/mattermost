@@ -61,21 +61,8 @@ func TestGetTopReactionListWithRankAndPagination(t *testing.T) {
 
 	for _, test := range hasNextTC {
 		t.Run(test.Description, func(t *testing.T) {
-			actual := GetTopReactionListWithRankAndPagination(reactions, test.Limit, test.Offset)
+			actual := GetTopReactionListWithPagination(reactions, test.Limit)
 			assert.Equal(t, test.Expected.HasNext, actual.HasNext)
 		})
 	}
-
-	t.Run("ranks for first and second page", func(t *testing.T) {
-		firstPage := GetTopReactionListWithRankAndPagination(reactions, 5, 0)
-
-		for i, r := range firstPage.Items {
-			assert.Equal(t, i+1, r.Rank)
-		}
-
-		secondPage := GetTopReactionListWithRankAndPagination(reactions, 5, 5)
-		for i, r := range secondPage.Items {
-			assert.Equal(t, i+1+5, r.Rank)
-		}
-	})
 }

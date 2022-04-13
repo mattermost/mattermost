@@ -24,10 +24,6 @@ type InsightsListData struct {
 	HasNext bool `json:"has_next"`
 }
 
-type InsightsData struct {
-	Rank int `json:"rank"`
-}
-
 // Top Reactions
 type TopReactionList struct {
 	InsightsListData
@@ -35,7 +31,6 @@ type TopReactionList struct {
 }
 
 type TopReaction struct {
-	InsightsData
 	EmojiName string `json:"emoji_name"`
 	Count     int64  `json:"count"`
 }
@@ -47,7 +42,6 @@ type TopChannelList struct {
 }
 
 type TopChannel struct {
-	InsightsData
 	ID           string      `json:"id"`
 	Type         ChannelType `json:"type"`
 	DisplayName  string      `json:"display_name"`
@@ -83,10 +77,10 @@ func GetStartUnixMilliForTimeRange(timeRange string) (int64, *AppError) {
 	return GetStartOfDayMillis(now, offset), NewAppError("Insights.IsValidRequest", "model.insights.time_range.app_error", nil, "", http.StatusBadRequest)
 }
 
-// GetTopReactionListWithRankAndPagination adds a rank to each item in the given list of TopReaction and checks if there is
+// GetTopReactionListWithPagination adds a rank to each item in the given list of TopReaction and checks if there is
 // another page that can be fetched based on the given limit and offset. The given list of TopReaction is assumed to be
 // sorted by Count. Returns a TopReactionList.
-func GetTopReactionListWithRankAndPagination(reactions []*TopReaction, limit int, offset int) *TopReactionList {
+func GetTopReactionListWithPagination(reactions []*TopReaction, limit int) *TopReactionList {
 	// Add pagination support
 	var hasNext bool
 	if (limit != 0) && (len(reactions) == limit+1) {
@@ -94,28 +88,18 @@ func GetTopReactionListWithRankAndPagination(reactions []*TopReaction, limit int
 		reactions = reactions[:len(reactions)-1]
 	}
 
-	// Assign rank to each reaction
-	for i, reaction := range reactions {
-		reaction.Rank = offset + i + 1
-	}
-
 	return &TopReactionList{InsightsListData: InsightsListData{HasNext: hasNext}, Items: reactions}
 }
 
-// GetTopChannelListWithRankAndPagination adds a rank to each item in the given list of TopChannel and checks if there is
+// GetTopChannelListWithPagination adds a rank to each item in the given list of TopChannel and checks if there is
 // another page that can be fetched based on the given limit and offset. The given list of TopChannel is assumed to be
 // sorted by Score. Returns a TopChannelList.
-func GetTopChannelListWithRankAndPagination(channels []*TopChannel, limit int, offset int) *TopChannelList {
+func GetTopChannelListWithPagination(channels []*TopChannel, limit int) *TopChannelList {
 	// Add pagination support
 	var hasNext bool
 	if (limit != 0) && (len(channels) == limit+1) {
 		hasNext = true
 		channels = channels[:len(channels)-1]
-	}
-
-	// Assign rank to each reaction
-	for i, channel := range channels {
-		channel.Rank = offset + i + 1
 	}
 
 	return &TopChannelList{InsightsListData: InsightsListData{HasNext: hasNext}, Items: channels}
