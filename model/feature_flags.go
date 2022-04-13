@@ -41,9 +41,6 @@ type FeatureFlags struct {
 	// A dash separated list for feature flags to turn on for Boards
 	BoardsFeatureFlags string
 
-	// A/B test for the add members to channel button, possible values = ("top", "bottom")
-	AddMembersToChannel string
-
 	// Enable Create First Channel
 	GuidedChannelCreation bool
 
@@ -80,7 +77,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PermalinkPreviews = true
 	f.CallsMobile = false
 	f.BoardsFeatureFlags = ""
-	f.AddMembersToChannel = "top"
 	f.GuidedChannelCreation = false
 	f.InviteToTeam = "none"
 	f.CustomGroups = true

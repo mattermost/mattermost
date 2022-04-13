@@ -650,7 +650,7 @@ func (a *App) JoinUserToTeam(c *request.Context, team *model.Team, user *model.U
 	if err != nil {
 		var appErr *model.AppError
 		var conflictErr *store.ErrConflict
-		var limitExeededErr *store.ErrLimitExceeded
+		var limitExceededErr *store.ErrLimitExceeded
 		switch {
 		case errors.Is(err, teams.AcceptedDomainError):
 			return nil, model.NewAppError("JoinUserToTeam", "api.team.join_user_to_team.allowed_domains.app_error", nil, "", http.StatusBadRequest)
@@ -662,7 +662,7 @@ func (a *App) JoinUserToTeam(c *request.Context, team *model.Team, user *model.U
 			return nil, appErr
 		case errors.As(err, &conflictErr):
 			return nil, model.NewAppError("JoinUserToTeam", "app.team.join_user_to_team.save_member.conflict.app_error", nil, err.Error(), http.StatusBadRequest)
-		case errors.As(err, &limitExeededErr):
+		case errors.As(err, &limitExceededErr):
 			return nil, model.NewAppError("JoinUserToTeam", "app.team.join_user_to_team.save_member.max_accounts.app_error", nil, err.Error(), http.StatusBadRequest)
 		default: // last fallback in case it doesn't map to an existing app error.
 			return nil, model.NewAppError("JoinUserToTeam", "app.team.join_user_to_team.save_member.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -739,6 +739,21 @@ func (a *App) GetTeam(teamID string) (*model.Team, *model.AppError) {
 	}
 
 	return team, nil
+}
+
+func (a *App) GetTeams(teamIDs []string) ([]*model.Team, *model.AppError) {
+	teams, err := a.ch.srv.teamService.GetTeams(teamIDs)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetTeam", "app.team.get.find.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetTeam", "app.team.get.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return teams, nil
 }
 
 func (a *App) GetTeamByName(name string) (*model.Team, *model.AppError) {
