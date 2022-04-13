@@ -28,7 +28,7 @@
           <mj-text font-size="14px" line-height="20px" color="#3F4350"  font-family="Open Sans">
             {{.Props.QuestionInfo}}
             <a href='mailto:{{.Props.SupportEmail}}'>
-              support@mattermost.com
+              {{.Props.SupportEmail}}
             </a>
           </mj-text>
         </mj-column>
