@@ -10,10 +10,38 @@ type Meta map[string]interface{}
 // that serializes well for audit records.
 type FuncMetaTypeConv func(val interface{}) (newVal interface{}, converted bool)
 
+type EventObject struct {
+	Id       string `json:"id"`
+	Metadata string `json:"metadata"`
+}
+
+type EventMetadataObject struct {
+	Id       string      `json:"id"`
+	Metadata interface{} `json:"metadata"`
+}
+type EventOrigin struct {
+	Id        string                 `json:"id"`
+	PriorData map[string]interface{} `json:"prior_data"`
+}
+
+type EventResult struct {
+	Id         string      `json:"id"`
+	ChangeData interface{} `json:"change_data"`
+	PostData   interface{} `json:"post_data"`
+}
+
+type EventData struct {
+	Change         EventMetadataObject `json:"change"`
+	PriorState     EventMetadataObject `json:"prior_state"`
+	ResultingState EventMetadataObject `json:"resulting_state"`
+}
+
 // Record provides a consistent set of fields used for all audit logging.
 type Record struct {
 	APIPath   string
-	Event     string
+	EventName string
+	EventData EventData
+	Error     string
 	Status    string
 	UserID    string
 	SessionID string
@@ -33,6 +61,10 @@ func (rec *Record) Fail() {
 	rec.Status = Fail
 }
 
+func (rec *Record) AddEventData(data EventData) {
+	rec.EventData = data
+}
+
 // AddMeta adds a single name/value pair to this audit record's metadata.
 func (rec *Record) AddMeta(name string, val interface{}) {
 	if rec.Meta == nil {
@@ -50,6 +82,26 @@ func (rec *Record) AddMeta(name string, val interface{}) {
 	}
 
 	rec.Meta[name] = val
+}
+
+func (rec *Record) AddMetadata(changeObjectId string, changeObjectMetadata interface{},
+	priorObjectId string, priorObjectMetadata interface{},
+	resultObjectId string, resultObjectMetadata interface{}) {
+	eventData := EventData{
+		Change: EventMetadataObject{
+			Id:       changeObjectId,
+			Metadata: changeObjectMetadata,
+		},
+		PriorState: EventMetadataObject{
+			Id:       priorObjectId,
+			Metadata: priorObjectMetadata,
+		},
+		ResultingState: EventMetadataObject{
+			Id:       resultObjectId,
+			Metadata: resultObjectMetadata,
+		},
+	}
+	rec.EventData = eventData
 }
 
 // AddMetaTypeConverter adds a function capable of converting meta field types

@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"errors"
+	"github.com/mattermost/mattermost-server/v6/audit"
 	"io"
 	"net/http"
 	"regexp"
@@ -739,4 +740,16 @@ func (o *Post) GetPreviewedPostProp() string {
 		return val
 	}
 	return ""
+}
+
+func (p *Post) AuditLoggablePost() audit.EventMetadataObject {
+	r := audit.EventMetadataObject{
+		Id: p.Id,
+		Metadata: map[string]interface{}{
+			"channel_id": p.ChannelId,
+			"user_id": p.UserId,
+			"message": p.Message,
+		},
+	}
+	return r
 }

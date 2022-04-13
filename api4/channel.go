@@ -308,6 +308,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	oldChannel := originalOldChannel.DeepCopy()
+	oldChannelForAuditLog := originalOldChannel.DeepCopy()
 
 	auditRec := c.MakeAuditRecord("patchChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -356,6 +357,8 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
+
+	auditRec.AddMetadata("", patch, oldChannelForAuditLog.Id, oldChannelForAuditLog, rchannel.Id, rchannel)
 
 	auditRec.Success()
 	c.LogAudit("")

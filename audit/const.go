@@ -7,7 +7,11 @@ const (
 	DefMaxQueueSize = 1000
 
 	KeyAPIPath   = "api_path"
-	KeyEvent     = "event"
+	KeyEventName = "event_name"
+	KeyEventData = "event_data"
+	KeyObject    = "object"
+	KeyOrigin    = "origin"
+	KeyResult    = "result"
 	KeyStatus    = "status"
 	KeyUserID    = "user_id"
 	KeySessionID = "session_id"

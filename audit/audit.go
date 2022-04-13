@@ -33,12 +33,13 @@ func (a *Audit) Init(maxQueueSize int) {
 func (a *Audit) LogRecord(level mlog.Level, rec Record) {
 	flds := []mlog.Field{
 		mlog.String(KeyAPIPath, rec.APIPath),
-		mlog.String(KeyEvent, rec.Event),
+		mlog.String(KeyEventName, rec.EventName),
 		mlog.String(KeyStatus, rec.Status),
 		mlog.String(KeyUserID, rec.UserID),
 		mlog.String(KeySessionID, rec.SessionID),
 		mlog.String(KeyClient, rec.Client),
 		mlog.String(KeyIPAddress, rec.IPAddress),
+		mlog.Any(KeyEventData, rec.EventData),
 	}
 
 	for k, v := range rec.Meta {
@@ -51,7 +52,7 @@ func (a *Audit) LogRecord(level mlog.Level, rec Record) {
 func (a *Audit) Log(level mlog.Level, path string, evt string, status string, userID string, sessionID string, meta Meta) {
 	a.LogRecord(level, Record{
 		APIPath:   path,
-		Event:     evt,
+		EventName: evt,
 		Status:    status,
 		UserID:    userID,
 		SessionID: sessionID,

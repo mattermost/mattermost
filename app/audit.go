@@ -90,7 +90,7 @@ func (a *App) MakeAuditRecord(event string, initialStatus string) *audit.Record 
 
 	rec := &audit.Record{
 		APIPath:   "",
-		Event:     event,
+		EventName: event,
 		Status:    initialStatus,
 		UserID:    userID,
 		SessionID: "",

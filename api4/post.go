@@ -99,6 +99,8 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
 	c.ExtendSessionExpiryIfNeeded(w, r)
 
+	auditRec.AddMetadata(post.PendingPostId, post, "", nil, rp.Id, rp.AuditLoggablePost())
+
 	w.WriteHeader(http.StatusCreated)
 
 	// Note that rp has already had PreparePostForClient called on it by App.CreatePost

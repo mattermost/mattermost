@@ -305,6 +305,8 @@ func localPatchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddMetadata(originalOldChannel.Id, originalOldChannel, "", patch, channel.Id, channel)
+
 	auditRec.Success()
 	c.LogAudit("")
 	auditRec.AddMeta("patch", rchannel)

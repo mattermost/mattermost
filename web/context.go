@@ -54,7 +54,7 @@ func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level mlog.Level) {
 func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Record {
 	rec := &audit.Record{
 		APIPath:   c.AppContext.Path(),
-		Event:     event,
+		EventName: event,
 		Status:    initialStatus,
 		UserID:    c.AppContext.Session().UserId,
 		SessionID: c.AppContext.Session().Id,
