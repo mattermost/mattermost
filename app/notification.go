@@ -598,7 +598,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					previousUnreadReplies := int64(0)
 
 					// if it's not a newly followed thread, calculate previous unread values.
-					if _, ok := newParticipants[uid]; !ok {
+					if !newParticipants[uid] {
 						previousUnreadMentions = userThread.UnreadMentions
 						previousUnreadReplies = max(userThread.UnreadReplies-1, 0)
 
