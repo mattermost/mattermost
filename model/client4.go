@@ -2638,6 +2638,30 @@ func (c *Client4) InviteGuestsToTeam(teamId string, userEmails []string, channel
 // InviteUsersToTeam invite users by email to the team.
 func (c *Client4) InviteUsersToTeamGracefully(teamId string, userEmails []string) ([]*EmailInviteWithError, *Response, error) {
 	r, err := c.DoAPIPost(c.teamRoute(teamId)+"/invite/email?graceful="+c.boolString(true), ArrayToJSON(userEmails))
+
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list []*EmailInviteWithError
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("InviteUsersToTeamGracefully", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
+}
+
+// InviteUsersToTeam invite users by email to the team.
+func (c *Client4) InviteUsersToTeamAndChannelsGracefully(teamId string, userEmails []string, channelIds []string, message string) ([]*EmailInviteWithError, *Response, error) {
+	memberInvite := MemberInvite{
+		Emails:     userEmails,
+		ChannelIds: channelIds,
+		Message:    message,
+	}
+	buf, err := json.Marshal(memberInvite)
+	if err != nil {
+		return nil, nil, NewAppError("InviteMembersToTeamAndChannels", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.DoAPIPostBytes(c.teamRoute(teamId)+"/invite/email?graceful="+c.boolString(true), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

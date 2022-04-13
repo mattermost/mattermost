@@ -226,7 +226,7 @@ func (me *SqlSessionStore) GetLastSessionRowCreateAt() (int64, error) {
 	var createAt int64
 	err := me.GetReplicaX().Get(&createAt, query)
 	if err != nil {
-		return 0, errors.Wrapf(err, "failed to get last session creatat")
+		return 0, errors.Wrapf(err, "failed to get last session createat")
 	}
 
 	return createAt, nil

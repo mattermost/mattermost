@@ -9181,5 +9181,21 @@
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
     "translation": "Bleve Bulk Indexing Batch Size must be at least {{.BatchSize}}."
+  },
+  {
+    "id": "api.license.request_trial_license.embargoed",
+    "translation": "We were unable to process the request due to limitations for embargoed countries. [Learn more in our documentation](https://mattermost.com/pl/limitations-for-embargoed-countries), or reach out to legal@mattermost.com for questions around export limitations."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "OnlyThreads and OnlyTotals parameters to getThreadsForUser are mutually exclusive"
+  },
+  {
+    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "translation": "The file storage settings have unset values."
+  },
+  {
+    "id": "api.file.test_connection_email_settings_nil.app_error",
+    "translation": "The email settings have unset values."
   }
 ]
