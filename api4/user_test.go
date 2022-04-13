@@ -6117,7 +6117,7 @@ func TestThreadSocketEvents(t *testing.T) {
 		}
 	})
 
-	t.Run("Listen for thread updated event after create post 2", func(t *testing.T) {
+	t.Run("Listen for thread updated event after create post when not previously following the thread", func(t *testing.T) {
 		rpost2 := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser2.Id, Message: "root post"}
 
 		var appErr *model.AppError
