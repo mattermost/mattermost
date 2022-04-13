@@ -474,7 +474,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 
 		_, _, err = ds.Set(newCfg)
 		if assert.Error(t, err) {
-			assert.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, ")
+			assert.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, parse \"invalid\": invalid URI for request")
 		}
 
 		assert.Equal(t, "", *ds.Get().ServiceSettings.SiteURL)
@@ -842,7 +842,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 
 		err = ds.Load()
 		if assert.Error(t, err) {
-			assert.EqualError(t, err, "invalid config: Config.IsValid: model.config.is_valid.site_url.app_error, ")
+			assert.EqualError(t, err, "invalid config: Config.IsValid: model.config.is_valid.site_url.app_error, parse \"invalid\": invalid URI for request")
 		}
 	})
 
