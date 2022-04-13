@@ -6136,14 +6136,12 @@ func TestThreadSocketEvents(t *testing.T) {
 		require.Nil(t, appErr)
 
 		count := 0
-		var caught bool
 		func() {
 			for {
 				select {
 				case ev := <-userWSClient.EventChannel:
 					if ev.EventType() == model.WebsocketEventThreadUpdated {
 						count++
-						caught = true
 						data := ev.GetData()
 						var thread model.ThreadResponse
 						jsonErr := json.Unmarshal([]byte(data["thread"].(string)), &thread)
@@ -6161,7 +6159,6 @@ func TestThreadSocketEvents(t *testing.T) {
 		}()
 
 		require.Equalf(t, 1, count, "User should have received 1 %s event", model.WebsocketEventThreadUpdated)
-		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadUpdated)
 	})
 }
 
