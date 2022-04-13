@@ -3567,13 +3567,13 @@ func (s *ServiceSettings) isValid() *AppError {
 
 	if *s.SiteURL != "" {
 		if _, err := url.ParseRequestURI(*s.SiteURL); err != nil {
-			return NewAppError("Config.IsValid", "model.config.is_valid.site_url.app_error", nil, "", http.StatusBadRequest)
+			return NewAppError("Config.IsValid", "model.config.is_valid.site_url.app_error", nil, err.Error(), http.StatusBadRequest)
 		}
 	}
 
 	if *s.WebsocketURL != "" {
 		if _, err := url.ParseRequestURI(*s.WebsocketURL); err != nil {
-			return NewAppError("Config.IsValid", "model.config.is_valid.websocket_url.app_error", nil, "", http.StatusBadRequest)
+			return NewAppError("Config.IsValid", "model.config.is_valid.websocket_url.app_error", nil, err.Error(), http.StatusBadRequest)
 		}
 	}
 

@@ -495,7 +495,7 @@ func TestFileStoreSet(t *testing.T) {
 
 		_, _, err := configStore.Set(newCfg)
 		if assert.Error(t, err) {
-			assert.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, ")
+			assert.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, parse \"invalid\": invalid URI for request")
 		}
 
 		assert.Equal(t, "", *configStore.Get().ServiceSettings.SiteURL)
@@ -819,7 +819,7 @@ func TestFileStoreLoad(t *testing.T) {
 
 		err = fs.Load()
 		if assert.Error(t, err) {
-			assert.EqualError(t, err, "invalid config: Config.IsValid: model.config.is_valid.site_url.app_error, ")
+			assert.EqualError(t, err, "invalid config: Config.IsValid: model.config.is_valid.site_url.app_error, parse \"invalid\": invalid URI for request")
 		}
 	})
 
@@ -833,7 +833,7 @@ func TestFileStoreLoad(t *testing.T) {
 		newCfg := minimalConfig
 		_, _, err := configStore.Set(newCfg)
 		require.Error(t, err)
-		require.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, ")
+		require.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, parse \"invalid_url\": invalid URI for request")
 	})
 
 	t.Run("fixes required", func(t *testing.T) {

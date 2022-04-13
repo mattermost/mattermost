@@ -30,6 +30,7 @@ func getGraphQLTeam(ctx context.Context, id string) (*model.Team, error) {
 		return nil, err
 	}
 	team := result.(*model.Team)
+	team = team.ShallowCopy()
 
 	if (!team.AllowOpenInvite || team.Type != model.TeamOpen) &&
 		!c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
