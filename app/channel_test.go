@@ -2487,7 +2487,7 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 		{ID: channel5.Id, MessageCount: 2},
 	}
 
-	timeRange, _ := model.GetStartUnixMilliForTimeRange("1_day")
+	timeRange, _ := model.GetStartUnixMilliForTimeRange(model.TimeRangeToday)
 
 	t.Run("get-top-channels-for-team-since", func(t *testing.T) {
 		topChannels, err := th.App.GetTopChannelsForTeamSince(th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange, Page: 0, PerPage: 5})

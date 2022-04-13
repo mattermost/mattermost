@@ -4593,7 +4593,7 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 	}
 
 	t.Run("get-top-channels-for-team-since", func(t *testing.T) {
-		topChannels, _, err := client.GetTopChannelsForTeamSince(teamId, "1_day", 0, 5)
+		topChannels, _, err := client.GetTopChannelsForTeamSince(teamId, model.TimeRangeToday, 0, 5)
 		require.NoError(t, err)
 
 		for i, channel := range topChannels.Items {
@@ -4601,18 +4601,18 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 			assert.Equal(t, expectedTopChannels[i].MessageCount, channel.MessageCount)
 		}
 
-		topChannels, _, err = client.GetTopChannelsForTeamSince(teamId, "1_day", 1, 5)
+		topChannels, _, err = client.GetTopChannelsForTeamSince(teamId, model.TimeRangeToday, 1, 5)
 		require.NoError(t, err)
 		assert.Equal(t, channel6.Id, topChannels.Items[0].ID)
 		assert.Equal(t, int64(1), topChannels.Items[0].MessageCount)
 	})
 
 	t.Run("get-top-channels-for-team-since invalid team id", func(t *testing.T) {
-		_, resp, err := client.GetTopChannelsForTeamSince("12345", "1_day", 0, 5)
+		_, resp, err := client.GetTopChannelsForTeamSince("12345", model.TimeRangeToday, 0, 5)
 		assert.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		_, resp, err = client.GetTopChannelsForTeamSince(model.NewId(), "1_day", 0, 5)
+		_, resp, err = client.GetTopChannelsForTeamSince(model.NewId(), model.TimeRangeToday, 0, 5)
 		assert.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
