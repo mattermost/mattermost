@@ -226,6 +226,32 @@ func (es *Service) SendWelcomeEmail(userID string, email string, verified bool, 
 	return nil
 }
 
+func (es *Service) SendCloudUpgradeConfirmationEmail(userEmail, name, trialEndDate, locale, siteURL string, workspaceName string) error {
+	T := i18n.GetUserTranslations(locale)
+	subject := T("api.templates.cloud_upgrade_confirmation.subject")
+
+	data := es.NewEmailTemplateData(locale)
+	data.Props["Title"] = T("api.templates.cloud_upgrade_confirmation.title")
+	data.Props["SubTitle"] = T("api.templates.cloud_upgrade_confirmation.subtitle", map[string]interface{}{"WorkspaceName": workspaceName, "TrialEnd": trialEndDate})
+	data.Props["SiteURL"] = siteURL
+	data.Props["ButtonURL"] = fmt.Sprintf("%s", siteURL)
+	data.Props["Button"] = T("api.templates.cloud_welcome_email.button")
+	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
+	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
+	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
+
+	body, err := es.templatesContainer.RenderToString("cloud_upgrade_confirmation", data)
+	if err != nil {
+		return err
+	}
+
+	if err := es.sendEmailWithCustomReplyTo(userEmail, subject, body, *es.config().SupportSettings.SupportEmail); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (es *Service) SendCloudTrialEndWarningEmail(userEmail, name, trialEndDate, locale, siteURL string) error {
 	T := i18n.GetUserTranslations(locale)
 	subject := T("api.templates.cloud_trial_ending_email.subject")

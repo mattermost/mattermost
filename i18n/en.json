@@ -3124,12 +3124,24 @@
     "translation": "Mattermost cloud trial ending"
   },
   {
+    "id": "api.templates.cloud_upgrade_confirmation.subject",
+    "translation": "Mattermost Upgrade Confirmation"
+  },
+  {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
     "translation": "{{.Name}}, your 14-day trial of Mattermost is ending in 3 days, on {{.TrialEnd}}. Please add your payment information to ensure your team can continue enjoying the benefits of Mattermost Cloud."
   },
   {
+    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
+    "translation": "Your {{.WorkspaceName}} workspace has now been upgraded. {{.TrialEnd}}, you will be charged based on the number of enabled users."
+  },
+  {
     "id": "api.templates.cloud_trial_ending_email.title",
     "translation": "Your free 14-day trial of Mattermost is ending soon"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "You are now upgraded!"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
