@@ -381,3 +381,19 @@ func (ds *DatabaseStore) String() string {
 func (ds *DatabaseStore) Close() error {
 	return ds.db.Close()
 }
+
+// removes configurations from database if they are outdated
+func (ds *DatabaseStore) cleanUp() error {
+	var err error
+	switch ds.driverName {
+	case model.DatabaseDriverMysql:
+		_, err = ds.db.Exec("DELETE FROM Configurations WHERE CreateAt < UNIX_TIMESTAMP(NOW()- INTERVAL 30 DAY)*1000")
+	case model.DatabaseDriverPostgres:
+		_, err = ds.db.Exec("DELETE FROM Configurations WHERE CreateAt < (SELECT(extract(epoch FROM now() - interval '30 days') * 1000)::bigint)")
+	}
+	if err != nil {
+		return errors.Wrap(err, "unable to clean Configurations table")
+	}
+
+	return nil
+}

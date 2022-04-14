@@ -27,6 +27,7 @@ const (
 	JobTypeCloud                        = "cloud"
 	JobTypeResendInvitationEmail        = "resend_invitation_email"
 	JobTypeExtractContent               = "extract_content"
+	JobTypeCleanupOldConfigurations     = "cleanup_old_configurations"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
@@ -55,6 +56,7 @@ var AllJobTypes = [...]string{
 	JobTypeExportDelete,
 	JobTypeCloud,
 	JobTypeExtractContent,
+	JobTypeCleanupOldConfigurations,
 }
 
 type Job struct {
