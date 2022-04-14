@@ -402,7 +402,8 @@ func (s *Store) IsReadOnly() bool {
 func (s *Store) CleanUp() error {
 	switch bs := s.backingStore.(type) {
 	case *DatabaseStore:
-		return bs.cleanUp()
+		ts := *s.config.JobSettings.CleanupConfigThresholdDays
+		return bs.cleanUp(ts)
 	default:
 		return nil
 	}

@@ -47,7 +47,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/jobs/active_users"
-	"github.com/mattermost/mattermost-server/v6/jobs/config_cleanup"
 	"github.com/mattermost/mattermost-server/v6/jobs/expirynotify"
 	"github.com/mattermost/mattermost-server/v6/jobs/export_delete"
 	"github.com/mattermost/mattermost-server/v6/jobs/export_process"
@@ -733,6 +732,9 @@ func (s *Server) runJobs() {
 	})
 	s.Go(func() {
 		runCommandWebhookCleanupJob(s)
+	})
+	s.Go(func() {
+		runConfigCleanupJob(s)
 	})
 
 	if complianceI := s.Channels().Compliance; complianceI != nil {
@@ -1507,6 +1509,13 @@ func runJobsCleanupJob(s *Server) {
 	}, time.Hour*24)
 }
 
+func runConfigCleanupJob(s *Server) {
+	doConfigCleanup(s)
+	model.CreateRecurringTask("Configuration Cleanup", func() {
+		doConfigCleanup(s)
+	}, time.Hour*24)
+}
+
 func (s *Server) runInactivityCheckJob() {
 	model.CreateRecurringTask("Server inactivity Check", func() {
 		s.doInactivityCheck()
@@ -1578,6 +1587,17 @@ func doJobsCleanup(s *Server) {
 	err := s.Store.Job().Cleanup(expiry, jobsCleanupBatchSize)
 	if err != nil {
 		mlog.Warn("Error while cleaning up jobs", mlog.Err(err))
+	}
+}
+
+func doConfigCleanup(s *Server) {
+	if *s.Config().JobSettings.CleanupConfigThresholdDays < 0 || strings.HasPrefix(s.ConfigStore().Store.String(), "file://") {
+		return
+	}
+	mlog.Info("Cleaning up configuration store.")
+
+	if err := s.ConfigStore().Store.CleanUp(); err != nil {
+		mlog.Warn("Error while cleaning up configurations", mlog.Err(err))
 	}
 }
 
@@ -2004,12 +2024,6 @@ func (s *Server) initJobs() {
 		model.JobTypeExtractContent,
 		extract_content.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store),
 		nil,
-	)
-
-	s.Jobs.RegisterJobType(
-		model.JobTypeCleanupOldConfigurations,
-		config_cleanup.MakeWorker(s.Jobs, s.ConfigStore().Store),
-		config_cleanup.MakeScheduler(s.Jobs, s.ConfigStore().Store),
 	)
 }
 

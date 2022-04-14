@@ -97,8 +97,7 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 		model.JobTypeExportProcess,
 		model.JobTypeExportDelete,
 		model.JobTypeCloud,
-		model.JobTypeExtractContent,
-		model.JobTypeCleanupOldConfigurations:
+		model.JobTypeExtractContent:
 		return a.SessionHasPermissionTo(session, model.PermissionManageJobs), model.PermissionManageJobs
 	}
 
@@ -129,8 +128,7 @@ func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType strin
 		model.JobTypeExportProcess,
 		model.JobTypeExportDelete,
 		model.JobTypeCloud,
-		model.JobTypeExtractContent,
-		model.JobTypeCleanupOldConfigurations:
+		model.JobTypeExtractContent:
 		return a.SessionHasPermissionTo(session, model.PermissionReadJobs), model.PermissionReadJobs
 	}
 

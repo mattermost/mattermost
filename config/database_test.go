@@ -1129,10 +1129,12 @@ func TestCleanUp(t *testing.T) {
 	b, err := marshalConfig(ds.config)
 	require.NoError(t, err)
 
+	ds.config.JobSettings.CleanupConfigThresholdDays = model.NewInt(31) // we set 30 days as treshold
+
 	now := time.Now()
 	for i := 0; i < 5; i++ {
 		// 20 days, we expect to remove at least 3 configuration values from the store
-		// first 2 (0 and 1) will be within a month contraint, others will be older than
+		// first 2 (0 and 1) will be within a month constraint, others will be older than
 		// a month hence we expect 3 configurations to be removed from the database.
 		m := -1 * i * 24 * 20
 		params := map[string]interface{}{
