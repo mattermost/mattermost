@@ -233,7 +233,10 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 	var oldValue string
 	var row *sql.Row
 	if ds.driverName == model.DatabaseDriverMysql {
-		// mysql ignores active index
+		// We use a sub-query to get the Id first because selecting the Id column using
+		// active uses the index, but selecting SHA column using active does not use the index.
+		// The sub-query uses the active index, and then the top-level query uses the primary key.
+		// This takes 2 queries, but it is actually faster than one slow query for MySQL
 		row = ds.db.QueryRow("SELECT SHA FROM Configurations WHERE Id = (select Id from Configurations Where Active)")
 	} else {
 		row = ds.db.QueryRow("SELECT SHA FROM Configurations WHERE Active")
