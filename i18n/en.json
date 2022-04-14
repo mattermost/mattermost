@@ -1882,6 +1882,10 @@
     "translation": "Invalid username."
   },
   {
+    "id": "api.insights.feature_disabled",
+    "translation": " "
+  },
+  {
     "id": "api.invalid_channel",
     "translation": "Channel listed in the request doesn't belong to the user"
   },
@@ -5888,6 +5892,14 @@
     "translation": "Unable to get reactions for post."
   },
   {
+    "id": "app.reaction.get_top_for_team_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.reaction.get_top_for_user_since.app_error",
+    "translation": " "
+  },
+  {
     "id": "app.reaction.save.save.app_error",
     "translation": "Unable to save reaction."
   },
@@ -8450,6 +8462,10 @@
   {
     "id": "model.incoming_hook.username.app_error",
     "translation": "Invalid username."
+  },
+  {
+    "id": "model.insights.time_range.app_error",
+    "translation": " "
   },
   {
     "id": "model.job.is_valid.create_at.app_error",
