@@ -364,7 +364,7 @@ func getDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", 24*60*60)) // 24 hrs
+	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", model.DayInSeconds)) // 24 hrs
 	w.Header().Set("Content-Type", "image/png")
 	w.Write(img)
 }
@@ -406,7 +406,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	if readFailed {
 		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", 5*60)) // 5 mins
 	} else {
-		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", 24*60*60)) // 24 hrs
+		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", model.DayInSeconds)) // 24 hrs
 		w.Header().Set(model.HeaderEtagServer, etag)
 	}
 
@@ -1429,15 +1429,15 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("active", active)
 
 	// true when you're trying to de-activate yourself
-	isSelfDeactive := !active && c.Params.UserId == c.AppContext.Session().UserId
+	isSelfDeactivate := !active && c.Params.UserId == c.AppContext.Session().UserId
 
-	if !isSelfDeactive && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementUsers) {
+	if !isSelfDeactivate && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementUsers) {
 		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.permissions.app_error", nil, "userId="+c.Params.UserId, http.StatusForbidden)
 		return
 	}
 
 	// if EnableUserDeactivation flag is disabled the user cannot deactivate himself.
-	if isSelfDeactive && !*c.App.Config().TeamSettings.EnableUserDeactivation {
+	if isSelfDeactivate && !*c.App.Config().TeamSettings.EnableUserDeactivation {
 		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.not_enable.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
 		return
 	}
@@ -1466,7 +1466,7 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit(fmt.Sprintf("user_id=%s active=%v", user.Id, active))
 
-	if isSelfDeactive {
+	if isSelfDeactivate {
 		c.App.Srv().Go(func() {
 			if err := c.App.Srv().EmailService.SendDeactivateAccountEmail(user.Email, user.Locale, c.App.GetSiteURL()); err != nil {
 				c.LogErrorByCode(model.NewAppError("SendDeactivateEmail", "api.user.send_deactivate_email_and_forget.failed.error", nil, err.Error(), http.StatusInternalServerError))
@@ -3008,14 +3008,15 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	options := model.GetUserThreadsOpts{
-		Since:      0,
-		Before:     "",
-		After:      "",
-		PageSize:   uint64(c.Params.PerPage),
-		Unread:     false,
-		Extended:   false,
-		Deleted:    false,
-		TotalsOnly: false,
+		Since:       0,
+		Before:      "",
+		After:       "",
+		PageSize:    uint64(c.Params.PerPage),
+		Unread:      false,
+		Extended:    false,
+		Deleted:     false,
+		TotalsOnly:  false,
+		ThreadsOnly: false,
 	}
 
 	sinceString := r.URL.Query().Get("since")
@@ -3030,21 +3031,30 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	options.Before = r.URL.Query().Get("before")
 	options.After = r.URL.Query().Get("after")
+	totalsOnlyStr := r.URL.Query().Get("totalsOnly")
+	threadsOnlyStr := r.URL.Query().Get("threadsOnly")
+	options.TotalsOnly, _ = strconv.ParseBool(totalsOnlyStr)
+	options.ThreadsOnly, _ = strconv.ParseBool(threadsOnlyStr)
+
 	// parameters are mutually exclusive
 	if options.Before != "" && options.After != "" {
 		c.Err = model.NewAppError("api.getThreadsForUser", "api.getThreadsForUser.bad_params", nil, "", http.StatusBadRequest)
 		return
 	}
 
+	// parameters are mutually exclusive
+	if options.TotalsOnly && options.ThreadsOnly {
+		c.Err = model.NewAppError("api.getThreadsForUser", "api.getThreadsForUser.bad_only_params", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	deletedStr := r.URL.Query().Get("deleted")
 	unreadStr := r.URL.Query().Get("unread")
 	extendedStr := r.URL.Query().Get("extended")
-	totalsOnlyStr := r.URL.Query().Get("totalsOnly")
 
 	options.Deleted, _ = strconv.ParseBool(deletedStr)
 	options.Unread, _ = strconv.ParseBool(unreadStr)
 	options.Extended, _ = strconv.ParseBool(extendedStr)
-	options.TotalsOnly, _ = strconv.ParseBool(totalsOnlyStr)
 
 	threads, err := c.App.GetThreadsForUser(c.Params.UserId, c.Params.TeamId, options)
 	if err != nil {

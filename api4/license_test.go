@@ -38,8 +38,8 @@ func TestGetOldClientLicense(t *testing.T) {
 
 	resp, err := client.DoAPIGet("/license/client", "")
 	require.Error(t, err, "get /license/client did not return an error")
-	require.Equal(t, http.StatusNotImplemented, resp.StatusCode,
-		"expected 501 Not Implemented")
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode,
+		"expected 400 bad request")
 
 	resp, err = client.DoAPIGet("/license/client?format=junk", "")
 	require.Error(t, err, "get /license/client?format=junk did not return an error")
@@ -253,6 +253,36 @@ func TestRequestTrialLicense(t *testing.T) {
 		resp, err := th.SystemAdminClient.RequestTrialLicense(nUsers)
 		CheckErrorID(t, err, "api.license.add_license.unique_users.app_error")
 		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("returns status 451 when it receives status 451", func(t *testing.T) {
+		nUsers := 1
+		license := model.NewTestLicense()
+		license.Features.Users = model.NewInt(nUsers)
+		licenseJSON, jsonErr := json.Marshal(license)
+		require.NoError(t, jsonErr)
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			res.WriteHeader(http.StatusUnavailableForLegalReasons)
+		}))
+		defer testServer.Close()
+
+		mockLicenseValidator := mocks2.LicenseValidatorIface{}
+		defer testutils.ResetLicenseValidator()
+
+		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, string(licenseJSON))
+		utils.LicenseValidator = &mockLicenseValidator
+		licenseManagerMock := &mocks.LicenseInterface{}
+		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
+		th.App.Srv().LicenseManager = licenseManagerMock
+
+		defer func(requestTrialURL string) {
+			app.RequestTrialURL = requestTrialURL
+		}(app.RequestTrialURL)
+		app.RequestTrialURL = testServer.URL
+
+		resp, err := th.SystemAdminClient.RequestTrialLicense(nUsers)
+		require.Error(t, err)
+		require.Equal(t, resp.StatusCode, 451)
 	})
 
 	th.App.Srv().LicenseManager = nil

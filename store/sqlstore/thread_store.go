@@ -358,12 +358,13 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) 
 	go func() {
 		defer wg.Done()
 		repliesQuery, repliesQueryArgs, err := s.getQueryBuilder().
-			Select("COUNT(DISTINCT(Posts.RootId)) AS Count, TeamId").
-			From("Posts").
-			LeftJoin("ThreadMemberships ON Posts.RootId = ThreadMemberships.PostId").
-			LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
+			Select("COUNT(Threads.PostId) AS Count, TeamId").
+			From("Threads").
+			LeftJoin("ThreadMemberships ON Threads.PostId = ThreadMemberships.PostId").
+			LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
+			LeftJoin("Posts ON Posts.Id = Threads.PostId").
 			Where(fetchConditions).
-			Where("Posts.CreateAt > ThreadMemberships.LastViewed").
+			Where("Threads.LastReplyAt > ThreadMemberships.LastViewed").
 			GroupBy("Channels.TeamId").
 			ToSql()
 		if err != nil {
@@ -571,36 +572,28 @@ func (s *SqlThreadStore) MarkAllAsReadByChannels(userID string, channelIDs []str
 
 	now := model.GetMillis()
 
-	// TODO: Fork squirrel to include https://github.com/Masterminds/squirrel/pull/256 and
-	// support FROM in an UPDATE query.
-	channelIDsSql, channelIDsArgs := constructArrayArgs(channelIDs)
-
-	var query string
+	var query sq.UpdateBuilder
 	if s.DriverName() == model.DatabaseDriverPostgres {
-		query = `
-			UPDATE ThreadMemberships
-			SET LastViewed = ?, UnreadMentions = ?, LastUpdated = ?
-			FROM Threads
-			WHERE ThreadMemberships.UserId = ?
-			AND Threads.PostId = ThreadMemberships.PostId
-			AND Threads.ChannelID IN ` + channelIDsSql + `
-			AND Threads.LastReplyAt > ThreadMemberships.LastViewed
-		`
+		query = s.getQueryBuilder().Update("ThreadMemberships").From("Threads")
+
 	} else {
-		query = `
-			UPDATE ThreadMemberships, Threads
-			SET ThreadMemberships.LastViewed = ?, ThreadMemberships.UnreadMentions = ?, ThreadMemberships.LastUpdated = ?
-			WHERE ThreadMemberships.UserId = ?
-			AND Threads.PostId = ThreadMemberships.PostId
-			AND Threads.ChannelID IN ` + channelIDsSql + `
-			AND Threads.LastReplyAt > ThreadMemberships.LastViewed
-		`
+		query = s.getQueryBuilder().Update("ThreadMemberships", "Threads")
 	}
 
-	args := []interface{}{now, 0, now, userID}
-	args = append(args, channelIDsArgs...)
+	query = query.Set("LastViewed", now).
+		Set("UnreadMentions", 0).
+		Set("LastUpdated", now).
+		Where(sq.Eq{"ThreadMemberships.UserId": userID}).
+		Where(sq.Expr("Threads.PostId = ThreadMemberships.PostId")).
+		Where(sq.Eq{"Threads.ChannelId": channelIDs}).
+		Where(sq.Expr("Threads.LastReplyAt > ThreadMemberships.LastViewed"))
 
-	if _, err := s.GetMasterX().Exec(query, args...); err != nil {
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return errors.Wrapf(err, "failed to build query to mark all as read by %d channels for user id=%s", len(channelIDs), userID)
+	}
+
+	if _, err := s.GetMasterX().Exec(sql, args...); err != nil {
 		return errors.Wrapf(err, "failed to mark all threads as read by channels for user id=%s", userID)
 	}
 
@@ -897,7 +890,7 @@ func (s *SqlThreadStore) GetPosts(threadId string, since int64) ([]*model.Post, 
 		From("Posts").
 		Where(sq.Eq{"RootId": threadId}).
 		Where(sq.Eq{"DeleteAt": 0}).
-		Where(sq.GtOrEq{"UpdateAt": since}).ToSql()
+		Where(sq.GtOrEq{"CreateAt": since}).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to build query to fetch thread posts")
 	}

@@ -2638,6 +2638,30 @@ func (c *Client4) InviteGuestsToTeam(teamId string, userEmails []string, channel
 // InviteUsersToTeam invite users by email to the team.
 func (c *Client4) InviteUsersToTeamGracefully(teamId string, userEmails []string) ([]*EmailInviteWithError, *Response, error) {
 	r, err := c.DoAPIPost(c.teamRoute(teamId)+"/invite/email?graceful="+c.boolString(true), ArrayToJSON(userEmails))
+
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list []*EmailInviteWithError
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("InviteUsersToTeamGracefully", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
+}
+
+// InviteUsersToTeam invite users by email to the team.
+func (c *Client4) InviteUsersToTeamAndChannelsGracefully(teamId string, userEmails []string, channelIds []string, message string) ([]*EmailInviteWithError, *Response, error) {
+	memberInvite := MemberInvite{
+		Emails:     userEmails,
+		ChannelIds: channelIds,
+		Message:    message,
+	}
+	buf, err := json.Marshal(memberInvite)
+	if err != nil {
+		return nil, nil, NewAppError("InviteMembersToTeamAndChannels", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.DoAPIPostBytes(c.teamRoute(teamId)+"/invite/email?graceful="+c.boolString(true), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6472,6 +6496,39 @@ func (c *Client4) GetBulkReactions(postIds []string) (map[string][]*Reaction, *R
 	return reactions, BuildResponse(r), nil
 }
 
+func (c *Client4) GetTopReactionsForTeamSince(teamId string, timeRange string, page int, perPage int) (*TopReactionList, *Response, error) {
+	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
+	r, err := c.DoAPIGet(c.teamRoute(teamId)+"/top/reactions"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var topReactions *TopReactionList
+	if jsonErr := json.NewDecoder(r.Body).Decode(&topReactions); jsonErr != nil {
+		return nil, nil, NewAppError("GetTopReactionsForTeamSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return topReactions, BuildResponse(r), nil
+}
+
+func (c *Client4) GetTopReactionsForUserSince(teamId string, timeRange string, page int, perPage int) (*TopReactionList, *Response, error) {
+	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
+
+	if teamId != "" {
+		query += fmt.Sprintf("&team_id=%v", teamId)
+	}
+
+	r, err := c.DoAPIGet(c.usersRoute()+"/me/top/reactions"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var topReactions *TopReactionList
+	if jsonErr := json.NewDecoder(r.Body).Decode(&topReactions); jsonErr != nil {
+		return nil, nil, NewAppError("GetTopReactionsForUserSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return topReactions, BuildResponse(r), nil
+}
+
 // Timezone Section
 
 // GetSupportedTimezone returns a page of supported timezones on the system.
@@ -7812,6 +7869,12 @@ func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOp
 	}
 	if options.Unread {
 		v.Set("unread", "true")
+	}
+	if options.ThreadsOnly {
+		v.Set("threadsOnly", "true")
+	}
+	if options.TotalsOnly {
+		v.Set("totalsOnly", "true")
 	}
 	url := c.userThreadsRoute(userId, teamId)
 	if len(v) > 0 {

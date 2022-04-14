@@ -170,6 +170,9 @@ type Config struct {
 	//
 	// For example S3's X-Amz-Meta prefixed header will be unmarshaled to lower case
 	// Metadata member's map keys. The value of the header in the map is unaffected.
+	//
+	// The AWS SDK for Go v2, uses lower case header maps by default. The v1
+	// SDK provides this opt-in for this option, for backwards compatibility.
 	LowerCaseHeaderMaps *bool
 
 	// Set this to `true` to disable the EC2Metadata client from overriding the

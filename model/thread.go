@@ -67,6 +67,9 @@ type GetUserThreadsOpts struct {
 	// TotalsOnly will not fetch any threads and just fetch the total counts
 	TotalsOnly bool
 
+	// ThreadsOnly will fetch threads but not calculate totals and will return 0
+	ThreadsOnly bool
+
 	// TeamOnly will only fetch threads and unreads for the specified team and excludes DMs/GMs
 	TeamOnly bool
 }

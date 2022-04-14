@@ -48,6 +48,13 @@ func (s *linkLabelState) Kind() ast.NodeKind {
 	return kindLinkLabelState
 }
 
+func linkLabelStateLength(v *linkLabelState) int {
+	if v == nil || v.Last == nil || v.First == nil {
+		return 0
+	}
+	return v.Last.Segment.Stop - v.First.Segment.Start
+}
+
 func pushLinkLabelState(pc Context, v *linkLabelState) {
 	tlist := pc.Get(linkLabelStateKey)
 	var list *linkLabelState
@@ -140,6 +147,13 @@ func (s *linkParser) Parse(parent ast.Node, block text.Reader, pc Context) ast.N
 	}
 	block.Advance(1)
 	removeLinkLabelState(pc, last)
+	// CommonMark spec says:
+	//  > A link label can have at most 999 characters inside the square brackets.
+	if linkLabelStateLength(tlist.(*linkLabelState)) > 998 {
+		ast.MergeOrReplaceTextSegment(last.Parent(), last, last.Segment)
+		return nil
+	}
+
 	if !last.IsImage && s.containsLink(last) { // a link in a link text is not allowed
 		ast.MergeOrReplaceTextSegment(last.Parent(), last, last.Segment)
 		return nil
@@ -164,6 +178,13 @@ func (s *linkParser) Parse(parent ast.Node, block text.Reader, pc Context) ast.N
 		block.SetPosition(l, pos)
 		ssegment := text.NewSegment(last.Segment.Stop, segment.Start)
 		maybeReference := block.Value(ssegment)
+		// CommonMark spec says:
+		//  > A link label can have at most 999 characters inside the square brackets.
+		if len(maybeReference) > 999 {
+			ast.MergeOrReplaceTextSegment(last.Parent(), last, last.Segment)
+			return nil
+		}
+
 		ref, ok := pc.Reference(util.ToLinkReference(maybeReference))
 		if !ok {
 			ast.MergeOrReplaceTextSegment(last.Parent(), last, last.Segment)
@@ -250,6 +271,11 @@ func (s *linkParser) parseReferenceLink(parent ast.Node, last *linkLabelState, b
 	if util.IsBlank(maybeReference) { // collapsed reference link
 		s := text.NewSegment(last.Segment.Stop, orgpos.Start-1)
 		maybeReference = block.Value(s)
+	}
+	// CommonMark spec says:
+	//  > A link label can have at most 999 characters inside the square brackets.
+	if len(maybeReference) > 999 {
+		return nil, true
 	}
 
 	ref, ok := pc.Reference(util.ToLinkReference(maybeReference))
@@ -369,6 +395,7 @@ func parseLinkTitle(block text.Reader) ([]byte, bool) {
 }
 
 func (s *linkParser) CloseBlock(parent ast.Node, block text.Reader, pc Context) {
+	pc.Set(linkBottom, nil)
 	tlist := pc.Get(linkLabelStateKey)
 	if tlist == nil {
 		return

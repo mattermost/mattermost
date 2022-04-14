@@ -123,13 +123,14 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.26.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.26.2
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.5.0
 PLUGIN_PACKAGES += focalboard-v0.15.0
+PLUGIN_PACKAGES += mattermost-plugin-apps-v1.0.1
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -274,12 +275,12 @@ i18n-check: ## Exit on empty translation strings and translation source strings
 	$(GOBIN)/mmgotool i18n check-empty-src --portal-dir=""
 
 store-mocks: ## Creates mock files.
-	$(GO) install github.com/vektra/mockery/...@v1.1.2
-	$(GOBIN)/mockery -dir store -name ".*Store" -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
+	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
+	$(GOBIN)/mockery --dir store --name ".*Store" --output store/storetest/mocks --note 'Regenerate this file using `make store-mocks`.'
 
 telemetry-mocks: ## Creates mock files.
-	$(GO) install github.com/vektra/mockery/...@v1.1.2
-	$(GOBIN)/mockery -dir services/telemetry -all -output services/telemetry/mocks -note 'Regenerate this file using `make telemetry-mocks`.'
+	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
+	$(GOBIN)/mockery --dir services/telemetry --all --output services/telemetry/mocks --note 'Regenerate this file using `make telemetry-mocks`.'
 
 store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./store
@@ -297,39 +298,39 @@ new-migration: migration-prereqs ## Creates a new migration
 	@echo "When you are done writing your migration, run 'make migrations-bindata'"
 
 filestore-mocks: ## Creates mock files.
-	$(GO) install github.com/vektra/mockery/...@v1.1.2
-	$(GOBIN)/mockery -dir shared/filestore -all -output shared/filestore/mocks -note 'Regenerate this file using `make filestore-mocks`.'
+	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
+	$(GOBIN)/mockery --dir shared/filestore --all --output shared/filestore/mocks --note 'Regenerate this file using `make filestore-mocks`.'
 
 ldap-mocks: ## Creates mock files for ldap.
-	$(GO) install github.com/vektra/mockery/...@v1.1.2
-	$(GOBIN)/mockery -dir enterprise/ldap -all -output enterprise/ldap/mocks -note 'Regenerate this file using `make ldap-mocks`.'
+	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
+	$(GOBIN)/mockery --dir enterprise/ldap --all --output enterprise/ldap/mocks --note 'Regenerate this file using `make ldap-mocks`.'
 
 plugin-mocks: ## Creates mock files for plugins.
-	$(GO) install github.com/vektra/mockery/...@v1.1.2
-	$(GOBIN)/mockery -dir plugin -name API -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
-	$(GOBIN)/mockery -dir plugin -name Hooks -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
-	$(GOBIN)/mockery -dir plugin -name Driver -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
+	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
+	$(GOBIN)/mockery --dir plugin --name API --output plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
+	$(GOBIN)/mockery --dir plugin --name Hooks --output plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
+	$(GOBIN)/mockery --dir plugin --name Driver --output plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
 
 einterfaces-mocks: ## Creates mock files for einterfaces.
-	$(GO) install github.com/vektra/mockery/...@v1.1.2
-	$(GOBIN)/mockery -dir einterfaces -all -output einterfaces/mocks -note 'Regenerate this file using `make einterfaces-mocks`.'
+	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
+	$(GOBIN)/mockery --dir einterfaces --all --output einterfaces/mocks --note 'Regenerate this file using `make einterfaces-mocks`.'
 
 searchengine-mocks: ## Creates mock files for searchengines.
-	$(GO) install github.com/vektra/mockery/...@v1.1.2
-	$(GOBIN)/mockery -dir services/searchengine -all -output services/searchengine/mocks -note 'Regenerate this file using `make searchengine-mocks`.'
+	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
+	$(GOBIN)/mockery --dir services/searchengine --all --output services/searchengine/mocks --note 'Regenerate this file using `make searchengine-mocks`.'
 
 sharedchannel-mocks: ## Creates mock files for shared channels.
-	$(GO) install github.com/vektra/mockery/...@v1.1.2
-	$(GOBIN)/mockery -dir=./services/sharedchannel -name=ServerIface -output=./services/sharedchannel -inpkg -outpkg=sharedchannel -testonly -note 'Regenerate this file using `make sharedchannel-mocks`.'
-	$(GOBIN)/mockery -dir=./services/sharedchannel -name=AppIface -output=./services/sharedchannel -inpkg -outpkg=sharedchannel -testonly -note 'Regenerate this file using `make sharedchannel-mocks`.'
+	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
+	$(GOBIN)/mockery --dir=./services/sharedchannel --name=ServerIface --output=./services/sharedchannel --inpackage --outpkg=sharedchannel --testonly --note 'Regenerate this file using `make sharedchannel-mocks`.'
+	$(GOBIN)/mockery --dir=./services/sharedchannel --name=AppIface --output=./services/sharedchannel --inpackage --outpkg=sharedchannel --testonly --note 'Regenerate this file using `make sharedchannel-mocks`.'
 
 misc-mocks: ## Creates mocks for misc interfaces.
-	$(GO) install github.com/vektra/mockery/...@v1.1.2
-	$(GOBIN)/mockery -dir utils --name LicenseValidatorIface -output utils/mocks -note 'Regenerate this file using `make misc-mocks`.'
+	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
+	$(GOBIN)/mockery --dir utils --name LicenseValidatorIface --output utils/mocks --note 'Regenerate this file using `make misc-mocks`.'
 
 email-mocks: ## Creates mocks for misc interfaces.
-	$(GO) install github.com/vektra/mockery/...@v1.1.2
-	$(GOBIN)/mockery -dir app/email --name ServiceInterface -output app/email/mocks -note 'Regenerate this file using `make email-mocks`.'
+	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
+	$(GOBIN)/mockery --dir app/email --name ServiceInterface --output app/email/mocks --note 'Regenerate this file using `make email-mocks`.'
 
 pluginapi: ## Generates api and hooks glue code for plugins
 	$(GO) generate $(GOFLAGS) ./plugin
@@ -349,7 +350,7 @@ do-cover-file: ## Creates the test coverage report file.
 	@echo "mode: count" > cover.out
 
 go-junit-report:
-	$(GO) install github.com/jstemmer/go-junit-report@v0.9.1
+	$(GO) install github.com/jstemmer/go-junit-report@v1.0.0
 
 test-compile: ## Compile tests.
 	@echo COMPILE TESTS

@@ -252,6 +252,12 @@ func (o *Team) IsGroupConstrained() bool {
 	return o.GroupConstrained != nil && *o.GroupConstrained
 }
 
+// ShallowCopy returns a shallow copy of team.
+func (o *Team) ShallowCopy() *Team {
+	c := *o
+	return &c
+}
+
 // The following are some GraphQL methods necessary to return the
 // data in float64 type. The spec doesn't support 64 bit integers,
 // so we have to pass the data in float64. The _ at the end is

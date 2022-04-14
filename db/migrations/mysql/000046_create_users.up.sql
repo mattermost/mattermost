@@ -147,9 +147,9 @@ SET @preparedStatement = (SELECT IF(
     'SELECT 1'
 ));
 
-PREPARE updateIfMissmatch FROM @preparedStatement;
-EXECUTE updateIfMissmatch;
-DEALLOCATE PREPARE updateIfMissmatch;
+PREPARE updateIfMismatch FROM @preparedStatement;
+EXECUTE updateIfMismatch;
+DEALLOCATE PREPARE updateIfMismatch;
 
 SET @preparedStatement = (SELECT IF(
     (

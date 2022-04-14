@@ -374,6 +374,17 @@ func (c *Context) RequireTimestamp() *Context {
 	return c
 }
 
+func (c *Context) RequireTimeRange() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if c.Params.TimeRange == 0 {
+		c.SetInvalidURLParam("time_range")
+	}
+	return c
+}
+
 func (c *Context) RequireChannelId() *Context {
 	if c.Err != nil {
 		return c
