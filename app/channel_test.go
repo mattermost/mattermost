@@ -2547,7 +2547,7 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 
 	timeRange, _ := model.GetStartUnixMilliForTimeRange(model.TimeRangeToday)
 
-	t.Run("get-top-channels-for-team-since", func(t *testing.T) {
+	t.Run("get-top-channels-for-user-since", func(t *testing.T) {
 		topChannels, err := th.App.GetTopChannelsForUserSince(th.BasicUser.Id, "", &model.InsightsOpts{StartUnixMilli: timeRange, Page: 0, PerPage: 5})
 		require.Nil(t, err)
 

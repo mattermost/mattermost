@@ -4660,7 +4660,7 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 		{ID: channel5.Id, MessageCount: 2},
 	}
 
-	t.Run("get-top-channels-for-team-since", func(t *testing.T) {
+	t.Run("get-top-channels-for-user-since", func(t *testing.T) {
 		topChannels, _, err := client.GetTopChannelsForUserSince(teamId, model.TimeRangeToday, 0, 5)
 		require.NoError(t, err)
 
@@ -4675,7 +4675,7 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 		assert.Equal(t, int64(1), topChannels.Items[0].MessageCount)
 	})
 
-	t.Run("get-top-channels-for-team-since invalid team id", func(t *testing.T) {
+	t.Run("get-top-channels-for-user-since invalid team id", func(t *testing.T) {
 		_, resp, err := client.GetTopChannelsForUserSince("12345", model.TimeRangeToday, 0, 5)
 		assert.Error(t, err)
 		CheckBadRequestStatus(t, resp)
