@@ -282,7 +282,7 @@ func (s *SqlReactionStore) GetTopForTeamSince(teamID string, userID string, sinc
 		return nil, errors.Wrap(err, "failed to get top Reactions")
 	}
 
-	return model.GetTopReactionListWithRankAndPagination(reactions, limit, offset), nil
+	return model.GetTopReactionListWithPagination(reactions, limit), nil
 }
 
 // GetTopForUserSince returns the instance counts of the following Reactions sets:
@@ -340,7 +340,7 @@ func (s *SqlReactionStore) GetTopForUserSince(userID string, teamID string, sinc
 		return nil, errors.Wrap(err, "failed to get top Reactions")
 	}
 
-	return model.GetTopReactionListWithRankAndPagination(reactions, limit, offset), nil
+	return model.GetTopReactionListWithPagination(reactions, limit), nil
 }
 
 func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *sqlxTxWrapper, reaction *model.Reaction) error {
