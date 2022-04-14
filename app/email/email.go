@@ -234,7 +234,7 @@ func (es *Service) SendCloudUpgradeConfirmationEmail(userEmail, name, trialEndDa
 	data.Props["Title"] = T("api.templates.cloud_upgrade_confirmation.title")
 	data.Props["SubTitle"] = T("api.templates.cloud_upgrade_confirmation.subtitle", map[string]interface{}{"WorkspaceName": workspaceName, "TrialEnd": trialEndDate})
 	data.Props["SiteURL"] = siteURL
-	data.Props["ButtonURL"] = fmt.Sprintf("%s", siteURL)
+	data.Props["ButtonURL"] = siteURL
 	data.Props["Button"] = T("api.templates.cloud_welcome_email.button")
 	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
 	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
