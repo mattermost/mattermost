@@ -4102,7 +4102,7 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 // a) those that are private channels in the given user's membership graph on the given team, and
 // b) those that are public channels in the given team.
 func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopChannelList, error) {
-	var channels []*model.TopChannel
+	channels := make([]*model.TopChannel, 0)
 	var args []interface{}
 	postgresPropQuery := `AND (Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false')`
 	mySqlPropsQuery := `AND (JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false')`
@@ -4200,7 +4200,7 @@ func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string
 // GetTopChannelsForUserSince returns the filtered post counts of channels with with posts created by the user
 // after the given timestamp within the given team (or across the workspace if no team is given). Excludes DM and GM channels.
 func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopChannelList, error) {
-	var channels []*model.TopChannel
+	channels := make([]*model.TopChannel, 0)
 	var args []interface{}
 	var query string
 
