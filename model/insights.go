@@ -50,16 +50,6 @@ type TopChannel struct {
 	MessageCount int64       `json:"message_count"`
 }
 
-type TopChannelByTimeList struct {
-	InsightsListData
-	Items []*TopChannelByTime `json:"items"`
-}
-
-type TopChannelByTime struct {
-	Date  string        `json:"time"`
-	Items []*TopChannel `json:"items"`
-}
-
 // GetStartUnixMilliForTimeRange gets the unix start time in milliseconds from the given time range.
 // Time range can be one of: "1_day", "7_day", or "28_day".
 func GetStartUnixMilliForTimeRange(timeRange string) (int64, *AppError) {
