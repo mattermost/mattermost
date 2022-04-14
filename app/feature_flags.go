@@ -36,7 +36,7 @@ func (s *Server) setupFeatureFlags() {
 	}
 }
 
-func (s *Server) updateFeatureFlagValuesFromManagment() {
+func (s *Server) updateFeatureFlagValuesFromManagement() {
 	newCfg := s.configStore.GetNoEnv().Clone()
 	oldFlags := *newCfg.FeatureFlags
 	newFlags := s.featureFlagSynchronizer.UpdateFeatureFlagValues(oldFlags)
@@ -94,13 +94,13 @@ func (s *Server) startFeatureFlagUpdateJob() error {
 			s.Log.Warn("Problem connecting to feature flag management. Will fallback to cloud cache.", mlog.Err(err))
 			return
 		}
-		s.updateFeatureFlagValuesFromManagment()
+		s.updateFeatureFlagValuesFromManagement()
 		for {
 			select {
 			case <-s.featureFlagStop:
 				return
 			case <-ticker.C:
-				s.updateFeatureFlagValuesFromManagment()
+				s.updateFeatureFlagValuesFromManagement()
 			}
 		}
 	}()

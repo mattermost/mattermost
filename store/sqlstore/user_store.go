@@ -224,7 +224,7 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 
 	user.Sanitize(map[string]bool{})
 	oldUser.Sanitize(map[string]bool{})
-	return &model.UserUpdate{New: user, Old: &oldUser}, nil
+	return &model.UserUpdate{New: user.DeepCopy(), Old: &oldUser}, nil
 }
 
 func (us SqlUserStore) UpdateNotifyProps(userID string, props map[string]string) error {

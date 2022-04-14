@@ -569,6 +569,7 @@ type AppIface interface {
 	GetChannelPinnedPostCount(channelID string) (int64, *model.AppError)
 	GetChannelPoliciesForUser(userID string, offset, limit int) (*model.RetentionPolicyForChannelList, *model.AppError)
 	GetChannelUnread(channelID, userID string) (*model.ChannelUnread, *model.AppError)
+	GetChannels(channelIDs []string) ([]*model.Channel, *model.AppError)
 	GetChannelsByNames(channelNames []string, teamID string) ([]*model.Channel, *model.AppError)
 	GetChannelsForRetentionPolicy(policyID string, offset, limit int) (*model.ChannelsWithCount, *model.AppError)
 	GetChannelsForScheme(scheme *model.Scheme, offset int, limit int) (model.ChannelList, *model.AppError)
@@ -741,6 +742,7 @@ type AppIface interface {
 	GetTeamPoliciesForUser(userID string, offset, limit int) (*model.RetentionPolicyForTeamList, *model.AppError)
 	GetTeamStats(teamID string, restrictions *model.ViewUsersRestrictions) (*model.TeamStats, *model.AppError)
 	GetTeamUnread(teamID, userID string) (*model.TeamUnread, *model.AppError)
+	GetTeams(teamIDs []string) ([]*model.Team, *model.AppError)
 	GetTeamsForRetentionPolicy(policyID string, offset, limit int) (*model.TeamsWithCount, *model.AppError)
 	GetTeamsForScheme(scheme *model.Scheme, offset int, limit int) ([]*model.Team, *model.AppError)
 	GetTeamsForSchemePage(scheme *model.Scheme, page int, perPage int) ([]*model.Team, *model.AppError)
@@ -817,7 +819,7 @@ type AppIface interface {
 	InviteGuestsToChannels(teamID string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError
 	InviteGuestsToChannelsGracefully(teamID string, guestsInvite *model.GuestsInvite, senderId string) ([]*model.EmailInviteWithError, *model.AppError)
 	InviteNewUsersToTeam(emailList []string, teamID, senderId string) *model.AppError
-	InviteNewUsersToTeamGracefully(emailList []string, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError)
+	InviteNewUsersToTeamGracefully(memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError)
 	IsCRTEnabledForUser(userID string) bool
 	IsFirstUserAccount() bool
 	IsLeader() bool

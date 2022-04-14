@@ -1720,6 +1720,10 @@ func (s *SqlGroupStore) GroupCount() (int64, error) {
 	return s.countTable("UserGroups")
 }
 
+func (s *SqlGroupStore) GroupCountBySource(source model.GroupSource) (int64, error) {
+	return s.countTableWithSelectAndWhere("COUNT(*)", "UserGroups", sq.Eq{"Source": source, "DeleteAt": 0})
+}
+
 func (s *SqlGroupStore) GroupTeamCount() (int64, error) {
 	return s.countTable("GroupTeams")
 }

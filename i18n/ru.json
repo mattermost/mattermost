@@ -3760,10 +3760,6 @@
     "translation": "Параметр Elasticsearch AggregatePostsAfterDays должен быть числом больше или равным 1."
   },
   {
-    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Окно времени массовой индексации Elasticsearch должно составлять не менее 1 секунды."
-  },
-  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
   },
@@ -5520,10 +5516,6 @@
     "translation": "Некорректное имя канала. Запрещено использовать идентификаторы пользователей в качестве имени канала (кроме каналов личных сообщений)."
   },
   {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Окно времени массовой индексации Bleve должно составлять не менее 1 секунды."
-  },
-  {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
     "translation": "Параметр Bleve EnableIndexing должен иметь значение true, если для Bleve EnableAutocomplete установлено значение true"
   },
@@ -6776,10 +6768,6 @@
     "translation": "Не удалось получить загрузки."
   },
   {
-    "id": "api.team.invite_members.limit_reached.app_error",
-    "translation": "Вы достигли лимита пользователей бесплатного уровня"
-  },
-  {
     "id": "api.system.update_notices.validating_failed",
     "translation": "Не удалось проверить условия уведомления о продукте"
   },
@@ -7536,10 +7524,6 @@
     "translation": "Невозможно записать csv-файл."
   },
   {
-    "id": "ent.cloud.subscription.error",
-    "translation": "Ошибка получения облачной подписки"
-  },
-  {
     "id": "ent.actiance.export.write_file.appError",
     "translation": "Не удалось записать экспортный файл."
   },
@@ -7932,30 +7916,6 @@
     "translation": "Если это были не вы, вы можете смело игнорировать это письмо."
   },
   {
-    "id": "api.templates.upgrade_request_title2",
-    "translation": "Новые пользователи не могут присоединиться к вашему рабочему пространству"
-  },
-  {
-    "id": "api.templates.upgrade_request_title",
-    "translation": "{{ .UserName }} хотел бы пригласить новых участников в Ваше рабочее пространство"
-  },
-  {
-    "id": "api.templates.upgrade_request_subject",
-    "translation": "Запрос пользователя Mattermost на обновление рабочего пространства"
-  },
-  {
-    "id": "api.templates.upgrade_request_info4_2",
-    "translation": "Недавно кто-то пытался присоединиться к вашему рабочему пространству, но не смог, так как ваше рабочее пространство достигло лимита количества пользователей для бесплатной версии Mattermost Cloud. Обновите подписку, чтобы позволить большему количеству пользователей присоединиться к вашему рабочему пространству."
-  },
-  {
-    "id": "api.templates.upgrade_request_info4",
-    "translation": "Поскольку ваше рабочее пространство достигло лимита количества пользователей для бесплатной версии Mattermost Cloud, приглашения не могут быть отправлены. Обновите подписку, чтобы позволить большему количеству пользователей присоединиться к вашему рабочему пространству."
-  },
-  {
-    "id": "api.templates.upgrade_mattermost_cloud",
-    "translation": "Обновить"
-  },
-  {
     "id": "api.templates.reset_body.subTitle",
     "translation": "Нажмите на кнопку ниже, чтобы сбросить пароль. Если вы не запрашивали его, вы можете безопасно проигнорировать это письмо."
   },
@@ -8012,120 +7972,8 @@
     "translation": "Ваше финансовое учреждение отклонило платёж вашей карты {{.CardBrand}}. ****{{.LastFour}}, связанный с вашим рабочим пространством Mattermost Cloud."
   },
   {
-    "id": "api.templates.over_limit_title",
-    "translation": "Ваше рабочее пространство превышает лимит пользователей для бесплатного уровня"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_title",
-    "translation": "Рабочее пространство Mattermost Cloud заблокировано"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_subject",
-    "translation": "Ваша подписка на Mattermost Cloud была приостановлена"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_info2",
-    "translation": "Свяжитесь с нами, чтобы активировать заново ваше рабочее пространство."
-  },
-  {
-    "id": "api.templates.over_limit_suspended_info1",
-    "translation": "Ваше рабочее пространство Mattermost приостановлено. Все содержимое и данные в вашем рабочем пространстве будут удалены в течение 1-3 месяцев."
-  },
-  {
-    "id": "api.templates.over_limit_suspended_contact_support",
-    "translation": "Связаться со службой поддержки"
-  },
-  {
-    "id": "api.templates.over_limit_subject",
-    "translation": "Превышение лимита пользователей в Mattermost Cloud Workspace"
-  },
-  {
-    "id": "api.templates.over_limit_info2",
-    "translation": "Кроме того, вы можете отключить пользователей в консоли администрирования, чтобы освободить места для большего количества пользователей или остаться ниже лимита количества бесплатных пользователей."
-  },
-  {
-    "id": "api.templates.over_limit_info1",
-    "translation": "Похоже, что в вашем рабочем пространстве более 10 пользователей, что выходит за рамки бесплатного уровня Mattermost Cloud. Чтобы избежать сбоев в работе вашего рабочего пространства Mattermost, пожалуйста, обновите его."
-  },
-  {
     "id": "api.templates.over_limit_fix_now",
     "translation": "Исправить сейчас"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_title",
-    "translation": "Приостановка вашего рабочего пространства Mattermost Cloud запланирована на завтра"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_subject",
-    "translation": "Ваша подписка на Mattermost Cloud скоро будет приостановлена"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info4",
-    "translation": "После приостановки работы вашего рабочего пространства все содержимое и данные в нем будут удалены в течение 1-3 месяцев."
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info3",
-    "translation": "Как только ваше рабочее пространство будет приостановлено, вы не сможете войти в свой аккаунт или обновить платёжную информацию. Вам необходимо будет связаться с нашей службой поддержки для повторной активации вашего сервиса."
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info2",
-    "translation": "Чтобы избежать приостановки, добавьте платежную информацию"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info1",
-    "translation": "Это последнее напоминание о том, что мы не получили оплату за вашу рабочую среду Mattermost Cloud, которая была просрочена с {{ .OverLimitDate }}. Завтра мы приостановим ваш сервис."
-  },
-  {
-    "id": "api.templates.over_limit_7_days_title",
-    "translation": "Нет способа оплаты в файле"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_subject",
-    "translation": "Оплата за подписку Mattermost Cloud просрочена"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_info1",
-    "translation": "Mattermost не удалось обработать ваш последний автоматический платёж. Чтобы ваш сервис оставался активным, пожалуйста, как можно скорее добавьте платёжные реквизиты, иначе он может быть приостановлен."
-  },
-  {
-    "id": "api.templates.over_limit_30_days_title",
-    "translation": "Приостановка рабочего пространства Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_subject",
-    "translation": " Чтобы сохранить подписку на Mattermost Cloud, требуются действия"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item3",
-    "translation": "Вы потеряете доступ к истории сообщений"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item2",
-    "translation": "Вы не можете обновить информацию о деталях оплаты, не обратившись в нашу службу поддержки"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item1",
-    "translation": "Вы не можете войти в своё рабочее пространство"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2",
-    "translation": "Если не будет предпринято никаких действий, ваше рабочее пространство будет приостановлено"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info1",
-    "translation": "Ещё есть время, чтобы сохранить рабочее пространство Mattermost Cloud в активном состоянии и решить проблемы с вашим методом оплаты. Чтобы избежать остановки сервиса, обновите метод оплаты."
-  },
-  {
-    "id": "api.templates.over_limit_14_days_title",
-    "translation": "Оплата не получена"
-  },
-  {
-    "id": "api.templates.over_limit_14_days_subject",
-    "translation": "Оплата за подписку Mattermost Cloud просрочена"
-  },
-  {
-    "id": "api.templates.over_limit_14_days_info1",
-    "translation": "Напоминаем, что мы не получили оплату за подписку Mattermost по счёту от {{ .OverLimitDate}}. В ближайшее время мы начнём процесс приостановления вашего обслуживания, если оплата не будет получена."
   },
   {
     "id": "api.templates.invite_body_guest.subTitle",
@@ -8228,32 +8076,8 @@
     "translation": "Добавить приложения в ваше рабочее пространство"
   },
   {
-    "id": "api.templates.at_limit_title",
-    "translation": "Вы достигли лимита количества пользователей для бесплатного уровня. "
-  },
-  {
-    "id": "api.templates.at_limit_subject",
-    "translation": "Достигнуто предельное количество пользователей Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.at_limit_info5",
-    "translation": "Кроме того, вы можете отключить пользователей в системной консоли, чтобы освободить места для большего количества пользователей или остаться ниже лимита количества бесплатных пользователей."
-  },
-  {
-    "id": "api.templates.at_limit_info2",
-    "translation": "Кроме того, вы можете отключить пользователей в консоли администрирования, чтобы освободить места для большего количества пользователей или остаться ниже лимита количества бесплатных пользователей."
-  },
-  {
-    "id": "api.templates.at_limit_info1",
-    "translation": "Похоже, что теперь у Вас в рабочем пространстве 10 и более пользователей — это здорово! Если Вы хотите пригласить больше участников команды, подумайте об обновлении Mattermost Cloud прямо сейчас."
-  },
-  {
     "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
     "translation": "Тело запроса некорректно или отсутствует."
-  },
-  {
-    "id": "api.team.cloud.subscription.error",
-    "translation": "Ошибка получения облачной подписки"
   },
   {
     "id": "api.system.update_viewed_notices.failed",
@@ -8430,14 +8254,6 @@
   {
     "id": "api.command_custom_status.app_error",
     "translation": "Ошибка настройки статуса."
-  },
-  {
-    "id": "api.cloud.get_subscription.error",
-    "translation": "Ошибка получения облачной подписки."
-  },
-  {
-    "id": "api.cloud.get_admins_emails.error",
-    "translation": "Ошибка получения email администратора."
   },
   {
     "id": "api.cloud.cws_webhook_event_missing_error",
@@ -9092,14 +8908,6 @@
     "translation": "Ошибка проверки ограничений изображения. Разрешение слишком высокое."
   },
   {
-    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
-    "translation": "Невозможно активировать больше пользователей, так как облачная учетная запись переполнена."
-  },
-  {
-    "id": "api.user.update_active.cloud_at_limit_check_error",
-    "translation": "Невозможно проверить количество пользователей в Вашем облачном экземпляре Mattermost."
-  },
-  {
     "id": "api.user.invalidate_verify_email_tokens_parse.error",
     "translation": "Невозможно проанализировать токен при аннулировании токенов подтверждения электронной почты"
   },
@@ -9406,5 +9214,13 @@
   {
     "id": "app.channel.get_file_count.app_error",
     "translation": "Не удалось получить количество файлов для канала"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "Размер пакета массового индексирования Elasticsearch должен быть не менее {{.BatchSize}}."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
+    "translation": "Размер пакета массового индексирования Bleve должен быть не менее {{.BatchSize}}."
   }
 ]

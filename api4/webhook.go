@@ -59,7 +59,7 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	userId := c.AppContext.Session().UserId
 	if hook.UserId != "" && hook.UserId != userId {
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionManageOthersIncomingWebhooks) {
-			c.LogAudit("fail - innapropriate permissions")
+			c.LogAudit("fail - inappropriate permissions")
 			c.SetPermissionError(model.PermissionManageOthersIncomingWebhooks)
 			return
 		}
@@ -414,7 +414,7 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		hook.CreatorId = c.AppContext.Session().UserId
 	} else {
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PermissionManageOthersOutgoingWebhooks) {
-			c.LogAudit("fail - innapropriate permissions")
+			c.LogAudit("fail - inappropriate permissions")
 			c.SetPermissionError(model.PermissionManageOthersOutgoingWebhooks)
 			return
 		}

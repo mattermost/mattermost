@@ -275,15 +275,16 @@ var ServerTLSSupportedCiphers = map[string]uint16{
 }
 
 type ServiceSettings struct {
-	SiteURL                                           *string  `access:"environment_web_server,authentication_saml,write_restrictable"`
-	WebsocketURL                                      *string  `access:"write_restrictable,cloud_restrictable"`
-	LicenseFileLocation                               *string  `access:"write_restrictable,cloud_restrictable"`                        // telemetry: none
-	ListenAddress                                     *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"` // telemetry: none
-	ConnectionSecurity                                *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	TLSCertFile                                       *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	TLSKeyFile                                        *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	TLSMinVer                                         *string  `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	TLSStrictTransport                                *bool    `access:"write_restrictable,cloud_restrictable"`
+	SiteURL             *string `access:"environment_web_server,authentication_saml,write_restrictable"`
+	WebsocketURL        *string `access:"write_restrictable,cloud_restrictable"`
+	LicenseFileLocation *string `access:"write_restrictable,cloud_restrictable"`                        // telemetry: none
+	ListenAddress       *string `access:"environment_web_server,write_restrictable,cloud_restrictable"` // telemetry: none
+	ConnectionSecurity  *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	TLSCertFile         *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	TLSKeyFile          *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	TLSMinVer           *string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	TLSStrictTransport  *bool   `access:"write_restrictable,cloud_restrictable"`
+	// In seconds.
 	TLSStrictTransportMaxAge                          *int64   `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	TLSOverwriteCiphers                               []string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	UseLetsEncrypt                                    *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
@@ -1884,17 +1885,18 @@ func (s *ThemeSettings) SetDefaults() {
 }
 
 type TeamSettings struct {
-	SiteName                            *string  `access:"site_customization"`
-	MaxUsersPerTeam                     *int     `access:"site_users_and_teams"`
-	EnableUserCreation                  *bool    `access:"authentication_signup"`
-	EnableOpenServer                    *bool    `access:"authentication_signup"`
-	EnableUserDeactivation              *bool    `access:"experimental_features"`
-	RestrictCreationToDomains           *string  `access:"authentication_signup"` // telemetry: none
-	EnableCustomUserStatuses            *bool    `access:"site_users_and_teams"`
-	EnableCustomBrand                   *bool    `access:"site_customization"`
-	CustomBrandText                     *string  `access:"site_customization"`
-	CustomDescriptionText               *string  `access:"site_customization"`
-	RestrictDirectMessage               *string  `access:"site_users_and_teams"`
+	SiteName                  *string `access:"site_customization"`
+	MaxUsersPerTeam           *int    `access:"site_users_and_teams"`
+	EnableUserCreation        *bool   `access:"authentication_signup"`
+	EnableOpenServer          *bool   `access:"authentication_signup"`
+	EnableUserDeactivation    *bool   `access:"experimental_features"`
+	RestrictCreationToDomains *string `access:"authentication_signup"` // telemetry: none
+	EnableCustomUserStatuses  *bool   `access:"site_users_and_teams"`
+	EnableCustomBrand         *bool   `access:"site_customization"`
+	CustomBrandText           *string `access:"site_customization"`
+	CustomDescriptionText     *string `access:"site_customization"`
+	RestrictDirectMessage     *string `access:"site_users_and_teams"`
+	// In seconds.
 	UserStatusAwayTimeout               *int64   `access:"experimental_features"`
 	MaxChannelsPerTeam                  *int64   `access:"site_users_and_teams"`
 	MaxNotificationsPerChannel          *int64   `access:"environment_push_notification_server"`
@@ -2752,6 +2754,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates["focalboard"] = &PluginState{Enable: true}
 	}
 
+	if s.PluginStates["com.mattermost.apps"] == nil {
+		// Enable the Apps plugin by default
+		s.PluginStates["com.mattermost.apps"] = &PluginState{Enable: true}
+	}
+
 	if s.EnableMarketplace == nil {
 		s.EnableMarketplace = NewBool(PluginSettingsDefaultEnableMarketplace)
 	}
@@ -3560,13 +3567,13 @@ func (s *ServiceSettings) isValid() *AppError {
 
 	if *s.SiteURL != "" {
 		if _, err := url.ParseRequestURI(*s.SiteURL); err != nil {
-			return NewAppError("Config.IsValid", "model.config.is_valid.site_url.app_error", nil, "", http.StatusBadRequest)
+			return NewAppError("Config.IsValid", "model.config.is_valid.site_url.app_error", nil, err.Error(), http.StatusBadRequest)
 		}
 	}
 
 	if *s.WebsocketURL != "" {
 		if _, err := url.ParseRequestURI(*s.WebsocketURL); err != nil {
-			return NewAppError("Config.IsValid", "model.config.is_valid.websocket_url.app_error", nil, "", http.StatusBadRequest)
+			return NewAppError("Config.IsValid", "model.config.is_valid.websocket_url.app_error", nil, err.Error(), http.StatusBadRequest)
 		}
 	}
 
