@@ -221,27 +221,23 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 		return errors.Wrap(err, "failed to serialize")
 	}
 
-	id := model.NewId()
 	value := string(b)
-	createAt := model.GetMillis()
-
 	err = ds.checkLength(len(value))
 	if err != nil {
 		return errors.Wrap(err, "marshalled configuration failed length check")
 	}
 
 	sum := sha256.Sum256(b)
-	params := map[string]interface{}{
-		"id":        id,
-		"value":     value,
-		"create_at": createAt,
-		"key":       "ConfigurationId",
-		"sha":       hex.EncodeToString(sum[0:]),
-	}
 
 	// Skip the persist altogether if we're effectively writing the same configuration.
 	var oldValue string
-	row := ds.db.QueryRow("SELECT SHA FROM Configurations WHERE Active")
+	var row *sql.Row
+	if ds.driverName == model.DatabaseDriverMysql {
+		// mysql ignores active index
+		row = ds.db.QueryRow("SELECT SHA FROM Configurations WHERE Id = (select Id from Configurations Where Active)")
+	} else {
+		row = ds.db.QueryRow("SELECT SHA FROM Configurations WHERE Active")
+	}
 	if err = row.Scan(&oldValue); err != nil && err != sql.ErrNoRows {
 		return errors.Wrap(err, "failed to query active configuration")
 	}
@@ -268,18 +264,32 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 		}
 	}()
 
-	// the query doesn't use active index if we query for value (mysql, no surprise)
-	// we select Id column which triggers using index hence we do quicker reads
-	// that's the reason we select id first then query against id to get the value.
 	var oldId string
-	row = tx.QueryRow("SELECT Id FROM Configurations WHERE Active")
-	if err = row.Scan(&oldId); err != nil && err != sql.ErrNoRows {
-		return errors.Wrap(err, "failed to query active configuration")
-	}
-	if oldId != "" {
-		if _, err := tx.NamedExec("UPDATE Configurations SET Active = NULL WHERE Id = :id", map[string]interface{}{"id": oldId}); err != nil {
+	if ds.driverName == model.DatabaseDriverMysql {
+		// the query doesn't use active index if we query for value (mysql, no surprise)
+		// we select Id column which triggers using index hence we do quicker reads
+		// that's the reason we select id first then query against id to get the value.
+		row = tx.QueryRow("SELECT Id FROM Configurations WHERE Active")
+		if err = row.Scan(&oldId); err != nil && err != sql.ErrNoRows {
+			return errors.Wrap(err, "failed to query active configuration")
+		}
+		if oldId != "" {
+			if _, err := tx.NamedExec("UPDATE Configurations SET Active = NULL WHERE Id = :id", map[string]interface{}{"id": oldId}); err != nil {
+				return errors.Wrap(err, "failed to deactivate current configuration")
+			}
+		}
+	} else {
+		if _, err := tx.Exec("UPDATE Configurations SET Active = NULL WHERE Active"); err != nil {
 			return errors.Wrap(err, "failed to deactivate current configuration")
 		}
+	}
+
+	params := map[string]interface{}{
+		"id":        model.NewId(),
+		"value":     value,
+		"create_at": model.GetMillis(),
+		"key":       "ConfigurationId",
+		"sha":       hex.EncodeToString(sum[0:]),
 	}
 
 	if _, err := tx.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt, Active, SHA) VALUES (:id, :value, :create_at, TRUE, :sha)", params); err != nil {
