@@ -3951,7 +3951,7 @@ func (c *Client4) GetPostsAfter(channelId, postId string, page, perPage int, eta
 		query += "&collapsedThreads=true"
 	}
 	if includeDeleted {
-		query += "&inclideDeleted=true"
+		query += "&includeDeleted=true"
 	}
 	r, err := c.DoAPIGet(c.channelRoute(channelId)+"/posts"+query, etag)
 	if err != nil {
@@ -3975,7 +3975,7 @@ func (c *Client4) GetPostsBefore(channelId, postId string, page, perPage int, et
 		query += "&collapsedThreads=true"
 	}
 	if includeDeleted {
-		query += "&inclideDeleted=true"
+		query += "&includeDeleted=true"
 	}
 	r, err := c.DoAPIGet(c.channelRoute(channelId)+"/posts"+query, etag)
 	if err != nil {
