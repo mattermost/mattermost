@@ -1129,7 +1129,7 @@ func TestCleanUp(t *testing.T) {
 	b, err := marshalConfig(ds.config)
 	require.NoError(t, err)
 
-	ds.config.JobSettings.CleanupConfigThresholdDays = model.NewInt(31) // we set 30 days as treshold
+	ds.config.JobSettings.CleanupConfigThresholdDays = model.NewInt(30) // we set 30 days as treshold
 
 	now := time.Now()
 	for i := 0; i < 5; i++ {
