@@ -3133,7 +3133,7 @@
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "Your {{.WorkspaceName}} workspace has now been upgraded. {{.TrialEnd}}, you will be charged based on the number of enabled users."
+    "translation": "Your {{.WorkspaceName}} workspace has now been upgraded. Starting {{.TrialEnd}}, you will be charged based on the number of enabled users."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.title",

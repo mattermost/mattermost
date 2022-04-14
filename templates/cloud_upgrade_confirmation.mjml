@@ -22,7 +22,7 @@
           </mj-button>
         </mj-column>
       </mj-section>
-      <mj-section  padding-bottom="40px"border-left="1px solid #E5E5E5" border-right="1px solid #E5E5E5">
+      <mj-section  padding-top="57px" border-left="1px solid #E5E5E5" border-right="1px solid #E5E5E5">
         <mj-column padding="0px">
           <mj-image src="{{.Props.SiteURL}}/static/images/cloud-laptop.png" width="320px" padding="0px" />
           <mj-text font-size="14px" line-height="20px" color="#3F4350"  font-family="Open Sans">
