@@ -396,3 +396,14 @@ func (s *Store) IsReadOnly() bool {
 	defer s.configLock.RUnlock()
 	return s.readOnly
 }
+
+// Cleanup removes outdated configurations from the database.
+// this is a no-op function for FileStore type backing store.
+func (s *Store) CleanUp() error {
+	switch bs := s.backingStore.(type) {
+	case *DatabaseStore:
+		return bs.cleanUp()
+	default:
+		return nil
+	}
+}

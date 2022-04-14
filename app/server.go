@@ -47,6 +47,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/jobs/active_users"
+	"github.com/mattermost/mattermost-server/v6/jobs/config_cleanup"
 	"github.com/mattermost/mattermost-server/v6/jobs/expirynotify"
 	"github.com/mattermost/mattermost-server/v6/jobs/export_delete"
 	"github.com/mattermost/mattermost-server/v6/jobs/export_process"
@@ -2003,6 +2004,12 @@ func (s *Server) initJobs() {
 		model.JobTypeExtractContent,
 		extract_content.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store),
 		nil,
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeCleanupOldConfigurations,
+		config_cleanup.MakeWorker(s.Jobs, s.ConfigStore().Store),
+		config_cleanup.MakeScheduler(s.Jobs, s.ConfigStore().Store),
 	)
 }
 
