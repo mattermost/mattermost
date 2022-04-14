@@ -43,9 +43,13 @@ func (a *App) SendUpgradeConfirmationEmail() *model.AppError {
 		return e
 	}
 
+	if len(sysAdmins) == 0 {
+		return model.NewAppError("app.SendCloudUpgradeConfirmationEmail", "app.user.send_emails.app_error", nil, "", http.StatusInternalServerError)
+	}
+
 	subscription, err := a.Cloud().GetSubscription("")
 	if err != nil {
-		return model.NewAppError("app.SendCloudTrialEndedEmail", "app.user.send_emails.app_error", nil, "", http.StatusInternalServerError)
+		return model.NewAppError("app.SendCloudUpgradeConfirmationEmail", "app.user.send_emails.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	// Build readable trial end date
@@ -56,22 +60,22 @@ func (a *App) SendUpgradeConfirmationEmail() *model.AppError {
 	// we want to at least have one email sent out to an admin
 	countNotOks := 0
 
-	for admin := range sysAdmins {
-		name := sysAdmins[admin].FirstName
+	for _, admin := range sysAdmins {
+		name := admin.FirstName
 		if name == "" {
-			name = sysAdmins[admin].Username
+			name = admin.Username
 		}
 
-		err := a.Srv().EmailService.SendCloudUpgradeConfirmationEmail(sysAdmins[admin].Email, name, trialEndDate, sysAdmins[admin].Locale, *a.Config().ServiceSettings.SiteURL, subscription.GetWorkSpaceNameFromDNS())
+		err := a.Srv().EmailService.SendCloudUpgradeConfirmationEmail(admin.Email, name, trialEndDate, admin.Locale, *a.Config().ServiceSettings.SiteURL, subscription.GetWorkSpaceNameFromDNS())
 		if err != nil {
-			a.Log().Error("Error sending trial ended email to", mlog.String("email", sysAdmins[admin].Email), mlog.Err(err))
+			a.Log().Error("Error sending trial ended email to", mlog.String("email", admin.Email), mlog.Err(err))
 			countNotOks++
 		}
 	}
 
 	// if not even one admin got an email, we consider that this operation errored
 	if countNotOks == len(sysAdmins) {
-		return model.NewAppError("app.SendCloudTrialEndedEmail", "app.user.send_emails.app_error", nil, "", http.StatusInternalServerError)
+		return model.NewAppError("app.SendCloudUpgradeConfirmationEmail", "app.user.send_emails.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	return nil

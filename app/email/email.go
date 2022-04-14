@@ -226,7 +226,7 @@ func (es *Service) SendWelcomeEmail(userID string, email string, verified bool, 
 	return nil
 }
 
-func (es *Service) SendCloudUpgradeConfirmationEmail(userEmail, name, trialEndDate, locale, siteURL string, workspaceName string) error {
+func (es *Service) SendCloudUpgradeConfirmationEmail(userEmail, name, trialEndDate, locale, siteURL, workspaceName string) error {
 	T := i18n.GetUserTranslations(locale)
 	subject := T("api.templates.cloud_upgrade_confirmation.subject")
 
