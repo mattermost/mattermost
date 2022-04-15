@@ -2312,8 +2312,8 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 		})
 
 		// Unread is a legacy flag that caused GetTotalThreads to compute the same value as
-		// GetTotalUnreadThreads. If specified, skip computing total threads and send back
-		// duplicate values down below.
+		// GetTotalUnreadThreads. If unspecified, do this work normally; otherwise, skip,
+		// and send back duplicate values down below.
 		if !options.Unread {
 			eg.Go(func() error {
 				totalCount, err := a.Srv().Store.Thread().GetTotalThreads(userID, teamID, options)
