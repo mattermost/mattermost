@@ -6496,6 +6496,10 @@
     "translation": "Unable to update read state for thread"
   },
   {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "Invalid post_id"
+  },
+  {
     "id": "app.user.update_threads_read_for_user.app_error",
     "translation": "Unable to update all user threads as read"
   },
