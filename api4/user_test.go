@@ -6116,6 +6116,50 @@ func TestThreadSocketEvents(t *testing.T) {
 			require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadUpdated)
 		}
 	})
+
+	t.Run("Listen for thread updated event after create post when not previously following the thread", func(t *testing.T) {
+		rpost2 := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser2.Id, Message: "root post"}
+
+		var appErr *model.AppError
+		rpost2, appErr = th.App.CreatePostAsUser(th.Context, rpost2, th.Context.Session().Id, false)
+		require.Nil(t, appErr)
+
+		reply1 := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser2.Id, Message: "reply 1", RootId: rpost2.Id}
+		reply2 := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser2.Id, Message: "reply 2", RootId: rpost2.Id}
+		reply3 := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser2.Id, Message: "mention @" + th.BasicUser.Username, RootId: rpost2.Id}
+
+		_, appErr = th.App.CreatePostAsUser(th.Context, reply1, th.Context.Session().Id, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.CreatePostAsUser(th.Context, reply2, th.Context.Session().Id, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.CreatePostAsUser(th.Context, reply3, th.Context.Session().Id, false)
+		require.Nil(t, appErr)
+
+		count := 0
+		func() {
+			for {
+				select {
+				case ev := <-userWSClient.EventChannel:
+					if ev.EventType() == model.WebsocketEventThreadUpdated {
+						count++
+						data := ev.GetData()
+						var thread model.ThreadResponse
+						jsonErr := json.Unmarshal([]byte(data["thread"].(string)), &thread)
+						require.NoError(t, jsonErr)
+
+						require.Equal(t, int64(0), int64(data["previous_unread_replies"].(float64)))
+						require.Equal(t, int64(0), int64(data["previous_unread_mentions"].(float64)))
+						require.Equal(t, int64(3), thread.UnreadReplies)
+						require.Equal(t, int64(1), thread.UnreadMentions)
+					}
+				case <-time.After(1 * time.Second):
+					return
+				}
+			}
+		}()
+
+		require.Equalf(t, 1, count, "User should have received 1 %s event", model.WebsocketEventThreadUpdated)
+	})
 }
 
 func TestFollowThreads(t *testing.T) {
