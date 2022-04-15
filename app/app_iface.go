@@ -1077,6 +1077,7 @@ type AppIface interface {
 	UpdateThreadFollowForUser(userID, teamID, threadID string, state bool) *model.AppError
 	UpdateThreadFollowForUserFromChannelAdd(userID, teamID, threadID string) *model.AppError
 	UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError)
+	UpdateThreadReadForUserByPost(currentSessionId, userID, teamID, threadID, postID string) (*model.ThreadResponse, *model.AppError)
 	UpdateThreadsReadForUser(userID, teamID string) *model.AppError
 	UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError)
 	UpdateUserActive(c *request.Context, userID string, active bool) *model.AppError
