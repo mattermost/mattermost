@@ -3,6 +3,7 @@
 // license that can be found in the LICENSE file.
 
 /*
+
 Package bpf implements marshaling and unmarshaling of programs for the
 Berkeley Packet Filter virtual machine, and provides a Go implementation
 of the virtual machine.
@@ -20,7 +21,7 @@ access to kernel functions, and while conditional branches are
 allowed, they can only jump forwards, to guarantee that there are no
 infinite loops.
 
-# The virtual machine
+The virtual machine
 
 The BPF VM is an accumulator machine. Its main register, called
 register A, is an implicit source and destination in all arithmetic
@@ -49,7 +50,7 @@ to extensions, which are essentially calls to kernel utility
 functions. Currently, the only extensions supported by this package
 are the Linux packet filter extensions.
 
-# Examples
+Examples
 
 This packet filter selects all ARP packets.
 
@@ -76,5 +77,6 @@ This packet filter captures a random 1% sample of traffic.
 		// Ignore.
 		bpf.RetConstant{Val: 0},
 	})
+
 */
 package bpf // import "golang.org/x/net/bpf"

@@ -170,11 +170,6 @@ type Manager struct {
 	// in the template's ExtraExtensions field as is.
 	ExtraExtensions []pkix.Extension
 
-	// ExternalAccountBinding optionally represents an arbitrary binding to an
-	// account of the CA to which the ACME server is tied.
-	// See RFC 8555, Section 7.3.4 for more details.
-	ExternalAccountBinding *acme.ExternalAccountBinding
-
 	clientMu sync.Mutex
 	client   *acme.Client // initialized by acmeClient method
 
@@ -1001,7 +996,7 @@ func (m *Manager) acmeClient(ctx context.Context) (*acme.Client, error) {
 	if m.Email != "" {
 		contact = []string{"mailto:" + m.Email}
 	}
-	a := &acme.Account{Contact: contact, ExternalAccountBinding: m.ExternalAccountBinding}
+	a := &acme.Account{Contact: contact}
 	_, err := client.Register(ctx, a, m.Prompt)
 	if err == nil || isAccountAlreadyExist(err) {
 		m.client = client

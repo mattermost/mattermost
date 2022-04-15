@@ -16,7 +16,8 @@
 // 3376.
 // Source-specific multicast is defined in RFC 4607.
 //
-// # Unicasting
+//
+// Unicasting
 //
 // The options for unicasting are available for net.TCPConn,
 // net.UDPConn and net.IPConn which are created as network connections
@@ -50,7 +51,8 @@
 //		}(c)
 //	}
 //
-// # Multicasting
+//
+// Multicasting
 //
 // The options for multicasting are available for net.UDPConn and
 // net.IPConn which are created as network connections that use the
@@ -139,7 +141,8 @@
 //		}
 //	}
 //
-// # More multicasting
+//
+// More multicasting
 //
 // An application that uses PacketConn or RawConn may join multiple
 // multicast groups. For example, a UDP listener with port 1024 might
@@ -197,7 +200,8 @@
 //		// error handling
 //	}
 //
-// # Source-specific multicasting
+//
+// Source-specific multicasting
 //
 // An application that uses PacketConn or RawConn on IGMPv3 supported
 // platform is able to join source-specific multicast groups.

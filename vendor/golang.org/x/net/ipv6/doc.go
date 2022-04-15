@@ -17,7 +17,8 @@
 // On Darwin, this package requires OS X Mavericks version 10.9 or
 // above, or equivalent.
 //
-// # Unicasting
+//
+// Unicasting
 //
 // The options for unicasting are available for net.TCPConn,
 // net.UDPConn and net.IPConn which are created as network connections
@@ -51,7 +52,8 @@
 //		}(c)
 //	}
 //
-// # Multicasting
+//
+// Multicasting
 //
 // The options for multicasting are available for net.UDPConn and
 // net.IPConn which are created as network connections that use the
@@ -138,7 +140,8 @@
 //		}
 //	}
 //
-// # More multicasting
+//
+// More multicasting
 //
 // An application that uses PacketConn may join multiple multicast
 // groups. For example, a UDP listener with port 1024 might join two
@@ -196,7 +199,8 @@
 //		// error handling
 //	}
 //
-// # Source-specific multicasting
+//
+// Source-specific multicasting
 //
 // An application that uses PacketConn on MLDv2 supported platform is
 // able to join source-specific multicast groups.

@@ -56,7 +56,7 @@ require (
 	github.com/hashicorp/yamux v0.0.0-20211028200310-0bc27b27de87 // indirect
 	github.com/jaytaylor/html2text v0.0.0-20211105163654-bc68cce691ba
 	github.com/jmoiron/sqlx v1.3.4
-	github.com/jonboulle/clockwork v0.2.3 // indirect
+	github.com/jonboulle/clockwork v0.2.3
 	github.com/klauspost/compress v1.15.1 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.12 // indirect
 	github.com/ledongthuc/pdf v0.0.0-20220302134840-0c2507a12d80
@@ -91,13 +91,14 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.14 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.12.1
+	github.com/prometheus/client_model v0.2.0
 	github.com/prometheus/common v0.33.0 // indirect
 	github.com/reflog/dateconstraints v0.2.1
 	github.com/richardlehane/mscfb v1.0.4 // indirect
 	github.com/rs/cors v1.8.2
 	github.com/rs/xid v1.4.0 // indirect
 	github.com/rudderlabs/analytics-go v3.3.2+incompatible
-	github.com/russellhaering/goxmldsig v1.2.0 // indirect
+	github.com/russellhaering/goxmldsig v1.2.0
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/segmentio/backo-go v0.0.0-20200129164019-23eae7c10bd3 // indirect
 	github.com/spf13/cobra v1.4.0
@@ -117,11 +118,11 @@ require (
 	github.com/yuin/goldmark v1.4.11
 	go.etcd.io/bbolt v1.3.6 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
-	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
+	golang.org/x/crypto v0.0.0-20220331220935-ae2d96664a29
 	golang.org/x/image v0.0.0-20220321031419-a8550c1d254a
-	golang.org/x/net v0.0.0-20220412020605-290c469a71a5
+	golang.org/x/net v0.0.0-20220403103023-749bd193bc2b
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	golang.org/x/sys v0.0.0-20220412211240-33da011f77ad // indirect
+	golang.org/x/sys v0.0.0-20220403205710-6acee93ad0eb // indirect
 	golang.org/x/text v0.3.7
 	golang.org/x/tools v0.1.10
 	google.golang.org/genproto v0.0.0-20220401170504-314d38edb7de // indirect
