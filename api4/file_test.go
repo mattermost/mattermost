@@ -818,10 +818,10 @@ func TestGetFileHeaders(t *testing.T) {
 	t.Run("txt", testHeaders(data, "test.txt", "text/plain", false, false))
 	t.Run("html", testHeaders(data, "test.html", "text/plain", false, false))
 	t.Run("js", testHeaders(data, "test.js", "text/plain", false, false))
-	if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
-		t.Run("go", testHeaders(data, "test.go", "text/x-go; charset=utf-8", false, false))
-	} else {
+	if os.Getenv("IS_CI") == "true" {
 		t.Run("go", testHeaders(data, "test.go", "application/octet-stream", false, false))
+	} else if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
+		t.Run("go", testHeaders(data, "test.go", "text/x-go; charset=utf-8", false, false))
 	}
 	t.Run("zip", testHeaders(data, "test.zip", "application/zip", false, false))
 	// Not every platform can recognize these
