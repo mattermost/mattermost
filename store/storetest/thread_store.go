@@ -684,6 +684,12 @@ func testGetTeamsUnreadForUser(t *testing.T, ss store.Store) {
 	assert.Equal(t, int64(1), teamsUnread[team2.Id].ThreadMentionCount)
 }
 
+type byPostId []*model.Post
+
+func (a byPostId) Len() int           { return len(a) }
+func (a byPostId) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a byPostId) Less(i, j int) bool { return a[i].Id < a[j].Id }
+
 func testVarious(t *testing.T, ss store.Store) {
 	createThreadMembership := func(userID, postID string, isMention bool) {
 		t.Helper()
@@ -855,8 +861,36 @@ func testVarious(t *testing.T, ss store.Store) {
 	time.Sleep(1 * time.Millisecond)
 	threadStoreCreateReply(t, ss, team1channel1.Id, team1channel1post2.Id, user2ID, model.GetMillis())
 
+	// Actually make team2channel1post2deleted deleted
 	err = ss.Post().Delete(team2channel1post2deleted.Id, model.GetMillis(), user1ID)
 	require.NoError(t, err)
+
+	// Re-fetch posts to ensure metadata up-to-date
+	allPosts := []*model.Post{
+		team1channel1post1,
+		team1channel1post2,
+		team1channel1post3,
+		team2channel1post1,
+		team2channel1post2deleted,
+		dm1post1,
+		gm1post1,
+	}
+	for i := range allPosts {
+		updatedPost, err := ss.Post().GetSingle(allPosts[i].Id, true)
+		require.NoError(t, err)
+
+		// Fix some inconsistencies with how the post store returns posts vs. how the
+		// thread store returns it.
+		if updatedPost.RemoteId == nil {
+			updatedPost.RemoteId = new(string)
+		}
+
+		// Also, we don't populate ReplyCount for posts when querying threads, so don't
+		// assert same.
+		updatedPost.ReplyCount = 0
+
+		updatedPost.ShallowCopy(allPosts[i])
+	}
 
 	t.Run("GetTotalUnreadThreads", func(t *testing.T) {
 		testCases := []struct {
@@ -963,10 +997,12 @@ func testVarious(t *testing.T, ss store.Store) {
 	assertThreadPosts := func(t *testing.T, threads []*model.ThreadResponse, expectedPosts []*model.Post) {
 		t.Helper()
 
+		actualPosts := make([]*model.Post, 0, len(threads))
 		actualPostNames := make([]string, 0, len(threads))
 		for _, thread := range threads {
+			actualPosts = append(actualPosts, thread.Post)
 			postName, ok := postNames[thread.PostId]
-			assert.True(t, ok, "failed to find actual %s in post names", thread.PostId)
+			require.True(t, ok, "failed to find actual %s in post names", thread.PostId)
 			actualPostNames = append(actualPostNames, postName)
 		}
 		sort.Strings(actualPostNames)
@@ -974,12 +1010,28 @@ func testVarious(t *testing.T, ss store.Store) {
 		expectedPostNames := make([]string, 0, len(expectedPosts))
 		for _, post := range expectedPosts {
 			postName, ok := postNames[post.Id]
-			assert.True(t, ok, "failed to find expected %s in post names", post.Id)
+			require.True(t, ok, "failed to find expected %s in post names", post.Id)
 			expectedPostNames = append(expectedPostNames, postName)
 		}
 		sort.Strings(expectedPostNames)
 
 		assert.Equal(t, expectedPostNames, actualPostNames)
+
+		// Check posts themselves
+		sort.Sort(byPostId(expectedPosts))
+		sort.Sort(byPostId(actualPosts))
+		if assert.Len(t, actualPosts, len(expectedPosts)) {
+			for i := range actualPosts {
+				assert.Equal(t, expectedPosts[i], actualPosts[i], "mismatch comparing expected post %s with actual post %s", postNames[expectedPosts[i].Id], postNames[actualPosts[i].Id])
+			}
+		} else {
+			assert.Equal(t, expectedPosts, actualPosts)
+		}
+
+		// Check common fields between threads and posts.
+		for _, thread := range threads {
+			assert.Equal(t, thread.DeleteAt, thread.Post.DeleteAt, "expected Thread.DeleteAt == Post.DeleteAt")
+		}
 	}
 
 	t.Run("GetThreadsForUser", func(t *testing.T) {
