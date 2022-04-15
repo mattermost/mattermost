@@ -21,7 +21,12 @@ import (
 type SqlThreadStore struct {
 	*SqlStore
 
+	// threadsSelectQuery is for querying directly into model.Thread
 	threadsSelectQuery sq.SelectBuilder
+
+	// threadsAndPostsSelectQuery is for querying into a struct embedding fields from
+	// model.Thread and model.Post.
+	threadsAndPostsSelectQuery sq.SelectBuilder
 }
 
 func (s *SqlThreadStore) ClearCaches() {
@@ -46,6 +51,17 @@ func (s *SqlThreadStore) initializeQueries() {
 			"Threads.LastReplyAt",
 			"Threads.Participants",
 			"COALESCE(Threads.DeleteAt, 0) AS DeleteAt",
+		).
+		From("Threads")
+
+	s.threadsAndPostsSelectQuery = s.getQueryBuilder().
+		Select(
+			"Threads.PostId",
+			"Threads.ChannelId",
+			"Threads.ReplyCount",
+			"Threads.LastReplyAt",
+			"Threads.Participants",
+			"COALESCE(Threads.DeleteAt, 0) AS ThreadDeleteAt",
 		).
 		From("Threads")
 }
@@ -195,6 +211,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		UnreadReplies  int64
 		UnreadMentions int64
 		Participants   model.StringArray
+		ThreadDeleteAt int64
 		model.Post
 	}
 
@@ -213,7 +230,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		return nil, errors.Wrapf(err, "failed to build subquery to count unread replies when getting threads for user id=%s", userId)
 	}
 
-	query := s.threadsSelectQuery.
+	query := s.threadsAndPostsSelectQuery.
 		Column(postSliceCoalesceQuery()).
 		Columns(
 			"ThreadMemberships.LastViewed as LastViewedAt",
@@ -323,6 +340,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 			UnreadMentions: thread.UnreadMentions,
 			Participants:   threadParticipants,
 			Post:           thread.Post.ToNilIfInvalid(),
+			DeleteAt:       thread.ThreadDeleteAt,
 		})
 	}
 
@@ -474,7 +492,7 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		UnreadReplies  int64
 		UnreadMentions int64
 		Participants   model.StringArray
-		DeleteAt       int64
+		ThreadDeleteAt int64
 		model.Post
 	}
 
@@ -495,7 +513,7 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		sq.Eq{"Threads.PostId": threadMembership.PostId},
 	}
 
-	query := s.threadsSelectQuery
+	query := s.threadsAndPostsSelectQuery
 
 	for _, c := range postSliceColumns() {
 		query = query.Column("Posts." + c)
@@ -561,7 +579,7 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		UnreadMentions: thread.UnreadMentions,
 		Participants:   participants,
 		Post:           thread.Post.ToNilIfInvalid(),
-		DeleteAt:       thread.DeleteAt,
+		DeleteAt:       thread.ThreadDeleteAt,
 	}
 
 	return result, nil
