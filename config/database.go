@@ -416,3 +416,12 @@ func (ds *DatabaseStore) String() string {
 func (ds *DatabaseStore) Close() error {
 	return ds.db.Close()
 }
+
+// removes configurations from database if they are older than threshold.
+func (ds *DatabaseStore) cleanUp(thresholdCreatAt int) error {
+	if _, err := ds.db.NamedExec("DELETE FROM Configurations Where CreateAt < :timestamp", map[string]interface{}{"timestamp": thresholdCreatAt}); err != nil {
+		return errors.Wrap(err, "unable to clean Configurations table")
+	}
+
+	return nil
+}
