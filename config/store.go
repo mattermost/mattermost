@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"reflect"
 	"sync"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -402,8 +403,9 @@ func (s *Store) IsReadOnly() bool {
 func (s *Store) CleanUp() error {
 	switch bs := s.backingStore.(type) {
 	case *DatabaseStore:
-		ts := *s.config.JobSettings.CleanupConfigThresholdDays
-		return bs.cleanUp(ts)
+		dur := time.Duration(*s.config.JobSettings.CleanupConfigThresholdDays) * time.Hour * 24
+		expiry := model.GetMillisForTime(time.Now().Add(-dur))
+		return bs.cleanUp(int(expiry))
 	default:
 		return nil
 	}

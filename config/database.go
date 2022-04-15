@@ -417,16 +417,9 @@ func (ds *DatabaseStore) Close() error {
 	return ds.db.Close()
 }
 
-// removes configurations from database if they are older than treshold days.
-func (ds *DatabaseStore) cleanUp(tresholdDays int) error {
-	var err error
-	switch ds.driverName {
-	case model.DatabaseDriverMysql:
-		_, err = ds.db.Exec("DELETE FROM Configurations WHERE CreateAt < UNIX_TIMESTAMP(NOW()- INTERVAL ? DAY)*1000", tresholdDays)
-	case model.DatabaseDriverPostgres:
-		_, err = ds.db.Exec("DELETE FROM Configurations WHERE CreateAt < (SELECT(extract(epoch FROM now() - interval '1 day' * $1) * 1000)::bigint)", tresholdDays)
-	}
-	if err != nil {
+// removes configurations from database if they are older than treshold.
+func (ds *DatabaseStore) cleanUp(tresholdCreatAt int) error {
+	if _, err := ds.db.NamedExec("DELETE FROM Configurations Where CreateAt < :timestamp", map[string]interface{}{"timestamp": tresholdCreatAt}); err != nil {
 		return errors.Wrap(err, "unable to clean Configurations table")
 	}
 

@@ -1591,7 +1591,7 @@ func doJobsCleanup(s *Server) {
 }
 
 func doConfigCleanup(s *Server) {
-	if *s.Config().JobSettings.CleanupConfigThresholdDays < 0 || strings.HasPrefix(s.ConfigStore().Store.String(), "file://") {
+	if *s.Config().JobSettings.CleanupConfigThresholdDays < 0 || !config.IsDatabaseDSN(s.ConfigStore().Store.String()) {
 		return
 	}
 	mlog.Info("Cleaning up configuration store.")
