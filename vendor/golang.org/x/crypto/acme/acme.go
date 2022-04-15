@@ -77,12 +77,11 @@ const (
 // The only required field is Key. An example of creating a client with a new key
 // is as follows:
 //
-// 	key, err := rsa.GenerateKey(rand.Reader, 2048)
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	client := &Client{Key: key}
-//
+//	key, err := rsa.GenerateKey(rand.Reader, 2048)
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//	client := &Client{Key: key}
 type Client struct {
 	// Key is the account key used to register with a CA and sign requests.
 	// Key.Public() must return a *rsa.PublicKey or *ecdsa.PublicKey.

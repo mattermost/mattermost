@@ -11,8 +11,7 @@
 // If you aren't sure which function you need, use Argon2id (IDKey) and
 // the parameter recommendations for your scenario.
 //
-//
-// Argon2i
+// # Argon2i
 //
 // Argon2i (implemented by Key) is the side-channel resistant version of Argon2.
 // It uses data-independent memory access, which is preferred for password
@@ -21,8 +20,7 @@
 // parameters (taken from [2]) for non-interactive operations are time=3 and to
 // use the maximum available memory.
 //
-//
-// Argon2id
+// # Argon2id
 //
 // Argon2id (implemented by IDKey) is a hybrid version of Argon2 combining
 // Argon2i and Argon2d. It uses data-independent memory access for the first
@@ -59,7 +57,7 @@ const (
 // For example, you can get a derived key for e.g. AES-256 (which needs a
 // 32-byte key) by doing:
 //
-//      key := argon2.Key([]byte("some password"), salt, 3, 32*1024, 4, 32)
+//	key := argon2.Key([]byte("some password"), salt, 3, 32*1024, 4, 32)
 //
 // The draft RFC recommends[2] time=3, and memory=32*1024 is a sensible number.
 // If using that amount of memory (32 MB) is not possible in some contexts then
@@ -83,7 +81,7 @@ func Key(password, salt []byte, time, memory uint32, threads uint8, keyLen uint3
 // For example, you can get a derived key for e.g. AES-256 (which needs a
 // 32-byte key) by doing:
 //
-//      key := argon2.IDKey([]byte("some password"), salt, 1, 64*1024, 4, 32)
+//	key := argon2.IDKey([]byte("some password"), salt, 1, 64*1024, 4, 32)
 //
 // The draft RFC recommends[2] time=1, and memory=64*1024 is a sensible number.
 // If using that amount of memory (64 MB) is not possible in some contexts then

@@ -133,7 +133,7 @@ func (c Client) PutObjectsSnowball(ctx context.Context, bucketName string, opts 
 			return f, st.Size(), nil
 		}
 	}
-	var flush = func() error { return nil }
+	flush := func() error { return nil }
 	if !opts.Compress {
 		if !opts.InMemory {
 			// Insert buffer for writes.

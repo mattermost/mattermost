@@ -451,7 +451,7 @@ github.com/miekg/dns
 # github.com/minio/md5-simd v1.1.2
 ## explicit
 github.com/minio/md5-simd
-# github.com/minio/minio-go/v7 v7.0.23
+# github.com/minio/minio-go/v7 v7.0.24
 ## explicit
 github.com/minio/minio-go/v7
 github.com/minio/minio-go/v7/pkg/credentials
@@ -526,11 +526,9 @@ github.com/pmezard/go-difflib/difflib
 # github.com/prometheus/client_golang v1.12.1
 ## explicit
 github.com/prometheus/client_golang/prometheus
-github.com/prometheus/client_golang/prometheus/collectors
 github.com/prometheus/client_golang/prometheus/internal
 github.com/prometheus/client_golang/prometheus/promhttp
 # github.com/prometheus/client_model v0.2.0
-## explicit
 github.com/prometheus/client_model/go
 # github.com/prometheus/common v0.33.0
 ## explicit
@@ -729,7 +727,7 @@ go.etcd.io/bbolt
 # go.uber.org/atomic v1.9.0
 ## explicit
 go.uber.org/atomic
-# golang.org/x/crypto v0.0.0-20220331220935-ae2d96664a29
+# golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
 ## explicit
 golang.org/x/crypto/acme
 golang.org/x/crypto/acme/autocert
@@ -758,7 +756,7 @@ golang.org/x/image/tiff/lzw
 golang.org/x/mod/internal/lazyregexp
 golang.org/x/mod/module
 golang.org/x/mod/semver
-# golang.org/x/net v0.0.0-20220403103023-749bd193bc2b
+# golang.org/x/net v0.0.0-20220412020605-290c469a71a5
 ## explicit
 golang.org/x/net/bpf
 golang.org/x/net/context
@@ -779,7 +777,7 @@ golang.org/x/net/trace
 # golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 ## explicit
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.0.0-20220403205710-6acee93ad0eb
+# golang.org/x/sys v0.0.0-20220412211240-33da011f77ad
 ## explicit
 golang.org/x/sys/cpu
 golang.org/x/sys/execabs

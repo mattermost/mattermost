@@ -61,6 +61,7 @@ const (
 	letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
 	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
 )
+
 const (
 	serverEndpoint = "SERVER_ENDPOINT"
 	accessKey      = "ACCESS_KEY"
@@ -69,8 +70,7 @@ const (
 	enableKMS      = "ENABLE_KMS"
 )
 
-type mintJSONFormatter struct {
-}
+type mintJSONFormatter struct{}
 
 func (f *mintJSONFormatter) Format(entry *log.Entry) ([]byte, error) {
 	data := make(log.Fields, len(entry.Data))
@@ -84,7 +84,7 @@ func (f *mintJSONFormatter) Format(entry *log.Entry) ([]byte, error) {
 			data[k] = v
 		}
 	}
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	json := jsoniter.ConfigCompatibleWithStandardLibrary
 	serialized, err := json.Marshal(data)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to marshal fields to JSON, %v", err)
@@ -168,11 +168,15 @@ func failureLog(testName string, function string, args map[string]interface{}, s
 	var fields log.Fields
 	// log with the fields as per mint
 	if err != nil {
-		fields = log.Fields{"name": "minio-go: " + testName, "function": function, "args": args,
-			"duration": duration.Nanoseconds() / 1000000, "status": "FAIL", "alert": alert, "message": message, "error": err}
+		fields = log.Fields{
+			"name": "minio-go: " + testName, "function": function, "args": args,
+			"duration": duration.Nanoseconds() / 1000000, "status": "FAIL", "alert": alert, "message": message, "error": err,
+		}
 	} else {
-		fields = log.Fields{"name": "minio-go: " + testName, "function": function, "args": args,
-			"duration": duration.Nanoseconds() / 1000000, "status": "FAIL", "alert": alert, "message": message}
+		fields = log.Fields{
+			"name": "minio-go: " + testName, "function": function, "args": args,
+			"duration": duration.Nanoseconds() / 1000000, "status": "FAIL", "alert": alert, "message": message,
+		}
 	}
 	return log.WithFields(cleanEmptyEntries(fields))
 }
@@ -182,8 +186,10 @@ func ignoredLog(testName string, function string, args map[string]interface{}, s
 	// calculate the test case duration
 	duration := time.Since(startTime)
 	// log with the fields as per mint
-	fields := log.Fields{"name": "minio-go: " + testName, "function": function, "args": args,
-		"duration": duration.Nanoseconds() / 1000000, "status": "NA", "alert": strings.Split(alert, " ")[0] + " is NotImplemented"}
+	fields := log.Fields{
+		"name": "minio-go: " + testName, "function": function, "args": args,
+		"duration": duration.Nanoseconds() / 1000000, "status": "NA", "alert": strings.Split(alert, " ")[0] + " is NotImplemented",
+	}
 	return log.WithFields(cleanEmptyEntries(fields))
 }
 
@@ -632,7 +638,7 @@ func testPutObjectReadAt() {
 	defer cleanupBucket(bucketName, c)
 
 	bufSize := dataFileMap["datafile-129-MB"]
-	var reader = getDataReader("datafile-129-MB")
+	reader := getDataReader("datafile-129-MB")
 	defer reader.Close()
 
 	// Save the data
@@ -738,7 +744,7 @@ func testListObjectVersions() {
 	args["objectName"] = objectName
 
 	bufSize := dataFileMap["datafile-10-kB"]
-	var reader = getDataReader("datafile-10-kB")
+	reader := getDataReader("datafile-10-kB")
 
 	_, err = c.PutObject(context.Background(), bucketName, objectName, reader, int64(bufSize), minio.PutObjectOptions{})
 	if err != nil {
@@ -857,7 +863,7 @@ func testStatObjectWithVersioning() {
 	args["objectName"] = objectName
 
 	bufSize := dataFileMap["datafile-10-kB"]
-	var reader = getDataReader("datafile-10-kB")
+	reader := getDataReader("datafile-10-kB")
 
 	_, err = c.PutObject(context.Background(), bucketName, objectName, reader, int64(bufSize), minio.PutObjectOptions{})
 	if err != nil {
@@ -975,7 +981,7 @@ func testGetObjectWithVersioning() {
 
 	// Save the contents of datafiles to check with GetObject() reader output later
 	var buffers [][]byte
-	var testFiles = []string{"datafile-1-b", "datafile-10-kB"}
+	testFiles := []string{"datafile-1-b", "datafile-10-kB"}
 
 	for _, testFile := range testFiles {
 		r := getDataReader(testFile)
@@ -1117,7 +1123,7 @@ func testPutObjectWithVersioning() {
 	// Save the data concurrently.
 	var wg sync.WaitGroup
 	wg.Add(n)
-	var buffers = make([][]byte, n)
+	buffers := make([][]byte, n)
 	var errs [n]error
 	for i := 0; i < n; i++ {
 		r := newRandomReader(int64((1<<20)*i+i), int64(i))
@@ -1258,7 +1264,7 @@ func testCopyObjectWithVersioning() {
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
 	args["objectName"] = objectName
 
-	var testFiles = []string{"datafile-1-b", "datafile-10-kB"}
+	testFiles := []string{"datafile-1-b", "datafile-10-kB"}
 	for _, testFile := range testFiles {
 		r := getDataReader(testFile)
 		buf, err := ioutil.ReadAll(r)
@@ -1395,7 +1401,7 @@ func testConcurrentCopyObjectWithVersioning() {
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
 	args["objectName"] = objectName
 
-	var testFiles = []string{"datafile-10-kB"}
+	testFiles := []string{"datafile-10-kB"}
 	for _, testFile := range testFiles {
 		r := getDataReader(testFile)
 		buf, err := ioutil.ReadAll(r)
@@ -1556,7 +1562,7 @@ func testComposeObjectWithVersioning() {
 	args["objectName"] = objectName
 
 	// var testFiles = []string{"datafile-5-MB", "datafile-10-kB"}
-	var testFiles = []string{"datafile-5-MB", "datafile-10-kB"}
+	testFiles := []string{"datafile-5-MB", "datafile-10-kB"}
 	var testFilesBytes [][]byte
 
 	for _, testFile := range testFiles {
@@ -2036,7 +2042,7 @@ func testPutObjectWithMetadata() {
 	defer cleanupBucket(bucketName, c)
 
 	bufSize := dataFileMap["datafile-129-MB"]
-	var reader = getDataReader("datafile-129-MB")
+	reader := getDataReader("datafile-129-MB")
 	defer reader.Close()
 
 	// Save the data
@@ -2052,7 +2058,8 @@ func testPutObjectWithMetadata() {
 	}
 
 	_, err = c.PutObject(context.Background(), bucketName, objectName, reader, int64(bufSize), minio.PutObjectOptions{
-		ContentType: customContentType})
+		ContentType: customContentType,
+	})
 	if err != nil {
 		logError(testName, function, args, startTime, "", "PutObject failed", err)
 		return
@@ -2282,7 +2289,7 @@ func testGetObjectSeekEnd() {
 
 	// Generate 33K of data.
 	bufSize := dataFileMap["datafile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 
 	// Save the data
@@ -2404,7 +2411,7 @@ func testGetObjectClosedTwice() {
 
 	// Generate 33K of data.
 	bufSize := dataFileMap["datafile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 
 	// Save the data
@@ -2807,7 +2814,7 @@ func testFPutObjectMultipart() {
 	defer cleanupBucket(bucketName, c)
 
 	// Upload 4 parts to utilize all 3 'workers' in multipart and still have a part to upload.
-	var fileName = getMintDataDirFilePath("datafile-129-MB")
+	fileName := getMintDataDirFilePath("datafile-129-MB")
 	if fileName == "" {
 		// Make a temp file with minPartSize bytes of data.
 		file, err := ioutil.TempFile(os.TempDir(), "FPutObjectTest")
@@ -2916,7 +2923,7 @@ func testFPutObject() {
 
 	// Upload 3 parts worth of data to use all 3 of multiparts 'workers' and have an extra part.
 	// Use different data in part for multipart tests to check parts are uploaded in correct order.
-	var fName = getMintDataDirFilePath("datafile-129-MB")
+	fName := getMintDataDirFilePath("datafile-129-MB")
 	if fName == "" {
 		// Make a temp file with minPartSize bytes of data.
 		file, err := ioutil.TempFile(os.TempDir(), "FPutObjectTest")
@@ -3082,7 +3089,7 @@ func testFPutObjectContext() {
 
 	// Upload 1 parts worth of data to use multipart upload.
 	// Use different data in part for multipart tests to check parts are uploaded in correct order.
-	var fName = getMintDataDirFilePath("datafile-1-MB")
+	fName := getMintDataDirFilePath("datafile-1-MB")
 	if fName == "" {
 		// Make a temp file with 1 MiB bytes of data.
 		file, err := ioutil.TempFile(os.TempDir(), "FPutObjectContextTest")
@@ -3134,7 +3141,6 @@ func testFPutObjectContext() {
 	}
 
 	successLogger(testName, function, args, startTime).Info()
-
 }
 
 // Tests FPutObject request when context cancels after timeout
@@ -3183,7 +3189,7 @@ func testFPutObjectContextV2() {
 
 	// Upload 1 parts worth of data to use multipart upload.
 	// Use different data in part for multipart tests to check parts are uploaded in correct order.
-	var fName = getMintDataDirFilePath("datafile-1-MB")
+	fName := getMintDataDirFilePath("datafile-1-MB")
 	if fName == "" {
 		// Make a temp file with 1 MiB bytes of data.
 		file, err := ioutil.TempFile(os.TempDir(), "FPutObjectContextTest")
@@ -3237,7 +3243,6 @@ func testFPutObjectContextV2() {
 	}
 
 	successLogger(testName, function, args, startTime).Info()
-
 }
 
 // Test validates putObject with context to see if request cancellation is honored.
@@ -3283,7 +3288,7 @@ func testPutObjectContext() {
 	defer cleanupBucket(bucketName, c)
 
 	bufSize := dataFileMap["datafile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 	objectName := fmt.Sprintf("test-file-%v", rand.Uint32())
 	args["objectName"] = objectName
@@ -3312,7 +3317,6 @@ func testPutObjectContext() {
 	}
 
 	successLogger(testName, function, args, startTime).Info()
-
 }
 
 // Tests get object with s3zip extensions.
@@ -3428,7 +3432,7 @@ func testGetObjectS3Zip() {
 	lOpts.Prefix = objectName + "/"
 	lOpts.Recursive = true
 	list := c.ListObjects(context.Background(), bucketName, lOpts)
-	var listed = map[string]minio.ObjectInfo{}
+	listed := map[string]minio.ObjectInfo{}
 	for item := range list {
 		if item.Err != nil {
 			break
@@ -3547,7 +3551,7 @@ func testGetObjectReadSeekFunctional() {
 
 	// Generate 33K of data.
 	bufSize := dataFileMap["datafile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -3710,7 +3714,7 @@ func testGetObjectReadAtFunctional() {
 
 	// Generate 33K of data.
 	bufSize := dataFileMap["datafile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -3887,7 +3891,7 @@ func testGetObjectReadAtWhenEOFWasReached() {
 
 	// Generate 33K of data.
 	bufSize := dataFileMap["datafile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -4004,7 +4008,7 @@ func testPresignedPostPolicy() {
 	defer cleanupBucket(bucketName, c)
 
 	// Generate 33K of data.
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -4081,7 +4085,7 @@ func testPresignedPostPolicy() {
 	}
 
 	// Get a 33KB file to upload and test if set post policy works
-	var filePath = getMintDataDirFilePath("datafile-33-kB")
+	filePath := getMintDataDirFilePath("datafile-33-kB")
 	if filePath == "" {
 		// Make a temp file with 33 KB data.
 		file, err := ioutil.TempFile(os.TempDir(), "PresignedPostPolicyTest")
@@ -4228,7 +4232,7 @@ func testCopyObject() {
 
 	// Generate 33K of data.
 	bufSize := dataFileMap["datafile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 
 	// Save the data
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -4421,7 +4425,7 @@ func testSSECEncryptedGetObjectReadSeekFunctional() {
 
 	// Generate 129MiB of data.
 	bufSize := dataFileMap["datafile-129-MB"]
-	var reader = getDataReader("datafile-129-MB")
+	reader := getDataReader("datafile-129-MB")
 	defer reader.Close()
 
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -4603,7 +4607,7 @@ func testSSES3EncryptedGetObjectReadSeekFunctional() {
 
 	// Generate 129MiB of data.
 	bufSize := dataFileMap["datafile-129-MB"]
-	var reader = getDataReader("datafile-129-MB")
+	reader := getDataReader("datafile-129-MB")
 	defer reader.Close()
 
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -4777,7 +4781,7 @@ func testSSECEncryptedGetObjectReadAtFunctional() {
 
 	// Generate 129MiB of data.
 	bufSize := dataFileMap["datafile-129-MB"]
-	var reader = getDataReader("datafile-129-MB")
+	reader := getDataReader("datafile-129-MB")
 	defer reader.Close()
 
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -4960,7 +4964,7 @@ func testSSES3EncryptedGetObjectReadAtFunctional() {
 
 	// Generate 129MiB of data.
 	bufSize := dataFileMap["datafile-129-MB"]
-	var reader = getDataReader("datafile-129-MB")
+	reader := getDataReader("datafile-129-MB")
 	defer reader.Close()
 
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -5972,7 +5976,6 @@ func testFunctional() {
 		"objectName": objectName,
 	}
 	newReader, err := c.GetObject(context.Background(), bucketName, objectName, minio.GetObjectOptions{})
-
 	if err != nil {
 		logError(testName, function, args, startTime, "", "GetObject failed", err)
 		return
@@ -6025,7 +6028,6 @@ func testFunctional() {
 		"expires":    3600 * time.Second,
 	}
 	presignedHeadURL, err := c.PresignedHeadObject(context.Background(), bucketName, objectName, 3600*time.Second, nil)
-
 	if err != nil {
 		logError(testName, function, args, startTime, "", "PresignedHeadObject failed", err)
 		return
@@ -6089,7 +6091,6 @@ func testFunctional() {
 		"expires":    3600 * time.Second,
 	}
 	presignedGetURL, err := c.PresignedGetObject(context.Background(), bucketName, objectName, 3600*time.Second, nil)
-
 	if err != nil {
 		logError(testName, function, args, startTime, "", "PresignedGetObject failed", err)
 		return
@@ -6189,7 +6190,6 @@ func testFunctional() {
 		"expires":    3600 * time.Second,
 	}
 	presignedPutURL, err := c.PresignedPutObject(context.Background(), bucketName, objectName+"-presigned", 3600*time.Second)
-
 	if err != nil {
 		logError(testName, function, args, startTime, "", "PresignedPutObject failed", err)
 		return
@@ -6513,7 +6513,7 @@ func testPutObjectUploadSeekedObject() {
 		// Seek back to the beginning of the file.
 		tempfile.Seek(0, 0)
 	}
-	var length = 100 * humanize.KiByte
+	length := 100 * humanize.KiByte
 	objectName := fmt.Sprintf("test-file-%v", rand.Uint32())
 	args["objectName"] = objectName
 
@@ -6670,7 +6670,7 @@ func testGetObjectClosedTwiceV2() {
 
 	// Generate 33K of data.
 	bufSize := dataFileMap["datafile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 
 	// Save the data
@@ -6982,7 +6982,7 @@ func testGetObjectReadSeekFunctionalV2() {
 
 	// Generate 33K of data.
 	bufSize := dataFileMap["datafile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -7136,7 +7136,7 @@ func testGetObjectReadAtFunctionalV2() {
 
 	// Generate 33K of data.
 	bufSize := dataFileMap["datafile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -7303,7 +7303,7 @@ func testCopyObjectV2() {
 
 	// Generate 33K of data.
 	bufSize := dataFileMap["datafile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 
 	// Save the data
@@ -7412,7 +7412,6 @@ func testComposeObjectErrorCasesWrapper(c *minio.Client) {
 
 	// Make a new bucket in 'us-east-1' (source bucket).
 	err := c.MakeBucket(context.Background(), bucketName, minio.MakeBucketOptions{Region: "us-east-1"})
-
 	if err != nil {
 		logError(testName, function, args, startTime, "", "MakeBucket failed", err)
 		return
@@ -9935,6 +9934,7 @@ func testSSES3EncryptedToSSES3CopyObjectPart() {
 
 	// Do not need to remove destBucketName its same as bucketName.
 }
+
 func testUserMetadataCopying() {
 	// initialize logging params
 	startTime := time.Now()
@@ -10432,7 +10432,7 @@ func testPutObjectNoLengthV2() {
 	args["objectName"] = objectName
 
 	bufSize := dataFileMap["datafile-129-MB"]
-	var reader = getDataReader("datafile-129-MB")
+	reader := getDataReader("datafile-129-MB")
 	defer reader.Close()
 	args["size"] = bufSize
 
@@ -11162,7 +11162,7 @@ func testGetObjectContext() {
 	defer cleanupBucket(bucketName, c)
 
 	bufSize := dataFileMap["datafile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 	// Save the data
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -11216,7 +11216,6 @@ func testGetObjectContext() {
 	}
 
 	successLogger(testName, function, args, startTime).Info()
-
 }
 
 // Test get object with FGetObject with a user provided context
@@ -11265,7 +11264,7 @@ func testFGetObjectContext() {
 	defer cleanupBucket(bucketName, c)
 
 	bufSize := dataFileMap["datafile-1-MB"]
-	var reader = getDataReader("datafile-1-MB")
+	reader := getDataReader("datafile-1-MB")
 	defer reader.Close()
 	// Save the data
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -11304,7 +11303,6 @@ func testFGetObjectContext() {
 	}
 
 	successLogger(testName, function, args, startTime).Info()
-
 }
 
 // Test get object with GetObject with a user provided context
@@ -11354,7 +11352,7 @@ func testGetObjectRanges() {
 	defer cleanupBucket(bucketName, c)
 
 	bufSize := dataFileMap["datafile-129-MB"]
-	var reader = getDataReader("datafile-129-MB")
+	reader := getDataReader("datafile-129-MB")
 	defer reader.Close()
 	// Save the data
 	objectName := randString(60, rng, "")
@@ -11463,7 +11461,7 @@ func testGetObjectACLContext() {
 	defer cleanupBucket(bucketName, c)
 
 	bufSize := dataFileMap["datafile-1-MB"]
-	var reader = getDataReader("datafile-1-MB")
+	reader := getDataReader("datafile-1-MB")
 	defer reader.Close()
 	// Save the data
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -11525,7 +11523,7 @@ func testGetObjectACLContext() {
 	}
 
 	bufSize = dataFileMap["datafile-1-MB"]
-	var reader2 = getDataReader("datafile-1-MB")
+	reader2 := getDataReader("datafile-1-MB")
 	defer reader2.Close()
 	// Save the data
 	objectName = randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -11635,7 +11633,7 @@ func testPutObjectContextV2() {
 	}
 	defer cleanupBucket(bucketName, c)
 	bufSize := dataFileMap["datatfile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 
 	objectName := fmt.Sprintf("test-file-%v", rand.Uint32())
@@ -11665,7 +11663,6 @@ func testPutObjectContextV2() {
 	}
 
 	successLogger(testName, function, args, startTime).Info()
-
 }
 
 // Test get object with GetObject with custom context
@@ -11713,7 +11710,7 @@ func testGetObjectContextV2() {
 	defer cleanupBucket(bucketName, c)
 
 	bufSize := dataFileMap["datafile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 	// Save the data
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -11765,7 +11762,6 @@ func testGetObjectContextV2() {
 	}
 
 	successLogger(testName, function, args, startTime).Info()
-
 }
 
 // Test get object with FGetObject with custom context
@@ -11814,7 +11810,7 @@ func testFGetObjectContextV2() {
 	defer cleanupBucket(bucketName, c)
 
 	bufSize := dataFileMap["datatfile-1-MB"]
-	var reader = getDataReader("datafile-1-MB")
+	reader := getDataReader("datafile-1-MB")
 	defer reader.Close()
 	// Save the data
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -11855,7 +11851,6 @@ func testFGetObjectContextV2() {
 	}
 
 	successLogger(testName, function, args, startTime).Info()
-
 }
 
 // Test list object v1 and V2
@@ -11915,7 +11910,7 @@ func testListObjects() {
 
 	for i, object := range testObjects {
 		bufSize := dataFileMap["datafile-33-kB"]
-		var reader = getDataReader("datafile-33-kB")
+		reader := getDataReader("datafile-33-kB")
 		defer reader.Close()
 		_, err = c.PutObject(context.Background(), bucketName, object.name, reader, int64(bufSize),
 			minio.PutObjectOptions{ContentType: "binary/octet-stream", StorageClass: object.storageClass})
@@ -12003,7 +11998,7 @@ func testRemoveObjects() {
 	}
 
 	bufSize := dataFileMap["datafile-129-MB"]
-	var reader = getDataReader("datafile-129-MB")
+	reader := getDataReader("datafile-129-MB")
 	defer reader.Close()
 
 	_, err = c.PutObject(context.Background(), bucketName, objectName, reader, int64(bufSize), minio.PutObjectOptions{})

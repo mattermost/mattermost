@@ -33,9 +33,10 @@
 // the last two are not (but share the same eTLD+1: "google.com").
 //
 // All of these domains have the same eTLD+1:
-//  - "www.books.amazon.co.uk"
-//  - "books.amazon.co.uk"
-//  - "amazon.co.uk"
+//   - "www.books.amazon.co.uk"
+//   - "books.amazon.co.uk"
+//   - "amazon.co.uk"
+//
 // Specifically, the eTLD+1 is "amazon.co.uk", because the eTLD is "co.uk".
 //
 // There is no closed form algorithm to calculate the eTLD of a domain.

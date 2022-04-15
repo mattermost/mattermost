@@ -519,7 +519,7 @@ func (s *SelectResults) start(pipeWriter *io.PipeWriter) {
 	go func() {
 		for {
 			var prelude preludeInfo
-			var headers = make(http.Header)
+			headers := make(http.Header)
 			var err error
 
 			// Create CRC code
@@ -624,7 +624,7 @@ func (p preludeInfo) PayloadLen() int64 {
 // the struct,
 func processPrelude(prelude io.Reader, crc hash.Hash32) (preludeInfo, error) {
 	var err error
-	var pInfo = preludeInfo{}
+	pInfo := preludeInfo{}
 
 	// reads total length of the message (first 4 bytes)
 	pInfo.totalLen, err = extractUint32(prelude)
@@ -752,7 +752,6 @@ func checkCRC(r io.Reader, expect uint32) error {
 
 	if msgCRC != expect {
 		return fmt.Errorf("Checksum Mismatch, MessageCRC of 0x%X does not equal expected CRC of 0x%X", msgCRC, expect)
-
 	}
 	return nil
 }

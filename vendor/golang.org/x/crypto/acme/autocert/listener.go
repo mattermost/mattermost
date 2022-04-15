@@ -20,7 +20,7 @@ import (
 //
 // It enables one-line HTTPS servers:
 //
-//     log.Fatal(http.Serve(autocert.NewListener("example.com"), handler))
+//	log.Fatal(http.Serve(autocert.NewListener("example.com"), handler))
 //
 // NewListener is a convenience function for a common configuration.
 // More complex or custom configurations can use the autocert.Manager
