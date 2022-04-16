@@ -105,21 +105,6 @@ func sumMD5Base64(data []byte) string {
 
 // getEndpointURL - construct a new endpoint.
 func getEndpointURL(endpoint string, secure bool) (*url.URL, error) {
-	if strings.Contains(endpoint, ":") {
-		host, _, err := net.SplitHostPort(endpoint)
-		if err != nil {
-			return nil, err
-		}
-		if !s3utils.IsValidIP(host) && !s3utils.IsValidDomain(host) {
-			msg := "Endpoint: " + endpoint + " does not follow ip address or domain name standards."
-			return nil, errInvalidArgument(msg)
-		}
-	} else {
-		if !s3utils.IsValidIP(endpoint) && !s3utils.IsValidDomain(endpoint) {
-			msg := "Endpoint: " + endpoint + " does not follow ip address or domain name standards."
-			return nil, errInvalidArgument(msg)
-		}
-	}
 	// If secure is false, use 'http' scheme.
 	scheme := "https"
 	if !secure {
@@ -176,12 +161,18 @@ func isValidEndpointURL(endpointURL url.URL) error {
 	if endpointURL.Path != "/" && endpointURL.Path != "" {
 		return errInvalidArgument("Endpoint url cannot have fully qualified paths.")
 	}
-	if strings.Contains(endpointURL.Host, ".s3.amazonaws.com") {
+	host := endpointURL.Hostname()
+	if !s3utils.IsValidIP(host) && !s3utils.IsValidDomain(host) {
+		msg := "Endpoint: " + endpointURL.Host + " does not follow ip address or domain name standards."
+		return errInvalidArgument(msg)
+	}
+
+	if strings.Contains(host, ".s3.amazonaws.com") {
 		if !s3utils.IsAmazonEndpoint(endpointURL) {
 			return errInvalidArgument("Amazon S3 endpoint should be 's3.amazonaws.com'.")
 		}
 	}
-	if strings.Contains(endpointURL.Host, ".googleapis.com") {
+	if strings.Contains(host, ".googleapis.com") {
 		if !s3utils.IsGoogleEndpoint(endpointURL) {
 			return errInvalidArgument("Google Cloud Storage endpoint should be 'storage.googleapis.com'.")
 		}
@@ -513,8 +504,10 @@ func isAmzHeader(headerKey string) bool {
 	return strings.HasPrefix(key, "x-amz-meta-") || strings.HasPrefix(key, "x-amz-grant-") || key == "x-amz-acl" || isSSEHeader(headerKey)
 }
 
-var md5Pool = sync.Pool{New: func() interface{} { return md5.New() }}
-var sha256Pool = sync.Pool{New: func() interface{} { return sha256.New() }}
+var (
+	md5Pool    = sync.Pool{New: func() interface{} { return md5.New() }}
+	sha256Pool = sync.Pool{New: func() interface{} { return sha256.New() }}
+)
 
 func newMd5Hasher() md5simd.Hasher {
 	return hashWrapper{Hash: md5Pool.Get().(hash.Hash), isMD5: true}
