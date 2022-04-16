@@ -38,7 +38,8 @@ import (
 )
 
 func (c *Client) putObjectMultipart(ctx context.Context, bucketName, objectName string, reader io.Reader, size int64,
-	opts PutObjectOptions) (info UploadInfo, err error) {
+	opts PutObjectOptions,
+) (info UploadInfo, err error) {
 	info, err = c.putObjectMultipartNoStream(ctx, bucketName, objectName, reader, opts)
 	if err != nil {
 		errResp := ToErrorResponse(err)
@@ -240,7 +241,8 @@ func (c *Client) initiateMultipartUpload(ctx context.Context, bucketName, object
 
 // uploadPart - Uploads a part in a multipart upload.
 func (c *Client) uploadPart(ctx context.Context, bucketName, objectName, uploadID string, reader io.Reader,
-	partNumber int, md5Base64, sha256Hex string, size int64, sse encrypt.ServerSide) (ObjectPart, error) {
+	partNumber int, md5Base64, sha256Hex string, size int64, sse encrypt.ServerSide,
+) (ObjectPart, error) {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return ObjectPart{}, err
@@ -311,7 +313,8 @@ func (c *Client) uploadPart(ctx context.Context, bucketName, objectName, uploadI
 
 // completeMultipartUpload - Completes a multipart upload by assembling previously uploaded parts.
 func (c *Client) completeMultipartUpload(ctx context.Context, bucketName, objectName, uploadID string,
-	complete completeMultipartUpload, opts PutObjectOptions) (UploadInfo, error) {
+	complete completeMultipartUpload, opts PutObjectOptions,
+) (UploadInfo, error) {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return UploadInfo{}, err
@@ -392,5 +395,4 @@ func (c *Client) completeMultipartUpload(ctx context.Context, bucketName, object
 		Expiration:       expTime,
 		ExpirationRuleID: ruleID,
 	}, nil
-
 }

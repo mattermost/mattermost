@@ -94,7 +94,7 @@ func NewSTSCertificateIdentity(endpoint string, certificate tls.Certificate, opt
 	if _, err := url.Parse(endpoint); err != nil {
 		return nil, err
 	}
-	var identity = &STSCertificateIdentity{
+	identity := &STSCertificateIdentity{
 		STSEndpoint: endpoint,
 		Client: http.Client{
 			Transport: &http.Transport{
@@ -127,7 +127,7 @@ func (i *STSCertificateIdentity) Retrieve() (Value, error) {
 	if err != nil {
 		return Value{}, err
 	}
-	var livetime = i.S3CredentialLivetime
+	livetime := i.S3CredentialLivetime
 	if livetime == 0 {
 		livetime = 1 * time.Hour
 	}
@@ -155,7 +155,6 @@ func (i *STSCertificateIdentity) Retrieve() (Value, error) {
 		buf, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return Value{}, err
-
 		}
 		_, err = xmlDecodeAndBody(bytes.NewReader(buf), &errResp)
 		if err != nil {
