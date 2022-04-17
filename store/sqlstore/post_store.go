@@ -868,6 +868,68 @@ func (s *SqlPostStore) PermanentDeleteByUser(userId string) error {
 	return nil
 }
 
+// Permanent replaces all @-mentions of the user by @deletedUser
+// Problems:
+// * may take really long when there are a lot of messages,
+// * @deletedUser is no protected username
+// * tests needed
+func (s *SqlPostStore) ReplaceUserMentions(userId string) error {
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction)
+
+	// get username
+	var username []string
+	err = transaction.Select(&username, "SELECT Username FROM Users WHERE Id = ? LIMIT 1", userId)
+	if err != nil {
+		return errors.Wrapf(err, "failed to fetch User with ID=%s", userId)
+	}
+
+	// get all posts
+	posts := []struct {
+		Id      string
+		Message string
+	}{}
+
+	// TODO: Maybe add a limit?
+	query, params, _ := s.getQueryBuilder().
+		Select("Posts.id Id", "Posts.message Message").
+		From("Posts").
+		Where(sq.Like{"Message": "%" + username[0] + "%"}).
+		ToSql()
+
+	err = transaction.Select(&posts, query, params...)
+	if err != nil {
+		return errors.Wrapf(err, "failed to fetch posts")
+	}
+
+	// replace all occurrences of the username by '@deletedUser'
+	atMentionRegex := regexp.MustCompile(`(@` + username[0] + `(\b.*)?$)`)
+
+	for _, item := range posts {
+		newMessage := atMentionRegex.ReplaceAllString(item.Message, "@deletedUser$2")
+		fmt.Println("WAS", item.Message)
+		fmt.Println("IS", newMessage)
+
+		updateQuery := s.getQueryBuilder().Update("Posts").
+			Set("Message", newMessage).
+			Where(sq.Eq{"Id": item.Id})
+		queryString, args, _ := updateQuery.ToSql()
+
+		if _, err = transaction.Exec(queryString, args...); err != nil {
+			return errors.Wrapf(err, "failed to replace user mention in message with ID=%s", item.Id)
+		}
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return errors.Wrap(err, "commit_transaction")
+	}
+
+	return nil
+}
+
 // Permanent deletes all channel root posts and comments,
 // deletes all threads and thread memberships
 // no thread comment cleanup needed, since we are deleting threads and thread memberships

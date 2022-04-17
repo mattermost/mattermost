@@ -1547,6 +1547,10 @@ func (a *App) PermanentDeleteUser(c *request.Context, user *model.User) *model.A
 		return model.NewAppError("PermanentDeleteUser", "app.post.permanent_delete_by_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	if err := a.Srv().Store.Post().ReplaceUserMentions(user.Id); err != nil {
+		return model.NewAppError("ReplaceUserMentions", "app.post.replace_user_mentions.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
 	if err := a.Srv().Store.Bot().PermanentDelete(user.Id); err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
