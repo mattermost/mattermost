@@ -326,6 +326,7 @@ type PostStore interface {
 	GetSingle(id string, inclDeleted bool) (*model.Post, error)
 	Delete(postID string, time int64, deleteByID string) error
 	PermanentDeleteByUser(userID string) error
+	ReplaceUserMentions(userID string) error
 	PermanentDeleteByChannel(channelID string) error
 	GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, error)
 	GetFlaggedPosts(userID string, offset int, limit int) (*model.PostList, error)
