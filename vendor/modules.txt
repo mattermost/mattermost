@@ -451,7 +451,7 @@ github.com/miekg/dns
 # github.com/minio/md5-simd v1.1.2
 ## explicit
 github.com/minio/md5-simd
-# github.com/minio/minio-go/v7 v7.0.23
+# github.com/minio/minio-go/v7 v7.0.24
 ## explicit
 github.com/minio/minio-go/v7
 github.com/minio/minio-go/v7/pkg/credentials

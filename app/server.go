@@ -733,6 +733,9 @@ func (s *Server) runJobs() {
 	s.Go(func() {
 		runCommandWebhookCleanupJob(s)
 	})
+	s.Go(func() {
+		runConfigCleanupJob(s)
+	})
 
 	if complianceI := s.Channels().Compliance; complianceI != nil {
 		complianceI.StartComplianceDailyJob()
@@ -1506,6 +1509,13 @@ func runJobsCleanupJob(s *Server) {
 	}, time.Hour*24)
 }
 
+func runConfigCleanupJob(s *Server) {
+	doConfigCleanup(s)
+	model.CreateRecurringTask("Configuration Cleanup", func() {
+		doConfigCleanup(s)
+	}, time.Hour*24)
+}
+
 func (s *Server) runInactivityCheckJob() {
 	model.CreateRecurringTask("Server inactivity Check", func() {
 		s.doInactivityCheck()
@@ -1577,6 +1587,17 @@ func doJobsCleanup(s *Server) {
 	err := s.Store.Job().Cleanup(expiry, jobsCleanupBatchSize)
 	if err != nil {
 		mlog.Warn("Error while cleaning up jobs", mlog.Err(err))
+	}
+}
+
+func doConfigCleanup(s *Server) {
+	if *s.Config().JobSettings.CleanupConfigThresholdDays < 0 || !config.IsDatabaseDSN(s.ConfigStore().Store.String()) {
+		return
+	}
+	mlog.Info("Cleaning up configuration store.")
+
+	if err := s.ConfigStore().Store.CleanUp(); err != nil {
+		mlog.Warn("Error while cleaning up configurations", mlog.Err(err))
 	}
 }
 
