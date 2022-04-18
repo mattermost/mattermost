@@ -2156,7 +2156,7 @@ func getTopChannelsForUserSince(c *Context, w http.ResponseWriter, r *http.Reque
 			return
 		}
 
-		if (!team.AllowOpenInvite || team.Type != model.TeamOpen) && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
 			c.SetPermissionError(model.PermissionViewTeam)
 			return
 		}

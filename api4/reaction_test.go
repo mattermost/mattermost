@@ -766,6 +766,13 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 		assert.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
+
+	t.Run("get-top-reactions-for-team-since not a member of team", func(t *testing.T) {
+		th.UnlinkUserFromTeam(th.BasicUser, th.BasicTeam)
+		_, resp, err := client.GetTopReactionsForTeamSince(teamId, model.TimeRangeToday, 0, 5)
+		assert.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
 }
 
 func TestGetTopReactionsForUserSince(t *testing.T) {
@@ -947,5 +954,12 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 		_, resp, err = client.GetTopReactionsForUserSince(model.NewId(), model.TimeRangeToday, 0, 5)
 		assert.Error(t, err)
 		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("get-top-reactions-for-user-since not a member of team", func(t *testing.T) {
+		th.UnlinkUserFromTeam(th.BasicUser, th.BasicTeam)
+		_, resp, err := client.GetTopReactionsForUserSince(teamId, model.TimeRangeToday, 0, 5)
+		assert.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 }

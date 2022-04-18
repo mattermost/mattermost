@@ -4607,6 +4607,25 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 		assert.Equal(t, int64(1), topChannels.Items[0].MessageCount)
 	})
 
+	t.Run("get-top-channels-for-user-since exclude channels user is not member of", func(t *testing.T) {
+		excludedChannel := th.CreatePrivateChannel()
+
+		for i = 0; i < 10; i++ {
+			_, _, err := client.CreatePost(&model.Post{UserId: userId, ChannelId: excludedChannel.Id, Message: "zz" + model.NewId() + "a"})
+			require.NoError(t, err)
+		}
+
+		th.RemoveUserFromChannel(th.BasicUser, excludedChannel)
+
+		topChannels, _, err := client.GetTopChannelsForTeamSince(teamId, model.TimeRangeToday, 0, 5)
+		require.NoError(t, err)
+
+		for i, channel := range topChannels.Items {
+			assert.Equal(t, expectedTopChannels[i].ID, channel.ID)
+			assert.Equal(t, expectedTopChannels[i].MessageCount, channel.MessageCount)
+		}
+	})
+
 	t.Run("get-top-channels-for-team-since invalid team id", func(t *testing.T) {
 		_, resp, err := client.GetTopChannelsForTeamSince("12345", model.TimeRangeToday, 0, 5)
 		assert.Error(t, err)
@@ -4615,6 +4634,13 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 		_, resp, err = client.GetTopChannelsForTeamSince(model.NewId(), model.TimeRangeToday, 0, 5)
 		assert.Error(t, err)
 		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("get-top-channels-for-team-since not a member of team", func(t *testing.T) {
+		th.UnlinkUserFromTeam(th.BasicUser, th.BasicTeam)
+		_, resp, err := client.GetTopChannelsForTeamSince(teamId, model.TimeRangeToday, 0, 5)
+		assert.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 }
 
@@ -4683,5 +4709,12 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 		_, resp, err = client.GetTopChannelsForUserSince(model.NewId(), model.TimeRangeToday, 0, 5)
 		assert.Error(t, err)
 		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("get-top-channels-for-user-since not a member of team", func(t *testing.T) {
+		th.UnlinkUserFromTeam(th.BasicUser, th.BasicTeam)
+		_, resp, err := client.GetTopChannelsForUserSince(teamId, model.TimeRangeToday, 0, 5)
+		assert.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 }
