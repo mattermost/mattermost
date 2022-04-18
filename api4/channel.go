@@ -76,9 +76,6 @@ func (api *API) InitChannel() {
 
 	api.BaseRoutes.ChannelModerations.Handle("", api.APISessionRequired(getChannelModerations)).Methods("GET")
 	api.BaseRoutes.ChannelModerations.Handle("/patch", api.APISessionRequired(patchChannelModerations)).Methods("PUT")
-
-	api.BaseRoutes.Team.Handle("/top/channels", api.APISessionRequired(getTopChannelsForTeamSince)).Methods("GET")
-	api.BaseRoutes.Users.Handle("/me/top/channels", api.APISessionRequired(getTopChannelsForUserSince)).Methods("GET")
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2096,88 +2093,4 @@ func moveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(channel); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
-}
-
-func getTopChannelsForTeamSince(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireTeamId().RequireTimeRange()
-	if c.Err != nil {
-		return
-	}
-
-	team, err := c.App.GetTeam(c.Params.TeamId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
-		c.SetPermissionError(model.PermissionViewTeam)
-		return
-	}
-
-	topChannels, err := c.App.GetTopChannelsForTeamSince(c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
-		StartUnixMilli: c.Params.TimeRange,
-		Page:           c.Params.Page,
-		PerPage:        c.Params.PerPage,
-	})
-
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	js, jsonErr := json.Marshal(topChannels)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getTopChannelsForTeamSince", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Write(js)
-}
-
-func getTopChannelsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireTimeRange()
-	if c.Err != nil {
-		return
-	}
-
-	c.Params.TeamId = r.URL.Query().Get("team_id")
-
-	// TeamId is an optional parameter
-	if c.Params.TeamId != "" {
-		if !model.IsValidId(c.Params.TeamId) {
-			c.SetInvalidURLParam("team_id")
-			return
-		}
-
-		team, teamErr := c.App.GetTeam(c.Params.TeamId)
-		if teamErr != nil {
-			c.Err = teamErr
-			return
-		}
-
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
-			c.SetPermissionError(model.PermissionViewTeam)
-			return
-		}
-	}
-
-	topChannels, err := c.App.GetTopChannelsForUserSince(c.AppContext.Session().UserId, c.Params.TeamId, &model.InsightsOpts{
-		StartUnixMilli: c.Params.TimeRange,
-		Page:           c.Params.Page,
-		PerPage:        c.Params.PerPage,
-	})
-
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	js, jsonErr := json.Marshal(topChannels)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getTopChannelsForUserSince", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Write(js)
 }
