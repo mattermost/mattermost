@@ -3532,10 +3532,6 @@
     "translation": "无效的用户名。"
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "名称必须是2个或更多小写字母数字字符。"
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "创建时间必须为有效的时间。"
   },

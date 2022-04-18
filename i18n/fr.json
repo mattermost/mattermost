@@ -3536,10 +3536,6 @@
     "translation": "Nom d'utilisateur invalide"
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Le nom doit être composé d'au moins 2 caractères alphanumériques en minuscules."
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "La date de création doit être une date valide"
   },

@@ -3536,10 +3536,6 @@
     "translation": "Ungültiger Benutzername."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Name muss 2 oder mehr Kleinbuchstaben haben."
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "Erstellt am muss eine gültige Zeit sein."
   },

@@ -3536,10 +3536,6 @@
     "translation": "Kullanıcı adı geçersiz."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Ad içinde 2 ya da daha fazla küçük alfasayısal karakter bulunmalıdır."
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "Eklenme zamanı geçerli bir zaman olmalıdır."
   },
