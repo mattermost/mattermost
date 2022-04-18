@@ -3540,10 +3540,6 @@
     "translation": "Неверное имя пользователя."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Имя должно состоять из 2 или более строчных букв и цифр."
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "\"Создано в\" должно быть корректным временем."
   },
