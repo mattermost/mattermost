@@ -4610,7 +4610,7 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 	t.Run("get-top-channels-for-user-since exclude channels user is not member of", func(t *testing.T) {
 		excludedChannel := th.CreatePrivateChannel()
 
-		for i = 0; i < 10; i++ {
+		for i := 0; i < 10; i++ {
 			_, _, err := client.CreatePost(&model.Post{UserId: userId, ChannelId: excludedChannel.Id, Message: "zz" + model.NewId() + "a"})
 			require.NoError(t, err)
 		}

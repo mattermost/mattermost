@@ -757,6 +757,42 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 		assert.Equal(t, int64(1), reactions[0].Count)
 	})
 
+	t.Run("get-top-reactions-for-team-since exclude channels user is not member of", func(t *testing.T) {
+		excludedChannel := th.CreatePrivateChannel()
+
+		for i := 0; i < 10; i++ {
+			post, _, err := client.CreatePost(&model.Post{UserId: userId, ChannelId: excludedChannel.Id, Message: "zz" + model.NewId() + "a"})
+			require.NoError(t, err)
+
+			reaction := &model.Reaction{
+				UserId:    userId,
+				PostId:    post.Id,
+				EmojiName: "confused",
+			}
+
+			_, err = th.App.Srv().Store.Reaction().Save(reaction)
+			require.NoError(t, err)
+		}
+
+		th.RemoveUserFromChannel(th.BasicUser, excludedChannel)
+
+		topReactions, _, err := client.GetTopReactionsForTeamSince(teamId, model.TimeRangeToday, 0, 5)
+		require.NoError(t, err)
+		reactions := topReactions.Items
+
+		for i, reaction := range reactions {
+			assert.Equal(t, expectedTopReactions[i].EmojiName, reaction.EmojiName)
+			assert.Equal(t, expectedTopReactions[i].Count, reaction.Count)
+		}
+
+		topReactions, _, err = client.GetTopReactionsForTeamSince(teamId, model.TimeRangeToday, 1, 5)
+		require.NoError(t, err)
+		reactions = topReactions.Items
+
+		assert.Equal(t, "+1", reactions[0].EmojiName)
+		assert.Equal(t, int64(1), reactions[0].Count)
+	})
+
 	t.Run("get-top-reactions-for-team-since invalid team id", func(t *testing.T) {
 		_, resp, err := client.GetTopReactionsForTeamSince("12345", model.TimeRangeToday, 0, 5)
 		assert.Error(t, err)
