@@ -1175,7 +1175,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "Fout bij marshal"
+    "translation": "Fout bij marshal."
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
