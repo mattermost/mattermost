@@ -9217,5 +9217,77 @@
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
     "translation": "Bleve toplu dizine ekleme işlem boyutu en az {{.BatchSize}} olmalıdır."
+  },
+  {
+    "id": "api.insights.feature_disabled",
+    "translation": " "
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "getThreadsForUser için OnlyThreads ve OnlyTotals parametreleri aynı anda kullanılamaz"
+  },
+  {
+    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "translation": "dosya depolama ayarlarında yapılandırılmamış değerler var."
+  },
+  {
+    "id": "api.file.test_connection_email_settings_nil.app_error",
+    "translation": "E-posta ayarlarında yapılandırılmamış değerler var."
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} sizi {{ .TeamDisplayName }} takımındaki {{ .ChannelsLen }} kanallarına katılmaya çağırdı"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title",
+    "translation": "{{ .SenderName }} sizi {{ .TeamDisplayName }} takımındaki {{ .ChannelsLen }} kanallarına katılmaya çağırdı"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} sizi {{ .TeamDisplayName }} takımındaki {{ .ChannelName }} kanalına katılmaya çağırdı"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_body.title",
+    "translation": "{{ .SenderName }} sizi {{ .TeamDisplayName }} takımındaki {{ .ChannelName }} kanalına katılmaya çağırdı"
+  },
+  {
+    "id": "model.channel.is_valid.1_or_more.app_error",
+    "translation": "Ad en az 1 karakterden oluşmalıdır."
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "E-posta listesi boş"
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "Kanal adı geçersiz"
+  },
+  {
+    "id": "model.insights.time_range.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "Post_id geçersiz"
+  },
+  {
+    "id": "app.reaction.get_top_for_user_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.reaction.get_top_for_team_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
+    "translation": "Gövde verileri işlenirken sorun çıktı."
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
+    "translation": "İstek gövdesi geçersiz."
+  },
+  {
+    "id": "api.license.request_trial_license.embargoed",
+    "translation": "Ambargo uygulanan ülkelerdeki sınırlamalar nedeniyle isteği işleyemedik. [Belgelerimizden ayrıntılı bilgi alın](https://mattermost.com/pl/limitations-for-embargoed-countries) ya da ihracat sınırlamalarıyla ilgili sorularınız için legal@mattermost.com adresine yazın."
   }
 ]
