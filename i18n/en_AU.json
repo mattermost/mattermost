@@ -9193,5 +9193,45 @@
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "The email settings have unset values."
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "Email list is empty"
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "Invalid channel name"
+  },
+  {
+    "id": "model.channel.is_valid.1_or_more.app_error",
+    "translation": "Name must be 1 or more lowercase alphanumeric characters."
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "Invalid post_id"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .ChannelsLen }} channels on the {{ .TeamDisplayName }} Team"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title",
+    "translation": "{{ .SenderName }} invited you to join {{ .ChannelsLen }} channels on the {{ .TeamDisplayName }} Team"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .ChannelName }} on the {{ .TeamDisplayName }} Team"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_body.title",
+    "translation": "{{ .SenderName }} invited you to join {{ .ChannelName }} on the {{ .TeamDisplayName }} Team"
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
+    "translation": "An error occurred while parsing the body data."
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
+    "translation": "Invalid request body."
   }
 ]
