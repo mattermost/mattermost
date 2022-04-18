@@ -192,7 +192,7 @@ jobs:
   check-golangci-lint:
     docker:
       # Keep the version in sync with the command in Makefile
-      - image: golangci/golangci-lint:v1.39.0
+      - image: golangci/golangci-lint:v1.45.2
     steps:
       - checkout
       - run:
