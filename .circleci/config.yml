@@ -123,7 +123,7 @@ jobs:
 
   check-app-layers:
     docker:
-      - image: mattermost/mattermost-build-server:20210810_golang-1.16.7
+      - image: mattermost/mattermost-build-server:20220415_golang-1.18.1
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
@@ -136,7 +136,7 @@ jobs:
 
   check-store-layers:
     docker:
-      - image: mattermost/mattermost-build-server:20210810_golang-1.16.7
+      - image: mattermost/mattermost-build-server:20220415_golang-1.18.1
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
@@ -149,7 +149,7 @@ jobs:
 
   check-mocks:
     docker:
-      - image: mattermost/mattermost-build-server:20210810_golang-1.16.7
+      - image: mattermost/mattermost-build-server:20220415_golang-1.18.1
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
@@ -201,7 +201,7 @@ jobs:
   # Dedicate job for mattermost-vet to make more clear when the job fails
   check-mattermost-vet:
     docker:
-      - image: mattermost/mattermost-build-server:20210810_golang-1.16.7
+      - image: mattermost/mattermost-build-server:20220415_golang-1.18.1
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
@@ -250,7 +250,7 @@ jobs:
 
   build:
     docker:
-      - image: mattermost/mattermost-build-server:20210810_golang-1.16.7
+      - image: mattermost/mattermost-build-server:20220415_golang-1.18.1
     resource_class: xlarge
     working_directory: ~/mattermost
     steps:
@@ -317,7 +317,7 @@ jobs:
               --env MM_SQLSETTINGS_DRIVERNAME=<<parameters.dbdriver>> \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:20210810_golang-1.16.7 \
+              mattermost/mattermost-build-server:20220415_golang-1.18.1 \
               bash -c "ulimit -n 8096; make test-server<< parameters.racemode >> BUILD_NUMBER=$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM TESTFLAGS= TESTFLAGSEE=" \
               bash -c scripts/diff-email-templates.sh
           no_output_timeout: 2h
@@ -382,7 +382,7 @@ jobs:
               --env MM_SQLSETTINGS_DRIVERNAME=postgres \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:20210810_golang-1.16.7 \
+              mattermost/mattermost-build-server:20220415_golang-1.18.1 \
               bash -c "ulimit -n 8096; make ARGS='db migrate' run-cli && make MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10' ARGS='db migrate' run-cli"
 
             echo "Generating dump"
@@ -411,7 +411,7 @@ jobs:
               --env MM_SQLSETTINGS_DRIVERNAME=mysql \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:20210810_golang-1.16.7 \
+              mattermost/mattermost-build-server:20220415_golang-1.18.1 \
               bash -c "ulimit -n 8096; make ARGS='db migrate' run-cli && make MM_SQLSETTINGS_DATASOURCE='mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s' ARGS='db migrate' run-cli"
 
             echo "Generating dump"
