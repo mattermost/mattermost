@@ -9186,5 +9186,37 @@
   {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
     "translation": "A MattermostAppID maximális hossza 32 karakter."
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} meghívta Önt, hogy csatlakozzon a {{ .ChannelName }} csatornához a {{ .TeamDisplayName }} csapatban"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_body.title",
+    "translation": "{{ .SenderName }} meghívta Önt, hogy csatlakozzon a {{ .ChannelName }} csatornához a {{ .TeamDisplayName }} csapatban"
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
+    "translation": "Hiba a törzs adatának értelmezése közben."
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
+    "translation": "Érvénytelen a kérés törzse."
+  },
+  {
+    "id": "api.license.request_trial_license.embargoed",
+    "translation": "Az embargóval sújtott országokra vonatkozó korlátozások miatt nem tudtuk feldolgozni a kérelmet. [További információ a dokumentációnkban](https://mattermost.com/pl/limitations-for-embargoed-countries), vagy forduljon a legal@mattermost.com címhez az exportkorlátozásokkal kapcsolatos kérdésekkel kapcsolatban."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "A getThreadsForUser OnlyThreads és OnlyTotals paraméterei kölcsönösen kizárják egymást"
+  },
+  {
+    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "translation": "A fájl tároló beállításokban nem meghatározott értékek vannak."
+  },
+  {
+    "id": "api.file.test_connection_email_settings_nil.app_error",
+    "translation": "Az e-mail beállításokban nem meghatározott értékek vannak."
   }
 ]
