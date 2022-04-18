@@ -215,7 +215,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 	}
 
 	if err = s.updateThreadsFromPosts(transaction, posts); err != nil {
-		mlog.Warn("Error updating posts, thread update failed", mlog.Err(err))
+		return nil, -1, errors.Wrap(err, "update thread from posts failed")
 	}
 
 	if err = transaction.Commit(); err != nil {
