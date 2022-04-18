@@ -9233,5 +9233,61 @@
   {
     "id": "api.license.request_trial_license.embargoed",
     "translation": "Wir konnten die Anfrage aufgrund von Einschränkungen für Embargoländer nicht verarbeiten. [Lerne mehr in unserer Dokumentation](https://mattermost.com/pl/limitations-for-embargoed-countries), oder kontaktiere legal@mattermost.com für Fragen rund um Exportbeschränkungen."
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "Emailliste ist leer"
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "Kanalname ist ungülitg"
+  },
+  {
+    "id": "model.insights.time_range.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.channel.is_valid.1_or_more.app_error",
+    "translation": "Name muss aus einem oder mehreren alphanummerischen Kleinbuchstaben bestehen."
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "Ungültige post_id"
+  },
+  {
+    "id": "app.reaction.get_top_for_user_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.reaction.get_top_for_team_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} hat dich eingeladen, {{ .ChannelsLen }} Kanälen im Team {{ .TeamDisplayName }} beizutreten"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title",
+    "translation": "{{ .SenderName }} ihat dich eingeladen, {{ .ChannelsLen }} Kanälen im Team {{ .TeamDisplayName }} beizutreten"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} hat dich eingeladen, dem Kanal {{ .ChannelName }} im Team {{ .TeamDisplayName }} beizutreten"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_body.title",
+    "translation": "{{ .SenderName }} hat dich eingeladen, dem Kanal {{ .ChannelName }} im Team {{ .TeamDisplayName }} beizutreten"
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
+    "translation": "Fehler beim Parsen der Body Daten."
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
+    "translation": "Ungültiger Request Body."
+  },
+  {
+    "id": "api.insights.feature_disabled",
+    "translation": " "
   }
 ]
