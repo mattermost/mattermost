@@ -63,6 +63,8 @@ type FeatureFlags struct {
 	GraphQL bool
 
 	InsightsEnabled bool
+
+	CommandPalette bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -86,6 +88,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.UseCaseOnboarding = true
 	f.GraphQL = false
 	f.InsightsEnabled = false
+	f.CommandPalette = false
 }
 func (f *FeatureFlags) Plugins() map[string]string {
 	rFFVal := reflect.ValueOf(f).Elem()
