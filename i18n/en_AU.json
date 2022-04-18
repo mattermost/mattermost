@@ -2764,10 +2764,6 @@
     "translation": "Create at must be a valid time."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Name must be 2 or more lowercase alphanumeric characters."
-  },
-  {
     "id": "model.bot.is_valid.username.app_error",
     "translation": "Invalid username."
   },

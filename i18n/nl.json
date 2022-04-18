@@ -3536,10 +3536,6 @@
     "translation": "Ongeldige username."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Naam moet 2 of meer kleine letters bevatten."
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "Create at moet een geldige tijd zijn."
   },
