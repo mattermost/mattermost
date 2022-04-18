@@ -380,10 +380,6 @@
     "translation": "A létrehozás időpontjának érvényes időnek kell lennie."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "A névnek legalább 2 kisbetűs alfanumerikus karakterből kell állnia."
-  },
-  {
     "id": "model.bot.is_valid.username.app_error",
     "translation": "Érvénytelen felhasználónév."
   },
