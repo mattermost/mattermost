@@ -6,8 +6,9 @@ package imaging
 import (
 	"encoding/xml"
 	"io"
-	"strconv"
+	"fmt"
 	"strings"
+
 	"github.com/pkg/errors"
 )
 
@@ -24,9 +25,6 @@ func ParseSVG(svgReader io.Reader) (SVGInfo, error) {
 		Height: 0,
 	}
 
-	// 	viewBoxPattern := regexp.MustCompile("^([0-9]+)[, ]+([0-9]+)[, ]+([0-9]+)[, ]+([0-9]+)$")
-	// 	dimensionPattern := regexp.MustCompile("(?i)^([0-9]+)(?:px)?$")
-
 	decoder := xml.NewDecoder(svgReader)
 
 	for {
@@ -40,12 +38,16 @@ func ParseSVG(svgReader io.Reader) (SVGInfo, error) {
 				if attr.Name.Local == "viewBox" {
 					values := strings.Fields(attr.Value)
 					if len(values) == 4 {
-						width, err := strconv.Atoi(values[2])
+						width := 0
+						_, err := fmt.Sscan(values[2], &width)
+
 						if err != nil {
 							svgInfo.Width = width
 						}
 
-						height, err := strconv.Atoi(values[3])
+						height := 0
+						_, err = fmt.Sscan(values[3], &height)
+
 						if err != nil {
 							svgInfo.Height = height
 						}
@@ -54,17 +56,23 @@ func ParseSVG(svgReader io.Reader) (SVGInfo, error) {
 					}
 				}
 				if attr.Name.Local == "width" {
-					width, err := strconv.Atoi(attr.Value)
+					width := 0
+					_, err := fmt.Sscan(attr.Value, &width)
+
 					if err != nil {
 						return svgInfo, err
 					}
+
 					svgInfo.Width = width
 				}
 				if attr.Name.Local == "height" {
-					height, err := strconv.Atoi(attr.Value)
+					height := 0
+					_, err := fmt.Sscan(attr.Value, &height)
+
 					if err != nil {
 						return svgInfo, err
 					}
+
 					svgInfo.Height = height
 				}
 			}
@@ -77,7 +85,8 @@ func ParseSVG(svgReader io.Reader) (SVGInfo, error) {
 		}
 	}
 
-	return svgInfo, errors.New("unable to extract SVG dimensions")
+	// 	viewBoxPattern := regexp.MustCompile("^([0-9]+)[, ]+([0-9]+)[, ]+([0-9]+)[, ]+([0-9]+)$")
+	// 	dimensionPattern := regexp.MustCompile("(?i)^([0-9]+)(?:px)?$")
 
 	// prefer viewbox for SVG dimensions over width/height
 	// 	if viewBoxMatches := viewBoxPattern.FindStringSubmatch(parsedSVG.ViewBox); len(viewBoxMatches) == 5 {
@@ -97,4 +106,9 @@ func ParseSVG(svgReader io.Reader) (SVGInfo, error) {
 	// 		return svgInfo, errors.New("unable to extract SVG dimensions")
 	// 	}
 	// 	return svgInfo, nil
+
+	// commented out the above code since IMO this is not needed anymore with the approach using decoder.Token(),
+	// but for the case it is still valid to do it I just commented it out
+
+	return svgInfo, errors.New("unable to extract SVG dimensions")
 }
