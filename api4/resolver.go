@@ -294,3 +294,21 @@ func getRolesLoader(ctx context.Context) (*dataloader.Loader, error) {
 	}
 	return l, nil
 }
+
+// getChannelsLoader returns the channels loader out of the context.
+func getChannelsLoader(ctx context.Context) (*dataloader.Loader, error) {
+	l, ok := ctx.Value(channelsLoaderCtx).(*dataloader.Loader)
+	if !ok {
+		return nil, errors.New("no dataloader.Loader found in context")
+	}
+	return l, nil
+}
+
+// getTeamsLoader returns the teams loader out of the context.
+func getTeamsLoader(ctx context.Context) (*dataloader.Loader, error) {
+	l, ok := ctx.Value(teamsLoaderCtx).(*dataloader.Loader)
+	if !ok {
+		return nil, errors.New("no dataloader.Loader found in context")
+	}
+	return l, nil
+}

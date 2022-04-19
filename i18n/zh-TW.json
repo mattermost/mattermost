@@ -3532,10 +3532,6 @@
     "translation": "無效的使用者名稱"
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "名稱必須是2個以上的小寫英數字元"
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "\"新增時間\"必須是一個有效時間"
   },

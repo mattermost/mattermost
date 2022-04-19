@@ -102,6 +102,7 @@ type TeamStore interface {
 	Save(team *model.Team) (*model.Team, error)
 	Update(team *model.Team) (*model.Team, error)
 	Get(id string) (*model.Team, error)
+	GetMany(ids []string) ([]*model.Team, error)
 	GetByName(name string) (*model.Team, error)
 	GetByNames(name []string) ([]*model.Team, error)
 	SearchAll(opts *model.TeamSearch) ([]*model.Team, error)
@@ -166,9 +167,9 @@ type ChannelStore interface {
 	UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamID string) error
 	ClearSidebarOnTeamLeave(userID, teamID string) error
 	Get(id string, allowFromCache bool) (*model.Channel, error)
+	GetMany(ids []string, allowFromCache bool) (model.ChannelList, error)
 	InvalidateChannel(id string)
 	InvalidateChannelByName(teamID, name string)
-	GetFromMaster(id string) (*model.Channel, error)
 	Delete(channelID string, time int64) error
 	Restore(channelID string, time int64) error
 	SetDeleteAt(channelID string, deleteAt int64, updateAt int64) error
@@ -678,6 +679,8 @@ type ReactionStore interface {
 	BulkGetForPosts(postIds []string) ([]*model.Reaction, error)
 	DeleteOrphanedRows(limit int) (int64, error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
+	GetTopForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopReactionList, error)
+	GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopReactionList, error)
 }
 
 type JobStore interface {

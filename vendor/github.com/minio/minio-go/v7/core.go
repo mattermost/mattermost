@@ -63,8 +63,8 @@ func (c Core) CopyObject(ctx context.Context, sourceBucket, sourceObject, destBu
 // CopyObjectPart - creates a part in a multipart upload by copying (a
 // part of) an existing object.
 func (c Core) CopyObjectPart(ctx context.Context, srcBucket, srcObject, destBucket, destObject string, uploadID string,
-	partID int, startOffset, length int64, metadata map[string]string) (p CompletePart, err error) {
-
+	partID int, startOffset, length int64, metadata map[string]string,
+) (p CompletePart, err error) {
 	return c.copyObjectPartDo(ctx, srcBucket, srcObject, destBucket, destObject, uploadID,
 		partID, startOffset, length, metadata)
 }

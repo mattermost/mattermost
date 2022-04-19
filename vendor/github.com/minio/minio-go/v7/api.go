@@ -111,7 +111,7 @@ type Options struct {
 // Global constants.
 const (
 	libraryName    = "minio-go"
-	libraryVersion = "v7.0.23"
+	libraryVersion = "v7.0.24"
 )
 
 // User Agent should always following the below style.
@@ -537,7 +537,7 @@ func (c *Client) executeMethod(ctx context.Context, method string, metadata requ
 
 	var retryable bool       // Indicates if request can be retried.
 	var bodySeeker io.Seeker // Extracted seeker from io.Reader.
-	var reqRetry = MaxRetry  // Indicates how many times we can retry the request
+	reqRetry := MaxRetry     // Indicates how many times we can retry the request
 
 	if metadata.contentBody != nil {
 		// Check if body is seekable then it is retryable.

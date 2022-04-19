@@ -41,9 +41,6 @@ type FeatureFlags struct {
 	// A dash separated list for feature flags to turn on for Boards
 	BoardsFeatureFlags string
 
-	// A/B test for the add members to channel button, possible values = ("top", "bottom")
-	AddMembersToChannel string
-
 	// Enable Create First Channel
 	GuidedChannelCreation bool
 
@@ -66,6 +63,8 @@ type FeatureFlags struct {
 	GraphQL bool
 
 	InsightsEnabled bool
+
+	CommandPalette bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -80,7 +79,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PermalinkPreviews = true
 	f.CallsMobile = false
 	f.BoardsFeatureFlags = ""
-	f.AddMembersToChannel = "top"
 	f.GuidedChannelCreation = false
 	f.InviteToTeam = "none"
 	f.CustomGroups = true
@@ -90,6 +88,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.UseCaseOnboarding = true
 	f.GraphQL = false
 	f.InsightsEnabled = false
+	f.CommandPalette = false
 }
 func (f *FeatureFlags) Plugins() map[string]string {
 	rFFVal := reflect.ValueOf(f).Elem()
