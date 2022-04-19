@@ -70,7 +70,6 @@ func (s *SqlThreadStore) Get(id string) (*model.Thread, error) {
 	var thread model.Thread
 
 	query, args, err := s.threadsSelectQuery.
-		From("Threads").
 		Where(sq.Eq{"PostId": id}).
 		ToSql()
 	if err != nil {
@@ -236,7 +235,6 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 			"ThreadMemberships.LastViewed as LastViewedAt",
 			"ThreadMemberships.UnreadMentions as UnreadMentions",
 		).
-		From("Threads").
 		Column(sq.Alias(sq.Expr(unreadRepliesSql, unreadRepliesArgs...), "UnreadReplies")).
 		Join("Posts ON Posts.Id = Threads.PostId").
 		Join("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId")
