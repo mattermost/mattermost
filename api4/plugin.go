@@ -40,6 +40,7 @@ func (api *API) InitPlugin() {
 	api.BaseRoutes.Plugins.Handle("/webapp", api.APIHandler(getWebappPlugins)).Methods("GET")
 
 	api.BaseRoutes.Plugins.Handle("/marketplace", api.APISessionRequired(getMarketplacePlugins)).Methods("GET")
+	api.BaseRoutes.Plugins.Handle("/enabled_integrations", api.APISessionRequired(getEnabledIntegrations)).Methods("GET")
 
 	api.BaseRoutes.Plugins.Handle("/marketplace/first_admin_visit", api.APIHandler(setFirstAdminVisitMarketplaceStatus)).Methods("POST")
 	api.BaseRoutes.Plugins.Handle("/marketplace/first_admin_visit", api.APISessionRequired(getFirstAdminVisitMarketplaceStatus)).Methods("GET")
@@ -274,6 +275,31 @@ func getWebappPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Write(js)
+}
+
+func getEnabledIntegrations(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadPlugins) {
+		c.SetPermissionError(model.PermissionSysconsoleReadPlugins)
+		return
+	}
+
+	if !*c.App.Config().PluginSettings.Enable {
+		c.Err = model.NewAppError("getEnabledIntegrations", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	integrations, err := c.App.GetEnabledIntegrationsForFreemiumLimits(c.AppContext)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	out, jsonErr := json.Marshal(integrations)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getEnabledIntegrations", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(out)
 }
 
 func getMarketplacePlugins(c *Context, w http.ResponseWriter, r *http.Request) {
