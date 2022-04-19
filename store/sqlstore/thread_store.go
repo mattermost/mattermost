@@ -121,13 +121,13 @@ func (s *SqlThreadStore) GetTotalUnreadThreads(userId, teamId string, opts model
 
 	sql, args, err := query.ToSql()
 	if err != nil {
-		return 0, errors.Wrapf(err, "failed to build query to count threads for user id=%s", userId)
+		return 0, errors.Wrapf(err, "failed to build query to count unread threads for user id=%s", userId)
 	}
 
 	var totalUnreadThreads int64
 	err = s.GetReplicaX().Get(&totalUnreadThreads, sql, args...)
 	if err != nil {
-		return 0, errors.Wrapf(err, "failed to count threads for user id=%s", userId)
+		return 0, errors.Wrapf(err, "failed to count unread threads for user id=%s", userId)
 	}
 
 	return totalUnreadThreads, nil
