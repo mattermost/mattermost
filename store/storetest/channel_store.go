@@ -5585,7 +5585,8 @@ func testChannelStoreSearchArchivedInTeam(t *testing.T, ss store.Store, s SqlSto
 		list, err := ss.Channel().SearchArchivedInTeam(teamId, "Channel", userId)
 		require.NoError(t, err)
 		require.NotNil(t, list)
-		require.NotEmpty(t, list)
+		require.Equal(t, len(list), 1)
+		require.Equal(t, "Channel1", list[0].DisplayName)
 	})
 }
 
