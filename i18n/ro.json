@@ -3540,10 +3540,6 @@
     "translation": "Nume de utilizator invalid."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Numele trebuie să fie de 2 sau mai multe caractere alfanumerice minuscule."
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "Creați la trebuie să fie un timp valabil."
   },
