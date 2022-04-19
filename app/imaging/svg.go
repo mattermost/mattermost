@@ -5,8 +5,8 @@ package imaging
 
 import (
 	"encoding/xml"
-	"io"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -109,6 +109,4 @@ func ParseSVG(svgReader io.Reader) (SVGInfo, error) {
 
 	// commented out the above code since IMO this is not needed anymore with the approach using decoder.Token(),
 	// but for the case it is still valid to do it I just commented it out
-
-	return svgInfo, errors.New("unable to extract SVG dimensions")
 }
