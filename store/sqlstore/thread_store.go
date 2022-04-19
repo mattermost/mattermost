@@ -987,7 +987,7 @@ func (s *SqlThreadStore) DeleteOrphanedRows(limit int) (deleted int64, err error
 }
 
 // return number of unread replies for a single thread
-func (s *SqlThreadStore) GetThreadUnreadReplyCount(threadMembership *model.ThreadMembership) (unreadReplies int64, err error) {
+func (s *SqlThreadStore) GetThreadUnreadReplyCount(threadMembership *model.ThreadMembership) (int64, error) {
 	query, args, err := s.getQueryBuilder().
 		Select("COUNT(Posts.Id)").
 		From("Posts").
@@ -1000,10 +1000,11 @@ func (s *SqlThreadStore) GetThreadUnreadReplyCount(threadMembership *model.Threa
 		return 0, errors.Wrapf(err, "failed to build query to count unread reply count for post id=%s", threadMembership.PostId)
 	}
 
+	var unreadReplies int64
 	err = s.GetReplicaX().Get(&unreadReplies, query, args...)
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to count unread reply count for post id=%s", threadMembership.PostId)
 	}
 
-	return
+	return unreadReplies, nil
 }
