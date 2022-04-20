@@ -1593,6 +1593,30 @@ func (a *App) PermanentDeleteUser(c *request.Context, user *model.User) *model.A
 		}
 	}
 
+	// delete directory containing user's profile image
+	profileImageDirectory := getProfileImageDirectory(user.Id)
+	profileImagePath := getProfileImagePath(user.Id)
+	resProfileImageExists, errProfileImageExists := a.FileExists(profileImagePath)
+	if errProfileImageExists != nil {
+		mlog.Warn(
+			"Error checking existence of profile image.",
+			mlog.String("path", profileImagePath),
+			mlog.Err(errProfileImageExists),
+		)
+	}
+
+	if resProfileImageExists {
+		errRemoveDirectory := a.RemoveDirectory(profileImageDirectory)
+
+		if errRemoveDirectory != nil {
+			mlog.Warn(
+				"Unable to remove profile image directory",
+				mlog.String("path", profileImageDirectory),
+				mlog.Err(errRemoveDirectory),
+			)
+		}
+	}
+
 	if _, err := a.Srv().Store.FileInfo().PermanentDeleteByUser(user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.file_info.permanent_delete_by_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1608,6 +1632,8 @@ func (a *App) PermanentDeleteUser(c *request.Context, user *model.User) *model.A
 	if err := a.Srv().Store.Team().RemoveAllMembersByUser(user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.team.remove_member.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+
+	a.InvalidateCacheForUser(user.Id)
 
 	mlog.Warn("Permanently deleted account", mlog.String("user_email", user.Email), mlog.String("user_id", user.Id))
 
@@ -2562,4 +2588,8 @@ func (a *App) GetUsersWithInvalidEmails(page int, perPage int) ([]*model.User, *
 
 func getProfileImagePath(userID string) string {
 	return filepath.Join("users", userID, "profile.png")
+}
+
+func getProfileImageDirectory(userID string) string {
+	return filepath.Join("users", userID)
 }
