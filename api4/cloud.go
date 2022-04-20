@@ -144,7 +144,7 @@ func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getCloudLimits(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud || !c.App.Config().FeatureFlags.CollapsedThreads {
 		c.Err = model.NewAppError("Api4.getCloudLimits", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
