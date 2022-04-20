@@ -22,6 +22,9 @@ type Thread struct {
 	// Participants is a list of user ids that have replied to the thread, sorted by the oldest
 	// to newest. Note that the root post author is not included in this list until they reply.
 	Participants StringArray `json:"participants"`
+
+	// DeleteAt is a denormalized copy of the root posts's DeleteAt.
+	DeleteAt int64 `json:"delete_at"`
 }
 
 type ThreadResponse struct {
@@ -33,6 +36,7 @@ type ThreadResponse struct {
 	Post           *Post   `json:"post"`
 	UnreadReplies  int64   `json:"unread_replies"`
 	UnreadMentions int64   `json:"unread_mentions"`
+	DeleteAt       int64   `json:"delete_at"`
 }
 
 type Threads struct {

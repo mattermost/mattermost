@@ -3536,10 +3536,6 @@
     "translation": "Nome utente non valido."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Nome deve essere 2 o più lettere minuscole alfanumeriche."
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "Creato alle deve essere un tempo valido."
   },

@@ -27,8 +27,6 @@ func TestPostStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetSingle", func(t *testing.T) { testPostStoreGetSingle(t, ss) })
 	t.Run("Update", func(t *testing.T) { testPostStoreUpdate(t, ss) })
 	t.Run("Delete", func(t *testing.T) { testPostStoreDelete(t, ss) })
-	t.Run("Delete1Level", func(t *testing.T) { testPostStoreDelete1Level(t, ss) })
-	t.Run("Delete2Level", func(t *testing.T) { testPostStoreDelete2Level(t, ss) })
 	t.Run("PermDelete1Level", func(t *testing.T) { testPostStorePermDelete1Level(t, ss) })
 	t.Run("PermDelete1Level2", func(t *testing.T) { testPostStorePermDelete1Level2(t, ss) })
 	t.Run("GetWithChildren", func(t *testing.T) { testPostStoreGetWithChildren(t, ss) })
@@ -316,6 +314,9 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 		replyPost3.UserId = model.NewId()
 		replyPost3.Message = NewTestId()
 		replyPost3.RootId = rootPost.Id
+
+		// Ensure update does not occur in the same timestamp as creation
+		time.Sleep(time.Millisecond)
 
 		_, _, err = ss.Post().SaveMultiple([]*model.Post{&replyPost2, &replyPost3})
 		require.NoError(t, err)
@@ -819,109 +820,132 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 }
 
 func testPostStoreDelete(t *testing.T, ss store.Store) {
-	o1 := &model.Post{}
-	o1.ChannelId = model.NewId()
-	o1.UserId = model.NewId()
-	o1.Message = model.NewRandomString(10)
-	deleteByID := model.NewId()
+	t.Run("single post, no replies", func(t *testing.T) {
+		// Create a post
+		rootPost, err := ss.Post().Save(&model.Post{
+			ChannelId: model.NewId(),
+			UserId:    model.NewId(),
+			Message:   model.NewRandomString(10),
+		})
+		require.NoError(t, err)
 
-	etag1 := ss.Post().GetEtag(o1.ChannelId, false, false)
-	require.Equal(t, 0, strings.Index(etag1, model.CurrentVersion+"."), "Invalid Etag")
+		// Verify etag generation for the channel containing the post.
+		etag1 := ss.Post().GetEtag(rootPost.ChannelId, false, false)
+		require.Equal(t, 0, strings.Index(etag1, model.CurrentVersion+"."), "Invalid Etag")
 
-	o1, err := ss.Post().Save(o1)
-	require.NoError(t, err)
+		// Verify the created post.
+		r1, err := ss.Post().Get(context.Background(), rootPost.Id, model.GetPostsOptions{}, "")
+		require.NoError(t, err)
+		require.NotNil(t, r1.Posts[rootPost.Id])
+		require.Equal(t, rootPost, r1.Posts[rootPost.Id])
 
-	r1, err := ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "")
-	require.NoError(t, err)
-	require.Equal(t, r1.Posts[o1.Id].CreateAt, o1.CreateAt, "invalid returned post")
+		// Mark the post as deleted by the user identified with deleteByID.
+		deleteByID := model.NewId()
+		err = ss.Post().Delete(rootPost.Id, model.GetMillis(), deleteByID)
+		require.NoError(t, err)
 
-	err = ss.Post().Delete(o1.Id, model.GetMillis(), deleteByID)
-	require.NoError(t, err)
+		// Ensure the appropriate posts prop reflects the user deleting the post.
+		posts, err := ss.Post().GetPostsCreatedAt(rootPost.ChannelId, rootPost.CreateAt)
+		require.NoError(t, err)
+		require.NotEmpty(t, posts)
+		assert.Equal(t, deleteByID, posts[0].GetProp(model.PostPropsDeleteBy), "unexpected Props[model.PostPropsDeleteBy]")
 
-	posts, _ := ss.Post().GetPostsCreatedAt(o1.ChannelId, o1.CreateAt)
-	post := posts[0]
-	actual := post.GetProp(model.PostPropsDeleteBy)
+		// Verify that the post is no longer fetched by default.
+		_, err = ss.Post().Get(context.Background(), rootPost.Id, model.GetPostsOptions{}, "")
+		require.Error(t, err, "fetching deleted post should have failed")
+		require.IsType(t, &store.ErrNotFound{}, err)
 
-	assert.Equal(t, deleteByID, actual, "Expected (*Post).Props[model.PostPropsDeleteBy] to be %v but got %v.", deleteByID, actual)
+		// Verify etag generation for the channel containing the now deleted post.
+		etag2 := ss.Post().GetEtag(rootPost.ChannelId, false, false)
+		require.Equal(t, 0, strings.Index(etag2, model.CurrentVersion+"."), "Invalid Etag")
+	})
 
-	r3, err := ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "")
-	require.Error(t, err, "Missing id should have failed - PostList %v", r3)
+	t.Run("thread with one reply", func(t *testing.T) {
+		// Create a root post
+		rootPost, err := ss.Post().Save(&model.Post{
+			ChannelId: model.NewId(),
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+		})
+		require.NoError(t, err)
 
-	etag2 := ss.Post().GetEtag(o1.ChannelId, false, false)
-	require.Equal(t, 0, strings.Index(etag2, model.CurrentVersion+"."), "Invalid Etag")
-}
+		// Reply to that root post
+		replyPost, err := ss.Post().Save(&model.Post{
+			ChannelId: rootPost.ChannelId,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+			RootId:    rootPost.Id,
+		})
+		require.NoError(t, err)
 
-func testPostStoreDelete1Level(t *testing.T, ss store.Store) {
-	o1 := &model.Post{}
-	o1.ChannelId = model.NewId()
-	o1.UserId = model.NewId()
-	o1.Message = NewTestId()
-	o1, err := ss.Post().Save(o1)
-	require.NoError(t, err)
+		// Delete the root post
+		err = ss.Post().Delete(rootPost.Id, model.GetMillis(), "")
+		require.NoError(t, err)
 
-	o2 := &model.Post{}
-	o2.ChannelId = o1.ChannelId
-	o2.UserId = model.NewId()
-	o2.Message = NewTestId()
-	o2.RootId = o1.Id
-	o2, err = ss.Post().Save(o2)
-	require.NoError(t, err)
+		// Verify the root post deleted
+		_, err = ss.Post().Get(context.Background(), rootPost.Id, model.GetPostsOptions{}, "")
+		require.Error(t, err, "Deleted id should have failed")
+		require.IsType(t, &store.ErrNotFound{}, err)
 
-	err = ss.Post().Delete(o1.Id, model.GetMillis(), "")
-	require.NoError(t, err)
+		// Verify the reply post deleted
+		_, err = ss.Post().Get(context.Background(), replyPost.Id, model.GetPostsOptions{}, "")
+		require.Error(t, err, "Deleted id should have failed")
+		require.IsType(t, &store.ErrNotFound{}, err)
+	})
 
-	_, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "")
-	require.Error(t, err, "Deleted id should have failed")
+	t.Run("thread with multiple replies", func(t *testing.T) {
+		// Create a root post
+		rootPost1, err := ss.Post().Save(&model.Post{
+			ChannelId: model.NewId(),
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+		})
+		require.NoError(t, err)
 
-	_, err = ss.Post().Get(context.Background(), o2.Id, model.GetPostsOptions{}, "")
-	require.Error(t, err, "Deleted id should have failed")
-}
+		// Reply to that root post
+		replyPost1, err := ss.Post().Save(&model.Post{
+			ChannelId: rootPost1.ChannelId,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+			RootId:    rootPost1.Id,
+		})
+		require.NoError(t, err)
 
-func testPostStoreDelete2Level(t *testing.T, ss store.Store) {
-	o1 := &model.Post{}
-	o1.ChannelId = model.NewId()
-	o1.UserId = model.NewId()
-	o1.Message = NewTestId()
-	o1, err := ss.Post().Save(o1)
-	require.NoError(t, err)
+		// Reply to that root post a second time
+		replyPost2, err := ss.Post().Save(&model.Post{
+			ChannelId: rootPost1.ChannelId,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+			RootId:    rootPost1.Id,
+		})
+		require.NoError(t, err)
 
-	o2 := &model.Post{}
-	o2.ChannelId = o1.ChannelId
-	o2.UserId = model.NewId()
-	o2.Message = NewTestId()
-	o2.RootId = o1.Id
-	o2, err = ss.Post().Save(o2)
-	require.NoError(t, err)
+		// Create another root post in a separate channel
+		rootPost2, err := ss.Post().Save(&model.Post{
+			ChannelId: model.NewId(),
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+		})
+		require.NoError(t, err)
 
-	o3 := &model.Post{}
-	o3.ChannelId = o1.ChannelId
-	o3.UserId = model.NewId()
-	o3.Message = NewTestId()
-	o3.RootId = o1.Id
-	o3, err = ss.Post().Save(o3)
-	require.NoError(t, err)
+		// Delete the root post
+		err = ss.Post().Delete(rootPost1.Id, model.GetMillis(), "")
+		require.NoError(t, err)
 
-	o4 := &model.Post{}
-	o4.ChannelId = model.NewId()
-	o4.UserId = model.NewId()
-	o4.Message = NewTestId()
-	o4, err = ss.Post().Save(o4)
-	require.NoError(t, err)
+		// Verify the root post and replies deleted
+		_, err = ss.Post().Get(context.Background(), rootPost1.Id, model.GetPostsOptions{}, "")
+		require.Error(t, err, "Deleted id should have failed")
 
-	err = ss.Post().Delete(o1.Id, model.GetMillis(), "")
-	require.NoError(t, err)
+		_, err = ss.Post().Get(context.Background(), replyPost1.Id, model.GetPostsOptions{}, "")
+		require.Error(t, err, "Deleted id should have failed")
 
-	_, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "")
-	require.Error(t, err, "Deleted id should have failed")
+		_, err = ss.Post().Get(context.Background(), replyPost2.Id, model.GetPostsOptions{}, "")
+		require.Error(t, err, "Deleted id should have failed")
 
-	_, err = ss.Post().Get(context.Background(), o2.Id, model.GetPostsOptions{}, "")
-	require.Error(t, err, "Deleted id should have failed")
-
-	_, err = ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "")
-	require.Error(t, err, "Deleted id should have failed")
-
-	_, err = ss.Post().Get(context.Background(), o4.Id, model.GetPostsOptions{}, "")
-	require.NoError(t, err)
+		// Verify other root posts remain undeleted.
+		_, err = ss.Post().Get(context.Background(), rootPost2.Id, model.GetPostsOptions{}, "")
+		require.NoError(t, err)
+	})
 }
 
 func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
