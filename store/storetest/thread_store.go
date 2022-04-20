@@ -332,8 +332,8 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, int64(2), th.UnreadReplies)
 
-		m.LastViewed = newPosts[2].UpdateAt + 1
-		_, err = ss.Thread().UpdateMembership(m)
+		// m.LastViewed = newPosts[2].UpdateAt + 1
+		err = ss.Thread().MarkAsRead(m.UserId, m.PostId, newPosts[2].UpdateAt+1)
 		require.NoError(t, err)
 		th, err = ss.Thread().GetThreadForUser("", m, false)
 		require.NoError(t, err)

@@ -2620,64 +2620,78 @@ func (s *SqlPostStore) deleteThread(transaction *sqlxTxWrapper, postId string, d
 	return nil
 }
 
-// updateThreadAfterReplyDeletion decrements the thread reply count and adjusts the participants
-// list as necessary.
+// updateThreadAfterReplyDeletion decrements the thread reply count, adjusts the participants
+// list as necessary, and updates seen reply counts for thread memberships
 func (s *SqlPostStore) updateThreadAfterReplyDeletion(transaction *sqlxTxWrapper, rootId string, userId string) error {
-	if rootId != "" {
-		queryString, args, err := s.getQueryBuilder().
-			Select("COUNT(Posts.Id)").
-			From("Posts").
-			Where(sq.And{
-				sq.Eq{"Posts.RootId": rootId},
-				sq.Eq{"Posts.UserId": userId},
-				sq.Eq{"Posts.DeleteAt": 0},
-			}).
-			ToSql()
+	if rootId == "" {
+		return nil
+	}
 
-		if err != nil {
-			return errors.Wrap(err, "failed to create SQL query to count user's posts")
-		}
+	queryString, args, err := s.getQueryBuilder().
+		Select("COUNT(Posts.Id)").
+		From("Posts").
+		Where(sq.And{
+			sq.Eq{"Posts.RootId": rootId},
+			sq.Eq{"Posts.UserId": userId},
+			sq.Eq{"Posts.DeleteAt": 0},
+		}).
+		ToSql()
 
-		var count int64
-		err = transaction.Get(&count, queryString, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to create SQL query to count user's posts")
+	}
 
-		if err != nil {
-			return errors.Wrap(err, "failed to count user's posts in thread")
-		}
+	var count int64
+	err = transaction.Get(&count, queryString, args...)
 
-		// Updating replyCount, and reducing participants if this was the last post in the thread for the user
-		updateQuery := s.getQueryBuilder().Update("Threads")
+	if err != nil {
+		return errors.Wrap(err, "failed to count user's posts in thread")
+	}
 
-		if count == 0 {
-			if s.DriverName() == model.DatabaseDriverPostgres {
-				updateQuery = updateQuery.Set("Participants", sq.Expr("Participants - ?", userId))
-			} else {
-				updateQuery = updateQuery.
-					Set("Participants", sq.Expr(
-						`IFNULL(JSON_REMOVE(Participants, JSON_UNQUOTE(JSON_SEARCH(Participants, 'one', ?))), Participants)`, userId,
-					))
-			}
-		}
+	// Updating replyCount, and reducing participants if this was the last post in the thread for the user
+	updateQuery := s.getQueryBuilder().Update("Threads")
 
-		updateQueryString, updateArgs, err := updateQuery.
-			Set("ReplyCount", sq.Expr("ReplyCount - 1")).
-			Where(sq.And{
-				sq.Eq{"PostId": rootId},
-				sq.Gt{"ReplyCount": 0},
-			}).
-			ToSql()
-
-		if err != nil {
-			return errors.Wrap(err, "failed to create SQL query to update thread")
-		}
-
-		_, err = transaction.Exec(updateQueryString, updateArgs...)
-
-		if err != nil {
-			return errors.Wrap(err, "failed to update Threads")
+	if count == 0 {
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			updateQuery = updateQuery.Set("Participants", sq.Expr("Participants - ?", userId))
+		} else {
+			updateQuery = updateQuery.
+				Set("Participants", sq.Expr(
+					`IFNULL(JSON_REMOVE(Participants, JSON_UNQUOTE(JSON_SEARCH(Participants, 'one', ?))), Participants)`, userId,
+				))
 		}
 	}
-	return nil
+
+	updateQueryString, updateArgs, err := updateQuery.
+		Set("ReplyCount", sq.Expr("ReplyCount - 1")).
+		Where(sq.And{
+			sq.Eq{"PostId": rootId},
+			sq.Gt{"ReplyCount": 0},
+		}).
+		ToSql()
+
+	if err != nil {
+		return errors.Wrap(err, "failed to create SQL query to update thread")
+	}
+
+	if _, err = transaction.Exec(updateQueryString, updateArgs...); err != nil {
+		return errors.Wrap(err, "failed to update Threads")
+	}
+
+	updateMembershipsQueryString, args, err := s.getQueryBuilder().Update("ThreadMemberships").
+		Set("SeenReplyCount", sq.Expr("SeenReplyCount - 1")).
+		Where(sq.And{
+			sq.Eq{"PostId": rootId},
+			sq.Gt{"SeenReplyCount": 0},
+		}).ToSql()
+	if err != nil {
+		return errors.Wrap(err, "failed to create SQL query to update thread memberships")
+
+	}
+
+	_, err = transaction.Exec(updateMembershipsQueryString, args...)
+	return errors.Wrap(err, "failed to update ThreadMemberships")
+
 }
 
 func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts []*model.Post) error {

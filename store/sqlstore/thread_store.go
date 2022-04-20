@@ -214,28 +214,13 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		model.Post
 	}
 
-	unreadRepliesQuery := sq.
-		Select("COUNT(Posts.Id)").
-		From("Posts").
-		Where(sq.Expr("Posts.RootId = ThreadMemberships.PostId")).
-		Where(sq.Expr("Posts.CreateAt > ThreadMemberships.LastViewed"))
-
-	if !opts.Deleted {
-		unreadRepliesQuery = unreadRepliesQuery.Where(sq.Eq{"Posts.DeleteAt": 0})
-	}
-
-	unreadRepliesSql, unreadRepliesArgs, err := unreadRepliesQuery.ToSql()
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to build subquery to count unread replies when getting threads for user id=%s", userId)
-	}
-
 	query := s.threadsAndPostsSelectQuery.
 		Column(postSliceCoalesceQuery()).
 		Columns(
 			"ThreadMemberships.LastViewed as LastViewedAt",
 			"ThreadMemberships.UnreadMentions as UnreadMentions",
 		).
-		Column(sq.Alias(sq.Expr(unreadRepliesSql, unreadRepliesArgs...), "UnreadReplies")).
+		Column("(Threads.ReplyCount - ThreadMemberships.SeenReplyCount) as UnreadReplies").
 		Join("Posts ON Posts.Id = Threads.PostId").
 		Join("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId")
 
@@ -494,18 +479,6 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		model.Post
 	}
 
-	unreadRepliesQuery, unreadRepliesArgs, err := sq.
-		Select("COUNT(Posts.Id)").
-		From("Posts").
-		Where(sq.And{
-			sq.Eq{"Posts.RootId": threadMembership.PostId},
-			sq.Gt{"Posts.CreateAt": threadMembership.LastViewed},
-			sq.Eq{"Posts.DeleteAt": 0},
-		}).ToSql()
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to build subquery to count unread replies for getting thread for user id=%s, post id=%s", threadMembership.UserId, threadMembership.PostId)
-	}
-
 	fetchConditions := sq.And{
 		sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": ""}},
 		sq.Eq{"Threads.PostId": threadMembership.PostId},
@@ -519,18 +492,17 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 
 	var thread JoinedThread
 	querySQL, threadArgs, err := query.
-		Column(sq.Alias(sq.Expr(unreadRepliesQuery), "UnreadReplies")).
+		Column("(Threads.ReplyCount - ThreadMemberships.SeenReplyCount) as UnreadReplies").
 		LeftJoin("Posts ON Posts.Id = Threads.PostId").
-		LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
+		LeftJoin("ThreadMemberships ON Threads.PostId = ThreadMemberships.PostId").
+		LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
 		Where(fetchConditions).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to build query to get thread for user id=%s, post id=%s", threadMembership.UserId, threadMembership.PostId)
 	}
 
-	args := append(unreadRepliesArgs, threadArgs...)
-
-	err = s.GetReplicaX().Get(&thread, querySQL, args...)
+	err = s.GetReplicaX().Get(&thread, querySQL, threadArgs...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Thread", threadMembership.PostId)
@@ -604,6 +576,7 @@ func (s *SqlThreadStore) MarkAllAsReadByChannels(userID string, channelIDs []str
 	query = query.Set("LastViewed", now).
 		Set("UnreadMentions", 0).
 		Set("LastUpdated", now).
+		Set("SeenReplyCount", sq.Expr("Threads.ReplyCount")).
 		Where(sq.Eq{"ThreadMemberships.UserId": userID}).
 		Where(sq.Expr("Threads.PostId = ThreadMemberships.PostId")).
 		Where(sq.Eq{"Threads.ChannelId": channelIDs}).
@@ -624,13 +597,21 @@ func (s *SqlThreadStore) MarkAllAsReadByChannels(userID string, channelIDs []str
 func (s *SqlThreadStore) MarkAllAsRead(userId string, threadIds []string) error {
 	timestamp := model.GetMillis()
 
-	query, args, err := s.getQueryBuilder().
-		Update("ThreadMemberships").
-		Where(sq.Eq{"UserId": userId}).
-		Where(sq.Eq{"PostId": threadIds}).
+	var querySQL sq.UpdateBuilder
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		querySQL = s.getQueryBuilder().Update("ThreadMemberships").From("Threads")
+
+	} else {
+		querySQL = s.getQueryBuilder().Update("ThreadMemberships", "Threads")
+	}
+
+	query, args, err := querySQL.
 		Set("LastViewed", timestamp).
 		Set("UnreadMentions", 0).
 		Set("LastUpdated", model.GetMillis()).
+		Set("SeenReplyCount", "Threads.ReplyCount").
+		Where(sq.Eq{"UserId": userId}).
+		Where(sq.Eq{"PostId": threadIds}).
 		ToSql()
 	if err != nil {
 		return errors.Wrapf(err, "failed to build query to mark %d threads as read for user id=%s", len(threadIds), userId)
@@ -656,13 +637,20 @@ func (s *SqlThreadStore) MarkAllAsReadByTeam(userId, teamId string) error {
 		membershipIds = append(membershipIds, m.PostId)
 	}
 	timestamp := model.GetMillis()
-	query, args, err := s.getQueryBuilder().
-		Update("ThreadMemberships").
-		Where(sq.Eq{"PostId": membershipIds}).
-		Where(sq.Eq{"UserId": userId}).
+	var querySQL sq.UpdateBuilder
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		querySQL = s.getQueryBuilder().Update("ThreadMemberships").From("Threads")
+
+	} else {
+		querySQL = s.getQueryBuilder().Update("ThreadMemberships", "Threads")
+	}
+	query, args, err := querySQL.
 		Set("LastViewed", timestamp).
 		Set("UnreadMentions", 0).
 		Set("LastUpdated", model.GetMillis()).
+		Set("SeenReplyCount", "Threads.ReplyCount").
+		Where(sq.Eq{"PostId": membershipIds}).
+		Where(sq.Eq{"UserId": userId}).
 		ToSql()
 	if err != nil {
 		return errors.Wrapf(err, "failed to build query to update thread read state for user id=%s", userId)
@@ -677,20 +665,50 @@ func (s *SqlThreadStore) MarkAllAsReadByTeam(userId, teamId string) error {
 
 // MarkAsRead marks the given thread for the given user as unread from the given timestamp.
 func (s *SqlThreadStore) MarkAsRead(userId, threadId string, timestamp int64) error {
-	query, args, err := s.getQueryBuilder().
-		Update("ThreadMemberships").
-		Where(sq.Eq{"UserId": userId}).
-		Where(sq.Eq{"PostId": threadId}).
-		Set("LastViewed", timestamp).
-		Set("LastUpdated", model.GetMillis()).
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction)
+
+	queryString, args, err := s.getQueryBuilder().
+		Select("COUNT(Posts.Id)").
+		From("Posts").
+		Where(sq.And{
+			sq.Eq{"Posts.RootId": threadId},
+			sq.Eq{"Posts.DeleteAt": 0},
+			sq.LtOrEq{"Posts.CreateAt": timestamp},
+		}).
 		ToSql()
 	if err != nil {
-		return errors.Wrapf(err, "failed to build query to update thread read state for user id=%s thread_id=%v", userId, threadId)
+		return errors.Wrapf(err, "failed to create SQL query to count seen reply posts for userId=%s, threadId=%s", userId, threadId)
+	}
+	var seenReplyCount int64
+	err = transaction.Get(&seenReplyCount, queryString, args...)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get seen reply count for userId=%s threadId=%s", userId, threadId)
 	}
 
-	_, err = s.GetMasterX().Exec(query, args...)
+	vals := map[string]interface{}{
+		"userid":         userId,
+		"threadid":       threadId,
+		"timestamp":      timestamp,
+		"now":            model.GetMillis(),
+		"seenreplycount": seenReplyCount,
+	}
+
+	_, err = transaction.NamedExec(`UPDATE ThreadMemberships
+			SET LastViewed = :timestamp,
+			LastUpdated = :now,
+			SeenReplyCount = :seenreplycount
+			WHERE UserId = :userid AND
+			PostId = :threadid`, vals)
 	if err != nil {
 		return errors.Wrapf(err, "failed to update thread read state for user id=%s thread_id=%v", userId, threadId)
+	}
+
+	if err := transaction.Commit(); err != nil {
+		return errors.Wrapf(err, "commit_transaction")
 	}
 	return nil
 }
@@ -698,8 +716,8 @@ func (s *SqlThreadStore) MarkAsRead(userId, threadId string, timestamp int64) er
 func (s *SqlThreadStore) saveMembership(ex sqlxExecutor, membership *model.ThreadMembership) (*model.ThreadMembership, error) {
 	query, args, err := s.getQueryBuilder().
 		Insert("ThreadMemberships").
-		Columns("PostId", "UserId", "Following", "LastViewed", "LastUpdated", "UnreadMentions").
-		Values(membership.PostId, membership.UserId, membership.Following, membership.LastViewed, membership.LastUpdated, membership.UnreadMentions).
+		Columns("PostId", "UserId", "Following", "LastViewed", "LastUpdated", "UnreadMentions", "SeenReplyCount").
+		Values(membership.PostId, membership.UserId, membership.Following, membership.LastViewed, membership.LastUpdated, membership.UnreadMentions, membership.SeenReplyCount).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to build query to save thread membership with postid=%s userid=%s", membership.PostId, membership.UserId)
@@ -724,6 +742,7 @@ func (s *SqlThreadStore) updateMembership(ex sqlxExecutor, membership *model.Thr
 		Set("LastViewed", membership.LastViewed).
 		Set("LastUpdated", membership.LastUpdated).
 		Set("UnreadMentions", membership.UnreadMentions).
+		Set("SeenReplyCount", membership.SeenReplyCount).
 		Where(sq.And{
 			sq.Eq{"PostId": membership.PostId},
 			sq.Eq{"UserId": membership.UserId},
@@ -825,6 +844,24 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
 	}
 	defer finalizeTransactionX(trx)
 
+	var replyCount int64
+	if opts.UpdateViewedTimestamp {
+		queryString, args, sErr := s.getQueryBuilder().
+			Select("ReplyCount").
+			From("Threads").
+			Where(sq.Eq{"PostId": postId}).
+			ToSql()
+
+		if sErr != nil {
+			return nil, errors.Wrap(err, "failed to create SQL query to get reply count in thread")
+		}
+
+		err = trx.Get(&replyCount, queryString, args...)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to get reply count in threadId=%s", postId)
+		}
+	}
+
 	membership, err := s.getMembershipForUser(trx, userId, postId)
 	now := utils.MillisFromTime(time.Now())
 	// if membership exists, update it if:
@@ -840,6 +877,7 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
 			if opts.UpdateViewedTimestamp {
 				membership.LastViewed = now
 				membership.UnreadMentions = 0
+				membership.SeenReplyCount = replyCount
 			} else if opts.IncrementMentions {
 				membership.UnreadMentions += 1
 			}
@@ -872,6 +910,7 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
 	}
 	if opts.UpdateViewedTimestamp {
 		membership.LastViewed = now
+		membership.SeenReplyCount = replyCount
 	}
 	membership, err = s.saveMembership(trx, membership)
 	if err != nil {
@@ -1010,13 +1049,10 @@ func (s *SqlThreadStore) DeleteOrphanedRows(limit int) (deleted int64, err error
 // return number of unread replies for a single thread
 func (s *SqlThreadStore) GetThreadUnreadReplyCount(threadMembership *model.ThreadMembership) (unreadReplies int64, err error) {
 	query, args, err := s.getQueryBuilder().
-		Select("COUNT(Posts.Id)").
-		From("Posts").
-		Where(sq.And{
-			sq.Eq{"Posts.RootId": threadMembership.PostId},
-			sq.Gt{"Posts.CreateAt": threadMembership.LastViewed},
-			sq.Eq{"Posts.DeleteAt": 0},
-		}).ToSql()
+		Select("(Threads.ReplyCount - ThreadMemberships.SeenReplyCount)").
+		From("ThreadMemberships").
+		InnerJoin("Threads ON ThreadMemberships.PostId = Threads.PostId").
+		Where(sq.Eq{"ThreadMemberships.PostId": threadMembership.PostId}).ToSql()
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to build query to count unread reply count for post id=%s", threadMembership.PostId)
 	}
