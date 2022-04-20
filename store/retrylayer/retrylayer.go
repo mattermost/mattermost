@@ -3583,11 +3583,11 @@ func (s *RetryLayerEmojiStore) Search(name string, prefixOnly bool, limit int) (
 
 }
 
-func (s *RetryLayerFileInfoStore) AttachToPost(fileID string, postID string, creatorID string) error {
+func (s *RetryLayerFileInfoStore) AttachToPost(fileID string, postID string, channelID string, creatorID string) error {
 
 	tries := 0
 	for {
-		err := s.FileInfoStore.AttachToPost(fileID, postID, creatorID)
+		err := s.FileInfoStore.AttachToPost(fileID, postID, channelID, creatorID)
 		if err == nil {
 			return nil
 		}

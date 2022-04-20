@@ -2203,11 +2203,9 @@ func (s SqlChannelStore) GetFileCount(channelId string) (int64, error) {
 			COUNT(*)
 		FROM
 			FileInfo
-                LEFT JOIN Posts as P ON FileInfo.PostId=P.Id
-                LEFT JOIN Channels as C on C.Id=P.ChannelId
 		WHERE
                         FileInfo.DeleteAt = 0
-			AND C.Id = ?`, channelId)
+			AND FileInfo.ChannelId = ?`, channelId)
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to count files with channelId=%s", channelId)
 	}

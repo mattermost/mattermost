@@ -114,8 +114,8 @@ func (s SearchFileInfoStore) SetContent(fileID, content string) error {
 	return err
 }
 
-func (s SearchFileInfoStore) AttachToPost(fileId, postId, creatorId string) error {
-	err := s.FileInfoStore.AttachToPost(fileId, postId, creatorId)
+func (s SearchFileInfoStore) AttachToPost(fileId, postId, channelId, creatorId string) error {
+	err := s.FileInfoStore.AttachToPost(fileId, postId, channelId, creatorId)
 	if err == nil {
 		nFileInfo, err2 := s.FileInfoStore.GetFromMaster(fileId)
 		if err2 == nil {

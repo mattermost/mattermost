@@ -35,10 +35,15 @@ type GetFileInfosOptions struct {
 }
 
 type FileInfo struct {
-	Id              string  `json:"id"`
-	CreatorId       string  `json:"user_id"`
-	PostId          string  `json:"post_id,omitempty"`
-	ChannelId       string  `db:"-" json:"channel_id"`
+	Id        string `json:"id"`
+	CreatorId string `json:"user_id"`
+	PostId    string `json:"post_id,omitempty"`
+
+	// ChannelId is the denormalized value from the corresponding post. Note that this value is
+	// potentially distinct from the ChannelId provided when the file is first uploaded and
+	// used to organize the directories in the file store, since in theory that same file
+	// could be attached to a post from a different channel (or not attached to a post at all).
+	ChannelId       string  `json:"channel_id"`
 	CreateAt        int64   `json:"create_at"`
 	UpdateAt        int64   `json:"update_at"`
 	DeleteAt        int64   `json:"delete_at"`

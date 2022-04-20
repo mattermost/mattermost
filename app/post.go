@@ -383,7 +383,7 @@ func (a *App) addPostPreviewProp(post *model.Post) (*model.Post, error) {
 func (a *App) attachFilesToPost(post *model.Post) *model.AppError {
 	var attachedIds []string
 	for _, fileID := range post.FileIds {
-		err := a.Srv().Store.FileInfo().AttachToPost(fileID, post.Id, post.UserId)
+		err := a.Srv().Store.FileInfo().AttachToPost(fileID, post.Id, post.ChannelId, post.UserId)
 		if err != nil {
 			mlog.Warn("Failed to attach file to post", mlog.String("file_id", fileID), mlog.String("post_id", post.Id), mlog.Err(err))
 			continue

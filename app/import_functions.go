@@ -1537,7 +1537,7 @@ func (a *App) uploadAttachments(c *request.Context, attachments *[]AttachmentImp
 
 func (a *App) updateFileInfoWithPostId(post *model.Post) {
 	for _, fileID := range post.FileIds {
-		if err := a.Srv().Store.FileInfo().AttachToPost(fileID, post.Id, post.UserId); err != nil {
+		if err := a.Srv().Store.FileInfo().AttachToPost(fileID, post.Id, post.ChannelId, post.UserId); err != nil {
 			mlog.Error("Error attaching files to post.", mlog.String("post_id", post.Id), mlog.Any("post_file_ids", post.FileIds), mlog.Err(err))
 		}
 	}

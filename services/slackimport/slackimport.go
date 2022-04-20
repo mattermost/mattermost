@@ -657,7 +657,7 @@ func (si *SlackImporter) oldImportPost(post *model.Post) string {
 				firstPostId = post.Id
 			}
 			for _, fileId := range post.FileIds {
-				if err := si.store.FileInfo().AttachToPost(fileId, post.Id, post.UserId); err != nil {
+				if err := si.store.FileInfo().AttachToPost(fileId, post.Id, post.ChannelId, post.UserId); err != nil {
 					mlog.Error(
 						"Error attaching files to post.",
 						mlog.String("post_id", post.Id),

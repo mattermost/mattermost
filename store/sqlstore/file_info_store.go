@@ -86,6 +86,7 @@ func newSqlFileInfoStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterfac
 		"FileInfo.Id",
 		"FileInfo.CreatorId",
 		"FileInfo.PostId",
+		"COALESCE(FileInfo.ChannelId, '') AS ChannelId",
 		"FileInfo.CreateAt",
 		"FileInfo.UpdateAt",
 		"FileInfo.DeleteAt",
@@ -115,10 +116,10 @@ func (fs SqlFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, error) {
 
 	query := `
 		INSERT INTO FileInfo
-		(Id, CreatorId, PostId, CreateAt, UpdateAt, DeleteAt, Path, ThumbnailPath, PreviewPath,
+		(Id, CreatorId, PostId, ChannelId, CreateAt, UpdateAt, DeleteAt, Path, ThumbnailPath, PreviewPath,
 			Name, Extension, Size, MimeType, Width, Height, HasPreviewImage, MiniPreview, Content, RemoteId)
 		VALUES
-		(:Id, :CreatorId, :PostId, :CreateAt, :UpdateAt, :DeleteAt, :Path, :ThumbnailPath, :PreviewPath,
+		(:Id, :CreatorId, :PostId, :ChannelId, :CreateAt, :UpdateAt, :DeleteAt, :Path, :ThumbnailPath, :PreviewPath,
 			:Name, :Extension, :Size, :MimeType, :Width, :Height, :HasPreviewImage, :MiniPreview, :Content, :RemoteId)
 	`
 
@@ -130,9 +131,8 @@ func (fs SqlFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, error) {
 
 func (fs SqlFileInfoStore) GetByIds(ids []string) ([]*model.FileInfo, error) {
 	query := fs.getQueryBuilder().
-		Select(append(fs.queryFields, "COALESCE(P.ChannelId, '') as ChannelId")...).
+		Select(fs.queryFields...).
 		From("FileInfo").
-		LeftJoin("Posts as P ON FileInfo.PostId=P.Id").
 		Where(sq.Eq{"FileInfo.Id": ids}).
 		Where(sq.Eq{"FileInfo.DeleteAt": 0}).
 		OrderBy("FileInfo.CreateAt DESC")
@@ -257,8 +257,7 @@ func (fs SqlFileInfoStore) GetWithOptions(page, perPage int, opt *model.GetFileI
 		From("FileInfo")
 
 	if len(opt.ChannelIds) > 0 {
-		query = query.Join("Posts ON FileInfo.PostId = Posts.Id").
-			Where(sq.Eq{"Posts.ChannelId": opt.ChannelIds})
+		query = query.Where(sq.Eq{"FileInfo.ChannelId": opt.ChannelIds})
 	}
 
 	if len(opt.UserIds) > 0 {
@@ -384,10 +383,11 @@ func (fs SqlFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, error) 
 	return infos, nil
 }
 
-func (fs SqlFileInfoStore) AttachToPost(fileId, postId, creatorId string) error {
+func (fs SqlFileInfoStore) AttachToPost(fileId, postId, channelId, creatorId string) error {
 	query := fs.getQueryBuilder().
 		Update("FileInfo").
 		Set("PostId", postId).
+		Set("ChannelId", channelId).
 		Where(sq.And{
 			sq.Eq{"Id": fileId},
 			sq.Eq{"PostId": ""},
@@ -502,10 +502,9 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 		return nil, err
 	}
 	query := fs.getQueryBuilder().
-		Select(append(fs.queryFields, "Coalesce(P.ChannelId, '') AS ChannelId")...).
+		Select(fs.queryFields...).
 		From("FileInfo").
-		LeftJoin("Posts as P ON FileInfo.PostId=P.Id").
-		LeftJoin("Channels as C ON C.Id=P.ChannelId").
+		LeftJoin("Channels as C ON C.Id=FileInfo.ChannelId").
 		LeftJoin("ChannelMembers as CM ON C.Id=CM.ChannelId").
 		Where(sq.Or{sq.Eq{"C.TeamId": teamId}, sq.Eq{"C.TeamId": ""}}).
 		Where(sq.Eq{"FileInfo.DeleteAt": 0}).
@@ -691,9 +690,8 @@ func (fs SqlFileInfoStore) CountAll() (int64, error) {
 func (fs SqlFileInfoStore) GetFilesBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.FileForIndexing, error) {
 	files := []*model.FileForIndexing{}
 	sql, args, _ := fs.getQueryBuilder().
-		Select(append(fs.queryFields, "Coalesce(p.ChannelId, '') AS ChannelId")...).
+		Select(fs.queryFields...).
 		From("FileInfo").
-		LeftJoin("Posts AS p ON FileInfo.PostId = p.Id").
 		Where(sq.Or{
 			sq.Gt{"FileInfo.CreateAt": startTime},
 			sq.And{
