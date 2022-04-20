@@ -85,6 +85,7 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("channel")
 		return
 	}
+	uploadedChannel := channel.DeepCopy()
 
 	auditRec := c.MakeAuditRecord("createChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -108,6 +109,7 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	auditRec.AddMeta("channel", sc) // overwrite meta
+	auditRec.AddMetadata(uploadedChannel, nil, channel, "channel")
 	c.LogAudit("name=" + channel.Name)
 
 	w.WriteHeader(http.StatusCreated)
@@ -128,6 +130,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("channel")
 		return
 	}
+	uploadedChannel := channel.DeepCopy()
 
 	// The channel being updated in the payload must be the same one as indicated in the URL.
 	if channel.Id != c.Params.ChannelId {
@@ -221,6 +224,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	auditRec.AddMetadata(uploadedChannel, oldChannel, updatedChannel, "channel")
 	c.LogAudit("name=" + channel.Name)
 
 	if err := json.NewEncoder(w).Encode(oldChannel); err != nil {
@@ -246,6 +250,7 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	priorChannel := channel.DeepCopy()
 
 	auditRec := c.MakeAuditRecord("updateChannelPrivacy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -280,9 +285,10 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		return
-	}
+}
 
 	auditRec.Success()
+	auditRec.AddMetadata(props, priorChannel, updatedChannel, "channel")
 	c.LogAudit("name=" + updatedChannel.Name)
 
 	if err := json.NewEncoder(w).Encode(updatedChannel); err != nil {

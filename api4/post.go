@@ -44,6 +44,8 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("post")
 		return
 	}
+	var postPayload model.Post
+	post.ShallowCopy(&postPayload)
 
 	// Strip away delete_at if passed
 	post.DeleteAt = 0
@@ -99,7 +101,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
 	c.ExtendSessionExpiryIfNeeded(w, r)
 
-	auditRec.AddMetadata(post, nil, rp, "post")
+	auditRec.AddMetadata(postPayload, nil, rp, "post")
 
 	w.WriteHeader(http.StatusCreated)
 

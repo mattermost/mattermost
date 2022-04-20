@@ -931,8 +931,7 @@ func (u *User) AuditableObject() interface{} {
 }
 
 func (p *UserPatch) AuditableObject() interface{} {
-	a := p
-	*a.Password = "[redacted]"
+	return p // TODO!!!!
 }
 
 //msgp:ignore UserWithGroups
