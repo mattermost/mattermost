@@ -182,31 +182,31 @@ type SubscriptionChange struct {
 	ProductID string `json:"product_id"`
 }
 
-type BoardsLimit struct {
+type BoardsLimits struct {
 	Cards *int `json:"cards"`
 	Views *int `json:"views"`
 }
 
-type FilesLimit struct {
+type FilesLimits struct {
 	TotalStorage *int64 `json:"total_storage"`
 }
 
-type IntegrationsLimit struct {
+type IntegrationsLimits struct {
 	Enabled *int `json:"enabled"`
 }
 
-type MessagesLimit struct {
+type MessagesLimits struct {
 	History *int `json:"history"`
 }
 
-type TeamsLimit struct {
+type TeamsLimits struct {
 	Active *int `json:"active"`
 }
 
 type ProductLimits struct {
-	Boards       *BoardsLimit       `json:"boards,omitempty"`
-	Files        *FilesLimit        `json:"files,omitempty"`
-	Integrations *IntegrationsLimit `json:"integrations,omitempty"`
-	Messages     *MessagesLimit     `json:"messages,omitempty"`
-	Teams        *TeamsLimit        `json:"teams,omitempty"`
+	Boards       *BoardsLimits       `json:"boards,omitempty"`
+	Files        *FilesLimits        `json:"files,omitempty"`
+	Integrations *IntegrationsLimits `json:"integrations,omitempty"`
+	Messages     *MessagesLimits     `json:"messages,omitempty"`
+	Teams        *TeamsLimits        `json:"teams,omitempty"`
 }
