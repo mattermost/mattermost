@@ -4122,7 +4122,8 @@ func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string
 				Channels.DisplayName AS DisplayName,
 				Channels.Name AS Name,
 				Channels.TeamId AS TeamID,
-				count(Posts.Id) AS MessageCount
+				count(Posts.Id) AS MessageCount,
+				Channels.DeleteAt AS DeleteAt
 			FROM
 				Posts
 				LEFT JOIN Channels on Posts.ChannelId = Channels.Id
@@ -4139,7 +4140,6 @@ func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string
 	}
 
 	query += `
-				AND Channels.DeleteAt = 0
 				AND Channels.TeamId = ?
 				AND Channels.Type = 'O'
 			GROUP BY
@@ -4147,7 +4147,8 @@ func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string
 				Channels.Type,
 				Channels.DisplayName,
 				Channels.Name,
-				Channels.TeamId)
+				Channels.TeamId,
+				Channels.DeleteAt)
 		UNION ALL
 			(SELECT
 				Posts.ChannelId AS ID,
@@ -4155,7 +4156,8 @@ func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string
 				Channels.DisplayName AS DisplayName,
 				Channels.Name AS Name,
 				Channels.TeamId AS TeamID,
-				count(Posts.Id) AS MessageCount
+				count(Posts.Id) AS MessageCount,
+				Channels.DeleteAt AS DeleteAt
 			FROM
 				Posts
 				LEFT JOIN Channels on Posts.ChannelId = Channels.Id
@@ -4173,7 +4175,6 @@ func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string
 	}
 
 	query += `
-				AND Channels.DeleteAt = 0
 				AND Channels.TeamId = ?
 				AND Channels.Type = 'P'
 				AND ChannelMembers.UserId = ?
@@ -4182,7 +4183,10 @@ func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string
 				Channels.Type,
 				Channels.DisplayName,
 				Channels.Name,
-				Channels.TeamId)) AS A
+				Channels.TeamId,
+				Channels.DeleteAt)) AS A
+		WHERE
+			DeleteAt = 0
 		ORDER BY
 			MessageCount DESC,
 			Name ASC

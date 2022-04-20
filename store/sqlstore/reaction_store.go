@@ -241,35 +241,42 @@ func (s *SqlReactionStore) GetTopForTeamSince(teamID string, userID string, sinc
 		FROM ((
 				SELECT
 					EmojiName,
-					count(EmojiName) AS EmojiCount
+					count(EmojiName) AS EmojiCount,
+					Reactions.DeleteAt AS DeleteAt,
+					Reactions.CreateAt AS CreateAt
 				FROM
 					ChannelMembers
 					INNER JOIN Channels ON ChannelMembers.ChannelId = Channels.Id
 					INNER JOIN Posts ON Channels.Id = Posts.ChannelId
 					INNER JOIN Reactions ON Posts.Id = Reactions.PostId
 				WHERE
-					Reactions.DeleteAt = 0
-					AND ChannelMembers.UserId = ?
+					ChannelMembers.UserId = ?
 					AND Channels.Type = 'P'
 					AND Channels.TeamId = ?
-					AND Reactions.CreateAt > ?
 				GROUP BY
-					Reactions.EmojiName)
+					Reactions.EmojiName,
+					Reactions.DeleteAt,
+					Reactions.CreateAt)
 			UNION ALL (
 				SELECT
 					EmojiName,
-					count(EmojiName) AS EmojiCount
+					count(EmojiName) AS EmojiCount,
+					Reactions.DeleteAt AS DeleteAt,
+					Reactions.CreateAt AS CreateAt
 				FROM
 					Reactions
 					INNER JOIN Posts ON Reactions.PostId = Posts.Id
 					INNER JOIN Channels ON Posts.ChannelId = Channels.Id
 				WHERE
-					Reactions.DeleteAt = 0
-					AND Channels.Type = 'O'
+					Channels.Type = 'O'
 					AND Channels.TeamId = ?
-					AND Reactions.CreateAt > ?
 				GROUP BY
-					Reactions.EmojiName)) AS A
+					Reactions.EmojiName,
+					Reactions.DeleteAt,
+					Reactions.CreateAt)) AS A
+		WHERE
+			DeleteAt = 0
+			AND CreateAt > ?
 		GROUP BY
 			EmojiName
 		ORDER BY
@@ -278,7 +285,7 @@ func (s *SqlReactionStore) GetTopForTeamSince(teamID string, userID string, sinc
 		LIMIT ?
 		OFFSET ?`
 
-	if err := s.GetReplicaX().Select(&reactions, query, userID, teamID, since, teamID, since, limit+1, offset); err != nil {
+	if err := s.GetReplicaX().Select(&reactions, query, userID, teamID, teamID, since, limit+1, offset); err != nil {
 		return nil, errors.Wrap(err, "failed to get top Reactions")
 	}
 
