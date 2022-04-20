@@ -84,29 +84,4 @@ func ParseSVG(svgReader io.Reader) (SVGInfo, error) {
 			return svgInfo, nil
 		}
 	}
-
-	// 	viewBoxPattern := regexp.MustCompile("^([0-9]+)[, ]+([0-9]+)[, ]+([0-9]+)[, ]+([0-9]+)$")
-	// 	dimensionPattern := regexp.MustCompile("(?i)^([0-9]+)(?:px)?$")
-
-	// prefer viewbox for SVG dimensions over width/height
-	// 	if viewBoxMatches := viewBoxPattern.FindStringSubmatch(parsedSVG.ViewBox); len(viewBoxMatches) == 5 {
-	// 		svgInfo.Width, _ = strconv.Atoi(viewBoxMatches[3])
-	// 		svgInfo.Height, _ = strconv.Atoi(viewBoxMatches[4])
-	// 	} else if parsedSVG.Width != "" && parsedSVG.Height != "" {
-	// 		widthMatches := dimensionPattern.FindStringSubmatch(parsedSVG.Width)
-	// 		heightMatches := dimensionPattern.FindStringSubmatch(parsedSVG.Height)
-	// 		if len(widthMatches) == 2 && len(heightMatches) == 2 {
-	// 			svgInfo.Width, _ = strconv.Atoi(widthMatches[1])
-	// 			svgInfo.Height, _ = strconv.Atoi(heightMatches[1])
-	// 		}
-	// 	}
-	//
-	// 	// if width and/or height are still zero, create new error
-	// 	if svgInfo.Width == 0 || svgInfo.Height == 0 {
-	// 		return svgInfo, errors.New("unable to extract SVG dimensions")
-	// 	}
-	// 	return svgInfo, nil
-
-	// commented out the above code since IMO this is not needed anymore with the approach using decoder.Token(),
-	// but for the case it is still valid to do it I just commented it out
 }
