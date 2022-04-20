@@ -115,4 +115,9 @@ type ThreadMembership struct {
 	// is the thread analogue to the ChannelMembership's MentionCount, and is used to highlight
 	// threads with the mention count.
 	UnreadMentions int64 `json:"unread_mentions"`
+
+	// SeenReplyCount is the number of messages the user has seen in the given thread. The
+	// number of unread replies is calculcated by subtracting this count from the reply count
+	// of the thread.
+	SeenReplyCount int64 `json:"seen_reply_count"`
 }
