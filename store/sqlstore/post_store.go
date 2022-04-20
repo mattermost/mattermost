@@ -2599,7 +2599,7 @@ func (s *SqlPostStore) LogRecentSearch(userID string, searchQuery []byte, create
 			FROM Users
 			WHERE Id=?`
 	} else {
-		queryStr = `SELECT COALESCE(JSON_EXTRACT(Props, '$.last_search_pointer'), -1)
+		queryStr = `SELECT COALESCE(CAST(JSON_EXTRACT(Props, '$.last_search_pointer') as unsigned), -1)
 			FROM Users
 			WHERE Id=?`
 	}
@@ -2644,7 +2644,7 @@ func (s *SqlPostStore) LogRecentSearch(userID string, searchQuery []byte, create
 	} else {
 		_, err = transaction.Exec(`UPDATE Users
 			SET Props = JSON_SET(Props, ?, ?)
-			WHERE Id = ?`, "$.last_search_pointer", lastSearchPointer, userID)
+			WHERE Id = ?`, "$.last_search_pointer", strconv.Itoa(lastSearchPointer), userID)
 	}
 	if err != nil {
 		return errors.Wrapf(err, "failed to update last_search_pointer for user=%s", userID)

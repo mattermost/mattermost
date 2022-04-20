@@ -1359,8 +1359,7 @@ func (a *App) SearchPostsForUser(c *request.Context, terms string, userID string
 func (a *App) GetRecentSearchesForUser(userID string) ([]*model.SearchParams, *model.AppError) {
 	searchParams, nErr := a.Srv().Store.Post().GetRecentSearchesForUser(userID)
 	if nErr != nil {
-		// TODO: copy-paste
-		return nil, model.NewAppError("SearchPostsForUser", "app.post.search.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetRecentSearchesForUser", "app.recent_searches.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	return searchParams, nil
