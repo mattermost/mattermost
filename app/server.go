@@ -507,6 +507,8 @@ func NewServer(options ...Option) (*Server, error) {
 			return
 		}
 	})
+
+	// BUG CAUSE: Sends a sanitized license as payload to webhook
 	s.licenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		s.Channels().regenerateClientConfig()
 
@@ -1747,8 +1749,6 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 }
 
 func (s *Server) doLicenseExpirationCheck() {
-	s.LoadLicense()
-
 	// This takes care of a rare edge case reported here https://mattermost.atlassian.net/browse/MM-40962
 	// To reproduce that case locally, attach a license to a server that was started with enterprise enabled
 	// Then restart using BUILD_ENTERPRISE=false make restart-server to enter Team Edition
@@ -1809,9 +1809,6 @@ func (s *Server) doLicenseExpirationCheck() {
 			}
 		})
 	}
-
-	//remove the license
-	s.RemoveLicense()
 }
 
 // SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
