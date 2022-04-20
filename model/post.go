@@ -221,6 +221,15 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	return nil
 }
 
+func (p *Post) AuditableObject() interface{} {
+	var a Post
+	err := p.ShallowCopy(&a)
+	if err != nil {
+		return Post{}
+	}
+	return a
+}
+
 // Clone shallowly copies the post and returns the copy.
 func (o *Post) Clone() *Post {
 	copy := &Post{}
@@ -747,8 +756,8 @@ func (p *Post) AuditLoggablePost() audit.EventMetadataObject {
 		Id: p.Id,
 		Metadata: map[string]interface{}{
 			"channel_id": p.ChannelId,
-			"user_id": p.UserId,
-			"message": p.Message,
+			"user_id":    p.UserId,
+			"message":    p.Message,
 		},
 	}
 	return r

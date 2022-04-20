@@ -12,7 +12,7 @@ type FuncMetaTypeConv func(val interface{}) (newVal interface{}, converted bool)
 
 type EventObject struct {
 	Id       string `json:"id"`
-	Metadata string `json:"metadata"`
+	Metadata string `json:"data"`
 }
 
 type EventMetadataObject struct {
@@ -31,23 +31,28 @@ type EventResult struct {
 }
 
 type EventData struct {
-	Change         EventMetadataObject `json:"change"`
-	PriorState     EventMetadataObject `json:"prior_state"`
-	ResultingState EventMetadataObject `json:"resulting_state"`
+	Change           interface{} `json:"new_data"`
+	PriorState       interface{} `json:"prior_state"`
+	ResultingState   interface{} `json:"resulting_state"`
+	ResultObjectType string      `json:"result_object_type"`
+}
+
+type Auditable interface {
+	AuditableObject() interface{}
 }
 
 // Record provides a consistent set of fields used for all audit logging.
 type Record struct {
-	APIPath   string
-	EventName string
-	EventData EventData
-	Error     string
-	Status    string
-	UserID    string
-	SessionID string
-	Client    string
-	IPAddress string
-	Meta      Meta
+	APIPath   string    `json:"api_path"`
+	EventName string    `json:"event_name"`
+	EventData EventData `json:"event_data"`
+	Error     string    `json:"error"`
+	Status    string    `json:"status"`
+	UserID    string    `json:"user_id"`
+	SessionID string    `json:"session_id"`
+	Client    string    `json:"client"`
+	IPAddress string    `json:"ip_address"`
+	Meta      Meta      `json:"meta"`
 	metaConv  []FuncMetaTypeConv
 }
 
@@ -56,7 +61,7 @@ func (rec *Record) Success() {
 	rec.Status = Success
 }
 
-// Success marks the audit record status as failed.
+// Great success marks the audit record status as failed.
 func (rec *Record) Fail() {
 	rec.Status = Fail
 }
@@ -84,22 +89,37 @@ func (rec *Record) AddMeta(name string, val interface{}) {
 	rec.Meta[name] = val
 }
 
-func (rec *Record) AddMetadata(changeObjectId string, changeObjectMetadata interface{},
-	priorObjectId string, priorObjectMetadata interface{},
-	resultObjectId string, resultObjectMetadata interface{}) {
+func (rec *Record) AddMetadata(newObject interface{},
+	priorObject interface{},
+	resultObject Auditable,
+	resultObjectType string) {
+
+	//var priorAuditable interface{}
+	//var resultAuditable interface{}
+
+	//switch priorObject.(type) {
+	//case model.User:
+	//	user := priorObject.(model.User)
+	//	rec.UserID = user.Id
+	//	priorAuditable = user.AuditableUser()
+	//default:
+	//	priorAuditable = priorObject
+	//}
+
+	//switch resultObject.(type) {
+	//case model.User:
+	//	user := resultObject.(model.User)
+	//	rec.UserID = user.Id
+	//	resultAuditable = user.AuditableUser()
+	//default:
+	//	resultAuditable = resultObject
+	//}
+
 	eventData := EventData{
-		Change: EventMetadataObject{
-			Id:       changeObjectId,
-			Metadata: changeObjectMetadata,
-		},
-		PriorState: EventMetadataObject{
-			Id:       priorObjectId,
-			Metadata: priorObjectMetadata,
-		},
-		ResultingState: EventMetadataObject{
-			Id:       resultObjectId,
-			Metadata: resultObjectMetadata,
-		},
+		Change:           newObject,
+		PriorState:       priorObject,
+		ResultingState:   resultObject.AuditableObject(),
+		ResultObjectType: resultObjectType,
 	}
 	rec.EventData = eventData
 }

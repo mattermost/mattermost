@@ -33,6 +33,10 @@ type Bot struct {
 	DeleteAt       int64  `json:"delete_at"`
 }
 
+func (b *Bot) AuditableObject() interface{} {
+	return b
+}
+
 // BotPatch is a description of what fields to update on an existing bot.
 type BotPatch struct {
 	Username    *string `json:"username"`

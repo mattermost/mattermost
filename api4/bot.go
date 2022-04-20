@@ -66,6 +66,7 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	auditRec.AddMeta("bot", createdBot) // overwrite meta
+	auditRec.AddMetadata(botPatch, nil, bot, "bot")
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(createdBot); err != nil {
@@ -96,6 +97,7 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	oldBot, _ := c.App.GetBot(botUserId, false)
 	updatedBot, appErr := c.App.PatchBot(botUserId, botPatch)
 	if appErr != nil {
 		c.Err = appErr
@@ -104,6 +106,7 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	auditRec.AddMeta("bot", updatedBot)
+	auditRec.AddMetadata(botPatch, oldBot, updatedBot, "bot")
 
 	if err := json.NewEncoder(w).Encode(updatedBot); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
@@ -213,6 +216,8 @@ func updateBotActive(c *Context, w http.ResponseWriter, active bool) {
 		return
 	}
 
+	oldBot, _ := c.App.GetBot(botUserId, false)
+
 	bot, err := c.App.UpdateBotActive(c.AppContext, botUserId, active)
 	if err != nil {
 		c.Err = err
@@ -221,6 +226,7 @@ func updateBotActive(c *Context, w http.ResponseWriter, active bool) {
 
 	auditRec.Success()
 	auditRec.AddMeta("bot", bot)
+	auditRec.AddMetadata(c.Params, oldBot, bot, "bot")
 
 	if err := json.NewEncoder(w).Encode(bot); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
@@ -261,6 +267,7 @@ func assignBot(c *Context, w http.ResponseWriter, _ *http.Request) {
 
 	auditRec.Success()
 	auditRec.AddMeta("bot", bot)
+	auditRec.AddMetadata(c.Params, nil, bot, "bot")
 
 	if err := json.NewEncoder(w).Encode(bot); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
@@ -307,6 +314,7 @@ func convertBotToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	auditRec.AddMeta("convertedTo", user)
+	auditRec.AddMetadata(userPatch, bot, user, "user")
 
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))

@@ -41,6 +41,10 @@ type Command struct {
 	AutocompleteIconData string `db:"-" json:"autocomplete_icon_data,omitempty"`
 }
 
+func (c *Command) AuditableObject() interface{} {
+	return c
+}
+
 func (o *Command) IsValid() *AppError {
 	if !IsValidId(o.Id) {
 		return NewAppError("Command.IsValid", "model.command.is_valid.id.app_error", nil, "", http.StatusBadRequest)

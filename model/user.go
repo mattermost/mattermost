@@ -924,6 +924,17 @@ func IsValidLocale(locale string) bool {
 	return true
 }
 
+func (u *User) AuditableObject() interface{} {
+	a := u.DeepCopy()
+	a.Password = "[redacted]"
+	return *a
+}
+
+func (p *UserPatch) AuditableObject() interface{} {
+	a := p
+	*a.Password = "[redacted]"
+}
+
 //msgp:ignore UserWithGroups
 type UserWithGroups struct {
 	User

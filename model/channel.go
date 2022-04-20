@@ -61,6 +61,11 @@ type Channel struct {
 	LastRootPostAt    int64                  `json:"last_root_post_at"`
 }
 
+func (c *Channel) AuditableObject() interface{} {
+	a := c.DeepCopy()
+	return *a
+}
+
 type ChannelWithTeamData struct {
 	Channel
 	TeamDisplayName string `json:"team_display_name"`
