@@ -3540,10 +3540,6 @@
     "translation": "Niepoprawna nazwa użytkownika."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Nazwa musi być złożona z co najmniej 2 małych znaków alfanumerycznych."
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "Utworzono dnia musi zawierać prawidłowy czas."
   },

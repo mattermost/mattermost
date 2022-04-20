@@ -1,3 +1,4 @@
+//go:build maincoverage
 // +build maincoverage
 
 package main

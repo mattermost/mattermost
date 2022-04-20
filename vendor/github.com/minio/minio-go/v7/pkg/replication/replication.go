@@ -432,7 +432,6 @@ func (c *Config) RemoveRule(opts Options) error {
 	}
 	c.Rules = newRules
 	return nil
-
 }
 
 // Rule - a rule for replication configuration.

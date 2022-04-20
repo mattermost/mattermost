@@ -908,10 +908,6 @@
     "translation": "\"Create at\" måste vara en giltig tid."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Namnet måste bestå av 2 eller fler gemena alfanumeriska tecken."
-  },
-  {
     "id": "model.bot.is_valid.username.app_error",
     "translation": "Ogiltigt användarnamn."
   },
