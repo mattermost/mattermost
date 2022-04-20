@@ -118,7 +118,12 @@ func Test_getCloudLimits(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
 		cloud := &mocks.CloudInterface{}
-		mockLimits := &model.ProductLimits{}
+		ten := 10
+		mockLimits := &model.ProductLimits{
+			Messages: &model.MessagesLimits{
+				History: &ten,
+			},
+		}
 		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(mockLimits, nil)
 
 		cloudImpl := th.App.Srv().Cloud
@@ -133,5 +138,6 @@ func Test_getCloudLimits(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, r.StatusCode, "Expected 200 OK")
 		require.Equal(t, mockLimits, limits)
+		require.Equal(t, *mockLimits.Messages.History, *limits.Messages.History)
 	})
 }
