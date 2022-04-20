@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"reflect"
 	"sync"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -395,4 +396,17 @@ func (s *Store) IsReadOnly() bool {
 	s.configLock.RLock()
 	defer s.configLock.RUnlock()
 	return s.readOnly
+}
+
+// Cleanup removes outdated configurations from the database.
+// this is a no-op function for FileStore type backing store.
+func (s *Store) CleanUp() error {
+	switch bs := s.backingStore.(type) {
+	case *DatabaseStore:
+		dur := time.Duration(*s.config.JobSettings.CleanupConfigThresholdDays) * time.Hour * 24
+		expiry := model.GetMillisForTime(time.Now().Add(-dur))
+		return bs.cleanUp(int(expiry))
+	default:
+		return nil
+	}
 }

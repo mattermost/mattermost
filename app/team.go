@@ -741,6 +741,21 @@ func (a *App) GetTeam(teamID string) (*model.Team, *model.AppError) {
 	return team, nil
 }
 
+func (a *App) GetTeams(teamIDs []string) ([]*model.Team, *model.AppError) {
+	teams, err := a.ch.srv.teamService.GetTeams(teamIDs)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetTeam", "app.team.get.find.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetTeam", "app.team.get.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return teams, nil
+}
+
 func (a *App) GetTeamByName(name string) (*model.Team, *model.AppError) {
 	team, err := a.Srv().Store.Team().GetByName(name)
 	if err != nil {

@@ -102,6 +102,7 @@ type TeamStore interface {
 	Save(team *model.Team) (*model.Team, error)
 	Update(team *model.Team) (*model.Team, error)
 	Get(id string) (*model.Team, error)
+	GetMany(ids []string) ([]*model.Team, error)
 	GetByName(name string) (*model.Team, error)
 	GetByNames(name []string) ([]*model.Team, error)
 	SearchAll(opts *model.TeamSearch) ([]*model.Team, error)
@@ -678,6 +679,8 @@ type ReactionStore interface {
 	BulkGetForPosts(postIds []string) ([]*model.Reaction, error)
 	DeleteOrphanedRows(limit int) (int64, error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
+	GetTopForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopReactionList, error)
+	GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopReactionList, error)
 }
 
 type JobStore interface {

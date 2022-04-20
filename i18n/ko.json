@@ -3532,10 +3532,6 @@
     "translation": "잘못된 유저이름입니다."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "이름은 반드시 2글자 이상의 영문 또는 숫자여야 합니다."
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time"
   },

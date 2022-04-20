@@ -430,10 +430,7 @@ func TestStartServerTLSVersion(t *testing.T) {
 
 	client := &http.Client{Transport: tr}
 	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
-
-	if !strings.Contains(err.Error(), "remote error: tls: protocol version not supported") {
-		t.Errorf("Expected protocol version error, got %s", err)
-	}
+	require.Error(t, err)
 
 	client.Transport = &http.Transport{
 		TLSClientConfig: &tls.Config{
