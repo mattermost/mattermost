@@ -142,6 +142,27 @@ func (_m *ThreadStore) GetPosts(threadID string, since int64) ([]*model.Post, er
 	return r0, r1
 }
 
+// GetReplyCountUntil provides a mock function with given fields: threadId, timestamp
+func (_m *ThreadStore) GetReplyCountUntil(threadId string, timestamp int64) (int64, error) {
+	ret := _m.Called(threadId, timestamp)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string, int64) int64); ok {
+		r0 = rf(threadId, timestamp)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
+		r1 = rf(threadId, timestamp)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetTeamsUnreadForUser provides a mock function with given fields: userID, teamIDs
 func (_m *ThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) (map[string]*model.TeamUnread, error) {
 	ret := _m.Called(userID, teamIDs)
