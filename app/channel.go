@@ -2724,10 +2724,14 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID st
 		}
 		// If threadmembership already exists but user had previously unfollowed the thread, then follow the thread again.
 		threadMembership.Following = true
-		threadMembership.LastViewed = post.UpdateAt - 1
-		threadMembership.UnreadMentions, err = a.countThreadMentions(user, rootPost, channel.TeamId, post.UpdateAt-1)
+		threadMembership.LastViewed = post.CreateAt - 1
+		threadMembership.UnreadMentions, err = a.countThreadMentions(user, rootPost, channel.TeamId, post.CreateAt-1)
 		if err != nil {
 			return nil, err
+		}
+		threadMembership.SeenReplyCount, sErr = a.Srv().Store.Thread().GetReplyCountUntil(rootPost.Id, post.CreateAt-1)
+		if sErr != nil {
+			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, sErr.Error(), http.StatusInternalServerError)
 		}
 		threadMembership, sErr = a.Srv().Store.Thread().UpdateMembership(threadMembership)
 		if sErr != nil {
