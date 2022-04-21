@@ -334,7 +334,7 @@ func (wc *WebConn) readPump() {
 	wc.WebSocket.SetReadLimit(model.SocketMaxMessageSizeKb)
 	wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
 	wc.WebSocket.SetPongHandler(func(string) error {
-		mlog.Debug("Got pong message", mlog.String("connection_id", wc.GetConnectionID()))
+		mlog.Debug("[agniva] Got pong message", mlog.String("connection_id", wc.GetConnectionID()))
 		wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
 		if wc.IsAuthenticated() {
 			wc.App.Srv().Go(func() {
@@ -347,6 +347,7 @@ func (wc *WebConn) readPump() {
 	for {
 		msgType, rd, err := wc.WebSocket.NextReader()
 		if err != nil {
+			mlog.Debug("[agniva] Disconnecting ..", mlog.String("connection_id", wc.GetConnectionID()))
 			wc.logSocketErr("websocket.NextReader", err)
 			return
 		}
