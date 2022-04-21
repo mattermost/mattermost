@@ -78,7 +78,7 @@ func TestParseInvalidSVGData(t *testing.T) {
 func TestParseProcInstOnlySVGData(t *testing.T) {
 	svg := strings.NewReader("<?xml version='1.0' encoding='utf-8'?>")
 	svgInfo, err := ParseSVG(svg)
-	if err == nil || svgInfo.Width != 0 || svgInfo.Height != 0 {
-		t.Errorf("Should not be able to parse SVG attributes, but was definitely able to!")
-	}
+	require.NoError(t, err)
+    require.Equal(t, 0, svgInfo.Width)
+    require.Equal(t, 0, svgInfo.Height)
 }
