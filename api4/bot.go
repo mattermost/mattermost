@@ -4,7 +4,9 @@
 package api4
 
 import (
+	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -25,8 +27,17 @@ func (api *API) InitBot() {
 }
 
 func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
 	var botPatch *model.BotPatch
-	err := json.NewDecoder(r.Body).Decode(&botPatch)
+	err := json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&botPatch)
 	if err != nil {
 		c.SetInvalidParam("bot")
 		return
@@ -66,7 +77,7 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	auditRec.AddMeta("bot", createdBot) // overwrite meta
-	auditRec.AddMetadata(botPatch, nil, bot, "bot")
+	auditRec.AddMetadata(postPayload, nil, bot, "bot")
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(createdBot); err != nil {
@@ -81,8 +92,17 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	botUserId := c.Params.BotUserId
 
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
 	var botPatch *model.BotPatch
-	err := json.NewDecoder(r.Body).Decode(&botPatch)
+	err := json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&botPatch)
 	if err != nil {
 		c.SetInvalidParam("bot")
 		return
@@ -106,7 +126,7 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	auditRec.AddMeta("bot", updatedBot)
-	auditRec.AddMetadata(botPatch, oldBot, updatedBot, "bot")
+	auditRec.AddMetadata(postPayload, oldBot, updatedBot, "bot")
 
 	if err := json.NewEncoder(w).Encode(updatedBot); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
@@ -286,8 +306,17 @@ func convertBotToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
 	var userPatch model.UserPatch
-	jsonErr := json.NewDecoder(r.Body).Decode(&userPatch)
+	jsonErr := json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&userPatch)
 	if jsonErr != nil || userPatch.Password == nil || *userPatch.Password == "" {
 		c.SetInvalidParam("userPatch")
 		return

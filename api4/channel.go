@@ -4,8 +4,10 @@
 package api4
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
@@ -79,13 +81,23 @@ func (api *API) InitChannel() {
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
 	var channel *model.Channel
-	err := json.NewDecoder(r.Body).Decode(&channel)
+	err := json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&channel)
 	if err != nil {
 		c.SetInvalidParam("channel")
 		return
 	}
-	uploadedChannel := channel.DeepCopy()
+
+	priorChannel, _ := c.App.GetChannel(channel.Id)
 
 	auditRec := c.MakeAuditRecord("createChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -109,7 +121,7 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	auditRec.AddMeta("channel", sc) // overwrite meta
-	auditRec.AddMetadata(uploadedChannel, nil, channel, "channel")
+	auditRec.AddMetadata(postPayload, priorChannel, channel, "channel")
 	c.LogAudit("name=" + channel.Name)
 
 	w.WriteHeader(http.StatusCreated)
@@ -124,13 +136,21 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
 	var channel *model.Channel
-	err := json.NewDecoder(r.Body).Decode(&channel)
+	err := json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&channel)
 	if err != nil {
 		c.SetInvalidParam("channel")
 		return
 	}
-	uploadedChannel := channel.DeepCopy()
 
 	// The channel being updated in the payload must be the same one as indicated in the URL.
 	if channel.Id != c.Params.ChannelId {
@@ -224,7 +244,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMetadata(uploadedChannel, oldChannel, updatedChannel, "channel")
+	auditRec.AddMetadata(postPayload, originalOldChannel, updatedChannel, "channel")
 	c.LogAudit("name=" + channel.Name)
 
 	if err := json.NewEncoder(w).Encode(oldChannel); err != nil {
@@ -238,7 +258,16 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.StringInterfaceFromJSON(r.Body)
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
+	props := model.StringInterfaceFromJSON(bytes.NewBuffer(postBody))
 	privacy, ok := props["privacy"].(string)
 	if !ok || (model.ChannelType(privacy) != model.ChannelTypeOpen && model.ChannelType(privacy) != model.ChannelTypePrivate) {
 		c.SetInvalidParam("privacy")
@@ -285,10 +314,10 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		return
-}
+	}
 
 	auditRec.Success()
-	auditRec.AddMetadata(props, priorChannel, updatedChannel, "channel")
+	auditRec.AddMetadata(postPayload, priorChannel, updatedChannel, "channel")
 	c.LogAudit("name=" + updatedChannel.Name)
 
 	if err := json.NewEncoder(w).Encode(updatedChannel); err != nil {
@@ -301,8 +330,18 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
+
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
 	var patch *model.ChannelPatch
-	err := json.NewDecoder(r.Body).Decode(&patch)
+	err := json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&patch)
 	if err != nil {
 		c.SetInvalidParam("channel")
 		return
@@ -314,7 +353,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	oldChannel := originalOldChannel.DeepCopy()
-	oldChannelForAuditLog := originalOldChannel.DeepCopy()
+	oldChannelForAuditLog, _ := c.App.GetChannel(c.Params.ChannelId)
 
 	auditRec := c.MakeAuditRecord("patchChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -364,7 +403,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec.AddMetadata(patch, oldChannelForAuditLog, rchannel, "channel")
+	auditRec.AddMetadata(postPayload, oldChannelForAuditLog, rchannel, "channel")
 
 	auditRec.Success()
 	c.LogAudit("")
@@ -388,6 +427,8 @@ func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	teamId := channel.TeamId
 
+	channelForAudit, _ := c.App.GetChannel(c.Params.ChannelId)
+
 	auditRec := c.MakeAuditRecord("restoreChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("channel", channel)
@@ -403,6 +444,7 @@ func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddMetadata(c.Params, channelForAudit, channel, "channel")
 	auditRec.Success()
 	c.LogAudit("name=" + channel.Name)
 
@@ -412,7 +454,16 @@ func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds := model.ArrayFromJSON(r.Body)
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
+	userIds := model.ArrayFromJSON(bytes.NewBuffer(postBody))
 	allowed := false
 
 	if len(userIds) != 2 {
@@ -467,6 +518,7 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddMetadata(postPayload, nil, sc, "channel")
 	auditRec.Success()
 	auditRec.AddMeta("channel", sc)
 
@@ -496,7 +548,16 @@ func searchGroupChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds := model.ArrayFromJSON(r.Body)
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
+	userIds := model.ArrayFromJSON(bytes.NewBuffer(postBody))
 
 	if len(userIds) == 0 {
 		c.SetInvalidParam("user_ids")
@@ -553,6 +614,7 @@ func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	auditRec.AddMeta("channel", groupChannel)
+	auditRec.AddMetadata(postBody, nil, groupChannel, "channel")
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(groupChannel); err != nil {

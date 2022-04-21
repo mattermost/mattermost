@@ -4,7 +4,9 @@
 package api4
 
 import (
+	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/app"
@@ -274,8 +276,17 @@ func localPatchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
 	var patch *model.ChannelPatch
-	err := json.NewDecoder(r.Body).Decode(&patch)
+	err := json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&patch)
 	if err != nil {
 		c.SetInvalidParam("channel")
 		return
@@ -305,7 +316,7 @@ func localPatchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec.AddMetadata(patch, originalOldChannel, channel, "channel")
+	auditRec.AddMetadata(postPayload, originalOldChannel, channel, "channel")
 
 	auditRec.Success()
 	c.LogAudit("")

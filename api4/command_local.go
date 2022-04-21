@@ -4,7 +4,9 @@
 package api4
 
 import (
+	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/audit"
@@ -23,8 +25,17 @@ func (api *API) InitCommandLocal() {
 }
 
 func localCreateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
 	var cmd model.Command
-	if jsonErr := json.NewDecoder(r.Body).Decode(&cmd); jsonErr != nil {
+	if jsonErr := json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&cmd); jsonErr != nil {
 		c.SetInvalidParam("command")
 		return
 	}
@@ -42,7 +53,7 @@ func localCreateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("success")
 	auditRec.AddMeta("command", rcmd)
-	auditRec.AddMetadata(cmd, nil, rcmd, "command")
+	auditRec.AddMetadata(postPayload, nil, rcmd, "command")
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(rcmd); err != nil {

@@ -4,7 +4,9 @@
 package api4
 
 import (
+	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
@@ -39,13 +41,20 @@ func (api *API) InitPost() {
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
 	var post model.Post
-	if jsonErr := json.NewDecoder(r.Body).Decode(&post); jsonErr != nil {
+	if jsonErr := json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&post); jsonErr != nil {
 		c.SetInvalidParam("post")
 		return
 	}
-	var postPayload model.Post
-	post.ShallowCopy(&postPayload)
 
 	// Strip away delete_at if passed
 	post.DeleteAt = 0

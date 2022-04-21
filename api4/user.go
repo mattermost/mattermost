@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -107,8 +108,17 @@ func (api *API) InitUser() {
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
 	var user model.User
-	if jsonErr := json.NewDecoder(r.Body).Decode(&user); jsonErr != nil {
+	if jsonErr := json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&user); jsonErr != nil {
 		c.SetInvalidParam("user")
 		return
 	}
@@ -161,7 +171,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec.AddMetadata(user, nil, ruser, "user")
+	auditRec.AddMetadata(postPayload, nil, ruser, "user")
 
 	auditRec.Success()
 	auditRec.AddMeta("user", ruser) // overwrite meta
@@ -1245,8 +1255,17 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
 	var patch model.UserPatch
-	if jsonErr := json.NewDecoder(r.Body).Decode(&patch); jsonErr != nil {
+	if jsonErr := json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&patch); jsonErr != nil {
 		c.SetInvalidParam("user")
 		return
 	}
@@ -1309,7 +1328,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.SetAutoResponderStatus(ruser, ouser.NotifyProps)
 
-	auditRec.AddMetadata(patch, ouser, ruser, "user")
+	auditRec.AddMetadata(postPayload, ouser, ruser, "user")
 
 	auditRec.Success()
 	auditRec.AddMeta("patch", ruser)
