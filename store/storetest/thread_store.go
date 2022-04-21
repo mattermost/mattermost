@@ -349,24 +349,6 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		require.Equal(t, int64(0), th.UnreadReplies)
 	})
 
-	t.Run("Empty participantID should not appear in thread response", func(t *testing.T) {
-		newPosts := makeSomePosts()
-		opts := store.ThreadMembershipOpts{
-			Following:             true,
-			IncrementMentions:     false,
-			UpdateFollowing:       true,
-			UpdateViewedTimestamp: false,
-			UpdateParticipants:    true,
-		}
-		m, err := ss.Thread().MaintainMembership("", newPosts[0].Id, opts)
-		require.NoError(t, err)
-		m.UserId = newPosts[0].UserId
-		th, err := ss.Thread().GetThreadForUser("", m, true)
-		require.NoError(t, err)
-		for _, user := range th.Participants {
-			require.NotNil(t, user)
-		}
-	})
 	t.Run("Get unread reply counts for thread", func(t *testing.T) {
 		t.Skip("MM-41797")
 		newPosts := makeSomePosts()

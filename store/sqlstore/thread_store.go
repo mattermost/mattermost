@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"strconv"
 	"sync"
 	"time"
@@ -506,7 +507,7 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 	err = s.GetReplicaX().Get(&thread, querySQL, threadArgs...)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("Thread", threadMembership.PostId)
+			return nil, store.NewErrNotFound("Thread", fmt.Sprintf("threadId=%s,userId=%s", threadMembership.PostId, threadMembership.UserId))
 		}
 		return nil, errors.Wrapf(err, "failed to get thread for user id=%s, post id=%s", threadMembership.UserId, threadMembership.PostId)
 	}
@@ -839,6 +840,13 @@ func (s *SqlThreadStore) DeleteMembershipForUser(userId string, postId string) e
 // - channel marked unread
 // - user explicitly following a thread
 func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.ThreadMembershipOpts) (*model.ThreadMembership, error) {
+	if userId == "" {
+		return nil, errors.New("userId must be specified for thread membership")
+	}
+	if postId == "" {
+		return nil, errors.New("threadId must be specified for thread membership")
+	}
+
 	trx, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
