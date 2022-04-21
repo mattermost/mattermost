@@ -42,7 +42,7 @@ func ParseSVG(svgReader io.Reader) (SVGInfo, error) {
 						_, widthErr := fmt.Sscan(values[2], &width)
 
 						height := 0
-						_, heightErr = fmt.Sscan(values[3], &height)
+						_, heightErr := fmt.Sscan(values[3], &height)
 
 						if widthErr != nil || heightErr != nil {
 							return svgInfo, err
