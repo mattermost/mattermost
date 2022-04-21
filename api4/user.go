@@ -92,6 +92,7 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.User.Handle("/uploads", api.APISessionRequired(getUploadsForUser)).Methods("GET")
 	api.BaseRoutes.User.Handle("/channel_members", api.APISessionRequired(getChannelMembersForUser)).Methods("GET")
+	api.BaseRoutes.User.Handle("/recent_searches", api.APISessionRequiredDisableWhenBusy(getRecentSearches)).Methods("GET")
 
 	api.BaseRoutes.Users.Handle("/invalid_emails", api.APISessionRequired(getUsersWithInvalidEmails)).Methods("GET")
 
@@ -3244,4 +3245,26 @@ func getUsersWithInvalidEmails(c *Context, w http.ResponseWriter, r *http.Reques
 
 	b, _ := json.Marshal(users)
 	w.Write(b)
+}
+
+func getRecentSearches(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	searchParams, err := c.App.GetRecentSearchesForUser(c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(searchParams); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }

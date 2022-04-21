@@ -31,7 +31,6 @@ func (api *API) InitPost() {
 
 	api.BaseRoutes.Team.Handle("/posts/search", api.APISessionRequiredDisableWhenBusy(searchPostsInTeam)).Methods("POST")
 	api.BaseRoutes.Posts.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchPostsInAllTeams)).Methods("POST")
-	api.BaseRoutes.User.Handle("/recent_searches", api.APISessionRequiredDisableWhenBusy(getRecentSearches)).Methods("GET")
 	api.BaseRoutes.Post.Handle("", api.APISessionRequired(updatePost)).Methods("PUT")
 	api.BaseRoutes.Post.Handle("/patch", api.APISessionRequired(patchPost)).Methods("PUT")
 	api.BaseRoutes.PostForUser.Handle("/set_unread", api.APISessionRequired(setPostUnread)).Methods("POST")
@@ -681,28 +680,6 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if err := results.EncodeJSON(w); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
-	}
-}
-
-func getRecentSearches(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId()
-	if c.Err != nil {
-		return
-	}
-
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PermissionEditOtherUsers)
-		return
-	}
-
-	searchParams, err := c.App.GetRecentSearchesForUser(c.Params.UserId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	if err := json.NewEncoder(w).Encode(searchParams); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
