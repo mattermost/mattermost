@@ -181,3 +181,32 @@ type CloudWorkspaceOwner struct {
 type SubscriptionChange struct {
 	ProductID string `json:"product_id"`
 }
+
+type BoardsLimits struct {
+	Cards *int `json:"cards"`
+	Views *int `json:"views"`
+}
+
+type FilesLimits struct {
+	TotalStorage *int64 `json:"total_storage"`
+}
+
+type IntegrationsLimits struct {
+	Enabled *int `json:"enabled"`
+}
+
+type MessagesLimits struct {
+	History *int `json:"history"`
+}
+
+type TeamsLimits struct {
+	Active *int `json:"active"`
+}
+
+type ProductLimits struct {
+	Boards       *BoardsLimits       `json:"boards,omitempty"`
+	Files        *FilesLimits        `json:"files,omitempty"`
+	Integrations *IntegrationsLimits `json:"integrations,omitempty"`
+	Messages     *MessagesLimits     `json:"messages,omitempty"`
+	Teams        *TeamsLimits        `json:"teams,omitempty"`
+}
