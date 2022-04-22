@@ -1597,7 +1597,11 @@ func (a *App) PermanentDeleteUser(c *request.Context, user *model.User) *model.A
 	profileImageDirectory := getProfileImageDirectory(user.Id)
 	profileImagePath := getProfileImagePath(user.Id)
 	resProfileImageExists, errProfileImageExists := a.FileExists(profileImagePath)
+
+	fileHandlingErrorsFound := false
+
 	if errProfileImageExists != nil {
+		fileHandlingErrorsFound = true
 		mlog.Warn(
 			"Error checking existence of profile image.",
 			mlog.String("path", profileImagePath),
@@ -1609,6 +1613,7 @@ func (a *App) PermanentDeleteUser(c *request.Context, user *model.User) *model.A
 		errRemoveDirectory := a.RemoveDirectory(profileImageDirectory)
 
 		if errRemoveDirectory != nil {
+			fileHandlingErrorsFound = true
 			mlog.Warn(
 				"Unable to remove profile image directory",
 				mlog.String("path", profileImageDirectory),
@@ -1634,6 +1639,10 @@ func (a *App) PermanentDeleteUser(c *request.Context, user *model.User) *model.A
 	}
 
 	a.InvalidateCacheForUser(user.Id)
+
+	if fileHandlingErrorsFound {
+		return model.NewAppError("PermanentDeleteUser", "app.file_info.permanent_delete_by_user.app_error", nil, "Couldn't delete profile image of the user.", http.StatusAccepted)
+	}
 
 	mlog.Warn("Permanently deleted account", mlog.String("user_email", user.Email), mlog.String("user_id", user.Id))
 

@@ -1086,7 +1086,8 @@ func TestPermanentDeleteUser(t *testing.T) {
 
 	// test deletion of profile picture
 	exists, err := th.App.FileExists(filepath.Join("users", user.Id))
-	require.False(t, exists, "Unable to stat profile image directory. err=%v", err)
+	require.Nil(t, err, "Unable to stat finfo. err=%v", err)
+	require.False(t, exists, "Profile image wasn't deleted. err=%v", err)
 }
 
 func TestPasswordRecovery(t *testing.T) {
