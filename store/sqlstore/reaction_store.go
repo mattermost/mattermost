@@ -268,8 +268,7 @@ func (s *SqlReactionStore) GetTopForTeamSince(teamID string, userID string, sinc
 					INNER JOIN Posts ON Reactions.PostId = Posts.Id
 					INNER JOIN PublicChannels ON Posts.ChannelId = PublicChannels.Id
 				WHERE
-					AND PublicChannels.TeamId = ?
-					AND Reactions.CreateAt > ?
+					PublicChannels.TeamId = ?
 				GROUP BY
 					Reactions.EmojiName,
 					Reactions.DeleteAt,
