@@ -316,6 +316,9 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 		replyPost3.Message = NewTestId()
 		replyPost3.RootId = rootPost.Id
 
+		// Ensure update does not occur in the same timestamp as creation
+		time.Sleep(time.Millisecond)
+
 		_, _, err = ss.Post().SaveMultiple([]*model.Post{&replyPost2, &replyPost3})
 		require.NoError(t, err)
 
