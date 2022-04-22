@@ -332,10 +332,16 @@ func (wc *WebConn) readPump() {
 		wc.WebSocket.Close()
 	}()
 	wc.WebSocket.SetReadLimit(model.SocketMaxMessageSizeKb)
-	wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
+	err := wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
+	if err != nil {
+		mlog.Error("Error setting read deadline", mlog.Err(err))
+	}
 	wc.WebSocket.SetPongHandler(func(string) error {
 		mlog.Debug("[agniva] Got pong message", mlog.String("connection_id", wc.GetConnectionID()))
-		wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
+		err := wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
+		if err != nil {
+			return err
+		}
 		if wc.IsAuthenticated() {
 			wc.App.Srv().Go(func() {
 				wc.App.SetStatusAwayIfNeeded(wc.UserId, false)
@@ -347,7 +353,7 @@ func (wc *WebConn) readPump() {
 	for {
 		msgType, rd, err := wc.WebSocket.NextReader()
 		if err != nil {
-			mlog.Debug("[agniva] Disconnecting ..", mlog.String("connection_id", wc.GetConnectionID()))
+			mlog.Debug("[agniva] Disconnecting ..", mlog.String("connection_id", wc.GetConnectionID()), mlog.Err(err))
 			wc.logSocketErr("websocket.NextReader", err)
 			return
 		}
