@@ -161,7 +161,6 @@ func getCloudLimits(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	limits, err := c.App.Cloud().GetCloudLimits(c.AppContext.Session().UserId)
-
 	if err != nil {
 		c.Err = model.NewAppError("Api4.getCloudLimits", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
