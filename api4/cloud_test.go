@@ -17,7 +17,7 @@ import (
 )
 
 func Test_getCloudLimits(t *testing.T) {
-	t.Run("feature flag off returns not implemented", func(t *testing.T) {
+	t.Run("feature flag off returns empty limits", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -29,9 +29,9 @@ func Test_getCloudLimits(t *testing.T) {
 		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 
 		limits, r, err := th.Client.GetProductLimits()
-		require.Error(t, err)
-		require.Nil(t, limits)
-		require.Equal(t, http.StatusNotImplemented, r.StatusCode, "Expected 501 Not Implemented")
+		require.NoError(t, err)
+		require.Equal(t, limits, &model.ProductLimits{})
+		require.Equal(t, http.StatusOK, r.StatusCode, "Expected 200 OK")
 	})
 
 	t.Run("no license returns not implemented", func(t *testing.T) {

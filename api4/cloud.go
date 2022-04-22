@@ -150,7 +150,13 @@ func getCloudLimits(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !c.App.Config().FeatureFlags.CloudFree {
-		c.Err = model.NewAppError("Api4.getCloudLimits", "api.cloud.free.feature_disabled", nil, "", http.StatusNotImplemented)
+		emptyLimits := &model.ProductLimits{}
+		json, err := json.Marshal(emptyLimits)
+		if err != nil {
+			c.Err = model.NewAppError("Api4.getCloudLimits", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		w.Write(json)
 		return
 	}
 
