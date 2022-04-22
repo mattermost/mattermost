@@ -4118,15 +4118,15 @@ func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string
 		FROM
 			((SELECT
 				Posts.ChannelId AS ID,
-				Channels.Type AS Type,
-				Channels.DisplayName AS DisplayName,
-				Channels.Name AS Name,
-				Channels.TeamId AS TeamID,
+				'O' AS Type,
+				PublicChannels.DisplayName AS DisplayName,
+				PublicChannels.Name AS Name,
+				PublicChannels.TeamId AS TeamID,
 				count(Posts.Id) AS MessageCount,
-				Channels.DeleteAt AS DeleteAt
+				PublicChannels.DeleteAt AS DeleteAt
 			FROM
 				Posts
-				LEFT JOIN Channels on Posts.ChannelId = Channels.Id
+				LEFT JOIN PublicChannels on Posts.ChannelId = PublicChannels.Id
 			WHERE
 				Posts.DeleteAt = 0
 				AND Posts.CreateAt > ?
@@ -4140,15 +4140,13 @@ func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string
 	}
 
 	query += `
-				AND Channels.TeamId = ?
-				AND Channels.Type = 'O'
+				AND PublicChannels.TeamId = ?
 			GROUP BY
 				Posts.ChannelId,
-				Channels.Type,
-				Channels.DisplayName,
-				Channels.Name,
-				Channels.TeamId,
-				Channels.DeleteAt)
+				PublicChannels.DisplayName,
+				PublicChannels.Name,
+				PublicChannels.TeamId,
+				PublicChannels.DeleteAt)
 		UNION ALL
 			(SELECT
 				Posts.ChannelId AS ID,
@@ -4210,11 +4208,11 @@ func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string
 
 	query = `
 		SELECT
-			Posts.ChannelId as ID,
-			Channels.Type as Type,
-			Channels.DisplayName as DisplayName,
-			Channels.Name as Name,
-			Channels.TeamId as TeamID,
+			Posts.ChannelId AS ID,
+			Channels.Type AS Type,
+			Channels.DisplayName AS DisplayName,
+			Channels.Name AS Name,
+			Channels.TeamId AS TeamID,
 			count(Posts.Id) AS MessageCount
 		FROM
 			Posts 
