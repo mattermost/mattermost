@@ -3540,10 +3540,6 @@
     "translation": "Невірне ім'я користувача."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Ім'я повинно складатися з 2 або більше малих літер і цифр"
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "\"Створити в\" повинно бути коректним часом"
   },

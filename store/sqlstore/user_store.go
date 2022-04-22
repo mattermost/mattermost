@@ -233,7 +233,7 @@ func (us SqlUserStore) UpdateNotifyProps(userID string, props map[string]string)
 		return errors.Wrap(err, "failed marshalling session props")
 	}
 	if us.IsBinaryParamEnabled() {
-		buf = us.AppendBinaryFlag(buf)
+		buf = AppendBinaryFlag(buf)
 	}
 
 	if _, err := us.GetMasterX().Exec(`UPDATE Users

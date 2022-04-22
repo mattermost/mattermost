@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"net/url"
 	"strconv"
 	"strings"
 	"unicode"
@@ -155,4 +156,17 @@ type morphWriter struct {
 func (l *morphWriter) Write(in []byte) (int, error) {
 	mlog.Debug(string(in))
 	return len(in), nil
+}
+
+func DSNHasBinaryParam(dsn string) (bool, error) {
+	url, err := url.Parse(dsn)
+	if err != nil {
+		return false, err
+	}
+	return url.Query().Get("binary_parameters") == "yes", nil
+}
+
+// AppendBinaryFlag updates the byte slice to work using binary_parameters=yes.
+func AppendBinaryFlag(buf []byte) []byte {
+	return append([]byte{0x01}, buf...)
 }
