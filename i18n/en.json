@@ -468,10 +468,6 @@
     "translation": "Webhook event was not handled. Either it is missing or it is not valid."
   },
   {
-    "id": "api.cloud.free.feature_disabled",
-    "translation": "cloud free feature is disabled"
-  },
-  {
     "id": "api.cloud.license_error",
     "translation": "Your license does not support cloud requests."
   },
