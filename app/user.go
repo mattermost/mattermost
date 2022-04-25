@@ -2504,7 +2504,28 @@ func (a *App) UpdateThreadReadForUserByPost(currentSessionId, userID, teamID, th
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user_by_post.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	return a.UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID, post.CreateAt-1)
+	lastViewed := post.CreateAt - 1
+	if post.UserId == userID {
+		posts, nErr := a.Srv().Store.Thread().GetPosts(threadID, post.CreateAt-1)
+		if nErr != nil {
+			return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user_by_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
+
+		found := false
+		for _, threadPost := range posts {
+			if threadPost.UserId != userID {
+				lastViewed = threadPost.CreateAt - 1
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			lastViewed = posts[len(posts)-1].CreateAt + 1
+		}
+	}
+
+	return a.UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID, lastViewed)
 }
 
 func (a *App) UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError) {
