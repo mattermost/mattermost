@@ -76,7 +76,7 @@ require (
 	github.com/microcosm-cc/bluemonday v1.0.18
 	github.com/miekg/dns v1.1.48 // indirect
 	github.com/minio/md5-simd v1.1.2 // indirect
-	github.com/minio/minio-go/v7 v7.0.23
+	github.com/minio/minio-go/v7 v7.0.24
 	github.com/minio/sha256-simd v1.0.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/nwaples/rardecode v1.1.3 // indirect

@@ -3536,10 +3536,6 @@
     "translation": "Nome do usuário inválido."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Nome deve ter 2 ou mais caracteres alfanuméricos em minúsculas."
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "Create at deve ser um tempo válido."
   },

@@ -1124,10 +1124,6 @@
     "translation": "Създадено в трябва да е валидно време."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Името трябва да има 2 или повече буквено-цифрови символи."
-  },
-  {
     "id": "model.bot.is_valid.username.app_error",
     "translation": "Невалидно потребителско име."
   },
