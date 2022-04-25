@@ -250,7 +250,7 @@ func TestAttachFilesToPost(t *testing.T) {
 		assert.Len(t, infos, 1)
 		assert.Equal(t, info2.Id, infos[0].Id)
 
-		updated, appErr := th.App.GetSinglePost(post.Id)
+		updated, appErr := th.App.GetSinglePost(post.Id, false)
 		require.Nil(t, appErr)
 		assert.Len(t, updated.FileIds, 1)
 		assert.Contains(t, updated.FileIds, info2.Id)

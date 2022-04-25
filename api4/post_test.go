@@ -996,7 +996,7 @@ func TestPinPost(t *testing.T) {
 	_, err := client.PinPost(post.Id)
 	require.NoError(t, err)
 
-	rpost, appErr := th.App.GetSinglePost(post.Id)
+	rpost, appErr := th.App.GetSinglePost(post.Id, false)
 	require.Nil(t, appErr)
 	require.True(t, rpost.IsPinned, "failed to pin post")
 
@@ -1026,7 +1026,7 @@ func TestUnpinPost(t *testing.T) {
 	_, err := client.UnpinPost(pinnedPost.Id)
 	require.NoError(t, err)
 
-	rpost, appErr := th.App.GetSinglePost(pinnedPost.Id)
+	rpost, appErr := th.App.GetSinglePost(pinnedPost.Id, false)
 	require.Nil(t, appErr)
 	require.False(t, rpost.IsPinned)
 

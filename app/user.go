@@ -2440,7 +2440,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(userID, teamID, threadID s
 		return model.NewAppError("UpdateThreadFollowForUserFromChannelAdd", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	post, appErr := a.GetSinglePost(threadID)
+	post, appErr := a.GetSinglePost(threadID, false)
 	if appErr != nil {
 		return appErr
 	}
@@ -2486,7 +2486,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(userID, teamID, threadID s
 }
 
 func (a *App) UpdateThreadReadForUserByPost(currentSessionId, userID, teamID, threadID, postID string) (*model.ThreadResponse, *model.AppError) {
-	post, err := a.GetSinglePost(postID)
+	post, err := a.GetSinglePost(postID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -2519,7 +2519,7 @@ func (a *App) UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
-	post, err := a.GetSinglePost(threadID)
+	post, err := a.GetSinglePost(threadID, false)
 	if err != nil {
 		return nil, err
 	}
