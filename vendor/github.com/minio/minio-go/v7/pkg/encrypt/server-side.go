@@ -101,7 +101,7 @@ func NewSSEKMS(keyID string, context interface{}) (ServerSide, error) {
 	if context == nil {
 		return kms{key: keyID, hasContext: false}, nil
 	}
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	json := jsoniter.ConfigCompatibleWithStandardLibrary
 	serializedContext, err := json.Marshal(context)
 	if err != nil {
 		return nil, err

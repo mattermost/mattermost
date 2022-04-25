@@ -198,6 +198,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	mentionedUsersList := make(model.StringArray, 0, len(mentions.Mentions))
 	mentionAutofollowChans := []chan *model.AppError{}
 	threadParticipants := map[string]bool{post.UserId: true}
+	newParticipants := map[string]bool{}
 	participantMemberships := map[string]*model.ThreadMembership{}
 	membershipsMutex := &sync.Mutex{}
 	followersMutex := &sync.Mutex{}
@@ -246,9 +247,6 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					}
 
 					if membership != nil && !membership.Following {
-						membershipsMutex.Lock()
-						participantMemberships[userID] = membership
-						membershipsMutex.Unlock()
 						return
 					}
 				}
@@ -275,6 +273,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				// add new followers to existing followers
 				if threadMembership.Following && !followers.Contains(userID) {
 					followers = append(followers, userID)
+					newParticipants[userID] = true
 				}
 				followersMutex.Unlock()
 
@@ -595,11 +594,19 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					return nil, errors.Wrapf(err, "cannot get thread %q for user %q", post.RootId, uid)
 				}
 				if userThread != nil {
-					previousUnreadMentions := userThread.UnreadMentions
-					previousUnreadReplies := max(userThread.UnreadReplies-1, 0)
-					if mentions.isUserMentioned(uid) {
-						previousUnreadMentions = max(userThread.UnreadMentions-1, 0)
+					previousUnreadMentions := int64(0)
+					previousUnreadReplies := int64(0)
+
+					// if it's not a newly followed thread, calculate previous unread values.
+					if !newParticipants[uid] {
+						previousUnreadMentions = userThread.UnreadMentions
+						previousUnreadReplies = max(userThread.UnreadReplies-1, 0)
+
+						if mentions.isUserMentioned(uid) {
+							previousUnreadMentions = max(userThread.UnreadMentions-1, 0)
+						}
 					}
+
 					// set LastViewed to now for commenter
 					if uid == post.UserId {
 						opts := store.ThreadMembershipOpts{

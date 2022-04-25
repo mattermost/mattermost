@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -16,8 +17,9 @@ import (
 	"github.com/vmihailenco/msgpack/v5"
 )
 
-func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
+func dummyWebsocketHandler(t *testing.T, wg *sync.WaitGroup) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		defer wg.Done()
 		upgrader := &websocket.Upgrader{
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
@@ -26,6 +28,10 @@ func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
 		require.NoError(t, err)
 		var buf []byte
 		for {
+			err = conn.SetReadDeadline(time.Now().Add(time.Second))
+			if err != nil {
+				break
+			}
 			_, buf, err = conn.ReadMessage()
 			if err != nil {
 				break
@@ -42,8 +48,13 @@ func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
 // TestWebSocketRace needs to be run with -race to verify that
 // there is no race.
 func TestWebSocketRace(t *testing.T) {
-	s := httptest.NewServer(dummyWebsocketHandler(t))
-	defer s.Close()
+	var wg sync.WaitGroup
+	wg.Add(1)
+	s := httptest.NewServer(dummyWebsocketHandler(t, &wg))
+	defer func() {
+		s.Close()
+		wg.Wait()
+	}()
 
 	url := strings.Replace(s.URL, "http://", "ws://", 1)
 	cli, err := NewWebSocketClient4(url, "authToken")
@@ -63,8 +74,13 @@ func TestWebSocketClose(t *testing.T) {
 	// Therefore, it is still racy and can panic. There is no use chasing this
 	// again because it will be completely overhauled in v6.
 	t.Skip("Skipping the test. Will be changed in v6.")
-	s := httptest.NewServer(dummyWebsocketHandler(t))
-	defer s.Close()
+	var wg sync.WaitGroup
+	wg.Add(1)
+	s := httptest.NewServer(dummyWebsocketHandler(t, &wg))
+	defer func() {
+		s.Close()
+		wg.Wait()
+	}()
 
 	url := strings.Replace(s.URL, "http://", "ws://", 1)
 

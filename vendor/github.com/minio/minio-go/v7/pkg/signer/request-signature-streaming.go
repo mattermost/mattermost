@@ -114,8 +114,8 @@ func buildChunkHeader(chunkLen int64, signature string) []byte {
 
 // buildChunkSignature - returns chunk signature for a given chunk and previous signature.
 func buildChunkSignature(chunkData []byte, reqTime time.Time, region,
-	previousSignature, secretAccessKey string) string {
-
+	previousSignature, secretAccessKey string,
+) string {
 	chunkStringToSign := buildChunkStringToSign(reqTime, region,
 		previousSignature, chunkData)
 	signingKey := getSigningKey(secretAccessKey, region, reqTime, ServiceTypeS3)
@@ -200,8 +200,8 @@ func (s *StreamingReader) setStreamingAuthHeader(req *http.Request) {
 // StreamingSignV4 - provides chunked upload signatureV4 support by
 // implementing io.Reader.
 func StreamingSignV4(req *http.Request, accessKeyID, secretAccessKey, sessionToken,
-	region string, dataLen int64, reqTime time.Time) *http.Request {
-
+	region string, dataLen int64, reqTime time.Time,
+) *http.Request {
 	// Set headers needed for streaming signature.
 	prepareStreamingRequest(req, sessionToken, dataLen, reqTime)
 
