@@ -44,7 +44,7 @@ func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {
 	}
 
 	if me.IsBinaryParamEnabled() {
-		jsonProps = me.AppendBinaryFlag(jsonProps)
+		jsonProps = AppendBinaryFlag(jsonProps)
 	}
 
 	query, args, err := me.getQueryBuilder().
@@ -268,7 +268,7 @@ func (me SqlSessionStore) UpdateProps(session *model.Session) error {
 		return errors.Wrap(err, "failed marshalling session props")
 	}
 	if me.IsBinaryParamEnabled() {
-		jsonProps = me.AppendBinaryFlag(jsonProps)
+		jsonProps = AppendBinaryFlag(jsonProps)
 	}
 	query, args, err := me.getQueryBuilder().
 		Update("Sessions").

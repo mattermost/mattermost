@@ -19,6 +19,8 @@ import (
 func (api *API) InitCloud() {
 	// GET /api/v4/cloud/products
 	api.BaseRoutes.Cloud.Handle("/products", api.APISessionRequired(getCloudProducts)).Methods("GET")
+	// GET /api/v4/cloud/limits
+	api.BaseRoutes.Cloud.Handle("/limits", api.APISessionRequired(getCloudLimits)).Methods("GET")
 
 	// POST /api/v4/cloud/payment
 	// POST /api/v4/cloud/payment/confirm
@@ -135,6 +137,38 @@ func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
 	json, err := json.Marshal(products)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.getCloudProducts", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(json)
+}
+
+func getCloudLimits(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
+		c.Err = model.NewAppError("Api4.getCloudLimits", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.Config().FeatureFlags.CloudFree {
+		emptyLimits := &model.ProductLimits{}
+		json, err := json.Marshal(emptyLimits)
+		if err != nil {
+			c.Err = model.NewAppError("Api4.getCloudLimits", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		w.Write(json)
+		return
+	}
+
+	limits, err := c.App.Cloud().GetCloudLimits(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getCloudLimits", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json, err := json.Marshal(limits)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getCloudLimits", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

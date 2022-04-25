@@ -9,7 +9,6 @@ import (
 	dbsql "database/sql"
 	"fmt"
 	"log"
-	"net/url"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -338,20 +337,11 @@ func (ss *SqlStore) computeBinaryParam() (bool, error) {
 		return false, nil
 	}
 
-	url, err := url.Parse(*ss.settings.DataSource)
-	if err != nil {
-		return false, err
-	}
-	return url.Query().Get("binary_parameters") == "yes", nil
+	return DSNHasBinaryParam(*ss.settings.DataSource)
 }
 
 func (ss *SqlStore) IsBinaryParamEnabled() bool {
 	return ss.isBinaryParam
-}
-
-// AppendBinaryFlag updates the byte slice to work using binary_parameters=yes.
-func (ss *SqlStore) AppendBinaryFlag(buf []byte) []byte {
-	return append([]byte{0x01}, buf...)
 }
 
 func (ss *SqlStore) getCurrentSchemaVersion() (string, error) {
