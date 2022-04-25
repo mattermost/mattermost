@@ -1864,12 +1864,18 @@ func (a *App) SearchUsersNotInGroup(groupID string, term string, options *model.
 	if err != nil {
 		return nil, model.NewAppError("SearchUsersNotInGroup", "app.user.search.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-
+	var filteredUsers []*model.User
 	for _, user := range users {
 		a.SanitizeProfile(user, options.IsAdmin)
 	}
 
-	return users, nil
+	// filter bot users
+	for _, user := range users {
+		if !user.IsBot {
+			filteredUsers = append(filteredUsers, user)
+		}
+	}
+	return filteredUsers, nil
 }
 
 func (a *App) AutocompleteUsersInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
