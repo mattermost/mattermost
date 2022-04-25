@@ -2687,11 +2687,11 @@ func TestGetPostIfAuthorized(t *testing.T) {
 	require.NotNil(t, session2)
 
 	// User is not authorized to get post
-	_, err = th.App.GetPostIfAuthorized(post.Id, session2)
+	_, err = th.App.GetPostIfAuthorized(post.Id, session2, false)
 	require.NotNil(t, err)
 
 	// User is authorized to get post
-	_, err = th.App.GetPostIfAuthorized(post.Id, session1)
+	_, err = th.App.GetPostIfAuthorized(post.Id, session1, false)
 	require.Nil(t, err)
 }
 

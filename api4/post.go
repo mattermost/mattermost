@@ -387,7 +387,12 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post, err := c.App.GetPostIfAuthorized(c.Params.PostId, c.AppContext.Session())
+	includeDeletedPost := false
+	if includeDeleted := r.URL.Query().Get("includeDeleted"); includeDeleted != "" {
+		includeDeletedPost = true
+	}
+
+	post, err := c.App.GetPostIfAuthorized(c.Params.PostId, c.AppContext.Session(), includeDeletedPost)
 	if err != nil {
 		c.Err = err
 		return
