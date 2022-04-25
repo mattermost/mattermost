@@ -475,6 +475,12 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = appErr
 			return
 		}
+	case model.EventTypeProductLimitsChanged:
+		if err := c.App.Cloud().UpdateCloudLimitsFromHook(event.ProductLimits); err != nil {
+			c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.limits.update_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		c.Logger.Info("Updated product limits")
 
 	default:
 		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.cws_webhook_event_missing_error", nil, "", http.StatusNotFound)

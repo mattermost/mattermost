@@ -10,6 +10,7 @@ import (
 type CloudInterface interface {
 	GetCloudProducts(userID string, includeLegacyProducts bool) ([]*model.Product, error)
 	GetCloudLimits(userID string) (*model.ProductLimits, error)
+	UpdateCloudLimitsFromHook(*model.ProductLimits) error
 
 	CreateCustomerPayment(userID string) (*model.StripeSetupIntent, error)
 	ConfirmCustomerPayment(userID string, confirmRequest *model.ConfirmPaymentMethodRequest) error

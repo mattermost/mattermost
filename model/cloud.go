@@ -11,6 +11,7 @@ const (
 	EventTypeSendAdminWelcomeEmail = "send-admin-welcome-email"
 	EventTypeTrialWillEnd          = "trial-will-end"
 	EventTypeTrialEnded            = "trial-ended"
+	EventTypeProductLimitsChanged  = "product-limits-changed"
 )
 
 var MockCWS string
@@ -165,6 +166,7 @@ type CWSWebhookPayload struct {
 	Event                             string               `json:"event"`
 	FailedPayment                     *FailedPayment       `json:"failed_payment"`
 	CloudWorkspaceOwner               *CloudWorkspaceOwner `json:"cloud_workspace_owner"`
+	ProductLimits                     *ProductLimits       `json:"product_limits"`
 	SubscriptionTrialEndUnixTimeStamp int64                `json:"trial_end_time_stamp"`
 }
 
