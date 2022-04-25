@@ -3132,6 +3132,18 @@
     "translation": "Your free 14-day trial of Mattermost is ending soon"
   },
   {
+    "id": "api.templates.cloud_upgrade_confirmation.subject",
+    "translation": "Mattermost Upgrade Confirmation"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
+    "translation": "Your {{.WorkspaceName}} workspace has now been upgraded. You will be billed starting {{.TrialEnd}}"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "You are now upgraded!"
+  },
+  {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
     "translation": "Add apps to your workspace"
   },
