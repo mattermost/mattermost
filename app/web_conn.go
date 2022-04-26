@@ -337,7 +337,7 @@ func (wc *WebConn) readPump() {
 		mlog.Error("Error setting read deadline", mlog.Err(err))
 	}
 	wc.WebSocket.SetPongHandler(func(string) error {
-		mlog.Debug("[agniva] Got pong message", mlog.String("connection_id", wc.GetConnectionID()))
+		mlog.Debug("Got pong message", mlog.String("connection_id", wc.GetConnectionID()))
 		err := wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
 		if err != nil {
 			return err
@@ -353,7 +353,7 @@ func (wc *WebConn) readPump() {
 	for {
 		msgType, rd, err := wc.WebSocket.NextReader()
 		if err != nil {
-			mlog.Debug("[agniva] Disconnecting ..", mlog.String("connection_id", wc.GetConnectionID()), mlog.Err(err))
+			mlog.Debug("Disconnecting ..", mlog.String("connection_id", wc.GetConnectionID()), mlog.Err(err))
 			wc.logSocketErr("websocket.NextReader", err)
 			return
 		}
