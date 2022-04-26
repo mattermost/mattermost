@@ -427,3 +427,27 @@ func TestUserIsInAdminRoleGroup(t *testing.T) {
 	require.Nil(t, err)
 	require.False(t, actual)
 }
+
+func TestGetUsersNotInGroupPage(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	group := th.CreateGroup()
+
+	// create bot
+	_, err := th.App.CreateBot(th.Context, &model.Bot{
+		Username:    "username",
+		Description: "a bot",
+		OwnerId:     th.BasicUser.Id,
+	})
+	require.Nil(t, err)
+
+	users, err := th.App.GetUsersNotInGroupPage(group.Id, 0, 100)
+	require.Nil(t, err)
+
+	// assert bot not in users
+	var userIds []string
+	for _, user := range users {
+		userIds = append(userIds, user.Id)
+	}
+	require.NotContains(t, userIds, "username")
+}
