@@ -631,7 +631,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "{{.Channel}} 채널을 찾을 수 없습니다. 채널을 식별하려면 [채널 핸들] (https://about.mattermost.com/default-channel-handle-documentation) 을 사용하세요."
+    "translation": "{{.Channel}} 채널을 찾을 수 없습니다. 채널을 식별하려면 [채널 핸들] (https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) 을 사용하세요."
   },
   {
     "id": "api.command_invite.desc",
@@ -775,7 +775,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "채널{{.Channel}} 을(를) 찾을 수 없습니다. 채널을 식별하려면[채널 핸들](https://about.mattermost.com/default-channel-handle-documentation) 을 사용하십시오."
+    "translation": "채널{{.Channel}} 을(를) 찾을 수 없습니다. 채널을 식별하려면[채널 핸들](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) 을 사용하십시오."
   },
   {
     "id": "api.command_mute.hint",
@@ -787,7 +787,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "지정한 채널을 찾을 수 없습니다. 채널을 식별하려면[채널 핸들](https://about.mattermost.com/default-channel-handle-documentation)을 사용하십시오."
+    "translation": "지정한 채널을 찾을 수 없습니다. 채널을 식별하려면[채널 핸들](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)을 사용하십시오."
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -1785,7 +1785,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "알림 설정을 변경하려면, 팀 사이트에 로그인 후 계정 설정> 알림 메뉴를 확인하세요."
+    "translation": "알림 설정을 변경하려면, 팀 사이트에 로그인 후 설정> 알림 메뉴를 확인하세요."
   },
   {
     "id": "api.templates.email_info1",
@@ -1809,11 +1809,11 @@
   },
   {
     "id": "api.templates.invite_body.button",
-    "translation": "팀 참여하기"
+    "translation": "참여하기"
   },
   {
     "id": "api.templates.invite_body.title",
-    "translation": "당신은 초대되었습니다."
+    "translation": "{{ .SenderName }}가 당신을 {{ .TeamDisplayName }} 팀에 초대하였습니다."
   },
   {
     "id": "api.templates.invite_subject",
@@ -1853,7 +1853,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "글로 이동하기"
+    "translation": "메시지 보기"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -1861,7 +1861,7 @@
   },
   {
     "id": "api.templates.reset_body.title",
-    "translation": "비밀번호 재설정을 요청했습니다."
+    "translation": "비밀번호 재설정"
   },
   {
     "id": "api.templates.reset_subject",
@@ -1913,11 +1913,11 @@
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "전자우편 주소를 검증하려면 클릭하세요."
+    "translation": "이 전자우편 주소는 Mattermost 계정을 생성하기 위해 사용되었습니다."
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "You've joined {{ .ServerURL }}"
+    "translation": "이메일 주소를 확인하세요"
   },
   {
     "id": "api.templates.verify_subject",
@@ -1981,7 +1981,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
-    "translation": "지원하지 않는 OAuth 서비스 프로바이더 입니다."
+    "translation": "이 서버에서 OAuth 2.0을 통한 {{.Service}} SSO가 가능하지 않습니다."
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
@@ -2482,10 +2482,6 @@
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
     "translation": "Channel display_name is not within permitted length constraints."
-  },
-  {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Missing required channel property: display_name"
   },
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
@@ -3536,10 +3532,6 @@
     "translation": "잘못된 유저이름입니다."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "이름은 반드시 2글자 이상의 영문 또는 숫자여야 합니다."
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time"
   },
@@ -3754,10 +3746,6 @@
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
     "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1"
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Elasticsearch Bulk Indexing Time Window must be at least 1 second."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
@@ -4349,7 +4337,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
+    "translation": "파일에 문제가 있습니다. 최대 10개의 파일을 업로드할 수 있습니다. 더 많은 파일을 업로드하기 위해서는 새로운 post를 작성하세요."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4614,18 +4602,6 @@
   {
     "id": "plugin_api.send_mail.missing_to",
     "translation": "Missing TO address."
-  },
-  {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Unable to convert StringArray to *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Unable to convert StringInterface to *string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Unable to convert StringMap to *string"
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
@@ -4970,10 +4946,6 @@
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
     "translation": "Bleve의 EnableAutocomplete 설정을 활성화하려면 Bleve의 EnableIndexing 설정도 활성화되어야 합니다"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Bleve 벌크 색인 간격은 1초 이상이어야 합니다."
   },
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
@@ -5589,7 +5561,7 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renew License"
+    "translation": "지금 라이센스를 갱신하세요"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -6196,20 +6168,8 @@
     "translation": "{{.WarnMetricName}}의 값을 저장하지 못했습니다"
   },
   {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "측정 항목을 찾을 수 없습니다."
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "관리자 목록이 비어 있습니다."
-  },
-  {
     "id": "app.system.warn_metric.bot_displayname",
     "translation": "Mattermost Advisor"
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Mattermost Advisor에 대해 자세히 알아보기](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.job.download_export_results_not_enabled",
@@ -6836,10 +6796,6 @@
     "translation": "채널 구성원을 제거할 수 없습니다."
   },
   {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "멘션 수를 증가시키지 못했습니다."
-  },
-  {
     "id": "app.channel.get_public_channels.get.app_error",
     "translation": "공개 채널을 가져올 수 없습니다."
   },
@@ -6974,14 +6930,6 @@
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "채널 구성원을 검색하지 못했습니다."
-  },
-  {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "체험판 얻기"
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "체험 시작"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
@@ -7164,10 +7112,6 @@
     "translation": "더 알아보기"
   },
   {
-    "id": "api.cloud.get_subscription.error",
-    "translation": "클라우드 구독 내역을 가져오는 도중 에러가 발생했습니다."
-  },
-  {
     "id": "api.command_custom_status.success",
     "translation": "상태가 “{{.EmojiName}} {{.StatusMessage}}”로 설정되었습니다. 채널 사이드바 상단의 상태 팝업에서 상태를 변경할 수 있습니다."
   },
@@ -7194,10 +7138,6 @@
   {
     "id": "api.command_custom_status.app_error",
     "translation": "상태 설정 중 에러가 발생했습니다."
-  },
-  {
-    "id": "api.cloud.get_admins_emails.error",
-    "translation": "시스템 관리자 이메일을 가져오는 도중 에러가 발생했습니다."
   },
   {
     "id": "api.back_to_app",
@@ -7842,5 +7782,65 @@
   {
     "id": "api.custom_status.disabled",
     "translation": "커스텀 상태 기능이 비활성화 되어 있습니다. 자세한 내용은 관리자에게 문의하세요."
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_generating_link",
+    "translation": "라이센스 갱신 링크를 생성하지 못했습니다"
+  },
+  {
+    "id": "api.roles.patch_roles.not_allowed_permission.error",
+    "translation": "추가하거나 삭제하려고 하는 다음 승인사항 중 하나 이상이 허용되지 않습니다."
+  },
+  {
+    "id": "api.remote_cluster.update_not_unique.app_error",
+    "translation": "동일한 url의 보안 연결이 이미 존재합니다."
+  },
+  {
+    "id": "api.remote_cluster.update.app_error",
+    "translation": "보안 연결을 업데이트하는 동안 에러가 발생했습니다."
+  },
+  {
+    "id": "api.remote_cluster.save_not_unique.app_error",
+    "translation": "보안 연결이 이미 추가되었습니다."
+  },
+  {
+    "id": "api.remote_cluster.save.app_error",
+    "translation": "보안 연결을 저장하는 동안 에러가 발생했습니다."
+  },
+  {
+    "id": "api.remote_cluster.get.app_error",
+    "translation": "보안 연결을 검색하는 동안 에러가 발생했습니다."
+  },
+  {
+    "id": "api.remote_cluster.delete.app_error",
+    "translation": "보안 연결을 삭제하는 동안 에러가 발생했습니다."
+  },
+  {
+    "id": "api.post.posts_by_ids.invalid_body.request_error",
+    "translation": "받은 포스트 ID 갯수가 최대 갯수인 {{.MaxLength}}개를 초과했습니다"
+  },
+  {
+    "id": "api.oauth.click_redirect",
+    "translation": "자동으로 리다이렉트되지 않으면, 이 <a href='{{.Link}}'>링크</a>를 클릭하세요"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "Mattermost 엔터프라이즈 에디션 체험용 라이센스 키가 만료되었으며 더이상 유효하지 않습니다. 체험 기간을 연장하시려면 [저희 세일즈 팀에 연락해주세요](https://mattermost.com/contact-us/)."
+  },
+  {
+    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
+    "translation": "아마존 S3 버켓이 가용한 상태인지 확인하고, bucket permission을 확인하세요."
+  },
+  {
+    "id": "api.file.test_connection_s3_auth.app_error",
+    "translation": "S3와 연결할 수 없습니다. 아마존 S3 연결을 위한 인가 매개변수와 인증 설정을 확인하세요."
+  },
+  {
+    "id": "api.file.file_reader.app_error",
+    "translation": "파일 뷰어가 없습니다."
+  },
+  {
+    "id": "api.export.export_not_found.app_error",
+    "translation": "내보내기 파일을 찾을 수 없습니다."
   }
 ]

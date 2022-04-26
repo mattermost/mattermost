@@ -14,7 +14,7 @@ var (
 	LvlInfo  = logr.Info  // ID = 4
 	LvlDebug = logr.Debug // ID = 5
 	LvlTrace = logr.Trace // ID = 6
-	StdAll   = []Level{LvlPanic, LvlFatal, LvlError, LvlWarn, LvlInfo, LvlDebug, LvlTrace}
+	StdAll   = []Level{LvlPanic, LvlFatal, LvlError, LvlWarn, LvlInfo, LvlDebug, LvlTrace, LvlStdLog}
 	// non-standard "critical" level
 	LvlCritical = Level{ID: 7, Name: "critical"}
 	// used by redirected standard logger

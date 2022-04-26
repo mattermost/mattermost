@@ -179,7 +179,7 @@ func TestExportAllUsers(t *testing.T) {
 	require.Nil(t, err)
 
 	var b bytes.Buffer
-	err = th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
+	err = th1.App.BulkExport(&b, "somePath", model.BulkExportOpts{})
 	require.Nil(t, err)
 
 	th2 := Setup(t)
@@ -227,7 +227,7 @@ func TestExportDMChannel(t *testing.T) {
 		th1.CreateDmChannel(th1.BasicUser2)
 
 		var b bytes.Buffer
-		err := th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
+		err := th1.App.BulkExport(&b, "somePath", model.BulkExportOpts{})
 		require.Nil(t, err)
 
 		channels, nErr := th1.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
@@ -268,7 +268,7 @@ func TestExportDMChannel(t *testing.T) {
 		th1.App.PermanentDeleteUser(th1.Context, th1.BasicUser)
 
 		var b bytes.Buffer
-		err := th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
+		err := th1.App.BulkExport(&b, "somePath", model.BulkExportOpts{})
 		require.Nil(t, err)
 
 		th2 := Setup(t).InitBasic()
@@ -292,7 +292,7 @@ func TestExportDMChannelToSelf(t *testing.T) {
 	th1.CreateDmChannel(th1.BasicUser)
 
 	var b bytes.Buffer
-	err := th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
+	err := th1.App.BulkExport(&b, "somePath", model.BulkExportOpts{})
 	require.Nil(t, err)
 
 	channels, nErr := th1.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
@@ -330,7 +330,7 @@ func TestExportGMChannel(t *testing.T) {
 	th1.CreateGroupChannel(user1, user2)
 
 	var b bytes.Buffer
-	err := th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
+	err := th1.App.BulkExport(&b, "somePath", model.BulkExportOpts{})
 	require.Nil(t, err)
 
 	channels, nErr := th1.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
@@ -362,7 +362,7 @@ func TestExportGMandDMChannels(t *testing.T) {
 	th1.CreateGroupChannel(user1, user2)
 
 	var b bytes.Buffer
-	err := th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
+	err := th1.App.BulkExport(&b, "somePath", model.BulkExportOpts{})
 	require.Nil(t, err)
 
 	channels, nErr := th1.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
@@ -445,7 +445,7 @@ func TestExportDMandGMPost(t *testing.T) {
 	assert.Equal(t, 4, len(posts))
 
 	var b bytes.Buffer
-	appErr := th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
+	appErr := th1.App.BulkExport(&b, "somePath", model.BulkExportOpts{})
 	require.Nil(t, appErr)
 
 	th1.TearDown()
@@ -520,7 +520,7 @@ func TestExportPostWithProps(t *testing.T) {
 	require.NotEmpty(t, posts[1].Props)
 
 	var b bytes.Buffer
-	appErr := th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
+	appErr := th1.App.BulkExport(&b, "somePath", model.BulkExportOpts{})
 	require.Nil(t, appErr)
 
 	th1.TearDown()
@@ -558,7 +558,7 @@ func TestExportDMPostWithSelf(t *testing.T) {
 	th1.CreatePost(dmChannel)
 
 	var b bytes.Buffer
-	err := th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
+	err := th1.App.BulkExport(&b, "somePath", model.BulkExportOpts{})
 	require.Nil(t, err)
 
 	posts, nErr := th1.App.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
@@ -622,7 +622,7 @@ func TestBulkExport(t *testing.T) {
 	require.NoError(t, err)
 	defer exportFile.Close()
 
-	opts := BulkExportOpts{
+	opts := model.BulkExportOpts{
 		IncludeAttachments: true,
 		CreateArchive:      true,
 	}
@@ -717,7 +717,7 @@ func TestExportDeletedTeams(t *testing.T) {
 	require.Nil(t, err)
 
 	var b bytes.Buffer
-	err = th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
+	err = th1.App.BulkExport(&b, "somePath", model.BulkExportOpts{})
 	require.Nil(t, err)
 
 	th2 := Setup(t)

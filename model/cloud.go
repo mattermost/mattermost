@@ -11,8 +11,6 @@ const (
 	EventTypeSendAdminWelcomeEmail = "send-admin-welcome-email"
 	EventTypeTrialWillEnd          = "trial-will-end"
 	EventTypeTrialEnded            = "trial-ended"
-	JoinLimitation                 = "join"
-	InviteLimitation               = "invite"
 )
 
 var MockCWS string
@@ -180,12 +178,35 @@ type FailedPayment struct {
 type CloudWorkspaceOwner struct {
 	UserName string `json:"username"`
 }
-type SubscriptionStats struct {
-	RemainingSeats int    `json:"remaining_seats"`
-	IsPaidTier     string `json:"is_paid_tier"`
-	IsFreeTrial    string `json:"is_free_trial"`
-}
-
 type SubscriptionChange struct {
 	ProductID string `json:"product_id"`
+}
+
+type BoardsLimits struct {
+	Cards *int `json:"cards"`
+	Views *int `json:"views"`
+}
+
+type FilesLimits struct {
+	TotalStorage *int64 `json:"total_storage"`
+}
+
+type IntegrationsLimits struct {
+	Enabled *int `json:"enabled"`
+}
+
+type MessagesLimits struct {
+	History *int `json:"history"`
+}
+
+type TeamsLimits struct {
+	Active *int `json:"active"`
+}
+
+type ProductLimits struct {
+	Boards       *BoardsLimits       `json:"boards,omitempty"`
+	Files        *FilesLimits        `json:"files,omitempty"`
+	Integrations *IntegrationsLimits `json:"integrations,omitempty"`
+	Messages     *MessagesLimits     `json:"messages,omitempty"`
+	Teams        *TeamsLimits        `json:"teams,omitempty"`
 }

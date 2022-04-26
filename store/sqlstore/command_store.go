@@ -26,24 +26,6 @@ func newSqlCommandStore(sqlStore *SqlStore) store.CommandStore {
 	s.commandsQuery = s.getQueryBuilder().
 		Select("*").
 		From("Commands")
-	for _, db := range sqlStore.GetAllConns() {
-		tableo := db.AddTableWithName(model.Command{}, "Commands").SetKeys(false, "Id")
-		tableo.ColMap("Id").SetMaxSize(26)
-		tableo.ColMap("Token").SetMaxSize(26)
-		tableo.ColMap("CreatorId").SetMaxSize(26)
-		tableo.ColMap("TeamId").SetMaxSize(26)
-		tableo.ColMap("Trigger").SetMaxSize(128)
-		tableo.ColMap("URL").SetMaxSize(1024)
-		tableo.ColMap("Method").SetMaxSize(1)
-		tableo.ColMap("Username").SetMaxSize(64)
-		tableo.ColMap("IconURL").SetMaxSize(1024)
-		tableo.ColMap("AutoCompleteDesc").SetMaxSize(1024)
-		tableo.ColMap("AutoCompleteHint").SetMaxSize(1024)
-		tableo.ColMap("DisplayName").SetMaxSize(64)
-		tableo.ColMap("Description").SetMaxSize(128)
-		tableo.ColMap("PluginId").SetMaxSize(190)
-	}
-
 	return s
 }
 

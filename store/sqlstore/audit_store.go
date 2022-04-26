@@ -16,19 +16,7 @@ type SqlAuditStore struct {
 }
 
 func newSqlAuditStore(sqlStore *SqlStore) store.AuditStore {
-	s := &SqlAuditStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Audit{}, "Audits").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("UserId").SetMaxSize(26)
-		table.ColMap("Action").SetMaxSize(512)
-		table.ColMap("ExtraInfo").SetMaxSize(1024)
-		table.ColMap("IpAddress").SetMaxSize(64)
-		table.ColMap("SessionId").SetMaxSize(26)
-	}
-
-	return s
+	return &SqlAuditStore{sqlStore}
 }
 
 func (s SqlAuditStore) Save(audit *model.Audit) error {

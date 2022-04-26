@@ -13,7 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
-func TestResctrictedViewMembers(t *testing.T) {
+func TestRestrictedViewMembers(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 

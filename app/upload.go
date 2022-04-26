@@ -20,7 +20,6 @@ import (
 )
 
 const minFirstPartSize = 5 * 1024 * 1024 // 5MB
-const IncompleteUploadSuffix = ".tmp"
 
 func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.Reader) *model.AppError {
 	pluginsEnvironment := a.GetPluginsEnvironment()
@@ -195,7 +194,7 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 
 	uploadPath := us.Path
 	if us.Type == model.UploadTypeImport {
-		uploadPath += IncompleteUploadSuffix
+		uploadPath += model.IncompleteUploadSuffix
 	}
 
 	// make sure it's not possible to upload more data than what is expected.

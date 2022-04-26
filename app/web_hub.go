@@ -178,7 +178,8 @@ func (s *Server) Publish(message *model.WebSocketEvent) {
 			message.EventType() == model.WebsocketEventPostEdited ||
 			message.EventType() == model.WebsocketEventDirectAdded ||
 			message.EventType() == model.WebsocketEventGroupAdded ||
-			message.EventType() == model.WebsocketEventAddedToTeam {
+			message.EventType() == model.WebsocketEventAddedToTeam ||
+			message.GetBroadcast().ReliableClusterSend {
 			cm.SendType = model.ClusterSendReliable
 		}
 
@@ -538,13 +539,20 @@ func (h *Hub) Start() {
 						}
 					}
 				}
-				if msg.GetBroadcast().UserId != "" {
+
+				if connID := msg.GetBroadcast().ConnectionId; connID != "" {
+					if webConn := connIndex.byConnectionId[connID]; webConn != nil {
+						broadcast(webConn)
+						continue
+					}
+				} else if msg.GetBroadcast().UserId != "" {
 					candidates := connIndex.ForUser(msg.GetBroadcast().UserId)
 					for _, webConn := range candidates {
 						broadcast(webConn)
 					}
 					continue
 				}
+
 				candidates := connIndex.All()
 				for webConn := range candidates {
 					broadcast(webConn)
@@ -595,7 +603,8 @@ type hubConnectionIndex struct {
 	byUserId map[string][]*WebConn
 	// byConnection serves the dual purpose of storing the index of the webconn
 	// in the value of byUserId map, and also to get all connections.
-	byConnection map[*WebConn]int
+	byConnection   map[*WebConn]int
+	byConnectionId map[string]*WebConn
 	// staleThreshold is the limit beyond which inactive connections
 	// will be deleted.
 	staleThreshold time.Duration
@@ -605,6 +614,7 @@ func newHubConnectionIndex(interval time.Duration) *hubConnectionIndex {
 	return &hubConnectionIndex{
 		byUserId:       make(map[string][]*WebConn),
 		byConnection:   make(map[*WebConn]int),
+		byConnectionId: make(map[string]*WebConn),
 		staleThreshold: interval,
 	}
 }
@@ -612,6 +622,7 @@ func newHubConnectionIndex(interval time.Duration) *hubConnectionIndex {
 func (i *hubConnectionIndex) Add(wc *WebConn) {
 	i.byUserId[wc.UserId] = append(i.byUserId[wc.UserId], wc)
 	i.byConnection[wc] = len(i.byUserId[wc.UserId]) - 1
+	i.byConnectionId[wc.GetConnectionID()] = wc
 }
 
 func (i *hubConnectionIndex) Remove(wc *WebConn) {
@@ -632,6 +643,7 @@ func (i *hubConnectionIndex) Remove(wc *WebConn) {
 	i.byConnection[last] = userConnIndex
 
 	delete(i.byConnection, wc)
+	delete(i.byConnectionId, wc.GetConnectionID())
 }
 
 func (i *hubConnectionIndex) Has(wc *WebConn) bool {

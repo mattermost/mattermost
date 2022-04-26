@@ -17,21 +17,20 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/go-morph/morph"
+	"github.com/mattermost/morph"
 
-	"github.com/go-morph/morph/drivers"
-	ms "github.com/go-morph/morph/drivers/mysql"
-	ps "github.com/go-morph/morph/drivers/postgres"
+	"github.com/mattermost/morph/drivers"
+	ms "github.com/mattermost/morph/drivers/mysql"
+	ps "github.com/mattermost/morph/drivers/postgres"
 
-	mbindata "github.com/go-morph/morph/sources/go_bindata"
 	"github.com/go-sql-driver/mysql"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
-	"github.com/mattermost/gorp"
+	mbindata "github.com/mattermost/morph/sources/embedded"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/db/migrations"
+	"github.com/mattermost/mattermost-server/v6/db"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -66,6 +65,8 @@ const (
 
 	replicaLagPrefix = "replica-lag"
 )
+
+var tablesToCheckForCollation = []string{"incomingwebhooks", "preferences", "users", "uploadsessions", "channels", "publicchannels"}
 
 type SqlStoreStores struct {
 	team                 store.TeamStore
@@ -113,13 +114,10 @@ type SqlStore struct {
 	rrCounter int64
 	srCounter int64
 
-	master  *gorp.DbMap
 	masterX *sqlxDBWrapper
 
-	Replicas  []*gorp.DbMap
 	ReplicaXs []*sqlxDBWrapper
 
-	searchReplicas  []*gorp.DbMap
 	searchReplicaXs []*sqlxDBWrapper
 
 	replicaLagHandles []*dbsql.DB
@@ -130,6 +128,8 @@ type SqlStore struct {
 	license           *model.License
 	licenseMutex      sync.RWMutex
 	metrics           einterfaces.MetricsInterface
+
+	isBinaryParam bool
 }
 
 func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlStore {
@@ -152,9 +152,19 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 		mlog.Fatal("Error while checking DB version.", mlog.Err(err))
 	}
 
+	err = store.ensureDatabaseCollation()
+	if err != nil {
+		mlog.Fatal("Error while checking DB collation.", mlog.Err(err))
+	}
+
 	err = store.migrate(migrationsDirectionUp)
 	if err != nil {
 		mlog.Fatal("Failed to apply database migrations.", mlog.Err(err))
+	}
+
+	store.isBinaryParam, err = store.computeBinaryParam()
+	if err != nil {
+		mlog.Fatal("Failed to compute binary param", mlog.Err(err))
 	}
 
 	store.stores.team = newSqlTeamStore(store)
@@ -248,34 +258,6 @@ func setupConnection(connType string, dataSource string, settings *model.SqlSett
 	return db
 }
 
-func getDBMap(settings *model.SqlSettings, db *dbsql.DB) *gorp.DbMap {
-	connectionTimeout := time.Duration(*settings.QueryTimeout) * time.Second
-	var dbMap *gorp.DbMap
-	switch *settings.DriverName {
-	case model.DatabaseDriverMysql:
-		dbMap = &gorp.DbMap{
-			Db:            db,
-			TypeConverter: mattermConverter{},
-			Dialect:       gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8MB4"},
-			QueryTimeout:  connectionTimeout,
-		}
-	case model.DatabaseDriverPostgres:
-		dbMap = &gorp.DbMap{
-			Db:            db,
-			TypeConverter: mattermConverter{},
-			Dialect:       gorp.PostgresDialect{},
-			QueryTimeout:  connectionTimeout,
-		}
-	default:
-		mlog.Fatal("Failed to create dialect specific driver")
-		return nil
-	}
-	if settings.Trace != nil && *settings.Trace {
-		dbMap.TraceOn("sql-trace:", &TraceOnAdapter{})
-	}
-	return dbMap
-}
-
 func (ss *SqlStore) SetContext(context context.Context) {
 	ss.context = context
 }
@@ -300,7 +282,6 @@ func (ss *SqlStore) initConnection() {
 	}
 
 	handle := setupConnection("master", dataSource, ss.settings)
-	ss.master = getDBMap(ss.settings, handle)
 	ss.masterX = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 		time.Duration(*ss.settings.QueryTimeout)*time.Second,
 		*ss.settings.Trace)
@@ -309,11 +290,9 @@ func (ss *SqlStore) initConnection() {
 	}
 
 	if len(ss.settings.DataSourceReplicas) > 0 {
-		ss.Replicas = make([]*gorp.DbMap, len(ss.settings.DataSourceReplicas))
 		ss.ReplicaXs = make([]*sqlxDBWrapper, len(ss.settings.DataSourceReplicas))
 		for i, replica := range ss.settings.DataSourceReplicas {
 			handle := setupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
-			ss.Replicas[i] = getDBMap(ss.settings, handle)
 			ss.ReplicaXs[i] = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 				time.Duration(*ss.settings.QueryTimeout)*time.Second,
 				*ss.settings.Trace)
@@ -324,11 +303,9 @@ func (ss *SqlStore) initConnection() {
 	}
 
 	if len(ss.settings.DataSourceSearchReplicas) > 0 {
-		ss.searchReplicas = make([]*gorp.DbMap, len(ss.settings.DataSourceSearchReplicas))
 		ss.searchReplicaXs = make([]*sqlxDBWrapper, len(ss.settings.DataSourceSearchReplicas))
 		for i, replica := range ss.settings.DataSourceSearchReplicas {
 			handle := setupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings)
-			ss.searchReplicas[i] = getDBMap(ss.settings, handle)
 			ss.searchReplicaXs[i] = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 				time.Duration(*ss.settings.QueryTimeout)*time.Second,
 				*ss.settings.Trace)
@@ -353,9 +330,24 @@ func (ss *SqlStore) DriverName() string {
 	return *ss.settings.DriverName
 }
 
-func (ss *SqlStore) GetCurrentSchemaVersion() string {
-	version, _ := ss.GetMaster().SelectStr("SELECT Value FROM Systems WHERE Name='Version'")
-	return version
+// computeBinaryParam returns whether the data source uses binary_parameters
+// when using Postgres
+func (ss *SqlStore) computeBinaryParam() (bool, error) {
+	if ss.DriverName() != model.DatabaseDriverPostgres {
+		return false, nil
+	}
+
+	return DSNHasBinaryParam(*ss.settings.DataSource)
+}
+
+func (ss *SqlStore) IsBinaryParamEnabled() bool {
+	return ss.isBinaryParam
+}
+
+func (ss *SqlStore) getCurrentSchemaVersion() (string, error) {
+	var version string
+	err := ss.GetMasterX().Get(&version, "SELECT Value FROM Systems WHERE Name='Version'")
+	return version, err
 }
 
 // GetDbVersion returns the version of the database being used.
@@ -375,17 +367,14 @@ func (ss *SqlStore) GetDbVersion(numerical bool) (string, error) {
 		return "", errors.New("Not supported driver")
 	}
 
-	version, err := ss.GetReplica().SelectStr(sqlVersion)
+	var version string
+	err := ss.GetReplicaX().Get(&version, sqlVersion)
 	if err != nil {
 		return "", err
 	}
 
 	return version, nil
 
-}
-
-func (ss *SqlStore) GetMaster() *gorp.DbMap {
-	return ss.master
 }
 
 func (ss *SqlStore) GetMasterX() *sqlxDBWrapper {
@@ -399,22 +388,6 @@ func (ss *SqlStore) SetMasterX(db *sql.DB) {
 	if ss.DriverName() == model.DatabaseDriverMysql {
 		ss.masterX.MapperFunc(noOpMapper)
 	}
-}
-
-func (ss *SqlStore) GetSearchReplica() *gorp.DbMap {
-	ss.licenseMutex.RLock()
-	license := ss.license
-	ss.licenseMutex.RUnlock()
-	if license == nil {
-		return ss.GetMaster()
-	}
-
-	if len(ss.settings.DataSourceSearchReplicas) == 0 {
-		return ss.GetReplica()
-	}
-
-	rrNum := atomic.AddInt64(&ss.srCounter, 1) % int64(len(ss.searchReplicas))
-	return ss.searchReplicas[rrNum]
 }
 
 func (ss *SqlStore) GetSearchReplicaX() *sqlxDBWrapper {
@@ -433,18 +406,6 @@ func (ss *SqlStore) GetSearchReplicaX() *sqlxDBWrapper {
 	return ss.searchReplicaXs[rrNum]
 }
 
-func (ss *SqlStore) GetReplica() *gorp.DbMap {
-	ss.licenseMutex.RLock()
-	license := ss.license
-	ss.licenseMutex.RUnlock()
-	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || license == nil {
-		return ss.GetMaster()
-	}
-
-	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.Replicas))
-	return ss.Replicas[rrNum]
-}
-
 func (ss *SqlStore) GetReplicaX() *sqlxDBWrapper {
 	ss.licenseMutex.RLock()
 	license := ss.license
@@ -453,12 +414,12 @@ func (ss *SqlStore) GetReplicaX() *sqlxDBWrapper {
 		return ss.GetMasterX()
 	}
 
-	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.Replicas))
+	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.ReplicaXs))
 	return ss.ReplicaXs[rrNum]
 }
 
 func (ss *SqlStore) TotalMasterDbConnections() int {
-	return ss.GetMaster().Db.Stats().OpenConnections
+	return ss.GetMasterX().Stats().OpenConnections
 }
 
 // ReplicaLagAbs queries all the replica databases to get the absolute replica lag value
@@ -505,8 +466,8 @@ func (ss *SqlStore) TotalReadDbConnections() int {
 	}
 
 	count := 0
-	for _, db := range ss.Replicas {
-		count = count + db.Db.Stats().OpenConnections
+	for _, db := range ss.ReplicaXs {
+		count = count + db.Stats().OpenConnections
 	}
 
 	return count
@@ -518,8 +479,8 @@ func (ss *SqlStore) TotalSearchDbConnections() int {
 	}
 
 	count := 0
-	for _, db := range ss.searchReplicas {
-		count = count + db.Db.Stats().OpenConnections
+	for _, db := range ss.searchReplicaXs {
+		count = count + db.Stats().OpenConnections
 	}
 
 	return count
@@ -540,7 +501,8 @@ func (ss *SqlStore) MarkSystemRanUnitTests() {
 
 func (ss *SqlStore) DoesTableExist(tableName string) bool {
 	if ss.DriverName() == model.DatabaseDriverPostgres {
-		count, err := ss.GetMaster().SelectInt(
+		var count int64
+		err := ss.GetMasterX().Get(&count,
 			`SELECT count(relname) FROM pg_class WHERE relname=$1`,
 			strings.ToLower(tableName),
 		)
@@ -552,8 +514,8 @@ func (ss *SqlStore) DoesTableExist(tableName string) bool {
 		return count > 0
 
 	} else if ss.DriverName() == model.DatabaseDriverMysql {
-
-		count, err := ss.GetMaster().SelectInt(
+		var count int64
+		err := ss.GetMasterX().Get(&count,
 			`SELECT
 		    COUNT(0) AS table_exists
 			FROM
@@ -579,7 +541,8 @@ func (ss *SqlStore) DoesTableExist(tableName string) bool {
 
 func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 	if ss.DriverName() == model.DatabaseDriverPostgres {
-		count, err := ss.GetMaster().SelectInt(
+		var count int64
+		err := ss.GetMasterX().Get(&count,
 			`SELECT COUNT(0)
 			FROM   pg_attribute
 			WHERE  attrelid = $1::regclass
@@ -600,8 +563,8 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 		return count > 0
 
 	} else if ss.DriverName() == model.DatabaseDriverMysql {
-
-		count, err := ss.GetMaster().SelectInt(
+		var count int64
+		err := ss.GetMasterX().Get(&count,
 			`SELECT
 		    COUNT(0) AS column_exists
 		FROM
@@ -628,7 +591,8 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 
 func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
 	if ss.DriverName() == model.DatabaseDriverPostgres {
-		count, err := ss.GetMaster().SelectInt(`
+		var count int64
+		err := ss.GetMasterX().Get(&count, `
 			SELECT
 				COUNT(0)
 			FROM
@@ -644,7 +608,8 @@ func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
 		return count > 0
 
 	} else if ss.DriverName() == model.DatabaseDriverMysql {
-		count, err := ss.GetMaster().SelectInt(`
+		var count int64
+		err := ss.GetMasterX().Get(&count, `
 			SELECT
 				COUNT(0)
 			FROM
@@ -673,7 +638,7 @@ func (ss *SqlStore) CreateColumnIfNotExists(tableName string, columnName string,
 	}
 
 	if ss.DriverName() == model.DatabaseDriverPostgres {
-		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType + " DEFAULT '" + defaultValue + "'")
+		_, err := ss.GetMasterX().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
 			mlog.Fatal("Failed to create column", mlog.Err(err))
 		}
@@ -681,7 +646,7 @@ func (ss *SqlStore) CreateColumnIfNotExists(tableName string, columnName string,
 		return true
 
 	} else if ss.DriverName() == model.DatabaseDriverMysql {
-		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType + " DEFAULT '" + defaultValue + "'")
+		_, err := ss.GetMasterX().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
 			mlog.Fatal("Failed to create column", mlog.Err(err))
 		}
@@ -699,7 +664,7 @@ func (ss *SqlStore) RemoveTableIfExists(tableName string) bool {
 		return false
 	}
 
-	_, err := ss.GetMaster().ExecNoTimeout("DROP TABLE " + tableName)
+	_, err := ss.GetMasterX().ExecNoTimeout("DROP TABLE " + tableName)
 	if err != nil {
 		mlog.Fatal("Failed to drop table", mlog.Err(err))
 	}
@@ -742,10 +707,10 @@ func IsUniqueConstraintError(err error, indexName []string) bool {
 	return unique && field
 }
 
-func (ss *SqlStore) GetAllConns() []*gorp.DbMap {
-	all := make([]*gorp.DbMap, len(ss.Replicas)+1)
-	copy(all, ss.Replicas)
-	all[len(ss.Replicas)] = ss.master
+func (ss *SqlStore) GetAllConns() []*sqlxDBWrapper {
+	all := make([]*sqlxDBWrapper, len(ss.ReplicaXs)+1)
+	copy(all, ss.ReplicaXs)
+	all[len(ss.ReplicaXs)] = ss.masterX
 	return all
 }
 
@@ -756,24 +721,24 @@ func (ss *SqlStore) RecycleDBConnections(d time.Duration) {
 	originalDuration := time.Duration(*ss.settings.ConnMaxLifetimeMilliseconds) * time.Millisecond
 	// Set the max lifetimes for all connections.
 	for _, conn := range ss.GetAllConns() {
-		conn.Db.SetConnMaxLifetime(d)
+		conn.SetConnMaxLifetime(d)
 	}
 	// Wait for that period with an additional 2 seconds of scheduling delay.
 	time.Sleep(d + 2*time.Second)
 	// Reset max lifetime back to original value.
 	for _, conn := range ss.GetAllConns() {
-		conn.Db.SetConnMaxLifetime(originalDuration)
+		conn.SetConnMaxLifetime(originalDuration)
 	}
 }
 
 func (ss *SqlStore) Close() {
-	ss.master.Db.Close()
-	for _, replica := range ss.Replicas {
-		replica.Db.Close()
+	ss.masterX.Close()
+	for _, replica := range ss.ReplicaXs {
+		replica.Close()
 	}
 
-	for _, replica := range ss.searchReplicas {
-		replica.Db.Close()
+	for _, replica := range ss.searchReplicaXs {
+		replica.Close()
 	}
 }
 
@@ -934,15 +899,44 @@ func (ss *SqlStore) SharedChannel() store.SharedChannelStore {
 }
 
 func (ss *SqlStore) DropAllTables() {
-	ss.master.TruncateTables()
+	if ss.DriverName() == model.DatabaseDriverPostgres {
+		ss.masterX.Exec(`DO
+			$func$
+			BEGIN
+			   EXECUTE
+			   (SELECT 'TRUNCATE TABLE ' || string_agg(oid::regclass::text, ', ') || ' CASCADE'
+			    FROM   pg_class
+			    WHERE  relkind = 'r'  -- only tables
+			    AND    relnamespace = 'public'::regnamespace
+				AND NOT relname = 'db_migrations'
+			   );
+			END
+			$func$;`)
+	} else {
+		tables := []string{}
+		ss.masterX.Select(&tables, `show tables`)
+		for _, t := range tables {
+			if t != "db_migrations" {
+				ss.masterX.Exec(`TRUNCATE TABLE ` + t)
+			}
+		}
+	}
 }
 
 func (ss *SqlStore) getQueryBuilder() sq.StatementBuilderType {
-	builder := sq.StatementBuilder.PlaceholderFormat(sq.Question)
+	return sq.StatementBuilder.PlaceholderFormat(ss.getQueryPlaceholder())
+}
+
+func (ss *SqlStore) getQueryPlaceholder() sq.PlaceholderFormat {
 	if ss.DriverName() == model.DatabaseDriverPostgres {
-		builder = builder.PlaceholderFormat(sq.Dollar)
+		return sq.Dollar
 	}
-	return builder
+	return sq.Question
+}
+
+// getSubQueryBuilder is necessary to generate the SQL query and args to pass to sub-queries because squirrel does not support WHERE clause in sub-queries.
+func (ss *SqlStore) getSubQueryBuilder() sq.StatementBuilderType {
+	return sq.StatementBuilder.PlaceholderFormat(sq.Question)
 }
 
 func (ss *SqlStore) CheckIntegrity() <-chan model.IntegrityCheckResult {
@@ -962,23 +956,27 @@ func (ss *SqlStore) GetLicense() *model.License {
 }
 
 func (ss *SqlStore) migrate(direction migrationDirection) error {
-	var assetNamesForDriver []string
-	for _, assetName := range migrations.AssetNames() {
-		if strings.HasPrefix(assetName, ss.DriverName()) {
-			assetNamesForDriver = append(assetNamesForDriver, filepath.Base(assetName))
-		}
+	assets := db.Assets()
+
+	assetsList, err := assets.ReadDir(filepath.Join("migrations", ss.DriverName()))
+	if err != nil {
+		return err
+	}
+
+	assetNamesForDriver := make([]string, len(assetsList))
+	for i, entry := range assetsList {
+		assetNamesForDriver[i] = entry.Name()
 	}
 
 	src, err := mbindata.WithInstance(&mbindata.AssetSource{
 		Names: assetNamesForDriver,
 		AssetFunc: func(name string) ([]byte, error) {
-			return migrations.Asset(filepath.Join(ss.DriverName(), name))
+			return assets.ReadFile(filepath.Join("migrations", ss.DriverName(), name))
 		},
 	})
 	if err != nil {
 		return err
 	}
-	defer src.Close()
 
 	var driver drivers.Driver
 	switch ss.DriverName() {
@@ -1139,6 +1137,44 @@ func (ss *SqlStore) ensureMinimumDBVersion(ver string) (bool, error) {
 	return true, nil
 }
 
+func (ss *SqlStore) ensureDatabaseCollation() error {
+	if *ss.settings.DriverName != model.DatabaseDriverMysql {
+		return nil
+	}
+
+	var connCollation struct {
+		Variable_name string
+		Value         string
+	}
+	if err := ss.GetMasterX().Get(&connCollation, "SHOW VARIABLES LIKE 'collation_connection'"); err != nil {
+		return errors.Wrap(err, "unable to select variables")
+	}
+
+	// we compare table collation with the connection collation value so that we can
+	// catch collation mismatches for tables we have a migration for.
+	for _, tableName := range tablesToCheckForCollation {
+		// we check if table exists because this code runs before the migrations applied
+		// which means if there is a fresh db, we may fail on selecting the table_collation
+		var exists int
+		if err := ss.GetMasterX().Get(&exists, "SELECT count(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND LOWER(table_name) = ?", tableName); err != nil {
+			return errors.Wrap(err, fmt.Sprintf("unable to check if table exists for collation check: %q", tableName))
+		} else if exists == 0 {
+			continue
+		}
+
+		var tableCollation string
+		if err := ss.GetMasterX().Get(&tableCollation, "SELECT table_collation FROM information_schema.tables WHERE table_schema = DATABASE() AND LOWER(table_name) = ?", tableName); err != nil {
+			return errors.Wrap(err, fmt.Sprintf("unable to get table collation: %q", tableName))
+		}
+
+		if tableCollation != connCollation.Value {
+			mlog.Warn("Table collation mismatch", mlog.String("table_name", tableName), mlog.String("expected", connCollation.Value), mlog.String("found", tableCollation))
+		}
+	}
+
+	return nil
+}
+
 // versionString converts an integer representation of a DB version
 // to a pretty-printed string.
 // Postgres doesn't follow three-part version numbers from 10.0 onwards:
@@ -1160,17 +1196,27 @@ func versionString(v int, driver string) string {
 	return ""
 }
 
-func (ss *SqlStore) jsonDataType() string {
-	if ss.DriverName() == model.DatabaseDriverPostgres {
-		return "jsonb"
-	}
-	return "json"
-}
-
 func (ss *SqlStore) toReserveCase(str string) string {
 	if ss.DriverName() == model.DatabaseDriverPostgres {
 		return fmt.Sprintf("%q", str)
 	}
 
 	return fmt.Sprintf("`%s`", strings.Title(str))
+}
+
+func (ss *SqlStore) GetDBSchemaVersion() (int, error) {
+	var version int
+	if err := ss.GetMasterX().Get(&version, "SELECT Version FROM db_migrations ORDER BY Version DESC LIMIT 1"); err != nil {
+		return 0, errors.Wrap(err, "unable to select from db_migrations")
+	}
+	return version, nil
+}
+
+func (ss *SqlStore) GetAppliedMigrations() ([]model.AppliedMigration, error) {
+	migrations := []model.AppliedMigration{}
+	if err := ss.GetMasterX().Select(&migrations, "SELECT Version, Name FROM db_migrations ORDER BY Version DESC"); err != nil {
+		return nil, errors.Wrap(err, "unable to select from db_migrations")
+	}
+
+	return migrations, nil
 }

@@ -23,15 +23,7 @@ type SqlSystemStore struct {
 }
 
 func newSqlSystemStore(sqlStore *SqlStore) store.SystemStore {
-	s := &SqlSystemStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.System{}, "Systems").SetKeys(false, "Name")
-		table.ColMap("Name").SetMaxSize(64)
-		table.ColMap("Value").SetMaxSize(1024)
-	}
-
-	return s
+	return &SqlSystemStore{sqlStore}
 }
 
 func (s SqlSystemStore) Save(system *model.System) error {
@@ -86,7 +78,7 @@ func (s SqlSystemStore) SaveOrUpdateWithWarnMetricHandling(system *model.System)
 }
 
 func (s SqlSystemStore) Update(system *model.System) error {
-	query := "UPDATE Systems SET Name=:Name, Value=:Value"
+	query := "UPDATE Systems SET Value=:Value WHERE Name=:Name"
 	if _, err := s.GetMasterX().NamedExec(query, system); err != nil {
 		return errors.Wrapf(err, "failed to update system property with name=%s", system.Name)
 	}

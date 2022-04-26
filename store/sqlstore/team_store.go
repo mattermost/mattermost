@@ -209,26 +209,6 @@ func newSqlTeamStore(sqlStore *SqlStore) store.TeamStore {
 	s.teamsQuery = s.getQueryBuilder().
 		Select("Teams.*").
 		From("Teams")
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Team{}, "Teams").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("DisplayName").SetMaxSize(64)
-		table.ColMap("Name").SetMaxSize(64).SetUnique(true)
-		table.ColMap("Description").SetMaxSize(255)
-		table.ColMap("Type").SetMaxSize(255)
-		table.ColMap("Email").SetMaxSize(128)
-		table.ColMap("CompanyName").SetMaxSize(64)
-		table.ColMap("AllowedDomains").SetMaxSize(1000)
-		table.ColMap("InviteId").SetMaxSize(32)
-		table.ColMap("SchemeId").SetMaxSize(26)
-
-		tablem := db.AddTableWithName(teamMember{}, "TeamMembers").SetKeys(false, "TeamId", "UserId")
-		tablem.ColMap("TeamId").SetMaxSize(26)
-		tablem.ColMap("UserId").SetMaxSize(26)
-		tablem.ColMap("Roles").SetMaxSize(model.UserRolesMaxLength)
-	}
-
 	return s
 }
 
@@ -321,6 +301,29 @@ func (s SqlTeamStore) Get(id string) (*model.Team, error) {
 	}
 
 	return &team, nil
+}
+
+func (s SqlTeamStore) GetMany(ids []string) ([]*model.Team, error) {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Teams").
+		Where(sq.Eq{"Id": ids})
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "getmany_tosql")
+	}
+
+	teams := []*model.Team{}
+	err = s.GetReplicaX().Select(&teams, sql, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get teams with ids %v", ids)
+	}
+
+	if len(teams) == 0 {
+		return nil, store.NewErrNotFound("Team", fmt.Sprintf("ids=%v", ids))
+	}
+
+	return teams, nil
 }
 
 // GetByInviteId returns from the database the team that matches the inviteId provided as parameter.
@@ -942,7 +945,7 @@ func (s SqlTeamStore) GetMember(ctx context.Context, teamId string, userId strin
 	}
 
 	var dbMember teamMemberWithSchemeRoles
-	err = s.DBFromContext(ctx).SelectOne(&dbMember, queryString, args...)
+	err = s.DBXFromContext(ctx).Get(&dbMember, queryString, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("TeamMember", fmt.Sprintf("teamId=%s, userId=%s", teamId, userId))
@@ -1088,7 +1091,7 @@ func (s SqlTeamStore) GetTeamsForUser(ctx context.Context, userId string) ([]*mo
 	}
 
 	dbMembers := teamMemberWithSchemeRolesList{}
-	_, err = s.SqlStore.DBFromContext(ctx).Select(&dbMembers, queryString, args...)
+	err = s.SqlStore.DBXFromContext(ctx).Select(&dbMembers, queryString, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers with userId=%s", userId)
 	}
@@ -1411,7 +1414,7 @@ func (s SqlTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) (int64, er
 	var count int64
 	err = s.GetReplicaX().Get(&count, query, args...)
 	if err != nil {
-		return 0, errors.Wrapf(err, "failed to count Teams with schemdId=%s", schemeId)
+		return 0, errors.Wrapf(err, "failed to count Teams with schemeId=%s", schemeId)
 	}
 
 	return count, nil

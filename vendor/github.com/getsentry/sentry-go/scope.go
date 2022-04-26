@@ -69,11 +69,9 @@ func (scope *Scope) AddBreadcrumb(breadcrumb *Breadcrumb, limit int) {
 	scope.mu.Lock()
 	defer scope.mu.Unlock()
 
-	breadcrumbs := append(scope.breadcrumbs, breadcrumb)
-	if len(breadcrumbs) > limit {
-		scope.breadcrumbs = breadcrumbs[1 : limit+1]
-	} else {
-		scope.breadcrumbs = breadcrumbs
+	scope.breadcrumbs = append(scope.breadcrumbs, breadcrumb)
+	if len(scope.breadcrumbs) > limit {
+		scope.breadcrumbs = scope.breadcrumbs[1 : limit+1]
 	}
 }
 

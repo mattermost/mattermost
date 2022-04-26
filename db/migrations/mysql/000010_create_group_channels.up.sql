@@ -34,7 +34,7 @@ SET @preparedStatement = (SELECT IF(
         AND index_name = 'idx_groupchannels_schemeadmin'
     ) > 0,
     'SELECT 1',
-    'CREATE INDEX idx_groupchannels_schemeadmin ON GroupChannels(ScemeAdmin);'
+    'CREATE INDEX idx_groupchannels_schemeadmin ON GroupChannels(SchemeAdmin);'
 ));
 
 PREPARE createIndexIfNotExists FROM @preparedStatement;
@@ -49,7 +49,7 @@ SET @preparedStatement = (SELECT IF(
         AND column_name = 'SchemeAdmin'
     ) > 0,
     'SELECT 1',
-    'ALTER TABLE GroupChannels ADD COLUMN ScemeAdmin tinyint(1);'
+    'ALTER TABLE GroupChannels ADD COLUMN SchemeAdmin tinyint(1);'
 ));
 
 PREPARE createColumnIfNotExists FROM @preparedStatement;

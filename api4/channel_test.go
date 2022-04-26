@@ -22,6 +22,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 )
 
 func TestCreateChannel(t *testing.T) {
@@ -1168,8 +1169,8 @@ func TestGetAllChannels(t *testing.T) {
 	policyChannel := (sysManagerChannels)[0]
 	policy, err := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
-			DisplayName:  "Policy 1",
-			PostDuration: model.NewInt64(30),
+			DisplayName:      "Policy 1",
+			PostDurationDays: model.NewInt64(30),
 		},
 		ChannelIDs: []string{policyChannel.Id},
 	})
@@ -1620,8 +1621,8 @@ func TestSearchAllChannels(t *testing.T) {
 	policyChannel := sysManagerChannels[0]
 	policy, savePolicyErr := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
-			DisplayName:  "Policy 1",
-			PostDuration: model.NewInt64(30),
+			DisplayName:      "Policy 1",
+			PostDurationDays: model.NewInt64(30),
 		},
 		ChannelIDs: []string{policyChannel.Id},
 	})
@@ -1750,7 +1751,8 @@ func TestDeleteChannel(t *testing.T) {
 		require.NoError(t, err)
 
 		ch, appErr := th.App.GetChannel(publicChannel1.Id)
-		require.True(t, appErr != nil || ch.DeleteAt != 0, "should have failed to get deleted channel, or returned one with a populated DeleteAt.")
+		require.Nilf(t, appErr, "Expected nil, Got %v", appErr)
+		require.True(t, ch.DeleteAt != 0, "should have returned one with a populated DeleteAt.")
 
 		post1 := &model.Post{ChannelId: publicChannel1.Id, Message: "a" + GenerateTestId() + "a"}
 		_, resp, _ := client.CreatePost(post1)
@@ -2503,14 +2505,26 @@ func TestGetChannelStats(t *testing.T) {
 	stats, _, err := client.GetChannelStats(channel.Id, "")
 	require.NoError(t, err)
 
-	require.Equal(t, channel.Id, stats.ChannelId, "couldnt't get extra info")
+	require.Equal(t, channel.Id, stats.ChannelId, "couldn't get extra info")
 	require.Equal(t, int64(1), stats.MemberCount, "got incorrect member count")
 	require.Equal(t, int64(0), stats.PinnedPostCount, "got incorrect pinned post count")
+	require.Equal(t, int64(0), stats.FilesCount, "got incorrect file count")
 
 	th.CreatePinnedPostWithClient(th.Client, channel)
 	stats, _, err = client.GetChannelStats(channel.Id, "")
 	require.NoError(t, err)
 	require.Equal(t, int64(1), stats.PinnedPostCount, "should have returned 1 pinned post count")
+
+	// create a post with a file
+	sent, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
+	fileResp, _, err := client.UploadFile(sent, channel.Id, "test.png")
+	require.NoError(t, err)
+	th.CreatePostInChannelWithFiles(channel, fileResp.FileInfos...)
+	// make sure the file count channel stats is updated
+	stats, _, err = client.GetChannelStats(channel.Id, "")
+	require.NoError(t, err)
+	require.Equal(t, int64(1), stats.FilesCount, "should have returned 1 file count")
 
 	_, resp, err := client.GetChannelStats("junk", "")
 	require.Error(t, err)
@@ -4320,7 +4334,7 @@ func TestGetChannelMemberCountsByGroup(t *testing.T) {
 		DisplayName: "dn_" + id,
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 
 	_, appErr = th.App.CreateGroup(group)

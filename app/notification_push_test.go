@@ -19,6 +19,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
+	fmocks "github.com/mattermost/mattermost-server/v6/shared/filestore/mocks"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/testlib"
@@ -566,6 +567,7 @@ func TestGetPushNotificationMessage(t *testing.T) {
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	for name, tc := range map[string]struct {
 		Message                  string
@@ -1031,9 +1033,7 @@ func (h *testPushNotificationHandler) handleReq(w http.ResponseWriter, r *http.R
 
 		// Don't do any checking if it's a benchmark
 		if _, ok := h.t.(*testing.B); ok {
-			resp := model.NewOkPushResponse()
-			jsonData, _ := json.Marshal(&resp)
-			fmt.Fprintln(w, jsonData)
+			h.printResponse(w, model.NewOkPushResponse())
 			return
 		}
 
@@ -1042,9 +1042,7 @@ func (h *testPushNotificationHandler) handleReq(w http.ResponseWriter, r *http.R
 		var err error
 		if r.URL.Path == "/api/v1/send_push" {
 			if err = json.NewDecoder(r.Body).Decode(&notification); err != nil {
-				resp := model.NewErrorPushResponse("fail")
-				jsonData, _ := json.Marshal(&resp)
-				fmt.Fprintln(w, jsonData)
+				h.printResponse(w, model.NewErrorPushResponse("fail"))
 				return
 			}
 			// We verify that messages are being sent in order per-device.
@@ -1057,9 +1055,7 @@ func (h *testPushNotificationHandler) handleReq(w http.ResponseWriter, r *http.R
 			}
 		} else {
 			if err = json.NewDecoder(r.Body).Decode(&notificationAck); err != nil {
-				resp := model.NewErrorPushResponse("fail")
-				jsonData, _ := json.Marshal(&resp)
-				fmt.Fprintln(w, jsonData)
+				h.printResponse(w, model.NewErrorPushResponse("fail"))
 				return
 			}
 		}
@@ -1086,9 +1082,13 @@ func (h *testPushNotificationHandler) handleReq(w http.ResponseWriter, r *http.R
 				resp = model.NewRemovePushResponse()
 			}
 		}
-		jsonData, _ := json.Marshal(&resp)
-		fmt.Fprintln(w, jsonData)
+		h.printResponse(w, resp)
 	}
+}
+
+func (h *testPushNotificationHandler) printResponse(w http.ResponseWriter, resp model.PushResponse) {
+	jsonData, _ := json.Marshal(&resp)
+	fmt.Fprintln(w, string(jsonData))
 }
 
 func (h *testPushNotificationHandler) numReqs() int {
@@ -1150,6 +1150,7 @@ func TestClearPushNotificationSync(t *testing.T) {
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
 	mockStore.On("Session").Return(&mockSessionStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
@@ -1174,7 +1175,7 @@ func TestClearPushNotificationSync(t *testing.T) {
 	mockStore.On("Preference").Return(&mockPreferenceStore)
 
 	mockThreadStore := mocks.ThreadStore{}
-	mockThreadStore.On("GetThreadsForUser", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.Anything).Return(&model.Threads{TotalUnreadMentions: 3}, nil)
+	mockThreadStore.On("GetTotalUnreadMentions", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.Anything).Return(int64(3), nil)
 	mockStore.On("Thread").Return(&mockThreadStore)
 
 	err = th.App.clearPushNotificationSync(sess1.Id, "user1", "channel1", "")
@@ -1223,6 +1224,7 @@ func TestUpdateMobileAppBadgeSync(t *testing.T) {
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
 	mockStore.On("Session").Return(&mockSessionStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
@@ -1237,6 +1239,33 @@ func TestUpdateMobileAppBadgeSync(t *testing.T) {
 	assert.Equal(t, model.PushTypeUpdateBadge, handler.notifications()[0].Type)
 	assert.Equal(t, 1, handler.notifications()[1].ContentAvailable)
 	assert.Equal(t, model.PushTypeUpdateBadge, handler.notifications()[1].Type)
+}
+
+func TestSendTestPushNotification(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	handler := &testPushNotificationHandler{t: t}
+	pushServer := httptest.NewServer(
+		http.HandlerFunc(handler.handleReq),
+	)
+	defer pushServer.Close()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+	})
+
+	// Per mock definition, first time will send remove, second time will send OK
+	result := th.App.SendTestPushNotification("platform:id")
+	assert.Equal(t, "false", result)
+	result = th.App.SendTestPushNotification("platform:id")
+	assert.Equal(t, "true", result)
+
+	// Server side verification.
+	// We verify that 2 requests have been sent, and also check the message contents.
+	require.Equal(t, 2, handler.numReqs())
+	assert.Equal(t, model.PushTypeTest, handler.notifications()[0].Type)
+	assert.Equal(t, model.PushTypeTest, handler.notifications()[1].Type)
 }
 
 func TestSendAckToPushProxy(t *testing.T) {
@@ -1262,6 +1291,7 @@ func TestSendAckToPushProxy(t *testing.T) {
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
@@ -1403,12 +1433,18 @@ func TestPushNotificationRace(t *testing.T) {
 		Return(&model.Preference{Value: "test"}, nil)
 	mockStore.On("Preference").Return(&mockPreferenceStore)
 	s := &Server{
-		configStore: memoryStore,
-		Store:       mockStore,
-		products:    make(map[string]Product),
-		Router:      mux.NewRouter(),
+		Store:     mockStore,
+		products:  make(map[string]Product),
+		Router:    mux.NewRouter(),
+		filestore: &fmocks.FileBackend{},
 	}
-	ch, err := NewChannels(s)
+	s.configStore = &configWrapper{srv: s, Store: memoryStore}
+	serviceMap := map[ServiceKey]interface{}{
+		ConfigKey:    s.configStore,
+		LicenseKey:   &licenseWrapper{s},
+		FilestoreKey: s.filestore,
+	}
+	ch, err := NewChannels(s, serviceMap)
 	require.NoError(t, err)
 	s.products["channels"] = ch
 
@@ -1499,6 +1535,7 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 	mockStore.On("System").Return(&mockSystemStore)
 	mockStore.On("Session").Return(&mockSessionStore)
 	mockStore.On("Preference").Return(&mockPreferenceStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	// create 50 users, each having 2 sessions.
 	type userSession struct {

@@ -21,8 +21,9 @@ type domainRenewal struct {
 	ck  certKey
 	key crypto.Signer
 
-	timerMu sync.Mutex
-	timer   *time.Timer
+	timerMu    sync.Mutex
+	timer      *time.Timer
+	timerClose chan struct{} // if non-nil, renew closes this channel (and nils out the timer fields) instead of running
 }
 
 // start starts a cert renewal timer at the time
@@ -38,16 +39,28 @@ func (dr *domainRenewal) start(exp time.Time) {
 	dr.timer = time.AfterFunc(dr.next(exp), dr.renew)
 }
 
-// stop stops the cert renewal timer.
-// If the timer is already stopped, calling stop is a noop.
+// stop stops the cert renewal timer and waits for any in-flight calls to renew
+// to complete. If the timer is already stopped, calling stop is a noop.
 func (dr *domainRenewal) stop() {
 	dr.timerMu.Lock()
 	defer dr.timerMu.Unlock()
-	if dr.timer == nil {
-		return
+	for {
+		if dr.timer == nil {
+			return
+		}
+		if dr.timer.Stop() {
+			dr.timer = nil
+			return
+		} else {
+			// dr.timer fired, and we acquired dr.timerMu before the renew callback did.
+			// (We know this because otherwise the renew callback would have reset dr.timer!)
+			timerClose := make(chan struct{})
+			dr.timerClose = timerClose
+			dr.timerMu.Unlock()
+			<-timerClose
+			dr.timerMu.Lock()
+		}
 	}
-	dr.timer.Stop()
-	dr.timer = nil
 }
 
 // renew is called periodically by a timer.
@@ -55,7 +68,9 @@ func (dr *domainRenewal) stop() {
 func (dr *domainRenewal) renew() {
 	dr.timerMu.Lock()
 	defer dr.timerMu.Unlock()
-	if dr.timer == nil {
+	if dr.timerClose != nil {
+		close(dr.timerClose)
+		dr.timer, dr.timerClose = nil, nil
 		return
 	}
 
@@ -67,8 +82,8 @@ func (dr *domainRenewal) renew() {
 		next = renewJitter / 2
 		next += time.Duration(pseudoRand.int63n(int64(next)))
 	}
-	dr.timer = time.AfterFunc(next, dr.renew)
 	testDidRenewLoop(next, err)
+	dr.timer = time.AfterFunc(next, dr.renew)
 }
 
 // updateState locks and replaces the relevant Manager.state item with the given

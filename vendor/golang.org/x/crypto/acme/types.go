@@ -305,14 +305,6 @@ type Directory struct {
 	ExternalAccountRequired bool
 }
 
-// rfcCompliant reports whether the ACME server implements RFC 8555.
-// Note that some servers may have incomplete RFC implementation
-// even if the returned value is true.
-// If rfcCompliant reports false, the server most likely implements draft-02.
-func (d *Directory) rfcCompliant() bool {
-	return d.OrderURL != ""
-}
-
 // Order represents a client's request for a certificate.
 // It tracks the request flow progress through to issuance.
 type Order struct {

@@ -31,6 +31,7 @@ type Params struct {
 	TokenId                   string
 	ThreadId                  string
 	Timestamp                 int64
+	TimeRange                 int64
 	ChannelId                 string
 	PostId                    string
 	PolicyId                  string
@@ -87,6 +88,8 @@ type Params struct {
 	WarnMetricId              string
 	ExportName                string
 	ExcludePolicyConstrained  bool
+	GroupSource               model.GroupSource
+	FilterHasMember           string
 
 	// Cloud
 	InvoiceId string
@@ -252,6 +255,12 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.Timestamp = val
 	}
 
+	if val, err := model.GetStartUnixMilliForTimeRange(query.Get("time_range")); err != nil {
+		params.TimeRange = 0
+	} else {
+		params.TimeRange = val
+	}
+
 	if val, err := strconv.ParseBool(query.Get("permanent")); err == nil {
 		params.Permanent = val
 	}
@@ -354,6 +363,19 @@ func ParamsFromRequest(r *http.Request) *Params {
 	if val, err := strconv.ParseBool(query.Get("exclude_policy_constrained")); err == nil {
 		params.ExcludePolicyConstrained = val
 	}
+
+	if val := query.Get("group_source"); val != "" {
+		switch val {
+		case "custom":
+			params.GroupSource = model.GroupSourceCustom
+		case "ldap":
+			params.GroupSource = model.GroupSourceLdap
+		default:
+			params.GroupSource = model.GroupSourceLdap
+		}
+	}
+
+	params.FilterHasMember = query.Get("filter_has_member")
 
 	return params
 }

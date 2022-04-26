@@ -20,20 +20,7 @@ type SqlComplianceStore struct {
 }
 
 func newSqlComplianceStore(sqlStore *SqlStore) store.ComplianceStore {
-	s := &SqlComplianceStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Compliance{}, "Compliances").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("UserId").SetMaxSize(26)
-		table.ColMap("Status").SetMaxSize(64)
-		table.ColMap("Desc").SetMaxSize(512)
-		table.ColMap("Type").SetMaxSize(64)
-		table.ColMap("Keywords").SetMaxSize(512)
-		table.ColMap("Emails").SetMaxSize(1024)
-	}
-
-	return s
+	return &SqlComplianceStore{sqlStore}
 }
 
 func (s SqlComplianceStore) Save(compliance *model.Compliance) (*model.Compliance, error) {

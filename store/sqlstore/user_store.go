@@ -56,27 +56,6 @@ func newSqlUserStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 		From("Users u").
 		LeftJoin("Bots b ON ( b.UserId = u.Id )")
 
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.User{}, "Users").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("Username").SetMaxSize(64).SetUnique(true)
-		table.ColMap("Password").SetMaxSize(128)
-		table.ColMap("AuthData").SetMaxSize(128).SetUnique(true)
-		table.ColMap("AuthService").SetMaxSize(32)
-		table.ColMap("Email").SetMaxSize(128).SetUnique(true)
-		table.ColMap("Nickname").SetMaxSize(64)
-		table.ColMap("FirstName").SetMaxSize(64)
-		table.ColMap("LastName").SetMaxSize(64)
-		table.ColMap("Roles").SetMaxSize(model.UserRolesMaxLength)
-		table.ColMap("Props").SetDataType(sqlStore.jsonDataType())
-		table.ColMap("NotifyProps").SetDataType(sqlStore.jsonDataType())
-		table.ColMap("Locale").SetMaxSize(5)
-		table.ColMap("MfaSecret").SetMaxSize(128)
-		table.ColMap("RemoteId").SetMaxSize(26)
-		table.ColMap("Position").SetMaxSize(128)
-		table.ColMap("Timezone").SetDataType(sqlStore.jsonDataType())
-	}
-
 	return us
 }
 
@@ -92,6 +71,7 @@ func (us SqlUserStore) insert(user *model.User) (sql.Result, error) {
 			:Props, :NotifyProps, :LastPasswordUpdate, :LastPictureUpdate, :FailedAttempts,
 			:Locale, :Timezone, :MfaActive, :MfaSecret, :RemoteId)`
 
+	user.Props = wrapBinaryParamStringMap(us.IsBinaryParamEnabled(), user.Props)
 	return us.GetMasterX().NamedExec(query, user)
 }
 
@@ -222,6 +202,7 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 				MfaSecret=:MfaSecret, RemoteId=:RemoteId
 			WHERE Id=:Id`
 
+	user.Props = wrapBinaryParamStringMap(us.IsBinaryParamEnabled(), user.Props)
 	res, err := us.GetMasterX().NamedExec(query, user)
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Email", "users_email_key", "idx_users_email_unique"}) {
@@ -243,13 +224,21 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 
 	user.Sanitize(map[string]bool{})
 	oldUser.Sanitize(map[string]bool{})
-	return &model.UserUpdate{New: user, Old: &oldUser}, nil
+	return &model.UserUpdate{New: user.DeepCopy(), Old: &oldUser}, nil
 }
 
 func (us SqlUserStore) UpdateNotifyProps(userID string, props map[string]string) error {
+	buf, err := json.Marshal(props)
+	if err != nil {
+		return errors.Wrap(err, "failed marshalling session props")
+	}
+	if us.IsBinaryParamEnabled() {
+		buf = AppendBinaryFlag(buf)
+	}
+
 	if _, err := us.GetMasterX().Exec(`UPDATE Users
 		SET NotifyProps = ?
-		WHERE Id = ?`, model.MapToJSON(props), userID); err != nil {
+		WHERE Id = ?`, buf, userID); err != nil {
 		return errors.Wrapf(err, "failed to update User with userId=%s", userID)
 	}
 
@@ -411,7 +400,7 @@ func (us SqlUserStore) GetMany(ctx context.Context, ids []string) ([]*model.User
 	}
 
 	users := []*model.User{}
-	if _, err := us.SqlStore.DBFromContext(ctx).Select(&users, queryString, args...); err != nil {
+	if err := us.SqlStore.DBXFromContext(ctx).Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "users_get_many_select")
 	}
 
@@ -424,7 +413,7 @@ func (us SqlUserStore) Get(ctx context.Context, id string) (*model.User, error) 
 	if err != nil {
 		return nil, errors.Wrap(err, "users_get_tosql")
 	}
-	row := us.SqlStore.DBFromContext(ctx).Db.QueryRow(queryString, args...)
+	row := us.SqlStore.DBXFromContext(ctx).QueryRow(queryString, args...)
 
 	var user model.User
 	var props, notifyProps, timezone []byte
@@ -795,7 +784,7 @@ func (us SqlUserStore) GetAllProfilesInChannel(ctx context.Context, channelID st
 	}
 
 	users := []*model.User{}
-	rows, err := us.SqlStore.DBFromContext(ctx).Db.Query(queryString, args...)
+	rows, err := us.SqlStore.DBXFromContext(ctx).Query(queryString, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
@@ -1019,7 +1008,7 @@ func (us SqlUserStore) GetProfileByIds(ctx context.Context, userIds []string, op
 		return nil, errors.Wrap(err, "get_profile_by_ids_tosql")
 	}
 
-	if _, err := us.SqlStore.DBFromContext(ctx).Select(&users, queryString, args...); err != nil {
+	if err := us.SqlStore.DBXFromContext(ctx).Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
 
@@ -1459,26 +1448,21 @@ func (us SqlUserStore) SearchInChannel(channelId string, term string, options *m
 
 func (us SqlUserStore) SearchInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 	query := us.usersQuery.
-		Join("GroupMembers gm ON ( gm.UserId = u.Id AND gm.GroupId = ? )", groupID).
+		Join("GroupMembers gm ON ( gm.UserId = u.Id AND gm.GroupId = ? AND gm.DeleteAt = 0 )", groupID).
 		OrderBy("Username ASC").
 		Limit(uint64(options.Limit))
 
 	return us.performSearch(query, term, options)
 }
 
-var spaceFulltextSearchChar = []string{
-	"<",
-	">",
-	"+",
-	"-",
-	"(",
-	")",
-	"~",
-	":",
-	"*",
-	"\"",
-	"!",
-	"@",
+func (us SqlUserStore) SearchNotInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
+	query := us.usersQuery.
+		LeftJoin("GroupMembers gm ON ( gm.UserId = u.Id AND gm.GroupId = ? )", groupID).
+		Where("gm.UserId IS NULL").
+		OrderBy("Username ASC").
+		Limit(uint64(options.Limit))
+
+	return us.performSearch(query, term, options)
 }
 
 func generateSearchQuery(query sq.SelectBuilder, terms []string, fields []string, isPostgreSQL bool) sq.SelectBuilder {
@@ -1697,15 +1681,20 @@ func (us SqlUserStore) InferSystemInstallDate() (int64, error) {
 	return createAt, nil
 }
 
-func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit int) ([]*model.UserForIndexing, error) {
+func (us SqlUserStore) GetUsersBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.UserForIndexing, error) {
 	users := []*model.User{}
 	usersQuery, args, _ := us.usersQuery.
-		Where(sq.GtOrEq{"u.CreateAt": startTime}).
-		Where(sq.Lt{"u.CreateAt": endTime}).
-		OrderBy("u.CreateAt").
+		Where(sq.Or{
+			sq.Gt{"u.CreateAt": startTime},
+			sq.And{
+				sq.Eq{"u.CreateAt": startTime},
+				sq.Gt{"u.Id": startFileID},
+			},
+		}).
+		OrderBy("u.CreateAt ASC, u.Id ASC").
 		Limit(uint64(limit)).
 		ToSql()
-	_, err := us.GetSearchReplica().Select(&users, usersQuery, args...)
+	err := us.GetSearchReplicaX().Select(&users, usersQuery, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
@@ -1715,7 +1704,7 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 		userIds = append(userIds, user.Id)
 	}
 
-	var channelMembers []*model.ChannelMember
+	channelMembers := []*model.ChannelMember{}
 	channelMembersQuery, args, _ := us.getQueryBuilder().
 		Select(`
 				cm.ChannelId,
@@ -1735,18 +1724,18 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 		Join("Channels c ON cm.ChannelId = c.Id").
 		Where(sq.Eq{"c.Type": model.ChannelTypeOpen, "cm.UserId": userIds}).
 		ToSql()
-	_, err = us.GetSearchReplica().Select(&channelMembers, channelMembersQuery, args...)
+	err = us.GetSearchReplicaX().Select(&channelMembers, channelMembersQuery, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find ChannelMembers")
 	}
 
-	var teamMembers []*model.TeamMember
+	teamMembers := []*model.TeamMember{}
 	teamMembersQuery, args, _ := us.getQueryBuilder().
 		Select("TeamId, UserId, Roles, DeleteAt, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest, SchemeUser, SchemeAdmin").
 		From("TeamMembers").
 		Where(sq.Eq{"UserId": userIds, "DeleteAt": 0}).
 		ToSql()
-	_, err = us.GetSearchReplica().Select(&teamMembers, teamMembersQuery, args...)
+	err = us.GetSearchReplicaX().Select(&teamMembers, teamMembersQuery, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find TeamMembers")
 	}
@@ -2091,15 +2080,17 @@ func (us SqlUserStore) GetUsersWithInvalidEmails(page int, perPage int, restrict
 			query = query.Where("u.Email NOT LIKE LOWER(?)", wildcardSearchTerm(d))
 		}
 	}
+
 	query = query.Offset(uint64(page * perPage)).Limit(uint64(perPage))
 
 	queryString, args, err := query.ToSql()
+
 	if err != nil {
 		return nil, errors.Wrap(err, "users_get_many_tosql")
 	}
 
-	var users []*model.User
-	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+	users := []*model.User{}
+	if err := us.GetReplicaX().Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "users_get_many_select")
 	}
 

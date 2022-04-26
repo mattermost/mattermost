@@ -52,6 +52,7 @@ func checkPreference(t *testing.T, a *App, userID string, category string, name 
 	require.Truef(t, found, "Did not find preference for user %v in category %v with name %v", userID, category, name)
 }
 
+//nolint:unused
 func checkNotifyProp(t *testing.T, user *model.User, key string, value string) {
 	actual, ok := user.NotifyProps[key]
 	require.True(t, ok, "Notify prop %v not found. User: %v", key, user.Id)
@@ -489,7 +490,7 @@ func TestImportBulkImportWithAttachments(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = model.NewInt(1000) })
 
-	appErr, _ := th.App.BulkImportWithPath(th.Context, jsonFile, importZipReader, false, 1, ExportDataDir)
+	appErr, _ := th.App.BulkImportWithPath(th.Context, jsonFile, importZipReader, false, 1, model.ExportDataDir)
 	require.Nil(t, appErr)
 
 	adminUser, appErr := th.App.GetUserByUsername("sysadmin")

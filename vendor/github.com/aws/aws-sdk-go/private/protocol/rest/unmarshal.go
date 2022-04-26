@@ -204,6 +204,13 @@ func unmarshalHeader(v reflect.Value, header string, tag reflect.StructTag) erro
 
 	switch v.Interface().(type) {
 	case *string:
+		if tag.Get("suppressedJSONValue") == "true" && tag.Get("location") == "header" {
+			b, err := base64.StdEncoding.DecodeString(header)
+			if err != nil {
+				return fmt.Errorf("failed to decode JSONValue, %v", err)
+			}
+			header = string(b)
+		}
 		v.Set(reflect.ValueOf(&header))
 	case []byte:
 		b, err := base64.StdEncoding.DecodeString(header)

@@ -19,18 +19,7 @@ type SqlCommandWebhookStore struct {
 }
 
 func newSqlCommandWebhookStore(sqlStore *SqlStore) store.CommandWebhookStore {
-	s := &SqlCommandWebhookStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		tablec := db.AddTableWithName(model.CommandWebhook{}, "CommandWebhooks").SetKeys(false, "Id")
-		tablec.ColMap("Id").SetMaxSize(26)
-		tablec.ColMap("CommandId").SetMaxSize(26)
-		tablec.ColMap("UserId").SetMaxSize(26)
-		tablec.ColMap("ChannelId").SetMaxSize(26)
-		tablec.ColMap("RootId").SetMaxSize(26)
-	}
-
-	return s
+	return &SqlCommandWebhookStore{sqlStore}
 }
 
 func (s SqlCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.CommandWebhook, error) {

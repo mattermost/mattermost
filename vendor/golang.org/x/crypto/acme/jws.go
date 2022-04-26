@@ -51,6 +51,9 @@ type jsonWebSignature struct {
 //
 // See https://tools.ietf.org/html/rfc7515#section-7.
 func jwsEncodeJSON(claimset interface{}, key crypto.Signer, kid KeyID, nonce, url string) ([]byte, error) {
+	if key == nil {
+		return nil, errors.New("nil key")
+	}
 	alg, sha := jwsHasher(key.Public())
 	if alg == "" || !sha.Available() {
 		return nil, ErrUnsupportedKey

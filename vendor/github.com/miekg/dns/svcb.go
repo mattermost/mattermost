@@ -13,16 +13,17 @@ import (
 // SVCBKey is the type of the keys used in the SVCB RR.
 type SVCBKey uint16
 
-// Keys defined in draft-ietf-dnsop-svcb-https-01 Section 12.3.2.
+// Keys defined in draft-ietf-dnsop-svcb-https-08 Section 14.3.2.
 const (
-	SVCB_MANDATORY       SVCBKey = 0
-	SVCB_ALPN            SVCBKey = 1
-	SVCB_NO_DEFAULT_ALPN SVCBKey = 2
-	SVCB_PORT            SVCBKey = 3
-	SVCB_IPV4HINT        SVCBKey = 4
-	SVCB_ECHCONFIG       SVCBKey = 5
-	SVCB_IPV6HINT        SVCBKey = 6
-	svcb_RESERVED        SVCBKey = 65535
+	SVCB_MANDATORY SVCBKey = iota
+	SVCB_ALPN
+	SVCB_NO_DEFAULT_ALPN
+	SVCB_PORT
+	SVCB_IPV4HINT
+	SVCB_ECHCONFIG
+	SVCB_IPV6HINT
+
+	svcb_RESERVED SVCBKey = 65535
 )
 
 var svcbKeyToStringMap = map[SVCBKey]string{
@@ -31,7 +32,7 @@ var svcbKeyToStringMap = map[SVCBKey]string{
 	SVCB_NO_DEFAULT_ALPN: "no-default-alpn",
 	SVCB_PORT:            "port",
 	SVCB_IPV4HINT:        "ipv4hint",
-	SVCB_ECHCONFIG:       "echconfig",
+	SVCB_ECHCONFIG:       "ech",
 	SVCB_IPV6HINT:        "ipv6hint",
 }
 
@@ -167,10 +168,14 @@ func (rr *SVCB) parse(c *zlexer, o string) *ParseError {
 		}
 		l, _ = c.Next()
 	}
+
+	// "In AliasMode, records SHOULD NOT include any SvcParams, and recipients MUST
+	// ignore any SvcParams that are present."
+	// However, we don't check rr.Priority == 0 && len(xs) > 0 here
+	// It is the responsibility of the user of the library to check this.
+	// This is to encourage the fixing of the source of this error.
+
 	rr.Value = xs
-	if rr.Priority == 0 && len(xs) > 0 {
-		return &ParseError{l.token, "SVCB aliasform can't have values", l}
-	}
 	return nil
 }
 
@@ -200,12 +205,12 @@ func makeSVCBKeyValue(key SVCBKey) SVCBKeyValue {
 	}
 }
 
-// SVCB RR. See RFC xxxx (https://tools.ietf.org/html/draft-ietf-dnsop-svcb-https-01).
+// SVCB RR. See RFC xxxx (https://tools.ietf.org/html/draft-ietf-dnsop-svcb-https-08).
 type SVCB struct {
 	Hdr      RR_Header
-	Priority uint16
+	Priority uint16         // If zero, Value must be empty or discarded by the user of this library
 	Target   string         `dns:"domain-name"`
-	Value    []SVCBKeyValue `dns:"pairs"` // Value must be empty if Priority is zero.
+	Value    []SVCBKeyValue `dns:"pairs"`
 }
 
 // HTTPS RR. Everything valid for SVCB applies to HTTPS as well.
@@ -235,15 +240,29 @@ type SVCBKeyValue interface {
 }
 
 // SVCBMandatory pair adds to required keys that must be interpreted for the RR
-// to be functional.
+// to be functional. If ignored, the whole RRSet must be ignored.
+// "port" and "no-default-alpn" are mandatory by default if present,
+// so they shouldn't be included here.
+//
+// It is incumbent upon the user of this library to reject the RRSet if
+// or avoid constructing such an RRSet that:
+// - "mandatory" is included as one of the keys of mandatory
+// - no key is listed multiple times in mandatory
+// - all keys listed in mandatory are present
+// - escape sequences are not used in mandatory
+// - mandatory, when present, lists at least one key
+//
 // Basic use pattern for creating a mandatory option:
 //
 //	s := &dns.SVCB{Hdr: dns.RR_Header{Name: ".", Rrtype: dns.TypeSVCB, Class: dns.ClassINET}}
 //	e := new(dns.SVCBMandatory)
-//	e.Code = []uint16{65403}
+//	e.Code = []uint16{dns.SVCB_ALPN}
 //	s.Value = append(s.Value, e)
+//	t := new(dns.SVCBAlpn)
+//	t.Alpn = []string{"xmpp-client"}
+//	s.Value = append(s.Value, t)
 type SVCBMandatory struct {
-	Code []SVCBKey // Must not include mandatory
+	Code []SVCBKey
 }
 
 func (*SVCBMandatory) Key() SVCBKey { return SVCB_MANDATORY }
@@ -302,7 +321,8 @@ func (s *SVCBMandatory) copy() SVCBKeyValue {
 }
 
 // SVCBAlpn pair is used to list supported connection protocols.
-// Protocol ids can be found at:
+// The user of this library must ensure that at least one protocol is listed when alpn is present.
+// Protocol IDs can be found at:
 // https://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xhtml#alpn-protocol-ids
 // Basic use pattern for creating an alpn option:
 //
@@ -370,9 +390,13 @@ func (s *SVCBAlpn) copy() SVCBKeyValue {
 }
 
 // SVCBNoDefaultAlpn pair signifies no support for default connection protocols.
+// Should be used in conjunction with alpn.
 // Basic use pattern for creating a no-default-alpn option:
 //
 //	s := &dns.SVCB{Hdr: dns.RR_Header{Name: ".", Rrtype: dns.TypeSVCB, Class: dns.ClassINET}}
+//	t := new(dns.SVCBAlpn)
+//	t.Alpn = []string{"xmpp-client"}
+//	s.Value = append(s.Value, t)
 //	e := new(dns.SVCBNoDefaultAlpn)
 //	s.Value = append(s.Value, e)
 type SVCBNoDefaultAlpn struct{}
@@ -385,14 +409,14 @@ func (*SVCBNoDefaultAlpn) len() int              { return 0 }
 
 func (*SVCBNoDefaultAlpn) unpack(b []byte) error {
 	if len(b) != 0 {
-		return errors.New("dns: svcbnodefaultalpn: no_default_alpn must have no value")
+		return errors.New("dns: svcbnodefaultalpn: no-default-alpn must have no value")
 	}
 	return nil
 }
 
 func (*SVCBNoDefaultAlpn) parse(b string) error {
 	if b != "" {
-		return errors.New("dns: svcbnodefaultalpn: no_default_alpn must have no value")
+		return errors.New("dns: svcbnodefaultalpn: no-default-alpn must have no value")
 	}
 	return nil
 }
@@ -523,7 +547,7 @@ func (s *SVCBIPv4Hint) copy() SVCBKeyValue {
 }
 
 // SVCBECHConfig pair contains the ECHConfig structure defined in draft-ietf-tls-esni [RFC xxxx].
-// Basic use pattern for creating an echconfig option:
+// Basic use pattern for creating an ech option:
 //
 //	h := new(dns.HTTPS)
 //	h.Hdr = dns.RR_Header{Name: ".", Rrtype: dns.TypeHTTPS, Class: dns.ClassINET}
@@ -531,7 +555,7 @@ func (s *SVCBIPv4Hint) copy() SVCBKeyValue {
 //	e.ECH = []byte{0xfe, 0x08, ...}
 //	h.Value = append(h.Value, e)
 type SVCBECHConfig struct {
-	ECH []byte
+	ECH []byte // Specifically ECHConfigList including the redundant length prefix
 }
 
 func (*SVCBECHConfig) Key() SVCBKey     { return SVCB_ECHCONFIG }
@@ -555,7 +579,7 @@ func (s *SVCBECHConfig) unpack(b []byte) error {
 func (s *SVCBECHConfig) parse(b string) error {
 	x, err := fromBase64([]byte(b))
 	if err != nil {
-		return errors.New("dns: svcbechconfig: bad base64 echconfig")
+		return errors.New("dns: svcbech: bad base64 ech")
 	}
 	s.ECH = x
 	return nil
@@ -618,15 +642,15 @@ func (s *SVCBIPv6Hint) String() string {
 }
 
 func (s *SVCBIPv6Hint) parse(b string) error {
-	if strings.Contains(b, ".") {
-		return errors.New("dns: svcbipv6hint: expected ipv6, got ipv4")
-	}
 	str := strings.Split(b, ",")
 	dst := make([]net.IP, len(str))
 	for i, e := range str {
 		ip := net.ParseIP(e)
 		if ip == nil {
 			return errors.New("dns: svcbipv6hint: bad ip")
+		}
+		if ip.To4() != nil {
+			return errors.New("dns: svcbipv6hint: expected ipv6, got ipv4-mapped-ipv6")
 		}
 		dst[i] = ip
 	}

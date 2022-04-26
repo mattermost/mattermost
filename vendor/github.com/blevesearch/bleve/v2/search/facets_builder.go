@@ -127,6 +127,9 @@ type TermFacets struct {
 }
 
 func (tf *TermFacets) Terms() []*TermFacet {
+	if tf == nil {
+		return []*TermFacet{}
+	}
 	return tf.termFacets
 }
 
