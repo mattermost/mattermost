@@ -232,7 +232,7 @@ func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int
 // a) those created by anyone in private channels in the given user's membership graph on the given team, and
 // b) those created by anyone in public channels on the given team.
 func (s *SqlReactionStore) GetTopForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopReactionList, error) {
-	var reactions []*model.TopReaction
+	reactions := make([]*model.TopReaction, 0)
 
 	query := `
 		SELECT
@@ -241,34 +241,41 @@ func (s *SqlReactionStore) GetTopForTeamSince(teamID string, userID string, sinc
 		FROM ((
 				SELECT
 					EmojiName,
-					count(EmojiName) AS EmojiCount
+					count(EmojiName) AS EmojiCount,
+					Reactions.DeleteAt AS DeleteAt,
+					Reactions.CreateAt AS CreateAt
 				FROM
 					ChannelMembers
 					INNER JOIN Channels ON ChannelMembers.ChannelId = Channels.Id
 					INNER JOIN Posts ON Channels.Id = Posts.ChannelId
 					INNER JOIN Reactions ON Posts.Id = Reactions.PostId
 				WHERE
-					Reactions.DeleteAt = 0
-					AND ChannelMembers.UserId = ?
+					ChannelMembers.UserId = ?
 					AND Channels.Type = 'P'
 					AND Channels.TeamId = ?
-					AND Reactions.CreateAt > ?
 				GROUP BY
-					Reactions.EmojiName)
+					Reactions.EmojiName,
+					Reactions.DeleteAt,
+					Reactions.CreateAt)
 			UNION ALL (
 				SELECT
 					EmojiName,
-					count(EmojiName) AS EmojiCount
+					count(EmojiName) AS EmojiCount,
+					Reactions.DeleteAt AS DeleteAt,
+					Reactions.CreateAt AS CreateAt
 				FROM
 					Reactions
 					INNER JOIN Posts ON Reactions.PostId = Posts.Id
 					INNER JOIN PublicChannels ON Posts.ChannelId = PublicChannels.Id
 				WHERE
-					Reactions.DeleteAt = 0
-					AND PublicChannels.TeamId = ?
-					AND Reactions.CreateAt > ?
+					PublicChannels.TeamId = ?
 				GROUP BY
-					Reactions.EmojiName)) AS A
+					Reactions.EmojiName,
+					Reactions.DeleteAt,
+					Reactions.CreateAt)) AS A
+		WHERE
+			DeleteAt = 0
+			AND CreateAt > ?
 		GROUP BY
 			EmojiName
 		ORDER BY
@@ -277,18 +284,18 @@ func (s *SqlReactionStore) GetTopForTeamSince(teamID string, userID string, sinc
 		LIMIT ?
 		OFFSET ?`
 
-	if err := s.GetReplicaX().Select(&reactions, query, userID, teamID, since, teamID, since, limit+1, offset); err != nil {
+	if err := s.GetReplicaX().Select(&reactions, query, userID, teamID, teamID, since, limit+1, offset); err != nil {
 		return nil, errors.Wrap(err, "failed to get top Reactions")
 	}
 
-	return model.GetTopReactionListWithRankAndPagination(reactions, limit, offset), nil
+	return model.GetTopReactionListWithPagination(reactions, limit), nil
 }
 
 // GetTopForUserSince returns the instance counts of the following Reactions sets:
 // a) those created by the given user in any channel type on the given team (across the workspace if no team is given), and
 // b) those created by the given user in DM or group channels.
 func (s *SqlReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopReactionList, error) {
-	var reactions []*model.TopReaction
+	reactions := make([]*model.TopReaction, 0)
 	var args []interface{}
 	var query string
 
@@ -339,7 +346,7 @@ func (s *SqlReactionStore) GetTopForUserSince(userID string, teamID string, sinc
 		return nil, errors.Wrap(err, "failed to get top Reactions")
 	}
 
-	return model.GetTopReactionListWithRankAndPagination(reactions, limit, offset), nil
+	return model.GetTopReactionListWithPagination(reactions, limit), nil
 }
 
 func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *sqlxTxWrapper, reaction *model.Reaction) error {
