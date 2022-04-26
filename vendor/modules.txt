@@ -394,7 +394,7 @@ github.com/mattermost/go-i18n/i18n
 github.com/mattermost/go-i18n/i18n/bundle
 github.com/mattermost/go-i18n/i18n/language
 github.com/mattermost/go-i18n/i18n/translation
-# github.com/mattermost/gosaml2 v0.3.3
+# github.com/mattermost/gosaml2 v0.8.0
 ## explicit
 github.com/mattermost/gosaml2
 github.com/mattermost/gosaml2/types
@@ -426,6 +426,8 @@ github.com/mattermost/morph/sources/file
 github.com/mattermost/rsc/gf256
 github.com/mattermost/rsc/qr
 github.com/mattermost/rsc/qr/coding
+# github.com/mattermost/xml-roundtrip-validator v0.1.0
+github.com/mattermost/xml-roundtrip-validator
 # github.com/mattn/go-colorable v0.1.12
 ## explicit
 github.com/mattn/go-colorable
