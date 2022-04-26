@@ -631,7 +631,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "{{.Channel}} 채널을 찾을 수 없습니다. 채널을 식별하려면 [채널 핸들] (https://about.mattermost.com/default-channel-handle-documentation) 을 사용하세요."
+    "translation": "{{.Channel}} 채널을 찾을 수 없습니다. 채널을 식별하려면 [채널 핸들] (https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) 을 사용하세요."
   },
   {
     "id": "api.command_invite.desc",
@@ -775,7 +775,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "채널{{.Channel}} 을(를) 찾을 수 없습니다. 채널을 식별하려면[채널 핸들](https://about.mattermost.com/default-channel-handle-documentation) 을 사용하십시오."
+    "translation": "채널{{.Channel}} 을(를) 찾을 수 없습니다. 채널을 식별하려면[채널 핸들](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) 을 사용하십시오."
   },
   {
     "id": "api.command_mute.hint",
@@ -787,7 +787,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "지정한 채널을 찾을 수 없습니다. 채널을 식별하려면[채널 핸들](https://about.mattermost.com/default-channel-handle-documentation)을 사용하십시오."
+    "translation": "지정한 채널을 찾을 수 없습니다. 채널을 식별하려면[채널 핸들](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)을 사용하십시오."
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -2484,10 +2484,6 @@
     "translation": "Channel display_name is not within permitted length constraints."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Missing required channel property: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "Channel header is too long."
   },
@@ -3536,10 +3532,6 @@
     "translation": "잘못된 유저이름입니다."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "이름은 반드시 2글자 이상의 영문 또는 숫자여야 합니다."
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time"
   },
@@ -3754,10 +3746,6 @@
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
     "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1"
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Elasticsearch Bulk Indexing Time Window must be at least 1 second."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
@@ -4616,18 +4604,6 @@
     "translation": "Missing TO address."
   },
   {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Unable to convert StringArray to *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Unable to convert StringInterface to *string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Unable to convert StringMap to *string"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot does not exist"
   },
@@ -4970,10 +4946,6 @@
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
     "translation": "Bleve의 EnableAutocomplete 설정을 활성화하려면 Bleve의 EnableIndexing 설정도 활성화되어야 합니다"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Bleve 벌크 색인 간격은 1초 이상이어야 합니다."
   },
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
@@ -6824,10 +6796,6 @@
     "translation": "채널 구성원을 제거할 수 없습니다."
   },
   {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "멘션 수를 증가시키지 못했습니다."
-  },
-  {
     "id": "app.channel.get_public_channels.get.app_error",
     "translation": "공개 채널을 가져올 수 없습니다."
   },
@@ -7144,10 +7112,6 @@
     "translation": "더 알아보기"
   },
   {
-    "id": "api.cloud.get_subscription.error",
-    "translation": "클라우드 구독 내역을 가져오는 도중 에러가 발생했습니다."
-  },
-  {
     "id": "api.command_custom_status.success",
     "translation": "상태가 “{{.EmojiName}} {{.StatusMessage}}”로 설정되었습니다. 채널 사이드바 상단의 상태 팝업에서 상태를 변경할 수 있습니다."
   },
@@ -7174,10 +7138,6 @@
   {
     "id": "api.command_custom_status.app_error",
     "translation": "상태 설정 중 에러가 발생했습니다."
-  },
-  {
-    "id": "api.cloud.get_admins_emails.error",
-    "translation": "시스템 관리자 이메일을 가져오는 도중 에러가 발생했습니다."
   },
   {
     "id": "api.back_to_app",

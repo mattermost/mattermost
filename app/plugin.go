@@ -823,7 +823,7 @@ func (ch *Channels) notifyPluginEnabled(manifest *model.Manifest) error {
 }
 
 func (ch *Channels) getPluginsFromFolder() (map[string]*pluginSignaturePath, *model.AppError) {
-	fileStorePaths, appErr := ch.srv.listDirectory(fileStorePluginFolder)
+	fileStorePaths, appErr := ch.srv.listDirectory(fileStorePluginFolder, false)
 	if appErr != nil {
 		return nil, model.NewAppError("getPluginsFromDir", "app.plugin.sync.list_filestore.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
@@ -65,6 +66,13 @@ func ConfigStore(configStore *config.Store) Option {
 	}
 }
 
+func SetFileStore(filestore filestore.FileBackend) Option {
+	return func(s *Server) error {
+		s.filestore = filestore
+		return nil
+	}
+}
+
 func RunEssentialJobs(s *Server) error {
 	s.runEssentialJobs = true
 
@@ -96,7 +104,7 @@ func SetLogger(logger *mlog.Logger) Option {
 	}
 }
 
-func SkipPostInitializiation() Option {
+func SkipPostInitialization() Option {
 	return func(s *Server) error {
 		s.skipPostInit = true
 

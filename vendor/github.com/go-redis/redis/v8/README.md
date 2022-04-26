@@ -1,19 +1,16 @@
-<p align="center">
-  <a href="https://uptrace.dev/?utm_source=gh-redis&utm_campaign=gh-redis-banner1">
-    <img src="https://raw.githubusercontent.com/uptrace/roadmap/master/banner1.png" alt="All-in-one tool to optimize performance and monitor errors & logs">
-  </a>
-</p>
-
-# Redis client for Golang
+# Redis client for Go
 
 ![build workflow](https://github.com/go-redis/redis/actions/workflows/build.yml/badge.svg)
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/go-redis/redis/v8)](https://pkg.go.dev/github.com/go-redis/redis/v8?tab=doc)
 [![Documentation](https://img.shields.io/badge/redis-documentation-informational)](https://redis.uptrace.dev/)
-[![Chat](https://discordapp.com/api/guilds/752070105847955518/widget.png)](https://discord.gg/rWtp5Aj)
 
-- To ask questions, join [Discord](https://discord.gg/rWtp5Aj) or use
-  [Discussions](https://github.com/go-redis/redis/discussions).
-- [Newsletter](https://blog.uptrace.dev/pages/newsletter.html) to get latest updates.
+go-redis is brought to you by :star: [**uptrace/uptrace**](https://github.com/uptrace/uptrace).
+Uptrace is an open source and blazingly fast **distributed tracing** backend powered by
+OpenTelemetry and ClickHouse. Give it a star as well!
+
+## Resources
+
+- [Discussions](https://github.com/go-redis/redis/discussions)
 - [Documentation](https://redis.uptrace.dev)
 - [Reference](https://pkg.go.dev/github.com/go-redis/redis/v8?tab=doc)
 - [Examples](https://pkg.go.dev/github.com/go-redis/redis/v8?tab=doc#pkg-examples)
@@ -22,15 +19,14 @@
 Other projects you may like:
 
 - [Bun](https://bun.uptrace.dev) - fast and simple SQL client for PostgreSQL, MySQL, and SQLite.
-- [treemux](https://github.com/vmihailenco/treemux) - high-speed, flexible, tree-based HTTP router
-  for Go.
+- [BunRouter](https://bunrouter.uptrace.dev/) - fast and flexible HTTP router for Go.
 
 ## Ecosystem
 
-- [Redis Mock](https://github.com/go-redis/redismock).
-- [Distributed Locks](https://github.com/bsm/redislock).
-- [Redis Cache](https://github.com/go-redis/cache).
-- [Rate limiting](https://github.com/go-redis/redis_rate).
+- [Redis Mock](https://github.com/go-redis/redismock)
+- [Distributed Locks](https://github.com/bsm/redislock)
+- [Redis Cache](https://github.com/go-redis/cache)
+- [Rate limiting](https://github.com/go-redis/redis_rate)
 
 ## Features
 
@@ -39,16 +35,16 @@ Other projects you may like:
   [circuit breaker](https://en.wikipedia.org/wiki/Circuit_breaker_design_pattern) support.
 - [Pub/Sub](https://pkg.go.dev/github.com/go-redis/redis/v8?tab=doc#PubSub).
 - [Transactions](https://pkg.go.dev/github.com/go-redis/redis/v8?tab=doc#example-Client-TxPipeline).
-- [Pipeline](https://pkg.go.dev/github.com/go-redis/redis/v8?tab=doc#example-Client-Pipeline) and
-  [TxPipeline](https://pkg.go.dev/github.com/go-redis/redis/v8?tab=doc#example-Client-TxPipeline).
+- [Pipeline](https://pkg.go.dev/github.com/go-redis/redis/v8?tab=doc#example-Client.Pipeline) and
+  [TxPipeline](https://pkg.go.dev/github.com/go-redis/redis/v8?tab=doc#example-Client.TxPipeline).
 - [Scripting](https://pkg.go.dev/github.com/go-redis/redis/v8?tab=doc#Script).
 - [Timeouts](https://pkg.go.dev/github.com/go-redis/redis/v8?tab=doc#Options).
 - [Redis Sentinel](https://pkg.go.dev/github.com/go-redis/redis/v8?tab=doc#NewFailoverClient).
 - [Redis Cluster](https://pkg.go.dev/github.com/go-redis/redis/v8?tab=doc#NewClusterClient).
-- [Cluster of Redis Servers](https://pkg.go.dev/github.com/go-redis/redis/v8?tab=doc#example-NewClusterClient--ManualSetup)
+- [Cluster of Redis Servers](https://pkg.go.dev/github.com/go-redis/redis/v8?tab=doc#example-NewClusterClient-ManualSetup)
   without using cluster mode and Redis Sentinel.
 - [Ring](https://pkg.go.dev/github.com/go-redis/redis/v8?tab=doc#NewRing).
-- [Instrumentation](https://pkg.go.dev/github.com/go-redis/redis/v8?tab=doc#ex-package--Instrumentation).
+- [Instrumentation](https://pkg.go.dev/github.com/go-redis/redis/v8?tab=doc#example-package-Instrumentation).
 
 ## Installation
 
@@ -72,6 +68,7 @@ go get github.com/go-redis/redis/v8
 import (
     "context"
     "github.com/go-redis/redis/v8"
+    "fmt"
 )
 
 var ctx = context.Background()

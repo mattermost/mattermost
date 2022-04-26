@@ -57,7 +57,7 @@ func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndC
 	policyInsertQuery, policyInsertArgs, err := s.getQueryBuilder().
 		Insert("RetentionPolicies").
 		Columns("Id", "DisplayName", "PostDuration").
-		Values(policy.ID, policy.DisplayName, policy.PostDuration).
+		Values(policy.ID, policy.DisplayName, policy.PostDurationDays).
 		ToSql()
 	if err != nil {
 		return nil, err
@@ -214,13 +214,13 @@ func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndC
 
 	policyUpdateQuery := ""
 	policyUpdateArgs := []interface{}{}
-	if patch.DisplayName != "" || patch.PostDuration != nil {
+	if patch.DisplayName != "" || patch.PostDurationDays != nil {
 		builder := s.getQueryBuilder().Update("RetentionPolicies")
 		if patch.DisplayName != "" {
 			builder = builder.Set("DisplayName", patch.DisplayName)
 		}
-		if patch.PostDuration != nil {
-			builder = builder.Set("PostDuration", *patch.PostDuration)
+		if patch.PostDurationDays != nil {
+			builder = builder.Set("PostDuration", *patch.PostDurationDays)
 		}
 		policyUpdateQuery, policyUpdateArgs, err = builder.
 			Where(sq.Eq{"Id": patch.ID}).
@@ -357,7 +357,7 @@ func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset, limit
 		Select(`
 			RetentionPolicies.Id as "Id",
 			RetentionPolicies.DisplayName,
-			RetentionPolicies.PostDuration,
+			RetentionPolicies.PostDuration as "PostDuration",
 			A.Count AS ChannelCount,
 			B.Count AS TeamCount
 	  `).
@@ -697,7 +697,7 @@ func (s *SqlRetentionPolicyStore) DeleteOrphanedRows(limit int) (deleted int64, 
 
 func (s *SqlRetentionPolicyStore) GetTeamPoliciesForUser(userID string, offset, limit int) ([]*model.RetentionPolicyForTeam, error) {
 	query := s.getQueryBuilder().
-		Select(`Teams.Id AS "Id", RetentionPolicies.PostDuration`).
+		Select(`Teams.Id AS "Id", RetentionPolicies.PostDuration AS "PostDuration"`).
 		From("Users").
 		InnerJoin("TeamMembers ON Users.Id = TeamMembers.UserId").
 		InnerJoin("Teams ON TeamMembers.TeamId = Teams.Id").
@@ -758,7 +758,7 @@ func (s *SqlRetentionPolicyStore) GetTeamPoliciesCountForUser(userID string) (in
 
 func (s *SqlRetentionPolicyStore) GetChannelPoliciesForUser(userID string, offset, limit int) ([]*model.RetentionPolicyForChannel, error) {
 	query := s.getQueryBuilder().
-		Select(`Channels.Id as "Id", RetentionPolicies.PostDuration`).
+		Select(`Channels.Id as "Id", RetentionPolicies.PostDuration as "PostDuration"`).
 		From("Users").
 		InnerJoin("ChannelMembers ON Users.Id = ChannelMembers.UserId").
 		InnerJoin("Channels ON ChannelMembers.ChannelId = Channels.Id").

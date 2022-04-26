@@ -244,6 +244,9 @@ func testUserStoreUpdateUpdateAt(t *testing.T, ss store.Store) {
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
 	require.NoError(t, nErr)
 
+	// Ensure UpdateAt has a change to be different below.
+	time.Sleep(1 * time.Millisecond)
+
 	_, err = ss.User().UpdateUpdateAt(u1.Id)
 	require.NoError(t, err)
 
@@ -2285,6 +2288,15 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
 	require.NoError(t, nErr)
 
+	u3 := &model.User{}
+	u3.Email = MakeEmail()
+	u3.Username = "user3" + model.NewId()
+	_, err = ss.User().Save(u3)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
+	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
+	require.NoError(t, nErr)
+
 	_, nErr = ss.Channel().Save(&c1, -1)
 	require.NoError(t, nErr, "couldn't save item")
 
@@ -2301,6 +2313,14 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	_, nErr = ss.Channel().SaveMember(&m2)
 	require.NoError(t, nErr)
 
+	m3 := model.ChannelMember{}
+	m3.ChannelId = c1.Id
+	m3.UserId = u3.Id
+	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	_, nErr = ss.Channel().SaveMember(&m3)
+	require.NoError(t, nErr)
+
 	m1.ChannelId = c2.Id
 	m2.ChannelId = c2.Id
 
@@ -2310,12 +2330,12 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	p1 := model.Post{}
 	p1.ChannelId = c1.Id
 	p1.UserId = u1.Id
-	p1.Message = "this is a message for @" + u2.Username
+	p1.Message = "this is a message for @" + u2.Username + " and " + "@" + u3.Username
 
 	// Post one message with mention to open channel
 	_, nErr = ss.Post().Save(&p1)
 	require.NoError(t, nErr)
-	nErr = ss.Channel().IncrementMentionCount(c1.Id, u2.Id, false)
+	nErr = ss.Channel().IncrementMentionCount(c1.Id, []string{u2.Id, u3.Id}, false)
 	require.NoError(t, nErr)
 
 	// Post 2 messages without mention to direct channel
@@ -2326,7 +2346,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 
 	_, nErr = ss.Post().Save(&p2)
 	require.NoError(t, nErr)
-	nErr = ss.Channel().IncrementMentionCount(c2.Id, u2.Id, false)
+	nErr = ss.Channel().IncrementMentionCount(c2.Id, []string{u2.Id}, false)
 	require.NoError(t, nErr)
 
 	p3 := model.Post{}
@@ -2336,12 +2356,16 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	_, nErr = ss.Post().Save(&p3)
 	require.NoError(t, nErr)
 
-	nErr = ss.Channel().IncrementMentionCount(c2.Id, u2.Id, false)
+	nErr = ss.Channel().IncrementMentionCount(c2.Id, []string{u2.Id}, false)
 	require.NoError(t, nErr)
 
 	badge, unreadCountErr := ss.User().GetUnreadCount(u2.Id)
 	require.NoError(t, unreadCountErr)
 	require.Equal(t, int64(3), badge, "should have 3 unread messages")
+
+	badge, unreadCountErr = ss.User().GetUnreadCount(u3.Id)
+	require.NoError(t, unreadCountErr)
+	require.Equal(t, int64(1), badge, "should have 1 unread message")
 
 	badge, unreadCountErr = ss.User().GetUnreadCountForChannel(u2.Id, c1.Id)
 	require.NoError(t, unreadCountErr)
@@ -4695,7 +4719,6 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 	})
 	require.NoError(t, err)
 
-	startTime := u2.CreateAt
 	time.Sleep(time.Millisecond)
 
 	u3, err := ss.User().Save(&model.User{
@@ -4723,47 +4746,23 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 	})
 	require.NoError(t, err)
 
-	endTime := u3.CreateAt
-
-	// First and last user should be outside the range
-	res1List, err := ss.User().GetUsersBatchForIndexing(startTime, endTime, 100)
+	// Getting all users
+	res1List, err := ss.User().GetUsersBatchForIndexing(u1.CreateAt-1, "", 100)
 	require.NoError(t, err)
+	assert.Len(t, res1List, 3)
 
-	assert.Len(t, res1List, 1)
-	assert.Equal(t, res1List[0].Username, u2.Username)
-	assert.ElementsMatch(t, res1List[0].TeamsIds, []string{t1.Id})
-	assert.ElementsMatch(t, res1List[0].ChannelsIds, []string{cPub1.Id, cPub2.Id})
-
-	// Update startTime to include first user
-	startTime = u1.CreateAt
-	res2List, err := ss.User().GetUsersBatchForIndexing(startTime, endTime, 100)
+	// Testing pagination
+	res2List, err := ss.User().GetUsersBatchForIndexing(u1.CreateAt-1, "", 1)
 	require.NoError(t, err)
+	assert.Len(t, res2List, 1)
 
+	res2List, err = ss.User().GetUsersBatchForIndexing(res2List[0].CreateAt, res2List[0].Id, 2)
+	require.NoError(t, err)
 	assert.Len(t, res2List, 2)
-	assert.Equal(t, res2List[0].Username, u1.Username)
-	assert.Equal(t, res2List[0].ChannelsIds, []string{})
-	assert.Equal(t, res2List[0].TeamsIds, []string{})
-	assert.Equal(t, res2List[1].Username, u2.Username)
 
-	// Update endTime to include last user
-	endTime = model.GetMillis()
-	res3List, err := ss.User().GetUsersBatchForIndexing(startTime, endTime, 100)
+	res2List, err = ss.User().GetUsersBatchForIndexing(res2List[1].CreateAt, res2List[1].Id, 2)
 	require.NoError(t, err)
-
-	assert.Len(t, res3List, 3)
-	assert.Equal(t, res3List[0].Username, u1.Username)
-	assert.Equal(t, res3List[1].Username, u2.Username)
-	assert.Equal(t, res3List[2].Username, u3.Username)
-	assert.ElementsMatch(t, res3List[2].TeamsIds, []string{})
-	assert.ElementsMatch(t, res3List[2].ChannelsIds, []string{cPub2.Id})
-
-	// Testing the limit
-	res4List, err := ss.User().GetUsersBatchForIndexing(startTime, endTime, 2)
-	require.NoError(t, err)
-
-	assert.Len(t, res4List, 2)
-	assert.Equal(t, res4List[0].Username, u1.Username)
-	assert.Equal(t, res4List[1].Username, u2.Username)
+	assert.Len(t, res2List, 0)
 }
 
 func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {

@@ -114,8 +114,12 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 		return errors.Wrapf(err, "failed to parse oldest supported version %s", OldestSupportedVersion)
 	}
 
+	currentSchemaVersionString, err := sqlStore.getCurrentSchemaVersion()
+	if err != nil {
+		mlog.Warn("could not receive the schema version from systems table", mlog.Err(err))
+	}
+
 	var currentSchemaVersion *semver.Version
-	currentSchemaVersionString := sqlStore.GetCurrentSchemaVersion()
 	if currentSchemaVersionString != "" {
 		currentSchemaVersion, err = semver.New(currentSchemaVersionString)
 		if err != nil {
@@ -232,7 +236,11 @@ func saveSchemaVersion(sqlStore *SqlStore, version string) {
 }
 
 func shouldPerformUpgrade(sqlStore *SqlStore, currentSchemaVersion string, expectedSchemaVersion string) bool {
-	storedSchemaVersion := sqlStore.GetCurrentSchemaVersion()
+	storedSchemaVersion, err := sqlStore.getCurrentSchemaVersion()
+	if err != nil {
+		mlog.Error("could not receive the schema version from systems table", mlog.Err(err))
+		return false
+	}
 
 	storedVersion, err := semver.Parse(storedSchemaVersion)
 	if err != nil {
@@ -274,27 +282,22 @@ func themeMigrationFailed(err error) {
 func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version320, Version330) {
 		if sqlStore.DoesColumnExist("Users", "ThemeProps") {
-			params := map[string]interface{}{
-				"Category": model.PreferenceCategoryTheme,
-				"Name":     "",
-			}
-
-			transaction, err := sqlStore.GetMaster().Begin()
+			transaction, err := sqlStore.GetMasterX().Beginx()
 			if err != nil {
 				themeMigrationFailed(err)
 			}
-			defer finalizeTransaction(transaction)
+			defer finalizeTransactionX(transaction)
 
 			// copy data across
 			if _, err := transaction.ExecNoTimeout(
 				`INSERT INTO
 					Preferences(UserId, Category, Name, Value)
 				SELECT
-					Id, '`+model.PreferenceCategoryTheme+`', '', ThemeProps
+					Id, '` + model.PreferenceCategoryTheme + `', '', ThemeProps
 				FROM
 					Users
 				WHERE
-					Users.ThemeProps != 'null'`, params); err != nil {
+					Users.ThemeProps != 'null'`); err != nil {
 				themeMigrationFailed(err)
 				return
 			}
@@ -546,8 +549,8 @@ func upgradeDatabaseToVersion510(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion511(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5100, Version5110) {
 		// Enforce all teams have an InviteID set
-		var teams []*model.Team
-		if _, err := sqlStore.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE InviteId = ''"); err != nil {
+		teams := []*model.Team{}
+		if err := sqlStore.GetReplicaX().Select(&teams, "SELECT * FROM Teams WHERE InviteId = ''"); err != nil {
 			mlog.Error("Error fetching Teams without InviteID", mlog.Err(err))
 		} else {
 			for _, team := range teams {
@@ -693,7 +696,7 @@ func precheckMigrationToVersion528(sqlStore *SqlStore) error {
 	}
 
 	var schemeIDWrong, typeWrong int
-	row := sqlStore.GetMaster().Db.QueryRow(teamsQuery)
+	row := sqlStore.GetMasterX().QueryRow(teamsQuery)
 	if err = row.Scan(&schemeIDWrong, &typeWrong); err != nil && err != sql.ErrNoRows {
 		return err
 	} else if err == nil && schemeIDWrong > 0 {

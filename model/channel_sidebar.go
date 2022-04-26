@@ -37,12 +37,11 @@ const (
 )
 
 // SidebarCategory represents the corresponding DB table
-// SortOrder is never returned to the user and only used for queries
 type SidebarCategory struct {
 	Id          string                 `json:"id"`
 	UserId      string                 `json:"user_id"`
 	TeamId      string                 `json:"team_id"`
-	SortOrder   int64                  `json:"-"`
+	SortOrder   int64                  `json:"sort_order"`
 	Sorting     SidebarCategorySorting `json:"sorting"`
 	Type        SidebarCategoryType    `json:"type"`
 	DisplayName string                 `json:"display_name"`

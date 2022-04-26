@@ -26,7 +26,7 @@ import (
 
 	"github.com/blevesearch/bleve/v2/registry"
 	"github.com/blevesearch/upsidedown_store_api"
-	"github.com/steveyen/gtreap"
+	"github.com/blevesearch/gtreap"
 )
 
 const Name = "gtreap"

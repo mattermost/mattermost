@@ -90,7 +90,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 		})
 		require.NoError(t, err)
 		defer s.Shutdown()
-		require.Same(t, s.sqlStore.GetMaster(), s.sqlStore.GetReplica())
+		require.Same(t, s.sqlStore.GetMasterX(), s.sqlStore.GetReplicaX())
 		require.Len(t, s.Config().SqlSettings.DataSourceReplicas, 1)
 	})
 
@@ -103,7 +103,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 		})
 		require.NoError(t, err)
 		defer s.Shutdown()
-		require.NotSame(t, s.sqlStore.GetMaster(), s.sqlStore.GetReplica())
+		require.NotSame(t, s.sqlStore.GetMasterX(), s.sqlStore.GetReplicaX())
 		require.Len(t, s.Config().SqlSettings.DataSourceReplicas, 1)
 	})
 
@@ -116,7 +116,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 		})
 		require.NoError(t, err)
 		defer s.Shutdown()
-		require.Same(t, s.sqlStore.GetMaster(), s.sqlStore.GetSearchReplica())
+		require.Same(t, s.sqlStore.GetMasterX(), s.sqlStore.GetSearchReplicaX())
 		require.Len(t, s.Config().SqlSettings.DataSourceSearchReplicas, 1)
 	})
 
@@ -130,7 +130,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 		})
 		require.NoError(t, err)
 		defer s.Shutdown()
-		require.NotSame(t, s.sqlStore.GetMaster(), s.sqlStore.GetSearchReplica())
+		require.NotSame(t, s.sqlStore.GetMasterX(), s.sqlStore.GetSearchReplicaX())
 		require.Len(t, s.Config().SqlSettings.DataSourceSearchReplicas, 1)
 	})
 }
@@ -191,9 +191,7 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 	defer s.Shutdown()
 
 	// ensure that a new bucket was created
-	backend, appErr := s.FileBackend()
-	require.Nil(t, appErr)
-	err = backend.(*filestore.S3FileBackend).TestConnection()
+	err = s.FileBackend().(*filestore.S3FileBackend).TestConnection()
 	require.NoError(t, err)
 }
 
@@ -235,18 +233,18 @@ func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	databaseType, mattermostVersion := th.Server.DatabaseTypeAndMattermostVersion()
+	databaseType, mattermostVersion := th.Server.DatabaseTypeAndSchemaVersion()
 	assert.Equal(t, "postgres", databaseType)
-	assert.Equal(t, "5.31.0", mattermostVersion)
+	assert.GreaterOrEqual(t, mattermostVersion, strconv.Itoa(1))
 
 	os.Setenv("MM_SQLSETTINGS_DRIVERNAME", "mysql")
 
 	th2 := Setup(t)
 	defer th2.TearDown()
 
-	databaseType, mattermostVersion = th2.Server.DatabaseTypeAndMattermostVersion()
+	databaseType, mattermostVersion = th2.Server.DatabaseTypeAndSchemaVersion()
 	assert.Equal(t, "mysql", databaseType)
-	assert.Equal(t, "5.31.0", mattermostVersion)
+	assert.GreaterOrEqual(t, mattermostVersion, strconv.Itoa(1))
 }
 
 func TestGenerateSupportPacket(t *testing.T) {
@@ -432,10 +430,7 @@ func TestStartServerTLSVersion(t *testing.T) {
 
 	client := &http.Client{Transport: tr}
 	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
-
-	if !strings.Contains(err.Error(), "remote error: tls: protocol version not supported") {
-		t.Errorf("Expected protocol version error, got %s", err)
-	}
+	require.Error(t, err)
 
 	client.Transport = &http.Transport{
 		TLSClientConfig: &tls.Config{

@@ -17,13 +17,18 @@ import (
 const serverInactivityHours = 100
 
 func (s *Server) doInactivityCheck() {
+	if !*s.Config().EmailSettings.EnableInactivityEmail {
+		mlog.Info("No activity check because EnableInactivityEmail is false")
+		return
+	}
+
 	if !s.Config().FeatureFlags.EnableInactivityCheckJob {
 		mlog.Info("No activity check because EnableInactivityCheckJob feature flag is disabled")
 		return
 	}
 
-	inactivityDurationHourseEnv := os.Getenv("MM_INACTIVITY_DURATION")
-	inactivityDurationHours, parseError := strconv.ParseFloat(inactivityDurationHourseEnv, 64)
+	inactivityDurationHoursEnv := os.Getenv("MM_INACTIVITY_DURATION")
+	inactivityDurationHours, parseError := strconv.ParseFloat(inactivityDurationHoursEnv, 64)
 	if parseError != nil {
 		// default to 100 hours
 		inactivityDurationHours = serverInactivityHours
@@ -45,14 +50,14 @@ func (s *Server) doInactivityCheck() {
 	if systemValue != nil {
 		sysT, _ := strconv.ParseInt(systemValue.Value, 10, 64)
 		tt := time.Unix(sysT/1000, 0)
-		timeLastSentInativityEmail := time.Since(tt).Hours()
+		timeLastSentInactivityEmail := time.Since(tt).Hours()
 
 		lastPostAt, _ := s.Store.Post().GetLastPostRowCreateAt()
 		if lastPostAt != 0 {
 			posT := time.Unix(lastPostAt/1000, 0)
 			timeForLastPost := time.Since(posT).Hours()
 
-			if timeLastSentInativityEmail > inactivityDurationHours && timeForLastPost > inactivityDurationHours {
+			if timeLastSentInactivityEmail > inactivityDurationHours && timeForLastPost > inactivityDurationHours {
 				s.takeInactivityAction()
 			}
 			return
@@ -63,7 +68,7 @@ func (s *Server) doInactivityCheck() {
 			sesT := time.Unix(lastSessionAt/1000, 0)
 			timeForLastSession := time.Since(sesT).Hours()
 
-			if timeLastSentInativityEmail > inactivityDurationHours && timeForLastSession > inactivityDurationHours {
+			if timeLastSentInactivityEmail > inactivityDurationHours && timeForLastSession > inactivityDurationHours {
 				s.takeInactivityAction()
 			}
 			return
@@ -112,6 +117,10 @@ func (s *Server) takeInactivityAction() {
 	}
 
 	for _, user := range users {
+
+		// See https://go.dev/doc/faq#closures_and_goroutines for why we make this assignment
+		user := user
+
 		if user.Email == "" {
 			mlog.Error("Invalid system admin email.", mlog.String("user_email", user.Email))
 			continue

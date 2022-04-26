@@ -93,6 +93,9 @@ const (
 	EmailNotificationContentsFull    = "full"
 	EmailNotificationContentsGeneric = "generic"
 
+	EmailSMTPDefaultServer = "localhost"
+	EmailSMTPDefaultPort   = "10025"
+
 	SitenameMaxLength = 30
 
 	ServiceSettingsDefaultSiteURL          = "http://localhost:8065"
@@ -128,9 +131,9 @@ const (
 
 	SupportSettingsDefaultTermsOfServiceLink = "https://mattermost.com/terms-of-use/"
 	SupportSettingsDefaultPrivacyPolicyLink  = "https://mattermost.com/privacy-policy/"
-	SupportSettingsDefaultAboutLink          = "https://about.mattermost.com/default-about/"
-	SupportSettingsDefaultHelpLink           = "https://about.mattermost.com/default-help/"
-	SupportSettingsDefaultReportAProblemLink = "https://about.mattermost.com/default-report-a-problem/"
+	SupportSettingsDefaultAboutLink          = "https://docs.mattermost.com/about/product.html/"
+	SupportSettingsDefaultHelpLink           = "https://mattermost.com/default-help/"
+	SupportSettingsDefaultReportAProblemLink = "https://mattermost.com/default-report-a-problem/"
 	SupportSettingsDefaultSupportEmail       = ""
 	SupportSettingsDefaultReAcceptancePeriod = 365
 
@@ -167,8 +170,8 @@ const (
 	SamlSettingsDefaultCanonicalAlgorithm = SamlSettingsCanonicalAlgorithmC14n
 
 	NativeappSettingsDefaultAppDownloadLink        = "https://mattermost.com/download/#mattermostApps"
-	NativeappSettingsDefaultAndroidAppDownloadLink = "https://about.mattermost.com/mattermost-android-app/"
-	NativeappSettingsDefaultIosAppDownloadLink     = "https://about.mattermost.com/mattermost-ios-app/"
+	NativeappSettingsDefaultAndroidAppDownloadLink = "https://mattermost.com/mattermost-android-app/"
+	NativeappSettingsDefaultIosAppDownloadLink     = "https://mattermost.com/mattermost-ios-app/"
 
 	ExperimentalSettingsDefaultLinkMetadataTimeoutMilliseconds = 5000
 
@@ -181,24 +184,24 @@ const (
 
 	TeamSettingsDefaultTeamText = "default"
 
-	ElasticsearchSettingsDefaultConnectionURL                 = "http://localhost:9200"
-	ElasticsearchSettingsDefaultUsername                      = "elastic"
-	ElasticsearchSettingsDefaultPassword                      = "changeme"
-	ElasticsearchSettingsDefaultPostIndexReplicas             = 1
-	ElasticsearchSettingsDefaultPostIndexShards               = 1
-	ElasticsearchSettingsDefaultChannelIndexReplicas          = 1
-	ElasticsearchSettingsDefaultChannelIndexShards            = 1
-	ElasticsearchSettingsDefaultUserIndexReplicas             = 1
-	ElasticsearchSettingsDefaultUserIndexShards               = 1
-	ElasticsearchSettingsDefaultAggregatePostsAfterDays       = 365
-	ElasticsearchSettingsDefaultPostsAggregatorJobStartTime   = "03:00"
-	ElasticsearchSettingsDefaultIndexPrefix                   = ""
-	ElasticsearchSettingsDefaultLiveIndexingBatchSize         = 1
-	ElasticsearchSettingsDefaultBulkIndexingTimeWindowSeconds = 3600
-	ElasticsearchSettingsDefaultRequestTimeoutSeconds         = 30
+	ElasticsearchSettingsDefaultConnectionURL               = "http://localhost:9200"
+	ElasticsearchSettingsDefaultUsername                    = "elastic"
+	ElasticsearchSettingsDefaultPassword                    = "changeme"
+	ElasticsearchSettingsDefaultPostIndexReplicas           = 1
+	ElasticsearchSettingsDefaultPostIndexShards             = 1
+	ElasticsearchSettingsDefaultChannelIndexReplicas        = 1
+	ElasticsearchSettingsDefaultChannelIndexShards          = 1
+	ElasticsearchSettingsDefaultUserIndexReplicas           = 1
+	ElasticsearchSettingsDefaultUserIndexShards             = 1
+	ElasticsearchSettingsDefaultAggregatePostsAfterDays     = 365
+	ElasticsearchSettingsDefaultPostsAggregatorJobStartTime = "03:00"
+	ElasticsearchSettingsDefaultIndexPrefix                 = ""
+	ElasticsearchSettingsDefaultLiveIndexingBatchSize       = 1
+	ElasticsearchSettingsDefaultRequestTimeoutSeconds       = 30
+	ElasticsearchSettingsDefaultBatchSize                   = 10000
 
-	BleveSettingsDefaultIndexDir                      = ""
-	BleveSettingsDefaultBulkIndexingTimeWindowSeconds = 3600
+	BleveSettingsDefaultIndexDir  = ""
+	BleveSettingsDefaultBatchSize = 10000
 
 	DataRetentionSettingsDefaultMessageRetentionDays = 365
 	DataRetentionSettingsDefaultFileRetentionDays    = 365
@@ -272,15 +275,16 @@ var ServerTLSSupportedCiphers = map[string]uint16{
 }
 
 type ServiceSettings struct {
-	SiteURL                                           *string  `access:"environment_web_server,authentication_saml,write_restrictable"`
-	WebsocketURL                                      *string  `access:"write_restrictable,cloud_restrictable"`
-	LicenseFileLocation                               *string  `access:"write_restrictable,cloud_restrictable"`                        // telemetry: none
-	ListenAddress                                     *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"` // telemetry: none
-	ConnectionSecurity                                *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	TLSCertFile                                       *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	TLSKeyFile                                        *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	TLSMinVer                                         *string  `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	TLSStrictTransport                                *bool    `access:"write_restrictable,cloud_restrictable"`
+	SiteURL             *string `access:"environment_web_server,authentication_saml,write_restrictable"`
+	WebsocketURL        *string `access:"write_restrictable,cloud_restrictable"`
+	LicenseFileLocation *string `access:"write_restrictable,cloud_restrictable"`                        // telemetry: none
+	ListenAddress       *string `access:"environment_web_server,write_restrictable,cloud_restrictable"` // telemetry: none
+	ConnectionSecurity  *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	TLSCertFile         *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	TLSKeyFile          *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	TLSMinVer           *string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	TLSStrictTransport  *bool   `access:"write_restrictable,cloud_restrictable"`
+	// In seconds.
 	TLSStrictTransportMaxAge                          *int64   `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	TLSOverwriteCiphers                               []string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	UseLetsEncrypt                                    *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
@@ -778,7 +782,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.ThreadAutoFollow == nil {
-		s.ThreadAutoFollow = NewBool(false)
+		s.ThreadAutoFollow = NewBool(true)
 	}
 
 	if s.CollapsedThreads == nil {
@@ -901,7 +905,6 @@ type ExperimentalSettings struct {
 	LinkMetadataTimeoutMilliseconds *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	RestrictSystemAdmin             *bool   `access:"experimental_features,write_restrictable"`
 	UseNewSAMLLibrary               *bool   `access:"experimental_features,cloud_restrictable"`
-	CloudUserLimit                  *int64  `access:"experimental_features,write_restrictable"`
 	CloudBilling                    *bool   `access:"experimental_features,write_restrictable"`
 	EnableSharedChannels            *bool   `access:"experimental_features"`
 	EnableRemoteClusterService      *bool   `access:"experimental_features"`
@@ -926,11 +929,6 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.RestrictSystemAdmin == nil {
 		s.RestrictSystemAdmin = NewBool(false)
-	}
-
-	if s.CloudUserLimit == nil {
-		// User limit 0 is treated as no limit
-		s.CloudUserLimit = NewInt64(0)
 	}
 
 	if s.CloudBilling == nil {
@@ -1538,6 +1536,7 @@ type EmailSettings struct {
 	LoginButtonColor                  *string `access:"experimental_features"`
 	LoginButtonBorderColor            *string `access:"experimental_features"`
 	LoginButtonTextColor              *string `access:"experimental_features"`
+	EnableInactivityEmail             *bool
 }
 
 func (s *EmailSettings) SetDefaults(isUpdate bool) {
@@ -1598,11 +1597,11 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.SMTPServer == nil || *s.SMTPServer == "" {
-		s.SMTPServer = NewString("localhost")
+		s.SMTPServer = NewString(EmailSMTPDefaultServer)
 	}
 
 	if s.SMTPPort == nil || *s.SMTPPort == "" {
-		s.SMTPPort = NewString("10025")
+		s.SMTPPort = NewString(EmailSMTPDefaultPort)
 	}
 
 	if s.SMTPServerTimeout == nil || *s.SMTPServerTimeout == 0 {
@@ -1679,6 +1678,10 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 
 	if s.LoginButtonTextColor == nil {
 		s.LoginButtonTextColor = NewString("#2389D7")
+	}
+
+	if s.EnableInactivityEmail == nil {
+		s.EnableInactivityEmail = NewBool(true)
 	}
 }
 
@@ -1882,17 +1885,18 @@ func (s *ThemeSettings) SetDefaults() {
 }
 
 type TeamSettings struct {
-	SiteName                            *string  `access:"site_customization"`
-	MaxUsersPerTeam                     *int     `access:"site_users_and_teams"`
-	EnableUserCreation                  *bool    `access:"authentication_signup"`
-	EnableOpenServer                    *bool    `access:"authentication_signup"`
-	EnableUserDeactivation              *bool    `access:"experimental_features"`
-	RestrictCreationToDomains           *string  `access:"authentication_signup"` // telemetry: none
-	EnableCustomUserStatuses            *bool    `access:"site_users_and_teams"`
-	EnableCustomBrand                   *bool    `access:"site_customization"`
-	CustomBrandText                     *string  `access:"site_customization"`
-	CustomDescriptionText               *string  `access:"site_customization"`
-	RestrictDirectMessage               *string  `access:"site_users_and_teams"`
+	SiteName                  *string `access:"site_customization"`
+	MaxUsersPerTeam           *int    `access:"site_users_and_teams"`
+	EnableUserCreation        *bool   `access:"authentication_signup"`
+	EnableOpenServer          *bool   `access:"authentication_signup"`
+	EnableUserDeactivation    *bool   `access:"experimental_features"`
+	RestrictCreationToDomains *string `access:"authentication_signup"` // telemetry: none
+	EnableCustomUserStatuses  *bool   `access:"site_users_and_teams"`
+	EnableCustomBrand         *bool   `access:"site_customization"`
+	CustomBrandText           *string `access:"site_customization"`
+	CustomDescriptionText     *string `access:"site_customization"`
+	RestrictDirectMessage     *string `access:"site_users_and_teams"`
+	// In seconds.
 	UserStatusAwayTimeout               *int64   `access:"experimental_features"`
 	MaxChannelsPerTeam                  *int64   `access:"site_users_and_teams"`
 	MaxNotificationsPerChannel          *int64   `access:"environment_push_notification_server"`
@@ -2472,7 +2476,8 @@ type ElasticsearchSettings struct {
 	PostsAggregatorJobStartTime   *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
 	IndexPrefix                   *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	LiveIndexingBatchSize         *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	BulkIndexingTimeWindowSeconds *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	BulkIndexingTimeWindowSeconds *int    `json:",omitempty"` // telemetry: none
+	BatchSize                     *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	RequestTimeoutSeconds         *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	SkipTLSVerification           *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	Trace                         *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
@@ -2547,8 +2552,8 @@ func (s *ElasticsearchSettings) SetDefaults() {
 		s.LiveIndexingBatchSize = NewInt(ElasticsearchSettingsDefaultLiveIndexingBatchSize)
 	}
 
-	if s.BulkIndexingTimeWindowSeconds == nil {
-		s.BulkIndexingTimeWindowSeconds = NewInt(ElasticsearchSettingsDefaultBulkIndexingTimeWindowSeconds)
+	if s.BatchSize == nil {
+		s.BatchSize = NewInt(ElasticsearchSettingsDefaultBatchSize)
 	}
 
 	if s.RequestTimeoutSeconds == nil {
@@ -2569,7 +2574,8 @@ type BleveSettings struct {
 	EnableIndexing                *bool   `access:"experimental_bleve"`
 	EnableSearching               *bool   `access:"experimental_bleve"`
 	EnableAutocomplete            *bool   `access:"experimental_bleve"`
-	BulkIndexingTimeWindowSeconds *int    `access:"experimental_bleve"`
+	BulkIndexingTimeWindowSeconds *int    `json:",omitempty"` // telemetry: none
+	BatchSize                     *int    `access:"experimental_bleve"`
 }
 
 func (bs *BleveSettings) SetDefaults() {
@@ -2589,8 +2595,8 @@ func (bs *BleveSettings) SetDefaults() {
 		bs.EnableAutocomplete = NewBool(false)
 	}
 
-	if bs.BulkIndexingTimeWindowSeconds == nil {
-		bs.BulkIndexingTimeWindowSeconds = NewInt(BleveSettingsDefaultBulkIndexingTimeWindowSeconds)
+	if bs.BatchSize == nil {
+		bs.BatchSize = NewInt(BleveSettingsDefaultBatchSize)
 	}
 }
 
@@ -2640,9 +2646,10 @@ func (s *DataRetentionSettings) SetDefaults() {
 }
 
 type JobSettings struct {
-	RunJobs                  *bool `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	RunScheduler             *bool `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	CleanupJobsThresholdDays *int  `access:"write_restrictable,cloud_restrictable"`
+	RunJobs                    *bool `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	RunScheduler               *bool `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	CleanupJobsThresholdDays   *int  `access:"write_restrictable,cloud_restrictable"`
+	CleanupConfigThresholdDays *int  `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *JobSettings) SetDefaults() {
@@ -2656,6 +2663,10 @@ func (s *JobSettings) SetDefaults() {
 
 	if s.CleanupJobsThresholdDays == nil {
 		s.CleanupJobsThresholdDays = NewInt(-1)
+	}
+
+	if s.CleanupConfigThresholdDays == nil {
+		s.CleanupConfigThresholdDays = NewInt(-1)
 	}
 }
 
@@ -2746,6 +2757,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	if s.PluginStates["focalboard"] == nil {
 		// Enable the focalboard plugin by default
 		s.PluginStates["focalboard"] = &PluginState{Enable: true}
+	}
+
+	if s.PluginStates["com.mattermost.apps"] == nil {
+		// Enable the Apps plugin by default
+		s.PluginStates["com.mattermost.apps"] = &PluginState{Enable: true}
 	}
 
 	if s.EnableMarketplace == nil {
@@ -3556,13 +3572,13 @@ func (s *ServiceSettings) isValid() *AppError {
 
 	if *s.SiteURL != "" {
 		if _, err := url.ParseRequestURI(*s.SiteURL); err != nil {
-			return NewAppError("Config.IsValid", "model.config.is_valid.site_url.app_error", nil, "", http.StatusBadRequest)
+			return NewAppError("Config.IsValid", "model.config.is_valid.site_url.app_error", nil, err.Error(), http.StatusBadRequest)
 		}
 	}
 
 	if *s.WebsocketURL != "" {
 		if _, err := url.ParseRequestURI(*s.WebsocketURL); err != nil {
-			return NewAppError("Config.IsValid", "model.config.is_valid.websocket_url.app_error", nil, "", http.StatusBadRequest)
+			return NewAppError("Config.IsValid", "model.config.is_valid.websocket_url.app_error", nil, err.Error(), http.StatusBadRequest)
 		}
 	}
 
@@ -3624,8 +3640,9 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *s.BulkIndexingTimeWindowSeconds < 1 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error", nil, "", http.StatusBadRequest)
+	minBatchSize := 1
+	if *s.BatchSize < minBatchSize {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error", map[string]interface{}{"BatchSize": minBatchSize}, "", http.StatusBadRequest)
 	}
 
 	if *s.RequestTimeoutSeconds < 1 {
@@ -3648,8 +3665,9 @@ func (bs *BleveSettings) isValid() *AppError {
 			return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.enable_autocomplete.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
-	if *bs.BulkIndexingTimeWindowSeconds < 1 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error", nil, "", http.StatusBadRequest)
+	minBatchSize := 1
+	if *bs.BatchSize < minBatchSize {
+		return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error", map[string]interface{}{"BatchSize": minBatchSize}, "", http.StatusBadRequest)
 	}
 
 	return nil

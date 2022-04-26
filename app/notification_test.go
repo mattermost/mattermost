@@ -2488,6 +2488,19 @@ func TestUserAllowsEmail(t *testing.T) {
 		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: model.PostTypeAutoResponder}))
 	})
 
+	t.Run("should return false in the case user is a bot", func(t *testing.T) {
+		user := th.CreateUser()
+
+		th.App.ConvertUserToBot(user)
+
+		channelMemberNotifcationProps := model.StringMap{
+			model.EmailNotifyProp:      model.ChannelNotifyDefault,
+			model.MarkUnreadNotifyProp: model.ChannelMarkUnreadAll,
+		}
+
+		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotifcationProps, &model.Post{Type: model.PostTypeAutoResponder}))
+	})
+
 }
 
 func TestInsertGroupMentions(t *testing.T) {

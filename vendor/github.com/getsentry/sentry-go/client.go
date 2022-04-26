@@ -60,6 +60,7 @@ func (r *lockedRand) Float64() float64 {
 // other hand, the source returned from rand.NewSource is not safe for
 // concurrent use, so we need to couple its use with a sync.Mutex.
 var rng = &lockedRand{
+	//#nosec G404 -- We are fine using transparent, non-secure value here.
 	r: rand.New(rand.NewSource(time.Now().UnixNano())),
 }
 

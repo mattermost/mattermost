@@ -177,6 +177,34 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 		return nil, model.NewAppError("addLicense", model.ExpiredLicenseError, nil, "", http.StatusBadRequest)
 	}
 
+	if *s.Config().JobSettings.RunJobs && s.Jobs != nil {
+		if err := s.Jobs.StopWorkers(); err != nil && !errors.Is(err, jobs.ErrWorkersNotRunning) {
+			mlog.Warn("Stopping job server workers failed", mlog.Err(err))
+		}
+	}
+
+	if *s.Config().JobSettings.RunScheduler && s.Jobs != nil {
+		if err := s.Jobs.StopSchedulers(); err != nil && !errors.Is(err, jobs.ErrSchedulersNotRunning) {
+			mlog.Error("Stopping job server schedulers failed", mlog.Err(err))
+		}
+	}
+
+	defer func() {
+		// restart job server workers - this handles the edge case where a license file is uploaded, but the job server
+		// doesn't start until the server is restarted, which prevents the 'run job now' buttons in system console from
+		// functioning as expected
+		if *s.Config().JobSettings.RunJobs && s.Jobs != nil {
+			if err := s.Jobs.StartWorkers(); err != nil {
+				mlog.Error("Starting job server workers failed", mlog.Err(err))
+			}
+		}
+		if *s.Config().JobSettings.RunScheduler && s.Jobs != nil {
+			if err := s.Jobs.StartSchedulers(); err != nil && !errors.Is(err, jobs.ErrSchedulersRunning) {
+				mlog.Error("Starting job server schedulers failed", mlog.Err(err))
+			}
+		}
+	}()
+
 	if ok := s.SetLicense(&license); !ok {
 		return nil, model.NewAppError("addLicense", model.ExpiredLicenseError, nil, "", http.StatusBadRequest)
 	}
@@ -207,25 +235,6 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 
 	s.ReloadConfig()
 	s.InvalidateAllCaches()
-
-	// restart job server workers - this handles the edge case where a license file is uploaded, but the job server
-	// doesn't start until the server is restarted, which prevents the 'run job now' buttons in system console from
-	// functioning as expected
-	if *s.Config().JobSettings.RunJobs && s.Jobs != nil {
-		if err := s.Jobs.StopWorkers(); err != nil && !errors.Is(err, jobs.ErrWorkersNotRunning) {
-			mlog.Warn("Stopping job server workers failed", mlog.Err(err))
-		}
-		if err := s.Jobs.InitWorkers(); err != nil {
-			mlog.Error("Initializing job server workers failed", mlog.Err(err))
-		} else if err := s.Jobs.StartWorkers(); err != nil {
-			mlog.Error("Starting job server workers failed", mlog.Err(err))
-		}
-	}
-	if *s.Config().JobSettings.RunScheduler && s.Jobs != nil {
-		if err := s.Jobs.StartSchedulers(); err != nil && !errors.Is(err, jobs.ErrSchedulersRunning) {
-			mlog.Error("Starting job server schedulers failed", mlog.Err(err))
-		}
-	}
 
 	return &license, nil
 }
@@ -331,6 +340,11 @@ func (s *Server) RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *m
 	}
 	defer resp.Body.Close()
 
+	// CloudFlare sitting in front of the Customer Portal will block this request with a 451 response code in the event that the request originates from a country sanctioned by the U.S. Government.
+	if resp.StatusCode == http.StatusUnavailableForLegalReasons {
+		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.embargoed", nil, "Request for trial license came from an embargoed country", http.StatusUnavailableForLegalReasons)
+	}
+
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.app_error", nil,
 			fmt.Sprintf("Unexpected HTTP status code %q returned by server", resp.Status), http.StatusInternalServerError)
@@ -352,28 +366,15 @@ func (s *Server) RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *m
 	return nil
 }
 
-// GenerateRenewalToken returns the current active token or generate a new one if
-// the current active one has expired
+// GenerateRenewalToken returns a renewal token that expires after duration expiration
 func (s *Server) GenerateRenewalToken(expiration time.Duration) (string, *model.AppError) {
 	license := s.License()
 	if license == nil {
-		// Clean renewal token if there is no license present
-		if _, err := s.Store.System().PermanentDeleteByName(model.SystemLicenseRenewalToken); err != nil {
-			mlog.Warn("error removing the renewal token", mlog.Err(err))
-		}
 		return "", model.NewAppError("GenerateRenewalToken", "app.license.generate_renewal_token.no_license", nil, "", http.StatusBadRequest)
 	}
 
 	if *license.Features.Cloud {
 		return "", model.NewAppError("GenerateRenewalToken", "app.license.generate_renewal_token.bad_license", nil, "", http.StatusBadRequest)
-	}
-
-	currentToken, _ := s.Store.System().GetByName(model.SystemLicenseRenewalToken)
-	if currentToken != nil {
-		tokenIsValid, _ := s.renewalTokenValid(currentToken.Value, license.Customer.Email)
-		if currentToken.Value != "" && tokenIsValid {
-			return currentToken.Value, nil
-		}
 	}
 
 	activeUsers, err := s.Store.User().Count(model.UserCountOptions{})
@@ -396,33 +397,8 @@ func (s *Server) GenerateRenewalToken(expiration time.Duration) (string, *model.
 	if err != nil {
 		return "", model.NewAppError("GenerateRenewalToken", "app.license.generate_renewal_token.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	err = s.Store.System().SaveOrUpdate(&model.System{
-		Name:  model.SystemLicenseRenewalToken,
-		Value: tokenString,
-	})
-	if err != nil {
-		return "", model.NewAppError("GenerateRenewalToken", "app.license.generate_renewal_token.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
+
 	return tokenString, nil
-}
-
-func (s *Server) renewalTokenValid(tokenString, signingKey string) (bool, error) {
-	claims := &JWTClaims{}
-
-	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte(signingKey), nil
-	})
-	if err != nil {
-		return false, errors.Wrapf(err, "Error validating JWT token")
-	}
-	if !token.Valid {
-		return false, errors.New("invalid JWT token")
-	}
-	expirationTime := time.Unix(claims.ExpiresAt, 0)
-	if expirationTime.Before(time.Now().UTC()) {
-		return false, nil
-	}
-	return true, nil
 }
 
 // GenerateLicenseRenewalLink returns a link that points to the CWS where clients can renew license

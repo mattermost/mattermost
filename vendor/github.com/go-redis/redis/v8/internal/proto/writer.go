@@ -98,6 +98,8 @@ func (w *Writer) WriteArg(v interface{}) error {
 	case time.Time:
 		w.numBuf = v.AppendFormat(w.numBuf[:0], time.RFC3339Nano)
 		return w.bytes(w.numBuf)
+	case time.Duration:
+		return w.int(v.Nanoseconds())
 	case encoding.BinaryMarshaler:
 		b, err := v.MarshalBinary()
 		if err != nil {

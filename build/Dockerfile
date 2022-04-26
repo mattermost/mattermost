@@ -1,10 +1,10 @@
-FROM alpine:3.14
+FROM alpine:3.14@sha256:635f0aa53d99017b38d1a0aa5b2082f7812b03e3cdb299103fe77b5c8a07f1d2
 
 # Some ENV variables
 ENV PATH="/mattermost/bin:${PATH}"
 ARG PUID=2000
 ARG PGID=2000
-ARG MM_PACKAGE="https://releases.mattermost.com/6.0.0/mattermost-6.0.0-linux-amd64.tar.gz?src=docker"
+ARG MM_PACKAGE="https://releases.mattermost.com/6.6.0/mattermost-6.6.0-linux-amd64.tar.gz?src=docker"
 
 
 # Install some needed packages

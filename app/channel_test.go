@@ -400,6 +400,50 @@ func TestUpdateChannelPrivacy(t *testing.T) {
 	assert.Equal(t, publicChannel.Type, model.ChannelTypeOpen)
 }
 
+func TestGetOrCreateDirectChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	team1 := th.CreateTeam()
+	team2 := th.CreateTeam()
+
+	user1 := th.CreateUser()
+	th.LinkUserToTeam(user1, team1)
+
+	user2 := th.CreateUser()
+	th.LinkUserToTeam(user2, team2)
+
+	bot1 := th.CreateBot()
+
+	t.Run("Bot can create with restriction", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			setting := model.DirectMessageTeam
+			cfg.TeamSettings.RestrictDirectMessage = &setting
+		})
+
+		// check with bot in first userid param
+		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, bot1.UserId, user1.Id)
+		require.NotNil(t, channel, "channel should be non-nil")
+		require.Nil(t, appErr)
+
+		// check with bot in second userid param
+		channel, appErr = th.App.GetOrCreateDirectChannel(th.Context, user1.Id, bot1.UserId)
+		require.NotNil(t, channel, "channel should be non-nil")
+		require.Nil(t, appErr)
+	})
+
+	t.Run("User from other team cannot create with restriction", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			setting := model.DirectMessageTeam
+			cfg.TeamSettings.RestrictDirectMessage = &setting
+		})
+
+		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, user1.Id, user2.Id)
+		require.Nil(t, channel, "channel should be nil")
+		require.NotNil(t, appErr)
+	})
+}
+
 func TestCreateGroupChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -1978,7 +2022,7 @@ func TestMarkChannelsAsViewedPanic(t *testing.T) {
 	times := map[string]int64{
 		"userID": 1,
 	}
-	mockChannelStore.On("UpdateLastViewedAt", []string{"channelID"}, "userID", false).Return(times, nil)
+	mockChannelStore.On("UpdateLastViewedAt", []string{"channelID"}, "userID").Return(times, nil)
 	mockSessionStore := mocks.SessionStore{}
 	mockOAuthStore := mocks.OAuthStore{}
 	var err error
@@ -1992,10 +2036,10 @@ func TestMarkChannelsAsViewedPanic(t *testing.T) {
 	require.NoError(t, err)
 	mockPreferenceStore := mocks.PreferenceStore{}
 	mockPreferenceStore.On("Get", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(&model.Preference{Value: "test"}, nil)
-	mockThreadStore := mocks.ThreadStore{}
-	mockThreadStore.On("MarkAllAsReadInChannels", "userID", []string{"channelID"}).Return(nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
 	mockStore.On("Preference").Return(&mockPreferenceStore)
+	mockThreadStore := mocks.ThreadStore{}
+	mockThreadStore.On("MarkAllAsReadByChannels", "userID", []string{"channelID"}).Return(nil)
 	mockStore.On("Thread").Return(&mockThreadStore)
 
 	_, appErr := th.App.MarkChannelsAsViewed([]string{"channelID"}, "userID", th.Context.Session().Id, false)
@@ -2034,14 +2078,13 @@ func TestMarkChannelAsUnreadFromPostPanic(t *testing.T) {
 	mockPreferenceStore.On("Get", "userID", model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled).Return(&model.Preference{Value: "on"}, nil)
 
 	mockThreadStore := mocks.ThreadStore{}
-	mockThreadStore.On("MarkAllAsReadInChannels", "userID", []string{"channelID"}).Return(nil)
 	mockThreadStore.On("GetMembershipForUser", "userID", "rootID").Return(nil, nil)
 	mockThreadStore.On("MaintainMembership", "userID", "rootID", mock.AnythingOfType("store.ThreadMembershipOpts")).Return(&model.ThreadMembership{}, nil)
 	mockThreadStore.On("Get", "rootID").Return(nil, errors.New("bad error")) // Returning an error from here causes the panic
 
 	mockPostStore := mocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
-	mockPostStore.On("Get", context.Background(), "postID", false, false, false, "userID").Return(&model.PostList{}, nil)
+	mockPostStore.On("Get", context.Background(), "postID", model.GetPostsOptions{}, "userID").Return(&model.PostList{}, nil)
 	mockPostStore.On("GetPostsAfter", mock.AnythingOfType("model.GetPostsOptions")).Return(&model.PostList{}, nil)
 	mockPostStore.On("GetSingle", "postID", false).Return(&model.Post{
 		Id:        "postID",
@@ -2063,6 +2106,7 @@ func TestMarkChannelAsUnreadFromPostPanic(t *testing.T) {
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("System").Return(&mockSystemStore)
 	mockStore.On("License").Return(&mockLicenseStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -2092,6 +2136,7 @@ func TestClearChannelMembersCache(t *testing.T) {
 			ChannelId: "1",
 		}}, nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	th.App.ClearChannelMembersCache("channelID")
 }
@@ -2112,6 +2157,7 @@ func TestGetMemberCountsByGroup(t *testing.T) {
 	}
 	mockChannelStore.On("GetMemberCountsByGroup", context.Background(), "channelID", true).Return(cmc, nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 	resp, err := th.App.GetMemberCountsByGroup(context.Background(), "channelID", true)
 	require.Nil(t, err)
 	require.ElementsMatch(t, cmc, resp)

@@ -676,7 +676,7 @@ func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
 	msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion,
 		model.BuildNumber,
 		wc.App.ClientConfigHash(),
-		wc.App.Srv().License() != nil))
+		wc.App.Channels().License() != nil))
 	msg.Add("connection_id", wc.connectionID.Load())
 	return msg
 }
@@ -735,6 +735,11 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 		if !*hasReadPrivateDataPermission {
 			return false
 		}
+	}
+
+	// If the event is destined to a specific connection
+	if msg.GetBroadcast().ConnectionId != "" {
+		return wc.GetConnectionID() == msg.GetBroadcast().ConnectionId
 	}
 
 	// If the event is destined to a specific user

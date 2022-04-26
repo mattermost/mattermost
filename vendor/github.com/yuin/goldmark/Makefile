@@ -12,5 +12,5 @@ fuzz:
 	rm -rf ./fuzz/crashers
 	rm -rf ./fuzz/suppressions
 	rm -f ./fuzz/fuzz-fuzz.zip
-	cd ./fuzz && go-fuzz-build
+	cd ./fuzz && GO111MODULE=off go-fuzz-build
 	cd ./fuzz && go-fuzz

@@ -631,7 +631,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "找不到頻道 {{.Channel}}. 請用[頻道識別](https://about.mattermost.com/default-channel-handle-documentation)以分辨頻道。"
+    "translation": "找不到頻道 {{.Channel}}. 請用[頻道識別](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)以分辨頻道。"
   },
   {
     "id": "api.command_invite.desc",
@@ -775,7 +775,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "找不到頻道 {{.Channel}}. 請用[頻道識別](https://about.mattermost.com/default-channel-handle-documentation)以分辨頻道。"
+    "translation": "找不到頻道 {{.Channel}}. 請用[頻道識別](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)以分辨頻道。"
   },
   {
     "id": "api.command_mute.hint",
@@ -787,7 +787,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "找不到特定的頻道。 請用[頻道識別](https://about.mattermost.com/default-channel-handle-documentation)以分辨頻道。"
+    "translation": "找不到特定的頻道。 請用[頻道識別](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)以分辨頻道。"
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -2484,10 +2484,6 @@
     "translation": "頻道顯示名稱長度不符要求。"
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "缺少必要的頻道屬性：顯示名稱。"
-  },
-  {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "頻道標題過長。"
   },
@@ -3536,10 +3532,6 @@
     "translation": "無效的使用者名稱"
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "名稱必須是2個以上的小寫英數字元"
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "\"新增時間\"必須是一個有效時間"
   },
@@ -3754,10 +3746,6 @@
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
     "translation": "Elasticsearch 設定 AggregatePostsAfterDays 必須為大於或等於 1 的數字"
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Elasticsearch 批次索引的時間範圍必須至少為 1 秒。"
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
@@ -4616,18 +4604,6 @@
     "translation": "缺少收件人位址。"
   },
   {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: 無法將 StringArray 轉換為 *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: 無法將 StringInterface 轉換為 *string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: 無法將 StringMap 轉換為 *string"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot does not exist"
   },
@@ -4970,10 +4946,6 @@
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
     "translation": "當啟用 Bleve EnableAutocomplete 時必須設定 Bleve EnableIndexing 為啟用。"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Bleve 批次索引的時間範圍必須至少為 1 秒。"
   },
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
@@ -7060,10 +7032,6 @@
     "translation": "無法找到被釘選的訊息。"
   },
   {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "無法增加提及計數。"
-  },
-  {
     "id": "app.channel.get_private_channels.get.app_error",
     "translation": "無法取得私人頻道。"
   },
@@ -7134,10 +7102,6 @@
   {
     "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
     "translation": "診斷 ID： "
-  },
-  {
-    "id": "api.team.invite_members.limit_reached.app_error",
-    "translation": "使用者數量已達到免費層上限"
   },
   {
     "id": "api.migrate_to_saml.error",

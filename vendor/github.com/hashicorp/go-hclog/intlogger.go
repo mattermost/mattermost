@@ -69,6 +69,8 @@ type intLogger struct {
 	writer *writer
 	level  *int32
 
+	headerColor ColorOption
+
 	implied []interface{}
 
 	exclude func(level Level, msg string, args ...interface{}) bool
@@ -113,6 +115,16 @@ func newLogger(opts *LoggerOptions) *intLogger {
 		mutex = new(sync.Mutex)
 	}
 
+	var primaryColor, headerColor ColorOption
+
+	if opts.ColorHeaderOnly {
+		primaryColor = ColorOff
+		headerColor = opts.Color
+	} else {
+		primaryColor = opts.Color
+		headerColor = ColorOff
+	}
+
 	l := &intLogger{
 		json:              opts.JSONFormat,
 		name:              opts.Name,
@@ -120,10 +132,11 @@ func newLogger(opts *LoggerOptions) *intLogger {
 		timeFn:            time.Now,
 		disableTime:       opts.DisableTime,
 		mutex:             mutex,
-		writer:            newWriter(output, opts.Color),
+		writer:            newWriter(output, primaryColor),
 		level:             new(int32),
 		exclude:           opts.Exclude,
 		independentLevels: opts.IndependentLevels,
+		headerColor:       headerColor,
 	}
 	if opts.IncludeLocation {
 		l.callerOffset = offsetIntLogger + opts.AdditionalLocationOffset
@@ -232,7 +245,12 @@ func (l *intLogger) logPlain(t time.Time, name string, level Level, msg string, 
 
 	s, ok := _levelToBracket[level]
 	if ok {
-		l.writer.WriteString(s)
+		if l.headerColor != ColorOff {
+			color := _levelToColor[level]
+			color.Fprint(l.writer, s)
+		} else {
+			l.writer.WriteString(s)
+		}
 	} else {
 		l.writer.WriteString("[?????]")
 	}

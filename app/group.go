@@ -85,6 +85,11 @@ func (a *App) GetGroupsByUserId(userID string) ([]*model.Group, *model.AppError)
 }
 
 func (a *App) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
+	if err := a.isUniqueToUsernames(group.GetName()); err != nil {
+		err.Where = "CreateGroup"
+		return nil, err
+	}
+
 	group, err := a.Srv().Store.Group().Create(group)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -102,7 +107,27 @@ func (a *App) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
 	return group, nil
 }
 
+func (a *App) isUniqueToUsernames(val string) *model.AppError {
+	if val == "" {
+		return nil
+	}
+	var notFoundErr *store.ErrNotFound
+	user, err := a.Srv().Store.User().GetByUsername(val)
+	if err != nil && !errors.As(err, &notFoundErr) {
+		return model.NewAppError("", "app.group.get_by_username_failure", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if user != nil {
+		return model.NewAppError("", "app.group.username_conflict", nil, "", http.StatusBadRequest)
+	}
+	return nil
+}
+
 func (a *App) CreateGroupWithUserIds(group *model.GroupWithUserIds) (*model.Group, *model.AppError) {
+	if err := a.isUniqueToUsernames(group.GetName()); err != nil {
+		err.Where = "CreateGroupWithUserIds"
+		return nil, err
+	}
+
 	newGroup, err := a.Srv().Store.Group().CreateWithUserIds(group)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -137,6 +162,11 @@ func (a *App) CreateGroupWithUserIds(group *model.GroupWithUserIds) (*model.Grou
 }
 
 func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
+	if err := a.isUniqueToUsernames(group.GetName()); err != nil {
+		err.Where = "UpdateGroup"
+		return nil, err
+	}
+
 	updatedGroup, err := a.Srv().Store.Group().Update(group)
 
 	if err == nil {

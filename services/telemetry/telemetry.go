@@ -567,6 +567,7 @@ func (ts *TelemetryService) trackConfig() {
 		"isdefault_login_button_border_color":  isDefault(*cfg.EmailSettings.LoginButtonBorderColor, ""),
 		"isdefault_login_button_text_color":    isDefault(*cfg.EmailSettings.LoginButtonTextColor, ""),
 		"smtp_server_timeout":                  *cfg.EmailSettings.SMTPServerTimeout,
+		"enable_inactivity_email":              *cfg.EmailSettings.EnableInactivityEmail,
 	})
 
 	ts.SendTelemetry(TrackConfigRate, map[string]interface{}{
@@ -715,7 +716,6 @@ func (ts *TelemetryService) trackConfig() {
 		"restrict_system_admin":              *cfg.ExperimentalSettings.RestrictSystemAdmin,
 		"use_new_saml_library":               *cfg.ExperimentalSettings.UseNewSAMLLibrary,
 		"cloud_billing":                      *cfg.ExperimentalSettings.CloudBilling,
-		"cloud_user_limit":                   *cfg.ExperimentalSettings.CloudUserLimit,
 		"enable_shared_channels":             *cfg.ExperimentalSettings.EnableSharedChannels,
 		"enable_remote_cluster_service":      *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
 	})
@@ -734,39 +734,40 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.SendTelemetry(TrackConfigElasticsearch, map[string]interface{}{
-		"isdefault_connection_url":          isDefault(*cfg.ElasticsearchSettings.ConnectionURL, model.ElasticsearchSettingsDefaultConnectionURL),
-		"isdefault_username":                isDefault(*cfg.ElasticsearchSettings.Username, model.ElasticsearchSettingsDefaultUsername),
-		"isdefault_password":                isDefault(*cfg.ElasticsearchSettings.Password, model.ElasticsearchSettingsDefaultPassword),
-		"enable_indexing":                   *cfg.ElasticsearchSettings.EnableIndexing,
-		"enable_searching":                  *cfg.ElasticsearchSettings.EnableSearching,
-		"enable_autocomplete":               *cfg.ElasticsearchSettings.EnableAutocomplete,
-		"sniff":                             *cfg.ElasticsearchSettings.Sniff,
-		"post_index_replicas":               *cfg.ElasticsearchSettings.PostIndexReplicas,
-		"post_index_shards":                 *cfg.ElasticsearchSettings.PostIndexShards,
-		"channel_index_replicas":            *cfg.ElasticsearchSettings.ChannelIndexReplicas,
-		"channel_index_shards":              *cfg.ElasticsearchSettings.ChannelIndexShards,
-		"user_index_replicas":               *cfg.ElasticsearchSettings.UserIndexReplicas,
-		"user_index_shards":                 *cfg.ElasticsearchSettings.UserIndexShards,
-		"isdefault_index_prefix":            isDefault(*cfg.ElasticsearchSettings.IndexPrefix, model.ElasticsearchSettingsDefaultIndexPrefix),
-		"live_indexing_batch_size":          *cfg.ElasticsearchSettings.LiveIndexingBatchSize,
-		"bulk_indexing_time_window_seconds": *cfg.ElasticsearchSettings.BulkIndexingTimeWindowSeconds,
-		"request_timeout_seconds":           *cfg.ElasticsearchSettings.RequestTimeoutSeconds,
-		"skip_tls_verification":             *cfg.ElasticsearchSettings.SkipTLSVerification,
-		"trace":                             *cfg.ElasticsearchSettings.Trace,
+		"isdefault_connection_url": isDefault(*cfg.ElasticsearchSettings.ConnectionURL, model.ElasticsearchSettingsDefaultConnectionURL),
+		"isdefault_username":       isDefault(*cfg.ElasticsearchSettings.Username, model.ElasticsearchSettingsDefaultUsername),
+		"isdefault_password":       isDefault(*cfg.ElasticsearchSettings.Password, model.ElasticsearchSettingsDefaultPassword),
+		"enable_indexing":          *cfg.ElasticsearchSettings.EnableIndexing,
+		"enable_searching":         *cfg.ElasticsearchSettings.EnableSearching,
+		"enable_autocomplete":      *cfg.ElasticsearchSettings.EnableAutocomplete,
+		"sniff":                    *cfg.ElasticsearchSettings.Sniff,
+		"post_index_replicas":      *cfg.ElasticsearchSettings.PostIndexReplicas,
+		"post_index_shards":        *cfg.ElasticsearchSettings.PostIndexShards,
+		"channel_index_replicas":   *cfg.ElasticsearchSettings.ChannelIndexReplicas,
+		"channel_index_shards":     *cfg.ElasticsearchSettings.ChannelIndexShards,
+		"user_index_replicas":      *cfg.ElasticsearchSettings.UserIndexReplicas,
+		"user_index_shards":        *cfg.ElasticsearchSettings.UserIndexShards,
+		"isdefault_index_prefix":   isDefault(*cfg.ElasticsearchSettings.IndexPrefix, model.ElasticsearchSettingsDefaultIndexPrefix),
+		"live_indexing_batch_size": *cfg.ElasticsearchSettings.LiveIndexingBatchSize,
+		"bulk_indexing_batch_size": *cfg.ElasticsearchSettings.BatchSize,
+		"request_timeout_seconds":  *cfg.ElasticsearchSettings.RequestTimeoutSeconds,
+		"skip_tls_verification":    *cfg.ElasticsearchSettings.SkipTLSVerification,
+		"trace":                    *cfg.ElasticsearchSettings.Trace,
 	})
 
 	ts.trackPluginConfig(cfg, model.PluginSettingsDefaultMarketplaceURL)
 
 	ts.SendTelemetry(TrackConfigDataRetention, map[string]interface{}{
-		"enable_message_deletion":     *cfg.DataRetentionSettings.EnableMessageDeletion,
-		"enable_file_deletion":        *cfg.DataRetentionSettings.EnableFileDeletion,
-		"enable_boards_deletion":      *cfg.DataRetentionSettings.EnableBoardsDeletion,
-		"message_retention_days":      *cfg.DataRetentionSettings.MessageRetentionDays,
-		"file_retention_days":         *cfg.DataRetentionSettings.FileRetentionDays,
-		"boards_retention_days":       *cfg.DataRetentionSettings.BoardsRetentionDays,
-		"deletion_job_start_time":     *cfg.DataRetentionSettings.DeletionJobStartTime,
-		"batch_size":                  *cfg.DataRetentionSettings.BatchSize,
-		"cleanup_jobs_threshold_days": *cfg.JobSettings.CleanupJobsThresholdDays,
+		"enable_message_deletion":       *cfg.DataRetentionSettings.EnableMessageDeletion,
+		"enable_file_deletion":          *cfg.DataRetentionSettings.EnableFileDeletion,
+		"enable_boards_deletion":        *cfg.DataRetentionSettings.EnableBoardsDeletion,
+		"message_retention_days":        *cfg.DataRetentionSettings.MessageRetentionDays,
+		"file_retention_days":           *cfg.DataRetentionSettings.FileRetentionDays,
+		"boards_retention_days":         *cfg.DataRetentionSettings.BoardsRetentionDays,
+		"deletion_job_start_time":       *cfg.DataRetentionSettings.DeletionJobStartTime,
+		"batch_size":                    *cfg.DataRetentionSettings.BatchSize,
+		"cleanup_jobs_threshold_days":   *cfg.JobSettings.CleanupJobsThresholdDays,
+		"cleanup_config_threshold_days": *cfg.JobSettings.CleanupConfigThresholdDays,
 	})
 
 	ts.SendTelemetry(TrackConfigMessageExport, map[string]interface{}{
@@ -803,10 +804,10 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.SendTelemetry(TrackConfigBleve, map[string]interface{}{
-		"enable_indexing":                   *cfg.BleveSettings.EnableIndexing,
-		"enable_searching":                  *cfg.BleveSettings.EnableSearching,
-		"enable_autocomplete":               *cfg.BleveSettings.EnableAutocomplete,
-		"bulk_indexing_time_window_seconds": *cfg.BleveSettings.BulkIndexingTimeWindowSeconds,
+		"enable_indexing":          *cfg.BleveSettings.EnableIndexing,
+		"enable_searching":         *cfg.BleveSettings.EnableSearching,
+		"enable_autocomplete":      *cfg.BleveSettings.EnableAutocomplete,
+		"bulk_indexing_batch_size": *cfg.BleveSettings.BatchSize,
 	})
 
 	ts.SendTelemetry(TrackConfigExport, map[string]interface{}{
@@ -1106,6 +1107,16 @@ func (ts *TelemetryService) trackGroups() {
 		mlog.Debug("Could not get group_count", mlog.Err(err))
 	}
 
+	ldapGroupCount, err := ts.dbStore.Group().GroupCountBySource(model.GroupSourceLdap)
+	if err != nil {
+		mlog.Debug("Could not get group_count", mlog.Err(err))
+	}
+
+	customGroupCount, err := ts.dbStore.Group().GroupCountBySource(model.GroupSourceCustom)
+	if err != nil {
+		mlog.Debug("Could not get group_count", mlog.Err(err))
+	}
+
 	groupTeamCount, err := ts.dbStore.Group().GroupTeamCount()
 	if err != nil {
 		mlog.Debug("Could not get group_team_count", mlog.Err(err))
@@ -1143,6 +1154,8 @@ func (ts *TelemetryService) trackGroups() {
 
 	ts.SendTelemetry(TrackGroups, map[string]interface{}{
 		"group_count":                      groupCount,
+		"ldap_group_count":                 ldapGroupCount,
+		"custom_group_count":               customGroupCount,
 		"group_team_count":                 groupTeamCount,
 		"group_channel_count":              groupChannelCount,
 		"group_synced_team_count":          groupSyncedTeamCount,
