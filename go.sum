@@ -977,8 +977,8 @@ github.com/markbates/safe v1.0.1/go.mod h1:nAqgmRi7cY2nqMc92/bSEeQA+R4OheNU2T1kN
 github.com/marstr/guid v1.1.0/go.mod h1:74gB1z2wpxxInTG6yaqA7KrtM0NZ+RbrcqDvYHefzho=
 github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404 h1:Khvh6waxG1cHc4Cz5ef9n3XVCxRWpAKUtqg9PJl5+y8=
 github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404/go.mod h1:RyS7FDNQlzF1PsjbJWHRI35exqaKGSO9qD4iv8QjE34=
-github.com/mattermost/gosaml2 v0.3.3 h1:ysWrjp08tpWmo6rV2MQ88Eag/Ttjuj91fZsvibF4/Tg=
-github.com/mattermost/gosaml2 v0.3.3/go.mod h1:Z429EIOiEi9kbq6yHoApfzlcXpa6dzRDc6pO+Vy2Ksk=
+github.com/mattermost/gosaml2 v0.8.0 h1:nkYiByawqwJ7KncK1LDWKwTx5aRarBTQsmH+XcCVsWQ=
+github.com/mattermost/gosaml2 v0.8.0/go.mod h1:1nMAdE2Psxaz+pj79Oytayi+hC3aZUi3SmJQlIe+sLM=
 github.com/mattermost/gziphandler v0.0.1 h1:uXHcXF5agnQ6bXabvpiwwwZOlCYoa7mKHH0lxns/o8w=
 github.com/mattermost/gziphandler v0.0.1/go.mod h1:CvvZR7sXqhj81V2swXuQY7T04Ccc89u7W7pHNPKev8g=
 github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d h1:/RJ/UV7M5c7L2TQ0KNm4yZxxFvC1nvRz/gY/Daa35aI=
@@ -989,6 +989,8 @@ github.com/mattermost/morph v0.0.0-20220401091636-39f834798da8 h1:gwliVjCTqAC01m
 github.com/mattermost/morph v0.0.0-20220401091636-39f834798da8/go.mod h1:jxM3g1bx+k2Thz7jofcHguBS8TZn5Pc+o5MGmORObhw=
 github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0 h1:G9tL6JXRBMzjuD1kkBtcnd42kUiT6QDwxfFYu7adM6o=
 github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0/go.mod h1:nV5bfVpT//+B1RPD2JvRnxbkLmJEYXmRaaVl15fsXjs=
+github.com/mattermost/xml-roundtrip-validator v0.1.0 h1:RXbVD2UAl7A7nOTR4u7E3ILa4IbtvKBHw64LDsmu9hU=
+github.com/mattermost/xml-roundtrip-validator v0.1.0/go.mod h1:qccnGMcpgwcNaBnxqpJpWWUiPNr5H3O8eDgGV9gT5To=
 github.com/mattn/go-colorable v0.0.9/go.mod h1:9vuHe8Xs5qXnSaW/c/ABM9alt+Vo+STaOChaDxuIBZU=
 github.com/mattn/go-colorable v0.1.1/go.mod h1:FuOcm+DKB9mbwrcAfNl7/TZVBZ6rcnceauSikq3lYCQ=
 github.com/mattn/go-colorable v0.1.2/go.mod h1:U0ppj6V5qS13XJ6of8GYAs25YV2eR4EVcfRqFIhoBtE=
