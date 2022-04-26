@@ -1869,7 +1869,7 @@ func (a *App) SearchUsersNotInGroup(groupID string, term string, options *model.
 		a.SanitizeProfile(user, options.IsAdmin)
 	}
 
-	// filter bot users
+	// filter bot users since bots can't be part of an usergroup
 	for _, user := range users {
 		if !user.IsBot {
 			filteredUsers = append(filteredUsers, user)

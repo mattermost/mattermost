@@ -436,11 +436,14 @@ func (s *SqlGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage 
 
 	query := `
 	SELECT 
-		Users.*
+		Users.*,
+		Bots.UserId IS NOT NULL AS IsBot
 	FROM
 		Users
 	LEFT JOIN 
 		GroupMembers ON (GroupMembers.UserId = Users.Id AND GroupMembers.GroupId = ?)
+	LEFT JOIN
+		Bots ON Bots.UserId = Users.Id
 	WHERE
 		Users.DeleteAt = 0
 		AND ( GroupMembers.UserId IS NULL OR GroupMembers.DeleteAt != 0)

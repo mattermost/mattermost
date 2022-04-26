@@ -253,8 +253,15 @@ func (a *App) GetUsersNotInGroupPage(groupID string, page int, perPage int) ([]*
 	if err != nil {
 		return nil, model.NewAppError("GetUsersNotInGroupPage", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+	var filteredMembers []*model.User
 
-	return a.sanitizeProfiles(members, false), nil
+	// filter bot users since bots can't be part of an usergroup
+	for _, member := range members {
+		if !member.IsBot {
+			filteredMembers = append(filteredMembers, member)
+		}
+	}
+	return a.sanitizeProfiles(filteredMembers, false), nil
 }
 
 func (a *App) UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
