@@ -4500,6 +4500,14 @@
     "translation": "Unable to get public channels."
   },
   {
+    "id": "app.channel.get_top_for_team_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.channel.get_top_for_user_since.app_error",
+    "translation": " "
+  },
+  {
     "id": "app.channel.get_unread.app_error",
     "translation": "Unable to get the channel unread messages."
   },
@@ -6494,6 +6502,10 @@
   {
     "id": "app.user.update_thread_read_for_user.app_error",
     "translation": "Unable to update read state for thread"
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "Invalid post_id"
   },
   {
     "id": "app.user.update_threads_read_for_user.app_error",

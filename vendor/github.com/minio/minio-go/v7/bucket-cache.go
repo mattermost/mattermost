@@ -181,6 +181,9 @@ func (c *Client) getBucketLocationRequest(ctx context.Context, bucketName string
 	if h, p, err := net.SplitHostPort(targetURL.Host); err == nil {
 		if targetURL.Scheme == "http" && p == "80" || targetURL.Scheme == "https" && p == "443" {
 			targetURL.Host = h
+			if ip := net.ParseIP(h); ip != nil && ip.To16() != nil {
+				targetURL.Host = "[" + h + "]"
+			}
 		}
 	}
 

@@ -758,15 +758,16 @@ func (ts *TelemetryService) trackConfig() {
 	ts.trackPluginConfig(cfg, model.PluginSettingsDefaultMarketplaceURL)
 
 	ts.SendTelemetry(TrackConfigDataRetention, map[string]interface{}{
-		"enable_message_deletion":     *cfg.DataRetentionSettings.EnableMessageDeletion,
-		"enable_file_deletion":        *cfg.DataRetentionSettings.EnableFileDeletion,
-		"enable_boards_deletion":      *cfg.DataRetentionSettings.EnableBoardsDeletion,
-		"message_retention_days":      *cfg.DataRetentionSettings.MessageRetentionDays,
-		"file_retention_days":         *cfg.DataRetentionSettings.FileRetentionDays,
-		"boards_retention_days":       *cfg.DataRetentionSettings.BoardsRetentionDays,
-		"deletion_job_start_time":     *cfg.DataRetentionSettings.DeletionJobStartTime,
-		"batch_size":                  *cfg.DataRetentionSettings.BatchSize,
-		"cleanup_jobs_threshold_days": *cfg.JobSettings.CleanupJobsThresholdDays,
+		"enable_message_deletion":       *cfg.DataRetentionSettings.EnableMessageDeletion,
+		"enable_file_deletion":          *cfg.DataRetentionSettings.EnableFileDeletion,
+		"enable_boards_deletion":        *cfg.DataRetentionSettings.EnableBoardsDeletion,
+		"message_retention_days":        *cfg.DataRetentionSettings.MessageRetentionDays,
+		"file_retention_days":           *cfg.DataRetentionSettings.FileRetentionDays,
+		"boards_retention_days":         *cfg.DataRetentionSettings.BoardsRetentionDays,
+		"deletion_job_start_time":       *cfg.DataRetentionSettings.DeletionJobStartTime,
+		"batch_size":                    *cfg.DataRetentionSettings.BatchSize,
+		"cleanup_jobs_threshold_days":   *cfg.JobSettings.CleanupJobsThresholdDays,
+		"cleanup_config_threshold_days": *cfg.JobSettings.CleanupConfigThresholdDays,
 	})
 
 	ts.SendTelemetry(TrackConfigMessageExport, map[string]interface{}{
