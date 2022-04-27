@@ -389,6 +389,10 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	includeDeletedPost := false
 	if r.URL.Query().Get("includeDeleted") == "true" {
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return
+		}
 		includeDeletedPost = true
 	}
 
