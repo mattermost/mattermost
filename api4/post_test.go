@@ -2003,7 +2003,7 @@ func TestGetPost(t *testing.T) {
 	client.Logout()
 
 	// Normal client should get unauthorized, but local client should get 404.
-	_, resp, err = client.GetPost(model.NewId(), "", th.App.RevokeSessionsFromAllUsers().IsOAuth)
+	_, resp, err = client.GetPost(model.NewId(), "", false)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
