@@ -108,7 +108,7 @@ DIST_PATH_OSX_ARM64=$(DIST_ROOT)/osx_arm64/mattermost
 DIST_PATH_WIN=$(DIST_ROOT)/windows/mattermost
 
 # Tests
-TESTS=.
+TESTS=TestGetCloudLimits
 
 # Packages lists
 TE_PACKAGES=$(shell $(GO) list ./... | grep -v ./data)
