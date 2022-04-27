@@ -841,7 +841,7 @@ func (a *App) GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList
 }
 
 func (a *App) GetSinglePost(postID string, includeDeleted bool) (*model.Post, *model.AppError) {
-	post, err := a.Srv().Store.Post().GetSingle(postID, false)
+	post, err := a.Srv().Store.Post().GetSingle(postID, includeDeleted)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1666,7 +1666,7 @@ func (a *App) GetThreadMembershipsForUser(userID, teamID string) ([]*model.Threa
 }
 
 func (a *App) GetPostIfAuthorized(postID string, session *model.Session, includeDeleted bool) (*model.Post, *model.AppError) {
-	post, err := a.GetSinglePost(postID, false)
+	post, err := a.GetSinglePost(postID, includeDeleted)
 	if err != nil {
 		return nil, err
 	}

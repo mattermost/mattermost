@@ -2010,6 +2010,17 @@ func TestGetPost(t *testing.T) {
 	_, resp, err = th.LocalClient.GetPost(model.NewId(), "", false)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
+
+	// Normal client should get unauthorized when trying to access deleted post.
+	_, resp, err = client.GetPost(th.BasicPost.Id, "", true)
+	require.Error(t, err)
+	CheckUnauthorizedStatus(t, resp)
+
+	// System client should be able to access deleted post.
+	th.SystemAdminClient.DeletePost(th.BasicPost.Id)
+	post, _, err := th.SystemAdminClient.GetPost(th.BasicPost.Id, "", true)
+	require.NoError(t, err)
+	require.Equal(t, th.BasicPost.Id, post.Id)
 }
 
 func TestDeletePost(t *testing.T) {
