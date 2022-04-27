@@ -31,6 +31,7 @@ type EventResult struct {
 }
 
 type EventData struct {
+	Parameters       interface{} `json:"parameters"`
 	Change           interface{} `json:"new_data"`
 	PriorState       interface{} `json:"prior_state"`
 	ResultingState   interface{} `json:"resulting_state"`
@@ -93,29 +94,22 @@ func (rec *Record) AddMetadata(newObject interface{},
 	priorObject interface{},
 	resultObject Auditable,
 	resultObjectType string) {
-
-	//var priorAuditable interface{}
-	//var resultAuditable interface{}
-
-	//switch priorObject.(type) {
-	//case model.User:
-	//	user := priorObject.(model.User)
-	//	rec.UserID = user.Id
-	//	priorAuditable = user.AuditableUser()
-	//default:
-	//	priorAuditable = priorObject
-	//}
-
-	//switch resultObject.(type) {
-	//case model.User:
-	//	user := resultObject.(model.User)
-	//	rec.UserID = user.Id
-	//	resultAuditable = user.AuditableUser()
-	//default:
-	//	resultAuditable = resultObject
-	//}
-
 	eventData := EventData{
+		Change:           newObject,
+		PriorState:       priorObject,
+		ResultingState:   resultObject.AuditableObject(),
+		ResultObjectType: resultObjectType,
+	}
+	rec.EventData = eventData
+}
+
+func (rec *Record) AddMetadataWithParameters(newObject interface{},
+	parameters interface{},
+	priorObject interface{},
+	resultObject Auditable,
+	resultObjectType string) {
+	eventData := EventData{
+		Parameters:       parameters,
 		Change:           newObject,
 		PriorState:       priorObject,
 		ResultingState:   resultObject.AuditableObject(),

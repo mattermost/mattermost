@@ -244,7 +244,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMetadata(postPayload, originalOldChannel, updatedChannel, "channel")
+	auditRec.AddMetadataWithParameters(postPayload, c.Params, originalOldChannel, updatedChannel, "channel")
 	c.LogAudit("name=" + channel.Name)
 
 	if err := json.NewEncoder(w).Encode(oldChannel); err != nil {
@@ -1281,6 +1281,8 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	priorChannelForAudit, _ := c.App.GetChannel(c.Params.ChannelId)
+
 	auditRec := c.MakeAuditRecord("deleteChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("channeld", channel)
@@ -1314,6 +1316,7 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddMetadata(c.Params, priorChannelForAudit, channel, "channel")
 	auditRec.Success()
 	c.LogAudit("name=" + channel.Name)
 
@@ -1566,7 +1569,16 @@ func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	props := model.MapFromJSON(r.Body)
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
+	props := model.MapFromJSON(bytes.NewBuffer(postBody))
 
 	newRoles := props["roles"]
 	if !(model.IsValidUserRoles(newRoles)) {

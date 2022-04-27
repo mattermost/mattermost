@@ -111,6 +111,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.ExtendSessionExpiryIfNeeded(w, r)
 
 	auditRec.AddMetadata(postPayload, nil, rp, "post")
+	auditRec.AddMetadataWithParameters(postPayload, c.Params, nil, rp, "post")
 
 	w.WriteHeader(http.StatusCreated)
 
