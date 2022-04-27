@@ -3725,7 +3725,11 @@ func (c *Client4) UnpinPost(postId string) (*Response, error) {
 
 // GetPost gets a single post.
 func (c *Client4) GetPost(postId string, etag string, includeDeleted bool) (*Post, *Response, error) {
-	r, err := c.DoAPIGet(c.postRoute(postId), etag)
+	query := ""
+	if includeDeleted {
+		query += "?includeDeleted=true"
+	}
+	r, err := c.DoAPIGet(c.postRoute(postId)+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
