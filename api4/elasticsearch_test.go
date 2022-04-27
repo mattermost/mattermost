@@ -26,8 +26,21 @@ func TestElasticsearchTest(t *testing.T) {
 		CheckNotImplementedStatus(t, resp)
 	})
 
+	t.Run("invalid config", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*&cfg.ElasticsearchSettings.Password = nil
+		})
+
+		resp, err := th.SystemAdminClient.TestElasticsearch()
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("as restricted system admin", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ElasticsearchSettings.SetDefaults()
+			*cfg.ExperimentalSettings.RestrictSystemAdmin = true
+		})
 
 		resp, err := th.SystemAdminClient.TestElasticsearch()
 		require.Error(t, err)
