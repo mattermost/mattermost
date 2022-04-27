@@ -578,18 +578,7 @@ func (a *App) BuildPushNotificationMessage(contentsConfig string, post *model.Po
 }
 
 func (a *App) SendTestPushNotification(deviceID string) string {
-	canSendPushNotifications := false
-	if *a.Config().EmailSettings.SendPushNotifications {
-		pushServer := *a.Config().EmailSettings.PushNotificationServer
-		if license := a.Srv().License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
-			mlog.Warn("Push notifications are disabled. Go to System Console > Notifications > Mobile Push to enable them.")
-			canSendPushNotifications = false
-		} else {
-			canSendPushNotifications = true
-		}
-	}
-
-	if !canSendPushNotifications {
+	if !a.canSendPushNotifications() {
 		return "false"
 	}
 
