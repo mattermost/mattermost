@@ -3439,3 +3439,27 @@ func (s *Server) getDirectChannel(userID, otherUserID string) (*model.Channel, *
 
 	return channel, nil
 }
+
+func (a *App) GetTopChannelsForTeamSince(teamID, userID string, opts *model.InsightsOpts) (*model.TopChannelList, *model.AppError) {
+	if !a.Config().FeatureFlags.InsightsEnabled {
+		return nil, model.NewAppError("GetTopChannelsForTeamSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
+	}
+
+	topChannels, err := a.Srv().Store.Channel().GetTopChannelsForTeamSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
+	if err != nil {
+		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.channel.get_top_for_team_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return topChannels, nil
+}
+
+func (a *App) GetTopChannelsForUserSince(userID, teamID string, opts *model.InsightsOpts) (*model.TopChannelList, *model.AppError) {
+	if !a.Config().FeatureFlags.InsightsEnabled {
+		return nil, model.NewAppError("GetTopChannelsForUserSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
+	}
+
+	topChannels, err := a.Srv().Store.Channel().GetTopChannelsForUserSince(userID, teamID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
+	if err != nil {
+		return nil, model.NewAppError("GetTopChannelsForUserSince", "app.channel.get_top_for_user_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return topChannels, nil
+}
