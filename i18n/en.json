@@ -473,7 +473,7 @@
   },
   {
     "id": "api.cloud.limits.update_error",
-    "translation": "Error update cloud limits from webhook."
+    "translation": "Error updating cloud limits from webhook."
   },
   {
     "id": "api.cloud.request_error",
