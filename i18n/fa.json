@@ -1428,10 +1428,6 @@
     "translation": "ایجاد در باید زمان معتبری باشد."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "نام باید 2 یا بیشتر از حروف کوچک عددی باشد."
-  },
-  {
     "id": "model.bot.is_valid.username.app_error",
     "translation": "نام کاربری نامعتبر است."
   },

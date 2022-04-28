@@ -2491,13 +2491,12 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		}()
 
 		require.NotPanics(t, func() {
-			_, err = th.App.CreatePost(th.Context, &model.Post{
+			th.App.CreatePost(th.Context, &model.Post{
 				UserId:    user1.Id,
 				ChannelId: channel.Id,
 				RootId:    postRoot.Id,
 				Message:   fmt.Sprintf("@%s", user2.Username),
 			}, channel, false, true)
-			require.Nil(t, err)
 		})
 
 		wg.Wait()
