@@ -188,7 +188,7 @@ func AppendMultipleStatementsFlag(dataSource string) (string, error) {
 	return config.FormatDSN(), nil
 }
 
-// ResetReadTimeout removes the timeout contraint from the MySQL dsn.
+// ResetReadTimeout removes the timeout constraint from the MySQL dsn.
 func ResetReadTimeout(dataSource string) (string, error) {
 	config, err := mysql.ParseDSN(dataSource)
 	if err != nil {
