@@ -111,6 +111,12 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Log failures for purchase confirmation email, but don't show an error to the user so as not to confuse them
+	// At this point, the upgrade is complete.
+	if nErr := c.App.SendUpgradeConfirmationEmail(); nErr != nil {
+		c.Logger.Error("Error sending purchase confirmation email")
+	}
+
 	w.Write(json)
 }
 
@@ -433,6 +439,11 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	case model.EventTypeFailedPaymentNoCard:
 		if nErr := c.App.SendNoCardPaymentFailedEmail(); nErr != nil {
+			c.Err = nErr
+			return
+		}
+	case model.EventTypeSendUpgradeConfirmationEmail:
+		if nErr := c.App.SendUpgradeConfirmationEmail(); nErr != nil {
 			c.Err = nErr
 			return
 		}
