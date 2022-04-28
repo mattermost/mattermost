@@ -798,7 +798,7 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		channels, _, err = client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
 		require.NoError(t, err)
-		require.Len(t, channels, numInitialChannelsForTeam+2)
+		require.Len(t, channels, numInitialChannelsForTeam+4) // system admins should have access to all deleted channels
 	})
 
 	channels, _, err = client.GetDeletedChannelsForTeam(team.Id, 0, 1, "")
