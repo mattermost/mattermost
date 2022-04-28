@@ -781,10 +781,11 @@ func getDeletedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 
 	channels, err := c.App.GetDeletedChannels(&model.GetDeletedChannelsOptions{
-		TeamID: c.Params.TeamId,
-		Offset: c.Params.Page * c.Params.PerPage,
-		Limit:  c.Params.PerPage,
-		UserID: c.AppContext.Session().UserId,
+		TeamID:  c.Params.TeamId,
+		Offset:  c.Params.Page * c.Params.PerPage,
+		Limit:   c.Params.PerPage,
+		UserID:  c.AppContext.Session().UserId,
+		IsAdmin: c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem),
 	})
 	if err != nil {
 		c.Err = err

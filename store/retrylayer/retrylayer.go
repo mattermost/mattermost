@@ -1045,6 +1045,27 @@ func (s *RetryLayerChannelStore) GetAllChannelsForExportAfter(limit int, afterID
 
 }
 
+func (s *RetryLayerChannelStore) GetAllDeletedChannels(options *model.GetDeletedChannelsOptions) (model.ChannelList, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetAllDeletedChannels(options)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterID string) ([]*model.DirectChannelForExport, error) {
 
 	tries := 0

@@ -885,6 +885,22 @@ func (s *TimerLayerChannelStore) GetAllChannelsForExportAfter(limit int, afterID
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) GetAllDeletedChannels(options *model.GetDeletedChannelsOptions) (model.ChannelList, error) {
+	start := timemodule.Now()
+
+	result, err := s.ChannelStore.GetAllDeletedChannels(options)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetAllDeletedChannels", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterID string) ([]*model.DirectChannelForExport, error) {
 	start := timemodule.Now()
 
