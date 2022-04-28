@@ -6012,7 +6012,7 @@ func TestThreadSocketEvents(t *testing.T) {
 						caught = true
 
 						data := ev.GetData()
-						require.EqualValues(t, rpost.CreateAt-1, data["timestamp"])
+						require.EqualValues(t, replyPost.CreateAt-1, data["timestamp"])
 						require.EqualValues(t, float64(0), data["previous_unread_replies"])
 						require.EqualValues(t, float64(0), data["previous_unread_mentions"])
 						require.EqualValues(t, float64(1), data["unread_replies"])
