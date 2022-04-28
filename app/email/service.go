@@ -131,6 +131,7 @@ type ServiceInterface interface {
 	SendWelcomeEmail(userID string, email string, verified bool, disableWelcomeEmail bool, locale, siteURL, redirect string) error
 	SendCloudTrialEndWarningEmail(userEmail, name, trialEndDate, locale, siteURL string) error
 	SendCloudTrialEndedEmail(userEmail, name, locale, siteURL string) error
+	SendCloudUpgradeConfirmationEmail(userEmail, name, trialEndDate, locale, siteURL, workspaceName string) error
 	SendCloudWelcomeEmail(userEmail, locale, teamInviteID, workSpaceName, dns, siteURL string) error
 	SendPasswordChangeEmail(email, method, locale, siteURL string) error
 	SendUserAccessTokenAddedEmail(email, locale, siteURL string) error
