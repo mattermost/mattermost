@@ -921,8 +921,6 @@ github.com/markbates/safe v1.0.1/go.mod h1:nAqgmRi7cY2nqMc92/bSEeQA+R4OheNU2T1kN
 github.com/marstr/guid v1.1.0/go.mod h1:74gB1z2wpxxInTG6yaqA7KrtM0NZ+RbrcqDvYHefzho=
 github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404 h1:Khvh6waxG1cHc4Cz5ef9n3XVCxRWpAKUtqg9PJl5+y8=
 github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404/go.mod h1:RyS7FDNQlzF1PsjbJWHRI35exqaKGSO9qD4iv8QjE34=
-github.com/mattermost/gosaml2 v0.8.0 h1:nkYiByawqwJ7KncK1LDWKwTx5aRarBTQsmH+XcCVsWQ=
-github.com/mattermost/gosaml2 v0.8.0/go.mod h1:1nMAdE2Psxaz+pj79Oytayi+hC3aZUi3SmJQlIe+sLM=
 github.com/mattermost/gosaml2 v0.8.1-0.20220428161029-8c99721fdec4 h1:y102PXr0vul3Dcw1xP4fs6R3lFL2kyLsC3qI6lsgCVQ=
 github.com/mattermost/gosaml2 v0.8.1-0.20220428161029-8c99721fdec4/go.mod h1:1nMAdE2Psxaz+pj79Oytayi+hC3aZUi3SmJQlIe+sLM=
 github.com/mattermost/gziphandler v0.0.1 h1:uXHcXF5agnQ6bXabvpiwwwZOlCYoa7mKHH0lxns/o8w=
