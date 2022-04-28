@@ -12,6 +12,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -2506,10 +2507,14 @@ func (a *App) UpdateThreadReadForUserByPost(currentSessionId, userID, teamID, th
 
 	lastViewed := post.CreateAt - 1
 	if post.UserId == userID {
-		posts, nErr := a.Srv().Store.Thread().GetPosts(threadID, post.CreateAt-1)
+		posts, nErr := a.Srv().Store.Thread().GetPosts(threadID, post.CreateAt)
 		if nErr != nil {
 			return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user_by_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
+
+		sort.Slice(posts, func(i, j int) bool {
+			return posts[i].CreateAt < posts[j].CreateAt
+		})
 
 		found := false
 		for _, threadPost := range posts {
