@@ -1899,8 +1899,6 @@ func (a *App) GetAllChannelsCount(opts model.ChannelSearchOpts) (int64, *model.A
 }
 
 func (a *App) GetDeletedChannels(options *model.GetDeletedChannelsOptions) (model.ChannelList, *model.AppError) {
-	// TODO: change the interface for GetDeleted to also accept struct..
-
 	var (
 		list model.ChannelList
 		err  error
