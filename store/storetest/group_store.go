@@ -641,6 +641,9 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 	_, err = ss.Group().UpsertMember(group.Id, user1.Id)
 	require.NoError(t, err)
 
+	// Ensure different user createAt timestamp
+	time.Sleep(time.Millisecond)
+
 	u2 := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
@@ -655,6 +658,9 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
+	// Ensure different user createAt timestamp
+	time.Sleep(time.Millisecond)
+
 	user3, nErr := ss.User().Save(u3)
 	require.NoError(t, nErr)
 
