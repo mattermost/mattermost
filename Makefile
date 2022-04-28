@@ -111,7 +111,7 @@ DIST_PATH_WIN=$(DIST_ROOT)/windows/mattermost
 TESTS=.
 
 # Packages lists
-TE_PACKAGES=$(shell $(GO) list ./... | grep -v ./data)
+TE_PACKAGES=$(shell $(GO) list ./...)
 
 TEMPLATES_DIR=templates
 
@@ -138,12 +138,11 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	IGNORE:=$(shell rm -f imports/imports.go)
 	IGNORE:=$(shell cp $(BUILD_ENTERPRISE_DIR)/imports/imports.go imports/)
 	IGNORE:=$(shell rm -f enterprise)
-	IGNORE:=$(shell ln -s $(BUILD_ENTERPRISE_DIR) enterprise)
 else
 	IGNORE:=$(shell rm -f imports/imports.go)
 endif
 
-EE_PACKAGES=$(shell $(GO) list ./enterprise/...)
+EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 ALL_PACKAGES=$(TE_PACKAGES) $(EE_PACKAGES)
@@ -256,7 +255,7 @@ golangci-lint: ## Run golangci-lint on codebase
 	$(GOBIN)/golangci-lint run ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-	$(GOBIN)/golangci-lint run ./enterprise/...
+	$(GOBIN)/golangci-lint run ../enterprise/...
 endif
 endif
 
@@ -470,6 +469,9 @@ build-templates: ## Compile all mjml email templates
 	cd $(TEMPLATES_DIR) && $(MAKE) build
 
 run-server: prepackaged-binaries validate-go-version start-docker ## Starts the server.
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	make check-prereqs-enterprise
+endif
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
@@ -589,7 +591,7 @@ clean: stop-docker ## Clean up everything except persistent server data.
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) clean
 
-	find . -type d -name data -not -path './vendor/*' | xargs rm -rf
+	find . -type d -name data | xargs rm -rf
 	rm -rf logs
 
 	rm -f mattermost.log
@@ -622,7 +624,7 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 	$(GO) mod tidy
 
 	# Copy everything to vendor directory
-	$(GO) mod vendor
+	# $(GO) mod vendor
 
 	# Tidy up
 	$(GO) mod tidy
@@ -638,7 +640,7 @@ vet: ## Run mattermost go vet specific checks
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet $$VET_CMD ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -enterpriseLicense -structuredLogging -tFatal ./enterprise/...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -enterpriseLicense -structuredLogging -tFatal ../enterprise/...
 endif
 endif
 
@@ -666,9 +668,9 @@ gen-serialized: ## Generates serialization methods for hot structs
 	@mv tmp.go ./model/team_member_serial_gen.go
 
 todo: ## Display TODO and FIXME items in the source code.
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime '(TODO|XXX|FIXME|"FIX ME")[: ]+' 
+	@! ag --ignore Makefile --ignore-dir runtime '(TODO|XXX|FIXME|"FIX ME")[: ]+'
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime '(TODO|XXX|FIXME|"FIX ME")[: ]+' enterprise/
+	@! ag --ignore Makefile --ignore-dir runtime '(TODO|XXX|FIXME|"FIX ME")[: ]+' enterprise/
 endif
 
 ## Help documentation à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
