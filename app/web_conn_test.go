@@ -36,6 +36,8 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 		T:      i18n.T,
 	}
 
+	user1ConnID := model.NewId()
+	basicUserWc.SetConnectionID(user1ConnID)
 	basicUserWc.SetSession(session)
 	basicUserWc.SetSessionToken(session.Token)
 	basicUserWc.SetSessionExpiresAt(session.ExpiresAt)
@@ -55,6 +57,8 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 		T:      i18n.T,
 	}
 
+	user2ConnID := model.NewId()
+	basicUser2Wc.SetConnectionID(user2ConnID)
 	basicUser2Wc.SetSession(session2)
 	basicUser2Wc.SetSessionToken(session2.Token)
 	basicUser2Wc.SetSessionExpiresAt(session2.ExpiresAt)
@@ -68,9 +72,32 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 		T:      i18n.T,
 	}
 
+	adminConnID := model.NewId()
+	adminUserWc.SetConnectionID(adminConnID)
 	adminUserWc.SetSession(session3)
 	adminUserWc.SetSessionToken(session3.Token)
 	adminUserWc.SetSessionExpiresAt(session3.ExpiresAt)
+
+	session4, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Roles: th.BasicUser.GetRawRoles(), TeamMembers: []*model.TeamMember{
+		{
+			UserId: th.BasicUser.Id,
+			TeamId: th.BasicTeam.Id,
+			Roles:  model.TeamUserRoleId,
+		},
+	}})
+	require.Nil(t, err)
+
+	basicUserWc2 := &WebConn{
+		App:    th.App,
+		UserId: th.BasicUser.Id,
+		T:      i18n.T,
+	}
+
+	user1Conn2ID := model.NewId()
+	basicUserWc2.SetConnectionID(user1Conn2ID)
+	basicUserWc2.SetSession(session4)
+	basicUserWc2.SetSessionToken(session4.Token)
+	basicUserWc2.SetSessionExpiresAt(session4.ExpiresAt)
 
 	// By default, only BasicUser and BasicUser2 get added to the BasicTeam.
 	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
@@ -80,18 +107,21 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 	th.AddUserToChannel(th.SystemAdminUser, channel2)
 
 	cases := []struct {
-		Description   string
-		Broadcast     *model.WebsocketBroadcast
-		User1Expected bool
-		User2Expected bool
-		AdminExpected bool
+		Description        string
+		Broadcast          *model.WebsocketBroadcast
+		User1Expected      bool
+		User2Expected      bool
+		AdminExpected      bool
+		User1Conn2Expected bool
 	}{
-		{"should send to all", &model.WebsocketBroadcast{}, true, true, true},
-		{"should only send to basic user", &model.WebsocketBroadcast{UserId: th.BasicUser.Id}, true, false, false},
-		{"should omit basic user 2", &model.WebsocketBroadcast{OmitUsers: map[string]bool{th.BasicUser2.Id: true}}, true, false, true},
-		{"should only send to admin", &model.WebsocketBroadcast{ContainsSensitiveData: true}, false, false, true},
-		{"should only send to non-admins", &model.WebsocketBroadcast{ContainsSanitizedData: true}, true, true, false},
-		{"should send to nobody", &model.WebsocketBroadcast{ContainsSensitiveData: true, ContainsSanitizedData: true}, false, false, false},
+		{"should send to all", &model.WebsocketBroadcast{}, true, true, true, true},
+		{"should only send to basic user", &model.WebsocketBroadcast{UserId: th.BasicUser.Id}, true, false, false, true},
+		{"should only send to basic user conn 1", &model.WebsocketBroadcast{ConnectionId: user1ConnID}, true, false, false, false},
+		{"should only send to basic user conn 2", &model.WebsocketBroadcast{ConnectionId: user1Conn2ID}, false, false, false, true},
+		{"should omit basic user 2", &model.WebsocketBroadcast{OmitUsers: map[string]bool{th.BasicUser2.Id: true}}, true, false, true, true},
+		{"should only send to admin", &model.WebsocketBroadcast{ContainsSensitiveData: true}, false, false, true, false},
+		{"should only send to non-admins", &model.WebsocketBroadcast{ContainsSanitizedData: true}, true, true, false, true},
+		{"should send to nobody", &model.WebsocketBroadcast{ContainsSensitiveData: true, ContainsSanitizedData: true}, false, false, false, false},
 		// needs more cases to get full coverage
 	}
 
@@ -113,6 +143,11 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 				assert.True(t, adminUserWc.shouldSendEvent(event), "expected admin")
 			} else {
 				assert.False(t, adminUserWc.shouldSendEvent(event), "did not expect admin")
+			}
+			if c.User1Conn2Expected {
+				assert.True(t, basicUserWc2.shouldSendEvent(event), "expected user 1 conn 2")
+			} else {
+				assert.False(t, basicUserWc2.shouldSendEvent(event), "did not expect user 1 conn 2")
 			}
 		})
 	}

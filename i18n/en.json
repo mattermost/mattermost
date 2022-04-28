@@ -4500,6 +4500,14 @@
     "translation": "Unable to get public channels."
   },
   {
+    "id": "app.channel.get_top_for_team_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.channel.get_top_for_user_since.app_error",
+    "translation": " "
+  },
+  {
     "id": "app.channel.get_unread.app_error",
     "translation": "Unable to get the channel unread messages."
   },

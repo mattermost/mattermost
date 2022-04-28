@@ -228,20 +228,24 @@ func TestHubConnIndex(t *testing.T) {
 		App:    th.App,
 		UserId: model.NewId(),
 	}
+	wc1.SetConnectionID(model.NewId())
 
 	// User2
 	wc2 := &WebConn{
 		App:    th.App,
 		UserId: model.NewId(),
 	}
+	wc2.SetConnectionID(model.NewId())
 	wc3 := &WebConn{
 		App:    th.App,
 		UserId: wc2.UserId,
 	}
+	wc3.SetConnectionID(model.NewId())
 	wc4 := &WebConn{
 		App:    th.App,
 		UserId: wc2.UserId,
 	}
+	wc4.SetConnectionID(model.NewId())
 
 	connIndex.Add(wc1)
 	connIndex.Add(wc2)
@@ -283,12 +287,68 @@ func TestHubConnIndex(t *testing.T) {
 	t.Run("RemoveEndUser2", func(t *testing.T) {
 		connIndex.Remove(wc4) // Remove from end from user2
 
-		assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc4})
+		assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc2})
 		assert.ElementsMatch(t, connIndex.ForUser(wc1.UserId), []*WebConn{})
 		assert.True(t, connIndex.Has(wc2))
 		assert.False(t, connIndex.Has(wc3))
 		assert.False(t, connIndex.Has(wc4))
 		assert.Len(t, connIndex.All(), 1)
+	})
+}
+
+func TestHubConnIndexByConnectionId(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	connIndex := newHubConnectionIndex(1 * time.Second)
+
+	// User1
+	wc1ID := model.NewId()
+	wc1 := &WebConn{
+		App:    th.App,
+		UserId: model.NewId(),
+	}
+	wc1.SetConnectionID(wc1ID)
+
+	// User2
+	wc2ID := model.NewId()
+	wc2 := &WebConn{
+		App:    th.App,
+		UserId: model.NewId(),
+	}
+	wc2.SetConnectionID(wc2ID)
+
+	wc3ID := model.NewId()
+	wc3 := &WebConn{
+		App:    th.App,
+		UserId: wc2.UserId,
+	}
+	wc3.SetConnectionID(wc3ID)
+
+	t.Run("no connections", func(t *testing.T) {
+		assert.False(t, connIndex.Has(wc1))
+		assert.False(t, connIndex.Has(wc2))
+		assert.False(t, connIndex.Has(wc3))
+		assert.Empty(t, connIndex.byConnectionId)
+	})
+
+	t.Run("adding", func(t *testing.T) {
+		connIndex.Add(wc1)
+		connIndex.Add(wc3)
+
+		assert.Len(t, connIndex.byConnectionId, 2)
+		assert.Equal(t, wc1, connIndex.byConnectionId[wc1ID])
+		assert.Equal(t, wc3, connIndex.byConnectionId[wc3ID])
+		assert.Equal(t, (*WebConn)(nil), connIndex.byConnectionId[wc2ID])
+	})
+
+	t.Run("removing", func(t *testing.T) {
+		connIndex.Remove(wc3)
+
+		assert.Len(t, connIndex.byConnectionId, 1)
+		assert.Equal(t, wc1, connIndex.byConnectionId[wc1ID])
+		assert.Equal(t, (*WebConn)(nil), connIndex.byConnectionId[wc3ID])
+		assert.Equal(t, (*WebConn)(nil), connIndex.byConnectionId[wc2ID])
 	})
 }
 
