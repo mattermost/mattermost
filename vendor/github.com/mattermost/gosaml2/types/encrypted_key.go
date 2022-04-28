@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/des"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha1"
@@ -173,10 +174,16 @@ func (ek *EncryptedKey) DecryptSymmetricKey(cert *tls.Certificate) (cipher.Block
 			//The RSA v1.5 Key Transport algorithm given below are those used in conjunction with TRIPLEDES
 			//Please also see https://www.w3.org/TR/xmlenc-core/#sec-Algorithms and
 			//https://www.w3.org/TR/xmlenc-core/#rsav15note.
-			b, err := aes.NewCipher(pt)
+			b, err := des.NewTripleDESCipher(pt)
 			if err != nil {
 				return nil, err
 			}
+
+			// FIXME: The version we had previously in our fork, AES seems more secure from my Googling.
+			// b, err := aes.NewCipher(pt)
+			// if err != nil {
+			// 	return nil, err
+			// }
 
 			return b, nil
 		default:
