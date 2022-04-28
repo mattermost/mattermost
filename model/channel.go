@@ -161,6 +161,14 @@ func WithID(ID string) ChannelOption {
 	}
 }
 
+type GetDeletedChannelsOptions struct {
+	TeamID  string
+	Offset  int
+	Limit   int
+	UserID  string
+	IsAdmin bool
+}
+
 // The following are some GraphQL methods necessary to return the
 // data in float64 type. The spec doesn't support 64 bit integers,
 // so we have to pass the data in float64. The _ at the end is

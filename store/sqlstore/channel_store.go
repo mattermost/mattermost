@@ -1599,7 +1599,7 @@ func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int, userId
 }
 
 // This method returns all deleted channels irrespective of the channel membership
-func (s SqlChannelStore) GetAllDeletedChannels(teamId string, offset int, limit int) (model.ChannelList, error) {
+func (s SqlChannelStore) GetAllDeletedChannels(options *model.GetDeletedChannelsOptions) (model.ChannelList, error) {
 	channels := model.ChannelList{}
 
 	query := `
@@ -1609,11 +1609,11 @@ func (s SqlChannelStore) GetAllDeletedChannels(teamId string, offset int, limit 
 		ORDER BY DisplayName LIMIT ? OFFSET ?
 	`
 
-	if err := s.GetReplicaX().Select(&channels, query, teamId, limit, offset); err != nil {
+	if err := s.GetReplicaX().Select(&channels, query, options.TeamID, options.Limit, options.Offset); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("Channel", fmt.Sprintf("TeamId=%s", teamId))
+			return nil, store.NewErrNotFound("Channel", fmt.Sprintf("TeamId=%s", options.TeamID))
 		}
-		return nil, errors.Wrapf(err, "failed to get deleted channels with TeamId=%s", teamId)
+		return nil, errors.Wrapf(err, "failed to get deleted channels with TeamId=%s", options.TeamID)
 	}
 	return channels, nil
 }
