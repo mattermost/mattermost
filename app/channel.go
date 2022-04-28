@@ -1899,7 +1899,20 @@ func (a *App) GetAllChannelsCount(opts model.ChannelSearchOpts) (int64, *model.A
 }
 
 func (a *App) GetDeletedChannels(options *model.GetDeletedChannelsOptions) (model.ChannelList, *model.AppError) {
-	list, err := a.Srv().Store.Channel().GetDeleted(options.TeamID, options.Offset, options.Limit, options.UserID)
+	// TODO: change the interface for GetDeleted to also accept struct..
+
+	var (
+		list model.ChannelList
+		err  error
+	)
+
+	if options.IsAdmin {
+		list, err = a.Srv().Store.Channel().GetAllDeletedChannels(options)
+	} else {
+		// TODO: change the interface for GetDeleted to also accept struct..
+		list, err = a.Srv().Store.Channel().GetDeleted(options.TeamID, options.Offset, options.Limit, options.UserID)
+	}
+
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
