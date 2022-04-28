@@ -2550,10 +2550,14 @@ func (a *App) SetActiveChannel(userID string, channelID string) *model.AppError 
 }
 
 func (a *App) IsCRTEnabledForUser(userID string) bool {
-	if *a.Config().ServiceSettings.CollapsedThreads == model.CollapsedThreadsDisabled {
+	appCRT := *a.Config().ServiceSettings.CollapsedThreads
+	if appCRT == model.CollapsedThreadsDisabled {
 		return false
 	}
-	threadsEnabled := *a.Config().ServiceSettings.CollapsedThreads == model.CollapsedThreadsDefaultOn
+	if appCRT == model.CollapsedThreadsAlwaysOn {
+		return true
+	}
+	threadsEnabled := appCRT == model.CollapsedThreadsDefaultOn
 	// check if a participant has overridden collapsed threads settings
 	if preference, err := a.Srv().Store.Preference().Get(userID, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled); err == nil {
 		threadsEnabled = preference.Value == "on"
