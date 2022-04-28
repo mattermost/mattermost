@@ -1882,6 +1882,10 @@
     "translation": "Invalid username."
   },
   {
+    "id": "api.insights.feature_disabled",
+    "translation": " "
+  },
+  {
     "id": "api.invalid_channel",
     "translation": "Channel listed in the request doesn't belong to the user"
   },
@@ -3101,7 +3105,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Start subscription"
+    "translation": "Start Subscription"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -3109,11 +3113,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Enterprise has ended today, {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Enterprise. If you do not add your payment information within 30 days, we will delete your Cloud workspace permanently and you will lose any associated data."
+    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Enterprise ended on {{.TodayDate}}. We hope you’ve enjoyed our flexible and secure collaboration platform. Please add your payment information to ensure your team can continue collaborating with Mattermost."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Your free 14-day trial of Mattermost has ended today"
+    "translation": "Your free 14-day trial of Mattermost has ended"
   },
   {
     "id": "api.templates.cloud_trial_ending_email.add_payment_method",
@@ -3130,6 +3134,18 @@
   {
     "id": "api.templates.cloud_trial_ending_email.title",
     "translation": "Your free 14-day trial of Mattermost is ending soon"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subject",
+    "translation": "Mattermost Upgrade Confirmation"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
+    "translation": "Your {{.WorkspaceName}} workspace has now been upgraded. You will be billed starting {{.TrialEnd}}"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "You are now upgraded!"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -3437,7 +3453,7 @@
   },
   {
     "id": "api.templates.questions_footer.info",
-    "translation": "Email us any time at "
+    "translation": "Need help or have questions? Email us at "
   },
   {
     "id": "api.templates.questions_footer.title",
@@ -4494,6 +4510,14 @@
   {
     "id": "app.channel.get_public_channels.get.app_error",
     "translation": "Unable to get public channels."
+  },
+  {
+    "id": "app.channel.get_top_for_team_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.channel.get_top_for_user_since.app_error",
+    "translation": " "
   },
   {
     "id": "app.channel.get_unread.app_error",
@@ -5888,6 +5912,14 @@
     "translation": "Unable to get reactions for post."
   },
   {
+    "id": "app.reaction.get_top_for_team_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.reaction.get_top_for_user_since.app_error",
+    "translation": " "
+  },
+  {
     "id": "app.reaction.save.save.app_error",
     "translation": "Unable to save reaction."
   },
@@ -6482,6 +6514,10 @@
   {
     "id": "app.user.update_thread_read_for_user.app_error",
     "translation": "Unable to update read state for thread"
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "Invalid post_id"
   },
   {
     "id": "app.user.update_threads_read_for_user.app_error",
@@ -7688,8 +7724,8 @@
     "translation": "Invalid username."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Name must be 2 or more lowercase alphanumeric characters."
+    "id": "model.channel.is_valid.1_or_more.app_error",
+    "translation": "Name must be 1 or more lowercase alphanumeric character."
   },
   {
     "id": "model.channel.is_valid.create_at.app_error",
@@ -8450,6 +8486,10 @@
   {
     "id": "model.incoming_hook.username.app_error",
     "translation": "Invalid username."
+  },
+  {
+    "id": "model.insights.time_range.app_error",
+    "translation": " "
   },
   {
     "id": "model.job.is_valid.create_at.app_error",

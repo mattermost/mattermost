@@ -1,3 +1,17 @@
+// Copyright 2016 Russell Haering et al.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package saml2
 
 import (
@@ -13,6 +27,7 @@ import (
 
 	"github.com/beevik/etree"
 	"github.com/mattermost/gosaml2/types"
+	rtvalidator "github.com/mattermost/xml-roundtrip-validator"
 	dsig "github.com/russellhaering/goxmldsig"
 	"github.com/russellhaering/goxmldsig/etreeutils"
 )
@@ -30,6 +45,29 @@ func (sp *SAMLServiceProvider) validateResponseAttributes(response *types.Respon
 		return ErrInvalidValue{
 			Key:      DestinationAttr,
 			Expected: sp.AssertionConsumerServiceURL,
+			Actual:   response.Destination,
+		}
+	}
+
+	if response.Version != "2.0" {
+		return ErrInvalidValue{
+			Reason:   ReasonUnsupported,
+			Key:      "SAML version",
+			Expected: "2.0",
+			Actual:   response.Version,
+		}
+	}
+
+	return nil
+}
+
+// validateLogoutResponseAttributes validates a SAML Response's tag and attributes. It does
+// not inspect child elements of the Response at all.
+func (sp *SAMLServiceProvider) validateLogoutResponseAttributes(response *types.LogoutResponse) error {
+	if response.Destination != "" && response.Destination != sp.ServiceProviderSLOURL {
+		return ErrInvalidValue{
+			Key:      DestinationAttr,
+			Expected: sp.ServiceProviderSLOURL,
 			Actual:   response.Destination,
 		}
 	}
@@ -151,11 +189,7 @@ func (sp *SAMLServiceProvider) decryptAssertions(el *etree.Element) error {
 		return nil
 	}
 
-	if err := etreeutils.NSFindIterate(el, SAMLAssertionNamespace, EncryptedAssertionTag, decryptAssertion); err != nil {
-		return err
-	} else {
-		return nil
-	}
+	return etreeutils.NSFindIterate(el, SAMLAssertionNamespace, EncryptedAssertionTag, decryptAssertion)
 }
 
 func (sp *SAMLServiceProvider) validateElementSignature(el *etree.Element) (*etree.Element, error) {
@@ -166,7 +200,11 @@ func (sp *SAMLServiceProvider) validateAssertionSignatures(el *etree.Element) er
 	signedAssertions := 0
 	unsignedAssertions := 0
 	validateAssertion := func(ctx etreeutils.NSContext, unverifiedAssertion *etree.Element) error {
-		if unverifiedAssertion.Parent() != el {
+		parent := unverifiedAssertion.Parent()
+		if parent == nil {
+			return fmt.Errorf("parent is nil")
+		}
+		if parent != el {
 			return fmt.Errorf("found assertion with unexpected parent element: %s", unverifiedAssertion.Parent().Tag)
 		}
 
@@ -221,6 +259,24 @@ func (sp *SAMLServiceProvider) ValidateEncodedResponse(encodedResponse string) (
 	doc, el, err := parseResponse(raw)
 	if err != nil {
 		return nil, err
+	}
+
+	elAssertion, err := etreeutils.NSFindOne(el, SAMLAssertionNamespace, AssertionTag)
+	if err != nil {
+		return nil, err
+	}
+	elEncAssertion, err := etreeutils.NSFindOne(el, SAMLAssertionNamespace, EncryptedAssertionTag)
+	if err != nil {
+		return nil, err
+	}
+	// We verify that either one of assertion or encrypted assertion elements are present,
+	// but not both.
+	if (elAssertion == nil) == (elEncAssertion == nil) {
+		return nil, fmt.Errorf("found both or no assertion and encrypted assertion elements")
+	}
+	// And if a decryptCert is present, then it's only encrypted assertion elements.
+	if sp.SPKeyStore != nil && elAssertion != nil {
+		return nil, fmt.Errorf("all assertions are not encrypted")
 	}
 
 	var responseSignatureValidated bool
@@ -319,9 +375,11 @@ func maybeDeflate(data []byte, decoder func([]byte) error) error {
 // parseResponse is a helper function that was refactored out so that the XML parsing behavior can be isolated and unit tested
 func parseResponse(xml []byte) (*etree.Document, *etree.Element, error) {
 	var doc *etree.Document
+	var rawXML []byte
 
 	err := maybeDeflate(xml, func(xml []byte) error {
 		doc = etree.NewDocument()
+		rawXML = xml
 		return doc.ReadFromBytes(xml)
 	})
 	if err != nil {
@@ -333,5 +391,73 @@ func parseResponse(xml []byte) (*etree.Document, *etree.Element, error) {
 		return nil, nil, fmt.Errorf("unable to parse response")
 	}
 
+	// Examine the response for attempts to exploit weaknesses in Go's encoding/xml
+	err = rtvalidator.Validate(bytes.NewReader(rawXML))
+	if err != nil {
+		return nil, nil, err
+	}
+
 	return doc, el, nil
+}
+
+// DecodeUnverifiedLogoutResponse decodes several attributes from a SAML Logout response, without doing any verifications.
+func DecodeUnverifiedLogoutResponse(encodedResponse string) (*types.LogoutResponse, error) {
+	raw, err := base64.StdEncoding.DecodeString(encodedResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	var response *types.LogoutResponse
+
+	err = maybeDeflate(raw, func(maybeXML []byte) error {
+		response = &types.LogoutResponse{}
+		return xml.Unmarshal(maybeXML, response)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func (sp *SAMLServiceProvider) ValidateEncodedLogoutResponsePOST(encodedResponse string) (*types.LogoutResponse, error) {
+	raw, err := base64.StdEncoding.DecodeString(encodedResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse the raw response
+	doc, el, err := parseResponse(raw)
+	if err != nil {
+		return nil, err
+	}
+
+	var responseSignatureValidated bool
+	if !sp.SkipSignatureValidation {
+		el, err = sp.validateElementSignature(el)
+		if err == dsig.ErrMissingSignature {
+			// Unfortunately we just blew away our Response
+			el = doc.Root()
+		} else if err != nil {
+			return nil, err
+		} else if el == nil {
+			return nil, fmt.Errorf("missing transformed logout response")
+		} else {
+			responseSignatureValidated = true
+		}
+	}
+
+	decodedResponse := &types.LogoutResponse{}
+	err = xmlUnmarshalElement(el, decodedResponse)
+	if err != nil {
+		return nil, fmt.Errorf("unable to unmarshal logout response: %v", err)
+	}
+	decodedResponse.SignatureValidated = responseSignatureValidated
+
+	err = sp.ValidateDecodedLogoutResponse(decodedResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return decodedResponse, nil
 }

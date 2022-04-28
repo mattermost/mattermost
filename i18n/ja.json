@@ -3532,10 +3532,6 @@
     "translation": "不正なユーザー名です。"
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "名前は2文字以上の小文字の英数字にしてください。"
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "作成日時は有効な時刻にしてください。"
   },

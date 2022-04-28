@@ -52,6 +52,7 @@ func checkPreference(t *testing.T, a *App, userID string, category string, name 
 	require.Truef(t, found, "Did not find preference for user %v in category %v with name %v", userID, category, name)
 }
 
+//nolint:unused
 func checkNotifyProp(t *testing.T, user *model.User, key string, value string) {
 	actual, ok := user.NotifyProps[key]
 	require.True(t, ok, "Notify prop %v not found. User: %v", key, user.Id)
