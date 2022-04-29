@@ -1196,8 +1196,11 @@ func (s *Server) Start() error {
 	if err := s.Store.Status().ResetAll(); err != nil {
 		mlog.Error("Error to reset the server status.", mlog.Err(err))
 	}
-	if err := mail.TestConnection(s.MailServiceConfig()); err != nil {
-		mlog.Error("Mail server connection test is failed", mlog.Err(err))
+
+	if s.MailServiceConfig().SendEmailNotifications {
+		if err := mail.TestConnection(s.MailServiceConfig()); err != nil {
+			mlog.Error("Mail server connection test failed", mlog.Err(err))
+		}
 	}
 
 	err := s.FileBackend().TestConnection()
