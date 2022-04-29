@@ -54,7 +54,7 @@ func TestCache(t *testing.T) {
 	require.Empty(t, rkeys)
 }
 
-func TestSetSessionExpireInHours(t *testing.T) {
+func TestSetSessionExpireInDays(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -91,7 +91,7 @@ func TestSetSessionExpireInHours(t *testing.T) {
 				CreateAt:  create,
 				ExpiresAt: model.GetMillis() + dayInMillis,
 			}
-			th.service.SetSessionExpireInHours(session, tt.days*24)
+			th.service.SetSessionExpireInDays(session, tt.days)
 
 			// must be within 5 seconds of expected time.
 			require.GreaterOrEqual(t, session.ExpiresAt, tt.want-grace)
@@ -112,7 +112,7 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	session.UserId = model.NewId()
 	session.Token = model.NewId()
 	session.Roles = model.SystemUserRoleId
-	th.service.SetSessionExpireInHours(session, 24)
+	th.service.SetSessionExpireInDays(session, 1)
 
 	session, _ = th.service.CreateSession(session)
 	err = th.service.RevokeAccessToken(session.Token)

@@ -15309,9 +15309,9 @@ func (a *OpenTracingAppLayer) SetSearchEngine(se *searchengine.Broker) {
 	a.app.SetSearchEngine(se)
 }
 
-func (a *OpenTracingAppLayer) SetSessionExpireInHours(session *model.Session, hours int) {
+func (a *OpenTracingAppLayer) SetSessionExpireInDays(session *model.Session, days int) {
 	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetSessionExpireInHours")
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetSessionExpireInDays")
 
 	a.ctx = newCtx
 	a.app.Srv().Store.SetContext(newCtx)
@@ -15321,7 +15321,7 @@ func (a *OpenTracingAppLayer) SetSessionExpireInHours(session *model.Session, ho
 	}()
 
 	defer span.Finish()
-	a.app.SetSessionExpireInHours(session, hours)
+	a.app.SetSessionExpireInDays(session, days)
 }
 
 func (a *OpenTracingAppLayer) SetStatusAwayIfNeeded(userID string, manual bool) {

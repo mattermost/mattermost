@@ -178,7 +178,7 @@ func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request
 	session.GenerateCSRF()
 
 	if deviceID != "" {
-		a.ch.srv.userService.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthMobileInHours)
+		a.ch.srv.userService.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthMobileInDays)
 
 		// A special case where we logout of all other sessions with the same Id
 		if err := a.RevokeSessionsForDeviceId(user.Id, deviceID, ""); err != nil {
@@ -186,11 +186,11 @@ func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request
 			return err
 		}
 	} else if isMobile {
-		a.ch.srv.userService.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthMobileInHours)
+		a.ch.srv.userService.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthMobileInDays)
 	} else if isOAuthUser || isSaml {
-		a.ch.srv.userService.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthSSOInHours)
+		a.ch.srv.userService.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthSSOInDays)
 	} else {
-		a.ch.srv.userService.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthWebInHours)
+		a.ch.srv.userService.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthWebInDays)
 	}
 
 	ua := uasurfer.Parse(r.UserAgent())
@@ -245,9 +245,9 @@ func (a *App) AttachCloudSessionCookie(c *request.Context, w http.ResponseWriter
 		secure = true
 	}
 
-	maxAgeSeconds := *a.Config().ServiceSettings.SessionLengthWebInHours * 60 * 60
+	maxAge := *a.Config().ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
-	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAgeSeconds), 0)
+	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
 
 	domain := ""
 	if siteURL, err := url.Parse(a.GetSiteURL()); err == nil {
@@ -276,7 +276,7 @@ func (a *App) AttachCloudSessionCookie(c *request.Context, w http.ResponseWriter
 		Name:    model.SessionCookieCloudUrl,
 		Value:   workspaceName,
 		Path:    subpath,
-		MaxAge:  maxAgeSeconds,
+		MaxAge:  maxAge,
 		Expires: expiresAt,
 		Domain:  domain,
 		Secure:  secure,
@@ -292,16 +292,16 @@ func (a *App) AttachSessionCookies(c *request.Context, w http.ResponseWriter, r 
 		secure = true
 	}
 
-	maxAgeSeconds := *a.Config().ServiceSettings.SessionLengthWebInHours * 60 * 60
+	maxAge := *a.Config().ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24
 	domain := a.GetCookieDomain()
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 
-	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAgeSeconds), 0)
+	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
 	sessionCookie := &http.Cookie{
 		Name:     model.SessionCookieToken,
 		Value:    c.Session().Token,
 		Path:     subpath,
-		MaxAge:   maxAgeSeconds,
+		MaxAge:   maxAge,
 		Expires:  expiresAt,
 		HttpOnly: true,
 		Domain:   domain,
@@ -312,7 +312,7 @@ func (a *App) AttachSessionCookies(c *request.Context, w http.ResponseWriter, r 
 		Name:    model.SessionCookieUser,
 		Value:   c.Session().UserId,
 		Path:    subpath,
-		MaxAge:  maxAgeSeconds,
+		MaxAge:  maxAge,
 		Expires: expiresAt,
 		Domain:  domain,
 		Secure:  secure,
@@ -322,7 +322,7 @@ func (a *App) AttachSessionCookies(c *request.Context, w http.ResponseWriter, r 
 		Name:    model.SessionCookieCsrf,
 		Value:   c.Session().GetCSRF(),
 		Path:    subpath,
-		MaxAge:  maxAgeSeconds,
+		MaxAge:  maxAge,
 		Expires: expiresAt,
 		Domain:  domain,
 		Secure:  secure,
