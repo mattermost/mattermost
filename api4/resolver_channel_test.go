@@ -26,20 +26,22 @@ func TestGraphQLChannels(t *testing.T) {
 	th.LinkUserToTeam(th.BasicUser, myTeam)
 	th.App.AddUserToChannel(th.BasicUser, ch1, false)
 	th.App.AddUserToChannel(th.BasicUser, ch2, false)
+	th.CreateDmChannel(th.BasicUser2)
 
 	var q struct {
 		Channels []struct {
-			ID          string            `json:"id"`
-			CreateAt    float64           `json:"createAt"`
-			UpdateAt    float64           `json:"updateAt"`
-			Type        model.ChannelType `json:"type"`
-			DisplayName string            `json:"displayName"`
-			Name        string            `json:"name"`
-			Header      string            `json:"header"`
-			Purpose     string            `json:"purpose"`
-			SchemeId    string            `json:"schemeId"`
-			Cursor      string            `json:"cursor"`
-			Team        struct {
+			ID                string            `json:"id"`
+			CreateAt          float64           `json:"createAt"`
+			UpdateAt          float64           `json:"updateAt"`
+			Type              model.ChannelType `json:"type"`
+			DisplayName       string            `json:"displayName"`
+			PrettyDisplayName string            `json:"prettyDisplayName"`
+			Name              string            `json:"name"`
+			Header            string            `json:"header"`
+			Purpose           string            `json:"purpose"`
+			SchemeId          string            `json:"schemeId"`
+			Cursor            string            `json:"cursor"`
+			Team              struct {
 				ID          string `json:"id"`
 				DisplayName string `json:"displayName"`
 			} `json:"team"`
@@ -63,6 +65,7 @@ func TestGraphQLChannels(t *testing.T) {
 	  	updateAt
 	  	type
 	    displayName
+	    prettyDisplayName
 	    name
 	    header
 	    purpose
@@ -77,7 +80,7 @@ func TestGraphQLChannels(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, resp.Errors, 0)
 		require.NoError(t, json.Unmarshal(resp.Data, &q))
-		assert.Len(t, q.Channels, 9)
+		assert.Len(t, q.Channels, 10)
 
 		numPrivate := 0
 		numPublic := 0
@@ -87,6 +90,7 @@ func TestGraphQLChannels(t *testing.T) {
 			assert.NotEmpty(t, ch.ID)
 			assert.NotEmpty(t, ch.Name)
 			assert.NotEmpty(t, ch.Cursor)
+			assert.NotEmpty(t, ch.PrettyDisplayName)
 			assert.NotEmpty(t, ch.CreateAt)
 			assert.NotEmpty(t, ch.UpdateAt)
 			if ch.Type == model.ChannelTypeOpen {
@@ -192,7 +196,7 @@ func TestGraphQLChannels(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, resp.Errors, 0)
 		require.NoError(t, json.Unmarshal(resp.Data, &q))
-		assert.Len(t, q.Channels, 1)
+		assert.Len(t, q.Channels, 2)
 	})
 
 	t.Run("team_filter", func(t *testing.T) {
@@ -215,7 +219,7 @@ func TestGraphQLChannels(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, resp.Errors, 0)
 		require.NoError(t, json.Unmarshal(resp.Data, &q))
-		assert.Len(t, q.Channels, 4)
+		assert.Len(t, q.Channels, 5)
 
 		input = graphQLInput{
 			OperationName: "channels",
@@ -248,7 +252,7 @@ func TestGraphQLChannels(t *testing.T) {
 			OperationName: "channels",
 			Query:         query,
 			Variables: map[string]interface{}{
-				"first":  1,
+				"first":  2,
 				"teamId": myTeam.Id,
 			},
 		}
@@ -257,11 +261,16 @@ func TestGraphQLChannels(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, resp.Errors, 0)
 		require.NoError(t, json.Unmarshal(resp.Data, &q))
-		assert.Len(t, q.Channels, 1)
+		assert.Len(t, q.Channels, 2)
 
-		gotTeam := q.Channels[0].Team
-		assert.Equal(t, myTeam.Id, gotTeam.ID)
-		assert.Equal(t, myTeam.DisplayName, gotTeam.DisplayName)
+		// Iterating because one of them can be a DM channel.
+		for _, ch := range q.Channels {
+			if ch.Team.ID != "" {
+				assert.Equal(t, myTeam.Id, ch.Team.ID)
+				assert.Equal(t, myTeam.DisplayName, ch.Team.DisplayName)
+			}
+		}
+
 	})
 
 	t.Run("Delete+Update", func(t *testing.T) {
@@ -286,7 +295,7 @@ func TestGraphQLChannels(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, resp.Errors, 0)
 		require.NoError(t, json.Unmarshal(resp.Data, &q))
-		assert.Len(t, q.Channels, 9)
+		assert.Len(t, q.Channels, 10)
 
 		now := model.GetMillis()
 		input = graphQLInput{
@@ -339,7 +348,7 @@ func TestGraphQLChannels(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, resp.Errors, 0)
 		require.NoError(t, json.Unmarshal(resp.Data, &q))
-		assert.Len(t, q.Channels, 7)
+		assert.Len(t, q.Channels, 8)
 
 		input = graphQLInput{
 			OperationName: "channels",
@@ -354,7 +363,7 @@ func TestGraphQLChannels(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, resp.Errors, 0)
 		require.NoError(t, json.Unmarshal(resp.Data, &q))
-		assert.Len(t, q.Channels, 7)
+		assert.Len(t, q.Channels, 8)
 
 		input = graphQLInput{
 			OperationName: "channels",
@@ -397,7 +406,7 @@ func TestGraphQLChannels(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, resp.Errors, 0)
 		require.NoError(t, json.Unmarshal(resp.Data, &q))
-		require.Len(t, q.Channels, 2)
+		require.Len(t, q.Channels, 3)
 		for _, ch := range q.Channels {
 			require.Equal(t, ch.ID, ch.Stats.ChannelId)
 			count, appErr := th.App.GetChannelMemberCount(ch.Stats.ChannelId)
