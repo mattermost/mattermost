@@ -167,6 +167,7 @@ type CWSWebhookPayload struct {
 	FailedPayment                     *FailedPayment       `json:"failed_payment"`
 	CloudWorkspaceOwner               *CloudWorkspaceOwner `json:"cloud_workspace_owner"`
 	ProductLimits                     *ProductLimits       `json:"product_limits"`
+	Subscription                      *Subscription        `json:"subscription"`
 	SubscriptionTrialEndUnixTimeStamp int64                `json:"trial_end_time_stamp"`
 }
 
