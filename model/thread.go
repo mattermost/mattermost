@@ -23,7 +23,8 @@ type Thread struct {
 	// to newest. Note that the root post author is not included in this list until they reply.
 	Participants StringArray `json:"participants"`
 
-	// DeleteAt is a denormalized copy of the root posts's DeleteAt.
+	// DeleteAt is a denormalized copy of the root posts's DeleteAt. In the database, it's
+	// named ThreadDeleteAt to avoid introducing a query conflict with older server versions.
 	DeleteAt int64 `json:"delete_at"`
 }
 
