@@ -6,7 +6,7 @@
     <mj-wrapper mj-class="email" border-radius="0">
       <mj-section padding="24px" border-top="1px solid #E5E5E5" border-left="1px solid #E5E5E5" border-right="1px solid #E5E5E5">
         <mj-column>
-          <mj-image mj-class="logo"  src="{{.Props.SiteURL}}/static/images/logo_email_dark.png" />
+          <mj-image mj-class="logo" src="{{.Props.SiteURL}}/static/images/logo_email_dark.png" />
         </mj-column>
       </mj-section>
       <mj-section padding="0 60px" border-left="1px solid #E5E5E5" border-right="1px solid #E5E5E5">
@@ -24,8 +24,8 @@
       </mj-section>
       <mj-section  padding-top="57px" border-left="1px solid #E5E5E5" border-right="1px solid #E5E5E5">
         <mj-column padding="0px">
-          <mj-image src="{{.Props.SiteURL}}/static/images/trial-ending-soon.png" width="320px" padding="0px" />
-          <mj-text font-size="14px" line-height="20px" color="#3F4350"  font-family="Open Sans, sans-serif">
+          <mj-image src="{{.Props.SiteURL}}/static/images/cloud-laptop.png" width="320px" padding="0px" />
+          <mj-text font-size="14px" line-height="20px" color="#3F4350" font-family="Open Sans, sans-serif">
             {{.Props.QuestionInfo}}
             <a href='mailto:{{.Props.SupportEmail}}'>
               {{.Props.SupportEmail}}
