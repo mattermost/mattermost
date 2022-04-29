@@ -275,7 +275,7 @@ func (ss *SqlStore) initConnection() {
 		// covers that already. Ideally we'd like to do this only for the upgrade
 		// step. To be reviewed in MM-35789.
 		var err error
-		dataSource, err = resetReadTimeout(dataSource)
+		dataSource, err = ResetReadTimeout(dataSource)
 		if err != nil {
 			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(err), mlog.String("src", dataSource))
 		}
@@ -981,12 +981,12 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	var driver drivers.Driver
 	switch ss.DriverName() {
 	case model.DatabaseDriverMysql:
-		dataSource, rErr := resetReadTimeout(*ss.settings.DataSource)
+		dataSource, rErr := ResetReadTimeout(*ss.settings.DataSource)
 		if rErr != nil {
 			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(rErr), mlog.String("src", *ss.settings.DataSource))
 			return rErr
 		}
-		dataSource, err = ss.appendMultipleStatementsFlag(dataSource)
+		dataSource, err = AppendMultipleStatementsFlag(dataSource)
 		if err != nil {
 			return err
 		}
@@ -1027,35 +1027,6 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	default:
 		return engine.ApplyAll()
 	}
-}
-
-func (ss *SqlStore) appendMultipleStatementsFlag(dataSource string) (string, error) {
-	// We need to tell the MySQL driver that we want to use multiStatements
-	// in order to make migrations work.
-	if ss.DriverName() == model.DatabaseDriverMysql {
-		config, err := mysql.ParseDSN(dataSource)
-		if err != nil {
-			return "", err
-		}
-
-		if config.Params == nil {
-			config.Params = map[string]string{}
-		}
-
-		config.Params["multiStatements"] = "true"
-		return config.FormatDSN(), nil
-	}
-
-	return dataSource, nil
-}
-
-func resetReadTimeout(dataSource string) (string, error) {
-	config, err := mysql.ParseDSN(dataSource)
-	if err != nil {
-		return "", err
-	}
-	config.ReadTimeout = 0
-	return config.FormatDSN(), nil
 }
 
 func convertMySQLFullTextColumnsToPostgres(columnNames string) string {
