@@ -1,3 +1,17 @@
+// Copyright 2016 Russell Haering et al.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package saml2
 
 import (
@@ -23,10 +37,14 @@ func (serr ErrSaml) Error() string {
 }
 
 type SAMLServiceProvider struct {
-	IdentityProviderSSOURL string
-	IdentityProviderIssuer string
+	IdentityProviderSSOURL     string
+	IdentityProviderSSOBinding string
+	IdentityProviderSLOURL     string
+	IdentityProviderSLOBinding string
+	IdentityProviderIssuer     string
 
 	AssertionConsumerServiceURL string
+	ServiceProviderSLOURL       string
 	ServiceProviderIssuer       string
 
 	SignAuthnRequests              bool
@@ -70,6 +88,62 @@ type RequestedAuthnContext struct {
 }
 
 func (sp *SAMLServiceProvider) Metadata() (*types.EntityDescriptor, error) {
+	keyDescriptors := make([]types.KeyDescriptor, 0, 2)
+	if sp.GetSigningKey() != nil {
+		signingCertBytes, err := sp.GetSigningCertBytes()
+		if err != nil {
+			return nil, err
+		}
+		keyDescriptors = append(keyDescriptors, types.KeyDescriptor{
+			Use: "signing",
+			KeyInfo: dsigtypes.KeyInfo{
+				X509Data: dsigtypes.X509Data{
+					X509Certificates: []dsigtypes.X509Certificate{{
+						Data: base64.StdEncoding.EncodeToString(signingCertBytes),
+					}},
+				},
+			},
+		})
+	}
+	if sp.GetEncryptionKey() != nil {
+		encryptionCertBytes, err := sp.GetEncryptionCertBytes()
+		if err != nil {
+			return nil, err
+		}
+		keyDescriptors = append(keyDescriptors, types.KeyDescriptor{
+			Use: "encryption",
+			KeyInfo: dsigtypes.KeyInfo{
+				X509Data: dsigtypes.X509Data{
+					X509Certificates: []dsigtypes.X509Certificate{{
+						Data: base64.StdEncoding.EncodeToString(encryptionCertBytes),
+					}},
+				},
+			},
+			EncryptionMethods: []types.EncryptionMethod{
+				{Algorithm: types.MethodAES128GCM},
+				{Algorithm: types.MethodAES128CBC},
+				{Algorithm: types.MethodAES256CBC},
+			},
+		})
+	}
+	return &types.EntityDescriptor{
+		ValidUntil: time.Now().UTC().Add(time.Hour * 24 * 7), // 7 days
+		EntityID:   sp.ServiceProviderIssuer,
+		SPSSODescriptor: &types.SPSSODescriptor{
+			AuthnRequestsSigned:        sp.SignAuthnRequests,
+			WantAssertionsSigned:       !sp.SkipSignatureValidation,
+			ProtocolSupportEnumeration: SAMLProtocolNamespace,
+			KeyDescriptors:             keyDescriptors,
+			AssertionConsumerServices: []types.IndexedEndpoint{{
+				Binding:  BindingHttpPost,
+				Location: sp.AssertionConsumerServiceURL,
+				Index:    1,
+			}},
+		},
+	}, nil
+}
+
+func (sp *SAMLServiceProvider) MetadataWithSLO(validityHours int64) (*types.EntityDescriptor, error) {
 	signingCertBytes, err := sp.GetSigningCertBytes()
 	if err != nil {
 		return nil, err
@@ -78,8 +152,14 @@ func (sp *SAMLServiceProvider) Metadata() (*types.EntityDescriptor, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if validityHours <= 0 {
+		//By default let's keep it to 7 days.
+		validityHours = int64(time.Hour * 24 * 7)
+	}
+
 	return &types.EntityDescriptor{
-		ValidUntil: time.Now().UTC().Add(time.Hour * 24 * 7), // 7 days
+		ValidUntil: time.Now().UTC().Add(time.Duration(validityHours)), // default 7 days
 		EntityID:   sp.ServiceProviderIssuer,
 		SPSSODescriptor: &types.SPSSODescriptor{
 			AuthnRequestsSigned:        sp.SignAuthnRequests,
@@ -90,7 +170,7 @@ func (sp *SAMLServiceProvider) Metadata() (*types.EntityDescriptor, error) {
 					Use: "signing",
 					KeyInfo: dsigtypes.KeyInfo{
 						X509Data: dsigtypes.X509Data{
-							X509Certificates: []dsigtypes.X509Certificate{dsigtypes.X509Certificate{
+							X509Certificates: []dsigtypes.X509Certificate{{
 								Data: base64.StdEncoding.EncodeToString(signingCertBytes),
 							}},
 						},
@@ -100,15 +180,15 @@ func (sp *SAMLServiceProvider) Metadata() (*types.EntityDescriptor, error) {
 					Use: "encryption",
 					KeyInfo: dsigtypes.KeyInfo{
 						X509Data: dsigtypes.X509Data{
-							X509Certificates: []dsigtypes.X509Certificate{dsigtypes.X509Certificate{
+							X509Certificates: []dsigtypes.X509Certificate{{
 								Data: base64.StdEncoding.EncodeToString(encryptionCertBytes),
 							}},
 						},
 					},
 					EncryptionMethods: []types.EncryptionMethod{
-						{Algorithm: types.MethodAES128GCM},
-						{Algorithm: types.MethodAES128CBC},
-						{Algorithm: types.MethodAES256CBC},
+						{Algorithm: types.MethodAES128GCM, DigestMethod: nil},
+						{Algorithm: types.MethodAES128CBC, DigestMethod: nil},
+						{Algorithm: types.MethodAES256CBC, DigestMethod: nil},
 					},
 				},
 			},
@@ -116,6 +196,10 @@ func (sp *SAMLServiceProvider) Metadata() (*types.EntityDescriptor, error) {
 				Binding:  BindingHttpPost,
 				Location: sp.AssertionConsumerServiceURL,
 				Index:    1,
+			}},
+			SingleLogoutServices: []types.Endpoint{{
+				Binding:  BindingHttpPost,
+				Location: sp.ServiceProviderSLOURL,
 			}},
 		},
 	}, nil
@@ -189,6 +273,7 @@ type AssertionInfo struct {
 	NameID                     string
 	Values                     Values
 	WarningInfo                *WarningInfo
+	SessionIndex               string
 	AuthnInstant               *time.Time
 	SessionNotOnOrAfter        *time.Time
 	Assertions                 []types.Assertion

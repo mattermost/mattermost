@@ -1,3 +1,4 @@
+//go:build gofuzz
 // +build gofuzz
 
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.

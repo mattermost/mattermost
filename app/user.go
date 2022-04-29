@@ -2311,15 +2311,20 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 			return nil
 		})
 
-		eg.Go(func() error {
-			totalCount, err := a.Srv().Store.Thread().GetTotalThreads(userID, teamID, options)
-			if err != nil {
-				return errors.Wrapf(err, "failed to count threads for user id=%s", userID)
-			}
-			result.Total = totalCount
+		// Unread is a legacy flag that caused GetTotalThreads to compute the same value as
+		// GetTotalUnreadThreads. If unspecified, do this work normally; otherwise, skip,
+		// and send back duplicate values down below.
+		if !options.Unread {
+			eg.Go(func() error {
+				totalCount, err := a.Srv().Store.Thread().GetTotalThreads(userID, teamID, options)
+				if err != nil {
+					return errors.Wrapf(err, "failed to count threads for user id=%s", userID)
+				}
+				result.Total = totalCount
 
-			return nil
-		})
+				return nil
+			})
+		}
 
 		eg.Go(func() error {
 			totalUnreadMentions, err := a.Srv().Store.Thread().GetTotalUnreadMentions(userID, teamID, options)
@@ -2346,6 +2351,10 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 
 	if err := eg.Wait(); err != nil {
 		return nil, model.NewAppError("GetThreadsForUser", "app.user.get_threads_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if options.Unread {
+		result.Total = result.TotalUnreadThreads
 	}
 
 	for _, thread := range result.Threads {

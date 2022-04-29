@@ -30,18 +30,25 @@ func testSystemStore(t *testing.T, ss store.Store) {
 	err := ss.System().Save(system)
 	require.NoError(t, err)
 
-	systems, _ := ss.System().Get()
+	system2 := &model.System{Name: model.NewId(), Value: "value2"}
+	err = ss.System().Save(system2)
+	require.NoError(t, err)
 
+	systems, err := ss.System().Get()
+	require.NoError(t, err)
 	require.Equal(t, system.Value, systems[system.Name])
 
-	system.Value = "value2"
+	system.Value = "value1"
 	err = ss.System().Update(system)
 	require.NoError(t, err)
 
-	systems2, _ := ss.System().Get()
+	systems2, err := ss.System().Get()
+	require.NoError(t, err)
 	require.Equal(t, system.Value, systems2[system.Name])
+	require.Equal(t, system2.Value, systems2[system2.Name])
 
-	rsystem, _ := ss.System().GetByName(system.Name)
+	rsystem, err := ss.System().GetByName(system.Name)
+	require.NoError(t, err)
 	require.Equal(t, system.Value, rsystem.Value)
 }
 
