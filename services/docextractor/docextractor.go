@@ -7,6 +7,10 @@ import (
 	"io"
 )
 
+type DocExtractorService interface {
+	Extract(filename string, r io.ReadSeeker, settings ExtractSettings) (string, error)
+}
+
 // ExtractSettings defines the features enabled/disable during the document text extraction.
 type ExtractSettings struct {
 	ArchiveRecursion bool

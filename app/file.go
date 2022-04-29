@@ -1320,7 +1320,7 @@ func (a *App) ExtractContentFromFileInfo(fileInfo *model.FileInfo) error {
 		return errors.Wrap(aerr, "failed to open file for extract file content")
 	}
 	defer file.Close()
-	text, err := docextractor.Extract(fileInfo.Name, file, docextractor.ExtractSettings{
+	text, err := a.Srv().DocExtractorService().Extract(fileInfo.Name, file, docextractor.ExtractSettings{
 		ArchiveRecursion: *a.Config().FileSettings.ArchiveRecursion,
 	})
 	if err != nil {

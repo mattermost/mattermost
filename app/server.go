@@ -60,6 +60,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/plugin/scheduler"
 	"github.com/mattermost/mattermost-server/v6/services/awsmeter"
 	"github.com/mattermost/mattermost-server/v6/services/cache"
+	"github.com/mattermost/mattermost-server/v6/services/docextractor"
 	"github.com/mattermost/mattermost-server/v6/services/httpservice"
 	"github.com/mattermost/mattermost-server/v6/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine"
@@ -203,7 +204,8 @@ type Server struct {
 	featureFlagStopped           chan struct{}
 	featureFlagSynchronizerMutex sync.Mutex
 
-	products map[string]Product
+	products            map[string]Product
+	docExtractorService docextractor.DocExtractorService
 }
 
 func NewServer(options ...Option) (*Server, error) {
@@ -669,6 +671,12 @@ func NewServer(options ...Option) (*Server, error) {
 	s.doAppMigrations()
 
 	s.initPostMetadata()
+
+	docExtractorService, err := docextractor.NewLocalExtractorService(*s.Config().FileSettings.ArchiveRecursion)
+	if err != nil {
+		return nil, err
+	}
+	s.docExtractorService = docExtractorService
 
 	// Dump the image cache if the proxy settings have changed. (need switch URLs to the correct proxy)
 	s.AddConfigListener(func(oldCfg, newCfg *model.Config) {
@@ -2358,4 +2366,8 @@ func (a *App) GetAppliedSchemaMigrations() ([]model.AppliedMigration, *model.App
 		return nil, model.NewAppError("GetDBSchemaTable", "api.file.read_file.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return table, nil
+}
+
+func (s *Server) DocExtractorService() docextractor.DocExtractorService {
+	return s.docExtractorService
 }
