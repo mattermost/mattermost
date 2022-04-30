@@ -238,7 +238,7 @@ func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool
 		case errors.Is(nErr, users.AcceptedDomainError):
 			return nil, model.NewAppError("createUserOrGuest", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("createUserOrGuest", "api.user.check_user_password.invalid.app_error", nil, "", http.StatusBadRequest)
+			return nil, model.NewAppError("createUserOrGuest", nfErr.Id(), nil, "", http.StatusBadRequest)
 		case errors.Is(nErr, users.UserStoreIsEmptyError):
 			return nil, model.NewAppError("createUserOrGuest", "app.user.store_is_empty.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		case errors.As(nErr, &invErr):
