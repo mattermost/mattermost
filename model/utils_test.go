@@ -862,6 +862,55 @@ func TestSanitizeUnicode(t *testing.T) {
 	}
 }
 
+func TestIsValidChannelIdentifier(t *testing.T) {
+	cases := []struct {
+		Description string
+		Input       string
+		Expected    bool
+	}{
+		{
+			Description: "less than min length",
+			Input:       "",
+			Expected:    false,
+		},
+		{
+			Description: "single alphabetical char",
+			Input:       "a",
+			Expected:    true,
+		},
+		{
+			Description: "single underscore",
+			Input:       "_",
+			Expected:    false,
+		},
+		{
+			Description: "single hyphen",
+			Input:       "-",
+			Expected:    false,
+		},
+		{
+			Description: "empty string",
+			Input:       " ",
+			Expected:    false,
+		},
+		{
+			Description: "multiple with hyphen",
+			Input:       "a-a",
+			Expected:    true,
+		},
+		{
+			Description: "multiple with hyphen",
+			Input:       "a_a",
+			Expected:    true,
+		},
+	}
+
+	for _, tc := range cases {
+		actual := IsValidChannelIdentifier(tc.Input)
+		require.Equalf(t, actual, tc.Expected, "case: '%v'\tshould returned: %#v", tc.Input, tc.Expected)
+	}
+}
+
 func TestIsValidHTTPURL(t *testing.T) {
 	t.Parallel()
 

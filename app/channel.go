@@ -1736,6 +1736,20 @@ func (s *Server) getChannel(channelID string) (*model.Channel, *model.AppError) 
 	return channel, nil
 }
 
+func (a *App) GetChannels(channelIDs []string) ([]*model.Channel, *model.AppError) {
+	channels, err := a.Srv().Store.Channel().GetMany(channelIDs, true)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetChannel", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetChannel", "app.channel.get.find.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+	return channels, nil
+}
+
 func (a *App) GetChannelByName(channelName, teamID string, includeDeleted bool) (*model.Channel, *model.AppError) {
 	var channel *model.Channel
 	var err error

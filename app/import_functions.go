@@ -832,13 +832,13 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 		if nErr != nil {
 			var appErr *model.AppError
 			var conflictErr *store.ErrConflict
-			var limitExeededErr *store.ErrLimitExceeded
+			var limitExceededErr *store.ErrLimitExceeded
 			switch {
 			case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
 				return appErr
 			case errors.As(nErr, &conflictErr):
 				return model.NewAppError("BulkImport", "app.import.import_user_teams.save_members.conflict.app_error", nil, nErr.Error(), http.StatusBadRequest)
-			case errors.As(nErr, &limitExeededErr):
+			case errors.As(nErr, &limitExceededErr):
 				return model.NewAppError("BulkImport", "app.import.import_user_teams.save_members.max_accounts.app_error", nil, nErr.Error(), http.StatusBadRequest)
 			default: // last fallback in case it doesn't map to an existing app error.
 				return model.NewAppError("BulkImport", "app.import.import_user_teams.save_members.error", nil, nErr.Error(), http.StatusInternalServerError)

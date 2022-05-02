@@ -510,21 +510,13 @@ var reservedName = []string{
 }
 
 func IsValidChannelIdentifier(s string) bool {
-
-	if !IsValidAlphaNumHyphenUnderscore(s, true) {
-		return false
-	}
-
-	if len(s) < ChannelNameMinLength {
-		return false
-	}
-
-	return true
+	return validSimpleAlphaNum.MatchString(s) && len(s) >= ChannelNameMinLength
 }
 
 var (
 	validAlphaNum                           = regexp.MustCompile(`^[a-z0-9]+([a-z\-0-9]+|(__)?)[a-z0-9]+$`)
 	validAlphaNumHyphenUnderscore           = regexp.MustCompile(`^[a-z0-9]+([a-z\-\_0-9]+|(__)?)[a-z0-9]+$`)
+	validSimpleAlphaNum                     = regexp.MustCompile(`^[a-z0-9]+([a-z\-\_0-9]+|(__)?)[a-z0-9]*$`)
 	validSimpleAlphaNumHyphenUnderscore     = regexp.MustCompile(`^[a-zA-Z0-9\-_]+$`)
 	validSimpleAlphaNumHyphenUnderscorePlus = regexp.MustCompile(`^[a-zA-Z0-9+_-]+$`)
 )

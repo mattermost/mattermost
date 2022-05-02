@@ -374,6 +374,29 @@ func (_m *TeamStore) GetCommonTeamIDsForTwoUsers(userID string, otherUserID stri
 	return r0, r1
 }
 
+// GetMany provides a mock function with given fields: ids
+func (_m *TeamStore) GetMany(ids []string) ([]*model.Team, error) {
+	ret := _m.Called(ids)
+
+	var r0 []*model.Team
+	if rf, ok := ret.Get(0).(func([]string) []*model.Team); ok {
+		r0 = rf(ids)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Team)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]string) error); ok {
+		r1 = rf(ids)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetMember provides a mock function with given fields: ctx, teamID, userID
 func (_m *TeamStore) GetMember(ctx context.Context, teamID string, userID string) (*model.TeamMember, error) {
 	ret := _m.Called(ctx, teamID, userID)
