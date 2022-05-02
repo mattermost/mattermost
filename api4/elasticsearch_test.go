@@ -4,6 +4,8 @@
 package api4
 
 import (
+	"encoding/json"
+	"net/http"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -26,8 +28,24 @@ func TestElasticsearchTest(t *testing.T) {
 		CheckNotImplementedStatus(t, resp)
 	})
 
+	t.Run("invalid config", func(t *testing.T) {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		cfg.ElasticsearchSettings.Password = nil
+
+		data, err := json.Marshal(cfg)
+		require.NoError(t, err)
+
+		resp, err := th.SystemAdminClient.DoAPIPost("/elasticsearch/test", string(data))
+		require.Error(t, err)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
 	t.Run("as restricted system admin", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ElasticsearchSettings.SetDefaults()
+			*cfg.ExperimentalSettings.RestrictSystemAdmin = true
+		})
 
 		resp, err := th.SystemAdminClient.TestElasticsearch()
 		require.Error(t, err)
