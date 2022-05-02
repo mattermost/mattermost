@@ -107,7 +107,8 @@ func NewSTSWebIdentity(stsEndpoint string, getWebIDTokenExpiry func() (*WebIdent
 }
 
 func getWebIdentityCredentials(clnt *http.Client, endpoint, roleARN, roleSessionName string,
-	getWebIDTokenExpiry func() (*WebIdentityToken, error)) (AssumeRoleWithWebIdentityResponse, error) {
+	getWebIDTokenExpiry func() (*WebIdentityToken, error),
+) (AssumeRoleWithWebIdentityResponse, error) {
 	idToken, err := getWebIDTokenExpiry()
 	if err != nil {
 		return AssumeRoleWithWebIdentityResponse{}, err
@@ -156,7 +157,6 @@ func getWebIdentityCredentials(clnt *http.Client, endpoint, roleARN, roleSession
 		buf, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return AssumeRoleWithWebIdentityResponse{}, err
-
 		}
 		_, err = xmlDecodeAndBody(bytes.NewReader(buf), &errResp)
 		if err != nil {

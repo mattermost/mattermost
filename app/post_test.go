@@ -1111,6 +1111,7 @@ func TestCreatePostAsUser(t *testing.T) {
 	})
 
 	t.Run("logs warning for user not in channel", func(t *testing.T) {
+		t.Skip("MM-43871")
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		user := th.CreateUser()
@@ -2491,13 +2492,12 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		}()
 
 		require.NotPanics(t, func() {
-			_, err = th.App.CreatePost(th.Context, &model.Post{
+			th.App.CreatePost(th.Context, &model.Post{
 				UserId:    user1.Id,
 				ChannelId: channel.Id,
 				RootId:    postRoot.Id,
 				Message:   fmt.Sprintf("@%s", user2.Username),
 			}, channel, false, true)
-			require.Nil(t, err)
 		})
 
 		wg.Wait()

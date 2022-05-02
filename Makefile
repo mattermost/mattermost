@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check migrations-bindata new-migration migration-prereqs
+.PHONY: build package run stop run-client run-server run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check migrations-bindata new-migration
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -123,10 +123,10 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.26.2
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.27.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
-PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
+PLUGIN_PACKAGES += mattermost-plugin-nps-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.5.0
 PLUGIN_PACKAGES += focalboard-v0.15.0
@@ -250,7 +250,7 @@ endif
 
 golangci-lint: ## Run golangci-lint on codebase
 	@# Keep the version in sync with the command in .circleci/config.yml
-	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.39.0
+	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.45.2
 
 	@echo Running golangci-lint
 	$(GOBIN)/golangci-lint run ./...
@@ -285,15 +285,13 @@ telemetry-mocks: ## Creates mock files.
 store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./store
 
-migration-prereqs: ## Builds prerequisite packages for migrations
-	$(GO) install github.com/golang-migrate/migrate/v4/cmd/migrate@v4.14.1
-
-new-migration: migration-prereqs ## Creates a new migration
+new-migration: ## Creates a new migration. Run with make new-migration name=<>
+	$(GO) install github.com/mattermost/morph/cmd/morph@master
 	@echo "Generating new migration for mysql"
-	$(GOBIN)/migrate create -ext sql -dir db/migrations/mysql -seq $(name)
+	$(GOBIN)/morph generate $(name) --driver mysql --dir db/migrations --sequence
 
 	@echo "Generating new migration for postgres"
-	$(GOBIN)/migrate create -ext sql -dir db/migrations/postgres -seq $(name)
+	$(GOBIN)/morph generate $(name) --driver postgres --dir db/migrations --sequence
 
 	@echo "When you are done writing your migration, run 'make migrations-bindata'"
 

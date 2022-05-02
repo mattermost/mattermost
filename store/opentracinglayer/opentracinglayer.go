@@ -1748,6 +1748,42 @@ func (s *OpenTracingLayerChannelStore) GetTeamMembersForChannel(channelID string
 	return result, err
 }
 
+func (s *OpenTracingLayerChannelStore) GetTopChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopChannelList, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetTopChannelsForTeamSince")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ChannelStore.GetTopChannelsForTeamSince(teamID, userID, since, offset, limit)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerChannelStore) GetTopChannelsForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopChannelList, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetTopChannelsForUserSince")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ChannelStore.GetTopChannelsForUserSince(userID, teamID, since, offset, limit)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerChannelStore) GroupSyncedChannelCount() (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GroupSyncedChannelCount")
@@ -6443,6 +6479,42 @@ func (s *OpenTracingLayerReactionStore) GetForPostSince(postId string, since int
 
 	defer span.Finish()
 	result, err := s.ReactionStore.GetForPostSince(postId, since, excludeRemoteId, inclDeleted)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerReactionStore) GetTopForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopReactionList, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ReactionStore.GetTopForTeamSince")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ReactionStore.GetTopForTeamSince(teamID, userID, since, offset, limit)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopReactionList, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ReactionStore.GetTopForUserSince")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ReactionStore.GetTopForUserSince(userID, teamID, since, offset, limit)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

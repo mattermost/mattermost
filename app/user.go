@@ -2311,15 +2311,20 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 			return nil
 		})
 
-		eg.Go(func() error {
-			totalCount, err := a.Srv().Store.Thread().GetTotalThreads(userID, teamID, options)
-			if err != nil {
-				return errors.Wrapf(err, "failed to count threads for user id=%s", userID)
-			}
-			result.Total = totalCount
+		// Unread is a legacy flag that caused GetTotalThreads to compute the same value as
+		// GetTotalUnreadThreads. If unspecified, do this work normally; otherwise, skip,
+		// and send back duplicate values down below.
+		if !options.Unread {
+			eg.Go(func() error {
+				totalCount, err := a.Srv().Store.Thread().GetTotalThreads(userID, teamID, options)
+				if err != nil {
+					return errors.Wrapf(err, "failed to count threads for user id=%s", userID)
+				}
+				result.Total = totalCount
 
-			return nil
-		})
+				return nil
+			})
+		}
 
 		eg.Go(func() error {
 			totalUnreadMentions, err := a.Srv().Store.Thread().GetTotalUnreadMentions(userID, teamID, options)
@@ -2346,6 +2351,10 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 
 	if err := eg.Wait(); err != nil {
 		return nil, model.NewAppError("GetThreadsForUser", "app.user.get_threads_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if options.Unread {
+		result.Total = result.TotalUnreadThreads
 	}
 
 	for _, thread := range result.Threads {
@@ -2474,6 +2483,19 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(userID, teamID, threadID s
 
 	a.Publish(message)
 	return nil
+}
+
+func (a *App) UpdateThreadReadForUserByPost(currentSessionId, userID, teamID, threadID, postID string) (*model.ThreadResponse, *model.AppError) {
+	post, err := a.GetSinglePost(postID)
+	if err != nil {
+		return nil, err
+	}
+
+	if post.RootId != threadID && postID != threadID {
+		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user_by_post.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return a.UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID, post.CreateAt-1)
 }
 
 func (a *App) UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError) {

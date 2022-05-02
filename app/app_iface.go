@@ -277,10 +277,10 @@ type AppIface interface {
 	SessionHasPermissionToManageBot(session model.Session, botUserId string) *model.AppError
 	// SessionIsRegistered determines if a specific session has been registered
 	SessionIsRegistered(session model.Session) bool
-	// SetSessionExpireInDays sets the session's expiry the specified number of days
+	// SetSessionExpireInHours sets the session's expiry the specified number of hours
 	// relative to either the session creation date or the current time, depending
 	// on the `ExtendSessionOnActivity` config setting.
-	SetSessionExpireInDays(session *model.Session, days int)
+	SetSessionExpireInHours(session *model.Session, hours int)
 	// SetStatusDoNotDisturbTimed takes endtime in unix epoch format in UTC
 	// and sets status of given userId to dnd which will be restored back after endtime
 	SetStatusDoNotDisturbTimed(userId string, endtime int64)
@@ -754,6 +754,10 @@ type AppIface interface {
 	GetThreadMembershipsForUser(userID, teamID string) ([]*model.ThreadMembership, error)
 	GetThreadsForUser(userID, teamID string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError)
 	GetTokenById(token string) (*model.Token, *model.AppError)
+	GetTopChannelsForTeamSince(teamID, userID string, opts *model.InsightsOpts) (*model.TopChannelList, *model.AppError)
+	GetTopChannelsForUserSince(userID, teamID string, opts *model.InsightsOpts) (*model.TopChannelList, *model.AppError)
+	GetTopReactionsForTeamSince(teamID string, userID string, opts *model.InsightsOpts) (*model.TopReactionList, *model.AppError)
+	GetTopReactionsForUserSince(userID string, teamID string, opts *model.InsightsOpts) (*model.TopReactionList, *model.AppError)
 	GetUploadSession(uploadId string) (*model.UploadSession, *model.AppError)
 	GetUploadSessionsForUser(userID string) ([]*model.UploadSession, *model.AppError)
 	GetUser(userID string) (*model.User, *model.AppError)
@@ -976,6 +980,7 @@ type AppIface interface {
 	SendPasswordReset(email string, siteURL string) (bool, *model.AppError)
 	SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.AppError
 	SendTestPushNotification(deviceID string) string
+	SendUpgradeConfirmationEmail() *model.AppError
 	ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string)
 	SessionHasPermissionTo(session model.Session, permission *model.Permission) bool
 	SessionHasPermissionToAny(session model.Session, permissions []*model.Permission) bool
@@ -1075,6 +1080,7 @@ type AppIface interface {
 	UpdateThreadFollowForUser(userID, teamID, threadID string, state bool) *model.AppError
 	UpdateThreadFollowForUserFromChannelAdd(userID, teamID, threadID string) *model.AppError
 	UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError)
+	UpdateThreadReadForUserByPost(currentSessionId, userID, teamID, threadID, postID string) (*model.ThreadResponse, *model.AppError)
 	UpdateThreadsReadForUser(userID, teamID string) *model.AppError
 	UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError)
 	UpdateUserActive(c *request.Context, userID string, active bool) *model.AppError
