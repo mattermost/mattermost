@@ -2507,23 +2507,23 @@ func TestIsCRTEnabledForUser(t *testing.T) {
 		},
 	}
 
-	for _, tC := range testCases {
-		tC := tC
-		t.Run(tC.desc, func(t *testing.T) {
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.desc, func(t *testing.T) {
 			t.Parallel()
 			th := SetupWithStoreMock(t)
 			defer th.TearDown()
 
-			th.App.Config().ServiceSettings.CollapsedThreads = &tC.appCRT
+			th.App.Config().ServiceSettings.CollapsedThreads = &tc.appCRT
 
 			mockStore := th.App.Srv().Store.(*mocks.Store)
 			mockPreferenceStore := mocks.PreferenceStore{}
-			mockPreferenceStore.On("Get", mock.Anything, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled).Return(&model.Preference{Value: tC.pref.val}, tC.pref.err)
+			mockPreferenceStore.On("Get", mock.Anything, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled).Return(&model.Preference{Value: tc.pref.val}, tc.pref.err)
 			mockStore.On("Preference").Return(&mockPreferenceStore)
 
 			res := th.App.IsCRTEnabledForUser(mock.Anything)
 
-			assert.Equal(t, tC.expected, res)
+			assert.Equal(t, tc.expected, res)
 		})
 	}
 }
