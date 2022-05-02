@@ -1595,6 +1595,10 @@
     "translation": "Failed to update the custom status. Please add either emoji or custom text status or both."
   },
   {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "Elasticsearch settings has unset values."
+  },
+  {
     "id": "api.email.send_warn_metric_ack.failure.app_error",
     "translation": "Failure to send admin acknowledgment email"
   },
@@ -2393,7 +2397,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Session Expired: Please log in to continue receiving notifications. Sessions for {{.siteName}} are configured by your System Administrator to expire every {{.daysCount}} day(s)."
+    "translation": "Session Expired: Please log in to continue receiving notifications. Sessions for {{.siteName}} are configured by your System Administrator to expire every {{.hoursCount}} hour(s)."
   },
   {
     "id": "api.push_notifications_ack.forward.app_error",
@@ -3105,7 +3109,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Start subscription"
+    "translation": "Start Subscription"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -3113,11 +3117,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Enterprise has ended today, {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Enterprise. If you do not add your payment information within 30 days, we will delete your Cloud workspace permanently and you will lose any associated data."
+    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Enterprise ended on {{.TodayDate}}. We hope you’ve enjoyed our flexible and secure collaboration platform. Please add your payment information to ensure your team can continue collaborating with Mattermost."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Your free 14-day trial of Mattermost has ended today"
+    "translation": "Your free 14-day trial of Mattermost has ended"
   },
   {
     "id": "api.templates.cloud_trial_ending_email.add_payment_method",
@@ -3134,6 +3138,18 @@
   {
     "id": "api.templates.cloud_trial_ending_email.title",
     "translation": "Your free 14-day trial of Mattermost is ending soon"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subject",
+    "translation": "Mattermost Upgrade Confirmation"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
+    "translation": "Your {{.WorkspaceName}} workspace has now been upgraded. You will be billed starting {{.TrialEnd}}"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "You are now upgraded!"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -3441,7 +3457,7 @@
   },
   {
     "id": "api.templates.questions_footer.info",
-    "translation": "Email us any time at "
+    "translation": "Need help or have questions? Email us at "
   },
   {
     "id": "api.templates.questions_footer.title",
@@ -4498,6 +4514,14 @@
   {
     "id": "app.channel.get_public_channels.get.app_error",
     "translation": "Unable to get public channels."
+  },
+  {
+    "id": "app.channel.get_top_for_team_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.channel.get_top_for_user_since.app_error",
+    "translation": " "
   },
   {
     "id": "app.channel.get_unread.app_error",
@@ -9205,7 +9229,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 89+"
+    "translation": "Version 100+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",

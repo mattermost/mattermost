@@ -236,6 +236,7 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 }
 
 func testUserStoreUpdateUpdateAt(t *testing.T, ss store.Store) {
+	t.Skip("MM-43848")
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	_, err := ss.User().Save(u1)

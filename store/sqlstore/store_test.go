@@ -753,43 +753,6 @@ func TestReplicaLagQuery(t *testing.T) {
 	}
 }
 
-func TestAppendMultipleStatementsFlagMysql(t *testing.T) {
-	testCases := []struct {
-		Scenario    string
-		DSN         string
-		ExpectedDSN string
-		Driver      string
-	}{
-		{
-			"Should append multiStatements param to the DSN path with existing params",
-			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost?writeTimeout=30s",
-			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost?writeTimeout=30s&multiStatements=true",
-			model.DatabaseDriverMysql,
-		},
-		{
-			"Should append multiStatements param to the DSN path with no existing params",
-			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost",
-			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost?multiStatements=true",
-			model.DatabaseDriverMysql,
-		},
-		{
-			"Should not multiStatements param to the DSN when driver is not MySQL",
-			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost",
-			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost",
-			model.DatabaseDriverPostgres,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.Scenario, func(t *testing.T) {
-			store := &SqlStore{settings: &model.SqlSettings{DriverName: &tc.Driver, DataSource: &tc.DSN}}
-			res, err := store.appendMultipleStatementsFlag(*store.settings.DataSource)
-			require.NoError(t, err)
-			assert.Equal(t, tc.ExpectedDSN, res)
-		})
-	}
-}
-
 func makeSqlSettings(driver string) *model.SqlSettings {
 	switch driver {
 	case model.DatabaseDriverPostgres:
