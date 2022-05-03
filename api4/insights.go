@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
@@ -146,6 +147,12 @@ func getTopChannelsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	topChannels.PostCountByDay, err = postCountByDayViewModel(c.App, topChannels, startTime, c.Params.TimeRange)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
 	js, jsonErr := json.Marshal(topChannels)
 	if jsonErr != nil {
 		c.Err = model.NewAppError("getTopChannelsForTeamSince", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
@@ -194,6 +201,12 @@ func getTopChannelsForUserSince(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	topChannels.PostCountByDay, err = postCountByDayViewModel(c.App, topChannels, startTime, c.Params.TimeRange)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
 	js, jsonErr := json.Marshal(topChannels)
 	if jsonErr != nil {
 		c.Err = model.NewAppError("getTopChannelsForUserSince", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
@@ -201,4 +214,18 @@ func getTopChannelsForUserSince(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	w.Write(js)
+}
+
+// postCountByDayViewModel expects a list of channels that are pre-authorized for the given user to view.
+func postCountByDayViewModel(app app.AppIface, topChannelList *model.TopChannelList, startTime int64, timeRange string) (model.ChannelPostCountByDay, *model.AppError) {
+	if len(topChannelList.Items) == 0 {
+		return nil, nil
+	}
+	var postCountsByDay []*model.DailyPostCount
+	channelIDs := topChannelList.ChannelIDs()
+	postCountsByDay, err := app.PostCountsByDay(channelIDs, startTime)
+	if err != nil {
+		return nil, err
+	}
+	return model.ToDailyPostCountViewModel(postCountsByDay, startTime, model.TimeRangeToNumberDays(timeRange), channelIDs), nil
 }

@@ -1870,6 +1870,22 @@ func (s *TimerLayerChannelStore) PermanentDeleteMembersByUser(userID string) err
 	return err
 }
 
+func (s *TimerLayerChannelStore) PostCountsByDay(channelIDs []string, sinceUnixMillis int64) ([]*model.DailyPostCount, error) {
+	start := timemodule.Now()
+
+	result, err := s.ChannelStore.PostCountsByDay(channelIDs, sinceUnixMillis)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.PostCountsByDay", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) RemoveAllDeactivatedMembers(channelID string) error {
 	start := timemodule.Now()
 

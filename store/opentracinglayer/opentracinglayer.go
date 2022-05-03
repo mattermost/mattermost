@@ -2014,6 +2014,24 @@ func (s *OpenTracingLayerChannelStore) PermanentDeleteMembersByUser(userID strin
 	return err
 }
 
+func (s *OpenTracingLayerChannelStore) PostCountsByDay(channelIDs []string, sinceUnixMillis int64) ([]*model.DailyPostCount, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.PostCountsByDay")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ChannelStore.PostCountsByDay(channelIDs, sinceUnixMillis)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerChannelStore) RemoveAllDeactivatedMembers(channelID string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.RemoveAllDeactivatedMembers")

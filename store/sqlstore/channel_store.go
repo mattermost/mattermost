@@ -4271,3 +4271,38 @@ func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string
 
 	return model.GetTopChannelListWithPagination(channels, limit), nil
 }
+
+func (s SqlChannelStore) PostCountsByDay(channelIDs []string, sinceUnixMillis int64) ([]*model.DailyPostCount, error) {
+	var unixSelect string
+	var propsQuery string
+	if s.DriverName() == model.DatabaseDriverMysql {
+		unixSelect = `date(from_unixtime(Posts.CreateAt / 1000)) AS day`
+		propsQuery = `(JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false')`
+	} else if s.DriverName() == model.DatabaseDriverPostgres {
+		unixSelect = `to_timestamp(Posts.CreateAt / 1000) :: date AS day`
+		propsQuery = `(Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false')`
+	}
+	query := sq.
+		Select("Posts.ChannelId AS channelid", unixSelect, "count(Posts.Id) AS postcount").
+		From("Posts").
+		LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
+		Where(sq.And{
+			sq.Eq{"Posts.DeleteAt": 0},
+			sq.Gt{"Posts.CreateAt": sinceUnixMillis},
+			sq.Eq{"Posts.Type": ""},
+			sq.Eq{"Channels.Id": channelIDs},
+		}).
+		Where(propsQuery).
+		GroupBy("channelid", "day").
+		OrderBy("channelid", "day")
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse query")
+	}
+	dailyPostCounts := make([]*model.DailyPostCount, 0)
+	if err := s.GetReplicaX().Select(&dailyPostCounts, queryString, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to get post counts by day")
+	}
+
+	return dailyPostCounts, nil
+}

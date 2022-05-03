@@ -13,6 +13,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -2640,5 +2641,78 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 		require.Nil(t, err)
 		assert.Equal(t, channel6.Id, topChannels.Items[0].ID)
 		assert.Equal(t, int64(1), topChannels.Items[0].MessageCount)
+	})
+}
+
+func TestPostCountsByDay(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.Server.configStore.SetReadOnlyFF(false)
+	defer th.Server.configStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+
+	channel2 := th.CreateChannel(th.BasicTeam)
+	channel3 := th.CreatePrivateChannel(th.BasicTeam)
+	channel4 := th.CreatePrivateChannel(th.BasicTeam)
+	channel5 := th.CreateChannel(th.BasicTeam)
+	channel6 := th.CreatePrivateChannel(th.BasicTeam)
+	th.AddUserToChannel(th.BasicUser, channel2)
+	th.AddUserToChannel(th.BasicUser, channel3)
+	th.AddUserToChannel(th.BasicUser, channel4)
+	th.AddUserToChannel(th.BasicUser, channel5)
+	th.AddUserToChannel(th.BasicUser, channel6)
+
+	channels := [6]*model.Channel{th.BasicChannel, channel2, channel3, channel4, channel5, channel6}
+	channelIDs := []string{th.BasicChannel.Id, channel2.Id, channel3.Id, channel4.Id, channel5.Id, channel6.Id}
+
+	i := len(channels)
+	for ci, channel := range channels {
+		for j := i; j > 0; j-- {
+			d := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC).AddDate(0, 0, ci)
+			_, err := th.App.CreatePost(th.Context, &model.Post{
+				UserId:    th.BasicUser.Id,
+				ChannelId: channel.Id,
+				CreateAt:  d.Unix() * 1000,
+			}, channel, false, false)
+			require.Nil(t, err)
+		}
+		i--
+	}
+
+	expected := map[string]map[string]int{
+		"2009-11-10": {
+			th.BasicChannel.Id: 6,
+		},
+		"2009-11-11": {
+			channel2.Id: 5,
+		},
+		"2009-11-12": {
+			channel3.Id: 4,
+		},
+		"2009-11-13": {
+			channel4.Id: 3,
+		},
+		"2009-11-14": {
+			channel5.Id: 2,
+		},
+		"2009-11-15": {
+			channel6.Id: 1,
+		},
+	}
+
+	sinceUnixMillis := time.Date(2009, time.November, 9, 23, 0, 0, 0, time.UTC).Unix() * 1000
+
+	t.Run("get-post-counts-by-day", func(t *testing.T) {
+		dailyPostCount, err := th.App.PostCountsByDay(channelIDs, sinceUnixMillis)
+		require.Nil(t, err)
+
+		for _, item := range dailyPostCount {
+			isoDay := item.ISO8601Date()
+			if strings.HasPrefix(isoDay, "2009") {
+				expectedCount := expected[isoDay][item.ChannelID]
+				assert.Equal(t, expectedCount, item.PostCount)
+			}
+		}
 	})
 }

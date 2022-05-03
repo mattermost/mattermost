@@ -38,7 +38,16 @@ type TopReaction struct {
 // Top Channels
 type TopChannelList struct {
 	InsightsListData
-	Items []*TopChannel `json:"items"`
+	Items          []*TopChannel         `json:"items"`
+	PostCountByDay ChannelPostCountByDay `json:"daily_channel_post_counts"`
+}
+
+func (t *TopChannelList) ChannelIDs() []string {
+	var ids []string
+	for _, item := range t.Items {
+		ids = append(ids, item.ID)
+	}
+	return ids
 }
 
 type TopChannel struct {
@@ -50,8 +59,73 @@ type TopChannel struct {
 	MessageCount int64       `json:"message_count"`
 }
 
+type DailyPostCount struct {
+	ChannelID string `db:"channelid" json:"channel_id"`
+	Date      string `db:"day" json:"-"`
+	PostCount int    `db:"postcount" json:"post_count"`
+}
+
+func (d *DailyPostCount) ISO8601Date() string {
+	if len(d.Date) >= 10 {
+		return d.Date[:10]
+	}
+	return ""
+}
+
+func TimeRangeToNumberDays(timeRange string) int {
+	var n int
+	switch timeRange {
+	case TimeRangeToday:
+		n = 1
+	case TimeRange7Day:
+		n = 7
+	case TimeRange28Day:
+		n = 28
+	}
+	return n
+}
+
+// ChannelPostCountByDay contains a count of posts by channel id, grouped by ISO8601 date string. For example:
+//  cpc := model.ChannelPostCountByDay{
+//  	"2009-11-11": {
+//  		"ezbp7nqxzjgdir8riodyafr9ww": 90,
+//  		"p949c1xdojfgzffxma3p3s3ikr": 201,
+//  	},
+//  	"2009-11-12": {
+//  		"ezbp7nqxzjgdir8riodyafr9ww": 45,
+//  		"p949c1xdojfgzffxma3p3s3ikr": 68,
+//  	},
+//  }
+type ChannelPostCountByDay map[string]map[string]int
+
+func ToDailyPostCountViewModel(dpc []*DailyPostCount, unixStartMillis int64, numDays int, channelIDs []string) ChannelPostCountByDay {
+	viewModel := ChannelPostCountByDay{}
+
+	startTime := time.Unix(unixStartMillis/1000, 0)
+
+	for i := 1; i <= numDays; i++ {
+		blankChannelCounts := map[string]int{}
+		for _, id := range channelIDs {
+			blankChannelCounts[id] = 0
+		}
+		dayKey := startTime.AddDate(0, 0, i).Format("2006-01-02")
+		viewModel[dayKey] = blankChannelCounts
+	}
+
+	for _, item := range dpc {
+		isoDay := item.ISO8601Date()
+		_, hasKey := viewModel[isoDay]
+		if !hasKey {
+			viewModel[isoDay] = map[string]int{}
+		}
+		viewModel[isoDay][item.ChannelID] = item.PostCount
+	}
+
+	return viewModel
+}
+
 // GetStartUnixMilliForTimeRange gets the unix start time in milliseconds from the given time range.
-// Time range can be one of: "1_day", "7_day", or "28_day".
+// Time range can be one of: "today", "7_day", or "28_day".
 func GetStartUnixMilliForTimeRange(timeRange string) (int64, *AppError) {
 	now := time.Now()
 	_, offset := now.Zone()

@@ -1717,6 +1717,29 @@ func (_m *ChannelStore) PermanentDeleteMembersByUser(userID string) error {
 	return r0
 }
 
+// PostCountsByDay provides a mock function with given fields: channelIDs, sinceUnixMillis
+func (_m *ChannelStore) PostCountsByDay(channelIDs []string, sinceUnixMillis int64) ([]*model.DailyPostCount, error) {
+	ret := _m.Called(channelIDs, sinceUnixMillis)
+
+	var r0 []*model.DailyPostCount
+	if rf, ok := ret.Get(0).(func([]string, int64) []*model.DailyPostCount); ok {
+		r0 = rf(channelIDs, sinceUnixMillis)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.DailyPostCount)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]string, int64) error); ok {
+		r1 = rf(channelIDs, sinceUnixMillis)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // RemoveAllDeactivatedMembers provides a mock function with given fields: channelID
 func (_m *ChannelStore) RemoveAllDeactivatedMembers(channelID string) error {
 	ret := _m.Called(channelID)

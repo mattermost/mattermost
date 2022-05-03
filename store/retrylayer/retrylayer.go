@@ -2212,6 +2212,27 @@ func (s *RetryLayerChannelStore) PermanentDeleteMembersByUser(userID string) err
 
 }
 
+func (s *RetryLayerChannelStore) PostCountsByDay(channelIDs []string, sinceUnixMillis int64) ([]*model.DailyPostCount, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.PostCountsByDay(channelIDs, sinceUnixMillis)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) RemoveAllDeactivatedMembers(channelID string) error {
 
 	tries := 0

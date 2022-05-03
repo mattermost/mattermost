@@ -4520,6 +4520,10 @@
     "translation": "Unable to get the channel pinned post count."
   },
   {
+    "id": "app.channel.get_post_count_by_day.app_error",
+    "translation": " "
+  },
+  {
     "id": "app.channel.get_private_channels.get.app_error",
     "translation": "Unable to get private channels."
   },
