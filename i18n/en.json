@@ -472,12 +472,12 @@
     "translation": "Your license does not support cloud requests."
   },
   {
-    "id": "api.cloud.limits.update_error",
-    "translation": "Error updating cloud limits from webhook."
-  },
-  {
     "id": "api.cloud.request_error",
     "translation": "Error processing request to CWS."
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "Error updating subscription from webhook."
   },
   {
     "id": "api.command.admin_only.app_error",

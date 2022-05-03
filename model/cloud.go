@@ -11,7 +11,7 @@ const (
 	EventTypeSendAdminWelcomeEmail = "send-admin-welcome-email"
 	EventTypeTrialWillEnd          = "trial-will-end"
 	EventTypeTrialEnded            = "trial-ended"
-	EventTypeProductLimitsChanged  = "product-limits-changed"
+	EventTypeSubscriptionChanged   = "subscription-changed"
 )
 
 var MockCWS string
