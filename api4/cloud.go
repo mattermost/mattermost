@@ -19,6 +19,8 @@ import (
 func (api *API) InitCloud() {
 	// GET /api/v4/cloud/products
 	api.BaseRoutes.Cloud.Handle("/products", api.APISessionRequired(getCloudProducts)).Methods("GET")
+	// GET /api/v4/cloud/limits
+	api.BaseRoutes.Cloud.Handle("/limits", api.APISessionRequired(getCloudLimits)).Methods("GET")
 
 	// POST /api/v4/cloud/payment
 	// POST /api/v4/cloud/payment/confirm
@@ -109,6 +111,12 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Log failures for purchase confirmation email, but don't show an error to the user so as not to confuse them
+	// At this point, the upgrade is complete.
+	if nErr := c.App.SendUpgradeConfirmationEmail(); nErr != nil {
+		c.Logger.Error("Error sending purchase confirmation email")
+	}
+
 	w.Write(json)
 }
 
@@ -135,6 +143,38 @@ func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
 	json, err := json.Marshal(products)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.getCloudProducts", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(json)
+}
+
+func getCloudLimits(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
+		c.Err = model.NewAppError("Api4.getCloudLimits", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.Config().FeatureFlags.CloudFree {
+		emptyLimits := &model.ProductLimits{}
+		json, err := json.Marshal(emptyLimits)
+		if err != nil {
+			c.Err = model.NewAppError("Api4.getCloudLimits", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		w.Write(json)
+		return
+	}
+
+	limits, err := c.App.Cloud().GetCloudLimits(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getCloudLimits", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json, err := json.Marshal(limits)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getCloudLimits", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -399,6 +439,11 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	case model.EventTypeFailedPaymentNoCard:
 		if nErr := c.App.SendNoCardPaymentFailedEmail(); nErr != nil {
+			c.Err = nErr
+			return
+		}
+	case model.EventTypeSendUpgradeConfirmationEmail:
+		if nErr := c.App.SendUpgradeConfirmationEmail(); nErr != nil {
 			c.Err = nErr
 			return
 		}
