@@ -218,6 +218,35 @@ func TestUpdateConfig(t *testing.T) {
 		})
 	})
 
+	t.Run("Should not be able to modify PluginSettings.MarketplaceURL if EnableUploads is disabled", func(t *testing.T) {
+		oldURL := "hello.com"
+		newURL := "new.com"
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableUploads = false
+			*cfg.PluginSettings.MarketplaceURL = oldURL
+		})
+
+		cfg2 := th.App.Config().Clone()
+		*cfg2.PluginSettings.MarketplaceURL = newURL
+
+		cfg2, _, err = th.SystemAdminClient.UpdateConfig(cfg2)
+		require.NoError(t, err)
+		assert.Equal(t, oldURL, *cfg2.PluginSettings.MarketplaceURL)
+
+		// Allowing uploads
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableUploads = true
+			*cfg.PluginSettings.MarketplaceURL = oldURL
+		})
+
+		cfg2 = th.App.Config().Clone()
+		*cfg2.PluginSettings.MarketplaceURL = newURL
+
+		cfg2, _, err = th.SystemAdminClient.UpdateConfig(cfg2)
+		require.NoError(t, err)
+		assert.Equal(t, newURL, *cfg2.PluginSettings.MarketplaceURL)
+	})
+
 	t.Run("System Admin should not be able to clear Site URL", func(t *testing.T) {
 		siteURL := cfg.ServiceSettings.SiteURL
 		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = siteURL })
@@ -725,6 +754,34 @@ func TestPatchConfig(t *testing.T) {
 				CheckForbiddenStatus(t, resp)
 			}
 		})
+	})
+
+	t.Run("Should not be able to modify PluginSettings.MarketplaceURL if EnableUploads is disabled", func(t *testing.T) {
+		oldURL := "hello.com"
+		newURL := "new.com"
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableUploads = false
+			*cfg.PluginSettings.MarketplaceURL = oldURL
+		})
+
+		cfg := th.App.Config().Clone()
+		*cfg.PluginSettings.MarketplaceURL = newURL
+
+		_, _, err := th.SystemAdminClient.PatchConfig(cfg)
+		require.Error(t, err)
+
+		// Allowing uploads
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableUploads = true
+			*cfg.PluginSettings.MarketplaceURL = oldURL
+		})
+
+		cfg = th.App.Config().Clone()
+		*cfg.PluginSettings.MarketplaceURL = newURL
+
+		cfg, _, err = th.SystemAdminClient.PatchConfig(cfg)
+		require.NoError(t, err)
+		assert.Equal(t, newURL, *cfg.PluginSettings.MarketplaceURL)
 	})
 
 	t.Run("System Admin should not be able to clear Site URL", func(t *testing.T) {

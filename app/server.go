@@ -7,11 +7,9 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
-	"encoding/json"
 	"fmt"
 	"hash/maphash"
 	"html/template"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/pprof"
@@ -26,8 +24,6 @@ import (
 	"sync/atomic"
 	"syscall"
 	"time"
-
-	"gopkg.in/yaml.v2"
 
 	"github.com/getsentry/sentry-go"
 	sentryhttp "github.com/getsentry/sentry-go/http"
@@ -90,11 +86,13 @@ var SentryDSN = "placeholder_sentry_dsn"
 type ServiceKey string
 
 const (
+	ChannelKey   ServiceKey = "channel"
 	ConfigKey    ServiceKey = "config"
 	LicenseKey   ServiceKey = "license"
 	FilestoreKey ServiceKey = "filestore"
 	ClusterKey   ServiceKey = "cluster"
 	PostKey      ServiceKey = "post"
+	TeamKey      ServiceKey = "team"
 )
 
 type Server struct {
@@ -362,6 +360,10 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	s.filestore = backend
 
+	channelWrapper := &channelsWrapper{
+		srv: s,
+	}
+
 	s.licenseWrapper = &licenseWrapper{
 		srv: s,
 	}
@@ -370,11 +372,26 @@ func NewServer(options ...Option) (*Server, error) {
 		srv: s,
 	}
 
+	s.teamService, err = teams.New(teams.ServiceConfig{
+		TeamStore:    s.Store.Team(),
+		ChannelStore: s.Store.Channel(),
+		GroupStore:   s.Store.Group(),
+		Users:        s.userService,
+		WebHub:       s,
+		ConfigFn:     s.Config,
+		LicenseFn:    s.License,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to create teams service")
+	}
+
 	serviceMap := map[ServiceKey]interface{}{
+		ChannelKey:   channelWrapper,
 		ConfigKey:    s.configStore,
 		LicenseKey:   s.licenseWrapper,
 		FilestoreKey: s.filestore,
 		ClusterKey:   s.clusterWrapper,
+		TeamKey:      s.teamService,
 	}
 
 	// Step 8: Initialize products.
@@ -468,19 +485,6 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	})
 	s.htmlTemplateWatcher = htmlTemplateWatcher
-
-	s.teamService, err = teams.New(teams.ServiceConfig{
-		TeamStore:    s.Store.Team(),
-		ChannelStore: s.Store.Channel(),
-		GroupStore:   s.Store.Group(),
-		Users:        s.userService,
-		WebHub:       s,
-		ConfigFn:     s.Config,
-		LicenseFn:    s.License,
-	})
-	if err != nil {
-		return nil, errors.Wrapf(err, "unable to create teams service")
-	}
 
 	s.configListenerId = s.AddConfigListener(func(_, _ *model.Config) {
 		ch := s.Channels()
@@ -622,7 +626,7 @@ func NewServer(options ...Option) (*Server, error) {
 		go func() {
 			appInstance := New(ServerConnector(s.Channels()))
 			if err := appInstance.UpdateProductNotices(); err != nil {
-				mlog.Warn("Failied to perform initial product notices fetch", mlog.Err(err))
+				mlog.Warn("Failed to perform initial product notices fetch", mlog.Err(err))
 			}
 		}()
 	}
@@ -724,6 +728,9 @@ func (s *Server) runJobs() {
 	})
 	s.Go(func() {
 		runCommandWebhookCleanupJob(s)
+	})
+	s.Go(func() {
+		runConfigCleanupJob(s)
 	})
 
 	if complianceI := s.Channels().Compliance; complianceI != nil {
@@ -1185,8 +1192,11 @@ func (s *Server) Start() error {
 	if err := s.Store.Status().ResetAll(); err != nil {
 		mlog.Error("Error to reset the server status.", mlog.Err(err))
 	}
-	if err := mail.TestConnection(s.MailServiceConfig()); err != nil {
-		mlog.Error("Mail server connection test is failed", mlog.Err(err))
+
+	if s.MailServiceConfig().SendEmailNotifications {
+		if err := mail.TestConnection(s.MailServiceConfig()); err != nil {
+			mlog.Error("Mail server connection test failed", mlog.Err(err))
+		}
 	}
 
 	err := s.FileBackend().TestConnection()
@@ -1498,6 +1508,13 @@ func runJobsCleanupJob(s *Server) {
 	}, time.Hour*24)
 }
 
+func runConfigCleanupJob(s *Server) {
+	doConfigCleanup(s)
+	model.CreateRecurringTask("Configuration Cleanup", func() {
+		doConfigCleanup(s)
+	}, time.Hour*24)
+}
+
 func (s *Server) runInactivityCheckJob() {
 	model.CreateRecurringTask("Server inactivity Check", func() {
 		s.doInactivityCheck()
@@ -1569,6 +1586,17 @@ func doJobsCleanup(s *Server) {
 	err := s.Store.Job().Cleanup(expiry, jobsCleanupBatchSize)
 	if err != nil {
 		mlog.Warn("Error while cleaning up jobs", mlog.Err(err))
+	}
+}
+
+func doConfigCleanup(s *Server) {
+	if *s.Config().JobSettings.CleanupConfigThresholdDays < 0 || !config.IsDatabaseDSN(s.ConfigStore().Store.String()) {
+		return
+	}
+	mlog.Info("Cleaning up configuration store.")
+
+	if err := s.ConfigStore().Store.CleanUp(); err != nil {
+		mlog.Warn("Error while cleaning up configurations", mlog.Err(err))
 	}
 }
 
@@ -1719,6 +1747,15 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 
 func (s *Server) doLicenseExpirationCheck() {
 	s.LoadLicense()
+
+	// This takes care of a rare edge case reported here https://mattermost.atlassian.net/browse/MM-40962
+	// To reproduce that case locally, attach a license to a server that was started with enterprise enabled
+	// Then restart using BUILD_ENTERPRISE=false make restart-server to enter Team Edition
+	if model.BuildEnterpriseReady != "true" {
+		mlog.Debug("Skipping license expiration check because no license is expected on Team Edition")
+		return
+	}
+
 	license := s.License()
 
 	if license == nil {
@@ -1742,10 +1779,17 @@ func (s *Server) doLicenseExpirationCheck() {
 		if appErr != nil {
 			mlog.Debug(appErr.Error())
 		}
+		return
 	}
 
 	if !license.IsPastGracePeriod() {
 		mlog.Debug("License is not past the grace period.")
+		return
+	}
+
+	renewalLink, _, appErr := s.GenerateLicenseRenewalLink()
+	if appErr != nil {
+		mlog.Error("Error while sending the license expired email.", mlog.Err(appErr))
 		return
 	}
 
@@ -1759,7 +1803,7 @@ func (s *Server) doLicenseExpirationCheck() {
 
 		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
 		s.Go(func() {
-			if err := s.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *s.Config().ServiceSettings.SiteURL); err != nil {
+			if err := s.SendRemoveExpiredLicenseEmail(user.Email, renewalLink, user.Locale, *s.Config().ServiceSettings.SiteURL); err != nil {
 				mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
 			}
 		})
@@ -1771,11 +1815,7 @@ func (s *Server) doLicenseExpirationCheck() {
 
 // SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
 // to renew the user license
-func (s *Server) SendRemoveExpiredLicenseEmail(email string, locale, siteURL string) *model.AppError {
-	renewalLink, _, err := s.GenerateLicenseRenewalLink()
-	if err != nil {
-		return err
-	}
+func (s *Server) SendRemoveExpiredLicenseEmail(email string, renewalLink, locale, siteURL string) *model.AppError {
 
 	if err := s.EmailService.SendRemoveExpiredLicenseEmail(renewalLink, email, locale, siteURL); err != nil {
 		return model.NewAppError("SendRemoveExpiredLicenseEmail", "api.license.remove_expired_license.failed.error", nil, err.Error(), http.StatusInternalServerError)
@@ -1913,11 +1953,6 @@ func (s *Server) initJobs() {
 		s.Jobs.RegisterJobType(model.JobTypeLdapSync, builder.MakeWorker(), builder.MakeScheduler())
 	}
 
-	if jobsCloudInterface != nil {
-		builder := jobsCloudInterface(s)
-		s.Jobs.RegisterJobType(model.JobTypeCloud, builder.MakeWorker(), builder.MakeScheduler())
-	}
-
 	s.Jobs.RegisterJobType(
 		model.JobTypeBlevePostIndexing,
 		indexer.MakeWorker(s.Jobs, s.SearchEngine.BleveEngine.(*bleveengine.BleveEngine)),
@@ -2052,183 +2087,6 @@ func (s *Server) SetSharedChannelSyncService(sharedChannelService SharedChannelS
 	s.serviceMux.Lock()
 	defer s.serviceMux.Unlock()
 	s.sharedChannelService = sharedChannelService
-}
-
-func (a *App) GenerateSupportPacket() []model.FileData {
-	// If any errors we come across within this function, we will log it in a warning.txt file so that we know why certain files did not get produced if any
-	var warnings []string
-
-	// Creating an array of files that we are going to be adding to our zip file
-	fileDatas := []model.FileData{}
-
-	// A array of the functions that we can iterate through since they all have the same return value
-	functions := []func() (*model.FileData, string){
-		a.generateSupportPacketYaml,
-		a.createPluginsFile,
-		a.createSanitizedConfigFile,
-		a.getMattermostLog,
-		a.getNotificationsLog,
-	}
-
-	for _, fn := range functions {
-		fileData, warning := fn()
-
-		if fileData != nil {
-			fileDatas = append(fileDatas, *fileData)
-		} else {
-			warnings = append(warnings, warning)
-		}
-	}
-
-	// Adding a warning.txt file to the fileDatas if any warning
-	if len(warnings) > 0 {
-		finalWarning := strings.Join(warnings, "\n")
-		fileDatas = append(fileDatas, model.FileData{
-			Filename: "warning.txt",
-			Body:     []byte(finalWarning),
-		})
-	}
-
-	return fileDatas
-}
-
-func (a *App) getNotificationsLog() (*model.FileData, string) {
-	var warning string
-
-	// Getting notifications.log
-	if *a.Config().NotificationLogSettings.EnableFile {
-		// notifications.log
-		notificationsLog := config.GetNotificationsLogFileLocation(*a.Config().LogSettings.FileLocation)
-
-		notificationsLogFileData, notificationsLogFileDataErr := ioutil.ReadFile(notificationsLog)
-
-		if notificationsLogFileDataErr == nil {
-			fileData := model.FileData{
-				Filename: "notifications.log",
-				Body:     notificationsLogFileData,
-			}
-			return &fileData, ""
-		}
-
-		warning = fmt.Sprintf("ioutil.ReadFile(notificationsLog) Error: %s", notificationsLogFileDataErr.Error())
-
-	} else {
-		warning = "Unable to retrieve notifications.log because LogSettings: EnableFile is false in config.json"
-	}
-
-	return nil, warning
-}
-
-func (a *App) getMattermostLog() (*model.FileData, string) {
-	var warning string
-
-	// Getting mattermost.log
-	if *a.Config().LogSettings.EnableFile {
-		// mattermost.log
-		mattermostLog := config.GetLogFileLocation(*a.Config().LogSettings.FileLocation)
-
-		mattermostLogFileData, mattermostLogFileDataErr := ioutil.ReadFile(mattermostLog)
-
-		if mattermostLogFileDataErr == nil {
-			fileData := model.FileData{
-				Filename: "mattermost.log",
-				Body:     mattermostLogFileData,
-			}
-			return &fileData, ""
-		}
-		warning = fmt.Sprintf("ioutil.ReadFile(mattermostLog) Error: %s", mattermostLogFileDataErr.Error())
-
-	} else {
-		warning = "Unable to retrieve mattermost.log because LogSettings: EnableFile is false in config.json"
-	}
-
-	return nil, warning
-}
-
-func (a *App) createSanitizedConfigFile() (*model.FileData, string) {
-	// Getting sanitized config, prettifying it, and then adding it to our file data array
-	sanitizedConfigPrettyJSON, err := json.MarshalIndent(a.GetSanitizedConfig(), "", "    ")
-	if err == nil {
-		fileData := model.FileData{
-			Filename: "sanitized_config.json",
-			Body:     sanitizedConfigPrettyJSON,
-		}
-		return &fileData, ""
-	}
-
-	warning := fmt.Sprintf("json.MarshalIndent(c.App.GetSanitizedConfig()) Error: %s", err.Error())
-	return nil, warning
-}
-
-func (a *App) createPluginsFile() (*model.FileData, string) {
-	var warning string
-
-	// Getting the plugins installed on the server, prettify it, and then add them to the file data array
-	pluginsResponse, appErr := a.GetPlugins()
-	if appErr == nil {
-		pluginsPrettyJSON, err := json.MarshalIndent(pluginsResponse, "", "    ")
-		if err == nil {
-			fileData := model.FileData{
-				Filename: "plugins.json",
-				Body:     pluginsPrettyJSON,
-			}
-
-			return &fileData, ""
-		}
-
-		warning = fmt.Sprintf("json.MarshalIndent(pluginsResponse) Error: %s", err.Error())
-	} else {
-		warning = fmt.Sprintf("c.App.GetPlugins() Error: %s", appErr.Error())
-	}
-
-	return nil, warning
-}
-
-func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
-	// Here we are getting information regarding Elastic Search
-	var elasticServerVersion string
-	var elasticServerPlugins []string
-	if a.Srv().SearchEngine.ElasticsearchEngine != nil {
-		elasticServerVersion = a.Srv().SearchEngine.ElasticsearchEngine.GetFullVersion()
-		elasticServerPlugins = a.Srv().SearchEngine.ElasticsearchEngine.GetPlugins()
-	}
-
-	// Here we are getting information regarding LDAP
-	ldapInterface := a.ch.Ldap
-	var vendorName, vendorVersion string
-	if ldapInterface != nil {
-		vendorName, vendorVersion = ldapInterface.GetVendorNameAndVendorVersion()
-	}
-
-	// Here we are getting information regarding the database (mysql/postgres + current schema version)
-	databaseType, databaseVersion := a.Srv().DatabaseTypeAndSchemaVersion()
-
-	// Creating the struct for support packet yaml file
-	supportPacket := model.SupportPacket{
-		ServerOS:             runtime.GOOS,
-		ServerArchitecture:   runtime.GOARCH,
-		ServerVersion:        model.CurrentVersion,
-		BuildHash:            model.BuildHash,
-		DatabaseType:         databaseType,
-		DatabaseVersion:      databaseVersion,
-		LdapVendorName:       vendorName,
-		LdapVendorVersion:    vendorVersion,
-		ElasticServerVersion: elasticServerVersion,
-		ElasticServerPlugins: elasticServerPlugins,
-	}
-
-	// Marshal to a Yaml File
-	supportPacketYaml, err := yaml.Marshal(&supportPacket)
-	if err == nil {
-		fileData := model.FileData{
-			Filename: "support_packet.yaml",
-			Body:     supportPacketYaml,
-		}
-		return &fileData, ""
-	}
-
-	warning := fmt.Sprintf("yaml.Marshal(&supportPacket) Error: %s", err.Error())
-	return nil, warning
 }
 
 func (s *Server) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {

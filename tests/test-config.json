@@ -36,7 +36,8 @@
         "ExtendSessionLengthWithActivity": true,
         "SessionLengthWebInDays": 30,
         "SessionLengthMobileInDays": 30,
-        "SessionLengthSSOInDays": 30,
+        "SessionLengthSSOInDays": -1,
+        "SessionLengthSSOInHours": 720,
         "SessionCacheInMinutes": 10,
         "SessionIdleTimeoutInMinutes": 0,
         "WebsocketSecurePort": 443,
@@ -164,7 +165,8 @@
         "EmailNotificationContentsType": "full",
         "LoginButtonColor": "",
         "LoginButtonBorderColor": "",
-        "LoginButtonTextColor": ""
+        "LoginButtonTextColor": "",
+        "EnableInactivityEmail": true
     },
     "RateLimitSettings": {
         "Enable": false,
@@ -339,7 +341,7 @@
         "PostsAggregatorJobStartTime": "03:00",
         "IndexPrefix": "",
         "LiveIndexingBatchSize": 1,
-        "BulkIndexingTimeWindowSeconds": 3600,
+        "BatchSize": 10000,
         "RequestTimeoutSeconds": 30
     },
     "DataRetentionSettings": {

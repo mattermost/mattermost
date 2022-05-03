@@ -114,16 +114,19 @@ func extractPcs(method reflect.Value) []uintptr {
 	for i := 0; i < stacktrace.Len(); i++ {
 		pc := stacktrace.Index(i)
 
-		if pc.Kind() == reflect.Uintptr {
+		switch pc.Kind() {
+		case reflect.Uintptr:
 			pcs = append(pcs, uintptr(pc.Uint()))
-			continue
-		}
-
-		if pc.Kind() == reflect.Struct {
-			field := pc.FieldByName("ProgramCounter")
-			if field.IsValid() && field.Kind() == reflect.Uintptr {
-				pcs = append(pcs, uintptr(field.Uint()))
-				continue
+		case reflect.Struct:
+			for _, fieldName := range []string{"ProgramCounter", "PC"} {
+				field := pc.FieldByName(fieldName)
+				if !field.IsValid() {
+					continue
+				}
+				if field.Kind() == reflect.Uintptr {
+					pcs = append(pcs, uintptr(field.Uint()))
+					break
+				}
 			}
 		}
 	}

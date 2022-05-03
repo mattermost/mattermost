@@ -704,6 +704,7 @@ func TestImportImportChannel(t *testing.T) {
 }
 
 func TestImportImportUser(t *testing.T) {
+	t.Skip("MM-43341")
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -2501,9 +2502,34 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, errLine)
 
+	// Create a pinned message.
+	data = LineImportWorkerData{
+		LineImportData{
+			Post: &PostImportData{
+				Team:     &teamName,
+				Channel:  &channelName,
+				User:     &user2.Username,
+				Message:  ptrStr("Pinned Message"),
+				CreateAt: ptrInt64(model.GetMillis()),
+				IsPinned: ptrBool(true),
+			},
+		},
+		1,
+	}
+	errLine, err = th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
+	require.Nil(t, err)
+	require.Equal(t, 0, errLine)
+
+	resultPosts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, *data.Post.CreateAt)
+	require.NoError(t, nErr, "Expected success.")
+	// Should be one post only created at this time.
+	require.Equal(t, 1, len(resultPosts))
+	resultPost := resultPosts[0]
+	require.True(t, resultPost.IsPinned, "This post should be pinned.")
+
 	// Posts should be added to the right team
 	AssertAllPostsCount(t, th.App, initialPostCountForTeam2, 1, team2.Id)
-	AssertAllPostsCount(t, th.App, initialPostCount, 14, team.Id)
+	AssertAllPostsCount(t, th.App, initialPostCount, 15, team.Id)
 }
 
 func TestImportImportPost(t *testing.T) {
@@ -3559,6 +3585,37 @@ func TestImportImportDirectPost(t *testing.T) {
 		assert.Equal(t, post.CreateAt, *data.DirectPost.CreateAt)
 		assert.Equal(t, post.EditAt, *data.DirectPost.EditAt)
 		assert.Equal(t, post.UserId, th.BasicUser.Id)
+	})
+
+	t.Run("Test with IsPinned", func(t *testing.T) {
+		pinnedValue := true
+		creationTime := model.GetMillis()
+		data := LineImportWorkerData{
+			LineImportData{
+				DirectPost: &DirectPostImportData{
+					ChannelMembers: &[]string{
+						th.BasicUser.Username,
+						th.BasicUser2.Username,
+					},
+					User:     ptrStr(th.BasicUser.Username),
+					Message:  ptrStr("Message with EditAt"),
+					CreateAt: &creationTime,
+					IsPinned: &pinnedValue,
+				},
+			},
+			1,
+		}
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{data}, false)
+		require.Nil(t, err)
+		require.Equal(t, 0, errLine)
+		AssertAllPostsCount(t, th.App, initialPostCount, 8, "")
+
+		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
+		require.NoError(t, nErr)
+		require.Len(t, posts, 1)
+
+		post := posts[0]
+		require.True(t, post.IsPinned)
 	})
 
 	// ------------------ Group Channel -------------------------

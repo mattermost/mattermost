@@ -195,12 +195,11 @@ func (t *tokens) indexTokens(in []token) {
 
 // emitLiteral writes a literal chunk and returns the number of bytes written.
 func emitLiteral(dst *tokens, lit []byte) {
-	ol := int(dst.n)
-	for i, v := range lit {
-		dst.tokens[(i+ol)&maxStoreBlockSize] = token(v)
+	for _, v := range lit {
+		dst.tokens[dst.n] = token(v)
 		dst.litHist[v]++
+		dst.n++
 	}
-	dst.n += uint16(len(lit))
 }
 
 func (t *tokens) AddLiteral(lit byte) {
@@ -294,7 +293,11 @@ func (t *tokens) AddMatchLong(xlength int32, xoffset uint32) {
 		xl := xlength
 		if xl > 258 {
 			// We need to have at least baseMatchLength left over for next loop.
-			xl = 258 - baseMatchLength
+			if xl > 258+baseMatchLength {
+				xl = 258
+			} else {
+				xl = 258 - baseMatchLength
+			}
 		}
 		xlength -= xl
 		xl -= baseMatchLength

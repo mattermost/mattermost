@@ -27,7 +27,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
-	mbindata "github.com/mattermost/morph/sources/go_bindata"
+	mbindata "github.com/mattermost/morph/sources/embedded"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/db"
@@ -128,6 +128,8 @@ type SqlStore struct {
 	license           *model.License
 	licenseMutex      sync.RWMutex
 	metrics           einterfaces.MetricsInterface
+
+	isBinaryParam bool
 }
 
 func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlStore {
@@ -158,6 +160,11 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	err = store.migrate(migrationsDirectionUp)
 	if err != nil {
 		mlog.Fatal("Failed to apply database migrations.", mlog.Err(err))
+	}
+
+	store.isBinaryParam, err = store.computeBinaryParam()
+	if err != nil {
+		mlog.Fatal("Failed to compute binary param", mlog.Err(err))
 	}
 
 	store.stores.team = newSqlTeamStore(store)
@@ -268,7 +275,7 @@ func (ss *SqlStore) initConnection() {
 		// covers that already. Ideally we'd like to do this only for the upgrade
 		// step. To be reviewed in MM-35789.
 		var err error
-		dataSource, err = resetReadTimeout(dataSource)
+		dataSource, err = ResetReadTimeout(dataSource)
 		if err != nil {
 			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(err), mlog.String("src", dataSource))
 		}
@@ -321,6 +328,20 @@ func (ss *SqlStore) initConnection() {
 
 func (ss *SqlStore) DriverName() string {
 	return *ss.settings.DriverName
+}
+
+// computeBinaryParam returns whether the data source uses binary_parameters
+// when using Postgres
+func (ss *SqlStore) computeBinaryParam() (bool, error) {
+	if ss.DriverName() != model.DatabaseDriverPostgres {
+		return false, nil
+	}
+
+	return DSNHasBinaryParam(*ss.settings.DataSource)
+}
+
+func (ss *SqlStore) IsBinaryParamEnabled() bool {
+	return ss.isBinaryParam
 }
 
 func (ss *SqlStore) getCurrentSchemaVersion() (string, error) {
@@ -956,17 +977,16 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	if err != nil {
 		return err
 	}
-	defer src.Close()
 
 	var driver drivers.Driver
 	switch ss.DriverName() {
 	case model.DatabaseDriverMysql:
-		dataSource, rErr := resetReadTimeout(*ss.settings.DataSource)
+		dataSource, rErr := ResetReadTimeout(*ss.settings.DataSource)
 		if rErr != nil {
 			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(rErr), mlog.String("src", *ss.settings.DataSource))
 			return rErr
 		}
-		dataSource, err = ss.appendMultipleStatementsFlag(dataSource)
+		dataSource, err = AppendMultipleStatementsFlag(dataSource)
 		if err != nil {
 			return err
 		}
@@ -1007,35 +1027,6 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	default:
 		return engine.ApplyAll()
 	}
-}
-
-func (ss *SqlStore) appendMultipleStatementsFlag(dataSource string) (string, error) {
-	// We need to tell the MySQL driver that we want to use multiStatements
-	// in order to make migrations work.
-	if ss.DriverName() == model.DatabaseDriverMysql {
-		config, err := mysql.ParseDSN(dataSource)
-		if err != nil {
-			return "", err
-		}
-
-		if config.Params == nil {
-			config.Params = map[string]string{}
-		}
-
-		config.Params["multiStatements"] = "true"
-		return config.FormatDSN(), nil
-	}
-
-	return dataSource, nil
-}
-
-func resetReadTimeout(dataSource string) (string, error) {
-	config, err := mysql.ParseDSN(dataSource)
-	if err != nil {
-		return "", err
-	}
-	config.ReadTimeout = 0
-	return config.FormatDSN(), nil
 }
 
 func convertMySQLFullTextColumnsToPostgres(columnNames string) string {

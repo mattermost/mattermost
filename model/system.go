@@ -12,7 +12,6 @@ const (
 	SystemRanUnitTests                     = "RanUnitTests"
 	SystemLastSecurityTime                 = "LastSecurityTime"
 	SystemActiveLicenseId                  = "ActiveLicenseId"
-	SystemLicenseRenewalToken              = "LicenseRenewalToken"
 	SystemLastComplianceTime               = "LastComplianceTime"
 	SystemAsymmetricSigningKeyKey          = "AsymmetricSigningKey"
 	SystemPostActionCookieSecretKey        = "PostActionCookieSecret"
@@ -34,9 +33,6 @@ const (
 	SystemFirstAdminSetupComplete          = "FirstAdminSetupComplete"
 	AwsMeteringReportInterval              = 1
 	AwsMeteringDimensionUsageHrs           = "UsageHrs"
-	UserLimitOverageCycleEndDate           = "UserLimitOverageCycleEndDate"
-	OverUserLimitForgivenCount             = "OverUserLimitForgivenCount"
-	OverUserLimitLastEmailSent             = "OverUserLimitLastEmailSent"
 )
 
 const (
@@ -77,16 +73,18 @@ type ServerBusyState struct {
 }
 
 type SupportPacket struct {
-	ServerOS             string   `yaml:"server_os"`
-	ServerArchitecture   string   `yaml:"server_architecture"`
-	ServerVersion        string   `yaml:"server_version"`
-	BuildHash            string   `yaml:"build_hash,omitempty"`
-	DatabaseType         string   `yaml:"database_type"`
-	DatabaseVersion      string   `yaml:"database_version"`
-	LdapVendorName       string   `yaml:"ldap_vendor_name,omitempty"`
-	LdapVendorVersion    string   `yaml:"ldap_vendor_version,omitempty"`
-	ElasticServerVersion string   `yaml:"elastic_server_version,omitempty"`
-	ElasticServerPlugins []string `yaml:"elastic_server_plugins,omitempty"`
+	ServerOS              string   `yaml:"server_os"`
+	ServerArchitecture    string   `yaml:"server_architecture"`
+	ServerVersion         string   `yaml:"server_version"`
+	BuildHash             string   `yaml:"build_hash,omitempty"`
+	DatabaseType          string   `yaml:"database_type"`
+	DatabaseVersion       string   `yaml:"database_version"`
+	LdapVendorName        string   `yaml:"ldap_vendor_name,omitempty"`
+	LdapVendorVersion     string   `yaml:"ldap_vendor_version,omitempty"`
+	ElasticServerVersion  string   `yaml:"elastic_server_version,omitempty"`
+	ElasticServerPlugins  []string `yaml:"elastic_server_plugins,omitempty"`
+	ActiveUsers           int      `yaml:"active_users"`
+	LicenseSupportedUsers int      `yaml:"license_supported_users,omitempty"`
 }
 
 type FileData struct {

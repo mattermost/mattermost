@@ -3536,10 +3536,6 @@
     "translation": "Nome utente non valido."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Nome deve essere 2 o più lettere minuscole alfanumeriche."
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "Creato alle deve essere un tempo valido."
   },
@@ -3754,10 +3750,6 @@
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
     "translation": "L'impostazione AggregatePostsAfterDays di Elasticsearch deve essere un numero maggiore o uguale a 1."
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "La finestra temporale per il lavoro di indicizzazione massiva di Elasticsearch deve essere di almeno 1 secondo."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
@@ -5432,10 +5424,6 @@
     "translation": "Dati autocompletamento non validi"
   },
   {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "La finestra temporale per il lavoro di indicizzazione massiva di Bleve deve essere di almeno 1 secondo."
-  },
-  {
     "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
     "translation": "L'impostazione Bleve IndexingEnabled deve essere abilitata quando l'impostazione Bleve SearchEnabled è abilitata"
   },
@@ -7082,14 +7070,6 @@
   {
     "id": "api.cloud.license_error",
     "translation": "La tua licenza non supporta le richieste di cloud."
-  },
-  {
-    "id": "api.cloud.get_subscription.error",
-    "translation": "Errore nell'ottenere l'abbonamento al cloud."
-  },
-  {
-    "id": "api.cloud.get_admins_emails.error",
-    "translation": "Impossibile ottenere le email degli amministratori di sistema."
   },
   {
     "id": "api.cloud.cws_webhook_event_missing_error",

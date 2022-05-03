@@ -3532,10 +3532,6 @@
     "translation": "無效的使用者名稱"
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "名稱必須是2個以上的小寫英數字元"
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "\"新增時間\"必須是一個有效時間"
   },
@@ -3750,10 +3746,6 @@
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
     "translation": "Elasticsearch 設定 AggregatePostsAfterDays 必須為大於或等於 1 的數字"
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Elasticsearch 批次索引的時間範圍必須至少為 1 秒。"
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
@@ -4954,10 +4946,6 @@
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
     "translation": "當啟用 Bleve EnableAutocomplete 時必須設定 Bleve EnableIndexing 為啟用。"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Bleve 批次索引的時間範圍必須至少為 1 秒。"
   },
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
@@ -7114,10 +7102,6 @@
   {
     "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
     "translation": "診斷 ID： "
-  },
-  {
-    "id": "api.team.invite_members.limit_reached.app_error",
-    "translation": "使用者數量已達到免費層上限"
   },
   {
     "id": "api.migrate_to_saml.error",
