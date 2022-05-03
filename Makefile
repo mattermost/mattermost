@@ -335,9 +335,14 @@ pluginapi: ## Generates api and hooks glue code for plugins
 check-prereqs: ## Checks prerequisite software status.
 	./scripts/prereq-check.sh
 
-check-prereqs-enterprise: ## Checks prerequisite software status for enterprise.
+check-prereqs-enterprise: setup-go-work ## Checks prerequisite software status for enterprise.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	./scripts/prereq-check-enterprise.sh
+endif
+
+setup-go-work: ## Sets up your go.work file
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	./scripts/setup_go_work.sh
 endif
 
 check-style: golangci-lint plugin-checker vet ## Runs style/lint checks
@@ -468,10 +473,7 @@ validate-go-version: ## Validates the installed version of go against Mattermost
 build-templates: ## Compile all mjml email templates
 	cd $(TEMPLATES_DIR) && $(MAKE) build
 
-run-server: prepackaged-binaries validate-go-version start-docker ## Starts the server.
-ifeq ($(BUILD_ENTERPRISE_READY),true)
-	make check-prereqs-enterprise
-endif
+run-server: prepackaged-binaries validate-go-version start-docker setup-go-work ## Starts the server.
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
