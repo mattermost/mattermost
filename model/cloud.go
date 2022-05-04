@@ -6,12 +6,13 @@ package model
 import "strings"
 
 const (
-	EventTypeFailedPayment         = "failed-payment"
-	EventTypeFailedPaymentNoCard   = "failed-payment-no-card"
-	EventTypeSendAdminWelcomeEmail = "send-admin-welcome-email"
-	EventTypeTrialWillEnd          = "trial-will-end"
-	EventTypeTrialEnded            = "trial-ended"
-	EventTypeSubscriptionChanged   = "subscription-changed"
+	EventTypeFailedPayment                = "failed-payment"
+	EventTypeFailedPaymentNoCard          = "failed-payment-no-card"
+	EventTypeSendAdminWelcomeEmail        = "send-admin-welcome-email"
+	EventTypeSendUpgradeConfirmationEmail = "send-upgrade-confirmation-email"
+	EventTypeSubscriptionChanged          = "subscription-changed"
+	EventTypeTrialWillEnd                 = "trial-will-end"
+	EventTypeTrialEnded                   = "trial-ended"
 )
 
 var MockCWS string

@@ -208,10 +208,6 @@ func NewSMTPClient(ctx context.Context, conn net.Conn, config *SMTPConfig) (*smt
 }
 
 func TestConnection(config *SMTPConfig) error {
-	if !config.SendEmailNotifications {
-		return errors.New("SendEmailNotifications is not true")
-	}
-
 	conn, err := ConnectToSMTPServer(config)
 	if err != nil {
 		return errors.Wrap(err, "unable to connect")

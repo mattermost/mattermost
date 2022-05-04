@@ -314,10 +314,10 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectURI, c
 			} else {
 				// Return the same token and no need to create a new session
 				accessRsp = &model.AccessResponse{
-					AccessToken:  accessData.Token,
-					TokenType:    model.AccessTokenType,
-					RefreshToken: accessData.RefreshToken,
-					ExpiresIn:    int32((accessData.ExpiresAt - model.GetMillis()) / 1000),
+					AccessToken:      accessData.Token,
+					TokenType:        model.AccessTokenType,
+					RefreshToken:     accessData.RefreshToken,
+					ExpiresInSeconds: int32((accessData.ExpiresAt - model.GetMillis()) / 1000),
 				}
 			}
 		} else {
@@ -335,10 +335,10 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectURI, c
 			}
 
 			accessRsp = &model.AccessResponse{
-				AccessToken:  session.Token,
-				TokenType:    model.AccessTokenType,
-				RefreshToken: accessData.RefreshToken,
-				ExpiresIn:    int32(*a.Config().ServiceSettings.SessionLengthSSOInDays * 60 * 60 * 24),
+				AccessToken:      session.Token,
+				TokenType:        model.AccessTokenType,
+				RefreshToken:     accessData.RefreshToken,
+				ExpiresInSeconds: int32(*a.Config().ServiceSettings.SessionLengthSSOInHours * 60 * 60),
 			}
 		}
 
@@ -371,7 +371,7 @@ func (a *App) newSession(app *model.OAuthApp, user *model.User) (*model.Session,
 	// Set new token an session
 	session := &model.Session{UserId: user.Id, Roles: user.Roles, IsOAuth: true}
 	session.GenerateCSRF()
-	a.ch.srv.userService.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthSSOInDays)
+	a.ch.srv.userService.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthSSOInHours)
 	session.AddProp(model.SessionPropPlatform, app.Name)
 	session.AddProp(model.SessionPropOAuthAppID, app.Id)
 	session.AddProp(model.SessionPropMattermostAppID, app.MattermostAppID)
@@ -407,10 +407,10 @@ func (a *App) newSessionUpdateToken(app *model.OAuthApp, accessData *model.Acces
 		return nil, model.NewAppError("newSessionUpdateToken", "web.get_access_token.internal_saving.app_error", nil, "", http.StatusInternalServerError)
 	}
 	accessRsp := &model.AccessResponse{
-		AccessToken:  session.Token,
-		RefreshToken: accessData.RefreshToken,
-		TokenType:    model.AccessTokenType,
-		ExpiresIn:    int32(*a.Config().ServiceSettings.SessionLengthSSOInDays * 60 * 60 * 24),
+		AccessToken:      session.Token,
+		RefreshToken:     accessData.RefreshToken,
+		TokenType:        model.AccessTokenType,
+		ExpiresInSeconds: int32(*a.Config().ServiceSettings.SessionLengthSSOInHours * 60 * 60),
 	}
 
 	return accessRsp, nil

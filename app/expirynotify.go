@@ -83,7 +83,7 @@ func (a *App) getSessionExpiredPushMessage(session *model.Session) string {
 	T := i18n.GetUserTranslations(locale)
 
 	siteName := *a.Config().TeamSettings.SiteName
-	props := map[string]interface{}{"siteName": siteName, "daysCount": *a.Config().ServiceSettings.SessionLengthMobileInDays}
+	props := map[string]interface{}{"siteName": siteName, "hoursCount": *a.Config().ServiceSettings.SessionLengthMobileInHours}
 
 	return T("api.push_notifications.session.expired", props)
 }

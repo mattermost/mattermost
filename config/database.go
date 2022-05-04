@@ -25,6 +25,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 	"github.com/mattermost/morph"
 
 	"github.com/mattermost/morph/drivers"
@@ -124,12 +125,12 @@ func (ds *DatabaseStore) initializeConfigurationsTable() error {
 	var driver drivers.Driver
 	switch ds.driverName {
 	case model.DatabaseDriverMysql:
-		dataSource, rErr := resetReadTimeout(ds.dataSourceName)
+		dataSource, rErr := sqlstore.ResetReadTimeout(ds.dataSourceName)
 		if rErr != nil {
 			return fmt.Errorf("failed to reset read timeout from datasource: %w", rErr)
 		}
 
-		dataSource, err = appendMultipleStatementsFlag(dataSource)
+		dataSource, err = sqlstore.AppendMultipleStatementsFlag(dataSource)
 		if err != nil {
 			return err
 		}
