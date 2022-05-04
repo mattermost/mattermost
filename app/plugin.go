@@ -373,7 +373,26 @@ func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
 // activation if inactive anywhere in the cluster.
 // Notifies cluster peers through config change.
 func (a *App) EnablePlugin(id string) *model.AppError {
-	return a.ch.enablePlugin(id)
+	appErr := a.checkIfIntegrationMeetsFreemiumLimits(id)
+	if appErr != nil {
+		return appErr
+	}
+
+	appErr = a.ch.enablePlugin(id)
+	if appErr != nil {
+		return appErr
+	}
+
+	integrations, appErr := a.GetInstalledIntegrations()
+	if appErr != nil {
+		return appErr
+	}
+
+	// dispatch websocket event for updated integration count
+
+	fmt.Println(integrations)
+
+	return nil
 }
 
 func (ch *Channels) enablePlugin(id string) *model.AppError {
