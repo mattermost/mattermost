@@ -5968,6 +5968,10 @@
     "translation": "Unable to select the posts to delete for the user."
   },
   {
+    "id": "app.post.replace_user_mentions.app_error",
+    "translation": "Unable to delete user mentions."
+  },
+  {
     "id": "app.post.save.app_error",
     "translation": "Unable to save the Post."
   },
@@ -6538,6 +6542,10 @@
   {
     "id": "app.user.group_name_conflict",
     "translation": " "
+  },
+  {
+    "id": "app.user.protected_user_name",
+    "translation": "Username is protected."
   },
   {
     "id": "app.user.missing_account.const",

@@ -1002,6 +1002,24 @@ func TestPermanentDeleteUser(t *testing.T) {
 	require.NotNil(t, err, "GetFileInfo after DeleteUser is nil. err=%v", err)
 }
 
+func TestReplaceUserMentions(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	sqlStore := mainHelper.GetSQLStore()
+
+	post := &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Message: "Hi, @" + th.BasicUser2.Username + "!"}
+	post, _ = th.App.CreatePost(th.Context, post, th.BasicChannel, false, false)
+
+	err := th.App.PermanentDeleteUser(th.Context, th.BasicUser2)
+	require.Nil(t, err, "Unable to delete user. err=%v", err)
+
+	posts := []*model.Post{}
+	err1 := sqlStore.GetMasterX().Select(&posts, "SELECT * FROM Posts WHERE Id = ?", post.Id)
+	require.NoError(t, err1)
+
+	require.Equal(t, "Hi, @deletedUser!", posts[0].Message)
+}
+
 func TestPasswordRecovery(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

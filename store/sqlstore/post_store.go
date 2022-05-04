@@ -869,10 +869,6 @@ func (s *SqlPostStore) PermanentDeleteByUser(userId string) error {
 }
 
 // Permanent replaces all @-mentions of the user by @deletedUser
-// Problems:
-// * may take really long when there are a lot of messages,
-// * @deletedUser is no protected username
-// * tests needed
 func (s *SqlPostStore) ReplaceUserMentions(userId string) error {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
@@ -887,13 +883,12 @@ func (s *SqlPostStore) ReplaceUserMentions(userId string) error {
 		return errors.Wrapf(err, "failed to fetch User with ID=%s", userId)
 	}
 
-	// get all posts
+	// get all posts mentioning the user
 	posts := []struct {
 		Id      string
 		Message string
 	}{}
 
-	// TODO: Maybe add a limit?
 	query, params, _ := s.getQueryBuilder().
 		Select("Posts.id Id", "Posts.message Message").
 		From("Posts").
@@ -908,10 +903,9 @@ func (s *SqlPostStore) ReplaceUserMentions(userId string) error {
 	// replace all occurrences of the username by '@deletedUser'
 	atMentionRegex := regexp.MustCompile(`(@` + username[0] + `(\b.*)?$)`)
 
+	mlog.Warn(posts[0].Message)
 	for _, item := range posts {
 		newMessage := atMentionRegex.ReplaceAllString(item.Message, "@deletedUser$2")
-		fmt.Println("WAS", item.Message)
-		fmt.Println("IS", newMessage)
 
 		updateQuery := s.getQueryBuilder().Update("Posts").
 			Set("Message", newMessage).
