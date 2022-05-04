@@ -774,6 +774,39 @@ func (s *hooksRPCServer) OnSendDailyTelemetry(args *Z_OnSendDailyTelemetryArgs, 
 	return nil
 }
 
+func init() {
+	hookNameToId["OnCloudLimitsUpdated"] = OnCloudLimitsUpdatedID
+}
+
+type Z_OnCloudLimitsUpdatedArgs struct {
+	A *model.ProductLimits
+}
+
+type Z_OnCloudLimitsUpdatedReturns struct {
+}
+
+func (g *hooksRPCClient) OnCloudLimitsUpdated(limits *model.ProductLimits) {
+	_args := &Z_OnCloudLimitsUpdatedArgs{limits}
+	_returns := &Z_OnCloudLimitsUpdatedReturns{}
+	if g.implemented[OnCloudLimitsUpdatedID] {
+		if err := g.client.Call("Plugin.OnCloudLimitsUpdated", _args, _returns); err != nil {
+			g.log.Error("RPC call OnCloudLimitsUpdated to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) OnCloudLimitsUpdated(args *Z_OnCloudLimitsUpdatedArgs, returns *Z_OnCloudLimitsUpdatedReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnCloudLimitsUpdated(limits *model.ProductLimits)
+	}); ok {
+		hook.OnCloudLimitsUpdated(args.A)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnCloudLimitsUpdated called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }
