@@ -5465,6 +5465,22 @@ func (s *TimerLayerPostStore) PermanentDeleteByUser(userID string) error {
 	return err
 }
 
+func (s *TimerLayerPostStore) ReplaceUserMentions(userID string) error {
+	start := timemodule.Now()
+
+	err := s.PostStore.ReplaceUserMentions(userID)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.ReplaceUserMentions", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerPostStore) Save(post *model.Post) (*model.Post, error) {
 	start := timemodule.Now()
 

@@ -6832,6 +6832,27 @@ func (s *RetryLayerPostStore) PermanentDeleteByUser(userID string) error {
 
 }
 
+func (s *RetryLayerPostStore) ReplaceUserMentions(userID string) error {
+
+	tries := 0
+	for {
+		err := s.PostStore.ReplaceUserMentions(userID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPostStore) Save(post *model.Post) (*model.Post, error) {
 
 	tries := 0
