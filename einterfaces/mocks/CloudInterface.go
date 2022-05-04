@@ -293,8 +293,8 @@ func (_m *CloudInterface) UpdateCloudCustomerAddress(userID string, address *mod
 	return r0, r1
 }
 
-// UpdateCloudLimitsFromHook provides a mock function with given fields: _a0, _a1
-func (_m *CloudInterface) UpdateCloudLimitsFromHook(_a0 *model.ProductLimits, _a1 *model.Subscription) error {
+// UpdateSubscriptionFromHook provides a mock function with given fields: _a0, _a1
+func (_m *CloudInterface) UpdateSubscriptionFromHook(_a0 *model.ProductLimits, _a1 *model.Subscription) error {
 	ret := _m.Called(_a0, _a1)
 
 	var r0 error
