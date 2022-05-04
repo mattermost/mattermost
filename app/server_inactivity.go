@@ -13,7 +13,7 @@ import (
 )
 
 const serverInactivityHours = 100
-const INACTIVITY_EMAIL_SENT = "INACTIVITY_EMAIL_SENT"
+const inactivityEmailSent = "INACTIVITY"
 
 func (s *Server) doInactivityCheck() {
 
@@ -32,7 +32,7 @@ func (s *Server) doInactivityCheck() {
 		return
 	}
 
-	_, sysValErr := s.Store.System().GetByName(INACTIVITY_EMAIL_SENT)
+	_, sysValErr := s.Store.System().GetByName(inactivityEmailSent)
 	// if there is no error which may include *store.ErrNotFound, it means this check was already flagged as done
 	if sysValErr == nil {
 		return
@@ -108,10 +108,10 @@ func (s *Server) takeInactivityAction() {
 		})
 	}
 
-	// Mark time that we sent emails.
-	sysVar := &model.System{Name: INACTIVITY_EMAIL_SENT, Value: "true"}
+	// Mark that we sent emails.
+	sysVar := &model.System{Name: inactivityEmailSent, Value: "true"}
 	if err := s.Store.System().SaveOrUpdate(sysVar); err != nil {
-		mlog.Error("Unable to save INACTIVITY_EMAIL_SENT", mlog.Err(err))
+		mlog.Error("Unable to save INACTIVITY", mlog.Err(err))
 	}
 
 	// do some telemetry about sending the email
