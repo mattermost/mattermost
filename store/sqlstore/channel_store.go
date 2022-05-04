@@ -806,11 +806,6 @@ func (s SqlChannelStore) InvalidateChannelByName(teamId, name string) {
 	}
 }
 
-//nolint:unparam
-func (s SqlChannelStore) Get(id string, allowFromCache bool) (*model.Channel, error) {
-	return s.get(id, false)
-}
-
 func (s SqlChannelStore) GetPinnedPosts(channelId string) (*model.PostList, error) {
 	pl := model.NewPostList()
 
@@ -825,21 +820,10 @@ func (s SqlChannelStore) GetPinnedPosts(channelId string) (*model.PostList, erro
 	return pl, nil
 }
 
-func (s SqlChannelStore) GetFromMaster(id string) (*model.Channel, error) {
-	return s.get(id, true)
-}
-
-func (s SqlChannelStore) get(id string, master bool) (*model.Channel, error) {
-	var db *sqlxDBWrapper
-
-	if master {
-		db = s.GetMasterX()
-	} else {
-		db = s.GetReplicaX()
-	}
-
+//nolint:unparam
+func (s SqlChannelStore) Get(id string, allowFromCache bool) (*model.Channel, error) {
 	ch := model.Channel{}
-	err := db.Get(&ch, `SELECT * FROM Channels WHERE Id=?`, id)
+	err := s.GetReplicaX().Get(&ch, `SELECT * FROM Channels WHERE Id=?`, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Channel", id)
@@ -848,6 +832,30 @@ func (s SqlChannelStore) get(id string, master bool) (*model.Channel, error) {
 	}
 
 	return &ch, nil
+}
+
+//nolint:unparam
+func (s SqlChannelStore) GetMany(ids []string, allowFromCache bool) (model.ChannelList, error) {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Channels").
+		Where(sq.Eq{"Id": ids})
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "getmany_tosql")
+	}
+
+	channels := model.ChannelList{}
+	err = s.GetReplicaX().Select(&channels, sql, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get channels with ids %v", ids)
+	}
+
+	if len(channels) == 0 {
+		return nil, store.NewErrNotFound("Channel", fmt.Sprintf("ids=%v", ids))
+	}
+
+	return channels, nil
 }
 
 // Delete records the given deleted timestamp to the channel in question.
@@ -1318,7 +1326,7 @@ func (s SqlChannelStore) GetPrivateChannelsForTeam(teamId string, offset int, li
 
 	err = s.GetReplicaX().Select(&channels, query, args...)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to find chaneld with teamId=%s", teamId)
+		return nil, errors.Wrapf(err, "failed to find channel with teamId=%s", teamId)
 	}
 	return channels, nil
 }
@@ -1341,7 +1349,7 @@ func (s SqlChannelStore) GetPublicChannelsForTeam(teamId string, offset int, lim
 		`, teamId, limit, offset)
 
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to find chaneld with teamId=%s", teamId)
+		return nil, errors.Wrapf(err, "failed to find channel with teamId=%s", teamId)
 	}
 
 	return channels, nil
@@ -2188,6 +2196,25 @@ func (s SqlChannelStore) GetMemberCountFromCache(channelId string) int64 {
 	return count
 }
 
+func (s SqlChannelStore) GetFileCount(channelId string) (int64, error) {
+	var count int64
+	err := s.GetReplicaX().Get(&count, `
+		SELECT
+			COUNT(*)
+		FROM
+			FileInfo
+                LEFT JOIN Posts as P ON FileInfo.PostId=P.Id
+                LEFT JOIN Channels as C on C.Id=P.ChannelId
+		WHERE
+                        FileInfo.DeleteAt = 0
+			AND C.Id = ?`, channelId)
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to count files with channelId=%s", channelId)
+	}
+
+	return count, nil
+}
+
 //nolint:unparam
 func (s SqlChannelStore) GetMemberCount(channelId string, allowFromCache bool) (int64, error) {
 	var count int64
@@ -2202,7 +2229,7 @@ func (s SqlChannelStore) GetMemberCount(channelId string, allowFromCache bool) (
 			AND ChannelMembers.ChannelId = ?
 			AND Users.DeleteAt = 0`, channelId)
 	if err != nil {
-		return 0, errors.Wrapf(err, "failed to count ChanenelMembers with channelId=%s", channelId)
+		return 0, errors.Wrapf(err, "failed to count ChannelMembers with channelId=%s", channelId)
 	}
 
 	return count, nil
@@ -2712,11 +2739,13 @@ func (s SqlChannelStore) GetForPost(postId string) (*model.Channel, error) {
 }
 
 func (s SqlChannelStore) AnalyticsTypeCount(teamId string, channelType model.ChannelType) (int64, error) {
-
 	query := s.getQueryBuilder().
-		Select("COUNT(Id) AS Value").
-		From("Channels").
-		Where(sq.Eq{"Type": channelType})
+		Select("COUNT(*) AS Value").
+		From("Channels")
+
+	if channelType != "" {
+		query = query.Where(sq.Eq{"Type": channelType})
+	}
 
 	if teamId != "" {
 		query = query.Where(sq.Eq{"TeamId": teamId})
@@ -3931,23 +3960,23 @@ func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId s
 	return directChannelsForExport, nil
 }
 
-func (s SqlChannelStore) GetChannelsBatchForIndexing(startTime, endTime int64, limit int) ([]*model.Channel, error) {
+func (s SqlChannelStore) GetChannelsBatchForIndexing(startTime int64, startChannelID string, limit int) ([]*model.Channel, error) {
 	query :=
 		`SELECT
 			 *
 		 FROM
 			 Channels
 		 WHERE
-			 CreateAt >= ?
-		 AND
-			 CreateAt < ?
+			 CreateAt > ?
+		OR
+			(CreateAt = ? AND Id > ?)
 		 ORDER BY
-			 CreateAt
+			 CreateAt ASC, Id ASC
 		 LIMIT
 			 ?`
 
 	channels := []*model.Channel{}
-	err := s.GetSearchReplicaX().Select(&channels, query, startTime, endTime, limit)
+	err := s.GetSearchReplicaX().Select(&channels, query, startTime, startTime, startChannelID, limit)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Channels")
 	}
@@ -4067,4 +4096,162 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 		return nil, errors.Wrapf(err, "failed to find team with channel_id=%s", channelID)
 	}
 	return &team, nil
+}
+
+// GetTopChannelsForTeamSince returns the filtered post counts of the following Channels sets:
+// a) those that are private channels in the given user's membership graph on the given team, and
+// b) those that are public channels in the given team.
+func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopChannelList, error) {
+	channels := make([]*model.TopChannel, 0)
+	var args []interface{}
+	postgresPropQuery := `AND (Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false')`
+	mySqlPropsQuery := `AND (JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false')`
+
+	query := `
+		SELECT
+			ID,
+			Type,
+			DisplayName,
+			Name,
+			TeamID,
+			MessageCount
+		FROM
+			((SELECT
+				Posts.ChannelId AS ID,
+				'O' AS Type,
+				PublicChannels.DisplayName AS DisplayName,
+				PublicChannels.Name AS Name,
+				PublicChannels.TeamId AS TeamID,
+				count(Posts.Id) AS MessageCount,
+				PublicChannels.DeleteAt AS DeleteAt
+			FROM
+				Posts
+				LEFT JOIN PublicChannels on Posts.ChannelId = PublicChannels.Id
+			WHERE
+				Posts.DeleteAt = 0
+				AND Posts.CreateAt > ?
+				AND Posts.Type = ''`
+	args = []interface{}{since}
+
+	if s.DriverName() == model.DatabaseDriverMysql {
+		query += mySqlPropsQuery
+	} else if s.DriverName() == model.DatabaseDriverPostgres {
+		query += postgresPropQuery
+	}
+
+	query += `
+				AND PublicChannels.TeamId = ?
+			GROUP BY
+				Posts.ChannelId,
+				PublicChannels.DisplayName,
+				PublicChannels.Name,
+				PublicChannels.TeamId,
+				PublicChannels.DeleteAt)
+		UNION ALL
+			(SELECT
+				Posts.ChannelId AS ID,
+				Channels.Type AS Type,
+				Channels.DisplayName AS DisplayName,
+				Channels.Name AS Name,
+				Channels.TeamId AS TeamID,
+				count(Posts.Id) AS MessageCount,
+				Channels.DeleteAt AS DeleteAt
+			FROM
+				Posts
+				LEFT JOIN Channels on Posts.ChannelId = Channels.Id
+				LEFT JOIN ChannelMembers on Posts.ChannelId = ChannelMembers.ChannelId
+			WHERE
+				Posts.DeleteAt = 0
+				AND Posts.CreateAt > ?
+				AND Posts.Type = ''`
+	args = append(args, teamID, since)
+
+	if s.DriverName() == model.DatabaseDriverMysql {
+		query += mySqlPropsQuery
+	} else if s.DriverName() == model.DatabaseDriverPostgres {
+		query += postgresPropQuery
+	}
+
+	query += `
+				AND Channels.TeamId = ?
+				AND Channels.Type = 'P'
+				AND ChannelMembers.UserId = ?
+			GROUP BY
+				Posts.ChannelId,
+				Channels.Type,
+				Channels.DisplayName,
+				Channels.Name,
+				Channels.TeamId,
+				Channels.DeleteAt)) AS A
+		WHERE
+			DeleteAt = 0
+		ORDER BY
+			MessageCount DESC,
+			Name ASC
+		LIMIT ?
+		OFFSET ?`
+	args = append(args, teamID, userID, limit+1, offset)
+
+	if err := s.GetReplicaX().Select(&channels, query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to get top Channels")
+	}
+
+	return model.GetTopChannelListWithPagination(channels, limit), nil
+}
+
+// GetTopChannelsForUserSince returns the filtered post counts of channels with with posts created by the user
+// after the given timestamp within the given team (or across the workspace if no team is given). Excludes DM and GM channels.
+func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopChannelList, error) {
+	channels := make([]*model.TopChannel, 0)
+	var args []interface{}
+	var query string
+
+	query = `
+		SELECT
+			Posts.ChannelId AS ID,
+			Channels.Type AS Type,
+			Channels.DisplayName AS DisplayName,
+			Channels.Name AS Name,
+			Channels.TeamId AS TeamID,
+			count(Posts.Id) AS MessageCount
+		FROM
+			Posts 
+			LEFT JOIN Channels on Posts.ChannelId = Channels.Id
+			LEFT JOIN ChannelMembers on Posts.ChannelId = ChannelMembers.ChannelId
+		WHERE 
+			Posts.DeleteAt = 0 
+			AND Posts.CreateAt > ?
+			AND Posts.Type = ''
+			AND Posts.UserID = ?
+			AND Channels.DeleteAt = 0
+			AND (Channels.Type = 'O' OR Channels.Type = 'P') 
+			AND ChannelMembers.UserId = ?`
+
+	args = []interface{}{since, userID, userID}
+
+	if teamID != "" {
+		query += `
+			AND Channels.TeamID = ?`
+		args = append(args, teamID)
+	}
+
+	query += `
+		Group By 
+			Posts.ChannelId,
+			Channels.Type,
+			Channels.DisplayName,
+			Channels.Name,
+			Channels.TeamId
+		ORDER BY 
+			MessageCount DESC,
+			Name ASC
+		LIMIT ?
+		OFFSET ?`
+	args = append(args, limit+1, offset)
+
+	if err := s.GetReplicaX().Select(&channels, query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to get top Channels")
+	}
+
+	return model.GetTopChannelListWithPagination(channels, limit), nil
 }

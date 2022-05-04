@@ -122,7 +122,7 @@ type config struct {
 // returned if it fails to read from the file.
 func loadAlias(filename, alias string) (hostConfig, error) {
 	cfg := &config{}
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	json := jsoniter.ConfigCompatibleWithStandardLibrary
 
 	configBytes, err := ioutil.ReadFile(filename)
 	if err != nil {

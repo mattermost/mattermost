@@ -642,11 +642,18 @@ func getChannelStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	filesCount, err := c.App.GetChannelFileCount(c.Params.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
 	stats := model.ChannelStats{
 		ChannelId:       c.Params.ChannelId,
 		MemberCount:     memberCount,
 		GuestCount:      guestCount,
 		PinnedPostCount: pinnedPostCount,
+		FilesCount:      filesCount,
 	}
 	if err := json.NewEncoder(w).Encode(stats); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))

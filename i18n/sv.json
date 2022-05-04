@@ -660,10 +660,6 @@
     "translation": "Inställningen för Elasticsearch ConnectionURL måste anges när Elasticsearch indexering är aktiverad."
   },
   {
-    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Elasticsearch Bulk Indexing Time Window måste vara minst 1 sekund."
-  },
-  {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
     "translation": "Elasticsearch AggregatePostsAfterDays måste vara större eller lika med 1."
   },
@@ -706,10 +702,6 @@
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
     "translation": "Inställningen för Bleve EnableIndexing måste sättas till aktiv när Bleve EnableAutocomplete är satt till aktiv"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Tidsgränsen för Bleve Bulk-indexering måste vara minst 1 sekund."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
@@ -914,10 +906,6 @@
   {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "\"Create at\" måste vara en giltig tid."
-  },
-  {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Namnet måste bestå av 2 eller fler gemena alfanumeriska tecken."
   },
   {
     "id": "model.bot.is_valid.username.app_error",
@@ -4980,120 +4968,8 @@
     "translation": "Ditt lösenord har uppdaterats av {{.Method}} för {{.TeamDisplayName}} på {{ .TeamURL }}."
   },
   {
-    "id": "api.templates.over_limit_title",
-    "translation": "Din miljö är över gränsen för antal användare i den kostnadsfria versionen"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_title",
-    "translation": "Mattermost Cloud-arbetsyta har stängts av"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_subject",
-    "translation": "Din Mattermost Cloud-prenumeration har stängts av"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_info2",
-    "translation": "Kontakta oss för att återaktivera din arbetsyta."
-  },
-  {
-    "id": "api.templates.over_limit_suspended_info1",
-    "translation": "Din Mattermost-arbetsyta har stängts av. Allt innehåll och data kommer raderas inom 1-3 månader."
-  },
-  {
-    "id": "api.templates.over_limit_suspended_contact_support",
-    "translation": "Kontakta support"
-  },
-  {
-    "id": "api.templates.over_limit_subject",
-    "translation": "Över användargränsen i Mattermost Cloud Workspace"
-  },
-  {
-    "id": "api.templates.over_limit_info2",
-    "translation": "Alternativt kan du öppna upp möjligheter för nya användare och hålla dig under användargränsen genom att spärra konton via Administrationskonsolen."
-  },
-  {
-    "id": "api.templates.over_limit_info1",
-    "translation": "Det ser ut som om du har fler än 10 användare i din miljö och det är över gränsen för den kostnadsfria versionen av Mattermost Cloud. För att undvika avbrott i din Mattermostmiljö bör du uppgradera."
-  },
-  {
     "id": "api.templates.over_limit_fix_now",
     "translation": "Fixa nu"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_title",
-    "translation": "Din arbetsyta i Mattermost Cloud är schemalagd att avslutas under morgondagen"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_subject",
-    "translation": "Din Mattermost Cloud-prenumeration kommer snart att avslutas"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info4",
-    "translation": "När din arbetsyta har stängts av kommer allt innehåll och data däri raderas inom 1-3 månader."
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info3",
-    "translation": "När din arbetsyta har stängts av kan du inte logga in på ditt konto eller uppdatera betalningsinformation. Du behöver kontakta vår support för att återaktivera din tjänst."
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info2",
-    "translation": "För att undvika avbrott, lägg till din betalinformation"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info1",
-    "translation": "Detta är en sista påminnelsen om att vi inte mottagit din betalning för din Mattermost-prenumeration som varit försenad sedan {{.OverLimitDate}}. Imorgon kommer vi stänga din tjänst."
-  },
-  {
-    "id": "api.templates.over_limit_7_days_title",
-    "translation": "Ingen betalmetod registrerad"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_subject",
-    "translation": "Din betalning av Mattermost Cloud prenumerationen är försenad"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_info1",
-    "translation": "Mattermost kunde inte behandla din senaste automatiska betalning. För att hålla din tjänst aktiv, vänligen lägg till betalningsuppgifter så snart som möjligt eller så kan din tjänst stängas av."
-  },
-  {
-    "id": "api.templates.over_limit_30_days_title",
-    "translation": "Skjut upp Mattermost Cloud Workspace"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_subject",
-    "translation": " Agera för att behålla prenumerationen på din Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item3",
-    "translation": "Du kommer tappa åtkomst till din meddelandehistorik"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item2",
-    "translation": "Du kommer inte kunna uppdatera din betalinformation utan att kontakta vårt supportteam"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item1",
-    "translation": "Du kommer inte kunna logga in i din tjänst"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2",
-    "translation": "Om ingen åtgärd tas kommer din tjänst stängas ned"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info1",
-    "translation": "Det finns fortfarande tid att behålla din Mattermost Cloud workspace aktiv genom att lösa problemen med din betalning. För att undvika avbrott bör du uppdatera din betalningsmetod."
-  },
-  {
-    "id": "api.templates.over_limit_14_days_title",
-    "translation": "Betalning ej mottagen"
-  },
-  {
-    "id": "api.templates.over_limit_14_days_subject",
-    "translation": "Din faktura för Mattermost Cloud prenumeration har förfallit"
-  },
-  {
-    "id": "api.templates.over_limit_14_days_info1",
-    "translation": "En liten påminnelse om att vi inte mottagit din betalning för din Mattermost-prenumeration med sista betaldag {{.OverLimitDate}}. Vi kommer snart påbörja processen att stänga dina tjänster om vi inte mottar betalning."
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
@@ -5206,22 +5082,6 @@
   {
     "id": "api.templates.copyright",
     "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
-  },
-  {
-    "id": "api.templates.at_limit_title",
-    "translation": "Du har nått gränsen för antal användare i den kostnadsfria versionen "
-  },
-  {
-    "id": "api.templates.at_limit_subject",
-    "translation": "Du har nått gränsen för antal användare i Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.at_limit_info2",
-    "translation": "Alternativt kan du öppna upp möjligheter för nya användare och hålla dig under användargränsen genom att spärra konton via Administrationskonsolen."
-  },
-  {
-    "id": "api.templates.at_limit_info1",
-    "translation": "Det ser ut som om du nu har 10 användare eller fler — Vad kul! Om du vill bjuda in fler teammedlemmar bör du nu uppgradera till Mattermost Cloud."
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
@@ -5418,10 +5278,6 @@
   {
     "id": "api.team.invite_members.no_one.app_error",
     "translation": "Finns ingen att bjuda in."
-  },
-  {
-    "id": "api.team.invite_members.limit_reached.app_error",
-    "translation": "Du har nått gränsen för antal användare i den kostnadsfria versionen"
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
@@ -6346,10 +6202,6 @@
   {
     "id": "api.templates.user_access_token_body.info",
     "translation": "Ett access_token lades till i ditt konto på {{.SiteURL}}. Det kan användas för att nå {{.SiteName}} med ditt konto."
-  },
-  {
-    "id": "api.templates.upgrade_mattermost_cloud",
-    "translation": "Uppgradera"
   },
   {
     "id": "api.templates.signin_change_email.subject",
@@ -8204,14 +8056,6 @@
     "translation": "Fel då status skulle sättas."
   },
   {
-    "id": "api.templates.upgrade_request_info4",
-    "translation": "Inbjudningar kan inte skickas eftersom ditt workspace har nått användargränsen för den kostnadsfria av Mattermost Cloud. Uppgradera nu för att tillåta fler användare att ansluta till ditt workspace."
-  },
-  {
-    "id": "api.templates.at_limit_info5",
-    "translation": "Alternativt kan du spärra användare i systemkonsolen för att öppna upp plats för användare och hålla dig under gränsen för den kostnadsfria versionen."
-  },
-  {
     "id": "mfa.deactivate.app_error",
     "translation": "Kunde inte uppdatera aktiv MFA-status för användaren."
   },
@@ -8222,14 +8066,6 @@
   {
     "id": "app.user.send_emails.app_error",
     "translation": "Inga mejl blev skickade"
-  },
-  {
-    "id": "api.templates.upgrade_request_title",
-    "translation": "{{ .UserName }} vill bjuda in användare till ditt workspace"
-  },
-  {
-    "id": "api.templates.upgrade_request_subject",
-    "translation": "Begäran om uppgradering av workspace från Mattermost-användare"
   },
   {
     "id": "api.custom_status.recent_custom_statuses.delete.app_error",
@@ -8250,14 +8086,6 @@
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
     "translation": "Kunde inte få tag i filerna i batchen att indexera."
-  },
-  {
-    "id": "api.templates.upgrade_request_title2",
-    "translation": "Nya användare kan inte gå med i er arbetsyta"
-  },
-  {
-    "id": "api.templates.upgrade_request_info4_2",
-    "translation": "Någon försökte nyligen gå med i er arbetsyta men kunde inte fullfölja pga att arbetsytan har nått gränsen för den kostnadsfria versionen av Mattermost cloud. Uppgradera nu för att tillåta fler användare att gå med i er arbetsyta."
   },
   {
     "id": "api.templates.email_footer_v2",
@@ -8318,22 +8146,6 @@
   {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Kunde inte bearbeta förfrågan."
-  },
-  {
-    "id": "ent.cloud.subscription.error",
-    "translation": "Fel när cloud-prenumerationen skulle hämtas"
-  },
-  {
-    "id": "api.team.cloud.subscription.error",
-    "translation": "Fel när cloud-prenumerationen skulle hämtas"
-  },
-  {
-    "id": "api.cloud.get_subscription.error",
-    "translation": "Fel när cloud-prenumerationen skulle hämtas."
-  },
-  {
-    "id": "api.cloud.get_admins_emails.error",
-    "translation": "Fel när systemadministratörens mejl skulle hämtas."
   },
   {
     "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
@@ -9015,14 +8827,6 @@
     "translation": "Kontroll av bildstorlek misslyckades. Upplösningen är för hög."
   },
   {
-    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
-    "translation": "Det går inte att aktivera fler användare eftersom du nått gränsen för ditt Mattermost Cloud-konto."
-  },
-  {
-    "id": "api.user.update_active.cloud_at_limit_check_error",
-    "translation": "Det gick inte att kontrollera antalet användare i din Mattermost cloud-instans."
-  },
-  {
     "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
     "translation": "Listan med administratörer är tom."
   },
@@ -9245,5 +9049,17 @@
   {
     "id": "app.system.complete_onboarding_request.app_error",
     "translation": "Misslyckades att tolka onboarding-anropet."
+  },
+  {
+    "id": "Playbooks",
+    "translation": "Playbooks"
+  },
+  {
+    "id": "Channels",
+    "translation": "Kanaler"
+  },
+  {
+    "id": "Boards",
+    "translation": "Boards"
   }
 ]

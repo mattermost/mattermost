@@ -29,6 +29,36 @@ func (ch *channel) Team(ctx context.Context) (*model.Team, error) {
 	return getGraphQLTeam(ctx, ch.TeamId)
 }
 
+// match with api4.getChannelStats
+func (ch *channel) Stats(ctx context.Context) (*model.ChannelStats, error) {
+	c, err := getCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), ch.Id, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
+		return nil, c.Err
+	}
+
+	memberCount, appErr := c.App.GetChannelMemberCount(ch.Id)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	guestCount, appErr := c.App.GetChannelGuestCount(ch.Id)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	pinnedPostCount, appErr := c.App.GetChannelPinnedPostCount(ch.Id)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	return &model.ChannelStats{ChannelId: ch.Id, MemberCount: memberCount, GuestCount: guestCount, PinnedPostCount: pinnedPostCount}, nil
+}
+
 func (ch *channel) Cursor() *string {
 	cursor := string(channelCursorPrefix) + "-" + ch.Id
 	encoded := base64.StdEncoding.EncodeToString([]byte(cursor))
@@ -65,10 +95,9 @@ func postProcessChannels(c *web.Context, channels []*model.Channel) ([]*channel,
 		}
 	}
 
-	var pref *model.Preference
+	var nameFormat string
 	var userInfo map[string][]*model.User
 	var err error
-	var appErr *model.AppError
 
 	// Avoiding unnecessary queries unless necessary.
 	if len(channelIDs) > 0 {
@@ -77,10 +106,8 @@ func postProcessChannels(c *web.Context, channels []*model.Channel) ([]*channel,
 			return nil, err
 		}
 
-		pref, appErr = c.App.GetPreferenceByCategoryAndNameForUser(c.AppContext.Session().UserId, "display_settings", "name_format")
-		if appErr != nil {
-			return nil, appErr
-		}
+		user := &model.User{Id: c.AppContext.Session().UserId}
+		nameFormat = c.App.GetNotificationNameFormat(user)
 	}
 
 	// Convert to the wrapper format.
@@ -94,7 +121,7 @@ func postProcessChannels(c *web.Context, channels []*model.Channel) ([]*channel,
 			if users == nil {
 				return nil, fmt.Errorf("user info not found for channel id: %s", ch.Id)
 			}
-			prettyName = getPrettyDNForUsers(pref.Value, users, c.AppContext.Session().UserId)
+			prettyName = getPrettyDNForUsers(nameFormat, users, c.AppContext.Session().UserId)
 		}
 
 		res = append(res, &channel{Channel: *ch, PrettyDisplayName: prettyName})

@@ -3532,10 +3532,6 @@
     "translation": "잘못된 유저이름입니다."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "이름은 반드시 2글자 이상의 영문 또는 숫자여야 합니다."
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time"
   },
@@ -3750,10 +3746,6 @@
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
     "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1"
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Elasticsearch Bulk Indexing Time Window must be at least 1 second."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
@@ -4954,10 +4946,6 @@
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
     "translation": "Bleve의 EnableAutocomplete 설정을 활성화하려면 Bleve의 EnableIndexing 설정도 활성화되어야 합니다"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Bleve 벌크 색인 간격은 1초 이상이어야 합니다."
   },
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
@@ -7124,10 +7112,6 @@
     "translation": "더 알아보기"
   },
   {
-    "id": "api.cloud.get_subscription.error",
-    "translation": "클라우드 구독 내역을 가져오는 도중 에러가 발생했습니다."
-  },
-  {
     "id": "api.command_custom_status.success",
     "translation": "상태가 “{{.EmojiName}} {{.StatusMessage}}”로 설정되었습니다. 채널 사이드바 상단의 상태 팝업에서 상태를 변경할 수 있습니다."
   },
@@ -7154,10 +7138,6 @@
   {
     "id": "api.command_custom_status.app_error",
     "translation": "상태 설정 중 에러가 발생했습니다."
-  },
-  {
-    "id": "api.cloud.get_admins_emails.error",
-    "translation": "시스템 관리자 이메일을 가져오는 도중 에러가 발생했습니다."
   },
   {
     "id": "api.back_to_app",

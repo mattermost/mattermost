@@ -22,7 +22,7 @@ type AppIface interface {
 	configservice.ConfigService
 	GetUserByEmail(email string) (*model.User, *model.AppError)
 	GetTeamMembersByIds(teamID string, userIDs []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
-	InviteNewUsersToTeamGracefully(emailList []string, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError)
+	InviteNewUsersToTeamGracefully(memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError)
 }
 
 type ResendInvitationEmailWorker struct {
@@ -116,6 +116,17 @@ func (rseworker *ResendInvitationEmailWorker) cleanEmailData(emailStringData str
 	return emails, nil
 }
 
+func (rseworker *ResendInvitationEmailWorker) cleanChannelsData(channelStringData string) ([]string, error) {
+	// channelStringData looks like this ["uuuiiiiidddd","uuuiiiiidddd"]
+	channels := []string{}
+	err := json.Unmarshal([]byte(channelStringData), &channels)
+	if err != nil {
+		return nil, err
+	}
+
+	return channels, nil
+}
+
 func (rseworker *ResendInvitationEmailWorker) removeAlreadyJoined(teamID string, emailList []string) []string {
 	var notJoinedYet []string
 	for _, email := range emailList {
@@ -161,6 +172,7 @@ func (rseworker *ResendInvitationEmailWorker) TearDown(job *model.Job) {
 func (rseworker *ResendInvitationEmailWorker) ResendEmails(job *model.Job, interval string) {
 	teamID := job.Data["teamID"]
 	emailListData := job.Data["emailList"]
+	channelListData := job.Data["channelList"]
 
 	emailList, err := rseworker.cleanEmailData(emailListData)
 	if err != nil {
@@ -169,9 +181,24 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(job *model.Job, inter
 		rseworker.setJobError(job, appErr)
 	}
 
+	channelList, err := rseworker.cleanChannelsData(channelListData)
+	if err != nil {
+		appErr := model.NewAppError("worker: "+rseworker.name, "job_id: "+job.Id, nil, err.Error(), http.StatusInternalServerError)
+		mlog.Error("Worker: Failed to clean channel string data", mlog.String("worker", rseworker.name), mlog.String("job_id", job.Id), mlog.String("error", appErr.Error()))
+		rseworker.setJobError(job, appErr)
+	}
+
 	emailList = rseworker.removeAlreadyJoined(teamID, emailList)
 
-	_, appErr := rseworker.app.InviteNewUsersToTeamGracefully(emailList, teamID, job.Data["senderID"], interval)
+	memberInvite := model.MemberInvite{
+		Emails: emailList,
+	}
+
+	if len(channelList) > 0 {
+		memberInvite.ChannelIds = channelList
+	}
+
+	_, appErr := rseworker.app.InviteNewUsersToTeamGracefully(&memberInvite, teamID, job.Data["senderID"], interval)
 	if appErr != nil {
 		mlog.Error("Worker: Failed to send emails", mlog.String("worker", rseworker.name), mlog.String("job_id", job.Id), mlog.String("error", appErr.Error()))
 		rseworker.setJobError(job, appErr)

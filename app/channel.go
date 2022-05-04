@@ -21,6 +21,24 @@ import (
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
+type channelsWrapper struct {
+	srv *Server
+}
+
+func (s *channelsWrapper) GetDirectChannel(userID1, userID2 string) (*model.Channel, error) {
+	return s.srv.getDirectChannel(userID1, userID2)
+}
+
+// GetChannelByID gets a Channel by its ID.
+func (s *channelsWrapper) GetChannelByID(channelID string) (*model.Channel, error) {
+	return s.srv.getChannel(channelID)
+}
+
+// GetChannelMember gets a channel member by userID.
+func (s *channelsWrapper) GetChannelMember(channelID string, userID string) (*model.ChannelMember, error) {
+	return s.srv.getChannelMember(context.Background(), channelID, userID)
+}
+
 // DefaultChannelNames returns the list of system-wide default channel names.
 //
 // By default the list will be (not necessarily in this order):
@@ -1701,7 +1719,11 @@ func (a *App) PostUpdateChannelDisplayNameMessage(c *request.Context, userID str
 }
 
 func (a *App) GetChannel(channelID string) (*model.Channel, *model.AppError) {
-	channel, err := a.Srv().Store.Channel().Get(channelID, true)
+	return a.Srv().getChannel(channelID)
+}
+
+func (s *Server) getChannel(channelID string) (*model.Channel, *model.AppError) {
+	channel, err := s.Store.Channel().Get(channelID, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1712,6 +1734,20 @@ func (a *App) GetChannel(channelID string) (*model.Channel, *model.AppError) {
 		}
 	}
 	return channel, nil
+}
+
+func (a *App) GetChannels(channelIDs []string) ([]*model.Channel, *model.AppError) {
+	channels, err := a.Srv().Store.Channel().GetMany(channelIDs, true)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetChannel", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetChannel", "app.channel.get.find.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+	return channels, nil
 }
 
 func (a *App) GetChannelByName(channelName, teamID string, includeDeleted bool) (*model.Channel, *model.AppError) {
@@ -1919,7 +1955,11 @@ func (a *App) GetPrivateChannelsForTeam(teamID string, offset int, limit int) (m
 }
 
 func (a *App) GetChannelMember(ctx context.Context, channelID string, userID string) (*model.ChannelMember, *model.AppError) {
-	channelMember, err := a.Srv().Store.Channel().GetMember(ctx, channelID, userID)
+	return a.Srv().getChannelMember(ctx, channelID, userID)
+}
+
+func (s *Server) getChannelMember(ctx context.Context, channelID string, userID string) (*model.ChannelMember, *model.AppError) {
+	channelMember, err := s.Store.Channel().GetMember(ctx, channelID, userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -2004,6 +2044,15 @@ func (a *App) GetChannelMemberCount(channelID string) (int64, *model.AppError) {
 	count, err := a.Srv().Store.Channel().GetMemberCount(channelID, true)
 	if err != nil {
 		return 0, model.NewAppError("GetChannelMemberCount", "app.channel.get_member_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return count, nil
+}
+
+func (a *App) GetChannelFileCount(channelID string) (int64, *model.AppError) {
+	count, err := a.Srv().Store.Channel().GetFileCount(channelID)
+	if err != nil {
+		return 0, model.NewAppError("SqlChannelStore.GetFileCount", "app.channel.get_file_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return count, nil
@@ -3374,7 +3423,11 @@ func (a *App) GetMemberCountsByGroup(ctx context.Context, channelID string, incl
 }
 
 func (a *App) getDirectChannel(userID, otherUserID string) (*model.Channel, *model.AppError) {
-	channel, nErr := a.Srv().Store.Channel().GetByName("", model.GetDMNameFromIds(userID, otherUserID), true)
+	return a.Srv().getDirectChannel(userID, otherUserID)
+}
+
+func (s *Server) getDirectChannel(userID, otherUserID string) (*model.Channel, *model.AppError) {
+	channel, nErr := s.Store.Channel().GetByName("", model.GetDMNameFromIds(userID, otherUserID), true)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(nErr, &nfErr) {
@@ -3385,4 +3438,28 @@ func (a *App) getDirectChannel(userID, otherUserID string) (*model.Channel, *mod
 	}
 
 	return channel, nil
+}
+
+func (a *App) GetTopChannelsForTeamSince(teamID, userID string, opts *model.InsightsOpts) (*model.TopChannelList, *model.AppError) {
+	if !a.Config().FeatureFlags.InsightsEnabled {
+		return nil, model.NewAppError("GetTopChannelsForTeamSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
+	}
+
+	topChannels, err := a.Srv().Store.Channel().GetTopChannelsForTeamSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
+	if err != nil {
+		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.channel.get_top_for_team_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return topChannels, nil
+}
+
+func (a *App) GetTopChannelsForUserSince(userID, teamID string, opts *model.InsightsOpts) (*model.TopChannelList, *model.AppError) {
+	if !a.Config().FeatureFlags.InsightsEnabled {
+		return nil, model.NewAppError("GetTopChannelsForUserSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
+	}
+
+	topChannels, err := a.Srv().Store.Channel().GetTopChannelsForUserSince(userID, teamID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
+	if err != nil {
+		return nil, model.NewAppError("GetTopChannelsForUserSince", "app.channel.get_top_for_user_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return topChannels, nil
 }

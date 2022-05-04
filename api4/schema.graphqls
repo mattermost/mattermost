@@ -52,6 +52,7 @@ type Channel {
 	shared: Boolean
 	lastPostAt: Float!
 	totalMsgCount: Float!
+	stats: ChannelStats
 	cursor: String
 }
 
@@ -170,4 +171,11 @@ type Session {
 	token: String!
 	createAt: Float!
 	expiresAt: Float!
+}
+
+type ChannelStats {
+	channelId: String!
+	memberCount: Float!
+	guestCount: Float!
+	pinnedPostCount: Float!
 }

@@ -69,6 +69,7 @@ References:
 - Rust port by [Jérôme Renard](https://github.com/jeromer/): https://github.com/jeromer/libxid
 - Ruby port by [Valar](https://github.com/valarpirai/): https://github.com/valarpirai/ruby_xid
 - Java port by [0xShamil](https://github.com/0xShamil/): https://github.com/0xShamil/java-xid
+- Dart port by [Peter Bwire](https://github.com/pitabwire): https://pub.dev/packages/xid
 
 ## Install
 

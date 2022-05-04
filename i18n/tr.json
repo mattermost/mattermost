@@ -3536,10 +3536,6 @@
     "translation": "Kullanıcı adı geçersiz."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Ad içinde 2 ya da daha fazla küçük alfasayısal karakter bulunmalıdır."
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "Eklenme zamanı geçerli bir zaman olmalıdır."
   },
@@ -3754,10 +3750,6 @@
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
     "translation": "Elasticsearch toplayıcı AggregatePostsAfterDays ayarının değeri 1 ya da daha büyük bir sayı olmalıdır."
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Elasticsearch toplu dizine ekleme süresi aralığı en az 1 saniye olmalıdır."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
@@ -5426,10 +5418,6 @@
   {
     "id": "model.channel.is_valid.name.app_error",
     "translation": "Kanal adı geçersiz. Doğrudan olmayan ileti kanallarında, kanal adı içinde kullanıcı kodları kullanılamaz."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Bleve toplu dizine ekleme süresi aralığı en az 1 saniye olmalıdır."
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
@@ -7224,10 +7212,6 @@
     "translation": "Bir deneme sürümü lisansı alınamadı. Lütfen yeniden deneyin ya da support@mattermost.com e-posta adresine yazın. Kayıtlı kullanıcı sayısı alınamadı."
   },
   {
-    "id": "api.team.invite_members.limit_reached.app_error",
-    "translation": "Ücretsiz tarifenin kullanıcı sayısı sınırına ulaştınız"
-  },
-  {
     "id": "api.system.update_notices.validating_failed",
     "translation": "Ürün bildirimi koşulları doğrulanamadı"
   },
@@ -7540,48 +7524,12 @@
     "translation": "Çok parçalı yükleme için içerik türü geçersiz."
   },
   {
-    "id": "api.templates.upgrade_mattermost_cloud",
-    "translation": "Yükselt"
-  },
-  {
-    "id": "api.templates.over_limit_title",
-    "translation": "Çalışma alanınız ücretsiz tarifenin kullanıcı sayısı sınırını aşıyor"
-  },
-  {
-    "id": "api.templates.over_limit_subject",
-    "translation": "Mattermost Cloud Workspace çalışma alanı kullanıcı sınırı aşıldı"
-  },
-  {
-    "id": "api.templates.over_limit_info2",
-    "translation": "Alternatif olarak, daha fazla kullanıcıya yer açmak ya da ücretsiz kullanıcı sınırının altında kalmak için yönetici panosundan bazı kullanıcıları devre dışı bırakabilirsiniz."
-  },
-  {
-    "id": "api.templates.over_limit_info1",
-    "translation": "Çalışma alanınızda Mattermost Cloud ücretsiz tarifesinin sağladığı 10 kullanıcıdan fazlası var gibi görünüyor. Lütfen Mattermost çalışma alanınızda herhangi bir kesinti yaşamamak için tarifenizi yükseltin."
-  },
-  {
     "id": "api.templates.email_us_anytime_at",
     "translation": "İstediğiniz zaman bize şu adresten e-posta gönderebilirsiniz "
   },
   {
     "id": "api.templates.copyright",
     "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
-  },
-  {
-    "id": "api.templates.at_limit_title",
-    "translation": "Ücretsiz tarifenin kullanıcı sayısı sınırına ulaştınız. "
-  },
-  {
-    "id": "api.templates.at_limit_subject",
-    "translation": "Mattermost Cloud kullanıcı sınırına ulaşıldı"
-  },
-  {
-    "id": "api.templates.at_limit_info2",
-    "translation": "Alternatif olarak, daha fazla kullanıcıya yer açmak ya da ücretsiz kullanıcı sınırının altında kalmak için yönetici panosundan bazı kullanıcıları devre dışı bırakabilirsiniz."
-  },
-  {
-    "id": "api.templates.at_limit_info1",
-    "translation": "Görünüşe göre şu anda çalışma alanınızda 10 ya da üzerinde kullanıcı var - bu harika! Daha fazla takım üyesi çağırmak istiyorsanız, Mattermost Cloud sürümüne yükseltmeyi düşünün."
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
@@ -7704,104 +7652,8 @@
     "translation": "Kullanıcı konuları alınamadı"
   },
   {
-    "id": "api.templates.over_limit_suspended_title",
-    "translation": "Mattermost Cloud çalışma alanı duraklatıldı"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_subject",
-    "translation": "Mattermost Cloud aboneliğiniz duraklatıldı"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_info2",
-    "translation": "Çalışma alanınızı yeniden etkinleştirmek için bizimle görüşün."
-  },
-  {
-    "id": "api.templates.over_limit_suspended_info1",
-    "translation": "Çalışma alanınız duraklatıldı. 1-3 ay içinde çalışma alanındaki tüm içerik ve veriler silinecek."
-  },
-  {
-    "id": "api.templates.over_limit_suspended_contact_support",
-    "translation": "Destek ekibi ile görüşün"
-  },
-  {
     "id": "api.templates.over_limit_fix_now",
     "translation": "Şimdi düzelt"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_title",
-    "translation": "Mattermost Cloud çalışma alanınız yarın duraklatılacak"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_subject",
-    "translation": "Mattermost Cloud aboneliğiniz yakında duraklatılacak"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info4",
-    "translation": "Çalışma alanınız duraklatıldıktan sonraki 1-3 ay içinde çalışma alanındaki tüm içerik ve veriler silinecek."
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info3",
-    "translation": "Çalışma alanınız duraklatıldığında hesabınızla oturum açamayacağınız için ödeme bilgilerinizi güncelleyemeyeceksiniz. Hizmetinizi yeniden etkinleştirmeniz için destek ekibimiz ile görüşmeniz gerekecek."
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info2",
-    "translation": "Hizmetinizin duraklatılmaması için ödeme bilgilerinizi ekleyin"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info1",
-    "translation": "{{ .OverLimitDate }}. tarihindeki ödemesi yapılmayan Mattermost Cloud çalışma alanınız için son anımsatıcı. Hizmetiniz yarın durdurulacak."
-  },
-  {
-    "id": "api.templates.over_limit_7_days_title",
-    "translation": "Dosyada herhangi bir ödeme yöntemi yok"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_subject",
-    "translation": "Mattermost Cloud aboneliğinizin ödemesi yapılmadı"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_info1",
-    "translation": "Mattermost son otomatik ödemenizi alamadı. Hizmetinizin etkin kalması için en kısa sürede ödeme bilgilerinizi ekleyin yoksa hizmetiniz duraklatılabilir."
-  },
-  {
-    "id": "api.templates.over_limit_30_days_title",
-    "translation": "Mattermost Cloud çalışma alanı duraklatılması"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_subject",
-    "translation": " Mattermost Cloud aboneliğinizi sürdürmek için bilgilerinizi güncelleyin"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item3",
-    "translation": "İleti geçmişinize erişemeyeceksiniz"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item2",
-    "translation": "Ödeme bilgilerinizi de güncelleyemeyeceğiniz için destek ekibimiz ile görüşmeniz gerekecek"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item1",
-    "translation": "Çalışma alanınıza oturum açamayacaksınız"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2",
-    "translation": "Bir işlem yapmazsanız çalışma alanınız duraklatılacak"
-  },
-  {
-    "id": "api.templates.over_limit_14_days_info1",
-    "translation": "{{ .OverLimitDate }}. tarihli Mattermost aboneliği faturanızın ödenmediğini hatırlatırız. Ödeme yapılmaz ise yakında hizmetinizi duraklatmak zorunda kalacağız."
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info1",
-    "translation": "Hala ödeme yönteminiz ile ilgili sorunları çözerek Mattermost Cloud çalışma alanınızı etkin tutmak için zamanınız var. Hizmetinizin duraklatılmaması için ödeme yönteminizi güncelleyin."
-  },
-  {
-    "id": "api.templates.over_limit_14_days_title",
-    "translation": "Ödeme yapılmadı"
-  },
-  {
-    "id": "api.templates.over_limit_14_days_subject",
-    "translation": "Mattermost Cloud aboneliğinizin ödemesi yapılmadı"
   },
   {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
@@ -8180,22 +8032,6 @@
     "translation": "Hiç bir e-posta gönderilemedi"
   },
   {
-    "id": "api.templates.upgrade_request_subject",
-    "translation": "Mattermost kullanıcısı çalışma alanının yükseltilmesini istiyor"
-  },
-  {
-    "id": "api.templates.upgrade_request_title",
-    "translation": "{{ .UserName }} çalışma alanııza yeni üyeler çağırmak istiyor"
-  },
-  {
-    "id": "api.templates.upgrade_request_info4",
-    "translation": "Çalışma alanınız Mattermost cloud ücretsiz sürümünün kullanıcı sınırına ulaştığından, çağrı gönderilemez. Çalışma alanınıza daha fazla kullanıcının ekleyebilmek için sürümünüzü yükseltin."
-  },
-  {
-    "id": "api.templates.at_limit_info5",
-    "translation": "Alternatif olarak, sistem panosundan bazı kullanıcıları devre dışı bırakarak yeni kullanıcılara yer açabilir ve ücretsiz sürümün sınırlarına uyabilirsiniz."
-  },
-  {
     "id": "mfa.deactivate.app_error",
     "translation": "Kullanıcının çok aşamalı kimlik doğrulama durumu etkin olarak güncellenemedi."
   },
@@ -8276,10 +8112,6 @@
     "translation": "İstek içeriği işlenemedi."
   },
   {
-    "id": "api.templates.upgrade_request_info4_2",
-    "translation": "Kısa bir süre önce bir kişi çalışma alanınıza katılmak istedi ancak çalışma alanınız ücretsiz Mattermost Cloud sürümünün kullanıcı sayısı sınırına ulaştığından katılamadı. Çalışma alanınıza daha fazla kullanıcı katmak için sürümünüzü yükseltebilirsiniz."
-  },
-  {
     "id": "store.sql_file_info.search.disabled",
     "translation": "Bu sunucu üzerinde dosya arama özelliği devre dışı bırakılmış. Lütfen sistem yöneticiniz ile görüşün."
   },
@@ -8308,10 +8140,6 @@
     "translation": "Çalışma alanınıza şuradan oturum açın"
   },
   {
-    "id": "ent.cloud.subscription.error",
-    "translation": "Cloud aboneliği alınırken sorun çıktı"
-  },
-  {
     "id": "api.user.send_cloud_welcome_email.error",
     "translation": "Cloud karşılama iletisi gönderilemedi"
   },
@@ -8334,10 +8162,6 @@
   {
     "id": "api.templates.verify_body.info1",
     "translation": "Bu işlemi siz yapmadıysanız bu e-postayı yok sayabilirsiniz."
-  },
-  {
-    "id": "api.templates.upgrade_request_title2",
-    "translation": "Yeni kullanıcılar çalışma alanınıza katılamaz"
   },
   {
     "id": "api.templates.reset_body.subTitle",
@@ -8426,18 +8250,6 @@
   {
     "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
     "translation": "İstek gövdesi geçersiz ya da eksik."
-  },
-  {
-    "id": "api.team.cloud.subscription.error",
-    "translation": "Cloud aboneliği alınırken sorun çıktı"
-  },
-  {
-    "id": "api.cloud.get_subscription.error",
-    "translation": "Cloud aboneliği alınırken sorun çıktı."
-  },
-  {
-    "id": "api.cloud.get_admins_emails.error",
-    "translation": "Sistem yöneticisinin e-posta adresi alınırken sorun çıktı."
   },
   {
     "id": "api.cloud.cws_webhook_event_missing_error",
@@ -9015,14 +8827,6 @@
     "translation": "Görsel sınırları denetimi yapılamadı. Çözünürlük çok yüksek."
   },
   {
-    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
-    "translation": "Bulut hesabının sınırları aşıldığından daha fazla kullanıcı etkinleştirilemedi."
-  },
-  {
-    "id": "api.user.update_active.cloud_at_limit_check_error",
-    "translation": "Mattermost Cloud kopyanızdaki kullanıcı sayısı denetlenemedi."
-  },
-  {
     "id": "app.system.system_bot.bot_displayname",
     "translation": "Sistem"
   },
@@ -9401,5 +9205,89 @@
   {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
     "translation": "MattermostAppID en fazla 32 karakter uzunluğunda olabilir."
+  },
+  {
+    "id": "app.channel.get_file_count.app_error",
+    "translation": "Kanalın dosya sayısı alınamadı"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "Elasticsearch toplu dizine ekleme işlem boyutu en az {{.BatchSize}} olmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
+    "translation": "Bleve toplu dizine ekleme işlem boyutu en az {{.BatchSize}} olmalıdır."
+  },
+  {
+    "id": "api.insights.feature_disabled",
+    "translation": " "
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "getThreadsForUser için OnlyThreads ve OnlyTotals parametreleri aynı anda kullanılamaz"
+  },
+  {
+    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "translation": "dosya depolama ayarlarında yapılandırılmamış değerler var."
+  },
+  {
+    "id": "api.file.test_connection_email_settings_nil.app_error",
+    "translation": "E-posta ayarlarında yapılandırılmamış değerler var."
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} sizi {{ .TeamDisplayName }} takımındaki {{ .ChannelsLen }} kanallarına katılmaya çağırdı"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title",
+    "translation": "{{ .SenderName }} sizi {{ .TeamDisplayName }} takımındaki {{ .ChannelsLen }} kanallarına katılmaya çağırdı"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} sizi {{ .TeamDisplayName }} takımındaki {{ .ChannelName }} kanalına katılmaya çağırdı"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_body.title",
+    "translation": "{{ .SenderName }} sizi {{ .TeamDisplayName }} takımındaki {{ .ChannelName }} kanalına katılmaya çağırdı"
+  },
+  {
+    "id": "model.channel.is_valid.1_or_more.app_error",
+    "translation": "Ad en az 1 karakterden oluşmalıdır."
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "E-posta listesi boş"
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "Kanal adı geçersiz"
+  },
+  {
+    "id": "model.insights.time_range.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "Post_id geçersiz"
+  },
+  {
+    "id": "app.reaction.get_top_for_user_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.reaction.get_top_for_team_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
+    "translation": "Gövde verileri işlenirken sorun çıktı."
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
+    "translation": "İstek gövdesi geçersiz."
+  },
+  {
+    "id": "api.license.request_trial_license.embargoed",
+    "translation": "Ambargo uygulanan ülkelerdeki sınırlamalar nedeniyle isteği işleyemedik. [Belgelerimizden ayrıntılı bilgi alın](https://mattermost.com/pl/limitations-for-embargoed-countries) ya da ihracat sınırlamalarıyla ilgili sorularınız için legal@mattermost.com adresine yazın."
   }
 ]

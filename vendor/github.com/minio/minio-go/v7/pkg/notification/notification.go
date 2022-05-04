@@ -78,11 +78,13 @@ type Arn struct {
 
 // NewArn creates new ARN based on the given partition, service, region, account id and resource
 func NewArn(partition, service, region, accountID, resource string) Arn {
-	return Arn{Partition: partition,
+	return Arn{
+		Partition: partition,
 		Service:   service,
 		Region:    region,
 		AccountID: accountID,
-		Resource:  resource}
+		Resource:  resource,
+	}
 }
 
 // String returns the string format of the ARN

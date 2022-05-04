@@ -396,6 +396,8 @@ func (s SqlChannelStore) completePopulatingCategoryChannelsT(db dbSelecter, cate
 			sq.Eq{"Channels.Type": []model.ChannelType{model.ChannelTypeOpen, model.ChannelTypePrivate}},
 			sq.Eq{"Channels.TeamId": category.TeamId},
 		}
+	} else {
+		return nil, fmt.Errorf("invalid category type: %q", category.Type)
 	}
 
 	// A subquery that is true if the channel does not have a SidebarChannel entry for the current user on the current team
@@ -681,7 +683,7 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 				).ToSql()
 
 			if err2 != nil {
-				return nil, nil, errors.Wrap(err2, "update_sidebar_catetories_tosql")
+				return nil, nil, errors.Wrap(err2, "update_sidebar_categories_tosql")
 			}
 
 			if _, err = transaction.Exec(query, args...); err != nil {
@@ -1015,7 +1017,7 @@ func (s SqlChannelStore) DeleteSidebarCategory(categoryId string) error {
 		Delete("SidebarCategories").
 		Where(sq.Eq{"Id": categoryId}).ToSql()
 	if err != nil {
-		return errors.Wrap(err, "delete_sidebar_cateory_tosql")
+		return errors.Wrap(err, "delete_sidebar_category_tosql")
 	}
 	if _, err = transaction.Exec(query, args...); err != nil {
 		return errors.Wrap(err, "failed to delete SidebarCategory")
@@ -1026,7 +1028,7 @@ func (s SqlChannelStore) DeleteSidebarCategory(categoryId string) error {
 		Delete("SidebarChannels").
 		Where(sq.Eq{"CategoryId": categoryId}).ToSql()
 	if err != nil {
-		return errors.Wrap(err, "delete_sidebar_cateory_tosql")
+		return errors.Wrap(err, "delete_sidebar_category_tosql")
 	}
 	if _, err = transaction.Exec(query, args...); err != nil {
 		return errors.Wrap(err, "failed to delete SidebarChannel")

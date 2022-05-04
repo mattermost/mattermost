@@ -32,6 +32,14 @@ const (
 
 var atMentionPattern = regexp.MustCompile(`\B@`)
 
+type postServiceWrapper struct {
+	app AppIface
+}
+
+func (s *postServiceWrapper) CreatePost(ctx *request.Context, post *model.Post) (*model.Post, *model.AppError) {
+	return s.app.CreatePostMissingChannel(ctx, post, true)
+}
+
 func (a *App) CreatePostAsUser(c *request.Context, post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
 	channel, errCh := a.Srv().Store.Channel().Get(post.ChannelId, true)
@@ -168,7 +176,7 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 	if post.RootId != "" {
 		pchan = make(chan store.StoreResult, 1)
 		go func() {
-			r, pErr := a.Srv().Store.Post().Get(sqlstore.WithMaster(context.Background()), post.RootId, false, false, false, "")
+			r, pErr := a.Srv().Store.Post().Get(sqlstore.WithMaster(context.Background()), post.RootId, model.GetPostsOptions{}, "")
 			pchan <- store.StoreResult{Data: r, NErr: pErr}
 			close(pchan)
 		}()
@@ -559,7 +567,7 @@ func (a *App) DeleteEphemeralPost(userID, postID string) {
 func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
 	post.SanitizeProps()
 
-	postLists, nErr := a.Srv().Store.Post().Get(context.Background(), post.Id, false, false, false, "")
+	postLists, nErr := a.Srv().Store.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "")
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
@@ -724,15 +732,23 @@ func (a *App) publishWebsocketEventForPermalinkPost(post *model.Post, message *m
 		return false, err
 	}
 
-	for _, cm := range channelMembers {
-		postForUser, err := a.SanitizePostMetadataForUser(post, cm.UserId)
-		if err != nil {
-			if err.StatusCode == http.StatusNotFound {
-				mlog.Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
-				return false, nil
-			}
-			return false, err
+	permalinkPreviewedChannel, err := a.GetChannel(previewedPost.ChannelId)
+	if err != nil {
+		if err.StatusCode == http.StatusNotFound {
+			mlog.Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
+			return false, nil
 		}
+		return false, err
+	}
+
+	permalinkPreviewedPost := post.GetPreviewPost()
+	for _, cm := range channelMembers {
+		if permalinkPreviewedPost != nil {
+			post.Metadata.Embeds[0].Data = permalinkPreviewedPost
+		}
+
+		postForUser := a.sanitizePostMetadataForUserAndChannel(post, permalinkPreviewedPost, permalinkPreviewedChannel, cm.UserId)
+
 		// Using DeepCopy here to avoid a race condition
 		// between publishing the event and setting the "post" data value below.
 		messageCopy := message.DeepCopy()
@@ -839,8 +855,8 @@ func (a *App) GetSinglePost(postID string) (*model.Post, *model.AppError) {
 	return post, nil
 }
 
-func (a *App) GetPostThread(postID string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool, userID string) (*model.PostList, *model.AppError) {
-	posts, err := a.Srv().Store.Post().Get(context.Background(), postID, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID)
+func (a *App) GetPostThread(postID string, opts model.GetPostsOptions, userID string) (*model.PostList, *model.AppError) {
+	posts, err := a.Srv().Store.Post().Get(context.Background(), postID, opts, userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
@@ -885,7 +901,7 @@ func (a *App) GetFlaggedPostsForChannel(userID, channelID string, offset int, li
 }
 
 func (a *App) GetPermalinkPost(c *request.Context, postID string, userID string) (*model.PostList, *model.AppError) {
-	list, nErr := a.Srv().Store.Post().Get(context.Background(), postID, false, false, false, userID)
+	list, nErr := a.Srv().Store.Post().Get(context.Background(), postID, model.GetPostsOptions{}, userID)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
@@ -1084,7 +1100,12 @@ func (a *App) GetPostsForChannelAroundLastUnread(channelID, userID string, limit
 		return model.NewPostList(), nil
 	}
 
-	postList, err := a.GetPostThread(lastUnreadPostId, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID)
+	opts := model.GetPostsOptions{
+		SkipFetchThreads:         skipFetchThreads,
+		CollapsedThreads:         collapsedThreads,
+		CollapsedThreadsExtended: collapsedThreadsExtended,
+	}
+	postList, err := a.GetPostThread(lastUnreadPostId, opts, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -1481,7 +1502,6 @@ func (a *App) countThreadMentions(user *model.User, post *model.Post, teamID str
 	if nErr != nil {
 		return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
-	posts = append(posts, post)
 
 	for _, p := range posts {
 		if p.CreateAt >= timestamp {
@@ -1531,7 +1551,7 @@ func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, in
 	// A mapping of thread root IDs to whether or not a post in that thread mentions the user
 	mentionedByThread := make(map[string]bool)
 
-	thread, err := a.GetPostThread(post.Id, false, false, false, user.Id)
+	thread, err := a.GetPostThread(post.Id, model.GetPostsOptions{}, user.Id)
 	if err != nil {
 		return 0, 0, err
 	}

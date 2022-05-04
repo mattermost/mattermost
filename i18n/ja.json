@@ -1293,11 +1293,11 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}}と@{{.LastUsername}}についての投稿が行われましたが、彼らはこのチャンネルには属していないため通知を受け取ることができませんでした。"
+    "translation": "@{{.Usernames}}と@{{.LastUsername}}にメンションしましたが、彼らはこのチャンネルには属していないため通知を受け取ることができませんでした。"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Usernames}}についての投稿が行われましたが、彼らはこのチャンネルには属していないため通知を受け取ることができませんでした。"
+    "translation": "@{{.Usernames}}にメンションしましたが、彼らはこのチャンネルには属していないため通知を受け取ることができませんでした。"
   },
   {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
@@ -1381,7 +1381,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_explicit_mention",
-    "translation": " があなたについての投稿を行いました。"
+    "translation": " があなたにメンションしました。"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_general_message",
@@ -3532,10 +3532,6 @@
     "translation": "不正なユーザー名です。"
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "名前は2文字以上の小文字の英数字にしてください。"
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "作成日時は有効な時刻にしてください。"
   },
@@ -3752,10 +3748,6 @@
     "translation": "ElasticsearchのAggregatePostsAfterDays設定は1以上でなくてはなりません。"
   },
   {
-    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Elasticsearchの一括インデックス付与処理の時間は1秒以上でなければなりません。"
-  },
-  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "Elastic Searchインデックスが有効な場合、Elastic SearchのConnectionUrl設定は必須です。"
   },
@@ -3765,7 +3757,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearchライブインデックス処理バッチのサイズは1以上でなければなりません。"
+    "translation": "Elasticsearch Live Indexing Batch Sizeは1以上でなければなりません。"
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
@@ -4954,10 +4946,6 @@
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
     "translation": "Bleve 自動補完が有効に設定されている場合、Bleve インデックス有効化設定は有効でなければなりません"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Bleveの一括インデックス付与処理の時間は1秒以上でなければなりません。"
   },
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
@@ -7044,10 +7032,6 @@
     "translation": "すでにMattermost Enterprise Editionにアップグレードされています。アップグレードを完了するにはサーバーを再起動してください。"
   },
   {
-    "id": "api.team.invite_members.limit_reached.app_error",
-    "translation": "無料枠のユーザー数上限に達しました"
-  },
-  {
     "id": "api.post.search_posts.invalid_body.app_error",
     "translation": "リクエストボディを解析できませんでした。"
   },
@@ -7496,22 +7480,6 @@
     "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
-    "id": "api.templates.at_limit_title",
-    "translation": "無料枠のユーザー数制限に達しました "
-  },
-  {
-    "id": "api.templates.at_limit_subject",
-    "translation": "Mattermost Cloudのユーザー数制限に達しました"
-  },
-  {
-    "id": "api.templates.at_limit_info2",
-    "translation": "もしくは、管理者コンソールからユーザーを無効にすることで、無料枠のユーザー数制限のまま別のユーザーのために枠を開けることもできます。"
-  },
-  {
-    "id": "api.templates.at_limit_info1",
-    "translation": "現在、ワークスペースには10名を超えるユーザーが存在します - 素晴らしい！さらにチームメンバーを招待する予定がある場合、Mattermost Cloud Professのアップグレードを是非ご検討ください。"
-  },
-  {
     "id": "app.user.permanent_delete.app_error",
     "translation": "既存のアカウントを削除できませんでした。"
   },
@@ -7586,26 +7554,6 @@
   {
     "id": "app.channel.autofollow.app_error",
     "translation": "メンションされたユーザーについてのスレッドメンバーシップを更新できませんでした"
-  },
-  {
-    "id": "api.templates.upgrade_mattermost_cloud",
-    "translation": "アップグレードする"
-  },
-  {
-    "id": "api.templates.over_limit_title",
-    "translation": "ワークスペースのユーザー数が無料枠の制限を超えています"
-  },
-  {
-    "id": "api.templates.over_limit_subject",
-    "translation": "Mattermost Cloud Workspace ユーザー数超過"
-  },
-  {
-    "id": "api.templates.over_limit_info2",
-    "translation": "もしくは、管理者コンソールからユーザーを無効にすることで、無料枠のユーザー数制限のまま別のユーザーのために枠を開けることもできます。"
-  },
-  {
-    "id": "api.templates.over_limit_info1",
-    "translation": "ワークスペースにMattermost Cloudの無料枠を超える10名以上のユーザーがいるようです。ワークスペースの混乱を避けるために、アップグレードしてください。"
   },
   {
     "id": "model.config.is_valid.import.retention_days_too_low.app_error",
@@ -7796,100 +7744,8 @@
     "translation": "Mattermost Cloudワークスペースに関連付けられたあなたの {{.CardBrand}} ****{{.LastFour}} からの支払いを金融機関が拒否しました。"
   },
   {
-    "id": "api.templates.over_limit_suspended_title",
-    "translation": "Mattermost Cloudワークスペースの停止"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_subject",
-    "translation": "あなたのMattermost Cloudサブスクリプションは停止されました"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_info2",
-    "translation": "ワークスペースを再度有効にするには我々に連絡してください。"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_info1",
-    "translation": "あなたのMattermostワークスペースは停止されました。すべてのコンテンツやデータは1~3ヶ月以内に削除されます。"
-  },
-  {
     "id": "api.templates.over_limit_fix_now",
     "translation": "今すぐ対応する"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_title",
-    "translation": "あなたのMattermost Cloudワークスペースの停止が明日に予定されています"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_subject",
-    "translation": "あなたのMattermost Cloudサブスクリプションがもうすぐ停止されます"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info4",
-    "translation": "あなたのワークスペースが停止されると、すべてのコンテンツやデータは1~3ヶ月以内に削除されます。"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info3",
-    "translation": "あなたのワークスペースが停止されると、支払い情報が更新されるまでログインできなくなります。サービスを再び有効にするには我々のサポートチームに連絡する必要があります。"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info2",
-    "translation": "停止を避けるには、支払い情報を追加してください"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info1",
-    "translation": "これは、{{.OverLimitDate}}を過ぎてもMattermost Cloudワークスペースへの支払いがないことに対する最後の通知です。明日、あなたのサービスは停止されます。"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_title",
-    "translation": "有効な支払い方法がありません"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_subject",
-    "translation": "Mattermostサブスクリプションの支払いが滞納されています"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_info1",
-    "translation": "Mattermostは自動支払いを処理できませんでした。サービスを使い続けるには、すぐに支払い情報を追加してください。でなければ、あなたのサービスが停止される可能性があります。"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_title",
-    "translation": "Mattermost Cloud ワークスペースの停止"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_subject",
-    "translation": " Mattermost Cloudサブスクリプションを使い続けるためのお願い"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item3",
-    "translation": "メッセージ履歴にへアクセスできなくなります"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item2",
-    "translation": "支払い情報を更新するには、サポートチームに連絡してください"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item1",
-    "translation": "ワークスペースにログインできません"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2",
-    "translation": "作業を行わない場合、あなたのワークスペースは停止されます"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info1",
-    "translation": "支払い方法に関する問題を解決することで、Mattermost Cloudのワークスペースを有効なままにし続けることができます。ワークスペースが停止されるのを避けるために、支払い方法を更新してください。"
-  },
-  {
-    "id": "api.templates.over_limit_14_days_title",
-    "translation": "支払いが確認できていません"
-  },
-  {
-    "id": "api.templates.over_limit_14_days_subject",
-    "translation": "Mattermost Cloudサブスクリプションの支払いが滞納されています"
-  },
-  {
-    "id": "api.templates.over_limit_14_days_info1",
-    "translation": "{{.OverLimitDate}} に設定されたMattermostサブスクリプションの支払日までに支払いがありませんでした。支払いが確認できない場合、あなたのサービスの一時停止プロセスを開始します。"
   },
   {
     "id": "api.system.update_viewed_notices.failed",
@@ -7906,10 +7762,6 @@
   {
     "id": "api.config.get_config.restricted_merge.app_error",
     "translation": "設定をマージできませんでした。"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_contact_support",
-    "translation": "サポートに連絡する"
   },
   {
     "id": "ent.compliance.global_relay.write_file.appError",
@@ -8180,22 +8032,6 @@
     "translation": "エクスポート中にファイルをコピーできませんでした。"
   },
   {
-    "id": "api.templates.upgrade_request_title",
-    "translation": "{{ .UserName }} があなたのワークスペースにメンバーを招待したいようです"
-  },
-  {
-    "id": "api.templates.upgrade_request_subject",
-    "translation": "Mattermostユーザーがワークスペースのアップグレードを要求しています"
-  },
-  {
-    "id": "api.templates.upgrade_request_info4",
-    "translation": "あなたのワークスペースが無償版Mattermost Cloudのユーザー制限に達したため、招待を送信できませんでした。追加のユーザーをあなたのワークスペースに参加させるには、アップグレードしてください。"
-  },
-  {
-    "id": "api.templates.at_limit_info5",
-    "translation": "代わりに、システムコンソールからユーザーを無効化することで、無料枠の範囲内でユーザー枠を空けることができます。"
-  },
-  {
     "id": "api.export.export_not_found.app_error",
     "translation": "エクスポートファイルが見つかりませんでした。"
   },
@@ -8264,10 +8100,6 @@
     "translation": "インデックス付与中にファイルを一括取得できませんでした。"
   },
   {
-    "id": "ent.cloud.subscription.error",
-    "translation": "クラウドサブスクリプションを取得する際にエラーが発生しました"
-  },
-  {
     "id": "api.templates.welcome_body.subTitle2",
     "translation": "下記をクリックして、電子メールアドレスを確認してください。"
   },
@@ -8300,14 +8132,6 @@
     "translation": "もし心当たりがない場合、この電子メールを無視してください。"
   },
   {
-    "id": "api.templates.upgrade_request_title2",
-    "translation": "新規ユーザーはあなたのワークスペースに参加できませんでした"
-  },
-  {
-    "id": "api.templates.upgrade_request_info4_2",
-    "translation": "誰かがあなたのワークスペースへ参加しようとしましたが、 無料版Mattermostクラウドのユーザー数制限に達しているため参加できませんでした。さらに多くのユーザーをワークスペースに参加させるには、今すぐアップグレードしてください。"
-  },
-  {
     "id": "api.templates.questions_footer.title",
     "translation": "ご不明な点がございますか?"
   },
@@ -8316,20 +8140,8 @@
     "translation": "いつでもご連絡ください "
   },
   {
-    "id": "api.team.cloud.subscription.error",
-    "translation": "クラウドサブスクリプションを取得する際にエラーが発生しました"
-  },
-  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "リクエストボディを解析できませんでした。"
-  },
-  {
-    "id": "api.cloud.get_subscription.error",
-    "translation": "クラウドサブスクリプションを取得する際にエラーが発生しました。"
-  },
-  {
-    "id": "api.cloud.get_admins_emails.error",
-    "translation": "システム管理者の電子メールを取得する際にエラーが発生しました。"
   },
   {
     "id": "api.user.update_user.login_provider_attribute_set.app_error",
@@ -8929,11 +8741,11 @@
   },
   {
     "id": "app.notification.body.mention.title",
-    "translation": "{{.SenderName}} がメッセージであなたについて投稿しました"
+    "translation": "{{.SenderName}} がメッセージであなたにメンションしました"
   },
   {
     "id": "app.notification.body.mention.subTitle",
-    "translation": "あなたがいない間に、{{.SenderName}} が {{.ChannelName}}チャンネルであなたについて投稿しました。"
+    "translation": "あなたがいない間に、{{.SenderName}} が {{.ChannelName}}チャンネルであなたにメンションしました。"
   },
   {
     "id": "app.notification.body.group.title",
@@ -9030,14 +8842,6 @@
   {
     "id": "app.bot.get_system_bot.empty_admin_list.app_error",
     "translation": "管理者リストが空です。"
-  },
-  {
-    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
-    "translation": "クラウドアカウント数が制限を超えているため、これ以上ユーザーを増やすことはできません。"
-  },
-  {
-    "id": "api.user.update_active.cloud_at_limit_check_error",
-    "translation": "Mattermostクラウドインスタンスのユーザー数を確認できませんでした。"
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
@@ -9390,5 +9194,21 @@
   {
     "id": "app.group.get_by_username_failure",
     "translation": " "
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "MattermostAppIDの最大文字数は32文字です。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "Elasticsearch Bulk Indexing Batch Sizeは{{.BatchSize}}以上である必要があります。"
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
+    "translation": "Bleve Bulk Indexing Batch Sizeは{{.BatchSize}}以上である必要があります。"
+  },
+  {
+    "id": "app.channel.get_file_count.app_error",
+    "translation": "チャンネルのファイル数を取得できませんでした"
   }
 ]

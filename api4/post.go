@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/web"
 )
 
 func (api *API) InitPost() {
@@ -503,10 +504,56 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-	skipFetchThreads := r.URL.Query().Get("skipFetchThreads") == "true"
-	collapsedThreads := r.URL.Query().Get("collapsedThreads") == "true"
-	collapsedThreadsExtended := r.URL.Query().Get("collapsedThreadsExtended") == "true"
-	list, err := c.App.GetPostThread(c.Params.PostId, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, c.AppContext.Session().UserId)
+
+	// For now, by default we return all items unless it's set to maintain
+	// backwards compatibility with mobile. But when the next ESR passes, we need to
+	// change this to web.PerPageDefault.
+	perPage := 0
+	if perPageStr := r.URL.Query().Get("perPage"); perPageStr != "" {
+		var err error
+		perPage, err = strconv.Atoi(perPageStr)
+		if err != nil || perPage > web.PerPageMaximum {
+			c.SetInvalidParam("perPage")
+			return
+		}
+	}
+
+	var fromCreateAt int64
+	if fromCreateAtStr := r.URL.Query().Get("fromCreateAt"); fromCreateAtStr != "" {
+		var err error
+		fromCreateAt, err = strconv.ParseInt(fromCreateAtStr, 10, 64)
+		if err != nil {
+			c.SetInvalidParam("fromCreateAt")
+			return
+		}
+	}
+
+	fromPost := r.URL.Query().Get("fromPost")
+	// Either both have to be set, or none have to be set.
+	// Setting one and not setting the other is an error.
+	if (fromPost == "" && fromCreateAt != 0) || (fromPost != "" && fromCreateAt == 0) {
+		c.SetInvalidParam("fromPost/fromCreateAt")
+		return
+	}
+
+	direction := ""
+	if dir := r.URL.Query().Get("direction"); dir != "" {
+		if dir != "up" && dir != "down" {
+			c.SetInvalidParam("direction")
+			return
+		}
+		direction = dir
+	}
+	opts := model.GetPostsOptions{
+		SkipFetchThreads:         r.URL.Query().Get("skipFetchThreads") == "true",
+		CollapsedThreads:         r.URL.Query().Get("collapsedThreads") == "true",
+		CollapsedThreadsExtended: r.URL.Query().Get("collapsedThreadsExtended") == "true",
+		PerPage:                  perPage,
+		Direction:                direction,
+		FromPost:                 fromPost,
+		FromCreateAt:             fromCreateAt,
+	}
+	list, err := c.App.GetPostThread(c.Params.PostId, opts, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return

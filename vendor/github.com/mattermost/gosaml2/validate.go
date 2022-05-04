@@ -1,3 +1,17 @@
+// Copyright 2016 Russell Haering et al.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package saml2
 
 import (
@@ -225,6 +239,70 @@ func (sp *SAMLServiceProvider) Validate(response *types.Response) error {
 			}
 		}
 
+	}
+
+	return nil
+}
+
+func (sp *SAMLServiceProvider) ValidateDecodedLogoutResponse(response *types.LogoutResponse) error {
+	err := sp.validateLogoutResponseAttributes(response)
+	if err != nil {
+		return err
+	}
+
+	issuer := response.Issuer
+	if issuer == nil {
+		// FIXME?: SAML Core 2.0 Section 3.2.2 has Response.Issuer as [Optional]
+		return ErrMissingElement{Tag: IssuerTag}
+	}
+
+	if sp.IdentityProviderIssuer != "" && response.Issuer.Value != sp.IdentityProviderIssuer {
+		return ErrInvalidValue{
+			Key:      IssuerTag,
+			Expected: sp.IdentityProviderIssuer,
+			Actual:   response.Issuer.Value,
+		}
+	}
+
+	status := response.Status
+	if status == nil {
+		return ErrMissingElement{Tag: StatusTag}
+	}
+
+	statusCode := status.StatusCode
+	if statusCode == nil {
+		return ErrMissingElement{Tag: StatusCodeTag}
+	}
+
+	if statusCode.Value != StatusCodeSuccess {
+		return ErrInvalidValue{
+			Key:      StatusCodeTag,
+			Expected: StatusCodeSuccess,
+			Actual:   statusCode.Value,
+		}
+	}
+
+	return nil
+}
+
+func (sp *SAMLServiceProvider) ValidateDecodedLogoutRequest(request *LogoutRequest) error {
+	err := sp.validateLogoutRequestAttributes(request)
+	if err != nil {
+		return err
+	}
+
+	issuer := request.Issuer
+	if issuer == nil {
+		// FIXME?: SAML Core 2.0 Section 3.2.2 has Response.Issuer as [Optional]
+		return ErrMissingElement{Tag: IssuerTag}
+	}
+
+	if sp.IdentityProviderIssuer != "" && request.Issuer.Value != sp.IdentityProviderIssuer {
+		return ErrInvalidValue{
+			Key:      IssuerTag,
+			Expected: sp.IdentityProviderIssuer,
+			Actual:   request.Issuer.Value,
+		}
 	}
 
 	return nil

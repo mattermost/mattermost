@@ -174,7 +174,6 @@ func (k *LDAPIdentity) Retrieve() (value Value, err error) {
 		buf, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return value, err
-
 		}
 		_, err = xmlDecodeAndBody(bytes.NewReader(buf), &errResp)
 		if err != nil {

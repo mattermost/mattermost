@@ -57,6 +57,7 @@ func (a *App) PreparePostListForClient(originalList *model.PostList) *model.Post
 		Order:      originalList.Order,
 		NextPostId: originalList.NextPostId,
 		PrevPostId: originalList.PrevPostId,
+		HasNext:    originalList.HasNext,
 	}
 
 	for id, originalPost := range originalList.Posts {
@@ -162,6 +163,18 @@ func (a *App) getEmbedsAndImages(post *model.Post, isNewPost bool) *model.Post {
 	return post
 }
 
+func (a *App) sanitizePostMetadataForUserAndChannel(post *model.Post, previewedPost *model.PreviewPost, previewedChannel *model.Channel, userID string) *model.Post {
+	if post.Metadata == nil || len(post.Metadata.Embeds) == 0 || previewedPost == nil {
+		return post
+	}
+
+	if previewedChannel != nil && !a.HasPermissionToReadChannel(userID, previewedChannel) {
+		post.Metadata.Embeds[0].Data = nil
+	}
+
+	return post
+}
+
 func (a *App) SanitizePostMetadataForUser(post *model.Post, userID string) (*model.Post, *model.AppError) {
 	if post.Metadata == nil || len(post.Metadata.Embeds) == 0 {
 		return post, nil
@@ -178,7 +191,6 @@ func (a *App) SanitizePostMetadataForUser(post *model.Post, userID string) (*mod
 	}
 
 	if previewedChannel != nil && !a.HasPermissionToReadChannel(userID, previewedChannel) {
-		post = post.Clone()
 		post.Metadata.Embeds[0].Data = nil
 	}
 
@@ -294,7 +306,13 @@ func (a *App) getImagesForPost(post *model.Post, imageURLs []string, isNewPost b
 			imageURLs = append(imageURLs, a.getImagesInMessageAttachments(post)...)
 
 		case model.PostEmbedOpengraph:
-			for _, image := range embed.Data.(*opengraph.OpenGraph).Images {
+			openGraph, ok := embed.Data.(*opengraph.OpenGraph)
+			if !ok {
+				mlog.Warn("Could not read the image data: the data could not be casted to OpenGraph",
+					mlog.String("post_id", post.Id), mlog.String("data type", fmt.Sprintf("%t", embed.Data)))
+				continue
+			}
+			for _, image := range openGraph.Images {
 				var imageURL string
 				if image.SecureURL != "" {
 					imageURL = image.SecureURL
@@ -533,9 +551,14 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 			return nil, nil, nil, appErr
 		}
 
-		referencedTeam, appErr := a.GetTeam(referencedChannel.TeamId)
-		if appErr != nil {
-			return nil, nil, nil, appErr
+		var referencedTeam *model.Team
+		if referencedChannel.Type == model.ChannelTypeDirect || referencedChannel.Type == model.ChannelTypeGroup {
+			referencedTeam = &model.Team{}
+		} else {
+			referencedTeam, appErr = a.GetTeam(referencedChannel.TeamId)
+			if appErr != nil {
+				return nil, nil, nil, appErr
+			}
 		}
 
 		// Get metadata for embedded post

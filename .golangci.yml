@@ -48,3 +48,7 @@ issues:
     - linters:
       - misspell
       path: "shared/markdown/html_entities.go"
+
+    - linters:
+      - staticcheck
+      text: SA1019

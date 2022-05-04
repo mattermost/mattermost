@@ -832,13 +832,13 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 		if nErr != nil {
 			var appErr *model.AppError
 			var conflictErr *store.ErrConflict
-			var limitExeededErr *store.ErrLimitExceeded
+			var limitExceededErr *store.ErrLimitExceeded
 			switch {
 			case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
 				return appErr
 			case errors.As(nErr, &conflictErr):
 				return model.NewAppError("BulkImport", "app.import.import_user_teams.save_members.conflict.app_error", nil, nErr.Error(), http.StatusBadRequest)
-			case errors.As(nErr, &limitExeededErr):
+			case errors.As(nErr, &limitExceededErr):
 				return model.NewAppError("BulkImport", "app.import.import_user_teams.save_members.max_accounts.app_error", nil, nErr.Error(), http.StatusBadRequest)
 			default: // last fallback in case it doesn't map to an existing app error.
 				return model.NewAppError("BulkImport", "app.import.import_user_teams.save_members.error", nil, nErr.Error(), http.StatusInternalServerError)
@@ -1407,6 +1407,9 @@ func (a *App) importMultiplePostLines(c *request.Context, lines []LineImportWork
 		if line.Post.Props != nil {
 			post.Props = *line.Post.Props
 		}
+		if line.Post.IsPinned != nil {
+			post.IsPinned = *line.Post.IsPinned
+		}
 
 		fileIDs := a.uploadAttachments(c, line.Post.Attachments, post, team.Id)
 		for _, fileID := range post.FileIds {
@@ -1714,6 +1717,9 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 		}
 		if line.DirectPost.Props != nil {
 			post.Props = *line.DirectPost.Props
+		}
+		if line.DirectPost.IsPinned != nil {
+			post.IsPinned = *line.DirectPost.IsPinned
 		}
 
 		fileIDs := a.uploadAttachments(c, line.DirectPost.Attachments, post, "noteam")

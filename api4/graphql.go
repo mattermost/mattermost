@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/graph-gophers/dataloader/v6"
 	graphql "github.com/graph-gophers/graphql-go"
 	gqlerrors "github.com/graph-gophers/graphql-go/errors"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -58,7 +59,16 @@ func (api *API) InitGraphQL() error {
 }
 
 // Unique type to hold our context.
-type ctxKey struct{}
+type ctxKey int
+
+const (
+	webCtx            ctxKey = 0
+	rolesLoaderCtx    ctxKey = 1
+	channelsLoaderCtx ctxKey = 2
+	teamsLoaderCtx    ctxKey = 3
+)
+
+const loaderBatchCapacity = 200
 
 func (api *API) graphQL(c *Context, w http.ResponseWriter, r *http.Request) {
 	var response *graphql.Response
@@ -90,7 +100,16 @@ func (api *API) graphQL(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Populate the context with required info.
 	reqCtx := r.Context()
-	reqCtx = context.WithValue(reqCtx, ctxKey{}, c)
+	reqCtx = context.WithValue(reqCtx, webCtx, c)
+
+	rolesLoader := dataloader.NewBatchedLoader(graphQLRolesLoader, dataloader.WithBatchCapacity(loaderBatchCapacity))
+	reqCtx = context.WithValue(reqCtx, rolesLoaderCtx, rolesLoader)
+
+	channelsLoader := dataloader.NewBatchedLoader(graphQLChannelsLoader, dataloader.WithBatchCapacity(loaderBatchCapacity))
+	reqCtx = context.WithValue(reqCtx, channelsLoaderCtx, channelsLoader)
+
+	teamsLoader := dataloader.NewBatchedLoader(graphQLTeamsLoader, dataloader.WithBatchCapacity(loaderBatchCapacity))
+	reqCtx = context.WithValue(reqCtx, teamsLoaderCtx, teamsLoader)
 
 	response = api.schema.Exec(reqCtx,
 		params.Query,

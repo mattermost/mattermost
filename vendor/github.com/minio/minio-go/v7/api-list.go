@@ -774,7 +774,6 @@ func (c *Client) listIncompleteUploads(ctx context.Context, bucketName, objectPr
 	}(objectMultipartStatCh)
 	// return.
 	return objectMultipartStatCh
-
 }
 
 // listMultipartUploadsQuery - (List Multipart Uploads).

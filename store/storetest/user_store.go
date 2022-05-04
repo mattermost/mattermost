@@ -236,6 +236,7 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 }
 
 func testUserStoreUpdateUpdateAt(t *testing.T, ss store.Store) {
+	t.Skip("MM-43848")
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	_, err := ss.User().Save(u1)
@@ -243,6 +244,9 @@ func testUserStoreUpdateUpdateAt(t *testing.T, ss store.Store) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
 	require.NoError(t, nErr)
+
+	// Ensure UpdateAt has a change to be different below.
+	time.Sleep(1 * time.Millisecond)
 
 	_, err = ss.User().UpdateUpdateAt(u1.Id)
 	require.NoError(t, err)
@@ -4716,7 +4720,6 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 	})
 	require.NoError(t, err)
 
-	startTime := u2.CreateAt
 	time.Sleep(time.Millisecond)
 
 	u3, err := ss.User().Save(&model.User{
@@ -4744,47 +4747,23 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 	})
 	require.NoError(t, err)
 
-	endTime := u3.CreateAt
-
-	// First and last user should be outside the range
-	res1List, err := ss.User().GetUsersBatchForIndexing(startTime, endTime, 100)
+	// Getting all users
+	res1List, err := ss.User().GetUsersBatchForIndexing(u1.CreateAt-1, "", 100)
 	require.NoError(t, err)
+	assert.Len(t, res1List, 3)
 
-	assert.Len(t, res1List, 1)
-	assert.Equal(t, res1List[0].Username, u2.Username)
-	assert.ElementsMatch(t, res1List[0].TeamsIds, []string{t1.Id})
-	assert.ElementsMatch(t, res1List[0].ChannelsIds, []string{cPub1.Id, cPub2.Id})
-
-	// Update startTime to include first user
-	startTime = u1.CreateAt
-	res2List, err := ss.User().GetUsersBatchForIndexing(startTime, endTime, 100)
+	// Testing pagination
+	res2List, err := ss.User().GetUsersBatchForIndexing(u1.CreateAt-1, "", 1)
 	require.NoError(t, err)
+	assert.Len(t, res2List, 1)
 
+	res2List, err = ss.User().GetUsersBatchForIndexing(res2List[0].CreateAt, res2List[0].Id, 2)
+	require.NoError(t, err)
 	assert.Len(t, res2List, 2)
-	assert.Equal(t, res2List[0].Username, u1.Username)
-	assert.Equal(t, res2List[0].ChannelsIds, []string{})
-	assert.Equal(t, res2List[0].TeamsIds, []string{})
-	assert.Equal(t, res2List[1].Username, u2.Username)
 
-	// Update endTime to include last user
-	endTime = model.GetMillis()
-	res3List, err := ss.User().GetUsersBatchForIndexing(startTime, endTime, 100)
+	res2List, err = ss.User().GetUsersBatchForIndexing(res2List[1].CreateAt, res2List[1].Id, 2)
 	require.NoError(t, err)
-
-	assert.Len(t, res3List, 3)
-	assert.Equal(t, res3List[0].Username, u1.Username)
-	assert.Equal(t, res3List[1].Username, u2.Username)
-	assert.Equal(t, res3List[2].Username, u3.Username)
-	assert.ElementsMatch(t, res3List[2].TeamsIds, []string{})
-	assert.ElementsMatch(t, res3List[2].ChannelsIds, []string{cPub2.Id})
-
-	// Testing the limit
-	res4List, err := ss.User().GetUsersBatchForIndexing(startTime, endTime, 2)
-	require.NoError(t, err)
-
-	assert.Len(t, res4List, 2)
-	assert.Equal(t, res4List[0].Username, u1.Username)
-	assert.Equal(t, res4List[1].Username, u2.Username)
+	assert.Len(t, res2List, 0)
 }
 
 func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {

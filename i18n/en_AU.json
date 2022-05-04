@@ -1156,10 +1156,6 @@
     "translation": "Elasticsearch ConnectionUrl setting must be provided when Elasticsearch indexing is enabled."
   },
   {
-    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Elasticsearch Bulk Indexing Time Window must be at least 1 second."
-  },
-  {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
     "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1."
   },
@@ -1202,10 +1198,6 @@
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
     "translation": "Bleve EnableIndexing setting must be set to true when Bleve EnableAutocomplete is set to true"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Bleve Bulk Indexing Time Window must be at least 1 second."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
@@ -2772,10 +2764,6 @@
     "translation": "Create at must be a valid time."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Name must be 2 or more lowercase alphanumeric characters."
-  },
-  {
     "id": "model.bot.is_valid.username.app_error",
     "translation": "Invalid username."
   },
@@ -3578,10 +3566,6 @@
   {
     "id": "ent.cluster.404.app_error",
     "translation": "Cluster API endpoint not found."
-  },
-  {
-    "id": "ent.cloud.subscription.error",
-    "translation": "Error retrieving cloud subscription"
   },
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
@@ -4932,30 +4916,6 @@
     "translation": "A personal access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account."
   },
   {
-    "id": "api.templates.upgrade_request_title2",
-    "translation": "New users are unable to join your workspace"
-  },
-  {
-    "id": "api.templates.upgrade_request_title",
-    "translation": "{{ .UserName }} would like to invite members to your workspace"
-  },
-  {
-    "id": "api.templates.upgrade_request_subject",
-    "translation": "Mattermost user request upgrade of workspace"
-  },
-  {
-    "id": "api.templates.upgrade_request_info4_2",
-    "translation": "Someone recently tried to join your workspace but was unable to as your workspace has reached the user limit for the free version of Mattermost cloud. Upgrade now to allow more users to join your workspace."
-  },
-  {
-    "id": "api.templates.upgrade_request_info4",
-    "translation": "Because your workspace has reached the user limit for the free version of Mattermost cloud, invitations cannot be sent. Upgrade now to allow more users to join your workspace."
-  },
-  {
-    "id": "api.templates.upgrade_mattermost_cloud",
-    "translation": "Upgrade"
-  },
-  {
     "id": "api.templates.signin_change_email.subject",
     "translation": "[{{ .SiteName }}] Your sign-in method has been updated"
   },
@@ -5068,112 +5028,8 @@
     "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .TeamURL }} by {{.Method}}."
   },
   {
-    "id": "api.templates.over_limit_title",
-    "translation": "Your workspace is over the user limit for the free tier"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_title",
-    "translation": "Mattermost Cloud Workspace suspended"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_subject",
-    "translation": "Your Mattermost Cloud subscription has been suspended"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_info2",
-    "translation": "Contact us to reactivate your workspace."
-  },
-  {
-    "id": "api.templates.over_limit_suspended_info1",
-    "translation": "Your Mattermost workspace has been suspended. All contents and data within your workspace will be deleted within 1-3 months."
-  },
-  {
-    "id": "api.templates.over_limit_suspended_contact_support",
-    "translation": "Contact Support"
-  },
-  {
-    "id": "api.templates.over_limit_subject",
-    "translation": "Mattermost Cloud Workspace Over User Limit"
-  },
-  {
-    "id": "api.templates.over_limit_info2",
-    "translation": "Alternatively, you can disable users in the Admin Console to open up spots for more users or stay below the free user limit."
-  },
-  {
-    "id": "api.templates.over_limit_info1",
-    "translation": "It looks like you have more than 10 users in your workspace which is beyond the free tier limits of Mattermost Cloud. To avoid any disruption in your Mattermost workspace, please upgrade."
-  },
-  {
     "id": "api.templates.over_limit_fix_now",
     "translation": "Fix Now"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_title",
-    "translation": "Your Mattermost Cloud workspace suspension is scheduled for tomorrow"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_subject",
-    "translation": "Your Mattermost Cloud subscription will soon be suspended"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info4",
-    "translation": "Once your workspace is suspended, all content and data within your workspace will be deleted within 1-3 months."
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info3",
-    "translation": "Once your workspace has been suspended, you will not be able to log in to your account or update payment information. You will need to contact our support team to re-activate your service."
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info2",
-    "translation": "To avoid suspension, add your payment information"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info1",
-    "translation": "This is a final reminder that we have not received payment for your Mattermost Cloud workspace, which has been overdue since {{ .OverLimitDate }}. Tomorrow we will suspend your service."
-  },
-  {
-    "id": "api.templates.over_limit_7_days_title",
-    "translation": "No payment method on file"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_subject",
-    "translation": "Payment is overdue for your Mattermost Cloud subscription"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_info1",
-    "translation": "Mattermost couldn’t process your most recent automatic payment. To keep your service active, please add payment details as soon as possible or your service may be suspended."
-  },
-  {
-    "id": "api.templates.over_limit_30_days_title",
-    "translation": "Mattermost Cloud Workspace Suspension"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_subject",
-    "translation": " Act to keep your Mattermost Cloud subscription"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item3",
-    "translation": "You will lose access to your message history"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item2",
-    "translation": "You won’t be able to update payment information without contacting our support team"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item1",
-    "translation": "You won't be able to log into your workspace"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2",
-    "translation": "If no action is taken, your workspace will be suspended"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info1",
-    "translation": "There’s still time to keep your Mattermost Cloud workspace active by resolving issues with your payment method. To avoid suspension update your method of payment."
-  },
-  {
-    "id": "api.templates.over_limit_14_days_title",
-    "translation": "Payment not received"
   },
   {
     "id": "ent.compliance.csv.metadata.export.appError",
@@ -5278,14 +5134,6 @@
   {
     "id": "app.import.validate_emoji_import_data.image_missing.error",
     "translation": "Import emoji image field missing or blank."
-  },
-  {
-    "id": "api.templates.over_limit_14_days_subject",
-    "translation": "Payment is overdue for your Mattermost Cloud subscription"
-  },
-  {
-    "id": "api.templates.over_limit_14_days_info1",
-    "translation": "Just a reminder that we have not received payment for your Mattermost subscription invoiced on {{ .OverLimitDate }}.  We will soon begin a process to suspend your service if payment is not received."
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
@@ -5524,26 +5372,6 @@
     "translation": "Start subscription"
   },
   {
-    "id": "api.templates.at_limit_title",
-    "translation": "You’ve reached the user limit for the free tier "
-  },
-  {
-    "id": "api.templates.at_limit_subject",
-    "translation": "Mattermost Cloud User Limit Reached"
-  },
-  {
-    "id": "api.templates.at_limit_info5",
-    "translation": "Alternatively, you can disable users in the System Console to open up spots for users and stay below the free user limit."
-  },
-  {
-    "id": "api.templates.at_limit_info2",
-    "translation": "Alternatively, you can disable users in the Admin Console to open up spots for more users or stay below the free user limit."
-  },
-  {
-    "id": "api.templates.at_limit_info1",
-    "translation": "It looks like you have 10 or more users in your workspace now — that’s great! If you want to invite more team members, consider upgrading Mattermost Cloud now."
-  },
-  {
     "id": "api.team.update_team_scheme.scheme_scope.error",
     "translation": "Unable to set the scheme to the team because the supplied scheme is not a team scheme."
   },
@@ -5662,10 +5490,6 @@
   {
     "id": "api.team.invite_members.no_one.app_error",
     "translation": "No one to invite."
-  },
-  {
-    "id": "api.team.invite_members.limit_reached.app_error",
-    "translation": "You've reached the free tier user limit"
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
@@ -7493,10 +7317,6 @@
     "translation": "Guest accounts are disabled."
   },
   {
-    "id": "api.team.cloud.subscription.error",
-    "translation": "Error retrieving cloud subscription"
-  },
-  {
     "id": "api.team.add_user_to_team_from_invite.guest.app_error",
     "translation": "Guests are restricted from joining a team via an invite link. Please request a guest email invitation to the team."
   },
@@ -8383,14 +8203,6 @@
     "translation": "Your licence does not support cloud requests."
   },
   {
-    "id": "api.cloud.get_subscription.error",
-    "translation": "Error retrieving cloud subscription."
-  },
-  {
-    "id": "api.cloud.get_admins_emails.error",
-    "translation": "Error retrieving System Admin's email."
-  },
-  {
     "id": "api.cloud.cws_webhook_event_missing_error",
     "translation": "Webhook event was not handled. Either it is missing or it is not valid."
   },
@@ -9015,14 +8827,6 @@
     "translation": "Image limits check failed. Resolution is too high."
   },
   {
-    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
-    "translation": "Unable to activate more users as the cloud account is over capacity."
-  },
-  {
-    "id": "api.user.update_active.cloud_at_limit_check_error",
-    "translation": "Unable to check number of users in your Mattermost cloud instance."
-  },
-  {
     "id": "app.system.system_bot.bot_displayname",
     "translation": "System"
   },
@@ -9357,5 +9161,77 @@
   {
     "id": "api.team.invite_members.unable_to_send_email.app_error",
     "translation": "An error occurred while sending the email"
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "The maximum length of MattermostAppID is 32 characters."
+  },
+  {
+    "id": "app.channel.get_file_count.app_error",
+    "translation": "Unable to retrieve the file count for the channel"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "Elasticsearch Bulk Indexing Batch Size must be at least {{.BatchSize}}."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
+    "translation": "Bleve Bulk Indexing Batch Size must be at least {{.BatchSize}}."
+  },
+  {
+    "id": "api.license.request_trial_license.embargoed",
+    "translation": "We were unable to process the request due to limitations for embargoed countries. [Learn more in our documentation](https://mattermost.com/pl/limitations-for-embargoed-countries), or reach out to legal@mattermost.com for questions around export limitations."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "OnlyThreads and OnlyTotals parameters to getThreadsForUser are mutually exclusive"
+  },
+  {
+    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "translation": "The file storage settings have unset values."
+  },
+  {
+    "id": "api.file.test_connection_email_settings_nil.app_error",
+    "translation": "The email settings have unset values."
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "Email list is empty"
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "Invalid channel name"
+  },
+  {
+    "id": "model.channel.is_valid.1_or_more.app_error",
+    "translation": "Name must be 1 or more lowercase alphanumeric characters."
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "Invalid post_id"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .ChannelsLen }} channels on the {{ .TeamDisplayName }} Team"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title",
+    "translation": "{{ .SenderName }} invited you to join {{ .ChannelsLen }} channels on the {{ .TeamDisplayName }} Team"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .ChannelName }} on the {{ .TeamDisplayName }} Team"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_body.title",
+    "translation": "{{ .SenderName }} invited you to join {{ .ChannelName }} on the {{ .TeamDisplayName }} Team"
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
+    "translation": "An error occurred while parsing the body data."
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
+    "translation": "Invalid request body."
   }
 ]
