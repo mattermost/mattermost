@@ -813,7 +813,6 @@ func (_m *PostStore) PermanentDeleteByUser(userID string) error {
 }
 
 // ReplaceUserMentions provides a mock function with given fields: userID
-// TODO: Please make some sense of this, I have no idea how mocking works in Go.
 func (_m *PostStore) ReplaceUserMentions(userID string) error {
 	ret := _m.Called(userID)
 
