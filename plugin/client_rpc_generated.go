@@ -5649,3 +5649,32 @@ func (s *apiRPCServer) RequestTrialLicense(args *Z_RequestTrialLicenseArgs, retu
 	}
 	return nil
 }
+
+type Z_GetCloudLimitsArgs struct {
+}
+
+type Z_GetCloudLimitsReturns struct {
+	A *model.ProductLimits
+	B error
+}
+
+func (g *apiRPCClient) GetCloudLimits() (*model.ProductLimits, error) {
+	_args := &Z_GetCloudLimitsArgs{}
+	_returns := &Z_GetCloudLimitsReturns{}
+	if err := g.client.Call("Plugin.GetCloudLimits", _args, _returns); err != nil {
+		log.Printf("RPC call to GetCloudLimits API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetCloudLimits(args *Z_GetCloudLimitsArgs, returns *Z_GetCloudLimitsReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetCloudLimits() (*model.ProductLimits, error)
+	}); ok {
+		returns.A, returns.B = hook.GetCloudLimits()
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API GetCloudLimits called but not implemented."))
+	}
+	return nil
+}
