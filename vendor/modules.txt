@@ -433,7 +433,7 @@ github.com/mattermost/go-i18n/i18n
 github.com/mattermost/go-i18n/i18n/bundle
 github.com/mattermost/go-i18n/i18n/language
 github.com/mattermost/go-i18n/i18n/translation
-# github.com/mattermost/gosaml2 v0.8.0
+# github.com/mattermost/gosaml2 v0.8.1-0.20220428161029-8c99721fdec4
 ## explicit; go 1.13
 github.com/mattermost/gosaml2
 github.com/mattermost/gosaml2/types

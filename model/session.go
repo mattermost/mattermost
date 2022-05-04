@@ -12,26 +12,26 @@ import (
 )
 
 const (
-	SessionCookieToken            = "MMAUTHTOKEN"
-	SessionCookieUser             = "MMUSERID"
-	SessionCookieCsrf             = "MMCSRF"
-	SessionCookieCloudUrl         = "MMCLOUDURL"
-	SessionCacheSize              = 35000
-	SessionPropPlatform           = "platform"
-	SessionPropOs                 = "os"
-	SessionPropBrowser            = "browser"
-	SessionPropType               = "type"
-	SessionPropUserAccessTokenId  = "user_access_token_id"
-	SessionPropIsBot              = "is_bot"
-	SessionPropIsBotValue         = "true"
-	SessionPropOAuthAppID         = "oauth_app_id"
-	SessionPropMattermostAppID    = "mattermost_app_id"
-	SessionTypeUserAccessToken    = "UserAccessToken"
-	SessionTypeCloudKey           = "CloudKey"
-	SessionTypeRemoteclusterToken = "RemoteClusterToken"
-	SessionPropIsGuest            = "is_guest"
-	SessionActivityTimeout        = 1000 * 60 * 5 // 5 minutes
-	SessionUserAccessTokenExpiry  = 100 * 365     // 100 years
+	SessionCookieToken                = "MMAUTHTOKEN"
+	SessionCookieUser                 = "MMUSERID"
+	SessionCookieCsrf                 = "MMCSRF"
+	SessionCookieCloudUrl             = "MMCLOUDURL"
+	SessionCacheSize                  = 35000
+	SessionPropPlatform               = "platform"
+	SessionPropOs                     = "os"
+	SessionPropBrowser                = "browser"
+	SessionPropType                   = "type"
+	SessionPropUserAccessTokenId      = "user_access_token_id"
+	SessionPropIsBot                  = "is_bot"
+	SessionPropIsBotValue             = "true"
+	SessionPropOAuthAppID             = "oauth_app_id"
+	SessionPropMattermostAppID        = "mattermost_app_id"
+	SessionTypeUserAccessToken        = "UserAccessToken"
+	SessionTypeCloudKey               = "CloudKey"
+	SessionTypeRemoteclusterToken     = "RemoteClusterToken"
+	SessionPropIsGuest                = "is_guest"
+	SessionActivityTimeout            = 1000 * 60 * 5  // 5 minutes
+	SessionUserAccessTokenExpiryHours = 100 * 365 * 24 // 100 years
 )
 
 //msgp StringMap

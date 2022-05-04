@@ -1595,6 +1595,10 @@
     "translation": "Failed to update the custom status. Please add either emoji or custom text status or both."
   },
   {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "Elasticsearch settings has unset values."
+  },
+  {
     "id": "api.email.send_warn_metric_ack.failure.app_error",
     "translation": "Failure to send admin acknowledgment email"
   },
@@ -2393,7 +2397,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Session Expired: Please log in to continue receiving notifications. Sessions for {{.siteName}} are configured by your System Administrator to expire every {{.daysCount}} day(s)."
+    "translation": "Session Expired: Please log in to continue receiving notifications. Sessions for {{.siteName}} are configured by your System Administrator to expire every {{.hoursCount}} hour(s)."
   },
   {
     "id": "api.push_notifications_ack.forward.app_error",
@@ -9225,7 +9229,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 89+"
+    "translation": "Version 100+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
