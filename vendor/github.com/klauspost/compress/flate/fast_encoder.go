@@ -179,7 +179,7 @@ func (e *fastGen) matchlen(s, t int32, src []byte) int32 {
 // matchlenLong will return the match length between offsets and t in src.
 // It is assumed that s > t, that t >=0 and s < len(src).
 func (e *fastGen) matchlenLong(s, t int32, src []byte) int32 {
-	if debugDecode {
+	if debugDeflate {
 		if t >= s {
 			panic(fmt.Sprint("t >=s:", t, s))
 		}

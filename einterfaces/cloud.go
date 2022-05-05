@@ -9,6 +9,7 @@ import (
 
 type CloudInterface interface {
 	GetCloudProducts(userID string, includeLegacyProducts bool) ([]*model.Product, error)
+	GetCloudLimits(userID string) (*model.ProductLimits, error)
 
 	CreateCustomerPayment(userID string) (*model.StripeSetupIntent, error)
 	ConfirmCustomerPayment(userID string, confirmRequest *model.ConfirmPaymentMethodRequest) error
@@ -25,4 +26,5 @@ type CloudInterface interface {
 
 	// GetLicenseRenewalStatus checks on the portal whether it is possible to use token to renew a license
 	GetLicenseRenewalStatus(userID, token string) error
+	InvalidateCaches() error
 }

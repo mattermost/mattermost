@@ -39,6 +39,11 @@ func (r *memUvarintReader) Len() int {
 // ReadUvarint reads an encoded uint64.  The original code this was
 // based on is at encoding/binary/ReadUvarint().
 func (r *memUvarintReader) ReadUvarint() (uint64, error) {
+	if r.C >= len(r.S) {
+		// nothing else to read
+		return 0, nil
+	}
+
 	var x uint64
 	var s uint
 	var C = r.C
@@ -59,7 +64,7 @@ func (r *memUvarintReader) ReadUvarint() (uint64, error) {
 			// why the "extra" >= check?  The normal case is that s <
 			// 63, so we check this single >= guard first so that we
 			// hit the normal, nil-error return pathway sooner.
-			if s >= 63 && (s > 63 || s == 63 && b > 1) {
+			if s >= 63 && (s > 63 || b > 1) {
 				return 0, fmt.Errorf("memUvarintReader overflow")
 			}
 
@@ -74,6 +79,10 @@ func (r *memUvarintReader) ReadUvarint() (uint64, error) {
 // SkipUvarint skips ahead one encoded uint64.
 func (r *memUvarintReader) SkipUvarint() {
 	for {
+		if r.C >= len(r.S) {
+			return
+		}
+
 		b := r.S[r.C]
 		r.C++
 

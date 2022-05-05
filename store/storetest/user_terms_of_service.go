@@ -31,6 +31,18 @@ func testSaveUserTermsOfService(t *testing.T, ss store.Store) {
 	assert.Equal(t, userTermsOfService.UserId, savedUserTermsOfService.UserId)
 	assert.Equal(t, userTermsOfService.TermsOfServiceId, savedUserTermsOfService.TermsOfServiceId)
 	assert.NotEmpty(t, savedUserTermsOfService.CreateAt)
+
+	// Check we can save a new terms of service id (MM-41611)
+	newUserTermsOfService := &model.UserTermsOfService{
+		UserId:           userTermsOfService.UserId,
+		TermsOfServiceId: model.NewId(),
+	}
+
+	savedUserTermsOfService, err = ss.UserTermsOfService().Save(newUserTermsOfService)
+	require.NoError(t, err)
+	assert.Equal(t, newUserTermsOfService.UserId, savedUserTermsOfService.UserId)
+	assert.Equal(t, newUserTermsOfService.TermsOfServiceId, savedUserTermsOfService.TermsOfServiceId)
+	assert.NotEmpty(t, savedUserTermsOfService.CreateAt)
 }
 
 func testGetByUserTermsOfService(t *testing.T, ss store.Store) {

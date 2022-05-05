@@ -819,7 +819,7 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlStore) {
 		assert.Equal(t, []string{gmChannel.Id}, res2.Channels)
 	})
 
-	t.Run("should return orphaned DM channels in the DMs categorywhich are in a custom category on another team", func(t *testing.T) {
+	t.Run("should return orphaned DM channels in the DMs category which are in a custom category on another team", func(t *testing.T) {
 		userId := model.NewId()
 		teamId := model.NewId()
 

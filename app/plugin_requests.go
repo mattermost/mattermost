@@ -118,7 +118,7 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 	token := ""
 	context := &plugin.Context{
 		RequestId:      model.NewId(),
-		IPAddress:      utils.GetIPAddress(r, ch.srv.Config().ServiceSettings.TrustedProxyIPHeader),
+		IPAddress:      utils.GetIPAddress(r, ch.cfgSvc.Config().ServiceSettings.TrustedProxyIPHeader),
 		AcceptLanguage: r.Header.Get("Accept-Language"),
 		UserAgent:      r.UserAgent(),
 	}
@@ -183,7 +183,7 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 					mlog.String("user_id", userID),
 				}
 
-				if *ch.srv.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {
+				if *ch.cfgSvc.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {
 					mlog.Warn(csrfErrorMessage, fields...)
 				} else {
 					mlog.Debug(csrfErrorMessage, fields...)
@@ -212,7 +212,7 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 
 	params := mux.Vars(r)
 
-	subpath, _ := utils.GetSubpathFromConfig(ch.srv.Config())
+	subpath, _ := utils.GetSubpathFromConfig(ch.cfgSvc.Config())
 
 	newQuery := r.URL.Query()
 	newQuery.Del("access_token")

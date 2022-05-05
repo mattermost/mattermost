@@ -1,6 +1,10 @@
 package flate
 
-import "fmt"
+import (
+	"encoding/binary"
+	"fmt"
+	"math/bits"
+)
 
 // fastGen maintains the table for matches,
 // and the previous byte block for level 2.
@@ -116,7 +120,32 @@ func (e *fastEncL1) Encode(dst *tokens, src []byte) {
 
 			// Extend the 4-byte match as long as possible.
 			t := candidate.offset - e.cur
-			l := e.matchlenLong(s+4, t+4, src) + 4
+			var l = int32(4)
+			if false {
+				l = e.matchlenLong(s+4, t+4, src) + 4
+			} else {
+				// inlined:
+				a := src[s+4:]
+				b := src[t+4:]
+				for len(a) >= 8 {
+					if diff := binary.LittleEndian.Uint64(a) ^ binary.LittleEndian.Uint64(b); diff != 0 {
+						l += int32(bits.TrailingZeros64(diff) >> 3)
+						break
+					}
+					l += 8
+					a = a[8:]
+					b = b[8:]
+				}
+				if len(a) < 8 {
+					b = b[:len(a)]
+					for i := range a {
+						if a[i] != b[i] {
+							break
+						}
+						l++
+					}
+				}
+			}
 
 			// Extend backwards
 			for t > 0 && s > nextEmit && src[t-1] == src[s-1] {
@@ -125,11 +154,43 @@ func (e *fastEncL1) Encode(dst *tokens, src []byte) {
 				l++
 			}
 			if nextEmit < s {
-				emitLiteral(dst, src[nextEmit:s])
+				if false {
+					emitLiteral(dst, src[nextEmit:s])
+				} else {
+					for _, v := range src[nextEmit:s] {
+						dst.tokens[dst.n] = token(v)
+						dst.litHist[v]++
+						dst.n++
+					}
+				}
 			}
 
 			// Save the match found
-			dst.AddMatchLong(l, uint32(s-t-baseMatchOffset))
+			if false {
+				dst.AddMatchLong(l, uint32(s-t-baseMatchOffset))
+			} else {
+				// Inlined...
+				xoffset := uint32(s - t - baseMatchOffset)
+				xlength := l
+				oc := offsetCode(xoffset)
+				xoffset |= oc << 16
+				for xlength > 0 {
+					xl := xlength
+					if xl > 258 {
+						if xl > 258+baseMatchLength {
+							xl = 258
+						} else {
+							xl = 258 - baseMatchLength
+						}
+					}
+					xlength -= xl
+					xl -= baseMatchLength
+					dst.extraHist[lengthCodes1[uint8(xl)]]++
+					dst.offHist[oc]++
+					dst.tokens[dst.n] = token(matchType | uint32(xl)<<lengthShift | xoffset)
+					dst.n++
+				}
+			}
 			s += l
 			nextEmit = s
 			if nextS >= s {

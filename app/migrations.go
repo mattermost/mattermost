@@ -17,7 +17,7 @@ const GuestRolesCreationMigrationKey = "GuestRolesCreationMigrationComplete"
 const SystemConsoleRolesCreationMigrationKey = "SystemConsoleRolesCreationMigrationComplete"
 const ContentExtractionConfigDefaultTrueMigrationKey = "ContentExtractionConfigDefaultTrueMigrationComplete"
 const PlaybookRolesCreationMigrationKey = "PlaybookRolesCreationMigrationComplete"
-const FirstAdminSetupCompleteKey = "FirstAdminSetupComplete"
+const FirstAdminSetupCompleteKey = model.SystemFirstAdminSetupComplete
 
 // This function migrates the default built in roles from code/config to the database.
 func (a *App) DoAdvancedPermissionsMigration() {

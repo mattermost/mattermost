@@ -84,12 +84,16 @@ type WebSocketMessage interface {
 }
 
 type WebsocketBroadcast struct {
-	OmitUsers             map[string]bool `json:"omit_users"` // broadcast is omitted for users listed here
-	UserId                string          `json:"user_id"`    // broadcast only occurs for this user
-	ChannelId             string          `json:"channel_id"` // broadcast only occurs for users in this channel
-	TeamId                string          `json:"team_id"`    // broadcast only occurs for users in this team
+	OmitUsers             map[string]bool `json:"omit_users"`    // broadcast is omitted for users listed here
+	UserId                string          `json:"user_id"`       // broadcast only occurs for this user
+	ChannelId             string          `json:"channel_id"`    // broadcast only occurs for users in this channel
+	TeamId                string          `json:"team_id"`       // broadcast only occurs for users in this team
+	ConnectionId          string          `json:"connection_id"` // broadcast only occurs for this connection
 	ContainsSanitizedData bool            `json:"-"`
 	ContainsSensitiveData bool            `json:"-"`
+	// ReliableClusterSend indicates whether or not the message should
+	// be sent through the cluster using the reliable, TCP backed channel.
+	ReliableClusterSend bool `json:"-"`
 }
 
 func (wb *WebsocketBroadcast) copy() *WebsocketBroadcast {

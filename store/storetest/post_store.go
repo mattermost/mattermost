@@ -27,8 +27,6 @@ func TestPostStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetSingle", func(t *testing.T) { testPostStoreGetSingle(t, ss) })
 	t.Run("Update", func(t *testing.T) { testPostStoreUpdate(t, ss) })
 	t.Run("Delete", func(t *testing.T) { testPostStoreDelete(t, ss) })
-	t.Run("Delete1Level", func(t *testing.T) { testPostStoreDelete1Level(t, ss) })
-	t.Run("Delete2Level", func(t *testing.T) { testPostStoreDelete2Level(t, ss) })
 	t.Run("PermDelete1Level", func(t *testing.T) { testPostStorePermDelete1Level(t, ss) })
 	t.Run("PermDelete1Level2", func(t *testing.T) { testPostStorePermDelete1Level2(t, ss) })
 	t.Run("GetWithChildren", func(t *testing.T) { testPostStoreGetWithChildren(t, ss) })
@@ -43,6 +41,7 @@ func TestPostStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetFlaggedPosts", func(t *testing.T) { testPostStoreGetFlaggedPosts(t, ss) })
 	t.Run("GetFlaggedPostsForChannel", func(t *testing.T) { testPostStoreGetFlaggedPostsForChannel(t, ss) })
 	t.Run("GetPostsCreatedAt", func(t *testing.T) { testPostStoreGetPostsCreatedAt(t, ss) })
+	t.Run("GetLastPostRowCreateAt", func(t *testing.T) { testPostStoreGetLastPostRowCreateAt(t, ss) })
 	t.Run("Overwrite", func(t *testing.T) { testPostStoreOverwrite(t, ss) })
 	t.Run("OverwriteMultiple", func(t *testing.T) { testPostStoreOverwriteMultiple(t, ss) })
 	t.Run("GetPostsByIds", func(t *testing.T) { testPostStoreGetPostsByIds(t, ss) })
@@ -316,6 +315,9 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 		replyPost3.Message = NewTestId()
 		replyPost3.RootId = rootPost.Id
 
+		// Ensure update does not occur in the same timestamp as creation
+		time.Sleep(time.Millisecond)
+
 		_, _, err = ss.Post().SaveMultiple([]*model.Post{&replyPost2, &replyPost3})
 		require.NoError(t, err)
 
@@ -490,14 +492,14 @@ func testPostStoreGet(t *testing.T, ss store.Store) {
 	etag2 := ss.Post().GetEtag(o1.ChannelId, false, false)
 	require.Equal(t, 0, strings.Index(etag2, fmt.Sprintf("%v.%v", model.CurrentVersion, o1.UpdateAt)), "Invalid Etag")
 
-	r1, err := ss.Post().Get(context.Background(), o1.Id, false, false, false, "")
+	r1, err := ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "")
 	require.NoError(t, err)
 	require.Equal(t, r1.Posts[o1.Id].CreateAt, o1.CreateAt, "invalid returned post")
 
-	_, err = ss.Post().Get(context.Background(), "123", false, false, false, "")
+	_, err = ss.Post().Get(context.Background(), "123", model.GetPostsOptions{}, "")
 	require.Error(t, err, "Missing id should have failed")
 
-	_, err = ss.Post().Get(context.Background(), "", false, false, false, "")
+	_, err = ss.Post().Get(context.Background(), "", model.GetPostsOptions{}, "")
 	require.Error(t, err, "should fail for blank post ids")
 }
 
@@ -509,17 +511,15 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
 		require.NoError(t, err)
 
-		threadMembership := &model.ThreadMembership{
-			PostId:         o1.Id,
-			UserId:         o1.UserId,
-			Following:      true,
-			LastViewed:     0,
-			LastUpdated:    0,
-			UnreadMentions: 0,
-		}
-		_, err = ss.Thread().SaveMembership(threadMembership)
+		_, err = ss.Thread().MaintainMembership(o1.UserId, o1.Id, store.ThreadMembershipOpts{
+			Following:       true,
+			UpdateFollowing: true,
+		})
 		require.NoError(t, err)
-		r1, err := ss.Post().Get(context.Background(), o1.Id, false, true, false, o1.UserId)
+		opts := model.GetPostsOptions{
+			CollapsedThreads: true,
+		}
+		r1, err := ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId)
 		require.NoError(t, err)
 		require.Equal(t, r1.Posts[o1.Id].CreateAt, o1.CreateAt, "invalid returned post")
 		require.True(t, *r1.Posts[o1.Id].IsFollowing)
@@ -532,17 +532,15 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
 		require.NoError(t, err)
 
-		threadMembership := &model.ThreadMembership{
-			PostId:         o1.Id,
-			UserId:         o1.UserId,
-			Following:      false,
-			LastViewed:     0,
-			LastUpdated:    0,
-			UnreadMentions: 0,
-		}
-		_, err = ss.Thread().SaveMembership(threadMembership)
+		_, err = ss.Thread().MaintainMembership(o1.UserId, o1.Id, store.ThreadMembershipOpts{
+			Following:       false,
+			UpdateFollowing: true,
+		})
 		require.NoError(t, err)
-		r1, err := ss.Post().Get(context.Background(), o1.Id, false, true, false, o1.UserId)
+		opts := model.GetPostsOptions{
+			CollapsedThreads: true,
+		}
+		r1, err := ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId)
 		require.NoError(t, err)
 		require.Equal(t, r1.Posts[o1.Id].CreateAt, o1.CreateAt, "invalid returned post")
 		require.False(t, *r1.Posts[o1.Id].IsFollowing)
@@ -555,10 +553,112 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
 		require.NoError(t, err)
 
-		r1, err := ss.Post().Get(context.Background(), o1.Id, false, true, false, o1.UserId)
+		opts := model.GetPostsOptions{
+			CollapsedThreads: true,
+		}
+		r1, err := ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId)
 		require.NoError(t, err)
 		require.Equal(t, r1.Posts[o1.Id].CreateAt, o1.CreateAt, "invalid returned post")
 		require.Nil(t, r1.Posts[o1.Id].IsFollowing)
+	})
+
+	t.Run("Pagination", func(t *testing.T) {
+		o1, err := ss.Post().Save(&model.Post{ChannelId: model.NewId(), UserId: model.NewId(), Message: NewTestId()})
+		require.NoError(t, err)
+		_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
+		require.NoError(t, err)
+		_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
+		require.NoError(t, err)
+		_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
+		require.NoError(t, err)
+		_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
+		require.NoError(t, err)
+
+		opts := model.GetPostsOptions{
+			CollapsedThreads: true,
+			PerPage:          2,
+			Direction:        "down",
+		}
+		r1, err := ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId)
+		require.NoError(t, err)
+		assert.Len(t, r1.Order, 3) // including the root post
+		assert.True(t, r1.HasNext)
+
+		lastPostID := r1.Order[len(r1.Order)-1]
+		lastPostCreateAt := r1.Posts[lastPostID].CreateAt
+
+		opts = model.GetPostsOptions{
+			CollapsedThreads: true,
+			PerPage:          2,
+			Direction:        "down",
+			FromPost:         lastPostID,
+			FromCreateAt:     lastPostCreateAt,
+		}
+		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId)
+		require.NoError(t, err)
+		assert.Len(t, r1.Order, 3) // including the root post
+		assert.GreaterOrEqual(t, r1.Posts[r1.Order[len(r1.Order)-1]].CreateAt, lastPostCreateAt)
+		assert.False(t, r1.HasNext)
+
+		// Going from bottom to top now.
+		firstPostCreateAt := r1.Posts[r1.Order[1]].CreateAt
+		opts = model.GetPostsOptions{
+			CollapsedThreads: true,
+			PerPage:          2,
+			Direction:        "up",
+			FromPost:         r1.Order[1],
+			FromCreateAt:     firstPostCreateAt,
+		}
+		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId)
+		require.NoError(t, err)
+		assert.Len(t, r1.Order, 3) // including the root post
+		assert.LessOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, firstPostCreateAt)
+		assert.False(t, r1.HasNext)
+
+		// Non-CRT mode
+		opts = model.GetPostsOptions{
+			CollapsedThreads: false,
+			PerPage:          2,
+			Direction:        "down",
+			SkipFetchThreads: false,
+		}
+		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId)
+		require.NoError(t, err)
+		assert.Len(t, r1.Order, 3) // including the root post
+		assert.True(t, r1.HasNext)
+
+		lastPostID = r1.Order[len(r1.Order)-1]
+		lastPostCreateAt = r1.Posts[lastPostID].CreateAt
+
+		opts = model.GetPostsOptions{
+			CollapsedThreads: false,
+			PerPage:          3,
+			Direction:        "down",
+			FromPost:         lastPostID,
+			FromCreateAt:     lastPostCreateAt,
+			SkipFetchThreads: false,
+		}
+		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId)
+		require.NoError(t, err)
+		assert.Len(t, r1.Order, 4) // including the root post
+		assert.GreaterOrEqual(t, r1.Posts[r1.Order[len(r1.Order)-1]].CreateAt, lastPostCreateAt)
+		assert.False(t, r1.HasNext)
+
+		// Going from bottom to top now.
+		firstPostCreateAt = r1.Posts[r1.Order[1]].CreateAt
+		opts = model.GetPostsOptions{
+			CollapsedThreads: false,
+			PerPage:          2,
+			Direction:        "up",
+			FromPost:         r1.Order[1],
+			FromCreateAt:     firstPostCreateAt,
+			SkipFetchThreads: false,
+		}
+		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId)
+		require.NoError(t, err)
+		assert.Len(t, r1.Order, 3) // including the root post
+		assert.LessOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, firstPostCreateAt)
+		assert.False(t, r1.HasNext)
 	})
 }
 
@@ -644,15 +744,15 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	o3, err = ss.Post().Save(o3)
 	require.NoError(t, err)
 
-	r1, err := ss.Post().Get(context.Background(), o1.Id, false, false, false, "")
+	r1, err := ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "")
 	require.NoError(t, err)
 	ro1 := r1.Posts[o1.Id]
 
-	r2, err := ss.Post().Get(context.Background(), o1.Id, false, false, false, "")
+	r2, err := ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "")
 	require.NoError(t, err)
 	ro2 := r2.Posts[o2.Id]
 
-	r3, err := ss.Post().Get(context.Background(), o3.Id, false, false, false, "")
+	r3, err := ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "")
 	require.NoError(t, err)
 	ro3 := r3.Posts[o3.Id]
 
@@ -663,7 +763,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Update(o1a, ro1)
 	require.NoError(t, err)
 
-	r1, err = ss.Post().Get(context.Background(), o1.Id, false, false, false, "")
+	r1, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "")
 	require.NoError(t, err)
 
 	ro1a := r1.Posts[o1.Id]
@@ -674,7 +774,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Update(o2a, ro2)
 	require.NoError(t, err)
 
-	r2, err = ss.Post().Get(context.Background(), o1.Id, false, false, false, "")
+	r2, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "")
 	require.NoError(t, err)
 	ro2a := r2.Posts[o2.Id]
 
@@ -685,7 +785,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Update(o3a, ro3)
 	require.NoError(t, err)
 
-	r3, err = ss.Post().Get(context.Background(), o3.Id, false, false, false, "")
+	r3, err = ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "")
 	require.NoError(t, err)
 	ro3a := r3.Posts[o3.Id]
 
@@ -701,7 +801,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	})
 	require.NoError(t, err)
 
-	r4, err := ss.Post().Get(context.Background(), o4.Id, false, false, false, "")
+	r4, err := ss.Post().Get(context.Background(), o4.Id, model.GetPostsOptions{}, "")
 	require.NoError(t, err)
 	ro4 := r4.Posts[o4.Id]
 
@@ -711,7 +811,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Update(o4a, ro4)
 	require.NoError(t, err)
 
-	r4, err = ss.Post().Get(context.Background(), o4.Id, false, false, false, "")
+	r4, err = ss.Post().Get(context.Background(), o4.Id, model.GetPostsOptions{}, "")
 	require.NoError(t, err)
 
 	ro4a := r4.Posts[o4.Id]
@@ -720,109 +820,132 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 }
 
 func testPostStoreDelete(t *testing.T, ss store.Store) {
-	o1 := &model.Post{}
-	o1.ChannelId = model.NewId()
-	o1.UserId = model.NewId()
-	o1.Message = model.NewRandomString(10)
-	deleteByID := model.NewId()
+	t.Run("single post, no replies", func(t *testing.T) {
+		// Create a post
+		rootPost, err := ss.Post().Save(&model.Post{
+			ChannelId: model.NewId(),
+			UserId:    model.NewId(),
+			Message:   model.NewRandomString(10),
+		})
+		require.NoError(t, err)
 
-	etag1 := ss.Post().GetEtag(o1.ChannelId, false, false)
-	require.Equal(t, 0, strings.Index(etag1, model.CurrentVersion+"."), "Invalid Etag")
+		// Verify etag generation for the channel containing the post.
+		etag1 := ss.Post().GetEtag(rootPost.ChannelId, false, false)
+		require.Equal(t, 0, strings.Index(etag1, model.CurrentVersion+"."), "Invalid Etag")
 
-	o1, err := ss.Post().Save(o1)
-	require.NoError(t, err)
+		// Verify the created post.
+		r1, err := ss.Post().Get(context.Background(), rootPost.Id, model.GetPostsOptions{}, "")
+		require.NoError(t, err)
+		require.NotNil(t, r1.Posts[rootPost.Id])
+		require.Equal(t, rootPost, r1.Posts[rootPost.Id])
 
-	r1, err := ss.Post().Get(context.Background(), o1.Id, false, false, false, "")
-	require.NoError(t, err)
-	require.Equal(t, r1.Posts[o1.Id].CreateAt, o1.CreateAt, "invalid returned post")
+		// Mark the post as deleted by the user identified with deleteByID.
+		deleteByID := model.NewId()
+		err = ss.Post().Delete(rootPost.Id, model.GetMillis(), deleteByID)
+		require.NoError(t, err)
 
-	err = ss.Post().Delete(o1.Id, model.GetMillis(), deleteByID)
-	require.NoError(t, err)
+		// Ensure the appropriate posts prop reflects the user deleting the post.
+		posts, err := ss.Post().GetPostsCreatedAt(rootPost.ChannelId, rootPost.CreateAt)
+		require.NoError(t, err)
+		require.NotEmpty(t, posts)
+		assert.Equal(t, deleteByID, posts[0].GetProp(model.PostPropsDeleteBy), "unexpected Props[model.PostPropsDeleteBy]")
 
-	posts, _ := ss.Post().GetPostsCreatedAt(o1.ChannelId, o1.CreateAt)
-	post := posts[0]
-	actual := post.GetProp(model.PostPropsDeleteBy)
+		// Verify that the post is no longer fetched by default.
+		_, err = ss.Post().Get(context.Background(), rootPost.Id, model.GetPostsOptions{}, "")
+		require.Error(t, err, "fetching deleted post should have failed")
+		require.IsType(t, &store.ErrNotFound{}, err)
 
-	assert.Equal(t, deleteByID, actual, "Expected (*Post).Props[model.PostPropsDeleteBy] to be %v but got %v.", deleteByID, actual)
+		// Verify etag generation for the channel containing the now deleted post.
+		etag2 := ss.Post().GetEtag(rootPost.ChannelId, false, false)
+		require.Equal(t, 0, strings.Index(etag2, model.CurrentVersion+"."), "Invalid Etag")
+	})
 
-	r3, err := ss.Post().Get(context.Background(), o1.Id, false, false, false, "")
-	require.Error(t, err, "Missing id should have failed - PostList %v", r3)
+	t.Run("thread with one reply", func(t *testing.T) {
+		// Create a root post
+		rootPost, err := ss.Post().Save(&model.Post{
+			ChannelId: model.NewId(),
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+		})
+		require.NoError(t, err)
 
-	etag2 := ss.Post().GetEtag(o1.ChannelId, false, false)
-	require.Equal(t, 0, strings.Index(etag2, model.CurrentVersion+"."), "Invalid Etag")
-}
+		// Reply to that root post
+		replyPost, err := ss.Post().Save(&model.Post{
+			ChannelId: rootPost.ChannelId,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+			RootId:    rootPost.Id,
+		})
+		require.NoError(t, err)
 
-func testPostStoreDelete1Level(t *testing.T, ss store.Store) {
-	o1 := &model.Post{}
-	o1.ChannelId = model.NewId()
-	o1.UserId = model.NewId()
-	o1.Message = NewTestId()
-	o1, err := ss.Post().Save(o1)
-	require.NoError(t, err)
+		// Delete the root post
+		err = ss.Post().Delete(rootPost.Id, model.GetMillis(), "")
+		require.NoError(t, err)
 
-	o2 := &model.Post{}
-	o2.ChannelId = o1.ChannelId
-	o2.UserId = model.NewId()
-	o2.Message = NewTestId()
-	o2.RootId = o1.Id
-	o2, err = ss.Post().Save(o2)
-	require.NoError(t, err)
+		// Verify the root post deleted
+		_, err = ss.Post().Get(context.Background(), rootPost.Id, model.GetPostsOptions{}, "")
+		require.Error(t, err, "Deleted id should have failed")
+		require.IsType(t, &store.ErrNotFound{}, err)
 
-	err = ss.Post().Delete(o1.Id, model.GetMillis(), "")
-	require.NoError(t, err)
+		// Verify the reply post deleted
+		_, err = ss.Post().Get(context.Background(), replyPost.Id, model.GetPostsOptions{}, "")
+		require.Error(t, err, "Deleted id should have failed")
+		require.IsType(t, &store.ErrNotFound{}, err)
+	})
 
-	_, err = ss.Post().Get(context.Background(), o1.Id, false, false, false, "")
-	require.Error(t, err, "Deleted id should have failed")
+	t.Run("thread with multiple replies", func(t *testing.T) {
+		// Create a root post
+		rootPost1, err := ss.Post().Save(&model.Post{
+			ChannelId: model.NewId(),
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+		})
+		require.NoError(t, err)
 
-	_, err = ss.Post().Get(context.Background(), o2.Id, false, false, false, "")
-	require.Error(t, err, "Deleted id should have failed")
-}
+		// Reply to that root post
+		replyPost1, err := ss.Post().Save(&model.Post{
+			ChannelId: rootPost1.ChannelId,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+			RootId:    rootPost1.Id,
+		})
+		require.NoError(t, err)
 
-func testPostStoreDelete2Level(t *testing.T, ss store.Store) {
-	o1 := &model.Post{}
-	o1.ChannelId = model.NewId()
-	o1.UserId = model.NewId()
-	o1.Message = NewTestId()
-	o1, err := ss.Post().Save(o1)
-	require.NoError(t, err)
+		// Reply to that root post a second time
+		replyPost2, err := ss.Post().Save(&model.Post{
+			ChannelId: rootPost1.ChannelId,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+			RootId:    rootPost1.Id,
+		})
+		require.NoError(t, err)
 
-	o2 := &model.Post{}
-	o2.ChannelId = o1.ChannelId
-	o2.UserId = model.NewId()
-	o2.Message = NewTestId()
-	o2.RootId = o1.Id
-	o2, err = ss.Post().Save(o2)
-	require.NoError(t, err)
+		// Create another root post in a separate channel
+		rootPost2, err := ss.Post().Save(&model.Post{
+			ChannelId: model.NewId(),
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+		})
+		require.NoError(t, err)
 
-	o3 := &model.Post{}
-	o3.ChannelId = o1.ChannelId
-	o3.UserId = model.NewId()
-	o3.Message = NewTestId()
-	o3.RootId = o1.Id
-	o3, err = ss.Post().Save(o3)
-	require.NoError(t, err)
+		// Delete the root post
+		err = ss.Post().Delete(rootPost1.Id, model.GetMillis(), "")
+		require.NoError(t, err)
 
-	o4 := &model.Post{}
-	o4.ChannelId = model.NewId()
-	o4.UserId = model.NewId()
-	o4.Message = NewTestId()
-	o4, err = ss.Post().Save(o4)
-	require.NoError(t, err)
+		// Verify the root post and replies deleted
+		_, err = ss.Post().Get(context.Background(), rootPost1.Id, model.GetPostsOptions{}, "")
+		require.Error(t, err, "Deleted id should have failed")
 
-	err = ss.Post().Delete(o1.Id, model.GetMillis(), "")
-	require.NoError(t, err)
+		_, err = ss.Post().Get(context.Background(), replyPost1.Id, model.GetPostsOptions{}, "")
+		require.Error(t, err, "Deleted id should have failed")
 
-	_, err = ss.Post().Get(context.Background(), o1.Id, false, false, false, "")
-	require.Error(t, err, "Deleted id should have failed")
+		_, err = ss.Post().Get(context.Background(), replyPost2.Id, model.GetPostsOptions{}, "")
+		require.Error(t, err, "Deleted id should have failed")
 
-	_, err = ss.Post().Get(context.Background(), o2.Id, false, false, false, "")
-	require.Error(t, err, "Deleted id should have failed")
-
-	_, err = ss.Post().Get(context.Background(), o3.Id, false, false, false, "")
-	require.Error(t, err, "Deleted id should have failed")
-
-	_, err = ss.Post().Get(context.Background(), o4.Id, false, false, false, "")
-	require.NoError(t, err)
+		// Verify other root posts remain undeleted.
+		_, err = ss.Post().Get(context.Background(), rootPost2.Id, model.GetPostsOptions{}, "")
+		require.NoError(t, err)
+	})
 }
 
 func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
@@ -887,10 +1010,10 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 	require.EqualValues(t, 0, thread.ReplyCount)
 	require.EqualValues(t, model.StringArray{}, thread.Participants)
 
-	_, err = ss.Post().Get(context.Background(), o1.Id, false, false, false, "")
+	_, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "")
 	require.NoError(t, err, "Deleted id shouldn't have failed")
 
-	_, err = ss.Post().Get(context.Background(), o2.Id, false, false, false, "")
+	_, err = ss.Post().Get(context.Background(), o2.Id, model.GetPostsOptions{}, "")
 	require.Error(t, err, "Deleted id should have failed")
 
 	thread, err = ss.Thread().Get(o5.Id)
@@ -904,16 +1027,16 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	require.Nil(t, thread)
 
-	_, err = ss.Post().Get(context.Background(), o3.Id, false, false, false, "")
+	_, err = ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "")
 	require.Error(t, err, "Deleted id should have failed")
 
-	_, err = ss.Post().Get(context.Background(), o4.Id, false, false, false, "")
+	_, err = ss.Post().Get(context.Background(), o4.Id, model.GetPostsOptions{}, "")
 	require.Error(t, err, "Deleted id should have failed")
 
-	_, err = ss.Post().Get(context.Background(), o5.Id, false, false, false, "")
+	_, err = ss.Post().Get(context.Background(), o5.Id, model.GetPostsOptions{}, "")
 	require.Error(t, err, "Deleted id should have failed")
 
-	_, err = ss.Post().Get(context.Background(), o6.Id, false, false, false, "")
+	_, err = ss.Post().Get(context.Background(), o6.Id, model.GetPostsOptions{}, "")
 	require.Error(t, err, "Deleted id should have failed")
 }
 
@@ -943,13 +1066,13 @@ func testPostStorePermDelete1Level2(t *testing.T, ss store.Store) {
 	err2 := ss.Post().PermanentDeleteByUser(o1.UserId)
 	require.NoError(t, err2)
 
-	_, err = ss.Post().Get(context.Background(), o1.Id, false, false, false, "")
+	_, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "")
 	require.Error(t, err, "Deleted id should have failed")
 
-	_, err = ss.Post().Get(context.Background(), o2.Id, false, false, false, "")
+	_, err = ss.Post().Get(context.Background(), o2.Id, model.GetPostsOptions{}, "")
 	require.Error(t, err, "Deleted id should have failed")
 
-	_, err = ss.Post().Get(context.Background(), o3.Id, false, false, false, "")
+	_, err = ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "")
 	require.NoError(t, err, "Deleted id should have failed")
 }
 
@@ -977,7 +1100,7 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 	o3, err = ss.Post().Save(o3)
 	require.NoError(t, err)
 
-	pl, err := ss.Post().Get(context.Background(), o1.Id, false, false, false, "")
+	pl, err := ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "")
 	require.NoError(t, err)
 
 	require.Len(t, pl.Posts, 3, "invalid returned post")
@@ -985,7 +1108,7 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 	dErr := ss.Post().Delete(o3.Id, model.GetMillis(), "")
 	require.NoError(t, dErr)
 
-	pl, err = ss.Post().Get(context.Background(), o1.Id, false, false, false, "")
+	pl, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "")
 	require.NoError(t, err)
 
 	require.Len(t, pl.Posts, 2, "invalid returned post")
@@ -993,7 +1116,7 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 	dErr = ss.Post().Delete(o2.Id, model.GetMillis(), "")
 	require.NoError(t, dErr)
 
-	pl, err = ss.Post().Get(context.Background(), o1.Id, false, false, false, "")
+	pl, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "")
 	require.NoError(t, err)
 
 	require.Len(t, pl.Posts, 1, "invalid returned post")
@@ -2484,6 +2607,31 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 	require.Len(t, r.Order, 0, "should have 0 posts")
 }
 
+func testPostStoreGetLastPostRowCreateAt(t *testing.T, ss store.Store) {
+	createTime1 := model.GetMillis() + 1
+	o0 := &model.Post{}
+	o0.ChannelId = model.NewId()
+	o0.UserId = model.NewId()
+	o0.Message = NewTestId()
+	o0.CreateAt = createTime1
+	o0, err := ss.Post().Save(o0)
+	require.NoError(t, err)
+
+	createTime2 := model.GetMillis() + 2
+
+	o1 := &model.Post{}
+	o1.ChannelId = o0.ChannelId
+	o1.UserId = model.NewId()
+	o1.Message = "Latest message"
+	o1.CreateAt = createTime2
+	_, err = ss.Post().Save(o1)
+	require.NoError(t, err)
+
+	createAt, err := ss.Post().GetLastPostRowCreateAt()
+	require.NoError(t, err)
+	assert.Equal(t, createAt, createTime2)
+}
+
 func testPostStoreGetPostsCreatedAt(t *testing.T, ss store.Store) {
 	createTime := model.GetMillis() + 1
 
@@ -2563,23 +2711,23 @@ func testPostStoreOverwriteMultiple(t *testing.T, ss store.Store) {
 	})
 	require.NoError(t, err)
 
-	r1, err := ss.Post().Get(context.Background(), o1.Id, false, false, false, "")
+	r1, err := ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "")
 	require.NoError(t, err)
 	ro1 := r1.Posts[o1.Id]
 
-	r2, err := ss.Post().Get(context.Background(), o2.Id, false, false, false, "")
+	r2, err := ss.Post().Get(context.Background(), o2.Id, model.GetPostsOptions{}, "")
 	require.NoError(t, err)
 	ro2 := r2.Posts[o2.Id]
 
-	r3, err := ss.Post().Get(context.Background(), o3.Id, false, false, false, "")
+	r3, err := ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "")
 	require.NoError(t, err)
 	ro3 := r3.Posts[o3.Id]
 
-	r4, err := ss.Post().Get(context.Background(), o4.Id, false, false, false, "")
+	r4, err := ss.Post().Get(context.Background(), o4.Id, model.GetPostsOptions{}, "")
 	require.NoError(t, err)
 	ro4 := r4.Posts[o4.Id]
 
-	r5, err := ss.Post().Get(context.Background(), o5.Id, false, false, false, "")
+	r5, err := ss.Post().Get(context.Background(), o5.Id, model.GetPostsOptions{}, "")
 	require.NoError(t, err)
 	ro5 := r5.Posts[o5.Id]
 
@@ -2605,15 +2753,15 @@ func testPostStoreOverwriteMultiple(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 
-		r1, nErr := ss.Post().Get(context.Background(), o1.Id, false, false, false, "")
+		r1, nErr := ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "")
 		require.NoError(t, nErr)
 		ro1a := r1.Posts[o1.Id]
 
-		r2, nErr = ss.Post().Get(context.Background(), o1.Id, false, false, false, "")
+		r2, nErr = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "")
 		require.NoError(t, nErr)
 		ro2a := r2.Posts[o2.Id]
 
-		r3, nErr = ss.Post().Get(context.Background(), o3.Id, false, false, false, "")
+		r3, nErr = ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "")
 		require.NoError(t, nErr)
 		ro3a := r3.Posts[o3.Id]
 
@@ -2635,11 +2783,11 @@ func testPostStoreOverwriteMultiple(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 
-		r4, nErr := ss.Post().Get(context.Background(), o4.Id, false, false, false, "")
+		r4, nErr := ss.Post().Get(context.Background(), o4.Id, model.GetPostsOptions{}, "")
 		require.NoError(t, nErr)
 		ro4a := r4.Posts[o4.Id]
 
-		r5, nErr = ss.Post().Get(context.Background(), o5.Id, false, false, false, "")
+		r5, nErr = ss.Post().Get(context.Background(), o5.Id, model.GetPostsOptions{}, "")
 		require.NoError(t, nErr)
 		ro5a := r5.Posts[o5.Id]
 
@@ -2681,19 +2829,19 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	})
 	require.NoError(t, err)
 
-	r1, err := ss.Post().Get(context.Background(), o1.Id, false, false, false, "")
+	r1, err := ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "")
 	require.NoError(t, err)
 	ro1 := r1.Posts[o1.Id]
 
-	r2, err := ss.Post().Get(context.Background(), o2.Id, false, false, false, "")
+	r2, err := ss.Post().Get(context.Background(), o2.Id, model.GetPostsOptions{}, "")
 	require.NoError(t, err)
 	ro2 := r2.Posts[o2.Id]
 
-	r3, err := ss.Post().Get(context.Background(), o3.Id, false, false, false, "")
+	r3, err := ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "")
 	require.NoError(t, err)
 	ro3 := r3.Posts[o3.Id]
 
-	r4, err := ss.Post().Get(context.Background(), o4.Id, false, false, false, "")
+	r4, err := ss.Post().Get(context.Background(), o4.Id, model.GetPostsOptions{}, "")
 	require.NoError(t, err)
 	ro4 := r4.Posts[o4.Id]
 
@@ -2718,15 +2866,15 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 		_, err = ss.Post().Overwrite(o3a)
 		require.NoError(t, err)
 
-		r1, err = ss.Post().Get(context.Background(), o1.Id, false, false, false, "")
+		r1, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "")
 		require.NoError(t, err)
 		ro1a := r1.Posts[o1.Id]
 
-		r2, err = ss.Post().Get(context.Background(), o1.Id, false, false, false, "")
+		r2, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "")
 		require.NoError(t, err)
 		ro2a := r2.Posts[o2.Id]
 
-		r3, err = ss.Post().Get(context.Background(), o3.Id, false, false, false, "")
+		r3, err = ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "")
 		require.NoError(t, err)
 		ro3a := r3.Posts[o3.Id]
 
@@ -2742,7 +2890,7 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 		_, err = ss.Post().Overwrite(o4a)
 		require.NoError(t, err)
 
-		r4, err = ss.Post().Get(context.Background(), o4.Id, false, false, false, "")
+		r4, err = ss.Post().Get(context.Background(), o4.Id, model.GetPostsOptions{}, "")
 		require.NoError(t, err)
 
 		ro4a := r4.Posts[o4.Id]
@@ -2773,15 +2921,15 @@ func testPostStoreGetPostsByIds(t *testing.T, ss store.Store) {
 	o3, err = ss.Post().Save(o3)
 	require.NoError(t, err)
 
-	r1, err := ss.Post().Get(context.Background(), o1.Id, false, false, false, "")
+	r1, err := ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "")
 	require.NoError(t, err)
 	ro1 := r1.Posts[o1.Id]
 
-	r2, err := ss.Post().Get(context.Background(), o2.Id, false, false, false, "")
+	r2, err := ss.Post().Get(context.Background(), o2.Id, model.GetPostsOptions{}, "")
 	require.NoError(t, err)
 	ro2 := r2.Posts[o2.Id]
 
-	r3, err := ss.Post().Get(context.Background(), o3.Id, false, false, false, "")
+	r3, err := ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "")
 	require.NoError(t, err)
 	ro3 := r3.Posts[o3.Id]
 
@@ -2829,7 +2977,7 @@ func testPostStoreGetPostsBatchForIndexing(t *testing.T, ss store.Store) {
 	o2.ChannelId = c2.Id
 	o2.UserId = model.NewId()
 	o2.Message = NewTestId()
-	o2, err = ss.Post().Save(o2)
+	_, err = ss.Post().Save(o2)
 	require.NoError(t, err)
 
 	o3 := &model.Post{}
@@ -2837,26 +2985,30 @@ func testPostStoreGetPostsBatchForIndexing(t *testing.T, ss store.Store) {
 	o3.UserId = model.NewId()
 	o3.RootId = o1.Id
 	o3.Message = NewTestId()
-	o3, err = ss.Post().Save(o3)
+	_, err = ss.Post().Save(o3)
 	require.NoError(t, err)
 
-	r, err := ss.Post().GetPostsBatchForIndexing(o1.CreateAt, model.GetMillis()+100000, 100)
+	// Getting all
+	r, err := ss.Post().GetPostsBatchForIndexing(o1.CreateAt-1, "", 100)
 	require.NoError(t, err)
 	require.Len(t, r, 3, "Expected 3 posts in results. Got %v", len(r))
-	for _, p := range r {
-		if p.Id == o1.Id {
-			require.Equal(t, p.TeamId, c1.TeamId, "Unexpected team ID")
-			require.Nil(t, p.ParentCreateAt, "Unexpected parent create at")
-		} else if p.Id == o2.Id {
-			require.Equal(t, p.TeamId, c2.TeamId, "Unexpected team ID")
-			require.Nil(t, p.ParentCreateAt, "Unexpected parent create at")
-		} else if p.Id == o3.Id {
-			require.Equal(t, p.TeamId, c1.TeamId, "Unexpected team ID")
-			require.Equal(t, *p.ParentCreateAt, o1.CreateAt, "Unexpected parent create at")
-		} else {
-			require.Fail(t, "unexpected post returned")
-		}
-	}
+
+	// Testing pagination
+	r, err = ss.Post().GetPostsBatchForIndexing(o1.CreateAt-1, "", 1)
+	require.NoError(t, err)
+	require.Len(t, r, 1, "Expected 1 post in results. Got %v", len(r))
+
+	r, err = ss.Post().GetPostsBatchForIndexing(r[0].CreateAt, r[0].Id, 1)
+	require.NoError(t, err)
+	require.Len(t, r, 1, "Expected 1 post in results. Got %v", len(r))
+
+	r, err = ss.Post().GetPostsBatchForIndexing(r[0].CreateAt, r[0].Id, 1)
+	require.NoError(t, err)
+	require.Len(t, r, 1, "Expected 1 post in results. Got %v", len(r))
+
+	r, err = ss.Post().GetPostsBatchForIndexing(r[0].CreateAt, r[0].Id, 1)
+	require.NoError(t, err)
+	require.Len(t, r, 0, "Expected 0 post in results. Got %v", len(r))
 }
 
 func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
@@ -2902,13 +3054,13 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	_, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2000, 1000, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 
-	_, err = ss.Post().Get(context.Background(), o1.Id, false, false, false, "")
+	_, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "")
 	require.Error(t, err, "Should have not found post 1 after purge")
 
-	_, err = ss.Post().Get(context.Background(), o2.Id, false, false, false, "")
+	_, err = ss.Post().Get(context.Background(), o2.Id, model.GetPostsOptions{}, "")
 	require.Error(t, err, "Should have not found post 2 after purge")
 
-	_, err = ss.Post().Get(context.Background(), o3.Id, false, false, false, "")
+	_, err = ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "")
 	require.NoError(t, err, "Should have found post 3 after purge")
 
 	t.Run("with pagination", func(t *testing.T) {
@@ -2935,8 +3087,8 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	t.Run("with data retention policies", func(t *testing.T) {
 		channelPolicy, err2 := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
-				DisplayName:  "DisplayName",
-				PostDuration: model.NewInt64(30),
+				DisplayName:      "DisplayName",
+				PostDurationDays: model.NewInt64(30),
 			},
 			ChannelIDs: []string{channel.Id},
 		})
@@ -2952,20 +3104,20 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 
 		_, _, err2 = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2000, 1000, model.RetentionPolicyCursor{})
 		require.NoError(t, err2)
-		_, err2 = ss.Post().Get(context.Background(), post.Id, false, false, false, "")
+		_, err2 = ss.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "")
 		require.NoError(t, err2, "global policy should have been ignored due to granular policy")
 
-		nowMillis := post.CreateAt + *channelPolicy.PostDuration*24*60*60*1000 + 1
+		nowMillis := post.CreateAt + *channelPolicy.PostDurationDays*model.DayInMilliseconds + 1
 		_, _, err2 = ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 0, 1000, model.RetentionPolicyCursor{})
 		require.NoError(t, err2)
-		_, err2 = ss.Post().Get(context.Background(), post.Id, false, false, false, "")
+		_, err2 = ss.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "")
 		require.Error(t, err2, "post should have been deleted by channel policy")
 
 		// Create a team policy which is stricter than the channel policy
 		teamPolicy, err2 := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
-				DisplayName:  "DisplayName",
-				PostDuration: model.NewInt64(20),
+				DisplayName:      "DisplayName",
+				PostDurationDays: model.NewInt64(20),
 			},
 			TeamIDs: []string{team.Id},
 		})
@@ -2974,10 +3126,10 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		post, err2 = ss.Post().Save(post)
 		require.NoError(t, err2)
 
-		nowMillis = post.CreateAt + *teamPolicy.PostDuration*24*60*60*1000 + 1
+		nowMillis = post.CreateAt + *teamPolicy.PostDurationDays*model.DayInMilliseconds + 1
 		_, _, err2 = ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 0, 1000, model.RetentionPolicyCursor{})
 		require.NoError(t, err2)
-		_, err2 = ss.Post().Get(context.Background(), post.Id, false, false, false, "")
+		_, err2 = ss.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "")
 		require.NoError(t, err2, "channel policy should have overridden team policy")
 
 		// Delete channel policy and re-run team policy
@@ -2989,7 +3141,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 
 		_, _, err2 = ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 0, 1000, model.RetentionPolicyCursor{})
 		require.NoError(t, err2)
-		_, err2 = ss.Post().Get(context.Background(), post.Id, false, false, false, "")
+		_, err2 = ss.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "")
 		require.Error(t, err2, "post should have been deleted by team policy")
 
 		err2 = ss.RetentionPolicy().RemoveTeams(teamPolicy.ID, []string{team.Id})
@@ -3016,8 +3168,8 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 
 		channelPolicy, err2 := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
-				DisplayName:  "DisplayName",
-				PostDuration: model.NewInt64(30),
+				DisplayName:      "DisplayName",
+				PostDurationDays: model.NewInt64(30),
 			},
 			ChannelIDs: []string{c1.Id},
 		})
@@ -3025,8 +3177,8 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		defer ss.RetentionPolicy().Delete(channelPolicy.ID)
 		teamPolicy, err2 := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
-				DisplayName:  "DisplayName",
-				PostDuration: model.NewInt64(30),
+				DisplayName:      "DisplayName",
+				PostDurationDays: model.NewInt64(30),
 			},
 			TeamIDs: []string{team.Id},
 		})
@@ -3058,7 +3210,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		})
 		require.NoError(t, err2)
 
-		nowMillis := int64(1 + 30*24*60*60*1000 + 1)
+		nowMillis := int64(1 + 30*model.DayInMilliseconds + 1)
 		deleted, _, err2 := ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 2, 1000, model.RetentionPolicyCursor{})
 		require.NoError(t, err2)
 		require.Equal(t, int64(3), deleted)

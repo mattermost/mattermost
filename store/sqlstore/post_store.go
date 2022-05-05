@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
-	"strconv"
 	"strings"
 	"sync"
 
@@ -216,7 +215,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 	}
 
 	if err = s.updateThreadsFromPosts(transaction, posts); err != nil {
-		mlog.Warn("Error updating posts, thread update failed", mlog.Err(err))
+		return nil, -1, errors.Wrap(err, "update thread from posts failed")
 	}
 
 	if err = transaction.Commit(); err != nil {
@@ -291,7 +290,7 @@ func (s *SqlPostStore) populateReplyCount(posts []*model.Post) error {
 		Select("RootId, COUNT(Id) AS Count").
 		From("Posts").
 		Where(sq.Eq{"RootId": rootIds}).
-		Where(sq.Eq{"DeleteAt": 0}).
+		Where(sq.Eq{"Posts.DeleteAt": 0}).
 		GroupBy("RootId")
 
 	queryString, args, err := query.ToSql()
@@ -488,7 +487,7 @@ func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset 
 							AND Category = ?
 					)
 					CHANNEL_FILTER
-					AND DeleteAt = 0
+					AND Posts.DeleteAt = 0
                 ) as A
             INNER JOIN Channels as B
                 ON B.Id = A.ChannelId
@@ -548,7 +547,7 @@ func (s *SqlPostStore) buildFlaggedPostChannelFilterClause(channelId string, que
 	return "AND ChannelId = ?", append(queryParams, channelId)
 }
 
-func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, extended bool) (*model.PostList, error) {
+func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model.GetPostsOptions) (*model.PostList, error) {
 	if id == "" {
 		return nil, store.NewErrInvalidInput("Post", "id", id)
 	}
@@ -570,8 +569,8 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, extended b
 		From("Posts").
 		LeftJoin("Threads ON Threads.PostId = Id").
 		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Id AND ThreadMemberships.UserId = ?", userID).
-		Where(sq.Eq{"DeleteAt": 0}).
-		Where(sq.Eq{"Id": id}).ToSql()
+		Where(sq.Eq{"Posts.DeleteAt": 0}).
+		Where(sq.Eq{"Posts.Id": id}).ToSql()
 
 	err := s.GetReplicaX().Get(&post, postFetchQuery, args...)
 	if err != nil {
@@ -583,12 +582,71 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, extended b
 	}
 
 	posts := []*model.Post{}
-	err = s.GetReplicaX().Select(&posts, "SELECT * FROM Posts WHERE Posts.RootId = ? AND DeleteAt = 0", id)
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.Eq{
+			"Posts.RootId":   id,
+			"Posts.DeleteAt": 0,
+		})
+
+	var sort string
+	if opts.Direction != "" {
+		if opts.Direction == "up" {
+			sort = "DESC"
+		} else if opts.Direction == "down" {
+			sort = "ASC"
+		}
+	}
+	if sort != "" {
+		query = query.OrderBy("CreateAt " + sort + ", Id " + sort)
+	}
+
+	if opts.FromPost != "" && opts.FromCreateAt != 0 {
+		if opts.Direction == "down" {
+			query = query.Where(sq.Or{
+				sq.Gt{"Posts.CreateAt": opts.FromCreateAt},
+				sq.And{
+					sq.Eq{"Posts.CreateAt": opts.FromCreateAt},
+					sq.Gt{"Posts.Id": opts.FromPost},
+				},
+			})
+		} else {
+			query = query.Where(sq.Or{
+				sq.Lt{"Posts.CreateAt": opts.FromCreateAt},
+				sq.And{
+					sq.Eq{"Posts.CreateAt": opts.FromCreateAt},
+					sq.Lt{"Posts.Id": opts.FromPost},
+				},
+			})
+		}
+	}
+
+	if opts.PerPage != 0 {
+		query = query.Limit(uint64(opts.PerPage + 1))
+	}
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "getPostWithCollapsedThreads_Tosql")
+	}
+	err = s.GetReplicaX().Select(&posts, sql, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts for thread %s", id)
 	}
 
-	list, err := s.prepareThreadedResponse([]*postWithExtra{&post}, extended, false)
+	var hasNext bool
+	if opts.PerPage != 0 {
+		if len(posts) == opts.PerPage+1 {
+			hasNext = true
+		}
+	}
+	if hasNext {
+		// Shave off the last item.
+		posts = posts[:len(posts)-1]
+	}
+
+	list, err := s.prepareThreadedResponse([]*postWithExtra{&post}, opts.CollapsedThreadsExtended, false)
 	if err != nil {
 		return nil, err
 	}
@@ -596,12 +654,14 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, extended b
 		list.AddPost(p)
 		list.AddOrder(p.Id)
 	}
+	list.HasNext = hasNext
+
 	return list, nil
 }
 
-func (s *SqlPostStore) Get(ctx context.Context, id string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool, userID string) (*model.PostList, error) {
-	if collapsedThreads {
-		return s.getPostWithCollapsedThreads(id, userID, collapsedThreadsExtended)
+func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string) (*model.PostList, error) {
+	if opts.CollapsedThreads {
+		return s.getPostWithCollapsedThreads(id, userID, opts)
 	}
 	pl := model.NewPostList()
 
@@ -621,7 +681,7 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, skipFetchThreads, col
 	}
 	pl.AddPost(&post)
 	pl.AddOrder(id)
-	if !skipFetchThreads {
+	if !opts.SkipFetchThreads {
 		rootId := post.RootId
 
 		if rootId == "" {
@@ -632,16 +692,78 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, skipFetchThreads, col
 			return nil, errors.Wrapf(err, "invalid rootId with value=%s", rootId)
 		}
 
+		query := s.getQueryBuilder().
+			Select("p.*, (SELECT count(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount").
+			From("Posts p").
+			Where(sq.Or{
+				sq.Eq{"p.Id": rootId},
+				sq.Eq{"p.RootId": rootId},
+			}).
+			Where(sq.Eq{"p.DeleteAt": 0})
+
+		var sort string
+		if opts.Direction != "" {
+			if opts.Direction == "up" {
+				sort = "DESC"
+			} else if opts.Direction == "down" {
+				sort = "ASC"
+			}
+		}
+		if sort != "" {
+			query = query.OrderBy("CreateAt " + sort + ", Id " + sort)
+		}
+
+		if opts.FromPost != "" && opts.FromCreateAt != 0 {
+			if opts.Direction == "down" {
+				query = query.Where(sq.Or{
+					sq.Gt{"p.CreateAt": opts.FromCreateAt},
+					sq.And{
+						sq.Eq{"p.CreateAt": opts.FromCreateAt},
+						sq.Gt{"p.Id": opts.FromPost},
+					},
+				})
+			} else {
+				query = query.Where(sq.Or{
+					sq.Lt{"p.CreateAt": opts.FromCreateAt},
+					sq.And{
+						sq.Eq{"p.CreateAt": opts.FromCreateAt},
+						sq.Lt{"p.Id": opts.FromPost},
+					},
+				})
+			}
+		}
+
+		if opts.PerPage != 0 {
+			query = query.Limit(uint64(opts.PerPage + 1))
+		}
+
+		sql, args, err := query.ToSql()
+		if err != nil {
+			return nil, errors.Wrap(err, "Get_Tosql")
+		}
+
 		posts := []*model.Post{}
-		err = s.GetReplicaX().Select(&posts, "SELECT *, (SELECT count(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE (Id = ? OR RootId = ?) AND DeleteAt = 0", rootId, rootId)
+		err = s.GetReplicaX().Select(&posts, sql, args...)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to find Posts")
+		}
+
+		var hasNext bool
+		if opts.PerPage != 0 {
+			if len(posts) == opts.PerPage+1 {
+				hasNext = true
+			}
+		}
+		if hasNext {
+			// Shave off the last item
+			posts = posts[:len(posts)-1]
 		}
 
 		for _, p := range posts {
 			pl.AddPost(p)
 			pl.AddOrder(p.Id)
 		}
+		pl.HasNext = hasNext
 	}
 	return pl, nil
 }
@@ -751,7 +873,11 @@ func (s *SqlPostStore) Delete(postID string, time int64, deleteByID string) erro
 		return errors.Wrap(err, "failed to update Posts")
 	}
 
-	err = s.cleanupThreadComments(transaction, postID, id.RootId, id.UserId)
+	if id.RootId == "" {
+		err = s.deleteThread(transaction, postID, time)
+	} else {
+		err = s.updateThreadAfterReplyDeletion(transaction, id.RootId, id.UserId)
+	}
 
 	if err != nil {
 		return errors.Wrapf(err, "failed to cleanup Thread with postid=%s", id.RootId)
@@ -811,13 +937,12 @@ func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) error {
 	}
 
 	_, err = transaction.Exec("DELETE FROM Posts WHERE UserId = ? AND RootId != ''", userId)
-
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete Posts with userId=%s", userId)
 	}
 
 	for _, ids := range results {
-		if err = s.cleanupThreadComments(transaction, ids.Id, ids.RootId, userId); err != nil {
+		if err = s.updateThreadAfterReplyDeletion(transaction, ids.RootId, userId); err != nil {
 			return err
 		}
 	}
@@ -981,14 +1106,14 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions) (
 	postFetchQuery, args, _ := s.getQueryBuilder().
 		Select(columns...).
 		From("Posts").
-		LeftJoin("Threads ON Threads.PostId = Id").
-		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Id AND ThreadMemberships.UserId = ?", options.UserId).
-		Where(sq.Eq{"DeleteAt": 0}).
+		LeftJoin("Threads ON Threads.PostId = Posts.Id").
+		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Posts.Id AND ThreadMemberships.UserId = ?", options.UserId).
+		Where(sq.Eq{"Posts.DeleteAt": 0}).
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
-		Where(sq.Eq{"RootId": ""}).
+		Where(sq.Eq{"Posts.RootId": ""}).
 		Limit(uint64(options.PerPage)).
 		Offset(uint64(offset)).
-		OrderBy("CreateAt DESC").ToSql()
+		OrderBy("Posts.CreateAt DESC").ToSql()
 
 	err := s.GetReplicaX().Select(&posts, postFetchQuery, args...)
 	if err != nil {
@@ -1065,13 +1190,13 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 	postFetchQuery, args, _ := s.getQueryBuilder().
 		Select(columns...).
 		From("Posts").
-		LeftJoin("Threads ON Threads.PostId = Id").
-		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Id AND ThreadMemberships.UserId = ?", options.UserId).
-		Where(sq.Eq{"DeleteAt": 0}).
+		LeftJoin("Threads ON Threads.PostId = Posts.Id").
+		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Posts.Id AND ThreadMemberships.UserId = ?", options.UserId).
+		Where(sq.Eq{"Posts.DeleteAt": 0}).
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
-		Where(sq.Gt{"UpdateAt": options.Time}).
-		Where(sq.Eq{"RootId": ""}).
-		OrderBy("CreateAt DESC").ToSql()
+		Where(sq.Gt{"Posts.UpdateAt": options.Time}).
+		Where(sq.Eq{"Posts.RootId": ""}).
+		OrderBy("Posts.CreateAt DESC").ToSql()
 
 	err := s.GetReplicaX().Select(&posts, postFetchQuery, args...)
 	if err != nil {
@@ -1194,16 +1319,16 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 	query := s.getQueryBuilder().
 		Select("*").
 		From("Posts").
-		Where(sq.Or{sq.Gt{"UpdateAt": cursor.LastPostUpdateAt}, sq.And{sq.Eq{"UpdateAt": cursor.LastPostUpdateAt}, sq.Gt{"Id": cursor.LastPostId}}}).
-		OrderBy("UpdateAt", "Id").
+		Where(sq.Or{sq.Gt{"Posts.UpdateAt": cursor.LastPostUpdateAt}, sq.And{sq.Eq{"Posts.UpdateAt": cursor.LastPostUpdateAt}, sq.Gt{"Posts.Id": cursor.LastPostId}}}).
+		OrderBy("Posts.UpdateAt", "Id").
 		Limit(uint64(limit))
 
 	if options.ChannelId != "" {
-		query = query.Where(sq.Eq{"ChannelId": options.ChannelId})
+		query = query.Where(sq.Eq{"Posts.ChannelId": options.ChannelId})
 	}
 
 	if !options.IncludeDeleted {
-		query = query.Where(sq.Eq{"DeleteAt": 0})
+		query = query.Where(sq.Eq{"Posts.DeleteAt": 0})
 	}
 
 	if options.ExcludeRemoteId != "" {
@@ -1280,7 +1405,7 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 	conditions := sq.And{
 		sq.Expr(`CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = ?)`, options.PostId),
 		sq.Eq{"p.ChannelId": options.ChannelId},
-		sq.Eq{"DeleteAt": int(0)},
+		sq.Eq{"p.DeleteAt": int(0)},
 	}
 	if options.CollapsedThreads {
 		conditions = append(conditions, sq.Eq{"RootId": ""})
@@ -1293,7 +1418,7 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		// Adding ChannelId and DeleteAt order columns
 		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
 		// See MM-24170.
-		OrderBy("p.ChannelId", "DeleteAt", "CreateAt "+sort).
+		OrderBy("p.ChannelId", "p.DeleteAt", "p.CreateAt "+sort).
 		Limit(uint64(options.PerPage)).
 		Offset(uint64(offset))
 
@@ -1326,8 +1451,8 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		rootQuery = rootQuery.From("Posts p").
 			Where(sq.And{
 				idQuery,
-				sq.Eq{"ChannelId": options.ChannelId},
-				sq.Eq{"DeleteAt": 0},
+				sq.Eq{"p.ChannelId": options.ChannelId},
+				sq.Eq{"p.DeleteAt": 0},
 			}).
 			OrderBy("CreateAt DESC")
 
@@ -1383,11 +1508,11 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 
 	conditions := sq.And{
 		direction,
-		sq.Eq{"ChannelId": channelId},
-		sq.Eq{"DeleteAt": int(0)},
+		sq.Eq{"Posts.ChannelId": channelId},
+		sq.Eq{"Posts.DeleteAt": int(0)},
 	}
 	if collapsedThreads {
-		conditions = sq.And{conditions, sq.Eq{"RootId": ""}}
+		conditions = sq.And{conditions, sq.Eq{"Posts.RootId": ""}}
 	}
 	query := s.getQueryBuilder().
 		Select("Id").
@@ -1396,7 +1521,7 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 		// Adding ChannelId and DeleteAt order columns
 		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
 		// See MM-23369.
-		OrderBy("ChannelId", "DeleteAt", "CreateAt "+sort).
+		OrderBy("Posts.ChannelId", "Posts.DeleteAt", "Posts.CreateAt "+sort).
 		Limit(1)
 
 	queryString, args, err := query.ToSql()
@@ -1423,9 +1548,9 @@ func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64, collapsedT
 		table += " USE INDEX(idx_posts_channel_id_delete_at_create_at)"
 	}
 	conditions := sq.And{
-		sq.Gt{"CreateAt": time},
-		sq.Eq{"ChannelId": channelId},
-		sq.Eq{"DeleteAt": int(0)},
+		sq.Gt{"Posts.CreateAt": time},
+		sq.Eq{"Posts.ChannelId": channelId},
+		sq.Eq{"Posts.DeleteAt": int(0)},
 	}
 	if collapsedThreads {
 		conditions = sq.And{conditions, sq.Eq{"RootId": ""}}
@@ -1437,7 +1562,7 @@ func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64, collapsedT
 		// Adding ChannelId and DeleteAt order columns
 		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
 		// See MM-23369.
-		OrderBy("ChannelId", "DeleteAt", "CreateAt ASC").
+		OrderBy("Posts.ChannelId", "Posts.DeleteAt", "Posts.CreateAt ASC").
 		Limit(1)
 
 	queryString, args, err := query.ToSql()
@@ -1459,9 +1584,9 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 	posts := []*model.Post{}
 	var fetchQuery string
 	if skipFetchThreads {
-		fetchQuery = "SELECT p.*, (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE ChannelId = ? AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT ? OFFSET ?"
+		fetchQuery = "SELECT p.*, (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.ChannelId = ? AND p.DeleteAt = 0 ORDER BY p.CreateAt DESC LIMIT ? OFFSET ?"
 	} else {
-		fetchQuery = "SELECT * FROM Posts WHERE ChannelId = ? AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT ? OFFSET ?"
+		fetchQuery = "SELECT * FROM Posts WHERE Posts.ChannelId = ? AND Posts.DeleteAt = 0 ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?"
 	}
 	err := s.GetReplicaX().Select(&posts, fetchQuery, channelId, limit, offset)
 	if err != nil {
@@ -1482,13 +1607,13 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 			q.RootId
 		FROM
 			(SELECT
-				RootId
+				Posts.RootId
 			FROM
 				Posts
 			WHERE
-				ChannelId = ?
-					AND DeleteAt = 0
-			ORDER BY CreateAt DESC
+				Posts.ChannelId = ?
+					AND Posts.DeleteAt = 0
+			ORDER BY Posts.CreateAt DESC
 			LIMIT ? OFFSET ?) q
 		WHERE q.RootId != ''`
 
@@ -1499,34 +1624,36 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 	if len(roots) == 0 {
 		return nil, nil
 	}
-	// TODO: convert to squirrel HW
-	params := make(map[string]interface{})
-	placeholders := make([]string, len(roots))
-	for idx, r := range roots {
-		key := fmt.Sprintf(":Root%v", idx)
-		params[key[1:]] = r
-		placeholders[idx] = key
-	}
-	placeholderString := strings.Join(placeholders, ", ")
-	params["ChannelId"] = channelId
-	replyCountQuery := ""
-	whereStatement := "p.Id IN (" + placeholderString + ")"
+
+	cols := []string{"p.*"}
+	var where sq.Sqlizer
+	where = sq.Eq{"p.Id": roots}
 	if skipFetchThreads {
-		replyCountQuery = `, (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount`
+		cols = append(cols, "(SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount")
 	} else {
-		whereStatement += " OR p.RootId IN (" + placeholderString + ")"
+		where = sq.Or{
+			where,
+			sq.Eq{"p.RootId": roots},
+		}
 	}
-	var posts []*model.Post
-	_, err = s.GetReplica().Select(&posts, `
-		SELECT p.*`+replyCountQuery+`
-		FROM
-			Posts p
-		WHERE
-			(`+whereStatement+`)
-				AND ChannelId = :ChannelId
-				AND DeleteAt = 0
-		ORDER BY CreateAt`,
-		params)
+
+	query := s.getQueryBuilder().
+		Select(cols...).
+		From("Posts p").
+		Where(sq.And{
+			where,
+			sq.Eq{"p.ChannelId": channelId},
+			sq.Eq{"p.DeleteAt": 0},
+		}).
+		OrderBy("p.CreateAt")
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "ParentPosts_Tosql")
+	}
+
+	posts := []*model.Post{}
+	err = s.GetReplicaX().Select(&posts, sql, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
@@ -1551,20 +1678,20 @@ func (s *SqlPostStore) getParentsPostsPostgreSQL(channelId string, offset int, l
                 q3.RootId
             FROM
                 (SELECT
-                    RootId
+                    Posts.RootId
                 FROM
                     Posts
                 WHERE
-                    ChannelId = ?
-                        AND DeleteAt = 0
-                ORDER BY CreateAt DESC
+                    Posts.ChannelId = ?
+                        AND Posts.DeleteAt = 0
+                ORDER BY Posts.CreateAt DESC
                 LIMIT ? OFFSET ?) q3
             WHERE q3.RootId != '') q1
             ON `+onStatement+`
         WHERE
-            ChannelId = ?
-            AND DeleteAt = 0
-        ORDER BY CreateAt`, channelId, limit, offset, channelId)
+            q2.ChannelId = ?
+            AND q2.DeleteAt = 0
+        ORDER BY q2.CreateAt`, channelId, limit, offset, channelId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", channelId)
 	}
@@ -1583,154 +1710,122 @@ var specialSearchChar = []string{
 	":",
 }
 
-func (s *SqlPostStore) buildCreateDateFilterClause(params *model.SearchParams, queryParams map[string]interface{}, builder sq.SelectBuilder) (sq.SelectBuilder, map[string]interface{}) {
+func (s *SqlPostStore) buildCreateDateFilterClause(params *model.SearchParams, builder sq.SelectBuilder) sq.SelectBuilder {
 	// handle after: before: on: filters
 	if params.OnDate != "" {
 		onDateStart, onDateEnd := params.GetOnDateMillis()
-		queryParams["OnDateStart"] = strconv.FormatInt(onDateStart, 10)
-		queryParams["OnDateEnd"] = strconv.FormatInt(onDateEnd, 10)
-
 		// between `on date` start of day and end of day
-		builder = builder.Where("CreateAt BETWEEN :OnDateStart AND :OnDateEnd")
-		return builder, queryParams
+		builder = builder.Where("CreateAt BETWEEN ? AND ?", onDateStart, onDateEnd)
+		return builder
 	}
 
 	if params.ExcludedDate != "" {
 		excludedDateStart, excludedDateEnd := params.GetExcludedDateMillis()
-		queryParams["ExcludedDateStart"] = strconv.FormatInt(excludedDateStart, 10)
-		queryParams["ExcludedDateEnd"] = strconv.FormatInt(excludedDateEnd, 10)
-
-		builder = builder.Where("CreateAt NOT BETWEEN :ExcludedDateStart AND :ExcludedDateEnd")
+		builder = builder.Where("CreateAt NOT BETWEEN ? AND ?", excludedDateStart, excludedDateEnd)
 	}
 
 	if params.AfterDate != "" {
 		afterDate := params.GetAfterDateMillis()
-		queryParams["AfterDate"] = strconv.FormatInt(afterDate, 10)
-
 		// greater than `after date`
-		builder = builder.Where("CreateAt >= :AfterDate")
+		builder = builder.Where("CreateAt >= ?", afterDate)
 	}
 
 	if params.BeforeDate != "" {
 		beforeDate := params.GetBeforeDateMillis()
-		queryParams["BeforeDate"] = strconv.FormatInt(beforeDate, 10)
-
 		// less than `before date`
-		builder = builder.Where("CreateAt <= :BeforeDate")
+		builder = builder.Where("CreateAt <= ?", beforeDate)
 	}
 
 	if params.ExcludedAfterDate != "" {
 		afterDate := params.GetExcludedAfterDateMillis()
-		queryParams["ExcludedAfterDate"] = strconv.FormatInt(afterDate, 10)
-
-		builder = builder.Where("CreateAt < :ExcludedAfterDate")
+		builder = builder.Where("CreateAt < ?", afterDate)
 	}
 
 	if params.ExcludedBeforeDate != "" {
 		beforeDate := params.GetExcludedBeforeDateMillis()
-		queryParams["ExcludedBeforeDate"] = strconv.FormatInt(beforeDate, 10)
-
-		builder = builder.Where("CreateAt > :ExcludedBeforeDate")
+		builder = builder.Where("CreateAt > ?", beforeDate)
 	}
 
-	return builder, queryParams
+	return builder
 }
 
-func (s *SqlPostStore) buildSearchTeamFilterClause(teamId string, queryParams map[string]interface{}, builder sq.SelectBuilder) (sq.SelectBuilder, map[string]interface{}) {
+func (s *SqlPostStore) buildSearchTeamFilterClause(teamId string, builder sq.SelectBuilder) sq.SelectBuilder {
 	if teamId == "" {
-		return builder, queryParams
+		return builder
 	}
 
-	queryParams["TeamId"] = teamId
-
-	return builder.Where("(TeamId = :TeamId OR TeamId = '')"), queryParams
+	return builder.Where(sq.Or{
+		sq.Eq{"TeamId": teamId},
+		sq.Eq{"TeamId": ""},
+	})
 }
 
-func (s *SqlPostStore) buildSearchChannelFilterClause(channels []string, paramPrefix string, exclusion bool, queryParams map[string]interface{}, byName bool, builder sq.SelectBuilder) (sq.SelectBuilder, map[string]interface{}) {
+func (s *SqlPostStore) buildSearchChannelFilterClause(channels []string, exclusion bool, byName bool, builder sq.SelectBuilder) sq.SelectBuilder {
 	if len(channels) == 0 {
-		return builder, queryParams
+		return builder
 	}
 
-	clauseSlice := []string{}
-	for i, channel := range channels {
-		paramName := paramPrefix + strconv.FormatInt(int64(i), 10)
-		clauseSlice = append(clauseSlice, ":"+paramName)
-		queryParams[paramName] = channel
-	}
-	clause := strings.Join(clauseSlice, ", ")
 	if byName {
 		if exclusion {
-			return builder.Where("Name NOT IN (" + clause + ")"), queryParams
+			return builder.Where(sq.NotEq{"Name": channels})
 		}
-		return builder.Where("Name IN (" + clause + ")"), queryParams
+		return builder.Where(sq.Eq{"Name": channels})
 	}
 
 	if exclusion {
-		return builder.Where("Id NOT IN (" + clause + ")"), queryParams
+		return builder.Where(sq.NotEq{"Id": channels})
 	}
-	return builder.Where("Id IN (" + clause + ")"), queryParams
+	return builder.Where(sq.Eq{"Id": channels})
 }
 
-func (s *SqlPostStore) buildSearchUserFilterClause(users []string, paramPrefix string, exclusion bool, queryParams map[string]interface{}, byUsername bool) (string, map[string]interface{}) {
+func (s *SqlPostStore) buildSearchUserFilterClause(users []string, exclusion bool, byUsername bool, builder sq.SelectBuilder) sq.SelectBuilder {
 	if len(users) == 0 {
-		return "", queryParams
+		return builder
 	}
-	clauseSlice := []string{}
-	for i, user := range users {
-		paramName := paramPrefix + strconv.FormatInt(int64(i), 10)
-		clauseSlice = append(clauseSlice, ":"+paramName)
-		queryParams[paramName] = user
-	}
-	clause := strings.Join(clauseSlice, ", ")
+
 	if byUsername {
 		if exclusion {
-			return "AND Username NOT IN (" + clause + ")", queryParams
+			return builder.Where(sq.NotEq{"Username": users})
 		}
-		return "AND Username IN (" + clause + ")", queryParams
+		return builder.Where(sq.Eq{"Username": users})
 	}
+
 	if exclusion {
-		return "AND Id NOT IN (" + clause + ")", queryParams
+		return builder.Where(sq.NotEq{"Id": users})
 	}
-	return "AND Id IN (" + clause + ")", queryParams
+	return builder.Where(sq.Eq{"Id": users})
 }
 
-func (s *SqlPostStore) buildSearchPostFilterClause(fromUsers []string, excludedUsers []string, queryParams map[string]interface{}, userByUsername bool, builder sq.SelectBuilder) (sq.SelectBuilder, map[string]interface{}) {
+func (s *SqlPostStore) buildSearchPostFilterClause(teamID string, fromUsers []string, excludedUsers []string, userByUsername bool, builder sq.SelectBuilder) (sq.SelectBuilder, error) {
 	if len(fromUsers) == 0 && len(excludedUsers) == 0 {
-		return builder, queryParams
+		return builder, nil
 	}
 
-	filterQuery := `
-		UserId IN (
-			SELECT
-				Id
-			FROM
-				Users,
-				TeamMembers
-			WHERE
-				TeamMembers.TeamId = :TeamId
-				AND Users.Id = TeamMembers.UserId
-				FROM_USER_FILTER
-				EXCLUDED_USER_FILTER)`
+	// Sub-query builder.
+	sb := s.getSubQueryBuilder().Select("Id").From("Users, TeamMembers").Where(
+		sq.And{
+			sq.Eq{"TeamMembers.TeamId": teamID},
+			sq.Expr("Users.Id = TeamMembers.UserId"),
+		})
+	sb = s.buildSearchUserFilterClause(fromUsers, false, userByUsername, sb)
+	sb = s.buildSearchUserFilterClause(excludedUsers, true, userByUsername, sb)
+	subQuery, subQueryArgs, err := sb.ToSql()
+	if err != nil {
+		return sq.SelectBuilder{}, err
+	}
 
-	fromUserClause, queryParams := s.buildSearchUserFilterClause(fromUsers, "FromUser", false, queryParams, userByUsername)
-	filterQuery = strings.Replace(filterQuery, "FROM_USER_FILTER", fromUserClause, 1)
-
-	excludedUserClause, queryParams := s.buildSearchUserFilterClause(excludedUsers, "ExcludedUser", true, queryParams, userByUsername)
-	filterQuery = strings.Replace(filterQuery, "EXCLUDED_USER_FILTER", excludedUserClause, 1)
-
-	return builder.Where(filterQuery), queryParams
+	/*
+	 * Squirrel does not support a sub-query in the WHERE condition.
+	 * https://github.com/Masterminds/squirrel/issues/299
+	 */
+	return builder.Where("UserId IN ("+subQuery+")", subQueryArgs...), nil
 }
 
 func (s *SqlPostStore) Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, error) {
 	return s.search(teamId, userId, params, true, true)
 }
 
-// TODO: convert to squirrel
 func (s *SqlPostStore) search(teamId string, userId string, params *model.SearchParams, channelsByName bool, userByUsername bool) (*model.PostList, error) {
-	queryParams := map[string]interface{}{
-		"UserId": userId,
-	}
-
 	list := model.NewPostList()
 	if params.Terms == "" && params.ExcludedTerms == "" &&
 		len(params.InChannels) == 0 && len(params.ExcludedChannels) == 0 &&
@@ -1743,13 +1838,17 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		"*",
 		"(SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN q2.RootId = '' THEN q2.Id ELSE q2.RootId END) AND Posts.DeleteAt = 0) as ReplyCount",
 	).From("Posts q2").
-		Where("DeleteAt = 0").
-		Where(fmt.Sprintf("Type NOT LIKE '%s%%'", model.PostSystemMessagePrefix)).
-		OrderByClause("CreateAt DESC").
+		Where("q2.DeleteAt = 0").
+		Where(fmt.Sprintf("q2.Type NOT LIKE '%s%%'", model.PostSystemMessagePrefix)).
+		OrderByClause("q2.CreateAt DESC").
 		Limit(100)
 
-	baseQuery, queryParams = s.buildSearchPostFilterClause(params.FromUsers, params.ExcludedUsers, queryParams, userByUsername, baseQuery)
-	baseQuery, queryParams = s.buildCreateDateFilterClause(params, queryParams, baseQuery)
+	var err error
+	baseQuery, err = s.buildSearchPostFilterClause(teamId, params.FromUsers, params.ExcludedUsers, userByUsername, baseQuery)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to build search post filter clause")
+	}
+	baseQuery = s.buildCreateDateFilterClause(params, baseQuery)
 
 	termMap := map[string]bool{}
 	terms := params.Terms
@@ -1773,7 +1872,8 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		// we've already confirmed that we have a channel or user to search for
 	} else if s.DriverName() == model.DatabaseDriverPostgres {
 		// Parse text for wildcards
-		if wildcard, err := regexp.Compile(`\*($| )`); err == nil {
+		var wildcard *regexp.Regexp
+		if wildcard, err = regexp.Compile(`\*($| )`); err == nil {
 			terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
 			excludedTerms = wildcard.ReplaceAllLiteralString(excludedTerms, ":* ")
 		}
@@ -1783,19 +1883,19 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			excludeClause = " & !(" + strings.Join(strings.Fields(excludedTerms), " | ") + ")"
 		}
 
+		var termsClause string
 		if params.OrTerms {
-			queryParams["Terms"] = "(" + strings.Join(strings.Fields(terms), " | ") + ")" + excludeClause
+			termsClause = "(" + strings.Join(strings.Fields(terms), " | ") + ")" + excludeClause
 		} else if strings.HasPrefix(terms, `"`) && strings.HasSuffix(terms, `"`) {
-			queryParams["Terms"] = "(" + strings.Join(strings.Fields(terms), " <-> ") + ")" + excludeClause
+			termsClause = "(" + strings.Join(strings.Fields(terms), " <-> ") + ")" + excludeClause
 		} else {
-			queryParams["Terms"] = "(" + strings.Join(strings.Fields(terms), " & ") + ")" + excludeClause
+			termsClause = "(" + strings.Join(strings.Fields(terms), " & ") + ")" + excludeClause
 		}
 
-		searchClause := fmt.Sprintf("to_tsvector('english', %s) @@  to_tsquery('english', :Terms)", searchType)
-		baseQuery = baseQuery.Where(searchClause)
+		searchClause := fmt.Sprintf("to_tsvector('english', %s) @@  to_tsquery('english', ?)", searchType)
+		baseQuery = baseQuery.Where(searchClause, termsClause)
 	} else if s.DriverName() == model.DatabaseDriverMysql {
 		if searchType == "Message" {
-			var err error
 			terms, err = removeMysqlStopWordsFromTerms(terms)
 			if err != nil {
 				return nil, errors.Wrap(err, "failed to remove Mysql stop-words from terms")
@@ -1806,57 +1906,57 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			}
 		}
 
-		searchClause := fmt.Sprintf("MATCH (%s) AGAINST (:Terms IN BOOLEAN MODE)", searchType)
-		baseQuery = baseQuery.Where(searchClause)
-
 		excludeClause := ""
 		if excludedTerms != "" {
 			excludeClause = " -(" + excludedTerms + ")"
 		}
 
+		var termsClause string
 		if params.OrTerms {
-			queryParams["Terms"] = terms + excludeClause
+			termsClause = terms + excludeClause
 		} else {
 			splitTerms := []string{}
 			for _, t := range strings.Fields(terms) {
 				splitTerms = append(splitTerms, "+"+t)
 			}
-			queryParams["Terms"] = strings.Join(splitTerms, " ") + excludeClause
+			termsClause = strings.Join(splitTerms, " ") + excludeClause
 		}
+
+		searchClause := fmt.Sprintf("MATCH (%s) AGAINST (? IN BOOLEAN MODE)", searchType)
+		baseQuery = baseQuery.Where(searchClause, termsClause)
 	}
 
-	inQuery := s.getQueryBuilder().Select("Id").
+	inQuery := s.getSubQueryBuilder().Select("Id").
 		From("Channels, ChannelMembers").
 		Where("Id = ChannelId")
 
 	if !params.IncludeDeletedChannels {
-		inQuery = inQuery.Where("DeleteAt = 0")
+		inQuery = inQuery.Where("Channels.DeleteAt = 0")
 	}
 
 	if !params.SearchWithoutUserId {
-		inQuery = inQuery.Where("UserId = :UserId")
+		inQuery = inQuery.Where("ChannelMembers.UserId = ?", userId)
 	}
 
-	inQuery, queryParams = s.buildSearchTeamFilterClause(teamId, queryParams, inQuery)
-	inQuery, queryParams = s.buildSearchChannelFilterClause(params.InChannels, "InChannel", false, queryParams, channelsByName, inQuery)
-	inQuery, queryParams = s.buildSearchChannelFilterClause(params.ExcludedChannels, "ExcludedChannel", true, queryParams, channelsByName, inQuery)
+	inQuery = s.buildSearchTeamFilterClause(teamId, inQuery)
+	inQuery = s.buildSearchChannelFilterClause(params.InChannels, false, channelsByName, inQuery)
+	inQuery = s.buildSearchChannelFilterClause(params.ExcludedChannels, true, channelsByName, inQuery)
 
-	inQueryClause, _, err := inQuery.ToSql()
+	inQueryClause, inQueryClauseArgs, err := inQuery.ToSql()
 	if err != nil {
 		return nil, err
 	}
 
-	baseQuery = baseQuery.Where(fmt.Sprintf("ChannelId IN (%s)", inQueryClause))
+	baseQuery = baseQuery.Where(fmt.Sprintf("ChannelId IN (%s)", inQueryClause), inQueryClauseArgs...)
 
-	searchQuery, _, err := baseQuery.ToSql()
+	searchQuery, searchQueryArgs, err := baseQuery.ToSql()
 	if err != nil {
 		return nil, err
 	}
 
 	var posts []*model.Post
 
-	_, err = s.GetSearchReplica().Select(&posts, searchQuery, queryParams)
-	if err != nil {
+	if err := s.GetSearchReplicaX().Select(&posts, searchQuery, searchQueryArgs...); err != nil {
 		mlog.Warn("Query error searching posts.", mlog.Err(err))
 		// Don't return the error to the caller as it is of no use to the user. Instead return an empty set of search results.
 	} else {
@@ -2057,6 +2157,17 @@ func (s *SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, must
 	return v, nil
 }
 
+func (s *SqlPostStore) GetLastPostRowCreateAt() (int64, error) {
+	query := `SELECT CREATEAT FROM Posts ORDER BY CREATEAT DESC LIMIT 1`
+	var createAt int64
+	err := s.GetReplicaX().Get(&createAt, query)
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to get last post createat")
+	}
+
+	return createAt, nil
+}
+
 func (s *SqlPostStore) GetPostsCreatedAt(channelId string, time int64) ([]*model.Post, error) {
 	query := `SELECT * FROM Posts WHERE CreateAt = ? AND ChannelId = ?`
 
@@ -2090,22 +2201,26 @@ func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, error) {
 	return posts, nil
 }
 
-func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.PostForIndexing, error) {
+func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, startPostID string, limit int) ([]*model.PostForIndexing, error) {
 	posts := []*model.PostForIndexing{}
-	err := s.GetSearchReplicaX().Select(&posts,
-		`SELECT
-			PostsQuery.*, Channels.TeamId, ParentPosts.CreateAt ParentCreateAt
+	table := "Posts"
+	// We force this index to avoid any chances of index merge intersection.
+	if s.DriverName() == model.DatabaseDriverMysql {
+		table += " USE INDEX(idx_posts_create_at_id)"
+	}
+	query := `SELECT
+			PostsQuery.*, Channels.TeamId
 		FROM (
 			SELECT
 				*
 			FROM
-				Posts
+				` + table + `
 			WHERE
-				Posts.CreateAt >= ?
-			AND
-				Posts.CreateAt < ?
+				Posts.CreateAt > ?
+			OR
+				(Posts.CreateAt = ? AND Posts.Id > ?)
 			ORDER BY
-				CreateAt ASC
+				CreateAt ASC, Id ASC
 			LIMIT
 				?
 			)
@@ -2115,11 +2230,8 @@ func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, 
 			Channels
 		ON
 			PostsQuery.ChannelId = Channels.Id
-		LEFT JOIN
-			Posts ParentPosts
-		ON
-			PostsQuery.RootId = ParentPosts.Id`,
-		startTime, endTime, limit)
+		ORDER BY CreateAt ASC, Id ASC`
+	err := s.GetSearchReplicaX().Select(&posts, query, startTime, startTime, startPostID, limit)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
@@ -2269,10 +2381,10 @@ func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string) ([]*m
 			FROM
 				Posts
 			WHERE
-				Id > ?
-				AND RootId = ''
-				AND DeleteAt = 0
-			ORDER BY Id
+				Posts.Id > ?
+				AND Posts.RootId = ''
+				AND Posts.DeleteAt = 0
+			ORDER BY Posts.Id
 			LIMIT ?`,
 			afterId, limit)
 		if err != nil {
@@ -2286,7 +2398,7 @@ func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string) ([]*m
 
 		builder := s.getQueryBuilder().
 			Select("p1.*, Users.Username as Username, Teams.Name as TeamName, Channels.Name as ChannelName").
-			FromSelect(sq.Select("*").From("Posts").Where(sq.Eq{"Id": rootIds}), "p1").
+			FromSelect(sq.Select("*").From("Posts").Where(sq.Eq{"Posts.Id": rootIds}), "p1").
 			InnerJoin("Channels ON p1.ChannelId = Channels.Id").
 			InnerJoin("Teams ON Channels.TeamId = Teams.Id").
 			InnerJoin("Users ON p1.UserId = Users.Id").
@@ -2489,19 +2601,36 @@ func (s *SqlPostStore) permanentDeleteThreads(transaction *sqlxTxWrapper, postId
 	return nil
 }
 
-// Thread cleanup upon post deletion
-// if the post is a comment
-// reply count is reduced by 1 and,
-// the user is removed from participants if the comment deleted is the last reply from said user.
-func (s *SqlPostStore) cleanupThreadComments(transaction *sqlxTxWrapper, postId, rootId string, userId string) error {
+// deleteThread marks a thread as deleted at the given time.
+func (s *SqlPostStore) deleteThread(transaction *sqlxTxWrapper, postId string, deleteAtTime int64) error {
+	queryString, args, err := s.getQueryBuilder().
+		Update("Threads").
+		Set("ThreadDeleteAt", deleteAtTime).
+		Where(sq.Eq{"PostId": postId}).
+		ToSql()
+	if err != nil {
+		return errors.Wrapf(err, "failed to create SQL query to mark thread for root post %s as deleted", postId)
+	}
+
+	_, err = transaction.Exec(queryString, args...)
+	if err != nil {
+		return errors.Wrapf(err, "failed to mark thread for root post %s as deleted", postId)
+	}
+
+	return nil
+}
+
+// updateThreadAfterReplyDeletion decrements the thread reply count and adjusts the participants
+// list as necessary.
+func (s *SqlPostStore) updateThreadAfterReplyDeletion(transaction *sqlxTxWrapper, rootId string, userId string) error {
 	if rootId != "" {
 		queryString, args, err := s.getQueryBuilder().
-			Select("COUNT(Id)").
+			Select("COUNT(Posts.Id)").
 			From("Posts").
 			Where(sq.And{
-				sq.Eq{"RootId": rootId},
-				sq.Eq{"UserId": userId},
-				sq.Eq{"DeleteAt": 0},
+				sq.Eq{"Posts.RootId": rootId},
+				sq.Eq{"Posts.UserId": userId},
+				sq.Eq{"Posts.DeleteAt": 0},
 			}).
 			ToSql()
 
@@ -2566,9 +2695,16 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 		return nil
 	}
 	threadsByRootsSql, threadsByRootsArgs, _ := s.getQueryBuilder().
-		Select("*").
+		Select(
+			"Threads.PostId",
+			"Threads.ChannelId",
+			"Threads.ReplyCount",
+			"Threads.LastReplyAt",
+			"Threads.Participants",
+			"COALESCE(Threads.ThreadDeleteAt, 0) AS DeleteAt",
+		).
 		From("Threads").
-		Where(sq.Eq{"PostId": rootIds}).
+		Where(sq.Eq{"Threads.PostId": rootIds}).
 		ToSql()
 	threadsByRoots := []*model.Thread{}
 	if err := transaction.Select(&threadsByRoots, threadsByRootsSql, threadsByRootsArgs...); err != nil {
@@ -2588,7 +2724,7 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 			}{}
 
 			// calculate participants
-			if err := transaction.Select(&data, "SELECT UserId, MAX(CreateAt) as RepliedAt FROM Posts WHERE RootId=? AND DeleteAt=0 GROUP BY UserId ORDER BY RepliedAt ASC", rootId); err != nil {
+			if err := transaction.Select(&data, "SELECT Posts.UserId, MAX(Posts.CreateAt) as RepliedAt FROM Posts WHERE Posts.RootId=? AND Posts.DeleteAt=0 GROUP BY Posts.UserId ORDER BY RepliedAt ASC", rootId); err != nil {
 				return err
 			}
 
@@ -2599,13 +2735,13 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 
 			// calculate reply count
 			var count int64
-			err := transaction.Get(&count, "SELECT COUNT(Id) FROM Posts WHERE RootId=? And DeleteAt=0", rootId)
+			err := transaction.Get(&count, "SELECT COUNT(Posts.Id) FROM Posts WHERE Posts.RootId=? And Posts.DeleteAt=0", rootId)
 			if err != nil {
 				return err
 			}
 			// calculate last reply at
 			var lastReplyAt int64
-			err = transaction.Get(&lastReplyAt, "SELECT COALESCE(MAX(Posts.CreateAt), 0) FROM Posts WHERE RootID=? and DeleteAt=0", rootId)
+			err = transaction.Get(&lastReplyAt, "SELECT COALESCE(MAX(Posts.CreateAt), 0) FROM Posts WHERE Posts.RootID=? and Posts.DeleteAt=0", rootId)
 			if err != nil {
 				return err
 			}

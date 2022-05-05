@@ -554,7 +554,7 @@ func getTeamMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	members, err := c.App.GetTeamMembersForUser(c.Params.UserId)
+	members, err := c.App.GetTeamMembersForUser(c.Params.UserId, true)
 	if err != nil {
 		c.Err = err
 		return
@@ -1169,7 +1169,7 @@ func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
+	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
 		c.Err = model.NewAppError("importTeam", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 		return
 	}
@@ -1275,7 +1275,18 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emailList := model.ArrayFromJSON(r.Body)
+	bf, err := io.ReadAll(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.inviteUsersToTeams", "api.team.invite_members_to_team_and_channels.invalid_body.app_error", nil, err.Error(), http.StatusBadRequest)
+		return
+	}
+	memberInvite := &model.MemberInvite{}
+	if jsonErr := json.Unmarshal(bf, memberInvite); jsonErr != nil {
+		c.Err = model.NewAppError("Api4.inviteUsersToTeams", "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		return
+	}
+
+	emailList := memberInvite.Emails
 
 	for i := range emailList {
 		emailList[i] = strings.ToLower(emailList[i])
@@ -1292,55 +1303,16 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("count", len(emailList))
 	auditRec.AddMeta("emails", emailList)
 
+	if len(memberInvite.ChannelIds) > 0 {
+		auditRec.AddMeta("channel_count", len(memberInvite.ChannelIds))
+		auditRec.AddMeta("channels", memberInvite.ChannelIds)
+	}
+
 	if graceful {
-		cloudUserLimit := *c.App.Config().ExperimentalSettings.CloudUserLimit
-		var invitesOverLimit []*model.EmailInviteWithError
-		if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && cloudUserLimit > 0 {
-			subscription, subErr := c.App.Cloud().GetSubscription(c.AppContext.Session().UserId)
-			if subErr != nil {
-				c.Err = model.NewAppError(
-					"Api4.inviteUsersToTeam",
-					"api.team.cloud.subscription.error",
-					nil,
-					subErr.Error(),
-					http.StatusInternalServerError)
-				return
-			}
-			if subscription == nil || subscription.IsPaidTier != "true" {
-				emailList, invitesOverLimit, _ = c.App.GetErrorListForEmailsOverLimit(emailList, cloudUserLimit)
-			}
-		}
-
-		// we get the emailList after it has finished checks like the emails over the list
-
-		scheduledAt := model.GetMillis()
-		jobData := map[string]string{
-			"emailList":   model.ArrayToJSON(emailList),
-			"teamID":      c.Params.TeamId,
-			"senderID":    c.AppContext.Session().UserId,
-			"scheduledAt": strconv.FormatInt(scheduledAt, 10),
-		}
-
-		// we then manually schedule the job
-		j, e := c.App.Srv().Jobs.CreateJob(model.JobTypeResendInvitationEmail, jobData)
-		if e != nil {
-			c.Err = model.NewAppError("Api4.inviteUsersToTeam", e.Id, nil, e.Error(), e.StatusCode)
-			return
-		}
-
-		sysVar := &model.System{Name: j.Id, Value: "0"}
-		if sysValErr := c.App.Srv().Store.System().SaveOrUpdate(sysVar); sysValErr != nil {
-			mlog.Warn("Error while saving system value", mlog.Err(sysValErr))
-		}
-
 		var invitesWithError []*model.EmailInviteWithError
 		var err *model.AppError
 		if emailList != nil {
-			invitesWithError, err = c.App.InviteNewUsersToTeamGracefully(emailList, c.Params.TeamId, c.AppContext.Session().UserId, "")
-		}
-
-		if len(invitesOverLimit) > 0 {
-			invitesWithError = append(invitesWithError, invitesOverLimit...)
+			invitesWithError, err = c.App.InviteNewUsersToTeamGracefully(memberInvite, c.Params.TeamId, c.AppContext.Session().UserId, "")
 		}
 
 		if invitesWithError != nil {
@@ -1356,6 +1328,27 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
+
+		// we get the emailList after it has finished checks like the emails over the list
+		scheduledAt := model.GetMillis()
+		jobData := map[string]string{
+			"emailList":   model.ArrayToJSON(emailList),
+			"teamID":      c.Params.TeamId,
+			"senderID":    c.AppContext.Session().UserId,
+			"scheduledAt": strconv.FormatInt(scheduledAt, 10),
+		}
+
+		if len(memberInvite.ChannelIds) > 0 {
+			jobData["channelList"] = model.ArrayToJSON(memberInvite.ChannelIds)
+		}
+
+		// we then manually schedule the job to send another invite after 48 hours
+		_, e := c.App.Srv().Jobs.CreateJob(model.JobTypeResendInvitationEmail, jobData)
+		if e != nil {
+			c.Err = model.NewAppError("Api4.inviteUsersToTeam", e.Id, nil, e.Error(), e.StatusCode)
+			return
+		}
+
 		// in graceful mode we return both the successful ones and the failed ones
 		js, jsonErr := json.Marshal(invitesWithError)
 		if jsonErr != nil {
@@ -1376,7 +1369,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	graceful := r.URL.Query().Get("graceful") != ""
-	if c.App.Srv().License() == nil {
+	if c.App.Channels().License() == nil {
 		c.Err = model.NewAppError("Api4.InviteGuestsToChannels", "api.team.invate_guests_to_channels.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -1419,33 +1412,11 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 	auditRec.AddMeta("channels", guestsInvite.Channels)
 
 	if graceful {
-		cloudUserLimit := *c.App.Config().ExperimentalSettings.CloudUserLimit
-		var invitesOverLimit []*model.EmailInviteWithError
-		if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && cloudUserLimit > 0 && c.IsSystemAdmin() {
-			subscription, err := c.App.Cloud().GetSubscription(c.AppContext.Session().UserId)
-			if err != nil {
-				c.Err = model.NewAppError(
-					"Api4.inviteGuestsToChannel",
-					"api.team.cloud.subscription.error",
-					nil,
-					err.Error(),
-					http.StatusInternalServerError)
-				return
-			}
-			if subscription == nil || subscription.IsPaidTier != "true" {
-				guestsInvite.Emails, invitesOverLimit, _ = c.App.GetErrorListForEmailsOverLimit(guestsInvite.Emails, cloudUserLimit)
-			}
-		}
-
 		var invitesWithError []*model.EmailInviteWithError
 		var err *model.AppError
 
 		if guestsInvite.Emails != nil {
 			invitesWithError, err = c.App.InviteGuestsToChannelsGracefully(c.Params.TeamId, &guestsInvite, c.AppContext.Session().UserId)
-		}
-
-		if len(invitesOverLimit) > 0 {
-			invitesWithError = append(invitesWithError, invitesOverLimit...)
 		}
 
 		if err != nil {
@@ -1550,7 +1521,7 @@ func getTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "image/png")
-	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", 24*60*60)) // 24 hrs
+	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", model.DayInSeconds)) // 24 hrs
 	w.Header().Set(model.HeaderEtagServer, etag)
 	w.Write(img)
 }
@@ -1655,7 +1626,7 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("updateTeamScheme", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if c.App.Srv().License() == nil {
+	if c.App.Channels().License() == nil {
 		c.Err = model.NewAppError("Api4.UpdateTeamScheme", "api.team.update_team_scheme.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}

@@ -105,8 +105,8 @@ func NewSTSClientGrants(stsEndpoint string, getClientGrantsTokenExpiry func() (*
 }
 
 func getClientGrantsCredentials(clnt *http.Client, endpoint string,
-	getClientGrantsTokenExpiry func() (*ClientGrantsToken, error)) (AssumeRoleWithClientGrantsResponse, error) {
-
+	getClientGrantsTokenExpiry func() (*ClientGrantsToken, error),
+) (AssumeRoleWithClientGrantsResponse, error) {
 	accessToken, err := getClientGrantsTokenExpiry()
 	if err != nil {
 		return AssumeRoleWithClientGrantsResponse{}, err
@@ -138,7 +138,6 @@ func getClientGrantsCredentials(clnt *http.Client, endpoint string,
 		buf, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return AssumeRoleWithClientGrantsResponse{}, err
-
 		}
 		_, err = xmlDecodeAndBody(bytes.NewReader(buf), &errResp)
 		if err != nil {

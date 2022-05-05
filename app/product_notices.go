@@ -235,12 +235,12 @@ func (a *App) GetProductNotices(c *request.Context, userID, teamID string, clien
 	isTeamAdmin := a.SessionHasPermissionToTeam(*c.Session(), teamID, model.PermissionManageTeam)
 
 	// check if notices for regular users are disabled
-	if !*a.Srv().Config().AnnouncementSettings.UserNoticesEnabled && !isSystemAdmin {
+	if !*a.Config().AnnouncementSettings.UserNoticesEnabled && !isSystemAdmin {
 		return []model.NoticeMessage{}, nil
 	}
 
 	// check if notices for admins are disabled
-	if !*a.Srv().Config().AnnouncementSettings.AdminNoticesEnabled && (isTeamAdmin || isSystemAdmin) {
+	if !*a.Config().AnnouncementSettings.AdminNoticesEnabled && (isTeamAdmin || isSystemAdmin) {
 		return []model.NoticeMessage{}, nil
 	}
 
@@ -251,7 +251,7 @@ func (a *App) GetProductNotices(c *request.Context, userID, teamID string, clien
 
 	sku := a.Srv().ClientLicense()["SkuShortName"]
 	isCloud := a.Srv().License() != nil && *a.Srv().License().Features.Cloud
-	dbName := *a.Srv().Config().SqlSettings.DriverName
+	dbName := *a.Config().SqlSettings.DriverName
 
 	var searchEngineName, searchEngineVersion string
 	if engine := a.Srv().SearchEngine; engine != nil && engine.ElasticsearchEngine != nil {
@@ -339,8 +339,8 @@ func (a *App) UpdateViewedProductNoticesForNewUser(userID string) {
 
 // UpdateProductNotices is called periodically from a scheduled worker to fetch new notices and update the cache
 func (a *App) UpdateProductNotices() *model.AppError {
-	url := *a.Srv().Config().AnnouncementSettings.NoticesURL
-	skip := *a.Srv().Config().AnnouncementSettings.NoticesSkipCache
+	url := *a.Config().AnnouncementSettings.NoticesURL
+	skip := *a.Config().AnnouncementSettings.NoticesSkipCache
 	mlog.Debug("Will fetch notices from", mlog.String("url", url), mlog.Bool("skip_cache", skip))
 	var err error
 	a.ch.cachedPostCount, err = a.Srv().Store.Post().AnalyticsPostCount("", false, false)

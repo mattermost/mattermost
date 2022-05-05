@@ -331,11 +331,11 @@ func TestGenerateThumbnailImage(t *testing.T) {
 		defer th.TearDown()
 		img := createDummyImage()
 		dataPath, _ := fileutils.FindDir("data")
-		thumbailName := "thumb.jpg"
-		thumbnailPath := filepath.Join(dataPath, thumbailName)
+		thumbnailName := "thumb.jpg"
+		thumbnailPath := filepath.Join(dataPath, thumbnailName)
 
 		// when
-		th.App.generateThumbnailImage(img, thumbailName)
+		th.App.generateThumbnailImage(img, thumbnailName)
 		defer os.Remove(thumbnailPath)
 
 		// then

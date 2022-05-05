@@ -7,11 +7,9 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
-	"encoding/json"
 	"fmt"
 	"hash/maphash"
 	"html/template"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/pprof"
@@ -20,13 +18,12 @@ import (
 	"os/exec"
 	"path"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"syscall"
 	"time"
-
-	"gopkg.in/yaml.v2"
 
 	"github.com/getsentry/sentry-go"
 	sentryhttp "github.com/getsentry/sentry-go/http"
@@ -86,6 +83,18 @@ import (
 // declaring this as var to allow overriding in tests
 var SentryDSN = "placeholder_sentry_dsn"
 
+type ServiceKey string
+
+const (
+	ChannelKey   ServiceKey = "channel"
+	ConfigKey    ServiceKey = "config"
+	LicenseKey   ServiceKey = "license"
+	FilestoreKey ServiceKey = "filestore"
+	ClusterKey   ServiceKey = "cluster"
+	PostKey      ServiceKey = "post"
+	TeamKey      ServiceKey = "team"
+)
+
 type Server struct {
 	sqlStore        *sqlstore.SqlStore
 	Store           store.Store
@@ -118,7 +127,7 @@ type Server struct {
 	goroutineCount      int32
 	goroutineExitSignal chan struct{}
 
-	EmailService *email.Service
+	EmailService email.ServiceInterface
 
 	hubs     []*Hub
 	hashSeed maphash.Seed
@@ -131,10 +140,12 @@ type Server struct {
 	Jobs             *jobs.JobServer
 
 	clusterLeaderListeners sync.Map
+	clusterWrapper         *clusterWrapper
 
 	licenseValue       atomic.Value
 	clientLicenseValue atomic.Value
 	licenseListeners   map[string]func(*model.License, *model.License)
+	licenseWrapper     *licenseWrapper
 
 	timezones *timezones.Timezones
 
@@ -150,7 +161,8 @@ type Server struct {
 	searchConfigListenerId  string
 	searchLicenseListenerId string
 	loggerLicenseListenerId string
-	configStore             *config.Store
+	configStore             *configWrapper
+	filestore               filestore.FileBackend
 
 	telemetryService *telemetry.TelemetryService
 	userService      *users.UserService
@@ -176,10 +188,7 @@ type Server struct {
 	Cluster        einterfaces.ClusterInterface
 	Cloud          einterfaces.CloudInterface
 	Metrics        einterfaces.MetricsInterface
-	Notification   einterfaces.NotificationInterface
 	LicenseManager einterfaces.LicenseInterface
-	Saml           einterfaces.SamlInterface
-	Ldap           einterfaces.LdapInterface
 
 	CacheProvider cache.Provider
 
@@ -231,7 +240,7 @@ func NewServer(options ...Option) (*Server, error) {
 			return nil, errors.Wrap(err, "failed to load config")
 		}
 
-		s.configStore = configStore
+		s.configStore = &configWrapper{srv: s, Store: configStore}
 	}
 
 	// Step 2: Logging
@@ -250,18 +259,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.httpService = httpservice.MakeHTTPService(s)
 
-	// Step 3: Initialize products.
-	// Depends on s.httpService.
-	for name, initializer := range products {
-		prod, err2 := initializer(s)
-		if err2 != nil {
-			return nil, errors.Wrapf(err2, "error initializing product: %s", name)
-		}
-
-		s.products[name] = prod
-	}
-
-	// Step 4: Search Engine
+	// Step 3: Search Engine
 	// Depends on Step 1 (config).
 	searchEngine := searchengine.NewBroker(s.Config())
 	bleveEngine := bleveengine.NewBleveEngine(s.Config())
@@ -271,12 +269,11 @@ func NewServer(options ...Option) (*Server, error) {
 	searchEngine.RegisterBleveEngine(bleveEngine)
 	s.SearchEngine = searchEngine
 
-	// Step 5: Init Enterprise
-	// Depends on step 3 (s.Channels() must be non-nil)
-	// and step 4 (s.SearchEngine must be non-nil)
+	// Step 4: Init Enterprise
+	// Depends on step 3 (s.SearchEngine must be non-nil)
 	s.initEnterprise()
 
-	// Step 6: Cache provider.
+	// Step 5: Cache provider.
 	// At the moment we only have this implementation
 	// in the future the cache provider will be built based on the loaded config
 	s.CacheProvider = cache.NewProvider()
@@ -284,12 +281,8 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err2, "Unable to connect to cache provider")
 	}
 
-	// It is important to initialize the hub only after the global logger is set
-	// to avoid race conditions while logging from inside the hub.
-	s.HubStart()
-
-	// Step 7: Store.
-	// Depends on Step 1 (config), 5 (metrics, cluster) and 6 (cacheProvider).
+	// Step 6: Store.
+	// Depends on Step 1 (config), 4 (metrics, cluster) and 5 (cacheProvider).
 	if s.newStore == nil {
 		s.newStore = func() (store.Store, error) {
 			s.sqlStore = sqlstore.New(s.Config().SqlSettings, s.Metrics)
@@ -330,6 +323,88 @@ func NewServer(options ...Option) (*Server, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot create store")
 	}
+
+	// Needed to run before loading license.
+	s.userService, err = users.New(users.ServiceConfig{
+		UserStore:    s.Store.User(),
+		SessionStore: s.Store.Session(),
+		OAuthStore:   s.Store.OAuth(),
+		ConfigFn:     s.Config,
+		Metrics:      s.Metrics,
+		Cluster:      s.Cluster,
+		LicenseFn:    s.License,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to create users service")
+	}
+
+	// Needed before loading license
+	if s.statusCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
+		Size:           model.StatusCacheSize,
+		Striped:        true,
+		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
+	}); err != nil {
+		return nil, errors.Wrap(err, "Unable to create status cache")
+	}
+
+	if model.BuildEnterpriseReady == "true" {
+		// Dependent on user service
+		s.LoadLicense()
+	}
+
+	license := s.License()
+	// Step 7: Initialize filestore
+	backend, err := filestore.NewFileBackend(s.Config().FileSettings.ToFileBackendSettings(license != nil && *license.Features.Compliance))
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to initialize filebackend")
+	}
+	s.filestore = backend
+
+	channelWrapper := &channelsWrapper{
+		srv: s,
+	}
+
+	s.licenseWrapper = &licenseWrapper{
+		srv: s,
+	}
+
+	s.clusterWrapper = &clusterWrapper{
+		srv: s,
+	}
+
+	s.teamService, err = teams.New(teams.ServiceConfig{
+		TeamStore:    s.Store.Team(),
+		ChannelStore: s.Store.Channel(),
+		GroupStore:   s.Store.Group(),
+		Users:        s.userService,
+		WebHub:       s,
+		ConfigFn:     s.Config,
+		LicenseFn:    s.License,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to create teams service")
+	}
+
+	serviceMap := map[ServiceKey]interface{}{
+		ChannelKey:   channelWrapper,
+		ConfigKey:    s.configStore,
+		LicenseKey:   s.licenseWrapper,
+		FilestoreKey: s.filestore,
+		ClusterKey:   s.clusterWrapper,
+		TeamKey:      s.teamService,
+	}
+
+	// Step 8: Initialize products.
+	// Depends on s.httpService.
+	err = s.initializeProducts(products, serviceMap)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to initialize products")
+	}
+
+	// It is important to initialize the hub only after the global logger is set
+	// to avoid race conditions while logging from inside the hub.
+	// Step 9: Hub depends on s.Channels() (step 8)
+	s.HubStart()
 
 	// -------------------------------------------------------------------------
 	// Everything below this is not order sensitive and safe to be moved around.
@@ -384,13 +459,6 @@ func NewServer(options ...Option) (*Server, error) {
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create pending post ids cache")
 	}
-	if s.statusCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
-		Size:           model.StatusCacheSize,
-		Striped:        true,
-		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
-	}); err != nil {
-		return nil, errors.Wrap(err, "Unable to create status cache")
-	}
 	if s.openGraphDataCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
 		Size: openGraphMetadataCacheSize,
 	}); err != nil {
@@ -417,32 +485,6 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	})
 	s.htmlTemplateWatcher = htmlTemplateWatcher
-
-	s.userService, err = users.New(users.ServiceConfig{
-		UserStore:    s.Store.User(),
-		SessionStore: s.Store.Session(),
-		OAuthStore:   s.Store.OAuth(),
-		ConfigFn:     s.Config,
-		Metrics:      s.Metrics,
-		Cluster:      s.Cluster,
-		LicenseFn:    s.License,
-	})
-	if err != nil {
-		return nil, errors.Wrapf(err, "unable to create users service")
-	}
-
-	s.teamService, err = teams.New(teams.ServiceConfig{
-		TeamStore:    s.Store.Team(),
-		ChannelStore: s.Store.Channel(),
-		GroupStore:   s.Store.Group(),
-		Users:        s.userService,
-		WebHub:       s,
-		ConfigFn:     s.Config,
-		LicenseFn:    s.License,
-	})
-	if err != nil {
-		return nil, errors.Wrapf(err, "unable to create teams service")
-	}
 
 	s.configListenerId = s.AddConfigListener(func(_, _ *model.Config) {
 		ch := s.Channels()
@@ -487,10 +529,6 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	s.EmailService = emailService
 
-	if model.BuildEnterpriseReady == "true" {
-		s.LoadLicense()
-	}
-
 	s.setupFeatureFlags()
 
 	s.initJobs()
@@ -503,11 +541,6 @@ func NewServer(options ...Option) (*Server, error) {
 		s.setupFeatureFlags()
 	})
 
-	if s.joinCluster && s.Cluster != nil {
-		s.registerClusterHandlers()
-		s.Cluster.StartInterNodeCommunication()
-	}
-
 	// If configured with a subpath, redirect 404s at the root back into the subpath.
 	if subpath != "/" {
 		s.RootRouter.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -517,7 +550,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if _, err = url.ParseRequestURI(*s.Config().ServiceSettings.SiteURL); err != nil {
-		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: http://about.mattermost.com/default-site-url")
+		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://docs.mattermost.com/configure/configuration-settings.html#site-url")
 	}
 
 	// Start email batching because it's not like the other jobs
@@ -544,7 +577,6 @@ func NewServer(options ...Option) (*Server, error) {
 	mlog.Info("Printing current working", mlog.String("directory", pwd))
 	mlog.Info("Loaded config", mlog.String("source", s.configStore.String()))
 
-	license := s.License()
 	allowAdvancedLogging := license != nil && *license.Features.AdvancedLogging
 
 	if s.Audit == nil {
@@ -594,7 +626,7 @@ func NewServer(options ...Option) (*Server, error) {
 		go func() {
 			appInstance := New(ServerConnector(s.Channels()))
 			if err := appInstance.UpdateProductNotices(); err != nil {
-				mlog.Warn("Failied to perform initial product notices fetch", mlog.Err(err))
+				mlog.Warn("Failed to perform initial product notices fetch", mlog.Err(err))
 			}
 		}()
 	}
@@ -624,7 +656,7 @@ func NewServer(options ...Option) (*Server, error) {
 		s.Go(func() {
 			appInstance := New(ServerConnector(s.Channels()))
 			s.runLicenseExpirationCheckJob()
-			runCheckAdminSupportStatusJob(appInstance, request.EmptyContext())
+			s.runInactivityCheckJob()
 			runDNDStatusExpireJob(appInstance)
 		})
 		s.runJobs()
@@ -697,6 +729,9 @@ func (s *Server) runJobs() {
 	s.Go(func() {
 		runCommandWebhookCleanupJob(s)
 	})
+	s.Go(func() {
+		runConfigCleanupJob(s)
+	})
 
 	if complianceI := s.Channels().Compliance; complianceI != nil {
 		complianceI.StartComplianceDailyJob()
@@ -730,10 +765,10 @@ func (s *Server) Channels() *Channels {
 	return ch
 }
 
-// Return Database type (postgres or mysql) and current version of Mattermost
-func (s *Server) DatabaseTypeAndMattermostVersion() (string, string) {
-	mattermostVersion, _ := s.Store.System().GetByName("Version")
-	return *s.Config().SqlSettings.DriverName, mattermostVersion.Value
+// Return Database type (postgres or mysql) and current version of the schema
+func (s *Server) DatabaseTypeAndSchemaVersion() (string, string) {
+	schemaVersion, _ := s.Store.GetDBSchemaVersion()
+	return *s.Config().SqlSettings.DriverName, strconv.Itoa(schemaVersion)
 }
 
 // initLogging initializes and configures the logger(s). This may be called more than once.
@@ -756,7 +791,7 @@ func (s *Server) initLogging() error {
 		s.NotificationsLog = l.With(mlog.String("logSource", "notifications"))
 	}
 
-	if err := s.configureLogger("logging", s.Log, &s.Config().LogSettings, s.configStore, config.GetLogFileLocation); err != nil {
+	if err := s.configureLogger("logging", s.Log, &s.Config().LogSettings, s.configStore.Store, config.GetLogFileLocation); err != nil {
 		// if the config is locked then a unit test has already configured and locked the logger; not an error.
 		if !errors.Is(err, mlog.ErrConfigurationLock) {
 			// revert to default logger if the config is invalid
@@ -772,7 +807,7 @@ func (s *Server) initLogging() error {
 	mlog.InitGlobalLogger(s.Log)
 
 	notificationLogSettings := config.GetLogSettingsFromNotificationsLogSettings(&s.Config().NotificationLogSettings)
-	if err := s.configureLogger("notification logging", s.NotificationsLog, notificationLogSettings, s.configStore, config.GetNotificationsLogFileLocation); err != nil {
+	if err := s.configureLogger("notification logging", s.NotificationsLog, notificationLogSettings, s.configStore.Store, config.GetNotificationsLogFileLocation); err != nil {
 		if !errors.Is(err, mlog.ErrConfigurationLock) {
 			mlog.Error("Error configuring notification logger", mlog.Err(err))
 			return err
@@ -1141,6 +1176,11 @@ func (s *Server) Start() error {
 		}
 	}
 
+	if s.joinCluster && s.Cluster != nil {
+		s.registerClusterHandlers()
+		s.Cluster.StartInterNodeCommunication()
+	}
+
 	if err := s.ensureInstallationDate(); err != nil {
 		return errors.Wrapf(err, "unable to ensure installation date")
 	}
@@ -1152,22 +1192,20 @@ func (s *Server) Start() error {
 	if err := s.Store.Status().ResetAll(); err != nil {
 		mlog.Error("Error to reset the server status.", mlog.Err(err))
 	}
-	if err := mail.TestConnection(s.MailServiceConfig()); err != nil {
-		mlog.Error("Mail server connection test is failed", mlog.Err(err))
+
+	if s.MailServiceConfig().SendEmailNotifications {
+		if err := mail.TestConnection(s.MailServiceConfig()); err != nil {
+			mlog.Error("Mail server connection test failed", mlog.Err(err))
+		}
 	}
 
-	backend, appErr := s.FileBackend()
-	if appErr != nil {
-		mlog.Error("Problem with file storage settings", mlog.Err(appErr))
-	} else {
-		err := backend.TestConnection()
+	err := s.FileBackend().TestConnection()
+	if err != nil {
+		if _, ok := err.(*filestore.S3FileBackendNoBucketError); ok {
+			err = s.FileBackend().(*filestore.S3FileBackend).MakeBucket()
+		}
 		if err != nil {
-			if _, ok := err.(*filestore.S3FileBackendNoBucketError); ok {
-				err = backend.(*filestore.S3FileBackend).MakeBucket()
-			}
-			if err != nil {
-				mlog.Error("Problem with file storage settings", mlog.Err(err))
-			}
+			mlog.Error("Problem with file storage settings", mlog.Err(err))
 		}
 	}
 
@@ -1211,9 +1249,9 @@ func (s *Server) Start() error {
 	if *s.Config().RateLimitSettings.Enable {
 		mlog.Info("RateLimiter is enabled")
 
-		rateLimiter, err := NewRateLimiter(&s.Config().RateLimitSettings, s.Config().ServiceSettings.TrustedProxyIPHeader)
-		if err != nil {
-			return err
+		rateLimiter, err2 := NewRateLimiter(&s.Config().RateLimitSettings, s.Config().ServiceSettings.TrustedProxyIPHeader)
+		if err2 != nil {
+			return err2
 		}
 
 		s.RateLimiter = rateLimiter
@@ -1470,6 +1508,19 @@ func runJobsCleanupJob(s *Server) {
 	}, time.Hour*24)
 }
 
+func runConfigCleanupJob(s *Server) {
+	doConfigCleanup(s)
+	model.CreateRecurringTask("Configuration Cleanup", func() {
+		doConfigCleanup(s)
+	}, time.Hour*24)
+}
+
+func (s *Server) runInactivityCheckJob() {
+	model.CreateRecurringTask("Server inactivity Check", func() {
+		s.doInactivityCheck()
+	}, time.Hour*24)
+}
+
 func (s *Server) runLicenseExpirationCheckJob() {
 	s.doLicenseExpirationCheck()
 	model.CreateRecurringTask("License Expiration Check", func() {
@@ -1493,12 +1544,6 @@ func doReportUsageToAWSMeteringService(s *Server) {
 	dimensions := []string{model.AwsMeteringDimensionUsageHrs}
 	reports := awsMeter.GetUserCategoryUsage(dimensions, time.Now().UTC(), time.Now().Add(-model.AwsMeteringReportInterval*time.Hour).UTC())
 	awsMeter.ReportUserCategoryUsage(reports)
-}
-
-func runCheckAdminSupportStatusJob(a *App, c *request.Context) {
-	model.CreateRecurringTask("Check Admin Support Status Job", func() {
-		doCheckAdminSupportStatus(a, c)
-	}, time.Hour*model.WarnMetricJobInterval)
 }
 
 func doSecurity(s *Server) {
@@ -1544,13 +1589,14 @@ func doJobsCleanup(s *Server) {
 	}
 }
 
-func doCheckAdminSupportStatus(a *App, c *request.Context) {
-	isE0Edition := model.BuildEnterpriseReady == "true"
+func doConfigCleanup(s *Server) {
+	if *s.Config().JobSettings.CleanupConfigThresholdDays < 0 || !config.IsDatabaseDSN(s.ConfigStore().Store.String()) {
+		return
+	}
+	mlog.Info("Cleaning up configuration store.")
 
-	if strings.TrimSpace(*a.Config().SupportSettings.SupportEmail) == model.SupportSettingsDefaultSupportEmail {
-		if err := a.notifyAdminsOfWarnMetricStatus(c, model.SystemMetricSupportEmailNotConfigured, isE0Edition); err != nil {
-			mlog.Error("Failed to send notifications to admin users.", mlog.Err(err))
-		}
+	if err := s.ConfigStore().Store.CleanUp(); err != nil {
+		mlog.Warn("Error while cleaning up configurations", mlog.Err(err))
 	}
 }
 
@@ -1701,6 +1747,15 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 
 func (s *Server) doLicenseExpirationCheck() {
 	s.LoadLicense()
+
+	// This takes care of a rare edge case reported here https://mattermost.atlassian.net/browse/MM-40962
+	// To reproduce that case locally, attach a license to a server that was started with enterprise enabled
+	// Then restart using BUILD_ENTERPRISE=false make restart-server to enter Team Edition
+	if model.BuildEnterpriseReady != "true" {
+		mlog.Debug("Skipping license expiration check because no license is expected on Team Edition")
+		return
+	}
+
 	license := s.License()
 
 	if license == nil {
@@ -1724,10 +1779,17 @@ func (s *Server) doLicenseExpirationCheck() {
 		if appErr != nil {
 			mlog.Debug(appErr.Error())
 		}
+		return
 	}
 
 	if !license.IsPastGracePeriod() {
 		mlog.Debug("License is not past the grace period.")
+		return
+	}
+
+	renewalLink, _, appErr := s.GenerateLicenseRenewalLink()
+	if appErr != nil {
+		mlog.Error("Error while sending the license expired email.", mlog.Err(appErr))
 		return
 	}
 
@@ -1741,7 +1803,7 @@ func (s *Server) doLicenseExpirationCheck() {
 
 		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
 		s.Go(func() {
-			if err := s.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *s.Config().ServiceSettings.SiteURL); err != nil {
+			if err := s.SendRemoveExpiredLicenseEmail(user.Email, renewalLink, user.Locale, *s.Config().ServiceSettings.SiteURL); err != nil {
 				mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
 			}
 		})
@@ -1753,11 +1815,7 @@ func (s *Server) doLicenseExpirationCheck() {
 
 // SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
 // to renew the user license
-func (s *Server) SendRemoveExpiredLicenseEmail(email string, locale, siteURL string) *model.AppError {
-	renewalLink, _, err := s.GenerateLicenseRenewalLink()
-	if err != nil {
-		return err
-	}
+func (s *Server) SendRemoveExpiredLicenseEmail(email string, renewalLink, locale, siteURL string) *model.AppError {
 
 	if err := s.EmailService.SendRemoveExpiredLicenseEmail(renewalLink, email, locale, siteURL); err != nil {
 		return model.NewAppError("SendRemoveExpiredLicenseEmail", "api.license.remove_expired_license.failed.error", nil, err.Error(), http.StatusInternalServerError)
@@ -1844,13 +1902,8 @@ func (s *Server) stopSearchEngine() {
 	}
 }
 
-func (s *Server) FileBackend() (filestore.FileBackend, *model.AppError) {
-	license := s.License()
-	backend, err := filestore.NewFileBackend(s.Config().FileSettings.ToFileBackendSettings(license != nil && *license.Features.Compliance))
-	if err != nil {
-		return nil, model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return backend, nil
+func (s *Server) FileBackend() filestore.FileBackend {
+	return s.filestore
 }
 
 func (s *Server) TotalWebsocketConnections() int {
@@ -1874,8 +1927,6 @@ func (ch *Channels) ClientConfigHash() string {
 
 func (s *Server) initJobs() {
 	s.Jobs = jobs.NewJobServer(s, s.Store, s.Metrics)
-	s.Jobs.InitWorkers()
-	s.Jobs.InitSchedulers()
 
 	if jobsDataRetentionJobInterface != nil {
 		builder := jobsDataRetentionJobInterface(s)
@@ -1898,13 +1949,8 @@ func (s *Server) initJobs() {
 	}
 
 	if jobsLdapSyncInterface != nil {
-		builder := jobsLdapSyncInterface(s)
+		builder := jobsLdapSyncInterface(New(ServerConnector(s.Channels())))
 		s.Jobs.RegisterJobType(model.JobTypeLdapSync, builder.MakeWorker(), builder.MakeScheduler())
-	}
-
-	if jobsCloudInterface != nil {
-		builder := jobsCloudInterface(s)
-		s.Jobs.RegisterJobType(model.JobTypeCloud, builder.MakeWorker(), builder.MakeScheduler())
 	}
 
 	s.Jobs.RegisterJobType(
@@ -2043,181 +2089,6 @@ func (s *Server) SetSharedChannelSyncService(sharedChannelService SharedChannelS
 	s.sharedChannelService = sharedChannelService
 }
 
-func (a *App) GenerateSupportPacket() []model.FileData {
-	// If any errors we come across within this function, we will log it in a warning.txt file so that we know why certain files did not get produced if any
-	var warnings []string
-
-	// Creating an array of files that we are going to be adding to our zip file
-	fileDatas := []model.FileData{}
-
-	// A array of the functions that we can iterate through since they all have the same return value
-	functions := []func() (*model.FileData, string){
-		a.generateSupportPacketYaml,
-		a.createPluginsFile,
-		a.createSanitizedConfigFile,
-		a.getMattermostLog,
-		a.getNotificationsLog,
-	}
-
-	for _, fn := range functions {
-		fileData, warning := fn()
-
-		if fileData != nil {
-			fileDatas = append(fileDatas, *fileData)
-		} else {
-			warnings = append(warnings, warning)
-		}
-	}
-
-	// Adding a warning.txt file to the fileDatas if any warning
-	if len(warnings) > 0 {
-		finalWarning := strings.Join(warnings, "\n")
-		fileDatas = append(fileDatas, model.FileData{
-			Filename: "warning.txt",
-			Body:     []byte(finalWarning),
-		})
-	}
-
-	return fileDatas
-}
-
-func (a *App) getNotificationsLog() (*model.FileData, string) {
-	var warning string
-
-	// Getting notifications.log
-	if *a.Srv().Config().NotificationLogSettings.EnableFile {
-		// notifications.log
-		notificationsLog := config.GetNotificationsLogFileLocation(*a.Srv().Config().LogSettings.FileLocation)
-
-		notificationsLogFileData, notificationsLogFileDataErr := ioutil.ReadFile(notificationsLog)
-
-		if notificationsLogFileDataErr == nil {
-			fileData := model.FileData{
-				Filename: "notifications.log",
-				Body:     notificationsLogFileData,
-			}
-			return &fileData, ""
-		}
-
-		warning = fmt.Sprintf("ioutil.ReadFile(notificationsLog) Error: %s", notificationsLogFileDataErr.Error())
-
-	} else {
-		warning = "Unable to retrieve notifications.log because LogSettings: EnableFile is false in config.json"
-	}
-
-	return nil, warning
-}
-
-func (a *App) getMattermostLog() (*model.FileData, string) {
-	var warning string
-
-	// Getting mattermost.log
-	if *a.Srv().Config().LogSettings.EnableFile {
-		// mattermost.log
-		mattermostLog := config.GetLogFileLocation(*a.Srv().Config().LogSettings.FileLocation)
-
-		mattermostLogFileData, mattermostLogFileDataErr := ioutil.ReadFile(mattermostLog)
-
-		if mattermostLogFileDataErr == nil {
-			fileData := model.FileData{
-				Filename: "mattermost.log",
-				Body:     mattermostLogFileData,
-			}
-			return &fileData, ""
-		}
-		warning = fmt.Sprintf("ioutil.ReadFile(mattermostLog) Error: %s", mattermostLogFileDataErr.Error())
-
-	} else {
-		warning = "Unable to retrieve mattermost.log because LogSettings: EnableFile is false in config.json"
-	}
-
-	return nil, warning
-}
-
-func (a *App) createSanitizedConfigFile() (*model.FileData, string) {
-	// Getting sanitized config, prettifying it, and then adding it to our file data array
-	sanitizedConfigPrettyJSON, err := json.MarshalIndent(a.GetSanitizedConfig(), "", "    ")
-	if err == nil {
-		fileData := model.FileData{
-			Filename: "sanitized_config.json",
-			Body:     sanitizedConfigPrettyJSON,
-		}
-		return &fileData, ""
-	}
-
-	warning := fmt.Sprintf("json.MarshalIndent(c.App.GetSanitizedConfig()) Error: %s", err.Error())
-	return nil, warning
-}
-
-func (a *App) createPluginsFile() (*model.FileData, string) {
-	var warning string
-
-	// Getting the plugins installed on the server, prettify it, and then add them to the file data array
-	pluginsResponse, appErr := a.GetPlugins()
-	if appErr == nil {
-		pluginsPrettyJSON, err := json.MarshalIndent(pluginsResponse, "", "    ")
-		if err == nil {
-			fileData := model.FileData{
-				Filename: "plugins.json",
-				Body:     pluginsPrettyJSON,
-			}
-
-			return &fileData, ""
-		}
-
-		warning = fmt.Sprintf("json.MarshalIndent(pluginsResponse) Error: %s", err.Error())
-	} else {
-		warning = fmt.Sprintf("c.App.GetPlugins() Error: %s", appErr.Error())
-	}
-
-	return nil, warning
-}
-
-func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
-	// Here we are getting information regarding Elastic Search
-	var elasticServerVersion string
-	var elasticServerPlugins []string
-	if a.Srv().SearchEngine.ElasticsearchEngine != nil {
-		elasticServerVersion = a.Srv().SearchEngine.ElasticsearchEngine.GetFullVersion()
-		elasticServerPlugins = a.Srv().SearchEngine.ElasticsearchEngine.GetPlugins()
-	}
-
-	// Here we are getting information regarding LDAP
-	ldapInterface := a.ch.srv.Ldap
-	var vendorName, vendorVersion string
-	if ldapInterface != nil {
-		vendorName, vendorVersion = ldapInterface.GetVendorNameAndVendorVersion()
-	}
-
-	// Here we are getting information regarding the database (mysql/postgres + current Mattermost version)
-	databaseType, databaseVersion := a.Srv().DatabaseTypeAndMattermostVersion()
-
-	// Creating the struct for support packet yaml file
-	supportPacket := model.SupportPacket{
-		ServerOS:             runtime.GOOS,
-		ServerArchitecture:   runtime.GOARCH,
-		DatabaseType:         databaseType,
-		DatabaseVersion:      databaseVersion,
-		LdapVendorName:       vendorName,
-		LdapVendorVersion:    vendorVersion,
-		ElasticServerVersion: elasticServerVersion,
-		ElasticServerPlugins: elasticServerPlugins,
-	}
-
-	// Marshal to a Yaml File
-	supportPacketYaml, err := yaml.Marshal(&supportPacket)
-	if err == nil {
-		fileData := model.FileData{
-			Filename: "support_packet.yaml",
-			Body:     supportPacketYaml,
-		}
-		return &fileData, ""
-	}
-
-	warning := fmt.Sprintf("yaml.Marshal(&supportPacket) Error: %s", err.Error())
-	return nil, warning
-}
-
 func (s *Server) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
 	if *s.Config().FileSettings.DriverName == "" {
 		img, appErr := s.GetDefaultProfileImage(user)
@@ -2264,11 +2135,7 @@ func (s *Server) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppErr
 }
 
 func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
-	backend, err := s.FileBackend()
-	if err != nil {
-		return nil, err
-	}
-	result, nErr := backend.ReadFile(path)
+	result, nErr := s.FileBackend().ReadFile(path)
 	if nErr != nil {
 		return nil, model.NewAppError("ReadFile", "api.file.read_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
@@ -2302,4 +2169,12 @@ func runDNDStatusExpireJob(a *App) {
 			cancelDNDStatusExpirationRecurringTask(a)
 		}
 	})
+}
+
+func (a *App) GetAppliedSchemaMigrations() ([]model.AppliedMigration, *model.AppError) {
+	table, err := a.Srv().Store.GetAppliedMigrations()
+	if err != nil {
+		return nil, model.NewAppError("GetDBSchemaTable", "api.file.read_file.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return table, nil
 }

@@ -126,14 +126,14 @@ func (c *Context) SessionRequired() {
 }
 
 func (c *Context) CloudKeyRequired() {
-	if license := c.App.Srv().License(); license == nil || !*license.Features.Cloud || c.AppContext.Session().Props[model.SessionPropType] != model.SessionTypeCloudKey {
+	if license := c.App.Channels().License(); license == nil || !*license.Features.Cloud || c.AppContext.Session().Props[model.SessionPropType] != model.SessionTypeCloudKey {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "TokenRequired", http.StatusUnauthorized)
 		return
 	}
 }
 
 func (c *Context) RemoteClusterTokenRequired() {
-	if license := c.App.Srv().License(); license == nil || !*license.Features.RemoteClusterService || c.AppContext.Session().Props[model.SessionPropType] != model.SessionTypeRemoteclusterToken {
+	if license := c.App.Channels().License(); license == nil || !*license.Features.RemoteClusterService || c.AppContext.Session().Props[model.SessionPropType] != model.SessionTypeRemoteclusterToken {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "TokenRequired", http.StatusUnauthorized)
 		return
 	}
@@ -141,7 +141,7 @@ func (c *Context) RemoteClusterTokenRequired() {
 
 func (c *Context) MfaRequired() {
 	// Must be licensed for MFA and have it configured for enforcement
-	if license := c.App.Srv().License(); license == nil || !*license.Features.MFA || !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication || !*c.App.Config().ServiceSettings.EnforceMultifactorAuthentication {
+	if license := c.App.Channels().License(); license == nil || !*license.Features.MFA || !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication || !*c.App.Config().ServiceSettings.EnforceMultifactorAuthentication {
 		return
 	}
 

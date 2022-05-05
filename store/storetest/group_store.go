@@ -668,7 +668,7 @@ func testGroupStoreUpdate(t *testing.T, ss store.Store) {
 		RemoteId:    model.NewString(model.NewId()),
 	})
 	require.Error(t, err)
-	require.Contains(t, err.Error(), fmt.Sprintf("Group with name %s already exists", *g1Update.Name))
+	require.Contains(t, err.Error(), "unique constraint: Name")
 
 	// Cannot update CreateAt
 	someVal := model.GetMillis()

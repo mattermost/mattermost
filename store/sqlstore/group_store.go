@@ -328,7 +328,7 @@ func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, error) {
 		WHERE Id=:Id`, group)
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "groups_name_key"}) {
-			return nil, errors.Wrapf(err, "Group with name %s already exists", *group.Name)
+			return nil, store.NewErrUniqueConstraint("Name")
 		}
 		return nil, errors.Wrap(err, "failed to update Group")
 	}
@@ -1718,6 +1718,10 @@ func (s *SqlGroupStore) PermittedSyncableAdmins(syncableID string, syncableType 
 
 func (s *SqlGroupStore) GroupCount() (int64, error) {
 	return s.countTable("UserGroups")
+}
+
+func (s *SqlGroupStore) GroupCountBySource(source model.GroupSource) (int64, error) {
+	return s.countTableWithSelectAndWhere("COUNT(*)", "UserGroups", sq.Eq{"Source": source, "DeleteAt": 0})
 }
 
 func (s *SqlGroupStore) GroupTeamCount() (int64, error) {

@@ -27,23 +27,6 @@ var (
 	ErrWorkersUninitialized = errors.New("job workers are not initialized")
 )
 
-func (srv *JobServer) InitWorkers() error {
-	srv.mut.Lock()
-	defer srv.mut.Unlock()
-
-	if srv.workers != nil && srv.workers.running {
-		return ErrWorkersRunning
-	}
-
-	workers := NewWorkers(srv.ConfigService)
-
-	workers.Watcher = srv.MakeWatcher(workers, DefaultWatcherPollingInterval)
-
-	srv.workers = workers
-
-	return nil
-}
-
 func NewWorkers(configService configservice.ConfigService) *Workers {
 	return &Workers{
 		ConfigService: configService,

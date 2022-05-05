@@ -55,7 +55,7 @@ func TestPostActionCookies(t *testing.T) {
 
 	for name, test := range map[string]struct {
 		Action             model.PostAction
-		ExpectedSucess     bool
+		ExpectedSuccess    bool
 		ExpectedStatusCode int
 	}{
 		"32 character ID": {
@@ -70,7 +70,7 @@ func TestPostActionCookies(t *testing.T) {
 					},
 				},
 			},
-			ExpectedSucess:     true,
+			ExpectedSuccess:    true,
 			ExpectedStatusCode: http.StatusOK,
 		},
 		"6 character ID": {
@@ -85,7 +85,7 @@ func TestPostActionCookies(t *testing.T) {
 					},
 				},
 			},
-			ExpectedSucess:     true,
+			ExpectedSuccess:    true,
 			ExpectedStatusCode: http.StatusOK,
 		},
 		"Empty ID": {
@@ -100,7 +100,7 @@ func TestPostActionCookies(t *testing.T) {
 					},
 				},
 			},
-			ExpectedSucess:     false,
+			ExpectedSuccess:    false,
 			ExpectedStatusCode: http.StatusNotFound,
 		},
 	} {
@@ -130,7 +130,7 @@ func TestPostActionCookies(t *testing.T) {
 
 			resp, err := client.DoPostActionWithCookie(post.Id, test.Action.Id, "", test.Action.Cookie)
 			require.NotNil(t, resp)
-			if test.ExpectedSucess {
+			if test.ExpectedSuccess {
 				assert.NoError(t, err)
 			} else {
 				assert.Error(t, err)

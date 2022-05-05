@@ -12,7 +12,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -37,12 +36,17 @@ func setupConfigDatabase(t *testing.T, cfg *model.Config, files map[string][]byt
 	cfgData, err := marshalConfig(cfg)
 	require.NoError(t, err)
 
-	db := sqlx.NewDb(mainHelper.GetSQLStore().GetMaster().Db, *mainHelper.GetSQLSettings().DriverName)
-	err = initializeConfigurationsTable(db)
+	ds := &DatabaseStore{
+		driverName:     *mainHelper.GetSQLSettings().DriverName,
+		db:             mainHelper.GetSQLStore().GetMasterX().DB,
+		dataSourceName: *mainHelper.Settings.DataSource,
+	}
+
+	err = ds.initializeConfigurationsTable()
 	require.NoError(t, err)
 
 	id := model.NewId()
-	_, err = db.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt, Active) VALUES(:Id, :Value, :CreateAt, TRUE)", map[string]interface{}{
+	_, err = ds.db.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt, Active) VALUES(:Id, :Value, :CreateAt, TRUE)", map[string]interface{}{
 		"Id":       id,
 		"Value":    cfgData,
 		"CreateAt": model.GetMillis(),
@@ -57,7 +61,7 @@ func setupConfigDatabase(t *testing.T, cfg *model.Config, files map[string][]byt
 			"update_at": model.GetMillis(),
 		}
 
-		_, err = db.NamedExec("INSERT INTO ConfigurationFiles (Name, Data, CreateAt, UpdateAt) VALUES (:name, :data, :create_at, :update_at)", params)
+		_, err = ds.db.NamedExec("INSERT INTO ConfigurationFiles (Name, Data, CreateAt, UpdateAt) VALUES (:name, :data, :create_at, :update_at)", params)
 		require.NoError(t, err)
 	}
 
@@ -75,8 +79,7 @@ func getActualDatabaseConfig(t *testing.T) (string, *model.Config) {
 			ID    string `db:"id"`
 			Value []byte `db:"value"`
 		}
-		db := sqlx.NewDb(mainHelper.GetSQLStore().GetMaster().Db, *mainHelper.GetSQLSettings().DriverName)
-		err := db.Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
+		err := mainHelper.GetSQLStore().GetMasterX().Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
 		require.NoError(t, err)
 
 		var actualCfg *model.Config
@@ -88,8 +91,7 @@ func getActualDatabaseConfig(t *testing.T) (string, *model.Config) {
 		ID    string `db:"Id"`
 		Value []byte `db:"Value"`
 	}
-	db := sqlx.NewDb(mainHelper.GetSQLStore().GetMaster().Db, *mainHelper.GetSQLSettings().DriverName)
-	err := db.Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
+	err := mainHelper.GetSQLStore().GetMasterX().Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
 	require.NoError(t, err)
 
 	var actualCfg *model.Config
@@ -245,7 +247,7 @@ func TestDatabaseStoreGet(t *testing.T) {
 	assert.True(t, cfg == cfg2, "Get() returned different configuration instances")
 }
 
-func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
+func TestDatabaseStoreGetEnvironmentOverrides(t *testing.T) {
 	t.Run("get override for a string variable", func(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, testConfig, nil)
 		defer tearDown()
@@ -472,7 +474,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 
 		_, _, err = ds.Set(newCfg)
 		if assert.Error(t, err) {
-			assert.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, ")
+			assert.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, parse \"invalid\": invalid URI for request")
 		}
 
 		assert.Equal(t, "", *ds.Get().ServiceSettings.SiteURL)
@@ -548,9 +550,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		defer ds.Close()
 
-		sqlSettings := mainHelper.GetSQLSettings()
-		db := sqlx.NewDb(mainHelper.GetSQLStore().GetMaster().Db, *sqlSettings.DriverName)
-		_, err = db.Exec("DROP TABLE Configurations")
+		_, err = mainHelper.GetSQLStore().GetMasterX().Exec("DROP TABLE Configurations")
 		require.NoError(t, err)
 
 		newCfg := minimalConfig
@@ -830,20 +830,19 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		cfgData, err := marshalConfig(invalidConfig)
 		require.NoError(t, err)
 
-		sqlSettings := mainHelper.GetSQLSettings()
-		db := sqlx.NewDb(mainHelper.GetSQLStore().GetMaster().Db, *sqlSettings.DriverName)
 		truncateTables(t)
 		id := model.NewId()
-		_, err = db.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt, Active) VALUES(:Id, :Value, :CreateAt, TRUE)", map[string]interface{}{
-			"Id":       id,
-			"Value":    cfgData,
-			"CreateAt": model.GetMillis(),
+		_, err = mainHelper.GetSQLStore().GetMasterX().NamedExec("INSERT INTO Configurations (Id, Value, CreateAt, Active) VALUES(:id, :value, :createat, TRUE)", map[string]interface{}{
+			"id":       id,
+			"value":    cfgData,
+			"createat": model.GetMillis(),
 		})
-		require.NoError(t, err)
+		t.Logf("%v\n", err)
+		require.NoErrorf(t, err, "what is - %v", err)
 
 		err = ds.Load()
 		if assert.Error(t, err) {
-			assert.EqualError(t, err, "invalid config: Config.IsValid: model.config.is_valid.site_url.app_error, ")
+			assert.EqualError(t, err, "invalid config: Config.IsValid: model.config.is_valid.site_url.app_error, parse \"invalid\": invalid URI for request")
 		}
 	})
 
@@ -861,7 +860,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		assert.Equal(t, "http://trailingslash", *ds.Get().ServiceSettings.SiteURL)
 	})
 
-	t.Run("listeners notifed on change", func(t *testing.T) {
+	t.Run("listeners notified on change", func(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 		defer tearDown()
 
@@ -1113,4 +1112,51 @@ func TestDatabaseStoreString(t *testing.T) {
 		assert.True(t, strings.Contains(maskedDSN, "mmuser"))
 		assert.False(t, strings.Contains(maskedDSN, "mostest"))
 	}
+}
+
+func TestCleanUp(t *testing.T) {
+	_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
+	defer tearDown()
+
+	ds, err := newTestDatabaseStore(nil)
+	require.NoError(t, err)
+	require.NotNil(t, ds)
+	defer ds.Close()
+
+	dbs, ok := ds.backingStore.(*DatabaseStore)
+	require.True(t, ok, "should be a DatabaseStore instance")
+
+	b, err := marshalConfig(ds.config)
+	require.NoError(t, err)
+
+	ds.config.JobSettings.CleanupConfigThresholdDays = model.NewInt(30) // we set 30 days as threshold
+
+	now := time.Now()
+	for i := 0; i < 5; i++ {
+		// 20 days, we expect to remove at least 3 configuration values from the store
+		// first 2 (0 and 1) will be within a month constraint, others will be older than
+		// a month hence we expect 3 configurations to be removed from the database.
+		m := -1 * i * 24 * 20
+		params := map[string]interface{}{
+			"id":        model.NewId(),
+			"value":     string(b),
+			"create_at": model.GetMillisForTime(now.Add(time.Duration(m) * time.Hour)),
+		}
+
+		_, err = dbs.db.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt) VALUES (:id, :value, :create_at)", params)
+		require.NoError(t, err)
+	}
+	var initialCount int
+	row := dbs.db.QueryRow("SELECT COUNT(*) FROM Configurations")
+	err = row.Scan(&initialCount)
+	require.NoError(t, err)
+
+	err = ds.CleanUp()
+	require.NoError(t, err)
+
+	var count int
+	row = dbs.db.QueryRow("SELECT COUNT(*) FROM Configurations")
+	err = row.Scan(&count)
+	require.NoError(t, err)
+	require.True(t, count+3 == initialCount)
 }

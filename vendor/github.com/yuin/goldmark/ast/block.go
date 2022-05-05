@@ -87,7 +87,20 @@ func (n *Document) Meta() map[string]interface{} {
 
 // SetMeta sets given metadata to this document.
 func (n *Document) SetMeta(meta map[string]interface{}) {
-	n.meta = meta
+	if n.meta == nil {
+		n.meta = map[string]interface{}{}
+	}
+	for k, v := range meta {
+		n.meta[k] = v
+	}
+}
+
+// AddMeta adds given metadata to this document.
+func (n *Document) AddMeta(key string, value interface{}) {
+	if n.meta == nil {
+		n.meta = map[string]interface{}{}
+	}
+	n.meta[key] = value
 }
 
 // NewDocument returns a new Document node.
