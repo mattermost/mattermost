@@ -635,7 +635,7 @@ func testFileInfoStoreGetFilesBatchForIndexing(t *testing.T, ss store.Store) {
 	defer func() {
 		ss.FileInfo().PermanentDelete(f1.Id)
 	}()
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(2 * time.Millisecond)
 
 	o2 := &model.Post{}
 	o2.ChannelId = c2.Id
@@ -653,7 +653,7 @@ func testFileInfoStoreGetFilesBatchForIndexing(t *testing.T, ss store.Store) {
 	defer func() {
 		ss.FileInfo().PermanentDelete(f2.Id)
 	}()
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(2 * time.Millisecond)
 
 	o3 := &model.Post{}
 	o3.ChannelId = c1.Id
