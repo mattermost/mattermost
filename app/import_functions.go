@@ -718,14 +718,24 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 		return nil
 	}
 
+	fmt.Println("------------------- Importing user teams ------------------------")
+	fmt.Printf("User: %+v\n", *user)
+	fmt.Printf("Data: %+v\n", *data)
+
 	teamNames := []string{}
 	for _, tdata := range *data {
 		teamNames = append(teamNames, *tdata.Name)
 	}
+	fmt.Printf("TeamNames: %+v\n", teamNames)
 	allTeams, err := a.getTeamsByNames(teamNames)
 	if err != nil {
 		return err
 	}
+	fmt.Printf("All Teams Result: \n")
+	for k, v := range allTeams {
+		fmt.Printf("%+v : %+v\n", k, *v)
+	}
+	fmt.Printf("---END All Teams Result\n")
 
 	teamThemePreferencesByID := map[string]model.Preferences{}
 	channels := map[string][]UserChannelImportData{}
@@ -746,7 +756,11 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 		existingMembershipsByTeamId[teamMembership.TeamId] = teamMembership
 	}
 	for _, tdata := range *data {
+		fmt.Println("---- data row -----")
 		team := allTeams[*tdata.Name]
+		fmt.Printf("*tdata.Name: %+v\n", *tdata.Name)
+		fmt.Printf("team: %+v\n", team)
+		fmt.Println("-------------------")
 
 		// Team-specific theme Preferences.
 		if tdata.Theme != nil {
@@ -868,6 +882,8 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 			return err
 		}
 	}
+
+	fmt.Println("----------------------DONE---------------------------------------")
 
 	return nil
 }
