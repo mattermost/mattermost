@@ -118,13 +118,11 @@ var SizeLimitExceeded = errors.New("Size limit exceeded")
 
 type LimitedReaderWithError struct {
 	limitedReader *io.LimitedReader
-	maxBytes      int64
 }
 
-func NewLimitedReaderWithError(reader io.Reader, n int64) *LimitedReaderWithError {
+func NewLimitedReaderWithError(reader io.Reader, maxBytes int64) *LimitedReaderWithError {
 	return &LimitedReaderWithError{
-		limitedReader: &io.LimitedReader{R: reader, N: n},
-		maxBytes:      n,
+		limitedReader: &io.LimitedReader{R: reader, N: maxBytes + 1},
 	}
 }
 
@@ -133,5 +131,6 @@ func (l *LimitedReaderWithError) Read(p []byte) (int, error) {
 	if l.limitedReader.N <= 0 && err == io.EOF {
 		return n, SizeLimitExceeded
 	}
+	fmt.Println(l.limitedReader.N)
 	return n, err
 }

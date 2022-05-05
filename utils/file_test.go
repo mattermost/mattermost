@@ -89,7 +89,7 @@ func TestLimitedReaderWithError(t *testing.T) {
 		lr := NewLimitedReaderWithError(bytes.NewReader(randomBytes), int64(maxBytes))
 		buf := make([]byte, maxBytes)
 		_, err = io.ReadFull(lr, buf)
-		require.NoError(t, err)
+		require.Truef(t, err == nil || err == io.EOF, "err must be nil or %v, got %v", io.EOF, err)
 	})
 
 	t.Run("single read, larger than max size", func(t *testing.T) {
@@ -104,16 +104,17 @@ func TestLimitedReaderWithError(t *testing.T) {
 		buf := make([]byte, moreThanMaxBytes)
 		_, err = io.ReadFull(lr, buf)
 		require.Error(t, err)
-		require.Equal(t, err, SizeLimitExceeded)
+		require.Equal(t, SizeLimitExceeded, err)
 	})
 
 	t.Run("multiple small reads, total larger than max size", func(t *testing.T) {
 		maxBytes := 10
-		lessThanMaxBytes := 6
-		randomBytes := make([]byte, maxBytes)
+		lessThanMaxBytes := maxBytes - 4
+		randomBytesLen := maxBytes * 2
+		randomBytes := make([]byte, randomBytesLen)
 		n, err := rand.Read(randomBytes)
 		require.NoError(t, err)
-		require.Equal(t, maxBytes, n)
+		require.Equal(t, randomBytesLen, n)
 
 		lr := NewLimitedReaderWithError(bytes.NewReader(randomBytes), int64(maxBytes))
 		buf := make([]byte, lessThanMaxBytes)
@@ -123,6 +124,6 @@ func TestLimitedReaderWithError(t *testing.T) {
 		// lets do it again
 		_, err = io.ReadFull(lr, buf)
 		require.Error(t, err)
-		require.Equal(t, err, SizeLimitExceeded)
+		require.Equal(t, SizeLimitExceeded, err)
 	})
 }
