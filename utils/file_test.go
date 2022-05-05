@@ -70,7 +70,7 @@ func TestLimitedReaderWithError(t *testing.T) {
 		maxBytes := 10
 		randomBytes := make([]byte, maxBytes)
 		n, err := rand.Read(randomBytes)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Equal(t, n, maxBytes)
 
 		lr := NewLimitedReaderWithError(bytes.NewReader(randomBytes), int64(maxBytes))
@@ -97,7 +97,7 @@ func TestLimitedReaderWithError(t *testing.T) {
 		moreThanMaxBytes := maxBytes + 10
 		randomBytes := make([]byte, moreThanMaxBytes)
 		n, err := rand.Read(randomBytes)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Equal(t, moreThanMaxBytes, n)
 
 		lr := NewLimitedReaderWithError(bytes.NewReader(randomBytes), int64(maxBytes))
@@ -112,7 +112,7 @@ func TestLimitedReaderWithError(t *testing.T) {
 		lessThanMaxBytes := 6
 		randomBytes := make([]byte, maxBytes)
 		n, err := rand.Read(randomBytes)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Equal(t, maxBytes, n)
 
 		lr := NewLimitedReaderWithError(bytes.NewReader(randomBytes), int64(maxBytes))
