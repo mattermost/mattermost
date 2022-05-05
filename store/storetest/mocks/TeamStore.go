@@ -535,13 +535,13 @@ func (_m *TeamStore) GetTeamsByUserId(userID string) ([]*model.Team, error) {
 	return r0, r1
 }
 
-// GetTeamsForUser provides a mock function with given fields: ctx, userID
-func (_m *TeamStore) GetTeamsForUser(ctx context.Context, userID string) ([]*model.TeamMember, error) {
-	ret := _m.Called(ctx, userID)
+// GetTeamsForUser provides a mock function with given fields: ctx, userID, includeDeleted
+func (_m *TeamStore) GetTeamsForUser(ctx context.Context, userID string, includeDeleted bool) ([]*model.TeamMember, error) {
+	ret := _m.Called(ctx, userID, includeDeleted)
 
 	var r0 []*model.TeamMember
-	if rf, ok := ret.Get(0).(func(context.Context, string) []*model.TeamMember); ok {
-		r0 = rf(ctx, userID)
+	if rf, ok := ret.Get(0).(func(context.Context, string, bool) []*model.TeamMember); ok {
+		r0 = rf(ctx, userID, includeDeleted)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.TeamMember)
@@ -549,8 +549,8 @@ func (_m *TeamStore) GetTeamsForUser(ctx context.Context, userID string) ([]*mod
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, userID)
+	if rf, ok := ret.Get(1).(func(context.Context, string, bool) error); ok {
+		r1 = rf(ctx, userID, includeDeleted)
 	} else {
 		r1 = ret.Error(1)
 	}
