@@ -1233,7 +1233,7 @@ func (a *App) importAttachment(c *request.Context, data *AttachmentImportData, p
 		return nil, appErr
 	}
 
-	if fileInfo.IsImage() {
+	if fileInfo.IsImage() && !fileInfo.IsSvg() {
 		a.HandleImages([]string{fileInfo.PreviewPath}, []string{fileInfo.ThumbnailPath}, [][]byte{fileData})
 	}
 

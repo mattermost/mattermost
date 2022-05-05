@@ -249,7 +249,7 @@ func (a *App) getInfoForFilename(post *model.Post, teamID, channelID, userID, ol
 	info.UpdateAt = post.UpdateAt
 	info.Path = path
 
-	if info.IsImage() {
+	if info.IsImage() && !info.IsSvg() {
 		nameWithoutExtension := name[:strings.LastIndex(name, ".")]
 		info.PreviewPath = pathPrefix + nameWithoutExtension + "_preview.jpg"
 		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb.jpg"
@@ -937,7 +937,7 @@ func (a *App) DoUploadFileExpectModification(c *request.Context, now time.Time, 
 	pathPrefix := now.Format("20060102") + "/teams/" + teamID + "/channels/" + channelID + "/users/" + userID + "/" + info.Id + "/"
 	info.Path = pathPrefix + filename
 
-	if info.IsImage() {
+	if info.IsImage() && !info.IsSvg() {
 		if limitErr := checkImageResolutionLimit(info.Width, info.Height, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
 			err := model.NewAppError("uploadFile", "api.file.upload_file.large_image.app_error", map[string]interface{}{"Filename": filename}, limitErr.Error(), http.StatusBadRequest)
 			return nil, data, err
@@ -1081,7 +1081,7 @@ func (a *App) generatePreviewImage(img image.Image, previewPath string) {
 // generateMiniPreview updates mini preview if needed
 // will save fileinfo with the preview added
 func (a *App) generateMiniPreview(fi *model.FileInfo) {
-	if fi.IsImage() && fi.MiniPreview == nil {
+	if fi.IsImage() && !fi.IsSvg() && fi.MiniPreview == nil {
 		file, appErr := a.FileReader(fi.Path)
 		if appErr != nil {
 			mlog.Debug("error reading image file", mlog.Err(appErr))
