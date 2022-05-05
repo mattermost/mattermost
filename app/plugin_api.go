@@ -1180,7 +1180,7 @@ func (api *PluginAPI) RequestTrialLicense(requesterID string, users int, termsAc
 	return api.app.Channels().RequestTrialLicense(requesterID, users, termsAccepted, receiveEmailsAccepted)
 }
 
-// GetCloudLimits requests a trial license and installs it in the server
+// GetCloudLimits returns any limits associated with the cloud instance
 func (api *PluginAPI) GetCloudLimits() (*model.ProductLimits, error) {
 	limits, err := api.app.Cloud().GetCloudLimits("")
 	return limits, err
