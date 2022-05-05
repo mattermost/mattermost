@@ -1384,7 +1384,7 @@ func TestImportImportUser(t *testing.T) {
 	require.NoError(t, nErr, "Failed to import scheme")
 
 	teamData := &TeamImportData{
-		Name:            ptrStr(model.NewId()),
+		Name:            ptrStr(NewTestId()),
 		DisplayName:     ptrStr("Display Name"),
 		Type:            ptrStr("O"),
 		Description:     ptrStr("The team description."),
@@ -1398,7 +1398,7 @@ func TestImportImportUser(t *testing.T) {
 
 	channelData := &ChannelImportData{
 		Team:        &teamName,
-		Name:        ptrStr(model.NewId()),
+		Name:        ptrStr(NewTestId()),
 		DisplayName: ptrStr("Display Name"),
 		Type:        &chanTypeOpen,
 		Header:      ptrStr("Channel Header"),
@@ -1943,7 +1943,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	require.Nil(t, err, "Failed to get team from database.")
 
 	// Create a Channel.
-	channelName := model.NewId()
+	channelName := NewTestId()
 	chanTypeOpen := model.ChannelTypeOpen
 	th.App.importChannel(th.Context, &ChannelImportData{
 		Team:        &teamName,
@@ -2022,7 +2022,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	data = LineImportWorkerData{
 		LineImportData{
 			Post: &PostImportData{
-				Team:     ptrStr(model.NewId()),
+				Team:     ptrStr(NewTestId()),
 				Channel:  &channelName,
 				User:     &username,
 				Message:  ptrStr("Message"),
@@ -2043,7 +2043,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		LineImportData{
 			Post: &PostImportData{
 				Team:     &teamName,
-				Channel:  ptrStr(model.NewId()),
+				Channel:  ptrStr(NewTestId()),
 				User:     &username,
 				Message:  ptrStr("Message"),
 				CreateAt: ptrInt64(model.GetMillis()),
@@ -2547,7 +2547,7 @@ func TestImportImportPost(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get team from database.")
 
 	// Create a Channel.
-	channelName := model.NewId()
+	channelName := NewTestId()
 	chanTypeOpen := model.ChannelTypeOpen
 	th.App.importChannel(th.Context, &ChannelImportData{
 		Team:        &teamName,
@@ -2645,7 +2645,7 @@ func TestImportImportPost(t *testing.T) {
 		data := LineImportWorkerData{
 			LineImportData{
 				Post: &PostImportData{
-					Team:     ptrStr(model.NewId()),
+					Team:     ptrStr(NewTestId()),
 					Channel:  &channelName,
 					User:     &username,
 					Message:  ptrStr("Message"),
@@ -2665,7 +2665,7 @@ func TestImportImportPost(t *testing.T) {
 			LineImportData{
 				Post: &PostImportData{
 					Team:     &teamName,
-					Channel:  ptrStr(model.NewId()),
+					Channel:  ptrStr(NewTestId()),
 					User:     &username,
 					Message:  ptrStr("Message"),
 					CreateAt: ptrInt64(model.GetMillis()),
@@ -4175,7 +4175,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get team from database.")
 
 	// Create a Channel.
-	channelName := model.NewId()
+	channelName := NewTestId()
 	chanTypeOpen := model.ChannelTypeOpen
 	th.App.importChannel(th.Context, &ChannelImportData{
 		Team:        &teamName,
@@ -4451,7 +4451,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get team from database.")
 
 	// Create a Channel.
-	channelName := model.NewId()
+	channelName := NewTestId()
 	chanTypeOpen := model.ChannelTypeOpen
 	th.App.importChannel(th.Context, &ChannelImportData{
 		Team:        &teamName,
