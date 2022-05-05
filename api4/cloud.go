@@ -490,7 +490,6 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	case model.EventTypeSubscriptionChanged:
 		// event.ProductLimits is nil if there was no change
 		if event.ProductLimits != nil {
-			c.App.GetPluginsEnvironment()
 			if pluginsEnvironment := c.App.GetPluginsEnvironment(); pluginsEnvironment != nil {
 				pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 					hooks.OnCloudLimitsUpdated(event.ProductLimits)
@@ -502,7 +501,7 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.subscription.update_error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		c.Logger.Info("Updated subscription")
+		c.Logger.Info("Updated subscription from webhook event")
 
 	default:
 		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.cws_webhook_event_missing_error", nil, "", http.StatusNotFound)
