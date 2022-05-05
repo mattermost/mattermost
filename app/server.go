@@ -1518,7 +1518,7 @@ func runConfigCleanupJob(s *Server) {
 func (s *Server) runInactivityCheckJob() {
 	model.CreateRecurringTask("Server inactivity Check", func() {
 		s.doInactivityCheck()
-	}, time.Second*30)
+	}, time.Hour*24)
 }
 
 func (s *Server) runLicenseExpirationCheckJob() {
