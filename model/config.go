@@ -613,6 +613,14 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.SessionLengthWebInHours = NewInt(webTTLDays * 24)
 	}
 
+	if s.SessionLengthWebInDays == nil {
+		if isUpdate {
+			s.SessionLengthWebInDays = NewInt(180)
+		} else {
+			s.SessionLengthWebInDays = NewInt(30)
+		}
+	}
+
 	if s.SessionLengthMobileInHours == nil {
 		var mobileTTLDays int
 		if s.SessionLengthMobileInDays == nil {
@@ -627,6 +635,14 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.SessionLengthMobileInHours = NewInt(mobileTTLDays * 24)
 	}
 
+	if s.SessionLengthMobileInDays == nil {
+		if isUpdate {
+			s.SessionLengthMobileInDays = NewInt(180)
+		} else {
+			s.SessionLengthMobileInDays = NewInt(30)
+		}
+	}
+
 	if s.SessionLengthSSOInHours == nil {
 		var ssoTTLDays int
 		if s.SessionLengthSSOInDays == nil {
@@ -635,6 +651,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 			ssoTTLDays = *s.SessionLengthSSOInDays
 		}
 		s.SessionLengthSSOInHours = NewInt(ssoTTLDays * 24)
+	}
+
+	if s.SessionLengthSSOInDays == nil {
+		s.SessionLengthSSOInDays = NewInt(30)
 	}
 
 	if s.SessionCacheInMinutes == nil {
