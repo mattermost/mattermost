@@ -1029,7 +1029,6 @@ func (s *SqlPostStore) ReplaceUserMentions(userId string) error {
 	// replace all occurrences of the username by '@deletedUser'
 	atMentionRegex := regexp.MustCompile(`(@` + username[0] + `(\b.*)?$)`)
 
-	mlog.Warn(posts[0].Message)
 	for _, item := range posts {
 		newMessage := atMentionRegex.ReplaceAllString(item.Message, "@deletedUser$2")
 
