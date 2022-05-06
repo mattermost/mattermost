@@ -2615,7 +2615,7 @@ func (s *SqlPostStore) LogRecentSearch(userID string, searchQuery []byte, create
 	lastSearchPointer = (lastSearchPointer + 1) % lastSearchesLimit
 
 	if s.IsBinaryParamEnabled() {
-		searchQuery = s.AppendBinaryFlag(searchQuery)
+		searchQuery = AppendBinaryFlag(searchQuery)
 	}
 
 	// insert at pointer
