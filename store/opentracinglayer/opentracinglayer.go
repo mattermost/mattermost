@@ -1748,6 +1748,42 @@ func (s *OpenTracingLayerChannelStore) GetTeamMembersForChannel(channelID string
 	return result, err
 }
 
+func (s *OpenTracingLayerChannelStore) GetTopChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopChannelList, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetTopChannelsForTeamSince")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ChannelStore.GetTopChannelsForTeamSince(teamID, userID, since, offset, limit)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerChannelStore) GetTopChannelsForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopChannelList, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetTopChannelsForUserSince")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ChannelStore.GetTopChannelsForUserSince(userID, teamID, since, offset, limit)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerChannelStore) GroupSyncedChannelCount() (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GroupSyncedChannelCount")
@@ -8822,7 +8858,7 @@ func (s *OpenTracingLayerTeamStore) GetTeamsByUserId(userID string) ([]*model.Te
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) GetTeamsForUser(ctx context.Context, userID string) ([]*model.TeamMember, error) {
+func (s *OpenTracingLayerTeamStore) GetTeamsForUser(ctx context.Context, userID string, includeDeleted bool) ([]*model.TeamMember, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetTeamsForUser")
 	s.Root.Store.SetContext(newCtx)
@@ -8831,7 +8867,7 @@ func (s *OpenTracingLayerTeamStore) GetTeamsForUser(ctx context.Context, userID 
 	}()
 
 	defer span.Finish()
-	result, err := s.TeamStore.GetTeamsForUser(ctx, userID)
+	result, err := s.TeamStore.GetTeamsForUser(ctx, userID, includeDeleted)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

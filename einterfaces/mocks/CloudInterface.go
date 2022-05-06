@@ -97,6 +97,29 @@ func (_m *CloudInterface) GetCloudCustomer(userID string) (*model.CloudCustomer,
 	return r0, r1
 }
 
+// GetCloudLimits provides a mock function with given fields: userID
+func (_m *CloudInterface) GetCloudLimits(userID string) (*model.ProductLimits, error) {
+	ret := _m.Called(userID)
+
+	var r0 *model.ProductLimits
+	if rf, ok := ret.Get(0).(func(string) *model.ProductLimits); ok {
+		r0 = rf(userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ProductLimits)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetCloudProducts provides a mock function with given fields: userID, includeLegacyProducts
 func (_m *CloudInterface) GetCloudProducts(userID string, includeLegacyProducts bool) ([]*model.Product, error) {
 	ret := _m.Called(userID, includeLegacyProducts)

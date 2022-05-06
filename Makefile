@@ -111,7 +111,7 @@ DIST_PATH_WIN=$(DIST_ROOT)/windows/mattermost
 TESTS=.
 
 # Packages lists
-TE_PACKAGES=$(shell $(GO) list ./... | grep -v ./data)
+TE_PACKAGES=$(shell $(GO) list ./...)
 
 TEMPLATES_DIR=templates
 
@@ -123,10 +123,10 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.26.2
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.27.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
-PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
+PLUGIN_PACKAGES += mattermost-plugin-nps-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.5.0
 PLUGIN_PACKAGES += focalboard-v0.15.0
@@ -138,12 +138,11 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	IGNORE:=$(shell rm -f imports/imports.go)
 	IGNORE:=$(shell cp $(BUILD_ENTERPRISE_DIR)/imports/imports.go imports/)
 	IGNORE:=$(shell rm -f enterprise)
-	IGNORE:=$(shell ln -s $(BUILD_ENTERPRISE_DIR) enterprise)
 else
 	IGNORE:=$(shell rm -f imports/imports.go)
 endif
 
-EE_PACKAGES=$(shell $(GO) list ./enterprise/...)
+EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 ALL_PACKAGES=$(TE_PACKAGES) $(EE_PACKAGES)
@@ -256,7 +255,7 @@ golangci-lint: ## Run golangci-lint on codebase
 	$(GOBIN)/golangci-lint run ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-	$(GOBIN)/golangci-lint run ./enterprise/...
+	$(GOBIN)/golangci-lint run ../enterprise/...
 endif
 endif
 
@@ -336,9 +335,14 @@ pluginapi: ## Generates api and hooks glue code for plugins
 check-prereqs: ## Checks prerequisite software status.
 	./scripts/prereq-check.sh
 
-check-prereqs-enterprise: ## Checks prerequisite software status for enterprise.
+check-prereqs-enterprise: setup-go-work ## Checks prerequisite software status for enterprise.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	./scripts/prereq-check-enterprise.sh
+endif
+
+setup-go-work: ## Sets up your go.work file
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	./scripts/setup_go_work.sh
 endif
 
 check-style: golangci-lint plugin-checker vet ## Runs style/lint checks
@@ -469,7 +473,7 @@ validate-go-version: ## Validates the installed version of go against Mattermost
 build-templates: ## Compile all mjml email templates
 	cd $(TEMPLATES_DIR) && $(MAKE) build
 
-run-server: prepackaged-binaries validate-go-version start-docker ## Starts the server.
+run-server: prepackaged-binaries validate-go-version start-docker setup-go-work ## Starts the server.
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
@@ -589,7 +593,7 @@ clean: stop-docker ## Clean up everything except persistent server data.
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) clean
 
-	find . -type d -name data -not -path './vendor/*' | xargs rm -rf
+	find . -type d -name data | xargs rm -rf
 	rm -rf logs
 
 	rm -f mattermost.log
@@ -622,7 +626,7 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 	$(GO) mod tidy
 
 	# Copy everything to vendor directory
-	$(GO) mod vendor
+	# $(GO) mod vendor
 
 	# Tidy up
 	$(GO) mod tidy
@@ -638,7 +642,7 @@ vet: ## Run mattermost go vet specific checks
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet $$VET_CMD ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -enterpriseLicense -structuredLogging -tFatal ./enterprise/...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -enterpriseLicense -structuredLogging -tFatal ../enterprise/...
 endif
 endif
 
@@ -666,9 +670,9 @@ gen-serialized: ## Generates serialization methods for hot structs
 	@mv tmp.go ./model/team_member_serial_gen.go
 
 todo: ## Display TODO and FIXME items in the source code.
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime '(TODO|XXX|FIXME|"FIX ME")[: ]+' 
+	@! ag --ignore Makefile --ignore-dir runtime '(TODO|XXX|FIXME|"FIX ME")[: ]+'
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime '(TODO|XXX|FIXME|"FIX ME")[: ]+' enterprise/
+	@! ag --ignore Makefile --ignore-dir runtime '(TODO|XXX|FIXME|"FIX ME")[: ]+' enterprise/
 endif
 
 ## Help documentation à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
