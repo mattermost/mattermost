@@ -10072,11 +10072,11 @@ func (s *RetryLayerTeamStore) GetTeamsByUserId(userID string) ([]*model.Team, er
 
 }
 
-func (s *RetryLayerTeamStore) GetTeamsForUser(ctx context.Context, userID string) ([]*model.TeamMember, error) {
+func (s *RetryLayerTeamStore) GetTeamsForUser(ctx context.Context, userID string, includeDeleted bool) ([]*model.TeamMember, error) {
 
 	tries := 0
 	for {
-		result, err := s.TeamStore.GetTeamsForUser(ctx, userID)
+		result, err := s.TeamStore.GetTeamsForUser(ctx, userID, includeDeleted)
 		if err == nil {
 			return result, nil
 		}
