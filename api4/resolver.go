@@ -172,7 +172,8 @@ func (r *resolver) TeamMembers(ctx context.Context, args struct {
 		return []*teamMember{{*tm}}, nil
 	}
 
-	members, appErr := c.App.GetTeamMembersForUser(args.UserID)
+	// Do not return archived team members
+	members, appErr := c.App.GetTeamMembersForUser(args.UserID, false)
 	if appErr != nil {
 		return nil, appErr
 	}

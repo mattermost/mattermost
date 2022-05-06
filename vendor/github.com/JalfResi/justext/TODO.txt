@@ -1,3 +1,0 @@
-TODO
-====
-- Stoplists need to be separtae subpackages (use the init() package method of registration)
