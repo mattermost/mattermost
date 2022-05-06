@@ -4,19 +4,24 @@
 package app
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 const serverInactivityHours = 100
+const inactivityEmailSent = "INACTIVITY"
 
 func (s *Server) doInactivityCheck() {
+
+	if *s.Config().ServiceSettings.EnableDeveloper {
+		mlog.Info("No activity check because developer mode is enabled")
+		return
+	}
+
 	if !*s.Config().EmailSettings.EnableInactivityEmail {
 		mlog.Info("No activity check because EnableInactivityEmail is false")
 		return
@@ -27,6 +32,12 @@ func (s *Server) doInactivityCheck() {
 		return
 	}
 
+	_, sysValErr := s.Store.System().GetByName(inactivityEmailSent)
+	// if there is no error which may include *store.ErrNotFound, it means this check was already flagged as done
+	if sysValErr == nil {
+		return
+	}
+
 	inactivityDurationHoursEnv := os.Getenv("MM_INACTIVITY_DURATION")
 	inactivityDurationHours, parseError := strconv.ParseFloat(inactivityDurationHoursEnv, 64)
 	if parseError != nil {
@@ -34,51 +45,9 @@ func (s *Server) doInactivityCheck() {
 		inactivityDurationHours = serverInactivityHours
 	}
 
-	systemValue, sysValErr := s.Store.System().GetByName("INACTIVITY")
-	if sysValErr != nil {
-		// any other error apart from ErrNotFound we stop execution
-		if _, ok := sysValErr.(*store.ErrNotFound); !ok {
-			mlog.Warn("An error occurred while getting INACTIVITY from system store", mlog.Err(sysValErr))
-			return
-		}
-	}
-
-	// If we have a system value, it means this job already ran atleast once.
-	// we then check the last time the job ran plus the last time a post was made to determine if we
-	// can remind the user to use workspace again. If no post was made, we check the last time they logged in (session)
-	// and determine whether to send them a reminder.
-	if systemValue != nil {
-		sysT, _ := strconv.ParseInt(systemValue.Value, 10, 64)
-		tt := time.Unix(sysT/1000, 0)
-		timeLastSentInactivityEmail := time.Since(tt).Hours()
-
-		lastPostAt, _ := s.Store.Post().GetLastPostRowCreateAt()
-		if lastPostAt != 0 {
-			posT := time.Unix(lastPostAt/1000, 0)
-			timeForLastPost := time.Since(posT).Hours()
-
-			if timeLastSentInactivityEmail > inactivityDurationHours && timeForLastPost > inactivityDurationHours {
-				s.takeInactivityAction()
-			}
-			return
-		}
-
-		lastSessionAt, _ := s.Store.Session().GetLastSessionRowCreateAt()
-		if lastSessionAt != 0 {
-			sesT := time.Unix(lastSessionAt/1000, 0)
-			timeForLastSession := time.Since(sesT).Hours()
-
-			if timeLastSentInactivityEmail > inactivityDurationHours && timeForLastSession > inactivityDurationHours {
-				s.takeInactivityAction()
-			}
-			return
-		}
-	}
-
-	// The first time this job runs. We check if the user has not made any posts
+	// The first time this job runs. We check if the user has not made any posts in last inactivityDurationHours
 	// and remind them to use the workspace. If no posts have been made. We check the last time
-	// they logged in (session) and send a reminder.
-
+	// they logged in (session) for the last inactivityDurationHours and send a reminder.
 	lastPostAt, _ := s.Store.Post().GetLastPostRowCreateAt()
 	if lastPostAt != 0 {
 		posT := time.Unix(lastPostAt/1000, 0)
@@ -139,8 +108,8 @@ func (s *Server) takeInactivityAction() {
 		})
 	}
 
-	// Mark time that we sent emails. The next time we calculate
-	sysVar := &model.System{Name: "INACTIVITY", Value: fmt.Sprint(model.GetMillis())}
+	// Mark that we sent emails.
+	sysVar := &model.System{Name: inactivityEmailSent, Value: "true"}
 	if err := s.Store.System().SaveOrUpdate(sysVar); err != nil {
 		mlog.Error("Unable to save INACTIVITY", mlog.Err(err))
 	}
