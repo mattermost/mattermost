@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func (a *App) getSysAdminsEmailRecipients() ([]*model.User, *model.AppError) {
@@ -154,4 +155,29 @@ func (a *App) SendCloudTrialEndedEmail() *model.AppError {
 	}
 
 	return nil
+}
+
+func (a *App) GetCloudUsageForMessages(userID string) (int, *model.AppError) {
+	// Fetch limit
+	limits, err := a.Cloud().GetCloudLimits(userID)
+	if err != nil {
+		return 0, model.NewAppError("GetCloudUsageForMessages", "app.channel.GetCloudLimits.internal_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	max := float64(*limits.Messages.History)
+
+	// Fetch messages count
+	// TODO: exclude deleted posts
+	c, err := a.Srv().Store.Post().AnalyticsPostCount("", false, false)
+	if err != nil {
+		return 0, model.NewAppError("GetCloudUsageForMessages", "app.channel.AnalyticsPostCount.internal_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	count := float64(c)
+
+	// Return usage %
+	if count >= max {
+		return 100, nil
+	}
+
+	usage := (count / max) * 100
+	return utils.FloorToNearest10(usage), nil
 }

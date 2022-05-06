@@ -7755,6 +7755,19 @@ func (c *Client4) GetProductLimits() (*ProductLimits, *Response, error) {
 	return productLimits, BuildResponse(r), nil
 }
 
+func (c *Client4) GetCloudUsageForMessages() (*MessagesUsage, *Response, error) {
+	r, err := c.DoAPIGet(c.cloudRoute()+"/usage/messages", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var usage *MessagesUsage
+	json.NewDecoder(r.Body).Decode(&usage)
+
+	return usage, BuildResponse(r), nil
+}
+
 func (c *Client4) CreateCustomerPayment() (*StripeSetupIntent, *Response, error) {
 	r, err := c.DoAPIPost(c.cloudRoute()+"/payment", "")
 	if err != nil {

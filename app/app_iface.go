@@ -579,6 +579,7 @@ type AppIface interface {
 	GetChannelsForUser(userID string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, *model.AppError)
 	GetChannelsUserNotIn(teamID string, userID string, offset int, limit int) (model.ChannelList, *model.AppError)
 	GetCloudSession(token string) (*model.Session, *model.AppError)
+	GetCloudUsageForMessages(userID string) (int, *model.AppError)
 	GetClusterId() string
 	GetClusterStatus() []*model.ClusterInfo
 	GetCommand(commandID string) (*model.Command, *model.AppError)

@@ -5,6 +5,7 @@ package utils
 
 import (
 	"io/ioutil"
+	"math"
 	"net"
 	"net/http"
 	"net/url"
@@ -214,4 +215,8 @@ func IsValidMobileAuthRedirectURL(config *model.Config, redirectURL string) bool
 		}
 	}
 	return false
+}
+
+func FloorToNearest10(n float64) int {
+	return int(math.Floor(n/10) * 10)
 }
