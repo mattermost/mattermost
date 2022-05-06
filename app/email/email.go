@@ -11,6 +11,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -23,6 +25,8 @@ import (
 
 	"github.com/microcosm-cc/bluemonday"
 )
+
+const serverInactivityHours = 100
 
 func (es *Service) SendChangeUsernameEmail(newUsername, email, locale, siteURL string) error {
 	T := i18n.GetUserTranslations(locale)
@@ -917,6 +921,15 @@ func (es *Service) SendLicenseInactivityEmail(email, name, locale, siteURL strin
 	data.Props["Channels"] = T("Channels")
 	data.Props["Playbooks"] = T("Playbooks")
 	data.Props["Boards"] = T("Boards")
+
+	inactivityDurationHoursEnv := os.Getenv("MM_INACTIVITY_DURATION")
+	inactivityDurationHours, parseError := strconv.ParseFloat(inactivityDurationHoursEnv, 64)
+	if parseError != nil {
+		// default to 100 hours
+		inactivityDurationHours = serverInactivityHours
+	}
+
+	data.Props["FooterDisclaimer"] = T("api.templates.server_inactivity_footer_disclaimer", map[string]interface{}{"Hours": inactivityDurationHours})
 
 	body, err := es.templatesContainer.RenderToString("inactivity_body", data)
 	if err != nil {
