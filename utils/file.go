@@ -131,6 +131,5 @@ func (l *LimitedReaderWithError) Read(p []byte) (int, error) {
 	if l.limitedReader.N <= 0 && err == io.EOF {
 		return n, SizeLimitExceeded
 	}
-	fmt.Println(l.limitedReader.N)
 	return n, err
 }
