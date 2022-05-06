@@ -248,5 +248,13 @@ func TestGraphQLTeamMembers(t *testing.T) {
 			expectedTeams[i].Id = tm.Team.ID
 			expectedTeams[i].DisplayName = tm.Team.DisplayName
 		}
+
+		// Removing from a team and ensuring we get the right response.
+		th.UnlinkUserFromTeam(th.BasicUser, myTeam)
+		resp, err = th.MakeGraphQLRequest(&input)
+		require.NoError(t, err)
+		require.Len(t, resp.Errors, 0)
+		require.NoError(t, json.Unmarshal(resp.Data, &q))
+		assert.Len(t, q.TeamMembers, 1)
 	})
 }
