@@ -24,6 +24,8 @@ type CloudInterface interface {
 
 	ChangeSubscription(userID, subscriptionID string, subscriptionChange *model.SubscriptionChange) (*model.Subscription, error)
 
+	RequestTrial(userID, subscriptionID string) (*model.Subscription, error)
+
 	// GetLicenseRenewalStatus checks on the portal whether it is possible to use token to renew a license
 	GetLicenseRenewalStatus(userID, token string) error
 	InvalidateCaches() error

@@ -40,6 +40,9 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf", api.APISessionRequired(getSubscriptionInvoicePDF)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription", api.APISessionRequired(changeSubscription)).Methods("PUT")
 
+	// GET /api/v4/cloud/request-trial
+	api.BaseRoutes.Cloud.Handle("/request-trial", api.APISessionRequired(requestTrial)).Methods("GET")
+
 	// POST /api/v4/cloud/webhook
 	api.BaseRoutes.Cloud.Handle("/webhook", api.CloudAPIKeyRequired(handleCWSWebhook)).Methods("POST")
 }
@@ -115,6 +118,38 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 	// At this point, the upgrade is complete.
 	if nErr := c.App.SendUpgradeConfirmationEmail(); nErr != nil {
 		c.Logger.Error("Error sending purchase confirmation email")
+	}
+
+	w.Write(json)
+}
+
+func requestTrial(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
+		c.Err = model.NewAppError("Api4.requestTrial", "api.cloud.license_error", nil, "", http.StatusInternalServerError)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteBilling) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteBilling)
+		return
+	}
+
+	currentSubscription, appErr := c.App.Cloud().GetSubscription(c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = model.NewAppError("Api4.requestTrial", "api.cloud.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	changedSub, err := c.App.Cloud().RequestTrial(c.AppContext.Session().UserId, currentSubscription.ID)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.requestTrial", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json, err := json.Marshal(changedSub)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.requestTrial", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.Write(json)
