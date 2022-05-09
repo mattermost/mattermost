@@ -9,11 +9,11 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
 )
 
 func Test_getCloudLimits(t *testing.T) {
@@ -144,7 +144,7 @@ func Test_getCloudLimits(t *testing.T) {
 
 func TestGetCloudUsageForMessages(t *testing.T) {
 	t.Run("no license returns not implemented", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 
 		th.App.Srv().RemoveLicense()
@@ -156,7 +156,7 @@ func TestGetCloudUsageForMessages(t *testing.T) {
 	})
 
 	t.Run("non cloud license returns not implemented", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 
 		th.App.Srv().SetLicense(model.NewTestLicense())
@@ -168,7 +168,7 @@ func TestGetCloudUsageForMessages(t *testing.T) {
 	})
 
 	t.Run("feature flag off returns empty usage", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 
 		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "false")
@@ -183,74 +183,49 @@ func TestGetCloudUsageForMessages(t *testing.T) {
 		require.Equal(t, http.StatusOK, r.StatusCode)
 	})
 
-	// t.Run("error fetching limits returns internal server error", func(t *testing.T) {
-	// 	th := Setup(t).InitBasic()
-	// 	defer th.TearDown()
+	t.Run("unauthenticated users can not access", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
 
-	// 	os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
-	// 	defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
-	// 	th.App.ReloadConfig()
-	// 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+		th.Client.Logout()
 
-	// 	app := &mocks.CloudInterface{}
-	// 	app.Mock.On("GetCloudLimits", mock.Anything).Return(nil, errors.New("Unable to get limits"))
+		usage, r, err := th.Client.GetCloudUsageForMessages()
+		require.Error(t, err)
+		require.Nil(t, usage)
+		require.Equal(t, http.StatusUnauthorized, r.StatusCode)
+	})
 
-	// 	cloudImpl := th.App.Srv().Cloud
-	// 	defer func() {
-	// 		th.App.Srv().Cloud = cloudImpl
-	// 	}()
-	// 	th.App.Srv().Cloud = app
+	t.Run("good request with cloud server and feature flag returns response", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
 
-	// 	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
+		th.App.ReloadConfig()
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-	// 	limits, r, err := th.Client.GetProductLimits()
-	// 	require.Error(t, err)
-	// 	require.Nil(t, limits)
-	// 	require.Equal(t, http.StatusInternalServerError, r.StatusCode, "Expected 500 Internal Server Error")
-	// })
+		cloud := &mocks.CloudInterface{}
+		max := 10
+		mockLimits := &model.ProductLimits{
+			Messages: &model.MessagesLimits{
+				History: &max,
+			},
+		}
+		cloud.On("GetCloudLimits", mock.Anything).Return(mockLimits, nil)
+		th.App.Srv().Cloud = cloud
 
-	// t.Run("unauthenticated users can not access", func(t *testing.T) {
-	// 	th := Setup(t).InitBasic()
-	// 	defer th.TearDown()
+		// The following three calls create total of 4 posts
+		th.BasicTeam = th.CreateTeam()
+		th.BasicChannel = th.CreatePublicChannel()
+		th.BasicPost = th.CreatePost()
 
-	// 	th.Client.Logout()
-
-	// 	limits, r, err := th.Client.GetProductLimits()
-	// 	require.Error(t, err)
-	// 	require.Nil(t, limits)
-	// 	require.Equal(t, http.StatusUnauthorized, r.StatusCode, "Expected 401 Unauthorized")
-	// })
-
-	// t.Run("good request with cloud server and feature flag returns response", func(t *testing.T) {
-	// 	th := Setup(t).InitBasic()
-	// 	defer th.TearDown()
-
-	// 	os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
-	// 	defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
-	// 	th.App.ReloadConfig()
-	// 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-
-	// 	cloud := &mocks.CloudInterface{}
-	// 	ten := 10
-	// 	mockLimits := &model.ProductLimits{
-	// 		Messages: &model.MessagesLimits{
-	// 			History: &ten,
-	// 		},
-	// 	}
-	// 	cloud.Mock.On("GetCloudLimits", mock.Anything).Return(mockLimits, nil)
-
-	// 	cloudImpl := th.App.Srv().Cloud
-	// 	defer func() {
-	// 		th.App.Srv().Cloud = cloudImpl
-	// 	}()
-	// 	th.App.Srv().Cloud = cloud
-
-	// 	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
-
-	// 	limits, r, err := th.Client.GetProductLimits()
-	// 	require.NoError(t, err)
-	// 	require.Equal(t, http.StatusOK, r.StatusCode, "Expected 200 OK")
-	// 	require.Equal(t, mockLimits, limits)
-	// 	require.Equal(t, *mockLimits.Messages.History, *limits.Messages.History)
-	// })
+		usage, r, err := th.Client.GetCloudUsageForMessages()
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, r.StatusCode)
+		require.NotNil(t, usage)
+		require.Equal(t, &model.MessagesUsage{
+			Enabled: true,
+			Status:  40,
+		}, usage)
+	})
 }

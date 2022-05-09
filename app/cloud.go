@@ -163,7 +163,6 @@ func (a *App) GetCloudUsageForMessages(userID string) (int, *model.AppError) {
 	if err != nil {
 		return 0, model.NewAppError("GetCloudUsageForMessages", "app.channel.GetCloudLimits.internal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	max := float64(*limits.Messages.History)
 
 	// Fetch messages count
 	// TODO: exclude deleted posts
@@ -171,9 +170,11 @@ func (a *App) GetCloudUsageForMessages(userID string) (int, *model.AppError) {
 	if err != nil {
 		return 0, model.NewAppError("GetCloudUsageForMessages", "app.channel.AnalyticsPostCount.internal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	count := float64(c)
 
 	// Return usage %
+	max := float64(*limits.Messages.History)
+	count := float64(c)
+
 	if count >= max {
 		return 100, nil
 	}
