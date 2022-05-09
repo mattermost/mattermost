@@ -5,7 +5,6 @@ go 1.18
 require (
 	code.sajari.com/docconv v1.2.0
 	github.com/Masterminds/semver/v3 v3.1.1
-	github.com/Masterminds/squirrel v1.5.2
 	github.com/avct/uasurfer v0.0.0-20191028135549-26b5daa857f1
 	github.com/aws/aws-sdk-go v1.43.31
 	github.com/blang/semver v3.5.1+incompatible
@@ -40,6 +39,7 @@ require (
 	github.com/mattermost/logr/v2 v2.0.15
 	github.com/mattermost/morph v0.0.0-20220401091636-39f834798da8
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
+	github.com/mattermost/squirrel v0.2.0
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/microcosm-cc/bluemonday v1.0.18
 	github.com/minio/minio-go/v7 v7.0.24
@@ -179,8 +179,6 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
-
-replace github.com/Masterminds/squirrel v1.5.2 => github.com/lieut-data/squirrel v1.5.4
 
 // Hack to prevent the willf/bitset module from being upgraded to 1.2.0.
 // They changed the module path from github.com/willf/bitset to
