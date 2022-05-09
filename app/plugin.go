@@ -98,7 +98,7 @@ func (ch *Channels) syncPluginsActiveState() {
 				pluginEnabled = state.Enable
 			}
 
-			if overrides, value := ch.getPluginStateOverride(pluginID); overrides {
+			if hasOverride, value := ch.getPluginStateOverride(pluginID); hasOverride {
 				pluginEnabled = value
 			}
 
