@@ -217,6 +217,7 @@ func IsValidMobileAuthRedirectURL(config *model.Config, redirectURL string) bool
 	return false
 }
 
+// FloorToNearest10 rounds off the number to nearest lower multiple of 10 eg. roundOff 97 to 90
 func FloorToNearest10(n float64) int {
 	return int(math.Floor(n/10) * 10)
 }

@@ -170,3 +170,63 @@ func TestAppendQueryParamsToURL(t *testing.T) {
 	expected := url + "?key1=value1&key2=value2"
 	assert.Equal(t, redirectURL, expected)
 }
+
+func TestFloorToNearest10(t *testing.T) {
+	testCases := []struct {
+		desc     string
+		n        float64
+		expected int
+	}{
+		{
+			desc:     "returns 0 when n is 0",
+			n:        0,
+			expected: 0,
+		},
+		{
+			desc:     "returns 0 when n is 1",
+			n:        1,
+			expected: 0,
+		},
+		{
+			desc:     "returns 0 when n is 9",
+			n:        9,
+			expected: 0,
+		},
+		{
+			desc:     "returns 10 when n is 10",
+			n:        10,
+			expected: 10,
+		},
+		{
+			desc:     "returns 90 when n is 90",
+			n:        90,
+			expected: 90,
+		},
+		{
+			desc:     "returns 90 when n is 99",
+			n:        99,
+			expected: 90,
+		},
+		{
+			desc:     "returns 100 when n is 100",
+			n:        100,
+			expected: 100,
+		},
+		{
+			desc:     "returns -10 when n is -1",
+			n:        -1,
+			expected: -10,
+		},
+		{
+			desc:     "returns 10 when n is 10.99",
+			n:        10.99,
+			expected: 10,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			res := FloorToNearest10(tc.n)
+			assert.Equal(t, tc.expected, res)
+		})
+	}
+}
