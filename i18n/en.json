@@ -476,6 +476,10 @@
     "translation": "Error processing request to CWS."
   },
   {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "Error updating subscription from webhook."
+  },
+  {
     "id": "api.command.admin_only.app_error",
     "translation": "Integrations have been limited to admins only."
   },
