@@ -388,9 +388,10 @@ func (a *App) EnablePlugin(id string) *model.AppError {
 		return appErr
 	}
 
-	// dispatch websocket event for updated integration count
-
-	fmt.Println(integrations)
+	message := model.NewWebSocketEvent(model.WebsocketEventInstalledIntegrationsChanged, "", "", "", nil)
+	message.Add("integrations", integrations)
+	message.GetBroadcast().ContainsSensitiveData = true
+	a.Publish(message)
 
 	return nil
 }
@@ -438,7 +439,22 @@ func (ch *Channels) enablePlugin(id string) *model.AppError {
 // DisablePlugin will set the config for an installed plugin to disabled, triggering deactivation if active.
 // Notifies cluster peers through config change.
 func (a *App) DisablePlugin(id string) *model.AppError {
-	return a.ch.disablePlugin(id)
+	appErr := a.ch.disablePlugin(id)
+	if appErr != nil {
+		return appErr
+	}
+
+	integrations, appErr := a.GetInstalledIntegrations()
+	if appErr != nil {
+		return appErr
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventInstalledIntegrationsChanged, "", "", "", nil)
+	message.Add("integrations", integrations)
+	message.GetBroadcast().ContainsSensitiveData = true
+	a.Publish(message)
+
+	return nil
 }
 
 func (ch *Channels) disablePlugin(id string) *model.AppError {
