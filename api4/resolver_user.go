@@ -56,11 +56,6 @@ func getGraphQLUser(ctx context.Context, id string) (*user, error) {
 		}
 	}
 
-	if c.AppContext.Session().UserId == usr.Id {
-		usr.Sanitize(map[string]bool{})
-	} else {
-		c.App.SanitizeProfile(usr, c.IsSystemAdmin())
-	}
 	c.App.UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
 
 	return &user{*usr}, nil
@@ -197,6 +192,18 @@ func getGraphQLUsers(c *web.Context, userIDs []string) ([]*model.User, error) {
 	users, appErr := c.App.GetUsers(userIDs)
 	if appErr != nil {
 		return nil, appErr
+	}
+
+	// Same as earlier, we want to pre-compute this only once
+	// because otherwise the resolvers run in multiple goroutines
+	// and *User.Sanitize causes a race, and we want to avoid
+	// deep-copying every user in all goroutines.
+	for _, user := range users {
+		if c.AppContext.Session().UserId == user.Id {
+			user.Sanitize(map[string]bool{})
+		} else {
+			c.App.SanitizeProfile(user, c.IsSystemAdmin())
+		}
 	}
 
 	// The users need to be in the exact same order as the input slice.
