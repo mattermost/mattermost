@@ -1491,3 +1491,27 @@ func TestConfigServiceSettingsIsValid(t *testing.T) {
 	require.NotNil(t, err)
 	require.Equal(t, "model.config.is_valid.collapsed_threads.autofollow.app_error", err.Id)
 }
+
+func TestConfigDefaultCallsPluginState(t *testing.T) {
+	t.Run("should enable Calls plugin by default", func(t *testing.T) {
+		c1 := Config{}
+		c1.SetDefaults()
+
+		assert.True(t, c1.PluginSettings.PluginStates["com.mattermost.calls"].Enable)
+	})
+
+	t.Run("should not re-enable Calls plugin after it has been disabled", func(t *testing.T) {
+		c1 := Config{
+			PluginSettings: PluginSettings{
+				PluginStates: map[string]*PluginState{
+					"com.mattermost.calls": {
+						Enable: false,
+					},
+				},
+			},
+		}
+
+		c1.SetDefaults()
+		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.calls"].Enable)
+	})
+}
