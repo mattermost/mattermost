@@ -165,8 +165,7 @@ func (a *App) GetCloudUsageForMessages(userID string) (int, *model.AppError) {
 	}
 
 	// Fetch messages count
-	// TODO: exclude deleted posts
-	c, err := a.Srv().Store.Post().AnalyticsPostCount("", false, false)
+	c, err := a.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeDeleted: true})
 	if err != nil {
 		return 0, model.NewAppError("GetCloudUsageForMessages", "app.channel.AnalyticsPostCount.internal_error", nil, err.Error(), http.StatusInternalServerError)
 	}

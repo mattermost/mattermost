@@ -50,7 +50,7 @@ func TestGetCloudUsageForMessages(t *testing.T) {
 
 			mockStore := th.App.Srv().Store.(*mocks.Store)
 			mockPostStore := mocks.PostStore{}
-			mockPostStore.On("AnalyticsPostCount", mock.Anything, mock.Anything, mock.Anything).Return(int64(0), errors.New(errMsg))
+			mockPostStore.On("AnalyticsPostCount", mock.Anything).Return(int64(0), errors.New(errMsg))
 			mockStore.On("Post").Return(&mockPostStore)
 
 			usage, appErr := th.App.GetCloudUsageForMessages(mock.Anything)
@@ -131,7 +131,7 @@ func TestGetCloudUsageForMessages(t *testing.T) {
 
 				mockStore := th.App.Srv().Store.(*mocks.Store)
 				mockPostStore := mocks.PostStore{}
-				mockPostStore.On("AnalyticsPostCount", mock.Anything, mock.Anything, mock.Anything).Return(tc.count, nil)
+				mockPostStore.On("AnalyticsPostCount", mock.Anything).Return(tc.count, nil)
 				mockStore.On("Post").Return(&mockPostStore)
 
 				usage, appErr := th.App.GetCloudUsageForMessages(mock.Anything)
