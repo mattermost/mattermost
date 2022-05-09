@@ -159,6 +159,10 @@ func (ch *Channels) syncPluginsActiveState() {
 	if err := ch.notifyPluginStatusesChanged(); err != nil {
 		mlog.Warn("failed to notify plugin status changed", mlog.Err(err))
 	}
+
+	if err := ch.notifyInstalledIntegrationsChanged(); err != nil {
+		mlog.Warn("failed to notify installed integrations changed", mlog.Err(err))
+	}
 }
 
 func (a *App) NewPluginAPI(c *request.Context, manifest *model.Manifest) plugin.API {
@@ -383,16 +387,6 @@ func (a *App) EnablePlugin(id string) *model.AppError {
 		return appErr
 	}
 
-	integrations, appErr := a.GetInstalledIntegrations()
-	if appErr != nil {
-		return appErr
-	}
-
-	message := model.NewWebSocketEvent(model.WebsocketEventInstalledIntegrationsChanged, "", "", "", nil)
-	message.Add("integrations", integrations)
-	message.GetBroadcast().ContainsSensitiveData = true
-	a.Publish(message)
-
 	return nil
 }
 
@@ -444,16 +438,6 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 		return appErr
 	}
 
-	integrations, appErr := a.GetInstalledIntegrations()
-	if appErr != nil {
-		return appErr
-	}
-
-	message := model.NewWebSocketEvent(model.WebsocketEventInstalledIntegrationsChanged, "", "", "", nil)
-	message.Add("integrations", integrations)
-	message.GetBroadcast().ContainsSensitiveData = true
-	a.Publish(message)
-
 	return nil
 }
 
@@ -491,6 +475,20 @@ func (ch *Channels) disablePlugin(id string) *model.AppError {
 	if _, _, err := ch.cfgSvc.SaveConfig(ch.cfgSvc.Config(), true); err != nil {
 		return model.NewAppError("DisablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+
+	return nil
+}
+
+func (ch *Channels) notifyInstalledIntegrationsChanged() *model.AppError {
+	integrations, appErr := ch.getInstalledIntegrations()
+	if appErr != nil {
+		return appErr
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventInstalledIntegrationsChanged, "", "", "", nil)
+	message.Add("integrations", integrations)
+	message.GetBroadcast().ContainsSensitiveData = true
+	ch.Publish(message)
 
 	return nil
 }

@@ -6493,7 +6493,7 @@ func (a *OpenTracingAppLayer) GetIncomingWebhooksPageByUser(userID string, page 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetInstalledIntegrations() ([]*app.InstalledIntegration, *model.AppError) {
+func (a *OpenTracingAppLayer) GetInstalledIntegrations() ([]*model.InstalledIntegration, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetInstalledIntegrations")
 

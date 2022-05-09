@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"net/http"
 	"net/url"
 	"sort"
 	"strings"
@@ -9,14 +10,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
-
-type InstalledIntegration struct {
-	Type    string `json:"type"` // "plugin", "app", or "plugin-app"
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	Version string `json:"version"`
-	Enabled bool   `json:"enabled"`
-}
 
 type ListedApp struct {
 	Manifest struct {
@@ -29,29 +22,26 @@ type ListedApp struct {
 	Enabled   bool `json:"enabled"`
 }
 
-var installedIntegrationsIgnoredPlugins = []string{
-	"playbooks",
-	"focalboard",
-	"com.mattermost.apps",
-	"com.mattermost.nps",
+func (a *App) GetInstalledIntegrations() ([]*model.InstalledIntegration, *model.AppError) {
+	return a.ch.getInstalledIntegrations()
 }
 
-func (a *App) GetInstalledIntegrations() ([]*InstalledIntegration, *model.AppError) {
-	out := []*InstalledIntegration{}
+func (ch *Channels) getInstalledIntegrations() ([]*model.InstalledIntegration, *model.AppError) {
+	out := []*model.InstalledIntegration{}
 
-	pluginEnvironment := a.GetPluginsEnvironment()
+	pluginEnvironment := ch.GetPluginsEnvironment()
 	if pluginEnvironment == nil {
 		return out, nil
 	}
 
 	plugins, err := pluginEnvironment.Available()
 	if err != nil {
-		return nil, model.NewAppError("GetInstalledIntegrations", "", nil, err.Error(), 0)
+		return nil, model.NewAppError("getInstalledIntegrations", "", nil, err.Error(), 0)
 	}
 
 	for _, p := range plugins {
 		ignore := false
-		for _, id := range installedIntegrationsIgnoredPlugins {
+		for _, id := range model.InstalledIntegrationsIgnoredPlugins {
 			if p.Manifest.Id == id {
 				ignore = true
 				break
@@ -59,7 +49,7 @@ func (a *App) GetInstalledIntegrations() ([]*InstalledIntegration, *model.AppErr
 		}
 
 		if !ignore {
-			integration := &InstalledIntegration{
+			integration := &model.InstalledIntegration{
 				Type:    "plugin",
 				ID:      p.Manifest.Id,
 				Name:    p.Manifest.Name,
@@ -72,7 +62,7 @@ func (a *App) GetInstalledIntegrations() ([]*InstalledIntegration, *model.AppErr
 	}
 
 	if pluginEnvironment.IsActive("com.mattermost.apps") {
-		enabledApps, appErr := a.getInstalledApps()
+		enabledApps, appErr := ch.getInstalledApps()
 		if appErr != nil {
 			// TODO
 		}
@@ -87,7 +77,7 @@ func (a *App) GetInstalledIntegrations() ([]*InstalledIntegration, *model.AppErr
 			}
 
 			if !ignore {
-				integration := &InstalledIntegration{
+				integration := &model.InstalledIntegration{
 					Type:    "app",
 					ID:      string(ap.Manifest.AppID),
 					Name:    ap.Manifest.DisplayName,
@@ -108,13 +98,13 @@ func (a *App) GetInstalledIntegrations() ([]*InstalledIntegration, *model.AppErr
 	return out, nil
 }
 
-func (a *App) getInstalledApps() ([]ListedApp, *model.AppError) {
+func (ch *Channels) getInstalledApps() ([]ListedApp, *model.AppError) {
 	rawURL := "/plugins/com.mattermost.apps/api/v1/marketplace"
 	values := url.Values{
 		"include_plugins": []string{"true"},
 	}
 
-	r, appErr := a.doPluginRequest(request.EmptyContext(), "GET", rawURL, values, nil)
+	r, appErr := ch.doPluginRequest(request.EmptyContext(), "GET", rawURL, values, nil)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -124,9 +114,7 @@ func (a *App) getInstalledApps() ([]ListedApp, *model.AppError) {
 	listed := []ListedApp{}
 	err := json.NewDecoder(r.Body).Decode(&listed)
 	if err != nil {
-		return nil, &model.AppError{
-			// TODO
-		}
+		return nil, model.NewAppError("getInstalledApps", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	result := []ListedApp{}
@@ -144,7 +132,7 @@ func (a *App) checkIfIntegrationMeetsFreemiumLimits(pluginID string) *model.AppE
 		return nil
 	}
 
-	for _, id := range installedIntegrationsIgnoredPlugins {
+	for _, id := range model.InstalledIntegrationsIgnoredPlugins {
 		if pluginID == id {
 			return nil
 		}
@@ -159,7 +147,7 @@ func (a *App) checkIfIntegrationMeetsFreemiumLimits(pluginID string) *model.AppE
 		return nil
 	}
 
-	installed, appErr := a.GetInstalledIntegrations()
+	installed, appErr := a.ch.getInstalledIntegrations()
 	if appErr != nil {
 		return appErr
 	}
@@ -171,8 +159,9 @@ func (a *App) checkIfIntegrationMeetsFreemiumLimits(pluginID string) *model.AppE
 		}
 	}
 
-	if enableCount > *limits.Integrations.Enabled {
-		return model.NewAppError("checkIfIntegrationMeetsFreemiumLimits", "", nil, "Too many enabled integrations", 0)
+	limit := *limits.Integrations.Enabled
+	if enableCount > limit {
+		return model.NewAppError("checkIfIntegrationMeetsFreemiumLimits", "app.install_integration.reached_max_limit.error", map[string]interface{}{"NumIntegrations": limit}, "", 0)
 	}
 
 	return nil
