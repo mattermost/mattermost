@@ -2810,6 +2810,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates["com.mattermost.apps"] = &PluginState{Enable: true}
 	}
 
+	if s.PluginStates["com.mattermost.calls"] == nil && IsCloud() {
+		// Enable the calls plugin by default on Cloud only
+		s.PluginStates["com.mattermost.calls"] = &PluginState{Enable: true}
+	}
+
 	if s.EnableMarketplace == nil {
 		s.EnableMarketplace = NewBool(PluginSettingsDefaultEnableMarketplace)
 	}
