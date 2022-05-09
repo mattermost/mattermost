@@ -1189,7 +1189,7 @@ func testUpsertSharedChannelAttachment(t *testing.T, ss store.Store) {
 		require.NoError(t, err, "couldn't save shared channel attachment", err)
 
 		// make sure enough time passed that GetMillis returns a different value
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(2 * time.Millisecond)
 
 		_, err = ss.SharedChannel().UpsertAttachment(saved)
 		require.NoError(t, err, "couldn't upsert shared channel attachment", err)

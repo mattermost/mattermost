@@ -14,6 +14,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 )
 
 func (api *API) InitCloud() {
@@ -109,6 +110,12 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	// Log failures for purchase confirmation email, but don't show an error to the user so as not to confuse them
+	// At this point, the upgrade is complete.
+	if nErr := c.App.SendUpgradeConfirmationEmail(); nErr != nil {
+		c.Logger.Error("Error sending purchase confirmation email")
 	}
 
 	w.Write(json)
@@ -436,6 +443,11 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = nErr
 			return
 		}
+	case model.EventTypeSendUpgradeConfirmationEmail:
+		if nErr := c.App.SendUpgradeConfirmationEmail(); nErr != nil {
+			c.Err = nErr
+			return
+		}
 	case model.EventTypeSendAdminWelcomeEmail:
 		user, appErr := c.App.GetUserByUsername(event.CloudWorkspaceOwner.UserName)
 		if appErr != nil {
@@ -475,6 +487,21 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = appErr
 			return
 		}
+	case model.EventTypeSubscriptionChanged:
+		// event.ProductLimits is nil if there was no change
+		if event.ProductLimits != nil {
+			if pluginsEnvironment := c.App.GetPluginsEnvironment(); pluginsEnvironment != nil {
+				pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+					hooks.OnCloudLimitsUpdated(event.ProductLimits)
+					return true
+				}, plugin.OnCloudLimitsUpdatedID)
+			}
+		}
+		if err := c.App.Cloud().UpdateSubscriptionFromHook(event.ProductLimits, event.Subscription); err != nil {
+			c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.subscription.update_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		c.Logger.Info("Updated subscription from webhook event")
 
 	default:
 		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.cws_webhook_event_missing_error", nil, "", http.StatusNotFound)

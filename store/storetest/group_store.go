@@ -1120,7 +1120,7 @@ func testUpsertMember(t *testing.T, ss store.Store) {
 
 	// Duplicate composite key (GroupId, UserId)
 	// Ensure new CreateAt > previous CreateAt for the same (groupId, userId)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(2 * time.Millisecond)
 	_, err = ss.Group().UpsertMember(group.Id, user.Id)
 	require.NoError(t, err)
 
@@ -1131,7 +1131,7 @@ func testUpsertMember(t *testing.T, ss store.Store) {
 
 	// Restores a deleted member
 	// Ensure new CreateAt > previous CreateAt for the same (groupId, userId)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(2 * time.Millisecond)
 	_, err = ss.Group().UpsertMember(group.Id, user.Id)
 	require.NoError(t, err)
 
@@ -1186,7 +1186,7 @@ func testUpsertMembers(t *testing.T, ss store.Store) {
 
 	// Duplicate composite key (GroupId, UserId)
 	// Ensure new CreateAt > previous CreateAt for the same (groupId, userId)
-	// time.Sleep(1 * time.Millisecond)
+	// time.Sleep(2 * time.Millisecond)
 	_, err = ss.Group().UpsertMembers(group.Id, []string{user.Id})
 	require.NoError(t, err)
 
@@ -1197,7 +1197,7 @@ func testUpsertMembers(t *testing.T, ss store.Store) {
 
 	// Restores a deleted member
 	// Ensure new CreateAt > previous CreateAt for the same (groupId, userId)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(2 * time.Millisecond)
 	_, err = ss.Group().UpsertMembers(group.Id, []string{user.Id, user2.Id})
 	require.NoError(t, err)
 

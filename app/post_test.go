@@ -1111,6 +1111,7 @@ func TestCreatePostAsUser(t *testing.T) {
 	})
 
 	t.Run("logs warning for user not in channel", func(t *testing.T) {
+		t.Skip("MM-43871")
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		user := th.CreateUser()
