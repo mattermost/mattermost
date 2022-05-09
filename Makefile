@@ -190,7 +190,7 @@ else ifeq ($(MM_NO_DOCKER),true)
 else
 	@echo Starting docker containers
 
-	$(GO) run ./build/docker-compose-generator/main.go $(ENABLED_DOCKER_SERVICES) | docker-compose -f docker-compose.makefile.yml -f /dev/stdin $(DOCKER_COMPOSE_OVERRIDE) run --rm start_dependencies
+	$(GO) run ./build/docker-compose-generator/main.go $(ENABLED_DOCKER_SERVICES) | docker-compose -f docker-compose.makefile.yml -f /dev/stdin $(DOCKER_COMPOSE_OVERRIDE) run -T --rm start_dependencies
 ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
 	cat tests/${LDAP_DATA}-data.ldif | docker-compose -f docker-compose.makefile.yml $(DOCKER_COMPOSE_OVERRIDE) exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
 endif
@@ -473,7 +473,7 @@ validate-go-version: ## Validates the installed version of go against Mattermost
 build-templates: ## Compile all mjml email templates
 	cd $(TEMPLATES_DIR) && $(MAKE) build
 
-run-server: prepackaged-binaries validate-go-version start-docker setup-go-work ## Starts the server.
+run-server: setup-go-work prepackaged-binaries validate-go-version start-docker ## Starts the server.
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
