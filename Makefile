@@ -620,17 +620,20 @@ setup-mac: ## Adds macOS hosts entries for Docker.
 update-dependencies: ## Uses go get -u to update all the dependencies while holding back any that require it.
 	@echo Updating Dependencies
 
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	@echo Enterprise repository detected, temporarily removing imports.go
+	rm -f imports/imports.go
+endif
+
 	# Update all dependencies (does not update across major versions)
 	$(GO) get -u ./...
 
 	# Tidy up
 	$(GO) mod tidy
 
-	# Copy everything to vendor directory
-	# $(GO) mod vendor
-
-	# Tidy up
-	$(GO) mod tidy
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	cp $(BUILD_ENTERPRISE_DIR)/imports/imports.go imports/
+endif
 
 vet: ## Run mattermost go vet specific checks
 	$(GO) install github.com/mattermost/mattermost-govet/v2@new
