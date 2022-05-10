@@ -41,7 +41,7 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/subscription", api.APISessionRequired(changeSubscription)).Methods("PUT")
 
 	// GET /api/v4/cloud/request-trial
-	api.BaseRoutes.Cloud.Handle("/request-trial", api.APISessionRequired(requestTrial)).Methods("GET")
+	api.BaseRoutes.Cloud.Handle("/request-trial", api.APISessionRequired(requestTrial)).Methods("PUT")
 
 	// POST /api/v4/cloud/webhook
 	api.BaseRoutes.Cloud.Handle("/webhook", api.CloudAPIKeyRequired(handleCWSWebhook)).Methods("POST")
