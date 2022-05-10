@@ -101,7 +101,7 @@ func (a *App) GetWarnMetricsBot() (*model.Bot, *model.AppError) {
 		Inactive: false,
 	}
 
-	sysAdminList, err := a.GetUsers(userOptions)
+	sysAdminList, err := a.GetUsersFromProfiles(userOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +130,7 @@ func (a *App) GetSystemBot() (*model.Bot, *model.AppError) {
 		Inactive: false,
 	}
 
-	sysAdminList, err := a.GetUsers(userOptions)
+	sysAdminList, err := a.GetUsersFromProfiles(userOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -485,7 +485,7 @@ func (a *App) notifySysadminsBotOwnerDeactivated(c *request.Context, userID stri
 	// get sysadmins
 	var sysAdmins []*model.User
 	for {
-		sysAdminsList, err := a.GetUsers(userOptions)
+		sysAdminsList, err := a.GetUsersFromProfiles(userOptions)
 		if err != nil {
 			return err
 		}

@@ -980,6 +980,29 @@ func (_m *API) GetChannelsForTeamForUser(teamID string, userID string, includeDe
 	return r0, r1
 }
 
+// GetCloudLimits provides a mock function with given fields:
+func (_m *API) GetCloudLimits() (*model.ProductLimits, error) {
+	ret := _m.Called()
+
+	var r0 *model.ProductLimits
+	if rf, ok := ret.Get(0).(func() *model.ProductLimits); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ProductLimits)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetCommand provides a mock function with given fields: commandID
 func (_m *API) GetCommand(commandID string) (*model.Command, error) {
 	ret := _m.Called(commandID)

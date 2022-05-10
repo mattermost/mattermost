@@ -313,3 +313,12 @@ func getTeamsLoader(ctx context.Context) (*dataloader.Loader, error) {
 	}
 	return l, nil
 }
+
+// getUsersLoader returns the users loader out of the context.
+func getUsersLoader(ctx context.Context) (*dataloader.Loader, error) {
+	l, ok := ctx.Value(usersLoaderCtx).(*dataloader.Loader)
+	if !ok {
+		return nil, errors.New("no dataloader.Loader found in context")
+	}
+	return l, nil
+}

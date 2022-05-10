@@ -14,6 +14,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 )
 
 func (api *API) InitCloud() {
@@ -519,6 +520,21 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = appErr
 			return
 		}
+	case model.EventTypeSubscriptionChanged:
+		// event.ProductLimits is nil if there was no change
+		if event.ProductLimits != nil {
+			if pluginsEnvironment := c.App.GetPluginsEnvironment(); pluginsEnvironment != nil {
+				pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+					hooks.OnCloudLimitsUpdated(event.ProductLimits)
+					return true
+				}, plugin.OnCloudLimitsUpdatedID)
+			}
+		}
+		if err := c.App.Cloud().UpdateSubscriptionFromHook(event.ProductLimits, event.Subscription); err != nil {
+			c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.subscription.update_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		c.Logger.Info("Updated subscription from webhook event")
 
 	default:
 		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.cws_webhook_event_missing_error", nil, "", http.StatusNotFound)
