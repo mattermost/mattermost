@@ -32,11 +32,15 @@ type FeatureFlags struct {
 	PluginPlaybooks  string `plugin_id:"playbooks"`
 	PluginApps       string `plugin_id:"com.mattermost.apps"`
 	PluginFocalboard string `plugin_id:"focalboard"`
+	PluginCalls      string `plugin_id:"com.mattermost.calls"`
 
 	PermalinkPreviews bool
 
 	// Enable Calls plugin support in the mobile app
 	CallsMobile bool
+
+	// CallsEnabled controls whether or not the Calls plugin should be enabled
+	CallsEnabled bool
 
 	// A dash separated list for feature flags to turn on for Boards
 	BoardsFeatureFlags string
@@ -93,6 +97,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CloudFree = false
 	f.CommandPalette = false
 }
+
 func (f *FeatureFlags) Plugins() map[string]string {
 	rFFVal := reflect.ValueOf(f).Elem()
 	rFFType := reflect.TypeOf(f).Elem()
