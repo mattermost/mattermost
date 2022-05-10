@@ -272,7 +272,7 @@ func (*resolver) ChannelMembers(ctx context.Context, args struct {
 			if primaryTeam != "" {
 				team, appErr := c.App.GetTeamByName(primaryTeam)
 				if appErr != nil {
-					return []*channelMember{}, nil
+					return []*channelMember{}, appErr
 				}
 				args.TeamID = team.Id
 			} else {
