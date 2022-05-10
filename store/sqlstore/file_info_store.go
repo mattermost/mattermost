@@ -40,6 +40,7 @@ type fileInfoWithChannelID struct {
 	MiniPreview     *[]byte
 	Content         string
 	RemoteId        *string
+	Archived        bool
 }
 
 func (fi fileInfoWithChannelID) ToModel() *model.FileInfo {
