@@ -11,7 +11,7 @@ import (
 	"sort"
 	"strings"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 

@@ -71,6 +71,7 @@ const (
 	WebsocketWarnMetricStatusReceived                 = "warn_metric_status_received"
 	WebsocketWarnMetricStatusRemoved                  = "warn_metric_status_removed"
 	WebsocketEventCloudPaymentStatusUpdated           = "cloud_payment_status_updated"
+	WebsocketEventCloudSubscriptionChanged            = "cloud_subscription_changed"
 	WebsocketEventThreadUpdated                       = "thread_updated"
 	WebsocketEventThreadFollowChanged                 = "thread_follow_changed"
 	WebsocketEventThreadReadChanged                   = "thread_read_changed"
