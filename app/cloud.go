@@ -157,6 +157,8 @@ func (a *App) SendCloudTrialEndedEmail() *model.AppError {
 	return nil
 }
 
+// GetCloudUsageForMessages returns posts usage percentage against total available limit on Cloud.
+// Usage percentage is returned in multiples of 10 eg. 0, 10, 20
 func (a *App) GetCloudUsageForMessages(userID string) (int, *model.AppError) {
 	// Fetch limit
 	limits, err := a.Cloud().GetCloudLimits(userID)
