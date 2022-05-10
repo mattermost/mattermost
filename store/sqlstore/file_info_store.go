@@ -102,6 +102,7 @@ func newSqlFileInfoStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterfac
 		"FileInfo.MiniPreview",
 		"Coalesce(FileInfo.Content, '') AS Content",
 		"Coalesce(FileInfo.RemoteId, '') AS RemoteId",
+		"FileInfo.Archived",
 	}
 
 	return s
