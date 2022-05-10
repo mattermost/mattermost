@@ -188,12 +188,12 @@ func TestExportAllUsers(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, i)
 
-	users1, err := th1.App.GetUsers(&model.UserGetOptions{
+	users1, err := th1.App.GetUsersFromProfiles(&model.UserGetOptions{
 		Page:    0,
 		PerPage: 10,
 	})
 	assert.Nil(t, err)
-	users2, err := th2.App.GetUsers(&model.UserGetOptions{
+	users2, err := th2.App.GetUsersFromProfiles(&model.UserGetOptions{
 		Page:    0,
 		PerPage: 10,
 	})
@@ -202,13 +202,13 @@ func TestExportAllUsers(t *testing.T) {
 	assert.ElementsMatch(t, users1, users2)
 
 	// Checking whether deactivated users were included in bulk export
-	deletedUsers1, err := th1.App.GetUsers(&model.UserGetOptions{
+	deletedUsers1, err := th1.App.GetUsersFromProfiles(&model.UserGetOptions{
 		Inactive: true,
 		Page:     0,
 		PerPage:  10,
 	})
 	assert.Nil(t, err)
-	deletedUsers2, err := th1.App.GetUsers(&model.UserGetOptions{
+	deletedUsers2, err := th1.App.GetUsersFromProfiles(&model.UserGetOptions{
 		Inactive: true,
 		Page:     0,
 		PerPage:  10,

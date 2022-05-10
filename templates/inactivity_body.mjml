@@ -51,6 +51,9 @@
       <mj-section padding="0px 24px 40px 24px">
         <mj-column border-top="1px solid #E5E5E5">
           <mj-text css-class="emailFooter" font-family="Arial" font-size="12px" line-height="16px" color="#3F4350">
+            {{.Props.FooterDisclaimer}}
+          </mj-text>
+          <mj-text css-class="emailFooter" font-family="Arial" font-size="12px" line-height="16px" color="#3F4350">
             {{.Props.Organization}}
             {{.Props.FooterV2}}
           </mj-text>

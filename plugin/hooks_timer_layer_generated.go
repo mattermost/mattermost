@@ -206,3 +206,9 @@ func (hooks *hooksTimerLayer) OnSendDailyTelemetry() {
 	hooks.hooksImpl.OnSendDailyTelemetry()
 	hooks.recordTime(startTime, "OnSendDailyTelemetry", true)
 }
+
+func (hooks *hooksTimerLayer) OnCloudLimitsUpdated(limits *model.ProductLimits) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.OnCloudLimitsUpdated(limits)
+	hooks.recordTime(startTime, "OnCloudLimitsUpdated", true)
+}

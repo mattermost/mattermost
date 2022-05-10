@@ -19,7 +19,7 @@ func (a *App) getSysAdminsEmailRecipients() ([]*model.User, *model.AppError) {
 		Role:     model.SystemAdminRoleId,
 		Inactive: false,
 	}
-	return a.GetUsers(userOptions)
+	return a.GetUsersFromProfiles(userOptions)
 }
 
 func (a *App) SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.AppError {
