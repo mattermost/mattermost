@@ -529,11 +529,9 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	fromPost := r.URL.Query().Get("fromPost")
-	// Either both have to be set, or none have to be set.
-	// Setting one and not setting the other is an error.
-	if (fromPost == "" && fromCreateAt != 0) || (fromPost != "" && fromCreateAt == 0) {
-		c.SetInvalidParam("fromPost/fromCreateAt")
-		return
+	// Either only fromCreateAt must be set, or both fromPost and fromCreateAt must be set
+	if fromPost != "" && fromCreateAt == 0 {
+		c.SetInvalidParam("if fromPost is set, then fromCreatAt must also be set")
 	}
 
 	direction := ""
