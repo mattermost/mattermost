@@ -1,1 +1,1 @@
-ALTER TABLE fileinfo DROP COLUMND IF EXISTS archived;
+ALTER TABLE fileinfo DROP COLUMN IF EXISTS archived;
