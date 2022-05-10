@@ -166,6 +166,11 @@ func (_m *Hooks) OnActivate() error {
 	return r0
 }
 
+// OnCloudLimitsUpdated provides a mock function with given fields: limits
+func (_m *Hooks) OnCloudLimitsUpdated(limits *model.ProductLimits) {
+	_m.Called(limits)
+}
+
 // OnConfigurationChange provides a mock function with given fields:
 func (_m *Hooks) OnConfigurationChange() error {
 	ret := _m.Called()
