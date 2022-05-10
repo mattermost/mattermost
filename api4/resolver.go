@@ -11,6 +11,7 @@ import (
 	"github.com/graph-gophers/dataloader/v6"
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/web"
 )
 
@@ -211,7 +212,9 @@ func (*resolver) ChannelsLeft(ctx context.Context, args struct {
 // match with api4.getChannelMember
 func (*resolver) ChannelMembers(ctx context.Context, args struct {
 	UserID       string
+	TeamID       string
 	ChannelID    string
+	ExcludeTeam  bool
 	First        int32
 	After        string
 	LastUpdateAt float64
@@ -263,7 +266,29 @@ func (*resolver) ChannelMembers(ctx context.Context, args struct {
 		}
 	}
 
-	members, err := c.App.Srv().Store.Channel().GetMembersForUserWithCursor(args.UserID, afterChannel, afterUser, limit, int(args.LastUpdateAt))
+	if args.TeamID != "" {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), args.TeamID, model.PermissionViewTeam) {
+			primaryTeam := *c.App.Config().TeamSettings.ExperimentalPrimaryTeam
+			if primaryTeam != "" {
+				team, appErr := c.App.GetTeamByName(primaryTeam)
+				if appErr != nil {
+					return []*channelMember{}, nil
+				}
+				args.TeamID = team.Id
+			} else {
+				return []*channelMember{}, nil
+			}
+		}
+	}
+
+	opts := &store.ChannelMemberGraphQLSearchOpts{
+		AfterChannel: afterChannel,
+		AfterUser:    afterUser,
+		Limit:        limit,
+		LastUpdateAt: int(args.LastUpdateAt),
+		ExcludeTeam:  args.ExcludeTeam,
+	}
+	members, err := c.App.Srv().Store.Channel().GetMembersForUserWithCursor(args.UserID, args.TeamID, opts)
 	if err != nil {
 		return nil, err
 	}

@@ -34,7 +34,7 @@ const (
 	usersLoaderCtx    ctxKey = 4
 )
 
-const loaderBatchCapacity = web.PerPageMaximum + 100
+const loaderBatchCapacity = web.PerPageMaximum
 
 //go:embed schema.graphqls
 var schemaRaw string

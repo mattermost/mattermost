@@ -4438,6 +4438,14 @@ func testChannelStoreGetMembersForUserWithCursor(t *testing.T, ss store.Store) {
 	_, err := ss.Team().Save(&t1)
 	require.NoError(t, err)
 
+	t2 := model.Team{}
+	t2.DisplayName = "Team2"
+	t2.Name = NewTestId()
+	t2.Email = MakeEmail()
+	t2.Type = model.TeamOpen
+	_, err = ss.Team().Save(&t2)
+	require.NoError(t, err)
+
 	o1 := model.Channel{}
 	o1.TeamId = t1.Id
 	o1.DisplayName = "Channel1"
@@ -4454,6 +4462,14 @@ func testChannelStoreGetMembersForUserWithCursor(t *testing.T, ss store.Store) {
 	_, nErr = ss.Channel().Save(&o2, -1)
 	require.NoError(t, nErr)
 
+	o3 := model.Channel{}
+	o3.TeamId = t2.Id
+	o3.DisplayName = "Channel3"
+	o3.Name = NewTestId()
+	o3.Type = model.ChannelTypeOpen
+	_, nErr = ss.Channel().Save(&o3, -1)
+	require.NoError(t, nErr)
+
 	m1 := model.ChannelMember{}
 	m1.ChannelId = o1.Id
 	m1.UserId = model.NewId()
@@ -4468,15 +4484,29 @@ func testChannelStoreGetMembersForUserWithCursor(t *testing.T, ss store.Store) {
 	_, err = ss.Channel().SaveMember(&m2)
 	require.NoError(t, err)
 
+	m3 := model.ChannelMember{}
+	m3.ChannelId = o3.Id
+	m3.UserId = m1.UserId
+	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
+	_, err = ss.Channel().SaveMember(&m3)
+	require.NoError(t, err)
+
 	t.Run("with channels", func(t *testing.T) {
 		var members model.ChannelMembers
-		members, err = ss.Channel().GetMembersForUserWithCursor(m1.UserId, "", "", 1, 0)
+		opts := &store.ChannelMemberGraphQLSearchOpts{
+			Limit: 1,
+		}
+		members, err = ss.Channel().GetMembersForUserWithCursor(m1.UserId, "", opts)
 		require.NoError(t, err)
 		assert.Len(t, members, 1)
-		members, err = ss.Channel().GetMembersForUserWithCursor(m1.UserId, "", "", 3, 0)
+		opts.Limit = 3
+		members, err = ss.Channel().GetMembersForUserWithCursor(m1.UserId, "", opts)
 		require.NoError(t, err)
-		assert.Len(t, members, 2)
-		members, err = ss.Channel().GetMembersForUserWithCursor(m1.UserId, members[0].ChannelId, m1.UserId, 1, 0)
+		assert.Len(t, members, 3)
+		opts.AfterChannel = members[0].ChannelId
+		opts.AfterUser = m1.UserId
+		opts.Limit = 1
+		members, err = ss.Channel().GetMembersForUserWithCursor(m1.UserId, "", opts)
 		require.NoError(t, err)
 		assert.Len(t, members, 1)
 	})
@@ -4495,16 +4525,42 @@ func testChannelStoreGetMembersForUserWithCursor(t *testing.T, ss store.Store) {
 		_, nErr = ss.Channel().CreateDirectChannel(&u3, &u4)
 		require.NoError(t, nErr)
 
-		members, err2 := ss.Channel().GetMembersForUserWithCursor(m1.UserId, "", "", 10, 0)
+		opts := &store.ChannelMemberGraphQLSearchOpts{
+			Limit: 10,
+		}
+		members, err2 := ss.Channel().GetMembersForUserWithCursor(m1.UserId, "", opts)
 		require.NoError(t, err2)
-		assert.Len(t, members, 4)
+		assert.Len(t, members, 5)
 
-		members, err2 = ss.Channel().GetMembersForUserWithCursor(m1.UserId, "", "", 2, 0)
+		opts.Limit = 2
+		members, err2 = ss.Channel().GetMembersForUserWithCursor(m1.UserId, "", opts)
 		require.NoError(t, err2)
 		assert.Len(t, members, 2)
 
-		members, err2 = ss.Channel().GetMembersForUserWithCursor(m1.UserId, members[1].ChannelId, m1.UserId, 2, 0)
+		opts.AfterChannel = members[1].ChannelId
+		opts.AfterUser = m1.UserId
+		opts.Limit = 2
+		members, err2 = ss.Channel().GetMembersForUserWithCursor(m1.UserId, "", opts)
 		require.NoError(t, err2)
+		assert.Len(t, members, 2)
+	})
+
+	t.Run("for a specific team", func(t *testing.T) {
+		opts := &store.ChannelMemberGraphQLSearchOpts{
+			Limit: 10,
+		}
+		members, err := ss.Channel().GetMembersForUserWithCursor(m1.UserId, t2.Id, opts)
+		require.NoError(t, err)
+		assert.Len(t, members, 3)
+	})
+
+	t.Run("excluding a team", func(t *testing.T) {
+		opts := &store.ChannelMemberGraphQLSearchOpts{
+			Limit: 10,
+			ExcludeTeam: true,
+		}
+		members, err := ss.Channel().GetMembersForUserWithCursor(m1.UserId, t2.Id, opts)
+		require.NoError(t, err)
 		assert.Len(t, members, 2)
 	})
 
@@ -4529,17 +4585,24 @@ func testChannelStoreGetMembersForUserWithCursor(t *testing.T, ss store.Store) {
 			_, err = ss.Channel().SaveMember(cm)
 			require.NoError(t, err)
 		}
-		members, err := ss.Channel().GetMembersForUserWithCursor(m1.UserId, "", "", 10, 0)
+		opts := &store.ChannelMemberGraphQLSearchOpts{
+			Limit: 10,
+		}
+		members, err := ss.Channel().GetMembersForUserWithCursor(m1.UserId, "", opts)
 		require.NoError(t, err)
-		assert.Len(t, members, 5)
+		assert.Len(t, members, 6)
 
-		members, err = ss.Channel().GetMembersForUserWithCursor(m1.UserId, "", "", 2, 0)
+		opts.Limit = 2
+		members, err = ss.Channel().GetMembersForUserWithCursor(m1.UserId, "", opts)
 		require.NoError(t, err)
 		assert.Len(t, members, 2)
 
-		members, err = ss.Channel().GetMembersForUserWithCursor(m1.UserId, members[1].ChannelId, m1.UserId, 10, 0)
+		opts.AfterChannel = members[1].ChannelId
+		opts.AfterUser = m1.UserId
+		opts.Limit = 10
+		members, err = ss.Channel().GetMembersForUserWithCursor(m1.UserId, "", opts)
 		require.NoError(t, err)
-		assert.Len(t, members, 3)
+		assert.Len(t, members, 4)
 	})
 }
 
