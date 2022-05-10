@@ -2648,9 +2648,10 @@ func TestSetChannelUnread(t *testing.T) {
 		dc := th.CreateDmChannel(u2)
 		th.CreateMessagePostNoClient(dc, "test1", now)
 		p := th.CreateMessagePostNoClient(dc, "test2", now+10)
+		require.NotNil(t, p)
 		th.CreateMessagePostNoClient(dc, "test3", now+20)
 		p1 := th.CreateMessagePostNoClient(dc, "test4", now+30)
-		require.NotNil(t, p)
+		require.NotNil(t, p1)
 
 		// Ensure that post have been read
 		unread, err := th.App.GetChannelUnread(dc.Id, u1.Id)
