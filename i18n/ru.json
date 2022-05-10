@@ -9298,5 +9298,17 @@
   {
     "id": "app.channel.get_top_for_team_since.app_error",
     "translation": " "
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "Теперь Ваш сервер обновлен!"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
+    "translation": "Ваше рабочее пространство {{.WorkspaceName}} обновлено. Вам будет выставлен счет начиная с {{.TrialEnd}}"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subject",
+    "translation": "Подтверждение обновления Mattermost"
   }
 ]
