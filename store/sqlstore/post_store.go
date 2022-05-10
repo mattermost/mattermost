@@ -2605,7 +2605,7 @@ func (s *SqlPostStore) permanentDeleteThreads(transaction *sqlxTxWrapper, postId
 func (s *SqlPostStore) deleteThread(transaction *sqlxTxWrapper, postId string, deleteAtTime int64) error {
 	queryString, args, err := s.getQueryBuilder().
 		Update("Threads").
-		Set("DeleteAt", deleteAtTime).
+		Set("ThreadDeleteAt", deleteAtTime).
 		Where(sq.Eq{"PostId": postId}).
 		ToSql()
 	if err != nil {
@@ -2701,7 +2701,7 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 			"Threads.ReplyCount",
 			"Threads.LastReplyAt",
 			"Threads.Participants",
-			"COALESCE(Threads.DeleteAt, 0) AS DeleteAt",
+			"COALESCE(Threads.ThreadDeleteAt, 0) AS DeleteAt",
 		).
 		From("Threads").
 		Where(sq.Eq{"Threads.PostId": rootIds}).

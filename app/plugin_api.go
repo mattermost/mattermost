@@ -244,7 +244,7 @@ func (api *PluginAPI) DeleteUser(userID string) *model.AppError {
 }
 
 func (api *PluginAPI) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
-	return api.app.GetUsers(options)
+	return api.app.GetUsersFromProfiles(options)
 }
 
 func (api *PluginAPI) GetUser(userID string) (*model.User, *model.AppError) {
@@ -1178,4 +1178,10 @@ func (api *PluginAPI) RequestTrialLicense(requesterID string, users int, termsAc
 	}
 
 	return api.app.Channels().RequestTrialLicense(requesterID, users, termsAccepted, receiveEmailsAccepted)
+}
+
+// GetCloudLimits returns any limits associated with the cloud instance
+func (api *PluginAPI) GetCloudLimits() (*model.ProductLimits, error) {
+	limits, err := api.app.Cloud().GetCloudLimits("")
+	return limits, err
 }
