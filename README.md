@@ -6,7 +6,7 @@
 
 Useful resources:
 
-- [Deployment Guide](https://docs.mattermost.com/guides/deployment.html) - Install, setup, and configure your own Mattermost instance.
+- [Download and Install Mattermost](https://docs.mattermost.com/guides/deployment.html) - Install, setup, and configure your own Mattermost instance.
 - [Product documentation](https://docs.mattermost.com/) - Learn how to run a Mattermost instance and take advantage of all the features.
 - [Developer documentation](https://developers.mattermost.com/) - Contribute code to Mattermost or build an integration via APIs, Webhooks, slash commands, Apps, and plugins.
 
@@ -22,19 +22,12 @@ Table of contents
   * [Get the Latest News](#get-the-latest-news)
   * [Contributing](#contributing)
 
-## Try out Mattermost
-
-- [Join the Mattermost Contributors server](https://community.mattermost.com/signup_user_complete/?id=codoy5s743rq5mk18i7u5ksz7e) to join community discussions about contributions, development, and more.
-- [Get started with Mattermost Cloud](https://customers.mattermost.com/cloud/signup) to try out Mattermost.
-
-[![Deploy a Preview](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/mattermost/mattermost-heroku)
-
-_Note: Heroku preview does not include email or persistent storage_
-
 ## Install Mattermost
 
-- [Deploy Guide](https://docs.mattermost.com/guides/deployment.html) - Deploy Mattermost in minutes via Docker, Ubuntu, or tar.
+- [Download and Install Mattermost Self-Hosted](https://docs.mattermost.com/guides/deployment.html) - Deploy a Mattermost Self-hosted instance in minutes via Docker, Ubuntu, or tar.
+- [Get started with Mattermost Cloud](https://customers.mattermost.com/cloud/signup) to use Mattermost instantly.
 - [Developer machine setup](https://developers.mattermost.com/contribute/server/developer-setup) - Follow this guide if you want to write code for Mattermost.
+
 
 Other install guides:
 
@@ -90,5 +83,4 @@ See the [LICENSE file](LICENSE.txt) for license rights and limitations.
 ## Contributing
 
 Please see [CONTRIBUTING.md](./CONTRIBUTING.md).
-
-Any other questions, mail us at info@mattermost.com. We’d love to meet you!
+[Join the Mattermost Contributors server](https://community.mattermost.com/signup_user_complete/?id=codoy5s743rq5mk18i7u5ksz7e) to join community discussions about contributions, development, and more.
