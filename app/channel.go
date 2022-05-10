@@ -2904,7 +2904,7 @@ func (a *App) SearchChannelsUserNotIn(teamID string, userID string, term string)
 func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError) {
 	// I start looking for channels with notifications before I mark it as read, to clear the push notifications if needed
 	channelsToClearPushNotifications := []string{}
-	if *a.Config().EmailSettings.SendPushNotifications {
+	if a.canSendPushNotifications() {
 		for _, channelID := range channelIDs {
 			channel, errCh := a.Srv().Store.Channel().Get(channelID, true)
 			if errCh != nil {
