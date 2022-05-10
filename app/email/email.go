@@ -11,6 +11,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -23,6 +25,8 @@ import (
 
 	"github.com/microcosm-cc/bluemonday"
 )
+
+const serverInactivityHours = 100
 
 func (es *Service) SendChangeUsernameEmail(newUsername, email, locale, siteURL string) error {
 	T := i18n.GetUserTranslations(locale)
@@ -220,6 +224,32 @@ func (es *Service) SendWelcomeEmail(userID string, email string, verified bool, 
 	}
 
 	if err := es.sendMail(email, subject, body); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (es *Service) SendCloudUpgradeConfirmationEmail(userEmail, name, trialEndDate, locale, siteURL, workspaceName string) error {
+	T := i18n.GetUserTranslations(locale)
+	subject := T("api.templates.cloud_upgrade_confirmation.subject")
+
+	data := es.NewEmailTemplateData(locale)
+	data.Props["Title"] = T("api.templates.cloud_upgrade_confirmation.title")
+	data.Props["SubTitle"] = T("api.templates.cloud_upgrade_confirmation.subtitle", map[string]interface{}{"WorkspaceName": workspaceName, "TrialEnd": trialEndDate})
+	data.Props["SiteURL"] = siteURL
+	data.Props["ButtonURL"] = siteURL
+	data.Props["Button"] = T("api.templates.cloud_welcome_email.button")
+	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
+	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
+	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
+
+	body, err := es.templatesContainer.RenderToString("cloud_upgrade_confirmation", data)
+	if err != nil {
+		return err
+	}
+
+	if err := es.sendEmailWithCustomReplyTo(userEmail, subject, body, *es.config().SupportSettings.SupportEmail); err != nil {
 		return err
 	}
 
@@ -917,6 +947,15 @@ func (es *Service) SendLicenseInactivityEmail(email, name, locale, siteURL strin
 	data.Props["Channels"] = T("Channels")
 	data.Props["Playbooks"] = T("Playbooks")
 	data.Props["Boards"] = T("Boards")
+
+	inactivityDurationHoursEnv := os.Getenv("MM_INACTIVITY_DURATION")
+	inactivityDurationHours, parseError := strconv.ParseFloat(inactivityDurationHoursEnv, 64)
+	if parseError != nil {
+		// default to 100 hours
+		inactivityDurationHours = serverInactivityHours
+	}
+
+	data.Props["FooterDisclaimer"] = T("api.templates.server_inactivity_footer_disclaimer", map[string]interface{}{"Hours": inactivityDurationHours})
 
 	body, err := es.templatesContainer.RenderToString("inactivity_body", data)
 	if err != nil {

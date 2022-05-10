@@ -130,7 +130,7 @@ func TestCreatePost(t *testing.T) {
 		require.NoError(t, err)
 
 		// Message with no channel mentions should result in no ephemeral message
-		timeout := time.After(300 * time.Millisecond)
+		timeout := time.After(2 * time.Second)
 		waiting := true
 		for waiting {
 			select {
@@ -156,7 +156,7 @@ func TestCreatePost(t *testing.T) {
 		_, _, err = client.CreatePost(post)
 		require.NoError(t, err)
 
-		timeout = time.After(600 * time.Millisecond)
+		timeout = time.After(2 * time.Second)
 		eventsToGo := 3 // 3 Posts created with @ mentions should result in 3 websocket events
 		for eventsToGo > 0 {
 			select {
@@ -553,7 +553,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 
-	timeout := time.After(300 * time.Millisecond)
+	timeout := time.After(2 * time.Second)
 	waiting := true
 	for waiting {
 		select {
@@ -572,7 +572,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 
-	timeout = time.After(300 * time.Millisecond)
+	timeout = time.After(2 * time.Second)
 	waiting = true
 	for waiting {
 		select {
@@ -2064,7 +2064,6 @@ func TestDeletePost(t *testing.T) {
 }
 
 func TestDeletePostEvent(t *testing.T) {
-	t.Skip("MM-42997")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2088,7 +2087,7 @@ func TestDeletePostEvent(t *testing.T) {
 				require.NoError(t, err)
 				received = true
 			}
-		case <-time.After(500 * time.Millisecond):
+		case <-time.After(2 * time.Second):
 			exit = true
 		}
 		if exit {

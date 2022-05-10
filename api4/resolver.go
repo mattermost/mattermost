@@ -172,7 +172,8 @@ func (r *resolver) TeamMembers(ctx context.Context, args struct {
 		return []*teamMember{{*tm}}, nil
 	}
 
-	members, appErr := c.App.GetTeamMembersForUser(args.UserID)
+	// Do not return archived team members
+	members, appErr := c.App.GetTeamMembersForUser(args.UserID, false)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -307,6 +308,15 @@ func getChannelsLoader(ctx context.Context) (*dataloader.Loader, error) {
 // getTeamsLoader returns the teams loader out of the context.
 func getTeamsLoader(ctx context.Context) (*dataloader.Loader, error) {
 	l, ok := ctx.Value(teamsLoaderCtx).(*dataloader.Loader)
+	if !ok {
+		return nil, errors.New("no dataloader.Loader found in context")
+	}
+	return l, nil
+}
+
+// getUsersLoader returns the users loader out of the context.
+func getUsersLoader(ctx context.Context) (*dataloader.Loader, error) {
+	l, ok := ctx.Value(usersLoaderCtx).(*dataloader.Loader)
 	if !ok {
 		return nil, errors.New("no dataloader.Loader found in context")
 	}

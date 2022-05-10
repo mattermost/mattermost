@@ -245,7 +245,7 @@ func testUserStoreUpdateUpdateAt(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	// Ensure UpdateAt has a change to be different below.
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(2 * time.Millisecond)
 
 	_, err = ss.User().UpdateUpdateAt(u1.Id)
 	require.NoError(t, err)

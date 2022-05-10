@@ -7,11 +7,9 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
-	"encoding/json"
 	"fmt"
 	"hash/maphash"
 	"html/template"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/pprof"
@@ -26,8 +24,6 @@ import (
 	"sync/atomic"
 	"syscall"
 	"time"
-
-	"gopkg.in/yaml.v2"
 
 	"github.com/getsentry/sentry-go"
 	sentryhttp "github.com/getsentry/sentry-go/http"
@@ -1043,6 +1039,15 @@ func (s *Server) Shutdown() {
 		}
 	}
 
+	// Stop products.
+	// This needs to happen last because products are dependent
+	// on parent services.
+	for name, product := range s.products {
+		if err2 := product.Stop(); err2 != nil {
+			mlog.Warn("Unable to cleanly stop product", mlog.String("name", name), mlog.Err(err2))
+		}
+	}
+
 	if s.Store != nil {
 		s.Store.Close()
 	}
@@ -1054,15 +1059,6 @@ func (s *Server) Shutdown() {
 	}
 
 	mlog.Info("Server stopped")
-
-	// Stop products.
-	// This needs to happen last because products are dependent
-	// on parent services.
-	for name, product := range s.products {
-		if err2 := product.Stop(); err2 != nil {
-			mlog.Warn("Unable to cleanly stop product", mlog.String("name", name), mlog.Err(err2))
-		}
-	}
 
 	// shutdown main and notification loggers which will flush any remaining log records.
 	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*15)
@@ -1196,8 +1192,11 @@ func (s *Server) Start() error {
 	if err := s.Store.Status().ResetAll(); err != nil {
 		mlog.Error("Error to reset the server status.", mlog.Err(err))
 	}
-	if err := mail.TestConnection(s.MailServiceConfig()); err != nil {
-		mlog.Error("Mail server connection test is failed", mlog.Err(err))
+
+	if s.MailServiceConfig().SendEmailNotifications {
+		if err := mail.TestConnection(s.MailServiceConfig()); err != nil {
+			mlog.Error("Mail server connection test failed", mlog.Err(err))
+		}
 	}
 
 	err := s.FileBackend().TestConnection()
@@ -2088,183 +2087,6 @@ func (s *Server) SetSharedChannelSyncService(sharedChannelService SharedChannelS
 	s.serviceMux.Lock()
 	defer s.serviceMux.Unlock()
 	s.sharedChannelService = sharedChannelService
-}
-
-func (a *App) GenerateSupportPacket() []model.FileData {
-	// If any errors we come across within this function, we will log it in a warning.txt file so that we know why certain files did not get produced if any
-	var warnings []string
-
-	// Creating an array of files that we are going to be adding to our zip file
-	fileDatas := []model.FileData{}
-
-	// A array of the functions that we can iterate through since they all have the same return value
-	functions := []func() (*model.FileData, string){
-		a.generateSupportPacketYaml,
-		a.createPluginsFile,
-		a.createSanitizedConfigFile,
-		a.getMattermostLog,
-		a.getNotificationsLog,
-	}
-
-	for _, fn := range functions {
-		fileData, warning := fn()
-
-		if fileData != nil {
-			fileDatas = append(fileDatas, *fileData)
-		} else {
-			warnings = append(warnings, warning)
-		}
-	}
-
-	// Adding a warning.txt file to the fileDatas if any warning
-	if len(warnings) > 0 {
-		finalWarning := strings.Join(warnings, "\n")
-		fileDatas = append(fileDatas, model.FileData{
-			Filename: "warning.txt",
-			Body:     []byte(finalWarning),
-		})
-	}
-
-	return fileDatas
-}
-
-func (a *App) getNotificationsLog() (*model.FileData, string) {
-	var warning string
-
-	// Getting notifications.log
-	if *a.Config().NotificationLogSettings.EnableFile {
-		// notifications.log
-		notificationsLog := config.GetNotificationsLogFileLocation(*a.Config().LogSettings.FileLocation)
-
-		notificationsLogFileData, notificationsLogFileDataErr := ioutil.ReadFile(notificationsLog)
-
-		if notificationsLogFileDataErr == nil {
-			fileData := model.FileData{
-				Filename: "notifications.log",
-				Body:     notificationsLogFileData,
-			}
-			return &fileData, ""
-		}
-
-		warning = fmt.Sprintf("ioutil.ReadFile(notificationsLog) Error: %s", notificationsLogFileDataErr.Error())
-
-	} else {
-		warning = "Unable to retrieve notifications.log because LogSettings: EnableFile is false in config.json"
-	}
-
-	return nil, warning
-}
-
-func (a *App) getMattermostLog() (*model.FileData, string) {
-	var warning string
-
-	// Getting mattermost.log
-	if *a.Config().LogSettings.EnableFile {
-		// mattermost.log
-		mattermostLog := config.GetLogFileLocation(*a.Config().LogSettings.FileLocation)
-
-		mattermostLogFileData, mattermostLogFileDataErr := ioutil.ReadFile(mattermostLog)
-
-		if mattermostLogFileDataErr == nil {
-			fileData := model.FileData{
-				Filename: "mattermost.log",
-				Body:     mattermostLogFileData,
-			}
-			return &fileData, ""
-		}
-		warning = fmt.Sprintf("ioutil.ReadFile(mattermostLog) Error: %s", mattermostLogFileDataErr.Error())
-
-	} else {
-		warning = "Unable to retrieve mattermost.log because LogSettings: EnableFile is false in config.json"
-	}
-
-	return nil, warning
-}
-
-func (a *App) createSanitizedConfigFile() (*model.FileData, string) {
-	// Getting sanitized config, prettifying it, and then adding it to our file data array
-	sanitizedConfigPrettyJSON, err := json.MarshalIndent(a.GetSanitizedConfig(), "", "    ")
-	if err == nil {
-		fileData := model.FileData{
-			Filename: "sanitized_config.json",
-			Body:     sanitizedConfigPrettyJSON,
-		}
-		return &fileData, ""
-	}
-
-	warning := fmt.Sprintf("json.MarshalIndent(c.App.GetSanitizedConfig()) Error: %s", err.Error())
-	return nil, warning
-}
-
-func (a *App) createPluginsFile() (*model.FileData, string) {
-	var warning string
-
-	// Getting the plugins installed on the server, prettify it, and then add them to the file data array
-	pluginsResponse, appErr := a.GetPlugins()
-	if appErr == nil {
-		pluginsPrettyJSON, err := json.MarshalIndent(pluginsResponse, "", "    ")
-		if err == nil {
-			fileData := model.FileData{
-				Filename: "plugins.json",
-				Body:     pluginsPrettyJSON,
-			}
-
-			return &fileData, ""
-		}
-
-		warning = fmt.Sprintf("json.MarshalIndent(pluginsResponse) Error: %s", err.Error())
-	} else {
-		warning = fmt.Sprintf("c.App.GetPlugins() Error: %s", appErr.Error())
-	}
-
-	return nil, warning
-}
-
-func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
-	// Here we are getting information regarding Elastic Search
-	var elasticServerVersion string
-	var elasticServerPlugins []string
-	if a.Srv().SearchEngine.ElasticsearchEngine != nil {
-		elasticServerVersion = a.Srv().SearchEngine.ElasticsearchEngine.GetFullVersion()
-		elasticServerPlugins = a.Srv().SearchEngine.ElasticsearchEngine.GetPlugins()
-	}
-
-	// Here we are getting information regarding LDAP
-	ldapInterface := a.ch.Ldap
-	var vendorName, vendorVersion string
-	if ldapInterface != nil {
-		vendorName, vendorVersion = ldapInterface.GetVendorNameAndVendorVersion()
-	}
-
-	// Here we are getting information regarding the database (mysql/postgres + current schema version)
-	databaseType, databaseVersion := a.Srv().DatabaseTypeAndSchemaVersion()
-
-	// Creating the struct for support packet yaml file
-	supportPacket := model.SupportPacket{
-		ServerOS:             runtime.GOOS,
-		ServerArchitecture:   runtime.GOARCH,
-		ServerVersion:        model.CurrentVersion,
-		BuildHash:            model.BuildHash,
-		DatabaseType:         databaseType,
-		DatabaseVersion:      databaseVersion,
-		LdapVendorName:       vendorName,
-		LdapVendorVersion:    vendorVersion,
-		ElasticServerVersion: elasticServerVersion,
-		ElasticServerPlugins: elasticServerPlugins,
-	}
-
-	// Marshal to a Yaml File
-	supportPacketYaml, err := yaml.Marshal(&supportPacket)
-	if err == nil {
-		fileData := model.FileData{
-			Filename: "support_packet.yaml",
-			Body:     supportPacketYaml,
-		}
-		return &fileData, ""
-	}
-
-	warning := fmt.Sprintf("yaml.Marshal(&supportPacket) Error: %s", err.Error())
-	return nil, warning
 }
 
 func (s *Server) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {

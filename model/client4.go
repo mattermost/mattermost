@@ -3603,6 +3603,41 @@ func (c *Client4) AutocompleteChannelsForTeamForSearch(teamId, name string) (Cha
 	return ch, BuildResponse(r), nil
 }
 
+// GetTopChannelsForTeamSince will return an ordered list of the top channels in a given team.
+func (c *Client4) GetTopChannelsForTeamSince(teamId string, timeRange string, page int, perPage int) (*TopChannelList, *Response, error) {
+	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
+	r, err := c.DoAPIGet(c.teamRoute(teamId)+"/top/channels"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var topChannels *TopChannelList
+	if jsonErr := json.NewDecoder(r.Body).Decode(&topChannels); jsonErr != nil {
+		return nil, nil, NewAppError("GetTopChannelsForTeamSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return topChannels, BuildResponse(r), nil
+}
+
+// GetTopChannelsForUserSince will return an ordered list of your top channels in a given team.
+func (c *Client4) GetTopChannelsForUserSince(teamId string, timeRange string, page int, perPage int) (*TopChannelList, *Response, error) {
+	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
+
+	if teamId != "" {
+		query += fmt.Sprintf("&team_id=%v", teamId)
+	}
+
+	r, err := c.DoAPIGet(c.usersRoute()+"/me/top/channels"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var topChannels *TopChannelList
+	if jsonErr := json.NewDecoder(r.Body).Decode(&topChannels); jsonErr != nil {
+		return nil, nil, NewAppError("GetTopChannelsForUserSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return topChannels, BuildResponse(r), nil
+}
+
 // Post Section
 
 // CreatePost creates a post based on the provided post struct.
