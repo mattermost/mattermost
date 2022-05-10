@@ -9290,5 +9290,13 @@
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "В настройки электронной почты есть не заданные значения."
+  },
+  {
+    "id": "app.channel.get_top_for_user_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.channel.get_top_for_team_since.app_error",
+    "translation": " "
   }
 ]
