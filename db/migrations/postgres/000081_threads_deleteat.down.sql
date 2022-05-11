@@ -1,1 +1,1 @@
-ALTER TABLE threads DROP COLUMN IF EXISTS deleteat;
+-- Replaced by 000083_threads_threaddeleteat.down.sql

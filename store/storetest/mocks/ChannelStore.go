@@ -1165,13 +1165,13 @@ func (_m *ChannelStore) GetMembersForUser(teamID string, userID string) (model.C
 	return r0, r1
 }
 
-// GetMembersForUserWithCursor provides a mock function with given fields: userID, afterChannel, afterUser, limit, lastUpdateAt
-func (_m *ChannelStore) GetMembersForUserWithCursor(userID string, afterChannel string, afterUser string, limit int, lastUpdateAt int) (model.ChannelMembers, error) {
-	ret := _m.Called(userID, afterChannel, afterUser, limit, lastUpdateAt)
+// GetMembersForUserWithCursor provides a mock function with given fields: userID, teamID, opts
+func (_m *ChannelStore) GetMembersForUserWithCursor(userID string, teamID string, opts *store.ChannelMemberGraphQLSearchOpts) (model.ChannelMembers, error) {
+	ret := _m.Called(userID, teamID, opts)
 
 	var r0 model.ChannelMembers
-	if rf, ok := ret.Get(0).(func(string, string, string, int, int) model.ChannelMembers); ok {
-		r0 = rf(userID, afterChannel, afterUser, limit, lastUpdateAt)
+	if rf, ok := ret.Get(0).(func(string, string, *store.ChannelMemberGraphQLSearchOpts) model.ChannelMembers); ok {
+		r0 = rf(userID, teamID, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.ChannelMembers)
@@ -1179,8 +1179,8 @@ func (_m *ChannelStore) GetMembersForUserWithCursor(userID string, afterChannel 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, string, int, int) error); ok {
-		r1 = rf(userID, afterChannel, afterUser, limit, lastUpdateAt)
+	if rf, ok := ret.Get(1).(func(string, string, *store.ChannelMemberGraphQLSearchOpts) error); ok {
+		r1 = rf(userID, teamID, opts)
 	} else {
 		r1 = ret.Error(1)
 	}

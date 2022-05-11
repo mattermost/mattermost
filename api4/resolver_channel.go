@@ -95,10 +95,9 @@ func postProcessChannels(c *web.Context, channels []*model.Channel) ([]*channel,
 		}
 	}
 
-	var pref *model.Preference
+	var nameFormat string
 	var userInfo map[string][]*model.User
 	var err error
-	var appErr *model.AppError
 
 	// Avoiding unnecessary queries unless necessary.
 	if len(channelIDs) > 0 {
@@ -107,10 +106,8 @@ func postProcessChannels(c *web.Context, channels []*model.Channel) ([]*channel,
 			return nil, err
 		}
 
-		pref, appErr = c.App.GetPreferenceByCategoryAndNameForUser(c.AppContext.Session().UserId, "display_settings", "name_format")
-		if appErr != nil {
-			return nil, appErr
-		}
+		user := &model.User{Id: c.AppContext.Session().UserId}
+		nameFormat = c.App.GetNotificationNameFormat(user)
 	}
 
 	// Convert to the wrapper format.
@@ -124,7 +121,7 @@ func postProcessChannels(c *web.Context, channels []*model.Channel) ([]*channel,
 			if users == nil {
 				return nil, fmt.Errorf("user info not found for channel id: %s", ch.Id)
 			}
-			prettyName = getPrettyDNForUsers(pref.Value, users, c.AppContext.Session().UserId)
+			prettyName = getPrettyDNForUsers(nameFormat, users, c.AppContext.Session().UserId)
 		}
 
 		res = append(res, &channel{Channel: *ch, PrettyDisplayName: prettyName})

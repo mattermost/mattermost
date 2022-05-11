@@ -405,9 +405,10 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 	// Activate the plugin if enabled.
 	pluginState := ch.cfgSvc.Config().PluginSettings.PluginStates[manifest.Id]
 	if pluginState != nil && pluginState.Enable {
-		if manifest.Id == "com.mattermost.apps" && !ch.cfgSvc.Config().FeatureFlags.AppsEnabled {
+		if hasOverride, enabled := ch.getPluginStateOverride(manifest.Id); hasOverride && !enabled {
 			return manifest, nil
 		}
+
 		updatedManifest, _, err := pluginsEnvironment.Activate(manifest.Id)
 		if err != nil {
 			return nil, model.NewAppError("installExtractedPlugin", "app.plugin.restart.app_error", nil, err.Error(), http.StatusInternalServerError)

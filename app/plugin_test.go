@@ -968,7 +968,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 	})
 }
 
-func TestEnablePlugin(t *testing.T) {
+func TestEnablePluginWithCloudLimits(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1030,4 +1030,79 @@ func TestEnablePlugin(t *testing.T) {
 
 	appErr = th.App.EnablePlugin("testplugin2")
 	checkNoError(t, appErr)
+}
+
+func TestGetPluginStateOverride(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t.Run("no override", func(t *testing.T) {
+		overrides, value := th.App.ch.getPluginStateOverride("focalboard")
+		require.False(t, overrides)
+		require.False(t, value)
+	})
+
+	t.Run("calls override", func(t *testing.T) {
+		t.Run("on-prem", func(t *testing.T) {
+			overrides, value := th.App.ch.getPluginStateOverride("com.mattermost.calls")
+			require.False(t, overrides)
+			require.False(t, value)
+		})
+
+		t.Run("Cloud, without enabled flag", func(t *testing.T) {
+			os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
+			defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
+			overrides, value := th.App.ch.getPluginStateOverride("com.mattermost.calls")
+			require.True(t, overrides)
+			require.False(t, value)
+		})
+
+		t.Run("Cloud, with enabled flag set to true", func(t *testing.T) {
+			os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
+			defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
+			os.Setenv("MM_FEATUREFLAGS_CALLSENABLED", "true")
+			defer os.Unsetenv("MM_FEATUREFLAGS_CALLSENABLED")
+
+			th2 := Setup(t)
+			defer th2.TearDown()
+
+			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.calls")
+			require.True(t, overrides)
+			require.True(t, value)
+		})
+
+		t.Run("Cloud, with enabled flag set to false", func(t *testing.T) {
+			os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
+			defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
+			os.Setenv("MM_FEATUREFLAGS_CALLSENABLED", "false")
+			defer os.Unsetenv("MM_FEATUREFLAGS_CALLSENABLED")
+
+			th2 := Setup(t)
+			defer th2.TearDown()
+
+			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.calls")
+			require.True(t, overrides)
+			require.False(t, value)
+		})
+	})
+
+	t.Run("apps override", func(t *testing.T) {
+		t.Run("without enabled flag", func(t *testing.T) {
+			overrides, value := th.App.ch.getPluginStateOverride("com.mattermost.apps")
+			require.False(t, overrides)
+			require.False(t, value)
+		})
+
+		t.Run("with enabled flag set to false", func(t *testing.T) {
+			os.Setenv("MM_FEATUREFLAGS_APPSENABLED", "false")
+			defer os.Unsetenv("MM_FEATUREFLAGS_APPSENABLED")
+
+			th2 := Setup(t)
+			defer th2.TearDown()
+
+			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.apps")
+			require.True(t, overrides)
+			require.False(t, value)
+		})
+	})
 }
