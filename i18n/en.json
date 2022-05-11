@@ -5432,12 +5432,12 @@
     "translation": "Team name missing from User's Team Membership."
   },
   {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "You've reached the max limit of {{.NumIntegrations}} installed integrations. Please disable or uninstall another integration to enable this one."
-  },
-  {
     "id": "app.insert_error",
     "translation": "insert error"
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "You've reached the max limit of {{.NumIntegrations}} installed integrations. Please disable or uninstall another integration to enable this one."
   },
   {
     "id": "app.job.download_export_results_not_enabled",
