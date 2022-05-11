@@ -9,6 +9,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type ListedApp struct {
@@ -29,14 +30,14 @@ func (a *App) GetInstalledIntegrations() ([]*model.InstalledIntegration, *model.
 func (ch *Channels) getInstalledIntegrations() ([]*model.InstalledIntegration, *model.AppError) {
 	out := []*model.InstalledIntegration{}
 
-	pluginEnvironment := ch.GetPluginsEnvironment()
-	if pluginEnvironment == nil {
+	pluginsEnvironment := ch.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
 		return out, nil
 	}
 
-	plugins, err := pluginEnvironment.Available()
+	plugins, err := pluginsEnvironment.Available()
 	if err != nil {
-		return nil, model.NewAppError("getInstalledIntegrations", "", nil, err.Error(), 0)
+		return nil, model.NewAppError("getInstalledIntegrations", "app.plugin.sync.read_local_folder.app_error", nil, err.Error(), 0)
 	}
 
 	for _, p := range plugins {
@@ -54,17 +55,18 @@ func (ch *Channels) getInstalledIntegrations() ([]*model.InstalledIntegration, *
 				ID:      p.Manifest.Id,
 				Name:    p.Manifest.Name,
 				Version: p.Manifest.Version,
-				Enabled: pluginEnvironment.IsActive(p.Manifest.Id),
+				Enabled: pluginsEnvironment.IsActive(p.Manifest.Id),
 			}
 
 			out = append(out, integration)
 		}
 	}
 
-	if pluginEnvironment.IsActive("com.mattermost.apps") {
+	if pluginsEnvironment.IsActive("com.mattermost.apps") {
 		enabledApps, appErr := ch.getInstalledApps()
 		if appErr != nil {
-			// TODO
+			ch.srv.Log.Warn("Failed to fetch installed Apps", mlog.Err(appErr))
+			enabledApps = []ListedApp{}
 		}
 
 		for _, ap := range enabledApps {
@@ -140,7 +142,7 @@ func (a *App) checkIfIntegrationMeetsFreemiumLimits(pluginID string) *model.AppE
 
 	limits, err := a.Cloud().GetCloudLimits("")
 	if err != nil {
-		return model.NewAppError("checkIfIntegrationMeetsFreemiumLimits", "", nil, err.Error(), 0)
+		return model.NewAppError("checkIfIntegrationMeetsFreemiumLimits", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if limits == nil || limits.Integrations == nil || limits.Integrations.Enabled == nil {
