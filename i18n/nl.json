@@ -4797,7 +4797,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 89+"
+    "translation": "Versie 100+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5957,7 +5957,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Sessie verlopen: log opnieuw in om meldingen te blijven ontvangen. Sessies for {{.siteName}} zijn geconfigureerd door je systeembeheerder en verlopen elke {{.daysCount}} dag(-en)."
+    "translation": "Sessie verlopen: log opnieuw in om meldingen te blijven ontvangen. Sessies for {{.siteName}} zijn geconfigureerd door je systeembeheerder en verlopen elke {{.hoursCount}} uur."
   },
   {
     "id": "api.post.error_get_post_id.pending",
@@ -8137,7 +8137,7 @@
   },
   {
     "id": "api.templates.questions_footer.info",
-    "translation": "Stuur ons een e-mail op "
+    "translation": "Heb je hulp nodig of heb je een vraag? Stuur ons een e-mail op "
   },
   {
     "id": "api.templates.email_footer_v2",
@@ -8705,11 +8705,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Je gratis 14-dagen proefperiode van Mattermost eindigde vandaag"
+    "translation": "Je gratis 14-dagen proefperiode van Mattermost eindigde"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, jouw 14-daagse gratis proefperiode van Mattermost Cloud Enterprise is vandaag beëindigd, {{.TodayDate}}. Voeg aub. jouw betalingsgegevens toe om ervoor te zorgen dat jouw team kan blijven genieten van de voordelen van Cloud Enterprise. Als je jouw betalingsgegevens niet binnen 30 dagen toevoegt, zullen wij jouw Cloud-werkruimte definitief verwijderen en verliest je alle bijbehorende gegevens."
+    "translation": "{{.Name}}, jouw 14-daagse gratis proefperiode van Mattermost Cloud Enterprise is beëindigd op {{.TodayDate}}. We hopen dat je genoot van ons flexibel en veilig samenwerkingsplatform. Voeg aub. jouw betalingsgegevens toe om ervoor te zorgen dat jouw team kan blijven samenwerken met Mattermost."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -9140,7 +9140,7 @@
   },
   {
     "id": "api.templates.server_inactivity_subject",
-    "translation": "HEY! Open Mattermost om de productiviteit van je team te verhogen!"
+    "translation": "Open Mattermost om de productiviteit van je team te verhogen!"
   },
   {
     "id": "api.templates.server_inactivity_info_bullet2",
@@ -9217,5 +9217,105 @@
   {
     "id": "app.channel.get_file_count.app_error",
     "translation": "Fout bij het opvragen van het aantal bestanden van het kanaal"
+  },
+  {
+    "id": "api.file.test_connection_email_settings_nil.app_error",
+    "translation": "E-mail instellingen heeft niet-ingestelde waarden."
+  },
+  {
+    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "translation": "Instellingen voor bestandsopslag heeft niet-ingestelde waarden."
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "E-maillijst is leeg"
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "Kanaalnaam is ongeldig"
+  },
+  {
+    "id": "model.insights.time_range.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.channel.is_valid.1_or_more.app_error",
+    "translation": "De naam moet 1 of meer alfanumerieke tekens in kleine letters bevatten."
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "Ongeldig post_id"
+  },
+  {
+    "id": "app.reaction.get_top_for_user_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.reaction.get_top_for_team_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject",
+    "translation": "[{{ .SiteName }}] {{.SenderName }} heeft je uitgenodigd om lid te worden van {{.ChannelsLen }} kanalen in het {{.TeamDisplayName }} team"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title",
+    "translation": "{{.SenderName }} heeft je uitgenodigd om lid te worden van {{.ChannelsLen }} kanalen in het {{.TeamDisplayName }} team"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_subject",
+    "translation": "[{{ .SiteName }}] {{.SenderName }} heeft je uitgenodigd om lid te worden van {{.ChannelName }} in het {{.TeamDisplayName }} team"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_body.title",
+    "translation": "{{.SenderName }} heeft je uitgenodigd om lid te worden van {{.ChannelName }} in het {{.TeamDisplayName }} team"
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
+    "translation": "Fout bij het parsen van de body data."
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
+    "translation": "Ongeldig body request."
+  },
+  {
+    "id": "api.license.request_trial_license.embargoed",
+    "translation": "We konden het verzoek niet verwerken vanwege beperkingen voor landen die onder een embargo vallen. [Meer informatie vind je in onze documentatie](https://mattermost.com/pl/limitations-for-embargoed-countries), of neem contact op met legal@mattermost.com voor vragen over exportbeperkingen."
+  },
+  {
+    "id": "api.insights.feature_disabled",
+    "translation": " "
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "De parameters OnlyThreads en OnlyTotals voor getThreadsForUser sluiten elkaar uit"
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "De instellingen van Elasticsearch bevat niet-ingestelde waarden."
+  },
+  {
+    "id": "app.channel.get_top_for_user_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.channel.get_top_for_team_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.server_inactivity_footer_disclaimer",
+    "translation": "Je hebt deze eenmalige email ontvangen omdat jouw Mattermost server inactief was voor meer dan {{.Hours}} uur. Deze e-mail werd automatisch aangemaakt door jouw Mattermost server."
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "Je bent nu geüpgraded!"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
+    "translation": "Jouw {{.WorkspaceName}} werkruimte is nu geüpgraded. Dit zal gefactureerd worden vanaf {{.TrialEnd}}"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subject",
+    "translation": "Bevestiging Mattermost upgrade"
   }
 ]

@@ -69,7 +69,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 12+"
+    "translation": "Version 14.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -81,7 +81,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 89+"
+    "translation": "Version 100+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -7203,7 +7203,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Sessionen har utgått: Logga in för att fortsätta ta emot notifieringar. Systemadministratören har konfigurerat {{.siteName}} sessioner att gälla i {{.daysCount}} dagar."
+    "translation": "Sessionen har utgått: Logga in för att fortsätta ta emot notifieringar. Systemadministratören har konfigurerat {{.siteName}} sessioner att gälla i {{.hoursCount}} timmar."
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
@@ -8089,7 +8089,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.welcome_body.serverURL",
@@ -8141,7 +8141,7 @@
   },
   {
     "id": "api.templates.questions_footer.info",
-    "translation": "Mejla oss närsomhelst på "
+    "translation": "Behöver du hjälp eller har frågor? Mejla oss på "
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",
@@ -8253,7 +8253,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Effektivisera ditt arbete med verktyg som Github, Jira och Zoom. Utforska alla integrationer vi har på vår"
+    "translation": "Effektivisera ditt arbete med verktyg som GitHub, Jira och Zoom. Utforska alla integrationer vi har på vår"
   },
   {
     "id": "model.user.is_valid.marshal.app_error",
@@ -8705,11 +8705,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Din kostnadsfria testperiod av Mattermost avslutas idag"
+    "translation": "Din kostnadsfria 14-dagars testperiod av Mattermost har avslutats"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, din 14-dagars kostnadsfria testperiod av Mattermost Cloud Enterprise avslutas idag, {{.TodayDate}}. Uppdatera din betalinformation för att säkerställa att ditt team kan fortsätta nyttja funktionerna i Cloud Enterprise."
+    "translation": "{{.Name}}, din 14-dagars kostnadsfria testperiod av Mattermost Cloud Enterprise avslutades {{.TodayDate}}. Vi hoppas du uppskattade vår flexibla och säkra samarbetsplattform. Lägg in din betalningsinformation för att säkerställa att ditt team kan fortsätta samarbeta i Mattermost."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -8717,7 +8717,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Börja din prenumeration"
+    "translation": "Starta din prenumeration"
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",
@@ -9061,5 +9061,25 @@
   {
     "id": "Boards",
     "translation": "Boards"
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id måste vara tomt för anpassade grupper"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference måste vara 'true' för anpassade grupper"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "inte licensierad för anpassade grupper"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "funktionen för anpassade grupper är inaktiverad"
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "fel när antal grupper beräknades"
   }
 ]

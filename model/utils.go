@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"net/mail"
 	"net/url"
+	"os"
 	"regexp"
 	"sort"
 	"strings"
@@ -690,4 +691,8 @@ func filterBlocklist(r rune) rune {
 	}
 
 	return r
+}
+
+func IsCloud() bool {
+	return os.Getenv("MM_CLOUD_INSTALLATION_ID") != ""
 }
