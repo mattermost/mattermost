@@ -16,8 +16,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/morph"
+	sq "github.com/mattermost/squirrel"
 
 	"github.com/mattermost/morph/drivers"
 	ms "github.com/mattermost/morph/drivers/mysql"

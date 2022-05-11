@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"reflect"
 	"testing"
 
@@ -1501,4 +1502,39 @@ func TestConfigServiceSettingsIsValid(t *testing.T) {
 	err = cfg.ServiceSettings.isValid()
 	require.NotNil(t, err)
 	require.Equal(t, "model.config.is_valid.collapsed_threads.app_error", err.Id)
+}
+
+func TestConfigDefaultCallsPluginState(t *testing.T) {
+	t.Run("should not enable Calls plugin by default when not in Cloud", func(t *testing.T) {
+		c1 := Config{}
+		c1.SetDefaults()
+
+		assert.Nil(t, c1.PluginSettings.PluginStates["com.mattermost.calls"])
+	})
+
+	t.Run("should enable Calls plugin by default on Cloud", func(t *testing.T) {
+		os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
+		defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
+		c1 := Config{}
+		c1.SetDefaults()
+
+		assert.True(t, c1.PluginSettings.PluginStates["com.mattermost.calls"].Enable)
+	})
+
+	t.Run("should not re-enable Calls plugin after it has been disabled", func(t *testing.T) {
+		os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
+		defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
+		c1 := Config{
+			PluginSettings: PluginSettings{
+				PluginStates: map[string]*PluginState{
+					"com.mattermost.calls": {
+						Enable: false,
+					},
+				},
+			},
+		}
+
+		c1.SetDefaults()
+		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.calls"].Enable)
+	})
 }

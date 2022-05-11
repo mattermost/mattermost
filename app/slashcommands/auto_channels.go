@@ -79,7 +79,7 @@ func (cfg *AutoChannelCreator) CreateTestDMs(c *request.Context, num utils.Range
 	numDMs := utils.RandIntFromRange(num)
 	dms := make([]*model.Channel, numDMs)
 
-	users, err := cfg.a.GetUsers(&model.UserGetOptions{Page: 0, PerPage: numDMs})
+	users, err := cfg.a.GetUsersFromProfiles(&model.UserGetOptions{Page: 0, PerPage: numDMs})
 	if err != nil {
 		return nil, err
 	}

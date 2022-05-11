@@ -9,12 +9,12 @@ import (
 	"strconv"
 	"strings"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 )
 
