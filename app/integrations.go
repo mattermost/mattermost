@@ -161,7 +161,7 @@ func (a *App) checkIfIntegrationMeetsFreemiumLimits(pluginID string) *model.AppE
 
 	limit := *limits.Integrations.Enabled
 	if enableCount > limit {
-		return model.NewAppError("checkIfIntegrationMeetsFreemiumLimits", "app.install_integration.reached_max_limit.error", map[string]interface{}{"NumIntegrations": limit}, "", 0)
+		return model.NewAppError("checkIfIntegrationMeetsFreemiumLimits", "app.install_integration.reached_max_limit.error", map[string]interface{}{"NumIntegrations": limit}, "", http.StatusBadRequest)
 	}
 
 	return nil
