@@ -319,7 +319,7 @@ func TestGraphQLChannelMembers(t *testing.T) {
 			OperationName: "channelMembers",
 			Query:         query,
 			Variables: map[string]interface{}{
-				"teamId": th.BasicTeam.Id,
+				"teamId":      th.BasicTeam.Id,
 				"excludeTeam": true,
 			},
 		}

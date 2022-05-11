@@ -4549,18 +4549,18 @@ func testChannelStoreGetMembersForUserWithCursor(t *testing.T, ss store.Store) {
 		opts := &store.ChannelMemberGraphQLSearchOpts{
 			Limit: 10,
 		}
-		members, err := ss.Channel().GetMembersForUserWithCursor(m1.UserId, t2.Id, opts)
-		require.NoError(t, err)
+		members, err2 := ss.Channel().GetMembersForUserWithCursor(m1.UserId, t2.Id, opts)
+		require.NoError(t, err2)
 		assert.Len(t, members, 3)
 	})
 
 	t.Run("excluding a team", func(t *testing.T) {
 		opts := &store.ChannelMemberGraphQLSearchOpts{
-			Limit: 10,
+			Limit:       10,
 			ExcludeTeam: true,
 		}
-		members, err := ss.Channel().GetMembersForUserWithCursor(m1.UserId, t2.Id, opts)
-		require.NoError(t, err)
+		members, err2 := ss.Channel().GetMembersForUserWithCursor(m1.UserId, t2.Id, opts)
+		require.NoError(t, err2)
 		assert.Len(t, members, 2)
 	})
 
