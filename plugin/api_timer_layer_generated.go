@@ -1225,3 +1225,10 @@ func (api *apiTimerLayer) RequestTrialLicense(requesterID string, users int, ter
 	api.recordTime(startTime, "RequestTrialLicense", _returnsA == nil)
 	return _returnsA
 }
+
+func (api *apiTimerLayer) GetCloudLimits() (*model.ProductLimits, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetCloudLimits()
+	api.recordTime(startTime, "GetCloudLimits", _returnsB == nil)
+	return _returnsA, _returnsB
+}
