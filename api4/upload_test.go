@@ -242,7 +242,7 @@ func TestUploadData(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 		defer th.App.Srv().RemoveLicense()
 
-		us := &model.UploadSession{
+		us2 := &model.UploadSession{
 			Id:        model.NewId(),
 			Type:      model.UploadTypeImport,
 			CreateAt:  model.GetMillis(),
@@ -251,10 +251,10 @@ func TestUploadData(t *testing.T) {
 			Filename:  "upload",
 			FileSize:  8 * 1024 * 1024,
 		}
-		_, appErr := th.App.CreateUploadSession(us)
+		_, appErr := th.App.CreateUploadSession(us2)
 		require.Nil(t, appErr)
 
-		info, resp, err := th.SystemAdminClient.UploadData(us.Id, bytes.NewReader(data))
+		info, resp, err := th.SystemAdminClient.UploadData(us2.Id, bytes.NewReader(data))
 		require.Nil(t, info)
 		CheckErrorID(t, err, "api.file.cloud_upload.app_error")
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
