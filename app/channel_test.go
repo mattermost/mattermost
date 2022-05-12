@@ -2512,7 +2512,8 @@ func TestIsCRTEnabledForUser(t *testing.T) {
 			th := SetupWithStoreMock(t)
 			defer th.TearDown()
 
-			th.App.Config().ServiceSettings.CollapsedThreads = &tc.appCRT
+			crtSetting := tc.appCRT
+			th.App.Config().ServiceSettings.CollapsedThreads = &crtSetting
 
 			mockStore := th.App.Srv().Store.(*mocks.Store)
 			mockPreferenceStore := mocks.PreferenceStore{}
