@@ -70,8 +70,9 @@ type FeatureFlags struct {
 
 	CloudFree bool
 
-	CommandPalette    bool
-	AdvanceTextEditor bool
+	CommandPalette bool
+
+	AdvancedTextEditor bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -97,7 +98,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.InsightsEnabled = false
 	f.CloudFree = false
 	f.CommandPalette = false
-	f.AdvanceTextEditor = false
+	f.AdvancedTextEditor = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
