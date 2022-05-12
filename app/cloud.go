@@ -19,7 +19,7 @@ func (a *App) getSysAdminsEmailRecipients() ([]*model.User, *model.AppError) {
 		Role:     model.SystemAdminRoleId,
 		Inactive: false,
 	}
-	return a.GetUsers(userOptions)
+	return a.GetUsersFromProfiles(userOptions)
 }
 
 func (a *App) SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.AppError {
@@ -53,7 +53,8 @@ func (a *App) SendUpgradeConfirmationEmail() *model.AppError {
 	}
 
 	// Build readable trial end date
-	endTimeStamp := subscription.TrialEndAt
+	// Trial end is passed as unix timestamp in ms
+	endTimeStamp := subscription.TrialEndAt / 1000
 	t := time.Unix(endTimeStamp, 0)
 	trialEndDate := fmt.Sprintf("%s %d, %d", t.Month(), t.Day(), t.Year())
 
