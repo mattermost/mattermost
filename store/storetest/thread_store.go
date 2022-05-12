@@ -27,6 +27,7 @@ func TestThreadStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetTeamsUnreadForUser", func(t *testing.T) { testGetTeamsUnreadForUser(t, ss) })
 	t.Run("GetVarious", func(t *testing.T) { testVarious(t, ss) })
 	t.Run("MarkAllAsReadByChannels", func(t *testing.T) { testMarkAllAsReadByChannels(t, ss) })
+	t.Run("GetTopThreads", func(t *testing.T) { testGetTopThreads(t, ss) })
 }
 
 func testThreadStorePopulation(t *testing.T, ss store.Store) {
@@ -1224,5 +1225,53 @@ func testMarkAllAsReadByChannels(t *testing.T, ss store.Store) {
 
 		assertThreadReplyCount(t, userAID, 0)
 		assertThreadReplyCount(t, userBID, 0)
+	})
+}
+
+func testGetTopThreads(t *testing.T, ss store.Store) {
+	t.Run("test get top team threads", func(t *testing.T) {
+		const limit = 10
+		team, err := ss.Team().Save(&model.Team{
+			DisplayName: "DisplayName",
+			Name:        "team" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.NoError(t, err)
+		channel, err := ss.Channel().Save(&model.Channel{
+			TeamId:      team.Id,
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		post1, err := ss.Post().Save(&model.Post{
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+		})
+		require.NoError(t, err)
+		post2, err := ss.Post().Save(&model.Post{
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+		})
+		require.NoError(t, err)
+		threadStoreCreateReply(t, ss, channel.Id, post1.Id, post1.UserId, 2000)
+		threadStoreCreateReply(t, ss, channel.Id, post1.Id, post1.UserId, 2000)
+
+		threadStoreCreateReply(t, ss, channel.Id, post2.Id, post2.UserId, 2000)
+
+		//  get top threads
+		topThreadsInTeam, err := ss.Thread().GetTopThreadsForTeamSince(team.Id, model.NewId(), 12, 0, limit)
+		require.NoError(t, err)
+		// require length of top threads to be 2
+		require.Len(t, topThreadsInTeam.Items, 2)
+
+		// require first element to be post1 with 2 replyCount=2
+		require.Equal(t, topThreadsInTeam.Items[0].PostId, post1.Id)
+		require.Equal(t, topThreadsInTeam.Items[0].ReplyCount, int64(2))
+		// require second element to be post2 with 2 replyCount=2
+		require.Equal(t, topThreadsInTeam.Items[1].PostId, post2.Id)
+		require.Equal(t, topThreadsInTeam.Items[0].ReplyCount, int64(2))
 	})
 }

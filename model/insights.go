@@ -50,6 +50,19 @@ type TopChannel struct {
 	MessageCount int64       `json:"message_count"`
 }
 
+// Top Threads
+type TopThreadList struct {
+	InsightsListData
+	Items []*TopThread `json:"items"`
+}
+
+type TopThread struct {
+	PostId      string `json:"post_id"`
+	ReplyCount  int64  `json:"reply_count"`
+	ChannelId   string `json:"channel_id"`
+	DisplayName string `json:"display_name"`
+}
+
 // GetStartUnixMilliForTimeRange gets the unix start time in milliseconds from the given time range.
 // Time range can be one of: "1_day", "7_day", or "28_day".
 func GetStartUnixMilliForTimeRange(timeRange string) (int64, *AppError) {
@@ -93,4 +106,18 @@ func GetTopChannelListWithPagination(channels []*TopChannel, limit int) *TopChan
 	}
 
 	return &TopChannelList{InsightsListData: InsightsListData{HasNext: hasNext}, Items: channels}
+}
+
+// GetTopThreadListWithPagination adds a rank to each item in the given list of TopThread and checks if there is
+// another page that can be fetched based on the given limit and offset. The given list of TopThread is assumed to be
+// sorted by ReplyCount(score). Returns a TopThreadList.
+func GetTopThreadListWithPagination(threads []*TopThread, limit int) *TopThreadList {
+	// Add pagination support
+	var hasNext bool
+	if (limit != 0) && (len(threads) == limit+1) {
+		hasNext = true
+		threads = threads[:len(threads)-1]
+	}
+
+	return &TopThreadList{InsightsListData: InsightsListData{HasNext: hasNext}, Items: threads}
 }
