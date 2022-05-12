@@ -2448,6 +2448,7 @@ func TestMarkUnreadWithThreads(t *testing.T) {
 }
 
 func TestIsCRTEnabledForUser(t *testing.T) {
+	t.Skip("MM-44148")
 	type preference struct {
 		val string
 		err error
