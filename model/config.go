@@ -86,6 +86,7 @@ const (
 	CollapsedThreadsDisabled   = "disabled"
 	CollapsedThreadsDefaultOn  = "default_on"
 	CollapsedThreadsDefaultOff = "default_off"
+	CollapsedThreadsAlwaysOn   = "always_on"
 
 	EmailBatchingBufferSize = 256
 	EmailBatchingInterval   = 30
@@ -599,6 +600,14 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.ExtendSessionLengthWithActivity = NewBool(!isUpdate)
 	}
 
+	if s.SessionLengthWebInDays == nil {
+		if isUpdate {
+			s.SessionLengthWebInDays = NewInt(180)
+		} else {
+			s.SessionLengthWebInDays = NewInt(30)
+		}
+	}
+
 	if s.SessionLengthWebInHours == nil {
 		var webTTLDays int
 		if s.SessionLengthWebInDays == nil {
@@ -612,7 +621,14 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		}
 		s.SessionLengthWebInHours = NewInt(webTTLDays * 24)
 	}
-	s.SessionLengthWebInDays = NewInt(-1)
+
+	if s.SessionLengthMobileInDays == nil {
+		if isUpdate {
+			s.SessionLengthMobileInDays = NewInt(180)
+		} else {
+			s.SessionLengthMobileInDays = NewInt(30)
+		}
+	}
 
 	if s.SessionLengthMobileInHours == nil {
 		var mobileTTLDays int
@@ -627,7 +643,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		}
 		s.SessionLengthMobileInHours = NewInt(mobileTTLDays * 24)
 	}
-	s.SessionLengthMobileInDays = NewInt(-1)
+
+	if s.SessionLengthSSOInDays == nil {
+		s.SessionLengthSSOInDays = NewInt(30)
+	}
 
 	if s.SessionLengthSSOInHours == nil {
 		var ssoTTLDays int
@@ -638,7 +657,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		}
 		s.SessionLengthSSOInHours = NewInt(ssoTTLDays * 24)
 	}
-	s.SessionLengthSSOInDays = NewInt(-1)
 
 	if s.SessionCacheInMinutes == nil {
 		s.SessionCacheInMinutes = NewInt(10)
@@ -2793,6 +2811,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates["com.mattermost.apps"] = &PluginState{Enable: true}
 	}
 
+	if s.PluginStates["com.mattermost.calls"] == nil && IsCloud() {
+		// Enable the calls plugin by default on Cloud only
+		s.PluginStates["com.mattermost.calls"] = &PluginState{Enable: true}
+	}
+
 	if s.EnableMarketplace == nil {
 		s.EnableMarketplace = NewBool(PluginSettingsDefaultEnableMarketplace)
 	}
@@ -3635,6 +3658,7 @@ func (s *ServiceSettings) isValid() *AppError {
 
 	if *s.CollapsedThreads != CollapsedThreadsDisabled &&
 		*s.CollapsedThreads != CollapsedThreadsDefaultOn &&
+		*s.CollapsedThreads != CollapsedThreadsAlwaysOn &&
 		*s.CollapsedThreads != CollapsedThreadsDefaultOff {
 		return NewAppError("Config.IsValid", "model.config.is_valid.collapsed_threads.app_error", nil, "", http.StatusBadRequest)
 	}
