@@ -10897,6 +10897,48 @@ func (s *RetryLayerThreadStore) GetThreadsForUser(userId string, teamID string, 
 
 }
 
+func (s *RetryLayerThreadStore) GetTopThreadsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopThreadList, error) {
+
+	tries := 0
+	for {
+		result, err := s.ThreadStore.GetTopThreadsForTeamSince(teamID, userID, since, offset, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerThreadStore) GetTopThreadsForUserSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopThreadList, error) {
+
+	tries := 0
+	for {
+		result, err := s.ThreadStore.GetTopThreadsForUserSince(teamID, userID, since, offset, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerThreadStore) GetTotalThreads(userId string, teamID string, opts model.GetUserThreadsOpts) (int64, error) {
 
 	tries := 0
