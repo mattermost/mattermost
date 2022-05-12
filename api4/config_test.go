@@ -247,6 +247,18 @@ func TestUpdateConfig(t *testing.T) {
 		assert.Equal(t, newURL, *cfg2.PluginSettings.MarketplaceURL)
 	})
 
+	t.Run("Should not be able to modify ComplianceSettings.Directory in cloud", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+		defer th.App.Srv().RemoveLicense()
+
+		cfg2 := th.App.Config().Clone()
+		*cfg2.ComplianceSettings.Directory = "hellodir"
+
+		cfg2, resp, err = th.SystemAdminClient.UpdateConfig(cfg2)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
 	t.Run("System Admin should not be able to clear Site URL", func(t *testing.T) {
 		siteURL := cfg.ServiceSettings.SiteURL
 		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = siteURL })
