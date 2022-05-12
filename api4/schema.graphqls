@@ -19,6 +19,8 @@ type Query {
 		since: Float!): [String!]!
 	channelMembers(userId: String!,
 		channelId: String = "",
+		teamId: String = "",
+		excludeTeam: Boolean = false,
 		first: Int = 60,
 		after: String = "",
 		lastUpdateAt: Float = 0): [ChannelMember]!
