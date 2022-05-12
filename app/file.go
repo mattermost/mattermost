@@ -1093,15 +1093,6 @@ func (a *App) generateMiniPreview(fi *model.FileInfo) {
 			mlog.Debug("generateMiniPreview: prepareImage failed", mlog.Err(err),
 				mlog.String("fileinfo_id", fi.Id), mlog.String("channel_id", fi.ChannelId),
 				mlog.String("creator_id", fi.CreatorId))
-
-			// Since this file is not a valid image (for whatever reason), prevent this fileInfo
-			// from entering generateMiniPreview in the future
-			fi.UpdateAt = model.GetMillis()
-			fi.MimeType = "invalid-" + fi.MimeType
-			if _, err = a.Srv().Store.FileInfo().Upsert(fi); err != nil {
-				mlog.Debug("Invalidating FileInfo failed", mlog.Err(err))
-			}
-
 			return
 		}
 		defer release()
