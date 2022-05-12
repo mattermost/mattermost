@@ -2448,7 +2448,6 @@ func TestMarkUnreadWithThreads(t *testing.T) {
 }
 
 func TestIsCRTEnabledForUser(t *testing.T) {
-	t.Skip("MM-44148")
 	type preference struct {
 		val string
 		err error
@@ -2509,9 +2508,7 @@ func TestIsCRTEnabledForUser(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
-			t.Parallel()
 			th := SetupWithStoreMock(t)
 			defer th.TearDown()
 
