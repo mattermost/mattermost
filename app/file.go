@@ -752,7 +752,7 @@ func (a *App) UploadFileX(c *request.Context, channelID, name string, input io.R
 
 func (t *UploadFileTask) preprocessImage() *model.AppError {
 	// If SVG, attempt to extract dimensions and then return
-	if t.fileinfo.MimeType == "image/svg+xml" {
+	if t.fileinfo.IsSvg() {
 		svgInfo, err := imaging.ParseSVG(t.teeInput)
 		if err != nil {
 			mlog.Warn("Failed to parse SVG", mlog.Err(err))
@@ -809,7 +809,7 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 
 func (t *UploadFileTask) postprocessImage(file io.Reader) {
 	// don't try to process SVG files
-	if t.fileinfo.MimeType == "image/svg+xml" {
+	if t.fileinfo.IsSvg() {
 		return
 	}
 
