@@ -2447,6 +2447,88 @@ func TestMarkUnreadWithThreads(t *testing.T) {
 	})
 }
 
+func TestIsCRTEnabledForUser(t *testing.T) {
+	t.Skip("MM-44148")
+	type preference struct {
+		val string
+		err error
+	}
+
+	testCases := []struct {
+		desc     string
+		appCRT   string
+		pref     preference
+		expected bool
+	}{
+		{
+			desc:     "Returns false when system config is disabled",
+			appCRT:   model.CollapsedThreadsDisabled,
+			expected: false,
+		},
+		{
+			desc:     "Returns true when system config is always_on",
+			appCRT:   model.CollapsedThreadsAlwaysOn,
+			expected: true,
+		},
+		{
+			desc:     "Returns true when system config is default_on and user has no preference",
+			appCRT:   model.CollapsedThreadsDefaultOn,
+			pref:     preference{"test", errors.New("err")},
+			expected: true,
+		},
+		{
+			desc:     "Returns false when system config is default_off and user has no preference",
+			appCRT:   model.CollapsedThreadsDefaultOff,
+			pref:     preference{"qwe", errors.New("err")},
+			expected: false,
+		},
+		{
+			desc:     "Returns true when system config is default_on and user has on preference",
+			appCRT:   model.CollapsedThreadsDefaultOn,
+			pref:     preference{"on", nil},
+			expected: true,
+		},
+		{
+			desc:     "Returns false when system config is default_on and user has off preference",
+			appCRT:   model.CollapsedThreadsDefaultOn,
+			pref:     preference{"off", nil},
+			expected: false,
+		},
+		{
+			desc:     "Returns true when system config is default_off and user has on preference",
+			appCRT:   model.CollapsedThreadsDefaultOff,
+			pref:     preference{"on", nil},
+			expected: true,
+		},
+		{
+			desc:     "Returns false when system config is default_off and user has off preference",
+			appCRT:   model.CollapsedThreadsDefaultOff,
+			pref:     preference{"off", nil},
+			expected: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.desc, func(t *testing.T) {
+			t.Parallel()
+			th := SetupWithStoreMock(t)
+			defer th.TearDown()
+
+			th.App.Config().ServiceSettings.CollapsedThreads = &tc.appCRT
+
+			mockStore := th.App.Srv().Store.(*mocks.Store)
+			mockPreferenceStore := mocks.PreferenceStore{}
+			mockPreferenceStore.On("Get", mock.Anything, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled).Return(&model.Preference{Value: tc.pref.val}, tc.pref.err)
+			mockStore.On("Preference").Return(&mockPreferenceStore)
+
+			res := th.App.IsCRTEnabledForUser(mock.Anything)
+
+			assert.Equal(t, tc.expected, res)
+		})
+	}
+}
+
 func TestGetTopChannelsForTeamSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
