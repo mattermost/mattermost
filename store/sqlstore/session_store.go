@@ -59,7 +59,7 @@ func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {
 		return nil, errors.Wrapf(err, "failed to save Session with id=%s", session.Id)
 	}
 
-	teamMembers, err := me.Team().GetTeamsForUser(context.Background(), session.UserId, true)
+	teamMembers, err := me.Team().GetTeamsForUser(context.Background(), session.UserId, "", true)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", session.UserId)
 	}
@@ -87,7 +87,7 @@ func (me SqlSessionStore) Get(ctx context.Context, sessionIdOrToken string) (*mo
 
 	tempMembers, err := me.Team().GetTeamsForUser(
 		WithMaster(context.Background()),
-		session.UserId, true)
+		session.UserId, "", true)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", session.UserId)
 	}
@@ -107,7 +107,7 @@ func (me SqlSessionStore) GetSessions(userId string) ([]*model.Session, error) {
 		return nil, errors.Wrapf(err, "failed to find Sessions with userId=%s", userId)
 	}
 
-	teamMembers, err := me.Team().GetTeamsForUser(context.Background(), userId, true)
+	teamMembers, err := me.Team().GetTeamsForUser(context.Background(), userId, "", true)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", userId)
 	}
