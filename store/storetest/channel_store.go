@@ -7903,6 +7903,8 @@ func testChannelPostCountsByDay(t *testing.T, ss store.Store) {
 		Type:        model.TeamOpen,
 	})
 	require.NoError(t, err)
+	defer func() { ss.Team().PermanentDelete(team.Id) }()
+
 	channel := &model.Channel{
 		TeamId:      team.Id,
 		DisplayName: "test_share_flag",
@@ -7911,12 +7913,15 @@ func testChannelPostCountsByDay(t *testing.T, ss store.Store) {
 	}
 	channelSaved, err := ss.Channel().Save(channel, 999)
 	require.NoError(t, err)
+	defer func() { ss.Channel().PermanentDelete(channelSaved.Id) }()
+
 	_, err = ss.Post().Save(&model.Post{
 		UserId:    model.NewId(),
 		ChannelId: channel.Id,
 		Message:   "test",
 	})
 	require.NoError(t, err)
+
 	dpc, err := ss.Channel().PostCountsByDay([]string{channelSaved.Id}, 0)
 	require.NoError(t, err)
 	require.Len(t, dpc, 1)

@@ -2657,6 +2657,13 @@ func TestPostCountsByDay(t *testing.T) {
 	channel4 := th.CreatePrivateChannel(th.BasicTeam)
 	channel5 := th.CreateChannel(th.BasicTeam)
 	channel6 := th.CreatePrivateChannel(th.BasicTeam)
+	defer func() {
+		th.App.PermanentDeleteChannel(channel2)
+		th.App.PermanentDeleteChannel(channel3)
+		th.App.PermanentDeleteChannel(channel4)
+		th.App.PermanentDeleteChannel(channel5)
+		th.App.PermanentDeleteChannel(channel6)
+	}()
 	th.AddUserToChannel(th.BasicUser, channel2)
 	th.AddUserToChannel(th.BasicUser, channel3)
 	th.AddUserToChannel(th.BasicUser, channel4)
@@ -2701,7 +2708,7 @@ func TestPostCountsByDay(t *testing.T) {
 		},
 	}
 
-	sinceUnixMillis := time.Date(2009, time.November, 9, 23, 0, 0, 0, time.UTC).Unix() * 1000
+	sinceUnixMillis := time.Date(2009, time.November, 9, 23, 0, 0, 0, time.UTC).UnixMilli()
 
 	t.Run("get-post-counts-by-day", func(t *testing.T) {
 		dailyPostCount, err := th.App.PostCountsByDay(channelIDs, sinceUnixMillis)
