@@ -1272,6 +1272,80 @@ func testGetTopThreads(t *testing.T, ss store.Store) {
 		require.Equal(t, topThreadsInTeam.Items[0].ReplyCount, int64(2))
 		// require second element to be post2 with 2 replyCount=2
 		require.Equal(t, topThreadsInTeam.Items[1].PostId, post2.Id)
-		require.Equal(t, topThreadsInTeam.Items[0].ReplyCount, int64(2))
+		require.Equal(t, topThreadsInTeam.Items[1].ReplyCount, int64(1))
 	})
+	t.Run("test get top user threads", func(t *testing.T) {
+		const limit = 10
+		team, err := ss.Team().Save(&model.Team{
+			DisplayName: "DisplayName",
+			Name:        "team" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.NoError(t, err)
+		channel, err := ss.Channel().Save(&model.Channel{
+			TeamId:      team.Id,
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		post1, err := ss.Post().Save(&model.Post{
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+		})
+		require.NoError(t, err)
+		post2, err := ss.Post().Save(&model.Post{
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+		})
+		require.NoError(t, err)
+		post3, err := ss.Post().Save(&model.Post{
+			ChannelId: channel.Id,
+			UserId:    post2.UserId,
+		})
+		require.NoError(t, err)
+		threadStoreCreateReply(t, ss, channel.Id, post1.Id, post1.UserId, 2000)
+		threadStoreCreateReply(t, ss, channel.Id, post1.Id, post1.UserId, 2000)
+
+		threadStoreCreateReply(t, ss, channel.Id, post2.Id, post2.UserId, 2000)
+		threadStoreCreateReply(t, ss, channel.Id, post2.Id, post2.UserId, 2000)
+		threadStoreCreateReply(t, ss, channel.Id, post3.Id, post3.UserId, 2000)
+		opts := store.ThreadMembershipOpts{
+			Following:             true,
+			IncrementMentions:     false,
+			UpdateFollowing:       true,
+			UpdateViewedTimestamp: false,
+			UpdateParticipants:    false,
+		}
+
+		// create threadmemberships entries.
+		_, err = ss.Thread().MaintainMembership(post1.UserId, post1.Id, opts)
+		require.NoError(t, err)
+		_, err = ss.Thread().MaintainMembership(post2.UserId, post2.Id, opts)
+		require.NoError(t, err)
+		_, err = ss.Thread().MaintainMembership(post2.UserId, post3.Id, opts)
+		require.NoError(t, err)
+
+		//  get top threads by user
+		topThreadsByUser1, err := ss.Thread().GetTopThreadsForUserSince(team.Id, post1.UserId, 12, 0, limit)
+		require.NoError(t, err)
+		topThreadsByUser2, err := ss.Thread().GetTopThreadsForUserSince(team.Id, post2.UserId, 12, 0, limit)
+		require.NoError(t, err)
+		// require length of top threads by users to be 1,2 respectively
+		require.Len(t, topThreadsByUser1.Items, 1)
+		require.Len(t, topThreadsByUser2.Items, 2)
+
+		// require first element of topThreadsByUser1 to be post1 with 2 replyCount=2
+		require.Equal(t, topThreadsByUser1.Items[0].PostId, post1.Id)
+		require.Equal(t, topThreadsByUser1.Items[0].ReplyCount, int64(2))
+		// require elements of topThreadsByUser2 to be post2 and post3 respectively
+		require.Equal(t, topThreadsByUser2.Items[0].PostId, post2.Id)
+		require.Equal(t, topThreadsByUser2.Items[0].ReplyCount, int64(2))
+
+		require.Equal(t, topThreadsByUser2.Items[1].PostId, post3.Id)
+		require.Equal(t, topThreadsByUser2.Items[1].ReplyCount, int64(1))
+	})
+
 }

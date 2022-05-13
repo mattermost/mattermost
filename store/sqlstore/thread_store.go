@@ -1033,61 +1033,6 @@ func (s *SqlThreadStore) GetThreadUnreadReplyCount(threadMembership *model.Threa
 func (s *SqlThreadStore) GetTopThreadsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopThreadList, error) {
 	var args []interface{}
 	query := `select * from((
-			SELECT
-				t.PostId,
-				t.ReplyCount,
-				t.ChannelId,
-				c.DisplayName
-			FROM
-				Threads t
-				LEFT JOIN PublicChannels c ON t.ChannelId = c.Id
-			WHERE
-				t.LastReplyAt > ?
-				AND c.TeamId = ?
-			GROUP BY
-				t.PostId,
-				c.DisplayName
-			ORDER BY
-				t.ReplyCount DESC
-		)
-		UNION
-		ALL (
-			SELECT
-				t.PostId,
-				t.ReplyCount,
-				t.ChannelId,
-				c.DisplayName
-			FROM
-				ChannelMembers cm
-				LEFT JOIN Threads t ON t.ChannelId = cm.ChannelId
-				LEFT JOIN Channels c ON t.ChannelId = c.Id
-			WHERE
-				cm.UserId = ?
-				AND c.Type = 'P'
-				AND c.TeamId = ?
-				AND t.LastReplyAt > ?
-			GROUP BY
-				t.PostId,
-				c.DisplayName
-			ORDER BY
-				t.ReplyCount DESC
-		)) as threads_list limit ? offset ?`
-
-	args = append(args, since, teamID, userID, teamID, since, limit+1, offset)
-
-	topThreads := make([]*model.TopThread, 0)
-	err := s.GetReplicaX().Select(&topThreads, query, args...)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get top threads")
-	}
-	return model.GetTopThreadListWithPagination(topThreads, limit), nil
-}
-
-func (s *SqlThreadStore) GetTopThreadsForUserSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopThreadList, error) {
-	var args []interface{}
-
-	// TODO: modify query to get user specific top threads.
-	query := `select * from((
 		SELECT
 			t.PostId,
 			t.ReplyCount,
@@ -1102,8 +1047,6 @@ func (s *SqlThreadStore) GetTopThreadsForUserSince(teamID string, userID string,
 		GROUP BY
 			t.PostId,
 			c.DisplayName
-		ORDER BY
-			t.ReplyCount DESC
 	)
 	UNION
 	ALL (
@@ -1124,11 +1067,66 @@ func (s *SqlThreadStore) GetTopThreadsForUserSince(teamID string, userID string,
 		GROUP BY
 			t.PostId,
 			c.DisplayName
-		ORDER BY
-			t.ReplyCount DESC
-	)) as threads_list limit ? offset ?`
+	) ORDER BY ReplyCount DESC) as threads_list limit ? offset ?`
 
 	args = append(args, since, teamID, userID, teamID, since, limit+1, offset)
+
+	topThreads := make([]*model.TopThread, 0)
+	err := s.GetReplicaX().Select(&topThreads, query, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get top threads")
+	}
+	return model.GetTopThreadListWithPagination(topThreads, limit), nil
+}
+
+func (s *SqlThreadStore) GetTopThreadsForUserSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopThreadList, error) {
+	var args []interface{}
+
+	// gets all threads within the team which user follows.
+	query := `select * from((
+		SELECT
+			t.PostId,
+			t.ReplyCount,
+			t.ChannelId,
+			c.DisplayName
+		FROM
+			Threads t
+			LEFT JOIN PublicChannels c ON t.ChannelId = c.Id
+			LEFT JOIN ThreadMemberships as tm on t.PostId = tm.PostId
+		WHERE
+			t.LastReplyAt > ?
+			AND c.TeamId = ?
+			AND tm.UserId = ?
+            AND tm.Following = TRUE
+		GROUP BY
+			t.PostId,
+			c.DisplayName
+	)
+	UNION
+	ALL (
+		SELECT
+			t.PostId,
+			t.ReplyCount,
+			t.ChannelId,
+			c.DisplayName
+		FROM
+			ChannelMembers cm
+			LEFT JOIN Threads t ON t.ChannelId = cm.ChannelId
+			LEFT JOIN Channels c ON t.ChannelId = c.Id
+			LEFT JOIN ThreadMemberships as tm on t.PostId = tm.PostId
+		WHERE
+			cm.UserId = ?
+			AND c.Type = 'P'
+			AND c.TeamId = ?
+			AND t.LastReplyAt > ?
+			AND tm.UserId = ?
+            AND tm.Following = TRUE
+		GROUP BY
+			t.PostId,
+			c.DisplayName
+	) ORDER BY ReplyCount DESC) as threads_list limit ? offset ?`
+
+	args = append(args, since, teamID, userID, userID, teamID, since, userID, limit+1, offset)
 
 	topThreads := make([]*model.TopThread, 0)
 	err := s.GetReplicaX().Select(&topThreads, query, args...)

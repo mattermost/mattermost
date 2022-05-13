@@ -278,7 +278,7 @@ func getTopThreadsForUserSince(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	topThreads, err := c.App.GetTopThreadsForUserSince(c.AppContext.Session().UserId, c.Params.TeamId, &model.InsightsOpts{
+	topThreads, err := c.App.GetTopThreadsForUserSince(c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
 		StartUnixMilli: startTime,
 		Page:           c.Params.Page,
 		PerPage:        c.Params.PerPage,
