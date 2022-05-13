@@ -2715,9 +2715,8 @@ func TestPostCountsByDay(t *testing.T) {
 		require.Nil(t, err)
 
 		for _, item := range dailyPostCount {
-			isoDay := item.ISO8601Date()
-			if strings.HasPrefix(isoDay, "2009") {
-				expectedCount := expected[isoDay][item.ChannelID]
+			if strings.HasPrefix(item.Date, "2009") {
+				expectedCount := expected[item.Date][item.ChannelID]
 				assert.Equal(t, expectedCount, item.PostCount)
 			}
 		}

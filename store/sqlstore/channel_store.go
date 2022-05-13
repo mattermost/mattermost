@@ -4276,10 +4276,10 @@ func (s SqlChannelStore) PostCountsByDay(channelIDs []string, sinceUnixMillis in
 	var unixSelect string
 	var propsQuery string
 	if s.DriverName() == model.DatabaseDriverMysql {
-		unixSelect = `date(from_unixtime(Posts.CreateAt / 1000)) AS day`
+		unixSelect = `DATE_FORMAT(FROM_UNIXTIME(Posts.CreateAt / 1000),'%Y-%c-%d') AS day`
 		propsQuery = `(JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false')`
 	} else if s.DriverName() == model.DatabaseDriverPostgres {
-		unixSelect = `to_timestamp(Posts.CreateAt / 1000) :: date AS day`
+		unixSelect = `TO_CHAR(TO_TIMESTAMP(Posts.CreateAt / 1000), 'YYYY-MM-DD') AS day`
 		propsQuery = `(Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false')`
 	}
 	query := sq.

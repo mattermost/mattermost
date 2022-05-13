@@ -60,16 +60,9 @@ type TopChannel struct {
 }
 
 type DailyPostCount struct {
-	ChannelID string `db:"channelid" json:"channel_id"`
-	Date      string `db:"day" json:"-"`
-	PostCount int    `db:"postcount" json:"post_count"`
-}
-
-func (d *DailyPostCount) ISO8601Date() string {
-	if len(d.Date) >= 10 {
-		return d.Date[:10]
-	}
-	return ""
+	ChannelID string `db:"channelid"`
+	Date      string `db:"day"`
+	PostCount int    `db:"postcount"`
 }
 
 func TimeRangeToNumberDays(timeRange string) int {
@@ -113,12 +106,11 @@ func ToDailyPostCountViewModel(dpc []*DailyPostCount, unixStartMillis int64, num
 	}
 
 	for _, item := range dpc {
-		isoDay := item.ISO8601Date()
-		_, hasKey := viewModel[isoDay]
+		_, hasKey := viewModel[item.Date]
 		if !hasKey {
-			viewModel[isoDay] = map[string]int{}
+			viewModel[item.Date] = map[string]int{}
 		}
-		viewModel[isoDay][item.ChannelID] = item.PostCount
+		viewModel[item.Date][item.ChannelID] = item.PostCount
 	}
 
 	return viewModel
