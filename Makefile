@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check migrations-bindata new-migration
+.PHONY: build package run stop run-client run-server run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check migrations-bindata new-migration
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -53,7 +53,7 @@ else
 endif
 BUILD_WEBAPP_DIR ?= ../mattermost-webapp
 BUILD_CLIENT = false
-BUILD_HASH_CLIENT = independant
+BUILD_HASH_CLIENT = independent
 ifneq ($(wildcard $(BUILD_WEBAPP_DIR)/.),)
 	ifeq ($(BUILD_CLIENT),true)
 		BUILD_CLIENT = true
@@ -119,6 +119,7 @@ TEMPLATES_DIR=templates
 PLUGIN_PACKAGES ?= mattermost-plugin-antivirus-v0.1.2
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.2.2
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v0.5.1
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.1
@@ -619,17 +620,20 @@ setup-mac: ## Adds macOS hosts entries for Docker.
 update-dependencies: ## Uses go get -u to update all the dependencies while holding back any that require it.
 	@echo Updating Dependencies
 
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	@echo Enterprise repository detected, temporarily removing imports.go
+	rm -f imports/imports.go
+endif
+
 	# Update all dependencies (does not update across major versions)
 	$(GO) get -u ./...
 
 	# Tidy up
 	$(GO) mod tidy
 
-	# Copy everything to vendor directory
-	# $(GO) mod vendor
-
-	# Tidy up
-	$(GO) mod tidy
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	cp $(BUILD_ENTERPRISE_DIR)/imports/imports.go imports/
+endif
 
 vet: ## Run mattermost go vet specific checks
 	$(GO) install github.com/mattermost/mattermost-govet/v2@new
