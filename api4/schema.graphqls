@@ -7,7 +7,8 @@ type Query {
 	config(): StringMap!
 	license(): StringMap!
 	teamMembers(userId: String!,
-		teamId: String = ""): [TeamMember]!
+		teamId: String = "",
+		excludeTeam: Boolean = false): [TeamMember]!
 	channels(userId: String!,
 		teamId: String = "",
 		includeDeleted: Boolean = false,
@@ -19,9 +20,13 @@ type Query {
 		since: Float!): [String!]!
 	channelMembers(userId: String!,
 		channelId: String = "",
+		teamId: String = "",
+		excludeTeam: Boolean = false,
 		first: Int = 60,
 		after: String = "",
 		lastUpdateAt: Float = 0): [ChannelMember]!
+	sidebarCategories(userId: String!,
+		teamId: String!): [SidebarCategory]!
 }
 
 scalar ChannelType

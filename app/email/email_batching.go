@@ -241,9 +241,10 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 	}
 
 	// check if user has CRT set to ON
-	threadsEnabled := false
-	if *es.config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled {
-		threadsEnabled = *es.config().ServiceSettings.CollapsedThreads == model.CollapsedThreadsDefaultOn
+	appCRT := *es.config().ServiceSettings.CollapsedThreads
+	threadsEnabled := appCRT == model.CollapsedThreadsAlwaysOn
+	if !threadsEnabled && appCRT != model.CollapsedThreadsDisabled {
+		threadsEnabled = appCRT == model.CollapsedThreadsDefaultOn
 		// check if a participant has overridden collapsed threads settings
 		if preference, errCrt := es.store.Preference().Get(userID, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled); errCrt == nil {
 			threadsEnabled = preference.Value == "on"
