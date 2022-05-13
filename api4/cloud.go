@@ -22,8 +22,6 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/products", api.APISessionRequired(getCloudProducts)).Methods("GET")
 	// GET /api/v4/cloud/limits
 	api.BaseRoutes.Cloud.Handle("/limits", api.APISessionRequired(getCloudLimits)).Methods("GET")
-	// GET /api/v4/cloud/usage/messages
-	api.BaseRoutes.Cloud.Handle("/usage/messages", api.APISessionRequired(getCloudUsageForMessages)).Methods("GET")
 
 	// POST /api/v4/cloud/payment
 	// POST /api/v4/cloud/payment/confirm
@@ -178,37 +176,6 @@ func getCloudLimits(c *Context, w http.ResponseWriter, r *http.Request) {
 	json, err := json.Marshal(limits)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.getCloudLimits", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Write(json)
-}
-
-func getCloudUsageForMessages(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
-		c.Err = model.NewAppError("Api4.getCloudUsageForMessages", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	if !c.App.Config().FeatureFlags.CloudFree {
-		json, err := json.Marshal(&model.MessagesUsage{})
-		if err != nil {
-			c.Err = model.NewAppError("Api4.getCloudUsageForMessages", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-
-		w.Write(json)
-		return
-	}
-
-	count, appErr := c.App.GetCloudUsageForMessages(c.AppContext.Session().UserId)
-	if appErr != nil {
-		c.Err = model.NewAppError("Api4.getCloudUsageForMessages", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	json, err := json.Marshal(&model.MessagesUsage{Enabled: true, Status: count})
-	if err != nil {
-		c.Err = model.NewAppError("Api4.getCloudUsageForMessages", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

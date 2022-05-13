@@ -214,8 +214,3 @@ type ProductLimits struct {
 	Messages     *MessagesLimits     `json:"messages,omitempty"`
 	Teams        *TeamsLimits        `json:"teams,omitempty"`
 }
-
-type MessagesUsage struct {
-	Enabled bool `json:"enabled"`
-	Status  int  `json:"status"`
-}

@@ -217,7 +217,15 @@ func IsValidMobileAuthRedirectURL(config *model.Config, redirectURL string) bool
 	return false
 }
 
-// FloorToNearest10 rounds off the number to nearest lower multiple of 10 eg. roundOff 97 to 90
-func FloorToNearest10(n float64) int {
-	return int(math.Floor(n/10) * 10)
+// RoundOffToZeroes converts all digits to 0 except the 1st one.
+// Special case: If there is only 1 digit, then returns 0.
+func RoundOffToZeroes(n float64) int {
+	if n >= -9 && n <= 9 {
+		return 0
+	}
+
+	zeroes := int(math.Log10(math.Abs(n)))
+	tens := int(math.Pow10(zeroes))
+	firstDigit := int(n) / tens
+	return firstDigit * tens
 }

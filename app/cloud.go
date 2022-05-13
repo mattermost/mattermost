@@ -10,7 +10,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func (a *App) getSysAdminsEmailRecipients() ([]*model.User, *model.AppError) {
@@ -156,31 +155,4 @@ func (a *App) SendCloudTrialEndedEmail() *model.AppError {
 	}
 
 	return nil
-}
-
-// GetCloudUsageForMessages returns posts usage percentage against total available limit on Cloud.
-// Usage percentage is returned in multiples of 10 eg. 0, 10, 20
-func (a *App) GetCloudUsageForMessages(userID string) (int, *model.AppError) {
-	// Fetch limit
-	limits, err := a.Cloud().GetCloudLimits(userID)
-	if err != nil {
-		return 0, model.NewAppError("GetCloudUsageForMessages", "app.channel.GetCloudLimits.internal_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	// Fetch messages count
-	c, err := a.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeDeleted: true})
-	if err != nil {
-		return 0, model.NewAppError("GetCloudUsageForMessages", "app.channel.AnalyticsPostCount.internal_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	// Return usage %
-	max := float64(*limits.Messages.History)
-	count := float64(c)
-
-	if count >= max {
-		return 100, nil
-	}
-
-	usage := (count / max) * 100
-	return utils.FloorToNearest10(usage), nil
 }

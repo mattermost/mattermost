@@ -154,9 +154,6 @@ type AppIface interface {
 	GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppError)
 	// GetChannelModerationsForChannel Gets a channels ChannelModerations from either the higherScoped roles or from the channel scheme roles.
 	GetChannelModerationsForChannel(channel *model.Channel) ([]*model.ChannelModeration, *model.AppError)
-	// GetCloudUsageForMessages returns posts usage percentage against total available limit on Cloud.
-	// Usage percentage is returned in multiples of 10 eg. 0, 10, 20
-	GetCloudUsageForMessages(userID string) (int, *model.AppError)
 	// GetClusterPluginStatuses returns the status for plugins installed anywhere in the cluster.
 	GetClusterPluginStatuses() (model.PluginStatuses, *model.AppError)
 	// GetConfigFile proxies access to the given configuration file to the underlying config store.
@@ -190,6 +187,8 @@ type AppIface interface {
 	// To get the plugins environment when the plugins are disabled, manually acquire the plugins
 	// lock instead.
 	GetPluginsEnvironment() *plugin.Environment
+	// GetPostsUsage returns "rounded off" total posts count like returns 900 instead of 987
+	GetPostsUsage() (int, *model.AppError)
 	// GetProductNotices is called from the frontend to fetch the product notices that are relevant to the caller
 	GetProductNotices(c *request.Context, userID, teamID string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError)
 	// GetPublicKey will return the actual public key saved in the `name` file.

@@ -268,6 +268,14 @@ type GetPostsOptions struct {
 	Direction                string // Only accepts up|down. Indicates the order in which to send the items.
 }
 
+type PostCountOptions struct {
+	// Only include posts on a specific team. "" for any team.
+	TeamId          string
+	MustHaveFile    bool
+	MustHaveHashtag bool
+	ExcludeDeleted  bool
+}
+
 func (o *Post) Etag() string {
 	return Etag(o.Id, o.UpdateAt)
 }

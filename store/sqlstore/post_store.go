@@ -2144,7 +2144,7 @@ func (s *SqlPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int6
 	}
 
 	if options.ExcludeDeleted {
-		query = query.Where(sq.Eq{"p.deleteat": 0})
+		query = query.Where(sq.Eq{"p.DeleteAt": 0})
 	}
 
 	queryString, args, err := query.ToSql()
