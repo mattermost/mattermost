@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -168,10 +169,18 @@ func (a *App) NewWebConn(cfg *WebConnConfig) *WebConn {
 	}
 
 	// Disable TCP_NO_DELAY for higher throughput
-	// Unfortunately, it doesn't work for tls.Conn,
-	// and currently, the API doesn't expose the underlying TCP conn.
-	tcpConn, ok := cfg.WebSocket.UnderlyingConn().(*net.TCPConn)
-	if ok {
+	var tcpConn *net.TCPConn
+	switch conn := cfg.WebSocket.UnderlyingConn().(type) {
+	case *net.TCPConn:
+		tcpConn = conn
+	case *tls.Conn:
+		newConn, ok := conn.NetConn().(*net.TCPConn)
+		if ok {
+			tcpConn = newConn
+		}
+	}
+
+	if tcpConn != nil {
 		err := tcpConn.SetNoDelay(false)
 		if err != nil {
 			mlog.Warn("Error in setting NoDelay socket opts", mlog.Err(err))
@@ -334,7 +343,9 @@ func (wc *WebConn) readPump() {
 	wc.WebSocket.SetReadLimit(model.SocketMaxMessageSizeKb)
 	wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
 	wc.WebSocket.SetPongHandler(func(string) error {
-		wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
+		if err := wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime)); err != nil {
+			return err
+		}
 		if wc.IsAuthenticated() {
 			wc.App.Srv().Go(func() {
 				wc.App.SetStatusAwayIfNeeded(wc.UserId, false)
