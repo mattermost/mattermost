@@ -254,7 +254,7 @@ func TestUpdateConfig(t *testing.T) {
 		cfg2 := th.App.Config().Clone()
 		*cfg2.ComplianceSettings.Directory = "hellodir"
 
-		cfg2, resp, err = th.SystemAdminClient.UpdateConfig(cfg2)
+		_, resp, err = th.SystemAdminClient.UpdateConfig(cfg2)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
