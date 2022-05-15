@@ -247,8 +247,8 @@ func (_m *CloudInterface) InvalidateCaches() error {
 	return r0
 }
 
-// RequestTrial provides a mock function with given fields: userID, subscriptionID
-func (_m *CloudInterface) RequestTrial(userID string, subscriptionID string) (*model.Subscription, error) {
+// RequestCloudTrial provides a mock function with given fields: userID, subscriptionID
+func (_m *CloudInterface) RequestCloudTrial(userID string, subscriptionID string) (*model.Subscription, error) {
 	ret := _m.Called(userID, subscriptionID)
 
 	var r0 *model.Subscription
