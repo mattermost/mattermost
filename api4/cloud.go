@@ -135,7 +135,7 @@ func requestCloudTrial(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !c.App.Config().FeatureFlags.CloudFree {
-		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.feature_flag_off_error", nil, "", http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.cloud_free_feature_flag_off_error", nil, "", http.StatusInternalServerError)
 		return
 	}
 
