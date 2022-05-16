@@ -39,7 +39,7 @@ func TestGetPostsUsage(t *testing.T) {
 
 		mockStore := th.App.Srv().Store.(*mocks.Store)
 		mockPostStore := mocks.PostStore{}
-		mockPostStore.On("AnalyticsPostCount", mock.Anything).Return(int64(mockCount), nil)
+		mockPostStore.On("AnalyticsPostCount", mock.Anything).Return(mockCount, nil)
 		mockStore.On("Post").Return(&mockPostStore)
 
 		count, appErr := th.App.GetPostsUsage()
