@@ -126,7 +126,7 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func requestCloudTrial(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
-		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.license_error", nil, "", http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.license_error", nil, "", http.StatusForbidden)
 		return
 	}
 
