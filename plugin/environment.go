@@ -274,6 +274,15 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 			return nil, false, errors.Wrapf(err, "unable to start plugin: %v", id)
 		}
 
+		// We pre-emptively set the state to running to prevent re-entrancy issues.
+		// The plugin's OnActivate hook can in-turn call UpdateConfiguration
+		// which again calls this method. This method is guarded against multiple calls,
+		// but fails if it is called recursively.
+		//
+		// Therefore, setting the state to running prevents this from happening,
+		// and in case there is an error, the defer clause will set the proper state anyways.
+		env.setPluginState(id, model.PluginStateRunning)
+
 		if err := sup.Hooks().OnActivate(); err != nil {
 			sup.Shutdown()
 			return nil, false, err

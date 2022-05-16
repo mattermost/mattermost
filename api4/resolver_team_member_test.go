@@ -249,6 +249,48 @@ func TestGraphQLTeamMembers(t *testing.T) {
 			expectedTeams[i].DisplayName = tm.Team.DisplayName
 		}
 
+		// Negate team
+		input = graphQLInput{
+			OperationName: "teamMembers",
+			Query: `
+	query teamMembers($userId: String = "", $teamId: String = "") {
+	  teamMembers(userId: $userId, teamId: $teamId, excludeTeam: true) {
+	  	team {
+	  		id
+	  		displayName
+	  	}
+	  }
+	}
+	`,
+			Variables: map[string]interface{}{
+				"userId": "me",
+				"teamId": th.BasicTeam.Id,
+			},
+		}
+
+		resp, err = th.MakeGraphQLRequest(&input)
+		require.NoError(t, err)
+		require.Len(t, resp.Errors, 0)
+		require.NoError(t, json.Unmarshal(resp.Data, &q))
+		assert.Len(t, q.TeamMembers, 1)
+
+		input = graphQLInput{
+			OperationName: "teamMembers",
+			Query: `
+	query teamMembers($userId: String = "", $teamId: String = "") {
+	  teamMembers(userId: $userId, teamId: $teamId) {
+	  	team {
+	  		id
+	  		displayName
+	  	}
+	  }
+	}
+	`,
+			Variables: map[string]interface{}{
+				"userId": "me",
+			},
+		}
+
 		// Removing from a team and ensuring we get the right response.
 		th.UnlinkUserFromTeam(th.BasicUser, myTeam)
 		resp, err = th.MakeGraphQLRequest(&input)

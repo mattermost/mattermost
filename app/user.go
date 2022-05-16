@@ -380,6 +380,15 @@ func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
 	return user, nil
 }
 
+func (a *App) GetUsers(userIDs []string) ([]*model.User, *model.AppError) {
+	users, err := a.ch.srv.userService.GetUsers(userIDs)
+	if err != nil {
+		return nil, model.NewAppError("GetUsers", "app.user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return users, nil
+}
+
 func (a *App) GetUserByUsername(username string) (*model.User, *model.AppError) {
 	result, err := a.ch.srv.userService.GetUserByUsername(username)
 	if err != nil {
@@ -426,8 +435,8 @@ func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, 
 	return user, nil
 }
 
-func (a *App) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
-	users, err := a.ch.srv.userService.GetUsers(options)
+func (a *App) GetUsersFromProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	users, err := a.ch.srv.userService.GetUsersFromProfiles(options)
 	if err != nil {
 		return nil, model.NewAppError("GetUsers", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2136,7 +2145,7 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 		}
 	}
 
-	teamMembers, err := a.GetTeamMembersForUser(user.Id, true)
+	teamMembers, err := a.GetTeamMembersForUser(user.Id, "", true)
 	if err != nil {
 		mlog.Warn("Failed to get team members for user on promote guest to user", mlog.Err(err))
 	}
@@ -2180,7 +2189,7 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 		mlog.Warn("Unable to update user sessions", mlog.String("user_id", demotedUser.Id), mlog.Err(uErr))
 	}
 
-	teamMembers, err := a.GetTeamMembersForUser(user.Id, true)
+	teamMembers, err := a.GetTeamMembersForUser(user.Id, "", true)
 	if err != nil {
 		mlog.Warn("Failed to get team members for users on demote user to guest", mlog.Err(err))
 	}

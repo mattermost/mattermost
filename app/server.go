@@ -1039,6 +1039,15 @@ func (s *Server) Shutdown() {
 		}
 	}
 
+	// Stop products.
+	// This needs to happen last because products are dependent
+	// on parent services.
+	for name, product := range s.products {
+		if err2 := product.Stop(); err2 != nil {
+			mlog.Warn("Unable to cleanly stop product", mlog.String("name", name), mlog.Err(err2))
+		}
+	}
+
 	if s.Store != nil {
 		s.Store.Close()
 	}
@@ -1050,15 +1059,6 @@ func (s *Server) Shutdown() {
 	}
 
 	mlog.Info("Server stopped")
-
-	// Stop products.
-	// This needs to happen last because products are dependent
-	// on parent services.
-	for name, product := range s.products {
-		if err2 := product.Stop(); err2 != nil {
-			mlog.Warn("Unable to cleanly stop product", mlog.String("name", name), mlog.Err(err2))
-		}
-	}
 
 	// shutdown main and notification loggers which will flush any remaining log records.
 	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*15)

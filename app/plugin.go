@@ -98,11 +98,8 @@ func (ch *Channels) syncPluginsActiveState() {
 				pluginEnabled = state.Enable
 			}
 
-			// Tie Apps proxy disabled status to the feature flag.
-			if pluginID == "com.mattermost.apps" {
-				if !ch.cfgSvc.Config().FeatureFlags.AppsEnabled {
-					pluginEnabled = false
-				}
+			if hasOverride, value := ch.getPluginStateOverride(pluginID); hasOverride {
+				pluginEnabled = value
 			}
 
 			if pluginEnabled {
@@ -1063,4 +1060,20 @@ func getIcon(iconPath string) (string, error) {
 	}
 
 	return fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(icon)), nil
+}
+
+func (ch *Channels) getPluginStateOverride(pluginID string) (bool, bool) {
+	switch pluginID {
+	case "com.mattermost.apps":
+		// Tie Apps proxy disabled status to the feature flag.
+		if !ch.cfgSvc.Config().FeatureFlags.AppsEnabled {
+			return true, false
+		}
+	case "com.mattermost.calls":
+		if model.IsCloud() {
+			return true, ch.cfgSvc.Config().FeatureFlags.CallsEnabled
+		}
+	}
+
+	return false, false
 }

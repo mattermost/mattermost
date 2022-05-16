@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
@@ -1522,11 +1522,19 @@ func (s SqlChannelStore) GetByNameIncludeDeleted(teamId string, name string, all
 }
 
 func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bool, allowFromCache bool) (*model.Channel, error) {
-	var query string
-	if includeDeleted {
-		query = "SELECT * FROM Channels WHERE (TeamId = ? OR TeamId = '') AND Name = ?"
-	} else {
-		query = "SELECT * FROM Channels WHERE (TeamId = ? OR TeamId = '') AND Name = ? AND DeleteAt = 0"
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Channels").
+		Where(sq.Eq{"Name": name})
+
+	if !includeDeleted {
+		query = query.Where(sq.Eq{"DeleteAt": 0})
+	}
+	if teamId != "" {
+		query = query.Where(sq.Or{
+			sq.Eq{"TeamId": teamId},
+			sq.Eq{"TeamId": ""},
+		})
 	}
 	channel := model.Channel{}
 
@@ -1543,7 +1551,12 @@ func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bo
 		}
 	}
 
-	if err := s.GetReplicaX().Get(&channel, query, teamId, name); err != nil {
+	queryStr, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "getByName_tosql")
+	}
+
+	if err := s.GetReplicaX().Get(&channel, queryStr, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Channel", fmt.Sprintf("TeamId=%s&Name=%s", teamId, name))
 		}
@@ -2814,7 +2827,7 @@ func (s SqlChannelStore) GetMembersForUser(teamID string, userID string) (model.
 	return dbMembers.ToModel(), nil
 }
 
-func (s SqlChannelStore) GetMembersForUserWithCursor(userID, afterChannel, afterUser string, limit, lastUpdateAt int) (model.ChannelMembers, error) {
+func (s SqlChannelStore) GetMembersForUserWithCursor(userID, teamID string, opts *store.ChannelMemberGraphQLSearchOpts) (model.ChannelMembers, error) {
 	query := s.getQueryBuilder().
 		Select("ChannelMembers.*",
 			"TeamScheme.DefaultChannelGuestRole TeamSchemeDefaultGuestRole",
@@ -2834,20 +2847,36 @@ func (s SqlChannelStore) GetMembersForUserWithCursor(userID, afterChannel, after
 		}).
 		OrderBy("ChannelId, UserId ASC").
 		// The limit is verified at the GraphQL layer.
-		Limit(uint64(limit))
+		Limit(uint64(opts.Limit))
 
-	if afterChannel != "" && afterUser != "" {
+	if teamID != "" {
+		if opts.ExcludeTeam {
+			// Exclude this team and DM/GMs
+			query = query.Where(sq.And{
+				sq.NotEq{"Channels.TeamId": teamID},
+				sq.NotEq{"Channels.TeamId": ""},
+			})
+		} else {
+			// Include this team and DM/GMs
+			query = query.Where(sq.Or{
+				sq.Eq{"Channels.TeamId": teamID},
+				sq.Eq{"Channels.TeamId": ""},
+			})
+		}
+	}
+
+	if opts.AfterChannel != "" && opts.AfterUser != "" {
 		query = query.Where(sq.Or{
-			sq.Gt{"ChannelMembers.ChannelId": afterChannel},
+			sq.Gt{"ChannelMembers.ChannelId": opts.AfterChannel},
 			sq.And{
-				sq.Eq{"ChannelMembers.ChannelId": afterChannel},
-				sq.Gt{"ChannelMembers.UserId": afterUser},
+				sq.Eq{"ChannelMembers.ChannelId": opts.AfterChannel},
+				sq.Gt{"ChannelMembers.UserId": opts.AfterUser},
 			},
 		})
 	}
 
-	if lastUpdateAt != 0 {
-		query = query.Where(sq.GtOrEq{"ChannelMembers.LastUpdateAt": lastUpdateAt})
+	if opts.LastUpdateAt != 0 {
+		query = query.Where(sq.GtOrEq{"ChannelMembers.LastUpdateAt": opts.LastUpdateAt})
 	}
 
 	queryString, args, err := query.ToSql()

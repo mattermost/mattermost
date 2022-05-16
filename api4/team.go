@@ -554,7 +554,7 @@ func getTeamMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	members, err := c.App.GetTeamMembersForUser(c.Params.UserId, true)
+	members, err := c.App.GetTeamMembersForUser(c.Params.UserId, "", true)
 	if err != nil {
 		c.Err = err
 		return

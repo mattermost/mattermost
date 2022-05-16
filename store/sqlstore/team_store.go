@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"strings"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -1080,10 +1080,14 @@ func (s SqlTeamStore) GetMembersByIds(teamId string, userIds []string, restricti
 	return dbMembers.ToModel(), nil
 }
 
-// GetTeamsForUser returns a list of teams that the user is a member of. Expects userId to be passed as a parameter.
-func (s SqlTeamStore) GetTeamsForUser(ctx context.Context, userId string, includeDeleted bool) ([]*model.TeamMember, error) {
+// GetTeamsForUser returns a list of teams that the user is a member of. Expects userId to be passed as a parameter. It can also negative the teamID passed.
+func (s SqlTeamStore) GetTeamsForUser(ctx context.Context, userId, excludeTeamID string, includeDeleted bool) ([]*model.TeamMember, error) {
 	query := s.getTeamMembersWithSchemeSelectQuery().
 		Where(sq.Eq{"TeamMembers.UserId": userId})
+
+	if excludeTeamID != "" {
+		query = query.Where(sq.NotEq{"TeamMembers.TeamId": excludeTeamID})
+	}
 
 	if !includeDeleted {
 		query = query.Where(sq.Eq{"TeamMembers.DeleteAt": 0})
