@@ -9,6 +9,7 @@ import (
 
 	"github.com/graph-gophers/dataloader/v6"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/web"
 )
 
 // teamMember is an internal graphQL wrapper struct to add resolver methods.
@@ -33,12 +34,16 @@ func (tm *teamMember) SidebarCategories(ctx context.Context) ([]*model.SidebarCa
 		return nil, err
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), tm.UserId) {
+	return getSidebarCategories(c, tm.UserId, tm.TeamId)
+}
+
+func getSidebarCategories(c *web.Context, userID, teamID string) ([]*model.SidebarCategoryWithChannels, error) {
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), userID) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return nil, c.Err
 	}
 
-	categories, appErr := c.App.GetSidebarCategories(tm.UserId, tm.TeamId)
+	categories, appErr := c.App.GetSidebarCategories(userID, teamID)
 	if appErr != nil {
 		return nil, appErr
 	}

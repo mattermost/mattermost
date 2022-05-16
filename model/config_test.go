@@ -1491,6 +1491,17 @@ func TestConfigServiceSettingsIsValid(t *testing.T) {
 	err = cfg.ServiceSettings.isValid()
 	require.NotNil(t, err)
 	require.Equal(t, "model.config.is_valid.collapsed_threads.autofollow.app_error", err.Id)
+
+	*cfg.ServiceSettings.CollapsedThreads = CollapsedThreadsAlwaysOn
+	err = cfg.ServiceSettings.isValid()
+	require.NotNil(t, err)
+	require.Equal(t, "model.config.is_valid.collapsed_threads.autofollow.app_error", err.Id)
+
+	*cfg.ServiceSettings.ThreadAutoFollow = true
+	*cfg.ServiceSettings.CollapsedThreads = "test_status"
+	err = cfg.ServiceSettings.isValid()
+	require.NotNil(t, err)
+	require.Equal(t, "model.config.is_valid.collapsed_threads.app_error", err.Id)
 }
 
 func TestConfigDefaultCallsPluginState(t *testing.T) {
