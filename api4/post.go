@@ -180,8 +180,9 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	page := c.Params.Page
 	perPage := c.Params.PerPage
 
-	if !c.IsSystemAdmin() {
-		includeDeleted = false
+	if !c.IsSystemAdmin() && includeDeleted {
+		c.SetPermissionError(model.PermissionReadDeletedPosts)
+		return
 	}
 
 	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channelId, model.PermissionReadChannel) {

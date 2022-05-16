@@ -73,6 +73,7 @@ var PermissionDeleteOthersEmojis *Permission
 var PermissionCreatePost *Permission
 var PermissionCreatePostPublic *Permission
 var PermissionCreatePostEphemeral *Permission
+var PermissionReadDeletedPosts *Permission
 var PermissionEditPost *Permission
 var PermissionEditOthersPosts *Permission
 var PermissionDeletePost *Permission
@@ -706,6 +707,12 @@ func initializePermissions() {
 		"create_post_ephemeral",
 		"authentication.permissions.create_post_ephemeral.name",
 		"authentication.permissions.create_post_ephemeral.description",
+		PermissionScopeChannel,
+	}
+	PermissionReadDeletedPosts = &Permission{
+		"read_deleted_posts",
+		"authentication.permissions.read_deleted_posts.name",
+		"authentication.permissions.read_deleted_posts.description",
 		PermissionScopeChannel,
 	}
 	PermissionEditPost = &Permission{
@@ -2302,6 +2309,7 @@ func initializePermissions() {
 		PermissionCreatePost,
 		PermissionCreatePostPublic,
 		PermissionCreatePostEphemeral,
+		PermissionReadDeletedPosts,
 		PermissionEditPost,
 		PermissionEditOthersPosts,
 		PermissionDeletePost,
