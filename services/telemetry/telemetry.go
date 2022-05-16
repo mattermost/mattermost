@@ -718,6 +718,7 @@ func (ts *TelemetryService) trackConfig() {
 		"cloud_billing":                      *cfg.ExperimentalSettings.CloudBilling,
 		"enable_shared_channels":             *cfg.ExperimentalSettings.EnableSharedChannels,
 		"enable_remote_cluster_service":      *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
+		"enable_app_bar":                     *cfg.ExperimentalSettings.EnableAppBar,
 	})
 
 	ts.SendTelemetry(TrackConfigAnalytics, map[string]interface{}{
