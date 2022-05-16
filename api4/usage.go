@@ -16,12 +16,6 @@ func (api *API) InitUsage() {
 }
 
 func getPostsUsage(c *Context, w http.ResponseWriter, r *http.Request) {
-	// TODO: yet to decide permission
-	// if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.AppContext.Session().UserId) {
-	// 	c.SetPermissionError(model.PermissionEditOtherUsers)
-	// 	return
-	// }
-
 	count, appErr := c.App.GetPostsUsage()
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.getPostsUsage", "app.post.analytics_posts_count.app_error", nil, appErr.Error(), http.StatusInternalServerError)
