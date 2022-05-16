@@ -1182,6 +1182,9 @@ func (api *PluginAPI) RequestTrialLicense(requesterID string, users int, termsAc
 
 // GetCloudLimits returns any limits associated with the cloud instance
 func (api *PluginAPI) GetCloudLimits() (*model.ProductLimits, error) {
+	if api.app.Cloud() == nil {
+		return &model.ProductLimits{}, nil
+	}
 	limits, err := api.app.Cloud().GetCloudLimits("")
 	return limits, err
 }

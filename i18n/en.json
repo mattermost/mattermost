@@ -1742,6 +1742,10 @@
     "translation": "File attachments have been disabled on this server."
   },
   {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Uploading via mmctl to a Cloud instance is not supported. Please check the documentation here: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
     "id": "api.file.file_exists.app_error",
     "translation": "Unable to check if the file exists."
   },
