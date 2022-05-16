@@ -241,7 +241,7 @@ func Test_requestTrial(t *testing.T) {
 
 		subscriptionChanged, r, err := th.SystemAdminClient.RequestCloudTrial()
 
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Equal(t, subscriptionChanged, subscription)
 		require.Equal(t, http.StatusOK, r.StatusCode, "Status OK")
 	})
