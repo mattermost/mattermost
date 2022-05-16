@@ -7807,7 +7807,6 @@ func (c *Client4) GetCloudCustomer() (*CloudCustomer, *Response, error) {
 }
 
 func (c *Client4) GetSubscription() (*Subscription, *Response, error) {
-	fmt.Printf("\n\n\n\n  * client4 GetSubscription \n\n\n\n ")
 	r, err := c.DoAPIGet(c.cloudRoute()+"/subscription", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
