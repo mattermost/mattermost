@@ -219,13 +219,13 @@ func IsValidMobileAuthRedirectURL(config *model.Config, redirectURL string) bool
 
 // RoundOffToZeroes converts all digits to 0 except the 1st one.
 // Special case: If there is only 1 digit, then returns 0.
-func RoundOffToZeroes(n float64) int {
+func RoundOffToZeroes(n float64) int64 {
 	if n >= -9 && n <= 9 {
 		return 0
 	}
 
 	zeroes := int(math.Log10(math.Abs(n)))
-	tens := int(math.Pow10(zeroes))
-	firstDigit := int(n) / tens
+	tens := int64(math.Pow10(zeroes))
+	firstDigit := int64(n) / tens
 	return firstDigit * tens
 }

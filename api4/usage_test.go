@@ -34,6 +34,6 @@ func TestGetPostsUsage(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, r.StatusCode)
 		assert.NotNil(t, usage)
-		assert.Equal(t, 10, usage.Count)
+		assert.Equal(t, int64(10), usage.Count)
 	})
 }

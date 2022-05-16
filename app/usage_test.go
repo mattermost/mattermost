@@ -34,8 +34,8 @@ func TestGetPostsUsage(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
-		mockCount := 4321
-		expected := 4000
+		var mockCount int64 = 4321
+		var expected int64 = 4000
 
 		mockStore := th.App.Srv().Store.(*mocks.Store)
 		mockPostStore := mocks.PostStore{}

@@ -175,7 +175,7 @@ func TestRoundOffToZeroes(t *testing.T) {
 	testCases := []struct {
 		desc     string
 		n        float64
-		expected int
+		expected int64
 	}{
 		{
 			desc:     "returns 0 when n is 0",

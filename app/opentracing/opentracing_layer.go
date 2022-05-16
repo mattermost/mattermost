@@ -7832,7 +7832,7 @@ func (a *OpenTracingAppLayer) GetPostsSince(options model.GetPostsSinceOptions) 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetPostsUsage() (int, *model.AppError) {
+func (a *OpenTracingAppLayer) GetPostsUsage() (int64, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostsUsage")
 

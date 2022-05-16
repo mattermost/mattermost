@@ -11,7 +11,7 @@ import (
 )
 
 // GetPostsUsage returns "rounded off" total posts count like returns 900 instead of 987
-func (a *App) GetPostsUsage() (int, *model.AppError) {
+func (a *App) GetPostsUsage() (int64, *model.AppError) {
 	count, err := a.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeDeleted: true})
 	if err != nil {
 		return 0, model.NewAppError("GetPostsUsage", "app.post.analytics_posts_count.app_error", nil, err.Error(), http.StatusInternalServerError)
