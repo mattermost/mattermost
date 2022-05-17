@@ -9041,15 +9041,15 @@
   },
   {
     "id": "app.user.group_name_conflict",
-    "translation": " 加入用户名时出错. "
+    "translation": ""
   },
   {
     "id": "app.user.get_by_name_failure",
-    "translation": " 获取名字时出错 "
+    "translation": ""
   },
   {
     "id": "app.system.get_onboarding_request.app_error",
-    "translation": "获取导引完成状态时出错。"
+    "translation": "获取导引完成状态时失败。"
   },
   {
     "id": "app.system.complete_onboarding_request.no_first_user",
@@ -9057,7 +9057,7 @@
   },
   {
     "id": "app.system.complete_onboarding_request.app_error",
-    "translation": "无法完整的解码该导引请求."
+    "translation": "无法完整的解码该导引请求。"
   },
   {
     "id": "app.prepackged-plugin.invalid_version.app_error",
@@ -9193,7 +9193,7 @@
   },
   {
     "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "文件存储设置尚未配置"
+    "translation": "文件存储设置尚未配置。"
   },
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
@@ -9242,5 +9242,29 @@
   {
     "id": "Boards",
     "translation": "面板"
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "MattermostAppID 的最大长度为 32 个字符。"
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "电子邮件列表为空"
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "无效的频道名"
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "名字与现有的系统表情符名冲突。"
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "无效的 post_id"
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "获取最近搜索错误"
   }
 ]
