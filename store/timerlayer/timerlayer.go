@@ -3132,6 +3132,22 @@ func (s *TimerLayerFileInfoStore) GetFromMaster(id string) (*model.FileInfo, err
 	return result, err
 }
 
+func (s *TimerLayerFileInfoStore) GetStorageUsage(includeDeleted bool) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.FileInfoStore.GetStorageUsage(includeDeleted)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("FileInfoStore.GetStorageUsage", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error) {
 	start := timemodule.Now()
 
