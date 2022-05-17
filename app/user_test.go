@@ -1729,7 +1729,9 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("successfully create a user with initial tutorial and recommended steps preferences", func(t *testing.T) {
-		//th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+		th.Server.configStore.SetReadOnlyFF(false)
+		defer th.Server.configStore.SetReadOnlyFF(true)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 		testUser := th.CreateUser()
 		defer th.App.PermanentDeleteUser(th.Context, testUser)
 
