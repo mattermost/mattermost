@@ -5365,7 +5365,7 @@ func (s *OpenTracingLayerPluginStore) SetWithOptions(pluginID string, key string
 	return result, err
 }
 
-func (s *OpenTracingLayerPostStore) AnalyticsPostCount(teamID string, mustHaveFile bool, mustHaveHashtag bool) (int64, error) {
+func (s *OpenTracingLayerPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.AnalyticsPostCount")
 	s.Root.Store.SetContext(newCtx)
@@ -5374,7 +5374,7 @@ func (s *OpenTracingLayerPostStore) AnalyticsPostCount(teamID string, mustHaveFi
 	}()
 
 	defer span.Finish()
-	result, err := s.PostStore.AnalyticsPostCount(teamID, mustHaveFile, mustHaveHashtag)
+	result, err := s.PostStore.AnalyticsPostCount(options)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

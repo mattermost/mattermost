@@ -6094,11 +6094,11 @@ func (s *RetryLayerPluginStore) SetWithOptions(pluginID string, key string, valu
 
 }
 
-func (s *RetryLayerPostStore) AnalyticsPostCount(teamID string, mustHaveFile bool, mustHaveHashtag bool) (int64, error) {
+func (s *RetryLayerPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.AnalyticsPostCount(teamID, mustHaveFile, mustHaveHashtag)
+		result, err := s.PostStore.AnalyticsPostCount(options)
 		if err == nil {
 			return result, nil
 		}

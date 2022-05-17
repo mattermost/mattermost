@@ -1964,7 +1964,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	require.Nil(t, err, "Failed to get user from database.")
 
 	// Count the number of posts in the testing team.
-	initialPostCount, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(team.Id, false, false)
+	initialPostCount, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: team.Id})
 	require.NoError(t, nErr)
 
 	// Try adding an invalid post in dry run mode.
@@ -2470,7 +2470,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	require.Nil(t, err, "Failed to get channel from database.")
 
 	// Count the number of posts in the team2.
-	initialPostCountForTeam2, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(team2.Id, false, false)
+	initialPostCountForTeam2, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: team2.Id})
 	require.NoError(t, nErr)
 
 	// Try adding two valid posts in apply mode.
@@ -2576,7 +2576,7 @@ func TestImportImportPost(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get user from database.")
 
 	// Count the number of posts in the testing team.
-	initialPostCount, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(team.Id, false, false)
+	initialPostCount, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: team.Id})
 	require.NoError(t, nErr)
 
 	time := model.GetMillis()
@@ -3283,7 +3283,7 @@ func TestImportImportDirectPost(t *testing.T) {
 	directChannel = channel
 
 	// Get the number of posts in the system.
-	result, err := th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
+	result, err := th.App.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{})
 	require.NoError(t, err)
 	initialPostCount := result
 	initialDate := model.GetMillis()
@@ -3644,7 +3644,7 @@ func TestImportImportDirectPost(t *testing.T) {
 	groupChannel = channel
 
 	// Get the number of posts in the system.
-	result, nErr := th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
+	result, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{})
 	require.NoError(t, nErr)
 	initialPostCount = result
 
