@@ -6,6 +6,7 @@ package config
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 )
@@ -71,7 +72,7 @@ func (cd ConfigDiffs) Sanitize() ConfigDiffs {
 	return cd
 }
 
-func diff(base, actual reflect.Value, label string) ([]ConfigDiff, error) {
+func diff(base, actual reflect.Value, structField reflect.StructField, label string, tag, tagValue string) ([]ConfigDiff, error) {
 	var diffs []ConfigDiff
 
 	if base.IsZero() && actual.IsZero() {
@@ -100,17 +101,42 @@ func diff(base, actual reflect.Value, label string) ([]ConfigDiff, error) {
 		return nil, fmt.Errorf("not same type %s %s", baseType, actualType)
 	}
 
+	// skip if not tag scoped, field does not have any tags or if it's just empty
+	if tag != "" && string(structField.Tag) != "" && structField.Name != "" {
+		// we are getting the diffs scoped with a specific tag
+		// therefore we first lookup if the field has the tag, if not we skip
+		// to check if it's changed or not as it's out of the scope
+		val, ok := structField.Tag.Lookup(tag)
+		if !ok {
+			return diffs, nil
+		}
+
+		// tag scope also cares about the tag value, if we don't have the value
+		// there is no need to get the diff
+		if !strings.Contains(val, tagValue) {
+			return diffs, nil
+		}
+
+		// prevent going further scoping according this tag because we are already
+		// scoped the struct on higher level
+		if baseType.Kind() == reflect.Struct {
+			tag = ""
+		}
+	}
+
 	switch baseType.Kind() {
 	case reflect.Struct:
 		if base.NumField() != actual.NumField() {
 			return nil, fmt.Errorf("not same number of fields in struct")
 		}
+
 		for i := 0; i < base.NumField(); i++ {
 			fieldLabel := baseType.Field(i).Name
 			if label != "" {
 				fieldLabel = label + "." + fieldLabel
 			}
-			d, err := diff(base.Field(i), actual.Field(i), fieldLabel)
+
+			d, err := diff(base.Field(i), actual.Field(i), actualType.Field(i), fieldLabel, tag, tagValue)
 			if err != nil {
 				return nil, err
 			}
@@ -129,13 +155,24 @@ func diff(base, actual reflect.Value, label string) ([]ConfigDiff, error) {
 	return diffs, nil
 }
 
+// Diff returns the diff between two configs
 func Diff(base, actual *model.Config) (ConfigDiffs, error) {
 	if base == nil || actual == nil {
 		return nil, fmt.Errorf("input configs should not be nil")
 	}
 	baseVal := reflect.Indirect(reflect.ValueOf(base))
 	actualVal := reflect.Indirect(reflect.ValueOf(actual))
-	return diff(baseVal, actualVal, "")
+	return diff(baseVal, actualVal, reflect.StructField{}, "", "", "")
+}
+
+// DiffTags behaves similar with Diff but it is scoped against a tag and it's value
+func DiffTags(base, actual *model.Config, tag, value string) (ConfigDiffs, error) {
+	if base == nil || actual == nil {
+		return nil, fmt.Errorf("input configs should not be nil")
+	}
+	baseVal := reflect.Indirect(reflect.ValueOf(base))
+	actualVal := reflect.Indirect(reflect.ValueOf(actual))
+	return diff(baseVal, actualVal, reflect.StructField{}, "", tag, value)
 }
 
 func (cd ConfigDiffs) String() string {
