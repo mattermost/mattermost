@@ -9040,14 +9040,6 @@
     "translation": "名字必须是1个或者多个小写字母的字串。"
   },
   {
-    "id": "app.user.group_name_conflict",
-    "translation": ""
-  },
-  {
-    "id": "app.user.get_by_name_failure",
-    "translation": ""
-  },
-  {
     "id": "app.system.get_onboarding_request.app_error",
     "translation": "获取导引完成状态时失败。"
   },
