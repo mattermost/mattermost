@@ -43,6 +43,12 @@ func (s *clusterWrapper) PublishPluginClusterEvent(productID string, ev model.Pl
 	return nil
 }
 
+func (s *clusterWrapper) PublishWebSocketEvent(productID string, event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast) {
+	ev := model.NewWebSocketEvent(fmt.Sprintf("custom_%v_%v", productID, event), "", "", "", nil)
+	ev = ev.SetBroadcast(broadcast).SetData(payload)
+	s.srv.Publish(ev)
+}
+
 func (s *clusterWrapper) SetPluginKeyWithOptions(productID string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
 	return s.srv.setPluginKeyWithOptions(productID, key, value, options)
 }

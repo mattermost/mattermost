@@ -41,7 +41,7 @@ func (cm *channelMember) Channel(ctx context.Context) (*channel, error) {
 	if err != nil {
 		return nil, err
 	}
-	channel := result.(*model.Channel)
+	channel := result.(*channel)
 
 	if channel.Type == model.ChannelTypeOpen {
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) &&
@@ -56,20 +56,7 @@ func (cm *channelMember) Channel(ctx context.Context) (*channel, error) {
 		}
 	}
 
-	appErr := c.App.FillInChannelProps(channel)
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	res, err := postProcessChannels(c, []*model.Channel{channel})
-	if err != nil {
-		return nil, err
-	}
-	// A bit of defence-in-depth; can probably be removed after a deeper look.
-	if len(res) != 1 {
-		return nil, fmt.Errorf("postProcessChannels: incorrect number of channels returned %d", len(res))
-	}
-	return res[0], nil
+	return channel, nil
 }
 
 func graphQLChannelsLoader(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
@@ -98,7 +85,7 @@ func graphQLChannelsLoader(ctx context.Context, keys dataloader.Keys) []*dataloa
 	return result
 }
 
-func getGraphQLChannels(c *web.Context, channelIDs []string) ([]*model.Channel, error) {
+func getGraphQLChannels(c *web.Context, channelIDs []string) ([]*channel, error) {
 	channels, appErr := c.App.GetChannels(channelIDs)
 	if appErr != nil {
 		return nil, appErr
@@ -108,18 +95,28 @@ func getGraphQLChannels(c *web.Context, channelIDs []string) ([]*model.Channel, 
 		return nil, fmt.Errorf("all channels were not found. Requested %d; Found %d", len(channelIDs), len(channels))
 	}
 
+	appErr = c.App.FillInChannelsProps(model.ChannelList(channels))
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	res, err := postProcessChannels(c, channels)
+	if err != nil {
+		return nil, err
+	}
+
 	// The channels need to be in the exact same order as the input slice.
-	tmp := make(map[string]*model.Channel)
-	for _, ch := range channels {
+	tmp := make(map[string]*channel)
+	for _, ch := range res {
 		tmp[ch.Id] = ch
 	}
 
 	// We reuse the same slice and just rewrite the channels.
 	for i, id := range channelIDs {
-		channels[i] = tmp[id]
+		res[i] = tmp[id]
 	}
 
-	return channels, nil
+	return res, nil
 }
 
 func (cm *channelMember) Roles_(ctx context.Context) ([]*model.Role, error) {
