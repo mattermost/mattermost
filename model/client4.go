@@ -324,6 +324,10 @@ func (c *Client4) cloudRoute() string {
 	return "/cloud"
 }
 
+func (c *Client4) usageRoute() string {
+	return "/usage"
+}
+
 func (c *Client4) testEmailRoute() string {
 	return "/email/test"
 }
@@ -8077,4 +8081,19 @@ func (c *Client4) GetAppliedSchemaMigrations() ([]AppliedMigration, *Response, e
 		return nil, nil, NewAppError("GetUsers", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
 	return list, BuildResponse(r), nil
+}
+
+// Usage Section
+
+// GetPostsUsage returns rounded off total usage of posts for the instance
+func (c *Client4) GetPostsUsage() (*PostsUsage, *Response, error) {
+	r, err := c.DoAPIGet(c.usageRoute()+"/posts", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var usage *PostsUsage
+	err = json.NewDecoder(r.Body).Decode(&usage)
+	return usage, BuildResponse(r), err
 }
