@@ -32,6 +32,10 @@ const (
 type resolver struct {
 }
 
+var (
+	errNoPrimaryTeam = errors.New("no primary team")
+)
+
 // match with api4.getChannelsForTeamForUser
 func (r *resolver) Channels(ctx context.Context, args struct {
 	TeamID         string
@@ -217,13 +221,14 @@ func (*resolver) ChannelsLeft(ctx context.Context, args struct {
 
 // match with api4.getChannelMember
 func (*resolver) ChannelMembers(ctx context.Context, args struct {
-	UserID       string
-	TeamID       string
-	ChannelID    string
-	ExcludeTeam  bool
-	First        int32
-	After        string
-	LastUpdateAt float64
+	UserID              string
+	TeamID              string
+	ChannelID           string
+	ExcludeTeam         bool
+	First               int32
+	After               string
+	LastUpdateAt        float64
+	DefaultTeamFallback bool
 }) ([]*channelMember, error) {
 	c, err := getCtx(ctx)
 	if err != nil {
@@ -272,18 +277,20 @@ func (*resolver) ChannelMembers(ctx context.Context, args struct {
 		}
 	}
 
-	if args.TeamID != "" {
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), args.TeamID, model.PermissionViewTeam) {
-			primaryTeam := *c.App.Config().TeamSettings.ExperimentalPrimaryTeam
-			if primaryTeam != "" {
-				team, appErr := c.App.GetTeamByName(primaryTeam)
-				if appErr != nil {
-					return []*channelMember{}, appErr
-				}
-				args.TeamID = team.Id
-			} else {
+	// Fallback to primary team logic
+	if args.DefaultTeamFallback {
+		teamID, err := getPrimaryTeam(c.App)
+		if err != nil {
+			if err == errNoPrimaryTeam {
 				return []*channelMember{}, nil
 			}
+			return []*channelMember{}, err
+		}
+		args.TeamID = teamID
+	} else if args.TeamID != "" {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), args.TeamID, model.PermissionViewTeam) {
+			c.SetPermissionError(model.PermissionViewTeam)
+			return []*channelMember{}, c.Err
 		}
 	}
 
@@ -309,8 +316,9 @@ func (*resolver) ChannelMembers(ctx context.Context, args struct {
 
 // match with api4.getCategoriesForTeamForUser
 func (*resolver) SidebarCategories(ctx context.Context, args struct {
-	UserID string
-	TeamID string
+	UserID              string
+	TeamID              string
+	DefaultTeamFallback bool
 }) ([]*model.SidebarCategoryWithChannels, error) {
 	c, err := getCtx(ctx)
 	if err != nil {
@@ -318,16 +326,19 @@ func (*resolver) SidebarCategories(ctx context.Context, args struct {
 	}
 
 	// Fallback to primary team logic
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), args.TeamID, model.PermissionViewTeam) {
-		primaryTeam := *c.App.Config().TeamSettings.ExperimentalPrimaryTeam
-		if primaryTeam != "" {
-			team, appErr := c.App.GetTeamByName(primaryTeam)
-			if appErr != nil {
-				return []*model.SidebarCategoryWithChannels{}, appErr
+	if args.DefaultTeamFallback {
+		teamID, err := getPrimaryTeam(c.App)
+		if err != nil {
+			if err == errNoPrimaryTeam {
+				return []*model.SidebarCategoryWithChannels{}, nil
 			}
-			args.TeamID = team.Id
-		} else {
-			return []*model.SidebarCategoryWithChannels{}, nil
+			return []*model.SidebarCategoryWithChannels{}, err
+		}
+		args.TeamID = teamID
+	} else {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), args.TeamID, model.PermissionViewTeam) {
+			c.SetPermissionError(model.PermissionViewTeam)
+			return []*model.SidebarCategoryWithChannels{}, c.Err
 		}
 	}
 
@@ -383,4 +394,16 @@ func getUsersLoader(ctx context.Context) (*dataloader.Loader, error) {
 		return nil, errors.New("no dataloader.Loader found in context")
 	}
 	return l, nil
+}
+
+func getPrimaryTeam(app app.AppIface) (string, error) {
+	primaryTeam := *app.Config().TeamSettings.ExperimentalPrimaryTeam
+	if primaryTeam != "" {
+		team, appErr := app.GetTeamByName(primaryTeam)
+		if appErr != nil {
+			return "", appErr
+		}
+		return team.Id, nil
+	}
+	return "", errNoPrimaryTeam
 }

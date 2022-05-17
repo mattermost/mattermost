@@ -331,6 +331,35 @@ func TestGraphQLChannelMembers(t *testing.T) {
 		assert.Len(t, q.ChannelMembers, 4)
 	})
 
+	t.Run("default_team_fallback", func(t *testing.T) {
+		query := `query channelMembers($teamId: String, $excludeTeam: Boolean = false, $defaultTeamFallback: Boolean = false) {
+	  channelMembers(userId: "me", teamId: $teamId, excludeTeam: $excludeTeam, defaultTeamFallback: $defaultTeamFallback) {
+	  	channel {
+		  	id
+	  	}
+	  }
+	}
+	`
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.ExperimentalPrimaryTeam = th.BasicTeam.Name
+		})
+
+		input := graphQLInput{
+			OperationName: "channelMembers",
+			Query:         query,
+			Variables: map[string]interface{}{
+				"teamId":      "",
+				"defaultTeamFallback": true,
+			},
+		}
+
+		resp, err := th.MakeGraphQLRequest(&input)
+		require.NoError(t, err)
+		require.Len(t, resp.Errors, 0)
+		require.NoError(t, json.Unmarshal(resp.Data, &q))
+		assert.Len(t, q.ChannelMembers, 5)
+	})
+
 	t.Run("UpdateAt", func(t *testing.T) {
 		query := `query channelMembers($first: Int, $after: String = "", $lastUpdateAt: Float) {
 	  channelMembers(userId: "me", first: $first, after: $after, lastUpdateAt: $lastUpdateAt) {

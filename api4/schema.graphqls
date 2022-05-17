@@ -24,9 +24,11 @@ type Query {
 		excludeTeam: Boolean = false,
 		first: Int = 60,
 		after: String = "",
-		lastUpdateAt: Float = 0): [ChannelMember]!
+		lastUpdateAt: Float = 0,
+		defaultTeamFallback: Boolean = false): [ChannelMember]!
 	sidebarCategories(userId: String!,
-		teamId: String!): [SidebarCategory]!
+		teamId: String!
+		defaultTeamFallback: Boolean = false): [SidebarCategory]!
 }
 
 scalar ChannelType

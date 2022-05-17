@@ -32,8 +32,8 @@ func TestGraphQLSidebarCategories(t *testing.T) {
 	input := graphQLInput{
 		OperationName: "sidebarCategories",
 		Query: `
-	query sidebarCategories($userId: String = "", $teamId: String = "") {
-		sidebarCategories(userId: $userId, teamId: $teamId) {
+	query sidebarCategories($userId: String = "", $teamId: String = "", $defaultTeamFallback: Boolean = false) {
+		sidebarCategories(userId: $userId, teamId: $teamId, defaultTeamFallback: $defaultTeamFallback) {
 			id
 			displayName
 			sorting
@@ -69,4 +69,19 @@ func TestGraphQLSidebarCategories(t *testing.T) {
 		assert.Equal(t, categories.Categories[i].Sorting, q.SidebarCategories[i].Sorting)
 		assert.Equal(t, categories.Categories[i].ChannelIds(), q.SidebarCategories[i].ChannelIDs)
 	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.ExperimentalPrimaryTeam = th.BasicTeam.Name
+	})
+
+	input.Variables = map[string]interface{}{
+		"userId":              "me",
+		"defaultTeamFallback": true,
+	}
+
+	resp, err = th.MakeGraphQLRequest(&input)
+	require.NoError(t, err)
+	require.Len(t, resp.Errors, 0)
+	require.NoError(t, json.Unmarshal(resp.Data, &q))
+	assert.Len(t, q.SidebarCategories, 3)
 }
