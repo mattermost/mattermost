@@ -8094,9 +8094,6 @@ func (c *Client4) GetPostsUsage() (*PostsUsage, *Response, error) {
 	defer closeBody(r)
 
 	var usage *PostsUsage
-	if err = json.NewDecoder(r.Body).Decode(&usage); err != nil {
-		return nil, BuildResponse(r), err
-	}
-
-	return usage, BuildResponse(r), nil
+	err = json.NewDecoder(r.Body).Decode(&usage)
+	return usage, BuildResponse(r), err
 }
