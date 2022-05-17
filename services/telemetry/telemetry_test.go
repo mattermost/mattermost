@@ -112,7 +112,7 @@ func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, 
 	channelStore.On("GroupSyncedChannelCount").Return(int64(17), nil)
 
 	postStore := storeMocks.PostStore{}
-	postStore.On("AnalyticsPostCount", "", false, false).Return(int64(1000), nil)
+	postStore.On("AnalyticsPostCount", &model.PostCountOptions{}).Return(int64(1000), nil)
 	postStore.On("AnalyticsPostCountsByDay", &model.AnalyticsPostCountsOptions{TeamId: "", BotsOnly: false, YesterdayOnly: true}).Return(model.AnalyticsRows{}, nil)
 	postStore.On("AnalyticsPostCountsByDay", &model.AnalyticsPostCountsOptions{TeamId: "", BotsOnly: true, YesterdayOnly: true}).Return(model.AnalyticsRows{}, nil)
 

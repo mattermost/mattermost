@@ -16,20 +16,20 @@ type PostStore struct {
 	mock.Mock
 }
 
-// AnalyticsPostCount provides a mock function with given fields: teamID, mustHaveFile, mustHaveHashtag
-func (_m *PostStore) AnalyticsPostCount(teamID string, mustHaveFile bool, mustHaveHashtag bool) (int64, error) {
-	ret := _m.Called(teamID, mustHaveFile, mustHaveHashtag)
+// AnalyticsPostCount provides a mock function with given fields: options
+func (_m *PostStore) AnalyticsPostCount(options *model.PostCountOptions) (int64, error) {
+	ret := _m.Called(options)
 
 	var r0 int64
-	if rf, ok := ret.Get(0).(func(string, bool, bool) int64); ok {
-		r0 = rf(teamID, mustHaveFile, mustHaveHashtag)
+	if rf, ok := ret.Get(0).(func(*model.PostCountOptions) int64); ok {
+		r0 = rf(options)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, bool, bool) error); ok {
-		r1 = rf(teamID, mustHaveFile, mustHaveHashtag)
+	if rf, ok := ret.Get(1).(func(*model.PostCountOptions) error); ok {
+		r1 = rf(options)
 	} else {
 		r1 = ret.Error(1)
 	}
