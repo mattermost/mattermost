@@ -179,7 +179,7 @@ func TestPluginAPIGetUserPreferences(t *testing.T) {
 	require.Nil(t, err)
 	assert.Equal(t, 3, len(preferences))
 
-	assert.Equal(t, testUser.Id, preferences[0].UserId)
+	assert.Equal(t, user1.Id, preferences[0].UserId)
 	assert.Equal(t, model.PreferenceCategoryInsights, preferences[0].Category)
 	assert.Equal(t, model.PreferenceNameInsights, preferences[0].Name)
 	assert.Equal(t, "{\"insights_modal_viewed\":false}", preferences[0].Value)
@@ -266,7 +266,7 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 	require.Nil(t, err)
 	assert.Equal(t, 3, len(preferences))
 
-	assert.Equal(t, testUser.Id, preferences[0].UserId)
+	assert.Equal(t, user1.Id, preferences[0].UserId)
 	assert.Equal(t, model.PreferenceCategoryInsights, preferences[0].Category)
 	assert.Equal(t, model.PreferenceNameInsights, preferences[0].Name)
 	assert.Equal(t, "{\"insights_modal_viewed\":false}", preferences[0].Value)
