@@ -9317,5 +9317,17 @@
   {
     "id": "api.templates.server_inactivity_footer_disclaimer",
     "translation": "Du hast diese einmalige E-Mail erhalten, weil dein Mattermost-Server für mehr als {{.Hours}} Stunden inaktiv war. Diese E-Mail wurde automatisch von deinem Mattermost-Server generiert."
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Hochladen über mmctl zu einer Cloud Instanz wird nicht unterstützt. Bitte prüfe die Dokumentation: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "Fehler bei der Aktualisierung des Abonnements über Webhook."
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "Fehler beim Holen der letzten Suchen"
   }
 ]
