@@ -5081,7 +5081,7 @@
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "当 Bleve EnableSearching 设为是时必须设定 Bleve EnableIndexing 为是"
+    "translation": "当 Bleve EnableSearching 设为true时，必须设定 Bleve EnableIndexing为 true"
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
@@ -5393,7 +5393,7 @@
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "当 Bleve AutocompleteEnabled 设为是时必须设定 Bleve EnableIndexing 为是"
+    "translation": "当 Bleve AutocompleteEnabled设置为 true 时，必须设定 Bleve EnableIndexing 为 true"
   },
   {
     "id": "model.config.is_valid.saml_guest_attribute.app_error",
