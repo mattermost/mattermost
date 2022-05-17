@@ -86,6 +86,7 @@ const (
 	CollapsedThreadsDisabled   = "disabled"
 	CollapsedThreadsDefaultOn  = "default_on"
 	CollapsedThreadsDefaultOff = "default_off"
+	CollapsedThreadsAlwaysOn   = "always_on"
 
 	EmailBatchingBufferSize = 256
 	EmailBatchingInterval   = 30
@@ -2249,7 +2250,7 @@ func (s *LdapSettings) SetDefaults() {
 
 type ComplianceSettings struct {
 	Enable      *bool   `access:"compliance_compliance_monitoring"`
-	Directory   *string `access:"compliance_compliance_monitoring"` // telemetry: none
+	Directory   *string `access:"compliance_compliance_monitoring,cloud_restrictable"` // telemetry: none
 	EnableDaily *bool   `access:"compliance_compliance_monitoring"`
 	BatchSize   *int    `access:"compliance_compliance_monitoring"` // telemetry: none
 }
@@ -3114,18 +3115,18 @@ type Config struct {
 	ExperimentalSettings      ExperimentalSettings
 	AnalyticsSettings         AnalyticsSettings
 	ElasticsearchSettings     ElasticsearchSettings
-	BleveSettings             BleveSettings
+	BleveSettings             BleveSettings `access:"cloud_restrictable"`
 	DataRetentionSettings     DataRetentionSettings
 	MessageExportSettings     MessageExportSettings
 	JobSettings               JobSettings
 	PluginSettings            PluginSettings
 	DisplaySettings           DisplaySettings
 	GuestAccountsSettings     GuestAccountsSettings
-	ImageProxySettings        ImageProxySettings
-	CloudSettings             CloudSettings  // telemetry: none
-	FeatureFlags              *FeatureFlags  `access:"*_read" json:",omitempty"`
-	ImportSettings            ImportSettings // telemetry: none
-	ExportSettings            ExportSettings
+	ImageProxySettings        ImageProxySettings `access:"cloud_restrictable"`
+	CloudSettings             CloudSettings      // telemetry: none
+	FeatureFlags              *FeatureFlags      `access:"*_read" json:",omitempty"`
+	ImportSettings            ImportSettings     `access:"cloud_restrictable"` // telemetry: none
+	ExportSettings            ExportSettings     `access:"cloud_restrictable"`
 }
 
 func (o *Config) Clone() *Config {
@@ -3657,6 +3658,7 @@ func (s *ServiceSettings) isValid() *AppError {
 
 	if *s.CollapsedThreads != CollapsedThreadsDisabled &&
 		*s.CollapsedThreads != CollapsedThreadsDefaultOn &&
+		*s.CollapsedThreads != CollapsedThreadsAlwaysOn &&
 		*s.CollapsedThreads != CollapsedThreadsDefaultOff {
 		return NewAppError("Config.IsValid", "model.config.is_valid.collapsed_threads.app_error", nil, "", http.StatusBadRequest)
 	}

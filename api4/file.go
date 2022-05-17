@@ -56,13 +56,14 @@ const maxMultipartFormDataBytes = 10 * 1024 // 10Kb
 
 func (api *API) InitFile() {
 	api.BaseRoutes.Files.Handle("", api.APISessionRequired(uploadFileStream)).Methods("POST")
+	api.BaseRoutes.Files.Handle("/search", api.APISessionRequired(searchFilesForUser)).Methods("POST")
 	api.BaseRoutes.File.Handle("", api.APISessionRequiredTrustRequester(getFile)).Methods("GET")
 	api.BaseRoutes.File.Handle("/thumbnail", api.APISessionRequiredTrustRequester(getFileThumbnail)).Methods("GET")
 	api.BaseRoutes.File.Handle("/link", api.APISessionRequired(getFileLink)).Methods("GET")
 	api.BaseRoutes.File.Handle("/preview", api.APISessionRequiredTrustRequester(getFilePreview)).Methods("GET")
 	api.BaseRoutes.File.Handle("/info", api.APISessionRequired(getFileInfo)).Methods("GET")
 
-	api.BaseRoutes.Team.Handle("/files/search", api.APISessionRequiredDisableWhenBusy(searchFiles)).Methods("POST")
+	api.BaseRoutes.Team.Handle("/files/search", api.APISessionRequiredDisableWhenBusy(searchFilesInTeam)).Methods("POST")
 
 	api.BaseRoutes.PublicFile.Handle("", api.APIHandler(getPublicFile)).Methods("GET")
 
@@ -734,7 +735,7 @@ func writeFileResponse(filename string, contentType string, contentSize int64, l
 	http.ServeContent(w, r, filename, lastModification, fileReader)
 }
 
-func searchFiles(c *Context, w http.ResponseWriter, r *http.Request) {
+func searchFilesInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -745,6 +746,16 @@ func searchFiles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	searchFiles(c, w, r, c.Params.TeamId)
+}
+
+func searchFilesForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Config().FeatureFlags.CommandPalette {
+		searchFiles(c, w, r, "")
+	}
+}
+
+func searchFiles(c *Context, w http.ResponseWriter, r *http.Request, teamID string) {
 	var params model.SearchParameter
 	jsonErr := json.NewDecoder(r.Body).Decode(&params)
 	if jsonErr != nil {
@@ -783,9 +794,18 @@ func searchFiles(c *Context, w http.ResponseWriter, r *http.Request) {
 		includeDeletedChannels = *params.IncludeDeletedChannels
 	}
 
+	modifier := ""
+	if params.Modifier != nil {
+		modifier = *params.Modifier
+	}
+	if modifier != "" && modifier != model.ModifierFiles && modifier != model.ModifierMessages {
+		c.SetInvalidParam("modifier")
+		return
+	}
+
 	startTime := time.Now()
 
-	results, err := c.App.SearchFilesInTeamForUser(c.AppContext, terms, c.AppContext.Session().UserId, c.Params.TeamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
+	results, err := c.App.SearchFilesInTeamForUser(c.AppContext, terms, c.AppContext.Session().UserId, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage, modifier)
 
 	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
 	metrics := c.App.Metrics()

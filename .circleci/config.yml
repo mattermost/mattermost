@@ -78,7 +78,7 @@ jobs:
           steps:
             # Taken from https://github.com/entur/owasp-orb/blob/master/src/%40orb.yml#L349-L361
             - owasp/generate_cache_keys:
-                cache_key: commmandline-default-cache-key-v7
+                cache_key: commandline-default-cache-key-v7
             - owasp/restore_owasp_cache
             - run:
                 name: Update OWASP Dependency-Check Database
