@@ -2550,10 +2550,14 @@ func (a *App) SetActiveChannel(userID string, channelID string) *model.AppError 
 }
 
 func (a *App) IsCRTEnabledForUser(userID string) bool {
-	if *a.Config().ServiceSettings.CollapsedThreads == model.CollapsedThreadsDisabled {
+	appCRT := *a.Config().ServiceSettings.CollapsedThreads
+	if appCRT == model.CollapsedThreadsDisabled {
 		return false
 	}
-	threadsEnabled := *a.Config().ServiceSettings.CollapsedThreads == model.CollapsedThreadsDefaultOn
+	if appCRT == model.CollapsedThreadsAlwaysOn {
+		return true
+	}
+	threadsEnabled := appCRT == model.CollapsedThreadsDefaultOn
 	// check if a participant has overridden collapsed threads settings
 	if preference, err := a.Srv().Store.Preference().Get(userID, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled); err == nil {
 		threadsEnabled = preference.Value == "on"
@@ -2904,7 +2908,7 @@ func (a *App) SearchChannelsUserNotIn(teamID string, userID string, term string)
 func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError) {
 	// I start looking for channels with notifications before I mark it as read, to clear the push notifications if needed
 	channelsToClearPushNotifications := []string{}
-	if *a.Config().EmailSettings.SendPushNotifications {
+	if a.canSendPushNotifications() {
 		for _, channelID := range channelIDs {
 			channel, errCh := a.Srv().Store.Channel().Get(channelID, true)
 			if errCh != nil {
