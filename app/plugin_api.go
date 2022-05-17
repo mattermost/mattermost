@@ -548,7 +548,7 @@ func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, sea
 		includeDeletedChannels = *searchParams.IncludeDeletedChannels
 	}
 
-	return api.app.SearchPostsForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
+	return api.app.SearchPostsForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage, model.ModifierMessages)
 }
 
 func (api *PluginAPI) AddChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
@@ -1182,6 +1182,9 @@ func (api *PluginAPI) RequestTrialLicense(requesterID string, users int, termsAc
 
 // GetCloudLimits returns any limits associated with the cloud instance
 func (api *PluginAPI) GetCloudLimits() (*model.ProductLimits, error) {
+	if api.app.Cloud() == nil {
+		return &model.ProductLimits{}, nil
+	}
 	limits, err := api.app.Cloud().GetCloudLimits("")
 	return limits, err
 }

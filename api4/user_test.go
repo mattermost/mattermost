@@ -2102,7 +2102,7 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 		require.NoError(t, err)
 		require.Greater(t, len(users), 0)
 
-		postCount, err := th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
+		postCount, err := th.App.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{})
 		require.NoError(t, err)
 		require.Greater(t, postCount, int64(0))
 
@@ -2115,7 +2115,7 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, users, 0)
 
-		postCount, err = th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
+		postCount, err = th.App.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{})
 		require.NoError(t, err)
 		require.Equal(t, postCount, int64(0))
 
