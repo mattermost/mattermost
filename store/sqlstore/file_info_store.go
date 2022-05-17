@@ -734,3 +734,20 @@ func (fs SqlFileInfoStore) GetFilesBatchForIndexing(startTime int64, startFileID
 
 	return files, nil
 }
+
+func (fs SqlFileInfoStore) GetStorageUsage(includeDeleted bool) (int64, error) {
+	query := fs.getQueryBuilder().
+		Select("SUM(Size)").
+		From("FileInfo")
+
+	if !includeDeleted {
+		query = query.Where("DeleteAt = 0")
+	}
+
+	var size int64
+	err := fs.GetReplicaX().GetBuilder(&size, query)
+	if err != nil {
+		return int64(0), errors.Wrap(err, "failed to set storage usage")
+	}
+	return size, nil
+}

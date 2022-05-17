@@ -6,3 +6,7 @@ package model
 type PostsUsage struct {
 	Count int64 `json:"count"`
 }
+
+type StorageUsage struct {
+	Bytes int64 `json:"bytes"`
+}

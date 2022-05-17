@@ -666,6 +666,7 @@ type FileInfoStore interface {
 	CountAll() (int64, error)
 	GetFilesBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.FileForIndexing, error)
 	ClearCaches()
+	GetStorageUsage(includeDeleted bool) (int64, error)
 }
 
 type UploadSessionStore interface {
