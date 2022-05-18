@@ -29,8 +29,10 @@ BUILD_NUMBER ?= $(BUILD_NUMBER:)
 BUILD_DATE = $(shell date -u)
 BUILD_HASH = $(shell git rev-parse HEAD)
 # If we don't set the build number it defaults to dev
-BUILD_DATE := n/a
-BUILD_NUMBER := dev
+ifeq ($(BUILD_NUMBER),)
+	BUILD_DATE := n/a
+	BUILD_NUMBER := dev
+endif
 BUILD_ENTERPRISE_DIR ?= ../enterprise
 BUILD_ENTERPRISE ?= true
 BUILD_ENTERPRISE_READY = false
