@@ -134,6 +134,11 @@ func (ch *Channels) installPluginWithSignature(pluginFile, signature io.ReadSeek
 
 // InstallPlugin unpacks and installs a plugin but does not enable or activate it.
 func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
+	appErr := a.checkIfIntegrationMeetsFreemiumLimits("")
+	if appErr != nil {
+		return nil, appErr
+	}
+
 	installationStrategy := installPluginLocallyOnlyIfNew
 	if replace {
 		installationStrategy = installPluginLocallyAlways

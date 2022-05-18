@@ -379,12 +379,7 @@ func (a *App) EnablePlugin(id string) *model.AppError {
 		return appErr
 	}
 
-	appErr = a.ch.enablePlugin(id)
-	if appErr != nil {
-		return appErr
-	}
-
-	return nil
+	return a.ch.enablePlugin(id)
 }
 
 func (ch *Channels) enablePlugin(id string) *model.AppError {
