@@ -48,7 +48,6 @@ const (
 	WebsocketEventResponse                            = "response"
 	WebsocketEventEmojiAdded                          = "emoji_added"
 	WebsocketEventChannelViewed                       = "channel_viewed"
-	WebsocketEventInstalledIntegrationsChanged        = "installed_integrations_changed"
 	WebsocketEventPluginStatusesChanged               = "plugin_statuses_changed"
 	WebsocketEventPluginEnabled                       = "plugin_enabled"
 	WebsocketEventPluginDisabled                      = "plugin_disabled"
@@ -77,6 +76,7 @@ const (
 	WebsocketEventThreadFollowChanged                 = "thread_follow_changed"
 	WebsocketEventThreadReadChanged                   = "thread_read_changed"
 	WebsocketFirstAdminVisitMarketplaceStatusReceived = "first_admin_visit_marketplace_status_received"
+	WebsocketEventIntegrationsUsageChanged            = "integrations_usage_changed"
 )
 
 type WebSocketMessage interface {

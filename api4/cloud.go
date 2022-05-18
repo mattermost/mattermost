@@ -41,9 +41,6 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf", api.APISessionRequired(getSubscriptionInvoicePDF)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription", api.APISessionRequired(changeSubscription)).Methods("PUT")
 
-	// GET /api/v4/cloud/integrations
-	api.BaseRoutes.Cloud.Handle("/installed_integrations", api.APISessionRequired(getInstalledIntegrations)).Methods("GET")
-
 	// POST /api/v4/cloud/webhook
 	api.BaseRoutes.Cloud.Handle("/webhook", api.CloudAPIKeyRequired(handleCWSWebhook)).Methods("POST")
 }
@@ -122,31 +119,6 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(json)
-}
-
-func getInstalledIntegrations(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadPlugins) {
-		c.SetPermissionError(model.PermissionSysconsoleReadPlugins)
-		return
-	}
-
-	if !*c.App.Config().PluginSettings.Enable {
-		c.Err = model.NewAppError("getEnabledIntegrations", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	integrations, err := c.App.GetInstalledIntegrations()
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	out, jsonErr := json.Marshal(integrations)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getEnabledIntegrations", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
-		return
-	}
-	w.Write(out)
 }
 
 func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {

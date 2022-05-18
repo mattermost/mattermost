@@ -328,6 +328,10 @@ func (c *Client4) testEmailRoute() string {
 	return "/email/test"
 }
 
+func (c *Client4) usageRoute() string {
+	return "/usage"
+}
+
 func (c *Client4) testSiteURLRoute() string {
 	return "/site_url/test"
 }
@@ -8077,4 +8081,22 @@ func (c *Client4) GetAppliedSchemaMigrations() ([]AppliedMigration, *Response, e
 		return nil, nil, NewAppError("GetUsers", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
 	return list, BuildResponse(r), nil
+}
+
+// Usage Section
+
+// GetIntegrationsUsage returns usage information on integrations, including the count of enabled integrations
+func (c *Client4) GetIntegrationsUsage() (*IntegrationsUsage, *Response, error) {
+	r, err := c.DoAPIGet(c.usageRoute()+"/integrations", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var usage *IntegrationsUsage
+	if err = json.NewDecoder(r.Body).Decode(&usage); err != nil {
+		return nil, BuildResponse(r), err
+	}
+
+	return usage, BuildResponse(r), nil
 }

@@ -157,7 +157,7 @@ func (ch *Channels) syncPluginsActiveState() {
 		mlog.Warn("failed to notify plugin status changed", mlog.Err(err))
 	}
 
-	if err := ch.notifyInstalledIntegrationsChanged(); err != nil {
+	if err := ch.notifyIntegrationsUsageChanged(); err != nil {
 		mlog.Warn("failed to notify installed integrations changed", mlog.Err(err))
 	}
 }
@@ -476,14 +476,14 @@ func (ch *Channels) disablePlugin(id string) *model.AppError {
 	return nil
 }
 
-func (ch *Channels) notifyInstalledIntegrationsChanged() *model.AppError {
-	integrations, appErr := ch.getInstalledIntegrations()
+func (ch *Channels) notifyIntegrationsUsageChanged() *model.AppError {
+	usage, appErr := ch.getIntegrationsUsage()
 	if appErr != nil {
 		return appErr
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventInstalledIntegrationsChanged, "", "", "", nil)
-	message.Add("integrations", integrations)
+	message := model.NewWebSocketEvent(model.WebsocketEventIntegrationsUsageChanged, "", "", "", nil)
+	message.Add("usage", usage)
 	message.GetBroadcast().ContainsSensitiveData = true
 	ch.Publish(message)
 

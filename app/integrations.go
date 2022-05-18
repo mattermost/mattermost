@@ -26,10 +26,6 @@ type ListedApp struct {
 	Enabled   bool `json:"enabled"`
 }
 
-func (a *App) GetInstalledIntegrations() ([]*model.InstalledIntegration, *model.AppError) {
-	return a.ch.getInstalledIntegrations()
-}
-
 func (ch *Channels) getInstalledIntegrations() ([]*model.InstalledIntegration, *model.AppError) {
 	out := []*model.InstalledIntegration{}
 
@@ -43,6 +39,7 @@ func (ch *Channels) getInstalledIntegrations() ([]*model.InstalledIntegration, *
 		return nil, model.NewAppError("getInstalledIntegrations", "app.plugin.sync.read_local_folder.app_error", nil, err.Error(), 0)
 	}
 
+	pluginStates := ch.cfgSvc.Config().PluginSettings.PluginStates
 	for _, p := range plugins {
 		ignore := false
 		for _, id := range model.InstalledIntegrationsIgnoredPlugins {
@@ -53,12 +50,17 @@ func (ch *Channels) getInstalledIntegrations() ([]*model.InstalledIntegration, *
 		}
 
 		if !ignore {
+			enabled := false
+			if state, ok := pluginStates[p.Manifest.Id]; ok {
+				enabled = state.Enable
+			}
+
 			integration := &model.InstalledIntegration{
 				Type:    "plugin",
 				ID:      p.Manifest.Id,
 				Name:    p.Manifest.Name,
 				Version: p.Manifest.Version,
-				Enabled: pluginsEnvironment.IsActive(p.Manifest.Id),
+				Enabled: enabled,
 			}
 
 			out = append(out, integration)

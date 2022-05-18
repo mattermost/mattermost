@@ -6493,9 +6493,9 @@ func (a *OpenTracingAppLayer) GetIncomingWebhooksPageByUser(userID string, page 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetInstalledIntegrations() ([]*model.InstalledIntegration, *model.AppError) {
+func (a *OpenTracingAppLayer) GetIntegrationsUsage() (*model.IntegrationsUsage, *model.AppError) {
 	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetInstalledIntegrations")
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetIntegrationsUsage")
 
 	a.ctx = newCtx
 	a.app.Srv().Store.SetContext(newCtx)
@@ -6505,7 +6505,7 @@ func (a *OpenTracingAppLayer) GetInstalledIntegrations() ([]*model.InstalledInte
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetInstalledIntegrations()
+	resultVar0, resultVar1 := a.app.GetIntegrationsUsage()
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
