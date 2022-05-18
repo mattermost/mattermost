@@ -9,6 +9,7 @@ var InstalledIntegrationsIgnoredPlugins = []string{
 	"com.mattermost.apps",
 	"com.mattermost.nps",
 	"com.mattermost.plugin-channel-export",
+	"com.mattermost.calls",
 }
 
 type InstalledIntegration struct {
