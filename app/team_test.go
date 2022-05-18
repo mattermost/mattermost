@@ -547,7 +547,7 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 		for i := range teamsList {
 			require.Equal(t, teamsList[i].DisplayName, teams[i].DisplayName)
 			require.NotEqual(t, 0, teamsList[i].DeleteAt)
-			require.Equal(t, true, *teamsList[i].CloudLimitsArchived)
+			require.Equal(t, true, teamsList[i].CloudLimitsArchived)
 		}
 	})
 
@@ -575,7 +575,7 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 		for i := range teamsList {
 			require.Equal(t, teamsList[i].DisplayName, teams[i].DisplayName)
 			require.Equal(t, int64(0), teamsList[i].DeleteAt)
-			require.Equal(t, false, *teamsList[i].CloudLimitsArchived)
+			require.Equal(t, false, teamsList[i].CloudLimitsArchived)
 		}
 	})
 
@@ -591,7 +591,7 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 		patch := &model.TeamPatch{CloudLimitsArchived: &cloudLimitsArchived}
 		team, err := th.App.PatchTeam(teamIds[0], patch)
 		require.Nil(t, err)
-		require.Equal(t, false, *team.CloudLimitsArchived)
+		require.Equal(t, false, team.CloudLimitsArchived)
 
 		activeLimit = 10000 // make the limit extremely high to all are enabled
 		teamLimits = &model.TeamsLimits{Active: &activeLimit}
