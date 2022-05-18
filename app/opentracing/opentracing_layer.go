@@ -625,9 +625,9 @@ func (a *OpenTracingAppLayer) AdjustImage(file io.Reader) (*bytes.Buffer, *model
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) AdjustProductLimits(limits *model.ProductLimits, subscription *model.Subscription) *model.AppError {
+func (a *OpenTracingAppLayer) AdjustInProductLimits(limits *model.ProductLimits, subscription *model.Subscription) *model.AppError {
 	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AdjustProductLimits")
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AdjustInProductLimits")
 
 	a.ctx = newCtx
 	a.app.Srv().Store.SetContext(newCtx)
@@ -637,7 +637,7 @@ func (a *OpenTracingAppLayer) AdjustProductLimits(limits *model.ProductLimits, s
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.AdjustProductLimits(limits, subscription)
+	resultVar0 := a.app.AdjustInProductLimits(limits, subscription)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

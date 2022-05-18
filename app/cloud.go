@@ -37,7 +37,7 @@ func (a *App) SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.
 	return nil
 }
 
-func (a *App) AdjustProductLimits(limits *model.ProductLimits, subscription *model.Subscription) *model.AppError {
+func (a *App) AdjustInProductLimits(limits *model.ProductLimits, subscription *model.Subscription) *model.AppError {
 	if limits.Teams != nil && *limits.Teams.Active > 0 {
 		err := a.AdjustTeamsFromProductLimits(limits.Teams)
 		if err != nil {
