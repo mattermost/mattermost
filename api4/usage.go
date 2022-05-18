@@ -36,7 +36,7 @@ func getPostsUsage(c *Context, w http.ResponseWriter, r *http.Request) {
 func getStorageUsage(c *Context, w http.ResponseWriter, r *http.Request) {
 	usage, appErr := c.App.GetStorageUsage()
 	if appErr != nil {
-		c.Err = model.NewAppError("Api4.getStorageUsage", "app.usage.get_storage_usage.app_erro", nil, appErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.getStorageUsage", "app.usage.get_storage_usage.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 		return
 	}
 

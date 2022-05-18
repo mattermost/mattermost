@@ -39,7 +39,7 @@ func TestGetPostsUsage(t *testing.T) {
 }
 
 func TestGetStorageUsage(t *testing.T) {
-	t.Run("unauthenticated users can not access", func(t *testing.T) {
+	t.Run("unauthenticated users cannot access", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
 
