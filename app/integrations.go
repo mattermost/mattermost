@@ -59,7 +59,7 @@ func (ch *Channels) getInstalledIntegrations() ([]*model.InstalledIntegration, *
 		}
 	}
 
-	if pluginsEnvironment.IsActive("com.mattermost.apps") {
+	if pluginsEnvironment.IsActive(model.PluginIdApps) {
 		enabledApps, appErr := ch.getInstalledApps()
 		if appErr != nil {
 			ch.srv.Log.Warn("Failed to fetch installed Apps", mlog.Err(appErr))
@@ -121,10 +121,8 @@ func (a *App) checkIfIntegrationMeetsFreemiumLimits(pluginID string) *model.AppE
 		return nil
 	}
 
-	for _, id := range model.InstalledIntegrationsIgnoredPlugins {
-		if pluginID == id {
-			return nil
-		}
+	if _, ok := model.InstalledIntegrationsIgnoredPlugins[pluginID]; ok {
+		return nil
 	}
 
 	limits, err := a.Cloud().GetCloudLimits("")

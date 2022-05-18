@@ -8,12 +8,12 @@ type IntegrationsUsage struct {
 }
 
 var InstalledIntegrationsIgnoredPlugins = map[string]struct{}{
-	"playbooks":                             {},
-	"focalboard:":                           {},
-	"com.mattermost.apps:":                  {},
-	"com.mattermost.nps:":                   {},
-	"com.mattermost.plugin-channel-export:": {},
-	"com.mattermost.calls:":                 {},
+	PluginIdPlaybooks:     {},
+	PluginIdFocalboard:    {},
+	PluginIdApps:          {},
+	PluginIdCalls:         {},
+	PluginIdNPS:           {},
+	PluginIdChannelExport: {},
 }
 
 type InstalledIntegration struct {

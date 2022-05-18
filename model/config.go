@@ -2785,34 +2785,34 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates = make(map[string]*PluginState)
 	}
 
-	if s.PluginStates["com.mattermost.nps"] == nil {
+	if s.PluginStates[PluginIdNPS] == nil {
 		// Enable the NPS plugin by default if diagnostics are enabled
-		s.PluginStates["com.mattermost.nps"] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
+		s.PluginStates[PluginIdNPS] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
 	}
 
-	if s.PluginStates["playbooks"] == nil {
+	if s.PluginStates[PluginIdPlaybooks] == nil {
 		// Enable the playbooks plugin by default
-		s.PluginStates["playbooks"] = &PluginState{Enable: true}
+		s.PluginStates[PluginIdPlaybooks] = &PluginState{Enable: true}
 	}
 
-	if s.PluginStates["com.mattermost.plugin-channel-export"] == nil && BuildEnterpriseReady == "true" {
+	if s.PluginStates[PluginIdChannelExport] == nil && BuildEnterpriseReady == "true" {
 		// Enable the channel export plugin by default
-		s.PluginStates["com.mattermost.plugin-channel-export"] = &PluginState{Enable: true}
+		s.PluginStates[PluginIdChannelExport] = &PluginState{Enable: true}
 	}
 
-	if s.PluginStates["focalboard"] == nil {
+	if s.PluginStates[PluginIdFocalboard] == nil {
 		// Enable the focalboard plugin by default
-		s.PluginStates["focalboard"] = &PluginState{Enable: true}
+		s.PluginStates[PluginIdFocalboard] = &PluginState{Enable: true}
 	}
 
-	if s.PluginStates["com.mattermost.apps"] == nil {
+	if s.PluginStates[PluginIdApps] == nil {
 		// Enable the Apps plugin by default
-		s.PluginStates["com.mattermost.apps"] = &PluginState{Enable: true}
+		s.PluginStates[PluginIdApps] = &PluginState{Enable: true}
 	}
 
-	if s.PluginStates["com.mattermost.calls"] == nil && IsCloud() {
+	if s.PluginStates[PluginIdCalls] == nil && IsCloud() {
 		// Enable the calls plugin by default on Cloud only
-		s.PluginStates["com.mattermost.calls"] = &PluginState{Enable: true}
+		s.PluginStates[PluginIdCalls] = &PluginState{Enable: true}
 	}
 
 	if s.EnableMarketplace == nil {

@@ -1097,12 +1097,12 @@ func getIcon(iconPath string) (string, error) {
 
 func (ch *Channels) getPluginStateOverride(pluginID string) (bool, bool) {
 	switch pluginID {
-	case "com.mattermost.apps":
+	case model.PluginIdApps:
 		// Tie Apps proxy disabled status to the feature flag.
 		if !ch.cfgSvc.Config().FeatureFlags.AppsEnabled {
 			return true, false
 		}
-	case "com.mattermost.calls":
+	case model.PluginIdCalls:
 		if model.IsCloud() {
 			return true, ch.cfgSvc.Config().FeatureFlags.CallsEnabled
 		}
