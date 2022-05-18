@@ -747,7 +747,7 @@ func (fs SqlFileInfoStore) GetStorageUsage(includeDeleted bool) (int64, error) {
 	var size int64
 	err := fs.GetReplicaX().GetBuilder(&size, query)
 	if err != nil {
-		return int64(0), errors.Wrap(err, "failed to set storage usage")
+		return int64(0), errors.Wrap(err, "failed to get storage usage")
 	}
 	return size, nil
 }
