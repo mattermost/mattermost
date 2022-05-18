@@ -170,3 +170,69 @@ func TestAppendQueryParamsToURL(t *testing.T) {
 	expected := url + "?key1=value1&key2=value2"
 	assert.Equal(t, redirectURL, expected)
 }
+
+func TestRoundOffToZeroes(t *testing.T) {
+	testCases := []struct {
+		desc     string
+		n        float64
+		expected int64
+	}{
+		{
+			desc:     "returns 0 when n is 0",
+			n:        0,
+			expected: 0,
+		},
+		{
+			desc:     "returns 0 when n is 9",
+			n:        9,
+			expected: 0,
+		},
+		{
+			desc:     "returns 10 when n is 10",
+			n:        10,
+			expected: 10,
+		},
+		{
+			desc:     "returns 90 when n is 99",
+			n:        99,
+			expected: 90,
+		},
+		{
+			desc:     "returns 100 when n is 100",
+			n:        100,
+			expected: 100,
+		},
+		{
+			desc:     "returns 100 when n is 101",
+			n:        101,
+			expected: 100,
+		},
+		{
+			desc:     "returns 4000 when n is 4321",
+			n:        4321,
+			expected: 4000,
+		},
+		{
+			desc:     "returns 0 when n is -9",
+			n:        -9,
+			expected: 0,
+		},
+		{
+			desc:     "returns -4000 when n is -4321",
+			n:        -4321,
+			expected: -4000,
+		},
+		{
+			desc:     "returns 4000 when n is 4321.235",
+			n:        4321.235,
+			expected: 4000,
+		},
+	}
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.desc, func(t *testing.T) {
+			res := RoundOffToZeroes(tc.n)
+			assert.Equal(t, tc.expected, res)
+		})
+	}
+}

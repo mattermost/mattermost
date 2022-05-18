@@ -9318,5 +9318,13 @@
   {
     "id": "api.templates.server_inactivity_footer_disclaimer",
     "translation": "Otrzymałeś tę jednorazową wiadomość e-mail, ponieważ Twój serwer Mattermost był nieaktywny przez ponad {{.Hours}} godzin. Ta wiadomość e-mail została automatycznie wygenerowana przez serwer Mattermost."
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "Błąd aktualizacji subskrypcji z webhooka."
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Przesyłanie danych do instancji Chmury za pomocą mmctl nie jest obsługiwane. Proszę sprawdzić dokumentację tutaj: https://docs.mattermost.com/manage/cloud-data-export.html."
   }
 ]

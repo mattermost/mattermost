@@ -48,6 +48,11 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}
+		if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
+			c.Err = model.NewAppError("createUpload", "api.file.cloud_upload.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+
 	} else {
 		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), us.ChannelId, model.PermissionUploadFile) {
 			c.SetPermissionError(model.PermissionUploadFile)
@@ -120,6 +125,10 @@ func uploadData(c *Context, w http.ResponseWriter, r *http.Request) {
 	if us.Type == model.UploadTypeImport {
 		if !c.IsSystemAdmin() {
 			c.SetPermissionError(model.PermissionManageSystem)
+			return
+		}
+		if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
+			c.Err = model.NewAppError("UploadData", "api.file.cloud_upload.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
 	} else {

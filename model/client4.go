@@ -324,6 +324,10 @@ func (c *Client4) cloudRoute() string {
 	return "/cloud"
 }
 
+func (c *Client4) usageRoute() string {
+	return "/usage"
+}
+
 func (c *Client4) testEmailRoute() string {
 	return "/email/test"
 }
@@ -8085,13 +8089,22 @@ func (c *Client4) GetAppliedSchemaMigrations() ([]AppliedMigration, *Response, e
 
 // Usage Section
 
-// GetIntegrationsUsage returns usage information on integrations, including the count of enabled integrations
-func (c *Client4) GetIntegrationsUsage() (*IntegrationsUsage, *Response, error) {
-	r, err := c.DoAPIGet(c.usageRoute()+"/integrations", "")
+// GetPostsUsage returns rounded off total usage of posts for the instance
+func (c *Client4) GetPostsUsage() (*PostsUsage, *Response, error) {
+	r, err := c.DoAPIGet(c.usageRoute()+"/posts", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
+
+	var usage *PostsUsage
+	err = json.NewDecoder(r.Body).Decode(&usage)
+	return usage, BuildResponse(r), err
+}
+
+// GetIntegrationsUsage returns usage information on integrations, including the count of enabled integrations
+func (c *Client4) GetIntegrationsUsage() (*IntegrationsUsage, *Response, error) {
+	r, err := c.DoAPIGet(c.usageRoute()+"/integrations", "")
 
 	var usage *IntegrationsUsage
 	if err = json.NewDecoder(r.Body).Decode(&usage); err != nil {

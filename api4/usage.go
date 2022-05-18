@@ -11,8 +11,27 @@ import (
 )
 
 func (api *API) InitUsage() {
+	// GET /api/v4/usage/posts
+	api.BaseRoutes.Usage.Handle("/posts", api.APISessionRequired(getPostsUsage)).Methods("GET")
+
 	// GET /api/v4/usage/integrations
 	api.BaseRoutes.Usage.Handle("/integrations", api.APISessionRequired(getIntegrationsUsage)).Methods("GET")
+}
+
+func getPostsUsage(c *Context, w http.ResponseWriter, r *http.Request) {
+	count, appErr := c.App.GetPostsUsage()
+	if appErr != nil {
+		c.Err = model.NewAppError("Api4.getPostsUsage", "app.post.analytics_posts_count.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json, err := json.Marshal(&model.PostsUsage{Count: count})
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getPostsUsage", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(json)
 }
 
 func getIntegrationsUsage(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -38,5 +57,6 @@ func getIntegrationsUsage(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("Api4.getIntegrationsUsage", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	w.Write(json)
 }

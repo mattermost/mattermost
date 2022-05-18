@@ -3,6 +3,10 @@
 
 package model
 
+type PostsUsage struct {
+	Count int64 `json:"count"`
+}
+
 type IntegrationsUsage struct {
 	Count int64 `json:"count"`
 }
@@ -17,7 +21,7 @@ var InstalledIntegrationsIgnoredPlugins = map[string]struct{}{
 }
 
 type InstalledIntegration struct {
-	Type    string `json:"type"` // "plugin", "app", or "plugin-app" if it is an app installed as a plugin.
+	Type    string `json:"type"` // "plugin" or "app"
 	ID      string `json:"id"`
 	Name    string `json:"name"`
 	Version string `json:"version"`

@@ -297,7 +297,7 @@ func (ts *TelemetryService) trackActivity() {
 		deletedPrivateChannelCount = dpccr
 	}
 
-	postsCount, _ = ts.dbStore.Post().AnalyticsPostCount("", false, false)
+	postsCount, _ = ts.dbStore.Post().AnalyticsPostCount(&model.PostCountOptions{})
 
 	postCountsOptions := &model.AnalyticsPostCountsOptions{TeamId: "", BotsOnly: false, YesterdayOnly: true}
 	postCountsYesterday, _ := ts.dbStore.Post().AnalyticsPostCountsByDay(postCountsOptions)
