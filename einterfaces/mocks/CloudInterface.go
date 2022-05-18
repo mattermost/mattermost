@@ -247,6 +247,29 @@ func (_m *CloudInterface) InvalidateCaches() error {
 	return r0
 }
 
+// RequestCloudTrial provides a mock function with given fields: userID, subscriptionID
+func (_m *CloudInterface) RequestCloudTrial(userID string, subscriptionID string) (*model.Subscription, error) {
+	ret := _m.Called(userID, subscriptionID)
+
+	var r0 *model.Subscription
+	if rf, ok := ret.Get(0).(func(string, string) *model.Subscription); ok {
+		r0 = rf(userID, subscriptionID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Subscription)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(userID, subscriptionID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UpdateCloudCustomer provides a mock function with given fields: userID, customerInfo
 func (_m *CloudInterface) UpdateCloudCustomer(userID string, customerInfo *model.CloudCustomerInfo) (*model.CloudCustomer, error) {
 	ret := _m.Called(userID, customerInfo)
