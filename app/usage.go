@@ -10,7 +10,8 @@ import (
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
-// GetPostsUsage returns "rounded off" total posts count like returns 900 instead of 987
+// GetPostsUsage returns the total posts count rounded down to the most
+// significant digit
 func (a *App) GetPostsUsage() (int64, *model.AppError) {
 	count, err := a.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeDeleted: true})
 	if err != nil {

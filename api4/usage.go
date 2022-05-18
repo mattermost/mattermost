@@ -36,14 +36,14 @@ func getPostsUsage(c *Context, w http.ResponseWriter, r *http.Request) {
 func getStorageUsage(c *Context, w http.ResponseWriter, r *http.Request) {
 	usage, appErr := c.App.GetStorageUsage()
 	if appErr != nil {
-		c.Err = model.NewAppError("Api4.getPostsUsage", "app.post.analytics_posts_count.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.getStorageUsage", "app.usage.get_storage_usage.app_erro", nil, appErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	usage = utils.RoundOffToZeroes(float64(usage))
 	json, err := json.Marshal(&model.StorageUsage{Bytes: usage})
 	if err != nil {
-		c.Err = model.NewAppError("Api4.getPostsUsage", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.getStorageUsage", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
