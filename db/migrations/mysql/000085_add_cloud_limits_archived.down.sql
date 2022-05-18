@@ -7,8 +7,8 @@ SET @preparedStatement = (SELECT IF(
 	) > 0,
 	'ALTER TABLE teams DROP COLUMN IF EXISTS CloudLimitsArchived;',
 	'SELECT 1'
-))
+));
 
-PREPARE alterIfExists FROM @preparedStatment;
+PREPARE alterIfExists FROM @preparedStatement;
 EXECUTE alterIfExists;
 DEALLOCATE PREPARE alterIfExists;
