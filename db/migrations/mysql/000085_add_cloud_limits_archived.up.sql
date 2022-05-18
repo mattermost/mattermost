@@ -6,7 +6,7 @@ SET @preparedStatement = (SELECT IF(
 		AND column_name = 'CloudLimitsArchived'
 	),
 	'SELECT 1',
-	'ALTER TABLE Teams ADD COLUMN CloudLimitsArchived BOOLEAN DEFAULT FALSE;'
+	'ALTER TABLE Teams ADD COLUMN CloudLimitsArchived BOOLEAN NOT NULL DEFAULT FALSE;'
 ));
 
 PREPARE alterIfNotExists FROM @preparedStatement;

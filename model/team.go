@@ -41,7 +41,7 @@ type Team struct {
 	SchemeId            *string `json:"scheme_id"`
 	GroupConstrained    *bool   `json:"group_constrained"`
 	PolicyID            *string `json:"policy_id"`
-	CloudLimitsArchived *bool   `json:"cloud_limits_archived"`
+	CloudLimitsArchived bool    `json:"cloud_limits_archived"`
 }
 
 type TeamPatch struct {
@@ -250,7 +250,7 @@ func (o *Team) Patch(patch *TeamPatch) {
 	}
 
 	if patch.CloudLimitsArchived != nil {
-		o.CloudLimitsArchived = patch.CloudLimitsArchived
+		o.CloudLimitsArchived = *patch.CloudLimitsArchived
 	}
 }
 

@@ -50,7 +50,7 @@ func (a *App) AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model
 		if team.DeleteAt == 0 {
 			activeTeams = append(activeTeams, team)
 		}
-		if team.DeleteAt > 0 && *team.CloudLimitsArchived {
+		if team.DeleteAt > 0 && team.CloudLimitsArchived {
 			cloudArchivedTeams = append(cloudArchivedTeams, team)
 		}
 	}
