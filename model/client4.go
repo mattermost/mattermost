@@ -324,10 +324,6 @@ func (c *Client4) cloudRoute() string {
 	return "/cloud"
 }
 
-func (c *Client4) usageRoute() string {
-	return "/usage"
-}
-
 func (c *Client4) testEmailRoute() string {
 	return "/email/test"
 }
