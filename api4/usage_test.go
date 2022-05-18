@@ -37,3 +37,17 @@ func TestGetPostsUsage(t *testing.T) {
 		assert.Equal(t, int64(10), usage.Count)
 	})
 }
+
+func TestGetStorageUsage(t *testing.T) {
+	t.Run("unauthenticated users can not access", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		th.Client.Logout()
+
+		usage, r, err := th.Client.GetStorageUsage()
+		assert.Error(t, err)
+		assert.Nil(t, usage)
+		assert.Equal(t, http.StatusUnauthorized, r.StatusCode)
+	})
+}

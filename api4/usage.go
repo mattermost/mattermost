@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func (api *API) InitUsage() {
@@ -39,6 +40,7 @@ func getStorageUsage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	usage = utils.RoundOffToZeroes(float64(usage))
 	json, err := json.Marshal(&model.StorageUsage{Bytes: usage})
 	if err != nil {
 		c.Err = model.NewAppError("Api4.getPostsUsage", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
