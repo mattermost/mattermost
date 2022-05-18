@@ -536,7 +536,9 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 					return true
 				}, plugin.OnCloudLimitsUpdatedID)
 			}
+			c.App.AdjustProductLimits(event.ProductLimits, event.Subscription)
 		}
+
 		if err := c.App.Cloud().UpdateSubscriptionFromHook(event.ProductLimits, event.Subscription); err != nil {
 			c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.subscription.update_error", nil, err.Error(), http.StatusInternalServerError)
 			return
