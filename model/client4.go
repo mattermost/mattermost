@@ -8097,3 +8097,17 @@ func (c *Client4) GetPostsUsage() (*PostsUsage, *Response, error) {
 	err = json.NewDecoder(r.Body).Decode(&usage)
 	return usage, BuildResponse(r), err
 }
+
+// GetStorageUsage returns the file storage usage for the instance,
+// rounded down the most signigicant digit
+func (c *Client4) GetStorageUsage() (*StorageUsage, *Response, error) {
+	r, err := c.DoAPIGet(c.usageRoute()+"/storage", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var usage *StorageUsage
+	err = json.NewDecoder(r.Body).Decode(&usage)
+	return usage, BuildResponse(r), err
+}
