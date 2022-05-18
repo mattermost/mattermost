@@ -479,8 +479,8 @@ func TestSoftDeleteAllTeamsExcept(t *testing.T) {
 		},
 	}
 	teamId := ""
-	for _, team := range teams {
-		team, err := th.App.CreateTeam(th.Context, team)
+	for _, create := range teams {
+		team, err := th.App.CreateTeam(th.Context, create)
 		require.Nil(t, err)
 		teamId = team.Id
 	}
@@ -488,6 +488,7 @@ func TestSoftDeleteAllTeamsExcept(t *testing.T) {
 	err := th.App.SoftDeleteAllTeamsExcept(teamId)
 	assert.Nil(t, err)
 	allTeams, err := th.App.GetAllTeams()
+	require.Nil(t, err)
 	for _, team := range allTeams {
 		if team.Id == teamId {
 			require.Equal(t, int64(0), team.DeleteAt)
@@ -522,8 +523,8 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 		},
 	}
 	teamIds := []string{}
-	for _, team := range teams {
-		team, err := th.App.CreateTeam(th.Context, team)
+	for _, create := range teams {
+		team, err := th.App.CreateTeam(th.Context, create)
 		require.Nil(t, err)
 		teamIds = append(teamIds, team.Id)
 	}
@@ -543,7 +544,7 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 			return teams[i].CreateAt < teams[j].CreateAt
 		})
 
-		for i, _ := range teamsList {
+		for i := range teamsList {
 			require.Equal(t, teamsList[i].DisplayName, teams[i].DisplayName)
 			require.NotEqual(t, 0, teamsList[i].DeleteAt)
 			require.Equal(t, true, *teamsList[i].CloudLimitsArchived)
@@ -571,7 +572,7 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 			return teams[i].CreateAt < teams[j].CreateAt
 		})
 
-		for i, _ := range teamsList {
+		for i := range teamsList {
 			require.Equal(t, teamsList[i].DisplayName, teams[i].DisplayName)
 			require.Equal(t, int64(0), teamsList[i].DeleteAt)
 			require.Equal(t, false, *teamsList[i].CloudLimitsArchived)
