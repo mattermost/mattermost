@@ -96,6 +96,17 @@ func TestGetPing(t *testing.T) {
 		respString = string(respBytes)
 		require.Contains(t, respString, "testvalue")
 	}, "ping feature flag test")
+
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		th.App.ReloadConfig()
+		resp, err := client.DoAPIGet("/system/ping?device_id=platform:id", "")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		var respMap map[string]string
+		err = json.NewDecoder(resp.Body).Decode(&respMap)
+		require.NoError(t, err)
+		assert.Equal(t, "unknown", respMap["CanReceiveNotifications"]) // Unrecognized platform
+	}, "ping and test push notification")
 }
 
 func TestGetAudits(t *testing.T) {
