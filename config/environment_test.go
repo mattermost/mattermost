@@ -103,6 +103,22 @@ func TestRemoveEnvOverrides(t *testing.T) {
 			}),
 		},
 		{
+			name: "map[string]map[string]interface{}",
+			inputConfig: modifiedDefault(func(in *model.Config) {
+				in.PluginSettings.Plugins = make(map[string]map[string]interface{})
+				in.PluginSettings.Plugins["test"] = make(map[string]interface{})
+				in.PluginSettings.Plugins["test"]["test2"] = ""
+			}),
+			env: map[string]string{
+				"MM_PLUGINSETTINGS_PLUGINS_TEST_TEST2": "some_value",
+			},
+			expectedConfig: modifiedDefault(func(in *model.Config) {
+				in.PluginSettings.Plugins = make(map[string]map[string]interface{})
+				in.PluginSettings.Plugins["test"] = make(map[string]interface{})
+				in.PluginSettings.Plugins["test"]["test2"] = "some_value"
+			}),
+		},
+		{
 			name: "bad env",
 			inputConfig: modifiedDefault(func(in *model.Config) {
 			}),

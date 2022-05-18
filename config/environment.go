@@ -26,14 +26,36 @@ func GetEnvironment() map[string]string {
 }
 
 func applyEnvKey(key, value string, rValueSubject reflect.Value) {
+	var rFieldValue reflect.Value
 	keyParts := strings.SplitN(key, "_", 2)
 	if len(keyParts) < 1 {
 		return
 	}
-	rFieldValue := rValueSubject.FieldByNameFunc(func(candidate string) bool {
-		candidateUpper := strings.ToUpper(candidate)
-		return candidateUpper == keyParts[0]
-	})
+	if rValueSubject.Kind() == reflect.Struct {
+		rFieldValue = rValueSubject.FieldByNameFunc(func(candidate string) bool {
+			candidateUpper := strings.ToUpper(candidate)
+			return candidateUpper == keyParts[0]
+		})
+	} else if rValueSubject.Kind() == reflect.Map {
+		keys := rValueSubject.MapKeys()
+		for _, k := range keys {
+			if strings.ToUpper(k.String()) == keyParts[0] {
+				el := rValueSubject.MapIndex(k)
+				if el.Kind() == reflect.Map {
+					rFieldValue = reflect.MakeMap(el.Type())
+					for _, sk := range el.MapKeys() {
+						e := reflect.New(el.MapIndex(sk).Type()).Elem()
+						e.Set(el.MapIndex(sk))
+						rFieldValue.SetMapIndex(sk, e)
+					}
+				} else {
+					rFieldValue = reflect.New(el.Type()).Elem()
+					processRFieldValue(rFieldValue, keyParts, value)
+				}
+				rValueSubject.SetMapIndex(k, rFieldValue)
+			}
+		}
+	}
 
 	if !rFieldValue.IsValid() {
 		return
@@ -46,34 +68,7 @@ func applyEnvKey(key, value string, rValueSubject reflect.Value) {
 		}
 	}
 
-	switch rFieldValue.Kind() {
-	case reflect.Struct:
-		// If we have only one part left, we can't deal with a struct
-		// the env var is incomplete so give up.
-		if len(keyParts) < 2 {
-			return
-		}
-		applyEnvKey(keyParts[1], value, rFieldValue)
-	case reflect.String:
-		rFieldValue.Set(reflect.ValueOf(value))
-	case reflect.Bool:
-		boolVal, err := strconv.ParseBool(value)
-		if err == nil {
-			rFieldValue.Set(reflect.ValueOf(boolVal))
-		}
-	case reflect.Int:
-		intVal, err := strconv.ParseInt(value, 10, 0)
-		if err == nil {
-			rFieldValue.Set(reflect.ValueOf(int(intVal)))
-		}
-	case reflect.Int64:
-		intVal, err := strconv.ParseInt(value, 10, 0)
-		if err == nil {
-			rFieldValue.Set(reflect.ValueOf(intVal))
-		}
-	case reflect.SliceOf(reflect.TypeOf("")).Kind():
-		rFieldValue.Set(reflect.ValueOf(strings.Split(value, " ")))
-	}
+	processRFieldValue(rFieldValue, keyParts, value)
 }
 
 func applyEnvironmentMap(inputConfig *model.Config, env map[string]string) *model.Config {
@@ -137,6 +132,48 @@ func removeEnvOverrides(cfg, cfgWithoutEnv *model.Config, envOverrides map[strin
 		}
 	}
 	return newCfg
+}
+
+// processRFieldValue sets rFieldValue depending on it's type
+func processRFieldValue(rFieldValue reflect.Value, keyParts []string, value string) {
+	switch rFieldValue.Kind() {
+	case reflect.Struct:
+		// If we have only one part left, we can't deal with a struct
+		// the env var is incomplete so give up.
+		if len(keyParts) < 2 {
+			return
+		}
+		applyEnvKey(keyParts[1], value, rFieldValue)
+	case reflect.String:
+		rFieldValue.Set(reflect.ValueOf(value))
+	case reflect.Bool:
+		boolVal, err := strconv.ParseBool(value)
+		if err == nil {
+			rFieldValue.Set(reflect.ValueOf(boolVal))
+		}
+	case reflect.Int:
+		intVal, err := strconv.ParseInt(value, 10, 0)
+		if err == nil {
+			rFieldValue.Set(reflect.ValueOf(int(intVal)))
+		}
+	case reflect.Int64:
+		intVal, err := strconv.ParseInt(value, 10, 0)
+		if err == nil {
+			rFieldValue.Set(reflect.ValueOf(intVal))
+		}
+	case reflect.SliceOf(reflect.TypeOf("")).Kind():
+		rFieldValue.Set(reflect.ValueOf(strings.Split(value, " ")))
+	case reflect.Map:
+		// If we have only one part left, we can't deal with a map
+		// the env var is incomplete so give up.
+		if len(keyParts) < 2 {
+			return
+		}
+		applyEnvKey(keyParts[1], value, rFieldValue)
+	case reflect.Interface:
+		var i interface{} = value
+		rFieldValue.Set(reflect.ValueOf(i))
+	}
 }
 
 // getPaths turns a nested map into a slice of paths describing the keys of the map. Eg:
