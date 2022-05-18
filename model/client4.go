@@ -8101,11 +8101,12 @@ func (c *Client4) GetPostsUsage() (*PostsUsage, *Response, error) {
 // GetIntegrationsUsage returns usage information on integrations, including the count of enabled integrations
 func (c *Client4) GetIntegrationsUsage() (*IntegrationsUsage, *Response, error) {
 	r, err := c.DoAPIGet(c.usageRoute()+"/integrations", "")
-
-	var usage *IntegrationsUsage
-	if err = json.NewDecoder(r.Body).Decode(&usage); err != nil {
+	if err != nil {
 		return nil, BuildResponse(r), err
 	}
+	defer closeBody(r)
 
-	return usage, BuildResponse(r), nil
+	var usage *IntegrationsUsage
+	err = json.NewDecoder(r.Body).Decode(&usage)
+	return usage, BuildResponse(r), err
 }
