@@ -90,7 +90,7 @@ func (ch *Channels) getInstalledIntegrations() ([]*model.InstalledIntegration, *
 func (ch *Channels) getInstalledApps() ([]ListedApp, *model.AppError) {
 	rawURL := "/plugins/com.mattermost.apps/api/v1/marketplace"
 	values := url.Values{
-		"include_plugins": []string{"true"},
+		"include_plugins": []string{"false"},
 	}
 
 	r, appErr := ch.doPluginRequest(request.EmptyContext(), "GET", rawURL, values, nil)
