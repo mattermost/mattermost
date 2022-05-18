@@ -75,25 +75,15 @@ func (ch *Channels) getInstalledIntegrations() ([]*model.InstalledIntegration, *
 		}
 
 		for _, ap := range enabledApps {
-			ignore := false
-			for _, integration := range out {
-				if integration.ID == ap.Manifest.AppID {
-					integration.Type = "plugin-app"
-					ignore = true
-				}
+			integration := &model.InstalledIntegration{
+				Type:    "app",
+				ID:      ap.Manifest.AppID,
+				Name:    ap.Manifest.DisplayName,
+				Version: ap.Manifest.Version,
+				Enabled: ap.Enabled,
 			}
 
-			if !ignore {
-				integration := &model.InstalledIntegration{
-					Type:    "app",
-					ID:      ap.Manifest.AppID,
-					Name:    ap.Manifest.DisplayName,
-					Version: ap.Manifest.Version,
-					Enabled: ap.Enabled,
-				}
-
-				out = append(out, integration)
-			}
+			out = append(out, integration)
 		}
 	}
 
