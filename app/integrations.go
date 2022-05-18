@@ -41,15 +41,7 @@ func (ch *Channels) getInstalledIntegrations() ([]*model.InstalledIntegration, *
 
 	pluginStates := ch.cfgSvc.Config().PluginSettings.PluginStates
 	for _, p := range plugins {
-		ignore := false
-		for _, id := range model.InstalledIntegrationsIgnoredPlugins {
-			if p.Manifest.Id == id {
-				ignore = true
-				break
-			}
-		}
-
-		if !ignore {
+		if _, ok := model.InstalledIntegrationsIgnoredPlugins[p.Manifest.Id]; !ok {
 			enabled := false
 			if state, ok := pluginStates[p.Manifest.Id]; ok {
 				enabled = state.Enable
