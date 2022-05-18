@@ -57,6 +57,23 @@ type Record struct {
 	metaConv  []FuncMetaTypeConv
 }
 
+// wrap string arrays
+type AuditableStringArray struct {
+	Array []string `json:"array"`
+}
+
+func (a *AuditableStringArray) AuditableObject() interface{} {
+	return a.Array
+}
+
+type AuditableArray struct {
+	Array []interface{} `json:"array"`
+}
+
+func (a *AuditableArray) AuditableObject() interface{} {
+	return a.Array
+}
+
 // Success marks the audit record status as successful.
 func (rec *Record) Success() {
 	rec.Status = Success
@@ -92,31 +109,31 @@ func (rec *Record) AddMeta(name string, val interface{}) {
 
 func (rec *Record) AddMetadata(newObject interface{},
 	priorObject interface{},
-	resultObject Auditable,
+	resultObject interface{},
 	resultObjectType string) {
 	eventData := EventData{
 		Change:           newObject,
 		PriorState:       priorObject,
-		ResultingState:   resultObject.AuditableObject(),
+		ResultingState:   resultObject,
 		ResultObjectType: resultObjectType,
 	}
 	rec.EventData = eventData
 }
 
-func (rec *Record) AddMetadataWithParameters(newObject interface{},
-	parameters interface{},
-	priorObject interface{},
-	resultObject Auditable,
-	resultObjectType string) {
-	eventData := EventData{
-		Parameters:       parameters,
-		Change:           newObject,
-		PriorState:       priorObject,
-		ResultingState:   resultObject.AuditableObject(),
-		ResultObjectType: resultObjectType,
-	}
-	rec.EventData = eventData
-}
+//func (rec *Record) AddMetadataWithParameters(newObject interface{},
+//	parameters interface{},
+//	priorObject interface{},
+//	resultObject Auditable,
+//	resultObjectType string) {
+//	eventData := EventData{
+//		Parameters:       parameters,
+//		Change:           newObject,
+//		PriorState:       priorObject,
+//		ResultingState:   resultObject.AuditableObject(),
+//		ResultObjectType: resultObjectType,
+//	}
+//	rec.EventData = eventData
+//}
 
 // AddMetaTypeConverter adds a function capable of converting meta field types
 // into something more suitable for serialization.

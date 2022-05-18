@@ -71,6 +71,7 @@ func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddMetadata(nil, nil, nil, "")
 	auditRec.Success()
 	c.LogAudit("")
 
@@ -92,6 +93,7 @@ func deleteBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddMetadata(nil, nil, nil, "")
 	auditRec.Success()
 
 	ReturnStatusOK(w)

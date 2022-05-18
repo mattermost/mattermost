@@ -55,6 +55,10 @@ type SidebarCategoryWithChannels struct {
 	Channels []string `json:"channel_ids"`
 }
 
+func (s *SidebarCategoryWithChannels) AuditableObject() interface{} {
+	return s
+}
+
 func (sc SidebarCategoryWithChannels) ChannelIds() []string {
 	return sc.Channels
 }
@@ -65,6 +69,10 @@ type SidebarCategoryOrder []string
 type OrderedSidebarCategories struct {
 	Categories SidebarCategoriesWithChannels `json:"categories"`
 	Order      SidebarCategoryOrder          `json:"order"`
+}
+
+func (o *OrderedSidebarCategories) AuditableObject() interface{} {
+	return o
 }
 
 type SidebarChannel struct {

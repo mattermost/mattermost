@@ -41,7 +41,17 @@ func (api *API) InitChannelLocal() {
 
 func localCreateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	var channel *model.Channel
-	err := json.NewDecoder(r.Body).Decode(&channel)
+
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
+	err := json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&channel)
 	if err != nil {
 		c.SetInvalidParam("channel")
 		return
@@ -58,6 +68,7 @@ func localCreateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	auditRec.AddMetadata(postPayload, nil, sc, "channel")
 	auditRec.AddMeta("channel", sc) // overwrite meta
 	c.LogAudit("name=" + channel.Name)
 
@@ -73,7 +84,16 @@ func localUpdateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	props := model.StringInterfaceFromJSON(r.Body)
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
+	props := model.StringInterfaceFromJSON(bytes.NewBuffer(postBody))
 	privacy, ok := props["privacy"].(string)
 	if !ok || (model.ChannelType(privacy) != model.ChannelTypeOpen && model.ChannelType(privacy) != model.ChannelTypePrivate) {
 		c.SetInvalidParam("privacy")
@@ -85,6 +105,8 @@ func localUpdateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Reques
 		c.Err = err
 		return
 	}
+
+	priorChannel, _ := c.App.GetChannel(c.Params.ChannelId)
 
 	auditRec := c.MakeAuditRecord("localUpdateChannelPrivacy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -103,6 +125,7 @@ func localUpdateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	auditRec.AddMetadata(postPayload, priorChannel, updatedChannel, "channel")
 	auditRec.Success()
 	c.LogAudit("name=" + updatedChannel.Name)
 
@@ -123,6 +146,8 @@ func localRestoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	priorChannel, _ := c.App.GetChannel(c.Params.ChannelId)
+
 	auditRec := c.MakeAuditRecord("localRestoreChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("channel", channel)
@@ -133,6 +158,7 @@ func localRestoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddMetadata(nil, priorChannel, channel, "channel")
 	auditRec.Success()
 	c.LogAudit("name=" + channel.Name)
 
@@ -147,7 +173,16 @@ func localAddChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.StringInterfaceFromJSON(r.Body)
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
+	props := model.StringInterfaceFromJSON(bytes.NewBuffer(postBody))
 	userId, ok := props["user_id"].(string)
 	if !ok || !model.IsValidId(userId) {
 		c.SetInvalidParam("user_id")
@@ -216,6 +251,7 @@ func localAddChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddMetadata(postPayload, nil, channel, "channel") // TODO
 	auditRec.Success()
 	auditRec.AddMeta("add_user_id", cm.UserId)
 	c.LogAudit("name=" + channel.Name + " user_id=" + cm.UserId)
@@ -264,6 +300,7 @@ func localRemoveChannelMember(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	auditRec.AddMetadata(nil, nil, channel, "channel") // TODO
 	auditRec.Success()
 	c.LogAudit("name=" + channel.Name + " user_id=" + c.Params.UserId)
 
@@ -292,12 +329,12 @@ func localPatchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	originalOldChannel, appErr := c.App.GetChannel(c.Params.ChannelId)
+	priorChannel, appErr := c.App.GetChannel(c.Params.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
-	channel := originalOldChannel.DeepCopy()
+	channel := priorChannel.DeepCopy()
 
 	auditRec := c.MakeAuditRecord("localPatchChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -316,7 +353,7 @@ func localPatchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec.AddMetadata(postPayload, originalOldChannel, channel, "channel")
+	auditRec.AddMetadata(postPayload, priorChannel, channel, "channel")
 
 	auditRec.Success()
 	c.LogAudit("")
@@ -339,7 +376,18 @@ func localMoveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.StringInterfaceFromJSON(r.Body)
+	priorChannel, _ := c.App.GetChannel(c.Params.ChannelId)
+
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
+	props := model.StringInterfaceFromJSON(bytes.NewBuffer(postBody))
 	teamId, ok := props["team_id"].(string)
 	if !ok {
 		c.SetInvalidParam("team_id")
@@ -390,6 +438,7 @@ func localMoveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddMetadata(postPayload, priorChannel, channel, "channel")
 	auditRec.Success()
 	c.LogAudit("channel=" + channel.Name)
 	c.LogAudit("team=" + team.Name)

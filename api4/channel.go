@@ -244,7 +244,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMetadataWithParameters(postPayload, c.Params, originalOldChannel, updatedChannel, "channel")
+	auditRec.AddMetadata(postPayload, originalOldChannel, updatedChannel, "channel")
 	c.LogAudit("name=" + channel.Name)
 
 	if err := json.NewEncoder(w).Encode(oldChannel); err != nil {
@@ -1590,6 +1590,7 @@ func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("channel_id", c.Params.ChannelId)
 	auditRec.AddMeta("roles", newRoles)
+	priorChannelForAudit, _ := c.App.GetChannel(c.Params.ChannelId)
 
 	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), c.Params.ChannelId, model.PermissionManageChannelRoles) {
 		c.SetPermissionError(model.PermissionManageChannelRoles)
@@ -1601,6 +1602,9 @@ func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	resultChannelForAudit, _ := c.App.GetChannel(c.Params.ChannelId)
+
+	auditRec.AddMetadata(postPayload, priorChannelForAudit, resultChannelForAudit, "channel")
 	auditRec.Success()
 
 	ReturnStatusOK(w)
@@ -1612,8 +1616,17 @@ func updateChannelMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
 	var schemeRoles model.SchemeRoles
-	if jsonErr := json.NewDecoder(r.Body).Decode(&schemeRoles); jsonErr != nil {
+	if jsonErr := json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&schemeRoles); jsonErr != nil {
 		c.SetInvalidParam("scheme_roles")
 		return
 	}
@@ -1622,6 +1635,7 @@ func updateChannelMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.R
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("channel_id", c.Params.ChannelId)
 	auditRec.AddMeta("roles", schemeRoles)
+	priorChannelForAudit, _ := c.App.GetChannel(c.Params.ChannelId)
 
 	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), c.Params.ChannelId, model.PermissionManageChannelRoles) {
 		c.SetPermissionError(model.PermissionManageChannelRoles)
@@ -1633,6 +1647,9 @@ func updateChannelMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
+	resultChannelForAudit, _ := c.App.GetChannel(c.Params.ChannelId)
+
+	auditRec.AddMetadata(postPayload, priorChannelForAudit, resultChannelForAudit, "channel")
 	auditRec.Success()
 
 	ReturnStatusOK(w)

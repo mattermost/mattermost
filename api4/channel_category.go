@@ -4,7 +4,9 @@
 package api4
 
 import (
+	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/audit"
@@ -49,11 +51,20 @@ func createCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
 	auditRec := c.MakeAuditRecord("createCategoryForTeamForUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	var categoryCreateRequest *model.SidebarCategoryWithChannels
-	err := json.NewDecoder(r.Body).Decode(&categoryCreateRequest)
+	err := json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&categoryCreateRequest)
 	if err != nil || c.Params.UserId != categoryCreateRequest.UserId || c.Params.TeamId != categoryCreateRequest.TeamId {
 		c.SetInvalidParam("category")
 		return
@@ -76,6 +87,7 @@ func createCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	auditRec.AddMetadata(postPayload, nil, category, "category")
 	auditRec.Success()
 
 	w.Write(categoryJSON)
@@ -115,7 +127,18 @@ func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *htt
 	auditRec := c.MakeAuditRecord("updateCategoryOrderForTeamForUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	categoryOrder := model.ArrayFromJSON(r.Body)
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
+	priorOrder, _ := c.App.GetSidebarCategoryOrder(c.Params.UserId, c.Params.TeamId)
+
+	categoryOrder := model.ArrayFromJSON(bytes.NewBuffer(postBody))
 
 	for _, categoryId := range categoryOrder {
 		if !c.App.SessionHasPermissionToCategory(*c.AppContext.Session(), c.Params.UserId, c.Params.TeamId, categoryId) {
@@ -130,6 +153,9 @@ func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *htt
 		return
 	}
 
+	resultingOrder, _ := c.App.GetSidebarCategoryOrder(c.Params.UserId, c.Params.TeamId)
+
+	auditRec.AddMetadata(postBody, &audit.AuditableStringArray{Array: priorOrder}, &audit.AuditableStringArray{Array: resultingOrder}, "category")
 	auditRec.Success()
 	w.Write([]byte(model.ArrayToJSON(categoryOrder)))
 }
@@ -174,8 +200,17 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 	auditRec := c.MakeAuditRecord("updateCategoriesForTeamForUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
 	var categoriesUpdateRequest []*model.SidebarCategoryWithChannels
-	err := json.NewDecoder(r.Body).Decode(&categoriesUpdateRequest)
+	err := json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&categoriesUpdateRequest)
 	if err != nil {
 		c.SetInvalidParam("category")
 		return
@@ -193,6 +228,8 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
+	priorCategories, _ := c.App.GetSidebarCategories(c.Params.UserId, c.Params.TeamId)
+
 	categories, appErr := c.App.UpdateSidebarCategories(c.Params.UserId, c.Params.TeamId, categoriesUpdateRequest)
 	if appErr != nil {
 		c.Err = appErr
@@ -205,6 +242,7 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
+	auditRec.AddMetadata(postPayload, priorCategories, categories, "category")
 	auditRec.Success()
 	w.Write(categoriesJSON)
 }
@@ -275,8 +313,17 @@ func updateCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 	auditRec := c.MakeAuditRecord("updateCategoryForTeamForUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
 	var categoryUpdateRequest *model.SidebarCategoryWithChannels
-	err := json.NewDecoder(r.Body).Decode(&categoryUpdateRequest)
+	err := json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&categoryUpdateRequest)
 	if err != nil || categoryUpdateRequest.TeamId != c.Params.TeamId || categoryUpdateRequest.UserId != c.Params.UserId {
 		c.SetInvalidParam("category")
 		return
@@ -288,6 +335,8 @@ func updateCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 	}
 
 	categoryUpdateRequest.Id = c.Params.CategoryId
+
+	priorCategories, _ := c.App.GetSidebarCategories(c.Params.UserId, c.Params.TeamId)
 
 	categories, appErr := c.App.UpdateSidebarCategories(c.Params.UserId, c.Params.TeamId, []*model.SidebarCategoryWithChannels{categoryUpdateRequest})
 	if appErr != nil {
@@ -301,6 +350,7 @@ func updateCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	auditRec.AddMetadata(postPayload, priorCategories, categories, "category")
 	auditRec.Success()
 	w.Write(categoryJSON)
 }
@@ -325,6 +375,7 @@ func deleteCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	auditRec.AddMetadata(nil, nil, nil, "category")
 	auditRec.Success()
 	ReturnStatusOK(w)
 }
