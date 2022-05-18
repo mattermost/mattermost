@@ -893,8 +893,8 @@ func (a *App) GetTeamMember(teamID, userID string) (*model.TeamMember, *model.Ap
 	return teamMember, nil
 }
 
-func (a *App) GetTeamMembersForUser(userID string, includeDeleted bool) ([]*model.TeamMember, *model.AppError) {
-	teamMembers, err := a.Srv().Store.Team().GetTeamsForUser(context.Background(), userID, includeDeleted)
+func (a *App) GetTeamMembersForUser(userID string, excludeTeamID string, includeDeleted bool) ([]*model.TeamMember, *model.AppError) {
+	teamMembers, err := a.Srv().Store.Team().GetTeamsForUser(context.Background(), userID, excludeTeamID, includeDeleted)
 	if err != nil {
 		return nil, model.NewAppError("GetTeamMembersForUser", "app.team.get_members.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

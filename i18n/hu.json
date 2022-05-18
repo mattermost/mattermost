@@ -117,7 +117,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Az Elasticsearch Live Indexing Batch Size beállítának legalább 1-nek kell lennie."
+    "translation": "Az Elasticsearch Live Indexing Batch Size beállításnak legalább 1-nek kell lennie."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
@@ -2961,7 +2961,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Verzió 89+"
+    "translation": "Verzió 100+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5449,7 +5449,7 @@
   },
   {
     "id": "api.templates.questions_footer.info",
-    "translation": "Írjon nekünk bármikor a következő címen: "
+    "translation": "Segítségre van szüksége vagy kérdése van? Írjon nekünk e-mailt erre a címre: "
   },
   {
     "id": "api.templates.post_body.button",
@@ -6373,7 +6373,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Munkamenet lejárt: Kérjük jelentkezzen be az értesítések fogadásához. A {{.siteName}} munkamenetei úgy vannak beállítva a rendszergazda által hogy minden {{.daysCount}} nap lejárjanak."
+    "translation": "Munkamenet lejárt: Kérjük jelentkezzen be az értesítések fogadásához. A {{.siteName}} munkamenetei úgy vannak beállítva a rendszergazda által, hogy minden {{.hoursCount}} óránként lejárjanak."
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
@@ -8697,11 +8697,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "A Mattermost 14 napos ingyenes próbaverziója ma lejárt"
+    "translation": "A Mattermost 14 napos ingyenes próbaverziója lejárt"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, a Mattermost Cloud Enterprise 14 napos ingyenes próbaverziója ma lejárt, {{.TodayDate}}. Kérjük adja hozzá fizetési adatait, hogy csapata továbbra is élvezhesse a Cloud Enterprise előnyeit. Ha 30 napon belül nem adja meg a fizetési adatait, a Cloud munkaterületét véglegesen töröljük, és a kapcsolódó adatokat elveszíti."
+    "translation": "{{.Name}}, a Mattermost Cloud Enterprise 14 napos ingyenes próbaverziója {{.TodayDate}} napon lejárt. Reméljük, tetszett Önnek a rugalmas és biztonságos együttműködési platformunk. Kérjük, adja meg a fizetési adatait, hogy csapata továbbra is együtt dolgozhasson a Mattermost által."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -9145,7 +9145,7 @@
   },
   {
     "id": "api.templates.server_inactivity_subject",
-    "translation": "ÜDV! Nyissa meg a Mattermostot, hogy növelje csapata termelékenységét!"
+    "translation": "Nyissa meg a Mattermostot, hogy növelje csapata termelékenységét!"
   },
   {
     "id": "api.templates.server_inactivity_title",
@@ -9218,5 +9218,73 @@
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "Az e-mail beállításokban nem meghatározott értékek vannak."
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title",
+    "translation": "{{ .SenderName }} meghívta Önt hogy csatlakozzon {{ .ChannelsLen }} csatornához a {{ .TeamDisplayName }} csapatban"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} meghívta Önt hogy csatlakozzon {{ .ChannelsLen }} csatornához a {{ .TeamDisplayName }} csapatban"
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "Csatorna neve érvénytelen"
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "E-mail lista üres"
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
+    "translation": "A Bleve Bulk Indexing Batch Size beállításnak {{.BatchSize}} hosszúnak kell lennie."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "Az Elasticsearch Bulk Indexing Batch Size beállításnak legalább {{.BatchSize}} hosszúnak kell lennie."
+  },
+  {
+    "id": "model.channel.is_valid.1_or_more.app_error",
+    "translation": "A névnek 1 vagy több kisbetűs alfanumerikus karakterből kell állnia."
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "Érvénytelen post_id"
+  },
+  {
+    "id": "app.channel.get_file_count.app_error",
+    "translation": "A csatorna fájljainak számát nem lehet lekérdezni"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
+    "translation": "Az Ön {{.WorkspaceName}} munkaterülete mostantól a megemelt verziót használja. A számlázás {{.TrialEnd}}-tól kezdődik"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "Ön mostantól a megemelt verziót használja!"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subject",
+    "translation": "Mattermost frissítés megerősítés"
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "Az Elasticsearch beállításában nem mentett értékek vannak."
+  },
+  {
+    "id": "api.templates.server_inactivity_footer_disclaimer",
+    "translation": "Ezt az egyszeri e-mailt azért kapta, mert a Mattermost szervere több mint {{.Hours}} órán keresztül inaktív volt. Ezt az e-mailt a Mattermost szervere automatikusan generálta."
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "HIba történt a webhorogról az előfizetés frissítése közben."
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Az mmctl segítségével történő feltöltés egy felhő alapú példányra nem támogatott. Kérjük, tekintse meg a dokumentációt itt: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "Hiba a legutóbbi keresések letöltése közben"
   }
 ]

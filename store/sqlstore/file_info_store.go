@@ -5,12 +5,13 @@ package sqlstore
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
@@ -509,12 +510,33 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 		LeftJoin("Posts as P ON FileInfo.PostId=P.Id").
 		LeftJoin("Channels as C ON C.Id=P.ChannelId").
 		LeftJoin("ChannelMembers as CM ON C.Id=CM.ChannelId").
-		Where(sq.Or{sq.Eq{"C.TeamId": teamId}, sq.Eq{"C.TeamId": ""}}).
 		Where(sq.Eq{"FileInfo.DeleteAt": 0}).
 		OrderBy("FileInfo.CreateAt DESC").
 		Limit(100)
 
+	if teamId != "" {
+		query = query.Where(sq.Or{
+			sq.Eq{"C.TeamId": teamId},
+			sq.Eq{"C.TeamId": ""},
+		})
+	}
+
+	now := model.GetMillis()
 	for _, params := range paramsList {
+		if params.Modifier == model.ModifierFiles {
+			// Deliberately keeping non-alphanumeric characters to
+			// prevent surprises in UI.
+			buf, err := json.Marshal(params)
+			if err != nil {
+				return nil, err
+			}
+
+			err = fs.stores.post.LogRecentSearch(userId, buf, now)
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		params.Terms = removeNonAlphaNumericUnquotedTerms(params.Terms, " ")
 
 		if !params.IncludeDeletedChannels {
