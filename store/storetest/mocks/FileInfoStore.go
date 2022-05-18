@@ -236,20 +236,20 @@ func (_m *FileInfoStore) GetFromMaster(id string) (*model.FileInfo, error) {
 	return r0, r1
 }
 
-// GetStorageUsage provides a mock function with given fields: includeDeleted
-func (_m *FileInfoStore) GetStorageUsage(includeDeleted bool) (int64, error) {
-	ret := _m.Called(includeDeleted)
+// GetStorageUsage provides a mock function with given fields: allowFromCache, includeDeleted
+func (_m *FileInfoStore) GetStorageUsage(allowFromCache bool, includeDeleted bool) (int64, error) {
+	ret := _m.Called(allowFromCache, includeDeleted)
 
 	var r0 int64
-	if rf, ok := ret.Get(0).(func(bool) int64); ok {
-		r0 = rf(includeDeleted)
+	if rf, ok := ret.Get(0).(func(bool, bool) int64); ok {
+		r0 = rf(allowFromCache, includeDeleted)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(bool) error); ok {
-		r1 = rf(includeDeleted)
+	if rf, ok := ret.Get(1).(func(bool, bool) error); ok {
+		r1 = rf(allowFromCache, includeDeleted)
 	} else {
 		r1 = ret.Error(1)
 	}

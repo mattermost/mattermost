@@ -753,17 +753,17 @@ func testFileInfoGetStorageUsage(t *testing.T, ss store.Store) {
 	})
 	require.NoError(t, err)
 
-	usage, err := ss.FileInfo().GetStorageUsage(false)
+	usage, err := ss.FileInfo().GetStorageUsage(false, false)
 	require.NoError(t, err)
 	require.Equal(t, int64(30), usage)
 
 	_, err = ss.FileInfo().DeleteForPost(f1.PostId)
 	require.NoError(t, err)
-	usage, err = ss.FileInfo().GetStorageUsage(false)
+	usage, err = ss.FileInfo().GetStorageUsage(false, false)
 	require.NoError(t, err)
 	require.Equal(t, int64(20), usage)
 
-	usage, err = ss.FileInfo().GetStorageUsage(true)
+	usage, err = ss.FileInfo().GetStorageUsage(false, true)
 	require.NoError(t, err)
 	require.Equal(t, int64(30), usage)
 }

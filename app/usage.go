@@ -23,7 +23,7 @@ func (a *App) GetPostsUsage() (int64, *model.AppError) {
 
 // GetStorageUsage returns the sum of files stored
 func (a *App) GetStorageUsage() (int64, *model.AppError) {
-	usage, err := a.Srv().Store.FileInfo().GetStorageUsage(false)
+	usage, err := a.Srv().Store.FileInfo().GetStorageUsage(true, false)
 	if err != nil {
 		return 0, model.NewAppError("GetStorageUsage", "app.usage.get_storage_usage.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

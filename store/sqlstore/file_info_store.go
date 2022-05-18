@@ -735,7 +735,7 @@ func (fs SqlFileInfoStore) GetFilesBatchForIndexing(startTime int64, startFileID
 	return files, nil
 }
 
-func (fs SqlFileInfoStore) GetStorageUsage(includeDeleted bool) (int64, error) {
+func (fs SqlFileInfoStore) GetStorageUsage(allowFromCache, includeDeleted bool) (int64, error) {
 	query := fs.getQueryBuilder().
 		Select("SUM(Size)").
 		From("FileInfo")

@@ -3426,7 +3426,7 @@ func (s *OpenTracingLayerFileInfoStore) GetFromMaster(id string) (*model.FileInf
 	return result, err
 }
 
-func (s *OpenTracingLayerFileInfoStore) GetStorageUsage(includeDeleted bool) (int64, error) {
+func (s *OpenTracingLayerFileInfoStore) GetStorageUsage(allowFromCache bool, includeDeleted bool) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.GetStorageUsage")
 	s.Root.Store.SetContext(newCtx)
@@ -3435,7 +3435,7 @@ func (s *OpenTracingLayerFileInfoStore) GetStorageUsage(includeDeleted bool) (in
 	}()
 
 	defer span.Finish()
-	result, err := s.FileInfoStore.GetStorageUsage(includeDeleted)
+	result, err := s.FileInfoStore.GetStorageUsage(allowFromCache, includeDeleted)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

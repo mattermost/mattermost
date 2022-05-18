@@ -3841,11 +3841,11 @@ func (s *RetryLayerFileInfoStore) GetFromMaster(id string) (*model.FileInfo, err
 
 }
 
-func (s *RetryLayerFileInfoStore) GetStorageUsage(includeDeleted bool) (int64, error) {
+func (s *RetryLayerFileInfoStore) GetStorageUsage(allowFromCache bool, includeDeleted bool) (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.FileInfoStore.GetStorageUsage(includeDeleted)
+		result, err := s.FileInfoStore.GetStorageUsage(allowFromCache, includeDeleted)
 		if err == nil {
 			return result, nil
 		}
