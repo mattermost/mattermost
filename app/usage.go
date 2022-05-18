@@ -5,20 +5,9 @@ package app
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/services/cache"
 	"github.com/mattermost/mattermost-server/v6/utils"
-)
-
-var usagesCache = cache.NewLRU(cache.LRUOptions{
-	Size:          1,
-	DefaultExpiry: time.Hour,
-})
-
-const (
-	UsageStorageKey = "storage"
 )
 
 // GetPostsUsage returns "rounded off" total posts count like returns 900 instead of 987
