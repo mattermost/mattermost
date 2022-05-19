@@ -26,6 +26,21 @@ type ListedApp struct {
 	Enabled   bool `json:"enabled"`
 }
 
+func (a *App) CheckFreemiumLimitsForConfigSave(oldConfig, newConfig *model.Config) *model.AppError {
+	if !oldConfig.FeatureFlags.CloudFree {
+		return nil
+	}
+
+	for pluginId, newState := range newConfig.PluginSettings.PluginStates {
+		oldState, ok := oldConfig.PluginSettings.PluginStates[pluginId]
+		if newState.Enable && !(ok && oldState.Enable) {
+			return a.checkIfIntegrationMeetsFreemiumLimits(pluginId)
+		}
+	}
+
+	return nil
+}
+
 func (ch *Channels) getInstalledIntegrations() ([]*model.InstalledIntegration, *model.AppError) {
 	out := []*model.InstalledIntegration{}
 

@@ -414,6 +414,7 @@ type AppIface interface {
 	Channels() *Channels
 	CheckCanInviteToSharedChannel(channelId string) error
 	CheckForClientSideCert(r *http.Request) (string, string, string)
+	CheckFreemiumLimitsForConfigSave(oldConfig, newConfig *model.Config) *model.AppError
 	CheckIntegrity() <-chan model.IntegrityCheckResult
 	CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError
 	CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError
