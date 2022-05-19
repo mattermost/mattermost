@@ -460,6 +460,8 @@ func localDeleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	priorChannel := channel.DeepCopy()
+
 	auditRec := c.MakeAuditRecord("localDeleteChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("channeld", channel)
@@ -479,6 +481,7 @@ func localDeleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddMetadata(nil, priorChannel, channel, "channel")
 	auditRec.Success()
 	c.LogAudit("name=" + channel.Name)
 

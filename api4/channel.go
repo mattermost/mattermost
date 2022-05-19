@@ -97,8 +97,6 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	priorChannel, _ := c.App.GetChannel(channel.Id)
-
 	auditRec := c.MakeAuditRecord("createChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("channel", channel)
@@ -121,7 +119,7 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	auditRec.AddMeta("channel", sc) // overwrite meta
-	auditRec.AddMetadata(postPayload, priorChannel, channel, "channel")
+	auditRec.AddMetadata(postPayload, nil, sc, "channel")
 	c.LogAudit("name=" + channel.Name)
 
 	w.WriteHeader(http.StatusCreated)

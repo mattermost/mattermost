@@ -107,6 +107,8 @@ func (rec *Record) AddMeta(name string, val interface{}) {
 	rec.Meta[name] = val
 }
 
+func (rec *Record) AddPriorObject(priorObject in)
+
 func (rec *Record) AddMetadata(newObject interface{},
 	priorObject interface{},
 	resultObject interface{},

@@ -375,6 +375,9 @@ func confirmCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(bodyBytes)).Decode(&postPayload)
+
 	var confirmRequest *model.ConfirmPaymentMethodRequest
 	if err = json.Unmarshal(bodyBytes, &confirmRequest); err != nil {
 		c.Err = model.NewAppError("Api4.confirmCustomerPayment", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -387,6 +390,7 @@ func confirmCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	auditRec.AddMetadata(postPayload, nil, nil, "")
 	auditRec.Success()
 
 	ReturnStatusOK(w)

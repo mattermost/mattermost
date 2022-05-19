@@ -4,7 +4,9 @@
 package api4
 
 import (
+	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
@@ -298,8 +300,17 @@ func getCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
 	var commandArgs model.CommandArgs
-	if jsonErr := json.NewDecoder(r.Body).Decode(&commandArgs); jsonErr != nil {
+	if jsonErr := json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&commandArgs); jsonErr != nil {
 		c.SetInvalidParam("command_args")
 		return
 	}
@@ -353,6 +364,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddMetadata(postPayload, nil, commandArgs, "")
 	auditRec.Success()
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))

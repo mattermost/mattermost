@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -77,8 +78,17 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
 	var frame model.RemoteClusterFrame
-	if jsonErr := json.NewDecoder(r.Body).Decode(&frame); jsonErr != nil {
+	if jsonErr := json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&frame); jsonErr != nil {
 		c.Err = model.NewAppError("remoteClusterAcceptMessage", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusBadRequest)
 		return
 	}
@@ -103,6 +113,7 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 	auditRec.AddMeta("remoteCluster", rc)
+	auditRec.AddMetadata(postPayload, nil, nil, "")
 
 	// pass message to Remote Cluster Service and write response
 	resp := service.ReceiveIncomingMsg(rc, frame.Msg)
@@ -122,8 +133,17 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
 	var frame model.RemoteClusterFrame
-	if jsonErr := json.NewDecoder(r.Body).Decode(&frame); jsonErr != nil {
+	if jsonErr := json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&frame); jsonErr != nil {
 		c.Err = model.NewAppError("remoteClusterConfirmInvite", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusBadRequest)
 		return
 	}
@@ -169,6 +189,7 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	auditRec.AddMetadata(postPayload, nil, nil, "")
 	auditRec.Success()
 	ReturnStatusOK(w)
 }
