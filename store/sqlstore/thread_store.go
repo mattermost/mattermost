@@ -1003,6 +1003,22 @@ func (s *SqlThreadStore) GetTopThreadsForTeamSince(teamID string, userID string,
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get top threads")
 	}
+
+	// resolve user for each top thread
+	for _, topThread := range topThreads {
+		userIDs := []string{topThread.UserId}
+		var err error
+		users, err := s.User().GetProfileByIds(context.Background(), userIDs, &store.UserGetByIdsOpts{}, true)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to get extended user for user id=%s", userIDs[0])
+		}
+		topThread.UserInformation = &model.InsightUserInformationType{
+			Id:                users[0].Id,
+			LastPictureUpdate: users[0].LastPictureUpdate,
+			FirstName:         users[0].FirstName,
+			LastName:          users[0].LastName,
+		}
+	}
 	return model.GetTopThreadListWithPagination(topThreads, limit), nil
 }
 
@@ -1079,6 +1095,22 @@ func (s *SqlThreadStore) GetTopThreadsForUserSince(teamID string, userID string,
 	err := s.GetReplicaX().Select(&topThreads, query, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get top threads")
+	}
+
+	// resolve user for each top thread
+	for _, topThread := range topThreads {
+		userIDs := []string{topThread.UserId}
+		var err error
+		users, err := s.User().GetProfileByIds(context.Background(), userIDs, &store.UserGetByIdsOpts{}, true)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to get extended user for user id=%s", userIDs[0])
+		}
+		topThread.UserInformation = &model.InsightUserInformationType{
+			Id:                users[0].Id,
+			LastPictureUpdate: users[0].LastPictureUpdate,
+			FirstName:         users[0].FirstName,
+			LastName:          users[0].LastName,
+		}
 	}
 	return model.GetTopThreadListWithPagination(topThreads, limit), nil
 }

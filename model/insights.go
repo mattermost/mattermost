@@ -57,14 +57,22 @@ type TopThreadList struct {
 }
 
 type TopThread struct {
-	PostId       string      `json:"post_id"`
-	ReplyCount   int64       `json:"reply_count"`
-	ChannelId    string      `json:"channel_id"`
-	DisplayName  string      `json:"channel_display_name"`
-	Name         string      `json:"channel_name"`
-	Message      string      `json:"message"`
-	Participants StringArray `json:"participants"`
-	UserId       string      `json:"user_id"`
+	PostId          string                      `json:"post_id"`
+	ReplyCount      int64                       `json:"reply_count"`
+	ChannelId       string                      `json:"channel_id"`
+	DisplayName     string                      `json:"channel_display_name"`
+	Name            string                      `json:"channel_name"`
+	Message         string                      `json:"message"`
+	Participants    StringArray                 `json:"participants"`
+	UserId          string                      `json:"user_id"`
+	UserInformation *InsightUserInformationType `json:"user_information"`
+}
+
+type InsightUserInformationType struct {
+	Id                string `json:"id"`
+	LastPictureUpdate int64  `json:"last_picture_update"`
+	FirstName         string `json:"first_name"`
+	LastName          string `json:"last_name"`
 }
 
 // GetStartUnixMilliForTimeRange gets the unix start time in milliseconds from the given time range.
