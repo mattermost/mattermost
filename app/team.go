@@ -31,6 +31,7 @@ import (
 )
 
 func (a *App) AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model.AppError {
+	maxActiveTeams := *teamLimits.Active
 	teams, appErr := a.GetAllTeams()
 	if appErr != nil {
 		return appErr
@@ -55,11 +56,11 @@ func (a *App) AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model
 		}
 	}
 
-	if len(activeTeams) > *teamLimits.Active {
+	if len(activeTeams) > maxActiveTeams {
 		// If there are more active teams than allowed, we must archive them
 		// Remove the first n elements (where n is the allowed number of teams) so they aren't archived
 
-		teamsToArchive := activeTeams[(*teamLimits.Active):]
+		teamsToArchive := activeTeams[maxActiveTeams:]
 
 		for _, team := range teamsToArchive {
 			cloudLimitsArchived := true
@@ -74,9 +75,9 @@ func (a *App) AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model
 				return err
 			}
 		}
-	} else if len(activeTeams) < *teamLimits.Active && len(cloudArchivedTeams) > 0 {
+	} else if len(activeTeams) < maxActiveTeams && len(cloudArchivedTeams) > 0 {
 		// If the number of activeTeams is less than the allowed limit, and there are some cloudArchivedTeams, we can restore these cloudArchivedTeams
-		activeTeamsBeforeLimit := *teamLimits.Active - len(activeTeams)
+		activeTeamsBeforeLimit := maxActiveTeams - len(activeTeams)
 		teamsToRestore := cloudArchivedTeams
 		// If the number of active teams remaining before the limit is hit is fewer than the number of cloudArchivedTeams, trim the list (still according to CreateAt)
 		// Otherwise, we can restore all of the cloudArchivedTeams without hitting the limit, so don't filter the list
@@ -111,7 +112,7 @@ func (a *App) SoftDeleteAllTeamsExcept(teamID string) *model.AppError {
 	if teams == nil {
 		return nil
 	}
-	cloudLimitsArchived := false
+	cloudLimitsArchived := true
 	patch := &model.TeamPatch{CloudLimitsArchived: &cloudLimitsArchived}
 	for _, team := range teams {
 		if team.Id != teamID {

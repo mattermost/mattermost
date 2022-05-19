@@ -492,8 +492,10 @@ func TestSoftDeleteAllTeamsExcept(t *testing.T) {
 	for _, team := range allTeams {
 		if team.Id == teamId {
 			require.Equal(t, int64(0), team.DeleteAt)
+			require.Equal(t, false, team.CloudLimitsArchived)
 		} else {
 			require.NotEqual(t, int64(0), team.DeleteAt)
+			require.Equal(t, true, team.CloudLimitsArchived)
 		}
 	}
 
@@ -557,7 +559,7 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 
 		err := th.App.AdjustTeamsFromProductLimits(teamLimits)
 		require.Nil(t, err)
-		activeLimit = 10000 // make the limit extremely high to all are enabled
+		activeLimit = 10000 // make the limit extremely high so all teams are enabled
 		teamLimits = &model.TeamsLimits{Active: &activeLimit}
 
 		err = th.App.AdjustTeamsFromProductLimits(teamLimits)
@@ -593,7 +595,7 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, false, team.CloudLimitsArchived)
 
-		activeLimit = 10000 // make the limit extremely high to all are enabled
+		activeLimit = 10000 // make the limit extremely high so all teams are enabled
 		teamLimits = &model.TeamsLimits{Active: &activeLimit}
 
 		err = th.App.AdjustTeamsFromProductLimits(teamLimits)
