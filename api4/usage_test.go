@@ -24,11 +24,13 @@ func TestGetPostsUsage(t *testing.T) {
 	})
 
 	t.Run("good request returns response", func(t *testing.T) {
-		// Following calls create a total of 15 posts
+		// Following calls create a total of (12 system + 15 user) posts
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
-		th.CreatePost()
-		th.CreatePost()
+
+		for i := 0; i < 14; i++ {
+			th.CreatePost()
+		}
 
 		usage, r, err := th.Client.GetPostsUsage()
 		assert.NoError(t, err)
