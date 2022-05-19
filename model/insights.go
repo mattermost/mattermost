@@ -61,7 +61,7 @@ type TopThread struct {
 	ReplyCount   int64       `json:"reply_count"`
 	ChannelId    string      `json:"channel_id"`
 	DisplayName  string      `json:"channel_display_name"`
-	Name         string      `json:"name"`
+	Name         string      `json:"channel_name"`
 	Message      string      `json:"message"`
 	Participants StringArray `json:"participants"`
 	UserId       string      `json:"user_id"`
