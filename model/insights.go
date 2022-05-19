@@ -57,10 +57,14 @@ type TopThreadList struct {
 }
 
 type TopThread struct {
-	PostId      string `json:"post_id"`
-	ReplyCount  int64  `json:"reply_count"`
-	ChannelId   string `json:"channel_id"`
-	DisplayName string `json:"display_name"`
+	PostId       string      `json:"post_id"`
+	ReplyCount   int64       `json:"reply_count"`
+	ChannelId    string      `json:"channel_id"`
+	DisplayName  string      `json:"channel_display_name"`
+	Name         string      `json:"name"`
+	Message      string      `json:"message"`
+	Participants StringArray `json:"participants"`
+	UserID       string      `json:"user_id"`
 }
 
 // GetStartUnixMilliForTimeRange gets the unix start time in milliseconds from the given time range.

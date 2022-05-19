@@ -1259,7 +1259,7 @@ func testGetTopThreads(t *testing.T, ss store.Store) {
 		threadStoreCreateReply(t, ss, channel.Id, post1.Id, post1.UserId, 2000)
 		threadStoreCreateReply(t, ss, channel.Id, post1.Id, post1.UserId, 2000)
 
-		threadStoreCreateReply(t, ss, channel.Id, post2.Id, post2.UserId, 2000)
+		threadStoreCreateReply(t, ss, channel.Id, post2.Id, post1.UserId, 2000)
 
 		//  get top threads
 		topThreadsInTeam, err := ss.Thread().GetTopThreadsForTeamSince(team.Id, model.NewId(), 12, 0, limit)
@@ -1269,10 +1269,14 @@ func testGetTopThreads(t *testing.T, ss store.Store) {
 
 		// require first element to be post1 with 2 replyCount=2
 		require.Equal(t, topThreadsInTeam.Items[0].PostId, post1.Id)
+		require.Equal(t, topThreadsInTeam.Items[0].UserID, post1.UserId)
 		require.Equal(t, topThreadsInTeam.Items[0].ReplyCount, int64(2))
+		require.Equal(t, topThreadsInTeam.Items[0].Message, post1.Message)
 		// require second element to be post2 with 2 replyCount=2
 		require.Equal(t, topThreadsInTeam.Items[1].PostId, post2.Id)
 		require.Equal(t, topThreadsInTeam.Items[1].ReplyCount, int64(1))
+		require.Equal(t, topThreadsInTeam.Items[1].UserID, post2.UserId)
+		require.Equal(t, topThreadsInTeam.Items[1].Message, post2.Message)
 	})
 	t.Run("test get top user threads", func(t *testing.T) {
 		const limit = 10
@@ -1340,12 +1344,18 @@ func testGetTopThreads(t *testing.T, ss store.Store) {
 		// require first element of topThreadsByUser1 to be post1 with 2 replyCount=2
 		require.Equal(t, topThreadsByUser1.Items[0].PostId, post1.Id)
 		require.Equal(t, topThreadsByUser1.Items[0].ReplyCount, int64(2))
+		require.Equal(t, topThreadsByUser1.Items[0].Message, post1.Message)
+		require.Equal(t, topThreadsByUser1.Items[0].UserID, post1.UserId)
 		// require elements of topThreadsByUser2 to be post2 and post3 respectively
 		require.Equal(t, topThreadsByUser2.Items[0].PostId, post2.Id)
 		require.Equal(t, topThreadsByUser2.Items[0].ReplyCount, int64(2))
+		require.Equal(t, topThreadsByUser2.Items[0].Message, post2.Message)
+		require.Equal(t, topThreadsByUser2.Items[0].UserID, post2.UserId)
 
 		require.Equal(t, topThreadsByUser2.Items[1].PostId, post3.Id)
 		require.Equal(t, topThreadsByUser2.Items[1].ReplyCount, int64(1))
+		require.Equal(t, topThreadsByUser2.Items[1].Message, post3.Message)
+		require.Equal(t, topThreadsByUser2.Items[1].UserID, post3.UserId)
 	})
 
 }

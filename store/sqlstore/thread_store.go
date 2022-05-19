@@ -939,12 +939,23 @@ func (s *SqlThreadStore) GetThreadUnreadReplyCount(threadMembership *model.Threa
 // Top threads in all public channels and private channels userID is a member of. Returns a list of threads ranked by interactions.
 func (s *SqlThreadStore) GetTopThreadsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopThreadList, error) {
 	var args []interface{}
-	query := `select * from((
+	query := `select
+		threads_list.PostId,
+		threads_list.ReplyCount,
+		threads_list.ChannelId,
+		threads_list.DisplayName,
+		threads_list.Name,
+		p.Message,
+		threads_list.Participants,
+		p.UserId
+	from((
 		SELECT
 			t.PostId,
 			t.ReplyCount,
 			t.ChannelId,
-			c.DisplayName
+			t.Participants,
+			c.DisplayName,
+			c.Name
 		FROM
 			Threads t
 			LEFT JOIN PublicChannels c ON t.ChannelId = c.Id
@@ -953,7 +964,9 @@ func (s *SqlThreadStore) GetTopThreadsForTeamSince(teamID string, userID string,
 			AND c.TeamId = ?
 		GROUP BY
 			t.PostId,
-			c.DisplayName
+			c.DisplayName,
+			c.Name,
+			t.Participants
 	)
 	UNION
 	ALL (
@@ -961,10 +974,12 @@ func (s *SqlThreadStore) GetTopThreadsForTeamSince(teamID string, userID string,
 			t.PostId,
 			t.ReplyCount,
 			t.ChannelId,
-			c.DisplayName
+			t.Participants,
+			c.DisplayName,
+			c.Name
 		FROM
-			ChannelMembers cm
-			LEFT JOIN Threads t ON t.ChannelId = cm.ChannelId
+			Threads t
+			LEFT JOIN ChannelMembers cm ON t.ChannelId = cm.ChannelId
 			LEFT JOIN Channels c ON t.ChannelId = c.Id
 		WHERE
 			cm.UserId = ?
@@ -973,8 +988,13 @@ func (s *SqlThreadStore) GetTopThreadsForTeamSince(teamID string, userID string,
 			AND t.LastReplyAt > ?
 		GROUP BY
 			t.PostId,
-			c.DisplayName
-	) ORDER BY ReplyCount DESC) as threads_list limit ? offset ?`
+			c.DisplayName,
+			c.Name,
+			t.Participants
+	)) as threads_list
+	LEFT JOIN Posts as p on p.Id = threads_list.PostId
+	ORDER BY ReplyCount DESC
+	limit ? offset ?`
 
 	args = append(args, since, teamID, userID, teamID, since, limit+1, offset)
 
@@ -990,12 +1010,23 @@ func (s *SqlThreadStore) GetTopThreadsForUserSince(teamID string, userID string,
 	var args []interface{}
 
 	// gets all threads within the team which user follows.
-	query := `select * from((
+	query := `select 
+		threads_list.PostId,
+		threads_list.ReplyCount,
+		threads_list.ChannelId,
+		threads_list.DisplayName,
+		threads_list.Name,
+		p.Message,
+		threads_list.Participants,
+		p.UserId
+	from((
 		SELECT
 			t.PostId,
 			t.ReplyCount,
 			t.ChannelId,
-			c.DisplayName
+			t.Participants,
+			c.DisplayName,
+			c.Name
 		FROM
 			Threads t
 			LEFT JOIN PublicChannels c ON t.ChannelId = c.Id
@@ -1007,7 +1038,9 @@ func (s *SqlThreadStore) GetTopThreadsForUserSince(teamID string, userID string,
             AND tm.Following = TRUE
 		GROUP BY
 			t.PostId,
-			c.DisplayName
+			c.DisplayName,
+			c.Name,
+			t.Participants
 	)
 	UNION
 	ALL (
@@ -1015,7 +1048,9 @@ func (s *SqlThreadStore) GetTopThreadsForUserSince(teamID string, userID string,
 			t.PostId,
 			t.ReplyCount,
 			t.ChannelId,
-			c.DisplayName
+			t.Participants,
+			c.DisplayName,
+			c.Name
 		FROM
 			ChannelMembers cm
 			LEFT JOIN Threads t ON t.ChannelId = cm.ChannelId
@@ -1030,8 +1065,13 @@ func (s *SqlThreadStore) GetTopThreadsForUserSince(teamID string, userID string,
             AND tm.Following = TRUE
 		GROUP BY
 			t.PostId,
-			c.DisplayName
-	) ORDER BY ReplyCount DESC) as threads_list limit ? offset ?`
+			c.DisplayName,
+			c.Name,
+			t.Participants
+	)) as threads_list
+	LEFT JOIN Posts as p on p.Id = threads_list.PostId
+	ORDER BY ReplyCount DESC
+	limit ? offset ?`
 
 	args = append(args, since, teamID, userID, userID, teamID, since, userID, limit+1, offset)
 
