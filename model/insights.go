@@ -64,7 +64,7 @@ type TopThread struct {
 	Name         string      `json:"name"`
 	Message      string      `json:"message"`
 	Participants StringArray `json:"participants"`
-	UserID       string      `json:"user_id"`
+	UserId       string      `json:"user_id"`
 }
 
 // GetStartUnixMilliForTimeRange gets the unix start time in milliseconds from the given time range.
