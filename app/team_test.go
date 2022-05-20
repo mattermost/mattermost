@@ -607,7 +607,7 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 
 		// Sort the list of teams based on their creation date
 		sort.Slice(teamsList, func(i, j int) bool {
-			return teams[i].CreateAt < teams[j].CreateAt
+			return teamsList[i].CreateAt < teamsList[j].CreateAt
 		})
 
 		require.NotEqual(t, int64(0), teamsList[0].DeleteAt)
