@@ -36,7 +36,7 @@ func (ch *Channels) getIntegrationsUsage() (*model.IntegrationsUsage, *model.App
 		return nil, appErr
 	}
 
-	var count int64 = 0
+	var count = 0
 	for _, i := range installed {
 		if i.Enabled {
 			count++

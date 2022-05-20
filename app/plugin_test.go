@@ -1023,7 +1023,7 @@ func TestEnablePluginWithCloudLimits(t *testing.T) {
 
 	appErr = th.App.EnablePlugin("testplugin2")
 	checkError(t, appErr)
-	require.Contains(t, appErr.Error(), "Too many enabled integrations")
+	require.Equal(t, "app.install_integration.reached_max_limit.error", appErr.Id)
 
 	os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
 	th.App.ReloadConfig()
