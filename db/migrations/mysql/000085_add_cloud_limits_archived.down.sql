@@ -5,7 +5,7 @@ SET @preparedStatement = (SELECT IF(
 		AND table_schema = DATABASE()
 		AND column_name = 'CloudLimitsArchived'
 	),
-	'ALTER TABLE Teams DROP COLUMN IF EXISTS CloudLimitsArchived;',
+	'ALTER TABLE Teams DROP COLUMN CloudLimitsArchived;',
 	'SELECT 1'
 ));
 
