@@ -543,7 +543,7 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 
 		// Sort the list of teams based on their creation date
 		sort.Slice(teamsList, func(i, j int) bool {
-			return teams[i].CreateAt < teams[j].CreateAt
+			return teamsList[i].CreateAt < teamsList[j].CreateAt
 		})
 
 		for i := range teamsList {
@@ -571,7 +571,7 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 
 		// Sort the list of teams based on their creation date
 		sort.Slice(teamsList, func(i, j int) bool {
-			return teams[i].CreateAt < teams[j].CreateAt
+			return teamsList[i].CreateAt < teamsList[j].CreateAt
 		})
 
 		for i := range teamsList {
