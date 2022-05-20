@@ -263,7 +263,7 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 	}
 
 	// image post-processing
-	if info.IsImage() {
+	if info.IsImage() && !info.IsSvg() {
 		if limitErr := checkImageResolutionLimit(info.Width, info.Height, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
 			return nil, model.NewAppError("uploadData", "app.upload.upload_data.large_image.app_error",
 				map[string]interface{}{"Filename": us.Filename, "Width": info.Width, "Height": info.Height}, "", http.StatusBadRequest)
