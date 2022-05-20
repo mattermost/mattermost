@@ -281,6 +281,7 @@ type PostCountOptions struct {
 	MustHaveHashtag bool
 	ExcludeDeleted  bool
 	UsersPostsOnly  bool
+	AllowFromCache  bool
 }
 
 func (o *Post) Etag() string {
