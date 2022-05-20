@@ -12,7 +12,7 @@ import (
 
 // CheckFreemiumLimitsForConfigSave returns an error if the configuration being saved violates the Cloud Freemium limits
 func (a *App) CheckFreemiumLimitsForConfigSave(oldConfig, newConfig *model.Config) *model.AppError {
-	if a.Config().FeatureFlags.CloudFree {
+	if !a.Config().FeatureFlags.CloudFree {
 		return nil
 	}
 

@@ -283,7 +283,14 @@ func TestUpdateConfig(t *testing.T) {
 			Integrations: &model.IntegrationsLimits{
 				Enabled: model.NewInt(1),
 			},
-		}, nil).Once()
+		}, nil).Twice()
+
+		// Exceed freemium limit while enabling more than one plugin. Should throw error.
+		cfg1 = th.App.Config().Clone()
+		cfg1.PluginSettings.PluginStates["new-plugin"] = &model.PluginState{Enable: true}
+		cfg1.PluginSettings.PluginStates["new-plugin2"] = &model.PluginState{Enable: true}
+		_, _, err1 = th.SystemAdminClient.PatchConfig(cfg1)
+		require.Error(t, err1)
 
 		// Match freemium limit. Should not throw error.
 		cfg1 = th.App.Config().Clone()
@@ -879,7 +886,14 @@ func TestPatchConfig(t *testing.T) {
 			Integrations: &model.IntegrationsLimits{
 				Enabled: model.NewInt(1),
 			},
-		}, nil).Once()
+		}, nil).Twice()
+
+		// Exceed freemium limit while enabling more than one plugin. Should throw error.
+		cfg1 = th.App.Config().Clone()
+		cfg1.PluginSettings.PluginStates["new-plugin"] = &model.PluginState{Enable: true}
+		cfg1.PluginSettings.PluginStates["new-plugin2"] = &model.PluginState{Enable: true}
+		_, _, err1 = th.SystemAdminClient.PatchConfig(cfg1)
+		require.Error(t, err1)
 
 		// Match freemium limit. Should not throw error.
 		cfg1 = th.App.Config().Clone()

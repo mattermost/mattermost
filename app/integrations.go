@@ -27,11 +27,16 @@ type ListedApp struct {
 }
 
 func (a *App) checkIntegrationLimitsForConfigSave(oldConfig, newConfig *model.Config) *model.AppError {
+	pluginIds := []string{}
 	for pluginId, newState := range newConfig.PluginSettings.PluginStates {
 		oldState, ok := oldConfig.PluginSettings.PluginStates[pluginId]
 		if newState.Enable && !(ok && oldState.Enable) {
-			return a.checkIfIntegrationMeetsFreemiumLimits(pluginId)
+			pluginIds = append(pluginIds, pluginId)
 		}
+	}
+
+	if len(pluginIds) > 0 {
+		return a.checkIfIntegrationsMeetFreemiumLimits(pluginIds)
 	}
 
 	return nil
@@ -127,13 +132,16 @@ func (ch *Channels) getInstalledApps() ([]ListedApp, *model.AppError) {
 	return result, nil
 }
 
-func (a *App) checkIfIntegrationMeetsFreemiumLimits(pluginID string) *model.AppError {
+func (a *App) checkIfIntegrationsMeetFreemiumLimits(originalPluginIds []string) *model.AppError {
 	if !a.Config().FeatureFlags.CloudFree {
 		return nil
 	}
 
-	if _, ok := model.InstalledIntegrationsIgnoredPlugins[pluginID]; ok {
-		return nil
+	pluginIds := map[string]bool{}
+	for _, pluginId := range originalPluginIds {
+		if _, ok := model.InstalledIntegrationsIgnoredPlugins[pluginId]; !ok {
+			pluginIds[pluginId] = true
+		}
 	}
 
 	limits, err := a.Cloud().GetCloudLimits("")
@@ -150,9 +158,9 @@ func (a *App) checkIfIntegrationMeetsFreemiumLimits(pluginID string) *model.AppE
 		return appErr
 	}
 
-	enableCount := 1
+	enableCount := len(pluginIds)
 	for _, integration := range installed {
-		if integration.Enabled && integration.ID != pluginID {
+		if _, ok := pluginIds[integration.ID]; !ok && integration.Enabled {
 			enableCount++
 		}
 	}
