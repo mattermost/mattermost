@@ -66,6 +66,7 @@ type TopThread struct {
 	Participants    StringArray                 `json:"participants"`
 	UserId          string                      `json:"user_id"`
 	UserInformation *InsightUserInformationType `json:"user_information"`
+	Post            *Post                       `json:"post"`
 }
 
 type InsightUserInformationType struct {
