@@ -1165,7 +1165,7 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		GroupConstrained:         props.GroupConstrained,
 		ExcludeGroupConstrained:  props.ExcludeGroupConstrained,
 		ExcludePolicyConstrained: props.ExcludePolicyConstrained,
-		IncludeSearchById:        true, // TODO: pass this through api requests
+		IncludeSearchById:        props.IncludeSearchById,
 		Public:                   props.Public,
 		Private:                  props.Private,
 		IncludeDeleted:           includeDeleted,
