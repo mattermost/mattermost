@@ -3279,14 +3279,14 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 			LeftJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId")
 	}
 
-	likeClause, likeTerm := s.buildLIKEClause(opts.Term, "c.Name, c.DisplayName, c.Purpose")
+	likeClause, likeTerm := s.buildLIKEClause(opts.Term, "c.Name, c.DisplayName, c.Purpose, c.Id")
 	if likeTerm != "" {
 		likeClause = strings.ReplaceAll(likeClause, ":LikeTerm", "?")
-		fulltextClause, fulltextTerm := s.buildFulltextClause(opts.Term, "c.Name, c.DisplayName, c.Purpose")
+		fulltextClause, fulltextTerm := s.buildFulltextClause(opts.Term, "c.Name, c.DisplayName, c.Purpose, c.Id")
 		fulltextClause = strings.ReplaceAll(fulltextClause, ":FulltextTerm", "?")
 		query = query.Where(sq.Or{
-			sq.Expr(likeClause, likeTerm, likeTerm, likeTerm), // Keep the number of likeTerms same as the number
-			// of columns (c.Name, c.DisplayName, c.Purpose)
+			sq.Expr(likeClause, likeTerm, likeTerm, likeTerm, likeTerm), // Keep the number of likeTerms same as the number
+			// of columns (c.Name, c.DisplayName, c.Purpose, c.Id)
 			sq.Expr(fulltextClause, fulltextTerm),
 		})
 	}
