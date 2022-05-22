@@ -140,7 +140,7 @@ type ChannelSearchOpts struct {
 	PolicyID                 string
 	ExcludePolicyConstrained bool
 	IncludePolicyID          bool
-	IncludeSearchById        bool	
+	IncludeSearchById        bool
 	Public                   bool
 	Private                  bool
 	Page                     *int
