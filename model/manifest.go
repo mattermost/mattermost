@@ -117,6 +117,7 @@ type PluginSettingsSchema struct {
 //      "server": {
 //        "executables": {
 //          "linux-amd64": "server/dist/plugin-linux-amd64",
+//          "linux-arm64": "server/dist/plugin-linux-arm64",
 //          "darwin-amd64": "server/dist/plugin-darwin-amd64",
 //          "windows-amd64": "server/dist/plugin-windows-amd64.exe"
 //        }
@@ -211,6 +212,8 @@ type ManifestServer struct {
 type ManifestExecutables struct {
 	// LinuxAmd64 is the path to your executable binary for the corresponding platform
 	LinuxAmd64 string `json:"linux-amd64,omitempty" yaml:"linux-amd64,omitempty"`
+	// LinuxArm64 is the path to your executable binary for the corresponding platform
+	LinuxArm64 string `json:"linux-arm64,omitempty" yaml:"linux-arm64,omitempty"`
 	// DarwinAmd64 is the path to your executable binary for the corresponding platform
 	DarwinAmd64 string `json:"darwin-amd64,omitempty" yaml:"darwin-amd64,omitempty"`
 	// WindowsAmd64 is the path to your executable binary for the corresponding platform
