@@ -2632,7 +2632,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 					return nil, err
 				}
 				fmt.Println(threadMembership.UnreadMentions)
-				tm, nErr := a.Srv().Store.Thread().UpdateMembership(threadMembership)
+				_, nErr = a.Srv().Store.Thread().UpdateMembership(threadMembership)
 				if nErr != nil {
 					return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 				}
