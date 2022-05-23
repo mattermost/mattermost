@@ -130,7 +130,7 @@ PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.5.0
-PLUGIN_PACKAGES += focalboard-v0.15.0
+PLUGIN_PACKAGES += focalboard-v7.0.0-rc1
 PLUGIN_PACKAGES += mattermost-plugin-apps-v1.0.1
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
@@ -157,7 +157,7 @@ all: run ## Alias for 'run'.
 include config.mk
 include build/*.mk
 
-LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.MockCWS=$(MM_ENABLE_CWS_MOCK)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.MockCWS=$(true)"
 
 RUN_IN_BACKGROUND ?=
 ifeq ($(RUN_SERVER_IN_BACKGROUND),true)
