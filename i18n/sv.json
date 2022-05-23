@@ -9329,5 +9329,9 @@
   {
     "id": "api.file.cloud_upload.app_error",
     "translation": "Uppladdning via mmctl till en molninstans stöds inte. Se dokumentationen här: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "api.cloud.cloud_free_feature_flag_off_error",
+    "translation": "Flaggan för CloudFree-funktionen är avstängd."
   }
 ]
