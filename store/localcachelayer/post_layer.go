@@ -142,6 +142,7 @@ func (s LocalCachePostStore) GetPosts(options model.GetPostsOptions, allowFromCa
 	return list, err
 }
 
+// AnalyticsPostCount looks up cache only when ExcludeDeleted and UsersPostsOnly are true and rest are falsy.
 func (s LocalCachePostStore) AnalyticsPostCount(options *model.PostCountOptions) (int64, error) {
 	if !options.AllowFromCache || options.MustHaveFile || options.MustHaveHashtag || !options.UsersPostsOnly || !options.ExcludeDeleted || options.TeamId != "" {
 		return s.PostStore.AnalyticsPostCount(options)
