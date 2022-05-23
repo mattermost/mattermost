@@ -2444,6 +2444,33 @@ func TestMarkUnreadWithThreads(t *testing.T) {
 			require.NotNil(t, threadMembership)
 			assert.Zero(t, threadMembership.UnreadMentions)
 		})
+
+		t.Run("Mentions counted correctly if post is edited", func(t *testing.T) {
+			user3 := th.CreateUser()
+			defer th.App.PermanentDeleteUser(th.Context, user3)
+			rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "root post"}, th.BasicChannel, false, false)
+			require.Nil(t, appErr)
+			r1, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "reply 1"}, th.BasicChannel, false, false)
+			require.Nil(t, appErr)
+			_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "reply 2 @" + user3.Username}, th.BasicChannel, false, false)
+			require.Nil(t, appErr)
+			_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "reply 3"}, th.BasicChannel, false, false)
+			require.Nil(t, appErr)
+			editedPost := r1.Clone()
+			editedPost.Message += " edited"
+			_, appErr = th.App.UpdatePost(th.Context, editedPost, false)
+			require.Nil(t, appErr)
+
+			th.LinkUserToTeam(user3, th.BasicTeam)
+			th.AddUserToChannel(user3, th.BasicChannel)
+
+			_, appErr = th.App.MarkChannelAsUnreadFromPost(editedPost.Id, user3.Id, true)
+			require.Nil(t, appErr)
+			threadMembership, appErr := th.App.GetThreadMembershipForUser(user3.Id, rootPost.Id)
+			require.Nil(t, appErr)
+			require.NotNil(t, threadMembership)
+			assert.Equal(t, int64(1), threadMembership.UnreadMentions)
+		})
 	})
 }
 

@@ -2601,7 +2601,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 		// if this post was not followed before, create thread membership and update mention count
 		if threadMembership == nil {
 			opts := store.ThreadMembershipOpts{
-				Following:             false,
+				Following:             true,
 				IncrementMentions:     false,
 				UpdateFollowing:       true,
 				UpdateViewedTimestamp: true,
@@ -2620,11 +2620,19 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 				if nErr != nil {
 					return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 				}
-				threadMembership.UnreadMentions, err = a.countThreadMentions(user, post, channel.TeamId, post.UpdateAt-1)
+				rootPost := post
+				if threadId != post.Id {
+					rootPost, err = a.GetSinglePost(post.RootId)
+					if err != nil {
+						return nil, err
+					}
+				}
+				threadMembership.UnreadMentions, err = a.countThreadMentions(user, rootPost, channel.TeamId, post.CreateAt-1)
 				if err != nil {
 					return nil, err
 				}
-				_, nErr = a.Srv().Store.Thread().UpdateMembership(threadMembership)
+				fmt.Println(threadMembership.UnreadMentions)
+				tm, nErr := a.Srv().Store.Thread().UpdateMembership(threadMembership)
 				if nErr != nil {
 					return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 				}
@@ -2728,8 +2736,8 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID st
 		}
 		// If threadmembership already exists but user had previously unfollowed the thread, then follow the thread again.
 		threadMembership.Following = true
-		threadMembership.LastViewed = post.UpdateAt - 1
-		threadMembership.UnreadMentions, err = a.countThreadMentions(user, rootPost, channel.TeamId, post.UpdateAt-1)
+		threadMembership.LastViewed = post.CreateAt - 1
+		threadMembership.UnreadMentions, err = a.countThreadMentions(user, rootPost, channel.TeamId, post.CreateAt-1)
 		if err != nil {
 			return nil, err
 		}
