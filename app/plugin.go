@@ -158,7 +158,7 @@ func (ch *Channels) syncPluginsActiveState() {
 	}
 
 	if err := ch.notifyIntegrationsUsageChanged(); err != nil {
-		mlog.Warn("failed to notify installed integrations changed", mlog.Err(err))
+		mlog.Warn("Failed to notify integrations usage changed", mlog.Err(err))
 	}
 }
 

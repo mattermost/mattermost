@@ -24,12 +24,11 @@ func (a *App) CheckFreemiumLimitsForConfigSave(oldConfig, newConfig *model.Confi
 	return nil
 }
 
-// GetIntegrationsUsage returns usage information on integrations, including the count of enabled integrations
+// GetIntegrationsUsage returns usage information on enabled integrations
 func (a *App) GetIntegrationsUsage() (*model.IntegrationsUsage, *model.AppError) {
 	return a.ch.getIntegrationsUsage()
 }
 
-// getIntegrationsUsage returns usage information on integrations, including the count of enabled integrations
 func (ch *Channels) getIntegrationsUsage() (*model.IntegrationsUsage, *model.AppError) {
 	installed, appErr := ch.getInstalledIntegrations()
 	if appErr != nil {

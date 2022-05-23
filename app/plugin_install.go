@@ -107,7 +107,7 @@ func (ch *Channels) installPluginFromData(data model.PluginEventData) {
 	}
 
 	if err := ch.notifyIntegrationsUsageChanged(); err != nil {
-		mlog.Warn("failed to notify installed integrations changed", mlog.Err(err))
+		mlog.Warn("Failed to notify integrations usage changed", mlog.Err(err))
 	}
 }
 
@@ -123,7 +123,7 @@ func (ch *Channels) removePluginFromData(data model.PluginEventData) {
 	}
 
 	if err := ch.notifyIntegrationsUsageChanged(); err != nil {
-		mlog.Warn("failed to notify installed integrations changed", mlog.Err(err))
+		mlog.Warn("Failed to notify integrations usage changed", mlog.Err(err))
 	}
 }
 
@@ -186,7 +186,7 @@ func (ch *Channels) installPlugin(pluginFile, signature io.ReadSeeker, installat
 	}
 
 	if err := ch.notifyIntegrationsUsageChanged(); err != nil {
-		mlog.Warn("failed to notify installed integrations changed", mlog.Err(err))
+		mlog.Warn("Failed to notify integrations usage changed", mlog.Err(err))
 	}
 
 	return manifest, nil
@@ -465,7 +465,7 @@ func (ch *Channels) RemovePlugin(id string) *model.AppError {
 	}
 
 	if err := ch.notifyIntegrationsUsageChanged(); err != nil {
-		mlog.Warn("Failed to notify plugin status changed", mlog.Err(err))
+		mlog.Warn("Failed to notify integrations usage changed", mlog.Err(err))
 	}
 
 	return nil
