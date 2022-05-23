@@ -2683,6 +2683,53 @@ func TestSetChannelUnread(t *testing.T) {
 		require.Equal(t, int64(1), unread.MsgCount)
 	})
 
+	t.Run("Unread on a direct channel in a thread", func(t *testing.T) {
+		dc := th.CreateDmChannel(th.CreateUser())
+		rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, CreateAt: now, ChannelId: dc.Id, Message: "root"}, dc, false, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser.Id, CreateAt: now + 10, ChannelId: dc.Id, Message: "reply 1"}, dc, false, false)
+		require.Nil(t, appErr)
+		reply2, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser.Id, CreateAt: now + 20, ChannelId: dc.Id, Message: "reply 2"}, dc, false, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser.Id, CreateAt: now + 30, ChannelId: dc.Id, Message: "reply 3"}, dc, false, false)
+		require.Nil(t, appErr)
+
+		// Ensure that post have been read
+		unread, err := th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(4), unread.MsgCount)
+		require.Equal(t, int64(1), unread.MsgCountRoot)
+		cv := &model.ChannelView{ChannelId: dc.Id}
+		_, appErr = th.App.ViewChannel(cv, u1.Id, s2.Id, false)
+		require.Nil(t, appErr)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(0), unread.MsgCount)
+		require.Equal(t, int64(0), unread.MsgCountRoot)
+
+		r, _ := th.Client.SetPostUnread(u1.Id, rootPost.Id, false)
+		assert.Equal(t, 200, r.StatusCode)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(4), unread.MsgCount)
+		require.Equal(t, int64(1), unread.MsgCountRoot)
+
+		// Ensure that post have been read
+		_, appErr = th.App.ViewChannel(cv, u1.Id, s2.Id, false)
+		require.Nil(t, appErr)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(0), unread.MsgCount)
+		require.Equal(t, int64(0), unread.MsgCountRoot)
+
+		r, _ = th.Client.SetPostUnread(u1.Id, reply2.Id, false)
+		assert.Equal(t, 200, r.StatusCode)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(2), unread.MsgCount)
+		require.Equal(t, int64(0), unread.MsgCountRoot)
+	})
+
 	t.Run("Unread on a private channel", func(t *testing.T) {
 		r, _ := th.Client.SetPostUnread(u1.Id, pp2.Id, true)
 		assert.Equal(t, 200, r.StatusCode)
