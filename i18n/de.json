@@ -9329,5 +9329,9 @@
   {
     "id": "app.recent_searches.app_error",
     "translation": "Fehler beim Holen der letzten Suchen"
+  },
+  {
+    "id": "api.cloud.cloud_free_feature_flag_off_error",
+    "translation": "CloudFree Feature Flag ist ausgeschaltet."
   }
 ]
