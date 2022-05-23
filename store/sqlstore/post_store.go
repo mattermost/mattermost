@@ -2142,7 +2142,7 @@ func (s *SqlPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int6
 	if options.UsersPostsOnly {
 		query = query.Where(sq.And{
 			sq.Eq{"p.Type": ""},
-			sq.Expr("p.UserId NOT IN (SELECT Userid FROM Bots)"),
+			sq.Expr("p.UserId NOT IN (SELECT UserId FROM Bots)"),
 		})
 	}
 
