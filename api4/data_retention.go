@@ -4,7 +4,9 @@
 package api4
 
 import (
+	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/audit"
@@ -109,8 +111,17 @@ func getPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
 	var policy model.RetentionPolicyWithTeamAndChannelIDs
-	if jsonErr := json.NewDecoder(r.Body).Decode(&policy); jsonErr != nil {
+	if jsonErr := json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&policy); jsonErr != nil {
 		c.SetInvalidParam("policy")
 		return
 	}
@@ -135,19 +146,32 @@ func createPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("createPolicy", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	auditRec.AddMetadata(postPayload, nil, newPolicy, "policy")
 	auditRec.Success()
 	w.WriteHeader(http.StatusCreated)
 	w.Write(js)
 }
 
 func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
 	var patch model.RetentionPolicyWithTeamAndChannelIDs
-	if jsonErr := json.NewDecoder(r.Body).Decode(&patch); jsonErr != nil {
+	if jsonErr := json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&patch); jsonErr != nil {
 		c.SetInvalidParam("policy")
 		return
 	}
 	c.RequirePolicyId()
 	patch.ID = c.Params.PolicyId
+
+	priorPolicy, _ := c.App.GetRetentionPolicy(c.Params.PolicyId)
 
 	auditRec := c.MakeAuditRecord("patchPolicy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -168,6 +192,8 @@ func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("patchPolicy", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	auditRec.AddMetadata(postPayload, priorPolicy, policy, "policy")
 	auditRec.Success()
 	w.Write(js)
 }
@@ -184,11 +210,15 @@ func deletePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	priorPolicy, _ := c.App.GetRetentionPolicy(policyId)
+
 	err := c.App.DeleteRetentionPolicy(policyId)
 	if err != nil {
 		c.Err = err
 		return
 	}
+
+	auditRec.AddMetadata(nil, priorPolicy, nil, "policy")
 	auditRec.Success()
 	ReturnStatusOK(w)
 }
@@ -251,8 +281,20 @@ func searchTeamsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
+
+	priorPolicy, _ := c.App.GetRetentionPolicy(policyId)
+
 	var teamIDs []string
 	jsonErr := json.NewDecoder(r.Body).Decode(&teamIDs)
 	if jsonErr != nil {
@@ -274,13 +316,28 @@ func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	postPolicy, _ := c.App.GetRetentionPolicy(c.Params.PolicyId)
+
+	auditRec.AddMetadata(postPayload, priorPolicy, postPolicy, "policy")
 	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
 func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
+
+	priorPolicy, _ := c.App.GetRetentionPolicy(policyId)
+
 	var teamIDs []string
 	jsonErr := json.NewDecoder(r.Body).Decode(&teamIDs)
 	if jsonErr != nil {
@@ -303,6 +360,9 @@ func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	postPolicy, _ := c.App.GetRetentionPolicy(c.Params.PolicyId)
+
+	auditRec.AddMetadata(postPayload, priorPolicy, postPolicy, "policy")
 	auditRec.Success()
 	ReturnStatusOK(w)
 }
@@ -372,8 +432,20 @@ func searchChannelsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
+
+	priorPolicy, _ := c.App.GetRetentionPolicy(policyId)
+
 	var channelIDs []string
 	jsonErr := json.NewDecoder(r.Body).Decode(&channelIDs)
 	if jsonErr != nil {
@@ -396,6 +468,9 @@ func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	postPolicy, _ := c.App.GetRetentionPolicy(policyId)
+
+	auditRec.AddMetadata(postPayload, priorPolicy, postPolicy, "policy")
 	auditRec.Success()
 	ReturnStatusOK(w)
 }

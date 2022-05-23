@@ -127,6 +127,8 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("updateConfig", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
+	priorConfig := c.App.Config()
+
 	cfg.SetDefaults()
 
 	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleWritePermissions) {
@@ -207,6 +209,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("updateConfig", "api.config.update_config.restricted_merge.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	auditRec.AddMetadata(postPayload, priorConfig, cfg, "config")
 	auditRec.Success()
 	c.LogAudit("updateConfig")
 
@@ -261,7 +264,18 @@ func getEnvironmentConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJSON(r.Body)
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
+	priorConfig := c.App.Config()
+
+	cfg := model.ConfigFromJSON(bytes.NewBuffer(postBody))
 	if cfg == nil {
 		c.SetInvalidParam("config")
 		return
@@ -347,6 +361,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	newCfg.Sanitize()
 
+	auditRec.AddMetadata(postPayload, priorConfig, newCfg, "config")
 	auditRec.Success()
 
 	cfg, mergeErr = config.Merge(&model.Config{}, newCfg, &utils.MergeConfig{

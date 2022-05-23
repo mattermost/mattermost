@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -130,8 +131,17 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
 	var group *model.GroupWithUserIds
-	if jsonErr := json.NewDecoder(r.Body).Decode(&group); jsonErr != nil {
+	if jsonErr := json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&group); jsonErr != nil {
 		c.SetInvalidParam("group")
 		return
 	}
@@ -178,6 +188,8 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("createGroup", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	auditRec.AddMetadata(postBody, nil, newGroup, "group")
 	auditRec.Success()
 	w.WriteHeader(http.StatusCreated)
 	w.Write(js)
@@ -212,8 +224,19 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
+	priorGroup, _ := c.App.GetGroup(c.Params.GroupIDs, nil)
+
 	var groupPatch model.GroupPatch
-	if jsonErr := json.NewDecoder(r.Body).Decode(&groupPatch); jsonErr != nil {
+	if jsonErr := json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&groupPatch); jsonErr != nil {
 		c.SetInvalidParam("group")
 		return
 	}
@@ -262,6 +285,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.AddMeta("patch", group)
+	auditRec.AddMetadata(postBody, priorGroup, group, "group")
 
 	b, marshalErr := json.Marshal(group)
 	if marshalErr != nil {
@@ -314,6 +338,9 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("syncable_id", syncableID)
 	auditRec.AddMeta("syncable_type", syncableType)
 
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(body)).Decode(&postPayload)
+
 	var patch *model.GroupSyncablePatch
 	err = json.Unmarshal(body, &patch)
 	if err != nil || patch == nil {
@@ -355,6 +382,8 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("Api4.createGroupSyncable", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	auditRec.AddMetadata(postPayload, nil, groupSyncable, "group_syncable")
 	auditRec.Success()
 	w.Write(b)
 }
@@ -463,6 +492,9 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(body)).Decode(&postPayload)
+
 	auditRec := c.MakeAuditRecord("patchGroupSyncable", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("group_id", c.Params.GroupId)
@@ -494,6 +526,8 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	priorSyncable, _ := c.App.GetGroupSyncable(c.Params.GroupId, syncableID, syncableType)
+
 	groupSyncable.Patch(patch)
 
 	groupSyncable, appErr = c.App.UpdateGroupSyncable(groupSyncable)
@@ -514,6 +548,8 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("Api4.patchGroupSyncable", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	auditRec.AddMetadata(postPayload, priorSyncable, groupSyncable, "group_syncable")
 	auditRec.Success()
 	w.Write(b)
 }
@@ -553,6 +589,8 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	priorSyncable, _ := c.App.GetGroupSyncable(c.Params.GroupId, syncableID, syncableType)
+
 	_, err = c.App.DeleteGroupSyncable(c.Params.GroupId, syncableID, syncableType)
 	if err != nil {
 		c.Err = err
@@ -563,6 +601,7 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, false)
 	})
 
+	auditRec.AddMetadata(nil, priorSyncable, nil, "group_syncable")
 	auditRec.Success()
 
 	ReturnStatusOK(w)
@@ -976,9 +1015,11 @@ func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	priorGroup, _ := c.App.GetGroup(c.Params.GroupId, nil)
 	auditRec := c.MakeAuditRecord("deleteGroup", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("group_id", c.Params.GroupId)
+	auditRec.AddMetadata(nil, priorGroup, nil, "group")
 
 	_, err = c.App.DeleteGroup(c.Params.GroupId)
 	if err != nil {
@@ -1003,6 +1044,8 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	priorGroup, _ := c.App.GetGroup(c.Params.GroupId, nil)
+
 	if group.Source != model.GroupSourceCustom {
 		c.Err = model.NewAppError("Api4.deleteGroup", "app.group.crud_permission", nil, "", http.StatusNotImplemented)
 		return
@@ -1019,8 +1062,17 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
 	var newMembers *model.GroupModifyMembers
-	if jsonErr := json.NewDecoder(r.Body).Decode(&newMembers); jsonErr != nil {
+	if jsonErr := json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&newMembers); jsonErr != nil {
 		c.SetInvalidParam("addGroupMembers")
 		return
 	}
@@ -1040,6 +1092,9 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("Api4.addGroupMembers", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	postGroup, _ := c.App.GetGroup(c.Params.GroupId, nil)
+	auditRec.AddMetadata(postPayload, priorGroup, postGroup, "group")
 	auditRec.Success()
 	w.Write(b)
 }
@@ -1072,8 +1127,19 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	priorGroup, _ := c.App.GetGroup(c.Params.GroupId, nil)
+
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
 	var deleteBody *model.GroupModifyMembers
-	if jsonErr := json.NewDecoder(r.Body).Decode(&deleteBody); jsonErr != nil {
+	if jsonErr := json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&deleteBody); jsonErr != nil {
 		c.SetInvalidParam("deleteGroupMembers")
 		return
 	}
@@ -1093,6 +1159,9 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("Api4.addGroupMembers", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	postGroup, _ := c.App.GetGroup(c.Params.GroupId, nil)
+	auditRec.AddMetadata(postPayload, priorGroup, postGroup, "group")
 	auditRec.Success()
 	w.Write(b)
 }

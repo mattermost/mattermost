@@ -4,7 +4,9 @@
 package api4
 
 import (
+	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"reflect"
 
@@ -35,6 +37,17 @@ func localGetConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
+	priorConfig := c.App.Config()
+
 	cfg := model.ConfigFromJSON(r.Body)
 	if cfg == nil {
 		c.SetInvalidParam("config")
@@ -77,6 +90,8 @@ func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	newCfg.Sanitize()
 
+	auditRec.AddMetadata(postPayload, priorConfig, newCfg, "config")
+
 	auditRec.Success()
 	c.LogAudit("updateConfig")
 
@@ -87,7 +102,18 @@ func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJSON(r.Body)
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
+	priorConfig := c.App.Config()
+
+	cfg := model.ConfigFromJSON(bytes.NewBuffer(postBody))
 	if cfg == nil {
 		c.SetInvalidParam("config")
 		return
@@ -133,6 +159,7 @@ func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("diff", diffs.Sanitize())
 
+	auditRec.AddMetadata(postPayload, priorConfig, newCfg, "config")
 	auditRec.Success()
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -142,7 +169,16 @@ func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localMigrateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.StringInterfaceFromJSON(r.Body)
+	postBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	var postPayload interface{}
+	_ = json.NewDecoder(bytes.NewBuffer(postBody)).Decode(&postPayload)
+
+	props := model.StringInterfaceFromJSON(bytes.NewBuffer(postBody))
 	from, ok := props["from"].(string)
 	if !ok {
 		c.SetInvalidParam("from")
@@ -168,6 +204,7 @@ func localMigrateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddMetadata(postPayload, nil, nil, "")
 	auditRec.Success()
 	ReturnStatusOK(w)
 }
