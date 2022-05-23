@@ -189,7 +189,7 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec.AddMetadata(postBody, nil, newGroup, "group")
+	auditRec.AddMetadata(postPayload, nil, newGroup, "group")
 	auditRec.Success()
 	w.WriteHeader(http.StatusCreated)
 	w.Write(js)
@@ -285,7 +285,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.AddMeta("patch", group)
-	auditRec.AddMetadata(postBody, priorGroup, group, "group")
+	auditRec.AddMetadata(postPayload, priorGroup, group, "group")
 
 	b, marshalErr := json.Marshal(group)
 	if marshalErr != nil {

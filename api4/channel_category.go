@@ -155,7 +155,7 @@ func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *htt
 
 	resultingOrder, _ := c.App.GetSidebarCategoryOrder(c.Params.UserId, c.Params.TeamId)
 
-	auditRec.AddMetadata(postBody, &audit.AuditableStringArray{Array: priorOrder}, &audit.AuditableStringArray{Array: resultingOrder}, "category")
+	auditRec.AddMetadata(postPayload, &audit.AuditableStringArray{Array: priorOrder}, &audit.AuditableStringArray{Array: resultingOrder}, "category")
 	auditRec.Success()
 	w.Write([]byte(model.ArrayToJSON(categoryOrder)))
 }

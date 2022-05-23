@@ -612,7 +612,7 @@ func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	auditRec.AddMeta("channel", groupChannel)
-	auditRec.AddMetadata(postBody, nil, groupChannel, "channel")
+	auditRec.AddMetadata(postPayload, nil, groupChannel, "channel")
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(groupChannel); err != nil {
