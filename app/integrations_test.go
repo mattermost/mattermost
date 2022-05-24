@@ -4,7 +4,6 @@
 package app
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -31,64 +30,8 @@ func TestGetIntegrationsUsage(t *testing.T) {
 	}
 	`
 
-	listedApps := `[
-		{
-			"manifest": {
-				"app_id":       "zendesk",
-				"display_name": "Zendesk",
-				"version":     "1.1.0"
-			},
-			"installed": true,
-			"enabled": true
-		},
-		{
-			"manifest": {
-				"app_id":       "disabled-app",
-				"display_name": "Disabled App",
-				"version":     "1.1.0"
-			},
-			"installed": true,
-			"enabled": false
-		},
-		{
-			"manifest": {
-				"app_id":       "not-installed-app",
-				"display_name": "Not Installed App",
-				"version":     "1.1.0"
-			},
-			"installed": false,
-			"enabled": false
-		}
-	]`
-
-	appsResponse := fmt.Sprintf("`%s`", listedApps)
-
-	appsPluginCode := `
-		package main
-
-		import (
-			"net/http"
-
-			"github.com/mattermost/mattermost-server/v6/plugin"
-		)
-
-		type MyPlugin struct {
-			plugin.MattermostPlugin
-		}
-
-		func (p *MyPlugin) 	ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
-			response := ` + appsResponse + `
-			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write([]byte(response))
-		}
-
-		func main() {
-			plugin.ClientMain(&MyPlugin{})
-		}
-	`
-
 	setupMultiPluginAPITest(t,
-		[]string{samplePluginCode, samplePluginCode, samplePluginCode, samplePluginCode, samplePluginCode, samplePluginCode, appsPluginCode}, []string{
+		[]string{samplePluginCode, samplePluginCode, samplePluginCode, samplePluginCode, samplePluginCode, samplePluginCode, samplePluginCode}, []string{
 			`{"id": "otherplugin", "name": "Other Plugin", "version": "1.2.0", "server": {"executable": "backend.exe"}}`,
 			`{"id": "mattermost-autolink", "name": "Autolink", "version": "1.2.0", "server": {"executable": "backend.exe"}}`,
 			`{"id": "playbooks", "name": "Playbooks", "version": "1.2.0", "server": {"executable": "backend.exe"}}`,
@@ -98,15 +41,6 @@ func TestGetIntegrationsUsage(t *testing.T) {
 			`{"id": "com.mattermost.apps", "server": {"executable": "backend.exe"}}`,
 		}, []string{"otherplugin", "mattermost-autolink", "playbooks", "focalboard", "com.mattermost.calls", "com.mattermost.nps", "com.mattermost.apps"},
 		true, th.App, th.Context)
-
-	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("com.mattermost.apps")
-	require.NoError(t, err2)
-	require.NotNil(t, hooks)
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = ""
-		*cfg.ServiceSettings.SiteURL = ""
-	})
 
 	integrations, appErr := th.App.ch.getInstalledIntegrations()
 	require.Nil(t, appErr)
@@ -120,24 +54,10 @@ func TestGetIntegrationsUsage(t *testing.T) {
 			Enabled: true,
 		},
 		{
-			Type:    "app",
-			ID:      "disabled-app",
-			Name:    "Disabled App",
-			Version: "1.1.0",
-			Enabled: false,
-		},
-		{
 			Type:    "plugin",
 			ID:      "otherplugin",
 			Name:    "Other Plugin",
 			Version: "1.2.0",
-			Enabled: true,
-		},
-		{
-			Type:    "app",
-			ID:      "zendesk",
-			Name:    "Zendesk",
-			Version: "1.1.0",
 			Enabled: true,
 		},
 	}
@@ -146,9 +66,9 @@ func TestGetIntegrationsUsage(t *testing.T) {
 	usage, appErr := th.App.GetIntegrationsUsage()
 	require.Nil(t, appErr)
 
-	// 3 enabled integrations
+	// 2 enabled integrations
 	expectedUsage := &model.IntegrationsUsage{
-		Enabled: 3,
+		Enabled: 2,
 	}
 	require.Equal(t, expectedUsage, usage)
 }
