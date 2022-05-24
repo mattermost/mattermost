@@ -2600,6 +2600,39 @@ func TestGetFileInfosForPost(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
+	// Delete post
+	th.SystemAdminClient.DeletePost(post.Id)
+
+	// Normal client should get 404 when trying to access deleted post normally.
+	_, resp, err = client.GetFileInfosForPost(post.Id, "")
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+
+	// Normal client should get unauthorized when trying to access deleted post.
+	_, resp, err = client.GetFileInfosForPostIncludeDeleted(post.Id, "")
+	require.Error(t, err)
+	CheckUnauthorizedStatus(t, resp)
+
+	// System client should get 404 when trying to access deleted post normally.
+	_, _, err = th.SystemAdminClient.GetFileInfosForPost(post.Id, "")
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+
+	// System client should be able to access deleted post with include_deleted param.
+	infos, _, err = th.SystemAdminClient.GetFileInfosForPostIncludeDeleted(post.Id, "")
+	require.NoError(t, err)
+
+	require.Len(t, infos, 3, "missing file infos")
+
+	found = false
+	for _, info := range infos {
+		if info.Id == fileIds[0] {
+			found = true
+		}
+	}
+
+	require.True(t, found, "missing file info")
+
 	client.Logout()
 	_, resp, err = client.GetFileInfosForPost(model.NewId(), "")
 	require.Error(t, err)
