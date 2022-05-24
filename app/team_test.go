@@ -553,6 +553,46 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 		}
 	})
 
+	t.Run("Should not do anything if the amount of teams is equal to the limit", func(t *testing.T) {
+
+		expectedTeamsList, err := th.App.GetAllTeams()
+
+		var expectedActiveTeams []*model.Team
+		var expectedCloudArchivedTeams []*model.Team
+		for _, team := range expectedTeamsList {
+			if team.DeleteAt == 0 {
+				expectedActiveTeams = append(expectedActiveTeams, team)
+			}
+			if team.DeleteAt > 0 && team.CloudLimitsArchived {
+				expectedCloudArchivedTeams = append(expectedCloudArchivedTeams, team)
+			}
+		}
+
+		require.Nil(t, err)
+
+		activeLimit := len(expectedActiveTeams)
+		teamLimits := &model.TeamsLimits{Active: &activeLimit}
+		err = th.App.AdjustTeamsFromProductLimits(teamLimits)
+		require.Nil(t, err)
+
+		actualTeamsList, err := th.App.GetAllTeams()
+
+		require.Nil(t, err)
+		var actualActiveTeams []*model.Team
+		var actualCloudArchivedTeams []*model.Team
+		for _, team := range actualTeamsList {
+			if team.DeleteAt == 0 {
+				actualActiveTeams = append(actualActiveTeams, team)
+			}
+			if team.DeleteAt > 0 && team.CloudLimitsArchived {
+				actualCloudArchivedTeams = append(actualCloudArchivedTeams, team)
+			}
+		}
+
+		require.Equal(t, len(expectedActiveTeams), len(actualActiveTeams))
+		require.Equal(t, len(expectedCloudArchivedTeams), len(actualCloudArchivedTeams))
+	})
+
 	t.Run("Should restore archived teams if limit increases", func(t *testing.T) {
 		activeLimit := 1
 		teamLimits := &model.TeamsLimits{Active: &activeLimit}
