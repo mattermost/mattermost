@@ -7784,6 +7784,19 @@ func (c *Client4) ConfirmCustomerPayment(confirmRequest *ConfirmPaymentMethodReq
 	return BuildResponse(r), nil
 }
 
+func (c *Client4) RequestCloudTrial() (*Subscription, *Response, error) {
+	r, err := c.DoAPIPut(c.cloudRoute()+"/request-trial", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var subscription *Subscription
+	json.NewDecoder(r.Body).Decode(&subscription)
+
+	return subscription, BuildResponse(r), nil
+}
+
 func (c *Client4) GetCloudCustomer() (*CloudCustomer, *Response, error) {
 	r, err := c.DoAPIGet(c.cloudRoute()+"/customer", "")
 	if err != nil {
