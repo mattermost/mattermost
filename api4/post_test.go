@@ -2601,20 +2601,22 @@ func TestGetFileInfosForPost(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	// Delete post
-	th.SystemAdminClient.DeletePost(post.Id)
+	resp, err = th.SystemAdminClient.DeletePost(post.Id)
+
+	th.SystemAdminClient.InvalidateCaches()
 
 	// Normal client should get 404 when trying to access deleted post normally.
-	_, resp, err = client.GetFileInfosForPost(post.Id, "")
+	infos, resp, err = client.GetFileInfosForPost(post.Id, "")
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	// Normal client should get unauthorized when trying to access deleted post.
 	_, resp, err = client.GetFileInfosForPostIncludeDeleted(post.Id, "")
 	require.Error(t, err)
-	CheckUnauthorizedStatus(t, resp)
-
+	CheckForbiddenStatus(t, resp)
+	
 	// System client should get 404 when trying to access deleted post normally.
-	_, _, err = th.SystemAdminClient.GetFileInfosForPost(post.Id, "")
+	_, resp, err = th.SystemAdminClient.GetFileInfosForPost(post.Id, "")
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
