@@ -22,7 +22,7 @@ func (a *App) GetPostsUsage() (int64, *model.AppError) {
 
 func (a *App) GetTeamsUsage() (int64, *model.AppError) {
 	includeDeleted := false
-	teamCount, err := a.Srv().Store.Team().AnalyticsTeamCount(&model.TeamSearch{IncludeDeleted: &(includeDeleted)})
+	teamCount, err := a.Srv().Store.Team().AnalyticsTeamCount(&model.TeamSearch{IncludeDeleted: &includeDeleted})
 	if err != nil {
 		return 0, model.NewAppError("GetTeamsUsage", "app.post.analytics_teams_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
