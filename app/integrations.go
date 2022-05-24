@@ -4,27 +4,12 @@
 package app
 
 import (
-	"encoding/json"
 	"net/http"
-	"net/url"
 	"sort"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
-
-type ListedApp struct {
-	Manifest struct {
-		AppID       string `json:"app_id"`
-		DisplayName string `json:"display_name"`
-		Version     string `json:"version"`
-	}
-
-	Installed bool `json:"installed"`
-	Enabled   bool `json:"enabled"`
-}
 
 func (a *App) checkIntegrationLimitsForConfigSave(oldConfig, newConfig *model.Config) *model.AppError {
 	pluginIds := []string{}
@@ -75,61 +60,12 @@ func (ch *Channels) getInstalledIntegrations() ([]*model.InstalledIntegration, *
 		}
 	}
 
-	if pluginsEnvironment.IsActive(model.PluginIdApps) {
-		enabledApps, appErr := ch.getInstalledApps()
-		if appErr != nil {
-			ch.srv.Log.Warn("Failed to fetch installed Apps", mlog.Err(appErr))
-			enabledApps = []ListedApp{}
-		}
-
-		for _, ap := range enabledApps {
-			integration := &model.InstalledIntegration{
-				Type:    "app",
-				ID:      ap.Manifest.AppID,
-				Name:    ap.Manifest.DisplayName,
-				Version: ap.Manifest.Version,
-				Enabled: ap.Enabled,
-			}
-
-			out = append(out, integration)
-		}
-	}
-
 	// Sort result alphabetically, by display name.
 	sort.SliceStable(out, func(i, j int) bool {
 		return strings.ToLower(out[i].Name) < strings.ToLower(out[j].Name)
 	})
 
 	return out, nil
-}
-
-func (ch *Channels) getInstalledApps() ([]ListedApp, *model.AppError) {
-	rawURL := "/plugins/com.mattermost.apps/api/v1/marketplace"
-	values := url.Values{
-		"include_plugins": []string{"false"},
-	}
-
-	r, appErr := ch.doPluginRequest(request.EmptyContext(), "GET", rawURL, values, nil)
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	defer r.Body.Close()
-
-	listed := []ListedApp{}
-	err := json.NewDecoder(r.Body).Decode(&listed)
-	if err != nil {
-		return nil, model.NewAppError("getInstalledApps", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	result := []ListedApp{}
-	for _, ap := range listed {
-		if ap.Installed {
-			result = append(result, ap)
-		}
-	}
-
-	return result, nil
 }
 
 func (a *App) checkIfIntegrationsMeetFreemiumLimits(originalPluginIds []string) *model.AppError {
