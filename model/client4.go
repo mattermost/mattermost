@@ -4357,7 +4357,7 @@ func (c *Client4) GetFileInfosForPost(postId string, etag string) ([]*FileInfo, 
 
 // GetFileInfosForPost gets all the file info objects attached to a post, including deleted
 func (c *Client4) GetFileInfosForPostIncludeDeleted(postId string, etag string) ([]*FileInfo, *Response, error) {
-	r, err := c.DoAPIGet(c.postRoute(postId)+"/files/info" + "?include_deleted="+c.boolString(true), etag)
+	r, err := c.DoAPIGet(c.postRoute(postId)+"/files/info"+"?include_deleted="+c.boolString(true), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
