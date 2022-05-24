@@ -9160,7 +9160,7 @@
   },
   {
     "id": "Playbooks",
-    "translation": "Oyun kitapları"
+    "translation": "Senaryolar"
   },
   {
     "id": "Channels",
@@ -9321,5 +9321,17 @@
   {
     "id": "api.cloud.subscription.update_error",
     "translation": "Abonelik web bağlantısından güncellenirken sorun çıktı."
+  },
+  {
+    "id": "api.cloud.cloud_free_feature_flag_off_error",
+    "translation": "CloudFree özelliği işareti kapatılmış."
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "Son aramalar alınırken sorun çıktı"
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Bir Bulut kopyasına mmctl ile yükleme desteklenmiyor. Lütfen şu makaleye bakın: https://docs.mattermost.com/manage/cloud-data-export.html."
   }
 ]
