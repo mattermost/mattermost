@@ -22,11 +22,12 @@ import (
 
 	webp "github.com/chai2010/webp"
 	"github.com/disintegration/imaging"
+	drawPackage "golang.org/x/image/draw"
+
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/utils"
-	drawPackage "golang.org/x/image/draw"
 )
 
 const (
