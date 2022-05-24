@@ -6,3 +6,7 @@ package model
 type PostsUsage struct {
 	Count int64 `json:"count"`
 }
+
+type TeamsUsage struct {
+	Active int64 `json:"active"`
+}

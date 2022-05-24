@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -17,7 +18,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mail"
 	"github.com/mattermost/mattermost-server/v6/utils/testutils"
@@ -575,6 +578,54 @@ func TestRestoreTeam(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		_, resp, err := client.RestoreTeam(teamPublic.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("cloud limit reached returns 400", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
+		th.App.ReloadConfig()
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		cloud := &mocks.CloudInterface{}
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = cloud
+
+		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
+			Teams: &model.TeamsLimits{
+				Active: model.NewInt(1),
+			},
+		}, nil).Once()
+		team := createTeam(t, true, model.TeamOpen)
+		_, resp, err := client.RestoreTeam(team.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("cloud below limit returns 200", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
+		th.App.ReloadConfig()
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		cloud := &mocks.CloudInterface{}
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = cloud
+
+		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
+			Teams: &model.TeamsLimits{
+				Active: model.NewInt(200),
+			},
+		}, nil).Once()
+		team := createTeam(t, true, model.TeamOpen)
+		_, resp, err := client.RestoreTeam(team.Id)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})

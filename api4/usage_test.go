@@ -37,3 +37,31 @@ func TestGetPostsUsage(t *testing.T) {
 		assert.Equal(t, int64(10), usage.Count)
 	})
 }
+
+func TestGetTeamsUsage(t *testing.T) {
+	t.Run("unauthenticated users can not access", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		th.Client.Logout()
+
+		usage, r, err := th.Client.GetTeamsUsage()
+		assert.Error(t, err)
+		assert.Nil(t, usage)
+		assert.Equal(t, http.StatusUnauthorized, r.StatusCode)
+	})
+
+	t.Run("good request returns response", func(t *testing.T) {
+		// Following calls create a total of 3 teams
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		th.CreateTeam()
+		th.CreateTeam()
+
+		usage, r, err := th.Client.GetTeamsUsage()
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, r.StatusCode)
+		assert.NotNil(t, usage)
+		assert.Equal(t, int64(3), usage.Active)
+	})
+}

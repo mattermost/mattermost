@@ -19,3 +19,13 @@ func (a *App) GetPostsUsage() (int64, *model.AppError) {
 
 	return utils.RoundOffToZeroes(float64(count)), nil
 }
+
+func (a *App) GetTeamsUsage() (int64, *model.AppError) {
+	includeDeleted := false
+	teamCount, err := a.Srv().Store.Team().AnalyticsTeamCount(&model.TeamSearch{IncludeDeleted: &(includeDeleted)})
+	if err != nil {
+		return 0, model.NewAppError("GetTeamsUsage", "app.post.analytics_teams_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return teamCount, nil
+}

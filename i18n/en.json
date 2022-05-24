@@ -464,6 +464,10 @@
     "translation": "Internal error during cloud api request."
   },
   {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Unable to restore team because limit has been reached"
+  },
+  {
     "id": "api.cloud.cloud_free_feature_flag_off_error",
     "translation": "CloudFree feature flag is off."
   },
@@ -5802,6 +5806,10 @@
   {
     "id": "app.post.analytics_posts_count_by_day.app_error",
     "translation": "Unable to get post counts by day."
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Unable to get team count"
   },
   {
     "id": "app.post.analytics_user_counts_posts_by_day.app_error",
