@@ -2259,7 +2259,7 @@ func TestMarkChannelAsUnreadFromPostCollapsedThreadsTurnedOff(t *testing.T) {
 	})
 }
 
-func TestMarkUnreadWithThreadsCRTOff(t *testing.T) {
+func TestMarkUnreadCRTOffUpdatesThreads(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 	th := Setup(t).InitBasic()
@@ -2269,7 +2269,7 @@ func TestMarkUnreadWithThreadsCRTOff(t *testing.T) {
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOff
 	})
 
-	t.Run("Mentions counted correctly if post is edited CRT unsupported", func(t *testing.T) {
+	t.Run("Mentions counted correctly if post is edited", func(t *testing.T) {
 		user3 := th.CreateUser()
 		defer th.App.PermanentDeleteUser(th.Context, user3)
 		rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "root post"}, th.BasicChannel, false, false)
@@ -2293,6 +2293,7 @@ func TestMarkUnreadWithThreadsCRTOff(t *testing.T) {
 		threadMembership, appErr := th.App.GetThreadMembershipForUser(user3.Id, rootPost.Id)
 		require.Nil(t, appErr)
 		require.NotNil(t, threadMembership)
+		require.True(t, threadMembership.Following)
 		assert.Equal(t, int64(1), threadMembership.UnreadMentions)
 	})
 }
