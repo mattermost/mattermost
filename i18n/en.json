@@ -5445,7 +5445,7 @@
   },
   {
     "id": "app.install_integration.reached_max_limit.error",
-    "translation": "You've reached the max limit of {{.NumIntegrations}} installed integrations. Please disable or uninstall another integration to enable this one."
+    "translation": "You've reached the max limit of {{.NumIntegrations}} enabled integrations. To install unlimited integrations, upgrade to one of our paid plans."
   },
   {
     "id": "app.job.download_export_results_not_enabled",
