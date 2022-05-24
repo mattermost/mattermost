@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	_ "github.com/chai2010/webp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -91,6 +92,17 @@ func TestCreateEmoji(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, newEmoji.Name, emoji.Name, "create with wrong name")
 	checkEmojiFile(newEmoji.Id, "gif")
+
+	// try to create a valid webp emoji
+	emoji = &model.Emoji{
+		CreatorId: th.BasicUser.Id,
+		Name:      model.NewId(),
+	}
+
+	newEmoji, _, err = client.CreateEmoji(emoji, utils.CreateTestWebp(t, emojiWidth, emojiHeight), "image.webp")
+	require.NoError(t, err)
+	require.Equal(t, newEmoji.Name, emoji.Name, "create with wrong name")
+	checkEmojiFile(newEmoji.Id, "webp")
 
 	// try to create a valid jpeg emoji
 	emoji = &model.Emoji{

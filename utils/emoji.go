@@ -12,6 +12,7 @@ import (
 	"image/png"
 	"testing"
 
+	"github.com/chai2010/webp"
 	"github.com/stretchr/testify/require"
 )
 
@@ -57,4 +58,11 @@ func CreateTestPng(t *testing.T, width int, height int) []byte {
 	require.NoErrorf(t, err, "failed to create png: %v", err)
 
 	return buffer.Bytes()
+}
+
+func CreateTestWebp(t *testing.T, width int, height int) []byte {
+	bytes, err := webp.EncodeRGB(image.NewRGBA(image.Rect(0, 0, width, height)), 1)
+	require.NoErrorf(t, err, "failed to create webp: %v", err)
+
+	return bytes
 }
