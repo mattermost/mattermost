@@ -1182,6 +1182,11 @@ func (a *App) DeletePost(postID, deleteByID string) (*model.Post, *model.AppErro
 
 	a.invalidateCacheForChannelPosts(post.ChannelId)
 
+	if post.FileIds != nil {
+		a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(postID, true)
+		a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(postID, false)
+	}
+
 	return post, nil
 }
 

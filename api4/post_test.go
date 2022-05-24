@@ -2603,8 +2603,6 @@ func TestGetFileInfosForPost(t *testing.T) {
 	// Delete post
 	th.SystemAdminClient.DeletePost(post.Id)
 
-	th.SystemAdminClient.InvalidateCaches()
-
 	// Normal client should get 404 when trying to access deleted post normally
 	_, resp, err = client.GetFileInfosForPost(post.Id, "")
 	require.Error(t, err)
