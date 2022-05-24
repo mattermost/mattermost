@@ -148,7 +148,7 @@ func TestGetIntegrationsUsage(t *testing.T) {
 
 	// 3 enabled integrations
 	expectedUsage := &model.IntegrationsUsage{
-		Count: 3,
+		Enabled: 3,
 	}
 	require.Equal(t, expectedUsage, usage)
 }

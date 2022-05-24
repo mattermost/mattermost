@@ -59,6 +59,6 @@ func TestGetIntegrationsUsage(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, r.StatusCode)
 		assert.NotNil(t, usage)
-		assert.Equal(t, 0, usage.Count)
+		assert.Equal(t, 0, usage.Enabled)
 	})
 }

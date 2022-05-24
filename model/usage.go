@@ -8,7 +8,7 @@ type PostsUsage struct {
 }
 
 type IntegrationsUsage struct {
-	Count int `json:"count"`
+	Enabled int `json:"enabled"`
 }
 
 var InstalledIntegrationsIgnoredPlugins = map[string]struct{}{

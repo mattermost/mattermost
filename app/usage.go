@@ -42,7 +42,7 @@ func (ch *Channels) getIntegrationsUsage() (*model.IntegrationsUsage, *model.App
 		}
 	}
 
-	return &model.IntegrationsUsage{Count: count}, nil
+	return &model.IntegrationsUsage{Enabled: count}, nil
 }
 
 // GetPostsUsage returns "rounded off" total posts count like returns 900 instead of 987
