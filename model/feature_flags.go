@@ -89,10 +89,10 @@ func (f *FeatureFlags) SetDefaults() {
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
 	f.EnableInactivityCheckJob = true
-	f.UseCaseOnboarding = true
+	f.UseCaseOnboarding = false
 	f.GraphQL = false
 	f.InsightsEnabled = false
-	f.CloudFree = false
+	f.CloudFree = true
 	f.CommandPalette = false
 	f.AdvancedTextEditor = false
 }

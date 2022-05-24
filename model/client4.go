@@ -7797,6 +7797,16 @@ func (c *Client4) RequestCloudTrial() (*Subscription, *Response, error) {
 	return subscription, BuildResponse(r), nil
 }
 
+func (c *Client4) ValidateBusinessEmail() (*Response, error) {
+	r, err := c.DoAPIPost(c.systemRoute()+"/validate-business-email", "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r), nil
+}
+
 func (c *Client4) GetCloudCustomer() (*CloudCustomer, *Response, error) {
 	r, err := c.DoAPIGet(c.cloudRoute()+"/customer", "")
 	if err != nil {

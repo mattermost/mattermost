@@ -329,3 +329,17 @@ func (_m *CloudInterface) UpdateSubscriptionFromHook(_a0 *model.ProductLimits, _
 
 	return r0
 }
+
+// ValidateBusinessEmail provides a mock function with given fields: userID, email
+func (_m *CloudInterface) ValidateBusinessEmail(userID string, email string) error {
+	ret := _m.Called(userID, email)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(userID, email)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
