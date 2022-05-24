@@ -95,7 +95,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Freemium enabled, on a cloud license. We must check limits before allowing to restore
+	// Freemium enabled, on a cloud license. We must check limits before allowing to create
 	if c.App.Config().FeatureFlags != nil && c.App.Config().FeatureFlags.CloudFree && (c.App.Channels().License() != nil && c.App.Channels().License().Features != nil && *c.App.Channels().License().Features.Cloud) {
 		limits, err := c.App.Cloud().GetCloudLimits(c.AppContext.Session().UserId)
 		if err != nil {
