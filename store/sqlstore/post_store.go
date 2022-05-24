@@ -1136,13 +1136,13 @@ func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool) (*model.P
 
 	rpc := make(chan store.StoreResult, 1)
 	go func() {
-		posts, err := s.getRootPosts(options.ChannelId, offset, options.PerPage, options.SkipFetchThreads)
+		posts, err := s.getRootPosts(options.ChannelId, offset, options.PerPage, options.SkipFetchThreads, options.IncludeDeleted)
 		rpc <- store.StoreResult{Data: posts, NErr: err}
 		close(rpc)
 	}()
 	cpc := make(chan store.StoreResult, 1)
 	go func() {
-		posts, err := s.getParentsPosts(options.ChannelId, offset, options.PerPage, options.SkipFetchThreads)
+		posts, err := s.getParentsPosts(options.ChannelId, offset, options.PerPage, options.SkipFetchThreads, options.IncludeDeleted)
 		cpc <- store.StoreResult{Data: posts, NErr: err}
 		close(cpc)
 	}()
@@ -1582,22 +1582,48 @@ func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64, collapsedT
 	return &post, nil
 }
 
-func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, skipFetchThreads bool) ([]*model.Post, error) {
+func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, skipFetchThreads bool, includeDeleted bool) ([]*model.Post, error) {
 	posts := []*model.Post{}
-	var fetchQuery string
-	if skipFetchThreads {
-		fetchQuery = "SELECT p.*, (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.ChannelId = ? AND p.DeleteAt = 0 ORDER BY p.CreateAt DESC LIMIT ? OFFSET ?"
-	} else {
-		fetchQuery = "SELECT * FROM Posts WHERE Posts.ChannelId = ? AND Posts.DeleteAt = 0 ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?"
+	var query sq.SelectBuilder
+	var where sq.Sqlizer
+	where = sq.Eq{"p.ChannelId": channelId}
+	if includeDeleted != true {
+		where = sq.And{
+			where,
+			sq.Eq{"p.DeleteAt": 0},
+		}
 	}
-	err := s.GetReplicaX().Select(&posts, fetchQuery, channelId, limit, offset)
+	fmt.Println(where)
+	if skipFetchThreads {
+		query = s.getQueryBuilder().
+			Select([]string{"p.*", "(SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount"}...).
+			From(`Posts p`).
+			Where(where).OrderBy("p.CreateAt").Limit(uint64(limit)).Offset(uint64(offset))
+		fmt.Println(query)
+
+	} else {
+		query = s.getQueryBuilder().
+			Select([]string{`*`}...).From(`Posts p`).
+			Where(where).
+			OrderBy("p.CreateAt").
+			Limit(uint64(limit)).
+			Offset(uint64(offset))
+		fmt.Println(query)
+	}
+	fmt.Println(query)
+	fetchQuery, args, err := query.ToSql()
+	fmt.Println(args)
+	if err != nil {
+		return nil, errors.Wrap(err, "RootPosts_Tosql")
+	}
+	err = s.GetReplicaX().Select(&posts, fetchQuery, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
 	return posts, nil
 }
 
-func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, skipFetchThreads bool) ([]*model.Post, error) {
+func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, skipFetchThreads bool, includeDeleted bool) ([]*model.Post, error) {
 	if s.DriverName() == model.DatabaseDriverPostgres {
 		return s.getParentsPostsPostgreSQL(channelId, offset, limit, skipFetchThreads)
 	}
@@ -1636,6 +1662,13 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 		where = sq.Or{
 			where,
 			sq.Eq{"p.RootId": roots},
+		}
+	}
+
+	if includeDeleted != true {
+		where = sq.And{
+			where,
+			sq.Eq{"p.DeleteAt": 0},
 		}
 	}
 
