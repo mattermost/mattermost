@@ -1049,6 +1049,7 @@ func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended,
 			return nil, err
 		}
 		for _, user := range users {
+			user.SanitizeProfile(map[string]bool{"email": false})
 			usersMap[user.Id] = user
 		}
 	} else {
