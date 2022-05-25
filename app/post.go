@@ -1374,7 +1374,7 @@ func (a *App) GetFileInfosForPostWithMigration(postID string, includeDeleted boo
 
 	pchan := make(chan store.StoreResult, 1)
 	go func() {
-		post, err := a.Srv().Store.Post().GetSingle(postID, false)
+		post, err := a.Srv().Store.Post().GetSingle(postID, includeDeleted)
 		pchan <- store.StoreResult{Data: post, NErr: err}
 		close(pchan)
 	}()
