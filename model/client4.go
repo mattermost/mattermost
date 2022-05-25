@@ -4154,6 +4154,41 @@ func (c *Client4) DoPostActionWithCookie(postId, actionId, selected, cookieStr s
 	return BuildResponse(r), nil
 }
 
+// GetTopThreadsForTeamSince will return an ordered list of the top channels in a given team.
+func (c *Client4) GetTopThreadsForTeamSince(teamId string, timeRange string, page int, perPage int) (*TopThreadList, *Response, error) {
+	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
+	r, err := c.DoAPIGet(c.teamRoute(teamId)+"/top/threads"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var topThreads *TopThreadList
+	if jsonErr := json.NewDecoder(r.Body).Decode(&topThreads); jsonErr != nil {
+		return nil, nil, NewAppError("GetTopThreadsForTeamSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return topThreads, BuildResponse(r), nil
+}
+
+// GetTopThreadsForUserSince will return an ordered list of your top channels in a given team.
+func (c *Client4) GetTopThreadsForUserSince(teamId string, timeRange string, page int, perPage int) (*TopThreadList, *Response, error) {
+	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
+
+	if teamId != "" {
+		query += fmt.Sprintf("&team_id=%v", teamId)
+	}
+
+	r, err := c.DoAPIGet(c.usersRoute()+"/me/top/threads"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var topThreads *TopThreadList
+	if jsonErr := json.NewDecoder(r.Body).Decode(&topThreads); jsonErr != nil {
+		return nil, nil, NewAppError("GetTopThreadsForUserSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return topThreads, BuildResponse(r), nil
+}
+
 // OpenInteractiveDialog sends a WebSocket event to a user's clients to
 // open interactive dialogs, based on the provided trigger ID and other
 // provided data. Used with interactive message buttons, menus and
