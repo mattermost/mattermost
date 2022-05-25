@@ -2921,7 +2921,7 @@ func TestGetTopThreadsForUserSince(t *testing.T) {
 	require.Nil(t, appErr)
 	require.Len(t, topUser2ThreadsAfterPrivateReply.Items, 1)
 
-	// deleteing reply, and unfollowing thread
+	// deleting reply, and unfollowing thread
 	_, appErr = th.App.DeletePost(replyPostUser2InPrivate.Id, th.BasicUser2.Id)
 	assert.Nil(t, appErr)
 	// unfollow thread
