@@ -2504,17 +2504,15 @@ func TestCollapsedThreadFetch(t *testing.T) {
 	})
 
 	t.Run("should sanitize participant data", func(t *testing.T) {
-		var err error
 		id := model.NewId()
-		user3 := &model.User{
+		user3, err := th.App.CreateUser(th.Context, &model.User{
 			Email:         "success+" + id + "@simulator.amazonses.com",
 			Username:      "un_" + id,
 			Nickname:      "nn_" + id,
 			AuthData:      ptrStr("bobbytables"),
 			AuthService:   "saml",
 			EmailVerified: true,
-		}
-		user3, err = th.App.CreateUser(th.Context, user3)
+		})
 		require.Nil(t, err)
 
 		channel := th.CreateChannel(th.BasicTeam)
@@ -2523,13 +2521,11 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		defer th.App.DeleteChannel(th.Context, channel, user1.Id)
 		defer th.App.PermanentDeleteUser(th.Context, user3)
 
-		postRoot := &model.Post{
+		postRoot, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "root post",
-		}
-
-		postRoot, err = th.App.CreatePost(th.Context, postRoot, channel, false, true)
+		}, channel, false, true)
 		require.Nil(t, err)
 
 		_, err = th.App.CreatePost(th.Context, &model.Post{
