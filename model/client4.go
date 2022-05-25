@@ -324,12 +324,12 @@ func (c *Client4) cloudRoute() string {
 	return "/cloud"
 }
 
-func (c *Client4) usageRoute() string {
-	return "/usage"
-}
-
 func (c *Client4) testEmailRoute() string {
 	return "/email/test"
+}
+
+func (c *Client4) usageRoute() string {
+	return "/usage"
 }
 
 func (c *Client4) testSiteURLRoute() string {
@@ -8112,6 +8112,7 @@ func (c *Client4) GetPostsUsage() (*PostsUsage, *Response, error) {
 }
 
 // GetTeamsUsage returns total usage of teams for the instance
+// GetTeamsUsage returns total usage of teams for the instance
 func (c *Client4) GetTeamsUsage() (*TeamsUsage, *Response, error) {
 	r, err := c.DoAPIGet(c.usageRoute()+"/teams", "")
 	if err != nil {
@@ -8120,6 +8121,19 @@ func (c *Client4) GetTeamsUsage() (*TeamsUsage, *Response, error) {
 	defer closeBody(r)
 
 	var usage *TeamsUsage
+	err = json.NewDecoder(r.Body).Decode(&usage)
+	return usage, BuildResponse(r), err
+}
+
+// GetIntegrationsUsage returns usage information on integrations, including the count of enabled integrations
+func (c *Client4) GetIntegrationsUsage() (*IntegrationsUsage, *Response, error) {
+	r, err := c.DoAPIGet(c.usageRoute()+"/integrations", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var usage *IntegrationsUsage
 	err = json.NewDecoder(r.Body).Decode(&usage)
 	return usage, BuildResponse(r), err
 }
