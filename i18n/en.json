@@ -5809,7 +5809,7 @@
   },
   {
     "id": "app.post.analytics_teams_count.app_error",
-    "translation": ""
+    "translation": "Unable to get teams usage"
   },
   {
     "id": "app.post.analytics_user_counts_posts_by_day.app_error",
