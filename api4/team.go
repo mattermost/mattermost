@@ -95,6 +95,29 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Freemium enabled, on a cloud license. We must check limits before allowing to create
+	if c.App.Config().FeatureFlags != nil && c.App.Config().FeatureFlags.CloudFree && (c.App.Channels().License() != nil && c.App.Channels().License().Features != nil && *c.App.Channels().License().Features.Cloud) {
+		limits, err := c.App.Cloud().GetCloudLimits(c.AppContext.Session().UserId)
+		if err != nil {
+			c.Err = model.NewAppError("Api4.restoreTeam", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// If there are no limits for teams, for active teams, or the limit for active teams is less than 0, do nothing
+		if !(limits == nil || limits.Teams == nil || limits.Teams.Active == nil || *limits.Teams.Active <= 0) {
+			activeTeams, appErr := c.App.GetTeamsUsage()
+			if err != nil {
+				c.Err = appErr
+				return
+			}
+			// if the number of active teams is greater than or equal to the limit, return 400
+			if activeTeams >= int64(*limits.Teams.Active) {
+				c.Err = model.NewAppError("Api4.restoreTeam", "api.cloud.teams_limit_reached.restore", nil, "", http.StatusBadRequest)
+				return
+			}
+		}
+	}
+
 	rteam, err := c.App.CreateTeamWithUser(c.AppContext, &team, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
