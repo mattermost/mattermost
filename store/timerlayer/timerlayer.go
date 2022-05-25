@@ -8519,6 +8519,22 @@ func (s *TimerLayerThreadStore) GetMembershipsForUser(userId string, teamID stri
 	return result, err
 }
 
+func (s *TimerLayerThreadStore) GetOrderedPosts(threadID string, since int64, ascending bool) ([]*model.Post, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.GetOrderedPosts(threadID, since, ascending)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetOrderedPosts", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerThreadStore) GetPosts(threadID string, since int64) ([]*model.Post, error) {
 	start := timemodule.Now()
 

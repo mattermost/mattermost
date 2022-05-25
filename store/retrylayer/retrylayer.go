@@ -10813,6 +10813,27 @@ func (s *RetryLayerThreadStore) GetMembershipsForUser(userId string, teamID stri
 
 }
 
+func (s *RetryLayerThreadStore) GetOrderedPosts(threadID string, since int64, ascending bool) ([]*model.Post, error) {
+
+	tries := 0
+	for {
+		result, err := s.ThreadStore.GetOrderedPosts(threadID, since, ascending)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerThreadStore) GetPosts(threadID string, since int64) ([]*model.Post, error) {
 
 	tries := 0

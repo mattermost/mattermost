@@ -9465,6 +9465,24 @@ func (s *OpenTracingLayerThreadStore) GetMembershipsForUser(userId string, teamI
 	return result, err
 }
 
+func (s *OpenTracingLayerThreadStore) GetOrderedPosts(threadID string, since int64, ascending bool) ([]*model.Post, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.GetOrderedPosts")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ThreadStore.GetOrderedPosts(threadID, since, ascending)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerThreadStore) GetPosts(threadID string, since int64) ([]*model.Post, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.GetPosts")
