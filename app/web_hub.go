@@ -191,6 +191,10 @@ func (a *App) Publish(message *model.WebSocketEvent) {
 	a.Srv().Publish(message)
 }
 
+func (ch *Channels) Publish(message *model.WebSocketEvent) {
+	ch.srv.Publish(message)
+}
+
 func (s *Server) PublishSkipClusterSend(event *model.WebSocketEvent) {
 	if event.GetBroadcast().UserId != "" {
 		hub := s.GetHubForUserId(event.GetBroadcast().UserId)
