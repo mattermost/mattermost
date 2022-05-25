@@ -791,7 +791,7 @@ func (si *SlackImporter) oldImportFile(timestamp time.Time, file io.Reader, team
 		return nil, err
 	}
 
-	if fileInfo.IsImage() && fileInfo.MimeType != "image/svg+xml" {
+	if fileInfo.IsImage() && !fileInfo.IsSvg() {
 		img, release, err := si.actions.PrepareImage(data)
 		if err != nil {
 			return nil, err
