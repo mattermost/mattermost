@@ -2902,7 +2902,7 @@ func TestGetTopThreadsForUserSince(t *testing.T) {
 
 	// deleting the root post results in the thread not making it to top threads list
 	_, appErr = th.App.DeletePost(rootPostPublicChannel.Id, th.BasicUser.Id)
-	assert.Nil(t, appErr)
+	require.Nil(t, appErr)
 
 	topUser1ThreadsAfterPost1Delete, appErr := th.App.GetTopThreadsForUserSince(th.BasicTeam.Id, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
 	require.Nil(t, appErr)
@@ -2915,7 +2915,7 @@ func TestGetTopThreadsForUserSince(t *testing.T) {
 		RootId:    rootPostPrivateChannel.Id,
 		Message:   "reply post 3",
 	}, channelPrivate, false, true)
-	assert.Nil(t, appErr)
+	require.Nil(t, appErr)
 
 	topUser2ThreadsAfterPrivateReply, appErr := th.App.GetTopThreadsForUserSince(th.BasicTeam.Id, th.BasicUser2.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
 	require.Nil(t, appErr)
@@ -2923,13 +2923,13 @@ func TestGetTopThreadsForUserSince(t *testing.T) {
 
 	// deleting reply, and unfollowing thread
 	_, appErr = th.App.DeletePost(replyPostUser2InPrivate.Id, th.BasicUser2.Id)
-	assert.Nil(t, appErr)
+	require.Nil(t, appErr)
 	// unfollow thread
 	_, err := th.App.Srv().Store.Thread().MaintainMembership(th.BasicUser2.Id, rootPostPrivateChannel.Id, store.ThreadMembershipOpts{
 		Following:       false,
 		UpdateFollowing: true,
 	})
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	topUser2ThreadsAfterPrivateReplyDelete, appErr := th.App.GetTopThreadsForUserSince(th.BasicTeam.Id, th.BasicUser2.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
 	require.Nil(t, appErr)
