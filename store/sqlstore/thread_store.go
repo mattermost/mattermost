@@ -960,7 +960,8 @@ func (s *SqlThreadStore) GetTopThreadsForTeamSince(teamID string, userID string,
 			Threads t
 			LEFT JOIN PublicChannels c ON t.ChannelId = c.Id
 		WHERE
-			t.LastReplyAt > ?
+			t.threaddeleteat IS NULL
+			AND t.LastReplyAt > ?
 			AND c.TeamId = ?
 		GROUP BY
 			t.PostId,
@@ -982,7 +983,8 @@ func (s *SqlThreadStore) GetTopThreadsForTeamSince(teamID string, userID string,
 			LEFT JOIN ChannelMembers cm ON t.ChannelId = cm.ChannelId
 			LEFT JOIN Channels c ON t.ChannelId = c.Id
 		WHERE
-			cm.UserId = ?
+			t.threaddeleteat IS NULL
+			AND cm.UserId = ?
 			AND c.Type = 'P'
 			AND c.TeamId = ?
 			AND t.LastReplyAt > ?
@@ -993,7 +995,6 @@ func (s *SqlThreadStore) GetTopThreadsForTeamSince(teamID string, userID string,
 			t.Participants
 	)) as threads_list
 	LEFT JOIN Posts as p on p.Id = threads_list.PostId
-	WHERE p.deleteat =0
 	ORDER BY ReplyCount DESC
 	limit ? offset ?`
 
@@ -1055,7 +1056,8 @@ func (s *SqlThreadStore) GetTopThreadsForUserSince(teamID string, userID string,
 			LEFT JOIN PublicChannels c ON t.ChannelId = c.Id
 			LEFT JOIN ThreadMemberships as tm on t.PostId = tm.PostId
 		WHERE
-			t.LastReplyAt > ?
+			t.threaddeleteat IS NULL
+			AND t.LastReplyAt > ?
 			AND c.TeamId = ?
 			AND tm.UserId = ?
             AND tm.Following = TRUE
@@ -1075,14 +1077,15 @@ func (s *SqlThreadStore) GetTopThreadsForUserSince(teamID string, userID string,
 			c.DisplayName,
 			c.Name
 		FROM
-			ChannelMembers cm
-			LEFT JOIN Threads t ON t.ChannelId = cm.ChannelId
+			Threads t
+			LEFT JOIN ChannelMembers cm ON t.ChannelId = cm.ChannelId
 			LEFT JOIN Channels c ON t.ChannelId = c.Id
 			LEFT JOIN ThreadMemberships as tm on t.PostId = tm.PostId
 		WHERE
 			cm.UserId = ?
 			AND c.Type = 'P'
 			AND c.TeamId = ?
+			AND t.threaddeleteat IS NULL
 			AND t.LastReplyAt > ?
 			AND tm.UserId = ?
             AND tm.Following = TRUE
@@ -1093,7 +1096,6 @@ func (s *SqlThreadStore) GetTopThreadsForUserSince(teamID string, userID string,
 			t.Participants
 	)) as threads_list
 	LEFT JOIN Posts as p on p.Id = threads_list.PostId
-	WHERE p.deleteat =0
 	ORDER BY ReplyCount DESC
 	limit ? offset ?`
 
