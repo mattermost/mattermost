@@ -41,6 +41,9 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf", api.APISessionRequired(getSubscriptionInvoicePDF)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription", api.APISessionRequired(changeSubscription)).Methods("PUT")
 
+	// GET /api/v4/cloud/request-trial
+	api.BaseRoutes.Cloud.Handle("/request-trial", api.APISessionRequired(requestCloudTrial)).Methods("PUT")
+
 	// POST /api/v4/cloud/webhook
 	api.BaseRoutes.Cloud.Handle("/webhook", api.CloudAPIKeyRequired(handleCWSWebhook)).Methods("POST")
 }
@@ -116,6 +119,43 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 	// At this point, the upgrade is complete.
 	if nErr := c.App.SendUpgradeConfirmationEmail(); nErr != nil {
 		c.Logger.Error("Error sending purchase confirmation email")
+	}
+
+	w.Write(json)
+}
+
+func requestCloudTrial(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
+		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.license_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteBilling) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteBilling)
+		return
+	}
+
+	if !c.App.Config().FeatureFlags.CloudFree {
+		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.cloud_free_feature_flag_off_error", nil, "", http.StatusInternalServerError)
+		return
+	}
+
+	currentSubscription, appErr := c.App.Cloud().GetSubscription(c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	changedSub, err := c.App.Cloud().RequestCloudTrial(c.AppContext.Session().UserId, currentSubscription.ID)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json, err := json.Marshal(changedSub)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.Write(json)
@@ -496,7 +536,9 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 					return true
 				}, plugin.OnCloudLimitsUpdatedID)
 			}
+			c.App.AdjustInProductLimits(event.ProductLimits, event.Subscription)
 		}
+
 		if err := c.App.Cloud().UpdateSubscriptionFromHook(event.ProductLimits, event.Subscription); err != nil {
 			c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.subscription.update_error", nil, err.Error(), http.StatusInternalServerError)
 			return
