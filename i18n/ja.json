@@ -9310,5 +9310,21 @@
   {
     "id": "api.templates.server_inactivity_footer_disclaimer",
     "translation": "あなたの Mattermost サーバが {{.Hours}} 時間以上アクティブでなかったため、このワンタイム電子メールが送信されました。この電子メールは、Mattermost サーバによって自動的に生成されたものです。"
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "最近の検索履歴を取得する際にエラーが発生しました"
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "クラウドインスタンスへのmmctlによるアップロードはサポートされていません。こちらのドキュメントを確認してください：https://docs.mattermost.com/manage/cloud-data-export.html。"
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "ウェブフックからサブスクリプションを更新する際にエラーが発生しました。"
+  },
+  {
+    "id": "api.cloud.cloud_free_feature_flag_off_error",
+    "translation": "CloudFree フィーチャーフラグが off です。"
   }
 ]
