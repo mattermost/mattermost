@@ -464,6 +464,10 @@
     "translation": "Internal error during cloud api request."
   },
   {
+    "id": "api.cloud.cloud_free_feature_flag_off_error",
+    "translation": "CloudFree feature flag is off."
+  },
+  {
     "id": "api.cloud.cws_webhook_event_missing_error",
     "translation": "Webhook event was not handled. Either it is missing or it is not valid."
   },
@@ -1740,6 +1744,10 @@
   {
     "id": "api.file.attachments.disabled.app_error",
     "translation": "File attachments have been disabled on this server."
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Uploading via mmctl to a Cloud instance is not supported. Please check the documentation here: https://docs.mattermost.com/manage/cloud-data-export.html."
   },
   {
     "id": "api.file.file_exists.app_error",
@@ -5934,6 +5942,10 @@
   {
     "id": "app.reaction.save.save.app_error",
     "translation": "Unable to save reaction."
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "Error fetching recent searches"
   },
   {
     "id": "app.recover.delete.app_error",

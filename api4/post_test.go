@@ -2458,19 +2458,23 @@ func TestSearchPostsFromUser(t *testing.T) {
 	message = "sgtitlereview\n with return"
 	_ = th.CreateMessagePostWithClient(client, th.BasicChannel2, message)
 
-	posts, _, _ := client.SearchPosts(th.BasicTeam.Id, "from: "+th.TeamAdminUser.Username, false)
+	posts, _, err := client.SearchPosts(th.BasicTeam.Id, "from: "+th.TeamAdminUser.Username, false)
+	require.NoError(t, err)
 	require.Lenf(t, posts.Order, 2, "wrong number of posts for search 'from: %v'", th.TeamAdminUser.Username)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username, false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username, false)
+	require.NoError(t, err)
 	require.Lenf(t, posts.Order, 1, "wrong number of posts for search 'from: %v", th.BasicUser2.Username)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" sgtitlereview", false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" sgtitlereview", false)
+	require.NoError(t, err)
 	require.Lenf(t, posts.Order, 1, "wrong number of posts for search 'from: %v'", th.BasicUser2.Username)
 
 	message = "hullo"
 	_ = th.CreateMessagePost(message)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" in:"+th.BasicChannel.Name, false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" in:"+th.BasicChannel.Name, false)
+	require.NoError(t, err)
 	require.Len(t, posts.Order, 1, "wrong number of posts for search 'from: %v in:", th.BasicUser2.Username, th.BasicChannel.Name)
 
 	client.Login(user.Email, user.Password)
@@ -2478,19 +2482,23 @@ func TestSearchPostsFromUser(t *testing.T) {
 	// wait for the join/leave messages to be created for user3 since they're done asynchronously
 	time.Sleep(100 * time.Millisecond)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username, false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username, false)
+	require.NoError(t, err)
 	require.Lenf(t, posts.Order, 2, "wrong number of posts for search 'from: %v'", th.BasicUser2.Username)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username, false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username, false)
+	require.NoError(t, err)
 	require.Lenf(t, posts.Order, 2, "wrong number of posts for search 'from: %v from: %v'", th.BasicUser2.Username, user.Username)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username+" in:"+th.BasicChannel2.Name, false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username+" in:"+th.BasicChannel2.Name, false)
+	require.NoError(t, err)
 	require.Len(t, posts.Order, 1, "wrong number of posts")
 
 	message = "coconut"
 	_ = th.CreateMessagePostWithClient(client, th.BasicChannel2, message)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username+" in:"+th.BasicChannel2.Name+" coconut", false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username+" in:"+th.BasicChannel2.Name+" coconut", false)
+	require.NoError(t, err)
 	require.Len(t, posts.Order, 1, "wrong number of posts")
 }
 

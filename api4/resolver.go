@@ -132,8 +132,9 @@ func (r *resolver) License(ctx context.Context) (model.StringMap, error) {
 // match with api4.getTeamMembersForUser for teamID=""
 // and api4.getTeamMember for teamID != ""
 func (r *resolver) TeamMembers(ctx context.Context, args struct {
-	UserID string
-	TeamID string
+	UserID      string
+	TeamID      string
+	ExcludeTeam bool
 }) ([]*teamMember, error) {
 	c, err := getCtx(ctx)
 	if err != nil {
@@ -159,7 +160,7 @@ func (r *resolver) TeamMembers(ctx context.Context, args struct {
 		return nil, c.Err
 	}
 
-	if args.TeamID != "" {
+	if args.TeamID != "" && !args.ExcludeTeam {
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), args.TeamID, model.PermissionViewTeam) {
 			c.SetPermissionError(model.PermissionViewTeam)
 			return nil, c.Err
@@ -173,8 +174,13 @@ func (r *resolver) TeamMembers(ctx context.Context, args struct {
 		return []*teamMember{{*tm}}, nil
 	}
 
+	excludeTeamID := ""
+	if args.TeamID != "" && args.ExcludeTeam {
+		excludeTeamID = args.TeamID
+	}
+
 	// Do not return archived team members
-	members, appErr := c.App.GetTeamMembersForUser(args.UserID, false)
+	members, appErr := c.App.GetTeamMembersForUser(args.UserID, excludeTeamID, false)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -299,6 +305,37 @@ func (*resolver) ChannelMembers(ctx context.Context, args struct {
 	}
 
 	return res, nil
+}
+
+// match with api4.getCategoriesForTeamForUser
+func (*resolver) SidebarCategories(ctx context.Context, args struct {
+	UserID string
+	TeamID string
+}) ([]*model.SidebarCategoryWithChannels, error) {
+	c, err := getCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Fallback to primary team logic
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), args.TeamID, model.PermissionViewTeam) {
+		primaryTeam := *c.App.Config().TeamSettings.ExperimentalPrimaryTeam
+		if primaryTeam != "" {
+			team, appErr := c.App.GetTeamByName(primaryTeam)
+			if appErr != nil {
+				return []*model.SidebarCategoryWithChannels{}, appErr
+			}
+			args.TeamID = team.Id
+		} else {
+			return []*model.SidebarCategoryWithChannels{}, nil
+		}
+	}
+
+	if args.UserID == model.Me {
+		args.UserID = c.AppContext.Session().UserId
+	}
+
+	return getSidebarCategories(c, args.UserID, args.TeamID)
 }
 
 // getCtx extracts web.Context out of the usual request context.

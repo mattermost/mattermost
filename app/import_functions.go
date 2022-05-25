@@ -737,7 +737,7 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 	isGuestByTeamId := map[string]bool{}
 	isUserByTeamId := map[string]bool{}
 	isAdminByTeamId := map[string]bool{}
-	existingMemberships, nErr := a.Srv().Store.Team().GetTeamsForUser(context.Background(), user.Id, true)
+	existingMemberships, nErr := a.Srv().Store.Team().GetTeamsForUser(context.Background(), user.Id, "", true)
 	if nErr != nil {
 		return model.NewAppError("importUserTeams", "app.team.get_members.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
@@ -1233,7 +1233,7 @@ func (a *App) importAttachment(c *request.Context, data *AttachmentImportData, p
 		return nil, appErr
 	}
 
-	if fileInfo.IsImage() {
+	if fileInfo.IsImage() && !fileInfo.IsSvg() {
 		a.HandleImages([]string{fileInfo.PreviewPath}, []string{fileInfo.ThumbnailPath}, [][]byte{fileData})
 	}
 

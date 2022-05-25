@@ -86,6 +86,7 @@ const (
 	CollapsedThreadsDisabled   = "disabled"
 	CollapsedThreadsDefaultOn  = "default_on"
 	CollapsedThreadsDefaultOff = "default_off"
+	CollapsedThreadsAlwaysOn   = "always_on"
 
 	EmailBatchingBufferSize = 256
 	EmailBatchingInterval   = 30
@@ -544,13 +545,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.Forward80To443 = NewBool(false)
 	}
 
-	if isUpdate {
-		// When updating an existing configuration, ensure that defaults are set.
-		if s.TrustedProxyIPHeader == nil {
-			s.TrustedProxyIPHeader = []string{HeaderForwarded, HeaderRealIP}
-		}
-	} else {
-		// When generating a blank configuration, leave the list empty.
+	if s.TrustedProxyIPHeader == nil {
 		s.TrustedProxyIPHeader = []string{}
 	}
 
@@ -832,7 +827,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.CollapsedThreads == nil {
-		s.CollapsedThreads = NewString(CollapsedThreadsDisabled)
+		s.CollapsedThreads = NewString(CollapsedThreadsAlwaysOn)
 	}
 
 	if s.ManagedResourcePaths == nil {
@@ -3657,6 +3652,7 @@ func (s *ServiceSettings) isValid() *AppError {
 
 	if *s.CollapsedThreads != CollapsedThreadsDisabled &&
 		*s.CollapsedThreads != CollapsedThreadsDefaultOn &&
+		*s.CollapsedThreads != CollapsedThreadsAlwaysOn &&
 		*s.CollapsedThreads != CollapsedThreadsDefaultOff {
 		return NewAppError("Config.IsValid", "model.config.is_valid.collapsed_threads.app_error", nil, "", http.StatusBadRequest)
 	}
