@@ -7,7 +7,9 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetPostsUsage(t *testing.T) {
@@ -24,13 +26,21 @@ func TestGetPostsUsage(t *testing.T) {
 	})
 
 	t.Run("good request returns response", func(t *testing.T) {
-		// Following calls create a total of (12 system + 15 user) posts
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		for i := 0; i < 14; i++ {
 			th.CreatePost()
 		}
+
+		total, err := th.Server.Store.Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeDeleted: true})
+		require.NoError(t, err)
+		usersOnly, err := th.Server.Store.Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeDeleted: true, UsersPostsOnly: true})
+		require.NoError(t, err)
+
+		require.GreaterOrEqual(t, usersOnly, int64(14))
+		require.LessOrEqual(t, usersOnly, int64(20))
+		require.GreaterOrEqual(t, total, usersOnly)
 
 		usage, r, err := th.Client.GetPostsUsage()
 		assert.NoError(t, err)

@@ -2135,7 +2135,7 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, r2, int64(2))
 
-	// total across teams with hastags and files
+	// total across teams with hashtags and files
 	r2, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{MustHaveFile: true, MustHaveHashtag: true})
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, r2, int64(1))
