@@ -8111,7 +8111,7 @@ func (c *Client4) GetPostsUsage() (*PostsUsage, *Response, error) {
 	return usage, BuildResponse(r), err
 }
 
-// GetTeamsUsage returns rounded off total usage of teams for the instance
+// GetTeamsUsage returns total usage of teams for the instance
 func (c *Client4) GetTeamsUsage() (*TeamsUsage, *Response, error) {
 	r, err := c.DoAPIGet(c.usageRoute()+"/teams", "")
 	if err != nil {
