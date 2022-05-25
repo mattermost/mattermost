@@ -119,6 +119,29 @@ func (_m *ThreadStore) GetMembershipsForUser(userId string, teamID string) ([]*m
 	return r0, r1
 }
 
+// GetOrderedPosts provides a mock function with given fields: threadID, since, ascending
+func (_m *ThreadStore) GetOrderedPosts(threadID string, since int64, ascending bool) ([]*model.Post, error) {
+	ret := _m.Called(threadID, since, ascending)
+
+	var r0 []*model.Post
+	if rf, ok := ret.Get(0).(func(string, int64, bool) []*model.Post); ok {
+		r0 = rf(threadID, since, ascending)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int64, bool) error); ok {
+		r1 = rf(threadID, since, ascending)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetPosts provides a mock function with given fields: threadID, since
 func (_m *ThreadStore) GetPosts(threadID string, since int64) ([]*model.Post, error) {
 	ret := _m.Called(threadID, since)

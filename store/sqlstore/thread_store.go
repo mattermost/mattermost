@@ -834,6 +834,28 @@ func (s *SqlThreadStore) GetPosts(threadId string, since int64) ([]*model.Post, 
 	return result, nil
 }
 
+func (s *SqlThreadStore) GetOrderedPosts(threadId string, since int64, ascending bool) ([]*model.Post, error) {
+	order := "DESC"
+	if ascending {
+		order = "ASC"
+	}
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.Eq{"RootId": threadId}).
+		Where(sq.Eq{"DeleteAt": 0}).
+		Where(sq.GtOrEq{"CreateAt": since}).
+		OrderBy("CreateAt " + order)
+
+	result := []*model.Post{}
+	err := s.GetReplicaX().SelectBuilder(&result, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to fetch thread posts")
+	}
+
+	return result, nil
+}
+
 // PermanentDeleteBatchForRetentionPolicies deletes a batch of records which are affected by
 // the global or a granular retention policy.
 // See `genericPermanentDeleteBatchForRetentionPolicies` for details.

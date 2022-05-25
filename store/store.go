@@ -307,6 +307,7 @@ type ThreadStore interface {
 	GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error)
 	GetTeamsUnreadForUser(userID string, teamIDs []string) (map[string]*model.TeamUnread, error)
 	GetPosts(threadID string, since int64) ([]*model.Post, error)
+	GetOrderedPosts(threadID string, since int64, ascending bool) ([]*model.Post, error)
 
 	MarkAllAsRead(userID string, threadIds []string) error
 	MarkAllAsReadByTeam(userID, teamID string) error
