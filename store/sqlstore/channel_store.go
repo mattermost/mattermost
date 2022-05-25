@@ -3286,14 +3286,13 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 
 	likeClause, likeTerm := s.buildLIKEClause(opts.Term, likeFields)
 
-	// Keep the number of likeTerms same as the number of columns
-	// (c.Name, c.DisplayName, c.Purpose, c.Id?)
-	likeTerms := make([]interface{}, len(strings.Split(likeFields, ",")))
-	for i := 0; i < len(likeTerms); i++ {
-		likeTerms[i] = likeTerm
-	}
-
 	if likeTerm != "" {
+		// Keep the number of likeTerms same as the number of columns
+		// (c.Name, c.DisplayName, c.Purpose, c.Id?)
+		likeTerms := make([]interface{}, len(strings.Split(likeFields, ",")))
+		for i := 0; i < len(likeTerms); i++ {
+			likeTerms[i] = likeTerm
+		}
 		likeClause = strings.ReplaceAll(likeClause, ":LikeTerm", "?")
 		fulltextClause, fulltextTerm := s.buildFulltextClause(opts.Term, "c.Name, c.DisplayName, c.Purpose")
 		fulltextClause = strings.ReplaceAll(fulltextClause, ":FulltextTerm", "?")
