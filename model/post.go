@@ -281,8 +281,6 @@ type PostCountOptions struct {
 	MustHaveHashtag bool
 	ExcludeDeleted  bool
 	UsersPostsOnly  bool
-	// AllowFromCache looks up cache only when ExcludeDeleted and UsersPostsOnly are true and rest are falsy.
-	AllowFromCache bool
 }
 
 func (o *Post) Etag() string {
