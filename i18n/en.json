@@ -464,10 +464,6 @@
     "translation": "Internal error during cloud api request."
   },
   {
-    "id": "api.cloud.teams_limit_reached.restore",
-    "translation": "Unable to restore team because limit has been reached"
-  },
-  {
     "id": "api.cloud.cloud_free_feature_flag_off_error",
     "translation": "CloudFree feature flag is off."
   },
@@ -486,6 +482,10 @@
   {
     "id": "api.cloud.subscription.update_error",
     "translation": "Error updating subscription from webhook."
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Unable to restore team because limit has been reached"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -5808,8 +5808,8 @@
     "translation": "Unable to get post counts by day."
   },
   {
-    "id": "app.teams.analytics_teams_count.app_error",
-    "translation": "Unable to get team count"
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": ""
   },
   {
     "id": "app.post.analytics_user_counts_posts_by_day.app_error",
@@ -6290,6 +6290,10 @@
   {
     "id": "app.team.user_belongs_to_teams.app_error",
     "translation": "Unable to determine if the user belongs to a list of teams."
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Unable to get team count"
   },
   {
     "id": "app.terms_of_service.create.app_error",
