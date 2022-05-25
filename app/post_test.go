@@ -250,7 +250,7 @@ func TestAttachFilesToPost(t *testing.T) {
 		assert.Len(t, infos, 1)
 		assert.Equal(t, info2.Id, infos[0].Id)
 
-		updated, appErr := th.App.GetSinglePost(post.Id)
+		updated, appErr := th.App.GetSinglePost(post.Id, false)
 		require.Nil(t, appErr)
 		assert.Len(t, updated.FileIds, 1)
 		assert.Contains(t, updated.FileIds, info2.Id)
@@ -2688,11 +2688,11 @@ func TestGetPostIfAuthorized(t *testing.T) {
 	require.NotNil(t, session2)
 
 	// User is not authorized to get post
-	_, err = th.App.GetPostIfAuthorized(post.Id, session2)
+	_, err = th.App.GetPostIfAuthorized(post.Id, session2, false)
 	require.NotNil(t, err)
 
 	// User is authorized to get post
-	_, err = th.App.GetPostIfAuthorized(post.Id, session1)
+	_, err = th.App.GetPostIfAuthorized(post.Id, session1, false)
 	require.Nil(t, err)
 }
 

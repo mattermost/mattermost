@@ -3780,6 +3780,24 @@ func (c *Client4) GetPost(postId string, etag string) (*Post, *Response, error) 
 	return &post, BuildResponse(r), nil
 }
 
+// GetPost gets a single post, including deleted.
+func (c *Client4) GetPostIncludeDeleted(postId string, etag string) (*Post, *Response, error) {
+	r, err := c.DoAPIGet(c.postRoute(postId)+"?include_deleted="+c.boolString(true), etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var post Post
+	if r.StatusCode == http.StatusNotModified {
+		return &post, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&post); jsonErr != nil {
+		return nil, nil, NewAppError("GetPostIncludeDeleted", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &post, BuildResponse(r), nil
+}
+
 // DeletePost deletes a post from the provided post id string.
 func (c *Client4) DeletePost(postId string) (*Response, error) {
 	r, err := c.DoAPIDelete(c.postRoute(postId))
