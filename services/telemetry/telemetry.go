@@ -297,7 +297,7 @@ func (ts *TelemetryService) trackActivity() {
 		deletedPrivateChannelCount = dpccr
 	}
 
-	postsCount, _ = ts.dbStore.Post().AnalyticsPostCount("", false, false)
+	postsCount, _ = ts.dbStore.Post().AnalyticsPostCount(&model.PostCountOptions{})
 
 	postCountsOptions := &model.AnalyticsPostCountsOptions{TeamId: "", BotsOnly: false, YesterdayOnly: true}
 	postCountsYesterday, _ := ts.dbStore.Post().AnalyticsPostCountsByDay(postCountsOptions)
@@ -1303,7 +1303,7 @@ func (ts *TelemetryService) trackWarnMetrics() {
 
 func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL string) {
 	pluginConfigData := map[string]interface{}{
-		"enable_nps_survey":             pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", true),
+		"enable_nps_survey":             pluginSetting(&cfg.PluginSettings, model.PluginIdNPS, "enablesurvey", true),
 		"enable":                        *cfg.PluginSettings.Enable,
 		"enable_uploads":                *cfg.PluginSettings.EnableUploads,
 		"allow_insecure_download_url":   *cfg.PluginSettings.AllowInsecureDownloadURL,

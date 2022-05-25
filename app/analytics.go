@@ -87,7 +87,7 @@ func (a *App) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *mo
 		if !skipIntensiveQueries {
 			g.Go(func() error {
 				var err error
-				if postsCount, err = a.Srv().Store.Post().AnalyticsPostCount(teamID, false, false); err != nil {
+				if postsCount, err = a.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: teamID}); err != nil {
 					return model.NewAppError("GetAnalytics", "app.post.analytics_posts_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 				}
 				return nil
@@ -269,7 +269,7 @@ func (a *App) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *mo
 		if !skipIntensiveQueries {
 			g2.Go(func() error {
 				var err error
-				if filesCount, err = a.Srv().Store.Post().AnalyticsPostCount(teamID, true, false); err != nil {
+				if filesCount, err = a.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: teamID, MustHaveFile: true}); err != nil {
 					return model.NewAppError("GetAnalytics", "app.post.analytics_posts_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 				}
 				return nil
@@ -277,7 +277,7 @@ func (a *App) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *mo
 
 			g2.Go(func() error {
 				var err error
-				if hashtagsCount, err = a.Srv().Store.Post().AnalyticsPostCount(teamID, false, true); err != nil {
+				if hashtagsCount, err = a.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: teamID, MustHaveHashtag: true}); err != nil {
 					return model.NewAppError("GetAnalytics", "app.post.analytics_posts_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 				}
 				return nil

@@ -68,7 +68,7 @@ func checkNoError(t *testing.T, err *model.AppError) {
 }
 
 func AssertAllPostsCount(t *testing.T, a *App, initialCount int64, change int64, teamName string) {
-	result, err := a.Srv().Store.Post().AnalyticsPostCount(teamName, false, false)
+	result, err := a.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: teamName})
 	require.NoError(t, err)
 	require.Equal(t, initialCount+change, result, "Did not find the expected number of posts.")
 }
