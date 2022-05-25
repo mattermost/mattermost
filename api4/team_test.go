@@ -142,6 +142,31 @@ func TestCreateTeam(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 	})
+
+	t.Run("non below limit returns 200", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
+		th.App.ReloadConfig()
+		defer th.App.ReloadConfig()
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		cloud := &mocks.CloudInterface{}
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = cloud
+
+		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
+			Teams: &model.TeamsLimits{
+				Active: model.NewInt(200),
+			},
+		}, nil).Once()
+		team := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TeamOpen}
+		_, resp, err := th.Client.CreateTeam(team)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
 }
 
 func TestCreateTeamSanitization(t *testing.T) {
@@ -634,6 +659,8 @@ func TestRestoreTeam(t *testing.T) {
 	})
 
 	t.Run("cloud limit reached returns 400", func(t *testing.T) {
+		// Create an archived team to be restored later
+		team := createTeam(t, true, model.TeamOpen)
 		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
 		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
 		th.App.ReloadConfig()
@@ -651,7 +678,7 @@ func TestRestoreTeam(t *testing.T) {
 				Active: model.NewInt(1),
 			},
 		}, nil).Once()
-		team := createTeam(t, true, model.TeamOpen)
+
 		_, resp, err := client.RestoreTeam(team.Id)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
@@ -674,7 +701,7 @@ func TestRestoreTeam(t *testing.T) {
 			Teams: &model.TeamsLimits{
 				Active: model.NewInt(200),
 			},
-		}, nil).Once()
+		}, nil).Twice()
 		team := createTeam(t, true, model.TeamOpen)
 		_, resp, err := client.RestoreTeam(team.Id)
 		require.NoError(t, err)
