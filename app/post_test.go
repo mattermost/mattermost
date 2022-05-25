@@ -2929,7 +2929,7 @@ func TestGetTopThreadsForUserSince(t *testing.T) {
 		Following:       false,
 		UpdateFollowing: true,
 	})
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	topUser2ThreadsAfterPrivateReplyDelete, appErr := th.App.GetTopThreadsForUserSince(th.BasicTeam.Id, th.BasicUser2.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
 	require.Nil(t, appErr)
