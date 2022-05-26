@@ -11,9 +11,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	_ "github.com/chai2010/webp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	_ "golang.org/x/image/webp"
 
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -102,7 +102,7 @@ func TestCreateEmoji(t *testing.T) {
 	newEmoji, _, err = client.CreateEmoji(emoji, utils.CreateTestWebp(t, emojiWidth, emojiHeight), "image.webp")
 	require.NoError(t, err)
 	require.Equal(t, newEmoji.Name, emoji.Name, "create with wrong name")
-	checkEmojiFile(newEmoji.Id, "webp")
+	checkEmojiFile(newEmoji.Id, "png") // emoji must be converted from webp to png
 
 	// try to create a valid jpeg emoji
 	emoji = &model.Emoji{

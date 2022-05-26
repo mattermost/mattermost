@@ -20,9 +20,7 @@ import (
 	"net/http"
 	"path"
 
-	webp "github.com/chai2010/webp"
 	"github.com/disintegration/imaging"
-	drawPackage "golang.org/x/image/draw"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -146,17 +144,6 @@ func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *mode
 
 			resized_gif := resizeEmojiGif(gif_data)
 			if err := gif.EncodeAll(newbuf, resized_gif); err != nil {
-				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_encode_error", nil, err.Error(), http.StatusBadRequest)
-			}
-
-			buf = newbuf
-		} else if info.MimeType == "image/webp" {
-			src, err := webp.DecodeRGBA(data)
-			if err != nil {
-				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.decode_error", nil, err.Error(), http.StatusBadRequest)
-			}
-			resized_webp := resizeEmojiWebp(src)
-			if err := webp.Encode(newbuf, resized_webp, nil); err != nil {
 				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_encode_error", nil, err.Error(), http.StatusBadRequest)
 			}
 
@@ -346,20 +333,6 @@ func resizeEmoji(img image.Image, width int, height int) image.Image {
 		return img
 	}
 	return imaging.Fit(img, MaxEmojiWidth, MaxEmojiHeight, imaging.Lanczos)
-}
-
-func resizeEmojiWebp(src *image.RGBA) *image.RGBA {
-	x := src.Bounds().Max.X
-	y := src.Bounds().Max.Y
-	dst := &image.RGBA{}
-	if y > x {
-		dst = image.NewRGBA(image.Rect(0, 0, x*MaxEmojiHeight/y, MaxEmojiHeight))
-	} else {
-		dst = image.NewRGBA(image.Rect(0, 0, MaxEmojiWidth, y*MaxEmojiWidth/x))
-	}
-	drawPackage.NearestNeighbor.Scale(dst, dst.Rect, src, src.Bounds(), draw.Over, nil)
-	src = dst
-	return src
 }
 
 func imageToPaletted(img image.Image) *image.Paletted {
