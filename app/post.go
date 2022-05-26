@@ -1719,7 +1719,7 @@ func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, *model.AppError) {
 
 func (a *App) GetTopThreadsForTeamSince(teamID, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError) {
 	if !a.Config().FeatureFlags.InsightsEnabled {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "api.post.feature_disabled", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.insights.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
 	topThreads, err := a.Srv().Store.Thread().GetTopThreadsForTeamSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
@@ -1735,7 +1735,7 @@ func (a *App) GetTopThreadsForTeamSince(teamID, userID string, opts *model.Insig
 
 func (a *App) GetTopThreadsForUserSince(teamID, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError) {
 	if !a.Config().FeatureFlags.InsightsEnabled {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.insights.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
 	topThreads, err := a.Srv().Store.Thread().GetTopThreadsForUserSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)

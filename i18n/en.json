@@ -2274,10 +2274,6 @@
     "translation": "Unable to get the pending post."
   },
   {
-    "id": "api.post.feature_disabled",
-    "translation": ""
-  },
-  {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
       "one": "{{.Count}} file sent: {{.Filenames}}",
@@ -5450,6 +5446,10 @@
   {
     "id": "app.insert_error",
     "translation": "insert error"
+  },
+  {
+    "id": "app.insights.feature_disabled",
+    "translation": "Insights feature is disabled."
   },
   {
     "id": "app.install_integration.reached_max_limit.error",
