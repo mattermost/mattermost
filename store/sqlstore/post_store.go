@@ -1400,18 +1400,16 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		)
 	}
 	query := s.getQueryBuilder().Select(columns...)
-	replyCountSubQuery := s.getQueryBuilder().Select("COUNT(*)").From("Posts").Where(sq.Expr("Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0"))
+	replyCountSubQuery := s.getQueryBuilder().Select("COUNT(*)").From("Posts").Where(sq.Expr("Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)"))
 
 	conditions := sq.And{
 		sq.Expr(`CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = ?)`, options.PostId),
 		sq.Eq{"p.ChannelId": options.ChannelId},
-		sq.Eq{"p.DeleteAt": int(0)},
 	}
 
-	if options.IncludeDeleted {
-		replyCountSubQuery = s.getQueryBuilder().Select("COUNT(*)").From("Posts").Where(sq.Expr("Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)"))
-		deleteAtIndex := len(conditions) - 1
-		conditions = conditions[:deleteAtIndex]
+	if !options.IncludeDeleted {
+		replyCountSubQuery = replyCountSubQuery.Where(sq.Expr("Posts.DeleteAt = 0"))
+		conditions = append(conditions, sq.Eq{"p.DeleteAt": int(0)})
 	}
 
 	if options.CollapsedThreads {
@@ -1591,11 +1589,12 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 	posts := []*model.Post{}
 	var fetchQuery string
 	if skipFetchThreads {
-		fetchQuery = "SELECT p.*, (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE ChannelId = ? AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT ? OFFSET ?"
-	} else if includeDeleted {
-		fetchQuery = "SELECT * FROM Posts WHERE ChannelId = ? ORDER BY CreateAt DESC LIMIT ? OFFSET ?"
+		fetchQuery = "SELECT p.*, (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.ChannelId = ? AND p.DeleteAt = 0 ORDER BY p.CreateAt DESC LIMIT ? OFFSET ?"
 	} else {
 		fetchQuery = "SELECT * FROM Posts WHERE Posts.ChannelId = ? AND Posts.DeleteAt = 0 ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?"
+	}
+	if includeDeleted {
+		fetchQuery = "SELECT * FROM Posts WHERE Posts.ChannelId = ? ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?"
 	}
 	err := s.GetReplicaX().Select(&posts, fetchQuery, channelId, limit, offset)
 	if err != nil {
