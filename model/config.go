@@ -949,6 +949,7 @@ type ExperimentalSettings struct {
 	CloudBilling                    *bool   `access:"experimental_features,write_restrictable"`
 	EnableSharedChannels            *bool   `access:"experimental_features"`
 	EnableRemoteClusterService      *bool   `access:"experimental_features"`
+	EnableAppBar                    *bool   `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -986,6 +987,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.EnableRemoteClusterService == nil {
 		s.EnableRemoteClusterService = NewBool(false)
+	}
+
+	if s.EnableAppBar == nil {
+		s.EnableAppBar = NewBool(false)
 	}
 }
 
