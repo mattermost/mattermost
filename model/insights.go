@@ -57,19 +57,19 @@ type TopThreadList struct {
 }
 
 type TopThread struct {
-	PostId          string                      `json:"post_id"`
-	ReplyCount      int64                       `json:"reply_count"`
-	ChannelId       string                      `json:"channel_id"`
-	DisplayName     string                      `json:"channel_display_name"`
-	Name            string                      `json:"channel_name"`
-	Message         string                      `json:"message"`
-	Participants    StringArray                 `json:"participants"`
-	UserId          string                      `json:"user_id"`
-	UserInformation *InsightUserInformationType `json:"user_information"`
-	Post            *Post                       `json:"post"`
+	PostId          string                  `json:"post_id"`
+	ReplyCount      int64                   `json:"reply_count"`
+	ChannelId       string                  `json:"channel_id"`
+	DisplayName     string                  `json:"channel_display_name"`
+	Name            string                  `json:"channel_name"`
+	Message         string                  `json:"message"`
+	Participants    StringArray             `json:"participants"`
+	UserId          string                  `json:"user_id"`
+	UserInformation *InsightUserInformation `json:"user_information"`
+	Post            *Post                   `json:"post"`
 }
 
-type InsightUserInformationType struct {
+type InsightUserInformation struct {
 	Id                string `json:"id"`
 	LastPictureUpdate int64  `json:"last_picture_update"`
 	FirstName         string `json:"first_name"`

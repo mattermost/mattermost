@@ -1006,7 +1006,7 @@ func (s *SqlThreadStore) GetTopThreadsForTeamSince(teamID string, userID string,
 		return nil, errors.Wrap(err, "failed to get top threads")
 	}
 
-	// resolve user, root post for each top thread
+	// resolve user, root post, fileinfo, linkmetadata for each top thread
 	for _, topThread := range topThreads {
 		userIDs := []string{topThread.UserId}
 		var err error
@@ -1014,7 +1014,7 @@ func (s *SqlThreadStore) GetTopThreadsForTeamSince(teamID string, userID string,
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to get extended user for user id=%s", userIDs[0])
 		}
-		topThread.UserInformation = &model.InsightUserInformationType{
+		topThread.UserInformation = &model.InsightUserInformation{
 			Id:                users[0].Id,
 			LastPictureUpdate: users[0].LastPictureUpdate,
 			FirstName:         users[0].FirstName,
@@ -1115,7 +1115,7 @@ func (s *SqlThreadStore) GetTopThreadsForUserSince(teamID string, userID string,
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to get extended user for post id=%s", topThread.PostId)
 		}
-		topThread.UserInformation = &model.InsightUserInformationType{
+		topThread.UserInformation = &model.InsightUserInformation{
 			Id:                users[0].Id,
 			LastPictureUpdate: users[0].LastPictureUpdate,
 			FirstName:         users[0].FirstName,
