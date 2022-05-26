@@ -37,13 +37,17 @@ func getPostsUsage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getTeamsUsage(c *Context, w http.ResponseWriter, r *http.Request) {
-	count, appErr := c.App.GetTeamsUsage()
+	teamsUsage, appErr := c.App.GetTeamsUsage()
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.getTeamsUsage", "app.teams.analytics_teams_count.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	json, err := json.Marshal(&model.TeamsUsage{Active: count})
+	if teamsUsage == nil {
+		c.Err = model.NewAppError("Api4.getTeamsUsage", "app.teams.analytics_teams_count.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+	}
+
+	json, err := json.Marshal(teamsUsage)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.getTeamsUsage", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}

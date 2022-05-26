@@ -8,7 +8,8 @@ type PostsUsage struct {
 }
 
 type TeamsUsage struct {
-	Active int64 `json:"active"`
+	Active        int64 `json:"active"`
+	CloudArchived int64 `json:"cloud_archived"`
 }
 
 type IntegrationsUsage struct {

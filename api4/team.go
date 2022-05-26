@@ -105,13 +105,13 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		// If there are no limits for teams, for active teams, or the limit for active teams is less than 0, do nothing
 		if !(limits == nil || limits.Teams == nil || limits.Teams.Active == nil || *limits.Teams.Active <= 0) {
-			activeTeams, appErr := c.App.GetTeamsUsage()
+			teamsUsage, appErr := c.App.GetTeamsUsage()
 			if err != nil {
 				c.Err = appErr
 				return
 			}
 			// if the number of active teams is greater than or equal to the limit, return 400
-			if activeTeams >= int64(*limits.Teams.Active) {
+			if teamsUsage.Active >= int64(*limits.Teams.Active) {
 				c.Err = model.NewAppError("Api4.restoreTeam", "api.cloud.teams_limit_reached.restore", nil, "", http.StatusBadRequest)
 				return
 			}
@@ -291,13 +291,13 @@ func restoreTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		// If there are no limits for teams, for active teams, or the limit for active teams is less than 0, do nothing
 		if !(limits == nil || limits.Teams == nil || limits.Teams.Active == nil || *limits.Teams.Active <= 0) {
-			activeTeams, appErr := c.App.GetTeamsUsage()
+			teamsUsage, appErr := c.App.GetTeamsUsage()
 			if appErr != nil {
 				c.Err = appErr
 				return
 			}
 			// if the number of active teams is greater than or equal to the limit, return 400
-			if activeTeams >= int64(*limits.Teams.Active) {
+			if teamsUsage.Active >= int64(*limits.Teams.Active) {
 				c.Err = model.NewAppError("Api4.restoreTeam", "api.cloud.teams_limit_reached.restore", nil, "", http.StatusBadRequest)
 				return
 			}

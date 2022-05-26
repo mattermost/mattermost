@@ -55,12 +55,30 @@ func (a *App) GetPostsUsage() (int64, *model.AppError) {
 	return utils.RoundOffToZeroes(float64(count)), nil
 }
 
-func (a *App) GetTeamsUsage() (int64, *model.AppError) {
+func (a *App) GetTeamsUsage() (*model.TeamsUsage, *model.AppError) {
+	usage := &model.TeamsUsage{}
 	includeDeleted := false
 	teamCount, err := a.Srv().Store.Team().AnalyticsTeamCount(&model.TeamSearch{IncludeDeleted: &includeDeleted})
 	if err != nil {
-		return 0, model.NewAppError("GetTeamsUsage", "app.post.analytics_teams_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetTeamsUsage", "app.post.analytics_teams_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return teamCount, nil
+	usage.Active = teamCount
+
+	allTeams, appErr := a.GetAllTeams()
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	cloudArchivedTeamCount := 0
+
+	for _, team := range allTeams {
+		if team.DeleteAt > 0 && team.CloudLimitsArchived {
+			cloudArchivedTeamCount += 1
+		}
+	}
+
+	usage.CloudArchived = int64(cloudArchivedTeamCount)
+
+	return usage, nil
 }
