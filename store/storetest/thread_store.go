@@ -1395,5 +1395,177 @@ func testGetTopThreads(t *testing.T, ss store.Store) {
 		require.Equal(t, topThreadsByUser1.Items[0].Post.Id, post1.Id)
 		require.Equal(t, topThreadsByUser2.Items[1].Post.Id, post3.Id)
 	})
+	t.Run("test get top threads only from given teamid", func(t *testing.T) {
+		const limit = 10
+		team1, err := ss.Team().Save(&model.Team{
+			DisplayName: "DisplayName",
+			Name:        "team" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.NoError(t, err)
+		team2, err := ss.Team().Save(&model.Team{
+			DisplayName: "DisplayName",
+			Name:        "team" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.NoError(t, err)
+		channel1, err := ss.Channel().Save(&model.Channel{
+			TeamId:      team1.Id,
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		channel2, err := ss.Channel().Save(&model.Channel{
+			TeamId:      team2.Id,
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		post1, err := ss.Post().Save(&model.Post{
+			ChannelId: channel1.Id,
+			UserId:    u1.Id,
+		})
+		require.NoError(t, err)
+		post2, err := ss.Post().Save(&model.Post{
+			ChannelId: channel2.Id,
+			UserId:    u2.Id,
+		})
+		require.NoError(t, err)
+		threadStoreCreateReply(t, ss, channel1.Id, post1.Id, post1.UserId, 2000)
+		threadStoreCreateReply(t, ss, channel1.Id, post1.Id, post1.UserId, 2000)
+
+		threadStoreCreateReply(t, ss, channel2.Id, post2.Id, post2.UserId, 2000)
+
+		//  assert that getting top threads from teamid 1 doesn't have post1.Id
+
+		topThreadsTeam2, err := ss.Thread().GetTopThreadsForTeamSince(team2.Id, u1.Id, 12, 0, limit)
+		require.NoError(t, err)
+		require.Len(t, topThreadsTeam2.Items, 1)
+		require.Equal(t, topThreadsTeam2.Items[0].Post.Id, post2.Id)
+	})
+	t.Run("test get top threads only from non-direct channels", func(t *testing.T) {
+		const limit = 10
+		team1, err := ss.Team().Save(&model.Team{
+			DisplayName: "DisplayName",
+			Name:        "team" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.NoError(t, err)
+		channel1, err := ss.Channel().CreateDirectChannel(&u1, &u2)
+		require.NoError(t, err)
+
+		channel2, err := ss.Channel().Save(&model.Channel{
+			TeamId:      team1.Id,
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		post1, err := ss.Post().Save(&model.Post{
+			ChannelId: channel1.Id,
+			UserId:    u1.Id,
+		})
+		require.NoError(t, err)
+		post2, err := ss.Post().Save(&model.Post{
+			ChannelId: channel2.Id,
+			UserId:    u2.Id,
+		})
+		require.NoError(t, err)
+		threadStoreCreateReply(t, ss, channel1.Id, post1.Id, post1.UserId, 2000)
+		threadStoreCreateReply(t, ss, channel1.Id, post1.Id, post1.UserId, 2000)
+
+		threadStoreCreateReply(t, ss, channel2.Id, post2.Id, u1.Id, 2000)
+
+		opts := store.ThreadMembershipOpts{
+			Following:             true,
+			IncrementMentions:     false,
+			UpdateFollowing:       true,
+			UpdateViewedTimestamp: false,
+			UpdateParticipants:    false,
+		}
+
+		// create threadmemberships entries.
+		_, err = ss.Thread().MaintainMembership(u1.Id, post1.Id, opts)
+		require.NoError(t, err)
+		_, err = ss.Thread().MaintainMembership(u1.Id, post2.Id, opts)
+		require.NoError(t, err)
+		_, err = ss.Thread().MaintainMembership(u2.Id, post1.Id, opts)
+		require.NoError(t, err)
+		_, err = ss.Thread().MaintainMembership(u2.Id, post2.Id, opts)
+		require.NoError(t, err)
+
+		//  assert that getting top threads from teamid 1 doesn't have DMs
+
+		topThreadsTeam1, err := ss.Thread().GetTopThreadsForTeamSince(team1.Id, u1.Id, 12, 0, limit)
+		require.NoError(t, err)
+		require.Len(t, topThreadsTeam1.Items, 1)
+		require.Equal(t, topThreadsTeam1.Items[0].Post.Id, post2.Id)
+
+		// assert that getting top threads from user 1 doesn't contain dm threads.
+		topUserThreads, err := ss.Thread().GetTopThreadsForUserSince(team1.Id, u1.Id, 12, 0, limit)
+		require.NoError(t, err)
+		require.Len(t, topUserThreads.Items, 1)
+		require.Equal(t, topUserThreads.Items[0].Post.Id, post2.Id)
+	})
+	t.Run("test get top threads doesn't exceed duration", func(t *testing.T) {
+		const limit = 10
+		team, err := ss.Team().Save(&model.Team{
+			DisplayName: "DisplayName",
+			Name:        "team" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.NoError(t, err)
+		channel, err := ss.Channel().Save(&model.Channel{
+			TeamId:      team.Id,
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		post1, err := ss.Post().Save(&model.Post{
+			ChannelId: channel.Id,
+			UserId:    u1.Id,
+		})
+		require.NoError(t, err)
+		// post 2 has replies after 10 ms unix time.
+		post2, err := ss.Post().Save(&model.Post{
+			ChannelId: channel.Id,
+			UserId:    u2.Id,
+			CreateAt:  1,
+		})
+		require.NoError(t, err)
+		threadStoreCreateReply(t, ss, channel.Id, post1.Id, post1.UserId, 2000)
+		threadStoreCreateReply(t, ss, channel.Id, post1.Id, post1.UserId, 2000)
+
+		threadStoreCreateReply(t, ss, channel.Id, post2.Id, post1.UserId, 10)
+
+		//  get top threads
+		topThreadsInTeamNewer, err := ss.Thread().GetTopThreadsForTeamSince(team.Id, model.NewId(), 12, 0, limit)
+		require.NoError(t, err)
+		// require length of top threads to be 2
+		require.Len(t, topThreadsInTeamNewer.Items, 1)
+
+		// require first element to be post1 with 2 replyCount=2
+		require.Equal(t, topThreadsInTeamNewer.Items[0].PostId, post1.Id)
+
+		//  get top threads
+		topThreadsInTeamOlder, err := ss.Thread().GetTopThreadsForTeamSince(team.Id, model.NewId(), 9, 0, limit)
+		require.NoError(t, err)
+		// require length of top threads to be 2
+		require.Len(t, topThreadsInTeamOlder.Items, 2)
+
+		// require first element to be post1 with 2 replyCount=2
+		require.Equal(t, topThreadsInTeamOlder.Items[1].PostId, post2.Id)
+	})
 
 }

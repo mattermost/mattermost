@@ -102,3 +102,41 @@ func TestGetTopChannelListWithPagination(t *testing.T) {
 		})
 	}
 }
+
+func TestGetTopThreadListWithPagination(t *testing.T) {
+	threads := []*TopThread{
+		{PostId: NewId(), ReplyCount: 100},
+		{PostId: NewId(), ReplyCount: 80},
+		{PostId: NewId(), ReplyCount: 90},
+		{PostId: NewId(), ReplyCount: 76},
+		{PostId: NewId(), ReplyCount: 43},
+		{PostId: NewId(), ReplyCount: 2},
+		{PostId: NewId(), ReplyCount: 1},
+	}
+	hasNextTT := []struct {
+		Description string
+		Limit       int
+		Offset      int
+		Expected    *TopThreadList
+	}{
+		{
+			Description: "has one page",
+			Limit:       len(threads),
+			Offset:      0,
+			Expected:    &TopThreadList{InsightsListData: InsightsListData{HasNext: false}, Items: threads},
+		},
+		{
+			Description: "has more than one page",
+			Limit:       len(threads) - 1,
+			Offset:      0,
+			Expected:    &TopThreadList{InsightsListData: InsightsListData{HasNext: true}, Items: threads},
+		},
+	}
+
+	for _, test := range hasNextTT {
+		t.Run(test.Description, func(t *testing.T) {
+			actual := GetTopThreadListWithPagination(threads, test.Limit)
+			assert.Equal(t, test.Expected.HasNext, actual.HasNext)
+		})
+	}
+}
