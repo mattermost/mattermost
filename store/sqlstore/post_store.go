@@ -1407,8 +1407,15 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 	conditions := sq.And{
 		sq.Expr(`CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = ?)`, options.PostId),
 		sq.Eq{"p.ChannelId": options.ChannelId},
-		sq.Eq{"p.DeleteAt": int(0)},
 	}
+
+	if !options.IncludeDeleted {
+		conditions = sq.And{
+			conditions,
+			sq.Eq{"p.DeleteAt": 0},
+		}
+	}
+
 	if options.CollapsedThreads {
 		conditions = append(conditions, sq.Eq{"RootId": ""})
 		query = query.LeftJoin("Threads ON Threads.PostId = p.Id").LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = p.Id AND ThreadMemberships.UserId=?", options.UserId)
@@ -1454,7 +1461,6 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 			Where(sq.And{
 				idQuery,
 				sq.Eq{"p.ChannelId": options.ChannelId},
-				sq.Eq{"p.DeleteAt": 0},
 			}).
 			OrderBy("CreateAt DESC")
 
@@ -1586,33 +1592,30 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 	posts := []*model.Post{}
 	var query sq.SelectBuilder
 	var where sq.Sqlizer
+
 	where = sq.Eq{"p.ChannelId": channelId}
-	if includeDeleted != true {
+	if !includeDeleted {
 		where = sq.And{
 			where,
 			sq.Eq{"p.DeleteAt": 0},
 		}
 	}
-	fmt.Println(where)
+
 	if skipFetchThreads {
 		query = s.getQueryBuilder().
 			Select([]string{"p.*", "(SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount"}...).
 			From(`Posts p`).
 			Where(where).OrderBy("p.CreateAt").Limit(uint64(limit)).Offset(uint64(offset))
-		fmt.Println(query)
-
 	} else {
 		query = s.getQueryBuilder().
-			Select([]string{`*`}...).From(`Posts p`).
+			Select([]string{`p.*`}...).From(`Posts p`).
 			Where(where).
 			OrderBy("p.CreateAt").
 			Limit(uint64(limit)).
 			Offset(uint64(offset))
-		fmt.Println(query)
 	}
-	fmt.Println(query)
+
 	fetchQuery, args, err := query.ToSql()
-	fmt.Println(args)
 	if err != nil {
 		return nil, errors.Wrap(err, "RootPosts_Tosql")
 	}
@@ -1620,6 +1623,7 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
+
 	return posts, nil
 }
 
@@ -1640,7 +1644,7 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 				Posts
 			WHERE
 				Posts.ChannelId = ?
-					AND Posts.DeleteAt = 0
+				  AND Posts.DeleteAt = 0
 			ORDER BY Posts.CreateAt DESC
 			LIMIT ? OFFSET ?) q
 		WHERE q.RootId != ''`
@@ -1665,7 +1669,7 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 		}
 	}
 
-	if includeDeleted != true {
+	if !includeDeleted {
 		where = sq.And{
 			where,
 			sq.Eq{"p.DeleteAt": 0},
@@ -1678,7 +1682,6 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 		Where(sq.And{
 			where,
 			sq.Eq{"p.ChannelId": channelId},
-			sq.Eq{"p.DeleteAt": 0},
 		}).
 		OrderBy("p.CreateAt")
 
@@ -1692,6 +1695,7 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
+
 	return posts, nil
 }
 

@@ -5,7 +5,6 @@ package api4
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -173,10 +172,16 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
 	skipFetchThreads := r.URL.Query().Get("skipFetchThreads") == "true"
 	collapsedThreads := r.URL.Query().Get("collapsedThreads") == "true"
 	collapsedThreadsExtended := r.URL.Query().Get("collapsedThreadsExtended") == "true"
-	includeDeleted := r.URL.Query().Get("includeDeleted") == "true"
+
+	includeDeleted := false
+	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		includeDeleted = r.URL.Query().Get("includeDeleted") == "true"
+	}
+	
 	channelId := c.Params.ChannelId
 	page := c.Params.Page
 	perPage := c.Params.PerPage
@@ -203,8 +208,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	etag := ""
 
 	if since > 0 {
-
-		list, err = c.App.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: since, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, IncludeDeleted: includeDeleted, UserId: c.AppContext.Session().UserId})
+		list, err = c.App.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: since, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
 	} else if afterPost != "" {
 		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
 
@@ -223,13 +227,12 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		list, err = c.App.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelId, PostId: beforePost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, IncludeDeleted: includeDeleted, UserId: c.AppContext.Session().UserId})
 	} else {
-		fmt.Println(" ------------------------------------------------- MPIKA POSTS REE --------------------------------------------------")
 
-		// etag = c.App.GetPostsEtag(channelId, collapsedThreads)
+		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
 
-		// if c.HandleEtag(etag, "Get Posts", w, r) {
-		// 	return
-		// }
+		if c.HandleEtag(etag, "Get Posts", w, r) {
+			return
+		}
 
 		list, err = c.App.GetPostsPage(model.GetPostsOptions{ChannelId: channelId, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, IncludeDeleted: includeDeleted, UserId: c.AppContext.Session().UserId})
 	}

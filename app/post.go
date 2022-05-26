@@ -1369,7 +1369,7 @@ func (a *App) GetFileInfosForPostWithMigration(postID string) ([]*model.FileInfo
 
 	pchan := make(chan store.StoreResult, 1)
 	go func() {
-		post, err := a.Srv().Store.Post().GetSingle(postID, false)
+		post, err := a.Srv().Store.Post().GetSingle(postID, true)
 		pchan <- store.StoreResult{Data: post, NErr: err}
 		close(pchan)
 	}()
