@@ -10,9 +10,9 @@ import (
 	"image/gif"
 	"image/jpeg"
 	"image/png"
+	"io/ioutil"
 	"testing"
 
-	"github.com/chai2010/webp"
 	"github.com/stretchr/testify/require"
 )
 
@@ -60,9 +60,9 @@ func CreateTestPng(t *testing.T, width int, height int) []byte {
 	return buffer.Bytes()
 }
 
-func CreateTestWebp(t *testing.T, width int, height int) []byte {
-	bytes, err := webp.EncodeRGB(image.NewRGBA(image.Rect(0, 0, width, height)), 1)
-	require.NoErrorf(t, err, "failed to create webp: %v", err)
+func ReadTestWebp(t *testing.T) []byte {
+	bytes, err := ioutil.ReadFile("./tests/testwebp.webp")
+	require.NoErrorf(t, err, "failed to read webp: %v", err)
 
 	return bytes
 }
