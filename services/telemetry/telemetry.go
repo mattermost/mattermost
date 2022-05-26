@@ -718,6 +718,7 @@ func (ts *TelemetryService) trackConfig() {
 		"cloud_billing":                      *cfg.ExperimentalSettings.CloudBilling,
 		"enable_shared_channels":             *cfg.ExperimentalSettings.EnableSharedChannels,
 		"enable_remote_cluster_service":      *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
+		"enable_app_bar":                     *cfg.ExperimentalSettings.EnableAppBar,
 	})
 
 	ts.SendTelemetry(TrackConfigAnalytics, map[string]interface{}{
@@ -1303,7 +1304,7 @@ func (ts *TelemetryService) trackWarnMetrics() {
 
 func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL string) {
 	pluginConfigData := map[string]interface{}{
-		"enable_nps_survey":             pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", true),
+		"enable_nps_survey":             pluginSetting(&cfg.PluginSettings, model.PluginIdNPS, "enablesurvey", true),
 		"enable":                        *cfg.PluginSettings.Enable,
 		"enable_uploads":                *cfg.PluginSettings.EnableUploads,
 		"allow_insecure_download_url":   *cfg.PluginSettings.AllowInsecureDownloadURL,
