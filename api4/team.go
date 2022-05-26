@@ -99,7 +99,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Config().FeatureFlags != nil && c.App.Config().FeatureFlags.CloudFree && (c.App.Channels().License() != nil && c.App.Channels().License().Features != nil && *c.App.Channels().License().Features.Cloud) {
 		limits, err := c.App.Cloud().GetCloudLimits(c.AppContext.Session().UserId)
 		if err != nil {
-			c.Err = model.NewAppError("Api4.restoreTeam", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+			c.Err = model.NewAppError("Api4.createTeam", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -112,7 +112,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 			// if the number of active teams is greater than or equal to the limit, return 400
 			if teamsUsage.Active >= int64(*limits.Teams.Active) {
-				c.Err = model.NewAppError("Api4.restoreTeam", "api.cloud.teams_limit_reached.restore", nil, "", http.StatusBadRequest)
+				c.Err = model.NewAppError("Api4.createTeam", "api.cloud.teams_limit_reached.create", nil, "", http.StatusBadRequest)
 				return
 			}
 		}
