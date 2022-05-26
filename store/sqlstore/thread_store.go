@@ -1003,29 +1003,11 @@ func (s *SqlThreadStore) GetTopThreadsForTeamSince(teamID string, userID string,
 	topThreads := make([]*model.TopThread, 0)
 	err := s.GetReplicaX().Select(&topThreads, query, args...)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get top threads")
+		return nil, errors.Wrapf(err, "failed to get top threads=%s", teamID)
 	}
-
-	// resolve user, root post, fileinfo, linkmetadata for each top thread
-	for _, topThread := range topThreads {
-		userIDs := []string{topThread.UserId}
-		var err error
-		users, err := s.User().GetProfileByIds(context.Background(), userIDs, &store.UserGetByIdsOpts{}, true)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get extended user for user id=%s", userIDs[0])
-		}
-		topThread.UserInformation = &model.InsightUserInformation{
-			Id:                users[0].Id,
-			LastPictureUpdate: users[0].LastPictureUpdate,
-			FirstName:         users[0].FirstName,
-			LastName:          users[0].LastName,
-		}
-
-		post, err := s.Post().GetSingle(topThread.PostId, false)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get extended post for post id=%s", topThread.PostId)
-		}
-		topThread.Post = post
+	topThreads, err = postProcessTopThreads(topThreads, s, teamID)
+	if err != nil {
+		return nil, err
 	}
 	return model.GetTopThreadListWithPagination(topThreads, limit), nil
 }
@@ -1104,22 +1086,52 @@ func (s *SqlThreadStore) GetTopThreadsForUserSince(teamID string, userID string,
 	topThreads := make([]*model.TopThread, 0)
 	err := s.GetReplicaX().Select(&topThreads, query, args...)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get top threads")
+		return nil, errors.Wrapf(err, "failed to get top threads=%s", teamID)
+	}
+	topThreads, err = postProcessTopThreads(topThreads, s, teamID)
+	if err != nil {
+		return nil, err
+	}
+	return model.GetTopThreadListWithPagination(topThreads, limit), nil
+}
+
+func userContains(userIDs []string, searchedUserID string) bool {
+	for _, userID := range userIDs {
+		if userID == searchedUserID {
+			return true
+		}
+	}
+	return false
+}
+
+func postProcessTopThreads(topThreads []*model.TopThread, s *SqlThreadStore, teamID string) ([]*model.TopThread, error) {
+	// create list of userIDs
+	var userIDs []string
+	for _, topThread := range topThreads {
+		userID := topThread.UserId
+		if !userContains(userIDs, userID) {
+			userIDs = append(userIDs, userID)
+		}
+	}
+
+	usersMap := map[string]*model.User{}
+
+	users, err := s.User().GetProfileByIds(context.Background(), userIDs, &store.UserGetByIdsOpts{}, true)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get users for top threads in team=%s", teamID)
+	}
+	for _, user := range users {
+		usersMap[user.Id] = user
 	}
 
 	// resolve user, root post for each top thread
 	for _, topThread := range topThreads {
-		userIDs := []string{topThread.UserId}
-		var err error
-		users, err := s.User().GetProfileByIds(context.Background(), userIDs, &store.UserGetByIdsOpts{}, true)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get extended user for post id=%s", topThread.PostId)
-		}
+		postCreator := usersMap[topThread.UserId]
 		topThread.UserInformation = &model.InsightUserInformation{
-			Id:                users[0].Id,
-			LastPictureUpdate: users[0].LastPictureUpdate,
-			FirstName:         users[0].FirstName,
-			LastName:          users[0].LastName,
+			Id:                postCreator.Id,
+			LastPictureUpdate: postCreator.LastPictureUpdate,
+			FirstName:         postCreator.FirstName,
+			LastName:          postCreator.LastName,
 		}
 		post, err := s.Post().GetSingle(topThread.PostId, false)
 		if err != nil {
@@ -1127,5 +1139,5 @@ func (s *SqlThreadStore) GetTopThreadsForUserSince(teamID string, userID string,
 		}
 		topThread.Post = post
 	}
-	return model.GetTopThreadListWithPagination(topThreads, limit), nil
+	return topThreads, nil
 }
