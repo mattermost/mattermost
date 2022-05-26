@@ -464,7 +464,7 @@ func (s *Server) doFirstAdminSetupCompleteMigration() {
 	}
 
 	// if there are teams, then if this isn't a new installation, there should be posts
-	postCount, err := s.Store.Post().AnalyticsPostCount("", false, false)
+	postCount, err := s.Store.Post().AnalyticsPostCount(&model.PostCountOptions{})
 	if err != nil || postCount < existingInstallationPostsThreshold {
 		return
 	}
