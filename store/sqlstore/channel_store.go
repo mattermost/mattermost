@@ -4285,7 +4285,7 @@ func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string
 	return model.GetTopChannelListWithPagination(channels, limit), nil
 }
 
-func (s SqlChannelStore) PostCountsByDay(channelIDs []string, sinceUnixMillis int64) ([]*model.DailyPostCount, error) {
+func (s SqlChannelStore) PostCountsByDay(channelIDs []string, sinceUnixMillis int64, userID *string) ([]*model.DailyPostCount, error) {
 	var unixSelect string
 	var propsQuery string
 	if s.DriverName() == model.DatabaseDriverMysql {
@@ -4308,6 +4308,9 @@ func (s SqlChannelStore) PostCountsByDay(channelIDs []string, sinceUnixMillis in
 		Where(propsQuery).
 		GroupBy("channelid", "day").
 		OrderBy("channelid", "day")
+	if userID != nil && model.IsValidId(*userID) {
+		query = query.Where(sq.And{sq.Eq{"Posts.UserId": *userID}})
+	}
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse query")

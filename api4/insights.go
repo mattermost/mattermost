@@ -147,7 +147,7 @@ func getTopChannelsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	topChannels.PostCountByDay, err = postCountByDayViewModel(c.App, topChannels, startTime, c.Params.TimeRange)
+	topChannels.PostCountByDay, err = postCountByDayViewModel(c.App, topChannels, startTime, c.Params.TimeRange, nil)
 	if err != nil {
 		c.Err = err
 		return
@@ -201,7 +201,7 @@ func getTopChannelsForUserSince(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	topChannels.PostCountByDay, err = postCountByDayViewModel(c.App, topChannels, startTime, c.Params.TimeRange)
+	topChannels.PostCountByDay, err = postCountByDayViewModel(c.App, topChannels, startTime, c.Params.TimeRange, &c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -217,13 +217,13 @@ func getTopChannelsForUserSince(c *Context, w http.ResponseWriter, r *http.Reque
 }
 
 // postCountByDayViewModel expects a list of channels that are pre-authorized for the given user to view.
-func postCountByDayViewModel(app app.AppIface, topChannelList *model.TopChannelList, startTime int64, timeRange string) (model.ChannelPostCountByDay, *model.AppError) {
+func postCountByDayViewModel(app app.AppIface, topChannelList *model.TopChannelList, startTime int64, timeRange string, userID *string) (model.ChannelPostCountByDay, *model.AppError) {
 	if len(topChannelList.Items) == 0 {
 		return nil, nil
 	}
 	var postCountsByDay []*model.DailyPostCount
 	channelIDs := topChannelList.ChannelIDs()
-	postCountsByDay, err := app.PostCountsByDay(channelIDs, startTime)
+	postCountsByDay, err := app.PostCountsByDay(channelIDs, startTime, userID)
 	if err != nil {
 		return nil, err
 	}

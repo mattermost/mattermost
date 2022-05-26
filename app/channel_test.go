@@ -2683,6 +2683,12 @@ func TestPostCountsByDay(t *testing.T) {
 				CreateAt:  d.Unix() * 1000,
 			}, channel, false, false)
 			require.Nil(t, err)
+			_, err = th.App.CreatePost(th.Context, &model.Post{
+				UserId:    th.BasicUser2.Id,
+				ChannelId: channel.Id,
+				CreateAt:  d.Unix() * 1000,
+			}, channel, false, false)
+			require.Nil(t, err)
 		}
 		i--
 	}
@@ -2710,14 +2716,26 @@ func TestPostCountsByDay(t *testing.T) {
 
 	sinceUnixMillis := time.Date(2009, time.November, 9, 23, 0, 0, 0, time.UTC).UnixMilli()
 
-	t.Run("get-post-counts-by-day", func(t *testing.T) {
-		dailyPostCount, err := th.App.PostCountsByDay(channelIDs, sinceUnixMillis)
+	t.Run("get-post-counts-by-day scoped by user", func(t *testing.T) {
+		dailyPostCount, err := th.App.PostCountsByDay(channelIDs, sinceUnixMillis, &th.BasicUser.Id)
 		require.Nil(t, err)
 
 		for _, item := range dailyPostCount {
 			if strings.HasPrefix(item.Date, "2009") {
 				expectedCount := expected[item.Date][item.ChannelID]
 				assert.Equal(t, expectedCount, item.PostCount)
+			}
+		}
+	})
+
+	t.Run("get-post-counts-by-day all users", func(t *testing.T) {
+		dailyPostCount, err := th.App.PostCountsByDay(channelIDs, sinceUnixMillis, nil)
+		require.Nil(t, err)
+
+		for _, item := range dailyPostCount {
+			if strings.HasPrefix(item.Date, "2009") {
+				expectedCount := expected[item.Date][item.ChannelID]
+				assert.Equal(t, expectedCount*2, item.PostCount)
 			}
 		}
 	})

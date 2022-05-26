@@ -264,7 +264,7 @@ type AppIface interface {
 	// use a sinceUnixMillis parameter value as returned by model.GetStartOfDayMillis.
 	//
 	// WARNING: PostCountsByDay PERFORMS NO AUTHORIZATION CHECKS ON THE GIVEN CHANNELS.
-	PostCountsByDay(channelIDs []string, sinceUnixMillis int64) ([]*model.DailyPostCount, *model.AppError)
+	PostCountsByDay(channelIDs []string, sinceUnixMillis int64, userID *string) ([]*model.DailyPostCount, *model.AppError)
 	// PromoteGuestToUser Convert user's roles and all his membership's roles from
 	// guest roles to regular user roles.
 	PromoteGuestToUser(c *request.Context, user *model.User, requestorId string) *model.AppError

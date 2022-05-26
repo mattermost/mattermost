@@ -285,7 +285,7 @@ type ChannelStore interface {
 	// Insights
 	GetTopChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopChannelList, error)
 	GetTopChannelsForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopChannelList, error)
-	PostCountsByDay(channelIDs []string, sinceUnixMillis int64) ([]*model.DailyPostCount, error)
+	PostCountsByDay(channelIDs []string, sinceUnixMillis int64, userID *string) ([]*model.DailyPostCount, error)
 }
 
 type ChannelMemberHistoryStore interface {

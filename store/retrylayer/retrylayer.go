@@ -2212,11 +2212,11 @@ func (s *RetryLayerChannelStore) PermanentDeleteMembersByUser(userID string) err
 
 }
 
-func (s *RetryLayerChannelStore) PostCountsByDay(channelIDs []string, sinceUnixMillis int64) ([]*model.DailyPostCount, error) {
+func (s *RetryLayerChannelStore) PostCountsByDay(channelIDs []string, sinceUnixMillis int64, userID *string) ([]*model.DailyPostCount, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.PostCountsByDay(channelIDs, sinceUnixMillis)
+		result, err := s.ChannelStore.PostCountsByDay(channelIDs, sinceUnixMillis, userID)
 		if err == nil {
 			return result, nil
 		}

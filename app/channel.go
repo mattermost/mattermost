@@ -3473,11 +3473,11 @@ func (a *App) GetTopChannelsForUserSince(userID, teamID string, opts *model.Insi
 // use a sinceUnixMillis parameter value as returned by model.GetStartOfDayMillis.
 //
 // WARNING: PostCountsByDay PERFORMS NO AUTHORIZATION CHECKS ON THE GIVEN CHANNELS.
-func (a *App) PostCountsByDay(channelIDs []string, sinceUnixMillis int64) ([]*model.DailyPostCount, *model.AppError) {
+func (a *App) PostCountsByDay(channelIDs []string, sinceUnixMillis int64, userID *string) ([]*model.DailyPostCount, *model.AppError) {
 	if !a.Config().FeatureFlags.InsightsEnabled {
 		return nil, model.NewAppError("PostCountsByDay", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
-	postCountByDay, err := a.Srv().Store.Channel().PostCountsByDay(channelIDs, sinceUnixMillis)
+	postCountByDay, err := a.Srv().Store.Channel().PostCountsByDay(channelIDs, sinceUnixMillis, userID)
 	if err != nil {
 		return nil, model.NewAppError("PostCountsByDay", "app.channel.get_post_count_by_day.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

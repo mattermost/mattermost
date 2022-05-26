@@ -1717,13 +1717,13 @@ func (_m *ChannelStore) PermanentDeleteMembersByUser(userID string) error {
 	return r0
 }
 
-// PostCountsByDay provides a mock function with given fields: channelIDs, sinceUnixMillis
-func (_m *ChannelStore) PostCountsByDay(channelIDs []string, sinceUnixMillis int64) ([]*model.DailyPostCount, error) {
-	ret := _m.Called(channelIDs, sinceUnixMillis)
+// PostCountsByDay provides a mock function with given fields: channelIDs, sinceUnixMillis, userID
+func (_m *ChannelStore) PostCountsByDay(channelIDs []string, sinceUnixMillis int64, userID *string) ([]*model.DailyPostCount, error) {
+	ret := _m.Called(channelIDs, sinceUnixMillis, userID)
 
 	var r0 []*model.DailyPostCount
-	if rf, ok := ret.Get(0).(func([]string, int64) []*model.DailyPostCount); ok {
-		r0 = rf(channelIDs, sinceUnixMillis)
+	if rf, ok := ret.Get(0).(func([]string, int64, *string) []*model.DailyPostCount); ok {
+		r0 = rf(channelIDs, sinceUnixMillis, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.DailyPostCount)
@@ -1731,8 +1731,8 @@ func (_m *ChannelStore) PostCountsByDay(channelIDs []string, sinceUnixMillis int
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func([]string, int64) error); ok {
-		r1 = rf(channelIDs, sinceUnixMillis)
+	if rf, ok := ret.Get(1).(func([]string, int64, *string) error); ok {
+		r1 = rf(channelIDs, sinceUnixMillis, userID)
 	} else {
 		r1 = ret.Error(1)
 	}

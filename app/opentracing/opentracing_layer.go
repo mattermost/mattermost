@@ -12610,7 +12610,7 @@ func (a *OpenTracingAppLayer) PostAddToChannelMessage(c *request.Context, user *
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PostCountsByDay(channelIDs []string, sinceUnixMillis int64) ([]*model.DailyPostCount, *model.AppError) {
+func (a *OpenTracingAppLayer) PostCountsByDay(channelIDs []string, sinceUnixMillis int64, userID *string) ([]*model.DailyPostCount, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PostCountsByDay")
 
@@ -12622,7 +12622,7 @@ func (a *OpenTracingAppLayer) PostCountsByDay(channelIDs []string, sinceUnixMill
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.PostCountsByDay(channelIDs, sinceUnixMillis)
+	resultVar0, resultVar1 := a.app.PostCountsByDay(channelIDs, sinceUnixMillis, userID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

@@ -7915,14 +7915,15 @@ func testChannelPostCountsByDay(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	defer func() { ss.Channel().PermanentDelete(channelSaved.Id) }()
 
+	userID := model.NewId()
 	_, err = ss.Post().Save(&model.Post{
-		UserId:    model.NewId(),
+		UserId:    userID,
 		ChannelId: channel.Id,
 		Message:   "test",
 	})
 	require.NoError(t, err)
 
-	dpc, err := ss.Channel().PostCountsByDay([]string{channelSaved.Id}, 0)
+	dpc, err := ss.Channel().PostCountsByDay([]string{channelSaved.Id}, 0, &userID)
 	require.NoError(t, err)
 	require.Len(t, dpc, 1)
 	require.Equal(t, channel.Id, dpc[0].ChannelID)
