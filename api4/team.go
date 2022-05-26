@@ -106,7 +106,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		// If there are no limits for teams, for active teams, or the limit for active teams is less than 0, do nothing
 		if !(limits == nil || limits.Teams == nil || limits.Teams.Active == nil || *limits.Teams.Active <= 0) {
 			teamsUsage, appErr := c.App.GetTeamsUsage()
-			if err != nil {
+			if appErr != nil {
 				c.Err = appErr
 				return
 			}
