@@ -2014,16 +2014,16 @@ func (s *OpenTracingLayerChannelStore) PermanentDeleteMembersByUser(userID strin
 	return err
 }
 
-func (s *OpenTracingLayerChannelStore) PostCountsByDay(channelIDs []string, sinceUnixMillis int64, userID *string) ([]*model.DailyPostCount, error) {
+func (s *OpenTracingLayerChannelStore) PostCountsByDuration(channelIDs []string, sinceUnixMillis int64, userID *string, duration model.PostCountGrouping) ([]*model.DurationPostCount, error) {
 	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.PostCountsByDay")
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.PostCountsByDuration")
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
 	}()
 
 	defer span.Finish()
-	result, err := s.ChannelStore.PostCountsByDay(channelIDs, sinceUnixMillis, userID)
+	result, err := s.ChannelStore.PostCountsByDuration(channelIDs, sinceUnixMillis, userID, duration)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

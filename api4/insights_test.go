@@ -487,7 +487,7 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 		assert.Equal(t, int64(1), topChannels.Items[0].MessageCount)
 
 		t.Run("has post count by day", func(t *testing.T) {
-			require.NotNil(t, topChannels.PostCountByDay)
+			require.NotNil(t, topChannels.PostCountByDuration)
 		})
 	})
 
@@ -585,7 +585,7 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 		assert.Equal(t, int64(1), topChannels.Items[0].MessageCount)
 
 		t.Run("has post count by day", func(t *testing.T) {
-			require.NotNil(t, topChannels.PostCountByDay)
+			require.NotNil(t, topChannels.PostCountByDuration)
 		})
 	})
 

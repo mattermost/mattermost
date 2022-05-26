@@ -4285,14 +4285,22 @@ func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string
 	return model.GetTopChannelListWithPagination(channels, limit), nil
 }
 
-func (s SqlChannelStore) PostCountsByDay(channelIDs []string, sinceUnixMillis int64, userID *string) ([]*model.DailyPostCount, error) {
+func (s SqlChannelStore) PostCountsByDuration(channelIDs []string, sinceUnixMillis int64, userID *string, duration model.PostCountGrouping) ([]*model.DurationPostCount, error) {
 	var unixSelect string
 	var propsQuery string
 	if s.DriverName() == model.DatabaseDriverMysql {
-		unixSelect = `DATE_FORMAT(FROM_UNIXTIME(Posts.CreateAt / 1000),'%Y-%m-%d') AS day`
+		if duration == model.PostsByDay {
+			unixSelect = `DATE_FORMAT(FROM_UNIXTIME(Posts.CreateAt / 1000),'%Y-%m-%d') AS duration`
+		} else {
+			unixSelect = `DATE_FORMAT(FROM_UNIXTIME(Posts.CreateAt / 1000),'%Y-%m-%dT%H') AS duration`
+		}
 		propsQuery = `(JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false')`
 	} else if s.DriverName() == model.DatabaseDriverPostgres {
-		unixSelect = `TO_CHAR(TO_TIMESTAMP(Posts.CreateAt / 1000), 'YYYY-MM-DD') AS day`
+		if duration == model.PostsByDay {
+			unixSelect = `TO_CHAR(TO_TIMESTAMP(Posts.CreateAt / 1000), 'YYYY-MM-DD') AS duration`
+		} else {
+			unixSelect = `TO_CHAR(TO_TIMESTAMP(Posts.CreateAt / 1000), 'YYYY-MM-DD"T"HH24') AS duration`
+		}
 		propsQuery = `(Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false')`
 	}
 	query := sq.
@@ -4306,8 +4314,8 @@ func (s SqlChannelStore) PostCountsByDay(channelIDs []string, sinceUnixMillis in
 			sq.Eq{"Channels.Id": channelIDs},
 		}).
 		Where(propsQuery).
-		GroupBy("channelid", "day").
-		OrderBy("channelid", "day")
+		GroupBy("channelid", "duration").
+		OrderBy("channelid", "duration")
 	if userID != nil && model.IsValidId(*userID) {
 		query = query.Where(sq.And{sq.Eq{"Posts.UserId": *userID}})
 	}
@@ -4315,9 +4323,9 @@ func (s SqlChannelStore) PostCountsByDay(channelIDs []string, sinceUnixMillis in
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse query")
 	}
-	dailyPostCounts := make([]*model.DailyPostCount, 0)
+	dailyPostCounts := make([]*model.DurationPostCount, 0)
 	if err := s.GetReplicaX().Select(&dailyPostCounts, queryString, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to get post counts by day")
+		return nil, errors.Wrap(err, "failed to get post counts by duration")
 	}
 
 	return dailyPostCounts, nil

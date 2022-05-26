@@ -4,14 +4,20 @@
 package model
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 )
+
+type PostCountGrouping string
 
 const (
 	TimeRangeToday string = "today"
 	TimeRange7Day  string = "7_day"
 	TimeRange28Day string = "28_day"
+
+	PostsByHour PostCountGrouping = "hour"
+	PostsByDay  PostCountGrouping = "day"
 )
 
 type InsightsOpts struct {
@@ -38,8 +44,8 @@ type TopReaction struct {
 // Top Channels
 type TopChannelList struct {
 	InsightsListData
-	Items          []*TopChannel         `json:"items"`
-	PostCountByDay ChannelPostCountByDay `json:"daily_channel_post_counts"`
+	Items               []*TopChannel              `json:"items"`
+	PostCountByDuration ChannelPostCountByDuration `json:"channel_post_counts_by_duration"`
 }
 
 func (t *TopChannelList) ChannelIDs() []string {
@@ -59,9 +65,10 @@ type TopChannel struct {
 	MessageCount int64       `json:"message_count"`
 }
 
-type DailyPostCount struct {
+type DurationPostCount struct {
 	ChannelID string `db:"channelid"`
-	Date      string `db:"day"`
+	// Duration is a string representing a date in ISO8601 format (ex. 2022-05-26) or an
+	Duration  string `db:"duration"`
 	PostCount int    `db:"postcount"`
 }
 
@@ -78,8 +85,9 @@ func TimeRangeToNumberDays(timeRange string) int {
 	return n
 }
 
-// ChannelPostCountByDay contains a count of posts by channel id, grouped by ISO8601 date string. For example:
-//  cpc := model.ChannelPostCountByDay{
+// ChannelPostCountByDuration contains a count of posts by channel id, grouped by ISO8601 date string.
+// Example 1 (grouped by day):
+//  cpc := model.ChannelPostCountByDuration{
 //  	"2009-11-11": {
 //  		"ezbp7nqxzjgdir8riodyafr9ww": 90,
 //  		"p949c1xdojfgzffxma3p3s3ikr": 201,
@@ -89,28 +97,50 @@ func TimeRangeToNumberDays(timeRange string) int {
 //  		"p949c1xdojfgzffxma3p3s3ikr": 68,
 //  	},
 //  }
-type ChannelPostCountByDay map[string]map[string]int
+// Example 2 (grouped by hour):
+//  cpc := model.ChannelPostCountByDuration{
+//  	"2009-11-11T01": {
+//  		"ezbp7nqxzjgdir8riodyafr9ww": 90,
+//  		"p949c1xdojfgzffxma3p3s3ikr": 201,
+//  	},
+//  	"2009-11-11T02": {
+//  		"ezbp7nqxzjgdir8riodyafr9ww": 45,
+//  		"p949c1xdojfgzffxma3p3s3ikr": 68,
+//  	},
+//  }
+type ChannelPostCountByDuration map[string]map[string]int
 
-func ToDailyPostCountViewModel(dpc []*DailyPostCount, unixStartMillis int64, numDays int, channelIDs []string) ChannelPostCountByDay {
-	viewModel := ChannelPostCountByDay{}
+func ToDailyPostCountViewModel(dpc []*DurationPostCount, unixStartMillis int64, numDays int, channelIDs []string) ChannelPostCountByDuration {
+	viewModel := ChannelPostCountByDuration{}
 
 	startTime := time.Unix(unixStartMillis/1000, 0)
 
-	for i := 1; i <= numDays; i++ {
-		blankChannelCounts := map[string]int{}
-		for _, id := range channelIDs {
-			blankChannelCounts[id] = 0
+	if numDays == 1 {
+		dayISO8601 := startTime.Format("2006-01-02")
+		for i := 0; i <= 23; i++ {
+			blankChannelCounts := map[string]int{}
+			for _, id := range channelIDs {
+				blankChannelCounts[id] = 0
+			}
+			viewModel[fmt.Sprintf("%sT%02d", dayISO8601, i)] = blankChannelCounts
 		}
-		dayKey := startTime.AddDate(0, 0, i).Format("2006-01-02")
-		viewModel[dayKey] = blankChannelCounts
+	} else {
+		for i := 1; i <= numDays; i++ {
+			blankChannelCounts := map[string]int{}
+			for _, id := range channelIDs {
+				blankChannelCounts[id] = 0
+			}
+			dayKey := startTime.AddDate(0, 0, i).Format("2006-01-02")
+			viewModel[dayKey] = blankChannelCounts
+		}
 	}
 
 	for _, item := range dpc {
-		_, hasKey := viewModel[item.Date]
+		_, hasKey := viewModel[item.Duration]
 		if !hasKey {
-			viewModel[item.Date] = map[string]int{}
+			viewModel[item.Duration] = map[string]int{}
 		}
-		viewModel[item.Date][item.ChannelID] = item.PostCount
+		viewModel[item.Duration][item.ChannelID] = item.PostCount
 	}
 
 	return viewModel

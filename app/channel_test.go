@@ -2644,7 +2644,7 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 	})
 }
 
-func TestPostCountsByDay(t *testing.T) {
+func TestPostCountsByDuration(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2676,24 +2676,25 @@ func TestPostCountsByDay(t *testing.T) {
 	i := len(channels)
 	for ci, channel := range channels {
 		for j := i; j > 0; j-- {
-			d := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC).AddDate(0, 0, ci)
+			d1 := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC).AddDate(0, 0, ci)
+			d2 := time.Date(2009, time.November, 10, 9, 0, 0, 0, time.UTC).AddDate(0, 0, ci)
 			_, err := th.App.CreatePost(th.Context, &model.Post{
 				UserId:    th.BasicUser.Id,
 				ChannelId: channel.Id,
-				CreateAt:  d.Unix() * 1000,
+				CreateAt:  d1.Unix() * 1000,
 			}, channel, false, false)
 			require.Nil(t, err)
 			_, err = th.App.CreatePost(th.Context, &model.Post{
 				UserId:    th.BasicUser2.Id,
 				ChannelId: channel.Id,
-				CreateAt:  d.Unix() * 1000,
+				CreateAt:  d2.Unix() * 1000,
 			}, channel, false, false)
 			require.Nil(t, err)
 		}
 		i--
 	}
 
-	expected := map[string]map[string]int{
+	expectedDayGrouping := map[string]map[string]int{
 		"2009-11-10": {
 			th.BasicChannel.Id: 6,
 		},
@@ -2714,28 +2715,53 @@ func TestPostCountsByDay(t *testing.T) {
 		},
 	}
 
+	expectedHourGrouping := map[string]map[string]int{
+		"2009-11-15T09": {
+			channel6.Id: 1,
+		},
+		"2009-11-15T23": {
+			channel6.Id: 1,
+		},
+	}
+
 	sinceUnixMillis := time.Date(2009, time.November, 9, 23, 0, 0, 0, time.UTC).UnixMilli()
 
-	t.Run("get-post-counts-by-day scoped by user", func(t *testing.T) {
-		dailyPostCount, err := th.App.PostCountsByDay(channelIDs, sinceUnixMillis, &th.BasicUser.Id)
+	t.Run("get-post-counts-by-day scoped by user, grouped by day", func(t *testing.T) {
+		dailyPostCount, err := th.App.PostCountsByDuration(channelIDs, sinceUnixMillis, &th.BasicUser.Id, model.PostsByDay)
 		require.Nil(t, err)
+		require.GreaterOrEqual(t, len(dailyPostCount), 6)
 
 		for _, item := range dailyPostCount {
-			if strings.HasPrefix(item.Date, "2009") {
-				expectedCount := expected[item.Date][item.ChannelID]
+			if strings.HasPrefix(item.Duration, "2009") {
+				expectedCount := expectedDayGrouping[item.Duration][item.ChannelID]
 				assert.Equal(t, expectedCount, item.PostCount)
 			}
 		}
 	})
 
-	t.Run("get-post-counts-by-day all users", func(t *testing.T) {
-		dailyPostCount, err := th.App.PostCountsByDay(channelIDs, sinceUnixMillis, nil)
+	t.Run("get-post-counts-by-day all users, grouped by day", func(t *testing.T) {
+		dailyPostCount, err := th.App.PostCountsByDuration(channelIDs, sinceUnixMillis, nil, model.PostsByDay)
 		require.Nil(t, err)
+		require.GreaterOrEqual(t, len(dailyPostCount), 6)
 
 		for _, item := range dailyPostCount {
-			if strings.HasPrefix(item.Date, "2009") {
-				expectedCount := expected[item.Date][item.ChannelID]
+			if strings.HasPrefix(item.Duration, "2009") {
+				expectedCount := expectedDayGrouping[item.Duration][item.ChannelID]
 				assert.Equal(t, expectedCount*2, item.PostCount)
+			}
+		}
+	})
+
+	t.Run("get-post-counts-by-day all users, grouped by hour", func(t *testing.T) {
+		oneDaySince := time.Date(2009, time.November, 14, 23, 0, 0, 0, time.UTC).UnixMilli()
+		dailyPostCount, err := th.App.PostCountsByDuration(channelIDs, oneDaySince, nil, model.PostsByHour)
+		require.Nil(t, err)
+		require.GreaterOrEqual(t, len(dailyPostCount), 1)
+
+		for _, item := range dailyPostCount {
+			if strings.HasPrefix(item.Duration, "2009") {
+				expectedCount := expectedHourGrouping[item.Duration][item.ChannelID]
+				assert.Equal(t, expectedCount, item.PostCount)
 			}
 		}
 	})

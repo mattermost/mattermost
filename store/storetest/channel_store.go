@@ -148,7 +148,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("UpdateSidebarChannelsByPreferences", func(t *testing.T) { testUpdateSidebarChannelsByPreferences(t, ss) })
 	t.Run("SetShared", func(t *testing.T) { testSetShared(t, ss) })
 	t.Run("GetTeamForChannel", func(t *testing.T) { testGetTeamForChannel(t, ss) })
-	t.Run("PostCountsByDay", func(t *testing.T) { testChannelPostCountsByDay(t, ss) })
+	t.Run("PostCountsByDuration", func(t *testing.T) { testChannelPostCountsByDay(t, ss) })
 }
 
 func testChannelStoreSave(t *testing.T, ss store.Store) {
@@ -7923,7 +7923,7 @@ func testChannelPostCountsByDay(t *testing.T, ss store.Store) {
 	})
 	require.NoError(t, err)
 
-	dpc, err := ss.Channel().PostCountsByDay([]string{channelSaved.Id}, 0, &userID)
+	dpc, err := ss.Channel().PostCountsByDuration([]string{channelSaved.Id}, 0, &userID, model.PostsByDay)
 	require.NoError(t, err)
 	require.Len(t, dpc, 1)
 	require.Equal(t, channel.Id, dpc[0].ChannelID)
