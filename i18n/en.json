@@ -188,6 +188,10 @@
     "translation": "Unable to upload file. File is too large."
   },
   {
+    "id": "api.authorization_error.guest",
+    "translation": " "
+  },
+  {
     "id": "api.back_to_app",
     "translation": "Back to {{.SiteName}}"
   },
@@ -2044,6 +2048,10 @@
   {
     "id": "api.license_error",
     "translation": "api endpoint requires a license"
+  },
+  {
+    "id": "api.license_error.professional_or_enterprise",
+    "translation": " "
   },
   {
     "id": "api.marshal_error",
