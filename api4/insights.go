@@ -20,8 +20,8 @@ func (api *API) InitInsights() {
 	api.BaseRoutes.InsightsForUser.Handle("/channels", api.APISessionRequired(getTopChannelsForUserSince)).Methods("GET")
 
 	// Threads
-	api.BaseRoutes.InsightsForTeam.Handle("/threads", api.APISessionRequired(getTopThreadsForTeamSince)).Methods("GET")
-	api.BaseRoutes.InsightsForUser.Handle("/threads", api.APISessionRequired(getTopThreadsForUserSince)).Methods("GET")
+	api.BaseRoutes.InsightsForTeam.Handle("/threads", api.APISessionRequired(requireLicense(getTopThreadsForTeamSince))).Methods("GET")
+	api.BaseRoutes.InsightsForUser.Handle("/threads", api.APISessionRequired(requireLicense(getTopThreadsForUserSince))).Methods("GET")
 }
 
 // Top Reactions
@@ -220,7 +220,21 @@ func getTopThreadsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
+	// license check
+	lic := c.App.Srv().License()
+	if lic.SkuShortName != model.LicenseShortSkuProfessional && lic.SkuShortName != model.LicenseShortSkuEnterprise {
+		c.Err = model.NewAppError("", "api.insights.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	// restrict guests and users with no access to team
+	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) || user.IsGuest() {
 		c.SetPermissionError(model.PermissionViewTeam)
 		return
 	}
@@ -266,7 +280,21 @@ func getTopThreadsForUserSince(c *Context, w http.ResponseWriter, r *http.Reques
 			return
 		}
 
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
+		// license check
+		lic := c.App.Srv().License()
+		if lic.SkuShortName != model.LicenseShortSkuProfessional && lic.SkuShortName != model.LicenseShortSkuEnterprise {
+			c.Err = model.NewAppError("", "api.insights.license_error", nil, "", http.StatusNotImplemented)
+			return
+		}
+
+		// restrict guests and users with no access to team
+		user, err := c.App.GetUser(c.AppContext.Session().UserId)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) || user.IsGuest() {
 			c.SetPermissionError(model.PermissionViewTeam)
 			return
 		}
