@@ -6,11 +6,13 @@ package model
 import "strings"
 
 const (
-	EventTypeFailedPayment         = "failed-payment"
-	EventTypeFailedPaymentNoCard   = "failed-payment-no-card"
-	EventTypeSendAdminWelcomeEmail = "send-admin-welcome-email"
-	EventTypeTrialWillEnd          = "trial-will-end"
-	EventTypeTrialEnded            = "trial-ended"
+	EventTypeFailedPayment                = "failed-payment"
+	EventTypeFailedPaymentNoCard          = "failed-payment-no-card"
+	EventTypeSendAdminWelcomeEmail        = "send-admin-welcome-email"
+	EventTypeSendUpgradeConfirmationEmail = "send-upgrade-confirmation-email"
+	EventTypeSubscriptionChanged          = "subscription-changed"
+	EventTypeTrialWillEnd                 = "trial-will-end"
+	EventTypeTrialEnded                   = "trial-ended"
 )
 
 var MockCWS string
@@ -165,6 +167,8 @@ type CWSWebhookPayload struct {
 	Event                             string               `json:"event"`
 	FailedPayment                     *FailedPayment       `json:"failed_payment"`
 	CloudWorkspaceOwner               *CloudWorkspaceOwner `json:"cloud_workspace_owner"`
+	ProductLimits                     *ProductLimits       `json:"product_limits"`
+	Subscription                      *Subscription        `json:"subscription"`
 	SubscriptionTrialEndUnixTimeStamp int64                `json:"trial_end_time_stamp"`
 }
 

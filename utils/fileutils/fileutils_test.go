@@ -100,10 +100,10 @@ func TestFindFile(t *testing.T) {
 					filePathResolved,
 				},
 				{
-					fmt.Sprintf("%s: can't find from four nesting levels deep", fileName),
+					fmt.Sprintf("%s: quadruple-nested subdirectory of containing directory", fileName),
 					&tmpDir5,
 					fileName,
-					"",
+					filePath,
 				},
 			}...)
 		}

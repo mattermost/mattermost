@@ -1384,7 +1384,7 @@ func TestImportImportUser(t *testing.T) {
 	require.NoError(t, nErr, "Failed to import scheme")
 
 	teamData := &TeamImportData{
-		Name:            ptrStr(model.NewId()),
+		Name:            ptrStr(NewTestId()),
 		DisplayName:     ptrStr("Display Name"),
 		Type:            ptrStr("O"),
 		Description:     ptrStr("The team description."),
@@ -1398,7 +1398,7 @@ func TestImportImportUser(t *testing.T) {
 
 	channelData := &ChannelImportData{
 		Team:        &teamName,
-		Name:        ptrStr(model.NewId()),
+		Name:        ptrStr(NewTestId()),
 		DisplayName: ptrStr("Display Name"),
 		Type:        &chanTypeOpen,
 		Header:      ptrStr("Channel Header"),
@@ -1717,7 +1717,7 @@ func TestImportUserTeams(t *testing.T) {
 				} else {
 					require.Nil(t, err)
 				}
-				teamMembers, nErr := th.App.Srv().Store.Team().GetTeamsForUser(context.Background(), user.Id)
+				teamMembers, nErr := th.App.Srv().Store.Team().GetTeamsForUser(context.Background(), user.Id, "", true)
 				require.NoError(t, nErr)
 				require.Len(t, teamMembers, tc.expectedUserTeams)
 				if tc.expectedUserTeams == 1 {
@@ -1943,7 +1943,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	require.Nil(t, err, "Failed to get team from database.")
 
 	// Create a Channel.
-	channelName := model.NewId()
+	channelName := NewTestId()
 	chanTypeOpen := model.ChannelTypeOpen
 	th.App.importChannel(th.Context, &ChannelImportData{
 		Team:        &teamName,
@@ -1964,7 +1964,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	require.Nil(t, err, "Failed to get user from database.")
 
 	// Count the number of posts in the testing team.
-	initialPostCount, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(team.Id, false, false)
+	initialPostCount, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: team.Id})
 	require.NoError(t, nErr)
 
 	// Try adding an invalid post in dry run mode.
@@ -2022,7 +2022,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	data = LineImportWorkerData{
 		LineImportData{
 			Post: &PostImportData{
-				Team:     ptrStr(model.NewId()),
+				Team:     ptrStr(NewTestId()),
 				Channel:  &channelName,
 				User:     &username,
 				Message:  ptrStr("Message"),
@@ -2043,7 +2043,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		LineImportData{
 			Post: &PostImportData{
 				Team:     &teamName,
-				Channel:  ptrStr(model.NewId()),
+				Channel:  ptrStr(NewTestId()),
 				User:     &username,
 				Message:  ptrStr("Message"),
 				CreateAt: ptrInt64(model.GetMillis()),
@@ -2470,7 +2470,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	require.Nil(t, err, "Failed to get channel from database.")
 
 	// Count the number of posts in the team2.
-	initialPostCountForTeam2, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(team2.Id, false, false)
+	initialPostCountForTeam2, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: team2.Id})
 	require.NoError(t, nErr)
 
 	// Try adding two valid posts in apply mode.
@@ -2547,7 +2547,7 @@ func TestImportImportPost(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get team from database.")
 
 	// Create a Channel.
-	channelName := model.NewId()
+	channelName := NewTestId()
 	chanTypeOpen := model.ChannelTypeOpen
 	th.App.importChannel(th.Context, &ChannelImportData{
 		Team:        &teamName,
@@ -2576,7 +2576,7 @@ func TestImportImportPost(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get user from database.")
 
 	// Count the number of posts in the testing team.
-	initialPostCount, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(team.Id, false, false)
+	initialPostCount, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: team.Id})
 	require.NoError(t, nErr)
 
 	time := model.GetMillis()
@@ -2645,7 +2645,7 @@ func TestImportImportPost(t *testing.T) {
 		data := LineImportWorkerData{
 			LineImportData{
 				Post: &PostImportData{
-					Team:     ptrStr(model.NewId()),
+					Team:     ptrStr(NewTestId()),
 					Channel:  &channelName,
 					User:     &username,
 					Message:  ptrStr("Message"),
@@ -2665,7 +2665,7 @@ func TestImportImportPost(t *testing.T) {
 			LineImportData{
 				Post: &PostImportData{
 					Team:     &teamName,
-					Channel:  ptrStr(model.NewId()),
+					Channel:  ptrStr(NewTestId()),
 					User:     &username,
 					Message:  ptrStr("Message"),
 					CreateAt: ptrInt64(model.GetMillis()),
@@ -3283,7 +3283,7 @@ func TestImportImportDirectPost(t *testing.T) {
 	directChannel = channel
 
 	// Get the number of posts in the system.
-	result, err := th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
+	result, err := th.App.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{})
 	require.NoError(t, err)
 	initialPostCount := result
 	initialDate := model.GetMillis()
@@ -3644,7 +3644,7 @@ func TestImportImportDirectPost(t *testing.T) {
 	groupChannel = channel
 
 	// Get the number of posts in the system.
-	result, nErr := th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
+	result, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{})
 	require.NoError(t, nErr)
 	initialPostCount = result
 
@@ -4175,7 +4175,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get team from database.")
 
 	// Create a Channel.
-	channelName := model.NewId()
+	channelName := NewTestId()
 	chanTypeOpen := model.ChannelTypeOpen
 	th.App.importChannel(th.Context, &ChannelImportData{
 		Team:        &teamName,
@@ -4451,7 +4451,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get team from database.")
 
 	// Create a Channel.
-	channelName := model.NewId()
+	channelName := NewTestId()
 	chanTypeOpen := model.ChannelTypeOpen
 	th.App.importChannel(th.Context, &ChannelImportData{
 		Team:        &teamName,

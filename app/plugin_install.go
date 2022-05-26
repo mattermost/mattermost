@@ -105,6 +105,10 @@ func (ch *Channels) installPluginFromData(data model.PluginEventData) {
 	if err := ch.notifyPluginStatusesChanged(); err != nil {
 		mlog.Error("Failed to notify plugin status changed", mlog.Err(err))
 	}
+
+	if err := ch.notifyIntegrationsUsageChanged(); err != nil {
+		mlog.Warn("Failed to notify integrations usage changed", mlog.Err(err))
+	}
 }
 
 func (ch *Channels) removePluginFromData(data model.PluginEventData) {
@@ -116,6 +120,10 @@ func (ch *Channels) removePluginFromData(data model.PluginEventData) {
 
 	if err := ch.notifyPluginStatusesChanged(); err != nil {
 		mlog.Warn("failed to notify plugin status changed", mlog.Err(err))
+	}
+
+	if err := ch.notifyIntegrationsUsageChanged(); err != nil {
+		mlog.Warn("Failed to notify integrations usage changed", mlog.Err(err))
 	}
 }
 
@@ -170,6 +178,10 @@ func (ch *Channels) installPlugin(pluginFile, signature io.ReadSeeker, installat
 
 	if err := ch.notifyPluginStatusesChanged(); err != nil {
 		mlog.Warn("Failed to notify plugin status changed", mlog.Err(err))
+	}
+
+	if err := ch.notifyIntegrationsUsageChanged(); err != nil {
+		mlog.Warn("Failed to notify integrations usage changed", mlog.Err(err))
 	}
 
 	return manifest, nil
@@ -393,9 +405,10 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 	// Activate the plugin if enabled.
 	pluginState := ch.cfgSvc.Config().PluginSettings.PluginStates[manifest.Id]
 	if pluginState != nil && pluginState.Enable {
-		if manifest.Id == "com.mattermost.apps" && !ch.cfgSvc.Config().FeatureFlags.AppsEnabled {
+		if hasOverride, enabled := ch.getPluginStateOverride(manifest.Id); hasOverride && !enabled {
 			return manifest, nil
 		}
+
 		updatedManifest, _, err := pluginsEnvironment.Activate(manifest.Id)
 		if err != nil {
 			return nil, model.NewAppError("installExtractedPlugin", "app.plugin.restart.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -444,6 +457,10 @@ func (ch *Channels) RemovePlugin(id string) *model.AppError {
 
 	if err := ch.notifyPluginStatusesChanged(); err != nil {
 		mlog.Warn("Failed to notify plugin status changed", mlog.Err(err))
+	}
+
+	if err := ch.notifyIntegrationsUsageChanged(); err != nil {
+		mlog.Warn("Failed to notify integrations usage changed", mlog.Err(err))
 	}
 
 	return nil

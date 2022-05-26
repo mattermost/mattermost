@@ -47,7 +47,7 @@ func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnbo
 				return
 			}
 
-			appErr = a.Channels().enablePlugin(id)
+			appErr = a.EnablePlugin(id)
 			if appErr != nil {
 				mlog.Error("Failed to enable plugin for onboarding", mlog.String("id", id), mlog.Err(appErr))
 				return

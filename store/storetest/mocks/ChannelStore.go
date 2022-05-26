@@ -1165,13 +1165,13 @@ func (_m *ChannelStore) GetMembersForUser(teamID string, userID string) (model.C
 	return r0, r1
 }
 
-// GetMembersForUserWithCursor provides a mock function with given fields: userID, afterChannel, afterUser, limit, lastUpdateAt
-func (_m *ChannelStore) GetMembersForUserWithCursor(userID string, afterChannel string, afterUser string, limit int, lastUpdateAt int) (model.ChannelMembers, error) {
-	ret := _m.Called(userID, afterChannel, afterUser, limit, lastUpdateAt)
+// GetMembersForUserWithCursor provides a mock function with given fields: userID, teamID, opts
+func (_m *ChannelStore) GetMembersForUserWithCursor(userID string, teamID string, opts *store.ChannelMemberGraphQLSearchOpts) (model.ChannelMembers, error) {
+	ret := _m.Called(userID, teamID, opts)
 
 	var r0 model.ChannelMembers
-	if rf, ok := ret.Get(0).(func(string, string, string, int, int) model.ChannelMembers); ok {
-		r0 = rf(userID, afterChannel, afterUser, limit, lastUpdateAt)
+	if rf, ok := ret.Get(0).(func(string, string, *store.ChannelMemberGraphQLSearchOpts) model.ChannelMembers); ok {
+		r0 = rf(userID, teamID, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.ChannelMembers)
@@ -1179,8 +1179,8 @@ func (_m *ChannelStore) GetMembersForUserWithCursor(userID string, afterChannel 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, string, int, int) error); ok {
-		r1 = rf(userID, afterChannel, afterUser, limit, lastUpdateAt)
+	if rf, ok := ret.Get(1).(func(string, string, *store.ChannelMemberGraphQLSearchOpts) error); ok {
+		r1 = rf(userID, teamID, opts)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1501,6 +1501,52 @@ func (_m *ChannelStore) GetTeamMembersForChannel(channelID string) ([]string, er
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(channelID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTopChannelsForTeamSince provides a mock function with given fields: teamID, userID, since, offset, limit
+func (_m *ChannelStore) GetTopChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopChannelList, error) {
+	ret := _m.Called(teamID, userID, since, offset, limit)
+
+	var r0 *model.TopChannelList
+	if rf, ok := ret.Get(0).(func(string, string, int64, int, int) *model.TopChannelList); ok {
+		r0 = rf(teamID, userID, since, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.TopChannelList)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, int64, int, int) error); ok {
+		r1 = rf(teamID, userID, since, offset, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTopChannelsForUserSince provides a mock function with given fields: userID, teamID, since, offset, limit
+func (_m *ChannelStore) GetTopChannelsForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopChannelList, error) {
+	ret := _m.Called(userID, teamID, since, offset, limit)
+
+	var r0 *model.TopChannelList
+	if rf, ok := ret.Get(0).(func(string, string, int64, int, int) *model.TopChannelList); ok {
+		r0 = rf(userID, teamID, since, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.TopChannelList)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, int64, int, int) error); ok {
+		r1 = rf(userID, teamID, since, offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -297,7 +297,7 @@ func (ts *TelemetryService) trackActivity() {
 		deletedPrivateChannelCount = dpccr
 	}
 
-	postsCount, _ = ts.dbStore.Post().AnalyticsPostCount("", false, false)
+	postsCount, _ = ts.dbStore.Post().AnalyticsPostCount(&model.PostCountOptions{})
 
 	postCountsOptions := &model.AnalyticsPostCountsOptions{TeamId: "", BotsOnly: false, YesterdayOnly: true}
 	postCountsYesterday, _ := ts.dbStore.Post().AnalyticsPostCountsByDay(postCountsOptions)
@@ -384,9 +384,9 @@ func (ts *TelemetryService) trackConfig() {
 		"forward_80_to_443":                                       *cfg.ServiceSettings.Forward80To443,
 		"maximum_login_attempts":                                  *cfg.ServiceSettings.MaximumLoginAttempts,
 		"extend_session_length_with_activity":                     *cfg.ServiceSettings.ExtendSessionLengthWithActivity,
-		"session_length_web_in_days":                              *cfg.ServiceSettings.SessionLengthWebInDays,
-		"session_length_mobile_in_days":                           *cfg.ServiceSettings.SessionLengthMobileInDays,
-		"session_length_sso_in_days":                              *cfg.ServiceSettings.SessionLengthSSOInDays,
+		"session_length_web_in_hours":                             *cfg.ServiceSettings.SessionLengthWebInHours,
+		"session_length_mobile_in_hours":                          *cfg.ServiceSettings.SessionLengthMobileInHours,
+		"session_length_sso_in_hours":                             *cfg.ServiceSettings.SessionLengthSSOInHours,
 		"session_cache_in_minutes":                                *cfg.ServiceSettings.SessionCacheInMinutes,
 		"session_idle_timeout_in_minutes":                         *cfg.ServiceSettings.SessionIdleTimeoutInMinutes,
 		"isdefault_site_url":                                      isDefault(*cfg.ServiceSettings.SiteURL, model.ServiceSettingsDefaultSiteURL),
@@ -718,6 +718,7 @@ func (ts *TelemetryService) trackConfig() {
 		"cloud_billing":                      *cfg.ExperimentalSettings.CloudBilling,
 		"enable_shared_channels":             *cfg.ExperimentalSettings.EnableSharedChannels,
 		"enable_remote_cluster_service":      *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
+		"enable_app_bar":                     *cfg.ExperimentalSettings.EnableAppBar,
 	})
 
 	ts.SendTelemetry(TrackConfigAnalytics, map[string]interface{}{
@@ -1303,7 +1304,7 @@ func (ts *TelemetryService) trackWarnMetrics() {
 
 func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL string) {
 	pluginConfigData := map[string]interface{}{
-		"enable_nps_survey":             pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", true),
+		"enable_nps_survey":             pluginSetting(&cfg.PluginSettings, model.PluginIdNPS, "enablesurvey", true),
 		"enable":                        *cfg.PluginSettings.Enable,
 		"enable_uploads":                *cfg.PluginSettings.EnableUploads,
 		"allow_insecure_download_url":   *cfg.PluginSettings.AllowInsecureDownloadURL,

@@ -12,6 +12,8 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+
+	"github.com/go-sql-driver/mysql"
 )
 
 var escapeLikeSearchChar = []string{
@@ -169,4 +171,29 @@ func DSNHasBinaryParam(dsn string) (bool, error) {
 // AppendBinaryFlag updates the byte slice to work using binary_parameters=yes.
 func AppendBinaryFlag(buf []byte) []byte {
 	return append([]byte{0x01}, buf...)
+}
+
+// AppendMultipleStatementsFlag attached dsn parameters to MySQL dsn in order to make migrations work.
+func AppendMultipleStatementsFlag(dataSource string) (string, error) {
+	config, err := mysql.ParseDSN(dataSource)
+	if err != nil {
+		return "", err
+	}
+
+	if config.Params == nil {
+		config.Params = map[string]string{}
+	}
+
+	config.Params["multiStatements"] = "true"
+	return config.FormatDSN(), nil
+}
+
+// ResetReadTimeout removes the timeout constraint from the MySQL dsn.
+func ResetReadTimeout(dataSource string) (string, error) {
+	config, err := mysql.ParseDSN(dataSource)
+	if err != nil {
+		return "", err
+	}
+	config.ReadTimeout = 0
+	return config.FormatDSN(), nil
 }

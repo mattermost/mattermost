@@ -38,26 +38,8 @@ type testResourceDetails struct {
 	action  int8
 }
 
-// getCommonBaseSearchPaths() is a custom version of what fileutils exposes. At some point, consolidate.
-func getCommonBaseSearchPaths() []string {
-	paths := []string{
-		".",
-		"..",
-		"../..",
-		"../../..",
-		"../../../..",
-	}
-
-	// this enables the server to be used in tests from a different repository
-	if mmPath := os.Getenv("MM_SERVER_PATH"); mmPath != "" {
-		paths = append(paths, mmPath)
-	}
-
-	return paths
-}
-
 func findFile(path string) string {
-	return fileutils.FindPath(path, getCommonBaseSearchPaths(), func(fileInfo os.FileInfo) bool {
+	return fileutils.FindPath(path, fileutils.CommonBaseSearchPaths(), func(fileInfo os.FileInfo) bool {
 		return !fileInfo.IsDir()
 	})
 }
@@ -72,7 +54,7 @@ func findDir(dir string) (string, bool) {
 		return path.Dir(srcPath), true
 	}
 
-	found := fileutils.FindPath(dir, getCommonBaseSearchPaths(), func(fileInfo os.FileInfo) bool {
+	found := fileutils.FindPath(dir, fileutils.CommonBaseSearchPaths(), func(fileInfo os.FileInfo) bool {
 		return fileInfo.IsDir()
 	})
 	if found == "" {

@@ -1318,7 +1318,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	require.Equal(t, m3.UserId, ms[0].UserId)
 
 	ctx := context.Background()
-	ms, err = ss.Team().GetTeamsForUser(ctx, m1.UserId)
+	ms, err = ss.Team().GetTeamsForUser(ctx, m1.UserId, "", true)
 	require.NoError(t, err)
 	require.Len(t, ms, 1)
 	require.Equal(t, m1.TeamId, ms[0].TeamId)
@@ -1347,14 +1347,30 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	_, nErr = ss.Team().SaveMultipleMembers([]*model.TeamMember{m4, m5}, -1)
 	require.NoError(t, nErr)
 
-	ms, err = ss.Team().GetTeamsForUser(ctx, uid)
+	ms, err = ss.Team().GetTeamsForUser(ctx, uid, "", true)
 	require.NoError(t, err)
 	require.Len(t, ms, 2)
+
+	ms, err = ss.Team().GetTeamsForUser(ctx, uid, teamId2, true)
+	require.NoError(t, err)
+	require.Len(t, ms, 1)
+
+	m4.DeleteAt = model.GetMillis()
+	_, err = ss.Team().UpdateMember(m4)
+	require.NoError(t, err)
+
+	ms, err = ss.Team().GetTeamsForUser(ctx, uid, "", true)
+	require.NoError(t, err)
+	require.Len(t, ms, 2)
+
+	ms, err = ss.Team().GetTeamsForUser(ctx, uid, "", false)
+	require.NoError(t, err)
+	require.Len(t, ms, 1)
 
 	nErr = ss.Team().RemoveAllMembersByUser(uid)
 	require.NoError(t, nErr)
 
-	ms, err = ss.Team().GetTeamsForUser(ctx, m1.UserId)
+	ms, err = ss.Team().GetTeamsForUser(ctx, m1.UserId, "", true)
 	require.NoError(t, err)
 	require.Empty(t, ms)
 }

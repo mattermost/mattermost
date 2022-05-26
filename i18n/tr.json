@@ -5481,7 +5481,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Oturumun süresi dolmuş: Lütfen bildirimleri almaya devam etmek için oturum açın. {{.siteName}} oturumlarının süresi, sistem yöneticiniz tarafından her {{.daysCount}} günde bir dolacak şekilde ayarlanmış."
+    "translation": "Oturumun süresi dolmuş: Lütfen bildirimleri almaya devam etmek için oturum açın. {{.siteName}} oturumlarının süresi, sistem yöneticiniz tarafından her {{.hoursCount}} saatte bir dolacak şekilde ayarlanmış."
   },
   {
     "id": "app.bot.permenent_delete.bad_id",
@@ -5861,7 +5861,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Sürüm 89+"
+    "translation": "Sürüm 100+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -8101,7 +8101,7 @@
   },
   {
     "id": "api.templates.questions_footer.info",
-    "translation": "Bize istediğiniz zaman şu adresten e-posta gönderebilirsiniz "
+    "translation": "Yardım ister misiniz ya da sorularınız mı var? Bize şu adresten e-posta gönderebilirsiniz "
   },
   {
     "id": "api.templates.email_footer_v2",
@@ -8705,11 +8705,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, 14 günlük Mattermost Cloud Enterprise ücretsiz deneme süreniz bugün sona erdi. Takımınızın Cloud Enterprise özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi ekleyebilirsiniz. 30 gün içinde ödeme bilgilerinizi eklemezseniz Cloud çalışma alanınız ve ilgili verileri kalıcı olarak silinecek."
+    "translation": "{{.Name}}, 14 günlük Mattermost Cloud Enterprise ücretsiz deneme süreniz {{.TodayDate}} tarihinde sona erdi. Esnek ve güvenli iş birliği platformumuzu beğendiğinizi umarız. Takımınızın Cloud Enterprise özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi ekleyebilirsiniz."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "14 günlük Mattermost deneme süreniz bugün sona erdi"
+    "translation": "14 günlük Mattermost deneme süreniz sona erdi"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -9160,7 +9160,7 @@
   },
   {
     "id": "Playbooks",
-    "translation": "Oyun kitapları"
+    "translation": "Senaryolar"
   },
   {
     "id": "Channels",
@@ -9289,5 +9289,49 @@
   {
     "id": "api.license.request_trial_license.embargoed",
     "translation": "Ambargo uygulanan ülkelerdeki sınırlamalar nedeniyle isteği işleyemedik. [Belgelerimizden ayrıntılı bilgi alın](https://mattermost.com/pl/limitations-for-embargoed-countries) ya da ihracat sınırlamalarıyla ilgili sorularınız için legal@mattermost.com adresine yazın."
+  },
+  {
+    "id": "app.channel.get_top_for_user_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.channel.get_top_for_team_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "Platformunuz yükseltildi!"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
+    "translation": "{{.WorkspaceName}} çalışma alanınız yükseltildi. Faturanız {{.TrialEnd}} tarihinden başlayarak hesaplanacak"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subject",
+    "translation": "Mattermost yükseltme onayı"
+  },
+  {
+    "id": "api.templates.server_inactivity_footer_disclaimer",
+    "translation": "Bu bir kerelik e-posta Mattermost sunucunuz {{.Hours}} saatten uzun süredir etkin olmadığı için gönderildi. Bu e-posta Mattermost sunucunuz tarafından otomatik olarak oluşturuldu."
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "Elasticsearch yapılandırmasında ayarlanmamış değerler var."
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "Abonelik web bağlantısından güncellenirken sorun çıktı."
+  },
+  {
+    "id": "api.cloud.cloud_free_feature_flag_off_error",
+    "translation": "CloudFree özelliği işareti kapatılmış."
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "Son aramalar alınırken sorun çıktı"
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Bir Bulut kopyasına mmctl ile yükleme desteklenmiyor. Lütfen şu makaleye bakın: https://docs.mattermost.com/manage/cloud-data-export.html."
   }
 ]

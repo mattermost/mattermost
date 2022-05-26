@@ -4,7 +4,9 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -17,7 +19,7 @@ func (a *App) getSysAdminsEmailRecipients() ([]*model.User, *model.AppError) {
 		Role:     model.SystemAdminRoleId,
 		Inactive: false,
 	}
-	return a.GetUsers(userOptions)
+	return a.GetUsersFromProfiles(userOptions)
 }
 
 func (a *App) SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.AppError {
@@ -32,6 +34,62 @@ func (a *App) SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.
 			a.Log().Error("Error sending payment failed email", mlog.Err(err))
 		}
 	}
+	return nil
+}
+
+func (a *App) AdjustInProductLimits(limits *model.ProductLimits, subscription *model.Subscription) *model.AppError {
+	if limits.Teams != nil && limits.Teams.Active != nil && *limits.Teams.Active > 0 {
+		err := a.AdjustTeamsFromProductLimits(limits.Teams)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (a *App) SendUpgradeConfirmationEmail() *model.AppError {
+	sysAdmins, e := a.getSysAdminsEmailRecipients()
+	if e != nil {
+		return e
+	}
+
+	if len(sysAdmins) == 0 {
+		return model.NewAppError("app.SendCloudUpgradeConfirmationEmail", "app.user.send_emails.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	subscription, err := a.Cloud().GetSubscription("")
+	if err != nil {
+		return model.NewAppError("app.SendCloudUpgradeConfirmationEmail", "app.user.send_emails.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	// Build readable trial end date
+	// Trial end is passed as unix timestamp in ms
+	endTimeStamp := subscription.TrialEndAt / 1000
+	t := time.Unix(endTimeStamp, 0)
+	trialEndDate := fmt.Sprintf("%s %d, %d", t.Month(), t.Day(), t.Year())
+
+	// we want to at least have one email sent out to an admin
+	countNotOks := 0
+
+	for _, admin := range sysAdmins {
+		name := admin.FirstName
+		if name == "" {
+			name = admin.Username
+		}
+
+		err := a.Srv().EmailService.SendCloudUpgradeConfirmationEmail(admin.Email, name, trialEndDate, admin.Locale, *a.Config().ServiceSettings.SiteURL, subscription.GetWorkSpaceNameFromDNS())
+		if err != nil {
+			a.Log().Error("Error sending trial ended email to", mlog.String("email", admin.Email), mlog.Err(err))
+			countNotOks++
+		}
+	}
+
+	// if not even one admin got an email, we consider that this operation errored
+	if countNotOks == len(sysAdmins) {
+		return model.NewAppError("app.SendCloudUpgradeConfirmationEmail", "app.user.send_emails.app_error", nil, "", http.StatusInternalServerError)
+	}
+
 	return nil
 }
 

@@ -14,6 +14,7 @@ import (
 	gqlerrors "github.com/graph-gophers/graphql-go/errors"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/web"
 )
 
 type graphQLInput struct {
@@ -21,6 +22,19 @@ type graphQLInput struct {
 	OperationName string                 `json:"operationName"`
 	Variables     map[string]interface{} `json:"variables"`
 }
+
+// Unique type to hold our context.
+type ctxKey int
+
+const (
+	webCtx            ctxKey = 0
+	rolesLoaderCtx    ctxKey = 1
+	channelsLoaderCtx ctxKey = 2
+	teamsLoaderCtx    ctxKey = 3
+	usersLoaderCtx    ctxKey = 4
+)
+
+const loaderBatchCapacity = web.PerPageMaximum
 
 //go:embed schema.graphqls
 var schemaRaw string
@@ -35,7 +49,8 @@ func (api *API) InitGraphQL() error {
 	opts := []graphql.SchemaOpt{
 		graphql.UseFieldResolvers(),
 		graphql.Logger(mlog.NewGraphQLLogger(api.srv.Log)),
-		graphql.MaxParallelism(5),
+		graphql.MaxParallelism(loaderBatchCapacity), // This is dangerous if the query
+		// uses any non-dataloader backed object. So we need to be a bit careful here.
 	}
 
 	if isProd() {
@@ -57,18 +72,6 @@ func (api *API) InitGraphQL() error {
 	api.BaseRoutes.APIRoot5.Handle("/graphql", api.APISessionRequired(api.graphQL)).Methods("POST")
 	return nil
 }
-
-// Unique type to hold our context.
-type ctxKey int
-
-const (
-	webCtx            ctxKey = 0
-	rolesLoaderCtx    ctxKey = 1
-	channelsLoaderCtx ctxKey = 2
-	teamsLoaderCtx    ctxKey = 3
-)
-
-const loaderBatchCapacity = 200
 
 func (api *API) graphQL(c *Context, w http.ResponseWriter, r *http.Request) {
 	var response *graphql.Response
@@ -110,6 +113,9 @@ func (api *API) graphQL(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	teamsLoader := dataloader.NewBatchedLoader(graphQLTeamsLoader, dataloader.WithBatchCapacity(loaderBatchCapacity))
 	reqCtx = context.WithValue(reqCtx, teamsLoaderCtx, teamsLoader)
+
+	usersLoader := dataloader.NewBatchedLoader(graphQLUsersLoader, dataloader.WithBatchCapacity(loaderBatchCapacity))
+	reqCtx = context.WithValue(reqCtx, usersLoaderCtx, usersLoader)
 
 	response = api.schema.Exec(reqCtx,
 		params.Query,

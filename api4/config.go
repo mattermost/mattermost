@@ -152,6 +152,21 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		*cfg.PluginSettings.MarketplaceURL = *appCfg.PluginSettings.MarketplaceURL
 	}
 
+	if err := c.App.CheckFreemiumLimitsForConfigSave(appCfg, cfg); err != nil {
+		c.Err = err
+		return
+	}
+
+	// There are some settings that cannot be changed in a cloud env
+	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
+		// Both of them cannot be nil since cfg.SetDefaults is called earlier for cfg,
+		// and appCfg is the existing earlier config and if it's nil, server sets a default value.
+		if *appCfg.ComplianceSettings.Directory != *cfg.ComplianceSettings.Directory {
+			c.Err = model.NewAppError("updateConfig", "api.config.update_config.not_allowed_security.app_error", map[string]interface{}{"Name": "ComplianceSettings.Directory"}, "", http.StatusForbidden)
+			return
+		}
+	}
+
 	c.App.HandleMessageExportConfig(cfg, appCfg)
 
 	if err := cfg.IsValid(); err != nil {
@@ -272,6 +287,19 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		// Breaking it down to 2 conditions to make it simple.
 		if *cfg.PluginSettings.MarketplaceURL != *appCfg.PluginSettings.MarketplaceURL && !*cfg.PluginSettings.EnableUploads {
 			c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]interface{}{"Name": "PluginSettings.MarketplaceURL"}, "", http.StatusForbidden)
+			return
+		}
+	}
+
+	if err := c.App.CheckFreemiumLimitsForConfigSave(appCfg, cfg); err != nil {
+		c.Err = err
+		return
+	}
+
+	// There are some settings that cannot be changed in a cloud env
+	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
+		if cfg.ComplianceSettings.Directory != nil && *appCfg.ComplianceSettings.Directory != *cfg.ComplianceSettings.Directory {
+			c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]interface{}{"Name": "ComplianceSettings.Directory"}, "", http.StatusForbidden)
 			return
 		}
 	}

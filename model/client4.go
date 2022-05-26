@@ -328,6 +328,10 @@ func (c *Client4) testEmailRoute() string {
 	return "/email/test"
 }
 
+func (c *Client4) usageRoute() string {
+	return "/usage"
+}
+
 func (c *Client4) testSiteURLRoute() string {
 	return "/site_url/test"
 }
@@ -3601,6 +3605,41 @@ func (c *Client4) AutocompleteChannelsForTeamForSearch(teamId, name string) (Cha
 		return nil, BuildResponse(r), NewAppError("AutocompleteChannelsForTeamForSearch", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return ch, BuildResponse(r), nil
+}
+
+// GetTopChannelsForTeamSince will return an ordered list of the top channels in a given team.
+func (c *Client4) GetTopChannelsForTeamSince(teamId string, timeRange string, page int, perPage int) (*TopChannelList, *Response, error) {
+	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
+	r, err := c.DoAPIGet(c.teamRoute(teamId)+"/top/channels"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var topChannels *TopChannelList
+	if jsonErr := json.NewDecoder(r.Body).Decode(&topChannels); jsonErr != nil {
+		return nil, nil, NewAppError("GetTopChannelsForTeamSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return topChannels, BuildResponse(r), nil
+}
+
+// GetTopChannelsForUserSince will return an ordered list of your top channels in a given team.
+func (c *Client4) GetTopChannelsForUserSince(teamId string, timeRange string, page int, perPage int) (*TopChannelList, *Response, error) {
+	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
+
+	if teamId != "" {
+		query += fmt.Sprintf("&team_id=%v", teamId)
+	}
+
+	r, err := c.DoAPIGet(c.usersRoute()+"/me/top/channels"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var topChannels *TopChannelList
+	if jsonErr := json.NewDecoder(r.Body).Decode(&topChannels); jsonErr != nil {
+		return nil, nil, NewAppError("GetTopChannelsForUserSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return topChannels, BuildResponse(r), nil
 }
 
 // Post Section
@@ -7745,6 +7784,19 @@ func (c *Client4) ConfirmCustomerPayment(confirmRequest *ConfirmPaymentMethodReq
 	return BuildResponse(r), nil
 }
 
+func (c *Client4) RequestCloudTrial() (*Subscription, *Response, error) {
+	r, err := c.DoAPIPut(c.cloudRoute()+"/request-trial", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var subscription *Subscription
+	json.NewDecoder(r.Body).Decode(&subscription)
+
+	return subscription, BuildResponse(r), nil
+}
+
 func (c *Client4) GetCloudCustomer() (*CloudCustomer, *Response, error) {
 	r, err := c.DoAPIGet(c.cloudRoute()+"/customer", "")
 	if err != nil {
@@ -8042,4 +8094,32 @@ func (c *Client4) GetAppliedSchemaMigrations() ([]AppliedMigration, *Response, e
 		return nil, nil, NewAppError("GetUsers", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
 	return list, BuildResponse(r), nil
+}
+
+// Usage Section
+
+// GetPostsUsage returns rounded off total usage of posts for the instance
+func (c *Client4) GetPostsUsage() (*PostsUsage, *Response, error) {
+	r, err := c.DoAPIGet(c.usageRoute()+"/posts", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var usage *PostsUsage
+	err = json.NewDecoder(r.Body).Decode(&usage)
+	return usage, BuildResponse(r), err
+}
+
+// GetIntegrationsUsage returns usage information on integrations, including the count of enabled integrations
+func (c *Client4) GetIntegrationsUsage() (*IntegrationsUsage, *Response, error) {
+	r, err := c.DoAPIGet(c.usageRoute()+"/integrations", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var usage *IntegrationsUsage
+	err = json.NewDecoder(r.Body).Decode(&usage)
+	return usage, BuildResponse(r), err
 }

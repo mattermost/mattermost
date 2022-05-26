@@ -10,6 +10,7 @@ import (
 type CloudInterface interface {
 	GetCloudProducts(userID string, includeLegacyProducts bool) ([]*model.Product, error)
 	GetCloudLimits(userID string) (*model.ProductLimits, error)
+	UpdateSubscriptionFromHook(*model.ProductLimits, *model.Subscription) error
 
 	CreateCustomerPayment(userID string) (*model.StripeSetupIntent, error)
 	ConfirmCustomerPayment(userID string, confirmRequest *model.ConfirmPaymentMethodRequest) error
@@ -23,6 +24,8 @@ type CloudInterface interface {
 	GetInvoicePDF(userID, invoiceID string) ([]byte, string, error)
 
 	ChangeSubscription(userID, subscriptionID string, subscriptionChange *model.SubscriptionChange) (*model.Subscription, error)
+
+	RequestCloudTrial(userID, subscriptionID string) (*model.Subscription, error)
 
 	// GetLicenseRenewalStatus checks on the portal whether it is possible to use token to renew a license
 	GetLicenseRenewalStatus(userID, token string) error

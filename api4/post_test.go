@@ -130,7 +130,7 @@ func TestCreatePost(t *testing.T) {
 		require.NoError(t, err)
 
 		// Message with no channel mentions should result in no ephemeral message
-		timeout := time.After(300 * time.Millisecond)
+		timeout := time.After(2 * time.Second)
 		waiting := true
 		for waiting {
 			select {
@@ -156,7 +156,7 @@ func TestCreatePost(t *testing.T) {
 		_, _, err = client.CreatePost(post)
 		require.NoError(t, err)
 
-		timeout = time.After(600 * time.Millisecond)
+		timeout = time.After(2 * time.Second)
 		eventsToGo := 3 // 3 Posts created with @ mentions should result in 3 websocket events
 		for eventsToGo > 0 {
 			select {
@@ -553,7 +553,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 
-	timeout := time.After(300 * time.Millisecond)
+	timeout := time.After(2 * time.Second)
 	waiting := true
 	for waiting {
 		select {
@@ -572,7 +572,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 
-	timeout = time.After(300 * time.Millisecond)
+	timeout = time.After(2 * time.Second)
 	waiting = true
 	for waiting {
 		select {
@@ -2053,7 +2053,6 @@ func TestDeletePost(t *testing.T) {
 }
 
 func TestDeletePostEvent(t *testing.T) {
-	t.Skip("MM-42997")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2077,7 +2076,7 @@ func TestDeletePostEvent(t *testing.T) {
 				require.NoError(t, err)
 				received = true
 			}
-		case <-time.After(500 * time.Millisecond):
+		case <-time.After(2 * time.Second):
 			exit = true
 		}
 		if exit {
@@ -2459,19 +2458,23 @@ func TestSearchPostsFromUser(t *testing.T) {
 	message = "sgtitlereview\n with return"
 	_ = th.CreateMessagePostWithClient(client, th.BasicChannel2, message)
 
-	posts, _, _ := client.SearchPosts(th.BasicTeam.Id, "from: "+th.TeamAdminUser.Username, false)
+	posts, _, err := client.SearchPosts(th.BasicTeam.Id, "from: "+th.TeamAdminUser.Username, false)
+	require.NoError(t, err)
 	require.Lenf(t, posts.Order, 2, "wrong number of posts for search 'from: %v'", th.TeamAdminUser.Username)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username, false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username, false)
+	require.NoError(t, err)
 	require.Lenf(t, posts.Order, 1, "wrong number of posts for search 'from: %v", th.BasicUser2.Username)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" sgtitlereview", false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" sgtitlereview", false)
+	require.NoError(t, err)
 	require.Lenf(t, posts.Order, 1, "wrong number of posts for search 'from: %v'", th.BasicUser2.Username)
 
 	message = "hullo"
 	_ = th.CreateMessagePost(message)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" in:"+th.BasicChannel.Name, false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" in:"+th.BasicChannel.Name, false)
+	require.NoError(t, err)
 	require.Len(t, posts.Order, 1, "wrong number of posts for search 'from: %v in:", th.BasicUser2.Username, th.BasicChannel.Name)
 
 	client.Login(user.Email, user.Password)
@@ -2479,19 +2482,23 @@ func TestSearchPostsFromUser(t *testing.T) {
 	// wait for the join/leave messages to be created for user3 since they're done asynchronously
 	time.Sleep(100 * time.Millisecond)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username, false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username, false)
+	require.NoError(t, err)
 	require.Lenf(t, posts.Order, 2, "wrong number of posts for search 'from: %v'", th.BasicUser2.Username)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username, false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username, false)
+	require.NoError(t, err)
 	require.Lenf(t, posts.Order, 2, "wrong number of posts for search 'from: %v from: %v'", th.BasicUser2.Username, user.Username)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username+" in:"+th.BasicChannel2.Name, false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username+" in:"+th.BasicChannel2.Name, false)
+	require.NoError(t, err)
 	require.Len(t, posts.Order, 1, "wrong number of posts")
 
 	message = "coconut"
 	_ = th.CreateMessagePostWithClient(client, th.BasicChannel2, message)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username+" in:"+th.BasicChannel2.Name+" coconut", false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username+" in:"+th.BasicChannel2.Name+" coconut", false)
+	require.NoError(t, err)
 	require.Len(t, posts.Order, 1, "wrong number of posts")
 }
 

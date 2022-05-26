@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
@@ -1522,11 +1522,19 @@ func (s SqlChannelStore) GetByNameIncludeDeleted(teamId string, name string, all
 }
 
 func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bool, allowFromCache bool) (*model.Channel, error) {
-	var query string
-	if includeDeleted {
-		query = "SELECT * FROM Channels WHERE (TeamId = ? OR TeamId = '') AND Name = ?"
-	} else {
-		query = "SELECT * FROM Channels WHERE (TeamId = ? OR TeamId = '') AND Name = ? AND DeleteAt = 0"
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Channels").
+		Where(sq.Eq{"Name": name})
+
+	if !includeDeleted {
+		query = query.Where(sq.Eq{"DeleteAt": 0})
+	}
+	if teamId != "" {
+		query = query.Where(sq.Or{
+			sq.Eq{"TeamId": teamId},
+			sq.Eq{"TeamId": ""},
+		})
 	}
 	channel := model.Channel{}
 
@@ -1543,7 +1551,12 @@ func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bo
 		}
 	}
 
-	if err := s.GetReplicaX().Get(&channel, query, teamId, name); err != nil {
+	queryStr, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "getByName_tosql")
+	}
+
+	if err := s.GetReplicaX().Get(&channel, queryStr, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Channel", fmt.Sprintf("TeamId=%s&Name=%s", teamId, name))
 		}
@@ -2814,7 +2827,7 @@ func (s SqlChannelStore) GetMembersForUser(teamID string, userID string) (model.
 	return dbMembers.ToModel(), nil
 }
 
-func (s SqlChannelStore) GetMembersForUserWithCursor(userID, afterChannel, afterUser string, limit, lastUpdateAt int) (model.ChannelMembers, error) {
+func (s SqlChannelStore) GetMembersForUserWithCursor(userID, teamID string, opts *store.ChannelMemberGraphQLSearchOpts) (model.ChannelMembers, error) {
 	query := s.getQueryBuilder().
 		Select("ChannelMembers.*",
 			"TeamScheme.DefaultChannelGuestRole TeamSchemeDefaultGuestRole",
@@ -2834,20 +2847,36 @@ func (s SqlChannelStore) GetMembersForUserWithCursor(userID, afterChannel, after
 		}).
 		OrderBy("ChannelId, UserId ASC").
 		// The limit is verified at the GraphQL layer.
-		Limit(uint64(limit))
+		Limit(uint64(opts.Limit))
 
-	if afterChannel != "" && afterUser != "" {
+	if teamID != "" {
+		if opts.ExcludeTeam {
+			// Exclude this team and DM/GMs
+			query = query.Where(sq.And{
+				sq.NotEq{"Channels.TeamId": teamID},
+				sq.NotEq{"Channels.TeamId": ""},
+			})
+		} else {
+			// Include this team and DM/GMs
+			query = query.Where(sq.Or{
+				sq.Eq{"Channels.TeamId": teamID},
+				sq.Eq{"Channels.TeamId": ""},
+			})
+		}
+	}
+
+	if opts.AfterChannel != "" && opts.AfterUser != "" {
 		query = query.Where(sq.Or{
-			sq.Gt{"ChannelMembers.ChannelId": afterChannel},
+			sq.Gt{"ChannelMembers.ChannelId": opts.AfterChannel},
 			sq.And{
-				sq.Eq{"ChannelMembers.ChannelId": afterChannel},
-				sq.Gt{"ChannelMembers.UserId": afterUser},
+				sq.Eq{"ChannelMembers.ChannelId": opts.AfterChannel},
+				sq.Gt{"ChannelMembers.UserId": opts.AfterUser},
 			},
 		})
 	}
 
-	if lastUpdateAt != 0 {
-		query = query.Where(sq.GtOrEq{"ChannelMembers.LastUpdateAt": lastUpdateAt})
+	if opts.LastUpdateAt != 0 {
+		query = query.Where(sq.GtOrEq{"ChannelMembers.LastUpdateAt": opts.LastUpdateAt})
 	}
 
 	queryString, args, err := query.ToSql()
@@ -4096,4 +4125,162 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 		return nil, errors.Wrapf(err, "failed to find team with channel_id=%s", channelID)
 	}
 	return &team, nil
+}
+
+// GetTopChannelsForTeamSince returns the filtered post counts of the following Channels sets:
+// a) those that are private channels in the given user's membership graph on the given team, and
+// b) those that are public channels in the given team.
+func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopChannelList, error) {
+	channels := make([]*model.TopChannel, 0)
+	var args []interface{}
+	postgresPropQuery := `AND (Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false')`
+	mySqlPropsQuery := `AND (JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false')`
+
+	query := `
+		SELECT
+			ID,
+			Type,
+			DisplayName,
+			Name,
+			TeamID,
+			MessageCount
+		FROM
+			((SELECT
+				Posts.ChannelId AS ID,
+				'O' AS Type,
+				PublicChannels.DisplayName AS DisplayName,
+				PublicChannels.Name AS Name,
+				PublicChannels.TeamId AS TeamID,
+				count(Posts.Id) AS MessageCount,
+				PublicChannels.DeleteAt AS DeleteAt
+			FROM
+				Posts
+				LEFT JOIN PublicChannels on Posts.ChannelId = PublicChannels.Id
+			WHERE
+				Posts.DeleteAt = 0
+				AND Posts.CreateAt > ?
+				AND Posts.Type = ''`
+	args = []interface{}{since}
+
+	if s.DriverName() == model.DatabaseDriverMysql {
+		query += mySqlPropsQuery
+	} else if s.DriverName() == model.DatabaseDriverPostgres {
+		query += postgresPropQuery
+	}
+
+	query += `
+				AND PublicChannels.TeamId = ?
+			GROUP BY
+				Posts.ChannelId,
+				PublicChannels.DisplayName,
+				PublicChannels.Name,
+				PublicChannels.TeamId,
+				PublicChannels.DeleteAt)
+		UNION ALL
+			(SELECT
+				Posts.ChannelId AS ID,
+				Channels.Type AS Type,
+				Channels.DisplayName AS DisplayName,
+				Channels.Name AS Name,
+				Channels.TeamId AS TeamID,
+				count(Posts.Id) AS MessageCount,
+				Channels.DeleteAt AS DeleteAt
+			FROM
+				Posts
+				LEFT JOIN Channels on Posts.ChannelId = Channels.Id
+				LEFT JOIN ChannelMembers on Posts.ChannelId = ChannelMembers.ChannelId
+			WHERE
+				Posts.DeleteAt = 0
+				AND Posts.CreateAt > ?
+				AND Posts.Type = ''`
+	args = append(args, teamID, since)
+
+	if s.DriverName() == model.DatabaseDriverMysql {
+		query += mySqlPropsQuery
+	} else if s.DriverName() == model.DatabaseDriverPostgres {
+		query += postgresPropQuery
+	}
+
+	query += `
+				AND Channels.TeamId = ?
+				AND Channels.Type = 'P'
+				AND ChannelMembers.UserId = ?
+			GROUP BY
+				Posts.ChannelId,
+				Channels.Type,
+				Channels.DisplayName,
+				Channels.Name,
+				Channels.TeamId,
+				Channels.DeleteAt)) AS A
+		WHERE
+			DeleteAt = 0
+		ORDER BY
+			MessageCount DESC,
+			Name ASC
+		LIMIT ?
+		OFFSET ?`
+	args = append(args, teamID, userID, limit+1, offset)
+
+	if err := s.GetReplicaX().Select(&channels, query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to get top Channels")
+	}
+
+	return model.GetTopChannelListWithPagination(channels, limit), nil
+}
+
+// GetTopChannelsForUserSince returns the filtered post counts of channels with with posts created by the user
+// after the given timestamp within the given team (or across the workspace if no team is given). Excludes DM and GM channels.
+func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopChannelList, error) {
+	channels := make([]*model.TopChannel, 0)
+	var args []interface{}
+	var query string
+
+	query = `
+		SELECT
+			Posts.ChannelId AS ID,
+			Channels.Type AS Type,
+			Channels.DisplayName AS DisplayName,
+			Channels.Name AS Name,
+			Channels.TeamId AS TeamID,
+			count(Posts.Id) AS MessageCount
+		FROM
+			Posts 
+			LEFT JOIN Channels on Posts.ChannelId = Channels.Id
+			LEFT JOIN ChannelMembers on Posts.ChannelId = ChannelMembers.ChannelId
+		WHERE 
+			Posts.DeleteAt = 0 
+			AND Posts.CreateAt > ?
+			AND Posts.Type = ''
+			AND Posts.UserID = ?
+			AND Channels.DeleteAt = 0
+			AND (Channels.Type = 'O' OR Channels.Type = 'P') 
+			AND ChannelMembers.UserId = ?`
+
+	args = []interface{}{since, userID, userID}
+
+	if teamID != "" {
+		query += `
+			AND Channels.TeamID = ?`
+		args = append(args, teamID)
+	}
+
+	query += `
+		Group By 
+			Posts.ChannelId,
+			Channels.Type,
+			Channels.DisplayName,
+			Channels.Name,
+			Channels.TeamId
+		ORDER BY 
+			MessageCount DESC,
+			Name ASC
+		LIMIT ?
+		OFFSET ?`
+	args = append(args, limit+1, offset)
+
+	if err := s.GetReplicaX().Select(&channels, query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to get top Channels")
+	}
+
+	return model.GetTopChannelListWithPagination(channels, limit), nil
 }
