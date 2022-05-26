@@ -60,13 +60,13 @@ func (_m *ChannelStore) AnalyticsTypeCount(teamID string, channelType model.Chan
 	return r0, r1
 }
 
-// Autocomplete provides a mock function with given fields: userID, term, includeDeleted
-func (_m *ChannelStore) Autocomplete(userID string, term string, includeDeleted bool) (model.ChannelListWithTeamData, error) {
-	ret := _m.Called(userID, term, includeDeleted)
+// Autocomplete provides a mock function with given fields: userID, term, includeDeleted, isGuest
+func (_m *ChannelStore) Autocomplete(userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelListWithTeamData, error) {
+	ret := _m.Called(userID, term, includeDeleted, isGuest)
 
 	var r0 model.ChannelListWithTeamData
-	if rf, ok := ret.Get(0).(func(string, string, bool) model.ChannelListWithTeamData); ok {
-		r0 = rf(userID, term, includeDeleted)
+	if rf, ok := ret.Get(0).(func(string, string, bool, bool) model.ChannelListWithTeamData); ok {
+		r0 = rf(userID, term, includeDeleted, isGuest)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.ChannelListWithTeamData)
@@ -74,8 +74,8 @@ func (_m *ChannelStore) Autocomplete(userID string, term string, includeDeleted 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
-		r1 = rf(userID, term, includeDeleted)
+	if rf, ok := ret.Get(1).(func(string, string, bool, bool) error); ok {
+		r1 = rf(userID, term, includeDeleted, isGuest)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -98,7 +98,7 @@ func testAutocompleteChannelByName(t *testing.T, th *SearchTestHelper) {
 	require.NoError(t, err)
 	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id, private.Id}, res)
 
-	res2, err := th.Store.Channel().Autocomplete(th.User.Id, "channel-a", false)
+	res2, err := th.Store.Channel().Autocomplete(th.User.Id, "channel-a", false, false)
 	require.NoError(t, err)
 	th.checkChannelIdsMatchWithTeamData(t, []string{th.ChannelBasic.Id, alternate.Id, private.Id, th.ChannelAnotherTeam.Id}, res2)
 }
@@ -125,7 +125,7 @@ func testAutocompleteChannelByDisplayName(t *testing.T, th *SearchTestHelper) {
 	require.NoError(t, err)
 	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id, private.Id}, res)
 
-	res2, err := th.Store.Channel().Autocomplete(th.User.Id, "ChannelA", false)
+	res2, err := th.Store.Channel().Autocomplete(th.User.Id, "ChannelA", false, false)
 	require.NoError(t, err)
 	th.checkChannelIdsMatchWithTeamData(t, []string{th.ChannelBasic.Id, alternate.Id, private.Id, th.ChannelAnotherTeam.Id}, res2)
 }
@@ -156,7 +156,7 @@ func testAutocompleteChannelByNameSplittedWithUnderscoreChar(t *testing.T, th *S
 	require.NoError(t, err)
 	th.checkChannelIdsMatch(t, []string{alternate.Id}, res)
 
-	res2, err := th.Store.Channel().Autocomplete(th.User.Id, "channel_a", false)
+	res2, err := th.Store.Channel().Autocomplete(th.User.Id, "channel_a", false, false)
 	require.NoError(t, err)
 	th.checkChannelIdsMatchWithTeamData(t, []string{alternate.Id}, res2)
 }
@@ -193,10 +193,10 @@ func testSearchChannelsInCaseInsensitiveManner(t *testing.T, th *SearchTestHelpe
 	require.NoError(t, err)
 	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, res)
 
-	res2, err := th.Store.Channel().Autocomplete(th.User.Id, "channela", false)
+	res2, err := th.Store.Channel().Autocomplete(th.User.Id, "channela", false, false)
 	require.NoError(t, err)
 	th.checkChannelIdsMatchWithTeamData(t, []string{th.ChannelAnotherTeam.Id, th.ChannelBasic.Id, alternate.Id}, res2)
-	res2, err = th.Store.Channel().Autocomplete(th.User.Id, "ChAnNeL-a", false)
+	res2, err = th.Store.Channel().Autocomplete(th.User.Id, "ChAnNeL-a", false, false)
 	require.NoError(t, err)
 	th.checkChannelIdsMatchWithTeamData(t, []string{th.ChannelAnotherTeam.Id, th.ChannelBasic.Id, alternate.Id}, res2)
 }
@@ -221,7 +221,7 @@ func testSearchShouldSupportHavingHyphenAsLastCharacter(t *testing.T, th *Search
 	require.NoError(t, err)
 	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, th.ChannelPrivate.Id, alternate.Id}, res)
 
-	res2, err := th.Store.Channel().Autocomplete(th.User.Id, "channel-", false)
+	res2, err := th.Store.Channel().Autocomplete(th.User.Id, "channel-", false, false)
 	require.NoError(t, err)
 	th.checkChannelIdsMatchWithTeamData(t, []string{th.ChannelAnotherTeam.Id, th.ChannelBasic.Id, th.ChannelPrivate.Id, alternate.Id}, res2)
 }
