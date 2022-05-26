@@ -1740,7 +1740,7 @@ func (a *App) GetTopThreadsForUserSince(teamID, userID string, opts *model.Insig
 
 	topThreads, err := a.Srv().Store.Thread().GetTopThreadsForUserSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
 	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.channel.get_top_for_team_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.post.get_top_threads_for_team_since.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	topThreadsWithEmbedAndImage, err := includeEmbedsAndImages(a, topThreads, userID)
 	if err != nil {

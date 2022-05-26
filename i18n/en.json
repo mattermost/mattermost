@@ -1899,7 +1899,11 @@
   },
   {
     "id": "api.insights.feature_disabled",
-    "translation": " "
+    "translation": "Insights is behind a feature flag which is not enabled."
+  },
+  {
+    "id": "api.insights.license_error",
+    "translation": "Your license doesn't support Insights feature."
   },
   {
     "id": "api.invalid_channel",
@@ -2268,6 +2272,10 @@
   {
     "id": "api.post.error_get_post_id.pending",
     "translation": "Unable to get the pending post."
+  },
+  {
+    "id": "api.post.feature_disabled",
+    "translation": ""
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -5862,6 +5870,14 @@
   {
     "id": "app.post.get_root_posts.app_error",
     "translation": "Unable to get the posts for the channel."
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "Unable to get top threads for team."
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "Unable to get top threads for user."
   },
   {
     "id": "app.post.marshal.app_error",
