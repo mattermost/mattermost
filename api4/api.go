@@ -137,6 +137,8 @@ type Routes struct {
 
 	InsightsForTeam *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}/top'
 	InsightsForUser *mux.Router // 'api/v4/users/me/top'
+
+	Usage *mux.Router // 'api/v4/usage'
 }
 
 type API struct {
@@ -261,6 +263,8 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.InsightsForTeam = api.BaseRoutes.Team.PathPrefix("/top").Subrouter()
 	api.BaseRoutes.InsightsForUser = api.BaseRoutes.Users.PathPrefix("/me/top").Subrouter()
 
+	api.BaseRoutes.Usage = api.BaseRoutes.APIRoot.PathPrefix("/usage").Subrouter()
+
 	api.InitUser()
 	api.InitBot()
 	api.InitTeam()
@@ -303,6 +307,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitPermissions()
 	api.InitExport()
 	api.InitInsights()
+	api.InitUsage()
 	if err := api.InitGraphQL(); err != nil {
 		return nil, err
 	}
