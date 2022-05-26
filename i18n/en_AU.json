@@ -9257,5 +9257,17 @@
   {
     "id": "api.cloud.subscription.update_error",
     "translation": "Error updating subscription from webhook."
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "An error occurred while fetching recent searches"
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Uploading via mmctl to a Cloud instance is not supported. Please check the documentation here: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "api.cloud.cloud_free_feature_flag_off_error",
+    "translation": "CloudFree feature flag is off."
   }
 ]
