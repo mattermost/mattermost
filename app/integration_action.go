@@ -375,6 +375,10 @@ func (w *LocalResponseWriter) WriteHeader(statusCode int) {
 }
 
 func (a *App) doPluginRequest(c *request.Context, method, rawURL string, values url.Values, body []byte) (*http.Response, *model.AppError) {
+	return a.ch.doPluginRequest(c, method, rawURL, values, body)
+}
+
+func (ch *Channels) doPluginRequest(c *request.Context, method, rawURL string, values url.Values, body []byte) (*http.Response, *model.AppError) {
 	rawURL = strings.TrimPrefix(rawURL, "/")
 	inURL, err := url.Parse(rawURL)
 	if err != nil {
@@ -423,7 +427,7 @@ func (a *App) doPluginRequest(c *request.Context, method, rawURL string, values 
 	params["plugin_id"] = pluginID
 	r = mux.SetURLVars(r, params)
 
-	a.ch.ServePluginRequest(w, r)
+	ch.ServePluginRequest(w, r)
 
 	resp := &http.Response{
 		StatusCode: w.status,
