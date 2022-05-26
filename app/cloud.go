@@ -37,6 +37,17 @@ func (a *App) SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.
 	return nil
 }
 
+func (a *App) AdjustInProductLimits(limits *model.ProductLimits, subscription *model.Subscription) *model.AppError {
+	if limits.Teams != nil && limits.Teams.Active != nil && *limits.Teams.Active > 0 {
+		err := a.AdjustTeamsFromProductLimits(limits.Teams)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (a *App) SendUpgradeConfirmationEmail() *model.AppError {
 	sysAdmins, e := a.getSysAdminsEmailRecipients()
 	if e != nil {
