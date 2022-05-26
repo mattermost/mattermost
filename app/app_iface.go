@@ -68,6 +68,8 @@ type AppIface interface {
 	// If includeRemovedMembers is true, then channel members who left or were removed from the channel will
 	// be included; otherwise, they will be excluded.
 	ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, *model.AppError)
+	// CheckFreemiumLimitsForConfigSave returns an error if the configuration being saved violates the Cloud Freemium limits
+	CheckFreemiumLimitsForConfigSave(oldConfig, newConfig *model.Config) *model.AppError
 	// CheckProviderAttributes returns the empty string if the patch can be applied without
 	// overriding attributes set by the user's login provider; otherwise, the name of the offending
 	// field is returned.
@@ -168,6 +170,8 @@ type AppIface interface {
 	GetFilteredUsersStats(options *model.UserCountOptions) (*model.UsersStats, *model.AppError)
 	// GetGroupsByTeam returns the paged list and the total count of group associated to the given team.
 	GetGroupsByTeam(teamID string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError)
+	// GetIntegrationsUsage returns usage information on enabled integrations
+	GetIntegrationsUsage() (*model.IntegrationsUsage, *model.AppError)
 	// GetKnownUsers returns the list of user ids of users with any direct
 	// relationship with a user. That means any user sharing any channel, including
 	// direct and group channels.
@@ -387,6 +391,8 @@ type AppIface interface {
 	AddUserToTeamByTeamId(c *request.Context, teamID string, user *model.User) *model.AppError
 	AddUserToTeamByToken(c *request.Context, userID string, tokenID string) (*model.Team, *model.TeamMember, *model.AppError)
 	AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError)
+	AdjustInProductLimits(limits *model.ProductLimits, subscription *model.Subscription) *model.AppError
+	AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model.AppError
 	AllowOAuthAppAccessToUser(userID string, authRequest *model.AuthorizeRequest) (string, *model.AppError)
 	AppendFile(fr io.Reader, path string) (int64, *model.AppError)
 	AsymmetricSigningKey() *ecdsa.PrivateKey
@@ -1022,6 +1028,7 @@ type AppIface interface {
 	SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError
 	SetTeamIconFromMultiPartFile(teamID string, file multipart.File) *model.AppError
 	SlackImport(c *request.Context, fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer)
+	SoftDeleteAllTeamsExcept(teamID string) *model.AppError
 	SoftDeleteTeam(teamID string) *model.AppError
 	Srv() *Server
 	SubmitInteractiveDialog(c *request.Context, request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError)
