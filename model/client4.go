@@ -7798,7 +7798,7 @@ func (c *Client4) RequestCloudTrial() (*Subscription, *Response, error) {
 }
 
 func (c *Client4) ValidateBusinessEmail() (*Response, error) {
-	r, err := c.DoAPIPost(c.systemRoute()+"/validate-business-email", "")
+	r, err := c.DoAPIPost(c.cloudRoute()+"/validate-business-email", "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
