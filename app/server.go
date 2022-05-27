@@ -86,14 +86,15 @@ var SentryDSN = "placeholder_sentry_dsn"
 type ServiceKey string
 
 const (
-	ChannelKey   ServiceKey = "channel"
-	ConfigKey    ServiceKey = "config"
-	LicenseKey   ServiceKey = "license"
-	FilestoreKey ServiceKey = "filestore"
-	ClusterKey   ServiceKey = "cluster"
-	PostKey      ServiceKey = "post"
-	TeamKey      ServiceKey = "team"
-	UserKey      ServiceKey = "user"
+	ChannelKey     ServiceKey = "channel"
+	ConfigKey      ServiceKey = "config"
+	LicenseKey     ServiceKey = "license"
+	FilestoreKey   ServiceKey = "filestore"
+	ClusterKey     ServiceKey = "cluster"
+	PostKey        ServiceKey = "post"
+	TeamKey        ServiceKey = "team"
+	UserKey        ServiceKey = "user"
+	PermissionsKey ServiceKey = "permissions"
 )
 
 type Server struct {
