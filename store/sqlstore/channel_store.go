@@ -2975,26 +2975,31 @@ func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted, isGue
 	return channels, nil
 }
 
-func (s SqlChannelStore) AutocompleteInTeam(teamID, userID, term string, includeDeleted bool) (model.ChannelList, error) {
+func (s SqlChannelStore) AutocompleteInTeam(teamID, userID, term string, includeDeleted, isGuest bool) (model.ChannelList, error) {
 	query := s.getQueryBuilder().Select("*").
 		From("Channels c").
-		Where(sq.And{
-			sq.Eq{"c.TeamId": teamID},
-			sq.Or{
-				sq.NotEq{"c.Type": model.ChannelTypePrivate},
-				sq.And{
-					sq.Eq{"c.Type": model.ChannelTypePrivate},
-					sq.Expr("c.Id IN (?)", sq.Select("ChannelId").
-						From("ChannelMembers").
-						Where(sq.Eq{"UserId": userID})),
-				},
-			},
-		}).
+		Where(sq.Eq{"c.TeamId": teamID}).
 		OrderBy("c.DisplayName").
 		Limit(model.ChannelSearchDefaultLimit)
 
 	if !includeDeleted {
 		query = query.Where(sq.Eq{"c.DeleteAt": 0})
+	}
+
+	if isGuest {
+		query = query.Where(sq.Expr("c.Id IN (?)", sq.Select("ChannelId").
+			From("ChannelMembers").
+			Where(sq.Eq{"UserId": userID})))
+	} else {
+		query = query.Where(sq.Or{
+			sq.NotEq{"c.Type": model.ChannelTypePrivate},
+			sq.And{
+				sq.Eq{"c.Type": model.ChannelTypePrivate},
+				sq.Expr("c.Id IN (?)", sq.Select("ChannelId").
+					From("ChannelMembers").
+					Where(sq.Eq{"UserId": userID})),
+			},
+		})
 	}
 
 	searchClause := s.searchClause(term)
