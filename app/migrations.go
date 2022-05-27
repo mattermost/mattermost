@@ -486,8 +486,7 @@ func (s *Server) doRemainingSchemaMigrations() {
 		return
 	}
 
-	teams := []*model.Team{}
-	if err := s.sqlStore.GetReplicaX().Select(&teams, "SELECT * FROM Teams WHERE InviteId = ''"); err != nil {
+	if teams, err := s.Store.Team().GetByEmptyInviteID(); err != nil {
 		mlog.Error("Error fetching Teams without InviteID", mlog.Err(err))
 	} else {
 		for _, team := range teams {

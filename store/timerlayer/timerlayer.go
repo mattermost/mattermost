@@ -7768,6 +7768,22 @@ func (s *TimerLayerTeamStore) GetAllTeamListing() ([]*model.Team, error) {
 	return result, err
 }
 
+func (s *TimerLayerTeamStore) GetByEmptyInviteID() ([]*model.Team, error) {
+	start := timemodule.Now()
+
+	result, err := s.TeamStore.GetByEmptyInviteID()
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.GetByEmptyInviteID", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerTeamStore) GetByInviteId(inviteID string) (*model.Team, error) {
 	start := timemodule.Now()
 
