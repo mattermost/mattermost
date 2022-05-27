@@ -3864,7 +3864,6 @@ func (c *Client4) GetPostsForChannel(channelId string, page, perPage int, etag s
 		query += "&includeDeleted=true"
 	}
 
-	fmt.Println(c.channelRoute(channelId)+"/posts"+query)
 	r, err := c.DoAPIGet(c.channelRoute(channelId)+"/posts"+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err

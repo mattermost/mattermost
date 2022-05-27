@@ -409,18 +409,6 @@ func (th *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 	return post
 }
 
-func (th *TestHelper) DeletePost(postID string, deleteByID string) (*model.Post, *model.AppError) {
-	post, err := th.App.GetSinglePost(postID)
-	if err != nil {
-		panic(err)
-	}
-
-	if _, err := th.App.DeletePost(post.Id, deleteByID); err != nil {
-		panic(err)
-	}
-	return post, nil
-}
-
 func (th *TestHelper) CreateMessagePost(channel *model.Channel, message string) *model.Post {
 	post := &model.Post{
 		UserId:    th.BasicUser.Id,
