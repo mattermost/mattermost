@@ -1616,6 +1616,11 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 	var query sq.SelectBuilder
 	var where sq.Sqlizer
 
+	includeDelSt := "AND Posts.DeleteAt = 0"
+	if !includeDeleted {
+		includeDelSt = ""
+	}
+
 	where = sq.Eq{"p.ChannelId": channelId}
 	if !includeDeleted {
 		where = sq.And{
@@ -1626,14 +1631,14 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 
 	if skipFetchThreads {
 		query = s.getQueryBuilder().
-			Select([]string{"p.*", "(SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount"}...).
+			Select([]string{"p.*", "(SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)" + includeDelSt +  " ) as ReplyCount"}...).
 			From(`Posts p`).
-			Where(where).OrderBy("p.CreateAt").Limit(uint64(limit)).Offset(uint64(offset))
+			Where(where).OrderBy("p.CreateAt DESC").Limit(uint64(limit)).Offset(uint64(offset))
 	} else {
 		query = s.getQueryBuilder().
 			Select([]string{`p.*`}...).From(`Posts p`).
 			Where(where).
-			OrderBy("p.CreateAt").
+			OrderBy("p.CreateAt DESC").
 			Limit(uint64(limit)).
 			Offset(uint64(offset))
 	}
@@ -1652,7 +1657,12 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 
 func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, skipFetchThreads bool, includeDeleted bool) ([]*model.Post, error) {
 	if s.DriverName() == model.DatabaseDriverPostgres {
-		return s.getParentsPostsPostgreSQL(channelId, offset, limit, skipFetchThreads)
+		return s.getParentsPostsPostgreSQL(channelId, offset, limit, skipFetchThreads, includeDeleted)
+	}
+
+	includeDelSt := "AND Posts.DeleteAt = 0"
+	if !includeDeleted {
+		includeDelSt = ""
 	}
 
 	// query parent Ids first
@@ -1666,9 +1676,8 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 			FROM
 				Posts
 			WHERE
-				Posts.ChannelId = ?
-				  AND Posts.DeleteAt = 0
-			ORDER BY Posts.CreateAt DESC
+				Posts.ChannelId = ? ` + includeDelSt + 
+			` ORDER BY Posts.CreateAt DESC
 			LIMIT ? OFFSET ?) q
 		WHERE q.RootId != ''`
 
@@ -1684,7 +1693,7 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 	var where sq.Sqlizer
 	where = sq.Eq{"p.Id": roots}
 	if skipFetchThreads {
-		cols = append(cols, "(SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount")
+		cols = append(cols, "(SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)" + includeDelSt + ") as ReplyCount")
 	} else {
 		where = sq.Or{
 			where,
@@ -1722,12 +1731,16 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 	return posts, nil
 }
 
-func (s *SqlPostStore) getParentsPostsPostgreSQL(channelId string, offset int, limit int, skipFetchThreads bool) ([]*model.Post, error) {
+func (s *SqlPostStore) getParentsPostsPostgreSQL(channelId string, offset int, limit int, skipFetchThreads bool, includeDeleted bool) ([]*model.Post, error) {
 	posts := []*model.Post{}
 	replyCountQuery := ""
 	onStatement := "q1.RootId = q2.Id"
+	includeDelSt := "AND Posts.DeleteAt = 0"
+	if !includeDeleted {
+		includeDelSt = ""
+	}
 	if skipFetchThreads {
-		replyCountQuery = ` ,(SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN q2.RootId = '' THEN q2.Id ELSE q2.RootId END) AND Posts.DeleteAt = 0) as ReplyCount`
+		replyCountQuery = ` ,(SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN q2.RootId = '' THEN q2.Id ELSE q2.RootId END)` + includeDelSt + `) as ReplyCount`
 	} else {
 		onStatement += " OR q1.RootId = q2.RootId"
 	}
@@ -1744,9 +1757,8 @@ func (s *SqlPostStore) getParentsPostsPostgreSQL(channelId string, offset int, l
                 FROM
                     Posts
                 WHERE
-                    Posts.ChannelId = ?
-                        AND Posts.DeleteAt = 0
-                ORDER BY Posts.CreateAt DESC
+                    Posts.ChannelId = ? ` + includeDelSt + 
+                ` ORDER BY Posts.CreateAt DESC
                 LIMIT ? OFFSET ?) q3
             WHERE q3.RootId != '') q1
             ON `+onStatement+`

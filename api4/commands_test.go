@@ -33,7 +33,7 @@ func TestEchoCommand(t *testing.T) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	p1, _, err := client.GetPostsForChannel(channel1.Id, 0, 2, "", false)
+	p1, _, err := client.GetPostsForChannel(channel1.Id, 0, 2, "", false, false)
 	require.NoError(t, err)
 	require.Len(t, p1.Order, 2, "Echo command failed to send")
 }
@@ -352,7 +352,7 @@ func TestMeCommand(t *testing.T) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	p1, _, err := client.GetPostsForChannel(channel.Id, 0, 2, "", false)
+	p1, _, err := client.GetPostsForChannel(channel.Id, 0, 2, "", false, false)
 	require.NoError(t, err)
 	require.Len(t, p1.Order, 2, "Command failed to send")
 
@@ -454,7 +454,7 @@ func TestShrugCommand(t *testing.T) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	p1, _, err := client.GetPostsForChannel(channel.Id, 0, 2, "", false)
+	p1, _, err := client.GetPostsForChannel(channel.Id, 0, 2, "", false, false)
 	require.NoError(t, err)
 	require.Len(t, p1.Order, 2, "Command failed to send")
 	require.Equal(t, `¯\\\_(ツ)\_/¯`, p1.Posts[p1.Order[0]].Message, "invalid shrug response")
