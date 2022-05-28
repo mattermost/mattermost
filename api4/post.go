@@ -883,7 +883,12 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	infos, err := c.App.GetFileInfosForPostWithMigration(c.Params.PostId)
+	includeDeleted := false
+	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		includeDeleted = r.URL.Query().Get("includeDeleted") == "true"
+	}	
+
+	infos, err := c.App.GetFileInfosForPostWithMigration(c.Params.PostId, includeDeleted)
 	if err != nil {
 		c.Err = err
 		return

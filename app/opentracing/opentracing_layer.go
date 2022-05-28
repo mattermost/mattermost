@@ -5926,7 +5926,7 @@ func (a *OpenTracingAppLayer) GetFileInfos(page int, perPage int, opt *model.Get
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetFileInfosForPost(postID string, fromMaster bool) ([]*model.FileInfo, *model.AppError) {
+func (a *OpenTracingAppLayer) GetFileInfosForPost(postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetFileInfosForPost")
 
@@ -5938,7 +5938,7 @@ func (a *OpenTracingAppLayer) GetFileInfosForPost(postID string, fromMaster bool
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetFileInfosForPost(postID, fromMaster)
+	resultVar0, resultVar1 := a.app.GetFileInfosForPost(postID, fromMaster, includeDeleted)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5948,7 +5948,7 @@ func (a *OpenTracingAppLayer) GetFileInfosForPost(postID string, fromMaster bool
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetFileInfosForPostWithMigration(postID string) ([]*model.FileInfo, *model.AppError) {
+func (a *OpenTracingAppLayer) GetFileInfosForPostWithMigration(postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetFileInfosForPostWithMigration")
 
@@ -5960,7 +5960,7 @@ func (a *OpenTracingAppLayer) GetFileInfosForPostWithMigration(postID string) ([
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetFileInfosForPostWithMigration(postID)
+	resultVar0, resultVar1 := a.app.GetFileInfosForPostWithMigration(postID, includeDeleted)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
