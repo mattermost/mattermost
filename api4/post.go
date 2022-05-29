@@ -229,7 +229,6 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 
 		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
-
 		if c.HandleEtag(etag, "Get Posts", w, r) {
 			return
 		}
