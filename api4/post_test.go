@@ -1204,7 +1204,7 @@ func TestGetPostsForChannel(t *testing.T) {
 		require.Equal(t, "", posts.PrevPostId, "should return an empty PrevPostId")
 	})
 
-	th.DeletePost(post10.Id, th.BasicUser.Id)
+	th.SystemAdminClient.DeletePost(post10.Id)
 	// is post deleted /posts
 	posts, _, err = th.SystemAdminClient.GetPostsForChannel(th.BasicChannel.Id, 0, 60, "", false, false)
 	require.NoError(t, err)

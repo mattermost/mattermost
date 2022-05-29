@@ -697,13 +697,6 @@ func (th *TestHelper) CreateChannelWithClientAndTeam(client *model.Client4, chan
 	return rchannel
 }
 
-func (th *TestHelper) DeletePost(postID string, deleteByID string) {
-	if _, err := th.App.DeletePost(postID, deleteByID); err != nil {
-		panic(err)
-	}
-	return
-}
-
 func (th *TestHelper) CreatePost() *model.Post {
 	return th.CreatePostWithClient(th.Client, th.BasicChannel)
 }
