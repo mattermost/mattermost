@@ -3984,10 +3984,13 @@ func (c *Client4) GetPostsSince(channelId string, time int64, collapsedThreads b
 }
 
 // GetPostsAfter gets a page of posts that were posted after the post provided.
-func (c *Client4) GetPostsAfter(channelId, postId string, page, perPage int, etag string, collapsedThreads bool) (*PostList, *Response, error) {
+func (c *Client4) GetPostsAfter(channelId, postId string, page, perPage int, etag string, collapsedThreads bool, includeDeleted bool) (*PostList, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&after=%v", page, perPage, postId)
 	if collapsedThreads {
 		query += "&collapsedThreads=true"
+	}
+	if includeDeleted {
+		query += "&includeDeleted=true"
 	}
 	r, err := c.DoAPIGet(c.channelRoute(channelId)+"/posts"+query, etag)
 	if err != nil {
@@ -4005,10 +4008,13 @@ func (c *Client4) GetPostsAfter(channelId, postId string, page, perPage int, eta
 }
 
 // GetPostsBefore gets a page of posts that were posted before the post provided.
-func (c *Client4) GetPostsBefore(channelId, postId string, page, perPage int, etag string, collapsedThreads bool) (*PostList, *Response, error) {
+func (c *Client4) GetPostsBefore(channelId, postId string, page, perPage int, etag string, collapsedThreads bool, includeDeleted bool) (*PostList, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&before=%v", page, perPage, postId)
 	if collapsedThreads {
 		query += "&collapsedThreads=true"
+	}
+	if includeDeleted {
+		query += "&includeDeleted=true"
 	}
 	r, err := c.DoAPIGet(c.channelRoute(channelId)+"/posts"+query, etag)
 	if err != nil {
