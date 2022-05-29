@@ -1631,7 +1631,7 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 
 	if skipFetchThreads {
 		query = s.getQueryBuilder().
-			Select([]string{"p.*", "(SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)" + includeDelSt +  " ) as ReplyCount"}...).
+			Select([]string{"p.*", "(SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)" + includeDelSt + ") as ReplyCount"}...).
 			From(`Posts p`).
 			Where(where).OrderBy("p.CreateAt DESC").Limit(uint64(limit)).Offset(uint64(offset))
 	} else {
@@ -1676,8 +1676,8 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 			FROM
 				Posts
 			WHERE
-				Posts.ChannelId = ? ` + includeDelSt + 
-			` ORDER BY Posts.CreateAt DESC
+				Posts.ChannelId = ? ` + includeDelSt +
+		` ORDER BY Posts.CreateAt DESC
 			LIMIT ? OFFSET ?) q
 		WHERE q.RootId != ''`
 
@@ -1693,7 +1693,7 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 	var where sq.Sqlizer
 	where = sq.Eq{"p.Id": roots}
 	if skipFetchThreads {
-		cols = append(cols, "(SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)" + includeDelSt + ") as ReplyCount")
+		cols = append(cols, "(SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)"+includeDelSt+") as ReplyCount")
 	} else {
 		where = sq.Or{
 			where,
@@ -1757,8 +1757,8 @@ func (s *SqlPostStore) getParentsPostsPostgreSQL(channelId string, offset int, l
                 FROM
                     Posts
                 WHERE
-                    Posts.ChannelId = ? ` + includeDelSt + 
-                ` ORDER BY Posts.CreateAt DESC
+                    Posts.ChannelId = ? `+includeDelSt+
+			` ORDER BY Posts.CreateAt DESC
                 LIMIT ? OFFSET ?) q3
             WHERE q3.RootId != '') q1
             ON `+onStatement+`

@@ -181,7 +181,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		includeDeleted = r.URL.Query().Get("includeDeleted") == "true"
 	}
-	
+
 	channelId := c.Params.ChannelId
 	page := c.Params.Page
 	perPage := c.Params.PerPage
@@ -885,7 +885,7 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	includeDeleted := false
 	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		includeDeleted = r.URL.Query().Get("includeDeleted") == "true"
-	}	
+	}
 
 	infos, err := c.App.GetFileInfosForPostWithMigration(c.Params.PostId, includeDeleted)
 	if err != nil {
