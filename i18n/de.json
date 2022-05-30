@@ -9333,5 +9333,9 @@
   {
     "id": "api.cloud.cloud_free_feature_flag_off_error",
     "translation": "CloudFree Feature Flag ist ausgeschaltet."
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "Du hast das Maximum von {{.NumIntegrations}} aktivierten Integrationen erreicht. Um Integrationen ohne Beschränkungen zu installieren, upgrade auf ein bezahltes Abonnements."
   }
 ]
