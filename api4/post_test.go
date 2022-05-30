@@ -1215,11 +1215,6 @@ func TestGetPostsForChannel(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, posts.Order, 12, "expected 12 posts")
 
-	// is deleted post included /posts?includeDeleted=true
-	posts, _, err = th.Client.GetPostsForChannel(th.BasicChannel.Id, 0, 60, "", false, true)
-	require.NoError(t, err)
-	require.Len(t, posts.Order, 11, "expected 11 posts")
-
 	th.SystemAdminClient.DeletePost(post8.Id)
 	// is deleted post included /posts?after={post7.Id}
 	posts, _, err = th.SystemAdminClient.GetPostsAfter(th.BasicChannel.Id, post7.Id, 0, 60, "", false, false)
@@ -1229,10 +1224,6 @@ func TestGetPostsForChannel(t *testing.T) {
 	posts, _, err = th.SystemAdminClient.GetPostsAfter(th.BasicChannel.Id, post7.Id, 0, 60, "", false, true)
 	require.NoError(t, err)
 	require.Len(t, posts.Order, 3, "expected 3 posts")
-	// is deleted post included /posts?after={post7.Id}&includeDeleted=true (Non SystemAdmin)
-	posts, _, err = th.Client.GetPostsAfter(th.BasicChannel.Id, post7.Id, 0, 60, "", false, true)
-	require.NoError(t, err)
-	require.Len(t, posts.Order, 1, "expected 1 posts")
 
 	th.SystemAdminClient.DeletePost(post5.Id)
 	// is deleted post included /posts?before={post7.Id}
@@ -1243,10 +1234,6 @@ func TestGetPostsForChannel(t *testing.T) {
 	posts, _, err = th.SystemAdminClient.GetPostsBefore(th.BasicChannel.Id, post7.Id, 0, 60, "", false, true)
 	require.NoError(t, err)
 	require.Len(t, posts.Order, 8, "expected 8 posts")
-	// is deleted post included /posts?after={post7.Id}&includeDeleted=true (Non SystemAdmin)
-	posts, _, err = th.Client.GetPostsBefore(th.BasicChannel.Id, post7.Id, 0, 60, "", false, true)
-	require.NoError(t, err)
-	require.Len(t, posts.Order, 7, "expected 7 posts")
 
 	th.TestForAllClients(t, func(t *testing.T, c *model.Client4) {
 		channel := th.CreatePublicChannel()
@@ -2048,7 +2035,7 @@ func TestGetPost(t *testing.T) {
 	// posts/id?includeDeleted=true normal client
 	_, resp, err = client.GetPost(th.BasicPost.Id, "", true)
 	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
+	CheckForbiddenStatus(t, resp)
 
 	// posts/id?includeDeleted=true admin client
 	post, _, err := th.SystemAdminClient.GetPost(th.BasicPost.Id, "", true)
@@ -2627,7 +2614,7 @@ func TestGetFileInfosForPost(t *testing.T) {
 	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "zz" + model.NewId() + "a", FileIds: fileIds}
 	post, _, _ = client.CreatePost(post)
 
-	infos, resp, err := client.GetFileInfosForPost(post.Id, "")
+	infos, resp, err := client.GetFileInfosForPost(post.Id, "", false)
 	require.NoError(t, err)
 
 	require.Len(t, infos, 3, "missing file infos")
@@ -2641,28 +2628,45 @@ func TestGetFileInfosForPost(t *testing.T) {
 
 	require.True(t, found, "missing file info")
 
-	infos, resp, _ = client.GetFileInfosForPost(post.Id, resp.Etag)
+	infos, resp, _ = client.GetFileInfosForPost(post.Id, resp.Etag, false)
 	CheckEtag(t, infos, resp)
 
-	infos, _, err = client.GetFileInfosForPost(th.BasicPost.Id, "")
+	infos, _, err = client.GetFileInfosForPost(th.BasicPost.Id, "", false)
 	require.NoError(t, err)
-
 	require.Empty(t, infos, "should have no file infos")
 
-	_, resp, err = client.GetFileInfosForPost("junk", "")
+	_, resp, err = client.GetFileInfosForPost("junk", "", false)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, err = client.GetFileInfosForPost(model.NewId(), "")
+	_, resp, err = client.GetFileInfosForPost(model.NewId(), "", false)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
+	th.SystemAdminClient.DeletePost(post.Id)
+
+	_, resp, err = client.GetFileInfosForPost(post.Id, "", true)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	infos, resp, err = th.SystemAdminClient.GetFileInfosForPost(post.Id, "", true)
+	require.Len(t, infos, 3, "missing file infos")
+
+	found = false
+	for _, info := range infos {
+		if info.Id == fileIds[0] {
+			found = true
+		}
+	}
+
+	require.True(t, found, "missing file info")
+
 	client.Logout()
-	_, resp, err = client.GetFileInfosForPost(model.NewId(), "")
+	_, resp, err = client.GetFileInfosForPost(model.NewId(), "", false)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, _, err = th.SystemAdminClient.GetFileInfosForPost(th.BasicPost.Id, "")
+	_, _, err = th.SystemAdminClient.GetFileInfosForPost(th.BasicPost.Id, "", false)
 	require.NoError(t, err)
 }
 

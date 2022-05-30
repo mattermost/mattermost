@@ -4352,8 +4352,12 @@ func (c *Client4) GetFileInfo(fileId string) (*FileInfo, *Response, error) {
 }
 
 // GetFileInfosForPost gets all the file info objects attached to a post.
-func (c *Client4) GetFileInfosForPost(postId string, etag string) ([]*FileInfo, *Response, error) {
-	r, err := c.DoAPIGet(c.postRoute(postId)+"/files/info", etag)
+func (c *Client4) GetFileInfosForPost(postId string, etag string, includeDeleted bool) ([]*FileInfo, *Response, error) {
+	url := c.postRoute(postId) + "/files/info"
+	if includeDeleted {
+		url += "?includeDeleted=true"
+	}
+	r, err := c.DoAPIGet(url, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

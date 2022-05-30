@@ -177,9 +177,10 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	collapsedThreads := r.URL.Query().Get("collapsedThreads") == "true"
 	collapsedThreadsExtended := r.URL.Query().Get("collapsedThreadsExtended") == "true"
 
-	includeDeleted := false
-	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		includeDeleted = r.URL.Query().Get("includeDeleted") == "true"
+	includeDeleted := r.URL.Query().Get("includeDeleted") == "true"
+	if includeDeleted && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
 	}
 
 	channelId := c.Params.ChannelId
@@ -395,9 +396,10 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	includeDeleted := false
-	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		includeDeleted = r.URL.Query().Get("includeDeleted") == "true"
+	includeDeleted := r.URL.Query().Get("includeDeleted") == "true"
+	if includeDeleted && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
 	}
 
 	post, err := c.App.GetPostIfAuthorized(c.Params.PostId, c.AppContext.Session(), includeDeleted)
@@ -887,9 +889,10 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	includeDeleted := false
-	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		includeDeleted = r.URL.Query().Get("includeDeleted") == "true"
+	includeDeleted := r.URL.Query().Get("includeDeleted") == "true"
+	if includeDeleted && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
 	}
 
 	infos, err := c.App.GetFileInfosForPostWithMigration(c.Params.PostId, includeDeleted)
