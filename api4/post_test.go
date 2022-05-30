@@ -2650,6 +2650,7 @@ func TestGetFileInfosForPost(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	infos, resp, err = th.SystemAdminClient.GetFileInfosForPost(post.Id, "", true)
+	require.NoError(t, err)
 	require.Len(t, infos, 3, "missing file infos")
 
 	found = false
