@@ -9333,5 +9333,9 @@
   {
     "id": "api.file.cloud_upload.app_error",
     "translation": "Bir Bulut kopyasına mmctl ile yükleme desteklenmiyor. Lütfen şu makaleye bakın: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "Kullanabileceğiniz en fazla {{.NumIntegrations}} bütünleştirme sınırına ulaştınız. Sınırsız bütünleştirme için ücretli tarifelerimizden birine yükseltin."
   }
 ]
