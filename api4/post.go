@@ -395,7 +395,12 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post, err := c.App.GetPostIfAuthorized(c.Params.PostId, c.AppContext.Session())
+	includeDeleted := false
+	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		includeDeleted = r.URL.Query().Get("includeDeleted") == "true"
+	}
+
+	post, err := c.App.GetPostIfAuthorized(c.Params.PostId, c.AppContext.Session(), includeDeleted)
 	if err != nil {
 		c.Err = err
 		return
@@ -479,7 +484,7 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddMeta("post_id", c.Params.PostId)
 
-	post, err := c.App.GetSinglePost(c.Params.PostId)
+	post, err := c.App.GetSinglePost(c.Params.PostId, false)
 	if err != nil {
 		c.SetPermissionError(model.PermissionDeletePost)
 		return
@@ -571,7 +576,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err = c.App.GetPostIfAuthorized(post.Id, c.AppContext.Session()); err != nil {
+	if _, err = c.App.GetPostIfAuthorized(post.Id, c.AppContext.Session(), false); err != nil {
 		c.Err = err
 		return
 	}
@@ -716,7 +721,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	originalPost, err := c.App.GetSinglePost(c.Params.PostId)
+	originalPost, err := c.App.GetSinglePost(c.Params.PostId, false)
 	if err != nil {
 		c.SetPermissionError(model.PermissionEditPost)
 		return
@@ -767,7 +772,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Updating the file_ids of a post is not a supported operation and will be ignored
 	post.FileIds = nil
 
-	originalPost, err := c.App.GetSinglePost(c.Params.PostId)
+	originalPost, err := c.App.GetSinglePost(c.Params.PostId, false)
 	if err != nil {
 		c.SetPermissionError(model.PermissionEditPost)
 		return
@@ -842,7 +847,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 		return
 	}
 
-	post, err := c.App.GetSinglePost(c.Params.PostId)
+	post, err := c.App.GetSinglePost(c.Params.PostId, false)
 	if err != nil {
 		c.Err = err
 		return

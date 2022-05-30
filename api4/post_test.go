@@ -74,7 +74,7 @@ func TestCreatePost(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, model.StringArray{fileId}, postWithFiles.FileIds)
 
-		actualPostWithFiles, _, err := client.GetPost(postWithFiles.Id, "")
+		actualPostWithFiles, _, err := client.GetPost(postWithFiles.Id, "", false)
 		require.NoError(t, err)
 		assert.Equal(t, model.StringArray{fileId}, actualPostWithFiles.FileIds)
 	})
@@ -92,7 +92,7 @@ func TestCreatePost(t *testing.T) {
 		require.NoError(t, err)
 		assert.Empty(t, postWithFiles.FileIds)
 
-		actualPostWithFiles, _, err := client.GetPost(postWithFiles.Id, "")
+		actualPostWithFiles, _, err := client.GetPost(postWithFiles.Id, "", false)
 		require.NoError(t, err)
 		assert.Empty(t, actualPostWithFiles.FileIds)
 	})
@@ -110,7 +110,7 @@ func TestCreatePost(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, model.StringArray{fileId}, postWithFiles.FileIds)
 
-		actualPostWithFiles, _, err := client.GetPost(postWithFiles.Id, "")
+		actualPostWithFiles, _, err := client.GetPost(postWithFiles.Id, "", false)
 		require.NoError(t, err)
 		assert.Equal(t, model.StringArray{fileId}, actualPostWithFiles.FileIds)
 	})
@@ -713,7 +713,7 @@ func TestUpdatePost(t *testing.T) {
 		assert.NotEqual(t, 0, rupost.EditAt, "EditAt not updated for post")
 		assert.Equal(t, model.StringArray(fileIds), rupost.FileIds, "FileIds should have not have been updated")
 
-		actual, _, err := client.GetPost(rpost.Id, "")
+		actual, _, err := client.GetPost(rpost.Id, "", false)
 		require.NoError(t, err)
 
 		assert.Equal(t, actual.Message, msg, "failed to updates")
@@ -732,7 +732,7 @@ func TestUpdatePost(t *testing.T) {
 		assert.Equal(t, "#hashtag", rrupost.Hashtags, "failed to update hashtags")
 		assert.Nil(t, rrupost.GetProp(model.PropsAddChannelMember), "failed to sanitize Props['add_channel_member'], should be nil")
 
-		actual, _, err := client.GetPost(rpost.Id, "")
+		actual, _, err := client.GetPost(rpost.Id, "", false)
 		require.NoError(t, err)
 
 		assert.Equal(t, msg1, actual.Message, "failed to update message")
@@ -778,7 +778,7 @@ func TestUpdatePost(t *testing.T) {
 		require.NoError(t, err)
 		assert.Empty(t, rrupost3.FileIds)
 
-		actual, _, err := client.GetPost(rpost.Id, "")
+		actual, _, err := client.GetPost(rpost.Id, "", false)
 		require.NoError(t, err)
 		assert.Equal(t, model.StringArray(fileIds), actual.FileIds)
 	})
@@ -996,7 +996,7 @@ func TestPinPost(t *testing.T) {
 	_, err := client.PinPost(post.Id)
 	require.NoError(t, err)
 
-	rpost, appErr := th.App.GetSinglePost(post.Id)
+	rpost, appErr := th.App.GetSinglePost(post.Id, false)
 	require.Nil(t, appErr)
 	require.True(t, rpost.IsPinned, "failed to pin post")
 
@@ -1026,7 +1026,7 @@ func TestUnpinPost(t *testing.T) {
 	_, err := client.UnpinPost(pinnedPost.Id)
 	require.NoError(t, err)
 
-	rpost, appErr := th.App.GetSinglePost(pinnedPost.Id)
+	rpost, appErr := th.App.GetSinglePost(pinnedPost.Id, false)
 	require.Nil(t, appErr)
 	require.False(t, rpost.IsPinned)
 
@@ -2000,60 +2000,81 @@ func TestGetPost(t *testing.T) {
 	th.TestForAllClients(t, func(t *testing.T, c *model.Client4) {
 		t.Helper()
 
-		post, resp, err := c.GetPost(th.BasicPost.Id, "")
+		post, resp, err := c.GetPost(th.BasicPost.Id, "", false)
 		require.NoError(t, err)
 
 		require.Equal(t, th.BasicPost.Id, post.Id, "post ids don't match")
 
-		post, resp, err = c.GetPost(th.BasicPost.Id, resp.Etag)
+		post, resp, err = c.GetPost(th.BasicPost.Id, resp.Etag, false)
 		require.NoError(t, err)
 		CheckEtag(t, post, resp)
 
-		_, resp, err = c.GetPost("", "")
+		_, resp, err = c.GetPost("", "", false)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 
-		_, resp, err = c.GetPost("junk", "")
+		_, resp, err = c.GetPost("junk", "", false)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		_, resp, err = c.GetPost(model.NewId(), "")
+		_, resp, err = c.GetPost(model.NewId(), "", false)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 
 		client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
 
 		// Channel is public, should be able to read post
-		_, _, err = c.GetPost(th.BasicPost.Id, "")
+		_, _, err = c.GetPost(th.BasicPost.Id, "", false)
 		require.NoError(t, err)
 
 		privatePost = th.CreatePostWithClient(client, th.BasicPrivateChannel)
 
-		_, _, err = c.GetPost(privatePost.Id, "")
+		_, _, err = c.GetPost(privatePost.Id, "", false)
 		require.NoError(t, err)
 	})
 
 	client.RemoveUserFromChannel(th.BasicPrivateChannel.Id, th.BasicUser.Id)
 
 	// Channel is private, should not be able to read post
-	_, resp, err := client.GetPost(privatePost.Id, "")
+	_, resp, err := client.GetPost(privatePost.Id, "", false)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	// But local client should.
-	_, _, err = th.LocalClient.GetPost(privatePost.Id, "")
+	_, _, err = th.LocalClient.GetPost(privatePost.Id, "", false)
 	require.NoError(t, err)
 
 	client.Logout()
 
 	// Normal client should get unauthorized, but local client should get 404.
-	_, resp, err = client.GetPost(model.NewId(), "")
+	_, resp, err = client.GetPost(model.NewId(), "", false)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp, err = th.LocalClient.GetPost(model.NewId(), "")
+	_, resp, err = th.LocalClient.GetPost(model.NewId(), "", false)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
+
+	client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+	// Channel is private, should not be able to read post
+	_, resp, err = client.GetPost(model.NewId(), "", false)
+	require.NoError(t, err)
+
+	th.SystemAdminClient.DeletePost(model.NewId())
+
+	// Channel is private, should not be able to read post
+	_, resp, err = th.SystemAdminClient.GetPost(model.NewId(), "", false)
+	require.Error(t, err)
+
+	// Channel is private, should not be able to read post
+	_, resp, err = th.SystemAdminClient.GetPost(model.NewId(), "", true)
+	require.NoError(t, err)
+
+	// Channel is private, should not be able to read post
+	_, resp, err = client.GetPost(model.NewId(), "", true)
+	require.Error(t, err)
+
 }
 
 func TestDeletePost(t *testing.T) {
@@ -3139,7 +3160,7 @@ func TestGetPostStripActionIntegrations(t *testing.T) {
 	require.NoError(t, err2)
 	CheckCreatedStatus(t, resp)
 
-	actualPost, _, err := client.GetPost(rpost.Id, "")
+	actualPost, _, err := client.GetPost(rpost.Id, "", false)
 	require.NoError(t, err)
 	attachments, _ := actualPost.Props["attachments"].([]interface{})
 	require.Equal(t, 1, len(attachments))
