@@ -2033,10 +2033,32 @@ func TestGetPost(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	th.SystemAdminClient.DeletePost(th.BasicPost.Id)
+
+	// posts/id normal client
+	_, resp, err := client.GetPost(th.BasicPost.Id, "", false)
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+
+	// posts/id admin client
+	_, resp, err = th.SystemAdminClient.GetPost(th.BasicPost.Id, "", false)
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+
+	// posts/id?includeDeleted=true normal client
+	_, resp, err = client.GetPost(th.BasicPost.Id, "", true)
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+
+	// posts/id?includeDeleted=true admin client
+	post, _, err := th.SystemAdminClient.GetPost(th.BasicPost.Id, "", true)
+	require.NoError(t, err)
+	require.Equal(t, th.BasicPost.Id, post.Id)
+
 	client.RemoveUserFromChannel(th.BasicPrivateChannel.Id, th.BasicUser.Id)
 
 	// Channel is private, should not be able to read post
-	_, resp, err := client.GetPost(privatePost.Id, "", false)
+	_, resp, err = client.GetPost(privatePost.Id, "", false)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -2045,36 +2067,6 @@ func TestGetPost(t *testing.T) {
 	require.NoError(t, err)
 
 	client.Logout()
-
-	// Normal client should get unauthorized, but local client should get 404.
-	_, resp, err = client.GetPost(model.NewId(), "", false)
-	require.Error(t, err)
-	CheckUnauthorizedStatus(t, resp)
-
-	_, resp, err = th.LocalClient.GetPost(model.NewId(), "", false)
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
-
-	client.Login(th.BasicUser.Email, th.BasicUser.Password)
-
-	// Channel is private, should not be able to read post
-	_, resp, err = client.GetPost(model.NewId(), "", false)
-	require.NoError(t, err)
-
-	th.SystemAdminClient.DeletePost(model.NewId())
-
-	// Channel is private, should not be able to read post
-	_, resp, err = th.SystemAdminClient.GetPost(model.NewId(), "", false)
-	require.Error(t, err)
-
-	// Channel is private, should not be able to read post
-	_, resp, err = th.SystemAdminClient.GetPost(model.NewId(), "", true)
-	require.NoError(t, err)
-
-	// Channel is private, should not be able to read post
-	_, resp, err = client.GetPost(model.NewId(), "", true)
-	require.Error(t, err)
-
 }
 
 func TestDeletePost(t *testing.T) {
