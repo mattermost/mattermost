@@ -248,7 +248,7 @@ func Test_requestTrial(t *testing.T) {
 }
 
 func Test_validateBusinessEmail(t *testing.T) {
-	t.Run("Intial request has invalid email", func(t *testing.T) {
+	t.Run("Initial request has invalid email", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
