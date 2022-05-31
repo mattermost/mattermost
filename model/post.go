@@ -280,6 +280,7 @@ type PostCountOptions struct {
 	MustHaveFile    bool
 	MustHaveHashtag bool
 	ExcludeDeleted  bool
+	UsersPostsOnly  bool
 }
 
 func (o *Post) Etag() string {
