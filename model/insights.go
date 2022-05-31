@@ -74,6 +74,8 @@ type InsightUserInformation struct {
 	LastPictureUpdate int64  `json:"last_picture_update"`
 	FirstName         string `json:"first_name"`
 	LastName          string `json:"last_name"`
+	NickName          string `json:"nickname"`
+	Username          string `json:"username"`
 }
 
 // GetStartUnixMilliForTimeRange gets the unix start time in milliseconds from the given time range.

@@ -1132,6 +1132,8 @@ func postProcessTopThreads(topThreads []*model.TopThread, s *SqlThreadStore, tea
 			LastPictureUpdate: postCreator.LastPictureUpdate,
 			FirstName:         postCreator.FirstName,
 			LastName:          postCreator.LastName,
+			Username:          postCreator.Username,
+			NickName:          postCreator.Nickname,
 		}
 		post, err := s.Post().GetSingle(topThread.PostId, false)
 		if err != nil {
