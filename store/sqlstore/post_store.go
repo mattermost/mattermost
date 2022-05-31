@@ -2162,6 +2162,13 @@ func (s *SqlPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int6
 			Where(sq.Eq{"c.TeamId": options.TeamId})
 	}
 
+	if options.UsersPostsOnly {
+		query = query.Where(sq.And{
+			sq.Eq{"p.Type": ""},
+			sq.Expr("p.UserId NOT IN (SELECT UserId FROM Bots)"),
+		})
+	}
+
 	if options.MustHaveFile {
 		query = query.Where(sq.Or{sq.NotEq{"p.FileIds": "[]"}, sq.NotEq{"p.Filenames": "[]"}})
 	}
