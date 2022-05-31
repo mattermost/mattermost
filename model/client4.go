@@ -8111,6 +8111,20 @@ func (c *Client4) GetPostsUsage() (*PostsUsage, *Response, error) {
 	return usage, BuildResponse(r), err
 }
 
+// GetTeamsUsage returns total usage of teams for the instance
+// GetTeamsUsage returns total usage of teams for the instance
+func (c *Client4) GetTeamsUsage() (*TeamsUsage, *Response, error) {
+	r, err := c.DoAPIGet(c.usageRoute()+"/teams", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var usage *TeamsUsage
+	err = json.NewDecoder(r.Body).Decode(&usage)
+	return usage, BuildResponse(r), err
+}
+
 // GetIntegrationsUsage returns usage information on integrations, including the count of enabled integrations
 func (c *Client4) GetIntegrationsUsage() (*IntegrationsUsage, *Response, error) {
 	r, err := c.DoAPIGet(c.usageRoute()+"/integrations", "")
