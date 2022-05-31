@@ -219,6 +219,10 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 		app: &App{ch: ch},
 	}
 
+	services[PermissionsKey] = &permissionsServiceWrapper{
+		app: &App{ch: ch},
+	}
+
 	return ch, nil
 }
 
