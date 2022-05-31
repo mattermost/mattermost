@@ -3465,7 +3465,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "View Message"
+    "translation": "Reply in Mattermost"
   },
   {
     "id": "api.templates.questions_footer.info",
