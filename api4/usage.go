@@ -13,6 +13,8 @@ import (
 func (api *API) InitUsage() {
 	// GET /api/v4/usage/posts
 	api.BaseRoutes.Usage.Handle("/posts", api.APISessionRequired(getPostsUsage)).Methods("GET")
+	// GET /api/v4/usage/teams
+	api.BaseRoutes.Usage.Handle("/teams", api.APISessionRequired(getTeamsUsage)).Methods("GET")
 
 	// GET /api/v4/usage/integrations
 	api.BaseRoutes.Usage.Handle("/integrations", api.APISessionRequired(getIntegrationsUsage)).Methods("GET")
@@ -31,6 +33,24 @@ func getPostsUsage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Write(json)
+}
+
+func getTeamsUsage(c *Context, w http.ResponseWriter, r *http.Request) {
+	teamsUsage, appErr := c.App.GetTeamsUsage()
+	if appErr != nil {
+		c.Err = model.NewAppError("Api4.getTeamsUsage", "app.teams.analytics_teams_count.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if teamsUsage == nil {
+		c.Err = model.NewAppError("Api4.getTeamsUsage", "app.teams.analytics_teams_count.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+	}
+
+	json, err := json.Marshal(teamsUsage)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getTeamsUsage", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 	w.Write(json)
 }
 
