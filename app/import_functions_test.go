@@ -4183,7 +4183,7 @@ func TestImportImportEmoji(t *testing.T) {
 	largeImage := filepath.Join(testsDir, "large_image_file.jpg")
 	data = EmojiImportData{Name: ptrStr(model.NewId()), Image: ptrStr(largeImage)}
 	err = th.App.importEmoji(&data, false)
-	require.Error(t, err)
+	require.NotNil(t, err)
 	require.Contains(t, err.DetailedError, utils.SizeLimitExceeded.Error())
 }
 
