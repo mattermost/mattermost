@@ -2232,10 +2232,6 @@
     "translation": "ویژگی مورد نیاز از دست رفته است: Creat_at."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "ویژگی پاسخ ایجاد در باید بزرگتر از پست والد ایجاد شود."
-  },
-  {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
     "translation": "ویژگی مورد نیاز وجود ندارد: کاربر."
   },
