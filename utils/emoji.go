@@ -10,11 +10,8 @@ import (
 	"image/gif"
 	"image/jpeg"
 	"image/png"
-	"io/ioutil"
-	"path/filepath"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -60,12 +57,4 @@ func CreateTestPng(t *testing.T, width int, height int) []byte {
 	require.NoErrorf(t, err, "failed to create png: %v", err)
 
 	return buffer.Bytes()
-}
-
-func ReadTestWebp(t *testing.T) []byte {
-	path, _ := fileutils.FindDir("tests")
-	bytes, err := ioutil.ReadFile(filepath.Join(path, "testwebp.webp"))
-	require.NoErrorf(t, err, "failed to read webp: %v", err)
-
-	return bytes
 }
