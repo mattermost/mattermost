@@ -3,7 +3,9 @@
 
 package model
 
-import "strings"
+import (
+	"strings"
+)
 
 const (
 	EventTypeFailedPayment                = "failed-payment"
@@ -213,4 +215,32 @@ type ProductLimits struct {
 	Integrations *IntegrationsLimits `json:"integrations,omitempty"`
 	Messages     *MessagesLimits     `json:"messages,omitempty"`
 	Teams        *TeamsLimits        `json:"teams,omitempty"`
+}
+
+type NotifyAdminToUpgradeRequest struct {
+	CurrentTeamId string `json:"current_team_id"`
+	CurrentUserId string `json:"current_user_id"`
+}
+
+type UpgradeNotificationInfo struct {
+	UserID    string
+	TimeStamp int64
+}
+
+type AlreadyCloudNotifiedAdminUsers struct {
+	Info []UpgradeNotificationInfo
+}
+
+func (a *AlreadyCloudNotifiedAdminUsers) ContainsID(ID string) bool {
+	for _, i := range a.Info {
+		if i.UserID == ID {
+			return true
+		}
+	}
+	return false
+}
+
+func (a *AlreadyCloudNotifiedAdminUsers) AddID(info UpgradeNotificationInfo) []UpgradeNotificationInfo {
+	a.Info = append(a.Info, info)
+	return a.Info
 }
