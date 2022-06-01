@@ -153,7 +153,6 @@ func Test_requestTrial(t *testing.T) {
 		CreateAt:   1000000000,
 		Seats:      10,
 		DNS:        "some.dns.server",
-		IsPaidTier: "false",
 	}
 
 	t.Run("NON Admin users are UNABLE to request the trial", func(t *testing.T) {

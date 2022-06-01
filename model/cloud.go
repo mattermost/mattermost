@@ -125,7 +125,6 @@ type Subscription struct {
 	Seats       int      `json:"seats"`
 	Status      string   `json:"status"`
 	DNS         string   `json:"dns"`
-	IsPaidTier  string   `json:"is_paid_tier"`
 	LastInvoice *Invoice `json:"last_invoice"`
 	IsFreeTrial string   `json:"is_free_trial"`
 	TrialEndAt  int64    `json:"trial_end_at"`
