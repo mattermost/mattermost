@@ -34,14 +34,24 @@ func (s *LocalCachePostStore) handleClusterInvalidateLastPosts(msg *model.Cluste
 	}
 }
 
+func (s *LocalCachePostStore) handleClusterInvalidatePostsUsage(msg *model.ClusterMessage) {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
+		s.rootStore.postsUsageCache.Purge()
+	} else {
+		s.rootStore.postsUsageCache.Remove(string(msg.Data))
+	}
+}
+
 func (s LocalCachePostStore) ClearCaches() {
 	s.rootStore.doClearCacheCluster(s.rootStore.lastPostTimeCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.postLastPostsCache)
+	s.rootStore.doClearCacheCluster(s.rootStore.postsUsageCache)
 	s.PostStore.ClearCaches()
 
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Last Post Time - Purge")
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Last Posts Cache - Purge")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Posts Usage Cache - Purge")
 	}
 }
 
@@ -130,4 +140,27 @@ func (s LocalCachePostStore) GetPosts(options model.GetPostsOptions, allowFromCa
 	}
 
 	return list, err
+}
+
+// AnalyticsPostCount looks up cache only when ExcludeDeleted and UsersPostsOnly are true and rest are falsy.
+func (s LocalCachePostStore) AnalyticsPostCount(options *model.PostCountOptions) (int64, error) {
+	if !options.AllowFromCache || options.MustHaveFile || options.MustHaveHashtag || !options.UsersPostsOnly || !options.ExcludeDeleted || options.TeamId != "" {
+		return s.PostStore.AnalyticsPostCount(options)
+	}
+
+	// Currently cache only for app > usage > GetPostsUsage()
+	// Other filter combinations can be cached if required
+	cacheKey := "posts_usage"
+	var count int64
+	if err := s.rootStore.doStandardReadCache(s.rootStore.postsUsageCache, cacheKey, &count); err == nil {
+		return count, nil
+	}
+
+	count, err := s.PostStore.AnalyticsPostCount(options)
+	if err != nil {
+		return 0, err
+	}
+
+	s.rootStore.doStandardAddToCache(s.rootStore.postsUsageCache, cacheKey, count)
+	return count, nil
 }
