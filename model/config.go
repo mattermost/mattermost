@@ -949,6 +949,7 @@ type ExperimentalSettings struct {
 	CloudBilling                    *bool   `access:"experimental_features,write_restrictable"`
 	EnableSharedChannels            *bool   `access:"experimental_features"`
 	EnableRemoteClusterService      *bool   `access:"experimental_features"`
+	EnableAppBar                    *bool   `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -986,6 +987,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.EnableRemoteClusterService == nil {
 		s.EnableRemoteClusterService = NewBool(false)
+	}
+
+	if s.EnableAppBar == nil {
+		s.EnableAppBar = NewBool(false)
 	}
 }
 
@@ -2244,7 +2249,7 @@ func (s *LdapSettings) SetDefaults() {
 
 type ComplianceSettings struct {
 	Enable      *bool   `access:"compliance_compliance_monitoring"`
-	Directory   *string `access:"compliance_compliance_monitoring"` // telemetry: none
+	Directory   *string `access:"compliance_compliance_monitoring,cloud_restrictable"` // telemetry: none
 	EnableDaily *bool   `access:"compliance_compliance_monitoring"`
 	BatchSize   *int    `access:"compliance_compliance_monitoring"` // telemetry: none
 }
@@ -2780,34 +2785,34 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates = make(map[string]*PluginState)
 	}
 
-	if s.PluginStates["com.mattermost.nps"] == nil {
+	if s.PluginStates[PluginIdNPS] == nil {
 		// Enable the NPS plugin by default if diagnostics are enabled
-		s.PluginStates["com.mattermost.nps"] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
+		s.PluginStates[PluginIdNPS] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
 	}
 
-	if s.PluginStates["playbooks"] == nil {
+	if s.PluginStates[PluginIdPlaybooks] == nil {
 		// Enable the playbooks plugin by default
-		s.PluginStates["playbooks"] = &PluginState{Enable: true}
+		s.PluginStates[PluginIdPlaybooks] = &PluginState{Enable: true}
 	}
 
-	if s.PluginStates["com.mattermost.plugin-channel-export"] == nil && BuildEnterpriseReady == "true" {
+	if s.PluginStates[PluginIdChannelExport] == nil && BuildEnterpriseReady == "true" {
 		// Enable the channel export plugin by default
-		s.PluginStates["com.mattermost.plugin-channel-export"] = &PluginState{Enable: true}
+		s.PluginStates[PluginIdChannelExport] = &PluginState{Enable: true}
 	}
 
-	if s.PluginStates["focalboard"] == nil {
+	if s.PluginStates[PluginIdFocalboard] == nil {
 		// Enable the focalboard plugin by default
-		s.PluginStates["focalboard"] = &PluginState{Enable: true}
+		s.PluginStates[PluginIdFocalboard] = &PluginState{Enable: true}
 	}
 
-	if s.PluginStates["com.mattermost.apps"] == nil {
+	if s.PluginStates[PluginIdApps] == nil {
 		// Enable the Apps plugin by default
-		s.PluginStates["com.mattermost.apps"] = &PluginState{Enable: true}
+		s.PluginStates[PluginIdApps] = &PluginState{Enable: true}
 	}
 
-	if s.PluginStates["com.mattermost.calls"] == nil && IsCloud() {
+	if s.PluginStates[PluginIdCalls] == nil && IsCloud() {
 		// Enable the calls plugin by default on Cloud only
-		s.PluginStates["com.mattermost.calls"] = &PluginState{Enable: true}
+		s.PluginStates[PluginIdCalls] = &PluginState{Enable: true}
 	}
 
 	if s.EnableMarketplace == nil {
@@ -3109,18 +3114,18 @@ type Config struct {
 	ExperimentalSettings      ExperimentalSettings
 	AnalyticsSettings         AnalyticsSettings
 	ElasticsearchSettings     ElasticsearchSettings
-	BleveSettings             BleveSettings
+	BleveSettings             BleveSettings `access:"cloud_restrictable"`
 	DataRetentionSettings     DataRetentionSettings
 	MessageExportSettings     MessageExportSettings
 	JobSettings               JobSettings
 	PluginSettings            PluginSettings
 	DisplaySettings           DisplaySettings
 	GuestAccountsSettings     GuestAccountsSettings
-	ImageProxySettings        ImageProxySettings
-	CloudSettings             CloudSettings  // telemetry: none
-	FeatureFlags              *FeatureFlags  `access:"*_read" json:",omitempty"`
-	ImportSettings            ImportSettings // telemetry: none
-	ExportSettings            ExportSettings
+	ImageProxySettings        ImageProxySettings `access:"cloud_restrictable"`
+	CloudSettings             CloudSettings      // telemetry: none
+	FeatureFlags              *FeatureFlags      `access:"*_read" json:",omitempty"`
+	ImportSettings            ImportSettings     `access:"cloud_restrictable"` // telemetry: none
+	ExportSettings            ExportSettings     `access:"cloud_restrictable"`
 }
 
 func (o *Config) Clone() *Config {

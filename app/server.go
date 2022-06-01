@@ -86,13 +86,15 @@ var SentryDSN = "placeholder_sentry_dsn"
 type ServiceKey string
 
 const (
-	ChannelKey   ServiceKey = "channel"
-	ConfigKey    ServiceKey = "config"
-	LicenseKey   ServiceKey = "license"
-	FilestoreKey ServiceKey = "filestore"
-	ClusterKey   ServiceKey = "cluster"
-	PostKey      ServiceKey = "post"
-	TeamKey      ServiceKey = "team"
+	ChannelKey     ServiceKey = "channel"
+	ConfigKey      ServiceKey = "config"
+	LicenseKey     ServiceKey = "license"
+	FilestoreKey   ServiceKey = "filestore"
+	ClusterKey     ServiceKey = "cluster"
+	PostKey        ServiceKey = "post"
+	TeamKey        ServiceKey = "team"
+	UserKey        ServiceKey = "user"
+	PermissionsKey ServiceKey = "permissions"
 )
 
 type Server struct {
@@ -392,6 +394,7 @@ func NewServer(options ...Option) (*Server, error) {
 		FilestoreKey: s.filestore,
 		ClusterKey:   s.clusterWrapper,
 		TeamKey:      s.teamService,
+		UserKey:      s.userService,
 	}
 
 	// Step 8: Initialize products.
