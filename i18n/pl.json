@@ -2648,10 +2648,6 @@
     "translation": "Brak wymaganej właściwości: User."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Odpowiedź CreateAt musi być wyższa niż parent post CreateAt."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Brakująca wymagana właściwość odpowiedzi: create_at."
   },

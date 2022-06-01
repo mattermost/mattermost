@@ -5068,10 +5068,6 @@
     "translation": "Error occurred while marshalling JSON request"
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Reply CreateAt property must be greater than the parent post CreateAt."
-  },
-  {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
     "translation": "Missing required Reaction property: User."
   },

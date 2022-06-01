@@ -2648,10 +2648,6 @@
     "translation": "Отсутствует необходимое значение для Reaction: User."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Значение CreateAt в Reply должно быть больше чем родительский CreateAt в Post."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Отсутствует необходимое значение для Reply: create_at."
   },
