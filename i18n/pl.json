@@ -1861,7 +1861,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Zobacz post"
+    "translation": "Odpowiedz w Mattermost"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -9330,5 +9330,25 @@
   {
     "id": "api.cloud.cloud_free_feature_flag_off_error",
     "translation": "Flaga funkcji CloudFree jest wyłączona."
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "Osiągnąłeś maksymalny limit {{.NumIntegrations}} włączonych integracji. Aby zainstalować nieograniczoną liczbę integracji, uaktualnij do jednego z naszych płatnych planów."
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Nie można uzyskać liczby zespołów"
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Nie można uzyskać możliwości korzystania z zespołów"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Nie można przywrócić zespołu, ponieważ osiągnięto limit zespołów"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Nie można utworzyć zespołu, ponieważ osiągnięto limit zespołów"
   }
 ]
