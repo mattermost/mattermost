@@ -157,6 +157,8 @@ func Test_requestTrial(t *testing.T) {
 		IsPaidTier: "false",
 	}
 
+	newValidBusinessEmail := model.ValidateBusinessEmailRequest{Email: ""}
+
 	t.Run("NON Admin users are UNABLE to request the trial", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -172,7 +174,7 @@ func Test_requestTrial(t *testing.T) {
 		cloud := mocks.CloudInterface{}
 
 		cloud.Mock.On("GetSubscription", mock.Anything).Return(subscription, nil)
-		cloud.Mock.On("RequestCloudTrial", mock.Anything, mock.Anything).Return(subscription, nil)
+		cloud.Mock.On("RequestCloudTrial", mock.Anything, mock.Anything, "").Return(subscription, nil)
 
 		cloudImpl := th.App.Srv().Cloud
 		defer func() {
@@ -180,7 +182,7 @@ func Test_requestTrial(t *testing.T) {
 		}()
 		th.App.Srv().Cloud = &cloud
 
-		subscriptionChanged, r, err := th.Client.RequestCloudTrial()
+		subscriptionChanged, r, err := th.Client.RequestCloudTrial(&newValidBusinessEmail)
 		require.Error(t, err)
 		require.Nil(t, subscriptionChanged)
 		require.Equal(t, http.StatusForbidden, r.StatusCode, "403 Forbidden")
@@ -201,7 +203,7 @@ func Test_requestTrial(t *testing.T) {
 		cloud := mocks.CloudInterface{}
 
 		cloud.Mock.On("GetSubscription", mock.Anything).Return(subscription, nil)
-		cloud.Mock.On("RequestCloudTrial", mock.Anything, mock.Anything).Return(subscription, nil)
+		cloud.Mock.On("RequestCloudTrial", mock.Anything, mock.Anything, "").Return(subscription, nil)
 
 		cloudImpl := th.App.Srv().Cloud
 		defer func() {
@@ -209,7 +211,7 @@ func Test_requestTrial(t *testing.T) {
 		}()
 		th.App.Srv().Cloud = &cloud
 
-		subscriptionChanged, r, err := th.SystemAdminClient.RequestCloudTrial()
+		subscriptionChanged, r, err := th.SystemAdminClient.RequestCloudTrial(&newValidBusinessEmail)
 
 		require.Error(t, err)
 		require.Nil(t, subscriptionChanged)
@@ -231,7 +233,7 @@ func Test_requestTrial(t *testing.T) {
 		cloud := mocks.CloudInterface{}
 
 		cloud.Mock.On("GetSubscription", mock.Anything).Return(subscription, nil)
-		cloud.Mock.On("RequestCloudTrial", mock.Anything, mock.Anything).Return(subscription, nil)
+		cloud.Mock.On("RequestCloudTrial", mock.Anything, mock.Anything, "").Return(subscription, nil)
 
 		cloudImpl := th.App.Srv().Cloud
 		defer func() {
@@ -239,7 +241,40 @@ func Test_requestTrial(t *testing.T) {
 		}()
 		th.App.Srv().Cloud = &cloud
 
-		subscriptionChanged, r, err := th.SystemAdminClient.RequestCloudTrial()
+		subscriptionChanged, r, err := th.SystemAdminClient.RequestCloudTrial(&newValidBusinessEmail)
+
+		require.NoError(t, err)
+		require.Equal(t, subscriptionChanged, subscription)
+		require.Equal(t, http.StatusOK, r.StatusCode, "Status OK")
+	})
+
+	t.Run("cloudFree feature flag TRUE and ADMIN user are ABLE to request the trial with valid business email", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// patch the customer with the additional contact updated with the valid business email
+		newValidBusinessEmail.Email = *model.NewString("valid.email@mattermost.com")
+
+		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
+		th.App.ReloadConfig()
+
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		cloud := mocks.CloudInterface{}
+
+		cloud.Mock.On("GetSubscription", mock.Anything).Return(subscription, nil)
+		cloud.Mock.On("RequestCloudTrial", mock.Anything, mock.Anything, "valid.email@mattermost.com").Return(subscription, nil)
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = &cloud
+
+		subscriptionChanged, r, err := th.SystemAdminClient.RequestCloudTrial(&newValidBusinessEmail)
 
 		require.NoError(t, err)
 		require.Equal(t, subscriptionChanged, subscription)

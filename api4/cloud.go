@@ -158,7 +158,7 @@ func requestCloudTrial(c *Context, w http.ResponseWriter, r *http.Request) {
 	// this value will not be empty when both emails (user admin and CWS customer) are not business email and
 	// we need to request a new email from the user via the request business email modal
 	var newValidBusinessEmail *model.ValidateBusinessEmailRequest
-	if err = json.Unmarshal(bodyBytes, newValidBusinessEmail); err != nil {
+	if err = json.Unmarshal(bodyBytes, &newValidBusinessEmail); err != nil {
 		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
