@@ -152,6 +152,11 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		*cfg.PluginSettings.MarketplaceURL = *appCfg.PluginSettings.MarketplaceURL
 	}
 
+	if err := c.App.CheckFreemiumLimitsForConfigSave(appCfg, cfg); err != nil {
+		c.Err = err
+		return
+	}
+
 	// There are some settings that cannot be changed in a cloud env
 	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
 		diffs, diffErr := config.DiffTags(appCfg, cfg, "access", "cloud_restrictable")
@@ -289,17 +294,9 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// There are some settings that cannot be changed in a cloud env
-	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
-		diffs, diffErr := config.DiffTags(appCfg, cfg, "access", "cloud_restrictable")
-		if diffErr != nil {
-			c.Err = model.NewAppError("patchConfig", "api.config.update_config.diff.app_error", nil, diffErr.Error(), http.StatusInternalServerError)
-			return
-		}
-		if len(diffs) > 0 {
-			c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]interface{}{"Name": diffs[0].Path}, "", http.StatusForbidden)
-			return
-		}
+	if err := c.App.CheckFreemiumLimitsForConfigSave(appCfg, cfg); err != nil {
+		c.Err = err
+		return
 	}
 
 	if cfg.MessageExportSettings.EnableExport != nil {
@@ -313,6 +310,19 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	if mergeErr != nil {
 		c.Err = model.NewAppError("patchConfig", "api.config.update_config.restricted_merge.app_error", nil, mergeErr.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	// There are some settings that cannot be changed in a cloud env
+	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
+		diffs, diffErr := config.DiffTags(appCfg, updatedCfg, "access", "cloud_restrictable")
+		if diffErr != nil {
+			c.Err = model.NewAppError("patchConfig", "api.config.update_config.diff.app_error", nil, diffErr.Error(), http.StatusInternalServerError)
+			return
+		}
+		if len(diffs) > 0 {
+			c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]interface{}{"Name": diffs[0].Path}, "", http.StatusForbidden)
+			return
+		}
 	}
 
 	err := updatedCfg.IsValid()

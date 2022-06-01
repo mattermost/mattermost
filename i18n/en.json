@@ -464,6 +464,10 @@
     "translation": "Internal error during cloud api request."
   },
   {
+    "id": "api.cloud.cloud_free_feature_flag_off_error",
+    "translation": "CloudFree feature flag is off."
+  },
+  {
     "id": "api.cloud.cws_webhook_event_missing_error",
     "translation": "Webhook event was not handled. Either it is missing or it is not valid."
   },
@@ -478,6 +482,14 @@
   {
     "id": "api.cloud.subscription.update_error",
     "translation": "Error updating subscription from webhook."
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Unable to create team because teams limit has been reached"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Unable to restore team because teams limit has been reached"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -3461,7 +3473,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "View Message"
+    "translation": "Reply in Mattermost"
   },
   {
     "id": "api.templates.questions_footer.info",
@@ -5200,10 +5212,6 @@
     "translation": "Missing required Reaction property: User."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Reply CreateAt property must be greater than the parent post CreateAt."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Missing required Reply property: create_at."
   },
@@ -5438,6 +5446,10 @@
   {
     "id": "app.insert_error",
     "translation": "insert error"
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "You've reached the max limit of {{.NumIntegrations}} enabled integrations. To install unlimited integrations, upgrade to one of our paid plans."
   },
   {
     "id": "app.job.download_export_results_not_enabled",
@@ -5798,6 +5810,10 @@
   {
     "id": "app.post.analytics_posts_count_by_day.app_error",
     "translation": "Unable to get post counts by day."
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Unable to get teams usage"
   },
   {
     "id": "app.post.analytics_user_counts_posts_by_day.app_error",
@@ -6278,6 +6294,10 @@
   {
     "id": "app.team.user_belongs_to_teams.app_error",
     "translation": "Unable to determine if the user belongs to a list of teams."
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Unable to get team count"
   },
   {
     "id": "app.terms_of_service.create.app_error",

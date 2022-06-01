@@ -41,6 +41,7 @@ type fileInfoWithChannelID struct {
 	MiniPreview     *[]byte
 	Content         string
 	RemoteId        *string
+	Archived        bool
 }
 
 func (fi fileInfoWithChannelID) ToModel() *model.FileInfo {
@@ -103,6 +104,7 @@ func newSqlFileInfoStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterfac
 		"FileInfo.MiniPreview",
 		"Coalesce(FileInfo.Content, '') AS Content",
 		"Coalesce(FileInfo.RemoteId, '') AS RemoteId",
+		"FileInfo.Archived",
 	}
 
 	return s

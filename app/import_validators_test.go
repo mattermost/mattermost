@@ -887,14 +887,6 @@ func TestImportValidateReplyImportData(t *testing.T) {
 	}
 	err = validateReplyImportData(&data, parentCreateAt, maxPostSize)
 	require.NotNil(t, err, "Should have failed due to 0 create-at value.")
-
-	data = ReplyImportData{
-		User:     ptrStr("username"),
-		Message:  ptrStr("message"),
-		CreateAt: ptrInt64(parentCreateAt - 100),
-	}
-	err = validateReplyImportData(&data, parentCreateAt, maxPostSize)
-	require.NotNil(t, err, "Should have failed due parent with newer create-at value.")
 }
 
 func TestImportValidatePostImportData(t *testing.T) {

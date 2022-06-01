@@ -2644,10 +2644,6 @@
     "translation": "Proprietà della reazione mancante: User."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "La proprietà CreateAt della risposta deve essere maggiore della proprietà CreateAt della pubblicazione principale."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Proprietà della risposta mancante: create_at."
   },
