@@ -2775,71 +2775,93 @@ func (s SqlChannelStore) GetTeamMembersForChannel(channelID string) ([]string, e
 	return teamMemberIDs, nil
 }
 
-// TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19333)
-func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted bool) (model.ChannelListWithTeamData, error) {
-	deleteFilter := "AND c.DeleteAt = 0"
-	if includeDeleted {
-		deleteFilter = ""
+func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted, isGuest bool) (model.ChannelListWithTeamData, error) {
+	query := s.getQueryBuilder().Select("c.*",
+		"t.DisplayName AS TeamDisplayName",
+		"t.Name AS TeamName",
+		"t.UpdateAt AS TeamUpdateAt").
+		From("Channels c, Teams t, TeamMembers tm").
+		Where(sq.And{
+			sq.Expr("c.TeamId = t.id"),
+			sq.Expr("t.id = tm.TeamId"),
+			sq.Eq{"tm.UserId": userID},
+		}).
+		OrderBy("c.DisplayName")
+
+	if !includeDeleted {
+		query = query.Where(sq.And{
+			sq.Eq{"c.DeleteAt": 0},
+			sq.Eq{"tm.DeleteAt": 0},
+		})
 	}
 
-	return s.performGlobalSearch(`
-	SELECT
-		c.*, t.DisplayName AS TeamDisplayName, t.Name AS TeamName, t.UpdateAt AS TeamUpdateAt
-	FROM
-		Channels c, Teams t, TeamMembers tm
-	WHERE
-		c.TeamId=t.Id
-		AND
-		t.Id=tm.TeamId
-		AND
-		tm.UserId = :UserId
-		`+deleteFilter+`
-		SEARCH_CLAUSE
-		AND (
-			c.Type != :ChannelType
-			OR (
-				c.Type = :ChannelType
-				AND c.Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = :UserId)
-			)
-		)
-	ORDER BY c.DisplayName
-	`, term, map[string]interface{}{
-		"UserId":      userID,
-		"ChannelType": model.ChannelTypePrivate,
-	})
+	if isGuest {
+		query = query.Where(sq.Expr("c.Id IN (?)", sq.Select("ChannelId").
+			From("ChannelMembers").
+			Where(sq.Eq{"UserId": userID})))
+	} else {
+		query = query.Where(sq.Or{
+			sq.NotEq{"c.Type": model.ChannelTypePrivate},
+			sq.And{
+				sq.Eq{"c.Type": model.ChannelTypePrivate},
+				sq.Expr("c.Id IN (?)", sq.Select("ChannelId").
+					From("ChannelMembers").
+					Where(sq.Eq{"UserId": userID})),
+			},
+		})
+	}
+
+	searchClause := s.searchClause(term)
+	if searchClause != nil {
+		query = query.Where(searchClause)
+	}
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "Autocomplete_Tosql")
+	}
+
+	channels := model.ChannelListWithTeamData{}
+	err = s.GetReplicaX().Select(&channels, sql, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "could not find channel with term=%s", term)
+	}
+	return channels, nil
 }
 
-// TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19333)
-func (s SqlChannelStore) AutocompleteInTeam(teamID, userID, term string, includeDeleted bool) (model.ChannelList, error) {
-	deleteFilter := "AND c.DeleteAt = 0"
-	if includeDeleted {
-		deleteFilter = ""
+func (s SqlChannelStore) AutocompleteInTeam(teamID, userID, term string, includeDeleted, isGuest bool) (model.ChannelList, error) {
+	query := s.getQueryBuilder().Select("*").
+		From("Channels c").
+		Where(sq.Eq{"c.TeamId": teamID}).
+		OrderBy("c.DisplayName").
+		Limit(model.ChannelSearchDefaultLimit)
+
+	if !includeDeleted {
+		query = query.Where(sq.Eq{"c.DeleteAt": 0})
 	}
 
-	return s.performSearch(`
-	SELECT
-		*
-	FROM
-		Channels c
-	WHERE
-		c.TeamId = :TeamId
-		`+deleteFilter+`
-		SEARCH_CLAUSE
-		AND (
-			c.Type != :ChannelType
-			OR (
-				c.Type = :ChannelType
-				AND c.Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = :UserId)
-			)
-		)
-	ORDER BY c.DisplayName
-	LIMIT :Limit
-	`, term, map[string]interface{}{
-		"TeamId":      teamID,
-		"UserId":      userID,
-		"Limit":       model.ChannelSearchDefaultLimit,
-		"ChannelType": model.ChannelTypePrivate,
-	})
+	if isGuest {
+		query = query.Where(sq.Expr("c.Id IN (?)", sq.Select("ChannelId").
+			From("ChannelMembers").
+			Where(sq.Eq{"UserId": userID})))
+	} else {
+		query = query.Where(sq.Or{
+			sq.NotEq{"c.Type": model.ChannelTypePrivate},
+			sq.And{
+				sq.Eq{"c.Type": model.ChannelTypePrivate},
+				sq.Expr("c.Id IN (?)", sq.Select("ChannelId").
+					From("ChannelMembers").
+					Where(sq.Eq{"UserId": userID})),
+			},
+		})
+	}
+
+	searchClause := s.searchClause(term)
+	if searchClause != nil {
+		query = query.Where(searchClause)
+	}
+
+	return s.performSearchX(query, term)
 }
 
 // TODO: rewrite in squirrel (https://github.com/mattermost/mattermost-server/issues/19334)
@@ -3299,22 +3321,99 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 	return channels, nil
 }
 
-func (s SqlChannelStore) performGlobalSearch(searchQuery string, term string, parameters map[string]interface{}) (model.ChannelListWithTeamData, error) {
-	likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
-	if likeTerm == "" {
-		// If the likeTerm is empty after preparing, then don't bother searching.
-		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
-	} else {
-		parameters["LikeTerm"] = likeTerm
-		fulltextClause, fulltextTerm := s.buildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
-		parameters["FulltextTerm"] = fulltextTerm
-		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "AND ("+likeClause+" OR "+fulltextClause+")", 1)
+func (s SqlChannelStore) searchClause(term string) sq.Sqlizer {
+	likeClause := s.buildLIKEClauseX(term, "c.Name", "c.DisplayName", "c.Purpose")
+	if likeClause == nil {
+		return nil
 	}
 
-	var channels model.ChannelListWithTeamData
+	fulltextClause := s.buildFulltextClauseX(term, "c.Name", "c.DisplayName", "c.Purpose")
+	return sq.Or{
+		likeClause,
+		fulltextClause,
+	}
+}
 
-	if _, err := s.GetReplica().Select(&channels, searchQuery, parameters); err != nil {
-		return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
+func (s SqlChannelStore) buildLIKEClauseX(term string, searchColumns ...string) sq.Sqlizer {
+	// escape the special characters with *
+	likeTerm := sanitizeSearchTerm(term, "*")
+	if likeTerm == "" {
+		return nil
+	}
+
+	// add a placeholder at the beginning and end
+	likeTerm = wildcardSearchTerm(likeTerm)
+
+	// Prepare the LIKE portion of the query.
+	var searchFields sq.Or
+
+	for _, field := range searchColumns {
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			expr := fmt.Sprintf("LOWER(%s) LIKE LOWER(?) ESCAPE '*'", field)
+			searchFields = append(searchFields, sq.Expr(expr, likeTerm))
+		} else {
+			expr := fmt.Sprintf("%s LIKE ? ESCAPE '*'", field)
+			searchFields = append(searchFields, sq.Expr(expr, likeTerm))
+		}
+	}
+
+	return searchFields
+}
+
+const spaceFulltextSearchChars = "<>+-()~:*\"!@"
+
+func (s SqlChannelStore) buildFulltextClauseX(term string, searchColumns ...string) sq.Sqlizer {
+	// Copy the terms as we will need to prepare them differently for each search type.
+	fulltextTerm := term
+
+	// These chars must be treated as spaces in the fulltext query.
+	fulltextTerm = strings.Map(func(r rune) rune {
+		if strings.ContainsRune(spaceFulltextSearchChars, r) {
+			return ' '
+		}
+		return r
+	}, fulltextTerm)
+
+	// Prepare the FULLTEXT portion of the query.
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		// remove all pipes |
+		fulltextTerm = strings.ReplaceAll(fulltextTerm, "|", "")
+
+		// split the search term and append :* to each part
+		splitTerm := strings.Fields(fulltextTerm)
+		for i, t := range splitTerm {
+			splitTerm[i] = t + ":*"
+		}
+
+		// join the search term with &
+		fulltextTerm = strings.Join(splitTerm, " & ")
+
+		expr := fmt.Sprintf("((to_tsvector('english', %s)) @@ to_tsquery('english', ?))", strings.Join(searchColumns, " || ' ' || "))
+		return sq.Expr(expr, fulltextTerm)
+
+	}
+
+	splitTerm := strings.Fields(fulltextTerm)
+	for i, t := range splitTerm {
+		splitTerm[i] = "+" + t + "*"
+	}
+
+	fulltextTerm = strings.Join(splitTerm, " ")
+
+	expr := fmt.Sprintf("MATCH(%s) AGAINST (? IN BOOLEAN MODE)", strings.Join(searchColumns, ", "))
+	return sq.Expr(expr, fulltextTerm)
+}
+
+func (s SqlChannelStore) performSearchX(searchQuery sq.SelectBuilder, term string) (model.ChannelList, error) {
+	sql, args, err := searchQuery.ToSql()
+	if err != nil {
+		return model.ChannelList{}, errors.Wrapf(err, "performSearch_ToSql")
+	}
+
+	channels := model.ChannelList{}
+	err = s.GetReplicaX().Select(&channels, sql, args...)
+	if err != nil {
+		return channels, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
 	}
 
 	return channels, nil
