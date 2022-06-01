@@ -3780,7 +3780,7 @@ func (c *Client4) GetPost(postId string, etag string) (*Post, *Response, error) 
 	return &post, BuildResponse(r), nil
 }
 
-// GetPost gets a single post, including deleted.
+// GetPostIncludeDeleted gets a single post, including deleted.
 func (c *Client4) GetPostIncludeDeleted(postId string, etag string) (*Post, *Response, error) {
 	r, err := c.DoAPIGet(c.postRoute(postId)+"?include_deleted="+c.boolString(true), etag)
 	if err != nil {
