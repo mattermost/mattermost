@@ -4,13 +4,105 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
+
+func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, notifyingUserID, currentUserTeamID string) *model.AppError {
+	user, appErr := a.GetUser(notifyingUserID)
+	if appErr != nil {
+		return appErr
+	}
+
+	// check if already notified
+	sysVal, err := a.Srv().Store.System().GetByName("NOTIFIED_ADMIN_TO_UPGRADE")
+	if err != nil {
+		mlog.Error("Unable to get NOTIFIED_ADMIN_TO_UPGRADE", mlog.Err(err))
+	}
+
+	alprnu := &model.AlreadyCloudNotifiedAdminUsersInfo{
+		Info: make([]model.UserInfo, 0),
+	}
+
+	if sysVal != nil {
+		val := sysVal.Value
+
+		err = json.Unmarshal([]byte(val), alprnu)
+		if err != nil {
+			mlog.Error("Unable to Unmarshal", mlog.Err(err))
+		}
+
+		if alprnu.ContainsID(user.Id) {
+			return model.NewAppError("app.SendCloudUpgradeConfirmationEmail", "api.cloud.notify_admin_to_upgrade_error.already_notified", nil, "", http.StatusForbidden)
+		}
+	}
+
+	team, appErr := a.GetTeam(currentUserTeamID)
+	if appErr != nil {
+		return appErr
+	}
+
+	sysadmins, appErr := a.GetUsersFromProfiles(&model.UserGetOptions{
+		Page:     0,
+		PerPage:  100,
+		Role:     model.SystemAdminRoleId,
+		Inactive: false,
+	})
+
+	if appErr != nil {
+		return appErr
+	}
+
+	systemBot, appErr := a.GetSystemBot()
+	if appErr != nil {
+		return appErr
+	}
+
+	for _, admin := range sysadmins {
+		T := i18n.GetUserTranslations(admin.Locale)
+		channel, appErr := a.GetOrCreateDirectChannel(c, systemBot.UserId, admin.Id)
+		if appErr != nil {
+			return appErr
+		}
+
+		post := &model.Post{
+			Message:   T("api.cloud.upgrade_plan_bot_message", map[string]interface{}{"TeamName": team.Name}),
+			UserId:    systemBot.UserId,
+			ChannelId: channel.Id,
+			Type:      fmt.Sprintf("%sup_notification", model.PostCustomTypePrefix), // webapp will have to create renderer for this custom post type
+		}
+
+		_, appErr = a.CreatePost(c, post, channel, false, true)
+		if appErr != nil {
+			return appErr
+		}
+	}
+
+	// mark as done for current user
+	alprnu.AddID(model.UserInfo{
+		UserID:    user.Id,
+		TimeStamp: model.GetMillis(),
+	})
+
+	out, err := json.Marshal(alprnu)
+	if err != nil {
+		mlog.Error("Unable to Unmarshal", mlog.Err(err))
+	}
+
+	sysVar := &model.System{Name: "NOTIFIED_ADMIN_TO_UPGRADE", Value: string(out)}
+	if err := a.Srv().Store.System().SaveOrUpdate(sysVar); err != nil {
+		mlog.Error("Unable to save NOTIFIED_ADMIN_TO_UPGRADE", mlog.Err(err))
+	}
+
+	return nil
+}
 
 func (a *App) getSysAdminsEmailRecipients() ([]*model.User, *model.AppError) {
 	userOptions := &model.UserGetOptions{

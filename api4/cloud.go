@@ -15,7 +15,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitCloud() {
@@ -48,10 +47,10 @@ func (api *API) InitCloud() {
 	// POST /api/v4/cloud/webhook
 	api.BaseRoutes.Cloud.Handle("/webhook", api.CloudAPIKeyRequired(handleCWSWebhook)).Methods("POST")
 
-	api.BaseRoutes.Cloud.Handle("/system-bot-notify-admin", api.APISessionRequired(postSystemBotNotification)).Methods("POST")
+	api.BaseRoutes.Cloud.Handle("/notify-admin-to-upgrade", api.APISessionRequired(handleNotifyAdminToUpgrade)).Methods("POST")
 }
 
-func postSystemBotNotification(c *Context, w http.ResponseWriter, r *http.Request) {
+func handleNotifyAdminToUpgrade(c *Context, w http.ResponseWriter, r *http.Request) {
 	var notifyAdminRequest *model.NotifyAdminToUpgradeRequest
 	err := json.NewDecoder(r.Body).Decode(&notifyAdminRequest)
 	if err != nil {
@@ -59,95 +58,10 @@ func postSystemBotNotification(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	user, appErr := c.App.GetUser(notifyAdminRequest.CurrentUserId)
+	appErr := c.App.NotifySystemAdminsToUpgrade(c.AppContext, notifyAdminRequest.CurrentUserId, notifyAdminRequest.CurrentTeamId)
 	if appErr != nil {
 		c.Err = appErr
 		return
-	}
-
-	// check if already notified
-	sysVal, err := c.App.Srv().Store.System().GetByName("ALREADY_CLOUD_NOTIFIED_ADMIN")
-	if err != nil {
-		mlog.Error("Unable to get ALREADY_CLOUD_NOTIFIED_ADMIN", mlog.Err(err))
-	}
-
-	alprnu := &model.AlreadyCloudNotifiedAdminUsers{
-		Info: make([]model.UpgradeNotificationInfo, 0),
-	}
-
-	if sysVal != nil {
-		val := sysVal.Value
-
-		err = json.Unmarshal([]byte(val), alprnu)
-		if err != nil {
-			mlog.Error("Unable to Unmarshal", mlog.Err(err))
-		}
-
-		if alprnu.ContainsID(user.Id) {
-			w.WriteHeader(http.StatusForbidden)
-			return
-		}
-	}
-
-	team, appErr := c.App.GetTeam(notifyAdminRequest.CurrentTeamId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	sysadmins, appErr := c.App.GetUsersFromProfiles(&model.UserGetOptions{
-		Page:     0,
-		PerPage:  100,
-		Role:     model.SystemAdminRoleId,
-		Inactive: false,
-	})
-
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	systemBot, appErr := c.App.GetSystemBot()
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	for _, admin := range sysadmins {
-		channel, appErr := c.App.GetOrCreateDirectChannel(c.AppContext, systemBot.UserId, admin.Id)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
-
-		post := &model.Post{
-			Message:   fmt.Sprintf("A member of %s has notified you to upgrade this workspace before the trial ends.", team.Name),
-			UserId:    systemBot.UserId,
-			ChannelId: channel.Id,
-			Type:      fmt.Sprintf("%sup_notification", model.PostCustomTypePrefix),
-		}
-
-		_, appErr = c.App.CreatePost(c.AppContext, post, channel, false, true)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
-	}
-
-	// mark as done for current user
-	alprnu.AddID(model.UpgradeNotificationInfo{
-		UserID:    user.Id,
-		TimeStamp: model.GetMillis(),
-	})
-
-	out, err := json.Marshal(alprnu)
-	if err != nil {
-		mlog.Error("Unable to Unmarshal", mlog.Err(err))
-	}
-
-	sysVar := &model.System{Name: "ALREADY_CLOUD_NOTIFIED_ADMIN", Value: string(out)}
-	if err := c.App.Srv().Store.System().SaveOrUpdate(sysVar); err != nil {
-		mlog.Error("Unable to save ALREADY_CLOUD_NOTIFIED_ADMIN", mlog.Err(err))
 	}
 
 	ReturnStatusOK(w)

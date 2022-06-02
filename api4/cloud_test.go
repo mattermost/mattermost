@@ -248,7 +248,7 @@ func Test_requestTrial(t *testing.T) {
 	})
 }
 
-func TestNotifyAdmin(t *testing.T) {
+func TestNotifyAdminToUpgrade(t *testing.T) {
 	t.Run("user can only notify admin once", func(t *testing.T) {
 		th := Setup(t).InitBasic().InitLogin()
 		defer th.TearDown()

@@ -7803,7 +7803,7 @@ func (c *Client4) NotifyAdmin(nr *NotifyAdminToUpgradeRequest) int {
 		return 0
 	}
 
-	r, err := c.DoAPIPost(c.cloudRoute()+"/system-bot-notify-admin", string(nrJSON))
+	r, err := c.DoAPIPost(c.cloudRoute()+"/notify-admin-to-upgrade", string(nrJSON))
 	if err != nil {
 		return r.StatusCode
 	}

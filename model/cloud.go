@@ -222,16 +222,16 @@ type NotifyAdminToUpgradeRequest struct {
 	CurrentUserId string `json:"current_user_id"`
 }
 
-type UpgradeNotificationInfo struct {
+type UserInfo struct {
 	UserID    string
 	TimeStamp int64
 }
 
-type AlreadyCloudNotifiedAdminUsers struct {
-	Info []UpgradeNotificationInfo
+type AlreadyCloudNotifiedAdminUsersInfo struct {
+	Info []UserInfo
 }
 
-func (a *AlreadyCloudNotifiedAdminUsers) ContainsID(ID string) bool {
+func (a *AlreadyCloudNotifiedAdminUsersInfo) ContainsID(ID string) bool {
 	for _, i := range a.Info {
 		if i.UserID == ID {
 			return true
@@ -240,7 +240,7 @@ func (a *AlreadyCloudNotifiedAdminUsers) ContainsID(ID string) bool {
 	return false
 }
 
-func (a *AlreadyCloudNotifiedAdminUsers) AddID(info UpgradeNotificationInfo) []UpgradeNotificationInfo {
+func (a *AlreadyCloudNotifiedAdminUsersInfo) AddID(info UserInfo) []UserInfo {
 	a.Info = append(a.Info, info)
 	return a.Info
 }
