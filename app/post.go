@@ -1175,17 +1175,14 @@ func (a *App) DeletePost(postID, deleteByID string) (*model.Post, *model.AppErro
 		a.Srv().Go(func() {
 			a.deletePostFiles(post.Id)
 		})
+		a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(postID, true)
+		a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(postID, false)
 	}
 	a.Srv().Go(func() {
 		a.deleteFlaggedPosts(post.Id)
 	})
 
 	a.invalidateCacheForChannelPosts(post.ChannelId)
-
-	if post.FileIds != nil {
-		a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(postID, true)
-		a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(postID, false)
-	}
 
 	return post, nil
 }
