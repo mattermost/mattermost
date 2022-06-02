@@ -390,11 +390,12 @@ func (ss *SqlStore) SetMasterX(db *sql.DB) {
 	}
 }
 
+func (ss *SqlStore) GetInternalMasterDB() *sql.DB {
+	return ss.GetMasterX().DB.DB
+}
+
 func (ss *SqlStore) GetSearchReplicaX() *sqlxDBWrapper {
-	ss.licenseMutex.RLock()
-	license := ss.license
-	ss.licenseMutex.RUnlock()
-	if license == nil {
+	if !ss.hasLicense() {
 		return ss.GetMasterX()
 	}
 
@@ -407,15 +408,27 @@ func (ss *SqlStore) GetSearchReplicaX() *sqlxDBWrapper {
 }
 
 func (ss *SqlStore) GetReplicaX() *sqlxDBWrapper {
-	ss.licenseMutex.RLock()
-	license := ss.license
-	ss.licenseMutex.RUnlock()
-	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || license == nil {
+	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || !ss.hasLicense() {
 		return ss.GetMasterX()
 	}
 
 	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.ReplicaXs))
 	return ss.ReplicaXs[rrNum]
+}
+
+func (ss *SqlStore) GetInternalReplicaDBs() []*sql.DB {
+	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || !ss.hasLicense() {
+		return []*sql.DB{
+			ss.GetMasterX().DB.DB,
+		}
+	}
+
+	dbs := make([]*sql.DB, len(ss.ReplicaXs))
+	for i, rx := range ss.ReplicaXs {
+		dbs[i] = rx.DB.DB
+	}
+
+	return dbs
 }
 
 func (ss *SqlStore) TotalMasterDbConnections() int {
@@ -953,6 +966,14 @@ func (ss *SqlStore) UpdateLicense(license *model.License) {
 
 func (ss *SqlStore) GetLicense() *model.License {
 	return ss.license
+}
+
+func (ss *SqlStore) hasLicense() bool {
+	ss.licenseMutex.Lock()
+	hasLicense := ss.license != nil
+	ss.licenseMutex.Unlock()
+
+	return hasLicense
 }
 
 func (ss *SqlStore) migrate(direction migrationDirection) error {
