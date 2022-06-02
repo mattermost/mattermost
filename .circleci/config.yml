@@ -304,7 +304,7 @@ jobs:
       - run:
           name: Wait for docker compose
           command: |
-            sleep 5
+            until docker network inspect circleci_mm-test; do echo "Waiting for Docker Compose Network..."; sleep 1; done;
             docker run --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
             docker run --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
       - run:
@@ -534,18 +534,18 @@ workflows:
             - check-mattermost-vet
             - check-golangci-lint
             - build-api-spec
-#      - upload-s3-sha:
-#          context: mattermost-ci-pr-builds-s3
-#          requires:
-#            - build
-#      - upload-s3:
-#          context: mattermost-ci-pr-builds-s3
-#          requires:
-#            - build
-#      - build-docker:
-#          context: matterbuild-docker
-#          requires:
-#            - upload-s3-sha
+      #      - upload-s3-sha:
+      #          context: mattermost-ci-pr-builds-s3
+      #          requires:
+      #            - build
+      #      - upload-s3:
+      #          context: mattermost-ci-pr-builds-s3
+      #          requires:
+      #            - build
+      #      - build-docker:
+      #          context: matterbuild-docker
+      #          requires:
+      #            - upload-s3-sha
       - test:
           name: test-mysql
           dbdriver: mysql
