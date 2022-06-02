@@ -945,7 +945,6 @@ func (s *SqlThreadStore) GetTopThreadsForTeamSince(teamID string, userID string,
 		threads_list.ChannelId,
 		threads_list.DisplayName,
 		threads_list.Name,
-		p.Message,
 		threads_list.Participants,
 		p.UserId
 	from((
@@ -1022,7 +1021,6 @@ func (s *SqlThreadStore) GetTopThreadsForUserSince(teamID string, userID string,
 		threads_list.ChannelId,
 		threads_list.DisplayName,
 		threads_list.Name,
-		p.Message,
 		threads_list.Participants,
 		p.UserId
 	from((

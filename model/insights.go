@@ -57,14 +57,13 @@ type TopThreadList struct {
 }
 
 type TopThread struct {
-	PostId          string                  `json:"post_id"`
-	ReplyCount      int64                   `json:"reply_count"`
+	PostId          string                  `json:"-"`
+	ReplyCount      int64                   `json:"-"`
 	ChannelId       string                  `json:"channel_id"`
 	DisplayName     string                  `json:"channel_display_name"`
 	Name            string                  `json:"channel_name"`
-	Message         string                  `json:"message"`
 	Participants    StringArray             `json:"participants"`
-	UserId          string                  `json:"user_id"`
+	UserId          string                  `json:"-"`
 	UserInformation *InsightUserInformation `json:"user_information"`
 	Post            *Post                   `json:"post"`
 }
