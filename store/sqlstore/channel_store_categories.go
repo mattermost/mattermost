@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"fmt"
 
 	sq "github.com/mattermost/squirrel"
@@ -19,18 +20,18 @@ type dbSelecter interface {
 	Select(i interface{}, query string, args ...interface{}) error
 }
 
-func (s SqlChannelStore) CreateInitialSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, error) {
+func (s SqlChannelStore) CreateInitialSidebarCategories(userId string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "CreateInitialSidebarCategories: begin_transaction")
 	}
 	defer finalizeTransactionX(transaction)
 
-	if err = s.createInitialSidebarCategoriesT(transaction, userId, teamId); err != nil {
+	if err = s.createInitialSidebarCategoriesT(transaction, userId, opts); err != nil {
 		return nil, errors.Wrap(err, "CreateInitialSidebarCategories: createInitialSidebarCategoriesT")
 	}
 
-	oc, err := s.getSidebarCategoriesT(transaction, userId, teamId)
+	oc, err := s.getSidebarCategoriesT(transaction, userId, opts)
 	if err != nil {
 		return nil, errors.Wrap(err, "CreateInitialSidebarCategories: getSidebarCategoriesT")
 	}
@@ -42,82 +43,216 @@ func (s SqlChannelStore) CreateInitialSidebarCategories(userId, teamId string) (
 	return oc, nil
 }
 
-func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *sqlxTxWrapper, userId, teamId string) error {
-	selectQuery, selectParams, _ := s.getQueryBuilder().
-		Select("Type").
+func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *sqlxTxWrapper, userId string, opts *store.SidebarCategorySearchOpts) error {
+	query := s.getQueryBuilder().
+		Select("Type, TeamId").
 		From("SidebarCategories").
 		Where(sq.Eq{
 			"UserId": userId,
-			"TeamId": teamId,
-			"Type":   []model.SidebarCategoryType{model.SidebarCategoryFavorites, model.SidebarCategoryChannels, model.SidebarCategoryDirectMessages},
-		}).ToSql()
+			"Type": []model.SidebarCategoryType{
+				model.SidebarCategoryFavorites,
+				model.SidebarCategoryChannels,
+				model.SidebarCategoryDirectMessages,
+			},
+		})
 
-	existingTypes := []model.SidebarCategoryType{}
-	err := transaction.Select(&existingTypes, selectQuery, selectParams...)
+	if !opts.ExcludeTeam {
+		query = query.Where(sq.Eq{"TeamId": opts.TeamID})
+	} else {
+		query = query.Where(sq.NotEq{"TeamId": opts.TeamID})
+	}
+
+	selectQuery, selectParams, err := query.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "createInitialSidebarCategoriesT_Tosql")
+	}
+
+	existingTypes := []struct {
+		Type   model.SidebarCategoryType
+		TeamId string
+	}{}
+	err = transaction.Select(&existingTypes, selectQuery, selectParams...)
 	if err != nil {
 		return errors.Wrap(err, "createInitialSidebarCategoriesT: failed to select existing categories")
 	}
 
-	hasCategoryOfType := make(map[model.SidebarCategoryType]bool, len(existingTypes))
+	hasCategoryOfType := make(map[model.SidebarCategoryType]map[string]bool, len(existingTypes))
 	for _, existingType := range existingTypes {
-		hasCategoryOfType[existingType] = true
+		if hasCategoryOfType[existingType.Type] == nil {
+			hasCategoryOfType[existingType.Type] = make(map[string]bool)
+			hasCategoryOfType[existingType.Type][existingType.TeamId] = true
+		}
 	}
 
-	// Use deterministic IDs for default categories to prevent potentially creating multiple copies of a default category
-	favoritesCategoryId := fmt.Sprintf("%s_%s_%s", model.SidebarCategoryFavorites, userId, teamId)
-	channelsCategoryId := fmt.Sprintf("%s_%s_%s", model.SidebarCategoryChannels, userId, teamId)
-	directMessagesCategoryId := fmt.Sprintf("%s_%s_%s", model.SidebarCategoryDirectMessages, userId, teamId)
+	insertBuilder := s.getQueryBuilder().Insert("SidebarCategories").
+		Columns("Id, UserId, TeamId, SortOrder, Sorting, Type, DisplayName, Muted, Collapsed")
 
-	if !hasCategoryOfType[model.SidebarCategoryFavorites] {
+	hasInsert := false
+	extractTeamIDs := func(tms []*model.TeamMember) []string {
+		teamIDs := make([]string, 0, len(tms))
+		for _, tm := range tms {
+			teamIDs = append(teamIDs, tm.TeamId)
+		}
+		return teamIDs
+	}
+	teamsWithExclude, err := s.SqlStore.stores.team.GetTeamsForUser(context.Background(), userId, opts.TeamID, false)
+	if err != nil {
+		return err
+	}
+
+	// if category == nil - nothing
+	// if not exclude - just that team
+	// otherwise get all teams excluding that team
+	// if != nil - then partial
+	// if not exclude, and team exists in map then skip.
+	// otherwise, get all teams excluding that team, subtract all items from map.
+	teamIDs := []string{}
+	if hasCategoryOfType[model.SidebarCategoryFavorites] == nil {
+		// If not exclude, do for only single team
+		// if exclude, get all teams, excluding that team
+		if !opts.ExcludeTeam {
+			teamIDs = []string{opts.TeamID}
+		} else {
+			teamIDs = extractTeamIDs(teamsWithExclude)
+		}
+	} else {
+		mapEntry := hasCategoryOfType[model.SidebarCategoryFavorites]
+		if !opts.ExcludeTeam && mapEntry[opts.TeamID] {
+			// continue, nothing to do since entry already exists.
+		} else {
+			excludedTeamIDs := extractTeamIDs(teamsWithExclude)
+			for i, tID := range excludedTeamIDs {
+				if mapEntry[tID] {
+					// remove from slice
+					copy(excludedTeamIDs[i:], excludedTeamIDs[i+1:])
+					excludedTeamIDs[len(excludedTeamIDs)-1] = ""
+					excludedTeamIDs = excludedTeamIDs[:len(excludedTeamIDs)-1]
+				}
+			}
+		}
+	}
+	for _, teamID := range teamIDs {
+		// Use deterministic IDs for default categories to prevent potentially creating multiple copies of a default category
+		favoritesCategoryId := fmt.Sprintf("%s_%s_%s", model.SidebarCategoryFavorites, userId, teamID)
 		// Create the SidebarChannels first since there's more opportunity for something to fail here
-		if err := s.migrateFavoritesToSidebarT(transaction, userId, teamId, favoritesCategoryId); err != nil {
+		if err := s.migrateFavoritesToSidebarT(transaction, userId, teamID, favoritesCategoryId); err != nil {
 			return errors.Wrap(err, "createInitialSidebarCategoriesT: failed to migrate favorites to sidebar")
 		}
 
-		if _, err := transaction.NamedExec(`INSERT INTO
-			SidebarCategories(Id, UserId, TeamId, SortOrder, Sorting, Type, DisplayName, Muted, Collapsed)
-			VALUES(:Id, :UserId, :TeamId, :SortOrder, :Sorting, :Type, :DisplayName, :Muted, :Collapsed)`, &model.SidebarCategory{
-			DisplayName: "Favorites", // This will be retranslated by the client into the user's locale
-			Id:          favoritesCategoryId,
-			UserId:      userId,
-			TeamId:      teamId,
-			Sorting:     model.SidebarCategorySortDefault,
-			SortOrder:   model.DefaultSidebarSortOrderFavorites,
-			Type:        model.SidebarCategoryFavorites,
-		}); err != nil {
-			return errors.Wrap(err, "createInitialSidebarCategoriesT: failed to insert favorites category")
+		insertBuilder = insertBuilder.Values(favoritesCategoryId, userId, teamID, model.DefaultSidebarSortOrderFavorites, model.SidebarCategorySortDefault, model.SidebarCategoryFavorites, "Favorites" /* This will be retranslated by the client into the user's locale */, false, false)
+		hasInsert = true
+	}
+	// if _, err := transaction.NamedExec(`INSERT INTO
+	// SidebarCategories(Id, UserId, TeamId, SortOrder, Sorting, Type, DisplayName, Muted, Collapsed)
+	// VALUES(:Id, :UserId, :TeamId, :SortOrder, :Sorting, :Type, :DisplayName, :Muted, :Collapsed)`, &model.SidebarCategory{
+	// 	DisplayName: "Favorites", // This will be retranslated by the client into the user's locale
+	// 	Id:          favoritesCategoryId,
+	// 	UserId:      userId,
+	// 	TeamId:      teamId,
+	// 	Sorting:     model.SidebarCategorySortDefault,
+	// 	SortOrder:   model.DefaultSidebarSortOrderFavorites,
+	// 	Type:        model.SidebarCategoryFavorites,
+	// }); err != nil {
+	// 	return errors.Wrap(err, "createInitialSidebarCategoriesT: failed to insert favorites category")
+	// }
+
+	teamIDs = []string{}
+	if hasCategoryOfType[model.SidebarCategoryChannels] == nil {
+		// If not exclude, do for only single team
+		// if exclude, get all teams, excluding that team
+		if !opts.ExcludeTeam {
+			teamIDs = []string{opts.TeamID}
+		} else {
+			teamIDs = extractTeamIDs(teamsWithExclude)
+		}
+	} else {
+		mapEntry := hasCategoryOfType[model.SidebarCategoryChannels]
+		if !opts.ExcludeTeam && mapEntry[opts.TeamID] {
+			// continue, nothing to do since entry already exists.
+		} else {
+			excludedTeamIDs := extractTeamIDs(teamsWithExclude)
+			for i, tID := range excludedTeamIDs {
+				if mapEntry[tID] {
+					// remove from slice
+					copy(excludedTeamIDs[i:], excludedTeamIDs[i+1:])
+					excludedTeamIDs[len(excludedTeamIDs)-1] = ""
+					excludedTeamIDs = excludedTeamIDs[:len(excludedTeamIDs)-1]
+				}
+			}
 		}
 	}
-
-	if !hasCategoryOfType[model.SidebarCategoryChannels] {
-		if _, err := transaction.NamedExec(`INSERT INTO
-			SidebarCategories(Id, UserId, TeamId, SortOrder, Sorting, Type, DisplayName, Muted, Collapsed)
-			VALUES(:Id, :UserId, :TeamId, :SortOrder, :Sorting, :Type, :DisplayName, :Muted, :Collapsed)`, &model.SidebarCategory{
-			DisplayName: "Channels", // This will be retranslated by the client into the user's locale
-			Id:          channelsCategoryId,
-			UserId:      userId,
-			TeamId:      teamId,
-			Sorting:     model.SidebarCategorySortDefault,
-			SortOrder:   model.DefaultSidebarSortOrderChannels,
-			Type:        model.SidebarCategoryChannels,
-		}); err != nil {
-			return errors.Wrap(err, "createInitialSidebarCategoriesT: failed to insert channels category")
-		}
+	for _, teamID := range teamIDs {
+		channelsCategoryId := fmt.Sprintf("%s_%s_%s", model.SidebarCategoryChannels, userId, teamID)
+		insertBuilder = insertBuilder.Values(channelsCategoryId, userId, teamID, model.DefaultSidebarSortOrderChannels, model.SidebarCategorySortDefault, model.SidebarCategoryChannels, "Channels" /* This will be retranslated by the client into the user's locale */, false, false)
+		hasInsert = true
+		// if _, err := transaction.NamedExec(`INSERT INTO
+		// 	SidebarCategories(Id, UserId, TeamId, SortOrder, Sorting, Type, DisplayName, Muted, Collapsed)
+		// 	VALUES(:Id, :UserId, :TeamId, :SortOrder, :Sorting, :Type, :DisplayName, :Muted, :Collapsed)`, &model.SidebarCategory{
+		// 	DisplayName: "Channels", // This will be retranslated by the client into the user's locale
+		// 	Id:          channelsCategoryId,
+		// 	UserId:      userId,
+		// 	TeamId:      teamId,
+		// 	Sorting:     model.SidebarCategorySortDefault,
+		// 	SortOrder:   model.DefaultSidebarSortOrderChannels,
+		// 	Type:        model.SidebarCategoryChannels,
+		// }); err != nil {
+		// 	return errors.Wrap(err, "createInitialSidebarCategoriesT: failed to insert channels category")
+		// }
 	}
 
-	if !hasCategoryOfType[model.SidebarCategoryDirectMessages] {
-		if _, err := transaction.NamedExec(`INSERT INTO
-			SidebarCategories(Id, UserId, TeamId, SortOrder, Sorting, Type, DisplayName, Muted, Collapsed)
-			VALUES(:Id, :UserId, :TeamId, :SortOrder, :Sorting, :Type, :DisplayName, :Muted, :Collapsed)`, &model.SidebarCategory{
-			DisplayName: "Direct Messages", // This will be retranslated by the client into the user's locale
-			Id:          directMessagesCategoryId,
-			UserId:      userId,
-			TeamId:      teamId,
-			Sorting:     model.SidebarCategorySortRecent,
-			SortOrder:   model.DefaultSidebarSortOrderDMs,
-			Type:        model.SidebarCategoryDirectMessages,
-		}); err != nil {
-			return errors.Wrap(err, "createInitialSidebarCategoriesT: failed to insert direct messages category")
+	teamIDs = []string{}
+	if hasCategoryOfType[model.SidebarCategoryDirectMessages] == nil {
+		// If not exclude, do for only single team
+		// if exclude, get all teams, excluding that team
+		if !opts.ExcludeTeam {
+			teamIDs = []string{opts.TeamID}
+		} else {
+			teamIDs = extractTeamIDs(teamsWithExclude)
+		}
+	} else {
+		mapEntry := hasCategoryOfType[model.SidebarCategoryDirectMessages]
+		if !opts.ExcludeTeam && mapEntry[opts.TeamID] {
+			// continue, nothing to do since entry already exists.
+		} else {
+			excludedTeamIDs := extractTeamIDs(teamsWithExclude)
+			for i, tID := range excludedTeamIDs {
+				if mapEntry[tID] {
+					// remove from slice
+					copy(excludedTeamIDs[i:], excludedTeamIDs[i+1:])
+					excludedTeamIDs[len(excludedTeamIDs)-1] = ""
+					excludedTeamIDs = excludedTeamIDs[:len(excludedTeamIDs)-1]
+				}
+			}
+		}
+	}
+	for _, teamID := range teamIDs {
+		directMessagesCategoryId := fmt.Sprintf("%s_%s_%s", model.SidebarCategoryDirectMessages, userId, teamID)
+		insertBuilder = insertBuilder.Values(directMessagesCategoryId, userId, teamID, model.DefaultSidebarSortOrderDMs, model.SidebarCategorySortRecent, model.SidebarCategoryDirectMessages, "Direct Messages" /* This will be retranslated by the client into the user's locale */, false, false)
+		hasInsert = true
+		// if _, err := transaction.NamedExec(`INSERT INTO
+		// SidebarCategories(Id, UserId, TeamId, SortOrder, Sorting, Type, DisplayName, Muted, Collapsed)
+		// VALUES(:Id, :UserId, :TeamId, :SortOrder, :Sorting, :Type, :DisplayName, :Muted, :Collapsed)`, &model.SidebarCategory{
+		// 	DisplayName: "Direct Messages", // This will be retranslated by the client into the user's locale
+		// 	Id:          directMessagesCategoryId,
+		// 	UserId:      userId,
+		// 	TeamId:      teamId,
+		// 	Sorting:     model.SidebarCategorySortRecent,
+		// 	SortOrder:   model.DefaultSidebarSortOrderDMs,
+		// 	Type:        model.SidebarCategoryDirectMessages,
+		// }); err != nil {
+		// 	return errors.Wrap(err, "createInitialSidebarCategoriesT: failed to insert direct messages category")
+		// }
+	}
+	// }
+
+	if hasInsert {
+		sql, args, err := insertBuilder.ToSql()
+		if err != nil {
+			return errors.Wrap(err, "insertSidebarCategories_Tosql")
+		}
+		_, err = transaction.Exec(sql, args...)
+		if err != nil {
+			return errors.Wrap(err, "createInitialSidebarCategoriesT: failed to insert categories")
 		}
 	}
 
@@ -252,7 +387,11 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 
 	defer finalizeTransactionX(transaction)
 
-	categoriesWithOrder, err := s.getSidebarCategoriesT(transaction, userId, teamId)
+	opts := &store.SidebarCategorySearchOpts{
+		TeamID:      teamId,
+		ExcludeTeam: false,
+	}
+	categoriesWithOrder, err := s.getSidebarCategoriesT(transaction, userId, opts)
 	if err != nil {
 		return nil, err
 	} else if len(categoriesWithOrder.Categories) == 0 {
@@ -468,28 +607,35 @@ func (s SqlChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCa
 	return s.completePopulatingCategoryChannels(result)
 }
 
-func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId, teamId string) (*model.OrderedSidebarCategories, error) {
+func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
 	oc := model.OrderedSidebarCategories{
 		Categories: make(model.SidebarCategoriesWithChannels, 0),
 		Order:      make([]string, 0),
 	}
 
 	categories := []*sidebarCategoryForJoin{}
-	query, args, err := s.getQueryBuilder().
+	query := s.getQueryBuilder().
 		Select("SidebarCategories.*", "SidebarChannels.ChannelId").
 		From("SidebarCategories").
 		LeftJoin("SidebarChannels ON SidebarChannels.CategoryId=Id").
 		Where(sq.And{
 			sq.Eq{"SidebarCategories.UserId": userId},
-			sq.Eq{"SidebarCategories.TeamId": teamId},
 		}).
-		OrderBy("SidebarCategories.SortOrder ASC, SidebarChannels.SortOrder ASC").ToSql()
+		OrderBy("SidebarCategories.SortOrder ASC, SidebarChannels.SortOrder ASC")
+
+	if opts.ExcludeTeam {
+		query = query.Where(sq.NotEq{"SidebarCategories.TeamId": opts.TeamID})
+	} else {
+		query = query.Where(sq.Eq{"SidebarCategories.TeamId": opts.TeamID})
+	}
+
+	sql, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "sidebar_categories_tosql")
 	}
 
-	if err := db.Select(&categories, query, args...); err != nil {
-		return nil, store.NewErrNotFound("SidebarCategories", fmt.Sprintf("userId=%s,teamId=%s", userId, teamId))
+	if err := db.Select(&categories, sql, args...); err != nil {
+		return nil, store.NewErrNotFound("SidebarCategories", fmt.Sprintf("userId=%s,teamId=%s", userId, opts.TeamID))
 	}
 
 	for _, category := range categories {
@@ -521,8 +667,16 @@ func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId, teamId str
 	return &oc, nil
 }
 
-func (s SqlChannelStore) GetSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, error) {
-	return s.getSidebarCategoriesT(s.GetReplicaX(), userId, teamId)
+func (s SqlChannelStore) GetSidebarCategoriesForTeamForUser(userId, teamId string) (*model.OrderedSidebarCategories, error) {
+	opts := &store.SidebarCategorySearchOpts{
+		TeamID:      teamId,
+		ExcludeTeam: false,
+	}
+	return s.getSidebarCategoriesT(s.GetReplicaX(), userId, opts)
+}
+
+func (s SqlChannelStore) GetSidebarCategories(userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
+	return s.getSidebarCategoriesT(s.GetReplicaX(), userID, opts)
 }
 
 func (s SqlChannelStore) GetSidebarCategoryOrder(userId, teamId string) ([]string, error) {
