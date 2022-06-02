@@ -64,6 +64,8 @@ const (
 	migrationsDirectionDown migrationDirection = "down"
 
 	replicaLagPrefix = "replica-lag"
+
+	RemoteClusterSiteURLUniqueIndex = "remote_clusters_site_url_unique"
 )
 
 var tablesToCheckForCollation = []string{"incomingwebhooks", "preferences", "users", "uploadsessions", "channels", "publicchannels"}
@@ -205,11 +207,6 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.group = newSqlGroupStore(store)
 	store.stores.productNotices = newSqlProductNoticesStore(store)
 
-	err = upgradeDatabase(store, model.CurrentVersion)
-	if err != nil {
-		mlog.Fatal("Failed to upgrade database.", mlog.Err(err))
-	}
-
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
 	return store
@@ -342,12 +339,6 @@ func (ss *SqlStore) computeBinaryParam() (bool, error) {
 
 func (ss *SqlStore) IsBinaryParamEnabled() bool {
 	return ss.isBinaryParam
-}
-
-func (ss *SqlStore) getCurrentSchemaVersion() (string, error) {
-	var version string
-	err := ss.GetMasterX().Get(&version, "SELECT Value FROM Systems WHERE Name='Version'")
-	return version, err
 }
 
 // GetDbVersion returns the version of the database being used.
