@@ -7,6 +7,7 @@ package store
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -66,6 +67,8 @@ type Store interface {
 	GetDBSchemaVersion() (int, error)
 	GetAppliedMigrations() ([]model.AppliedMigration, error)
 	GetDbVersion(numerical bool) (string, error)
+	GetInternalMasterDB() *sql.DB
+	GetInternalReplicaDBs() []*sql.DB
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
