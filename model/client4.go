@@ -7797,6 +7797,22 @@ func (c *Client4) RequestCloudTrial() (*Subscription, *Response, error) {
 	return subscription, BuildResponse(r), nil
 }
 
+func (c *Client4) NotifyAdmin(nr *NotifyAdminToUpgradeRequest) int {
+	nrJSON, jsonErr := json.Marshal(nr)
+	if jsonErr != nil {
+		return 0
+	}
+
+	r, err := c.DoAPIPost(c.cloudRoute()+"/system-bot-notify-admin", string(nrJSON))
+	if err != nil {
+		return r.StatusCode
+	}
+
+	closeBody(r)
+
+	return r.StatusCode
+}
+
 func (c *Client4) GetCloudCustomer() (*CloudCustomer, *Response, error) {
 	r, err := c.DoAPIGet(c.cloudRoute()+"/customer", "")
 	if err != nil {

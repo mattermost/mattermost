@@ -5,6 +5,7 @@ package api4
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"testing"
@@ -244,5 +245,44 @@ func Test_requestTrial(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, subscriptionChanged, subscription)
 		require.Equal(t, http.StatusOK, r.StatusCode, "Status OK")
+	})
+}
+
+func TestNotifyAdmin(t *testing.T) {
+	t.Run("user can only notify admin once", func(t *testing.T) {
+		th := Setup(t).InitBasic().InitLogin()
+		defer th.TearDown()
+
+		statusCode := th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
+			CurrentTeamId: th.BasicTeam.Id,
+			CurrentUserId: th.BasicUser.Id,
+		})
+
+		bot, appErr := th.App.GetSystemBot()
+		require.Nil(t, appErr)
+
+		channel, err := th.App.Srv().Store.Channel().GetByName("", model.GetDMNameFromIds(bot.UserId, th.SystemAdminUser.Id), false)
+		require.NoError(t, err)
+
+		postList, err := th.App.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false)
+		require.NoError(t, err)
+
+		require.Equal(t, len(postList.Order), 1)
+
+		post := postList.Posts[postList.Order[0]]
+
+		require.Equal(t, fmt.Sprintf("%sup_notification", model.PostCustomTypePrefix), post.Type)
+		require.Equal(t, bot.UserId, post.UserId)
+		require.Equal(t, fmt.Sprintf("A member of %s has notified you to upgrade this workspace before the trial ends.", th.BasicTeam.Name), post.Message)
+
+		require.Equal(t, http.StatusOK, statusCode)
+
+		// second time trying to call notify endpoint by same user is forbidden
+		statusCode = th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
+			CurrentTeamId: th.BasicTeam.Id,
+			CurrentUserId: th.BasicUser.Id,
+		})
+
+		require.Equal(t, http.StatusForbidden, statusCode)
 	})
 }
