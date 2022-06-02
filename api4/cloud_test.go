@@ -175,6 +175,7 @@ func Test_requestTrial(t *testing.T) {
 
 		cloud.Mock.On("GetSubscription", mock.Anything).Return(subscription, nil)
 		cloud.Mock.On("RequestCloudTrial", mock.Anything, mock.Anything, "").Return(subscription, nil)
+		cloud.Mock.On("InvalidateCaches").Return(nil)
 
 		cloudImpl := th.App.Srv().Cloud
 		defer func() {
@@ -204,6 +205,7 @@ func Test_requestTrial(t *testing.T) {
 
 		cloud.Mock.On("GetSubscription", mock.Anything).Return(subscription, nil)
 		cloud.Mock.On("RequestCloudTrial", mock.Anything, mock.Anything, "").Return(subscription, nil)
+		cloud.Mock.On("InvalidateCaches").Return(nil)
 
 		cloudImpl := th.App.Srv().Cloud
 		defer func() {
@@ -234,6 +236,7 @@ func Test_requestTrial(t *testing.T) {
 
 		cloud.Mock.On("GetSubscription", mock.Anything).Return(subscription, nil)
 		cloud.Mock.On("RequestCloudTrial", mock.Anything, mock.Anything, "").Return(subscription, nil)
+		cloud.Mock.On("InvalidateCaches").Return(nil)
 
 		cloudImpl := th.App.Srv().Cloud
 		defer func() {
@@ -267,6 +270,7 @@ func Test_requestTrial(t *testing.T) {
 
 		cloud.Mock.On("GetSubscription", mock.Anything).Return(subscription, nil)
 		cloud.Mock.On("RequestCloudTrial", mock.Anything, mock.Anything, "valid.email@mattermost.com").Return(subscription, nil)
+		cloud.Mock.On("InvalidateCaches").Return(nil)
 
 		cloudImpl := th.App.Srv().Cloud
 		defer func() {

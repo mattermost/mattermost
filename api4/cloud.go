@@ -176,8 +176,6 @@ func requestCloudTrial(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.Srv().Cloud.InvalidateCaches()
-	c.App.Srv().InvalidateAllCaches()
-	c.App.Srv().InvalidateAllCachesSkipSend()
 
 	w.Write(json)
 }
