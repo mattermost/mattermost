@@ -1,1 +1,1 @@
--- Skipping it
+-- Skipping it because the forward migrations are destructive.
