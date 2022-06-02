@@ -347,6 +347,15 @@ func (s SqlTeamStore) GetByInviteId(inviteId string) (*model.Team, error) {
 	return &team, nil
 }
 
+func (s SqlTeamStore) GetByEmptyInviteID() ([]*model.Team, error) {
+	teams := []*model.Team{}
+	err := s.GetReplicaX().Select(&teams, "SELECT * FROM Teams WHERE InviteId = ''")
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find Teams with empty InviteID")
+	}
+	return teams, nil
+}
+
 // GetByName returns from the database the team that matches the name provided as parameter.
 // If there is no match in the database, it returns a model.AppError with a
 // http.StatusNotFound in the StatusCode field.
