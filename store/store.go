@@ -115,6 +115,7 @@ type TeamStore interface {
 	GetAllTeamListing() ([]*model.Team, error)
 	GetTeamsByUserId(userID string) ([]*model.Team, error)
 	GetByInviteId(inviteID string) (*model.Team, error)
+	GetByEmptyInviteID() ([]*model.Team, error)
 	PermanentDelete(teamID string) error
 	AnalyticsTeamCount(opts *model.TeamSearch) (int64, error)
 	SaveMultipleMembers(members []*model.TeamMember, maxUsersPerTeam int) ([]*model.TeamMember, error)
@@ -666,6 +667,7 @@ type FileInfoStore interface {
 	CountAll() (int64, error)
 	GetFilesBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.FileForIndexing, error)
 	ClearCaches()
+	GetStorageUsage(allowFromCache, includeDeleted bool) (int64, error)
 }
 
 type UploadSessionStore interface {

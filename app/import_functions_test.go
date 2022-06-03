@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/testlib"
+	"github.com/mattermost/mattermost-server/v6/utils"
 	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
@@ -4178,6 +4179,12 @@ func TestImportImportEmoji(t *testing.T) {
 	data = EmojiImportData{Name: ptrStr("smiley"), Image: ptrStr(testImage)}
 	err = th.App.importEmoji(&data, false)
 	assert.Nil(t, err, "System emoji should not fail")
+
+	largeImage := filepath.Join(testsDir, "large_image_file.jpg")
+	data = EmojiImportData{Name: ptrStr(model.NewId()), Image: ptrStr(largeImage)}
+	err = th.App.importEmoji(&data, false)
+	require.NotNil(t, err)
+	require.Contains(t, err.DetailedError, utils.SizeLimitExceeded.Error())
 }
 
 func TestImportAttachment(t *testing.T) {

@@ -3426,6 +3426,24 @@ func (s *OpenTracingLayerFileInfoStore) GetFromMaster(id string) (*model.FileInf
 	return result, err
 }
 
+func (s *OpenTracingLayerFileInfoStore) GetStorageUsage(allowFromCache bool, includeDeleted bool) (int64, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.GetStorageUsage")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.FileInfoStore.GetStorageUsage(allowFromCache, includeDeleted)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.GetWithOptions")
@@ -8616,6 +8634,24 @@ func (s *OpenTracingLayerTeamStore) GetAllTeamListing() ([]*model.Team, error) {
 
 	defer span.Finish()
 	result, err := s.TeamStore.GetAllTeamListing()
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerTeamStore) GetByEmptyInviteID() ([]*model.Team, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetByEmptyInviteID")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.TeamStore.GetByEmptyInviteID()
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

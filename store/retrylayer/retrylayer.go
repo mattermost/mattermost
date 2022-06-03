@@ -3841,6 +3841,27 @@ func (s *RetryLayerFileInfoStore) GetFromMaster(id string) (*model.FileInfo, err
 
 }
 
+func (s *RetryLayerFileInfoStore) GetStorageUsage(allowFromCache bool, includeDeleted bool) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.FileInfoStore.GetStorageUsage(allowFromCache, includeDeleted)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error) {
 
 	tries := 0
@@ -9825,6 +9846,27 @@ func (s *RetryLayerTeamStore) GetAllTeamListing() ([]*model.Team, error) {
 	tries := 0
 	for {
 		result, err := s.TeamStore.GetAllTeamListing()
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerTeamStore) GetByEmptyInviteID() ([]*model.Team, error) {
+
+	tries := 0
+	for {
+		result, err := s.TeamStore.GetByEmptyInviteID()
 		if err == nil {
 			return result, nil
 		}
