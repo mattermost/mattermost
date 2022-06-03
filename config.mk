@@ -12,6 +12,11 @@
 # Example: mysql postgres elasticsearch
 ENABLED_DOCKER_SERVICES ?= mysql postgres inbucket
 
+# Some of the services are auto-configured regardless of whether they are listed
+# in ENABLED_DOCKER_SERVICES or not. If you want to ignore them anyway, list
+# them here. The syntax is the same as for ENABLED_DOCKER_SERVICES.
+IGNORED_DOCKER_SERVICES ?= 
+
 # Disable entirely the use of docker
 MM_NO_DOCKER ?= false
 
