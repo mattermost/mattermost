@@ -45,7 +45,8 @@ func (ch *Channels) getIntegrationsUsage() (*model.IntegrationsUsage, *model.App
 	return &model.IntegrationsUsage{Enabled: count}, nil
 }
 
-// GetPostsUsage returns "rounded off" total posts count like returns 900 instead of 987
+// GetPostsUsage returns the total posts count rounded down to the most
+// significant digit
 func (a *App) GetPostsUsage() (int64, *model.AppError) {
 	count, err := a.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeDeleted: true, UsersPostsOnly: true, AllowFromCache: true})
 	if err != nil {
@@ -53,6 +54,15 @@ func (a *App) GetPostsUsage() (int64, *model.AppError) {
 	}
 
 	return utils.RoundOffToZeroes(float64(count)), nil
+}
+
+// GetStorageUsage returns the sum of files' sizes stored on this instance
+func (a *App) GetStorageUsage() (int64, *model.AppError) {
+	usage, err := a.Srv().Store.FileInfo().GetStorageUsage(true, false)
+	if err != nil {
+		return 0, model.NewAppError("GetStorageUsage", "app.usage.get_storage_usage.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return usage, nil
 }
 
 func (a *App) GetTeamsUsage() (*model.TeamsUsage, *model.AppError) {
@@ -79,6 +89,5 @@ func (a *App) GetTeamsUsage() (*model.TeamsUsage, *model.AppError) {
 	}
 
 	usage.CloudArchived = int64(cloudArchivedTeamCount)
-
 	return usage, nil
 }
