@@ -6380,6 +6380,10 @@
     "translation": "Failed to update the upload session."
   },
   {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "Failed to get storage usage."
+  },
+  {
     "id": "app.user.analytics_daily_active_users.app_error",
     "translation": "Unable to get the active users during the requested period."
   },
