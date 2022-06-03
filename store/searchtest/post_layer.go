@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -267,6 +268,11 @@ var searchPostStoreTests = []searchTest{
 		Fn:   testSearchAcrossTeams,
 		Tags: []string{EngineAll},
 	},
+	{
+		Name: "Should consider posts up to the set limit only",
+		Fn:   testSearchPostsLimit,
+		Tags: []string{EngineAll},
+	},
 }
 
 func TestSearchPostStore(t *testing.T, s store.Store, testEngine *SearchTestEngine) {
@@ -343,6 +349,63 @@ func testSearchReturnPinnedAndUnpinned(t *testing.T, th *SearchTestHelper) {
 	require.Len(t, results.Posts, 2)
 	th.checkPostInSearchResults(t, p1.Id, results.Posts)
 	th.checkPostInSearchResults(t, p2.Id, results.Posts)
+}
+
+func testSearchPostsLimit(t *testing.T, th *SearchTestHelper) {
+	bot, err := th.createBot("testbot", "Test Bot", th.User.Id)
+	require.NoError(t, err)
+	defer th.deleteBotUser(bot.UserId)
+	err = th.addUserToTeams(model.UserFromBot(bot), []string{th.Team.Id})
+	require.NoError(t, err)
+
+	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "test 1", "", model.PostTypeDefault, 10, false)
+	require.NoError(t, err)
+	p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "test 2", "", model.PostTypeDefault, 20, false)
+	require.NoError(t, err)
+	_, err = th.createPost(th.User.Id, th.ChannelBasic.Id, "system test 1", "", model.PostTypeJoinLeave, 30, false)
+	require.NoError(t, err)
+	p3, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "test 3", "", model.PostTypeDefault, 40, false)
+	require.NoError(t, err)
+	b1, err := th.createPost(bot.UserId, th.ChannelBasic.Id, "bot test 1", "", model.PostTypeDefault, 50, false)
+	require.NoError(t, err)
+	p4, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "test 4", "", model.PostTypeDefault, 60, false)
+	require.NoError(t, err)
+	defer th.deleteUserPosts(th.User.Id)
+	defer th.deleteUserPosts(bot.UserId)
+
+	params := &model.SearchParams{Terms: "test", PostsLimit: 1}
+	results, err := th.Store.Post().SearchPostsForUser([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
+	assert.Len(t, results.Posts, 2)
+	th.checkPostInSearchResults(t, b1.Id, results.Posts)
+	th.checkPostInSearchResults(t, p4.Id, results.Posts)
+
+	params.PostsLimit = 2
+	results, err = th.Store.Post().SearchPostsForUser([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
+	assert.Len(t, results.Posts, 3)
+	th.checkPostInSearchResults(t, b1.Id, results.Posts)
+	th.checkPostInSearchResults(t, p4.Id, results.Posts)
+	th.checkPostInSearchResults(t, p3.Id, results.Posts)
+
+	params.PostsLimit = 3
+	results, err = th.Store.Post().SearchPostsForUser([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
+	assert.Len(t, results.Posts, 4)
+	th.checkPostInSearchResults(t, b1.Id, results.Posts)
+	th.checkPostInSearchResults(t, p4.Id, results.Posts)
+	th.checkPostInSearchResults(t, p3.Id, results.Posts)
+	th.checkPostInSearchResults(t, p2.Id, results.Posts)
+
+	params.PostsLimit = 10
+	results, err = th.Store.Post().SearchPostsForUser([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
+	assert.Len(t, results.Posts, 5)
+	th.checkPostInSearchResults(t, b1.Id, results.Posts)
+	th.checkPostInSearchResults(t, p4.Id, results.Posts)
+	th.checkPostInSearchResults(t, p3.Id, results.Posts)
+	th.checkPostInSearchResults(t, p2.Id, results.Posts)
+	th.checkPostInSearchResults(t, p1.Id, results.Posts)
 }
 
 func testSearchExactPhraseInQuotes(t *testing.T, th *SearchTestHelper) {
@@ -1649,7 +1712,7 @@ func testSearchTermsWithUnderscores(t *testing.T, th *SearchTestHelper) {
 func testSearchBotAccountsPosts(t *testing.T, th *SearchTestHelper) {
 	bot, err := th.createBot("testbot", "Test Bot", th.User.Id)
 	require.NoError(t, err)
-	defer th.deleteBot(bot.UserId)
+	defer th.deleteBotUser(bot.UserId)
 	err = th.addUserToTeams(model.UserFromBot(bot), []string{th.Team.Id})
 	require.NoError(t, err)
 	p1, err := th.createPost(bot.UserId, th.ChannelBasic.Id, "bot test message", "", model.PostTypeDefault, 0, false)

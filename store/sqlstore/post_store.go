@@ -1735,6 +1735,7 @@ var specialSearchChar = []string{
 	":",
 }
 
+// buildPostsLimitFilterClause calculates the last accessible post as per the params.PostsLimit(cloud limit)
 func (s *SqlPostStore) buildPostsLimitFilterClause(params *model.SearchParams, builder sq.SelectBuilder) (sq.SelectBuilder, error) {
 	if params.PostsLimit <= 0 {
 		return builder, nil
@@ -1743,7 +1744,7 @@ func (s *SqlPostStore) buildPostsLimitFilterClause(params *model.SearchParams, b
 	sb := s.getSubQueryBuilder().
 		Select("pl.CreateAt").
 		From("Posts pl").
-		// Include users posts only
+		// Consider users posts only for limit
 		Where(sq.And{
 			sq.Eq{"pl.Type": ""},
 			sq.Expr("pl.UserId NOT IN (SELECT UserId FROM Bots)"),
