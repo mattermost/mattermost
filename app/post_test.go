@@ -1423,7 +1423,7 @@ func TestSearchPostsForUser(t *testing.T) {
 
 		page := 0
 
-		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierMessages)
 
 		assert.Nil(t, err)
 		assert.Equal(t, []string{
@@ -1443,7 +1443,7 @@ func TestSearchPostsForUser(t *testing.T) {
 
 		page := 1
 
-		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierMessages)
 
 		assert.Nil(t, err)
 		assert.Equal(t, []string{}, results.Order)
@@ -1473,7 +1473,7 @@ func TestSearchPostsForUser(t *testing.T) {
 			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierMessages)
 
 		assert.Nil(t, err)
 		assert.Equal(t, resultsPage, results.Order)
@@ -1501,7 +1501,7 @@ func TestSearchPostsForUser(t *testing.T) {
 			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierMessages)
 
 		assert.Nil(t, err)
 		assert.Equal(t, resultsPage, results.Order)
@@ -1525,7 +1525,7 @@ func TestSearchPostsForUser(t *testing.T) {
 			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierMessages)
 
 		assert.Nil(t, err)
 		assert.Equal(t, []string{
@@ -1557,7 +1557,7 @@ func TestSearchPostsForUser(t *testing.T) {
 			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierMessages)
 
 		assert.Nil(t, err)
 		assert.Equal(t, []string{}, results.Order)
@@ -2501,6 +2501,79 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		})
 
 		wg.Wait()
+	})
+
+	t.Run("should sanitize participant data", func(t *testing.T) {
+		id := model.NewId()
+		user3, err := th.App.CreateUser(th.Context, &model.User{
+			Email:         "success+" + id + "@simulator.amazonses.com",
+			Username:      "un_" + id,
+			Nickname:      "nn_" + id,
+			AuthData:      ptrStr("bobbytables"),
+			AuthService:   "saml",
+			EmailVerified: true,
+		})
+		require.Nil(t, err)
+
+		channel := th.CreateChannel(th.BasicTeam)
+		th.LinkUserToTeam(user3, th.BasicTeam)
+		th.AddUserToChannel(user3, channel)
+		defer th.App.DeleteChannel(th.Context, channel, user1.Id)
+		defer th.App.PermanentDeleteUser(th.Context, user3)
+
+		postRoot, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "root post",
+		}, channel, false, true)
+		require.Nil(t, err)
+
+		_, err = th.App.CreatePost(th.Context, &model.Post{
+			UserId:    user3.Id,
+			ChannelId: channel.Id,
+			RootId:    postRoot.Id,
+			Message:   "reply",
+		}, channel, false, true)
+		require.Nil(t, err)
+		thread, nErr := th.App.Srv().Store.Thread().Get(postRoot.Id)
+		require.NoError(t, nErr)
+		require.Len(t, thread.Participants, 1)
+
+		// extended fetch posts page
+		l, err := th.App.GetPostsPage(model.GetPostsOptions{
+			UserId:                   user1.Id,
+			ChannelId:                channel.Id,
+			PerPage:                  int(10),
+			SkipFetchThreads:         false,
+			CollapsedThreads:         true,
+			CollapsedThreadsExtended: true,
+		})
+		require.Nil(t, err)
+		require.Len(t, l.Order, 1)
+		require.NotEmpty(t, l.Posts[postRoot.Id].Participants[0].Email)
+		require.Empty(t, l.Posts[postRoot.Id].Participants[0].AuthData)
+
+		th.App.MarkChannelAsUnreadFromPost(postRoot.Id, user1.Id, true)
+
+		// extended fetch posts around
+		l, err = th.App.GetPostsForChannelAroundLastUnread(channel.Id, user1.Id, 10, 10, true, true, true)
+		require.Nil(t, err)
+		require.Len(t, l.Order, 1)
+		require.NotEmpty(t, l.Posts[postRoot.Id].Participants[0].Email)
+		require.Empty(t, l.Posts[postRoot.Id].Participants[0].AuthData)
+
+		// extended fetch post thread
+		opts := model.GetPostsOptions{
+			SkipFetchThreads:         false,
+			CollapsedThreads:         true,
+			CollapsedThreadsExtended: true,
+		}
+
+		l, err = th.App.GetPostThread(postRoot.Id, opts, user1.Id)
+		require.Nil(t, err)
+		require.Len(t, l.Order, 2)
+		require.NotEmpty(t, l.Posts[postRoot.Id].Participants[0].Email)
+		require.Empty(t, l.Posts[postRoot.Id].Participants[0].AuthData)
 	})
 }
 

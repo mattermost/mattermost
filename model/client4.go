@@ -328,6 +328,10 @@ func (c *Client4) testEmailRoute() string {
 	return "/email/test"
 }
 
+func (c *Client4) usageRoute() string {
+	return "/usage"
+}
+
 func (c *Client4) testSiteURLRoute() string {
 	return "/site_url/test"
 }
@@ -7780,6 +7784,30 @@ func (c *Client4) ConfirmCustomerPayment(confirmRequest *ConfirmPaymentMethodReq
 	return BuildResponse(r), nil
 }
 
+func (c *Client4) RequestCloudTrial(email *ValidateBusinessEmailRequest) (*Subscription, *Response, error) {
+	payload, _ := json.Marshal(email)
+	r, err := c.DoAPIPutBytes(c.cloudRoute()+"/request-trial", payload)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var subscription *Subscription
+	json.NewDecoder(r.Body).Decode(&subscription)
+
+	return subscription, BuildResponse(r), nil
+}
+
+func (c *Client4) ValidateBusinessEmail() (*Response, error) {
+	r, err := c.DoAPIPost(c.cloudRoute()+"/validate-business-email", "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r), nil
+}
+
 func (c *Client4) GetCloudCustomer() (*CloudCustomer, *Response, error) {
 	r, err := c.DoAPIGet(c.cloudRoute()+"/customer", "")
 	if err != nil {
@@ -8077,4 +8105,46 @@ func (c *Client4) GetAppliedSchemaMigrations() ([]AppliedMigration, *Response, e
 		return nil, nil, NewAppError("GetUsers", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
 	return list, BuildResponse(r), nil
+}
+
+// Usage Section
+
+// GetPostsUsage returns rounded off total usage of posts for the instance
+func (c *Client4) GetPostsUsage() (*PostsUsage, *Response, error) {
+	r, err := c.DoAPIGet(c.usageRoute()+"/posts", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var usage *PostsUsage
+	err = json.NewDecoder(r.Body).Decode(&usage)
+	return usage, BuildResponse(r), err
+}
+
+// GetTeamsUsage returns total usage of teams for the instance
+// GetTeamsUsage returns total usage of teams for the instance
+func (c *Client4) GetTeamsUsage() (*TeamsUsage, *Response, error) {
+	r, err := c.DoAPIGet(c.usageRoute()+"/teams", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var usage *TeamsUsage
+	err = json.NewDecoder(r.Body).Decode(&usage)
+	return usage, BuildResponse(r), err
+}
+
+// GetIntegrationsUsage returns usage information on integrations, including the count of enabled integrations
+func (c *Client4) GetIntegrationsUsage() (*IntegrationsUsage, *Response, error) {
+	r, err := c.DoAPIGet(c.usageRoute()+"/integrations", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var usage *IntegrationsUsage
+	err = json.NewDecoder(r.Body).Decode(&usage)
+	return usage, BuildResponse(r), err
 }

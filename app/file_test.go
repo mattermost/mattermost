@@ -399,7 +399,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 
 		page := 0
 
-		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierFiles)
 
 		require.Nil(t, err)
 		require.NotNil(t, results)
@@ -420,7 +420,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 
 		page := 1
 
-		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierFiles)
 
 		require.Nil(t, err)
 		require.NotNil(t, results)
@@ -451,7 +451,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierFiles)
 
 		require.Nil(t, err)
 		require.NotNil(t, results)
@@ -480,7 +480,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierFiles)
 
 		require.Nil(t, err)
 		require.NotNil(t, results)
@@ -505,7 +505,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierFiles)
 
 		require.Nil(t, err)
 		require.NotNil(t, results)
@@ -538,7 +538,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierFiles)
 
 		require.Nil(t, err)
 		assert.Equal(t, []string{}, results.Order)

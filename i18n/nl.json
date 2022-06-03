@@ -2644,10 +2644,6 @@
     "translation": "Mist vereiste team kenmerk: naam."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Reactie CreateAt eigenschap moet groter zijn dan het hoofdbericht CreateAt."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Mist vereiste team kenmerk: naam."
   },
@@ -9317,5 +9313,17 @@
   {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "Bevestiging Mattermost upgrade"
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "Fout met bijwerken inschrijving vanuit webhook."
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "Fout bij ophalen van de recente zoekopdrachten"
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Uploaden via mmctl naar een Cloud instance wordt niet ondersteund. Raadpleeg de documentatie hier: https://docs.mattermost.com/manage/cloud-data-export.html."
   }
 ]

@@ -550,10 +550,10 @@ func (s *TimerLayerChannelStore) AnalyticsTypeCount(teamID string, channelType m
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) Autocomplete(userID string, term string, includeDeleted bool) (model.ChannelListWithTeamData, error) {
+func (s *TimerLayerChannelStore) Autocomplete(userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelListWithTeamData, error) {
 	start := timemodule.Now()
 
-	result, err := s.ChannelStore.Autocomplete(userID, term, includeDeleted)
+	result, err := s.ChannelStore.Autocomplete(userID, term, includeDeleted, isGuest)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -566,10 +566,10 @@ func (s *TimerLayerChannelStore) Autocomplete(userID string, term string, includ
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) AutocompleteInTeam(teamID string, userID string, term string, includeDeleted bool) (model.ChannelList, error) {
+func (s *TimerLayerChannelStore) AutocompleteInTeam(teamID string, userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelList, error) {
 	start := timemodule.Now()
 
-	result, err := s.ChannelStore.AutocompleteInTeam(teamID, userID, term, includeDeleted)
+	result, err := s.ChannelStore.AutocompleteInTeam(teamID, userID, term, includeDeleted, isGuest)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -4859,10 +4859,10 @@ func (s *TimerLayerPluginStore) SetWithOptions(pluginID string, key string, valu
 	return result, err
 }
 
-func (s *TimerLayerPostStore) AnalyticsPostCount(teamID string, mustHaveFile bool, mustHaveHashtag bool) (int64, error) {
+func (s *TimerLayerPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int64, error) {
 	start := timemodule.Now()
 
-	result, err := s.PostStore.AnalyticsPostCount(teamID, mustHaveFile, mustHaveHashtag)
+	result, err := s.PostStore.AnalyticsPostCount(options)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -5306,6 +5306,22 @@ func (s *TimerLayerPostStore) GetPostsSinceForSync(options model.GetPostsSinceFo
 	return result, resultVar1, err
 }
 
+func (s *TimerLayerPostStore) GetRecentSearchesForUser(userID string) ([]*model.SearchParams, error) {
+	start := timemodule.Now()
+
+	result, err := s.PostStore.GetRecentSearchesForUser(userID)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetRecentSearchesForUser", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) GetRepliesForExport(parentID string) ([]*model.ReplyForExport, error) {
 	start := timemodule.Now()
 
@@ -5367,6 +5383,22 @@ func (s *TimerLayerPostStore) InvalidateLastPostTimeCache(channelID string) {
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.InvalidateLastPostTimeCache", success, elapsed)
 	}
+}
+
+func (s *TimerLayerPostStore) LogRecentSearch(userID string, searchQuery []byte, createAt int64) error {
+	start := timemodule.Now()
+
+	err := s.PostStore.LogRecentSearch(userID, searchQuery, createAt)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.LogRecentSearch", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerPostStore) Overwrite(post *model.Post) (*model.Post, error) {
@@ -7732,6 +7764,22 @@ func (s *TimerLayerTeamStore) GetAllTeamListing() ([]*model.Team, error) {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.GetAllTeamListing", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerTeamStore) GetByEmptyInviteID() ([]*model.Team, error) {
+	start := timemodule.Now()
+
+	result, err := s.TeamStore.GetByEmptyInviteID()
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.GetByEmptyInviteID", success, elapsed)
 	}
 	return result, err
 }

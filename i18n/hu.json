@@ -2396,10 +2396,6 @@
     "translation": "Hiányzó kötelező válasz tulajdonság: create_at."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Válasz CreateAt tulajdonságának nagyobbnak kell lennie, mint a szülő bejegyzés CreateAt értéke."
-  },
-  {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
     "translation": "Hiányzó kötelező reakció tulajdonság: User."
   },
@@ -9278,5 +9274,17 @@
   {
     "id": "api.cloud.subscription.update_error",
     "translation": "HIba történt a webhorogról az előfizetés frissítése közben."
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Az mmctl segítségével történő feltöltés egy felhő alapú példányra nem támogatott. Kérjük, tekintse meg a dokumentációt itt: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "Hiba a legutóbbi keresések letöltése közben"
+  },
+  {
+    "id": "api.cloud.cloud_free_feature_flag_off_error",
+    "translation": "A CloudFree funkció ki van kapcsolva."
   }
 ]

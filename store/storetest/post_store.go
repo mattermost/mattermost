@@ -567,7 +567,7 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
 		require.NoError(t, err)
-		_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
+		m1, err := ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
 		require.NoError(t, err)
 		_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
 		require.NoError(t, err)
@@ -615,6 +615,20 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		assert.LessOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, firstPostCreateAt)
 		assert.False(t, r1.HasNext)
 
+		// Only with CreateAt
+		opts = model.GetPostsOptions{
+			CollapsedThreads: false,
+			PerPage:          1,
+			Direction:        "up",
+			FromCreateAt:     m1.CreateAt,
+			SkipFetchThreads: false,
+		}
+		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId)
+		require.NoError(t, err)
+		assert.Len(t, r1.Order, 2) // including the root post
+		assert.LessOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, m1.CreateAt)
+		assert.True(t, r1.HasNext)
+
 		// Non-CRT mode
 		opts = model.GetPostsOptions{
 			CollapsedThreads: false,
@@ -659,6 +673,20 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		assert.Len(t, r1.Order, 3) // including the root post
 		assert.LessOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, firstPostCreateAt)
 		assert.False(t, r1.HasNext)
+
+		// Only with CreateAt
+		opts = model.GetPostsOptions{
+			CollapsedThreads: false,
+			PerPage:          1,
+			Direction:        "down",
+			FromCreateAt:     m1.CreateAt,
+			SkipFetchThreads: false,
+		}
+		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId)
+		require.NoError(t, err)
+		assert.Len(t, r1.Order, 2) // including the root post
+		assert.GreaterOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, m1.CreateAt)
+		assert.True(t, r1.HasNext)
 	})
 }
 
@@ -2115,30 +2143,44 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	assert.Equal(t, float64(1), r1[0].Value)
 
-	// total
-	r2, err := ss.Post().AnalyticsPostCount(t1.Id, false, false)
+	// total for single team
+	r2, err := ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id})
 	require.NoError(t, err)
 	assert.Equal(t, int64(6), r2)
 
 	// total across teams
-	r2, err = ss.Post().AnalyticsPostCount("", false, false)
+	r2, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{})
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, r2, int64(6))
 
 	// total across teams with files
-	r2, err = ss.Post().AnalyticsPostCount("", true, false)
+	r2, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{MustHaveFile: true})
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, r2, int64(3))
 
-	// total across teams with hastags
-	r2, err = ss.Post().AnalyticsPostCount("", false, true)
+	// total across teams with hashtags
+	r2, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{MustHaveHashtag: true})
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, r2, int64(2))
 
-	// total across teams with hastags and files
-	r2, err = ss.Post().AnalyticsPostCount("", true, true)
+	// total across teams with hashtags and files
+	r2, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{MustHaveFile: true, MustHaveHashtag: true})
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, r2, int64(1))
+
+	// delete 1 post
+	err = ss.Post().Delete(o1.Id, 1, o1.UserId)
+	require.NoError(t, err)
+
+	// total for single team with the deleted post excluded
+	r2, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id, ExcludeDeleted: true})
+	require.NoError(t, err)
+	assert.Equal(t, int64(5), r2)
+
+	// total users only posts for single team with the deleted post excluded
+	r2, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id, ExcludeDeleted: true, UsersPostsOnly: true})
+	require.NoError(t, err)
+	assert.Equal(t, int64(3), r2)
 }
 
 func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlStore) {

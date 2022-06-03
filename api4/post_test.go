@@ -2458,19 +2458,23 @@ func TestSearchPostsFromUser(t *testing.T) {
 	message = "sgtitlereview\n with return"
 	_ = th.CreateMessagePostWithClient(client, th.BasicChannel2, message)
 
-	posts, _, _ := client.SearchPosts(th.BasicTeam.Id, "from: "+th.TeamAdminUser.Username, false)
+	posts, _, err := client.SearchPosts(th.BasicTeam.Id, "from: "+th.TeamAdminUser.Username, false)
+	require.NoError(t, err)
 	require.Lenf(t, posts.Order, 2, "wrong number of posts for search 'from: %v'", th.TeamAdminUser.Username)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username, false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username, false)
+	require.NoError(t, err)
 	require.Lenf(t, posts.Order, 1, "wrong number of posts for search 'from: %v", th.BasicUser2.Username)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" sgtitlereview", false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" sgtitlereview", false)
+	require.NoError(t, err)
 	require.Lenf(t, posts.Order, 1, "wrong number of posts for search 'from: %v'", th.BasicUser2.Username)
 
 	message = "hullo"
 	_ = th.CreateMessagePost(message)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" in:"+th.BasicChannel.Name, false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" in:"+th.BasicChannel.Name, false)
+	require.NoError(t, err)
 	require.Len(t, posts.Order, 1, "wrong number of posts for search 'from: %v in:", th.BasicUser2.Username, th.BasicChannel.Name)
 
 	client.Login(user.Email, user.Password)
@@ -2478,19 +2482,23 @@ func TestSearchPostsFromUser(t *testing.T) {
 	// wait for the join/leave messages to be created for user3 since they're done asynchronously
 	time.Sleep(100 * time.Millisecond)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username, false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username, false)
+	require.NoError(t, err)
 	require.Lenf(t, posts.Order, 2, "wrong number of posts for search 'from: %v'", th.BasicUser2.Username)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username, false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username, false)
+	require.NoError(t, err)
 	require.Lenf(t, posts.Order, 2, "wrong number of posts for search 'from: %v from: %v'", th.BasicUser2.Username, user.Username)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username+" in:"+th.BasicChannel2.Name, false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username+" in:"+th.BasicChannel2.Name, false)
+	require.NoError(t, err)
 	require.Len(t, posts.Order, 1, "wrong number of posts")
 
 	message = "coconut"
 	_ = th.CreateMessagePostWithClient(client, th.BasicChannel2, message)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username+" in:"+th.BasicChannel2.Name+" coconut", false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username+" in:"+th.BasicChannel2.Name+" coconut", false)
+	require.NoError(t, err)
 	require.Len(t, posts.Order, 1, "wrong number of posts")
 }
 
@@ -2641,6 +2649,93 @@ func TestSetChannelUnread(t *testing.T) {
 		unread, appErr := th.App.GetChannelUnread(c1.Id, u1.Id)
 		require.Nil(t, appErr)
 		assert.Equal(t, int64(2), unread.MsgCount)
+	})
+
+	t.Run("Unread on a direct channel", func(t *testing.T) {
+		dc := th.CreateDmChannel(u2)
+		th.CreateMessagePostNoClient(dc, "test1", now)
+		p := th.CreateMessagePostNoClient(dc, "test2", now+10)
+		require.NotNil(t, p)
+		th.CreateMessagePostNoClient(dc, "test3", now+20)
+		p1 := th.CreateMessagePostNoClient(dc, "test4", now+30)
+		require.NotNil(t, p1)
+
+		// Ensure that post have been read
+		unread, err := th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(4), unread.MsgCount)
+		cv := &model.ChannelView{ChannelId: dc.Id}
+		_, appErr := th.App.ViewChannel(cv, u1.Id, s2.Id, false)
+		require.Nil(t, appErr)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(0), unread.MsgCount)
+
+		r, _ := th.Client.SetPostUnread(u1.Id, p.Id, false)
+		assert.Equal(t, 200, r.StatusCode)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(3), unread.MsgCount)
+
+		// Ensure that post have been read
+		_, appErr = th.App.ViewChannel(cv, u1.Id, s2.Id, false)
+		require.Nil(t, appErr)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(0), unread.MsgCount)
+
+		r, _ = th.Client.SetPostUnread(u1.Id, p1.Id, false)
+		assert.Equal(t, 200, r.StatusCode)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(1), unread.MsgCount)
+	})
+
+	t.Run("Unread on a direct channel in a thread", func(t *testing.T) {
+		dc := th.CreateDmChannel(th.CreateUser())
+		rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: u1.Id, CreateAt: now, ChannelId: dc.Id, Message: "root"}, dc, false, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: u1.Id, CreateAt: now + 10, ChannelId: dc.Id, Message: "reply 1"}, dc, false, false)
+		require.Nil(t, appErr)
+		reply2, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: u1.Id, CreateAt: now + 20, ChannelId: dc.Id, Message: "reply 2"}, dc, false, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: u1.Id, CreateAt: now + 30, ChannelId: dc.Id, Message: "reply 3"}, dc, false, false)
+		require.Nil(t, appErr)
+
+		// Ensure that post have been read
+		unread, err := th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(4), unread.MsgCount)
+		require.Equal(t, int64(1), unread.MsgCountRoot)
+		cv := &model.ChannelView{ChannelId: dc.Id}
+		_, appErr = th.App.ViewChannel(cv, u1.Id, s2.Id, false)
+		require.Nil(t, appErr)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(0), unread.MsgCount)
+		require.Equal(t, int64(0), unread.MsgCountRoot)
+
+		r, _ := th.Client.SetPostUnread(u1.Id, rootPost.Id, false)
+		assert.Equal(t, 200, r.StatusCode)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(4), unread.MsgCount)
+		require.Equal(t, int64(1), unread.MsgCountRoot)
+
+		// Ensure that post have been read
+		_, appErr = th.App.ViewChannel(cv, u1.Id, s2.Id, false)
+		require.Nil(t, appErr)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(0), unread.MsgCount)
+		require.Equal(t, int64(0), unread.MsgCountRoot)
+
+		r, _ = th.Client.SetPostUnread(u1.Id, reply2.Id, false)
+		assert.Equal(t, 200, r.StatusCode)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(2), unread.MsgCount)
+		require.Equal(t, int64(0), unread.MsgCountRoot)
 	})
 
 	t.Run("Unread on a private channel", func(t *testing.T) {

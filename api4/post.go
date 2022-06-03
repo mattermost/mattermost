@@ -529,11 +529,9 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	fromPost := r.URL.Query().Get("fromPost")
-	// Either both have to be set, or none have to be set.
-	// Setting one and not setting the other is an error.
-	if (fromPost == "" && fromCreateAt != 0) || (fromPost != "" && fromCreateAt == 0) {
-		c.SetInvalidParam("fromPost/fromCreateAt")
-		return
+	// Either only fromCreateAt must be set, or both fromPost and fromCreateAt must be set
+	if fromPost != "" && fromCreateAt == 0 {
+		c.SetInvalidParam("if fromPost is set, then fromCreatAt must also be set")
 	}
 
 	direction := ""
@@ -644,9 +642,18 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 		includeDeletedChannels = *params.IncludeDeletedChannels
 	}
 
+	modifier := ""
+	if params.Modifier != nil {
+		modifier = *params.Modifier
+	}
+	if modifier != "" && modifier != model.ModifierFiles && modifier != model.ModifierMessages {
+		c.SetInvalidParam("modifier")
+		return
+	}
+
 	startTime := time.Now()
 
-	results, err := c.App.SearchPostsForUser(c.AppContext, terms, c.AppContext.Session().UserId, teamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
+	results, err := c.App.SearchPostsForUser(c.AppContext, terms, c.AppContext.Session().UserId, teamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage, modifier)
 
 	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
 	metrics := c.App.Metrics()

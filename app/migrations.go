@@ -18,6 +18,7 @@ const SystemConsoleRolesCreationMigrationKey = "SystemConsoleRolesCreationMigrat
 const ContentExtractionConfigDefaultTrueMigrationKey = "ContentExtractionConfigDefaultTrueMigrationComplete"
 const PlaybookRolesCreationMigrationKey = "PlaybookRolesCreationMigrationComplete"
 const FirstAdminSetupCompleteKey = model.SystemFirstAdminSetupComplete
+const remainingSchemaMigrationsKey = "RemainingSchemaMigrations"
 
 // This function migrates the default built in roles from code/config to the database.
 func (a *App) DoAdvancedPermissionsMigration() {
@@ -464,7 +465,7 @@ func (s *Server) doFirstAdminSetupCompleteMigration() {
 	}
 
 	// if there are teams, then if this isn't a new installation, there should be posts
-	postCount, err := s.Store.Post().AnalyticsPostCount("", false, false)
+	postCount, err := s.Store.Post().AnalyticsPostCount(&model.PostCountOptions{})
 	if err != nil || postCount < existingInstallationPostsThreshold {
 		return
 	}
@@ -476,6 +477,33 @@ func (s *Server) doFirstAdminSetupCompleteMigration() {
 
 	if err := s.Store.System().Save(&system); err != nil {
 		mlog.Critical("Failed to mark first admin setup migration as completed.", mlog.Err(err))
+	}
+}
+
+func (s *Server) doRemainingSchemaMigrations() {
+	// If the migration is already marked as completed, don't do it again.
+	if _, err := s.Store.System().GetByName(remainingSchemaMigrationsKey); err == nil {
+		return
+	}
+
+	if teams, err := s.Store.Team().GetByEmptyInviteID(); err != nil {
+		mlog.Error("Error fetching Teams without InviteID", mlog.Err(err))
+	} else {
+		for _, team := range teams {
+			team.InviteId = model.NewId()
+			if _, err := s.Store.Team().Update(team); err != nil {
+				mlog.Error("Error updating Team InviteIDs", mlog.String("team_id", team.Id), mlog.Err(err))
+			}
+		}
+	}
+
+	system := model.System{
+		Name:  remainingSchemaMigrationsKey,
+		Value: "true",
+	}
+
+	if err := s.Store.System().Save(&system); err != nil {
+		mlog.Critical("Failed to mark the remaining schema migrations as completed.", mlog.Err(err))
 	}
 }
 
@@ -497,4 +525,5 @@ func (s *Server) doAppMigrations() {
 	s.doContentExtractionConfigDefaultTrueMigration()
 	s.doPlaybooksRolesCreationMigration()
 	s.doFirstAdminSetupCompleteMigration()
+	s.doRemainingSchemaMigrations()
 }
