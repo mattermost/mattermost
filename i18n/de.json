@@ -2644,10 +2644,6 @@
     "translation": "Fehlende erforderliche Reaktionseigenschaft: User."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Antworteigenschaft CreateAt muss größer als CreateAt der übergeordneten Nachricht sein."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Fehlende erforderliche Antworteigenschaft: create_at."
   },
@@ -9329,5 +9325,13 @@
   {
     "id": "app.recent_searches.app_error",
     "translation": "Fehler beim Holen der letzten Suchen"
+  },
+  {
+    "id": "api.cloud.cloud_free_feature_flag_off_error",
+    "translation": "CloudFree Feature Flag ist ausgeschaltet."
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "Du hast das Maximum von {{.NumIntegrations}} aktivierten Integrationen erreicht. Um Integrationen ohne Beschränkungen zu installieren, upgrade auf ein bezahltes Abonnements."
   }
 ]

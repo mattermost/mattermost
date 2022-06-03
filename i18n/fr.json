@@ -2644,10 +2644,6 @@
     "translation": "La propriété requise de réaction est manquante : User."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "La propriété de réponse CreateAt doit être plus grande que la valeur de la propriété CreateAt parente."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "La propriété requise de réponse est manquante : create_at."
   },

@@ -2648,10 +2648,6 @@
     "translation": "Brak wymaganej właściwości: User."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Odpowiedź CreateAt musi być wyższa niż parent post CreateAt."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Brakująca wymagana właściwość odpowiedzi: create_at."
   },
@@ -9326,5 +9322,17 @@
   {
     "id": "api.file.cloud_upload.app_error",
     "translation": "Przesyłanie danych do instancji Chmury za pomocą mmctl nie jest obsługiwane. Proszę sprawdzić dokumentację tutaj: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "Błąd pobierania ostatnich wyszukiwań"
+  },
+  {
+    "id": "api.cloud.cloud_free_feature_flag_off_error",
+    "translation": "Flaga funkcji CloudFree jest wyłączona."
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "Osiągnąłeś maksymalny limit {{.NumIntegrations}} włączonych integracji. Aby zainstalować nieograniczoną liczbę integracji, uaktualnij do jednego z naszych płatnych planów."
   }
 ]

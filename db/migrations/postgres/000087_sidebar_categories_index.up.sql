@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_sidebarcategories_userid_teamid on sidebarcategories (userid, teamid);

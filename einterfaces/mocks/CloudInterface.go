@@ -247,13 +247,13 @@ func (_m *CloudInterface) InvalidateCaches() error {
 	return r0
 }
 
-// RequestCloudTrial provides a mock function with given fields: userID, subscriptionID
-func (_m *CloudInterface) RequestCloudTrial(userID string, subscriptionID string) (*model.Subscription, error) {
-	ret := _m.Called(userID, subscriptionID)
+// RequestCloudTrial provides a mock function with given fields: userID, subscriptionID, newValidBusinessEmail
+func (_m *CloudInterface) RequestCloudTrial(userID string, subscriptionID string, newValidBusinessEmail string) (*model.Subscription, error) {
+	ret := _m.Called(userID, subscriptionID, newValidBusinessEmail)
 
 	var r0 *model.Subscription
-	if rf, ok := ret.Get(0).(func(string, string) *model.Subscription); ok {
-		r0 = rf(userID, subscriptionID)
+	if rf, ok := ret.Get(0).(func(string, string, string) *model.Subscription); ok {
+		r0 = rf(userID, subscriptionID, newValidBusinessEmail)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Subscription)
@@ -261,8 +261,8 @@ func (_m *CloudInterface) RequestCloudTrial(userID string, subscriptionID string
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userID, subscriptionID)
+	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
+		r1 = rf(userID, subscriptionID, newValidBusinessEmail)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -323,6 +323,20 @@ func (_m *CloudInterface) UpdateSubscriptionFromHook(_a0 *model.ProductLimits, _
 	var r0 error
 	if rf, ok := ret.Get(0).(func(*model.ProductLimits, *model.Subscription) error); ok {
 		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ValidateBusinessEmail provides a mock function with given fields: userID, email
+func (_m *CloudInterface) ValidateBusinessEmail(userID string, email string) error {
+	ret := _m.Called(userID, email)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(userID, email)
 	} else {
 		r0 = ret.Error(0)
 	}

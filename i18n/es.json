@@ -2644,10 +2644,6 @@
     "translation": "Falta la propiedad obligatoria de la Reacción: User."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "La propiedad CreateAt debe ser mayor al CreateAt del mensaje padre."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Falta la propiedad de la respuesta: create_at."
   },
