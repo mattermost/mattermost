@@ -571,7 +571,6 @@ func TestImageProxy(t *testing.T) {
 }
 
 func TestMaxPostSize(t *testing.T) {
-	t.Skip("TODO: fix flaky test")
 	t.Parallel()
 
 	testCases := []struct {
@@ -599,8 +598,6 @@ func TestMaxPostSize(t *testing.T) {
 	for _, testCase := range testCases {
 		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
-			t.Parallel()
-
 			mockStore := &storetest.Store{}
 			defer mockStore.AssertExpectations(t)
 
