@@ -760,10 +760,10 @@ func TestGetTopThreadsForUserSince(t *testing.T) {
 	require.Nil(t, appErr)
 	require.Len(t, topUser1Threads.Items, 2)
 	require.Equal(t, topUser1Threads.Items[0].Post.Id, rootPostPrivateChannel.Id)
-	require.Equal(t, topUser1Threads.Items[0].ReplyCount, int64(2))
+	require.Equal(t, topUser1Threads.Items[0].Post.ReplyCount, int64(2))
 	require.Equal(t, topUser1Threads.Items[1].Post.Id, rootPostPublicChannel.Id)
 	require.Contains(t, topUser1Threads.Items[1].Participants, th.BasicUser2.Id)
-	require.Equal(t, topUser1Threads.Items[1].ReplyCount, int64(1))
+	require.Equal(t, topUser1Threads.Items[1].Post.ReplyCount, int64(1))
 
 	client.Logout()
 
@@ -775,7 +775,7 @@ func TestGetTopThreadsForUserSince(t *testing.T) {
 	require.Nil(t, appErr)
 	require.Len(t, topUser2Threads.Items, 1)
 	require.Equal(t, topUser2Threads.Items[0].Post.Id, rootPostPublicChannel.Id)
-	require.Equal(t, topUser2Threads.Items[0].ReplyCount, int64(1))
+	require.Equal(t, topUser2Threads.Items[0].Post.ReplyCount, int64(1))
 
 	// deleting the root post results in the thread not making it to top threads list
 	_, appErr = th.App.DeletePost(rootPostPublicChannel.Id, th.BasicUser.Id)
