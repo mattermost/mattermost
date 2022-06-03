@@ -152,6 +152,17 @@ func TestGetIPAddress(t *testing.T) {
 	}
 
 	assert.Equal(t, "10.1.0.1", GetIPAddress(&httpRequest10, []string{"X-Real-Ip", "X-Forwarded-For"}))
+
+	// Test with multiple IPs in the X-Forwarded-For with no spaces
+	httpRequest11 := http.Request{
+		Header: http.Header{
+			"X-Forwarded-For": []string{"10.0.0.1,10.0.0.2,10.0.0.3"},
+			"X-Real-Ip":       []string{"10.1.0.1"},
+		},
+		RemoteAddr: "10.2.0.1:12345",
+	}
+
+	assert.Equal(t, "10.0.0.1", GetIPAddress(&httpRequest11, []string{"X-Forwarded-For"}))
 }
 
 func TestRemoveStringFromSlice(t *testing.T) {
