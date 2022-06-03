@@ -18,6 +18,8 @@ const (
 
 	PostsByHour PostCountGrouping = "hour"
 	PostsByDay  PostCountGrouping = "day"
+
+	iso8601DayFormat = "2006-01-02"
 )
 
 type InsightsOpts struct {
@@ -115,9 +117,11 @@ func ToDailyPostCountViewModel(dpc []*DurationPostCount, unixStartMillis int64, 
 
 	startTime := time.Unix(unixStartMillis/1000, 0)
 
+	utcCurrentHour := time.Now().UTC().Hour()
+
 	if numDays == 1 {
-		dayISO8601 := startTime.Format("2006-01-02")
-		for i := 0; i <= 23; i++ {
+		dayISO8601 := startTime.Format(iso8601DayFormat)
+		for i := 0; i <= utcCurrentHour; i++ {
 			blankChannelCounts := map[string]int{}
 			for _, id := range channelIDs {
 				blankChannelCounts[id] = 0
@@ -130,7 +134,7 @@ func ToDailyPostCountViewModel(dpc []*DurationPostCount, unixStartMillis int64, 
 			for _, id := range channelIDs {
 				blankChannelCounts[id] = 0
 			}
-			dayKey := startTime.AddDate(0, 0, i).Format("2006-01-02")
+			dayKey := startTime.AddDate(0, 0, i).Format(iso8601DayFormat)
 			viewModel[dayKey] = blankChannelCounts
 		}
 	}

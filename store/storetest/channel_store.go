@@ -148,7 +148,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("UpdateSidebarChannelsByPreferences", func(t *testing.T) { testUpdateSidebarChannelsByPreferences(t, ss) })
 	t.Run("SetShared", func(t *testing.T) { testSetShared(t, ss) })
 	t.Run("GetTeamForChannel", func(t *testing.T) { testGetTeamForChannel(t, ss) })
-	t.Run("PostCountsByDuration", func(t *testing.T) { testChannelPostCountsByDay(t, ss) })
+	t.Run("PostCountsByDuration", func(t *testing.T) { testChannelPostCountsByDuration(t, ss) })
 }
 
 func testChannelStoreSave(t *testing.T, ss store.Store) {
@@ -7906,7 +7906,7 @@ func testGetTeamForChannel(t *testing.T, ss store.Store) {
 	require.True(t, errors.As(err, &nfErr))
 }
 
-func testChannelPostCountsByDay(t *testing.T, ss store.Store) {
+func testChannelPostCountsByDuration(t *testing.T, ss store.Store) {
 	team, err := ss.Team().Save(&model.Team{
 		Name:        model.NewId(),
 		DisplayName: "DisplayName",
