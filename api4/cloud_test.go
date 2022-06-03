@@ -157,7 +157,7 @@ func Test_requestTrial(t *testing.T) {
 		IsPaidTier: "false",
 	}
 
-	newValidBusinessEmail := model.ValidateBusinessEmailRequest{Email: ""}
+	newValidBusinessEmail := model.StartCloudTrialRequest{Email: ""}
 
 	t.Run("NON Admin users are UNABLE to request the trial", func(t *testing.T) {
 		th := Setup(t).InitBasic()
