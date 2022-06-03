@@ -604,23 +604,34 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 		query = query.OrderBy("CreateAt " + sort + ", Id " + sort)
 	}
 
-	if opts.FromPost != "" && opts.FromCreateAt != 0 {
+	if opts.FromCreateAt != 0 {
 		if opts.Direction == "down" {
-			query = query.Where(sq.Or{
-				sq.Gt{"Posts.CreateAt": opts.FromCreateAt},
-				sq.And{
-					sq.Eq{"Posts.CreateAt": opts.FromCreateAt},
-					sq.Gt{"Posts.Id": opts.FromPost},
-				},
-			})
+			direction := sq.Gt{"Posts.CreateAt": opts.FromCreateAt}
+			if opts.FromPost != "" {
+				query = query.Where(sq.Or{
+					direction,
+					sq.And{
+						sq.Eq{"Posts.CreateAt": opts.FromCreateAt},
+						sq.Gt{"Posts.Id": opts.FromPost},
+					},
+				})
+			} else {
+				query = query.Where(direction)
+			}
 		} else {
-			query = query.Where(sq.Or{
-				sq.Lt{"Posts.CreateAt": opts.FromCreateAt},
-				sq.And{
-					sq.Eq{"Posts.CreateAt": opts.FromCreateAt},
-					sq.Lt{"Posts.Id": opts.FromPost},
-				},
-			})
+			direction := sq.Lt{"Posts.CreateAt": opts.FromCreateAt}
+			if opts.FromPost != "" {
+				query = query.Where(sq.Or{
+					direction,
+					sq.And{
+						sq.Eq{"Posts.CreateAt": opts.FromCreateAt},
+						sq.Lt{"Posts.Id": opts.FromPost},
+					},
+				})
+
+			} else {
+				query = query.Where(direction)
+			}
 		}
 	}
 
@@ -715,23 +726,34 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOp
 			query = query.OrderBy("CreateAt " + sort + ", Id " + sort)
 		}
 
-		if opts.FromPost != "" && opts.FromCreateAt != 0 {
+		if opts.FromCreateAt != 0 {
 			if opts.Direction == "down" {
-				query = query.Where(sq.Or{
-					sq.Gt{"p.CreateAt": opts.FromCreateAt},
-					sq.And{
-						sq.Eq{"p.CreateAt": opts.FromCreateAt},
-						sq.Gt{"p.Id": opts.FromPost},
-					},
-				})
+				direction := sq.Gt{"p.CreateAt": opts.FromCreateAt}
+				if opts.FromPost != "" {
+					query = query.Where(sq.Or{
+						direction,
+						sq.And{
+							sq.Eq{"p.CreateAt": opts.FromCreateAt},
+							sq.Gt{"p.Id": opts.FromPost},
+						},
+					})
+				} else {
+					query = query.Where(direction)
+				}
 			} else {
-				query = query.Where(sq.Or{
-					sq.Lt{"p.CreateAt": opts.FromCreateAt},
-					sq.And{
-						sq.Eq{"p.CreateAt": opts.FromCreateAt},
-						sq.Lt{"p.Id": opts.FromPost},
-					},
-				})
+				direction := sq.Lt{"p.CreateAt": opts.FromCreateAt}
+				if opts.FromPost != "" {
+					query = query.Where(sq.Or{
+						direction,
+						sq.And{
+							sq.Eq{"p.CreateAt": opts.FromCreateAt},
+							sq.Lt{"p.Id": opts.FromPost},
+						},
+					})
+
+				} else {
+					query = query.Where(direction)
+				}
 			}
 		}
 
@@ -1049,6 +1071,7 @@ func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended,
 			return nil, err
 		}
 		for _, user := range users {
+			user.SanitizeProfile(map[string]bool{})
 			usersMap[user.Id] = user
 		}
 	} else {
@@ -2137,6 +2160,13 @@ func (s *SqlPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int6
 		query = query.
 			Join("Channels c ON (c.Id = p.ChannelId)").
 			Where(sq.Eq{"c.TeamId": options.TeamId})
+	}
+
+	if options.UsersPostsOnly {
+		query = query.Where(sq.And{
+			sq.Eq{"p.Type": ""},
+			sq.Expr("p.UserId NOT IN (SELECT UserId FROM Bots)"),
+		})
 	}
 
 	if options.MustHaveFile {

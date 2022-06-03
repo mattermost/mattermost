@@ -1118,6 +1118,10 @@ func (a *App) importReplies(c *request.Context, data []ReplyImportData, post *mo
 		reply.RootId = post.Id
 		reply.Message = *replyData.Message
 		reply.CreateAt = *replyData.CreateAt
+		if reply.CreateAt < post.CreateAt {
+			mlog.Warn("Reply CreateAt is before parent post CreateAt, setting it to parent post CreateAt", mlog.Int64("reply_create_at", reply.CreateAt), mlog.Int64("parent_create_at", post.CreateAt))
+			reply.CreateAt = post.CreateAt
+		}
 		if replyData.Type != nil {
 			reply.Type = *replyData.Type
 		}
@@ -1863,7 +1867,8 @@ func (a *App) importEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
 	}
 	defer file.Close()
 
-	if _, err := a.WriteFile(file, getEmojiImagePath(emoji.Id)); err != nil {
+	reader := utils.NewLimitedReaderWithError(file, MaxEmojiFileSize)
+	if _, err := a.WriteFile(reader, getEmojiImagePath(emoji.Id)); err != nil {
 		return err
 	}
 
