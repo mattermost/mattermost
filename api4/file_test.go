@@ -457,7 +457,7 @@ func TestUploadFiles(t *testing.T) {
 		{
 			title:                    "Webp image",
 			names:                    []string{"testwebp.webp"},
-			expectImage:              false,
+			expectImage:              true,
 			expectedImageWidths:      []int{128},
 			expectedImageHeights:     []int{256},
 			expectedImageHasPreview:  []bool{true},
