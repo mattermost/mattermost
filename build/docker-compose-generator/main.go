@@ -23,28 +23,22 @@ type Container struct {
 	DependsOn []string `yaml:"depends_on,omitempty"`
 }
 
+var validServices = map[string]int{
+	"mysql":              3306,
+	"postgres":           5432,
+	"minio":              9000,
+	"inbucket":           9001,
+	"openldap":           389,
+	"elasticsearch":      9200,
+	"dejavu":             1358,
+	"keycloak":           8080,
+	"prometheus":         9090,
+	"grafana":            3000,
+	"mysql-read-replica": 3306, // FIXME: not recognizing the successfully running service on port 3307.
+}
+
 func main() {
-	validServices := map[string]int{
-		"mysql":              3306,
-		"postgres":           5432,
-		"minio":              9000,
-		"inbucket":           9001,
-		"openldap":           389,
-		"elasticsearch":      9200,
-		"dejavu":             1358,
-		"keycloak":           8080,
-		"prometheus":         9090,
-		"grafana":            3000,
-		"mysql-read-replica": 3306, // FIXME: not recognizing the successfully running service on port 3307.
-	}
-	command := []string{}
-	for _, arg := range os.Args[1:] {
-		port, ok := validServices[arg]
-		if !ok {
-			panic(fmt.Sprintf("Unknown service %s", arg))
-		}
-		command = append(command, fmt.Sprintf("%s:%d", arg, port))
-	}
+	command, dependsOn := parseArgs(os.Args[1:])
 
 	var dockerCompose DockerCompose
 	dockerCompose.Version = "2.4"
@@ -52,7 +46,7 @@ func main() {
 	dockerCompose.Services["start_dependencies"] = &Container{
 		Image:     "mattermost/mattermost-wait-for-dep:latest",
 		Network:   []string{"mm-test"},
-		DependsOn: os.Args[1:],
+		DependsOn: dependsOn,
 		Command:   strings.Join(command, " "),
 	}
 	resultData, err := yaml.Marshal(dockerCompose)
@@ -60,4 +54,39 @@ func main() {
 		panic(fmt.Sprintf("Unable to serialize the docker-compose file: %s.", err.Error()))
 	}
 	fmt.Println(string(resultData))
+}
+
+func parseArgs(args []string) (command, dependsOn []string) {
+	// first we search for skipped services
+	var skipped []string
+	if i := find(args, "--skip"); i >= 0 {
+		skipped = args[i+1:]
+		args = args[:i]
+	}
+
+	// then we create our command and dependencies lists
+	for _, arg := range args {
+		port, ok := validServices[arg]
+		if !ok {
+			panic(fmt.Sprintf("Unknown service %s", arg))
+		}
+
+		if find(skipped, arg) >= 0 {
+			continue
+		}
+
+		command = append(command, fmt.Sprintf("%s:%d", arg, port))
+		dependsOn = append(dependsOn, arg)
+	}
+
+	return command, dependsOn
+}
+
+func find(haystack []string, needle string) int {
+	for i, s := range haystack {
+		if s == needle {
+			return i
+		}
+	}
+	return -1
 }
