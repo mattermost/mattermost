@@ -1339,6 +1339,46 @@ func TestSearchChannels(t *testing.T) {
 		}
 		require.NotContains(t, channelNames, th.BasicChannel.Name)
 	})
+
+	t.Run("Guests only receive autocompletion for which accounts they are a member of", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense(""))
+		defer th.App.Srv().SetLicense(nil)
+
+		enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.GuestAccountsSettings.Enable = &enableGuestAccounts })
+		}()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+
+		guest := th.CreateUser()
+		_, appErr := th.SystemAdminClient.DemoteUserToGuest(guest.Id)
+		require.NoError(t, appErr)
+
+		_, resp, err := th.SystemAdminClient.AddTeamMember(th.BasicTeam.Id, guest.Id)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		_, resp, err = client.Login(guest.Username, guest.Password)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		search.Term = th.BasicChannel2.Name
+		channelList, _, err := client.SearchChannels(th.BasicTeam.Id, search)
+		require.NoError(t, err)
+
+		require.Empty(t, channelList)
+
+		_, resp, err = th.SystemAdminClient.AddChannelMember(th.BasicChannel2.Id, guest.Id)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		search.Term = th.BasicChannel2.Name
+		channelList, _, err = client.SearchChannels(th.BasicTeam.Id, search)
+		require.NoError(t, err)
+
+		require.NotEmpty(t, channelList)
+		require.Equal(t, th.BasicChannel2.Id, channelList[0].Id)
+	})
 }
 
 func TestSearchArchivedChannels(t *testing.T) {

@@ -101,9 +101,9 @@ func GetIPAddress(r *http.Request, trustedProxyIPHeader []string) string {
 	for _, proxyHeader := range trustedProxyIPHeader {
 		header := r.Header.Get(proxyHeader)
 		if header != "" {
-			addresses := strings.Fields(header)
+			addresses := strings.Split(header, ",")
 			if len(addresses) > 0 {
-				address = strings.TrimRight(addresses[0], ",")
+				address = strings.TrimSpace(addresses[0])
 			}
 		}
 
