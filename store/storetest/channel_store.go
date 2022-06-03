@@ -5900,7 +5900,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 
 	for _, testCase := range testCases {
 		t.Run("AutoCompleteInTeam/"+testCase.Description, func(t *testing.T) {
-			channels, err := ss.Channel().AutocompleteInTeam(testCase.TeamID, testCase.UserID, testCase.Term, testCase.IncludeDeleted)
+			channels, err := ss.Channel().AutocompleteInTeam(testCase.TeamID, testCase.UserID, testCase.Term, testCase.IncludeDeleted, false)
 			require.NoError(t, err)
 			sort.Sort(ByChannelDisplayName(channels))
 			require.Equal(t, testCase.ExpectedResults, channels)
@@ -5945,6 +5945,15 @@ func testAutocomplete(t *testing.T, ss store.Store) {
 		Type:        model.ChannelTypeOpen,
 	}
 	_, err = ss.Channel().Save(&o2, -1)
+	require.NoError(t, err)
+
+	o6 := model.Channel{
+		TeamId:      teamID,
+		DisplayName: "ChannelA3",
+		Name:        NewTestId(),
+		Type:        model.ChannelTypeOpen,
+	}
+	_, err = ss.Channel().Save(&o6, -1)
 	require.NoError(t, err)
 
 	m1 := model.ChannelMember{
@@ -6064,20 +6073,22 @@ func testAutocomplete(t *testing.T, ss store.Store) {
 		UserID             string
 		Term               string
 		IncludeDeleted     bool
+		IsGuest            bool
 		ExpectedChannelIds []string
 		ExpectedTeamNames  []string
 	}{
-		{"user 1, Channel A", m1.UserId, "ChannelA", false, []string{o1.Id, o2.Id}, []string{t1.Name, t2.Name}},
-		{"user 1, Channel B", m1.UserId, "ChannelB", false, []string{o4.Id}, []string{t2.Name}},
-		{"user 2, Channel A", m3.UserId, "ChannelA", false, []string{o3.Id, o1.Id, o2.Id}, []string{t2.Name, t1.Name, t1.Name}},
-		{"user 2, Channel B", m3.UserId, "ChannelB", false, nil, nil},
-		{"user 1, empty string", m1.UserId, "", false, []string{o1.Id, o2.Id, o4.Id}, []string{t1.Name, t2.Name, t2.Name}},
-		{"user 2, empty string", m3.UserId, "", false, []string{o1.Id, o2.Id, o3.Id}, []string{t1.Name, t2.Name, t1.Name}},
+		{"user 1, Channel A", m1.UserId, "ChannelA", false, false, []string{o1.Id, o2.Id, o6.Id}, []string{t1.Name, t2.Name, t1.Name}},
+		{"user 1, Channel B", m1.UserId, "ChannelB", false, false, []string{o4.Id}, []string{t2.Name}},
+		{"user 2, Channel A", m3.UserId, "ChannelA", false, false, []string{o3.Id, o1.Id, o2.Id, o6.Id}, []string{t2.Name, t1.Name, t1.Name, t1.Name}},
+		{"user 2 guest, Channel A", m3.UserId, "ChannelA", false, true, []string{o2.Id, o3.Id}, []string{t2.Name, t1.Name}},
+		{"user 2, Channel B", m3.UserId, "ChannelB", false, false, nil, nil},
+		{"user 1, empty string", m1.UserId, "", false, false, []string{o1.Id, o2.Id, o4.Id, o6.Id}, []string{t1.Name, t2.Name, t2.Name, t1.Name}},
+		{"user 2, empty string", m3.UserId, "", false, false, []string{o1.Id, o2.Id, o3.Id, o6.Id}, []string{t1.Name, t2.Name, t1.Name, t1.Name}},
 	}
 
 	for _, testCase := range testCases {
 		t.Run("Autocomplete/"+testCase.Description, func(t *testing.T) {
-			channels, err := ss.Channel().Autocomplete(testCase.UserID, testCase.Term, testCase.IncludeDeleted)
+			channels, err := ss.Channel().Autocomplete(testCase.UserID, testCase.Term, testCase.IncludeDeleted, testCase.IsGuest)
 			require.NoError(t, err)
 			var gotChannelIds []string
 			var gotTeamNames []string
@@ -6085,8 +6096,8 @@ func testAutocomplete(t *testing.T, ss store.Store) {
 				gotChannelIds = append(gotChannelIds, ch.Id)
 				gotTeamNames = append(gotTeamNames, ch.TeamName)
 			}
-			require.ElementsMatch(t, testCase.ExpectedChannelIds, gotChannelIds)
-			require.ElementsMatch(t, testCase.ExpectedTeamNames, gotTeamNames)
+			require.ElementsMatch(t, testCase.ExpectedChannelIds, gotChannelIds, "channels IDs are not as expected")
+			require.ElementsMatch(t, testCase.ExpectedTeamNames, gotTeamNames, "team names are not as expected")
 		})
 	}
 }

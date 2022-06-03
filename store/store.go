@@ -7,6 +7,7 @@ package store
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -66,6 +67,12 @@ type Store interface {
 	GetDBSchemaVersion() (int, error)
 	GetAppliedMigrations() ([]model.AppliedMigration, error)
 	GetDbVersion(numerical bool) (string, error)
+	// GetInternalMasterDB allows access to the raw master DB
+	// handle for the multi-product architecture.
+	GetInternalMasterDB() *sql.DB
+	// GetInternalReplicaDBs allows access to the raw replica DB
+	// handles for the multi-product architecture.
+	GetInternalReplicaDBs() []*sql.DB
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
@@ -115,6 +122,7 @@ type TeamStore interface {
 	GetAllTeamListing() ([]*model.Team, error)
 	GetTeamsByUserId(userID string) ([]*model.Team, error)
 	GetByInviteId(inviteID string) (*model.Team, error)
+	GetByEmptyInviteID() ([]*model.Team, error)
 	PermanentDelete(teamID string) error
 	AnalyticsTeamCount(opts *model.TeamSearch) (int64, error)
 	SaveMultipleMembers(members []*model.TeamMember, maxUsersPerTeam int) ([]*model.TeamMember, error)
@@ -235,8 +243,8 @@ type ChannelStore interface {
 	GetTeamMembersForChannel(channelID string) ([]string, error)
 	GetMembersForUserWithPagination(userID string, page, perPage int) (model.ChannelMembersWithTeamData, error)
 	GetMembersForUserWithCursor(userID, teamID string, opts *ChannelMemberGraphQLSearchOpts) (model.ChannelMembers, error)
-	Autocomplete(userID, term string, includeDeleted bool) (model.ChannelListWithTeamData, error)
-	AutocompleteInTeam(teamID, userID, term string, includeDeleted bool) (model.ChannelList, error)
+	Autocomplete(userID, term string, includeDeleted, isGuest bool) (model.ChannelListWithTeamData, error)
+	AutocompleteInTeam(teamID, userID, term string, includeDeleted, isGuest bool) (model.ChannelList, error)
 	AutocompleteInTeamForSearch(teamID string, userID string, term string, includeDeleted bool) (model.ChannelList, error)
 	SearchAllChannels(term string, opts ChannelSearchOpts) (model.ChannelListWithTeamData, int64, error)
 	SearchInTeam(teamID string, term string, includeDeleted bool) (model.ChannelList, error)
@@ -667,6 +675,7 @@ type FileInfoStore interface {
 	CountAll() (int64, error)
 	GetFilesBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.FileForIndexing, error)
 	ClearCaches()
+	GetStorageUsage(allowFromCache, includeDeleted bool) (int64, error)
 }
 
 type UploadSessionStore interface {

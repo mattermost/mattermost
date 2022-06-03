@@ -619,11 +619,11 @@ func (s *RetryLayerChannelStore) AnalyticsTypeCount(teamID string, channelType m
 
 }
 
-func (s *RetryLayerChannelStore) Autocomplete(userID string, term string, includeDeleted bool) (model.ChannelListWithTeamData, error) {
+func (s *RetryLayerChannelStore) Autocomplete(userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelListWithTeamData, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.Autocomplete(userID, term, includeDeleted)
+		result, err := s.ChannelStore.Autocomplete(userID, term, includeDeleted, isGuest)
 		if err == nil {
 			return result, nil
 		}
@@ -640,11 +640,11 @@ func (s *RetryLayerChannelStore) Autocomplete(userID string, term string, includ
 
 }
 
-func (s *RetryLayerChannelStore) AutocompleteInTeam(teamID string, userID string, term string, includeDeleted bool) (model.ChannelList, error) {
+func (s *RetryLayerChannelStore) AutocompleteInTeam(teamID string, userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelList, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.AutocompleteInTeam(teamID, userID, term, includeDeleted)
+		result, err := s.ChannelStore.AutocompleteInTeam(teamID, userID, term, includeDeleted, isGuest)
 		if err == nil {
 			return result, nil
 		}
@@ -3846,6 +3846,27 @@ func (s *RetryLayerFileInfoStore) GetFromMaster(id string) (*model.FileInfo, err
 	tries := 0
 	for {
 		result, err := s.FileInfoStore.GetFromMaster(id)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerFileInfoStore) GetStorageUsage(allowFromCache bool, includeDeleted bool) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.FileInfoStore.GetStorageUsage(allowFromCache, includeDeleted)
 		if err == nil {
 			return result, nil
 		}
@@ -9846,6 +9867,27 @@ func (s *RetryLayerTeamStore) GetAllTeamListing() ([]*model.Team, error) {
 	tries := 0
 	for {
 		result, err := s.TeamStore.GetAllTeamListing()
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerTeamStore) GetByEmptyInviteID() ([]*model.Team, error) {
+
+	tries := 0
+	for {
+		result, err := s.TeamStore.GetByEmptyInviteID()
 		if err == nil {
 			return result, nil
 		}

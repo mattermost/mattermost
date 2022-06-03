@@ -2396,10 +2396,6 @@
     "translation": "Hiányzó kötelező válasz tulajdonság: create_at."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Válasz CreateAt tulajdonságának nagyobbnak kell lennie, mint a szülő bejegyzés CreateAt értéke."
-  },
-  {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
     "translation": "Hiányzó kötelező reakció tulajdonság: User."
   },

@@ -7,6 +7,15 @@ type PostsUsage struct {
 	Count int64 `json:"count"`
 }
 
+type StorageUsage struct {
+	Bytes int64 `json:"bytes"`
+}
+
+type TeamsUsage struct {
+	Active        int64 `json:"active"`
+	CloudArchived int64 `json:"cloud_archived"`
+}
+
 type IntegrationsUsage struct {
 	Enabled int `json:"enabled"`
 }

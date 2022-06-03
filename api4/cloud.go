@@ -44,6 +44,9 @@ func (api *API) InitCloud() {
 	// GET /api/v4/cloud/request-trial
 	api.BaseRoutes.Cloud.Handle("/request-trial", api.APISessionRequired(requestCloudTrial)).Methods("PUT")
 
+	// GET /api/v4/cloud/validate-business-email
+	api.BaseRoutes.Cloud.Handle("/validate-business-email", api.APISessionRequired(validateBusinessEmail)).Methods("POST")
+
 	// POST /api/v4/cloud/webhook
 	api.BaseRoutes.Cloud.Handle("/webhook", api.CloudAPIKeyRequired(handleCWSWebhook)).Methods("POST")
 }
@@ -146,7 +149,21 @@ func requestCloudTrial(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	changedSub, err := c.App.Cloud().RequestCloudTrial(c.AppContext.Session().UserId, currentSubscription.ID)
+	// check if the email needs to be set
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// this value will not be empty when both emails (user admin and CWS customer) are not business email and
+	// we need to request a new email from the user via the request business email modal
+	var newValidBusinessEmail *model.ValidateBusinessEmailRequest
+	if err = json.Unmarshal(bodyBytes, &newValidBusinessEmail); err != nil {
+		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	changedSub, err := c.App.Cloud().RequestCloudTrial(c.AppContext.Session().UserId, currentSubscription.ID, newValidBusinessEmail.Email)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
@@ -159,6 +176,48 @@ func requestCloudTrial(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(json)
+}
+
+func validateBusinessEmail(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
+		c.Err = model.NewAppError("Api4.validateBusinessEmail", "api.cloud.license_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteBilling) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteBilling)
+		return
+	}
+
+	user, userErr := c.App.GetUser(c.AppContext.Session().UserId)
+	if userErr != nil {
+		c.Err = model.NewAppError("Api4.validateBusinessEmail", "api.cloud.request_error", nil, "", http.StatusInternalServerError)
+		return
+	}
+
+	// validate current userAdmin email
+	errValidatingAdminEmail := c.App.Cloud().ValidateBusinessEmail(user.Id, user.Email)
+
+	// if the current admin email is not a valid email
+	if errValidatingAdminEmail != nil {
+
+		// get the cloud customer email
+		cloudCustomer, err := c.App.Cloud().GetCloudCustomer(user.Id)
+		if err != nil {
+			c.Err = model.NewAppError("Api4.valiateBusinessEmail", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// and validate that one
+		errValidatingSystemEmail := c.App.Cloud().ValidateBusinessEmail(user.Id, cloudCustomer.Email)
+		if errValidatingSystemEmail != nil {
+			c.Err = model.NewAppError("Api4.valiateBusinessEmail", "api.cloud.request_error", nil, errValidatingSystemEmail.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// if the email is valid, return ok
+	ReturnStatusOK(w)
 }
 
 func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {

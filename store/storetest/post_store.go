@@ -2163,7 +2163,7 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, r2, int64(2))
 
-	// total across teams with hastags and files
+	// total across teams with hashtags and files
 	r2, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{MustHaveFile: true, MustHaveHashtag: true})
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, r2, int64(1))
@@ -2176,6 +2176,11 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	r2, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id, ExcludeDeleted: true})
 	require.NoError(t, err)
 	assert.Equal(t, int64(5), r2)
+
+	// total users only posts for single team with the deleted post excluded
+	r2, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id, ExcludeDeleted: true, UsersPostsOnly: true})
+	require.NoError(t, err)
+	assert.Equal(t, int64(3), r2)
 }
 
 func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlStore) {
