@@ -7,6 +7,7 @@ package store
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -66,6 +67,12 @@ type Store interface {
 	GetDBSchemaVersion() (int, error)
 	GetAppliedMigrations() ([]model.AppliedMigration, error)
 	GetDbVersion(numerical bool) (string, error)
+	// GetInternalMasterDB allows access to the raw master DB
+	// handle for the multi-product architecture.
+	GetInternalMasterDB() *sql.DB
+	// GetInternalReplicaDBs allows access to the raw replica DB
+	// handles for the multi-product architecture.
+	GetInternalReplicaDBs() []*sql.DB
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
@@ -667,6 +674,7 @@ type FileInfoStore interface {
 	CountAll() (int64, error)
 	GetFilesBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.FileForIndexing, error)
 	ClearCaches()
+	GetStorageUsage(allowFromCache, includeDeleted bool) (int64, error)
 }
 
 type UploadSessionStore interface {
