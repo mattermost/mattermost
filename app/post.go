@@ -1296,10 +1296,33 @@ func (a *App) convertUserNameToUserIds(usernames []string) []string {
 	return usernames
 }
 
+func (a *App) addSearchLimits(paramsList []*model.SearchParams) *model.AppError {
+	limits, err := a.Cloud().GetCloudLimits("")
+	if err != nil {
+		return model.NewAppError("addSearchLimits", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if limits == nil || limits.Messages == nil || limits.Messages.History == nil {
+		// Cloud limit is not applicable
+		return nil
+	}
+
+	for _, params := range paramsList {
+		params.PostsLimit = int64(*limits.Messages.History)
+	}
+
+	return nil
+}
+
 func (a *App) SearchPostsInTeam(teamID string, paramsList []*model.SearchParams) (*model.PostList, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnablePostSearch {
 		return nil, model.NewAppError("SearchPostsInTeam", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v", teamID), http.StatusNotImplemented)
 	}
+
+	if appErr := a.addSearchLimits(paramsList); appErr != nil {
+		return nil, model.NewAppError("SearchPostsInTeam", "app.post.search.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+	}
+
 	return a.searchPostsInTeam(teamID, "", paramsList, func(params *model.SearchParams) {
 		params.SearchWithoutUserId = true
 	})
@@ -1340,6 +1363,10 @@ func (a *App) SearchPostsForUser(c *request.Context, terms string, userID string
 	// If the processed search params are empty, return empty search results.
 	if len(finalParamsList) == 0 {
 		return model.MakePostSearchResults(model.NewPostList(), nil), nil
+	}
+
+	if appErr := a.addSearchLimits(finalParamsList); appErr != nil {
+		return nil, model.NewAppError("SearchPostsForUser", "app.post.search.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
 	postSearchResults, nErr := a.Srv().Store.Post().SearchPostsForUser(finalParamsList, userID, teamID, page, perPage)

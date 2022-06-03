@@ -35,6 +35,8 @@ type SearchParams struct {
 	// True if this search doesn't originate from a "current user".
 	SearchWithoutUserId bool   `json:"search_without_userid,omitempty"`
 	Modifier            string `json:"modifier"`
+	// PostsLimit search posts upto last "n" posts
+	PostsLimit int64 `json:"-"`
 }
 
 // Returns the epoch timestamp of the start of the day specified by SearchParams.AfterDate
