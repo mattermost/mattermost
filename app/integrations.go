@@ -73,6 +73,10 @@ func (a *App) checkIfIntegrationsMeetFreemiumLimits(originalPluginIds []string) 
 		return nil
 	}
 
+	if a.License() == nil || !*a.License().Features.Cloud {
+		return nil
+	}
+
 	pluginIds := map[string]bool{}
 	for _, pluginId := range originalPluginIds {
 		if _, ok := model.InstalledIntegrationsIgnoredPlugins[pluginId]; !ok {
