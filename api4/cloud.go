@@ -191,7 +191,30 @@ func validateBusinessEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// validate current userAdmin email
+	// if an email was sent as a body param, validate it and return wether is valid or not
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var emailToValidate *model.ValidateBusinessEmailRequest
+	if err := json.Unmarshal(bodyBytes, &emailToValidate); err != nil {
+		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if emailToValidate.Email != "" {
+		errValidatingEmail := c.App.Cloud().ValidateBusinessEmail(user.Id, emailToValidate.Email)
+		if errValidatingEmail != nil {
+			c.Err = model.NewAppError("Api4.valiateBusinessEmail", "api.cloud.request_error", nil, errValidatingEmail.Error(), http.StatusInternalServerError)
+			return
+		}
+		ReturnStatusOK(w)
+		return
+	}
+
+	// If no email was sent as body param, then validate current userAdmin email
 	errValidatingAdminEmail := c.App.Cloud().ValidateBusinessEmail(user.Id, user.Email)
 
 	// if the current admin email is not a valid email
@@ -212,7 +235,7 @@ func validateBusinessEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// if the email is valid, return ok
+	// if any of the emails is valid, return ok
 	ReturnStatusOK(w)
 }
 
