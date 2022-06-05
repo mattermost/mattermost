@@ -293,6 +293,8 @@ func Test_validateBusinessEmail(t *testing.T) {
 
 		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 
+		validateBusinessEmail := model.ValidateBusinessEmailRequest{Email: ""}
+
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
 		cloud := mocks.CloudInterface{}
@@ -307,7 +309,7 @@ func Test_validateBusinessEmail(t *testing.T) {
 		}()
 		th.App.Srv().Cloud = &cloud
 
-		_, err := th.Client.ValidateBusinessEmail()
+		_, err := th.Client.ValidateBusinessEmail(&validateBusinessEmail)
 		require.Error(t, err)
 	})
 }
