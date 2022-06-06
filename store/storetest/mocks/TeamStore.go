@@ -236,6 +236,29 @@ func (_m *TeamStore) GetAllTeamListing() ([]*model.Team, error) {
 	return r0, r1
 }
 
+// GetByEmptyInviteID provides a mock function with given fields:
+func (_m *TeamStore) GetByEmptyInviteID() ([]*model.Team, error) {
+	ret := _m.Called()
+
+	var r0 []*model.Team
+	if rf, ok := ret.Get(0).(func() []*model.Team); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Team)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetByInviteId provides a mock function with given fields: inviteID
 func (_m *TeamStore) GetByInviteId(inviteID string) (*model.Team, error) {
 	ret := _m.Called(inviteID)

@@ -62,6 +62,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		c.Err = model.NewAppError("getConfig", "api.config.get_config.restricted_merge.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	auditRec.Success()
@@ -137,6 +138,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	})
 	if err1 != nil {
 		c.Err = model.NewAppError("updateConfig", "api.config.update_config.restricted_merge.app_error", nil, err1.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	// Do not allow plugin uploads to be toggled through the API
@@ -159,10 +161,13 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// There are some settings that cannot be changed in a cloud env
 	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
-		// Both of them cannot be nil since cfg.SetDefaults is called earlier for cfg,
-		// and appCfg is the existing earlier config and if it's nil, server sets a default value.
-		if *appCfg.ComplianceSettings.Directory != *cfg.ComplianceSettings.Directory {
-			c.Err = model.NewAppError("updateConfig", "api.config.update_config.not_allowed_security.app_error", map[string]interface{}{"Name": "ComplianceSettings.Directory"}, "", http.StatusForbidden)
+		diffs, diffErr := config.DiffTags(appCfg, cfg, "access", "cloud_restrictable")
+		if diffErr != nil {
+			c.Err = model.NewAppError("updateConfig", "api.config.update_config.diff.app_error", nil, diffErr.Error(), http.StatusInternalServerError)
+			return
+		}
+		if len(diffs) > 0 {
+			c.Err = model.NewAppError("updateConfig", "api.config.update_config.not_allowed_security.app_error", map[string]interface{}{"Name": diffs[0].Path}, "", http.StatusForbidden)
 			return
 		}
 	}
@@ -195,7 +200,8 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if mergeErr != nil {
-		c.Err = model.NewAppError("updateConfig", "api.config.update_config.restricted_merge.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("updateConfig", "api.config.update_config.restricted_merge.app_error", nil, mergeErr.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	auditRec.Success()
@@ -296,14 +302,6 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// There are some settings that cannot be changed in a cloud env
-	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
-		if cfg.ComplianceSettings.Directory != nil && *appCfg.ComplianceSettings.Directory != *cfg.ComplianceSettings.Directory {
-			c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]interface{}{"Name": "ComplianceSettings.Directory"}, "", http.StatusForbidden)
-			return
-		}
-	}
-
 	if cfg.MessageExportSettings.EnableExport != nil {
 		c.App.HandleMessageExportConfig(cfg, appCfg)
 	}
@@ -315,6 +313,19 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	if mergeErr != nil {
 		c.Err = model.NewAppError("patchConfig", "api.config.update_config.restricted_merge.app_error", nil, mergeErr.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	// There are some settings that cannot be changed in a cloud env
+	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
+		diffs, diffErr := config.DiffTags(appCfg, updatedCfg, "access", "cloud_restrictable")
+		if diffErr != nil {
+			c.Err = model.NewAppError("patchConfig", "api.config.update_config.diff.app_error", nil, diffErr.Error(), http.StatusInternalServerError)
+			return
+		}
+		if len(diffs) > 0 {
+			c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]interface{}{"Name": diffs[0].Path}, "", http.StatusForbidden)
+			return
+		}
 	}
 
 	err := updatedCfg.IsValid()
@@ -346,7 +357,8 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if mergeErr != nil {
-		c.Err = model.NewAppError("patchConfig", "api.config.patch_config.restricted_merge.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("patchConfig", "api.config.patch_config.restricted_merge.app_error", nil, mergeErr.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
