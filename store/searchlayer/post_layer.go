@@ -113,7 +113,7 @@ func (s SearchPostStore) Delete(postId string, date int64, deletedByID string) e
 		opts := model.GetPostsOptions{
 			SkipFetchThreads: true,
 		}
-		postList, err2 := s.PostStore.Get(context.Background(), postId, opts, "")
+		postList, err2 := s.PostStore.Get(context.Background(), postId, opts, "", map[string]bool{})
 		if postList != nil && len(postList.Order) > 0 {
 			if err2 != nil {
 				s.deletePostIndex(postList.Posts[postList.Order[0]])
