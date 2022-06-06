@@ -196,7 +196,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.App.SetServer(&tmpSrv)
 		c.App = app_opentracing.NewOpenTracingAppLayer(c.App, ctx)
 	}
-
+	
 	// Set the max request body size to be equal to MaxFileSize.
 	// Ideally, non-file request bodies should be smaller than file request bodies,
 	// but we don't have a clean way to identify all file upload handlers.
