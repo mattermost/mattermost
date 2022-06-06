@@ -84,6 +84,10 @@ type CloudCustomer struct {
 	PaymentMethod  *PaymentMethod `json:"payment_method"`
 }
 
+type ValidateBusinessEmailRequest struct {
+	Email string `json:"email"`
+}
+
 // CloudCustomerInfo represents editable info of a customer.
 type CloudCustomerInfo struct {
 	Name             string `json:"name"`
