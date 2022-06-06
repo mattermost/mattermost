@@ -12192,7 +12192,7 @@ func (a *OpenTracingAppLayer) NotifySharedChannelUserUpdate(user *model.User) {
 	a.app.NotifySharedChannelUserUpdate(user)
 }
 
-func (a *OpenTracingAppLayer) NotifySystemAdminsToUpgrade(c *request.Context, notifyingUserID string, currentUserTeamID string) *model.AppError {
+func (a *OpenTracingAppLayer) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NotifySystemAdminsToUpgrade")
 
@@ -12204,7 +12204,7 @@ func (a *OpenTracingAppLayer) NotifySystemAdminsToUpgrade(c *request.Context, no
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.NotifySystemAdminsToUpgrade(c, notifyingUserID, currentUserTeamID)
+	resultVar0 := a.app.NotifySystemAdminsToUpgrade(c, currentUserTeamID)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

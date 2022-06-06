@@ -290,7 +290,6 @@ func TestNotifyAdminToUpgrade(t *testing.T) {
 
 		statusCode := th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
 			CurrentTeamId: th.BasicTeam.Id,
-			CurrentUserId: th.BasicUser.Id,
 		})
 
 		bot, appErr := th.App.GetSystemBot()
@@ -315,7 +314,6 @@ func TestNotifyAdminToUpgrade(t *testing.T) {
 		// second time trying to call notify endpoint by same user is forbidden
 		statusCode = th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
 			CurrentTeamId: th.BasicTeam.Id,
-			CurrentUserId: th.BasicUser.Id,
 		})
 
 		require.Equal(t, http.StatusForbidden, statusCode)

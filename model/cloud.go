@@ -223,7 +223,6 @@ type ProductLimits struct {
 
 type NotifyAdminToUpgradeRequest struct {
 	CurrentTeamId string `json:"current_team_id"`
-	CurrentUserId string `json:"current_user_id"`
 }
 
 type UserInfo struct {

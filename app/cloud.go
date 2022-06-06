@@ -15,11 +15,8 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
-func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, notifyingUserID, currentUserTeamID string) *model.AppError {
-	user, appErr := a.GetUser(notifyingUserID)
-	if appErr != nil {
-		return appErr
-	}
+func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID string) *model.AppError {
+	userId := c.Session().Id
 
 	// check if already notified
 	sysVal, err := a.Srv().Store.System().GetByName("NOTIFIED_ADMIN_TO_UPGRADE")
@@ -39,7 +36,7 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, notifyingUserID, c
 			mlog.Error("Unable to Unmarshal", mlog.Err(err))
 		}
 
-		if alprnu.ContainsID(user.Id) {
+		if alprnu.ContainsID(userId) {
 			return model.NewAppError("app.SendCloudUpgradeConfirmationEmail", "api.cloud.notify_admin_to_upgrade_error.already_notified", nil, "", http.StatusForbidden)
 		}
 	}
@@ -69,7 +66,8 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, notifyingUserID, c
 		T := i18n.GetUserTranslations(admin.Locale)
 		channel, appErr := a.GetOrCreateDirectChannel(c, systemBot.UserId, admin.Id)
 		if appErr != nil {
-			return appErr
+			mlog.Error("Error getting direct channel", mlog.Err(appErr))
+			continue
 		}
 
 		post := &model.Post{
@@ -81,13 +79,14 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, notifyingUserID, c
 
 		_, appErr = a.CreatePost(c, post, channel, false, true)
 		if appErr != nil {
-			return appErr
+			mlog.Error("Error creating post", mlog.Err(appErr))
+			continue
 		}
 	}
 
 	// mark as done for current user
 	alprnu.AddID(model.UserInfo{
-		UserID:    user.Id,
+		UserID:    userId,
 		TimeStamp: model.GetMillis(),
 	})
 

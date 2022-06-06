@@ -61,7 +61,7 @@ func handleNotifyAdminToUpgrade(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	appErr := c.App.NotifySystemAdminsToUpgrade(c.AppContext, notifyAdminRequest.CurrentUserId, notifyAdminRequest.CurrentTeamId)
+	appErr := c.App.NotifySystemAdminsToUpgrade(c.AppContext, notifyAdminRequest.CurrentTeamId)
 	if appErr != nil {
 		c.Err = appErr
 		return
