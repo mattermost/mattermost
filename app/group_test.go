@@ -129,6 +129,24 @@ func TestDeleteGroup(t *testing.T) {
 	require.Nil(t, g)
 }
 
+func TestUndeleteGroup(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+	group := th.CreateGroup()
+
+	g, err := th.App.DeleteGroup(group.Id)
+	require.Nil(t, err)
+	require.NotNil(t, g)
+
+	g, err = th.App.UndeleteGroup(group.Id)
+	require.Nil(t, err)
+	require.NotNil(t, g)
+
+	g, err = th.App.UndeleteGroup(group.Id)
+	require.NotNil(t, err)
+	require.Nil(t, g)
+}
+
 func TestCreateOrRestoreGroupMember(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

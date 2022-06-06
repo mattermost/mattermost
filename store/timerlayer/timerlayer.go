@@ -4027,6 +4027,22 @@ func (s *TimerLayerGroupStore) TeamMembersToRemove(teamID *string) ([]*model.Tea
 	return result, err
 }
 
+func (s *TimerLayerGroupStore) Undelete(groupID string) (*model.Group, error) {
+	start := timemodule.Now()
+
+	result, err := s.GroupStore.Undelete(groupID)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.Undelete", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerGroupStore) Update(group *model.Group) (*model.Group, error) {
 	start := timemodule.Now()
 

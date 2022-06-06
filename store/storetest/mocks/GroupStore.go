@@ -1039,6 +1039,29 @@ func (_m *GroupStore) TeamMembersToRemove(teamID *string) ([]*model.TeamMember, 
 	return r0, r1
 }
 
+// Undelete provides a mock function with given fields: groupID
+func (_m *GroupStore) Undelete(groupID string) (*model.Group, error) {
+	ret := _m.Called(groupID)
+
+	var r0 *model.Group
+	if rf, ok := ret.Get(0).(func(string) *model.Group); ok {
+		r0 = rf(groupID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Group)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(groupID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Update provides a mock function with given fields: group
 func (_m *GroupStore) Update(group *model.Group) (*model.Group, error) {
 	ret := _m.Called(group)

@@ -218,6 +218,21 @@ func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 	return deletedGroup, nil
 }
 
+func (a *App) UndeleteGroup(groupID string) (*model.Group, *model.AppError) {
+	undeletedGroup, err := a.Srv().Store.Group().Undelete(groupID)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("UndeleteGroup", "app.group.no_rows", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("UndeleteGroup", "app.update_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return undeletedGroup, nil
+}
+
 func (a *App) GetGroupMemberCount(groupID string) (int64, *model.AppError) {
 	count, err := a.Srv().Store.Group().GetMemberCount(groupID)
 	if err != nil {
