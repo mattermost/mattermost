@@ -463,6 +463,8 @@ func softDeleteTeamsExcept(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 	}
+
+	ReturnStatusOK(w)
 }
 
 func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
