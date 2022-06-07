@@ -119,8 +119,8 @@ func getMockStore() *mocks.Store {
 	mockPostStore.On("InvalidateLastPostTimeCache", "channelId")
 	mockPostStore.On("GetEtag", "channelId", true, false).Return(mockPostStoreEtagResult)
 	mockPostStore.On("GetEtag", "channelId", false, false).Return(mockPostStoreEtagResult)
-	mockPostStore.On("GetPostsSince", mockPostStoreOptions, true).Return(model.NewPostList(), nil)
-	mockPostStore.On("GetPostsSince", mockPostStoreOptions, false).Return(model.NewPostList(), nil)
+	mockPostStore.On("GetPostsSince", mockPostStoreOptions, true, map[string]bool{}).Return(model.NewPostList(), nil)
+	mockPostStore.On("GetPostsSince", mockPostStoreOptions, false, map[string]bool{}).Return(model.NewPostList(), nil)
 	mockStore.On("Post").Return(&mockPostStore)
 
 	fakeTermsOfService := model.TermsOfService{Id: "123", CreateAt: 11111, UserId: "321", Text: "Terms of service test"}
