@@ -705,17 +705,6 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 		return false
 	}
 
-	// If the event contains sanitized data, only send to users that don't have permission to
-	// see sensitive data. Prevents admin clients from receiving events with bad data
-	var hasReadPrivateDataPermission *bool
-	if msg.GetBroadcast().ContainsSanitizedData {
-		hasReadPrivateDataPermission = model.NewBool(wc.App.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PermissionManageSystem.Id))
-
-		if *hasReadPrivateDataPermission {
-			return false
-		}
-	}
-
 	// When the pump starts to get slow we'll drop non-critical
 	// messages. We should skip those frames before they are
 	// queued to wc.send buffered channel.
@@ -729,6 +718,17 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 				mlog.String("user_id", wc.UserId),
 				mlog.String("type", msg.EventType()),
 			)
+			return false
+		}
+	}
+
+	// If the event contains sanitized data, only send to users that don't have permission to
+	// see sensitive data. Prevents admin clients from receiving events with bad data
+	var hasReadPrivateDataPermission *bool
+	if msg.GetBroadcast().ContainsSanitizedData {
+		hasReadPrivateDataPermission = model.NewBool(wc.App.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PermissionManageSystem.Id))
+
+		if *hasReadPrivateDataPermission {
 			return false
 		}
 	}
