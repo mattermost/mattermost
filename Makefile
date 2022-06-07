@@ -274,12 +274,12 @@ i18n-check: ## Exit on empty translation strings and translation source strings
 	$(GOBIN)/mmgotool i18n check-empty-src --portal-dir=""
 
 store-mocks: ## Creates mock files.
-	$(GO) install github.com/vektra/mockery/...@v1.1.2
-	$(GOBIN)/mockery -dir store -name ".*Store" -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
+	$(GO) install github.com/vektra/mockery/v2@latest
+	$(GOBIN)/mockery --dir store --name ".*Store" --output store/storetest/mocks --note 'Regenerate this file using `make store-mocks`.'
 
 telemetry-mocks: ## Creates mock files.
 	$(GO) install github.com/vektra/mockery/...@v1.1.2
-	$(GOBIN)/mockery -dir services/telemetry -all -output services/telemetry/mocks -note 'Regenerate this file using `make telemetry-mocks`.'
+	$(GOBIN)/mockery --dir services/telemetry --all --output services/telemetry/mocks -note 'Regenerate this file using `make telemetry-mocks`.'
 
 store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./store
