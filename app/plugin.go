@@ -1070,8 +1070,8 @@ func (ch *Channels) getPluginStateOverride(pluginID string) (bool, bool) {
 			return true, false
 		}
 	case "com.mattermost.calls":
-		if model.IsCloud() {
-			return true, ch.cfgSvc.Config().FeatureFlags.CallsEnabled
+		if !ch.cfgSvc.Config().FeatureFlags.CallsEnabled {
+			return true, false
 		}
 	}
 
