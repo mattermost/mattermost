@@ -39,14 +39,14 @@ BUILD_ENTERPRISE_READY = false
 BUILD_TYPE_NAME = team
 BUILD_HASH_ENTERPRISE = none
 ifneq ($(wildcard $(BUILD_ENTERPRISE_DIR)/.),)
-	ifeq ($(BUILD_ENTERPRISE),true)
-		BUILD_ENTERPRISE_READY = true
-		BUILD_TYPE_NAME = enterprise
-		BUILD_HASH_ENTERPRISE = $(shell cd $(BUILD_ENTERPRISE_DIR) && git rev-parse HEAD)
-	else
-		BUILD_ENTERPRISE_READY = false
-		BUILD_TYPE_NAME = team
-	endif
+  ifeq ($(BUILD_ENTERPRISE),true)
+	BUILD_ENTERPRISE_READY = true
+	BUILD_TYPE_NAME = enterprise
+	BUILD_HASH_ENTERPRISE = $(shell cd $(BUILD_ENTERPRISE_DIR) && git rev-parse HEAD)
+  else
+	BUILD_ENTERPRISE_READY = false
+	BUILD_TYPE_NAME = team
+  endif
 else
 	BUILD_ENTERPRISE_READY = false
 	BUILD_TYPE_NAME = team
@@ -55,14 +55,14 @@ BUILD_WEBAPP_DIR ?= ../mattermost-webapp
 BUILD_CLIENT = false
 BUILD_HASH_CLIENT = independent
 ifneq ($(wildcard $(BUILD_WEBAPP_DIR)/.),)
-	ifeq ($(BUILD_CLIENT),true)
-		BUILD_CLIENT = true
-		BUILD_HASH_CLIENT = $(shell cd $(BUILD_WEBAPP_DIR) && git rev-parse HEAD)
-	else
-		BUILD_CLIENT = false
-	endif
+  ifeq ($(BUILD_CLIENT),true)
+    BUILD_CLIENT = true
+    BUILD_HASH_CLIENT = $(shell cd $(BUILD_WEBAPP_DIR) && git rev-parse HEAD)
+  else
+    BUILD_CLIENT = false
+  endif
 else
-	BUILD_CLIENT = false
+    BUILD_CLIENT = false
 endif
 
 # We need current user's UID for `run-haserver` so docker compose does not run server
