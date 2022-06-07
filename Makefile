@@ -154,6 +154,14 @@ endif
 all: run ## Alias for 'run'.
 
 -include config.override.mk
+
+# Make sure not to modify an overridden ENABLED_DOCKER_SERVICES variable
+DOCKER_SERVICES_OVERRIDE=false
+ifneq (,$(ENABLED_DOCKER_SERVICES))
+  $(info ENABLED_DOCKER_SERVICES has been overridden)
+  DOCKER_SERVICES_OVERRIDE=true
+endif
+
 include config.mk
 include build/*.mk
 
@@ -169,19 +177,20 @@ ifneq ("$(wildcard ./docker-compose.override.yaml)","")
   DOCKER_COMPOSE_OVERRIDE=-f docker-compose.override.yaml
 endif
 
-start-docker-check:
-ifeq (,$(findstring minio,$(ENABLED_DOCKER_SERVICES)))
-  TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) minio
-endif
-ifeq ($(BUILD_ENTERPRISE_READY),true)
-  ifeq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
-    TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) openldap
+ifneq ($(DOCKER_SERVICES_OVERRIDE),true)
+  ifeq (,$(findstring minio,$(ENABLED_DOCKER_SERVICES)))
+    TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) minio
   endif
-  ifeq (,$(findstring elasticsearch,$(ENABLED_DOCKER_SERVICES)))
-    TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) elasticsearch
+  ifeq ($(BUILD_ENTERPRISE_READY),true)
+    ifeq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
+      TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) openldap
+    endif
+    ifeq (,$(findstring elasticsearch,$(ENABLED_DOCKER_SERVICES)))
+      TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) elasticsearch
+    endif
   endif
+  ENABLED_DOCKER_SERVICES:=$(ENABLED_DOCKER_SERVICES) $(TEMP_DOCKER_SERVICES)
 endif
-ENABLED_DOCKER_SERVICES:=$(ENABLED_DOCKER_SERVICES) $(TEMP_DOCKER_SERVICES)
 
 start-docker: ## Starts the docker containers for local development.
 ifneq ($(IS_CI),false)
