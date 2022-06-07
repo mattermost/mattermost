@@ -129,7 +129,7 @@ PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
-PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.5.0
+PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.0
 PLUGIN_PACKAGES += focalboard-v7.0.0
 PLUGIN_PACKAGES += mattermost-plugin-apps-v1.1.0
 
