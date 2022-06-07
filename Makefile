@@ -166,7 +166,7 @@ endif
 
 DOCKER_COMPOSE_OVERRIDE=
 ifneq ("$(wildcard ./docker-compose.override.yaml)","")
-    DOCKER_COMPOSE_OVERRIDE=-f docker-compose.override.yaml
+  DOCKER_COMPOSE_OVERRIDE=-f docker-compose.override.yaml
 endif
 
 start-docker-check:
@@ -192,12 +192,12 @@ else
 	@echo Starting docker containers
 
 	$(GO) run ./build/docker-compose-generator/main.go $(ENABLED_DOCKER_SERVICES) | docker-compose -f docker-compose.makefile.yml -f /dev/stdin $(DOCKER_COMPOSE_OVERRIDE) run -T --rm start_dependencies
-ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
+  ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
 	cat tests/${LDAP_DATA}-data.ldif | docker-compose -f docker-compose.makefile.yml $(DOCKER_COMPOSE_OVERRIDE) exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
-endif
-ifneq (,$(findstring mysql-read-replica,$(ENABLED_DOCKER_SERVICES)))
+  endif
+  ifneq (,$(findstring mysql-read-replica,$(ENABLED_DOCKER_SERVICES)))
 	./scripts/replica-mysql-config.sh
-endif
+  endif
 endif
 
 run-haserver:
@@ -255,9 +255,9 @@ golangci-lint: ## Run golangci-lint on codebase
 	@echo Running golangci-lint
 	$(GOBIN)/golangci-lint run ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-ifneq ($(MM_NO_ENTERPRISE_LINT),true)
+  ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 	$(GOBIN)/golangci-lint run ../enterprise/...
-endif
+  endif
 endif
 
 app-layers: ## Extract interface from App struct
@@ -390,25 +390,25 @@ endif
 
 test-server-race: test-server-pre
 	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
-  ifneq ($(IS_CI),true)
-    ifneq ($(MM_NO_DOCKER),true)
-      ifneq ($(TEMP_DOCKER_SERVICES),)
-	      @echo Stopping temporary docker services
-	      docker-compose stop $(TEMP_DOCKER_SERVICES)
-      endif
+ifneq ($(IS_CI),true)
+  ifneq ($(MM_NO_DOCKER),true)
+    ifneq ($(TEMP_DOCKER_SERVICES),)
+	  @echo Stopping temporary docker services
+	  docker-compose stop $(TEMP_DOCKER_SERVICES)
     endif
   endif
+endif
 
 test-server: test-server-pre
 	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
-  ifneq ($(IS_CI),true)
-    ifneq ($(MM_NO_DOCKER),true)
-      ifneq ($(TEMP_DOCKER_SERVICES),)
-	      @echo Stopping temporary docker services
-	      docker-compose stop $(TEMP_DOCKER_SERVICES)
-      endif
+ifneq ($(IS_CI),true)
+  ifneq ($(MM_NO_DOCKER),true)
+    ifneq ($(TEMP_DOCKER_SERVICES),)
+	  @echo Stopping temporary docker services
+	  docker-compose stop $(TEMP_DOCKER_SERVICES)
     endif
   endif
+endif
 
 test-server-ee: check-prereqs-enterprise start-docker-check start-docker go-junit-report do-cover-file ## Runs EE tests.
 	@echo Running only EE tests
@@ -645,9 +645,9 @@ vet: ## Run mattermost go vet specific checks
 	fi; \
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet $$VET_CMD ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-ifneq ($(MM_NO_ENTERPRISE_LINT),true)
+  ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -enterpriseLicense -structuredLogging -tFatal ../enterprise/...
-endif
+  endif
 endif
 
 gen-serialized:	export LICENSE_HEADER:=$(LICENSE_HEADER)
