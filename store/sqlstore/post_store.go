@@ -1228,6 +1228,11 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 	return posts, cursor, nil
 }
 
+func (s *SqlPostStore) QueryHashTag(hash_tag_query *string) {
+	// query = s.getQueryBuilder().
+	// 	Select()
+}
+
 func (s *SqlPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error) {
 	return s.getPostsAround(true, options)
 }

@@ -32,6 +32,7 @@ type Params struct {
 	ThreadId                  string
 	Timestamp                 int64
 	ChannelId                 string
+	HashTagQuery              string
 	PostId                    string
 	PolicyId                  string
 	FileId                    string
@@ -128,6 +129,12 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.ChannelId = val
 	} else {
 		params.ChannelId = query.Get("channel_id")
+	}
+
+	if val, ok := props["hash_tag_query"]; ok {
+		params.HashTagQuery = val
+	} else {
+		params.ChannelId = query.Get("hash_tag_query")
 	}
 
 	if val, ok := props["post_id"]; ok {
