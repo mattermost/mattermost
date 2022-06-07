@@ -191,7 +191,8 @@ type AppIface interface {
 	// To get the plugins environment when the plugins are disabled, manually acquire the plugins
 	// lock instead.
 	GetPluginsEnvironment() *plugin.Environment
-	// GetPostsUsage returns "rounded off" total posts count like returns 900 instead of 987
+	// GetPostsUsage returns the total posts count rounded down to the most
+	// significant digit
 	GetPostsUsage() (int64, *model.AppError)
 	// GetProductNotices is called from the frontend to fetch the product notices that are relevant to the caller
 	GetProductNotices(c *request.Context, userID, teamID string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError)
@@ -204,6 +205,8 @@ type AppIface interface {
 	// GetSessionLengthInMillis returns the session length, in milliseconds,
 	// based on the type of session (Mobile, SSO, Web/LDAP).
 	GetSessionLengthInMillis(session *model.Session) int64
+	// GetStorageUsage returns the sum of files' sizes stored on this instance
+	GetStorageUsage() (int64, *model.AppError)
 	// GetSuggestions returns suggestions for user input.
 	GetSuggestions(c *request.Context, commandArgs *model.CommandArgs, commands []*model.Command, roleID string) []model.AutocompleteSuggestion
 	// GetTeamGroupUsers returns the users who are associated to the team via GroupTeams and GroupMembers.
@@ -677,7 +680,7 @@ type AppIface interface {
 	GetPostAfterTime(channelID string, time int64, collapsedThreads bool) (*model.Post, *model.AppError)
 	GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError)
 	GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError)
-	GetPostIfAuthorized(postID string, session *model.Session) (*model.Post, *model.AppError)
+	GetPostIfAuthorized(postID string, session *model.Session, includeDeleted bool) (*model.Post, *model.AppError)
 	GetPostThread(postID string, opts model.GetPostsOptions, userID string) (*model.PostList, *model.AppError)
 	GetPosts(channelID string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList, *model.AppError)
@@ -732,7 +735,7 @@ type AppIface interface {
 	GetSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError)
 	GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError)
 	GetSidebarCategoryOrder(userID, teamID string) ([]string, *model.AppError)
-	GetSinglePost(postID string) (*model.Post, *model.AppError)
+	GetSinglePost(postID string, includeDeleted bool) (*model.Post, *model.AppError)
 	GetSiteURL() string
 	GetStatus(userID string) (*model.Status, *model.AppError)
 	GetStatusFromCache(userID string) *model.Status
@@ -757,6 +760,7 @@ type AppIface interface {
 	GetTeamsForSchemePage(scheme *model.Scheme, page int, perPage int) ([]*model.Team, *model.AppError)
 	GetTeamsForUser(userID string) ([]*model.Team, *model.AppError)
 	GetTeamsUnreadForUser(excludeTeamId string, userID string, includeCollapsedThreads bool) ([]*model.TeamUnread, *model.AppError)
+	GetTeamsUsage() (*model.TeamsUsage, *model.AppError)
 	GetTermsOfService(id string) (*model.TermsOfService, *model.AppError)
 	GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, *model.AppError)
 	GetThreadMembershipForUser(userId, threadId string) (*model.ThreadMembership, *model.AppError)

@@ -2644,10 +2644,6 @@
     "translation": "Mist vereiste team kenmerk: naam."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Reactie CreateAt eigenschap moet groter zijn dan het hoofdbericht CreateAt."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Mist vereiste team kenmerk: naam."
   },

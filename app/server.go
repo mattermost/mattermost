@@ -93,7 +93,9 @@ const (
 	ClusterKey     ServiceKey = "cluster"
 	PostKey        ServiceKey = "post"
 	TeamKey        ServiceKey = "team"
+	UserKey        ServiceKey = "user"
 	PermissionsKey ServiceKey = "permissions"
+	RouterKey      ServiceKey = "router"
 )
 
 type Server struct {
@@ -393,6 +395,7 @@ func NewServer(options ...Option) (*Server, error) {
 		FilestoreKey: s.filestore,
 		ClusterKey:   s.clusterWrapper,
 		TeamKey:      s.teamService,
+		UserKey:      s.userService,
 	}
 
 	// Step 8: Initialize products.
