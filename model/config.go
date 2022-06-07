@@ -2810,8 +2810,8 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates[PluginIdApps] = &PluginState{Enable: true}
 	}
 
-	if s.PluginStates[PluginIdCalls] == nil && IsCloud() {
-		// Enable the calls plugin by default on Cloud only
+	if s.PluginStates[PluginIdCalls] == nil {
+		// Enable the calls plugin by default
 		s.PluginStates[PluginIdCalls] = &PluginState{Enable: true}
 	}
 
