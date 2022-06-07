@@ -1499,10 +1499,10 @@ func (us SqlUserStore) SearchNotInGroup(groupID string, term string, options *mo
 func generateSearchQuery(query sq.SelectBuilder, terms []string, fields []string, isPostgreSQL bool) sq.SelectBuilder {
 	for _, term := range terms {
 		searchFields := []string{}
-		termArgs := []any{}
+		termArgs := []interface{}{}
 		for _, field := range fields {
 			if isPostgreSQL {
-				searchFields = append(searchFields, fmt.Sprintf("lower(%s) LIKE lower(?) escape '*' ", field))
+				searchFields = append(searchFields, fmt.Sprintf("lower(unaccent(%s)) LIKE lower(unaccent(?)) escape '*' ", field))
 			} else {
 				searchFields = append(searchFields, fmt.Sprintf("%s LIKE ? escape '*' ", field))
 			}
