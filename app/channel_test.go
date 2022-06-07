@@ -2047,78 +2047,6 @@ func TestMarkChannelsAsViewedPanic(t *testing.T) {
 	require.Nil(t, appErr)
 }
 
-func TestMarkChannelAsUnreadFromPostPanic(t *testing.T) {
-	th := SetupWithStoreMock(t)
-	defer th.TearDown()
-
-	mockStore := th.App.Srv().Store.(*mocks.Store)
-	mockUserStore := mocks.UserStore{}
-	mockUserStore.On("Get", context.Background(), "userID").Return(&model.User{Id: "userID"}, nil)
-	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
-
-	mockChannelStore := mocks.ChannelStore{}
-	mockChannelStore.On("Get", "channelID", true).Return(&model.Channel{Id: "channelID"}, nil)
-	mockChannelStore.On("GetMember", context.Background(), "channelID", "userID").Return(&model.ChannelMember{
-		NotifyProps: model.StringMap{
-			model.PushNotifyProp: model.ChannelNotifyDefault,
-		}}, nil)
-
-	mockSessionStore := mocks.SessionStore{}
-	mockOAuthStore := mocks.OAuthStore{}
-	var err error
-	th.App.ch.srv.userService, err = users.New(users.ServiceConfig{
-		UserStore:    &mockUserStore,
-		SessionStore: &mockSessionStore,
-		OAuthStore:   &mockOAuthStore,
-		ConfigFn:     th.App.ch.srv.Config,
-		LicenseFn:    th.App.ch.srv.License,
-	})
-	require.NoError(t, err)
-
-	mockPreferenceStore := mocks.PreferenceStore{}
-	mockPreferenceStore.On("Get", "userID", model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled).Return(&model.Preference{Value: "on"}, nil)
-
-	mockThreadStore := mocks.ThreadStore{}
-	mockThreadStore.On("GetMembershipForUser", "userID", "rootID").Return(nil, nil)
-	mockThreadStore.On("MaintainMembership", "userID", "rootID", mock.AnythingOfType("store.ThreadMembershipOpts")).Return(&model.ThreadMembership{}, nil)
-	mockThreadStore.On("Get", "rootID").Return(nil, errors.New("bad error")) // Returning an error from here causes the panic
-
-	mockPostStore := mocks.PostStore{}
-	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
-	mockPostStore.On("Get", context.Background(), "postID", model.GetPostsOptions{}, "userID").Return(&model.PostList{}, nil)
-	mockPostStore.On("GetPostsAfter", mock.AnythingOfType("model.GetPostsOptions")).Return(&model.PostList{}, nil)
-	mockPostStore.On("GetSingle", "postID", false).Return(&model.Post{
-		Id:        "postID",
-		RootId:    "rootID",
-		ChannelId: "channelID",
-	}, nil)
-
-	mockSystemStore := mocks.SystemStore{}
-	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
-	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
-	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
-	mockLicenseStore := mocks.LicenseStore{}
-	mockLicenseStore.On("Get", "").Return(&model.LicenseRecord{}, nil)
-
-	mockStore.On("Channel").Return(&mockChannelStore)
-	mockStore.On("Preference").Return(&mockPreferenceStore)
-	mockStore.On("Thread").Return(&mockThreadStore)
-	mockStore.On("Post").Return(&mockPostStore)
-	mockStore.On("User").Return(&mockUserStore)
-	mockStore.On("System").Return(&mockSystemStore)
-	mockStore.On("License").Return(&mockLicenseStore)
-	mockStore.On("GetDBSchemaVersion").Return(1, nil)
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.ThreadAutoFollow = true
-		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
-	})
-
-	require.NotPanics(t, func() {
-		th.App.MarkChannelAsUnreadFromPost("postID", "userID", true)
-	}, "unexpected panic from MarkChannelAsUnreadFromPost")
-}
-
 func TestClearChannelMembersCache(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
@@ -2332,119 +2260,42 @@ func TestMarkChannelAsUnreadFromPostCollapsedThreadsTurnedOff(t *testing.T) {
 	})
 }
 
-// TestMarkUnreadWithThreads asserts the behaviour of App.MarkChannelAsUnreadFromPost, but was
-// originally written when that API accepted a followThread parameter. While tested, that parameter
-// was never actually called as true, resulting in deadcode.
-//
-// When removing the parameter, one of the following tests failed, as it covered behaviour that
-// was unused and now unsupported. The test has since been updated to reflect the new reality,
-// but a careful examination of MarkChannelAsUnreadFromPost should be conducted as it's unclear
-// why that API tries to manipulate thread memberships at all. Fixing that is left to another task.
-func TestMarkUnreadWithThreads(t *testing.T) {
+func TestMarkUnreadCRTOffUpdatesThreads(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
-		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOff
 	})
 
-	t.Run("Set unread mentions correctly", func(t *testing.T) {
-		t.Run("Never followed root post with no replies or mentions", func(t *testing.T) {
-			rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
-			require.Nil(t, appErr)
-			_, appErr = th.App.MarkChannelAsUnreadFromPost(rootPost.Id, th.BasicUser.Id, true)
-			require.Nil(t, appErr)
+	t.Run("Mentions counted correctly if post is edited", func(t *testing.T) {
+		user3 := th.CreateUser()
+		defer th.App.PermanentDeleteUser(th.Context, user3)
+		rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "root post"}, th.BasicChannel, false, false)
+		require.Nil(t, appErr)
+		r1, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "reply 1"}, th.BasicChannel, false, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "reply 2 @" + user3.Username}, th.BasicChannel, false, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "reply 3"}, th.BasicChannel, false, false)
+		require.Nil(t, appErr)
+		editedPost := r1.Clone()
+		editedPost.Message += " edited"
+		_, appErr = th.App.UpdatePost(th.Context, editedPost, false)
+		require.Nil(t, appErr)
 
-			threadMembership, appErr := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rootPost.Id)
-			require.Nil(t, appErr)
-			require.NotNil(t, threadMembership)
-			assert.Zero(t, threadMembership.UnreadMentions)
-		})
+		th.LinkUserToTeam(user3, th.BasicTeam)
+		th.AddUserToChannel(user3, th.BasicChannel)
 
-		t.Run("Never followed root post with replies and no mentions", func(t *testing.T) {
-			rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
-			require.Nil(t, appErr)
-			_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
-			require.Nil(t, appErr)
-			_, appErr = th.App.MarkChannelAsUnreadFromPost(rootPost.Id, th.BasicUser.Id, true)
-			require.Nil(t, appErr)
-
-			threadMembership, appErr := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rootPost.Id)
-			require.Nil(t, appErr)
-			require.NotNil(t, threadMembership)
-			assert.Zero(t, threadMembership.UnreadMentions)
-		})
-
-		t.Run("Never followed root post with replies and mentions", func(t *testing.T) {
-			rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
-			require.Nil(t, appErr)
-			_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi @" + th.BasicUser.Username}, th.BasicChannel, false, false)
-			require.Nil(t, appErr)
-			_, appErr = th.App.MarkChannelAsUnreadFromPost(rootPost.Id, th.BasicUser.Id, true)
-			require.Nil(t, appErr)
-
-			threadMembership, appErr := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rootPost.Id)
-			require.Nil(t, appErr)
-			require.NotNil(t, threadMembership)
-			assert.Equal(t, int64(1), threadMembership.UnreadMentions)
-		})
-
-		t.Run("Previously followed root post with no replies or mentions", func(t *testing.T) {
-			rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
-			require.Nil(t, appErr)
-			appErr = th.App.UpdateThreadFollowForUser(th.BasicUser.Id, th.BasicTeam.Id, rootPost.Id, true)
-			require.Nil(t, appErr)
-			appErr = th.App.UpdateThreadFollowForUser(th.BasicUser.Id, th.BasicTeam.Id, rootPost.Id, false)
-			require.Nil(t, appErr)
-
-			_, appErr = th.App.MarkChannelAsUnreadFromPost(rootPost.Id, th.BasicUser.Id, true)
-			require.Nil(t, appErr)
-
-			threadMembership, appErr := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rootPost.Id)
-			require.Nil(t, appErr)
-			require.NotNil(t, threadMembership)
-			assert.Zero(t, threadMembership.UnreadMentions)
-		})
-
-		t.Run("Previously followed root post with replies and no mentions", func(t *testing.T) {
-			rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
-			require.Nil(t, appErr)
-			_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
-			require.Nil(t, appErr)
-			appErr = th.App.UpdateThreadFollowForUser(th.BasicUser.Id, th.BasicTeam.Id, rootPost.Id, true)
-			require.Nil(t, appErr)
-			appErr = th.App.UpdateThreadFollowForUser(th.BasicUser.Id, th.BasicTeam.Id, rootPost.Id, false)
-			require.Nil(t, appErr)
-
-			_, appErr = th.App.MarkChannelAsUnreadFromPost(rootPost.Id, th.BasicUser.Id, true)
-			require.Nil(t, appErr)
-
-			threadMembership, appErr := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rootPost.Id)
-			require.Nil(t, appErr)
-			require.NotNil(t, threadMembership)
-			assert.Zero(t, threadMembership.UnreadMentions)
-		})
-
-		t.Run("Previously followed root post with replies and mentions", func(t *testing.T) {
-			rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
-			require.Nil(t, appErr)
-			_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi @" + th.BasicUser.Username}, th.BasicChannel, false, false)
-			require.Nil(t, appErr)
-			appErr = th.App.UpdateThreadFollowForUser(th.BasicUser.Id, th.BasicTeam.Id, rootPost.Id, true)
-			require.Nil(t, appErr)
-			appErr = th.App.UpdateThreadFollowForUser(th.BasicUser.Id, th.BasicTeam.Id, rootPost.Id, false)
-			require.Nil(t, appErr)
-
-			_, appErr = th.App.MarkChannelAsUnreadFromPost(rootPost.Id, th.BasicUser.Id, true)
-			require.Nil(t, appErr)
-
-			threadMembership, appErr := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rootPost.Id)
-			require.Nil(t, appErr)
-			require.NotNil(t, threadMembership)
-			assert.Zero(t, threadMembership.UnreadMentions)
-		})
+		_, appErr = th.App.MarkChannelAsUnreadFromPost(editedPost.Id, user3.Id, false)
+		require.Nil(t, appErr)
+		threadMembership, appErr := th.App.GetThreadMembershipForUser(user3.Id, rootPost.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, threadMembership)
+		require.True(t, threadMembership.Following)
+		assert.Equal(t, int64(1), threadMembership.UnreadMentions)
 	})
 }
 
