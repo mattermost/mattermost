@@ -51,6 +51,7 @@ type Channels struct {
 	cfgSvc     configSvc
 	filestore  filestore.FileBackend
 	licenseSvc licenseSvc
+	routerSvc  *routerService
 
 	postActionCookieSecret []byte
 
@@ -209,6 +210,9 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 		return nil, errors.Wrap(imgErr, "failed to create image encoder")
 	}
 
+	ch.routerSvc = newRouterService()
+	services[RouterKey] = ch.routerSvc
+
 	// Setup routes.
 	pluginsRoute := ch.srv.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
 	pluginsRoute.HandleFunc("", ch.ServePluginRequest)
@@ -267,6 +271,7 @@ func (ch *Channels) Start() error {
 	if err := ch.ensurePostActionCookieSecret(); err != nil {
 		return errors.Wrapf(err, "unable to ensure PostAction cookie secret")
 	}
+
 	return nil
 }
 
