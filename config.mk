@@ -1,6 +1,7 @@
 # Do not modify this file, if you want to configure your own environment copy
 # this file in config.override.mk and modify that file, or defining environment
-# variables using the same names found here.
+# variables using the same names found here. Make sure to run `make clean-docker`
+# after creating or modifying config.override.mk.
 
 # Enable services to be run in docker.
 #
