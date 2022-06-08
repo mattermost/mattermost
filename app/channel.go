@@ -2570,7 +2570,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 	if !collapsedThreadsSupported || !a.IsCRTEnabledForUser(userID) {
 		return a.markChannelAsUnreadFromPostCRTUnsupported(postID, userID)
 	}
-	post, err := a.GetSinglePost(postID)
+	post, err := a.GetSinglePost(postID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -2597,7 +2597,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 }
 
 func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID string) (*model.ChannelUnreadAt, *model.AppError) {
-	post, err := a.GetSinglePost(postID)
+	post, err := a.GetSinglePost(postID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -2636,7 +2636,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID st
 	//                          If there are replies with mentions below the marked reply in the thread, then sum the mentions for the threads mention badge.
 	// In CRT Unsupported Client: Channel is marked as unread and new messages line inserted above the marked post.
 	//                            Badge on channel sums mentions in all posts (root & replies) including and below the post that was marked unread.
-	rootPost, err := a.GetSinglePost(post.RootId)
+	rootPost, err := a.GetSinglePost(post.RootId, false)
 	if err != nil {
 		return nil, err
 	}
