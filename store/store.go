@@ -328,19 +328,19 @@ type PostStore interface {
 	SaveMultiple(posts []*model.Post) ([]*model.Post, int, error)
 	Save(post *model.Post) (*model.Post, error)
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error)
-	Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string) (*model.PostList, error)
+	Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetSingle(id string, inclDeleted bool) (*model.Post, error)
 	Delete(postID string, time int64, deleteByID string) error
 	PermanentDeleteByUser(userID string) error
 	PermanentDeleteByChannel(channelID string) error
-	GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, error)
+	GetPosts(options model.GetPostsOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetFlaggedPosts(userID string, offset int, limit int) (*model.PostList, error)
 	// @openTracingParams userID, teamID, offset, limit
 	GetFlaggedPostsForTeam(userID, teamID string, offset int, limit int) (*model.PostList, error)
 	GetFlaggedPostsForChannel(userID, channelID string, offset int, limit int) (*model.PostList, error)
-	GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error)
-	GetPostsAfter(options model.GetPostsOptions) (*model.PostList, error)
-	GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, error)
+	GetPostsBefore(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error)
+	GetPostsAfter(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error)
+	GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetPostAfterTime(channelID string, time int64, collapsedThreads bool) (*model.Post, error)
 	GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, error)
 	GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool) (string, error)
