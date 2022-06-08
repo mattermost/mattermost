@@ -8,14 +8,16 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func (api *API) InitUsage() {
 	// GET /api/v4/usage/posts
 	api.BaseRoutes.Usage.Handle("/posts", api.APISessionRequired(getPostsUsage)).Methods("GET")
+	// GET /api/v4/usage/storage
+	api.BaseRoutes.Usage.Handle("/storage", api.APISessionRequired(getStorageUsage)).Methods("GET")
 	// GET /api/v4/usage/teams
 	api.BaseRoutes.Usage.Handle("/teams", api.APISessionRequired(getTeamsUsage)).Methods("GET")
-
 	// GET /api/v4/usage/integrations
 	api.BaseRoutes.Usage.Handle("/integrations", api.APISessionRequired(getIntegrationsUsage)).Methods("GET")
 }
@@ -36,6 +38,23 @@ func getPostsUsage(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write(json)
 }
 
+func getStorageUsage(c *Context, w http.ResponseWriter, r *http.Request) {
+	usage, appErr := c.App.GetStorageUsage()
+	if appErr != nil {
+		c.Err = model.NewAppError("Api4.getStorageUsage", "app.usage.get_storage_usage.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	usage = utils.RoundOffToZeroes(float64(usage))
+	json, err := json.Marshal(&model.StorageUsage{Bytes: usage})
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getStorageUsage", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(json)
+}
+
 func getTeamsUsage(c *Context, w http.ResponseWriter, r *http.Request) {
 	teamsUsage, appErr := c.App.GetTeamsUsage()
 	if appErr != nil {
@@ -50,7 +69,9 @@ func getTeamsUsage(c *Context, w http.ResponseWriter, r *http.Request) {
 	json, err := json.Marshal(teamsUsage)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.getTeamsUsage", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		return
 	}
+
 	w.Write(json)
 }
 

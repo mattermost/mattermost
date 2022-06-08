@@ -95,6 +95,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CloudFree = false
 	f.CommandPalette = false
 	f.AdvancedTextEditor = true
+	f.CallsEnabled = true
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
