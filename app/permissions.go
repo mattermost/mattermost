@@ -14,7 +14,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const permissionsExportBatchSize = 100
@@ -26,10 +25,6 @@ type permissionsServiceWrapper struct {
 
 func (s *permissionsServiceWrapper) HasPermissionToTeam(userID string, teamID string, permission *model.Permission) bool {
 	return s.app.HasPermissionToTeam(userID, teamID, permission)
-}
-
-func (s *permissionsServiceWrapper) LogError(productID, msg string, keyValuePairs ...interface{}) {
-	s.app.Srv().Log.Error(msg, mlog.String("product_id", productID), mlog.Map("key-value pairs", keyValuePairs))
 }
 
 func (a *App) ResetPermissionsSystem() *model.AppError {
