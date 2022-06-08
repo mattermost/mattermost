@@ -2489,6 +2489,8 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(userID, teamID, threadID s
 		mlog.Warn("Failed to encode thread to JSON")
 	}
 	message.Add("thread", string(payload))
+	message.Add("previous_unread_replies", int64(0))
+	message.Add("previous_unread_mentions", int64(0))
 
 	a.Publish(message)
 	return nil
