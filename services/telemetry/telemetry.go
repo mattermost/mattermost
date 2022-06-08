@@ -334,8 +334,10 @@ func (ts *TelemetryService) trackActivity() {
 
 	outgoingWebhooksCount, _ = ts.dbStore.Webhook().AnalyticsOutgoingCount("")
 
-	if usage, err := ts.dbStore.FileInfo().GetStorageUsage(true, false); err == nil {
-		storageBytes = utils.RoundOffToZeroes(float64(usage))
+	if license := ts.srv.License(); license != nil && license.Features.Cloud != nil && *license.Features.Cloud {
+		if usage, err := ts.dbStore.FileInfo().GetStorageUsage(true, false); err == nil {
+			storageBytes = utils.RoundOffToZeroes(float64(usage))
+		}
 	}
 
 	ts.SendTelemetry(TrackActivity, map[string]interface{}{
