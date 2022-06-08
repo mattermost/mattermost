@@ -104,8 +104,8 @@ func getMockStore() *mocks.Store {
 	fakePosts := &model.PostList{}
 	fakeOptions := model.GetPostsOptions{ChannelId: "123", PerPage: 30}
 	mockPostStore := mocks.PostStore{}
-	mockPostStore.On("GetPosts", fakeOptions, true).Return(fakePosts, nil)
-	mockPostStore.On("GetPosts", fakeOptions, false).Return(fakePosts, nil)
+	mockPostStore.On("GetPosts", fakeOptions, true, map[string]bool{}).Return(fakePosts, nil)
+	mockPostStore.On("GetPosts", fakeOptions, false, map[string]bool{}).Return(fakePosts, nil)
 	mockPostStore.On("InvalidateLastPostTimeCache", "12360")
 
 	mockPostStoreOptions := model.GetPostsSinceOptions{
