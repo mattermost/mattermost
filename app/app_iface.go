@@ -680,7 +680,7 @@ type AppIface interface {
 	GetPostAfterTime(channelID string, time int64, collapsedThreads bool) (*model.Post, *model.AppError)
 	GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError)
 	GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError)
-	GetPostIfAuthorized(postID string, session *model.Session) (*model.Post, *model.AppError)
+	GetPostIfAuthorized(postID string, session *model.Session, includeDeleted bool) (*model.Post, *model.AppError)
 	GetPostThread(postID string, opts model.GetPostsOptions, userID string) (*model.PostList, *model.AppError)
 	GetPosts(channelID string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList, *model.AppError)
@@ -735,7 +735,7 @@ type AppIface interface {
 	GetSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError)
 	GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError)
 	GetSidebarCategoryOrder(userID, teamID string) ([]string, *model.AppError)
-	GetSinglePost(postID string) (*model.Post, *model.AppError)
+	GetSinglePost(postID string, includeDeleted bool) (*model.Post, *model.AppError)
 	GetSiteURL() string
 	GetStatus(userID string) (*model.Status, *model.AppError)
 	GetStatusFromCache(userID string) *model.Status
