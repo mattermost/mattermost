@@ -595,7 +595,7 @@ config-reset: ## Resets the config/config.json file to the default.
 diff-config: ## Compares default configuration between two mattermost versions
 	@./scripts/diff-config.sh
 
-clean: stop-docker remove-containers ## Clean up everything except persistent server data.
+clean: stop-docker ## Clean up everything except persistent server data.
 	@echo Cleaning
 
 	rm -Rf $(DIST_ROOT)
