@@ -2419,10 +2419,10 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 		{ID: channel5.Id, MessageCount: 2},
 	}
 
-	timeRange, _ := model.GetStartUnixMilliForTimeRange(model.TimeRangeToday)
+	timeRange := model.StartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
 
 	t.Run("get-top-channels-for-team-since", func(t *testing.T) {
-		topChannels, err := th.App.GetTopChannelsForTeamSince(th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange, Page: 0, PerPage: 5})
+		topChannels, err := th.App.GetTopChannelsForTeamSince(th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 5})
 		require.Nil(t, err)
 
 		for i, channel := range topChannels.Items {
@@ -2430,7 +2430,7 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 			assert.Equal(t, expectedTopChannels[i].MessageCount, channel.MessageCount)
 		}
 
-		topChannels, err = th.App.GetTopChannelsForTeamSince(th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange, Page: 1, PerPage: 5})
+		topChannels, err = th.App.GetTopChannelsForTeamSince(th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 1, PerPage: 5})
 		require.Nil(t, err)
 		assert.Equal(t, channel6.Id, topChannels.Items[0].ID)
 		assert.Equal(t, int64(1), topChannels.Items[0].MessageCount)
@@ -2477,10 +2477,10 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 		{ID: channel5.Id, MessageCount: 2},
 	}
 
-	timeRange, _ := model.GetStartUnixMilliForTimeRange(model.TimeRangeToday)
+	timeRange := model.StartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
 
 	t.Run("get-top-channels-for-user-since", func(t *testing.T) {
-		topChannels, err := th.App.GetTopChannelsForUserSince(th.BasicUser.Id, "", &model.InsightsOpts{StartUnixMilli: timeRange, Page: 0, PerPage: 5})
+		topChannels, err := th.App.GetTopChannelsForUserSince(th.BasicUser.Id, "", &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 5})
 		require.Nil(t, err)
 
 		for i, channel := range topChannels.Items {
@@ -2488,7 +2488,7 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 			assert.Equal(t, expectedTopChannels[i].MessageCount, channel.MessageCount)
 		}
 
-		topChannels, err = th.App.GetTopChannelsForUserSince(th.BasicUser.Id, th.BasicChannel.TeamId, &model.InsightsOpts{StartUnixMilli: timeRange, Page: 1, PerPage: 5})
+		topChannels, err = th.App.GetTopChannelsForUserSince(th.BasicUser.Id, th.BasicChannel.TeamId, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 1, PerPage: 5})
 		require.Nil(t, err)
 		assert.Equal(t, channel6.Id, topChannels.Items[0].ID)
 		assert.Equal(t, int64(1), topChannels.Items[0].MessageCount)
