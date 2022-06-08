@@ -123,13 +123,13 @@ func (_m *PostStore) DeleteOrphanedRows(limit int) (int64, error) {
 	return r0, r1
 }
 
-// Get provides a mock function with given fields: ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID
-func (_m *PostStore) Get(ctx context.Context, id string, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool, userID string) (*model.PostList, error) {
-	ret := _m.Called(ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID)
+// Get provides a mock function with given fields: ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID, sanitizeOptions
+func (_m *PostStore) Get(ctx context.Context, id string, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
+	ret := _m.Called(ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID, sanitizeOptions)
 
 	var r0 *model.PostList
-	if rf, ok := ret.Get(0).(func(context.Context, string, bool, bool, bool, string) *model.PostList); ok {
-		r0 = rf(ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID)
+	if rf, ok := ret.Get(0).(func(context.Context, string, bool, bool, bool, string, map[string]bool) *model.PostList); ok {
+		r0 = rf(ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID, sanitizeOptions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostList)
@@ -137,8 +137,8 @@ func (_m *PostStore) Get(ctx context.Context, id string, skipFetchThreads bool, 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string, bool, bool, bool, string) error); ok {
-		r1 = rf(ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID)
+	if rf, ok := ret.Get(1).(func(context.Context, string, bool, bool, bool, string, map[string]bool) error); ok {
+		r1 = rf(ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID, sanitizeOptions)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -419,13 +419,13 @@ func (_m *PostStore) GetPostIdBeforeTime(channelID string, time int64, collapsed
 	return r0, r1
 }
 
-// GetPosts provides a mock function with given fields: options, allowFromCache
-func (_m *PostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, error) {
-	ret := _m.Called(options, allowFromCache)
+// GetPosts provides a mock function with given fields: options, allowFromCache, sanitizeOptions
+func (_m *PostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
+	ret := _m.Called(options, allowFromCache, sanitizeOptions)
 
 	var r0 *model.PostList
-	if rf, ok := ret.Get(0).(func(model.GetPostsOptions, bool) *model.PostList); ok {
-		r0 = rf(options, allowFromCache)
+	if rf, ok := ret.Get(0).(func(model.GetPostsOptions, bool, map[string]bool) *model.PostList); ok {
+		r0 = rf(options, allowFromCache, sanitizeOptions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostList)
@@ -433,8 +433,8 @@ func (_m *PostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(model.GetPostsOptions, bool) error); ok {
-		r1 = rf(options, allowFromCache)
+	if rf, ok := ret.Get(1).(func(model.GetPostsOptions, bool, map[string]bool) error); ok {
+		r1 = rf(options, allowFromCache, sanitizeOptions)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -442,13 +442,13 @@ func (_m *PostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool
 	return r0, r1
 }
 
-// GetPostsAfter provides a mock function with given fields: options
-func (_m *PostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, error) {
-	ret := _m.Called(options)
+// GetPostsAfter provides a mock function with given fields: options, sanitizeOptions
+func (_m *PostStore) GetPostsAfter(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
+	ret := _m.Called(options, sanitizeOptions)
 
 	var r0 *model.PostList
-	if rf, ok := ret.Get(0).(func(model.GetPostsOptions) *model.PostList); ok {
-		r0 = rf(options)
+	if rf, ok := ret.Get(0).(func(model.GetPostsOptions, map[string]bool) *model.PostList); ok {
+		r0 = rf(options, sanitizeOptions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostList)
@@ -456,8 +456,8 @@ func (_m *PostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostLi
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(model.GetPostsOptions) error); ok {
-		r1 = rf(options)
+	if rf, ok := ret.Get(1).(func(model.GetPostsOptions, map[string]bool) error); ok {
+		r1 = rf(options, sanitizeOptions)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -488,13 +488,13 @@ func (_m *PostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, li
 	return r0, r1
 }
 
-// GetPostsBefore provides a mock function with given fields: options
-func (_m *PostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error) {
-	ret := _m.Called(options)
+// GetPostsBefore provides a mock function with given fields: options, sanitizeOptions
+func (_m *PostStore) GetPostsBefore(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
+	ret := _m.Called(options, sanitizeOptions)
 
 	var r0 *model.PostList
-	if rf, ok := ret.Get(0).(func(model.GetPostsOptions) *model.PostList); ok {
-		r0 = rf(options)
+	if rf, ok := ret.Get(0).(func(model.GetPostsOptions, map[string]bool) *model.PostList); ok {
+		r0 = rf(options, sanitizeOptions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostList)
@@ -502,8 +502,8 @@ func (_m *PostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostL
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(model.GetPostsOptions) error); ok {
-		r1 = rf(options)
+	if rf, ok := ret.Get(1).(func(model.GetPostsOptions, map[string]bool) error); ok {
+		r1 = rf(options, sanitizeOptions)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -557,13 +557,13 @@ func (_m *PostStore) GetPostsCreatedAt(channelID string, time int64) ([]*model.P
 	return r0, r1
 }
 
-// GetPostsSince provides a mock function with given fields: options, allowFromCache
-func (_m *PostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, error) {
-	ret := _m.Called(options, allowFromCache)
+// GetPostsSince provides a mock function with given fields: options, allowFromCache, sanitizeOptions
+func (_m *PostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
+	ret := _m.Called(options, allowFromCache, sanitizeOptions)
 
 	var r0 *model.PostList
-	if rf, ok := ret.Get(0).(func(model.GetPostsSinceOptions, bool) *model.PostList); ok {
-		r0 = rf(options, allowFromCache)
+	if rf, ok := ret.Get(0).(func(model.GetPostsSinceOptions, bool, map[string]bool) *model.PostList); ok {
+		r0 = rf(options, allowFromCache, sanitizeOptions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostList)
@@ -571,8 +571,8 @@ func (_m *PostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFrom
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(model.GetPostsSinceOptions, bool) error); ok {
-		r1 = rf(options, allowFromCache)
+	if rf, ok := ret.Get(1).(func(model.GetPostsSinceOptions, bool, map[string]bool) error); ok {
+		r1 = rf(options, allowFromCache, sanitizeOptions)
 	} else {
 		r1 = ret.Error(1)
 	}

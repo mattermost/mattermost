@@ -6121,11 +6121,11 @@ func (s *RetryLayerPostStore) DeleteOrphanedRows(limit int) (int64, error) {
 
 }
 
-func (s *RetryLayerPostStore) Get(ctx context.Context, id string, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool, userID string) (*model.PostList, error) {
+func (s *RetryLayerPostStore) Get(ctx context.Context, id string, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.Get(ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID)
+		result, err := s.PostStore.Get(ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID, sanitizeOptions)
 		if err == nil {
 			return result, nil
 		}
@@ -6385,11 +6385,11 @@ func (s *RetryLayerPostStore) GetPostIdBeforeTime(channelID string, time int64, 
 
 }
 
-func (s *RetryLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, error) {
+func (s *RetryLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetPosts(options, allowFromCache)
+		result, err := s.PostStore.GetPosts(options, allowFromCache, sanitizeOptions)
 		if err == nil {
 			return result, nil
 		}
@@ -6406,11 +6406,11 @@ func (s *RetryLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromC
 
 }
 
-func (s *RetryLayerPostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, error) {
+func (s *RetryLayerPostStore) GetPostsAfter(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetPostsAfter(options)
+		result, err := s.PostStore.GetPostsAfter(options, sanitizeOptions)
 		if err == nil {
 			return result, nil
 		}
@@ -6448,11 +6448,11 @@ func (s *RetryLayerPostStore) GetPostsBatchForIndexing(startTime int64, endTime 
 
 }
 
-func (s *RetryLayerPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error) {
+func (s *RetryLayerPostStore) GetPostsBefore(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetPostsBefore(options)
+		result, err := s.PostStore.GetPostsBefore(options, sanitizeOptions)
 		if err == nil {
 			return result, nil
 		}
@@ -6511,11 +6511,11 @@ func (s *RetryLayerPostStore) GetPostsCreatedAt(channelID string, time int64) ([
 
 }
 
-func (s *RetryLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, error) {
+func (s *RetryLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetPostsSince(options, allowFromCache)
+		result, err := s.PostStore.GetPostsSince(options, allowFromCache, sanitizeOptions)
 		if err == nil {
 			return result, nil
 		}
