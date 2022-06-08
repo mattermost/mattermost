@@ -241,6 +241,7 @@ func (ts *TelemetryService) trackActivity() {
 	var slashCommandsCount int64
 	var incomingWebhooksCount int64
 	var outgoingWebhooksCount int64
+	var storageBytes int64
 
 	activeUsersDailyCountChan := make(chan store.StoreResult, 1)
 	go func() {
@@ -331,6 +332,12 @@ func (ts *TelemetryService) trackActivity() {
 		activeUsersMonthlyCount = r.Data.(int64)
 	}
 
+	outgoingWebhooksCount, _ = ts.dbStore.Webhook().AnalyticsOutgoingCount("")
+
+	if usage, err := ts.dbStore.FileInfo().GetStorageUsage(true, false); err == nil {
+		storageBytes = utils.RoundOffToZeroes(float64(usage))
+	}
+
 	ts.SendTelemetry(TrackActivity, map[string]interface{}{
 		"registered_users":             userCount,
 		"bot_accounts":                 botAccountsCount,
@@ -350,6 +357,7 @@ func (ts *TelemetryService) trackActivity() {
 		"slash_commands":               slashCommandsCount,
 		"incoming_webhooks":            incomingWebhooksCount,
 		"outgoing_webhooks":            outgoingWebhooksCount,
+		"storage_bytes":                storageBytes,
 	})
 }
 
