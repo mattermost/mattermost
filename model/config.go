@@ -942,7 +942,6 @@ func (s *MetricsSettings) SetDefaults() {
 type ExperimentalSettings struct {
 	ClientSideCertEnable            *bool   `access:"experimental_features,cloud_restrictable"`
 	ClientSideCertCheck             *string `access:"experimental_features,cloud_restrictable"`
-	EnableClickToReply              *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	LinkMetadataTimeoutMilliseconds *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	RestrictSystemAdmin             *bool   `access:"experimental_features,write_restrictable"`
 	UseNewSAMLLibrary               *bool   `access:"experimental_features,cloud_restrictable"`
@@ -959,10 +958,6 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.ClientSideCertCheck == nil {
 		s.ClientSideCertCheck = NewString(ClientSideCertCheckSecondaryAuth)
-	}
-
-	if s.EnableClickToReply == nil {
-		s.EnableClickToReply = NewBool(false)
 	}
 
 	if s.LinkMetadataTimeoutMilliseconds == nil {
@@ -2249,7 +2244,7 @@ func (s *LdapSettings) SetDefaults() {
 
 type ComplianceSettings struct {
 	Enable      *bool   `access:"compliance_compliance_monitoring"`
-	Directory   *string `access:"compliance_compliance_monitoring,cloud_restrictable"` // telemetry: none
+	Directory   *string `access:"compliance_compliance_monitoring"` // telemetry: none
 	EnableDaily *bool   `access:"compliance_compliance_monitoring"`
 	BatchSize   *int    `access:"compliance_compliance_monitoring"` // telemetry: none
 }
@@ -3114,18 +3109,18 @@ type Config struct {
 	ExperimentalSettings      ExperimentalSettings
 	AnalyticsSettings         AnalyticsSettings
 	ElasticsearchSettings     ElasticsearchSettings
-	BleveSettings             BleveSettings `access:"cloud_restrictable"`
+	BleveSettings             BleveSettings
 	DataRetentionSettings     DataRetentionSettings
 	MessageExportSettings     MessageExportSettings
 	JobSettings               JobSettings
 	PluginSettings            PluginSettings
 	DisplaySettings           DisplaySettings
 	GuestAccountsSettings     GuestAccountsSettings
-	ImageProxySettings        ImageProxySettings `access:"cloud_restrictable"`
-	CloudSettings             CloudSettings      // telemetry: none
-	FeatureFlags              *FeatureFlags      `access:"*_read" json:",omitempty"`
-	ImportSettings            ImportSettings     `access:"cloud_restrictable"` // telemetry: none
-	ExportSettings            ExportSettings     `access:"cloud_restrictable"`
+	ImageProxySettings        ImageProxySettings
+	CloudSettings             CloudSettings  // telemetry: none
+	FeatureFlags              *FeatureFlags  `access:"*_read" json:",omitempty"`
+	ImportSettings            ImportSettings // telemetry: none
+	ExportSettings            ExportSettings
 }
 
 func (o *Config) Clone() *Config {
