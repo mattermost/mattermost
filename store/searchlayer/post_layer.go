@@ -32,7 +32,6 @@ func (s SearchPostStore) indexPost(post *model.Post) {
 					mlog.Warn("Encountered error indexing post", mlog.String("post_id", post.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					return
 				}
-				mlog.Debug("Indexed post in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("post_id", post.Id))
 			})
 		}
 	}
@@ -46,7 +45,6 @@ func (s SearchPostStore) deletePostIndex(post *model.Post) {
 					mlog.Warn("Encountered error deleting post", mlog.String("post_id", post.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					return
 				}
-				mlog.Debug("Removed post from the index in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("post_id", post.Id))
 			})
 		}
 	}
@@ -185,16 +183,13 @@ func (s SearchPostStore) SearchPostsForUser(paramsList []*model.SearchParams, us
 				mlog.Warn("Encountered error on SearchPostsInTeamForUser.", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
 				continue
 			}
-			mlog.Debug("Using the first available search engine", mlog.String("search_engine", engine.GetName()))
 			return results, err
 		}
 	}
 
 	if *s.rootStore.getConfig().SqlSettings.DisableDatabaseSearch {
-		mlog.Debug("Returning empty results for post SearchPostsInTeam as the database search is disabled")
 		return &model.PostSearchResults{PostList: model.NewPostList(), Matches: model.PostSearchMatches{}}, nil
 	}
 
-	mlog.Debug("Using database search because no other search engine is available")
 	return s.PostStore.SearchPostsForUser(paramsList, userId, teamId, page, perPage)
 }
