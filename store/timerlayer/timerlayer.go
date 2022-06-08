@@ -5306,6 +5306,22 @@ func (s *TimerLayerPostStore) GetPostsSinceForSync(options model.GetPostsSinceFo
 	return result, resultVar1, err
 }
 
+func (s *TimerLayerPostStore) GetRecentNthPostTime(n int64) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.PostStore.GetRecentNthPostTime(n)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetRecentNthPostTime", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) GetRecentSearchesForUser(userID string) ([]*model.SearchParams, error) {
 	start := timemodule.Now()
 

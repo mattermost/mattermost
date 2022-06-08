@@ -5960,6 +5960,10 @@
     "translation": "Error fetching recent searches"
   },
   {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "Error fetching last accessible post"
+  },
+  {
     "id": "app.recover.delete.app_error",
     "translation": "Unable to delete token."
   },

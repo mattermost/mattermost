@@ -1296,6 +1296,27 @@ func (a *App) convertUserNameToUserIds(usernames []string) []string {
 	return usernames
 }
 
+// GetLastAccessiblePostTime returns CreateAt time of last accessible post as per the cloud limit
+func (a *App) GetLastAccessiblePostTime() (int64, *model.AppError) {
+	limits, err := a.Cloud().GetCloudLimits("")
+	if err != nil {
+		return 0, model.NewAppError("GetLastAccessiblePostTime", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if limits == nil || limits.Messages == nil || limits.Messages.History == nil {
+		// Cloud limit is not applicable
+		return 0, nil
+	}
+
+	createdAt, err := a.Srv().GetStore().Post().GetRecentNthPostTime(int64(*limits.Messages.History))
+	if err != nil {
+		return 0, model.NewAppError("GetLastAccessiblePostTime", "app.last_accessible_post.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return createdAt, nil
+}
+
+// addSearchLimits enforce posts search limit as per cloud
 func (a *App) addSearchLimits(paramsList []*model.SearchParams) *model.AppError {
 	limits, err := a.Cloud().GetCloudLimits("")
 	if err != nil {
