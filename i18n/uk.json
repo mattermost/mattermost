@@ -2648,10 +2648,6 @@
     "translation": "Відсутня необхідна властивість Реакція: користувач."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Відповідь властивості CreateAt має бути більшим, ніж батьківський запис CreateAt."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Відсутня необхідна відповідь властивість: created_at."
   },

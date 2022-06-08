@@ -569,7 +569,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		// Return post data only when PostId is passed.
 		if ack.PostId != "" && ack.NotificationType == model.PushTypeMessage {
-			if _, appErr := c.App.GetPostIfAuthorized(ack.PostId, c.AppContext.Session()); appErr != nil {
+			if _, appErr := c.App.GetPostIfAuthorized(ack.PostId, c.AppContext.Session(), false); appErr != nil {
 				c.Err = appErr
 				return
 			}

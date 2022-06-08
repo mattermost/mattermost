@@ -484,6 +484,14 @@
     "translation": "Error updating subscription from webhook."
   },
   {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Unable to create team because teams limit has been reached"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Unable to restore team because teams limit has been reached"
+  },
+  {
     "id": "api.command.admin_only.app_error",
     "translation": "Integrations have been limited to admins only."
   },
@@ -3129,11 +3137,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Enterprise ended on {{.TodayDate}}. We hope you’ve enjoyed our flexible and secure collaboration platform. Please add your payment information to ensure your team can continue collaborating with Mattermost."
+    "translation": "{{.Name}}, your 30-day free trial of Mattermost Cloud Enterprise ended on {{.TodayDate}}. We hope you’ve enjoyed our flexible and secure collaboration platform. Please add your payment information to ensure your team can continue collaborating with Mattermost."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Your free 14-day trial of Mattermost has ended"
+    "translation": "Your free 30-day trial of Mattermost has ended"
   },
   {
     "id": "api.templates.cloud_trial_ending_email.add_payment_method",
@@ -3145,11 +3153,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, your 14-day trial of Mattermost is ending in 3 days, on {{.TrialEnd}}. Please add your payment information to ensure your team can continue enjoying the benefits of Mattermost Cloud."
+    "translation": "{{.Name}}, your 30-day trial of Mattermost is ending in 3 days, on {{.TrialEnd}}. Please add your payment information to ensure your team can continue enjoying the benefits of Mattermost Cloud."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Your free 14-day trial of Mattermost is ending soon"
+    "translation": "Your free 30-day trial of Mattermost is ending soon"
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
@@ -3229,7 +3237,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Your 14 day trial of the {{.WorkSpace}} workspace is ready to go!"
+    "translation": "Your 30-day trial of the {{.WorkSpace}} workspace is ready to go!"
   },
   {
     "id": "api.templates.copyright",
@@ -3465,7 +3473,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "View Message"
+    "translation": "Reply in Mattermost"
   },
   {
     "id": "api.templates.questions_footer.info",
@@ -5204,10 +5212,6 @@
     "translation": "Missing required Reaction property: User."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Reply CreateAt property must be greater than the parent post CreateAt."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Missing required Reply property: create_at."
   },
@@ -5808,6 +5812,10 @@
     "translation": "Unable to get post counts by day."
   },
   {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Unable to get teams usage"
+  },
+  {
     "id": "app.post.analytics_user_counts_posts_by_day.app_error",
     "translation": "Unable to get user counts with posts."
   },
@@ -6288,6 +6296,10 @@
     "translation": "Unable to determine if the user belongs to a list of teams."
   },
   {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Unable to get team count"
+  },
+  {
     "id": "app.terms_of_service.create.app_error",
     "translation": "Unable to save terms of service."
   },
@@ -6366,6 +6378,10 @@
   {
     "id": "app.upload.upload_data.update.app_error",
     "translation": "Failed to update the upload session."
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "Failed to get storage usage."
   },
   {
     "id": "app.user.analytics_daily_active_users.app_error",
@@ -7226,10 +7242,6 @@
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch is already stopped."
-  },
-  {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Connecting to Elasticsearch server failed."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
