@@ -3096,6 +3096,7 @@ func TestImportImportPost(t *testing.T) {
 	})
 
 	t.Run("Reply CreateAt before parent post CreateAt", func(t *testing.T) {
+		t.Skip("MM-44922")
 		now := model.GetMillis()
 		before := now - 10
 		data := LineImportWorkerData{
