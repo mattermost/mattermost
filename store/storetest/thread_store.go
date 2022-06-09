@@ -83,7 +83,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		opts := model.GetPostsOptions{
 			SkipFetchThreads: true,
 		}
-		olist, _ := ss.Post().Get(context.Background(), otmp.Id, opts, "")
+		olist, _ := ss.Post().Get(context.Background(), otmp.Id, opts, "", map[string]bool{})
 		o1 := olist.Posts[olist.Order[0]]
 
 		newPosts = append([]*model.Post{o1}, newPosts...)
