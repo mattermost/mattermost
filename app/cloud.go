@@ -66,6 +66,9 @@ func (a *App) SendUpgradeConfirmationEmail() *model.AppError {
 	// Build readable trial end date
 	// Trial end is passed as unix timestamp in ms
 	endTimeStamp := subscription.TrialEndAt / 1000
+	if endTimeStamp == 0 {
+		endTimeStamp = time.Now().Unix()
+	}
 	t := time.Unix(endTimeStamp, 0)
 	trialEndDate := fmt.Sprintf("%s %d, %d", t.Month(), t.Day(), t.Year())
 
