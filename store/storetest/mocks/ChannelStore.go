@@ -268,13 +268,13 @@ func (_m *ChannelStore) CreateSidebarCategory(userID string, teamID string, newC
 	return r0, r1
 }
 
-// Delete provides a mock function with given fields: channelID, _a1
-func (_m *ChannelStore) Delete(channelID string, _a1 int64) error {
-	ret := _m.Called(channelID, _a1)
+// Delete provides a mock function with given fields: channelID, timestamp
+func (_m *ChannelStore) Delete(channelID string, timestamp int64) error {
+	ret := _m.Called(channelID, timestamp)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
-		r0 = rf(channelID, _a1)
+		r0 = rf(channelID, timestamp)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1798,13 +1798,13 @@ func (_m *ChannelStore) ResetAllChannelSchemes() error {
 	return r0
 }
 
-// Restore provides a mock function with given fields: channelID, _a1
-func (_m *ChannelStore) Restore(channelID string, _a1 int64) error {
-	ret := _m.Called(channelID, _a1)
+// Restore provides a mock function with given fields: channelID, timestamp
+func (_m *ChannelStore) Restore(channelID string, timestamp int64) error {
+	ret := _m.Called(channelID, timestamp)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
-		r0 = rf(channelID, _a1)
+		r0 = rf(channelID, timestamp)
 	} else {
 		r0 = ret.Error(0)
 	}
