@@ -4298,21 +4298,25 @@ func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string
 	return model.GetTopChannelListWithPagination(channels, limit), nil
 }
 
-func (s SqlChannelStore) PostCountsByDuration(channelIDs []string, sinceUnixMillis int64, userID *string, duration model.PostCountGrouping) ([]*model.DurationPostCount, error) {
+func (s SqlChannelStore) PostCountsByDuration(channelIDs []string, sinceUnixMillis int64, userID *string, duration model.PostCountGrouping, atLocation *time.Location) ([]*model.DurationPostCount, error) {
 	var unixSelect string
 	var propsQuery string
+	loc := atLocation.String()
+	if loc == "Local" {
+		loc = "UTC"
+	}
 	if s.DriverName() == model.DatabaseDriverMysql {
 		if duration == model.PostsByDay {
-			unixSelect = `DATE_FORMAT(FROM_UNIXTIME(Posts.CreateAt / 1000),'%Y-%m-%d') AS duration`
+			unixSelect = `DATE_FORMAT(CONVERT_TZ(FROM_UNIXTIME(Posts.CreateAt / 1000), 'GMT', '` + loc + `'),'%Y-%m-%d') AS duration`
 		} else {
-			unixSelect = `DATE_FORMAT(FROM_UNIXTIME(Posts.CreateAt / 1000),'%Y-%m-%dT%H') AS duration`
+			unixSelect = `DATE_FORMAT(CONVERT_TZ(FROM_UNIXTIME(Posts.CreateAt / 1000), 'GMT', '` + loc + `'),'%Y-%m-%dT%H') AS duration`
 		}
 		propsQuery = `(JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false')`
 	} else if s.DriverName() == model.DatabaseDriverPostgres {
 		if duration == model.PostsByDay {
-			unixSelect = `TO_CHAR(TO_TIMESTAMP(Posts.CreateAt / 1000), 'YYYY-MM-DD') AS duration`
+			unixSelect = fmt.Sprintf(`TO_CHAR(TO_TIMESTAMP(Posts.CreateAt / 1000) AT TIME ZONE '%s', 'YYYY-MM-DD') AS duration`, loc)
 		} else {
-			unixSelect = `TO_CHAR(TO_TIMESTAMP(Posts.CreateAt / 1000), 'YYYY-MM-DD"T"HH24') AS duration`
+			unixSelect = fmt.Sprintf(`TO_CHAR(TO_TIMESTAMP(Posts.CreateAt / 1000) AT TIME ZONE '%s', 'YYYY-MM-DD"T"HH24') AS duration`, loc)
 		}
 		propsQuery = `(Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false')`
 	}

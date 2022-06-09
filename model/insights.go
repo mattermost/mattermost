@@ -140,17 +140,17 @@ func ToDailyPostCountViewModel(dpc []*DurationPostCount, startTime *time.Time, n
 		var parseFormat string
 		var keyFormat string
 		if numDays == 1 {
-			parseFormat = "2006-01-02T15"
+			parseFormat = "2006-01-02T15 "
 			keyFormat = time.RFC3339
 		} else {
 			parseFormat = "2006-01-02"
 			keyFormat = parseFormat
 		}
-		durTime, err := time.Parse(parseFormat, item.Duration)
+		durTime, err := time.ParseInLocation(parseFormat, item.Duration, startTime.Location())
 		if err != nil {
 			continue
 		}
-		localizedKey := durTime.In(startTime.Location()).Format(keyFormat)
+		localizedKey := durTime.Format(keyFormat)
 		_, hasKey := viewModel[localizedKey]
 		if !hasKey {
 			viewModel[localizedKey] = map[string]int{}

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -3423,11 +3424,11 @@ func (a *App) GetTopChannelsForUserSince(userID, teamID string, opts *model.Insi
 // use a sinceUnixMillis parameter value as returned by model.GetStartOfDayMillis.
 //
 // WARNING: PostCountsByDuration PERFORMS NO AUTHORIZATION CHECKS ON THE GIVEN CHANNELS.
-func (a *App) PostCountsByDuration(channelIDs []string, sinceUnixMillis int64, userID *string, grouping model.PostCountGrouping) ([]*model.DurationPostCount, *model.AppError) {
+func (a *App) PostCountsByDuration(channelIDs []string, sinceUnixMillis int64, userID *string, grouping model.PostCountGrouping, groupingLocation *time.Location) ([]*model.DurationPostCount, *model.AppError) {
 	if !a.Config().FeatureFlags.InsightsEnabled {
 		return nil, model.NewAppError("PostCountsByDuration", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
-	postCountByDay, err := a.Srv().Store.Channel().PostCountsByDuration(channelIDs, sinceUnixMillis, userID, grouping)
+	postCountByDay, err := a.Srv().Store.Channel().PostCountsByDuration(channelIDs, sinceUnixMillis, userID, grouping, groupingLocation)
 	if err != nil {
 		return nil, model.NewAppError("PostCountsByDuration", "app.channel.get_post_count_by_day.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

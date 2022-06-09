@@ -240,7 +240,7 @@ func postCountByDurationViewModel(app app.AppIface, topChannelList *model.TopCha
 	} else {
 		grouping = model.PostsByDay
 	}
-	postCountsByDay, err := app.PostCountsByDuration(channelIDs, startTime.UnixMilli(), userID, grouping)
+	postCountsByDay, err := app.PostCountsByDuration(channelIDs, startTime.UnixMilli(), userID, grouping, location)
 	if err != nil {
 		return nil, err
 	}

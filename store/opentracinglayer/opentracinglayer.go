@@ -8,6 +8,7 @@ package opentracinglayer
 
 import (
 	"context"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/tracing"
@@ -2014,7 +2015,7 @@ func (s *OpenTracingLayerChannelStore) PermanentDeleteMembersByUser(userID strin
 	return err
 }
 
-func (s *OpenTracingLayerChannelStore) PostCountsByDuration(channelIDs []string, sinceUnixMillis int64, userID *string, duration model.PostCountGrouping) ([]*model.DurationPostCount, error) {
+func (s *OpenTracingLayerChannelStore) PostCountsByDuration(channelIDs []string, sinceUnixMillis int64, userID *string, duration model.PostCountGrouping, groupingLocation *time.Location) ([]*model.DurationPostCount, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.PostCountsByDuration")
 	s.Root.Store.SetContext(newCtx)
@@ -2023,7 +2024,7 @@ func (s *OpenTracingLayerChannelStore) PostCountsByDuration(channelIDs []string,
 	}()
 
 	defer span.Finish()
-	result, err := s.ChannelStore.PostCountsByDuration(channelIDs, sinceUnixMillis, userID, duration)
+	result, err := s.ChannelStore.PostCountsByDuration(channelIDs, sinceUnixMillis, userID, duration, groupingLocation)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

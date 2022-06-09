@@ -7934,7 +7934,7 @@ func testChannelPostCountsByDuration(t *testing.T, ss store.Store) {
 	})
 	require.NoError(t, err)
 
-	dpc, err := ss.Channel().PostCountsByDuration([]string{channelSaved.Id}, 0, &userID, model.PostsByDay)
+	dpc, err := ss.Channel().PostCountsByDuration([]string{channelSaved.Id}, 0, &userID, model.PostsByDay, time.Now().Location())
 	require.NoError(t, err)
 	require.Len(t, dpc, 1)
 	require.Equal(t, channel.Id, dpc[0].ChannelID)

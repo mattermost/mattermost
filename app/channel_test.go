@@ -2578,7 +2578,7 @@ func TestPostCountsByDuration(t *testing.T) {
 	sinceUnixMillis := time.Date(2009, time.November, 9, 23, 0, 0, 0, time.UTC).UnixMilli()
 
 	t.Run("get-post-counts-by-day scoped by user, grouped by day", func(t *testing.T) {
-		dailyPostCount, err := th.App.PostCountsByDuration(channelIDs, sinceUnixMillis, &th.BasicUser.Id, model.PostsByDay)
+		dailyPostCount, err := th.App.PostCountsByDuration(channelIDs, sinceUnixMillis, &th.BasicUser.Id, model.PostsByDay, time.Now().UTC().Location())
 		require.Nil(t, err)
 		require.GreaterOrEqual(t, len(dailyPostCount), 6)
 
@@ -2591,7 +2591,7 @@ func TestPostCountsByDuration(t *testing.T) {
 	})
 
 	t.Run("get-post-counts-by-day all users, grouped by day", func(t *testing.T) {
-		dailyPostCount, err := th.App.PostCountsByDuration(channelIDs, sinceUnixMillis, nil, model.PostsByDay)
+		dailyPostCount, err := th.App.PostCountsByDuration(channelIDs, sinceUnixMillis, nil, model.PostsByDay, time.Now().UTC().Location())
 		require.Nil(t, err)
 		require.GreaterOrEqual(t, len(dailyPostCount), 6)
 
@@ -2605,7 +2605,7 @@ func TestPostCountsByDuration(t *testing.T) {
 
 	t.Run("get-post-counts-by-day all users, grouped by hour", func(t *testing.T) {
 		oneDaySince := time.Date(2009, time.November, 14, 23, 0, 0, 0, time.UTC).UnixMilli()
-		dailyPostCount, err := th.App.PostCountsByDuration(channelIDs, oneDaySince, nil, model.PostsByHour)
+		dailyPostCount, err := th.App.PostCountsByDuration(channelIDs, oneDaySince, nil, model.PostsByHour, time.Now().UTC().Location())
 		require.Nil(t, err)
 		require.GreaterOrEqual(t, len(dailyPostCount), 1)
 
