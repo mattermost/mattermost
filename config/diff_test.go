@@ -816,6 +816,9 @@ func TestDiff(t *testing.T) {
 						"com.mattermost.apps": {
 							Enable: true,
 						},
+						"com.mattermost.calls": {
+							Enable: true,
+						},
 					},
 				},
 			},
@@ -851,6 +854,9 @@ func TestDiff(t *testing.T) {
 						"com.mattermost.apps": {
 							Enable: true,
 						},
+						"com.mattermost.calls": {
+							Enable: true,
+						},
 					},
 				},
 			},
@@ -876,6 +882,9 @@ func TestDiff(t *testing.T) {
 							Enable: true,
 						},
 						"com.mattermost.apps": {
+							Enable: true,
+						},
+						"com.mattermost.calls": {
 							Enable: true,
 						},
 					},

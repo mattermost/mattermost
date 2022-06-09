@@ -619,11 +619,11 @@ func (s *RetryLayerChannelStore) AnalyticsTypeCount(teamID string, channelType m
 
 }
 
-func (s *RetryLayerChannelStore) Autocomplete(userID string, term string, includeDeleted bool) (model.ChannelListWithTeamData, error) {
+func (s *RetryLayerChannelStore) Autocomplete(userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelListWithTeamData, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.Autocomplete(userID, term, includeDeleted)
+		result, err := s.ChannelStore.Autocomplete(userID, term, includeDeleted, isGuest)
 		if err == nil {
 			return result, nil
 		}
@@ -640,11 +640,11 @@ func (s *RetryLayerChannelStore) Autocomplete(userID string, term string, includ
 
 }
 
-func (s *RetryLayerChannelStore) AutocompleteInTeam(teamID string, userID string, term string, includeDeleted bool) (model.ChannelList, error) {
+func (s *RetryLayerChannelStore) AutocompleteInTeam(teamID string, userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelList, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.AutocompleteInTeam(teamID, userID, term, includeDeleted)
+		result, err := s.ChannelStore.AutocompleteInTeam(teamID, userID, term, includeDeleted, isGuest)
 		if err == nil {
 			return result, nil
 		}
@@ -3841,6 +3841,27 @@ func (s *RetryLayerFileInfoStore) GetFromMaster(id string) (*model.FileInfo, err
 
 }
 
+func (s *RetryLayerFileInfoStore) GetStorageUsage(allowFromCache bool, includeDeleted bool) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.FileInfoStore.GetStorageUsage(allowFromCache, includeDeleted)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error) {
 
 	tries := 0
@@ -6205,11 +6226,11 @@ func (s *RetryLayerPostStore) DeleteOrphanedRows(limit int) (int64, error) {
 
 }
 
-func (s *RetryLayerPostStore) Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string) (*model.PostList, error) {
+func (s *RetryLayerPostStore) Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.Get(ctx, id, opts, userID)
+		result, err := s.PostStore.Get(ctx, id, opts, userID, sanitizeOptions)
 		if err == nil {
 			return result, nil
 		}
@@ -6469,11 +6490,11 @@ func (s *RetryLayerPostStore) GetPostIdBeforeTime(channelID string, time int64, 
 
 }
 
-func (s *RetryLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, error) {
+func (s *RetryLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetPosts(options, allowFromCache)
+		result, err := s.PostStore.GetPosts(options, allowFromCache, sanitizeOptions)
 		if err == nil {
 			return result, nil
 		}
@@ -6490,11 +6511,11 @@ func (s *RetryLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromC
 
 }
 
-func (s *RetryLayerPostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, error) {
+func (s *RetryLayerPostStore) GetPostsAfter(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetPostsAfter(options)
+		result, err := s.PostStore.GetPostsAfter(options, sanitizeOptions)
 		if err == nil {
 			return result, nil
 		}
@@ -6532,11 +6553,11 @@ func (s *RetryLayerPostStore) GetPostsBatchForIndexing(startTime int64, startPos
 
 }
 
-func (s *RetryLayerPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error) {
+func (s *RetryLayerPostStore) GetPostsBefore(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetPostsBefore(options)
+		result, err := s.PostStore.GetPostsBefore(options, sanitizeOptions)
 		if err == nil {
 			return result, nil
 		}
@@ -6595,11 +6616,11 @@ func (s *RetryLayerPostStore) GetPostsCreatedAt(channelID string, time int64) ([
 
 }
 
-func (s *RetryLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, error) {
+func (s *RetryLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetPostsSince(options, allowFromCache)
+		result, err := s.PostStore.GetPostsSince(options, allowFromCache, sanitizeOptions)
 		if err == nil {
 			return result, nil
 		}
@@ -9825,6 +9846,27 @@ func (s *RetryLayerTeamStore) GetAllTeamListing() ([]*model.Team, error) {
 	tries := 0
 	for {
 		result, err := s.TeamStore.GetAllTeamListing()
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerTeamStore) GetByEmptyInviteID() ([]*model.Team, error) {
+
+	tries := 0
+	for {
+		result, err := s.TeamStore.GetByEmptyInviteID()
 		if err == nil {
 			return result, nil
 		}

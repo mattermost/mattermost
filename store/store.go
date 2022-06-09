@@ -7,6 +7,7 @@ package store
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -66,6 +67,12 @@ type Store interface {
 	GetDBSchemaVersion() (int, error)
 	GetAppliedMigrations() ([]model.AppliedMigration, error)
 	GetDbVersion(numerical bool) (string, error)
+	// GetInternalMasterDB allows access to the raw master DB
+	// handle for the multi-product architecture.
+	GetInternalMasterDB() *sql.DB
+	// GetInternalReplicaDBs allows access to the raw replica DB
+	// handles for the multi-product architecture.
+	GetInternalReplicaDBs() []*sql.DB
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
@@ -115,6 +122,7 @@ type TeamStore interface {
 	GetAllTeamListing() ([]*model.Team, error)
 	GetTeamsByUserId(userID string) ([]*model.Team, error)
 	GetByInviteId(inviteID string) (*model.Team, error)
+	GetByEmptyInviteID() ([]*model.Team, error)
 	PermanentDelete(teamID string) error
 	AnalyticsTeamCount(opts *model.TeamSearch) (int64, error)
 	SaveMultipleMembers(members []*model.TeamMember, maxUsersPerTeam int) ([]*model.TeamMember, error)
@@ -235,8 +243,8 @@ type ChannelStore interface {
 	GetTeamMembersForChannel(channelID string) ([]string, error)
 	GetMembersForUserWithPagination(userID string, page, perPage int) (model.ChannelMembersWithTeamData, error)
 	GetMembersForUserWithCursor(userID, teamID string, opts *ChannelMemberGraphQLSearchOpts) (model.ChannelMembers, error)
-	Autocomplete(userID, term string, includeDeleted bool) (model.ChannelListWithTeamData, error)
-	AutocompleteInTeam(teamID, userID, term string, includeDeleted bool) (model.ChannelList, error)
+	Autocomplete(userID, term string, includeDeleted, isGuest bool) (model.ChannelListWithTeamData, error)
+	AutocompleteInTeam(teamID, userID, term string, includeDeleted, isGuest bool) (model.ChannelList, error)
 	AutocompleteInTeamForSearch(teamID string, userID string, term string, includeDeleted bool) (model.ChannelList, error)
 	SearchAllChannels(term string, opts ChannelSearchOpts) (model.ChannelListWithTeamData, int64, error)
 	SearchInTeam(teamID string, term string, includeDeleted bool) (model.ChannelList, error)
@@ -328,19 +336,19 @@ type PostStore interface {
 	SaveMultiple(posts []*model.Post) ([]*model.Post, int, error)
 	Save(post *model.Post) (*model.Post, error)
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error)
-	Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string) (*model.PostList, error)
+	Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetSingle(id string, inclDeleted bool) (*model.Post, error)
 	Delete(postID string, time int64, deleteByID string) error
 	PermanentDeleteByUser(userID string) error
 	PermanentDeleteByChannel(channelID string) error
-	GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, error)
+	GetPosts(options model.GetPostsOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetFlaggedPosts(userID string, offset int, limit int) (*model.PostList, error)
 	// @openTracingParams userID, teamID, offset, limit
 	GetFlaggedPostsForTeam(userID, teamID string, offset int, limit int) (*model.PostList, error)
 	GetFlaggedPostsForChannel(userID, channelID string, offset int, limit int) (*model.PostList, error)
-	GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error)
-	GetPostsAfter(options model.GetPostsOptions) (*model.PostList, error)
-	GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, error)
+	GetPostsBefore(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error)
+	GetPostsAfter(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error)
+	GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetPostAfterTime(channelID string, time int64, collapsedThreads bool) (*model.Post, error)
 	GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, error)
 	GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool) (string, error)
@@ -666,6 +674,7 @@ type FileInfoStore interface {
 	CountAll() (int64, error)
 	GetFilesBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.FileForIndexing, error)
 	ClearCaches()
+	GetStorageUsage(allowFromCache, includeDeleted bool) (int64, error)
 }
 
 type UploadSessionStore interface {

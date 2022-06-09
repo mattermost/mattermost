@@ -942,7 +942,6 @@ func (s *MetricsSettings) SetDefaults() {
 type ExperimentalSettings struct {
 	ClientSideCertEnable            *bool   `access:"experimental_features,cloud_restrictable"`
 	ClientSideCertCheck             *string `access:"experimental_features,cloud_restrictable"`
-	EnableClickToReply              *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	LinkMetadataTimeoutMilliseconds *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	RestrictSystemAdmin             *bool   `access:"experimental_features,write_restrictable"`
 	UseNewSAMLLibrary               *bool   `access:"experimental_features,cloud_restrictable"`
@@ -959,10 +958,6 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.ClientSideCertCheck == nil {
 		s.ClientSideCertCheck = NewString(ClientSideCertCheckSecondaryAuth)
-	}
-
-	if s.EnableClickToReply == nil {
-		s.EnableClickToReply = NewBool(false)
 	}
 
 	if s.LinkMetadataTimeoutMilliseconds == nil {
@@ -1385,23 +1380,23 @@ type PasswordSettings struct {
 
 func (s *PasswordSettings) SetDefaults() {
 	if s.MinimumLength == nil {
-		s.MinimumLength = NewInt(10)
+		s.MinimumLength = NewInt(8)
 	}
 
 	if s.Lowercase == nil {
-		s.Lowercase = NewBool(true)
+		s.Lowercase = NewBool(false)
 	}
 
 	if s.Number == nil {
-		s.Number = NewBool(true)
+		s.Number = NewBool(false)
 	}
 
 	if s.Uppercase == nil {
-		s.Uppercase = NewBool(true)
+		s.Uppercase = NewBool(false)
 	}
 
 	if s.Symbol == nil {
-		s.Symbol = NewBool(true)
+		s.Symbol = NewBool(false)
 	}
 }
 
@@ -2810,8 +2805,8 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates[PluginIdApps] = &PluginState{Enable: true}
 	}
 
-	if s.PluginStates[PluginIdCalls] == nil && IsCloud() {
-		// Enable the calls plugin by default on Cloud only
+	if s.PluginStates[PluginIdCalls] == nil {
+		// Enable the calls plugin by default
 		s.PluginStates[PluginIdCalls] = &PluginState{Enable: true}
 	}
 

@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/stretchr/testify/mock"
@@ -103,6 +104,8 @@ func (s *Store) LockToMaster()                           { /* do nothing */ }
 func (s *Store) UnlockFromMaster()                       { /* do nothing */ }
 func (s *Store) DropAllTables()                          { /* do nothing */ }
 func (s *Store) GetDbVersion(bool) (string, error)       { return "", nil }
+func (s *Store) GetInternalMasterDB() *sql.DB            { return nil }
+func (s *Store) GetInternalReplicaDBs() []*sql.DB        { return nil }
 func (s *Store) RecycleDBConnections(time.Duration)      {}
 func (s *Store) GetDBSchemaVersion() (int, error)        { return 1, nil }
 func (s *Store) GetAppliedMigrations() ([]model.AppliedMigration, error) {

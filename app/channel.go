@@ -2570,7 +2570,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 	if !collapsedThreadsSupported || !a.IsCRTEnabledForUser(userID) {
 		return a.markChannelAsUnreadFromPostCRTUnsupported(postID, userID)
 	}
-	post, err := a.GetSinglePost(postID)
+	post, err := a.GetSinglePost(postID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -2585,66 +2585,6 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 		return nil, err
 	}
 
-	// if auto-follow is on
-	// if threadmembership does not exists we create one and update
-	if *a.Config().ServiceSettings.ThreadAutoFollow {
-		threadId := post.RootId
-		if post.RootId == "" {
-			threadId = post.Id
-		}
-
-		var nfErr *store.ErrNotFound
-		threadMembership, storeErr := a.Srv().Store.Thread().GetMembershipForUser(user.Id, threadId)
-		if storeErr != nil && !errors.As(storeErr, &nfErr) {
-			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
-		}
-		// if this post was not followed before, create thread membership and update mention count
-		if threadMembership == nil {
-			opts := store.ThreadMembershipOpts{
-				Following:             false,
-				IncrementMentions:     false,
-				UpdateFollowing:       true,
-				UpdateViewedTimestamp: true,
-				UpdateParticipants:    false,
-			}
-			threadMembership, storeErr = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, opts)
-			if storeErr != nil && !errors.As(storeErr, &nfErr) {
-				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
-			}
-			threadData, storeErr2 := a.Srv().Store.Thread().Get(threadId)
-			if storeErr2 != nil {
-				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, storeErr2.Error(), http.StatusInternalServerError)
-			}
-			if threadData != nil && threadMembership != nil && threadMembership.Following {
-				channel, nErr := a.Srv().Store.Channel().Get(post.ChannelId, true)
-				if nErr != nil {
-					return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-				}
-				threadMembership.UnreadMentions, err = a.countThreadMentions(user, post, channel.TeamId, post.UpdateAt-1)
-				if err != nil {
-					return nil, err
-				}
-				_, nErr = a.Srv().Store.Thread().UpdateMembership(threadMembership)
-				if nErr != nil {
-					return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-				}
-				thread, nErr := a.Srv().Store.Thread().GetThreadForUser(channel.TeamId, threadMembership, true)
-				if nErr != nil {
-					return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-				}
-				a.sanitizeProfiles(thread.Participants, false)
-				thread.Post.SanitizeProps()
-				payload, jsonErr := json.Marshal(thread)
-				if jsonErr != nil {
-					mlog.Warn("Failed to encode thread to JSON")
-				}
-				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, channel.TeamId, "", userID, nil)
-				message.Add("thread", string(payload))
-				a.Publish(message)
-			}
-		}
-	}
-
 	channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, unreadMentionsRoot, true)
 	if nErr != nil {
 		return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
@@ -2657,7 +2597,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 }
 
 func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID string) (*model.ChannelUnreadAt, *model.AppError) {
-	post, err := a.GetSinglePost(postID)
+	post, err := a.GetSinglePost(postID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -2696,7 +2636,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID st
 	//                          If there are replies with mentions below the marked reply in the thread, then sum the mentions for the threads mention badge.
 	// In CRT Unsupported Client: Channel is marked as unread and new messages line inserted above the marked post.
 	//                            Badge on channel sums mentions in all posts (root & replies) including and below the post that was marked unread.
-	rootPost, err := a.GetSinglePost(post.RootId)
+	rootPost, err := a.GetSinglePost(post.RootId, false)
 	if err != nil {
 		return nil, err
 	}
@@ -2728,8 +2668,8 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID st
 		}
 		// If threadmembership already exists but user had previously unfollowed the thread, then follow the thread again.
 		threadMembership.Following = true
-		threadMembership.LastViewed = post.UpdateAt - 1
-		threadMembership.UnreadMentions, err = a.countThreadMentions(user, rootPost, channel.TeamId, post.UpdateAt-1)
+		threadMembership.LastViewed = post.CreateAt - 1
+		threadMembership.UnreadMentions, err = a.countThreadMentions(user, rootPost, channel.TeamId, post.CreateAt-1)
 		if err != nil {
 			return nil, err
 		}
@@ -2781,7 +2721,12 @@ func (a *App) AutocompleteChannels(userID, term string) (model.ChannelListWithTe
 	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 	term = strings.TrimSpace(term)
 
-	channelList, err := a.Srv().Store.Channel().Autocomplete(userID, term, includeDeleted)
+	user, appErr := a.GetUser(userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	channelList, err := a.Srv().Store.Channel().Autocomplete(userID, term, includeDeleted, user.IsGuest())
 	if err != nil {
 		return nil, model.NewAppError("AutocompleteChannels", "app.channel.search.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2793,7 +2738,12 @@ func (a *App) AutocompleteChannelsForTeam(teamID, userID, term string) (model.Ch
 	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 	term = strings.TrimSpace(term)
 
-	channelList, err := a.Srv().Store.Channel().AutocompleteInTeam(teamID, userID, term, includeDeleted)
+	user, appErr := a.GetUser(userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	channelList, err := a.Srv().Store.Channel().AutocompleteInTeam(teamID, userID, term, includeDeleted, user.IsGuest())
 	if err != nil {
 		return nil, model.NewAppError("AutocompleteChannels", "app.channel.search.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
