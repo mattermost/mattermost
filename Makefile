@@ -17,6 +17,11 @@ else
 	export IS_LINUX =
 endif
 
+# Detect M1/M2 Macs and set a flag.
+ifeq ($(shell uname)/$(shell uname -m),Darwin/arm64)
+  M1_MAC = true
+endif
+
 define LICENSE_HEADER
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
