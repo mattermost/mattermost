@@ -184,6 +184,7 @@ endif
 
 # Remove this when elasticsearch runs on M1
 ifeq ($(M1_MAC),true)
+  $(info Overriding elasticsearch platform for M1)
   DOCKER_COMPOSE_OVERRIDE := $(DOCKER_COMPOSE_OVERRIDE) -f ./docker-compose.m1.yaml
 endif
 
