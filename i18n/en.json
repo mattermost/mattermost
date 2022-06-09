@@ -3237,7 +3237,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Your 30-day trial of the {{.WorkSpace}} workspace is ready to go!"
+    "translation": "Your workspace is ready to go!"
   },
   {
     "id": "api.templates.copyright",
