@@ -176,7 +176,7 @@ type AppIface interface {
 	// relationship with a user. That means any user sharing any channel, including
 	// direct and group channels.
 	GetKnownUsers(userID string) ([]string, *model.AppError)
-	// GetLastAccessiblePostTime returns CreateAt time of last accessible post as per freemium-cloud limit
+	// GetLastAccessiblePostTime returns CreateAt time of last accessible post as per the cloud limit
 	GetLastAccessiblePostTime() (int64, *model.AppError)
 	// GetLdapGroup retrieves a single LDAP group by the given LDAP group id.
 	GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError)
