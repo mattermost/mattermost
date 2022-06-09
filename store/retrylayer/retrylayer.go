@@ -8,6 +8,7 @@ package retrylayer
 
 import (
 	"context"
+	"time"
 	timepkg "time"
 
 	"github.com/go-sql-driver/mysql"
@@ -814,11 +815,11 @@ func (s *RetryLayerChannelStore) CreateSidebarCategory(userID string, teamID str
 
 }
 
-func (s *RetryLayerChannelStore) Delete(channelID string, time int64) error {
+func (s *RetryLayerChannelStore) Delete(channelID string, timestamp int64) error {
 
 	tries := 0
 	for {
-		err := s.ChannelStore.Delete(channelID, time)
+		err := s.ChannelStore.Delete(channelID, timestamp)
 		if err == nil {
 			return nil
 		}
@@ -2317,11 +2318,11 @@ func (s *RetryLayerChannelStore) ResetAllChannelSchemes() error {
 
 }
 
-func (s *RetryLayerChannelStore) Restore(channelID string, time int64) error {
+func (s *RetryLayerChannelStore) Restore(channelID string, timestamp int64) error {
 
 	tries := 0
 	for {
-		err := s.ChannelStore.Restore(channelID, time)
+		err := s.ChannelStore.Restore(channelID, timestamp)
 		if err == nil {
 			return nil
 		}
@@ -3136,11 +3137,11 @@ func (s *RetryLayerCommandStore) AnalyticsCommandCount(teamID string) (int64, er
 
 }
 
-func (s *RetryLayerCommandStore) Delete(commandID string, time int64) error {
+func (s *RetryLayerCommandStore) Delete(commandID string, timestamp int64) error {
 
 	tries := 0
 	for {
-		err := s.CommandStore.Delete(commandID, time)
+		err := s.CommandStore.Delete(commandID, timestamp)
 		if err == nil {
 			return nil
 		}
@@ -3499,11 +3500,11 @@ func (s *RetryLayerComplianceStore) Update(compliance *model.Compliance) (*model
 
 }
 
-func (s *RetryLayerEmojiStore) Delete(emoji *model.Emoji, time int64) error {
+func (s *RetryLayerEmojiStore) Delete(emoji *model.Emoji, timestamp int64) error {
 
 	tries := 0
 	for {
-		err := s.EmojiStore.Delete(emoji, time)
+		err := s.EmojiStore.Delete(emoji, timestamp)
 		if err == nil {
 			return nil
 		}
@@ -6205,11 +6206,11 @@ func (s *RetryLayerPostStore) ClearCaches() {
 
 }
 
-func (s *RetryLayerPostStore) Delete(postID string, time int64, deleteByID string) error {
+func (s *RetryLayerPostStore) Delete(postID string, timestamp int64, deleteByID string) error {
 
 	tries := 0
 	for {
-		err := s.PostStore.Delete(postID, time, deleteByID)
+		err := s.PostStore.Delete(postID, timestamp, deleteByID)
 		if err == nil {
 			return nil
 		}
@@ -6448,11 +6449,11 @@ func (s *RetryLayerPostStore) GetParentsForExportAfter(limit int, afterID string
 
 }
 
-func (s *RetryLayerPostStore) GetPostAfterTime(channelID string, time int64, collapsedThreads bool) (*model.Post, error) {
+func (s *RetryLayerPostStore) GetPostAfterTime(channelID string, timestamp int64, collapsedThreads bool) (*model.Post, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetPostAfterTime(channelID, time, collapsedThreads)
+		result, err := s.PostStore.GetPostAfterTime(channelID, timestamp, collapsedThreads)
 		if err == nil {
 			return result, nil
 		}
@@ -6469,11 +6470,11 @@ func (s *RetryLayerPostStore) GetPostAfterTime(channelID string, time int64, col
 
 }
 
-func (s *RetryLayerPostStore) GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, error) {
+func (s *RetryLayerPostStore) GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool) (string, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetPostIdAfterTime(channelID, time, collapsedThreads)
+		result, err := s.PostStore.GetPostIdAfterTime(channelID, timestamp, collapsedThreads)
 		if err == nil {
 			return result, nil
 		}
@@ -6490,11 +6491,11 @@ func (s *RetryLayerPostStore) GetPostIdAfterTime(channelID string, time int64, c
 
 }
 
-func (s *RetryLayerPostStore) GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool) (string, error) {
+func (s *RetryLayerPostStore) GetPostIdBeforeTime(channelID string, timestamp int64, collapsedThreads bool) (string, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetPostIdBeforeTime(channelID, time, collapsedThreads)
+		result, err := s.PostStore.GetPostIdBeforeTime(channelID, timestamp, collapsedThreads)
 		if err == nil {
 			return result, nil
 		}
@@ -6616,11 +6617,11 @@ func (s *RetryLayerPostStore) GetPostsByIds(postIds []string) ([]*model.Post, er
 
 }
 
-func (s *RetryLayerPostStore) GetPostsCreatedAt(channelID string, time int64) ([]*model.Post, error) {
+func (s *RetryLayerPostStore) GetPostsCreatedAt(channelID string, timestamp int64) ([]*model.Post, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetPostsCreatedAt(channelID, time)
+		result, err := s.PostStore.GetPostsCreatedAt(channelID, timestamp)
 		if err == nil {
 			return result, nil
 		}
@@ -8722,11 +8723,11 @@ func (s *RetryLayerSessionStore) UpdateExpiredNotify(sessionid string, notified 
 
 }
 
-func (s *RetryLayerSessionStore) UpdateExpiresAt(sessionID string, time int64) error {
+func (s *RetryLayerSessionStore) UpdateExpiresAt(sessionID string, timestamp int64) error {
 
 	tries := 0
 	for {
-		err := s.SessionStore.UpdateExpiresAt(sessionID, time)
+		err := s.SessionStore.UpdateExpiresAt(sessionID, timestamp)
 		if err == nil {
 			return nil
 		}
@@ -8743,11 +8744,11 @@ func (s *RetryLayerSessionStore) UpdateExpiresAt(sessionID string, time int64) e
 
 }
 
-func (s *RetryLayerSessionStore) UpdateLastActivityAt(sessionID string, time int64) error {
+func (s *RetryLayerSessionStore) UpdateLastActivityAt(sessionID string, timestamp int64) error {
 
 	tries := 0
 	for {
-		err := s.SessionStore.UpdateLastActivityAt(sessionID, time)
+		err := s.SessionStore.UpdateLastActivityAt(sessionID, timestamp)
 		if err == nil {
 			return nil
 		}
@@ -11449,11 +11450,11 @@ func (s *RetryLayerUploadSessionStore) Update(session *model.UploadSession) erro
 
 }
 
-func (s *RetryLayerUserStore) AnalyticsActiveCount(time int64, options model.UserCountOptions) (int64, error) {
+func (s *RetryLayerUserStore) AnalyticsActiveCount(timestamp int64, options model.UserCountOptions) (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.AnalyticsActiveCount(time, options)
+		result, err := s.UserStore.AnalyticsActiveCount(timestamp, options)
 		if err == nil {
 			return result, nil
 		}
@@ -13240,11 +13241,11 @@ func (s *RetryLayerWebhookStore) ClearCaches() {
 
 }
 
-func (s *RetryLayerWebhookStore) DeleteIncoming(webhookID string, time int64) error {
+func (s *RetryLayerWebhookStore) DeleteIncoming(webhookID string, timestamp int64) error {
 
 	tries := 0
 	for {
-		err := s.WebhookStore.DeleteIncoming(webhookID, time)
+		err := s.WebhookStore.DeleteIncoming(webhookID, timestamp)
 		if err == nil {
 			return nil
 		}
@@ -13261,11 +13262,11 @@ func (s *RetryLayerWebhookStore) DeleteIncoming(webhookID string, time int64) er
 
 }
 
-func (s *RetryLayerWebhookStore) DeleteOutgoing(webhookID string, time int64) error {
+func (s *RetryLayerWebhookStore) DeleteOutgoing(webhookID string, timestamp int64) error {
 
 	tries := 0
 	for {
-		err := s.WebhookStore.DeleteOutgoing(webhookID, time)
+		err := s.WebhookStore.DeleteOutgoing(webhookID, timestamp)
 		if err == nil {
 			return nil
 		}
