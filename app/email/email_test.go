@@ -327,7 +327,7 @@ func TestSendCloudWelcomeEmail(t *testing.T) {
 			resultsEmail, err := mail.GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
 			require.NoError(t, err, "Could not get message from mailbox")
 			require.Contains(t, resultsEmail.Subject, "Congratulations!", "Wrong subject message %s", resultsEmail.Subject)
-			require.Contains(t, resultsEmail.Body.Text, "Your workspace is ready to go", "Wrong body %s", resultsEmail.Body.Text)
+			require.Contains(t, resultsEmail.Body.Text, "Your workspace is ready to go!", "Wrong body %s", resultsEmail.Body.Text)
 
 		}
 		mail.DeleteMailBox(emailTo)
