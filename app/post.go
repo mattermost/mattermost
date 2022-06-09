@@ -810,6 +810,10 @@ func (a *App) GetPostsPage(options model.GetPostsOptions) (*model.PostList, *mod
 		}
 	}
 
+	if appErr := a.filterInaccessiblePosts(postList); appErr != nil {
+		return nil, model.NewAppError("GetPostsPage", "app.post.filter_inaccessible_posts.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+	}
+
 	return postList, nil
 }
 
@@ -825,6 +829,10 @@ func (a *App) GetPosts(channelID string, offset int, limit int) (*model.PostList
 		}
 	}
 
+	if appErr := a.filterInaccessiblePosts(postList); appErr != nil {
+		return nil, model.NewAppError("GetPosts", "app.post.filter_inaccessible_posts.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+	}
+
 	return postList, nil
 }
 
@@ -836,6 +844,10 @@ func (a *App) GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList
 	postList, err := a.Srv().Store.Post().GetPostsSince(options, true)
 	if err != nil {
 		return nil, model.NewAppError("GetPostsSince", "app.post.get_posts_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if appErr := a.filterInaccessiblePosts(postList); appErr != nil {
+		return nil, model.NewAppError("GetPostsSince", "app.post.filter_inaccessible_posts.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
 	return postList, nil
@@ -871,6 +883,10 @@ func (a *App) GetPostThread(postID string, opts model.GetPostsOptions, userID st
 		}
 	}
 
+	if appErr := a.filterInaccessiblePosts(posts); appErr != nil {
+		return nil, model.NewAppError("GetPostThread", "app.post.filter_inaccessible_posts.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+	}
+
 	return posts, nil
 }
 
@@ -878,6 +894,10 @@ func (a *App) GetFlaggedPosts(userID string, offset int, limit int) (*model.Post
 	postList, err := a.Srv().Store.Post().GetFlaggedPosts(userID, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetFlaggedPosts", "app.post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if appErr := a.filterInaccessiblePosts(postList); appErr != nil {
+		return nil, model.NewAppError("GetFlaggedPosts", "app.post.filter_inaccessible_posts.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
 	return postList, nil
@@ -889,6 +909,10 @@ func (a *App) GetFlaggedPostsForTeam(userID, teamID string, offset int, limit in
 		return nil, model.NewAppError("GetFlaggedPostsForTeam", "app.post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	if appErr := a.filterInaccessiblePosts(postList); appErr != nil {
+		return nil, model.NewAppError("GetFlaggedPostsForTeam", "app.post.filter_inaccessible_posts.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+	}
+
 	return postList, nil
 }
 
@@ -896,6 +920,10 @@ func (a *App) GetFlaggedPostsForChannel(userID, channelID string, offset int, li
 	postList, err := a.Srv().Store.Post().GetFlaggedPostsForChannel(userID, channelID, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetFlaggedPostsForChannel", "app.post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if appErr := a.filterInaccessiblePosts(postList); appErr != nil {
+		return nil, model.NewAppError("GetFlaggedPostsForChannel", "app.post.filter_inaccessible_posts.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
 	return postList, nil
@@ -930,6 +958,10 @@ func (a *App) GetPermalinkPost(c *request.Context, postID string, userID string)
 		return nil, err
 	}
 
+	if appErr := a.filterInaccessiblePosts(list); appErr != nil {
+		return nil, model.NewAppError("GetPermalinkPost", "app.post.filter_inaccessible_posts.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+	}
+
 	return list, nil
 }
 
@@ -945,6 +977,10 @@ func (a *App) GetPostsBeforePost(options model.GetPostsOptions) (*model.PostList
 		}
 	}
 
+	if appErr := a.filterInaccessiblePosts(postList); appErr != nil {
+		return nil, model.NewAppError("GetPostsBeforePost", "app.post.filter_inaccessible_posts.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+	}
+
 	return postList, nil
 }
 
@@ -958,6 +994,10 @@ func (a *App) GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList,
 		default:
 			return nil, model.NewAppError("GetPostsAfterPost", "app.post.get_posts_around.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
+	}
+
+	if appErr := a.filterInaccessiblePosts(postList); appErr != nil {
+		return nil, model.NewAppError("GetPostsAfterPost", "app.post.filter_inaccessible_posts.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
 	return postList, nil
@@ -980,6 +1020,10 @@ func (a *App) GetPostsAroundPost(before bool, options model.GetPostsOptions) (*m
 		default:
 			return nil, model.NewAppError("GetPostsAroundPost", "app.post.get_posts_around.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
+	}
+
+	if appErr := a.filterInaccessiblePosts(postList); appErr != nil {
+		return nil, model.NewAppError("GetPostsAroundPost", "app.post.filter_inaccessible_posts.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
 	return postList, nil
@@ -1298,7 +1342,33 @@ func (a *App) convertUserNameToUserIds(usernames []string) []string {
 }
 
 // GetLastAccessiblePostTime returns CreateAt time of last accessible post as per the cloud limit
-func (a *App) GetLastAccessiblePostTime() (int64, *model.AppError) {
+func (a *App) GetLastAccessiblePostTime(useCache bool) (int64, *model.AppError) {
+	cfg := a.Config()
+	if cfg.FeatureFlags == nil || !cfg.FeatureFlags.CloudFree {
+		return 0, nil
+	}
+
+	if useCache {
+		system, err := a.Srv().Store.System().GetByName(model.SystemLastAccessiblePostTime)
+		if err != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(err, &nfErr):
+				// All posts are accessible
+				return 0, nil
+			default:
+				mlog.Warn("GetLastAccessiblePostTime: failed to fetch from cache.", mlog.Err(err))
+			}
+		} else {
+			lastAccessiblePostTime, err := strconv.ParseInt(system.Value, 10, 64)
+			if err != nil {
+				return 0, model.NewAppError("GetLastAccessiblePostTime", "parse.int64", map[string]interface{}{"value": system.Value}, err.Error(), http.StatusInternalServerError)
+			}
+
+			return lastAccessiblePostTime, nil
+		}
+	}
+
 	limits, err := a.Cloud().GetCloudLimits("")
 	if err != nil {
 		return 0, model.NewAppError("GetLastAccessiblePostTime", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -1314,30 +1384,30 @@ func (a *App) GetLastAccessiblePostTime() (int64, *model.AppError) {
 		return 0, model.NewAppError("GetLastAccessiblePostTime", "app.last_accessible_post.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	// Update Cache
+	err = a.Srv().Store.System().SaveOrUpdate(&model.System{
+		Name:  model.SystemLastAccessiblePostTime,
+		Value: strconv.FormatInt(createdAt, 10),
+	})
+	if err != nil {
+		mlog.Warn("GetLastAccessiblePostTime: failed to update cache.", mlog.Err(err))
+	}
+
 	return createdAt, nil
 }
 
 // filterInaccessiblePosts filters out the posts, past the cloud limit
 func (a *App) filterInaccessiblePosts(postList *model.PostList) *model.AppError {
-	cfg := a.Config()
-	if postList == nil || postList.Posts == nil || cfg.FeatureFlags == nil || !cfg.FeatureFlags.CloudFree {
+	if postList == nil || postList.Posts == nil || len(postList.Posts) == 0 {
 		return nil
 	}
 
-	system, err := a.Srv().Store.System().GetByName(model.SystemLastAccessiblePostTime)
-	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			return nil
-		default:
-			return model.NewAppError("filterInaccessiblePosts", "app.system.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-	}
-
-	lastAccessiblePostTime, err := strconv.ParseInt(system.Value, 10, 64)
-	if err != nil {
-		return model.NewAppError("filterInaccessiblePosts", "parse.int64", map[string]interface{}{"value": system.Value}, err.Error(), http.StatusInternalServerError)
+	lastAccessiblePostTime, appErr := a.GetLastAccessiblePostTime(true)
+	if appErr != nil {
+		return model.NewAppError("filterInaccessiblePosts", "app.last_accessible_post.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+	} else if lastAccessiblePostTime == 0 {
+		// No need to filter, all posts are accessible
+		return nil
 	}
 
 	// filter Posts
@@ -1421,7 +1491,7 @@ func (a *App) SearchPostsForUser(c *request.Context, terms string, userID string
 	}
 
 	if appErr := a.filterInaccessiblePosts(postSearchResults.PostList); appErr != nil {
-		return nil, appErr
+		return nil, model.NewAppError("SearchPostsForUser", "app.post.filter_inaccessible_posts.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
 	return postSearchResults, nil

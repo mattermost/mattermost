@@ -6757,7 +6757,7 @@ func (a *OpenTracingAppLayer) GetKnownUsers(userID string) ([]string, *model.App
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetLastAccessiblePostTime() (int64, *model.AppError) {
+func (a *OpenTracingAppLayer) GetLastAccessiblePostTime(useCache bool) (int64, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetLastAccessiblePostTime")
 
@@ -6769,7 +6769,7 @@ func (a *OpenTracingAppLayer) GetLastAccessiblePostTime() (int64, *model.AppErro
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetLastAccessiblePostTime()
+	resultVar0, resultVar1 := a.app.GetLastAccessiblePostTime(useCache)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

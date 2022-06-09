@@ -2031,7 +2031,7 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeLastAccessiblePost,
-		last_accessible_post.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store),
+		last_accessible_post.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
 		last_accessible_post.MakeScheduler(s.Jobs),
 	)
 }

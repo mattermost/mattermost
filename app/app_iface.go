@@ -177,7 +177,7 @@ type AppIface interface {
 	// direct and group channels.
 	GetKnownUsers(userID string) ([]string, *model.AppError)
 	// GetLastAccessiblePostTime returns CreateAt time of last accessible post as per the cloud limit
-	GetLastAccessiblePostTime() (int64, *model.AppError)
+	GetLastAccessiblePostTime(useCache bool) (int64, *model.AppError)
 	// GetLdapGroup retrieves a single LDAP group by the given LDAP group id.
 	GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError)
 	// GetMarketplacePlugins returns a list of plugins from the marketplace-server,
