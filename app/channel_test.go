@@ -2084,7 +2084,7 @@ func TestMarkChannelAsUnreadFromPostPanic(t *testing.T) {
 
 	mockPostStore := mocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
-	mockPostStore.On("Get", context.Background(), "postID", model.GetPostsOptions{}, "userID").Return(&model.PostList{}, nil)
+	mockPostStore.On("Get", context.Background(), "postID", model.GetPostsOptions{}, "userID", map[string]bool{}).Return(&model.PostList{}, nil)
 	mockPostStore.On("GetPostsAfter", mock.AnythingOfType("model.GetPostsOptions")).Return(&model.PostList{}, nil)
 	mockPostStore.On("GetSingle", "postID", false).Return(&model.Post{
 		Id:        "postID",
