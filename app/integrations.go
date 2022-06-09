@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (a *App) checkIntegrationLimitsForConfigSave(oldConfig, newConfig *model.Config) *model.AppError {
@@ -86,7 +87,8 @@ func (a *App) checkIfIntegrationsMeetFreemiumLimits(originalPluginIds []string) 
 
 	limits, err := a.Cloud().GetCloudLimits("")
 	if err != nil {
-		return model.NewAppError("checkIfIntegrationMeetsFreemiumLimits", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
+		a.Log().Error("Error fetching cloud limits for enabled integrations", mlog.Err(err))
+		return nil
 	}
 
 	if limits == nil || limits.Integrations == nil || limits.Integrations.Enabled == nil {
