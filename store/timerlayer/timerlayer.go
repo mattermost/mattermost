@@ -1870,7 +1870,7 @@ func (s *TimerLayerChannelStore) PermanentDeleteMembersByUser(userID string) err
 	return err
 }
 
-func (s *TimerLayerChannelStore) PostCountsByDuration(channelIDs []string, sinceUnixMillis int64, userID *string, duration model.PostCountGrouping, groupingLocation *time.Location) ([]*model.DurationPostCount, error) {
+func (s *TimerLayerChannelStore) PostCountsByDuration(channelIDs []string, sinceUnixMillis int64, userID *string, duration model.PostCountGrouping, groupingLocation *timemodule.Location) ([]*model.DurationPostCount, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.PostCountsByDuration(channelIDs, sinceUnixMillis, userID, duration, groupingLocation)

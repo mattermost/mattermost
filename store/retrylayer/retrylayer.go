@@ -2212,7 +2212,7 @@ func (s *RetryLayerChannelStore) PermanentDeleteMembersByUser(userID string) err
 
 }
 
-func (s *RetryLayerChannelStore) PostCountsByDuration(channelIDs []string, sinceUnixMillis int64, userID *string, duration model.PostCountGrouping, groupingLocation *time.Location) ([]*model.DurationPostCount, error) {
+func (s *RetryLayerChannelStore) PostCountsByDuration(channelIDs []string, sinceUnixMillis int64, userID *string, duration model.PostCountGrouping, groupingLocation *timepkg.Location) ([]*model.DurationPostCount, error) {
 
 	tries := 0
 	for {
