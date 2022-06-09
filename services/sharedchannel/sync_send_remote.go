@@ -369,6 +369,8 @@ func (scs *Service) filterPostsForSync(sd *syncData) {
 func (scs *Service) sendSyncData(sd *syncData) error {
 	merr := merror.New()
 
+	sanitizeSyncData(sd)
+
 	// send users
 	if len(sd.users) != 0 {
 		if err := scs.sendUserSyncData(sd); err != nil {
@@ -530,4 +532,13 @@ func (scs *Service) sendSyncMsgToRemote(msg *syncMsg, rc *model.RemoteCluster, f
 
 	wg.Wait()
 	return err
+}
+
+func sanitizeSyncData(sd *syncData) {
+	for id, user := range sd.users {
+		sd.users[id] = sanitizeUserForSync(user)
+	}
+	for id, user := range sd.profileImages {
+		sd.profileImages[id] = sanitizeUserForSync(user)
+	}
 }
