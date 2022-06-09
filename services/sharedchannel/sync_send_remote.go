@@ -296,11 +296,11 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 		}
 
 		if sync {
-			sd.users[user.Id] = sanitizeUserForSync(user)
+			sd.users[user.Id] = user
 		}
 
 		if syncImage {
-			sd.profileImages[user.Id] = sanitizeUserForSync(user)
+			sd.profileImages[user.Id] = user
 		}
 
 		// if this was a mention then put the real username in place of the username+remotename, but only
