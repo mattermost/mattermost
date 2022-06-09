@@ -282,7 +282,15 @@ func (a *App) authenticateUser(c *request.Context, user *model.User, password, m
 	return user, nil
 }
 
-func ParseAuthTokenFromRequest(r *http.Request) (string, TokenLocation) {
+func ParseAuthTokenFromRequest(r *http.Request) (token string, loc TokenLocation) {
+	defer func() {
+		// Stripping off tokens of large sizes
+		// to prevent logging a large string.
+		if len(token) > 50 {
+			token = token[:50]
+		}
+	}()
+
 	authHeader := r.Header.Get(model.HeaderAuth)
 
 	// Attempt to parse the token from the cookie
