@@ -97,7 +97,8 @@ func (a *App) checkIfIntegrationsMeetFreemiumLimits(originalPluginIds []string) 
 
 	installed, appErr := a.ch.getInstalledIntegrations()
 	if appErr != nil {
-		return appErr
+		a.Log().Error("Failed to get installed integrations to check cloud limit", mlog.Err(appErr))
+		return nil
 	}
 
 	enableCount := len(pluginIds)
