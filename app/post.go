@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -1316,21 +1317,47 @@ func (a *App) GetLastAccessiblePostTime() (int64, *model.AppError) {
 	return createdAt, nil
 }
 
-// addSearchLimits enforce posts search limit as per cloud
-func (a *App) addSearchLimits(paramsList []*model.SearchParams) *model.AppError {
-	limits, err := a.Cloud().GetCloudLimits("")
-	if err != nil {
-		return model.NewAppError("addSearchLimits", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	if limits == nil || limits.Messages == nil || limits.Messages.History == nil {
-		// Cloud limit is not applicable
+// filterInaccessiblePosts filters out the posts, past the cloud limit
+func (a *App) filterInaccessiblePosts(postList *model.PostList) *model.AppError {
+	cfg := a.Config()
+	if postList == nil || postList.Posts == nil || cfg.FeatureFlags == nil || !cfg.FeatureFlags.CloudFree {
 		return nil
 	}
 
-	for _, params := range paramsList {
-		params.PostsLimit = int64(*limits.Messages.History)
+	system, err := a.Srv().Store.System().GetByName(model.SystemLastAccessiblePostTime)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil
+		default:
+			return model.NewAppError("filterInaccessiblePosts", "app.system.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
+
+	lastAccessiblePostTime, err := strconv.ParseInt(system.Value, 10, 64)
+	if err != nil {
+		return model.NewAppError("filterInaccessiblePosts", "parse.int64", map[string]interface{}{"value": system.Value}, err.Error(), http.StatusInternalServerError)
+	}
+
+	// filter Posts
+	for postId := range postList.Posts {
+		if postList.Posts[postId].CreateAt < lastAccessiblePostTime {
+			postList.HasInaccessiblePosts = true
+			delete(postList.Posts, postId)
+		}
+	}
+
+	// filter Order
+	inaccessiblePostIndex := 0
+	for i := range postList.Order {
+		if _, ok := postList.Posts[postList.Order[i]]; ok {
+			postList.Order[inaccessiblePostIndex] = postList.Order[i]
+			inaccessiblePostIndex++
+		}
+	}
+
+	postList.Order = postList.Order[:inaccessiblePostIndex]
 
 	return nil
 }
@@ -1338,10 +1365,6 @@ func (a *App) addSearchLimits(paramsList []*model.SearchParams) *model.AppError 
 func (a *App) SearchPostsInTeam(teamID string, paramsList []*model.SearchParams) (*model.PostList, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnablePostSearch {
 		return nil, model.NewAppError("SearchPostsInTeam", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v", teamID), http.StatusNotImplemented)
-	}
-
-	if appErr := a.addSearchLimits(paramsList); appErr != nil {
-		return nil, model.NewAppError("SearchPostsInTeam", "app.post.search.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
 	return a.searchPostsInTeam(teamID, "", paramsList, func(params *model.SearchParams) {
@@ -1386,10 +1409,6 @@ func (a *App) SearchPostsForUser(c *request.Context, terms string, userID string
 		return model.MakePostSearchResults(model.NewPostList(), nil), nil
 	}
 
-	if appErr := a.addSearchLimits(finalParamsList); appErr != nil {
-		return nil, model.NewAppError("SearchPostsForUser", "app.post.search.app_error", nil, appErr.Error(), http.StatusInternalServerError)
-	}
-
 	postSearchResults, nErr := a.Srv().Store.Post().SearchPostsForUser(finalParamsList, userID, teamID, page, perPage)
 	if nErr != nil {
 		var appErr *model.AppError
@@ -1399,6 +1418,10 @@ func (a *App) SearchPostsForUser(c *request.Context, terms string, userID string
 		default:
 			return nil, model.NewAppError("SearchPostsForUser", "app.post.search.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
+	}
+
+	if appErr := a.filterInaccessiblePosts(postSearchResults.PostList); appErr != nil {
+		return nil, appErr
 	}
 
 	return postSearchResults, nil

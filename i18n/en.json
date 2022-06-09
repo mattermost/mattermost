@@ -60,6 +60,10 @@
     "translation": "September"
   },
   {
+    "id": "parse.int64",
+    "translation": "Failed to parse to int64"
+  },
+  {
     "id": "api.admin.add_certificate.array.app_error",
     "translation": "No file under 'certificate' in request."
   },

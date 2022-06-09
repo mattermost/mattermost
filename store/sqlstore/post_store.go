@@ -1768,34 +1768,6 @@ func (s *SqlPostStore) GetRecentNthPostTime(n int64) (int64, error) {
 	return createAt, nil
 }
 
-// buildPostsLimitFilterClause calculates the last accessible post as per the params.PostsLimit(cloud limit)
-func (s *SqlPostStore) buildPostsLimitFilterClause(params *model.SearchParams, builder sq.SelectBuilder) (sq.SelectBuilder, error) {
-	if params.PostsLimit <= 0 {
-		return builder, nil
-	}
-
-	sb := s.getSubQueryBuilder().
-		Select("pl.CreateAt").
-		From("Posts pl").
-		// Consider users posts only for limit
-		Where(sq.And{
-			sq.Eq{"pl.Type": ""},
-			sq.Expr("pl.UserId NOT IN (SELECT UserId FROM Bots)"),
-		}).
-		OrderBy("pl.CreateAt DESC").
-		Limit(1).
-		Offset(uint64(params.PostsLimit))
-
-	sbQuery, sbQueryArgs, err := sb.ToSql()
-	if err != nil {
-		return sq.SelectBuilder{}, err
-	}
-
-	sbQuery = "SELECT COALESCE((" + sbQuery + "), 0)"
-
-	return builder.Where("q2.CreateAt > ("+sbQuery+")", sbQueryArgs...), nil
-}
-
 func (s *SqlPostStore) buildCreateDateFilterClause(params *model.SearchParams, builder sq.SelectBuilder) sq.SelectBuilder {
 	// handle after: before: on: filters
 	if params.OnDate != "" {
@@ -1935,10 +1907,6 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	baseQuery, err = s.buildSearchPostFilterClause(teamId, params.FromUsers, params.ExcludedUsers, userByUsername, baseQuery)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to build search post filter clause")
-	}
-	baseQuery, err = s.buildPostsLimitFilterClause(params, baseQuery)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to build posts limit filter clause")
 	}
 	baseQuery = s.buildCreateDateFilterClause(params, baseQuery)
 
