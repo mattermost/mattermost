@@ -4986,10 +4986,10 @@ func (s *TimerLayerPostStore) DeleteOrphanedRows(limit int) (int64, error) {
 	return result, err
 }
 
-func (s *TimerLayerPostStore) Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string) (*model.PostList, error) {
+func (s *TimerLayerPostStore) Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	start := timemodule.Now()
 
-	result, err := s.PostStore.Get(ctx, id, opts, userID)
+	result, err := s.PostStore.Get(ctx, id, opts, userID, sanitizeOptions)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -5210,10 +5210,10 @@ func (s *TimerLayerPostStore) GetPostIdBeforeTime(channelID string, time int64, 
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, error) {
+func (s *TimerLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	start := timemodule.Now()
 
-	result, err := s.PostStore.GetPosts(options, allowFromCache)
+	result, err := s.PostStore.GetPosts(options, allowFromCache, sanitizeOptions)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -5226,10 +5226,10 @@ func (s *TimerLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromC
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, error) {
+func (s *TimerLayerPostStore) GetPostsAfter(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	start := timemodule.Now()
 
-	result, err := s.PostStore.GetPostsAfter(options)
+	result, err := s.PostStore.GetPostsAfter(options, sanitizeOptions)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -5258,10 +5258,10 @@ func (s *TimerLayerPostStore) GetPostsBatchForIndexing(startTime int64, startPos
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error) {
+func (s *TimerLayerPostStore) GetPostsBefore(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	start := timemodule.Now()
 
-	result, err := s.PostStore.GetPostsBefore(options)
+	result, err := s.PostStore.GetPostsBefore(options, sanitizeOptions)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -5306,10 +5306,10 @@ func (s *TimerLayerPostStore) GetPostsCreatedAt(channelID string, time int64) ([
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, error) {
+func (s *TimerLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	start := timemodule.Now()
 
-	result, err := s.PostStore.GetPostsSince(options, allowFromCache)
+	result, err := s.PostStore.GetPostsSince(options, allowFromCache, sanitizeOptions)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
