@@ -286,8 +286,8 @@ func ParseAuthTokenFromRequest(r *http.Request) (token string, loc TokenLocation
 	defer func() {
 		// Stripping off tokens of large sizes
 		// to prevent logging a large string.
-		if len(token) > 26 {
-			token = token[:26]
+		if len(token) > 50 {
+			token = token[:50]
 		}
 	}()
 
