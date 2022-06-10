@@ -6,7 +6,6 @@ package last_accessible_post
 import (
 	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
@@ -24,7 +23,6 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 	execute := func(job *model.Job) error {
 		_, appErr := app.GetLastAccessiblePostTime(false)
 		if appErr != nil {
-			mlog.Error("Worker: Failed at GetLastAccessiblePostTime", mlog.String("worker", model.JobTypeLastAccessiblePost), mlog.String("job_id", job.Id), mlog.Err(appErr))
 			return appErr
 		}
 

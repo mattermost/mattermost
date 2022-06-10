@@ -1735,7 +1735,7 @@ var specialSearchChar = []string{
 	":",
 }
 
-// GetRecentNthPostTime returns CreateAt time of most recent nth user-post
+// GetNthRecentPostTime returns the CreateAt time of the nth most recent post.
 func (s *SqlPostStore) GetRecentNthPostTime(n int64) (int64, error) {
 	if n <= 0 {
 		return 0, nil
@@ -1755,7 +1755,7 @@ func (s *SqlPostStore) GetRecentNthPostTime(n int64) (int64, error) {
 
 	query, queryArgs, err := builder.ToSql()
 	if err != nil {
-		return 0, errors.Wrap(err, "GetRecentNthPostTime_tosql")
+		return 0, errors.Wrap(err, "GetNthRecentPostTime_tosql")
 	}
 
 	query = "SELECT COALESCE((" + query + "), 0)"

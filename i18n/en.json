@@ -5828,10 +5828,6 @@
     "translation": "Unable to delete the post."
   },
   {
-    "id": "app.post.filter_inaccessible_posts.app_error",
-    "translation": "Error filtering inaccessible posts"
-  },
-  {
     "id": "app.post.get.app_error",
     "translation": "Unable to get the post."
   },
@@ -9105,7 +9101,7 @@
   },
   {
     "id": "parse.int64",
-    "translation": "Failed to parse to int64"
+    "translation": "Failed to parse the value:{{.Value}} to int64"
   },
   {
     "id": "plugin.api.get_users_in_channel",
