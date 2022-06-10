@@ -434,7 +434,7 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 			route := fmt.Sprintf("/users/%s/teams/%s/channels/categories/%s", user.Id, th.BasicTeam.Id, dmsCategory.Id)
 			r, err := client.DoAPIPutBytes(route, payload)
 			require.Error(t, err)
-			defer closeBody(r)
+			closeBody(r)
 		})
 	})
 }
