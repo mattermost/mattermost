@@ -52,19 +52,19 @@ func createCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 	auditRec := c.MakeAuditRecord("createCategoryForTeamForUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	var categoryCreateRequest *model.SidebarCategoryWithChannels
+	var categoryCreateRequest model.SidebarCategoryWithChannels
 	err := json.NewDecoder(r.Body).Decode(&categoryCreateRequest)
 	if err != nil || c.Params.UserId != categoryCreateRequest.UserId || c.Params.TeamId != categoryCreateRequest.TeamId {
 		c.SetInvalidParam("category")
 		return
 	}
 
-	if appErr := validateSidebarCategory(c, c.Params.TeamId, c.Params.UserId, categoryCreateRequest); appErr != nil {
+	if appErr := validateSidebarCategory(c, c.Params.TeamId, c.Params.UserId, &categoryCreateRequest); appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	category, appErr := c.App.CreateSidebarCategory(c.Params.UserId, c.Params.TeamId, categoryCreateRequest)
+	category, appErr := c.App.CreateSidebarCategory(c.Params.UserId, c.Params.TeamId, &categoryCreateRequest)
 	if appErr != nil {
 		c.Err = appErr
 		return
