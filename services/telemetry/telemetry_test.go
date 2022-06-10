@@ -8,6 +8,7 @@ import (
 	"crypto/ecdsa"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -144,6 +145,9 @@ func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, 
 	schemeStore.On("CountWithoutPermission", "channel", "use_channel_mentions", model.RoleScopeChannel, model.RoleTypeUser).Return(int64(11), nil)
 	schemeStore.On("CountWithoutPermission", "channel", "use_channel_mentions", model.RoleScopeChannel, model.RoleTypeGuest).Return(int64(12), nil)
 
+	fileInfoStore := storeMocks.FileInfoStore{}
+	fileInfoStore.On("GetStorageUsage", true, false).Return(int64(0), nil)
+
 	storeMock.On("System").Return(&systemStore)
 	storeMock.On("User").Return(&userStore)
 	storeMock.On("Team").Return(&teamStore)
@@ -153,6 +157,7 @@ func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, 
 	storeMock.On("Webhook").Return(&webhookStore)
 	storeMock.On("Group").Return(&groupStore)
 	storeMock.On("Scheme").Return(&schemeStore)
+	storeMock.On("FileInfo").Return(&fileInfoStore)
 
 	return serverIfaceMock, storeMock, func(t *testing.T) {
 		serverIfaceMock.AssertExpectations(t)
@@ -563,6 +568,53 @@ func TestRudderTelemetry(t *testing.T) {
 		case <-time.After(time.Second * 1):
 			// Did not receive telemetry
 		}
+	})
+	const keyStorageBytes = "storage_bytes"
+
+	t.Run("SendDailyTelemetryCloud", func(t *testing.T) {
+		serverIfaceMock.On("License").Return(model.NewTestLicense("cloud"), nil)
+		telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg), testLogger)
+		telemetryService.sendDailyTelemetry(true)
+
+		var batches []batch
+		collectBatches(&batches)
+
+		var activityEvent batch
+		var found bool
+		for _, batch := range batches {
+			if batch.Event == TrackActivity {
+				activityEvent = batch
+				found = true
+				break
+			}
+		}
+		require.True(t, found, fmt.Sprintf("Expected to receive %q event, but received %q", TrackActivity, activityEvent.Event))
+
+		_, ok := activityEvent.Properties[keyStorageBytes]
+
+		require.True(t, ok, fmt.Sprintf("Expected payload to contain %q", keyStorageBytes))
+	})
+
+	t.Run("SendDailyTelemetryNonCloud", func(t *testing.T) {
+		telemetryService.sendDailyTelemetry(true)
+
+		var batches []batch
+		collectBatches(&batches)
+
+		var activityEvent batch
+		var found bool
+		for _, batch := range batches {
+			if batch.Event == TrackActivity {
+				activityEvent = batch
+				found = true
+				break
+			}
+		}
+		require.True(t, found, fmt.Sprintf("Expected to receive %q event, but received %q", TrackActivity, activityEvent.Event))
+
+		_, ok := activityEvent.Properties[keyStorageBytes]
+
+		require.False(t, ok, fmt.Sprintf("Expected non-cloud payload not to contain %q, got %+v", keyStorageBytes, activityEvent.Properties))
 	})
 
 	t.Run("SendDailyTelemetryDisabled", func(t *testing.T) {

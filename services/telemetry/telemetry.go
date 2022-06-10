@@ -241,7 +241,6 @@ func (ts *TelemetryService) trackActivity() {
 	var slashCommandsCount int64
 	var incomingWebhooksCount int64
 	var outgoingWebhooksCount int64
-	var storageBytes int64
 
 	activeUsersDailyCountChan := make(chan store.StoreResult, 1)
 	go func() {
@@ -332,15 +331,7 @@ func (ts *TelemetryService) trackActivity() {
 		activeUsersMonthlyCount = r.Data.(int64)
 	}
 
-	outgoingWebhooksCount, _ = ts.dbStore.Webhook().AnalyticsOutgoingCount("")
-
-	if license := ts.srv.License(); license != nil && license.Features.Cloud != nil && *license.Features.Cloud {
-		if usage, err := ts.dbStore.FileInfo().GetStorageUsage(true, false); err == nil {
-			storageBytes = utils.RoundOffToZeroes(float64(usage))
-		}
-	}
-
-	ts.SendTelemetry(TrackActivity, map[string]interface{}{
+	activity := map[string]interface{}{
 		"registered_users":             userCount,
 		"bot_accounts":                 botAccountsCount,
 		"guest_accounts":               guestAccountsCount,
@@ -359,8 +350,21 @@ func (ts *TelemetryService) trackActivity() {
 		"slash_commands":               slashCommandsCount,
 		"incoming_webhooks":            incomingWebhooksCount,
 		"outgoing_webhooks":            outgoingWebhooksCount,
-		"storage_bytes":                storageBytes,
-	})
+	}
+
+	if license := ts.srv.License(); license != nil && license.Features.Cloud != nil && *license.Features.Cloud {
+		mlog.Warn("HAS CLOUD LICENSE")
+		var tmpStorage int64
+		if usage, err := ts.dbStore.FileInfo().GetStorageUsage(true, false); err == nil {
+			mlog.Warn("HAS CLOUD USAGE")
+			tmpStorage = usage
+		} else {
+			mlog.Warn("ERR CLOUD USAGE", mlog.Err(err))
+		}
+		activity["storage_bytes"] = utils.RoundOffToZeroes(float64(tmpStorage))
+	}
+
+	ts.SendTelemetry(TrackActivity, activity)
 }
 
 func (ts *TelemetryService) trackConfig() {
