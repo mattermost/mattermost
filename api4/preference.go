@@ -110,7 +110,7 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	for _, pref := range preferences {
 		if pref.Category == model.PreferenceCategoryFlaggedPost {
-			post, err := c.App.GetSinglePost(pref.Name)
+			post, err := c.App.GetSinglePost(pref.Name, false)
 			if err != nil {
 				c.SetInvalidParam("preference.name")
 				return
