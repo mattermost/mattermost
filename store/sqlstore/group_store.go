@@ -1737,7 +1737,7 @@ func (s *SqlGroupStore) GroupMemberCount() (int64, error) {
 }
 
 func (s *SqlGroupStore) DistinctGroupMemberCount() (int64, error) {
-	return s.countTableWithSelectAndWhere("COUNT(DISTINCT UserId)", "GroupMembers", sq.Eq{"DeleteAt": 0})
+	return s.countTableWithSelectAndWhere("COUNT(DISTINCT UserId)", "GroupMembers", nil)
 }
 
 func (s *SqlGroupStore) DistinctGroupMemberCountForSource(source model.GroupSource) (int64, error) {
