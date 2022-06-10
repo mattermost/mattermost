@@ -5066,6 +5066,12 @@ func groupTestGetNonMemberUsersPage(t *testing.T, ss store.Store) {
 }
 
 func groupTestDistinctGroupMemberCountForSource(t *testing.T, ss store.Store) {
+	// get the before counts
+	customGroupCountBefore, err := ss.Group().DistinctGroupMemberCountForSource(model.GroupSourceCustom)
+	require.NoError(t, err)
+	ldapGroupCountBefore, err := ss.Group().DistinctGroupMemberCountForSource(model.GroupSourceLdap)
+	require.NoError(t, err)
+
 	// create 2 groups, 1 custom and 1 ldap
 	g1 := &model.Group{
 		Name:        model.NewString(model.NewId()),
@@ -5131,9 +5137,9 @@ func groupTestDistinctGroupMemberCountForSource(t *testing.T, ss store.Store) {
 
 	customGroupCount, err := ss.Group().DistinctGroupMemberCountForSource(model.GroupSourceCustom)
 	require.NoError(t, err)
-	require.Equal(t, int64(2), customGroupCount)
+	require.Equal(t, customGroupCountBefore+2, customGroupCount)
 
 	ldapGroupCount, err := ss.Group().DistinctGroupMemberCountForSource(model.GroupSourceLdap)
 	require.NoError(t, err)
-	require.Equal(t, int64(1), ldapGroupCount)
+	require.Equal(t, ldapGroupCountBefore+1, ldapGroupCount)
 }
