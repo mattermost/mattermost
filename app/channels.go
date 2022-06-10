@@ -197,8 +197,12 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 	}
 
 	var imgErr error
+	decoderConcurrency := int(*ch.cfgSvc.Config().FileSettings.MaxImageDecoderConcurrency)
+	if decoderConcurrency == -1 {
+		decoderConcurrency = runtime.NumCPU()
+	}
 	ch.imgDecoder, imgErr = imaging.NewDecoder(imaging.DecoderOptions{
-		ConcurrencyLevel: runtime.NumCPU(),
+		ConcurrencyLevel: decoderConcurrency,
 	})
 	if imgErr != nil {
 		return nil, errors.Wrap(imgErr, "failed to create image decoder")
