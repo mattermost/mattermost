@@ -5,8 +5,10 @@ package filestore
 
 import (
 	"context"
+	"crypto/tls"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -34,6 +36,7 @@ type S3FileBackend struct {
 	encrypt    bool
 	trace      bool
 	client     *s3.Client
+	skipVerify bool
 }
 
 type S3FileBackendAuthError struct {
@@ -87,6 +90,7 @@ func NewS3FileBackend(settings FileBackendSettings) (*S3FileBackend, error) {
 		pathPrefix: settings.AmazonS3PathPrefix,
 		encrypt:    settings.AmazonS3SSE,
 		trace:      settings.AmazonS3Trace,
+		skipVerify: settings.SkipVerify,
 	}
 	cli, err := backend.s3New()
 	if err != nil {
@@ -115,10 +119,15 @@ func (b *S3FileBackend) s3New() (*s3.Client, error) {
 		creds = credentials.NewStatic(b.accessKey, b.secretKey, "", credentials.SignatureV4)
 	}
 
+	newTransport := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: b.skipVerify},
+	}
+
 	opts := s3.Options{
-		Creds:  creds,
-		Secure: b.secure,
-		Region: b.region,
+		Creds:     creds,
+		Secure:    b.secure,
+		Region:    b.region,
+		Transport: newTransport,
 	}
 
 	// If this is a cloud installation, we override the default transport.
@@ -135,6 +144,7 @@ func (b *S3FileBackend) s3New() (*s3.Client, error) {
 			base:   tr,
 			host:   b.endpoint,
 			scheme: scheme,
+			client: http.Client{Transport: newTransport},
 		}
 	}
 

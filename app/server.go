@@ -356,8 +356,9 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	license := s.License()
+	insecure := s.Config().ServiceSettings.EnableInsecureOutgoingConnections
 	// Step 7: Initialize filestore
-	backend, err := filestore.NewFileBackend(s.Config().FileSettings.ToFileBackendSettings(license != nil && *license.Features.Compliance))
+	backend, err := filestore.NewFileBackend(s.Config().FileSettings.ToFileBackendSettings(license != nil && *license.Features.Compliance, insecure != nil && *insecure))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize filebackend")
 	}
