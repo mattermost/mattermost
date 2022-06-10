@@ -648,7 +648,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	return mentionedUsersList, nil
 }
 
-func max(a, b int64) int64 {
+func max[T int64 | int](a, b T) T {
 	if a < b {
 		return b
 	}

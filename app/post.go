@@ -1396,42 +1396,6 @@ func (a *App) GetLastAccessiblePostTime(useCache bool) (int64, *model.AppError) 
 	return createdAt, nil
 }
 
-// filterInaccessiblePosts filters out the posts, past the cloud limit
-func (a *App) filterInaccessiblePosts(postList *model.PostList) *model.AppError {
-	if postList == nil || postList.Posts == nil || len(postList.Posts) == 0 {
-		return nil
-	}
-
-	lastAccessiblePostTime, appErr := a.GetLastAccessiblePostTime(true)
-	if appErr != nil {
-		return model.NewAppError("filterInaccessiblePosts", "app.last_accessible_post.app_error", nil, appErr.Error(), http.StatusInternalServerError)
-	} else if lastAccessiblePostTime == 0 {
-		// No need to filter, all posts are accessible
-		return nil
-	}
-
-	// filter Posts
-	for postId := range postList.Posts {
-		if postList.Posts[postId].CreateAt < lastAccessiblePostTime {
-			postList.HasInaccessiblePosts = true
-			delete(postList.Posts, postId)
-		}
-	}
-
-	// filter Order
-	inaccessiblePostIndex := 0
-	for i := range postList.Order {
-		if _, ok := postList.Posts[postList.Order[i]]; ok {
-			postList.Order[inaccessiblePostIndex] = postList.Order[i]
-			inaccessiblePostIndex++
-		}
-	}
-
-	postList.Order = postList.Order[:inaccessiblePostIndex]
-
-	return nil
-}
-
 func (a *App) SearchPostsInTeam(teamID string, paramsList []*model.SearchParams) (*model.PostList, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnablePostSearch {
 		return nil, model.NewAppError("SearchPostsInTeam", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v", teamID), http.StatusNotImplemented)
