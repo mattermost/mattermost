@@ -5117,6 +5117,18 @@ func groupTestDistinctGroupMemberCountForSource(t *testing.T, ss store.Store) {
 	_, err = ss.Group().DeleteMember(ldapGroup.Id, user1.Id)
 	require.NoError(t, err)
 
+	defer func() {
+		ss.Group().DeleteMember(ldapGroup.Id, user2.Id)
+		ss.Group().DeleteMember(customGroup.Id, user1.Id)
+		ss.Group().DeleteMember(customGroup.Id, user2.Id)
+
+		ss.Group().Delete(customGroup.Id)
+		ss.Group().Delete(ldapGroup.Id)
+
+		ss.User().PermanentDelete(user1.Id)
+		ss.User().PermanentDelete(user2.Id)
+	}()
+
 	customGroupCount, err := ss.Group().DistinctGroupMemberCountForSource(model.GroupSourceCustom)
 	require.NoError(t, err)
 	require.Equal(t, int64(2), customGroupCount)
