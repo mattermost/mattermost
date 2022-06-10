@@ -600,7 +600,7 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	}
 	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
 
-	postList, nErr := th.App.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false)
+	postList, nErr := th.App.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
 	require.NoError(t, nErr)
 
 	if assert.Len(t, postList.Order, 1) {
@@ -2032,8 +2032,8 @@ func TestMarkChannelAsUnreadFromPostPanic(t *testing.T) {
 
 	mockPostStore := mocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
-	mockPostStore.On("Get", context.Background(), "postID", false, false, false, "userID").Return(&model.PostList{}, nil)
-	mockPostStore.On("GetPostsAfter", mock.AnythingOfType("model.GetPostsOptions")).Return(&model.PostList{}, nil)
+	mockPostStore.On("Get", context.Background(), "postID", false, false, false, "userID", map[string]bool{"email": true, "fullname": true}).Return(&model.PostList{}, nil)
+	mockPostStore.On("GetPostsAfter", mock.AnythingOfType("model.GetPostsOptions"), map[string]bool{"email": true, "fullname": true}).Return(&model.PostList{}, nil)
 	mockPostStore.On("GetSingle", "postID", false).Return(&model.Post{
 		Id:        "postID",
 		RootId:    "rootID",

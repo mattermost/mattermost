@@ -168,7 +168,7 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 	if post.RootId != "" {
 		pchan = make(chan store.StoreResult, 1)
 		go func() {
-			r, pErr := a.Srv().Store.Post().Get(sqlstore.WithMaster(context.Background()), post.RootId, false, false, false, "")
+			r, pErr := a.Srv().Store.Post().Get(sqlstore.WithMaster(context.Background()), post.RootId, false, false, false, "", a.Config().GetSanitizeOptions())
 			pchan <- store.StoreResult{Data: r, NErr: pErr}
 			close(pchan)
 		}()
@@ -559,7 +559,7 @@ func (a *App) DeleteEphemeralPost(userID, postID string) {
 func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
 	post.SanitizeProps()
 
-	postLists, nErr := a.Srv().Store.Post().Get(context.Background(), post.Id, false, false, false, "")
+	postLists, nErr := a.Srv().Store.Post().Get(context.Background(), post.Id, false, false, false, "", a.Config().GetSanitizeOptions())
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
@@ -784,7 +784,7 @@ func (a *App) PatchPost(c *request.Context, postID string, patch *model.PostPatc
 }
 
 func (a *App) GetPostsPage(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
-	postList, err := a.Srv().Store.Post().GetPosts(options, false)
+	postList, err := a.Srv().Store.Post().GetPosts(options, false, a.Config().GetSanitizeOptions())
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -799,7 +799,7 @@ func (a *App) GetPostsPage(options model.GetPostsOptions) (*model.PostList, *mod
 }
 
 func (a *App) GetPosts(channelID string, offset int, limit int) (*model.PostList, *model.AppError) {
-	postList, err := a.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channelID, Page: offset, PerPage: limit}, true)
+	postList, err := a.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channelID, Page: offset, PerPage: limit}, true, a.Config().GetSanitizeOptions())
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -818,7 +818,7 @@ func (a *App) GetPostsEtag(channelID string, collapsedThreads bool) string {
 }
 
 func (a *App) GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList, *model.AppError) {
-	postList, err := a.Srv().Store.Post().GetPostsSince(options, true)
+	postList, err := a.Srv().Store.Post().GetPostsSince(options, true, a.Config().GetSanitizeOptions())
 	if err != nil {
 		return nil, model.NewAppError("GetPostsSince", "app.post.get_posts_since.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -842,7 +842,7 @@ func (a *App) GetSinglePost(postID string) (*model.Post, *model.AppError) {
 }
 
 func (a *App) GetPostThread(postID string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool, userID string) (*model.PostList, *model.AppError) {
-	posts, err := a.Srv().Store.Post().Get(context.Background(), postID, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID)
+	posts, err := a.Srv().Store.Post().Get(context.Background(), postID, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID, a.Config().GetSanitizeOptions())
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
@@ -887,7 +887,7 @@ func (a *App) GetFlaggedPostsForChannel(userID, channelID string, offset int, li
 }
 
 func (a *App) GetPermalinkPost(c *request.Context, postID string, userID string) (*model.PostList, *model.AppError) {
-	list, nErr := a.Srv().Store.Post().Get(context.Background(), postID, false, false, false, userID)
+	list, nErr := a.Srv().Store.Post().Get(context.Background(), postID, false, false, false, userID, a.Config().GetSanitizeOptions())
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
@@ -919,7 +919,7 @@ func (a *App) GetPermalinkPost(c *request.Context, postID string, userID string)
 }
 
 func (a *App) GetPostsBeforePost(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
-	postList, err := a.Srv().Store.Post().GetPostsBefore(options)
+	postList, err := a.Srv().Store.Post().GetPostsBefore(options, a.Config().GetSanitizeOptions())
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -934,7 +934,7 @@ func (a *App) GetPostsBeforePost(options model.GetPostsOptions) (*model.PostList
 }
 
 func (a *App) GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
-	postList, err := a.Srv().Store.Post().GetPostsAfter(options)
+	postList, err := a.Srv().Store.Post().GetPostsAfter(options, a.Config().GetSanitizeOptions())
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -951,10 +951,11 @@ func (a *App) GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList,
 func (a *App) GetPostsAroundPost(before bool, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	var postList *model.PostList
 	var err error
+	sanitize := a.Config().GetSanitizeOptions()
 	if before {
-		postList, err = a.Srv().Store.Post().GetPostsBefore(options)
+		postList, err = a.Srv().Store.Post().GetPostsBefore(options, sanitize)
 	} else {
-		postList, err = a.Srv().Store.Post().GetPostsAfter(options)
+		postList, err = a.Srv().Store.Post().GetPostsAfter(options, sanitize)
 	}
 
 	if err != nil {
