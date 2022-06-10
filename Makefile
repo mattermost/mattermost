@@ -182,11 +182,6 @@ ifneq ("$(wildcard ./docker-compose.override.yaml)","")
   DOCKER_COMPOSE_OVERRIDE=-f docker-compose.override.yaml
 endif
 
-# Remove this when elasticsearch runs on M1
-ifeq ($(M1_MAC),true)
-  DOCKER_COMPOSE_OVERRIDE := $(DOCKER_COMPOSE_OVERRIDE) -f ./docker-compose.m1.yaml
-endif
-
 ifneq ($(DOCKER_SERVICES_OVERRIDE),true)
   ifeq (,$(findstring minio,$(ENABLED_DOCKER_SERVICES)))
     TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) minio
