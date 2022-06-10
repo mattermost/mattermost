@@ -8096,6 +8096,10 @@
     "translation": "Invalid group unread channels for service settings. Must be 'disabled', 'default_on', or 'default_off'."
   },
   {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Invalid decoder concurrency {{.Value}}. Should be a positive number or -1."
+  },
+  {
     "id": "model.config.is_valid.image_proxy_type.app_error",
     "translation": "Invalid image proxy type. Must be 'local' or 'atmos/camo'."
   },
