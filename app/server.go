@@ -96,6 +96,7 @@ const (
 	TeamKey        ServiceKey = "team"
 	UserKey        ServiceKey = "user"
 	PermissionsKey ServiceKey = "permissions"
+	RouterKey      ServiceKey = "router"
 )
 
 type Server struct {

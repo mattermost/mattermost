@@ -51,6 +51,7 @@ type Channels struct {
 	cfgSvc     configSvc
 	filestore  filestore.FileBackend
 	licenseSvc licenseSvc
+	routerSvc  *routerService
 
 	postActionCookieSecret []byte
 
@@ -196,8 +197,12 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 	}
 
 	var imgErr error
+	decoderConcurrency := int(*ch.cfgSvc.Config().FileSettings.MaxImageDecoderConcurrency)
+	if decoderConcurrency == -1 {
+		decoderConcurrency = runtime.NumCPU()
+	}
 	ch.imgDecoder, imgErr = imaging.NewDecoder(imaging.DecoderOptions{
-		ConcurrencyLevel: runtime.NumCPU(),
+		ConcurrencyLevel: decoderConcurrency,
 	})
 	if imgErr != nil {
 		return nil, errors.Wrap(imgErr, "failed to create image decoder")
@@ -208,6 +213,9 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 	if imgErr != nil {
 		return nil, errors.Wrap(imgErr, "failed to create image encoder")
 	}
+
+	ch.routerSvc = newRouterService()
+	services[RouterKey] = ch.routerSvc
 
 	// Setup routes.
 	pluginsRoute := ch.srv.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
@@ -267,6 +275,7 @@ func (ch *Channels) Start() error {
 	if err := ch.ensurePostActionCookieSecret(); err != nil {
 		return errors.Wrapf(err, "unable to ensure PostAction cookie secret")
 	}
+
 	return nil
 }
 
