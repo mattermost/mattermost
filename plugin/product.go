@@ -74,7 +74,7 @@ func (a *hooksAdapter) OnConfigurationChange() error {
 func (a *hooksAdapter) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Request) {}
 
 func (a *hooksAdapter) ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
-	return nil, model.NewAppError("ExecuteCommand", "", nil, "not implemented", http.StatusNotImplemented)
+	return nil, model.NewAppError("ExecuteCommand", "api.command.execute_command.start.app_error", nil, "not implemented", http.StatusNotImplemented)
 }
 
 func (a *hooksAdapter) UserHasBeenCreated(c *Context, user *model.User) {}
