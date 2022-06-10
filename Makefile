@@ -191,8 +191,12 @@ ifneq ($(DOCKER_SERVICES_OVERRIDE),true)
       TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) openldap
     endif
     ifeq (,$(findstring elasticsearch,$(ENABLED_DOCKER_SERVICES)))
-      TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) elasticsearch
-    endif
+	  ifneq ($(M1_MAC),true)
+        TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) elasticsearch
+	  else
+	    $(info M1 Mac detected, not launching Elasticsearch automatically)
+	  endif
+	endif
   endif
   ENABLED_DOCKER_SERVICES:=$(ENABLED_DOCKER_SERVICES) $(TEMP_DOCKER_SERVICES)
 endif
