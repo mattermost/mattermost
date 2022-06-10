@@ -275,21 +275,21 @@ func updateCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 	auditRec := c.MakeAuditRecord("updateCategoryForTeamForUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	var categoryUpdateRequest *model.SidebarCategoryWithChannels
+	var categoryUpdateRequest model.SidebarCategoryWithChannels
 	err := json.NewDecoder(r.Body).Decode(&categoryUpdateRequest)
 	if err != nil || categoryUpdateRequest.TeamId != c.Params.TeamId || categoryUpdateRequest.UserId != c.Params.UserId {
 		c.SetInvalidParam("category")
 		return
 	}
 
-	if appErr := validateSidebarCategory(c, c.Params.TeamId, c.Params.UserId, categoryUpdateRequest); appErr != nil {
+	if appErr := validateSidebarCategory(c, c.Params.TeamId, c.Params.UserId, &categoryUpdateRequest); appErr != nil {
 		c.Err = appErr
 		return
 	}
 
 	categoryUpdateRequest.Id = c.Params.CategoryId
 
-	categories, appErr := c.App.UpdateSidebarCategories(c.Params.UserId, c.Params.TeamId, []*model.SidebarCategoryWithChannels{categoryUpdateRequest})
+	categories, appErr := c.App.UpdateSidebarCategories(c.Params.UserId, c.Params.TeamId, []*model.SidebarCategoryWithChannels{&categoryUpdateRequest})
 	if appErr != nil {
 		c.Err = appErr
 		return

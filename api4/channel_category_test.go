@@ -429,6 +429,25 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 		require.NoError(t, err)
 		assert.False(t, member.IsChannelMuted())
 	})
+
+	t.Run("should not crash with null input", func(t *testing.T) {
+		require.NotPanics(t, func() {
+			user, client := setupUserForSubtest(t, th)
+
+			categories, _, err := client.GetSidebarCategoriesForTeamForUser(user.Id, th.BasicTeam.Id, "")
+			require.NoError(t, err)
+			require.Len(t, categories.Categories, 3)
+			require.Len(t, categories.Order, 3)
+
+			dmsCategory := categories.Categories[2]
+
+			payload := []byte(`null`)
+			route := fmt.Sprintf("/users/%s/teams/%s/channels/categories/%s", user.Id, th.BasicTeam.Id, dmsCategory.Id)
+			r, err := client.DoAPIPutBytes(route, payload)
+			require.Error(t, err)
+			closeBody(r)
+		})
+	})
 }
 
 func TestUpdateCategoriesForTeamForUser(t *testing.T) {
