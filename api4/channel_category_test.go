@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
@@ -88,6 +89,17 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 
 		// Initial new category sort order is 10 (first)
 		require.Equal(t, int64(10), customCategory.SortOrder)
+	})
+
+	t.Run("should not crash with null input", func(t *testing.T) {
+		require.NotPanics(t, func() {
+			user, client := setupUserForSubtest(t, th)
+			payload := []byte(`null`)
+			route := fmt.Sprintf("/users/%s/teams/%s/channels/categories", user.Id, th.BasicTeam.Id)
+			r, err := client.DoAPIPostBytes(route, payload)
+			require.Error(t, err)
+			defer closeBody(r)
+		})
 	})
 
 	t.Run("should publish expected WS payload", func(t *testing.T) {
