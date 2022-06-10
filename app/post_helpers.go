@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -36,13 +37,13 @@ func min(a, b int) int {
 	return b
 }
 
-func abs(a int) int {
-	if a > 0 {
-		return a
-	}
-	return a * -1
-}
-
+// getPostAccessibleBounds returns what the boundaries for accessible and inaccessible posts.
+// It assumes that CreateAt time for posts is monotonically increasing or decreasing.
+// It could be either because posts can be returned in ascending or descending time order.
+// Because it returns the boundaries, it is necessary to check whether the accessible or
+// inaccessible post index is greater, and do the filtering accordingly.
+// Special values (which can be checked with methods `allAccessible` and `allInaccessible`)
+// denote if all or none of the posts are accessible
 func getPostAccessibleBounds(postList *model.PostList, earliestAccessibleTime int64) postAccessibleBounds {
 	if postList == nil || postList.Posts == nil || len(postList.Posts) == 0 {
 		return allAccessiblePosts
@@ -54,7 +55,6 @@ func getPostAccessibleBounds(postList *model.PostList, earliestAccessibleTime in
 	if lenPosts != len(order) {
 		return allAccessiblePosts
 	}
-
 	if lenPosts == 1 {
 		if posts[order[0]].CreateAt >= earliestAccessibleTime {
 			return allAccessiblePosts
@@ -64,12 +64,12 @@ func getPostAccessibleBounds(postList *model.PostList, earliestAccessibleTime in
 
 	var firstAccessible = posts[order[0]].CreateAt >= earliestAccessibleTime
 	var lastAccessible = posts[order[lenPosts-1]].CreateAt >= earliestAccessibleTime
+
 	if firstAccessible == lastAccessible {
 		if firstAccessible {
 			return allAccessiblePosts
-		} else {
-			return noAccessiblePosts
 		}
+		return noAccessiblePosts
 	}
 
 	var accessible = -1
@@ -88,6 +88,7 @@ func getPostAccessibleBounds(postList *model.PostList, earliestAccessibleTime in
 	for {
 		distance := getDistance(accessible, inaccessible)
 		if distance == 1 {
+			fmt.Printf("\n")
 			break
 		}
 		guess := min(accessible, inaccessible) + distance/2
@@ -139,11 +140,11 @@ func (a *App) filterInaccessiblePosts(postList *model.PostList) *model.AppError 
 		otherAccessibleBound = len(postList.Order) - 1
 	}
 	order := postList.Order
-	for i := min(bounds.inaccessible, otherInaccessibleBound); i <= max(bounds.inaccessible, otherInaccessibleBound); i++ {
+	for i := min(bounds.inaccessible, otherInaccessibleBound); i <= maxInt(bounds.inaccessible, otherInaccessibleBound); i++ {
 		delete(postList.Posts, order[i])
 	}
 
-	postList.Order = postList.Order[min(bounds.accessible, otherAccessibleBound):max(bounds.accessible, otherAccessibleBound)]
+	postList.Order = postList.Order[min(bounds.accessible, otherAccessibleBound):maxInt(bounds.accessible, otherAccessibleBound)]
 
 	return nil
 }
