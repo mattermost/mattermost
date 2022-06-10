@@ -1147,22 +1147,34 @@ func (ts *TelemetryService) trackGroups() {
 		mlog.Debug("Could not get distinct_group_member_count", mlog.Err(err))
 	}
 
+	distinctCustomGroupMemberCount, err := ts.dbStore.Group().DistinctGroupMemberCountForSource(model.GroupSourceCustom)
+	if err != nil {
+		mlog.Debug("Could not get distinct_custom_group_member_count", mlog.Err(err))
+	}
+
+	distinctLdapGroupMemberCount, err := ts.dbStore.Group().DistinctGroupMemberCountForSource(model.GroupSourceLdap)
+	if err != nil {
+		mlog.Debug("Could not get distinct_ldap_group_member_count", mlog.Err(err))
+	}
+
 	groupCountWithAllowReference, err := ts.dbStore.Group().GroupCountWithAllowReference()
 	if err != nil {
 		mlog.Debug("Could not get group_count_with_allow_reference", mlog.Err(err))
 	}
 
 	ts.SendTelemetry(TrackGroups, map[string]interface{}{
-		"group_count":                      groupCount,
-		"ldap_group_count":                 ldapGroupCount,
-		"custom_group_count":               customGroupCount,
-		"group_team_count":                 groupTeamCount,
-		"group_channel_count":              groupChannelCount,
-		"group_synced_team_count":          groupSyncedTeamCount,
-		"group_synced_channel_count":       groupSyncedChannelCount,
-		"group_member_count":               groupMemberCount,
-		"distinct_group_member_count":      distinctGroupMemberCount,
-		"group_count_with_allow_reference": groupCountWithAllowReference,
+		"group_count":                        groupCount,
+		"ldap_group_count":                   ldapGroupCount,
+		"custom_group_count":                 customGroupCount,
+		"group_team_count":                   groupTeamCount,
+		"group_channel_count":                groupChannelCount,
+		"group_synced_team_count":            groupSyncedTeamCount,
+		"group_synced_channel_count":         groupSyncedChannelCount,
+		"group_member_count":                 groupMemberCount,
+		"distinct_group_member_count":        distinctGroupMemberCount,
+		"distinct_custom_group_member_count": distinctCustomGroupMemberCount,
+		"distinct_ldap_group_member_count":   distinctLdapGroupMemberCount,
+		"group_count_with_allow_reference":   groupCountWithAllowReference,
 	})
 }
 

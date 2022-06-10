@@ -90,6 +90,8 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 
 	t.Run("GetMember", func(t *testing.T) { groupTestGetMember(t, ss) })
 	t.Run("GetNonMemberUsersPage", func(t *testing.T) { groupTestGetNonMemberUsersPage(t, ss) })
+
+	t.Run("DistinctGroupMemberCountForSource", func(t *testing.T) { groupTestDistinctGroupMemberCountForSource(t, ss) })
 }
 
 func testGroupStoreCreate(t *testing.T, ss store.Store) {
@@ -5061,4 +5063,65 @@ func groupTestGetNonMemberUsersPage(t *testing.T, ss store.Store) {
 	users, err = ss.Group().GetNonMemberUsersPage(model.NewId(), 0, 1000)
 	require.Error(t, err)
 	require.Nil(t, users)
+}
+
+func groupTestDistinctGroupMemberCountForSource(t *testing.T, ss store.Store) {
+	// create 2 groups, 1 custom and 1 ldap
+	g1 := &model.Group{
+		Name:        model.NewString(model.NewId()),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceCustom,
+		RemoteId:    model.NewString(model.NewId()),
+	}
+	customGroup, err := ss.Group().Create(g1)
+	require.NoError(t, err)
+
+	g2 := &model.Group{
+		Name:        model.NewString(model.NewId()),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewString(model.NewId()),
+	}
+	ldapGroup, err := ss.Group().Create(g2)
+	require.NoError(t, err)
+
+	// create a couple of users
+	u1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user1, nErr := ss.User().Save(u1)
+	require.NoError(t, nErr)
+
+	u2 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user2, nErr := ss.User().Save(u2)
+	require.NoError(t, nErr)
+
+	// add both new users to both new groups
+	_, err = ss.Group().UpsertMember(customGroup.Id, user1.Id)
+	require.NoError(t, err)
+	_, err = ss.Group().UpsertMember(ldapGroup.Id, user1.Id)
+	require.NoError(t, err)
+
+	_, err = ss.Group().UpsertMember(customGroup.Id, user2.Id)
+	require.NoError(t, err)
+	_, err = ss.Group().UpsertMember(ldapGroup.Id, user2.Id)
+	require.NoError(t, err)
+
+	// remove one user from a group to ensure the 'where deleteat = 0' clause is working
+	_, err = ss.Group().DeleteMember(ldapGroup.Id, user1.Id)
+	require.NoError(t, err)
+
+	customGroupCount, err := ss.Group().DistinctGroupMemberCountForSource(model.GroupSourceCustom)
+	require.NoError(t, err)
+	require.Equal(t, int64(2), customGroupCount)
+
+	ldapGroupCount, err := ss.Group().DistinctGroupMemberCountForSource(model.GroupSourceLdap)
+	require.NoError(t, err)
+	require.Equal(t, int64(1), ldapGroupCount)
 }
