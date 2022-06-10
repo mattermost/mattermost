@@ -98,7 +98,7 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 			route := fmt.Sprintf("/users/%s/teams/%s/channels/categories", user.Id, th.BasicTeam.Id)
 			r, err := client.DoAPIPostBytes(route, payload)
 			require.Error(t, err)
-			defer closeBody(r)
+			closeBody(r)
 		})
 	})
 
