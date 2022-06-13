@@ -132,6 +132,7 @@ func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, 
 	groupStore.On("GroupCountWithAllowReference").Return(int64(13), nil)
 	groupStore.On("GroupCountBySource", model.GroupSourceCustom).Return(int64(10), nil)
 	groupStore.On("GroupCountBySource", model.GroupSourceLdap).Return(int64(2), nil)
+	groupStore.On("DistinctGroupMemberCountForSource", mock.AnythingOfType("model.GroupSource")).Return(int64(1), nil)
 
 	schemeStore := storeMocks.SchemeStore{}
 	schemeStore.On("CountByScope", "channel").Return(int64(8), nil)
