@@ -6323,6 +6323,8 @@ func (c *Client4) UpdateUserStatus(userId string, userStatus *Status) (*Status, 
 }
 
 // UpdateUserCustomStatus sets a user's custom status based on the provided user id string.
+// The returned CustomStatus object is the same as the one passed, and it should be just
+// ignored. It's only kept to maintain compatibility.
 func (c *Client4) UpdateUserCustomStatus(userId string, userCustomStatus *CustomStatus) (*CustomStatus, *Response, error) {
 	buf, err := json.Marshal(userCustomStatus)
 	if err != nil {
@@ -6333,11 +6335,10 @@ func (c *Client4) UpdateUserCustomStatus(userId string, userCustomStatus *Custom
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var s CustomStatus
-	if jsonErr := json.NewDecoder(r.Body).Decode(&s); jsonErr != nil {
-		return nil, nil, NewAppError("UpdateUserCustomStatus", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
-	}
-	return &s, BuildResponse(r), nil
+	// This is returning the same status which was passed.
+	// The API was incorrectly designed to return a status returned from the server,
+	// but the server doesn't return anything except an OK.
+	return userCustomStatus, BuildResponse(r), nil
 }
 
 // RemoveUserCustomStatus remove a user's custom status based on the provided user id string.

@@ -25,17 +25,17 @@ type channelsWrapper struct {
 	srv *Server
 }
 
-func (s *channelsWrapper) GetDirectChannel(userID1, userID2 string) (*model.Channel, error) {
+func (s *channelsWrapper) GetDirectChannel(userID1, userID2 string) (*model.Channel, *model.AppError) {
 	return s.srv.getDirectChannel(userID1, userID2)
 }
 
 // GetChannelByID gets a Channel by its ID.
-func (s *channelsWrapper) GetChannelByID(channelID string) (*model.Channel, error) {
+func (s *channelsWrapper) GetChannelByID(channelID string) (*model.Channel, *model.AppError) {
 	return s.srv.getChannel(channelID)
 }
 
 // GetChannelMember gets a channel member by userID.
-func (s *channelsWrapper) GetChannelMember(channelID string, userID string) (*model.ChannelMember, error) {
+func (s *channelsWrapper) GetChannelMember(channelID string, userID string) (*model.ChannelMember, *model.AppError) {
 	return s.srv.getChannelMember(context.Background(), channelID, userID)
 }
 
