@@ -3152,10 +3152,6 @@
     "translation": "Elasticsearchは既に停止されています。"
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Elasticsearchサーバーへ接続できませんでした。"
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearchは無効です。"
   },

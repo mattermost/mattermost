@@ -3072,10 +3072,6 @@
     "translation": "Elasticsearch är avaktiverat."
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Uppkoppling mot Elasticsearch-servern misslyckades."
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch är redan stoppad."
   },
