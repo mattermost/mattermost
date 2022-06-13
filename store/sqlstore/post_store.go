@@ -1051,7 +1051,7 @@ func (s *SqlPostStore) ReplaceUserMentions(userId string) error {
 	q2, p2, _ := s.getQueryBuilder().
 		Select("Posts.id Id", "Posts.message Message").
 		From("Posts").
-		Where(sq.Like{"Message": "%" + username[0] + "%"}).
+		Where(sq.Like{"Message": "%@" + username[0] + "%"}).
 		ToSql()
 
 	err = transaction.Select(&posts, q2, p2...)
