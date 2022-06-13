@@ -1380,7 +1380,7 @@ func (a *App) GetLastAccessiblePostTime(useCache bool) (int64, *model.AppError) 
 		return 0, nil
 	}
 
-	createdAt, err := a.Srv().GetStore().Post().GetRecentNthPostTime(int64(*limits.Messages.History))
+	createdAt, err := a.Srv().GetStore().Post().GetNthRecentPostTime(int64(*limits.Messages.History))
 	if err != nil {
 		return 0, model.NewAppError("GetLastAccessiblePostTime", "app.last_accessible_post.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

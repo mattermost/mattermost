@@ -1736,7 +1736,7 @@ var specialSearchChar = []string{
 }
 
 // GetNthRecentPostTime returns the CreateAt time of the nth most recent post.
-func (s *SqlPostStore) GetRecentNthPostTime(n int64) (int64, error) {
+func (s *SqlPostStore) GetNthRecentPostTime(n int64) (int64, error) {
 	if n <= 0 {
 		return 0, nil
 	}
@@ -1762,7 +1762,7 @@ func (s *SqlPostStore) GetRecentNthPostTime(n int64) (int64, error) {
 
 	var createAt int64
 	if err := s.GetMasterX().Get(&createAt, query, queryArgs...); err != nil {
-		return 0, errors.Wrapf(err, "failed to get the Nth Post=%v", n)
+		return 0, errors.Wrapf(err, "failed to get the Nth Post=%d", n)
 	}
 
 	return createAt, nil
