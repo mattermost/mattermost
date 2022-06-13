@@ -3780,6 +3780,24 @@ func (c *Client4) GetPost(postId string, etag string) (*Post, *Response, error) 
 	return &post, BuildResponse(r), nil
 }
 
+// GetPostIncludeDeleted gets a single post, including deleted.
+func (c *Client4) GetPostIncludeDeleted(postId string, etag string) (*Post, *Response, error) {
+	r, err := c.DoAPIGet(c.postRoute(postId)+"?include_deleted="+c.boolString(true), etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var post Post
+	if r.StatusCode == http.StatusNotModified {
+		return &post, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&post); jsonErr != nil {
+		return nil, nil, NewAppError("GetPostIncludeDeleted", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &post, BuildResponse(r), nil
+}
+
 // DeletePost deletes a post from the provided post id string.
 func (c *Client4) DeletePost(postId string) (*Response, error) {
 	r, err := c.DoAPIDelete(c.postRoute(postId))
@@ -6287,6 +6305,8 @@ func (c *Client4) UpdateUserStatus(userId string, userStatus *Status) (*Status, 
 }
 
 // UpdateUserCustomStatus sets a user's custom status based on the provided user id string.
+// The returned CustomStatus object is the same as the one passed, and it should be just
+// ignored. It's only kept to maintain compatibility.
 func (c *Client4) UpdateUserCustomStatus(userId string, userCustomStatus *CustomStatus) (*CustomStatus, *Response, error) {
 	buf, err := json.Marshal(userCustomStatus)
 	if err != nil {
@@ -6297,11 +6317,10 @@ func (c *Client4) UpdateUserCustomStatus(userId string, userCustomStatus *Custom
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var s CustomStatus
-	if jsonErr := json.NewDecoder(r.Body).Decode(&s); jsonErr != nil {
-		return nil, nil, NewAppError("UpdateUserCustomStatus", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
-	}
-	return &s, BuildResponse(r), nil
+	// This is returning the same status which was passed.
+	// The API was incorrectly designed to return a status returned from the server,
+	// but the server doesn't return anything except an OK.
+	return userCustomStatus, BuildResponse(r), nil
 }
 
 // RemoveUserCustomStatus remove a user's custom status based on the provided user id string.
@@ -7784,8 +7803,9 @@ func (c *Client4) ConfirmCustomerPayment(confirmRequest *ConfirmPaymentMethodReq
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) RequestCloudTrial() (*Subscription, *Response, error) {
-	r, err := c.DoAPIPut(c.cloudRoute()+"/request-trial", "")
+func (c *Client4) RequestCloudTrial(email *ValidateBusinessEmailRequest) (*Subscription, *Response, error) {
+	payload, _ := json.Marshal(email)
+	r, err := c.DoAPIPutBytes(c.cloudRoute()+"/request-trial", payload)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7795,6 +7815,16 @@ func (c *Client4) RequestCloudTrial() (*Subscription, *Response, error) {
 	json.NewDecoder(r.Body).Decode(&subscription)
 
 	return subscription, BuildResponse(r), nil
+}
+
+func (c *Client4) ValidateBusinessEmail() (*Response, error) {
+	r, err := c.DoAPIPost(c.cloudRoute()+"/validate-business-email", "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r), nil
 }
 
 func (c *Client4) GetCloudCustomer() (*CloudCustomer, *Response, error) {
@@ -8107,6 +8137,33 @@ func (c *Client4) GetPostsUsage() (*PostsUsage, *Response, error) {
 	defer closeBody(r)
 
 	var usage *PostsUsage
+	err = json.NewDecoder(r.Body).Decode(&usage)
+	return usage, BuildResponse(r), err
+}
+
+// GetStorageUsage returns the file storage usage for the instance,
+// rounded down the most signigicant digit
+func (c *Client4) GetStorageUsage() (*StorageUsage, *Response, error) {
+	r, err := c.DoAPIGet(c.usageRoute()+"/storage", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var usage *StorageUsage
+	err = json.NewDecoder(r.Body).Decode(&usage)
+	return usage, BuildResponse(r), err
+}
+
+// GetTeamsUsage returns total usage of teams for the instance
+func (c *Client4) GetTeamsUsage() (*TeamsUsage, *Response, error) {
+	r, err := c.DoAPIGet(c.usageRoute()+"/teams", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var usage *TeamsUsage
 	err = json.NewDecoder(r.Body).Decode(&usage)
 	return usage, BuildResponse(r), err
 }

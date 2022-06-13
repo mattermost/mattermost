@@ -2640,10 +2640,6 @@
     "translation": "必須のリアクション設定値 User が存在しません。"
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "返信作成日時の設定値は親に当たる投稿の作成日時よりも大きくなくてはなりません。"
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "必須の返信設定値 create_at が存在しません。"
   },
@@ -9326,5 +9322,9 @@
   {
     "id": "api.cloud.cloud_free_feature_flag_off_error",
     "translation": "CloudFree フィーチャーフラグが off です。"
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "有効な統合機能数の上限 {{.NumIntegrations}} に達しました。無制限に統合機能をインストールするには、いずれかの有料プランにアップグレードしてください。"
   }
 ]

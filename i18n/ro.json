@@ -2648,10 +2648,6 @@
     "translation": "Lipsesc necesare reacţie proprietate: utilizator."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Proprietatea de CreateAt răspunsul trebuie să fie mai mare decât părintele post CreateAt."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Lipsesc necesare răspunsul proprietate: create_at."
   },

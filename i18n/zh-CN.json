@@ -2640,10 +2640,6 @@
     "translation": "缺少互动必须属性：User。"
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "回复 CreateAt 属性必须大于父消息 CreateAt。"
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "缺少回复必须属性：create_at。"
   },

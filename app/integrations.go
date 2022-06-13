@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (a *App) checkIntegrationLimitsForConfigSave(oldConfig, newConfig *model.Config) *model.AppError {
@@ -73,6 +74,10 @@ func (a *App) checkIfIntegrationsMeetFreemiumLimits(originalPluginIds []string) 
 		return nil
 	}
 
+	if a.License() == nil || !*a.License().Features.Cloud {
+		return nil
+	}
+
 	pluginIds := map[string]bool{}
 	for _, pluginId := range originalPluginIds {
 		if _, ok := model.InstalledIntegrationsIgnoredPlugins[pluginId]; !ok {
@@ -82,7 +87,8 @@ func (a *App) checkIfIntegrationsMeetFreemiumLimits(originalPluginIds []string) 
 
 	limits, err := a.Cloud().GetCloudLimits("")
 	if err != nil {
-		return model.NewAppError("checkIfIntegrationMeetsFreemiumLimits", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
+		a.Log().Error("Error fetching cloud limits for enabled integrations", mlog.Err(err))
+		return nil
 	}
 
 	if limits == nil || limits.Integrations == nil || limits.Integrations.Enabled == nil {
@@ -91,7 +97,8 @@ func (a *App) checkIfIntegrationsMeetFreemiumLimits(originalPluginIds []string) 
 
 	installed, appErr := a.ch.getInstalledIntegrations()
 	if appErr != nil {
-		return appErr
+		a.Log().Error("Failed to get installed integrations to check cloud limit", mlog.Err(appErr))
+		return nil
 	}
 
 	enableCount := len(pluginIds)

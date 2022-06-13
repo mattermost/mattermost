@@ -1857,7 +1857,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Nachricht anzeigen"
+    "translation": "Antworte in Mattermost"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2642,10 +2642,6 @@
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
     "translation": "Fehlende erforderliche Reaktionseigenschaft: User."
-  },
-  {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Antworteigenschaft CreateAt muss größer als CreateAt der übergeordneten Nachricht sein."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
@@ -9333,5 +9329,25 @@
   {
     "id": "api.cloud.cloud_free_feature_flag_off_error",
     "translation": "CloudFree Feature Flag ist ausgeschaltet."
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "Du hast das Maximum von {{.NumIntegrations}} aktivierten Integrationen erreicht. Um Integrationen ohne Beschränkungen zu installieren, upgrade auf ein bezahltes Abonnements."
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Kann Team-Zähler nicht abfragen"
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Kann Team-Verwendung nicht abfragen"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Kann Team nicht wiederherstellen, da das Team-Limit erreicht ist"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Kann kein Team erstellen, da das Team-Limit erreicht ist"
   }
 ]
