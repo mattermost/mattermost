@@ -119,11 +119,10 @@ func (b *S3FileBackend) s3New() (*s3.Client, error) {
 		creds = credentials.NewStatic(b.accessKey, b.secretKey, "", credentials.SignatureV4)
 	}
 
-
 	opts := s3.Options{
-		Creds:     creds,
-		Secure:    b.secure,
-		Region:    b.region,
+		Creds:  creds,
+		Secure: b.secure,
+		Region: b.region,
 	}
 
 	tr, err := s3.DefaultTransport(b.secure)
@@ -137,7 +136,6 @@ func (b *S3FileBackend) s3New() (*s3.Client, error) {
 
 	// If this is a cloud installation, we override the default transport.
 	if isCloud {
-
 		scheme := "http"
 		if b.secure {
 			scheme = "https"
