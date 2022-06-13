@@ -6,13 +6,15 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
@@ -547,7 +549,7 @@ func (s *SqlPostStore) buildFlaggedPostChannelFilterClause(channelId string, que
 	return "AND ChannelId = ?", append(queryParams, channelId)
 }
 
-func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model.GetPostsOptions) (*model.PostList, error) {
+func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	if id == "" {
 		return nil, store.NewErrInvalidInput("Post", "id", id)
 	}
@@ -602,23 +604,34 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 		query = query.OrderBy("CreateAt " + sort + ", Id " + sort)
 	}
 
-	if opts.FromPost != "" && opts.FromCreateAt != 0 {
+	if opts.FromCreateAt != 0 {
 		if opts.Direction == "down" {
-			query = query.Where(sq.Or{
-				sq.Gt{"Posts.CreateAt": opts.FromCreateAt},
-				sq.And{
-					sq.Eq{"Posts.CreateAt": opts.FromCreateAt},
-					sq.Gt{"Posts.Id": opts.FromPost},
-				},
-			})
+			direction := sq.Gt{"Posts.CreateAt": opts.FromCreateAt}
+			if opts.FromPost != "" {
+				query = query.Where(sq.Or{
+					direction,
+					sq.And{
+						sq.Eq{"Posts.CreateAt": opts.FromCreateAt},
+						sq.Gt{"Posts.Id": opts.FromPost},
+					},
+				})
+			} else {
+				query = query.Where(direction)
+			}
 		} else {
-			query = query.Where(sq.Or{
-				sq.Lt{"Posts.CreateAt": opts.FromCreateAt},
-				sq.And{
-					sq.Eq{"Posts.CreateAt": opts.FromCreateAt},
-					sq.Lt{"Posts.Id": opts.FromPost},
-				},
-			})
+			direction := sq.Lt{"Posts.CreateAt": opts.FromCreateAt}
+			if opts.FromPost != "" {
+				query = query.Where(sq.Or{
+					direction,
+					sq.And{
+						sq.Eq{"Posts.CreateAt": opts.FromCreateAt},
+						sq.Lt{"Posts.Id": opts.FromPost},
+					},
+				})
+
+			} else {
+				query = query.Where(direction)
+			}
 		}
 	}
 
@@ -646,7 +659,7 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 		posts = posts[:len(posts)-1]
 	}
 
-	list, err := s.prepareThreadedResponse([]*postWithExtra{&post}, opts.CollapsedThreadsExtended, false)
+	list, err := s.prepareThreadedResponse([]*postWithExtra{&post}, opts.CollapsedThreadsExtended, false, sanitizeOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -659,9 +672,9 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 	return list, nil
 }
 
-func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string) (*model.PostList, error) {
+func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	if opts.CollapsedThreads {
-		return s.getPostWithCollapsedThreads(id, userID, opts)
+		return s.getPostWithCollapsedThreads(id, userID, opts, sanitizeOptions)
 	}
 	pl := model.NewPostList()
 
@@ -713,23 +726,34 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOp
 			query = query.OrderBy("CreateAt " + sort + ", Id " + sort)
 		}
 
-		if opts.FromPost != "" && opts.FromCreateAt != 0 {
+		if opts.FromCreateAt != 0 {
 			if opts.Direction == "down" {
-				query = query.Where(sq.Or{
-					sq.Gt{"p.CreateAt": opts.FromCreateAt},
-					sq.And{
-						sq.Eq{"p.CreateAt": opts.FromCreateAt},
-						sq.Gt{"p.Id": opts.FromPost},
-					},
-				})
+				direction := sq.Gt{"p.CreateAt": opts.FromCreateAt}
+				if opts.FromPost != "" {
+					query = query.Where(sq.Or{
+						direction,
+						sq.And{
+							sq.Eq{"p.CreateAt": opts.FromCreateAt},
+							sq.Gt{"p.Id": opts.FromPost},
+						},
+					})
+				} else {
+					query = query.Where(direction)
+				}
 			} else {
-				query = query.Where(sq.Or{
-					sq.Lt{"p.CreateAt": opts.FromCreateAt},
-					sq.And{
-						sq.Eq{"p.CreateAt": opts.FromCreateAt},
-						sq.Lt{"p.Id": opts.FromPost},
-					},
-				})
+				direction := sq.Lt{"p.CreateAt": opts.FromCreateAt}
+				if opts.FromPost != "" {
+					query = query.Where(sq.Or{
+						direction,
+						sq.And{
+							sq.Eq{"p.CreateAt": opts.FromCreateAt},
+							sq.Lt{"p.Id": opts.FromPost},
+						},
+					})
+
+				} else {
+					query = query.Where(direction)
+				}
 			}
 		}
 
@@ -1027,7 +1051,7 @@ func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) error {
 	return nil
 }
 
-func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended, reversed bool) (*model.PostList, error) {
+func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended, reversed bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	list := model.NewPostList()
 	var userIds []string
 	userIdMap := map[string]bool{}
@@ -1047,6 +1071,7 @@ func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended,
 			return nil, err
 		}
 		for _, user := range users {
+			user.SanitizeProfile(sanitizeOptions)
 			usersMap[user.Id] = user
 		}
 	} else {
@@ -1089,7 +1114,7 @@ func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended,
 	return list, nil
 }
 
-func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions) (*model.PostList, error) {
+func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	var columns []string
 	for _, c := range postSliceColumns() {
 		columns = append(columns, "Posts."+c)
@@ -1120,15 +1145,15 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions) (
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 	}
 
-	return s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, false)
+	return s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, false, sanitizeOptions)
 }
 
-func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool) (*model.PostList, error) {
+func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	if options.PerPage > 1000 {
 		return nil, store.NewErrInvalidInput("Post", "<options.PerPage>", options.PerPage)
 	}
 	if options.CollapsedThreads {
-		return s.getPostsCollapsedThreads(options)
+		return s.getPostsCollapsedThreads(options, sanitizeOptions)
 	}
 	offset := options.PerPage * options.Page
 
@@ -1174,7 +1199,7 @@ func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool) (*model.P
 	return list, nil
 }
 
-func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSinceOptions) (*model.PostList, error) {
+func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSinceOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	var columns []string
 	for _, c := range postSliceColumns() {
 		columns = append(columns, "Posts."+c)
@@ -1202,13 +1227,13 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 	}
-	return s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, false)
+	return s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, false, sanitizeOptions)
 }
 
 //nolint:unparam
-func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, error) {
+func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	if options.CollapsedThreads {
-		return s.getPostsSinceCollapsedThreads(options)
+		return s.getPostsSinceCollapsedThreads(options, sanitizeOptions)
 	}
 
 	posts := []*model.Post{}
@@ -1353,15 +1378,15 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 	return posts, cursor, nil
 }
 
-func (s *SqlPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error) {
-	return s.getPostsAround(true, options)
+func (s *SqlPostStore) GetPostsBefore(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
+	return s.getPostsAround(true, options, sanitizeOptions)
 }
 
-func (s *SqlPostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, error) {
-	return s.getPostsAround(false, options)
+func (s *SqlPostStore) GetPostsAfter(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
+	return s.getPostsAround(false, options, sanitizeOptions)
 }
 
-func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions) (*model.PostList, error) {
+func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	if options.Page < 0 {
 		return nil, store.NewErrInvalidInput("Post", "<options.Page>", options.Page)
 	}
@@ -1472,7 +1497,7 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		}
 	}
 
-	list, err := s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, !before)
+	list, err := s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, !before, sanitizeOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -1814,11 +1839,13 @@ func (s *SqlPostStore) buildSearchPostFilterClause(teamID string, fromUsers []st
 	}
 
 	// Sub-query builder.
-	sb := s.getSubQueryBuilder().Select("Id").From("Users, TeamMembers").Where(
-		sq.And{
-			sq.Eq{"TeamMembers.TeamId": teamID},
-			sq.Expr("Users.Id = TeamMembers.UserId"),
-		})
+	sb := s.getSubQueryBuilder().
+		Select("Id").
+		From("Users, TeamMembers").
+		Where(sq.Expr("Users.Id = TeamMembers.UserId"))
+	if teamID != "" {
+		sb = sb.Where(sq.Eq{"TeamMembers.TeamId": teamID})
+	}
 	sb = s.buildSearchUserFilterClause(fromUsers, false, userByUsername, sb)
 	sb = s.buildSearchUserFilterClause(excludedUsers, true, userByUsername, sb)
 	subQuery, subQueryArgs, err := sb.ToSql()
@@ -2136,23 +2163,34 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCoun
 	return rows, nil
 }
 
-func (s *SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) (int64, error) {
+func (s *SqlPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int64, error) {
 	query := s.getQueryBuilder().
 		Select("COUNT(p.Id) AS Value").
 		From("Posts p")
 
-	if teamId != "" {
+	if options.TeamId != "" {
 		query = query.
 			Join("Channels c ON (c.Id = p.ChannelId)").
-			Where(sq.Eq{"c.TeamId": teamId})
+			Where(sq.Eq{"c.TeamId": options.TeamId})
 	}
 
-	if mustHaveFile {
+	if options.UsersPostsOnly {
+		query = query.Where(sq.And{
+			sq.Eq{"p.Type": ""},
+			sq.Expr("p.UserId NOT IN (SELECT UserId FROM Bots)"),
+		})
+	}
+
+	if options.MustHaveFile {
 		query = query.Where(sq.Or{sq.NotEq{"p.FileIds": "[]"}, sq.NotEq{"p.Filenames": "[]"}})
 	}
 
-	if mustHaveHashtag {
+	if options.MustHaveHashtag {
 		query = query.Where(sq.NotEq{"p.Hashtags": ""})
+	}
+
+	if options.ExcludeDeleted {
+		query = query.Where(sq.Eq{"p.DeleteAt": 0})
 	}
 
 	queryString, args, err := query.ToSql()
@@ -2534,7 +2572,7 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 }
 
 //nolint:unparam
-func (s *SqlPostStore) SearchPostsForUser(paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, error) {
+func (s *SqlPostStore) SearchPostsForUser(paramsList []*model.SearchParams, userID, teamId string, page, perPage int) (*model.PostSearchResults, error) {
 	// Since we don't support paging for DB search, we just return nothing for later pages
 	if page > 0 {
 		return model.MakePostSearchResults(model.NewPostList(), nil), nil
@@ -2544,11 +2582,22 @@ func (s *SqlPostStore) SearchPostsForUser(paramsList []*model.SearchParams, user
 		return nil, err
 	}
 
-	var wg sync.WaitGroup
-
+	now := model.GetMillis()
 	pchan := make(chan store.StoreResult, len(paramsList))
 
+	var wg sync.WaitGroup
 	for _, params := range paramsList {
+		// Deliberately keeping non-alphanumeric characters to
+		// prevent surprises in UI.
+		buf, err := json.Marshal(params)
+		if err != nil {
+			return nil, err
+		}
+		err = s.LogRecentSearch(userID, buf, now)
+		if err != nil {
+			return nil, err
+		}
+
 		// remove any unquoted term that contains only non-alphanumeric chars
 		// ex: abcd "**" && abc     >>     abcd "**" abc
 		params.Terms = removeNonAlphaNumericUnquotedTerms(params.Terms, " ")
@@ -2557,7 +2606,7 @@ func (s *SqlPostStore) SearchPostsForUser(paramsList []*model.SearchParams, user
 
 		go func(params *model.SearchParams) {
 			defer wg.Done()
-			postList, err := s.search(teamId, userId, params, false, false)
+			postList, err := s.search(teamId, userID, params, false, false)
 			pchan <- store.StoreResult{Data: postList, NErr: err}
 		}(params)
 	}
@@ -2578,6 +2627,103 @@ func (s *SqlPostStore) SearchPostsForUser(paramsList []*model.SearchParams, user
 	posts.SortByCreateAt()
 
 	return model.MakePostSearchResults(posts, nil), nil
+}
+
+const lastSearchesLimit = 5
+
+func (s *SqlPostStore) LogRecentSearch(userID string, searchQuery []byte, createAt int64) error {
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+
+	defer finalizeTransactionX(transaction)
+
+	var lastSearchPointer int
+	var queryStr string
+	// get search_pointer
+	// We coalesce to -1 because we want to start from 0
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		queryStr = `SELECT COALESCE((props->>'last_search_pointer')::integer, -1)
+			FROM Users
+			WHERE Id=?`
+	} else {
+		queryStr = `SELECT COALESCE(CAST(JSON_EXTRACT(Props, '$.last_search_pointer') as unsigned), -1)
+			FROM Users
+			WHERE Id=?`
+	}
+	err = transaction.Get(&lastSearchPointer, queryStr, userID)
+	if err != nil {
+		return errors.Wrapf(err, "failed to find last_search_pointer for user=%s", userID)
+	}
+
+	// (ptr+1)%lastSearchesLimit
+	lastSearchPointer = (lastSearchPointer + 1) % lastSearchesLimit
+
+	if s.IsBinaryParamEnabled() {
+		searchQuery = AppendBinaryFlag(searchQuery)
+	}
+
+	// insert at pointer
+	query := s.getQueryBuilder().
+		Insert("RecentSearches").
+		Columns("UserId", "SearchPointer", "Query", "CreateAt").
+		Values(userID, lastSearchPointer, searchQuery, createAt)
+
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid, searchpointer) DO UPDATE SET Query = ?, CreateAt = ?", searchQuery, createAt))
+	} else {
+		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Query = ?, CreateAt = ?", searchQuery, createAt))
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "log_recent_search_tosql")
+	}
+
+	if _, err2 := transaction.Exec(queryString, args...); err2 != nil {
+		return errors.Wrapf(err2, "failed to upsert recent_search for user=%s", userID)
+	}
+
+	// write ptr on users prop
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		_, err = transaction.Exec(`UPDATE Users
+			SET Props = jsonb_set(Props, $1, $2)
+			WHERE Id = $3`, jsonKeyPath("last_search_pointer"), jsonStringVal(strconv.Itoa(lastSearchPointer)), userID)
+	} else {
+		_, err = transaction.Exec(`UPDATE Users
+			SET Props = JSON_SET(Props, ?, ?)
+			WHERE Id = ?`, "$.last_search_pointer", strconv.Itoa(lastSearchPointer), userID)
+	}
+	if err != nil {
+		return errors.Wrapf(err, "failed to update last_search_pointer for user=%s", userID)
+	}
+
+	if err2 := transaction.Commit(); err2 != nil {
+		return errors.Wrap(err2, "commit_transaction")
+	}
+
+	return nil
+}
+
+func (s *SqlPostStore) GetRecentSearchesForUser(userID string) ([]*model.SearchParams, error) {
+	params := [][]byte{}
+	err := s.GetReplicaX().Select(&params, `SELECT query
+		FROM RecentSearches
+		WHERE UserId=?
+		ORDER BY CreateAt DESC`, userID)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get recent searches for user=%s", userID)
+	}
+
+	res := make([]*model.SearchParams, len(params))
+	for i, param := range params {
+		err = json.Unmarshal(param, &res[i])
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to unmarshal recent search query for user=%s", userID)
+		}
+	}
+	return res, nil
 }
 
 func (s *SqlPostStore) GetOldestEntityCreationTime() (int64, error) {

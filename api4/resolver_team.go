@@ -14,11 +14,6 @@ import (
 )
 
 func getGraphQLTeam(ctx context.Context, id string) (*model.Team, error) {
-	c, err := getCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	loader, err := getTeamsLoader(ctx)
 	if err != nil {
 		return nil, err
@@ -30,15 +25,6 @@ func getGraphQLTeam(ctx context.Context, id string) (*model.Team, error) {
 		return nil, err
 	}
 	team := result.(*model.Team)
-	team = team.ShallowCopy()
-
-	if (!team.AllowOpenInvite || team.Type != model.TeamOpen) &&
-		!c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
-		c.SetPermissionError(model.PermissionViewTeam)
-		return nil, c.Err
-	}
-
-	team = c.App.SanitizeTeam(*c.AppContext.Session(), team)
 	return team, nil
 }
 
@@ -76,6 +62,18 @@ func getGraphQLTeams(c *web.Context, teamIDs []string) ([]*model.Team, error) {
 
 	if len(teams) != len(teamIDs) {
 		return nil, fmt.Errorf("All teams were not found. Requested %d; Found %d", len(teamIDs), len(teams))
+	}
+
+	// We pre-calculate this so that it's not computed in separate goroutines outside
+	// the dataloader.
+	for i := range teams {
+		if (!teams[i].AllowOpenInvite || teams[i].Type != model.TeamOpen) &&
+			!c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teams[i].Id, model.PermissionViewTeam) {
+			c.SetPermissionError(model.PermissionViewTeam)
+			return nil, c.Err
+		}
+
+		teams[i] = c.App.SanitizeTeam(*c.AppContext.Session(), teams[i])
 	}
 
 	// The teams need to be in the exact same order as the input slice.

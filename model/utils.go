@@ -4,7 +4,6 @@
 package model
 
 import (
-	"bytes"
 	"crypto/rand"
 	"database/sql/driver"
 	"encoding/base32"
@@ -16,6 +15,7 @@ import (
 	"net/http"
 	"net/mail"
 	"net/url"
+	"os"
 	"regexp"
 	"sort"
 	"strings"
@@ -267,18 +267,13 @@ func NewAppError(where string, id string, params map[string]interface{}, details
 	return ap
 }
 
-var encoding = base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769")
+var encoding = base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769").WithPadding(base32.NoPadding)
 
 // NewId is a globally unique identifier.  It is a [A-Z0-9] string 26
 // characters long.  It is a UUID version 4 Guid that is zbased32 encoded
-// with the padding stripped off.
+// without the padding.
 func NewId() string {
-	var b bytes.Buffer
-	encoder := base32.NewEncoder(encoding, &b)
-	encoder.Write(uuid.NewRandom())
-	encoder.Close()
-	b.Truncate(26) // removes the '==' padding
-	return b.String()
+	return encoding.EncodeToString(uuid.NewRandom())
 }
 
 // NewRandomTeamName is a NewId that will be a valid team name.
@@ -690,4 +685,8 @@ func filterBlocklist(r rune) rune {
 	}
 
 	return r
+}
+
+func IsCloud() bool {
+	return os.Getenv("MM_CLOUD_INSTALLATION_ID") != ""
 }

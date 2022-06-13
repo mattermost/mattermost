@@ -343,7 +343,7 @@ func (a *App) UpdateProductNotices() *model.AppError {
 	skip := *a.Config().AnnouncementSettings.NoticesSkipCache
 	mlog.Debug("Will fetch notices from", mlog.String("url", url), mlog.Bool("skip_cache", skip))
 	var err error
-	a.ch.cachedPostCount, err = a.Srv().Store.Post().AnalyticsPostCount("", false, false)
+	a.ch.cachedPostCount, err = a.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{})
 	if err != nil {
 		mlog.Warn("Failed to fetch post count", mlog.String("error", err.Error()))
 	}

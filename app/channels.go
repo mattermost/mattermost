@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -51,6 +52,7 @@ type Channels struct {
 	cfgSvc     configSvc
 	filestore  filestore.FileBackend
 	licenseSvc licenseSvc
+	routerSvc  *routerService
 
 	postActionCookieSecret []byte
 
@@ -196,8 +198,12 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 	}
 
 	var imgErr error
+	decoderConcurrency := int(*ch.cfgSvc.Config().FileSettings.MaxImageDecoderConcurrency)
+	if decoderConcurrency == -1 {
+		decoderConcurrency = runtime.NumCPU()
+	}
 	ch.imgDecoder, imgErr = imaging.NewDecoder(imaging.DecoderOptions{
-		ConcurrencyLevel: runtime.NumCPU(),
+		ConcurrencyLevel: decoderConcurrency,
 	})
 	if imgErr != nil {
 		return nil, errors.Wrap(imgErr, "failed to create image decoder")
@@ -209,6 +215,9 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 		return nil, errors.Wrap(imgErr, "failed to create image encoder")
 	}
 
+	ch.routerSvc = newRouterService()
+	services[RouterKey] = ch.routerSvc
+
 	// Setup routes.
 	pluginsRoute := ch.srv.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
 	pluginsRoute.HandleFunc("", ch.ServePluginRequest)
@@ -217,6 +226,22 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 
 	services[PostKey] = &postServiceWrapper{
 		app: &App{ch: ch},
+	}
+
+	services[PermissionsKey] = &permissionsServiceWrapper{
+		app: &App{ch: ch},
+	}
+
+	services[TeamKey] = &teamServiceWrapper{
+		app: &App{ch: ch},
+	}
+
+	services[BotKey] = &botServiceWrapper{
+		app: &App{ch: ch},
+	}
+
+	services[HooksKey] = &hooksService{
+		ch: ch,
 	}
 
 	return ch, nil
@@ -263,6 +288,7 @@ func (ch *Channels) Start() error {
 	if err := ch.ensurePostActionCookieSecret(); err != nil {
 		return errors.Wrapf(err, "unable to ensure PostAction cookie secret")
 	}
+
 	return nil
 }
 
@@ -293,4 +319,17 @@ func (ch *Channels) License() *model.License {
 func (ch *Channels) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
 	return ch.licenseSvc.RequestTrialLicense(requesterID, users, termsAccepted,
 		receiveEmailsAccepted)
+}
+
+type hooksService struct {
+	ch *Channels
+}
+
+func (s *hooksService) RegisterHooks(productID string, hooks product.Hooks) error {
+	if s.ch.pluginsEnvironment == nil {
+		return errors.New("could not find plugins environment")
+	}
+
+	s.ch.pluginsEnvironment.AddProduct(productID, hooks)
+	return nil
 }

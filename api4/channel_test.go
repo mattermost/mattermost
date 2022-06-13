@@ -1339,6 +1339,46 @@ func TestSearchChannels(t *testing.T) {
 		}
 		require.NotContains(t, channelNames, th.BasicChannel.Name)
 	})
+
+	t.Run("Guests only receive autocompletion for which accounts they are a member of", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense(""))
+		defer th.App.Srv().SetLicense(nil)
+
+		enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.GuestAccountsSettings.Enable = &enableGuestAccounts })
+		}()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+
+		guest := th.CreateUser()
+		_, appErr := th.SystemAdminClient.DemoteUserToGuest(guest.Id)
+		require.NoError(t, appErr)
+
+		_, resp, err := th.SystemAdminClient.AddTeamMember(th.BasicTeam.Id, guest.Id)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		_, resp, err = client.Login(guest.Username, guest.Password)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		search.Term = th.BasicChannel2.Name
+		channelList, _, err := client.SearchChannels(th.BasicTeam.Id, search)
+		require.NoError(t, err)
+
+		require.Empty(t, channelList)
+
+		_, resp, err = th.SystemAdminClient.AddChannelMember(th.BasicChannel2.Id, guest.Id)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		search.Term = th.BasicChannel2.Name
+		channelList, _, err = client.SearchChannels(th.BasicTeam.Id, search)
+		require.NoError(t, err)
+
+		require.NotEmpty(t, channelList)
+		require.Equal(t, th.BasicChannel2.Id, channelList[0].Id)
+	})
 }
 
 func TestSearchArchivedChannels(t *testing.T) {
@@ -3037,9 +3077,14 @@ func TestAddChannelMemberFromThread(t *testing.T) {
 	_, _, err := th.SystemAdminClient.AddTeamMember(team.Id, user3.Id)
 	require.NoError(t, err)
 
+	wsClient, err2 := th.CreateWebSocketClient()
+	require.NoError(t, err2)
+	defer wsClient.Close()
+	wsClient.Listen()
+
 	publicChannel := th.CreatePublicChannel()
 
-	_, resp, err := th.Client.AddChannelMember(publicChannel.Id, user.Id)
+	_, resp, err := th.Client.AddChannelMember(publicChannel.Id, user3.Id)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 	_, resp, err = th.Client.AddChannelMember(publicChannel.Id, user2.Id)
@@ -3049,7 +3094,7 @@ func TestAddChannelMemberFromThread(t *testing.T) {
 	post := &model.Post{
 		ChannelId: publicChannel.Id,
 		Message:   "A root post",
-		UserId:    user.Id,
+		UserId:    user3.Id,
 	}
 	rpost, _, err := th.SystemAdminClient.CreatePost(post)
 	require.NoError(t, err)
@@ -3057,7 +3102,7 @@ func TestAddChannelMemberFromThread(t *testing.T) {
 	_, _, err = th.SystemAdminClient.CreatePost(
 		&model.Post{
 			ChannelId: publicChannel.Id,
-			Message:   "A reply post with mention @" + user3.Username,
+			Message:   "A reply post with mention @" + user.Username,
 			UserId:    user2.Id,
 			RootId:    rpost.Id,
 		})
@@ -3066,22 +3111,46 @@ func TestAddChannelMemberFromThread(t *testing.T) {
 	_, _, err = th.SystemAdminClient.CreatePost(
 		&model.Post{
 			ChannelId: publicChannel.Id,
-			Message:   "Another reply post with mention @" + user3.Username,
+			Message:   "Another reply post with mention @" + user.Username,
 			UserId:    user2.Id,
 			RootId:    rpost.Id,
 		})
 	require.NoError(t, err)
 
 	// Simulate adding a user to a channel from a thread
-	_, _, err = th.SystemAdminClient.AddChannelMemberWithRootId(publicChannel.Id, user3.Id, rpost.Id)
+	_, _, err = th.SystemAdminClient.AddChannelMemberWithRootId(publicChannel.Id, user.Id, rpost.Id)
 	require.NoError(t, err)
 
 	// Threadmembership should exist for added user
-	ut, _, err := th.SystemAdminClient.GetUserThread(user3.Id, team.Id, rpost.Id, false)
+	ut, _, err := th.Client.GetUserThread(user.Id, team.Id, rpost.Id, false)
 	require.NoError(t, err)
 	// Should have two mentions. There might be a race condition
 	// here between the "added user to the channel" message and the GetUserThread call
 	require.LessOrEqual(t, int64(2), ut.UnreadMentions)
+
+	var caught bool
+	func() {
+		for {
+			select {
+			case ev := <-wsClient.EventChannel:
+				if ev.EventType() == model.WebsocketEventThreadUpdated {
+					caught = true
+					var thread model.ThreadResponse
+					data := ev.GetData()
+					jsonErr := json.Unmarshal([]byte(data["thread"].(string)), &thread)
+
+					require.NoError(t, jsonErr)
+					require.EqualValues(t, int64(2), thread.UnreadReplies)
+					require.EqualValues(t, int64(2), thread.UnreadMentions)
+					require.EqualValues(t, float64(0), data["previous_unread_replies"])
+					require.EqualValues(t, float64(0), data["previous_unread_mentions"])
+				}
+			case <-time.After(1 * time.Second):
+				return
+			}
+		}
+	}()
+	require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadUpdated)
 }
 
 func TestAddChannelMemberAddMyself(t *testing.T) {

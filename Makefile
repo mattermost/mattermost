@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check migrations-bindata new-migration
+.PHONY: build package run stop run-client run-server run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race migrations-bindata new-migration
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -39,30 +39,30 @@ BUILD_ENTERPRISE_READY = false
 BUILD_TYPE_NAME = team
 BUILD_HASH_ENTERPRISE = none
 ifneq ($(wildcard $(BUILD_ENTERPRISE_DIR)/.),)
-	ifeq ($(BUILD_ENTERPRISE),true)
-		BUILD_ENTERPRISE_READY = true
-		BUILD_TYPE_NAME = enterprise
-		BUILD_HASH_ENTERPRISE = $(shell cd $(BUILD_ENTERPRISE_DIR) && git rev-parse HEAD)
-	else
-		BUILD_ENTERPRISE_READY = false
-		BUILD_TYPE_NAME = team
-	endif
+  ifeq ($(BUILD_ENTERPRISE),true)
+	BUILD_ENTERPRISE_READY = true
+	BUILD_TYPE_NAME = enterprise
+	BUILD_HASH_ENTERPRISE = $(shell cd $(BUILD_ENTERPRISE_DIR) && git rev-parse HEAD)
+  else
+	BUILD_ENTERPRISE_READY = false
+	BUILD_TYPE_NAME = team
+  endif
 else
 	BUILD_ENTERPRISE_READY = false
 	BUILD_TYPE_NAME = team
 endif
 BUILD_WEBAPP_DIR ?= ../mattermost-webapp
 BUILD_CLIENT = false
-BUILD_HASH_CLIENT = independant
+BUILD_HASH_CLIENT = independent
 ifneq ($(wildcard $(BUILD_WEBAPP_DIR)/.),)
-	ifeq ($(BUILD_CLIENT),true)
-		BUILD_CLIENT = true
-		BUILD_HASH_CLIENT = $(shell cd $(BUILD_WEBAPP_DIR) && git rev-parse HEAD)
-	else
-		BUILD_CLIENT = false
-	endif
+  ifeq ($(BUILD_CLIENT),true)
+    BUILD_CLIENT = true
+    BUILD_HASH_CLIENT = $(shell cd $(BUILD_WEBAPP_DIR) && git rev-parse HEAD)
+  else
+    BUILD_CLIENT = false
+  endif
 else
-	BUILD_CLIENT = false
+    BUILD_CLIENT = false
 endif
 
 # We need current user's UID for `run-haserver` so docker compose does not run server
@@ -111,7 +111,7 @@ DIST_PATH_WIN=$(DIST_ROOT)/windows/mattermost
 TESTS=.
 
 # Packages lists
-TE_PACKAGES=$(shell $(GO) list ./... | grep -v ./data)
+TE_PACKAGES=$(shell $(GO) list ./...)
 
 TEMPLATES_DIR=templates
 
@@ -119,18 +119,19 @@ TEMPLATES_DIR=templates
 PLUGIN_PACKAGES ?= mattermost-plugin-antivirus-v0.1.2
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.2.2
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v0.6.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.27.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.28.1
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
-PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.5.0
-PLUGIN_PACKAGES += focalboard-v0.15.0
-PLUGIN_PACKAGES += mattermost-plugin-apps-v1.0.1
+PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.0
+PLUGIN_PACKAGES += focalboard-v7.0.1
+PLUGIN_PACKAGES += mattermost-plugin-apps-v1.1.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -138,22 +139,29 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	IGNORE:=$(shell rm -f imports/imports.go)
 	IGNORE:=$(shell cp $(BUILD_ENTERPRISE_DIR)/imports/imports.go imports/)
 	IGNORE:=$(shell rm -f enterprise)
-	IGNORE:=$(shell ln -s $(BUILD_ENTERPRISE_DIR) enterprise)
 else
 	IGNORE:=$(shell rm -f imports/imports.go)
 endif
 
-EE_PACKAGES=$(shell $(GO) list ./enterprise/...)
+EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-ALL_PACKAGES=$(TE_PACKAGES) $(EE_PACKAGES)
+  ALL_PACKAGES=$(TE_PACKAGES) $(EE_PACKAGES)
 else
-ALL_PACKAGES=$(TE_PACKAGES)
+  ALL_PACKAGES=$(TE_PACKAGES)
 endif
 
 all: run ## Alias for 'run'.
 
 -include config.override.mk
+
+# Make sure not to modify an overridden ENABLED_DOCKER_SERVICES variable
+DOCKER_SERVICES_OVERRIDE=false
+ifneq (,$(ENABLED_DOCKER_SERVICES))
+  $(info ENABLED_DOCKER_SERVICES has been overridden)
+  DOCKER_SERVICES_OVERRIDE=true
+endif
+
 include config.mk
 include build/*.mk
 
@@ -166,22 +174,23 @@ endif
 
 DOCKER_COMPOSE_OVERRIDE=
 ifneq ("$(wildcard ./docker-compose.override.yaml)","")
-    DOCKER_COMPOSE_OVERRIDE=-f docker-compose.override.yaml
+  DOCKER_COMPOSE_OVERRIDE=-f docker-compose.override.yaml
 endif
 
-start-docker-check:
-ifeq (,$(findstring minio,$(ENABLED_DOCKER_SERVICES)))
-  TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) minio
-endif
-ifeq ($(BUILD_ENTERPRISE_READY),true)
-  ifeq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
-    TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) openldap
+ifneq ($(DOCKER_SERVICES_OVERRIDE),true)
+  ifeq (,$(findstring minio,$(ENABLED_DOCKER_SERVICES)))
+    TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) minio
   endif
-  ifeq (,$(findstring elasticsearch,$(ENABLED_DOCKER_SERVICES)))
-    TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) elasticsearch
+  ifeq ($(BUILD_ENTERPRISE_READY),true)
+    ifeq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
+      TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) openldap
+    endif
+    ifeq (,$(findstring elasticsearch,$(ENABLED_DOCKER_SERVICES)))
+      TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) elasticsearch
+    endif
   endif
+  ENABLED_DOCKER_SERVICES:=$(ENABLED_DOCKER_SERVICES) $(TEMP_DOCKER_SERVICES)
 endif
-ENABLED_DOCKER_SERVICES:=$(ENABLED_DOCKER_SERVICES) $(TEMP_DOCKER_SERVICES)
 
 start-docker: ## Starts the docker containers for local development.
 ifneq ($(IS_CI),false)
@@ -191,13 +200,14 @@ else ifeq ($(MM_NO_DOCKER),true)
 else
 	@echo Starting docker containers
 
-	$(GO) run ./build/docker-compose-generator/main.go $(ENABLED_DOCKER_SERVICES) | docker-compose -f docker-compose.makefile.yml -f /dev/stdin $(DOCKER_COMPOSE_OVERRIDE) run --rm start_dependencies
-ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
+	docker-compose rm start_dependencies
+	$(GO) run ./build/docker-compose-generator/main.go $(ENABLED_DOCKER_SERVICES) | docker-compose -f docker-compose.makefile.yml -f /dev/stdin $(DOCKER_COMPOSE_OVERRIDE) run -T --rm start_dependencies
+  ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
 	cat tests/${LDAP_DATA}-data.ldif | docker-compose -f docker-compose.makefile.yml $(DOCKER_COMPOSE_OVERRIDE) exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
-endif
-ifneq (,$(findstring mysql-read-replica,$(ENABLED_DOCKER_SERVICES)))
+  endif
+  ifneq (,$(findstring mysql-read-replica,$(ENABLED_DOCKER_SERVICES)))
 	./scripts/replica-mysql-config.sh
-endif
+  endif
 endif
 
 run-haserver:
@@ -255,9 +265,9 @@ golangci-lint: ## Run golangci-lint on codebase
 	@echo Running golangci-lint
 	$(GOBIN)/golangci-lint run ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-	$(GOBIN)/golangci-lint run ./enterprise/...
-endif
+  ifneq ($(MM_NO_ENTERPRISE_LINT),true)
+	$(GOBIN)/golangci-lint run ../enterprise/...
+  endif
 endif
 
 app-layers: ## Extract interface from App struct
@@ -336,9 +346,14 @@ pluginapi: ## Generates api and hooks glue code for plugins
 check-prereqs: ## Checks prerequisite software status.
 	./scripts/prereq-check.sh
 
-check-prereqs-enterprise: ## Checks prerequisite software status for enterprise.
+check-prereqs-enterprise: setup-go-work ## Checks prerequisite software status for enterprise.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	./scripts/prereq-check-enterprise.sh
+endif
+
+setup-go-work: ## Sets up your go.work file
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	./scripts/setup_go_work.sh
 endif
 
 check-style: golangci-lint plugin-checker vet ## Runs style/lint checks
@@ -376,7 +391,7 @@ gomodtidy:
 	fi;
 	@rm go.*.orig;
 
-test-server-pre: check-prereqs-enterprise start-docker-check start-docker go-junit-report do-cover-file ## Runs tests.
+test-server-pre: check-prereqs-enterprise start-docker go-junit-report do-cover-file ## Runs tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
 else
@@ -385,27 +400,27 @@ endif
 
 test-server-race: test-server-pre
 	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
-  ifneq ($(IS_CI),true)
-    ifneq ($(MM_NO_DOCKER),true)
-      ifneq ($(TEMP_DOCKER_SERVICES),)
-	      @echo Stopping temporary docker services
-	      docker-compose stop $(TEMP_DOCKER_SERVICES)
-      endif
+ifneq ($(IS_CI),true)
+  ifneq ($(MM_NO_DOCKER),true)
+    ifneq ($(TEMP_DOCKER_SERVICES),)
+	  @echo Stopping temporary docker services
+	  docker-compose stop $(TEMP_DOCKER_SERVICES)
     endif
   endif
+endif
 
 test-server: test-server-pre
 	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
-  ifneq ($(IS_CI),true)
-    ifneq ($(MM_NO_DOCKER),true)
-      ifneq ($(TEMP_DOCKER_SERVICES),)
-	      @echo Stopping temporary docker services
-	      docker-compose stop $(TEMP_DOCKER_SERVICES)
-      endif
+ifneq ($(IS_CI),true)
+  ifneq ($(MM_NO_DOCKER),true)
+    ifneq ($(TEMP_DOCKER_SERVICES),)
+	  @echo Stopping temporary docker services
+	  docker-compose stop $(TEMP_DOCKER_SERVICES)
     endif
   endif
+endif
 
-test-server-ee: check-prereqs-enterprise start-docker-check start-docker go-junit-report do-cover-file ## Runs EE tests.
+test-server-ee: check-prereqs-enterprise start-docker go-junit-report do-cover-file ## Runs EE tests.
 	@echo Running only EE tests
 	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "20m" "count"
 
@@ -469,7 +484,7 @@ validate-go-version: ## Validates the installed version of go against Mattermost
 build-templates: ## Compile all mjml email templates
 	cd $(TEMPLATES_DIR) && $(MAKE) build
 
-run-server: prepackaged-binaries validate-go-version start-docker ## Starts the server.
+run-server: setup-go-work prepackaged-binaries validate-go-version start-docker ## Starts the server.
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
@@ -589,7 +604,7 @@ clean: stop-docker ## Clean up everything except persistent server data.
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) clean
 
-	find . -type d -name data -not -path './vendor/*' | xargs rm -rf
+	find . -type d -name data | xargs rm -rf
 	rm -rf logs
 
 	rm -f mattermost.log
@@ -615,17 +630,20 @@ setup-mac: ## Adds macOS hosts entries for Docker.
 update-dependencies: ## Uses go get -u to update all the dependencies while holding back any that require it.
 	@echo Updating Dependencies
 
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	@echo Enterprise repository detected, temporarily removing imports.go
+	rm -f imports/imports.go
+endif
+
 	# Update all dependencies (does not update across major versions)
 	$(GO) get -u ./...
 
 	# Tidy up
 	$(GO) mod tidy
 
-	# Copy everything to vendor directory
-	$(GO) mod vendor
-
-	# Tidy up
-	$(GO) mod tidy
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	cp $(BUILD_ENTERPRISE_DIR)/imports/imports.go imports/
+endif
 
 vet: ## Run mattermost go vet specific checks
 	$(GO) install github.com/mattermost/mattermost-govet/v2@new
@@ -637,9 +655,9 @@ vet: ## Run mattermost go vet specific checks
 	fi; \
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet $$VET_CMD ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -enterpriseLicense -structuredLogging -tFatal ./enterprise/...
-endif
+  ifneq ($(MM_NO_ENTERPRISE_LINT),true)
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -enterpriseLicense -structuredLogging -tFatal ../enterprise/...
+  endif
 endif
 
 gen-serialized:	export LICENSE_HEADER:=$(LICENSE_HEADER)
@@ -666,9 +684,9 @@ gen-serialized: ## Generates serialization methods for hot structs
 	@mv tmp.go ./model/team_member_serial_gen.go
 
 todo: ## Display TODO and FIXME items in the source code.
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime '(TODO|XXX|FIXME|"FIX ME")[: ]+' 
+	@! ag --ignore Makefile --ignore-dir runtime '(TODO|XXX|FIXME|"FIX ME")[: ]+'
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime '(TODO|XXX|FIXME|"FIX ME")[: ]+' enterprise/
+	@! ag --ignore Makefile --ignore-dir runtime '(TODO|XXX|FIXME|"FIX ME")[: ]+' enterprise/
 endif
 
 ## Help documentation à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html

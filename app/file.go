@@ -249,7 +249,7 @@ func (a *App) getInfoForFilename(post *model.Post, teamID, channelID, userID, ol
 	info.UpdateAt = post.UpdateAt
 	info.Path = path
 
-	if info.IsImage() {
+	if info.IsImage() && !info.IsSvg() {
 		nameWithoutExtension := name[:strings.LastIndex(name, ".")]
 		info.PreviewPath = pathPrefix + nameWithoutExtension + "_preview.jpg"
 		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb.jpg"
@@ -367,7 +367,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	fileMigrationLock.Lock()
 	defer fileMigrationLock.Unlock()
 
-	result, nErr := a.Srv().Store.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "")
+	result, nErr := a.Srv().Store.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
 	if nErr != nil {
 		mlog.Error("Unable to get post when migrating post to use FileInfos", mlog.Err(nErr), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
@@ -752,7 +752,7 @@ func (a *App) UploadFileX(c *request.Context, channelID, name string, input io.R
 
 func (t *UploadFileTask) preprocessImage() *model.AppError {
 	// If SVG, attempt to extract dimensions and then return
-	if t.fileinfo.MimeType == "image/svg+xml" {
+	if t.fileinfo.IsSvg() {
 		svgInfo, err := imaging.ParseSVG(t.teeInput)
 		if err != nil {
 			mlog.Warn("Failed to parse SVG", mlog.Err(err))
@@ -809,7 +809,7 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 
 func (t *UploadFileTask) postprocessImage(file io.Reader) {
 	// don't try to process SVG files
-	if t.fileinfo.MimeType == "image/svg+xml" {
+	if t.fileinfo.IsSvg() {
 		return
 	}
 
@@ -937,7 +937,7 @@ func (a *App) DoUploadFileExpectModification(c *request.Context, now time.Time, 
 	pathPrefix := now.Format("20060102") + "/teams/" + teamID + "/channels/" + channelID + "/users/" + userID + "/" + info.Id + "/"
 	info.Path = pathPrefix + filename
 
-	if info.IsImage() {
+	if info.IsImage() && !info.IsSvg() {
 		if limitErr := checkImageResolutionLimit(info.Width, info.Height, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
 			err := model.NewAppError("uploadFile", "api.file.upload_file.large_image.app_error", map[string]interface{}{"Filename": filename}, limitErr.Error(), http.StatusBadRequest)
 			return nil, data, err
@@ -1081,7 +1081,7 @@ func (a *App) generatePreviewImage(img image.Image, previewPath string) {
 // generateMiniPreview updates mini preview if needed
 // will save fileinfo with the preview added
 func (a *App) generateMiniPreview(fi *model.FileInfo) {
-	if fi.IsImage() && fi.MiniPreview == nil {
+	if fi.IsImage() && !fi.IsSvg() && fi.MiniPreview == nil {
 		file, appErr := a.FileReader(fi.Path)
 		if appErr != nil {
 			mlog.Debug("error reading image file", mlog.Err(appErr))
@@ -1093,15 +1093,6 @@ func (a *App) generateMiniPreview(fi *model.FileInfo) {
 			mlog.Debug("generateMiniPreview: prepareImage failed", mlog.Err(err),
 				mlog.String("fileinfo_id", fi.Id), mlog.String("channel_id", fi.ChannelId),
 				mlog.String("creator_id", fi.CreatorId))
-
-			// Since this file is not a valid image (for whatever reason), prevent this fileInfo
-			// from entering generateMiniPreview in the future
-			fi.UpdateAt = model.GetMillis()
-			fi.MimeType = "invalid-" + fi.MimeType
-			if _, err = a.Srv().Store.FileInfo().Upsert(fi); err != nil {
-				mlog.Debug("Invalidating FileInfo failed", mlog.Err(err))
-			}
-
 			return
 		}
 		defer release()
@@ -1268,7 +1259,7 @@ func populateZipfile(w *zip.Writer, fileDatas []model.FileData) error {
 	return nil
 }
 
-func (a *App) SearchFilesInTeamForUser(c *request.Context, terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.FileInfoList, *model.AppError) {
+func (a *App) SearchFilesInTeamForUser(c *request.Context, terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int, modifier string) (*model.FileInfoList, *model.AppError) {
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
@@ -1279,6 +1270,7 @@ func (a *App) SearchFilesInTeamForUser(c *request.Context, terms string, userId 
 	finalParamsList := []*model.SearchParams{}
 
 	for _, params := range paramsList {
+		params.Modifier = modifier
 		params.OrTerms = isOrSearch
 		params.IncludeDeletedChannels = includeDeleted
 		// Don't allow users to search for "*"

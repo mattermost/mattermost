@@ -83,7 +83,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		opts := model.GetPostsOptions{
 			SkipFetchThreads: true,
 		}
-		olist, _ := ss.Post().Get(context.Background(), otmp.Id, opts, "")
+		olist, _ := ss.Post().Get(context.Background(), otmp.Id, opts, "", map[string]bool{})
 		o1 := olist.Posts[olist.Order[0]]
 
 		newPosts = append([]*model.Post{o1}, newPosts...)
@@ -858,7 +858,7 @@ func testVarious(t *testing.T, ss store.Store) {
 	viewThread(user1ID, dm1post1.Id)
 
 	// Add reply to a viewed thread to confirm it's unread again.
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(2 * time.Millisecond)
 	threadStoreCreateReply(t, ss, team1channel1.Id, team1channel1post2.Id, user2ID, model.GetMillis())
 
 	// Actually make team2channel1post2deleted deleted

@@ -1857,7 +1857,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Nachricht anzeigen"
+    "translation": "Antworte in Mattermost"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2642,10 +2642,6 @@
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
     "translation": "Fehlende erforderliche Reaktionseigenschaft: User."
-  },
-  {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Antworteigenschaft CreateAt muss größer als CreateAt der übergeordneten Nachricht sein."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
@@ -4817,7 +4813,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 89+"
+    "translation": "Version 100+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -7604,7 +7600,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Sitzung abgelaufen: Bitte anmelden um weiter Nachrichten zu erhalten. Sitzungen für {{.siteName}} sind vom System Adminstrator so konfiguriert, dass sie alle {{.daysCount}} Tage ablaufen."
+    "translation": "Sitzung abgelaufen: Bitte anmelden um weiter Nachrichten zu erhalten. Sitzungen für {{.siteName}} sind vom System Adminstrator so konfiguriert, dass sie alle {{.hoursCount}} Stunden ablaufen."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
@@ -7948,11 +7944,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Dein 14-tägiger Test von Mattermost ist heute zu Ende"
+    "translation": "Dein 14-tägiger Test von Mattermost ist beendet"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, dein 14-tägiger freier Test von Mattermost Cloud Enterprise ist heute, am {{.TodayDate}}, zu Ende. Bitte füge deine Bezahlinformationen hinzu, um sicherzustellen, dass dein Team weiterhin die Vorteile von Cloud Enterprise genießen kann. Wenn Du deine Zahlungsinformationen nicht innerhalb von 30 Tagen hinzufügst, werden wir deinen Cloud-Arbeitsbereich endgültig löschen und Du wirst alle damit verbundenen Daten verlieren."
+    "translation": "{{.Name}}, dein 14-tägiger freier Test von Mattermost Cloud Enterprise endet am {{.TodayDate}}. Wir hoffen, dass dir unsere sichere und flexible Kollaborationsplattform gefallen hat. Bitte füge deine Zahlungsinformationen hinzu, damit dein Team weiter mit Mattermost zusammenarbeiten kann."
   },
   {
     "id": "api.unable_to_read_file_from_backend",
@@ -8032,7 +8028,7 @@
   },
   {
     "id": "api.templates.questions_footer.info",
-    "translation": "Schreibe uns jederzeit eine E-Mail an "
+    "translation": "Brauchst du Hilfe oder hast du eine Frage? Sende eine E-Mail an "
   },
   {
     "id": "api.templates.payment_failed_no_card.title",
@@ -9136,7 +9132,7 @@
   },
   {
     "id": "api.templates.server_inactivity_subject",
-    "translation": "HE! Öffne Mattermost um Dein Team produktiver zu machen!"
+    "translation": "Öffne Mattermost um Dein Team produktiver zu machen!"
   },
   {
     "id": "api.templates.server_inactivity_info_bullet2",
@@ -9289,5 +9285,69 @@
   {
     "id": "api.insights.feature_disabled",
     "translation": " "
+  },
+  {
+    "id": "app.channel.get_top_for_user_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.channel.get_top_for_team_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "Du bist jetzt upgegraded worden!"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
+    "translation": "Dein {{.WorkspaceName}} Arbeitsbereich wurde jetzt aktualisiert. Die Abrechnung erfolgt ab dem {{.TrialEnd}}"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subject",
+    "translation": "Mattermost Upgrade Bestätigung"
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "Die Elasticsearch-Einstellungen haben nicht definierte Werte."
+  },
+  {
+    "id": "api.templates.server_inactivity_footer_disclaimer",
+    "translation": "Du hast diese einmalige E-Mail erhalten, weil dein Mattermost-Server für mehr als {{.Hours}} Stunden inaktiv war. Diese E-Mail wurde automatisch von deinem Mattermost-Server generiert."
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Hochladen über mmctl zu einer Cloud Instanz wird nicht unterstützt. Bitte prüfe die Dokumentation: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "Fehler bei der Aktualisierung des Abonnements über Webhook."
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "Fehler beim Holen der letzten Suchen"
+  },
+  {
+    "id": "api.cloud.cloud_free_feature_flag_off_error",
+    "translation": "CloudFree Feature Flag ist ausgeschaltet."
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "Du hast das Maximum von {{.NumIntegrations}} aktivierten Integrationen erreicht. Um Integrationen ohne Beschränkungen zu installieren, upgrade auf ein bezahltes Abonnements."
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Kann Team-Zähler nicht abfragen"
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Kann Team-Verwendung nicht abfragen"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Kann Team nicht wiederherstellen, da das Team-Limit erreicht ist"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Kann kein Team erstellen, da das Team-Limit erreicht ist"
   }
 ]

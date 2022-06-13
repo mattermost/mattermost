@@ -2644,10 +2644,6 @@
     "translation": "Propriedade obrigatória da Reação não foi informada: User."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "A propriedade CreateAt da Resposta deve ser maior que CreateAt do post pai."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Propriedade obrigatória da Resposta não foi informada: create_at."
   },

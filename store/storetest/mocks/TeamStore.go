@@ -236,6 +236,29 @@ func (_m *TeamStore) GetAllTeamListing() ([]*model.Team, error) {
 	return r0, r1
 }
 
+// GetByEmptyInviteID provides a mock function with given fields:
+func (_m *TeamStore) GetByEmptyInviteID() ([]*model.Team, error) {
+	ret := _m.Called()
+
+	var r0 []*model.Team
+	if rf, ok := ret.Get(0).(func() []*model.Team); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Team)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetByInviteId provides a mock function with given fields: inviteID
 func (_m *TeamStore) GetByInviteId(inviteID string) (*model.Team, error) {
 	ret := _m.Called(inviteID)
@@ -535,13 +558,13 @@ func (_m *TeamStore) GetTeamsByUserId(userID string) ([]*model.Team, error) {
 	return r0, r1
 }
 
-// GetTeamsForUser provides a mock function with given fields: ctx, userID
-func (_m *TeamStore) GetTeamsForUser(ctx context.Context, userID string) ([]*model.TeamMember, error) {
-	ret := _m.Called(ctx, userID)
+// GetTeamsForUser provides a mock function with given fields: ctx, userID, excludeTeamID, includeDeleted
+func (_m *TeamStore) GetTeamsForUser(ctx context.Context, userID string, excludeTeamID string, includeDeleted bool) ([]*model.TeamMember, error) {
+	ret := _m.Called(ctx, userID, excludeTeamID, includeDeleted)
 
 	var r0 []*model.TeamMember
-	if rf, ok := ret.Get(0).(func(context.Context, string) []*model.TeamMember); ok {
-		r0 = rf(ctx, userID)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, bool) []*model.TeamMember); ok {
+		r0 = rf(ctx, userID, excludeTeamID, includeDeleted)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.TeamMember)
@@ -549,8 +572,8 @@ func (_m *TeamStore) GetTeamsForUser(ctx context.Context, userID string) ([]*mod
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, userID)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, bool) error); ok {
+		r1 = rf(ctx, userID, excludeTeamID, includeDeleted)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -297,7 +297,7 @@ func (ts *TelemetryService) trackActivity() {
 		deletedPrivateChannelCount = dpccr
 	}
 
-	postsCount, _ = ts.dbStore.Post().AnalyticsPostCount("", false, false)
+	postsCount, _ = ts.dbStore.Post().AnalyticsPostCount(&model.PostCountOptions{})
 
 	postCountsOptions := &model.AnalyticsPostCountsOptions{TeamId: "", BotsOnly: false, YesterdayOnly: true}
 	postCountsYesterday, _ := ts.dbStore.Post().AnalyticsPostCountsByDay(postCountsOptions)
@@ -525,21 +525,22 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.SendTelemetry(TrackConfigFile, map[string]interface{}{
-		"enable_public_links":     cfg.FileSettings.EnablePublicLink,
-		"driver_name":             *cfg.FileSettings.DriverName,
-		"isdefault_directory":     isDefault(*cfg.FileSettings.Directory, model.FileSettingsDefaultDirectory),
-		"isabsolute_directory":    filepath.IsAbs(*cfg.FileSettings.Directory),
-		"extract_content":         *cfg.FileSettings.ExtractContent,
-		"archive_recursion":       *cfg.FileSettings.ArchiveRecursion,
-		"amazon_s3_ssl":           *cfg.FileSettings.AmazonS3SSL,
-		"amazon_s3_sse":           *cfg.FileSettings.AmazonS3SSE,
-		"amazon_s3_signv2":        *cfg.FileSettings.AmazonS3SignV2,
-		"amazon_s3_trace":         *cfg.FileSettings.AmazonS3Trace,
-		"max_file_size":           *cfg.FileSettings.MaxFileSize,
-		"max_image_resolution":    *cfg.FileSettings.MaxImageResolution,
-		"enable_file_attachments": *cfg.FileSettings.EnableFileAttachments,
-		"enable_mobile_upload":    *cfg.FileSettings.EnableMobileUpload,
-		"enable_mobile_download":  *cfg.FileSettings.EnableMobileDownload,
+		"enable_public_links":           cfg.FileSettings.EnablePublicLink,
+		"driver_name":                   *cfg.FileSettings.DriverName,
+		"isdefault_directory":           isDefault(*cfg.FileSettings.Directory, model.FileSettingsDefaultDirectory),
+		"isabsolute_directory":          filepath.IsAbs(*cfg.FileSettings.Directory),
+		"extract_content":               *cfg.FileSettings.ExtractContent,
+		"archive_recursion":             *cfg.FileSettings.ArchiveRecursion,
+		"amazon_s3_ssl":                 *cfg.FileSettings.AmazonS3SSL,
+		"amazon_s3_sse":                 *cfg.FileSettings.AmazonS3SSE,
+		"amazon_s3_signv2":              *cfg.FileSettings.AmazonS3SignV2,
+		"amazon_s3_trace":               *cfg.FileSettings.AmazonS3Trace,
+		"max_file_size":                 *cfg.FileSettings.MaxFileSize,
+		"max_image_resolution":          *cfg.FileSettings.MaxImageResolution,
+		"max_image_decoder_concurrency": *cfg.FileSettings.MaxImageDecoderConcurrency,
+		"enable_file_attachments":       *cfg.FileSettings.EnableFileAttachments,
+		"enable_mobile_upload":          *cfg.FileSettings.EnableMobileUpload,
+		"enable_mobile_download":        *cfg.FileSettings.EnableMobileDownload,
 	})
 
 	ts.SendTelemetry(TrackConfigEmail, map[string]interface{}{
@@ -712,12 +713,12 @@ func (ts *TelemetryService) trackConfig() {
 		"client_side_cert_enable":            *cfg.ExperimentalSettings.ClientSideCertEnable,
 		"isdefault_client_side_cert_check":   isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.ClientSideCertCheckPrimaryAuth),
 		"link_metadata_timeout_milliseconds": *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
-		"enable_click_to_reply":              *cfg.ExperimentalSettings.EnableClickToReply,
 		"restrict_system_admin":              *cfg.ExperimentalSettings.RestrictSystemAdmin,
 		"use_new_saml_library":               *cfg.ExperimentalSettings.UseNewSAMLLibrary,
 		"cloud_billing":                      *cfg.ExperimentalSettings.CloudBilling,
 		"enable_shared_channels":             *cfg.ExperimentalSettings.EnableSharedChannels,
 		"enable_remote_cluster_service":      *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
+		"enable_app_bar":                     *cfg.ExperimentalSettings.EnableAppBar,
 	})
 
 	ts.SendTelemetry(TrackConfigAnalytics, map[string]interface{}{
@@ -1303,7 +1304,7 @@ func (ts *TelemetryService) trackWarnMetrics() {
 
 func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL string) {
 	pluginConfigData := map[string]interface{}{
-		"enable_nps_survey":             pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", true),
+		"enable_nps_survey":             pluginSetting(&cfg.PluginSettings, model.PluginIdNPS, "enablesurvey", true),
 		"enable":                        *cfg.PluginSettings.Enable,
 		"enable_uploads":                *cfg.PluginSettings.EnableUploads,
 		"allow_insecure_download_url":   *cfg.PluginSettings.AllowInsecureDownloadURL,
