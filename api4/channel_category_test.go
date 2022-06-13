@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
@@ -88,6 +89,17 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 
 		// Initial new category sort order is 10 (first)
 		require.Equal(t, int64(10), customCategory.SortOrder)
+	})
+
+	t.Run("should not crash with null input", func(t *testing.T) {
+		require.NotPanics(t, func() {
+			user, client := setupUserForSubtest(t, th)
+			payload := []byte(`null`)
+			route := fmt.Sprintf("/users/%s/teams/%s/channels/categories", user.Id, th.BasicTeam.Id)
+			r, err := client.DoAPIPostBytes(route, payload)
+			require.Error(t, err)
+			closeBody(r)
+		})
 	})
 
 	t.Run("should publish expected WS payload", func(t *testing.T) {
@@ -416,6 +428,25 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 		member, _, err := client.GetChannelMember(dmChannel.Id, user.Id, "")
 		require.NoError(t, err)
 		assert.False(t, member.IsChannelMuted())
+	})
+
+	t.Run("should not crash with null input", func(t *testing.T) {
+		require.NotPanics(t, func() {
+			user, client := setupUserForSubtest(t, th)
+
+			categories, _, err := client.GetSidebarCategoriesForTeamForUser(user.Id, th.BasicTeam.Id, "")
+			require.NoError(t, err)
+			require.Len(t, categories.Categories, 3)
+			require.Len(t, categories.Order, 3)
+
+			dmsCategory := categories.Categories[2]
+
+			payload := []byte(`null`)
+			route := fmt.Sprintf("/users/%s/teams/%s/channels/categories/%s", user.Id, th.BasicTeam.Id, dmsCategory.Id)
+			r, err := client.DoAPIPutBytes(route, payload)
+			require.Error(t, err)
+			closeBody(r)
+		})
 	})
 }
 
