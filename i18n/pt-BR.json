@@ -3156,10 +3156,6 @@
     "translation": "Elasticsearch já está parado."
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Falha na conexão com o Elasticsearch."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch está desativado."
   },
