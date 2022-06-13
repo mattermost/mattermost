@@ -19,7 +19,7 @@ import (
 	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
-	ogimage "github.com/dyatlov/go-opengraph/opengraph/image"
+	ogimage "github.com/dyatlov/go-opengraph/opengraph/types/image"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
