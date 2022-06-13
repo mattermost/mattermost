@@ -144,7 +144,7 @@ jobs:
       - run:
           command: |
             cd mattermost-server
-            go mod tidy
+            make modules-tidy
             if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; exit 1; fi
 
   check-store-layers:
