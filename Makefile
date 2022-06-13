@@ -393,6 +393,12 @@ gomodtidy:
 	@mv imports/imports.go.orig imports/imports.go
 	@rm go.*.orig;
 
+modules-tidy:
+	@mv imports/imports.go imports/imports.go.orig
+	$(GO) mod tidy
+	@mv imports/imports.go.orig imports/imports.go
+
+
 test-server-pre: check-prereqs-enterprise start-docker go-junit-report do-cover-file ## Runs tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
