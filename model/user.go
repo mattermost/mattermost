@@ -829,6 +829,13 @@ func (u *User) ToPatch() *UserPatch {
 	}
 }
 
+func (u *User) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":       u.Id,
+		"username": u.Username,
+	}
+}
+
 func (u *UserPatch) SetField(fieldName string, fieldValue string) {
 	switch fieldName {
 	case "FirstName":
