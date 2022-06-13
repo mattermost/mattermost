@@ -3152,10 +3152,6 @@
     "translation": "ElasticSearch 已停止。"
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "连接 Elasticsearch 服务器失败。"
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch 已停用。"
   },

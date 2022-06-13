@@ -3156,10 +3156,6 @@
     "translation": "Elasticsearch is reeds gestopt."
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Connectie naar Elasticsearch server is mislukt."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch is uitgeschakeld."
   },
