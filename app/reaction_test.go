@@ -231,10 +231,10 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 	expectedTopReactions[3] = &model.TopReaction{EmojiName: "sad", Count: int64(3)}
 	expectedTopReactions[4] = &model.TopReaction{EmojiName: "happy", Count: int64(2)}
 
-	timeRange, _ := model.GetStartUnixMilliForTimeRange(model.TimeRangeToday)
+	timeRange := model.StartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
 
 	t.Run("get-top-reactions-for-team-since", func(t *testing.T) {
-		topReactions, err := th.App.GetTopReactionsForTeamSince(teamId, userId, &model.InsightsOpts{StartUnixMilli: timeRange, Page: 0, PerPage: 5})
+		topReactions, err := th.App.GetTopReactionsForTeamSince(teamId, userId, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 5})
 		require.Nil(t, err)
 		reactions := topReactions.Items
 
@@ -242,7 +242,7 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 			assert.Equal(t, expectedTopReactions[i].EmojiName, reaction.EmojiName)
 			assert.Equal(t, expectedTopReactions[i].Count, reaction.Count)
 		}
-		topReactions, err = th.App.GetTopReactionsForTeamSince(teamId, userId, &model.InsightsOpts{StartUnixMilli: timeRange, Page: 1, PerPage: 5})
+		topReactions, err = th.App.GetTopReactionsForTeamSince(teamId, userId, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 1, PerPage: 5})
 		require.Nil(t, err)
 		reactions = topReactions.Items
 
@@ -252,7 +252,7 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 
 	t.Run("get-top-reactions-for-team-since feature flag", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = false })
-		_, err := th.App.GetTopReactionsForTeamSince(userId, teamId, &model.InsightsOpts{StartUnixMilli: timeRange, Page: 0, PerPage: 5})
+		_, err := th.App.GetTopReactionsForTeamSince(userId, teamId, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 5})
 		assert.NotNil(t, err)
 	})
 }
@@ -402,10 +402,10 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 	expectedTopReactions[3] = &model.TopReaction{EmojiName: "heart", Count: int64(3)}
 	expectedTopReactions[4] = &model.TopReaction{EmojiName: "blush", Count: int64(2)}
 
-	timeRange, _ := model.GetStartUnixMilliForTimeRange(model.TimeRangeToday)
+	timeRange := model.StartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
 
 	t.Run("get-top-reactions-for-user-since", func(t *testing.T) {
-		topReactions, err := th.App.GetTopReactionsForUserSince(userId, teamId, &model.InsightsOpts{StartUnixMilli: timeRange, Page: 0, PerPage: 5})
+		topReactions, err := th.App.GetTopReactionsForUserSince(userId, teamId, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 5})
 		require.Nil(t, err)
 		reactions := topReactions.Items
 
@@ -414,7 +414,7 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 			assert.Equal(t, expectedTopReactions[i].Count, reaction.Count)
 		}
 
-		topReactions, err = th.App.GetTopReactionsForUserSince(userId, teamId, &model.InsightsOpts{StartUnixMilli: timeRange, Page: 1, PerPage: 5})
+		topReactions, err = th.App.GetTopReactionsForUserSince(userId, teamId, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 1, PerPage: 5})
 		require.Nil(t, err)
 		reactions = topReactions.Items
 		assert.Equal(t, "100", reactions[0].EmojiName)
@@ -423,7 +423,7 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 
 	t.Run("get-top-reactions-for-user-since feature flag", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = false })
-		_, err := th.App.GetTopReactionsForUserSince(userId, teamId, &model.InsightsOpts{StartUnixMilli: timeRange, Page: 0, PerPage: 5})
+		_, err := th.App.GetTopReactionsForUserSince(userId, teamId, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 5})
 		assert.NotNil(t, err)
 	})
 }

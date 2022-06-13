@@ -188,6 +188,10 @@
     "translation": "Unable to upload file. File is too large."
   },
   {
+    "id": "api.authorization_error.guest",
+    "translation": " "
+  },
+  {
     "id": "api.back_to_app",
     "translation": "Back to {{.SiteName}}"
   },
@@ -2052,6 +2056,10 @@
   {
     "id": "api.license_error",
     "translation": "api endpoint requires a license"
+  },
+  {
+    "id": "api.license_error.professional_or_enterprise",
+    "translation": " "
   },
   {
     "id": "api.marshal_error",
@@ -4530,6 +4538,10 @@
   {
     "id": "app.channel.get_pinnedpost_count.app_error",
     "translation": "Unable to get the channel pinned post count."
+  },
+  {
+    "id": "app.channel.get_post_count_by_day.app_error",
+    "translation": " "
   },
   {
     "id": "app.channel.get_private_channels.get.app_error",
@@ -8530,10 +8542,6 @@
   {
     "id": "model.incoming_hook.username.app_error",
     "translation": "Invalid username."
-  },
-  {
-    "id": "model.insights.time_range.app_error",
-    "translation": " "
   },
   {
     "id": "model.job.is_valid.create_at.app_error",
