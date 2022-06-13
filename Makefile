@@ -184,7 +184,7 @@ endif
 
 ifeq ($(M1_MAC),true)
   $(info M1 detected, applying elasticsearch override)
-  DOCKER_COMPOSE_OVERRIDE := -f docker-compose.makefile.yml $(DOCKER_COMPOSE_OVERRIDE)
+  DOCKER_COMPOSE_OVERRIDE := -f docker-compose.makefile.m1.yml $(DOCKER_COMPOSE_OVERRIDE)
 endif
 
 ifneq ($(DOCKER_SERVICES_OVERRIDE),true)
