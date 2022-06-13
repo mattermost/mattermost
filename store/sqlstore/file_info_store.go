@@ -5,12 +5,13 @@ package sqlstore
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
@@ -40,6 +41,7 @@ type fileInfoWithChannelID struct {
 	MiniPreview     *[]byte
 	Content         string
 	RemoteId        *string
+	Archived        bool
 }
 
 func (fi fileInfoWithChannelID) ToModel() *model.FileInfo {
@@ -102,6 +104,7 @@ func newSqlFileInfoStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterfac
 		"FileInfo.MiniPreview",
 		"Coalesce(FileInfo.Content, '') AS Content",
 		"Coalesce(FileInfo.RemoteId, '') AS RemoteId",
+		"FileInfo.Archived",
 	}
 
 	return s
@@ -507,12 +510,33 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 		LeftJoin("Posts as P ON FileInfo.PostId=P.Id").
 		LeftJoin("Channels as C ON C.Id=P.ChannelId").
 		LeftJoin("ChannelMembers as CM ON C.Id=CM.ChannelId").
-		Where(sq.Or{sq.Eq{"C.TeamId": teamId}, sq.Eq{"C.TeamId": ""}}).
 		Where(sq.Eq{"FileInfo.DeleteAt": 0}).
 		OrderBy("FileInfo.CreateAt DESC").
 		Limit(100)
 
+	if teamId != "" {
+		query = query.Where(sq.Or{
+			sq.Eq{"C.TeamId": teamId},
+			sq.Eq{"C.TeamId": ""},
+		})
+	}
+
+	now := model.GetMillis()
 	for _, params := range paramsList {
+		if params.Modifier == model.ModifierFiles {
+			// Deliberately keeping non-alphanumeric characters to
+			// prevent surprises in UI.
+			buf, err := json.Marshal(params)
+			if err != nil {
+				return nil, err
+			}
+
+			err = fs.stores.post.LogRecentSearch(userId, buf, now)
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		params.Terms = removeNonAlphaNumericUnquotedTerms(params.Terms, " ")
 
 		if !params.IncludeDeletedChannels {
@@ -711,4 +735,21 @@ func (fs SqlFileInfoStore) GetFilesBatchForIndexing(startTime int64, startFileID
 	}
 
 	return files, nil
+}
+
+func (fs SqlFileInfoStore) GetStorageUsage(allowFromCache, includeDeleted bool) (int64, error) {
+	query := fs.getQueryBuilder().
+		Select("SUM(Size)").
+		From("FileInfo")
+
+	if !includeDeleted {
+		query = query.Where("DeleteAt = 0")
+	}
+
+	var size int64
+	err := fs.GetReplicaX().GetBuilder(&size, query)
+	if err != nil {
+		return int64(0), errors.Wrap(err, "failed to get storage usage")
+	}
+	return size, nil
 }

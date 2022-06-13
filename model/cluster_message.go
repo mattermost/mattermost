@@ -31,6 +31,7 @@ const (
 	ClusterEventInvalidateCacheForChannelMemberCounts       ClusterEvent = "inv_channel_member_counts"
 	ClusterEventInvalidateCacheForLastPosts                 ClusterEvent = "inv_last_posts"
 	ClusterEventInvalidateCacheForLastPostTime              ClusterEvent = "inv_last_post_time"
+	ClusterEventInvalidateCacheForPostsUsage                ClusterEvent = "inv_posts_usage"
 	ClusterEventInvalidateCacheForTeams                     ClusterEvent = "inv_teams"
 	ClusterEventClearSessionCacheForAllUsers                ClusterEvent = "inv_all_user_sessions"
 	ClusterEventInstallPlugin                               ClusterEvent = "install_plugin"

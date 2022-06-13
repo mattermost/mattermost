@@ -273,7 +273,17 @@ func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool
 
 	recommendedNextStepsPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceRecommendedNextSteps, Name: "hide", Value: "false"}
 	tutorialStepPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryTutorialSteps, Name: ruser.Id, Value: "0"}
-	if err := a.Srv().Store.Preference().Save(model.Preferences{recommendedNextStepsPref, tutorialStepPref}); err != nil {
+
+	preferences := model.Preferences{recommendedNextStepsPref, tutorialStepPref}
+
+	if a.Config().FeatureFlags.InsightsEnabled {
+		// We don't want to show the insights intro modal for new users
+		preferences = append(preferences, model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryInsights, Name: model.PreferenceNameInsights, Value: "{\"insights_modal_viewed\":true}"})
+	} else {
+		preferences = append(preferences, model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryInsights, Name: model.PreferenceNameInsights, Value: "{\"insights_modal_viewed\":false}"})
+	}
+
+	if err := a.Srv().Store.Preference().Save(preferences); err != nil {
 		mlog.Warn("Encountered error saving user preferences", mlog.Err(err))
 	}
 
@@ -380,6 +390,15 @@ func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
 	return user, nil
 }
 
+func (a *App) GetUsers(userIDs []string) ([]*model.User, *model.AppError) {
+	users, err := a.ch.srv.userService.GetUsers(userIDs)
+	if err != nil {
+		return nil, model.NewAppError("GetUsers", "app.user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return users, nil
+}
+
 func (a *App) GetUserByUsername(username string) (*model.User, *model.AppError) {
 	result, err := a.ch.srv.userService.GetUserByUsername(username)
 	if err != nil {
@@ -426,8 +445,8 @@ func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, 
 	return user, nil
 }
 
-func (a *App) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
-	users, err := a.ch.srv.userService.GetUsers(options)
+func (a *App) GetUsersFromProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	users, err := a.ch.srv.userService.GetUsersFromProfiles(options)
 	if err != nil {
 		return nil, model.NewAppError("GetUsers", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2140,7 +2159,7 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 		}
 	}
 
-	teamMembers, err := a.GetTeamMembersForUser(user.Id)
+	teamMembers, err := a.GetTeamMembersForUser(user.Id, "", true)
 	if err != nil {
 		mlog.Warn("Failed to get team members for user on promote guest to user", mlog.Err(err))
 	}
@@ -2184,7 +2203,7 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 		mlog.Warn("Unable to update user sessions", mlog.String("user_id", demotedUser.Id), mlog.Err(uErr))
 	}
 
-	teamMembers, err := a.GetTeamMembersForUser(user.Id)
+	teamMembers, err := a.GetTeamMembersForUser(user.Id, "", true)
 	if err != nil {
 		mlog.Warn("Failed to get team members for users on demote user to guest", mlog.Err(err))
 	}
@@ -2444,7 +2463,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(userID, teamID, threadID s
 		return model.NewAppError("UpdateThreadFollowForUserFromChannelAdd", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	post, appErr := a.GetSinglePost(threadID)
+	post, appErr := a.GetSinglePost(threadID, false)
 	if appErr != nil {
 		return appErr
 	}
@@ -2484,13 +2503,15 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(userID, teamID, threadID s
 		mlog.Warn("Failed to encode thread to JSON")
 	}
 	message.Add("thread", string(payload))
+	message.Add("previous_unread_replies", int64(0))
+	message.Add("previous_unread_mentions", int64(0))
 
 	a.Publish(message)
 	return nil
 }
 
 func (a *App) UpdateThreadReadForUserByPost(currentSessionId, userID, teamID, threadID, postID string) (*model.ThreadResponse, *model.AppError) {
-	post, err := a.GetSinglePost(postID)
+	post, err := a.GetSinglePost(postID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -2523,7 +2544,7 @@ func (a *App) UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
-	post, err := a.GetSinglePost(threadID)
+	post, err := a.GetSinglePost(threadID, false)
 	if err != nil {
 		return nil, err
 	}

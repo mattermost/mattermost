@@ -2648,10 +2648,6 @@
     "translation": "Отсутствует необходимое значение для Reaction: User."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Значение CreateAt в Reply должно быть больше чем родительский CreateAt в Post."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Отсутствует необходимое значение для Reply: create_at."
   },
@@ -9290,5 +9286,25 @@
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "В настройки электронной почты есть не заданные значения."
+  },
+  {
+    "id": "app.channel.get_top_for_user_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.channel.get_top_for_team_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "Теперь Ваш сервер обновлен!"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
+    "translation": "Ваше рабочее пространство {{.WorkspaceName}} обновлено. Вам будет выставлен счет начиная с {{.TrialEnd}}"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subject",
+    "translation": "Подтверждение обновления Mattermost"
   }
 ]

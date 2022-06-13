@@ -86,13 +86,19 @@ var SentryDSN = "placeholder_sentry_dsn"
 type ServiceKey string
 
 const (
-	ChannelKey   ServiceKey = "channel"
-	ConfigKey    ServiceKey = "config"
-	LicenseKey   ServiceKey = "license"
-	FilestoreKey ServiceKey = "filestore"
-	ClusterKey   ServiceKey = "cluster"
-	PostKey      ServiceKey = "post"
-	TeamKey      ServiceKey = "team"
+	ChannelKey     ServiceKey = "channel"
+	ConfigKey      ServiceKey = "config"
+	LicenseKey     ServiceKey = "license"
+	FilestoreKey   ServiceKey = "filestore"
+	ClusterKey     ServiceKey = "cluster"
+	PostKey        ServiceKey = "post"
+	TeamKey        ServiceKey = "team"
+	UserKey        ServiceKey = "user"
+	PermissionsKey ServiceKey = "permissions"
+	RouterKey      ServiceKey = "router"
+	BotKey         ServiceKey = "bot"
+	LogKey         ServiceKey = "log"
+	HooksKey       ServiceKey = "hooks"
 )
 
 type Server struct {
@@ -391,7 +397,10 @@ func NewServer(options ...Option) (*Server, error) {
 		LicenseKey:   s.licenseWrapper,
 		FilestoreKey: s.filestore,
 		ClusterKey:   s.clusterWrapper,
-		TeamKey:      s.teamService,
+		UserKey:      New(ServerConnector(s.Channels())),
+		LogKey: &logWrapper{
+			srv: s,
+		},
 	}
 
 	// Step 8: Initialize products.
@@ -1039,6 +1048,15 @@ func (s *Server) Shutdown() {
 		}
 	}
 
+	// Stop products.
+	// This needs to happen last because products are dependent
+	// on parent services.
+	for name, product := range s.products {
+		if err2 := product.Stop(); err2 != nil {
+			mlog.Warn("Unable to cleanly stop product", mlog.String("name", name), mlog.Err(err2))
+		}
+	}
+
 	if s.Store != nil {
 		s.Store.Close()
 	}
@@ -1050,15 +1068,6 @@ func (s *Server) Shutdown() {
 	}
 
 	mlog.Info("Server stopped")
-
-	// Stop products.
-	// This needs to happen last because products are dependent
-	// on parent services.
-	for name, product := range s.products {
-		if err2 := product.Stop(); err2 != nil {
-			mlog.Warn("Unable to cleanly stop product", mlog.String("name", name), mlog.Err(err2))
-		}
-	}
 
 	// shutdown main and notification loggers which will flush any remaining log records.
 	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*15)
@@ -1170,7 +1179,15 @@ func stripPort(hostport string) string {
 func (s *Server) Start() error {
 	// Start products.
 	// This needs to happen before because products are dependent on the HTTP server.
+
+	// make sure channels starts first
+	if err := s.products["channels"].Start(); err != nil {
+		return errors.Wrap(err, "Unable to start channels")
+	}
 	for name, product := range s.products {
+		if name == "channels" {
+			continue
+		}
 		if err := product.Start(); err != nil {
 			return errors.Wrapf(err, "Unable to start %s", name)
 		}

@@ -60,13 +60,13 @@ func (_m *ChannelStore) AnalyticsTypeCount(teamID string, channelType model.Chan
 	return r0, r1
 }
 
-// Autocomplete provides a mock function with given fields: userID, term, includeDeleted
-func (_m *ChannelStore) Autocomplete(userID string, term string, includeDeleted bool) (model.ChannelListWithTeamData, error) {
-	ret := _m.Called(userID, term, includeDeleted)
+// Autocomplete provides a mock function with given fields: userID, term, includeDeleted, isGuest
+func (_m *ChannelStore) Autocomplete(userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelListWithTeamData, error) {
+	ret := _m.Called(userID, term, includeDeleted, isGuest)
 
 	var r0 model.ChannelListWithTeamData
-	if rf, ok := ret.Get(0).(func(string, string, bool) model.ChannelListWithTeamData); ok {
-		r0 = rf(userID, term, includeDeleted)
+	if rf, ok := ret.Get(0).(func(string, string, bool, bool) model.ChannelListWithTeamData); ok {
+		r0 = rf(userID, term, includeDeleted, isGuest)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.ChannelListWithTeamData)
@@ -74,8 +74,8 @@ func (_m *ChannelStore) Autocomplete(userID string, term string, includeDeleted 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
-		r1 = rf(userID, term, includeDeleted)
+	if rf, ok := ret.Get(1).(func(string, string, bool, bool) error); ok {
+		r1 = rf(userID, term, includeDeleted, isGuest)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -83,13 +83,13 @@ func (_m *ChannelStore) Autocomplete(userID string, term string, includeDeleted 
 	return r0, r1
 }
 
-// AutocompleteInTeam provides a mock function with given fields: teamID, userID, term, includeDeleted
-func (_m *ChannelStore) AutocompleteInTeam(teamID string, userID string, term string, includeDeleted bool) (model.ChannelList, error) {
-	ret := _m.Called(teamID, userID, term, includeDeleted)
+// AutocompleteInTeam provides a mock function with given fields: teamID, userID, term, includeDeleted, isGuest
+func (_m *ChannelStore) AutocompleteInTeam(teamID string, userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelList, error) {
+	ret := _m.Called(teamID, userID, term, includeDeleted, isGuest)
 
 	var r0 model.ChannelList
-	if rf, ok := ret.Get(0).(func(string, string, string, bool) model.ChannelList); ok {
-		r0 = rf(teamID, userID, term, includeDeleted)
+	if rf, ok := ret.Get(0).(func(string, string, string, bool, bool) model.ChannelList); ok {
+		r0 = rf(teamID, userID, term, includeDeleted, isGuest)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.ChannelList)
@@ -97,8 +97,8 @@ func (_m *ChannelStore) AutocompleteInTeam(teamID string, userID string, term st
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, string, bool) error); ok {
-		r1 = rf(teamID, userID, term, includeDeleted)
+	if rf, ok := ret.Get(1).(func(string, string, string, bool, bool) error); ok {
+		r1 = rf(teamID, userID, term, includeDeleted, isGuest)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1165,13 +1165,13 @@ func (_m *ChannelStore) GetMembersForUser(teamID string, userID string) (model.C
 	return r0, r1
 }
 
-// GetMembersForUserWithCursor provides a mock function with given fields: userID, afterChannel, afterUser, limit, lastUpdateAt
-func (_m *ChannelStore) GetMembersForUserWithCursor(userID string, afterChannel string, afterUser string, limit int, lastUpdateAt int) (model.ChannelMembers, error) {
-	ret := _m.Called(userID, afterChannel, afterUser, limit, lastUpdateAt)
+// GetMembersForUserWithCursor provides a mock function with given fields: userID, teamID, opts
+func (_m *ChannelStore) GetMembersForUserWithCursor(userID string, teamID string, opts *store.ChannelMemberGraphQLSearchOpts) (model.ChannelMembers, error) {
+	ret := _m.Called(userID, teamID, opts)
 
 	var r0 model.ChannelMembers
-	if rf, ok := ret.Get(0).(func(string, string, string, int, int) model.ChannelMembers); ok {
-		r0 = rf(userID, afterChannel, afterUser, limit, lastUpdateAt)
+	if rf, ok := ret.Get(0).(func(string, string, *store.ChannelMemberGraphQLSearchOpts) model.ChannelMembers); ok {
+		r0 = rf(userID, teamID, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.ChannelMembers)
@@ -1179,8 +1179,8 @@ func (_m *ChannelStore) GetMembersForUserWithCursor(userID string, afterChannel 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, string, int, int) error); ok {
-		r1 = rf(userID, afterChannel, afterUser, limit, lastUpdateAt)
+	if rf, ok := ret.Get(1).(func(string, string, *store.ChannelMemberGraphQLSearchOpts) error); ok {
+		r1 = rf(userID, teamID, opts)
 	} else {
 		r1 = ret.Error(1)
 	}

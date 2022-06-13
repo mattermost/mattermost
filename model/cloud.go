@@ -10,6 +10,7 @@ const (
 	EventTypeFailedPaymentNoCard          = "failed-payment-no-card"
 	EventTypeSendAdminWelcomeEmail        = "send-admin-welcome-email"
 	EventTypeSendUpgradeConfirmationEmail = "send-upgrade-confirmation-email"
+	EventTypeSubscriptionChanged          = "subscription-changed"
 	EventTypeTrialWillEnd                 = "trial-will-end"
 	EventTypeTrialEnded                   = "trial-ended"
 )
@@ -81,6 +82,10 @@ type CloudCustomer struct {
 	BillingAddress *Address       `json:"billing_address"`
 	CompanyAddress *Address       `json:"company_address"`
 	PaymentMethod  *PaymentMethod `json:"payment_method"`
+}
+
+type ValidateBusinessEmailRequest struct {
+	Email string `json:"email"`
 }
 
 // CloudCustomerInfo represents editable info of a customer.
@@ -166,6 +171,8 @@ type CWSWebhookPayload struct {
 	Event                             string               `json:"event"`
 	FailedPayment                     *FailedPayment       `json:"failed_payment"`
 	CloudWorkspaceOwner               *CloudWorkspaceOwner `json:"cloud_workspace_owner"`
+	ProductLimits                     *ProductLimits       `json:"product_limits"`
+	Subscription                      *Subscription        `json:"subscription"`
 	SubscriptionTrialEndUnixTimeStamp int64                `json:"trial_end_time_stamp"`
 }
 

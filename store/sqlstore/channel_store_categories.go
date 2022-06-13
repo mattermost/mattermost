@@ -6,7 +6,7 @@ package sqlstore
 import (
 	"fmt"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -620,32 +620,32 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 	updatedCategories := []*model.SidebarCategoryWithChannels{}
 	originalCategories := []*model.SidebarCategoryWithChannels{}
 	for _, category := range categories {
-		originalCategory, err2 := s.GetSidebarCategory(category.Id)
+		srcCategory, err2 := s.GetSidebarCategory(category.Id)
 		if err2 != nil {
 			return nil, nil, errors.Wrap(err2, "failed to find SidebarCategories")
 		}
 
 		// Copy category to avoid modifying an argument
-		updatedCategory := &model.SidebarCategoryWithChannels{
+		destCategory := &model.SidebarCategoryWithChannels{
 			SidebarCategory: category.SidebarCategory,
 		}
 
 		// Prevent any changes to read-only fields of SidebarCategories
-		updatedCategory.UserId = originalCategory.UserId
-		updatedCategory.TeamId = originalCategory.TeamId
-		updatedCategory.SortOrder = originalCategory.SortOrder
-		updatedCategory.Type = originalCategory.Type
-		updatedCategory.Muted = originalCategory.Muted
+		destCategory.UserId = srcCategory.UserId
+		destCategory.TeamId = srcCategory.TeamId
+		destCategory.SortOrder = srcCategory.SortOrder
+		destCategory.Type = srcCategory.Type
+		destCategory.Muted = srcCategory.Muted
 
-		if updatedCategory.Type != model.SidebarCategoryCustom {
-			updatedCategory.DisplayName = originalCategory.DisplayName
+		if destCategory.Type != model.SidebarCategoryCustom {
+			destCategory.DisplayName = srcCategory.DisplayName
 		}
 
-		if updatedCategory.Type != model.SidebarCategoryDirectMessages {
-			updatedCategory.Channels = make([]string, len(category.Channels))
-			copy(updatedCategory.Channels, category.Channels)
+		if destCategory.Type != model.SidebarCategoryDirectMessages {
+			destCategory.Channels = make([]string, len(category.Channels))
+			copy(destCategory.Channels, category.Channels)
 
-			updatedCategory.Muted = category.Muted
+			destCategory.Muted = category.Muted
 		}
 
 		// The order in which the queries are executed in the transaction is important.
@@ -655,11 +655,11 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 
 		updateQuery, updateParams, _ := s.getQueryBuilder().
 			Update("SidebarCategories").
-			Set("DisplayName", updatedCategory.DisplayName).
-			Set("Sorting", updatedCategory.Sorting).
-			Set("Muted", updatedCategory.Muted).
-			Set("Collapsed", updatedCategory.Collapsed).
-			Where(sq.Eq{"Id": updatedCategory.Id}).ToSql()
+			Set("DisplayName", destCategory.DisplayName).
+			Set("Sorting", destCategory.Sorting).
+			Set("Muted", destCategory.Muted).
+			Set("Collapsed", destCategory.Collapsed).
+			Where(sq.Eq{"Id": destCategory.Id}).ToSql()
 
 		if _, err = transaction.Exec(updateQuery, updateParams...); err != nil {
 			return nil, nil, errors.Wrap(err, "failed to update SidebarCategories")
@@ -674,10 +674,7 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 				Delete("SidebarChannels").
 				Where(
 					sq.And{
-						sq.Or{
-							sq.Eq{"ChannelId": originalCategory.Channels},
-							sq.Eq{"ChannelId": updatedCategory.Channels},
-						},
+						sq.Eq{"ChannelId": srcCategory.Channels},
 						sq.Eq{"CategoryId": category.Id},
 					},
 				).ToSql()
@@ -717,7 +714,7 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 			sql, args, _ := s.getQueryBuilder().Delete("Preferences").Where(
 				sq.Eq{
 					"UserId":   userId,
-					"Name":     originalCategory.Channels,
+					"Name":     srcCategory.Channels,
 					"Category": model.PreferenceCategoryFavoriteChannel,
 				},
 			).ToSql()
@@ -757,8 +754,8 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 			}
 		}
 
-		updatedCategories = append(updatedCategories, updatedCategory)
-		originalCategories = append(originalCategories, originalCategory)
+		updatedCategories = append(updatedCategories, destCategory)
+		originalCategories = append(originalCategories, srcCategory)
 	}
 
 	// Ensure Channels are populated for Channels/Direct Messages category if they change

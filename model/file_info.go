@@ -55,6 +55,7 @@ type FileInfo struct {
 	MiniPreview     *[]byte `json:"mini_preview"` // declared as *[]byte to avoid postgres/mysql differences in deserialization
 	Content         string  `json:"-"`
 	RemoteId        *string `json:"remote_id"`
+	Archived        bool    `json:"archived"`
 }
 
 func (fi *FileInfo) PreSave() {
@@ -105,6 +106,10 @@ func (fi *FileInfo) IsValid() *AppError {
 
 func (fi *FileInfo) IsImage() bool {
 	return strings.HasPrefix(fi.MimeType, "image")
+}
+
+func (fi *FileInfo) IsSvg() bool {
+	return fi.MimeType == "image/svg+xml"
 }
 
 func NewInfo(name string) *FileInfo {

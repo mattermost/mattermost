@@ -252,7 +252,7 @@ func TestSendCloudTrialEndedEmail(t *testing.T) {
 			require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
 			resultsEmail, err := mail.GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
 			require.NoError(t, err, "Could not get message from mailbox")
-			require.Contains(t, resultsEmail.Body.Text, "Your free 14-day trial of Mattermost has ended", "Wrong received message %s", resultsEmail.Body.Text)
+			require.Contains(t, resultsEmail.Body.Text, "Your free 30-day trial of Mattermost has ended", "Wrong received message %s", resultsEmail.Body.Text)
 		}
 		mail.DeleteMailBox(emailTo)
 
@@ -295,6 +295,44 @@ func TestSendCloudUpgradedEmail(t *testing.T) {
 		mail.DeleteMailBox(emailTo)
 
 		err := th.service.SendCloudUpgradeConfirmationEmail(emailTo, emailToUsername, "June 23, 2200", th.BasicUser.Locale, "https://example.com", "SomeName")
+		require.NoError(t, err)
+
+		verifyMailbox(t)
+	})
+}
+
+func TestSendCloudWelcomeEmail(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	th.ConfigureInbucketMail()
+
+	emailTo := "testclouduser@example.com"
+
+	t.Run("TestSendCloudWelcomeEmail", func(t *testing.T) {
+		verifyMailbox := func(t *testing.T) {
+			t.Helper()
+
+			var resultsMailbox mail.JSONMessageHeaderInbucket
+			err2 := mail.RetryInbucket(5, func() error {
+				var err error
+				resultsMailbox, err = mail.GetMailBox(emailTo)
+				return err
+			})
+			if err2 != nil {
+				t.Skipf("No email was received, maybe due load on the server: %v", err2)
+			}
+
+			require.Len(t, resultsMailbox, 1)
+			require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
+			resultsEmail, err := mail.GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
+			require.NoError(t, err, "Could not get message from mailbox")
+			require.Contains(t, resultsEmail.Subject, "Congratulations!", "Wrong subject message %s", resultsEmail.Subject)
+			require.Contains(t, resultsEmail.Body.Text, "Your workspace is ready to go!", "Wrong body %s", resultsEmail.Body.Text)
+
+		}
+		mail.DeleteMailBox(emailTo)
+
+		err := th.service.SendCloudWelcomeEmail(emailTo, th.BasicUser.Locale, "inviteID", "SomeName", "example.com", "https://example.com")
 		require.NoError(t, err)
 
 		verifyMailbox(t)

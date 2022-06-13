@@ -19,6 +19,14 @@ import (
 const permissionsExportBatchSize = 100
 const systemSchemeName = "00000000-0000-0000-0000-000000000000" // Prevents collisions with user-created schemes.
 
+type permissionsServiceWrapper struct {
+	app AppIface
+}
+
+func (s *permissionsServiceWrapper) HasPermissionToTeam(userID string, teamID string, permission *model.Permission) bool {
+	return s.app.HasPermissionToTeam(userID, teamID, permission)
+}
+
 func (a *App) ResetPermissionsSystem() *model.AppError {
 	// Reset all Teams to not have a scheme.
 	if err := a.Srv().Store.Team().ResetAllTeamSchemes(); err != nil {
