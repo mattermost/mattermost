@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type clusterWrapper struct {
@@ -51,10 +50,6 @@ func (s *clusterWrapper) PublishWebSocketEvent(productID string, event string, p
 
 func (s *clusterWrapper) SetPluginKeyWithOptions(productID string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
 	return s.srv.setPluginKeyWithOptions(productID, key, value, options)
-}
-
-func (s *clusterWrapper) LogError(productID, msg string, keyValuePairs ...interface{}) {
-	s.srv.Log.Error(msg, mlog.String("product_id", productID), mlog.Map("key-value pairs", keyValuePairs))
 }
 
 func (s *clusterWrapper) KVGet(productID, key string) ([]byte, *model.AppError) {
