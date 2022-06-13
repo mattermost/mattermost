@@ -1004,7 +1004,16 @@ func (s *SqlPostStore) ReplaceUserMentions(userId string) error {
 
 	// get username
 	var username []string
-	err = transaction.Select(&username, "SELECT Username FROM Users WHERE Id = ? LIMIT 1", userId)
+
+	q1, p1, _ := s.getQueryBuilder().
+		Select("Username").
+		From("Users").
+		Where(sq.Eq{"Id": userId}).
+		Limit(1).
+		ToSql()
+
+	err = transaction.Select(&username, q1, p1)
+
 	if err != nil {
 		return errors.Wrapf(err, "failed to fetch User with ID=%s", userId)
 	}
@@ -1015,13 +1024,13 @@ func (s *SqlPostStore) ReplaceUserMentions(userId string) error {
 		Message string
 	}{}
 
-	query, params, _ := s.getQueryBuilder().
+	q2, p2, _ := s.getQueryBuilder().
 		Select("Posts.id Id", "Posts.message Message").
 		From("Posts").
 		Where(sq.Like{"Message": "%" + username[0] + "%"}).
 		ToSql()
 
-	err = transaction.Select(&posts, query, params...)
+	err = transaction.Select(&posts, q2, p2...)
 	if err != nil {
 		return errors.Wrapf(err, "failed to fetch posts")
 	}
