@@ -119,29 +119,33 @@ func (b *S3FileBackend) s3New() (*s3.Client, error) {
 		creds = credentials.NewStatic(b.accessKey, b.secretKey, "", credentials.SignatureV4)
 	}
 
-	newTransport := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: b.skipVerify},
-	}
 
 	opts := s3.Options{
 		Creds:     creds,
 		Secure:    b.secure,
 		Region:    b.region,
-		Transport: newTransport,
 	}
+
+	tr, err := s3.DefaultTransport(b.secure)
+	if err != nil {
+		return nil, err
+	}
+	if b.skipVerify {
+		tr.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	}
+	opts.Transport = tr
 
 	// If this is a cloud installation, we override the default transport.
 	if isCloud {
-		tr, err := s3.DefaultTransport(b.secure)
-		if err != nil {
-			return nil, err
-		}
+
 		scheme := "http"
 		if b.secure {
 			scheme = "https"
 		}
+		newTransport := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: b.skipVerify},
+		}
 		opts.Transport = &customTransport{
-			base:   tr,
 			host:   b.endpoint,
 			scheme: scheme,
 			client: http.Client{Transport: newTransport},
