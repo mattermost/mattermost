@@ -222,11 +222,11 @@ func TestUndeleteGroup(t *testing.T) {
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
 
-	_, response, err = th.Client.UndeleteGroup(validGroup.Id, "")
+	_, response, err = th.Client.RestoreGroup(validGroup.Id, "")
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
 
-	_, response, err = th.Client.UndeleteGroup(validGroup.Id, "")
+	_, response, err = th.Client.RestoreGroup(validGroup.Id, "")
 	require.Error(t, err)
 	CheckNotFoundStatus(t, response)
 }

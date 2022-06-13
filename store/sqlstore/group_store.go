@@ -359,7 +359,7 @@ func (s *SqlGroupStore) Delete(groupID string) (*model.Group, error) {
 	return &group, nil
 }
 
-func (s *SqlGroupStore) Undelete(groupID string) (*model.Group, error) {
+func (s *SqlGroupStore) Restore(groupID string) (*model.Group, error) {
 	var group model.Group
 	if err := s.GetReplicaX().Get(&group, "SELECT * from UserGroups WHERE Id = ? AND DeleteAt != 0", groupID); err != nil {
 		if err == sql.ErrNoRows {

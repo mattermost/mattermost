@@ -13649,6 +13649,28 @@ func (a *OpenTracingAppLayer) RestoreChannel(c *request.Context, channel *model.
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) RestoreGroup(groupID string) (*model.Group, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RestoreGroup")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.RestoreGroup(groupID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) RestoreTeam(teamID string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RestoreTeam")
@@ -16210,28 +16232,6 @@ func (a *OpenTracingAppLayer) TriggerWebhook(c *request.Context, payload *model.
 
 	defer span.Finish()
 	a.app.TriggerWebhook(c, payload, hook, post, channel)
-}
-
-func (a *OpenTracingAppLayer) UndeleteGroup(groupID string) (*model.Group, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UndeleteGroup")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UndeleteGroup(groupID)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) UnregisterPluginCommand(pluginID string, teamID string, trigger string) {

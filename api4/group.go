@@ -85,8 +85,8 @@ func (api *API) InitGroup() {
 		api.APISessionRequired(requireLicense(deleteGroup))).Methods("DELETE")
 
 	// GET /api/v4/groups/:group_id
-	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/undelete",
-		api.APISessionRequired(requireLicense(undeleteGroup))).Methods("GET")
+	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/restore",
+		api.APISessionRequired(requireLicense(restoreGroup))).Methods("POST")
 
 	// POST /api/v4/groups/:group_id/members
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members",
@@ -995,7 +995,7 @@ func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func undeleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
+func restoreGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireGroupId()
 	if c.Err != nil {
 		return
@@ -1008,12 +1008,12 @@ func undeleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if group.Source != model.GroupSourceCustom {
-		c.Err = model.NewAppError("Api4.undeleteGroup", "app.group.crud_permission", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("Api4.restoreGroup", "app.group.crud_permission", nil, "", http.StatusNotImplemented)
 		return
 	}
 
 	if lcErr := licensedAndConfiguredForGroupBySource(c.App, model.GroupSourceCustom); lcErr != nil {
-		lcErr.Where = "Api4.undeleteGroup"
+		lcErr.Where = "Api4.restoreGroup"
 		c.Err = lcErr
 		return
 	}
@@ -1023,11 +1023,11 @@ func undeleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("undeleteGroup", audit.Fail)
+	auditRec := c.MakeAuditRecord("restoreGroup", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("group_id", c.Params.GroupId)
 
-	_, err = c.App.UndeleteGroup(c.Params.GroupId)
+	_, err = c.App.RestoreGroup(c.Params.GroupId)
 	if err != nil {
 		c.Err = err
 		return

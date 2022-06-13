@@ -138,11 +138,11 @@ func TestUndeleteGroup(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, g)
 
-	g, err = th.App.UndeleteGroup(group.Id)
+	g, err = th.App.RestoreGroup(group.Id)
 	require.Nil(t, err)
 	require.NotNil(t, g)
 
-	g, err = th.App.UndeleteGroup(group.Id)
+	g, err = th.App.RestoreGroup(group.Id)
 	require.NotNil(t, err)
 	require.Nil(t, g)
 }

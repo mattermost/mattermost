@@ -218,19 +218,19 @@ func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 	return deletedGroup, nil
 }
 
-func (a *App) UndeleteGroup(groupID string) (*model.Group, *model.AppError) {
-	undeletedGroup, err := a.Srv().Store.Group().Undelete(groupID)
+func (a *App) RestoreGroup(groupID string) (*model.Group, *model.AppError) {
+	restoredGroup, err := a.Srv().Store.Group().Restore(groupID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("UndeleteGroup", "app.group.no_rows", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("RestoreGroup", "app.group.no_rows", nil, nfErr.Error(), http.StatusNotFound)
 		default:
-			return nil, model.NewAppError("UndeleteGroup", "app.update_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("RestoreGroup", "app.update_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
-	return undeletedGroup, nil
+	return restoredGroup, nil
 }
 
 func (a *App) GetGroupMemberCount(groupID string) (int64, *model.AppError) {

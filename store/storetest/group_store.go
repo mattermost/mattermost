@@ -32,7 +32,7 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 	t.Run("GetByUser", func(t *testing.T) { testGroupStoreGetByUser(t, ss) })
 	t.Run("Update", func(t *testing.T) { testGroupStoreUpdate(t, ss) })
 	t.Run("Delete", func(t *testing.T) { testGroupStoreDelete(t, ss) })
-	t.Run("Undelete", func(t *testing.T) { testGroupStoreUndelete(t, ss) })
+	t.Run("Restore", func(t *testing.T) { testGroupStoreRestore(t, ss) })
 
 	t.Run("GetMemberUsers", func(t *testing.T) { testGroupGetMemberUsers(t, ss) })
 	t.Run("GetMemberUsersPage", func(t *testing.T) { testGroupGetMemberUsersPage(t, ss) })
@@ -740,7 +740,7 @@ func testGroupStoreDelete(t *testing.T, ss store.Store) {
 	require.True(t, errors.As(err, &nfErr))
 }
 
-func testGroupStoreUndelete(t *testing.T, ss store.Store) {
+func testGroupStoreRestore(t *testing.T, ss store.Store) {
 	// Save a group
 	g1 := &model.Group{
 		Name:        model.NewString(model.NewId()),
@@ -767,11 +767,11 @@ func testGroupStoreUndelete(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	beforeCount := len(d7)
 
-	// Undelete the group
-	_, err = ss.Group().Undelete(d1.Id)
+	// restore the group
+	_, err = ss.Group().Restore(d1.Id)
 	require.NoError(t, err)
 
-	// Check the group is undeleted
+	// Check the group is restored
 	d4, err := ss.Group().Get(d1.Id)
 	require.NoError(t, err)
 	require.Zero(t, d4.DeleteAt)
@@ -782,14 +782,14 @@ func testGroupStoreUndelete(t *testing.T, ss store.Store) {
 	afterCount := len(d5)
 	require.Condition(t, func() bool { return beforeCount == afterCount-1 })
 
-	// Try and undelete a nonexistent group
+	// Try and restore a nonexistent group
 	_, err = ss.Group().Delete(model.NewId())
 	require.Error(t, err)
 	var nfErr *store.ErrNotFound
 	require.True(t, errors.As(err, &nfErr))
 
-	// Cannot undelete again
-	_, err = ss.Group().Undelete(d1.Id)
+	// Cannot restore again
+	_, err = ss.Group().Restore(d1.Id)
 	require.True(t, errors.As(err, &nfErr))
 }
 
