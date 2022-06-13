@@ -64,7 +64,7 @@ func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, 
 		nil)
 	serverIfaceMock.On("GetPluginsEnvironment").Return(pluginEnv, nil)
 
-	serverIfaceMock.On("License").Return(model.NewTestLicense(), nil)
+	serverIfaceMock.On("License").Return(model.NewTestLicense("cloud"), nil)
 	serverIfaceMock.On("GetRoleByName", context.Background(), "system_admin").Return(&model.Role{Permissions: []string{"sa-test1", "sa-test2"}}, nil)
 	serverIfaceMock.On("GetRoleByName", context.Background(), "system_user").Return(&model.Role{Permissions: []string{"su-test1", "su-test2"}}, nil)
 	serverIfaceMock.On("GetRoleByName", context.Background(), "system_user_manager").Return(&model.Role{Permissions: []string{"sum-test1", "sum-test2"}}, nil)
@@ -145,9 +145,6 @@ func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, 
 	schemeStore.On("CountWithoutPermission", "channel", "use_channel_mentions", model.RoleScopeChannel, model.RoleTypeUser).Return(int64(11), nil)
 	schemeStore.On("CountWithoutPermission", "channel", "use_channel_mentions", model.RoleScopeChannel, model.RoleTypeGuest).Return(int64(12), nil)
 
-	fileInfoStore := storeMocks.FileInfoStore{}
-	fileInfoStore.On("GetStorageUsage", true, false).Return(int64(0), nil)
-
 	storeMock.On("System").Return(&systemStore)
 	storeMock.On("User").Return(&userStore)
 	storeMock.On("Team").Return(&teamStore)
@@ -157,7 +154,6 @@ func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, 
 	storeMock.On("Webhook").Return(&webhookStore)
 	storeMock.On("Group").Return(&groupStore)
 	storeMock.On("Scheme").Return(&schemeStore)
-	storeMock.On("FileInfo").Return(&fileInfoStore)
 
 	return serverIfaceMock, storeMock, func(t *testing.T) {
 		serverIfaceMock.AssertExpectations(t)
@@ -572,7 +568,12 @@ func TestRudderTelemetry(t *testing.T) {
 	const keyStorageBytes = "storage_bytes"
 
 	t.Run("SendDailyTelemetryCloud", func(t *testing.T) {
-		serverIfaceMock.On("License").Return(model.NewTestLicense("cloud"), nil)
+		fileInfoStore := storeMocks.FileInfoStore{}
+		fileInfoStore.On("GetStorageUsage", true, false).Return(int64(0), nil)
+		defer fileInfoStore.AssertExpectations(t)
+
+		storeMock.On("FileInfo").Return(&fileInfoStore)
+		serverIfaceMock.On("License").Return(model.NewTestLicense("cloud"))
 		telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg), testLogger)
 		telemetryService.sendDailyTelemetry(true)
 
@@ -582,13 +583,16 @@ func TestRudderTelemetry(t *testing.T) {
 		var activityEvent batch
 		var found bool
 		for _, batch := range batches {
+			if batch.Event != "" {
+		fmt.Printf("Expected to receive %q event, but received %q: %+v", TrackActivity, activityEvent.Event, activityEvent))
+			}
 			if batch.Event == TrackActivity {
 				activityEvent = batch
 				found = true
 				break
 			}
 		}
-		require.True(t, found, fmt.Sprintf("Expected to receive %q event, but received %q", TrackActivity, activityEvent.Event))
+		require.True(t, found, fmt.Sprintf("Expected to receive %q event, but received %q: %+v", TrackActivity, activityEvent.Event, activityEvent))
 
 		_, ok := activityEvent.Properties[keyStorageBytes]
 
