@@ -7,9 +7,8 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"io"
-	"net/http"
 	"net/http/httptest"
+	"net/http/httputil"
 	"net/url"
 	"os"
 	"strings"
@@ -96,7 +95,7 @@ func TestInsecureMakeBucket(t *testing.T) {
 
 	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
 
-	proxySelfSignedHTTPS := NewTLSProxyServer(&http.Client{}, &url.URL{Scheme: "http", Host: s3Endpoint})
+	proxySelfSignedHTTPS := newTLSProxyServer(&url.URL{Scheme: "http", Host: s3Endpoint})
 	defer proxySelfSignedHTTPS.Close()
 
 	enableInsecure, secure := true, false
@@ -144,35 +143,6 @@ func TestInsecureMakeBucket(t *testing.T) {
 		})
 	}
 }
-
-// adapted from https://gist.github.com/tjamet/8a3d9e3019045855137deadcf3318245
-func NewTLSProxyServer(client *http.Client, backend *url.URL) *httptest.Server {
-	return httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		req, err := http.NewRequest(r.Method, fmt.Sprintf("%s://%s", backend.Scheme, backend.Host), r.Body)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		req.Host = r.Host
-		req.URL.Opaque = r.URL.RequestURI()
-
-		for key, value := range r.Header {
-			req.Header[key] = value
-		}
-
-		resp, err := client.Do(req)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-		} else {
-			// Write the response back with all headers
-			for key, value := range resp.Header {
-				w.Header()[key] = value
-			}
-			w.WriteHeader(resp.StatusCode)
-			_, err = io.Copy(w, resp.Body)
-			if err != nil {
-				fmt.Println(err)
-			}
-		}
-	}))
+func newTLSProxyServer(backend *url.URL) *httptest.Server {
+	return httptest.NewTLSServer(httputil.NewSingleHostReverseProxy(backend))
 }
