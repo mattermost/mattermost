@@ -3,24 +3,47 @@
 
 package audit
 
-// Meta represents metadata that can be added to a audit record as name/value pairs.
-type Meta map[string]interface{}
-
-// FuncMetaTypeConv defines a function that can convert meta data types into something
-// that serializes well for audit records.
-type FuncMetaTypeConv func(val interface{}) (newVal interface{}, converted bool)
-
 // Record provides a consistent set of fields used for all audit logging.
 type Record struct {
-	APIPath   string
-	Event     string
-	Status    string
-	UserID    string
-	SessionID string
-	Client    string
-	IPAddress string
-	Meta      Meta
-	metaConv  []FuncMetaTypeConv
+	EventName string                 `json:"event_name"`
+	Status    string                 `json:"status"`
+	EventData EventData              `json:"event"`
+	Actor     EventActor             `json:"actor"`
+	Meta      map[string]interface{} `json:"meta"`
+	Error     EventError             `json:"error,omitempty"`
+}
+
+// EventData -- The new audit log schema proposes that all audit log events include
+// the EventData struct.
+type EventData struct {
+	Parameters  map[string]interface{} `json:"parameters"`      // Payload and parameters being processed as part of the request
+	PriorState  map[string]interface{} `json:"prior_state"`     // Prior state of the object being modified, nil if no prior state
+	ResultState map[string]interface{} `json:"resulting_state"` // Resulting object after creating or modifying it
+	ObjectType  string                 `json:"object_type"`     // String representation of the object type. eg. "post"
+}
+
+type EventActor struct {
+	UserId    string `json:"user_id"`
+	SessionId string `json:"session_id"`
+	Client    string `json:"client"`
+	IpAddress string `json:"ip_address"`
+}
+
+type EventMeta struct {
+	ApiPath   string `json:"api_path"`
+	ClusterId string `json:"cluster_id"`
+}
+
+type EventError struct {
+	Description string `json:"description,omitempty"`
+	Code        int    `json:"status_code,omitempty"`
+}
+
+// Auditable for sensitive object classes, consider implementing Auditable and include whatever the
+// AuditableObject returns. For example: it's likely OK to write a user object to the
+// audit logs, but not the user password in cleartext or hashed form
+type Auditable interface {
+	Auditable() map[string]interface{}
 }
 
 // Success marks the audit record status as successful.
@@ -28,32 +51,34 @@ func (rec *Record) Success() {
 	rec.Status = Success
 }
 
-// Success marks the audit record status as failed.
+// Fail marks the audit record status as failed.
 func (rec *Record) Fail() {
 	rec.Status = Fail
 }
 
-// AddMeta adds a single name/value pair to this audit record's metadata.
+func (rec *Record) AddEventParameter(key string, val interface{}) {
+	rec.EventData.Parameters[key] = val
+}
+func (rec *Record) AddEventPriorState(object Auditable) {
+	rec.EventData.PriorState = object.Auditable()
+}
+
+func (rec *Record) AddEventResultState(object Auditable) {
+	rec.EventData.ResultState = object.Auditable()
+}
+
+func (rec *Record) AddEventObjectType(objectType string) {
+	rec.EventData.ObjectType = objectType
+}
+
 func (rec *Record) AddMeta(name string, val interface{}) {
-	if rec.Meta == nil {
-		rec.Meta = Meta{}
-	}
-
-	// possibly convert val to something better suited for serializing
-	// via zero or more conversion functions.
-	var converted bool
-	for _, conv := range rec.metaConv {
-		val, converted = conv(val)
-		if converted {
-			break
-		}
-	}
-
 	rec.Meta[name] = val
 }
 
-// AddMetaTypeConverter adds a function capable of converting meta field types
-// into something more suitable for serialization.
-func (rec *Record) AddMetaTypeConverter(f FuncMetaTypeConv) {
-	rec.metaConv = append(rec.metaConv, f)
+func (rec *Record) AddErrorCode(code int) {
+	rec.Error.Code = code
+}
+
+func (rec *Record) AddErrorDesc(description string) {
+	rec.Error.Description = description
 }

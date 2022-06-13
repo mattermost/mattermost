@@ -16,13 +16,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
-const (
-	RestLevelID        = 240
-	RestContentLevelID = 241
-	RestPermsLevelID   = 242
-	CLILevelID         = 243
-)
-
 var (
 	LevelAPI     = mlog.LvlAuditAPI
 	LevelContent = mlog.LvlAuditContent
@@ -70,10 +63,10 @@ func (a *App) LogAuditRecWithLevel(rec *audit.Record, level mlog.Level, err erro
 	}
 	if err != nil {
 		if appErr, ok := err.(*model.AppError); ok {
-			rec.AddMeta("err", appErr.Error())
-			rec.AddMeta("code", appErr.StatusCode)
+			rec.AddErrorCode(appErr.StatusCode)
+			rec.AddErrorDesc(appErr.Error())
 		} else {
-			rec.AddMeta("err", err)
+			rec.AddErrorDesc(appErr.Error())
 		}
 		rec.Fail()
 	}
@@ -89,16 +82,25 @@ func (a *App) MakeAuditRecord(event string, initialStatus string) *audit.Record 
 	}
 
 	rec := &audit.Record{
-		APIPath:   "",
-		Event:     event,
+		EventName: event,
 		Status:    initialStatus,
-		UserID:    userID,
-		SessionID: "",
-		Client:    fmt.Sprintf("server %s-%s", model.BuildNumber, model.BuildHash),
-		IPAddress: "",
-		Meta:      audit.Meta{audit.KeyClusterID: a.GetClusterId()},
+		Meta: map[string]interface{}{
+			audit.KeyAPIPath:   "",
+			audit.KeyClusterID: a.GetClusterId(),
+		},
+		Actor: audit.EventActor{
+			UserId:    userID,
+			SessionId: "",
+			Client:    fmt.Sprintf("server %s-%s", model.BuildNumber, model.BuildHash),
+			IpAddress: "",
+		},
+		EventData: audit.EventData{
+			Parameters:  map[string]interface{}{},
+			PriorState:  map[string]interface{}{},
+			ResultState: map[string]interface{}{},
+			ObjectType:  "",
+		},
 	}
-	rec.AddMetaTypeConverter(model.AuditModelTypeConv)
 
 	return rec
 }
