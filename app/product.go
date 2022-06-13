@@ -6,6 +6,8 @@ package app
 import (
 	"fmt"
 	"strings"
+
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type Product interface {
@@ -77,4 +79,19 @@ func (s *Server) initializeProducts(
 	}
 
 	return nil
+}
+
+type logWrapper struct {
+	srv *Server
+}
+
+func (s *logWrapper) LogError(productID, msg string, keyValuePairs ...interface{}) {
+	s.srv.Log.Error(msg, mlog.String("product_id", productID), mlog.Map("key-value pairs", keyValuePairs))
+}
+
+func (s *logWrapper) LogWarn(productID, msg string, keyValuePairs ...interface{}) {
+	s.srv.Log.Warn(msg, mlog.String("product_id", productID), mlog.Map("key-value pairs", keyValuePairs))
+}
+func (s *logWrapper) LogDebug(productID, msg string, keyValuePairs ...interface{}) {
+	s.srv.Log.Debug(msg, mlog.String("product_id", productID), mlog.Map("key-value pairs", keyValuePairs))
 }
