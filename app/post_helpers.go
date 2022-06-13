@@ -4,7 +4,6 @@
 package app
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -40,14 +39,14 @@ func min(a, b int) int {
 	return b
 }
 
-// getPostAccessibleBounds returns what the boundaries for accessible and inaccessible posts.
+// getTimeSortedPostAccessibleBounds returns what the boundaries for accessible and inaccessible posts.
 // It assumes that CreateAt time for posts is monotonically increasing or decreasing.
 // It could be either because posts can be returned in ascending or descending time order.
 // Because it returns the boundaries, it is necessary to check whether the accessible or
 // inaccessible post index is greater, and do the filtering accordingly.
 // Special values (which can be checked with methods `allAccessible` and `allInaccessible`)
 // denote if all or none of the posts are accessible
-func getPostAccessibleBounds(postList *model.PostList, earliestAccessibleTime int64) postAccessibleBounds {
+func getTimeSortedPostAccessibleBounds(postList *model.PostList, earliestAccessibleTime int64) postAccessibleBounds {
 	if postList == nil || postList.Posts == nil || len(postList.Posts) == 0 {
 		return allAccessiblePosts
 	}
@@ -91,7 +90,6 @@ func getPostAccessibleBounds(postList *model.PostList, earliestAccessibleTime in
 	for {
 		distance := getDistance(accessible, inaccessible)
 		if distance == 1 {
-			fmt.Printf("\n")
 			break
 		}
 		guess := min(accessible, inaccessible) + distance/2
@@ -119,7 +117,7 @@ func (a *App) filterInaccessiblePosts(postList *model.PostList) *model.AppError 
 		return nil
 	}
 
-	bounds := getPostAccessibleBounds(postList, lastAccessiblePostTime)
+	bounds := getTimeSortedPostAccessibleBounds(postList, lastAccessiblePostTime)
 	if bounds.allAccessible() {
 		return nil
 	}
@@ -136,18 +134,18 @@ func (a *App) filterInaccessiblePosts(postList *model.PostList) *model.AppError 
 	var otherInaccessibleBound int
 	var otherAccessibleBound int
 	if bounds.accessible > bounds.inaccessible {
-		otherInaccessibleBound = len(postList.Order) - 1
-		otherAccessibleBound = 0
-	} else {
 		otherInaccessibleBound = 0
 		otherAccessibleBound = len(postList.Order) - 1
+	} else {
+		otherInaccessibleBound = len(postList.Order) - 1
+		otherAccessibleBound = 0
 	}
 	order := postList.Order
 	for i := min(bounds.inaccessible, otherInaccessibleBound); i <= maxInt(bounds.inaccessible, otherInaccessibleBound); i++ {
 		delete(postList.Posts, order[i])
 	}
 
-	postList.Order = postList.Order[min(bounds.accessible, otherAccessibleBound):maxInt(bounds.accessible, otherAccessibleBound)]
+	postList.Order = postList.Order[min(bounds.accessible, otherAccessibleBound) : maxInt(bounds.accessible, otherAccessibleBound)+1]
 
 	return nil
 }
