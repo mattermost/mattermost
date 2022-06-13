@@ -401,7 +401,7 @@ modules-tidy:
 	@if [ -f "imports/imports.go" ]; then \
 		mv imports/imports.go imports/imports.go.orig; \
 	fi;
-	$(GO) mod tidy
+	-$(GO) mod tidy
 	@if [ -f "imports/imports.go.orig" ]; then \
 		mv imports/imports.go.orig imports/imports.go; \
 	fi;
