@@ -733,7 +733,7 @@ func testFileInfoGetStorageUsage(t *testing.T, ss store.Store) {
 
 	usage, err := ss.FileInfo().GetStorageUsage(false, false)
 	require.NoError(t, err)
-	require.Equal(t, int64(1), usage)
+	require.Equal(t, int64(0), usage)
 
 	f1, err := ss.FileInfo().Save(&model.FileInfo{
 		PostId:    model.NewId(),
