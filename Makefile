@@ -394,9 +394,13 @@ gomodtidy:
 	@rm go.*.orig;
 
 modules-tidy:
-	@mv imports/imports.go imports/imports.go.orig
+	@if [ -f "imports/imports.go" ]; then \
+		mv imports/imports.go imports/imports.go.orig; \
+	fi;
 	$(GO) mod tidy
-	@mv imports/imports.go.orig imports/imports.go
+	@if [ -f "imports/imports.go.orig" ]; then \
+		mv imports/imports.go.orig imports/imports.go; \
+	fi;
 
 
 test-server-pre: check-prereqs-enterprise start-docker go-junit-report do-cover-file ## Runs tests.
