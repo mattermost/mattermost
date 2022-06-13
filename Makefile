@@ -182,6 +182,11 @@ ifneq ("$(wildcard ./docker-compose.override.yaml)","")
   DOCKER_COMPOSE_OVERRIDE=-f docker-compose.override.yaml
 endif
 
+ifeq ($(M1_MAC),true)
+  $(info M1 detected, applying elasticsearch override)
+  DOCKER_COMPOSE_OVERRIDE := -f docker-compose.makefile.yml $(DOCKER_COMPOSE_OVERRIDE)
+endif
+
 ifneq ($(DOCKER_SERVICES_OVERRIDE),true)
   ifeq (,$(findstring minio,$(ENABLED_DOCKER_SERVICES)))
     TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) minio
@@ -191,11 +196,7 @@ ifneq ($(DOCKER_SERVICES_OVERRIDE),true)
       TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) openldap
     endif
     ifeq (,$(findstring elasticsearch,$(ENABLED_DOCKER_SERVICES)))
-	  ifneq ($(M1_MAC),true)
-        TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) elasticsearch
-	  else
-	    $(info M1 Mac detected, not launching Elasticsearch automatically)
-	  endif
+      TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) elasticsearch
 	endif
   endif
   ENABLED_DOCKER_SERVICES:=$(ENABLED_DOCKER_SERVICES) $(TEMP_DOCKER_SERVICES)
