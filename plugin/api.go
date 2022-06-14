@@ -820,6 +820,13 @@ type API interface {
 	// Minimum server version: 5.6
 	UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError)
 
+	// UploadFileFromReader will upload a file from an io.Reader, to a channel using a multipart request, to be later attached to a post.
+	//
+	// @tag File
+	// @tag Channel
+	// Minimum server version: 7.1
+	UploadFileFromReader(reader io.Reader, channelId string, filename string) (*model.FileInfo, *model.AppError)
+
 	// OpenInteractiveDialog will open an interactive dialog on a user's client that
 	// generated the trigger ID. Used with interactive message buttons, menus
 	// and slash commands.

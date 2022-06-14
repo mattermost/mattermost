@@ -8,6 +8,7 @@ package plugin
 
 import (
 	"fmt"
+	"io"
 	"log"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -4381,6 +4382,37 @@ func (s *apiRPCServer) UploadFile(args *Z_UploadFileArgs, returns *Z_UploadFileR
 		returns.A, returns.B = hook.UploadFile(args.A, args.B, args.C)
 	} else {
 		return encodableError(fmt.Errorf("API UploadFile called but not implemented."))
+	}
+	return nil
+}
+
+type Z_UploadFileFromReaderArgs struct {
+	A io.Reader
+	B string
+	C string
+}
+
+type Z_UploadFileFromReaderReturns struct {
+	A *model.FileInfo
+	B *model.AppError
+}
+
+func (g *apiRPCClient) UploadFileFromReader(reader io.Reader, channelId string, filename string) (*model.FileInfo, *model.AppError) {
+	_args := &Z_UploadFileFromReaderArgs{reader, channelId, filename}
+	_returns := &Z_UploadFileFromReaderReturns{}
+	if err := g.client.Call("Plugin.UploadFileFromReader", _args, _returns); err != nil {
+		log.Printf("RPC call to UploadFileFromReader API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) UploadFileFromReader(args *Z_UploadFileFromReaderArgs, returns *Z_UploadFileFromReaderReturns) error {
+	if hook, ok := s.impl.(interface {
+		UploadFileFromReader(reader io.Reader, channelId string, filename string) (*model.FileInfo, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.UploadFileFromReader(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API UploadFileFromReader called but not implemented."))
 	}
 	return nil
 }

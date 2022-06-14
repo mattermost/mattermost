@@ -895,6 +895,13 @@ func (api *apiTimerLayer) UploadFile(data []byte, channelId string, filename str
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) UploadFileFromReader(reader io.Reader, channelId string, filename string) (*model.FileInfo, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UploadFileFromReader(reader, channelId, filename)
+	api.recordTime(startTime, "UploadFileFromReader", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.OpenInteractiveDialog(dialog)

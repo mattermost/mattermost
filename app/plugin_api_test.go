@@ -1372,6 +1372,41 @@ func TestPluginCreatePostWithUploadedFile(t *testing.T) {
 	assert.Equal(t, model.StringArray{fileInfo.Id}, actualPost.FileIds)
 }
 
+func TestPluginCreatePostWithUploadedFileFromReader(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	data := []byte("Hello World")
+	reader := bytes.NewReader(data)
+	channelID := th.BasicChannel.Id
+	filename := "testGetFile"
+	fileInfo, err := api.UploadFileFromReader(reader, channelID, filename)
+	require.Nil(t, err)
+	defer func() {
+		th.App.Srv().Store.FileInfo().PermanentDelete(fileInfo.Id)
+		th.App.RemoveFile(fileInfo.Path)
+	}()
+
+	actualData, err := api.GetFile(fileInfo.Id)
+	require.Nil(t, err)
+	assert.Equal(t, data, actualData)
+
+	userID := th.BasicUser.Id
+	post, err := api.CreatePost(&model.Post{
+		Message:   "test",
+		UserId:    userID,
+		ChannelId: channelID,
+		FileIds:   model.StringArray{fileInfo.Id},
+	})
+	require.Nil(t, err)
+	assert.Equal(t, model.StringArray{fileInfo.Id}, post.FileIds)
+
+	actualPost, err := api.GetPost(post.Id)
+	require.Nil(t, err)
+	assert.Equal(t, model.StringArray{fileInfo.Id}, actualPost.FileIds)
+}
+
 func TestPluginAPIGetConfig(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()

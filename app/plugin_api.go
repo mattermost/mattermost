@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -757,6 +758,13 @@ func (api *PluginAPI) GetFile(fileID string) ([]byte, *model.AppError) {
 
 func (api *PluginAPI) UploadFile(data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
 	return api.app.UploadFile(api.ctx, data, channelID, filename)
+}
+
+func (api *PluginAPI) UploadFileFromReader(reader io.Reader, channelID string, filename string) (*model.FileInfo, *model.AppError) {
+	return api.app.UploadFileX(api.ctx, channelID, filename, reader,
+		UploadFileSetUserId("nouser"),
+		UploadFileSetTimestamp(time.Now()),
+	)
 }
 
 func (api *PluginAPI) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {

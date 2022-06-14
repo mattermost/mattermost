@@ -3683,3 +3683,28 @@ func (_m *API) UploadFile(data []byte, channelId string, filename string) (*mode
 
 	return r0, r1
 }
+
+// UploadFileFromReader provides a mock function with given fields: reader, channelId, filename
+func (_m *API) UploadFileFromReader(reader io.Reader, channelId string, filename string) (*model.FileInfo, *model.AppError) {
+	ret := _m.Called(reader, channelId, filename)
+
+	var r0 *model.FileInfo
+	if rf, ok := ret.Get(0).(func(io.Reader, string, string) *model.FileInfo); ok {
+		r0 = rf(reader, channelId, filename)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.FileInfo)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(io.Reader, string, string) *model.AppError); ok {
+		r1 = rf(reader, channelId, filename)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
