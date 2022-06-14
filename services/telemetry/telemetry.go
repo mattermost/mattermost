@@ -898,7 +898,7 @@ func (ts *TelemetryService) trackPlugins() {
 				if plugin.Manifest.HasWebapp() {
 					webappDisabledCount += 1
 				}
-				if _, isCorePlugin := model.InstalledIntegrationsIgnoredPlugins[plugin.Id]; isCorePlugin {
+				if _, isCorePlugin := model.InstalledIntegrationsIgnoredPlugins[plugin.Manifest.Id]; isCorePlugin {
 					totalCoreDisabledCount += 1
 				}
 			}
