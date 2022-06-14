@@ -9349,17 +9349,5 @@
   {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",
     "translation": "Ungültig Decoder Nebenläufigkeit {{.Value}}. Sollte eine positive Zahl oder -1 sein."
-  },
-  {
-    "id": "app.channel.get_post_count_by_day.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.license_error.professional_or_enterprise",
-    "translation": " "
-  },
-  {
-    "id": "api.authorization_error.guest",
-    "translation": " "
   }
 ]
