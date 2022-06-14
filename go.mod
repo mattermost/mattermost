@@ -185,7 +185,5 @@ require (
 exclude (
 	github.com/RoaringBitmap/roaring v0.7.0
 	github.com/RoaringBitmap/roaring v0.7.1
-	github.com/splitio/go-client/v6 v6.1.0
-	github.com/splitio/go-split-commons/v3 v3.1.0
 	github.com/willf/bitset v1.2.0
 )
