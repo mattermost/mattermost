@@ -3320,10 +3320,6 @@
     "translation": "Az Elasticsearch le van tiltva."
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Az Elasticsearch szerverhez való csatlakozás nem sikerült."
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Az Elasticsearch már leállt."
   },

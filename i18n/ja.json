@@ -3152,10 +3152,6 @@
     "translation": "Elasticsearchは既に停止されています。"
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Elasticsearchサーバーへ接続できませんでした。"
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearchは無効です。"
   },
@@ -9214,10 +9210,6 @@
   {
     "id": "model.member.is_valid.channel.app_error",
     "translation": "チャンネル名が有効ではありません"
-  },
-  {
-    "id": "model.insights.time_range.app_error",
-    "translation": " "
   },
   {
     "id": "model.channel.is_valid.1_or_more.app_error",

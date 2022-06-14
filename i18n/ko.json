@@ -3152,10 +3152,6 @@
     "translation": "Elasticsearch가 이미 중지되었습니다."
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Elasticsearch 서버에 연결하지 못했습니다."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch가 비활성화되어 있습니다."
   },
