@@ -525,21 +525,22 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.SendTelemetry(TrackConfigFile, map[string]interface{}{
-		"enable_public_links":     cfg.FileSettings.EnablePublicLink,
-		"driver_name":             *cfg.FileSettings.DriverName,
-		"isdefault_directory":     isDefault(*cfg.FileSettings.Directory, model.FileSettingsDefaultDirectory),
-		"isabsolute_directory":    filepath.IsAbs(*cfg.FileSettings.Directory),
-		"extract_content":         *cfg.FileSettings.ExtractContent,
-		"archive_recursion":       *cfg.FileSettings.ArchiveRecursion,
-		"amazon_s3_ssl":           *cfg.FileSettings.AmazonS3SSL,
-		"amazon_s3_sse":           *cfg.FileSettings.AmazonS3SSE,
-		"amazon_s3_signv2":        *cfg.FileSettings.AmazonS3SignV2,
-		"amazon_s3_trace":         *cfg.FileSettings.AmazonS3Trace,
-		"max_file_size":           *cfg.FileSettings.MaxFileSize,
-		"max_image_resolution":    *cfg.FileSettings.MaxImageResolution,
-		"enable_file_attachments": *cfg.FileSettings.EnableFileAttachments,
-		"enable_mobile_upload":    *cfg.FileSettings.EnableMobileUpload,
-		"enable_mobile_download":  *cfg.FileSettings.EnableMobileDownload,
+		"enable_public_links":           cfg.FileSettings.EnablePublicLink,
+		"driver_name":                   *cfg.FileSettings.DriverName,
+		"isdefault_directory":           isDefault(*cfg.FileSettings.Directory, model.FileSettingsDefaultDirectory),
+		"isabsolute_directory":          filepath.IsAbs(*cfg.FileSettings.Directory),
+		"extract_content":               *cfg.FileSettings.ExtractContent,
+		"archive_recursion":             *cfg.FileSettings.ArchiveRecursion,
+		"amazon_s3_ssl":                 *cfg.FileSettings.AmazonS3SSL,
+		"amazon_s3_sse":                 *cfg.FileSettings.AmazonS3SSE,
+		"amazon_s3_signv2":              *cfg.FileSettings.AmazonS3SignV2,
+		"amazon_s3_trace":               *cfg.FileSettings.AmazonS3Trace,
+		"max_file_size":                 *cfg.FileSettings.MaxFileSize,
+		"max_image_resolution":          *cfg.FileSettings.MaxImageResolution,
+		"max_image_decoder_concurrency": *cfg.FileSettings.MaxImageDecoderConcurrency,
+		"enable_file_attachments":       *cfg.FileSettings.EnableFileAttachments,
+		"enable_mobile_upload":          *cfg.FileSettings.EnableMobileUpload,
+		"enable_mobile_download":        *cfg.FileSettings.EnableMobileDownload,
 	})
 
 	ts.SendTelemetry(TrackConfigEmail, map[string]interface{}{

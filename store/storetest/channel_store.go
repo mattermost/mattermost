@@ -148,6 +148,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("UpdateSidebarChannelsByPreferences", func(t *testing.T) { testUpdateSidebarChannelsByPreferences(t, ss) })
 	t.Run("SetShared", func(t *testing.T) { testSetShared(t, ss) })
 	t.Run("GetTeamForChannel", func(t *testing.T) { testGetTeamForChannel(t, ss) })
+	t.Run("PostCountsByDuration", func(t *testing.T) { testChannelPostCountsByDuration(t, ss) })
 }
 
 func testChannelStoreSave(t *testing.T, ss store.Store) {
@@ -7903,4 +7904,39 @@ func testGetTeamForChannel(t *testing.T, ss store.Store) {
 	_, err = ss.Channel().GetTeamForChannel("notfound")
 	var nfErr *store.ErrNotFound
 	require.True(t, errors.As(err, &nfErr))
+}
+
+func testChannelPostCountsByDuration(t *testing.T, ss store.Store) {
+	team, err := ss.Team().Save(&model.Team{
+		Name:        model.NewId(),
+		DisplayName: "DisplayName",
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+	defer func() { ss.Team().PermanentDelete(team.Id) }()
+
+	channel := &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "test_share_flag",
+		Name:        "test_share_flag",
+		Type:        model.ChannelTypeOpen,
+	}
+	channelSaved, err := ss.Channel().Save(channel, 999)
+	require.NoError(t, err)
+	defer func() { ss.Channel().PermanentDelete(channelSaved.Id) }()
+
+	userID := model.NewId()
+	_, err = ss.Post().Save(&model.Post{
+		UserId:    userID,
+		ChannelId: channel.Id,
+		Message:   "test",
+	})
+	require.NoError(t, err)
+
+	dpc, err := ss.Channel().PostCountsByDuration([]string{channelSaved.Id}, 0, &userID, model.PostsByDay, time.Now().Location())
+	require.NoError(t, err)
+	require.Len(t, dpc, 1)
+	require.Equal(t, channel.Id, dpc[0].ChannelID)
+	require.Equal(t, 1, dpc[0].PostCount)
 }

@@ -13,6 +13,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
+	"github.com/dyatlov/go-opengraph/opengraph/types/image"
 )
 
 const (
@@ -50,7 +51,7 @@ func truncateText(original string) string {
 	return original
 }
 
-func firstNImages(images []*opengraph.Image, maxImages int) []*opengraph.Image {
+func firstNImages(images []*image.Image, maxImages int) []*image.Image {
 	if maxImages < 0 { // don't break stuff, if it's weird, go for sane defaults
 		maxImages = LinkMetadataMaxImages
 	}
