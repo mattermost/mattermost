@@ -9345,5 +9345,9 @@
   {
     "id": "app.usage.get_storage_usage.app_error",
     "translation": "Fehler beim Ermitteln des Speicherverbrauchs."
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Ungültig Decoder Nebenläufigkeit {{.Value}}. Sollte eine positive Zahl oder -1 sein."
   }
 ]
