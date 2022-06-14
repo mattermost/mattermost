@@ -5,7 +5,6 @@ package telemetry
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -353,16 +352,10 @@ func (ts *TelemetryService) trackActivity() {
 		"outgoing_webhooks":            outgoingWebhooksCount,
 	}
 
-	mlog.Warn("DOING TELEMETRY")
-	fmt.Printf("LICENSE %+v\n", *ts.srv.License().Features.Cloud)
 	if license := ts.srv.License(); license != nil && license.Features.Cloud != nil && *license.Features.Cloud {
-		mlog.Warn("HAS CLOUD LICENSE")
 		var tmpStorage int64
 		if usage, err := ts.dbStore.FileInfo().GetStorageUsage(true, false); err == nil {
-			mlog.Warn("HAS CLOUD USAGE")
 			tmpStorage = usage
-		} else {
-			mlog.Warn("ERR CLOUD USAGE", mlog.Err(err))
 		}
 		activity["storage_bytes"] = utils.RoundOffToZeroes(float64(tmpStorage))
 	}
