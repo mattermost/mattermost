@@ -6908,7 +6908,11 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
+<<<<<<< HEAD
     "translation": "A {{.WorkSpace}} munkaterület 30 napos próbaverziója készen áll a használatra!"
+=======
+    "translation": "A munkaterülete készen áll a használatra!"
+>>>>>>> 2e9495137 (Translated using Weblate (Hungarian))
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -9306,5 +9310,9 @@
   {
     "id": "api.cloud.teams_limit_reached.create",
     "translation": "Nem lehet csapatot létrehozni, mert a csapatok száma elérte a korlátot"
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Érvénytelen dekódoló párhuzamosság {{.Value}}. Pozitív számnak vagy -1-nek kell lennie."
   }
 ]
