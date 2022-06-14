@@ -9227,10 +9227,6 @@
     "translation": "Kanaalnaam is ongeldig"
   },
   {
-    "id": "model.insights.time_range.app_error",
-    "translation": " "
-  },
-  {
     "id": "model.channel.is_valid.1_or_more.app_error",
     "translation": "De naam moet 1 of meer alfanumerieke tekens in kleine letters bevatten."
   },

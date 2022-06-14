@@ -9255,10 +9255,6 @@
     "translation": "Kanal adı geçersiz"
   },
   {
-    "id": "model.insights.time_range.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.user.update_thread_read_for_user_by_post.app_error",
     "translation": "Post_id geçersiz"
   },

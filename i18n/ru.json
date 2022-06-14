@@ -9248,10 +9248,6 @@
     "translation": "Недопустимое название канала"
   },
   {
-    "id": "model.insights.time_range.app_error",
-    "translation": " "
-  },
-  {
     "id": "model.channel.is_valid.1_or_more.app_error",
     "translation": "Имя должно состоять из 1 или более строчных буквенно-цифровых символов."
   },

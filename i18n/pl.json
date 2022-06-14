@@ -9236,10 +9236,6 @@
     "translation": "Nazwa kanału jest nieprawidłowa"
   },
   {
-    "id": "model.insights.time_range.app_error",
-    "translation": " "
-  },
-  {
     "id": "model.channel.is_valid.1_or_more.app_error",
     "translation": "Nazwa musi być złożona z co najmniej 1 lub więcej małych znaków alfanumerycznych."
   },
