@@ -188,6 +188,10 @@
     "translation": "Unable to upload file. File is too large."
   },
   {
+    "id": "api.authorization_error.guest",
+    "translation": " "
+  },
+  {
     "id": "api.back_to_app",
     "translation": "Back to {{.SiteName}}"
   },
@@ -2054,6 +2058,10 @@
     "translation": "api endpoint requires a license"
   },
   {
+    "id": "api.license_error.professional_or_enterprise",
+    "translation": " "
+  },
+  {
     "id": "api.marshal_error",
     "translation": "Failed to marshal."
   },
@@ -3237,7 +3245,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Your 30-day trial of the {{.WorkSpace}} workspace is ready to go!"
+    "translation": "Your workspace is ready to go!"
   },
   {
     "id": "api.templates.copyright",
@@ -4530,6 +4538,10 @@
   {
     "id": "app.channel.get_pinnedpost_count.app_error",
     "translation": "Unable to get the channel pinned post count."
+  },
+  {
+    "id": "app.channel.get_post_count_by_day.app_error",
+    "translation": " "
   },
   {
     "id": "app.channel.get_private_channels.get.app_error",
@@ -7244,10 +7256,6 @@
     "translation": "Elasticsearch is already stopped."
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Connecting to Elasticsearch server failed."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch is disabled."
   },
@@ -8100,6 +8108,10 @@
     "translation": "Invalid group unread channels for service settings. Must be 'disabled', 'default_on', or 'default_off'."
   },
   {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Invalid decoder concurrency {{.Value}}. Should be a positive number or -1."
+  },
+  {
     "id": "model.config.is_valid.image_proxy_type.app_error",
     "translation": "Invalid image proxy type. Must be 'local' or 'atmos/camo'."
   },
@@ -8530,10 +8542,6 @@
   {
     "id": "model.incoming_hook.username.app_error",
     "translation": "Invalid username."
-  },
-  {
-    "id": "model.insights.time_range.app_error",
-    "translation": " "
   },
   {
     "id": "model.job.is_valid.create_at.app_error",

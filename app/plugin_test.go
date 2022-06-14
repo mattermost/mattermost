@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -1025,8 +1026,26 @@ func TestEnablePluginWithCloudLimits(t *testing.T) {
 	checkError(t, appErr)
 	require.Equal(t, "app.install_integration.reached_max_limit.error", appErr.Id)
 
+	th.App.Srv().RemoveLicense()
+	appErr = th.App.EnablePlugin("testplugin2")
+	checkNoError(t, appErr)
+	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+	appErr = th.App.EnablePlugin("testplugin2")
+	checkError(t, appErr)
+
 	os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
 	th.App.ReloadConfig()
+	appErr = th.App.EnablePlugin("testplugin2")
+	checkNoError(t, appErr)
+	os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
+	th.App.ReloadConfig()
+	appErr = th.App.EnablePlugin("testplugin2")
+	checkError(t, appErr)
+
+	// Let enable succeed if a CWS error occurs
+	cloud = &mocks.CloudInterface{}
+	th.App.Srv().Cloud = cloud
+	cloud.Mock.On("GetCloudLimits", mock.Anything).Return(nil, errors.New("error getting limits"))
 
 	appErr = th.App.EnablePlugin("testplugin2")
 	checkNoError(t, appErr)
@@ -1053,7 +1072,7 @@ func TestGetPluginStateOverride(t *testing.T) {
 			os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
 			defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
 			overrides, value := th.App.ch.getPluginStateOverride("com.mattermost.calls")
-			require.True(t, overrides)
+			require.False(t, overrides)
 			require.False(t, value)
 		})
 
@@ -1067,13 +1086,25 @@ func TestGetPluginStateOverride(t *testing.T) {
 			defer th2.TearDown()
 
 			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.calls")
-			require.True(t, overrides)
-			require.True(t, value)
+			require.False(t, overrides)
+			require.False(t, value)
 		})
 
 		t.Run("Cloud, with enabled flag set to false", func(t *testing.T) {
 			os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
 			defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
+			os.Setenv("MM_FEATUREFLAGS_CALLSENABLED", "false")
+			defer os.Unsetenv("MM_FEATUREFLAGS_CALLSENABLED")
+
+			th2 := Setup(t)
+			defer th2.TearDown()
+
+			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.calls")
+			require.True(t, overrides)
+			require.False(t, value)
+		})
+
+		t.Run("On-prem, with enabled flag set to false", func(t *testing.T) {
 			os.Setenv("MM_FEATUREFLAGS_CALLSENABLED", "false")
 			defer os.Unsetenv("MM_FEATUREFLAGS_CALLSENABLED")
 

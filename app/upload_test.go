@@ -270,7 +270,7 @@ func TestUploadDataConcurrent(t *testing.T) {
 			}
 			u := *us
 			_, err := th.App.UploadData(th.Context, &u, rd)
-			if err != nil && err.Id == "app.upload.upload_data.concurrent.app_error" {
+			if err != nil {
 				atomic.AddInt32(&nErrs, 1)
 			}
 		}()
@@ -294,7 +294,7 @@ func TestUploadDataConcurrent(t *testing.T) {
 			u := *us
 			u.FileOffset = 5 * 1024 * 1024
 			_, err := th.App.UploadData(th.Context, &u, rd)
-			if err != nil && err.Id == "app.upload.upload_data.concurrent.app_error" {
+			if err != nil {
 				atomic.AddInt32(&nErrs, 1)
 			}
 		}()
