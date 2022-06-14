@@ -881,7 +881,6 @@ func (ts *TelemetryService) trackPlugins() {
 				continue
 			}
 
-			// check here
 			if state, ok := pluginStates[plugin.Manifest.Id]; ok && state.Enable {
 				totalEnabledCount += 1
 				if plugin.Manifest.HasServer() {
