@@ -17,6 +17,7 @@ import (
 	"sync"
 
 	"github.com/blang/semver"
+	"github.com/gorilla/mux"
 	svg "github.com/h2non/go-is-svg"
 	"github.com/pkg/errors"
 
@@ -35,6 +36,28 @@ type pluginSignaturePath struct {
 	pluginID      string
 	path          string
 	signaturePath string
+}
+
+type routerService struct {
+	mu        sync.Mutex
+	routerMap map[string]*mux.Router
+}
+
+func newRouterService() *routerService {
+	return &routerService{
+		routerMap: make(map[string]*mux.Router),
+	}
+}
+
+func (rs *routerService) RegisterRouter(productID string, sub *mux.Router) {
+	rs.mu.Lock()
+	defer rs.mu.Unlock()
+	rs.routerMap[productID] = sub
+}
+
+func (rs *routerService) getHandler(productID string) (http.Handler, bool) {
+	handler, ok := rs.routerMap[productID]
+	return handler, ok
 }
 
 // GetPluginsEnvironment returns the plugin environment for use if plugins are enabled and
@@ -1098,8 +1121,8 @@ func (ch *Channels) getPluginStateOverride(pluginID string) (bool, bool) {
 			return true, false
 		}
 	case model.PluginIdCalls:
-		if model.IsCloud() {
-			return true, ch.cfgSvc.Config().FeatureFlags.CallsEnabled
+		if !ch.cfgSvc.Config().FeatureFlags.CallsEnabled {
+			return true, false
 		}
 	}
 
