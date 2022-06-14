@@ -9235,10 +9235,6 @@
     "translation": "Kanalname ist ungülitg"
   },
   {
-    "id": "model.insights.time_range.app_error",
-    "translation": " "
-  },
-  {
     "id": "model.channel.is_valid.1_or_more.app_error",
     "translation": "Name muss aus einem oder mehreren alphanummerischen Kleinbuchstaben bestehen."
   },
