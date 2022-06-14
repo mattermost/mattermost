@@ -6,7 +6,7 @@ require (
 	code.sajari.com/docconv v1.2.0
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/avct/uasurfer v0.0.0-20191028135549-26b5daa857f1
-	github.com/aws/aws-sdk-go v1.44.32
+	github.com/aws/aws-sdk-go v1.44.33
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/blevesearch/bleve/v2 v2.3.2
 	github.com/cespare/xxhash/v2 v2.1.2
@@ -42,7 +42,7 @@ require (
 	github.com/mattermost/squirrel v0.2.0
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/microcosm-cc/bluemonday v1.0.18
-	github.com/minio/minio-go/v7 v7.0.27
+	github.com/minio/minio-go/v7 v7.0.28
 	github.com/oov/psd v0.0.0-20220121172623-5db5eafcecbb
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pborman/uuid v1.2.1
@@ -52,7 +52,7 @@ require (
 	github.com/rudderlabs/analytics-go v3.3.2+incompatible
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/spf13/cobra v1.4.0
-	github.com/splitio/go-client/v6 v6.1.0
+	github.com/splitio/go-client/v6 v6.1.5
 	github.com/stretchr/testify v1.7.2
 	github.com/throttled/throttled v2.2.5+incompatible
 	github.com/tinylib/msgp v1.1.6
@@ -62,10 +62,10 @@ require (
 	github.com/wiggin77/merror v1.0.3
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
 	github.com/yuin/goldmark v1.4.12
-	golang.org/x/crypto v0.0.0-20220507011949-2cf3adece122
-	golang.org/x/image v0.0.0-20220413100746-70e8d0d3baa9
-	golang.org/x/net v0.0.0-20220520000938-2e3eb7b945c2
-	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
+	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
+	golang.org/x/image v0.0.0-20220601225756-64ec528b34cd
+	golang.org/x/net v0.0.0-20220607020251-c690dde0001d
+	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
 	golang.org/x/text v0.3.7
 	golang.org/x/tools v0.1.11
 	gopkg.in/mail.v2 v2.3.1
@@ -76,7 +76,7 @@ require (
 	github.com/HdrHistogram/hdrhistogram-go v0.9.0 // indirect
 	github.com/JalfResi/justext v0.0.0-20170829062021-c0282dea7198 // indirect
 	github.com/PuerkitoBio/goquery v1.8.0 // indirect
-	github.com/RoaringBitmap/roaring v1.2.0 // indirect
+	github.com/RoaringBitmap/roaring v1.2.1 // indirect
 	github.com/advancedlogic/GoOse v0.0.0-20210820140952-9d5822d4a625 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/andybalholm/cascadia v1.3.1 // indirect
@@ -120,7 +120,7 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.15.6 // indirect
-	github.com/klauspost/cpuid/v2 v2.0.12 // indirect
+	github.com/klauspost/cpuid/v2 v2.0.13 // indirect
 	github.com/klauspost/pgzip v1.2.5 // indirect
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
@@ -153,8 +153,8 @@ require (
 	github.com/segmentio/backo-go v0.0.0-20200129164019-23eae7c10bd3 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/splitio/go-split-commons/v3 v3.1.0 // indirect
-	github.com/splitio/go-toolkit/v4 v4.2.0 // indirect
+	github.com/splitio/go-split-commons/v4 v4.0.5 // indirect
+	github.com/splitio/go-toolkit/v5 v5.2.0 // indirect
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
 	github.com/stretchr/objx v0.4.0 // indirect
 	github.com/tidwall/gjson v1.14.1 // indirect
@@ -167,7 +167,7 @@ require (
 	go.etcd.io/bbolt v1.3.6 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
-	golang.org/x/sys v0.0.0-20220608164250-635b8c9b7f68 // indirect
+	golang.org/x/sys v0.0.0-20220610221304-9f5ed59c137d // indirect
 	golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f // indirect
 	google.golang.org/genproto v0.0.0-20220608133413-ed9918b62aac // indirect
 	google.golang.org/grpc v1.47.0 // indirect
@@ -185,5 +185,7 @@ require (
 exclude (
 	github.com/RoaringBitmap/roaring v0.7.0
 	github.com/RoaringBitmap/roaring v0.7.1
+	github.com/splitio/go-client/v6 v6.1.0
+	github.com/splitio/go-split-commons/v3 v3.1.0
 	github.com/willf/bitset v1.2.0
 )
