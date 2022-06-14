@@ -284,7 +284,7 @@ func Test_requestTrial(t *testing.T) {
 }
 
 func TestNotifyAdminToUpgrade(t *testing.T) {
-	t.Run("user can only notify admin once", func(t *testing.T) {
+	t.Run("user can only notify admin once in cool off period", func(t *testing.T) {
 		th := Setup(t).InitBasic().InitLogin()
 		defer th.TearDown()
 
@@ -298,7 +298,7 @@ func TestNotifyAdminToUpgrade(t *testing.T) {
 		channel, err := th.App.Srv().Store.Channel().GetByName("", model.GetDMNameFromIds(bot.UserId, th.SystemAdminUser.Id), false)
 		require.NoError(t, err)
 
-		postList, err := th.App.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false)
+		postList, err := th.App.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
 		require.NoError(t, err)
 
 		require.Equal(t, len(postList.Order), 1)

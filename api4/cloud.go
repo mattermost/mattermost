@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/audit"
@@ -53,7 +54,11 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/notify-admin-to-upgrade", api.APISessionRequired(handleNotifyAdminToUpgrade)).Methods("POST")
 }
 
+var notifyLock sync.Mutex
+
 func handleNotifyAdminToUpgrade(c *Context, w http.ResponseWriter, r *http.Request) {
+	notifyLock.Lock()
+	defer notifyLock.Unlock()
 	var notifyAdminRequest *model.NotifyAdminToUpgradeRequest
 	err := json.NewDecoder(r.Body).Decode(&notifyAdminRequest)
 	if err != nil {

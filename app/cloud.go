@@ -24,19 +24,19 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID 
 		mlog.Error("Unable to get NOTIFIED_ADMIN_TO_UPGRADE", mlog.Err(err))
 	}
 
-	alprnu := &model.AlreadyCloudNotifiedAdminUsersInfo{
+	alreadyNotifiedUsersInfo := &model.AlreadyCloudNotifiedAdminUsersInfo{
 		Info: make([]model.UserInfo, 0),
 	}
 
 	if sysVal != nil {
 		val := sysVal.Value
 
-		err = json.Unmarshal([]byte(val), alprnu)
+		err = json.Unmarshal([]byte(val), alreadyNotifiedUsersInfo)
 		if err != nil {
 			mlog.Error("Unable to Unmarshal", mlog.Err(err))
 		}
 
-		if alprnu.ContainsID(userId) {
+		if !alreadyNotifiedUsersInfo.CanNotify(userId) {
 			return model.NewAppError("app.SendCloudUpgradeConfirmationEmail", "api.cloud.notify_admin_to_upgrade_error.already_notified", nil, "", http.StatusForbidden)
 		}
 	}
@@ -84,13 +84,10 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID 
 		}
 	}
 
-	// mark as done for current user
-	alprnu.AddID(model.UserInfo{
-		UserID:    userId,
-		TimeStamp: model.GetMillis(),
-	})
+	// mark as done for current user until end of cool off period
+	alreadyNotifiedUsersInfo.Upsert(userId)
 
-	out, err := json.Marshal(alprnu)
+	out, err := json.Marshal(alreadyNotifiedUsersInfo)
 	if err != nil {
 		mlog.Error("Unable to Unmarshal", mlog.Err(err))
 	}
