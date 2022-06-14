@@ -4,14 +4,18 @@
 package model
 
 import (
-	"net/http"
 	"time"
 )
+
+type PostCountGrouping string
 
 const (
 	TimeRangeToday string = "today"
 	TimeRange7Day  string = "7_day"
 	TimeRange28Day string = "28_day"
+
+	PostsByHour PostCountGrouping = "hour"
+	PostsByDay  PostCountGrouping = "day"
 )
 
 type InsightsOpts struct {
@@ -38,7 +42,16 @@ type TopReaction struct {
 // Top Channels
 type TopChannelList struct {
 	InsightsListData
-	Items []*TopChannel `json:"items"`
+	Items               []*TopChannel              `json:"items"`
+	PostCountByDuration ChannelPostCountByDuration `json:"channel_post_counts_by_duration"`
+}
+
+func (t *TopChannelList) ChannelIDs() []string {
+	var ids []string
+	for _, item := range t.Items {
+		ids = append(ids, item.ID)
+	}
+	return ids
 }
 
 type TopChannel struct {
@@ -50,21 +63,116 @@ type TopChannel struct {
 	MessageCount int64       `json:"message_count"`
 }
 
-// GetStartUnixMilliForTimeRange gets the unix start time in milliseconds from the given time range.
-// Time range can be one of: "1_day", "7_day", or "28_day".
-func GetStartUnixMilliForTimeRange(timeRange string) (int64, *AppError) {
-	now := time.Now()
-	_, offset := now.Zone()
+type DurationPostCount struct {
+	ChannelID string `db:"channelid"`
+	// Duration is an ISO8601 date string representing either a day or a day and hour (ex. "2022-05-26" or "2022-05-26T14").
+	Duration  string `db:"duration"`
+	PostCount int    `db:"postcount"`
+}
+
+func TimeRangeToNumberDays(timeRange string) int {
+	var n int
 	switch timeRange {
 	case TimeRangeToday:
-		return GetStartOfDayMillis(now, offset), nil
+		n = 1
 	case TimeRange7Day:
-		return GetStartOfDayMillis(now.Add(time.Hour*time.Duration(-168)), offset), nil
+		n = 7
 	case TimeRange28Day:
-		return GetStartOfDayMillis(now.Add(time.Hour*time.Duration(-672)), offset), nil
+		n = 28
+	}
+	return n
+}
+
+// ChannelPostCountByDuration contains a count of posts by channel id, grouped by ISO8601 date string.
+// Example 1 (grouped by day):
+//  cpc := model.ChannelPostCountByDuration{
+//  	"2009-11-11": {
+//  		"ezbp7nqxzjgdir8riodyafr9ww": 90,
+//  		"p949c1xdojfgzffxma3p3s3ikr": 201,
+//  	},
+//  	"2009-11-12": {
+//  		"ezbp7nqxzjgdir8riodyafr9ww": 45,
+//  		"p949c1xdojfgzffxma3p3s3ikr": 68,
+//  	},
+//  }
+// Example 2 (grouped by hour):
+//  cpc := model.ChannelPostCountByDuration{
+//  	"2009-11-11T01": {
+//  		"ezbp7nqxzjgdir8riodyafr9ww": 90,
+//  		"p949c1xdojfgzffxma3p3s3ikr": 201,
+//  	},
+//  	"2009-11-11T02": {
+//  		"ezbp7nqxzjgdir8riodyafr9ww": 45,
+//  		"p949c1xdojfgzffxma3p3s3ikr": 68,
+//  	},
+//  }
+type ChannelPostCountByDuration map[string]map[string]int
+
+func blankChannelCountsMap(channelIDs []string) map[string]int {
+	blankChannelCounts := map[string]int{}
+	for _, id := range channelIDs {
+		blankChannelCounts[id] = 0
+	}
+	return blankChannelCounts
+}
+
+func ToDailyPostCountViewModel(dpc []*DurationPostCount, startTime *time.Time, numDays int, channelIDs []string) ChannelPostCountByDuration {
+	viewModel := ChannelPostCountByDuration{}
+
+	keyTime := *startTime
+	nowAtLocation := time.Now().In(startTime.Location())
+
+	if numDays == 1 {
+		for keyTime.Before(nowAtLocation) {
+			dateTimeKey := keyTime.Format(time.RFC3339)
+			viewModel[dateTimeKey] = blankChannelCountsMap(channelIDs)
+			keyTime = keyTime.Add(time.Hour)
+		}
+	} else {
+		for keyTime.Before(nowAtLocation) {
+			dateTimeKey := keyTime.Format("2006-01-02")
+			viewModel[dateTimeKey] = blankChannelCountsMap(channelIDs)
+			keyTime = keyTime.Add(24 * time.Hour)
+		}
 	}
 
-	return GetStartOfDayMillis(now, offset), NewAppError("Insights.IsValidRequest", "model.insights.time_range.app_error", nil, "", http.StatusBadRequest)
+	for _, item := range dpc {
+		var parseFormat string
+		var keyFormat string
+		if numDays == 1 {
+			parseFormat = "2006-01-02T15 "
+			keyFormat = time.RFC3339
+		} else {
+			parseFormat = "2006-01-02"
+			keyFormat = parseFormat
+		}
+		durTime, err := time.ParseInLocation(parseFormat, item.Duration, startTime.Location())
+		if err != nil {
+			continue
+		}
+		localizedKey := durTime.Format(keyFormat)
+		_, hasKey := viewModel[localizedKey]
+		if !hasKey {
+			viewModel[localizedKey] = map[string]int{}
+		}
+		viewModel[localizedKey][item.ChannelID] = item.PostCount
+	}
+
+	return viewModel
+}
+
+// StartOfDayForTimeRange gets the unix start time in milliseconds from the given time range.
+// Time range can be one of: "today", "7_day", or "28_day".
+func StartOfDayForTimeRange(timeRange string, location *time.Location) *time.Time {
+	now := time.Now().In(location)
+	resultTime := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, location)
+	switch timeRange {
+	case TimeRange7Day:
+		resultTime = resultTime.Add(time.Hour * time.Duration(-144))
+	case TimeRange28Day:
+		resultTime = resultTime.Add(time.Hour * time.Duration(-648))
+	}
+	return &resultTime
 }
 
 // GetTopReactionListWithPagination adds a rank to each item in the given list of TopReaction and checks if there is

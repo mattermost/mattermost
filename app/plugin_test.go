@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -1025,8 +1026,26 @@ func TestEnablePluginWithCloudLimits(t *testing.T) {
 	checkError(t, appErr)
 	require.Equal(t, "app.install_integration.reached_max_limit.error", appErr.Id)
 
+	th.App.Srv().RemoveLicense()
+	appErr = th.App.EnablePlugin("testplugin2")
+	checkNoError(t, appErr)
+	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+	appErr = th.App.EnablePlugin("testplugin2")
+	checkError(t, appErr)
+
 	os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
 	th.App.ReloadConfig()
+	appErr = th.App.EnablePlugin("testplugin2")
+	checkNoError(t, appErr)
+	os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
+	th.App.ReloadConfig()
+	appErr = th.App.EnablePlugin("testplugin2")
+	checkError(t, appErr)
+
+	// Let enable succeed if a CWS error occurs
+	cloud = &mocks.CloudInterface{}
+	th.App.Srv().Cloud = cloud
+	cloud.Mock.On("GetCloudLimits", mock.Anything).Return(nil, errors.New("error getting limits"))
 
 	appErr = th.App.EnablePlugin("testplugin2")
 	checkNoError(t, appErr)
