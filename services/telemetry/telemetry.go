@@ -865,6 +865,7 @@ func (ts *TelemetryService) trackPlugins() {
 	webappEnabledCount := 0
 	backendEnabledCount := 0
 	totalDisabledCount := 0
+	totalCoreDisabledCount := 0
 	webappDisabledCount := 0
 	backendDisabledCount := 0
 	brokenManifestCount := 0
@@ -880,6 +881,7 @@ func (ts *TelemetryService) trackPlugins() {
 				continue
 			}
 
+			// check here
 			if state, ok := pluginStates[plugin.Manifest.Id]; ok && state.Enable {
 				totalEnabledCount += 1
 				if plugin.Manifest.HasServer() {
@@ -896,14 +898,18 @@ func (ts *TelemetryService) trackPlugins() {
 				if plugin.Manifest.HasWebapp() {
 					webappDisabledCount += 1
 				}
+				if _, isCorePlugin := model.InstalledIntegrationsIgnoredPlugins[plugin.Id]; isCorePlugin {
+					totalCoreDisabledCount += 1
+				}
 			}
 			if plugin.Manifest.SettingsSchema != nil {
 				settingsCount += 1
 			}
 		}
 	} else {
-		totalEnabledCount = -1  // -1 to indicate disabled or error
-		totalDisabledCount = -1 // -1 to indicate disabled or error
+		totalEnabledCount = -1      // -1 to indicate disabled or error
+		totalCoreDisabledCount = -1 // -1 to indicate disabled or error
+		totalDisabledCount = -1     // -1 to indicate disabled or error
 	}
 
 	ts.SendTelemetry(TrackPlugins, map[string]interface{}{
@@ -911,6 +917,7 @@ func (ts *TelemetryService) trackPlugins() {
 		"enabled_webapp_plugins":        webappEnabledCount,
 		"enabled_backend_plugins":       backendEnabledCount,
 		"disabled_plugins":              totalDisabledCount,
+		"disabled_default_plugins":      totalCoreDisabledCount,
 		"disabled_webapp_plugins":       webappDisabledCount,
 		"disabled_backend_plugins":      backendDisabledCount,
 		"plugins_with_settings":         settingsCount,
