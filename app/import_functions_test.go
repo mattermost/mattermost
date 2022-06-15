@@ -16,7 +16,10 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/testlib"
+	"github.com/mattermost/mattermost-server/v6/utils"
 	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
@@ -3091,6 +3094,47 @@ func TestImportImportPost(t *testing.T) {
 		postBool := post.Message != *data.Post.Message || post.CreateAt != *data.Post.CreateAt || post.UserId != user.Id || post.EditAt != *data.Post.EditAt
 		require.False(t, postBool, "Post properties not as expected")
 	})
+
+	t.Run("Reply CreateAt before parent post CreateAt", func(t *testing.T) {
+		t.Skip("MM-44922")
+		now := model.GetMillis()
+		before := now - 10
+		data := LineImportWorkerData{
+			LineImportData{
+				Post: &PostImportData{
+					Team:     &teamName,
+					Channel:  &channelName,
+					User:     &user2.Username,
+					Message:  ptrStr("Message with reply"),
+					CreateAt: &now,
+					Replies: &[]ReplyImportData{{
+						User:     &username,
+						Message:  ptrStr("Message reply 2"),
+						CreateAt: &before,
+					}},
+				},
+			},
+			1,
+		}
+
+		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
+		require.Nil(t, err, "Expected success.")
+		require.Equal(t, 0, errLine)
+
+		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, now)
+		require.NoError(t, nErr)
+		require.Len(t, posts, 2, "Unexpected number of posts found.")
+		testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Reply CreateAt is before parent post CreateAt, setting it to parent post CreateAt")
+
+		rootPost := posts[0]
+		replyPost := posts[1]
+		if rootPost.RootId != "" {
+			replyPost = posts[0]
+			rootPost = posts[1]
+		}
+		require.Equal(t, rootPost.Id, replyPost.RootId)
+		require.Equal(t, now, replyPost.CreateAt)
+	})
 }
 
 func TestImportImportDirectChannel(t *testing.T) {
@@ -4136,6 +4180,12 @@ func TestImportImportEmoji(t *testing.T) {
 	data = EmojiImportData{Name: ptrStr("smiley"), Image: ptrStr(testImage)}
 	err = th.App.importEmoji(&data, false)
 	assert.Nil(t, err, "System emoji should not fail")
+
+	largeImage := filepath.Join(testsDir, "large_image_file.jpg")
+	data = EmojiImportData{Name: ptrStr(model.NewId()), Image: ptrStr(largeImage)}
+	err = th.App.importEmoji(&data, false)
+	require.NotNil(t, err)
+	require.Contains(t, err.DetailedError, utils.SizeLimitExceeded.Error())
 }
 
 func TestImportAttachment(t *testing.T) {

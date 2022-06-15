@@ -3552,10 +3552,6 @@
     "translation": "Det saknas en obligatorisk egenskap för svaret: create_at."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Svarets CreateAt-värde måste vara större än postens (förälderns) CreateAt-värde."
-  },
-  {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
     "translation": "Saknar en obligatorisk egenskap för reaktionen: User."
   },
@@ -9333,5 +9329,9 @@
   {
     "id": "api.cloud.cloud_free_feature_flag_off_error",
     "translation": "Flaggan för CloudFree-funktionen är avstängd."
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "Du har nått maxgränsen {{.NumIntegrations}} aktiva integrationer. Om du vill installera obegränsat antal integrationer kan du uppgradera till en av våra betal-abonnemang."
   }
 ]

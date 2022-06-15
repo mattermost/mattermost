@@ -5068,10 +5068,6 @@
     "translation": "Error occurred while marshalling JSON request"
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Reply CreateAt property must be greater than the parent post CreateAt."
-  },
-  {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
     "translation": "Missing required Reaction property: User."
   },
@@ -9269,5 +9265,9 @@
   {
     "id": "api.cloud.cloud_free_feature_flag_off_error",
     "translation": "CloudFree feature flag is off."
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "You've reached the limit of {{.NumIntegrations}} enabled integrations. To install unlimited integrations, upgrade to one of the paid plans."
   }
 ]

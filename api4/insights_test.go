@@ -22,6 +22,7 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 	th.ConfigStore.SetReadOnlyFF(false)
 	defer th.ConfigStore.SetReadOnlyFF(true)
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 	client := th.Client
 
@@ -247,6 +248,7 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 	th.ConfigStore.SetReadOnlyFF(false)
 	defer th.ConfigStore.SetReadOnlyFF(true)
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 	client := th.Client
 
@@ -438,6 +440,7 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 	th.ConfigStore.SetReadOnlyFF(false)
 	defer th.ConfigStore.SetReadOnlyFF(true)
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 	client := th.Client
 	userId := th.BasicUser.Id
@@ -486,6 +489,10 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, channel6.Id, topChannels.Items[0].ID)
 		assert.Equal(t, int64(1), topChannels.Items[0].MessageCount)
+
+		t.Run("has post count by day", func(t *testing.T) {
+			require.NotNil(t, topChannels.PostCountByDuration)
+		})
 	})
 
 	t.Run("get-top-channels-for-user-since exclude channels user is not member of", func(t *testing.T) {
@@ -532,6 +539,7 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 	th.ConfigStore.SetReadOnlyFF(false)
 	defer th.ConfigStore.SetReadOnlyFF(true)
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 	client := th.Client
 	userId := th.BasicUser.Id
@@ -580,6 +588,10 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, channel6.Id, topChannels.Items[0].ID)
 		assert.Equal(t, int64(1), topChannels.Items[0].MessageCount)
+
+		t.Run("has post count by day", func(t *testing.T) {
+			require.NotNil(t, topChannels.PostCountByDuration)
+		})
 	})
 
 	t.Run("get-top-channels-for-user-since invalid team id", func(t *testing.T) {

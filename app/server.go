@@ -93,7 +93,12 @@ const (
 	ClusterKey     ServiceKey = "cluster"
 	PostKey        ServiceKey = "post"
 	TeamKey        ServiceKey = "team"
+	UserKey        ServiceKey = "user"
 	PermissionsKey ServiceKey = "permissions"
+	RouterKey      ServiceKey = "router"
+	BotKey         ServiceKey = "bot"
+	LogKey         ServiceKey = "log"
+	HooksKey       ServiceKey = "hooks"
 )
 
 type Server struct {
@@ -392,7 +397,10 @@ func NewServer(options ...Option) (*Server, error) {
 		LicenseKey:   s.licenseWrapper,
 		FilestoreKey: s.filestore,
 		ClusterKey:   s.clusterWrapper,
-		TeamKey:      s.teamService,
+		UserKey:      New(ServerConnector(s.Channels())),
+		LogKey: &logWrapper{
+			srv: s,
+		},
 	}
 
 	// Step 8: Initialize products.
@@ -1171,7 +1179,15 @@ func stripPort(hostport string) string {
 func (s *Server) Start() error {
 	// Start products.
 	// This needs to happen before because products are dependent on the HTTP server.
+
+	// make sure channels starts first
+	if err := s.products["channels"].Start(); err != nil {
+		return errors.Wrap(err, "Unable to start channels")
+	}
 	for name, product := range s.products {
+		if name == "channels" {
+			continue
+		}
 		if err := product.Start(); err != nil {
 			return errors.Wrapf(err, "Unable to start %s", name)
 		}
