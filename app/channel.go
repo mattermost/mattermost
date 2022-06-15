@@ -3170,7 +3170,7 @@ func (a *App) GetPinnedPosts(channelID string) (*model.PostList, *model.AppError
 		return nil, model.NewAppError("GetPinnedPosts", "app.channel.pinned_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if appErr := a.filterInaccessiblePosts(posts); appErr != nil {
+	if appErr := a.filterInaccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
 
