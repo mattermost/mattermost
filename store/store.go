@@ -886,6 +886,8 @@ type GroupStore interface {
 	// DistinctGroupMemberCount returns the count of records in the GroupMembers table with distinct userID values.
 	DistinctGroupMemberCount() (int64, error)
 
+	DistinctGroupMemberCountForSource(source model.GroupSource) (int64, error)
+
 	// GroupCountWithAllowReference returns the count of records in the Groups table with AllowReference set to true.
 	GroupCountWithAllowReference() (int64, error)
 
