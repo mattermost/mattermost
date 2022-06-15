@@ -1916,10 +1916,6 @@
     "translation": "Elasticsearch е забранен."
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Неуспешно свързване с Elasticsearch сървъра."
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch вече е спрян."
   },
