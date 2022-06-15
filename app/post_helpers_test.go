@@ -177,7 +177,7 @@ func Test_filterInaccessiblePosts(t *testing.T) {
 			},
 			Order: []string{"post_a", "post_b", "post_c", "post_d", "post_e"},
 		}
-		appErr := th.App.filterInaccessiblePosts(postList)
+		appErr := th.App.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true})
 
 		require.Nil(t, appErr)
 
@@ -205,7 +205,7 @@ func Test_filterInaccessiblePosts(t *testing.T) {
 			},
 			Order: []string{"post_e", "post_d", "post_c", "post_b", "post_a"},
 		}
-		appErr := th.App.filterInaccessiblePosts(postList)
+		appErr := th.App.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true})
 
 		require.Nil(t, appErr)
 
@@ -219,6 +219,60 @@ func Test_filterInaccessiblePosts(t *testing.T) {
 			"post_e",
 			"post_d",
 			"post_c",
+		}, postList.Order)
+	})
+
+	t.Run("handles mixed create at ordering correctly if correct options given", func(t *testing.T) {
+		postList := &model.PostList{
+			Posts: map[string]*model.Post{
+				"post_a": p(0),
+				"post_b": p(1),
+				"post_c": p(2),
+				"post_d": p(3),
+				"post_e": p(4),
+			},
+			Order: []string{"post_e", "post_b", "post_a", "post_d", "post_c"},
+		}
+		appErr := th.App.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: false})
+
+		require.Nil(t, appErr)
+
+		require.Equal(t, map[string]*model.Post{
+			"post_c": p(2),
+			"post_d": p(3),
+			"post_e": p(4),
+		}, postList.Posts)
+
+		require.Equal(t, []string{
+			"post_e",
+			"post_d",
+			"post_c",
+		}, postList.Order)
+	})
+
+	t.Run("handles posts missing from order when doing linear search", func(t *testing.T) {
+		postList := &model.PostList{
+			Posts: map[string]*model.Post{
+				"post_a": p(0),
+				"post_b": p(1),
+				"post_c": p(1),
+				"post_d": p(3),
+				"post_e": p(4),
+			},
+			Order: []string{"post_e", "post_a", "post_d", "post_b"},
+		}
+		appErr := th.App.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: false})
+
+		require.Nil(t, appErr)
+
+		require.Equal(t, map[string]*model.Post{
+			"post_d": p(3),
+			"post_e": p(4),
+		}, postList.Posts)
+
+		require.Equal(t, []string{
+			"post_e",
+			"post_d",
 		}, postList.Order)
 	})
 }

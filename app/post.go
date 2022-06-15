@@ -810,7 +810,13 @@ func (a *App) GetPostsPage(options model.GetPostsOptions) (*model.PostList, *mod
 		}
 	}
 
-	if appErr := a.filterInaccessiblePosts(postList); appErr != nil {
+	// we use the slower route if not a collapsed threads request;
+	// Even though we know the parent and child subqueries are ordered within themselves, they are not added to the list in an ordered fashion with respect to each other, and there is not a 1:1 correspondence between Order and Posts (root posts are not added to Order).
+	filterOptions := filterPostOptions{}
+	if options.CollapsedThreads {
+		filterOptions.assumeSortedCreatedAt = true
+	}
+	if appErr := a.filterInaccessiblePosts(postList, filterOptions); appErr != nil {
 		return nil, appErr
 	}
 
@@ -829,7 +835,7 @@ func (a *App) GetPosts(channelID string, offset int, limit int) (*model.PostList
 		}
 	}
 
-	if appErr := a.filterInaccessiblePosts(postList); appErr != nil {
+	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{}); appErr != nil {
 		return nil, appErr
 	}
 
@@ -846,7 +852,7 @@ func (a *App) GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList
 		return nil, model.NewAppError("GetPostsSince", "app.post.get_posts_since.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if appErr := a.filterInaccessiblePosts(postList); appErr != nil {
+	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
 
@@ -883,7 +889,7 @@ func (a *App) GetPostThread(postID string, opts model.GetPostsOptions, userID st
 		}
 	}
 
-	if appErr := a.filterInaccessiblePosts(posts); appErr != nil {
+	if appErr := a.filterInaccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
 
@@ -896,7 +902,7 @@ func (a *App) GetFlaggedPosts(userID string, offset int, limit int) (*model.Post
 		return nil, model.NewAppError("GetFlaggedPosts", "app.post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if appErr := a.filterInaccessiblePosts(postList); appErr != nil {
+	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
 
@@ -909,7 +915,7 @@ func (a *App) GetFlaggedPostsForTeam(userID, teamID string, offset int, limit in
 		return nil, model.NewAppError("GetFlaggedPostsForTeam", "app.post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if appErr := a.filterInaccessiblePosts(postList); appErr != nil {
+	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
 
@@ -922,7 +928,7 @@ func (a *App) GetFlaggedPostsForChannel(userID, channelID string, offset int, li
 		return nil, model.NewAppError("GetFlaggedPostsForChannel", "app.post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if appErr := a.filterInaccessiblePosts(postList); appErr != nil {
+	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
 
@@ -958,7 +964,7 @@ func (a *App) GetPermalinkPost(c *request.Context, postID string, userID string)
 		return nil, err
 	}
 
-	if appErr := a.filterInaccessiblePosts(list); appErr != nil {
+	if appErr := a.filterInaccessiblePosts(list, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
 
@@ -977,7 +983,16 @@ func (a *App) GetPostsBeforePost(options model.GetPostsOptions) (*model.PostList
 		}
 	}
 
-	if appErr := a.filterInaccessiblePosts(postList); appErr != nil {
+	// GetPostsBefore orders by channel id and deleted at,
+	// before sorting based on created at.
+	// but the deleted at is only ever where deleted at = 0,
+	// and channel id may or may not be empty (all channels) or defined (single channel),
+	// so we can still optimize if the search is for a single channel
+	filterOptions := filterPostOptions{}
+	if options.ChannelId != "" {
+		filterOptions.assumeSortedCreatedAt = true
+	}
+	if appErr := a.filterInaccessiblePosts(postList, filterOptions); appErr != nil {
 		return nil, appErr
 	}
 
@@ -996,7 +1011,16 @@ func (a *App) GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList,
 		}
 	}
 
-	if appErr := a.filterInaccessiblePosts(postList); appErr != nil {
+	// GetPostsAfter orders by channel id and deleted at,
+	// before sorting based on created at.
+	// but the deleted at is only ever where deleted at = 0,
+	// and channel id may or may not be empty (all channels) or defined (single channel),
+	// so we can still optimize if the search is for a single channel
+	filterOptions := filterPostOptions{}
+	if options.ChannelId != "" {
+		filterOptions.assumeSortedCreatedAt = true
+	}
+	if appErr := a.filterInaccessiblePosts(postList, filterOptions); appErr != nil {
 		return nil, appErr
 	}
 
@@ -1023,7 +1047,16 @@ func (a *App) GetPostsAroundPost(before bool, options model.GetPostsOptions) (*m
 		}
 	}
 
-	if appErr := a.filterInaccessiblePosts(postList); appErr != nil {
+	// GetPostsBefore and GetPostsAfter order by channel id and deleted at,
+	// before sorting based on created at.
+	// but the deleted at is only ever where deleted at = 0,
+	// and channel id may or may not be empty (all channels) or defined (single channel),
+	// so we can still optimize if the search is for a single channel
+	filterOptions := filterPostOptions{}
+	if options.ChannelId != "" {
+		filterOptions.assumeSortedCreatedAt = true
+	}
+	if appErr := a.filterInaccessiblePosts(postList, filterOptions); appErr != nil {
 		return nil, appErr
 	}
 
@@ -1471,7 +1504,7 @@ func (a *App) SearchPostsForUser(c *request.Context, terms string, userID string
 		}
 	}
 
-	if appErr := a.filterInaccessiblePosts(postSearchResults.PostList); appErr != nil {
+	if appErr := a.filterInaccessiblePosts(postSearchResults.PostList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
 

@@ -118,17 +118,23 @@ func linearFilterPosts(postList *model.PostList, earliestAccessibleTime int64) {
 	// filter Posts
 	posts := postList.Posts
 
-	if len(posts) != len(postList.Order) {
-		return
-	}
-
 	newPostOrder := []string{}
 	for _, postId := range postList.Order {
 		if posts[postId].CreateAt < earliestAccessibleTime {
 			postList.HasInaccessiblePosts = true
-			delete(postList.Posts, postId)
+			delete(posts, postId)
 		} else {
 			newPostOrder = append(newPostOrder, postId)
+		}
+	}
+
+	// it can happen that some post list results don't have all posts in the Order field.
+	// for example GetPosts in the CollapsedThreads = false path, parents are not added
+	// to Order
+	for postId, post := range posts {
+		if post.CreateAt < earliestAccessibleTime {
+			postList.HasInaccessiblePosts = true
+			delete(posts, postId)
 		}
 	}
 
