@@ -3563,6 +3563,22 @@ func (s *TimerLayerGroupStore) DistinctGroupMemberCount() (int64, error) {
 	return result, err
 }
 
+func (s *TimerLayerGroupStore) DistinctGroupMemberCountForSource(source model.GroupSource) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.GroupStore.DistinctGroupMemberCountForSource(source)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.DistinctGroupMemberCountForSource", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerGroupStore) Get(groupID string) (*model.Group, error) {
 	start := time.Now()
 
