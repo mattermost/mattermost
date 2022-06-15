@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package audit
 
 import (
@@ -16,6 +19,7 @@ import (
 )
 
 func TestAudit_LogRecord(t *testing.T) {
+	userId := model.NewId()
 	testCases := []struct {
 		description  string
 		auditLogFunc func(audit Audit)
@@ -36,7 +40,7 @@ func TestAudit_LogRecord(t *testing.T) {
 			func(audit Audit) {
 
 				usr := &model.User{}
-				usr.Id = "fasd21321sdasd12"
+				usr.Id = userId //"fasd21321sdasd12"
 				usr.Username = "TestABC"
 				usr.Password = "hello_world"
 
@@ -52,7 +56,7 @@ func TestAudit_LogRecord(t *testing.T) {
 				audit.LogRecord(mlog.LvlAuditAPI, rec)
 			},
 			[]string{
-				`{"timestamp":0,"level":"audit-api","msg":"","event_name":"User.Update","status":"success","actor":{"user_id":"","session_id":"","client":"","ip_address":""},"event":{"parameters":null,"prior_state":{"id":"fasd21321sdasd12","username":"TestABC"},"resulting_state":{"id":"fasd21321sdasd12","username":"TestDEF"},"object_type":"user"},"meta":null,"error":{}}`,
+				strings.Replace(`{"timestamp":0,"level":"audit-api","msg":"","event_name":"User.Update","status":"success","actor":{"user_id":"","session_id":"","client":"","ip_address":""},"event":{"parameters":null,"prior_state":{"id":"_____USERID_____","username":"TestABC"},"resulting_state":{"id":"fasd21321sdasd12","username":"TestDEF"},"object_type":"user"},"meta":null,"error":{}}`, "_____USERID_____", userId, 1),
 			},
 		},
 	}
@@ -75,7 +79,9 @@ func TestAudit_LogRecord(t *testing.T) {
 			var filePath string
 			filePath = filepath.Join(tempDir, "audit.log")
 			cfg.Options = json.RawMessage(fmt.Sprintf(`{"filename": "%s"}`, filePath))
-			logger, _ := mlog.NewLogger()
+			logger, err := mlog.NewLogger()
+			require.NoError(t, err)
+
 			err = logger.ConfigureTargets(map[string]mlog.TargetCfg{testCase.description: cfg}, nil)
 			require.NoError(t, err)
 			mlog.InitGlobalLogger(logger)
