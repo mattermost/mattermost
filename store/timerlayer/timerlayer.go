@@ -5098,6 +5098,22 @@ func (s *TimerLayerPostStore) GetMaxPostSize() int {
 	return result
 }
 
+func (s *TimerLayerPostStore) GetNthRecentPostTime(n int64) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.PostStore.GetNthRecentPostTime(n)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetNthRecentPostTime", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) GetOldest() (*model.Post, error) {
 	start := timemodule.Now()
 
@@ -5320,22 +5336,6 @@ func (s *TimerLayerPostStore) GetPostsSinceForSync(options model.GetPostsSinceFo
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostsSinceForSync", success, elapsed)
 	}
 	return result, resultVar1, err
-}
-
-func (s *TimerLayerPostStore) GetRecentNthPostTime(n int64) (int64, error) {
-	start := timemodule.Now()
-
-	result, err := s.PostStore.GetRecentNthPostTime(n)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetRecentNthPostTime", success, elapsed)
-	}
-	return result, err
 }
 
 func (s *TimerLayerPostStore) GetRecentSearchesForUser(userID string) ([]*model.SearchParams, error) {

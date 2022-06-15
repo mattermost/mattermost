@@ -6900,6 +6900,10 @@
     "translation": "Unable to write the image file to your file storage. Please check your connection and try again."
   },
   {
+    "id": "common.parse_error_int64",
+    "translation": "Failed to parse the value:{{.Value}} to int64"
+  },
+  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Unable to get users."
   },
@@ -9102,10 +9106,6 @@
   {
     "id": "oauth.gitlab.tos.error",
     "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
-  },
-  {
-    "id": "parse.int64",
-    "translation": "Failed to parse the value:{{.Value}} to int64"
   },
   {
     "id": "plugin.api.get_users_in_channel",

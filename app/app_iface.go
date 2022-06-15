@@ -76,6 +76,9 @@ type AppIface interface {
 	CheckProviderAttributes(user *model.User, patch *model.UserPatch) string
 	// ClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
 	ClientConfigWithComputed() map[string]string
+	// ComputeLastAccessiblePostTime returns CreateAt time of the last accessible post as per the cloud limit.
+	// Use GetLastAccessiblePostTime() for the cached results.
+	ComputeLastAccessiblePostTime() (int64, *model.AppError)
 	// ConvertBotToUser converts a bot to user.
 	ConvertBotToUser(bot *model.Bot, userPatch *model.UserPatch, sysadmin bool) (*model.User, *model.AppError)
 	// ConvertUserToBot converts a user to bot.
@@ -176,8 +179,8 @@ type AppIface interface {
 	// relationship with a user. That means any user sharing any channel, including
 	// direct and group channels.
 	GetKnownUsers(userID string) ([]string, *model.AppError)
-	// GetLastAccessiblePostTime returns CreateAt time of last accessible post as per the cloud limit
-	GetLastAccessiblePostTime(useCache bool) (int64, *model.AppError)
+	// GetLastAccessiblePostTime returns CreateAt time(from cache) of the last accessible post as per the cloud limit
+	GetLastAccessiblePostTime() (int64, *model.AppError)
 	// GetLdapGroup retrieves a single LDAP group by the given LDAP group id.
 	GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError)
 	// GetMarketplacePlugins returns a list of plugins from the marketplace-server,

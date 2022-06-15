@@ -107,9 +107,41 @@ func getTimeSortedPostAccessibleBounds(postList *model.PostList, earliestAccessi
 	}
 }
 
+type filterPostOptions struct {
+	assumeSortedCreatedAt bool
+}
+
+// make no assumptions about ordering, go through posts one by one
+// this is the slower fallback that is still safe if we we can not
+// assume posts are ordered by CreatedAt
+func linearFilterPosts(postList *model.PostList, earliestAccessibleTime int64) {
+	// filter Posts
+	posts := postList.Posts
+
+	if len(posts) != len(postList.Order) {
+		return
+	}
+
+	newPostOrder := []string{}
+	for _, postId := range postList.Order {
+		if posts[postId].CreateAt < earliestAccessibleTime {
+			postList.HasInaccessiblePosts = true
+			delete(postList.Posts, postId)
+		} else {
+			newPostOrder = append(newPostOrder, postId)
+		}
+	}
+
+	postList.Order = newPostOrder
+}
+
 // filterInaccessiblePosts filters out the posts, past the cloud limit
-func (a *App) filterInaccessiblePosts(postList *model.PostList) *model.AppError {
-	lastAccessiblePostTime, appErr := a.GetLastAccessiblePostTime(true)
+func (a *App) filterInaccessiblePosts(postList *model.PostList, options filterPostOptions) *model.AppError {
+	if postList == nil || postList.Posts == nil || len(postList.Posts) == 0 {
+		return nil
+	}
+
+	lastAccessiblePostTime, appErr := a.GetLastAccessiblePostTime()
 	if appErr != nil {
 		return model.NewAppError("filterInaccessiblePosts", "app.last_accessible_post.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	} else if lastAccessiblePostTime == 0 {
@@ -117,35 +149,39 @@ func (a *App) filterInaccessiblePosts(postList *model.PostList) *model.AppError 
 		return nil
 	}
 
-	bounds := getTimeSortedPostAccessibleBounds(postList, lastAccessiblePostTime)
-	if bounds.allAccessible() {
-		return nil
-	}
-	if bounds.allInaccessible() {
-		postList.Posts = map[string]*model.Post{}
-		postList.Order = []string{}
-		if len(postList.Posts) > 0 {
-			postList.HasInaccessiblePosts = true
+	if options.assumeSortedCreatedAt {
+		bounds := getTimeSortedPostAccessibleBounds(postList, lastAccessiblePostTime)
+		if bounds.allAccessible() {
+			return nil
 		}
-		return nil
-	}
-	postList.HasInaccessiblePosts = true
+		if bounds.allInaccessible() {
+			postList.Posts = map[string]*model.Post{}
+			postList.Order = []string{}
+			if len(postList.Posts) > 0 {
+				postList.HasInaccessiblePosts = true
+			}
+			return nil
+		}
+		postList.HasInaccessiblePosts = true
 
-	var otherInaccessibleBound int
-	var otherAccessibleBound int
-	if bounds.accessible > bounds.inaccessible {
-		otherInaccessibleBound = 0
-		otherAccessibleBound = len(postList.Order) - 1
+		var otherInaccessibleBound int
+		var otherAccessibleBound int
+		if bounds.accessible > bounds.inaccessible {
+			otherInaccessibleBound = 0
+			otherAccessibleBound = len(postList.Order) - 1
+		} else {
+			otherInaccessibleBound = len(postList.Order) - 1
+			otherAccessibleBound = 0
+		}
+		order := postList.Order
+		for i := min(bounds.inaccessible, otherInaccessibleBound); i <= maxInt(bounds.inaccessible, otherInaccessibleBound); i++ {
+			delete(postList.Posts, order[i])
+		}
+
+		postList.Order = postList.Order[min(bounds.accessible, otherAccessibleBound) : maxInt(bounds.accessible, otherAccessibleBound)+1]
 	} else {
-		otherInaccessibleBound = len(postList.Order) - 1
-		otherAccessibleBound = 0
+		linearFilterPosts(postList, lastAccessiblePostTime)
 	}
-	order := postList.Order
-	for i := min(bounds.inaccessible, otherInaccessibleBound); i <= maxInt(bounds.inaccessible, otherInaccessibleBound); i++ {
-		delete(postList.Posts, order[i])
-	}
-
-	postList.Order = postList.Order[min(bounds.accessible, otherAccessibleBound) : maxInt(bounds.accessible, otherAccessibleBound)+1]
 
 	return nil
 }
