@@ -175,7 +175,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	skipFetchThreads := r.URL.Query().Get("skipFetchThreads") == "true"
 	collapsedThreads := r.URL.Query().Get("collapsedThreads") == "true"
 	collapsedThreadsExtended := r.URL.Query().Get("collapsedThreadsExtended") == "true"
-	includeDeleted := r.URL.Query().Get("includeDeleted") == "true"
+	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
 	channelId := c.Params.ChannelId
 	page := c.Params.Page
 	perPage := c.Params.PerPage
