@@ -331,7 +331,7 @@ func (ts *TelemetryService) trackActivity() {
 		activeUsersMonthlyCount = r.Data.(int64)
 	}
 
-	ts.SendTelemetry(TrackActivity, map[string]interface{}{
+	activity := map[string]interface{}{
 		"registered_users":             userCount,
 		"bot_accounts":                 botAccountsCount,
 		"guest_accounts":               guestAccountsCount,
@@ -350,7 +350,17 @@ func (ts *TelemetryService) trackActivity() {
 		"slash_commands":               slashCommandsCount,
 		"incoming_webhooks":            incomingWebhooksCount,
 		"outgoing_webhooks":            outgoingWebhooksCount,
-	})
+	}
+
+	if license := ts.srv.License(); license != nil && license.Features.Cloud != nil && *license.Features.Cloud {
+		var tmpStorage int64
+		if usage, err := ts.dbStore.FileInfo().GetStorageUsage(true, false); err == nil {
+			tmpStorage = usage
+		}
+		activity["storage_bytes"] = utils.RoundOffToZeroes(float64(tmpStorage))
+	}
+
+	ts.SendTelemetry(TrackActivity, activity)
 }
 
 func (ts *TelemetryService) trackConfig() {
@@ -855,6 +865,7 @@ func (ts *TelemetryService) trackPlugins() {
 	webappEnabledCount := 0
 	backendEnabledCount := 0
 	totalDisabledCount := 0
+	totalCoreDisabledCount := 0
 	webappDisabledCount := 0
 	backendDisabledCount := 0
 	brokenManifestCount := 0
@@ -886,14 +897,18 @@ func (ts *TelemetryService) trackPlugins() {
 				if plugin.Manifest.HasWebapp() {
 					webappDisabledCount += 1
 				}
+				if _, isCorePlugin := model.InstalledIntegrationsIgnoredPlugins[plugin.Manifest.Id]; isCorePlugin {
+					totalCoreDisabledCount += 1
+				}
 			}
 			if plugin.Manifest.SettingsSchema != nil {
 				settingsCount += 1
 			}
 		}
 	} else {
-		totalEnabledCount = -1  // -1 to indicate disabled or error
-		totalDisabledCount = -1 // -1 to indicate disabled or error
+		totalEnabledCount = -1      // -1 to indicate disabled or error
+		totalCoreDisabledCount = -1 // -1 to indicate disabled or error
+		totalDisabledCount = -1     // -1 to indicate disabled or error
 	}
 
 	ts.SendTelemetry(TrackPlugins, map[string]interface{}{
@@ -901,6 +916,7 @@ func (ts *TelemetryService) trackPlugins() {
 		"enabled_webapp_plugins":        webappEnabledCount,
 		"enabled_backend_plugins":       backendEnabledCount,
 		"disabled_plugins":              totalDisabledCount,
+		"disabled_default_plugins":      totalCoreDisabledCount,
 		"disabled_webapp_plugins":       webappDisabledCount,
 		"disabled_backend_plugins":      backendDisabledCount,
 		"plugins_with_settings":         settingsCount,
@@ -1148,22 +1164,34 @@ func (ts *TelemetryService) trackGroups() {
 		mlog.Debug("Could not get distinct_group_member_count", mlog.Err(err))
 	}
 
+	distinctCustomGroupMemberCount, err := ts.dbStore.Group().DistinctGroupMemberCountForSource(model.GroupSourceCustom)
+	if err != nil {
+		mlog.Debug("Could not get distinct_custom_group_member_count", mlog.Err(err))
+	}
+
+	distinctLdapGroupMemberCount, err := ts.dbStore.Group().DistinctGroupMemberCountForSource(model.GroupSourceLdap)
+	if err != nil {
+		mlog.Debug("Could not get distinct_ldap_group_member_count", mlog.Err(err))
+	}
+
 	groupCountWithAllowReference, err := ts.dbStore.Group().GroupCountWithAllowReference()
 	if err != nil {
 		mlog.Debug("Could not get group_count_with_allow_reference", mlog.Err(err))
 	}
 
 	ts.SendTelemetry(TrackGroups, map[string]interface{}{
-		"group_count":                      groupCount,
-		"ldap_group_count":                 ldapGroupCount,
-		"custom_group_count":               customGroupCount,
-		"group_team_count":                 groupTeamCount,
-		"group_channel_count":              groupChannelCount,
-		"group_synced_team_count":          groupSyncedTeamCount,
-		"group_synced_channel_count":       groupSyncedChannelCount,
-		"group_member_count":               groupMemberCount,
-		"distinct_group_member_count":      distinctGroupMemberCount,
-		"group_count_with_allow_reference": groupCountWithAllowReference,
+		"group_count":                        groupCount,
+		"ldap_group_count":                   ldapGroupCount,
+		"custom_group_count":                 customGroupCount,
+		"group_team_count":                   groupTeamCount,
+		"group_channel_count":                groupChannelCount,
+		"group_synced_team_count":            groupSyncedTeamCount,
+		"group_synced_channel_count":         groupSyncedChannelCount,
+		"group_member_count":                 groupMemberCount,
+		"distinct_group_member_count":        distinctGroupMemberCount,
+		"distinct_custom_group_member_count": distinctCustomGroupMemberCount,
+		"distinct_ldap_group_member_count":   distinctLdapGroupMemberCount,
+		"group_count_with_allow_reference":   groupCountWithAllowReference,
 	})
 }
 

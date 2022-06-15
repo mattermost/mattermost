@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -231,6 +232,18 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 		app: &App{ch: ch},
 	}
 
+	services[TeamKey] = &teamServiceWrapper{
+		app: &App{ch: ch},
+	}
+
+	services[BotKey] = &botServiceWrapper{
+		app: &App{ch: ch},
+	}
+
+	services[HooksKey] = &hooksService{
+		ch: ch,
+	}
+
 	return ch, nil
 }
 
@@ -306,4 +319,17 @@ func (ch *Channels) License() *model.License {
 func (ch *Channels) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
 	return ch.licenseSvc.RequestTrialLicense(requesterID, users, termsAccepted,
 		receiveEmailsAccepted)
+}
+
+type hooksService struct {
+	ch *Channels
+}
+
+func (s *hooksService) RegisterHooks(productID string, hooks product.Hooks) error {
+	if s.ch.pluginsEnvironment == nil {
+		return errors.New("could not find plugins environment")
+	}
+
+	s.ch.pluginsEnvironment.AddProduct(productID, hooks)
+	return nil
 }

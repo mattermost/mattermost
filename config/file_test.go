@@ -819,7 +819,9 @@ func TestFileStoreLoad(t *testing.T) {
 
 		err = fs.Load()
 		if assert.Error(t, err) {
-			assert.EqualError(t, err, "invalid config: Config.IsValid: model.config.is_valid.site_url.app_error, parse \"invalid\": invalid URI for request")
+			var appErr *model.AppError
+			require.True(t, errors.As(err, &appErr))
+			assert.Equal(t, appErr.Id, "model.config.is_valid.site_url.app_error")
 		}
 	})
 

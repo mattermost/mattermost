@@ -9,26 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetStartUnixMilliForTimeRang(t *testing.T) {
-	tc := [3]string{"today", "7_day", "28_day"}
-
-	for _, timeRange := range tc {
-		t.Run(timeRange, func(t *testing.T) {
-			_, err := GetStartUnixMilliForTimeRange(timeRange)
-			assert.Nil(t, err)
-		})
-	}
-
-	invalidTimeRanges := [3]string{"", "1_day", "10_day"}
-
-	for _, timeRange := range invalidTimeRanges {
-		t.Run(timeRange, func(t *testing.T) {
-			_, err := GetStartUnixMilliForTimeRange(timeRange)
-			assert.NotNil(t, err)
-		})
-	}
-}
-
 func TestGetTopReactionListWithPagination(t *testing.T) {
 	reactions := []*TopReaction{
 		{EmojiName: "smile", Count: 200},

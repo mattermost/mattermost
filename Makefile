@@ -393,13 +393,29 @@ test-db-migration-v5: start-docker ## Gets diff of upgrade vs new instance schem
 gomodtidy:
 	@cp go.mod go.mod.orig
 	@cp go.sum go.sum.orig
+	@if [ -f "imports/imports.go" ]; then \
+		mv imports/imports.go imports/imports.go.orig; \
+	fi;
 	$(GO) mod tidy
 	@if [ "$$(diff go.mod go.mod.orig)" != "" -o "$$(diff go.sum go.sum.orig)" != "" ]; then \
 		echo "go.mod/go.sum was modified. \ndiff- $$(diff go.mod go.mod.orig) \n$$(diff go.sum go.sum.orig) \nRun \"go mod tidy\"."; \
 		rm go.*.orig; \
 		exit 1; \
 	fi;
+	@if [ -f "imports/imports.go.orig" ]; then \
+		mv imports/imports.go.orig imports/imports.go; \
+	fi;
 	@rm go.*.orig;
+
+modules-tidy:
+	@if [ -f "imports/imports.go" ]; then \
+		mv imports/imports.go imports/imports.go.orig; \
+	fi;
+	-$(GO) mod tidy
+	@if [ -f "imports/imports.go.orig" ]; then \
+		mv imports/imports.go.orig imports/imports.go; \
+	fi;
+
 
 test-server-pre: check-prereqs-enterprise start-docker go-junit-report do-cover-file ## Runs tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
