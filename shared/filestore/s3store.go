@@ -105,14 +105,15 @@ func (b *S3FileBackend) s3New() (*s3.Client, error) {
 	var creds *credentials.Credentials
 
 	isCloud := os.Getenv("MM_CLOUD_FILESTORE_BIFROST") != ""
+	sessionToken := os.Getenv("AWS_SESSION_TOKEN")
 	if isCloud {
 		creds = credentials.New(customProvider{isSignV2: b.signV2})
 	} else if b.accessKey == "" && b.secretKey == "" {
 		creds = credentials.NewIAM("")
 	} else if b.signV2 {
-		creds = credentials.NewStatic(b.accessKey, b.secretKey, "", credentials.SignatureV2)
+		creds = credentials.NewStatic(b.accessKey, b.secretKey, sessionToken, credentials.SignatureV2)
 	} else {
-		creds = credentials.NewStatic(b.accessKey, b.secretKey, "", credentials.SignatureV4)
+		creds = credentials.NewStatic(b.accessKey, b.secretKey, sessionToken, credentials.SignatureV4)
 	}
 
 	opts := s3.Options{
