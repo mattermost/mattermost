@@ -1342,47 +1342,44 @@ func (a *App) convertUserNameToUserIds(usernames []string) []string {
 	return usernames
 }
 
-// GetLastAccessiblePostTime returns CreateAt time of last accessible post as per the cloud limit
-func (a *App) GetLastAccessiblePostTime(useCache bool) (int64, *model.AppError) {
+// GetLastAccessiblePostTime returns CreateAt time(from cache) of the last accessible post as per the cloud limit
+func (a *App) GetLastAccessiblePostTime() (int64, *model.AppError) {
 	cfg := a.Config()
 	if cfg.FeatureFlags == nil || !cfg.FeatureFlags.CloudFree {
 		return 0, nil
 	}
 
-	if useCache {
-		system, err := a.Srv().Store.System().GetByName(model.SystemLastAccessiblePostTime)
-		if err != nil {
-			var nfErr *store.ErrNotFound
-			switch {
-			case errors.As(err, &nfErr):
-				// All posts are accessible
-				return 0, nil
-			default:
-				mlog.Warn("GetLastAccessiblePostTime: failed to fetch from cache.", mlog.Err(err))
-			}
-		} else {
-			lastAccessiblePostTime, err := strconv.ParseInt(system.Value, 10, 64)
-			if err != nil {
-				return 0, model.NewAppError("GetLastAccessiblePostTime", "parse.int64", map[string]interface{}{"Value": system.Value}, err.Error(), http.StatusInternalServerError)
-			}
-
-			return lastAccessiblePostTime, nil
+	system, err := a.Srv().Store.System().GetByName(model.SystemLastAccessiblePostTime)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			// All posts are accessible
+			return 0, nil
+		default:
+			return 0, model.NewAppError("GetLastAccessiblePostTime", "app.system.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
-	limits, err := a.Cloud().GetCloudLimits("")
+	lastAccessiblePostTime, err := strconv.ParseInt(system.Value, 10, 64)
 	if err != nil {
-		return 0, model.NewAppError("GetLastAccessiblePostTime", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("GetLastAccessiblePostTime", "common.parse_error_int64", map[string]interface{}{"Value": system.Value}, err.Error(), http.StatusInternalServerError)
 	}
 
-	if limits == nil || limits.Messages == nil || limits.Messages.History == nil {
-		// Cloud limit is not applicable
-		return 0, nil
+	return lastAccessiblePostTime, nil
+}
+
+// ComputeLastAccessiblePostTime returns CreateAt time of the last accessible post as per the cloud limit.
+// Use GetLastAccessiblePostTime() for the cached results.
+func (a *App) ComputeLastAccessiblePostTime() (int64, *model.AppError) {
+	limit, appErr := a.getCloudMessagesHistoryLimit()
+	if appErr != nil {
+		return 0, appErr
 	}
 
-	createdAt, err := a.Srv().GetStore().Post().GetNthRecentPostTime(int64(*limits.Messages.History))
+	createdAt, err := a.Srv().GetStore().Post().GetNthRecentPostTime(limit)
 	if err != nil {
-		return 0, model.NewAppError("GetLastAccessiblePostTime", "app.last_accessible_post.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("ComputeLastAccessiblePostTime", "app.last_accessible_post.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Update Cache
@@ -1391,10 +1388,29 @@ func (a *App) GetLastAccessiblePostTime(useCache bool) (int64, *model.AppError) 
 		Value: strconv.FormatInt(createdAt, 10),
 	})
 	if err != nil {
-		mlog.Warn("GetLastAccessiblePostTime: failed to update cache.", mlog.Err(err))
+		return 0, model.NewAppError("ComputeLastAccessiblePostTime", "app.system.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return createdAt, nil
+}
+
+func (a *App) getCloudMessagesHistoryLimit() (int64, *model.AppError) {
+	cfg := a.Config()
+	if cfg.FeatureFlags == nil || !cfg.FeatureFlags.CloudFree {
+		return 0, nil
+	}
+
+	limits, err := a.Cloud().GetCloudLimits("")
+	if err != nil {
+		return 0, model.NewAppError("getCloudMessagesHistoryLimit", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if limits == nil || limits.Messages == nil || limits.Messages.History == nil {
+		// Cloud limit is not applicable
+		return 0, nil
+	}
+
+	return int64(*limits.Messages.History), nil
 }
 
 // filterInaccessiblePosts filters out the posts, past the cloud limit
@@ -1403,7 +1419,7 @@ func (a *App) filterInaccessiblePosts(postList *model.PostList) *model.AppError 
 		return nil
 	}
 
-	lastAccessiblePostTime, appErr := a.GetLastAccessiblePostTime(true)
+	lastAccessiblePostTime, appErr := a.GetLastAccessiblePostTime()
 	if appErr != nil {
 		return model.NewAppError("filterInaccessiblePosts", "app.last_accessible_post.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	} else if lastAccessiblePostTime == 0 {

@@ -13,7 +13,7 @@ const (
 )
 
 type AppIface interface {
-	GetLastAccessiblePostTime(useCache bool) (int64, *model.AppError)
+	ComputeLastAccessiblePostTime() (int64, *model.AppError)
 }
 
 func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
@@ -21,7 +21,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 		return cfg.FeatureFlags != nil && cfg.FeatureFlags.CloudFree
 	}
 	execute := func(job *model.Job) error {
-		_, appErr := app.GetLastAccessiblePostTime(false)
+		_, appErr := app.ComputeLastAccessiblePostTime()
 		if appErr != nil {
 			return appErr
 		}

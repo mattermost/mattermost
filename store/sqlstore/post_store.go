@@ -1758,10 +1758,12 @@ func (s *SqlPostStore) GetNthRecentPostTime(n int64) (int64, error) {
 		return 0, errors.Wrap(err, "GetNthRecentPostTime_tosql")
 	}
 
-	query = "SELECT COALESCE((" + query + "), 0)"
-
 	var createAt int64
 	if err := s.GetMasterX().Get(&createAt, query, queryArgs...); err != nil {
+		if err == sql.ErrNoRows {
+			return 0, nil
+		}
+
 		return 0, errors.Wrapf(err, "failed to get the Nth Post=%d", n)
 	}
 
