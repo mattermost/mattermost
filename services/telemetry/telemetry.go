@@ -331,7 +331,7 @@ func (ts *TelemetryService) trackActivity() {
 		activeUsersMonthlyCount = r.Data.(int64)
 	}
 
-	ts.SendTelemetry(TrackActivity, map[string]interface{}{
+	activity := map[string]interface{}{
 		"registered_users":             userCount,
 		"bot_accounts":                 botAccountsCount,
 		"guest_accounts":               guestAccountsCount,
@@ -350,7 +350,17 @@ func (ts *TelemetryService) trackActivity() {
 		"slash_commands":               slashCommandsCount,
 		"incoming_webhooks":            incomingWebhooksCount,
 		"outgoing_webhooks":            outgoingWebhooksCount,
-	})
+	}
+
+	if license := ts.srv.License(); license != nil && license.Features.Cloud != nil && *license.Features.Cloud {
+		var tmpStorage int64
+		if usage, err := ts.dbStore.FileInfo().GetStorageUsage(true, false); err == nil {
+			tmpStorage = usage
+		}
+		activity["storage_bytes"] = utils.RoundOffToZeroes(float64(tmpStorage))
+	}
+
+	ts.SendTelemetry(TrackActivity, activity)
 }
 
 func (ts *TelemetryService) trackConfig() {
@@ -855,6 +865,7 @@ func (ts *TelemetryService) trackPlugins() {
 	webappEnabledCount := 0
 	backendEnabledCount := 0
 	totalDisabledCount := 0
+	totalCoreDisabledCount := 0
 	webappDisabledCount := 0
 	backendDisabledCount := 0
 	brokenManifestCount := 0
@@ -886,14 +897,18 @@ func (ts *TelemetryService) trackPlugins() {
 				if plugin.Manifest.HasWebapp() {
 					webappDisabledCount += 1
 				}
+				if _, isCorePlugin := model.InstalledIntegrationsIgnoredPlugins[plugin.Manifest.Id]; isCorePlugin {
+					totalCoreDisabledCount += 1
+				}
 			}
 			if plugin.Manifest.SettingsSchema != nil {
 				settingsCount += 1
 			}
 		}
 	} else {
-		totalEnabledCount = -1  // -1 to indicate disabled or error
-		totalDisabledCount = -1 // -1 to indicate disabled or error
+		totalEnabledCount = -1      // -1 to indicate disabled or error
+		totalCoreDisabledCount = -1 // -1 to indicate disabled or error
+		totalDisabledCount = -1     // -1 to indicate disabled or error
 	}
 
 	ts.SendTelemetry(TrackPlugins, map[string]interface{}{
@@ -901,6 +916,7 @@ func (ts *TelemetryService) trackPlugins() {
 		"enabled_webapp_plugins":        webappEnabledCount,
 		"enabled_backend_plugins":       backendEnabledCount,
 		"disabled_plugins":              totalDisabledCount,
+		"disabled_default_plugins":      totalCoreDisabledCount,
 		"disabled_webapp_plugins":       webappDisabledCount,
 		"disabled_backend_plugins":      backendDisabledCount,
 		"plugins_with_settings":         settingsCount,

@@ -1853,7 +1853,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "投稿を確認する"
+    "translation": "Mattermostで返信する"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -3150,10 +3150,6 @@
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearchは既に停止されています。"
-  },
-  {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Elasticsearchサーバーへ接続できませんでした。"
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -8213,7 +8209,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "ワークスペース{{.WorkSpace}} の14日間のトライアルの準備が整いました!"
+    "translation": "ワークスペースの準備が整いました!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -8669,15 +8665,15 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Mattermostの14日間のトライアルは、まもなく終了します"
+    "translation": "Mattermostの30日間のトライアルは、まもなく終了します"
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}} さん、あなたのMattermostの14日間のトライアルは3日後の{{.TrialEnd}}に終了します。お客様のチームが引き続きMattermost Cloudのメリットを享受できるよう、お支払い情報を追加してください。"
+    "translation": "{{.Name}} さん、あなたのMattermostの30日間のトライアルは3日後の{{.TrialEnd}}に終了します。お客様のチームが引き続きMattermost Cloudのメリットを享受できるよう、お支払い情報を追加してください。"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}、Mattermost Cloud Enterpriseの14日間の無料トライアルが {{.TodayDate}} に終了しました。我々の柔軟でセキュアなコラボレーションプラットフォームをお楽しみいただけましたでしょうか。引き続きMattermost上でコラボレーションを継続するには、支払い情報を追加してください。"
+    "translation": "{{.Name}}、Mattermost Cloud Enterpriseの30日間の無料トライアルが {{.TodayDate}} に終了しました。我々の柔軟でセキュアなコラボレーションプラットフォームをお楽しみいただけましたでしょうか。引き続きMattermost上でコラボレーションを継続するには、支払い情報を追加してください。"
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -8689,7 +8685,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Mattermostの14日間のトライアルは終了しました"
+    "translation": "Mattermostの30日間のトライアルは終了しました"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -9216,10 +9212,6 @@
     "translation": "チャンネル名が有効ではありません"
   },
   {
-    "id": "model.insights.time_range.app_error",
-    "translation": " "
-  },
-  {
     "id": "model.channel.is_valid.1_or_more.app_error",
     "translation": "名前は1文字以上の小文字の英数字にしてください。"
   },
@@ -9326,5 +9318,29 @@
   {
     "id": "app.install_integration.reached_max_limit.error",
     "translation": "有効な統合機能数の上限 {{.NumIntegrations}} に達しました。無制限に統合機能をインストールするには、いずれかの有料プランにアップグレードしてください。"
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "デコーダーの並列数 {{.Value}} は不正です。正の数または-1であるべきです。"
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "ストレージ使用量の取得に失敗しました。"
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "チーム数を取得できませんでした"
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "チームの利用状況を取得できませんでした"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "チーム数の制限に達したため、チームを復元できませんでした"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "チーム数の制限に達したため、チームを作成できませんでした"
   }
 ]
