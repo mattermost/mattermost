@@ -3996,11 +3996,11 @@ func (s *TimerLayerGroupStore) PermittedSyncableAdmins(syncableID string, syncab
 }
 
 func (s *TimerLayerGroupStore) Restore(groupID string) (*model.Group, error) {
-	start := timemodule.Now()
+	start := time.Now()
 
 	result, err := s.GroupStore.Restore(groupID)
 
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
 		success := "false"
 		if err == nil {
