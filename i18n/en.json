@@ -468,10 +468,6 @@
     "translation": "Internal error during cloud api request."
   },
   {
-    "id": "api.cloud.cloud_free_feature_flag_off_error",
-    "translation": "CloudFree feature flag is off."
-  },
-  {
     "id": "api.cloud.cws_webhook_event_missing_error",
     "translation": "Webhook event was not handled. Either it is missing or it is not valid."
   },
