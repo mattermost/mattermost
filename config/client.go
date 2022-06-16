@@ -204,7 +204,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["EnableCustomGroups"] = strconv.FormatBool(*c.ServiceSettings.EnableCustomGroups)
 		}
 
-		if license.SkuShortName == model.LicenseShortSkuProfessional || license.SkuShortName == model.LicenseShortSkuEnterprise {
+		if (license.SkuShortName == model.LicenseShortSkuProfessional || license.SkuShortName == model.LicenseShortSkuEnterprise) && c.FeatureFlags.InsightsEnabled {
 			props["InsightsEnabled"] = "true"
 		}
 	}
