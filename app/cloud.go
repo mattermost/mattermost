@@ -29,11 +29,12 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID 
 
 	if err != nil {
 		var errNotFound *store.ErrNotFound
-		if errors.As(err, &errNotFound) {
+		if !errors.As(err, &errNotFound) {
+			// error was because of something other than the record not existing
 			notifyLock.Unlock()
 			return model.NewAppError("app.NotifySystemAdminsToUpgrade", "api.cloud.notify_admin_to_upgrade_error.fetch", nil, "", http.StatusInternalServerError)
 		}
-		mlog.Error("Unable to get NOTIFIED_ADMIN_TO_UPGRADE", mlog.Err(err))
+		mlog.Debug("NOTIFIED_ADMIN_TO_UPGRADE system value does not exist")
 	}
 
 	alreadyNotifiedUsersInfo := &model.AlreadyCloudNotifiedAdminUsersInfo{
