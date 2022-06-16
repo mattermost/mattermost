@@ -5,6 +5,7 @@ package app
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"sync"
@@ -14,6 +15,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 var notifyLock sync.Mutex
@@ -24,11 +26,15 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID 
 	// check if already notified
 	notifyLock.Lock()
 	sysVal, err := a.Srv().Store.System().GetByName("NOTIFIED_ADMIN_TO_UPGRADE")
+
 	if err != nil {
+		var errNotFound *store.ErrNotFound
+		if errors.As(err, &errNotFound) {
+			notifyLock.Unlock()
+			return model.NewAppError("app.NotifySystemAdminsToUpgrade", "api.cloud.notify_admin_to_upgrade_error.fetch", nil, "", http.StatusInternalServerError)
+		}
 		mlog.Error("Unable to get NOTIFIED_ADMIN_TO_UPGRADE", mlog.Err(err))
 	}
-
-	notifyLock.Unlock()
 
 	alreadyNotifiedUsersInfo := &model.AlreadyCloudNotifiedAdminUsersInfo{
 		Info: make([]model.UserInfo, 0),
@@ -43,12 +49,14 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID 
 		}
 
 		if !alreadyNotifiedUsersInfo.CanNotify(userId) {
+			notifyLock.Unlock()
 			return model.NewAppError("app.NotifySystemAdminsToUpgrade", "api.cloud.notify_admin_to_upgrade_error.already_notified", nil, "", http.StatusForbidden)
 		}
 	}
 
 	team, appErr := a.GetTeam(currentUserTeamID)
 	if appErr != nil {
+		notifyLock.Unlock()
 		return appErr
 	}
 
@@ -60,39 +68,41 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID 
 	})
 
 	if appErr != nil {
+		notifyLock.Unlock()
 		return appErr
 	}
 
 	systemBot, appErr := a.GetSystemBot()
 	if appErr != nil {
+		notifyLock.Unlock()
 		return appErr
 	}
 
-	for _, admin := range sysadmins {
-		T := i18n.GetUserTranslations(admin.Locale)
-		channel, appErr := a.GetOrCreateDirectChannel(c, systemBot.UserId, admin.Id)
-		if appErr != nil {
-			mlog.Error("Error getting direct channel", mlog.Err(appErr))
-			continue
-		}
+	go func() {
+		for _, admin := range sysadmins {
+			T := i18n.GetUserTranslations(admin.Locale)
+			channel, appErr := a.GetOrCreateDirectChannel(c, systemBot.UserId, admin.Id)
+			if appErr != nil {
+				mlog.Error("Error getting direct channel", mlog.Err(appErr))
+				continue
+			}
 
-		post := &model.Post{
-			Message:   T("api.cloud.upgrade_plan_bot_message", map[string]interface{}{"TeamName": team.Name}),
-			UserId:    systemBot.UserId,
-			ChannelId: channel.Id,
-			Type:      fmt.Sprintf("%sup_notification", model.PostCustomTypePrefix), // webapp will have to create renderer for this custom post type
-		}
+			post := &model.Post{
+				Message:   T("api.cloud.upgrade_plan_bot_message", map[string]interface{}{"TeamName": team.Name}),
+				UserId:    systemBot.UserId,
+				ChannelId: channel.Id,
+				Type:      fmt.Sprintf("%sup_notification", model.PostCustomTypePrefix), // webapp will have to create renderer for this custom post type
+			}
 
-		_, appErr = a.CreatePost(c, post, channel, false, true)
-		if appErr != nil {
-			mlog.Error("Error creating post", mlog.Err(appErr))
-			continue
+			_, appErr = a.CreatePost(c, post, channel, false, true)
+			if appErr != nil {
+				mlog.Error("Error creating post", mlog.Err(appErr))
+				continue
+			}
 		}
-	}
+	}()
 
 	// mark as done for current user until end of cool off period
-	notifyLock.Lock()
-
 	alreadyNotifiedUsersInfo.Upsert(userId)
 
 	out, err := json.Marshal(alreadyNotifiedUsersInfo)

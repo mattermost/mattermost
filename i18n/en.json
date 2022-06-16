@@ -484,6 +484,10 @@
     "translation": "Already notified admin"
   },
   {
+    "id": "api.cloud.notify_admin_to_upgrade_error.fetch",
+    "translation": "Unable to check against users who already notified"
+  },
+  {
     "id": "api.cloud.request_error",
     "translation": "Error processing request to CWS."
   },
