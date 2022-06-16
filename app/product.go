@@ -95,3 +95,6 @@ func (s *logWrapper) LogWarn(productID, msg string, keyValuePairs ...interface{}
 func (s *logWrapper) LogDebug(productID, msg string, keyValuePairs ...interface{}) {
 	s.srv.Log.Debug(msg, mlog.String("product_id", productID), mlog.Map("key-value pairs", keyValuePairs))
 }
+func (s *logWrapper) Logger() mlog.LoggerIFace {
+	return s.srv.GetLogger()
+}

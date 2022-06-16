@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 // RouterService enables registering the product router to the server. After registering the
@@ -103,6 +104,7 @@ type LogService interface {
 	LogError(productID, msg string, keyValuePairs ...interface{})
 	LogWarn(productID, msg string, keyValuePairs ...interface{})
 	LogDebug(productID, msg string, keyValuePairs ...interface{})
+	Logger() mlog.LoggerIFace
 }
 
 // Hooks is an interim solution for enabling plugin hooks on the multi-product architecture. After the
