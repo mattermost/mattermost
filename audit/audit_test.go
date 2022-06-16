@@ -56,7 +56,7 @@ func TestAudit_LogRecord(t *testing.T) {
 				audit.LogRecord(mlog.LvlAuditAPI, rec)
 			},
 			[]string{
-				strings.Replace(`{"timestamp":0,"level":"audit-api","msg":"","event_name":"User.Update","status":"success","actor":{"user_id":"","session_id":"","client":"","ip_address":""},"event":{"parameters":null,"prior_state":{"id":"_____USERID_____","username":"TestABC"},"resulting_state":{"id":"fasd21321sdasd12","username":"TestDEF"},"object_type":"user"},"meta":null,"error":{}}`, "_____USERID_____", userId, 1),
+				strings.Replace(`{"timestamp":0,"level":"audit-api","msg":"","event_name":"User.Update","status":"success","actor":{"user_id":"","session_id":"","client":"","ip_address":""},"event":{"parameters":null,"prior_state":{"id":"_____USERID_____","username":"TestABC"},"resulting_state":{"id":"_____USERID_____","username":"TestDEF"},"object_type":"user"},"meta":null,"error":{}}`, "_____USERID_____", userId, -1),
 			},
 		},
 	}
