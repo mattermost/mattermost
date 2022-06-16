@@ -1508,13 +1508,15 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddEventParameter("user_auth", userAuth.Auditable())
+
 	if userAuth.AuthData == nil || *userAuth.AuthData == "" || userAuth.AuthService == "" {
 		c.Err = model.NewAppError("updateUserAuth", "api.user.update_user_auth.invalid_request", nil, "", http.StatusBadRequest)
 		return
 	}
 
 	if user, err := c.App.GetUser(c.Params.UserId); err == nil {
-		auditRec.AddMeta("user", user)
+		auditRec.AddEventPriorState(user)
 	}
 
 	user, err := c.App.UpdateUserAuth(c.Params.UserId, &userAuth)
@@ -1522,6 +1524,7 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	auditRec.AddEventResultState(user)
 
 	auditRec.Success()
 	auditRec.AddMeta("auth_service", user.AuthService)
