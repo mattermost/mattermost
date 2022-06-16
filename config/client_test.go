@@ -15,12 +15,11 @@ import (
 func TestGetClientConfig(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {
-		description       string
-		config            *model.Config
-		telemetryID       string
-		license           *model.License
-		expectedFields    map[string]string
-		shouldNotHaveKeys []string
+		description    string
+		config         *model.Config
+		telemetryID    string
+		license        *model.License
+		expectedFields map[string]string
 	}{
 		{
 			"unlicensed",
@@ -49,7 +48,6 @@ func TestGetClientConfig(t *testing.T) {
 				"WebsocketPort":                    "80",
 				"WebsocketSecurePort":              "443",
 			},
-			nil,
 		},
 		{
 			"licensed, but not for theme management",
@@ -73,7 +71,6 @@ func TestGetClientConfig(t *testing.T) {
 				"EmailNotificationContentsType": "full",
 				"AllowCustomThemes":             "true",
 			},
-			nil,
 		},
 		{
 			"licensed for theme management",
@@ -96,7 +93,6 @@ func TestGetClientConfig(t *testing.T) {
 				"EmailNotificationContentsType": "full",
 				"AllowCustomThemes":             "false",
 			},
-			nil,
 		},
 		{
 			"licensed for enforcement",
@@ -114,7 +110,6 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"EnforceMultifactorAuthentication": "true",
 			},
-			nil,
 		},
 		{
 			"default marketplace",
@@ -128,7 +123,6 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"IsDefaultMarketplace": "true",
 			},
-			nil,
 		},
 		{
 			"non-default marketplace",
@@ -142,7 +136,6 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"IsDefaultMarketplace": "false",
 			},
-			nil,
 		},
 		{
 			"enable ShowFullName prop",
@@ -156,7 +149,6 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"ShowFullName": "true",
 			},
-			nil,
 		},
 		{
 			"Insights professional license",
@@ -173,7 +165,6 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"InsightsEnabled": "true",
 			},
-			nil,
 		},
 		{
 			"Insights enterprise license",
@@ -190,7 +181,6 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"InsightsEnabled": "true",
 			},
-			nil,
 		},
 		{
 			"Insights other license",
@@ -204,8 +194,9 @@ func TestGetClientConfig(t *testing.T) {
 				Features:     &model.Features{},
 				SkuShortName: "other",
 			},
-			nil,
-			[]string{"InsightsEnabled"},
+			map[string]string{
+				"InsightsEnabled": "false",
+			},
 		},
 		{
 			"Insights professional license, feature flag disabled",
@@ -219,8 +210,9 @@ func TestGetClientConfig(t *testing.T) {
 				Features:     &model.Features{},
 				SkuShortName: model.LicenseShortSkuProfessional,
 			},
-			nil,
-			[]string{"InsightsEnabled"},
+			map[string]string{
+				"InsightsEnabled": "false",
+			},
 		},
 	}
 
@@ -240,10 +232,6 @@ func TestGetClientConfig(t *testing.T) {
 				if assert.True(t, ok, fmt.Sprintf("config does not contain %v", expectedField)) {
 					assert.Equal(t, expectedValue, actualValue)
 				}
-			}
-
-			for _, key := range testCase.shouldNotHaveKeys {
-				assert.NotContains(t, configMap, key)
 			}
 		})
 	}
