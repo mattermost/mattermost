@@ -1158,7 +1158,6 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
 	includeDeleted = includeDeleted || props.IncludeDeleted
-
 	opts := model.ChannelSearchOpts{
 		NotAssociatedToGroup:     props.NotAssociatedToGroup,
 		ExcludeDefaultChannels:   props.ExcludeDefaultChannels,
@@ -1166,6 +1165,7 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		GroupConstrained:         props.GroupConstrained,
 		ExcludeGroupConstrained:  props.ExcludeGroupConstrained,
 		ExcludePolicyConstrained: props.ExcludePolicyConstrained,
+		IncludeSearchById:        props.IncludeSearchById,
 		Public:                   props.Public,
 		Private:                  props.Private,
 		IncludeDeleted:           includeDeleted,
