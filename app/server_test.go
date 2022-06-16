@@ -60,7 +60,6 @@ func TestStartServerSuccess(t *testing.T) {
 }
 
 func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
-	t.Skip("TODO: fix flaky test")
 	cfg := model.Config{}
 	cfg.SetDefaults()
 	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
@@ -97,6 +96,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 		s, err := NewServer(func(server *Server) error {
 			configStore := config.NewTestMemoryStore()
 			configStore.Set(&cfg)
+			server.configStore = &configWrapper{srv: server, Store: configStore}
 			server.licenseValue.Store(model.NewTestLicense())
 			return nil
 		})
