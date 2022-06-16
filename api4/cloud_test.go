@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -295,8 +296,22 @@ func TestNotifyAdminToUpgrade(t *testing.T) {
 		bot, appErr := th.App.GetSystemBot()
 		require.Nil(t, appErr)
 
-		channel, err := th.App.Srv().Store.Channel().GetByName("", model.GetDMNameFromIds(bot.UserId, th.SystemAdminUser.Id), false)
-		require.NoError(t, err)
+		// message sending is async, wait time for it
+		var channel *model.Channel
+		var err error
+		var timeout = 5 * time.Second
+		begin := time.Now()
+		for {
+			if time.Since(begin) > timeout {
+				break
+			}
+			channel, err = th.App.Srv().Store.Channel().GetByName("", model.GetDMNameFromIds(bot.UserId, th.SystemAdminUser.Id), false)
+			if err == nil && channel != nil {
+				break
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
+		require.NoError(t, err, "Expected message to have been sent within %d seconds", timeout)
 
 		postList, err := th.App.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
 		require.NoError(t, err)
