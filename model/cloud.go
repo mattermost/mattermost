@@ -248,7 +248,7 @@ func (a *AlreadyCloudNotifiedAdminUsersInfo) CanNotify(ID string) bool {
 	for _, i := range a.Info {
 		if i.UserID == ID {
 			timeDiff := GetMillis() - i.Timestamp
-			return return timeDiff >= int64(daysToMillis)
+			return timeDiff >= int64(daysToMillis)
 		}
 	}
 
