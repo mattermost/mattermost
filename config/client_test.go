@@ -214,6 +214,54 @@ func TestGetClientConfig(t *testing.T) {
 				"InsightsEnabled": "false",
 			},
 		},
+		{
+			"Custom groups professional license",
+			&model.Config{
+				FeatureFlags: &model.FeatureFlags{
+					CustomGroups: true,
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuProfessional,
+			},
+			map[string]string{
+				"EnableCustomGroups": "true",
+			},
+		},
+		{
+			"Custom groups enterprise license",
+			&model.Config{
+				FeatureFlags: &model.FeatureFlags{
+					CustomGroups: true,
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterprise,
+			},
+			map[string]string{
+				"EnableCustomGroups": "true",
+			},
+		},
+		{
+			"Custom groups other license",
+			&model.Config{
+				FeatureFlags: &model.FeatureFlags{
+					InsightsEnabled: true,
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: "other",
+			},
+			map[string]string{
+				"EnableCustomGroups": "false",
+			},
+		},
 	}
 
 	for _, testCase := range testCases {
