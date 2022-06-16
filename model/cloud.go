@@ -4,7 +4,6 @@
 package model
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -232,7 +231,7 @@ type NotifyAdminToUpgradeRequest struct {
 
 type UserInfo struct {
 	UserID    string
-	TimeStamp int64
+	Timestamp int64
 }
 
 type AlreadyCloudNotifiedAdminUsersInfo struct {
@@ -243,13 +242,12 @@ func (a *AlreadyCloudNotifiedAdminUsersInfo) CanNotify(ID string) bool {
 	coolOffPeriodDaysEnv := os.Getenv("MM_CLOUD_NOTIFY_ADMIN_COOL_OFF_DAYS")
 	coolOffPeriodDays, parseError := strconv.ParseFloat(coolOffPeriodDaysEnv, 64)
 	if parseError != nil {
-		fmt.Println("THE RROR", parseError.Error())
 		coolOffPeriodDays = defaultCloudNotifyAdminCoolOffDays
 	}
 	daysToMillis := coolOffPeriodDays * 24 * 60 * 60 * 1000
 	for _, i := range a.Info {
 		if i.UserID == ID {
-			timeDiff := GetMillis() - i.TimeStamp
+			timeDiff := GetMillis() - i.Timestamp
 			if timeDiff >= int64(daysToMillis) {
 				return true
 			}
@@ -264,7 +262,7 @@ func (a *AlreadyCloudNotifiedAdminUsersInfo) Upsert(ID string) []UserInfo {
 	for ind, i := range a.Info {
 		if i.UserID == ID {
 			currentUserInfo := a.Info[ind]
-			currentUserInfo.TimeStamp = GetMillis()
+			currentUserInfo.Timestamp = GetMillis()
 			a.Info[ind] = currentUserInfo
 			return a.Info
 		}
@@ -272,7 +270,7 @@ func (a *AlreadyCloudNotifiedAdminUsersInfo) Upsert(ID string) []UserInfo {
 
 	a.Info = append(a.Info, UserInfo{
 		UserID:    ID,
-		TimeStamp: GetMillis(),
+		Timestamp: GetMillis(),
 	})
 
 	return a.Info

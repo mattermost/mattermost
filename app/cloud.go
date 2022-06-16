@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
@@ -15,14 +16,19 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
+var notifyLock sync.Mutex
+
 func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID string) *model.AppError {
 	userId := c.Session().Id
 
 	// check if already notified
+	notifyLock.Lock()
 	sysVal, err := a.Srv().Store.System().GetByName("NOTIFIED_ADMIN_TO_UPGRADE")
 	if err != nil {
 		mlog.Error("Unable to get NOTIFIED_ADMIN_TO_UPGRADE", mlog.Err(err))
 	}
+
+	notifyLock.Unlock()
 
 	alreadyNotifiedUsersInfo := &model.AlreadyCloudNotifiedAdminUsersInfo{
 		Info: make([]model.UserInfo, 0),
@@ -37,7 +43,7 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID 
 		}
 
 		if !alreadyNotifiedUsersInfo.CanNotify(userId) {
-			return model.NewAppError("app.SendCloudUpgradeConfirmationEmail", "api.cloud.notify_admin_to_upgrade_error.already_notified", nil, "", http.StatusForbidden)
+			return model.NewAppError("app.NotifySystemAdminsToUpgrade", "api.cloud.notify_admin_to_upgrade_error.already_notified", nil, "", http.StatusForbidden)
 		}
 	}
 
@@ -85,6 +91,8 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID 
 	}
 
 	// mark as done for current user until end of cool off period
+	notifyLock.Lock()
+
 	alreadyNotifiedUsersInfo.Upsert(userId)
 
 	out, err := json.Marshal(alreadyNotifiedUsersInfo)
@@ -96,6 +104,8 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID 
 	if err := a.Srv().Store.System().SaveOrUpdate(sysVar); err != nil {
 		mlog.Error("Unable to save NOTIFIED_ADMIN_TO_UPGRADE", mlog.Err(err))
 	}
+
+	notifyLock.Unlock()
 
 	return nil
 }
