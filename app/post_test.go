@@ -1108,7 +1108,6 @@ func TestCreatePostAsUser(t *testing.T) {
 	})
 
 	t.Run("logs warning for user not in channel", func(t *testing.T) {
-		t.Skip("MM-43871")
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		user := th.CreateUser()
@@ -1122,6 +1121,8 @@ func TestCreatePostAsUser(t *testing.T) {
 
 		_, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
+
+		require.NoError(t, th.TestLogger.Flush())
 
 		testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Failed to get membership")
 	})
@@ -1145,6 +1146,8 @@ func TestCreatePostAsUser(t *testing.T) {
 
 		_, appErr = th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
+
+		require.NoError(t, th.TestLogger.Flush())
 
 		testlib.AssertNoLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Failed to get membership")
 	})
