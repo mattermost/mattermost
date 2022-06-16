@@ -4,7 +4,10 @@
 package product
 
 import (
+	"io"
+
 	"github.com/gorilla/mux"
+
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
@@ -115,4 +118,21 @@ type Hooks interface {
 // The service shall be registered via app.HooksKey service key.
 type HooksService interface {
 	RegisterHooks(productID string, hooks Hooks) error
+}
+
+// FilestoreService is the API for accessing the file store.
+//
+// The service shall be registered via app.FilestoreKey service key.
+type FilestoreService interface {
+	Reader(path string) (ReadCloseSeeker, error)
+	FileExists(path string) (bool, error)
+	CopyFile(oldPath, newPath string) error
+	MoveFile(oldPath, newPath string) error
+	WriteFile(fr io.Reader, path string) (int64, error)
+	RemoveFile(path string) error
+}
+
+type ReadCloseSeeker interface {
+	io.ReadCloser
+	io.Seeker
 }
