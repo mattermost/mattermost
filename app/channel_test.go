@@ -258,9 +258,7 @@ func TestRemoveUsersFromChannelNotMemberOfTeam(t *testing.T) {
 	require.Nil(t, err)
 	require.Len(t, channelMembers, 1)
 	members := make([]model.ChannelMember, len(channelMembers))
-	for i, m := range channelMembers {
-		members[i] = m
-	}
+	copy(members, channelMembers)
 	require.Equal(t, members[0].UserId, th.BasicUser.Id)
 }
 
