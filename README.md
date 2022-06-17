@@ -10,7 +10,7 @@ Learn more about the following use cases with Mattermost:
 
 - [DevSecOps](https://mattermost.com/solutions/use-cases/devops/?utm_source=github-mattermost-server-readme)
 - [Incident Resolution](https://mattermost.com/solutions/use-cases/incident-resolution/?utm_source=github-mattermost-server-readme)
-- [IT Service Desk](https://mattermost.com/solutions/use-cases/it-service-desk//?utm_source=github-mattermost-server-readme)
+- [IT Service Desk](https://mattermost.com/solutions/use-cases/it-service-desk/?utm_source=github-mattermost-server-readme)
 
 Other useful resources:
 
