@@ -769,7 +769,7 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 			mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 		}
 
-		if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, embeddedFiles); nErr != nil {
+		if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, embeddedFiles, "", "", ""); nErr != nil {
 			mlog.Error("Failed to send invite email successfully", mlog.Err(nErr))
 			if errorWhenNotSent {
 				inviteWithError := &model.EmailInviteWithError{
@@ -832,7 +832,7 @@ func (es *Service) SendDeactivateAccountEmail(email string, locale, siteURL stri
 		return err
 	}
 
-	if err := es.sendMail(email, subject, body); err != nil {
+	if err := es.sendMail(email, subject, body); err != nil { // this needs to receive the header options
 		return err
 	}
 
@@ -854,7 +854,7 @@ func (es *Service) sendEmailWithCustomReplyTo(to, subject, htmlBody, replyToAddr
 	license := es.license()
 	mailConfig := es.mailServiceConfig(replyToAddress)
 
-	return mail.SendMailUsingConfig(to, subject, htmlBody, mailConfig, license != nil && *license.Features.Compliance, "")
+	return mail.SendMailUsingConfig(to, subject, htmlBody, mailConfig, license != nil && *license.Features.Compliance, "", "", "", "")
 }
 
 func (es *Service) sendMailWithCC(to, subject, htmlBody string, ccMail string) error {
