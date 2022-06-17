@@ -6,18 +6,20 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func (api *API) InitInsights() {
 	// Reactions
-	api.BaseRoutes.InsightsForTeam.Handle("/reactions", api.APISessionRequired(getTopReactionsForTeamSince)).Methods("GET")
-	api.BaseRoutes.InsightsForUser.Handle("/reactions", api.APISessionRequired(getTopReactionsForUserSince)).Methods("GET")
+	api.BaseRoutes.InsightsForTeam.Handle("/reactions", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopReactionsForTeamSince)))).Methods("GET")
+	api.BaseRoutes.InsightsForUser.Handle("/reactions", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopReactionsForUserSince)))).Methods("GET")
 
 	// Channels
-	api.BaseRoutes.InsightsForTeam.Handle("/channels", api.APISessionRequired(getTopChannelsForTeamSince)).Methods("GET")
-	api.BaseRoutes.InsightsForUser.Handle("/channels", api.APISessionRequired(getTopChannelsForUserSince)).Methods("GET")
+	api.BaseRoutes.InsightsForTeam.Handle("/channels", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopChannelsForTeamSince)))).Methods("GET")
+	api.BaseRoutes.InsightsForUser.Handle("/channels", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopChannelsForUserSince)))).Methods("GET")
 }
 
 // Top Reactions
@@ -39,14 +41,16 @@ func getTopReactionsForTeamSince(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	startTime, err := model.GetStartUnixMilliForTimeRange(c.Params.TimeRange)
+	user, err := c.App.GetUser(c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
+	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+
 	topReactionList, err := c.App.GetTopReactionsForTeamSince(c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
-		StartUnixMilli: startTime,
+		StartUnixMilli: startTime.UnixMilli(),
 		Page:           c.Params.Page,
 		PerPage:        c.Params.PerPage,
 	})
@@ -86,14 +90,16 @@ func getTopReactionsForUserSince(c *Context, w http.ResponseWriter, r *http.Requ
 		}
 	}
 
-	startTime, err := model.GetStartUnixMilliForTimeRange(c.Params.TimeRange)
+	user, err := c.App.GetUser(c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
+	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+
 	topReactionList, err := c.App.GetTopReactionsForUserSince(c.AppContext.Session().UserId, c.Params.TeamId, &model.InsightsOpts{
-		StartUnixMilli: startTime,
+		StartUnixMilli: startTime.UnixMilli(),
 		Page:           c.Params.Page,
 		PerPage:        c.Params.PerPage,
 	})
@@ -130,17 +136,26 @@ func getTopChannelsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	startTime, err := model.GetStartUnixMilliForTimeRange(c.Params.TimeRange)
+	user, err := c.App.GetUser(c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
+	loc := user.GetTimezoneLocation()
+	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, loc)
+
 	topChannels, err := c.App.GetTopChannelsForTeamSince(c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
-		StartUnixMilli: startTime,
+		StartUnixMilli: startTime.UnixMilli(),
 		Page:           c.Params.Page,
 		PerPage:        c.Params.PerPage,
 	})
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	topChannels.PostCountByDuration, err = postCountByDurationViewModel(c.App, topChannels, startTime, c.Params.TimeRange, nil, loc)
 	if err != nil {
 		c.Err = err
 		return
@@ -177,18 +192,27 @@ func getTopChannelsForUserSince(c *Context, w http.ResponseWriter, r *http.Reque
 		}
 	}
 
-	startTime, err := model.GetStartUnixMilliForTimeRange(c.Params.TimeRange)
+	user, err := c.App.GetUser(c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
+	loc := user.GetTimezoneLocation()
+	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, loc)
+
 	topChannels, err := c.App.GetTopChannelsForUserSince(c.AppContext.Session().UserId, c.Params.TeamId, &model.InsightsOpts{
-		StartUnixMilli: startTime,
+		StartUnixMilli: startTime.UnixMilli(),
 		Page:           c.Params.Page,
 		PerPage:        c.Params.PerPage,
 	})
 
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	topChannels.PostCountByDuration, err = postCountByDurationViewModel(c.App, topChannels, startTime, c.Params.TimeRange, &c.AppContext.Session().UserId, loc)
 	if err != nil {
 		c.Err = err
 		return
@@ -201,4 +225,24 @@ func getTopChannelsForUserSince(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	w.Write(js)
+}
+
+// postCountByDurationViewModel expects a list of channels that are pre-authorized for the given user to view.
+func postCountByDurationViewModel(app app.AppIface, topChannelList *model.TopChannelList, startTime *time.Time, timeRange string, userID *string, location *time.Location) (model.ChannelPostCountByDuration, *model.AppError) {
+	if len(topChannelList.Items) == 0 {
+		return nil, nil
+	}
+	var postCountsByDay []*model.DurationPostCount
+	channelIDs := topChannelList.ChannelIDs()
+	var grouping model.PostCountGrouping
+	if timeRange == model.TimeRangeToday {
+		grouping = model.PostsByHour
+	} else {
+		grouping = model.PostsByDay
+	}
+	postCountsByDay, err := app.PostCountsByDuration(channelIDs, startTime.UnixMilli(), userID, grouping, location)
+	if err != nil {
+		return nil, err
+	}
+	return model.ToDailyPostCountViewModel(postCountsByDay, startTime, model.TimeRangeToNumberDays(timeRange), channelIDs), nil
 }

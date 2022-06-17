@@ -26,6 +26,7 @@ func TestParseAuthTokenFromRequest(t *testing.T) {
 		{"token mytoken", "", "", "mytoken", TokenLocationHeader},
 		{"BEARER mytoken", "", "", "mytoken", TokenLocationHeader},
 		{"", "mytoken", "", "mytoken", TokenLocationCookie},
+		{"", "a very large token to test out tokentokentokentokentokentokentokentokentokentokentokentokentoken", "", "a very large token to test out tokentokentokentoke", TokenLocationCookie},
 		{"", "", "mytoken", "mytoken", TokenLocationQueryString},
 		{"mytoken", "", "", "mytoken", TokenLocationCloudHeader},
 	}

@@ -3160,10 +3160,6 @@
     "translation": "Elasticsearch jest aktualnie zatrzymane."
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Nie udało się połączyć z serwerem Elasticsearch."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch jest wyłączony."
   },
@@ -7741,7 +7737,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Twój darmowy 14-dniowy okres próbny Mattermost wkrótce się kończy"
+    "translation": "Twój darmowy 30-dniowy okres próbny Mattermost wkrótce się kończy"
   },
   {
     "id": "api.templates.license_up_for_renewal_title",
@@ -7769,7 +7765,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Twoja 14-dniowa wersja testowa {{.WorkSpace}} jest gotowa do pracy!"
+    "translation": "Twoja przestrzeń robocza jest gotowa do pracy!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -7825,7 +7821,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, Twój 14-dniowy okres próbny Mattermost Cloud Professional kończy się za 3 dni, w dniu {{.TrialEnd}}. Proszę dodać informacje o płatności, aby Twój zespół mógł dalej korzystać z zalet Cloud Professional."
+    "translation": "{{.Name}}, Twój 30-dniowy okres próbny Mattermost Cloud Professional kończy się za 3 dni, w dniu {{.TrialEnd}}. Proszę dodać informacje o płatności, aby Twój zespół mógł dalej korzystać z zalet Cloud Professional."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -7837,11 +7833,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Twój bezpłatny 14-dniowy okres próbny programu Mattermost dobiegł końca"
+    "translation": "Twój bezpłatny 30-dniowy okres próbny programu Mattermost dobiegł końca"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, 14-dniowa bezpłatna wersja próbna Mattermost Cloud Enterprise zakończyła się w dniu {{.TodayDate}}. Mamy nadzieję, że spodobała Ci się nasza elastyczna i bezpieczna platforma współpracy. Prosimy o dodanie informacji o płatności, aby zespół mógł kontynuować współpracę z Mattermost."
+    "translation": "{{.Name}}, twoja 30-dniowa bezpłatna wersja próbna Mattermost Cloud Enterprise zakończyła się w dniu {{.TodayDate}}. Mamy nadzieję, że spodobała Ci się nasza elastyczna i bezpieczna platforma współpracy. Prosimy o dodanie informacji o płatności, aby zespół mógł kontynuować współpracę z Mattermost."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -9240,10 +9236,6 @@
     "translation": "Nazwa kanału jest nieprawidłowa"
   },
   {
-    "id": "model.insights.time_range.app_error",
-    "translation": " "
-  },
-  {
     "id": "model.channel.is_valid.1_or_more.app_error",
     "translation": "Nazwa musi być złożona z co najmniej 1 lub więcej małych znaków alfanumerycznych."
   },
@@ -9350,5 +9342,25 @@
   {
     "id": "api.cloud.teams_limit_reached.create",
     "translation": "Nie można utworzyć zespołu, ponieważ osiągnięto limit zespołów"
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "Nie udało się uzyskać informacji o wykorzystaniu pamięci masowej."
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Nieprawidłowa współbieżność dekodera {{.Wartość}}. Powinna być liczbą dodatnią lub -1."
+  },
+  {
+    "id": "app.channel.get_post_count_by_day.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.license_error.professional_or_enterprise",
+    "translation": " "
+  },
+  {
+    "id": "api.authorization_error.guest",
+    "translation": " "
   }
 ]

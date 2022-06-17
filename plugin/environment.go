@@ -50,6 +50,7 @@ type PrepackagedPlugin struct {
 // of active plugins.
 type Environment struct {
 	registeredPlugins      sync.Map
+	registeredProducts     sync.Map
 	pluginHealthCheckJob   *PluginHealthCheckJob
 	logger                 *mlog.Logger
 	metrics                einterfaces.MetricsInterface
@@ -300,6 +301,14 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 	return pluginInfo.Manifest, true, nil
 }
 
+func (env *Environment) AddProduct(productID string, hooks ProductHooks) {
+	env.registeredProducts.Store(productID, newRegisteredProduct(productID, hooks))
+}
+
+func (env *Environment) RemoveProduct(productID string) {
+	env.registeredProducts.Delete(productID)
+}
+
 func (env *Environment) RemovePlugin(id string) {
 	if _, ok := env.registeredPlugins.Load(id); ok {
 		env.registeredPlugins.Delete(id)
@@ -476,6 +485,24 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool
 		if env.metrics != nil {
 			elapsedTime := float64(time.Since(hookStartTime)) / float64(time.Second)
 			env.metrics.ObservePluginMultiHookIterationDuration(rp.BundleInfo.Manifest.Id, elapsedTime)
+		}
+
+		return result
+	})
+
+	env.registeredProducts.Range(func(key, value interface{}) bool {
+		rp := value.(*registeredProduct)
+
+		if !rp.Implements(hookId) {
+			return true
+		}
+
+		hookStartTime := time.Now()
+		result := hookRunnerFunc(rp.adapter)
+
+		if env.metrics != nil {
+			elapsedTime := float64(time.Since(hookStartTime)) / float64(time.Second)
+			env.metrics.ObservePluginMultiHookIterationDuration(rp.productID, elapsedTime)
 		}
 
 		return result

@@ -7,7 +7,6 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -18,30 +17,9 @@ import (
 )
 
 func Test_getCloudLimits(t *testing.T) {
-	t.Run("feature flag off returns empty limits", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "false")
-		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
-		th.App.ReloadConfig()
-
-		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
-
-		limits, r, err := th.Client.GetProductLimits()
-		require.NoError(t, err)
-		require.Equal(t, limits, &model.ProductLimits{})
-		require.Equal(t, http.StatusOK, r.StatusCode, "Expected 200 OK")
-	})
-
 	t.Run("no license returns not implemented", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
-
-		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
-		th.App.ReloadConfig()
 
 		th.App.Srv().RemoveLicense()
 
@@ -57,10 +35,6 @@ func Test_getCloudLimits(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
-		th.App.ReloadConfig()
-
 		th.App.Srv().SetLicense(model.NewTestLicense())
 
 		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
@@ -75,9 +49,6 @@ func Test_getCloudLimits(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
-		th.App.ReloadConfig()
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
 		cloud := &mocks.CloudInterface{}
@@ -109,13 +80,10 @@ func Test_getCloudLimits(t *testing.T) {
 		require.Equal(t, http.StatusUnauthorized, r.StatusCode, "Expected 401 Unauthorized")
 	})
 
-	t.Run("good request with cloud server and feature flag returns response", func(t *testing.T) {
+	t.Run("good request with cloud server", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
-		th.App.ReloadConfig()
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
 		cloud := &mocks.CloudInterface{}
@@ -163,10 +131,6 @@ func Test_requestTrial(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
-		th.App.ReloadConfig()
-
 		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
@@ -189,13 +153,9 @@ func Test_requestTrial(t *testing.T) {
 		require.Equal(t, http.StatusForbidden, r.StatusCode, "403 Forbidden")
 	})
 
-	t.Run("cloudFree feature flag FALSE and Admin user are UNABLE to request the trial", func(t *testing.T) {
+	t.Run("ADMIN user are ABLE to request the trial", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
-
-		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "false")
-		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
-		th.App.ReloadConfig()
 
 		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 
@@ -224,10 +184,6 @@ func Test_requestTrial(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
-		th.App.ReloadConfig()
-
 		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
@@ -251,16 +207,12 @@ func Test_requestTrial(t *testing.T) {
 		require.Equal(t, http.StatusOK, r.StatusCode, "Status OK")
 	})
 
-	t.Run("cloudFree feature flag TRUE and ADMIN user are ABLE to request the trial with valid business email", func(t *testing.T) {
+	t.Run("ADMIN user are ABLE to request the trial with valid business email", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		// patch the customer with the additional contact updated with the valid business email
 		newValidBusinessEmail.Email = *model.NewString("valid.email@mattermost.com")
-
-		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
-		th.App.ReloadConfig()
 
 		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 

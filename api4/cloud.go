@@ -138,11 +138,6 @@ func requestCloudTrial(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.Config().FeatureFlags.CloudFree {
-		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.cloud_free_feature_flag_off_error", nil, "", http.StatusInternalServerError)
-		return
-	}
-
 	// check if the email needs to be set
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -271,17 +266,6 @@ func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
 func getCloudLimits(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
 		c.Err = model.NewAppError("Api4.getCloudLimits", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	if !c.App.Config().FeatureFlags.CloudFree {
-		emptyLimits := &model.ProductLimits{}
-		json, err := json.Marshal(emptyLimits)
-		if err != nil {
-			c.Err = model.NewAppError("Api4.getCloudLimits", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-
-		w.Write(json)
 		return
 	}
 
