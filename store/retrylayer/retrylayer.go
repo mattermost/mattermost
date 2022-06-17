@@ -4394,6 +4394,27 @@ func (s *RetryLayerGroupStore) DistinctGroupMemberCount() (int64, error) {
 
 }
 
+func (s *RetryLayerGroupStore) DistinctGroupMemberCountForSource(source model.GroupSource) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.GroupStore.DistinctGroupMemberCountForSource(source)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerGroupStore) Get(groupID string) (*model.Group, error) {
 
 	tries := 0
