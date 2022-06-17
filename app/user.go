@@ -390,6 +390,7 @@ func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
 
 	// Temporary check to diagnose a SET escalation; when GetUser is called by some plugins a nil,nil is returned.
 	if user == nil {
+		mlog.Error("Unexpected nil from GetUser", mlog.String("user_id", userID))
 		return nil, model.NewAppError("GetUser", "app.user.get.app_error", nil, "Unexpected nil fetching userid "+userID, http.StatusInternalServerError)
 	}
 
