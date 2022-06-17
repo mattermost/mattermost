@@ -2252,12 +2252,7 @@ func (a *App) invalidateUserCacheAndPublish(userID string) {
 		return
 	}
 
-	options := a.Config().GetSanitizeOptions()
-	user.SanitizeProfile(options)
-
-	message := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", nil)
-	message.Add("user", user)
-	a.Publish(message)
+	a.sendUpdatedUserEvent(*user)
 }
 
 // GetKnownUsers returns the list of user ids of users with any direct
