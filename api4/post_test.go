@@ -996,7 +996,7 @@ func TestPinPost(t *testing.T) {
 	_, err := client.PinPost(post.Id)
 	require.NoError(t, err)
 
-	rpost, appErr := th.App.GetSinglePost(post.Id)
+	rpost, appErr := th.App.GetSinglePost(post.Id, false)
 	require.Nil(t, appErr)
 	require.True(t, rpost.IsPinned, "failed to pin post")
 
@@ -1026,7 +1026,7 @@ func TestUnpinPost(t *testing.T) {
 	_, err := client.UnpinPost(pinnedPost.Id)
 	require.NoError(t, err)
 
-	rpost, appErr := th.App.GetSinglePost(pinnedPost.Id)
+	rpost, appErr := th.App.GetSinglePost(pinnedPost.Id, false)
 	require.Nil(t, appErr)
 	require.False(t, rpost.IsPinned)
 
@@ -1999,6 +1999,29 @@ func TestGetPost(t *testing.T) {
 	// But local client should.
 	_, _, err = th.LocalClient.GetPost(privatePost.Id, "")
 	require.NoError(t, err)
+
+	// Delete post
+	th.SystemAdminClient.DeletePost(th.BasicPost.Id)
+
+	// Normal client should get 404 when trying to access deleted post normally
+	_, resp, err = client.GetPost(th.BasicPost.Id, "")
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+
+	// Normal client should get unauthorized when trying to access deleted post
+	_, resp, err = client.GetPostIncludeDeleted(th.BasicPost.Id, "")
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	// System client should get 404 when trying to access deleted post normally
+	_, resp, err = th.SystemAdminClient.GetPost(th.BasicPost.Id, "")
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+
+	// System client should be able to access deleted post with include_deleted param
+	post, _, err := th.SystemAdminClient.GetPostIncludeDeleted(th.BasicPost.Id, "")
+	require.NoError(t, err)
+	require.Equal(t, th.BasicPost.Id, post.Id)
 
 	client.Logout()
 

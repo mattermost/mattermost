@@ -3292,14 +3292,26 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 			LeftJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId")
 	}
 
-	likeClause, likeTerm := s.buildLIKEClause(opts.Term, "c.Name, c.DisplayName, c.Purpose")
+	likeFields := "c.Name, c.DisplayName, c.Purpose"
+	if opts.IncludeSearchById {
+		likeFields = likeFields + ", c.Id"
+	}
+
+	likeClause, likeTerm := s.buildLIKEClause(opts.Term, likeFields)
+
 	if likeTerm != "" {
+		// Keep the number of likeTerms same as the number of columns
+		// (c.Name, c.DisplayName, c.Purpose, c.Id?)
+		likeTerms := make([]interface{}, len(strings.Split(likeFields, ",")))
+		for i := 0; i < len(likeTerms); i++ {
+			likeTerms[i] = likeTerm
+		}
 		likeClause = strings.ReplaceAll(likeClause, ":LikeTerm", "?")
 		fulltextClause, fulltextTerm := s.buildFulltextClause(opts.Term, "c.Name, c.DisplayName, c.Purpose")
 		fulltextClause = strings.ReplaceAll(fulltextClause, ":FulltextTerm", "?")
+
 		query = query.Where(sq.Or{
-			sq.Expr(likeClause, likeTerm, likeTerm, likeTerm), // Keep the number of likeTerms same as the number
-			// of columns (c.Name, c.DisplayName, c.Purpose)
+			sq.Expr(likeClause, likeTerms...),
 			sq.Expr(fulltextClause, fulltextTerm),
 		})
 	}
@@ -4296,4 +4308,54 @@ func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string
 	}
 
 	return model.GetTopChannelListWithPagination(channels, limit), nil
+}
+
+func (s SqlChannelStore) PostCountsByDuration(channelIDs []string, sinceUnixMillis int64, userID *string, duration model.PostCountGrouping, atLocation *time.Location) ([]*model.DurationPostCount, error) {
+	var unixSelect string
+	var propsQuery string
+	loc := atLocation.String()
+	if loc == "Local" {
+		loc = "UTC"
+	}
+	if s.DriverName() == model.DatabaseDriverMysql {
+		if duration == model.PostsByDay {
+			unixSelect = `DATE_FORMAT(CONVERT_TZ(FROM_UNIXTIME(Posts.CreateAt / 1000), 'GMT', '` + loc + `'),'%Y-%m-%d') AS duration`
+		} else {
+			unixSelect = `DATE_FORMAT(CONVERT_TZ(FROM_UNIXTIME(Posts.CreateAt / 1000), 'GMT', '` + loc + `'),'%Y-%m-%dT%H') AS duration`
+		}
+		propsQuery = `(JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false')`
+	} else if s.DriverName() == model.DatabaseDriverPostgres {
+		if duration == model.PostsByDay {
+			unixSelect = fmt.Sprintf(`TO_CHAR(TO_TIMESTAMP(Posts.CreateAt / 1000) AT TIME ZONE '%s', 'YYYY-MM-DD') AS duration`, loc)
+		} else {
+			unixSelect = fmt.Sprintf(`TO_CHAR(TO_TIMESTAMP(Posts.CreateAt / 1000) AT TIME ZONE '%s', 'YYYY-MM-DD"T"HH24') AS duration`, loc)
+		}
+		propsQuery = `(Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false')`
+	}
+	query := sq.
+		Select("Posts.ChannelId AS channelid", unixSelect, "count(Posts.Id) AS postcount").
+		From("Posts").
+		LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
+		Where(sq.And{
+			sq.Eq{"Posts.DeleteAt": 0},
+			sq.Gt{"Posts.CreateAt": sinceUnixMillis},
+			sq.Eq{"Posts.Type": ""},
+			sq.Eq{"Channels.Id": channelIDs},
+		}).
+		Where(propsQuery).
+		GroupBy("channelid", "duration").
+		OrderBy("channelid", "duration")
+	if userID != nil && model.IsValidId(*userID) {
+		query = query.Where(sq.And{sq.Eq{"Posts.UserId": *userID}})
+	}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse query")
+	}
+	dailyPostCounts := make([]*model.DurationPostCount, 0)
+	if err := s.GetReplicaX().Select(&dailyPostCounts, queryString, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to get post counts by duration")
+	}
+
+	return dailyPostCounts, nil
 }

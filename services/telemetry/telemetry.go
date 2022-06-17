@@ -331,7 +331,7 @@ func (ts *TelemetryService) trackActivity() {
 		activeUsersMonthlyCount = r.Data.(int64)
 	}
 
-	ts.SendTelemetry(TrackActivity, map[string]interface{}{
+	activity := map[string]interface{}{
 		"registered_users":             userCount,
 		"bot_accounts":                 botAccountsCount,
 		"guest_accounts":               guestAccountsCount,
@@ -350,7 +350,17 @@ func (ts *TelemetryService) trackActivity() {
 		"slash_commands":               slashCommandsCount,
 		"incoming_webhooks":            incomingWebhooksCount,
 		"outgoing_webhooks":            outgoingWebhooksCount,
-	})
+	}
+
+	if license := ts.srv.License(); license != nil && license.Features.Cloud != nil && *license.Features.Cloud {
+		var tmpStorage int64
+		if usage, err := ts.dbStore.FileInfo().GetStorageUsage(true, false); err == nil {
+			tmpStorage = usage
+		}
+		activity["storage_bytes"] = utils.RoundOffToZeroes(float64(tmpStorage))
+	}
+
+	ts.SendTelemetry(TrackActivity, activity)
 }
 
 func (ts *TelemetryService) trackConfig() {
@@ -525,21 +535,22 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.SendTelemetry(TrackConfigFile, map[string]interface{}{
-		"enable_public_links":     cfg.FileSettings.EnablePublicLink,
-		"driver_name":             *cfg.FileSettings.DriverName,
-		"isdefault_directory":     isDefault(*cfg.FileSettings.Directory, model.FileSettingsDefaultDirectory),
-		"isabsolute_directory":    filepath.IsAbs(*cfg.FileSettings.Directory),
-		"extract_content":         *cfg.FileSettings.ExtractContent,
-		"archive_recursion":       *cfg.FileSettings.ArchiveRecursion,
-		"amazon_s3_ssl":           *cfg.FileSettings.AmazonS3SSL,
-		"amazon_s3_sse":           *cfg.FileSettings.AmazonS3SSE,
-		"amazon_s3_signv2":        *cfg.FileSettings.AmazonS3SignV2,
-		"amazon_s3_trace":         *cfg.FileSettings.AmazonS3Trace,
-		"max_file_size":           *cfg.FileSettings.MaxFileSize,
-		"max_image_resolution":    *cfg.FileSettings.MaxImageResolution,
-		"enable_file_attachments": *cfg.FileSettings.EnableFileAttachments,
-		"enable_mobile_upload":    *cfg.FileSettings.EnableMobileUpload,
-		"enable_mobile_download":  *cfg.FileSettings.EnableMobileDownload,
+		"enable_public_links":           cfg.FileSettings.EnablePublicLink,
+		"driver_name":                   *cfg.FileSettings.DriverName,
+		"isdefault_directory":           isDefault(*cfg.FileSettings.Directory, model.FileSettingsDefaultDirectory),
+		"isabsolute_directory":          filepath.IsAbs(*cfg.FileSettings.Directory),
+		"extract_content":               *cfg.FileSettings.ExtractContent,
+		"archive_recursion":             *cfg.FileSettings.ArchiveRecursion,
+		"amazon_s3_ssl":                 *cfg.FileSettings.AmazonS3SSL,
+		"amazon_s3_sse":                 *cfg.FileSettings.AmazonS3SSE,
+		"amazon_s3_signv2":              *cfg.FileSettings.AmazonS3SignV2,
+		"amazon_s3_trace":               *cfg.FileSettings.AmazonS3Trace,
+		"max_file_size":                 *cfg.FileSettings.MaxFileSize,
+		"max_image_resolution":          *cfg.FileSettings.MaxImageResolution,
+		"max_image_decoder_concurrency": *cfg.FileSettings.MaxImageDecoderConcurrency,
+		"enable_file_attachments":       *cfg.FileSettings.EnableFileAttachments,
+		"enable_mobile_upload":          *cfg.FileSettings.EnableMobileUpload,
+		"enable_mobile_download":        *cfg.FileSettings.EnableMobileDownload,
 	})
 
 	ts.SendTelemetry(TrackConfigEmail, map[string]interface{}{
@@ -712,7 +723,6 @@ func (ts *TelemetryService) trackConfig() {
 		"client_side_cert_enable":            *cfg.ExperimentalSettings.ClientSideCertEnable,
 		"isdefault_client_side_cert_check":   isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.ClientSideCertCheckPrimaryAuth),
 		"link_metadata_timeout_milliseconds": *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
-		"enable_click_to_reply":              *cfg.ExperimentalSettings.EnableClickToReply,
 		"restrict_system_admin":              *cfg.ExperimentalSettings.RestrictSystemAdmin,
 		"use_new_saml_library":               *cfg.ExperimentalSettings.UseNewSAMLLibrary,
 		"cloud_billing":                      *cfg.ExperimentalSettings.CloudBilling,
@@ -855,6 +865,7 @@ func (ts *TelemetryService) trackPlugins() {
 	webappEnabledCount := 0
 	backendEnabledCount := 0
 	totalDisabledCount := 0
+	totalCoreDisabledCount := 0
 	webappDisabledCount := 0
 	backendDisabledCount := 0
 	brokenManifestCount := 0
@@ -886,14 +897,18 @@ func (ts *TelemetryService) trackPlugins() {
 				if plugin.Manifest.HasWebapp() {
 					webappDisabledCount += 1
 				}
+				if _, isCorePlugin := model.InstalledIntegrationsIgnoredPlugins[plugin.Manifest.Id]; isCorePlugin {
+					totalCoreDisabledCount += 1
+				}
 			}
 			if plugin.Manifest.SettingsSchema != nil {
 				settingsCount += 1
 			}
 		}
 	} else {
-		totalEnabledCount = -1  // -1 to indicate disabled or error
-		totalDisabledCount = -1 // -1 to indicate disabled or error
+		totalEnabledCount = -1      // -1 to indicate disabled or error
+		totalCoreDisabledCount = -1 // -1 to indicate disabled or error
+		totalDisabledCount = -1     // -1 to indicate disabled or error
 	}
 
 	ts.SendTelemetry(TrackPlugins, map[string]interface{}{
@@ -901,6 +916,7 @@ func (ts *TelemetryService) trackPlugins() {
 		"enabled_webapp_plugins":        webappEnabledCount,
 		"enabled_backend_plugins":       backendEnabledCount,
 		"disabled_plugins":              totalDisabledCount,
+		"disabled_default_plugins":      totalCoreDisabledCount,
 		"disabled_webapp_plugins":       webappDisabledCount,
 		"disabled_backend_plugins":      backendDisabledCount,
 		"plugins_with_settings":         settingsCount,
@@ -1148,22 +1164,34 @@ func (ts *TelemetryService) trackGroups() {
 		mlog.Debug("Could not get distinct_group_member_count", mlog.Err(err))
 	}
 
+	distinctCustomGroupMemberCount, err := ts.dbStore.Group().DistinctGroupMemberCountForSource(model.GroupSourceCustom)
+	if err != nil {
+		mlog.Debug("Could not get distinct_custom_group_member_count", mlog.Err(err))
+	}
+
+	distinctLdapGroupMemberCount, err := ts.dbStore.Group().DistinctGroupMemberCountForSource(model.GroupSourceLdap)
+	if err != nil {
+		mlog.Debug("Could not get distinct_ldap_group_member_count", mlog.Err(err))
+	}
+
 	groupCountWithAllowReference, err := ts.dbStore.Group().GroupCountWithAllowReference()
 	if err != nil {
 		mlog.Debug("Could not get group_count_with_allow_reference", mlog.Err(err))
 	}
 
 	ts.SendTelemetry(TrackGroups, map[string]interface{}{
-		"group_count":                      groupCount,
-		"ldap_group_count":                 ldapGroupCount,
-		"custom_group_count":               customGroupCount,
-		"group_team_count":                 groupTeamCount,
-		"group_channel_count":              groupChannelCount,
-		"group_synced_team_count":          groupSyncedTeamCount,
-		"group_synced_channel_count":       groupSyncedChannelCount,
-		"group_member_count":               groupMemberCount,
-		"distinct_group_member_count":      distinctGroupMemberCount,
-		"group_count_with_allow_reference": groupCountWithAllowReference,
+		"group_count":                        groupCount,
+		"ldap_group_count":                   ldapGroupCount,
+		"custom_group_count":                 customGroupCount,
+		"group_team_count":                   groupTeamCount,
+		"group_channel_count":                groupChannelCount,
+		"group_synced_team_count":            groupSyncedTeamCount,
+		"group_synced_channel_count":         groupSyncedChannelCount,
+		"group_member_count":                 groupMemberCount,
+		"distinct_group_member_count":        distinctGroupMemberCount,
+		"distinct_custom_group_member_count": distinctCustomGroupMemberCount,
+		"distinct_ldap_group_member_count":   distinctLdapGroupMemberCount,
+		"group_count_with_allow_reference":   groupCountWithAllowReference,
 	})
 }
 

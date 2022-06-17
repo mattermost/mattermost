@@ -21,6 +21,14 @@ import (
 )
 
 func (ch *Channels) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	if handler, ok := ch.routerSvc.getHandler(params["plugin_id"]); ok {
+		ch.servePluginRequest(w, r, func(*plugin.Context, http.ResponseWriter, *http.Request) {
+			handler.ServeHTTP(w, r)
+		})
+		return
+	}
+
 	pluginsEnvironment := ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		err := model.NewAppError("ServePluginRequest", "app.plugin.disabled.app_error", nil, "Enable plugins to serve plugin requests", http.StatusNotImplemented)
@@ -31,7 +39,6 @@ func (ch *Channels) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	params := mux.Vars(r)
 	hooks, err := pluginsEnvironment.HooksForPlugin(params["plugin_id"])
 	if err != nil {
 		mlog.Debug("Access to route for non-existent plugin",

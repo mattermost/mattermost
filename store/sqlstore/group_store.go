@@ -1740,6 +1740,26 @@ func (s *SqlGroupStore) DistinctGroupMemberCount() (int64, error) {
 	return s.countTableWithSelectAndWhere("COUNT(DISTINCT UserId)", "GroupMembers", nil)
 }
 
+func (s *SqlGroupStore) DistinctGroupMemberCountForSource(source model.GroupSource) (int64, error) {
+	builder := s.getQueryBuilder().
+		Select("COUNT(DISTINCT GroupMembers.UserId)").
+		From("GroupMembers").
+		Join("UserGroups ON GroupMembers.GroupId = UserGroups.Id").
+		Where(sq.Eq{"UserGroups.Source": source, "GroupMembers.DeleteAt": 0})
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return 0, errors.Wrap(err, "distinct_group_member_count_for_source_tosql")
+	}
+
+	var count int64
+	if err = s.GetReplicaX().Get(&count, query, args...); err != nil {
+		return 0, errors.Wrapf(err, "failed to select distinct groupmember count for source %q", source)
+	}
+
+	return count, nil
+}
+
 func (s *SqlGroupStore) GroupCountWithAllowReference() (int64, error) {
 	return s.countTableWithSelectAndWhere("COUNT(*)", "UserGroups", sq.Eq{"AllowReference": true, "DeleteAt": 0})
 }

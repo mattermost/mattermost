@@ -52,19 +52,19 @@ func createCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 	auditRec := c.MakeAuditRecord("createCategoryForTeamForUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	var categoryCreateRequest *model.SidebarCategoryWithChannels
+	var categoryCreateRequest model.SidebarCategoryWithChannels
 	err := json.NewDecoder(r.Body).Decode(&categoryCreateRequest)
 	if err != nil || c.Params.UserId != categoryCreateRequest.UserId || c.Params.TeamId != categoryCreateRequest.TeamId {
 		c.SetInvalidParam("category")
 		return
 	}
 
-	if appErr := validateSidebarCategory(c, c.Params.TeamId, c.Params.UserId, categoryCreateRequest); appErr != nil {
+	if appErr := validateSidebarCategory(c, c.Params.TeamId, c.Params.UserId, &categoryCreateRequest); appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	category, appErr := c.App.CreateSidebarCategory(c.Params.UserId, c.Params.TeamId, categoryCreateRequest)
+	category, appErr := c.App.CreateSidebarCategory(c.Params.UserId, c.Params.TeamId, &categoryCreateRequest)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -275,21 +275,21 @@ func updateCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 	auditRec := c.MakeAuditRecord("updateCategoryForTeamForUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	var categoryUpdateRequest *model.SidebarCategoryWithChannels
+	var categoryUpdateRequest model.SidebarCategoryWithChannels
 	err := json.NewDecoder(r.Body).Decode(&categoryUpdateRequest)
 	if err != nil || categoryUpdateRequest.TeamId != c.Params.TeamId || categoryUpdateRequest.UserId != c.Params.UserId {
 		c.SetInvalidParam("category")
 		return
 	}
 
-	if appErr := validateSidebarCategory(c, c.Params.TeamId, c.Params.UserId, categoryUpdateRequest); appErr != nil {
+	if appErr := validateSidebarCategory(c, c.Params.TeamId, c.Params.UserId, &categoryUpdateRequest); appErr != nil {
 		c.Err = appErr
 		return
 	}
 
 	categoryUpdateRequest.Id = c.Params.CategoryId
 
-	categories, appErr := c.App.UpdateSidebarCategories(c.Params.UserId, c.Params.TeamId, []*model.SidebarCategoryWithChannels{categoryUpdateRequest})
+	categories, appErr := c.App.UpdateSidebarCategories(c.Params.UserId, c.Params.TeamId, []*model.SidebarCategoryWithChannels{&categoryUpdateRequest})
 	if appErr != nil {
 		c.Err = appErr
 		return

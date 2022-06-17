@@ -442,7 +442,6 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 
 		es := &mocks.SearchEngineInterface{}
 		es.On("SearchFiles", mock.Anything, mock.Anything, page, perPage).Return(resultsPage, nil)
-		es.On("GetName").Return("mock")
 		es.On("Start").Return(nil).Maybe()
 		es.On("IsActive").Return(true)
 		es.On("IsSearchEnabled").Return(true)
@@ -471,7 +470,6 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 
 		es := &mocks.SearchEngineInterface{}
 		es.On("SearchFiles", mock.Anything, mock.Anything, page, perPage).Return(resultsPage, nil)
-		es.On("GetName").Return("mock")
 		es.On("Start").Return(nil).Maybe()
 		es.On("IsActive").Return(true)
 		es.On("IsSearchEnabled").Return(true)

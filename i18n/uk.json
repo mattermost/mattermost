@@ -3160,10 +3160,6 @@
     "translation": "Еластичний пошук не запускається"
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Не вдалося підключитися до сервера Elasticsearch."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch відключений."
   },
