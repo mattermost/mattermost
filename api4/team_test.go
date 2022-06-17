@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -95,9 +94,6 @@ func TestCreateTeam(t *testing.T) {
 	})
 
 	t.Run("cloud limit reached returns 400", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
-		th.App.ReloadConfig()
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
 		cloud := &mocks.CloudInterface{}
@@ -119,10 +115,6 @@ func TestCreateTeam(t *testing.T) {
 	})
 
 	t.Run("cloud below limit returns 200", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
-		th.App.ReloadConfig()
-		defer th.App.ReloadConfig()
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
 		cloud := &mocks.CloudInterface{}
@@ -636,9 +628,6 @@ func TestRestoreTeam(t *testing.T) {
 	t.Run("cloud limit reached returns 400", func(t *testing.T) {
 		// Create an archived team to be restored later
 		team := createTeam(t, true, model.TeamOpen)
-		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
-		th.App.ReloadConfig()
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
 		cloud := &mocks.CloudInterface{}
@@ -660,9 +649,6 @@ func TestRestoreTeam(t *testing.T) {
 	})
 
 	t.Run("cloud below limit returns 200", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
-		th.App.ReloadConfig()
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
 		cloud := &mocks.CloudInterface{}
