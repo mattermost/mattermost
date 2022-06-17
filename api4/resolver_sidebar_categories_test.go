@@ -26,7 +26,7 @@ func TestGraphQLSidebarCategories(t *testing.T) {
 			DisplayName string                       `json:"displayName"`
 			Sorting     model.SidebarCategorySorting `json:"sorting"`
 			ChannelIDs  []string                     `json:"channelIds"`
-			TeamID      string                       `json:teamId`
+			TeamID      string                       `json:"teamId"`
 		} `json:"sidebarCategories"`
 	}
 

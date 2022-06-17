@@ -112,25 +112,23 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *sqlxTxWrap
 			// if exclude, get all teams, excluding that team
 			if !opts.ExcludeTeam {
 				return []string{opts.TeamID}
-			} else {
-				return extractTeamIDs(teamsWithExclude)
 			}
+			return extractTeamIDs(teamsWithExclude)
+		}
+		mapEntry := hasCategoryOfType[category]
+		if !opts.ExcludeTeam && mapEntry[opts.TeamID] {
+			// continue, nothing to do since entry already exists.
 		} else {
-			mapEntry := hasCategoryOfType[category]
-			if !opts.ExcludeTeam && mapEntry[opts.TeamID] {
-				// continue, nothing to do since entry already exists.
-			} else {
-				excludedTeamIDs := extractTeamIDs(teamsWithExclude)
-				for i, tID := range excludedTeamIDs {
-					if mapEntry[tID] {
-						// remove from slice
-						copy(excludedTeamIDs[i:], excludedTeamIDs[i+1:])
-						excludedTeamIDs[len(excludedTeamIDs)-1] = ""
-						excludedTeamIDs = excludedTeamIDs[:len(excludedTeamIDs)-1]
-					}
+			excludedTeamIDs := extractTeamIDs(teamsWithExclude)
+			for i, tID := range excludedTeamIDs {
+				if mapEntry[tID] {
+					// remove from slice
+					copy(excludedTeamIDs[i:], excludedTeamIDs[i+1:])
+					excludedTeamIDs[len(excludedTeamIDs)-1] = ""
+					excludedTeamIDs = excludedTeamIDs[:len(excludedTeamIDs)-1]
 				}
-				return excludedTeamIDs
 			}
+			return excludedTeamIDs
 		}
 		return []string{}
 	}
