@@ -95,8 +95,8 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Freemium enabled, on a cloud license. We must check limits before allowing to create
-	if c.App.Config().FeatureFlags != nil && c.App.Config().FeatureFlags.CloudFree && (c.App.Channels().License() != nil && c.App.Channels().License().Features != nil && *c.App.Channels().License().Features.Cloud) {
+	// On a cloud license, we must check limits before allowing to create
+	if c.App.Channels().License() != nil && c.App.Channels().License().Features != nil && *c.App.Channels().License().Features.Cloud {
 		limits, err := c.App.Cloud().GetCloudLimits(c.AppContext.Session().UserId)
 		if err != nil {
 			c.Err = model.NewAppError("Api4.createTeam", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -281,8 +281,8 @@ func restoreTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionManageTeam)
 		return
 	}
-	// Freemium enabled, on a cloud license. We must check limits before allowing to restore
-	if c.App.Config().FeatureFlags != nil && c.App.Config().FeatureFlags.CloudFree && (c.App.Channels().License() != nil && c.App.Channels().License().Features != nil && *c.App.Channels().License().Features.Cloud) {
+	// On a cloud license, we must check limits before allowing to restore
+	if c.App.Channels().License() != nil && c.App.Channels().License().Features != nil && *c.App.Channels().License().Features.Cloud {
 		limits, err := c.App.Cloud().GetCloudLimits(c.AppContext.Session().UserId)
 		if err != nil {
 			c.Err = model.NewAppError("Api4.restoreTeam", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
