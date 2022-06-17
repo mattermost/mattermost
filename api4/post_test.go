@@ -130,7 +130,7 @@ func TestCreatePost(t *testing.T) {
 		require.NoError(t, err)
 
 		// Message with no channel mentions should result in no ephemeral message
-		timeout := time.After(300 * time.Millisecond)
+		timeout := time.After(2 * time.Second)
 		waiting := true
 		for waiting {
 			select {
@@ -156,7 +156,7 @@ func TestCreatePost(t *testing.T) {
 		_, _, err = client.CreatePost(post)
 		require.NoError(t, err)
 
-		timeout = time.After(600 * time.Millisecond)
+		timeout = time.After(2 * time.Second)
 		eventsToGo := 3 // 3 Posts created with @ mentions should result in 3 websocket events
 		for eventsToGo > 0 {
 			select {
@@ -338,7 +338,7 @@ func testCreatePostWithOutgoingHook(
 		outGoingHookResponse := &model.OutgoingWebhookResponse{
 			Text:         model.NewString("some test text"),
 			Username:     "TestCommandServer",
-			IconURL:      "https://www.mattermost.org/wp-content/uploads/2016/04/icon.png",
+			IconURL:      "https://mattermost.com/wp-content/uploads/2022/02/icon.png",
 			Type:         "custom_as",
 			ResponseType: respPostType,
 		}
@@ -553,7 +553,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 
-	timeout := time.After(300 * time.Millisecond)
+	timeout := time.After(2 * time.Second)
 	waiting := true
 	for waiting {
 		select {
@@ -572,7 +572,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 
-	timeout = time.After(300 * time.Millisecond)
+	timeout = time.After(2 * time.Second)
 	waiting = true
 	for waiting {
 		select {
@@ -602,11 +602,12 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	api := Init(th.Server)
+	api, err := Init(th.Server)
+	require.NoError(t, err)
 	session, _ := th.App.GetSession(th.Client.AuthToken)
 
 	cli := th.CreateClient()
-	_, _, err := cli.Login(th.BasicUser2.Username, th.BasicUser2.Password)
+	_, _, err = cli.Login(th.BasicUser2.Username, th.BasicUser2.Password)
 	require.NoError(t, err)
 
 	wsClient, err := th.CreateWebSocketClientWithClient(cli)
@@ -995,7 +996,7 @@ func TestPinPost(t *testing.T) {
 	_, err := client.PinPost(post.Id)
 	require.NoError(t, err)
 
-	rpost, appErr := th.App.GetSinglePost(post.Id)
+	rpost, appErr := th.App.GetSinglePost(post.Id, false)
 	require.Nil(t, appErr)
 	require.True(t, rpost.IsPinned, "failed to pin post")
 
@@ -1025,7 +1026,7 @@ func TestUnpinPost(t *testing.T) {
 	_, err := client.UnpinPost(pinnedPost.Id)
 	require.NoError(t, err)
 
-	rpost, appErr := th.App.GetSinglePost(pinnedPost.Id)
+	rpost, appErr := th.App.GetSinglePost(pinnedPost.Id, false)
 	require.Nil(t, appErr)
 	require.False(t, rpost.IsPinned)
 
@@ -1202,6 +1203,28 @@ func TestGetPostsForChannel(t *testing.T) {
 		require.Equal(t, "", posts.NextPostId, "should return an empty NextPostId")
 		require.Equal(t, "", posts.PrevPostId, "should return an empty PrevPostId")
 	})
+
+	th.TestForAllClients(t, func(t *testing.T, c *model.Client4) {
+		channel := th.CreatePublicChannel()
+		th.CreatePostWithClient(th.SystemAdminClient, channel)
+		th.SystemAdminClient.DeleteChannel(channel.Id)
+
+		experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalViewArchivedChannels = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.ExperimentalViewArchivedChannels = experimentalViewArchivedChannels
+		})
+
+		// the endpoint should work fine when viewing archived channels is enabled
+		_, _, err = c.GetPostsForChannel(channel.Id, 0, 10, "", false)
+		require.NoError(t, err)
+
+		// the endpoint should return forbidden if viewing archived channels is disabled
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalViewArchivedChannels = false })
+		_, resp, err = c.GetPostsForChannel(channel.Id, 0, 10, "", false)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	}, "Should forbid to retrieve posts if the channel is archived and users are not allowed to view archived messages")
 }
 
 func TestGetFlaggedPostsForUser(t *testing.T) {
@@ -1977,6 +2000,29 @@ func TestGetPost(t *testing.T) {
 	_, _, err = th.LocalClient.GetPost(privatePost.Id, "")
 	require.NoError(t, err)
 
+	// Delete post
+	th.SystemAdminClient.DeletePost(th.BasicPost.Id)
+
+	// Normal client should get 404 when trying to access deleted post normally
+	_, resp, err = client.GetPost(th.BasicPost.Id, "")
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+
+	// Normal client should get unauthorized when trying to access deleted post
+	_, resp, err = client.GetPostIncludeDeleted(th.BasicPost.Id, "")
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	// System client should get 404 when trying to access deleted post normally
+	_, resp, err = th.SystemAdminClient.GetPost(th.BasicPost.Id, "")
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+
+	// System client should be able to access deleted post with include_deleted param
+	post, _, err := th.SystemAdminClient.GetPostIncludeDeleted(th.BasicPost.Id, "")
+	require.NoError(t, err)
+	require.Equal(t, th.BasicPost.Id, post.Id)
+
 	client.Logout()
 
 	// Normal client should get unauthorized, but local client should get 404.
@@ -2053,7 +2099,7 @@ func TestDeletePostEvent(t *testing.T) {
 				require.NoError(t, err)
 				received = true
 			}
-		case <-time.After(500 * time.Millisecond):
+		case <-time.After(2 * time.Second):
 			exit = true
 		}
 		if exit {
@@ -2160,6 +2206,22 @@ func TestGetPostThread(t *testing.T) {
 	_, resp, err = client.GetPostThread(privatePost.Id, "", false)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
+
+	// Sending some bad params
+	_, resp, err = client.GetPostThreadWithOpts(th.BasicPost.Id, "", model.GetPostsOptions{
+		CollapsedThreads: true,
+		FromPost:         "something",
+		PerPage:          10,
+	})
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp, err = client.GetPostThreadWithOpts(th.BasicPost.Id, "", model.GetPostsOptions{
+		CollapsedThreads: true,
+		Direction:        "sideways",
+	})
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
 
 	client.Logout()
 	_, resp, err = client.GetPostThread(model.NewId(), "", false)
@@ -2419,19 +2481,23 @@ func TestSearchPostsFromUser(t *testing.T) {
 	message = "sgtitlereview\n with return"
 	_ = th.CreateMessagePostWithClient(client, th.BasicChannel2, message)
 
-	posts, _, _ := client.SearchPosts(th.BasicTeam.Id, "from: "+th.TeamAdminUser.Username, false)
+	posts, _, err := client.SearchPosts(th.BasicTeam.Id, "from: "+th.TeamAdminUser.Username, false)
+	require.NoError(t, err)
 	require.Lenf(t, posts.Order, 2, "wrong number of posts for search 'from: %v'", th.TeamAdminUser.Username)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username, false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username, false)
+	require.NoError(t, err)
 	require.Lenf(t, posts.Order, 1, "wrong number of posts for search 'from: %v", th.BasicUser2.Username)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" sgtitlereview", false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" sgtitlereview", false)
+	require.NoError(t, err)
 	require.Lenf(t, posts.Order, 1, "wrong number of posts for search 'from: %v'", th.BasicUser2.Username)
 
 	message = "hullo"
 	_ = th.CreateMessagePost(message)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" in:"+th.BasicChannel.Name, false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" in:"+th.BasicChannel.Name, false)
+	require.NoError(t, err)
 	require.Len(t, posts.Order, 1, "wrong number of posts for search 'from: %v in:", th.BasicUser2.Username, th.BasicChannel.Name)
 
 	client.Login(user.Email, user.Password)
@@ -2439,19 +2505,23 @@ func TestSearchPostsFromUser(t *testing.T) {
 	// wait for the join/leave messages to be created for user3 since they're done asynchronously
 	time.Sleep(100 * time.Millisecond)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username, false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username, false)
+	require.NoError(t, err)
 	require.Lenf(t, posts.Order, 2, "wrong number of posts for search 'from: %v'", th.BasicUser2.Username)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username, false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username, false)
+	require.NoError(t, err)
 	require.Lenf(t, posts.Order, 2, "wrong number of posts for search 'from: %v from: %v'", th.BasicUser2.Username, user.Username)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username+" in:"+th.BasicChannel2.Name, false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username+" in:"+th.BasicChannel2.Name, false)
+	require.NoError(t, err)
 	require.Len(t, posts.Order, 1, "wrong number of posts")
 
 	message = "coconut"
 	_ = th.CreateMessagePostWithClient(client, th.BasicChannel2, message)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username+" in:"+th.BasicChannel2.Name+" coconut", false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username+" in:"+th.BasicChannel2.Name+" coconut", false)
+	require.NoError(t, err)
 	require.Len(t, posts.Order, 1, "wrong number of posts")
 }
 
@@ -2604,6 +2674,93 @@ func TestSetChannelUnread(t *testing.T) {
 		assert.Equal(t, int64(2), unread.MsgCount)
 	})
 
+	t.Run("Unread on a direct channel", func(t *testing.T) {
+		dc := th.CreateDmChannel(u2)
+		th.CreateMessagePostNoClient(dc, "test1", now)
+		p := th.CreateMessagePostNoClient(dc, "test2", now+10)
+		require.NotNil(t, p)
+		th.CreateMessagePostNoClient(dc, "test3", now+20)
+		p1 := th.CreateMessagePostNoClient(dc, "test4", now+30)
+		require.NotNil(t, p1)
+
+		// Ensure that post have been read
+		unread, err := th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(4), unread.MsgCount)
+		cv := &model.ChannelView{ChannelId: dc.Id}
+		_, appErr := th.App.ViewChannel(cv, u1.Id, s2.Id, false)
+		require.Nil(t, appErr)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(0), unread.MsgCount)
+
+		r, _ := th.Client.SetPostUnread(u1.Id, p.Id, false)
+		assert.Equal(t, 200, r.StatusCode)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(3), unread.MsgCount)
+
+		// Ensure that post have been read
+		_, appErr = th.App.ViewChannel(cv, u1.Id, s2.Id, false)
+		require.Nil(t, appErr)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(0), unread.MsgCount)
+
+		r, _ = th.Client.SetPostUnread(u1.Id, p1.Id, false)
+		assert.Equal(t, 200, r.StatusCode)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(1), unread.MsgCount)
+	})
+
+	t.Run("Unread on a direct channel in a thread", func(t *testing.T) {
+		dc := th.CreateDmChannel(th.CreateUser())
+		rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: u1.Id, CreateAt: now, ChannelId: dc.Id, Message: "root"}, dc, false, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: u1.Id, CreateAt: now + 10, ChannelId: dc.Id, Message: "reply 1"}, dc, false, false)
+		require.Nil(t, appErr)
+		reply2, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: u1.Id, CreateAt: now + 20, ChannelId: dc.Id, Message: "reply 2"}, dc, false, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: u1.Id, CreateAt: now + 30, ChannelId: dc.Id, Message: "reply 3"}, dc, false, false)
+		require.Nil(t, appErr)
+
+		// Ensure that post have been read
+		unread, err := th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(4), unread.MsgCount)
+		require.Equal(t, int64(1), unread.MsgCountRoot)
+		cv := &model.ChannelView{ChannelId: dc.Id}
+		_, appErr = th.App.ViewChannel(cv, u1.Id, s2.Id, false)
+		require.Nil(t, appErr)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(0), unread.MsgCount)
+		require.Equal(t, int64(0), unread.MsgCountRoot)
+
+		r, _ := th.Client.SetPostUnread(u1.Id, rootPost.Id, false)
+		assert.Equal(t, 200, r.StatusCode)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(4), unread.MsgCount)
+		require.Equal(t, int64(1), unread.MsgCountRoot)
+
+		// Ensure that post have been read
+		_, appErr = th.App.ViewChannel(cv, u1.Id, s2.Id, false)
+		require.Nil(t, appErr)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(0), unread.MsgCount)
+		require.Equal(t, int64(0), unread.MsgCountRoot)
+
+		r, _ = th.Client.SetPostUnread(u1.Id, reply2.Id, false)
+		assert.Equal(t, 200, r.StatusCode)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(2), unread.MsgCount)
+		require.Equal(t, int64(0), unread.MsgCountRoot)
+	})
+
 	t.Run("Unread on a private channel", func(t *testing.T) {
 		r, _ := th.Client.SetPostUnread(u1.Id, pp2.Id, true)
 		assert.Equal(t, 200, r.StatusCode)
@@ -2658,7 +2815,7 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 	// user2: first root mention @user1
 	//   - user1: hello
 	//   - user2: mention @u1
-	//   - user1: another repoy
+	//   - user1: another reply
 	//   - user2: another mention @u1
 	// user1: a root post
 	// user2: Another root mention @u1
@@ -2679,7 +2836,12 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 	require.Nil(t, appErr)
 
 	t.Run("Mark reply post as unread", func(t *testing.T) {
-		_, err := th.Client.SetPostUnread(th.BasicUser.Id, replyPost1.Id, false)
+		userWSClient, err := th.CreateWebSocketClient()
+		require.NoError(t, err)
+		defer userWSClient.Close()
+		userWSClient.Listen()
+
+		_, err = th.Client.SetPostUnread(th.BasicUser.Id, replyPost1.Id, false)
 		require.NoError(t, err)
 		channelUnread, appErr := th.App.GetChannelUnread(th.BasicChannel.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
@@ -2691,6 +2853,32 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 		require.Equal(t, int64(5), channelUnread.MsgCount)
 		//  MentionCountRoot should be zero so that supported clients don't show the channel as unread
 		require.Equal(t, channelUnread.MsgCountRoot, int64(0))
+
+		// test websocket event for marking post as unread
+		var caught bool
+		var exit bool
+		var data map[string]interface{}
+		for {
+			select {
+			case ev := <-userWSClient.EventChannel:
+				if ev.EventType() == model.WebsocketEventPostUnread {
+					caught = true
+					data = ev.GetData()
+				}
+			case <-time.After(1 * time.Second):
+				exit = true
+			}
+			if exit {
+				break
+			}
+		}
+		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventPostUnread)
+		msgCount, ok := data["msg_count"]
+		require.True(t, ok)
+		require.EqualValues(t, 3, msgCount)
+		mentionCount, ok := data["mention_count"]
+		require.True(t, ok)
+		require.EqualValues(t, 3, mentionCount)
 
 		threadMembership, appErr := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rootPost1.Id)
 		require.Nil(t, appErr)
@@ -2712,4 +2900,234 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 		require.Equal(t, int64(7), channelUnread.MsgCount)
 		require.Equal(t, int64(3), channelUnread.MsgCountRoot)
 	})
+}
+func TestGetPostsByIds(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	post1 := th.CreatePost()
+	post2 := th.CreatePost()
+
+	posts, response, err := client.GetPostsByIds([]string{post1.Id, post2.Id})
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
+	require.Len(t, posts, 2, "wrong number returned")
+	require.Equal(t, posts[0].Id, post2.Id)
+	require.Equal(t, posts[1].Id, post1.Id)
+
+	_, response, err = client.GetPostsByIds([]string{})
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
+
+	_, response, err = client.GetPostsByIds([]string{"abc123"})
+	require.Error(t, err)
+	CheckNotFoundStatus(t, response)
+}
+
+func TestCreatePostNotificationsWithCRT(t *testing.T) {
+	th := Setup(t).InitBasic()
+	rpost := th.CreatePost()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+	})
+
+	testCases := []struct {
+		name        string
+		post        *model.Post
+		notifyProps model.StringMap
+		mentions    bool
+		followers   bool
+	}{
+		{
+			name: "When default is NONE, comments is NEVER, desktop threads is ALL, and has no mentions",
+			post: &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				Message:   "reply",
+				UserId:    th.BasicUser2.Id,
+				RootId:    rpost.Id,
+			},
+			notifyProps: model.StringMap{
+				model.DesktopNotifyProp:        model.UserNotifyNone,
+				model.CommentsNotifyProp:       model.CommentsNotifyNever,
+				model.DesktopThreadsNotifyProp: model.UserNotifyAll,
+			},
+			mentions:  false,
+			followers: false,
+		},
+		{
+			name: "When default is NONE, comments is NEVER, desktop threads is ALL, and has mentions",
+			post: &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				Message:   "mention @" + th.BasicUser.Username,
+				UserId:    th.BasicUser2.Id,
+				RootId:    rpost.Id,
+			},
+			notifyProps: model.StringMap{
+				model.DesktopNotifyProp:        model.UserNotifyNone,
+				model.CommentsNotifyProp:       model.CommentsNotifyNever,
+				model.DesktopThreadsNotifyProp: model.UserNotifyAll,
+			},
+			mentions:  true,
+			followers: false,
+		},
+		{
+			name: "When default is MENTION, comments is NEVER, desktop threads is ALL, and has no mentions",
+			post: &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				Message:   "reply",
+				UserId:    th.BasicUser2.Id,
+				RootId:    rpost.Id,
+			},
+			notifyProps: model.StringMap{
+				model.DesktopNotifyProp:        model.UserNotifyMention,
+				model.CommentsNotifyProp:       model.CommentsNotifyNever,
+				model.DesktopThreadsNotifyProp: model.UserNotifyAll,
+			},
+			mentions:  false,
+			followers: true,
+		},
+		{
+			name: "When default is MENTION, comments is ANY, desktop threads is MENTION, and has no mentions",
+			post: &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				Message:   "reply",
+				UserId:    th.BasicUser2.Id,
+				RootId:    rpost.Id,
+			},
+			notifyProps: model.StringMap{
+				model.DesktopNotifyProp:        model.UserNotifyMention,
+				model.CommentsNotifyProp:       model.CommentsNotifyAny,
+				model.DesktopThreadsNotifyProp: model.UserNotifyMention,
+			},
+			mentions:  false,
+			followers: false,
+		},
+		{
+			name: "When default is MENTION, comments is NEVER, desktop threads is MENTION, and has mentions",
+			post: &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				Message:   "reply @" + th.BasicUser.Username,
+				UserId:    th.BasicUser2.Id,
+				RootId:    rpost.Id,
+			},
+			notifyProps: model.StringMap{
+				model.DesktopNotifyProp:        model.UserNotifyMention,
+				model.CommentsNotifyProp:       model.CommentsNotifyNever,
+				model.DesktopThreadsNotifyProp: model.UserNotifyMention,
+			},
+			mentions:  true,
+			followers: true,
+		},
+	}
+
+	// reset the cache so that channel member notify props includes all users
+	th.App.Srv().Store.Channel().ClearCaches()
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			userWSClient, err := th.CreateWebSocketClient()
+			require.NoError(t, err)
+			defer userWSClient.Close()
+			userWSClient.Listen()
+
+			patch := &model.UserPatch{}
+			patch.NotifyProps = model.CopyStringMap(th.BasicUser.NotifyProps)
+			for k, v := range tc.notifyProps {
+				patch.NotifyProps[k] = v
+			}
+
+			// update user's notify props
+			_, _, err = th.Client.PatchUser(th.BasicUser.Id, patch)
+			require.NoError(t, err)
+
+			// post a reply on the thread
+			_, appErr := th.App.CreatePostAsUser(th.Context, tc.post, th.Context.Session().Id, false)
+			require.Nil(t, appErr)
+
+			var caught bool
+			func() {
+				for {
+					select {
+					case ev := <-userWSClient.EventChannel:
+						if ev.EventType() == model.WebsocketEventPosted {
+							caught = true
+							data := ev.GetData()
+
+							users, ok := data["mentions"]
+							require.Equal(t, tc.mentions, ok)
+							if ok {
+								require.EqualValues(t, "[\""+th.BasicUser.Id+"\"]", users)
+							}
+
+							users, ok = data["followers"]
+							require.Equal(t, tc.followers, ok)
+
+							if ok {
+								require.EqualValues(t, "[\""+th.BasicUser.Id+"\"]", users)
+							}
+						}
+					case <-time.After(1 * time.Second):
+						return
+					}
+				}
+			}()
+
+			require.Truef(t, caught, "User should have received %s event", model.WebsocketEventPosted)
+		})
+	}
+}
+
+func TestGetPostStripActionIntegrations(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	post := &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   "with slack attachment action",
+	}
+	post.AddProp("attachments", []*model.SlackAttachment{
+		{
+			Text: "Slack Attachment Text",
+			Fields: []*model.SlackAttachmentField{
+				{
+					Title: "Test Field",
+					Value: "test value",
+					Short: true,
+				},
+			},
+			Actions: []*model.PostAction{
+				{
+					Type: "button",
+					Name: "test-name",
+					Integration: &model.PostActionIntegration{
+						URL: "https://test.test/action",
+						Context: map[string]interface{}{
+							"test-ctx": "some-value",
+						},
+					},
+				},
+			},
+		},
+	})
+
+	rpost, resp, err2 := client.CreatePost(post)
+	require.NoError(t, err2)
+	CheckCreatedStatus(t, resp)
+
+	actualPost, _, err := client.GetPost(rpost.Id, "")
+	require.NoError(t, err)
+	attachments, _ := actualPost.Props["attachments"].([]interface{})
+	require.Equal(t, 1, len(attachments))
+	att, _ := attachments[0].(map[string]interface{})
+	require.NotNil(t, att)
+	actions, _ := att["actions"].([]interface{})
+	require.Equal(t, 1, len(actions))
+	action, _ := actions[0].(map[string]interface{})
+	require.NotNil(t, action)
+	// integration must be omitted
+	require.Nil(t, action["integration"])
 }

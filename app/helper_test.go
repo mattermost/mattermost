@@ -18,6 +18,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -46,7 +47,7 @@ type TestHelper struct {
 	tempWorkspace string
 }
 
-func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool, tb testing.TB) *TestHelper {
+func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool, options []Option, tb testing.TB) *TestHelper {
 	tempWorkspace, err := ioutil.TempDir("", "apptest")
 	if err != nil {
 		panic(err)
@@ -65,7 +66,6 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	buffer := &mlog.Buffer{}
 
-	var options []Option
 	options = append(options, ConfigStore(configStore))
 	if includeCacheLayer {
 		// Adds the cache layer to the test store
@@ -134,8 +134,6 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	if enterprise {
 		th.App.Srv().SetLicense(model.NewTestLicense())
-		th.App.Srv().Jobs.InitWorkers()
-		th.App.Srv().Jobs.InitSchedulers()
 	} else {
 		th.App.Srv().SetLicense(nil)
 	}
@@ -156,7 +154,7 @@ func Setup(tb testing.TB) *TestHelper {
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 
-	return setupTestHelper(dbStore, false, true, tb)
+	return setupTestHelper(dbStore, false, true, nil, tb)
 }
 
 func SetupWithoutPreloadMigrations(tb testing.TB) *TestHelper {
@@ -167,12 +165,12 @@ func SetupWithoutPreloadMigrations(tb testing.TB) *TestHelper {
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
 
-	return setupTestHelper(dbStore, false, true, tb)
+	return setupTestHelper(dbStore, false, true, nil, tb)
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
-	th := setupTestHelper(mockStore, false, false, tb)
+	th := setupTestHelper(mockStore, false, false, nil, tb)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -187,7 +185,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 
 func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
-	th := setupTestHelper(mockStore, true, false, tb)
+	th := setupTestHelper(mockStore, true, false, nil, tb)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -198,6 +196,18 @@ func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
 	emptyMockStore.On("Status").Return(&statusMock)
 	th.App.Srv().Store = &emptyMockStore
 	return th
+}
+
+func SetupWithClusterMock(tb testing.TB, cluster einterfaces.ClusterInterface) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+	mainHelper.PreloadMigrations()
+
+	return setupTestHelper(dbStore, true, true, []Option{setCluster(cluster)}, tb)
 }
 
 var initBasicOnce sync.Once
@@ -227,7 +237,9 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.SystemAdminUser = userCache.SystemAdminUser.DeepCopy()
 	th.BasicUser = userCache.BasicUser.DeepCopy()
 	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
-	mainHelper.GetSQLStore().GetMaster().Insert(th.SystemAdminUser, th.BasicUser, th.BasicUser2)
+
+	users := []*model.User{th.SystemAdminUser, th.BasicUser, th.BasicUser2}
+	mainHelper.GetSQLStore().User().InsertUsers(users)
 
 	th.BasicTeam = th.CreateTeam()
 
@@ -477,7 +489,7 @@ func (th *TestHelper) CreateGroup() *model.Group {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 
 	var err *model.AppError
@@ -558,34 +570,34 @@ func (th *TestHelper) ConfigureInbucketMail() {
 
 func (*TestHelper) ResetRoleMigration() {
 	sqlStore := mainHelper.GetSQLStore()
-	if _, err := sqlStore.GetMaster().Exec("DELETE from Roles"); err != nil {
+	if _, err := sqlStore.GetMasterX().Exec("DELETE from Roles"); err != nil {
 		panic(err)
 	}
 
 	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
 
-	if _, err := sqlStore.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": model.AdvancedPermissionsMigrationKey}); err != nil {
+	if _, err := sqlStore.GetMasterX().Exec("DELETE from Systems where Name = ?", model.AdvancedPermissionsMigrationKey); err != nil {
 		panic(err)
 	}
 }
 
 func (*TestHelper) ResetEmojisMigration() {
 	sqlStore := mainHelper.GetSQLStore()
-	if _, err := sqlStore.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' create_emojis', '') WHERE builtin=True"); err != nil {
+	if _, err := sqlStore.GetMasterX().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' create_emojis', '') WHERE builtin=True"); err != nil {
 		panic(err)
 	}
 
-	if _, err := sqlStore.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' delete_emojis', '') WHERE builtin=True"); err != nil {
+	if _, err := sqlStore.GetMasterX().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' delete_emojis', '') WHERE builtin=True"); err != nil {
 		panic(err)
 	}
 
-	if _, err := sqlStore.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' delete_others_emojis', '') WHERE builtin=True"); err != nil {
+	if _, err := sqlStore.GetMasterX().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' delete_others_emojis', '') WHERE builtin=True"); err != nil {
 		panic(err)
 	}
 
 	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
 
-	if _, err := sqlStore.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": EmojisPermissionsMigrationKey}); err != nil {
+	if _, err := sqlStore.GetMasterX().Exec("DELETE from Systems where Name = ?", EmojisPermissionsMigrationKey); err != nil {
 		panic(err)
 	}
 }

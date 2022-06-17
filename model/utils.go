@@ -4,7 +4,6 @@
 package model
 
 import (
-	"bytes"
 	"crypto/rand"
 	"database/sql/driver"
 	"encoding/base32"
@@ -16,6 +15,7 @@ import (
 	"net/http"
 	"net/mail"
 	"net/url"
+	"os"
 	"regexp"
 	"sort"
 	"strings"
@@ -33,6 +33,7 @@ const (
 	UppercaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	NUMBERS          = "0123456789"
 	SYMBOLS          = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
+	BinaryParamKey   = "MM_BINARY_PARAMETERS"
 )
 
 type StringInterface map[string]interface{}
@@ -76,7 +77,12 @@ func (sa StringArray) Equals(input StringArray) bool {
 
 // Value converts StringArray to database value
 func (sa StringArray) Value() (driver.Value, error) {
-	return json.Marshal(sa)
+	j, err := json.Marshal(sa)
+	if err != nil {
+		return nil, err
+	}
+	// non utf8 characters are not supported https://mattermost.atlassian.net/browse/MM-41066
+	return string(j), err
 }
 
 // Scan converts database column value to StringArray
@@ -115,6 +121,69 @@ func (m *StringMap) Scan(value interface{}) error {
 	}
 
 	return errors.New("received value is neither a byte slice nor string")
+}
+
+// Value converts StringMap to database value
+func (m StringMap) Value() (driver.Value, error) {
+	ok := m[BinaryParamKey]
+	delete(m, BinaryParamKey)
+	buf, err := json.Marshal(m)
+	if err != nil {
+		return nil, err
+	}
+	if ok == "true" {
+		return append([]byte{0x01}, buf...), nil
+	} else if ok == "false" {
+		return buf, nil
+	}
+	// Key wasn't found. We fall back to the default case.
+	return string(buf), nil
+}
+
+func (StringMap) ImplementsGraphQLType(name string) bool {
+	return name == "StringMap"
+}
+
+func (m StringMap) MarshalJSON() ([]byte, error) {
+	return json.Marshal((map[string]string)(m))
+}
+
+func (m *StringMap) UnmarshalGraphQL(input interface{}) error {
+	json, ok := input.(map[string]string)
+	if !ok {
+		return errors.New("wrong type")
+	}
+
+	*m = json
+	return nil
+}
+
+func (si *StringInterface) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+
+	buf, ok := value.([]byte)
+	if ok {
+		return json.Unmarshal(buf, si)
+	}
+
+	str, ok := value.(string)
+	if ok {
+		return json.Unmarshal([]byte(str), si)
+	}
+
+	return errors.New("received value is neither a byte slice nor string")
+}
+
+// Value converts StringInterface to database value
+func (si StringInterface) Value() (driver.Value, error) {
+	j, err := json.Marshal(si)
+	if err != nil {
+		return nil, err
+	}
+	// non utf8 characters are not supported https://mattermost.atlassian.net/browse/MM-41066
+	return string(j), err
 }
 
 var translateFunc i18n.TranslateFunc
@@ -198,18 +267,13 @@ func NewAppError(where string, id string, params map[string]interface{}, details
 	return ap
 }
 
-var encoding = base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769")
+var encoding = base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769").WithPadding(base32.NoPadding)
 
 // NewId is a globally unique identifier.  It is a [A-Z0-9] string 26
 // characters long.  It is a UUID version 4 Guid that is zbased32 encoded
-// with the padding stripped off.
+// without the padding.
 func NewId() string {
-	var b bytes.Buffer
-	encoder := base32.NewEncoder(encoding, &b)
-	encoder.Write(uuid.NewRandom())
-	encoder.Close()
-	b.Truncate(26) // removes the '==' padding
-	return b.String()
+	return encoding.EncodeToString(uuid.NewRandom())
 }
 
 // NewRandomTeamName is a NewId that will be a valid team name.
@@ -441,21 +505,13 @@ var reservedName = []string{
 }
 
 func IsValidChannelIdentifier(s string) bool {
-
-	if !IsValidAlphaNumHyphenUnderscore(s, true) {
-		return false
-	}
-
-	if len(s) < ChannelNameMinLength {
-		return false
-	}
-
-	return true
+	return validSimpleAlphaNum.MatchString(s) && len(s) >= ChannelNameMinLength
 }
 
 var (
 	validAlphaNum                           = regexp.MustCompile(`^[a-z0-9]+([a-z\-0-9]+|(__)?)[a-z0-9]+$`)
 	validAlphaNumHyphenUnderscore           = regexp.MustCompile(`^[a-z0-9]+([a-z\-\_0-9]+|(__)?)[a-z0-9]+$`)
+	validSimpleAlphaNum                     = regexp.MustCompile(`^[a-z0-9]+([a-z\-\_0-9]+|(__)?)[a-z0-9]*$`)
 	validSimpleAlphaNumHyphenUnderscore     = regexp.MustCompile(`^[a-zA-Z0-9\-_]+$`)
 	validSimpleAlphaNumHyphenUnderscorePlus = regexp.MustCompile(`^[a-zA-Z0-9+_-]+$`)
 )
@@ -629,4 +685,8 @@ func filterBlocklist(r rune) rune {
 	}
 
 	return r
+}
+
+func IsCloud() bool {
+	return os.Getenv("MM_CLOUD_INSTALLATION_ID") != ""
 }

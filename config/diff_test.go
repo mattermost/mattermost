@@ -813,6 +813,12 @@ func TestDiff(t *testing.T) {
 						"playbooks": {
 							Enable: true,
 						},
+						"com.mattermost.apps": {
+							Enable: true,
+						},
+						"com.mattermost.calls": {
+							Enable: true,
+						},
 					},
 				},
 			},
@@ -845,6 +851,12 @@ func TestDiff(t *testing.T) {
 						"playbooks": {
 							Enable: true,
 						},
+						"com.mattermost.apps": {
+							Enable: true,
+						},
+						"com.mattermost.calls": {
+							Enable: true,
+						},
 					},
 				},
 			},
@@ -867,6 +879,12 @@ func TestDiff(t *testing.T) {
 							Enable: true,
 						},
 						"playbooks": {
+							Enable: true,
+						},
+						"com.mattermost.apps": {
+							Enable: true,
+						},
+						"com.mattermost.calls": {
 							Enable: true,
 						},
 					},

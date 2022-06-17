@@ -22,6 +22,20 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
+func (a *App) canSendPushNotifications() bool {
+	if !*a.Config().EmailSettings.SendPushNotifications {
+		return false
+	}
+
+	pushServer := *a.Config().EmailSettings.PushNotificationServer
+	if license := a.Srv().License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
+		mlog.Warn("Push notifications have been disabled. Update your license or go to System Console > Environment > Push Notification Server to use a different server")
+		return false
+	}
+
+	return true
+}
+
 func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error) {
 	// Do not send notifications in archived channels
 	if channel.DeleteAt > 0 {
@@ -156,6 +170,9 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				if threadPost.Id == parentPostList.Order[0] && threadPost.IsFromOAuthBot() {
 					continue
 				}
+				if a.IsCRTEnabledForUser(profile.Id) {
+					continue
+				}
 				if profile.NotifyProps[model.CommentsNotifyProp] == model.CommentsNotifyAny || (profile.NotifyProps[model.CommentsNotifyProp] == model.CommentsNotifyRoot && threadPost.Id == parentPostList.Order[0]) {
 					mentionType := ThreadMention
 					if threadPost.Id == parentPostList.Order[0] {
@@ -186,16 +203,16 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				channelMemberNotifyPropsMap[profile.Id][model.PushNotifyProp] == model.ChannelNotifyAll) &&
 				(post.UserId != profile.Id || post.GetProp("from_webhook") == "true") &&
 				!post.IsSystemMessage() &&
-				!(a.isCRTEnabledForUser(profile.Id) && post.RootId != "") {
+				!(a.IsCRTEnabledForUser(profile.Id) && post.RootId != "") {
 				allActivityPushUserIds = append(allActivityPushUserIds, profile.Id)
 			}
 		}
 	}
 
 	mentionedUsersList := make(model.StringArray, 0, len(mentions.Mentions))
-	updateMentionChans := []chan *model.AppError{}
 	mentionAutofollowChans := []chan *model.AppError{}
 	threadParticipants := map[string]bool{post.UserId: true}
+	newParticipants := map[string]bool{}
 	participantMemberships := map[string]*model.ThreadMembership{}
 	membershipsMutex := &sync.Mutex{}
 	followersMutex := &sync.Mutex{}
@@ -216,11 +233,22 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		for id := range mentions.Mentions {
 			threadParticipants[id] = true
 		}
+
+		// sema is a counting semaphore to throttle the number of concurrent DB requests.
+		// A concurrency of 8 should be sufficient.
+		// We don't want to set a higher limit which can bring down the DB.
+		sema := make(chan struct{}, 8)
 		// for each mention, make sure to update thread autofollow (if enabled) and update increment mention count
 		for id := range threadParticipants {
 			mac := make(chan *model.AppError, 1)
+			// Get token.
+			sema <- struct{}{}
 			go func(userID string) {
-				defer close(mac)
+				defer func() {
+					close(mac)
+					// Release token.
+					<-sema
+				}()
 				mentionType, incrementMentions := mentions.Mentions[userID]
 				// if the user was not explicitly mentioned, check if they explicitly unfollowed the thread
 				if !incrementMentions {
@@ -233,9 +261,6 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					}
 
 					if membership != nil && !membership.Following {
-						membershipsMutex.Lock()
-						participantMemberships[userID] = membership
-						membershipsMutex.Unlock()
 						return
 					}
 				}
@@ -249,7 +274,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					Following:             true,
 					IncrementMentions:     incrementMentions,
 					UpdateFollowing:       updateFollowing,
-					UpdateViewedTimestamp: userID == post.UserId,
+					UpdateViewedTimestamp: false,
 					UpdateParticipants:    userID == post.UserId,
 				}
 				threadMembership, err := a.Srv().Store.Thread().MaintainMembership(userID, post.RootId, opts)
@@ -262,6 +287,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				// add new followers to existing followers
 				if threadMembership.Following && !followers.Contains(userID) {
 					followers = append(followers, userID)
+					newParticipants[userID] = true
 				}
 				followersMutex.Unlock()
 
@@ -276,32 +302,16 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 	for id := range mentions.Mentions {
 		mentionedUsersList = append(mentionedUsersList, id)
-
-		umc := make(chan *model.AppError, 1)
-		go func(userID string) {
-			defer close(umc)
-			nErr := a.Srv().Store.Channel().IncrementMentionCount(post.ChannelId, userID, *a.Config().ServiceSettings.ThreadAutoFollow, post.RootId == "")
-			if nErr != nil {
-				umc <- model.NewAppError("SendNotifications", "app.channel.increment_mention_count.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-				return
-			}
-			umc <- nil
-		}(id)
-		updateMentionChans = append(updateMentionChans, umc)
 	}
 
-	// Make sure all mention updates are complete to prevent race conditions.
-	// Probably better to batch these DB updates in the future
-	// MUST be completed before push notifications send
-	for _, umc := range updateMentionChans {
-		if err := <-umc; err != nil {
-			mlog.Warn(
-				"Failed to update mention count",
-				mlog.String("post_id", post.Id),
-				mlog.String("channel_id", post.ChannelId),
-				mlog.Err(err),
-			)
-		}
+	nErr := a.Srv().Store.Channel().IncrementMentionCount(post.ChannelId, mentionedUsersList, post.RootId == "")
+	if nErr != nil {
+		mlog.Warn(
+			"Failed to update mention count",
+			mlog.String("post_id", post.Id),
+			mlog.String("channel_id", post.ChannelId),
+			mlog.Err(nErr),
+		)
 	}
 
 	// Log the problems that might have occurred while auto following the thread
@@ -320,7 +330,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	if isCRTAllowed && post.RootId != "" {
 		for _, uid := range followers {
 			profile := profileMap[uid]
-			if profile == nil || !a.isCRTEnabledForUser(uid) {
+			if profile == nil || !a.IsCRTEnabledForUser(uid) {
 				continue
 			}
 
@@ -341,10 +351,10 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 
 	if *a.Config().EmailSettings.SendEmailNotifications {
-		emailReceipients := append(mentionedUsersList, notificationsForCRT.Email...)
-		emailReceipients = model.RemoveDuplicateStrings(emailReceipients)
+		emailRecipients := append(mentionedUsersList, notificationsForCRT.Email...)
+		emailRecipients = model.RemoveDuplicateStrings(emailRecipients)
 
-		for _, id := range emailReceipients {
+		for _, id := range emailRecipients {
 			if profileMap[id] == nil {
 				continue
 			}
@@ -405,18 +415,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 	}
 
-	sendPushNotifications := false
-	if *a.Config().EmailSettings.SendPushNotifications {
-		pushServer := *a.Config().EmailSettings.PushNotificationServer
-		if license := a.Srv().License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
-			mlog.Warn("Push notifications are disabled. Go to System Console > Notifications > Mobile Push to enable them.")
-			sendPushNotifications = false
-		} else {
-			sendPushNotifications = true
-		}
-	}
-
-	if sendPushNotifications {
+	if a.canSendPushNotifications() {
 		for _, id := range mentionedUsersList {
 			if profileMap[id] == nil || notificationsForCRT.Push.Contains(id) {
 				continue
@@ -580,7 +579,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			if profileMap[uid] == nil {
 				continue
 			}
-			if a.isCRTEnabledForUser(uid) {
+			if a.IsCRTEnabledForUser(uid) {
 				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, team.Id, "", uid, nil)
 				threadMembership := participantMemberships[uid]
 				if threadMembership == nil {
@@ -598,6 +597,32 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					return nil, errors.Wrapf(err, "cannot get thread %q for user %q", post.RootId, uid)
 				}
 				if userThread != nil {
+					previousUnreadMentions := int64(0)
+					previousUnreadReplies := int64(0)
+
+					// if it's not a newly followed thread, calculate previous unread values.
+					if !newParticipants[uid] {
+						previousUnreadMentions = userThread.UnreadMentions
+						previousUnreadReplies = max(userThread.UnreadReplies-1, 0)
+
+						if mentions.isUserMentioned(uid) {
+							previousUnreadMentions = max(userThread.UnreadMentions-1, 0)
+						}
+					}
+
+					// set LastViewed to now for commenter
+					if uid == post.UserId {
+						opts := store.ThreadMembershipOpts{
+							UpdateViewedTimestamp: true,
+						}
+						// should set unread mentions, and unread replies to 0
+						_, err = a.Srv().Store.Thread().MaintainMembership(uid, post.RootId, opts)
+						if err != nil {
+							return nil, errors.Wrapf(err, "cannot maintain thread membership %q for user %q", post.RootId, uid)
+						}
+						userThread.UnreadMentions = 0
+						userThread.UnreadReplies = 0
+					}
 					a.sanitizeProfiles(userThread.Participants, false)
 					userThread.Post.SanitizeProps()
 
@@ -612,6 +637,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 						mlog.Warn("Failed to encode thread to JSON")
 					}
 					message.Add("thread", string(payload))
+					message.Add("previous_unread_mentions", previousUnreadMentions)
+					message.Add("previous_unread_replies", previousUnreadReplies)
 
 					a.Publish(message)
 				}
@@ -621,11 +648,23 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	return mentionedUsersList, nil
 }
 
+func max(a, b int64) int64 {
+	if a < b {
+		return b
+	}
+	return a
+}
+
 func (a *App) userAllowsEmail(user *model.User, channelMemberNotificationProps model.StringMap, post *model.Post) bool {
+	// if user is a bot account, then we do not send email
+	if user.IsBot {
+		return false
+	}
+
 	userAllowsEmails := user.NotifyProps[model.EmailNotifyProp] != "false"
 
 	// if CRT is ON for user and the post is a reply disregard the channelEmail setting
-	if channelEmail, ok := channelMemberNotificationProps[model.EmailNotifyProp]; ok && !(a.isCRTEnabledForUser(user.Id) && post.RootId != "") {
+	if channelEmail, ok := channelMemberNotificationProps[model.EmailNotifyProp]; ok && !(a.IsCRTEnabledForUser(user.Id) && post.RootId != "") {
 		if channelEmail != model.ChannelNotifyDefault {
 			userAllowsEmails = channelEmail != "false"
 		}
@@ -877,6 +916,18 @@ const (
 	GroupMention
 )
 
+func (m *ExplicitMentions) isUserMentioned(userID string) bool {
+	if _, ok := m.Mentions[userID]; ok {
+		return true
+	}
+
+	if _, ok := m.GroupMentions[userID]; ok {
+		return true
+	}
+
+	return m.HereMentioned || m.AllMentioned || m.ChannelMentioned
+}
+
 func (m *ExplicitMentions) addMention(userID string, mentionType MentionType) {
 	if m.Mentions == nil {
 		m.Mentions = make(map[string]MentionType)
@@ -988,7 +1039,7 @@ func (a *App) allowChannelMentions(post *model.Post, numProfiles int) bool {
 
 // allowGroupMentions returns whether or not the group mentions are allowed for the given post.
 func (a *App) allowGroupMentions(post *model.Post) bool {
-	if license := a.Srv().License(); license == nil || !*license.Features.LDAPGroups {
+	if license := a.Srv().License(); license == nil || (license.SkuShortName != model.LicenseShortSkuProfessional && license.SkuShortName != model.LicenseShortSkuEnterprise) {
 		return false
 	}
 
@@ -1007,7 +1058,7 @@ func (a *App) allowGroupMentions(post *model.Post) bool {
 func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team *model.Team) (map[string]*model.Group, error) {
 	var err error
 	groupsMap := make(map[string]*model.Group)
-	opts := model.GroupSearchOpts{FilterAllowReference: true}
+	opts := model.GroupSearchOpts{FilterAllowReference: true, IncludeMemberCount: true}
 
 	if channel.IsGroupConstrained() || (team != nil && team.IsGroupConstrained()) {
 		var groups []*model.GroupWithSchemeAdmin

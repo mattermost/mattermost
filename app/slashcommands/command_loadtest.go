@@ -45,6 +45,12 @@ var usage = `Mattermost testing commands to help configure the system
 		Example:
 			/test channels fuzz 5 10
 
+	DMs - Add a specified number of DMs for current user. Requires enough users to be loaded.
+			/test dms <Min DMs> <Max DMs>
+
+			Example:
+				/test dms 5 10
+
 	ThreadedPost - create a large threaded post
         /test threaded_post
 
@@ -143,6 +149,10 @@ func (lt *LoadTestProvider) doCommand(a *app.App, c *request.Context, args *mode
 
 	if strings.HasPrefix(message, "channels") {
 		return lt.ChannelsCommand(a, c, args, message)
+	}
+
+	if strings.HasPrefix(message, "dms") {
+		return lt.DMsCommand(a, c, args, message)
 	}
 
 	if strings.HasPrefix(message, "posts") {
@@ -331,6 +341,22 @@ func (*LoadTestProvider) ChannelsCommand(a *app.App, c *request.Context, args *m
 	}
 
 	return &model.CommandResponse{Text: "Added channels", ResponseType: model.CommandResponseTypeEphemeral}, nil
+}
+
+func (*LoadTestProvider) DMsCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+	cmd := strings.TrimSpace(strings.TrimPrefix(message, "dms"))
+
+	channelsr, ok := parseRange(cmd, "")
+	if !ok {
+		channelsr = utils.Range{Begin: 2, End: 5}
+	}
+
+	channelCreator := NewAutoChannelCreator(a, nil, args.UserId)
+	if _, err := channelCreator.CreateTestDMs(c, channelsr); err != nil {
+		return &model.CommandResponse{Text: "Failed to create test DMs: " + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}, err
+	}
+
+	return &model.CommandResponse{Text: "Added DMs", ResponseType: model.CommandResponseTypeEphemeral}, nil
 }
 
 func (*LoadTestProvider) ThreadedPostCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) (*model.CommandResponse, error) {

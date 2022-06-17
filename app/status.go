@@ -406,6 +406,10 @@ func (a *App) UpdateDNDStatusOfUsers() {
 }
 
 func (a *App) SetCustomStatus(userID string, cs *model.CustomStatus) *model.AppError {
+	if cs == nil || (cs.Emoji == "" && cs.Text == "") {
+		return model.NewAppError("SetCustomStatus", "api.custom_status.set_custom_statuses.update.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	user, err := a.GetUser(userID)
 	if err != nil {
 		return err
@@ -414,7 +418,7 @@ func (a *App) SetCustomStatus(userID string, cs *model.CustomStatus) *model.AppE
 	user.SetCustomStatus(cs)
 	_, updateErr := a.UpdateUser(user, true)
 	if updateErr != nil {
-		return err
+		return updateErr
 	}
 
 	if err := a.addRecentCustomStatus(userID, cs); err != nil {
@@ -433,10 +437,19 @@ func (a *App) RemoveCustomStatus(userID string) *model.AppError {
 	user.ClearCustomStatus()
 	_, updateErr := a.UpdateUser(user, true)
 	if updateErr != nil {
-		return err
+		return updateErr
 	}
 
 	return nil
+}
+
+func (a *App) GetCustomStatus(userID string) (*model.CustomStatus, *model.AppError) {
+	user, err := a.GetUser(userID)
+	if err != nil {
+		return &model.CustomStatus{}, err
+	}
+
+	return user.GetCustomStatus(), nil
 }
 
 func (a *App) addRecentCustomStatus(userID string, status *model.CustomStatus) *model.AppError {

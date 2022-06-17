@@ -125,9 +125,13 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	})
 
 	if enterprise {
+		th.App.Srv().Jobs.StopWorkers()
+		th.App.Srv().Jobs.StopSchedulers()
+
 		th.App.Srv().SetLicense(model.NewTestLicense())
-		th.App.Srv().Jobs.InitWorkers()
-		th.App.Srv().Jobs.InitSchedulers()
+
+		th.App.Srv().Jobs.StartWorkers()
+		th.App.Srv().Jobs.StartSchedulers()
 	} else {
 		th.App.Srv().SetLicense(nil)
 	}
@@ -177,7 +181,8 @@ func (th *TestHelper) initBasic() *TestHelper {
 	th.SystemAdminUser = userCache.SystemAdminUser.DeepCopy()
 	th.BasicUser = userCache.BasicUser.DeepCopy()
 	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
-	mainHelper.GetSQLStore().GetMaster().Insert(th.SystemAdminUser, th.BasicUser, th.BasicUser2)
+	users := []*model.User{th.SystemAdminUser, th.BasicUser, th.BasicUser2}
+	mainHelper.GetSQLStore().User().InsertUsers(users)
 
 	th.BasicTeam = th.createTeam()
 

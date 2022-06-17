@@ -4,9 +4,12 @@
 package api4
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"math/rand"
 	"net"
@@ -18,6 +21,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gorilla/websocket"
+	graphql "github.com/graph-gophers/graphql-go"
 	s3 "github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/stretchr/testify/require"
@@ -44,6 +49,7 @@ type TestHelper struct {
 
 	Context              *request.Context
 	Client               *model.Client4
+	GraphQLClient        *graphQLClient
 	BasicUser            *model.User
 	BasicUser2           *model.User
 	TeamAdminUser        *model.User
@@ -183,13 +189,12 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 
 	if enterprise {
 		th.App.Srv().SetLicense(model.NewTestLicense())
-		th.App.Srv().Jobs.InitWorkers()
-		th.App.Srv().Jobs.InitSchedulers()
 	} else {
 		th.App.Srv().SetLicense(nil)
 	}
 
 	th.Client = th.CreateClient()
+	th.GraphQLClient = newGraphQLClient(fmt.Sprintf("http://localhost:%v", th.App.Srv().ListenAddr.Port))
 	th.SystemAdminClient = th.CreateClient()
 	th.SystemManagerClient = th.CreateClient()
 
@@ -246,6 +251,26 @@ func Setup(tb testing.TB) *TestHelper {
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
 	th := setupTestHelper(dbStore, searchEngine, false, true, nil, nil)
+	th.InitLogin()
+	return th
+}
+
+func SetupAndApplyConfigBeforeLogin(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
+
+	if mainHelper == nil {
+		tb.SkipNow()
+	}
+
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+	mainHelper.PreloadMigrations()
+	searchEngine := mainHelper.GetSearchEngine()
+	th := setupTestHelper(dbStore, searchEngine, false, true, nil, nil)
+	th.App.UpdateConfig(updateConfig)
 	th.InitLogin()
 	return th
 }
@@ -353,6 +378,13 @@ func (th *TestHelper) TearDown() {
 	th.ShutdownApp()
 }
 
+func closeBody(r *http.Response) {
+	if r.Body != nil {
+		_, _ = io.Copy(ioutil.Discard, r.Body)
+		_ = r.Body.Close()
+	}
+}
+
 var initBasicOnce sync.Once
 var userCache struct {
 	SystemAdminUser   *model.User
@@ -396,7 +428,10 @@ func (th *TestHelper) InitLogin() *TestHelper {
 	th.TeamAdminUser = userCache.TeamAdminUser.DeepCopy()
 	th.BasicUser = userCache.BasicUser.DeepCopy()
 	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
-	mainHelper.GetSQLStore().GetMaster().Insert(th.SystemAdminUser, th.TeamAdminUser, th.BasicUser, th.BasicUser2, th.SystemManagerUser)
+
+	users := []*model.User{th.SystemAdminUser, th.TeamAdminUser, th.BasicUser, th.BasicUser2, th.SystemManagerUser}
+	mainHelper.GetSQLStore().User().InsertUsers(users)
+
 	// restore non hashed password for login
 	th.SystemAdminUser.Password = "Pa$$word11"
 	th.TeamAdminUser.Password = "Pa$$word11"
@@ -482,6 +517,10 @@ func (th *TestHelper) CreateLocalClient(socketPath string) *model.Client4 {
 
 func (th *TestHelper) CreateWebSocketClient() (*model.WebSocketClient, error) {
 	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), th.Client.AuthToken)
+}
+
+func (th *TestHelper) CreateReliableWebSocketClient(connID string, seqNo int) (*model.WebSocketClient, error) {
+	return model.NewReliableWebSocketClientWithDialer(websocket.DefaultDialer, fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), th.Client.AuthToken, connID, seqNo, true)
 }
 
 func (th *TestHelper) CreateWebSocketSystemAdminClient() (*model.WebSocketClient, error) {
@@ -609,7 +648,7 @@ func (th *TestHelper) SetupSamlConfig() {
 		*cfg.SamlSettings.Enable = true
 		*cfg.SamlSettings.Verify = false
 		*cfg.SamlSettings.Encrypt = false
-		*cfg.SamlSettings.IdpURL = "https://does.notmatter.com"
+		*cfg.SamlSettings.IdpURL = "https://does.notmatter.example"
 		*cfg.SamlSettings.IdpDescriptorURL = "https://localhost/adfs/services/trust"
 		*cfg.SamlSettings.AssertionConsumerServiceURL = "https://localhost/login/sso/saml"
 		*cfg.SamlSettings.ServiceProviderIdentifier = "https://localhost/login/sso/saml"
@@ -668,6 +707,33 @@ func (th *TestHelper) CreatePinnedPost() *model.Post {
 
 func (th *TestHelper) CreateMessagePost(message string) *model.Post {
 	return th.CreateMessagePostWithClient(th.Client, th.BasicChannel, message)
+}
+
+func (th *TestHelper) CreatePostWithFiles(files ...*model.FileInfo) *model.Post {
+	return th.CreatePostWithFilesWithClient(th.Client, th.BasicChannel, files...)
+}
+
+func (th *TestHelper) CreatePostInChannelWithFiles(channel *model.Channel, files ...*model.FileInfo) *model.Post {
+	return th.CreatePostWithFilesWithClient(th.Client, channel, files...)
+}
+
+func (th *TestHelper) CreatePostWithFilesWithClient(client *model.Client4, channel *model.Channel, files ...*model.FileInfo) *model.Post {
+	var fileIds model.StringArray
+	for i := range files {
+		fileIds = append(fileIds, files[i].Id)
+	}
+
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   "message_" + model.NewId(),
+		FileIds:   fileIds,
+	}
+
+	rpost, _, err := client.CreatePost(post)
+	if err != nil {
+		panic(err)
+	}
+	return rpost
 }
 
 func (th *TestHelper) CreatePostWithClient(client *model.Client4, channel *model.Channel) *model.Post {
@@ -740,10 +806,16 @@ func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 
 func (th *TestHelper) LoginBasic() {
 	th.LoginBasicWithClient(th.Client)
+	if os.Getenv("MM_FEATUREFLAGS_GRAPHQL") == "true" {
+		th.LoginBasicWithGraphQL()
+	}
 }
 
 func (th *TestHelper) LoginBasic2() {
 	th.LoginBasic2WithClient(th.Client)
+	if os.Getenv("MM_FEATUREFLAGS_GRAPHQL") == "true" {
+		th.LoginBasicWithGraphQL()
+	}
 }
 
 func (th *TestHelper) LoginTeamAdmin() {
@@ -760,6 +832,13 @@ func (th *TestHelper) LoginSystemManager() {
 
 func (th *TestHelper) LoginBasicWithClient(client *model.Client4) {
 	_, _, err := client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (th *TestHelper) LoginBasicWithGraphQL() {
+	_, _, err := th.GraphQLClient.login(th.BasicUser.Email, th.BasicUser.Password)
 	if err != nil {
 		panic(err)
 	}
@@ -807,12 +886,26 @@ func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 	}
 }
 
+func (th *TestHelper) UnlinkUserFromTeam(user *model.User, team *model.Team) {
+	err := th.App.RemoveUserFromTeam(th.Context, team.Id, user.Id, "")
+	if err != nil {
+		panic(err)
+	}
+}
+
 func (th *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
 	member, err := th.App.AddUserToChannel(user, channel, false)
 	if err != nil {
 		panic(err)
 	}
 	return member
+}
+
+func (th *TestHelper) RemoveUserFromChannel(user *model.User, channel *model.Channel) {
+	err := th.App.RemoveUserFromChannel(th.Context, user.Id, "", channel)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (th *TestHelper) GenerateTestEmail() string {
@@ -828,7 +921,7 @@ func (th *TestHelper) CreateGroup() *model.Group {
 		Name:        model.NewString("n-" + id),
 		DisplayName: "dn_" + id,
 		Source:      model.GroupSourceLdap,
-		RemoteId:    "ri_" + id,
+		RemoteId:    model.NewString("ri_" + model.NewId()),
 	}
 
 	group, err := th.App.CreateGroup(group)
@@ -898,106 +991,106 @@ func GenerateTestId() string {
 	return model.NewId()
 }
 
-func CheckUserSanitization(t *testing.T, user *model.User) {
-	t.Helper()
+func CheckUserSanitization(tb testing.TB, user *model.User) {
+	tb.Helper()
 
-	require.Equal(t, "", user.Password, "password wasn't blank")
-	require.Empty(t, user.AuthData, "auth data wasn't blank")
-	require.Equal(t, "", user.MfaSecret, "mfa secret wasn't blank")
+	require.Equal(tb, "", user.Password, "password wasn't blank")
+	require.Empty(tb, user.AuthData, "auth data wasn't blank")
+	require.Equal(tb, "", user.MfaSecret, "mfa secret wasn't blank")
 }
 
-func CheckEtag(t *testing.T, data interface{}, resp *model.Response) {
-	t.Helper()
+func CheckEtag(tb testing.TB, data interface{}, resp *model.Response) {
+	tb.Helper()
 
-	require.Empty(t, data)
-	require.Equal(t, http.StatusNotModified, resp.StatusCode, "wrong status code for etag")
+	require.Empty(tb, data)
+	require.Equal(tb, http.StatusNotModified, resp.StatusCode, "wrong status code for etag")
 }
 
-func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int) {
-	t.Helper()
+func checkHTTPStatus(tb testing.TB, resp *model.Response, expectedStatus int) {
+	tb.Helper()
 
-	require.NotNilf(t, resp, "Unexpected nil response, expected http status:%v", expectedStatus)
-	require.Equalf(t, expectedStatus, resp.StatusCode, "Expected http status:%v, got %v", expectedStatus, resp.StatusCode)
+	require.NotNilf(tb, resp, "Unexpected nil response, expected http status:%v", expectedStatus)
+	require.Equalf(tb, expectedStatus, resp.StatusCode, "Expected http status:%v, got %v", expectedStatus, resp.StatusCode)
 }
 
-func CheckOKStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusOK)
+func CheckOKStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusOK)
 }
 
-func CheckCreatedStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusCreated)
+func CheckCreatedStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusCreated)
 }
 
-func CheckForbiddenStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusForbidden)
+func CheckForbiddenStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusForbidden)
 }
 
-func CheckUnauthorizedStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusUnauthorized)
+func CheckUnauthorizedStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusUnauthorized)
 }
 
-func CheckNotFoundStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusNotFound)
+func CheckNotFoundStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusNotFound)
 }
 
-func CheckBadRequestStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusBadRequest)
+func CheckBadRequestStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusBadRequest)
 }
 
-func CheckNotImplementedStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusNotImplemented)
+func CheckNotImplementedStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusNotImplemented)
 }
 
-func CheckRequestEntityTooLargeStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusRequestEntityTooLarge)
+func CheckRequestEntityTooLargeStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusRequestEntityTooLarge)
 }
 
-func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusInternalServerError)
+func CheckInternalErrorStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusInternalServerError)
 }
 
-func CheckServiceUnavailableStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusServiceUnavailable)
+func CheckServiceUnavailableStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusServiceUnavailable)
 }
 
-func CheckErrorID(t *testing.T, err error, errorId string) {
-	t.Helper()
+func CheckErrorID(tb testing.TB, err error, errorId string) {
+	tb.Helper()
 
-	require.Error(t, err, "should have errored with id: %s", errorId)
+	require.Error(tb, err, "should have errored with id: %s", errorId)
 
 	var appError *model.AppError
 	ok := errors.As(err, &appError)
-	require.True(t, ok, "should have been a model.AppError")
+	require.True(tb, ok, "should have been a model.AppError")
 
-	require.Equalf(t, errorId, appError.Id, "incorrect error id, actual: %s, expected: %s", appError.Id, errorId)
+	require.Equalf(tb, errorId, appError.Id, "incorrect error id, actual: %s, expected: %s", appError.Id, errorId)
 }
 
-func CheckErrorMessage(t *testing.T, err error, message string) {
-	t.Helper()
+func CheckErrorMessage(tb testing.TB, err error, message string) {
+	tb.Helper()
 
-	require.Error(t, err, "should have errored with message: %s", message)
+	require.Error(tb, err, "should have errored with message: %s", message)
 
 	var appError *model.AppError
 	ok := errors.As(err, &appError)
-	require.True(t, ok, "should have been a model.AppError")
+	require.True(tb, ok, "should have been a model.AppError")
 
-	require.Equalf(t, message, appError.Message, "incorrect error message, actual: %s, expected: %s", appError.Id, message)
+	require.Equalf(tb, message, appError.Message, "incorrect error message, actual: %s, expected: %s", appError.Id, message)
 }
 
-func CheckStartsWith(t *testing.T, value, prefix, message string) {
-	t.Helper()
+func CheckStartsWith(tb testing.TB, value, prefix, message string) {
+	tb.Helper()
 
-	require.True(t, strings.HasPrefix(value, prefix), message, value)
+	require.True(tb, strings.HasPrefix(value, prefix), message, value)
 }
 
 // Similar to s3.New() but allows initialization of signature v2 or signature v4 client.
@@ -1208,4 +1301,23 @@ func (th *TestHelper) SetupScheme(scope string) *model.Scheme {
 		panic(err)
 	}
 	return scheme
+}
+
+func (th *TestHelper) MakeGraphQLRequest(input *graphQLInput) (*graphql.Response, error) {
+	url := fmt.Sprintf("http://localhost:%v", th.App.Srv().ListenAddr.Port) + model.APIURLSuffixV5 + "/graphql"
+
+	buf, err := json.Marshal(input)
+	if err != nil {
+		panic(err)
+	}
+
+	resp, err := th.GraphQLClient.doAPIRequest("POST", url, bytes.NewReader(buf), map[string]string{})
+	if err != nil {
+		panic(err)
+	}
+	defer closeBody(resp)
+
+	var gqlResp *graphql.Response
+	err = json.NewDecoder(resp.Body).Decode(&gqlResp)
+	return gqlResp, err
 }

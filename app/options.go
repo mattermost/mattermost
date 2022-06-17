@@ -7,7 +7,9 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
@@ -45,12 +47,12 @@ func StoreOverride(override interface{}) Option {
 // config loaded from the dsn on top of the normal defaults
 func Config(dsn string, readOnly bool, configDefaults *model.Config) Option {
 	return func(s *Server) error {
-		configStore, err := config.NewStoreFromDSN(dsn, readOnly, configDefaults)
+		configStore, err := config.NewStoreFromDSN(dsn, readOnly, configDefaults, true)
 		if err != nil {
 			return errors.Wrap(err, "failed to apply Config option")
 		}
 
-		s.configStore = configStore
+		s.configStore = &configWrapper{srv: s, Store: configStore}
 		return nil
 	}
 }
@@ -58,8 +60,15 @@ func Config(dsn string, readOnly bool, configDefaults *model.Config) Option {
 // ConfigStore applies the given config store, typically to replace the traditional sources with a memory store for testing.
 func ConfigStore(configStore *config.Store) Option {
 	return func(s *Server) error {
-		s.configStore = configStore
+		s.configStore = &configWrapper{srv: s, Store: configStore}
 
+		return nil
+	}
+}
+
+func SetFileStore(filestore filestore.FileBackend) Option {
+	return func(s *Server) error {
+		s.filestore = filestore
 		return nil
 	}
 }
@@ -95,7 +104,7 @@ func SetLogger(logger *mlog.Logger) Option {
 	}
 }
 
-func SkipPostInitializiation() Option {
+func SkipPostInitialization() Option {
 	return func(s *Server) error {
 		s.skipPostInit = true
 
@@ -109,5 +118,12 @@ type AppOptionCreator func() []AppOption
 func ServerConnector(ch *Channels) AppOption {
 	return func(a *App) {
 		a.ch = ch
+	}
+}
+
+func setCluster(cluster einterfaces.ClusterInterface) Option {
+	return func(s *Server) error {
+		s.Cluster = cluster
+		return nil
 	}
 }

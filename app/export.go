@@ -20,15 +20,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
-type BulkExportOpts struct {
-	IncludeAttachments bool
-	CreateArchive      bool
-}
-
-// ExportDataDir is the name of the directory were to store additional data
-// included with the export (e.g. file attachments).
-const ExportDataDir = "data"
-
 // We use this map to identify the exportable preferences.
 // Here we link the preference category and name, to the name of the relevant field in the import struct.
 var exportablePreferences = map[ComparablePreference]string{{
@@ -64,7 +55,7 @@ var exportablePreferences = map[ComparablePreference]string{{
 }: "EmailInterval",
 }
 
-func (a *App) BulkExport(writer io.Writer, outPath string, opts BulkExportOpts) *model.AppError {
+func (a *App) BulkExport(writer io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError {
 	var zipWr *zip.Writer
 	if opts.CreateArchive {
 		var err error
@@ -83,17 +74,18 @@ func (a *App) BulkExport(writer io.Writer, outPath string, opts BulkExportOpts) 
 	}
 
 	mlog.Info("Bulk export: exporting teams")
-	if err := a.exportAllTeams(writer); err != nil {
+	teamNames, err := a.exportAllTeams(writer)
+	if err != nil {
 		return err
 	}
 
 	mlog.Info("Bulk export: exporting channels")
-	if err := a.exportAllChannels(writer); err != nil {
+	if err = a.exportAllChannels(writer, teamNames); err != nil {
 		return err
 	}
 
 	mlog.Info("Bulk export: exporting users")
-	if err := a.exportAllUsers(writer); err != nil {
+	if err = a.exportAllUsers(writer); err != nil {
 		return err
 	}
 
@@ -165,12 +157,13 @@ func (a *App) exportVersion(writer io.Writer) *model.AppError {
 	return a.exportWriteLine(writer, versionLine)
 }
 
-func (a *App) exportAllTeams(writer io.Writer) *model.AppError {
+func (a *App) exportAllTeams(writer io.Writer) (map[string]bool, *model.AppError) {
 	afterId := strings.Repeat("0", 26)
+	teamNames := make(map[string]bool)
 	for {
 		teams, err := a.Srv().Store.Team().GetAllForExportAfter(1000, afterId)
 		if err != nil {
-			return model.NewAppError("exportAllTeams", "app.team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("exportAllTeams", "app.team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		if len(teams) == 0 {
@@ -184,18 +177,19 @@ func (a *App) exportAllTeams(writer io.Writer) *model.AppError {
 			if team.DeleteAt != 0 {
 				continue
 			}
+			teamNames[team.Name] = true
 
 			teamLine := ImportLineFromTeam(team)
 			if err := a.exportWriteLine(writer, teamLine); err != nil {
-				return err
+				return nil, err
 			}
 		}
 	}
 
-	return nil
+	return teamNames, nil
 }
 
-func (a *App) exportAllChannels(writer io.Writer) *model.AppError {
+func (a *App) exportAllChannels(writer io.Writer, teamNames map[string]bool) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	for {
 		channels, err := a.Srv().Store.Channel().GetAllChannelsForExportAfter(1000, afterId)
@@ -213,6 +207,10 @@ func (a *App) exportAllChannels(writer io.Writer) *model.AppError {
 
 			// Skip deleted.
 			if channel.DeleteAt != 0 {
+				continue
+			}
+			// Skip channels on deleted teams.
+			if ok := teamNames[channel.TeamName]; !ok {
 				continue
 			}
 
@@ -699,7 +697,7 @@ func (a *App) exportFile(outPath, filePath string, zipWr *zip.Writer) *model.App
 
 	if zipWr != nil {
 		wr, err = zipWr.CreateHeader(&zip.FileHeader{
-			Name:   filepath.Join(ExportDataDir, filePath),
+			Name:   filepath.Join(model.ExportDataDir, filePath),
 			Method: zip.Store,
 		})
 		if err != nil {
@@ -707,7 +705,7 @@ func (a *App) exportFile(outPath, filePath string, zipWr *zip.Writer) *model.App
 				nil, "err="+err.Error(), http.StatusInternalServerError)
 		}
 	} else {
-		filePath = filepath.Join(outPath, ExportDataDir, filePath)
+		filePath = filepath.Join(outPath, model.ExportDataDir, filePath)
 		if err = os.MkdirAll(filepath.Dir(filePath), 0700); err != nil {
 			return model.NewAppError("exportFileAttachment", "app.export.export_attachment.mkdirall.error",
 				nil, "err="+err.Error(), http.StatusInternalServerError)

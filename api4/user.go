@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/utils"
+	"github.com/mattermost/mattermost-server/v6/web"
 )
 
 func (api *API) InitUser() {
@@ -91,6 +92,9 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.User.Handle("/uploads", api.APISessionRequired(getUploadsForUser)).Methods("GET")
 	api.BaseRoutes.User.Handle("/channel_members", api.APISessionRequired(getChannelMembersForUser)).Methods("GET")
+	api.BaseRoutes.User.Handle("/recent_searches", api.APISessionRequiredDisableWhenBusy(getRecentSearches)).Methods("GET")
+
+	api.BaseRoutes.Users.Handle("/invalid_emails", api.APISessionRequired(getUsersWithInvalidEmails)).Methods("GET")
 
 	api.BaseRoutes.UserThreads.Handle("", api.APISessionRequired(getThreadsForUser)).Methods("GET")
 	api.BaseRoutes.UserThreads.Handle("/read", api.APISessionRequired(updateReadStateAllThreadsByUser)).Methods("PUT")
@@ -99,6 +103,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.UserThread.Handle("/following", api.APISessionRequired(followThreadByUser)).Methods("PUT")
 	api.BaseRoutes.UserThread.Handle("/following", api.APISessionRequired(unfollowThreadByUser)).Methods("DELETE")
 	api.BaseRoutes.UserThread.Handle("/read/{timestamp:[0-9]+}", api.APISessionRequired(updateReadStateThreadByUser)).Methods("PUT")
+	api.BaseRoutes.UserThread.Handle("/set_unread/{post_id:[A-Za-z0-9]+}", api.APISessionRequired(setUnreadThreadByPostId)).Methods("POST")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -132,7 +137,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		auditRec.AddMeta("token_type", token.Type)
 
 		if token.Type == app.TokenTypeGuestInvitation {
-			if c.App.Srv().License() == nil {
+			if c.App.Channels().License() == nil {
 				c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.guest_accounts.license.app_error", nil, "", http.StatusBadRequest)
 				return
 			}
@@ -154,15 +159,6 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		return
-	}
-
-	// New user created, check cloud limits and send emails if needed
-	// Soft fail on error since user is already created
-	if ruser != nil {
-		err = c.App.CheckAndSendUserLimitWarningEmails(c.AppContext)
-		if err != nil {
-			c.LogErrorByCode(err)
-		}
 	}
 
 	auditRec.Success()
@@ -370,7 +366,7 @@ func getDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", 24*60*60)) // 24 hrs
+	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", model.DayInSeconds)) // 24 hrs
 	w.Header().Set("Content-Type", "image/png")
 	w.Write(img)
 }
@@ -412,7 +408,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	if readFailed {
 		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", 5*60)) // 5 mins
 	} else {
-		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", 24*60*60)) // 24 hrs
+		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", model.DayInSeconds)) // 24 hrs
 		w.Header().Set(model.HeaderEtagServer, etag)
 	}
 
@@ -639,6 +635,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	notInTeamId := r.URL.Query().Get("not_in_team")
 	inChannelId := r.URL.Query().Get("in_channel")
 	inGroupId := r.URL.Query().Get("in_group")
+	notInGroupId := r.URL.Query().Get("not_in_group")
 	notInChannelId := r.URL.Query().Get("not_in_channel")
 	groupConstrained := r.URL.Query().Get("group_constrained")
 	withoutTeam := r.URL.Query().Get("without_team")
@@ -662,7 +659,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Currently only supports sorting on a team
 	// or sort="status" on inChannelId
-	if (sort == "last_activity_at" || sort == "create_at") && (inTeamId == "" || notInTeamId != "" || inChannelId != "" || notInChannelId != "" || withoutTeam != "" || inGroupId != "") {
+	if (sort == "last_activity_at" || sort == "create_at") && (inTeamId == "" || notInTeamId != "" || inChannelId != "" || notInChannelId != "" || withoutTeam != "" || inGroupId != "" || notInGroupId != "") {
 		c.SetInvalidURLParam("sort")
 		return
 	}
@@ -718,6 +715,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		NotInTeamId:      notInTeamId,
 		NotInChannelId:   notInChannelId,
 		InGroupId:        inGroupId,
+		NotInGroupId:     notInGroupId,
 		GroupConstrained: groupConstrainedBool,
 		WithoutTeam:      withoutTeamBool,
 		Inactive:         inactiveBool,
@@ -734,6 +732,20 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var profiles []*model.User
 	etag := ""
+
+	if inChannelId != "" {
+		if !*c.App.Config().TeamSettings.ExperimentalViewArchivedChannels {
+			channel, appErr := c.App.GetChannel(inChannelId)
+			if appErr != nil {
+				c.Err = appErr
+				return
+			}
+			if channel.DeleteAt != 0 {
+				c.Err = model.NewAppError("Api4.getUsersInChannel", "api.user.view_archived_channels.get_users_in_channel.app_error", nil, "", http.StatusForbidden)
+				return
+			}
+		}
+	}
 
 	if withoutTeamBool, _ := strconv.ParseBool(withoutTeam); withoutTeamBool {
 		// Use a special permission for now
@@ -784,23 +796,32 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
+
 		if sort == "status" {
 			profiles, err = c.App.GetUsersInChannelPageByStatus(userGetOptions, c.IsSystemAdmin())
 		} else {
 			profiles, err = c.App.GetUsersInChannelPage(userGetOptions, c.IsSystemAdmin())
 		}
 	} else if inGroupId != "" {
-		if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
-			c.Err = model.NewAppError("Api4.getUsersInGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
-			return
-		}
-
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
-			c.SetPermissionError(model.PermissionSysconsoleReadUserManagementGroups)
+		if gErr := requireGroupAccess(c, inGroupId); gErr != nil {
+			gErr.Where = "Api.getUsers"
+			c.Err = gErr
 			return
 		}
 
 		profiles, _, err = c.App.GetGroupMemberUsersPage(inGroupId, c.Params.Page, c.Params.PerPage)
+		if err != nil {
+			c.Err = err
+			return
+		}
+	} else if notInGroupId != "" {
+		if gErr := requireGroupAccess(c, notInGroupId); gErr != nil {
+			gErr.Where = "Api.getUsers"
+			c.Err = gErr
+			return
+		}
+
+		profiles, err = c.App.GetUsersNotInGroupPage(notInGroupId, c.Params.Page, c.Params.PerPage)
 		if err != nil {
 			c.Err = err
 			return
@@ -831,6 +852,25 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(js)
+}
+
+func requireGroupAccess(c *web.Context, groupID string) *model.AppError {
+	group, err := c.App.GetGroup(groupID, nil)
+	if err != nil {
+		return err
+	}
+
+	if lcErr := licensedAndConfiguredForGroupBySource(c.App, group.Source); lcErr != nil {
+		return lcErr
+	}
+
+	if group.Source == model.GroupSourceLdap {
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
+			return c.App.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionSysconsoleReadUserManagementGroups})
+		}
+	}
+
+	return nil
 }
 
 func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -941,13 +981,17 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if props.InGroupId != "" {
-		if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
-			c.Err = model.NewAppError("Api4.searchUsers", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		if gErr := requireGroupAccess(c, props.InGroupId); gErr != nil {
+			gErr.Where = "Api.searchUsers"
+			c.Err = gErr
 			return
 		}
+	}
 
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-			c.SetPermissionError(model.PermissionManageSystem)
+	if props.NotInGroupId != "" {
+		if gErr := requireGroupAccess(c, props.NotInGroupId); gErr != nil {
+			gErr.Where = "Api.searchUsers"
+			c.Err = gErr
 			return
 		}
 	}
@@ -1338,7 +1382,7 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	for _, roleName := range strings.Fields(newRoles) {
 		for _, id := range model.NewSystemRoleIDs {
 			if roleName == id {
-				if license := c.App.Srv().License(); license == nil || !*license.Features.CustomPermissionsSchemes {
+				if license := c.App.Channels().License(); license == nil || !*license.Features.CustomPermissionsSchemes {
 					c.Err = model.NewAppError("updateUserRoles", "api.user.update_user_roles.license.app_error", nil, "", http.StatusBadRequest)
 					return
 				}
@@ -1387,15 +1431,15 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("active", active)
 
 	// true when you're trying to de-activate yourself
-	isSelfDeactive := !active && c.Params.UserId == c.AppContext.Session().UserId
+	isSelfDeactivate := !active && c.Params.UserId == c.AppContext.Session().UserId
 
-	if !isSelfDeactive && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementUsers) {
+	if !isSelfDeactivate && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementUsers) {
 		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.permissions.app_error", nil, "userId="+c.Params.UserId, http.StatusForbidden)
 		return
 	}
 
 	// if EnableUserDeactivation flag is disabled the user cannot deactivate himself.
-	if isSelfDeactive && !*c.App.Config().TeamSettings.EnableUserDeactivation {
+	if isSelfDeactivate && !*c.App.Config().TeamSettings.EnableUserDeactivation {
 		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.not_enable.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
 		return
 	}
@@ -1417,18 +1461,6 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// if non cloud instances, isOverLimit is false and no error
-	isAtLimit, err := c.App.CheckCloudAccountAtLimit()
-	if err != nil {
-		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.cloud_at_limit_check_error", nil, "userId="+c.Params.UserId, http.StatusInternalServerError)
-		return
-	}
-
-	if active && isAtLimit {
-		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.cloud_at_or_over_limit_check_overcapacity", nil, "userId="+c.Params.UserId, http.StatusBadRequest)
-		return
-	}
-
 	if _, err = c.App.UpdateActive(c.AppContext, user, active); err != nil {
 		c.Err = err
 	}
@@ -1436,7 +1468,7 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit(fmt.Sprintf("user_id=%s active=%v", user.Id, active))
 
-	if isSelfDeactive {
+	if isSelfDeactivate {
 		c.App.Srv().Go(func() {
 			if err := c.App.Srv().EmailService.SendDeactivateAccountEmail(user.Email, user.Locale, c.App.GetSiteURL()); err != nil {
 				c.LogErrorByCode(model.NewAppError("SendDeactivateEmail", "api.user.send_deactivate_email_and_forget.failed.error", nil, err.Error(), http.StatusInternalServerError))
@@ -1446,15 +1478,6 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	message := model.NewWebSocketEvent(model.WebsocketEventUserActivationStatusChange, "", "", "", nil)
 	c.App.Publish(message)
-
-	// If activating, run cloud check for limit overages
-	if active {
-		emailErr := c.App.CheckAndSendUserLimitWarningEmails(c.AppContext)
-		if emailErr != nil {
-			c.Err = emailErr
-			return
-		}
-	}
 
 	ReturnStatusOK(w)
 }
@@ -1779,7 +1802,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	ldapOnly := props["ldap_only"] == "true"
 
 	if *c.App.Config().ExperimentalSettings.ClientSideCertEnable {
-		if license := c.App.Srv().License(); license == nil || !*license.Features.FutureFeatures {
+		if license := c.App.Channels().License(); license == nil || !*license.Features.FutureFeatures {
 			c.Err = model.NewAppError("ClientSideCertNotAllowed", "api.user.login.client_side_cert.license.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
@@ -1813,7 +1836,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("user", user)
 
 	if user.IsGuest() {
-		if c.App.Srv().License() == nil {
+		if c.App.Channels().License() == nil {
 			c.Err = model.NewAppError("login", "api.user.login.guest_accounts.license.error", nil, "", http.StatusUnauthorized)
 			return
 		}
@@ -1837,6 +1860,11 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.App.AttachSessionCookies(c.AppContext, w, r)
 	}
 
+	// For context see: https://mattermost.atlassian.net/browse/MM-39583
+	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
+		c.App.AttachCloudSessionCookie(c.AppContext, w, r)
+	}
+
 	userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
 	if err != nil && err.StatusCode != http.StatusNotFound {
 		c.Err = err
@@ -1857,7 +1885,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
 		c.Err = model.NewAppError("loginCWS", "api.user.login_cws.license.error", nil, "", http.StatusUnauthorized)
 		return
 	}
@@ -1882,7 +1910,7 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.LogAuditWithUserId("", "failure - login_id="+loginID)
 		c.LogErrorByCode(err)
-		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
+		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, http.StatusFound)
 		return
 	}
 	auditRec.AddMeta("user", user)
@@ -1890,12 +1918,12 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	err = c.App.DoLogin(c.AppContext, w, r, user, "", false, false, false)
 	if err != nil {
 		c.LogErrorByCode(err)
-		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
+		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, http.StatusFound)
 		return
 	}
 	c.LogAuditWithUserId(user.Id, "success")
 	c.App.AttachSessionCookies(c.AppContext, w, r)
-	http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
+	http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, http.StatusFound)
 }
 
 func logout(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2058,9 +2086,9 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.ClearSessionCacheForUser(c.AppContext.Session().UserId)
-	c.App.SetSessionExpireInDays(c.AppContext.Session(), *c.App.Config().ServiceSettings.SessionLengthMobileInDays)
+	c.App.SetSessionExpireInHours(c.AppContext.Session(), *c.App.Config().ServiceSettings.SessionLengthMobileInHours)
 
-	maxAge := *c.App.Config().ServiceSettings.SessionLengthMobileInDays * 60 * 60 * 24
+	maxAgeSeconds := *c.App.Config().ServiceSettings.SessionLengthMobileInHours * 60 * 60
 
 	secure := false
 	if app.GetProtocol(r) == "https" {
@@ -2069,12 +2097,12 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
 
-	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
+	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAgeSeconds), 0)
 	sessionCookie := &http.Cookie{
 		Name:     model.SessionCookieToken,
 		Value:    c.AppContext.Session().Token,
 		Path:     subpath,
-		MaxAge:   maxAge,
+		MaxAge:   maxAgeSeconds,
 		Expires:  expiresAt,
 		HttpOnly: true,
 		Domain:   c.App.GetCookieDomain(),
@@ -2627,7 +2655,7 @@ func demoteUserToGuest(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Srv().License() == nil {
+	if c.App.Channels().License() == nil {
 		c.Err = model.NewAppError("Api4.demoteUserToGuest", "api.team.demote_user_to_guest.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -2858,7 +2886,7 @@ func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAP {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAP {
 		c.Err = model.NewAppError("api.migrateAuthToLDAP", "api.admin.ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -2917,7 +2945,7 @@ func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.SAML {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.SAML {
 		c.Err = model.NewAppError("api.migrateAuthToSaml", "api.admin.saml.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -2982,14 +3010,15 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	options := model.GetUserThreadsOpts{
-		Since:      0,
-		Before:     "",
-		After:      "",
-		PageSize:   uint64(c.Params.PerPage),
-		Unread:     false,
-		Extended:   false,
-		Deleted:    false,
-		TotalsOnly: false,
+		Since:       0,
+		Before:      "",
+		After:       "",
+		PageSize:    uint64(c.Params.PerPage),
+		Unread:      false,
+		Extended:    false,
+		Deleted:     false,
+		TotalsOnly:  false,
+		ThreadsOnly: false,
 	}
 
 	sinceString := r.URL.Query().Get("since")
@@ -3004,21 +3033,30 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	options.Before = r.URL.Query().Get("before")
 	options.After = r.URL.Query().Get("after")
+	totalsOnlyStr := r.URL.Query().Get("totalsOnly")
+	threadsOnlyStr := r.URL.Query().Get("threadsOnly")
+	options.TotalsOnly, _ = strconv.ParseBool(totalsOnlyStr)
+	options.ThreadsOnly, _ = strconv.ParseBool(threadsOnlyStr)
+
 	// parameters are mutually exclusive
 	if options.Before != "" && options.After != "" {
 		c.Err = model.NewAppError("api.getThreadsForUser", "api.getThreadsForUser.bad_params", nil, "", http.StatusBadRequest)
 		return
 	}
 
+	// parameters are mutually exclusive
+	if options.TotalsOnly && options.ThreadsOnly {
+		c.Err = model.NewAppError("api.getThreadsForUser", "api.getThreadsForUser.bad_only_params", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	deletedStr := r.URL.Query().Get("deleted")
 	unreadStr := r.URL.Query().Get("unread")
 	extendedStr := r.URL.Query().Get("extended")
-	totalsOnlyStr := r.URL.Query().Get("totalsOnly")
 
 	options.Deleted, _ = strconv.ParseBool(deletedStr)
 	options.Unread, _ = strconv.ParseBool(unreadStr)
 	options.Extended, _ = strconv.ParseBool(extendedStr)
-	options.TotalsOnly, _ = strconv.ParseBool(totalsOnlyStr)
 
 	threads, err := c.App.GetThreadsForUser(c.Params.UserId, c.Params.TeamId, options)
 	if err != nil {
@@ -3048,7 +3086,43 @@ func updateReadStateThreadByUser(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	thread, err := c.App.UpdateThreadReadForUser(c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, c.Params.Timestamp)
+	thread, err := c.App.UpdateThreadReadForUser(c.AppContext.Session().Id, c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, c.Params.Timestamp)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(thread); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
+
+	auditRec.Success()
+}
+
+func setUnreadThreadByPostId(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId().RequireThreadId().RequirePostId().RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("setUnreadThreadByPostId", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("user_id", c.Params.UserId)
+	auditRec.AddMeta("thread_id", c.Params.ThreadId)
+	auditRec.AddMeta("team_id", c.Params.TeamId)
+	auditRec.AddMeta("post_id", c.Params.PostId)
+
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
+		return
+	}
+
+	thread, err := c.App.UpdateThreadReadForUserByPost(c.AppContext.Session().Id, c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, c.Params.PostId)
 	if err != nil {
 		c.Err = err
 		return
@@ -3150,4 +3224,47 @@ func updateReadStateAllThreadsByUser(c *Context, w http.ResponseWriter, r *http.
 
 	ReturnStatusOK(w)
 	auditRec.Success()
+}
+
+func getUsersWithInvalidEmails(c *Context, w http.ResponseWriter, r *http.Request) {
+	if *c.App.Config().TeamSettings.EnableOpenServer {
+		c.Err = model.NewAppError("GetUsersWithInvalidEmails", "api.users.invalid_emails.enable_open_server.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementUsers) {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementUsers)
+		return
+	}
+
+	users, err := c.App.GetUsersWithInvalidEmails(c.Params.Page, c.Params.PerPage)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	b, _ := json.Marshal(users)
+	w.Write(b)
+}
+
+func getRecentSearches(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	searchParams, err := c.App.GetRecentSearchesForUser(c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(searchParams); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }

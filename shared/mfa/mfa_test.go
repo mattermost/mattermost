@@ -154,26 +154,12 @@ func TestDeactivate(t *testing.T) {
 }
 
 func TestValidateToken(t *testing.T) {
-	secret := newRandomBase32String(mfaSecretSize)
-	token := dgoogauth.ComputeCode(secret, time.Now().UTC().Unix()/30)
-
 	t.Run("fail on wrongly formatted token", func(t *testing.T) {
+		secret := newRandomBase32String(mfaSecretSize)
 		ok, err := New(nil).ValidateToken(secret, "invalid-token")
 		require.Error(t, err)
 		require.False(t, ok)
 		require.Contains(t, err.Error(), "unable to parse the token")
-	})
-
-	t.Run("fail on invalid token", func(t *testing.T) {
-		ok, err := New(nil).ValidateToken(secret, "000000")
-		require.NoError(t, err)
-		require.False(t, ok)
-	})
-
-	t.Run("valid token", func(t *testing.T) {
-		ok, err := New(nil).ValidateToken(secret, fmt.Sprintf("%06d", token))
-		require.NoError(t, err)
-		require.True(t, ok)
 	})
 }
 

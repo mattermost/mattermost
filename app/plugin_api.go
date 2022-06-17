@@ -90,16 +90,6 @@ func (api *PluginAPI) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*mode
 	return response, nil
 }
 
-func (api *PluginAPI) GetSession(sessionID string) (*model.Session, *model.AppError) {
-	session, err := api.app.GetSessionById(sessionID)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return session, nil
-}
-
 func (api *PluginAPI) GetConfig() *model.Config {
 	return api.app.GetSanitizedConfig()
 }
@@ -254,7 +244,7 @@ func (api *PluginAPI) DeleteUser(userID string) *model.AppError {
 }
 
 func (api *PluginAPI) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
-	return api.app.GetUsers(options)
+	return api.app.GetUsersFromProfiles(options)
 }
 
 func (api *PluginAPI) GetUser(userID string) (*model.User, *model.AppError) {
@@ -288,6 +278,31 @@ func (api *PluginAPI) UpdatePreferencesForUser(userID string, preferences []mode
 
 func (api *PluginAPI) DeletePreferencesForUser(userID string, preferences []model.Preference) *model.AppError {
 	return api.app.DeletePreferences(userID, preferences)
+}
+
+func (api *PluginAPI) GetSession(sessionID string) (*model.Session, *model.AppError) {
+	return api.app.GetSessionById(sessionID)
+}
+
+func (api *PluginAPI) CreateSession(session *model.Session) (*model.Session, *model.AppError) {
+	return api.app.CreateSession(session)
+}
+
+func (api *PluginAPI) ExtendSessionExpiry(sessionID string, expiresAt int64) *model.AppError {
+	session, err := api.app.ch.srv.userService.GetSessionByID(sessionID)
+	if err != nil {
+		return model.NewAppError("extendSessionExpiry", "app.session.get_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if err := api.app.ch.srv.userService.ExtendSessionExpiry(session, expiresAt); err != nil {
+		return model.NewAppError("extendSessionExpiry", "app.session.extend_session_expiry.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+func (api *PluginAPI) RevokeSession(sessionID string) *model.AppError {
+	return api.app.RevokeSessionById(sessionID)
 }
 
 func (api *PluginAPI) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
@@ -342,6 +357,18 @@ func (api *PluginAPI) SetUserStatusTimedDND(userID string, endTime int64) (*mode
 	// FIXME: make SetStatusDoNotDisturbTimed return updated status
 	api.app.SetStatusDoNotDisturbTimed(userID, endTime)
 	return api.app.GetStatus(userID)
+}
+
+func (api *PluginAPI) UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus) *model.AppError {
+	return api.app.SetCustomStatus(userID, customStatus)
+}
+
+func (api *PluginAPI) RemoveUserCustomStatus(userID string) *model.AppError {
+	return api.app.RemoveCustomStatus(userID)
+}
+
+func (api *PluginAPI) GetUserCustomStatus(userID string) (*model.CustomStatus, *model.AppError) {
+	return api.app.GetCustomStatus(userID)
 }
 
 func (api *PluginAPI) GetUsersInChannel(channelID, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
@@ -419,7 +446,10 @@ func (api *PluginAPI) GetChannelByNameForTeamName(teamName, channelName string, 
 }
 
 func (api *PluginAPI) GetChannelsForTeamForUser(teamID, userID string, includeDeleted bool) ([]*model.Channel, *model.AppError) {
-	channels, err := api.app.GetChannelsForTeamForUser(teamID, userID, includeDeleted, 0)
+	channels, err := api.app.GetChannelsForTeamForUser(teamID, userID, &model.ChannelSearchOpts{
+		IncludeDeleted: includeDeleted,
+		LastDeleteAt:   0,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -518,7 +548,7 @@ func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, sea
 		includeDeletedChannels = *searchParams.IncludeDeletedChannels
 	}
 
-	return api.app.SearchPostsForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
+	return api.app.SearchPostsForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage, model.ModifierMessages)
 }
 
 func (api *PluginAPI) AddChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
@@ -576,7 +606,7 @@ func (api *PluginAPI) DeleteChannelMember(channelID, userID string) *model.AppEr
 }
 
 func (api *PluginAPI) GetGroup(groupId string) (*model.Group, *model.AppError) {
-	return api.app.GetGroup(groupId)
+	return api.app.GetGroup(groupId, nil)
 }
 
 func (api *PluginAPI) GetGroupByName(name string) (*model.Group, *model.AppError) {
@@ -631,11 +661,11 @@ func (api *PluginAPI) DeletePost(postID string) *model.AppError {
 }
 
 func (api *PluginAPI) GetPostThread(postID string) (*model.PostList, *model.AppError) {
-	return api.app.GetPostThread(postID, false, false, false, "")
+	return api.app.GetPostThread(postID, model.GetPostsOptions{}, "")
 }
 
 func (api *PluginAPI) GetPost(postID string) (*model.Post, *model.AppError) {
-	return api.app.GetSinglePost(postID)
+	return api.app.GetSinglePost(postID, false)
 }
 
 func (api *PluginAPI) GetPostsSince(channelID string, time int64) (*model.PostList, *model.AppError) {
@@ -820,7 +850,7 @@ func (api *PluginAPI) DisablePlugin(id string) *model.AppError {
 }
 
 func (api *PluginAPI) RemovePlugin(id string) *model.AppError {
-	return api.app.RemovePlugin(id)
+	return api.app.Channels().RemovePlugin(id)
 }
 
 func (api *PluginAPI) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
@@ -894,6 +924,10 @@ func (api *PluginAPI) HasPermissionToTeam(userID, teamID string, permission *mod
 
 func (api *PluginAPI) HasPermissionToChannel(userID, channelID string, permission *model.Permission) bool {
 	return api.app.HasPermissionToChannel(userID, channelID, permission)
+}
+
+func (api *PluginAPI) RolesGrantPermission(roleNames []string, permissionId string) bool {
+	return api.app.RolesGrantPermission(roleNames, permissionId)
 }
 
 func (api *PluginAPI) LogDebug(msg string, keyValuePairs ...interface{}) {
@@ -1143,33 +1177,14 @@ func (api *PluginAPI) RequestTrialLicense(requesterID string, users int, termsAc
 		return model.NewAppError("RequestTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 	}
 
-	if !termsAccepted {
-		return model.NewAppError("RequestTrialLicense", "api.license.request-trial.bad-request.terms-not-accepted", nil, "", http.StatusBadRequest)
-	}
+	return api.app.Channels().RequestTrialLicense(requesterID, users, termsAccepted, receiveEmailsAccepted)
+}
 
-	if users == 0 {
-		return model.NewAppError("RequestTrialLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
+// GetCloudLimits returns any limits associated with the cloud instance
+func (api *PluginAPI) GetCloudLimits() (*model.ProductLimits, error) {
+	if api.app.Cloud() == nil {
+		return &model.ProductLimits{}, nil
 	}
-
-	requester, err := api.app.GetUser(requesterID)
-	if err != nil {
-		return err
-	}
-
-	trialLicenseRequest := &model.TrialLicenseRequest{
-		ServerID:              api.app.TelemetryId(),
-		Name:                  requester.GetDisplayName(model.ShowFullName),
-		Email:                 requester.Email,
-		SiteName:              *api.app.Config().TeamSettings.SiteName,
-		SiteURL:               *api.app.Config().ServiceSettings.SiteURL,
-		Users:                 users,
-		TermsAccepted:         termsAccepted,
-		ReceiveEmailsAccepted: receiveEmailsAccepted,
-	}
-
-	if trialLicenseRequest.SiteURL == "" {
-		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.no-site-url.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	return api.app.Srv().RequestTrialLicense(trialLicenseRequest)
+	limits, err := api.app.Cloud().GetCloudLimits("")
+	return limits, err
 }

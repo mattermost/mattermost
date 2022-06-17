@@ -107,7 +107,7 @@ func TestMapJson(t *testing.T) {
 	require.Equal(t, rm["id"], "test_id", "map should be valid")
 
 	rm2 := MapFromJSON(strings.NewReader(""))
-	require.LessOrEqual(t, len(rm2), 0, "make should be ivalid")
+	require.LessOrEqual(t, len(rm2), 0, "make should be invalid")
 }
 
 func TestIsValidEmail(t *testing.T) {
@@ -213,7 +213,7 @@ var hashtags = map[string]string{
 	"#?test":          "",
 	"#-test":          "",
 	"#yo_yo":          "#yo_yo",
-	"(#brakets)":      "#brakets",
+	"(#brackets)":     "#brackets",
 	")#stekarb(":      "#stekarb",
 	"<#less_than<":    "#less_than",
 	">#greater_than>": "#greater_than",
@@ -778,6 +778,13 @@ func checkNowhereNil(t *testing.T, name string, value interface{}) bool {
 	v := reflect.ValueOf(value)
 	switch v.Type().Kind() {
 	case reflect.Ptr:
+		// Ignoring these 2 settings.
+		// TODO: remove them completely in v8.0.
+		if name == "config.BleveSettings.BulkIndexingTimeWindowSeconds" ||
+			name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" {
+			return true
+		}
+
 		if v.IsNil() {
 			t.Logf("%s was nil", name)
 			return false
@@ -855,6 +862,55 @@ func TestSanitizeUnicode(t *testing.T) {
 	}
 }
 
+func TestIsValidChannelIdentifier(t *testing.T) {
+	cases := []struct {
+		Description string
+		Input       string
+		Expected    bool
+	}{
+		{
+			Description: "less than min length",
+			Input:       "",
+			Expected:    false,
+		},
+		{
+			Description: "single alphabetical char",
+			Input:       "a",
+			Expected:    true,
+		},
+		{
+			Description: "single underscore",
+			Input:       "_",
+			Expected:    false,
+		},
+		{
+			Description: "single hyphen",
+			Input:       "-",
+			Expected:    false,
+		},
+		{
+			Description: "empty string",
+			Input:       " ",
+			Expected:    false,
+		},
+		{
+			Description: "multiple with hyphen",
+			Input:       "a-a",
+			Expected:    true,
+		},
+		{
+			Description: "multiple with hyphen",
+			Input:       "a_a",
+			Expected:    true,
+		},
+	}
+
+	for _, tc := range cases {
+		actual := IsValidChannelIdentifier(tc.Input)
+		require.Equalf(t, actual, tc.Expected, "case: '%v'\tshould returned: %#v", tc.Input, tc.Expected)
+	}
+}
+
 func TestIsValidHTTPURL(t *testing.T) {
 	t.Parallel()
 
@@ -885,7 +941,7 @@ func TestIsValidHTTPURL(t *testing.T) {
 		},
 		{
 			"url with invalid scheme",
-			"htp://mattermost.com",
+			"http-bad://mattermost.com",
 			false,
 		},
 		{
@@ -905,7 +961,7 @@ func TestIsValidHTTPURL(t *testing.T) {
 		},
 		{
 			"correct url with http scheme",
-			"http://mattemost.com",
+			"http://mattermost.com",
 			true,
 		},
 		{

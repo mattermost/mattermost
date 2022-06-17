@@ -44,11 +44,6 @@ type API interface {
 	// Minimum server version: 5.26
 	ExecuteSlashCommand(commandArgs *model.CommandArgs) (*model.CommandResponse, error)
 
-	// GetSession returns the session object for the Session ID
-	//
-	// Minimum server version: 5.2
-	GetSession(sessionID string) (*model.Session, *model.AppError)
-
 	// GetConfig fetches the currently persisted config
 	//
 	// @tag Configuration
@@ -192,6 +187,30 @@ type API interface {
 	// Minimum server version: 5.26
 	DeletePreferencesForUser(userID string, preferences []model.Preference) *model.AppError
 
+	// GetSession returns the session object for the Session ID
+	//
+	//
+	// Minimum server version: 5.2
+	GetSession(sessionID string) (*model.Session, *model.AppError)
+
+	// CreateSession creates a new user session.
+	//
+	// @tag User
+	// Minimum server version: 6.2
+	CreateSession(session *model.Session) (*model.Session, *model.AppError)
+
+	// ExtendSessionExpiry extends the duration of an existing session.
+	//
+	// @tag User
+	// Minimum server version: 6.2
+	ExtendSessionExpiry(sessionID string, newExpiry int64) *model.AppError
+
+	// RevokeSession revokes an existing user session.
+	//
+	// @tag User
+	// Minimum server version: 6.2
+	RevokeSession(sessionID string) *model.AppError
+
 	// CreateUserAccessToken creates a new access token.
 	// @tag User
 	// Minimum server version: 5.38
@@ -256,6 +275,19 @@ type API interface {
 	// @tag User
 	// Minimum server version: 5.8
 	UpdateUserActive(userID string, active bool) *model.AppError
+
+	// UpdateUserCustomStatus will set a user's custom status until the user, or another integration/plugin, clear it or update the custom status.
+	// The custom status have two parameters: emoji icon and custom text.
+	//
+	// @tag User
+	// Minimum server version: 6.2
+	UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus) *model.AppError
+
+	// RemoveUserCustomStatus will remove a user's custom status.
+	//
+	// @tag User
+	// Minimum server version: 6.2
+	RemoveUserCustomStatus(userID string) *model.AppError
 
 	// GetUsersInChannel returns a page of users in a channel. Page counting starts at 0.
 	// The sortBy parameter can be: "username" or "status".
@@ -928,6 +960,11 @@ type API interface {
 	// Minimum server version: 5.3
 	HasPermissionToChannel(userID, channelId string, permission *model.Permission) bool
 
+	// RolesGrantPermission check if the specified roles grant the specified permission
+	//
+	// Minimum server version: 6.3
+	RolesGrantPermission(roleNames []string, permissionId string) bool
+
 	// LogDebug writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins
 	// do not need to add that info.
@@ -1110,6 +1147,11 @@ type API interface {
 	//
 	// Minimum server version: 5.36
 	RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError
+
+	// GetCloudLimits gets limits associated with a cloud workspace, if any
+	//
+	// Minimum server version: 7.0
+	GetCloudLimits() (*model.ProductLimits, error)
 }
 
 var handshake = plugin.HandshakeConfig{

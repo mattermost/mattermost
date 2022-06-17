@@ -805,3 +805,18 @@ func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
 		panic(err2)
 	}
 }
+
+func TestFullyQualifiedRedirectURL(t *testing.T) {
+	const siteURL = "https://xxx.yyy/mm"
+	for target, expected := range map[string]string{
+		"":            "https://xxx.yyy/mm",
+		"/":           "https://xxx.yyy/mm/",
+		"some-path":   "https://xxx.yyy/mm/some-path",
+		"/some-path":  "https://xxx.yyy/mm/some-path",
+		"/some-path/": "https://xxx.yyy/mm/some-path/",
+	} {
+		t.Run(target, func(t *testing.T) {
+			require.Equal(t, expected, fullyQualifiedRedirectURL(siteURL, target))
+		})
+	}
+}

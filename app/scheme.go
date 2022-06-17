@@ -83,6 +83,10 @@ func (a *App) CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError
 	scheme.DefaultChannelAdminRole = ""
 	scheme.DefaultChannelUserRole = ""
 	scheme.DefaultChannelGuestRole = ""
+	scheme.DefaultPlaybookAdminRole = ""
+	scheme.DefaultPlaybookMemberRole = ""
+	scheme.DefaultRunAdminRole = ""
+	scheme.DefaultRunMemberRole = ""
 	scheme.CreateAt = 0
 	scheme.UpdateAt = 0
 	scheme.DeleteAt = 0

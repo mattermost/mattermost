@@ -199,15 +199,29 @@ func (us *UserService) RevokeAccessToken(token string) error {
 	return nil
 }
 
-// SetSessionExpireInDays sets the session's expiry the specified number of days
+// SetSessionExpireInHours sets the session's expiry the specified number of hours
 // relative to either the session creation date or the current time, depending
 // on the `ExtendSessionOnActivity` config setting.
-func (us *UserService) SetSessionExpireInDays(session *model.Session, days int) {
+func (us *UserService) SetSessionExpireInHours(session *model.Session, hours int) {
 	if session.CreateAt == 0 || *us.config().ServiceSettings.ExtendSessionLengthWithActivity {
-		session.ExpiresAt = model.GetMillis() + (1000 * 60 * 60 * 24 * int64(days))
+		session.ExpiresAt = model.GetMillis() + (1000 * 60 * 60 * int64(hours))
 	} else {
-		session.ExpiresAt = session.CreateAt + (1000 * 60 * 60 * 24 * int64(days))
+		session.ExpiresAt = session.CreateAt + (1000 * 60 * 60 * int64(hours))
 	}
+}
+
+func (us *UserService) ExtendSessionExpiry(session *model.Session, newExpiry int64) error {
+	if err := us.sessionStore.UpdateExpiresAt(session.Id, newExpiry); err != nil {
+		return err
+	}
+
+	// Update local cache. No need to invalidate cache for cluster as the session cache timeout
+	// ensures each node will get an extended expiry within the next 10 minutes.
+	// Worst case is another node may generate a redundant expiry update.
+	session.ExpiresAt = newExpiry
+	us.AddSessionToCache(session)
+
+	return nil
 }
 
 func (us *UserService) UpdateSessionsIsGuest(userID string, isGuest bool) error {

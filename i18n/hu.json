@@ -65,19 +65,19 @@
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "Érvénytelen kép proxy típus. \"local” vagy \"atmos/camo”-nak kell lennie."
+    "translation": "Érvénytelen kép proxy típus. Csak \"local\" vagy \"atmos/camo\" egyike lehet."
   },
   {
     "id": "model.config.is_valid.group_unread_channels.app_error",
-    "translation": "Érvénytelen csoport olvasatlan csatornák a szolgáltatás beállításokhoz. \"disabled”, \"default_on” vagy \"default_off” -nak kell lennie."
+    "translation": "Érvénytelen csoport olvasatlan csatornák a szolgáltatás beállításokhoz. Csak \"disabled\", \"default_on\" vagy \"default_off\" egyike lehet."
   },
   {
     "id": "model.config.is_valid.file_salt.app_error",
-    "translation": "Érvénytelen nyilvános link só a fájlbeállításokhoz. 32 vagy több karakternek kell lennie."
+    "translation": "Érvénytelen nyilvános link só a fájl beállításokhoz. 32 vagy több karakternek kell lennie."
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
-    "translation": "Érvénytelen driver név a fájl beállításokhoz. \"local” vagy \"amazon3”-nak kell lennie."
+    "translation": "Érvénytelen driver név a fájl beállításokhoz. Csak \"local\" vagy \"amazon3\" egyike lehet."
   },
   {
     "id": "model.config.is_valid.export.retention_days_too_low.app_error",
@@ -97,7 +97,7 @@
   },
   {
     "id": "model.config.is_valid.email_notification_contents_type.app_error",
-    "translation": "Érvénytelen e-mail értesítési tartalom típus az e-mail beállításokhoz. A \"full” vagy a \"generic” egyikének kell lennie."
+    "translation": "Érvénytelen e-mail értesítési tartalom típus az e-mail beállításokhoz. Csak \"full\" vagy \"generic\" egyike lehet."
   },
   {
     "id": "model.config.is_valid.email_batching_interval.app_error",
@@ -117,7 +117,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Az Elasticsearch Live Indexing Batch Size beállítának legalább 1-nek kell lennie."
+    "translation": "Az Elasticsearch Live Indexing Batch Size beállításnak legalább 1-nek kell lennie."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
@@ -132,10 +132,6 @@
     "translation": "Az Elasticsearch ConnectionUrl beállítást meg kell adni, ha az Elasticsearch indexelés engedélyezve van."
   },
   {
-    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Az Elasticsearch Bulk Indexing Time Window beállításnak legalább 1 másodpercnek kell lennie."
-  },
-  {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
     "translation": "Az Elasticsearch AggregatePostsAfterDays beállításnak 1-nél nagyobb vagy egyenlő számnak kell lennie."
   },
@@ -145,7 +141,7 @@
   },
   {
     "id": "model.config.is_valid.directory.app_error",
-    "translation": "Érvénytelen helyi tárolási könyvtár. Nem lehet üres karakterlánc."
+    "translation": "Érvénytelen helyi tárolási könyvtár. Nem lehet üres szöveg."
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
@@ -178,10 +174,6 @@
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
     "translation": "A Bleve EnableIndexing beállítást igazra kell állítani, ha a Bleve EnableAutocomplete értéke igaz"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "A Bleve tömeges indexelési időablakának legalább 1 másodpercnek kell lennie."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
@@ -217,7 +209,7 @@
   },
   {
     "id": "model.compliance.is_valid.create_at.app_error",
-    "translation": "A létrehozás idejének érvényesnek kell lennie."
+    "translation": "A létrehozás idejének érvényes időnek kell lennie."
   },
   {
     "id": "model.command_hook.user_id.app_error",
@@ -229,11 +221,11 @@
   },
   {
     "id": "model.command_hook.id.app_error",
-    "translation": "Érvénytelen parancs hook azonosító."
+    "translation": "Érvénytelen parancs horog azonosító."
   },
   {
     "id": "model.command_hook.create_at.app_error",
-    "translation": "A létrehozás idejének érvényesnek kell lennie."
+    "translation": "A létrehozás idejének érvényes időnek kell lennie."
   },
   {
     "id": "model.command_hook.command_id.app_error",
@@ -257,11 +249,11 @@
   },
   {
     "id": "model.command.is_valid.update_at.app_error",
-    "translation": "A frissítés idejének érvényesnek kell lennie."
+    "translation": "A frissítés idejének érvényes időnek kell lennie."
   },
   {
     "id": "model.command.is_valid.trigger.app_error",
-    "translation": "Érvénytelen trigger."
+    "translation": "Érvénytelen aktiváló."
   },
   {
     "id": "model.command.is_valid.token.app_error",
@@ -293,7 +285,7 @@
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
-    "translation": "A létrehozás idejének érvényesnek kell lennie."
+    "translation": "A létrehozás idejének érvényes időnek kell lennie."
   },
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
@@ -353,7 +345,7 @@
   },
   {
     "id": "model.channel.is_valid.update_at.app_error",
-    "translation": "A Frissítés idejének érvényesnek kell lennie."
+    "translation": "A frissítés idejének érvényes időnek kell lennie."
   },
   {
     "id": "model.channel.is_valid.type.app_error",
@@ -385,11 +377,7 @@
   },
   {
     "id": "model.channel.is_valid.create_at.app_error",
-    "translation": "A létrehozás időpontjának érvényesnek kell lennie."
-  },
-  {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "A névnek legalább 2 kisbetűs alfanumerikus karakterből kell állnia."
+    "translation": "A létrehozás időpontjának érvényes időnek kell lennie."
   },
   {
     "id": "model.bot.is_valid.username.app_error",
@@ -441,7 +429,7 @@
   },
   {
     "id": "model.authorize.is_valid.create_at.app_error",
-    "translation": "A létrehozás időpontjának érvényesnek kell lennie."
+    "translation": "A létrehozás időpontjának érvényes időnek kell lennie."
   },
   {
     "id": "model.authorize.is_valid.client_id.app_error",
@@ -529,31 +517,31 @@
   },
   {
     "id": "interactive_message.generate_trigger_id.signing_failed",
-    "translation": "Nem sikerült aláírni az interaktív párbeszédpanel generált trigger-azonosítóját."
+    "translation": "Nem sikerült aláírni az interaktív párbeszédpanel generált aktiválási azonosítóját."
   },
   {
     "id": "interactive_message.decode_trigger_id.verify_signature_failed",
-    "translation": "Sikertelen volt az interaktív párbeszédpanel trigger-azonosító aláírásának ellenőrzése."
+    "translation": "Sikertelen volt az interaktív párbeszédpanel aktiválási azonosító aláírásának ellenőrzése."
   },
   {
     "id": "interactive_message.decode_trigger_id.signature_decode_failed",
-    "translation": "Nem sikerült dekódolni a trigger ID base64 aláírását az interaktív párbeszédpanelhez."
+    "translation": "Nem sikerült dekódolni az aktiválási azonosító base64 aláírását az interaktív párbeszédpanelhez."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
-    "translation": "Trigger azonosító hiányzó szükséges adatok az interaktív párbeszédablakhoz."
+    "translation": "Aktiválási azonosító hiányzó szükséges adatok az interaktív párbeszédablakhoz."
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "Az interaktív párbeszédpanel aktiválási azonosítója lejárt. Az aktiválóazonosítók legfeljebb {{.Seconds}} másodpercig élnek."
+    "translation": "Az interaktív párbeszédpanel aktiválási azonosítója lejárt. Az aktiváló azonosítók legfeljebb {{.Seconds}} másodpercig élnek."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
-    "translation": "Nem sikerült dekódolni a base64 aláírást az interaktív párbeszédpanel trigger ID-ját."
+    "translation": "Nem sikerült dekódolni a base64 aláírást az interaktív párbeszédpanel aktiváló azonosítójának."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
-    "translation": "Nem sikerült base64 dekódolni az interaktív párbeszédpanel trigger ID azonosítóját."
+    "translation": "Nem sikerült base64 dekódolni az interaktív párbeszédpanel aktiváló azonosítóját."
   },
   {
     "id": "import_process.worker.do_job.open_file",
@@ -577,7 +565,7 @@
   },
   {
     "id": "group_not_associated_to_synced_team",
-    "translation": "A csoport csak akkor társítható a csatornához, ha az először társul a szülőcsoporttal szinkronizált csapathoz."
+    "translation": "A csoport csak akkor társítható a csatornához, ha az először társul a szülő csoporttal szinkronizált csapathoz."
   },
   {
     "id": "error",
@@ -789,7 +777,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "Méretkorlát túllépve. Próbálja meg ellenőrizni a [maximális oldalméretet](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
+    "translation": "Méret korlát túllépve. Próbálja meg ellenőrizni a [maximális oldalméretet](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
@@ -1305,15 +1293,15 @@
   },
   {
     "id": "app.plugin.deactivate.app_error",
-    "translation": "Nem sikerült deaktiválni a bővitményt."
+    "translation": "Nem sikerült letiltani a bővitményt."
   },
   {
     "id": "app.plugin.config.app_error",
-    "translation": "Hiba történt a plugin állapotának konfigurációba mentésekor."
+    "translation": "Hiba történt a bővítmény állapotának konfigurációba mentésekor."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
-    "translation": "A config.json fájl plugin konfigurációját manuálisan kell frissíteni, ha fürtözés használata mellett használja a ReadOnlyConfig kapcsolót."
+    "translation": "A config.json fájl bővítmény konfigurációját manuálisan kell frissíteni, ha fürtözés használata mellett használja a ReadOnlyConfig kapcsolót."
   },
   {
     "id": "app.oauth.update_app.updating.app_error",
@@ -1413,7 +1401,7 @@
   },
   {
     "id": "model.team.is_valid.update_at.app_error",
-    "translation": "A frissítés idejének érvényesnek kell lennie."
+    "translation": "A frissítés idejének érvényes időnek kell lennie."
   },
   {
     "id": "model.team.is_valid.type.app_error",
@@ -1449,7 +1437,7 @@
   },
   {
     "id": "model.team.is_valid.create_at.app_error",
-    "translation": "A létrehozás idejének érvényesnek kell lennie."
+    "translation": "A létrehozás idejének érvényes időnek kell lennie."
   },
   {
     "id": "model.team.is_valid.company.app_error",
@@ -1469,7 +1457,7 @@
   },
   {
     "id": "model.reaction.is_valid.update_at.app_error",
-    "translation": "A frissítés idejének érvényesnek kell lennie."
+    "translation": "A frissítés idejének érvényes időnek kell lennie."
   },
   {
     "id": "model.reaction.is_valid.post_id.app_error",
@@ -1481,7 +1469,7 @@
   },
   {
     "id": "model.reaction.is_valid.create_at.app_error",
-    "translation": "A létrehozás idejének érvényesnek kell lennie."
+    "translation": "A létrehozás idejének érvényes időnek kell lennie."
   },
   {
     "id": "model.preference.is_valid.value.app_error",
@@ -1509,7 +1497,7 @@
   },
   {
     "id": "model.post.is_valid.update_at.app_error",
-    "translation": "A frissítés idejének érvényesnek kell lennie."
+    "translation": "A frissítés idejének érvényes időnek kell lennie."
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -1549,7 +1537,7 @@
   },
   {
     "id": "model.post.is_valid.create_at.app_error",
-    "translation": "A létrehozás idejének érvényesnek kell lennie."
+    "translation": "A létrehozás idejének érvényes időnek kell lennie."
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -1601,7 +1589,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.update_at.app_error",
-    "translation": "A frissítés idejének érvényesnek kell lennie."
+    "translation": "A frissítés idejének érvényes időnek kell lennie."
   },
   {
     "id": "model.outgoing_hook.is_valid.trigger_words.app_error",
@@ -1629,7 +1617,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.create_at.app_error",
-    "translation": "A létrehozás idejének érvényesnek kell lennie."
+    "translation": "A létrehozás idejének érvényes időnek kell lennie."
   },
   {
     "id": "model.outgoing_hook.is_valid.content_type.app_error",
@@ -1649,7 +1637,7 @@
   },
   {
     "id": "model.oauth.is_valid.update_at.app_error",
-    "translation": "A frissítés idejének érvényesnek kell lennie."
+    "translation": "A frissítés idejének érvényes időnek kell lennie."
   },
   {
     "id": "model.oauth.is_valid.name.app_error",
@@ -1673,7 +1661,7 @@
   },
   {
     "id": "model.oauth.is_valid.create_at.app_error",
-    "translation": "A létrehozás idejének érvényesnek kell lennie."
+    "translation": "A létrehozás idejének érvényes időnek kell lennie."
   },
   {
     "id": "model.oauth.is_valid.client_secret.app_error",
@@ -1825,47 +1813,47 @@
   },
   {
     "id": "model.group.name.invalid_chars.app_error",
-    "translation": "Érvénytelen karakterek a név tulajdonság a csoportnál"
+    "translation": "érvénytelen karakterek a név tulajdonságban a csoportnál"
   },
   {
     "id": "model.group.name.app_error",
-    "translation": "Érvénytelen név tulajdonságban a csoportnál."
+    "translation": "érvénytelen név tulajdonság a csoportnál."
   },
   {
     "id": "model.group.display_name.app_error",
-    "translation": "Érvénytelen megjelenítési név tulajdonság a csoportnál."
+    "translation": "érvénytelen megjelenítési név tulajdonság a csoportnál."
   },
   {
     "id": "model.group.description.app_error",
-    "translation": "Érvénytelen létrehozás ideje tulajdonság a csoportnál."
+    "translation": "érvénytelen létrehozás ideje tulajdonság a csoportnál."
   },
   {
     "id": "model.group.create_at.app_error",
-    "translation": "Érvénytelen létrehozás ideje tulajdonság a csoportnál."
+    "translation": "érvénytelen létrehozás ideje tulajdonság a csoportnál."
   },
   {
     "id": "model.file_info.is_valid.user_id.app_error",
-    "translation": "Érvénytelen érték itt: user_id."
+    "translation": "Érvénytelen érték: user_id."
   },
   {
     "id": "model.file_info.is_valid.update_at.app_error",
-    "translation": "Érvénytelen érték itt: update_at."
+    "translation": "Érvénytelen érték: update_at."
   },
   {
     "id": "model.file_info.is_valid.post_id.app_error",
-    "translation": "Érvénytelen érték itt: post_id."
+    "translation": "Érvénytelen érték: post_id."
   },
   {
     "id": "model.file_info.is_valid.path.app_error",
-    "translation": "Érvénytelen érték itt: path."
+    "translation": "Érvénytelen érték: path."
   },
   {
     "id": "model.file_info.is_valid.id.app_error",
-    "translation": "Érvénytelen érték itt: id."
+    "translation": "Érvénytelen érték: id."
   },
   {
     "id": "model.file_info.is_valid.create_at.app_error",
-    "translation": "Érvénytelen érték itt: create_at."
+    "translation": "Érvénytelen érték: create_at."
   },
   {
     "id": "model.file_info.get.gif.app_error",
@@ -1897,7 +1885,7 @@
   },
   {
     "id": "model.config.is_valid.websocket_url.app_error",
-    "translation": "A Websocket URL-nek érvényes URL-nek kell lennie, és ws:// vagy wss:// kell kezdődnie."
+    "translation": "A Websocket URL-nek érvényes URL-nek kell lennie és ws:// vagy wss:// kell kezdődnie."
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
@@ -1905,7 +1893,7 @@
   },
   {
     "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
-    "translation": "A TLS felülírási titkosítása érvénytelen értéket kapott - Az érvényes értékeket a dokumentációban találja meg."
+    "translation": "A TLS titkosítás felülírása érvénytelen értéket kapott - Az érvényes értékeket a dokumentációban találja meg."
   },
   {
     "id": "model.config.is_valid.tls_key_file_missing.app_error",
@@ -2025,11 +2013,11 @@
   },
   {
     "id": "model.config.is_valid.rate_sec.app_error",
-    "translation": "Érvénytelen másodpercenkénti sebességkorlátozás beállítás. Pozitív számnak kell lennie."
+    "translation": "Érvénytelen másodpercenkénti kérések számának korlát beállítás. Pozitív számnak kell lennie."
   },
   {
     "id": "model.config.is_valid.rate_mem.app_error",
-    "translation": "Érvénytelen memóriatár méret a sebességkorlátozás beállításaihoz. Pozitív számnak kell lennie."
+    "translation": "Érvénytelen memóriatár méret az időközönkénti kérések számának korlátja beállításhoz. Pozitív számnak kell lennie."
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -2121,7 +2109,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
-    "translation": "Érvénytelen kapcsolat biztonság az AD/LDAP beállításokhoz. '', 'TLS' vagy 'STARTTLS' -nek kell lennie."
+    "translation": "Érvénytelen kapcsolat biztonság az AD/LDAP beállításokhoz. Csak \"\", \"TLS\" vagy \"STARTTLS\" egyike lehet."
   },
   {
     "id": "app.notification.subject.group_message.full",
@@ -2237,7 +2225,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_channel_trigger_invalid.error",
-    "translation": "Érvénytelen csatorna indító értesítés tulajdonság a felhasználó számára."
+    "translation": "Érvénytelen csatorna aktiváló értesítés tulajdonság a felhasználó számára."
   },
   {
     "id": "app.import.validate_user_import_data.nickname_length.error",
@@ -2406,10 +2394,6 @@
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Hiányzó kötelező válasz tulajdonság: create_at."
-  },
-  {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Válasz CreateAt tulajdonságának nagyobbnak kell lennie, mint a szülő bejegyzés CreateAt értéke."
   },
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
@@ -2669,15 +2653,15 @@
   },
   {
     "id": "app.email.setup_rate_limiter.app_error",
-    "translation": "Hiba történt a sebességkorlátozóban."
+    "translation": "Hiba történt az időközönkénti kérések számának korlátozása funkcióban."
   },
   {
     "id": "app.email.rate_limit_exceeded.app_error",
-    "translation": "Meghívó e-mailek sebességkorlátja túllépve. Az időzítő visszaáll {{.ResetAfter}} másodperc múlva. Kérjük próbálja meg {{.RetryAfter}} másodperc múlva."
+    "translation": "Meghívó e-mailek időközönkénti kérések számának korlátja túllépve. Az időzítő visszaáll {{.ResetAfter}} másodperc múlva. Kérjük próbálja meg {{.RetryAfter}} másodperc múlva."
   },
   {
     "id": "app.email.no_rate_limiter.app_error",
-    "translation": "A sebességkorlátozó nincs beállítva."
+    "translation": "Az időközönkénti kérések számának korlátja nincs beállítva."
   },
   {
     "id": "app.create_basic_user.save_member.max_accounts.app_error",
@@ -2845,7 +2829,7 @@
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
-    "translation": "Nem sikerült elküldeni a csatorna cél üzenetét"
+    "translation": "Nem sikerült elküldeni a csatorna értelme üzenetét"
   },
   {
     "id": "app.channel.pinned_posts.app_error",
@@ -2866,10 +2850,6 @@
   {
     "id": "app.channel.migrate_channel_members.select.app_error",
     "translation": "Nem sikerült kiválasztani a csatornatagok kötegét."
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Nem sikerült növelni az említések számlálóját."
   },
   {
     "id": "app.channel.get_unread.app_error",
@@ -2957,7 +2937,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -2965,11 +2945,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Verzió 12+"
+    "translation": "Verzió 14.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Verzió 78+"
+    "translation": "Verzió 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -2977,7 +2957,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Verzió 89+"
+    "translation": "Verzió 100+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -3100,18 +3080,6 @@
     "translation": "Bot nem létezik."
   },
   {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Nem lehet átalakítani a StringMap -ot *string -é"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Nem lehet átalakítani a StringInterface -t *string -é"
-  },
-  {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Nem lehet átalakítani a String Array -t *string -é"
-  },
-  {
     "id": "sharedchannel.permalink.not_found",
     "translation": "Ez a bejegyzés más csatornákra hivatkozást tartalmaz, amelyek nem feltétlenül láthatók más szerverek felhasználói számára."
   },
@@ -3189,7 +3157,7 @@
   },
   {
     "id": "model.user.is_valid.update_at.app_error",
-    "translation": "A frissítés idejének érvényesnek kell lennie."
+    "translation": "A frissítés idejének érvényes időnek kell lennie."
   },
   {
     "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
@@ -3293,7 +3261,7 @@
   },
   {
     "id": "model.user.is_valid.create_at.app_error",
-    "translation": "A létrehozás idejének érvényesnek kell lennie."
+    "translation": "A létrehozás idejének érvényes időnek kell lennie."
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
@@ -3333,7 +3301,7 @@
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
-    "translation": "Az Ön licence nem támogatja az azonosítóval betöltött push értesítéseket."
+    "translation": "Az Ön licensze nem támogatja az azonosítóval betöltött push értesítéseket."
   },
   {
     "id": "ent.get_users_in_channel_during",
@@ -3350,10 +3318,6 @@
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Az Elasticsearch le van tiltva."
-  },
-  {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Az Elasticsearch szerverhez való csatlakozás nem sikerült."
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
@@ -3437,11 +3401,11 @@
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
-    "translation": "Nem sikerült lekérni a bejegyzésköteget indexeléshez."
+    "translation": "Nem sikerült lekérni a bejegyzések kötegetét az indexeléshez."
   },
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
-    "translation": "Nem sikerült lekérni a fájlköteget indexeléshez."
+    "translation": "Nem sikerült lekérni a fájlok kötegét az indexeléshez."
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -3449,7 +3413,7 @@
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Megpróbál új köteget indexelni, amikor az összes entitás elkészült"
+    "translation": "Megpróbál új köteget indexelni, amint az összes entitás elkészült"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
@@ -3477,7 +3441,7 @@
   },
   {
     "id": "ent.elasticsearch.index_channels_batch.error",
-    "translation": "Nem sikerült lekérni a csatornaköteget indexeléshez."
+    "translation": "Nem sikerült lekérni a csatornák kötegét az indexeléshez."
   },
   {
     "id": "ent.elasticsearch.index_channel.error",
@@ -3641,11 +3605,11 @@
   },
   {
     "id": "brand.save_brand_image.save_image.app_error",
-    "translation": "Nem sikerült írni a képfájlt a fájltárba. Kérjük ellenőrizze a kapcsolatát és próbálja újra."
+    "translation": "Nem sikerült írni a kép fájlt a fájl tárolóba. Kérjük ellenőrizze a kapcsolatát és próbálja újra."
   },
   {
     "id": "brand.save_brand_image.open.app_error",
-    "translation": "Nem sikerült feltölteni egyedi márka képet. Győződjön meg róla, hogy a kép mérete kevesebb mint 2 MB és próbálja újra."
+    "translation": "Nem sikerült feltölteni egyedi arculat képet. Győződjön meg róla, hogy a kép mérete kevesebb mint 2 MB és próbálja újra."
   },
   {
     "id": "brand.save_brand_image.encode.app_error",
@@ -4033,7 +3997,7 @@
   },
   {
     "id": "app.user.get_users_batch_for_indexing.get_users.app_error",
-    "translation": "Nem sikerült lekérni a felhasználók csomagot indexeléshez."
+    "translation": "Nem sikerült lekérni a felhasználók csomagját az indexeléshez."
   },
   {
     "id": "app.user.get_unread_count.app_error",
@@ -4348,20 +4312,8 @@
     "translation": "Nem sikerült eltárolni az értéket {{.WarnMetricName}} számára"
   },
   {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Nem található metrika."
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "Az adminok listája üres."
-  },
-  {
     "id": "app.system.warn_metric.bot_displayname",
     "translation": "Mattermost Tanácsadó"
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[További információk a Mattermost Advisor-ról](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.system.save.app_error",
@@ -4677,7 +4629,7 @@
   },
   {
     "id": "api.user.update_password.incorrect.app_error",
-    "translation": "A \"Jelenlegi jelszó\" amit megadott helytelen. Kérjük ellenőrizze, hogy be van-e kapcsolva a Caps Lock és próbálja újra."
+    "translation": "A \"Jelenlegi jelszó\" amit megadott helytelen. Kérjük ellenőrizze, hogy ki van-e kapcsolva a Caps Lock és próbálja újra."
   },
   {
     "id": "api.user.update_password.failed.app_error",
@@ -4741,7 +4693,7 @@
   },
   {
     "id": "api.user.reset_password.method",
-    "translation": "jelszóvisszaállító link használatával"
+    "translation": "jelszó visszaállító link használatával"
   },
   {
     "id": "api.user.reset_password.link_expired.app_error",
@@ -4861,11 +4813,11 @@
   },
   {
     "id": "api.user.get_uploads_for_user.forbidden.app_error",
-    "translation": "Feltöltések lekérése sikertelen."
+    "translation": "Feltöltések lekérése nem sikerült."
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
-    "translation": "Hiba történt a végpont lekérése során a Discovery dokumentumból."
+    "translation": "Hiba történt a végpont lekérése során a Discovery Dokumentumból."
   },
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
@@ -5049,15 +5001,15 @@
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-user.app_error",
-    "translation": "A Mattermost nem tudott frissíteni az Enterprise Edition-re. A(z) {{.MattermostUsername}} Mattermost rendszer felhasználó nem rendelkezik írási engedéllyel a szükséges bináris fájlhoz. A rendszergazda frissítheti a fájlengedélyeket a következő parancs végrehajtásával azon a kiszolgálón, amelyre a Mattermost telepítve van:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nA fájlengedélyek megváltoztatása után próbálkozzon újra a Mattermost frissítésével. Ha frissített és újraindított, ne felejtse el visszaállítani az eredeti bináris fájl engedélyeket:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
+    "translation": "A Mattermost nem tudott frissíteni az Enterprise Kuadásra. A {{.MattermostUsername}} Mattermost rendszer felhasználó nem rendelkezik írási engedéllyel a szükséges bináris fájlhoz. A rendszergazda frissítheti a fájl engedélyeket a következő parancs végrehajtásával azon a kiszolgálón, amelyre a Mattermost telepítve van:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nA fájl engedélyek megváltoztatása után próbálkozzon újra a Mattermost frissítésével. Ha frissített és újraindított, ne felejtse el visszaállítani az eredeti fájl engedélyeket:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
-    "translation": "A Mattermost nem tudott frissíteni az Enterprise Edition-re. A(z) {{.MattermostUsername}} Mattermost rendszer felhasználó nem rendelkezik írási engedéllyel a szükséges bináris fájlhoz. A rendszergazda frissítheti a fájlengedélyeket a következő parancs végrehajtásával azon a kiszolgálón, amelyre a Mattermost telepítve van:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nA fájlengedélyek megváltoztatása után próbálkozzon újra a Mattermost frissítésével. Ha frissített és újraindított, ne felejtse el visszaállítani az eredeti bináris fájl engedélyeket:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
+    "translation": "A Mattermost nem tudott frissíteni az Enterprise Kiadásra. A {{.MattermostUsername}} Mattermost rendszer felhasználó nem rendelkezik írási engedéllyel a szükséges bináris fájlhoz. A rendszergazda frissítheti a fájl engedélyeket a következő parancs végrehajtásával azon a kiszolgálón, amelyre a Mattermost telepítve van:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nA fájl engedélyek megváltoztatása után próbálkozzon újra a Mattermost frissítésével. Ha frissített és újraindított, ne felejtse el visszaállítani az eredeti fájl engedélyeket:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
-    "translation": "A Mattermost nem tudott frissíteni az Enterprise Edition-re. A(z) {{.MattermostUsername}} Mattermost rendszer felhasználó nem rendelkezik írási jogosultsággal a szükséges bináris fájlhoz. A rendszergazda frissítheti a fájlengedélyeket a következő parancs végrehajtásával azon a szerveren, amelyre a Mattermost telepítve van:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nA fájlengedélyek megváltoztatása után próbálkozzon újra a Mattermost frissítésével. Ha frissített és újraindított, ne felejtse el visszaállítani az eredeti bináris fájl engedélyeket:\n\n```\nchmod -w \"{{.Path}}\"\n```"
+    "translation": "A Mattermost nem tudott frissíteni az Enterprise Kiadásra. A {{.MattermostUsername}} Mattermost rendszer felhasználó nem rendelkezik írási jogosultsággal a szükséges bináris fájlhoz. A rendszergazda frissítheti a fájl engedélyeket a következő parancs végrehajtásával azon a szerveren, amelyre a Mattermost telepítve van:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nA fájl engedélyek megváltoztatása után próbálkozzon újra a Mattermost frissítésével. Ha frissített és újraindított, ne felejtse el visszaállítani az eredeti fájl engedélyeket:\n\n```\nchmod -w \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.generic_error.app_error",
@@ -5129,7 +5081,7 @@
   },
   {
     "id": "api.templates.warn_metric_ack.subject",
-    "translation": "Mattermost kapcsolat kérelem"
+    "translation": "Mattermost kapcsolat felvételi kérelem"
   },
   {
     "id": "api.templates.warn_metric_ack.footer",
@@ -5244,10 +5196,6 @@
     "translation": "A fürt API végpont nem található."
   },
   {
-    "id": "ent.cloud.subscription.error",
-    "translation": "Hiba a felhő előfizetés lekérésekor"
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " mellékelt egy fájlt."
   },
@@ -5301,7 +5249,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
-    "translation": "A közvetlen bejegyzéseket csak azon csatorna tagjai jelölhetik meg amelyben az benne van. \"{{.Username}}\" nem egy tag."
+    "translation": "A közvetlen bejegyzéseket csak azok jelölhetik meg, akik tagjai a csatornának. \"{{.Username}}\" nem tag."
   },
   {
     "id": "app.import.validate_direct_post_import_data.message_missing.error",
@@ -5388,10 +5336,6 @@
     "translation": "Csatorna fejléc túl hosszú."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Hiányzó kötelező csatorna tulajdonság: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
     "translation": "A csatorna display_name nem az engedélyezett hosszúságon belül van."
   },
@@ -5429,7 +5373,7 @@
   },
   {
     "id": "app.import.import_team.scheme_wrong_scope.error",
-    "translation": "A csapatot hozzá kell rendelni egy csapat hatókörű sémához."
+    "translation": "Csapatot kell hozzárendelni egy csapat hatókörű sémához."
   },
   {
     "id": "app.import.import_team.scheme_deleted.error",
@@ -5442,30 +5386,6 @@
   {
     "id": "api.templates.user_access_token_body.info",
     "translation": "Személyes hozzáférési tokent adtunk a fiókjához a {{ .SiteURL }} rendszerben. Ezek arra használhatóak, hogy a {{.SiteName}} rendszert a fiókjával elérje."
-  },
-  {
-    "id": "api.templates.upgrade_request_title2",
-    "translation": "Új felhasználók nem tudnak csatlakozni a munkaterületéhez"
-  },
-  {
-    "id": "api.templates.upgrade_request_title",
-    "translation": "{{.UserName}} tagokat szeretne meghívni a munkaterületére"
-  },
-  {
-    "id": "api.templates.upgrade_request_subject",
-    "translation": "Mattermost felhasználó munkaterület előfizetés megemelést kért"
-  },
-  {
-    "id": "api.templates.upgrade_request_info4_2",
-    "translation": "Valaki nemrég megpróbált csatlakozni a munkaterületéhez, de nem sikerült, mivel a munkaterülete elérte az Mattermost Cloud ingyenes verziójának felhasználói korlátját. Emelje meg előfizetését most, hogy több felhasználó is csatlakozhasson a munkaterületéhez."
-  },
-  {
-    "id": "api.templates.upgrade_request_info4",
-    "translation": "Mivel munkaterülete elérte a Mattermost felhő ingyenes verziójának felhasználói korlátját, a meghívókat nem lehet elküldeni. Emelje meg előfizetését most, hogy több felhasználó is csatlakozhasson a munkaterületéhez."
-  },
-  {
-    "id": "api.templates.upgrade_mattermost_cloud",
-    "translation": "Frissítés"
   },
   {
     "id": "api.templates.signin_change_email.subject",
@@ -5505,7 +5425,7 @@
   },
   {
     "id": "api.templates.remove_expired_license.subject",
-    "translation": "A Mattermost Enterprise licenc le van tiltva."
+    "translation": "A Mattermost Enterprise licensz le van tiltva."
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
@@ -5521,11 +5441,11 @@
   },
   {
     "id": "api.templates.questions_footer.info",
-    "translation": "Írjon nekünk bármikor a következő címen: "
+    "translation": "Segítségre van szüksége vagy kérdése van? Írjon nekünk e-mailt erre a címre: "
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Üzenet megtekintése"
+    "translation": "Válasz a Mattermostban"
   },
   {
     "id": "api.templates.payment_failed_no_card.title",
@@ -5577,123 +5497,11 @@
   },
   {
     "id": "api.templates.password_change_body.info",
-    "translation": "Jelszava frissítésre került a {{.TeamDisplayName}} a {{ .TeamURL }} csapatban {{.Method}} által."
-  },
-  {
-    "id": "api.templates.over_limit_title",
-    "translation": "A felhasználók száma túllépi az ingyenes felhasználói korlátot"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_title",
-    "translation": "Mattermost Cloud munkaterület fel lett függesztve"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_subject",
-    "translation": "Az Ön Mattermost Cloud munkaterületét felfüggesztették"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_info2",
-    "translation": "Vegye fel velünk a kapcsolatot a munkaterülete újra aktiválásához."
-  },
-  {
-    "id": "api.templates.over_limit_suspended_info1",
-    "translation": "Az Ön Mattermost munkaterületét felfüggesztették. A munkaterületen lévő minden adat és tartalom 1-3 hónapon belül törlésre kerül."
-  },
-  {
-    "id": "api.templates.over_limit_suspended_contact_support",
-    "translation": "Vegye fel a kapcsolatot az ügyfélszolgálattal"
-  },
-  {
-    "id": "api.templates.over_limit_subject",
-    "translation": "Mattermost Cloud munkaterület meghaladja a felhasználói limitet"
-  },
-  {
-    "id": "api.templates.over_limit_info2",
-    "translation": "Alternatív megoldásként letilthatja a felhasználókat az Admin konzolban, hogy több felhasználó számára nyíljon hely, hogy az ingyenes felhasználói korlát alatt maradhasson."
-  },
-  {
-    "id": "api.templates.over_limit_info1",
-    "translation": "Úgy tűnik, hogy több mint 10 felhasználója van a munkaterületén, amely meghaladja a Mattermost Cloud Professional ingyenes szintjét. Kérjük emelje meg előfizetését a Mattermost munkaterület további zavartalan működés érdekében."
+    "translation": "Jelszava frissítésre került a {{.TeamDisplayName}} ({{ .TeamURL }}) csapatban {{.Method}} által."
   },
   {
     "id": "api.templates.over_limit_fix_now",
     "translation": "Javítás most"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_title",
-    "translation": "A Mattermost Cloud munkaterület felfüggesztése holnap fog megtörténni"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_subject",
-    "translation": "A Mattermost Cloud előfizetését hamarosan fel fogjuk függeszteni"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info4",
-    "translation": "A munkaterület felfüggesztését követően a munkaterületen lévő összes tartalom és adat 1-3 hónapon belül törlődik."
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info3",
-    "translation": "A munkaterület felfüggesztését követően nem tud bejelentkezni a fiókjába, és nem frissítheti a fizetési információkat. A szolgáltatás újbóli aktiválásához kapcsolatba kell lépnie ügyfélszolgálati csapatunkkal."
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info2",
-    "translation": "A felfüggesztés elkerülése érdekében adja meg fizetési adatait"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info1",
-    "translation": "Ez egy utolsó emlékeztető arra, hogy nem kaptunk fizetést a Mattermost Cloud munkaterületéért, amely {{ .OverLimitDate }} napja esedékes. Holnap felfüggesztjük szolgáltatását."
-  },
-  {
-    "id": "api.templates.over_limit_7_days_title",
-    "translation": "Nincs fizetési mód nyilvántartva"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_subject",
-    "translation": "A fizetési határidő lejárt a Mattermost Cloud előfizetéséhez"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_info1",
-    "translation": "A Mattermost nem tudta feldolgozni a legutóbbi automatikus fizetést. A szolgáltatás aktív állapotának fenntartása érdekében kérjük a lehető leghamarabb adja meg a fizetési adatokat, különben a szolgáltatás fel lesz függesztve."
-  },
-  {
-    "id": "api.templates.over_limit_30_days_title",
-    "translation": "Mattermost Cloud munaterület felfüggesztés"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_subject",
-    "translation": " Tegyen lépéseket a Mattermost Cloud előfizetésének megtartására"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item3",
-    "translation": "Elveszíti hozzáférését az üzenet előzményekhez"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item2",
-    "translation": "Nem fogja tudni frissíteni a fizetési információkat anélkül, hogy kapcsolatba ne lépne ügyfélszolgálatunkkal"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item1",
-    "translation": "Nem fog tudni bejelentkezni a munkaterületébe"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2",
-    "translation": "Ha nem tesz semmit, akkor munkaterületét felfüggesztjük"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info1",
-    "translation": "Van még idő arra, hogy a fizetési móddal kapcsolatos problémák megoldásával aktív maradjon a Mattermost Cloud munkaterülete. A felfüggesztés elkerülése érdekében frissítse a fizetési módot."
-  },
-  {
-    "id": "api.templates.over_limit_14_days_title",
-    "translation": "A fizetés nem érkezett meg"
-  },
-  {
-    "id": "api.templates.over_limit_14_days_subject",
-    "translation": "A fizetése késedelmes a Mattermost Cloud előfizetéséhez"
-  },
-  {
-    "id": "api.templates.over_limit_14_days_info1",
-    "translation": "Csak egy emlékeztető, hogy nem kaptunk fizetést a {{ .OverLimitDate }} napon számlázott Mattermost előfizetésért. Hamarosan megkezdjük a szolgáltatás felfüggesztését, ha a fizetés nem érkezik meg."
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
@@ -5777,7 +5585,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.email_footer",
@@ -5849,7 +5657,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Egyszerűsítse munkáját olyan eszközökkel mint a Github, a Google Naptár és a Chrome. Fedezze fel a saját integrációinkat"
+    "translation": "Egyszerűsítse munkáját olyan eszközökkel mint GitHub, Jira és Zoom. Fedezze fel további integrációinkat"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -5857,11 +5665,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "A Mattermost 14 napos ingyenes próbaverziója hamarosan véget ér"
+    "translation": "A Mattermost 30 napos ingyenes próbaverziója hamarosan véget ér"
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, a Mattermost 14 napos próbaverziója 3 nap múlva ér véget, {{.TrialEnd}} napon. Kérjük, adja hozzá a fizetési adatait, hogy csapata továbbra is élvezhesse a Mattermost Cloud előnyeit."
+    "translation": "{{.Name}}, a Mattermost 30 napos próbaverziója 3 nap múlva ér véget, {{.TrialEnd}} napon. Kérjük, adja hozzá a fizetési adatait, hogy csapata továbbra is élvezhesse a Mattermost Cloud előnyeit."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -5870,26 +5678,6 @@
   {
     "id": "api.templates.cloud_trial_ending_email.add_payment_method",
     "translation": "Fizetési mód hozzáadása"
-  },
-  {
-    "id": "api.templates.at_limit_title",
-    "translation": "Ön Eeérte az ingyenes felhasználói limitet "
-  },
-  {
-    "id": "api.templates.at_limit_subject",
-    "translation": "Mattermost Cloud felhasználói limit elérve"
-  },
-  {
-    "id": "api.templates.at_limit_info5",
-    "translation": "Alternatív megoldásként letilthatja a felhasználókat az Rendszerkonzolban, hogy több felhasználó számára nyíljon hely, hogy az ingyenes felhasználói limit alatt maradhasson."
-  },
-  {
-    "id": "api.templates.at_limit_info2",
-    "translation": "Alternatív megoldásként letilthatja a felhasználókat az Admin konzolban, hogy több felhasználó számára nyíljon hely, hogy az ingyenes felhasználói limit alatt maradhasson."
-  },
-  {
-    "id": "api.templates.at_limit_info1",
-    "translation": "Úgy tűnik, hogy 10 vagy több felhasználója van a munkaterületben — ez remek! Ha több csapattagot szeretne meghívni, fontolja meg a Mattermost Cloud Professional-ra való frissítést."
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
@@ -6012,10 +5800,6 @@
     "translation": "Senkit sem lehet meghívni."
   },
   {
-    "id": "api.team.invite_members.limit_reached.app_error",
-    "translation": "Elérte az ingyenes felhasználói limitet"
-  },
-  {
     "id": "api.team.invite_members.invalid_email.app_error",
     "translation": "A következő e-mail cím nem tartozik elfogadott domainhez: {{.Addresses}}. A részletekért kérjük vegye fel a kapcsolatot a rendszergazdával."
   },
@@ -6100,10 +5884,6 @@
     "translation": "A vendég fiókok le vannak tiltva."
   },
   {
-    "id": "api.team.cloud.subscription.error",
-    "translation": "Hiba a felhő előfizetés lekérésekor"
-  },
-  {
     "id": "api.team.add_user_to_team_from_invite.guest.app_error",
     "translation": "A vendégek nem csatlakozhatnak egy csapathoz meghívó linken keresztül. Kérjük, kérjen egy vendég e-mail meghívót a csapathoz."
   },
@@ -6133,23 +5913,23 @@
   },
   {
     "id": "api.system.update_notices.validating_failed",
-    "translation": "Termékismertetők feltételeinek jóváhagyása sikertelen"
+    "translation": "Termék értesítés feltételeinek értelmezése nem sikerült"
   },
   {
     "id": "api.system.update_notices.parse_failed",
-    "translation": "Termékismertetők értelmezése sikertelen"
+    "translation": "Termék értesítések értelmezése sikertelen"
   },
   {
     "id": "api.system.update_notices.fetch_failed",
-    "translation": "Termékismertetők letöltése sikertelen"
+    "translation": "Termék értesítések letöltése sikertelen"
   },
   {
     "id": "api.system.update_notices.clear_failed",
-    "translation": "Régi termékismertetők törlése sikertelen"
+    "translation": "Régi termék értesítők törlése sikertelen"
   },
   {
     "id": "api.system.id_loaded.not_available.app_error",
-    "translation": "ID Loaded push értesítés nincs beállítva vagy támogatva a ezen a szerveren."
+    "translation": "ID Loaded push értesítés nincs beállítva vagy támogatva ezen a szerveren."
   },
   {
     "id": "api.status.user_not_found.app_error",
@@ -6240,20 +6020,12 @@
     "translation": "Az integráció/Slack Bot felhasználó ezzel az emaillel {{.Email}} és jelszóval {{.Password}} sikeresen importálva.\n"
   },
   {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Próbaidőszak szerzése"
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Próbaidőszak elkezdése"
-  },
-  {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
     "translation": "Az Ön Enterprise próbalicence mostantól aktív. Menjen a **Rendszerkonzol > Felhasználó kezelés > Jogosultságok** menübe a haladó jogosultságok engedélyezéséhez."
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "A Mattermost rendszerének több csapata van. Sok csapatnak megvan a maga preferált módja a koordinációra és az együttműködésre, beleértve a csatornák létrehozásának módját, kik hívhatnak meg új csapattársakat és hogyan kezelik az integrációkat. A csapat felülbírálási sémái lehetővé teszik a felhasználói engedélyek testreszabását az egyes csapatokon belül, hogy megfeleljenek a saját igényeiknek.\n\n[További információ a Speciális engedélyek használatáról](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\n\nA Próba indítása gombra kattintva elfogadom a [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) -et, [Adatvédelmi irányelveket](https://mattermost.com/privacy-policy/) , valamint termék e-mailek fogadása."
+    "translation": "A Mattermost rendszerének jelenleg több csapata van. Sok csapatnak megvan a maga preferált módja a koordinációra és az együttműködésre, beleértve a csatornák létrehozásának módját, kik hívhatnak meg új csapat tagokat és hogy hogyan kezelik az integrációkat. A csapat felülbírálási sémái lehetővé teszik a felhasználói engedélyek testreszabását az egyes csapatokon belül, hogy megfeleljenek a saját igényeiknek.\n\n[További információk a fejlett engedélyek használatáról](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\n\nA Próbaidőszak indítása gombra kattintva elfogadom a [Mattermost szoftver felhasználási megállapodást](https://mattermost.com/software-evaluation-agreement/), az [Adatvédelmi irányelveket](https://mattermost.com/privacy-policy/), valamint termék e-mailek fogadását."
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.notification_title",
@@ -6261,11 +6033,11 @@
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.notification_body",
-    "translation": "A Mattermost rendszerének több csapata van. Sok csapatnak megvan a maga preferált módja a koordinációra és az együttműködésre, beleértve a csatornák létrehozásának módját, kik hívhatnak meg új csapattársakat és hogyan kezelik az integrációkat. A csapat felülbírálási sémái lehetővé teszik a felhasználói engedélyek testreszabását az egyes csapatokon belül, hogy megfeleljenek a saját igényeiknek.\n\n[További információ a Speciális engedélyek használatáról](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nA Kapcsolat gombra kattintva megosztja az adatait a Mattermost, Inc.-vel. [További információ](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "A Mattermost rendszerének jelenleg több csapata van. Sok csapatnak megvan a maga preferált módja a koordinációra és az együttműködésre, beleértve a csatornák létrehozásának módját, kik hívhatnak meg új csapat tagokat és hogy hogyan kezelik az integrációkat. A csapat felülbírálási sémái lehetővé teszik a felhasználói engedélyek testreszabását az egyes csapatokon belül, hogy megfeleljenek a saját igényeiknek.\n\n[További információk a fejlett engedélyek használatáról](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nA Kapcsolat felvétele gombra kattintva megosztja adatait a Mattermost, Inc.-vel. [További információk](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
-    "translation": "Mattermost kapcsolat kérés. Szeretnék többet megtudni a haladó engedélyekről a csapatsémákkal.\n"
+    "translation": "Mattermost kapcsolat felvételi kérés. Szeretnék többet megtudni a haladó engedélyekről a csapatsémákkal.\n"
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
@@ -6273,7 +6045,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "A Mattermost rendszerében nagy számú üzenet van. Az alapértelmezett Mattermost adatbázis-keresés körülbelül 2,5 millió hozzászólásnál kezdi mutatni a teljesítmény romlását. Több mint 5 millió bejegyzéssel az Elasticsearch kereséssel és megemlítésekkel segíthet elkerülni a jelentős teljesítményproblémákat, például az időtúllépéseket. Vegye fel velünk a kapcsolatot, hogy többet tudjon meg, és tudassa velünk, hogyan tudunk segíteni.\n\n[További információ a teljesítmény javításáról](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nA Próba indítása gombra kattintva elfogadom a [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) -et, [Adatvédelmi irányelveket](https://mattermost.com/privacy-policy/) , valamint termék e-mailek fogadása."
+    "translation": "A Mattermost rendszerében nagy számú üzenet van. Az alapértelmezett Mattermost adatbázis keresés körülbelül 2,5 millió bejegyzésnél kezdi mutatni a teljesítmény romlását. Több mint 5 millió bejegyzéssel az Elasticsearch segíthet elkerülni a jelentős teljesítmény problémákat, például az időtúllépéseket. Vegye fel velünk a kapcsolatot, ha többet szeretne megtudni és tudassa velünk, hogy hogyan tudunk segíteni.\n\n[További információk a teljesítmény javításáról](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nA Próbaidőszak indítása gombra kattintva elfogadom a [Mattermost szoftver felhasználási megállapodást](https://mattermost.com/software-evaluation-agreement/), az [Adatvédelmi irányelveket](https://mattermost.com/privacy-policy/), valamint termék e-mailek fogadását."
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
@@ -6281,11 +6053,11 @@
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
-    "translation": "A Mattermost rendszerében nagy számú üzenet van. Az alapértelmezett Mattermost adatbázis-keresés körülbelül 2,5 millió hozzászólásnál kezdi mutatni a teljesítmény romlását. Több mint 5 millió bejegyzéssel az Elasticsearch kereséssel és megemlítésekkel segíthet elkerülni a jelentős teljesítményproblémákat, például az időtúllépéseket. Vegye fel velünk a kapcsolatot, ha többet szeretne megtudni, és tudassa velünk, hogyan tudunk segíteni.\n\n[További információ a teljesítmény javításáról](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nA Kapcsolat gombra kattintva megosztja az adatait a Mattermost, Inc.-vel. [További információ](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "A Mattermost rendszerében nagy számú üzenet van. Az alapértelmezett Mattermost adatbázis keresés körülbelül 2,5 millió bejegyzésnél kezdi mutatni a teljesítmény romlását. Több mint 5 millió bejegyzéssel az Elasticsearch segíthet elkerülni a jelentős teljesítmény problémákat, például az időtúllépéseket. Vegye fel velünk a kapcsolatot, ha többet szeretne megtudni és tudassa velünk, hogy hogyan tudunk segíteni.\n\n[További információk a teljesítmény javításáról](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nA Kapcsolat felvétele gombra kattintva megosztja adatait a Mattermost, Inc.-vel. [További információk](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
-    "translation": "Mattermost kapcsolat kérés. Szeretnék többet megtudni a teljesítmény javításáról az Elasticsearch segítségével.\n"
+    "translation": "Mattermost kapcsolat felvételi kérés. Szeretnék többet megtudni a teljesítmény javításáról az Elasticsearch segítségével.\n"
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
@@ -6293,7 +6065,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "A csatornák segítenek a kommunikáció javításában, de azáltal, hogy a Mattermost felhasználók csatlakoznak és létrehoznak csatornákat, nő a rendszer szervezetten tartásának kihívása. A Speciális engedélyek segítségével beállíthatja, hogy mely felhasználók vagy szerepkörök hajthassanak végre bizonyos műveleteket, ideértve a csatornabeállítások és tagok kezelését, a @channel vagy a @here használatával a felhasználók széles csoportjainak címkézését, valamint új webhorgot.\n\n[További információ a Speciális engedélyek használatáról](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nA Próba indítása gombra kattintva elfogadom a [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) -et, [Adatvédelmi irányelveket](https://mattermost.com/privacy-policy/) , valamint termék e-mailek fogadása."
+    "translation": "A csatornák segítenek a kommunikáció javításában, de azáltal, hogy a Mattermost felhasználók csatlakoznak és létrehoznak csatornákat, nő a rendszer szervezetten tartásának kihívása. A fejlett engedélyek segítségével beállíthatja, hogy mely felhasználók vagy szerepkörök hajthatnak végre bizonyos műveleteket, ideértve a csatornák beállítását és tagjainak kezelését, @channel vagy @here használatával a felhasználók széles körének címzését, valamint új webhorog létrehozását.\n\n[További információk a fejlett engedélyek használatáról](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nA Próbaidőszak indítása gombra kattintva elfogadom a [Mattermost szoftver felhasználási megállapodást](https://mattermost.com/software-evaluation-agreement/), az [Adatvédelmi irányelveket](https://mattermost.com/privacy-policy/), valamint termék e-mailek fogadását."
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.notification_title",
@@ -6305,11 +6077,11 @@
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.notification_body",
-    "translation": "A csatornák segítenek a kommunikáció javításában, de azáltal, hogy a Mattermost felhasználók csatlakoznak és létrehoznak csatornákat, nő a rendszer szervezetten tartásának kihívása. A Speciális engedélyek segítségével beállíthatja, hogy mely felhasználók vagy szerepkörök hajthassanak végre bizonyos műveleteket, ideértve a csatornabeállítások és tagok kezelését, a @channel vagy a @here használatával a felhasználók széles csoportjainak címkézését, valamint új webhorgot.\n\n[További információ a Speciális engedélyek használatáról](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nA Kapcsolat gombra kattintva megoszthatja adatait a Mattermost, Inc.-vel. [További információ](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "A csatornák segítenek a kommunikáció javításában, de azáltal, hogy a Mattermost felhasználók csatlakoznak és létrehoznak csatornákat, nő a rendszer szervezetten tartásának kihívása. A fejlett engedélyek segítségével beállíthatja, hogy mely felhasználók vagy szerepkörök hajthatnak végre bizonyos műveleteket, ideértve a csatornák beállítását és tagjainak kezelését, @channel vagy @here használatával a felhasználók széles körének címzését, valamint új webhorog létrehozását.\n\n[További információk a fejlett engedélyek használatáról](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nA Kapcsolat felvétele gombra kattintva megosztja adatait a Mattermost, Inc.-vel. [További információk](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
-    "translation": "Mattermost kapcsolat kérés. Szeretnék többet megtudni a Speciális engedélyek rendszer sémákkal történő használatáról.\n"
+    "translation": "Mattermost kapcsolat felvételi kérés. Szeretnék többet megtudni a Speciális engedélyek rendszer sémákkal történő használatáról.\n"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
@@ -6317,7 +6089,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "A Mattermost nyomatékosan javasolja, hogy több mint 500 felhasználó telepítéséhez használja ki az olyan funkciók előnyeit, mint a felhasználókezelés, a szervercsoportosítás és a teljesítményfigyelés. Vegye fel velünk a kapcsolatot, ha többet szeretne megtudni, és tudassa velünk, hogyan tudunk segíteni.\n\nA Próba indítása gombra kattintva elfogadom a [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) -et, [Adatvédelmi irányelveket](https://mattermost.com/privacy-policy/) , valamint termék e-mailek fogadása."
+    "translation": "A Mattermost nyomatékosan javasolja, hogy több mint 500 felhasználó telepítéséhez használja ki az olyan funkciók előnyeit, mint a felhasználó kezelés, a szerver fürtösítés és a teljesítmény figyelés. Vegye fel velünk a kapcsolatot, hogy többet tudjon meg és tudassa velünk, hogy hogyan tudunk segíteni.\n\nA Próbaidőszak indítása gombra kattintva elfogadom a [Mattermost szoftver felhasználási megállapodást](https://mattermost.com/software-evaluation-agreement/), az [Adatvédelmi irányelveket](https://mattermost.com/privacy-policy/), valamint termék e-mailek fogadását."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
@@ -6325,11 +6097,11 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "A Mattermost nyomatékosan javasolja, hogy több mint 500 felhasználó telepítéséhez használja ki az olyan funkciók előnyeit, mint a felhasználókezelés, a szervercsoportosítás és a teljesítményfigyelés. Vegye fel velünk a kapcsolatot, hogy többet tudjon meg, és tudassa velünk, hogyan tudunk segíteni.\n\nA Kapcsolat gombra kattintva megoszthatja adatait a Mattermost, Inc.-vel. [További információ](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "A Mattermost nyomatékosan javasolja, hogy több mint 500 felhasználó telepítéséhez használja ki az olyan funkciók előnyeit, mint a felhasználó kezelés, a szerver fürtösítés és a teljesítmény figyelés. Vegye fel velünk a kapcsolatot, hogy többet tudjon meg és tudassa velünk, hogy hogyan tudunk segíteni.\n\nA Kapcsolat felvétele gombra kattintva megosztja adatait a Mattermost, Inc.-vel. [További információk](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "Mattermost kapcsolat kérés. A csapatomnak most 500 felhasználója van, és a Mattermost Enterprise kiadást fontolgatom.\n"
+    "translation": "Mattermost kapcsolat felvételi kérés. A csapatomnak most 500 felhasználója van, és a Mattermost Enterprise kiadást fontolgatom.\n"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
@@ -6341,15 +6113,15 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "Annyi beszélgetés folyik az egész Mattermoston, így kihívást jelenthet tudni, hogy hol keressünk fontos információkat. Ha nagy közönségnek szeretne üzenetet küldeni, beállíthat írásvédett bejelentési csatornákat, ahová bárki csatlakozhat, de csak a csatornák rendszergazdái küldhetnek üzeneteket.\n\n[További információ az írásvédett bejelentési csatornák létrehozásáról](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nA Próba indítása gombra kattintva elfogadom a [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) -et, [Adatvédelmi irányelveket](https://mattermost.com/privacy-policy/) , valamint termék e-mailek fogadása."
+    "translation": "Amikor rengeteg beszélgetés folyik az egész Mattermoston, kihívást jelenthet tudni, hogy hol keressünk fontos információkat. Ha nagy közönségnek szeretne üzenetet küldeni, beállíthat írásvédett bejelentési csatornákat, ahová bárki csatlakozhat, de csak a csatornák rendszergazdái küldhetnek üzeneteket.\n\n[További információk az írásvédett bejelentési csatornák létrehozásáról](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nA Próbaidőszak indítása gombra kattintva elfogadom a [Mattermost szoftver felhasználási megállapodást](https://mattermost.com/software-evaluation-agreement/), az [Adatvédelmi irányelveket](https://mattermost.com/privacy-policy/), valamint termék e-mailek fogadását."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
-    "translation": "Annyi beszélgetés folyik az egész Mattermoston, így kihívást jelenthet tudni, hogy hol keressünk fontos információkat. Ha nagy közönségnek szeretne üzenetet küldeni, beállíthat írásvédett bejelentési csatornákat, ahová bárki csatlakozhat, de csak a csatornák rendszergazdái küldhetnek üzeneteket.\n\n[További információ az írásvédett bejelentési csatornák létrehozásáról](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nA Kapcsolat gombra kattintva megoszthatja adatait a Mattermost, Inc.-vel. [További információ](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Amikor rengeteg beszélgetés folyik az egész Mattermoston, kihívást jelenthet tudni, hogy hol keressünk fontos információkat. Ha nagy közönségnek szeretne üzenetet küldeni, beállíthat írásvédett bejelentési csatornákat, ahová bárki csatlakozhat, de csak a csatornák rendszergazdái küldhetnek üzeneteket.\n\n[További információk az írásvédett bejelentési csatornák létrehozásáról](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nA Kapcsolat felvétele gombra kattintva megosztja adatait a Mattermost, Inc.-vel. [További információk](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
-    "translation": ".Mattermost kapcsolat kérés. Szeretnék többet megtudni az írásvédett csatornák létrehozásáról.\n"
+    "translation": "Mattermost kapcsolat felvételi kérés. Szeretnék többet megtudni az írásvédett bejelentési csatornák létrehozásáról.\n"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
@@ -6357,7 +6129,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "A Mattermost rendszerének most 200 felhasználója van. Amikor a Mattermost és a vállalata egyszeri bejelentkezési szolgáltatóját csatlakoztatja, a felhasználók anélkül érhetik el a Mattermostot, hogy újra meg kellene adniuk hitelesítő adataikat. Javasoljuk, hogy integrálja SAML 2.0-szolgáltatóját a Mattermost szerverével. [Tudjon meg többet a SAML 2.0 integráciról](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nA Próba indítása gombra kattintva elfogadom a [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) -et, [Adatvédelmi irányelveket](https://mattermost.com/privacy-policy/) , valamint termék e-mailek fogadása."
+    "translation": "A Mattermost rendszerének most 200 felhasználója van. Amikor összekapcsolja Mattermostot és a szervezete egyszeri bejelentkezési szolgáltatóját, a felhasználók anélkül érhetik el a Mattermostot, hogy újra meg kellene adniuk hitelesítő adataikat. Javasoljuk, hogy integrálja SAML 2.0 szolgáltatóját a Mattermost szerverével. [Tudjon meg többet a SAML 2.0 integrációról](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nA Próbaidőszak indítása gombra kattintva elfogadom a [Mattermost szoftver felhasználási megállapodást](https://mattermost.com/software-evaluation-agreement/), az [Adatvédelmi irányelveket](https://mattermost.com/privacy-policy/), valamint termék e-mailek fogadását."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
@@ -6365,11 +6137,11 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "A Mattermost rendszerének most 200 felhasználója van. Amikor a Mattermost és a szervezete egyszeri bejelentkezési szolgáltatóját csatlakoztatja, a felhasználók anélkül érhetik el a Mattermost, hogy újra meg kellene adniuk hitelesítő adataikat. Javasoljuk, hogy integrálja SAML 2.0-szolgáltatóját a Mattermost szerverével. [Tudjon meg többet a SAML 2.0 integrációról](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nA Kapcsolat gombra kattintva megosztja az adatait a Mattermost, Inc.-vel. [További információ](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "A Mattermost rendszerének most 200 felhasználója van. Amikor összekapcsolja Mattermostot és a szervezete egyszeri bejelentkezési szolgáltatóját, a felhasználók anélkül érhetik el a Mattermostot, hogy újra meg kellene adniuk hitelesítő adataikat. Javasoljuk, hogy integrálja SAML 2.0 szolgáltatóját a Mattermost szerverével. [Tudjon meg többet a SAML 2.0 integrációról](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nA Kapcsolat felvétele gombra kattintva megosztja adatait a Mattermost, Inc.-vel. [További információk](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "Mattermost kapcsolat kérés. A csapatomnak már 200 felhasználója van, és fontolóra veszem a Mattermost Enterprise kiadást.\n"
+    "translation": "Mattermost kapcsolat felvétele kérés. A csapatomnak már 200 felhasználója van, és fontolóra veszem a Mattermost Enterprise kiadást.\n"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
@@ -6377,7 +6149,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "A Mattermost rendszerének több mint 100 felhasználója van. Ahogyan a felhasználóbázisa növekszik az új fiókok létrehozása időigényessé válhat. Javasoljuk, hogy integrálja vállalata Active Directory/LDAP-ját, amely lehetővé teszi, hogy bárki akinek fiókja van hozzáférjen a Mattermost-hez..\n\n[További információ az AD/LDAP integrációjáról](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nA Próba indítása gombra kattintva elfogadom a [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) -et, [Adatvédelmi irányelveket](https://mattermost.com/privacy-policy/) , valamint termék e-mailek fogadása."
+    "translation": "A Mattermost rendszerének több mint 100 felhasználója van. Ahogyan a felhasználói bázisa növekszik az új fiókok létrehozása időigényessé válhat. Javasoljuk, hogy integrálja vállalata Active Directory/LDAP-ját amely lehetővé teszi, hogy bárki, akinek van fiókja hozzáférjen a Mattermosthoz.\n\n[További információ az AD/LDAP integrációról](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nA Próbaidőszak indítása gombra kattintva elfogadom a [Mattermost szoftver felhasználási megállapodást](https://mattermost.com/software-evaluation-agreement/), az [Adatvédelmi irányelveket](https://mattermost.com/privacy-policy/), valamint termék e-mailek fogadását."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
@@ -6385,11 +6157,11 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "A Mattermost rendszerének több mint 100 felhasználója van. Ahogyan a felhasználóbázisa növekszik az új fiókok létrehozása időigényessé válhat. Javasoljuk, hogy integrálja vállalata Active Directory/LDAP-ját, amely lehetővé teszi, hogy bárki akinek fiókja van hozzáférjen a Mattermost-hez.\n\n[További információ az AD/LDAP integrációjáról](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nA Kapcsolat gombra kattintva megoszthatja adatait a Mattermost, Inc.-vel. [További információ](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "A Mattermost rendszerének több mint 100 felhasználója van. Ahogyan a felhasználói bázisa növekszik az új fiókok létrehozása időigényessé válhat. Javasoljuk, hogy integrálja vállalata Active Directory/LDAP-ját amely lehetővé teszi, hogy bárki, akinek van fiókja hozzáférjen a Mattermosthoz.\n\n[További információk az AD/LDAP integrációról](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nA Kapcsolat felvételi gombra kattintva megosztja adatait a Mattermost, Inc.-vel. [További információk](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "Mattermost kapcsolat kérés. A csapatomnak már 100 felhasználója van, és fontolóra veszem a Mattermost Enterprise kiadást.\n"
+    "translation": "Mattermost kapcsolat felvételi kérés. A csapatomnak már 100 felhasználója van, és fontolóra veszem a Mattermost Enterprise kiadást.\n"
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
@@ -6397,7 +6169,7 @@
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "Az Ön Mattermost rendszerében engedélyezve van a többtényezős hitelesítés, amely lehetővé teszi a felhasználók számára, hogy a jelszavukon felül további hitelesítéssel biztosítsák fiókjukat. A rendszer biztonságának javítása érdekében megkövetelheti az összes Mattermost fióktól, hogy többtényezős hitelesítést használjanak.\n\n[További információ a többtényezős hitelesítés végrehajtásáról](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\n\nA Próba indítása gombra kattintva elfogadom a [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) -et, [Adatvédelmi irányelveket](https://mattermost.com/privacy-policy/) , valamint termék e-mailek fogadása."
+    "translation": "Az Ön Mattermost rendszerében engedélyezve van a többtényezős hitelesítés, amely lehetővé teszi a felhasználók számára, hogy a jelszavukon felül további hitelesítéssel biztosítsák fiókjukat. A rendszer biztonságának javítása érdekében megkövetelheti az összes Mattermost fióktól, hogy többtényezős hitelesítést használjanak.\n\n[További információ a többtényezős hitelesítés kényszerítéséről](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\n\nA Próbaidőszak indítása gombra kattintva elfogadom a [Mattermost szoftver felhasználási megállapodást](https://mattermost.com/software-evaluation-agreement/), az [Adatvédelmi irányelveket](https://mattermost.com/privacy-policy/), valamint termék e-mailek fogadását."
   },
   {
     "id": "api.server.warn_metric.mfa.notification_title",
@@ -6405,11 +6177,11 @@
   },
   {
     "id": "api.server.warn_metric.mfa.notification_body",
-    "translation": "Az Ön Mattermost rendszerében engedélyezve van a többtényezős hitelesítés, amely lehetővé teszi a felhasználók számára, hogy a jelszavukon felül további hitelesítési eszközökkel biztosítsák számlájukat. A rendszer biztonságának javítása érdekében megkövetelheti az összes Mattermost fióktól, hogy többtényezős hitelesítést használjanak.\n\n[További információ a többtényezős hitelesítés végrehajtásáról](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\n\nA Kapcsolat gombra kattintva megoszthatja adatait a Mattermost, Inc.-vel. [További információ](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Az Ön Mattermost rendszerében engedélyezve van a többtényezős hitelesítés, amely lehetővé teszi a felhasználók számára, hogy a jelszavukon felül további hitelesítési eszközökkel biztosítsák fiókjukat. A rendszer biztonságának javítása érdekében megkövetelheti az összes Mattermost fióktól, hogy többtényezős hitelesítést használjanak.\n\n[További információk a többtényezős hitelesítés kényszerítéséről](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\n\nA Kapcsolat felvétele gombra kattintva megosztja adatait a Mattermost, Inc.-vel. [További információk](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.mfa.contact_us.email_body",
-    "translation": "Mattermost kapcsolat kérés. Szeretnék többet megtudni a többtényezős hitelesítés kényszerítéséről.\n"
+    "translation": "Mattermost kapcsolat felvételi kérés. Szeretnék többet megtudni a többtényezős hitelesítés kényszerítéséről.\n"
   },
   {
     "id": "api.server.warn_metric.email_us",
@@ -6421,7 +6193,7 @@
   },
   {
     "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "A projektek gyakran érintenek vállalaton belüli és kívüli embereket egyaránt. A Vendégfiókok segítségével külső partnereket vonhat be a Mattermost rendszerébe, és meghatározhatja, kivel dolgozhatnak és mit láthatnak.\n\n[További információ a vendégfiókok engedélyezéséről](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nA Kipróbálás indítása gombra kattintva elfogadom a [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Adatvédelmi irányelveket] (https://mattermost.com/privacy-policy/) -et, valamint termék e-mailek fogadása."
+    "translation": "A projektek gyakran érintenek vállalaton belüli és kívüli embereket egyaránt. A Vendégfiókok segítségével külső partnereket vonhat be a Mattermost rendszerébe, és meghatározhatja, kivel dolgozhatnak és mit láthatnak.\n\n[További információ a vendégfiókok engedélyezéséről](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nA Próbaidőszak indítása gombra kattintva elfogadom a [Mattermost szoftver felhasználási megállapodást](https://mattermost.com/software-evaluation-agreement/), az [Adatvédelmi irányelveket](https://mattermost.com/privacy-policy/), valamint termék e-mailek fogadását."
   },
   {
     "id": "api.server.warn_metric.email_domain.notification_title",
@@ -6429,19 +6201,11 @@
   },
   {
     "id": "api.server.warn_metric.email_domain.notification_body",
-    "translation": "A projektek gyakran érintenek vállalaton belüli és kívüli embereket egyaránt. A Vendégfiókok segítségével külső partnereket vonhat be a Mattermost rendszerébe, és meghatározhatja, kivel dolgozhatnak és mit láthatnak.\n\n[További információ a vendégfiókok engedélyezéséről](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nA Kapcsolat gombra kattintva megoszthatja adatait a Mattermost, Inc.-vel. [További információ](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "A projektek gyakran érintenek vállalaton belüli és kívüli embereket egyaránt. A Vendégfiókok segítségével külső partnereket vonhat be a Mattermost rendszerébe, és meghatározhatja, kivel dolgozhatnak és mit láthatnak.\n\n[További információ a vendégfiókok engedélyezéséről](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nA Kapcsolat felvétel gombra kattintva megosztja adatait a Mattermost, Inc.-vel. [További információk](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.email_domain.contact_us.email_body",
-    "translation": "Mattermost kapcsolat kérés. Szeretnék többet megtudni a vendégfiókok használatáról.\n"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Kapcsolatfelvétel"
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Kapcsolat"
+    "translation": "Mattermost kapcsolat felvételi kérés. Szeretnék többet megtudni a vendégfiókok használatáról.\n"
   },
   {
     "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
@@ -6461,7 +6225,7 @@
   },
   {
     "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Mattermost kapcsolat kérelem"
+    "translation": "Mattermost kapcsolat felvételi kérelem"
   },
   {
     "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
@@ -6493,15 +6257,15 @@
   },
   {
     "id": "api.server.start_server.rate_limiting_rate_limiter",
-    "translation": "Nem lehet inicializálni a sebesség korlátozást."
+    "translation": "Nem lehet inicializálni az időközönkénti kérések számának korlátozási funkciót."
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
-    "translation": "Nem lehet inicializálni a sebességkorlátozó memóriát. Ellenőrizze a MemoryStoreSize konfiguráció beállítását."
+    "translation": "Nem lehet inicializálni az időközönkénti kérések számának korlátozási memóriát. Ellenőrizze a MemoryStoreSize konfiguráció beállítását."
   },
   {
     "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
-    "translation": "Nem lehet továbbítani a 80-as portot a 443-masra miközben a %s porton figyelünk: kapcsolja ki a Forward80To443 -at ha proxy szervert használ"
+    "translation": "Nem lehet továbbítani a 80-as portot a 443-asra miközben a %s porton figyelünk: kapcsolja ki a Forward80To443 -at ha proxy szervert használ"
   },
   {
     "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
@@ -6513,11 +6277,11 @@
   },
   {
     "id": "api.scheme.get_teams_for_scheme.scope.error",
-    "translation": "Nem lehet beállítani a sémát a csapatra, mert a mellékelt séma nem csapat séma."
+    "translation": "Nem lehet lekérni a csapatokat a sémához, mert a mellékelt séma nem csapat séma."
   },
   {
     "id": "api.scheme.get_channels_for_scheme.scope.error",
-    "translation": "Nem lehet beállítani a sémát a csatornára, mert a mellékelt séma nem csatorna séma."
+    "translation": "Nem lehet lekérni a csatornákat a sémához, mert a mellékelt séma nem csatorna séma."
   },
   {
     "id": "api.scheme.delete_scheme.license.error",
@@ -6541,7 +6305,7 @@
   },
   {
     "id": "api.remote_cluster.update_not_unique.app_error",
-    "translation": "Már létezik azonos URL-lel rendelkező biztonságos kapcsolat."
+    "translation": "Már létezik azonos URL-lel biztonságos kapcsolat."
   },
   {
     "id": "api.remote_cluster.update.app_error",
@@ -6573,7 +6337,7 @@
   },
   {
     "id": "api.remote_cluster.delete.app_error",
-    "translation": "Hiba történt a biztonságos kapcsolat törlésekor."
+    "translation": "Hibába ütköztünk a biztonságos kapcsolat törlésekor."
   },
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
@@ -6601,7 +6365,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Munkamenet lejárt: Kérjük jelentkezzen be az értesítések fogadásához. A {{.siteName}} munkamenetei úgy vannak beállítva a rendszergazda által hogy minden {{.daysCount}} nap lejárjanak."
+    "translation": "Munkamenet lejárt: Kérjük jelentkezzen be az értesítések fogadásához. A {{.siteName}} munkamenetei úgy vannak beállítva a rendszergazda által, hogy minden {{.hoursCount}} óránként lejárjanak."
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
@@ -6673,7 +6437,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_general_message",
-    "translation": " bejegyzett egy üzenetet."
+    "translation": " közzétett egy üzenetet."
   },
   {
     "id": "api.file.upload_file.large_image_detailed.app_error",
@@ -6785,11 +6549,11 @@
   },
   {
     "id": "api.error_set_first_admin_visit_marketplace_status",
-    "translation": "Hiba történt a piactér első rendszergazdai látogatásának állapotának mentése során."
+    "translation": "Hiba történt a piactér első rendszergazdai látogatás állapotának mentése során."
   },
   {
     "id": "api.error_get_first_admin_visit_marketplace_status",
-    "translation": "Hiba történt az első rendszergazda látogatás piactér állapotának lekérésekor az áruházból."
+    "translation": "Hiba történt az első rendszergazda látogatás piactér állapot lekérésekor az áruházból."
   },
   {
     "id": "api.emoji.upload.open.app_error",
@@ -7144,7 +6908,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "A {{.WorkSpace}} munkaterület 14 napos próbaverziója készen áll a használatra!"
+    "translation": "A munkaterülete készen áll a használatra!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -7164,7 +6928,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "a legjobb élmény érdekében PC-n, Mac-en, iOS-en és Androidon."
+    "translation": "a legjobb élmény érdekében Windows-on, Linux-on, Mac-en, iOS-en és Androidon."
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info",
@@ -7224,7 +6988,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "A fiókbeállítások ablak megnyitása"
+    "translation": "Beállítások ablak megnyitása"
   },
   {
     "id": "api.command_search.unsupported.app_error",
@@ -7647,14 +7411,6 @@
     "translation": "A licence nem támogatja a felhőalapú kéréseket."
   },
   {
-    "id": "api.cloud.get_subscription.error",
-    "translation": "Hiba történt a cloud előfizetés lekérdezésekor."
-  },
-  {
-    "id": "api.cloud.get_admins_emails.error",
-    "translation": "Hiba történt a rendszergazdák e-mailcímeinek lekérdezésekor."
-  },
-  {
     "id": "api.cloud.cws_webhook_event_missing_error",
     "translation": "Webhook esemény nem lett lekezelve. Vagy hiányzik vagy érvénytelen."
   },
@@ -7868,7 +7624,7 @@
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
-    "translation": "Egyéb Téma"
+    "translation": "Egyebek"
   },
   {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
@@ -7940,7 +7696,7 @@
   },
   {
     "id": "api.admin.upload_brand_image.parse.app_error",
-    "translation": "Nem sikerült értelmezni a többrészes formot."
+    "translation": "Nem sikerült értelmezni a többrészes űrlapot."
   },
   {
     "id": "api.admin.upload_brand_image.no_file.app_error",
@@ -7948,7 +7704,7 @@
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
-    "translation": "Üres a tömb a kérés 'image' elemében."
+    "translation": "Üres tömb a kérés 'image' elemében."
   },
   {
     "id": "api.admin.test_s3.missing_s3_bucket",
@@ -7960,7 +7716,7 @@
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_thread",
-    "translation": " hozzászólt egy üzenetszálhoz amiben részt vettél."
+    "translation": " hozzászólt egy üzenetszálhoz amiben részt veszel."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_post",
@@ -8034,7 +7790,7 @@
   },
   {
     "id": "api.post.deduplicate_create_post.failed_to_get",
-    "translation": "Nem sikerült az eredeti bejegyzés letöltése, miután ugyanazon kérést megismételte egy kliens deduplikációját."
+    "translation": "Nem sikerült lekérni az eredeti bejegyzést az ismétlés megszüntetés után, miután egy ügyfél megismételte ugyanazt a kérést."
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
@@ -8074,7 +7830,7 @@
   },
   {
     "id": "api.plugin.verify_plugin.app_error",
-    "translation": "Nem sikerült ellenőrizni a beépülő modul aláírását."
+    "translation": "Nem sikerült ellenőrizni a bővítmény aláírását."
   },
   {
     "id": "api.plugin.upload.no_file.app_error",
@@ -8090,7 +7846,7 @@
   },
   {
     "id": "api.plugin.install.download_failed.app_error",
-    "translation": "Hiba történt a plugin letöltése közben."
+    "translation": "Hiba történt a bővítmény letöltése közben."
   },
   {
     "id": "api.outgoing_webhook.disabled.app_error",
@@ -8450,7 +8206,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Nem található a megadott csatorna. A csatornák azonosításához használja a [csatorna azonosítót](https://about.mattermost.com/default-channel-handle-documentation)."
+    "translation": "Nem található a megadott csatorna. A csatornák azonosításához használja a [csatorna azonosítót](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)."
   },
   {
     "id": "api.command_mute.name",
@@ -8462,7 +8218,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Nem sikerült megtalálni a {{.Channel}} csatornát. A csatornák azonosításához használja a [csatorna azonosítót](https://about.mattermost.com/default-channel-handle-documentation)."
+    "translation": "Nem sikerült megtalálni a {{.Channel}} csatornát. A csatornák azonosításához használja a [csatorna azonosítót](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)."
   },
   {
     "id": "api.command_mute.desc",
@@ -8614,7 +8370,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Nem sikerült megtalálni a {{.Channel}} csatornát. A csatornák azonosításához használja a [csatorna azonosítót](https://about.mattermost.com/default-channel-handle-documentation)."
+    "translation": "Nem sikerült megtalálni a {{.Channel}} csatornát. A csatornák azonosításához használja a [csatorna azonosítót](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)."
   },
   {
     "id": "api.command_invite.channel.app_error",
@@ -8817,7 +8573,7 @@
   },
   {
     "id": "api.admin.get_brand_image.storage.app_error",
-    "translation": "A képtároló nincs beállítva."
+    "translation": "A kép tároló nincs beállítva."
   },
   {
     "id": "api.admin.file_read_error",
@@ -8825,7 +8581,7 @@
   },
   {
     "id": "api.admin.delete_brand_image.storage.not_found",
-    "translation": "Nem sikerült törölni az egyediesítés képét, nem található."
+    "translation": "Nem sikerült törölni az egyedi arculat képét, nem található."
   },
   {
     "id": "api.admin.add_certificate.saving.app_error",
@@ -8897,7 +8653,7 @@
   },
   {
     "id": "app.notification.footer.title",
-    "translation": "Meg akarja változtatni az értesítési beállításokat?"
+    "translation": "Meg akarja változtatni az értesítési beállításait?"
   },
   {
     "id": "app.notification.footer.infoLogin",
@@ -8909,11 +8665,11 @@
   },
   {
     "id": "app.notification.body.mention.title",
-    "translation": "{{.SenderName}} megemlített egy üzenetben"
+    "translation": "{{.SenderName}} megemlítette Önt egy üzenetben"
   },
   {
     "id": "app.notification.body.mention.subTitle",
-    "translation": "Amíg távol volt, {{.SenderName}} megemlített a {{.ChannelName}} csatornán."
+    "translation": "Amíg távol volt, {{.SenderName}} megemlítette Önt a {{.ChannelName}} csatornában."
   },
   {
     "id": "app.notification.body.group.title",
@@ -8921,7 +8677,7 @@
   },
   {
     "id": "app.notification.body.group.subTitle",
-    "translation": "Amíg távol volt, {{.SenderName}} üzenetet küldött a csoportjának."
+    "translation": "Amíg távol volt, {{.SenderName}} üzenetet küldött az Ön csoportjának."
   },
   {
     "id": "app.notification.body.dm.title",
@@ -8933,27 +8689,19 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "A Mattermost ingyenes 14 napos próbaverziója ma lejárt"
+    "translation": "A Mattermost 30 napos ingyenes próbaverziója lejárt"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, a Mattermost Cloud Professional 14 napos ingyenes próbaverziója ma lejárt, {{.TodayDate}}. Kérjük, adja hozzá fizetési adatait, hogy csapata továbbra is élvezhesse a Cloud Professional előnyeit."
+    "translation": "{{.Name}}, a Mattermost Cloud Enterprise 30 napos ingyenes próbaverziója {{.TodayDate}} napon lejárt. Reméljük, tetszett Önnek a rugalmas és biztonságos együttműködési platformunk. Kérjük, adja meg a fizetési adatait, hogy csapata továbbra is együtt dolgozhasson a Mattermost által."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
     "translation": "Mattermost cloud próbaidőszak véget ért"
   },
   {
-    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "A vállalata belső IT [támogatási e-mail cím](https://docs.mattermost.com/administration/config-settings.html#support-email) beállításához a **Rendszerkonzol > Weboldal beállítások > Testreszabás** oldalon adja meg a végfelhasználói visszajelzésekhez, e-mailes értesítésekhez és támogatási kérelmekhez."
-  },
-  {
     "id": "api.templates.cloud_trial_ended_email.start_subscription",
     "translation": "Előfizetés indítása"
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "Állítsa be a támogatási email címét"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subTitle",
@@ -8997,15 +8745,15 @@
   },
   {
     "id": "ent.cluster.json_encode.error",
-    "translation": "Hiba lépett fel a JSON kérés értelmezése közben"
+    "translation": "Hiba lépett fel a JSON kérés becsomagolása közben"
   },
   {
     "id": "brand.save_brand_image.check_image_limits.app_error",
-    "translation": "Sikertelen képkorlát ellenőrzés. A felbontás túl nagy."
+    "translation": "Sikertelen kép korlát ellenőrzés. A felbontás túl nagy."
   },
   {
     "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "A legrégebbi entitást (felhasználó, csatorna vagy bejegyzés) nem sikerült lekérdezni az adatbázisból."
+    "translation": "A legrégebbi elemet (felhasználó, csatorna vagy bejegyzés) nem sikerült lekérdezni az adatbázisból."
   },
   {
     "id": "app.valid_password_generic.app_error",
@@ -9013,11 +8761,11 @@
   },
   {
     "id": "app.team.get_common_team_ids_for_users.app_error",
-    "translation": "Nem sikerült lekérni a közös csapatazonosítókat."
+    "translation": "Nem sikerült lekérni a közös csapat azonosítókat."
   },
   {
     "id": "app.plugin.marshal.app_error",
-    "translation": "A piactéri bővítményeket nem sikerült listázni."
+    "translation": "A piactéri bővítményeket nem sikerült becsomagolni."
   },
   {
     "id": "app.notification.body.dm.time",
@@ -9025,31 +8773,23 @@
   },
   {
     "id": "app.import.marshal.app_error",
-    "translation": "Nem sikerült választ értelmezni."
+    "translation": "Nem sikerült becsomagolni a választ."
   },
   {
     "id": "app.export.marshal.app_error",
-    "translation": "Nem sikerült értelmezni a választ."
+    "translation": "Nem sikerült becsomagolni a választ."
   },
   {
     "id": "app.bot.get_disable_bot_sysadmin_message",
-    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} ki lett kapcsolva. A következő botfiókokat kezelték, amelyek le lettek tiltva.\n\n{{.BotNames}}{{else}}{{.UserName}} deaktiválták. Ők kezeltek {{.NumBots}} botfiókot, amelyek le lettek tiltva, beleértve a következőket:\n\n{{.BotNames}}{{end}}Az egyes botok tulajdonjogát úgy veheti át, hogy engedélyezi őket a **Integrációk > Botfiókok** menüpontban, és új tokeneket hoz létre a bothoz.\n\nTovábbi információért lásd a [dokumentációnkat](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} ki lett kapcsolva. A következő botfiókokat kezelték, amelyek még mindig engedélyezve vannak.\n\n{{.BotNames}}\n{{else}}{{.UserName}} deaktiválták. Ők kezelték a még mindig engedélyezett {{.NumBots}} botfiókokat, köztük a következőket:\n\n{{.BotNames}}{{end}}Nyomatékosan javasoljuk, hogy vegye tulajdonába az egyes botokat, és engedélyezze újra a **Integrációk > Botfiókok** menüpontban, és hozzon létre új tokeneket a bothoz.\n\nTovábbi információért lásd a [dokumentációnkat](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nHa azt szeretné, hogy a botfiókok automatikusan kikapcsolódjanak a tulajdonos deaktiválása után, állítsa a **Rendszerkonzol > Integrációk > Botfiókok** pontban a \"Botfiókok kikapcsolása, ha a tulajdonos deaktiválódik\" opciót igazra.{{end}}"
+    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} ki lett kapcsolva. A következő bot fiókokat kezelték, amelyek le lettek tiltva.\n\n{{.BotNames}}{{else}}{{.UserName}} tiltásra került. Ők kezeltek {{.NumBots}} botfiókot, amelyek le lettek tiltva, beleértve a következőket:\n\n{{.BotNames}}{{end}}Az egyes botok tulajdonjogát úgy veheti át, hogy engedélyezi őket az **Integrációk > Botfiókok** menüpontban, és új tokeneket hoz létre a bothoz.\n\nTovábbi információért lásd a [dokumentációnkat](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} letiltásra került. A következő botfiókokat kezelték, amelyek még mindig engedélyezve vannak.\n\n{{.BotNames}}\n{{else}}{{.UserName}} letiltásra került. Ők kezelték a még mindig engedélyezett {{.NumBots}} botfiókokat, köztük a következőket:\n\n{{.BotNames}}{{end}}Nyomatékosan javasoljuk, hogy vegye tulajdonába az egyes botokat, és engedélyezze újra a **Integrációk > Botfiókok** menüpontban, és hozzon létre új tokeneket a bothoz.\n\nTovábbi információért lásd a [dokumentációnkat](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nHa azt szeretné, hogy a botfiókok automatikusan kikapcsolódjanak a tulajdonos litáltása után, állítsa a **Rendszerkonzol > Integrációk > Botfiókok** pontban a \"Botfiókok kikapcsolása, ha a tulajdonos letiltásra kerül\" opciót igazra.{{end}}"
   },
   {
     "id": "api.user.upload_profile_user.check_image_limits.app_error",
-    "translation": "Sikertelen képkorlát ellenőrzés. A felbontás túl nagy."
-  },
-  {
-    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
-    "translation": "Nem tud több felhasználót aktiválni, mivel a cloud fiók kapacitása túllépte a korlátot."
-  },
-  {
-    "id": "api.user.update_active.cloud_at_limit_check_error",
-    "translation": "Nem lehet ellenőrizni a felhasználók számát a Mattermost cloud telepítésben."
+    "translation": "Sikertelen kép korlát ellenőrzés. A felbontás túl nagy."
   },
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
-    "translation": "Sikertelen képkorlát ellenőrzés. A felbontás túl nagy."
+    "translation": "Sikertelen kép korlát ellenőrzés. A felbontás túl nagy."
   },
   {
     "id": "store.sql_channel.save_channel.existing.app_error",
@@ -9057,19 +8797,19 @@
   },
   {
     "id": "app.user.save.existing.app_error",
-    "translation": "Meg kell hívni a frissítést a meglévő felhasználóra."
+    "translation": "Meg kell hívni a frissítést a meglévő felhasználókra."
   },
   {
     "id": "app.user.get_thread_membership_for_user.not_found",
-    "translation": "Felhasználói üzenetszál tagság nem létezik"
+    "translation": "Felhasználó üzenetszál tagsága nem létezik"
   },
   {
     "id": "app.user.get_thread_membership_for_user.app_error",
-    "translation": "Nem sikerült lekérni a felhasználói üzenetszál tagságot"
+    "translation": "Nem sikerült lekérni a felhasználó üzenetszál tagságát"
   },
   {
     "id": "app.terms_of_service.create.existing.app_error",
-    "translation": "Nem hívható meg a mentés egy meglévő felhasználási feltételekhez."
+    "translation": "Nem szabad meghívni a mentést egy meglévő felhasználási feltételhez."
   },
   {
     "id": "app.team.save.existing.app_error",
@@ -9085,11 +8825,11 @@
   },
   {
     "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
-    "translation": "Az adminok listája üres."
+    "translation": "A rendszergazdák listája üres."
   },
   {
     "id": "app.bot.get_system_bot.empty_admin_list.app_error",
-    "translation": "Az adminok listája üres."
+    "translation": "A rendszergazdák listája üres."
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
@@ -9105,7 +8845,7 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle",
-    "translation": "{{.UserName}}, az előfizetésed le fog járni {{.Days}} nap múlva. Reméljük, hogy tapasztaltad a rugalmas, biztonságos csoportmunkát, amit a Mattermost biztosít. Újítsd meg mihamarabb az előfizetésed, hogy a csapatod tovább élvezhesse eme szolgáltatások nyújtotta előnyöket."
+    "translation": "{{.UserName}}, az előfizetése le fog járni {{.Days}} nap múlva. Reméljük, hogy megtapasztalta a rugalmas, biztonságos csoport munkát, amit a Mattermost biztosít. Újítsa meg mielőbb az előfizetését, hogy a csapata biztosan tovább élvezhesse eme szolgáltatások nyújtotta előnyöket."
   },
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
@@ -9133,31 +8873,19 @@
   },
   {
     "id": "api.user.invalidate_verify_email_tokens_parse.error",
-    "translation": "Nem lehetséges a token feldolgozása az e-mail alapú visszaigazoló tokenek tiltása során"
+    "translation": "Nem sikerült a token értelmezése az e-mail visszaigazoló tokenek tiltása során"
   },
   {
     "id": "api.user.invalidate_verify_email_tokens_delete.error",
-    "translation": "Nem lehetséges a token eltávolítása az e-mail alapú visszaigazoló tokenek tiltása során"
+    "translation": "Nem sikerült a token eltávolítása az e-mail visszaigazoló tokenek tiltása során"
   },
   {
     "id": "api.user.invalidate_verify_email_tokens.error",
-    "translation": "Nem lehetséges a tokenek típus alapján lekérése az e-mail alapú visszaigazoló tokenek tiltása során"
+    "translation": "Nem sikerült a tokenek típus alapján lekérése az e-mail visszaigazoló tokenek tiltása során"
   },
   {
     "id": "api.license.upgrade_needed.app_error",
     "translation": "Ehhez a funkcióhoz szükséges az Enterprise Kiadásra frissítenie."
-  },
-  {
-    "id": "extract_content.worker.do_job.file_info",
-    "translation": "Hiba történt a fájl információk beolvasása közben a tartalom kicsomagolásához."
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.to",
-    "translation": "Érvénytelen érték 'to'"
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.from",
-    "translation": "Érvénytelen érték 'from'"
   },
   {
     "id": "app.user.store_is_empty.app_error",
@@ -9185,11 +8913,11 @@
   },
   {
     "id": "app.post.marshal.app_error",
-    "translation": "A bejegyzés adatkonverziója nem sikerült."
+    "translation": "A bejegyzés becsomagolása nem sikerült."
   },
   {
     "id": "api.unmarshal_error",
-    "translation": "Adatkonverzió nem sikerült."
+    "translation": "Adat kicsomagolása nem sikerült."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
@@ -9262,5 +8990,325 @@
   {
     "id": "ent.elasticsearch.getAllChannelMembers.error",
     "translation": "Nem sikerült lekérni a csatorna összes tagját"
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "Nem sikerült lekérni az összes szerepkört."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Nem sikerült frissíteni az egyéni állapotot. Kérem adjon hozzá vagy emojit vagy egyéni állapot szöveget vagy mindkettőt."
+  },
+  {
+    "id": "app.user.get_thread_count_for_user.app_error",
+    "translation": "Nem sikerült lekérni a felhasználó üzenet szálainak számát."
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "Emlékeztető"
+  },
+  {
+    "id": "app.session.extend_session_expiry.app_error",
+    "translation": "Nem tudom megnövelni a munkamenet hosszát"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
+    "translation": "Nem sikerült lekérni egy archivált csatorna felhasználóit"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
+    "translation": "Nem sikerült lekérni egy archivált csatorna bejegyzéseit"
+  },
+  {
+    "id": "api.post.posts_by_ids.invalid_body.request_error",
+    "translation": "A kapott Bejegyzés Azonosítók száma meghaladja a maximális mennyiséget ({{.MaxLength}})"
+  },
+  {
+    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
+    "translation": "Ennek a licensznek a portálon keresztüli megújítása nem lehetséges"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "SAML válasz túl hosszú"
+  },
+  {
+    "id": "model.github_release_info.is_valid.id.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_unmarshal.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_set_cache.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_read_all.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_external_error.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "Nem sikerült dekódolni a teljes rendszerbeszállási kérelmet."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "A rendszerbeállítást csak egy rendszergazda végezheti el."
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "A név ütközik egy meglévő rendszer emoji nevével."
+  },
+  {
+    "id": "api.users.invalid_emails.enable_open_server.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.system.get_onboarding_request.app_error",
+    "translation": "Nem sikerült lekérni az induló beállítás állapotát."
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "Hiba az első admin teljes beállításának mentésekor a tárolóba."
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "Hiba az első admin teljes beállításának lekérdezésénél a tárolóból."
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "hiba a csoportok megszámolása közben"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "egyéni csoportok funkció kikapcsolva"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "nincs licencelve az egyéni csoportok"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference értékének 'true' -nak kell lennie az egyéni csoporthoz"
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id -nak üresnek kell lennie az egyéni csoporthoz"
+  },
+  {
+    "id": "api.license_error",
+    "translation": "api végponthoz licenc szükséges"
+  },
+  {
+    "id": "app.custom_group.unique_name",
+    "translation": "a csoport neve nem egyedi"
+  },
+  {
+    "id": "app.group.crud_permission",
+    "translation": "Nem lehet műveletet végrehajtani az adott forrás típushoz."
+  },
+  {
+    "id": "app.member_count",
+    "translation": "hiba a tagok számának lekérdezésében"
+  },
+  {
+    "id": "Boards",
+    "translation": "Táblák"
+  },
+  {
+    "id": "Channels",
+    "translation": "Csatornák"
+  },
+  {
+    "id": "Playbooks",
+    "translation": "Forgatókönyvek"
+  },
+  {
+    "id": "api.templates.server_inactivity_button",
+    "translation": "Mattermost megnyitása"
+  },
+  {
+    "id": "api.templates.server_inactivity_subtitle",
+    "translation": "Helló {{.Name}}, észrevettük, hogy a Mattermost szervered egy kicsit porosodik. Vess egy pillantást néhány funkcióra, amelyek segíthetnek könnyíteni csapatod munkaterhét."
+  },
+  {
+    "id": "api.templates.server_inactivity_subject",
+    "translation": "Nyissa meg a Mattermostot, hogy növelje csapata termelékenységét!"
+  },
+  {
+    "id": "api.templates.server_inactivity_title",
+    "translation": "Növelje a termelékenységet ezekkel a fantasztikus funkciókkal"
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet2",
+    "translation": "Feladatok kezelése a "
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet1",
+    "translation": "Munkafolyamatok kezelése a "
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet",
+    "translation": "Vendég hozzáférés a megadott "
+  },
+  {
+    "id": "api.templates.server_inactivity_info",
+    "translation": "Jöjjön és nézze meg!"
+  },
+  {
+    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
+    "translation": "Nem lehet lekérni az összes munkát típus és státusz szerint."
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
+    "translation": "SMTP nincs beállítva a Rendszerkonzolban"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email.app_error",
+    "translation": "Hiba az e-mail küldése során"
+  },
+  {
+    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "translation": "Az előre becsomagolt plugin verzióját nem lehetett értelmezni."
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "A MattermostAppID maximális hossza 32 karakter."
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} meghívta Önt, hogy csatlakozzon a {{ .ChannelName }} csatornához a {{ .TeamDisplayName }} csapatban"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_body.title",
+    "translation": "{{ .SenderName }} meghívta Önt, hogy csatlakozzon a {{ .ChannelName }} csatornához a {{ .TeamDisplayName }} csapatban"
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
+    "translation": "Hiba a törzs adatának értelmezése közben."
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
+    "translation": "Érvénytelen a kérés törzse."
+  },
+  {
+    "id": "api.license.request_trial_license.embargoed",
+    "translation": "Az embargóval sújtott országokra vonatkozó korlátozások miatt nem tudtuk feldolgozni a kérelmet. [További információ a dokumentációnkban](https://mattermost.com/pl/limitations-for-embargoed-countries), vagy forduljon a legal@mattermost.com címhez az exportkorlátozásokkal kapcsolatos kérdésekkel kapcsolatban."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "A getThreadsForUser OnlyThreads és OnlyTotals paraméterei kölcsönösen kizárják egymást"
+  },
+  {
+    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "translation": "A fájl tároló beállításokban nem meghatározott értékek vannak."
+  },
+  {
+    "id": "api.file.test_connection_email_settings_nil.app_error",
+    "translation": "Az e-mail beállításokban nem meghatározott értékek vannak."
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title",
+    "translation": "{{ .SenderName }} meghívta Önt hogy csatlakozzon {{ .ChannelsLen }} csatornához a {{ .TeamDisplayName }} csapatban"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} meghívta Önt hogy csatlakozzon {{ .ChannelsLen }} csatornához a {{ .TeamDisplayName }} csapatban"
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "Csatorna neve érvénytelen"
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "E-mail lista üres"
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
+    "translation": "A Bleve Bulk Indexing Batch Size beállításnak {{.BatchSize}} hosszúnak kell lennie."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "Az Elasticsearch Bulk Indexing Batch Size beállításnak legalább {{.BatchSize}} hosszúnak kell lennie."
+  },
+  {
+    "id": "model.channel.is_valid.1_or_more.app_error",
+    "translation": "A névnek 1 vagy több kisbetűs alfanumerikus karakterből kell állnia."
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "Érvénytelen post_id"
+  },
+  {
+    "id": "app.channel.get_file_count.app_error",
+    "translation": "A csatorna fájljainak számát nem lehet lekérdezni"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
+    "translation": "Az Ön {{.WorkspaceName}} munkaterülete mostantól a megemelt verziót használja. A számlázás {{.TrialEnd}}-tól kezdődik"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "Ön mostantól a megemelt verziót használja!"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subject",
+    "translation": "Mattermost frissítés megerősítés"
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "Az Elasticsearch beállításában nem mentett értékek vannak."
+  },
+  {
+    "id": "api.templates.server_inactivity_footer_disclaimer",
+    "translation": "Ezt az egyszeri e-mailt azért kapta, mert a Mattermost szervere több mint {{.Hours}} órán keresztül inaktív volt. Ezt az e-mailt a Mattermost szervere automatikusan generálta."
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "HIba történt a webhorogról az előfizetés frissítése közben."
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Az mmctl segítségével történő feltöltés egy felhő alapú példányra nem támogatott. Kérjük, tekintse meg a dokumentációt itt: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "Hiba a legutóbbi keresések letöltése közben"
+  },
+  {
+    "id": "api.cloud.cloud_free_feature_flag_off_error",
+    "translation": "A CloudFree funkció ki van kapcsolva."
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "Hiba a tároló használtságának lekérdezése közben."
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Nem kérdezhető le a csapatok száma"
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "Elérte az engedélyezett integrációk maximális számát {{.NumIntegrations}}. Korlátlan számú integráció telepítéséhez frissítsen valamelyik fizetős csomagunkra."
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Nem kérdezhető le a csapat használtság"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Nem lehet visszaállítani a csapatot, mert a csapatok száma elérte a korlátot"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Nem lehet csapatot létrehozni, mert a csapatok száma elérte a korlátot"
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Érvénytelen dekódoló párhuzamosság {{.Value}}. Pozitív számnak vagy -1-nek kell lennie."
   }
 ]

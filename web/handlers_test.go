@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
@@ -78,6 +79,7 @@ func TestHandlerServeHTTPSecureTransport(t *testing.T) {
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	th.App.UpdateConfig(func(config *model.Config) {
 		*config.ServiceSettings.TLSStrictTransport = true
@@ -130,7 +132,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 		IsOAuth:  false,
 	}
 	session.GenerateCSRF()
-	th.App.SetSessionExpireInDays(session, 1)
+	th.App.SetSessionExpireInHours(session, 24)
 	session, err := th.App.CreateSession(session)
 	if err != nil {
 		t.Errorf("Expected nil, got %s", err)
@@ -300,7 +302,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, response.Header()["Content-Security-Policy"], []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com"})
+		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com"}, response.Header()["Content-Security-Policy"])
 	})
 
 	t.Run("static, with subpath", func(t *testing.T) {
@@ -320,6 +322,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		mockStore.On("User").Return(&mockUserStore)
 		mockStore.On("Post").Return(&mockPostStore)
 		mockStore.On("System").Return(&mockSystemStore)
+		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = *cfg.ServiceSettings.SiteURL + "/subpath"
@@ -340,7 +343,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, response.Header()["Content-Security-Policy"], []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com"})
+		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com"}, response.Header()["Content-Security-Policy"])
 
 		// TODO: It's hard to unit test this now that the CSP directive is effectively
 		// decided in Setup(). Circle back to this in master once the memory store is
@@ -355,9 +358,160 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response = httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, response.Header()["Content-Security-Policy"], []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com"})
+		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com"}, response.Header()["Content-Security-Policy"])
 		// TODO: See above.
 		// assert.Contains(t, response.Header()["Content-Security-Policy"], "frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com 'sha256-tPOjw+tkVs9axL78ZwGtYl975dtyPHB6LYKAO2R3gR4='", "csp header incorrectly changed after subpath changed")
+	})
+
+	t.Run("dev mode", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		oldBuildNumber := model.BuildNumber
+		model.BuildNumber = "dev"
+		defer func() {
+			model.BuildNumber = oldBuildNumber
+		}()
+
+		web := New(th.Server)
+
+		handler := Handler{
+			Srv:            web.srv,
+			HandleFunc:     handlerForCSPHeader,
+			RequireSession: false,
+			TrustRequester: false,
+			RequireMfa:     false,
+			IsStatic:       true,
+		}
+
+		request := httptest.NewRequest("POST", "/", nil)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+		assert.Equal(t, 200, response.Code)
+		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com 'unsafe-eval' 'unsafe-inline'"}, response.Header()["Content-Security-Policy"])
+	})
+
+}
+
+func TestGenerateDevCSP(t *testing.T) {
+	t.Run("dev mode", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		oldBuildNumber := model.BuildNumber
+		model.BuildNumber = "dev"
+		defer func() {
+			model.BuildNumber = oldBuildNumber
+		}()
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Logger:     th.App.Log(),
+		}
+
+		devCSP := generateDevCSP(*c)
+
+		assert.Equal(t, " 'unsafe-eval' 'unsafe-inline'", devCSP)
+
+	})
+	t.Run("allowed dev flags", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		oldBuildNumber := model.BuildNumber
+		model.BuildNumber = "0"
+		defer func() {
+			model.BuildNumber = oldBuildNumber
+		}()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.DeveloperFlags = "unsafe-inline=true,unsafe-eval=true"
+		})
+
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Logger:     th.App.Log(),
+		}
+
+		devCSP := generateDevCSP(*c)
+
+		assert.Equal(t, " 'unsafe-eval' 'unsafe-inline'", devCSP)
+	})
+
+	t.Run("partial dev flags", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		oldBuildNumber := model.BuildNumber
+		model.BuildNumber = "0"
+		defer func() {
+			model.BuildNumber = oldBuildNumber
+		}()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.DeveloperFlags = "unsafe-inline=false,unsafe-eval=true"
+		})
+
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Logger:     th.App.Log(),
+		}
+
+		devCSP := generateDevCSP(*c)
+
+		assert.Equal(t, " 'unsafe-eval'", devCSP)
+	})
+
+	t.Run("unknown dev flags", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		oldBuildNumber := model.BuildNumber
+		model.BuildNumber = "0"
+		defer func() {
+			model.BuildNumber = oldBuildNumber
+		}()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.DeveloperFlags = "unknown=true,unsafe-inline=false,unsafe-eval=true"
+		})
+
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Logger:     th.App.Log(),
+		}
+
+		devCSP := generateDevCSP(*c)
+
+		assert.Equal(t, " 'unsafe-eval'", devCSP)
+	})
+
+	t.Run("empty dev flags", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.DeveloperFlags = ""
+		})
+
+		logger := mlog.CreateConsoleTestLogger(false, mlog.LvlWarn)
+		buf := &mlog.Buffer{}
+		require.NoError(t, mlog.AddWriterTarget(logger, buf, false, mlog.LvlWarn))
+
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Logger:     logger,
+		}
+
+		generateDevCSP(*c)
+
+		require.NoError(t, logger.Shutdown())
+
+		assert.Equal(t, "", buf.String())
 	})
 }
 
@@ -489,6 +643,7 @@ func TestCheckCSRFToken(t *testing.T) {
 		mockStore.On("User").Return(&mockUserStore)
 		mockStore.On("Post").Return(&mockPostStore)
 		mockStore.On("System").Return(&mockSystemStore)
+		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ExperimentalStrictCSRFEnforcement = true

@@ -12,8 +12,9 @@ import (
 type UploadType string
 
 const (
-	UploadTypeAttachment UploadType = "attachment"
-	UploadTypeImport     UploadType = "import"
+	UploadTypeAttachment   UploadType = "attachment"
+	UploadTypeImport       UploadType = "import"
+	IncompleteUploadSuffix            = ".tmp"
 )
 
 // UploadNoUserID is a "fake" user id used by the API layer when in local mode.

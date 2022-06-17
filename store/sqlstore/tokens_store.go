@@ -7,7 +7,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -20,19 +20,7 @@ type SqlTokenStore struct {
 }
 
 func newSqlTokenStore(sqlStore *SqlStore) store.TokenStore {
-	s := &SqlTokenStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Token{}, "Tokens").SetKeys(false, "Token")
-		table.ColMap("Token").SetMaxSize(64)
-		table.ColMap("Type").SetMaxSize(64)
-		table.ColMap("Extra").SetMaxSize(2048)
-	}
-
-	return s
-}
-
-func (s SqlTokenStore) createIndexesIfNotExists() {
+	return &SqlTokenStore{sqlStore}
 }
 
 func (s SqlTokenStore) Save(token *model.Token) error {
@@ -74,10 +62,8 @@ func (s SqlTokenStore) GetByToken(tokenString string) (*model.Token, error) {
 	return &token, nil
 }
 
-func (s SqlTokenStore) Cleanup() {
-	mlog.Debug("Cleaning up token store.")
-	deltime := model.GetMillis() - model.MaxTokenExipryTime
-	if _, err := s.GetMasterX().Exec("DELETE FROM Tokens WHERE CreateAt < ?", deltime); err != nil {
+func (s SqlTokenStore) Cleanup(expiryTime int64) {
+	if _, err := s.GetMasterX().Exec("DELETE FROM Tokens WHERE CreateAt < ?", expiryTime); err != nil {
 		mlog.Error("Unable to cleanup token store.")
 	}
 }

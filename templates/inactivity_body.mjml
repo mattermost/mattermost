@@ -1,0 +1,65 @@
+<mjml>
+  <mj-head>
+    <mj-include path="./partials/style.mjml" />
+  </mj-head>
+  <mj-body css-class="emailBody">
+    <mj-wrapper mj-class="email">
+      <mj-include path="./partials/logo.mjml" />
+
+      <mj-section padding="0px 24px 40px 24px">
+        <mj-column>
+          <mj-text css-class="title" align="left" color="#3F4350" font-size="16px" font-weight="600" line-height="24px" padding-bottom="16px">
+            {{.Props.Title}}
+          </mj-text>
+          <mj-text align="left" color="#3F4350" font-size="16px" font-weight="normal" line-height="24px" padding-bottom="16px">
+            {{.Props.SubTitle}}
+          </mj-text>
+          <mj-text align="left" color="#3F4350" font-size="16px" font-weight="normal" line-height="24px" padding-bottom="16px">
+            <ul>
+              <li>{{.Props.InfoBullet}}<b>{{.Props.Channels}}</b></li>
+              <li>{{.Props.InfoBullet1}}<b>{{.Props.Playbooks}}</b></li>
+              <li>{{.Props.InfoBullet2}}<b>{{.Props.Boards}}</b></li>
+            </ul>
+          </mj-text>
+          <mj-text align="left" color="#3F4350" font-size="16px" font-weight="normal" line-height="24px" padding-bottom="16px">
+            {{.Props.Info}}
+          </mj-text>
+          <mj-button href="{{.Props.ButtonURL}}" padding="0px" css-class="button">{{.Props.Button}}</mj-button>
+        </mj-column>
+      </mj-section>
+
+      <mj-section padding="0px 24px 40px 24px">
+        <mj-column>
+          <mj-image src="{{.Props.SiteURL}}/static/images/invite_illustration.png" width="246px" padding="0px" />
+        </mj-column>
+      </mj-section>
+
+      <mj-section padding="0px 24px 40px 40px">
+        <mj-column>
+          <mj-text css-class="footerTitle" color="#3F4350" font-size="16px" font-weight="normal" line-height="24px" padding="24px 0px 0px 0px" align="left" font-family="Arial">
+            {{.Props.QuestionTitle}}
+          </mj-text>
+          <mj-text font-size="14px" line-height="20px" font-weight="normal" color="#3F4350" padding="0px 0px" align="left" font-family="Arial">
+            {{.Props.QuestionInfo}}
+            <a href='mailto:{{.Props.SupportEmail}}'>
+              {{.Props.SupportEmail}}
+            </a>
+          </mj-text>
+        </mj-column>
+      </mj-section>
+
+      <mj-section padding="0px 24px 40px 24px">
+        <mj-column border-top="1px solid #E5E5E5">
+          <mj-text css-class="emailFooter" font-family="Arial" font-size="12px" line-height="16px" color="#3F4350">
+            {{.Props.FooterDisclaimer}}
+          </mj-text>
+          <mj-text css-class="emailFooter" font-family="Arial" font-size="12px" line-height="16px" color="#3F4350">
+            {{.Props.Organization}}
+            {{.Props.FooterV2}}
+          </mj-text>
+        </mj-column>
+      </mj-section>
+
+    </mj-wrapper>
+  </mj-body>
+</mjml>

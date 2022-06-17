@@ -16,13 +16,9 @@ const (
 )
 
 // NotifySessionsExpired is called periodically from the job server to notify any mobile sessions that have expired.
-func (a *App) NotifySessionsExpired() *model.AppError {
-	if *a.Config().EmailSettings.SendPushNotifications {
-		pushServer := *a.Config().EmailSettings.PushNotificationServer
-		if license := a.ch.srv.License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
-			mlog.Warn("Push notifications are disabled. Go to System Console > Notifications > Mobile Push to enable them.")
-			return nil
-		}
+func (a *App) NotifySessionsExpired() error {
+	if !a.canSendPushNotifications() {
+		return nil
 	}
 
 	// Get all mobile sessions that expired within the last hour.
@@ -83,7 +79,7 @@ func (a *App) getSessionExpiredPushMessage(session *model.Session) string {
 	T := i18n.GetUserTranslations(locale)
 
 	siteName := *a.Config().TeamSettings.SiteName
-	props := map[string]interface{}{"siteName": siteName, "daysCount": *a.Config().ServiceSettings.SessionLengthMobileInDays}
+	props := map[string]interface{}{"siteName": siteName, "hoursCount": *a.Config().ServiceSettings.SessionLengthMobileInHours}
 
 	return T("api.push_notifications.session.expired", props)
 }

@@ -6,14 +6,16 @@ package model
 type GlobalRetentionPolicy struct {
 	MessageDeletionEnabled bool  `json:"message_deletion_enabled"`
 	FileDeletionEnabled    bool  `json:"file_deletion_enabled"`
+	BoardsDeletionEnabled  bool  `json:"boards_deletion_enabled"`
 	MessageRetentionCutoff int64 `json:"message_retention_cutoff"`
 	FileRetentionCutoff    int64 `json:"file_retention_cutoff"`
+	BoardsRetentionCutoff  int64 `json:"boards_retention_cutoff"`
 }
 
 type RetentionPolicy struct {
-	ID           string `db:"Id" json:"id"`
-	DisplayName  string `json:"display_name"`
-	PostDuration *int64 `json:"post_duration"`
+	ID               string `db:"Id" json:"id"`
+	DisplayName      string `json:"display_name"`
+	PostDurationDays *int64 `db:"PostDuration" json:"post_duration"`
 }
 
 type RetentionPolicyWithTeamAndChannelIDs struct {
@@ -44,8 +46,8 @@ type RetentionPolicyWithTeamAndChannelCountsList struct {
 }
 
 type RetentionPolicyForTeam struct {
-	TeamID       string `db:"Id" json:"team_id"`
-	PostDuration int64  `json:"post_duration"`
+	TeamID           string `db:"Id" json:"team_id"`
+	PostDurationDays int64  `db:"PostDuration" json:"post_duration"`
 }
 
 type RetentionPolicyForTeamList struct {
@@ -54,8 +56,8 @@ type RetentionPolicyForTeamList struct {
 }
 
 type RetentionPolicyForChannel struct {
-	ChannelID    string `db:"Id" json:"channel_id"`
-	PostDuration int64  `json:"post_duration"`
+	ChannelID        string `db:"Id" json:"channel_id"`
+	PostDurationDays int64  `db:"PostDuration" json:"post_duration"`
 }
 
 type RetentionPolicyForChannelList struct {

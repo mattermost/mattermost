@@ -78,29 +78,6 @@ func (j *Job) IsValid() *AppError {
 		return NewAppError("Job.IsValid", "model.job.is_valid.create_at.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}
 
-	switch j.Type {
-	case JobTypeDataRetention:
-	case JobTypeElasticsearchPostIndexing:
-	case JobTypeElasticsearchPostAggregation:
-	case JobTypeBlevePostIndexing:
-	case JobTypeLdapSync:
-	case JobTypeMessageExport:
-	case JobTypeMigrations:
-	case JobTypePlugins:
-	case JobTypeProductNotices:
-	case JobTypeExpiryNotify:
-	case JobTypeActiveUsers:
-	case JobTypeImportProcess:
-	case JobTypeImportDelete:
-	case JobTypeExportProcess:
-	case JobTypeExportDelete:
-	case JobTypeCloud:
-	case JobTypeResendInvitationEmail:
-	case JobTypeExtractContent:
-	default:
-		return NewAppError("Job.IsValid", "model.job.is_valid.type.app_error", nil, "id="+j.Id, http.StatusBadRequest)
-	}
-
 	switch j.Status {
 	case JobStatusPending:
 	case JobStatusInProgress:
@@ -119,11 +96,10 @@ type Worker interface {
 	Run()
 	Stop()
 	JobChannel() chan<- Job
+	IsEnabled(cfg *Config) bool
 }
 
 type Scheduler interface {
-	Name() string
-	JobType() string
 	Enabled(cfg *Config) bool
 	NextScheduleTime(cfg *Config, now time.Time, pendingJobs bool, lastSuccessfulJob *Job) *time.Time
 	ScheduleJob(cfg *Config, pendingJobs bool, lastSuccessfulJob *Job) (*Job, *AppError)

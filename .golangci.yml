@@ -1,6 +1,5 @@
 run:
   timeout: 5m
-  modules-download-mode: vendor
   skip-dirs:
     - store/storetest/mocks
 
@@ -48,3 +47,7 @@ issues:
     - linters:
       - misspell
       path: "shared/markdown/html_entities.go"
+
+    - linters:
+      - staticcheck
+      text: SA1019

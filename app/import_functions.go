@@ -737,7 +737,7 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 	isGuestByTeamId := map[string]bool{}
 	isUserByTeamId := map[string]bool{}
 	isAdminByTeamId := map[string]bool{}
-	existingMemberships, nErr := a.Srv().Store.Team().GetTeamsForUser(context.Background(), user.Id)
+	existingMemberships, nErr := a.Srv().Store.Team().GetTeamsForUser(context.Background(), user.Id, "", true)
 	if nErr != nil {
 		return model.NewAppError("importUserTeams", "app.team.get_members.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
@@ -832,13 +832,13 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 		if nErr != nil {
 			var appErr *model.AppError
 			var conflictErr *store.ErrConflict
-			var limitExeededErr *store.ErrLimitExceeded
+			var limitExceededErr *store.ErrLimitExceeded
 			switch {
 			case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
 				return appErr
 			case errors.As(nErr, &conflictErr):
 				return model.NewAppError("BulkImport", "app.import.import_user_teams.save_members.conflict.app_error", nil, nErr.Error(), http.StatusBadRequest)
-			case errors.As(nErr, &limitExeededErr):
+			case errors.As(nErr, &limitExceededErr):
 				return model.NewAppError("BulkImport", "app.import.import_user_teams.save_members.max_accounts.app_error", nil, nErr.Error(), http.StatusBadRequest)
 			default: // last fallback in case it doesn't map to an existing app error.
 				return model.NewAppError("BulkImport", "app.import.import_user_teams.save_members.error", nil, nErr.Error(), http.StatusInternalServerError)
@@ -1118,6 +1118,16 @@ func (a *App) importReplies(c *request.Context, data []ReplyImportData, post *mo
 		reply.RootId = post.Id
 		reply.Message = *replyData.Message
 		reply.CreateAt = *replyData.CreateAt
+		if reply.CreateAt < post.CreateAt {
+			mlog.Warn("Reply CreateAt is before parent post CreateAt, setting it to parent post CreateAt", mlog.Int64("reply_create_at", reply.CreateAt), mlog.Int64("parent_create_at", post.CreateAt))
+			reply.CreateAt = post.CreateAt
+		}
+		if replyData.Type != nil {
+			reply.Type = *replyData.Type
+		}
+		if replyData.EditAt != nil {
+			reply.EditAt = *replyData.EditAt
+		}
 
 		fileIDs := a.uploadAttachments(c, replyData.Attachments, reply, teamID)
 		for _, fileID := range reply.FileIds {
@@ -1227,7 +1237,7 @@ func (a *App) importAttachment(c *request.Context, data *AttachmentImportData, p
 		return nil, appErr
 	}
 
-	if fileInfo.IsImage() {
+	if fileInfo.IsImage() && !fileInfo.IsSvg() {
 		a.HandleImages([]string{fileInfo.PreviewPath}, []string{fileInfo.ThumbnailPath}, [][]byte{fileData})
 	}
 
@@ -1392,8 +1402,17 @@ func (a *App) importMultiplePostLines(c *request.Context, lines []LineImportWork
 		post.CreateAt = *line.Post.CreateAt
 		post.Hashtags, _ = model.ParseHashtags(post.Message)
 
+		if line.Post.Type != nil {
+			post.Type = *line.Post.Type
+		}
+		if line.Post.EditAt != nil {
+			post.EditAt = *line.Post.EditAt
+		}
 		if line.Post.Props != nil {
 			post.Props = *line.Post.Props
+		}
+		if line.Post.IsPinned != nil {
+			post.IsPinned = *line.Post.IsPinned
 		}
 
 		fileIDs := a.uploadAttachments(c, line.Post.Attachments, post, team.Id)
@@ -1694,8 +1713,17 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 		post.CreateAt = *line.DirectPost.CreateAt
 		post.Hashtags, _ = model.ParseHashtags(post.Message)
 
+		if line.DirectPost.Type != nil {
+			post.Type = *line.DirectPost.Type
+		}
+		if line.DirectPost.EditAt != nil {
+			post.EditAt = *line.DirectPost.EditAt
+		}
 		if line.DirectPost.Props != nil {
 			post.Props = *line.DirectPost.Props
+		}
+		if line.DirectPost.IsPinned != nil {
+			post.IsPinned = *line.DirectPost.IsPinned
 		}
 
 		fileIDs := a.uploadAttachments(c, line.DirectPost.Attachments, post, "noteam")
@@ -1795,8 +1823,13 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 }
 
 func (a *App) importEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
-	if err := validateEmojiImportData(data); err != nil {
-		return err
+	aerr := validateEmojiImportData(data)
+	if aerr != nil {
+		if aerr.Id == "model.emoji.system_emoji_name.app_error" {
+			mlog.Warn("Skipping emoji import due to name conflict with system emoji", mlog.String("emoji_name", *data.Name))
+			return nil
+		}
+		return aerr
 	}
 
 	// If this is a Dry Run, do not continue any further.
@@ -1834,7 +1867,8 @@ func (a *App) importEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
 	}
 	defer file.Close()
 
-	if _, err := a.WriteFile(file, getEmojiImagePath(emoji.Id)); err != nil {
+	reader := utils.NewLimitedReaderWithError(file, MaxEmojiFileSize)
+	if _, err := a.WriteFile(reader, getEmojiImagePath(emoji.Id)); err != nil {
 		return err
 	}
 

@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -14,10 +15,15 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/cache"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mail"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
+
+var latestVersionCache = cache.NewLRU(cache.LRUOptions{
+	Size: 1,
+})
 
 func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
@@ -236,8 +242,48 @@ func (a *App) TestEmail(userID string, cfg *model.Config) *model.AppError {
 func (s *Server) serverBusyStateChanged(sbs *model.ServerBusyState) {
 	s.Busy.ClusterEventChanged(sbs)
 	if sbs.Busy {
-		mlog.Warn("server busy state activitated via cluster event - non-critical services disabled", mlog.Int64("expires_sec", sbs.Expires))
+		mlog.Warn("server busy state activated via cluster event - non-critical services disabled", mlog.Int64("expires_sec", sbs.Expires))
 	} else {
 		mlog.Info("server busy state cleared via cluster event - non-critical services enabled")
 	}
+}
+
+func (a *App) GetLatestVersion(latestVersionUrl string) (*model.GithubReleaseInfo, *model.AppError) {
+	var cachedLatestVersion *model.GithubReleaseInfo
+	if cacheErr := latestVersionCache.Get("latest_version_cache", &cachedLatestVersion); cacheErr == nil {
+		return cachedLatestVersion, nil
+	}
+
+	res, err := http.Get(latestVersionUrl)
+	if err != nil {
+		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version_external_error.failure", nil, "", http.StatusInternalServerError)
+	}
+
+	defer res.Body.Close()
+
+	responseData, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version_read_all.failure", nil, "", http.StatusInternalServerError)
+	}
+
+	var releaseInfoResponse *model.GithubReleaseInfo
+	err = json.Unmarshal(responseData, &releaseInfoResponse)
+	if err != nil {
+		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version_unmarshal.failure", nil, "", http.StatusInternalServerError)
+	}
+
+	if validErr := releaseInfoResponse.IsValid(); validErr != nil {
+		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version_external_error.failure", nil, "", http.StatusInternalServerError)
+	}
+
+	err = latestVersionCache.Set("latest_version_cache", releaseInfoResponse)
+	if err != nil {
+		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version_set_cache.failure", nil, "", http.StatusInternalServerError)
+	}
+
+	return releaseInfoResponse, nil
+}
+
+func (a *App) ClearLatestVersionCache() {
+	latestVersionCache.Remove("latest_version_cache")
 }

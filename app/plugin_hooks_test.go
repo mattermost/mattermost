@@ -37,7 +37,7 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 	env, err := plugin.NewEnvironment(apiFunc, NewDriverImpl(app.Srv()), pluginDir, webappPluginDir, app.Log(), nil)
 	require.NoError(t, err)
 
-	app.SetPluginsEnvironment(env)
+	app.ch.SetPluginsEnvironment(env)
 	pluginIDs := []string{}
 	activationErrors := []error{}
 	for _, code := range pluginCode {
@@ -1048,7 +1048,7 @@ func TestHookMetrics(t *testing.T) {
 		env, err := plugin.NewEnvironment(th.NewPluginAPI, NewDriverImpl(th.Server), pluginDir, webappPluginDir, th.App.Log(), metricsMock)
 		require.NoError(t, err)
 
-		th.App.SetPluginsEnvironment(env)
+		th.App.ch.SetPluginsEnvironment(env)
 
 		pluginID := model.NewId()
 		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
@@ -1214,4 +1214,135 @@ func TestHookReactionHasBeenRemoved(t *testing.T) {
 	err := th.App.DeleteReactionForPost(th.Context, reaction)
 
 	require.Nil(t, err)
+}
+
+func TestHookRunDataRetention(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/v6/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) RunDataRetention(nowMillis, batchSize int64) (int64, error){
+			return 100, nil
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.NewPluginAPI)
+	defer tearDown()
+
+	require.Len(t, pluginIDs, 1)
+	pluginID := pluginIDs[0]
+
+	require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+
+	hookCalled := false
+	th.App.GetPluginsEnvironment().RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		n, _ := hooks.RunDataRetention(0, 0)
+		// Ensure return it correct
+		assert.Equal(t, int64(100), n)
+		hookCalled = true
+		return hookCalled
+	}, plugin.RunDataRetentionID)
+
+	require.True(t, hookCalled)
+}
+
+func TestHookOnSendDailyTelemetry(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/v6/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) OnSendDailyTelemetry() {
+			return
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.NewPluginAPI)
+	defer tearDown()
+
+	require.Len(t, pluginIDs, 1)
+	pluginID := pluginIDs[0]
+
+	require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+
+	hookCalled := false
+	th.App.GetPluginsEnvironment().RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		hooks.OnSendDailyTelemetry()
+
+		hookCalled = true
+		return hookCalled
+	}, plugin.OnSendDailyTelemetryID)
+
+	require.True(t, hookCalled)
+}
+
+func TestHookOnCloudLimitsUpdated(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/v6/model"
+			"github.com/mattermost/mattermost-server/v6/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) OnCloudLimitsUpdated(_ *model.ProductLimits) {
+			return
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.NewPluginAPI)
+	defer tearDown()
+
+	require.Len(t, pluginIDs, 1)
+	pluginID := pluginIDs[0]
+
+	require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+
+	hookCalled := false
+	th.App.GetPluginsEnvironment().RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		hooks.OnCloudLimitsUpdated(nil)
+
+		hookCalled = true
+		return hookCalled
+	}, plugin.OnCloudLimitsUpdatedID)
+
+	require.True(t, hookCalled)
 }

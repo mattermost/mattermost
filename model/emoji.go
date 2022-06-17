@@ -78,8 +78,11 @@ func (emoji *Emoji) IsValid() *AppError {
 }
 
 func IsValidEmojiName(name string) *AppError {
-	if name == "" || len(name) > EmojiNameMaxLength || !IsValidAlphaNumHyphenUnderscorePlus(name) || inSystemEmoji(name) {
+	if name == "" || len(name) > EmojiNameMaxLength || !IsValidAlphaNumHyphenUnderscorePlus(name) {
 		return NewAppError("Emoji.IsValid", "model.emoji.name.app_error", nil, "", http.StatusBadRequest)
+	}
+	if inSystemEmoji(name) {
+		return NewAppError("Emoji.IsValid", "model.emoji.system_emoji_name.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

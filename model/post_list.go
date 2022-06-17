@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"io"
 	"sort"
 )
 
@@ -13,6 +14,8 @@ type PostList struct {
 	Posts      map[string]*Post `json:"posts"`
 	NextPostId string           `json:"next_post_id"`
 	PrevPostId string           `json:"prev_post_id"`
+	// HasNext indicates whether there are more items to be fetched or not.
+	HasNext bool `json:"has_next"`
 }
 
 func NewPostList() *PostList {
@@ -27,9 +30,7 @@ func NewPostList() *PostList {
 func (o *PostList) Clone() *PostList {
 	orderCopy := make([]string, len(o.Order))
 	postsCopy := make(map[string]*Post)
-	for i, v := range o.Order {
-		orderCopy[i] = v
-	}
+	copy(orderCopy, o.Order)
 	for k, v := range o.Posts {
 		postsCopy[k] = v.Clone()
 	}
@@ -38,6 +39,7 @@ func (o *PostList) Clone() *PostList {
 		Posts:      postsCopy,
 		NextPostId: o.NextPostId,
 		PrevPostId: o.PrevPostId,
+		HasNext:    o.HasNext,
 	}
 }
 
@@ -78,6 +80,11 @@ func (o *PostList) ToJSON() (string, error) {
 	copy.StripActionIntegrations()
 	b, err := json.Marshal(&copy)
 	return string(b), err
+}
+
+func (o *PostList) EncodeJSON(w io.Writer) error {
+	o.StripActionIntegrations()
+	return json.NewEncoder(w).Encode(o)
 }
 
 func (o *PostList) MakeNonNil() {

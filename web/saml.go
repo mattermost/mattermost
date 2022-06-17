@@ -16,6 +16,8 @@ import (
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
+const maxSAMLResponseSize = 2 * 1024 * 1024 // 2MB
+
 func (w *Web) InitSaml() {
 	w.MainRouter.Handle("/login/sso/saml", w.APIHandler(loginWithSaml)).Methods("GET")
 	w.MainRouter.Handle("/login/sso/saml", w.APIHandlerTrustRequester(completeSaml)).Methods("POST")
@@ -110,6 +112,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		redirectURL = val
 		hasRedirectURL = val != ""
 	}
+	redirectURL = fullyQualifiedRedirectURL(c.GetSiteURLHeader(), redirectURL)
 
 	handleError := func(err *model.AppError) {
 		if isMobile && hasRedirectURL {
@@ -119,6 +122,13 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			c.Err.StatusCode = http.StatusFound
 		}
+	}
+
+	if len(encodedXML) > maxSAMLResponseSize {
+		err := model.NewAppError("completeSaml", "api.user.authorize_oauth_user.saml_response_too_long.app_error", nil, "SAML response is too long", http.StatusBadRequest)
+		mlog.Error(err.Error())
+		handleError(err)
+		return
 	}
 
 	user, err := samlInterface.DoLogin(c.AppContext, encodedXML, relayProps)
@@ -184,7 +194,6 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			})
 			utils.RenderMobileAuthComplete(w, redirectURL)
 		} else {
-			redirectURL = c.GetSiteURLHeader() + redirectURL
 			http.Redirect(w, r, redirectURL, http.StatusFound)
 		}
 		return

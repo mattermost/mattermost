@@ -25,6 +25,10 @@ config/logging.json
 # Enterprise imports file
 imports/imports.go
 
+# go.work file
+go.work
+go.work.sum
+
 #license files
 *.license
 *.mattermost-license
@@ -121,3 +125,4 @@ __debug_bin
 report.xml
 go.*.orig
 config.override.mk
+docker-compose.override.yaml

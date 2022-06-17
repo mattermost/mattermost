@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"path"
+	"reflect"
 	"runtime"
 	"strconv"
 	"time"
@@ -50,6 +51,7 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/logs", api.APIHandler(postLog)).Methods("POST")
 
 	api.BaseRoutes.APIRoot.Handle("/analytics/old", api.APISessionRequired(getAnalytics)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/latest_version", api.APISessionRequired(getLatestVersion)).Methods("GET")
 
 	api.BaseRoutes.APIRoot.Handle("/redirect_location", api.APISessionRequiredTrustRequester(getRedirectLocation)).Methods("GET")
 
@@ -66,23 +68,29 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/warn_metrics/trial-license-ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.APIHandler(requestTrialLicenseAndAckWarnMetric)).Methods("POST")
 	api.BaseRoutes.System.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getProductNotices)).Methods("GET")
 	api.BaseRoutes.System.Handle("/notices/view", api.APISessionRequired(updateViewedProductNotices)).Methods("PUT")
-
 	api.BaseRoutes.System.Handle("/support_packet", api.APISessionRequired(generateSupportPacket)).Methods("GET")
+	api.BaseRoutes.System.Handle("/onboarding/complete", api.APISessionRequired(getOnboarding)).Methods("GET")
+	api.BaseRoutes.System.Handle("/onboarding/complete", api.APISessionRequired(completeOnboarding)).Methods("POST")
+	api.BaseRoutes.System.Handle("/schema/version", api.APISessionRequired(getAppliedSchemaMigrations)).Methods("GET")
 }
 
 func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	const FileMime = "application/zip"
 	const OutputDirectory = "support_packet"
 
-	// Checking to see if the user is a admin of any sort or not
-	// If they are a admin, they should theoritcally have access to one or more of the system console read permissions
-	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleReadPermissions) {
-		c.SetPermissionError(model.SysconsoleReadPermissions...)
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("generateSupportPacket", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
+
+	// Support packet generation is limited to system admins (MM-42271).
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
 	// Checking to see if the server has a e10 or e20 license (this feature is only permitted for servers with licenses)
-	if c.App.Srv().License() == nil {
+	if c.App.Channels().License() == nil {
 		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.no_license", nil, "", http.StatusForbidden)
 		return
 	}
@@ -93,11 +101,7 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	outputZipFilename := fmt.Sprintf("mattermost_support_packet_%s.zip", now.Format("2006-01-02-03-04"))
 
-	fileStorageBackend, fileBackendErr := c.App.FileBackend()
-	if fileBackendErr != nil {
-		c.Err = fileBackendErr
-		return
-	}
+	fileStorageBackend := c.App.FileBackend()
 
 	// We do this incase we get concurrent requests, we will always have a unique directory.
 	// This is to avoid the situation where we try to write to the same directory while we are trying to delete it (further down)
@@ -129,8 +133,6 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	s[model.STATUS] = model.StatusOk
 	s["AndroidLatestVersion"] = reqs.AndroidLatestVersion
 	s["AndroidMinVersion"] = reqs.AndroidMinVersion
-	s["DesktopLatestVersion"] = reqs.DesktopLatestVersion
-	s["DesktopMinVersion"] = reqs.DesktopMinVersion
 	s["IosLatestVersion"] = reqs.IosLatestVersion
 	s["IosMinVersion"] = reqs.IosMinVersion
 
@@ -183,6 +185,10 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(filestoreStatusKey, s[filestoreStatusKey])
 	}
 
+	if deviceID := r.FormValue("device_id"); deviceID != "" {
+		s["CanReceiveNotifications"] = c.App.SendTestPushNotification(deviceID)
+	}
+
 	if s[model.STATUS] != model.StatusOk {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
@@ -193,6 +199,11 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	cfg := model.ConfigFromJSON(r.Body)
 	if cfg == nil {
 		cfg = c.App.Config()
+	}
+
+	if checkHasNilFields(&cfg.EmailSettings) {
+		c.Err = model.NewAppError("testEmail", "api.file.test_connection_email_settings_nil.app_error", nil, "", http.StatusBadRequest)
+		return
 	}
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestEmail) {
@@ -404,6 +415,27 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func getLatestVersion(c *Context, w http.ResponseWriter, r *http.Request) {
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("latestVersion", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
+
+	resp, err := c.App.GetLatestVersion("https://api.github.com/repos/mattermost/mattermost-server/releases/latest")
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	b, jsonErr := json.Marshal(resp)
+	if jsonErr != nil {
+		c.Logger.Warn("Unable to marshal JSON for latest version.", mlog.Err(jsonErr))
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	w.Write(b)
+}
+
 func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
 	supportedTimezones := c.App.Timezones().GetSupported()
 	if supportedTimezones == nil {
@@ -423,6 +455,11 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 	cfg := model.ConfigFromJSON(r.Body)
 	if cfg == nil {
 		cfg = c.App.Config()
+	}
+
+	if checkHasNilFields(&cfg.FileSettings) {
+		c.Err = model.NewAppError("testS3", "api.file.test_connection_s3_settings_nil.app_error", nil, "", http.StatusBadRequest)
+		return
 	}
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestS3) {
@@ -513,11 +550,6 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, appErr := c.App.GetPostIfAuthorized(ack.PostId, c.AppContext.Session()); appErr != nil {
-		c.Err = appErr
-		return
-	}
-
 	if !*c.App.Config().EmailSettings.SendPushNotifications {
 		c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
@@ -535,21 +567,28 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 			)
 		}
 
-		notificationInterface := c.App.Notification()
+		// Return post data only when PostId is passed.
+		if ack.PostId != "" && ack.NotificationType == model.PushTypeMessage {
+			if _, appErr := c.App.GetPostIfAuthorized(ack.PostId, c.AppContext.Session(), false); appErr != nil {
+				c.Err = appErr
+				return
+			}
 
-		if notificationInterface == nil {
-			c.Err = model.NewAppError("pushNotificationAck", "api.system.id_loaded.not_available.app_error", nil, "", http.StatusFound)
-			return
-		}
+			notificationInterface := c.App.Notification()
 
-		msg, appError := notificationInterface.GetNotificationMessage(&ack, c.AppContext.Session().UserId)
-		if appError != nil {
-			c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.id_loaded.fetch.app_error", nil, appError.Error(), http.StatusInternalServerError)
-			return
-		}
+			if notificationInterface == nil {
+				c.Err = model.NewAppError("pushNotificationAck", "api.system.id_loaded.not_available.app_error", nil, "", http.StatusFound)
+				return
+			}
 
-		if err2 := json.NewEncoder(w).Encode(msg); err2 != nil {
-			mlog.Warn("Error while writing response", mlog.Err(err2))
+			msg, appError := notificationInterface.GetNotificationMessage(&ack, c.AppContext.Session().UserId)
+			if appError != nil {
+				c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.id_loaded.fetch.app_error", nil, appError.Error(), http.StatusInternalServerError)
+				return
+			}
+			if err2 := json.NewEncoder(w).Encode(msg); err2 != nil {
+				mlog.Warn("Error while writing response", mlog.Err(err2))
+			}
 		}
 
 		return
@@ -732,7 +771,7 @@ func getWarnMetricsStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	license := c.App.Srv().License()
+	license := c.App.Channels().License()
 	if license != nil {
 		mlog.Debug("License is present, skip.")
 		return
@@ -762,7 +801,7 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	license := c.App.Srv().License()
+	license := c.App.Channels().License()
 	if license != nil {
 		mlog.Debug("License is present, skip.")
 		return
@@ -804,7 +843,7 @@ func requestTrialLicenseAndAckWarnMetric(c *Context, w http.ResponseWriter, r *h
 		return
 	}
 
-	license := c.App.Srv().License()
+	license := c.App.Channels().License()
 	if license != nil {
 		mlog.Debug("License is present, skip.")
 		return
@@ -857,4 +896,96 @@ func updateViewedProductNotices(c *Context, w http.ResponseWriter, r *http.Reque
 
 	auditRec.Success()
 	ReturnStatusOK(w)
+}
+
+func getOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("getOnboarding", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	c.LogAudit("attempt")
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	firstAdminCompleteSetupObj, err := c.App.GetOnboarding()
+
+	if err != nil {
+		c.Err = model.NewAppError("getOnboarding", "app.system.get_onboarding_request.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	auditRec.Success()
+	if err := json.NewEncoder(w).Encode(firstAdminCompleteSetupObj); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func completeOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.Err = model.NewAppError("completeOnboarding", "app.system.complete_onboarding_request.no_first_user", nil, "", http.StatusForbidden)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("completeOnboarding", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	onboardingRequest, err := model.CompleteOnboardingRequestFromReader(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("completeOnboarding", "app.system.complete_onboarding_request.app_error", nil, err.Error(), http.StatusBadRequest)
+		return
+	}
+	auditRec.AddMeta("install_plugin", onboardingRequest.InstallPlugins)
+
+	appErr := c.App.CompleteOnboarding(c.AppContext, onboardingRequest)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+func getAppliedSchemaMigrations(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleReadPermissions) {
+		c.SetPermissionError(model.SysconsoleReadPermissions...)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("getAppliedSchemaMigrations", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	migrations, appErr := c.App.GetAppliedSchemaMigrations()
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	js, jsonErr := json.Marshal(migrations)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getAppliedMigrations", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
+	auditRec.Success()
+}
+
+// returns true if the data has nil fields
+// this is being used for testS3 and testEmail methods
+func checkHasNilFields(value interface{}) bool {
+	v := reflect.Indirect(reflect.ValueOf(value))
+	if v.Kind() != reflect.Struct {
+		return false
+	}
+
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		if field.Kind() == reflect.Ptr && field.IsNil() {
+			return true
+		}
+	}
+
+	return false
 }

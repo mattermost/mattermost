@@ -56,13 +56,6 @@ func (api *apiTimerLayer) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetSession(sessionID string) (*model.Session, *model.AppError) {
-	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetSession(sessionID)
-	api.recordTime(startTime, "GetSession", _returnsB == nil)
-	return _returnsA, _returnsB
-}
-
 func (api *apiTimerLayer) GetConfig() *model.Config {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.GetConfig()
@@ -224,6 +217,34 @@ func (api *apiTimerLayer) DeletePreferencesForUser(userID string, preferences []
 	return _returnsA
 }
 
+func (api *apiTimerLayer) GetSession(sessionID string) (*model.Session, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetSession(sessionID)
+	api.recordTime(startTime, "GetSession", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) CreateSession(session *model.Session) (*model.Session, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CreateSession(session)
+	api.recordTime(startTime, "CreateSession", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) ExtendSessionExpiry(sessionID string, newExpiry int64) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.ExtendSessionExpiry(sessionID, newExpiry)
+	api.recordTime(startTime, "ExtendSessionExpiry", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RevokeSession(sessionID string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RevokeSession(sessionID)
+	api.recordTime(startTime, "RevokeSession", _returnsA == nil)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.CreateUserAccessToken(token)
@@ -298,6 +319,20 @@ func (api *apiTimerLayer) UpdateUserActive(userID string, active bool) *model.Ap
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.UpdateUserActive(userID, active)
 	api.recordTime(startTime, "UpdateUserActive", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.UpdateUserCustomStatus(userID, customStatus)
+	api.recordTime(startTime, "UpdateUserCustomStatus", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RemoveUserCustomStatus(userID string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RemoveUserCustomStatus(userID)
+	api.recordTime(startTime, "RemoveUserCustomStatus", _returnsA == nil)
 	return _returnsA
 }
 
@@ -999,6 +1034,13 @@ func (api *apiTimerLayer) HasPermissionToChannel(userID, channelId string, permi
 	return _returnsA
 }
 
+func (api *apiTimerLayer) RolesGrantPermission(roleNames []string, permissionId string) bool {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RolesGrantPermission(roleNames, permissionId)
+	api.recordTime(startTime, "RolesGrantPermission", true)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) LogDebug(msg string, keyValuePairs ...interface{}) {
 	startTime := timePkg.Now()
 	api.apiImpl.LogDebug(msg, keyValuePairs...)
@@ -1182,4 +1224,11 @@ func (api *apiTimerLayer) RequestTrialLicense(requesterID string, users int, ter
 	_returnsA := api.apiImpl.RequestTrialLicense(requesterID, users, termsAccepted, receiveEmailsAccepted)
 	api.recordTime(startTime, "RequestTrialLicense", _returnsA == nil)
 	return _returnsA
+}
+
+func (api *apiTimerLayer) GetCloudLimits() (*model.ProductLimits, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetCloudLimits()
+	api.recordTime(startTime, "GetCloudLimits", _returnsB == nil)
+	return _returnsA, _returnsB
 }

@@ -22,6 +22,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 )
 
 func TestCreateChannel(t *testing.T) {
@@ -1168,8 +1169,8 @@ func TestGetAllChannels(t *testing.T) {
 	policyChannel := (sysManagerChannels)[0]
 	policy, err := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
-			DisplayName:  "Policy 1",
-			PostDuration: model.NewInt64(30),
+			DisplayName:      "Policy 1",
+			PostDurationDays: model.NewInt64(30),
 		},
 		ChannelIDs: []string{policyChannel.Id},
 	})
@@ -1337,6 +1338,46 @@ func TestSearchChannels(t *testing.T) {
 			channelNames = append(channelNames, c.Name)
 		}
 		require.NotContains(t, channelNames, th.BasicChannel.Name)
+	})
+
+	t.Run("Guests only receive autocompletion for which accounts they are a member of", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense(""))
+		defer th.App.Srv().SetLicense(nil)
+
+		enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.GuestAccountsSettings.Enable = &enableGuestAccounts })
+		}()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+
+		guest := th.CreateUser()
+		_, appErr := th.SystemAdminClient.DemoteUserToGuest(guest.Id)
+		require.NoError(t, appErr)
+
+		_, resp, err := th.SystemAdminClient.AddTeamMember(th.BasicTeam.Id, guest.Id)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		_, resp, err = client.Login(guest.Username, guest.Password)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		search.Term = th.BasicChannel2.Name
+		channelList, _, err := client.SearchChannels(th.BasicTeam.Id, search)
+		require.NoError(t, err)
+
+		require.Empty(t, channelList)
+
+		_, resp, err = th.SystemAdminClient.AddChannelMember(th.BasicChannel2.Id, guest.Id)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		search.Term = th.BasicChannel2.Name
+		channelList, _, err = client.SearchChannels(th.BasicTeam.Id, search)
+		require.NoError(t, err)
+
+		require.NotEmpty(t, channelList)
+		require.Equal(t, th.BasicChannel2.Id, channelList[0].Id)
 	})
 }
 
@@ -1620,8 +1661,8 @@ func TestSearchAllChannels(t *testing.T) {
 	policyChannel := sysManagerChannels[0]
 	policy, savePolicyErr := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
-			DisplayName:  "Policy 1",
-			PostDuration: model.NewInt64(30),
+			DisplayName:      "Policy 1",
+			PostDurationDays: model.NewInt64(30),
 		},
 		ChannelIDs: []string{policyChannel.Id},
 	})
@@ -1750,7 +1791,8 @@ func TestDeleteChannel(t *testing.T) {
 		require.NoError(t, err)
 
 		ch, appErr := th.App.GetChannel(publicChannel1.Id)
-		require.True(t, appErr != nil || ch.DeleteAt != 0, "should have failed to get deleted channel, or returned one with a populated DeleteAt.")
+		require.Nilf(t, appErr, "Expected nil, Got %v", appErr)
+		require.True(t, ch.DeleteAt != 0, "should have returned one with a populated DeleteAt.")
 
 		post1 := &model.Post{ChannelId: publicChannel1.Id, Message: "a" + GenerateTestId() + "a"}
 		_, resp, _ := client.CreatePost(post1)
@@ -2503,14 +2545,26 @@ func TestGetChannelStats(t *testing.T) {
 	stats, _, err := client.GetChannelStats(channel.Id, "")
 	require.NoError(t, err)
 
-	require.Equal(t, channel.Id, stats.ChannelId, "couldnt't get extra info")
+	require.Equal(t, channel.Id, stats.ChannelId, "couldn't get extra info")
 	require.Equal(t, int64(1), stats.MemberCount, "got incorrect member count")
 	require.Equal(t, int64(0), stats.PinnedPostCount, "got incorrect pinned post count")
+	require.Equal(t, int64(0), stats.FilesCount, "got incorrect file count")
 
 	th.CreatePinnedPostWithClient(th.Client, channel)
 	stats, _, err = client.GetChannelStats(channel.Id, "")
 	require.NoError(t, err)
 	require.Equal(t, int64(1), stats.PinnedPostCount, "should have returned 1 pinned post count")
+
+	// create a post with a file
+	sent, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
+	fileResp, _, err := client.UploadFile(sent, channel.Id, "test.png")
+	require.NoError(t, err)
+	th.CreatePostInChannelWithFiles(channel, fileResp.FileInfos...)
+	// make sure the file count channel stats is updated
+	stats, _, err = client.GetChannelStats(channel.Id, "")
+	require.NoError(t, err)
+	require.Equal(t, int64(1), stats.FilesCount, "should have returned 1 file count")
 
 	_, resp, err := client.GetChannelStats("junk", "")
 	require.Error(t, err)
@@ -3010,6 +3064,93 @@ func TestAddChannelMember(t *testing.T) {
 		_, _, err = client.AddChannelMember(privateChannel.Id, user.Id)
 		require.NoError(t, err)
 	})
+}
+
+func TestAddChannelMemberFromThread(t *testing.T) {
+	t.Skip("MM-41285")
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	team := th.BasicTeam
+	user := th.BasicUser
+	user2 := th.BasicUser2
+	user3 := th.CreateUserWithClient(th.SystemAdminClient)
+	_, _, err := th.SystemAdminClient.AddTeamMember(team.Id, user3.Id)
+	require.NoError(t, err)
+
+	wsClient, err2 := th.CreateWebSocketClient()
+	require.NoError(t, err2)
+	defer wsClient.Close()
+	wsClient.Listen()
+
+	publicChannel := th.CreatePublicChannel()
+
+	_, resp, err := th.Client.AddChannelMember(publicChannel.Id, user3.Id)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+	_, resp, err = th.Client.AddChannelMember(publicChannel.Id, user2.Id)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+
+	post := &model.Post{
+		ChannelId: publicChannel.Id,
+		Message:   "A root post",
+		UserId:    user3.Id,
+	}
+	rpost, _, err := th.SystemAdminClient.CreatePost(post)
+	require.NoError(t, err)
+
+	_, _, err = th.SystemAdminClient.CreatePost(
+		&model.Post{
+			ChannelId: publicChannel.Id,
+			Message:   "A reply post with mention @" + user.Username,
+			UserId:    user2.Id,
+			RootId:    rpost.Id,
+		})
+	require.NoError(t, err)
+
+	_, _, err = th.SystemAdminClient.CreatePost(
+		&model.Post{
+			ChannelId: publicChannel.Id,
+			Message:   "Another reply post with mention @" + user.Username,
+			UserId:    user2.Id,
+			RootId:    rpost.Id,
+		})
+	require.NoError(t, err)
+
+	// Simulate adding a user to a channel from a thread
+	_, _, err = th.SystemAdminClient.AddChannelMemberWithRootId(publicChannel.Id, user.Id, rpost.Id)
+	require.NoError(t, err)
+
+	// Threadmembership should exist for added user
+	ut, _, err := th.Client.GetUserThread(user.Id, team.Id, rpost.Id, false)
+	require.NoError(t, err)
+	// Should have two mentions. There might be a race condition
+	// here between the "added user to the channel" message and the GetUserThread call
+	require.LessOrEqual(t, int64(2), ut.UnreadMentions)
+
+	var caught bool
+	func() {
+		for {
+			select {
+			case ev := <-wsClient.EventChannel:
+				if ev.EventType() == model.WebsocketEventThreadUpdated {
+					caught = true
+					var thread model.ThreadResponse
+					data := ev.GetData()
+					jsonErr := json.Unmarshal([]byte(data["thread"].(string)), &thread)
+
+					require.NoError(t, jsonErr)
+					require.EqualValues(t, int64(2), thread.UnreadReplies)
+					require.EqualValues(t, int64(2), thread.UnreadMentions)
+					require.EqualValues(t, float64(0), data["previous_unread_replies"])
+					require.EqualValues(t, float64(0), data["previous_unread_mentions"])
+				}
+			case <-time.After(1 * time.Second):
+				return
+			}
+		}
+	}()
+	require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadUpdated)
 }
 
 func TestAddChannelMemberAddMyself(t *testing.T) {
@@ -4262,7 +4403,7 @@ func TestGetChannelMemberCountsByGroup(t *testing.T) {
 		DisplayName: "dn_" + id,
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 
 	_, appErr = th.App.CreateGroup(group)

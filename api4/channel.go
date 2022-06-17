@@ -339,7 +339,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if oldChannel.Name == model.DefaultChannelName {
-		if *patch.Name != "" && *patch.Name != oldChannel.Name {
+		if patch.Name != nil && *patch.Name != oldChannel.Name {
 			c.Err = model.NewAppError("patchChannel", "api.channel.update_channel.tried.app_error", map[string]interface{}{"Channel": model.DefaultChannelName}, "", http.StatusBadRequest)
 			return
 		}
@@ -642,11 +642,18 @@ func getChannelStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	filesCount, err := c.App.GetChannelFileCount(c.Params.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
 	stats := model.ChannelStats{
 		ChannelId:       c.Params.ChannelId,
 		MemberCount:     memberCount,
 		GuestCount:      guestCount,
 		PinnedPostCount: pinnedPostCount,
+		FilesCount:      filesCount,
 	}
 	if err := json.NewEncoder(w).Encode(stats); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
@@ -682,7 +689,7 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set(model.HeaderEtagServer, clientPostList.Etag())
-	if err := json.NewEncoder(w).Encode(clientPostList); err != nil {
+	if err := clientPostList.EncodeJSON(w); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -885,7 +892,10 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	channels, err := c.App.GetChannelsForTeamForUser(c.Params.TeamId, c.Params.UserId, c.Params.IncludeDeleted, lastDeleteAt)
+	channels, err := c.App.GetChannelsForTeamForUser(c.Params.TeamId, c.Params.UserId, &model.ChannelSearchOpts{
+		IncludeDeleted: c.Params.IncludeDeleted,
+		LastDeleteAt:   lastDeleteAt,
+	})
 	if err != nil {
 		c.Err = err
 		return
@@ -1148,7 +1158,6 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
 	includeDeleted = includeDeleted || props.IncludeDeleted
-
 	opts := model.ChannelSearchOpts{
 		NotAssociatedToGroup:     props.NotAssociatedToGroup,
 		ExcludeDefaultChannels:   props.ExcludeDefaultChannels,
@@ -1156,6 +1165,7 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		GroupConstrained:         props.GroupConstrained,
 		ExcludeGroupConstrained:  props.ExcludeGroupConstrained,
 		ExcludePolicyConstrained: props.ExcludePolicyConstrained,
+		IncludeSearchById:        props.IncludeSearchById,
 		Public:                   props.Public,
 		Private:                  props.Private,
 		IncludeDeleted:           includeDeleted,
@@ -1603,7 +1613,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if ok && len(postRootId) == 26 {
-		rootPost, err := c.App.GetSinglePost(postRootId)
+		rootPost, err := c.App.GetSinglePost(postRootId, false)
 		if err != nil {
 			c.Err = err
 			return
@@ -1698,6 +1708,14 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if postRootId != "" {
+		err := c.App.UpdateThreadFollowForUserFromChannelAdd(cm.UserId, channel.TeamId, postRootId)
+		if err != nil {
+			c.Err = err
+			return
+		}
+	}
+
 	auditRec.Success()
 	auditRec.AddMeta("add_user_id", cm.UserId)
 	c.LogAudit("name=" + channel.Name + " user_id=" + cm.UserId)
@@ -1781,7 +1799,7 @@ func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("new_scheme_id", *schemeID)
 
-	if c.App.Srv().License() == nil {
+	if c.App.Channels().License() == nil {
 		c.Err = model.NewAppError("Api4.UpdateChannelScheme", "api.channel.update_channel_scheme.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -1875,7 +1893,7 @@ func channelMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.
 }
 
 func channelMemberCountsByGroup(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().License() == nil {
+	if c.App.Channels().License() == nil {
 		c.Err = model.NewAppError("Api4.channelMemberCountsByGroup", "api.channel.channel_member_counts_by_group.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -1908,7 +1926,7 @@ func channelMemberCountsByGroup(c *Context, w http.ResponseWriter, r *http.Reque
 }
 
 func getChannelModerations(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().License() == nil {
+	if c.App.Channels().License() == nil {
 		c.Err = model.NewAppError("Api4.GetChannelModerations", "api.channel.get_channel_moderations.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -1945,7 +1963,7 @@ func getChannelModerations(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func patchChannelModerations(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().License() == nil {
+	if c.App.Channels().License() == nil {
 		c.Err = model.NewAppError("Api4.patchChannelModerations", "api.channel.patch_channel_moderations.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}

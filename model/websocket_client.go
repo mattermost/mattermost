@@ -6,6 +6,7 @@ package model
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"sync/atomic"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 
 	"github.com/gorilla/websocket"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 const (
@@ -25,6 +27,7 @@ type msgType int
 const (
 	msgTypeJSON msgType = iota + 1
 	msgTypePong
+	msgTypeBinary
 )
 
 type writeMessage struct {
@@ -65,10 +68,26 @@ func NewWebSocketClient(url, authToken string) (*WebSocketClient, error) {
 	return NewWebSocketClientWithDialer(websocket.DefaultDialer, url, authToken)
 }
 
+func NewReliableWebSocketClientWithDialer(dialer *websocket.Dialer, url, authToken, connID string, seqNo int, withAuthHeader bool) (*WebSocketClient, error) {
+	connectURL := url + APIURLSuffix + "/websocket" + fmt.Sprintf("?connection_id=%s&sequence_number=%d", connID, seqNo)
+	var header http.Header
+	if withAuthHeader {
+		header = http.Header{
+			"Authorization": []string{"Bearer " + authToken},
+		}
+	}
+
+	return makeClient(dialer, url, connectURL, authToken, header)
+}
+
 // NewWebSocketClientWithDialer constructs a new WebSocket client with convenience
 // methods for talking to the server using a custom dialer.
 func NewWebSocketClientWithDialer(dialer *websocket.Dialer, url, authToken string) (*WebSocketClient, error) {
-	conn, _, err := dialer.Dial(url+APIURLSuffix+"/websocket", nil)
+	return makeClient(dialer, url, url+APIURLSuffix+"/websocket", authToken, nil)
+}
+
+func makeClient(dialer *websocket.Dialer, url, connectURL, authToken string, header http.Header) (*WebSocketClient, error) {
+	conn, _, err := dialer.Dial(connectURL, header)
 	if err != nil {
 		return nil, NewAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -76,7 +95,7 @@ func NewWebSocketClientWithDialer(dialer *websocket.Dialer, url, authToken strin
 	client := &WebSocketClient{
 		URL:                url,
 		APIURL:             url + APIURLSuffix,
-		ConnectURL:         url + APIURLSuffix + "/websocket",
+		ConnectURL:         connectURL,
 		Conn:               conn,
 		AuthToken:          authToken,
 		Sequence:           1,
@@ -165,6 +184,10 @@ func (wsc *WebSocketClient) writer() {
 			switch msg.msgType {
 			case msgTypeJSON:
 				wsc.Conn.WriteJSON(msg.data)
+			case msgTypeBinary:
+				if data, ok := msg.data.([]byte); ok {
+					wsc.Conn.WriteMessage(websocket.BinaryMessage, data)
+				}
 			case msgTypePong:
 				wsc.Conn.WriteMessage(websocket.PongMessage, []byte{})
 			}
@@ -256,6 +279,26 @@ func (wsc *WebSocketClient) SendMessage(action string, data map[string]interface
 		msgType: msgTypeJSON,
 		data:    req,
 	}
+}
+
+func (wsc *WebSocketClient) SendBinaryMessage(action string, data map[string]interface{}) error {
+	req := &WebSocketRequest{}
+	req.Seq = wsc.Sequence
+	req.Action = action
+	req.Data = data
+
+	binaryData, err := msgpack.Marshal(req)
+	if err != nil {
+		return fmt.Errorf("failed to marshal request to msgpack: %w", err)
+	}
+
+	wsc.Sequence++
+	wsc.writeChan <- writeMessage{
+		msgType: msgTypeBinary,
+		data:    binaryData,
+	}
+
+	return nil
 }
 
 // UserTyping will push a user_typing event out to all connected users

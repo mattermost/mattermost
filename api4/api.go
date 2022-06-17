@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	graphql "github.com/graph-gophers/graphql-go"
 	_ "github.com/mattermost/go-i18n/i18n"
 
 	"github.com/mattermost/mattermost-server/v6/app"
@@ -15,8 +16,9 @@ import (
 )
 
 type Routes struct {
-	Root    *mux.Router // ''
-	APIRoot *mux.Router // 'api/v4'
+	Root     *mux.Router // ''
+	APIRoot  *mux.Router // 'api/v4'
+	APIRoot5 *mux.Router // 'api/v5'
 
 	Users          *mux.Router // 'api/v4/users'
 	User           *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}'
@@ -132,14 +134,20 @@ type Routes struct {
 	SharedChannels *mux.Router // 'api/v4/sharedchannels'
 
 	Permissions *mux.Router // 'api/v4/permissions'
+
+	InsightsForTeam *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}/top'
+	InsightsForUser *mux.Router // 'api/v4/users/me/top'
+
+	Usage *mux.Router // 'api/v4/usage'
 }
 
 type API struct {
 	srv        *app.Server
+	schema     *graphql.Schema
 	BaseRoutes *Routes
 }
 
-func Init(srv *app.Server) *API {
+func Init(srv *app.Server) (*API, error) {
 	api := &API{
 		srv:        srv,
 		BaseRoutes: &Routes{},
@@ -147,6 +155,7 @@ func Init(srv *app.Server) *API {
 
 	api.BaseRoutes.Root = srv.Router
 	api.BaseRoutes.APIRoot = srv.Router.PathPrefix(model.APIURLSuffix).Subrouter()
+	api.BaseRoutes.APIRoot5 = srv.Router.PathPrefix(model.APIURLSuffixV5).Subrouter()
 
 	api.BaseRoutes.Users = api.BaseRoutes.APIRoot.PathPrefix("/users").Subrouter()
 	api.BaseRoutes.User = api.BaseRoutes.APIRoot.PathPrefix("/users/{user_id:[A-Za-z0-9]+}").Subrouter()
@@ -251,6 +260,11 @@ func Init(srv *app.Server) *API {
 
 	api.BaseRoutes.Permissions = api.BaseRoutes.APIRoot.PathPrefix("/permissions").Subrouter()
 
+	api.BaseRoutes.InsightsForTeam = api.BaseRoutes.Team.PathPrefix("/top").Subrouter()
+	api.BaseRoutes.InsightsForUser = api.BaseRoutes.Users.PathPrefix("/me/top").Subrouter()
+
+	api.BaseRoutes.Usage = api.BaseRoutes.APIRoot.PathPrefix("/usage").Subrouter()
+
 	api.InitUser()
 	api.InitBot()
 	api.InitTeam()
@@ -292,12 +306,17 @@ func Init(srv *app.Server) *API {
 	api.InitSharedChannels()
 	api.InitPermissions()
 	api.InitExport()
+	api.InitInsights()
+	api.InitUsage()
+	if err := api.InitGraphQL(); err != nil {
+		return nil, err
+	}
 
 	srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 
 	InitLocal(srv)
 
-	return api
+	return api, nil
 }
 
 func InitLocal(srv *app.Server) *API {

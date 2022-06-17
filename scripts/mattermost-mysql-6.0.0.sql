@@ -39,10 +39,10 @@ CREATE TABLE `Bots` (
   `UserId` varchar(26) NOT NULL,
   `Description` text,
   `OwnerId` varchar(190) DEFAULT NULL,
-  `LastIconUpdate` bigint(20) DEFAULT NULL,
   `CreateAt` bigint(20) DEFAULT NULL,
   `UpdateAt` bigint(20) DEFAULT NULL,
   `DeleteAt` bigint(20) DEFAULT NULL,
+  `LastIconUpdate` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`UserId`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -291,8 +291,8 @@ CREATE TABLE `GroupChannels` (
   `UpdateAt` bigint(20) DEFAULT NULL,
   `ChannelId` varchar(26) NOT NULL,
   PRIMARY KEY (`GroupId`,`ChannelId`),
-  KEY `idx_groupchannels_channelid` (`ChannelId`),
-  KEY `idx_groupchannels_schemeadmin` (`SchemeAdmin`)
+  KEY `idx_groupchannels_schemeadmin` (`SchemeAdmin`),
+  KEY `idx_groupchannels_channelid` (`ChannelId`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -327,8 +327,8 @@ CREATE TABLE `GroupTeams` (
   `UpdateAt` bigint(20) DEFAULT NULL,
   `TeamId` varchar(26) NOT NULL,
   PRIMARY KEY (`GroupId`,`TeamId`),
-  KEY `idx_groupteams_teamid` (`TeamId`),
-  KEY `idx_groupteams_schemeadmin` (`SchemeAdmin`)
+  KEY `idx_groupteams_schemeadmin` (`SchemeAdmin`),
+  KEY `idx_groupteams_teamid` (`TeamId`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -419,11 +419,11 @@ CREATE TABLE `LinkMetadata` (
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `OAuthAccessData` (
-  `ClientId` varchar(26) DEFAULT NULL,
-  `UserId` varchar(26) DEFAULT NULL,
   `Token` varchar(26) NOT NULL,
   `RefreshToken` varchar(26) DEFAULT NULL,
   `RedirectUri` text,
+  `ClientId` varchar(26) DEFAULT NULL,
+  `UserId` varchar(26) DEFAULT NULL,
   `ExpiresAt` bigint(20) DEFAULT NULL,
   `Scope` varchar(128) DEFAULT NULL,
   PRIMARY KEY (`Token`),
@@ -447,10 +447,10 @@ CREATE TABLE `OAuthApps` (
   `ClientSecret` varchar(128) DEFAULT NULL,
   `Name` varchar(64) DEFAULT NULL,
   `Description` text,
-  `IconURL` text,
   `CallbackUrls` text,
   `Homepage` text,
   `IsTrusted` tinyint(1) DEFAULT NULL,
+  `IconURL` text,
   PRIMARY KEY (`Id`),
   KEY `idx_oauthapps_creator_id` (`CreatorId`)
 );
@@ -491,13 +491,13 @@ CREATE TABLE `OutgoingWebhooks` (
   `ChannelId` varchar(26) DEFAULT NULL,
   `TeamId` varchar(26) DEFAULT NULL,
   `TriggerWords` text,
-  `TriggerWhen` int(11) DEFAULT NULL,
   `CallbackURLs` text,
   `DisplayName` varchar(64) DEFAULT NULL,
-  `Description` text,
   `ContentType` varchar(128) DEFAULT NULL,
+  `TriggerWhen` int(11) DEFAULT NULL,
   `Username` varchar(64) DEFAULT NULL,
   `IconURL` text,
+  `Description` text,
   PRIMARY KEY (`Id`),
   KEY `idx_outgoing_webhook_team_id` (`TeamId`),
   KEY `idx_outgoing_webhook_update_at` (`UpdateAt`),
@@ -531,9 +531,7 @@ CREATE TABLE `Posts` (
   `Id` varchar(26) NOT NULL,
   `CreateAt` bigint(20) DEFAULT NULL,
   `UpdateAt` bigint(20) DEFAULT NULL,
-  `EditAt` bigint(20) DEFAULT NULL,
   `DeleteAt` bigint(20) DEFAULT NULL,
-  `IsPinned` tinyint(1) DEFAULT NULL,
   `UserId` varchar(26) DEFAULT NULL,
   `ChannelId` varchar(26) DEFAULT NULL,
   `RootId` varchar(26) DEFAULT NULL,
@@ -545,6 +543,8 @@ CREATE TABLE `Posts` (
   `Filenames` text,
   `FileIds` text,
   `HasReactions` tinyint(1) DEFAULT NULL,
+  `EditAt` bigint(20) DEFAULT NULL,
+  `IsPinned` tinyint(1) DEFAULT NULL,
   `RemoteId` varchar(26) DEFAULT NULL,
   PRIMARY KEY (`Id`),
   KEY `idx_posts_update_at` (`UpdateAt`),
@@ -769,8 +769,8 @@ CREATE TABLE `Sessions` (
   `DeviceId` text,
   `Roles` varchar(64) DEFAULT NULL,
   `IsOAuth` tinyint(1) DEFAULT NULL,
-  `ExpiredNotify` tinyint(1) DEFAULT NULL,
   `Props` json DEFAULT NULL,
+  `ExpiredNotify` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`Id`),
   KEY `idx_sessions_user_id` (`UserId`),
   KEY `idx_sessions_token` (`Token`),
@@ -828,10 +828,10 @@ CREATE TABLE `SharedChannelRemotes` (
 CREATE TABLE `SharedChannelUsers` (
   `Id` varchar(26) NOT NULL,
   `UserId` varchar(26) DEFAULT NULL,
-  `ChannelId` varchar(26) DEFAULT NULL,
   `RemoteId` varchar(26) DEFAULT NULL,
   `CreateAt` bigint(20) DEFAULT NULL,
   `LastSyncAt` bigint(20) DEFAULT NULL,
+  `ChannelId` varchar(26) DEFAULT NULL,
   PRIMARY KEY (`Id`),
   UNIQUE KEY `UserId` (`UserId`,`ChannelId`,`RemoteId`),
   KEY `idx_sharedchannelusers_remote_id` (`RemoteId`)
@@ -1024,10 +1024,10 @@ CREATE TABLE `ThreadMemberships` (
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Threads` (
   `PostId` varchar(26) NOT NULL,
-  `ChannelId` varchar(26) DEFAULT NULL,
   `ReplyCount` bigint(20) DEFAULT NULL,
   `LastReplyAt` bigint(20) DEFAULT NULL,
   `Participants` json DEFAULT NULL,
+  `ChannelId` varchar(26) DEFAULT NULL,
   PRIMARY KEY (`PostId`),
   KEY `idx_threads_channel_id_last_reply_at` (`ChannelId`,`LastReplyAt`)
 );
@@ -1067,7 +1067,7 @@ CREATE TABLE `UploadSessions` (
   `RemoteId` varchar(26) DEFAULT NULL,
   `ReqFileId` varchar(26) DEFAULT NULL,
   PRIMARY KEY (`Id`),
-  KEY `idx_uploadsessions_user_id` (`Type`),
+  KEY `idx_uploadsessions_user_id` (`UserId`),
   KEY `idx_uploadsessions_create_at` (`CreateAt`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1149,7 +1149,6 @@ CREATE TABLE `Users` (
   `Nickname` varchar(64) DEFAULT NULL,
   `FirstName` varchar(64) DEFAULT NULL,
   `LastName` varchar(64) DEFAULT NULL,
-  `Position` varchar(128) DEFAULT NULL,
   `Roles` text,
   `AllowMarketing` tinyint(1) DEFAULT NULL,
   `Props` json DEFAULT NULL,
@@ -1158,9 +1157,10 @@ CREATE TABLE `Users` (
   `LastPictureUpdate` bigint(20) DEFAULT NULL,
   `FailedAttempts` int(11) DEFAULT NULL,
   `Locale` varchar(5) DEFAULT NULL,
-  `Timezone` json DEFAULT NULL,
   `MfaActive` tinyint(1) DEFAULT NULL,
   `MfaSecret` varchar(128) DEFAULT NULL,
+  `Position` varchar(128) DEFAULT NULL,
+  `Timezone` json DEFAULT NULL,
   `RemoteId` varchar(26) DEFAULT NULL,
   PRIMARY KEY (`Id`),
   UNIQUE KEY `Username` (`Username`),
@@ -1177,15 +1177,15 @@ CREATE TABLE `Users` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `schema_migrations`
+-- Table structure for table `db_migrations`
 --
 
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `schema_migrations` (
-  `version` bigint(20) NOT NULL,
-  `dirty` tinyint(1) NOT NULL,
-  PRIMARY KEY (`version`)
+CREATE TABLE `db_migrations` (
+  `Version` bigint(20) NOT NULL,
+  `Name` varchar(64) NOT NULL,
+  PRIMARY KEY (`Version`)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

@@ -16,6 +16,9 @@ const EmojisPermissionsMigrationKey = "EmojisPermissionsMigrationComplete"
 const GuestRolesCreationMigrationKey = "GuestRolesCreationMigrationComplete"
 const SystemConsoleRolesCreationMigrationKey = "SystemConsoleRolesCreationMigrationComplete"
 const ContentExtractionConfigDefaultTrueMigrationKey = "ContentExtractionConfigDefaultTrueMigrationComplete"
+const PlaybookRolesCreationMigrationKey = "PlaybookRolesCreationMigrationComplete"
+const FirstAdminSetupCompleteKey = model.SystemFirstAdminSetupComplete
+const remainingSchemaMigrationsKey = "RemainingSchemaMigrations"
 
 // This function migrates the default built in roles from code/config to the database.
 func (a *App) DoAdvancedPermissionsMigration() {
@@ -307,6 +310,203 @@ func (s *Server) doContentExtractionConfigDefaultTrueMigration() {
 	}
 }
 
+func (s *Server) doPlaybooksRolesCreationMigration() {
+	// If the migration is already marked as completed, don't do it again.
+	if _, err := s.Store.System().GetByName(PlaybookRolesCreationMigrationKey); err == nil {
+		return
+	}
+
+	roles := model.MakeDefaultRoles()
+
+	allSucceeded := true
+	if _, err := s.Store.Role().GetByName(context.Background(), model.PlaybookAdminRoleId); err != nil {
+		if _, err := s.Store.Role().Save(roles[model.PlaybookAdminRoleId]); err != nil {
+			mlog.Critical("Failed to create new playbook admin role to database.", mlog.Err(err))
+			allSucceeded = false
+		}
+	}
+	if _, err := s.Store.Role().GetByName(context.Background(), model.PlaybookMemberRoleId); err != nil {
+		if _, err := s.Store.Role().Save(roles[model.PlaybookMemberRoleId]); err != nil {
+			mlog.Critical("Failed to create new playbook member role to database.", mlog.Err(err))
+			allSucceeded = false
+		}
+	}
+	if _, err := s.Store.Role().GetByName(context.Background(), model.RunAdminRoleId); err != nil {
+		if _, err := s.Store.Role().Save(roles[model.RunAdminRoleId]); err != nil {
+			mlog.Critical("Failed to create new run admin role to database.", mlog.Err(err))
+			allSucceeded = false
+		}
+	}
+	if _, err := s.Store.Role().GetByName(context.Background(), model.RunMemberRoleId); err != nil {
+		if _, err := s.Store.Role().Save(roles[model.RunMemberRoleId]); err != nil {
+			mlog.Critical("Failed to create new run member role to database.", mlog.Err(err))
+			allSucceeded = false
+		}
+	}
+	schemes, err := s.Store.Scheme().GetAllPage(model.SchemeScopeTeam, 0, 1000000)
+	if err != nil {
+		mlog.Critical("Failed to get all schemes.", mlog.Err(err))
+		allSucceeded = false
+	}
+
+	for _, scheme := range schemes {
+		if scheme.Scope == model.SchemeScopeTeam {
+			if scheme.DefaultPlaybookAdminRole == "" {
+				playbookAdminRole := &model.Role{
+					Name:          model.NewId(),
+					DisplayName:   fmt.Sprintf("Playbook Admin Role for Scheme %s", scheme.Name),
+					Permissions:   roles[model.PlaybookAdminRoleId].Permissions,
+					SchemeManaged: true,
+				}
+
+				if savedRole, err := s.Store.Role().Save(playbookAdminRole); err != nil {
+					mlog.Critical("Failed to create new playbook admin role for existing custom scheme.", mlog.Err(err))
+					allSucceeded = false
+				} else {
+					scheme.DefaultPlaybookAdminRole = savedRole.Name
+				}
+			}
+			if scheme.DefaultPlaybookMemberRole == "" {
+				playbookMember := &model.Role{
+					Name:          model.NewId(),
+					DisplayName:   fmt.Sprintf("Playbook Member Role for Scheme %s", scheme.Name),
+					Permissions:   roles[model.PlaybookMemberRoleId].Permissions,
+					SchemeManaged: true,
+				}
+
+				if savedRole, err := s.Store.Role().Save(playbookMember); err != nil {
+					mlog.Critical("Failed to create new playbook member role for existing custom scheme.", mlog.Err(err))
+					allSucceeded = false
+				} else {
+					scheme.DefaultPlaybookMemberRole = savedRole.Name
+				}
+			}
+
+			if scheme.DefaultRunAdminRole == "" {
+				runAdminRole := &model.Role{
+					Name:          model.NewId(),
+					DisplayName:   fmt.Sprintf("Run Admin Role for Scheme %s", scheme.Name),
+					Permissions:   roles[model.RunAdminRoleId].Permissions,
+					SchemeManaged: true,
+				}
+
+				if savedRole, err := s.Store.Role().Save(runAdminRole); err != nil {
+					mlog.Critical("Failed to create new run admin role for existing custom scheme.", mlog.Err(err))
+					allSucceeded = false
+				} else {
+					scheme.DefaultRunAdminRole = savedRole.Name
+				}
+			}
+
+			if scheme.DefaultRunMemberRole == "" {
+				runMemberRole := &model.Role{
+					Name:          model.NewId(),
+					DisplayName:   fmt.Sprintf("Run Member Role for Scheme %s", scheme.Name),
+					Permissions:   roles[model.RunMemberRoleId].Permissions,
+					SchemeManaged: true,
+				}
+
+				if savedRole, err := s.Store.Role().Save(runMemberRole); err != nil {
+					mlog.Critical("Failed to create new run member role for existing custom scheme.", mlog.Err(err))
+					allSucceeded = false
+				} else {
+					scheme.DefaultRunMemberRole = savedRole.Name
+				}
+			}
+			_, err := s.Store.Scheme().Save(scheme)
+			if err != nil {
+				mlog.Critical("Failed to update custom scheme.", mlog.Err(err))
+				allSucceeded = false
+			}
+		}
+	}
+
+	if !allSucceeded {
+		return
+	}
+
+	system := model.System{
+		Name:  PlaybookRolesCreationMigrationKey,
+		Value: "true",
+	}
+
+	if err := s.Store.System().Save(&system); err != nil {
+		mlog.Critical("Failed to mark playbook roles creation migration as completed.", mlog.Err(err))
+	}
+
+}
+
+// arbitrary choice, though if there is an longstanding installation with less than 10 messages,
+// putting the first admin through onboarding shouldn't be very disruptive.
+const existingInstallationPostsThreshold = 10
+
+func (s *Server) doFirstAdminSetupCompleteMigration() {
+	// Don't run the migration until the flag is turned on.
+
+	if !s.Config().FeatureFlags.UseCaseOnboarding {
+		return
+	}
+
+	// If the migration is already marked as completed, don't do it again.
+	if _, err := s.Store.System().GetByName(FirstAdminSetupCompleteKey); err == nil {
+		return
+	}
+
+	teams, err := s.Store.Team().GetAll()
+	if err != nil {
+		// can not confirm that admin has started in this case.
+		return
+	}
+
+	if len(teams) == 0 {
+		// No teams, and no existing preference. This is most likely a new instance.
+		// So do not mark that the admin has already done the first time setup.
+		return
+	}
+
+	// if there are teams, then if this isn't a new installation, there should be posts
+	postCount, err := s.Store.Post().AnalyticsPostCount(&model.PostCountOptions{})
+	if err != nil || postCount < existingInstallationPostsThreshold {
+		return
+	}
+
+	system := model.System{
+		Name:  FirstAdminSetupCompleteKey,
+		Value: "true",
+	}
+
+	if err := s.Store.System().Save(&system); err != nil {
+		mlog.Critical("Failed to mark first admin setup migration as completed.", mlog.Err(err))
+	}
+}
+
+func (s *Server) doRemainingSchemaMigrations() {
+	// If the migration is already marked as completed, don't do it again.
+	if _, err := s.Store.System().GetByName(remainingSchemaMigrationsKey); err == nil {
+		return
+	}
+
+	if teams, err := s.Store.Team().GetByEmptyInviteID(); err != nil {
+		mlog.Error("Error fetching Teams without InviteID", mlog.Err(err))
+	} else {
+		for _, team := range teams {
+			team.InviteId = model.NewId()
+			if _, err := s.Store.Team().Update(team); err != nil {
+				mlog.Error("Error updating Team InviteIDs", mlog.String("team_id", team.Id), mlog.Err(err))
+			}
+		}
+	}
+
+	system := model.System{
+		Name:  remainingSchemaMigrationsKey,
+		Value: "true",
+	}
+
+	if err := s.Store.System().Save(&system); err != nil {
+		mlog.Critical("Failed to mark the remaining schema migrations as completed.", mlog.Err(err))
+	}
+}
+
 func (a *App) DoAppMigrations() {
 	a.Srv().doAppMigrations()
 }
@@ -323,4 +523,7 @@ func (s *Server) doAppMigrations() {
 		mlog.Critical("(app.App).DoPermissionsMigrations failed", mlog.Err(err))
 	}
 	s.doContentExtractionConfigDefaultTrueMigration()
+	s.doPlaybooksRolesCreationMigration()
+	s.doFirstAdminSetupCompleteMigration()
+	s.doRemainingSchemaMigrations()
 }

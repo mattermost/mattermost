@@ -157,3 +157,80 @@ func BenchmarkWebSocketEvent_ToJSON(b *testing.B) {
 		}
 	})
 }
+
+func TestWebsocketBroadcastCopy(t *testing.T) {
+	w := &WebsocketBroadcast{}
+	require.Equal(t, w, w.copy())
+
+	w = nil
+	require.Equal(t, w, w.copy())
+
+	w = &WebsocketBroadcast{
+		OmitUsers: map[string]bool{
+			"aaa": true,
+			"bbb": true,
+			"ccc": false,
+		},
+		UserId:                "aaa",
+		ChannelId:             "bbb",
+		TeamId:                "ccc",
+		ContainsSanitizedData: true,
+		ContainsSensitiveData: true,
+	}
+	require.Equal(t, w, w.copy())
+}
+
+func TestPrecomputedWebSocketEventJSONCopy(t *testing.T) {
+	p := &precomputedWebSocketEventJSON{}
+	require.Equal(t, p, p.copy())
+
+	p = nil
+	require.Equal(t, p, p.copy())
+
+	p = &precomputedWebSocketEventJSON{
+		Event:     []byte{},
+		Data:      []byte{},
+		Broadcast: []byte{},
+	}
+	require.Equal(t, p, p.copy())
+
+	p = &precomputedWebSocketEventJSON{
+		Event:     []byte{'a', 'b', 'c'},
+		Data:      []byte{'d', 'e', 'f'},
+		Broadcast: []byte{'g', 'h', 'i'},
+	}
+	require.Equal(t, p, p.copy())
+}
+
+func TestWebSocketEventDeepCopy(t *testing.T) {
+	omitUsers := map[string]bool{
+		"user1": true,
+		"user2": false,
+	}
+
+	broadcast := &WebsocketBroadcast{
+		OmitUsers:             omitUsers,
+		UserId:                "aaa",
+		ChannelId:             "bbb",
+		TeamId:                "ccc",
+		ContainsSanitizedData: true,
+		ContainsSensitiveData: true,
+	}
+
+	ev := NewWebSocketEvent("test", "team", "channel", "user", omitUsers)
+
+	ev.Add("post", &Post{})
+	ev.SetBroadcast(broadcast)
+	ev = ev.PrecomputeJSON()
+
+	evCopy := ev.DeepCopy()
+	require.Equal(t, ev, evCopy)
+	require.NotSame(t, ev.data, evCopy.data)
+	require.NotSame(t, ev.broadcast, evCopy.broadcast)
+	require.NotSame(t, ev.precomputedJSON, evCopy.precomputedJSON)
+
+	ev.Add("post", &Post{
+		Id: "test",
+	})
+	require.NotEqual(t, ev.data, evCopy.data)
+}

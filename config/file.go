@@ -30,10 +30,23 @@ type FileStore struct {
 }
 
 // NewFileStore creates a new instance of a config store backed by the given file path.
-func NewFileStore(path string) (fs *FileStore, err error) {
+func NewFileStore(path string, createFileIfNotExists bool) (fs *FileStore, err error) {
 	resolvedPath, err := resolveConfigFilePath(path)
 	if err != nil {
 		return nil, err
+	}
+
+	f, err := os.Open(resolvedPath)
+	if err != nil && errors.Is(err, os.ErrNotExist) && createFileIfNotExists {
+		file, err2 := os.Create(resolvedPath)
+		if err2 != nil {
+			return nil, fmt.Errorf("could not create config file: %w", err2)
+		}
+		defer file.Close()
+	} else if err != nil {
+		return nil, err
+	} else {
+		defer f.Close()
 	}
 
 	return &FileStore{
@@ -63,8 +76,6 @@ func resolveConfigFilePath(path string) (string, error) {
 		return configFile, nil
 	}
 
-	// Otherwise, search for the config/ folder using the same heuristics as above, and build
-	// an absolute path anchored there and joining the given input path (or plain filename).
 	if configFolder, found := fileutils.FindDir("config"); found {
 		return filepath.Join(configFolder, path), nil
 	}

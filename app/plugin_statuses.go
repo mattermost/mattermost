@@ -80,7 +80,7 @@ func (ch *Channels) getClusterPluginStatuses() (model.PluginStatuses, *model.App
 		return nil, err
 	}
 
-	if ch.srv.Cluster != nil && *ch.srv.Config().ClusterSettings.Enable {
+	if ch.srv.Cluster != nil && *ch.cfgSvc.Config().ClusterSettings.Enable {
 		clusterPluginStatuses, err := ch.srv.Cluster.GetPluginStatuses()
 		if err != nil {
 			return nil, model.NewAppError("GetClusterPluginStatuses", "app.plugin.get_cluster_plugin_statuses.app_error", nil, err.Error(), http.StatusInternalServerError)

@@ -565,7 +565,7 @@ func TestDisableUserBots(t *testing.T) {
 	err = th.App.disableUserBots(th.Context, ownerId1)
 	require.Nil(t, err)
 
-	// Check all bots and corrensponding users are disabled for creator 1
+	// Check all bots and corresponding users are disabled for creator 1
 	for _, bot := range bots {
 		retbot, err2 := th.App.GetBot(bot.UserId, true)
 		require.Nil(t, err2)

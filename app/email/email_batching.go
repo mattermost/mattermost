@@ -186,11 +186,11 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 		var interval int64
 		preference, err := job.service.store.Preference().Get(userID, model.PreferenceCategoryNotifications, model.PreferenceNameEmailInterval)
 		if err != nil {
-			// use the default batching interval if an error ocurrs while fetching user preferences
+			// use the default batching interval if an error occurs while fetching user preferences
 			interval, _ = strconv.ParseInt(model.PreferenceEmailIntervalBatchingSeconds, 10, 64)
 		} else {
 			if value, err := strconv.ParseInt(preference.Value, 10, 64); err != nil {
-				// // use the default batching interval if an error ocurrs while deserializing user preferences
+				// // use the default batching interval if an error occurs while deserializing user preferences
 				interval, _ = strconv.ParseInt(model.PreferenceEmailIntervalBatchingSeconds, 10, 64)
 			} else {
 				interval = value
@@ -241,9 +241,10 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 	}
 
 	// check if user has CRT set to ON
-	threadsEnabled := false
-	if *es.config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled {
-		threadsEnabled = *es.config().ServiceSettings.CollapsedThreads == model.CollapsedThreadsDefaultOn
+	appCRT := *es.config().ServiceSettings.CollapsedThreads
+	threadsEnabled := appCRT == model.CollapsedThreadsAlwaysOn
+	if !threadsEnabled && appCRT != model.CollapsedThreadsDisabled {
+		threadsEnabled = appCRT == model.CollapsedThreadsDefaultOn
 		// check if a participant has overridden collapsed threads settings
 		if preference, errCrt := es.store.Preference().Get(userID, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled); errCrt == nil {
 			threadsEnabled = preference.Value == "on"

@@ -13,7 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
-func (a *App) GetGroup(id string) (*model.Group, *model.AppError) {
+func (a *App) GetGroup(id string, opts *model.GetGroupOpts) (*model.Group, *model.AppError) {
 	group, err := a.Srv().Store.Group().Get(id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -23,6 +23,14 @@ func (a *App) GetGroup(id string) (*model.Group, *model.AppError) {
 		default:
 			return nil, model.NewAppError("GetGroup", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 		}
+	}
+
+	if opts != nil && opts.IncludeMemberCount {
+		memberCount, err := a.Srv().Store.Group().GetMemberCount(id)
+		if err != nil {
+			return nil, model.NewAppError("GetGroup", "app.member_count", nil, err.Error(), http.StatusInternalServerError)
+		}
+		group.MemberCount = model.NewInt(int(memberCount))
 	}
 
 	return group, nil
@@ -77,6 +85,11 @@ func (a *App) GetGroupsByUserId(userID string) ([]*model.Group, *model.AppError)
 }
 
 func (a *App) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
+	if err := a.isUniqueToUsernames(group.GetName()); err != nil {
+		err.Where = "CreateGroup"
+		return nil, err
+	}
+
 	group, err := a.Srv().Store.Group().Create(group)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -94,10 +107,74 @@ func (a *App) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
 	return group, nil
 }
 
+func (a *App) isUniqueToUsernames(val string) *model.AppError {
+	if val == "" {
+		return nil
+	}
+	var notFoundErr *store.ErrNotFound
+	user, err := a.Srv().Store.User().GetByUsername(val)
+	if err != nil && !errors.As(err, &notFoundErr) {
+		return model.NewAppError("", "app.group.get_by_username_failure", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if user != nil {
+		return model.NewAppError("", "app.group.username_conflict", nil, "", http.StatusBadRequest)
+	}
+	return nil
+}
+
+func (a *App) CreateGroupWithUserIds(group *model.GroupWithUserIds) (*model.Group, *model.AppError) {
+	if err := a.isUniqueToUsernames(group.GetName()); err != nil {
+		err.Where = "CreateGroupWithUserIds"
+		return nil, err
+	}
+
+	newGroup, err := a.Srv().Store.Group().CreateWithUserIds(group)
+	if err != nil {
+		var invErr *store.ErrInvalidInput
+		var appErr *model.AppError
+		var dupKey *store.ErrUniqueConstraint
+		switch {
+		case errors.As(err, &appErr):
+			return nil, appErr
+		case errors.As(err, &invErr):
+			return nil, model.NewAppError("CreateGroupWithUserIds", "app.group.id.app_error", nil, invErr.Error(), http.StatusBadRequest)
+		case errors.As(err, &dupKey):
+			return nil, model.NewAppError("CreateGroup", "app.custom_group.unique_name", nil, dupKey.Error(), http.StatusBadRequest)
+		default:
+			return nil, model.NewAppError("CreateGroupWithUserIds", "app.insert_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil)
+	count, err := a.Srv().Store.Group().GetMemberCount(newGroup.Id)
+	if err != nil {
+		return nil, model.NewAppError("CreateGroupWithUserIds", "app.group.id.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+	group.MemberCount = model.NewInt(int(count))
+	groupJSON, jsonErr := json.Marshal(newGroup)
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode group to JSON", mlog.Err(jsonErr))
+	}
+	messageWs.Add("group", string(groupJSON))
+	a.Publish(messageWs)
+
+	return newGroup, nil
+}
+
 func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
+	if err := a.isUniqueToUsernames(group.GetName()); err != nil {
+		err.Where = "UpdateGroup"
+		return nil, err
+	}
+
 	updatedGroup, err := a.Srv().Store.Group().Update(group)
 
 	if err == nil {
+		count, countErr := a.Srv().Store.Group().GetMemberCount(updatedGroup.Id)
+		if countErr != nil {
+			return nil, model.NewAppError("CreateGroupWithUserIds", "app.group.id.app_error", nil, countErr.Error(), http.StatusBadRequest)
+		}
+		updatedGroup.MemberCount = model.NewInt(int(count))
 		messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil)
 		groupJSON, jsonErr := json.Marshal(updatedGroup)
 		if jsonErr != nil {
@@ -110,11 +187,14 @@ func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		var appErr *model.AppError
+		var dupKey *store.ErrUniqueConstraint
 		switch {
 		case errors.As(err, &appErr):
 			return nil, appErr
 		case errors.As(err, &nfErr):
 			return nil, model.NewAppError("UpdateGroup", "app.group.no_rows", nil, nfErr.Error(), http.StatusNotFound)
+		case errors.As(err, &dupKey):
+			return nil, model.NewAppError("CreateGroup", "app.custom_group.unique_name", nil, dupKey.Error(), http.StatusBadRequest)
 		default:
 			return nil, model.NewAppError("UpdateGroup", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -125,17 +205,6 @@ func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
 
 func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 	deletedGroup, err := a.Srv().Store.Group().Delete(groupID)
-
-	if err == nil {
-		messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil)
-		groupJSON, jsonErr := json.Marshal(deletedGroup)
-		if jsonErr != nil {
-			mlog.Warn("Failed to encode group to JSON", mlog.Err(jsonErr))
-		}
-		messageWs.Add("group", string(groupJSON))
-		a.Publish(messageWs)
-	}
-
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -177,7 +246,15 @@ func (a *App) GetGroupMemberUsersPage(groupID string, page int, perPage int) ([]
 	if appErr != nil {
 		return nil, 0, appErr
 	}
-	return members, int(count), nil
+	return a.sanitizeProfiles(members, false), int(count), nil
+}
+func (a *App) GetUsersNotInGroupPage(groupID string, page int, perPage int) ([]*model.User, *model.AppError) {
+	members, err := a.Srv().Store.Group().GetNonMemberUsersPage(groupID, page, perPage)
+	if err != nil {
+		return nil, model.NewAppError("GetUsersNotInGroupPage", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return a.sanitizeProfiles(members, false), nil
 }
 
 func (a *App) UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
@@ -195,6 +272,8 @@ func (a *App) UpsertGroupMember(groupID string, userID string) (*model.GroupMemb
 		}
 	}
 
+	a.publishGroupMemberEvent(model.WebsocketEventGroupMemberAdd, groupMember)
+
 	return groupMember, nil
 }
 
@@ -209,6 +288,8 @@ func (a *App) DeleteGroupMember(groupID string, userID string) (*model.GroupMemb
 			return nil, model.NewAppError("DeleteGroupMember", "app.update_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
+
+	a.publishGroupMemberEvent(model.WebsocketEventGroupMemberDelete, groupMember)
 
 	return groupMember, nil
 }
@@ -515,6 +596,10 @@ func (a *App) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, pag
 		return nil, 0, model.NewAppError("TeamMembersMinusGroupMembers", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	for _, u := range users {
+		a.SanitizeProfile(&u.User, false)
+	}
+
 	// parse all group ids of all users
 	allUsersGroupIDMap := map[string]bool{}
 	for _, user := range users {
@@ -579,6 +664,10 @@ func (a *App) ChannelMembersMinusGroupMembers(channelID string, groupIDs []strin
 		return nil, 0, model.NewAppError("ChannelMembersMinusGroupMembers", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	for _, u := range users {
+		a.SanitizeProfile(&u.User, false)
+	}
+
 	// parse all group ids of all users
 	allUsersGroupIDMap := map[string]bool{}
 	for _, user := range users {
@@ -636,4 +725,58 @@ func (a *App) UserIsInAdminRoleGroup(userID, syncableID string, syncableType mod
 	}
 
 	return true, nil
+}
+
+func (a *App) UpsertGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError) {
+	members, err := a.Srv().Store.Group().UpsertMembers(groupID, userIDs)
+	if err != nil {
+		var invErr *store.ErrInvalidInput
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &appErr):
+			return nil, appErr
+		case errors.As(err, &invErr):
+			return nil, model.NewAppError("UpsertGroupMembers", "app.group.uniqueness_error", nil, invErr.Error(), http.StatusBadRequest)
+		default:
+			return nil, model.NewAppError("UpsertGroupMembers", "app.update_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	for _, groupMember := range members {
+		a.publishGroupMemberEvent(model.WebsocketEventGroupMemberAdd, groupMember)
+	}
+
+	return members, nil
+}
+
+func (a *App) DeleteGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError) {
+	members, err := a.Srv().Store.Group().DeleteMembers(groupID, userIDs)
+	if err != nil {
+		var invErr *store.ErrInvalidInput
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &appErr):
+			return nil, appErr
+		case errors.As(err, &invErr):
+			return nil, model.NewAppError("DeleteGroupMember", "app.group.uniqueness_error", nil, invErr.Error(), http.StatusBadRequest)
+		default:
+			return nil, model.NewAppError("DeleteGroupMember", "app.update_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	for _, groupMember := range members {
+		a.publishGroupMemberEvent(model.WebsocketEventGroupMemberDelete, groupMember)
+	}
+
+	return members, nil
+}
+
+func (a *App) publishGroupMemberEvent(eventName string, groupMember *model.GroupMember) {
+	messageWs := model.NewWebSocketEvent(eventName, "", "", groupMember.UserId, nil)
+	groupMemberJSON, jsonErr := json.Marshal(groupMember)
+	if jsonErr != nil {
+		mlog.Warn("failed to encode group member to JSON", mlog.Err(jsonErr))
+	}
+	messageWs.Add("group_member", string(groupMemberJSON))
+	a.Publish(messageWs)
 }

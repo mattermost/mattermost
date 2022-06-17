@@ -4,7 +4,7 @@
 package sqlstore
 
 import (
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -16,17 +16,7 @@ type sqlClusterDiscoveryStore struct {
 }
 
 func newSqlClusterDiscoveryStore(sqlStore *SqlStore) store.ClusterDiscoveryStore {
-	s := &sqlClusterDiscoveryStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.ClusterDiscovery{}, "ClusterDiscovery").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("Type").SetMaxSize(64)
-		table.ColMap("ClusterName").SetMaxSize(64)
-		table.ColMap("Hostname").SetMaxSize(512)
-	}
-
-	return s
+	return &sqlClusterDiscoveryStore{sqlStore}
 }
 
 func (s sqlClusterDiscoveryStore) Save(ClusterDiscovery *model.ClusterDiscovery) error {

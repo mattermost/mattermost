@@ -200,6 +200,7 @@ func GetClientLicense(l *model.License) map[string]string {
 		props["SharedChannels"] = strconv.FormatBool(*l.Features.SharedChannels)
 		props["RemoteClusterService"] = strconv.FormatBool(*l.Features.RemoteClusterService)
 		props["IsTrial"] = strconv.FormatBool(l.IsTrial)
+		props["IsGovSku"] = strconv.FormatBool(l.IsGovSku)
 	}
 
 	return props

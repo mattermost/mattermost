@@ -6,13 +6,13 @@ package model
 import "strings"
 
 const (
-	EventTypeFailedPayment         = "failed-payment"
-	EventTypeFailedPaymentNoCard   = "failed-payment-no-card"
-	EventTypeSendAdminWelcomeEmail = "send-admin-welcome-email"
-	EventTypeTrialWillEnd          = "trial-will-end"
-	EventTypeTrialEnded            = "trial-ended"
-	JoinLimitation                 = "join"
-	InviteLimitation               = "invite"
+	EventTypeFailedPayment                = "failed-payment"
+	EventTypeFailedPaymentNoCard          = "failed-payment-no-card"
+	EventTypeSendAdminWelcomeEmail        = "send-admin-welcome-email"
+	EventTypeSendUpgradeConfirmationEmail = "send-upgrade-confirmation-email"
+	EventTypeSubscriptionChanged          = "subscription-changed"
+	EventTypeTrialWillEnd                 = "trial-will-end"
+	EventTypeTrialEnded                   = "trial-ended"
 )
 
 var MockCWS string
@@ -70,6 +70,7 @@ type StripeSetupIntent struct {
 // ConfirmPaymentMethodRequest contains the fields for the customer payment update API.
 type ConfirmPaymentMethodRequest struct {
 	StripeSetupIntentID string `json:"stripe_setup_intent_id"`
+	SubscriptionID      string `json:"subscription_id"`
 }
 
 // Customer model represents a customer on the system.
@@ -81,6 +82,10 @@ type CloudCustomer struct {
 	BillingAddress *Address       `json:"billing_address"`
 	CompanyAddress *Address       `json:"company_address"`
 	PaymentMethod  *PaymentMethod `json:"payment_method"`
+}
+
+type ValidateBusinessEmailRequest struct {
+	Email string `json:"email"`
 }
 
 // CloudCustomerInfo represents editable info of a customer.
@@ -137,24 +142,25 @@ func (s *Subscription) GetWorkSpaceNameFromDNS() string {
 
 // Invoice model represents a cloud invoice
 type Invoice struct {
-	ID             string             `json:"id"`
-	Number         string             `json:"number"`
-	CreateAt       int64              `json:"create_at"`
-	Total          int64              `json:"total"`
-	Tax            int64              `json:"tax"`
-	Status         string             `json:"status"`
-	Description    string             `json:"description"`
-	PeriodStart    int64              `json:"period_start"`
-	PeriodEnd      int64              `json:"period_end"`
-	SubscriptionID string             `json:"subscription_id"`
-	Items          []*InvoiceLineItem `json:"line_items"`
+	ID                 string             `json:"id"`
+	Number             string             `json:"number"`
+	CreateAt           int64              `json:"create_at"`
+	Total              int64              `json:"total"`
+	Tax                int64              `json:"tax"`
+	Status             string             `json:"status"`
+	Description        string             `json:"description"`
+	PeriodStart        int64              `json:"period_start"`
+	PeriodEnd          int64              `json:"period_end"`
+	SubscriptionID     string             `json:"subscription_id"`
+	Items              []*InvoiceLineItem `json:"line_items"`
+	CurrentProductName string             `json:"current_product_name"`
 }
 
 // InvoiceLineItem model represents a cloud invoice lineitem tied to an invoice.
 type InvoiceLineItem struct {
 	PriceID      string                 `json:"price_id"`
 	Total        int64                  `json:"total"`
-	Quantity     int64                  `json:"quantity"`
+	Quantity     float64                `json:"quantity"`
 	PricePerUnit int64                  `json:"price_per_unit"`
 	Description  string                 `json:"description"`
 	Type         string                 `json:"type"`
@@ -165,6 +171,8 @@ type CWSWebhookPayload struct {
 	Event                             string               `json:"event"`
 	FailedPayment                     *FailedPayment       `json:"failed_payment"`
 	CloudWorkspaceOwner               *CloudWorkspaceOwner `json:"cloud_workspace_owner"`
+	ProductLimits                     *ProductLimits       `json:"product_limits"`
+	Subscription                      *Subscription        `json:"subscription"`
 	SubscriptionTrialEndUnixTimeStamp int64                `json:"trial_end_time_stamp"`
 }
 
@@ -178,12 +186,35 @@ type FailedPayment struct {
 type CloudWorkspaceOwner struct {
 	UserName string `json:"username"`
 }
-type SubscriptionStats struct {
-	RemainingSeats int    `json:"remaining_seats"`
-	IsPaidTier     string `json:"is_paid_tier"`
-	IsFreeTrial    string `json:"is_free_trial"`
-}
-
 type SubscriptionChange struct {
 	ProductID string `json:"product_id"`
+}
+
+type BoardsLimits struct {
+	Cards *int `json:"cards"`
+	Views *int `json:"views"`
+}
+
+type FilesLimits struct {
+	TotalStorage *int64 `json:"total_storage"`
+}
+
+type IntegrationsLimits struct {
+	Enabled *int `json:"enabled"`
+}
+
+type MessagesLimits struct {
+	History *int `json:"history"`
+}
+
+type TeamsLimits struct {
+	Active *int `json:"active"`
+}
+
+type ProductLimits struct {
+	Boards       *BoardsLimits       `json:"boards,omitempty"`
+	Files        *FilesLimits        `json:"files,omitempty"`
+	Integrations *IntegrationsLimits `json:"integrations,omitempty"`
+	Messages     *MessagesLimits     `json:"messages,omitempty"`
+	Teams        *TeamsLimits        `json:"teams,omitempty"`
 }

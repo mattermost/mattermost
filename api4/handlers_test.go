@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 )
@@ -68,7 +69,8 @@ func TestAPIHandlersWithGzip(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	api := Init(th.Server)
+	api, err := Init(th.Server)
+	require.NoError(t, err)
 	session, _ := th.App.GetSession(th.Client.AuthToken)
 
 	t.Run("with WebserverMode == \"gzip\"", func(t *testing.T) {

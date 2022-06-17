@@ -106,7 +106,7 @@ func TestPluginCommand(t *testing.T) {
 			require.NotEqual(t, "plugin", commands.Trigger)
 		}
 
-		th.App.RemovePlugin(pluginIDs[0])
+		th.App.ch.RemovePlugin(pluginIDs[0])
 	})
 
 	t.Run("re-entrant command registration on config change", func(t *testing.T) {
@@ -207,7 +207,7 @@ func TestPluginCommand(t *testing.T) {
 			killed = true
 		}
 
-		th.App.RemovePlugin(pluginIDs[0])
+		th.App.ch.RemovePlugin(pluginIDs[0])
 		require.False(t, killed, "execute command appears to have deadlocked")
 	})
 
@@ -285,7 +285,7 @@ func TestPluginCommand(t *testing.T) {
 		require.Equal(t, model.CommandResponseTypeEphemeral, resp.ResponseType)
 		require.Equal(t, "text", resp.Text)
 
-		th.App.RemovePlugin(pluginIDs[0])
+		th.App.ch.RemovePlugin(pluginIDs[0])
 	})
 	t.Run("plugin has crashed before execution of command", func(t *testing.T) {
 		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
@@ -329,7 +329,7 @@ func TestPluginCommand(t *testing.T) {
 		require.Nil(t, resp)
 		require.NotNil(t, err)
 		require.Equal(t, err.Id, "model.plugin_command_error.error.app_error")
-		th.App.RemovePlugin(pluginIDs[0])
+		th.App.ch.RemovePlugin(pluginIDs[0])
 	})
 
 	t.Run("plugin has crashed due to the execution of the command", func(t *testing.T) {
@@ -374,7 +374,68 @@ func TestPluginCommand(t *testing.T) {
 		require.Nil(t, resp)
 		require.NotNil(t, err)
 		require.Equal(t, err.Id, "model.plugin_command_crash.error.app_error")
-		th.App.RemovePlugin(pluginIDs[0])
+		th.App.ch.RemovePlugin(pluginIDs[0])
+	})
+
+	t.Run("plugin returning status code 0", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.Plugins["testloadpluginconfig"] = map[string]interface{}{
+				"TeamId": args.TeamId,
+			}
+		})
+
+		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost-server/v6/plugin"
+				"github.com/mattermost/mattermost-server/v6/model"
+			)
+
+			type configuration struct {
+				TeamId string
+			}
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+
+				configuration configuration
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				err := p.API.RegisterCommand(&model.Command{
+					TeamId: p.configuration.TeamId,
+					Trigger: "plugin",
+					DisplayName: "Plugin Command",
+					AutoComplete: true,
+					AutoCompleteDesc: "autocomplete",
+				})
+				if err != nil {
+					p.API.LogError("error", "err", err)
+				}
+
+				return err
+			}
+
+			func (p *MyPlugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+				return nil, &model.AppError{
+					Message: "error",
+					StatusCode: 0,
+				}
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, th.NewPluginAPI)
+		defer tearDown()
+		require.Len(t, activationErrors, 1)
+		require.Nil(t, nil, activationErrors[0])
+
+		args.Command = "/plugin"
+		_, err := th.App.ExecuteCommand(th.Context, args)
+		require.NotNil(t, err)
+		require.Equal(t, 500, err.StatusCode)
 	})
 
 }

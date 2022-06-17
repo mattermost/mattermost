@@ -55,7 +55,7 @@ func NewSynchronizer(params SyncParams) (*Synchronizer, error) {
 	}, nil
 }
 
-// EnsureReady blocks until the syncronizer is ready to update feature flag values
+// EnsureReady blocks until the synchronizer is ready to update feature flag values
 func (f *Synchronizer) EnsureReady() error {
 	if err := f.client.BlockUntilReady(10); err != nil {
 		return errors.Wrap(err, "split.io client could not initialize")

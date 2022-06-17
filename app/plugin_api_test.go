@@ -119,7 +119,7 @@ func setupMultiPluginAPITest(t *testing.T, pluginCodes []string, pluginManifests
 		})
 	}
 
-	app.SetPluginsEnvironment(env)
+	app.ch.SetPluginsEnvironment(env)
 
 	return pluginDir
 }
@@ -177,17 +177,22 @@ func TestPluginAPIGetUserPreferences(t *testing.T) {
 
 	preferences, err := api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 2, len(preferences))
+	assert.Equal(t, 3, len(preferences))
 
 	assert.Equal(t, user1.Id, preferences[0].UserId)
-	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[0].Category)
-	assert.Equal(t, "hide", preferences[0].Name)
-	assert.Equal(t, "false", preferences[0].Value)
+	assert.Equal(t, model.PreferenceCategoryInsights, preferences[0].Category)
+	assert.Equal(t, model.PreferenceNameInsights, preferences[0].Name)
+	assert.Equal(t, "{\"insights_modal_viewed\":false}", preferences[0].Value)
 
 	assert.Equal(t, user1.Id, preferences[1].UserId)
-	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[1].Category)
-	assert.Equal(t, user1.Id, preferences[1].Name)
-	assert.Equal(t, "0", preferences[1].Value)
+	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[1].Category)
+	assert.Equal(t, "hide", preferences[1].Name)
+	assert.Equal(t, "false", preferences[1].Value)
+
+	assert.Equal(t, user1.Id, preferences[2].UserId)
+	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[2].Category)
+	assert.Equal(t, user1.Id, preferences[2].Name)
+	assert.Equal(t, "0", preferences[2].Value)
 }
 
 func TestPluginAPIDeleteUserPreferences(t *testing.T) {
@@ -205,7 +210,7 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 
 	preferences, err := api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 2, len(preferences))
+	assert.Equal(t, 3, len(preferences))
 
 	err = api.DeletePreferencesForUser(user1.Id, preferences)
 	require.Nil(t, err)
@@ -232,15 +237,16 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 
 	preferences, err = api.GetPreferencesForUser(user2.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 3, len(preferences))
+	assert.Equal(t, 4, len(preferences))
 
 	err = api.DeletePreferencesForUser(user2.Id, []model.Preference{preference})
 	require.Nil(t, err)
 	preferences, err = api.GetPreferencesForUser(user2.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 2, len(preferences))
-	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[0].Category)
-	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[1].Category)
+	assert.Equal(t, 3, len(preferences))
+	assert.Equal(t, model.PreferenceCategoryInsights, preferences[0].Category)
+	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[1].Category)
+	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[2].Category)
 }
 
 func TestPluginAPIUpdateUserPreferences(t *testing.T) {
@@ -258,17 +264,22 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 
 	preferences, err := api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 2, len(preferences))
+	assert.Equal(t, 3, len(preferences))
 
 	assert.Equal(t, user1.Id, preferences[0].UserId)
-	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[0].Category)
-	assert.Equal(t, "hide", preferences[0].Name)
-	assert.Equal(t, "false", preferences[0].Value)
+	assert.Equal(t, model.PreferenceCategoryInsights, preferences[0].Category)
+	assert.Equal(t, model.PreferenceNameInsights, preferences[0].Name)
+	assert.Equal(t, "{\"insights_modal_viewed\":false}", preferences[0].Value)
 
 	assert.Equal(t, user1.Id, preferences[1].UserId)
-	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[1].Category)
-	assert.Equal(t, user1.Id, preferences[1].Name)
-	assert.Equal(t, "0", preferences[1].Value)
+	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[1].Category)
+	assert.Equal(t, "hide", preferences[1].Name)
+	assert.Equal(t, "false", preferences[1].Value)
+
+	assert.Equal(t, user1.Id, preferences[2].UserId)
+	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[2].Category)
+	assert.Equal(t, user1.Id, preferences[2].Name)
+	assert.Equal(t, "0", preferences[2].Value)
 
 	preference := model.Preference{
 		Name:     user1.Id,
@@ -283,8 +294,8 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 	preferences, err = api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
 
-	assert.Equal(t, 3, len(preferences))
-	expectedCategories := []string{model.PreferenceCategoryTutorialSteps, model.PreferenceCategoryTheme, model.PreferenceRecommendedNextSteps}
+	assert.Equal(t, 4, len(preferences))
+	expectedCategories := []string{model.PreferenceCategoryTutorialSteps, model.PreferenceCategoryTheme, model.PreferenceRecommendedNextSteps, model.PreferenceCategoryInsights}
 	for _, pref := range preferences {
 		assert.Contains(t, expectedCategories, pref.Category)
 		assert.Equal(t, user1.Id, pref.UserId)
@@ -492,6 +503,59 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 			assert.Empty(t, usersMap)
 		})
 	}
+}
+
+func TestPluginAPIUserCustomStatus(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	user1, err := th.App.CreateUser(th.Context, &model.User{
+		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
+		Username: "user_" + model.NewId(),
+		Password: "password",
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteUser(th.Context, user1)
+
+	custom := &model.CustomStatus{
+		Emoji: ":tada:",
+		Text:  "honk",
+	}
+
+	err = api.UpdateUserCustomStatus(user1.Id, custom)
+	assert.Nil(t, err)
+	userCs, err := th.App.GetCustomStatus(user1.Id)
+	assert.Nil(t, err)
+	assert.Equal(t, custom, userCs)
+
+	custom.Text = ""
+	err = api.UpdateUserCustomStatus(user1.Id, custom)
+	assert.Nil(t, err)
+	userCs, err = th.App.GetCustomStatus(user1.Id)
+	assert.Nil(t, err)
+	assert.Equal(t, custom, userCs)
+
+	custom.Text = "honk"
+	custom.Emoji = ""
+	err = api.UpdateUserCustomStatus(user1.Id, custom)
+	assert.Nil(t, err)
+	userCs, err = th.App.GetCustomStatus(user1.Id)
+	assert.Nil(t, err)
+	assert.Equal(t, custom, userCs)
+
+	custom.Text = ""
+	err = api.UpdateUserCustomStatus(user1.Id, custom)
+	assert.NotNil(t, err)
+	assert.Equal(t, err.Error(), "SetCustomStatus: Failed to update the custom status. Please add either emoji or custom text status or both., ")
+
+	// Remove custom status
+	err = api.RemoveUserCustomStatus(user1.Id)
+	assert.Nil(t, err)
+	var csClear *model.CustomStatus
+	userCs, err = th.App.GetCustomStatus(user1.Id)
+	assert.Nil(t, err)
+	assert.Equal(t, csClear, userCs)
 }
 
 func TestPluginAPIGetFile(t *testing.T) {
@@ -715,7 +779,6 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 		]
 	}}`)
 	require.NoError(t, err)
-
 }
 
 func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
@@ -755,7 +818,6 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 	}`)
 
 	require.NoError(t, err)
-
 }
 
 func TestPluginAPIGetPlugins(t *testing.T) {
@@ -803,7 +865,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 		require.True(t, activated)
 		pluginManifests = append(pluginManifests, manifest)
 	}
-	th.App.SetPluginsEnvironment(env)
+	th.App.ch.SetPluginsEnvironment(env)
 
 	// Deactivate the last one for testing
 	success := env.Deactivate(pluginIDs[len(pluginIDs)-1])
@@ -877,7 +939,7 @@ func TestInstallPlugin(t *testing.T) {
 		env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(app.Srv()), pluginDir, webappPluginDir, app.Log(), nil)
 		require.NoError(t, err)
 
-		app.SetPluginsEnvironment(env)
+		app.ch.SetPluginsEnvironment(env)
 
 		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
 		utils.CompileGo(t, pluginCode, backend)
@@ -1084,6 +1146,7 @@ func pluginAPIHookTest(t *testing.T, th *TestHelper, fileName string, id string,
 	if ret != "OK" {
 		return errors.New(ret)
 	}
+
 	return nil
 }
 
@@ -1284,7 +1347,6 @@ func TestPluginCreateBot(t *testing.T) {
 		Description: "bot2",
 	})
 	require.NotNil(t, err)
-
 }
 
 func TestPluginCreatePostWithUploadedFile(t *testing.T) {
@@ -1553,7 +1615,7 @@ func TestAPIMetrics(t *testing.T) {
 		env, err := plugin.NewEnvironment(th.NewPluginAPI, NewDriverImpl(th.Server), pluginDir, webappPluginDir, th.App.Log(), metricsMock)
 		require.NoError(t, err)
 
-		th.App.SetPluginsEnvironment(env)
+		th.App.ch.SetPluginsEnvironment(env)
 
 		pluginID := model.NewId()
 		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
@@ -1748,6 +1810,7 @@ type MockSlashCommandProvider struct {
 func (*MockSlashCommandProvider) GetTrigger() string {
 	return "mock"
 }
+
 func (*MockSlashCommandProvider) GetCommand(a *App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          "mock",
@@ -1757,6 +1820,7 @@ func (*MockSlashCommandProvider) GetCommand(a *App, T i18n.TranslateFunc) *model
 		DisplayName:      "mock",
 	}
 }
+
 func (mscp *MockSlashCommandProvider) DoCommand(a *App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	mscp.Args = args
 	mscp.Message = message
@@ -1797,7 +1861,7 @@ func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {
 	api := th.SetupPluginAPI()
 
 	basicPostText := &th.BasicPost.Message
-	unknwonTerm := "Unknown Message"
+	unknownTerm := "Unknown Message"
 
 	testCases := []struct {
 		description      string
@@ -1817,7 +1881,7 @@ func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {
 			"doesn't match any posts",
 			th.BasicTeam.Id,
 			th.BasicUser.Id,
-			model.SearchParameter{Terms: &unknwonTerm},
+			model.SearchParameter{Terms: &unknownTerm},
 			0,
 		},
 		{
@@ -1920,7 +1984,6 @@ func TestPluginAPIUpdateCommand(t *testing.T) {
 	require.NoError(t, appErr)
 	require.Equal(t, "anothernewtriggeragain", newCmd4.Trigger)
 	require.Equal(t, team1.Id, newCmd4.TeamId)
-
 }
 
 func TestPluginAPIIsEnterpriseReady(t *testing.T) {

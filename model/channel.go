@@ -6,6 +6,8 @@ package model
 import (
 	"crypto/sha1"
 	"encoding/hex"
+	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"sort"
@@ -25,7 +27,7 @@ const (
 	ChannelGroupMinUsers       = 3
 	DefaultChannelName         = "town-square"
 	ChannelDisplayNameMaxRunes = 64
-	ChannelNameMinLength       = 2
+	ChannelNameMinLength       = 1
 	ChannelNameMaxLength       = 64
 	ChannelHeaderMaxRunes      = 1024
 	ChannelPurposeMaxRunes     = 250
@@ -51,11 +53,11 @@ type Channel struct {
 	ExtraUpdateAt     int64                  `json:"extra_update_at"`
 	CreatorId         string                 `json:"creator_id"`
 	SchemeId          *string                `json:"scheme_id"`
-	Props             map[string]interface{} `json:"props" db:"-"`
+	Props             map[string]interface{} `json:"props"`
 	GroupConstrained  *bool                  `json:"group_constrained"`
 	Shared            *bool                  `json:"shared"`
 	TotalMsgCountRoot int64                  `json:"total_msg_count_root"`
-	PolicyID          *string                `json:"policy_id" db:"-"`
+	PolicyID          *string                `json:"policy_id"`
 	LastRootPostAt    int64                  `json:"last_root_post_at"`
 }
 
@@ -121,6 +123,7 @@ type ChannelModeratedRolesPatch struct {
 // ExcludeDefaultChannels will exclude the configured default channels (ex 'town-square' and 'off-topic').
 // IncludeDeleted will include channel records where DeleteAt != 0.
 // ExcludeChannelNames will exclude channels from the results by name.
+// IncludeSearchById will include searching matches against channel IDs in the results
 // Paginate whether to paginate the results.
 // Page page requested, if results are paginated.
 // PerPage number of results per page, if paginated.
@@ -137,16 +140,19 @@ type ChannelSearchOpts struct {
 	PolicyID                 string
 	ExcludePolicyConstrained bool
 	IncludePolicyID          bool
+	IncludeSearchById        bool
 	Public                   bool
 	Private                  bool
 	Page                     *int
 	PerPage                  *int
+	LastDeleteAt             int
+	LastUpdateAt             int
 }
 
 type ChannelMemberCountByGroup struct {
-	GroupId                     string `db:"-" json:"group_id"`
-	ChannelMemberCount          int64  `db:"-" json:"channel_member_count"`
-	ChannelMemberTimezonesCount int64  `db:"-" json:"channel_member_timezones_count"`
+	GroupId                     string `json:"group_id"`
+	ChannelMemberCount          int64  `json:"channel_member_count"`
+	ChannelMemberTimezonesCount int64  `json:"channel_member_timezones_count"`
 }
 
 type ChannelOption func(channel *Channel)
@@ -155,6 +161,31 @@ func WithID(ID string) ChannelOption {
 	return func(channel *Channel) {
 		channel.Id = ID
 	}
+}
+
+// The following are some GraphQL methods necessary to return the
+// data in float64 type. The spec doesn't support 64 bit integers,
+// so we have to pass the data in float64. The _ at the end is
+// a hack to keep the attribute name same in GraphQL schema.
+
+func (o *Channel) CreateAt_() float64 {
+	return float64(o.CreateAt)
+}
+
+func (o *Channel) UpdateAt_() float64 {
+	return float64(o.UpdateAt)
+}
+
+func (o *Channel) DeleteAt_() float64 {
+	return float64(o.DeleteAt)
+}
+
+func (o *Channel) LastPostAt_() float64 {
+	return float64(o.LastPostAt)
+}
+
+func (o *Channel) TotalMsgCount_() float64 {
+	return float64(o.TotalMsgCount)
 }
 
 func (o *Channel) DeepCopy() *Channel {
@@ -187,7 +218,7 @@ func (o *Channel) IsValid() *AppError {
 	}
 
 	if !IsValidChannelIdentifier(o.Name) {
-		return NewAppError("Channel.IsValid", "model.channel.is_valid.2_or_more.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+		return NewAppError("Channel.IsValid", "model.channel.is_valid.1_or_more.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if !(o.Type == ChannelTypeOpen || o.Type == ChannelTypePrivate || o.Type == ChannelTypeDirect || o.Type == ChannelTypeGroup) {
@@ -301,6 +332,24 @@ func (o *Channel) GetOtherUserIdForDM(userId string) string {
 	}
 
 	return otherUserId
+}
+
+func (ChannelType) ImplementsGraphQLType(name string) bool {
+	return name == "ChannelType"
+}
+
+func (t ChannelType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(string(t))
+}
+
+func (t *ChannelType) UnmarshalGraphQL(input interface{}) error {
+	chType, ok := input.(string)
+	if !ok {
+		return errors.New("wrong type")
+	}
+
+	*t = ChannelType(chType)
+	return nil
 }
 
 func GetDMNameFromIds(userId1, userId2 string) string {

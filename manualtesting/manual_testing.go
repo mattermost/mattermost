@@ -143,7 +143,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			Name:     model.SessionCookieToken,
 			Value:    client.AuthToken,
 			Path:     "/",
-			MaxAge:   *c.App.Config().ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24,
+			MaxAge:   *c.App.Config().ServiceSettings.SessionLengthWebInHours * 60 * 60,
 			HttpOnly: true,
 		}
 		http.SetCookie(w, sessionCookie)
@@ -178,7 +178,10 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 
 func getChannelID(a app.AppIface, channelname string, teamid string, userid string) (string, bool) {
 	// Grab all the channels
-	channels, err := a.Srv().Store.Channel().GetChannels(teamid, userid, false, 0)
+	channels, err := a.Srv().Store.Channel().GetChannels(teamid, userid, &model.ChannelSearchOpts{
+		IncludeDeleted: false,
+		LastDeleteAt:   0,
+	})
 	if err != nil {
 		mlog.Debug("Unable to get channels")
 		return "", false

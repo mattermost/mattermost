@@ -7,7 +7,7 @@ import (
 	"database/sql"
 	"encoding/json"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -19,24 +19,7 @@ type SqlLinkMetadataStore struct {
 }
 
 func newSqlLinkMetadataStore(sqlStore *SqlStore) store.LinkMetadataStore {
-	s := &SqlLinkMetadataStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.LinkMetadata{}, "LinkMetadata").SetKeys(false, "Hash")
-		table.ColMap("URL").SetMaxSize(2048)
-		table.ColMap("Type").SetMaxSize(16)
-		table.ColMap("Data").SetDataType(sqlStore.jsonDataType())
-	}
-
-	return s
-}
-
-func (s SqlLinkMetadataStore) createIndexesIfNotExists() {
-	if s.DriverName() == model.DatabaseDriverMysql {
-		s.CreateCompositeIndexIfNotExists("idx_link_metadata_url_timestamp", "LinkMetadata", []string{"URL(512)", "Timestamp"})
-	} else {
-		s.CreateCompositeIndexIfNotExists("idx_link_metadata_url_timestamp", "LinkMetadata", []string{"URL", "Timestamp"})
-	}
+	return &SqlLinkMetadataStore{sqlStore}
 }
 
 func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMetadata, error) {
@@ -49,16 +32,27 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 	if err != nil {
 		return nil, errors.Wrap(err, "could not serialize metadataBytes to JSON")
 	}
+	if s.IsBinaryParamEnabled() {
+		metadataBytes = AppendBinaryFlag(metadataBytes)
+	}
 
-	query, args, err := s.getQueryBuilder().
+	query := s.getQueryBuilder().
 		Insert("LinkMetadata").
 		Columns("Hash", "URL", "Timestamp", "Type", "Data").
-		Values(metadata.Hash, metadata.URL, metadata.Timestamp, metadata.Type, string(metadataBytes)).
-		ToSql()
+		Values(metadata.Hash, metadata.URL, metadata.Timestamp, metadata.Type, metadataBytes)
+
+	if s.DriverName() == model.DatabaseDriverMysql {
+		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE URL = ?, Timestamp = ?, Type = ?, Data = ?", metadata.URL, metadata.Timestamp, metadata.Type, metadataBytes))
+	} else {
+		query = query.SuffixExpr(sq.Expr("ON CONFLICT (hash) DO UPDATE SET URL = ?, Timestamp = ?, Type = ?, Data = ?", metadata.URL, metadata.Timestamp, metadata.Type, metadataBytes))
+	}
+
+	q, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "metadata_tosql")
 	}
-	_, err = s.GetMasterX().Exec(query, args...)
+
+	_, err = s.GetMasterX().Exec(q, args...)
 	if err != nil && !IsUniqueConstraintError(err, []string{"PRIMARY", "linkmetadata_pkey"}) {
 		return nil, errors.Wrap(err, "could not save link metadata")
 	}

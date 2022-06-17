@@ -5,13 +5,15 @@ package sqlstore
 
 import (
 	"database/sql"
+	"net/url"
 	"strconv"
 	"strings"
 	"unicode"
 
-	"github.com/mattermost/gorp"
-
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+
+	"github.com/go-sql-driver/mysql"
 )
 
 var escapeLikeSearchChar = []string{
@@ -45,14 +47,6 @@ func MapStringsToQueryParams(list []string, paramPrefix string) (string, map[str
 	}
 
 	return "(" + keys.String() + ")", params
-}
-
-// finalizeTransaction ensures a transaction is closed after use, rolling back if not already committed.
-func finalizeTransaction(transaction *gorp.Transaction) {
-	// Rollback returns sql.ErrTxDone if the transaction was already closed.
-	if err := transaction.Rollback(); err != nil && err != sql.ErrTxDone {
-		mlog.Error("Failed to rollback transaction", mlog.Err(err))
-	}
 }
 
 // finalizeTransactionX ensures a transaction is closed after use, rolling back if not already committed.
@@ -113,14 +107,13 @@ func constructMySQLJSONArgs(props map[string]string) ([]interface{}, string) {
 	// Unpack the keys and values to pass to MySQL.
 	args := make([]interface{}, 0, len(props))
 	for k, v := range props {
-		args = append(args, "$."+k)
-		args = append(args, v)
+		args = append(args, "$."+k, v)
 	}
 
 	// We calculate the number of ? to set in the query string.
 	argString := strings.Repeat("?, ", len(props)*2)
 	// Strip off the trailing comma.
-	argString = strings.TrimSuffix(strings.TrimSpace(argString), ",")
+	argString = strings.TrimSuffix(argString, ", ")
 
 	return args, argString
 }
@@ -146,4 +139,61 @@ func constructArrayArgs(ids []string) (string, []interface{}) {
 	}
 
 	return "(" + placeholder.String() + ")", values
+}
+
+func wrapBinaryParamStringMap(ok bool, props model.StringMap) model.StringMap {
+	if props == nil {
+		props = make(model.StringMap)
+	}
+	props[model.BinaryParamKey] = strconv.FormatBool(ok)
+	return props
+}
+
+// morphWriter is a target to pass to the logger instance of morph.
+// For now, everything is just logged at a debug level. If we need to log
+// errors/warnings from the library also, that needs to be seen later.
+type morphWriter struct {
+}
+
+func (l *morphWriter) Write(in []byte) (int, error) {
+	mlog.Debug(string(in))
+	return len(in), nil
+}
+
+func DSNHasBinaryParam(dsn string) (bool, error) {
+	url, err := url.Parse(dsn)
+	if err != nil {
+		return false, err
+	}
+	return url.Query().Get("binary_parameters") == "yes", nil
+}
+
+// AppendBinaryFlag updates the byte slice to work using binary_parameters=yes.
+func AppendBinaryFlag(buf []byte) []byte {
+	return append([]byte{0x01}, buf...)
+}
+
+// AppendMultipleStatementsFlag attached dsn parameters to MySQL dsn in order to make migrations work.
+func AppendMultipleStatementsFlag(dataSource string) (string, error) {
+	config, err := mysql.ParseDSN(dataSource)
+	if err != nil {
+		return "", err
+	}
+
+	if config.Params == nil {
+		config.Params = map[string]string{}
+	}
+
+	config.Params["multiStatements"] = "true"
+	return config.FormatDSN(), nil
+}
+
+// ResetReadTimeout removes the timeout constraint from the MySQL dsn.
+func ResetReadTimeout(dataSource string) (string, error) {
+	config, err := mysql.ParseDSN(dataSource)
+	if err != nil {
+		return "", err
+	}
+	config.ReadTimeout = 0
+	return config.FormatDSN(), nil
 }

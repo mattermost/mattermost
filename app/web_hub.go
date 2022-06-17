@@ -178,7 +178,8 @@ func (s *Server) Publish(message *model.WebSocketEvent) {
 			message.EventType() == model.WebsocketEventPostEdited ||
 			message.EventType() == model.WebsocketEventDirectAdded ||
 			message.EventType() == model.WebsocketEventGroupAdded ||
-			message.EventType() == model.WebsocketEventAddedToTeam {
+			message.EventType() == model.WebsocketEventAddedToTeam ||
+			message.GetBroadcast().ReliableClusterSend {
 			cm.SendType = model.ClusterSendReliable
 		}
 
@@ -188,6 +189,10 @@ func (s *Server) Publish(message *model.WebSocketEvent) {
 
 func (a *App) Publish(message *model.WebSocketEvent) {
 	a.Srv().Publish(message)
+}
+
+func (ch *Channels) Publish(message *model.WebSocketEvent) {
+	ch.srv.Publish(message)
 }
 
 func (s *Server) PublishSkipClusterSend(event *model.WebSocketEvent) {
@@ -432,7 +437,7 @@ func (h *Hub) Start() {
 				webSessionMessage.isRegistered <- isRegistered
 			case req := <-h.checkConn:
 				var res *CheckConnResult
-				conn := connIndex.GetInactiveByConnectionID(req.userID, req.connectionID)
+				conn := connIndex.RemoveInactiveByConnectionID(req.userID, req.connectionID)
 				if conn != nil {
 					res = &CheckConnResult{
 						ConnectionID:     req.connectionID,
@@ -440,20 +445,13 @@ func (h *Hub) Start() {
 						ActiveQueue:      conn.send,
 						DeadQueue:        conn.deadQueue,
 						DeadQueuePointer: conn.deadQueuePointer,
+						ReuseCount:       conn.reuseCount + 1,
 					}
 				}
 				req.result <- res
 			case <-ticker.C:
 				connIndex.RemoveInactiveConnections()
 			case webConn := <-h.register:
-				var oldConn *WebConn
-				if *h.srv.Config().ServiceSettings.EnableReliableWebSockets {
-					// Delete the old conn from connIndex if it exists.
-					oldConn = connIndex.RemoveInactiveByConnectionID(
-						webConn.GetSession().UserId,
-						webConn.GetConnectionID())
-				}
-
 				// Mark the current one as active.
 				// There is no need to check if it was inactive or not,
 				// we will anyways need to make it active.
@@ -462,8 +460,8 @@ func (h *Hub) Start() {
 				connIndex.Add(webConn)
 				atomic.StoreInt64(&h.connectionCount, int64(connIndex.AllActive()))
 
-				if webConn.IsAuthenticated() && oldConn == nil {
-					// The hello message should only be sent when the conn wasn't found.
+				if webConn.IsAuthenticated() && webConn.reuseCount == 0 {
+					// The hello message should only be sent when the reuseCount is 0.
 					// i.e in server restart, or long timeout, or fresh connection case.
 					// In case of seq number not found in dead queue, it is handled by
 					// the webconn write pump.
@@ -472,11 +470,7 @@ func (h *Hub) Start() {
 			case webConn := <-h.unregister:
 				// If already removed (via queue full), then removing again becomes a noop.
 				// But if not removed, mark inactive.
-				if *h.srv.Config().ServiceSettings.EnableReliableWebSockets {
-					webConn.active = false
-				} else {
-					connIndex.Remove(webConn)
-				}
+				webConn.active = false
 
 				atomic.StoreInt64(&h.connectionCount, int64(connIndex.AllActive()))
 
@@ -549,13 +543,20 @@ func (h *Hub) Start() {
 						}
 					}
 				}
-				if msg.GetBroadcast().UserId != "" {
+
+				if connID := msg.GetBroadcast().ConnectionId; connID != "" {
+					if webConn := connIndex.byConnectionId[connID]; webConn != nil {
+						broadcast(webConn)
+						continue
+					}
+				} else if msg.GetBroadcast().UserId != "" {
 					candidates := connIndex.ForUser(msg.GetBroadcast().UserId)
 					for _, webConn := range candidates {
 						broadcast(webConn)
 					}
 					continue
 				}
+
 				candidates := connIndex.All()
 				for webConn := range candidates {
 					broadcast(webConn)
@@ -606,7 +607,8 @@ type hubConnectionIndex struct {
 	byUserId map[string][]*WebConn
 	// byConnection serves the dual purpose of storing the index of the webconn
 	// in the value of byUserId map, and also to get all connections.
-	byConnection map[*WebConn]int
+	byConnection   map[*WebConn]int
+	byConnectionId map[string]*WebConn
 	// staleThreshold is the limit beyond which inactive connections
 	// will be deleted.
 	staleThreshold time.Duration
@@ -616,6 +618,7 @@ func newHubConnectionIndex(interval time.Duration) *hubConnectionIndex {
 	return &hubConnectionIndex{
 		byUserId:       make(map[string][]*WebConn),
 		byConnection:   make(map[*WebConn]int),
+		byConnectionId: make(map[string]*WebConn),
 		staleThreshold: interval,
 	}
 }
@@ -623,6 +626,7 @@ func newHubConnectionIndex(interval time.Duration) *hubConnectionIndex {
 func (i *hubConnectionIndex) Add(wc *WebConn) {
 	i.byUserId[wc.UserId] = append(i.byUserId[wc.UserId], wc)
 	i.byConnection[wc] = len(i.byUserId[wc.UserId]) - 1
+	i.byConnectionId[wc.GetConnectionID()] = wc
 }
 
 func (i *hubConnectionIndex) Remove(wc *WebConn) {
@@ -643,6 +647,7 @@ func (i *hubConnectionIndex) Remove(wc *WebConn) {
 	i.byConnection[last] = userConnIndex
 
 	delete(i.byConnection, wc)
+	delete(i.byConnectionId, wc.GetConnectionID())
 }
 
 func (i *hubConnectionIndex) Has(wc *WebConn) bool {
@@ -658,21 +663,6 @@ func (i *hubConnectionIndex) ForUser(id string) []*WebConn {
 // All returns the full webConn index.
 func (i *hubConnectionIndex) All() map[*WebConn]int {
 	return i.byConnection
-}
-
-// GetInactiveByConnectionID returns an inactive connection for the given
-// userID and connectionID.
-func (i *hubConnectionIndex) GetInactiveByConnectionID(userID, connectionID string) *WebConn {
-	// To handle empty sessions.
-	if userID == "" {
-		return nil
-	}
-	for _, conn := range i.ForUser(userID) {
-		if conn.GetConnectionID() == connectionID && !conn.active {
-			return conn
-		}
-	}
-	return nil
 }
 
 // RemoveInactiveByConnectionID removes an inactive connection for the given

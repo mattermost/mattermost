@@ -81,6 +81,9 @@ func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
 	return value, nil
 }
 
+func (a *App) Channels() *Channels {
+	return a.ch
+}
 func (a *App) Srv() *Server {
 	return a.ch.srv
 }
@@ -92,34 +95,34 @@ func (a *App) NotificationsLog() *mlog.Logger {
 }
 
 func (a *App) AccountMigration() einterfaces.AccountMigrationInterface {
-	return a.ch.srv.AccountMigration
+	return a.ch.AccountMigration
 }
 func (a *App) Cluster() einterfaces.ClusterInterface {
 	return a.ch.srv.Cluster
 }
 func (a *App) Compliance() einterfaces.ComplianceInterface {
-	return a.ch.srv.Compliance
+	return a.ch.Compliance
 }
 func (a *App) DataRetention() einterfaces.DataRetentionInterface {
-	return a.ch.srv.DataRetention
+	return a.ch.DataRetention
 }
 func (a *App) SearchEngine() *searchengine.Broker {
 	return a.ch.srv.SearchEngine
 }
 func (a *App) Ldap() einterfaces.LdapInterface {
-	return a.ch.srv.Ldap
+	return a.ch.Ldap
 }
 func (a *App) MessageExport() einterfaces.MessageExportInterface {
-	return a.ch.srv.MessageExport
+	return a.ch.MessageExport
 }
 func (a *App) Metrics() einterfaces.MetricsInterface {
 	return a.ch.srv.Metrics
 }
 func (a *App) Notification() einterfaces.NotificationInterface {
-	return a.ch.srv.Notification
+	return a.ch.Notification
 }
 func (a *App) Saml() einterfaces.SamlInterface {
-	return a.ch.srv.Saml
+	return a.ch.Saml
 }
 func (a *App) Cloud() einterfaces.CloudInterface {
 	return a.ch.srv.Cloud

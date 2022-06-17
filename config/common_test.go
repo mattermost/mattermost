@@ -147,7 +147,7 @@ func TestConfigEnvironmentOverrides(t *testing.T) {
 	base, err := NewStoreFromBacking(memstore, nil, false)
 	require.NoError(t, err)
 	originalConfig := &model.Config{}
-	originalConfig.ServiceSettings.SiteURL = model.NewString("http://notoverriden.ca")
+	originalConfig.ServiceSettings.SiteURL = model.NewString("http://notoverridden.ca")
 
 	os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://overridden.ca")
 	defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
