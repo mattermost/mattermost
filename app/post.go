@@ -810,13 +810,8 @@ func (a *App) GetPostsPage(options model.GetPostsOptions) (*model.PostList, *mod
 		}
 	}
 
-	// we use the slower route if not a collapsed threads request;
-	// Even though we know the parent and child subqueries are ordered within themselves, they are not added to the list in an ordered fashion with respect to each other, and there is not a 1:1 correspondence between Order and Posts (root posts are not added to Order).
-	filterOptions := filterPostOptions{}
-	if options.CollapsedThreads {
-		filterOptions.assumeSortedCreatedAt = true
-	}
-	if appErr := a.filterInaccessiblePosts(postList, filterOptions); appErr != nil {
+	// The postList is sorted as only rootPosts Order is included
+	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
 
@@ -889,7 +884,15 @@ func (a *App) GetPostThread(postID string, opts model.GetPostsOptions, userID st
 		}
 	}
 
-	if appErr := a.filterInaccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+	// Get inserts the requested post first in the list, then adds the sorted threadPosts.
+	// So, the whole postList.Order is not sorted.
+	// The fully sorted list comes only when the CollapsedThreads is true and the Directions is not empty.
+	filterOptions := filterPostOptions{}
+	if opts.CollapsedThreads && opts.Direction != "" {
+		filterOptions.assumeSortedCreatedAt = true
+	}
+
+	if appErr := a.filterInaccessiblePosts(posts, filterOptions); appErr != nil {
 		return nil, appErr
 	}
 
@@ -1348,6 +1351,9 @@ func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*mode
 	}
 
 	posts.SortByCreateAt()
+
+	a.filterInaccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true})
+
 	return posts, nil
 }
 

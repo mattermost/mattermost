@@ -54,9 +54,6 @@ func getTimeSortedPostAccessibleBounds(postList *model.PostList, earliestAccessi
 	order := postList.Order
 	lenPosts := len(posts)
 
-	if lenPosts != len(order) {
-		return allAccessiblePosts
-	}
 	if lenPosts == 1 {
 		if posts[order[0]].CreateAt >= earliestAccessibleTime {
 			return allAccessiblePosts
@@ -131,8 +128,8 @@ func linearFilterPosts(postList *model.PostList, earliestAccessibleTime int64) {
 	// it can happen that some post list results don't have all posts in the Order field.
 	// for example GetPosts in the CollapsedThreads = false path, parents are not added
 	// to Order
-	for postId, post := range posts {
-		if post.CreateAt < earliestAccessibleTime {
+	for postId := range posts {
+		if posts[postId].CreateAt < earliestAccessibleTime {
 			postList.HasInaccessiblePosts = true
 			delete(posts, postId)
 		}
@@ -155,7 +152,7 @@ func (a *App) filterInaccessiblePosts(postList *model.PostList, options filterPo
 		return nil
 	}
 
-	if options.assumeSortedCreatedAt {
+	if len(postList.Posts) == len(postList.Order) && options.assumeSortedCreatedAt {
 		bounds := getTimeSortedPostAccessibleBounds(postList, lastAccessiblePostTime)
 		if bounds.allAccessible() {
 			return nil
@@ -179,9 +176,21 @@ func (a *App) filterInaccessiblePosts(postList *model.PostList, options filterPo
 			otherInaccessibleBound = len(postList.Order) - 1
 			otherAccessibleBound = 0
 		}
+
 		order := postList.Order
-		for i := min(bounds.inaccessible, otherInaccessibleBound); i <= maxInt(bounds.inaccessible, otherInaccessibleBound); i++ {
-			delete(postList.Posts, order[i])
+		inaccessibleCount := maxInt(bounds.inaccessible, otherInaccessibleBound) - min(bounds.inaccessible, otherInaccessibleBound)
+		accessibleCount := maxInt(bounds.accessible, otherAccessibleBound) - min(bounds.accessible, otherAccessibleBound)
+		// Linearly cover shorter route
+		if inaccessibleCount < accessibleCount {
+			for i := min(bounds.inaccessible, otherInaccessibleBound); i <= maxInt(bounds.inaccessible, otherInaccessibleBound); i++ {
+				delete(postList.Posts, order[i])
+			}
+		} else {
+			accessiblePosts := make(map[string]*model.Post, accessibleCount+1)
+			for i := min(bounds.accessible, otherAccessibleBound); i <= maxInt(bounds.accessible, otherAccessibleBound); i++ {
+				accessiblePosts[order[i]] = postList.Posts[order[i]]
+			}
+			postList.Posts = accessiblePosts
 		}
 
 		postList.Order = postList.Order[min(bounds.accessible, otherAccessibleBound) : maxInt(bounds.accessible, otherAccessibleBound)+1]

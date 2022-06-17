@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -166,7 +167,7 @@ func Test_filterInaccessiblePosts(t *testing.T) {
 		return &model.Post{CreateAt: at}
 	}
 
-	t.Run("ascending order returns corrent posts", func(t *testing.T) {
+	t.Run("ascending order returns correct posts", func(t *testing.T) {
 		postList := &model.PostList{
 			Posts: map[string]*model.Post{
 				"post_a": p(0),
@@ -181,20 +182,20 @@ func Test_filterInaccessiblePosts(t *testing.T) {
 
 		require.Nil(t, appErr)
 
-		require.Equal(t, map[string]*model.Post{
+		assert.Equal(t, map[string]*model.Post{
 			"post_c": p(2),
 			"post_d": p(3),
 			"post_e": p(4),
 		}, postList.Posts)
 
-		require.Equal(t, []string{
+		assert.Equal(t, []string{
 			"post_c",
 			"post_d",
 			"post_e",
 		}, postList.Order)
 	})
 
-	t.Run("descending order returns corrent posts", func(t *testing.T) {
+	t.Run("descending order returns correct posts", func(t *testing.T) {
 		postList := &model.PostList{
 			Posts: map[string]*model.Post{
 				"post_a": p(0),
@@ -209,13 +210,13 @@ func Test_filterInaccessiblePosts(t *testing.T) {
 
 		require.Nil(t, appErr)
 
-		require.Equal(t, map[string]*model.Post{
+		assert.Equal(t, map[string]*model.Post{
 			"post_c": p(2),
 			"post_d": p(3),
 			"post_e": p(4),
 		}, postList.Posts)
 
-		require.Equal(t, []string{
+		assert.Equal(t, []string{
 			"post_e",
 			"post_d",
 			"post_c",
@@ -237,13 +238,13 @@ func Test_filterInaccessiblePosts(t *testing.T) {
 
 		require.Nil(t, appErr)
 
-		require.Equal(t, map[string]*model.Post{
+		assert.Equal(t, map[string]*model.Post{
 			"post_c": p(2),
 			"post_d": p(3),
 			"post_e": p(4),
 		}, postList.Posts)
 
-		require.Equal(t, []string{
+		assert.Equal(t, []string{
 			"post_e",
 			"post_d",
 			"post_c",
@@ -265,12 +266,12 @@ func Test_filterInaccessiblePosts(t *testing.T) {
 
 		require.Nil(t, appErr)
 
-		require.Equal(t, map[string]*model.Post{
+		assert.Equal(t, map[string]*model.Post{
 			"post_d": p(3),
 			"post_e": p(4),
 		}, postList.Posts)
 
-		require.Equal(t, []string{
+		assert.Equal(t, []string{
 			"post_e",
 			"post_d",
 		}, postList.Order)
