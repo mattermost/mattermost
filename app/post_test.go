@@ -1247,6 +1247,77 @@ func TestUpdatePost(t *testing.T) {
 	})
 }
 
+func TestHashTagSearch(t *testing.T) {
+	var messages = []string{
+		"This hashtag is #found",
+		"Let's hope this gets #found because I want to go home",
+		"Don't #confuse the developer.",
+		"Keep the extra backup in the #foundary in case it gets lost.",
+	}
+
+	setup := func(t *testing.T, enableElasticsearch bool) (*TestHelper, []*model.Post) {
+		th := Setup(t).InitBasic()
+
+		posts := make([]*model.Post, len(messages))
+		for i := 0; i < cap(posts); i++ {
+			post, err := th.App.CreatePost(th.Context, &model.Post{
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   messages[i],
+			}, th.BasicChannel, false, true)
+
+			require.Nil(t, err)
+
+			posts[i] = post
+		}
+
+		if enableElasticsearch {
+			th.App.Srv().SetLicense(model.NewTestLicense("elastic_search"))
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ElasticsearchSettings.EnableIndexing = true
+				*cfg.ElasticsearchSettings.EnableSearching = true
+			})
+		} else {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ElasticsearchSettings.EnableSearching = false
+			})
+		}
+
+		return th, posts
+	}
+
+	t.Run("should return the hashtag if valid hashtag is queried", func(t *testing.T) {
+		th, posts := setup(t, false)
+		_ = posts
+		defer th.TearDown()
+
+		hash_tag_query := "found"
+
+		results, err := th.App.QueryHashTag(&hash_tag_query, 10)
+		_ = err
+
+		assert.Nil(t, err)
+
+		assert.Equal(t, 3, len(results))
+	})
+
+	t.Run("shouldn't return anything if invalid hashtag queried", func(t *testing.T) {
+		th, posts := setup(t, false)
+		_ = posts
+		defer th.TearDown()
+
+		hash_tag_query := "XaiealhalEcaeD"
+
+		results, err := th.App.QueryHashTag(&hash_tag_query, 10)
+		_ = err
+
+		assert.Nil(t, err)
+
+		assert.Equal(t, 0, len(results))
+	})
+}
+
 func TestSearchPostsForUser(t *testing.T) {
 	perPage := 5
 	searchTerm := "searchTerm"

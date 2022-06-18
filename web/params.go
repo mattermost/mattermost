@@ -24,6 +24,7 @@ const (
 	LimitMaximum       = 200
 )
 
+// TODO: should `Count` be merged with another param?
 type Params struct {
 	UserId                    string
 	TeamId                    string
@@ -33,6 +34,7 @@ type Params struct {
 	Timestamp                 int64
 	ChannelId                 string
 	HashTagQuery              string
+	Count                     uint64
 	PostId                    string
 	PolicyId                  string
 	FileId                    string

@@ -12634,7 +12634,7 @@ func (a *OpenTracingAppLayer) PurgeElasticsearchIndexes() *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) QueryHashTag() []string {
+func (a *OpenTracingAppLayer) QueryHashTag(hash_tag_query *string, count uint64) ([]*string, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.QueryHashTag")
 
@@ -12646,9 +12646,14 @@ func (a *OpenTracingAppLayer) QueryHashTag() []string {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.QueryHashTag()
+	resultVar0, resultVar1 := a.app.QueryHashTag(hash_tag_query, count)
 
-	return resultVar0
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) ReadFile(path string) ([]byte, *model.AppError) {

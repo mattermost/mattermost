@@ -26,5 +26,5 @@ func (api *API) InitHashTag() {
 }
 
 func (api *API) suggestHashTag(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.App.QueryHashTag(c.Params.HashTagQuery)
+	c.App.QueryHashTag(&c.Params.HashTagQuery, c.Params.Count)
 }

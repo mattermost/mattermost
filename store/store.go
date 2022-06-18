@@ -366,7 +366,7 @@ type PostStore interface {
 	HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error)
 	GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor, limit int) ([]*model.Post, model.GetPostsSinceForSyncCursor, error)
 
-	QueryHashTag(hash_tag_query *string)
+	QueryHashTag(hash_tag_query *string, count uint64) ([]*string, error)
 }
 
 type UserStore interface {
