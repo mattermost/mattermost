@@ -175,33 +175,6 @@ func Test_requestTrial(t *testing.T) {
 
 		subscriptionChanged, r, err := th.SystemAdminClient.RequestCloudTrial(&newValidBusinessEmail)
 
-		require.Error(t, err)
-		require.Nil(t, subscriptionChanged)
-		require.Equal(t, http.StatusInternalServerError, r.StatusCode, "Expected 500 Internal Server Error")
-	})
-
-	t.Run("cloudFree feature flag TRUE and ADMIN user are ABLE to request the trial", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
-
-		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-
-		cloud := mocks.CloudInterface{}
-
-		cloud.Mock.On("GetSubscription", mock.Anything).Return(subscription, nil)
-		cloud.Mock.On("RequestCloudTrial", mock.Anything, mock.Anything, "").Return(subscription, nil)
-		cloud.Mock.On("InvalidateCaches").Return(nil)
-
-		cloudImpl := th.App.Srv().Cloud
-		defer func() {
-			th.App.Srv().Cloud = cloudImpl
-		}()
-		th.App.Srv().Cloud = &cloud
-
-		subscriptionChanged, r, err := th.SystemAdminClient.RequestCloudTrial(&newValidBusinessEmail)
-
 		require.NoError(t, err)
 		require.Equal(t, subscriptionChanged, subscription)
 		require.Equal(t, http.StatusOK, r.StatusCode, "Status OK")
