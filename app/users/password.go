@@ -59,33 +59,29 @@ func IsPasswordValidWithSettings(password string, settings *model.PasswordSettin
 	if *settings.Lowercase {
 		if !strings.ContainsAny(password, model.LowercaseLetters) {
 			isError = true
+			id = id + "_lowercase"
 		}
-
-		id = id + "_lowercase"
 	}
 
 	if *settings.Uppercase {
 		if !strings.ContainsAny(password, model.UppercaseLetters) {
 			isError = true
+			id = id + "_uppercase"
 		}
-
-		id = id + "_uppercase"
 	}
 
 	if *settings.Number {
 		if !strings.ContainsAny(password, model.NUMBERS) {
 			isError = true
+			id = id + "_number"
 		}
-
-		id = id + "_number"
 	}
 
 	if *settings.Symbol {
 		if !strings.ContainsAny(password, model.SYMBOLS) {
 			isError = true
+			id = id + "_symbol"
 		}
-
-		id = id + "_symbol"
 	}
 
 	if isError {
