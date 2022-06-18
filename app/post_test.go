@@ -1251,7 +1251,7 @@ func TestHashTagSearch(t *testing.T) {
 	var messages = []string{
 		"This hashtag is #found",
 		"Let's hope this gets #found because I want to go home",
-		"Don't #confuse the developer.",
+		"Don't #confuse the developer. Even with #many different #tags",
 		"Keep the extra backup in the #foundary in case it gets lost.",
 	}
 
