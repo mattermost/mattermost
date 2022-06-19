@@ -1496,13 +1496,14 @@ func (us SqlUserStore) SearchNotInGroup(groupID string, term string, options *mo
 	return us.performSearch(query, term, options)
 }
 
-func generateSearchQuery(query sq.SelectBuilder, terms []string, fields []string, isPostgreSQL bool) sq.SelectBuilder {
+func generateSearchQuery(query sq.SelectBuilder, terms []string, fields []string, isPostgreSQL bool, textSearchConfig string) sq.SelectBuilder {
 	for _, term := range terms {
 		searchFields := []string{}
 		termArgs := []interface{}{}
+
 		for _, field := range fields {
 			if isPostgreSQL {
-				searchFields = append(searchFields, fmt.Sprintf("lower(unaccent(%s)) LIKE lower(unaccent(?)) escape '*' ", field))
+				searchFields = append(searchFields, fmt.Sprintf("to_tsvector('%[1]s', lower(%[2]s)) @@ to_tsquery('%[1]s', concat( lower(?) ,':*'))", textSearchConfig, field))
 			} else {
 				searchFields = append(searchFields, fmt.Sprintf("%s LIKE ? escape '*' ", field))
 			}
@@ -1542,11 +1543,10 @@ func (us SqlUserStore) performSearch(query sq.SelectBuilder, term string, option
 	}
 
 	if strings.TrimSpace(term) != "" {
-		query = generateSearchQuery(query, strings.Fields(term), searchType, isPostgreSQL)
+		query = generateSearchQuery(query, strings.Fields(term), searchType, isPostgreSQL, us.SqlStore.pgDefaultTextSearchConfig)
 	}
 
 	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
-
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "perform_search_tosql")
