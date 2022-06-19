@@ -1500,7 +1500,6 @@ func generateSearchQuery(query sq.SelectBuilder, terms []string, fields []string
 	for _, term := range terms {
 		searchFields := []string{}
 		termArgs := []interface{}{}
-
 		for _, field := range fields {
 			if isPostgreSQL {
 				searchFields = append(searchFields, fmt.Sprintf("to_tsvector('%[1]s', lower(%[2]s)) @@ to_tsquery('%[1]s', concat( lower(?) ,':*'))", textSearchConfig, field))
@@ -1547,6 +1546,7 @@ func (us SqlUserStore) performSearch(query sq.SelectBuilder, term string, option
 	}
 
 	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
+
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "perform_search_tosql")
