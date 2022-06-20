@@ -76,8 +76,7 @@ func TestAudit_LogRecord(t *testing.T) {
 			require.NoError(t, err)
 			defer os.Remove(tempDir)
 
-			var filePath string
-			filePath = filepath.Join(tempDir, "audit.log")
+			filePath := filepath.Join(tempDir, "audit.log")
 			cfg.Options = json.RawMessage(fmt.Sprintf(`{"filename": "%s"}`, filePath))
 			logger, err := mlog.NewLogger()
 			require.NoError(t, err)
