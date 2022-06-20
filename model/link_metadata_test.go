@@ -11,20 +11,14 @@ import (
 	"unicode/utf8"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
-	"github.com/dyatlov/go-opengraph/opengraph/types/article"
-	"github.com/dyatlov/go-opengraph/opengraph/types/audio"
-	"github.com/dyatlov/go-opengraph/opengraph/types/book"
-	"github.com/dyatlov/go-opengraph/opengraph/types/image"
-	"github.com/dyatlov/go-opengraph/opengraph/types/profile"
-	"github.com/dyatlov/go-opengraph/opengraph/types/video"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 const BigText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus maximus faucibus ex, vitae placerat neque feugiat ac. Nam tempus libero quis pellentesque feugiat. Cras tristique diam vel condimentum viverra. Proin molestie posuere leo. Nam pulvinar, ex quis tristique cursus, turpis ante commodo elit, a dapibus est ipsum id eros. Mauris tortor dolor, posuere ac velit vitae, faucibus viverra fusce."
 
-func sampleImage(imageName string) *image.Image {
-	return &image.Image{
+func sampleImage(imageName string) *opengraph.Image {
+	return &opengraph.Image{
 		URL:       fmt.Sprintf("http://example.com/%s", imageName),
 		SecureURL: fmt.Sprintf("https://example.com/%s", imageName),
 		Type:      "png",
@@ -186,7 +180,7 @@ func TestLinkMetadataDeserializeDataToConcreteType(t *testing.T) {
 		og := &opengraph.OpenGraph{
 			URL:         "http://example.com",
 			Description: "Hello, world!",
-			Images: []*image.Image{
+			Images: []*opengraph.Image{
 				{
 					URL: "http://example.com/image.png",
 				},
@@ -266,24 +260,24 @@ func TestTruncateText(t *testing.T) {
 
 func TestFirstNImages(t *testing.T) {
 	t.Run("when empty, return an empty one", func(t *testing.T) {
-		empty := make([]*image.Image, 0)
+		empty := make([]*opengraph.Image, 0)
 		assert.Exactly(t, firstNImages(empty, 1), empty, "Should be the same element")
 	})
 	t.Run("when it contains one element, return the same array", func(t *testing.T) {
-		one := []*image.Image{sampleImage("image.png")}
+		one := []*opengraph.Image{sampleImage("image.png")}
 		assert.Exactly(t, firstNImages(one, 1), one, "Should be the same element")
 	})
 	t.Run("when it contains more than one element and asking for only one, return the first one", func(t *testing.T) {
-		two := []*image.Image{sampleImage("image.png"), sampleImage("notme.png")}
+		two := []*opengraph.Image{sampleImage("image.png"), sampleImage("notme.png")}
 		assert.True(t, strings.HasSuffix(firstNImages(two, 1)[0].URL, "image.png"), "Should be the image element")
 	})
 	t.Run("when it contains less than asked, return the original", func(t *testing.T) {
-		two := []*image.Image{sampleImage("image.png"), sampleImage("notme.png")}
+		two := []*opengraph.Image{sampleImage("image.png"), sampleImage("notme.png")}
 		assert.Equal(t, two, firstNImages(two, 10), "should be the same pointer")
 	})
 
 	t.Run("asking for negative images", func(t *testing.T) {
-		six := []*image.Image{
+		six := []*opengraph.Image{
 			sampleImage("image.png"),
 			sampleImage("another.png"),
 			sampleImage("yetanother.jpg"),
@@ -306,18 +300,18 @@ func TestTruncateOpenGraph(t *testing.T) {
 		SiteName:         BigText,
 		Locale:           "[EN-en]",
 		LocalesAlternate: []string{"[EN-ca]", "[ES-es]"},
-		Images: []*image.Image{
+		Images: []*opengraph.Image{
 			sampleImage("image.png"),
 			sampleImage("another.png"),
 			sampleImage("yetanother.jpg"),
 			sampleImage("metoo.gif"),
 			sampleImage("fifth.ico"),
 			sampleImage("notme.tiff")},
-		Audios:  []*audio.Audio{{}},
-		Videos:  []*video.Video{{}},
-		Article: &article.Article{},
-		Book:    &book.Book{},
-		Profile: &profile.Profile{},
+		Audios:  []*opengraph.Audio{{}},
+		Videos:  []*opengraph.Video{{}},
+		Article: &opengraph.Article{},
+		Book:    &opengraph.Book{},
+		Profile: &opengraph.Profile{},
 	}
 	result := TruncateOpenGraph(&og)
 	assert.Nil(t, result.Article, "No article stored")

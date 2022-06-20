@@ -649,6 +649,7 @@ nuke: clean clean-docker ## Clean plus removes persistent server data.
 	@echo BOOM
 
 	rm -rf data
+	rm -f go.work go.work.sum
 
 setup-mac: ## Adds macOS hosts entries for Docker.
 	echo $$(boot2docker ip 2> /dev/null) dockerhost | sudo tee -a /etc/hosts
