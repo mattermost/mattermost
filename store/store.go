@@ -178,8 +178,8 @@ type ChannelStore interface {
 	GetMany(ids []string, allowFromCache bool) (model.ChannelList, error)
 	InvalidateChannel(id string)
 	InvalidateChannelByName(teamID, name string)
-	Delete(channelID string, time int64) error
-	Restore(channelID string, time int64) error
+	Delete(channelID string, timestamp int64) error
+	Restore(channelID string, timestamp int64) error
 	SetDeleteAt(channelID string, deleteAt int64, updateAt int64) error
 	PermanentDelete(channelID string) error
 	PermanentDeleteByTeam(teamID string) error
@@ -293,6 +293,7 @@ type ChannelStore interface {
 	// Insights
 	GetTopChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopChannelList, error)
 	GetTopChannelsForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopChannelList, error)
+	PostCountsByDuration(channelIDs []string, sinceUnixMillis int64, userID *string, duration model.PostCountGrouping, groupingLocation *time.Location) ([]*model.DurationPostCount, error)
 }
 
 type ChannelMemberHistoryStore interface {
@@ -338,7 +339,7 @@ type PostStore interface {
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error)
 	Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetSingle(id string, inclDeleted bool) (*model.Post, error)
-	Delete(postID string, time int64, deleteByID string) error
+	Delete(postID string, timestamp int64, deleteByID string) error
 	PermanentDeleteByUser(userID string) error
 	PermanentDeleteByChannel(channelID string) error
 	GetPosts(options model.GetPostsOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error)
@@ -349,9 +350,9 @@ type PostStore interface {
 	GetPostsBefore(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetPostsAfter(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error)
-	GetPostAfterTime(channelID string, time int64, collapsedThreads bool) (*model.Post, error)
-	GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, error)
-	GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool) (string, error)
+	GetPostAfterTime(channelID string, timestamp int64, collapsedThreads bool) (*model.Post, error)
+	GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool) (string, error)
+	GetPostIdBeforeTime(channelID string, timestamp int64, collapsedThreads bool) (string, error)
 	GetEtag(channelID string, allowFromCache bool, collapsedThreads bool) string
 	Search(teamID string, userID string, params *model.SearchParams) (*model.PostList, error)
 	AnalyticsUserCountsWithPostsByDay(teamID string) (model.AnalyticsRows, error)
@@ -360,7 +361,7 @@ type PostStore interface {
 	ClearCaches()
 	InvalidateLastPostTimeCache(channelID string)
 	GetLastPostRowCreateAt() (int64, error)
-	GetPostsCreatedAt(channelID string, time int64) ([]*model.Post, error)
+	GetPostsCreatedAt(channelID string, timestamp int64) ([]*model.Post, error)
 	Overwrite(post *model.Post) (*model.Post, error)
 	OverwriteMultiple(posts []*model.Post) ([]*model.Post, int, error)
 	GetPostsByIds(postIds []string) ([]*model.Post, error)
@@ -424,7 +425,7 @@ type UserStore interface {
 	UpdateFailedPasswordAttempts(userID string, attempts int) error
 	GetSystemAdminProfiles() (map[string]*model.User, error)
 	PermanentDelete(userID string) error
-	AnalyticsActiveCount(time int64, options model.UserCountOptions) (int64, error)
+	AnalyticsActiveCount(timestamp int64, options model.UserCountOptions) (int64, error)
 	AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, error)
 	GetUnreadCount(userID string) (int64, error)
 	GetUnreadCountForChannel(userID string, channelID string) (int64, error)
@@ -480,8 +481,8 @@ type SessionStore interface {
 	RemoveAllSessions() error
 	PermanentDeleteSessionsByUser(teamID string) error
 	GetLastSessionRowCreateAt() (int64, error)
-	UpdateExpiresAt(sessionID string, time int64) error
-	UpdateLastActivityAt(sessionID string, time int64) error
+	UpdateExpiresAt(sessionID string, timestamp int64) error
+	UpdateLastActivityAt(sessionID string, timestamp int64) error
 	UpdateRoles(userID string, roles string) (string, error)
 	UpdateDeviceId(id string, deviceID string, expiresAt int64) (string, error)
 	UpdateProps(session *model.Session) error
@@ -565,7 +566,7 @@ type WebhookStore interface {
 	GetIncomingByTeamByUser(teamID string, userID string, offset, limit int) ([]*model.IncomingWebhook, error)
 	UpdateIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, error)
 	GetIncomingByChannel(channelID string) ([]*model.IncomingWebhook, error)
-	DeleteIncoming(webhookID string, time int64) error
+	DeleteIncoming(webhookID string, timestamp int64) error
 	PermanentDeleteIncomingByChannel(channelID string) error
 	PermanentDeleteIncomingByUser(userID string) error
 
@@ -577,7 +578,7 @@ type WebhookStore interface {
 	GetOutgoingListByUser(userID string, offset, limit int) ([]*model.OutgoingWebhook, error)
 	GetOutgoingByTeam(teamID string, offset, limit int) ([]*model.OutgoingWebhook, error)
 	GetOutgoingByTeamByUser(teamID string, userID string, offset, limit int) ([]*model.OutgoingWebhook, error)
-	DeleteOutgoing(webhookID string, time int64) error
+	DeleteOutgoing(webhookID string, timestamp int64) error
 	PermanentDeleteOutgoingByChannel(channelID string) error
 	PermanentDeleteOutgoingByUser(userID string) error
 	UpdateOutgoing(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, error)
@@ -593,7 +594,7 @@ type CommandStore interface {
 	GetByTrigger(teamID string, trigger string) (*model.Command, error)
 	Get(id string) (*model.Command, error)
 	GetByTeam(teamID string) ([]*model.Command, error)
-	Delete(commandID string, time int64) error
+	Delete(commandID string, timestamp int64) error
 	PermanentDeleteByTeam(teamID string) error
 	PermanentDeleteByUser(userID string) error
 	Update(hook *model.Command) (*model.Command, error)
@@ -641,7 +642,7 @@ type EmojiStore interface {
 	GetByName(ctx context.Context, name string, allowFromCache bool) (*model.Emoji, error)
 	GetMultipleByName(names []string) ([]*model.Emoji, error)
 	GetList(offset, limit int, sort string) ([]*model.Emoji, error)
-	Delete(emoji *model.Emoji, time int64) error
+	Delete(emoji *model.Emoji, timestamp int64) error
 	Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, error)
 }
 
@@ -887,6 +888,8 @@ type GroupStore interface {
 	// DistinctGroupMemberCount returns the count of records in the GroupMembers table with distinct userID values.
 	DistinctGroupMemberCount() (int64, error)
 
+	DistinctGroupMemberCountForSource(source model.GroupSource) (int64, error)
+
 	// GroupCountWithAllowReference returns the count of records in the Groups table with AllowReference set to true.
 	GroupCountWithAllowReference() (int64, error)
 
@@ -938,6 +941,7 @@ type SharedChannelStore interface {
 // NotAssociatedToGroup will exclude channels that have associated, active GroupChannels records.
 // IncludeDeleted will include channel records where DeleteAt != 0.
 // ExcludeChannelNames will exclude channels from the results by name.
+// IncludeSearchById will include searching matches against channel IDs in the results
 // Paginate whether to paginate the results.
 // Page page requested, if results are paginated.
 // PerPage number of results per page, if paginated.
@@ -955,6 +959,7 @@ type ChannelSearchOpts struct {
 	ExcludePolicyConstrained bool
 	IncludePolicyID          bool
 	IncludeTeamInfo          bool
+	IncludeSearchById        bool
 	CountOnly                bool
 	Public                   bool
 	Private                  bool

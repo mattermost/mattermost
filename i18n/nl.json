@@ -1857,7 +1857,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Bekijk bericht"
+    "translation": "Beantwoorden in Mattermost"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -3154,10 +3154,6 @@
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch is reeds gestopt."
-  },
-  {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Connectie naar Elasticsearch server is mislukt."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -8181,7 +8177,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Jouw 14-daagse proef van de {{.WorkSpace}} werkruimte is klaar voor gebruik!"
+    "translation": "Jouw werkruimte is klaar voor gebruik!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -8673,11 +8669,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Je gratis 14-dagen proefperiode van Mattermost eindigt binnenkort"
+    "translation": "Je gratis 30-dagen proefperiode van Mattermost eindigt binnenkort"
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, je 14-daagse proefperiode van Mattermost loopt over 3 dagen af, op {{.TrialEnd}}. Voeg a.u.b. je betalingsgegevens toe om ervoor te zorgen dat je team kan blijven genieten van de voordelen van Mattermost Cloud."
+    "translation": "{{.Name}}, je 30-daagse proefperiode van Mattermost loopt over 3 dagen af, op {{.TrialEnd}}. Voeg a.u.b. je betalingsgegevens toe om ervoor te zorgen dat je team kan blijven genieten van de voordelen van Mattermost Cloud."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -8701,11 +8697,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Je gratis 14-dagen proefperiode van Mattermost eindigde"
+    "translation": "Je gratis 30-dagen proefperiode van Mattermost eindigde"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, jouw 14-daagse gratis proefperiode van Mattermost Cloud Enterprise is beëindigd op {{.TodayDate}}. We hopen dat je genoot van ons flexibel en veilig samenwerkingsplatform. Voeg aub. jouw betalingsgegevens toe om ervoor te zorgen dat jouw team kan blijven samenwerken met Mattermost."
+    "translation": "{{.Name}}, jouw 30-daagse gratis proefperiode van Mattermost Cloud Enterprise is beëindigd op {{.TodayDate}}. We hopen dat je genoot van ons flexibel en veilig samenwerkingsplatform. Voeg aub. jouw betalingsgegevens toe om ervoor te zorgen dat jouw team kan blijven samenwerken met Mattermost."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -9231,10 +9227,6 @@
     "translation": "Kanaalnaam is ongeldig"
   },
   {
-    "id": "model.insights.time_range.app_error",
-    "translation": " "
-  },
-  {
     "id": "model.channel.is_valid.1_or_more.app_error",
     "translation": "De naam moet 1 of meer alfanumerieke tekens in kleine letters bevatten."
   },
@@ -9325,5 +9317,37 @@
   {
     "id": "api.file.cloud_upload.app_error",
     "translation": "Uploaden via mmctl naar een Cloud instance wordt niet ondersteund. Raadpleeg de documentatie hier: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Ongeldige waarde voor decoder-concurrency {{.Value}}. Moet een positief getal of -1 zijn."
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "Niet gelukt om de gebruikte bestandsopslag op te halen."
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Niet gelukt om de gebruikte teams op te halen"
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Niet gelukt om het aan aantal teams op te halen"
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "Je bereikte de maximumlimiet van {{.NumIntegrations}} ingeschakelde integraties. Om onbeperkte integraties te installeren, upgrade naar een van onze betaalde plannen."
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Kan het team niet herstellen omdat de teamlimiet bereikt is"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Kan geen team aanmaken omdat de teamlimiet bereikt is"
+  },
+  {
+    "id": "api.cloud.cloud_free_feature_flag_off_error",
+    "translation": "CloudFree-functie flag is uit."
   }
 ]

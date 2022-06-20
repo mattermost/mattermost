@@ -17,6 +17,8 @@ import (
 
 	"github.com/pkg/errors"
 
+	"golang.org/x/sync/errgroup"
+
 	"github.com/mattermost/mattermost-server/v6/app/email"
 	"github.com/mattermost/mattermost-server/v6/app/imaging"
 	"github.com/mattermost/mattermost-server/v6/app/request"
@@ -28,7 +30,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mfa"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
-	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -385,6 +386,12 @@ func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
 		default:
 			return nil, model.NewAppError("GetUser", "app.user.get_by_username.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
+	}
+
+	// Temporary check to diagnose a SET escalation; when GetUser is called by some plugins a nil,nil is returned.
+	if user == nil {
+		mlog.Error("Unexpected nil from GetUser", mlog.String("user_id", userID))
+		return nil, model.NewAppError("GetUser", "app.user.get.app_error", nil, "Unexpected nil fetching userid "+userID, http.StatusInternalServerError)
 	}
 
 	return user, nil

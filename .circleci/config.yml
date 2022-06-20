@@ -134,6 +134,19 @@ jobs:
             make app-layers
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
 
+  check-go-mod-tidy:
+    docker:
+      - image: mattermost/mattermost-build-server:20220415_golang-1.18.1
+    working_directory: ~/mattermost
+    steps:
+      - attach_workspace:
+          at: ~/mattermost/
+      - run:
+          command: |
+            cd mattermost-server
+            make modules-tidy
+            if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; exit 1; fi
+
   check-store-layers:
     docker:
       - image: mattermost/mattermost-build-server:20220415_golang-1.18.1
@@ -192,7 +205,7 @@ jobs:
   check-golangci-lint:
     docker:
       # Keep the version in sync with the command in Makefile
-      - image: golangci/golangci-lint:v1.45.2
+      - image: golangci/golangci-lint:v1.46.2
     steps:
       - checkout
       - run:
@@ -496,6 +509,9 @@ workflows:
       # - check-i18n:
       #     requires:
       #       - setup
+      - check-go-mod-tidy:
+          requires:
+            - setup
       - check-golangci-lint:
           filters:
             branches:
@@ -525,6 +541,7 @@ workflows:
             - setup
       - build:
           requires:
+            - check-go-mod-tidy
             - check-app-layers
             - check-store-layers
             - check-mocks
@@ -610,6 +627,9 @@ workflows:
                 - master
                 - /^release-.*/
                 - cloud
+      - check-go-mod-tidy:
+          requires:
+            - setup
       - check-app-layers:
           requires:
             - setup
@@ -634,6 +654,7 @@ workflows:
       - sentry:
           context: matterbuild-sentry
           requires:
+            - check-go-mod-tidy
             - check-app-layers
             - check-store-layers
             - check-mocks
@@ -644,6 +665,7 @@ workflows:
             - build-api-spec
       - build:
           requires:
+            - check-go-mod-tidy
             - check-app-layers
             - check-store-layers
             - check-mocks

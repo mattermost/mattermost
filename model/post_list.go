@@ -32,9 +32,7 @@ func NewPostList() *PostList {
 func (o *PostList) Clone() *PostList {
 	orderCopy := make([]string, len(o.Order))
 	postsCopy := make(map[string]*Post)
-	for i, v := range o.Order {
-		orderCopy[i] = v
-	}
+	copy(orderCopy, o.Order)
 	for k, v := range o.Posts {
 		postsCopy[k] = v.Clone()
 	}

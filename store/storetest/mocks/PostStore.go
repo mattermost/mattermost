@@ -88,13 +88,13 @@ func (_m *PostStore) ClearCaches() {
 	_m.Called()
 }
 
-// Delete provides a mock function with given fields: postID, time, deleteByID
-func (_m *PostStore) Delete(postID string, time int64, deleteByID string) error {
-	ret := _m.Called(postID, time, deleteByID)
+// Delete provides a mock function with given fields: postID, timestamp, deleteByID
+func (_m *PostStore) Delete(postID string, timestamp int64, deleteByID string) error {
+	ret := _m.Called(postID, timestamp, deleteByID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, int64, string) error); ok {
-		r0 = rf(postID, time, deleteByID)
+		r0 = rf(postID, timestamp, deleteByID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -375,13 +375,13 @@ func (_m *PostStore) GetParentsForExportAfter(limit int, afterID string) ([]*mod
 	return r0, r1
 }
 
-// GetPostAfterTime provides a mock function with given fields: channelID, time, collapsedThreads
-func (_m *PostStore) GetPostAfterTime(channelID string, time int64, collapsedThreads bool) (*model.Post, error) {
-	ret := _m.Called(channelID, time, collapsedThreads)
+// GetPostAfterTime provides a mock function with given fields: channelID, timestamp, collapsedThreads
+func (_m *PostStore) GetPostAfterTime(channelID string, timestamp int64, collapsedThreads bool) (*model.Post, error) {
+	ret := _m.Called(channelID, timestamp, collapsedThreads)
 
 	var r0 *model.Post
 	if rf, ok := ret.Get(0).(func(string, int64, bool) *model.Post); ok {
-		r0 = rf(channelID, time, collapsedThreads)
+		r0 = rf(channelID, timestamp, collapsedThreads)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Post)
@@ -390,7 +390,7 @@ func (_m *PostStore) GetPostAfterTime(channelID string, time int64, collapsedThr
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, int64, bool) error); ok {
-		r1 = rf(channelID, time, collapsedThreads)
+		r1 = rf(channelID, timestamp, collapsedThreads)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -398,20 +398,20 @@ func (_m *PostStore) GetPostAfterTime(channelID string, time int64, collapsedThr
 	return r0, r1
 }
 
-// GetPostIdAfterTime provides a mock function with given fields: channelID, time, collapsedThreads
-func (_m *PostStore) GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, error) {
-	ret := _m.Called(channelID, time, collapsedThreads)
+// GetPostIdAfterTime provides a mock function with given fields: channelID, timestamp, collapsedThreads
+func (_m *PostStore) GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool) (string, error) {
+	ret := _m.Called(channelID, timestamp, collapsedThreads)
 
 	var r0 string
 	if rf, ok := ret.Get(0).(func(string, int64, bool) string); ok {
-		r0 = rf(channelID, time, collapsedThreads)
+		r0 = rf(channelID, timestamp, collapsedThreads)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, int64, bool) error); ok {
-		r1 = rf(channelID, time, collapsedThreads)
+		r1 = rf(channelID, timestamp, collapsedThreads)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -419,20 +419,20 @@ func (_m *PostStore) GetPostIdAfterTime(channelID string, time int64, collapsedT
 	return r0, r1
 }
 
-// GetPostIdBeforeTime provides a mock function with given fields: channelID, time, collapsedThreads
-func (_m *PostStore) GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool) (string, error) {
-	ret := _m.Called(channelID, time, collapsedThreads)
+// GetPostIdBeforeTime provides a mock function with given fields: channelID, timestamp, collapsedThreads
+func (_m *PostStore) GetPostIdBeforeTime(channelID string, timestamp int64, collapsedThreads bool) (string, error) {
+	ret := _m.Called(channelID, timestamp, collapsedThreads)
 
 	var r0 string
 	if rf, ok := ret.Get(0).(func(string, int64, bool) string); ok {
-		r0 = rf(channelID, time, collapsedThreads)
+		r0 = rf(channelID, timestamp, collapsedThreads)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, int64, bool) error); ok {
-		r1 = rf(channelID, time, collapsedThreads)
+		r1 = rf(channelID, timestamp, collapsedThreads)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -555,13 +555,13 @@ func (_m *PostStore) GetPostsByIds(postIds []string) ([]*model.Post, error) {
 	return r0, r1
 }
 
-// GetPostsCreatedAt provides a mock function with given fields: channelID, time
-func (_m *PostStore) GetPostsCreatedAt(channelID string, time int64) ([]*model.Post, error) {
-	ret := _m.Called(channelID, time)
+// GetPostsCreatedAt provides a mock function with given fields: channelID, timestamp
+func (_m *PostStore) GetPostsCreatedAt(channelID string, timestamp int64) ([]*model.Post, error) {
+	ret := _m.Called(channelID, timestamp)
 
 	var r0 []*model.Post
 	if rf, ok := ret.Get(0).(func(string, int64) []*model.Post); ok {
-		r0 = rf(channelID, time)
+		r0 = rf(channelID, timestamp)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Post)
@@ -570,7 +570,7 @@ func (_m *PostStore) GetPostsCreatedAt(channelID string, time int64) ([]*model.P
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
-		r1 = rf(channelID, time)
+		r1 = rf(channelID, timestamp)
 	} else {
 		r1 = ret.Error(1)
 	}
