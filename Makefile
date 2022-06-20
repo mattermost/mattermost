@@ -38,6 +38,8 @@ ifeq ($(BUILD_NUMBER),)
 	BUILD_DATE := n/a
 	BUILD_NUMBER := dev
 endif
+
+# Enterprise
 BUILD_ENTERPRISE_DIR ?= ../enterprise
 BUILD_ENTERPRISE ?= true
 BUILD_ENTERPRISE_READY = false
@@ -56,6 +58,8 @@ else
 	BUILD_ENTERPRISE_READY = false
 	BUILD_TYPE_NAME = team
 endif
+
+# Webapp
 BUILD_WEBAPP_DIR ?= ../mattermost-webapp
 BUILD_CLIENT = false
 BUILD_HASH_CLIENT = independent
@@ -68,6 +72,21 @@ ifneq ($(wildcard $(BUILD_WEBAPP_DIR)/.),)
   endif
 else
     BUILD_CLIENT = false
+endif
+
+# Boards
+BUILD_BOARDS_DIR ?= ../focalboard
+BUILD_BOARDS ?= true
+BUILD_HASH_BOARDS = none
+ifneq ($(wildcard $(BUILD_BOARDS_DIR)/.),)
+  ifeq ($(BUILD_BOARDS),true)
+    BUILD_BOARDS = true
+    BUILD_HASH_BOARDS = $(shell cd $(BUILD_BOARDS_DIR) && git rev-parse HEAD)
+  else
+    BUILD_BOARDS = false
+  endif
+else
+    BUILD_BOARDS = false
 endif
 
 # We need current user's UID for `run-haserver` so docker compose does not run server
@@ -91,6 +110,8 @@ LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildDate=$(BUIL
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildHash=$(BUILD_HASH)"
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)"
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildHashBoards=$(BUILD_HASH_BOARDS)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildBoards=$(BUILD_BOARDS)"
 
 GO_MAJOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1)
 GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
@@ -154,6 +175,17 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
   ALL_PACKAGES=$(TE_PACKAGES) $(EE_PACKAGES)
 else
   ALL_PACKAGES=$(TE_PACKAGES)
+endif
+
+# Prepare optional Boards build.
+BOARDS_PACKAGES=$(shell $(GO) list $(BUILD_BOARDS_DIR)/server/...)
+ifeq ($(BUILD_BOARDS),true)
+    ALL_PACKAGES += $(BOARDS_PACKAGES)
+	IGNORE:=$(shell echo Boards build selected, preparing)
+	IGNORE:=$(shell rm -f imports/boards_imports.go)
+	IGNORE:=$(shell cp $(BUILD_BOARDS_DIR)/mattermost-plugin/product/boards_imports.go imports/)
+else
+	IGNORE:=$(shell rm -f imports/boards_imports.go)
 endif
 
 all: run ## Alias for 'run'.
@@ -276,7 +308,12 @@ golangci-lint: ## Run golangci-lint on codebase
 	$(GOBIN)/golangci-lint run ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-	$(GOBIN)/golangci-lint run ../enterprise/...
+		$(GOBIN)/golangci-lint run ../enterprise/...
+  endif
+endif
+ifeq ($(BUILD_BOARDS),true)
+  ifneq ($(MM_NO_BOARDS_LINT),true)
+		$(GOBIN)/golangci-lint run $(BUILD_BOARDS_DIR)/server/...
   endif
 endif
 
@@ -361,10 +398,10 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	./scripts/prereq-check-enterprise.sh
 endif
 
+setup-go-work: export BUILD_ENTERPRISE_READY := $(BUILD_ENTERPRISE_READY)
+setup-go-work: export BUILD_BOARDS := $(BUILD_BOARDS)
 setup-go-work: ## Sets up your go.work file
-ifeq ($(BUILD_ENTERPRISE_READY),true)
 	./scripts/setup_go_work.sh
-endif
 
 check-style: golangci-lint plugin-checker vet ## Runs style/lint checks
 
