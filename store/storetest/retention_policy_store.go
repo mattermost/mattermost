@@ -94,18 +94,14 @@ func checkRetentionPolicyLikeThisExists(t *testing.T, ss store.Store, expected *
 }
 
 func copyRetentionPolicyWithTeamAndChannelIds(policy *model.RetentionPolicyWithTeamAndChannelIDs) *model.RetentionPolicyWithTeamAndChannelIDs {
-	copy := &model.RetentionPolicyWithTeamAndChannelIDs{
+	cpy := &model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: policy.RetentionPolicy,
 		ChannelIDs:      make([]string, len(policy.ChannelIDs)),
 		TeamIDs:         make([]string, len(policy.TeamIDs)),
 	}
-	for i, channelID := range policy.ChannelIDs {
-		copy.ChannelIDs[i] = channelID
-	}
-	for i, teamID := range policy.TeamIDs {
-		copy.TeamIDs[i] = teamID
-	}
-	return copy
+	copy(cpy.ChannelIDs, policy.ChannelIDs)
+	copy(cpy.TeamIDs, policy.TeamIDs)
+	return cpy
 }
 
 func createChannelsForRetentionPolicy(t *testing.T, ss store.Store, teamId string, numChannels int) (channelIDs []string) {

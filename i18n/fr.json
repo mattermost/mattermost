@@ -3156,10 +3156,6 @@
     "translation": "Elasticsearch est déjà arrêté"
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Impossible de se connecter au serveur Elasticsearch."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch est désactivé."
   },

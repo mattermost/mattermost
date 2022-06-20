@@ -4172,6 +4172,41 @@ func (c *Client4) DoPostActionWithCookie(postId, actionId, selected, cookieStr s
 	return BuildResponse(r), nil
 }
 
+// GetTopThreadsForTeamSince will return an ordered list of the top channels in a given team.
+func (c *Client4) GetTopThreadsForTeamSince(teamId string, timeRange string, page int, perPage int) (*TopThreadList, *Response, error) {
+	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
+	r, err := c.DoAPIGet(c.teamRoute(teamId)+"/top/threads"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var topThreads *TopThreadList
+	if jsonErr := json.NewDecoder(r.Body).Decode(&topThreads); jsonErr != nil {
+		return nil, nil, NewAppError("GetTopThreadsForTeamSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return topThreads, BuildResponse(r), nil
+}
+
+// GetTopThreadsForUserSince will return an ordered list of your top channels in a given team.
+func (c *Client4) GetTopThreadsForUserSince(teamId string, timeRange string, page int, perPage int) (*TopThreadList, *Response, error) {
+	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
+
+	if teamId != "" {
+		query += fmt.Sprintf("&team_id=%v", teamId)
+	}
+
+	r, err := c.DoAPIGet(c.usersRoute()+"/me/top/threads"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var topThreads *TopThreadList
+	if jsonErr := json.NewDecoder(r.Body).Decode(&topThreads); jsonErr != nil {
+		return nil, nil, NewAppError("GetTopThreadsForUserSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return topThreads, BuildResponse(r), nil
+}
+
 // OpenInteractiveDialog sends a WebSocket event to a user's clients to
 // open interactive dialogs, based on the provided trigger ID and other
 // provided data. Used with interactive message buttons, menus and
@@ -6305,6 +6340,8 @@ func (c *Client4) UpdateUserStatus(userId string, userStatus *Status) (*Status, 
 }
 
 // UpdateUserCustomStatus sets a user's custom status based on the provided user id string.
+// The returned CustomStatus object is the same as the one passed, and it should be just
+// ignored. It's only kept to maintain compatibility.
 func (c *Client4) UpdateUserCustomStatus(userId string, userCustomStatus *CustomStatus) (*CustomStatus, *Response, error) {
 	buf, err := json.Marshal(userCustomStatus)
 	if err != nil {
@@ -6315,11 +6352,10 @@ func (c *Client4) UpdateUserCustomStatus(userId string, userCustomStatus *Custom
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var s CustomStatus
-	if jsonErr := json.NewDecoder(r.Body).Decode(&s); jsonErr != nil {
-		return nil, nil, NewAppError("UpdateUserCustomStatus", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
-	}
-	return &s, BuildResponse(r), nil
+	// This is returning the same status which was passed.
+	// The API was incorrectly designed to return a status returned from the server,
+	// but the server doesn't return anything except an OK.
+	return userCustomStatus, BuildResponse(r), nil
 }
 
 // RemoveUserCustomStatus remove a user's custom status based on the provided user id string.

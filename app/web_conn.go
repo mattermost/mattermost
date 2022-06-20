@@ -450,27 +450,6 @@ func (wc *WebConn) writePump() {
 
 			evt, evtOk := msg.(*model.WebSocketEvent)
 
-			skipSend := false
-			if len(wc.send) >= sendSlowWarn {
-				// When the pump starts to get slow we'll drop non-critical messages
-				switch msg.EventType() {
-				case model.WebsocketEventTyping,
-					model.WebsocketEventStatusChange,
-					model.WebsocketEventChannelViewed:
-					mlog.Warn(
-						"websocket.slow: dropping message",
-						mlog.String("user_id", wc.UserId),
-						mlog.String("type", msg.EventType()),
-						mlog.String("channel_id", evt.GetBroadcast().ChannelId),
-					)
-					skipSend = true
-				}
-			}
-
-			if skipSend {
-				continue
-			}
-
 			buf.Reset()
 			var err error
 			if evtOk {
@@ -724,6 +703,23 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 	// IMPORTANT: Do not send event if WebConn does not have a session
 	if !wc.IsAuthenticated() {
 		return false
+	}
+
+	// When the pump starts to get slow we'll drop non-critical
+	// messages. We should skip those frames before they are
+	// queued to wc.send buffered channel.
+	if len(wc.send) >= sendSlowWarn {
+		switch msg.EventType() {
+		case model.WebsocketEventTyping,
+			model.WebsocketEventStatusChange,
+			model.WebsocketEventChannelViewed:
+			mlog.Warn(
+				"websocket.slow: dropping message",
+				mlog.String("user_id", wc.UserId),
+				mlog.String("type", msg.EventType()),
+			)
+			return false
+		}
 	}
 
 	// If the event contains sanitized data, only send to users that don't have permission to

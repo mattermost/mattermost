@@ -1919,7 +1919,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			termsClause = "(" + strings.Join(strings.Fields(terms), " & ") + ")" + excludeClause
 		}
 
-		searchClause := fmt.Sprintf("to_tsvector('english', %s) @@  to_tsquery('english', ?)", searchType)
+		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  to_tsquery('%[1]s', ?)", s.pgDefaultTextSearchConfig, searchType)
 		baseQuery = baseQuery.Where(searchClause, termsClause)
 	} else if s.DriverName() == model.DatabaseDriverMysql {
 		if searchType == "Message" {

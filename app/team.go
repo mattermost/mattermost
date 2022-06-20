@@ -30,6 +30,18 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 )
 
+type teamServiceWrapper struct {
+	app AppIface
+}
+
+func (w *teamServiceWrapper) GetMember(teamID, userID string) (*model.TeamMember, error) {
+	return w.app.GetTeamMember(teamID, userID)
+}
+
+func (w *teamServiceWrapper) CreateMember(ctx *request.Context, teamID, userID string) (*model.TeamMember, error) {
+	return w.app.AddTeamMember(ctx, teamID, userID)
+}
+
 func (a *App) AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model.AppError {
 	maxActiveTeams := *teamLimits.Active
 	teams, appErr := a.GetAllTeams()

@@ -3072,10 +3072,6 @@
     "translation": "Elasticsearch är avaktiverat."
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Uppkoppling mot Elasticsearch-servern misslyckades."
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch är redan stoppad."
   },
@@ -4909,7 +4905,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Visa meddelande"
+    "translation": "Svara i Mattermost"
   },
   {
     "id": "api.templates.payment_failed_no_card.title",
@@ -8189,7 +8185,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Din testperiod på 14 dagar av {{.WorkSpace}} workspace är redo att starta!"
+    "translation": "Din arbetsyta är redo!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -8661,11 +8657,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Din kostnadsfria testperiod på 14 dagar slutar snart"
+    "translation": "Din kostnadsfria prova-på-period på 30 dagar slutar snart"
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, din 14 dagars testperiod av Mattermost avslutas om tre dagar, den {{.TrialEnd}}. Lägg till din betalinformation för att säkerställa att ditt team kan fortsätta nyttja funktionerna i Mattermost Cloud."
+    "translation": "{{.Name}}, din 30-dagars prova-på-tperiod av Mattermost avslutas om tre dagar, den {{.TrialEnd}}. Lägg till din betalinformation för att säkerställa att ditt team kan fortsätta nyttja funktionerna i Mattermost Cloud."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -8701,11 +8697,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Din kostnadsfria 14-dagars testperiod av Mattermost har avslutats"
+    "translation": "Din kostnadsfria 30-dagars prova-på-period av Mattermost har avslutats"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, din 14-dagars kostnadsfria testperiod av Mattermost Cloud Enterprise avslutades {{.TodayDate}}. Vi hoppas du uppskattade vår flexibla och säkra samarbetsplattform. Lägg in din betalningsinformation för att säkerställa att ditt team kan fortsätta samarbeta i Mattermost."
+    "translation": "{{.Name}}, din 30-dagars kostnadsfria testperiod av Mattermost Cloud Enterprise avslutades {{.TodayDate}}. Vi hoppas du uppskattade vår flexibla och säkra samarbetsplattform. Lägg in din betalningsinformation för att säkerställa att ditt team kan fortsätta samarbeta i Mattermost."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -9099,10 +9095,6 @@
     "translation": "Kanalnamnet är inte giltigt"
   },
   {
-    "id": "model.insights.time_range.app_error",
-    "translation": " "
-  },
-  {
     "id": "model.github_release_info.is_valid.id.app_error",
     "translation": " "
   },
@@ -9333,5 +9325,29 @@
   {
     "id": "app.install_integration.reached_max_limit.error",
     "translation": "Du har nått maxgränsen {{.NumIntegrations}} aktiva integrationer. Om du vill installera obegränsat antal integrationer kan du uppgradera till en av våra betal-abonnemang."
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "Det gick inte att få fram lagringsvolym."
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Det går inte att få fram antalet team"
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Kunde inte ta fram team-användning"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Kunde inte återställa team eftersom gränsen för antal team har uppnåtts"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Kunde inte skapa nytt team eftersom gränsen för antal team har uppnåtts"
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Ogiltig värde {{.Value}} på antal samtidiga dekoder. Måste vara ett positivt tal eller -1."
   }
 ]
