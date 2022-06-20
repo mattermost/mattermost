@@ -81,8 +81,8 @@ func TestPing(t *testing.T) {
 		assert.NoError(t, merr.ErrorOrNil())
 
 		assert.Equal(t, int32(NumRemotes), atomic.LoadInt32(&countWebReq))
-		t.Log(fmt.Sprintf("%d web requests counted;  %d expected",
-			atomic.LoadInt32(&countWebReq), NumRemotes))
+		t.Logf("%d web requests counted;  %d expected",
+			atomic.LoadInt32(&countWebReq), NumRemotes)
 	})
 
 	t.Run("HTTP errors", func(t *testing.T) {
@@ -131,8 +131,8 @@ func TestPing(t *testing.T) {
 		assert.NoError(t, merr.ErrorOrNil())
 
 		assert.Equal(t, int32(NumRemotes), atomic.LoadInt32(&countWebReq))
-		t.Log(fmt.Sprintf("%d web requests counted;  %d expected",
-			atomic.LoadInt32(&countWebReq), NumRemotes))
+		t.Logf("%d web requests counted;  %d expected",
+			atomic.LoadInt32(&countWebReq), NumRemotes)
 	})
 }
 

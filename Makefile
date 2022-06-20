@@ -17,6 +17,11 @@ else
 	export IS_LINUX =
 endif
 
+# Detect M1/M2 Macs and set a flag.
+ifeq ($(shell uname)/$(shell uname -m),Darwin/arm64)
+  M1_MAC = true
+endif
+
 define LICENSE_HEADER
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
@@ -177,6 +182,11 @@ ifneq ("$(wildcard ./docker-compose.override.yaml)","")
   DOCKER_COMPOSE_OVERRIDE=-f docker-compose.override.yaml
 endif
 
+ifeq ($(M1_MAC),true)
+  $(info M1 detected, applying elasticsearch override)
+  DOCKER_COMPOSE_OVERRIDE := -f docker-compose.makefile.m1.yml $(DOCKER_COMPOSE_OVERRIDE)
+endif
+
 ifneq ($(DOCKER_SERVICES_OVERRIDE),true)
   ifeq (,$(findstring minio,$(ENABLED_DOCKER_SERVICES)))
     TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) minio
@@ -187,7 +197,7 @@ ifneq ($(DOCKER_SERVICES_OVERRIDE),true)
     endif
     ifeq (,$(findstring elasticsearch,$(ENABLED_DOCKER_SERVICES)))
       TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) elasticsearch
-    endif
+	endif
   endif
   ENABLED_DOCKER_SERVICES:=$(ENABLED_DOCKER_SERVICES) $(TEMP_DOCKER_SERVICES)
 endif
@@ -260,7 +270,7 @@ endif
 
 golangci-lint: ## Run golangci-lint on codebase
 	@# Keep the version in sync with the command in .circleci/config.yml
-	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.45.2
+	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.46.2
 
 	@echo Running golangci-lint
 	$(GOBIN)/golangci-lint run ./...
@@ -383,13 +393,29 @@ test-db-migration-v5: start-docker ## Gets diff of upgrade vs new instance schem
 gomodtidy:
 	@cp go.mod go.mod.orig
 	@cp go.sum go.sum.orig
+	@if [ -f "imports/imports.go" ]; then \
+		mv imports/imports.go imports/imports.go.orig; \
+	fi;
 	$(GO) mod tidy
 	@if [ "$$(diff go.mod go.mod.orig)" != "" -o "$$(diff go.sum go.sum.orig)" != "" ]; then \
 		echo "go.mod/go.sum was modified. \ndiff- $$(diff go.mod go.mod.orig) \n$$(diff go.sum go.sum.orig) \nRun \"go mod tidy\"."; \
 		rm go.*.orig; \
 		exit 1; \
 	fi;
+	@if [ -f "imports/imports.go.orig" ]; then \
+		mv imports/imports.go.orig imports/imports.go; \
+	fi;
 	@rm go.*.orig;
+
+modules-tidy:
+	@if [ -f "imports/imports.go" ]; then \
+		mv imports/imports.go imports/imports.go.orig; \
+	fi;
+	-$(GO) mod tidy
+	@if [ -f "imports/imports.go.orig" ]; then \
+		mv imports/imports.go.orig imports/imports.go; \
+	fi;
+
 
 test-server-pre: check-prereqs-enterprise start-docker go-junit-report do-cover-file ## Runs tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -623,6 +649,7 @@ nuke: clean clean-docker ## Clean plus removes persistent server data.
 	@echo BOOM
 
 	rm -rf data
+	rm -f go.work go.work.sum
 
 setup-mac: ## Adds macOS hosts entries for Docker.
 	echo $$(boot2docker ip 2> /dev/null) dockerhost | sudo tee -a /etc/hosts

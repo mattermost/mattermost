@@ -70,10 +70,6 @@ func (ch *Channels) getInstalledIntegrations() ([]*model.InstalledIntegration, *
 }
 
 func (a *App) checkIfIntegrationsMeetFreemiumLimits(originalPluginIds []string) *model.AppError {
-	if !a.Config().FeatureFlags.CloudFree {
-		return nil
-	}
-
 	if a.License() == nil || !*a.License().Features.Cloud {
 		return nil
 	}
