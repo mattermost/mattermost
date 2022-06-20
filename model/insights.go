@@ -63,6 +63,33 @@ type TopChannel struct {
 	MessageCount int64       `json:"message_count"`
 }
 
+// Top Threads
+type TopThreadList struct {
+	InsightsListData
+	Items []*TopThread `json:"items"`
+}
+
+type TopThread struct {
+	PostId          string                  `json:"-"`
+	ReplyCount      int64                   `json:"-"`
+	ChannelId       string                  `json:"channel_id"`
+	DisplayName     string                  `json:"channel_display_name"`
+	Name            string                  `json:"channel_name"`
+	Participants    StringArray             `json:"participants"`
+	UserId          string                  `json:"-"`
+	UserInformation *InsightUserInformation `json:"user_information"`
+	Post            *Post                   `json:"post"`
+}
+
+type InsightUserInformation struct {
+	Id                string `json:"id"`
+	LastPictureUpdate int64  `json:"last_picture_update"`
+	FirstName         string `json:"first_name"`
+	LastName          string `json:"last_name"`
+	NickName          string `json:"nickname"`
+	Username          string `json:"username"`
+}
+
 type DurationPostCount struct {
 	ChannelID string `db:"channelid"`
 	// Duration is an ISO8601 date string representing either a day or a day and hour (ex. "2022-05-26" or "2022-05-26T14").
@@ -201,4 +228,18 @@ func GetTopChannelListWithPagination(channels []*TopChannel, limit int) *TopChan
 	}
 
 	return &TopChannelList{InsightsListData: InsightsListData{HasNext: hasNext}, Items: channels}
+}
+
+// GetTopThreadListWithPagination adds a rank to each item in the given list of TopThread and checks if there is
+// another page that can be fetched based on the given limit and offset. The given list of TopThread is assumed to be
+// sorted by ReplyCount(score). Returns a TopThreadList.
+func GetTopThreadListWithPagination(threads []*TopThread, limit int) *TopThreadList {
+	// Add pagination support
+	var hasNext bool
+	if (limit != 0) && (len(threads) == limit+1) {
+		hasNext = true
+		threads = threads[:len(threads)-1]
+	}
+
+	return &TopThreadList{InsightsListData: InsightsListData{HasNext: hasNext}, Items: threads}
 }

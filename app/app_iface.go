@@ -777,6 +777,8 @@ type AppIface interface {
 	GetTopChannelsForUserSince(userID, teamID string, opts *model.InsightsOpts) (*model.TopChannelList, *model.AppError)
 	GetTopReactionsForTeamSince(teamID string, userID string, opts *model.InsightsOpts) (*model.TopReactionList, *model.AppError)
 	GetTopReactionsForUserSince(userID string, teamID string, opts *model.InsightsOpts) (*model.TopReactionList, *model.AppError)
+	GetTopThreadsForTeamSince(teamID, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError)
+	GetTopThreadsForUserSince(teamID, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError)
 	GetUploadSession(uploadId string) (*model.UploadSession, *model.AppError)
 	GetUploadSessionsForUser(userID string) ([]*model.UploadSession, *model.AppError)
 	GetUser(userID string) (*model.User, *model.AppError)
