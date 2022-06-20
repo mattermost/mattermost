@@ -140,9 +140,8 @@ func (b *S3FileBackend) s3New() (*s3.Client, error) {
 		if b.secure {
 			scheme = "https"
 		}
-		newTransport := &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: b.skipVerify},
-		}
+		newTransport := http.DefaultTransport.(*http.Transport).Clone()
+		newTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: b.skipVerify}
 		opts.Transport = &customTransport{
 			host:   b.endpoint,
 			scheme: scheme,
