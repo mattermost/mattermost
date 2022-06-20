@@ -741,6 +741,24 @@ func (a *App) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError)
 	return a.ch.srv.GetDefaultProfileImage(user)
 }
 
+func (a *App) UpdateDefaultProfileImage(user *model.User) *model.AppError {
+	img, appErr := a.GetDefaultProfileImage(user)
+	if appErr != nil {
+		return appErr
+	}
+
+	path := getProfileImagePath(user.Id)
+	if _, err := a.WriteFile(bytes.NewReader(img), path); err != nil {
+		return err
+	}
+
+	if err := a.Srv().Store.User().ResetLastPictureUpdate(user.Id); err != nil {
+		mlog.Warn("Failed to reset last picture update", mlog.Err(err))
+	}
+
+	return nil
+}
+
 func (a *App) SetDefaultProfileImage(user *model.User) *model.AppError {
 	img, appErr := a.GetDefaultProfileImage(user)
 	if appErr != nil {
@@ -1166,6 +1184,12 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 			return nil, model.NewAppError("UpdateUser", "app.user.save.email_exists.app_error", nil, "", http.StatusBadRequest)
 		default:
 			return nil, model.NewAppError("UpdateUser", "app.user.update.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	if (userUpdate.New.Username != userUpdate.Old.Username) && (userUpdate.New.LastPictureUpdate == 0) {
+		if err := a.UpdateDefaultProfileImage(userUpdate.New); err != nil {
+			mlog.Warn("Error with updating default profile image", mlog.Err(err))
 		}
 	}
 
