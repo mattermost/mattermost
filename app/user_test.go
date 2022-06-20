@@ -1730,9 +1730,6 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("successfully create a user with initial tutorial and recommended steps preferences", func(t *testing.T) {
-		th.Server.configStore.SetReadOnlyFF(false)
-		defer th.Server.configStore.SetReadOnlyFF(true)
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 		testUser := th.CreateUser()
 		defer th.App.PermanentDeleteUser(th.Context, testUser)
 
@@ -1755,6 +1752,7 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 		th.Server.configStore.SetReadOnlyFF(false)
 		defer th.Server.configStore.SetReadOnlyFF(true)
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 		testUser := th.CreateUser()
 		defer th.App.PermanentDeleteUser(th.Context, testUser)
 
@@ -1774,9 +1772,6 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 	})
 
 	t.Run("successfully create a guest user with initial tutorial and recommended steps preferences", func(t *testing.T) {
-		th.Server.configStore.SetReadOnlyFF(false)
-		defer th.Server.configStore.SetReadOnlyFF(true)
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 		testUser := th.CreateGuest()
 		defer th.App.PermanentDeleteUser(th.Context, testUser)
 
