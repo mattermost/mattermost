@@ -6864,10 +6864,6 @@
     "translation": "Помилка синтаксісу багато-форматного запиту"
   },
   {
-    "id": "model.team_member.is_valid.roles_limit.app_error",
-    "translation": ""
-  },
-  {
     "id": "model.config.is_valid.import.retention_days_too_low.app_error",
     "translation": ""
   }

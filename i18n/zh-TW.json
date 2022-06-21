@@ -7268,10 +7268,6 @@
     "translation": "無法解析要求本文。"
   },
   {
-    "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": ""
   }
