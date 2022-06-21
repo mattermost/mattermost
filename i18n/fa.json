@@ -9012,23 +9012,11 @@
     "translation": "تا زمانی که بیصدایی کانال خاموش نشود ، اعلانی برای {{.Channel}} دریافت نخواهید کرد."
   },
   {
-    "id": "app.channel.get_post_count_by_day.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": ""
   },
   {
-    "id": "app.channel.get_top_for_user_since.app_error",
-    "translation": ""
-  },
-  {
     "id": "bleveengine.create_file_index.error",
-    "translation": ""
-  },
-  {
-    "id": "Boards",
     "translation": ""
   }
 ]
