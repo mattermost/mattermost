@@ -8722,9 +8722,5 @@
   {
     "id": "api.command_channel_header.update_channel.max_length",
     "translation": "Textul introdus depășește limita de caractere. Antetul canalului este limitat la {{.MaxLength}} caractere."
-  },
-  {
-    "id": "app.team.get_common_team_ids_for_users.app_error",
-    "translation": ""
   }
 ]

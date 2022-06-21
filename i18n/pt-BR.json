@@ -8638,9 +8638,5 @@
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
     "translation": "Não foi possível redefinir o campo AuthData para o e-mail."
-  },
-  {
-    "id": "model.emoji.system_emoji_name.app_error",
-    "translation": ""
   }
 ]
