@@ -7888,10 +7888,6 @@
     "translation": "게시 된 파일을 삭제하지 못했습니다."
   },
   {
-    "id": "app.notification.body.group.subTitle",
-    "translation": ""
-  },
-  {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
     "translation": ""
   }
