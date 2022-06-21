@@ -7092,10 +7092,6 @@
     "translation": "LDAP non è disponibile."
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": ""
-  },
-  {
     "id": "api.templates.payment_failed_no_card.title",
     "translation": ""
   }
