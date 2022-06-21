@@ -6862,9 +6862,5 @@
   {
     "id": "api.admin.add_certificate.parseform.app_error",
     "translation": "Помилка синтаксісу багато-форматного запиту"
-  },
-  {
-    "id": "model.config.is_valid.import.retention_days_too_low.app_error",
-    "translation": ""
   }
 ]
