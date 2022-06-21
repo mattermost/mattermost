@@ -10,6 +10,8 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v6/app/imaging"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/config"
@@ -20,18 +22,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
-	"github.com/pkg/errors"
 )
-
-// configSvc is a consumer interface to work
-// with any config related task with the server.
-type configSvc interface {
-	Config() *model.Config
-	AddConfigListener(listener func(*model.Config, *model.Config)) string
-	RemoveConfigListener(id string)
-	UpdateConfig(f func(*model.Config))
-	SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError)
-}
 
 // licenseSvc is added to act as a starting point for future integrated products.
 // It has the same signature and functionality with the license related APIs of the plugin-api.
@@ -49,7 +40,7 @@ type namer interface {
 // Channels contains all channels related state.
 type Channels struct {
 	srv        *Server
-	cfgSvc     configSvc
+	cfgSvc     product.ConfigService
 	filestore  filestore.FileBackend
 	licenseSvc licenseSvc
 	routerSvc  *routerService
@@ -135,7 +126,7 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 		switch svcKey {
 		// Keep adding more services here
 		case ConfigKey:
-			cfgSvc, ok := svc.(configSvc)
+			cfgSvc, ok := svc.(product.ConfigService)
 			if !ok {
 				return nil, errors.New("Config service did not satisfy ConfigSvc interface")
 			}
