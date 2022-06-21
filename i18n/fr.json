@@ -8667,23 +8667,11 @@
     "translation": "Boards"
   },
   {
-    "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
-    "translation": ""
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": ""
   },
   {
-    "id": "api.templates.server_inactivity_title",
-    "translation": ""
-  },
-  {
     "id": "model.channel_member.is_valid.roles_limit.app_error",
-    "translation": ""
-  },
-  {
-    "id": "ent.saml.do_login.invalid_signature.app_error",
     "translation": ""
   }
 ]

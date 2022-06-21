@@ -8724,23 +8724,11 @@
     "translation": "Textul introdus depășește limita de caractere. Antetul canalului este limitat la {{.MaxLength}} caractere."
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle",
-    "translation": ""
-  },
-  {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": ""
   },
   {
-    "id": "app.notification.body.thread_channel_full.subTitle",
-    "translation": ""
-  },
-  {
     "id": "app.team.get_common_team_ids_for_users.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.button",
     "translation": ""
   }
 ]

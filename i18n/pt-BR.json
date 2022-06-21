@@ -8640,23 +8640,11 @@
     "translation": "Não foi possível redefinir o campo AuthData para o e-mail."
   },
   {
-    "id": "app.notification.body.thread_dm.subTitle",
-    "translation": ""
-  },
-  {
     "id": "api.templates.license_up_for_renewal_title",
     "translation": ""
   },
   {
-    "id": "api.team.invite_members.unable_to_send_email.app_error",
-    "translation": ""
-  },
-  {
     "id": "model.emoji.system_emoji_name.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.messageButton",
     "translation": ""
   }
 ]

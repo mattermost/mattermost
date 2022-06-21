@@ -7092,15 +7092,7 @@
     "translation": "LDAP non è disponibile."
   },
   {
-    "id": "app.notification.body.thread.title",
-    "translation": ""
-  },
-  {
     "id": "api.command_remote.remove_remote_id.help",
-    "translation": ""
-  },
-  {
-    "id": "api.team.set_team_icon.check_image_limits.app_error",
     "translation": ""
   },
   {
@@ -7108,15 +7100,7 @@
     "translation": ""
   },
   {
-    "id": "model.channel.is_valid.1_or_more.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.file.test_connection_email_settings_nil.app_error",
-    "translation": ""
-  },
-  {
-    "id": "ent.compliance.global_relay.write_file.appError",
     "translation": ""
   },
   {
@@ -7124,15 +7108,7 @@
     "translation": ""
   },
   {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": ""
-  },
-  {
     "id": "model.config.is_valid.collapsed_threads.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.remote_cluster.delete.app_error",
     "translation": ""
   },
   {
@@ -7140,23 +7116,11 @@
     "translation": ""
   },
   {
-    "id": "model.upload_session.is_valid.filename.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.upload.get_for_user.app_error",
     "translation": ""
   },
   {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": ""
-  },
-  {
     "id": "api.templates.payment_failed_no_card.title",
-    "translation": ""
-  },
-  {
-    "id": "api.command_remote.name.hint",
     "translation": ""
   }
 ]
