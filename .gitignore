@@ -22,7 +22,7 @@ config/config.json
 config/logging.json
 /plugins
 
-# Enterprise & productsa imports files
+# Enterprise & products imports files
 imports/imports.go
 imports/boards_imports.go
 
