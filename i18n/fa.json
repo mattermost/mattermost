@@ -9010,9 +9010,5 @@
   {
     "id": "api.command_mute.success_mute",
     "translation": "تا زمانی که بیصدایی کانال خاموش نشود ، اعلانی برای {{.Channel}} دریافت نخواهید کرد."
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": ""
   }
 ]
