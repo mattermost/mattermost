@@ -9012,15 +9012,7 @@
     "translation": "تا زمانی که بیصدایی کانال خاموش نشود ، اعلانی برای {{.Channel}} دریافت نخواهید کرد."
   },
   {
-    "id": "app.channel.get_file_count.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.channel.get_post_count_by_day.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.restore",
     "translation": ""
   },
   {
@@ -9028,23 +9020,11 @@
     "translation": ""
   },
   {
-    "id": "app.system.complete_onboarding_request.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.channel.get_top_for_user_since.app_error",
     "translation": ""
   },
   {
-    "id": "app.member_count",
-    "translation": ""
-  },
-  {
     "id": "bleveengine.create_file_index.error",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet1",
     "translation": ""
   },
   {

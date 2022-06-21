@@ -8724,15 +8724,7 @@
     "translation": "Textul introdus depășește limita de caractere. Antetul canalului este limitat la {{.MaxLength}} caractere."
   },
   {
-    "id": "app.teams.analytics_teams_count.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.license_error",
-    "translation": ""
-  },
-  {
-    "id": "api.authorization_error.guest",
     "translation": ""
   },
   {
@@ -8740,15 +8732,7 @@
     "translation": ""
   },
   {
-    "id": "app.custom_group.unique_name",
-    "translation": ""
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": ""
-  },
-  {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
     "translation": ""
   },
   {
@@ -8756,15 +8740,7 @@
     "translation": ""
   },
   {
-    "id": "model.github_release_info.is_valid.id.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.system.get_onboarding_request.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet",
     "translation": ""
   },
   {
@@ -8772,15 +8748,7 @@
     "translation": ""
   },
   {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.users.invalid_emails.enable_open_server.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
     "translation": ""
   },
   {
@@ -8788,15 +8756,7 @@
     "translation": ""
   },
   {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": ""
-  },
-  {
     "id": "api.unmarshal_error",
-    "translation": ""
-  },
-  {
-    "id": "api.user.invalidate_verify_email_tokens.error",
     "translation": ""
   },
   {
