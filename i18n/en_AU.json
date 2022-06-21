@@ -9287,15 +9287,7 @@
     "translation": "Unable to create team because teams limit has been reached"
   },
   {
-    "id": "app.admin.latest_version_external_error.failure",
-    "translation": ""
-  },
-  {
     "id": "model.github_release_info.is_valid.id.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.license_error.professional_or_enterprise",
     "translation": ""
   },
   {
@@ -9303,23 +9295,11 @@
     "translation": ""
   },
   {
-    "id": "app.channel.get_top_for_user_since.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.insights.feature_disabled",
     "translation": ""
   },
   {
-    "id": "app.group.get_by_username_failure",
-    "translation": ""
-  },
-  {
     "id": "app.user.get_by_name_failure",
-    "translation": ""
-  },
-  {
-    "id": "api.users.invalid_emails.enable_open_server.app_error",
     "translation": ""
   }
 ]

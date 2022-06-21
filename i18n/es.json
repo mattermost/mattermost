@@ -9028,15 +9028,7 @@
     "translation": "No se ha podido actualizar el estado personalizado. Por favor, añade un emoji o un estado de texto personalizado o ambos."
   },
   {
-    "id": "api.templates.server_inactivity_footer_disclaimer",
-    "translation": ""
-  },
-  {
     "id": "api.cloud.subscription.update_error",
-    "translation": ""
-  },
-  {
-    "id": "app.admin.latest_version_unmarshal.failure",
     "translation": ""
   },
   {
@@ -9044,15 +9036,7 @@
     "translation": ""
   },
   {
-    "id": "app.post.analytics_teams_count.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.cloud.teams_limit_reached.create",
-    "translation": ""
-  },
-  {
-    "id": "model.channel.is_valid.1_or_more.app_error",
     "translation": ""
   },
   {
@@ -9060,15 +9044,7 @@
     "translation": ""
   },
   {
-    "id": "app.recent_searches.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.templates.invite_team_and_channels_body.title",
-    "translation": ""
-  },
-  {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
     "translation": ""
   },
   {
@@ -9076,15 +9052,7 @@
     "translation": ""
   },
   {
-    "id": "app.channel.get_post_count_by_day.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.admin.latest_version_read_all.failure",
-    "translation": ""
-  },
-  {
-    "id": "app.group.crud_permission",
     "translation": ""
   },
   {
@@ -9092,15 +9060,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.invite_team_and_channel_body.title",
-    "translation": ""
-  },
-  {
     "id": "app.custom_group.unique_name",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
     "translation": ""
   },
   {
@@ -9108,15 +9068,7 @@
     "translation": ""
   },
   {
-    "id": "app.channel.get_top_for_user_since.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.group.username_conflict",
-    "translation": ""
-  },
-  {
-    "id": "api.license.request_trial_license.embargoed",
     "translation": ""
   },
   {
@@ -9124,15 +9076,7 @@
     "translation": ""
   },
   {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": ""
-  },
-  {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
-    "translation": ""
-  },
-  {
-    "id": "app.user.group_name_conflict",
     "translation": ""
   },
   {
@@ -9140,15 +9084,7 @@
     "translation": ""
   },
   {
-    "id": "api.team.invite_members.unable_to_send_email.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.templates.server_inactivity_title",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet2",
     "translation": ""
   },
   {
@@ -9156,15 +9092,7 @@
     "translation": ""
   },
   {
-    "id": "app.reaction.get_top_for_team_since.app_error",
-    "translation": ""
-  },
-  {
     "id": "Playbooks",
-    "translation": ""
-  },
-  {
-    "id": "Boards",
     "translation": ""
   },
   {
@@ -9172,23 +9100,11 @@
     "translation": ""
   },
   {
-    "id": "api.custom_groups.feature_disabled",
-    "translation": ""
-  },
-  {
     "id": "api.error_set_first_admin_complete_setup",
     "translation": ""
   },
   {
-    "id": "api.users.invalid_emails.enable_open_server.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.system.complete_onboarding_request.app_error",
-    "translation": ""
-  },
-  {
-    "id": "app.admin.latest_version_external_error.failure",
     "translation": ""
   }
 ]
