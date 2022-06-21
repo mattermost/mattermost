@@ -9276,7 +9276,7 @@
   },
   {
     "id": "api.insights.feature_disabled",
-    "translation": " "
+    "translation": "Hinter Insights verbirgt sich ein Feature-Flag, das nicht aktiviert ist."
   },
   {
     "id": "app.channel.get_top_for_user_since.app_error",
@@ -9292,7 +9292,7 @@
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "Dein {{.WorkspaceName}} Arbeitsbereich wurde jetzt aktualisiert. Die Abrechnung erfolgt ab dem {{.TrialEnd}}"
+    "translation": "Dein {{.WorkspaceName}} Arbeitsbereich wurde jetzt aktualisiert. Dein {{.WorkspaceName}} wird ab {{.Date}} abgerechnet"
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
@@ -9357,5 +9357,21 @@
   {
     "id": "api.authorization_error.guest",
     "translation": " "
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "Es ist nicht möglich, die Top-Threads für einen Benutzer zu erhalten."
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "Es ist nicht möglich, Top-Threads für das Team zu erhalten."
+  },
+  {
+    "id": "app.insights.feature_disabled",
+    "translation": "Die Insights Funktion ist deaktiviert."
+  },
+  {
+    "id": "api.insights.license_error",
+    "translation": "Deine Lizenz unterstützt die Insights-Funktion nicht."
   }
 ]
