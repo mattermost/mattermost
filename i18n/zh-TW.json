@@ -7268,15 +7268,7 @@
     "translation": "無法解析要求本文。"
   },
   {
-    "id": "app.upload.run_plugins_hook.move_fail",
-    "translation": ""
-  },
-  {
     "id": "api.command_remote.service_disabled",
-    "translation": ""
-  },
-  {
-    "id": "api.users.invalid_emails.enable_open_server.app_error",
     "translation": ""
   },
   {
@@ -7284,15 +7276,7 @@
     "translation": ""
   },
   {
-    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": ""
-  },
-  {
     "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.command_remote.accept.help",
     "translation": ""
   },
   {

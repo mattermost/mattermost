@@ -8724,10 +8724,6 @@
     "translation": "Textul introdus depășește limita de caractere. Antetul canalului este limitat la {{.MaxLength}} caractere."
   },
   {
-    "id": "api.post.posts_by_ids.invalid_body.request_error",
-    "translation": ""
-  },
-  {
     "id": "app.team.get_common_team_ids_for_users.app_error",
     "translation": ""
   }

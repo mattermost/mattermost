@@ -7092,15 +7092,7 @@
     "translation": "LDAP non è disponibile."
   },
   {
-    "id": "api.command_remote.remove_remote_id.help",
-    "translation": ""
-  },
-  {
     "id": "api.config.migrate_config.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": ""
   },
   {
@@ -7108,15 +7100,7 @@
     "translation": ""
   },
   {
-    "id": "model.config.is_valid.collapsed_threads.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.templates.invite_body_footer.title",
-    "translation": ""
-  },
-  {
-    "id": "app.upload.get_for_user.app_error",
     "translation": ""
   },
   {
