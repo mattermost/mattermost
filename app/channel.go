@@ -2780,6 +2780,7 @@ func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (mode
 		ExcludeGroupConstrained:  opts.ExcludeGroupConstrained,
 		PolicyID:                 opts.PolicyID,
 		IncludePolicyID:          opts.IncludePolicyID,
+		IncludeSearchById:        opts.IncludeSearchById,
 		ExcludePolicyConstrained: opts.ExcludePolicyConstrained,
 		Public:                   opts.Public,
 		Private:                  opts.Private,

@@ -1,0 +1,13 @@
+version: '2.4'
+services:
+  elasticsearch:
+    image: "elasticsearch:7.17.3"
+    platform: linux/arm64/v8
+    restart: 'no'
+    container_name: mattermost-elasticsearch
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    extends:
+        file: build/docker-compose.common.yml
+        service: elasticsearch

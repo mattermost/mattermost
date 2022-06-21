@@ -17,6 +17,8 @@ import (
 
 	"github.com/pkg/errors"
 
+	"golang.org/x/sync/errgroup"
+
 	"github.com/mattermost/mattermost-server/v6/app/email"
 	"github.com/mattermost/mattermost-server/v6/app/imaging"
 	"github.com/mattermost/mattermost-server/v6/app/request"
@@ -28,7 +30,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mfa"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
-	"golang.org/x/sync/errgroup"
 )
 
 const (

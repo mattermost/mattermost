@@ -20,6 +20,10 @@ func (api *API) InitInsights() {
 	// Channels
 	api.BaseRoutes.InsightsForTeam.Handle("/channels", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopChannelsForTeamSince)))).Methods("GET")
 	api.BaseRoutes.InsightsForUser.Handle("/channels", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopChannelsForUserSince)))).Methods("GET")
+
+	// Threads
+	api.BaseRoutes.InsightsForTeam.Handle("/threads", api.APISessionRequired(requireLicense(getTopThreadsForTeamSince))).Methods("GET")
+	api.BaseRoutes.InsightsForUser.Handle("/threads", api.APISessionRequired(requireLicense(getTopThreadsForUserSince))).Methods("GET")
 }
 
 // Top Reactions
@@ -221,6 +225,116 @@ func getTopChannelsForUserSince(c *Context, w http.ResponseWriter, r *http.Reque
 	js, jsonErr := json.Marshal(topChannels)
 	if jsonErr != nil {
 		c.Err = model.NewAppError("getTopChannelsForUserSince", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
+}
+
+// Top Threads
+func getTopThreadsForTeamSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	team, err := c.App.GetTeam(c.Params.TeamId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	// license check
+	lic := c.App.Srv().License()
+	if lic.SkuShortName != model.LicenseShortSkuProfessional && lic.SkuShortName != model.LicenseShortSkuEnterprise {
+		c.Err = model.NewAppError("", "api.insights.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	// restrict guests and users with no access to team
+	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) || user.IsGuest() {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
+	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+
+	topThreads, err := c.App.GetTopThreadsForTeamSince(c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
+		StartUnixMilli: startTime.UnixMilli(),
+		Page:           c.Params.Page,
+		PerPage:        c.Params.PerPage,
+	})
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	js, jsonErr := json.Marshal(topThreads)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getTopThreadsForTeamSince", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
+}
+
+func getTopThreadsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.Params.TeamId = r.URL.Query().Get("team_id")
+
+	// restrict guests and users with no access to team
+	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	// TeamId is an optional parameter
+	if c.Params.TeamId != "" {
+		if !model.IsValidId(c.Params.TeamId) {
+			c.SetInvalidURLParam("team_id")
+			return
+		}
+
+		team, teamErr := c.App.GetTeam(c.Params.TeamId)
+		if teamErr != nil {
+			c.Err = teamErr
+			return
+		}
+
+		// license check
+		lic := c.App.Srv().License()
+		if lic.SkuShortName != model.LicenseShortSkuProfessional && lic.SkuShortName != model.LicenseShortSkuEnterprise {
+			c.Err = model.NewAppError("", "api.insights.license_error", nil, "", http.StatusNotImplemented)
+			return
+		}
+
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) || user.IsGuest() {
+			c.SetPermissionError(model.PermissionViewTeam)
+			return
+		}
+	}
+
+	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+
+	topThreads, err := c.App.GetTopThreadsForUserSince(c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
+		StartUnixMilli: startTime.UnixMilli(),
+		Page:           c.Params.Page,
+		PerPage:        c.Params.PerPage,
+	})
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	js, jsonErr := json.Marshal(topThreads)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getTopThreadsForUserSince", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
