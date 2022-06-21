@@ -7092,15 +7092,7 @@
     "translation": "LDAP non è disponibile."
   },
   {
-    "id": "api.templates.welcome_body.serverURL",
-    "translation": ""
-  },
-  {
     "id": "api.command_share.remote_uninvited",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.cloud_welcome_email.invite_info",
     "translation": ""
   },
   {
@@ -7108,15 +7100,7 @@
     "translation": ""
   },
   {
-    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
-    "translation": ""
-  },
-  {
     "id": "api.remote_cluster.save_not_unique.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.command_share.check_channel_exist.error",
     "translation": ""
   },
   {
@@ -7124,15 +7108,7 @@
     "translation": ""
   },
   {
-    "id": "app.user.demote_user_to_guest.user_update.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.command_share.name",
-    "translation": ""
-  },
-  {
-    "id": "api.upgrade_to_enterprise_status.signature.app_error",
     "translation": ""
   },
   {
@@ -7140,15 +7116,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.welcome_body.app_download_title",
-    "translation": ""
-  },
-  {
     "id": "api.templates.payment_failed.subject",
-    "translation": ""
-  },
-  {
-    "id": "app.group.group_syncable_already_deleted",
     "translation": ""
   },
   {
@@ -7156,15 +7124,7 @@
     "translation": ""
   },
   {
-    "id": "app.usage.get_storage_usage.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": ""
-  },
-  {
-    "id": "app.valid_password_generic.app_error",
     "translation": ""
   },
   {
@@ -7172,15 +7132,7 @@
     "translation": ""
   },
   {
-    "id": "app.upload.upload_data.first_part_too_small.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.unable_to_read_file_from_backend",
-    "translation": ""
-  },
-  {
-    "id": "app.user.clear_all_custom_role_assignments.select.app_error",
     "translation": ""
   },
   {
@@ -7188,15 +7140,7 @@
     "translation": ""
   },
   {
-    "id": "api.command_remote.invite_password.help",
-    "translation": ""
-  },
-  {
     "id": "api.user.send_cloud_welcome_email.error",
-    "translation": ""
-  },
-  {
-    "id": "model.user.is_valid.roles_limit.app_error",
     "translation": ""
   },
   {
@@ -7204,15 +7148,7 @@
     "translation": ""
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
-    "translation": ""
-  },
-  {
     "id": "api.command_remote.invite_summary",
-    "translation": ""
-  },
-  {
-    "id": "api.command_remote.encrypt_invitation.error",
     "translation": ""
   },
   {
@@ -7220,15 +7156,7 @@
     "translation": ""
   },
   {
-    "id": "bleveengine.index_file.error",
-    "translation": ""
-  },
-  {
     "id": "api.command_share.remote_id_invalid.error",
-    "translation": ""
-  },
-  {
-    "id": "app.notification.footer.info",
     "translation": ""
   },
   {
@@ -7236,15 +7164,7 @@
     "translation": ""
   },
   {
-    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.user.get_threads_for_user.not_found",
-    "translation": ""
-  },
-  {
-    "id": "app.import.attachment.read_file_data.error",
     "translation": ""
   },
   {
@@ -7252,15 +7172,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.welcome_body.info1",
-    "translation": ""
-  },
-  {
     "id": "app.user.get_known_users.get_users.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_body",
     "translation": ""
   },
   {
@@ -7268,15 +7180,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.cloud_welcome_email.title",
-    "translation": ""
-  },
-  {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": ""
-  },
-  {
-    "id": "app.teams.analytics_teams_count.app_error",
     "translation": ""
   },
   {
@@ -7284,15 +7188,7 @@
     "translation": ""
   },
   {
-    "id": "api.config.update_config.not_allowed_security.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.cloud.teams_limit_reached.restore",
-    "translation": ""
-  },
-  {
-    "id": "model.session.is_valid.user_id.app_error",
     "translation": ""
   },
   {
@@ -7300,15 +7196,7 @@
     "translation": ""
   },
   {
-    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.user.update_thread_read_for_user.app_error",
-    "translation": ""
-  },
-  {
-    "id": "app.install_integration.reached_max_limit.error",
     "translation": ""
   },
   {
@@ -7316,15 +7204,7 @@
     "translation": ""
   },
   {
-    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.cloud.cloud_free_feature_flag_off_error",
-    "translation": ""
-  },
-  {
-    "id": "import_process.worker.do_job.missing_file",
     "translation": ""
   },
   {
@@ -7332,15 +7212,7 @@
     "translation": ""
   },
   {
-    "id": "app.reaction.get_top_for_team_since.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": ""
-  },
-  {
-    "id": "api.file.cloud_upload.app_error",
     "translation": ""
   },
   {
@@ -7348,15 +7220,7 @@
     "translation": ""
   },
   {
-    "id": "api.command_share.unknown_action",
-    "translation": ""
-  },
-  {
     "id": "api.cloud.subscription.update_error",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.server_inactivity_subject",
     "translation": ""
   },
   {
@@ -7364,15 +7228,7 @@
     "translation": ""
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": ""
-  },
-  {
     "id": "app.user.get_thread_membership_for_user.not_found",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.server_inactivity_info",
     "translation": ""
   },
   {
@@ -7380,15 +7236,7 @@
     "translation": ""
   },
   {
-    "id": "app.export.export_attachment.create_file.error",
-    "translation": ""
-  },
-  {
     "id": "app.bot.get_system_bot.empty_admin_list.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.unable_to_create_zip_file",
     "translation": ""
   },
   {
@@ -7396,15 +7244,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": ""
-  },
-  {
     "id": "import_process.worker.do_job.file_exists",
-    "translation": ""
-  },
-  {
-    "id": "app.channel.get_top_for_team_since.app_error",
     "translation": ""
   },
   {
@@ -7412,15 +7252,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.questions_footer.title",
-    "translation": ""
-  },
-  {
     "id": "api.templates.invite_team_and_channel_subject",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.cloud_welcome_email.info",
     "translation": ""
   },
   {
@@ -7428,15 +7260,7 @@
     "translation": ""
   },
   {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": ""
-  },
-  {
     "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": ""
-  },
-  {
-    "id": "api.insights.feature_disabled",
     "translation": ""
   },
   {
@@ -7444,15 +7268,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.invite_team_and_channels_subject",
-    "translation": ""
-  },
-  {
     "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
-    "translation": ""
-  },
-  {
-    "id": "app.user.permanent_delete.app_error",
     "translation": ""
   },
   {
@@ -7460,15 +7276,7 @@
     "translation": ""
   },
   {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": ""
-  },
-  {
     "id": "app.export.export_attachment.mkdirall.error",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.invite_body_footer.learn_more",
     "translation": ""
   },
   {
@@ -7476,15 +7284,7 @@
     "translation": ""
   },
   {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": ""
-  },
-  {
     "id": "api.file.remove_directory.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.command_share.invite_remote.help",
     "translation": ""
   },
   {
@@ -7492,15 +7292,7 @@
     "translation": ""
   },
   {
-    "id": "app.user.update_threads_read_for_user.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.user.save.username_exists.app_error",
-    "translation": ""
-  },
-  {
-    "id": "app.user.group_name_conflict",
     "translation": ""
   },
   {
@@ -7508,15 +7300,7 @@
     "translation": ""
   },
   {
-    "id": "app.user.analytics_daily_active_users.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.notification.body.dm.subTitle",
-    "translation": ""
-  },
-  {
-    "id": "app.channel.get_file_count.app_error",
     "translation": ""
   },
   {
@@ -7524,15 +7308,7 @@
     "translation": ""
   },
   {
-    "id": "app.user.analytics_get_inactive_users_count.app_error",
-    "translation": ""
-  },
-  {
     "id": "model.github_release_info.is_valid.id.app_error",
-    "translation": ""
-  },
-  {
-    "id": "app.team.get_common_team_ids_for_users.app_error",
     "translation": ""
   },
   {
@@ -7540,15 +7316,7 @@
     "translation": ""
   },
   {
-    "id": "app.user.verify_email.app_error",
-    "translation": ""
-  },
-  {
     "id": "model.channel_member.is_valid.roles_limit.app_error",
-    "translation": ""
-  },
-  {
-    "id": "app.user.update_active_for_multiple_users.updating.app_error",
     "translation": ""
   },
   {
@@ -7556,15 +7324,7 @@
     "translation": ""
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.role.get_all.app_error",
-    "translation": ""
-  },
-  {
-    "id": "app.notification.body.group.subTitle",
     "translation": ""
   },
   {
@@ -7572,15 +7332,7 @@
     "translation": ""
   },
   {
-    "id": "api.user.upload_profile_user.check_image_limits.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.team.invite_members.unable_to_send_email.app_error",
-    "translation": ""
-  },
-  {
-    "id": "app.notification.body.thread_dm.subTitle",
     "translation": ""
   },
   {
@@ -7588,15 +7340,7 @@
     "translation": ""
   },
   {
-    "id": "app.user.update.find.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.user.invalidate_verify_email_tokens.error",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
     "translation": ""
   },
   {
@@ -7604,15 +7348,7 @@
     "translation": ""
   },
   {
-    "id": "api.file.list_directory.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.custom_groups.no_remote_id",
-    "translation": ""
-  },
-  {
-    "id": "api.custom_groups.license_error",
     "translation": ""
   },
   {
@@ -7620,15 +7356,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.cloud_welcome_email.subtitle_info",
-    "translation": ""
-  },
-  {
     "id": "api.error_set_first_admin_complete_setup",
-    "translation": ""
-  },
-  {
-    "id": "api.user.get_authorization_code.endpoint.app_error",
     "translation": ""
   },
   {
@@ -7636,15 +7364,7 @@
     "translation": ""
   },
   {
-    "id": "api.config.update_config.diff.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.admin.latest_version_external_error.failure",
-    "translation": ""
-  },
-  {
-    "id": "api.invalid_redirect_url",
     "translation": ""
   },
   {
@@ -7652,15 +7372,7 @@
     "translation": ""
   },
   {
-    "id": "api.file.move_file.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.context.remote_id_missing.app_error",
-    "translation": ""
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
     "translation": ""
   },
   {
@@ -7668,15 +7380,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.copyright",
-    "translation": ""
-  },
-  {
     "id": "app.group.no_rows",
-    "translation": ""
-  },
-  {
-    "id": "app.admin.latest_version_unmarshal.failure",
     "translation": ""
   },
   {
@@ -7684,15 +7388,7 @@
     "translation": ""
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": ""
-  },
-  {
     "id": "import_process.worker.do_job.open_file",
-    "translation": ""
-  },
-  {
-    "id": "app.user.get_thread_membership_for_user.app_error",
     "translation": ""
   },
   {
@@ -7700,15 +7396,7 @@
     "translation": ""
   },
   {
-    "id": "api.upgrade_to_enterprise.already-done.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.templates.payment_failed.info1",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.invite_body.title.reminder",
     "translation": ""
   },
   {
@@ -7716,15 +7404,7 @@
     "translation": ""
   },
   {
-    "id": "app.notification.body.mention.title",
-    "translation": ""
-  },
-  {
     "id": "ent.elasticsearch.getAllTeamMembers.error",
-    "translation": ""
-  },
-  {
-    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
     "translation": ""
   },
   {
@@ -7732,15 +7412,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": ""
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.title",
-    "translation": ""
-  },
-  {
-    "id": "api.push_notification.title.collapsed_threads_dm",
     "translation": ""
   },
   {
@@ -7748,15 +7420,7 @@
     "translation": ""
   },
   {
-    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.user.get_new_users.app_error",
-    "translation": ""
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
     "translation": ""
   },
   {
@@ -7764,15 +7428,7 @@
     "translation": ""
   },
   {
-    "id": "api.command_share.remote_not_valid",
-    "translation": ""
-  },
-  {
     "id": "api.command_share.invalid_value.error",
-    "translation": ""
-  },
-  {
-    "id": "api.command_share.fetch_remote_status.error",
     "translation": ""
   },
   {
@@ -7780,15 +7436,7 @@
     "translation": ""
   },
   {
-    "id": "api.command_remote.permission_required",
-    "translation": ""
-  },
-  {
     "id": "ent.actiance.export.write_file.appError",
-    "translation": ""
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
     "translation": ""
   },
   {
@@ -7796,15 +7444,7 @@
     "translation": ""
   },
   {
-    "id": "api.error_set_first_admin_visit_marketplace_status",
-    "translation": ""
-  },
-  {
     "id": "api.command_share.channel_invite_not_home.error",
-    "translation": ""
-  },
-  {
-    "id": "api.command_share.remote_table_header",
     "translation": ""
   },
   {
@@ -7812,15 +7452,7 @@
     "translation": ""
   },
   {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.user.get_profile_by_group_channel_ids_for_user.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet2",
     "translation": ""
   },
   {
@@ -7828,15 +7460,7 @@
     "translation": ""
   },
   {
-    "id": "api.context.remote_id_mismatch.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.command_share.uninvite_remote_id.help",
-    "translation": ""
-  },
-  {
-    "id": "api.command_remote.add_remote.error",
     "translation": ""
   },
   {
@@ -7844,15 +7468,7 @@
     "translation": ""
   },
   {
-    "id": "app.custom_group.unique_name",
-    "translation": ""
-  },
-  {
     "id": "api.templates.invite_body_guest.subTitle",
-    "translation": ""
-  },
-  {
-    "id": "api.user.patch_user.login_provider_attribute_set.app_error",
     "translation": ""
   },
   {
@@ -7860,15 +7476,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.cloud_welcome_email.add_apps_info",
-    "translation": ""
-  },
-  {
     "id": "api.templates.payment_failed_no_card.subject",
-    "translation": ""
-  },
-  {
-    "id": "api.system.update_notices.parse_failed",
     "translation": ""
   },
   {
@@ -7876,15 +7484,7 @@
     "translation": ""
   },
   {
-    "id": "api.config.patch_config.diff.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.templates.payment_failed.title",
-    "translation": ""
-  },
-  {
-    "id": "api.system.update_viewed_notices.failed",
     "translation": ""
   },
   {
@@ -7892,15 +7492,7 @@
     "translation": ""
   },
   {
-    "id": "api.command_share.must_specify_valid_remote",
-    "translation": ""
-  },
-  {
     "id": "api.command_remote.site_url_not_set",
-    "translation": ""
-  },
-  {
-    "id": "api.command_remote.service_disabled",
     "translation": ""
   },
   {
@@ -7908,15 +7500,7 @@
     "translation": ""
   },
   {
-    "id": "ent.data_retention.policies.internal_error",
-    "translation": ""
-  },
-  {
     "id": "app.import.marshal.app_error",
-    "translation": ""
-  },
-  {
-    "id": "store.sql_file_info.search.disabled",
     "translation": ""
   },
   {
@@ -7924,15 +7508,7 @@
     "translation": ""
   },
   {
-    "id": "model.upload_session.is_valid.file_offset.app_error",
-    "translation": ""
-  },
-  {
     "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
-    "translation": ""
-  },
-  {
-    "id": "error",
     "translation": ""
   },
   {
@@ -7940,15 +7516,7 @@
     "translation": ""
   },
   {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": ""
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.time",
-    "translation": ""
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.button",
     "translation": ""
   },
   {
@@ -7956,15 +7524,7 @@
     "translation": ""
   },
   {
-    "id": "ent.ldap.do_login.certificate.app_error",
-    "translation": ""
-  },
-  {
     "id": "ent.elasticsearch.index_file.error",
-    "translation": ""
-  },
-  {
-    "id": "bleveengine.delete_file.error",
     "translation": ""
   },
   {
@@ -7972,15 +7532,7 @@
     "translation": ""
   },
   {
-    "id": "app.user.promote_guest.user_update.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.upload.upload_data.read_file.app_error",
-    "translation": ""
-  },
-  {
-    "id": "app.upload.run_plugins_hook.rejected",
     "translation": ""
   },
   {
@@ -7988,15 +7540,7 @@
     "translation": ""
   },
   {
-    "id": "app.upload.create.save.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.channel.autofollow.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.user.update_user.login_provider_attribute_set.app_error",
     "translation": ""
   },
   {
@@ -8004,15 +7548,7 @@
     "translation": ""
   },
   {
-    "id": "api.upload.get_upload.forbidden.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
     "translation": ""
   },
   {
@@ -8020,15 +7556,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.welcome_body.subTitle1",
-    "translation": ""
-  },
-  {
     "id": "api.templates.over_limit_fix_now",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.cloud_welcome_email.signin_sub_info",
     "translation": ""
   },
   {
@@ -8036,15 +7564,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.cloud_welcome_email.app_market_place",
-    "translation": ""
-  },
-  {
     "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.system.update_notices.validating_failed",
     "translation": ""
   },
   {
@@ -8052,15 +7572,7 @@
     "translation": ""
   },
   {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
-    "translation": ""
-  },
-  {
     "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
-    "translation": ""
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
     "translation": ""
   },
   {
@@ -8068,15 +7580,7 @@
     "translation": ""
   },
   {
-    "id": "app.select_error",
-    "translation": ""
-  },
-  {
     "id": "app.insert_error",
-    "translation": ""
-  },
-  {
-    "id": "app.import.import_user_teams.save_members.conflict.app_error",
     "translation": ""
   },
   {
@@ -8084,15 +7588,7 @@
     "translation": ""
   },
   {
-    "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
-    "translation": ""
-  },
-  {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": ""
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
     "translation": ""
   },
   {
@@ -8100,15 +7596,7 @@
     "translation": ""
   },
   {
-    "id": "api.server.warn_metric.mfa.contact_us.email_body",
-    "translation": ""
-  },
-  {
     "id": "api.remote_cluster.invalid_topic.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.post.search_posts.invalid_body.app_error",
     "translation": ""
   },
   {
@@ -8116,15 +7604,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": ""
-  },
-  {
     "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": ""
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
     "translation": ""
   },
   {
@@ -8132,15 +7612,7 @@
     "translation": ""
   },
   {
-    "id": "api.no_license",
-    "translation": ""
-  },
-  {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.job.unable_to_download_job.incorrect_job_type",
     "translation": ""
   },
   {
@@ -8148,15 +7620,7 @@
     "translation": ""
   },
   {
-    "id": "api.file.file_size.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.error_get_first_admin_visit_marketplace_status",
-    "translation": ""
-  },
-  {
-    "id": "api.command_share.shared_channel_unavailable",
     "translation": ""
   },
   {
@@ -8164,15 +7628,7 @@
     "translation": ""
   },
   {
-    "id": "api.command_share.service_disabled",
-    "translation": ""
-  },
-  {
     "id": "api.command_share.channel_remote_id_not_exists",
-    "translation": ""
-  },
-  {
-    "id": "api.command_remote.status.help",
     "translation": ""
   },
   {
@@ -8180,15 +7636,7 @@
     "translation": ""
   },
   {
-    "id": "api.command_remote.name",
-    "translation": ""
-  },
-  {
     "id": "api.command_remote.fetch_status.error",
-    "translation": ""
-  },
-  {
-    "id": "api.config.patch_config.restricted_merge.app_error",
     "translation": ""
   },
   {
@@ -8196,15 +7644,7 @@
     "translation": ""
   },
   {
-    "id": "api.command_remote.missing_command",
-    "translation": ""
-  },
-  {
     "id": "api.command_remote.invitation_created",
-    "translation": ""
-  },
-  {
-    "id": "api.command_remote.hint",
     "translation": ""
   },
   {
@@ -8212,15 +7652,7 @@
     "translation": ""
   },
   {
-    "id": "api.command_custom_status.success",
-    "translation": ""
-  },
-  {
     "id": "api.command_custom_status.clear.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.admin.add_certificate.parseform.app_error",
     "translation": ""
   }
 ]

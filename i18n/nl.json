@@ -9349,9 +9349,5 @@
   {
     "id": "api.cloud.cloud_free_feature_flag_off_error",
     "translation": "CloudFree-functie flag is uit."
-  },
-  {
-    "id": "api.authorization_error.guest",
-    "translation": ""
   }
 ]
