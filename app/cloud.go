@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
@@ -16,33 +15,23 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
-var notifyLock sync.Mutex
-
 func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID string) *model.AppError {
 	userId := c.Session().Id
 
 	// check if already notified
-	notifyLock.Lock()
-	sysVal, err := a.Srv().Store.System().GetByName("NOTIFIED_ADMIN_TO_UPGRADE")
+	notificationPref, err := a.Srv().Store.Preference().Get(userId, model.PreferenceCloudUserEphemeralInfo, model.CloudNotifyAdminInfo)
 	if err != nil {
-		mlog.Error("Unable to get NOTIFIED_ADMIN_TO_UPGRADE", mlog.Err(err))
+		mlog.Warn("Unable to get preference cloud_user_ephemeral_info", mlog.Err(err))
 	}
 
-	notifyLock.Unlock()
-
-	alreadyNotifiedUsersInfo := &model.AlreadyCloudNotifiedAdminUsersInfo{
-		Info: make([]model.UserInfo, 0),
-	}
-
-	if sysVal != nil {
-		val := sysVal.Value
-
-		err = json.Unmarshal([]byte(val), alreadyNotifiedUsersInfo)
+	if notificationPref != nil {
+		info := &model.AdminNotificationUserInfo{}
+		err = json.Unmarshal([]byte(notificationPref.Value), info)
 		if err != nil {
-			mlog.Error("Unable to Unmarshal", mlog.Err(err))
+			mlog.Warn("Unable to Unmarshal", mlog.Err(err))
 		}
 
-		if !alreadyNotifiedUsersInfo.CanNotify(userId) {
+		if !model.CanNotify(info.LastNotificationTimestamp) {
 			return model.NewAppError("app.NotifySystemAdminsToUpgrade", "api.cloud.notify_admin_to_upgrade_error.already_notified", nil, "", http.StatusForbidden)
 		}
 	}
@@ -72,7 +61,7 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID 
 		T := i18n.GetUserTranslations(admin.Locale)
 		channel, appErr := a.GetOrCreateDirectChannel(c, systemBot.UserId, admin.Id)
 		if appErr != nil {
-			mlog.Error("Error getting direct channel", mlog.Err(appErr))
+			mlog.Warn("Error getting direct channel", mlog.Err(appErr))
 			continue
 		}
 
@@ -85,27 +74,29 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID 
 
 		_, appErr = a.CreatePost(c, post, channel, false, true)
 		if appErr != nil {
-			mlog.Error("Error creating post", mlog.Err(appErr))
+			mlog.Warn("Error creating post", mlog.Err(appErr))
 			continue
 		}
 	}
 
 	// mark as done for current user until end of cool off period
-	notifyLock.Lock()
-
-	alreadyNotifiedUsersInfo.Upsert(userId)
-
-	out, err := json.Marshal(alreadyNotifiedUsersInfo)
+	out, err := json.Marshal(&model.AdminNotificationUserInfo{
+		LastNotificationTimestamp: model.GetMillis(),
+	})
 	if err != nil {
-		mlog.Error("Unable to Unmarshal", mlog.Err(err))
+		mlog.Warn("Unable to Marshal", mlog.Err(err))
 	}
 
-	sysVar := &model.System{Name: "NOTIFIED_ADMIN_TO_UPGRADE", Value: string(out)}
-	if err := a.Srv().Store.System().SaveOrUpdate(sysVar); err != nil {
-		mlog.Error("Unable to save NOTIFIED_ADMIN_TO_UPGRADE", mlog.Err(err))
+	pref := model.Preference{
+		UserId:   userId,
+		Category: model.PreferenceCloudUserEphemeralInfo,
+		Name:     model.CloudNotifyAdminInfo,
+		Value:    string(out),
 	}
 
-	notifyLock.Unlock()
+	if err := a.Srv().Store.Preference().Save(model.Preferences{pref}); err != nil {
+		mlog.Warn("Encountered error saving cloud_user_ephemeral_info preference", mlog.Err(err))
+	}
 
 	return nil
 }

@@ -44,6 +44,7 @@ const (
 )
 
 const defaultCloudNotifyAdminCoolOffDays = 30
+const CloudNotifyAdminInfo = "cloud_notify_admin_info"
 
 // Product model represents a product on the cloud system.
 type Product struct {
@@ -229,46 +230,17 @@ type NotifyAdminToUpgradeRequest struct {
 	CurrentTeamId string `json:"current_team_id"`
 }
 
-type UserInfo struct {
-	UserID    string
-	Timestamp int64
+type AdminNotificationUserInfo struct {
+	LastNotificationTimestamp int64
 }
 
-type AlreadyCloudNotifiedAdminUsersInfo struct {
-	Info []UserInfo
-}
-
-func (a *AlreadyCloudNotifiedAdminUsersInfo) CanNotify(ID string) bool {
+func CanNotify(lastNotificationTimestamp int64) bool {
 	coolOffPeriodDaysEnv := os.Getenv("MM_CLOUD_NOTIFY_ADMIN_COOL_OFF_DAYS")
 	coolOffPeriodDays, parseError := strconv.ParseFloat(coolOffPeriodDaysEnv, 64)
 	if parseError != nil {
 		coolOffPeriodDays = defaultCloudNotifyAdminCoolOffDays
 	}
 	daysToMillis := coolOffPeriodDays * 24 * 60 * 60 * 1000
-	for _, i := range a.Info {
-		if i.UserID == ID {
-			timeDiff := GetMillis() - i.Timestamp
-			return timeDiff >= int64(daysToMillis)
-		}
-	}
-
-	return true
-}
-
-func (a *AlreadyCloudNotifiedAdminUsersInfo) Upsert(ID string) []UserInfo {
-	for ind, i := range a.Info {
-		if i.UserID == ID {
-			currentUserInfo := a.Info[ind]
-			currentUserInfo.Timestamp = GetMillis()
-			a.Info[ind] = currentUserInfo
-			return a.Info
-		}
-	}
-
-	a.Info = append(a.Info, UserInfo{
-		UserID:    ID,
-		Timestamp: GetMillis(),
-	})
-
-	return a.Info
+	timeDiff := GetMillis() - lastNotificationTimestamp
+	return timeDiff >= int64(daysToMillis)
 }
