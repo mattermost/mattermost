@@ -9252,23 +9252,11 @@
     "translation": "获取最近搜索错误"
   },
   {
-    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.channel.get_post_count_by_day.app_error",
     "translation": ""
   },
   {
-    "id": "app.post.analytics_teams_count.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.cloud.subscription.update_error",
-    "translation": ""
-  },
-  {
-    "id": "app.admin.latest_version_read_all.failure",
     "translation": ""
   },
   {

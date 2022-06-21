@@ -9300,15 +9300,7 @@
     "translation": "Подтверждение обновления Mattermost"
   },
   {
-    "id": "app.post.analytics_teams_count.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.channel.get_post_count_by_day.app_error",
-    "translation": ""
-  },
-  {
-    "id": "app.install_integration.reached_max_limit.error",
     "translation": ""
   },
   {

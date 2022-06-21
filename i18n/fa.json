@@ -9012,15 +9012,7 @@
     "translation": "تا زمانی که بیصدایی کانال خاموش نشود ، اعلانی برای {{.Channel}} دریافت نخواهید کرد."
   },
   {
-    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.channel.get_file_count.app_error",
-    "translation": ""
-  },
-  {
-    "id": "app.usage.get_storage_usage.app_error",
     "translation": ""
   },
   {
@@ -9028,15 +9020,7 @@
     "translation": ""
   },
   {
-    "id": "app.teams.analytics_teams_count.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.cloud.teams_limit_reached.restore",
-    "translation": ""
-  },
-  {
-    "id": "model.channel.is_valid.1_or_more.app_error",
     "translation": ""
   },
   {
@@ -9044,15 +9028,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.invite_team_and_channels_body.title",
-    "translation": ""
-  },
-  {
     "id": "app.system.complete_onboarding_request.app_error",
-    "translation": ""
-  },
-  {
-    "id": "model.member.is_valid.emails.app_error",
     "translation": ""
   },
   {
@@ -9060,15 +9036,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.invite_team_and_channel_body.title",
-    "translation": ""
-  },
-  {
     "id": "app.member_count",
-    "translation": ""
-  },
-  {
-    "id": "app.user.group_name_conflict",
     "translation": ""
   },
   {
@@ -9076,23 +9044,11 @@
     "translation": ""
   },
   {
-    "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.templates.server_inactivity_info_bullet1",
     "translation": ""
   },
   {
-    "id": "api.custom_groups.no_remote_id",
-    "translation": ""
-  },
-  {
     "id": "Boards",
-    "translation": ""
-  },
-  {
-    "id": "app.admin.latest_version_external_error.failure",
     "translation": ""
   }
 ]
