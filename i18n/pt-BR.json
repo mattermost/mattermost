@@ -8640,15 +8640,7 @@
     "translation": "Não foi possível redefinir o campo AuthData para o e-mail."
   },
   {
-    "id": "app.recent_searches.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.user.get_thread_count_for_user.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.invite_team_and_channel_body.title",
     "translation": ""
   },
   {
@@ -8656,15 +8648,7 @@
     "translation": ""
   },
   {
-    "id": "api.authorization_error.guest",
-    "translation": ""
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.button",
-    "translation": ""
-  },
-  {
-    "id": "app.notification.footer.info",
     "translation": ""
   },
   {
@@ -8672,15 +8656,7 @@
     "translation": ""
   },
   {
-    "id": "app.usage.get_storage_usage.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.license_error.professional_or_enterprise",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.cloud_welcome_email.title",
     "translation": ""
   },
   {
@@ -8688,15 +8664,7 @@
     "translation": ""
   },
   {
-    "id": "model.channel.is_valid.1_or_more.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.user.get_thread_membership_for_user.not_found",
-    "translation": ""
-  },
-  {
-    "id": "app.system.complete_onboarding_request.no_first_user",
     "translation": ""
   },
   {
@@ -8704,15 +8672,7 @@
     "translation": ""
   },
   {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": ""
-  },
-  {
     "id": "api.cloud.cloud_free_feature_flag_off_error",
-    "translation": ""
-  },
-  {
-    "id": "api.cloud.subscription.update_error",
     "translation": ""
   },
   {
@@ -8720,15 +8680,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": ""
-  },
-  {
     "id": "api.templates.server_inactivity_subject",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.invite_team_and_channel_subject",
     "translation": ""
   },
   {
@@ -8736,15 +8688,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": ""
-  },
-  {
     "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": ""
-  },
-  {
-    "id": "app.user.group_name_conflict",
     "translation": ""
   },
   {
@@ -8752,15 +8696,7 @@
     "translation": ""
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": ""
-  },
-  {
     "id": "model.session.is_valid.user_id.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.invite_body.title.reminder",
     "translation": ""
   },
   {
@@ -8768,15 +8704,7 @@
     "translation": ""
   },
   {
-    "id": "ent.elasticsearch.getAllTeamMembers.error",
-    "translation": ""
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.time",
-    "translation": ""
-  },
-  {
-    "id": "api.custom_groups.no_remote_id",
     "translation": ""
   },
   {
@@ -8784,15 +8712,7 @@
     "translation": ""
   },
   {
-    "id": "app.channel.get_file_count.app_error",
-    "translation": ""
-  },
-  {
     "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
-    "translation": ""
-  },
-  {
-    "id": "app.system.system_bot.bot_displayname",
     "translation": ""
   },
   {
@@ -8800,15 +8720,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.cloud_welcome_email.mm_apps",
-    "translation": ""
-  },
-  {
     "id": "app.channel.get_top_for_team_since.app_error",
-    "translation": ""
-  },
-  {
-    "id": "model.member.is_valid.emails.app_error",
     "translation": ""
   },
   {
@@ -8816,15 +8728,7 @@
     "translation": ""
   },
   {
-    "id": "app.notification.body.dm.subTitle",
-    "translation": ""
-  },
-  {
     "id": "app.group.get_by_username_failure",
-    "translation": ""
-  },
-  {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
     "translation": ""
   },
   {
@@ -8832,15 +8736,7 @@
     "translation": ""
   },
   {
-    "id": "app.notification.body.dm.time",
-    "translation": ""
-  },
-  {
     "id": "app.user.send_auto_response.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.user.update_user.login_provider_attribute_set.app_error",
     "translation": ""
   },
   {
@@ -8848,15 +8744,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.server_inactivity_info_bullet1",
-    "translation": ""
-  },
-  {
     "id": "api.templates.server_inactivity_info",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": ""
   },
   {
@@ -8864,15 +8752,7 @@
     "translation": ""
   },
   {
-    "id": "model.user.is_valid.marshal.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.user.invalidate_verify_email_tokens_parse.error",
-    "translation": ""
-  },
-  {
-    "id": "api.license_error",
     "translation": ""
   },
   {
@@ -8880,15 +8760,7 @@
     "translation": ""
   },
   {
-    "id": "api.custom_groups.count_err",
-    "translation": ""
-  },
-  {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.error_get_first_admin_complete_setup",
     "translation": ""
   },
   {
@@ -8896,15 +8768,7 @@
     "translation": ""
   },
   {
-    "id": "api.post.posts_by_ids.invalid_body.request_error",
-    "translation": ""
-  },
-  {
     "id": "model.github_release_info.is_valid.id.app_error",
-    "translation": ""
-  },
-  {
-    "id": "app.system.complete_onboarding_request.app_error",
     "translation": ""
   },
   {
@@ -8912,15 +8776,7 @@
     "translation": ""
   },
   {
-    "id": "app.admin.latest_version_external_error.failure",
-    "translation": ""
-  },
-  {
     "id": "app.notification.body.thread_channel.subTitle",
-    "translation": ""
-  },
-  {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
     "translation": ""
   },
   {
@@ -8928,15 +8784,7 @@
     "translation": ""
   },
   {
-    "id": "brand.save_brand_image.check_image_limits.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": ""
-  },
-  {
-    "id": "api.push_notification.title.collapsed_threads",
     "translation": ""
   },
   {
@@ -8944,15 +8792,7 @@
     "translation": ""
   },
   {
-    "id": "api.unmarshal_error",
-    "translation": ""
-  },
-  {
     "id": "api.config.reload_config.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.user.invalidate_verify_email_tokens_delete.error",
     "translation": ""
   },
   {
@@ -8960,15 +8800,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": ""
-  },
-  {
     "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": ""
-  },
-  {
-    "id": "api.license.request-trial.can-start-trial.error",
     "translation": ""
   },
   {
@@ -8976,23 +8808,11 @@
     "translation": ""
   },
   {
-    "id": "api.user.upload_profile_user.check_image_limits.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.config.patch_config.diff.app_error",
     "translation": ""
   },
   {
-    "id": "api.templates.cloud_welcome_email.invite_sub_info",
-    "translation": ""
-  },
-  {
     "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": ""
-  },
-  {
-    "id": "Playbooks",
     "translation": ""
   },
   {
