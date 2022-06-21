@@ -1725,6 +1725,7 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 }
 
 func TestCreateUserWithInitialPreferences(t *testing.T) {
+	t.Skip("MM-45159")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

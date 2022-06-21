@@ -9280,10 +9280,6 @@
     "translation": "Hiba a legutóbbi keresések letöltése közben"
   },
   {
-    "id": "api.cloud.cloud_free_feature_flag_off_error",
-    "translation": "A CloudFree funkció ki van kapcsolva."
-  },
-  {
     "id": "app.usage.get_storage_usage.app_error",
     "translation": "Hiba a tároló használtságának lekérdezése közben."
   },
