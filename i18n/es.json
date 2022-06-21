@@ -9028,23 +9028,11 @@
     "translation": "No se ha podido actualizar el estado personalizado. Por favor, añade un emoji o un estado de texto personalizado o ambos."
   },
   {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": ""
-  },
-  {
     "id": "api.templates.server_inactivity_info_bullet1",
     "translation": ""
   },
   {
-    "id": "app.member_count",
-    "translation": ""
-  },
-  {
     "id": "api.templates.server_inactivity_button",
-    "translation": ""
-  },
-  {
-    "id": "app.system.complete_onboarding_request.app_error",
     "translation": ""
   }
 ]
