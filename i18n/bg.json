@@ -8892,15 +8892,7 @@
     "translation": "Функцията изисква надграждане до версия Enterprise Edition."
   },
   {
-    "id": "api.custom_status.set_custom_statuses.update.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.channel.get_post_count_by_day.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.authorization_error.guest",
     "translation": ""
   },
   {
@@ -8908,15 +8900,7 @@
     "translation": ""
   },
   {
-    "id": "model.member.is_valid.emails.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.custom_groups.license_error",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.server_inactivity_subject",
     "translation": ""
   },
   {
@@ -8924,23 +8908,11 @@
     "translation": ""
   },
   {
-    "id": "app.notification.body.thread_gm.subTitle",
-    "translation": ""
-  },
-  {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
     "translation": ""
   },
   {
-    "id": "model.github_release_info.is_valid.id.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.push_notification.title.collapsed_threads_dm",
-    "translation": ""
-  },
-  {
-    "id": "app.admin.latest_version_external_error.failure",
     "translation": ""
   },
   {

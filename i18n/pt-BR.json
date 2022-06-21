@@ -8640,15 +8640,7 @@
     "translation": "Não foi possível redefinir o campo AuthData para o e-mail."
   },
   {
-    "id": "app.member_count",
-    "translation": ""
-  },
-  {
     "id": "app.user.store_is_empty.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
     "translation": ""
   },
   {
@@ -8656,15 +8648,7 @@
     "translation": ""
   },
   {
-    "id": "api.cloud.teams_limit_reached.create",
-    "translation": ""
-  },
-  {
     "id": "app.custom_group.unique_name",
-    "translation": ""
-  },
-  {
-    "id": "app.channel.get_top_for_user_since.app_error",
     "translation": ""
   },
   {
@@ -8672,15 +8656,7 @@
     "translation": ""
   },
   {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.user.patch_user.login_provider_attribute_set.app_error",
-    "translation": ""
-  },
-  {
-    "id": "ent.data_retention.policies.invalid_policy",
     "translation": ""
   },
   {
@@ -8688,15 +8664,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.server_inactivity_subtitle",
-    "translation": ""
-  },
-  {
     "id": "app.notification.body.group.subTitle",
-    "translation": ""
-  },
-  {
-    "id": "api.custom_groups.license_error",
     "translation": ""
   },
   {
@@ -8704,23 +8672,11 @@
     "translation": ""
   },
   {
-    "id": "app.admin.latest_version_set_cache.failure",
-    "translation": ""
-  },
-  {
     "id": "model.session.is_valid.create_at.app_error",
     "translation": ""
   },
   {
-    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
-    "translation": ""
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.messageButton",
-    "translation": ""
-  },
-  {
-    "id": "app.team.get_common_team_ids_for_users.app_error",
     "translation": ""
   },
   {

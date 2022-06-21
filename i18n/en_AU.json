@@ -9287,10 +9287,6 @@
     "translation": "Unable to create team because teams limit has been reached"
   },
   {
-    "id": "app.reaction.get_top_for_user_since.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.user.get_by_name_failure",
     "translation": ""
   }
