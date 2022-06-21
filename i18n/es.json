@@ -9028,15 +9028,7 @@
     "translation": "No se ha podido actualizar el estado personalizado. Por favor, añade un emoji o un estado de texto personalizado o ambos."
   },
   {
-    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.install_integration.reached_max_limit.error",
-    "translation": ""
-  },
-  {
-    "id": "api.license_error",
     "translation": ""
   },
   {
@@ -9044,23 +9036,11 @@
     "translation": ""
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": ""
-  },
-  {
     "id": "app.member_count",
     "translation": ""
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.templates.server_inactivity_button",
-    "translation": ""
-  },
-  {
-    "id": "api.custom_groups.must_be_referenceable",
     "translation": ""
   },
   {
