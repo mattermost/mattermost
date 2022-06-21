@@ -7268,15 +7268,7 @@
     "translation": "無法解析要求本文。"
   },
   {
-    "id": "api.custom_groups.no_remote_id",
-    "translation": ""
-  },
-  {
     "id": "app.upload.run_plugins_hook.move_fail",
-    "translation": ""
-  },
-  {
-    "id": "sharedchannel.permalink.not_found",
     "translation": ""
   },
   {
@@ -7284,15 +7276,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": ""
-  },
-  {
     "id": "api.users.invalid_emails.enable_open_server.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.invalid_custom_url_scheme",
     "translation": ""
   },
   {
@@ -7300,15 +7284,7 @@
     "translation": ""
   },
   {
-    "id": "api.command_remote.invite_password.hint",
-    "translation": ""
-  },
-  {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
     "translation": ""
   },
   {
@@ -7316,15 +7292,7 @@
     "translation": ""
   },
   {
-    "id": "api.command_channel_header.update_channel.max_length",
-    "translation": ""
-  },
-  {
     "id": "api.command_remote.accept.help",
-    "translation": ""
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
     "translation": ""
   },
   {
