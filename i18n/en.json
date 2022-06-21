@@ -468,10 +468,6 @@
     "translation": "Internal error during cloud api request."
   },
   {
-    "id": "api.cloud.cloud_free_feature_flag_off_error",
-    "translation": "CloudFree feature flag is off."
-  },
-  {
     "id": "api.cloud.cws_webhook_event_missing_error",
     "translation": "Webhook event was not handled. Either it is missing or it is not valid."
   },
@@ -1923,7 +1919,11 @@
   },
   {
     "id": "api.insights.feature_disabled",
-    "translation": " "
+    "translation": "Insights is behind a feature flag which is not enabled."
+  },
+  {
+    "id": "api.insights.license_error",
+    "translation": "Your license doesn't support Insights feature."
   },
   {
     "id": "api.invalid_channel",
@@ -3185,7 +3185,7 @@
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "Your {{.WorkspaceName}} workspace has now been upgraded. You will be billed starting {{.TrialEnd}}"
+    "translation": "Your {{.WorkspaceName}} workspace has now been upgraded. You'll be billed from {{.Date}}"
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.title",
@@ -5472,6 +5472,10 @@
     "translation": "insert error"
   },
   {
+    "id": "app.insights.feature_disabled",
+    "translation": "Insights feature is disabled."
+  },
+  {
     "id": "app.install_integration.reached_max_limit.error",
     "translation": "You've reached the max limit of {{.NumIntegrations}} enabled integrations. To install unlimited integrations, upgrade to one of our paid plans."
   },
@@ -5894,6 +5898,14 @@
   {
     "id": "app.post.get_root_posts.app_error",
     "translation": "Unable to get the posts for the channel."
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "Unable to get top threads for team."
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "Unable to get top threads for user."
   },
   {
     "id": "app.post.marshal.app_error",

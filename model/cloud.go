@@ -91,6 +91,11 @@ type CloudCustomer struct {
 	PaymentMethod  *PaymentMethod `json:"payment_method"`
 }
 
+type StartCloudTrialRequest struct {
+	Email          string `json:"email"`
+	SubscriptionID string `json:"subscription_id"`
+}
+
 type ValidateBusinessEmailRequest struct {
 	Email string `json:"email"`
 }

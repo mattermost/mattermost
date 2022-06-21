@@ -9311,10 +9311,6 @@
     "translation": "Abonelik web bağlantısından güncellenirken sorun çıktı."
   },
   {
-    "id": "api.cloud.cloud_free_feature_flag_off_error",
-    "translation": "CloudFree özelliği işareti kapatılmış."
-  },
-  {
     "id": "app.recent_searches.app_error",
     "translation": "Son aramalar alınırken sorun çıktı"
   },
