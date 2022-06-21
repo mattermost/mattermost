@@ -7268,15 +7268,7 @@
     "translation": "無法解析要求本文。"
   },
   {
-    "id": "api.command_remote.service_disabled",
-    "translation": ""
-  },
-  {
     "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
-    "translation": ""
-  },
-  {
-    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
     "translation": ""
   },
   {
