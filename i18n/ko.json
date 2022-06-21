@@ -7886,9 +7886,5 @@
   {
     "id": "bleveengine.delete_post_files.error",
     "translation": "게시 된 파일을 삭제하지 못했습니다."
-  },
-  {
-    "id": "api.templates.cloud_welcome_email.add_apps_info",
-    "translation": ""
   }
 ]
