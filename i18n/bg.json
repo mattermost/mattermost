@@ -8892,15 +8892,7 @@
     "translation": "Функцията изисква надграждане до версия Enterprise Edition."
   },
   {
-    "id": "model.emoji.system_emoji_name.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.notification.body.thread_channel.subTitle",
-    "translation": ""
-  },
-  {
-    "id": "api.push_notification.title.collapsed_threads_dm",
     "translation": ""
   }
 ]
