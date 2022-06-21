@@ -8665,9 +8665,5 @@
   {
     "id": "Boards",
     "translation": "Boards"
-  },
-  {
-    "id": "model.channel_member.is_valid.roles_limit.app_error",
-    "translation": ""
   }
 ]
