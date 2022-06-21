@@ -2843,7 +2843,7 @@ func TestGetLastAccessiblePostTime(t *testing.T) {
 	mockStore.On("System").Return(&mockSystemStore)
 	mockSystemStore.On("GetByName", mock.Anything).Return(nil, errors.New("test"))
 	_, err = th.App.GetLastAccessiblePostTime()
-	assert.Error(t, err)
+	assert.NotNil(t, err)
 
 	mockSystemStore = storemocks.SystemStore{}
 	mockStore.On("System").Return(&mockSystemStore)
