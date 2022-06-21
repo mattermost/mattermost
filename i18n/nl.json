@@ -9349,5 +9349,17 @@
   {
     "id": "api.cloud.cloud_free_feature_flag_off_error",
     "translation": "CloudFree-functie flag is uit."
+  },
+  {
+    "id": "api.license_error.professional_or_enterprise",
+    "translation": ""
+  },
+  {
+    "id": "api.authorization_error.guest",
+    "translation": ""
+  },
+  {
+    "id": "app.channel.get_post_count_by_day.app_error",
+    "translation": ""
   }
 ]
