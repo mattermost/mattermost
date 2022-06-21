@@ -218,3 +218,40 @@ type ProductLimits struct {
 	Messages     *MessagesLimits     `json:"messages,omitempty"`
 	Teams        *TeamsLimits        `json:"teams,omitempty"`
 }
+
+type SnoozeUserInfo struct {
+	UserID    string
+	Timestamp int64 `json:"last_snooze_timestamp"`
+}
+
+type FileLimitBannerSnoozeUsersInfo struct {
+	Info []SnoozeUserInfo
+}
+
+func (a *FileLimitBannerSnoozeUsersInfo) GetUserSnoozeInfo(ID string) *SnoozeUserInfo {
+	for ind, i := range a.Info {
+		if i.UserID == ID {
+			return &a.Info[ind]
+		}
+	}
+
+	return nil
+}
+
+func (a *FileLimitBannerSnoozeUsersInfo) Upsert(ID string) []SnoozeUserInfo {
+	for ind, i := range a.Info {
+		if i.UserID == ID {
+			currentUserInfo := a.Info[ind]
+			currentUserInfo.Timestamp = GetMillis()
+			a.Info[ind] = currentUserInfo
+			return a.Info
+		}
+	}
+
+	a.Info = append(a.Info, SnoozeUserInfo{
+		UserID:    ID,
+		Timestamp: GetMillis(),
+	})
+
+	return a.Info
+}
