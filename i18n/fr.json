@@ -8667,15 +8667,7 @@
     "translation": "Boards"
   },
   {
-    "id": "model.member.is_valid.emails.app_error",
-    "translation": ""
-  },
-  {
     "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
-    "translation": ""
-  },
-  {
-    "id": "model.member.is_valid.channel.app_error",
     "translation": ""
   },
   {
@@ -8683,23 +8675,11 @@
     "translation": ""
   },
   {
-    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.templates.server_inactivity_title",
     "translation": ""
   },
   {
-    "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": ""
-  },
-  {
     "id": "model.channel_member.is_valid.roles_limit.app_error",
-    "translation": ""
-  },
-  {
-    "id": "app.user.update_auth_data.app_error",
     "translation": ""
   },
   {

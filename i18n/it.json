@@ -7092,15 +7092,7 @@
     "translation": "LDAP non è disponibile."
   },
   {
-    "id": "app.upload.upload_data.move_file.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.notification.body.thread.title",
-    "translation": ""
-  },
-  {
-    "id": "app.export.export_attachment.zip_create_header.error",
     "translation": ""
   },
   {
@@ -7108,15 +7100,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": ""
-  },
-  {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
-    "translation": ""
-  },
-  {
-    "id": "app.notification.body.thread_gm.subTitle",
     "translation": ""
   },
   {
@@ -7124,15 +7108,7 @@
     "translation": ""
   },
   {
-    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
-    "translation": ""
-  },
-  {
     "id": "model.channel.is_valid.1_or_more.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.remote_cluster.update.app_error",
     "translation": ""
   },
   {
@@ -7140,15 +7116,7 @@
     "translation": ""
   },
   {
-    "id": "app.user.get_by_username.app_error",
-    "translation": ""
-  },
-  {
     "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": ""
-  },
-  {
-    "id": "app.group.permanent_delete_members_by_user.app_error",
     "translation": ""
   },
   {
@@ -7156,15 +7124,7 @@
     "translation": ""
   },
   {
-    "id": "api.job.retrieve.nopermissions",
-    "translation": ""
-  },
-  {
     "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": ""
-  },
-  {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
     "translation": ""
   },
   {
@@ -7172,15 +7132,7 @@
     "translation": ""
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subTitle",
-    "translation": ""
-  },
-  {
     "id": "api.remote_cluster.delete.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.email_footer_v2",
     "translation": ""
   },
   {
@@ -7188,15 +7140,7 @@
     "translation": ""
   },
   {
-    "id": "api.oauth.click_redirect",
-    "translation": ""
-  },
-  {
     "id": "model.upload_session.is_valid.filename.app_error",
-    "translation": ""
-  },
-  {
-    "id": "ent.ldap.do_login.x509.app_error",
     "translation": ""
   },
   {
@@ -7204,15 +7148,7 @@
     "translation": ""
   },
   {
-    "id": "api.upgrade_to_enterprise.already-enterprise.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": ""
-  },
-  {
-    "id": "app.create_basic_user.save_member.conflict.app_error",
     "translation": ""
   },
   {
@@ -7220,15 +7156,7 @@
     "translation": ""
   },
   {
-    "id": "api.file.test_connection.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.command_remote.name.hint",
-    "translation": ""
-  },
-  {
-    "id": "api.command_remote.accept_invitation.error",
     "translation": ""
   }
 ]

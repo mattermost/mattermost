@@ -8892,15 +8892,7 @@
     "translation": "Функцията изисква надграждане до версия Enterprise Edition."
   },
   {
-    "id": "app.channel.get_post_count_by_day.app_error",
-    "translation": ""
-  },
-  {
     "id": "model.emoji.system_emoji_name.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.custom_groups.license_error",
     "translation": ""
   },
   {
@@ -8908,15 +8900,7 @@
     "translation": ""
   },
   {
-    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.push_notification.title.collapsed_threads_dm",
-    "translation": ""
-  },
-  {
-    "id": "ent.elasticsearch.getAllChannelMembers.error",
     "translation": ""
   }
 ]
