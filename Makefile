@@ -448,11 +448,16 @@ modules-tidy:
 	@if [ -f "imports/imports.go" ]; then \
 		mv imports/imports.go imports/imports.go.orig; \
 	fi;
+	@if [ -f "imports/boards_imports.go" ]; then \
+		mv imports/boards_imports.go imports/board_imports.go.orig; \
+	fi;
 	-$(GO) mod tidy
 	@if [ -f "imports/imports.go.orig" ]; then \
 		mv imports/imports.go.orig imports/imports.go; \
 	fi;
-
+	@if [ -f "imports/boards_imports.go.orig" ]; then \
+		mv imports/boards_imports.go.orig imports/boards_imports.go; \
+	fi;
 
 test-server-pre: check-prereqs-enterprise start-docker go-junit-report do-cover-file ## Runs tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
