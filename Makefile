@@ -183,7 +183,7 @@ ifeq ($(BUILD_BOARDS),true)
     ALL_PACKAGES += $(BOARDS_PACKAGES)
 	IGNORE:=$(shell echo Boards build selected, preparing)
 	IGNORE:=$(shell rm -f imports/boards_imports.go)
-	IGNORE:=$(shell cp $(BUILD_BOARDS_DIR)/mattermost-plugin/product/boards_imports.go imports/)
+	IGNORE:=$(shell cp $(BUILD_BOARDS_DIR)/mattermost-plugin/product/imports/boards_imports.go imports/)
 else
 	IGNORE:=$(shell rm -f imports/boards_imports.go)
 endif
@@ -433,6 +433,9 @@ gomodtidy:
 	@if [ -f "imports/imports.go" ]; then \
 		mv imports/imports.go imports/imports.go.orig; \
 	fi;
+	@if [ -f "imports/boards_imports.go" ]; then \
+		mv imports/boards_imports.go imports/boards_imports.go.orig; \
+	fi;
 	$(GO) mod tidy
 	@if [ "$$(diff go.mod go.mod.orig)" != "" -o "$$(diff go.sum go.sum.orig)" != "" ]; then \
 		echo "go.mod/go.sum was modified. \ndiff- $$(diff go.mod go.mod.orig) \n$$(diff go.sum go.sum.orig) \nRun \"go mod tidy\"."; \
@@ -442,6 +445,9 @@ gomodtidy:
 	@if [ -f "imports/imports.go.orig" ]; then \
 		mv imports/imports.go.orig imports/imports.go; \
 	fi;
+	@if [ -f "imports/boards_imports.go.orig" ]; then \
+		mv imports/boards_imports.go.orig imports/boards_imports.go; \
+	fi;
 	@rm go.*.orig;
 
 modules-tidy:
@@ -449,7 +455,7 @@ modules-tidy:
 		mv imports/imports.go imports/imports.go.orig; \
 	fi;
 	@if [ -f "imports/boards_imports.go" ]; then \
-		mv imports/boards_imports.go imports/board_imports.go.orig; \
+		mv imports/boards_imports.go imports/boards_imports.go.orig; \
 	fi;
 	-$(GO) mod tidy
 	@if [ -f "imports/imports.go.orig" ]; then \
