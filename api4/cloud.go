@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -17,7 +16,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func (api *API) InitCloud() {
@@ -54,95 +52,31 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/webhook", api.CloudAPIKeyRequired(handleCWSWebhook)).Methods("POST")
 
 	api.BaseRoutes.Cloud.Handle("/snooze-file-limit-banner", api.APISessionRequired(handleFileLimitBannerSnooze)).Methods(http.MethodPost)
-	api.BaseRoutes.Cloud.Handle("/get-user-file-limit-banner-snooze-info", api.APISessionRequired(handleGetUserFileLimitBannerSnoozeInfo)).Methods(http.MethodPost)
 }
 
 func handleFileLimitBannerSnooze(c *Context, w http.ResponseWriter, r *http.Request) {
 	userId := c.AppContext.Session().UserId
 
-	snoozeInfo := &model.FileLimitBannerSnoozeUsersInfo{
-		Info: make([]model.SnoozeUserInfo, 0),
-	}
-
-	sysVal, err := c.App.Srv().Store.System().GetByName("FILE_LIMIT_BANNER_SNOOZE_INFO")
+	out, err := json.Marshal(&model.FileLimitBannerSnoozeInfo{
+		LastSnoozeTimestamp: model.GetMillis(),
+	})
 	if err != nil {
-		var errNotFound *store.ErrNotFound
-		if !errors.As(err, &errNotFound) {
-			// error was because of something other than the record not existing
-			return
-		} else { // this path will only occur when system value does not exist yet
-			mlog.Info("FILE_LIMIT_BANNER_SNOOZE_INFO system value does not exist")
-
-			snoozeInfo.Upsert(userId)
-
-			out, err := json.Marshal(snoozeInfo)
-			if err != nil {
-				mlog.Error("Unable to Marshal", mlog.Err(err))
-			}
-
-			sysVar := &model.System{Name: "FILE_LIMIT_BANNER_SNOOZE_INFO", Value: string(out)}
-			if err := c.App.Srv().Store.System().SaveOrUpdate(sysVar); err != nil {
-				mlog.Error("Unable to save FILE_LIMIT_BANNER_SNOOZE_INFO", mlog.Err(err))
-			}
-
-			ReturnStatusOK(w)
-			return
-		}
-	}
-
-	err = json.Unmarshal([]byte(sysVal.Value), snoozeInfo)
-	if err != nil {
-		mlog.Error("Unable to Unmarshal", mlog.Err(err))
+		mlog.Error("Unable to Marshal", mlog.Err(err))
 		return
 	}
 
-	snoozeInfo.Upsert(userId)
-
-	out, err := json.Marshal(snoozeInfo)
-	if err != nil {
-		mlog.Error("Unable to Marshal", mlog.Err(err))
+	pref := model.Preference{
+		UserId:   userId,
+		Category: model.PreferenceCloudUserEphemeralInfo,
+		Name:     model.CloudFileLimitBannerSnoozeInfo,
+		Value:    string(out),
 	}
 
-	sysVar := &model.System{Name: "FILE_LIMIT_BANNER_SNOOZE_INFO", Value: string(out)}
-	if err := c.App.Srv().Store.System().SaveOrUpdate(sysVar); err != nil {
-		mlog.Error("Unable to save FILE_LIMIT_BANNER_SNOOZE_INFO", mlog.Err(err))
+	if err := c.App.Srv().Store.Preference().Save(model.Preferences{pref}); err != nil {
+		mlog.Warn("Encountered error saving cloud_user_ephemeral_info preference", mlog.Err(err))
 	}
 
 	ReturnStatusOK(w)
-}
-
-func handleGetUserFileLimitBannerSnoozeInfo(c *Context, w http.ResponseWriter, r *http.Request) {
-	userId := c.AppContext.Session().UserId
-
-	sysVal, err := c.App.Srv().Store.System().GetByName("FILE_LIMIT_BANNER_SNOOZE_INFO")
-	if err != nil {
-		var errNotFound *store.ErrNotFound
-		if !errors.As(err, &errNotFound) {
-			// error was because of something other than the record not existing
-			return
-		}
-		mlog.Debug("FILE_LIMIT_BANNER_SNOOZE_INFO system value does not exist")
-	}
-
-	snoozeInfo := &model.FileLimitBannerSnoozeUsersInfo{
-		Info: make([]model.SnoozeUserInfo, 0),
-	}
-
-	err = json.Unmarshal([]byte(sysVal.Value), snoozeInfo)
-	if err != nil {
-		mlog.Error("Unable to Unmarshal", mlog.Err(err))
-		return
-	}
-
-	userSnoozeInfo := snoozeInfo.GetUserSnoozeInfo(userId)
-
-	json, err := json.Marshal(userSnoozeInfo)
-	if err != nil {
-		c.Err = model.NewAppError("Api4.handleGetUserFileLimitBannerSnoozeInfo", "Error", nil, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Write(json)
 }
 
 func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
