@@ -9028,15 +9028,7 @@
     "translation": "No se ha podido actualizar el estado personalizado. Por favor, añade un emoji o un estado de texto personalizado o ambos."
   },
   {
-    "id": "api.cloud.subscription.update_error",
-    "translation": ""
-  },
-  {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.create",
     "translation": ""
   },
   {
@@ -9044,15 +9036,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.invite_team_and_channels_body.title",
-    "translation": ""
-  },
-  {
     "id": "api.license_error",
-    "translation": ""
-  },
-  {
-    "id": "app.admin.latest_version_read_all.failure",
     "translation": ""
   },
   {
@@ -9060,15 +9044,7 @@
     "translation": ""
   },
   {
-    "id": "app.custom_group.unique_name",
-    "translation": ""
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": ""
-  },
-  {
-    "id": "app.group.username_conflict",
     "translation": ""
   },
   {
@@ -9076,15 +9052,7 @@
     "translation": ""
   },
   {
-    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.prepackged-plugin.invalid_version.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.server_inactivity_title",
     "translation": ""
   },
   {
@@ -9092,15 +9060,7 @@
     "translation": ""
   },
   {
-    "id": "Playbooks",
-    "translation": ""
-  },
-  {
     "id": "api.custom_groups.must_be_referenceable",
-    "translation": ""
-  },
-  {
-    "id": "api.error_set_first_admin_complete_setup",
     "translation": ""
   },
   {

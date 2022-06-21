@@ -8724,15 +8724,7 @@
     "translation": "Textul introdus depășește limita de caractere. Antetul canalului este limitat la {{.MaxLength}} caractere."
   },
   {
-    "id": "api.user.invalidate_verify_email_tokens_delete.error",
-    "translation": ""
-  },
-  {
     "id": "app.teams.analytics_teams_count.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet1",
     "translation": ""
   },
   {
@@ -8740,15 +8732,7 @@
     "translation": ""
   },
   {
-    "id": "app.post.analytics_teams_count.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.authorization_error.guest",
-    "translation": ""
-  },
-  {
-    "id": "model.channel.is_valid.1_or_more.app_error",
     "translation": ""
   },
   {
@@ -8756,15 +8740,7 @@
     "translation": ""
   },
   {
-    "id": "api.config.patch_config.diff.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.custom_group.unique_name",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_renew_now",
     "translation": ""
   },
   {
@@ -8772,15 +8748,7 @@
     "translation": ""
   },
   {
-    "id": "app.reaction.get_top_for_team_since.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": ""
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
     "translation": ""
   },
   {
@@ -8788,15 +8756,7 @@
     "translation": ""
   },
   {
-    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
-    "translation": ""
-  },
-  {
     "id": "model.github_release_info.is_valid.id.app_error",
-    "translation": ""
-  },
-  {
-    "id": "app.notification.body.mention.subTitle",
     "translation": ""
   },
   {
@@ -8804,15 +8764,7 @@
     "translation": ""
   },
   {
-    "id": "app.user.group_name_conflict",
-    "translation": ""
-  },
-  {
     "id": "api.templates.server_inactivity_info_bullet",
-    "translation": ""
-  },
-  {
-    "id": "Playbooks",
     "translation": ""
   },
   {
@@ -8820,15 +8772,7 @@
     "translation": ""
   },
   {
-    "id": "api.custom_groups.must_be_referenceable",
-    "translation": ""
-  },
-  {
     "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": ""
-  },
-  {
-    "id": "app.notification.body.dm.subTitle",
     "translation": ""
   },
   {
@@ -8836,15 +8780,7 @@
     "translation": ""
   },
   {
-    "id": "app.admin.latest_version_unmarshal.failure",
-    "translation": ""
-  },
-  {
     "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": ""
-  },
-  {
-    "id": "app.session.extend_session_expiry.app_error",
     "translation": ""
   },
   {
@@ -8852,15 +8788,7 @@
     "translation": ""
   },
   {
-    "id": "app.notification.footer.info",
-    "translation": ""
-  },
-  {
     "id": "app.import.bulk_import.process_attachments.error",
-    "translation": ""
-  },
-  {
-    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
     "translation": ""
   },
   {
@@ -8868,15 +8796,7 @@
     "translation": ""
   },
   {
-    "id": "app.user.store_is_empty.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.user.invalidate_verify_email_tokens.error",
-    "translation": ""
-  },
-  {
-    "id": "api.team.set_team_icon.check_image_limits.app_error",
     "translation": ""
   },
   {
