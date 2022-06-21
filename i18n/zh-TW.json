@@ -7266,9 +7266,5 @@
   {
     "id": "api.team.add_team_member.invalid_body.app_error",
     "translation": "無法解析要求本文。"
-  },
-  {
-    "id": "api.post.search_files.invalid_body.app_error",
-    "translation": ""
   }
 ]
