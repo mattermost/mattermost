@@ -8667,10 +8667,6 @@
     "translation": "Boards"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": ""
-  },
-  {
     "id": "model.channel_member.is_valid.roles_limit.app_error",
     "translation": ""
   }
