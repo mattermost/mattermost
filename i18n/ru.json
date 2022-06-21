@@ -9300,10 +9300,6 @@
     "translation": "Подтверждение обновления Mattermost"
   },
   {
-    "id": "app.channel.get_post_count_by_day.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": ""
   }
