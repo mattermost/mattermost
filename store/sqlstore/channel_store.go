@@ -3292,14 +3292,26 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 			LeftJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId")
 	}
 
-	likeClause, likeTerm := s.buildLIKEClause(opts.Term, "c.Name, c.DisplayName, c.Purpose")
+	likeFields := "c.Name, c.DisplayName, c.Purpose"
+	if opts.IncludeSearchById {
+		likeFields = likeFields + ", c.Id"
+	}
+
+	likeClause, likeTerm := s.buildLIKEClause(opts.Term, likeFields)
+
 	if likeTerm != "" {
+		// Keep the number of likeTerms same as the number of columns
+		// (c.Name, c.DisplayName, c.Purpose, c.Id?)
+		likeTerms := make([]interface{}, len(strings.Split(likeFields, ",")))
+		for i := 0; i < len(likeTerms); i++ {
+			likeTerms[i] = likeTerm
+		}
 		likeClause = strings.ReplaceAll(likeClause, ":LikeTerm", "?")
 		fulltextClause, fulltextTerm := s.buildFulltextClause(opts.Term, "c.Name, c.DisplayName, c.Purpose")
 		fulltextClause = strings.ReplaceAll(fulltextClause, ":FulltextTerm", "?")
+
 		query = query.Where(sq.Or{
-			sq.Expr(likeClause, likeTerm, likeTerm, likeTerm), // Keep the number of likeTerms same as the number
-			// of columns (c.Name, c.DisplayName, c.Purpose)
+			sq.Expr(likeClause, likeTerms...),
 			sq.Expr(fulltextClause, fulltextTerm),
 		})
 	}
@@ -3472,7 +3484,7 @@ func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) 
 
 		fulltextTerm = strings.Join(splitTerm, " & ")
 
-		fulltextClause = fmt.Sprintf("((to_tsvector('english', %s)) @@ to_tsquery('english', :FulltextTerm))", convertMySQLFullTextColumnsToPostgres(searchColumns))
+		fulltextClause = fmt.Sprintf("((to_tsvector('%[1]s', %[2]s)) @@ to_tsquery('%[1]s', :FulltextTerm))", s.pgDefaultTextSearchConfig, convertMySQLFullTextColumnsToPostgres(searchColumns))
 	} else if s.DriverName() == model.DatabaseDriverMysql {
 		splitTerm := strings.Fields(fulltextTerm)
 		for i, t := range strings.Fields(fulltextTerm) {
@@ -3513,7 +3525,7 @@ func (s SqlChannelStore) buildFulltextClauseX(term string, searchColumns ...stri
 		// join the search term with &
 		fulltextTerm = strings.Join(splitTerm, " & ")
 
-		expr := fmt.Sprintf("((to_tsvector('english', %s)) @@ to_tsquery('english', ?))", strings.Join(searchColumns, " || ' ' || "))
+		expr := fmt.Sprintf("((to_tsvector('%[1]s', %[2]s)) @@ to_tsquery('%[1]s', ?))", s.pgDefaultTextSearchConfig, strings.Join(searchColumns, " || ' ' || "))
 		return sq.Expr(expr, fulltextTerm)
 
 	}

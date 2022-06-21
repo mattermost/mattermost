@@ -3563,6 +3563,22 @@ func (s *TimerLayerGroupStore) DistinctGroupMemberCount() (int64, error) {
 	return result, err
 }
 
+func (s *TimerLayerGroupStore) DistinctGroupMemberCountForSource(source model.GroupSource) (int64, error) {
+	start := time.Now()
+
+	result, err := s.GroupStore.DistinctGroupMemberCountForSource(source)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.DistinctGroupMemberCountForSource", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerGroupStore) Get(groupID string) (*model.Group, error) {
 	start := time.Now()
 
@@ -8659,6 +8675,38 @@ func (s *TimerLayerThreadStore) GetThreadsForUser(userId string, teamID string, 
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetThreadsForUser", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) GetTopThreadsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopThreadList, error) {
+	start := time.Now()
+
+	result, err := s.ThreadStore.GetTopThreadsForTeamSince(teamID, userID, since, offset, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetTopThreadsForTeamSince", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) GetTopThreadsForUserSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopThreadList, error) {
+	start := time.Now()
+
+	result, err := s.ThreadStore.GetTopThreadsForUserSince(teamID, userID, since, offset, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetTopThreadsForUserSince", success, elapsed)
 	}
 	return result, err
 }

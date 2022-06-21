@@ -200,12 +200,25 @@ jobs:
             make gen-serialized
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the serialized files using 'make gen-serialized'"; exit 1; fi
 
+  check-migrations:
+    docker:
+      - image: mattermost/mattermost-build-server:20220415_golang-1.18.1
+    working_directory: ~/mattermost
+    steps:
+      - attach_workspace:
+          at: ~/mattermost/
+      - run:
+          command: |
+            cd mattermost-server
+            make migrations-extract
+            if [[ -n $(git status --porcelain) ]]; then echo "Please update the migrations using make migrations-extract"; exit 1; fi
+
   # Dedicated job for golangci-lint it does not need anything only the server code for that
   # and to make more clear when the job fails
   check-golangci-lint:
     docker:
       # Keep the version in sync with the command in Makefile
-      - image: golangci/golangci-lint:v1.45.2
+      - image: golangci/golangci-lint:v1.46.2
     steps:
       - checkout
       - run:
@@ -536,6 +549,9 @@ workflows:
       - check-mattermost-vet:
           requires:
             - setup
+      - check-migrations:
+          requires:
+            - setup
       - build-api-spec:
           requires:
             - setup
@@ -549,6 +565,7 @@ workflows:
             - check-gen-serialized
             - check-mattermost-vet
             - check-golangci-lint
+            - check-migrations
             - build-api-spec
       - upload-s3-sha:
           context: mattermost-ci-pr-builds-s3

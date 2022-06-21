@@ -973,9 +973,6 @@ func TestEnablePluginWithCloudLimits(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
-	th.App.ReloadConfig()
 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1030,15 +1027,6 @@ func TestEnablePluginWithCloudLimits(t *testing.T) {
 	appErr = th.App.EnablePlugin("testplugin2")
 	checkNoError(t, appErr)
 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-	appErr = th.App.EnablePlugin("testplugin2")
-	checkError(t, appErr)
-
-	os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
-	th.App.ReloadConfig()
-	appErr = th.App.EnablePlugin("testplugin2")
-	checkNoError(t, appErr)
-	os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
-	th.App.ReloadConfig()
 	appErr = th.App.EnablePlugin("testplugin2")
 	checkError(t, appErr)
 
