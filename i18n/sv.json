@@ -9351,15 +9351,7 @@
     "translation": "Ogiltig värde {{.Value}} på antal samtidiga dekoder. Måste vara ett positivt tal eller -1."
   },
   {
-    "id": "app.channel.get_post_count_by_day.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.license_error.professional_or_enterprise",
-    "translation": ""
-  },
-  {
-    "id": "api.authorization_error.guest",
     "translation": ""
   }
 ]
