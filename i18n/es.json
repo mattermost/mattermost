@@ -9026,9 +9026,5 @@
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
     "translation": "No se ha podido actualizar el estado personalizado. Por favor, añade un emoji o un estado de texto personalizado o ambos."
-  },
-  {
-    "id": "api.templates.server_inactivity_button",
-    "translation": ""
   }
 ]

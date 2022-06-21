@@ -8640,10 +8640,6 @@
     "translation": "Não foi possível redefinir o campo AuthData para o e-mail."
   },
   {
-    "id": "api.templates.license_up_for_renewal_title",
-    "translation": ""
-  },
-  {
     "id": "model.emoji.system_emoji_name.app_error",
     "translation": ""
   }
