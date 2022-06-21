@@ -76,9 +76,9 @@ type AppIface interface {
 	CheckProviderAttributes(user *model.User, patch *model.UserPatch) string
 	// ClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
 	ClientConfigWithComputed() map[string]string
-	// ComputeLastAccessiblePostTime returns CreateAt time of the last accessible post as per the cloud limit.
-	// Use GetLastAccessiblePostTime() for the cached results.
-	ComputeLastAccessiblePostTime() (int64, *model.AppError)
+	// ComputeLastAccessiblePostTime updates cache with CreateAt time of the last accessible post as per the cloud plan's limit.
+	// Use GetLastAccessiblePostTime() to access the result.
+	ComputeLastAccessiblePostTime() *model.AppError
 	// ConvertBotToUser converts a bot to user.
 	ConvertBotToUser(bot *model.Bot, userPatch *model.UserPatch, sysadmin bool) (*model.User, *model.AppError)
 	// ConvertUserToBot converts a user to bot.

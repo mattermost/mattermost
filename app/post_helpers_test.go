@@ -155,11 +155,6 @@ func Test_filterInaccessiblePosts(t *testing.T) {
 		Name:  model.SystemLastAccessiblePostTime,
 		Value: "2",
 	})
-	th.Server.configStore.SetReadOnlyFF(false)
-	defer th.Server.configStore.SetReadOnlyFF(true)
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.FeatureFlags.CloudFree = true
-	})
 
 	defer th.TearDown()
 

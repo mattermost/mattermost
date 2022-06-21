@@ -1383,8 +1383,8 @@ func (a *App) convertUserNameToUserIds(usernames []string) []string {
 
 // GetLastAccessiblePostTime returns CreateAt time(from cache) of the last accessible post as per the cloud limit
 func (a *App) GetLastAccessiblePostTime() (int64, *model.AppError) {
-	cfg := a.Config()
-	if cfg.FeatureFlags == nil || !cfg.FeatureFlags.CloudFree {
+	license := a.Srv().License()
+	if license == nil || !*license.Features.Cloud {
 		return 0, nil
 	}
 
@@ -1408,17 +1408,20 @@ func (a *App) GetLastAccessiblePostTime() (int64, *model.AppError) {
 	return lastAccessiblePostTime, nil
 }
 
-// ComputeLastAccessiblePostTime returns CreateAt time of the last accessible post as per the cloud limit.
-// Use GetLastAccessiblePostTime() for the cached results.
-func (a *App) ComputeLastAccessiblePostTime() (int64, *model.AppError) {
+// ComputeLastAccessiblePostTime updates cache with CreateAt time of the last accessible post as per the cloud plan's limit.
+// Use GetLastAccessiblePostTime() to access the result.
+func (a *App) ComputeLastAccessiblePostTime() *model.AppError {
 	limit, appErr := a.getCloudMessagesHistoryLimit()
 	if appErr != nil {
-		return 0, appErr
+		return appErr
 	}
 
 	createdAt, err := a.Srv().GetStore().Post().GetNthRecentPostTime(limit)
 	if err != nil {
-		return 0, model.NewAppError("ComputeLastAccessiblePostTime", "app.last_accessible_post.app_error", nil, err.Error(), http.StatusInternalServerError)
+		var nfErr *store.ErrNotFound
+		if !errors.As(err, &nfErr) {
+			return model.NewAppError("ComputeLastAccessiblePostTime", "app.last_accessible_post.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	// Update Cache
@@ -1427,15 +1430,15 @@ func (a *App) ComputeLastAccessiblePostTime() (int64, *model.AppError) {
 		Value: strconv.FormatInt(createdAt, 10),
 	})
 	if err != nil {
-		return 0, model.NewAppError("ComputeLastAccessiblePostTime", "app.system.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("ComputeLastAccessiblePostTime", "app.system.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return createdAt, nil
+	return nil
 }
 
 func (a *App) getCloudMessagesHistoryLimit() (int64, *model.AppError) {
-	cfg := a.Config()
-	if cfg.FeatureFlags == nil || !cfg.FeatureFlags.CloudFree {
+	license := a.Srv().License()
+	if license == nil || !*license.Features.Cloud {
 		return 0, nil
 	}
 

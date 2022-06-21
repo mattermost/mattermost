@@ -14,9 +14,9 @@ import (
 
 const schedFreq = 30 * time.Minute
 
-func MakeScheduler(jobServer *jobs.JobServer) model.Scheduler {
+func MakeScheduler(jobServer *jobs.JobServer, license *model.License) model.Scheduler {
 	isEnabled := func(cfg *model.Config) bool {
-		enabled := cfg.FeatureFlags != nil && cfg.FeatureFlags.CloudFree
+		enabled := license != nil && *license.Features.Cloud
 		mlog.Debug("Scheduler: isEnabled: "+strconv.FormatBool(enabled), mlog.String("scheduler", model.JobTypeLastAccessiblePost))
 		return enabled
 	}

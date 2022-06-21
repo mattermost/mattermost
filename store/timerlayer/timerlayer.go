@@ -5131,11 +5131,11 @@ func (s *TimerLayerPostStore) GetMaxPostSize() int {
 }
 
 func (s *TimerLayerPostStore) GetNthRecentPostTime(n int64) (int64, error) {
-	start := timemodule.Now()
+	start := time.Now()
 
 	result, err := s.PostStore.GetNthRecentPostTime(n)
 
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
 		success := "false"
 		if err == nil {
