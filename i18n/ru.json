@@ -9298,9 +9298,5 @@
   {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "Подтверждение обновления Mattermost"
-  },
-  {
-    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
-    "translation": ""
   }
 ]

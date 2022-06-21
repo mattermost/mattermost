@@ -7268,15 +7268,7 @@
     "translation": "無法解析要求本文。"
   },
   {
-    "id": "app.channel.get_post_count_by_day.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.custom_groups.no_remote_id",
-    "translation": ""
-  },
-  {
-    "id": "api.command_remote.name.help",
     "translation": ""
   },
   {
@@ -7284,15 +7276,7 @@
     "translation": ""
   },
   {
-    "id": "app.user.get_by_username.app_error",
-    "translation": ""
-  },
-  {
     "id": "sharedchannel.permalink.not_found",
-    "translation": ""
-  },
-  {
-    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
     "translation": ""
   },
   {
@@ -7300,15 +7284,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.server_inactivity_footer_disclaimer",
-    "translation": ""
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": ""
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
     "translation": ""
   },
   {
@@ -7316,15 +7292,7 @@
     "translation": ""
   },
   {
-    "id": "api.file.test_connection_email_settings_nil.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.invalid_custom_url_scheme",
-    "translation": ""
-  },
-  {
-    "id": "ent.data_retention.run_failed.error",
     "translation": ""
   },
   {
@@ -7332,15 +7300,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.welcome_body.subTitle1",
-    "translation": ""
-  },
-  {
     "id": "api.command_remote.invite_password.hint",
-    "translation": ""
-  },
-  {
-    "id": "api.remote_cluster.service_not_enabled.app_error",
     "translation": ""
   },
   {
@@ -7348,15 +7308,7 @@
     "translation": ""
   },
   {
-    "id": "api.system.update_viewed_notices.failed",
-    "translation": ""
-  },
-  {
     "id": "api.templates.payment_failed_no_card.subject",
-    "translation": ""
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
     "translation": ""
   },
   {
@@ -7364,15 +7316,7 @@
     "translation": ""
   },
   {
-    "id": "api.command_share.remote_uninvited",
-    "translation": ""
-  },
-  {
     "id": "api.command_channel_header.update_channel.max_length",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.invite_body_footer.title",
     "translation": ""
   },
   {
@@ -7380,15 +7324,7 @@
     "translation": ""
   },
   {
-    "id": "app.user.get_by_auth.missing_account.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": ""
-  },
-  {
-    "id": "api.file.file_exists.app_error",
     "translation": ""
   },
   {

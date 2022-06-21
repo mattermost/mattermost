@@ -8640,15 +8640,7 @@
     "translation": "Não foi possível redefinir o campo AuthData para o e-mail."
   },
   {
-    "id": "app.user.store_is_empty.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.notification.body.thread_dm.subTitle",
-    "translation": ""
-  },
-  {
-    "id": "app.custom_group.unique_name",
     "translation": ""
   },
   {
@@ -8656,15 +8648,7 @@
     "translation": ""
   },
   {
-    "id": "api.user.patch_user.login_provider_attribute_set.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.team.invite_members.unable_to_send_email.app_error",
-    "translation": ""
-  },
-  {
-    "id": "app.notification.body.group.subTitle",
     "translation": ""
   },
   {
@@ -8672,15 +8656,7 @@
     "translation": ""
   },
   {
-    "id": "model.session.is_valid.create_at.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.messageButton",
-    "translation": ""
-  },
-  {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
     "translation": ""
   }
 ]

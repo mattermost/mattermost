@@ -8724,15 +8724,7 @@
     "translation": "Textul introdus depășește limita de caractere. Antetul canalului este limitat la {{.MaxLength}} caractere."
   },
   {
-    "id": "api.license_error",
-    "translation": ""
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
     "translation": ""
   },
   {
@@ -8740,23 +8732,11 @@
     "translation": ""
   },
   {
-    "id": "app.system.get_onboarding_request.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.notification.body.thread_channel_full.subTitle",
     "translation": ""
   },
   {
-    "id": "api.users.invalid_emails.enable_open_server.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.team.get_common_team_ids_for_users.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.unmarshal_error",
     "translation": ""
   },
   {
