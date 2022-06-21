@@ -8892,15 +8892,7 @@
     "translation": "Функцията изисква надграждане до версия Enterprise Edition."
   },
   {
-    "id": "app.system.complete_onboarding_request.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
-    "translation": ""
-  },
-  {
-    "id": "app.reaction.get_top_for_team_since.app_error",
     "translation": ""
   },
   {
@@ -8908,15 +8900,7 @@
     "translation": ""
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.authorization_error.guest",
-    "translation": ""
-  },
-  {
-    "id": "Playbooks",
     "translation": ""
   },
   {
@@ -8924,15 +8908,7 @@
     "translation": ""
   },
   {
-    "id": "api.custom_groups.feature_disabled",
-    "translation": ""
-  },
-  {
     "id": "model.member.is_valid.emails.app_error",
-    "translation": ""
-  },
-  {
-    "id": "app.install_integration.reached_max_limit.error",
     "translation": ""
   },
   {
@@ -8940,15 +8916,7 @@
     "translation": ""
   },
   {
-    "id": "api.file.cloud_upload.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.templates.server_inactivity_subject",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
     "translation": ""
   },
   {
@@ -8956,15 +8924,7 @@
     "translation": ""
   },
   {
-    "id": "api.insights.feature_disabled",
-    "translation": ""
-  },
-  {
     "id": "app.notification.body.thread_gm.subTitle",
-    "translation": ""
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
     "translation": ""
   },
   {
@@ -8972,15 +8932,7 @@
     "translation": ""
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
-    "translation": ""
-  },
-  {
     "id": "model.github_release_info.is_valid.id.app_error",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet1",
     "translation": ""
   },
   {
@@ -8988,23 +8940,11 @@
     "translation": ""
   },
   {
-    "id": "api.error_get_first_admin_complete_setup",
-    "translation": ""
-  },
-  {
     "id": "app.admin.latest_version_external_error.failure",
     "translation": ""
   },
   {
-    "id": "api.post.posts_by_ids.invalid_body.request_error",
-    "translation": ""
-  },
-  {
     "id": "ent.elasticsearch.getAllChannelMembers.error",
-    "translation": ""
-  },
-  {
-    "id": "api.config.reload_config.app_error",
     "translation": ""
   }
 ]

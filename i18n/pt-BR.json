@@ -8640,15 +8640,7 @@
     "translation": "Não foi possível redefinir o campo AuthData para o e-mail."
   },
   {
-    "id": "app.user.get_thread_count_for_user.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.member_count",
-    "translation": ""
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.button",
     "translation": ""
   },
   {
@@ -8656,15 +8648,7 @@
     "translation": ""
   },
   {
-    "id": "api.license_error.professional_or_enterprise",
-    "translation": ""
-  },
-  {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": ""
-  },
-  {
-    "id": "app.user.get_thread_membership_for_user.not_found",
     "translation": ""
   },
   {
@@ -8672,15 +8656,7 @@
     "translation": ""
   },
   {
-    "id": "api.cloud.cloud_free_feature_flag_off_error",
-    "translation": ""
-  },
-  {
     "id": "api.cloud.teams_limit_reached.create",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.server_inactivity_subject",
     "translation": ""
   },
   {
@@ -8688,15 +8664,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": ""
-  },
-  {
     "id": "app.channel.get_top_for_user_since.app_error",
-    "translation": ""
-  },
-  {
-    "id": "model.session.is_valid.user_id.app_error",
     "translation": ""
   },
   {
@@ -8704,15 +8672,7 @@
     "translation": ""
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.time",
-    "translation": ""
-  },
-  {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": ""
-  },
-  {
-    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
     "translation": ""
   },
   {
@@ -8720,15 +8680,7 @@
     "translation": ""
   },
   {
-    "id": "app.channel.get_top_for_team_since.app_error",
-    "translation": ""
-  },
-  {
     "id": "ent.data_retention.policies.invalid_policy",
-    "translation": ""
-  },
-  {
-    "id": "app.group.get_by_username_failure",
     "translation": ""
   },
   {
@@ -8736,15 +8688,7 @@
     "translation": ""
   },
   {
-    "id": "app.user.send_auto_response.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.templates.server_inactivity_subtitle",
-    "translation": ""
-  },
-  {
-    "id": "api.templates.server_inactivity_info",
     "translation": ""
   },
   {
@@ -8752,15 +8696,7 @@
     "translation": ""
   },
   {
-    "id": "api.user.invalidate_verify_email_tokens_parse.error",
-    "translation": ""
-  },
-  {
     "id": "api.custom_groups.license_error",
-    "translation": ""
-  },
-  {
-    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": ""
   },
   {
@@ -8768,15 +8704,7 @@
     "translation": ""
   },
   {
-    "id": "model.github_release_info.is_valid.id.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.admin.latest_version_set_cache.failure",
-    "translation": ""
-  },
-  {
-    "id": "app.notification.body.thread_channel.subTitle",
     "translation": ""
   },
   {
@@ -8784,15 +8712,7 @@
     "translation": ""
   },
   {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": ""
-  },
-  {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
-    "translation": ""
-  },
-  {
-    "id": "api.config.reload_config.app_error",
     "translation": ""
   },
   {
@@ -8800,23 +8720,11 @@
     "translation": ""
   },
   {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": ""
-  },
-  {
     "id": "app.team.get_common_team_ids_for_users.app_error",
     "translation": ""
   },
   {
-    "id": "api.config.patch_config.diff.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": ""
-  },
-  {
-    "id": "Boards",
     "translation": ""
   }
 ]
