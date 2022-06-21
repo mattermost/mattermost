@@ -21,8 +21,8 @@ func (api *API) InitInsights() {
 	api.BaseRoutes.InsightsForUser.Handle("/channels", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopChannelsForUserSince)))).Methods("GET")
 
 	// Threads
-	api.BaseRoutes.InsightsForTeam.Handle("/threads", api.APISessionRequired(requireLicense(getTopThreadsForTeamSince))).Methods("GET")
-	api.BaseRoutes.InsightsForUser.Handle("/threads", api.APISessionRequired(requireLicense(getTopThreadsForUserSince))).Methods("GET")
+	api.BaseRoutes.InsightsForTeam.Handle("/threads", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopThreadsForTeamSince)))).Methods("GET")
+	api.BaseRoutes.InsightsForUser.Handle("/threads", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopThreadsForUserSince)))).Methods("GET")
 }
 
 // Top Reactions
@@ -243,21 +243,14 @@ func getTopThreadsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// license check
-	lic := c.App.Srv().License()
-	if lic.SkuShortName != model.LicenseShortSkuProfessional && lic.SkuShortName != model.LicenseShortSkuEnterprise {
-		c.Err = model.NewAppError("", "api.insights.license_error", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	// restrict guests and users with no access to team
+	// restrict users with no access to team
 	user, err := c.App.GetUser(c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) || user.IsGuest() {
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
 		c.SetPermissionError(model.PermissionViewTeam)
 		return
 	}
@@ -286,7 +279,7 @@ func getTopThreadsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reques
 func getTopThreadsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.Params.TeamId = r.URL.Query().Get("team_id")
 
-	// restrict guests and users with no access to team
+	// restrict users with no access to team
 	user, err := c.App.GetUser(c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -305,14 +298,7 @@ func getTopThreadsForUserSince(c *Context, w http.ResponseWriter, r *http.Reques
 			return
 		}
 
-		// license check
-		lic := c.App.Srv().License()
-		if lic.SkuShortName != model.LicenseShortSkuProfessional && lic.SkuShortName != model.LicenseShortSkuEnterprise {
-			c.Err = model.NewAppError("", "api.insights.license_error", nil, "", http.StatusNotImplemented)
-			return
-		}
-
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) || user.IsGuest() {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
 			c.SetPermissionError(model.PermissionViewTeam)
 			return
 		}
