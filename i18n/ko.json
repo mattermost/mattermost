@@ -7888,23 +7888,11 @@
     "translation": "게시 된 파일을 삭제하지 못했습니다."
   },
   {
-    "id": "api.cloud.teams_limit_reached.create",
-    "translation": ""
-  },
-  {
     "id": "app.notification.body.group.subTitle",
     "translation": ""
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
-    "translation": ""
-  },
-  {
-    "id": "app.upload.upload_data.concurrent.app_error",
     "translation": ""
   }
 ]
