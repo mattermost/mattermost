@@ -638,7 +638,7 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 
 // === REMOVE ABOVE
 
-func TestCreatePostSuggestHashTag(t *testing.T) {
+func TestSuggestHashTag(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
