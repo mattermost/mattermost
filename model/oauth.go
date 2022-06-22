@@ -32,6 +32,22 @@ type OAuthApp struct {
 	MattermostAppID string      `json:"mattermost_app_id"`
 }
 
+func (o *OAuthApp) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":                o.Id,
+		"creator_id":        o.CreatorId,
+		"create_at":         o.CreateAt,
+		"update_at":         o.UpdateAt,
+		"name":              o.Name,
+		"description":       o.Description,
+		"icon_url":          o.IconURL,
+		"callback_urls:":    o.CallbackUrls,
+		"homepage":          o.Homepage,
+		"is_trusted":        o.IsTrusted,
+		"mattermost_app_id": o.MattermostAppID,
+	}
+}
+
 // IsValid validates the app and returns an error if it isn't configured
 // correctly.
 func (a *OAuthApp) IsValid() *AppError {

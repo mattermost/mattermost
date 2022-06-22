@@ -404,6 +404,21 @@ type Role struct {
 	BuiltIn       bool     `json:"built_in"`
 }
 
+func (o *Role) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":             o.Id,
+		"name":           o.Name,
+		"display_name":   o.DisplayName,
+		"description":    o.Description,
+		"create_at":      o.CreateAt,
+		"update_at":      o.UpdateAt,
+		"delete_at":      o.DeleteAt,
+		"permissions":    o.Permissions,
+		"scheme_managed": o.SchemeManaged,
+		"built_in":       o.BuiltIn,
+	}
+}
+
 type RolePatch struct {
 	Permissions *[]string `json:"permissions"`
 }

@@ -69,6 +69,20 @@ type Job struct {
 	Data           StringMap `json:"data"`
 }
 
+func (o *Job) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":               o.Id,
+		"type":             o.Type,
+		"priority":         o.Priority,
+		"create_at":        o.CreateAt,
+		"start_at":         o.StartAt,
+		"last_activity_at": o.LastActivityAt,
+		"status":           o.Status,
+		"progress":         o.Progress,
+		"data":             o.Data, // TODO do we want this here
+	}
+}
+
 func (j *Job) IsValid() *AppError {
 	if !IsValidId(j.Id) {
 		return NewAppError("Job.IsValid", "model.job.is_valid.id.app_error", nil, "id="+j.Id, http.StatusBadRequest)

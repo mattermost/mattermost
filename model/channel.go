@@ -61,6 +61,28 @@ type Channel struct {
 	LastRootPostAt    int64                  `json:"last_root_post_at"`
 }
 
+// Example implementation of the Auditable interface.
+func (c *Channel) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"create_at":            c.CreateAt,
+		"creator_id":           c.CreatorId,
+		"delete_at":            c.DeleteAt,
+		"extra_group_at":       c.ExtraUpdateAt,
+		"group_constrained":    c.GroupConstrained,
+		"id":                   c.Id,
+		"last_post_at":         c.LastPostAt,
+		"last_root_post_at":    c.LastRootPostAt,
+		"policy_id":            c.PolicyID,
+		"props":                c.Props,
+		"scheme_id":            c.SchemeId,
+		"shared":               c.Shared,
+		"team_id":              c.TeamId,
+		"total_msg_count_root": c.TotalMsgCountRoot,
+		"type":                 c.Type,
+		"update_at":            c.UpdateAt,
+	}
+}
+
 type ChannelWithTeamData struct {
 	Channel
 	TeamDisplayName string `json:"team_display_name"`
@@ -79,6 +101,14 @@ type ChannelPatch struct {
 	Header           *string `json:"header"`
 	Purpose          *string `json:"purpose"`
 	GroupConstrained *bool   `json:"group_constrained"`
+}
+
+func (c *ChannelPatch) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"header":            c.Header,
+		"group_constrained": c.GroupConstrained,
+		"purpose":           c.Purpose,
+	}
 }
 
 type ChannelForExport struct {

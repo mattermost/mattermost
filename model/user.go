@@ -105,6 +105,36 @@ type User struct {
 	DisableWelcomeEmail    bool      `json:"disable_welcome_email"`
 }
 
+func (o *User) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":                    o.Id,
+		"create_at":             o.CreateAt,
+		"update_at":             o.UpdateAt,
+		"delete_at":             o.DeleteAt,
+		"username":              o.Username,
+		"auth_service":          o.AuthService,
+		"email":                 o.Email,
+		"email_verified":        o.EmailVerified,
+		"position":              o.Position,
+		"roles":                 o.Roles,
+		"allow_marketing":       o.AllowMarketing,
+		"props":                 o.Props,
+		"notify_props":          o.NotifyProps,
+		"last_password_update":  o.LastPasswordUpdate,
+		"last_picture_update":   o.LastPictureUpdate,
+		"failed_attempts":       o.FailedAttempts,
+		"locale":                o.Locale,
+		"timezone":              o.Timezone,
+		"mfa_active":            o.MfaActive,
+		"remote_id":             o.RemoteId,
+		"last_activity_at":      o.LastActivityAt,
+		"is_bot":                o.IsBot,
+		"bot_description":       o.BotDescription,
+		"bot_last_icon_update":  o.BotLastIconUpdate,
+		"disable_welcome_email": o.DisableWelcomeEmail,
+	}
+}
+
 //msgp UserMap
 
 // UserMap is a map from a userId to a user object.
@@ -832,13 +862,6 @@ func (u *User) ToPatch() *UserPatch {
 		Position: &u.Position, Email: &u.Email,
 		Props: u.Props, NotifyProps: u.NotifyProps,
 		Locale: &u.Locale, Timezone: u.Timezone,
-	}
-}
-
-func (u *User) Auditable() map[string]interface{} {
-	return map[string]interface{}{
-		"id":       u.Id,
-		"username": u.Username,
 	}
 }
 
