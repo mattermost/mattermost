@@ -1932,6 +1932,17 @@ func (a *App) GetTopThreadsForUserSince(c request.CTX, teamID, userID string, op
 	return topThreadsWithEmbedAndImage, nil
 }
 
+func (a *App) GetTopDMsForUserSince(userID string, opts *model.InsightsOpts) (*model.TopDMList, *model.AppError) {
+	if !a.Config().FeatureFlags.InsightsEnabled {
+		return nil, model.NewAppError("GetTopDMsForUserSince", "app.insights.feature_disabled", nil, "", http.StatusNotImplemented)
+	}
+	topDMs, err := a.Srv().Store.Post().GetTopDMsForUserSince(userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
+	if err != nil {
+		return nil, model.NewAppError("GetTopDMsForUserSince", "app.post.get_top_dms_for_user_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return topDMs, nil
+}
+
 func includeEmbedsAndImages(a *App, c request.CTX, topThreadList *model.TopThreadList, userID string) (*model.TopThreadList, error) {
 	for _, topThread := range topThreadList.Items {
 		topThread.Post = a.PreparePostForClientWithEmbedsAndImages(c, topThread.Post, false, false)
