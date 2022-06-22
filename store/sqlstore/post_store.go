@@ -1246,7 +1246,7 @@ func (s *SqlPostStore) QueryHashTag(hash_tag_query *string, count uint64) ([]*st
 	results := []*string{}
 
 	// Append % to the end of the query
-	hash_tag_start := ((*hash_tag_query) + "%")
+	hash_tag_start := ("%" + (*hash_tag_query) + "%")
 
 	// Construct the squirrel query
 	query := s.getQueryBuilder().
@@ -1274,7 +1274,7 @@ func (s *SqlPostStore) QueryHashTag(hash_tag_query *string, count uint64) ([]*st
 			// Even here we need to do some checking to ensure the
 			// tags match and the list doesn't go over the limit
 			if uint64(len(result_list)) >= count {
-				return result_list, nil
+				break
 			}
 			if strings.HasPrefix(hash_tag, *hash_tag_query) {
 				t := strings.Clone(strings.TrimPrefix(hash_tag, "#"))
