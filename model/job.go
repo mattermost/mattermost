@@ -71,15 +71,15 @@ type Job struct {
 
 func (j *Job) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"id":               o.Id,
-		"type":             o.Type,
-		"priority":         o.Priority,
-		"create_at":        o.CreateAt,
-		"start_at":         o.StartAt,
-		"last_activity_at": o.LastActivityAt,
-		"status":           o.Status,
-		"progress":         o.Progress,
-		"data":             o.Data, // TODO do we want this here
+		"id":               j.Id,
+		"type":             j.Type,
+		"priority":         j.Priority,
+		"create_at":        j.CreateAt,
+		"start_at":         j.StartAt,
+		"last_activity_at": j.LastActivityAt,
+		"status":           j.Status,
+		"progress":         j.Progress,
+		"data":             j.Data, // TODO do we want this here
 	}
 }
 
