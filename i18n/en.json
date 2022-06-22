@@ -501,7 +501,7 @@
   },
   {
     "id": "api.cloud.upgrade_plan_bot_message",
-    "translation": "A member of {{.TeamName}} has notified you to upgrade this workspace before the trial ends."
+    "translation": "A member of {{.TeamName}} has notified you to upgrade this workspace."
   },
   {
     "id": "api.command.admin_only.app_error",
