@@ -33,6 +33,20 @@ type Bot struct {
 	DeleteAt       int64  `json:"delete_at"`
 }
 
+func (b *Bot) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"user_id":          b.UserId,
+		"username":         b.Username,
+		"display_name":     b.DisplayName,
+		"description":      b.Description,
+		"owner_id":         b.OwnerId,
+		"last_icon_update": b.LastIconUpdate,
+		"create_at":        b.CreateAt,
+		"update_at":        b.UpdateAt,
+		"delete_at":        b.DeleteAt,
+	}
+}
+
 // BotPatch is a description of what fields to update on an existing bot.
 type BotPatch struct {
 	Username    *string `json:"username"`
