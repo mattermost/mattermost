@@ -890,7 +890,7 @@ type AppIface interface {
 	PublishUserTyping(userID, channelID, parentId string) *model.AppError
 	PurgeBleveIndexes() *model.AppError
 	PurgeElasticsearchIndexes() *model.AppError
-	QueryHashTag(hash_tag_query *string, count uint64) ([]*string, error)
+	QueryHashTag(hash_tag_query *string, count uint64) ([]*string, *model.AppError)
 	ReadFile(path string) ([]byte, *model.AppError)
 	RecycleDatabaseConnection()
 	RegenCommandToken(cmd *model.Command) (*model.Command, *model.AppError)

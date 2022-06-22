@@ -15,6 +15,7 @@ import (
 	"os"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -25,6 +26,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/utils"
 	"github.com/mattermost/mattermost-server/v6/utils/testutils"
@@ -535,69 +537,6 @@ func TestCreatePostAll(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 }
 
-func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	client := th.Client
-
-	WebSocketClient, err := th.CreateWebSocketClient()
-	require.NoError(t, err)
-	WebSocketClient.Listen()
-
-	inChannelUser := th.CreateUser()
-	th.LinkUserToTeam(inChannelUser, th.BasicTeam)
-	th.App.AddUserToChannel(inChannelUser, th.BasicChannel, false)
-
-	post1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "@" + inChannelUser.Username}
-	_, resp, err := client.CreatePost(post1)
-	require.NoError(t, err)
-	CheckCreatedStatus(t, resp)
-
-	timeout := time.After(300 * time.Millisecond)
-	waiting := true
-	for waiting {
-		select {
-		case event := <-WebSocketClient.EventChannel:
-			require.NotEqual(t, model.WebsocketEventEphemeralMessage, event.EventType(), "should not have ephemeral message event")
-		case <-timeout:
-			waiting = false
-		}
-	}
-
-	outOfChannelUser := th.CreateUser()
-	th.LinkUserToTeam(outOfChannelUser, th.BasicTeam)
-
-	post2 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "@" + outOfChannelUser.Username}
-	_, resp, err = client.CreatePost(post2)
-	require.NoError(t, err)
-	CheckCreatedStatus(t, resp)
-
-	timeout = time.After(300 * time.Millisecond)
-	waiting = true
-	for waiting {
-		select {
-		case event := <-WebSocketClient.EventChannel:
-			if event.EventType() != model.WebsocketEventEphemeralMessage {
-				// Ignore any other events
-				continue
-			}
-
-			var wpost model.Post
-			err := json.Unmarshal([]byte(event.GetData()["post"].(string)), &wpost)
-			require.NoError(t, err)
-
-			acm, ok := wpost.GetProp(model.PropsAddChannelMember).(map[string]interface{})
-			require.True(t, ok, "should have received ephemeral post with 'add_channel_member' in props")
-			require.True(t, acm["post_id"] != nil, "should not be nil")
-			require.True(t, acm["user_ids"] != nil, "should not be nil")
-			require.True(t, acm["usernames"] != nil, "should not be nil")
-			waiting = false
-		case <-timeout:
-			require.FailNow(t, "timed out waiting for ephemeral message event")
-		}
-	}
-}
-
 func TestCreatePostCheckOnlineStatus(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -666,6 +605,145 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 	st, appErr := th.App.GetStatus(th.BasicUser.Id)
 	require.Nil(t, appErr)
 	assert.Equal(t, "online", st.Status)
+}
+
+// === REMOVE THIS
+
+// func TestGetImage(t *testing.T) {
+// 	th := Setup(t)
+// 	defer th.TearDown()
+
+// 	// Prevent the test client from following a redirect
+// 	th.Client.HTTPClient.CheckRedirect = func(*http.Request, []*http.Request) error {
+// 		return http.ErrUseLastResponse
+// 	}
+
+// 	t.Run("proxy disabled", func(t *testing.T) {
+// 		imageURL := "http://foo.bar/baz.gif"
+
+// 		th.App.UpdateConfig(func(cfg *model.Config) {
+// 			cfg.ImageProxySettings.Enable = model.NewBool(false)
+// 		})
+
+// 		r, err := http.NewRequest("GET", th.Client.APIURL+"/image?url="+url.QueryEscape(imageURL), nil)
+// 		require.NoError(t, err)
+// 		r.Header.Set(model.HeaderAuth, th.Client.AuthType+" "+th.Client.AuthToken)
+
+// 		resp, err := th.Client.HTTPClient.Do(r)
+// 		require.NoError(t, err)
+// 		assert.Equal(t, http.StatusFound, resp.StatusCode)
+// 		assert.Equal(t, imageURL, resp.Header.Get("Location"))
+// 	})
+// }
+
+// === REMOVE ABOVE
+
+func TestCreatePostSuggestHashTag(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	api, err := Init(th.Server)
+	require.NoError(t, err)
+	session, _ := th.App.GetSession(th.Client.AuthToken)
+
+	cli := th.CreateClient()
+	_, _, err = cli.Login(th.BasicUser2.Username, th.BasicUser2.Password)
+	require.NoError(t, err)
+
+	messages := []string{
+		"This is the first #hashta1",
+		"Even this post will be returned because it #has the right letters",
+		"But his #one will not #have the correct hashtags.",
+		"#hashta3",
+		"#hashta4",
+		"#hashta5 and #hashta6",
+		"#hashta7",
+		"#hashta8",
+		"#hashta9",
+		"#hashta10",
+		"#hashta11",
+	}
+
+	for _, message := range messages {
+		handler := api.APIHandler(createPost)
+		resp := httptest.NewRecorder()
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   message,
+		}
+
+		postJSON, jsonErr := json.Marshal(post)
+		require.NoError(t, jsonErr)
+		req := httptest.NewRequest("POST", "/api/v4/posts", bytes.NewReader(postJSON))
+		req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+
+		handler.ServeHTTP(resp, req)
+		assert.Equal(t, http.StatusCreated, resp.Code)
+	}
+
+	t.Run("Hash Tag suggestions are returned for valid hashtags", func(t *testing.T) {
+		hash_tag := "has"
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ImageProxySettings.Enable = model.NewBool(false)
+		})
+
+		r, err := http.NewRequest("GET", th.Client.APIURL+"/hashtag/"+hash_tag, nil)
+		require.NoError(t, err)
+		r.Header.Set(model.HeaderAuth, th.Client.AuthType+" "+th.Client.AuthToken)
+
+		resp, err := th.Client.HTTPClient.Do(r)
+		require.NoError(t, err)
+
+		hash_tags := []*string{}
+
+		if jsonErr := json.NewDecoder(resp.Body).Decode(&hash_tags); jsonErr != nil {
+			mlog.Warn("Failed to decode from JSON", mlog.Err(jsonErr))
+		}
+
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Len(t, hash_tags, 10)
+	})
+
+	t.Run("Setting a limit N returns up to N items", func(t *testing.T) {
+		hash_tag := "has"
+		limit := 5
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ImageProxySettings.Enable = model.NewBool(false)
+		})
+
+		r, err := http.NewRequest("GET", th.Client.APIURL+"/hashtag/"+hash_tag+"?limit="+strconv.Itoa(limit), nil)
+		require.NoError(t, err)
+		r.Header.Set(model.HeaderAuth, th.Client.AuthType+" "+th.Client.AuthToken)
+
+		resp, err := th.Client.HTTPClient.Do(r)
+		require.NoError(t, err)
+
+		hash_tags := []*string{}
+
+		if jsonErr := json.NewDecoder(resp.Body).Decode(&hash_tags); jsonErr != nil {
+			mlog.Warn("Failed to decode from JSON", mlog.Err(jsonErr))
+		}
+
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Len(t, hash_tags, limit)
+
+		// Make sure we are containing hashtags INSIDE the limit
+		assert.NotContains(t, hash_tags, "hashta1")
+		assert.NotContains(t, hash_tags, "has")
+		assert.NotContains(t, hash_tags, "hashta3")
+		assert.NotContains(t, hash_tags, "hashta4")
+		assert.NotContains(t, hash_tags, "hashta5")
+
+		// Make sure we aren't containing hashtags OUTSIDE the limit
+		assert.NotContains(t, hash_tags, "hashta6")
+		assert.NotContains(t, hash_tags, "hashta7")
+		assert.NotContains(t, hash_tags, "hashta8")
+		assert.NotContains(t, hash_tags, "hashta9")
+		assert.NotContains(t, hash_tags, "hashta10")
+		assert.NotContains(t, hash_tags, "hashta11")
+	})
 }
 
 func TestUpdatePost(t *testing.T) {

@@ -12634,7 +12634,7 @@ func (a *OpenTracingAppLayer) PurgeElasticsearchIndexes() *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) QueryHashTag(hash_tag_query *string, count uint64) ([]*string, error) {
+func (a *OpenTracingAppLayer) QueryHashTag(hash_tag_query *string, count uint64) ([]*string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.QueryHashTag")
 

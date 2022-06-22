@@ -1247,38 +1247,12 @@ func (s *SqlPostStore) QueryHashTag(hash_tag_query *string, count uint64) ([]*st
 
 	// Append % to the end of the query
 	hash_tag_start := ((*hash_tag_query) + "%")
-	// _ = hash_tag_start
-
-	//  ---- DEBUGGING -----
-	// _results := []*string{}
-	// _query := s.getQueryBuilder().
-	// 	Select("hashtags").
-	// 	From("Posts").
-	// 	Limit(count)
-	// // compose the string
-	// _sql, _args, _err := _query.ToSql()
-	// if _err != nil {
-	// 	return nil, errors.Wrap(_err, "queryhashtag_tosql")
-	// }
-	// _ = _sql
-	// _ = _args
-
-	// if err := s.GetReplicaX().Select(&_results, _sql, _args...); err != nil {
-	// 	return nil, errors.Wrap(err, "queryhashtag_queryx")
-	// }
-
-	// _ = _results
-
-	// fmt.Print(_results)
-
-	// ---- end debugging ----
 
 	// Construct the squirrel query
 	query := s.getQueryBuilder().
-		Select("hashtags").
+		Select("DISTINCT hashtags").
 		From("Posts").
-		Where(sq.ILike{"hashtags": hash_tag_start}).
-		Limit(count)
+		Where(sq.ILike{"hashtags": hash_tag_start})
 
 	// compose the string
 	sql, args, err := query.ToSql()
@@ -1289,13 +1263,28 @@ func (s *SqlPostStore) QueryHashTag(hash_tag_query *string, count uint64) ([]*st
 	// For querying hashtags there won't be a "not found" error, so any error
 	// will be unexpected. Return it anyway.
 	if err := s.GetReplicaX().Select(&results, sql, args...); err != nil {
-		return nil, errors.Wrap(err, "queryhashtag_queryx")
+		return nil, errors.Wrap(err, "queryhashtag_getreplicax_select")
 	}
 
-	fmt.Print(results)
+	// The results are just a single list, so split it into a string,
+	// removing the "#" prefix
+	result_list := []*string{}
+	for _, row := range results {
+		for _, hash_tag := range strings.Split(*row, " ") {
+			// Even here we need to do some checking to ensure the
+			// tags match and the list doesn't go over the limit
+			if uint64(len(result_list)) >= count {
+				return result_list, nil
+			}
+			if strings.HasPrefix(hash_tag, *hash_tag_query) {
+				t := strings.Clone(strings.TrimPrefix(hash_tag, "#"))
+				result_list = append(result_list, &t)
+			}
+		}
+	}
 
 	// Finally, return the results.
-	return results, nil
+	return result_list, nil
 }
 
 func (s *SqlPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error) {
