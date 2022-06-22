@@ -176,6 +176,10 @@ db/migrations/mysql/000087_sidebar_categories_index.down.sql
 db/migrations/mysql/000087_sidebar_categories_index.up.sql
 db/migrations/mysql/000088_remaining_migrations.down.sql
 db/migrations/mysql/000088_remaining_migrations.up.sql
+db/migrations/mysql/000089_upgrade_reactions_add_indices.down.sql
+db/migrations/mysql/000089_upgrade_reactions_add_indices.up.sql
+db/migrations/mysql/000090_upgrade_channelmembers_add_channelid_index.down.sql
+db/migrations/mysql/000090_upgrade_channelmembers_add_channelid_index.up.sql
 db/migrations/postgres/000001_create_teams.down.sql
 db/migrations/postgres/000001_create_teams.up.sql
 db/migrations/postgres/000002_create_team_members.down.sql
@@ -352,3 +356,7 @@ db/migrations/postgres/000087_sidebar_categories_index.down.sql
 db/migrations/postgres/000087_sidebar_categories_index.up.sql
 db/migrations/postgres/000088_remaining_migrations.down.sql
 db/migrations/postgres/000088_remaining_migrations.up.sql
+db/migrations/postgres/000089_upgrade_reactions_add_indices.down.sql
+db/migrations/postgres/000089_upgrade_reactions_add_indices.up.sql
+db/migrations/postgres/000090_upgrade_channelmembers_add_channelid_index.down.sql
+db/migrations/postgres/000090_upgrade_channelmembers_add_channelid_index.up.sql
