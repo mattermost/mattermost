@@ -23,6 +23,9 @@ func (api *API) InitInsights() {
 	// Threads
 	api.BaseRoutes.InsightsForTeam.Handle("/threads", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopThreadsForTeamSince)))).Methods("GET")
 	api.BaseRoutes.InsightsForUser.Handle("/threads", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopThreadsForUserSince)))).Methods("GET")
+
+	// user DMs
+	api.BaseRoutes.InsightsForUser.Handle("/dms", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopDMsForUserSince)))).Methods("GET")
 }
 
 // Top Reactions
@@ -320,6 +323,36 @@ func getTopThreadsForUserSince(c *Context, w http.ResponseWriter, r *http.Reques
 	js, jsonErr := json.Marshal(topThreads)
 	if jsonErr != nil {
 		c.Err = model.NewAppError("getTopThreadsForUserSince", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
+}
+
+// Top DMs
+func getTopDMsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+
+	topDMs, err := c.App.GetTopDMsForUserSince(c.AppContext.Session().UserId, &model.InsightsOpts{
+		StartUnixMilli: startTime.UnixMilli(),
+		Page:           c.Params.Page,
+		PerPage:        c.Params.PerPage,
+	})
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	js, jsonErr := json.Marshal(topDMs)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getTopDMsForUserSince", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
