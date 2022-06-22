@@ -5385,6 +5385,22 @@ func (s *TimerLayerPostStore) PermanentDeleteByUser(userID string) error {
 	return err
 }
 
+func (s *TimerLayerPostStore) QueryHashTag(hash_tag_query *string, count uint64) ([]*string, error) {
+	start := timemodule.Now()
+
+	result, err := s.PostStore.QueryHashTag(hash_tag_query, count)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.QueryHashTag", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) Save(post *model.Post) (*model.Post, error) {
 	start := timemodule.Now()
 
