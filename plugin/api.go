@@ -1152,6 +1152,11 @@ type API interface {
 	//
 	// Minimum server version: 7.0
 	GetCloudLimits() (*model.ProductLimits, error)
+
+	// EnsureBotUser updates the bot if it exists, otherwise creates it.
+	//
+	// Minimum server version: 7.1
+	EnsureBotUser(bot *model.Bot) (string, error)
 }
 
 var handshake = plugin.HandshakeConfig{

@@ -981,6 +981,10 @@ func (api *PluginAPI) PermanentDeleteBot(userID string) *model.AppError {
 	return api.app.PermanentDeleteBot(userID)
 }
 
+func (api *PluginAPI) EnsureBotUser(bot *model.Bot) (string, error) {
+	return api.app.EnsureBot(api.ctx, api.id, bot)
+}
+
 func (api *PluginAPI) PublishUserTyping(userID, channelID, parentId string) *model.AppError {
 	return api.app.PublishUserTyping(userID, channelID, parentId)
 }

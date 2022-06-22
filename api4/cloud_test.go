@@ -125,7 +125,7 @@ func Test_requestTrial(t *testing.T) {
 		IsPaidTier: "false",
 	}
 
-	newValidBusinessEmail := model.ValidateBusinessEmailRequest{Email: ""}
+	newValidBusinessEmail := model.StartCloudTrialRequest{Email: ""}
 
 	t.Run("NON Admin users are UNABLE to request the trial", func(t *testing.T) {
 		th := Setup(t).InitBasic()
@@ -139,6 +139,7 @@ func Test_requestTrial(t *testing.T) {
 
 		cloud.Mock.On("GetSubscription", mock.Anything).Return(subscription, nil)
 		cloud.Mock.On("RequestCloudTrial", mock.Anything, mock.Anything, "").Return(subscription, nil)
+		cloud.Mock.On("InvalidateCaches").Return(nil)
 
 		cloudImpl := th.App.Srv().Cloud
 		defer func() {
@@ -164,6 +165,7 @@ func Test_requestTrial(t *testing.T) {
 
 		cloud.Mock.On("GetSubscription", mock.Anything).Return(subscription, nil)
 		cloud.Mock.On("RequestCloudTrial", mock.Anything, mock.Anything, "").Return(subscription, nil)
+		cloud.Mock.On("InvalidateCaches").Return(nil)
 
 		cloudImpl := th.App.Srv().Cloud
 		defer func() {
@@ -193,6 +195,7 @@ func Test_requestTrial(t *testing.T) {
 
 		cloud.Mock.On("GetSubscription", mock.Anything).Return(subscription, nil)
 		cloud.Mock.On("RequestCloudTrial", mock.Anything, mock.Anything, "valid.email@mattermost.com").Return(subscription, nil)
+		cloud.Mock.On("InvalidateCaches").Return(nil)
 
 		cloudImpl := th.App.Srv().Cloud
 		defer func() {
@@ -215,6 +218,8 @@ func Test_validateBusinessEmail(t *testing.T) {
 
 		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 
+		validateBusinessEmail := model.ValidateBusinessEmailRequest{Email: ""}
+
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
 		cloud := mocks.CloudInterface{}
@@ -229,7 +234,7 @@ func Test_validateBusinessEmail(t *testing.T) {
 		}()
 		th.App.Srv().Cloud = &cloud
 
-		_, err := th.Client.ValidateBusinessEmail()
+		_, err := th.Client.ValidateBusinessEmail(&validateBusinessEmail)
 		require.Error(t, err)
 	})
 }

@@ -9259,10 +9259,6 @@
     "translation": "Uploading via mmctl to a Cloud instance is not supported. Please check the documentation here: https://docs.mattermost.com/manage/cloud-data-export.html."
   },
   {
-    "id": "api.cloud.cloud_free_feature_flag_off_error",
-    "translation": "CloudFree feature flag is off."
-  },
-  {
     "id": "app.install_integration.reached_max_limit.error",
     "translation": "You've reached the limit of {{.NumIntegrations}} enabled integrations. To install unlimited integrations, upgrade to one of the paid plans."
   },
