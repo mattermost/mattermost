@@ -6200,6 +6200,24 @@ func (s *OpenTracingLayerPostStore) SearchPostsForUser(paramsList []*model.Searc
 	return result, err
 }
 
+func (s *OpenTracingLayerPostStore) SetPostReminder(postID string, userID string, targetTime int64) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.SetPostReminder")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.PostStore.SetPostReminder(postID, userID, targetTime)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
 func (s *OpenTracingLayerPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.Update")

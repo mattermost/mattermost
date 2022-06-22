@@ -948,6 +948,20 @@ func (_m *PostStore) SearchPostsForUser(paramsList []*model.SearchParams, userID
 	return r0, r1
 }
 
+// SetPostReminder provides a mock function with given fields: postID, userID, targetTime
+func (_m *PostStore) SetPostReminder(postID string, userID string, targetTime int64) error {
+	ret := _m.Called(postID, userID, targetTime)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, int64) error); ok {
+		r0 = rf(postID, userID, targetTime)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Update provides a mock function with given fields: newPost, oldPost
 func (_m *PostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error) {
 	ret := _m.Called(newPost, oldPost)

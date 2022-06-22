@@ -2928,3 +2928,18 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 	}
 	return nil
 }
+
+func (s *SqlPostStore) SetPostReminder(postID, userID string, targetTime int64) error {
+	query, args, err := s.getQueryBuilder().
+		Insert("PostReminders").
+		Columns("PostId", "UserId", "TargetTime").
+		Values(postID, userID, targetTime).
+		ToSql()
+	if err != nil {
+		return errors.Wrap(err, "setPostReminder_tosql")
+	}
+	if _, err := s.GetMasterX().Exec(query, args...); err != nil {
+		return errors.Wrap(err, "failed to insert post reminder")
+	}
+	return nil
+}

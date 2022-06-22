@@ -666,6 +666,7 @@ func NewServer(options ...Option) (*Server, error) {
 			s.runLicenseExpirationCheckJob()
 			s.runInactivityCheckJob()
 			runDNDStatusExpireJob(appInstance)
+			runPostReminderJob(appInstance)
 		})
 		s.runJobs()
 	}
@@ -2158,31 +2159,45 @@ func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
 	return result, nil
 }
 
-func createDNDStatusExpirationRecurringTask(a *App) {
-	a.ch.dndTaskMut.Lock()
-	a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
-	a.ch.dndTaskMut.Unlock()
+func createTask(mut *sync.Mutex, name string, task *model.ScheduledTask, taskFunc model.TaskFunc) {
+	mut.Lock()
+	task = model.CreateRecurringTaskFromNextIntervalTime(name, taskFunc, 5*time.Minute)
+	mut.Unlock()
 }
 
-func cancelDNDStatusExpirationRecurringTask(a *App) {
-	a.ch.dndTaskMut.Lock()
-	if a.ch.dndTask != nil {
-		a.ch.dndTask.Cancel()
-		a.ch.dndTask = nil
+func cancelTask(mut *sync.Mutex, task *model.ScheduledTask) {
+	mut.Lock()
+	if task != nil {
+		task.Cancel()
+		task = nil
 	}
-	a.ch.dndTaskMut.Unlock()
+	mut.Unlock()
 }
 
 func runDNDStatusExpireJob(a *App) {
 	if a.IsLeader() {
-		createDNDStatusExpirationRecurringTask(a)
+		createTask(&a.ch.dndTaskMut, "Unset DND Statuses", a.ch.dndTask, a.UpdateDNDStatusOfUsers)
 	}
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.IsLeader()))
 		if a.IsLeader() {
-			createDNDStatusExpirationRecurringTask(a)
+			createTask(&a.ch.dndTaskMut, "Unset DND Statuses", a.ch.dndTask, a.UpdateDNDStatusOfUsers)
 		} else {
-			cancelDNDStatusExpirationRecurringTask(a)
+			cancelTask(&a.ch.dndTaskMut, a.ch.dndTask)
+		}
+	})
+}
+
+func runPostReminderJob(a *App) {
+	if a.IsLeader() {
+		createTask(&a.ch.postReminderMut, "Check Post reminders", a.ch.postReminderTask, a.CheckPostReminders)
+	}
+	a.ch.srv.AddClusterLeaderChangedListener(func() {
+		mlog.Info("Cluster leader changed. Determining if post reminder task should be running", mlog.Bool("isLeader", a.IsLeader()))
+		if a.IsLeader() {
+			createTask(&a.ch.postReminderMut, "Check Post reminders", a.ch.postReminderTask, a.CheckPostReminders)
+		} else {
+			cancelTask(&a.ch.postReminderMut, a.ch.postReminderTask)
 		}
 	})
 }

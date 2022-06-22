@@ -1750,6 +1750,79 @@ func (a *App) GetTopThreadsForUserSince(teamID, userID string, opts *model.Insig
 	return topThreadsWithEmbedAndImage, nil
 }
 
+func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.AppError {
+	// Store the reminder in the DB
+	err := a.Srv().Store.Post().SetPostReminder(postID, userID, targetTime)
+	if err != nil {
+		return model.NewAppError("SetPostReminder", "", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	post, appErr := a.GetSinglePost(postID, false /* include_deleted */)
+	if appErr != nil {
+		return appErr
+	}
+
+	user, appErr := a.GetUser(post.UserId)
+	if appErr != nil {
+		return appErr
+	}
+
+	channels, err := a.Srv().Store.Channel().GetChannelsWithTeamDataByIds([]string{post.ChannelId}, false /* include_deleted */)
+	if err != nil {
+		return model.NewAppError("SetPostReminder", "", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if len(channels) != 1 {
+		return model.NewAppError("SetPostReminder", "", nil, fmt.Sprintf("incorrect number of channels returned. Expected 1; got %d", len(channels)), http.StatusInternalServerError)
+	}
+
+	// Send an ack message in that thread.
+	T := i18n.GetUserTranslations(user.Locale)
+	ephemeralPost := &model.Post{
+		UserId:    userID,
+		RootId:    postID,
+		ChannelId: post.ChannelId,
+		Message:   T("app.post_reminder", model.StringInterface{"TeamName": channels[0].TeamName, "PostId": postID, "Username": user.Username}),
+		Props: model.StringInterface{
+			"target_time": targetTime,
+		},
+	}
+	a.SendEphemeralPost(userID, ephemeralPost)
+
+	return nil
+}
+
+func (a *App) CheckPostReminders() {
+	userID := "r95si8ga3i85iy3qej53z7sxay"
+
+	systemBot, appErr := a.GetSystemBot()
+	if appErr != nil {
+		mlog.Error("Failed to get system bot", mlog.Err(appErr))
+		return
+	}
+
+	_ = systemBot
+
+	ch, appErr := a.GetOrCreateDirectChannel(request.EmptyContext(), userID, systemBot.UserId)
+	if appErr != nil {
+		mlog.Error("Failed to get direct channel", mlog.Err(appErr))
+		return
+	}
+
+	_ = &model.Post{
+		ChannelId: ch.Id,
+		Message:   "hello there",
+		Type:      model.PostTypeDefault,
+		UserId:    systemBot.UserId,
+		Props: model.StringInterface{
+			"username": systemBot.Username,
+		},
+	}
+
+	// if _, err := a.CreatePost(request.EmptyContext(), post, ch, false, true); err != nil {
+	// 	mlog.Error("Failed to post unarchive message", mlog.Err(err))
+	// }
+}
+
 func includeEmbedsAndImages(a *App, topThreadList *model.TopThreadList, userID string) (*model.TopThreadList, error) {
 	for _, topThread := range topThreadList.Items {
 		topThread.Post = a.PreparePostForClientWithEmbedsAndImages(topThread.Post, false, false)

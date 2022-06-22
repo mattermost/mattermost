@@ -5609,6 +5609,22 @@ func (s *TimerLayerPostStore) SearchPostsForUser(paramsList []*model.SearchParam
 	return result, err
 }
 
+func (s *TimerLayerPostStore) SetPostReminder(postID string, userID string, targetTime int64) error {
+	start := time.Now()
+
+	err := s.PostStore.SetPostReminder(postID, userID, targetTime)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.SetPostReminder", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error) {
 	start := time.Now()
 
