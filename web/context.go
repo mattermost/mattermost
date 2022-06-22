@@ -14,7 +14,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/shared/mctx"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
@@ -735,12 +734,4 @@ func (c *Context) RequireInvoiceId() *Context {
 
 func (c *Context) GetRemoteID(r *http.Request) string {
 	return r.Header.Get(model.HeaderRemoteclusterId)
-}
-
-func (c *Context) MContext() *mctx.Context {
-	return &mctx.Context{
-		AppContext: c.AppContext,
-		Logger:     c.Logger,
-		Err:        c.Err,
-	}
 }
