@@ -453,6 +453,17 @@ func TestUploadFiles(t *testing.T) {
 			expectedImageMiniPreview: []bool{false},
 			expectedCreatorId:        th.BasicUser.Id,
 		},
+		// Webp image test
+		{
+			title:                    "Webp image",
+			names:                    []string{"testwebp.webp"},
+			expectImage:              true,
+			expectedImageWidths:      []int{128},
+			expectedImageHeights:     []int{256},
+			expectedImageHasPreview:  []bool{true},
+			expectedCreatorId:        th.BasicUser.Id,
+			expectedImageMiniPreview: []bool{true},
+		},
 		// Error cases
 		{
 			title:                 "Error channel_id does not exist",

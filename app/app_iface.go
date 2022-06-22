@@ -68,7 +68,7 @@ type AppIface interface {
 	// If includeRemovedMembers is true, then channel members who left or were removed from the channel will
 	// be included; otherwise, they will be excluded.
 	ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, *model.AppError)
-	// CheckFreemiumLimitsForConfigSave returns an error if the configuration being saved violates the Cloud Freemium limits
+	// CheckFreemiumLimitsForConfigSave returns an error if the configuration being saved violates a cloud plan's limits
 	CheckFreemiumLimitsForConfigSave(oldConfig, newConfig *model.Config) *model.AppError
 	// CheckProviderAttributes returns the empty string if the patch can be applied without
 	// overriding attributes set by the user's login provider; otherwise, the name of the offending
@@ -778,6 +778,8 @@ type AppIface interface {
 	GetTopChannelsForUserSince(userID, teamID string, opts *model.InsightsOpts) (*model.TopChannelList, *model.AppError)
 	GetTopReactionsForTeamSince(teamID string, userID string, opts *model.InsightsOpts) (*model.TopReactionList, *model.AppError)
 	GetTopReactionsForUserSince(userID string, teamID string, opts *model.InsightsOpts) (*model.TopReactionList, *model.AppError)
+	GetTopThreadsForTeamSince(teamID, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError)
+	GetTopThreadsForUserSince(teamID, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError)
 	GetUploadSession(uploadId string) (*model.UploadSession, *model.AppError)
 	GetUploadSessionsForUser(userID string) ([]*model.UploadSession, *model.AppError)
 	GetUser(userID string) (*model.User, *model.AppError)
