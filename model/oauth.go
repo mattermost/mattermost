@@ -32,19 +32,19 @@ type OAuthApp struct {
 	MattermostAppID string      `json:"mattermost_app_id"`
 }
 
-func (o *OAuthApp) Auditable() map[string]interface{} {
+func (a *OAuthApp) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"id":                o.Id,
-		"creator_id":        o.CreatorId,
-		"create_at":         o.CreateAt,
-		"update_at":         o.UpdateAt,
-		"name":              o.Name,
-		"description":       o.Description,
-		"icon_url":          o.IconURL,
-		"callback_urls:":    o.CallbackUrls,
-		"homepage":          o.Homepage,
-		"is_trusted":        o.IsTrusted,
-		"mattermost_app_id": o.MattermostAppID,
+		"id":                a.Id,
+		"creator_id":        a.CreatorId,
+		"create_at":         a.CreateAt,
+		"update_at":         a.UpdateAt,
+		"name":              a.Name,
+		"description":       a.Description,
+		"icon_url":          a.IconURL,
+		"callback_urls:":    a.CallbackUrls,
+		"homepage":          a.Homepage,
+		"is_trusted":        a.IsTrusted,
+		"mattermost_app_id": a.MattermostAppID,
 	}
 }
 
