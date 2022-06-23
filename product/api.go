@@ -4,10 +4,14 @@
 package product
 
 import (
+	"io"
+
 	"github.com/gorilla/mux"
+
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 )
 
 // RouterService enables registering the product router to the server. After registering the
@@ -95,11 +99,13 @@ type BotService interface {
 	EnsureBot(ctx *request.Context, productID string, bot *model.Bot) (string, error)
 }
 
-// LogService shall be registered via app.LogKey service key.
-type LogService interface {
-	LogError(productID, msg string, keyValuePairs ...interface{})
-	LogWarn(productID, msg string, keyValuePairs ...interface{})
-	LogDebug(productID, msg string, keyValuePairs ...interface{})
+// ConfigService shall be registered via app.ConfigKey service key.
+type ConfigService interface {
+	Config() *model.Config
+	AddConfigListener(listener func(*model.Config, *model.Config)) string
+	RemoveConfigListener(id string)
+	UpdateConfig(f func(*model.Config))
+	SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError)
 }
 
 // Hooks is an interim solution for enabling plugin hooks on the multi-product architecture. After the
@@ -115,4 +121,16 @@ type Hooks interface {
 // The service shall be registered via app.HooksKey service key.
 type HooksService interface {
 	RegisterHooks(productID string, hooks Hooks) error
+}
+
+// FilestoreService is the API for accessing the file store.
+//
+// The service shall be registered via app.FilestoreKey service key.
+type FilestoreService interface {
+	Reader(path string) (filestore.ReadCloseSeeker, error)
+	FileExists(path string) (bool, error)
+	CopyFile(oldPath, newPath string) error
+	MoveFile(oldPath, newPath string) error
+	WriteFile(fr io.Reader, path string) (int64, error)
+	RemoveFile(path string) error
 }

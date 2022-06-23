@@ -1658,10 +1658,14 @@ func (a *App) SendEmailVerification(user *model.User, newEmail, redirect string)
 	}
 
 	if _, err := a.GetStatus(user.Id); err != nil {
+		if err.StatusCode != http.StatusNotFound {
+			return err
+		}
 		eErr := a.Srv().EmailService.SendVerifyEmail(newEmail, user.Locale, a.GetSiteURL(), token.Token, redirect)
 		if eErr != nil {
 			return model.NewAppError("SendVerifyEmail", "api.user.send_verify_email_and_forget.failed.error", nil, eErr.Error(), http.StatusInternalServerError)
 		}
+
 		return nil
 	}
 
@@ -2310,7 +2314,7 @@ func (a *App) ConvertBotToUser(bot *model.Bot, userPatch *model.UserPatch, sysad
 
 	appErr := a.Srv().Store.Bot().PermanentDelete(bot.UserId)
 	if appErr != nil {
-		return nil, model.NewAppError("ConvertBotToUser", "app.user.convert_bot_to_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("ConvertBotToUser", "app.user.convert_bot_to_user.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
 	return user, nil

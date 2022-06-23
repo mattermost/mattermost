@@ -399,9 +399,7 @@ func NewServer(options ...Option) (*Server, error) {
 		FilestoreKey: s.filestore,
 		ClusterKey:   s.clusterWrapper,
 		UserKey:      New(ServerConnector(s.Channels())),
-		LogKey: &logWrapper{
-			srv: s,
-		},
+		LogKey:       s.GetLogger(),
 	}
 
 	// Step 8: Initialize products.
