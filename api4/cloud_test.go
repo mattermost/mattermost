@@ -111,6 +111,90 @@ func Test_getCloudLimits(t *testing.T) {
 	})
 }
 
+func Test_GetSubscription(t *testing.T) {
+	subscription := &model.Subscription{
+		ID:          "MySubscriptionID",
+		CustomerID:  "MyCustomer",
+		ProductID:   "SomeProductId",
+		AddOns:      []string{},
+		StartAt:     1000000000,
+		EndAt:       2000000000,
+		CreateAt:    1000000000,
+		Seats:       10,
+		IsFreeTrial: "true",
+		DNS:         "some.dns.server",
+		IsPaidTier:  "false",
+		TrialEndAt:  2000000000,
+		LastInvoice: &model.Invoice{},
+	}
+
+	userFacingSubscription := &model.Subscription{
+		ID:          "MySubscriptionID",
+		CustomerID:  "",
+		ProductID:   "SomeProductId",
+		AddOns:      []string{},
+		StartAt:     0,
+		EndAt:       0,
+		CreateAt:    0,
+		Seats:       0,
+		IsFreeTrial: "true",
+		DNS:         "",
+		IsPaidTier:  "",
+		TrialEndAt:  2000000000,
+		LastInvoice: &model.Invoice{},
+	}
+
+	t.Run("NON Admin users receive the user facing subscription", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		cloud := mocks.CloudInterface{}
+
+		cloud.Mock.On("GetSubscription", mock.Anything).Return(userFacingSubscription, nil)
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = &cloud
+
+		subscriptionReturned, r, err := th.Client.GetSubscription()
+
+		require.NoError(t, err)
+		require.Equal(t, subscriptionReturned, userFacingSubscription)
+		require.Equal(t, http.StatusOK, r.StatusCode, "Status OK")
+	})
+
+	t.Run("Admin users receive the full subscription information", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		cloud := mocks.CloudInterface{}
+
+		cloud.Mock.On("GetSubscription", mock.Anything).Return(subscription, nil)
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = &cloud
+
+		subscriptionReturned, r, err := th.SystemAdminClient.GetSubscription()
+
+		require.NoError(t, err)
+		require.Equal(t, subscriptionReturned, subscription)
+		require.Equal(t, http.StatusOK, r.StatusCode, "Status OK")
+	})
+}
+
 func Test_requestTrial(t *testing.T) {
 	subscription := &model.Subscription{
 		ID:         "MySubscriptionID",
