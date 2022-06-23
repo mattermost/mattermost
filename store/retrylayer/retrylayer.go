@@ -6554,11 +6554,11 @@ func (s *RetryLayerPostStore) GetPostReminderMetadata(postID string) (*store.Pos
 
 }
 
-func (s *RetryLayerPostStore) GetPostReminders() ([]*model.PostReminder, error) {
+func (s *RetryLayerPostStore) GetPostReminders(now int64) ([]*model.PostReminder, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetPostReminders()
+		result, err := s.PostStore.GetPostReminders(now)
 		if err == nil {
 			return result, nil
 		}
@@ -7064,11 +7064,11 @@ func (s *RetryLayerPostStore) SearchPostsForUser(paramsList []*model.SearchParam
 
 }
 
-func (s *RetryLayerPostStore) SetPostReminder(postID string, userID string, targetTime int64) error {
+func (s *RetryLayerPostStore) SetPostReminder(reminder *model.PostReminder) error {
 
 	tries := 0
 	for {
-		err := s.PostStore.SetPostReminder(postID, userID, targetTime)
+		err := s.PostStore.SetPostReminder(reminder)
 		if err == nil {
 			return nil
 		}

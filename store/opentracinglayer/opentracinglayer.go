@@ -5791,7 +5791,7 @@ func (s *OpenTracingLayerPostStore) GetPostReminderMetadata(postID string) (*sto
 	return result, err
 }
 
-func (s *OpenTracingLayerPostStore) GetPostReminders() ([]*model.PostReminder, error) {
+func (s *OpenTracingLayerPostStore) GetPostReminders(now int64) ([]*model.PostReminder, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetPostReminders")
 	s.Root.Store.SetContext(newCtx)
@@ -5800,7 +5800,7 @@ func (s *OpenTracingLayerPostStore) GetPostReminders() ([]*model.PostReminder, e
 	}()
 
 	defer span.Finish()
-	result, err := s.PostStore.GetPostReminders()
+	result, err := s.PostStore.GetPostReminders(now)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -6236,7 +6236,7 @@ func (s *OpenTracingLayerPostStore) SearchPostsForUser(paramsList []*model.Searc
 	return result, err
 }
 
-func (s *OpenTracingLayerPostStore) SetPostReminder(postID string, userID string, targetTime int64) error {
+func (s *OpenTracingLayerPostStore) SetPostReminder(reminder *model.PostReminder) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.SetPostReminder")
 	s.Root.Store.SetContext(newCtx)
@@ -6245,7 +6245,7 @@ func (s *OpenTracingLayerPostStore) SetPostReminder(postID string, userID string
 	}()
 
 	defer span.Finish()
-	err := s.PostStore.SetPostReminder(postID, userID, targetTime)
+	err := s.PostStore.SetPostReminder(reminder)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

@@ -5242,10 +5242,10 @@ func (s *TimerLayerPostStore) GetPostReminderMetadata(postID string) (*store.Pos
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostReminders() ([]*model.PostReminder, error) {
+func (s *TimerLayerPostStore) GetPostReminders(now int64) ([]*model.PostReminder, error) {
 	start := time.Now()
 
-	result, err := s.PostStore.GetPostReminders()
+	result, err := s.PostStore.GetPostReminders(now)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -5641,10 +5641,10 @@ func (s *TimerLayerPostStore) SearchPostsForUser(paramsList []*model.SearchParam
 	return result, err
 }
 
-func (s *TimerLayerPostStore) SetPostReminder(postID string, userID string, targetTime int64) error {
+func (s *TimerLayerPostStore) SetPostReminder(reminder *model.PostReminder) error {
 	start := time.Now()
 
-	err := s.PostStore.SetPostReminder(postID, userID, targetTime)
+	err := s.PostStore.SetPostReminder(reminder)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

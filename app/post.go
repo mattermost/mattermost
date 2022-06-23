@@ -1752,7 +1752,12 @@ func (a *App) GetTopThreadsForUserSince(teamID, userID string, opts *model.Insig
 
 func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.AppError {
 	// Store the reminder in the DB
-	err := a.Srv().Store.Post().SetPostReminder(postID, userID, targetTime)
+	reminder := &model.PostReminder{
+		PostId:     postID,
+		UserId:     userID,
+		TargetTime: targetTime,
+	}
+	err := a.Srv().Store.Post().SetPostReminder(reminder)
 	if err != nil {
 		return model.NewAppError("SetPostReminder", "", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1762,15 +1767,18 @@ func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.Ap
 		return model.NewAppError("SetPostReminder", "", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	parsed := time.Unix(targetTime, 0).UTC().Format(time.RFC822)
 	// Send an ack message.
 	ephemeralPost := &model.Post{
+		Type:      model.PostTypeReminder,
 		Id:        model.NewId(),
 		CreateAt:  model.GetMillis(),
 		UserId:    userID,
 		RootId:    postID,
 		ChannelId: metadata.ChannelId,
-		Message:   "",
-		Type:      model.PostTypeReminder,
+		// It's okay to keep this non-translated. This is just a fallback.
+		// The webapp will parse the timestamp and show that in user's local timezone.
+		Message:   fmt.Sprintf("You will be reminded about [this post](/%s/pl/%s) by @%s at %s", metadata.TeamName, postID, metadata.Username, parsed),
 		Props: model.StringInterface{
 			"target_time": targetTime,
 			"team_name":   metadata.TeamName,
@@ -1799,7 +1807,7 @@ func (a *App) CheckPostReminders() {
 		return
 	}
 
-	reminders, err := a.Srv().Store.Post().GetPostReminders()
+	reminders, err := a.Srv().Store.Post().GetPostReminders(time.Now().UTC().Unix())
 	if err != nil {
 		mlog.Error("Failed to get post reminders", mlog.Err(err))
 		return

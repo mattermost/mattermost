@@ -444,13 +444,13 @@ func (_m *PostStore) GetPostReminderMetadata(postID string) (*store.PostReminder
 	return r0, r1
 }
 
-// GetPostReminders provides a mock function with given fields:
-func (_m *PostStore) GetPostReminders() ([]*model.PostReminder, error) {
-	ret := _m.Called()
+// GetPostReminders provides a mock function with given fields: now
+func (_m *PostStore) GetPostReminders(now int64) ([]*model.PostReminder, error) {
+	ret := _m.Called(now)
 
 	var r0 []*model.PostReminder
-	if rf, ok := ret.Get(0).(func() []*model.PostReminder); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(int64) []*model.PostReminder); ok {
+		r0 = rf(now)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.PostReminder)
@@ -458,8 +458,8 @@ func (_m *PostStore) GetPostReminders() ([]*model.PostReminder, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(int64) error); ok {
+		r1 = rf(now)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -996,13 +996,13 @@ func (_m *PostStore) SearchPostsForUser(paramsList []*model.SearchParams, userID
 	return r0, r1
 }
 
-// SetPostReminder provides a mock function with given fields: postID, userID, targetTime
-func (_m *PostStore) SetPostReminder(postID string, userID string, targetTime int64) error {
-	ret := _m.Called(postID, userID, targetTime)
+// SetPostReminder provides a mock function with given fields: reminder
+func (_m *PostStore) SetPostReminder(reminder *model.PostReminder) error {
+	ret := _m.Called(reminder)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, int64) error); ok {
-		r0 = rf(postID, userID, targetTime)
+	if rf, ok := ret.Get(0).(func(*model.PostReminder) error); ok {
+		r0 = rf(reminder)
 	} else {
 		r0 = ret.Error(0)
 	}

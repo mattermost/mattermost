@@ -13,7 +13,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -2930,23 +2929,29 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 	return nil
 }
 
-// TODO: change to pass reminder struct.
-func (s *SqlPostStore) SetPostReminder(postID, userID string, targetTime int64) error {
-	query, args, err := s.getQueryBuilder().
+func (s *SqlPostStore) SetPostReminder(reminder *model.PostReminder) error {
+	query := s.getQueryBuilder().
 		Insert("PostReminders").
 		Columns("PostId", "UserId", "TargetTime").
-		Values(postID, userID, targetTime).
-		ToSql()
+		Values(reminder.PostId, reminder.UserId, reminder.TargetTime)
+
+	if s.DriverName() == model.DatabaseDriverMysql {
+		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE TargetTime = ?", reminder.TargetTime))
+	} else {
+		query = query.SuffixExpr(sq.Expr("ON CONFLICT (postid, userid) DO UPDATE SET TargetTime = ?", reminder.TargetTime))
+	}
+
+	sql, args, err := query.ToSql()
 	if err != nil {
 		return errors.Wrap(err, "setPostReminder_tosql")
 	}
-	if _, err := s.GetMasterX().Exec(query, args...); err != nil {
+	if _, err := s.GetMasterX().Exec(sql, args...); err != nil {
 		return errors.Wrap(err, "failed to insert post reminder")
 	}
 	return nil
 }
 
-func (s *SqlPostStore) GetPostReminders() ([]*model.PostReminder, error) {
+func (s *SqlPostStore) GetPostReminders(now int64) ([]*model.PostReminder, error) {
 	reminders := []*model.PostReminder{}
 
 	transaction, err := s.GetMasterX().Beginx()
@@ -2955,7 +2960,6 @@ func (s *SqlPostStore) GetPostReminders() ([]*model.PostReminder, error) {
 	}
 	defer finalizeTransactionX(transaction)
 
-	now := time.Now().UTC().Unix()
 	err = transaction.Select(&reminders, `SELECT PostId, UserId
 		FROM PostReminders
 		WHERE TargetTime < ?`, now)
@@ -2985,14 +2989,14 @@ func (s *SqlPostStore) GetPostReminders() ([]*model.PostReminder, error) {
 
 func (s *SqlPostStore) GetPostReminderMetadata(postID string) (*store.PostReminderMetadata, error) {
 	meta := &store.PostReminderMetadata{}
-	err := s.GetReplicaX().Get(meta, `SELECT c.id as channelid,
-			t.name as teamname,
-			u.locale as userlocale, u.username
-		FROM posts p, channels c, teams t, users u
-		WHERE p.channelid=c.id
-		AND c.teamid=t.id
-		AND p.userid=u.id
-		AND p.id=?`, postID)
+	err := s.GetReplicaX().Get(meta, `SELECT c.id as ChannelId,
+			t.name as TeamName,
+			u.locale as UserLocale, u.username as Username
+		FROM Posts p, Channels c, Teams t, Users u
+		WHERE p.ChannelId=c.Id
+		AND c.TeamId=t.Id
+		AND p.UserId=u.Id
+		AND p.Id=?`, postID)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get post reminder metadata")
 	}
