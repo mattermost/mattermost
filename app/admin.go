@@ -25,42 +25,44 @@ var latestVersionCache = cache.NewLRU(cache.LRUOptions{
 	Size: 1,
 })
 
-func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
-	var lines []string
+func (s *Server) GetLogs(page, perPage int) (map[string][]string, *model.AppError) {
+	logData := make(map[string][]string)
+
+	serverName := "default"
 
 	license := s.License()
 	if license != nil && *license.Features.Cluster && s.Cluster != nil && *s.Config().ClusterSettings.Enable {
 		if info := s.Cluster.GetMyClusterInfo(); info != nil {
-			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
-			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
-			lines = append(lines, info.Hostname)
-			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
-			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
+			serverName = info.Hostname
 		} else {
 			mlog.Error("Could not get cluster info")
 		}
 	}
 
-	melines, err := s.GetLogsSkipSend(page, perPage)
+	currentServerLogs, err := s.GetLogsSkipSend(page, perPage)
 	if err != nil {
 		return nil, err
 	}
 
-	lines = append(lines, melines...)
+	logData[serverName] = currentServerLogs
 
 	if s.Cluster != nil && *s.Config().ClusterSettings.Enable {
-		clines, err := s.Cluster.GetLogs(page, perPage)
+		clusterLogs, err := s.Cluster.GetLogs(page, perPage)
 		if err != nil {
 			return nil, err
 		}
 
-		lines = append(lines, clines...)
+		if clusterLogs != nil {
+			for nodeName, logs := range clusterLogs {
+				logData[nodeName] = logs
+			}
+		}
 	}
 
-	return lines, nil
+	return logData, nil
 }
 
-func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
+func (a *App) GetLogs(page, perPage int) (map[string][]string, *model.AppError) {
 	return a.Srv().GetLogs(page, perPage)
 }
 

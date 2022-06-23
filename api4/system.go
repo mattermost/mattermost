@@ -336,16 +336,29 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	lines, err := c.App.GetLogs(c.Params.Page, c.Params.LogsPerPage)
+	logs, err := c.App.GetLogs(c.Params.Page, c.Params.LogsPerPage)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
+	logsJSON := make(map[string][]interface{})
+	var result interface{}
+	for node, logLines := range logs {
+		for _, log := range logLines {
+			err2 := json.Unmarshal([]byte(log), &result)
+			if err2 == nil {
+				logsJSON[node] = append(logsJSON[node], result)
+			} else {
+				mlog.Warn("Error parsing log line in Server Logs")
+			}
+		}
+	}
+
 	auditRec.AddMeta("page", c.Params.Page)
 	auditRec.AddMeta("logs_per_page", c.Params.LogsPerPage)
 
-	w.Write([]byte(model.ArrayToJSON(lines)))
+	w.Write(model.ToJSON(logsJSON))
 }
 
 func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
