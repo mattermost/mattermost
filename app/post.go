@@ -1757,32 +1757,19 @@ func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.Ap
 		return model.NewAppError("SetPostReminder", "", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	// TODO: optimize this to a single query
-	post, appErr := a.GetSinglePost(postID, false /* include_deleted */)
-	if appErr != nil {
-		return appErr
-	}
-
-	user, appErr := a.GetUser(post.UserId)
-	if appErr != nil {
-		return appErr
-	}
-
-	channels, err := a.Srv().Store.Channel().GetChannelsWithTeamDataByIds([]string{post.ChannelId}, false /* include_deleted */)
+	metadata, err := a.Srv().Store.Post().GetPostReminderMetadata(postID)
 	if err != nil {
 		return model.NewAppError("SetPostReminder", "", nil, err.Error(), http.StatusInternalServerError)
 	}
-	if len(channels) != 1 {
-		return model.NewAppError("SetPostReminder", "", nil, fmt.Sprintf("incorrect number of channels returned. Expected 1; got %d", len(channels)), http.StatusInternalServerError)
-	}
 
 	// Send an ack message in that thread.
-	T := i18n.GetUserTranslations(user.Locale)
+	T := i18n.GetUserTranslations(metadata.UserLocale)
+	// Not setting the rootID deliberately because the webapp
+	// shows the post both in center channel and RHS.
 	ephemeralPost := &model.Post{
 		UserId:    userID,
-		RootId:    postID,
-		ChannelId: post.ChannelId,
-		Message:   T("app.post_reminder_ack", model.StringInterface{"TeamName": channels[0].TeamName, "PostId": postID, "Username": user.Username}),
+		ChannelId: metadata.ChannelId,
+		Message:   T("app.post_reminder_ack", model.StringInterface{"TeamName": metadata.TeamName, "PostId": postID, "Username": metadata.Username}),
 		Props: model.StringInterface{
 			"target_time": targetTime,
 		},
@@ -1823,34 +1810,16 @@ func (a *App) CheckPostReminders() {
 		}
 
 		for _, postID := range postIDs {
-			// TODO: optimize this to a single query.
-
-			post, appErr := a.GetSinglePost(postID, false /* include_deleted */)
-			if appErr != nil {
-				mlog.Error("Failed to get post", mlog.Err(appErr))
-				continue
-			}
-
-			user, appErr := a.GetUser(post.UserId)
-			if appErr != nil {
-				mlog.Error("Failed to get user", mlog.Err(appErr))
-				continue
-			}
-
-			channels, err := a.Srv().Store.Channel().GetChannelsWithTeamDataByIds([]string{post.ChannelId}, false /* include_deleted */)
+			metadata, err := a.Srv().Store.Post().GetPostReminderMetadata(postID)
 			if err != nil {
-				mlog.Error("Failed to get channel", mlog.Err(err))
-				continue
-			}
-			if len(channels) != 1 {
-				mlog.Error("Incorrect number of channels returned. Expected 1.", mlog.Int("Got", len(channels)))
+				mlog.Error("Failed to get post reminder metadata", mlog.Err(err))
 				continue
 			}
 
-			T := i18n.GetUserTranslations(user.Locale)
+			T := i18n.GetUserTranslations(metadata.UserLocale)
 			dm := &model.Post{
 				ChannelId: ch.Id,
-				Message:   T("app.post_reminder_dm", model.StringInterface{"TeamName": channels[0].TeamName, "PostId": postID, "Username": user.Username}),
+				Message:   T("app.post_reminder_dm", model.StringInterface{"TeamName": metadata.TeamName, "PostId": postID, "Username": metadata.Username}),
 				Type:      model.PostTypeDefault,
 				UserId:    systemBot.UserId,
 				Props: model.StringInterface{

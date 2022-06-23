@@ -5773,6 +5773,24 @@ func (s *OpenTracingLayerPostStore) GetPostIdBeforeTime(channelID string, timest
 	return result, err
 }
 
+func (s *OpenTracingLayerPostStore) GetPostReminderMetadata(postID string) (*store.PostReminderMetadata, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetPostReminderMetadata")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.PostStore.GetPostReminderMetadata(postID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerPostStore) GetPostReminders() ([]*model.PostReminder, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetPostReminders")

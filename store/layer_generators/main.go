@@ -221,10 +221,20 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 			if len(results) == 0 {
 				return ""
 			}
-			if len(results) == 1 {
-				return strings.Join(results, ", ")
+			returns := []string{}
+			for _, result := range results {
+				switch result {
+				case "*PostReminderMetadata":
+					returns = append(returns, fmt.Sprintf("*store.%s", strings.TrimPrefix(result, "*")))
+				default:
+					returns = append(returns, result)
+				}
 			}
-			return fmt.Sprintf("(%s)", strings.Join(results, ", "))
+
+			if len(returns) == 1 {
+				return strings.Join(returns, ", ")
+			}
+			return fmt.Sprintf("(%s)", strings.Join(returns, ", "))
 		},
 		"genResultsVars": func(results []string, withNilError bool) string {
 			vars := []string{}

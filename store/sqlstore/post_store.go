@@ -2982,3 +2982,20 @@ func (s *SqlPostStore) GetPostReminders() ([]*model.PostReminder, error) {
 
 	return reminders, nil
 }
+
+func (s *SqlPostStore) GetPostReminderMetadata(postID string) (*store.PostReminderMetadata, error) {
+	meta := &store.PostReminderMetadata{}
+	err := s.GetReplicaX().Get(meta, `SELECT c.id as channelid,
+			t.name as teamname,
+			u.locale as userlocale, u.username
+		FROM posts p, channels c, teams t, users u
+		WHERE p.channelid=c.id
+		AND c.teamid=t.id
+		AND p.userid=u.id
+		AND p.id=?`, postID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get post reminder metadata")
+	}
+
+	return meta, nil
+}

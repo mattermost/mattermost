@@ -386,6 +386,7 @@ type PostStore interface {
 	GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor, limit int) ([]*model.Post, model.GetPostsSinceForSyncCursor, error)
 	SetPostReminder(postID, userID string, targetTime int64) error
 	GetPostReminders() ([]*model.PostReminder, error)
+	GetPostReminderMetadata(postID string) (*PostReminderMetadata, error)
 }
 
 type UserStore interface {
@@ -1014,4 +1015,13 @@ type ChannelMemberGraphQLSearchOpts struct {
 	Limit        int
 	LastUpdateAt int
 	ExcludeTeam  bool
+}
+
+// PostReminderMetadata contains some info needed to send
+// the reminder message to the user.
+type PostReminderMetadata struct {
+	ChannelId  string
+	TeamName   string
+	UserLocale string
+	Username   string
 }
