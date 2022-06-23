@@ -858,7 +858,6 @@ func setPostReminder(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-
 func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 	c.RequirePostId()
 	if c.Err != nil {

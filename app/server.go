@@ -2159,29 +2159,33 @@ func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
 	return result, nil
 }
 
-func createTask(mut *sync.Mutex, name string, task *model.ScheduledTask, taskFunc model.TaskFunc) {
+func withMut(mut *sync.Mutex, f func()) {
 	mut.Lock()
-	task = model.CreateRecurringTaskFromNextIntervalTime(name, taskFunc, 5*time.Minute)
-	mut.Unlock()
+	defer mut.Unlock()
+	f()
 }
 
 func cancelTask(mut *sync.Mutex, task *model.ScheduledTask) {
 	mut.Lock()
+	defer mut.Unlock()
 	if task != nil {
 		task.Cancel()
 		task = nil
 	}
-	mut.Unlock()
 }
 
 func runDNDStatusExpireJob(a *App) {
 	if a.IsLeader() {
-		createTask(&a.ch.dndTaskMut, "Unset DND Statuses", a.ch.dndTask, a.UpdateDNDStatusOfUsers)
+		withMut(&a.ch.dndTaskMut, func() {
+			a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+		})
 	}
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.IsLeader()))
 		if a.IsLeader() {
-			createTask(&a.ch.dndTaskMut, "Unset DND Statuses", a.ch.dndTask, a.UpdateDNDStatusOfUsers)
+			withMut(&a.ch.dndTaskMut, func() {
+				a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+			})
 		} else {
 			cancelTask(&a.ch.dndTaskMut, a.ch.dndTask)
 		}
@@ -2190,12 +2194,16 @@ func runDNDStatusExpireJob(a *App) {
 
 func runPostReminderJob(a *App) {
 	if a.IsLeader() {
-		createTask(&a.ch.postReminderMut, "Check Post reminders", a.ch.postReminderTask, a.CheckPostReminders)
+		withMut(&a.ch.postReminderMut, func() {
+			a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", a.CheckPostReminders, 5*time.Minute)
+		})
 	}
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if post reminder task should be running", mlog.Bool("isLeader", a.IsLeader()))
 		if a.IsLeader() {
-			createTask(&a.ch.postReminderMut, "Check Post reminders", a.ch.postReminderTask, a.CheckPostReminders)
+			withMut(&a.ch.postReminderMut, func() {
+				a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", a.CheckPostReminders, 5*time.Minute)
+			})
 		} else {
 			cancelTask(&a.ch.postReminderMut, a.ch.postReminderTask)
 		}

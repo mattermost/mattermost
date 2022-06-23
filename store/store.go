@@ -385,6 +385,7 @@ type PostStore interface {
 	HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error)
 	GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor, limit int) ([]*model.Post, model.GetPostsSinceForSyncCursor, error)
 	SetPostReminder(postID, userID string, targetTime int64) error
+	GetPostReminders() ([]*model.PostReminder, error)
 }
 
 type UserStore interface {

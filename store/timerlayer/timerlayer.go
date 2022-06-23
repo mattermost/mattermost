@@ -5226,6 +5226,22 @@ func (s *TimerLayerPostStore) GetPostIdBeforeTime(channelID string, timestamp in
 	return result, err
 }
 
+func (s *TimerLayerPostStore) GetPostReminders() ([]*model.PostReminder, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetPostReminders()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostReminders", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	start := time.Now()
 

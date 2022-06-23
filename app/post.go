@@ -1757,6 +1757,7 @@ func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.Ap
 		return model.NewAppError("SetPostReminder", "", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	// TODO: optimize this to a single query
 	post, appErr := a.GetSinglePost(postID, false /* include_deleted */)
 	if appErr != nil {
 		return appErr
@@ -1781,7 +1782,7 @@ func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.Ap
 		UserId:    userID,
 		RootId:    postID,
 		ChannelId: post.ChannelId,
-		Message:   T("app.post_reminder", model.StringInterface{"TeamName": channels[0].TeamName, "PostId": postID, "Username": user.Username}),
+		Message:   T("app.post_reminder_ack", model.StringInterface{"TeamName": channels[0].TeamName, "PostId": postID, "Username": user.Username}),
 		Props: model.StringInterface{
 			"target_time": targetTime,
 		},
@@ -1792,35 +1793,77 @@ func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.Ap
 }
 
 func (a *App) CheckPostReminders() {
-	userID := "r95si8ga3i85iy3qej53z7sxay"
-
 	systemBot, appErr := a.GetSystemBot()
 	if appErr != nil {
 		mlog.Error("Failed to get system bot", mlog.Err(appErr))
 		return
 	}
 
-	_ = systemBot
-
-	ch, appErr := a.GetOrCreateDirectChannel(request.EmptyContext(), userID, systemBot.UserId)
-	if appErr != nil {
-		mlog.Error("Failed to get direct channel", mlog.Err(appErr))
+	reminders, err := a.Srv().Store.Post().GetPostReminders()
+	if err != nil {
+		mlog.Error("Failed to get post reminders", mlog.Err(err))
 		return
 	}
 
-	_ = &model.Post{
-		ChannelId: ch.Id,
-		Message:   "hello there",
-		Type:      model.PostTypeDefault,
-		UserId:    systemBot.UserId,
-		Props: model.StringInterface{
-			"username": systemBot.Username,
-		},
+	// We group multiple reminders for a single user.
+	groupedReminders := make(map[string][]string)
+	for _, r := range reminders {
+		if groupedReminders[r.UserId] == nil {
+			groupedReminders[r.UserId] = []string{r.PostId}
+		} else {
+			groupedReminders[r.UserId] = append(groupedReminders[r.UserId], r.PostId)
+		}
 	}
 
-	// if _, err := a.CreatePost(request.EmptyContext(), post, ch, false, true); err != nil {
-	// 	mlog.Error("Failed to post unarchive message", mlog.Err(err))
-	// }
+	for userID, postIDs := range groupedReminders {
+		ch, appErr := a.GetOrCreateDirectChannel(request.EmptyContext(), userID, systemBot.UserId)
+		if appErr != nil {
+			mlog.Error("Failed to get direct channel", mlog.Err(appErr))
+			return
+		}
+
+		for _, postID := range postIDs {
+			// TODO: optimize this to a single query.
+
+			post, appErr := a.GetSinglePost(postID, false /* include_deleted */)
+			if appErr != nil {
+				mlog.Error("Failed to get post", mlog.Err(appErr))
+				continue
+			}
+
+			user, appErr := a.GetUser(post.UserId)
+			if appErr != nil {
+				mlog.Error("Failed to get user", mlog.Err(appErr))
+				continue
+			}
+
+			channels, err := a.Srv().Store.Channel().GetChannelsWithTeamDataByIds([]string{post.ChannelId}, false /* include_deleted */)
+			if err != nil {
+				mlog.Error("Failed to get channel", mlog.Err(err))
+				continue
+			}
+			if len(channels) != 1 {
+				mlog.Error("Incorrect number of channels returned. Expected 1.", mlog.Int("Got", len(channels)))
+				continue
+			}
+
+			T := i18n.GetUserTranslations(user.Locale)
+			dm := &model.Post{
+				ChannelId: ch.Id,
+				Message:   T("app.post_reminder_dm", model.StringInterface{"TeamName": channels[0].TeamName, "PostId": postID, "Username": user.Username}),
+				Type:      model.PostTypeDefault,
+				UserId:    systemBot.UserId,
+				Props: model.StringInterface{
+					"username": systemBot.Username,
+				},
+			}
+
+			if _, err := a.CreatePost(request.EmptyContext(), dm, ch, false, true); err != nil {
+				mlog.Error("Failed to post reminder message", mlog.Err(err))
+			}
+		}
+	}
+
 }
 
 func includeEmbedsAndImages(a *App, topThreadList *model.TopThreadList, userID string) (*model.TopThreadList, error) {

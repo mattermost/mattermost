@@ -419,6 +419,29 @@ func (_m *PostStore) GetPostIdBeforeTime(channelID string, timestamp int64, coll
 	return r0, r1
 }
 
+// GetPostReminders provides a mock function with given fields:
+func (_m *PostStore) GetPostReminders() ([]*model.PostReminder, error) {
+	ret := _m.Called()
+
+	var r0 []*model.PostReminder
+	if rf, ok := ret.Get(0).(func() []*model.PostReminder); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PostReminder)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetPosts provides a mock function with given fields: options, allowFromCache, sanitizeOptions
 func (_m *PostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	ret := _m.Called(options, allowFromCache, sanitizeOptions)

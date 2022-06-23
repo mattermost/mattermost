@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -2929,6 +2930,7 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 	return nil
 }
 
+// TODO: change to pass reminder struct.
 func (s *SqlPostStore) SetPostReminder(postID, userID string, targetTime int64) error {
 	query, args, err := s.getQueryBuilder().
 		Insert("PostReminders").
@@ -2942,4 +2944,41 @@ func (s *SqlPostStore) SetPostReminder(postID, userID string, targetTime int64) 
 		return errors.Wrap(err, "failed to insert post reminder")
 	}
 	return nil
+}
+
+func (s *SqlPostStore) GetPostReminders() ([]*model.PostReminder, error) {
+	reminders := []*model.PostReminder{}
+
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction)
+
+	now := time.Now().UTC().Unix()
+	err = transaction.Select(&reminders, `SELECT PostId, UserId
+		FROM PostReminders
+		WHERE TargetTime < ?`, now)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, errors.Wrap(err, "failed to get post reminders")
+	}
+
+	if err == sql.ErrNoRows {
+		// No need to execute delete statement if there's nothing to delete.
+		return reminders, nil
+	}
+
+	// Postgres supports RETURNING * in a DELETE statement, but MySQL doesn't.
+	// So we are stuck with 2 queries. Not taking separate paths for Postgres
+	// and MySQL for simplicity.
+	_, err = transaction.Exec(`DELETE from PostReminders WHERE TargetTime < ?`, now)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to delete post reminders")
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
+
+	return reminders, nil
 }

@@ -128,6 +128,9 @@ type PostPatch struct {
 
 type PostReminder struct {
 	TargetTime int64 `json:"target_time"`
+	// These fields are only used internally for interacting with DB.
+	PostId string `json:",omitempty"`
+	UserId string `json:",omitempty"`
 }
 
 type SearchParameter struct {
