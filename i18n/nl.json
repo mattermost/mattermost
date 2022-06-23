@@ -9345,9 +9345,5 @@
   {
     "id": "api.cloud.teams_limit_reached.create",
     "translation": "Kan geen team aanmaken omdat de teamlimiet bereikt is"
-  },
-  {
-    "id": "api.cloud.cloud_free_feature_flag_off_error",
-    "translation": "CloudFree-functie flag is uit."
   }
 ]
