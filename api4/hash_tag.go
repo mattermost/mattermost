@@ -38,7 +38,7 @@ func (api *API) suggestHashTag(c *Context, w http.ResponseWriter, r *http.Reques
 		limitInt, err2 = strconv.ParseUint(limit, 10, 64)
 		if err2 != nil {
 			mlog.Warn("Failed to parse limit URL query parameter from createPost request", mlog.Err(err2))
-			limitInt = 10 // Set to 10 nontheless
+			limitInt = 10 // Set to 10 nonetheless
 		}
 	}
 	hash_tags, err := c.App.QueryHashTag(&c.Params.HashTagQuery, limitInt)

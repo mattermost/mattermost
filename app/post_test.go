@@ -1254,7 +1254,7 @@ func TestHashTagSearch(t *testing.T) {
 		"This hashtag is #found",
 		"Let's hope this gets #found because I want to go home",
 		"Don't #confuse the developer. Even with #many different #tags",
-		"Keep the extra backup in the #foundary in case it gets lost.",
+		"Keep the extra backup in the #foundry in case it gets lost.",
 		"Multiple hashtags on multiple lines #multi1 #multi2 #multi3",
 		"Multiple hashtags on multiple lines #multi4 #multi5 #multi6",
 		"Multiple hashtags on multiple lines #multi7 #multi8 #multi9",
