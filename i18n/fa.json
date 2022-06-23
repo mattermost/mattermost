@@ -1428,10 +1428,6 @@
     "translation": "ایجاد در باید زمان معتبری باشد."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "نام باید 2 یا بیشتر از حروف کوچک عددی باشد."
-  },
-  {
     "id": "model.bot.is_valid.username.app_error",
     "translation": "نام کاربری نامعتبر است."
   },
@@ -1952,10 +1948,6 @@
     "translation": "جستجوی الاستیک غیرفعال است."
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "اتصال به سرور جستجوی الاستیک انجام نشد."
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "جستجوی الاستیک از قبل متوقف شده است."
   },
@@ -2234,10 +2226,6 @@
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "ویژگی مورد نیاز از دست رفته است: Creat_at."
-  },
-  {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "ویژگی پاسخ ایجاد در باید بزرگتر از پست والد ایجاد شود."
   },
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",

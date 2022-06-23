@@ -17,6 +17,8 @@ import (
 
 	"github.com/pkg/errors"
 
+	"golang.org/x/sync/errgroup"
+
 	"github.com/mattermost/mattermost-server/v6/app/email"
 	"github.com/mattermost/mattermost-server/v6/app/imaging"
 	"github.com/mattermost/mattermost-server/v6/app/request"
@@ -28,7 +30,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mfa"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
-	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -273,7 +274,17 @@ func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool
 
 	recommendedNextStepsPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceRecommendedNextSteps, Name: "hide", Value: "false"}
 	tutorialStepPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryTutorialSteps, Name: ruser.Id, Value: "0"}
-	if err := a.Srv().Store.Preference().Save(model.Preferences{recommendedNextStepsPref, tutorialStepPref}); err != nil {
+
+	preferences := model.Preferences{recommendedNextStepsPref, tutorialStepPref}
+
+	if a.Config().FeatureFlags.InsightsEnabled {
+		// We don't want to show the insights intro modal for new users
+		preferences = append(preferences, model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryInsights, Name: model.PreferenceNameInsights, Value: "{\"insights_modal_viewed\":true}"})
+	} else {
+		preferences = append(preferences, model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryInsights, Name: model.PreferenceNameInsights, Value: "{\"insights_modal_viewed\":false}"})
+	}
+
+	if err := a.Srv().Store.Preference().Save(preferences); err != nil {
 		mlog.Warn("Encountered error saving user preferences", mlog.Err(err))
 	}
 
@@ -380,6 +391,15 @@ func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
 	return user, nil
 }
 
+func (a *App) GetUsers(userIDs []string) ([]*model.User, *model.AppError) {
+	users, err := a.ch.srv.userService.GetUsers(userIDs)
+	if err != nil {
+		return nil, model.NewAppError("GetUsers", "app.user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return users, nil
+}
+
 func (a *App) GetUserByUsername(username string) (*model.User, *model.AppError) {
 	result, err := a.ch.srv.userService.GetUserByUsername(username)
 	if err != nil {
@@ -426,8 +446,8 @@ func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, 
 	return user, nil
 }
 
-func (a *App) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
-	users, err := a.ch.srv.userService.GetUsers(options)
+func (a *App) GetUsersFromProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	users, err := a.ch.srv.userService.GetUsersFromProfiles(options)
 	if err != nil {
 		return nil, model.NewAppError("GetUsers", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1638,10 +1658,14 @@ func (a *App) SendEmailVerification(user *model.User, newEmail, redirect string)
 	}
 
 	if _, err := a.GetStatus(user.Id); err != nil {
+		if err.StatusCode != http.StatusNotFound {
+			return err
+		}
 		eErr := a.Srv().EmailService.SendVerifyEmail(newEmail, user.Locale, a.GetSiteURL(), token.Token, redirect)
 		if eErr != nil {
 			return model.NewAppError("SendVerifyEmail", "api.user.send_verify_email_and_forget.failed.error", nil, eErr.Error(), http.StatusInternalServerError)
 		}
+
 		return nil
 	}
 
@@ -2136,7 +2160,7 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 		}
 	}
 
-	teamMembers, err := a.GetTeamMembersForUser(user.Id)
+	teamMembers, err := a.GetTeamMembersForUser(user.Id, "", true)
 	if err != nil {
 		mlog.Warn("Failed to get team members for user on promote guest to user", mlog.Err(err))
 	}
@@ -2180,7 +2204,7 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 		mlog.Warn("Unable to update user sessions", mlog.String("user_id", demotedUser.Id), mlog.Err(uErr))
 	}
 
-	teamMembers, err := a.GetTeamMembersForUser(user.Id)
+	teamMembers, err := a.GetTeamMembersForUser(user.Id, "", true)
 	if err != nil {
 		mlog.Warn("Failed to get team members for users on demote user to guest", mlog.Err(err))
 	}
@@ -2290,7 +2314,7 @@ func (a *App) ConvertBotToUser(bot *model.Bot, userPatch *model.UserPatch, sysad
 
 	appErr := a.Srv().Store.Bot().PermanentDelete(bot.UserId)
 	if appErr != nil {
-		return nil, model.NewAppError("ConvertBotToUser", "app.user.convert_bot_to_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("ConvertBotToUser", "app.user.convert_bot_to_user.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
 	return user, nil
@@ -2311,15 +2335,20 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 			return nil
 		})
 
-		eg.Go(func() error {
-			totalCount, err := a.Srv().Store.Thread().GetTotalThreads(userID, teamID, options)
-			if err != nil {
-				return errors.Wrapf(err, "failed to count threads for user id=%s", userID)
-			}
-			result.Total = totalCount
+		// Unread is a legacy flag that caused GetTotalThreads to compute the same value as
+		// GetTotalUnreadThreads. If unspecified, do this work normally; otherwise, skip,
+		// and send back duplicate values down below.
+		if !options.Unread {
+			eg.Go(func() error {
+				totalCount, err := a.Srv().Store.Thread().GetTotalThreads(userID, teamID, options)
+				if err != nil {
+					return errors.Wrapf(err, "failed to count threads for user id=%s", userID)
+				}
+				result.Total = totalCount
 
-			return nil
-		})
+				return nil
+			})
+		}
 
 		eg.Go(func() error {
 			totalUnreadMentions, err := a.Srv().Store.Thread().GetTotalUnreadMentions(userID, teamID, options)
@@ -2346,6 +2375,10 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 
 	if err := eg.Wait(); err != nil {
 		return nil, model.NewAppError("GetThreadsForUser", "app.user.get_threads_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if options.Unread {
+		result.Total = result.TotalUnreadThreads
 	}
 
 	for _, thread := range result.Threads {
@@ -2431,7 +2464,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(userID, teamID, threadID s
 		return model.NewAppError("UpdateThreadFollowForUserFromChannelAdd", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	post, appErr := a.GetSinglePost(threadID)
+	post, appErr := a.GetSinglePost(threadID, false)
 	if appErr != nil {
 		return appErr
 	}
@@ -2471,9 +2504,24 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(userID, teamID, threadID s
 		mlog.Warn("Failed to encode thread to JSON")
 	}
 	message.Add("thread", string(payload))
+	message.Add("previous_unread_replies", int64(0))
+	message.Add("previous_unread_mentions", int64(0))
 
 	a.Publish(message)
 	return nil
+}
+
+func (a *App) UpdateThreadReadForUserByPost(currentSessionId, userID, teamID, threadID, postID string) (*model.ThreadResponse, *model.AppError) {
+	post, err := a.GetSinglePost(postID, false)
+	if err != nil {
+		return nil, err
+	}
+
+	if post.RootId != threadID && postID != threadID {
+		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user_by_post.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return a.UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID, post.CreateAt-1)
 }
 
 func (a *App) UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError) {
@@ -2497,7 +2545,7 @@ func (a *App) UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
-	post, err := a.GetSinglePost(threadID)
+	post, err := a.GetSinglePost(threadID, false)
 	if err != nil {
 		return nil, err
 	}

@@ -387,7 +387,13 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post, err := c.App.GetPostIfAuthorized(c.Params.PostId, c.AppContext.Session())
+	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
+	if includeDeleted && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	post, err := c.App.GetPostIfAuthorized(c.Params.PostId, c.AppContext.Session(), includeDeleted)
 	if err != nil {
 		c.Err = err
 		return
@@ -471,7 +477,7 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddMeta("post_id", c.Params.PostId)
 
-	post, err := c.App.GetSinglePost(c.Params.PostId)
+	post, err := c.App.GetSinglePost(c.Params.PostId, false)
 	if err != nil {
 		c.SetPermissionError(model.PermissionDeletePost)
 		return
@@ -529,11 +535,9 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	fromPost := r.URL.Query().Get("fromPost")
-	// Either both have to be set, or none have to be set.
-	// Setting one and not setting the other is an error.
-	if (fromPost == "" && fromCreateAt != 0) || (fromPost != "" && fromCreateAt == 0) {
-		c.SetInvalidParam("fromPost/fromCreateAt")
-		return
+	// Either only fromCreateAt must be set, or both fromPost and fromCreateAt must be set
+	if fromPost != "" && fromCreateAt == 0 {
+		c.SetInvalidParam("if fromPost is set, then fromCreatAt must also be set")
 	}
 
 	direction := ""
@@ -565,7 +569,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err = c.App.GetPostIfAuthorized(post.Id, c.AppContext.Session()); err != nil {
+	if _, err = c.App.GetPostIfAuthorized(post.Id, c.AppContext.Session(), false); err != nil {
 		c.Err = err
 		return
 	}
@@ -644,9 +648,18 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 		includeDeletedChannels = *params.IncludeDeletedChannels
 	}
 
+	modifier := ""
+	if params.Modifier != nil {
+		modifier = *params.Modifier
+	}
+	if modifier != "" && modifier != model.ModifierFiles && modifier != model.ModifierMessages {
+		c.SetInvalidParam("modifier")
+		return
+	}
+
 	startTime := time.Now()
 
-	results, err := c.App.SearchPostsForUser(c.AppContext, terms, c.AppContext.Session().UserId, teamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
+	results, err := c.App.SearchPostsForUser(c.AppContext, terms, c.AppContext.Session().UserId, teamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage, modifier)
 
 	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
 	metrics := c.App.Metrics()
@@ -701,7 +714,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	originalPost, err := c.App.GetSinglePost(c.Params.PostId)
+	originalPost, err := c.App.GetSinglePost(c.Params.PostId, false)
 	if err != nil {
 		c.SetPermissionError(model.PermissionEditPost)
 		return
@@ -752,7 +765,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Updating the file_ids of a post is not a supported operation and will be ignored
 	post.FileIds = nil
 
-	originalPost, err := c.App.GetSinglePost(c.Params.PostId)
+	originalPost, err := c.App.GetSinglePost(c.Params.PostId, false)
 	if err != nil {
 		c.SetPermissionError(model.PermissionEditPost)
 		return
@@ -827,7 +840,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 		return
 	}
 
-	post, err := c.App.GetSinglePost(c.Params.PostId)
+	post, err := c.App.GetSinglePost(c.Params.PostId, false)
 	if err != nil {
 		c.Err = err
 		return

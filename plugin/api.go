@@ -1147,6 +1147,16 @@ type API interface {
 	//
 	// Minimum server version: 5.36
 	RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError
+
+	// GetCloudLimits gets limits associated with a cloud workspace, if any
+	//
+	// Minimum server version: 7.0
+	GetCloudLimits() (*model.ProductLimits, error)
+
+	// EnsureBotUser updates the bot if it exists, otherwise creates it.
+	//
+	// Minimum server version: 7.1
+	EnsureBotUser(bot *model.Bot) (string, error)
 }
 
 var handshake = plugin.HandshakeConfig{

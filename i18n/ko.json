@@ -2640,10 +2640,6 @@
     "translation": "Missing required Reaction property: User."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Reply CreateAt property must be greater than the parent post CreateAt."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Missing required Reply property: create_at."
   },
@@ -3156,10 +3152,6 @@
     "translation": "Elasticsearch가 이미 중지되었습니다."
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Elasticsearch 서버에 연결하지 못했습니다."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch가 비활성화되어 있습니다."
   },
@@ -3530,10 +3522,6 @@
   {
     "id": "model.bot.is_valid.username.app_error",
     "translation": "잘못된 유저이름입니다."
-  },
-  {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "이름은 반드시 2글자 이상의 영문 또는 숫자여야 합니다."
   },
   {
     "id": "model.channel.is_valid.create_at.app_error",
@@ -7846,5 +7834,57 @@
   {
     "id": "api.export.export_not_found.app_error",
     "translation": "내보내기 파일을 찾을 수 없습니다."
+  },
+  {
+    "id": "ent.compliance.global_relay.write_file.appError",
+    "translation": "글로벌 릴레이 파일을 쓸 수 없습니다."
+  },
+  {
+    "id": "ent.compliance.csv.write_file.appError",
+    "translation": "CSV 파일을 쓸 수 없습니다."
+  },
+  {
+    "id": "ent.cluster.json_encode.error",
+    "translation": "JSON 요청을 마샬링하는 동안 오류가 발생했습니다"
+  },
+  {
+    "id": "ent.actiance.export.write_file.appError",
+    "translation": "파일 내보내기를 할 수 없습니다."
+  },
+  {
+    "id": "bleveengine.stop_file_index.error",
+    "translation": "파일 인덱스를 닫지 못했습니다."
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "이미지 한계를 검사하지 못했습니다. 해상도가 너무 높습니다."
+  },
+  {
+    "id": "bleveengine.search_files.error",
+    "translation": "파일 검색을 완료하지 못했습니다."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "데이터베이스에서 가장 오래된 엔티티(사용자, 채널 또는 게시물)를 검색할 수 없습니다."
+  },
+  {
+    "id": "bleveengine.index_file.error",
+    "translation": "파일을 인덱싱하지 못했습니다."
+  },
+  {
+    "id": "bleveengine.purge_file_index.error",
+    "translation": "파일 인덱스를 정리하지 못했습니다."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
+    "translation": "파일 배치를 인덱싱하지 못했습니다."
+  },
+  {
+    "id": "bleveengine.delete_user_files.error",
+    "translation": "사용자 파일을 삭제하지 못했습니다."
+  },
+  {
+    "id": "bleveengine.delete_post_files.error",
+    "translation": "게시 된 파일을 삭제하지 못했습니다."
   }
 ]

@@ -6,6 +6,7 @@ package config
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -474,7 +475,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 
 		_, _, err = ds.Set(newCfg)
 		if assert.Error(t, err) {
-			assert.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, ")
+			assert.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, parse \"invalid\": invalid URI for request")
 		}
 
 		assert.Equal(t, "", *ds.Get().ServiceSettings.SiteURL)
@@ -842,7 +843,9 @@ func TestDatabaseStoreLoad(t *testing.T) {
 
 		err = ds.Load()
 		if assert.Error(t, err) {
-			assert.EqualError(t, err, "invalid config: Config.IsValid: model.config.is_valid.site_url.app_error, ")
+			var appErr *model.AppError
+			require.True(t, errors.As(err, &appErr))
+			assert.Equal(t, appErr.Id, "model.config.is_valid.site_url.app_error")
 		}
 	})
 
@@ -1112,4 +1115,51 @@ func TestDatabaseStoreString(t *testing.T) {
 		assert.True(t, strings.Contains(maskedDSN, "mmuser"))
 		assert.False(t, strings.Contains(maskedDSN, "mostest"))
 	}
+}
+
+func TestCleanUp(t *testing.T) {
+	_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
+	defer tearDown()
+
+	ds, err := newTestDatabaseStore(nil)
+	require.NoError(t, err)
+	require.NotNil(t, ds)
+	defer ds.Close()
+
+	dbs, ok := ds.backingStore.(*DatabaseStore)
+	require.True(t, ok, "should be a DatabaseStore instance")
+
+	b, err := marshalConfig(ds.config)
+	require.NoError(t, err)
+
+	ds.config.JobSettings.CleanupConfigThresholdDays = model.NewInt(30) // we set 30 days as threshold
+
+	now := time.Now()
+	for i := 0; i < 5; i++ {
+		// 20 days, we expect to remove at least 3 configuration values from the store
+		// first 2 (0 and 1) will be within a month constraint, others will be older than
+		// a month hence we expect 3 configurations to be removed from the database.
+		m := -1 * i * 24 * 20
+		params := map[string]interface{}{
+			"id":        model.NewId(),
+			"value":     string(b),
+			"create_at": model.GetMillisForTime(now.Add(time.Duration(m) * time.Hour)),
+		}
+
+		_, err = dbs.db.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt) VALUES (:id, :value, :create_at)", params)
+		require.NoError(t, err)
+	}
+	var initialCount int
+	row := dbs.db.QueryRow("SELECT COUNT(*) FROM Configurations")
+	err = row.Scan(&initialCount)
+	require.NoError(t, err)
+
+	err = ds.CleanUp()
+	require.NoError(t, err)
+
+	var count int
+	row = dbs.db.QueryRow("SELECT COUNT(*) FROM Configurations")
+	err = row.Scan(&count)
+	require.NoError(t, err)
+	require.True(t, count+3 == initialCount)
 }

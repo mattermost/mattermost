@@ -2644,10 +2644,6 @@
     "translation": "La propriété requise de réaction est manquante : User."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "La propriété de réponse CreateAt doit être plus grande que la valeur de la propriété CreateAt parente."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "La propriété requise de réponse est manquante : create_at."
   },
@@ -3160,10 +3156,6 @@
     "translation": "Elasticsearch est déjà arrêté"
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Impossible de se connecter au serveur Elasticsearch."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch est désactivé."
   },
@@ -3534,10 +3526,6 @@
   {
     "id": "model.bot.is_valid.username.app_error",
     "translation": "Nom d'utilisateur invalide"
-  },
-  {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Le nom doit être composé d'au moins 2 caractères alphanumériques en minuscules."
   },
   {
     "id": "model.channel.is_valid.create_at.app_error",

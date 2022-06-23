@@ -92,6 +92,7 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.User.Handle("/uploads", api.APISessionRequired(getUploadsForUser)).Methods("GET")
 	api.BaseRoutes.User.Handle("/channel_members", api.APISessionRequired(getChannelMembersForUser)).Methods("GET")
+	api.BaseRoutes.User.Handle("/recent_searches", api.APISessionRequiredDisableWhenBusy(getRecentSearches)).Methods("GET")
 
 	api.BaseRoutes.Users.Handle("/invalid_emails", api.APISessionRequired(getUsersWithInvalidEmails)).Methods("GET")
 
@@ -102,6 +103,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.UserThread.Handle("/following", api.APISessionRequired(followThreadByUser)).Methods("PUT")
 	api.BaseRoutes.UserThread.Handle("/following", api.APISessionRequired(unfollowThreadByUser)).Methods("DELETE")
 	api.BaseRoutes.UserThread.Handle("/read/{timestamp:[0-9]+}", api.APISessionRequired(updateReadStateThreadByUser)).Methods("PUT")
+	api.BaseRoutes.UserThread.Handle("/set_unread/{post_id:[A-Za-z0-9]+}", api.APISessionRequired(setUnreadThreadByPostId)).Methods("POST")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2084,9 +2086,9 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.ClearSessionCacheForUser(c.AppContext.Session().UserId)
-	c.App.SetSessionExpireInDays(c.AppContext.Session(), *c.App.Config().ServiceSettings.SessionLengthMobileInDays)
+	c.App.SetSessionExpireInHours(c.AppContext.Session(), *c.App.Config().ServiceSettings.SessionLengthMobileInHours)
 
-	maxAge := *c.App.Config().ServiceSettings.SessionLengthMobileInDays * 60 * 60 * 24
+	maxAgeSeconds := *c.App.Config().ServiceSettings.SessionLengthMobileInHours * 60 * 60
 
 	secure := false
 	if app.GetProtocol(r) == "https" {
@@ -2095,12 +2097,12 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
 
-	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
+	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAgeSeconds), 0)
 	sessionCookie := &http.Cookie{
 		Name:     model.SessionCookieToken,
 		Value:    c.AppContext.Session().Token,
 		Path:     subpath,
-		MaxAge:   maxAge,
+		MaxAge:   maxAgeSeconds,
 		Expires:  expiresAt,
 		HttpOnly: true,
 		Domain:   c.App.GetCookieDomain(),
@@ -3097,6 +3099,42 @@ func updateReadStateThreadByUser(c *Context, w http.ResponseWriter, r *http.Requ
 	auditRec.Success()
 }
 
+func setUnreadThreadByPostId(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId().RequireThreadId().RequirePostId().RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("setUnreadThreadByPostId", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("user_id", c.Params.UserId)
+	auditRec.AddMeta("thread_id", c.Params.ThreadId)
+	auditRec.AddMeta("team_id", c.Params.TeamId)
+	auditRec.AddMeta("post_id", c.Params.PostId)
+
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
+		return
+	}
+
+	thread, err := c.App.UpdateThreadReadForUserByPost(c.AppContext.Session().Id, c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, c.Params.PostId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(thread); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
+
+	auditRec.Success()
+}
+
 func unfollowThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId().RequireThreadId().RequireTeamId()
 	if c.Err != nil {
@@ -3207,4 +3245,26 @@ func getUsersWithInvalidEmails(c *Context, w http.ResponseWriter, r *http.Reques
 
 	b, _ := json.Marshal(users)
 	w.Write(b)
+}
+
+func getRecentSearches(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	searchParams, err := c.App.GetRecentSearchesForUser(c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(searchParams); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }

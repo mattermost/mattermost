@@ -17,6 +17,7 @@ import (
 	"sync"
 
 	"github.com/blang/semver"
+	"github.com/gorilla/mux"
 	svg "github.com/h2non/go-is-svg"
 	"github.com/pkg/errors"
 
@@ -35,6 +36,28 @@ type pluginSignaturePath struct {
 	pluginID      string
 	path          string
 	signaturePath string
+}
+
+type routerService struct {
+	mu        sync.Mutex
+	routerMap map[string]*mux.Router
+}
+
+func newRouterService() *routerService {
+	return &routerService{
+		routerMap: make(map[string]*mux.Router),
+	}
+}
+
+func (rs *routerService) RegisterRouter(productID string, sub *mux.Router) {
+	rs.mu.Lock()
+	defer rs.mu.Unlock()
+	rs.routerMap[productID] = sub
+}
+
+func (rs *routerService) getHandler(productID string) (http.Handler, bool) {
+	handler, ok := rs.routerMap[productID]
+	return handler, ok
 }
 
 // GetPluginsEnvironment returns the plugin environment for use if plugins are enabled and
@@ -98,11 +121,8 @@ func (ch *Channels) syncPluginsActiveState() {
 				pluginEnabled = state.Enable
 			}
 
-			// Tie Apps proxy disabled status to the feature flag.
-			if pluginID == "com.mattermost.apps" {
-				if !ch.cfgSvc.Config().FeatureFlags.AppsEnabled {
-					pluginEnabled = false
-				}
+			if hasOverride, value := ch.getPluginStateOverride(pluginID); hasOverride {
+				pluginEnabled = value
 			}
 
 			if pluginEnabled {
@@ -158,6 +178,10 @@ func (ch *Channels) syncPluginsActiveState() {
 
 	if err := ch.notifyPluginStatusesChanged(); err != nil {
 		mlog.Warn("failed to notify plugin status changed", mlog.Err(err))
+	}
+
+	if err := ch.notifyIntegrationsUsageChanged(); err != nil {
+		mlog.Warn("Failed to notify integrations usage changed", mlog.Err(err))
 	}
 }
 
@@ -373,6 +397,11 @@ func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
 // activation if inactive anywhere in the cluster.
 // Notifies cluster peers through config change.
 func (a *App) EnablePlugin(id string) *model.AppError {
+	appErr := a.checkIfIntegrationsMeetFreemiumLimits([]string{id})
+	if appErr != nil {
+		return appErr
+	}
+
 	return a.ch.enablePlugin(id)
 }
 
@@ -419,7 +448,12 @@ func (ch *Channels) enablePlugin(id string) *model.AppError {
 // DisablePlugin will set the config for an installed plugin to disabled, triggering deactivation if active.
 // Notifies cluster peers through config change.
 func (a *App) DisablePlugin(id string) *model.AppError {
-	return a.ch.disablePlugin(id)
+	appErr := a.ch.disablePlugin(id)
+	if appErr != nil {
+		return appErr
+	}
+
+	return nil
 }
 
 func (ch *Channels) disablePlugin(id string) *model.AppError {
@@ -456,6 +490,20 @@ func (ch *Channels) disablePlugin(id string) *model.AppError {
 	if _, _, err := ch.cfgSvc.SaveConfig(ch.cfgSvc.Config(), true); err != nil {
 		return model.NewAppError("DisablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+
+	return nil
+}
+
+func (ch *Channels) notifyIntegrationsUsageChanged() *model.AppError {
+	usage, appErr := ch.getIntegrationsUsage()
+	if appErr != nil {
+		return appErr
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventIntegrationsUsageChanged, "", "", "", nil)
+	message.Add("usage", usage)
+	message.GetBroadcast().ContainsSensitiveData = true
+	ch.Publish(message)
 
 	return nil
 }
@@ -1063,4 +1111,20 @@ func getIcon(iconPath string) (string, error) {
 	}
 
 	return fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(icon)), nil
+}
+
+func (ch *Channels) getPluginStateOverride(pluginID string) (bool, bool) {
+	switch pluginID {
+	case model.PluginIdApps:
+		// Tie Apps proxy disabled status to the feature flag.
+		if !ch.cfgSvc.Config().FeatureFlags.AppsEnabled {
+			return true, false
+		}
+	case model.PluginIdCalls:
+		if !ch.cfgSvc.Config().FeatureFlags.CallsEnabled {
+			return true, false
+		}
+	}
+
+	return false, false
 }

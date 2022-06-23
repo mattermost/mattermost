@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type clusterWrapper struct {
@@ -43,12 +42,14 @@ func (s *clusterWrapper) PublishPluginClusterEvent(productID string, ev model.Pl
 	return nil
 }
 
-func (s *clusterWrapper) SetPluginKeyWithOptions(productID string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
-	return s.srv.setPluginKeyWithOptions(productID, key, value, options)
+func (s *clusterWrapper) PublishWebSocketEvent(productID string, event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast) {
+	ev := model.NewWebSocketEvent(fmt.Sprintf("custom_%v_%v", productID, event), "", "", "", nil)
+	ev = ev.SetBroadcast(broadcast).SetData(payload)
+	s.srv.Publish(ev)
 }
 
-func (s *clusterWrapper) LogError(productID, msg string, keyValuePairs ...interface{}) {
-	s.srv.Log.Error(msg, mlog.String("product_id", productID), mlog.Map("key-value pairs", keyValuePairs))
+func (s *clusterWrapper) SetPluginKeyWithOptions(productID string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
+	return s.srv.setPluginKeyWithOptions(productID, key, value, options)
 }
 
 func (s *clusterWrapper) KVGet(productID, key string) ([]byte, *model.AppError) {

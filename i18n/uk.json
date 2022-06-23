@@ -2648,10 +2648,6 @@
     "translation": "Відсутня необхідна властивість Реакція: користувач."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Відповідь властивості CreateAt має бути більшим, ніж батьківський запис CreateAt."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Відсутня необхідна відповідь властивість: created_at."
   },
@@ -3164,10 +3160,6 @@
     "translation": "Еластичний пошук не запускається"
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Не вдалося підключитися до сервера Elasticsearch."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch відключений."
   },
@@ -3538,10 +3530,6 @@
   {
     "id": "model.bot.is_valid.username.app_error",
     "translation": "Невірне ім'я користувача."
-  },
-  {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Ім'я повинно складатися з 2 або більше малих літер і цифр"
   },
   {
     "id": "model.channel.is_valid.create_at.app_error",

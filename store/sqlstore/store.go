@@ -9,7 +9,6 @@ import (
 	dbsql "database/sql"
 	"fmt"
 	"log"
-	"net/url"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -17,8 +16,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/morph"
+	sq "github.com/mattermost/squirrel"
 
 	"github.com/mattermost/morph/drivers"
 	ms "github.com/mattermost/morph/drivers/mysql"
@@ -65,6 +64,8 @@ const (
 	migrationsDirectionDown migrationDirection = "down"
 
 	replicaLagPrefix = "replica-lag"
+
+	RemoteClusterSiteURLUniqueIndex = "remote_clusters_site_url_unique"
 )
 
 var tablesToCheckForCollation = []string{"incomingwebhooks", "preferences", "users", "uploadsessions", "channels", "publicchannels"}
@@ -130,7 +131,8 @@ type SqlStore struct {
 	licenseMutex      sync.RWMutex
 	metrics           einterfaces.MetricsInterface
 
-	isBinaryParam bool
+	isBinaryParam             bool
+	pgDefaultTextSearchConfig string
 }
 
 func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlStore {
@@ -166,6 +168,11 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.isBinaryParam, err = store.computeBinaryParam()
 	if err != nil {
 		mlog.Fatal("Failed to compute binary param", mlog.Err(err))
+	}
+
+	store.pgDefaultTextSearchConfig, err = store.computeDefaultTextSearchConfig()
+	if err != nil {
+		mlog.Fatal("Failed to compute default text search config", mlog.Err(err))
 	}
 
 	store.stores.team = newSqlTeamStore(store)
@@ -205,11 +212,6 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.scheme = newSqlSchemeStore(store)
 	store.stores.group = newSqlGroupStore(store)
 	store.stores.productNotices = newSqlProductNoticesStore(store)
-
-	err = upgradeDatabase(store, model.CurrentVersion)
-	if err != nil {
-		mlog.Fatal("Failed to upgrade database.", mlog.Err(err))
-	}
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -276,7 +278,7 @@ func (ss *SqlStore) initConnection() {
 		// covers that already. Ideally we'd like to do this only for the upgrade
 		// step. To be reviewed in MM-35789.
 		var err error
-		dataSource, err = resetReadTimeout(dataSource)
+		dataSource, err = ResetReadTimeout(dataSource)
 		if err != nil {
 			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(err), mlog.String("src", dataSource))
 		}
@@ -338,26 +340,21 @@ func (ss *SqlStore) computeBinaryParam() (bool, error) {
 		return false, nil
 	}
 
-	url, err := url.Parse(*ss.settings.DataSource)
-	if err != nil {
-		return false, err
+	return DSNHasBinaryParam(*ss.settings.DataSource)
+}
+
+func (ss *SqlStore) computeDefaultTextSearchConfig() (string, error) {
+	if ss.DriverName() != model.DatabaseDriverPostgres {
+		return "", nil
 	}
-	return url.Query().Get("binary_parameters") == "yes", nil
+
+	var defaultTextSearchConfig string
+	err := ss.GetMasterX().Get(&defaultTextSearchConfig, `SHOW default_text_search_config`)
+	return defaultTextSearchConfig, err
 }
 
 func (ss *SqlStore) IsBinaryParamEnabled() bool {
 	return ss.isBinaryParam
-}
-
-// AppendBinaryFlag updates the byte slice to work using binary_parameters=yes.
-func (ss *SqlStore) AppendBinaryFlag(buf []byte) []byte {
-	return append([]byte{0x01}, buf...)
-}
-
-func (ss *SqlStore) getCurrentSchemaVersion() (string, error) {
-	var version string
-	err := ss.GetMasterX().Get(&version, "SELECT Value FROM Systems WHERE Name='Version'")
-	return version, err
 }
 
 // GetDbVersion returns the version of the database being used.
@@ -400,11 +397,12 @@ func (ss *SqlStore) SetMasterX(db *sql.DB) {
 	}
 }
 
+func (ss *SqlStore) GetInternalMasterDB() *sql.DB {
+	return ss.GetMasterX().DB.DB
+}
+
 func (ss *SqlStore) GetSearchReplicaX() *sqlxDBWrapper {
-	ss.licenseMutex.RLock()
-	license := ss.license
-	ss.licenseMutex.RUnlock()
-	if license == nil {
+	if !ss.hasLicense() {
 		return ss.GetMasterX()
 	}
 
@@ -417,15 +415,27 @@ func (ss *SqlStore) GetSearchReplicaX() *sqlxDBWrapper {
 }
 
 func (ss *SqlStore) GetReplicaX() *sqlxDBWrapper {
-	ss.licenseMutex.RLock()
-	license := ss.license
-	ss.licenseMutex.RUnlock()
-	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || license == nil {
+	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || !ss.hasLicense() {
 		return ss.GetMasterX()
 	}
 
 	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.ReplicaXs))
 	return ss.ReplicaXs[rrNum]
+}
+
+func (ss *SqlStore) GetInternalReplicaDBs() []*sql.DB {
+	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || !ss.hasLicense() {
+		return []*sql.DB{
+			ss.GetMasterX().DB.DB,
+		}
+	}
+
+	dbs := make([]*sql.DB, len(ss.ReplicaXs))
+	for i, rx := range ss.ReplicaXs {
+		dbs[i] = rx.DB.DB
+	}
+
+	return dbs
 }
 
 func (ss *SqlStore) TotalMasterDbConnections() int {
@@ -965,6 +975,14 @@ func (ss *SqlStore) GetLicense() *model.License {
 	return ss.license
 }
 
+func (ss *SqlStore) hasLicense() bool {
+	ss.licenseMutex.Lock()
+	hasLicense := ss.license != nil
+	ss.licenseMutex.Unlock()
+
+	return hasLicense
+}
+
 func (ss *SqlStore) migrate(direction migrationDirection) error {
 	assets := db.Assets()
 
@@ -991,12 +1009,12 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	var driver drivers.Driver
 	switch ss.DriverName() {
 	case model.DatabaseDriverMysql:
-		dataSource, rErr := resetReadTimeout(*ss.settings.DataSource)
+		dataSource, rErr := ResetReadTimeout(*ss.settings.DataSource)
 		if rErr != nil {
 			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(rErr), mlog.String("src", *ss.settings.DataSource))
 			return rErr
 		}
-		dataSource, err = ss.appendMultipleStatementsFlag(dataSource)
+		dataSource, err = AppendMultipleStatementsFlag(dataSource)
 		if err != nil {
 			return err
 		}
@@ -1037,35 +1055,6 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	default:
 		return engine.ApplyAll()
 	}
-}
-
-func (ss *SqlStore) appendMultipleStatementsFlag(dataSource string) (string, error) {
-	// We need to tell the MySQL driver that we want to use multiStatements
-	// in order to make migrations work.
-	if ss.DriverName() == model.DatabaseDriverMysql {
-		config, err := mysql.ParseDSN(dataSource)
-		if err != nil {
-			return "", err
-		}
-
-		if config.Params == nil {
-			config.Params = map[string]string{}
-		}
-
-		config.Params["multiStatements"] = "true"
-		return config.FormatDSN(), nil
-	}
-
-	return dataSource, nil
-}
-
-func resetReadTimeout(dataSource string) (string, error) {
-	config, err := mysql.ParseDSN(dataSource)
-	if err != nil {
-		return "", err
-	}
-	config.ReadTimeout = 0
-	return config.FormatDSN(), nil
 }
 
 func convertMySQLFullTextColumnsToPostgres(columnNames string) string {

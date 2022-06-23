@@ -10,27 +10,19 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v6/app/imaging"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
-	"github.com/pkg/errors"
 )
-
-// configSvc is a consumer interface to work
-// with any config related task with the server.
-type configSvc interface {
-	Config() *model.Config
-	AddConfigListener(listener func(*model.Config, *model.Config)) string
-	RemoveConfigListener(id string)
-	UpdateConfig(f func(*model.Config))
-	SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError)
-}
 
 // licenseSvc is added to act as a starting point for future integrated products.
 // It has the same signature and functionality with the license related APIs of the plugin-api.
@@ -48,9 +40,10 @@ type namer interface {
 // Channels contains all channels related state.
 type Channels struct {
 	srv        *Server
-	cfgSvc     configSvc
+	cfgSvc     product.ConfigService
 	filestore  filestore.FileBackend
 	licenseSvc licenseSvc
+	routerSvc  *routerService
 
 	postActionCookieSecret []byte
 
@@ -133,7 +126,7 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 		switch svcKey {
 		// Keep adding more services here
 		case ConfigKey:
-			cfgSvc, ok := svc.(configSvc)
+			cfgSvc, ok := svc.(product.ConfigService)
 			if !ok {
 				return nil, errors.New("Config service did not satisfy ConfigSvc interface")
 			}
@@ -196,8 +189,12 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 	}
 
 	var imgErr error
+	decoderConcurrency := int(*ch.cfgSvc.Config().FileSettings.MaxImageDecoderConcurrency)
+	if decoderConcurrency == -1 {
+		decoderConcurrency = runtime.NumCPU()
+	}
 	ch.imgDecoder, imgErr = imaging.NewDecoder(imaging.DecoderOptions{
-		ConcurrencyLevel: runtime.NumCPU(),
+		ConcurrencyLevel: decoderConcurrency,
 	})
 	if imgErr != nil {
 		return nil, errors.Wrap(imgErr, "failed to create image decoder")
@@ -209,6 +206,9 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 		return nil, errors.Wrap(imgErr, "failed to create image encoder")
 	}
 
+	ch.routerSvc = newRouterService()
+	services[RouterKey] = ch.routerSvc
+
 	// Setup routes.
 	pluginsRoute := ch.srv.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
 	pluginsRoute.HandleFunc("", ch.ServePluginRequest)
@@ -217,6 +217,22 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 
 	services[PostKey] = &postServiceWrapper{
 		app: &App{ch: ch},
+	}
+
+	services[PermissionsKey] = &permissionsServiceWrapper{
+		app: &App{ch: ch},
+	}
+
+	services[TeamKey] = &teamServiceWrapper{
+		app: &App{ch: ch},
+	}
+
+	services[BotKey] = &botServiceWrapper{
+		app: &App{ch: ch},
+	}
+
+	services[HooksKey] = &hooksService{
+		ch: ch,
 	}
 
 	return ch, nil
@@ -263,6 +279,7 @@ func (ch *Channels) Start() error {
 	if err := ch.ensurePostActionCookieSecret(); err != nil {
 		return errors.Wrapf(err, "unable to ensure PostAction cookie secret")
 	}
+
 	return nil
 }
 
@@ -293,4 +310,17 @@ func (ch *Channels) License() *model.License {
 func (ch *Channels) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
 	return ch.licenseSvc.RequestTrialLicense(requesterID, users, termsAccepted,
 		receiveEmailsAccepted)
+}
+
+type hooksService struct {
+	ch *Channels
+}
+
+func (s *hooksService) RegisterHooks(productID string, hooks product.Hooks) error {
+	if s.ch.pluginsEnvironment == nil {
+		return errors.New("could not find plugins environment")
+	}
+
+	s.ch.pluginsEnvironment.AddProduct(productID, hooks)
+	return nil
 }

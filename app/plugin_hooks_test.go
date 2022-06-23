@@ -1302,3 +1302,47 @@ func TestHookOnSendDailyTelemetry(t *testing.T) {
 
 	require.True(t, hookCalled)
 }
+
+func TestHookOnCloudLimitsUpdated(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/v6/model"
+			"github.com/mattermost/mattermost-server/v6/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) OnCloudLimitsUpdated(_ *model.ProductLimits) {
+			return
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.NewPluginAPI)
+	defer tearDown()
+
+	require.Len(t, pluginIDs, 1)
+	pluginID := pluginIDs[0]
+
+	require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+
+	hookCalled := false
+	th.App.GetPluginsEnvironment().RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		hooks.OnCloudLimitsUpdated(nil)
+
+		hookCalled = true
+		return hookCalled
+	}, plugin.OnCloudLimitsUpdatedID)
+
+	require.True(t, hookCalled)
+}

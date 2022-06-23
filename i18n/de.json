@@ -1857,7 +1857,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Nachricht anzeigen"
+    "translation": "Antworte in Mattermost"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2644,10 +2644,6 @@
     "translation": "Fehlende erforderliche Reaktionseigenschaft: User."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Antworteigenschaft CreateAt muss größer als CreateAt der übergeordneten Nachricht sein."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Fehlende erforderliche Antworteigenschaft: create_at."
   },
@@ -3160,10 +3156,6 @@
     "translation": "Elasticsearch ist bereits angehalten."
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Verbindung zum Elasticsearch-Server fehlgeschlagen."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch ist deaktiviert."
   },
@@ -3534,10 +3526,6 @@
   {
     "id": "model.bot.is_valid.username.app_error",
     "translation": "Ungültiger Benutzername."
-  },
-  {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Name muss 2 oder mehr Kleinbuchstaben haben."
   },
   {
     "id": "model.channel.is_valid.create_at.app_error",
@@ -4821,7 +4809,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 89+"
+    "translation": "Version 100+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -7608,7 +7596,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Sitzung abgelaufen: Bitte anmelden um weiter Nachrichten zu erhalten. Sitzungen für {{.siteName}} sind vom System Adminstrator so konfiguriert, dass sie alle {{.daysCount}} Tage ablaufen."
+    "translation": "Sitzung abgelaufen: Bitte anmelden um weiter Nachrichten zu erhalten. Sitzungen für {{.siteName}} sind vom System Administrator so konfiguriert, dass sie alle {{.hoursCount}} Stunden ablaufen."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
@@ -7868,7 +7856,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Dein 14-Tage Test des {{.WorkSpace}} Arbeitsbereichs kann gestartet werden!"
+    "translation": "Dein Arbeitsbereichs kann gestartet werden!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -7936,11 +7924,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Dein 14-tägiger Test von Mattermost endet bald"
+    "translation": "Dein 30-tägiger Test von Mattermost endet bald"
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, dein 14-tägiger freier Test von Mattermost endet in 3 Tagen, am {{.TrialEnd}}. Bitte füge deine Bezahlinformationen hinzu, um sicherzustellen, dass dein Team weiterhin die Vorteile von Mattermost Cloud genießen kann."
+    "translation": "{{.Name}}, dein 30-tägiger freier Test von Mattermost endet in 3 Tagen, am {{.TrialEnd}}. Bitte füge deine Bezahlinformationen hinzu, um sicherzustellen, dass dein Team weiterhin die Vorteile von Mattermost Cloud genießen kann."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -7952,11 +7940,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Dein 14-tägiger Test von Mattermost ist heute zu Ende"
+    "translation": "Dein 30-tägiger Test von Mattermost ist beendet"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, dein 14-tägiger freier Test von Mattermost Cloud Enterprise ist heute, am {{.TodayDate}}, zu Ende. Bitte füge deine Bezahlinformationen hinzu, um sicherzustellen, dass dein Team weiterhin die Vorteile von Cloud Enterprise genießen kann. Wenn Du deine Zahlungsinformationen nicht innerhalb von 30 Tagen hinzufügst, werden wir deinen Cloud-Arbeitsbereich endgültig löschen und Du wirst alle damit verbundenen Daten verlieren."
+    "translation": "{{.Name}}, dein 30-tägiger kostenloser Test von Mattermost Cloud Enterprise endet am {{.TodayDate}}. Wir hoffen, dass dir unsere sichere und flexible Kollaborationsplattform gefallen hat. Bitte füge deine Zahlungsinformationen hinzu, damit dein Team weiter mit Mattermost zusammenarbeiten kann."
   },
   {
     "id": "api.unable_to_read_file_from_backend",
@@ -8036,7 +8024,7 @@
   },
   {
     "id": "api.templates.questions_footer.info",
-    "translation": "Schreibe uns jederzeit eine E-Mail an "
+    "translation": "Brauchst du Hilfe oder hast du eine Frage? Sende eine E-Mail an "
   },
   {
     "id": "api.templates.payment_failed_no_card.title",
@@ -9140,7 +9128,7 @@
   },
   {
     "id": "api.templates.server_inactivity_subject",
-    "translation": "HE! Öffne Mattermost um Dein Team produktiver zu machen!"
+    "translation": "Öffne Mattermost um Dein Team produktiver zu machen!"
   },
   {
     "id": "api.templates.server_inactivity_info_bullet2",
@@ -9237,5 +9225,153 @@
   {
     "id": "api.license.request_trial_license.embargoed",
     "translation": "Wir konnten die Anfrage aufgrund von Einschränkungen für Embargoländer nicht verarbeiten. [Lerne mehr in unserer Dokumentation](https://mattermost.com/pl/limitations-for-embargoed-countries), oder kontaktiere legal@mattermost.com für Fragen rund um Exportbeschränkungen."
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "Emailliste ist leer"
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "Kanalname ist ungülitg"
+  },
+  {
+    "id": "model.channel.is_valid.1_or_more.app_error",
+    "translation": "Name muss aus einem oder mehreren alphanummerischen Kleinbuchstaben bestehen."
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "Ungültige post_id"
+  },
+  {
+    "id": "app.reaction.get_top_for_user_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.reaction.get_top_for_team_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} hat dich eingeladen, {{ .ChannelsLen }} Kanälen im Team {{ .TeamDisplayName }} beizutreten"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title",
+    "translation": "{{ .SenderName }} ihat dich eingeladen, {{ .ChannelsLen }} Kanälen im Team {{ .TeamDisplayName }} beizutreten"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} hat dich eingeladen, dem Kanal {{ .ChannelName }} im Team {{ .TeamDisplayName }} beizutreten"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_body.title",
+    "translation": "{{ .SenderName }} hat dich eingeladen, dem Kanal {{ .ChannelName }} im Team {{ .TeamDisplayName }} beizutreten"
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
+    "translation": "Fehler beim Parsen der Body Daten."
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
+    "translation": "Ungültiger Request Body."
+  },
+  {
+    "id": "api.insights.feature_disabled",
+    "translation": "Hinter Insights verbirgt sich ein Feature-Flag, das nicht aktiviert ist."
+  },
+  {
+    "id": "app.channel.get_top_for_user_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.channel.get_top_for_team_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "Du bist jetzt upgegraded worden!"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
+    "translation": "Dein {{.WorkspaceName}} Arbeitsbereich wurde jetzt aktualisiert. Dein {{.WorkspaceName}} wird ab {{.Date}} abgerechnet"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subject",
+    "translation": "Mattermost Upgrade Bestätigung"
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "Die Elasticsearch-Einstellungen haben nicht definierte Werte."
+  },
+  {
+    "id": "api.templates.server_inactivity_footer_disclaimer",
+    "translation": "Du hast diese einmalige E-Mail erhalten, weil dein Mattermost-Server für mehr als {{.Hours}} Stunden inaktiv war. Diese E-Mail wurde automatisch von deinem Mattermost-Server generiert."
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Hochladen über mmctl zu einer Cloud Instanz wird nicht unterstützt. Bitte prüfe die Dokumentation: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "Fehler bei der Aktualisierung des Abonnements über Webhook."
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "Fehler beim Holen der letzten Suchen"
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "Du hast das Maximum von {{.NumIntegrations}} aktivierten Integrationen erreicht. Um Integrationen ohne Beschränkungen zu installieren, upgrade auf ein bezahltes Abonnements."
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Kann Team-Zähler nicht abfragen"
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Kann Team-Verwendung nicht abfragen"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Kann Team nicht wiederherstellen, da das Team-Limit erreicht ist"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Kann kein Team erstellen, da das Team-Limit erreicht ist"
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "Fehler beim Ermitteln des Speicherverbrauchs."
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Ungültig Decoder Nebenläufigkeit {{.Value}}. Sollte eine positive Zahl oder -1 sein."
+  },
+  {
+    "id": "app.channel.get_post_count_by_day.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.license_error.professional_or_enterprise",
+    "translation": " "
+  },
+  {
+    "id": "api.authorization_error.guest",
+    "translation": " "
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "Es ist nicht möglich, die Top-Threads für einen Benutzer zu erhalten."
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "Es ist nicht möglich, Top-Threads für das Team zu erhalten."
+  },
+  {
+    "id": "app.insights.feature_disabled",
+    "translation": "Die Insights Funktion ist deaktiviert."
+  },
+  {
+    "id": "api.insights.license_error",
+    "translation": "Deine Lizenz unterstützt die Insights-Funktion nicht."
   }
 ]

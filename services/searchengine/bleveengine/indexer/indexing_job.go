@@ -212,7 +212,7 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 
 	// Counting all posts may fail or timeout when the posts table is large. If this happens, log a warning, but carry
 	// on with the indexing job anyway. The only issue is that the progress % reporting will be inaccurate.
-	if count, err := worker.jobServer.Store.Post().AnalyticsPostCount("", false, false); err != nil {
+	if count, err := worker.jobServer.Store.Post().AnalyticsPostCount(&model.PostCountOptions{}); err != nil {
 		mlog.Warn("Worker: Failed to fetch total post count for job. An estimated value will be used for progress reporting.", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
 		progress.TotalPostsCount = estimatedPostCount
 	} else {

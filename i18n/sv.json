@@ -69,7 +69,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 12+"
+    "translation": "Version 14.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -81,7 +81,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 89+"
+    "translation": "Version 100+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -906,10 +906,6 @@
   {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "\"Create at\" måste vara en giltig tid."
-  },
-  {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Namnet måste bestå av 2 eller fler gemena alfanumeriska tecken."
   },
   {
     "id": "model.bot.is_valid.username.app_error",
@@ -3076,10 +3072,6 @@
     "translation": "Elasticsearch är avaktiverat."
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Uppkoppling mot Elasticsearch-servern misslyckades."
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch är redan stoppad."
   },
@@ -3554,10 +3546,6 @@
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Det saknas en obligatorisk egenskap för svaret: create_at."
-  },
-  {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Svarets CreateAt-värde måste vara större än postens (förälderns) CreateAt-värde."
   },
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
@@ -4917,7 +4905,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Visa meddelande"
+    "translation": "Svara i Mattermost"
   },
   {
     "id": "api.templates.payment_failed_no_card.title",
@@ -6468,7 +6456,7 @@
   },
   {
     "id": "api.context.invalid_body_param.app_error",
-    "translation": "Ogiltig eller saknad {{.Name}} i request body."
+    "translation": "Ogiltig eller saknad {{.Name}} i förfrågan."
   },
   {
     "id": "api.context.get_user.app_error",
@@ -7207,7 +7195,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Sessionen har utgått: Logga in för att fortsätta ta emot notifieringar. Systemadministratören har konfigurerat {{.siteName}} sessioner att gälla i {{.daysCount}} dagar."
+    "translation": "Sessionen har utgått: Logga in för att fortsätta ta emot notifieringar. Systemadministratören har konfigurerat {{.siteName}} sessioner att gälla i {{.hoursCount}} timmar."
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
@@ -8093,7 +8081,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.welcome_body.serverURL",
@@ -8145,7 +8133,7 @@
   },
   {
     "id": "api.templates.questions_footer.info",
-    "translation": "Mejla oss närsomhelst på "
+    "translation": "Behöver du hjälp eller har frågor? Mejla oss på "
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",
@@ -8197,7 +8185,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Din testperiod på 14 dagar av {{.WorkSpace}} workspace är redo att starta!"
+    "translation": "Din arbetsyta är redo!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -8257,7 +8245,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Effektivisera ditt arbete med verktyg som Github, Jira och Zoom. Utforska alla integrationer vi har på vår"
+    "translation": "Effektivisera ditt arbete med verktyg som GitHub, Jira och Zoom. Utforska alla integrationer vi har på vår"
   },
   {
     "id": "model.user.is_valid.marshal.app_error",
@@ -8669,11 +8657,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Din kostnadsfria testperiod på 14 dagar slutar snart"
+    "translation": "Din kostnadsfria prova-på-period på 30 dagar slutar snart"
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, din 14 dagars testperiod av Mattermost avslutas om tre dagar, den {{.TrialEnd}}. Lägg till din betalinformation för att säkerställa att ditt team kan fortsätta nyttja funktionerna i Mattermost Cloud."
+    "translation": "{{.Name}}, din 30-dagars prova-på-tperiod av Mattermost avslutas om tre dagar, den {{.TrialEnd}}. Lägg till din betalinformation för att säkerställa att ditt team kan fortsätta nyttja funktionerna i Mattermost Cloud."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -8709,11 +8697,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Din kostnadsfria testperiod av Mattermost avslutas idag"
+    "translation": "Din kostnadsfria 30-dagars prova-på-period av Mattermost har avslutats"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, din 14-dagars kostnadsfria testperiod av Mattermost Cloud Enterprise avslutas idag, {{.TodayDate}}. Uppdatera din betalinformation för att säkerställa att ditt team kan fortsätta nyttja funktionerna i Cloud Enterprise."
+    "translation": "{{.Name}}, din 30-dagars kostnadsfria testperiod av Mattermost Cloud Enterprise avslutades {{.TodayDate}}. Vi hoppas du uppskattade vår flexibla och säkra samarbetsplattform. Lägg in din betalningsinformation för att säkerställa att ditt team kan fortsätta samarbeta i Mattermost."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -8721,7 +8709,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Börja din prenumeration"
+    "translation": "Starta din prenumeration"
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",
@@ -9065,5 +9053,297 @@
   {
     "id": "Boards",
     "translation": "Boards"
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id måste vara tomt för anpassade grupper"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference måste vara 'true' för anpassade grupper"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "inte licensierad för anpassade grupper"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "funktionen för anpassade grupper är inaktiverad"
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "fel när antal grupper beräknades"
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
+    "translation": "Fel vid tolkning av förfrågan."
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
+    "translation": "Ogiltig förfrågan."
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "MattermostAppID får ha högst 32 tecken."
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "E-postlistan är tom"
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "Kanalnamnet är inte giltigt"
+  },
+  {
+    "id": "model.github_release_info.is_valid.id.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "Namnet krockar med ett befintligt system-emoji-namn."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "Elasticsearch Bulk Indexing Batch Size måste vara minst {{.BatchSize}}."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
+    "translation": "Bleve Bulk Indexing Batch Size måste vara minst {{.BatchSize}}."
+  },
+  {
+    "id": "model.channel.is_valid.1_or_more.app_error",
+    "translation": "Namnet måste bestå av 1 eller flera gemena alfanumeriska tecken."
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "Ogiltig post_id"
+  },
+  {
+    "id": "app.user.group_name_conflict",
+    "translation": " "
+  },
+  {
+    "id": "app.user.get_by_name_failure",
+    "translation": " "
+  },
+  {
+    "id": "app.system.get_onboarding_request.app_error",
+    "translation": "Misslyckades att få status för slutförandet av onboarding."
+  },
+  {
+    "id": "app.reaction.get_top_for_user_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.reaction.get_top_for_team_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "translation": "Den förpaketerade plugin-versionen kunde inte tolkas."
+  },
+  {
+    "id": "app.member_count",
+    "translation": "fel då antalet medlemmar skulle hämtas"
+  },
+  {
+    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
+    "translation": "Det går inte att få fram alla jobb efter typ och status."
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": " "
+  },
+  {
+    "id": "app.group.get_by_username_failure",
+    "translation": " "
+  },
+  {
+    "id": "app.group.crud_permission",
+    "translation": "Det går inte att utföra åtgärden för den källtypen."
+  },
+  {
+    "id": "app.custom_group.unique_name",
+    "translation": "gruppnamnet är inte unikt"
+  },
+  {
+    "id": "app.channel.get_top_for_user_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.channel.get_top_for_team_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.channel.get_file_count.app_error",
+    "translation": "Det går inte att få fram antalet filer i kanalen"
+  },
+  {
+    "id": "app.admin.latest_version_unmarshal.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_set_cache.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_read_all.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_external_error.failure",
+    "translation": " "
+  },
+  {
+    "id": "api.users.invalid_emails.enable_open_server.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.server_inactivity_title",
+    "translation": "Öka produktiviteten med dessa fantastiska funktioner"
+  },
+  {
+    "id": "api.templates.server_inactivity_subtitle",
+    "translation": "Hej {{.Name}}, vi ser att din Mattermost-server samlat lite damm. Ta en titt på några funktioner som kan hjälpa till att lätta på arbetsbördan för ditt team."
+  },
+  {
+    "id": "api.templates.server_inactivity_subject",
+    "translation": "Öppna Mattermost för att öka teamets produktivitet!"
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet2",
+    "translation": "Hantera uppgifter med hjälp av "
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet1",
+    "translation": "Hantera arbetsflöden med "
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet",
+    "translation": "Gäståtkomst till specificerade "
+  },
+  {
+    "id": "api.templates.server_inactivity_info",
+    "translation": "Kom och kolla in det!"
+  },
+  {
+    "id": "api.templates.server_inactivity_footer_disclaimer",
+    "translation": "Du fick det här engångsmejlet eftersom din Mattermost-server har varit inaktiv i mer än {{.Hours}} timmar. Det här e-postmeddelandet genererades automatiskt av din Mattermost-server."
+  },
+  {
+    "id": "api.templates.server_inactivity_button",
+    "translation": "Öppna Mattermost"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} bjöd in dig att ansluta till {{ .ChannelsLen }} kanaler i teamet {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title",
+    "translation": "{{ .SenderName }} bjöd in dig att ansluta till {{ .ChannelsLen }} kanaler i teamet {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} bjöd in dig att ansluta till {{ .ChannelName }} i teamet {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_body.title",
+    "translation": "{{ .SenderName }} bjöd in dig att ansluta till {{ .ChannelName }} i teamet {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "Du är nu uppgraderad!"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
+    "translation": "Din {{.WorkspaceName}}-arbetsyta har nu uppgraderats. Du kommer att faktureras från och med {{.TrialEnd}}"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subject",
+    "translation": "Bekräftelse av uppgradering av Mattermost"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
+    "translation": "SMTP är inte konfigurerat i systemkonsolen"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email.app_error",
+    "translation": "Fel när e-postmeddelandet skickas"
+  },
+  {
+    "id": "api.license_error",
+    "translation": "api-anslutningspunkten kräver en licens"
+  },
+  {
+    "id": "api.license.request_trial_license.embargoed",
+    "translation": "Vi kunde inte behandla begäran på grund av begränsningar för länder med embargo. [Läs mer i vår dokumentation] (https://mattermost.com/pl/limitations-for-embargoed-countries), eller kontakta legal@mattermost.com för frågor om exportbegränsningar."
+  },
+  {
+    "id": "api.insights.feature_disabled",
+    "translation": " "
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "Parametrarna OnlyThreads och OnlyTotals för getThreadsForUser utesluter varandra"
+  },
+  {
+    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "translation": "Inställningarna för lagring av filer har odefinierade värden."
+  },
+  {
+    "id": "api.file.test_connection_email_settings_nil.app_error",
+    "translation": "Inställningarna för e-post har odefinierade värden."
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "Fel vid försök att spara den första admin-installationen i butiken."
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "Fel vid försöket att hämta den första administratörens kompletta installation från butiken."
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "Elasticsearch-inställningarna har odefinierade värden."
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "Fel vid uppdatering av prenumeration från webhook."
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "Fel när senaste sökningar skulle hämtas"
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Uppladdning via mmctl till en molninstans stöds inte. Se dokumentationen här: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "Du har nått maxgränsen {{.NumIntegrations}} aktiva integrationer. Om du vill installera obegränsat antal integrationer kan du uppgradera till en av våra betal-abonnemang."
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "Det gick inte att få fram lagringsvolym."
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Det går inte att få fram antalet team"
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Kunde inte ta fram team-användning"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Kunde inte återställa team eftersom gränsen för antal team har uppnåtts"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Kunde inte skapa nytt team eftersom gränsen för antal team har uppnåtts"
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Ogiltig värde {{.Value}} på antal samtidiga dekoder. Måste vara ett positivt tal eller -1."
   }
 ]

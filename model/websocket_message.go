@@ -71,10 +71,12 @@ const (
 	WebsocketWarnMetricStatusReceived                 = "warn_metric_status_received"
 	WebsocketWarnMetricStatusRemoved                  = "warn_metric_status_removed"
 	WebsocketEventCloudPaymentStatusUpdated           = "cloud_payment_status_updated"
+	WebsocketEventCloudSubscriptionChanged            = "cloud_subscription_changed"
 	WebsocketEventThreadUpdated                       = "thread_updated"
 	WebsocketEventThreadFollowChanged                 = "thread_follow_changed"
 	WebsocketEventThreadReadChanged                   = "thread_read_changed"
 	WebsocketFirstAdminVisitMarketplaceStatusReceived = "first_admin_visit_marketplace_status_received"
+	WebsocketEventIntegrationsUsageChanged            = "integrations_usage_changed"
 )
 
 type WebSocketMessage interface {
@@ -84,10 +86,11 @@ type WebSocketMessage interface {
 }
 
 type WebsocketBroadcast struct {
-	OmitUsers             map[string]bool `json:"omit_users"` // broadcast is omitted for users listed here
-	UserId                string          `json:"user_id"`    // broadcast only occurs for this user
-	ChannelId             string          `json:"channel_id"` // broadcast only occurs for users in this channel
-	TeamId                string          `json:"team_id"`    // broadcast only occurs for users in this team
+	OmitUsers             map[string]bool `json:"omit_users"`    // broadcast is omitted for users listed here
+	UserId                string          `json:"user_id"`       // broadcast only occurs for this user
+	ChannelId             string          `json:"channel_id"`    // broadcast only occurs for users in this channel
+	TeamId                string          `json:"team_id"`       // broadcast only occurs for users in this team
+	ConnectionId          string          `json:"connection_id"` // broadcast only occurs for this connection
 	ContainsSanitizedData bool            `json:"-"`
 	ContainsSensitiveData bool            `json:"-"`
 	// ReliableClusterSend indicates whether or not the message should

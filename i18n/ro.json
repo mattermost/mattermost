@@ -2648,10 +2648,6 @@
     "translation": "Lipsesc necesare reacţie proprietate: utilizator."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Proprietatea de CreateAt răspunsul trebuie să fie mai mare decât părintele post CreateAt."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Lipsesc necesare răspunsul proprietate: create_at."
   },
@@ -3164,10 +3160,6 @@
     "translation": "Elasticsearch este deja oprit."
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Conectarea la server Elasticsearch nu a reuşit."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch este dezactivat."
   },
@@ -3538,10 +3530,6 @@
   {
     "id": "model.bot.is_valid.username.app_error",
     "translation": "Nume de utilizator invalid."
-  },
-  {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Numele trebuie să fie de 2 sau mai multe caractere alfanumerice minuscule."
   },
   {
     "id": "model.channel.is_valid.create_at.app_error",

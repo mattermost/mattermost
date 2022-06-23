@@ -2640,10 +2640,6 @@
     "translation": "缺少互动必须属性：User。"
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "回复 CreateAt 属性必须大于父消息 CreateAt。"
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "缺少回复必须属性：create_at。"
   },
@@ -3156,10 +3152,6 @@
     "translation": "ElasticSearch 已停止。"
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "连接 Elasticsearch 服务器失败。"
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch 已停用。"
   },
@@ -3309,7 +3301,7 @@
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": "无法移植拥有制定栏的 AD/LDAP 用户。发现重复条目。请删除所有重复后再试。"
+    "translation": "无法移植拥有指定字段的 AD/LDAP 用户。发现重复条目，请删除所有重复后再试。"
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
@@ -3530,10 +3522,6 @@
   {
     "id": "model.bot.is_valid.username.app_error",
     "translation": "无效的用户名。"
-  },
-  {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "名称必须是2个或更多小写字母数字字符。"
   },
   {
     "id": "model.channel.is_valid.create_at.app_error",
@@ -5085,7 +5073,7 @@
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "当 Bleve EnableSearching 设为是时必须设定 Bleve EnableIndexing 为是"
+    "translation": "当 Bleve EnableSearching 设为true时，必须设定 Bleve EnableIndexing为 true"
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
@@ -5241,7 +5229,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "会话已超时：请登入再以继续接收通知。{{.siteName}} 的会话过期时间设定为 {{.daysCount}} 天。"
+    "translation": "会话已超时：请登入再以继续接收通知。{{.siteName}} 的会话过期时间设定为{{.dayhoursCount}} （天-小时）。"
   },
   {
     "id": "api.slackimport.slack_import.zip.file_too_large",
@@ -5397,7 +5385,7 @@
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "当 Bleve AutocompleteEnabled 设为是时必须设定 Bleve EnableIndexing 为是"
+    "translation": "当 Bleve AutocompleteEnabled设置为 true 时，必须设定 Bleve EnableIndexing 为 true"
   },
   {
     "id": "model.config.is_valid.saml_guest_attribute.app_error",
@@ -8041,7 +8029,7 @@
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
-    "translation": "从发现文档检索端点时出错。"
+    "translation": "从Discovery 文档中检索端点时出错。"
   },
   {
     "id": "api.export.export_not_found.app_error",
@@ -8165,7 +8153,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
@@ -8209,7 +8197,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "使用 Github、Jira 以及 Zoom 等工具简化您的工作。探索我们在我们上的所有集成"
+    "translation": "使用 Github、Jira 以及 Zoom 等工具简化您的工作.探索我们的所有集成产品。"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -8241,7 +8229,7 @@
   },
   {
     "id": "api.templates.questions_footer.info",
-    "translation": "随时通过电子邮件发送给我们 "
+    "translation": "需要我们提供帮助吗？给我们发邮件: "
   },
   {
     "id": "api.templates.cloud_welcome_email.start_questions",
@@ -8733,7 +8721,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "您的 Mattermost 14 天免费试用已于今天结束"
+    "translation": "您的 Mattermost 14 天免费试用已结束"
   },
   {
     "id": "sharedchannel.permalink.not_found",
@@ -8885,7 +8873,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}，您的 Mattermost 企业云 14 天免费试用已于今天结束，{{.TodayDate}}。请添加您的付款信息，以确保您的团队可以继续享受企业云的好处。"
+    "translation": "{{.Name}}，您的 Mattermost 企业云 14 天免费试用已于{{.TodayDate}}结束，。请添加您的付款信息，以确保您的团队可以继续享受企业云的好处。"
   },
   {
     "id": "api.license.upgrade_needed.app_error",
@@ -9034,5 +9022,233 @@
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
     "translation": "未能更新自定义状态。 请添加表情符或自定义文本。"
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
+    "translation": "Bleve  Bulk索引的的大小，不能小于{{.BatchSize}}."
+  },
+  {
+    "id": "model.channel.is_valid.1_or_more.app_error",
+    "translation": "名字必须是1个或者多个小写字母的字串。"
+  },
+  {
+    "id": "app.system.get_onboarding_request.app_error",
+    "translation": "获取导引完成状态时失败。"
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "只能由系统管理员来完成这项导引。"
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "无法完整的解码该导引请求。"
+  },
+  {
+    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "translation": "无法解析该插件包。"
+  },
+  {
+    "id": "app.member_count",
+    "translation": "获取成员统计数量时出错"
+  },
+  {
+    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
+    "translation": "无法按类型和状态获取所有工作内容。"
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": " 添加该组的用户名冲突 "
+  },
+  {
+    "id": "app.group.get_by_username_failure",
+    "translation": " 获取该组的用户名失败 "
+  },
+  {
+    "id": "app.group.crud_permission",
+    "translation": "无法展现/执行此源类型。"
+  },
+  {
+    "id": "app.custom_group.unique_name",
+    "translation": "“组”的名字不是唯一（需要是唯一的。）"
+  },
+  {
+    "id": "app.channel.get_file_count.app_error",
+    "translation": "无法统计该频道的文件数量"
+  },
+  {
+    "id": "api.users.invalid_emails.enable_open_server.app_error",
+    "translation": " 该用户组无效 "
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "SAML的请求信息太长"
+  },
+  {
+    "id": "api.templates.server_inactivity_title",
+    "translation": "解锁这些令人敬佩的、提高生产力的功能"
+  },
+  {
+    "id": "api.templates.server_inactivity_subtitle",
+    "translation": "嗨, {{.Name}}, 我们注意到您的 Mattermost 服务器集了一些“灰尘”（有一段时间没有维护了），快来看看可以帮助减轻团队工作量的一些功能."
+  },
+  {
+    "id": "api.templates.server_inactivity_subject",
+    "translation": "嗨!打开最重要的事情，以提高您的团队的生产力!"
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet2",
+    "translation": "管理任务由 "
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet1",
+    "translation": "工作流管理于 "
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet",
+    "translation": "指定客户专访 "
+  },
+  {
+    "id": "api.templates.server_inactivity_info",
+    "translation": "快来看看吧!"
+  },
+  {
+    "id": "api.templates.server_inactivity_button",
+    "translation": "打开 Mattermost"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} 邀请你加入 {{ .TeamDisplayName }} 团队的 {{ .ChannelsLen }} 频道组"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title",
+    "translation": "{{ .SenderName }} 邀请您加入{{ .TeamDisplayName }} 团队的 {{ .ChannelsLen }} 频道"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_body.title",
+    "translation": "{{ .SenderName }} 邀请您加入 {{ .TeamDisplayName }} 团队的{{ .ChannelName }} 频道"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} 邀请您加入 {{ .TeamDisplayName }} 团队的 {{ .ChannelName }} 频道"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "您已经完成升级更新！"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
+    "translation": "您的“ {{.WorkspaceName}}” 工作空间现在已经升级。您将收到{{.TrialEnd}}的账单通知"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subject",
+    "translation": "确认升级Mattermost"
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
+    "translation": "解析主体数据时出错。"
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
+    "translation": "请求主体无效。"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
+    "translation": "系统控制台中没有配置 SMTP 相关的参数"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email.app_error",
+    "translation": "在发送邮件时出错"
+  },
+  {
+    "id": "api.license_error",
+    "translation": "api节点需要一个 license授权"
+  },
+  {
+    "id": "api.license.request_trial_license.embargoed",
+    "translation": "由于对禁运国家的限制，我们无法处理请求。[在我们的文档中了解更多信息](https://mattermost.com/pl/limitations-for-embargoed-countries)，或联系legal@mattermost.com了解有关出口限制的问题。"
+  },
+  {
+    "id": "api.insights.feature_disabled",
+    "translation": " 禁用“观点”功能 "
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "参数 getThreadsForUser 的 OnlyThreads 和 OnlyTotals 是相互排斥的(互诉的)"
+  },
+  {
+    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "translation": "文件存储设置尚未配置。"
+  },
+  {
+    "id": "api.file.test_connection_email_settings_nil.app_error",
+    "translation": "邮件设置尚未配置。"
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "试图在保存第一个完整管理设置时出错。"
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "试图从存储中检索第一个完整的管理设置时出错。"
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "配置中 Elasticsearch 的值还没有设置。"
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "自定义组的 Remote_id 不能为空"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "对于自定义组，Allow_reference必须为'true'"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "禁用“自定义组”功能"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "没有为“自定义组”授权"
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "统计“组”时出现错误"
+  },
+  {
+    "id": "Playbooks",
+    "translation": "规划书"
+  },
+  {
+    "id": "Channels",
+    "translation": "频道"
+  },
+  {
+    "id": "Boards",
+    "translation": "面板"
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "MattermostAppID 的最大长度为 32 个字符。"
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "电子邮件列表为空"
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "无效的频道名"
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "名字与现有的系统表情符名冲突。"
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "无效的 post_id"
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "获取最近搜索错误"
   }
 ]

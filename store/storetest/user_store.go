@@ -244,6 +244,9 @@ func testUserStoreUpdateUpdateAt(t *testing.T, ss store.Store) {
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
 	require.NoError(t, nErr)
 
+	// Ensure UpdateAt has a change to be different below.
+	time.Sleep(2 * time.Millisecond)
+
 	_, err = ss.User().UpdateUpdateAt(u1.Id)
 	require.NoError(t, err)
 

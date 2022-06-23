@@ -2640,10 +2640,6 @@
     "translation": "缺少必要的互動屬性：使用者。"
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "回應建立時間必須大於隸屬訊息的建立時間。"
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "缺少必要的回應屬性：建立日期。"
   },
@@ -3156,10 +3152,6 @@
     "translation": "Elasticsearch 已停止"
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "連線至 Elasticsearch 伺服器失敗。"
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch 已停用。"
   },
@@ -3530,10 +3522,6 @@
   {
     "id": "model.bot.is_valid.username.app_error",
     "translation": "無效的使用者名稱"
-  },
-  {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "名稱必須是2個以上的小寫英數字元"
   },
   {
     "id": "model.channel.is_valid.create_at.app_error",

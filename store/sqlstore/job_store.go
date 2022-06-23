@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -35,7 +35,7 @@ func (jss SqlJobStore) Save(job *model.Job) (*model.Job, error) {
 		return nil, errors.Wrap(err, "failed marshalling job data")
 	}
 	if jss.IsBinaryParamEnabled() {
-		jsonData = jss.AppendBinaryFlag(jsonData)
+		jsonData = AppendBinaryFlag(jsonData)
 	}
 	query := jss.getQueryBuilder().
 		Insert("Jobs").
@@ -60,7 +60,7 @@ func (jss SqlJobStore) UpdateOptimistically(job *model.Job, currentStatus string
 		return false, errors.Wrap(jsonErr, "failed to encode job's data to JSON")
 	}
 	if jss.IsBinaryParamEnabled() {
-		dataJSON = jss.AppendBinaryFlag(dataJSON)
+		dataJSON = AppendBinaryFlag(dataJSON)
 	}
 	query, args, err := jss.getQueryBuilder().
 		Update("Jobs").

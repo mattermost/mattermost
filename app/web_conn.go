@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -168,10 +169,18 @@ func (a *App) NewWebConn(cfg *WebConnConfig) *WebConn {
 	}
 
 	// Disable TCP_NO_DELAY for higher throughput
-	// Unfortunately, it doesn't work for tls.Conn,
-	// and currently, the API doesn't expose the underlying TCP conn.
-	tcpConn, ok := cfg.WebSocket.UnderlyingConn().(*net.TCPConn)
-	if ok {
+	var tcpConn *net.TCPConn
+	switch conn := cfg.WebSocket.UnderlyingConn().(type) {
+	case *net.TCPConn:
+		tcpConn = conn
+	case *tls.Conn:
+		newConn, ok := conn.NetConn().(*net.TCPConn)
+		if ok {
+			tcpConn = newConn
+		}
+	}
+
+	if tcpConn != nil {
 		err := tcpConn.SetNoDelay(false)
 		if err != nil {
 			mlog.Warn("Error in setting NoDelay socket opts", mlog.Err(err))
@@ -334,7 +343,9 @@ func (wc *WebConn) readPump() {
 	wc.WebSocket.SetReadLimit(model.SocketMaxMessageSizeKb)
 	wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
 	wc.WebSocket.SetPongHandler(func(string) error {
-		wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
+		if err := wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime)); err != nil {
+			return err
+		}
 		if wc.IsAuthenticated() {
 			wc.App.Srv().Go(func() {
 				wc.App.SetStatusAwayIfNeeded(wc.UserId, false)
@@ -438,27 +449,6 @@ func (wc *WebConn) writePump() {
 			}
 
 			evt, evtOk := msg.(*model.WebSocketEvent)
-
-			skipSend := false
-			if len(wc.send) >= sendSlowWarn {
-				// When the pump starts to get slow we'll drop non-critical messages
-				switch msg.EventType() {
-				case model.WebsocketEventTyping,
-					model.WebsocketEventStatusChange,
-					model.WebsocketEventChannelViewed:
-					mlog.Warn(
-						"websocket.slow: dropping message",
-						mlog.String("user_id", wc.UserId),
-						mlog.String("type", msg.EventType()),
-						mlog.String("channel_id", evt.GetBroadcast().ChannelId),
-					)
-					skipSend = true
-				}
-			}
-
-			if skipSend {
-				continue
-			}
 
 			buf.Reset()
 			var err error
@@ -715,6 +705,23 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 		return false
 	}
 
+	// When the pump starts to get slow we'll drop non-critical
+	// messages. We should skip those frames before they are
+	// queued to wc.send buffered channel.
+	if len(wc.send) >= sendSlowWarn {
+		switch msg.EventType() {
+		case model.WebsocketEventTyping,
+			model.WebsocketEventStatusChange,
+			model.WebsocketEventChannelViewed:
+			mlog.Warn(
+				"websocket.slow: dropping message",
+				mlog.String("user_id", wc.UserId),
+				mlog.String("type", msg.EventType()),
+			)
+			return false
+		}
+	}
+
 	// If the event contains sanitized data, only send to users that don't have permission to
 	// see sensitive data. Prevents admin clients from receiving events with bad data
 	var hasReadPrivateDataPermission *bool
@@ -735,6 +742,11 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 		if !*hasReadPrivateDataPermission {
 			return false
 		}
+	}
+
+	// If the event is destined to a specific connection
+	if msg.GetBroadcast().ConnectionId != "" {
+		return wc.GetConnectionID() == msg.GetBroadcast().ConnectionId
 	}
 
 	// If the event is destined to a specific user

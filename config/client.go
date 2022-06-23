@@ -53,9 +53,9 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 	// This setting is only temporary, so keep using the old setting name for the mobile and web apps
 	props["ExperimentalEnablePostMetadata"] = "true"
-	props["ExperimentalEnableClickToReply"] = strconv.FormatBool(*c.ExperimentalSettings.EnableClickToReply)
 
 	props["ExperimentalCloudBilling"] = strconv.FormatBool(*c.ExperimentalSettings.CloudBilling)
+	props["EnableAppBar"] = strconv.FormatBool(*c.ExperimentalSettings.EnableAppBar)
 
 	props["ExperimentalEnableAutomaticReplies"] = strconv.FormatBool(*c.TeamSettings.ExperimentalEnableAutomaticReplies)
 	props["ExperimentalTimezone"] = strconv.FormatBool(*c.DisplaySettings.ExperimentalTimezone)
@@ -129,6 +129,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["IsDefaultMarketplace"] = strconv.FormatBool(*c.PluginSettings.MarketplaceURL == model.PluginSettingsDefaultMarketplaceURL)
 	props["ExperimentalSharedChannels"] = "false"
 	props["CollapsedThreads"] = *c.ServiceSettings.CollapsedThreads
+	props["EnableCustomGroups"] = "false"
+	props["InsightsEnabled"] = "false"
 
 	if license != nil {
 		props["ExperimentalEnableAuthenticationTransfer"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableAuthenticationTransfer)
@@ -202,6 +204,10 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 		if license.SkuShortName == model.LicenseShortSkuProfessional || license.SkuShortName == model.LicenseShortSkuEnterprise {
 			props["EnableCustomGroups"] = strconv.FormatBool(*c.ServiceSettings.EnableCustomGroups)
+		}
+
+		if (license.SkuShortName == model.LicenseShortSkuProfessional || license.SkuShortName == model.LicenseShortSkuEnterprise) && c.FeatureFlags.InsightsEnabled {
+			props["InsightsEnabled"] = "true"
 		}
 	}
 

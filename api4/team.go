@@ -43,6 +43,7 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.Team.Handle("", api.APISessionRequired(getTeam)).Methods("GET")
 	api.BaseRoutes.Team.Handle("", api.APISessionRequired(updateTeam)).Methods("PUT")
 	api.BaseRoutes.Team.Handle("", api.APISessionRequired(deleteTeam)).Methods("DELETE")
+	api.BaseRoutes.Team.Handle("/except", api.APISessionRequired(softDeleteTeamsExcept)).Methods("DELETE")
 	api.BaseRoutes.Team.Handle("/patch", api.APISessionRequired(patchTeam)).Methods("PUT")
 	api.BaseRoutes.Team.Handle("/restore", api.APISessionRequired(restoreTeam)).Methods("POST")
 	api.BaseRoutes.Team.Handle("/privacy", api.APISessionRequired(updateTeamPrivacy)).Methods("PUT")
@@ -92,6 +93,29 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateTeam) {
 		c.Err = model.NewAppError("createTeam", "api.team.is_team_creation_allowed.disabled.app_error", nil, "", http.StatusForbidden)
 		return
+	}
+
+	// On a cloud license, we must check limits before allowing to create
+	if c.App.Channels().License() != nil && c.App.Channels().License().Features != nil && *c.App.Channels().License().Features.Cloud {
+		limits, err := c.App.Cloud().GetCloudLimits(c.AppContext.Session().UserId)
+		if err != nil {
+			c.Err = model.NewAppError("Api4.createTeam", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// If there are no limits for teams, for active teams, or the limit for active teams is less than 0, do nothing
+		if !(limits == nil || limits.Teams == nil || limits.Teams.Active == nil || *limits.Teams.Active <= 0) {
+			teamsUsage, appErr := c.App.GetTeamsUsage()
+			if appErr != nil {
+				c.Err = appErr
+				return
+			}
+			// if the number of active teams is greater than or equal to the limit, return 400
+			if teamsUsage.Active >= int64(*limits.Teams.Active) {
+				c.Err = model.NewAppError("Api4.createTeam", "api.cloud.teams_limit_reached.create", nil, "", http.StatusBadRequest)
+				return
+			}
+		}
 	}
 
 	rteam, err := c.App.CreateTeamWithUser(c.AppContext, &team, c.AppContext.Session().UserId)
@@ -257,6 +281,28 @@ func restoreTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionManageTeam)
 		return
 	}
+	// On a cloud license, we must check limits before allowing to restore
+	if c.App.Channels().License() != nil && c.App.Channels().License().Features != nil && *c.App.Channels().License().Features.Cloud {
+		limits, err := c.App.Cloud().GetCloudLimits(c.AppContext.Session().UserId)
+		if err != nil {
+			c.Err = model.NewAppError("Api4.restoreTeam", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// If there are no limits for teams, for active teams, or the limit for active teams is less than 0, do nothing
+		if !(limits == nil || limits.Teams == nil || limits.Teams.Active == nil || *limits.Teams.Active <= 0) {
+			teamsUsage, appErr := c.App.GetTeamsUsage()
+			if appErr != nil {
+				c.Err = appErr
+				return
+			}
+			// if the number of active teams is greater than or equal to the limit, return 400
+			if teamsUsage.Active >= int64(*limits.Teams.Active) {
+				c.Err = model.NewAppError("Api4.restoreTeam", "api.cloud.teams_limit_reached.restore", nil, "", http.StatusBadRequest)
+				return
+			}
+		}
+	}
 
 	err := c.App.RestoreTeam(c.Params.TeamId)
 	if err != nil {
@@ -399,6 +445,25 @@ func deleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+func softDeleteTeamsExcept(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeam) {
+		c.SetPermissionError(model.PermissionManageTeam)
+		return
+	}
+
+	err := c.App.SoftDeleteAllTeamsExcept(c.Params.TeamId)
+	if err != nil {
+		c.Err = err
+	}
+
 	ReturnStatusOK(w)
 }
 
@@ -554,7 +619,7 @@ func getTeamMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	members, err := c.App.GetTeamMembersForUser(c.Params.UserId)
+	members, err := c.App.GetTeamMembersForUser(c.Params.UserId, "", true)
 	if err != nil {
 		c.Err = err
 		return

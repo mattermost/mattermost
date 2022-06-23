@@ -7,7 +7,7 @@ import (
 	"database/sql"
 	"encoding/json"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -33,7 +33,7 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 		return nil, errors.Wrap(err, "could not serialize metadataBytes to JSON")
 	}
 	if s.IsBinaryParamEnabled() {
-		metadataBytes = s.AppendBinaryFlag(metadataBytes)
+		metadataBytes = AppendBinaryFlag(metadataBytes)
 	}
 
 	query := s.getQueryBuilder().

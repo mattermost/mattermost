@@ -244,7 +244,7 @@ func (api *PluginAPI) DeleteUser(userID string) *model.AppError {
 }
 
 func (api *PluginAPI) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
-	return api.app.GetUsers(options)
+	return api.app.GetUsersFromProfiles(options)
 }
 
 func (api *PluginAPI) GetUser(userID string) (*model.User, *model.AppError) {
@@ -548,7 +548,7 @@ func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, sea
 		includeDeletedChannels = *searchParams.IncludeDeletedChannels
 	}
 
-	return api.app.SearchPostsForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
+	return api.app.SearchPostsForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage, model.ModifierMessages)
 }
 
 func (api *PluginAPI) AddChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
@@ -665,7 +665,7 @@ func (api *PluginAPI) GetPostThread(postID string) (*model.PostList, *model.AppE
 }
 
 func (api *PluginAPI) GetPost(postID string) (*model.Post, *model.AppError) {
-	return api.app.GetSinglePost(postID)
+	return api.app.GetSinglePost(postID, false)
 }
 
 func (api *PluginAPI) GetPostsSince(channelID string, time int64) (*model.PostList, *model.AppError) {
@@ -981,6 +981,10 @@ func (api *PluginAPI) PermanentDeleteBot(userID string) *model.AppError {
 	return api.app.PermanentDeleteBot(userID)
 }
 
+func (api *PluginAPI) EnsureBotUser(bot *model.Bot) (string, error) {
+	return api.app.EnsureBot(api.ctx, api.id, bot)
+}
+
 func (api *PluginAPI) PublishUserTyping(userID, channelID, parentId string) *model.AppError {
 	return api.app.PublishUserTyping(userID, channelID, parentId)
 }
@@ -1178,4 +1182,13 @@ func (api *PluginAPI) RequestTrialLicense(requesterID string, users int, termsAc
 	}
 
 	return api.app.Channels().RequestTrialLicense(requesterID, users, termsAccepted, receiveEmailsAccepted)
+}
+
+// GetCloudLimits returns any limits associated with the cloud instance
+func (api *PluginAPI) GetCloudLimits() (*model.ProductLimits, error) {
+	if api.app.Cloud() == nil {
+		return &model.ProductLimits{}, nil
+	}
+	limits, err := api.app.Cloud().GetCloudLimits("")
+	return limits, err
 }

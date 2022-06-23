@@ -81,7 +81,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 89+"
+    "translation": "Version 100+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -2764,10 +2764,6 @@
     "translation": "Create at must be a valid time."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Name must be 2 or more lowercase alphanumeric characters."
-  },
-  {
     "id": "model.bot.is_valid.username.app_error",
     "translation": "Invalid username."
   },
@@ -3286,10 +3282,6 @@
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch is disabled."
-  },
-  {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Connecting to Elasticsearch server failed."
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
@@ -4973,11 +4965,11 @@
   },
   {
     "id": "api.templates.questions_footer.info",
-    "translation": "Email us any time at "
+    "translation": "Need help or have questions? Email us at "
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Go To Post"
+    "translation": "Reply in Mattermost"
   },
   {
     "id": "api.templates.payment_failed_no_card.title",
@@ -5070,10 +5062,6 @@
   {
     "id": "ent.cluster.json_encode.error",
     "translation": "Error occurred while marshalling JSON request"
-  },
-  {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Reply CreateAt property must be greater than the parent post CreateAt."
   },
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
@@ -5277,7 +5265,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Your 14 day trial of the {{.WorkSpace}} workspace is ready to go!"
+    "translation": "Your 30 day trial of the {{.WorkSpace}} workspace is ready to go!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -5345,11 +5333,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Your free 14-day trial of Mattermost is ending soon"
+    "translation": "Your free 30-day trial of Mattermost is ending soon"
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, your 14-day trial of Mattermost is ending in 3 days, on {{.TrialEnd}}. Please add your payment information to ensure your team can continue enjoying the benefits of Mattermost Cloud."
+    "translation": "{{.Name}}, your 30-day trial of Mattermost is ending in 3 days, on {{.TrialEnd}}. Please add your payment information to ensure your team can continue enjoying the benefits of Mattermost Cloud."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -5361,11 +5349,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Your free 14-day trial of Mattermost ends today"
+    "translation": "Your 30-day free trial of Mattermost has ended"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Enterprise ends today {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Enterprise. If you do not add your payment information within 30 days, your Cloud workspace will be permanently deleted and you will lose any associated data."
+    "translation": "{{.Name}}, your 30-day free trial of Mattermost Cloud Enterprise ended on {{.TodayDate}}. We hope you’ve enjoyed our flexible and secure collaboration platform. Please add your payment information to ensure your team can continue collaborating with Mattermost."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -5373,7 +5361,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Start subscription"
+    "translation": "Start Subscription"
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
@@ -7798,7 +7786,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Session Expired: Please log in to continue receiving notifications. Sessions for {{.siteName}} are configured by your System Administrator to expire every {{.daysCount}} day(s)."
+    "translation": "Session Expired: Please log in to continue receiving notifications. Sessions for {{.siteName}} are configured by your System Administrator to expire every {{.hoursCount}} hours(s)."
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
@@ -9120,7 +9108,7 @@
   },
   {
     "id": "api.templates.server_inactivity_subject",
-    "translation": "Open Mattermost to increase your team’s productivity"
+    "translation": "Open Mattermost to increase your team’s productivity!"
   },
   {
     "id": "api.templates.server_inactivity_info_bullet2",
@@ -9197,5 +9185,101 @@
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "The email settings have unset values."
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "Email list is empty"
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "Invalid channel name"
+  },
+  {
+    "id": "model.channel.is_valid.1_or_more.app_error",
+    "translation": "Name must be 1 or more lowercase alphanumeric characters."
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "Invalid post_id"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .ChannelsLen }} channels on the {{ .TeamDisplayName }} Team"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title",
+    "translation": "{{ .SenderName }} invited you to join {{ .ChannelsLen }} channels on the {{ .TeamDisplayName }} Team"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .ChannelName }} on the {{ .TeamDisplayName }} Team"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_body.title",
+    "translation": "{{ .SenderName }} invited you to join {{ .ChannelName }} on the {{ .TeamDisplayName }} Team"
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
+    "translation": "An error occurred while parsing the body data."
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
+    "translation": "Invalid request body."
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "You are now upgraded!"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
+    "translation": "Your {{.WorkspaceName}} workspace has now been upgraded. You will be billed starting {{.TrialEnd}}"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subject",
+    "translation": "Mattermost Upgrade Confirmation"
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "Elasticsearch settings has unset values."
+  },
+  {
+    "id": "api.templates.server_inactivity_footer_disclaimer",
+    "translation": "You received this one-time email because your Mattermost server was inactive for more than {{.Hours}} hours. This email was automatically generated by your Mattermost server."
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "Error updating subscription from webhook."
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "An error occurred while fetching recent searches"
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Uploading via mmctl to a Cloud instance is not supported. Please check the documentation here: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "You've reached the limit of {{.NumIntegrations}} enabled integrations. To install unlimited integrations, upgrade to one of the paid plans."
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "Failed to get storage usage."
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Unable to get team count"
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Unable to get teams usage"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Unable to restore team because teams limit has been reached"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Unable to create team because teams limit has been reached"
   }
 ]

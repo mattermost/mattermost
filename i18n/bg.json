@@ -1124,10 +1124,6 @@
     "translation": "Създадено в трябва да е валидно време."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Името трябва да има 2 или повече буквено-цифрови символи."
-  },
-  {
     "id": "model.bot.is_valid.username.app_error",
     "translation": "Невалидно потребителско име."
   },
@@ -1918,10 +1914,6 @@
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch е забранен."
-  },
-  {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Неуспешно свързване с Elasticsearch сървъра."
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
@@ -6138,10 +6130,6 @@
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Липсва задължително свойство за отговор: create_at."
-  },
-  {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Свойството CreateAt на отговора трябва да е по-голямо от CreateAt на родителската публикация."
   },
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",

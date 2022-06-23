@@ -16,6 +16,87 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
+const (
+	internalKeyPrefix = "mmi_"
+	botUserKey        = internalKeyPrefix + "botid"
+)
+
+type botServiceWrapper struct {
+	app AppIface
+}
+
+func (w *botServiceWrapper) EnsureBot(c *request.Context, productID string, bot *model.Bot) (string, error) {
+	return w.app.EnsureBot(c, productID, bot)
+}
+
+// EnsureBot provides similar functionality with the plugin-api BotService. It doesn't accept
+// any ensureBotOptions hence it is not required for now.
+// TODO: Once the focalboard migration completed, we should add this logic to the app and
+// let plugin-api use the same code
+func (a *App) EnsureBot(c *request.Context, productID string, bot *model.Bot) (string, error) {
+	if bot == nil {
+		return "", errors.New("passed a nil bot")
+	}
+
+	if bot.Username == "" {
+		return "", errors.New("passed a bot with no username")
+	}
+
+	botIDBytes, err := a.GetPluginKey(productID, botUserKey)
+	if err != nil {
+		return "", err
+	}
+
+	// If the bot has already been created, use it
+	if botIDBytes != nil {
+		botID := string(botIDBytes)
+
+		// ensure existing bot is synced with what is being created
+		botPatch := &model.BotPatch{
+			Username:    &bot.Username,
+			DisplayName: &bot.DisplayName,
+			Description: &bot.Description,
+		}
+
+		if _, err = a.PatchBot(botID, botPatch); err != nil {
+			return "", fmt.Errorf("failed to patch bot: %w", err)
+		}
+
+		return botID, nil
+	}
+
+	// Check for an existing bot user with that username. If one exists, then use that.
+	if user, appErr := a.GetUserByUsername(bot.Username); appErr == nil && user != nil {
+		if user.IsBot {
+			if appErr := a.SetPluginKey(productID, botUserKey, []byte(user.Id)); appErr != nil {
+				return "", fmt.Errorf("failed to set plugin key: %w", err)
+			}
+		} else {
+			a.Srv().Log.Error("Product attempted to use an account that already exists. Convert user to a bot "+
+				"account in the CLI by running 'mattermost user convert <username> --bot'. If the user is an "+
+				"existing user account you want to preserve, change its username and restart the Mattermost server, "+
+				"after which the plugin will create a bot account with that name. For more information about bot "+
+				"accounts, see https://mattermost.com/pl/default-bot-accounts", mlog.String("username",
+				bot.Username),
+				mlog.String("user_id",
+					user.Id),
+			)
+		}
+		return user.Id, nil
+	}
+
+	createdBot, err := a.CreateBot(c, bot)
+	if err != nil {
+		return "", fmt.Errorf("failed to create bot: %w", err)
+	}
+
+	if appErr := a.SetPluginKey(productID, botUserKey, []byte(createdBot.UserId)); appErr != nil {
+		return "", fmt.Errorf("failed to set plugin key: %w", err)
+	}
+
+	return createdBot.UserId, nil
+}
+
 // CreateBot creates the given bot and corresponding user.
 func (a *App) CreateBot(c *request.Context, bot *model.Bot) (*model.Bot, *model.AppError) {
 	vErr := bot.IsValidCreate()
@@ -101,7 +182,7 @@ func (a *App) GetWarnMetricsBot() (*model.Bot, *model.AppError) {
 		Inactive: false,
 	}
 
-	sysAdminList, err := a.GetUsers(userOptions)
+	sysAdminList, err := a.GetUsersFromProfiles(userOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +211,7 @@ func (a *App) GetSystemBot() (*model.Bot, *model.AppError) {
 		Inactive: false,
 	}
 
-	sysAdminList, err := a.GetUsers(userOptions)
+	sysAdminList, err := a.GetUsersFromProfiles(userOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -485,7 +566,7 @@ func (a *App) notifySysadminsBotOwnerDeactivated(c *request.Context, userID stri
 	// get sysadmins
 	var sysAdmins []*model.User
 	for {
-		sysAdminsList, err := a.GetUsers(userOptions)
+		sysAdminsList, err := a.GetUsersFromProfiles(userOptions)
 		if err != nil {
 			return err
 		}

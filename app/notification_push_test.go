@@ -1152,8 +1152,10 @@ func TestClearPushNotificationSync(t *testing.T) {
 	mockStore.On("Session").Return(&mockSessionStore)
 	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
+	// When CRT is disabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDisabled
 	})
 
 	err := th.App.clearPushNotificationSync(sess1.Id, "user1", "channel1", "")

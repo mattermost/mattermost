@@ -2648,10 +2648,6 @@
     "translation": "Отсутствует необходимое значение для Reaction: User."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Значение CreateAt в Reply должно быть больше чем родительский CreateAt в Post."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Отсутствует необходимое значение для Reply: create_at."
   },
@@ -3164,10 +3160,6 @@
     "translation": "Elasticsearch уже остановлен."
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Не удалось подключиться к серверу Elasticsearch."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch отключён."
   },
@@ -3538,10 +3530,6 @@
   {
     "id": "model.bot.is_valid.username.app_error",
     "translation": "Неверное имя пользователя."
-  },
-  {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Имя должно состоять из 2 или более строчных букв и цифр."
   },
   {
     "id": "model.channel.is_valid.create_at.app_error",
@@ -8549,7 +8537,7 @@
   },
   {
     "id": "api.context.json_encoding.app_error",
-    "translation": "Ошибка шифрования JSON."
+    "translation": "Ошибка кодирования JSON."
   },
   {
     "id": "api.context.invitation_expired.error",
@@ -8769,7 +8757,7 @@
   },
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
-    "translation": "Не удалось обновить настраиваемый статус. Пожалуйста, добавьте статус эмодзи или произвольный текст или и то, и другое."
+    "translation": "Не удалось обновить настраиваемый статус. Пожалуйста, добавьте статус эмодзи или произвольный текст, или и то и другое."
   },
   {
     "id": "api.config.update_config.diff.app_error",
@@ -9222,5 +9210,93 @@
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
     "translation": "Размер пакета массового индексирования Bleve должен быть не менее {{.BatchSize}}."
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "Недопустимый post_id"
+  },
+  {
+    "id": "app.reaction.get_top_for_user_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.reaction.get_top_for_team_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} пригласил вас присоединиться к {{ .ChannelsLen }} каналам в команде {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title",
+    "translation": "{{ .SenderName }} пригласил вас присоединиться к {{ .ChannelsLen }} каналам в команде {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} пригласил вас присоединиться к {{ .ChannelName }} в команде {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_body.title",
+    "translation": "{{ .SenderName }} пригласил вас присоединиться к {{ .ChannelName }} в команде {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "Список адресов электронной почты пуст"
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "Недопустимое название канала"
+  },
+  {
+    "id": "model.channel.is_valid.1_or_more.app_error",
+    "translation": "Имя должно состоять из 1 или более строчных буквенно-цифровых символов."
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
+    "translation": "Ошибка при анализе данных тела."
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
+    "translation": "Неверный текст запроса."
+  },
+  {
+    "id": "api.license.request_trial_license.embargoed",
+    "translation": "Нам не удалось обработать запрос из-за ограничений для стран, на которые распространяется эмбарго. [Подробнее читайте в нашей документации](https://mattermost.com/pl/limitations-for-embargoed-countries) или обращайтесь по адресу legal@mattermost.com, если у вас есть вопросы об экспортных ограничениях."
+  },
+  {
+    "id": "api.insights.feature_disabled",
+    "translation": " "
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "Параметры OnlyThreads и OnlyTotals для getThreadsForUser являются взаимоисключающими"
+  },
+  {
+    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "translation": "В настройках хранилища файлов есть незаданные значения."
+  },
+  {
+    "id": "api.file.test_connection_email_settings_nil.app_error",
+    "translation": "В настройки электронной почты есть не заданные значения."
+  },
+  {
+    "id": "app.channel.get_top_for_user_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.channel.get_top_for_team_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "Теперь Ваш сервер обновлен!"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
+    "translation": "Ваше рабочее пространство {{.WorkspaceName}} обновлено. Вам будет выставлен счет начиная с {{.TrialEnd}}"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subject",
+    "translation": "Подтверждение обновления Mattermost"
   }
 ]

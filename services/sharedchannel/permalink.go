@@ -34,7 +34,7 @@ func (scs *Service) processPermalinkToRemote(p *model.Post) string {
 		opts := model.GetPostsOptions{
 			SkipFetchThreads: true,
 		}
-		postList, err := scs.server.GetStore().Post().Get(context.Background(), postID, opts, "")
+		postList, err := scs.server.GetStore().Post().Get(context.Background(), postID, opts, "", map[string]bool{})
 		if err != nil {
 			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceWarn, "Unable to get post during replacing permalinks", mlog.Err(err))
 			return msg

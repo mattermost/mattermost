@@ -22,6 +22,20 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
+func (a *App) canSendPushNotifications() bool {
+	if !*a.Config().EmailSettings.SendPushNotifications {
+		return false
+	}
+
+	pushServer := *a.Config().EmailSettings.PushNotificationServer
+	if license := a.Srv().License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
+		mlog.Warn("Push notifications have been disabled. Update your license or go to System Console > Environment > Push Notification Server to use a different server")
+		return false
+	}
+
+	return true
+}
+
 func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error) {
 	// Do not send notifications in archived channels
 	if channel.DeleteAt > 0 {
@@ -198,6 +212,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	mentionedUsersList := make(model.StringArray, 0, len(mentions.Mentions))
 	mentionAutofollowChans := []chan *model.AppError{}
 	threadParticipants := map[string]bool{post.UserId: true}
+	newParticipants := map[string]bool{}
 	participantMemberships := map[string]*model.ThreadMembership{}
 	membershipsMutex := &sync.Mutex{}
 	followersMutex := &sync.Mutex{}
@@ -246,9 +261,6 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					}
 
 					if membership != nil && !membership.Following {
-						membershipsMutex.Lock()
-						participantMemberships[userID] = membership
-						membershipsMutex.Unlock()
 						return
 					}
 				}
@@ -275,6 +287,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				// add new followers to existing followers
 				if threadMembership.Following && !followers.Contains(userID) {
 					followers = append(followers, userID)
+					newParticipants[userID] = true
 				}
 				followersMutex.Unlock()
 
@@ -402,18 +415,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 	}
 
-	sendPushNotifications := false
-	if *a.Config().EmailSettings.SendPushNotifications {
-		pushServer := *a.Config().EmailSettings.PushNotificationServer
-		if license := a.Srv().License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
-			mlog.Warn("Push notifications are disabled. Go to System Console > Notifications > Mobile Push to enable them.")
-			sendPushNotifications = false
-		} else {
-			sendPushNotifications = true
-		}
-	}
-
-	if sendPushNotifications {
+	if a.canSendPushNotifications() {
 		for _, id := range mentionedUsersList {
 			if profileMap[id] == nil || notificationsForCRT.Push.Contains(id) {
 				continue
@@ -595,11 +597,19 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					return nil, errors.Wrapf(err, "cannot get thread %q for user %q", post.RootId, uid)
 				}
 				if userThread != nil {
-					previousUnreadMentions := userThread.UnreadMentions
-					previousUnreadReplies := max(userThread.UnreadReplies-1, 0)
-					if mentions.isUserMentioned(uid) {
-						previousUnreadMentions = max(userThread.UnreadMentions-1, 0)
+					previousUnreadMentions := int64(0)
+					previousUnreadReplies := int64(0)
+
+					// if it's not a newly followed thread, calculate previous unread values.
+					if !newParticipants[uid] {
+						previousUnreadMentions = userThread.UnreadMentions
+						previousUnreadReplies = max(userThread.UnreadReplies-1, 0)
+
+						if mentions.isUserMentioned(uid) {
+							previousUnreadMentions = max(userThread.UnreadMentions-1, 0)
+						}
 					}
+
 					// set LastViewed to now for commenter
 					if uid == post.UserId {
 						opts := store.ThreadMembershipOpts{
