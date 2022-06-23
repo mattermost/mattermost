@@ -230,13 +230,13 @@ func (es *Service) SendWelcomeEmail(userID string, email string, verified bool, 
 	return nil
 }
 
-func (es *Service) SendCloudUpgradeConfirmationEmail(userEmail, name, trialEndDate, locale, siteURL, workspaceName string) error {
+func (es *Service) SendCloudUpgradeConfirmationEmail(userEmail, name, date, locale, siteURL, workspaceName string) error {
 	T := i18n.GetUserTranslations(locale)
 	subject := T("api.templates.cloud_upgrade_confirmation.subject")
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["Title"] = T("api.templates.cloud_upgrade_confirmation.title")
-	data.Props["SubTitle"] = T("api.templates.cloud_upgrade_confirmation.subtitle", map[string]interface{}{"WorkspaceName": workspaceName, "TrialEnd": trialEndDate})
+	data.Props["SubTitle"] = T("api.templates.cloud_upgrade_confirmation.subtitle", map[string]interface{}{"WorkspaceName": workspaceName, "Date": date})
 	data.Props["SiteURL"] = siteURL
 	data.Props["ButtonURL"] = siteURL
 	data.Props["Button"] = T("api.templates.cloud_welcome_email.button")
@@ -315,7 +315,7 @@ func (es *Service) SendCloudWelcomeEmail(userEmail, locale, teamInviteID, workSp
 	subject := T("api.templates.cloud_welcome_email.subject")
 
 	data := es.NewEmailTemplateData(locale)
-	data.Props["Title"] = T("api.templates.cloud_welcome_email.title", map[string]interface{}{"WorkSpace": workSpaceName})
+	data.Props["Title"] = T("api.templates.cloud_welcome_email.title")
 	data.Props["SubTitle"] = T("api.templates.cloud_welcome_email.subtitle")
 	data.Props["SubTitleInfo"] = T("api.templates.cloud_welcome_email.subtitle_info")
 	data.Props["Info"] = T("api.templates.cloud_welcome_email.info")

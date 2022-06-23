@@ -3160,10 +3160,6 @@
     "translation": "Elasticsearch este deja oprit."
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Conectarea la server Elasticsearch nu a reuşit."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch este dezactivat."
   },
