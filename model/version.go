@@ -109,6 +109,8 @@ var BuildDate string
 var BuildHash string
 var BuildHashEnterprise string
 var BuildEnterpriseReady string
+var BuildHashBoards string
+var BuildBoards string
 var versionsWithoutHotFixes []string
 
 func init() {
