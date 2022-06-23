@@ -252,7 +252,7 @@ func TestNotifyAdminToUpgrade(t *testing.T) {
 
 		require.Equal(t, fmt.Sprintf("%sup_notification", model.PostCustomTypePrefix), post.Type)
 		require.Equal(t, bot.UserId, post.UserId)
-		require.Equal(t, fmt.Sprintf("A member of %s has notified you to upgrade this workspace before the trial ends.", th.BasicTeam.Name), post.Message)
+		require.Equal(t, fmt.Sprintf("A member of %s has notified you to upgrade this workspace.", th.BasicTeam.Name), post.Message)
 
 		require.Equal(t, http.StatusOK, statusCode)
 
@@ -260,7 +260,6 @@ func TestNotifyAdminToUpgrade(t *testing.T) {
 		statusCode = th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
 			CurrentTeamId: th.BasicTeam.Id,
 		})
-
 		require.Equal(t, http.StatusForbidden, statusCode)
 	})
 
@@ -290,7 +289,7 @@ func TestNotifyAdminToUpgrade(t *testing.T) {
 
 		require.Equal(t, fmt.Sprintf("%sup_notification", model.PostCustomTypePrefix), post.Type)
 		require.Equal(t, bot.UserId, post.UserId)
-		require.Equal(t, fmt.Sprintf("A member of %s has notified you to upgrade this workspace before the trial ends.", th.BasicTeam.Name), post.Message)
+		require.Equal(t, fmt.Sprintf("A member of %s has notified you to upgrade this workspace.", th.BasicTeam.Name), post.Message)
 
 		require.Equal(t, http.StatusOK, statusCode)
 

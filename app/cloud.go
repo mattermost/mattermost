@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
@@ -18,8 +19,10 @@ import (
 func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID string) *model.AppError {
 	userId := c.Session().Id
 
+	prefId := strings.ReplaceAll(model.CloudNotifyAdminInfo, "_", "") + "123456"
+
 	// check if already notified
-	notificationPref, err := a.Srv().Store.Preference().Get(userId, model.PreferenceCloudUserEphemeralInfo, model.CloudNotifyAdminInfo)
+	notificationPref, err := a.Srv().Store.Preference().Get(prefId, model.PreferenceCloudUserEphemeralInfo, model.CloudNotifyAdminInfo)
 	if err != nil {
 		mlog.Warn("Unable to get preference cloud_user_ephemeral_info", mlog.Err(err))
 	}
@@ -81,6 +84,7 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID 
 
 	// mark as done for current user until end of cool off period
 	out, err := json.Marshal(&model.AdminNotificationUserInfo{
+		LastUserIDToNotify:        userId,
 		LastNotificationTimestamp: model.GetMillis(),
 	})
 	if err != nil {
@@ -88,7 +92,7 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID 
 	}
 
 	pref := model.Preference{
-		UserId:   userId,
+		UserId:   prefId, // to only have one preference for now and not a preference per user
 		Category: model.PreferenceCloudUserEphemeralInfo,
 		Name:     model.CloudNotifyAdminInfo,
 		Value:    string(out),

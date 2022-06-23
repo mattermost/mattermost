@@ -236,6 +236,7 @@ type NotifyAdminToUpgradeRequest struct {
 }
 
 type AdminNotificationUserInfo struct {
+	LastUserIDToNotify        string
 	LastNotificationTimestamp int64
 }
 
