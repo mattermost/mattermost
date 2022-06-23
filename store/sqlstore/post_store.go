@@ -1277,7 +1277,7 @@ func (s *SqlPostStore) QueryHashTag(hash_tag_query *string, count uint64) ([]*st
 				break
 			}
 			if strings.HasPrefix(hash_tag, *hash_tag_query) {
-				t := strings.Clone(strings.TrimPrefix(hash_tag, "#"))
+				t := utils.StringClone(strings.TrimPrefix(hash_tag, "#"))
 				result_list = append(result_list, &t)
 			}
 		}

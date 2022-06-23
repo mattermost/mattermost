@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"unsafe"
 
 	"github.com/pkg/errors"
 
@@ -214,4 +215,15 @@ func IsValidMobileAuthRedirectURL(config *model.Config, redirectURL string) bool
 		}
 	}
 	return false
+}
+
+/**
+ * Create a copy of s1.
+ * This is to make up for lack of a `strings.Clone` in golang1.14
+ * https://stackoverflow.com/a/68972665 for the tip
+ */
+func StringClone(s string) string {
+	b := make([]byte, len(s))
+	copy(b, s)
+	return *(*string)(unsafe.Pointer(&b))
 }
