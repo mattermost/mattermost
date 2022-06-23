@@ -142,6 +142,8 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		th.tempWorkspace = tempWorkspace
 	}
 
+	th.Context.SetLogger(testLogger)
+
 	return th
 }
 

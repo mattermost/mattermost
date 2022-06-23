@@ -489,15 +489,15 @@ func (api *PluginAPI) SearchChannels(teamID string, term string) ([]*model.Chann
 }
 
 func (api *PluginAPI) CreateChannelSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
-	return api.app.CreateSidebarCategory(userID, teamID, newCategory)
+	return api.app.CreateSidebarCategory(api.ctx, userID, teamID, newCategory)
 }
 
 func (api *PluginAPI) GetChannelSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
-	return api.app.GetSidebarCategoriesForTeamForUser(userID, teamID)
+	return api.app.GetSidebarCategoriesForTeamForUser(api.ctx, userID, teamID)
 }
 
 func (api *PluginAPI) UpdateChannelSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
-	return api.app.UpdateSidebarCategories(userID, teamID, categories)
+	return api.app.UpdateSidebarCategories(api.ctx, userID, teamID, categories)
 }
 
 func (api *PluginAPI) SearchUsers(search *model.UserSearch) ([]*model.User, *model.AppError) {

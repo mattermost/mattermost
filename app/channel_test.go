@@ -197,7 +197,7 @@ func TestMoveChannel(t *testing.T) {
 		th.AddUserToChannel(th.BasicUser, channel)
 
 		// Put the channel in a custom category so that it explicitly exists in SidebarChannels
-		category, err := th.App.CreateSidebarCategory(th.BasicUser.Id, sourceTeam.Id, &model.SidebarCategoryWithChannels{
+		category, err := th.App.CreateSidebarCategory(th.Context, th.BasicUser.Id, sourceTeam.Id, &model.SidebarCategoryWithChannels{
 			SidebarCategory: model.SidebarCategory{
 				DisplayName: "new category",
 			},
@@ -214,12 +214,12 @@ func TestMoveChannel(t *testing.T) {
 		require.Equal(t, targetTeam.Id, moved.TeamId)
 
 		// The channel should no longer be on the old team
-		updatedCategory, err := th.App.GetSidebarCategory(category.Id)
+		updatedCategory, err := th.App.GetSidebarCategory(th.Context, category.Id)
 		require.Nil(t, err)
 		assert.Equal(t, []string{}, updatedCategory.Channels)
 
 		// And it should be on the new team instead
-		categories, err := th.App.GetSidebarCategoriesForTeamForUser(th.BasicUser.Id, targetTeam.Id)
+		categories, err := th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser.Id, targetTeam.Id)
 		require.Nil(t, err)
 		require.Equal(t, model.SidebarCategoryChannels, categories.Categories[1].Type)
 		assert.Contains(t, categories.Categories[1].Channels, channel.Id)

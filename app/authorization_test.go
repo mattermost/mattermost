@@ -113,16 +113,16 @@ func TestHasPermissionToCategory(t *testing.T) {
 	session, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
 	require.Nil(t, err)
 
-	categories, err := th.App.GetSidebarCategoriesForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id)
+	categories, err := th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
 	require.Nil(t, err)
 
 	_, err = th.App.GetSession(session.Token)
 	require.Nil(t, err)
-	require.True(t, th.App.SessionHasPermissionToCategory(*session, th.BasicUser.Id, th.BasicTeam.Id, categories.Order[0]))
+	require.True(t, th.App.SessionHasPermissionToCategory(th.Context, *session, th.BasicUser.Id, th.BasicTeam.Id, categories.Order[0]))
 
-	categories2, err := th.App.GetSidebarCategoriesForTeamForUser(th.BasicUser2.Id, th.BasicTeam.Id)
+	categories2, err := th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser2.Id, th.BasicTeam.Id)
 	require.Nil(t, err)
-	require.False(t, th.App.SessionHasPermissionToCategory(*session, th.BasicUser.Id, th.BasicTeam.Id, categories2.Order[0]))
+	require.False(t, th.App.SessionHasPermissionToCategory(th.Context, *session, th.BasicUser.Id, th.BasicTeam.Id, categories2.Order[0]))
 }
 
 func TestSessionHasPermissionToGroup(t *testing.T) {
