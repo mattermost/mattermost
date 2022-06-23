@@ -2008,6 +2008,62 @@ func (s *apiRPCServer) UpdateUserCustomStatus(args *Z_UpdateUserCustomStatusArgs
 	return nil
 }
 
+type Z_SetUserStatusOnCallJoinArgs struct {
+	A string
+}
+
+type Z_SetUserStatusOnCallJoinReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) SetUserStatusOnCallJoin(userID string) *model.AppError {
+	_args := &Z_SetUserStatusOnCallJoinArgs{userID}
+	_returns := &Z_SetUserStatusOnCallJoinReturns{}
+	if err := g.client.Call("Plugin.SetUserStatusOnCallJoin", _args, _returns); err != nil {
+		log.Printf("RPC call to SetUserStatusOnCallJoin API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) SetUserStatusOnCallJoin(args *Z_SetUserStatusOnCallJoinArgs, returns *Z_SetUserStatusOnCallJoinReturns) error {
+	if hook, ok := s.impl.(interface {
+		SetUserStatusOnCallJoin(userID string) *model.AppError
+	}); ok {
+		returns.A = hook.SetUserStatusOnCallJoin(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API SetUserStatusOnCallJoin called but not implemented."))
+	}
+	return nil
+}
+
+type Z_SetUserStatusOnCallLeaveArgs struct {
+	A string
+}
+
+type Z_SetUserStatusOnCallLeaveReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) SetUserStatusOnCallLeave(userID string) *model.AppError {
+	_args := &Z_SetUserStatusOnCallLeaveArgs{userID}
+	_returns := &Z_SetUserStatusOnCallLeaveReturns{}
+	if err := g.client.Call("Plugin.SetUserStatusOnCallLeave", _args, _returns); err != nil {
+		log.Printf("RPC call to SetUserStatusOnCallLeave API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) SetUserStatusOnCallLeave(args *Z_SetUserStatusOnCallLeaveArgs, returns *Z_SetUserStatusOnCallLeaveReturns) error {
+	if hook, ok := s.impl.(interface {
+		SetUserStatusOnCallLeave(userID string) *model.AppError
+	}); ok {
+		returns.A = hook.SetUserStatusOnCallLeave(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API SetUserStatusOnCallLeave called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RemoveUserCustomStatusArgs struct {
 	A string
 }

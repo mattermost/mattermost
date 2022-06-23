@@ -371,6 +371,76 @@ func (api *PluginAPI) GetUserCustomStatus(userID string) (*model.CustomStatus, *
 	return api.app.GetCustomStatus(userID)
 }
 
+// calls: status utils
+func (api *PluginAPI) SetUserStatusOnCallJoin(userID string) *model.AppError {
+	fmt.Println("something on call join")
+	// get user status
+	userStatus, appErr := api.app.GetStatus(userID)
+	if appErr != nil {
+		return appErr
+	}
+
+	// check if user not online, do nothing to user status
+	if userStatus.Status != model.StatusOnline {
+		return model.NewAppError("SetUserStatusOnCallJoin", "plugin.api.set_user_status_on_call_join", nil, "user status isn't online, status not set to dnd", http.StatusInternalServerError)
+	}
+
+	// set status dnd
+	api.app.SetStatusDoNotDisturb(userID)
+
+	// set custom status
+	customStatus := &model.CustomStatus{
+		Emoji:    "telephone_receiver",
+		Text:     "On a call",
+		Duration: "",
+	}
+	err := api.app.SetCustomStatus(userID, customStatus)
+	if err != nil {
+		return model.NewAppError("SetUserStatusOnCallJoin", "plugin.api.set_user_status_on_call_join", nil, "failed to set user status to dnd", http.StatusInternalServerError)
+	}
+	return nil
+}
+
+func (api *PluginAPI) SetUserStatusOnCallLeave(userID string) *model.AppError {
+	fmt.Println("something on call leave")
+	// get user's custom status
+	user, appErr := api.app.GetUser(userID)
+
+	userStatus := user.GetCustomStatus()
+	if appErr != nil {
+		return model.NewAppError("SetUserStatusOnCallJoin", "plugin.api.set_user_status_on_call_leave", nil, "failed to get custom user status. status not set to online", http.StatusInternalServerError)
+	}
+
+	// check if user status is not set by SetUserStatusOnCallJoin, do nothing to user status
+	if userStatus.Text != "On a call" || userStatus.Emoji != "telephone_receiver" {
+		return model.NewAppError("SetUserStatusOnCallJoin", "plugin.api.set_user_status_on_call_leave", nil, "custom status is not set by calls, status not changed", http.StatusInternalServerError)
+	}
+
+	// set status online -- todo: reset to what user has set before the call
+	api.app.SetStatusOnline(userID, true)
+
+	// remove custom status
+	existingRCS, err := api.app.GetRecentStatuses(userID)
+	if err != nil {
+		return model.NewAppError("SetUserStatusOnCallJoin", "plugin.api.set_user_status_on_call_leave", nil, "failed to get recent statuses to reset", http.StatusInternalServerError)
+	}
+	if len(existingRCS) == 1 {
+		err = api.app.RemoveCustomStatus(userID)
+		if err != nil {
+			return model.NewAppError("SetUserStatusOnCallJoin", "plugin.api.set_user_status_on_call_leave", nil, "failed to remove custom status", http.StatusInternalServerError)
+		}
+	} else {
+		err = api.app.SetCustomStatus(userID, existingRCS[1])
+		if err != nil {
+			return model.NewAppError("SetUserStatusOnCallJoin", "plugin.api.set_user_status_on_call_leave", nil, "failed to revert custom status", http.StatusInternalServerError)
+		}
+	}
+	if err != nil {
+		return model.NewAppError("SetUserStatusOnCallJoin", "plugin.api.set_user_status_on_call_leave", nil, "failed to remove user status", http.StatusInternalServerError)
+	}
+	return nil
+}
+
 func (api *PluginAPI) GetUsersInChannel(channelID, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
 	switch sortBy {
 	case model.ChannelSortByUsername:

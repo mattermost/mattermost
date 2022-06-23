@@ -3302,6 +3302,38 @@ func (_m *API) SetTeamIcon(teamID string, data []byte) *model.AppError {
 	return r0
 }
 
+// SetUserStatusOnCallJoin provides a mock function with given fields: userID
+func (_m *API) SetUserStatusOnCallJoin(userID string) *model.AppError {
+	ret := _m.Called(userID)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// SetUserStatusOnCallLeave provides a mock function with given fields: userID
+func (_m *API) SetUserStatusOnCallLeave(userID string) *model.AppError {
+	ret := _m.Called(userID)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // SetUserStatusTimedDND provides a mock function with given fields: userId, endtime
 func (_m *API) SetUserStatusTimedDND(userId string, endtime int64) (*model.Status, *model.AppError) {
 	ret := _m.Called(userId, endtime)

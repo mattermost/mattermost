@@ -329,6 +329,20 @@ func (api *apiTimerLayer) UpdateUserCustomStatus(userID string, customStatus *mo
 	return _returnsA
 }
 
+func (api *apiTimerLayer) SetUserStatusOnCallJoin(userID string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.SetUserStatusOnCallJoin(userID)
+	api.recordTime(startTime, "SetUserStatusOnCallJoin", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) SetUserStatusOnCallLeave(userID string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.SetUserStatusOnCallLeave(userID)
+	api.recordTime(startTime, "SetUserStatusOnCallLeave", _returnsA == nil)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) RemoveUserCustomStatus(userID string) *model.AppError {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.RemoveUserCustomStatus(userID)

@@ -283,6 +283,18 @@ type API interface {
 	// Minimum server version: 6.2
 	UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus) *model.AppError
 
+	// SetUserStatusOnCallJoin will set user status to "On a call" if Online.
+	//
+	// @tag User
+	// Minimum server version: 6.2
+	SetUserStatusOnCallJoin(userID string) *model.AppError
+
+	// SetUserStatusOnCallLeave will reset user status to a previous state if not changed by any other state.
+	//
+	// @tag User
+	// Minimum server version: 6.2
+	SetUserStatusOnCallLeave(userID string) *model.AppError
+
 	// RemoveUserCustomStatus will remove a user's custom status.
 	//
 	// @tag User
