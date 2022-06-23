@@ -181,73 +181,11 @@ func (b *BotService) ensureBot(m mutex, bot *model.Bot, options ...EnsureBotOpti
 }
 
 func (b *BotService) ensureBotUser(m mutex, bot *model.Bot) (retBotID string, retErr error) {
-	// Must provide a bot with a username
-	if bot == nil {
-		return "", errors.New("passed a nil bot")
-	}
-
-	if bot.Username == "" {
-		return "", errors.New("passed a bot with no username")
-	}
-
 	// Lock to prevent two plugins from racing to create the bot account
 	m.Lock()
 	defer m.Unlock()
 
-	botIDBytes, kvGetErr := b.api.KVGet(botUserKey)
-	if kvGetErr != nil {
-		return "", errors.Wrap(kvGetErr, "failed to get bot")
-	}
-
-	// If the bot has already been created, use it
-	if botIDBytes != nil {
-		botID := string(botIDBytes)
-
-		// ensure existing bot is synced with what is being created
-		botPatch := &model.BotPatch{
-			Username:    &bot.Username,
-			DisplayName: &bot.DisplayName,
-			Description: &bot.Description,
-		}
-
-		if _, err := b.api.PatchBot(botID, botPatch); err != nil {
-			return "", errors.Wrap(err, "failed to patch bot")
-		}
-
-		return botID, nil
-	}
-
-	// Check for an existing bot user with that username. If one exists, then use that.
-	if user, appErr := b.api.GetUserByUsername(bot.Username); appErr == nil && user != nil {
-		if user.IsBot {
-			if appErr := b.api.KVSet(botUserKey, []byte(user.Id)); appErr != nil {
-				b.api.LogWarn("Failed to set claimed bot user id.", "userid", user.Id, "err", appErr)
-			}
-		} else {
-			b.api.LogError("Plugin attempted to use an account that already exists. Convert user to a bot "+
-				"account in the CLI by running 'mattermost user convert <username> --bot'. If the user is an "+
-				"existing user account you want to preserve, change its username and restart the Mattermost server, "+
-				"after which the plugin will create a bot account with that name. For more information about bot "+
-				"accounts, see https://mattermost.com/pl/default-bot-accounts", "username",
-				bot.Username,
-				"user_id",
-				user.Id,
-			)
-		}
-		return user.Id, nil
-	}
-
-	// Create a new bot user for the plugin
-	createdBot, appErr := b.api.CreateBot(bot)
-	if appErr != nil {
-		return "", errors.Wrap(appErr, "failed to create bot")
-	}
-
-	if appErr := b.api.KVSet(botUserKey, []byte(createdBot.UserId)); appErr != nil {
-		b.api.LogWarn("Failed to set created bot user id.", "userid", createdBot.UserId, "err", appErr)
-	}
-
-	return createdBot.UserId, nil
+	return b.api.EnsureBotUser(bot)
 }
 
 func (b *BotService) readFile(path string) ([]byte, error) {
