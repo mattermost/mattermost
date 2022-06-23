@@ -116,3 +116,27 @@ func (c *Context) SetAppError(err *model.AppError) {
 func (c *Context) AppError() *model.AppError {
 	return c.err
 }
+
+type CTX interface {
+	T(string, ...interface{}) string
+	Session() *model.Session
+	RequestId() string
+	IPAddress() string
+	Path() string
+	UserAgent() string
+	AcceptLanguage() string
+	Context() context.Context
+	SetSession(s *model.Session)
+	SetT(i18n.TranslateFunc)
+	SetRequestId(string)
+	SetIPAddress(string)
+	SetUserAgent(string)
+	SetAcceptLanguage(string)
+	SetPath(string)
+	SetContext(ctx context.Context)
+	GetT() i18n.TranslateFunc
+	SetLogger(mlog.LoggerIFace)
+	Logger() mlog.LoggerIFace
+	SetAppError(*model.AppError)
+	AppError() *model.AppError
+}
