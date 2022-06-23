@@ -1762,19 +1762,32 @@ func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.Ap
 		return model.NewAppError("SetPostReminder", "", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	// Send an ack message in that thread.
-	T := i18n.GetUserTranslations(metadata.UserLocale)
-	// Not setting the rootID deliberately because the webapp
-	// shows the post both in center channel and RHS.
+	// Send an ack message.
 	ephemeralPost := &model.Post{
+		Id:        model.NewId(),
+		CreateAt:  model.GetMillis(),
 		UserId:    userID,
+		RootId:    postID,
 		ChannelId: metadata.ChannelId,
-		Message:   T("app.post_reminder_ack", model.StringInterface{"TeamName": metadata.TeamName, "PostId": postID, "Username": metadata.Username}),
+		Message:   "",
+		Type:      model.PostTypeReminder,
 		Props: model.StringInterface{
 			"target_time": targetTime,
+			"team_name":   metadata.TeamName,
+			"post_id":     postID,
+			"username":    metadata.Username,
 		},
 	}
-	a.SendEphemeralPost(userID, ephemeralPost)
+
+	message := model.NewWebSocketEvent(model.WebsocketEventEphemeralMessage, "", ephemeralPost.ChannelId, userID, nil)
+	ephemeralPost = model.AddPostActionCookies(ephemeralPost, a.PostActionCookieSecret())
+
+	postJSON, jsonErr := ephemeralPost.ToJSON()
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
+	}
+	message.Add("post", postJSON)
+	a.Publish(message)
 
 	return nil
 }

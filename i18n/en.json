@@ -1,5 +1,9 @@
 [
   {
+    "id": "",
+    "translation": ""
+  },
+  {
     "id": "April",
     "translation": "April"
   },
@@ -2220,14 +2224,6 @@
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
     "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
-  },
-  {
-    "id": "app.post_reminder_ack",
-    "translation": "You will be reminded about [this post](/{{.TeamName}}/pl/{{.PostId}}) by @{{.Username}}"
-  },
-  {
-    "id": "app.post_reminder_dm",
-    "translation": "Hi there, you asked me to remind you about [this post](/{{.TeamName}}/pl/{{.PostId}}) by @{{.Username}}"
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
@@ -5934,6 +5930,10 @@
   {
     "id": "app.post.update.app_error",
     "translation": "Unable to update the Post."
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "Hi there, you asked me to remind you about [this post](/{{.TeamName}}/pl/{{.PostId}}) by @{{.Username}}"
   },
   {
     "id": "app.preference.delete.app_error",
