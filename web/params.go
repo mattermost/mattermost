@@ -136,7 +136,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 	if val, ok := props["hash_tag_query"]; ok {
 		params.HashTagQuery = val
 	} else {
-		params.ChannelId = query.Get("hash_tag_query")
+		params.HashTagQuery = query.Get("hash_tag_query")
 	}
 
 	if val, ok := props["post_id"]; ok {
