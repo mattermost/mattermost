@@ -1,0 +1,10 @@
+sudo: false
+ 
+language: go
+ 
+go:
+  - 1.9.x
+  - 1.8.x
+ 
+script:
+  - go test

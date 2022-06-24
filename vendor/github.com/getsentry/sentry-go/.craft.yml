@@ -1,0 +1,12 @@
+minVersion: 0.23.1
+preReleaseCommand: bash scripts/craft-pre-release.sh
+changelogPolicy: simple
+artifactProvider:
+  name: none
+targets:
+  - name: github
+    includeNames: /none/
+    tagPrefix: v
+  - name: registry
+    sdks:
+      github:getsentry/sentry-go:
