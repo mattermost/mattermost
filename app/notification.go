@@ -36,7 +36,7 @@ func (a *App) canSendPushNotifications() bool {
 	return true
 }
 
-func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error) {
+func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool, connectionId string) ([]string, error) {
 	// Do not send notifications in archived channels
 	if channel.DeleteAt > 0 {
 		return []string{}, nil
@@ -522,6 +522,9 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", post.ChannelId, "", nil)
+	broadcast := message.GetBroadcast()
+	broadcast.OmitConnectionID = connectionId
+	message = message.SetBroadcast(broadcast)
 
 	// Note that PreparePostForClient should've already been called by this point
 	postJSON, jsonErr := post.ToJSON()

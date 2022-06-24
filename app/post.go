@@ -471,7 +471,7 @@ func (a *App) handlePostEvents(c *request.Context, post *model.Post, user *model
 	a.invalidateCacheForChannel(channel)
 	a.invalidateCacheForChannelPosts(channel.Id)
 
-	if _, err := a.SendNotifications(post, team, channel, user, parentPostList, setOnline); err != nil {
+	if _, err := a.SendNotifications(post, team, channel, user, parentPostList, setOnline, c.ConnectionId()); err != nil {
 		return err
 	}
 
