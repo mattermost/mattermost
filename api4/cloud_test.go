@@ -154,7 +154,7 @@ func Test_GetSubscription(t *testing.T) {
 
 		cloud := mocks.CloudInterface{}
 
-		cloud.Mock.On("GetSubscription", mock.Anything).Return(userFacingSubscription, nil)
+		cloud.Mock.On("GetSubscription", mock.Anything).Return(subscription, nil)
 
 		cloudImpl := th.App.Srv().Cloud
 		defer func() {
