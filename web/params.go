@@ -117,30 +117,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.ChannelId = query.Get("channel_id")
 	}
 
-<<<<<<< HEAD
-	if val, ok := props["hash_tag_query"]; ok {
-		params.HashTagQuery = val
-	} else {
-		params.HashTagQuery = query.Get("hash_tag_query")
-	}
-
-	if val, ok := props["post_id"]; ok {
-		params.PostId = val
-	}
-
-	if val, ok := props["policy_id"]; ok {
-		params.PolicyId = val
-	}
-
-	if val, ok := props["file_id"]; ok {
-		params.FileId = val
-	}
-
-=======
+	params.HashTagQuery = props["hash_tag_query"]
 	params.PostId = props["post_id"]
 	params.PolicyId = props["policy_id"]
 	params.FileId = props["file_id"]
->>>>>>> 950d1be4812595a7e7d719b3370a92cd542204bf
 	params.Filename = query.Get("filename")
 	params.UploadId = props["upload_id"]
 	params.PluginId = props["plugin_id"]
