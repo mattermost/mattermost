@@ -544,6 +544,7 @@ func (h *Hub) Start() {
 					}
 				}
 
+				// These checks don't seem strictly necessary since we check these values in shouldSendEvent as well
 				if connID := msg.GetBroadcast().ConnectionId; connID != "" {
 					if webConn := connIndex.byConnectionId[connID]; webConn != nil {
 						broadcast(webConn)

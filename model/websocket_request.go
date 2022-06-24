@@ -17,9 +17,10 @@ type WebSocketRequest struct {
 	Data   map[string]interface{} `json:"data" msgpack:"data"`     // The metadata for an action.
 
 	// Server-provided fields
-	Session Session            `json:"-" msgpack:"-"`
-	T       i18n.TranslateFunc `json:"-" msgpack:"-"`
-	Locale  string             `json:"-" msgpack:"-"`
+	Session      Session            `json:"-" msgpack:"-"`
+	T            i18n.TranslateFunc `json:"-" msgpack:"-"`
+	Locale       string             `json:"-" msgpack:"-"`
+	ConnectionID string             `json:"-" msgpack:"-"`
 }
 
 func (o *WebSocketRequest) Clone() (*WebSocketRequest, error) {

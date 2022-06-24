@@ -91,6 +91,7 @@ type WebsocketBroadcast struct {
 	ChannelId             string          `json:"channel_id"`    // broadcast only occurs for users in this channel
 	TeamId                string          `json:"team_id"`       // broadcast only occurs for users in this team
 	ConnectionId          string          `json:"connection_id"` // broadcast only occurs for this connection
+	Scope                 string          `json:"scope"`         // broadcast only occurs to connections with this scope
 	ContainsSanitizedData bool            `json:"-"`
 	ContainsSensitiveData bool            `json:"-"`
 	// ReliableClusterSend indicates whether or not the message should

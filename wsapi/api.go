@@ -22,4 +22,5 @@ func Init(s *app.Server) {
 	api.InitUser()
 	api.InitSystem()
 	api.InitStatus()
+	api.InitScope()
 }

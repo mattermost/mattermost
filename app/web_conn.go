@@ -110,6 +110,8 @@ type WebConn struct {
 	endWritePump chan struct{}
 	pumpFinished chan struct{}
 	pluginPosted chan pluginWSPostedHook
+
+	subscribedScopes map[string]bool
 }
 
 // CheckConnResult indicates whether a connectionID was present in the hub or not.
@@ -211,6 +213,7 @@ func (a *App) NewWebConn(cfg *WebConnConfig) *WebConn {
 		endWritePump:       make(chan struct{}),
 		pumpFinished:       make(chan struct{}),
 		pluginPosted:       make(chan pluginWSPostedHook, 10),
+		subscribedScopes:   make(map[string]bool),
 	}
 
 	wc.SetSession(&cfg.Session)
@@ -453,6 +456,22 @@ func (wc *WebConn) writePump() {
 			buf.Reset()
 			var err error
 			if evtOk {
+				// Intercept these events since we're using them as a hacky way to communicate from the
+				// server to individual WebConns
+				if evt.EventType() == "subscribe" {
+					for _, scope := range evt.GetData()["scopes"].([]string) {
+						wc.subscribedScopes[scope] = true
+					}
+
+					continue
+				} else if evt.EventType() == "unsubscribe" {
+					for _, scope := range evt.GetData()["scopes"].([]string) {
+						delete(wc.subscribedScopes, scope)
+					}
+
+					continue
+				}
+
 				evt = evt.SetSequence(wc.Sequence)
 				err = evt.Encode(enc)
 				wc.Sequence++
@@ -791,6 +810,15 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 
 	if wc.GetSession().Props[model.SessionPropIsGuest] == "true" {
 		return wc.shouldSendEventToGuest(msg)
+	}
+
+	// Only send events to connections that are subscribed to the defined scope.
+	//
+	// Note that none of the above cases can currently be mixed with scope because they immediately return, even if
+	// their check returns true. Ideally, they should fall through to the next case, but I'm not changing that now
+	// since it may have unexpected consequences
+	if msg.GetBroadcast().Scope != "" && !wc.subscribedScopes[msg.GetBroadcast().Scope] {
+		return false
 	}
 
 	return true

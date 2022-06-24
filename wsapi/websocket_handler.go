@@ -49,6 +49,7 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 	r.Session = *session
 	r.T = conn.T
 	r.Locale = conn.Locale
+	r.ConnectionID = conn.GetConnectionID()
 
 	var data map[string]interface{}
 	var err *model.AppError
