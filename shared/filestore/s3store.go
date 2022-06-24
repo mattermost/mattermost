@@ -5,8 +5,10 @@ package filestore
 
 import (
 	"context"
+	"crypto/tls"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -34,6 +36,7 @@ type S3FileBackend struct {
 	encrypt    bool
 	trace      bool
 	client     *s3.Client
+	skipVerify bool
 }
 
 type S3FileBackendAuthError struct {
@@ -87,6 +90,7 @@ func NewS3FileBackend(settings FileBackendSettings) (*S3FileBackend, error) {
 		pathPrefix: settings.AmazonS3PathPrefix,
 		encrypt:    settings.AmazonS3SSE,
 		trace:      settings.AmazonS3Trace,
+		skipVerify: settings.SkipVerify,
 	}
 	cli, err := backend.s3New()
 	if err != nil {
@@ -121,20 +125,27 @@ func (b *S3FileBackend) s3New() (*s3.Client, error) {
 		Region: b.region,
 	}
 
+	tr, err := s3.DefaultTransport(b.secure)
+	if err != nil {
+		return nil, err
+	}
+	if b.skipVerify {
+		tr.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	}
+	opts.Transport = tr
+
 	// If this is a cloud installation, we override the default transport.
 	if isCloud {
-		tr, err := s3.DefaultTransport(b.secure)
-		if err != nil {
-			return nil, err
-		}
 		scheme := "http"
 		if b.secure {
 			scheme = "https"
 		}
+		newTransport := http.DefaultTransport.(*http.Transport).Clone()
+		newTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: b.skipVerify}
 		opts.Transport = &customTransport{
-			base:   tr,
 			host:   b.endpoint,
 			scheme: scheme,
+			client: http.Client{Transport: newTransport},
 		}
 	}
 
@@ -297,7 +308,7 @@ func (b *S3FileBackend) MoveFile(oldPath, newPath string) error {
 	}
 
 	if _, err := b.client.CopyObject(context.Background(), dstOpts, srcOpts); err != nil {
-		return errors.Wrapf(err, "unable to copy the file to %s to the new destionation", newPath)
+		return errors.Wrapf(err, "unable to copy the file to %s to the new destination", newPath)
 	}
 
 	if err := b.client.RemoveObject(context.Background(), b.bucket, oldPath, s3.RemoveObjectOptions{}); err != nil {
@@ -396,7 +407,7 @@ func getPathsFromObjectInfos(in <-chan s3.ObjectInfo) <-chan s3.ObjectInfo {
 	return out
 }
 
-func (b *S3FileBackend) ListDirectory(path string) ([]string, error) {
+func (b *S3FileBackend) listDirectory(path string, recursion bool) ([]string, error) {
 	path = filepath.Join(b.pathPrefix, path)
 	if !strings.HasSuffix(path, "/") && path != "" {
 		// s3Clnt returns only the path itself when "/" is not present
@@ -405,7 +416,8 @@ func (b *S3FileBackend) ListDirectory(path string) ([]string, error) {
 	}
 
 	opts := s3.ListObjectsOptions{
-		Prefix: path,
+		Prefix:    path,
+		Recursive: recursion,
 	}
 	var paths []string
 	for object := range b.client.ListObjects(context.Background(), b.bucket, opts) {
@@ -422,6 +434,14 @@ func (b *S3FileBackend) ListDirectory(path string) ([]string, error) {
 	}
 
 	return paths, nil
+}
+
+func (b *S3FileBackend) ListDirectory(path string) ([]string, error) {
+	return b.listDirectory(path, false)
+}
+
+func (b *S3FileBackend) ListDirectoryRecursively(path string) ([]string, error) {
+	return b.listDirectory(path, true)
 }
 
 func (b *S3FileBackend) RemoveDirectory(path string) error {

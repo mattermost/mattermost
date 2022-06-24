@@ -40,11 +40,11 @@ func NewDriverImpl(s *Server) *DriverImpl {
 }
 
 func (d *DriverImpl) Conn(isMaster bool) (string, error) {
-	dbFunc := d.s.sqlStore.GetMaster
+	dbFunc := d.s.sqlStore.GetMasterX
 	if !isMaster {
-		dbFunc = d.s.sqlStore.GetReplica
+		dbFunc = d.s.sqlStore.GetReplicaX
 	}
-	conn, err := dbFunc().Db.Conn(context.Background())
+	conn, err := dbFunc().Conn(context.Background())
 	if err != nil {
 		return "", err
 	}

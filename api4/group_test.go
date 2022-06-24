@@ -119,6 +119,16 @@ func TestCreateGroup(t *testing.T) {
 	require.NoError(t, err)
 	CheckCreatedStatus(t, response)
 
+	usernameGroup := &model.Group{
+		DisplayName:    "dn_" + model.NewId(),
+		Name:           &th.BasicUser.Username,
+		Source:         model.GroupSourceCustom,
+		AllowReference: true,
+	}
+	_, response, err = th.SystemAdminClient.CreateGroup(usernameGroup)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
+
 	unReferenceableCustomGroup := &model.Group{
 		DisplayName:    "dn_" + model.NewId(),
 		Name:           model.NewString("name" + model.NewId()),
@@ -328,6 +338,20 @@ func TestLinkGroupTeam(t *testing.T) {
 	groupTeam, response, _ := th.Client.LinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 	assert.Equal(t, http.StatusCreated, response.StatusCode)
 	assert.NotNil(t, groupTeam)
+
+	gid := model.NewId()
+	g2, app2Err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + gid,
+		Name:        model.NewString("name" + gid),
+		Source:      model.GroupSourceCustom,
+		Description: "description_" + gid,
+		RemoteId:    model.NewString(model.NewId()),
+	})
+	assert.Nil(t, app2Err)
+
+	_, response, err = th.Client.LinkGroupSyncable(g2.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
 }
 
 func TestLinkGroupChannel(t *testing.T) {
@@ -370,6 +394,20 @@ func TestLinkGroupChannel(t *testing.T) {
 
 	_, _, err = th.Client.LinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	assert.Error(t, err)
+
+	gid := model.NewId()
+	g2, app2Err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + gid,
+		Name:        model.NewString("name" + gid),
+		Source:      model.GroupSourceCustom,
+		Description: "description_" + gid,
+		RemoteId:    model.NewString(model.NewId()),
+	})
+	assert.Nil(t, app2Err)
+
+	_, response, err = th.Client.LinkGroupSyncable(g2.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
 }
 
 func TestUnlinkGroupTeam(t *testing.T) {
@@ -1201,6 +1239,30 @@ func TestGetGroups(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, groups, 1)
 	assert.Equal(t, groups[0].Id, group2.Id)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableCustomGroups = false
+	})
+
+	// Specify custom groups source when feature is disabled
+	opts.Source = model.GroupSourceCustom
+	_, response, err := th.Client.GetGroups(opts)
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, response)
+
+	// Specify ldap groups source when custom groups feature is disabled
+	opts.Source = model.GroupSourceLdap
+	groups, _, err = th.Client.GetGroups(opts)
+	assert.NoError(t, err)
+	assert.Len(t, groups, 1)
+	assert.Equal(t, groups[0].Source, model.GroupSourceLdap)
+
+	// don't include source and should only get ldap groups in response
+	opts.Source = ""
+	groups, _, err = th.Client.GetGroups(opts)
+	assert.NoError(t, err)
+	assert.Len(t, groups, 1)
+	assert.Equal(t, groups[0].Source, model.GroupSourceLdap)
 }
 
 func TestGetGroupsByUserId(t *testing.T) {

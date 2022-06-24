@@ -404,11 +404,13 @@ func TestImportValidateChannelImportData(t *testing.T) {
 		Type: &chanTypeOpen,
 	}
 	err = validateChannelImportData(&data)
-	require.NotNil(t, err, "Should have failed due to missing display_name.")
+	require.Nil(t, err, "Should have accepted having an empty display_name.")
+	require.Equal(t, data.Name, data.DisplayName, "Name and DisplayName should be the same if DisplayName is missing")
 
 	data.DisplayName = ptrStr("")
 	err = validateChannelImportData(&data)
-	require.NotNil(t, err, "Should have failed due to empty display_name.")
+	require.Nil(t, err, "Should have accepted having an empty display_name.")
+	require.Equal(t, data.Name, data.DisplayName, "Name and DisplayName should be the same if DisplayName is missing")
 
 	data.DisplayName = ptrStr(strings.Repeat("abcdefghij", 7))
 	err = validateChannelImportData(&data)
@@ -885,14 +887,6 @@ func TestImportValidateReplyImportData(t *testing.T) {
 	}
 	err = validateReplyImportData(&data, parentCreateAt, maxPostSize)
 	require.NotNil(t, err, "Should have failed due to 0 create-at value.")
-
-	data = ReplyImportData{
-		User:     ptrStr("username"),
-		Message:  ptrStr("message"),
-		CreateAt: ptrInt64(parentCreateAt - 100),
-	}
-	err = validateReplyImportData(&data, parentCreateAt, maxPostSize)
-	require.NotNil(t, err, "Should have failed due parent with newer create-at value.")
 }
 
 func TestImportValidatePostImportData(t *testing.T) {

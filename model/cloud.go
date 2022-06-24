@@ -6,13 +6,13 @@ package model
 import "strings"
 
 const (
-	EventTypeFailedPayment         = "failed-payment"
-	EventTypeFailedPaymentNoCard   = "failed-payment-no-card"
-	EventTypeSendAdminWelcomeEmail = "send-admin-welcome-email"
-	EventTypeTrialWillEnd          = "trial-will-end"
-	EventTypeTrialEnded            = "trial-ended"
-	JoinLimitation                 = "join"
-	InviteLimitation               = "invite"
+	EventTypeFailedPayment                = "failed-payment"
+	EventTypeFailedPaymentNoCard          = "failed-payment-no-card"
+	EventTypeSendAdminWelcomeEmail        = "send-admin-welcome-email"
+	EventTypeSendUpgradeConfirmationEmail = "send-upgrade-confirmation-email"
+	EventTypeSubscriptionChanged          = "subscription-changed"
+	EventTypeTrialWillEnd                 = "trial-will-end"
+	EventTypeTrialEnded                   = "trial-ended"
 )
 
 var MockCWS string
@@ -82,6 +82,15 @@ type CloudCustomer struct {
 	BillingAddress *Address       `json:"billing_address"`
 	CompanyAddress *Address       `json:"company_address"`
 	PaymentMethod  *PaymentMethod `json:"payment_method"`
+}
+
+type StartCloudTrialRequest struct {
+	Email          string `json:"email"`
+	SubscriptionID string `json:"subscription_id"`
+}
+
+type ValidateBusinessEmailRequest struct {
+	Email string `json:"email"`
 }
 
 // CloudCustomerInfo represents editable info of a customer.
@@ -167,6 +176,8 @@ type CWSWebhookPayload struct {
 	Event                             string               `json:"event"`
 	FailedPayment                     *FailedPayment       `json:"failed_payment"`
 	CloudWorkspaceOwner               *CloudWorkspaceOwner `json:"cloud_workspace_owner"`
+	ProductLimits                     *ProductLimits       `json:"product_limits"`
+	Subscription                      *Subscription        `json:"subscription"`
 	SubscriptionTrialEndUnixTimeStamp int64                `json:"trial_end_time_stamp"`
 }
 
@@ -180,12 +191,35 @@ type FailedPayment struct {
 type CloudWorkspaceOwner struct {
 	UserName string `json:"username"`
 }
-type SubscriptionStats struct {
-	RemainingSeats int    `json:"remaining_seats"`
-	IsPaidTier     string `json:"is_paid_tier"`
-	IsFreeTrial    string `json:"is_free_trial"`
-}
-
 type SubscriptionChange struct {
 	ProductID string `json:"product_id"`
+}
+
+type BoardsLimits struct {
+	Cards *int `json:"cards"`
+	Views *int `json:"views"`
+}
+
+type FilesLimits struct {
+	TotalStorage *int64 `json:"total_storage"`
+}
+
+type IntegrationsLimits struct {
+	Enabled *int `json:"enabled"`
+}
+
+type MessagesLimits struct {
+	History *int `json:"history"`
+}
+
+type TeamsLimits struct {
+	Active *int `json:"active"`
+}
+
+type ProductLimits struct {
+	Boards       *BoardsLimits       `json:"boards,omitempty"`
+	Files        *FilesLimits        `json:"files,omitempty"`
+	Integrations *IntegrationsLimits `json:"integrations,omitempty"`
+	Messages     *MessagesLimits     `json:"messages,omitempty"`
+	Teams        *TeamsLimits        `json:"teams,omitempty"`
 }

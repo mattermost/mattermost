@@ -6,18 +6,22 @@ package sqlstore
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
+	"sort"
+	"strconv"
+	"strings"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
-	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/db"
 	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
@@ -181,12 +185,12 @@ func TestStoreLicenseRace(t *testing.T) {
 	}()
 
 	go func() {
-		store.GetReplica()
+		store.GetReplicaX()
 		wg.Done()
 	}()
 
 	go func() {
-		store.GetSearchReplica()
+		store.GetSearchReplicaX()
 		wg.Done()
 	}()
 
@@ -271,14 +275,14 @@ func TestGetReplica(t *testing.T) {
 
 			store.UpdateLicense(&model.License{})
 
-			replicas := make(map[*gorp.DbMap]bool)
+			replicas := make(map[*sqlxDBWrapper]bool)
 			for i := 0; i < 5; i++ {
-				replicas[store.GetReplica()] = true
+				replicas[store.GetReplicaX()] = true
 			}
 
-			searchReplicas := make(map[*gorp.DbMap]bool)
+			searchReplicas := make(map[*sqlxDBWrapper]bool)
 			for i := 0; i < 5; i++ {
-				searchReplicas[store.GetSearchReplica()] = true
+				searchReplicas[store.GetSearchReplicaX()] = true
 			}
 
 			if testCase.DataSourceReplicaNum > 0 {
@@ -286,13 +290,13 @@ func TestGetReplica(t *testing.T) {
 				assert.Len(t, replicas, testCase.DataSourceReplicaNum)
 
 				for replica := range replicas {
-					assert.NotSame(t, store.GetMaster(), replica)
+					assert.NotSame(t, store.GetMasterX(), replica)
 				}
 
 			} else if assert.Len(t, replicas, 1) {
 				// Otherwise ensure the replicas contains only the master.
 				for replica := range replicas {
-					assert.Same(t, store.GetMaster(), replica)
+					assert.Same(t, store.GetMasterX(), replica)
 				}
 			}
 
@@ -301,7 +305,7 @@ func TestGetReplica(t *testing.T) {
 				assert.Len(t, searchReplicas, testCase.DataSourceSearchReplicaNum)
 
 				for searchReplica := range searchReplicas {
-					assert.NotSame(t, store.GetMaster(), searchReplica)
+					assert.NotSame(t, store.GetMasterX(), searchReplica)
 					for replica := range replicas {
 						assert.NotSame(t, searchReplica, replica)
 					}
@@ -314,7 +318,7 @@ func TestGetReplica(t *testing.T) {
 			} else if testCase.DataSourceReplicaNum == 0 && assert.Len(t, searchReplicas, 1) {
 				// Otherwise ensure the search replicas contains the master.
 				for searchReplica := range searchReplicas {
-					assert.Same(t, store.GetMaster(), searchReplica)
+					assert.Same(t, store.GetMasterX(), searchReplica)
 				}
 			}
 		})
@@ -339,14 +343,14 @@ func TestGetReplica(t *testing.T) {
 				storetest.CleanupSqlSettings(settings)
 			}()
 
-			replicas := make(map[*gorp.DbMap]bool)
+			replicas := make(map[*sqlxDBWrapper]bool)
 			for i := 0; i < 5; i++ {
-				replicas[store.GetReplica()] = true
+				replicas[store.GetReplicaX()] = true
 			}
 
-			searchReplicas := make(map[*gorp.DbMap]bool)
+			searchReplicas := make(map[*sqlxDBWrapper]bool)
 			for i := 0; i < 5; i++ {
-				searchReplicas[store.GetSearchReplica()] = true
+				searchReplicas[store.GetSearchReplicaX()] = true
 			}
 
 			if testCase.DataSourceReplicaNum > 0 {
@@ -354,13 +358,13 @@ func TestGetReplica(t *testing.T) {
 				assert.Len(t, replicas, 1)
 
 				for replica := range replicas {
-					assert.Same(t, store.GetMaster(), replica)
+					assert.Same(t, store.GetMasterX(), replica)
 				}
 
 			} else if assert.Len(t, replicas, 1) {
 				// Otherwise ensure the replicas contains only the master.
 				for replica := range replicas {
-					assert.Same(t, store.GetMaster(), replica)
+					assert.Same(t, store.GetMasterX(), replica)
 				}
 			}
 
@@ -369,7 +373,7 @@ func TestGetReplica(t *testing.T) {
 				assert.Len(t, searchReplicas, 1)
 
 				for searchReplica := range searchReplicas {
-					assert.Same(t, store.GetMaster(), searchReplica)
+					assert.Same(t, store.GetMasterX(), searchReplica)
 				}
 
 			} else if testCase.DataSourceReplicaNum > 0 {
@@ -380,7 +384,7 @@ func TestGetReplica(t *testing.T) {
 			} else if assert.Len(t, searchReplicas, 1) {
 				// Otherwise ensure the search replicas contains the master.
 				for searchReplica := range searchReplicas {
-					assert.Same(t, store.GetMaster(), searchReplica)
+					assert.Same(t, store.GetMasterX(), searchReplica)
 				}
 			}
 		})
@@ -479,6 +483,57 @@ func TestEnsureMinimumDBVersion(t *testing.T) {
 			assert.Contains(t, err.Error(), tc.err)
 		}
 	}
+}
+
+func TestIsBinaryParamEnabled(t *testing.T) {
+	tests := []struct {
+		store    SqlStore
+		expected bool
+	}{
+		{
+			store: SqlStore{
+				settings: &model.SqlSettings{
+					DriverName: model.NewString(model.DatabaseDriverPostgres),
+					DataSource: model.NewString("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable\u0026binary_parameters=yes"),
+				},
+			},
+			expected: true,
+		},
+		{
+			store: SqlStore{
+				settings: &model.SqlSettings{
+					DriverName: model.NewString(model.DatabaseDriverMysql),
+					DataSource: model.NewString("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable\u0026binary_parameters=yes"),
+				},
+			},
+			expected: false,
+		},
+		{
+			store: SqlStore{
+				settings: &model.SqlSettings{
+					DriverName: model.NewString(model.DatabaseDriverPostgres),
+					DataSource: model.NewString("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable&binary_parameters=yes"),
+				},
+			},
+			expected: true,
+		},
+		{
+			store: SqlStore{
+				settings: &model.SqlSettings{
+					DriverName: model.NewString(model.DatabaseDriverPostgres),
+					DataSource: model.NewString("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable"),
+				},
+			},
+			expected: false,
+		},
+	}
+
+	for i := range tests {
+		ok, err := tests[i].store.computeBinaryParam()
+		require.NoError(t, err)
+		assert.Equal(t, tests[i].expected, ok)
+	}
+
 }
 
 func TestUpAndDownMigrations(t *testing.T) {
@@ -698,43 +753,6 @@ func TestReplicaLagQuery(t *testing.T) {
 	}
 }
 
-func TestAppendMultipleStatementsFlagMysql(t *testing.T) {
-	testCases := []struct {
-		Scenario    string
-		DSN         string
-		ExpectedDSN string
-		Driver      string
-	}{
-		{
-			"Should append multiStatements param to the DSN path with existing params",
-			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost?writeTimeout=30s",
-			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost?writeTimeout=30s&multiStatements=true",
-			model.DatabaseDriverMysql,
-		},
-		{
-			"Should append multiStatements param to the DSN path with no existing params",
-			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost",
-			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost?multiStatements=true",
-			model.DatabaseDriverMysql,
-		},
-		{
-			"Should not multiStatements param to the DSN when driver is not MySQL",
-			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost",
-			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost",
-			model.DatabaseDriverPostgres,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.Scenario, func(t *testing.T) {
-			store := &SqlStore{settings: &model.SqlSettings{DriverName: &tc.Driver, DataSource: &tc.DSN}}
-			res, err := store.appendMultipleStatementsFlag(*store.settings.DataSource)
-			require.NoError(t, err)
-			assert.Equal(t, tc.ExpectedDSN, res)
-		})
-	}
-}
-
 func makeSqlSettings(driver string) *model.SqlSettings {
 	switch driver {
 	case model.DatabaseDriverPostgres:
@@ -750,10 +768,10 @@ func TestExecNoTimeout(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
 		sqlStore := ss.(*SqlStore)
 		var query string
-		timeout := sqlStore.master.QueryTimeout
-		sqlStore.master.QueryTimeout = 1
+		timeout := sqlStore.masterX.queryTimeout
+		sqlStore.masterX.queryTimeout = 1
 		defer func() {
-			sqlStore.master.QueryTimeout = timeout
+			sqlStore.masterX.queryTimeout = timeout
 		}()
 		if sqlStore.DriverName() == model.DatabaseDriverMysql {
 			query = `SELECT SLEEP(2);`
@@ -783,4 +801,80 @@ func TestMySQLReadTimeout(t *testing.T) {
 
 	_, err = store.GetMasterX().ExecNoTimeout(`SELECT SLEEP(3)`)
 	require.NoError(t, err)
+}
+
+func TestGetDBSchemaVersion(t *testing.T) {
+	testDrivers := []string{
+		model.DatabaseDriverPostgres,
+		model.DatabaseDriverMysql,
+	}
+
+	assets := db.Assets()
+
+	for _, driver := range testDrivers {
+		t.Run("Should return latest version number of applied migrations for "+driver, func(t *testing.T) {
+			t.Parallel()
+			settings := makeSqlSettings(driver)
+			store := New(*settings, nil)
+
+			assetsList, err := assets.ReadDir(filepath.Join("migrations", driver))
+			require.NoError(t, err)
+
+			var assetNamesForDriver []string
+			for _, entry := range assetsList {
+				assetNamesForDriver = append(assetNamesForDriver, entry.Name())
+			}
+			sort.Strings(assetNamesForDriver)
+
+			require.NotEmpty(t, assetNamesForDriver)
+			lastMigration := assetNamesForDriver[len(assetNamesForDriver)-1]
+			expectedVersion := strings.Split(lastMigration, "_")[0]
+
+			version, err := store.GetDBSchemaVersion()
+			require.NoError(t, err)
+			require.Equal(t, expectedVersion, fmt.Sprintf("%06d", version))
+		})
+	}
+}
+
+func TestGetAppliedMigrations(t *testing.T) {
+	testDrivers := []string{
+		model.DatabaseDriverPostgres,
+		model.DatabaseDriverMysql,
+	}
+
+	assets := db.Assets()
+
+	for _, driver := range testDrivers {
+		t.Run("Should return db applied migrations for "+driver, func(t *testing.T) {
+			t.Parallel()
+			settings := makeSqlSettings(driver)
+			store := New(*settings, nil)
+
+			assetsList, err := assets.ReadDir(filepath.Join("migrations", driver))
+			require.NoError(t, err)
+
+			var migrationsFromFiles []model.AppliedMigration
+			for _, entry := range assetsList {
+				if strings.HasSuffix(entry.Name(), ".up.sql") {
+					versionString := strings.Split(entry.Name(), "_")[0]
+					version, vErr := strconv.Atoi(versionString)
+					require.NoError(t, vErr)
+
+					name := strings.TrimSuffix(strings.TrimLeft(entry.Name(), versionString+"_"), ".up.sql")
+
+					migrationsFromFiles = append(migrationsFromFiles, model.AppliedMigration{
+						Version: version,
+						Name:    name,
+					})
+				}
+			}
+
+			require.NotEmpty(t, migrationsFromFiles)
+
+			migrations, err := store.GetAppliedMigrations()
+			require.NoError(t, err)
+			require.ElementsMatch(t, migrationsFromFiles, migrations)
+		})
+	}
 }

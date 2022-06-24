@@ -774,6 +774,39 @@ func (s *hooksRPCServer) OnSendDailyTelemetry(args *Z_OnSendDailyTelemetryArgs, 
 	return nil
 }
 
+func init() {
+	hookNameToId["OnCloudLimitsUpdated"] = OnCloudLimitsUpdatedID
+}
+
+type Z_OnCloudLimitsUpdatedArgs struct {
+	A *model.ProductLimits
+}
+
+type Z_OnCloudLimitsUpdatedReturns struct {
+}
+
+func (g *hooksRPCClient) OnCloudLimitsUpdated(limits *model.ProductLimits) {
+	_args := &Z_OnCloudLimitsUpdatedArgs{limits}
+	_returns := &Z_OnCloudLimitsUpdatedReturns{}
+	if g.implemented[OnCloudLimitsUpdatedID] {
+		if err := g.client.Call("Plugin.OnCloudLimitsUpdated", _args, _returns); err != nil {
+			g.log.Error("RPC call OnCloudLimitsUpdated to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) OnCloudLimitsUpdated(args *Z_OnCloudLimitsUpdatedArgs, returns *Z_OnCloudLimitsUpdatedReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnCloudLimitsUpdated(limits *model.ProductLimits)
+	}); ok {
+		hook.OnCloudLimitsUpdated(args.A)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnCloudLimitsUpdated called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }
@@ -5613,6 +5646,65 @@ func (s *apiRPCServer) RequestTrialLicense(args *Z_RequestTrialLicenseArgs, retu
 		returns.A = hook.RequestTrialLicense(args.A, args.B, args.C, args.D)
 	} else {
 		return encodableError(fmt.Errorf("API RequestTrialLicense called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetCloudLimitsArgs struct {
+}
+
+type Z_GetCloudLimitsReturns struct {
+	A *model.ProductLimits
+	B error
+}
+
+func (g *apiRPCClient) GetCloudLimits() (*model.ProductLimits, error) {
+	_args := &Z_GetCloudLimitsArgs{}
+	_returns := &Z_GetCloudLimitsReturns{}
+	if err := g.client.Call("Plugin.GetCloudLimits", _args, _returns); err != nil {
+		log.Printf("RPC call to GetCloudLimits API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetCloudLimits(args *Z_GetCloudLimitsArgs, returns *Z_GetCloudLimitsReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetCloudLimits() (*model.ProductLimits, error)
+	}); ok {
+		returns.A, returns.B = hook.GetCloudLimits()
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API GetCloudLimits called but not implemented."))
+	}
+	return nil
+}
+
+type Z_EnsureBotUserArgs struct {
+	A *model.Bot
+}
+
+type Z_EnsureBotUserReturns struct {
+	A string
+	B error
+}
+
+func (g *apiRPCClient) EnsureBotUser(bot *model.Bot) (string, error) {
+	_args := &Z_EnsureBotUserArgs{bot}
+	_returns := &Z_EnsureBotUserReturns{}
+	if err := g.client.Call("Plugin.EnsureBotUser", _args, _returns); err != nil {
+		log.Printf("RPC call to EnsureBotUser API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) EnsureBotUser(args *Z_EnsureBotUserArgs, returns *Z_EnsureBotUserReturns) error {
+	if hook, ok := s.impl.(interface {
+		EnsureBotUser(bot *model.Bot) (string, error)
+	}); ok {
+		returns.A, returns.B = hook.EnsureBotUser(args.A)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API EnsureBotUser called but not implemented."))
 	}
 	return nil
 }

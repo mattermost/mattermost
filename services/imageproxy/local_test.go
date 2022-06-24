@@ -154,7 +154,7 @@ func TestLocalBackend_GetImage(t *testing.T) {
 		proxy := makeTestLocalProxy()
 
 		// Modify the timeout to be much shorter than the default 30 seconds
-		proxy.backend.(*LocalBackend).impl.Timeout = time.Millisecond
+		proxy.backend.(*LocalBackend).client.Timeout = time.Millisecond
 
 		recorder := httptest.NewRecorder()
 		request, _ := http.NewRequest(http.MethodGet, "", nil)
@@ -192,6 +192,37 @@ func TestLocalBackend_GetImage(t *testing.T) {
 
 		_, err = ioutil.ReadAll(resp.Body)
 		require.NoError(t, err)
+	})
+
+	t.Run("Redirect", func(t *testing.T) {
+		var mock *httptest.Server
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			switch r.URL.Path {
+			case "/image.png":
+				w.Header().Set("Location", mock.URL+"/image2.png")
+				w.WriteHeader(http.StatusMovedPermanently)
+			case "/image2.png":
+				w.Header().Set("Cache-Control", "max-age=2592000, private")
+				w.Header().Set("Content-Type", "image/png")
+				w.Header().Set("Content-Length", "10")
+
+				w.WriteHeader(http.StatusOK)
+				w.Write([]byte("1111111111"))
+			}
+		})
+
+		mock = httptest.NewServer(handler)
+		defer mock.Close()
+
+		proxy := makeTestLocalProxy()
+
+		recorder := httptest.NewRecorder()
+		request, _ := http.NewRequest(http.MethodGet, "", nil)
+		proxy.GetImage(recorder, request, mock.URL+"/image.png")
+		resp := recorder.Result()
+
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Equal(t, "10", resp.Header.Get("Content-Length"))
 	})
 }
 
@@ -310,7 +341,7 @@ func TestLocalBackend_GetImageDirect(t *testing.T) {
 		proxy := makeTestLocalProxy()
 
 		// Modify the timeout to be much shorter than the default 30 seconds
-		proxy.backend.(*LocalBackend).impl.Timeout = time.Millisecond
+		proxy.backend.(*LocalBackend).client.Timeout = time.Millisecond
 
 		body, contentType, err := proxy.GetImageDirect(mock.URL + "/image.png")
 

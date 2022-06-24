@@ -114,7 +114,7 @@ var searchUserStoreTests = []searchTest{
 	},
 	{
 		Name: "Should support one or two character usernames and first/last names in search",
-		Fn:   testSearchOneTwoCharUsersnameAndFirstLastNames,
+		Fn:   testSearchOneTwoCharUsernamesAndFirstLastNames,
 		Tags: []string{EngineAll},
 	},
 	{
@@ -687,7 +687,7 @@ func testSearchUsersShouldBeCaseInsensitive(t *testing.T, th *SearchTestHelper) 
 	th.assertUsersMatchInAnyOrder(t, []*model.User{th.User2}, users.OutOfChannel)
 }
 
-func testSearchOneTwoCharUsersnameAndFirstLastNames(t *testing.T, th *SearchTestHelper) {
+func testSearchOneTwoCharUsernamesAndFirstLastNames(t *testing.T, th *SearchTestHelper) {
 	userAlternate, err := th.createUser("ho", "alternatenickname", "zi", "k")
 	require.NoError(t, err)
 

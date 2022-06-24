@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"image"
 	_ "image/gif"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -91,6 +92,20 @@ func TestCreateEmoji(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, newEmoji.Name, emoji.Name, "create with wrong name")
 	checkEmojiFile(newEmoji.Id, "gif")
+
+	// try to create a valid webp emoji
+	emoji = &model.Emoji{
+		CreatorId: th.BasicUser.Id,
+		Name:      model.NewId(),
+	}
+
+	path, _ := fileutils.FindDir("tests")
+	bytes, err := ioutil.ReadFile(filepath.Join(path, "testwebp.webp"))
+	require.NoError(t, err)
+	newEmoji, _, err = client.CreateEmoji(emoji, bytes, "image.webp")
+	require.NoError(t, err)
+	require.Equal(t, newEmoji.Name, emoji.Name, "create with wrong name")
+	checkEmojiFile(newEmoji.Id, "png") // emoji must be converted from webp to png
 
 	// try to create a valid jpeg emoji
 	emoji = &model.Emoji{
@@ -531,7 +546,7 @@ func TestGetEmojiImage(t *testing.T) {
 	require.Greater(t, len(emojiImage), 0, "no image returned")
 
 	_, imageType, err = image.DecodeConfig(bytes.NewReader(emojiImage))
-	require.NoError(t, err, "unable to indentify received image")
+	require.NoError(t, err, "unable to identify received image")
 	require.Equal(t, imageType, "gif", "expected gif")
 
 	emoji3 := &model.Emoji{
@@ -546,7 +561,7 @@ func TestGetEmojiImage(t *testing.T) {
 	require.Greater(t, len(emojiImage), 0, "no image returned")
 
 	_, imageType, err = image.DecodeConfig(bytes.NewReader(emojiImage))
-	require.NoError(t, err, "unable to indentify received image")
+	require.NoError(t, err, "unable to identify received image")
 	require.Equal(t, imageType, "jpeg", "expected jpeg")
 
 	emoji4 := &model.Emoji{
@@ -561,7 +576,7 @@ func TestGetEmojiImage(t *testing.T) {
 	require.Greater(t, len(emojiImage), 0, "no image returned")
 
 	_, imageType, err = image.DecodeConfig(bytes.NewReader(emojiImage))
-	require.NoError(t, err, "unable to idenitify received image")
+	require.NoError(t, err, "unable to identify received image")
 	require.Equal(t, imageType, "png", "expected png")
 
 	_, err = client.DeleteEmoji(emoji4.Id)

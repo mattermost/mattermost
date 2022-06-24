@@ -13,7 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
-func TestResctrictedViewMembers(t *testing.T) {
+func TestRestrictedViewMembers(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -574,7 +574,7 @@ func TestResctrictedViewMembers(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
 				options := model.UserGetOptions{Page: 0, PerPage: 100, ViewRestrictions: tc.Restrictions}
-				results, err := th.App.GetUsers(&options)
+				results, err := th.App.GetUsersFromProfiles(&options)
 				require.Nil(t, err)
 				ids := []string{}
 				for _, result := range results {

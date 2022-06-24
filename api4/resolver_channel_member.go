@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/graph-gophers/dataloader/v6"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/web"
 )
@@ -30,10 +31,17 @@ func (cm *channelMember) Channel(ctx context.Context) (*channel, error) {
 		return nil, err
 	}
 
-	channel, appErr := c.App.GetChannel(cm.ChannelId)
-	if appErr != nil {
-		return nil, appErr
+	loader, err := getChannelsLoader(ctx)
+	if err != nil {
+		return nil, err
 	}
+
+	thunk := loader.Load(ctx, dataloader.StringKey(cm.ChannelId))
+	result, err := thunk()
+	if err != nil {
+		return nil, err
+	}
+	channel := result.(*channel)
 
 	if channel.Type == model.ChannelTypeOpen {
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) &&
@@ -48,35 +56,120 @@ func (cm *channelMember) Channel(ctx context.Context) (*channel, error) {
 		}
 	}
 
-	appErr = c.App.FillInChannelProps(channel)
+	return channel, nil
+}
+
+func graphQLChannelsLoader(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+	stringKeys := keys.Keys()
+	result := make([]*dataloader.Result, len(stringKeys))
+
+	c, err := getCtx(ctx)
+	if err != nil {
+		for i := range result {
+			result[i] = &dataloader.Result{Error: err}
+		}
+		return result
+	}
+
+	channels, err := getGraphQLChannels(c, stringKeys)
+	if err != nil {
+		for i := range result {
+			result[i] = &dataloader.Result{Error: err}
+		}
+		return result
+	}
+
+	for i, ch := range channels {
+		result[i] = &dataloader.Result{Data: ch}
+	}
+	return result
+}
+
+func getGraphQLChannels(c *web.Context, channelIDs []string) ([]*channel, error) {
+	channels, appErr := c.App.GetChannels(channelIDs)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	res, err := postProcessChannels(c, []*model.Channel{channel})
+	if len(channels) != len(channelIDs) {
+		return nil, fmt.Errorf("all channels were not found. Requested %d; Found %d", len(channelIDs), len(channels))
+	}
+
+	appErr = c.App.FillInChannelsProps(model.ChannelList(channels))
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	res, err := postProcessChannels(c, channels)
 	if err != nil {
 		return nil, err
 	}
-	// A bit of defence-in-depth; can probably be removed after a deeper look.
-	if len(res) != 1 {
-		return nil, fmt.Errorf("postProcessChannels: incorrect number of channels returned %d", len(res))
+
+	// The channels need to be in the exact same order as the input slice.
+	tmp := make(map[string]*channel)
+	for _, ch := range res {
+		tmp[ch.Id] = ch
 	}
-	return res[0], nil
+
+	// We reuse the same slice and just rewrite the channels.
+	for i, id := range channelIDs {
+		res[i] = tmp[id]
+	}
+
+	return res, nil
 }
 
 func (cm *channelMember) Roles_(ctx context.Context) ([]*model.Role, error) {
-	c, err := getCtx(ctx)
+	loader, err := getRolesLoader(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return getGraphQLRoles(c, strings.Fields(cm.Roles))
+	thunk := loader.LoadMany(ctx, dataloader.NewKeysFromStrings(strings.Fields(cm.Roles)))
+	results, errs := thunk()
+	// All errors are the same. We just return the first one.
+	if len(errs) > 0 && errs[0] != nil {
+		return nil, err
+	}
+
+	roles := make([]*model.Role, len(results))
+	for i, res := range results {
+		roles[i] = res.(*model.Role)
+	}
+
+	return roles, nil
 }
 
 func (cm *channelMember) Cursor() *string {
 	cursor := string(channelMemberCursorPrefix) + "-" + cm.ChannelId + "-" + cm.UserId
 	encoded := base64.StdEncoding.EncodeToString([]byte(cursor))
 	return model.NewString(encoded)
+}
+
+func graphQLRolesLoader(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+	stringKeys := keys.Keys()
+	result := make([]*dataloader.Result, len(stringKeys))
+
+	c, err := getCtx(ctx)
+	if err != nil {
+		for i := range result {
+			result[i] = &dataloader.Result{Error: err}
+		}
+		return result
+	}
+
+	roles, err := getGraphQLRoles(c, stringKeys)
+	if err != nil {
+		for i := range result {
+			result[i] = &dataloader.Result{Error: err}
+		}
+		return result
+	}
+
+	for i, role := range roles {
+		result[i] = &dataloader.Result{Data: role}
+	}
+	return result
 }
 
 func getGraphQLRoles(c *web.Context, roleNames []string) ([]*model.Role, error) {
@@ -89,6 +182,17 @@ func getGraphQLRoles(c *web.Context, roleNames []string) ([]*model.Role, error) 
 	roles, appErr := c.App.GetRolesByNames(cleanedRoleNames)
 	if appErr != nil {
 		return nil, appErr
+	}
+
+	// The roles need to be in the exact same order as the input slice.
+	tmp := make(map[string]*model.Role)
+	for _, r := range roles {
+		tmp[r.Name] = r
+	}
+
+	// We reuse the same slice and just rewrite the roles.
+	for i, roleName := range roleNames {
+		roles[i] = tmp[roleName]
 	}
 
 	return roles, nil

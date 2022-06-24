@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -18,9 +19,11 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -963,5 +966,162 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		pluginStatus, err := env.Statuses()
 		require.NoError(t, err)
 		require.Len(t, pluginStatus, 0)
+	})
+}
+
+func TestEnablePluginWithCloudLimits(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.RequirePluginSignature = false
+		cfg.PluginSettings.PluginStates["testplugin"] = &model.PluginState{Enable: false}
+		cfg.PluginSettings.PluginStates["testplugin2"] = &model.PluginState{Enable: false}
+	})
+
+	cloud := &mocks.CloudInterface{}
+	cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
+		Integrations: &model.IntegrationsLimits{
+			Enabled: model.NewInt(1),
+		},
+	}, nil)
+
+	cloudImpl := th.App.Srv().Cloud
+	defer func() {
+		th.App.Srv().Cloud = cloudImpl
+	}()
+	th.App.Srv().Cloud = cloud
+
+	env := th.App.GetPluginsEnvironment()
+	require.NotNil(t, env)
+
+	path, _ := fileutils.FindDir("tests")
+	fileReader, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))
+	require.NoError(t, err)
+	defer fileReader.Close()
+
+	_, appErr := th.App.WriteFile(fileReader, getBundleStorePath("testplugin"))
+	checkNoError(t, appErr)
+
+	fileReader, err = os.Open(filepath.Join(path, "testplugin2.tar.gz"))
+	require.NoError(t, err)
+	defer fileReader.Close()
+
+	_, appErr = th.App.WriteFile(fileReader, getBundleStorePath("testplugin2"))
+	checkNoError(t, appErr)
+
+	appErr = th.App.SyncPlugins()
+	checkNoError(t, appErr)
+
+	appErr = th.App.EnablePlugin("testplugin")
+	checkNoError(t, appErr)
+
+	appErr = th.App.EnablePlugin("testplugin2")
+	checkError(t, appErr)
+	require.Equal(t, "app.install_integration.reached_max_limit.error", appErr.Id)
+
+	th.App.Srv().RemoveLicense()
+	appErr = th.App.EnablePlugin("testplugin2")
+	checkNoError(t, appErr)
+	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+	appErr = th.App.EnablePlugin("testplugin2")
+	checkError(t, appErr)
+
+	// Let enable succeed if a CWS error occurs
+	cloud = &mocks.CloudInterface{}
+	th.App.Srv().Cloud = cloud
+	cloud.Mock.On("GetCloudLimits", mock.Anything).Return(nil, errors.New("error getting limits"))
+
+	appErr = th.App.EnablePlugin("testplugin2")
+	checkNoError(t, appErr)
+}
+
+func TestGetPluginStateOverride(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t.Run("no override", func(t *testing.T) {
+		overrides, value := th.App.ch.getPluginStateOverride("focalboard")
+		require.False(t, overrides)
+		require.False(t, value)
+	})
+
+	t.Run("calls override", func(t *testing.T) {
+		t.Run("on-prem", func(t *testing.T) {
+			overrides, value := th.App.ch.getPluginStateOverride("com.mattermost.calls")
+			require.False(t, overrides)
+			require.False(t, value)
+		})
+
+		t.Run("Cloud, without enabled flag", func(t *testing.T) {
+			os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
+			defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
+			overrides, value := th.App.ch.getPluginStateOverride("com.mattermost.calls")
+			require.False(t, overrides)
+			require.False(t, value)
+		})
+
+		t.Run("Cloud, with enabled flag set to true", func(t *testing.T) {
+			os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
+			defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
+			os.Setenv("MM_FEATUREFLAGS_CALLSENABLED", "true")
+			defer os.Unsetenv("MM_FEATUREFLAGS_CALLSENABLED")
+
+			th2 := Setup(t)
+			defer th2.TearDown()
+
+			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.calls")
+			require.False(t, overrides)
+			require.False(t, value)
+		})
+
+		t.Run("Cloud, with enabled flag set to false", func(t *testing.T) {
+			os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
+			defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
+			os.Setenv("MM_FEATUREFLAGS_CALLSENABLED", "false")
+			defer os.Unsetenv("MM_FEATUREFLAGS_CALLSENABLED")
+
+			th2 := Setup(t)
+			defer th2.TearDown()
+
+			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.calls")
+			require.True(t, overrides)
+			require.False(t, value)
+		})
+
+		t.Run("On-prem, with enabled flag set to false", func(t *testing.T) {
+			os.Setenv("MM_FEATUREFLAGS_CALLSENABLED", "false")
+			defer os.Unsetenv("MM_FEATUREFLAGS_CALLSENABLED")
+
+			th2 := Setup(t)
+			defer th2.TearDown()
+
+			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.calls")
+			require.True(t, overrides)
+			require.False(t, value)
+		})
+	})
+
+	t.Run("apps override", func(t *testing.T) {
+		t.Run("without enabled flag", func(t *testing.T) {
+			overrides, value := th.App.ch.getPluginStateOverride("com.mattermost.apps")
+			require.False(t, overrides)
+			require.False(t, value)
+		})
+
+		t.Run("with enabled flag set to false", func(t *testing.T) {
+			os.Setenv("MM_FEATUREFLAGS_APPSENABLED", "false")
+			defer os.Unsetenv("MM_FEATUREFLAGS_APPSENABLED")
+
+			th2 := Setup(t)
+			defer th2.TearDown()
+
+			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.apps")
+			require.True(t, overrides)
+			require.False(t, value)
+		})
 	})
 }

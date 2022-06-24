@@ -57,6 +57,7 @@ func (a *App) PreparePostListForClient(originalList *model.PostList) *model.Post
 		Order:      originalList.Order,
 		NextPostId: originalList.NextPostId,
 		PrevPostId: originalList.PrevPostId,
+		HasNext:    originalList.HasNext,
 	}
 
 	for id, originalPost := range originalList.Posts {
@@ -162,6 +163,18 @@ func (a *App) getEmbedsAndImages(post *model.Post, isNewPost bool) *model.Post {
 	return post
 }
 
+func (a *App) sanitizePostMetadataForUserAndChannel(post *model.Post, previewedPost *model.PreviewPost, previewedChannel *model.Channel, userID string) *model.Post {
+	if post.Metadata == nil || len(post.Metadata.Embeds) == 0 || previewedPost == nil {
+		return post
+	}
+
+	if previewedChannel != nil && !a.HasPermissionToReadChannel(userID, previewedChannel) {
+		post.Metadata.Embeds[0].Data = nil
+	}
+
+	return post
+}
+
 func (a *App) SanitizePostMetadataForUser(post *model.Post, userID string) (*model.Post, *model.AppError) {
 	if post.Metadata == nil || len(post.Metadata.Embeds) == 0 {
 		return post, nil
@@ -178,7 +191,6 @@ func (a *App) SanitizePostMetadataForUser(post *model.Post, userID string) (*mod
 	}
 
 	if previewedChannel != nil && !a.HasPermissionToReadChannel(userID, previewedChannel) {
-		post = post.Clone()
 		post.Metadata.Embeds[0].Data = nil
 	}
 
@@ -294,7 +306,13 @@ func (a *App) getImagesForPost(post *model.Post, imageURLs []string, isNewPost b
 			imageURLs = append(imageURLs, a.getImagesInMessageAttachments(post)...)
 
 		case model.PostEmbedOpengraph:
-			for _, image := range embed.Data.(*opengraph.OpenGraph).Images {
+			openGraph, ok := embed.Data.(*opengraph.OpenGraph)
+			if !ok {
+				mlog.Warn("Could not read the image data: the data could not be casted to OpenGraph",
+					mlog.String("post_id", post.Id), mlog.String("data type", fmt.Sprintf("%t", embed.Data)))
+				continue
+			}
+			for _, image := range openGraph.Images {
 				var imageURL string
 				if image.SecureURL != "" {
 					imageURL = image.SecureURL
@@ -486,6 +504,14 @@ func looksLikeAPermalink(url, siteURL string) bool {
 	return matched
 }
 
+func (a *App) containsPermalink(post *model.Post) bool {
+	link, _ := a.getFirstLinkAndImages(post.Message)
+	if link == "" {
+		return false
+	}
+	return looksLikeAPermalink(link, a.GetSiteURL())
+}
+
 func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool, previewedPostPropVal string) (*opengraph.OpenGraph, *model.PostImage, *model.Permalink, error) {
 	requestURL = resolveMetadataURL(requestURL, a.GetSiteURL())
 
@@ -514,7 +540,7 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 	if looksLikeAPermalink(requestURL, a.GetSiteURL()) && *a.Config().ServiceSettings.EnablePermalinkPreviews && a.Config().FeatureFlags.PermalinkPreviews {
 		referencedPostID := requestURL[len(requestURL)-26:]
 
-		referencedPost, appErr := a.GetSinglePost(referencedPostID)
+		referencedPost, appErr := a.GetSinglePost(referencedPostID, false)
 		// TODO: Look into saving a value in the LinkMetadata.Data field to prevent perpetually re-querying for the deleted post.
 		if appErr != nil {
 			return nil, nil, nil, appErr
@@ -525,12 +551,25 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 			return nil, nil, nil, appErr
 		}
 
-		referencedTeam, appErr := a.GetTeam(referencedChannel.TeamId)
-		if appErr != nil {
-			return nil, nil, nil, appErr
+		var referencedTeam *model.Team
+		if referencedChannel.Type == model.ChannelTypeDirect || referencedChannel.Type == model.ChannelTypeGroup {
+			referencedTeam = &model.Team{}
+		} else {
+			referencedTeam, appErr = a.GetTeam(referencedChannel.TeamId)
+			if appErr != nil {
+				return nil, nil, nil, appErr
+			}
 		}
 
-		permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPost, referencedTeam, referencedChannel)}
+		// Get metadata for embedded post
+		if a.containsPermalink(referencedPost) {
+			// referencedPost contains a permalink: we don't get its metadata
+			permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPost, referencedTeam, referencedChannel)}
+		} else {
+			// referencedPost does not contain a permalink: we get its metadata
+			referencedPostWithMetadata := a.PreparePostForClientWithEmbedsAndImages(referencedPost, false, false)
+			permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPostWithMetadata, referencedTeam, referencedChannel)}
+		}
 	} else {
 
 		var request *http.Request

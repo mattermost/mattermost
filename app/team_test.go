@@ -16,9 +16,12 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/app/email"
+	emailmocks "github.com/mattermost/mattermost-server/v6/app/email/mocks"
 	"github.com/mattermost/mattermost-server/v6/app/teams"
 	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
@@ -463,6 +466,197 @@ func TestAddUserToTeamByTeamId(t *testing.T) {
 
 }
 
+func TestSoftDeleteAllTeamsExcept(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	teams := []*model.Team{
+		{
+			DisplayName: "team-1",
+			Name:        "team-1",
+			Email:       "foo@foo.com",
+			Type:        model.TeamOpen,
+		},
+	}
+	teamId := ""
+	for _, create := range teams {
+		team, err := th.App.CreateTeam(th.Context, create)
+		require.Nil(t, err)
+		teamId = team.Id
+	}
+
+	err := th.App.SoftDeleteAllTeamsExcept(teamId)
+	assert.Nil(t, err)
+	allTeams, err := th.App.GetAllTeams()
+	require.Nil(t, err)
+	for _, team := range allTeams {
+		if team.Id == teamId {
+			require.Equal(t, int64(0), team.DeleteAt)
+			require.Equal(t, false, team.CloudLimitsArchived)
+		} else {
+			require.NotEqual(t, int64(0), team.DeleteAt)
+			require.Equal(t, true, team.CloudLimitsArchived)
+		}
+	}
+
+}
+
+func TestAdjustTeamsFromProductLimits(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	teams := []*model.Team{
+		{
+			DisplayName: "team-1",
+			Name:        "team-1",
+			Email:       "foo@foo.com",
+			Type:        model.TeamOpen,
+		},
+		{
+			DisplayName: "team-2",
+			Name:        "team-2",
+			Email:       "foo@foo.com",
+			Type:        model.TeamOpen,
+		},
+		{
+			DisplayName: "team-3",
+			Name:        "team-3",
+			Email:       "foo@foo.com",
+			Type:        model.TeamOpen,
+		},
+	}
+	teamIds := []string{}
+	for _, create := range teams {
+		team, err := th.App.CreateTeam(th.Context, create)
+		require.Nil(t, err)
+		teamIds = append(teamIds, team.Id)
+	}
+	t.Run("Should soft delete teams if there are more teams than the limit", func(t *testing.T) {
+		activeLimit := 1
+		teamLimits := &model.TeamsLimits{Active: &activeLimit}
+
+		err := th.App.AdjustTeamsFromProductLimits(teamLimits)
+		require.Nil(t, err)
+
+		teamsList, err := th.App.GetTeams(teamIds)
+
+		require.Nil(t, err)
+
+		// Sort the list of teams based on their creation date
+		sort.Slice(teamsList, func(i, j int) bool {
+			return teamsList[i].CreateAt < teamsList[j].CreateAt
+		})
+
+		for i := range teamsList {
+			require.Equal(t, teamsList[i].DisplayName, teams[i].DisplayName)
+			require.NotEqual(t, 0, teamsList[i].DeleteAt)
+			require.Equal(t, true, teamsList[i].CloudLimitsArchived)
+		}
+	})
+
+	t.Run("Should not do anything if the amount of teams is equal to the limit", func(t *testing.T) {
+
+		expectedTeamsList, err := th.App.GetAllTeams()
+
+		var expectedActiveTeams []*model.Team
+		var expectedCloudArchivedTeams []*model.Team
+		for _, team := range expectedTeamsList {
+			if team.DeleteAt == 0 {
+				expectedActiveTeams = append(expectedActiveTeams, team)
+			}
+			if team.DeleteAt > 0 && team.CloudLimitsArchived {
+				expectedCloudArchivedTeams = append(expectedCloudArchivedTeams, team)
+			}
+		}
+
+		require.Nil(t, err)
+
+		activeLimit := len(expectedActiveTeams)
+		teamLimits := &model.TeamsLimits{Active: &activeLimit}
+		err = th.App.AdjustTeamsFromProductLimits(teamLimits)
+		require.Nil(t, err)
+
+		actualTeamsList, err := th.App.GetAllTeams()
+
+		require.Nil(t, err)
+		var actualActiveTeams []*model.Team
+		var actualCloudArchivedTeams []*model.Team
+		for _, team := range actualTeamsList {
+			if team.DeleteAt == 0 {
+				actualActiveTeams = append(actualActiveTeams, team)
+			}
+			if team.DeleteAt > 0 && team.CloudLimitsArchived {
+				actualCloudArchivedTeams = append(actualCloudArchivedTeams, team)
+			}
+		}
+
+		require.Equal(t, len(expectedActiveTeams), len(actualActiveTeams))
+		require.Equal(t, len(expectedCloudArchivedTeams), len(actualCloudArchivedTeams))
+	})
+
+	t.Run("Should restore archived teams if limit increases", func(t *testing.T) {
+		activeLimit := 1
+		teamLimits := &model.TeamsLimits{Active: &activeLimit}
+
+		err := th.App.AdjustTeamsFromProductLimits(teamLimits)
+		require.Nil(t, err)
+		activeLimit = 10000 // make the limit extremely high so all teams are enabled
+		teamLimits = &model.TeamsLimits{Active: &activeLimit}
+
+		err = th.App.AdjustTeamsFromProductLimits(teamLimits)
+		require.Nil(t, err)
+
+		teamsList, err := th.App.GetTeams(teamIds)
+
+		require.Nil(t, err)
+
+		// Sort the list of teams based on their creation date
+		sort.Slice(teamsList, func(i, j int) bool {
+			return teamsList[i].CreateAt < teamsList[j].CreateAt
+		})
+
+		for i := range teamsList {
+			require.Equal(t, teamsList[i].DisplayName, teams[i].DisplayName)
+			require.Equal(t, int64(0), teamsList[i].DeleteAt)
+			require.Equal(t, false, teamsList[i].CloudLimitsArchived)
+		}
+	})
+
+	t.Run("Should only restore teams that were archived by cloud limits", func(t *testing.T) {
+
+		activeLimit := 1
+		teamLimits := &model.TeamsLimits{Active: &activeLimit}
+
+		err := th.App.AdjustTeamsFromProductLimits(teamLimits)
+		require.Nil(t, err)
+
+		cloudLimitsArchived := false
+		patch := &model.TeamPatch{CloudLimitsArchived: &cloudLimitsArchived}
+		team, err := th.App.PatchTeam(teamIds[0], patch)
+		require.Nil(t, err)
+		require.Equal(t, false, team.CloudLimitsArchived)
+
+		activeLimit = 10000 // make the limit extremely high so all teams are enabled
+		teamLimits = &model.TeamsLimits{Active: &activeLimit}
+
+		err = th.App.AdjustTeamsFromProductLimits(teamLimits)
+		require.Nil(t, err)
+
+		teamsList, err := th.App.GetTeams(teamIds)
+
+		require.Nil(t, err)
+
+		// Sort the list of teams based on their creation date
+		sort.Slice(teamsList, func(i, j int) bool {
+			return teamsList[i].CreateAt < teamsList[j].CreateAt
+		})
+
+		require.NotEqual(t, int64(0), teamsList[0].DeleteAt)
+		require.Equal(t, int64(0), teamsList[1].DeleteAt)
+		require.Equal(t, int64(0), teamsList[2].DeleteAt)
+	})
+
+}
+
 func TestPermanentDeleteTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -765,7 +959,7 @@ func TestJoinUserToTeam(t *testing.T) {
 		require.NotNil(t, appErr, "Should fail")
 	})
 
-	t.Run("re-join alfter leaving with limit problem", func(t *testing.T) {
+	t.Run("re-join after leaving with limit problem", func(t *testing.T) {
 		user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		ruser1, _ := th.App.CreateUser(th.Context, &user1)
 
@@ -879,6 +1073,7 @@ func TestLeaveTeamPanic(t *testing.T) {
 	mockStore.On("System").Return(&mockSystemStore)
 	mockStore.On("License").Return(&mockLicenseStore)
 	mockStore.On("Team").Return(&mockTeamStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	team := &model.Team{Id: "myteam"}
 	user := &model.User{Id: "userID"}
@@ -1152,6 +1347,29 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 	})
 }
 
+func TestInvalidateAllResendInviteEmailJobs(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	job, err := th.App.Srv().Jobs.CreateJob(model.JobTypeResendInvitationEmail, map[string]string{})
+	require.Nil(t, err)
+
+	sysVar := &model.System{Name: job.Id, Value: "0"}
+	e := th.App.Srv().Store.System().SaveOrUpdate(sysVar)
+	require.NoError(t, e)
+
+	appErr := th.App.InvalidateAllResendInviteEmailJobs()
+	require.Nil(t, appErr)
+
+	j, e := th.App.Srv().Store.Job().Get(job.Id)
+	require.NoError(t, e)
+	require.Equal(t, j.Status, model.JobStatusCanceled)
+
+	_, sysValErr := th.App.Srv().Store.System().GetByName(job.Id)
+	var errNotFound *store.ErrNotFound
+	require.ErrorAs(t, sysValErr, &errNotFound)
+}
+
 func TestInvalidateAllEmailInvites(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -1213,6 +1431,166 @@ func TestClearTeamMembersCache(t *testing.T) {
 		TeamId: "1",
 	}}, nil)
 	mockStore.On("Team").Return(&mockTeamStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	th.App.ClearTeamMembersCache("teamID")
+}
+
+func TestInviteNewUsersToTeamGracefully(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableEmailInvitations = true
+	})
+
+	t.Run("it return list of email with no error on success", func(t *testing.T) {
+		emailServiceMock := emailmocks.ServiceInterface{}
+		memberInvite := &model.MemberInvite{
+			Emails: []string{"idontexist@mattermost.com"},
+		}
+		emailServiceMock.On("SendInviteEmails",
+			mock.AnythingOfType("*model.Team"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			memberInvite.Emails,
+			"",
+			mock.Anything,
+			true,
+		).Once().Return(nil)
+		th.App.Srv().EmailService = &emailServiceMock
+
+		res, err := th.App.InviteNewUsersToTeamGracefully(memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, err)
+		require.Len(t, res, 1)
+		require.Nil(t, res[0].Error)
+	})
+
+	t.Run("it should assign errors to emails when failing to send", func(t *testing.T) {
+		emailServiceMock := emailmocks.ServiceInterface{}
+		memberInvite := &model.MemberInvite{
+			Emails: []string{"idontexist@mattermost.com"},
+		}
+		emailServiceMock.On("SendInviteEmails",
+			mock.AnythingOfType("*model.Team"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			memberInvite.Emails,
+			"",
+			mock.Anything,
+			true,
+		).Once().Return(email.SendMailError)
+		th.App.Srv().EmailService = &emailServiceMock
+
+		res, err := th.App.InviteNewUsersToTeamGracefully(memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, err)
+		require.Len(t, res, 1)
+		require.NotNil(t, res[0].Error)
+	})
+
+	t.Run("it return list of email with no error when inviting to team and channels using memberInvite struct", func(t *testing.T) {
+		emailServiceMock := emailmocks.ServiceInterface{}
+		memberInvite := &model.MemberInvite{
+			Emails:     []string{"idontexist@mattermost.com"},
+			ChannelIds: []string{th.BasicChannel.Id},
+		}
+		emailServiceMock.On("SendInviteEmailsToTeamAndChannels",
+			mock.AnythingOfType("*model.Team"),
+			mock.AnythingOfType("[]*model.Channel"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("[]uint8"),
+			memberInvite.Emails,
+			"",
+			mock.Anything,
+			mock.AnythingOfType("string"),
+			true,
+		).Once().Return([]*model.EmailInviteWithError{}, nil)
+		th.App.Srv().EmailService = &emailServiceMock
+
+		res, err := th.App.InviteNewUsersToTeamGracefully(memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, err)
+		require.Len(t, res, 1)
+		require.Nil(t, res[0].Error)
+	})
+
+	t.Run("it return list of email with no error when inviting to team and channels using plain emails array", func(t *testing.T) {
+		emailServiceMock := emailmocks.ServiceInterface{}
+		memberInvite := &model.MemberInvite{
+			Emails: []string{"idontexist@mattermost.com"},
+		}
+		emailServiceMock.On("SendInviteEmails",
+			mock.AnythingOfType("*model.Team"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			[]string{"idontexist@mattermost.com"},
+			"",
+			mock.Anything,
+			true,
+		).Once().Return(nil)
+		th.App.Srv().EmailService = &emailServiceMock
+
+		res, err := th.App.InviteNewUsersToTeamGracefully(memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, err)
+		require.Len(t, res, 1)
+		require.Nil(t, res[0].Error)
+	})
+}
+
+func TestInviteGuestsToChannelsGracefully(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableEmailInvitations = true
+	})
+
+	t.Run("it return list of email with no error on success", func(t *testing.T) {
+		emailServiceMock := emailmocks.ServiceInterface{}
+		emailServiceMock.On("SendGuestInviteEmails",
+			mock.AnythingOfType("*model.Team"),
+			mock.AnythingOfType("[]*model.Channel"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("[]uint8"),
+			[]string{"idontexist@mattermost.com"},
+			"",
+			"",
+			true,
+		).Once().Return(nil)
+		th.App.Srv().EmailService = &emailServiceMock
+
+		res, err := th.App.InviteGuestsToChannelsGracefully(th.BasicTeam.Id, &model.GuestsInvite{
+			Emails:   []string{"idontexist@mattermost.com"},
+			Channels: []string{th.BasicChannel.Id},
+		}, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.Len(t, res, 1)
+		require.Nil(t, res[0].Error)
+	})
+
+	t.Run("it should assign errors to emails when failing to send", func(t *testing.T) {
+		emailServiceMock := emailmocks.ServiceInterface{}
+		emailServiceMock.On("SendGuestInviteEmails",
+			mock.AnythingOfType("*model.Team"),
+			mock.AnythingOfType("[]*model.Channel"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("[]uint8"),
+			[]string{"idontexist@mattermost.com"},
+			"",
+			"",
+			true,
+		).Once().Return(email.SendMailError)
+		th.App.Srv().EmailService = &emailServiceMock
+
+		res, err := th.App.InviteGuestsToChannelsGracefully(th.BasicTeam.Id, &model.GuestsInvite{
+			Emails:   []string{"idontexist@mattermost.com"},
+			Channels: []string{th.BasicChannel.Id},
+		}, th.BasicUser.Id)
+
+		require.Nil(t, err)
+		require.Len(t, res, 1)
+		require.NotNil(t, res[0].Error)
+	})
 }

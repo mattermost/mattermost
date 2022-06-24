@@ -71,6 +71,11 @@ const (
 	PostPropsPreviewedPost = "previewed_post"
 )
 
+const (
+	ModifierMessages string = "messages"
+	ModifierFiles    string = "files"
+)
+
 type Post struct {
 	Id         string `json:"id"`
 	CreateAt   int64  `json:"create_at"`
@@ -127,6 +132,7 @@ type SearchParameter struct {
 	Page                   *int    `json:"page"`
 	PerPage                *int    `json:"per_page"`
 	IncludeDeletedChannels *bool   `json:"include_deleted_channels"`
+	Modifier               *string `json:"modifier"` // whether it's messages or file
 }
 
 type AnalyticsPostCountsOptions struct {
@@ -263,6 +269,20 @@ type GetPostsOptions struct {
 	SkipFetchThreads         bool
 	CollapsedThreads         bool
 	CollapsedThreadsExtended bool
+	FromPost                 string // PostId after which to send the items
+	FromCreateAt             int64  // CreateAt after which to send the items
+	Direction                string // Only accepts up|down. Indicates the order in which to send the items.
+}
+
+type PostCountOptions struct {
+	// Only include posts on a specific team. "" for any team.
+	TeamId          string
+	MustHaveFile    bool
+	MustHaveHashtag bool
+	ExcludeDeleted  bool
+	UsersPostsOnly  bool
+	// AllowFromCache looks up cache only when ExcludeDeleted and UsersPostsOnly are true and rest are falsy.
+	AllowFromCache bool
 }
 
 func (o *Post) Etag() string {

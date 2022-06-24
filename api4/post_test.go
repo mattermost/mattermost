@@ -132,7 +132,7 @@ func TestCreatePost(t *testing.T) {
 		require.NoError(t, err)
 
 		// Message with no channel mentions should result in no ephemeral message
-		timeout := time.After(300 * time.Millisecond)
+		timeout := time.After(2 * time.Second)
 		waiting := true
 		for waiting {
 			select {
@@ -158,7 +158,7 @@ func TestCreatePost(t *testing.T) {
 		_, _, err = client.CreatePost(post)
 		require.NoError(t, err)
 
-		timeout = time.After(600 * time.Millisecond)
+		timeout = time.After(2 * time.Second)
 		eventsToGo := 3 // 3 Posts created with @ mentions should result in 3 websocket events
 		for eventsToGo > 0 {
 			select {
@@ -340,7 +340,7 @@ func testCreatePostWithOutgoingHook(
 		outGoingHookResponse := &model.OutgoingWebhookResponse{
 			Text:         model.NewString("some test text"),
 			Username:     "TestCommandServer",
-			IconURL:      "https://www.mattermost.org/wp-content/uploads/2016/04/icon.png",
+			IconURL:      "https://mattermost.com/wp-content/uploads/2022/02/icon.png",
 			Type:         "custom_as",
 			ResponseType: respPostType,
 		}
@@ -535,6 +535,69 @@ func TestCreatePostAll(t *testing.T) {
 	_, resp, err = client.CreatePost(post)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
+}
+
+func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	WebSocketClient, err := th.CreateWebSocketClient()
+	require.NoError(t, err)
+	WebSocketClient.Listen()
+
+	inChannelUser := th.CreateUser()
+	th.LinkUserToTeam(inChannelUser, th.BasicTeam)
+	th.App.AddUserToChannel(inChannelUser, th.BasicChannel, false)
+
+	post1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "@" + inChannelUser.Username}
+	_, resp, err := client.CreatePost(post1)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+
+	timeout := time.After(2 * time.Second)
+	waiting := true
+	for waiting {
+		select {
+		case event := <-WebSocketClient.EventChannel:
+			require.NotEqual(t, model.WebsocketEventEphemeralMessage, event.EventType(), "should not have ephemeral message event")
+		case <-timeout:
+			waiting = false
+		}
+	}
+
+	outOfChannelUser := th.CreateUser()
+	th.LinkUserToTeam(outOfChannelUser, th.BasicTeam)
+
+	post2 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "@" + outOfChannelUser.Username}
+	_, resp, err = client.CreatePost(post2)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+
+	timeout = time.After(2 * time.Second)
+	waiting = true
+	for waiting {
+		select {
+		case event := <-WebSocketClient.EventChannel:
+			if event.EventType() != model.WebsocketEventEphemeralMessage {
+				// Ignore any other events
+				continue
+			}
+
+			var wpost model.Post
+			err := json.Unmarshal([]byte(event.GetData()["post"].(string)), &wpost)
+			require.NoError(t, err)
+
+			acm, ok := wpost.GetProp(model.PropsAddChannelMember).(map[string]interface{})
+			require.True(t, ok, "should have received ephemeral post with 'add_channel_member' in props")
+			require.True(t, acm["post_id"] != nil, "should not be nil")
+			require.True(t, acm["user_ids"] != nil, "should not be nil")
+			require.True(t, acm["usernames"] != nil, "should not be nil")
+			waiting = false
+		case <-timeout:
+			require.FailNow(t, "timed out waiting for ephemeral message event")
+		}
+	}
 }
 
 func TestCreatePostCheckOnlineStatus(t *testing.T) {
@@ -1074,7 +1137,7 @@ func TestPinPost(t *testing.T) {
 	_, err := client.PinPost(post.Id)
 	require.NoError(t, err)
 
-	rpost, appErr := th.App.GetSinglePost(post.Id)
+	rpost, appErr := th.App.GetSinglePost(post.Id, false)
 	require.Nil(t, appErr)
 	require.True(t, rpost.IsPinned, "failed to pin post")
 
@@ -1104,7 +1167,7 @@ func TestUnpinPost(t *testing.T) {
 	_, err := client.UnpinPost(pinnedPost.Id)
 	require.NoError(t, err)
 
-	rpost, appErr := th.App.GetSinglePost(pinnedPost.Id)
+	rpost, appErr := th.App.GetSinglePost(pinnedPost.Id, false)
 	require.Nil(t, appErr)
 	require.False(t, rpost.IsPinned)
 
@@ -2078,6 +2141,29 @@ func TestGetPost(t *testing.T) {
 	_, _, err = th.LocalClient.GetPost(privatePost.Id, "")
 	require.NoError(t, err)
 
+	// Delete post
+	th.SystemAdminClient.DeletePost(th.BasicPost.Id)
+
+	// Normal client should get 404 when trying to access deleted post normally
+	_, resp, err = client.GetPost(th.BasicPost.Id, "")
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+
+	// Normal client should get unauthorized when trying to access deleted post
+	_, resp, err = client.GetPostIncludeDeleted(th.BasicPost.Id, "")
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	// System client should get 404 when trying to access deleted post normally
+	_, resp, err = th.SystemAdminClient.GetPost(th.BasicPost.Id, "")
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+
+	// System client should be able to access deleted post with include_deleted param
+	post, _, err := th.SystemAdminClient.GetPostIncludeDeleted(th.BasicPost.Id, "")
+	require.NoError(t, err)
+	require.Equal(t, th.BasicPost.Id, post.Id)
+
 	client.Logout()
 
 	// Normal client should get unauthorized, but local client should get 404.
@@ -2154,7 +2240,7 @@ func TestDeletePostEvent(t *testing.T) {
 				require.NoError(t, err)
 				received = true
 			}
-		case <-time.After(500 * time.Millisecond):
+		case <-time.After(2 * time.Second):
 			exit = true
 		}
 		if exit {
@@ -2261,6 +2347,22 @@ func TestGetPostThread(t *testing.T) {
 	_, resp, err = client.GetPostThread(privatePost.Id, "", false)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
+
+	// Sending some bad params
+	_, resp, err = client.GetPostThreadWithOpts(th.BasicPost.Id, "", model.GetPostsOptions{
+		CollapsedThreads: true,
+		FromPost:         "something",
+		PerPage:          10,
+	})
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp, err = client.GetPostThreadWithOpts(th.BasicPost.Id, "", model.GetPostsOptions{
+		CollapsedThreads: true,
+		Direction:        "sideways",
+	})
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
 
 	client.Logout()
 	_, resp, err = client.GetPostThread(model.NewId(), "", false)
@@ -2520,19 +2622,23 @@ func TestSearchPostsFromUser(t *testing.T) {
 	message = "sgtitlereview\n with return"
 	_ = th.CreateMessagePostWithClient(client, th.BasicChannel2, message)
 
-	posts, _, _ := client.SearchPosts(th.BasicTeam.Id, "from: "+th.TeamAdminUser.Username, false)
+	posts, _, err := client.SearchPosts(th.BasicTeam.Id, "from: "+th.TeamAdminUser.Username, false)
+	require.NoError(t, err)
 	require.Lenf(t, posts.Order, 2, "wrong number of posts for search 'from: %v'", th.TeamAdminUser.Username)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username, false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username, false)
+	require.NoError(t, err)
 	require.Lenf(t, posts.Order, 1, "wrong number of posts for search 'from: %v", th.BasicUser2.Username)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" sgtitlereview", false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" sgtitlereview", false)
+	require.NoError(t, err)
 	require.Lenf(t, posts.Order, 1, "wrong number of posts for search 'from: %v'", th.BasicUser2.Username)
 
 	message = "hullo"
 	_ = th.CreateMessagePost(message)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" in:"+th.BasicChannel.Name, false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" in:"+th.BasicChannel.Name, false)
+	require.NoError(t, err)
 	require.Len(t, posts.Order, 1, "wrong number of posts for search 'from: %v in:", th.BasicUser2.Username, th.BasicChannel.Name)
 
 	client.Login(user.Email, user.Password)
@@ -2540,19 +2646,23 @@ func TestSearchPostsFromUser(t *testing.T) {
 	// wait for the join/leave messages to be created for user3 since they're done asynchronously
 	time.Sleep(100 * time.Millisecond)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username, false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username, false)
+	require.NoError(t, err)
 	require.Lenf(t, posts.Order, 2, "wrong number of posts for search 'from: %v'", th.BasicUser2.Username)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username, false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username, false)
+	require.NoError(t, err)
 	require.Lenf(t, posts.Order, 2, "wrong number of posts for search 'from: %v from: %v'", th.BasicUser2.Username, user.Username)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username+" in:"+th.BasicChannel2.Name, false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username+" in:"+th.BasicChannel2.Name, false)
+	require.NoError(t, err)
 	require.Len(t, posts.Order, 1, "wrong number of posts")
 
 	message = "coconut"
 	_ = th.CreateMessagePostWithClient(client, th.BasicChannel2, message)
 
-	posts, _, _ = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username+" in:"+th.BasicChannel2.Name+" coconut", false)
+	posts, _, err = client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username+" in:"+th.BasicChannel2.Name+" coconut", false)
+	require.NoError(t, err)
 	require.Len(t, posts.Order, 1, "wrong number of posts")
 }
 
@@ -2705,6 +2815,93 @@ func TestSetChannelUnread(t *testing.T) {
 		assert.Equal(t, int64(2), unread.MsgCount)
 	})
 
+	t.Run("Unread on a direct channel", func(t *testing.T) {
+		dc := th.CreateDmChannel(u2)
+		th.CreateMessagePostNoClient(dc, "test1", now)
+		p := th.CreateMessagePostNoClient(dc, "test2", now+10)
+		require.NotNil(t, p)
+		th.CreateMessagePostNoClient(dc, "test3", now+20)
+		p1 := th.CreateMessagePostNoClient(dc, "test4", now+30)
+		require.NotNil(t, p1)
+
+		// Ensure that post have been read
+		unread, err := th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(4), unread.MsgCount)
+		cv := &model.ChannelView{ChannelId: dc.Id}
+		_, appErr := th.App.ViewChannel(cv, u1.Id, s2.Id, false)
+		require.Nil(t, appErr)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(0), unread.MsgCount)
+
+		r, _ := th.Client.SetPostUnread(u1.Id, p.Id, false)
+		assert.Equal(t, 200, r.StatusCode)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(3), unread.MsgCount)
+
+		// Ensure that post have been read
+		_, appErr = th.App.ViewChannel(cv, u1.Id, s2.Id, false)
+		require.Nil(t, appErr)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(0), unread.MsgCount)
+
+		r, _ = th.Client.SetPostUnread(u1.Id, p1.Id, false)
+		assert.Equal(t, 200, r.StatusCode)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(1), unread.MsgCount)
+	})
+
+	t.Run("Unread on a direct channel in a thread", func(t *testing.T) {
+		dc := th.CreateDmChannel(th.CreateUser())
+		rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: u1.Id, CreateAt: now, ChannelId: dc.Id, Message: "root"}, dc, false, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: u1.Id, CreateAt: now + 10, ChannelId: dc.Id, Message: "reply 1"}, dc, false, false)
+		require.Nil(t, appErr)
+		reply2, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: u1.Id, CreateAt: now + 20, ChannelId: dc.Id, Message: "reply 2"}, dc, false, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: u1.Id, CreateAt: now + 30, ChannelId: dc.Id, Message: "reply 3"}, dc, false, false)
+		require.Nil(t, appErr)
+
+		// Ensure that post have been read
+		unread, err := th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(4), unread.MsgCount)
+		require.Equal(t, int64(1), unread.MsgCountRoot)
+		cv := &model.ChannelView{ChannelId: dc.Id}
+		_, appErr = th.App.ViewChannel(cv, u1.Id, s2.Id, false)
+		require.Nil(t, appErr)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(0), unread.MsgCount)
+		require.Equal(t, int64(0), unread.MsgCountRoot)
+
+		r, _ := th.Client.SetPostUnread(u1.Id, rootPost.Id, false)
+		assert.Equal(t, 200, r.StatusCode)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(4), unread.MsgCount)
+		require.Equal(t, int64(1), unread.MsgCountRoot)
+
+		// Ensure that post have been read
+		_, appErr = th.App.ViewChannel(cv, u1.Id, s2.Id, false)
+		require.Nil(t, appErr)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(0), unread.MsgCount)
+		require.Equal(t, int64(0), unread.MsgCountRoot)
+
+		r, _ = th.Client.SetPostUnread(u1.Id, reply2.Id, false)
+		assert.Equal(t, 200, r.StatusCode)
+		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(2), unread.MsgCount)
+		require.Equal(t, int64(0), unread.MsgCountRoot)
+	})
+
 	t.Run("Unread on a private channel", func(t *testing.T) {
 		r, _ := th.Client.SetPostUnread(u1.Id, pp2.Id, true)
 		assert.Equal(t, 200, r.StatusCode)
@@ -2780,7 +2977,12 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 	require.Nil(t, appErr)
 
 	t.Run("Mark reply post as unread", func(t *testing.T) {
-		_, err := th.Client.SetPostUnread(th.BasicUser.Id, replyPost1.Id, false)
+		userWSClient, err := th.CreateWebSocketClient()
+		require.NoError(t, err)
+		defer userWSClient.Close()
+		userWSClient.Listen()
+
+		_, err = th.Client.SetPostUnread(th.BasicUser.Id, replyPost1.Id, false)
 		require.NoError(t, err)
 		channelUnread, appErr := th.App.GetChannelUnread(th.BasicChannel.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
@@ -2792,6 +2994,32 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 		require.Equal(t, int64(5), channelUnread.MsgCount)
 		//  MentionCountRoot should be zero so that supported clients don't show the channel as unread
 		require.Equal(t, channelUnread.MsgCountRoot, int64(0))
+
+		// test websocket event for marking post as unread
+		var caught bool
+		var exit bool
+		var data map[string]interface{}
+		for {
+			select {
+			case ev := <-userWSClient.EventChannel:
+				if ev.EventType() == model.WebsocketEventPostUnread {
+					caught = true
+					data = ev.GetData()
+				}
+			case <-time.After(1 * time.Second):
+				exit = true
+			}
+			if exit {
+				break
+			}
+		}
+		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventPostUnread)
+		msgCount, ok := data["msg_count"]
+		require.True(t, ok)
+		require.EqualValues(t, 3, msgCount)
+		mentionCount, ok := data["mention_count"]
+		require.True(t, ok)
+		require.EqualValues(t, 3, mentionCount)
 
 		threadMembership, appErr := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rootPost1.Id)
 		require.Nil(t, appErr)

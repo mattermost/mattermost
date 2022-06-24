@@ -271,7 +271,7 @@ func TestFileStoreGet(t *testing.T) {
 	assert.False(t, newCfg == cfg, "returned config should have been different from original")
 }
 
-func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
+func TestFileStoreGetEnvironmentOverrides(t *testing.T) {
 	t.Run("get override for a string variable", func(t *testing.T) {
 		path, tearDown := setupConfigFile(t, testConfig)
 		defer tearDown()
@@ -495,7 +495,7 @@ func TestFileStoreSet(t *testing.T) {
 
 		_, _, err := configStore.Set(newCfg)
 		if assert.Error(t, err) {
-			assert.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, ")
+			assert.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, parse \"invalid\": invalid URI for request")
 		}
 
 		assert.Equal(t, "", *configStore.Get().ServiceSettings.SiteURL)
@@ -819,7 +819,9 @@ func TestFileStoreLoad(t *testing.T) {
 
 		err = fs.Load()
 		if assert.Error(t, err) {
-			assert.EqualError(t, err, "invalid config: Config.IsValid: model.config.is_valid.site_url.app_error, ")
+			var appErr *model.AppError
+			require.True(t, errors.As(err, &appErr))
+			assert.Equal(t, appErr.Id, "model.config.is_valid.site_url.app_error")
 		}
 	})
 
@@ -833,7 +835,7 @@ func TestFileStoreLoad(t *testing.T) {
 		newCfg := minimalConfig
 		_, _, err := configStore.Set(newCfg)
 		require.Error(t, err)
-		require.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, ")
+		require.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, parse \"invalid_url\": invalid URI for request")
 	})
 
 	t.Run("fixes required", func(t *testing.T) {
@@ -855,7 +857,7 @@ func TestFileStoreLoad(t *testing.T) {
 		assert.Equal(t, "en", *fs.Get().LocalizationSettings.DefaultClientLocale)
 	})
 
-	t.Run("listeners notifed", func(t *testing.T) {
+	t.Run("listeners notified", func(t *testing.T) {
 		path, tearDown := setupConfigFile(t, emptyConfig)
 		defer tearDown()
 

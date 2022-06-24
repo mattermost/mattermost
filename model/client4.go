@@ -328,6 +328,10 @@ func (c *Client4) testEmailRoute() string {
 	return "/email/test"
 }
 
+func (c *Client4) usageRoute() string {
+	return "/usage"
+}
+
 func (c *Client4) testSiteURLRoute() string {
 	return "/site_url/test"
 }
@@ -2638,6 +2642,30 @@ func (c *Client4) InviteGuestsToTeam(teamId string, userEmails []string, channel
 // InviteUsersToTeam invite users by email to the team.
 func (c *Client4) InviteUsersToTeamGracefully(teamId string, userEmails []string) ([]*EmailInviteWithError, *Response, error) {
 	r, err := c.DoAPIPost(c.teamRoute(teamId)+"/invite/email?graceful="+c.boolString(true), ArrayToJSON(userEmails))
+
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list []*EmailInviteWithError
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("InviteUsersToTeamGracefully", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
+}
+
+// InviteUsersToTeam invite users by email to the team.
+func (c *Client4) InviteUsersToTeamAndChannelsGracefully(teamId string, userEmails []string, channelIds []string, message string) ([]*EmailInviteWithError, *Response, error) {
+	memberInvite := MemberInvite{
+		Emails:     userEmails,
+		ChannelIds: channelIds,
+		Message:    message,
+	}
+	buf, err := json.Marshal(memberInvite)
+	if err != nil {
+		return nil, nil, NewAppError("InviteMembersToTeamAndChannels", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	r, err := c.DoAPIPostBytes(c.teamRoute(teamId)+"/invite/email?graceful="+c.boolString(true), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3579,6 +3607,41 @@ func (c *Client4) AutocompleteChannelsForTeamForSearch(teamId, name string) (Cha
 	return ch, BuildResponse(r), nil
 }
 
+// GetTopChannelsForTeamSince will return an ordered list of the top channels in a given team.
+func (c *Client4) GetTopChannelsForTeamSince(teamId string, timeRange string, page int, perPage int) (*TopChannelList, *Response, error) {
+	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
+	r, err := c.DoAPIGet(c.teamRoute(teamId)+"/top/channels"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var topChannels *TopChannelList
+	if jsonErr := json.NewDecoder(r.Body).Decode(&topChannels); jsonErr != nil {
+		return nil, nil, NewAppError("GetTopChannelsForTeamSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return topChannels, BuildResponse(r), nil
+}
+
+// GetTopChannelsForUserSince will return an ordered list of your top channels in a given team.
+func (c *Client4) GetTopChannelsForUserSince(teamId string, timeRange string, page int, perPage int) (*TopChannelList, *Response, error) {
+	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
+
+	if teamId != "" {
+		query += fmt.Sprintf("&team_id=%v", teamId)
+	}
+
+	r, err := c.DoAPIGet(c.usersRoute()+"/me/top/channels"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var topChannels *TopChannelList
+	if jsonErr := json.NewDecoder(r.Body).Decode(&topChannels); jsonErr != nil {
+		return nil, nil, NewAppError("GetTopChannelsForUserSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return topChannels, BuildResponse(r), nil
+}
+
 // Post Section
 
 // CreatePost creates a post based on the provided post struct.
@@ -3717,6 +3780,24 @@ func (c *Client4) GetPost(postId string, etag string) (*Post, *Response, error) 
 	return &post, BuildResponse(r), nil
 }
 
+// GetPostIncludeDeleted gets a single post, including deleted.
+func (c *Client4) GetPostIncludeDeleted(postId string, etag string) (*Post, *Response, error) {
+	r, err := c.DoAPIGet(c.postRoute(postId)+"?include_deleted="+c.boolString(true), etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var post Post
+	if r.StatusCode == http.StatusNotModified {
+		return &post, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&post); jsonErr != nil {
+		return nil, nil, NewAppError("GetPostIncludeDeleted", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &post, BuildResponse(r), nil
+}
+
 // DeletePost deletes a post from the provided post id string.
 func (c *Client4) DeletePost(postId string) (*Response, error) {
 	r, err := c.DoAPIDelete(c.postRoute(postId))
@@ -3734,6 +3815,49 @@ func (c *Client4) GetPostThread(postId string, etag string, collapsedThreads boo
 		url += "?collapsedThreads=true"
 	}
 	r, err := c.DoAPIGet(url, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list PostList
+	if r.StatusCode == http.StatusNotModified {
+		return &list, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetPostThread", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &list, BuildResponse(r), nil
+}
+
+// GetPostThreadWithOpts gets a post with all the other posts in the same thread.
+func (c *Client4) GetPostThreadWithOpts(postID string, etag string, opts GetPostsOptions) (*PostList, *Response, error) {
+	urlVal := c.postRoute(postID) + "/thread"
+
+	values := url.Values{}
+	if opts.CollapsedThreads {
+		values.Set("collapsedThreads", "true")
+	}
+	if opts.CollapsedThreadsExtended {
+		values.Set("collapsedThreadsExtended", "true")
+	}
+	if opts.SkipFetchThreads {
+		values.Set("skipFetchThreads", "true")
+	}
+	if opts.PerPage != 0 {
+		values.Set("perPage", strconv.Itoa(opts.PerPage))
+	}
+	if opts.FromPost != "" {
+		values.Set("fromPost", opts.FromPost)
+	}
+	if opts.FromCreateAt != 0 {
+		values.Set("fromCreateAt", strconv.FormatInt(opts.FromCreateAt, 10))
+	}
+	if opts.Direction != "" {
+		values.Set("direction", opts.Direction)
+	}
+	urlVal += "?" + values.Encode()
+
+	r, err := c.DoAPIGet(urlVal, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4046,6 +4170,41 @@ func (c *Client4) DoPostActionWithCookie(postId, actionId, selected, cookieStr s
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
+}
+
+// GetTopThreadsForTeamSince will return an ordered list of the top channels in a given team.
+func (c *Client4) GetTopThreadsForTeamSince(teamId string, timeRange string, page int, perPage int) (*TopThreadList, *Response, error) {
+	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
+	r, err := c.DoAPIGet(c.teamRoute(teamId)+"/top/threads"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var topThreads *TopThreadList
+	if jsonErr := json.NewDecoder(r.Body).Decode(&topThreads); jsonErr != nil {
+		return nil, nil, NewAppError("GetTopThreadsForTeamSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return topThreads, BuildResponse(r), nil
+}
+
+// GetTopThreadsForUserSince will return an ordered list of your top channels in a given team.
+func (c *Client4) GetTopThreadsForUserSince(teamId string, timeRange string, page int, perPage int) (*TopThreadList, *Response, error) {
+	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
+
+	if teamId != "" {
+		query += fmt.Sprintf("&team_id=%v", teamId)
+	}
+
+	r, err := c.DoAPIGet(c.usersRoute()+"/me/top/threads"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var topThreads *TopThreadList
+	if jsonErr := json.NewDecoder(r.Body).Decode(&topThreads); jsonErr != nil {
+		return nil, nil, NewAppError("GetTopThreadsForUserSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return topThreads, BuildResponse(r), nil
 }
 
 // OpenInteractiveDialog sends a WebSocket event to a user's clients to
@@ -6181,6 +6340,8 @@ func (c *Client4) UpdateUserStatus(userId string, userStatus *Status) (*Status, 
 }
 
 // UpdateUserCustomStatus sets a user's custom status based on the provided user id string.
+// The returned CustomStatus object is the same as the one passed, and it should be just
+// ignored. It's only kept to maintain compatibility.
 func (c *Client4) UpdateUserCustomStatus(userId string, userCustomStatus *CustomStatus) (*CustomStatus, *Response, error) {
 	buf, err := json.Marshal(userCustomStatus)
 	if err != nil {
@@ -6191,11 +6352,10 @@ func (c *Client4) UpdateUserCustomStatus(userId string, userCustomStatus *Custom
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var s CustomStatus
-	if jsonErr := json.NewDecoder(r.Body).Decode(&s); jsonErr != nil {
-		return nil, nil, NewAppError("UpdateUserCustomStatus", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
-	}
-	return &s, BuildResponse(r), nil
+	// This is returning the same status which was passed.
+	// The API was incorrectly designed to return a status returned from the server,
+	// but the server doesn't return anything except an OK.
+	return userCustomStatus, BuildResponse(r), nil
 }
 
 // RemoveUserCustomStatus remove a user's custom status based on the provided user id string.
@@ -6427,6 +6587,39 @@ func (c *Client4) GetBulkReactions(postIds []string) (map[string][]*Reaction, *R
 		return nil, nil, NewAppError("GetBulkReactions", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
 	return reactions, BuildResponse(r), nil
+}
+
+func (c *Client4) GetTopReactionsForTeamSince(teamId string, timeRange string, page int, perPage int) (*TopReactionList, *Response, error) {
+	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
+	r, err := c.DoAPIGet(c.teamRoute(teamId)+"/top/reactions"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var topReactions *TopReactionList
+	if jsonErr := json.NewDecoder(r.Body).Decode(&topReactions); jsonErr != nil {
+		return nil, nil, NewAppError("GetTopReactionsForTeamSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return topReactions, BuildResponse(r), nil
+}
+
+func (c *Client4) GetTopReactionsForUserSince(teamId string, timeRange string, page int, perPage int) (*TopReactionList, *Response, error) {
+	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
+
+	if teamId != "" {
+		query += fmt.Sprintf("&team_id=%v", teamId)
+	}
+
+	r, err := c.DoAPIGet(c.usersRoute()+"/me/top/reactions"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var topReactions *TopReactionList
+	if jsonErr := json.NewDecoder(r.Body).Decode(&topReactions); jsonErr != nil {
+		return nil, nil, NewAppError("GetTopReactionsForUserSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return topReactions, BuildResponse(r), nil
 }
 
 // Timezone Section
@@ -7607,6 +7800,19 @@ func (c *Client4) GetCloudProducts() ([]*Product, *Response, error) {
 	return cloudProducts, BuildResponse(r), nil
 }
 
+func (c *Client4) GetProductLimits() (*ProductLimits, *Response, error) {
+	r, err := c.DoAPIGet(c.cloudRoute()+"/limits", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var productLimits *ProductLimits
+	json.NewDecoder(r.Body).Decode(&productLimits)
+
+	return productLimits, BuildResponse(r), nil
+}
+
 func (c *Client4) CreateCustomerPayment() (*StripeSetupIntent, *Response, error) {
 	r, err := c.DoAPIPost(c.cloudRoute()+"/payment", "")
 	if err != nil {
@@ -7624,6 +7830,31 @@ func (c *Client4) ConfirmCustomerPayment(confirmRequest *ConfirmPaymentMethodReq
 	json, _ := json.Marshal(confirmRequest)
 
 	r, err := c.DoAPIPostBytes(c.cloudRoute()+"/payment/confirm", json)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) RequestCloudTrial(email *StartCloudTrialRequest) (*Subscription, *Response, error) {
+	payload, _ := json.Marshal(email)
+	r, err := c.DoAPIPutBytes(c.cloudRoute()+"/request-trial", payload)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var subscription *Subscription
+	json.NewDecoder(r.Body).Decode(&subscription)
+
+	return subscription, BuildResponse(r), nil
+}
+
+func (c *Client4) ValidateBusinessEmail(email *ValidateBusinessEmailRequest) (*Response, error) {
+	payload, _ := json.Marshal(email)
+	r, err := c.DoAPIPostBytes(c.cloudRoute()+"/validate-business-email", payload)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -7656,18 +7887,6 @@ func (c *Client4) GetSubscription() (*Subscription, *Response, error) {
 	json.NewDecoder(r.Body).Decode(&subscription)
 
 	return subscription, BuildResponse(r), nil
-}
-
-func (c *Client4) GetSubscriptionStats() (*SubscriptionStats, *Response, error) {
-	r, err := c.DoAPIGet(c.cloudRoute()+"/subscription/stats", "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	var stats *SubscriptionStats
-	json.NewDecoder(r.Body).Decode(&stats)
-	return stats, BuildResponse(r), nil
 }
 
 func (c *Client4) GetInvoicesForSubscription() ([]*Invoice, *Response, error) {
@@ -7782,6 +8001,12 @@ func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOp
 	if options.Unread {
 		v.Set("unread", "true")
 	}
+	if options.ThreadsOnly {
+		v.Set("threadsOnly", "true")
+	}
+	if options.TotalsOnly {
+		v.Set("totalsOnly", "true")
+	}
 	url := c.userThreadsRoute(userId, teamId)
 	if len(v) > 0 {
 		url += "?" + v.Encode()
@@ -7826,6 +8051,18 @@ func (c *Client4) UpdateThreadsReadForUser(userId, teamId string) (*Response, er
 	return BuildResponse(r), nil
 }
 
+func (c *Client4) SetThreadUnreadByPostId(userId, teamId, threadId, postId string) (*ThreadResponse, *Response, error) {
+	r, err := c.DoAPIPost(fmt.Sprintf("%s/set_unread/%s", c.userThreadRoute(userId, teamId, threadId), postId), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var thread ThreadResponse
+	json.NewDecoder(r.Body).Decode(&thread)
+
+	return &thread, BuildResponse(r), nil
+}
+
 func (c *Client4) UpdateThreadReadForUser(userId, teamId, threadId string, timestamp int64) (*ThreadResponse, *Response, error) {
 	r, err := c.DoAPIPut(fmt.Sprintf("%s/read/%d", c.userThreadRoute(userId, teamId, threadId), timestamp), "")
 	if err != nil {
@@ -7846,26 +8083,6 @@ func (c *Client4) UpdateThreadFollowForUser(userId, teamId, threadId string, sta
 	} else {
 		r, err = c.DoAPIDelete(c.userThreadRoute(userId, teamId, threadId) + "/following")
 	}
-	if err != nil {
-		return BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	return BuildResponse(r), nil
-}
-
-func (c *Client4) SendAdminUpgradeRequestEmail() (*Response, error) {
-	r, err := c.DoAPIPost(c.cloudRoute()+"/subscription/limitreached/invite", "")
-	if err != nil {
-		return BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	return BuildResponse(r), nil
-}
-
-func (c *Client4) SendAdminUpgradeRequestEmailOnJoin() (*Response, error) {
-	r, err := c.DoAPIPost(c.cloudRoute()+"/subscription/limitreached/join", "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -7930,4 +8147,72 @@ func (c *Client4) GetUsersWithInvalidEmails(page, perPage int) ([]*User, *Respon
 		return nil, nil, NewAppError("GetUsers", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
 	return list, BuildResponse(r), nil
+}
+
+func (c *Client4) GetAppliedSchemaMigrations() ([]AppliedMigration, *Response, error) {
+	r, err := c.DoAPIGet(c.systemRoute()+"/schema/version", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list []AppliedMigration
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetUsers", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
+}
+
+// Usage Section
+
+// GetPostsUsage returns rounded off total usage of posts for the instance
+func (c *Client4) GetPostsUsage() (*PostsUsage, *Response, error) {
+	r, err := c.DoAPIGet(c.usageRoute()+"/posts", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var usage *PostsUsage
+	err = json.NewDecoder(r.Body).Decode(&usage)
+	return usage, BuildResponse(r), err
+}
+
+// GetStorageUsage returns the file storage usage for the instance,
+// rounded down the most signigicant digit
+func (c *Client4) GetStorageUsage() (*StorageUsage, *Response, error) {
+	r, err := c.DoAPIGet(c.usageRoute()+"/storage", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var usage *StorageUsage
+	err = json.NewDecoder(r.Body).Decode(&usage)
+	return usage, BuildResponse(r), err
+}
+
+// GetTeamsUsage returns total usage of teams for the instance
+func (c *Client4) GetTeamsUsage() (*TeamsUsage, *Response, error) {
+	r, err := c.DoAPIGet(c.usageRoute()+"/teams", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var usage *TeamsUsage
+	err = json.NewDecoder(r.Body).Decode(&usage)
+	return usage, BuildResponse(r), err
+}
+
+// GetIntegrationsUsage returns usage information on integrations, including the count of enabled integrations
+func (c *Client4) GetIntegrationsUsage() (*IntegrationsUsage, *Response, error) {
+	r, err := c.DoAPIGet(c.usageRoute()+"/integrations", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var usage *IntegrationsUsage
+	err = json.NewDecoder(r.Body).Decode(&usage)
+	return usage, BuildResponse(r), err
 }

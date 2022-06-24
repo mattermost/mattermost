@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -328,7 +328,7 @@ func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, error) {
 		WHERE Id=:Id`, group)
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "groups_name_key"}) {
-			return nil, errors.Wrapf(err, "Group with name %s already exists", *group.Name)
+			return nil, store.NewErrUniqueConstraint("Name")
 		}
 		return nil, errors.Wrap(err, "failed to update Group")
 	}
@@ -1720,6 +1720,10 @@ func (s *SqlGroupStore) GroupCount() (int64, error) {
 	return s.countTable("UserGroups")
 }
 
+func (s *SqlGroupStore) GroupCountBySource(source model.GroupSource) (int64, error) {
+	return s.countTableWithSelectAndWhere("COUNT(*)", "UserGroups", sq.Eq{"Source": source, "DeleteAt": 0})
+}
+
 func (s *SqlGroupStore) GroupTeamCount() (int64, error) {
 	return s.countTable("GroupTeams")
 }
@@ -1734,6 +1738,26 @@ func (s *SqlGroupStore) GroupMemberCount() (int64, error) {
 
 func (s *SqlGroupStore) DistinctGroupMemberCount() (int64, error) {
 	return s.countTableWithSelectAndWhere("COUNT(DISTINCT UserId)", "GroupMembers", nil)
+}
+
+func (s *SqlGroupStore) DistinctGroupMemberCountForSource(source model.GroupSource) (int64, error) {
+	builder := s.getQueryBuilder().
+		Select("COUNT(DISTINCT GroupMembers.UserId)").
+		From("GroupMembers").
+		Join("UserGroups ON GroupMembers.GroupId = UserGroups.Id").
+		Where(sq.Eq{"UserGroups.Source": source, "GroupMembers.DeleteAt": 0})
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return 0, errors.Wrap(err, "distinct_group_member_count_for_source_tosql")
+	}
+
+	var count int64
+	if err = s.GetReplicaX().Get(&count, query, args...); err != nil {
+		return 0, errors.Wrapf(err, "failed to select distinct groupmember count for source %q", source)
+	}
+
+	return count, nil
 }
 
 func (s *SqlGroupStore) GroupCountWithAllowReference() (int64, error) {

@@ -180,6 +180,122 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 	})
 }
 
+func TestUpdateUser(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	user := th.CreateUser()
+	group := th.CreateGroup()
+
+	t.Run("fails if the username matches a group name", func(t *testing.T) {
+		user.Username = *group.Name
+		u, err := th.App.UpdateUser(user, false)
+		require.NotNil(t, err)
+		require.Equal(t, "app.user.group_name_conflict", err.Id)
+		require.Nil(t, u)
+	})
+}
+
+func TestUpdateUserMissingFields(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	user := th.CreateUser()
+	defer th.App.PermanentDeleteUser(th.Context, user)
+
+	tests := map[string]struct {
+		input  *model.User
+		expect string
+	}{
+		"no missing fields": {input: &model.User{Id: user.Id, Username: user.Username, Email: user.Email}, expect: ""},
+		"missing id":        {input: &model.User{Username: user.Username, Email: user.Email}, expect: "app.user.missing_account.const"},
+		"missing username":  {input: &model.User{Id: user.Id, Email: user.Email}, expect: "model.user.is_valid.username.app_error"},
+		"missing email":     {input: &model.User{Id: user.Id, Username: user.Username}, expect: "model.user.is_valid.email.app_error"},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			_, err := th.App.UpdateUser(tc.input, false)
+
+			if name == "no missing fields" {
+				assert.Nil(t, err)
+			} else {
+				assert.Equal(t, tc.expect, err.Id)
+			}
+		})
+	}
+}
+
+func TestCreateUser(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t.Run("fails if the username matches a group name", func(t *testing.T) {
+		group := th.CreateGroup()
+
+		id := model.NewId()
+		user := &model.User{
+			Email:         "success+" + id + "@simulator.amazonses.com",
+			Username:      *group.Name,
+			Nickname:      "nn_" + id,
+			Password:      "Password1",
+			EmailVerified: true,
+		}
+
+		user.Username = *group.Name
+		u, err := th.App.CreateUser(th.Context, user)
+		require.NotNil(t, err)
+		require.Equal(t, "app.user.group_name_conflict", err.Id)
+		require.Nil(t, u)
+	})
+
+	t.Run("should sanitize user authdata before publishing to plugin hooks", func(t *testing.T) {
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
+			[]string{
+				`
+			package main
+	
+			import (
+				"github.com/mattermost/mattermost-server/v6/plugin"
+				"github.com/mattermost/mattermost-server/v6/model"
+			)
+	
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+	
+			func (p *MyPlugin) UserHasBeenCreated(c *plugin.Context, user *model.User) {
+				user.Nickname = "sanitized"
+				if len(user.Password) > 0 {
+					user.Nickname = "not-sanitized"
+				}
+				p.API.UpdateUser(user)
+			}
+	
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		user := &model.User{
+			Email:       model.NewId() + "success+test@example.com",
+			Nickname:    "Darth Vader",
+			Username:    "vader" + model.NewId(),
+			Password:    "passwd12345",
+			AuthService: "",
+		}
+		_, err := th.App.CreateUser(th.Context, user)
+		require.Nil(t, err)
+
+		time.Sleep(1 * time.Second)
+
+		user, err = th.App.GetUser(user.Id)
+		require.Nil(t, err)
+		require.Equal(t, "sanitized", user.Nickname)
+	})
+}
+
 func TestUpdateUserActive(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -827,10 +943,10 @@ func TestCreateUserWithToken(t *testing.T) {
 	})
 
 	t.Run("create guest having email domain restrictions", func(t *testing.T) {
-		enableGuestDomainRestricions := *th.App.Config().GuestAccountsSettings.RestrictCreationToDomains
+		enableGuestDomainRestrictions := *th.App.Config().GuestAccountsSettings.RestrictCreationToDomains
 		defer func() {
 			th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.GuestAccountsSettings.RestrictCreationToDomains = &enableGuestDomainRestricions
+				cfg.GuestAccountsSettings.RestrictCreationToDomains = &enableGuestDomainRestrictions
 			})
 		}()
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.RestrictCreationToDomains = "restricted.com" })
@@ -876,10 +992,10 @@ func TestCreateUserWithToken(t *testing.T) {
 		th.BasicTeam.AllowedDomains = "restricted-team.com"
 		_, err := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
-		enableGuestDomainRestricions := *th.App.Config().TeamSettings.RestrictCreationToDomains
+		enableGuestDomainRestrictions := *th.App.Config().TeamSettings.RestrictCreationToDomains
 		defer func() {
 			th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.TeamSettings.RestrictCreationToDomains = &enableGuestDomainRestricions
+				cfg.TeamSettings.RestrictCreationToDomains = &enableGuestDomainRestrictions
 			})
 		}()
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictCreationToDomains = "restricted.com" })
@@ -1609,40 +1725,77 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 }
 
 func TestCreateUserWithInitialPreferences(t *testing.T) {
+	t.Skip("MM-45159")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("successfully create a user with initial tutorial and recommended steps preferences", func(t *testing.T) {
+		th.Server.configStore.SetReadOnlyFF(false)
+		defer th.Server.configStore.SetReadOnlyFF(true)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 		testUser := th.CreateUser()
 		defer th.App.PermanentDeleteUser(th.Context, testUser)
 
 		preferences, appErr := th.App.GetPreferencesForUser(testUser.Id)
 		require.Nil(t, appErr)
 
-		tutorialStepPref := preferences[1]
-		recommendedNextStepsPref := preferences[0]
+		tutorialStepPref := preferences[2]
+		recommendedNextStepsPref := preferences[1]
+		insightsPref := preferences[0]
 
 		assert.Equal(t, tutorialStepPref.Name, testUser.Id)
 		assert.Equal(t, recommendedNextStepsPref.Category, model.PreferenceRecommendedNextSteps)
 		assert.Equal(t, recommendedNextStepsPref.Name, "hide")
 		assert.Equal(t, recommendedNextStepsPref.Value, "false")
+		assert.Equal(t, insightsPref.Name, "insights_tutorial_state")
+		assert.Equal(t, insightsPref.Value, "{\"insights_modal_viewed\":true}")
+	})
+
+	t.Run("successfully create a user with insights feature flag disabled", func(t *testing.T) {
+		th.Server.configStore.SetReadOnlyFF(false)
+		defer th.Server.configStore.SetReadOnlyFF(true)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = false })
+		testUser := th.CreateUser()
+		defer th.App.PermanentDeleteUser(th.Context, testUser)
+
+		preferences, appErr := th.App.GetPreferencesForUser(testUser.Id)
+		require.Nil(t, appErr)
+
+		tutorialStepPref := preferences[2]
+		recommendedNextStepsPref := preferences[1]
+		insightsPref := preferences[0]
+
+		assert.Equal(t, tutorialStepPref.Name, testUser.Id)
+		assert.Equal(t, recommendedNextStepsPref.Category, model.PreferenceRecommendedNextSteps)
+		assert.Equal(t, recommendedNextStepsPref.Name, "hide")
+		assert.Equal(t, recommendedNextStepsPref.Value, "false")
+		assert.Equal(t, insightsPref.Name, "insights_tutorial_state")
+		assert.Equal(t, insightsPref.Value, "{\"insights_modal_viewed\":false}")
 	})
 
 	t.Run("successfully create a guest user with initial tutorial and recommended steps preferences", func(t *testing.T) {
+		th.Server.configStore.SetReadOnlyFF(false)
+		defer th.Server.configStore.SetReadOnlyFF(true)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 		testUser := th.CreateGuest()
 		defer th.App.PermanentDeleteUser(th.Context, testUser)
 
 		preferences, appErr := th.App.GetPreferencesForUser(testUser.Id)
 		require.Nil(t, appErr)
 
-		assert.Equal(t, testUser.Id, preferences[0].UserId)
-		assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[0].Category)
-		assert.Equal(t, "hide", preferences[0].Name)
-		assert.Equal(t, "false", preferences[0].Value)
-
 		assert.Equal(t, testUser.Id, preferences[1].UserId)
-		assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[1].Category)
-		assert.Equal(t, testUser.Id, preferences[1].Name)
-		assert.Equal(t, "0", preferences[1].Value)
+		assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[1].Category)
+		assert.Equal(t, "hide", preferences[1].Name)
+		assert.Equal(t, "false", preferences[1].Value)
+
+		assert.Equal(t, testUser.Id, preferences[2].UserId)
+		assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[2].Category)
+		assert.Equal(t, testUser.Id, preferences[2].Name)
+		assert.Equal(t, "0", preferences[2].Value)
+
+		assert.Equal(t, testUser.Id, preferences[0].UserId)
+		assert.Equal(t, model.PreferenceCategoryInsights, preferences[0].Category)
+		assert.Equal(t, model.PreferenceNameInsights, preferences[0].Name)
+		assert.Equal(t, "{\"insights_modal_viewed\":true}", preferences[0].Value)
 	})
 }

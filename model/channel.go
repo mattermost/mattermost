@@ -27,7 +27,7 @@ const (
 	ChannelGroupMinUsers       = 3
 	DefaultChannelName         = "town-square"
 	ChannelDisplayNameMaxRunes = 64
-	ChannelNameMinLength       = 2
+	ChannelNameMinLength       = 1
 	ChannelNameMaxLength       = 64
 	ChannelHeaderMaxRunes      = 1024
 	ChannelPurposeMaxRunes     = 250
@@ -123,6 +123,7 @@ type ChannelModeratedRolesPatch struct {
 // ExcludeDefaultChannels will exclude the configured default channels (ex 'town-square' and 'off-topic').
 // IncludeDeleted will include channel records where DeleteAt != 0.
 // ExcludeChannelNames will exclude channels from the results by name.
+// IncludeSearchById will include searching matches against channel IDs in the results
 // Paginate whether to paginate the results.
 // Page page requested, if results are paginated.
 // PerPage number of results per page, if paginated.
@@ -139,6 +140,7 @@ type ChannelSearchOpts struct {
 	PolicyID                 string
 	ExcludePolicyConstrained bool
 	IncludePolicyID          bool
+	IncludeSearchById        bool
 	Public                   bool
 	Private                  bool
 	Page                     *int
@@ -178,6 +180,14 @@ func (o *Channel) DeleteAt_() float64 {
 	return float64(o.DeleteAt)
 }
 
+func (o *Channel) LastPostAt_() float64 {
+	return float64(o.LastPostAt)
+}
+
+func (o *Channel) TotalMsgCount_() float64 {
+	return float64(o.TotalMsgCount)
+}
+
 func (o *Channel) DeepCopy() *Channel {
 	copy := *o
 	if copy.SchemeId != nil {
@@ -208,7 +218,7 @@ func (o *Channel) IsValid() *AppError {
 	}
 
 	if !IsValidChannelIdentifier(o.Name) {
-		return NewAppError("Channel.IsValid", "model.channel.is_valid.2_or_more.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+		return NewAppError("Channel.IsValid", "model.channel.is_valid.1_or_more.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if !(o.Type == ChannelTypeOpen || o.Type == ChannelTypePrivate || o.Type == ChannelTypeDirect || o.Type == ChannelTypeGroup) {

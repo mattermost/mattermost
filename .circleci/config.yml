@@ -9,7 +9,7 @@ executors:
     working_directory: ~/mattermost/
     resource_class: xlarge
     machine:
-      image: "ubuntu-1604:201903-01"
+      image: "ubuntu-2004:202201-02"
     environment:
       COMPOSE_PROJECT_NAME: "circleci"
 
@@ -78,7 +78,7 @@ jobs:
           steps:
             # Taken from https://github.com/entur/owasp-orb/blob/master/src/%40orb.yml#L349-L361
             - owasp/generate_cache_keys:
-                cache_key: commmandline-default-cache-key-v7
+                cache_key: commandline-default-cache-key-v7
             - owasp/restore_owasp_cache
             - run:
                 name: Update OWASP Dependency-Check Database
@@ -123,7 +123,7 @@ jobs:
 
   check-app-layers:
     docker:
-      - image: mattermost/mattermost-build-server:20210810_golang-1.16.7
+      - image: mattermost/mattermost-build-server:20220415_golang-1.18.1
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
@@ -134,9 +134,22 @@ jobs:
             make app-layers
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
 
+  check-go-mod-tidy:
+    docker:
+      - image: mattermost/mattermost-build-server:20220415_golang-1.18.1
+    working_directory: ~/mattermost
+    steps:
+      - attach_workspace:
+          at: ~/mattermost/
+      - run:
+          command: |
+            cd mattermost-server
+            make modules-tidy
+            if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; exit 1; fi
+
   check-store-layers:
     docker:
-      - image: mattermost/mattermost-build-server:20210810_golang-1.16.7
+      - image: mattermost/mattermost-build-server:20220415_golang-1.18.1
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
@@ -149,7 +162,7 @@ jobs:
 
   check-mocks:
     docker:
-      - image: mattermost/mattermost-build-server:20210810_golang-1.16.7
+      - image: mattermost/mattermost-build-server:20220415_golang-1.18.1
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
@@ -159,21 +172,6 @@ jobs:
             cd mattermost-server
             make einterfaces-mocks store-mocks
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using `make einterfaces-mocks store-mocks`"; exit 1; fi
-
-  check-migrations:
-    docker:
-      - image: mattermost/mattermost-build-server:20210810_golang-1.16.7
-    working_directory: ~/mattermost
-    steps:
-      - attach_workspace:
-          at: ~/mattermost/
-      - run:
-          command: |
-            export GOBIN=${PWD}/mattermost-server/bin
-            cd mattermost-server
-            export PATH=$PATH:$GOBIN
-            make migrations-bindata
-            if [[ -n $(git status --porcelain) ]]; then echo "Please update the migration bindata using `make migrations-bindata`"; exit 1; fi
 
   check-email-templates:
     docker:
@@ -202,12 +200,25 @@ jobs:
             make gen-serialized
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the serialized files using 'make gen-serialized'"; exit 1; fi
 
+  check-migrations:
+    docker:
+      - image: mattermost/mattermost-build-server:20220415_golang-1.18.1
+    working_directory: ~/mattermost
+    steps:
+      - attach_workspace:
+          at: ~/mattermost/
+      - run:
+          command: |
+            cd mattermost-server
+            make migrations-extract
+            if [[ -n $(git status --porcelain) ]]; then echo "Please update the migrations using make migrations-extract"; exit 1; fi
+
   # Dedicated job for golangci-lint it does not need anything only the server code for that
   # and to make more clear when the job fails
   check-golangci-lint:
     docker:
       # Keep the version in sync with the command in Makefile
-      - image: golangci/golangci-lint:v1.39.0
+      - image: golangci/golangci-lint:v1.46.2
     steps:
       - checkout
       - run:
@@ -216,7 +227,7 @@ jobs:
   # Dedicate job for mattermost-vet to make more clear when the job fails
   check-mattermost-vet:
     docker:
-      - image: mattermost/mattermost-build-server:20210810_golang-1.16.7
+      - image: mattermost/mattermost-build-server:20220415_golang-1.18.1
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
@@ -265,7 +276,7 @@ jobs:
 
   build:
     docker:
-      - image: mattermost/mattermost-build-server:20210810_golang-1.16.7
+      - image: mattermost/mattermost-build-server:20220415_golang-1.18.1
     resource_class: xlarge
     working_directory: ~/mattermost
     steps:
@@ -318,7 +329,7 @@ jobs:
       - run:
           name: Wait for docker compose
           command: |
-            sleep 5
+            until docker network inspect circleci_mm-test; do echo "Waiting for Docker Compose Network..."; sleep 1; done;
             docker run --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
             docker run --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
       - run:
@@ -332,7 +343,7 @@ jobs:
               --env MM_SQLSETTINGS_DRIVERNAME=<<parameters.dbdriver>> \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:20210810_golang-1.16.7 \
+              mattermost/mattermost-build-server:20220415_golang-1.18.1 \
               bash -c "ulimit -n 8096; make test-server<< parameters.racemode >> BUILD_NUMBER=$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM TESTFLAGS= TESTFLAGSEE=" \
               bash -c scripts/diff-email-templates.sh
           no_output_timeout: 2h
@@ -378,7 +389,7 @@ jobs:
       - run:
           name: Wait for docker compose
           command: |
-            sleep 5
+            until docker network inspect circleci_mm-test; do echo "Waiting for Docker Compose Network..."; sleep 1; done;
             docker run --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
             docker run --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
       - run:
@@ -397,7 +408,7 @@ jobs:
               --env MM_SQLSETTINGS_DRIVERNAME=postgres \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:20210810_golang-1.16.7 \
+              mattermost/mattermost-build-server:20220415_golang-1.18.1 \
               bash -c "ulimit -n 8096; make ARGS='db migrate' run-cli && make MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10' ARGS='db migrate' run-cli"
 
             echo "Generating dump"
@@ -426,7 +437,7 @@ jobs:
               --env MM_SQLSETTINGS_DRIVERNAME=mysql \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:20210810_golang-1.16.7 \
+              mattermost/mattermost-build-server:20220415_golang-1.18.1 \
               bash -c "ulimit -n 8096; make ARGS='db migrate' run-cli && make MM_SQLSETTINGS_DATASOURCE='mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s' ARGS='db migrate' run-cli"
 
             echo "Generating dump"
@@ -442,7 +453,7 @@ jobs:
 
   upload-s3-sha:
     docker:
-      - image: 'circleci/python:2.7'
+      - image: circleci/python:3.6
     working_directory: ~/mattermost/enterprise
     steps:
       - attach_workspace:
@@ -458,7 +469,7 @@ jobs:
 
   upload-s3:
     docker:
-      - image: 'circleci/python:2.7'
+      - image: circleci/python:3.6
     working_directory: ~/mattermost/enterprise
     steps:
       - attach_workspace:
@@ -511,6 +522,9 @@ workflows:
       # - check-i18n:
       #     requires:
       #       - setup
+      - check-go-mod-tidy:
+          requires:
+            - setup
       - check-golangci-lint:
           filters:
             branches:
@@ -526,9 +540,6 @@ workflows:
       - check-mocks:
           requires:
             - setup
-      - check-migrations:
-          requires:
-            - setup
       - check-email-templates:
           requires:
             - setup
@@ -538,19 +549,23 @@ workflows:
       - check-mattermost-vet:
           requires:
             - setup
+      - check-migrations:
+          requires:
+            - setup
       - build-api-spec:
           requires:
             - setup
       - build:
           requires:
+            - check-go-mod-tidy
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
             - check-email-templates
             - check-gen-serialized
             - check-mattermost-vet
             - check-golangci-lint
+            - check-migrations
             - build-api-spec
       - upload-s3-sha:
           context: mattermost-ci-pr-builds-s3
@@ -573,7 +588,6 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
             - check-email-templates
             - check-gen-serialized
       - test:
@@ -585,7 +599,6 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
             - check-email-templates
             - check-gen-serialized
       - test:
@@ -597,7 +610,6 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
             - check-email-templates
             - check-gen-serialized
       - test-schema:
@@ -605,7 +617,6 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
             - check-email-templates
             - check-gen-serialized
   release-build:
@@ -633,6 +644,9 @@ workflows:
                 - master
                 - /^release-.*/
                 - cloud
+      - check-go-mod-tidy:
+          requires:
+            - setup
       - check-app-layers:
           requires:
             - setup
@@ -643,9 +657,6 @@ workflows:
           requires:
             - setup
       - check-mocks:
-          requires:
-            - setup
-      - check-migrations:
           requires:
             - setup
       - check-email-templates:
@@ -660,10 +671,10 @@ workflows:
       - sentry:
           context: matterbuild-sentry
           requires:
+            - check-go-mod-tidy
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
             - check-email-templates
             - check-gen-serialized
             - check-mattermost-vet
@@ -671,10 +682,10 @@ workflows:
             - build-api-spec
       - build:
           requires:
+            - check-go-mod-tidy
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
             - check-email-templates
             - check-gen-serialized
             - check-mattermost-vet
@@ -688,7 +699,6 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
             - check-email-templates
             - check-gen-serialized
       - test:
@@ -700,7 +710,6 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
             - check-email-templates
             - check-gen-serialized
       - test:
@@ -712,7 +721,6 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
             - check-email-templates
             - check-gen-serialized
       # test-schema for master run in .gitlab-ci.yml

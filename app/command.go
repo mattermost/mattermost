@@ -25,6 +25,7 @@ import (
 const (
 	CmdCustomStatusTrigger = "status"
 	usernameSpecialChars   = ".-_"
+	maxTriggerLen          = 512
 )
 
 var atMentionRegexp = regexp.MustCompile(`\B@[[:alnum:]][[:alnum:]\.\-_:]*`)
@@ -225,6 +226,10 @@ func (a *App) ExecuteCommand(c *request.Context, args *model.CommandArgs) (*mode
 		return a.HandleCommandResponse(c, cmd, args, response, true)
 	}
 
+	if len(trigger) > maxTriggerLen {
+		trigger = trigger[:maxTriggerLen]
+		trigger += "..."
+	}
 	return nil, model.NewAppError("command", "api.command.execute_command.not_found.app_error", map[string]interface{}{"Trigger": trigger}, "", http.StatusNotFound)
 }
 

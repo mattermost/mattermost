@@ -5,6 +5,7 @@ package utils
 
 import (
 	"io/ioutil"
+	"math"
 	"net"
 	"net/http"
 	"net/url"
@@ -101,9 +102,9 @@ func GetIPAddress(r *http.Request, trustedProxyIPHeader []string) string {
 	for _, proxyHeader := range trustedProxyIPHeader {
 		header := r.Header.Get(proxyHeader)
 		if header != "" {
-			addresses := strings.Fields(header)
+			addresses := strings.Split(header, ",")
 			if len(addresses) > 0 {
-				address = strings.TrimRight(addresses[0], ",")
+				address = strings.TrimSpace(addresses[0])
 			}
 		}
 
@@ -226,4 +227,17 @@ func StringClone(s string) string {
 	b := make([]byte, len(s))
 	copy(b, s)
 	return *(*string)(unsafe.Pointer(&b))
+}
+
+// RoundOffToZeroes converts all digits to 0 except the 1st one.
+// Special case: If there is only 1 digit, then returns 0.
+func RoundOffToZeroes(n float64) int64 {
+	if n >= -9 && n <= 9 {
+		return 0
+	}
+
+	zeroes := int(math.Log10(math.Abs(n)))
+	tens := int64(math.Pow10(zeroes))
+	firstDigit := int64(n) / tens
+	return firstDigit * tens
 }

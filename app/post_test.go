@@ -251,7 +251,7 @@ func TestAttachFilesToPost(t *testing.T) {
 		assert.Len(t, infos, 1)
 		assert.Equal(t, info2.Id, infos[0].Id)
 
-		updated, appErr := th.App.GetSinglePost(post.Id)
+		updated, appErr := th.App.GetSinglePost(post.Id, false)
 		require.Nil(t, appErr)
 		assert.Len(t, updated.FileIds, 1)
 		assert.Contains(t, updated.FileIds, info2.Id)
@@ -465,6 +465,7 @@ func TestImageProxy(t *testing.T) {
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
@@ -571,7 +572,6 @@ func TestImageProxy(t *testing.T) {
 }
 
 func TestMaxPostSize(t *testing.T) {
-	t.Skip("TODO: fix flaky test")
 	t.Parallel()
 
 	testCases := []struct {
@@ -599,8 +599,6 @@ func TestMaxPostSize(t *testing.T) {
 	for _, testCase := range testCases {
 		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
-			t.Parallel()
-
 			mockStore := &storetest.Store{}
 			defer mockStore.AssertExpectations(t)
 
@@ -827,6 +825,70 @@ func TestCreatePost(t *testing.T) {
 		require.NoError(t, err2)
 
 		require.EqualValues(t, int64(1), val)
+	})
+
+	t.Run("sanitizes post metadata appropriately", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
+		})
+
+		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
+
+		user1 := th.CreateUser()
+		user2 := th.CreateUser()
+		directChannel, err := th.App.createDirectChannel(user1.Id, user2.Id)
+		require.Nil(t, err)
+
+		referencedPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "hello world",
+			UserId:    th.BasicUser.Id,
+		}
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		referencedPost, err = th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, false, false)
+		require.Nil(t, err)
+
+		permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
+
+		testCases := []struct {
+			Description string
+			Channel     *model.Channel
+			Author      string
+			Assert      func(t assert.TestingT, object interface{}, msgAndArgs ...interface{}) bool
+		}{
+			{
+				Description: "removes metadata from post for members who cannot read channel",
+				Channel:     directChannel,
+				Author:      user1.Id,
+				Assert:      assert.Nil,
+			},
+			{
+				Description: "does not remove metadata from post for members who can read channel",
+				Channel:     th.BasicChannel,
+				Author:      th.BasicUser.Id,
+				Assert:      assert.NotNil,
+			},
+		}
+
+		for _, testCase := range testCases {
+			t.Run(testCase.Description, func(t *testing.T) {
+				previewPost := &model.Post{
+					ChannelId: testCase.Channel.Id,
+					Message:   permalink,
+					UserId:    testCase.Author,
+				}
+
+				previewPost, err = th.App.CreatePost(th.Context, previewPost, testCase.Channel, false, false)
+				require.Nil(t, err)
+
+				testCase.Assert(t, previewPost.Metadata.Embeds[0].Data)
+			})
+		}
 	})
 
 	t.Run("MM-40016 should not panic with `concurrent map read and map write`", func(t *testing.T) {
@@ -1061,6 +1123,8 @@ func TestCreatePostAsUser(t *testing.T) {
 		_, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
+		require.NoError(t, th.TestLogger.Flush())
+
 		testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Failed to get membership")
 	})
 
@@ -1083,6 +1147,8 @@ func TestCreatePostAsUser(t *testing.T) {
 
 		_, appErr = th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
+
+		require.NoError(t, th.TestLogger.Flush())
 
 		testlib.AssertNoLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Failed to get membership")
 	})
@@ -1246,6 +1312,74 @@ func TestUpdatePost(t *testing.T) {
 		require.Nil(t, err)
 		assert.Equal(t, testPost.GetProps(), model.StringInterface{"previewed_post": referencedPost.Id})
 	})
+
+	t.Run("sanitizes post metadata appropriately", func(t *testing.T) {
+
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
+		})
+
+		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
+
+		user1 := th.CreateUser()
+		user2 := th.CreateUser()
+		directChannel, err := th.App.createDirectChannel(user1.Id, user2.Id)
+		require.Nil(t, err)
+
+		referencedPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "hello world",
+			UserId:    th.BasicUser.Id,
+		}
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		referencedPost, err = th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, false, false)
+		require.Nil(t, err)
+
+		permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
+
+		testCases := []struct {
+			Description string
+			Channel     *model.Channel
+			Author      string
+			Assert      func(t assert.TestingT, object interface{}, msgAndArgs ...interface{}) bool
+		}{
+			{
+				Description: "removes metadata from post for members who cannot read channel",
+				Channel:     directChannel,
+				Author:      user1.Id,
+				Assert:      assert.Nil,
+			},
+			{
+				Description: "does not remove metadata from post for members who can read channel",
+				Channel:     th.BasicChannel,
+				Author:      th.BasicUser.Id,
+				Assert:      assert.NotNil,
+			},
+		}
+
+		for _, testCase := range testCases {
+			t.Run(testCase.Description, func(t *testing.T) {
+				previewPost := &model.Post{
+					ChannelId: testCase.Channel.Id,
+					UserId:    testCase.Author,
+				}
+
+				previewPost, err = th.App.CreatePost(th.Context, previewPost, testCase.Channel, false, false)
+				require.Nil(t, err)
+
+				previewPost.Message = permalink
+				previewPost, err = th.App.UpdatePost(th.Context, previewPost, false)
+				require.Nil(t, err)
+
+				testCase.Assert(t, previewPost.Metadata.Embeds[0].Data)
+			})
+		}
+	})
 }
 
 func TestHashTagSearch(t *testing.T) {
@@ -1388,7 +1522,7 @@ func TestSearchPostsForUser(t *testing.T) {
 
 		page := 0
 
-		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierMessages)
 
 		assert.Nil(t, err)
 		assert.Equal(t, []string{
@@ -1408,7 +1542,7 @@ func TestSearchPostsForUser(t *testing.T) {
 
 		page := 1
 
-		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierMessages)
 
 		assert.Nil(t, err)
 		assert.Equal(t, []string{}, results.Order)
@@ -1429,7 +1563,6 @@ func TestSearchPostsForUser(t *testing.T) {
 
 		es := &mocks.SearchEngineInterface{}
 		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(resultsPage, nil, nil)
-		es.On("GetName").Return("mock")
 		es.On("Start").Return(nil).Maybe()
 		es.On("IsActive").Return(true)
 		es.On("IsSearchEnabled").Return(true)
@@ -1438,7 +1571,7 @@ func TestSearchPostsForUser(t *testing.T) {
 			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierMessages)
 
 		assert.Nil(t, err)
 		assert.Equal(t, resultsPage, results.Order)
@@ -1457,7 +1590,6 @@ func TestSearchPostsForUser(t *testing.T) {
 
 		es := &mocks.SearchEngineInterface{}
 		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(resultsPage, nil, nil)
-		es.On("GetName").Return("mock")
 		es.On("Start").Return(nil).Maybe()
 		es.On("IsActive").Return(true)
 		es.On("IsSearchEnabled").Return(true)
@@ -1466,7 +1598,7 @@ func TestSearchPostsForUser(t *testing.T) {
 			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierMessages)
 
 		assert.Nil(t, err)
 		assert.Equal(t, resultsPage, results.Order)
@@ -1490,7 +1622,7 @@ func TestSearchPostsForUser(t *testing.T) {
 			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierMessages)
 
 		assert.Nil(t, err)
 		assert.Equal(t, []string{
@@ -1522,7 +1654,7 @@ func TestSearchPostsForUser(t *testing.T) {
 			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierMessages)
 
 		assert.Nil(t, err)
 		assert.Equal(t, []string{}, results.Order)
@@ -2413,7 +2545,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		thread, nErr := th.App.Srv().Store.Thread().Get(postRoot.Id)
 		require.NoError(t, nErr)
 		require.Len(t, thread.Participants, 1)
-		th.App.MarkChannelAsUnreadFromPost(postRoot.Id, user1.Id, true, true)
+		th.App.MarkChannelAsUnreadFromPost(postRoot.Id, user1.Id, true)
 		l, err := th.App.GetPostsForChannelAroundLastUnread(channel.Id, user1.Id, 10, 10, true, true, false)
 		require.Nil(t, err)
 		require.Len(t, l.Order, 1)
@@ -2457,16 +2589,88 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		}()
 
 		require.NotPanics(t, func() {
-			_, err = th.App.CreatePost(th.Context, &model.Post{
+			th.App.CreatePost(th.Context, &model.Post{
 				UserId:    user1.Id,
 				ChannelId: channel.Id,
 				RootId:    postRoot.Id,
 				Message:   fmt.Sprintf("@%s", user2.Username),
 			}, channel, false, true)
-			require.Nil(t, err)
 		})
 
 		wg.Wait()
+	})
+
+	t.Run("should sanitize participant data", func(t *testing.T) {
+		id := model.NewId()
+		user3, err := th.App.CreateUser(th.Context, &model.User{
+			Email:         "success+" + id + "@simulator.amazonses.com",
+			Username:      "un_" + id,
+			Nickname:      "nn_" + id,
+			AuthData:      ptrStr("bobbytables"),
+			AuthService:   "saml",
+			EmailVerified: true,
+		})
+		require.Nil(t, err)
+
+		channel := th.CreateChannel(th.BasicTeam)
+		th.LinkUserToTeam(user3, th.BasicTeam)
+		th.AddUserToChannel(user3, channel)
+		defer th.App.DeleteChannel(th.Context, channel, user1.Id)
+		defer th.App.PermanentDeleteUser(th.Context, user3)
+
+		postRoot, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "root post",
+		}, channel, false, true)
+		require.Nil(t, err)
+
+		_, err = th.App.CreatePost(th.Context, &model.Post{
+			UserId:    user3.Id,
+			ChannelId: channel.Id,
+			RootId:    postRoot.Id,
+			Message:   "reply",
+		}, channel, false, true)
+		require.Nil(t, err)
+		thread, nErr := th.App.Srv().Store.Thread().Get(postRoot.Id)
+		require.NoError(t, nErr)
+		require.Len(t, thread.Participants, 1)
+
+		// extended fetch posts page
+		l, err := th.App.GetPostsPage(model.GetPostsOptions{
+			UserId:                   user1.Id,
+			ChannelId:                channel.Id,
+			PerPage:                  int(10),
+			SkipFetchThreads:         false,
+			CollapsedThreads:         true,
+			CollapsedThreadsExtended: true,
+		})
+		require.Nil(t, err)
+		require.Len(t, l.Order, 1)
+		require.NotEmpty(t, l.Posts[postRoot.Id].Participants[0].Email)
+		require.Empty(t, l.Posts[postRoot.Id].Participants[0].AuthData)
+
+		th.App.MarkChannelAsUnreadFromPost(postRoot.Id, user1.Id, true)
+
+		// extended fetch posts around
+		l, err = th.App.GetPostsForChannelAroundLastUnread(channel.Id, user1.Id, 10, 10, true, true, true)
+		require.Nil(t, err)
+		require.Len(t, l.Order, 1)
+		require.NotEmpty(t, l.Posts[postRoot.Id].Participants[0].Email)
+		require.Empty(t, l.Posts[postRoot.Id].Participants[0].AuthData)
+
+		// extended fetch post thread
+		opts := model.GetPostsOptions{
+			SkipFetchThreads:         false,
+			CollapsedThreads:         true,
+			CollapsedThreadsExtended: true,
+		}
+
+		l, err = th.App.GetPostThread(postRoot.Id, opts, user1.Id)
+		require.Nil(t, err)
+		require.Len(t, l.Order, 2)
+		require.NotEmpty(t, l.Posts[postRoot.Id].Participants[0].Email)
+		require.Empty(t, l.Posts[postRoot.Id].Participants[0].AuthData)
 	})
 }
 
@@ -2478,7 +2682,7 @@ func TestReplyToPostWithLag(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	if *th.App.Srv().Config().SqlSettings.DriverName != model.DatabaseDriverMysql {
+	if *th.App.Config().SqlSettings.DriverName != model.DatabaseDriverMysql {
 		t.Skipf("requires %q database driver", model.DatabaseDriverMysql)
 	}
 
@@ -2654,11 +2858,11 @@ func TestGetPostIfAuthorized(t *testing.T) {
 	require.NotNil(t, session2)
 
 	// User is not authorized to get post
-	_, err = th.App.GetPostIfAuthorized(post.Id, session2)
+	_, err = th.App.GetPostIfAuthorized(post.Id, session2, false)
 	require.NotNil(t, err)
 
 	// User is authorized to get post
-	_, err = th.App.GetPostIfAuthorized(post.Id, session1)
+	_, err = th.App.GetPostIfAuthorized(post.Id, session1, false)
 	require.Nil(t, err)
 }
 
@@ -2711,4 +2915,193 @@ func TestShouldNotRefollowOnOthersReply(t *testing.T) {
 	m, err = th.App.GetThreadMembershipForUser(user2.Id, p1.Id)
 	require.Nil(t, err)
 	require.True(t, m.Following)
+}
+
+func TestGetTopThreadsForTeamSince(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.Server.configStore.SetReadOnlyFF(false)
+	defer th.Server.configStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+
+	// create a public channel, a private channel
+	channelPublic := th.CreateChannel(th.BasicTeam)
+	channelPrivate := th.CreatePrivateChannel(th.BasicTeam)
+	th.AddUserToChannel(th.BasicUser, channelPublic)
+	th.AddUserToChannel(th.BasicUser, channelPrivate)
+	th.AddUserToChannel(th.BasicUser2, channelPublic)
+
+	// create two threads: one in public channel, one in private with only basicUser1
+
+	rootPostPublicChannel, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channelPublic.Id,
+		Message:   "root post",
+	}, channelPublic, false, true)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser2.Id,
+		ChannelId: channelPublic.Id,
+		RootId:    rootPostPublicChannel.Id,
+		Message:   fmt.Sprintf("@%s", th.BasicUser2.Username),
+	}, channelPublic, false, true)
+	require.Nil(t, appErr)
+
+	rootPostPrivateChannel, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channelPrivate.Id,
+		Message:   "root post",
+	}, channelPrivate, false, true)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channelPrivate.Id,
+		RootId:    rootPostPrivateChannel.Id,
+		Message:   fmt.Sprintf("@%s", th.BasicUser2.Username),
+	}, channelPrivate, false, true)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channelPrivate.Id,
+		RootId:    rootPostPrivateChannel.Id,
+		Message:   fmt.Sprintf("@%s", th.BasicUser2.Username),
+	}, channelPrivate, false, true)
+
+	require.Nil(t, appErr)
+
+	// get top threads for team, as user 1 and user 2
+	// user 1 should see both threads, while user 2 should see only thread in public channel.
+
+	topTeamThreadsByUser1, appErr := th.App.GetTopThreadsForTeamSince(th.BasicTeam.Id, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
+	require.Nil(t, appErr)
+	require.Len(t, topTeamThreadsByUser1.Items, 2)
+	require.Equal(t, topTeamThreadsByUser1.Items[0].Post.Id, rootPostPrivateChannel.Id)
+	require.Equal(t, topTeamThreadsByUser1.Items[1].Post.Id, rootPostPublicChannel.Id)
+
+	topTeamThreadsByUser2, appErr := th.App.GetTopThreadsForTeamSince(th.BasicTeam.Id, th.BasicUser2.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
+	require.Nil(t, appErr)
+	require.Len(t, topTeamThreadsByUser2.Items, 1)
+	require.Equal(t, topTeamThreadsByUser2.Items[0].Post.Id, rootPostPublicChannel.Id)
+
+	// add user2 to private channel and it can see 2 top threads.
+	th.AddUserToChannel(th.BasicUser2, channelPrivate)
+	topTeamThreadsByUser2IncludingPrivate, appErr := th.App.GetTopThreadsForTeamSince(th.BasicTeam.Id, th.BasicUser2.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
+	require.Nil(t, appErr)
+	require.Len(t, topTeamThreadsByUser2IncludingPrivate.Items, 2)
+}
+func TestGetTopThreadsForUserSince(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.Server.configStore.SetReadOnlyFF(false)
+	defer th.Server.configStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+
+	// create a public channel, a private channel
+	channelPublic := th.CreateChannel(th.BasicTeam)
+	channelPrivate := th.CreatePrivateChannel(th.BasicTeam)
+	th.AddUserToChannel(th.BasicUser, channelPublic)
+	th.AddUserToChannel(th.BasicUser, channelPrivate)
+	th.AddUserToChannel(th.BasicUser2, channelPublic)
+	th.AddUserToChannel(th.BasicUser2, channelPrivate)
+
+	// create two threads: one in public channel, one in private
+	// post in public channel has both users interacting, post in private only has user1 interacting
+
+	rootPostPublicChannel, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channelPublic.Id,
+		Message:   "root post pub",
+	}, channelPublic, false, true)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser2.Id,
+		ChannelId: channelPublic.Id,
+		RootId:    rootPostPublicChannel.Id,
+		Message:   "reply post 1",
+	}, channelPublic, false, true)
+	require.Nil(t, appErr)
+
+	rootPostPrivateChannel, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channelPrivate.Id,
+		Message:   "root post priv",
+	}, channelPrivate, false, true)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channelPrivate.Id,
+		RootId:    rootPostPrivateChannel.Id,
+		Message:   "reply post 1",
+	}, channelPrivate, false, true)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channelPrivate.Id,
+		RootId:    rootPostPrivateChannel.Id,
+		Message:   "reply post 2",
+	}, channelPrivate, false, true)
+
+	require.Nil(t, appErr)
+
+	// get top threads for user, as user 1 and user 2
+	// user 1 should see both threads, while user 2 should see only thread in public channel
+	// (even if user2 is in the private channel it hasn't interacted with the thread there.)
+
+	topUser1Threads, appErr := th.App.GetTopThreadsForUserSince(th.BasicTeam.Id, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
+	require.Nil(t, appErr)
+	require.Len(t, topUser1Threads.Items, 2)
+	require.Equal(t, topUser1Threads.Items[0].Post.Id, rootPostPrivateChannel.Id)
+	require.Equal(t, topUser1Threads.Items[0].ReplyCount, int64(2))
+	require.Equal(t, topUser1Threads.Items[1].Post.Id, rootPostPublicChannel.Id)
+	require.Contains(t, topUser1Threads.Items[1].Participants, th.BasicUser2.Id)
+	require.Equal(t, topUser1Threads.Items[1].ReplyCount, int64(1))
+
+	topUser2Threads, appErr := th.App.GetTopThreadsForUserSince(th.BasicTeam.Id, th.BasicUser2.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
+	require.Nil(t, appErr)
+	require.Len(t, topUser2Threads.Items, 1)
+	require.Equal(t, topUser2Threads.Items[0].Post.Id, rootPostPublicChannel.Id)
+	require.Equal(t, topUser2Threads.Items[0].ReplyCount, int64(1))
+
+	// deleting the root post results in the thread not making it to top threads list
+	_, appErr = th.App.DeletePost(rootPostPublicChannel.Id, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	topUser1ThreadsAfterPost1Delete, appErr := th.App.GetTopThreadsForUserSince(th.BasicTeam.Id, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
+	require.Nil(t, appErr)
+	require.Len(t, topUser1ThreadsAfterPost1Delete.Items, 1)
+
+	// reply with user2 in thread2. deleting that reply, shouldn't give any top thread for user2 if the user2 unsubscribes to the thread after deleting the comment
+	replyPostUser2InPrivate, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser2.Id,
+		ChannelId: channelPrivate.Id,
+		RootId:    rootPostPrivateChannel.Id,
+		Message:   "reply post 3",
+	}, channelPrivate, false, true)
+	require.Nil(t, appErr)
+
+	topUser2ThreadsAfterPrivateReply, appErr := th.App.GetTopThreadsForUserSince(th.BasicTeam.Id, th.BasicUser2.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
+	require.Nil(t, appErr)
+	require.Len(t, topUser2ThreadsAfterPrivateReply.Items, 1)
+
+	// deleting reply, and unfollowing thread
+	_, appErr = th.App.DeletePost(replyPostUser2InPrivate.Id, th.BasicUser2.Id)
+	require.Nil(t, appErr)
+	// unfollow thread
+	_, err := th.App.Srv().Store.Thread().MaintainMembership(th.BasicUser2.Id, rootPostPrivateChannel.Id, store.ThreadMembershipOpts{
+		Following:       false,
+		UpdateFollowing: true,
+	})
+	require.NoError(t, err)
+
+	topUser2ThreadsAfterPrivateReplyDelete, appErr := th.App.GetTopThreadsForUserSince(th.BasicTeam.Id, th.BasicUser2.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
+	require.Nil(t, appErr)
+	require.Len(t, topUser2ThreadsAfterPrivateReplyDelete.Items, 0)
 }

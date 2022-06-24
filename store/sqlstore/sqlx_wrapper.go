@@ -14,7 +14,6 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store/storetest"
@@ -28,10 +27,6 @@ func NewStoreTestWrapper(orig *SqlStore) *StoreTestWrapper {
 	return &StoreTestWrapper{orig}
 }
 
-func (w *StoreTestWrapper) GetMaster() *gorp.DbMap {
-	return w.orig.GetMaster()
-}
-
 func (w *StoreTestWrapper) GetMasterX() storetest.SqlXExecutor {
 	return w.orig.GetMasterX()
 }
@@ -40,17 +35,24 @@ func (w *StoreTestWrapper) DriverName() string {
 	return w.orig.DriverName()
 }
 
+type Builder interface {
+	ToSql() (string, []interface{}, error)
+}
+
 // sqlxExecutor exposes sqlx operations. It is used to enable some internal store methods to
 // accept both transactions (*sqlxTxWrapper) and common db handlers (*sqlxDbWrapper).
 type sqlxExecutor interface {
 	Get(dest interface{}, query string, args ...interface{}) error
+	GetBuilder(dest interface{}, builder Builder) error
 	NamedExec(query string, arg interface{}) (sql.Result, error)
 	Exec(query string, args ...interface{}) (sql.Result, error)
+	ExecBuilder(builder Builder) (sql.Result, error)
 	ExecRaw(query string, args ...interface{}) (sql.Result, error)
 	NamedQuery(query string, arg interface{}) (*sqlx.Rows, error)
 	QueryRowX(query string, args ...interface{}) *sqlx.Row
 	QueryX(query string, args ...interface{}) (*sqlx.Rows, error)
 	Select(dest interface{}, query string, args ...interface{}) error
+	SelectBuilder(dest interface{}, builder Builder) error
 }
 
 // namedParamRegex is used to capture all named parameters and convert them
@@ -72,6 +74,10 @@ func newSqlxDBWrapper(db *sqlx.DB, timeout time.Duration, trace bool) *sqlxDBWra
 		queryTimeout: timeout,
 		trace:        trace,
 	}
+}
+
+func (w *sqlxDBWrapper) Stats() sql.DBStats {
+	return w.DB.Stats()
 }
 
 func (w *sqlxDBWrapper) Beginx() (*sqlxTxWrapper, error) {
@@ -106,6 +112,15 @@ func (w *sqlxDBWrapper) Get(dest interface{}, query string, args ...interface{})
 	return w.DB.GetContext(ctx, dest, query, args...)
 }
 
+func (w *sqlxDBWrapper) GetBuilder(dest interface{}, builder Builder) error {
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return err
+	}
+
+	return w.Get(dest, query, args...)
+}
+
 func (w *sqlxDBWrapper) NamedExec(query string, arg interface{}) (sql.Result, error) {
 	if w.DB.DriverName() == model.DatabaseDriverPostgres {
 		query = namedParamRegex.ReplaceAllStringFunc(query, strings.ToLower)
@@ -126,6 +141,15 @@ func (w *sqlxDBWrapper) Exec(query string, args ...interface{}) (sql.Result, err
 	query = w.DB.Rebind(query)
 
 	return w.ExecRaw(query, args...)
+}
+
+func (w *sqlxDBWrapper) ExecBuilder(builder Builder) (sql.Result, error) {
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	return w.Exec(query, args...)
 }
 
 func (w *sqlxDBWrapper) ExecNoTimeout(query string, args ...interface{}) (sql.Result, error) {
@@ -213,6 +237,15 @@ func (w *sqlxDBWrapper) Select(dest interface{}, query string, args ...interface
 	return w.DB.SelectContext(ctx, dest, query, args...)
 }
 
+func (w *sqlxDBWrapper) SelectBuilder(dest interface{}, builder Builder) error {
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return err
+	}
+
+	return w.Select(dest, query, args...)
+}
+
 type sqlxTxWrapper struct {
 	*sqlx.Tx
 	queryTimeout time.Duration
@@ -241,10 +274,40 @@ func (w *sqlxTxWrapper) Get(dest interface{}, query string, args ...interface{})
 	return w.Tx.GetContext(ctx, dest, query, args...)
 }
 
+func (w *sqlxTxWrapper) GetBuilder(dest interface{}, builder Builder) error {
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return err
+	}
+
+	return w.Get(dest, query, args...)
+}
+
 func (w *sqlxTxWrapper) Exec(query string, args ...interface{}) (sql.Result, error) {
 	query = w.Tx.Rebind(query)
 
 	return w.ExecRaw(query, args...)
+}
+
+func (w *sqlxTxWrapper) ExecNoTimeout(query string, args ...interface{}) (sql.Result, error) {
+	query = w.Tx.Rebind(query)
+
+	if w.trace {
+		defer func(then time.Time) {
+			printArgs(query, time.Since(then), args)
+		}(time.Now())
+	}
+
+	return w.Tx.ExecContext(context.Background(), query, args...)
+}
+
+func (w *sqlxTxWrapper) ExecBuilder(builder Builder) (sql.Result, error) {
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	return w.Exec(query, args...)
 }
 
 // ExecRaw is like Exec but without any rebinding of params. You need to pass
@@ -362,6 +425,15 @@ func (w *sqlxTxWrapper) Select(dest interface{}, query string, args ...interface
 	}
 
 	return w.Tx.SelectContext(ctx, dest, query, args...)
+}
+
+func (w *sqlxTxWrapper) SelectBuilder(dest interface{}, builder Builder) error {
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return err
+	}
+
+	return w.Select(dest, query, args...)
 }
 
 func removeSpace(r rune) rune {

@@ -236,11 +236,11 @@ func (a *App) clearPushNotificationSync(currentSessionId, userID, channelID, roo
 	msg.Badge = int(unreadCount)
 
 	if msg.IsCRTEnabled {
-		data, err := a.Srv().Store.Thread().GetThreadsForUser(userID, "", model.GetUserThreadsOpts{TotalsOnly: true})
+		totalUnreadMentions, err := a.Srv().Store.Thread().GetTotalUnreadMentions(userID, "", model.GetUserThreadsOpts{})
 		if err != nil {
 			return model.NewAppError("clearPushNotificationSync", "app.user.get_thread_count_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
-		msg.Badge += int(data.TotalUnreadMentions)
+		msg.Badge += int(totalUnreadMentions)
 	}
 	return a.sendPushNotificationToAllSessions(msg, userID, currentSessionId)
 }
@@ -379,6 +379,32 @@ func (s *Server) StopPushNotificationsHubWorkers() {
 	s.PushNotificationsHub.stop()
 }
 
+func (a *App) rawSendToPushProxy(msg *model.PushNotification) (model.PushResponse, error) {
+	msgJSON, jsonErr := json.Marshal(msg)
+	if jsonErr != nil {
+		return nil, errors.Wrap(jsonErr, "failed to encode to JSON")
+	}
+
+	url := strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/") + model.APIURLSuffixV1 + "/send_push"
+	request, err := http.NewRequest("POST", url, bytes.NewReader(msgJSON))
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := a.Srv().pushNotificationClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var pushResponse model.PushResponse
+	if jsonErr := json.NewDecoder(resp.Body).Decode(&pushResponse); jsonErr != nil {
+		return nil, errors.Wrap(jsonErr, "failed to decode from JSON")
+	}
+
+	return pushResponse, nil
+}
+
 func (a *App) sendToPushProxy(msg *model.PushNotification, session *model.Session) error {
 	msg.ServerId = a.TelemetryId()
 
@@ -390,26 +416,9 @@ func (a *App) sendToPushProxy(msg *model.PushNotification, session *model.Sessio
 		mlog.String("status", model.PushSendPrepare),
 	)
 
-	msgJSON, jsonErr := json.Marshal(msg)
-	if jsonErr != nil {
-		return errors.Wrap(jsonErr, "failed to encode to JSON")
-	}
-
-	url := strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/") + model.APIURLSuffixV1 + "/send_push"
-	request, err := http.NewRequest("POST", url, bytes.NewReader(msgJSON))
+	pushResponse, err := a.rawSendToPushProxy(msg)
 	if err != nil {
 		return err
-	}
-
-	resp, err := a.Srv().pushNotificationClient.Do(request)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	var pushResponse model.PushResponse
-	if jsonErr := json.NewDecoder(resp.Body).Decode(&pushResponse); jsonErr != nil {
-		return errors.Wrap(jsonErr, "failed to decode from JSON")
 	}
 
 	switch pushResponse[model.PushStatus] {
@@ -548,7 +557,7 @@ func (a *App) BuildPushNotificationMessage(contentsConfig string, post *model.Po
 
 	var msg *model.PushNotification
 
-	notificationInterface := a.Srv().Notification
+	notificationInterface := a.ch.Notification
 	if (notificationInterface == nil || notificationInterface.CheckLicense() != nil) && contentsConfig == model.IdLoadedNotification {
 		contentsConfig = model.GenericNotification
 	}
@@ -566,6 +575,44 @@ func (a *App) BuildPushNotificationMessage(contentsConfig string, post *model.Po
 	msg.Badge = int(unreadCount)
 
 	return msg, nil
+}
+
+func (a *App) SendTestPushNotification(deviceID string) string {
+	if !a.canSendPushNotifications() {
+		return "false"
+	}
+
+	msg := &model.PushNotification{
+		Version:  "2",
+		Type:     model.PushTypeTest,
+		ServerId: a.TelemetryId(),
+		Badge:    -1,
+	}
+	msg.SetDeviceIdAndPlatform(deviceID)
+
+	pushResponse, err := a.rawSendToPushProxy(msg)
+	if err != nil {
+		a.NotificationsLog().Error("Notification error",
+			mlog.String("type", msg.Type),
+			mlog.String("deviceId", msg.DeviceId),
+			mlog.String("status", err.Error()),
+		)
+		return "unknown"
+	}
+
+	switch pushResponse[model.PushStatus] {
+	case model.PushStatusRemove:
+		return "false"
+	case model.PushStatusFail:
+		a.NotificationsLog().Error("Notification error",
+			mlog.String("type", msg.Type),
+			mlog.String("deviceId", msg.DeviceId),
+			mlog.String("status", pushResponse[model.PushStatusErrorMsg]),
+		)
+		return "unknown"
+	}
+
+	return "true"
 }
 
 func (a *App) buildIdLoadedPushNotificationMessage(channel *model.Channel, post *model.Post, user *model.User) *model.PushNotification {

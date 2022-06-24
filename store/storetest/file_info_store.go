@@ -29,6 +29,7 @@ func TestFileInfoStore(t *testing.T, ss store.Store) {
 	t.Run("FileInfoPermanentDeleteByUser", func(t *testing.T) { testFileInfoPermanentDeleteByUser(t, ss) })
 	t.Run("GetFilesBatchForIndexing", func(t *testing.T) { testFileInfoStoreGetFilesBatchForIndexing(t, ss) })
 	t.Run("CountAll", func(t *testing.T) { testFileInfoStoreCountAll(t, ss) })
+	t.Run("GetStorageUsage", func(t *testing.T) { testFileInfoGetStorageUsage(t, ss) })
 }
 
 func testFileInfoSaveGet(t *testing.T, ss store.Store) {
@@ -635,7 +636,7 @@ func testFileInfoStoreGetFilesBatchForIndexing(t *testing.T, ss store.Store) {
 	defer func() {
 		ss.FileInfo().PermanentDelete(f1.Id)
 	}()
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(2 * time.Millisecond)
 
 	o2 := &model.Post{}
 	o2.ChannelId = c2.Id
@@ -653,7 +654,7 @@ func testFileInfoStoreGetFilesBatchForIndexing(t *testing.T, ss store.Store) {
 	defer func() {
 		ss.FileInfo().PermanentDelete(f2.Id)
 	}()
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(2 * time.Millisecond)
 
 	o3 := &model.Post{}
 	o3.ChannelId = c1.Id
@@ -673,42 +674,23 @@ func testFileInfoStoreGetFilesBatchForIndexing(t *testing.T, ss store.Store) {
 		ss.FileInfo().PermanentDelete(f3.Id)
 	}()
 
-	t.Run("get all files", func(t *testing.T) {
-		r, err := ss.FileInfo().GetFilesBatchForIndexing(f1.CreateAt, model.GetMillis()+100000, 100)
-		require.NoError(t, err)
-		require.Len(t, r, 3, "Expected 3 posts in results. Got %v", len(r))
-		for _, f := range r {
-			if f.Id == f1.Id {
-				require.Equal(t, f.ChannelId, o1.ChannelId, "Unexpected channel ID")
-				require.Equal(t, f.Path, "file1.txt", "Unexpected filename")
-			} else if f.Id == f2.Id {
-				require.Equal(t, f.ChannelId, o2.ChannelId, "Unexpected channel ID")
-				require.Equal(t, f.Path, "file2.txt", "Unexpected filename")
-			} else if f.Id == f3.Id {
-				require.Equal(t, f.ChannelId, o3.ChannelId, "Unexpected channel ID")
-				require.Equal(t, f.Path, "file3.txt", "Unexpected filename")
-			} else {
-				require.Fail(t, "unexpected file returned")
-			}
-		}
-	})
+	// Getting all
+	r, err := ss.FileInfo().GetFilesBatchForIndexing(f1.CreateAt-1, "", 100)
+	require.NoError(t, err)
+	require.Len(t, r, 3, "Expected 3 posts in results. Got %v", len(r))
 
-	t.Run("get files after certain date", func(t *testing.T) {
-		r, err := ss.FileInfo().GetFilesBatchForIndexing(f1.CreateAt+1, model.GetMillis()+100000, 100)
-		require.NoError(t, err)
-		require.Len(t, r, 2, "Expected 2 posts in results. Got %v", len(r))
-		for _, f := range r {
-			if f.Id == f2.Id {
-				require.Equal(t, f.ChannelId, o2.ChannelId, "Unexpected channel ID")
-				require.Equal(t, f.Path, "file2.txt", "Unexpected filename")
-			} else if f.Id == f3.Id {
-				require.Equal(t, f.ChannelId, o3.ChannelId, "Unexpected channel ID")
-				require.Equal(t, f.Path, "file3.txt", "Unexpected filename")
-			} else {
-				require.Fail(t, "unexpected file returned")
-			}
-		}
-	})
+	// Testing pagination
+	r, err = ss.FileInfo().GetFilesBatchForIndexing(f1.CreateAt-1, "", 2)
+	require.NoError(t, err)
+	require.Len(t, r, 2, "Expected 2 posts in results. Got %v", len(r))
+
+	r, err = ss.FileInfo().GetFilesBatchForIndexing(r[1].CreateAt, r[1].Id, 2)
+	require.NoError(t, err)
+	require.Len(t, r, 1, "Expected 1 post in results. Got %v", len(r))
+
+	r, err = ss.FileInfo().GetFilesBatchForIndexing(r[0].CreateAt, r[0].Id, 2)
+	require.NoError(t, err)
+	require.Len(t, r, 0, "Expected 0 posts in results. Got %v", len(r))
 }
 
 func testFileInfoStoreCountAll(t *testing.T, ss store.Store) {
@@ -743,4 +725,50 @@ func testFileInfoStoreCountAll(t *testing.T, ss store.Store) {
 	count, err = ss.FileInfo().CountAll()
 	require.NoError(t, err)
 	require.Equal(t, int64(2), count)
+}
+
+func testFileInfoGetStorageUsage(t *testing.T, ss store.Store) {
+	_, err := ss.FileInfo().PermanentDeleteBatch(model.GetMillis(), 100000)
+	require.NoError(t, err)
+
+	usage, err := ss.FileInfo().GetStorageUsage(false, false)
+	require.NoError(t, err)
+	require.Equal(t, int64(0), usage)
+
+	f1, err := ss.FileInfo().Save(&model.FileInfo{
+		PostId:    model.NewId(),
+		CreatorId: model.NewId(),
+		Size:      10,
+		Path:      "file1.txt",
+	})
+	require.NoError(t, err)
+
+	_, err = ss.FileInfo().Save(&model.FileInfo{
+		PostId:    model.NewId(),
+		CreatorId: model.NewId(),
+		Size:      10,
+		Path:      "file2.txt",
+	})
+	require.NoError(t, err)
+	_, err = ss.FileInfo().Save(&model.FileInfo{
+		PostId:    model.NewId(),
+		CreatorId: model.NewId(),
+		Size:      10,
+		Path:      "file3.txt",
+	})
+	require.NoError(t, err)
+
+	usage, err = ss.FileInfo().GetStorageUsage(false, false)
+	require.NoError(t, err)
+	require.Equal(t, int64(30), usage)
+
+	_, err = ss.FileInfo().DeleteForPost(f1.PostId)
+	require.NoError(t, err)
+	usage, err = ss.FileInfo().GetStorageUsage(false, false)
+	require.NoError(t, err)
+	require.Equal(t, int64(20), usage)
+
+	usage, err = ss.FileInfo().GetStorageUsage(false, true)
+	require.NoError(t, err)
+	require.Equal(t, int64(30), usage)
 }

@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"strings"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -227,10 +227,10 @@ func (s SqlTeamStore) Save(team *model.Team) (*model.Team, error) {
 
 	if _, err := s.GetMasterX().NamedExec(`INSERT INTO Teams
 		(Id, CreateAt, UpdateAt, DeleteAt, DisplayName, Name, Description, Email, Type, CompanyName, AllowedDomains,
-		InviteId, AllowOpenInvite, LastTeamIconUpdate, SchemeId, GroupConstrained)
+		InviteId, AllowOpenInvite, LastTeamIconUpdate, SchemeId, GroupConstrained, CloudLimitsArchived)
 		VALUES
 		(:Id, :CreateAt, :UpdateAt, :DeleteAt, :DisplayName, :Name, :Description, :Email, :Type, :CompanyName, :AllowedDomains,
-		:InviteId, :AllowOpenInvite, :LastTeamIconUpdate, :SchemeId, :GroupConstrained)`, team); err != nil {
+		:InviteId, :AllowOpenInvite, :LastTeamIconUpdate, :SchemeId, :GroupConstrained, :CloudLimitsArchived)`, team); err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "teams_name_key"}) {
 			return nil, store.NewErrInvalidInput("Team", "id", team.Id)
 		}
@@ -268,7 +268,7 @@ func (s SqlTeamStore) Update(team *model.Team) (*model.Team, error) {
 			SET CreateAt=:CreateAt, UpdateAt=:UpdateAt, DeleteAt=:DeleteAt, DisplayName=:DisplayName, Name=:Name,
 				Description=:Description, Email=:Email, Type=:Type, CompanyName=:CompanyName, AllowedDomains=:AllowedDomains,
 				InviteId=:InviteId, AllowOpenInvite=:AllowOpenInvite, LastTeamIconUpdate=:LastTeamIconUpdate,
-				SchemeId=:SchemeId, GroupConstrained=:GroupConstrained
+				SchemeId=:SchemeId, GroupConstrained=:GroupConstrained, CloudLimitsArchived=:CloudLimitsArchived
 			WHERE Id=:Id`, team)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update Team with id=%s", team.Id)
@@ -303,6 +303,29 @@ func (s SqlTeamStore) Get(id string) (*model.Team, error) {
 	return &team, nil
 }
 
+func (s SqlTeamStore) GetMany(ids []string) ([]*model.Team, error) {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Teams").
+		Where(sq.Eq{"Id": ids})
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "getmany_tosql")
+	}
+
+	teams := []*model.Team{}
+	err = s.GetReplicaX().Select(&teams, sql, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get teams with ids %v", ids)
+	}
+
+	if len(teams) == 0 {
+		return nil, store.NewErrNotFound("Team", fmt.Sprintf("ids=%v", ids))
+	}
+
+	return teams, nil
+}
+
 // GetByInviteId returns from the database the team that matches the inviteId provided as parameter.
 // If the parameter provided is empty or if there is no match in the database, it returns a model.AppError
 // with a http.StatusNotFound in the StatusCode field.
@@ -322,6 +345,15 @@ func (s SqlTeamStore) GetByInviteId(inviteId string) (*model.Team, error) {
 		return nil, store.NewErrNotFound("Team", fmt.Sprintf("inviteId=%s", inviteId))
 	}
 	return &team, nil
+}
+
+func (s SqlTeamStore) GetByEmptyInviteID() ([]*model.Team, error) {
+	teams := []*model.Team{}
+	err := s.GetReplicaX().Select(&teams, "SELECT * FROM Teams WHERE InviteId = ''")
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find Teams with empty InviteID")
+	}
+	return teams, nil
 }
 
 // GetByName returns from the database the team that matches the name provided as parameter.
@@ -922,7 +954,7 @@ func (s SqlTeamStore) GetMember(ctx context.Context, teamId string, userId strin
 	}
 
 	var dbMember teamMemberWithSchemeRoles
-	err = s.DBFromContext(ctx).SelectOne(&dbMember, queryString, args...)
+	err = s.DBXFromContext(ctx).Get(&dbMember, queryString, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("TeamMember", fmt.Sprintf("teamId=%s, userId=%s", teamId, userId))
@@ -1057,10 +1089,18 @@ func (s SqlTeamStore) GetMembersByIds(teamId string, userIds []string, restricti
 	return dbMembers.ToModel(), nil
 }
 
-// GetTeamsForUser returns a list of teams that the user is a member of. Expects userId to be passed as a parameter.
-func (s SqlTeamStore) GetTeamsForUser(ctx context.Context, userId string) ([]*model.TeamMember, error) {
+// GetTeamsForUser returns a list of teams that the user is a member of. Expects userId to be passed as a parameter. It can also negative the teamID passed.
+func (s SqlTeamStore) GetTeamsForUser(ctx context.Context, userId, excludeTeamID string, includeDeleted bool) ([]*model.TeamMember, error) {
 	query := s.getTeamMembersWithSchemeSelectQuery().
 		Where(sq.Eq{"TeamMembers.UserId": userId})
+
+	if excludeTeamID != "" {
+		query = query.Where(sq.NotEq{"TeamMembers.TeamId": excludeTeamID})
+	}
+
+	if !includeDeleted {
+		query = query.Where(sq.Eq{"TeamMembers.DeleteAt": 0})
+	}
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -1068,7 +1108,7 @@ func (s SqlTeamStore) GetTeamsForUser(ctx context.Context, userId string) ([]*mo
 	}
 
 	dbMembers := teamMemberWithSchemeRolesList{}
-	_, err = s.SqlStore.DBFromContext(ctx).Select(&dbMembers, queryString, args...)
+	err = s.SqlStore.DBXFromContext(ctx).Select(&dbMembers, queryString, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers with userId=%s", userId)
 	}
@@ -1391,7 +1431,7 @@ func (s SqlTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) (int64, er
 	var count int64
 	err = s.GetReplicaX().Get(&count, query, args...)
 	if err != nil {
-		return 0, errors.Wrapf(err, "failed to count Teams with schemdId=%s", schemeId)
+		return 0, errors.Wrapf(err, "failed to count Teams with schemeId=%s", schemeId)
 	}
 
 	return count, nil
