@@ -762,21 +762,8 @@ func (a *App) UpdateDefaultProfileImage(user *model.User) *model.AppError {
 }
 
 func (a *App) SetDefaultProfileImage(user *model.User) *model.AppError {
-	img, appErr := a.GetDefaultProfileImage(user)
-	if appErr != nil {
-		return appErr
-	}
 
-	path := getProfileImagePath(user.Id)
-	if _, err := a.WriteFile(bytes.NewReader(img), path); err != nil {
-		return err
-	}
-
-	if err := a.Srv().Store.User().ResetLastPictureUpdate(user.Id); err != nil {
-		mlog.Warn("Failed to reset last picture update", mlog.Err(err))
-	}
-
-	a.InvalidateCacheForUser(user.Id)
+	a.UpdateDefaultProfileImage(user)
 
 	updatedUser, appErr := a.GetUser(user.Id)
 	if appErr != nil {
