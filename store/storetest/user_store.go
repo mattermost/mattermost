@@ -5704,6 +5704,7 @@ func testDeactivateGuests(t *testing.T, ss store.Store) {
 }
 
 func testUserStoreResetLastPictureUpdate(t *testing.T, ss store.Store) {
+	startTime := model.GetMillis()
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	_, err := ss.User().Save(u1)
@@ -5718,8 +5719,8 @@ func testUserStoreResetLastPictureUpdate(t *testing.T, ss store.Store) {
 	user, err := ss.User().Get(context.Background(), u1.Id)
 	require.NoError(t, err)
 
-	assert.NotZero(t, user.LastPictureUpdate)
-	assert.NotZero(t, user.UpdateAt)
+	assert.GreaterOrEqual(t, user.LastPictureUpdate, startTime)
+	assert.GreaterOrEqual(t, user.LastPictureUpdate, startTime)
 
 	// Ensure update at timestamp changes
 	time.Sleep(time.Millisecond)
@@ -5732,8 +5733,8 @@ func testUserStoreResetLastPictureUpdate(t *testing.T, ss store.Store) {
 	user2, err := ss.User().Get(context.Background(), u1.Id)
 	require.NoError(t, err)
 
-	assert.True(t, user2.UpdateAt > user.UpdateAt)
-	assert.Zero(t, user2.LastPictureUpdate)
+	assert.Greater(t, user2.UpdateAt, user.UpdateAt)
+	assert.Less(t, user2.LastPictureUpdate, -startTime)
 }
 
 func testGetKnownUsers(t *testing.T, ss store.Store) {

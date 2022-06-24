@@ -84,9 +84,11 @@ func TestCreateOAuthUser(t *testing.T) {
 	})
 }
 
-func TestSetDefaultProfileImage(t *testing.T) {
+func TestUpdateDefaultProfileImage(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	startTime := model.GetMillis()
+	time.Sleep(time.Millisecond)
 
 	err := th.App.SetDefaultProfileImage(&model.User{
 		Id:       model.NewId(),
@@ -97,11 +99,11 @@ func TestSetDefaultProfileImage(t *testing.T) {
 
 	user := th.BasicUser
 
-	err = th.App.SetDefaultProfileImage(user)
+	err = th.App.UpdateDefaultProfileImage(user)
 	require.Nil(t, err)
 
 	user = getUserFromDB(th.App, user.Id, t)
-	assert.Equal(t, int64(0), user.LastPictureUpdate)
+	assert.Less(t, user.LastPictureUpdate, -startTime, "LastPictureUpdate should be set to -(current time in milliseconds)")
 }
 
 func TestAdjustProfileImage(t *testing.T) {
@@ -193,6 +195,33 @@ func TestUpdateUser(t *testing.T) {
 		require.NotNil(t, err)
 		require.Equal(t, "app.user.group_name_conflict", err.Id)
 		require.Nil(t, u)
+	})
+
+	t.Run("fails if default profile picture is not updated when user has default profile picture and username is changed", func(t *testing.T) {
+		user.Username = "updatedUsername"
+		iLastPictureUpdate := user.LastPictureUpdate
+		require.Equal(t, iLastPictureUpdate, int64(0))
+		u, err := th.App.UpdateUser(user, false)
+		require.Nil(t, err)
+		require.NotNil(t, u)
+		require.Less(t, u.LastPictureUpdate, iLastPictureUpdate)
+	})
+
+	t.Run("fails if profile picture is updated when user has custom profile picture and username is changed", func(t *testing.T) {
+		// Give the user a LastPictureUpdate to mimic having a custom profile picture
+		err := th.App.Srv().Store.User().UpdateLastPictureUpdate(user.Id)
+		require.Nil(t, err)
+		user, err = th.App.GetUser(user.Id)
+		require.Nil(t, err)
+		user.Username = "updatedUsername"
+		iLastPictureUpdate := user.LastPictureUpdate
+		require.Greater(t, iLastPictureUpdate, int64(0))
+
+		// Attempt the update, ensure the LastPictureUpdate has not changed
+		u, err := th.App.UpdateUser(user, false)
+		require.Nil(t, err)
+		require.NotNil(t, u)
+		require.Equal(t, u.LastPictureUpdate, iLastPictureUpdate)
 	})
 }
 
