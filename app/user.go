@@ -756,6 +756,8 @@ func (a *App) UpdateDefaultProfileImage(user *model.User) *model.AppError {
 		mlog.Warn("Failed to reset last picture update", mlog.Err(err))
 	}
 
+	a.InvalidateCacheForUser(user.Id)
+
 	return nil
 }
 
@@ -1187,43 +1189,53 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 		}
 	}
 
-	if (userUpdate.New.Username != userUpdate.Old.Username) && (userUpdate.New.LastPictureUpdate == 0) {
-		if err := a.UpdateDefaultProfileImage(userUpdate.New); err != nil {
+	newUser := userUpdate.New
+
+	if (newUser.Username != userUpdate.Old.Username) && (newUser.LastPictureUpdate <= 0) {
+		// When a username is updated and the profile is still using a default profile picture, generate a new one based on their username
+		if err := a.UpdateDefaultProfileImage(newUser); err != nil {
 			mlog.Warn("Error with updating default profile image", mlog.Err(err))
+		}
+
+		tempUser, getUserErr := a.GetUser(user.Id)
+		if getUserErr != nil {
+			mlog.Warn("Error when retrieving user after profile picture update, avatar may fail to update automatically on client applications.", mlog.Err(getUserErr))
+		} else {
+			newUser = tempUser
 		}
 	}
 
 	if sendNotifications {
-		if userUpdate.New.Email != userUpdate.Old.Email || newEmail != "" {
+		if newUser.Email != userUpdate.Old.Email || newEmail != "" {
 			if *a.Config().EmailSettings.RequireEmailVerification {
 				a.Srv().Go(func() {
-					if err := a.SendEmailVerification(userUpdate.New, newEmail, ""); err != nil {
+					if err := a.SendEmailVerification(newUser, newEmail, ""); err != nil {
 						mlog.Error("Failed to send email verification", mlog.Err(err))
 					}
 				})
 			} else {
 				a.Srv().Go(func() {
-					if err := a.Srv().EmailService.SendEmailChangeEmail(userUpdate.Old.Email, userUpdate.New.Email, userUpdate.New.Locale, a.GetSiteURL()); err != nil {
+					if err := a.Srv().EmailService.SendEmailChangeEmail(userUpdate.Old.Email, newUser.Email, newUser.Locale, a.GetSiteURL()); err != nil {
 						mlog.Error("Failed to send email change email", mlog.Err(err))
 					}
 				})
 			}
 		}
 
-		if userUpdate.New.Username != userUpdate.Old.Username {
+		if newUser.Username != userUpdate.Old.Username {
 			a.Srv().Go(func() {
-				if err := a.Srv().EmailService.SendChangeUsernameEmail(userUpdate.New.Username, userUpdate.New.Email, userUpdate.New.Locale, a.GetSiteURL()); err != nil {
+				if err := a.Srv().EmailService.SendChangeUsernameEmail(newUser.Username, newUser.Email, newUser.Locale, a.GetSiteURL()); err != nil {
 					mlog.Error("Failed to send change username email", mlog.Err(err))
 				}
 			})
 		}
-		a.sendUpdatedUserEvent(*userUpdate.New)
+		a.sendUpdatedUserEvent(*newUser)
 	}
 
 	a.InvalidateCacheForUser(user.Id)
 	a.onUserProfileChange(user.Id)
 
-	return userUpdate.New, nil
+	return newUser, nil
 }
 
 func (a *App) UpdateUserActive(c *request.Context, userID string, active bool) *model.AppError {
