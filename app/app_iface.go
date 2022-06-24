@@ -1066,6 +1066,7 @@ type AppIface interface {
 	UpdateChannelPrivacy(c *request.Context, oldChannel *model.Channel, user *model.User) (*model.Channel, *model.AppError)
 	UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, *model.AppError)
 	UpdateConfig(f func(*model.Config))
+	UpdateDefaultProfileImage(user *model.User) *model.AppError
 	UpdateEphemeralPost(userID string, post *model.Post) *model.Post
 	UpdateExpiredDNDStatuses() ([]*model.Status, error)
 	UpdateGroup(group *model.Group) (*model.Group, *model.AppError)
