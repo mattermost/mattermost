@@ -1719,3 +1719,47 @@ func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, *model.AppError) {
 
 	return posts, nil
 }
+
+func (a *App) GetTopThreadsForTeamSince(teamID, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError) {
+	if !a.Config().FeatureFlags.InsightsEnabled {
+		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.insights.feature_disabled", nil, "", http.StatusNotImplemented)
+	}
+
+	topThreads, err := a.Srv().Store.Thread().GetTopThreadsForTeamSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
+	if err != nil {
+		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.post.get_top_threads_for_team_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	topThreadsWithEmbedAndImage, err := includeEmbedsAndImages(a, topThreads, userID)
+	if err != nil {
+		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.post.get_top_threads_for_team_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return topThreadsWithEmbedAndImage, nil
+}
+
+func (a *App) GetTopThreadsForUserSince(teamID, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError) {
+	if !a.Config().FeatureFlags.InsightsEnabled {
+		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.insights.feature_disabled", nil, "", http.StatusNotImplemented)
+	}
+
+	topThreads, err := a.Srv().Store.Thread().GetTopThreadsForUserSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
+	if err != nil {
+		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.post.get_top_threads_for_team_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	topThreadsWithEmbedAndImage, err := includeEmbedsAndImages(a, topThreads, userID)
+	if err != nil {
+		return nil, model.NewAppError("GetTopChannelsForUserSince", "app.post.get_top_threads_for_user_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return topThreadsWithEmbedAndImage, nil
+}
+
+func includeEmbedsAndImages(a *App, topThreadList *model.TopThreadList, userID string) (*model.TopThreadList, error) {
+	for _, topThread := range topThreadList.Items {
+		topThread.Post = a.PreparePostForClientWithEmbedsAndImages(topThread.Post, false, false)
+		sanitizedPost, err := a.SanitizePostMetadataForUser(topThread.Post, userID)
+		if err != nil {
+			return nil, err
+		}
+		topThread.Post = sanitizedPost
+	}
+	return topThreadList, nil
+}

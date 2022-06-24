@@ -359,8 +359,9 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	license := s.License()
+	insecure := s.Config().ServiceSettings.EnableInsecureOutgoingConnections
 	// Step 7: Initialize filestore
-	backend, err := filestore.NewFileBackend(s.Config().FileSettings.ToFileBackendSettings(license != nil && *license.Features.Compliance))
+	backend, err := filestore.NewFileBackend(s.Config().FileSettings.ToFileBackendSettings(license != nil && *license.Features.Compliance, insecure != nil && *insecure))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize filebackend")
 	}
@@ -398,9 +399,7 @@ func NewServer(options ...Option) (*Server, error) {
 		FilestoreKey: s.filestore,
 		ClusterKey:   s.clusterWrapper,
 		UserKey:      New(ServerConnector(s.Channels())),
-		LogKey: &logWrapper{
-			srv: s,
-		},
+		LogKey:       s.GetLogger(),
 	}
 
 	// Step 8: Initialize products.

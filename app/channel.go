@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -2779,6 +2780,7 @@ func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (mode
 		ExcludeGroupConstrained:  opts.ExcludeGroupConstrained,
 		PolicyID:                 opts.PolicyID,
 		IncludePolicyID:          opts.IncludePolicyID,
+		IncludeSearchById:        opts.IncludeSearchById,
 		ExcludePolicyConstrained: opts.ExcludePolicyConstrained,
 		Public:                   opts.Public,
 		Private:                  opts.Private,
@@ -3416,4 +3418,20 @@ func (a *App) GetTopChannelsForUserSince(userID, teamID string, opts *model.Insi
 		return nil, model.NewAppError("GetTopChannelsForUserSince", "app.channel.get_top_for_user_since.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return topChannels, nil
+}
+
+// PostCountsByDuration returns the post counts for the given channels, grouped by day, starting at the given time.
+// Unless one is specifically itending to omit results from part of the calendar day, it will typically makes the most sense to
+// use a sinceUnixMillis parameter value as returned by model.GetStartOfDayMillis.
+//
+// WARNING: PostCountsByDuration PERFORMS NO AUTHORIZATION CHECKS ON THE GIVEN CHANNELS.
+func (a *App) PostCountsByDuration(channelIDs []string, sinceUnixMillis int64, userID *string, grouping model.PostCountGrouping, groupingLocation *time.Location) ([]*model.DurationPostCount, *model.AppError) {
+	if !a.Config().FeatureFlags.InsightsEnabled {
+		return nil, model.NewAppError("PostCountsByDuration", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
+	}
+	postCountByDay, err := a.Srv().Store.Channel().PostCountsByDuration(channelIDs, sinceUnixMillis, userID, grouping, groupingLocation)
+	if err != nil {
+		return nil, model.NewAppError("PostCountsByDuration", "app.channel.get_post_count_by_day.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return postCountByDay, nil
 }
