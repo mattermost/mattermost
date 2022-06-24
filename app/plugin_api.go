@@ -373,7 +373,6 @@ func (api *PluginAPI) GetUserCustomStatus(userID string) (*model.CustomStatus, *
 
 // calls: status utils
 func (api *PluginAPI) SetUserStatusOnCallJoin(userID string) *model.AppError {
-	fmt.Println("something on call join")
 	// get user status
 	userStatus, appErr := api.app.GetStatus(userID)
 	if appErr != nil {
@@ -388,13 +387,39 @@ func (api *PluginAPI) SetUserStatusOnCallJoin(userID string) *model.AppError {
 	// set status dnd
 	api.app.SetStatusDoNotDisturb(userID)
 
+	// check if custom status is set before call, if yes set preference.custom_status.custom_status_set_before_auto_modification to true, else set to false
+	cs, err := api.app.GetCustomStatus(userID)
+	if err != nil {
+		return model.NewAppError("SetUserStatusOnCallJoin", "plugin.api.set_user_status_on_call_join", nil, "failed to get user status", http.StatusInternalServerError)
+	}
+	if cs != nil {
+		pref := &model.Preference{
+			UserId:   userID,
+			Category: model.PreferenceCategoryCustomStatus,
+			Name:     model.PreferenceNameCustomStatusSetBeforeAutoModification,
+			Value:    "true",
+		}
+		if err := api.app.UpdatePreferences(userID, model.Preferences{*pref}); err != nil {
+			return err
+		}
+	} else {
+		pref := &model.Preference{
+			UserId:   userID,
+			Category: model.PreferenceCategoryCustomStatus,
+			Name:     model.PreferenceNameCustomStatusSetBeforeAutoModification,
+			Value:    "false",
+		}
+		if err := api.app.UpdatePreferences(userID, model.Preferences{*pref}); err != nil {
+			return err
+		}
+	}
 	// set custom status
 	customStatus := &model.CustomStatus{
 		Emoji:    "telephone_receiver",
 		Text:     "On a call",
 		Duration: "",
 	}
-	err := api.app.SetCustomStatus(userID, customStatus)
+	err = api.app.SetCustomStatus(userID, customStatus)
 	if err != nil {
 		return model.NewAppError("SetUserStatusOnCallJoin", "plugin.api.set_user_status_on_call_join", nil, "failed to set user status to dnd", http.StatusInternalServerError)
 	}
@@ -402,7 +427,6 @@ func (api *PluginAPI) SetUserStatusOnCallJoin(userID string) *model.AppError {
 }
 
 func (api *PluginAPI) SetUserStatusOnCallLeave(userID string) *model.AppError {
-	fmt.Println("something on call leave")
 	// get user's custom status
 	user, appErr := api.app.GetUser(userID)
 
@@ -410,27 +434,43 @@ func (api *PluginAPI) SetUserStatusOnCallLeave(userID string) *model.AppError {
 	if appErr != nil {
 		return model.NewAppError("SetUserStatusOnCallJoin", "plugin.api.set_user_status_on_call_leave", nil, "failed to get custom user status. status not set to online", http.StatusInternalServerError)
 	}
-
-	// check if user status is not set by SetUserStatusOnCallJoin, do nothing to user status
-	if userStatus.Text != "On a call" || userStatus.Emoji != "telephone_receiver" {
-		return model.NewAppError("SetUserStatusOnCallJoin", "plugin.api.set_user_status_on_call_leave", nil, "custom status is not set by calls, status not changed", http.StatusInternalServerError)
+	// get user status
+	// userStatusNormal, appErr := api.app.GetStatus(userID)
+	if appErr != nil {
+		return appErr
 	}
 
-	// set status online -- todo: reset to what user has set before the call
-	api.app.SetStatusOnline(userID, true)
+	// check if custom status is to be reset.
+	setCustomStatusFlag, appErr := api.app.GetPreferenceByCategoryAndNameForUser(userID, model.PreferenceCategoryCustomStatus, model.PreferenceNameCustomStatusSetBeforeAutoModification)
+	if appErr != nil {
+		return appErr
+	}
+	// check if user status is not set by SetUserStatusOnCallJoin, do nothing to user status
+	if userStatus.Text != "On a call" || userStatus.Emoji != "telephone_receiver" {
+		return model.NewAppError("SetUserStatusOnCallJoin", "plugin.api.set_user_status_on_call_leave", nil,
+			"custom status is not set by calls, custom status not changed", http.StatusInternalServerError)
+	}
 
+	// set status to online -- todo: reset to what user has set before the call
+	_, appErr = api.UpdateUserStatus(userID, model.StatusOnline)
+	if appErr != nil {
+		return appErr
+	}
 	// remove custom status
 	existingRCS, err := api.app.GetRecentStatuses(userID)
 	if err != nil {
 		return model.NewAppError("SetUserStatusOnCallJoin", "plugin.api.set_user_status_on_call_leave", nil, "failed to get recent statuses to reset", http.StatusInternalServerError)
 	}
 	if len(existingRCS) == 1 {
-		err = api.app.RemoveCustomStatus(userID)
+		err := api.app.RemoveCustomStatus(userID)
 		if err != nil {
 			return model.NewAppError("SetUserStatusOnCallJoin", "plugin.api.set_user_status_on_call_leave", nil, "failed to remove custom status", http.StatusInternalServerError)
 		}
 	} else {
-		err = api.app.SetCustomStatus(userID, existingRCS[1])
+		if setCustomStatusFlag.Value == "false" {
+			return nil
+		}
+		err := api.app.SetCustomStatus(userID, existingRCS[1])
 		if err != nil {
 			return model.NewAppError("SetUserStatusOnCallJoin", "plugin.api.set_user_status_on_call_leave", nil, "failed to revert custom status", http.StatusInternalServerError)
 		}
