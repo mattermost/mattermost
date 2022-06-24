@@ -2239,9 +2239,17 @@ func (a *App) PublishUserTyping(userID, channelID, parentId string) *model.AppEr
 	omitUsers := make(map[string]bool, 1)
 	omitUsers[userID] = true
 
-	event := model.NewWebSocketEvent(model.WebsocketEventTyping, "", channelID, "", omitUsers)
-	event.Add("parent_id", parentId)
+	// The change to putting the channel ID in the data instead of the broadcast will break code
+	// looking for it in the broadcast (older mobile apps, likely mobile)
+	event := model.NewWebSocketEvent(model.WebsocketEventTyping, "", "", "", omitUsers)
+	event.Add("channel_id", channelID)
+	event.Add("parent_id", parentId) // Also, this should probably change to root ID at the same time
 	event.Add("user_id", userID)
+
+	broadcast := event.GetBroadcast()
+	broadcast.Scope = fmt.Sprintf("%s:%s:%s", model.WebsocketEventTyping, channelID, parentId)
+	event = event.SetBroadcast(broadcast)
+
 	a.Publish(event)
 
 	return nil
