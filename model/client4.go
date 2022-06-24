@@ -28,6 +28,7 @@ const (
 	HeaderForwardedProto     = "X-Forwarded-Proto"
 	HeaderToken              = "token"
 	HeaderCsrfToken          = "X-CSRF-Token"
+	HeaderConnectionId       = "X-Connection-ID"
 	HeaderBearer             = "BEARER"
 	HeaderAuth               = "Authorization"
 	HeaderCloudToken         = "X-Cloud-Token"

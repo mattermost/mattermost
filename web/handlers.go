@@ -168,6 +168,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.AppContext.SetUserAgent(r.UserAgent())
 	c.AppContext.SetAcceptLanguage(r.Header.Get("Accept-Language"))
 	c.AppContext.SetPath(r.URL.Path)
+	c.AppContext.SetConnectionId(r.Header.Get(model.HeaderConnectionId))
 	c.Params = ParamsFromRequest(r)
 	c.Logger = c.App.Log()
 

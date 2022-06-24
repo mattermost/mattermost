@@ -780,6 +780,11 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 		}
 	}
 
+	// If the event is omitted for a specific connection
+	if msg.GetBroadcast().OmitConnectionID != "" && msg.GetBroadcast().OmitConnectionID == wc.GetConnectionID() {
+		return false
+	}
+
 	// Only report events to users who are in the channel for the event
 	if msg.GetBroadcast().ChannelId != "" {
 		if model.GetMillis()-wc.lastAllChannelMembersTime > webConnMemberCacheTime {

@@ -19,6 +19,7 @@ type Context struct {
 	path           string
 	userAgent      string
 	acceptLanguage string
+	connectionId   string
 	logger         mlog.LoggerIFace
 	err            *model.AppError
 
@@ -66,6 +67,9 @@ func (c *Context) UserAgent() string {
 func (c *Context) AcceptLanguage() string {
 	return c.acceptLanguage
 }
+func (c *Context) ConnectionId() string {
+	return c.connectionId
+}
 
 func (c *Context) Context() context.Context {
 	return c.context
@@ -92,6 +96,9 @@ func (c *Context) SetAcceptLanguage(s string) {
 }
 func (c *Context) SetPath(s string) {
 	c.path = s
+}
+func (c *Context) SetConnectionId(s string) {
+	c.connectionId = s
 }
 func (c *Context) SetContext(ctx context.Context) {
 	c.context = ctx
