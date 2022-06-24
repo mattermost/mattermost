@@ -372,7 +372,7 @@ func (api *PluginAPI) GetUserCustomStatus(userID string) (*model.CustomStatus, *
 }
 
 // calls: status utils
-func (api *PluginAPI) SetUserStatusOnCallJoin(userID string) *model.AppError {
+func (api *PluginAPI) SetUserStatusOnCallJoin(userID string, emoji string, statusText string, setby string) *model.AppError {
 	// get user status
 	userStatus, appErr := api.app.GetStatus(userID)
 	if appErr != nil {
@@ -415,8 +415,8 @@ func (api *PluginAPI) SetUserStatusOnCallJoin(userID string) *model.AppError {
 	}
 	// set custom status
 	customStatus := &model.CustomStatus{
-		Emoji:    "telephone_receiver",
-		Text:     "On a call",
+		Emoji:    emoji,
+		Text:     statusText,
 		Duration: "",
 	}
 	err = api.app.SetCustomStatus(userID, customStatus)
@@ -426,7 +426,7 @@ func (api *PluginAPI) SetUserStatusOnCallJoin(userID string) *model.AppError {
 	return nil
 }
 
-func (api *PluginAPI) SetUserStatusOnCallLeave(userID string) *model.AppError {
+func (api *PluginAPI) SetUserStatusOnCallLeave(userID string, emoji string, statusText string, setby string) *model.AppError {
 	// get user's custom status
 	user, appErr := api.app.GetUser(userID)
 
@@ -446,7 +446,7 @@ func (api *PluginAPI) SetUserStatusOnCallLeave(userID string) *model.AppError {
 		return appErr
 	}
 	// check if user status is not set by SetUserStatusOnCallJoin, do nothing to user status
-	if userStatus.Text != "On a call" || userStatus.Emoji != "telephone_receiver" {
+	if userStatus.Text != statusText || userStatus.Emoji != emoji {
 		return model.NewAppError("SetUserStatusOnCallJoin", "plugin.api.set_user_status_on_call_leave", nil,
 			"custom status is not set by calls, custom status not changed", http.StatusInternalServerError)
 	}

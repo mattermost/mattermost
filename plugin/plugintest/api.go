@@ -3302,13 +3302,13 @@ func (_m *API) SetTeamIcon(teamID string, data []byte) *model.AppError {
 	return r0
 }
 
-// SetUserStatusOnCallJoin provides a mock function with given fields: userID
-func (_m *API) SetUserStatusOnCallJoin(userID string) *model.AppError {
-	ret := _m.Called(userID)
+// SetUserStatusOnCallJoin provides a mock function with given fields: userID, emoji, statusText, setby
+func (_m *API) SetUserStatusOnCallJoin(userID string, emoji string, statusText string, setby string) *model.AppError {
+	ret := _m.Called(userID, emoji, statusText, setby)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
-		r0 = rf(userID)
+	if rf, ok := ret.Get(0).(func(string, string, string, string) *model.AppError); ok {
+		r0 = rf(userID, emoji, statusText, setby)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -3318,13 +3318,13 @@ func (_m *API) SetUserStatusOnCallJoin(userID string) *model.AppError {
 	return r0
 }
 
-// SetUserStatusOnCallLeave provides a mock function with given fields: userID
-func (_m *API) SetUserStatusOnCallLeave(userID string) *model.AppError {
-	ret := _m.Called(userID)
+// SetUserStatusOnCallLeave provides a mock function with given fields: userID, emoji, statusText, setby
+func (_m *API) SetUserStatusOnCallLeave(userID string, emoji string, statusText string, setby string) *model.AppError {
+	ret := _m.Called(userID, emoji, statusText, setby)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
-		r0 = rf(userID)
+	if rf, ok := ret.Get(0).(func(string, string, string, string) *model.AppError); ok {
+		r0 = rf(userID, emoji, statusText, setby)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

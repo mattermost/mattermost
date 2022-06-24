@@ -2010,14 +2010,17 @@ func (s *apiRPCServer) UpdateUserCustomStatus(args *Z_UpdateUserCustomStatusArgs
 
 type Z_SetUserStatusOnCallJoinArgs struct {
 	A string
+	B string
+	C string
+	D string
 }
 
 type Z_SetUserStatusOnCallJoinReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) SetUserStatusOnCallJoin(userID string) *model.AppError {
-	_args := &Z_SetUserStatusOnCallJoinArgs{userID}
+func (g *apiRPCClient) SetUserStatusOnCallJoin(userID string, emoji string, statusText string, setby string) *model.AppError {
+	_args := &Z_SetUserStatusOnCallJoinArgs{userID, emoji, statusText, setby}
 	_returns := &Z_SetUserStatusOnCallJoinReturns{}
 	if err := g.client.Call("Plugin.SetUserStatusOnCallJoin", _args, _returns); err != nil {
 		log.Printf("RPC call to SetUserStatusOnCallJoin API failed: %s", err.Error())
@@ -2027,9 +2030,9 @@ func (g *apiRPCClient) SetUserStatusOnCallJoin(userID string) *model.AppError {
 
 func (s *apiRPCServer) SetUserStatusOnCallJoin(args *Z_SetUserStatusOnCallJoinArgs, returns *Z_SetUserStatusOnCallJoinReturns) error {
 	if hook, ok := s.impl.(interface {
-		SetUserStatusOnCallJoin(userID string) *model.AppError
+		SetUserStatusOnCallJoin(userID string, emoji string, statusText string, setby string) *model.AppError
 	}); ok {
-		returns.A = hook.SetUserStatusOnCallJoin(args.A)
+		returns.A = hook.SetUserStatusOnCallJoin(args.A, args.B, args.C, args.D)
 	} else {
 		return encodableError(fmt.Errorf("API SetUserStatusOnCallJoin called but not implemented."))
 	}
@@ -2038,14 +2041,17 @@ func (s *apiRPCServer) SetUserStatusOnCallJoin(args *Z_SetUserStatusOnCallJoinAr
 
 type Z_SetUserStatusOnCallLeaveArgs struct {
 	A string
+	B string
+	C string
+	D string
 }
 
 type Z_SetUserStatusOnCallLeaveReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) SetUserStatusOnCallLeave(userID string) *model.AppError {
-	_args := &Z_SetUserStatusOnCallLeaveArgs{userID}
+func (g *apiRPCClient) SetUserStatusOnCallLeave(userID string, emoji string, statusText string, setby string) *model.AppError {
+	_args := &Z_SetUserStatusOnCallLeaveArgs{userID, emoji, statusText, setby}
 	_returns := &Z_SetUserStatusOnCallLeaveReturns{}
 	if err := g.client.Call("Plugin.SetUserStatusOnCallLeave", _args, _returns); err != nil {
 		log.Printf("RPC call to SetUserStatusOnCallLeave API failed: %s", err.Error())
@@ -2055,9 +2061,9 @@ func (g *apiRPCClient) SetUserStatusOnCallLeave(userID string) *model.AppError {
 
 func (s *apiRPCServer) SetUserStatusOnCallLeave(args *Z_SetUserStatusOnCallLeaveArgs, returns *Z_SetUserStatusOnCallLeaveReturns) error {
 	if hook, ok := s.impl.(interface {
-		SetUserStatusOnCallLeave(userID string) *model.AppError
+		SetUserStatusOnCallLeave(userID string, emoji string, statusText string, setby string) *model.AppError
 	}); ok {
-		returns.A = hook.SetUserStatusOnCallLeave(args.A)
+		returns.A = hook.SetUserStatusOnCallLeave(args.A, args.B, args.C, args.D)
 	} else {
 		return encodableError(fmt.Errorf("API SetUserStatusOnCallLeave called but not implemented."))
 	}

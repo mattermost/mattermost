@@ -329,16 +329,16 @@ func (api *apiTimerLayer) UpdateUserCustomStatus(userID string, customStatus *mo
 	return _returnsA
 }
 
-func (api *apiTimerLayer) SetUserStatusOnCallJoin(userID string) *model.AppError {
+func (api *apiTimerLayer) SetUserStatusOnCallJoin(userID string, emoji string, statusText string, setby string) *model.AppError {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.SetUserStatusOnCallJoin(userID)
+	_returnsA := api.apiImpl.SetUserStatusOnCallJoin(userID, emoji, statusText, setby)
 	api.recordTime(startTime, "SetUserStatusOnCallJoin", _returnsA == nil)
 	return _returnsA
 }
 
-func (api *apiTimerLayer) SetUserStatusOnCallLeave(userID string) *model.AppError {
+func (api *apiTimerLayer) SetUserStatusOnCallLeave(userID string, emoji string, statusText string, setby string) *model.AppError {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.SetUserStatusOnCallLeave(userID)
+	_returnsA := api.apiImpl.SetUserStatusOnCallLeave(userID, emoji, statusText, setby)
 	api.recordTime(startTime, "SetUserStatusOnCallLeave", _returnsA == nil)
 	return _returnsA
 }
