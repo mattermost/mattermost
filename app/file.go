@@ -47,6 +47,14 @@ const (
 	maxContentExtractionSize   = 1024 * 1024 // 1MB
 )
 
+type fileInfoWrapper struct {
+	srv *Server
+}
+
+func (f *fileInfoWrapper) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
+	return f.srv.getFileInfo(fileID)
+}
+
 func (a *App) FileBackend() filestore.FileBackend {
 	return a.ch.filestore
 }
@@ -1125,8 +1133,8 @@ func (a *App) generateMiniPreviewForInfos(fileInfos []*model.FileInfo) {
 	wg.Wait()
 }
 
-func (a *App) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
-	fileInfo, err := a.Srv().Store.FileInfo().Get(fileID)
+func (s *Server) getFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
+	fileInfo, err := s.Store.FileInfo().Get(fileID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1136,8 +1144,14 @@ func (a *App) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
 			return nil, model.NewAppError("GetFileInfo", "app.file_info.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
+	return fileInfo, nil
+}
 
-	a.generateMiniPreview(fileInfo)
+func (a *App) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
+	fileInfo, err := a.Srv().getFileInfo(fileID)
+	if err == nil {
+		a.generateMiniPreview(fileInfo)
+	}
 	return fileInfo, nil
 }
 
