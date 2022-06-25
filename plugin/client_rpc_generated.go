@@ -1982,15 +1982,14 @@ func (s *apiRPCServer) UpdateUserActive(args *Z_UpdateUserActiveArgs, returns *Z
 type Z_UpdateUserCustomStatusArgs struct {
 	A string
 	B *model.CustomStatus
-	C bool
 }
 
 type Z_UpdateUserCustomStatusReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus, setByProduct bool) *model.AppError {
-	_args := &Z_UpdateUserCustomStatusArgs{userID, customStatus, setByProduct}
+func (g *apiRPCClient) UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus) *model.AppError {
+	_args := &Z_UpdateUserCustomStatusArgs{userID, customStatus}
 	_returns := &Z_UpdateUserCustomStatusReturns{}
 	if err := g.client.Call("Plugin.UpdateUserCustomStatus", _args, _returns); err != nil {
 		log.Printf("RPC call to UpdateUserCustomStatus API failed: %s", err.Error())
@@ -2000,9 +1999,9 @@ func (g *apiRPCClient) UpdateUserCustomStatus(userID string, customStatus *model
 
 func (s *apiRPCServer) UpdateUserCustomStatus(args *Z_UpdateUserCustomStatusArgs, returns *Z_UpdateUserCustomStatusReturns) error {
 	if hook, ok := s.impl.(interface {
-		UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus, setByProduct bool) *model.AppError
+		UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus) *model.AppError
 	}); ok {
-		returns.A = hook.UpdateUserCustomStatus(args.A, args.B, args.C)
+		returns.A = hook.UpdateUserCustomStatus(args.A, args.B)
 	} else {
 		return encodableError(fmt.Errorf("API UpdateUserCustomStatus called but not implemented."))
 	}

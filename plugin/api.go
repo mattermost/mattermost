@@ -277,11 +277,10 @@ type API interface {
 	UpdateUserActive(userID string, active bool) *model.AppError
 
 	// UpdateUserCustomStatus will set a user's custom status until the user, or another integration/plugin, clear it or update the custom status.
-	// Setting setByProduct to true, will not save the status in recent custom statuses.
 	//
 	// @tag User
 	// Minimum server version: 6.2
-	UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus, setByProduct bool) *model.AppError
+	UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus) *model.AppError
 
 	// RestoreToPreviousCustomStatus will reset user status to a previous state if not changed by any other state.
 	//

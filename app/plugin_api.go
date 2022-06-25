@@ -359,10 +359,7 @@ func (api *PluginAPI) SetUserStatusTimedDND(userID string, endTime int64) (*mode
 	return api.app.GetStatus(userID)
 }
 
-func (api *PluginAPI) UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus, setByProduct bool) *model.AppError {
-	if setByProduct {
-		customStatus.SetByProduct = true
-	}
+func (api *PluginAPI) UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus) *model.AppError {
 	return api.app.SetCustomStatus(userID, customStatus)
 }
 

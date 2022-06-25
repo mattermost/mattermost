@@ -3678,13 +3678,13 @@ func (_m *API) UpdateUserActive(userID string, active bool) *model.AppError {
 	return r0
 }
 
-// UpdateUserCustomStatus provides a mock function with given fields: userID, customStatus, setByProduct
-func (_m *API) UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus, setByProduct bool) *model.AppError {
-	ret := _m.Called(userID, customStatus, setByProduct)
+// UpdateUserCustomStatus provides a mock function with given fields: userID, customStatus
+func (_m *API) UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus) *model.AppError {
+	ret := _m.Called(userID, customStatus)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, *model.CustomStatus, bool) *model.AppError); ok {
-		r0 = rf(userID, customStatus, setByProduct)
+	if rf, ok := ret.Get(0).(func(string, *model.CustomStatus) *model.AppError); ok {
+		r0 = rf(userID, customStatus)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
