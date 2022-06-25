@@ -1768,9 +1768,10 @@ func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.Ap
 	}
 
 	parsed := time.Unix(targetTime, 0).UTC().Format(time.RFC822)
+	siteURL := *a.Config().ServiceSettings.SiteURL
 	// Send an ack message.
 	ephemeralPost := &model.Post{
-		Type:      model.PostTypeReminder,
+		Type:      model.PostTypeEphemeral,
 		Id:        model.NewId(),
 		CreateAt:  model.GetMillis(),
 		UserId:    userID,
@@ -1778,12 +1779,13 @@ func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.Ap
 		ChannelId: metadata.ChannelId,
 		// It's okay to keep this non-translated. This is just a fallback.
 		// The webapp will parse the timestamp and show that in user's local timezone.
-		Message:   fmt.Sprintf("You will be reminded about [this post](/%s/pl/%s) by @%s at %s", metadata.TeamName, postID, metadata.Username, parsed),
+		Message: fmt.Sprintf("You will be reminded about %s/%s/pl/%s by @%s at %s", siteURL, metadata.TeamName, postID, metadata.Username, parsed),
 		Props: model.StringInterface{
 			"target_time": targetTime,
 			"team_name":   metadata.TeamName,
 			"post_id":     postID,
 			"username":    metadata.Username,
+			"type":        model.PostTypeReminder,
 		},
 	}
 
@@ -1823,6 +1825,7 @@ func (a *App) CheckPostReminders() {
 		}
 	}
 
+	siteURL := *a.Config().ServiceSettings.SiteURL
 	for userID, postIDs := range groupedReminders {
 		ch, appErr := a.GetOrCreateDirectChannel(request.EmptyContext(), userID, systemBot.UserId)
 		if appErr != nil {
@@ -1840,9 +1843,14 @@ func (a *App) CheckPostReminders() {
 			T := i18n.GetUserTranslations(metadata.UserLocale)
 			dm := &model.Post{
 				ChannelId: ch.Id,
-				Message:   T("app.post_reminder_dm", model.StringInterface{"TeamName": metadata.TeamName, "PostId": postID, "Username": metadata.Username}),
-				Type:      model.PostTypeDefault,
-				UserId:    systemBot.UserId,
+				Message: T("app.post_reminder_dm", model.StringInterface{
+					"SiteURL":  siteURL,
+					"TeamName": metadata.TeamName,
+					"PostId":   postID,
+					"Username": metadata.Username,
+				}),
+				Type:   model.PostTypeDefault,
+				UserId: systemBot.UserId,
 				Props: model.StringInterface{
 					"username": systemBot.Username,
 				},
