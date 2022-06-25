@@ -457,7 +457,7 @@ func (api *PluginAPI) SetUserStatusOnCallLeave(userID string, emoji string, stat
 		return appErr
 	}
 	// remove custom status
-	existingRCS, err := api.app.GetRecentStatuses(userID)
+	existingRCS, err := api.app.GetRecentCustomStatuses(userID)
 	if err != nil {
 		return model.NewAppError("SetUserStatusOnCallJoin", "plugin.api.set_user_status_on_call_leave", nil, "failed to get recent statuses to reset", http.StatusInternalServerError)
 	}

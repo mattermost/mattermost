@@ -712,7 +712,7 @@ type AppIface interface {
 	GetPublicChannelsForTeam(teamID string, offset int, limit int) (model.ChannelList, *model.AppError)
 	GetReactionsForPost(postID string) ([]*model.Reaction, *model.AppError)
 	GetRecentSearchesForUser(userID string) ([]*model.SearchParams, *model.AppError)
-	GetRecentStatuses(userID string) ([]*model.CustomStatus, error)
+	GetRecentCustomStatuses(userID string) ([]*model.CustomStatus, error)
 	GetRecentlyActiveUsersForTeam(teamID string) (map[string]*model.User, *model.AppError)
 	GetRecentlyActiveUsersForTeamPage(teamID string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	GetRemoteCluster(remoteClusterId string) (*model.RemoteCluster, *model.AppError)

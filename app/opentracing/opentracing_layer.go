@@ -8223,9 +8223,9 @@ func (a *OpenTracingAppLayer) GetRecentSearchesForUser(userID string) ([]*model.
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetRecentStatuses(userID string) ([]*model.CustomStatus, error) {
+func (a *OpenTracingAppLayer) GetRecentCustomStatuses(userID string) ([]*model.CustomStatus, error) {
 	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRecentStatuses")
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRecentCustomStatuses")
 
 	a.ctx = newCtx
 	a.app.Srv().Store.SetContext(newCtx)
@@ -8235,7 +8235,7 @@ func (a *OpenTracingAppLayer) GetRecentStatuses(userID string) ([]*model.CustomS
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetRecentStatuses(userID)
+	resultVar0, resultVar1 := a.app.GetRecentCustomStatuses(userID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

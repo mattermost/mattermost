@@ -522,12 +522,14 @@ func (a *App) RemoveRecentCustomStatus(userID string, status *model.CustomStatus
 	return nil
 }
 
-func (a *App) GetRecentStatuses(userID string) ([]*model.CustomStatus, error) {
+func (a *App) GetRecentCustomStatuses(userID string) ([]*model.CustomStatus, error) {
 	pref, err := a.GetPreferenceByCategoryAndNameForUser(userID, model.PreferenceCategoryCustomStatus, model.PreferenceNameRecentCustomStatuses)
+
 	var existingRCS []*model.CustomStatus
 	if jsonErr := json.Unmarshal([]byte(pref.Value), &existingRCS); jsonErr != nil {
 		return nil, jsonErr
 	}
+
 	if err != nil {
 		return []*model.CustomStatus{}, err
 	}
