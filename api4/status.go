@@ -141,6 +141,11 @@ func updateUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	// Assume it is set by user, if setby is not set.
+	if customStatus.SetBy == "" {
+		customStatus.SetBy = model.CustomStatusSetByUser
+	}
+
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
