@@ -523,14 +523,14 @@ func TestPluginAPIUserCustomStatus(t *testing.T) {
 		Text:  "honk",
 	}
 
-	err = api.UpdateUserCustomStatus(user1.Id, custom)
+	err = api.UpdateUserCustomStatus(user1.Id, custom, false)
 	assert.Nil(t, err)
 	userCs, err := th.App.GetCustomStatus(user1.Id)
 	assert.Nil(t, err)
 	assert.Equal(t, custom, userCs)
 
 	custom.Text = ""
-	err = api.UpdateUserCustomStatus(user1.Id, custom)
+	err = api.UpdateUserCustomStatus(user1.Id, custom, false)
 	assert.Nil(t, err)
 	userCs, err = th.App.GetCustomStatus(user1.Id)
 	assert.Nil(t, err)
@@ -538,14 +538,14 @@ func TestPluginAPIUserCustomStatus(t *testing.T) {
 
 	custom.Text = "honk"
 	custom.Emoji = ""
-	err = api.UpdateUserCustomStatus(user1.Id, custom)
+	err = api.UpdateUserCustomStatus(user1.Id, custom, false)
 	assert.Nil(t, err)
 	userCs, err = th.App.GetCustomStatus(user1.Id)
 	assert.Nil(t, err)
 	assert.Equal(t, custom, userCs)
 
 	custom.Text = ""
-	err = api.UpdateUserCustomStatus(user1.Id, custom)
+	err = api.UpdateUserCustomStatus(user1.Id, custom, false)
 	assert.NotNil(t, err)
 	assert.Equal(t, err.Error(), "SetCustomStatus: Failed to update the custom status. Please add either emoji or custom text status or both., ")
 

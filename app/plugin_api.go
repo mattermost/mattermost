@@ -391,7 +391,7 @@ func (api *PluginAPI) RestoreToPreviousCustomStatus(userID string) *model.AppErr
 	}
 
 	if len(rcs) == 0 {
-		err = api.app.RemoveCustomStatus(userID)
+		err := api.app.RemoveCustomStatus(userID)
 		if err != nil {
 			return model.NewAppError("RestoreToPreviousCustomStatus", "plugin.api.restore_to_previous_custom_status", nil, "failed to remove custom status", http.StatusInternalServerError)
 		}
@@ -399,8 +399,8 @@ func (api *PluginAPI) RestoreToPreviousCustomStatus(userID string) *model.AppErr
 		return nil
 	}
 
-	err = api.app.SetCustomStatus(userID, rcs[0])
-	if err != nil {
+	cserr := api.app.SetCustomStatus(userID, rcs[0])
+	if cserr != nil {
 		return model.NewAppError("RestoreToPreviousCustomStatus", "plugin.api.restore_to_previous_custom_status", nil, "failed to revert custom status", http.StatusInternalServerError)
 	}
 
