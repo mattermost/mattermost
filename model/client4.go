@@ -4159,6 +4159,7 @@ func (c *Client4) DoPostAction(postId, actionId string) (*Response, error) {
 func (c *Client4) DoPostActionWithCookie(postId, actionId, selected, cookieStr string) (*Response, error) {
 	var body []byte
 	if selected != "" || cookieStr != "" {
+		var jsonErr error
 		body, jsonErr = json.Marshal(DoPostActionRequest{
 			SelectedOption: selected,
 			Cookie:         cookieStr,
