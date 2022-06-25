@@ -313,7 +313,7 @@ new-migration: ## Creates a new migration. Run with make new-migration name=<>
 	@echo "Generating new migration for postgres"
 	$(GOBIN)/morph generate $(name) --driver postgres --dir db/migrations --sequence
 
-	@echo "When you are done writing your migration, run 'make migrations-bindata'"
+	@echo "When you are done writing your migration, run 'make migrations-extract'"
 
 filestore-mocks: ## Creates mock files.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
