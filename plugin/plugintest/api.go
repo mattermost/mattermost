@@ -3035,6 +3035,22 @@ func (_m *API) RequestTrialLicense(requesterID string, users int, termsAccepted 
 	return r0
 }
 
+// RestoreToPreviousCustomStatus provides a mock function with given fields: userID
+func (_m *API) RestoreToPreviousCustomStatus(userID string) *model.AppError {
+	ret := _m.Called(userID)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // RevokeSession provides a mock function with given fields: sessionID
 func (_m *API) RevokeSession(sessionID string) *model.AppError {
 	ret := _m.Called(sessionID)
@@ -3293,38 +3309,6 @@ func (_m *API) SetTeamIcon(teamID string, data []byte) *model.AppError {
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(string, []byte) *model.AppError); ok {
 		r0 = rf(teamID, data)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
-	}
-
-	return r0
-}
-
-// SetUserStatusOnCallJoin provides a mock function with given fields: userID, emoji, statusText, setby
-func (_m *API) SetUserStatusOnCallJoin(userID string, emoji string, statusText string, setby string) *model.AppError {
-	ret := _m.Called(userID, emoji, statusText, setby)
-
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string, string, string) *model.AppError); ok {
-		r0 = rf(userID, emoji, statusText, setby)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
-	}
-
-	return r0
-}
-
-// SetUserStatusOnCallLeave provides a mock function with given fields: userID, emoji, statusText, setby
-func (_m *API) SetUserStatusOnCallLeave(userID string, emoji string, statusText string, setby string) *model.AppError {
-	ret := _m.Called(userID, emoji, statusText, setby)
-
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string, string, string) *model.AppError); ok {
-		r0 = rf(userID, emoji, statusText, setby)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -3694,13 +3678,13 @@ func (_m *API) UpdateUserActive(userID string, active bool) *model.AppError {
 	return r0
 }
 
-// UpdateUserCustomStatus provides a mock function with given fields: userID, customStatus
-func (_m *API) UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus) *model.AppError {
-	ret := _m.Called(userID, customStatus)
+// UpdateUserCustomStatus provides a mock function with given fields: userID, customStatus, setByProduct
+func (_m *API) UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus, setByProduct bool) *model.AppError {
+	ret := _m.Called(userID, customStatus, setByProduct)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, *model.CustomStatus) *model.AppError); ok {
-		r0 = rf(userID, customStatus)
+	if rf, ok := ret.Get(0).(func(string, *model.CustomStatus, bool) *model.AppError); ok {
+		r0 = rf(userID, customStatus, setByProduct)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

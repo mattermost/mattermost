@@ -322,24 +322,17 @@ func (api *apiTimerLayer) UpdateUserActive(userID string, active bool) *model.Ap
 	return _returnsA
 }
 
-func (api *apiTimerLayer) UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus) *model.AppError {
+func (api *apiTimerLayer) UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus, setByProduct bool) *model.AppError {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.UpdateUserCustomStatus(userID, customStatus)
+	_returnsA := api.apiImpl.UpdateUserCustomStatus(userID, customStatus, setByProduct)
 	api.recordTime(startTime, "UpdateUserCustomStatus", _returnsA == nil)
 	return _returnsA
 }
 
-func (api *apiTimerLayer) SetUserStatusOnCallJoin(userID string, emoji string, statusText string, setby string) *model.AppError {
+func (api *apiTimerLayer) RestoreToPreviousCustomStatus(userID string) *model.AppError {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.SetUserStatusOnCallJoin(userID, emoji, statusText, setby)
-	api.recordTime(startTime, "SetUserStatusOnCallJoin", _returnsA == nil)
-	return _returnsA
-}
-
-func (api *apiTimerLayer) SetUserStatusOnCallLeave(userID string, emoji string, statusText string, setby string) *model.AppError {
-	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.SetUserStatusOnCallLeave(userID, emoji, statusText, setby)
-	api.recordTime(startTime, "SetUserStatusOnCallLeave", _returnsA == nil)
+	_returnsA := api.apiImpl.RestoreToPreviousCustomStatus(userID)
+	api.recordTime(startTime, "RestoreToPreviousCustomStatus", _returnsA == nil)
 	return _returnsA
 }
 

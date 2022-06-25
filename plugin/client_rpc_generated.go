@@ -1982,14 +1982,15 @@ func (s *apiRPCServer) UpdateUserActive(args *Z_UpdateUserActiveArgs, returns *Z
 type Z_UpdateUserCustomStatusArgs struct {
 	A string
 	B *model.CustomStatus
+	C bool
 }
 
 type Z_UpdateUserCustomStatusReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus) *model.AppError {
-	_args := &Z_UpdateUserCustomStatusArgs{userID, customStatus}
+func (g *apiRPCClient) UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus, setByProduct bool) *model.AppError {
+	_args := &Z_UpdateUserCustomStatusArgs{userID, customStatus, setByProduct}
 	_returns := &Z_UpdateUserCustomStatusReturns{}
 	if err := g.client.Call("Plugin.UpdateUserCustomStatus", _args, _returns); err != nil {
 		log.Printf("RPC call to UpdateUserCustomStatus API failed: %s", err.Error())
@@ -1999,73 +2000,39 @@ func (g *apiRPCClient) UpdateUserCustomStatus(userID string, customStatus *model
 
 func (s *apiRPCServer) UpdateUserCustomStatus(args *Z_UpdateUserCustomStatusArgs, returns *Z_UpdateUserCustomStatusReturns) error {
 	if hook, ok := s.impl.(interface {
-		UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus) *model.AppError
+		UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus, setByProduct bool) *model.AppError
 	}); ok {
-		returns.A = hook.UpdateUserCustomStatus(args.A, args.B)
+		returns.A = hook.UpdateUserCustomStatus(args.A, args.B, args.C)
 	} else {
 		return encodableError(fmt.Errorf("API UpdateUserCustomStatus called but not implemented."))
 	}
 	return nil
 }
 
-type Z_SetUserStatusOnCallJoinArgs struct {
+type Z_RestoreToPreviousCustomStatusArgs struct {
 	A string
-	B string
-	C string
-	D string
 }
 
-type Z_SetUserStatusOnCallJoinReturns struct {
+type Z_RestoreToPreviousCustomStatusReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) SetUserStatusOnCallJoin(userID string, emoji string, statusText string, setby string) *model.AppError {
-	_args := &Z_SetUserStatusOnCallJoinArgs{userID, emoji, statusText, setby}
-	_returns := &Z_SetUserStatusOnCallJoinReturns{}
-	if err := g.client.Call("Plugin.SetUserStatusOnCallJoin", _args, _returns); err != nil {
-		log.Printf("RPC call to SetUserStatusOnCallJoin API failed: %s", err.Error())
+func (g *apiRPCClient) RestoreToPreviousCustomStatus(userID string) *model.AppError {
+	_args := &Z_RestoreToPreviousCustomStatusArgs{userID}
+	_returns := &Z_RestoreToPreviousCustomStatusReturns{}
+	if err := g.client.Call("Plugin.RestoreToPreviousCustomStatus", _args, _returns); err != nil {
+		log.Printf("RPC call to RestoreToPreviousCustomStatus API failed: %s", err.Error())
 	}
 	return _returns.A
 }
 
-func (s *apiRPCServer) SetUserStatusOnCallJoin(args *Z_SetUserStatusOnCallJoinArgs, returns *Z_SetUserStatusOnCallJoinReturns) error {
+func (s *apiRPCServer) RestoreToPreviousCustomStatus(args *Z_RestoreToPreviousCustomStatusArgs, returns *Z_RestoreToPreviousCustomStatusReturns) error {
 	if hook, ok := s.impl.(interface {
-		SetUserStatusOnCallJoin(userID string, emoji string, statusText string, setby string) *model.AppError
+		RestoreToPreviousCustomStatus(userID string) *model.AppError
 	}); ok {
-		returns.A = hook.SetUserStatusOnCallJoin(args.A, args.B, args.C, args.D)
+		returns.A = hook.RestoreToPreviousCustomStatus(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API SetUserStatusOnCallJoin called but not implemented."))
-	}
-	return nil
-}
-
-type Z_SetUserStatusOnCallLeaveArgs struct {
-	A string
-	B string
-	C string
-	D string
-}
-
-type Z_SetUserStatusOnCallLeaveReturns struct {
-	A *model.AppError
-}
-
-func (g *apiRPCClient) SetUserStatusOnCallLeave(userID string, emoji string, statusText string, setby string) *model.AppError {
-	_args := &Z_SetUserStatusOnCallLeaveArgs{userID, emoji, statusText, setby}
-	_returns := &Z_SetUserStatusOnCallLeaveReturns{}
-	if err := g.client.Call("Plugin.SetUserStatusOnCallLeave", _args, _returns); err != nil {
-		log.Printf("RPC call to SetUserStatusOnCallLeave API failed: %s", err.Error())
-	}
-	return _returns.A
-}
-
-func (s *apiRPCServer) SetUserStatusOnCallLeave(args *Z_SetUserStatusOnCallLeaveArgs, returns *Z_SetUserStatusOnCallLeaveReturns) error {
-	if hook, ok := s.impl.(interface {
-		SetUserStatusOnCallLeave(userID string, emoji string, statusText string, setby string) *model.AppError
-	}); ok {
-		returns.A = hook.SetUserStatusOnCallLeave(args.A, args.B, args.C, args.D)
-	} else {
-		return encodableError(fmt.Errorf("API SetUserStatusOnCallLeave called but not implemented."))
+		return encodableError(fmt.Errorf("API RestoreToPreviousCustomStatus called but not implemented."))
 	}
 	return nil
 }
