@@ -277,23 +277,17 @@ type API interface {
 	UpdateUserActive(userID string, active bool) *model.AppError
 
 	// UpdateUserCustomStatus will set a user's custom status until the user, or another integration/plugin, clear it or update the custom status.
-	// The custom status have two parameters: emoji icon and custom text.
+	// Setting setByProduct to true, will not save the status in recent custom statuses.
 	//
 	// @tag User
 	// Minimum server version: 6.2
-	UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus) *model.AppError
+	UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus, setByProduct bool) *model.AppError
 
-	// SetUserStatusOnCallJoin will set user status to "On a call" if Online.
+	// RestoreToPreviousCustomStatus will reset user status to a previous state if not changed by any other state.
 	//
 	// @tag User
 	// Minimum server version: 6.2
-	SetUserStatusOnCallJoin(userID string, emoji string, statusText string, setby string) *model.AppError
-
-	// SetUserStatusOnCallLeave will reset user status to a previous state if not changed by any other state.
-	//
-	// @tag User
-	// Minimum server version: 6.2
-	SetUserStatusOnCallLeave(userID string, emoji string, statusText string, setby string) *model.AppError
+	RestoreToPreviousCustomStatus(userID string) *model.AppError
 
 	// RemoveUserCustomStatus will remove a user's custom status.
 	//
