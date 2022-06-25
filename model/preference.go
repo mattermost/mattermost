@@ -41,10 +41,9 @@ const (
 	PreferenceNameLastChannel = "channel"
 	PreferenceNameLastTeam    = "team"
 
-	PreferenceCategoryCustomStatus                      = "custom_status"
-	PreferenceNameRecentCustomStatuses                  = "recent_custom_statuses"
-	PreferenceNameCustomStatusTutorialState             = "custom_status_tutorial_state"
-	PreferenceNameCustomStatusSetBeforeAutoModification = "cs_set_before_auto_modification"
+	PreferenceCategoryCustomStatus          = "custom_status"
+	PreferenceNameRecentCustomStatuses      = "recent_custom_statuses"
+	PreferenceNameCustomStatusTutorialState = "custom_status_tutorial_state"
 
 	PreferenceCustomStatusModalViewed = "custom_status_modal_viewed"
 
