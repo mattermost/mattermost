@@ -4159,10 +4159,13 @@ func (c *Client4) DoPostAction(postId, actionId string) (*Response, error) {
 func (c *Client4) DoPostActionWithCookie(postId, actionId, selected, cookieStr string) (*Response, error) {
 	var body []byte
 	if selected != "" || cookieStr != "" {
-		body, _ = json.Marshal(DoPostActionRequest{
+		body, jsonErr = json.Marshal(DoPostActionRequest{
 			SelectedOption: selected,
 			Cookie:         cookieStr,
 		})
+		if jsonErr != nil {
+			return nil, NewAppError("DoPostActionWithCookie", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		}
 	}
 	r, err := c.DoAPIPost(c.postRoute(postId)+"/actions/"+actionId, string(body))
 	if err != nil {
