@@ -7863,7 +7863,7 @@ func (c *Client4) ConfirmCustomerPayment(confirmRequest *ConfirmPaymentMethodReq
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) RequestCloudTrial(email *ValidateBusinessEmailRequest) (*Subscription, *Response, error) {
+func (c *Client4) RequestCloudTrial(email *StartCloudTrialRequest) (*Subscription, *Response, error) {
 	payload, jsonErr := json.Marshal(email)
 	if jsonErr != nil {
 		return nil, nil, NewAppError("RequestCloudTrial", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
