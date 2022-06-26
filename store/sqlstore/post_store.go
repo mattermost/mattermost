@@ -1401,8 +1401,17 @@ func (s *SqlPostStore) QueryHashTag(hash_tag_query *string, count uint64) ([]*st
 	// Construct the squirrel query
 	query := s.getQueryBuilder().
 		Select("DISTINCT hashtags").
-		From("Posts").
-		Where(sq.ILike{"hashtags": hash_tag_start})
+		From("Posts")
+
+	/**
+	* since mysql doesn't have an 'ILIKE' operator, determine
+	* how to compare the values.
+	**/
+	if s.DriverName() == model.DatabaseDriverMysql {
+		query = query.Where("LOWER(hashtags) LIKE ?", strings.ToLower(hash_tag_start))
+	} else {
+		query = query.Where(sq.ILike{"hashtags": hash_tag_start})
+	}
 
 	// compose the string
 	sql, args, err := query.ToSql()
