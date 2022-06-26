@@ -61,13 +61,13 @@ func (_m *WebhookStore) ClearCaches() {
 	_m.Called()
 }
 
-// DeleteIncoming provides a mock function with given fields: webhookID, time
-func (_m *WebhookStore) DeleteIncoming(webhookID string, time int64) error {
-	ret := _m.Called(webhookID, time)
+// DeleteIncoming provides a mock function with given fields: webhookID, timestamp
+func (_m *WebhookStore) DeleteIncoming(webhookID string, timestamp int64) error {
+	ret := _m.Called(webhookID, timestamp)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
-		r0 = rf(webhookID, time)
+		r0 = rf(webhookID, timestamp)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -75,13 +75,13 @@ func (_m *WebhookStore) DeleteIncoming(webhookID string, time int64) error {
 	return r0
 }
 
-// DeleteOutgoing provides a mock function with given fields: webhookID, time
-func (_m *WebhookStore) DeleteOutgoing(webhookID string, time int64) error {
-	ret := _m.Called(webhookID, time)
+// DeleteOutgoing provides a mock function with given fields: webhookID, timestamp
+func (_m *WebhookStore) DeleteOutgoing(webhookID string, timestamp int64) error {
+	ret := _m.Called(webhookID, timestamp)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
-		r0 = rf(webhookID, time)
+		r0 = rf(webhookID, timestamp)
 	} else {
 		r0 = ret.Error(0)
 	}

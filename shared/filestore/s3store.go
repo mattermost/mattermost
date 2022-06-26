@@ -5,8 +5,10 @@ package filestore
 
 import (
 	"context"
+	"crypto/tls"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -34,6 +36,7 @@ type S3FileBackend struct {
 	encrypt    bool
 	trace      bool
 	client     *s3.Client
+	skipVerify bool
 }
 
 type S3FileBackendAuthError struct {
@@ -87,6 +90,7 @@ func NewS3FileBackend(settings FileBackendSettings) (*S3FileBackend, error) {
 		pathPrefix: settings.AmazonS3PathPrefix,
 		encrypt:    settings.AmazonS3SSE,
 		trace:      settings.AmazonS3Trace,
+		skipVerify: settings.SkipVerify,
 	}
 	cli, err := backend.s3New()
 	if err != nil {
@@ -121,20 +125,27 @@ func (b *S3FileBackend) s3New() (*s3.Client, error) {
 		Region: b.region,
 	}
 
+	tr, err := s3.DefaultTransport(b.secure)
+	if err != nil {
+		return nil, err
+	}
+	if b.skipVerify {
+		tr.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	}
+	opts.Transport = tr
+
 	// If this is a cloud installation, we override the default transport.
 	if isCloud {
-		tr, err := s3.DefaultTransport(b.secure)
-		if err != nil {
-			return nil, err
-		}
 		scheme := "http"
 		if b.secure {
 			scheme = "https"
 		}
+		newTransport := http.DefaultTransport.(*http.Transport).Clone()
+		newTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: b.skipVerify}
 		opts.Transport = &customTransport{
-			base:   tr,
 			host:   b.endpoint,
 			scheme: scheme,
+			client: http.Client{Transport: newTransport},
 		}
 	}
 

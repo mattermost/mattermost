@@ -37,6 +37,7 @@ type LoggerIFace interface {
 	Critical(string, ...Field)
 	Log(Level, string, ...Field)
 	LogM([]Level, string, ...Field)
+	With(fields ...Field) *Logger
 }
 
 // Type and function aliases from Logr to limit the spread of dependencies.
