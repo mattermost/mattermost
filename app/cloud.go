@@ -8,9 +8,22 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
+
+type cloudWrapper struct {
+	cloud einterfaces.CloudInterface
+}
+
+func (c *cloudWrapper) GetCloudLimits() (*model.ProductLimits, error) {
+	if c.cloud != nil {
+		return c.cloud.GetCloudLimits("")
+	}
+
+	return &model.ProductLimits{}, nil
+}
 
 func (a *App) getSysAdminsEmailRecipients() ([]*model.User, *model.AppError) {
 	userOptions := &model.UserGetOptions{
