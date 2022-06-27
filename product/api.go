@@ -10,7 +10,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 )
 
@@ -108,19 +107,14 @@ type ConfigService interface {
 	SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError)
 }
 
-// Hooks is an interim solution for enabling plugin hooks on the multi-product architecture. After the
-// focalboard migration is completed, this API should replaced with something else that would enable a
-// product to register any hook. Currently this is added to unblock the migration.
-type Hooks interface {
-	plugin.ProductHooks
-}
-
 // HooksService is the API for adding exiting plugin hooks to the server so that they can be called as
 // they were. This Service is required to be used after the products start. Otherwise it will return an error.
 //
 // The service shall be registered via app.HooksKey service key.
 type HooksService interface {
-	RegisterHooks(productID string, hooks Hooks) error
+	// RegisterHook registers a hook with the server. The hooks is can be a subset of plugin.Hooks interface.
+	// The method will return an error in case if there is an incorrect implementation of the API in runtime.
+	RegisterHooks(productID string, hooks any) error
 }
 
 // FilestoreService is the API for accessing the file store.
