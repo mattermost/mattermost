@@ -57,15 +57,30 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadBilling) {
-		c.SetPermissionError(model.PermissionSysconsoleReadBilling)
-		return
-	}
-
 	subscription, err := c.App.Cloud().GetSubscription(c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.getSubscription", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	// if it is an end user, return basic subscription data without sensitive information
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadBilling) {
+		subscription = &model.Subscription{
+			ID:          subscription.ID,
+			ProductID:   subscription.ProductID,
+			IsFreeTrial: subscription.IsFreeTrial,
+			TrialEndAt:  subscription.TrialEndAt,
+			CustomerID:  "",
+			AddOns:      []string{},
+			StartAt:     0,
+			EndAt:       0,
+			CreateAt:    0,
+			Seats:       0,
+			Status:      "",
+			DNS:         "",
+			IsPaidTier:  "",
+			LastInvoice: &model.Invoice{},
+		}
 	}
 
 	json, err := json.Marshal(subscription)
@@ -240,27 +255,40 @@ func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadBilling) {
-		c.SetPermissionError(model.PermissionSysconsoleReadBilling)
-		return
-	}
-
 	includeLegacyProducts := r.URL.Query().Get("include_legacy") == "true"
 
 	products, err := c.App.Cloud().GetCloudProducts(c.AppContext.Session().UserId, includeLegacyProducts)
-
 	if err != nil {
 		c.Err = model.NewAppError("Api4.getCloudProducts", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	json, err := json.Marshal(products)
+	byteProductsData, err := json.Marshal(products)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.getCloudProducts", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	w.Write(json)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadBilling) {
+
+		sanitizedProducts := []model.UserFacingProduct{}
+		err = json.Unmarshal(byteProductsData, &sanitizedProducts)
+		if err != nil {
+			c.Err = model.NewAppError("Api4.getCloudProducts", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		byteSanitizedProductsData, err := json.Marshal(sanitizedProducts)
+		if err != nil {
+			c.Err = model.NewAppError("Api4.getCloudProducts", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Write(byteSanitizedProductsData)
+		return
+	}
+
+	w.Write(byteProductsData)
 }
 
 func getCloudLimits(c *Context, w http.ResponseWriter, r *http.Request) {
