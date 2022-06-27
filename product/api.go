@@ -134,3 +134,17 @@ type FilestoreService interface {
 	WriteFile(fr io.Reader, path string) (int64, error)
 	RemoveFile(path string) error
 }
+
+// FileInfoStoreService is the API for accessing the file info store.
+//
+// The service shall be registered via app.FileInfoStoreKey service key.
+type FileInfoStoreService interface {
+	GetFileInfo(fileID string) (*model.FileInfo, *model.AppError)
+}
+
+// CloudService is the API for accessing the cloud service APIs.
+//
+// The service shall be registered via app.CloudKey service key.
+type CloudService interface {
+	GetCloudLimits() (*model.ProductLimits, error)
+}
