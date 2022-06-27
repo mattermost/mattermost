@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race migrations-bindata new-migration
+.PHONY: build package run stop run-client run-server run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race migrations-bindata new-migration migrations-extract
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -38,6 +38,8 @@ ifeq ($(BUILD_NUMBER),)
 	BUILD_DATE := n/a
 	BUILD_NUMBER := dev
 endif
+
+# Enterprise
 BUILD_ENTERPRISE_DIR ?= ../enterprise
 BUILD_ENTERPRISE ?= true
 BUILD_ENTERPRISE_READY = false
@@ -56,6 +58,8 @@ else
 	BUILD_ENTERPRISE_READY = false
 	BUILD_TYPE_NAME = team
 endif
+
+# Webapp
 BUILD_WEBAPP_DIR ?= ../mattermost-webapp
 BUILD_CLIENT = false
 BUILD_HASH_CLIENT = independent
@@ -68,6 +72,21 @@ ifneq ($(wildcard $(BUILD_WEBAPP_DIR)/.),)
   endif
 else
     BUILD_CLIENT = false
+endif
+
+# Boards
+BUILD_BOARDS_DIR ?= ../focalboard
+BUILD_BOARDS ?= true
+BUILD_HASH_BOARDS = none
+ifneq ($(wildcard $(BUILD_BOARDS_DIR)/.),)
+  ifeq ($(BUILD_BOARDS),true)
+    BUILD_BOARDS = true
+    BUILD_HASH_BOARDS = $(shell cd $(BUILD_BOARDS_DIR) && git rev-parse HEAD)
+  else
+    BUILD_BOARDS = false
+  endif
+else
+    BUILD_BOARDS = false
 endif
 
 # We need current user's UID for `run-haserver` so docker compose does not run server
@@ -91,6 +110,8 @@ LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildDate=$(BUIL
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildHash=$(BUILD_HASH)"
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)"
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildHashBoards=$(BUILD_HASH_BOARDS)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildBoards=$(BUILD_BOARDS)"
 
 GO_MAJOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1)
 GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
@@ -129,7 +150,7 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.28.1
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.28.2
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.2.0
@@ -154,6 +175,17 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
   ALL_PACKAGES=$(TE_PACKAGES) $(EE_PACKAGES)
 else
   ALL_PACKAGES=$(TE_PACKAGES)
+endif
+
+# Prepare optional Boards build.
+BOARDS_PACKAGES=$(shell $(GO) list $(BUILD_BOARDS_DIR)/server/...)
+ifeq ($(BUILD_BOARDS),true)
+    ALL_PACKAGES += $(BOARDS_PACKAGES)
+	IGNORE:=$(shell echo Boards build selected, preparing)
+	IGNORE:=$(shell rm -f imports/boards_imports.go)
+	IGNORE:=$(shell cp $(BUILD_BOARDS_DIR)/mattermost-plugin/product/imports/boards_imports.go imports/)
+else
+	IGNORE:=$(shell rm -f imports/boards_imports.go)
 endif
 
 all: run ## Alias for 'run'.
@@ -276,7 +308,12 @@ golangci-lint: ## Run golangci-lint on codebase
 	$(GOBIN)/golangci-lint run ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-	$(GOBIN)/golangci-lint run ../enterprise/...
+		$(GOBIN)/golangci-lint run ../enterprise/...
+  endif
+endif
+ifeq ($(BUILD_BOARDS),true)
+  ifneq ($(MM_NO_BOARDS_LINT),true)
+		$(GOBIN)/golangci-lint run $(BUILD_BOARDS_DIR)/server/...
   endif
 endif
 
@@ -361,10 +398,10 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	./scripts/prereq-check-enterprise.sh
 endif
 
+setup-go-work: export BUILD_ENTERPRISE_READY := $(BUILD_ENTERPRISE_READY)
+setup-go-work: export BUILD_BOARDS := $(BUILD_BOARDS)
 setup-go-work: ## Sets up your go.work file
-ifeq ($(BUILD_ENTERPRISE_READY),true)
 	./scripts/setup_go_work.sh
-endif
 
 check-style: golangci-lint plugin-checker vet ## Runs style/lint checks
 
@@ -396,6 +433,9 @@ gomodtidy:
 	@if [ -f "imports/imports.go" ]; then \
 		mv imports/imports.go imports/imports.go.orig; \
 	fi;
+	@if [ -f "imports/boards_imports.go" ]; then \
+		mv imports/boards_imports.go imports/boards_imports.go.orig; \
+	fi;
 	$(GO) mod tidy
 	@if [ "$$(diff go.mod go.mod.orig)" != "" -o "$$(diff go.sum go.sum.orig)" != "" ]; then \
 		echo "go.mod/go.sum was modified. \ndiff- $$(diff go.mod go.mod.orig) \n$$(diff go.sum go.sum.orig) \nRun \"go mod tidy\"."; \
@@ -405,17 +445,25 @@ gomodtidy:
 	@if [ -f "imports/imports.go.orig" ]; then \
 		mv imports/imports.go.orig imports/imports.go; \
 	fi;
+	@if [ -f "imports/boards_imports.go.orig" ]; then \
+		mv imports/boards_imports.go.orig imports/boards_imports.go; \
+	fi;
 	@rm go.*.orig;
 
 modules-tidy:
 	@if [ -f "imports/imports.go" ]; then \
 		mv imports/imports.go imports/imports.go.orig; \
 	fi;
+	@if [ -f "imports/boards_imports.go" ]; then \
+		mv imports/boards_imports.go imports/boards_imports.go.orig; \
+	fi;
 	-$(GO) mod tidy
 	@if [ -f "imports/imports.go.orig" ]; then \
 		mv imports/imports.go.orig imports/imports.go; \
 	fi;
-
+	@if [ -f "imports/boards_imports.go.orig" ]; then \
+		mv imports/boards_imports.go.orig imports/boards_imports.go; \
+	fi;
 
 test-server-pre: check-prereqs-enterprise start-docker go-junit-report do-cover-file ## Runs tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -649,6 +697,7 @@ nuke: clean clean-docker ## Clean plus removes persistent server data.
 	@echo BOOM
 
 	rm -rf data
+	rm -f go.work go.work.sum
 
 setup-mac: ## Adds macOS hosts entries for Docker.
 	echo $$(boot2docker ip 2> /dev/null) dockerhost | sudo tee -a /etc/hosts
@@ -721,3 +770,8 @@ help:
 	@echo
 	@echo You can modify the default settings for this Makefile creating a file config.mk based on the default-config.mk
 	@echo
+
+migrations-extract:
+	@echo Listing migration files
+	@echo "# Autogenerated file to synchronize migrations sequence in the PR workflow, please do not edit.\n#" > db/migrations/migrations.list
+	find db/migrations -maxdepth 2 -mindepth 2 | sort >> db/migrations/migrations.list
