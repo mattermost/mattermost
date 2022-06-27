@@ -1152,7 +1152,7 @@ func (a *App) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
 	if err == nil {
 		a.generateMiniPreview(fileInfo)
 	}
-	return fileInfo, nil
+	return fileInfo, err
 }
 
 func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
