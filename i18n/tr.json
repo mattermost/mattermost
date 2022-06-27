@@ -9212,7 +9212,7 @@
   },
   {
     "id": "api.insights.feature_disabled",
-    "translation": " "
+    "translation": "İçgörtüler etkinleştirilmemiş bir özellik işaretinin arkasında."
   },
   {
     "id": "api.getThreadsForUser.bad_only_params",
@@ -9292,7 +9292,7 @@
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "{{.WorkspaceName}} çalışma alanınız yükseltildi. Faturanız {{.TrialEnd}} tarihinden başlayarak hesaplanacak"
+    "translation": "{{.WorkspaceName}} çalışma alanınız yükseltildi. Faturanız {{.Date}} tarihinden başlayarak hesaplanacak"
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
@@ -9357,5 +9357,21 @@
   {
     "id": "api.authorization_error.guest",
     "translation": " "
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "Kullanıcının önde gelen konuları alınamadı."
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "Takımın önde gelen konuları alınamadı."
+  },
+  {
+    "id": "app.insights.feature_disabled",
+    "translation": "İçgörü özelliği devre dışı bırakılmış."
+  },
+  {
+    "id": "api.insights.license_error",
+    "translation": "Lisansınızda içgörü özelliği yok."
   }
 ]
