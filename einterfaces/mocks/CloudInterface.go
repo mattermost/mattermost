@@ -343,3 +343,17 @@ func (_m *CloudInterface) ValidateBusinessEmail(userID string, email string) err
 
 	return r0
 }
+
+// ValidateWorkspaceBusinessEmail provides a mock function with given fields: userID
+func (_m *CloudInterface) ValidateWorkspaceBusinessEmail(userID string) error {
+	ret := _m.Called(userID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}

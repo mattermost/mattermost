@@ -7915,6 +7915,16 @@ func (c *Client4) RequestCloudTrial(email *StartCloudTrialRequest) (*Subscriptio
 	return subscription, BuildResponse(r), nil
 }
 
+func (c *Client4) ValidateWorkspaceBusinessEmail() (*Response, error) {
+	r, err := c.DoAPIPost(c.cloudRoute()+"/validate-workspace-business-email", "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r), nil
+}
+
 func (c *Client4) ValidateBusinessEmail(email *ValidateBusinessEmailRequest) (*Response, error) {
 	payload, _ := json.Marshal(email)
 	r, err := c.DoAPIPostBytes(c.cloudRoute()+"/validate-business-email", payload)

@@ -27,6 +27,7 @@ type CloudInterface interface {
 
 	RequestCloudTrial(userID, subscriptionID, newValidBusinessEmail string) (*model.Subscription, error)
 	ValidateBusinessEmail(userID, email string) error
+	ValidateWorkspaceBusinessEmail(userID string) error
 
 	// GetLicenseRenewalStatus checks on the portal whether it is possible to use token to renew a license
 	GetLicenseRenewalStatus(userID, token string) error

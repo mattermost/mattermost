@@ -46,6 +46,7 @@ func (api *API) InitCloud() {
 
 	// GET /api/v4/cloud/validate-business-email
 	api.BaseRoutes.Cloud.Handle("/validate-business-email", api.APISessionRequired(validateBusinessEmail)).Methods("POST")
+	api.BaseRoutes.Cloud.Handle("/validate-workspace-business-email", api.APISessionRequired(validateWorkspaceBusinessEmail)).Methods("POST")
 
 	// POST /api/v4/cloud/webhook
 	api.BaseRoutes.Cloud.Handle("/webhook", api.CloudAPIKeyRequired(handleCWSWebhook)).Methods("POST")
@@ -201,7 +202,6 @@ func validateBusinessEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// if an email was sent as a body param, validate it and return wether is valid or not
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -214,33 +214,46 @@ func validateBusinessEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if emailToValidate.Email != "" {
-		errValidatingEmail := c.App.Cloud().ValidateBusinessEmail(user.Id, emailToValidate.Email)
-		if errValidatingEmail != nil {
-			c.Err = model.NewAppError("Api4.valiateBusinessEmail", "api.cloud.request_error", nil, errValidatingEmail.Error(), http.StatusInternalServerError)
-			return
-		}
-		ReturnStatusOK(w)
+	errValidatingEmail := c.App.Cloud().ValidateBusinessEmail(user.Id, emailToValidate.Email)
+	if errValidatingEmail != nil {
+		c.Err = model.NewAppError("Api4.valiateBusinessEmail", "api.cloud.request_error", nil, errValidatingEmail.Error(), http.StatusInternalServerError)
+		return
+	}
+	ReturnStatusOK(w)
+}
+
+func validateWorkspaceBusinessEmail(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
+		c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.license_error", nil, "", http.StatusForbidden)
 		return
 	}
 
-	// If no email was sent as body param, then validate current userAdmin email
-	errValidatingAdminEmail := c.App.Cloud().ValidateBusinessEmail(user.Id, user.Email)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteBilling) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteBilling)
+		return
+	}
 
-	// if the current admin email is not a valid email
-	if errValidatingAdminEmail != nil {
+	user, userErr := c.App.GetUser(c.AppContext.Session().UserId)
+	if userErr != nil {
+		c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, "", http.StatusInternalServerError)
+		return
+	}
 
-		// get the cloud customer email
-		cloudCustomer, err := c.App.Cloud().GetCloudCustomer(user.Id)
+	// get the cloud customer email to validate if is a valid business email
+	cloudCustomer, err := c.App.Cloud().GetCloudCustomer(user.Id)
+	errValidatingSystemEmail := c.App.Cloud().ValidateBusinessEmail(user.Id, cloudCustomer.Email)
+
+	// if the current workspace email is not a valid business email
+	if errValidatingSystemEmail != nil {
 		if err != nil {
-			c.Err = model.NewAppError("Api4.valiateBusinessEmail", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
+			c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		// and validate that one
-		errValidatingSystemEmail := c.App.Cloud().ValidateBusinessEmail(user.Id, cloudCustomer.Email)
-		if errValidatingSystemEmail != nil {
-			c.Err = model.NewAppError("Api4.valiateBusinessEmail", "api.cloud.request_error", nil, errValidatingSystemEmail.Error(), http.StatusInternalServerError)
+		// grab the current admin email and validate it
+		errValidatingAdminEmail := c.App.Cloud().ValidateBusinessEmail(user.Id, user.Email)
+		if errValidatingAdminEmail != nil {
+			c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, errValidatingAdminEmail.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
