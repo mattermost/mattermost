@@ -64,9 +64,6 @@ func makeLocalBackend(proxy *ImageProxy) *LocalBackend {
 	}
 
 	client := proxy.HTTPService.MakeClient(false)
-	client.CheckRedirect = func(newreq *http.Request, via []*http.Request) error {
-		return http.ErrUseLastResponse
-	}
 
 	return &LocalBackend{
 		proxy:   proxy,

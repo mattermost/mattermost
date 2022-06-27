@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/utils/jsonutils"
 )
 
@@ -293,8 +294,11 @@ func (s *Store) Load() error {
 
 	loadedCfg = applyEnvironmentMap(loadedCfg, GetEnvironment())
 	fixConfig(loadedCfg)
-	if err := loadedCfg.IsValid(); err != nil {
-		return errors.Wrap(err, "invalid config")
+	if appErr := loadedCfg.IsValid(); appErr != nil {
+		// Translating the error before displaying it in the console.
+		// Defaulting to english for server side language.
+		appErr.Translate(i18n.GetUserTranslations("en"))
+		return errors.Wrap(appErr, "invalid config")
 	}
 
 	// Backing up feature flags section in case we need to restore them later on.

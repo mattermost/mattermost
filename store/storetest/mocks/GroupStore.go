@@ -372,6 +372,27 @@ func (_m *GroupStore) DistinctGroupMemberCount() (int64, error) {
 	return r0, r1
 }
 
+// DistinctGroupMemberCountForSource provides a mock function with given fields: source
+func (_m *GroupStore) DistinctGroupMemberCountForSource(source model.GroupSource) (int64, error) {
+	ret := _m.Called(source)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(model.GroupSource) int64); ok {
+		r0 = rf(source)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(model.GroupSource) error); ok {
+		r1 = rf(source)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Get provides a mock function with given fields: groupID
 func (_m *GroupStore) Get(groupID string) (*model.Group, error) {
 	ret := _m.Called(groupID)

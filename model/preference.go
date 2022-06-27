@@ -19,15 +19,19 @@ const (
 	PreferenceCategoryFlaggedPost       = "flagged_post"
 	PreferenceCategoryFavoriteChannel   = "favorite_channel"
 	PreferenceCategorySidebarSettings   = "sidebar_settings"
+	PreferenceCategoryInsights          = "insights"
 
 	PreferenceCategoryDisplaySettings     = "display_settings"
 	PreferenceNameCollapsedThreadsEnabled = "collapsed_reply_threads"
 	PreferenceNameChannelDisplayMode      = "channel_display_mode"
 	PreferenceNameCollapseSetting         = "collapse_previews"
 	PreferenceNameMessageDisplay          = "message_display"
+	PreferenceNameCollapseConsecutive     = "collapse_consecutive_messages"
+	PreferenceNameColorizeUsernames       = "colorize_usernames"
 	PreferenceNameNameFormat              = "name_format"
 	PreferenceNameUseMilitaryTime         = "use_military_time"
 	PreferenceRecommendedNextSteps        = "recommended_next_steps"
+	PreferenceNameInsights                = "insights_tutorial_state"
 
 	PreferenceCategoryTheme = "theme"
 	// the name for theme props is the team id

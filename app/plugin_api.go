@@ -665,7 +665,7 @@ func (api *PluginAPI) GetPostThread(postID string) (*model.PostList, *model.AppE
 }
 
 func (api *PluginAPI) GetPost(postID string) (*model.Post, *model.AppError) {
-	return api.app.GetSinglePost(postID)
+	return api.app.GetSinglePost(postID, false)
 }
 
 func (api *PluginAPI) GetPostsSince(channelID string, time int64) (*model.PostList, *model.AppError) {
@@ -979,6 +979,10 @@ func (api *PluginAPI) UpdateBotActive(userID string, active bool) (*model.Bot, *
 
 func (api *PluginAPI) PermanentDeleteBot(userID string) *model.AppError {
 	return api.app.PermanentDeleteBot(userID)
+}
+
+func (api *PluginAPI) EnsureBotUser(bot *model.Bot) (string, error) {
+	return api.app.EnsureBot(api.ctx, api.id, bot)
 }
 
 func (api *PluginAPI) PublishUserTyping(userID, channelID, parentId string) *model.AppError {
