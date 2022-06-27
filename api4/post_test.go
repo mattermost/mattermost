@@ -3173,7 +3173,7 @@ func TestPostReminder(t *testing.T) {
 					err := json.Unmarshal([]byte(post), &parsedPost)
 					require.NoError(t, err)
 
-					assert.Equal(t, model.PostTypeReminder, parsedPost.Type)
+					assert.Equal(t, model.PostTypeEphemeral, parsedPost.Type)
 					assert.Equal(t, th.BasicUser.Id, parsedPost.UserId)
 					assert.Equal(t, th.BasicPost.Id, parsedPost.RootId)
 
