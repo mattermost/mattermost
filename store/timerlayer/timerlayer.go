@@ -10226,6 +10226,22 @@ func (s *TimerLayerUserStore) UpdatePassword(userID string, newPassword string) 
 	return err
 }
 
+func (s *TimerLayerUserStore) UpdateProfileProps(userID string, props map[string]string) error {
+	start := time.Now()
+
+	err := s.UserStore.UpdateProfileProps(userID, props)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.UpdateProfileProps", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerUserStore) UpdateUpdateAt(userID string) (int64, error) {
 	start := time.Now()
 

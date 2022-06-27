@@ -212,11 +212,11 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.AppContext.Session().UserId == user.Id {
-		user.Sanitize(map[string]bool{})
-	} else {
-		c.App.SanitizeProfile(user, c.IsSystemAdmin())
-	}
+	// if c.AppContext.Session().UserId == user.Id {
+	// 	user.Sanitize(map[string]bool{})
+	// } else {
+	// 	c.App.SanitizeProfile(user, c.IsSystemAdmin())
+	// }
 	c.App.UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
 	w.Header().Set(model.HeaderEtagServer, etag)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
@@ -275,11 +275,11 @@ func getUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.AppContext.Session().UserId == user.Id {
-		user.Sanitize(map[string]bool{})
-	} else {
-		c.App.SanitizeProfile(user, c.IsSystemAdmin())
-	}
+	// if c.AppContext.Session().UserId == user.Id {
+	// 	user.Sanitize(map[string]bool{})
+	// } else {
+	// 	c.App.SanitizeProfile(user, c.IsSystemAdmin())
+	// }
 	w.Header().Set(model.HeaderEtagServer, etag)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
@@ -330,7 +330,7 @@ func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.SanitizeProfile(user, c.IsSystemAdmin())
+	// c.App.SanitizeProfile(user, c.IsSystemAdmin())
 	w.Header().Set(model.HeaderEtagServer, etag)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))

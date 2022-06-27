@@ -1234,6 +1234,24 @@ func (a *App) updateUserNotifyProps(userID string, props map[string]string) *mod
 	return nil
 }
 
+func (a *App) updateUserProfileProps(userID string, props map[string]string) *model.AppError {
+	err := a.ch.srv.userService.UpdateUserProfileProps(userID, props)
+	if err != nil {
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &appErr):
+			return appErr
+		default:
+			return model.NewAppError("UpdateUser", "app.user.update.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	a.InvalidateCacheForUser(userID)
+	a.onUserProfileChange(userID)
+
+	return nil
+}
+
 func (a *App) UpdateMfa(activate bool, userID, token string) *model.AppError {
 	if activate {
 		if err := a.ActivateMfa(userID, token); err != nil {

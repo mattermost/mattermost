@@ -95,6 +95,7 @@ type User {
 	status: Status
 	props: StringMap!
 	notifyProps: StringMap!
+	profileProps: StringMap!
 	lastPictureUpdateAt: Float!
 	locale: String!
 	timezone: StringMap!

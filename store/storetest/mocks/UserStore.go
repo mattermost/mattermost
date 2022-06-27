@@ -1471,6 +1471,20 @@ func (_m *UserStore) UpdatePassword(userID string, newPassword string) error {
 	return r0
 }
 
+// UpdateProfileProps provides a mock function with given fields: userID, props
+func (_m *UserStore) UpdateProfileProps(userID string, props map[string]string) error {
+	ret := _m.Called(userID, props)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, map[string]string) error); ok {
+		r0 = rf(userID, props)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // UpdateUpdateAt provides a mock function with given fields: userID
 func (_m *UserStore) UpdateUpdateAt(userID string) (int64, error) {
 	ret := _m.Called(userID)

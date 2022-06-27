@@ -201,6 +201,10 @@ func (us *UserService) UpdateUserNotifyProps(userID string, props map[string]str
 	return us.store.UpdateNotifyProps(userID, props)
 }
 
+func (us *UserService) UpdateUserProfileProps(userID string, props map[string]string) error {
+	return us.store.UpdateProfileProps(userID, props)
+}
+
 func (us *UserService) DeactivateAllGuests() ([]string, error) {
 	users, err := us.store.DeactivateGuests()
 	if err != nil {

@@ -88,6 +88,7 @@ type User struct {
 	AllowMarketing         bool      `json:"allow_marketing,omitempty"`
 	Props                  StringMap `json:"props,omitempty"`
 	NotifyProps            StringMap `json:"notify_props,omitempty"`
+	ProfileProps           StringMap `json:"profile_props,omitempty"`
 	LastPasswordUpdate     int64     `json:"last_password_update,omitempty"`
 	LastPictureUpdate      int64     `json:"last_picture_update,omitempty"`
 	FailedAttempts         int       `json:"failed_attempts,omitempty"`
@@ -119,18 +120,19 @@ type UserUpdate struct {
 
 //msgp:ignore UserPatch
 type UserPatch struct {
-	Username    *string   `json:"username"`
-	Password    *string   `json:"password,omitempty"`
-	Nickname    *string   `json:"nickname"`
-	FirstName   *string   `json:"first_name"`
-	LastName    *string   `json:"last_name"`
-	Position    *string   `json:"position"`
-	Email       *string   `json:"email"`
-	Props       StringMap `json:"props,omitempty"`
-	NotifyProps StringMap `json:"notify_props,omitempty"`
-	Locale      *string   `json:"locale"`
-	Timezone    StringMap `json:"timezone"`
-	RemoteId    *string   `json:"remote_id"`
+	Username     *string   `json:"username"`
+	Password     *string   `json:"password,omitempty"`
+	Nickname     *string   `json:"nickname"`
+	FirstName    *string   `json:"first_name"`
+	LastName     *string   `json:"last_name"`
+	Position     *string   `json:"position"`
+	Email        *string   `json:"email"`
+	Props        StringMap `json:"props,omitempty"`
+	NotifyProps  StringMap `json:"notify_props,omitempty"`
+	ProfileProps StringMap `json:"profile_props,omitempty"`
+	Locale       *string   `json:"locale"`
+	Timezone     StringMap `json:"timezone"`
+	RemoteId     *string   `json:"remote_id"`
 }
 
 //msgp:ignore UserAuth
@@ -253,6 +255,9 @@ func (u *User) DeepCopy() *User {
 	}
 	if u.NotifyProps != nil {
 		copyUser.NotifyProps = CopyStringMap(u.NotifyProps)
+	}
+	if u.ProfileProps != nil {
+		copyUser.ProfileProps = CopyStringMap(u.ProfileProps)
 	}
 	if u.Timezone != nil {
 		copyUser.Timezone = CopyStringMap(u.Timezone)
@@ -401,6 +406,10 @@ func (u *User) PreSave() {
 		u.SetDefaultNotifications()
 	}
 
+	if u.ProfileProps == nil {
+		u.ProfileProps = make(map[string]string)
+	}
+
 	if u.Timezone == nil {
 		u.Timezone = timezones.DefaultUserTimezone()
 	}
@@ -542,6 +551,10 @@ func (u *User) Patch(patch *UserPatch) {
 		u.NotifyProps = patch.NotifyProps
 	}
 
+	if patch.NotifyProps != nil {
+		u.ProfileProps = patch.ProfileProps
+	}
+
 	if patch.Locale != nil {
 		u.Locale = *patch.Locale
 	}
@@ -620,6 +633,10 @@ func (u *User) MakeNonNil() {
 
 	if u.NotifyProps == nil {
 		u.NotifyProps = make(map[string]string)
+	}
+
+	if u.ProfileProps == nil {
+		u.ProfileProps = make(map[string]string)
 	}
 }
 
@@ -825,7 +842,7 @@ func (u *User) ToPatch() *UserPatch {
 		Nickname: &u.Nickname, FirstName: &u.FirstName, LastName: &u.LastName,
 		Position: &u.Position, Email: &u.Email,
 		Props: u.Props, NotifyProps: u.NotifyProps,
-		Locale: &u.Locale, Timezone: u.Timezone,
+		Locale: &u.Locale, Timezone: u.Timezone, ProfileProps: u.ProfileProps,
 	}
 }
 

@@ -51,8 +51,38 @@ func newSqlUserStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 
 	// note: we are providing field names explicitly here to maintain order of columns (needed when using raw queries)
 	us.usersQuery = us.getQueryBuilder().
-		Select("u.Id", "u.CreateAt", "u.UpdateAt", "u.DeleteAt", "u.Username", "u.Password", "u.AuthData", "u.AuthService", "u.Email", "u.EmailVerified", "u.Nickname", "u.FirstName", "u.LastName", "u.Position", "u.Roles", "u.AllowMarketing", "u.Props", "u.NotifyProps", "u.LastPasswordUpdate", "u.LastPictureUpdate", "u.FailedAttempts", "u.Locale", "u.Timezone", "u.MfaActive", "u.MfaSecret",
-			"b.UserId IS NOT NULL AS IsBot", "COALESCE(b.Description, '') AS BotDescription", "COALESCE(b.LastIconUpdate, 0) AS BotLastIconUpdate", "u.RemoteId").
+		Select(
+			"u.Id",
+			"u.CreateAt",
+			"u.UpdateAt",
+			"u.DeleteAt",
+			"u.Username",
+			"u.Password",
+			"u.AuthData",
+			"u.AuthService",
+			"u.Email",
+			"u.EmailVerified",
+			"u.Nickname",
+			"u.FirstName",
+			"u.LastName",
+			"u.Position",
+			"u.Roles",
+			"u.AllowMarketing",
+			"u.Props",
+			"u.NotifyProps",
+			"u.LastPasswordUpdate",
+			"u.LastPictureUpdate",
+			"u.FailedAttempts",
+			"u.Locale",
+			"u.Timezone",
+			"u.MfaActive",
+			"u.MfaSecret",
+			"b.UserId IS NOT NULL AS IsBot",
+			"COALESCE(b.Description, '') AS BotDescription",
+			"COALESCE(b.LastIconUpdate, 0) AS BotLastIconUpdate",
+			"u.RemoteId",
+			"u.ProfileProps",
+		).
 		From("Users u").
 		LeftJoin("Bots b ON ( b.UserId = u.Id )")
 
@@ -64,12 +94,12 @@ func (us SqlUserStore) insert(user *model.User) (sql.Result, error) {
 		(Id, CreateAt, UpdateAt, DeleteAt, Username, Password, AuthData, AuthService,
 			Email, EmailVerified, Nickname, FirstName, LastName, Position, Roles, AllowMarketing,
 			Props, NotifyProps, LastPasswordUpdate, LastPictureUpdate, FailedAttempts,
-			Locale, Timezone, MfaActive, MfaSecret, RemoteId)
+			Locale, Timezone, MfaActive, MfaSecret, RemoteId, ProfileProps)
 		VALUES
 		(:Id, :CreateAt, :UpdateAt, :DeleteAt, :Username, :Password, :AuthData, :AuthService,
 			:Email, :EmailVerified, :Nickname, :FirstName, :LastName, :Position, :Roles, :AllowMarketing,
 			:Props, :NotifyProps, :LastPasswordUpdate, :LastPictureUpdate, :FailedAttempts,
-			:Locale, :Timezone, :MfaActive, :MfaSecret, :RemoteId)`
+			:Locale, :Timezone, :MfaActive, :MfaSecret, :RemoteId, :ProfileProps)`
 
 	user.Props = wrapBinaryParamStringMap(us.IsBinaryParamEnabled(), user.Props)
 	return us.GetMasterX().NamedExec(query, user)
@@ -199,7 +229,7 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 				AllowMarketing=:AllowMarketing, Props=:Props, NotifyProps=:NotifyProps,
 				LastPasswordUpdate=:LastPasswordUpdate, LastPictureUpdate=:LastPictureUpdate,
 				FailedAttempts=:FailedAttempts,Locale=:Locale, Timezone=:Timezone, MfaActive=:MfaActive,
-				MfaSecret=:MfaSecret, RemoteId=:RemoteId
+				MfaSecret=:MfaSecret, RemoteId=:RemoteId, ProfileProps=:ProfileProps
 			WHERE Id=:Id`
 
 	user.Props = wrapBinaryParamStringMap(us.IsBinaryParamEnabled(), user.Props)
@@ -238,6 +268,24 @@ func (us SqlUserStore) UpdateNotifyProps(userID string, props map[string]string)
 
 	if _, err := us.GetMasterX().Exec(`UPDATE Users
 		SET NotifyProps = ?
+		WHERE Id = ?`, buf, userID); err != nil {
+		return errors.Wrapf(err, "failed to update User with userId=%s", userID)
+	}
+
+	return nil
+}
+
+func (us SqlUserStore) UpdateProfileProps(userID string, props map[string]string) error {
+	buf, err := json.Marshal(props)
+	if err != nil {
+		return errors.Wrap(err, "failed marshalling session props")
+	}
+	if us.IsBinaryParamEnabled() {
+		buf = AppendBinaryFlag(buf)
+	}
+
+	if _, err := us.GetMasterX().Exec(`UPDATE Users
+		SET ProfileProps = ?
 		WHERE Id = ?`, buf, userID); err != nil {
 		return errors.Wrapf(err, "failed to update User with userId=%s", userID)
 	}
@@ -416,13 +464,13 @@ func (us SqlUserStore) Get(ctx context.Context, id string) (*model.User, error) 
 	row := us.SqlStore.DBXFromContext(ctx).QueryRow(queryString, args...)
 
 	var user model.User
-	var props, notifyProps, timezone []byte
+	var props, notifyProps, profileProps, timezone []byte
 	err = row.Scan(&user.Id, &user.CreateAt, &user.UpdateAt, &user.DeleteAt, &user.Username,
 		&user.Password, &user.AuthData, &user.AuthService, &user.Email, &user.EmailVerified,
 		&user.Nickname, &user.FirstName, &user.LastName, &user.Position, &user.Roles,
 		&user.AllowMarketing, &props, &notifyProps, &user.LastPasswordUpdate, &user.LastPictureUpdate,
 		&user.FailedAttempts, &user.Locale, &timezone, &user.MfaActive, &user.MfaSecret,
-		&user.IsBot, &user.BotDescription, &user.BotLastIconUpdate, &user.RemoteId)
+		&user.IsBot, &user.BotDescription, &user.BotLastIconUpdate, &user.RemoteId, &profileProps)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("User", id)
@@ -435,6 +483,9 @@ func (us SqlUserStore) Get(ctx context.Context, id string) (*model.User, error) 
 	}
 	if err = json.Unmarshal(notifyProps, &user.NotifyProps); err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal user notify props")
+	}
+	if err = json.Unmarshal(profileProps, &user.ProfileProps); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal user profile props")
 	}
 	if err = json.Unmarshal(timezone, &user.Timezone); err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal user timezone")
@@ -792,8 +843,8 @@ func (us SqlUserStore) GetAllProfilesInChannel(ctx context.Context, channelID st
 	defer rows.Close()
 	for rows.Next() {
 		var user model.User
-		var props, notifyProps, timezone []byte
-		if err = rows.Scan(&user.Id, &user.CreateAt, &user.UpdateAt, &user.DeleteAt, &user.Username, &user.Password, &user.AuthData, &user.AuthService, &user.Email, &user.EmailVerified, &user.Nickname, &user.FirstName, &user.LastName, &user.Position, &user.Roles, &user.AllowMarketing, &props, &notifyProps, &user.LastPasswordUpdate, &user.LastPictureUpdate, &user.FailedAttempts, &user.Locale, &timezone, &user.MfaActive, &user.MfaSecret, &user.IsBot, &user.BotDescription, &user.BotLastIconUpdate, &user.RemoteId); err != nil {
+		var props, notifyProps, profileProps, timezone []byte
+		if err = rows.Scan(&user.Id, &user.CreateAt, &user.UpdateAt, &user.DeleteAt, &user.Username, &user.Password, &user.AuthData, &user.AuthService, &user.Email, &user.EmailVerified, &user.Nickname, &user.FirstName, &user.LastName, &user.Position, &user.Roles, &user.AllowMarketing, &props, &notifyProps, &user.LastPasswordUpdate, &user.LastPictureUpdate, &user.FailedAttempts, &user.Locale, &timezone, &user.MfaActive, &user.MfaSecret, &user.IsBot, &user.BotDescription, &user.BotLastIconUpdate, &user.RemoteId, &profileProps); err != nil {
 			return nil, errors.Wrap(err, "failed to scan values from rows into User entity")
 		}
 		if err = json.Unmarshal(props, &user.Props); err != nil {
@@ -801,6 +852,9 @@ func (us SqlUserStore) GetAllProfilesInChannel(ctx context.Context, channelID st
 		}
 		if err = json.Unmarshal(notifyProps, &user.NotifyProps); err != nil {
 			return nil, errors.Wrap(err, "failed to unmarshal user notify props")
+		}
+		if err = json.Unmarshal(profileProps, &user.ProfileProps); err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal user profile props")
 		}
 		if err = json.Unmarshal(timezone, &user.Timezone); err != nil {
 			return nil, errors.Wrap(err, "failed to unmarshal user timezone")

@@ -39,11 +39,12 @@ func TestGraphQLUser(t *testing.T) {
 				Duration  string    `json:"duration"`
 				ExpiresAt time.Time `json:"expiresAt"`
 			} `json:"customStatus"`
-			Timezone    model.StringMap `json:"timezone"`
-			Props       model.StringMap `json:"props"`
-			NotifyProps model.StringMap `json:"notifyProps"`
-			Position    string          `json:"position"`
-			Roles       []struct {
+			Timezone     model.StringMap `json:"timezone"`
+			Props        model.StringMap `json:"props"`
+			NotifyProps  model.StringMap `json:"notifyProps"`
+			ProfileProps model.StringMap `json:"profileProps"`
+			Position     string          `json:"position"`
+			Roles        []struct {
 				ID            string   `json:"id"`
 				Name          string   `json:"Name"`
 				Permissions   []string `json:"permissions"`
@@ -80,6 +81,7 @@ func TestGraphQLUser(t *testing.T) {
 			timezone
 			props
 			notifyProps
+			profileProps
 			roles {
 				id
 				name
@@ -110,6 +112,7 @@ func TestGraphQLUser(t *testing.T) {
 		assert.Equal(t, th.BasicUser.Timezone, q.User.Timezone)
 		assert.Equal(t, th.BasicUser.Props, q.User.Props)
 		assert.Equal(t, th.BasicUser.NotifyProps, q.User.NotifyProps)
+		assert.Equal(t, th.BasicUser.ProfileProps, q.User.ProfileProps)
 
 		roles, _, err := th.Client.GetRolesByNames(th.BasicUser.GetRoles())
 		require.NoError(t, err)
