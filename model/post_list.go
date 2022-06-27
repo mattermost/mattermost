@@ -16,7 +16,7 @@ type PostList struct {
 	PrevPostId string           `json:"prev_post_id"`
 	// HasNext indicates whether there are more items to be fetched or not.
 	HasNext bool `json:"has_next"`
-	// HasInaccessiblePosts tells if there are inaccessible posts, past the cloud limit.
+	// HasInaccessiblePosts tells if there are inaccessible posts, past the cloud's plan limit.
 	HasInaccessiblePosts bool `json:"has_inaccessible_posts"`
 }
 
