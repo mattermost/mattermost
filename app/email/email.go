@@ -255,31 +255,6 @@ func (es *Service) SendCloudUpgradeConfirmationEmail(userEmail, name, date, loca
 	return nil
 }
 
-func (es *Service) SendCloudTrialEndWarningEmail(userEmail, name, trialEndDate, locale, siteURL string) error {
-	T := i18n.GetUserTranslations(locale)
-	subject := T("api.templates.cloud_trial_ending_email.subject")
-
-	data := es.NewEmailTemplateData(locale)
-	data.Props["Title"] = T("api.templates.cloud_trial_ending_email.title")
-	data.Props["SubTitle"] = T("api.templates.cloud_trial_ending_email.subtitle", map[string]interface{}{"Name": name, "TrialEnd": trialEndDate})
-	data.Props["SiteURL"] = siteURL
-	data.Props["ButtonURL"] = fmt.Sprintf("%s/admin_console/billing/subscription?action=show_purchase_modal", siteURL)
-	data.Props["Button"] = T("api.templates.cloud_trial_ending_email.add_payment_method")
-	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
-	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
-
-	body, err := es.templatesContainer.RenderToString("cloud_trial_end_warning", data)
-	if err != nil {
-		return err
-	}
-
-	if err := es.sendEmailWithCustomReplyTo(userEmail, subject, body, *es.config().SupportSettings.SupportEmail); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // SendCloudWelcomeEmail sends the cloud version of the welcome email
 func (es *Service) SendCloudWelcomeEmail(userEmail, locale, teamInviteID, workSpaceName, dns, siteURL string) error {
 	T := i18n.GetUserTranslations(locale)
