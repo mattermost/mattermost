@@ -381,6 +381,14 @@ func NewServer(options ...Option) (*Server, error) {
 		srv: s,
 	}
 
+	fileInfoWrapper := &fileInfoWrapper{
+		srv: s,
+	}
+
+	cloudWrapper := &cloudWrapper{
+		cloud: s.Cloud,
+	}
+
 	s.teamService, err = teams.New(teams.ServiceConfig{
 		TeamStore:    s.Store.Team(),
 		ChannelStore: s.Store.Channel(),
