@@ -12,7 +12,6 @@ const (
 	EventTypeSendUpgradeConfirmationEmail = "send-upgrade-confirmation-email"
 	EventTypeSubscriptionChanged          = "subscription-changed"
 	EventTypeTrialWillEnd                 = "trial-will-end"
-	EventTypeTrialEnded                   = "trial-ended"
 )
 
 var MockCWS string

@@ -597,11 +597,6 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = appErr
 			return
 		}
-	case model.EventTypeTrialEnded:
-		if appErr := c.App.SendCloudTrialEndedEmail(); appErr != nil {
-			c.Err = appErr
-			return
-		}
 	case model.EventTypeSubscriptionChanged:
 		// event.ProductLimits is nil if there was no change
 		if event.ProductLimits != nil {

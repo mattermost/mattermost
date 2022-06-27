@@ -3136,22 +3136,6 @@
     "translation": "Unable to set the scheme to the team because the supplied scheme is not a team scheme."
   },
   {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Start Subscription"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Mattermost cloud trial has ended"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, your 30-day free trial of Mattermost Cloud Enterprise ended on {{.TodayDate}}. We hope you’ve enjoyed our flexible and secure collaboration platform. Please add your payment information to ensure your team can continue collaborating with Mattermost."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Your free 30-day trial of Mattermost has ended"
-  },
-  {
     "id": "api.templates.cloud_trial_ending_email.add_payment_method",
     "translation": "Add Payment method"
   },
