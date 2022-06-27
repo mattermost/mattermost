@@ -17,6 +17,8 @@ import (
 
 	"github.com/pkg/errors"
 
+	"golang.org/x/sync/errgroup"
+
 	"github.com/mattermost/mattermost-server/v6/app/email"
 	"github.com/mattermost/mattermost-server/v6/app/imaging"
 	"github.com/mattermost/mattermost-server/v6/app/request"
@@ -28,7 +30,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mfa"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
-	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -1680,10 +1681,14 @@ func (a *App) SendEmailVerification(user *model.User, newEmail, redirect string)
 	}
 
 	if _, err := a.GetStatus(user.Id); err != nil {
+		if err.StatusCode != http.StatusNotFound {
+			return err
+		}
 		eErr := a.Srv().EmailService.SendVerifyEmail(newEmail, user.Locale, a.GetSiteURL(), token.Token, redirect)
 		if eErr != nil {
 			return model.NewAppError("SendVerifyEmail", "api.user.send_verify_email_and_forget.failed.error", nil, eErr.Error(), http.StatusInternalServerError)
 		}
+
 		return nil
 	}
 
@@ -2332,7 +2337,7 @@ func (a *App) ConvertBotToUser(bot *model.Bot, userPatch *model.UserPatch, sysad
 
 	appErr := a.Srv().Store.Bot().PermanentDelete(bot.UserId)
 	if appErr != nil {
-		return nil, model.NewAppError("ConvertBotToUser", "app.user.convert_bot_to_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("ConvertBotToUser", "app.user.convert_bot_to_user.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
 	return user, nil
