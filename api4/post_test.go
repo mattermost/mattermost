@@ -1064,7 +1064,7 @@ func TestGetPostsForChannel(t *testing.T) {
 	post4 := th.CreatePost()
 
 	th.TestForAllClients(t, func(t *testing.T, c *model.Client4) {
-		posts, resp, err := c.GetPostsForChannel(th.BasicChannel.Id, 0, 60, "", false, true)
+		posts, resp, err := c.GetPostsForChannel(th.BasicChannel.Id, 0, 60, "", false, false)
 		require.NoError(t, err)
 		require.Equal(t, post4.Id, posts.Order[0], "wrong order")
 		require.Equal(t, post3.Id, posts.Order[1], "wrong order")
@@ -1074,7 +1074,7 @@ func TestGetPostsForChannel(t *testing.T) {
 		posts, resp, _ = c.GetPostsForChannel(th.BasicChannel.Id, 0, 3, resp.Etag, false, false)
 		CheckEtag(t, posts, resp)
 
-		posts, _, err = c.GetPostsForChannel(th.BasicChannel.Id, 0, 3, "", false, true)
+		posts, _, err = c.GetPostsForChannel(th.BasicChannel.Id, 0, 3, "", false, false)
 		require.NoError(t, err)
 		require.Len(t, posts.Order, 3, "wrong number returned")
 
@@ -1087,7 +1087,7 @@ func TestGetPostsForChannel(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, post3.Id, posts.Order[0], "wrong order")
 
-		posts, _, err = c.GetPostsForChannel(th.BasicChannel.Id, 10000, 10000, "", false, true)
+		posts, _, err = c.GetPostsForChannel(th.BasicChannel.Id, 10000, 10000, "", false, false)
 		require.NoError(t, err)
 		require.Empty(t, posts.Order, "should be no posts")
 	})
@@ -1121,7 +1121,7 @@ func TestGetPostsForChannel(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		_, resp, err = c.GetPostsForChannel("junk", 0, 60, "", false, true)
+		_, resp, err = c.GetPostsForChannel("junk", 0, 60, "", false, false)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
@@ -1131,7 +1131,7 @@ func TestGetPostsForChannel(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, err = client.GetPostsForChannel(model.NewId(), 0, 60, "", false, true)
+	_, resp, err = client.GetPostsForChannel(model.NewId(), 0, 60, "", false, false)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
@@ -1152,7 +1152,7 @@ func TestGetPostsForChannel(t *testing.T) {
 		systemPostId1 := posts.Order[1]
 
 		// similar to '/posts'
-		posts, _, err = c.GetPostsForChannel(th.BasicChannel.Id, 0, 60, "", false, true)
+		posts, _, err = c.GetPostsForChannel(th.BasicChannel.Id, 0, 60, "", false, false)
 		require.NoError(t, err)
 		require.Len(t, posts.Order, 12, "expected 12 posts")
 		require.Equal(t, post10.Id, posts.Order[0], "posts not in order")
@@ -1170,7 +1170,7 @@ func TestGetPostsForChannel(t *testing.T) {
 		require.Equal(t, post7.Id, posts.PrevPostId, "should return post7.Id as PrevPostId")
 
 		// similar to '/posts?per_page=3&page=1'
-		posts, _, err = c.GetPostsForChannel(th.BasicChannel.Id, 1, 3, "", false, true)
+		posts, _, err = c.GetPostsForChannel(th.BasicChannel.Id, 1, 3, "", false, false)
 		require.NoError(t, err)
 		require.Len(t, posts.Order, 3, "expected 3 posts")
 		require.Equal(t, post7.Id, posts.Order[0], "posts not in order")
@@ -1188,7 +1188,7 @@ func TestGetPostsForChannel(t *testing.T) {
 		require.Equal(t, post1.Id, posts.PrevPostId, "should return post1.Id as PrevPostId")
 
 		// similar to '/posts?per_page=3&page=3'
-		posts, _, err = c.GetPostsForChannel(th.BasicChannel.Id, 3, 3, "", false, true)
+		posts, _, err = c.GetPostsForChannel(th.BasicChannel.Id, 3, 3, "", false, false)
 		require.NoError(t, err)
 		require.Len(t, posts.Order, 3, "expected 3 posts")
 		require.Equal(t, post1.Id, posts.Order[0], "posts not in order")
@@ -1216,7 +1216,7 @@ func TestGetPostsForChannel(t *testing.T) {
 		})
 
 		// the endpoint should work fine when viewing archived channels is enabled
-		_, _, err = c.GetPostsForChannel(channel.Id, 0, 10, "", false, true)
+		_, _, err = c.GetPostsForChannel(channel.Id, 0, 10, "", false, false)
 		require.NoError(t, err)
 
 		// the endpoint should return forbidden if viewing archived channels is disabled
