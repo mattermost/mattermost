@@ -1759,12 +1759,12 @@ func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.Ap
 	}
 	err := a.Srv().Store.Post().SetPostReminder(reminder)
 	if err != nil {
-		return model.NewAppError("SetPostReminder", "", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SetPostReminder", "app.post_reminder.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	metadata, err := a.Srv().Store.Post().GetPostReminderMetadata(postID)
 	if err != nil {
-		return model.NewAppError("SetPostReminder", "", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SetPostReminder", "app.post_reminder.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	parsed := time.Unix(targetTime, 0).UTC().Format(time.RFC822)

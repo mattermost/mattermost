@@ -1,9 +1,5 @@
 [
   {
-    "id": "",
-    "translation": ""
-  },
-  {
     "id": "April",
     "translation": "April"
   },
@@ -5930,6 +5926,10 @@
   {
     "id": "app.post.update.app_error",
     "translation": "Unable to update the Post."
+  },
+  {
+    "id": "app.post_reminder.app_error",
+    "translation": " "
   },
   {
     "id": "app.post_reminder_dm",
