@@ -21,6 +21,7 @@ import (
 	"path"
 
 	"github.com/disintegration/imaging"
+	_ "golang.org/x/image/webp"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"

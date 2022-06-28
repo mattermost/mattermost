@@ -8,9 +8,22 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
+
+type cloudWrapper struct {
+	cloud einterfaces.CloudInterface
+}
+
+func (c *cloudWrapper) GetCloudLimits() (*model.ProductLimits, error) {
+	if c.cloud != nil {
+		return c.cloud.GetCloudLimits("")
+	}
+
+	return &model.ProductLimits{}, nil
+}
 
 func (a *App) getSysAdminsEmailRecipients() ([]*model.User, *model.AppError) {
 	userOptions := &model.UserGetOptions{
@@ -48,6 +61,12 @@ func (a *App) AdjustInProductLimits(limits *model.ProductLimits, subscription *m
 	return nil
 }
 
+func getNextBillingDateString() string {
+	now := time.Now()
+	t := time.Date(now.Year(), now.Month()+1, 1, 0, 0, 0, 0, time.UTC)
+	return fmt.Sprintf("%s %d, %d", t.Month(), t.Day(), t.Year())
+}
+
 func (a *App) SendUpgradeConfirmationEmail() *model.AppError {
 	sysAdmins, e := a.getSysAdminsEmailRecipients()
 	if e != nil {
@@ -63,11 +82,7 @@ func (a *App) SendUpgradeConfirmationEmail() *model.AppError {
 		return model.NewAppError("app.SendCloudUpgradeConfirmationEmail", "app.user.send_emails.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	// Build readable trial end date
-	// Trial end is passed as unix timestamp in ms
-	endTimeStamp := subscription.TrialEndAt / 1000
-	t := time.Unix(endTimeStamp, 0)
-	trialEndDate := fmt.Sprintf("%s %d, %d", t.Month(), t.Day(), t.Year())
+	billingDate := getNextBillingDateString()
 
 	// we want to at least have one email sent out to an admin
 	countNotOks := 0
@@ -78,7 +93,7 @@ func (a *App) SendUpgradeConfirmationEmail() *model.AppError {
 			name = admin.Username
 		}
 
-		err := a.Srv().EmailService.SendCloudUpgradeConfirmationEmail(admin.Email, name, trialEndDate, admin.Locale, *a.Config().ServiceSettings.SiteURL, subscription.GetWorkSpaceNameFromDNS())
+		err := a.Srv().EmailService.SendCloudUpgradeConfirmationEmail(admin.Email, name, billingDate, admin.Locale, *a.Config().ServiceSettings.SiteURL, subscription.GetWorkSpaceNameFromDNS())
 		if err != nil {
 			a.Log().Error("Error sending trial ended email to", mlog.String("email", admin.Email), mlog.Err(err))
 			countNotOks++
