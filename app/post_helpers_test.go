@@ -272,3 +272,24 @@ func Test_filterInaccessiblePosts(t *testing.T) {
 		}, postList.Order)
 	})
 }
+
+func Test_isInaccessiblePost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+	th.App.Srv().Store.System().Save(&model.System{
+		Name:  model.SystemLastAccessiblePostTime,
+		Value: "2",
+	})
+
+	defer th.TearDown()
+
+	post := &model.Post{CreateAt: 3}
+	r, appErr := th.App.isInaccessiblePost(post)
+	assert.Nil(t, appErr)
+	assert.Equal(t, false, r)
+
+	post = &model.Post{CreateAt: 1}
+	r, appErr = th.App.isInaccessiblePost(post)
+	assert.Nil(t, appErr)
+	assert.Equal(t, true, r)
+}

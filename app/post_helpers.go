@@ -158,11 +158,11 @@ func (a *App) filterInaccessiblePosts(postList *model.PostList, options filterPo
 			return nil
 		}
 		if bounds.allInaccessible() {
-			postList.Posts = map[string]*model.Post{}
-			postList.Order = []string{}
 			if len(postList.Posts) > 0 {
 				postList.HasInaccessiblePosts = true
 			}
+			postList.Posts = map[string]*model.Post{}
+			postList.Order = []string{}
 			return nil
 		}
 		postList.HasInaccessiblePosts = true
@@ -199,4 +199,17 @@ func (a *App) filterInaccessiblePosts(postList *model.PostList, options filterPo
 	}
 
 	return nil
+}
+
+func (a *App) isInaccessiblePost(post *model.Post) (bool, *model.AppError) {
+	if post == nil {
+		return false, nil
+	}
+
+	pl := &model.PostList{
+		Order: []string{post.Id},
+		Posts: map[string]*model.Post{post.Id: post},
+	}
+
+	return pl.HasInaccessiblePosts, a.filterInaccessiblePosts(pl, filterPostOptions{assumeSortedCreatedAt: true})
 }

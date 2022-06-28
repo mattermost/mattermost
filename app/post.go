@@ -1866,6 +1866,38 @@ func (a *App) GetPostIfAuthorized(postID string, session *model.Session, include
 	return post, nil
 }
 
+func (a *App) GetPostIfAuthorizedNew(postID string, session *model.Session, includeDeleted bool) (*model.PostWrapper, *model.AppError) {
+	post, err := a.GetSinglePost(postID, includeDeleted)
+	if err != nil {
+		return nil, err
+	}
+
+	channel, err := a.GetChannel(post.ChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	if !a.SessionHasPermissionToChannel(*session, channel.Id, model.PermissionReadChannel) {
+		if channel.Type == model.ChannelTypeOpen {
+			if !a.SessionHasPermissionToTeam(*session, channel.TeamId, model.PermissionReadPublicChannel) {
+				return nil, a.MakePermissionError(session, []*model.Permission{model.PermissionReadPublicChannel})
+			}
+		} else {
+			return nil, a.MakePermissionError(session, []*model.Permission{model.PermissionReadChannel})
+		}
+	}
+
+	isInaccessible, appErr := a.isInaccessiblePost(post)
+	if appErr != nil {
+		return nil, appErr
+	}
+	if isInaccessible {
+		post = nil
+	}
+
+	return &model.PostWrapper{Post: post, IsInaccessible: isInaccessible}, nil
+}
+
 func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, *model.AppError) {
 	posts, err := a.Srv().Store.Post().GetPostsByIds(postIDs)
 	if err != nil {
