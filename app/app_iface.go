@@ -128,6 +128,11 @@ type AppIface interface {
 	// activation if inactive anywhere in the cluster.
 	// Notifies cluster peers through config change.
 	EnablePlugin(id string) *model.AppError
+	// EnsureBot provides similar functionality with the plugin-api BotService. It doesn't accept
+	// any ensureBotOptions hence it is not required for now.
+	// TODO: Once the focalboard migration completed, we should add this logic to the app and
+	// let plugin-api use the same code
+	EnsureBot(c *request.Context, productID string, bot *model.Bot) (string, error)
 	// Expand announcements in incoming webhooks from Slack. Those announcements
 	// can be found in the text attribute, or in the pretext, text, title and value
 	// attributes of the attachment structure. The Slack attachment structure is
