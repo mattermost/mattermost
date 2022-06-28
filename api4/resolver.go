@@ -347,7 +347,7 @@ func (*resolver) SidebarCategories(ctx context.Context, args struct {
 	var categories *model.OrderedSidebarCategories
 	var appErr *model.AppError
 	if !args.ExcludeTeam {
-		categories, appErr = c.App.GetSidebarCategoriesForTeamForUser(args.UserID, args.TeamID)
+		categories, appErr = c.App.GetSidebarCategoriesForTeamForUser(c.AppContext, args.UserID, args.TeamID)
 		if appErr != nil {
 			return nil, appErr
 		}
