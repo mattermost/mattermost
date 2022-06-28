@@ -60,6 +60,13 @@ type Product struct {
 	BillingScheme     BillingScheme      `json:"billing_scheme"`
 }
 
+type UserFacingProduct struct {
+	ID           string  `json:"id"`
+	Name         string  `json:"name"`
+	SKU          string  `json:"sku"`
+	PricePerSeat float64 `json:"price_per_seat"`
+}
+
 // AddOn represents an addon to a product.
 type AddOn struct {
 	ID           string  `json:"id"`

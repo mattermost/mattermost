@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -19,10 +20,10 @@ import (
 func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID string) *model.AppError {
 	userId := c.Session().Id
 
-	prefId := strings.ReplaceAll(model.CloudNotifyAdminInfo, "_", "") + "123456"
+	fakeId := strings.ReplaceAll(model.CloudNotifyAdminInfo, "_", "") + "123456"
 
 	// check if already notified
-	notificationPref, err := a.Srv().Store.Preference().Get(prefId, model.PreferenceCloudUserEphemeralInfo, model.CloudNotifyAdminInfo)
+	notificationPref, err := a.Srv().Store.Preference().Get(fakeId, model.PreferenceCloudUserEphemeralInfo, model.CloudNotifyAdminInfo)
 	if err != nil {
 		mlog.Warn("Unable to get preference cloud_user_ephemeral_info", mlog.Err(err))
 	}
@@ -92,7 +93,7 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID 
 	}
 
 	pref := model.Preference{
-		UserId:   prefId, // to only have one preference for now and not a preference per user
+		UserId:   fakeId, // to only have one preference for now and not a preference per user
 		Category: model.PreferenceCloudUserEphemeralInfo,
 		Name:     model.CloudNotifyAdminInfo,
 		Value:    string(out),
@@ -103,6 +104,18 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID 
 	}
 
 	return nil
+}
+
+type cloudWrapper struct {
+	cloud einterfaces.CloudInterface
+}
+
+func (c *cloudWrapper) GetCloudLimits() (*model.ProductLimits, error) {
+	if c.cloud != nil {
+		return c.cloud.GetCloudLimits("")
+	}
+
+	return &model.ProductLimits{}, nil
 }
 
 func (a *App) getSysAdminsEmailRecipients() ([]*model.User, *model.AppError) {
