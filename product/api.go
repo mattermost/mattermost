@@ -112,8 +112,19 @@ type ConfigService interface {
 //
 // The service shall be registered via app.HooksKey service key.
 type HooksService interface {
-	// RegisterHook registers a hook with the server. The hooks is can be a subset of plugin.Hooks interface.
-	// The method will return an error in case if there is an incorrect implementation of the API in runtime.
+	// RegisterHook checks whether if the 'hooks' implements any method of plugin.Hooks methods. Rather than
+	// using the whole plugin.Hooks interface with its 20+ methods, a product can implement any exiting method
+	// of plugin.Hooks w/o requiring to declare which method they implemented or not. This is going to be
+	// checked on runtime. We have individual interfaces for each method declared in plugin.Hooks interface.
+	// Hence, while registering a product, the service will check if the product implements any of these individual
+	// interfaces. If so, a map of hook IDs that are implemented will be used to call the hooks. The method will
+	// return an error in case if there is an incorrect implementation of the any of the individual interface in runtime.
+	// Consider checking plugin.Hooks for the reference.
+	// Following methods are not allowed to be implemented in the product:
+	//  - plugin.Hooks.OnActivate
+	//  - plugin.Hooks.OnDeactivate
+	//  - plugin.Hooks.Implemented
+	//  - plugin.Hooks.ServeHTTP
 	RegisterHooks(productID string, hooks any) error
 }
 
