@@ -211,17 +211,17 @@ func TestUpdateUser(t *testing.T) {
 		// Give the user a LastPictureUpdate to mimic having a custom profile picture
 		err := th.App.Srv().Store.User().UpdateLastPictureUpdate(user.Id)
 		require.NoError(t, err)
-		user, err = th.App.GetUser(user.Id)
-		require.NoError(t, err)
-		user.Username = "updatedUsername"
-		iLastPictureUpdate := user.LastPictureUpdate
+		iUser, errGetUser := th.App.GetUser(user.Id)
+		require.Nil(t, errGetUser)
+		iUser.Username = "updatedUsername"
+		iLastPictureUpdate := iUser.LastPictureUpdate
 		require.Greater(t, iLastPictureUpdate, int64(0))
 
 		// Attempt the update, ensure the LastPictureUpdate has not changed
-		u, err := th.App.UpdateUser(user, false)
-		require.NoError(t, err)
-		require.NotNil(t, u)
-		require.Equal(t, u.LastPictureUpdate, iLastPictureUpdate)
+		updatedUser, errUpdateUser := th.App.UpdateUser(iUser, false)
+		require.Nil(t, errUpdateUser)
+		require.NotNil(t, updatedUser)
+		require.Equal(t, updatedUser.LastPictureUpdate, iLastPictureUpdate)
 	})
 }
 
