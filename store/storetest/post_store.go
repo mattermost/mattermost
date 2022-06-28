@@ -58,6 +58,7 @@ func TestPostStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("HasAutoResponsePostByUserSince", func(t *testing.T) { testHasAutoResponsePostByUserSince(t, ss) })
 	t.Run("GetPostsSinceForSync", func(t *testing.T) { testGetPostsSinceForSync(t, ss, s) })
 	t.Run("GetNthRecentPostTime", func(t *testing.T) { testGetNthRecentPostTime(t, ss) })
+	t.Run("GetTopDMsForUserSince", func(t *testing.T) { testGetTopDMsForUserSince(t, ss, s) })
 }
 
 func testPostStoreSave(t *testing.T, ss store.Store) {
@@ -3860,4 +3861,116 @@ func testGetNthRecentPostTime(t *testing.T, ss store.Store) {
 	_, err = ss.Post().GetNthRecentPostTime(10000)
 	assert.Error(t, err)
 	assert.IsType(t, &store.ErrNotFound{}, err)
+}
+
+func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
+	// users
+	user := model.User{Id: model.NewId()}
+	u1 := model.User{Id: model.NewId()}
+	u2 := model.User{Id: model.NewId()}
+	u3 := model.User{Id: model.NewId()}
+	u4 := model.User{Id: model.NewId()}
+	// user direct messages
+	chUser1, nErr := ss.Channel().CreateDirectChannel(&u1, &user)
+	require.NoError(t, nErr)
+	chUser2, nErr := ss.Channel().CreateDirectChannel(&u2, &user)
+	require.NoError(t, nErr)
+	chUser3, nErr := ss.Channel().CreateDirectChannel(&u3, &user)
+	require.NoError(t, nErr)
+	// other user direct message
+	chUser3User4, nErr := ss.Channel().CreateDirectChannel(&u3, &u4)
+	require.NoError(t, nErr)
+
+	// sample post data
+	// for u1
+	_, err := ss.Post().Save(&model.Post{
+		ChannelId: chUser1.Id,
+		UserId:    u1.Id,
+	})
+	require.NoError(t, err)
+	_, err = ss.Post().Save(&model.Post{
+		ChannelId: chUser1.Id,
+		UserId:    user.Id,
+	})
+	require.NoError(t, err)
+	// for u2: 1 post
+	postToDelete, err := ss.Post().Save(&model.Post{
+		ChannelId: chUser2.Id,
+		UserId:    u2.Id,
+	})
+	require.NoError(t, err)
+	// for user-u3: 3 posts
+	for i := 0; i < 3; i++ {
+		_, err = ss.Post().Save(&model.Post{
+			ChannelId: chUser3.Id,
+			UserId:    user.Id,
+		})
+		require.NoError(t, err)
+	}
+	// for u4-u3: 4 posts
+	_, err = ss.Post().Save(&model.Post{
+		ChannelId: chUser3User4.Id,
+		UserId:    u3.Id,
+	})
+	require.NoError(t, err)
+	_, err = ss.Post().Save(&model.Post{
+		ChannelId: chUser3User4.Id,
+		UserId:    u4.Id,
+	})
+	require.NoError(t, err)
+	_, err = ss.Post().Save(&model.Post{
+		ChannelId: chUser3User4.Id,
+		UserId:    u3.Id,
+	})
+	require.NoError(t, err)
+
+	_, err = ss.Post().Save(&model.Post{
+		ChannelId: chUser3User4.Id,
+		UserId:    u4.Id,
+	})
+	require.NoError(t, err)
+	t.Run("should return topDMs when userid is specified ", func(t *testing.T) {
+		topDMs, err := ss.Post().GetTopDMsForUserSince(user.Id, 100, 0, 100)
+		require.NoError(t, err)
+		// len of topDMs.Items should be 3
+		require.Len(t, topDMs.Items, 3)
+		// check order, magnitude of items
+		// fmt.Println(topDMs.Items[0].MessageCount, topDMs.Items[1].MessageCount, topDMs.Items[2].MessageCount)
+		require.Equal(t, topDMs.Items[0].SecondParticipant, u3.Id)
+		require.Equal(t, topDMs.Items[0].MessageCount, int64(3))
+		require.Equal(t, topDMs.Items[1].SecondParticipant, u1.Id)
+		require.Equal(t, topDMs.Items[1].MessageCount, int64(2))
+		require.Equal(t, topDMs.Items[2].SecondParticipant, u2.Id)
+		require.Equal(t, topDMs.Items[2].MessageCount, int64(1))
+		// this also ensures that u3-u4 conversation doesn't show up in others' top DMs.
+	})
+	t.Run("topDMs should only consider user's DM channels ", func(t *testing.T) {
+		// u4 only takes part in one conversation
+		topDMs, err := ss.Post().GetTopDMsForUserSince(u4.Id, 100, 0, 100)
+		require.NoError(t, err)
+		// len of topDMs.Items should be 3
+		require.Len(t, topDMs.Items, 1)
+		// check order, magnitude of items
+		require.Equal(t, topDMs.Items[0].SecondParticipant, u3.Id)
+		require.Equal(t, topDMs.Items[0].MessageCount, int64(4))
+	})
+	t.Run("topDMs will consider self dms", func(t *testing.T) {
+		chUser, nErr := ss.Channel().CreateDirectChannel(&user, &user)
+		require.NoError(t, nErr)
+		_, err = ss.Post().Save(&model.Post{
+			ChannelId: chUser.Id,
+			UserId:    user.Id,
+		})
+		// delete u2 post
+		err := ss.Post().Delete(postToDelete.Id, 200, user.Id)
+		require.NoError(t, err)
+		// u4 only takes part in one conversation
+		topDMs, err := ss.Post().GetTopDMsForUserSince(user.Id, 100, 0, 100)
+		require.NoError(t, err)
+		// len of topDMs.Items should be 3
+		require.Len(t, topDMs.Items, 3)
+		// check order, magnitude of items
+		require.Equal(t, topDMs.Items[2].SecondParticipant, user.Id)
+		require.Equal(t, topDMs.Items[2].MessageCount, int64(1))
+	})
 }
