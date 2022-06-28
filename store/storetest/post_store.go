@@ -45,6 +45,7 @@ func TestPostStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("Overwrite", func(t *testing.T) { testPostStoreOverwrite(t, ss) })
 	t.Run("OverwriteMultiple", func(t *testing.T) { testPostStoreOverwriteMultiple(t, ss) })
 	t.Run("GetPostsByIds", func(t *testing.T) { testPostStoreGetPostsByIds(t, ss) })
+	t.Run("GetPostsByIdsNew", func(t *testing.T) { testPostStoreGetPostsByIdsNew(t, ss) })
 	t.Run("GetPostsBatchForIndexing", func(t *testing.T) { testPostStoreGetPostsBatchForIndexing(t, ss) })
 	t.Run("PermanentDeleteBatch", func(t *testing.T) { testPostStorePermanentDeleteBatch(t, ss) })
 	t.Run("GetOldest", func(t *testing.T) { testPostStoreGetOldest(t, ss) })
@@ -2992,6 +2993,58 @@ func testPostStoreGetPostsByIds(t *testing.T, ss store.Store) {
 	posts, err = ss.Post().GetPostsByIds(postIds)
 	require.NoError(t, err)
 	require.Len(t, posts, 3, "Expected 3 posts in results. Got %v", len(posts))
+}
+
+func testPostStoreGetPostsByIdsNew(t *testing.T, ss store.Store) {
+	o1 := &model.Post{}
+	o1.ChannelId = model.NewId()
+	o1.UserId = model.NewId()
+	o1.Message = NewTestId()
+	o1, err := ss.Post().Save(o1)
+	require.NoError(t, err)
+
+	o2 := &model.Post{}
+	o2.ChannelId = o1.ChannelId
+	o2.UserId = model.NewId()
+	o2.Message = NewTestId()
+	o2, err = ss.Post().Save(o2)
+	require.NoError(t, err)
+
+	o3 := &model.Post{}
+	o3.ChannelId = o1.ChannelId
+	o3.UserId = model.NewId()
+	o3.Message = NewTestId()
+	o3, err = ss.Post().Save(o3)
+	require.NoError(t, err)
+
+	r1, err := ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	require.NoError(t, err)
+	ro1 := r1.Posts[o1.Id]
+
+	r2, err := ss.Post().Get(context.Background(), o2.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	require.NoError(t, err)
+	ro2 := r2.Posts[o2.Id]
+
+	r3, err := ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	require.NoError(t, err)
+	ro3 := r3.Posts[o3.Id]
+
+	postIds := []string{
+		ro1.Id,
+		ro2.Id,
+		ro3.Id,
+	}
+
+	postList, err := ss.Post().GetPostsByIdsNew(postIds)
+	require.NoError(t, err)
+	require.Len(t, postList.Posts, 3, "Expected 3 posts in results. Got %v", len(postList.Posts))
+
+	err = ss.Post().Delete(ro1.Id, model.GetMillis(), "")
+	require.NoError(t, err)
+
+	postList, err = ss.Post().GetPostsByIdsNew(postIds)
+	require.NoError(t, err)
+	require.Len(t, postList.Posts, 3, "Expected 3 posts in results. Got %v", len(postList.Posts))
 }
 
 func testPostStoreGetPostsBatchForIndexing(t *testing.T, ss store.Store) {
