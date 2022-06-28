@@ -3129,6 +3129,52 @@ type Config struct {
 	ExportSettings            ExportSettings
 }
 
+func (o *Config) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"service_settings":            o.ServiceSettings,
+		"team_settings":               o.TeamSettings,
+		"client_requirements":         o.ClientRequirements,
+		"sql_settings":                o.SqlSettings,
+		"log_settings":                o.LogSettings,
+		"experimental_audit_settings": o.ExperimentalAuditSettings,
+		"notification_log_settings":   o.NotificationLogSettings,
+		"password_settings":           o.PasswordSettings,
+		"file_settings":               o.FileSettings,
+		"email_settings":              o.EmailSettings,
+		"rate_limit_settings":         o.RateLimitSettings,
+		"privacy_settings":            o.PrivacySettings,
+		"support_settings":            o.SupportSettings,
+		"announcement_settings":       o.AnnouncementSettings,
+		"theme_settings":              o.ThemeSettings,
+		"git_lab_settings":            o.GitLabSettings,
+		"google_settings":             o.GoogleSettings,
+		"office365_settings":          o.Office365Settings,
+		"open_id_settings":            o.OpenIdSettings,
+		"ldap_settings":               o.LdapSettings,
+		"compliance_settings":         o.ComplianceSettings,
+		"localization_settings":       o.LocalizationSettings,
+		"saml_settings":               o.SamlSettings,
+		"native_app_settings":         o.NativeAppSettings,
+		"cluster_settings":            o.ClusterSettings,
+		"metrics_settings":            o.MetricsSettings,
+		"experimental_settings":       o.ExperimentalSettings,
+		"analytics_settings":          o.AnalyticsSettings,
+		"elasticsearch_settings":      o.ElasticsearchSettings,
+		"bleve_settings":              o.BleveSettings,
+		"data_retention_settings":     o.DataRetentionSettings,
+		"message_export_settings":     o.MessageExportSettings,
+		"job_settings":                o.JobSettings,
+		"plugin_settings":             o.PluginSettings,
+		"display_settings":            o.DisplaySettings,
+		"guest_accounts_settings":     o.GuestAccountsSettings,
+		"image_proxy_settings":        o.ImageProxySettings,
+		"cloud_settings":              o.CloudSettings,
+		"feature_flags":               o.FeatureFlags,
+		"import_settings":             o.ImportSettings,
+		"export_settings":             o.ExportSettings,
+	}
+}
+
 func (o *Config) Clone() *Config {
 	buf, err := json.Marshal(o)
 	if err != nil {

@@ -18,6 +18,24 @@ type ConfigDiff struct {
 	ActualVal interface{} `json:"actual_val"`
 }
 
+func (c *ConfigDiff) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"path":       c.Path,
+		"base_val":   c.BaseVal,
+		"actual_val": c.ActualVal,
+	}
+}
+
+func (c *ConfigDiffs) Auditable() map[string]interface{} {
+	var s []interface{}
+	for _, cd := range c.Sanitize() {
+		s = append(s, cd.Auditable())
+	}
+	return map[string]interface{}{
+		"config_diffs": s,
+	}
+}
+
 var configSensitivePaths = map[string]bool{
 	"LdapSettings.BindPassword":                              true,
 	"FileSettings.PublicLinkSalt":                            true,

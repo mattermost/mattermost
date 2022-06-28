@@ -115,6 +115,8 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("updateConfig", audit.Fail)
+
+	// auditRec.AddEventParameter("config", cfg)  // TODO We can do this but do we want to?
 	defer c.LogAuditRec(auditRec)
 
 	cfg.SetDefaults()
@@ -188,6 +190,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.AddMeta("diff", diffs.Sanitize())
+	auditRec.AddEventPriorState(&diffs)
 
 	newCfg.Sanitize()
 
@@ -201,7 +204,9 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec.Success()
+	auditRec.AddEventResultState(cfg) // TODO we can do this too but do we want to? the config object is huge
+	auditRec.AddEventObjectType("config")
+	auditRec.Success() // TODO config object is quite large, do we really want to add it to the audit logs?
 	c.LogAudit("updateConfig")
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -337,6 +342,8 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("patchConfig", "api.config.patch_config.diff.app_error", nil, diffErr.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	auditRec.AddEventPriorState(&diffs)
 	auditRec.AddMeta("diff", diffs.Sanitize())
 
 	newCfg.Sanitize()
