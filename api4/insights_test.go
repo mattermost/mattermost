@@ -816,3 +816,87 @@ func TestGetTopThreadsForUserSince(t *testing.T) {
 	require.Nil(t, appErr)
 	require.Len(t, topUser2ThreadsAfterPrivateReplyDelete.Items, 0)
 }
+
+func TestGetTopDMsForUserSince(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+	// basicuser1 - bu1, basicuser - bu
+	// create dm channels for  bu-bu, bu1-bu1, bu-bu1
+	basicUser := th.BasicUser
+	basicUser1 := th.BasicUser2
+
+	th.LoginBasic2()
+	client := th.Client
+	channelBu1, _, err := client.CreateDirectChannel(basicUser1.Id, basicUser1.Id)
+	require.Nil(t, err)
+
+	th.LoginBasic()
+	client = th.Client
+	channelBu, _, err := client.CreateDirectChannel(basicUser.Id, basicUser.Id)
+	require.Nil(t, err)
+	channelBu12, _, err := client.CreateDirectChannel(basicUser.Id, basicUser1.Id)
+	require.Nil(t, err)
+
+	// create 2 posts in channelBu, 1 in channelBu1, 3 in channelBu12
+	postsGenConfig := []map[string]interface{}{
+		{
+			"chId":      channelBu.Id,
+			"postCount": 2,
+		},
+		{
+			"chId":      channelBu1.Id,
+			"postCount": 1,
+		},
+		{
+			"chId":      channelBu12.Id,
+			"postCount": 3,
+		},
+	}
+
+	for _, postGen := range postsGenConfig {
+		postCount := postGen["postCount"].(int)
+		for i := 0; i < postCount; i++ {
+			if postGen["chId"] == channelBu1.Id {
+				th.LoginBasic2()
+				client = th.Client
+				userId := basicUser1.Id
+				post := &model.Post{UserId: userId, ChannelId: postGen["chId"].(string), Message: "zz" + model.NewId() + "a"}
+				_, _, err = client.CreatePost(post)
+				require.Nil(t, err)
+			} else {
+				th.LoginBasic()
+				client = th.Client
+				userId := basicUser.Id
+				post := &model.Post{UserId: userId, ChannelId: postGen["chId"].(string), Message: "zz" + model.NewId() + "a"}
+				_, _, err = client.CreatePost(post)
+				require.Nil(t, err)
+			}
+		}
+	}
+
+	// get top dms for bu
+	t.Run("get top dms for basic user 1", func(t *testing.T) {
+		th.LoginBasic()
+		client = th.Client
+		topDMs, _, err := client.GetTopDMsForUserSince("today", 0, 100)
+		require.Nil(t, err)
+		require.Len(t, topDMs.Items, 2)
+		require.Equal(t, topDMs.Items[1].MessageCount, int64(2))
+		require.Equal(t, topDMs.Items[0].MessageCount, int64(3))
+	})
+
+	// get top dms for bu1
+	t.Run("get top dms for basic user 2", func(t *testing.T) {
+		th.LoginBasic2()
+		client = th.Client
+		topDMs, _, err := client.GetTopDMsForUserSince("today", 0, 100)
+		require.Nil(t, err)
+		require.Len(t, topDMs.Items, 2)
+		require.Equal(t, topDMs.Items[1].MessageCount, int64(1))
+	})
+}
