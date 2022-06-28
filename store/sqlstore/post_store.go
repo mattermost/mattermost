@@ -2981,8 +2981,13 @@ func (s *SqlPostStore) GetTopDMsForUserSince(userID string, since int64, offset 
 	topDMsBuilder := s.getQueryBuilder().Select("count(p.id) as MessageCount", aggregator).FromSelect(channelSelector, "vch").
 		Join("ChannelMembers as cm on cm.ChannelId = vch.Id").
 		Join("Posts as p on p.ChannelId = vch.Id").
-		Where(sq.Gt{
-			"p.UpdateAt": since,
+		Where(sq.And{
+			sq.Gt{
+				"p.UpdateAt": since,
+			},
+			sq.Eq{
+				"p.DeleteAt": 0,
+			},
 		}).GroupBy("vch.id")
 
 	topDMsBuilder = topDMsBuilder.OrderBy("MessageCount DESC").Limit(uint64(limit)).Offset(uint64(offset))
@@ -3004,13 +3009,14 @@ func (s *SqlPostStore) GetTopDMsForUserSince(userID string, since int64, offset 
 
 func postProcessTopDMs(userID string, topDMs []*model.TopDM) []*model.TopDM {
 	for _, topDM := range topDMs {
-		// divide message count by 2, because it's counted twice due to channel memberships being 2 for dms.
-		topDM.MessageCount = topDM.MessageCount / 2
 		participants := strings.Split(topDM.Participants, ",")
 		if len(participants) == 1 {
 			// chatting to self
 			topDM.SecondParticipant = userID
 			continue
+		} else {
+			// divide message count by 2, because it's counted twice due to channel memberships being 2 for dms.
+			topDM.MessageCount = topDM.MessageCount / 2
 		}
 		if participants[0] == userID {
 			topDM.SecondParticipant = participants[1]
