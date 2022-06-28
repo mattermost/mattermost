@@ -407,13 +407,12 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 	a := &hooksAdapter{
 		implemented:  make(map[int]struct{}),
 	}
-	var tt, ft reflect.Type
-
+	var tt reflect.Type
+	ft := reflect.TypeOf(productHooks)
 	{{range .HooksMethods}}
 	// Assessing the type of the productHooks if it individually implements {{.Name}} interface.
 	tt = reflect.TypeOf((*{{.Name}}IFace)(nil)).Elem()
 
-    ft = reflect.TypeOf(productHooks)
     if ft.Implements(tt) {
 		a.implemented[{{.Name}}ID] = struct{}{}
 	} else if _, ok := ft.MethodByName("{{.Name}}"); ok{

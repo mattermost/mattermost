@@ -123,12 +123,12 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 	a := &hooksAdapter{
 		implemented: make(map[int]struct{}),
 	}
-	var tt, ft reflect.Type
+	var tt reflect.Type
+	ft := reflect.TypeOf(productHooks)
 
 	// Assessing the type of the productHooks if it individually implements OnConfigurationChange interface.
 	tt = reflect.TypeOf((*OnConfigurationChangeIFace)(nil)).Elem()
 
-	ft = reflect.TypeOf(productHooks)
 	if ft.Implements(tt) {
 		a.implemented[OnConfigurationChangeID] = struct{}{}
 	} else if _, ok := ft.MethodByName("OnConfigurationChange"); ok {
@@ -138,7 +138,6 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 	// Assessing the type of the productHooks if it individually implements ExecuteCommand interface.
 	tt = reflect.TypeOf((*ExecuteCommandIFace)(nil)).Elem()
 
-	ft = reflect.TypeOf(productHooks)
 	if ft.Implements(tt) {
 		a.implemented[ExecuteCommandID] = struct{}{}
 	} else if _, ok := ft.MethodByName("ExecuteCommand"); ok {
@@ -148,7 +147,6 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 	// Assessing the type of the productHooks if it individually implements UserHasBeenCreated interface.
 	tt = reflect.TypeOf((*UserHasBeenCreatedIFace)(nil)).Elem()
 
-	ft = reflect.TypeOf(productHooks)
 	if ft.Implements(tt) {
 		a.implemented[UserHasBeenCreatedID] = struct{}{}
 	} else if _, ok := ft.MethodByName("UserHasBeenCreated"); ok {
@@ -158,7 +156,6 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 	// Assessing the type of the productHooks if it individually implements UserWillLogIn interface.
 	tt = reflect.TypeOf((*UserWillLogInIFace)(nil)).Elem()
 
-	ft = reflect.TypeOf(productHooks)
 	if ft.Implements(tt) {
 		a.implemented[UserWillLogInID] = struct{}{}
 	} else if _, ok := ft.MethodByName("UserWillLogIn"); ok {
@@ -168,7 +165,6 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 	// Assessing the type of the productHooks if it individually implements UserHasLoggedIn interface.
 	tt = reflect.TypeOf((*UserHasLoggedInIFace)(nil)).Elem()
 
-	ft = reflect.TypeOf(productHooks)
 	if ft.Implements(tt) {
 		a.implemented[UserHasLoggedInID] = struct{}{}
 	} else if _, ok := ft.MethodByName("UserHasLoggedIn"); ok {
@@ -178,7 +174,6 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 	// Assessing the type of the productHooks if it individually implements MessageWillBePosted interface.
 	tt = reflect.TypeOf((*MessageWillBePostedIFace)(nil)).Elem()
 
-	ft = reflect.TypeOf(productHooks)
 	if ft.Implements(tt) {
 		a.implemented[MessageWillBePostedID] = struct{}{}
 	} else if _, ok := ft.MethodByName("MessageWillBePosted"); ok {
@@ -188,7 +183,6 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 	// Assessing the type of the productHooks if it individually implements MessageWillBeUpdated interface.
 	tt = reflect.TypeOf((*MessageWillBeUpdatedIFace)(nil)).Elem()
 
-	ft = reflect.TypeOf(productHooks)
 	if ft.Implements(tt) {
 		a.implemented[MessageWillBeUpdatedID] = struct{}{}
 	} else if _, ok := ft.MethodByName("MessageWillBeUpdated"); ok {
@@ -198,7 +192,6 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 	// Assessing the type of the productHooks if it individually implements MessageHasBeenPosted interface.
 	tt = reflect.TypeOf((*MessageHasBeenPostedIFace)(nil)).Elem()
 
-	ft = reflect.TypeOf(productHooks)
 	if ft.Implements(tt) {
 		a.implemented[MessageHasBeenPostedID] = struct{}{}
 	} else if _, ok := ft.MethodByName("MessageHasBeenPosted"); ok {
@@ -208,7 +201,6 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 	// Assessing the type of the productHooks if it individually implements MessageHasBeenUpdated interface.
 	tt = reflect.TypeOf((*MessageHasBeenUpdatedIFace)(nil)).Elem()
 
-	ft = reflect.TypeOf(productHooks)
 	if ft.Implements(tt) {
 		a.implemented[MessageHasBeenUpdatedID] = struct{}{}
 	} else if _, ok := ft.MethodByName("MessageHasBeenUpdated"); ok {
@@ -218,7 +210,6 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 	// Assessing the type of the productHooks if it individually implements ChannelHasBeenCreated interface.
 	tt = reflect.TypeOf((*ChannelHasBeenCreatedIFace)(nil)).Elem()
 
-	ft = reflect.TypeOf(productHooks)
 	if ft.Implements(tt) {
 		a.implemented[ChannelHasBeenCreatedID] = struct{}{}
 	} else if _, ok := ft.MethodByName("ChannelHasBeenCreated"); ok {
@@ -228,7 +219,6 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 	// Assessing the type of the productHooks if it individually implements UserHasJoinedChannel interface.
 	tt = reflect.TypeOf((*UserHasJoinedChannelIFace)(nil)).Elem()
 
-	ft = reflect.TypeOf(productHooks)
 	if ft.Implements(tt) {
 		a.implemented[UserHasJoinedChannelID] = struct{}{}
 	} else if _, ok := ft.MethodByName("UserHasJoinedChannel"); ok {
@@ -238,7 +228,6 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 	// Assessing the type of the productHooks if it individually implements UserHasLeftChannel interface.
 	tt = reflect.TypeOf((*UserHasLeftChannelIFace)(nil)).Elem()
 
-	ft = reflect.TypeOf(productHooks)
 	if ft.Implements(tt) {
 		a.implemented[UserHasLeftChannelID] = struct{}{}
 	} else if _, ok := ft.MethodByName("UserHasLeftChannel"); ok {
@@ -248,7 +237,6 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 	// Assessing the type of the productHooks if it individually implements UserHasJoinedTeam interface.
 	tt = reflect.TypeOf((*UserHasJoinedTeamIFace)(nil)).Elem()
 
-	ft = reflect.TypeOf(productHooks)
 	if ft.Implements(tt) {
 		a.implemented[UserHasJoinedTeamID] = struct{}{}
 	} else if _, ok := ft.MethodByName("UserHasJoinedTeam"); ok {
@@ -258,7 +246,6 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 	// Assessing the type of the productHooks if it individually implements UserHasLeftTeam interface.
 	tt = reflect.TypeOf((*UserHasLeftTeamIFace)(nil)).Elem()
 
-	ft = reflect.TypeOf(productHooks)
 	if ft.Implements(tt) {
 		a.implemented[UserHasLeftTeamID] = struct{}{}
 	} else if _, ok := ft.MethodByName("UserHasLeftTeam"); ok {
@@ -268,7 +255,6 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 	// Assessing the type of the productHooks if it individually implements FileWillBeUploaded interface.
 	tt = reflect.TypeOf((*FileWillBeUploadedIFace)(nil)).Elem()
 
-	ft = reflect.TypeOf(productHooks)
 	if ft.Implements(tt) {
 		a.implemented[FileWillBeUploadedID] = struct{}{}
 	} else if _, ok := ft.MethodByName("FileWillBeUploaded"); ok {
@@ -278,7 +264,6 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 	// Assessing the type of the productHooks if it individually implements ReactionHasBeenAdded interface.
 	tt = reflect.TypeOf((*ReactionHasBeenAddedIFace)(nil)).Elem()
 
-	ft = reflect.TypeOf(productHooks)
 	if ft.Implements(tt) {
 		a.implemented[ReactionHasBeenAddedID] = struct{}{}
 	} else if _, ok := ft.MethodByName("ReactionHasBeenAdded"); ok {
@@ -288,7 +273,6 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 	// Assessing the type of the productHooks if it individually implements ReactionHasBeenRemoved interface.
 	tt = reflect.TypeOf((*ReactionHasBeenRemovedIFace)(nil)).Elem()
 
-	ft = reflect.TypeOf(productHooks)
 	if ft.Implements(tt) {
 		a.implemented[ReactionHasBeenRemovedID] = struct{}{}
 	} else if _, ok := ft.MethodByName("ReactionHasBeenRemoved"); ok {
@@ -298,7 +282,6 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 	// Assessing the type of the productHooks if it individually implements OnPluginClusterEvent interface.
 	tt = reflect.TypeOf((*OnPluginClusterEventIFace)(nil)).Elem()
 
-	ft = reflect.TypeOf(productHooks)
 	if ft.Implements(tt) {
 		a.implemented[OnPluginClusterEventID] = struct{}{}
 	} else if _, ok := ft.MethodByName("OnPluginClusterEvent"); ok {
@@ -308,7 +291,6 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 	// Assessing the type of the productHooks if it individually implements OnWebSocketConnect interface.
 	tt = reflect.TypeOf((*OnWebSocketConnectIFace)(nil)).Elem()
 
-	ft = reflect.TypeOf(productHooks)
 	if ft.Implements(tt) {
 		a.implemented[OnWebSocketConnectID] = struct{}{}
 	} else if _, ok := ft.MethodByName("OnWebSocketConnect"); ok {
@@ -318,7 +300,6 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 	// Assessing the type of the productHooks if it individually implements OnWebSocketDisconnect interface.
 	tt = reflect.TypeOf((*OnWebSocketDisconnectIFace)(nil)).Elem()
 
-	ft = reflect.TypeOf(productHooks)
 	if ft.Implements(tt) {
 		a.implemented[OnWebSocketDisconnectID] = struct{}{}
 	} else if _, ok := ft.MethodByName("OnWebSocketDisconnect"); ok {
@@ -328,7 +309,6 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 	// Assessing the type of the productHooks if it individually implements WebSocketMessageHasBeenPosted interface.
 	tt = reflect.TypeOf((*WebSocketMessageHasBeenPostedIFace)(nil)).Elem()
 
-	ft = reflect.TypeOf(productHooks)
 	if ft.Implements(tt) {
 		a.implemented[WebSocketMessageHasBeenPostedID] = struct{}{}
 	} else if _, ok := ft.MethodByName("WebSocketMessageHasBeenPosted"); ok {
@@ -338,7 +318,6 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 	// Assessing the type of the productHooks if it individually implements RunDataRetention interface.
 	tt = reflect.TypeOf((*RunDataRetentionIFace)(nil)).Elem()
 
-	ft = reflect.TypeOf(productHooks)
 	if ft.Implements(tt) {
 		a.implemented[RunDataRetentionID] = struct{}{}
 	} else if _, ok := ft.MethodByName("RunDataRetention"); ok {
@@ -348,7 +327,6 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 	// Assessing the type of the productHooks if it individually implements OnInstall interface.
 	tt = reflect.TypeOf((*OnInstallIFace)(nil)).Elem()
 
-	ft = reflect.TypeOf(productHooks)
 	if ft.Implements(tt) {
 		a.implemented[OnInstallID] = struct{}{}
 	} else if _, ok := ft.MethodByName("OnInstall"); ok {
@@ -358,7 +336,6 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 	// Assessing the type of the productHooks if it individually implements OnSendDailyTelemetry interface.
 	tt = reflect.TypeOf((*OnSendDailyTelemetryIFace)(nil)).Elem()
 
-	ft = reflect.TypeOf(productHooks)
 	if ft.Implements(tt) {
 		a.implemented[OnSendDailyTelemetryID] = struct{}{}
 	} else if _, ok := ft.MethodByName("OnSendDailyTelemetry"); ok {
@@ -368,7 +345,6 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 	// Assessing the type of the productHooks if it individually implements OnCloudLimitsUpdated interface.
 	tt = reflect.TypeOf((*OnCloudLimitsUpdatedIFace)(nil)).Elem()
 
-	ft = reflect.TypeOf(productHooks)
 	if ft.Implements(tt) {
 		a.implemented[OnCloudLimitsUpdatedID] = struct{}{}
 	} else if _, ok := ft.MethodByName("OnCloudLimitsUpdated"); ok {
