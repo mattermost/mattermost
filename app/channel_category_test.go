@@ -17,7 +17,7 @@ func TestSidebarCategory(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	basicChannel2 := th.CreateChannel(th.BasicTeam)
+	basicChannel2 := th.CreateChannel(th.Context, th.BasicTeam)
 	defer th.App.PermanentDeleteChannel(basicChannel2)
 	user := th.CreateUser()
 	defer th.App.Srv().Store.User().PermanentDelete(user.Id)
@@ -149,10 +149,10 @@ func TestUpdateSidebarCategories(t *testing.T) {
 		channelsCategory := categories.Categories[1]
 
 		// Create some channels to be part of the channels category
-		channel1 := th.CreateChannel(th.BasicTeam)
+		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
 		th.AddUserToChannel(th.BasicUser, channel1)
 
-		channel2 := th.CreateChannel(th.BasicTeam)
+		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 		th.AddUserToChannel(th.BasicUser, channel2)
 
 		// Mute the category
@@ -203,10 +203,10 @@ func TestUpdateSidebarCategories(t *testing.T) {
 		defer th.TearDown()
 
 		// Create some channels
-		channel1 := th.CreateChannel(th.BasicTeam)
+		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
 		th.AddUserToChannel(th.BasicUser, channel1)
 
-		channel2 := th.CreateChannel(th.BasicTeam)
+		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 		th.AddUserToChannel(th.BasicUser, channel2)
 
 		// And some categories
@@ -293,10 +293,10 @@ func TestUpdateSidebarCategories(t *testing.T) {
 		defer th.TearDown()
 
 		// Create some channels
-		channel1 := th.CreateChannel(th.BasicTeam)
+		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
 		th.AddUserToChannel(th.BasicUser, channel1)
 
-		channel2 := th.CreateChannel(th.BasicTeam)
+		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 		th.AddUserToChannel(th.BasicUser, channel2)
 
 		// And some categories
@@ -349,9 +349,9 @@ func TestUpdateSidebarCategories(t *testing.T) {
 		assert.False(t, member2.IsChannelMuted())
 
 		// Mute the channels manually
-		_, err = th.App.ToggleMuteChannel(channel1.Id, th.BasicUser.Id)
+		_, err = th.App.ToggleMuteChannel(th.Context, channel1.Id, th.BasicUser.Id)
 		require.Nil(t, err)
-		_, err = th.App.ToggleMuteChannel(channel2.Id, th.BasicUser.Id)
+		_, err = th.App.ToggleMuteChannel(th.Context, channel2.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 
 		// Move the muted channels back
@@ -389,10 +389,10 @@ func TestUpdateSidebarCategories(t *testing.T) {
 		defer th.TearDown()
 
 		// Create some channels
-		channel1 := th.CreateChannel(th.BasicTeam)
+		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
 		th.AddUserToChannel(th.BasicUser, channel1)
 
-		channel2 := th.CreateChannel(th.BasicTeam)
+		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 		th.AddUserToChannel(th.BasicUser, channel2)
 
 		// And some categories
@@ -445,9 +445,9 @@ func TestUpdateSidebarCategories(t *testing.T) {
 		assert.False(t, member2.IsChannelMuted())
 
 		// Mute the channels manually
-		_, err = th.App.ToggleMuteChannel(channel1.Id, th.BasicUser.Id)
+		_, err = th.App.ToggleMuteChannel(th.Context, channel1.Id, th.BasicUser.Id)
 		require.Nil(t, err)
-		_, err = th.App.ToggleMuteChannel(channel2.Id, th.BasicUser.Id)
+		_, err = th.App.ToggleMuteChannel(th.Context, channel2.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 
 		// Move the muted channels back

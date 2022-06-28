@@ -37,7 +37,7 @@ func (*LeaveProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Comman
 func (*LeaveProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	var channel *model.Channel
 	var noChannelErr *model.AppError
-	if channel, noChannelErr = a.GetChannel(args.ChannelId); noChannelErr != nil {
+	if channel, noChannelErr = a.GetChannel(c, args.ChannelId); noChannelErr != nil {
 		return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
@@ -69,7 +69,7 @@ func (*LeaveProvider) DoCommand(a *app.App, c *request.Context, args *model.Comm
 		if err != nil || len(members) == 0 {
 			return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
-		channel, err := a.GetChannel(members[0].ChannelId)
+		channel, err := a.GetChannel(c, members[0].ChannelId)
 		if err != nil {
 			return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}

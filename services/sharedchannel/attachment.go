@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -156,7 +157,7 @@ func (scs *Service) onReceiveUploadCreate(msg model.RemoteClusterMsg, rc *model.
 	us.RemoteId = rc.RemoteId // don't let remotes try to impersonate each other
 
 	// create upload session.
-	usSaved, appErr := scs.app.CreateUploadSession(&us)
+	usSaved, appErr := scs.app.CreateUploadSession(request.ContextWithDefaultLogger(), &us)
 	if appErr != nil {
 		return appErr
 	}

@@ -36,7 +36,7 @@ func (ch *channel) Stats(ctx context.Context) (*model.ChannelStats, error) {
 		return nil, err
 	}
 
-	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), ch.Id, model.PermissionReadChannel) {
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), ch.Id, model.PermissionReadChannel) {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return nil, c.Err
 	}

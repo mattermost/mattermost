@@ -5,6 +5,7 @@ package model
 
 import (
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 
 	"github.com/vmihailenco/msgpack/v5"
 )
@@ -20,6 +21,7 @@ type WebSocketRequest struct {
 	Session Session            `json:"-" msgpack:"-"`
 	T       i18n.TranslateFunc `json:"-" msgpack:"-"`
 	Locale  string             `json:"-" msgpack:"-"`
+	Logger  mlog.LoggerIFace   `json:"-" msgpack:"-"`
 }
 
 func (o *WebSocketRequest) Clone() (*WebSocketRequest, error) {

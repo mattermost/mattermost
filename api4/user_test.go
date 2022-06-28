@@ -1603,7 +1603,7 @@ func TestGetUsersByGroupChannelIds(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	gc1, appErr := th.App.CreateGroupChannel([]string{th.BasicUser.Id, th.SystemAdminUser.Id, th.TeamAdminUser.Id}, th.BasicUser.Id)
+	gc1, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.SystemAdminUser.Id, th.TeamAdminUser.Id}, th.BasicUser.Id)
 	require.Nil(t, appErr)
 
 	usersByChannelId, _, err := th.Client.GetUsersByGroupChannelIds([]string{gc1.Id})
@@ -2124,7 +2124,7 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, rTeam)
 
-		rChannel, appErr := th.App.GetChannel(channel.Id)
+		rChannel, appErr := th.App.GetChannel(th.Context, channel.Id)
 		require.Nil(t, appErr)
 		require.NotNil(t, rChannel)
 	})

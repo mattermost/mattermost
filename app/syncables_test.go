@@ -406,7 +406,7 @@ func TestDeleteGroupMemberships(t *testing.T) {
 	// make channel group-constrained
 	channel := th.BasicChannel
 	channel.GroupConstrained = model.NewBool(true)
-	channel, err = th.App.UpdateChannel(channel)
+	channel, err = th.App.UpdateChannel(th.Context, channel)
 	require.Nil(t, err)
 	require.True(t, *channel.GroupConstrained)
 
@@ -451,9 +451,9 @@ func TestSyncSyncableRoles(t *testing.T) {
 
 	team := th.CreateTeam()
 
-	channel := th.CreateChannel(team)
+	channel := th.CreateChannel(th.Context, team)
 	channel.GroupConstrained = model.NewBool(true)
-	channel, err := th.App.UpdateChannel(channel)
+	channel, err := th.App.UpdateChannel(th.Context, channel)
 	require.Nil(t, err)
 
 	user1 := th.CreateUser()

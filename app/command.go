@@ -75,7 +75,7 @@ func (a *App) CreateCommandPost(c *request.Context, post *model.Post, teamID str
 	}
 
 	if (response.ResponseType == "" || response.ResponseType == model.CommandResponseTypeEphemeral) && (response.Text != "" || response.Attachments != nil) {
-		a.SendEphemeralPost(post.UserId, post)
+		a.SendEphemeralPost(c, post.UserId, post)
 	}
 
 	return post, nil

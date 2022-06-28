@@ -236,7 +236,7 @@ func (*resolver) ChannelMembers(ctx context.Context, args struct {
 
 	// If it's a single channel
 	if args.ChannelID != "" {
-		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), args.ChannelID, model.PermissionReadChannel) {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), args.ChannelID, model.PermissionReadChannel) {
 			c.SetPermissionError(model.PermissionReadChannel)
 			return nil, c.Err
 		}

@@ -1149,16 +1149,16 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 
 	th.App.UpdateTeamMemberRoles(team1.Id, user1.Id, "team_user team_admin")
 
-	team1channel1 := th.CreateChannel(team1)
-	team1channel2 := th.CreateChannel(team1)
-	th.CreateChannel(team1) // Another channel
+	team1channel1 := th.CreateChannel(th.Context, team1)
+	team1channel2 := th.CreateChannel(th.Context, team1)
+	th.CreateChannel(th.Context, team1) // Another channel
 	team1offtopic, err := th.App.GetChannelByName("off-topic", team1.Id, false)
 	require.Nil(t, err)
 	team1townsquare, err := th.App.GetChannelByName("town-square", team1.Id, false)
 	require.Nil(t, err)
 
-	team2channel1 := th.CreateChannel(team2)
-	th.CreateChannel(team2) // Another channel
+	team2channel1 := th.CreateChannel(th.Context, team2)
+	th.CreateChannel(th.Context, team2) // Another channel
 	team2offtopic, err := th.App.GetChannelByName("off-topic", team2.Id, false)
 	require.Nil(t, err)
 	team2townsquare, err := th.App.GetChannelByName("town-square", team2.Id, false)
@@ -1537,10 +1537,10 @@ func TestDemoteUserToGuest(t *testing.T) {
 		require.True(t, teamMember.SchemeAdmin)
 		require.False(t, teamMember.SchemeGuest)
 
-		channel := th.CreateChannel(team)
+		channel := th.CreateChannel(th.Context, team)
 
 		th.AddUserToChannel(user, channel)
-		th.App.UpdateChannelMemberSchemeRoles(channel.Id, user.Id, false, true, true)
+		th.App.UpdateChannelMemberSchemeRoles(th.Context, channel.Id, user.Id, false, true, true)
 
 		channelMember, err := th.App.GetChannelMember(context.Background(), channel.Id, user.Id)
 		assert.Nil(t, err)
@@ -1682,7 +1682,7 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Zero(t, threads.Total)
 
-		_, appErr = th.App.UpdateThreadReadForUser("currentSessionId", th.BasicUser.Id, th.BasicChannel.TeamId, rootPost.Id, replyPost.CreateAt)
+		_, appErr = th.App.UpdateThreadReadForUser(th.Context, "currentSessionId", th.BasicUser.Id, th.BasicChannel.TeamId, rootPost.Id, replyPost.CreateAt)
 		require.Nil(t, appErr)
 
 		threads, appErr = th.App.GetThreadsForUser(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
@@ -1719,7 +1719,7 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 		mockStore.On("User").Return(&mockUserStore)
 		mockStore.On("Thread").Return(&mockThreadStore)
 
-		_, err = th.App.UpdateThreadReadForUser("currentSessionId", "user1", "team1", "postid", 100)
+		_, err = th.App.UpdateThreadReadForUser(th.Context, "currentSessionId", "user1", "team1", "postid", 100)
 		require.Error(t, err)
 	})
 }

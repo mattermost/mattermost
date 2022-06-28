@@ -117,12 +117,12 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 	defer th.App.PermanentDeleteTeamId(team.Id)
 
 	// Make a channel
-	channel := th.CreateChannel(team)
+	channel := th.CreateChannel(th.Context, team)
 	defer th.App.PermanentDeleteChannel(channel)
 
 	// Set the channel scheme
 	channel.SchemeId = &channelScheme.Id
-	channel, err = th.App.UpdateChannelScheme(channel)
+	channel, err = th.App.UpdateChannelScheme(th.Context, channel)
 	require.Nil(t, err)
 
 	// Get the truth table from CSV

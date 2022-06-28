@@ -15,6 +15,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/markdown"
@@ -36,7 +37,7 @@ func (a *App) canSendPushNotifications() bool {
 	return true
 }
 
-func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error) {
+func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error) {
 	// Do not send notifications in archived channels
 	if channel.DeleteAt > 0 {
 		return []string{}, nil
@@ -59,7 +60,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}()
 
 	var gchan chan store.StoreResult
-	if a.allowGroupMentions(post) {
+	if a.allowGroupMentions(c, post) {
 		gchan = make(chan store.StoreResult, 1)
 		go func() {
 			groupsMap, err := a.getGroupsAllowedForReferenceInChannel(channel, team)
@@ -134,7 +135,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			mentions.addMention(post.UserId, DMMention)
 		}
 	} else {
-		allowChannelMentions = a.allowChannelMentions(post, len(profileMap))
+		allowChannelMentions = a.allowChannelMentions(c, post, len(profileMap))
 		keywords = a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap)
 
 		mentions = getExplicitMentions(post, keywords, groups)
@@ -155,7 +156,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			}
 
 			if !anyUsersMentionedByGroup {
-				a.sendNoUsersNotifiedByGroupInChannel(sender, post, channel, group)
+				a.sendNoUsersNotifiedByGroupInChannel(c, sender, post, channel, group)
 			}
 		}
 
@@ -190,7 +191,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 
 		go func() {
-			_, err := a.sendOutOfChannelMentions(sender, post, channel, mentions.OtherPotentialMentions)
+			_, err := a.sendOutOfChannelMentions(c, sender, post, channel, mentions.OtherPotentialMentions)
 			if err != nil {
 				mlog.Error("Failed to send warning for out of channel mentions", mlog.String("user_id", sender.Id), mlog.String("post_id", post.Id), mlog.Err(err))
 			}
@@ -383,6 +384,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 		if mentions.HereMentioned {
 			a.SendEphemeralPost(
+				c,
 				post.UserId,
 				&model.Post{
 					ChannelId: post.ChannelId,
@@ -394,6 +396,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 		if mentions.ChannelMentioned {
 			a.SendEphemeralPost(
+				c,
 				post.UserId,
 				&model.Post{
 					ChannelId: post.ChannelId,
@@ -405,6 +408,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 		if mentions.AllMentioned {
 			a.SendEphemeralPost(
+				c,
 				post.UserId,
 				&model.Post{
 					ChannelId: post.ChannelId,
@@ -563,7 +567,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		message.Add("followers", model.ArrayToJSON(notificationsForCRT.Desktop))
 	}
 
-	published, err := a.publishWebsocketEventForPermalinkPost(post, message)
+	published, err := a.publishWebsocketEventForPermalinkPost(c, post, message)
 	if err != nil {
 		return nil, err
 	}
@@ -626,7 +630,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					a.sanitizeProfiles(userThread.Participants, false)
 					userThread.Post.SanitizeProps()
 
-					sanitizedPost, err := a.SanitizePostMetadataForUser(userThread.Post, uid)
+					sanitizedPost, err := a.SanitizePostMetadataForUser(c, userThread.Post, uid)
 					if err != nil {
 						return nil, err
 					}
@@ -696,7 +700,7 @@ func (a *App) userAllowsEmail(user *model.User, channelMemberNotificationProps m
 	return userAllowsEmails && emailNotificationsAllowedForStatus && user.DeleteAt == 0 && !autoResponderRelated
 }
 
-func (a *App) sendNoUsersNotifiedByGroupInChannel(sender *model.User, post *model.Post, channel *model.Channel, group *model.Group) {
+func (a *App) sendNoUsersNotifiedByGroupInChannel(c request.CTX, sender *model.User, post *model.Post, channel *model.Channel, group *model.Group) {
 	T := i18n.GetUserTranslations(sender.Locale)
 	ephemeralPost := &model.Post{
 		UserId:    sender.Id,
@@ -704,12 +708,12 @@ func (a *App) sendNoUsersNotifiedByGroupInChannel(sender *model.User, post *mode
 		ChannelId: channel.Id,
 		Message:   T("api.post.check_for_out_of_channel_group_users.message.none", model.StringInterface{"GroupName": group.Name}),
 	}
-	a.SendEphemeralPost(post.UserId, ephemeralPost)
+	a.SendEphemeralPost(c, post.UserId, ephemeralPost)
 }
 
 // sendOutOfChannelMentions sends an ephemeral post to the sender of a post if any of the given potential mentions
 // are outside of the post's channel. Returns whether or not an ephemeral post was sent.
-func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, channel *model.Channel, potentialMentions []string) (bool, error) {
+func (a *App) sendOutOfChannelMentions(c request.CTX, sender *model.User, post *model.Post, channel *model.Channel, potentialMentions []string) (bool, error) {
 	outOfChannelUsers, outOfGroupsUsers, err := a.filterOutOfChannelMentions(sender, post, channel, potentialMentions)
 	if err != nil {
 		return false, err
@@ -719,7 +723,7 @@ func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, cha
 		return false, nil
 	}
 
-	a.SendEphemeralPost(post.UserId, makeOutOfChannelMentionPost(sender, post, outOfChannelUsers, outOfGroupsUsers))
+	a.SendEphemeralPost(c, post.UserId, makeOutOfChannelMentionPost(sender, post, outOfChannelUsers, outOfGroupsUsers))
 
 	return true, nil
 }
@@ -1021,8 +1025,8 @@ func getMentionsEnabledFields(post *model.Post) model.StringArray {
 }
 
 // allowChannelMentions returns whether or not the channel mentions are allowed for the given post.
-func (a *App) allowChannelMentions(post *model.Post, numProfiles int) bool {
-	if !a.HasPermissionToChannel(post.UserId, post.ChannelId, model.PermissionUseChannelMentions) {
+func (a *App) allowChannelMentions(c request.CTX, post *model.Post, numProfiles int) bool {
+	if !a.HasPermissionToChannel(c, post.UserId, post.ChannelId, model.PermissionUseChannelMentions) {
 		return false
 	}
 
@@ -1038,12 +1042,12 @@ func (a *App) allowChannelMentions(post *model.Post, numProfiles int) bool {
 }
 
 // allowGroupMentions returns whether or not the group mentions are allowed for the given post.
-func (a *App) allowGroupMentions(post *model.Post) bool {
+func (a *App) allowGroupMentions(c request.CTX, post *model.Post) bool {
 	if license := a.Srv().License(); license == nil || (license.SkuShortName != model.LicenseShortSkuProfessional && license.SkuShortName != model.LicenseShortSkuEnterprise) {
 		return false
 	}
 
-	if !a.HasPermissionToChannel(post.UserId, post.ChannelId, model.PermissionUseGroupMentions) {
+	if !a.HasPermissionToChannel(c, post.UserId, post.ChannelId, model.PermissionUseGroupMentions) {
 		return false
 	}
 

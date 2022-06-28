@@ -82,7 +82,7 @@ func (*InviteProvider) DoCommand(a *app.App, c *request.Context, args *model.Com
 			}
 		}
 	} else {
-		channelToJoin, err = a.GetChannel(args.ChannelId)
+		channelToJoin, err = a.GetChannel(c, args.ChannelId)
 		if err != nil {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_invite.channel.app_error"),
@@ -94,7 +94,7 @@ func (*InviteProvider) DoCommand(a *app.App, c *request.Context, args *model.Com
 	// Permissions Check
 	switch channelToJoin.Type {
 	case model.ChannelTypeOpen:
-		if !a.HasPermissionToChannel(args.UserId, channelToJoin.Id, model.PermissionManagePublicChannelMembers) {
+		if !a.HasPermissionToChannel(c, args.UserId, channelToJoin.Id, model.PermissionManagePublicChannelMembers) {
 			return &model.CommandResponse{
 				Text: args.T("api.command_invite.permission.app_error", map[string]any{
 					"User":    userProfile.Username,
@@ -104,7 +104,7 @@ func (*InviteProvider) DoCommand(a *app.App, c *request.Context, args *model.Com
 			}
 		}
 	case model.ChannelTypePrivate:
-		if !a.HasPermissionToChannel(args.UserId, channelToJoin.Id, model.PermissionManagePrivateChannelMembers) {
+		if !a.HasPermissionToChannel(c, args.UserId, channelToJoin.Id, model.PermissionManagePrivateChannelMembers) {
 			if _, err = a.GetChannelMember(context.Background(), channelToJoin.Id, args.UserId); err == nil {
 				// User doing the inviting is a member of the channel.
 				return &model.CommandResponse{

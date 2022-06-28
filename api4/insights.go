@@ -265,7 +265,7 @@ func getTopThreadsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reques
 
 	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
 
-	topThreads, err := c.App.GetTopThreadsForTeamSince(c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
+	topThreads, err := c.App.GetTopThreadsForTeamSince(c.AppContext, c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
 		StartUnixMilli: startTime.UnixMilli(),
 		Page:           c.Params.Page,
 		PerPage:        c.Params.PerPage,
@@ -321,7 +321,7 @@ func getTopThreadsForUserSince(c *Context, w http.ResponseWriter, r *http.Reques
 
 	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
 
-	topThreads, err := c.App.GetTopThreadsForUserSince(c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
+	topThreads, err := c.App.GetTopThreadsForUserSince(c.AppContext, c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
 		StartUnixMilli: startTime.UnixMilli(),
 		Page:           c.Params.Page,
 		PerPage:        c.Params.PerPage,

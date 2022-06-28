@@ -1790,7 +1790,7 @@ func TestDeleteChannel(t *testing.T) {
 		_, err := client.DeleteChannel(publicChannel1.Id)
 		require.NoError(t, err)
 
-		ch, appErr := th.App.GetChannel(publicChannel1.Id)
+		ch, appErr := th.App.GetChannel(th.Context, publicChannel1.Id)
 		require.Nilf(t, appErr, "Expected nil, Got %v", appErr)
 		require.True(t, ch.DeleteAt != 0, "should have returned one with a populated DeleteAt.")
 
@@ -1975,7 +1975,7 @@ func TestPermanentDeleteChannel(t *testing.T) {
 		_, err := c.PermanentDeleteChannel(publicChannel.Id)
 		require.NoError(t, err)
 
-		_, appErr := th.App.GetChannel(publicChannel.Id)
+		_, appErr := th.App.GetChannel(th.Context, publicChannel.Id)
 		assert.NotNil(t, appErr)
 
 		resp, err := c.PermanentDeleteChannel("junk")
@@ -2045,7 +2045,7 @@ func TestUpdateChannelPrivacy(t *testing.T) {
 				updatedChannel, _, err := client.UpdateChannelPrivacy(tc.channel.Id, tc.expectedPrivacy)
 				require.NoError(t, err)
 				assert.Equal(t, tc.expectedPrivacy, updatedChannel.Type)
-				updatedChannel, appErr := th.App.GetChannel(tc.channel.Id)
+				updatedChannel, appErr := th.App.GetChannel(th.Context, tc.channel.Id)
 				require.Nil(t, appErr)
 				assert.Equal(t, tc.expectedPrivacy, updatedChannel.Type)
 			})
@@ -2424,7 +2424,7 @@ func TestViewChannel(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "OK", viewResp.Status, "should have passed")
 
-	channel, _ := th.App.GetChannel(th.BasicChannel.Id)
+	channel, _ := th.App.GetChannel(th.Context, th.BasicChannel.Id)
 
 	require.Equal(t, channel.LastPostAt, viewResp.LastViewedAtTimes[channel.Id], "LastPostAt does not match returned LastViewedAt time")
 
@@ -3039,7 +3039,7 @@ func TestAddChannelMember(t *testing.T) {
 
 	// Set a channel to group-constrained
 	privateChannel.GroupConstrained = model.NewBool(true)
-	_, appErr := th.App.UpdateChannel(privateChannel)
+	_, appErr := th.App.UpdateChannel(th.Context, privateChannel)
 	require.Nil(t, appErr)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -3347,7 +3347,7 @@ func TestRemoveChannelMember(t *testing.T) {
 	th.App.AddUserToChannel(th.BasicUser2, deletedChannel, false)
 
 	deletedChannel.DeleteAt = 1
-	th.App.UpdateChannel(deletedChannel)
+	th.App.UpdateChannel(th.Context, deletedChannel)
 
 	_, err = client.RemoveUserFromChannel(deletedChannel.Id, th.BasicUser.Id)
 	require.NoError(t, err)
@@ -3421,7 +3421,7 @@ func TestRemoveChannelMember(t *testing.T) {
 
 	// If the channel is group-constrained the user cannot be removed
 	privateChannel.GroupConstrained = model.NewBool(true)
-	_, appErr := th.App.UpdateChannel(privateChannel)
+	_, appErr := th.App.UpdateChannel(th.Context, privateChannel)
 	require.Nil(t, appErr)
 	_, err = client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
 	CheckErrorID(t, err, "api.channel.remove_member.group_constrained.app_error")
@@ -3913,7 +3913,7 @@ func TestChannelMembersMinusGroupMembers(t *testing.T) {
 	require.Nil(t, appErr)
 
 	channel.GroupConstrained = model.NewBool(true)
-	channel, appErr = th.App.UpdateChannel(channel)
+	channel, appErr = th.App.UpdateChannel(th.Context, channel)
 	require.Nil(t, appErr)
 
 	group1 := th.CreateGroup()
@@ -4056,7 +4056,7 @@ func TestGetChannelModerations(t *testing.T) {
 	t.Run("Returns value false and enabled true for permissions that are not present in channel scheme but present in team scheme", func(t *testing.T) {
 		scheme := th.SetupChannelScheme()
 		channel.SchemeId = &scheme.Id
-		_, appErr := th.App.UpdateChannelScheme(channel)
+		_, appErr := th.App.UpdateChannelScheme(th.Context, channel)
 		require.Nil(t, appErr)
 
 		th.RemovePermissionFromRole(model.PermissionCreatePost.Id, scheme.DefaultChannelGuestRole)
@@ -4081,7 +4081,7 @@ func TestGetChannelModerations(t *testing.T) {
 
 		scheme := th.SetupChannelScheme()
 		channel.SchemeId = &scheme.Id
-		th.App.UpdateChannelScheme(channel)
+		th.App.UpdateChannelScheme(th.Context, channel)
 
 		th.RemovePermissionFromRole(model.PermissionCreatePost.Id, scheme.DefaultChannelGuestRole)
 		th.RemovePermissionFromRole(model.PermissionCreatePost.Id, teamScheme.DefaultChannelGuestRole)
@@ -4230,12 +4230,12 @@ func TestPatchChannelModerations(t *testing.T) {
 				require.Equal(t, moderation.Roles.Members.Enabled, true)
 			}
 		}
-		channel, _ = th.App.GetChannel(channel.Id)
+		channel, _ = th.App.GetChannel(th.Context, channel.Id)
 		require.NotNil(t, channel.SchemeId)
 	})
 
 	t.Run("Removes the existing scheme when moderated permissions are set back to higher scoped values", func(t *testing.T) {
-		channel, _ = th.App.GetChannel(channel.Id)
+		channel, _ = th.App.GetChannel(th.Context, channel.Id)
 		schemeId := channel.SchemeId
 
 		scheme, _ := th.App.GetScheme(*schemeId)
@@ -4263,7 +4263,7 @@ func TestPatchChannelModerations(t *testing.T) {
 			require.Equal(t, moderation.Roles.Members.Enabled, true)
 		}
 
-		channel, _ = th.App.GetChannel(channel.Id)
+		channel, _ = th.App.GetChannel(th.Context, channel.Id)
 		require.Nil(t, channel.SchemeId)
 
 		scheme, _ = th.App.GetScheme(*schemeId)
@@ -4462,7 +4462,7 @@ func TestMoveChannel(t *testing.T) {
 	t.Run("Should fail when trying to move a group channel", func(t *testing.T) {
 		user := th.CreateUser()
 
-		gmChannel, appErr := th.App.CreateGroupChannel([]string{th.BasicUser.Id, th.SystemAdminUser.Id, th.TeamAdminUser.Id}, user.Id)
+		gmChannel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.SystemAdminUser.Id, th.TeamAdminUser.Id}, user.Id)
 		require.Nil(t, appErr)
 		_, _, err := client.MoveChannel(gmChannel.Id, team1.Id, false)
 		require.Error(t, err)

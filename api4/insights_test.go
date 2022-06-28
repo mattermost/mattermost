@@ -770,7 +770,7 @@ func TestGetTopThreadsForUserSince(t *testing.T) {
 	require.Equal(t, topUser2Threads.Items[0].Post.ReplyCount, int64(1))
 
 	// deleting the root post results in the thread not making it to top threads list
-	_, appErr = th.App.DeletePost(rootPostPublicChannel.Id, th.BasicUser.Id)
+	_, appErr = th.App.DeletePost(th.Context, rootPostPublicChannel.Id, th.BasicUser.Id)
 	require.Nil(t, appErr)
 
 	client.Logout()
@@ -803,7 +803,7 @@ func TestGetTopThreadsForUserSince(t *testing.T) {
 	require.Len(t, topUser2ThreadsAfterPrivateReply.Items, 1)
 
 	// deleting reply, and unfollowing thread
-	_, appErr = th.App.DeletePost(replyPostUser2InPrivate.Id, th.BasicUser2.Id)
+	_, appErr = th.App.DeletePost(th.Context, replyPostUser2InPrivate.Id, th.BasicUser2.Id)
 	require.Nil(t, appErr)
 	// unfollow thread
 	_, err := th.App.Srv().Store.Thread().MaintainMembership(th.BasicUser2.Id, rootPostPrivateChannel.Id, store.ThreadMembershipOpts{

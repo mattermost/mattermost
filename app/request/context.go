@@ -140,3 +140,10 @@ type CTX interface {
 	SetAppError(*model.AppError)
 	AppError() *model.AppError
 }
+
+func ContextWithDefaultLogger() *Context {
+	logger, _ := mlog.NewLogger() // NewLogger without arguments never errors
+	return &Context{
+		logger: logger,
+	}
+}

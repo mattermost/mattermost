@@ -348,7 +348,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, channel *model.Channel, rc 
 		}
 	} else if post.DeleteAt > 0 {
 		// delete post
-		rpost, appErr = scs.app.DeletePost(post.Id, post.UserId)
+		rpost, appErr = scs.app.DeletePost(request.ContextWithDefaultLogger(), post.Id, post.UserId)
 		if appErr == nil {
 			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Deleted sync post",
 				mlog.String("post_id", post.Id),

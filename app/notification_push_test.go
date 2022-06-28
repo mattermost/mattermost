@@ -941,11 +941,11 @@ func TestBuildPushNotificationMessageMentions(t *testing.T) {
 	receiver := th.CreateUser()
 	th.LinkUserToTeam(sender, team)
 	th.LinkUserToTeam(receiver, team)
-	channel1 := th.CreateChannel(team)
+	channel1 := th.CreateChannel(th.Context, team)
 	th.AddUserToChannel(sender, channel1)
 	th.AddUserToChannel(receiver, channel1)
 
-	channel2 := th.CreateChannel(team)
+	channel2 := th.CreateChannel(th.Context, team)
 	th.AddUserToChannel(sender, channel2)
 	th.AddUserToChannel(receiver, channel2)
 

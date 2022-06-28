@@ -45,19 +45,19 @@ type ServerIface interface {
 }
 
 type AppIface interface {
-	SendEphemeralPost(userId string, post *model.Post) *model.Post
-	CreateChannelWithUser(c *request.Context, channel *model.Channel, userId string) (*model.Channel, *model.AppError)
-	GetOrCreateDirectChannel(c *request.Context, userId, otherUserId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError)
+	SendEphemeralPost(c request.CTX, userId string, post *model.Post) *model.Post
+	CreateChannelWithUser(c request.CTX, channel *model.Channel, userId string) (*model.Channel, *model.AppError)
+	GetOrCreateDirectChannel(c request.CTX, userId, otherUserId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError)
 	AddUserToChannel(user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
 	AddUserToTeamByTeamId(c *request.Context, teamId string, user *model.User) *model.AppError
 	PermanentDeleteChannel(channel *model.Channel) *model.AppError
-	CreatePost(c *request.Context, post *model.Post, channel *model.Channel, triggerWebhooks bool, setOnline bool) (savedPost *model.Post, err *model.AppError)
+	CreatePost(c request.CTX, post *model.Post, channel *model.Channel, triggerWebhooks bool, setOnline bool) (savedPost *model.Post, err *model.AppError)
 	UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
-	DeletePost(postID, deleteByID string) (*model.Post, *model.AppError)
+	DeletePost(c request.CTX, postID, deleteByID string) (*model.Post, *model.AppError)
 	SaveReactionForPost(c *request.Context, reaction *model.Reaction) (*model.Reaction, *model.AppError)
 	DeleteReactionForPost(c *request.Context, reaction *model.Reaction) *model.AppError
-	PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
-	CreateUploadSession(us *model.UploadSession) (*model.UploadSession, *model.AppError)
+	PatchChannelModerationsForChannel(c request.CTX, channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
+	CreateUploadSession(c request.CTX, us *model.UploadSession) (*model.UploadSession, *model.AppError)
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
 	MentionsToTeamMembers(message, teamID string) model.UserMentionMap
 	GetProfileImage(user *model.User) ([]byte, bool, *model.AppError)
@@ -166,7 +166,7 @@ func (scs *Service) sendEphemeralPost(channelId string, userId string, text stri
 		Message:   text,
 		CreateAt:  model.GetMillis(),
 	}
-	scs.app.SendEphemeralPost(userId, ephemeral)
+	scs.app.SendEphemeralPost(request.ContextWithDefaultLogger(), userId, ephemeral)
 }
 
 // onClusterLeaderChange is called whenever the cluster leader may have changed.
@@ -229,7 +229,7 @@ func (scs *Service) makeChannelReadOnly(channel *model.Channel) *model.AppError 
 		},
 	}
 
-	_, err := scs.app.PatchChannelModerationsForChannel(channel, readonlyChannelModerations)
+	_, err := scs.app.PatchChannelModerationsForChannel(request.ContextWithDefaultLogger(), channel, readonlyChannelModerations)
 	return err
 }
 
