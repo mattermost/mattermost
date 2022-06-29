@@ -5840,6 +5840,10 @@
     "translation": "Unable to get user counts with posts."
   },
   {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Can not fetch the post as it is past the cloud's plan limit."
+  },
+  {
     "id": "app.post.delete.app_error",
     "translation": "Unable to delete the post."
   },

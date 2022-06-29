@@ -1863,6 +1863,14 @@ func (a *App) GetPostIfAuthorized(postID string, session *model.Session, include
 		}
 	}
 
+	isInaccessible, appErr := a.isInaccessiblePost(post)
+	if appErr != nil {
+		return nil, appErr
+	}
+	if isInaccessible {
+		return nil, model.NewAppError("GetPostIfAuthorized", "app.post.cloud.get.app_error", nil, "", http.StatusForbidden)
+	}
+
 	return post, nil
 }
 
@@ -1908,6 +1916,11 @@ func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, *model.AppError) {
 		default:
 			return nil, model.NewAppError("GetPostsByIds", "app.post.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
+	}
+
+	posts, _, appErr := a.getFilteredAccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true})
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	return posts, nil
