@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 // RouterService enables registering the product router to the server. After registering the
@@ -48,7 +49,6 @@ type PermissionService interface {
 type ClusterService interface {
 	PublishPluginClusterEvent(productID string, ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error
 	PublishWebSocketEvent(productID string, event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast)
-	SetPluginKeyWithOptions(productID string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError)
 }
 
 // ChannelService provides channel related API  The service implementation is provided by
@@ -152,4 +152,18 @@ type FileInfoStoreService interface {
 // The service shall be registered via app.CloudKey service key.
 type CloudService interface {
 	GetCloudLimits() (*model.ProductLimits, error)
+}
+
+// KVStoreService is the API for accessing the KVStore service APIs.
+//
+// The service shall be registered via app.KVStoreKey service key.
+type KVStoreService interface {
+	SetPluginKeyWithOptions(pluginID string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError)
+}
+
+// LogService is the API for accessing the log service APIs.
+//
+// The service shall be registered via app.LogKey service key.
+type LogService interface {
+	mlog.LoggerIFace
 }
