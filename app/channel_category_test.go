@@ -94,7 +94,7 @@ func TestGetSidebarCategories(t *testing.T) {
 		})
 		require.Nil(t, err)
 
-		categories, err := th.App.GetSidebarCategories(th.BasicUser.Id, th.BasicTeam.Id)
+		categories, err := th.App.GetSidebarCategoriesForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id)
 		assert.Nil(t, err)
 		assert.Len(t, categories.Categories, 4)
 	})
@@ -113,7 +113,7 @@ func TestGetSidebarCategories(t *testing.T) {
 		}, 100)
 		require.NoError(t, err)
 
-		categories, appErr := th.App.GetSidebarCategories(th.BasicUser.Id, team.Id)
+		categories, appErr := th.App.GetSidebarCategoriesForTeamForUser(th.BasicUser.Id, team.Id)
 		assert.Nil(t, appErr)
 		assert.Len(t, categories.Categories, 3)
 	})
@@ -131,7 +131,7 @@ func TestGetSidebarCategories(t *testing.T) {
 			require.NoError(t, err)
 		}()
 
-		categories, appErr := th.App.GetSidebarCategories(th.BasicUser.Id, th.BasicTeam.Id)
+		categories, appErr := th.App.GetSidebarCategoriesForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id)
 		assert.Nil(t, categories)
 		assert.NotNil(t, appErr)
 		assert.Equal(t, "app.channel.sidebar_categories.app_error", appErr.Id)
@@ -143,7 +143,7 @@ func TestUpdateSidebarCategories(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		categories, err := th.App.GetSidebarCategories(th.BasicUser.Id, th.BasicTeam.Id)
+		categories, err := th.App.GetSidebarCategoriesForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id)
 		require.Nil(t, err)
 
 		channelsCategory := categories.Categories[1]

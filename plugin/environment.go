@@ -301,8 +301,20 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 	return pluginInfo.Manifest, true, nil
 }
 
-func (env *Environment) AddProduct(productID string, hooks ProductHooks) {
-	env.registeredProducts.Store(productID, newRegisteredProduct(productID, hooks))
+func (env *Environment) AddProduct(productID string, hooks any) error {
+	prod, err := newAdapter(hooks)
+	if err != nil {
+		return err
+	}
+
+	rp := &registeredProduct{
+		productID: productID,
+		adapter:   prod,
+	}
+
+	env.registeredProducts.Store(productID, rp)
+
+	return nil
 }
 
 func (env *Environment) RemoveProduct(productID string) {

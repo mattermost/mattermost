@@ -789,7 +789,11 @@ func (a *App) JoinUserToTeam(c *request.Context, team *model.Team, user *model.U
 		return nil, model.NewAppError("JoinUserToTeam", "app.user.update_update.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if _, err := a.createInitialSidebarCategories(user.Id, team.Id); err != nil {
+	opts := &store.SidebarCategorySearchOpts{
+		TeamID:      team.Id,
+		ExcludeTeam: false,
+	}
+	if _, err := a.createInitialSidebarCategories(user.Id, opts); err != nil {
 		mlog.Warn(
 			"Encountered an issue creating default sidebar categories.",
 			mlog.String("user_id", user.Id),
