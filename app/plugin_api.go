@@ -493,7 +493,7 @@ func (api *PluginAPI) CreateChannelSidebarCategory(userID, teamID string, newCat
 }
 
 func (api *PluginAPI) GetChannelSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
-	return api.app.GetSidebarCategories(userID, teamID)
+	return api.app.GetSidebarCategoriesForTeamForUser(userID, teamID)
 }
 
 func (api *PluginAPI) UpdateChannelSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
