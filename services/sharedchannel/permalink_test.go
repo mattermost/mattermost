@@ -35,7 +35,7 @@ func TestProcessPermalinkToRemote(t *testing.T) {
 	mockServer.On("GetStore").Return(mockStore)
 
 	mockApp := scs.app.(*MockAppIface)
-	mockApp.On("SendEphemeralPost", "user", mock.AnythingOfType("*model.Post")).Return(&model.Post{}).Times(1)
+	mockApp.On("SendEphemeralPost", mock.Anything, "user", mock.AnythingOfType("*model.Post")).Return(&model.Post{}).Times(1)
 	defer mockApp.AssertExpectations(t)
 
 	t.Run("same channel", func(t *testing.T) {
