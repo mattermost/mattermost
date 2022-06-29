@@ -302,13 +302,13 @@ func (_m *ServiceInterface) SendLicenseUpForRenewalEmail(_a0 string, name string
 	return r0
 }
 
-// SendMailWithEmbeddedFiles provides a mock function with given fields: to, subject, htmlBody, embeddedFiles
-func (_m *ServiceInterface) SendMailWithEmbeddedFiles(to string, subject string, htmlBody string, embeddedFiles map[string]io.Reader) error {
-	ret := _m.Called(to, subject, htmlBody, embeddedFiles)
+// SendMailWithEmbeddedFiles provides a mock function with given fields: to, subject, htmlBody, embeddedFiles, messageID, inReplyTo, references
+func (_m *ServiceInterface) SendMailWithEmbeddedFiles(to string, subject string, htmlBody string, embeddedFiles map[string]io.Reader, messageID string, inReplyTo string, references string) error {
+	ret := _m.Called(to, subject, htmlBody, embeddedFiles, messageID, inReplyTo, references)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, string, map[string]io.Reader) error); ok {
-		r0 = rf(to, subject, htmlBody, embeddedFiles)
+	if rf, ok := ret.Get(0).(func(string, string, string, map[string]io.Reader, string, string, string) error); ok {
+		r0 = rf(to, subject, htmlBody, embeddedFiles, messageID, inReplyTo, references)
 	} else {
 		r0 = ret.Error(0)
 	}
