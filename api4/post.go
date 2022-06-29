@@ -511,6 +511,29 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("getPostThread", audit.Fail)
+
+	rPost, err := c.App.GetSinglePost(c.Params.PostId, false)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	auditRec.AddMeta("post", rPost)
+	hasPermission := false
+	if c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), rPost.ChannelId, model.PermissionReadChannel) {
+		hasPermission = true
+	} else if channel, cErr := c.App.GetChannel(rPost.ChannelId); cErr == nil {
+		if channel.Type == model.ChannelTypeOpen &&
+			c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) {
+			hasPermission = true
+		}
+	}
+
+	if !hasPermission {
+		c.SetPermissionError(model.PermissionReadChannel)
+		return
+	}
+
 	// For now, by default we return all items unless it's set to maintain
 	// backwards compatibility with mobile. But when the next ESR passes, we need to
 	// change this to web.PerPageDefault.
@@ -590,6 +613,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
+	auditRec.Success()
 }
 
 func searchPostsInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
