@@ -50,7 +50,6 @@ type PermissionService interface {
 type ClusterService interface {
 	PublishPluginClusterEvent(productID string, ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error
 	PublishWebSocketEvent(productID string, event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast)
-	SetPluginKeyWithOptions(productID string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError)
 }
 
 // ChannelService provides channel related API  The service implementation is provided by
