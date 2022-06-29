@@ -26,7 +26,8 @@ type Query {
 		after: String = "",
 		lastUpdateAt: Float = 0): [ChannelMember]!
 	sidebarCategories(userId: String!,
-		teamId: String!): [SidebarCategory]!
+		teamId: String!,
+		excludeTeam: Boolean = false): [SidebarCategory]!
 }
 
 scalar ChannelType
@@ -158,7 +159,6 @@ type TeamMember {
 	schemeGuest: Boolean!
 	schemeUser: Boolean!
 	schemeAdmin: Boolean!
-	sidebarCategories: [SidebarCategory]!
 }
 
 type SidebarCategory {
@@ -168,6 +168,7 @@ type SidebarCategory {
 	displayName: String!
 	muted: Boolean!
 	collapsed: Boolean!
+	teamId: String!
 	channelIds: [String!]!
 }
 

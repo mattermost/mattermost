@@ -41,16 +41,10 @@ func TestGraphQLTeamMembers(t *testing.T) {
 				SchemeManaged bool     `json:"schemeManaged"`
 				BuiltIn       bool     `json:"builtIn"`
 			} `json:"roles"`
-			DeleteAt          float64 `json:"deleteAt"`
-			SchemeGuest       bool    `json:"schemeGuest"`
-			SchemeUser        bool    `json:"schemeUser"`
-			SchemeAdmin       bool    `json:"schemeAdmin"`
-			SidebarCategories []struct {
-				ID          string                       `json:"id"`
-				DisplayName string                       `json:"displayName"`
-				Sorting     model.SidebarCategorySorting `json:"sorting"`
-				ChannelIDs  []string                     `json:"channelIds"`
-			} `json:"sidebarCategories"`
+			DeleteAt    float64 `json:"deleteAt"`
+			SchemeGuest bool    `json:"schemeGuest"`
+			SchemeUser  bool    `json:"schemeUser"`
+			SchemeAdmin bool    `json:"schemeAdmin"`
 		} `json:"teamMembers"`
 	}
 
@@ -78,12 +72,6 @@ func TestGraphQLTeamMembers(t *testing.T) {
 	  	schemeGuest
 	  	schemeUser
 	  	schemeAdmin
-	  	sidebarCategories {
-	  		id
-	  		displayName
-	  		sorting
-	  		channelIds
-	  	}
 	  }
 	}
 	`,
@@ -114,23 +102,6 @@ func TestGraphQLTeamMembers(t *testing.T) {
 		assert.False(t, tm.SchemeGuest)
 		assert.True(t, tm.SchemeUser)
 		assert.False(t, tm.SchemeAdmin)
-
-		categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, "")
-		require.NoError(t, err)
-
-		sort.Slice(tm.SidebarCategories, func(i, j int) bool {
-			return tm.SidebarCategories[i].ID < tm.SidebarCategories[j].ID
-		})
-		sort.Slice(categories.Categories, func(i, j int) bool {
-			return categories.Categories[i].Id < categories.Categories[j].Id
-		})
-
-		for i := range categories.Categories {
-			assert.Equal(t, categories.Categories[i].Id, tm.SidebarCategories[i].ID)
-			assert.Equal(t, categories.Categories[i].DisplayName, tm.SidebarCategories[i].DisplayName)
-			assert.Equal(t, categories.Categories[i].Sorting, tm.SidebarCategories[i].Sorting)
-			assert.Equal(t, categories.Categories[i].ChannelIds(), tm.SidebarCategories[i].ChannelIDs)
-		}
 	})
 
 	t.Run("User+Team", func(t *testing.T) {
