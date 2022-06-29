@@ -201,6 +201,8 @@ type AppIface interface {
 	// To get the plugins environment when the plugins are disabled, manually acquire the plugins
 	// lock instead.
 	GetPluginsEnvironment() *plugin.Environment
+	// GetPostsByIds response bool value indicates, if the post is inaccessible due to cloud plan's limit.
+	GetPostsByIds(postIDs []string) ([]*model.Post, bool, *model.AppError)
 	// GetPostsUsage returns the total posts count rounded down to the most
 	// significant digit
 	GetPostsUsage() (int64, *model.AppError)
@@ -702,7 +704,6 @@ type AppIface interface {
 	GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList, *model.AppError)
 	GetPostsAroundPost(before bool, options model.GetPostsOptions) (*model.PostList, *model.AppError)
 	GetPostsBeforePost(options model.GetPostsOptions) (*model.PostList, *model.AppError)
-	GetPostsByIds(postIDs []string) ([]*model.Post, *model.AppError)
 	GetPostsEtag(channelID string, collapsedThreads bool) string
 	GetPostsForChannelAroundLastUnread(channelID, userID string, limitBefore, limitAfter int, skipFetchThreads bool, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, *model.AppError)
 	GetPostsPage(options model.GetPostsOptions) (*model.PostList, *model.AppError)

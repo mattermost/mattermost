@@ -228,7 +228,7 @@ func (a *App) isInaccessiblePost(post *model.Post) (bool, *model.AppError) {
 	return pl.HasInaccessiblePosts, a.filterInaccessiblePosts(pl, filterPostOptions{assumeSortedCreatedAt: true})
 }
 
-// getFilteredAccessiblePosts returns accessible posts filtered as per the cloud plan's limit and also indicates if there were any inAccessible posts
+// getFilteredAccessiblePosts returns accessible posts filtered as per the cloud plan's limit and also indicates if there were any inaccessible posts
 func (a *App) getFilteredAccessiblePosts(posts []*model.Post, options filterPostOptions) ([]*model.Post, bool, *model.AppError) {
 	filteredPosts := []*model.Post{}
 	if len(posts) == 0 {
