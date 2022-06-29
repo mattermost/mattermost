@@ -988,48 +988,31 @@ func testUserStoreGetProfilesInChannelByAdmin(t *testing.T, ss store.Store, s Sq
 
 	teamId := model.NewId()
 
-	regularUser, err := ss.User().Save(&model.User{
+	user1, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
-		Username: "u1" + model.NewId(),
+		Username: "aaa" + model.NewId(),
 	})
 	require.NoError(t, err)
-	defer func() { require.NoError(t, ss.User().PermanentDelete(regularUser.Id)) }()
-	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: regularUser.Id}, -1)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(user1.Id)) }()
+	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user1.Id}, -1)
 	require.NoError(t, nErr)
 
-	channelAdmin, err := ss.User().Save(&model.User{
+	user2Admin, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
-		Username: "u2" + model.NewId(),
+		Username: "bbb" + model.NewId(),
 	})
 	require.NoError(t, err)
-	defer func() { require.NoError(t, ss.User().PermanentDelete(channelAdmin.Id)) }()
-	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: channelAdmin.Id}, -1)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(user2Admin.Id)) }()
+	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user2Admin.Id}, -1)
 	require.NoError(t, nErr)
 
-	bot, err := ss.User().Save(&model.User{
+	user3, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
-		Username: "u3" + model.NewId(),
+		Username: "ccc" + model.NewId(),
 	})
 	require.NoError(t, err)
-	defer func() { require.NoError(t, ss.User().PermanentDelete(bot.Id)) }()
-	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: bot.Id}, -1)
-	require.NoError(t, nErr)
-	_, nErr = ss.Bot().Save(&model.Bot{
-		UserId:   bot.Id,
-		Username: bot.Username,
-		OwnerId:  regularUser.Id,
-	})
-	require.NoError(t, nErr)
-	bot.IsBot = true
-	defer func() { require.NoError(t, ss.Bot().PermanentDelete(bot.Id)) }()
-
-	deletedUser, err := ss.User().Save(&model.User{
-		Email:    MakeEmail(),
-		Username: "u4" + model.NewId(),
-	})
-	require.NoError(t, err)
-	defer func() { require.NoError(t, ss.User().PermanentDelete(deletedUser.Id)) }()
-	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: deletedUser.Id}, -1)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(user3.Id)) }()
+	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user3.Id}, -1)
 	require.NoError(t, nErr)
 
 	ch1 := &model.Channel{
@@ -1041,95 +1024,40 @@ func testUserStoreGetProfilesInChannelByAdmin(t *testing.T, ss store.Store, s Sq
 	c1, nErr := ss.Channel().Save(ch1, -1)
 	require.NoError(t, nErr)
 
-	ch2 := &model.Channel{
-		TeamId:      teamId,
-		DisplayName: "Profiles in private by admin",
-		Name:        "profiles-" + model.NewId(),
-		Type:        model.ChannelTypePrivate,
-	}
-	c2, nErr := ss.Channel().Save(ch2, -1)
+	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   c1.Id,
+		UserId:      user1.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
 	require.NoError(t, nErr)
+
+	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:     c1.Id,
+		UserId:        user2Admin.Id,
+		NotifyProps:   model.GetDefaultChannelNotifyProps(),
+		ExplicitRoles: "channel_admin",
+	})
+	require.NoError(t, nErr)
+	ss.Channel().UpdateMembersRole(c1.Id, []string{user2Admin.Id})
 
 	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c1.Id,
-		UserId:      regularUser.Id,
+		UserId:      user3.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
-		ChannelId:   c1.Id,
-		UserId:      channelAdmin.Id,
-		NotifyProps: model.GetDefaultChannelNotifyProps(),
-		SchemeAdmin: true,
-	})
-	require.NoError(t, nErr)
-
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
-		ChannelId:   c1.Id,
-		UserId:      bot.Id,
-		NotifyProps: model.GetDefaultChannelNotifyProps(),
-	})
-	require.NoError(t, nErr)
-
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
-		ChannelId:   c1.Id,
-		UserId:      deletedUser.Id,
-		NotifyProps: model.GetDefaultChannelNotifyProps(),
-	})
-	require.NoError(t, nErr)
-
-	deletedUser.DeleteAt = 1
-	_, err = ss.User().Update(deletedUser, true)
-	require.NoError(t, err)
-
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
-		ChannelId:   c2.Id,
-		UserId:      regularUser.Id,
-		NotifyProps: model.GetDefaultChannelNotifyProps(),
-	})
-	require.NoError(t, nErr)
-
-	t.Run("get all users in channel 1 by admin, offset 0, limit 100", func(t *testing.T) {
-		users, err := ss.User().GetProfilesInChannel(&model.UserGetOptions{
+	t.Run("get users in admin, offset 0, limit 100", func(t *testing.T) {
+		users, err := ss.User().GetProfilesInChannelByAdmin(&model.UserGetOptions{
 			InChannelId: c1.Id,
 			Page:        0,
 			PerPage:     100,
 		})
 		require.NoError(t, err)
-		assert.Equal(t, []*model.User{sanitized(channelAdmin), sanitized(regularUser), sanitized(bot), sanitized(deletedUser)}, users)
-	})
-
-	t.Run("get active in channel 1 by admin, offset 0, limit 100", func(t *testing.T) {
-		users, err := ss.User().GetProfilesInChannelByStatus(&model.UserGetOptions{
-			InChannelId: c1.Id,
-			Page:        0,
-			PerPage:     100,
-			Active:      true,
-		})
-		require.NoError(t, err)
-		assert.Equal(t, []*model.User{sanitized(channelAdmin), sanitized(regularUser), sanitized(bot)}, users)
-	})
-
-	t.Run("get inactive users in channel 1 by admin, offset 0, limit 100", func(t *testing.T) {
-		users, err := ss.User().GetProfilesInChannel(&model.UserGetOptions{
-			InChannelId: c1.Id,
-			Page:        0,
-			PerPage:     100,
-			Inactive:    true,
-		})
-		require.NoError(t, err)
-		assert.Equal(t, []*model.User{sanitized(deletedUser)}, users)
-	})
-
-	t.Run("get in channel 2 by admin, offset 0, limit 1", func(t *testing.T) {
-		users, err := ss.User().GetProfilesInChannelByStatus(&model.UserGetOptions{
-			InChannelId: c2.Id,
-			Page:        0,
-			PerPage:     1,
-		})
-		require.NoError(t, err)
-		assert.Equal(t, []*model.User{sanitized(channelAdmin)}, users)
+		require.Len(t, users, 3)
+		require.Equal(t, user2Admin.Username, users[0].Username)
+		require.Equal(t, user1.Username, users[1].Username)
+		require.Equal(t, user3.Username, users[2].Username)
 	})
 }
 

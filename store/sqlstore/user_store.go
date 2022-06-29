@@ -775,12 +775,7 @@ func (us SqlUserStore) GetProfilesInChannelByAdmin(options *model.UserGetOptions
 	query := us.usersQuery.
 		Join("ChannelMembers cm ON ( cm.UserId = u.Id )").
 		Where("cm.ChannelId = ?", options.InChannelId).
-		OrderBy(`
-			CASE cm.SchemeAdmin
-				WHEN 't' THEN 1
-				ELSE 2
-			END
-			`).
+		OrderBy(`cm.SchemeAdmin DESC`).
 		OrderBy("u.Username ASC").
 		Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage))
 
