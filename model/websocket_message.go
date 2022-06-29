@@ -181,7 +181,7 @@ func (ev *WebSocketEvent) PrecomputeJSON() *WebSocketEvent {
 	return copy
 }
 
-func (ev *WebSocketEvent) Add(key string, value interface{}) {
+func (ev *WebSocketEvent) Add(key string, value any) {
 	ev.data[key] = value
 }
 
@@ -336,7 +336,7 @@ type WebSocketResponse struct {
 	Error    *AppError              `json:"error,omitempty"`     // A field that is set if any error has occurred.
 }
 
-func (m *WebSocketResponse) Add(key string, value interface{}) {
+func (m *WebSocketResponse) Add(key string, value any) {
 	m.Data[key] = value
 }
 

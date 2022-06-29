@@ -40,7 +40,7 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 
 	// Try a public channel *without* permission.
 	args := &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: publicChannel.Id,
 		UserId:    th.BasicUser.Id,
 	}
@@ -51,7 +51,7 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 	// Try a public channel *with* permission.
 	th.App.AddUserToChannel(th.BasicUser, publicChannel, false)
 	args = &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: publicChannel.Id,
 		UserId:    th.BasicUser.Id,
 	}
@@ -61,7 +61,7 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 
 	// Try a private channel *without* permission.
 	args = &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: privateChannel.Id,
 		UserId:    th.BasicUser.Id,
 	}
@@ -72,7 +72,7 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 	// Try a private channel *with* permission.
 	th.App.AddUserToChannel(th.BasicUser, privateChannel, false)
 	args = &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: privateChannel.Id,
 		UserId:    th.BasicUser.Id,
 	}
@@ -87,7 +87,7 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 	groupChannel := th.createGroupChannel(user1, user2)
 
 	args = &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: groupChannel.Id,
 		UserId:    th.BasicUser.Id,
 	}
@@ -99,7 +99,7 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 	directChannel := th.createDmChannel(user1)
 
 	args = &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: directChannel.Id,
 		UserId:    th.BasicUser.Id,
 	}
@@ -114,7 +114,7 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 	th.App.UpdateActive(th.Context, deactivatedUser, false)
 
 	args = &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: publicChannel.Id,
 		UserId:    th.BasicUser.Id,
 	}

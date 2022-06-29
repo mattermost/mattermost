@@ -32,7 +32,7 @@ func newSqlRetentionPolicyStore(sqlStore *SqlStore, metrics einterfaces.MetricsI
 
 // executePossiblyEmptyQuery only executes the query if it is non-empty. This helps avoid
 // having to check for MySQL, which, unlike Postgres, does not allow empty queries.
-func executePossiblyEmptyQuery(txn *sqlxTxWrapper, query string, args ...interface{}) (sql.Result, error) {
+func executePossiblyEmptyQuery(txn *sqlxTxWrapper, query string, args ...any) (sql.Result, error) {
 	if query == "" {
 		return nil, nil
 	}

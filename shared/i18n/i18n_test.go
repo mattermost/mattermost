@@ -32,8 +32,8 @@ func TestTranslateAsHTML(t *testing.T) {
 func TestEscapeForHTML(t *testing.T) {
 	stringForPointer := "<b>abc</b>"
 	for name, tc := range map[string]struct {
-		In       interface{}
-		Expected interface{}
+		In       any
+		Expected any
 	}{
 		"NoHTML": {
 			In:       "abc",

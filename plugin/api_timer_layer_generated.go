@@ -28,7 +28,7 @@ func (api *apiTimerLayer) recordTime(startTime timePkg.Time, name string, succes
 	}
 }
 
-func (api *apiTimerLayer) LoadPluginConfiguration(dest interface{}) error {
+func (api *apiTimerLayer) LoadPluginConfiguration(dest any) error {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.LoadPluginConfiguration(dest)
 	api.recordTime(startTime, "LoadPluginConfiguration", _returnsA == nil)
@@ -1041,25 +1041,25 @@ func (api *apiTimerLayer) RolesGrantPermission(roleNames []string, permissionId 
 	return _returnsA
 }
 
-func (api *apiTimerLayer) LogDebug(msg string, keyValuePairs ...interface{}) {
+func (api *apiTimerLayer) LogDebug(msg string, keyValuePairs ...any) {
 	startTime := timePkg.Now()
 	api.apiImpl.LogDebug(msg, keyValuePairs...)
 	api.recordTime(startTime, "LogDebug", true)
 }
 
-func (api *apiTimerLayer) LogInfo(msg string, keyValuePairs ...interface{}) {
+func (api *apiTimerLayer) LogInfo(msg string, keyValuePairs ...any) {
 	startTime := timePkg.Now()
 	api.apiImpl.LogInfo(msg, keyValuePairs...)
 	api.recordTime(startTime, "LogInfo", true)
 }
 
-func (api *apiTimerLayer) LogError(msg string, keyValuePairs ...interface{}) {
+func (api *apiTimerLayer) LogError(msg string, keyValuePairs ...any) {
 	startTime := timePkg.Now()
 	api.apiImpl.LogError(msg, keyValuePairs...)
 	api.recordTime(startTime, "LogError", true)
 }
 
-func (api *apiTimerLayer) LogWarn(msg string, keyValuePairs ...interface{}) {
+func (api *apiTimerLayer) LogWarn(msg string, keyValuePairs ...any) {
 	startTime := timePkg.Now()
 	api.apiImpl.LogWarn(msg, keyValuePairs...)
 	api.recordTime(startTime, "LogWarn", true)

@@ -40,7 +40,7 @@ func NewPluginAPI(a *App, c *request.Context, manifest *model.Manifest) *PluginA
 	}
 }
 
-func (api *PluginAPI) LoadPluginConfiguration(dest interface{}) error {
+func (api *PluginAPI) LoadPluginConfiguration(dest any) error {
 	finalConfig := make(map[string]interface{})
 
 	// First set final config to defaults
@@ -930,16 +930,16 @@ func (api *PluginAPI) RolesGrantPermission(roleNames []string, permissionId stri
 	return api.app.RolesGrantPermission(roleNames, permissionId)
 }
 
-func (api *PluginAPI) LogDebug(msg string, keyValuePairs ...interface{}) {
+func (api *PluginAPI) LogDebug(msg string, keyValuePairs ...any) {
 	api.logger.Debugw(msg, keyValuePairs...)
 }
-func (api *PluginAPI) LogInfo(msg string, keyValuePairs ...interface{}) {
+func (api *PluginAPI) LogInfo(msg string, keyValuePairs ...any) {
 	api.logger.Infow(msg, keyValuePairs...)
 }
-func (api *PluginAPI) LogError(msg string, keyValuePairs ...interface{}) {
+func (api *PluginAPI) LogError(msg string, keyValuePairs ...any) {
 	api.logger.Errorw(msg, keyValuePairs...)
 }
-func (api *PluginAPI) LogWarn(msg string, keyValuePairs ...interface{}) {
+func (api *PluginAPI) LogWarn(msg string, keyValuePairs ...any) {
 	api.logger.Warnw(msg, keyValuePairs...)
 }
 

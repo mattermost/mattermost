@@ -32,7 +32,7 @@ const (
 
 type writeMessage struct {
 	msgType msgType
-	data    interface{}
+	data    any
 }
 
 const avgReadMsgSizeBytes = 1024

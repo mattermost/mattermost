@@ -934,14 +934,14 @@ func TestDiff(t *testing.T) {
 			ConfigDiffs{
 				{
 					Path: "PluginSettings.Plugins",
-					BaseVal: func() interface{} {
+					BaseVal: func() any {
 						return map[string]map[string]interface{}{
 							"com.mattermost.newplugin": {
 								"key": true,
 							},
 						}
 					}(),
-					ActualVal: func() interface{} {
+					ActualVal: func() any {
 						return map[string]map[string]interface{}{
 							"com.mattermost.newplugin": {
 								"key": "string",

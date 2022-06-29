@@ -2120,7 +2120,7 @@ func TestDeletePostMessage(t *testing.T) {
 	testCases := []struct {
 		description string
 		client      *model.Client4
-		delete_by   interface{}
+		delete_by   any
 	}{
 		{"Do not send delete_by to regular user", th.Client, nil},
 		{"Send delete_by to system admin user", th.SystemAdminClient, th.SystemAdminUser.Id},

@@ -20,7 +20,7 @@ type wilted struct {
 	wilt1 string
 }
 
-func conv(val interface{}) (interface{}, bool) {
+func conv(val any) (interface{}, bool) {
 	switch v := val.(type) {
 	case *bloated:
 		return &wilted{wilt1: v.fld1}, true
@@ -34,7 +34,7 @@ func TestRecord_AddMeta(t *testing.T) {
 	}
 	type args struct {
 		name string
-		val  interface{}
+		val  any
 	}
 	tests := []struct {
 		name     string

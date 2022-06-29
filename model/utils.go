@@ -86,7 +86,7 @@ func (sa StringArray) Value() (driver.Value, error) {
 }
 
 // Scan converts database column value to StringArray
-func (sa *StringArray) Scan(value interface{}) error {
+func (sa *StringArray) Scan(value any) error {
 	if value == nil {
 		return nil
 	}
@@ -105,7 +105,7 @@ func (sa *StringArray) Scan(value interface{}) error {
 }
 
 // Scan converts database column value to StringMap
-func (m *StringMap) Scan(value interface{}) error {
+func (m *StringMap) Scan(value any) error {
 	if value == nil {
 		return nil
 	}
@@ -148,7 +148,7 @@ func (m StringMap) MarshalJSON() ([]byte, error) {
 	return json.Marshal((map[string]string)(m))
 }
 
-func (m *StringMap) UnmarshalGraphQL(input interface{}) error {
+func (m *StringMap) UnmarshalGraphQL(input any) error {
 	json, ok := input.(map[string]string)
 	if !ok {
 		return errors.New("wrong type")
@@ -158,7 +158,7 @@ func (m *StringMap) UnmarshalGraphQL(input interface{}) error {
 	return nil
 }
 
-func (si *StringInterface) Scan(value interface{}) error {
+func (si *StringInterface) Scan(value any) error {
 	if value == nil {
 		return nil
 	}
@@ -391,7 +391,7 @@ func ArrayFromJSON(data io.Reader) []string {
 	return objmap
 }
 
-func ArrayFromInterface(data interface{}) []string {
+func ArrayFromInterface(data any) []string {
 	stringArray := []string{}
 
 	dataArray, ok := data.([]interface{})
@@ -424,7 +424,7 @@ func StringInterfaceFromJSON(data io.Reader) map[string]interface{} {
 }
 
 // ToJSON serializes an arbitrary data type to JSON, discarding the error.
-func ToJSON(v interface{}) []byte {
+func ToJSON(v any) []byte {
 	b, _ := json.Marshal(v)
 	return b
 }
@@ -531,7 +531,7 @@ func IsValidAlphaNumHyphenUnderscorePlus(s string) bool {
 	return validSimpleAlphaNumHyphenUnderscorePlus.MatchString(s)
 }
 
-func Etag(parts ...interface{}) string {
+func Etag(parts ...any) string {
 
 	etag := CurrentVersion
 

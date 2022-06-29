@@ -22,7 +22,7 @@ func TestInspect(t *testing.T) {
 
 	visited := []string{}
 	level := 0
-	Inspect(markdown, func(blockOrInline interface{}) bool {
+	Inspect(markdown, func(blockOrInline any) bool {
 		if blockOrInline == nil {
 			level--
 		} else {
@@ -67,7 +67,7 @@ Some bold text **Text for markdown?** to go with it.
 At the end, some more lines`
 
 	for i := 0; i < b.N; i++ {
-		Inspect(text, func(_ interface{}) bool {
+		Inspect(text, func(_ any) bool {
 			counterSink++
 			return true
 		})

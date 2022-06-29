@@ -85,7 +85,7 @@ func (s *Server) InvokeClusterLeaderChangedListeners() {
 	// Fixing this would require the changed event to pass the leader directly, but that
 	// requires a lot of work.
 	s.Go(func() {
-		s.clusterLeaderListeners.Range(func(_, listener interface{}) bool {
+		s.clusterLeaderListeners.Range(func(_, listener any) bool {
 			listener.(func())()
 			return true
 		})

@@ -300,7 +300,7 @@ func (o *Channel) MakeNonNil() {
 	}
 }
 
-func (o *Channel) AddProp(key string, value interface{}) {
+func (o *Channel) AddProp(key string, value any) {
 	o.MakeNonNil()
 
 	o.Props[key] = value
@@ -342,7 +342,7 @@ func (t ChannelType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(string(t))
 }
 
-func (t *ChannelType) UnmarshalGraphQL(input interface{}) error {
+func (t *ChannelType) UnmarshalGraphQL(input any) error {
 	chType, ok := input.(string)
 	if !ok {
 		return errors.New("wrong type")

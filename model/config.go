@@ -3911,7 +3911,7 @@ func (o *Config) Sanitize() {
 
 // structToMapFilteredByTag converts a struct into a map removing those fields that has the tag passed
 // as argument
-func structToMapFilteredByTag(t interface{}, typeOfTag, filterTag string) map[string]interface{} {
+func structToMapFilteredByTag(t any, typeOfTag, filterTag string) map[string]interface{} {
 	defer func() {
 		if r := recover(); r != nil {
 			mlog.Warn("Panicked in structToMapFilteredByTag. This should never happen.", mlog.Any("recover", r))
@@ -3936,7 +3936,7 @@ func structToMapFilteredByTag(t interface{}, typeOfTag, filterTag string) map[st
 			continue
 		}
 
-		var value interface{}
+		var value any
 
 		switch field.Kind() {
 		case reflect.Struct:

@@ -16,8 +16,8 @@ import (
 
 // dbSelecter is an interface used to enable some internal store methods
 // using both transaction and normal queries.
-type dbSelecter interface {
-	Select(i interface{}, query string, args ...interface{}) error
+type dbSe anyface {
+	Select(i any, query string, args ...any) error
 }
 
 func (s SqlChannelStore) CreateInitialSidebarCategories(userId string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
@@ -177,7 +177,7 @@ type userMembership struct {
 	CategoryId string
 }
 
-func (s SqlChannelStore) migrateMembershipToSidebar(transaction *sqlxTxWrapper, runningOrder *int64, sql string, args ...interface{}) ([]userMembership, error) {
+func (s SqlChannelStore) migrateMembershipToSidebar(transaction *sqlxTxWrapper, runningOrder *int64, sql string, args ...any) ([]userMembership, error) {
 	memberships := []userMembership{}
 	if err := transaction.Select(&memberships, sql, args...); err != nil {
 		return nil, err

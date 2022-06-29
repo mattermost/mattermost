@@ -22,8 +22,8 @@ type RelationalIntegrityCheckData struct {
 }
 
 type IntegrityCheckResult struct {
-	Data interface{} `json:"data"`
-	Err  error       `json:"err"`
+	Data any   `json:"data"`
+	Err  error `json:"err"`
 }
 
 func (r *IntegrityCheckResult) UnmarshalJSON(b []byte) error {

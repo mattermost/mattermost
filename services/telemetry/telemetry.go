@@ -193,11 +193,11 @@ func isDefaultArray(setting, defaultValue []string) bool {
 	return true
 }
 
-func isDefault(setting interface{}, defaultValue interface{}) bool {
+func isDefault(setting any, defaultValue any) bool {
 	return setting == defaultValue
 }
 
-func pluginSetting(pluginSettings *model.PluginSettings, plugin, key string, defaultValue interface{}) interface{} {
+func pluginSetting(pluginSettings *model.PluginSettings, plugin, key string, defaultValue any) any {
 	settings, ok := pluginSettings.Plugins[plugin]
 	if !ok {
 		return defaultValue

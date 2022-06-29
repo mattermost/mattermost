@@ -898,7 +898,7 @@ func (t UploadFileTask) pathPrefix() string {
 		"/" + t.fileinfo.Id + "/"
 }
 
-func (t UploadFileTask) newAppError(id string, httpStatus int, extra ...interface{}) *model.AppError {
+func (t UploadFileTask) newAppError(id string, httpStatus int, extra ...any) *model.AppError {
 	params := map[string]interface{}{
 		"Name":          t.Name,
 		"Filename":      t.Name,

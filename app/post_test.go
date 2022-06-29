@@ -858,7 +858,7 @@ func TestCreatePost(t *testing.T) {
 			Description string
 			Channel     *model.Channel
 			Author      string
-			Assert      func(t assert.TestingT, object interface{}, msgAndArgs ...interface{}) bool
+			Assert      func(t assert.TestingT, object any, msgAndArgs ...any) bool
 		}{
 			{
 				Description: "removes metadata from post for members who cannot read channel",
@@ -1345,7 +1345,7 @@ func TestUpdatePost(t *testing.T) {
 			Description string
 			Channel     *model.Channel
 			Author      string
-			Assert      func(t assert.TestingT, object interface{}, msgAndArgs ...interface{}) bool
+			Assert      func(t assert.TestingT, object any, msgAndArgs ...any) bool
 		}{
 			{
 				Description: "removes metadata from post for members who cannot read channel",

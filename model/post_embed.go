@@ -21,5 +21,5 @@ type PostEmbed struct {
 	URL string `json:"url,omitempty"`
 
 	// Any additional data for the embedded content. Only used for OpenGraph embeds.
-	Data interface{} `json:"data,omitempty"`
+	Data any `json:"data,omitempty"`
 }

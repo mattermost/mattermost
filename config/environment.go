@@ -147,7 +147,7 @@ func getPaths(m map[string]interface{}) [][]string {
 }
 
 // getPathsRec assembles the paths (see `getPaths` above)
-func getPathsRec(src interface{}, curPath []string) [][]string {
+func getPathsRec(src any, curPath []string) [][]string {
 	if srcMap, ok := src.(map[string]interface{}); ok {
 		paths := [][]string{}
 		for k, v := range srcMap {
@@ -161,10 +161,10 @@ func getPathsRec(src interface{}, curPath []string) [][]string {
 
 // getVal walks `src` (here it starts with a model.Config, then recurses into its leaves)
 // and returns the reflect.Value of the leaf at the end `path`
-func getVal(src interface{}, path []string) reflect.Value {
+func getVal(src any, path []string) reflect.Value {
 	var val reflect.Value
 
-	// If we recursed on a Value, we already have it. If we're calling on an interface{}, get the Value.
+	// If we recursed on a Value, we already have it. If we're calling on an any, get the Value.
 	switch v := src.(type) {
 	case reflect.Value:
 		val = v

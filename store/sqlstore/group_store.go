@@ -631,7 +631,7 @@ func (s *SqlGroupStore) GetGroupSyncable(groupID string, syncableID string, sync
 
 func (s *SqlGroupStore) getGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, error) {
 	var err error
-	var result interface{}
+	var result any
 
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:

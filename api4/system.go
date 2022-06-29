@@ -974,7 +974,7 @@ func getAppliedSchemaMigrations(c *Context, w http.ResponseWriter, r *http.Reque
 
 // returns true if the data has nil fields
 // this is being used for testS3 and testEmail methods
-func checkHasNilFields(value interface{}) bool {
+func checkHasNilFields(value any) bool {
 	v := reflect.Indirect(reflect.ValueOf(value))
 	if v.Kind() != reflect.Struct {
 		return false

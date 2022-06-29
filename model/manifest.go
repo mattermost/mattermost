@@ -79,7 +79,7 @@ type PluginSetting struct {
 	Placeholder string `json:"placeholder" yaml:"placeholder"`
 
 	// The default value of the setting.
-	Default interface{} `json:"default" yaml:"default"`
+	Default any `json:"default" yaml:"default"`
 
 	// For "radio" or "dropdown" settings, this is the list of pre-defined options that the user can choose
 	// from.

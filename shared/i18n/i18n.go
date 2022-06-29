@@ -20,7 +20,7 @@ import (
 const defaultLocale = "en"
 
 // TranslateFunc is the type of the translate functions
-type TranslateFunc func(translationID string, args ...interface{}) string
+type TranslateFunc func(translationID string, args ...any) string
 
 // T is the translate function using the default server language as fallback language
 var T TranslateFunc
@@ -135,7 +135,7 @@ func GetSupportedLocales() map[string]string {
 
 func tfuncWithFallback(pref string) TranslateFunc {
 	t, _ := i18n.Tfunc(pref)
-	return func(translationID string, args ...interface{}) string {
+	return func(translationID string, args ...any) string {
 		if translated := t(translationID, args...); translated != translationID {
 			return translated
 		}
@@ -154,7 +154,7 @@ func TranslateAsHTML(t TranslateFunc, translationID string, args map[string]inte
 	return template.HTML(message)
 }
 
-func escapeForHTML(arg interface{}) interface{} {
+func escapeForHTML(arg any) any {
 	switch typedArg := arg.(type) {
 	case string:
 		return template.HTMLEscapeString(typedArg)
@@ -179,7 +179,7 @@ func escapeForHTML(arg interface{}) interface{} {
 // IdentityTfunc returns a translation function that don't translate, only
 // returns the same id
 func IdentityTfunc() TranslateFunc {
-	return func(translationID string, args ...interface{}) string {
+	return func(translationID string, args ...any) string {
 		return translationID
 	}
 }

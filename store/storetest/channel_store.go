@@ -30,14 +30,14 @@ type SqlStore interface {
 }
 
 type SqlXExecutor interface {
-	Get(dest interface{}, query string, args ...interface{}) error
-	NamedExec(query string, arg interface{}) (sql.Result, error)
-	Exec(query string, args ...interface{}) (sql.Result, error)
-	ExecRaw(query string, args ...interface{}) (sql.Result, error)
-	NamedQuery(query string, arg interface{}) (*sqlx.Rows, error)
-	QueryRowX(query string, args ...interface{}) *sqlx.Row
-	QueryX(query string, args ...interface{}) (*sqlx.Rows, error)
-	Select(dest interface{}, query string, args ...interface{}) error
+	Get(dest any, query string, args ...any) error
+	NamedExec(query string, arg any) (sql.Result, error)
+	Exec(query string, args ...any) (sql.Result, error)
+	ExecRaw(query string, args ...any) (sql.Result, error)
+	NamedQuery(query string, arg any) (*sqlx.Rows, error)
+	QueryRowX(query string, args ...any) *sqlx.Row
+	QueryX(query string, args ...any) (*sqlx.Rows, error)
+	Select(dest any, query string, args ...any) error
 }
 
 func cleanupChannels(t *testing.T, ss store.Store) {

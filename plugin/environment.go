@@ -120,7 +120,7 @@ func (env *Environment) PrepackagedPlugins() []*PrepackagedPlugin {
 // The returned list should not be modified.
 func (env *Environment) Active() []*model.BundleInfo {
 	activePlugins := []*model.BundleInfo{}
-	env.registeredPlugins.Range(func(key, value interface{}) bool {
+	env.registeredPlugins.Range(func(key, value any) bool {
 		plugin := value.(registeredPlugin)
 		if env.IsActive(plugin.BundleInfo.Manifest.Id) {
 			activePlugins = append(activePlugins, plugin.BundleInfo)
@@ -365,7 +365,7 @@ func (env *Environment) Shutdown() {
 	env.TogglePluginHealthCheckJob(false)
 
 	var wg sync.WaitGroup
-	env.registeredPlugins.Range(func(key, value interface{}) bool {
+	env.registeredPlugins.Range(func(key, value any) bool {
 		rp := value.(registeredPlugin)
 
 		if rp.supervisor == nil || !env.IsActive(rp.BundleInfo.Manifest.Id) {
@@ -399,7 +399,7 @@ func (env *Environment) Shutdown() {
 
 	wg.Wait()
 
-	env.registeredPlugins.Range(func(key, value interface{}) bool {
+	env.registeredPlugins.Range(func(key, value any) bool {
 		env.registeredPlugins.Delete(key)
 
 		return true
@@ -484,7 +484,7 @@ func (env *Environment) HooksForPlugin(id string) (Hooks, error) {
 func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool, hookId int) {
 	startTime := time.Now()
 
-	env.registeredPlugins.Range(func(key, value interface{}) bool {
+	env.registeredPlugins.Range(func(key, value any) bool {
 		rp := value.(registeredPlugin)
 
 		if rp.supervisor == nil || !rp.supervisor.Implements(hookId) || !env.IsActive(rp.BundleInfo.Manifest.Id) {
@@ -502,7 +502,7 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool
 		return result
 	})
 
-	env.registeredProducts.Range(func(key, value interface{}) bool {
+	env.registeredProducts.Range(func(key, value any) bool {
 		rp := value.(*registeredProduct)
 
 		if !rp.Implements(hookId) {
