@@ -2769,32 +2769,6 @@ func TestGetPostIfAuthorized(t *testing.T) {
 	require.Nil(t, err)
 }
 
-func TestGetPostIfAuthorizedNew(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	privateChannel := th.CreatePrivateChannel(th.BasicTeam)
-	post, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: privateChannel.Id, Message: "Hello"}, privateChannel, false, false)
-	require.Nil(t, err)
-	require.NotNil(t, post)
-
-	session1, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
-	require.Nil(t, err)
-	require.NotNil(t, session1)
-
-	session2, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser2.Id, Props: model.StringMap{}})
-	require.Nil(t, err)
-	require.NotNil(t, session2)
-
-	// User is not authorized to get post
-	_, err = th.App.GetPostIfAuthorizedNew(post.Id, session2, false)
-	require.NotNil(t, err)
-
-	// User is authorized to get post
-	_, err = th.App.GetPostIfAuthorizedNew(post.Id, session1, false)
-	require.Nil(t, err)
-}
-
 func TestShouldNotRefollowOnOthersReply(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

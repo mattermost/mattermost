@@ -117,12 +117,6 @@ type PostEphemeral struct {
 	Post   *Post  `json:"post"`
 }
 
-type PostWrapper struct {
-	Post *Post `json:"post"`
-	// IsInaccessible indicates that the post is past the cloud plan's limit
-	IsInaccessible bool `json:"is_inaccessible"`
-}
-
 type PostPatch struct {
 	IsPinned     *bool            `json:"is_pinned"`
 	Message      *string          `json:"message"`

@@ -7771,28 +7771,6 @@ func (a *OpenTracingAppLayer) GetPostIfAuthorized(postID string, session *model.
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetPostIfAuthorizedNew(postID string, session *model.Session, includeDeleted bool) (*model.PostWrapper, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostIfAuthorizedNew")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetPostIfAuthorizedNew(postID, session, includeDeleted)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
 func (a *OpenTracingAppLayer) GetPostThread(postID string, opts model.GetPostsOptions, userID string) (*model.PostList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostThread")

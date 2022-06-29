@@ -15,7 +15,6 @@ import (
 	"os"
 	"reflect"
 	"sort"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -2036,109 +2035,6 @@ func TestGetPost(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 }
 
-func TestGetPostNew(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	// TODO: migrate this entirely to the subtest's client
-	// once the other methods are migrated too.
-	client := th.Client
-
-	var privatePost *model.Post
-	th.TestForAllClients(t, func(t *testing.T, c *model.Client4) {
-		t.Helper()
-
-		postWrapper, resp, err := c.GetPostNew(th.BasicPost.Id, "")
-		require.NoError(t, err)
-
-		require.Equal(t, th.BasicPost.Id, postWrapper.Post.Id, "post ids don't match")
-
-		postWrapper, resp, err = c.GetPostNew(th.BasicPost.Id, resp.Etag)
-		require.NoError(t, err)
-		CheckEtag(t, postWrapper.Post, resp)
-
-		_, resp, err = c.GetPostNew("", "")
-		require.Error(t, err)
-		CheckNotFoundStatus(t, resp)
-
-		_, resp, err = c.GetPostNew("junk", "")
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-
-		_, resp, err = c.GetPostNew(model.NewId(), "")
-		require.Error(t, err)
-		CheckNotFoundStatus(t, resp)
-
-		client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
-
-		// Channel is public, should be able to read post
-		_, _, err = c.GetPostNew(th.BasicPost.Id, "")
-		require.NoError(t, err)
-
-		privatePost = th.CreatePostWithClient(client, th.BasicPrivateChannel)
-
-		_, _, err = c.GetPostNew(privatePost.Id, "")
-		require.NoError(t, err)
-	})
-
-	client.RemoveUserFromChannel(th.BasicPrivateChannel.Id, th.BasicUser.Id)
-
-	// Channel is private, should not be able to read post
-	_, resp, err := client.GetPostNew(privatePost.Id, "")
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
-
-	// But local client should.
-	_, _, err = th.LocalClient.GetPostNew(privatePost.Id, "")
-	require.NoError(t, err)
-
-	// Delete post
-	th.SystemAdminClient.DeletePost(th.BasicPost.Id)
-
-	// Normal client should get 404 when trying to access deleted post normally
-	_, resp, err = client.GetPostNew(th.BasicPost.Id, "")
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
-
-	// Normal client should get unauthorized when trying to access deleted post
-	_, resp, err = client.GetPostIncludeDeletedNew(th.BasicPost.Id, "")
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
-
-	// System client should get 404 when trying to access deleted post normally
-	_, resp, err = th.SystemAdminClient.GetPostNew(th.BasicPost.Id, "")
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
-
-	// System client should be able to access deleted post with include_deleted param
-	postWrapper, _, err := th.SystemAdminClient.GetPostIncludeDeletedNew(th.BasicPost.Id, "")
-	require.NoError(t, err)
-	require.Equal(t, th.BasicPost.Id, postWrapper.Post.Id)
-
-	// Post should be inaccessible
-	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-	th.App.Srv().Store.System().Save(&model.System{
-		Name:  model.SystemLastAccessiblePostTime,
-		Value: strconv.FormatInt(model.GetMillis(), 10),
-	})
-	postWrapper, resp, err = th.SystemAdminClient.GetPostIncludeDeletedNew(th.BasicPost.Id, "")
-	require.NoError(t, err)
-	CheckOKStatus(t, resp)
-	require.True(t, postWrapper.IsInaccessible)
-	th.App.Srv().RemoveLicense()
-	th.App.Srv().Store.System().PermanentDeleteByName(model.SystemLastAccessiblePostTime)
-
-	client.Logout()
-
-	// Normal client should get unauthorized, but local client should get 404.
-	_, resp, err = client.GetPostNew(model.NewId(), "")
-	require.Error(t, err)
-	CheckUnauthorizedStatus(t, resp)
-
-	_, resp, err = th.LocalClient.GetPostNew(model.NewId(), "")
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
-}
-
 func TestDeletePost(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -3027,45 +2923,6 @@ func TestGetPostsByIds(t *testing.T) {
 	_, response, err = client.GetPostsByIds([]string{"abc123"})
 	require.Error(t, err)
 	CheckNotFoundStatus(t, response)
-}
-
-func TestGetPostsByIdsNew(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	client := th.Client
-
-	post1 := th.CreatePost()
-	post2 := th.CreatePost()
-
-	postList, response, err := client.GetPostsByIdsNew([]string{post1.Id, post2.Id})
-	require.NoError(t, err)
-	CheckOKStatus(t, response)
-	posts := postList.Order
-	require.Len(t, posts, 2, "wrong number returned")
-	require.Equal(t, posts[0], post2.Id)
-	require.Equal(t, posts[1], post1.Id)
-
-	_, response, err = client.GetPostsByIdsNew([]string{})
-	require.Error(t, err)
-	CheckBadRequestStatus(t, response)
-
-	_, response, err = client.GetPostsByIdsNew([]string{"abc123"})
-	require.Error(t, err)
-	CheckNotFoundStatus(t, response)
-
-	// Posts should be inaccessible
-	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-	th.App.Srv().Store.System().Save(&model.System{
-		Name:  model.SystemLastAccessiblePostTime,
-		Value: strconv.FormatInt(model.GetMillis(), 10),
-	})
-	postList, response, err = client.GetPostsByIdsNew([]string{post1.Id, post2.Id})
-	require.NoError(t, err)
-	CheckOKStatus(t, response)
-	require.True(t, postList.HasInaccessiblePosts)
-	require.Len(t, postList.Posts, 0)
-	th.App.Srv().RemoveLicense()
-	th.App.Srv().Store.System().PermanentDeleteByName(model.SystemLastAccessiblePostTime)
 }
 
 func TestCreatePostNotificationsWithCRT(t *testing.T) {

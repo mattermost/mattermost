@@ -21,6 +21,7 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Post.Handle("", api.APISessionRequired(getPost)).Methods("GET")
 	api.BaseRoutes.Post.Handle("", api.APISessionRequired(deletePost)).Methods("DELETE")
 	api.BaseRoutes.Posts.Handle("/ids", api.APISessionRequired(getPostsByIds)).Methods("POST")
+	api.BaseRoutes.Posts.Handle("/ids_new", api.APISessionRequired(getPostsByIdsNew)).Methods("POST")
 	api.BaseRoutes.Posts.Handle("/ephemeral", api.APISessionRequired(createEphemeralPost)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/thread", api.APISessionRequired(getPostThread)).Methods("GET")
 	api.BaseRoutes.Post.Handle("/files/info", api.APISessionRequired(getFileInfosForPost)).Methods("GET")
@@ -382,11 +383,6 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
-	if r.URL.Query().Get("use_new") == "true" {
-		getPostNew(c, w, r)
-		return
-	}
-
 	c.RequirePostId()
 	if c.Err != nil {
 		return
@@ -421,58 +417,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// getPostNew will replace the getPost
-func getPostNew(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequirePostId()
-	if c.Err != nil {
-		return
-	}
-
-	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
-	if includeDeleted && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-
-	postWrapper, err := c.App.GetPostIfAuthorizedNew(c.Params.PostId, c.AppContext.Session(), includeDeleted)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	if postWrapper.IsInaccessible {
-		if err := json.NewEncoder(w).Encode(postWrapper); err != nil {
-			mlog.Warn("Error while writing response", mlog.Err(err))
-		}
-		return
-	}
-
-	post := postWrapper.Post
-	post = c.App.PreparePostForClientWithEmbedsAndImages(post, false, false)
-	post, err = c.App.SanitizePostMetadataForUser(post, c.AppContext.Session().UserId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-	postWrapper.Post = post
-
-	if c.HandleEtag(post.Etag(), "Get Post", w, r) {
-		return
-	}
-
-	w.Header().Set(model.HeaderEtagServer, post.Etag())
-	post.StripActionIntegrations()
-	if err := json.NewEncoder(w).Encode(postWrapper); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
-	}
-}
-
 func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	if r.URL.Query().Get("use_new") == "true" {
-		getPostsByIdsNew(c, w, r)
-		return
-	}
-
 	postIDs := model.ArrayFromJSON(r.Body)
 
 	if len(postIDs) == 0 {

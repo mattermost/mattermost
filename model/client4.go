@@ -3780,24 +3780,6 @@ func (c *Client4) GetPost(postId string, etag string) (*Post, *Response, error) 
 	return &post, BuildResponse(r), nil
 }
 
-// GetPostNew gets a single post.
-func (c *Client4) GetPostNew(postId string, etag string) (*PostWrapper, *Response, error) {
-	r, err := c.DoAPIGet(c.postRoute(postId)+"?use_new=true", etag)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	var post PostWrapper
-	if r.StatusCode == http.StatusNotModified {
-		return &post, BuildResponse(r), nil
-	}
-	if jsonErr := json.NewDecoder(r.Body).Decode(&post); jsonErr != nil {
-		return nil, nil, NewAppError("GetPostNew", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
-	}
-	return &post, BuildResponse(r), nil
-}
-
 // GetPostIncludeDeleted gets a single post, including deleted.
 func (c *Client4) GetPostIncludeDeleted(postId string, etag string) (*Post, *Response, error) {
 	r, err := c.DoAPIGet(c.postRoute(postId)+"?include_deleted="+c.boolString(true), etag)
@@ -3812,23 +3794,6 @@ func (c *Client4) GetPostIncludeDeleted(postId string, etag string) (*Post, *Res
 	}
 	if jsonErr := json.NewDecoder(r.Body).Decode(&post); jsonErr != nil {
 		return nil, nil, NewAppError("GetPostIncludeDeleted", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
-	}
-	return &post, BuildResponse(r), nil
-}
-
-func (c *Client4) GetPostIncludeDeletedNew(postId string, etag string) (*PostWrapper, *Response, error) {
-	r, err := c.DoAPIGet(c.postRoute(postId)+"?use_new=true&include_deleted=true", etag)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	var post PostWrapper
-	if r.StatusCode == http.StatusNotModified {
-		return &post, BuildResponse(r), nil
-	}
-	if jsonErr := json.NewDecoder(r.Body).Decode(&post); jsonErr != nil {
-		return nil, nil, NewAppError("GetPostIncludeDeletedNew", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
 	return &post, BuildResponse(r), nil
 }
@@ -3955,19 +3920,19 @@ func (c *Client4) GetPostsByIdsNew(postIds []string) (*PostList, *Response, erro
 	if jsonErr != nil {
 		return nil, nil, NewAppError("GetPostsByIdsNew", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
-	r, err := c.DoAPIPost(c.postsRoute()+"/ids?use_new=true", string(js))
+	r, err := c.DoAPIPost(c.postsRoute()+"/ids_new", string(js))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var list PostList
+	var list *PostList
 	if r.StatusCode == http.StatusNotModified {
-		return &list, BuildResponse(r), nil
+		return list, BuildResponse(r), nil
 	}
-	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+	if jsonErr := json.NewDecoder(r.Body).Decode(list); jsonErr != nil {
 		return nil, nil, NewAppError("GetPostsByIdsNew", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
-	return &list, BuildResponse(r), nil
+	return list, BuildResponse(r), nil
 }
 
 // GetFlaggedPostsForUser returns flagged posts of a user based on user id string.
