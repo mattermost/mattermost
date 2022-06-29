@@ -48,9 +48,9 @@ type AppIface interface {
 	SendEphemeralPost(c request.CTX, userId string, post *model.Post) *model.Post
 	CreateChannelWithUser(c request.CTX, channel *model.Channel, userId string) (*model.Channel, *model.AppError)
 	GetOrCreateDirectChannel(c request.CTX, userId, otherUserId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError)
-	AddUserToChannel(user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
+	AddUserToChannel(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
 	AddUserToTeamByTeamId(c *request.Context, teamId string, user *model.User) *model.AppError
-	PermanentDeleteChannel(channel *model.Channel) *model.AppError
+	PermanentDeleteChannel(c request.CTX, channel *model.Channel) *model.AppError
 	CreatePost(c request.CTX, post *model.Post, channel *model.Channel, triggerWebhooks bool, setOnline bool) (savedPost *model.Post, err *model.AppError)
 	UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
 	DeletePost(c request.CTX, postID, deleteByID string) (*model.Post, *model.AppError)
@@ -166,7 +166,7 @@ func (scs *Service) sendEphemeralPost(channelId string, userId string, text stri
 		Message:   text,
 		CreateAt:  model.GetMillis(),
 	}
-	scs.app.SendEphemeralPost(request.ContextWithDefaultLogger(), userId, ephemeral)
+	scs.app.SendEphemeralPost(request.EmptyContext(), userId, ephemeral)
 }
 
 // onClusterLeaderChange is called whenever the cluster leader may have changed.
@@ -229,7 +229,7 @@ func (scs *Service) makeChannelReadOnly(channel *model.Channel) *model.AppError 
 		},
 	}
 
-	_, err := scs.app.PatchChannelModerationsForChannel(request.ContextWithDefaultLogger(), channel, readonlyChannelModerations)
+	_, err := scs.app.PatchChannelModerationsForChannel(request.EmptyContext(), channel, readonlyChannelModerations)
 	return err
 }
 

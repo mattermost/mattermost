@@ -210,7 +210,7 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 }
 
 func validateSidebarCategory(c *Context, teamId, userId string, category *model.SidebarCategoryWithChannels) *model.AppError {
-	channels, err := c.App.GetChannelsForTeamForUser(teamId, userId, &model.ChannelSearchOpts{
+	channels, err := c.App.GetChannelsForTeamForUser(c.AppContext, teamId, userId, &model.ChannelSearchOpts{
 		IncludeDeleted: true,
 		LastDeleteAt:   0,
 	})
@@ -218,13 +218,13 @@ func validateSidebarCategory(c *Context, teamId, userId string, category *model.
 		return model.NewAppError("validateSidebarCategory", "api.invalid_channel", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	category.Channels = validateSidebarCategoryChannels(userId, category.Channels, channels)
+	category.Channels = validateSidebarCategoryChannels(c, userId, category.Channels, channels)
 
 	return nil
 }
 
 func validateSidebarCategories(c *Context, teamId, userId string, categories []*model.SidebarCategoryWithChannels) *model.AppError {
-	channels, err := c.App.GetChannelsForTeamForUser(teamId, userId, &model.ChannelSearchOpts{
+	channels, err := c.App.GetChannelsForTeamForUser(c.AppContext, teamId, userId, &model.ChannelSearchOpts{
 		IncludeDeleted: true,
 		LastDeleteAt:   0,
 	})
@@ -233,13 +233,13 @@ func validateSidebarCategories(c *Context, teamId, userId string, categories []*
 	}
 
 	for _, category := range categories {
-		category.Channels = validateSidebarCategoryChannels(userId, category.Channels, channels)
+		category.Channels = validateSidebarCategoryChannels(c, userId, category.Channels, channels)
 	}
 
 	return nil
 }
 
-func validateSidebarCategoryChannels(userId string, channelIds []string, channels model.ChannelList) []string {
+func validateSidebarCategoryChannels(c *Context, userId string, channelIds []string, channels model.ChannelList) []string {
 	var filtered []string
 
 	for _, channelId := range channelIds {
@@ -254,7 +254,7 @@ func validateSidebarCategoryChannels(userId string, channelIds []string, channel
 		if found {
 			filtered = append(filtered, channelId)
 		} else {
-			mlog.Info("Stopping user from adding channel to their sidebar when they are not a member", mlog.String("user_id", userId), mlog.String("channel_id", channelId))
+			c.Logger.Info("Stopping user from adding channel to their sidebar when they are not a member", mlog.String("user_id", userId), mlog.String("channel_id", channelId))
 		}
 	}
 

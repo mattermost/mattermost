@@ -671,7 +671,7 @@ func TestImportImportChannel(t *testing.T) {
 	th.CheckChannelsCount(t, channelCount+1)
 
 	// Get the Channel and check all the fields are correct.
-	channel, err := th.App.GetChannelByName(*data.Name, team.Id, false)
+	channel, err := th.App.GetChannelByName(th.Context, *data.Name, team.Id, false)
 	require.Nil(t, err, "Failed to get channel from database.")
 
 	assert.Equal(t, *data.Name, channel.Name)
@@ -695,7 +695,7 @@ func TestImportImportChannel(t *testing.T) {
 	th.CheckChannelsCount(t, channelCount)
 
 	// Get the Channel and check all the fields are correct.
-	channel, err = th.App.GetChannelByName(*data.Name, team.Id, false)
+	channel, err = th.App.GetChannelByName(th.Context, *data.Name, team.Id, false)
 	require.Nil(t, err, "Failed to get channel from database.")
 
 	assert.Equal(t, *data.Name, channel.Name)
@@ -887,7 +887,7 @@ func TestImportImportUser(t *testing.T) {
 		DisplayName: ptrStr("Display Name"),
 		Type:        &chanTypeOpen,
 	}, false)
-	channel, appErr := th.App.GetChannelByName(channelName, team.Id, false)
+	channel, appErr := th.App.GetChannelByName(th.Context, channelName, team.Id, false)
 	require.Nil(t, appErr, "Failed to get channel from database.")
 
 	username = model.NewId()
@@ -904,7 +904,7 @@ func TestImportImportUser(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get team member count")
 	teamMemberCount := len(teamMembers)
 
-	channelMemberCount, appErr := th.App.GetChannelMemberCount(channel.Id)
+	channelMemberCount, appErr := th.App.GetChannelMemberCount(th.Context, channel.Id)
 	require.Nil(t, appErr, "Failed to get channel member count")
 
 	// Test with an invalid team & channel membership in dry-run mode.
@@ -982,7 +982,7 @@ func TestImportImportUser(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get Team Member Count")
 	require.Len(t, tmc, teamMemberCount, "Number of team members not as expected")
 
-	cmc, appErr := th.App.GetChannelMemberCount(channel.Id)
+	cmc, appErr := th.App.GetChannelMemberCount(th.Context, channel.Id)
 	require.Nil(t, appErr, "Failed to get Channel Member Count")
 	require.Equal(t, channelMemberCount, cmc, "Number of channel members not as expected")
 
@@ -1033,7 +1033,7 @@ func TestImportImportUser(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get Team Member Count")
 	require.Len(t, tmc, teamMemberCount)
 
-	cmc, appErr = th.App.GetChannelMemberCount(channel.Id)
+	cmc, appErr = th.App.GetChannelMemberCount(th.Context, channel.Id)
 	require.Nil(t, appErr, "Failed to get Channel Member Count")
 	require.Equal(t, channelMemberCount, cmc)
 
@@ -1056,7 +1056,7 @@ func TestImportImportUser(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get Team Member Count")
 	require.Len(t, tmc, teamMemberCount+1)
 
-	cmc, appErr = th.App.GetChannelMemberCount(channel.Id)
+	cmc, appErr = th.App.GetChannelMemberCount(th.Context, channel.Id)
 	require.Nil(t, appErr, "Failed to get Channel Member Count")
 	require.Equal(t, channelMemberCount, cmc)
 
@@ -1087,12 +1087,12 @@ func TestImportImportUser(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get Team Member Count")
 	require.Len(t, tmc, teamMemberCount+1, "Number of team members not as expected")
 
-	cmc, appErr = th.App.GetChannelMemberCount(channel.Id)
+	cmc, appErr = th.App.GetChannelMemberCount(th.Context, channel.Id)
 	require.Nil(t, appErr, "Failed to get Channel Member Count")
 	require.Equal(t, channelMemberCount+1, cmc, "Number of channel members not as expected")
 
 	// Check channel member properties.
-	channelMember, appErr := th.App.GetChannelMember(context.Background(), channel.Id, user.Id)
+	channelMember, appErr := th.App.GetChannelMember(th.Context, channel.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get channel member from database.")
 	assert.Equal(t, "channel_user", channelMember.Roles)
 	assert.Equal(t, "default", channelMember.NotifyProps[model.DesktopNotifyProp])
@@ -1127,7 +1127,7 @@ func TestImportImportUser(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get team member from database.")
 	require.Equal(t, "team_user team_admin", teamMember.Roles)
 
-	channelMember, appErr = th.App.GetChannelMember(context.Background(), channel.Id, user.Id)
+	channelMember, appErr = th.App.GetChannelMember(th.Context, channel.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get channel member Desktop from database.")
 	assert.Equal(t, "channel_user channel_admin", channelMember.Roles)
 	assert.Equal(t, model.UserNotifyMention, channelMember.NotifyProps[model.DesktopNotifyProp])
@@ -1142,7 +1142,7 @@ func TestImportImportUser(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get Team Member Count")
 	require.Len(t, tmc, teamMemberCount+1, "Number of team members not as expected")
 
-	cmc, appErr = th.App.GetChannelMemberCount(channel.Id)
+	cmc, appErr = th.App.GetChannelMemberCount(th.Context, channel.Id)
 	require.Nil(t, appErr, "Failed to get Channel Member Count")
 	require.Equal(t, channelMemberCount+1, cmc, "Number of channel members not as expected")
 
@@ -1413,7 +1413,7 @@ func TestImportImportUser(t *testing.T) {
 	}
 	appErr = th.App.importChannel(th.Context, channelData, false)
 	assert.Nil(t, appErr)
-	channel, appErr = th.App.GetChannelByName(*channelData.Name, team.Id, false)
+	channel, appErr = th.App.GetChannelByName(th.Context, *channelData.Name, team.Id, false)
 	require.Nil(t, appErr, "Failed to get channel from database")
 
 	// Test with a valid team & valid channel name in apply mode.
@@ -1447,7 +1447,7 @@ func TestImportImportUser(t *testing.T) {
 	assert.False(t, teamMember.SchemeGuest)
 	assert.Equal(t, "", teamMember.ExplicitRoles)
 
-	channelMember, appErr = th.App.GetChannelMember(context.Background(), channel.Id, user.Id)
+	channelMember, appErr = th.App.GetChannelMember(th.Context, channel.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get the channel member")
 
 	assert.True(t, channelMember.SchemeAdmin)
@@ -1489,7 +1489,7 @@ func TestImportImportUser(t *testing.T) {
 	assert.False(t, teamMember.SchemeGuest)
 	assert.Equal(t, "", teamMember.ExplicitRoles)
 
-	channelMember, appErr = th.App.GetChannelMember(context.Background(), channel.Id, user.Id)
+	channelMember, appErr = th.App.GetChannelMember(th.Context, channel.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get the channel member")
 
 	assert.False(t, teamMember.SchemeAdmin)
@@ -1531,7 +1531,7 @@ func TestImportImportUser(t *testing.T) {
 	assert.True(t, teamMember.SchemeGuest)
 	assert.Equal(t, "", teamMember.ExplicitRoles)
 
-	channelMember, appErr = th.App.GetChannelMember(context.Background(), channel.Id, user.Id)
+	channelMember, appErr = th.App.GetChannelMember(th.Context, channel.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get the channel member")
 
 	assert.False(t, teamMember.SchemeAdmin)
@@ -1958,7 +1958,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		DisplayName: ptrStr("Display Name"),
 		Type:        &chanTypeOpen,
 	}, false)
-	channel, err := th.App.GetChannelByName(channelName, team.Id, false)
+	channel, err := th.App.GetChannelByName(th.Context, channelName, team.Id, false)
 	require.Nil(t, err, "Failed to get channel from database.")
 
 	// Create a user.
@@ -2473,7 +2473,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		DisplayName: ptrStr("Display Name"),
 		Type:        &chanTypeOpen,
 	}, false)
-	_, err = th.App.GetChannelByName(channelName, team2.Id, false)
+	_, err = th.App.GetChannelByName(th.Context, channelName, team2.Id, false)
 	require.Nil(t, err, "Failed to get channel from database.")
 
 	// Count the number of posts in the team2.
@@ -2562,7 +2562,7 @@ func TestImportImportPost(t *testing.T) {
 		DisplayName: ptrStr("Display Name"),
 		Type:        &chanTypeOpen,
 	}, false)
-	channel, appErr := th.App.GetChannelByName(channelName, team.Id, false)
+	channel, appErr := th.App.GetChannelByName(th.Context, channelName, team.Id, false)
 	require.Nil(t, appErr, "Failed to get channel from database.")
 
 	// Create a user.
@@ -3287,7 +3287,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		th.BasicUser2.Id,
 		user3.Id,
 	}
-	channel, appErr = th.App.createGroupChannel(userIDs)
+	channel, appErr = th.App.createGroupChannel(th.Context, userIDs)
 	require.Equal(t, appErr.Id, store.ChannelExistsError)
 	require.Equal(t, channel.Header, *data.Header)
 
@@ -3687,7 +3687,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		th.BasicUser2.Id,
 		user3.Id,
 	}
-	channel, appErr = th.App.createGroupChannel(userIDs)
+	channel, appErr = th.App.createGroupChannel(th.Context, userIDs)
 	require.Equal(t, appErr.Id, store.ChannelExistsError)
 	groupChannel = channel
 
@@ -4237,7 +4237,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 		DisplayName: ptrStr("Display Name"),
 		Type:        &chanTypeOpen,
 	}, false)
-	_, appErr = th.App.GetChannelByName(channelName, team.Id, false)
+	_, appErr = th.App.GetChannelByName(th.Context, channelName, team.Id, false)
 	require.Nil(t, appErr, "Failed to get channel from database.")
 
 	// Create a user3.
@@ -4513,7 +4513,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 		DisplayName: ptrStr("Display Name"),
 		Type:        &chanTypeOpen,
 	}, false)
-	_, appErr = th.App.GetChannelByName(channelName, team.Id, false)
+	_, appErr = th.App.GetChannelByName(th.Context, channelName, team.Id, false)
 	require.Nil(t, appErr, "Failed to get channel from database.")
 
 	// Create users

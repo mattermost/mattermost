@@ -52,7 +52,7 @@ func localDeleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var err *model.AppError
 	if c.Params.Permanent {
-		err = c.App.PermanentDeleteTeamId(c.Params.TeamId)
+		err = c.App.PermanentDeleteTeamId(c.AppContext, c.Params.TeamId)
 	} else {
 		err = c.App.SoftDeleteTeam(c.Params.TeamId)
 	}

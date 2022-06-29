@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"database/sql"
 	"errors"
 	"net/http"
@@ -291,7 +290,7 @@ func (a *App) HasPermissionToChannel(c request.CTX, askingUserId string, channel
 		return false
 	}
 
-	channelMember, err := a.GetChannelMember(context.Background(), channelID, askingUserId)
+	channelMember, err := a.GetChannelMember(c, channelID, askingUserId)
 	if err == nil {
 		roles := channelMember.GetRoles()
 		if a.RolesGrantPermission(roles, permission.Id) {

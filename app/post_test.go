@@ -339,7 +339,7 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 	userNotInChannel := th.BasicUser
 	rootPost := th.BasicPost
 
-	_, err := th.App.AddUserToChannel(userInChannel, channel, false)
+	_, err := th.App.AddUserToChannel(th.Context, userInChannel, channel, false)
 	require.Nil(t, err)
 
 	err = th.App.RemoveUserFromChannel(th.Context, userNotInChannel.Id, "", channel)
@@ -416,9 +416,9 @@ func TestPostChannelMentions(t *testing.T) {
 		TeamId:      th.BasicTeam.Id,
 	}, false)
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteChannel(channelToMention)
+	defer th.App.PermanentDeleteChannel(th.Context, channelToMention)
 
-	_, err = th.App.AddUserToChannel(user, channel, false)
+	_, err = th.App.AddUserToChannel(th.Context, user, channel, false)
 	require.Nil(t, err)
 
 	post := &model.Post{
@@ -2405,7 +2405,7 @@ func TestViewChannelShouldNotUpdateThreads(t *testing.T) {
 	m, e := th.App.GetThreadMembershipsForUser(user2.Id, th.BasicTeam.Id)
 	require.NoError(t, e)
 
-	th.App.ViewChannel(&model.ChannelView{
+	th.App.ViewChannel(th.Context, &model.ChannelView{
 		ChannelId:     channel.Id,
 		PrevChannelId: "",
 	}, user2.Id, "", true)
@@ -2449,7 +2449,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		require.NoError(t, nErr)
 		require.Len(t, thread.Participants, 1)
 		th.App.MarkChannelAsUnreadFromPost(th.Context, postRoot.Id, user1.Id, true)
-		l, err := th.App.GetPostsForChannelAroundLastUnread(channel.Id, user1.Id, 10, 10, true, true, false)
+		l, err := th.App.GetPostsForChannelAroundLastUnread(th.Context, channel.Id, user1.Id, 10, 10, true, true, false)
 		require.Nil(t, err)
 		require.Len(t, l.Order, 1)
 		require.EqualValues(t, 1, l.Posts[postRoot.Id].ReplyCount)
@@ -2459,7 +2459,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		require.True(t, *l.Posts[postRoot.Id].IsFollowing)
 
 		// try extended fetch
-		l, err = th.App.GetPostsForChannelAroundLastUnread(channel.Id, user1.Id, 10, 10, true, true, true)
+		l, err = th.App.GetPostsForChannelAroundLastUnread(th.Context, channel.Id, user1.Id, 10, 10, true, true, true)
 		require.Nil(t, err)
 		require.Len(t, l.Order, 1)
 		require.NotEmpty(t, l.Posts[postRoot.Id].Participants[0].Email)
@@ -2556,7 +2556,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		th.App.MarkChannelAsUnreadFromPost(th.Context, postRoot.Id, user1.Id, true)
 
 		// extended fetch posts around
-		l, err = th.App.GetPostsForChannelAroundLastUnread(channel.Id, user1.Id, 10, 10, true, true, true)
+		l, err = th.App.GetPostsForChannelAroundLastUnread(th.Context, channel.Id, user1.Id, 10, 10, true, true, true)
 		require.Nil(t, err)
 		require.Len(t, l.Order, 1)
 		require.NotEmpty(t, l.Posts[postRoot.Id].Participants[0].Email)

@@ -178,12 +178,12 @@ func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 	if samlInterfaceNew != nil {
 		ch.Saml = samlInterfaceNew(New(ServerConnector(ch)))
 		if err := ch.Saml.ConfigureSP(); err != nil {
-			mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+			s.Log.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 		}
 
 		ch.AddConfigListener(func(_, _ *model.Config) {
 			if err := ch.Saml.ConfigureSP(); err != nil {
-				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+				s.Log.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 			}
 		})
 	}
@@ -248,7 +248,7 @@ func (ch *Channels) Start() error {
 		// to ensure we don't re-init plugins unnecessarily.
 		diffs, err := config.Diff(prevCfg, cfg)
 		if err != nil {
-			mlog.Warn("Error in comparing configs", mlog.Err(err))
+			ch.srv.Log.Warn("Error in comparing configs", mlog.Err(err))
 			return
 		}
 

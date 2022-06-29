@@ -299,7 +299,7 @@ func localPatchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appErr = c.App.FillInChannelProps(rchannel)
+	appErr = c.App.FillInChannelProps(c.AppContext, rchannel)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -357,7 +357,7 @@ func localMoveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.App.RemoveAllDeactivatedMembersFromChannel(channel)
+	err = c.App.RemoveAllDeactivatedMembersFromChannel(c.AppContext, channel)
 	if err != nil {
 		c.Err = err
 		return
@@ -408,7 +408,7 @@ func localDeleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.Params.Permanent {
-		err = c.App.PermanentDeleteChannel(channel)
+		err = c.App.PermanentDeleteChannel(c.AppContext, channel)
 	} else {
 		err = c.App.DeleteChannel(c.AppContext, channel, "")
 	}

@@ -439,9 +439,9 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 	channel4 := th.CreatePublicChannel()
 	channel5 := th.CreatePrivateChannel()
 	channel6 := th.CreatePrivateChannel()
-	th.App.AddUserToChannel(th.BasicUser, channel4, false)
-	th.App.AddUserToChannel(th.BasicUser, channel5, false)
-	th.App.AddUserToChannel(th.BasicUser, channel6, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channel4, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channel5, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channel6, false)
 
 	channelIDs := [6]string{th.BasicChannel.Id, th.BasicChannel2.Id, th.BasicPrivateChannel.Id, channel4.Id, channel5.Id, channel6.Id}
 
@@ -535,9 +535,9 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 	channel4 := th.CreatePublicChannel()
 	channel5 := th.CreatePrivateChannel()
 	channel6 := th.CreatePrivateChannel()
-	th.App.AddUserToChannel(th.BasicUser, channel4, false)
-	th.App.AddUserToChannel(th.BasicUser, channel5, false)
-	th.App.AddUserToChannel(th.BasicUser, channel6, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channel4, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channel5, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channel6, false)
 
 	channelIDs := [6]string{th.BasicChannel.Id, th.BasicChannel2.Id, th.BasicPrivateChannel.Id, channel4.Id, channel5.Id, channel6.Id}
 
@@ -612,9 +612,9 @@ func TestGetTopThreadsForTeamSince(t *testing.T) {
 
 	channelPublic := th.BasicChannel
 	channelPrivate := th.BasicPrivateChannel
-	th.App.AddUserToChannel(th.BasicUser, channelPublic, false)
-	th.App.AddUserToChannel(th.BasicUser, channelPrivate, false)
-	th.App.AddUserToChannel(th.BasicUser2, channelPublic, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channelPublic, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channelPrivate, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser2, channelPublic, false)
 	th.App.RemoveUserFromChannel(th.Context, th.BasicUser2.Id, th.BasicUser.Id, channelPrivate)
 
 	// create two threads: one in public channel, one in private
@@ -698,9 +698,9 @@ func TestGetTopThreadsForUserSince(t *testing.T) {
 
 	channelPublic := th.BasicChannel
 	channelPrivate := th.BasicPrivateChannel
-	th.App.AddUserToChannel(th.BasicUser, channelPublic, false)
-	th.App.AddUserToChannel(th.BasicUser, channelPrivate, false)
-	th.App.AddUserToChannel(th.BasicUser2, channelPublic, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channelPublic, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channelPrivate, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser2, channelPublic, false)
 
 	// create two threads: one in public channel, one in private
 	// post in public channel has both users interacting, post in private only has user1 interacting

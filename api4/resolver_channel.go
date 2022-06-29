@@ -41,17 +41,17 @@ func (ch *channel) Stats(ctx context.Context) (*model.ChannelStats, error) {
 		return nil, c.Err
 	}
 
-	memberCount, appErr := c.App.GetChannelMemberCount(ch.Id)
+	memberCount, appErr := c.App.GetChannelMemberCount(c.AppContext, ch.Id)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	guestCount, appErr := c.App.GetChannelGuestCount(ch.Id)
+	guestCount, appErr := c.App.GetChannelGuestCount(c.AppContext, ch.Id)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	pinnedPostCount, appErr := c.App.GetChannelPinnedPostCount(ch.Id)
+	pinnedPostCount, appErr := c.App.GetChannelPinnedPostCount(c.AppContext, ch.Id)
 	if appErr != nil {
 		return nil, appErr
 	}

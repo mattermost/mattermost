@@ -114,11 +114,11 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 	defer th.App.DeleteScheme(channelScheme.Id)
 
 	team := th.CreateTeam()
-	defer th.App.PermanentDeleteTeamId(team.Id)
+	defer th.App.PermanentDeleteTeamId(th.Context, team.Id)
 
 	// Make a channel
 	channel := th.CreateChannel(th.Context, team)
-	defer th.App.PermanentDeleteChannel(channel)
+	defer th.App.PermanentDeleteChannel(th.Context, channel)
 
 	// Set the channel scheme
 	channel.SchemeId = &channelScheme.Id

@@ -34,7 +34,7 @@ func TestSendNotifications(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
 
 	post1, appErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
@@ -172,7 +172,7 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		user := th.CreateUser()
 		th.LinkUserToTeam(user, th.BasicTeam)
-		th.App.AddUserToChannel(user, th.BasicChannel, false)
+		th.App.AddUserToChannel(th.Context, user, th.BasicChannel, false)
 		users = append(users, user)
 	}
 
@@ -263,9 +263,9 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 	th.LinkUserToTeam(user3, th.BasicTeam)
 	th.LinkUserToTeam(user4, th.BasicTeam)
 	th.LinkUserToTeam(guest, th.BasicTeam)
-	th.App.AddUserToChannel(guest, channel, false)
-	th.App.AddUserToChannel(user4, guestAndUser4Channel, false)
-	th.App.AddUserToChannel(guest, guestAndUser4Channel, false)
+	th.App.AddUserToChannel(th.Context, guest, channel, false)
+	th.App.AddUserToChannel(th.Context, user4, guestAndUser4Channel, false)
+	th.App.AddUserToChannel(th.Context, guest, guestAndUser4Channel, false)
 
 	t.Run("should return users not in the channel", func(t *testing.T) {
 		post := &model.Post{}
@@ -2407,7 +2407,7 @@ func TestUserAllowsEmail(t *testing.T) {
 			model.MarkUnreadNotifyProp: model.ChannelMarkUnreadAll,
 		}
 
-		assert.True(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: "some-post-type"}))
+		assert.True(t, th.App.userAllowsEmail(th.Context, user, channelMemberNotificationProps, &model.Post{Type: "some-post-type"}))
 	})
 
 	t.Run("should return false in case the status is ONLINE", func(t *testing.T) {
@@ -2420,7 +2420,7 @@ func TestUserAllowsEmail(t *testing.T) {
 			model.MarkUnreadNotifyProp: model.ChannelMarkUnreadAll,
 		}
 
-		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: "some-post-type"}))
+		assert.False(t, th.App.userAllowsEmail(th.Context, user, channelMemberNotificationProps, &model.Post{Type: "some-post-type"}))
 	})
 
 	t.Run("should return false in case the EMAIL_NOTIFY_PROP is false", func(t *testing.T) {
@@ -2433,7 +2433,7 @@ func TestUserAllowsEmail(t *testing.T) {
 			model.MarkUnreadNotifyProp: model.ChannelMarkUnreadAll,
 		}
 
-		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: "some-post-type"}))
+		assert.False(t, th.App.userAllowsEmail(th.Context, user, channelMemberNotificationProps, &model.Post{Type: "some-post-type"}))
 	})
 
 	t.Run("should return false in case the MARK_UNREAD_NOTIFY_PROP is CHANNEL_MARK_UNREAD_MENTION", func(t *testing.T) {
@@ -2446,7 +2446,7 @@ func TestUserAllowsEmail(t *testing.T) {
 			model.MarkUnreadNotifyProp: model.ChannelMarkUnreadMention,
 		}
 
-		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: "some-post-type"}))
+		assert.False(t, th.App.userAllowsEmail(th.Context, user, channelMemberNotificationProps, &model.Post{Type: "some-post-type"}))
 	})
 
 	t.Run("should return false in case the Post type is POST_AUTO_RESPONDER", func(t *testing.T) {
@@ -2459,7 +2459,7 @@ func TestUserAllowsEmail(t *testing.T) {
 			model.MarkUnreadNotifyProp: model.ChannelMarkUnreadAll,
 		}
 
-		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: model.PostTypeAutoResponder}))
+		assert.False(t, th.App.userAllowsEmail(th.Context, user, channelMemberNotificationProps, &model.Post{Type: model.PostTypeAutoResponder}))
 	})
 
 	t.Run("should return false in case the status is STATUS_OUT_OF_OFFICE", func(t *testing.T) {
@@ -2472,7 +2472,7 @@ func TestUserAllowsEmail(t *testing.T) {
 			model.MarkUnreadNotifyProp: model.ChannelMarkUnreadAll,
 		}
 
-		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: model.PostTypeAutoResponder}))
+		assert.False(t, th.App.userAllowsEmail(th.Context, user, channelMemberNotificationProps, &model.Post{Type: model.PostTypeAutoResponder}))
 	})
 
 	t.Run("should return false in case the status is STATUS_ONLINE", func(t *testing.T) {
@@ -2485,7 +2485,7 @@ func TestUserAllowsEmail(t *testing.T) {
 			model.MarkUnreadNotifyProp: model.ChannelMarkUnreadAll,
 		}
 
-		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: model.PostTypeAutoResponder}))
+		assert.False(t, th.App.userAllowsEmail(th.Context, user, channelMemberNotificationProps, &model.Post{Type: model.PostTypeAutoResponder}))
 	})
 
 	t.Run("should return false in the case user is a bot", func(t *testing.T) {
@@ -2498,7 +2498,7 @@ func TestUserAllowsEmail(t *testing.T) {
 			model.MarkUnreadNotifyProp: model.ChannelMarkUnreadAll,
 		}
 
-		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotifcationProps, &model.Post{Type: model.PostTypeAutoResponder}))
+		assert.False(t, th.App.userAllowsEmail(th.Context, user, channelMemberNotifcationProps, &model.Post{Type: model.PostTypeAutoResponder}))
 	})
 
 }
@@ -2517,13 +2517,13 @@ func TestInsertGroupMentions(t *testing.T) {
 
 	groupChannelMember := th.CreateUser()
 	th.LinkUserToTeam(groupChannelMember, team)
-	th.App.AddUserToChannel(groupChannelMember, channel, false)
+	th.App.AddUserToChannel(th.Context, groupChannelMember, channel, false)
 	_, err = th.App.UpsertGroupMember(group.Id, groupChannelMember.Id)
 	require.Nil(t, err)
 
 	nonGroupChannelMember := th.CreateUser()
 	th.LinkUserToTeam(nonGroupChannelMember, team)
-	th.App.AddUserToChannel(nonGroupChannelMember, channel, false)
+	th.App.AddUserToChannel(th.Context, nonGroupChannelMember, channel, false)
 
 	nonChannelGroupMember := th.CreateUser()
 	th.LinkUserToTeam(nonChannelGroupMember, team)

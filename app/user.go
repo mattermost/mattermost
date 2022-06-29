@@ -98,7 +98,7 @@ func (a *App) CreateUserWithToken(c *request.Context, user *model.User, token *m
 		return nil, err
 	}
 
-	a.AddDirectChannels(team.Id, ruser)
+	a.AddDirectChannels(c, team.Id, ruser)
 
 	if token.Type == TokenTypeGuestInvitation || (token.Type == TokenTypeTeamInvitation && len(channels) > 0) {
 		for _, channel := range channels {
@@ -151,7 +151,7 @@ func (a *App) CreateUserWithInviteId(c *request.Context, user *model.User, invit
 		return nil, err
 	}
 
-	a.AddDirectChannels(team.Id, ruser)
+	a.AddDirectChannels(c, team.Id, ruser)
 
 	if err := a.Srv().EmailService.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.DisableWelcomeEmail, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
 		mlog.Warn("Failed to send welcome email on create user with inviteId", mlog.Err(err))
@@ -367,7 +367,7 @@ func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Re
 			return nil, err
 		}
 
-		err = a.AddDirectChannels(teamID, user)
+		err = a.AddDirectChannels(c, teamID, user)
 		if err != nil {
 			mlog.Warn("Failed to add direct channels", mlog.Err(err))
 		}
@@ -905,14 +905,14 @@ func (a *App) userDeactivated(c *request.Context, userID string) *model.AppError
 	return nil
 }
 
-func (a *App) invalidateUserChannelMembersCaches(userID string) *model.AppError {
+func (a *App) invalidateUserChannelMembersCaches(c request.CTX, userID string) *model.AppError {
 	teamsForUser, err := a.GetTeamsForUser(userID)
 	if err != nil {
 		return err
 	}
 
 	for _, team := range teamsForUser {
-		channelsForUser, err := a.GetChannelsForTeamForUser(team.Id, userID, &model.ChannelSearchOpts{
+		channelsForUser, err := a.GetChannelsForTeamForUser(c, team.Id, userID, &model.ChannelSearchOpts{
 			IncludeDeleted: false,
 			LastDeleteAt:   0,
 		})
@@ -960,7 +960,7 @@ func (a *App) UpdateActive(c *request.Context, user *model.User, active bool) (*
 		}
 	}
 
-	a.invalidateUserChannelMembersCaches(user.Id)
+	a.invalidateUserChannelMembersCaches(c, user.Id)
 	a.InvalidateCacheForUser(user.Id)
 
 	a.sendUpdatedUserEvent(*ruser)
@@ -2185,7 +2185,7 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 	for _, member := range teamMembers {
 		a.sendUpdatedMemberRoleEvent(user.Id, member)
 
-		channelMembers, err := a.GetChannelMembersForUser(member.TeamId, user.Id)
+		channelMembers, err := a.GetChannelMembersForUser(c, member.TeamId, user.Id)
 		if err != nil {
 			mlog.Warn("Failed to get channel members for user on promote guest to user", mlog.Err(err))
 		}
@@ -2209,7 +2209,7 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 
 // DemoteUserToGuest Convert user's roles and all his membership's roles from
 // regular user roles to guest roles.
-func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
+func (a *App) DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError {
 	demotedUser, nErr := a.ch.srv.userService.DemoteUserToGuest(user)
 	a.InvalidateCacheForUser(user.Id)
 	if nErr != nil {
@@ -2229,7 +2229,7 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 	for _, member := range teamMembers {
 		a.sendUpdatedMemberRoleEvent(user.Id, member)
 
-		channelMembers, err := a.GetChannelMembersForUser(member.TeamId, user.Id)
+		channelMembers, err := a.GetChannelMembersForUser(c, member.TeamId, user.Id)
 		if err != nil {
 			mlog.Warn("Failed to get channel members for users on demote user to guest", mlog.Err(err))
 			continue
@@ -2587,7 +2587,7 @@ func (a *App) UpdateThreadReadForUser(c request.CTX, currentSessionId, userID, t
 	}
 
 	// Clear if user has read the messages
-	if thread.UnreadReplies == 0 && a.IsCRTEnabledForUser(userID) {
+	if thread.UnreadReplies == 0 && a.IsCRTEnabledForUser(c, userID) {
 		a.clearPushNotification(currentSessionId, userID, post.ChannelId, threadID)
 	}
 

@@ -91,7 +91,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	th := &TestHelper{
 		App:               app.New(app.ServerConnector(s.Channels())),
-		Context:           &request.Context{},
+		Context:           request.EmptyContext(),
 		Server:            s,
 		LogBuffer:         buffer,
 		TestLogger:        testLogger,
@@ -358,7 +358,7 @@ func (th *TestHelper) linkUserToTeam(user *model.User, team *model.Team) {
 }
 
 func (th *TestHelper) addUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
-	member, err := th.App.AddUserToChannel(user, channel, false)
+	member, err := th.App.AddUserToChannel(th.Context, user, channel, false)
 	if err != nil {
 		panic(err)
 	}

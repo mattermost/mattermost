@@ -4,7 +4,6 @@
 package slashcommands
 
 import (
-	"context"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/app"
@@ -73,7 +72,7 @@ func (*InviteProvider) DoCommand(a *app.App, c *request.Context, args *model.Com
 	if len(splitMessage) > 1 && splitMessage[1] != "" {
 		targetChannelName := strings.TrimPrefix(strings.TrimSpace(splitMessage[1]), "~")
 
-		if channelToJoin, err = a.GetChannelByName(targetChannelName, args.TeamId, false); err != nil {
+		if channelToJoin, err = a.GetChannelByName(c, targetChannelName, args.TeamId, false); err != nil {
 			return &model.CommandResponse{
 				Text: args.T("api.command_invite.channel.error", map[string]any{
 					"Channel": targetChannelName,
@@ -105,7 +104,7 @@ func (*InviteProvider) DoCommand(a *app.App, c *request.Context, args *model.Com
 		}
 	case model.ChannelTypePrivate:
 		if !a.HasPermissionToChannel(c, args.UserId, channelToJoin.Id, model.PermissionManagePrivateChannelMembers) {
-			if _, err = a.GetChannelMember(context.Background(), channelToJoin.Id, args.UserId); err == nil {
+			if _, err = a.GetChannelMember(c, channelToJoin.Id, args.UserId); err == nil {
 				// User doing the inviting is a member of the channel.
 				return &model.CommandResponse{
 					Text: args.T("api.command_invite.permission.app_error", map[string]any{
@@ -131,7 +130,7 @@ func (*InviteProvider) DoCommand(a *app.App, c *request.Context, args *model.Com
 	}
 
 	// Check if user is already in the channel
-	_, err = a.GetChannelMember(context.Background(), channelToJoin.Id, userProfile.Id)
+	_, err = a.GetChannelMember(c, channelToJoin.Id, userProfile.Id)
 	if err == nil {
 		return &model.CommandResponse{
 			Text: args.T("api.command_invite.user_already_in_channel.app_error", map[string]any{

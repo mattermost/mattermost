@@ -65,7 +65,7 @@ func (*LeaveProvider) DoCommand(a *app.App, c *request.Context, args *model.Comm
 	}
 
 	if user.IsGuest() {
-		members, err := a.GetChannelMembersForUser(team.Id, args.UserId)
+		members, err := a.GetChannelMembersForUser(c, team.Id, args.UserId)
 		if err != nil || len(members) == 0 {
 			return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}

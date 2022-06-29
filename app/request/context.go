@@ -39,8 +39,11 @@ func NewContext(ctx context.Context, requestId, ipAddress, path, userAgent, acce
 }
 
 func EmptyContext() *Context {
+	logger, _ := mlog.NewLogger() // NewLogger without arguments never errors
+
 	return &Context{
 		t:       i18n.T,
+		logger:  logger,
 		context: context.Background(),
 	}
 }
@@ -139,11 +142,4 @@ type CTX interface {
 	Logger() mlog.LoggerIFace
 	SetAppError(*model.AppError)
 	AppError() *model.AppError
-}
-
-func ContextWithDefaultLogger() *Context {
-	logger, _ := mlog.NewLogger() // NewLogger without arguments never errors
-	return &Context{
-		logger: logger,
-	}
 }

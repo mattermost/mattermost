@@ -85,10 +85,10 @@ type slackComment struct {
 // Actions provides the actions that needs to be used for import slack data
 type Actions struct {
 	UpdateActive           func(*model.User, bool) (*model.User, *model.AppError)
-	AddUserToChannel       func(*model.User, *model.Channel, bool) (*model.ChannelMember, *model.AppError)
+	AddUserToChannel       func(request.CTX, *model.User, *model.Channel, bool) (*model.ChannelMember, *model.AppError)
 	JoinUserToTeam         func(*model.Team, *model.User, string) (*model.TeamMember, *model.AppError)
 	CreateDirectChannel    func(request.CTX, string, string, ...model.ChannelOption) (*model.Channel, *model.AppError)
-	CreateGroupChannel     func([]string) (*model.Channel, *model.AppError)
+	CreateGroupChannel     func(request.CTX, []string) (*model.Channel, *model.AppError)
 	CreateChannel          func(*model.Channel, bool) (*model.Channel, *model.AppError)
 	DoUploadFile           func(time.Time, string, string, string, string, []byte) (*model.FileInfo, *model.AppError)
 	GenerateThumbnailImage func(image.Image, string)
@@ -550,14 +550,14 @@ func (si *SlackImporter) deactivateSlackBotUser(user *model.User) {
 	}
 }
 
-func (si *SlackImporter) addSlackUsersToChannel(members []string, users map[string]*model.User, channel *model.Channel, log *bytes.Buffer) {
+func (si *SlackImporter) addSlackUsersToChannel(c request.CTX, members []string, users map[string]*model.User, channel *model.Channel, log *bytes.Buffer) {
 	for _, member := range members {
 		user, ok := users[member]
 		if !ok {
 			log.WriteString(i18n.T("api.slackimport.slack_add_channels.failed_to_add_user", map[string]any{"Username": "?"}))
 			continue
 		}
-		if _, err := si.actions.AddUserToChannel(user, channel, false); err != nil {
+		if _, err := si.actions.AddUserToChannel(c, user, channel, false); err != nil {
 			log.WriteString(i18n.T("api.slackimport.slack_add_channels.failed_to_add_user", map[string]any{"Username": user.Username}))
 		}
 	}
@@ -633,7 +633,7 @@ func (si *SlackImporter) slackAddChannels(c request.CTX, teamId string, slackcha
 
 		// Members for direct and group channels are added during the creation of the channel in the oldImportChannel function
 		if sChannel.Type == model.ChannelTypeOpen || sChannel.Type == model.ChannelTypePrivate {
-			si.addSlackUsersToChannel(sChannel.Members, users, mChannel, importerLog)
+			si.addSlackUsersToChannel(c, sChannel.Members, users, mChannel, importerLog)
 		}
 		importerLog.WriteString(newChannel.DisplayName + "\r\n")
 		addedChannels[sChannel.Id] = mChannel
@@ -758,7 +758,7 @@ func (si *SlackImporter) oldImportChannel(c request.CTX, channel *model.Channel,
 		if creator == nil {
 			return nil
 		}
-		sc, err := si.actions.CreateGroupChannel(members)
+		sc, err := si.actions.CreateGroupChannel(c, members)
 		if err != nil {
 			return nil
 		}

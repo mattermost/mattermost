@@ -103,7 +103,7 @@ func getGraphQLChannels(c *web.Context, channelIDs []string) ([]*channel, error)
 		return nil, c.Err
 	}
 
-	appErr = c.App.FillInChannelsProps(model.ChannelList(channels))
+	appErr = c.App.FillInChannelsProps(c.AppContext, model.ChannelList(channels))
 	if appErr != nil {
 		return nil, appErr
 	}

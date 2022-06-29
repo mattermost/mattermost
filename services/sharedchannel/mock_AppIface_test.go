@@ -18,13 +18,13 @@ type MockAppIface struct {
 	mock.Mock
 }
 
-// AddUserToChannel provides a mock function with given fields: user, channel, skipTeamMemberIntegrityCheck
-func (_m *MockAppIface) AddUserToChannel(user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError) {
-	ret := _m.Called(user, channel, skipTeamMemberIntegrityCheck)
+// AddUserToChannel provides a mock function with given fields: c, user, channel, skipTeamMemberIntegrityCheck
+func (_m *MockAppIface) AddUserToChannel(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError) {
+	ret := _m.Called(c, user, channel, skipTeamMemberIntegrityCheck)
 
 	var r0 *model.ChannelMember
-	if rf, ok := ret.Get(0).(func(*model.User, *model.Channel, bool) *model.ChannelMember); ok {
-		r0 = rf(user, channel, skipTeamMemberIntegrityCheck)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, *model.Channel, bool) *model.ChannelMember); ok {
+		r0 = rf(c, user, channel, skipTeamMemberIntegrityCheck)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ChannelMember)
@@ -32,8 +32,8 @@ func (_m *MockAppIface) AddUserToChannel(user *model.User, channel *model.Channe
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.User, *model.Channel, bool) *model.AppError); ok {
-		r1 = rf(user, channel, skipTeamMemberIntegrityCheck)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.User, *model.Channel, bool) *model.AppError); ok {
+		r1 = rf(c, user, channel, skipTeamMemberIntegrityCheck)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -315,13 +315,13 @@ func (_m *MockAppIface) PatchChannelModerationsForChannel(c request.CTX, channel
 	return r0, r1
 }
 
-// PermanentDeleteChannel provides a mock function with given fields: channel
-func (_m *MockAppIface) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
-	ret := _m.Called(channel)
+// PermanentDeleteChannel provides a mock function with given fields: c, channel
+func (_m *MockAppIface) PermanentDeleteChannel(c request.CTX, channel *model.Channel) *model.AppError {
+	ret := _m.Called(c, channel)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*model.Channel) *model.AppError); ok {
-		r0 = rf(channel)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Channel) *model.AppError); ok {
+		r0 = rf(c, channel)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

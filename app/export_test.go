@@ -733,9 +733,9 @@ func TestExportDeletedTeams(t *testing.T) {
 	assert.Equal(t, len(teams1), len(teams2))
 	assert.ElementsMatch(t, teams1, teams2)
 
-	channels1, err := th1.App.GetAllChannels(0, 10, model.ChannelSearchOpts{})
+	channels1, err := th1.App.GetAllChannels(th1.Context, 0, 10, model.ChannelSearchOpts{})
 	assert.Nil(t, err)
-	channels2, err := th2.App.GetAllChannels(0, 10, model.ChannelSearchOpts{})
+	channels2, err := th2.App.GetAllChannels(th1.Context, 0, 10, model.ChannelSearchOpts{})
 	assert.Nil(t, err)
 	assert.Equal(t, len(channels1), len(channels2))
 	assert.ElementsMatch(t, channels1, channels2)

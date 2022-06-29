@@ -4,8 +4,6 @@
 package slashcommands
 
 import (
-	"context"
-
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -66,7 +64,7 @@ func (*HeaderProvider) DoCommand(a *app.App, c *request.Context, args *model.Com
 	case model.ChannelTypeGroup, model.ChannelTypeDirect:
 		// Modifying the header is not linked to any specific permission for group/dm channels, so just check for membership.
 		var channelMember *model.ChannelMember
-		channelMember, err = a.GetChannelMember(context.Background(), args.ChannelId, args.UserId)
+		channelMember, err = a.GetChannelMember(c, args.ChannelId, args.UserId)
 		if err != nil || channelMember == nil {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_header.permission.app_error"),

@@ -1593,7 +1593,7 @@ func (a *App) importDirectChannel(c request.CTX, data *DirectChannelImportData, 
 		}
 		channel = ch
 	} else {
-		ch, err := a.createGroupChannel(userIDs)
+		ch, err := a.createGroupChannel(c, userIDs)
 		if err != nil && err.Id != store.ChannelExistsError {
 			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_group_channel.error", nil, err.Error(), http.StatusBadRequest)
 		}
@@ -1698,7 +1698,7 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 			}
 			channel = ch
 		} else {
-			ch, err = a.createGroupChannel(userIDs)
+			ch, err = a.createGroupChannel(c, userIDs)
 			if err != nil && err.Id != store.ChannelExistsError {
 				return line.LineNumber, model.NewAppError("BulkImport", "app.import.import_direct_post.create_group_channel.error", nil, err.Error(), http.StatusBadRequest)
 			}

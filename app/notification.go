@@ -171,7 +171,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				if threadPost.Id == parentPostList.Order[0] && threadPost.IsFromOAuthBot() {
 					continue
 				}
-				if a.IsCRTEnabledForUser(profile.Id) {
+				if a.IsCRTEnabledForUser(c, profile.Id) {
 					continue
 				}
 				if profile.NotifyProps[model.CommentsNotifyProp] == model.CommentsNotifyAny || (profile.NotifyProps[model.CommentsNotifyProp] == model.CommentsNotifyRoot && threadPost.Id == parentPostList.Order[0]) {
@@ -204,7 +204,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				channelMemberNotifyPropsMap[profile.Id][model.PushNotifyProp] == model.ChannelNotifyAll) &&
 				(post.UserId != profile.Id || post.GetProp("from_webhook") == "true") &&
 				!post.IsSystemMessage() &&
-				!(a.IsCRTEnabledForUser(profile.Id) && post.RootId != "") {
+				!(a.IsCRTEnabledForUser(c, profile.Id) && post.RootId != "") {
 				allActivityPushUserIds = append(allActivityPushUserIds, profile.Id)
 			}
 		}
@@ -331,7 +331,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 	if isCRTAllowed && post.RootId != "" {
 		for _, uid := range followers {
 			profile := profileMap[uid]
-			if profile == nil || !a.IsCRTEnabledForUser(uid) {
+			if profile == nil || !a.IsCRTEnabledForUser(c, uid) {
 				continue
 			}
 
@@ -366,12 +366,12 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				continue
 			}
 
-			if a.userAllowsEmail(profileMap[id], channelMemberNotifyPropsMap[id], post) {
+			if a.userAllowsEmail(c, profileMap[id], channelMemberNotifyPropsMap[id], post) {
 				senderProfileImage, _, err := a.GetProfileImage(sender)
 				if err != nil {
 					a.Log().Warn("Unable to get the sender user profile image.", mlog.String("user_id", sender.Id), mlog.Err(err))
 				}
-				if err := a.sendNotificationEmail(notification, profileMap[id], team, senderProfileImage); err != nil {
+				if err := a.sendNotificationEmail(c, notification, profileMap[id], team, senderProfileImage); err != nil {
 					mlog.Warn("Unable to send notification email.", mlog.Err(err))
 				}
 			}
@@ -583,7 +583,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 			if profileMap[uid] == nil {
 				continue
 			}
-			if a.IsCRTEnabledForUser(uid) {
+			if a.IsCRTEnabledForUser(c, uid) {
 				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, team.Id, "", uid, nil)
 				threadMembership := participantMemberships[uid]
 				if threadMembership == nil {
@@ -659,7 +659,7 @@ func max(a, b int64) int64 {
 	return a
 }
 
-func (a *App) userAllowsEmail(user *model.User, channelMemberNotificationProps model.StringMap, post *model.Post) bool {
+func (a *App) userAllowsEmail(c request.CTX, user *model.User, channelMemberNotificationProps model.StringMap, post *model.Post) bool {
 	// if user is a bot account, then we do not send email
 	if user.IsBot {
 		return false
@@ -668,7 +668,7 @@ func (a *App) userAllowsEmail(user *model.User, channelMemberNotificationProps m
 	userAllowsEmails := user.NotifyProps[model.EmailNotifyProp] != "false"
 
 	// if CRT is ON for user and the post is a reply disregard the channelEmail setting
-	if channelEmail, ok := channelMemberNotificationProps[model.EmailNotifyProp]; ok && !(a.IsCRTEnabledForUser(user.Id) && post.RootId != "") {
+	if channelEmail, ok := channelMemberNotificationProps[model.EmailNotifyProp]; ok && !(a.IsCRTEnabledForUser(c, user.Id) && post.RootId != "") {
 		if channelEmail != model.ChannelNotifyDefault {
 			userAllowsEmails = channelEmail != "false"
 		}

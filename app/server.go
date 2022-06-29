@@ -480,7 +480,7 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrap(err, "Unable to create opengraphdata cache")
 	}
 
-	s.createPushNotificationsHub()
+	s.createPushNotificationsHub(request.EmptyContext())
 
 	if err2 := i18n.InitTranslations(*s.Config().LocalizationSettings.DefaultServerLocale, *s.Config().LocalizationSettings.DefaultClientLocale); err2 != nil {
 		return nil, errors.Wrapf(err2, "unable to load Mattermost translation files")

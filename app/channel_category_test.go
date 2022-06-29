@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -18,7 +17,7 @@ func TestSidebarCategory(t *testing.T) {
 	defer th.TearDown()
 
 	basicChannel2 := th.CreateChannel(th.Context, th.BasicTeam)
-	defer th.App.PermanentDeleteChannel(basicChannel2)
+	defer th.App.PermanentDeleteChannel(th.Context, basicChannel2)
 	user := th.CreateUser()
 	defer th.App.Srv().Store.User().PermanentDelete(user.Id)
 	th.LinkUserToTeam(user, th.BasicTeam)
@@ -169,10 +168,10 @@ func TestUpdateSidebarCategories(t *testing.T) {
 		assert.True(t, updated[0].Muted)
 
 		// Confirm that the channels are now muted
-		member1, err := th.App.GetChannelMember(context.Background(), channel1.Id, th.BasicUser.Id)
+		member1, err := th.App.GetChannelMember(th.Context, channel1.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 		assert.True(t, member1.IsChannelMuted())
-		member2, err := th.App.GetChannelMember(context.Background(), channel2.Id, th.BasicUser.Id)
+		member2, err := th.App.GetChannelMember(th.Context, channel2.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 		assert.True(t, member2.IsChannelMuted())
 
@@ -190,10 +189,10 @@ func TestUpdateSidebarCategories(t *testing.T) {
 		assert.False(t, updated[0].Muted)
 
 		// Confirm that the channels are now unmuted
-		member1, err = th.App.GetChannelMember(context.Background(), channel1.Id, th.BasicUser.Id)
+		member1, err = th.App.GetChannelMember(th.Context, channel1.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 		assert.False(t, member1.IsChannelMuted())
-		member2, err = th.App.GetChannelMember(context.Background(), channel2.Id, th.BasicUser.Id)
+		member2, err = th.App.GetChannelMember(th.Context, channel2.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 		assert.False(t, member2.IsChannelMuted())
 	})
@@ -251,10 +250,10 @@ func TestUpdateSidebarCategories(t *testing.T) {
 		require.Nil(t, err)
 
 		// Confirm that the channels are now muted
-		member1, err := th.App.GetChannelMember(context.Background(), channel1.Id, th.BasicUser.Id)
+		member1, err := th.App.GetChannelMember(th.Context, channel1.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 		assert.True(t, member1.IsChannelMuted())
-		member2, err := th.App.GetChannelMember(context.Background(), channel2.Id, th.BasicUser.Id)
+		member2, err := th.App.GetChannelMember(th.Context, channel2.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 		assert.True(t, member2.IsChannelMuted())
 
@@ -280,10 +279,10 @@ func TestUpdateSidebarCategories(t *testing.T) {
 		require.Nil(t, err)
 
 		// Confirm that the channels are now unmuted
-		member1, err = th.App.GetChannelMember(context.Background(), channel1.Id, th.BasicUser.Id)
+		member1, err = th.App.GetChannelMember(th.Context, channel1.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 		assert.False(t, member1.IsChannelMuted())
-		member2, err = th.App.GetChannelMember(context.Background(), channel2.Id, th.BasicUser.Id)
+		member2, err = th.App.GetChannelMember(th.Context, channel2.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 		assert.False(t, member2.IsChannelMuted())
 	})
@@ -341,10 +340,10 @@ func TestUpdateSidebarCategories(t *testing.T) {
 		require.Nil(t, err)
 
 		// Confirm that the channels are still unmuted
-		member1, err := th.App.GetChannelMember(context.Background(), channel1.Id, th.BasicUser.Id)
+		member1, err := th.App.GetChannelMember(th.Context, channel1.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 		assert.False(t, member1.IsChannelMuted())
-		member2, err := th.App.GetChannelMember(context.Background(), channel2.Id, th.BasicUser.Id)
+		member2, err := th.App.GetChannelMember(th.Context, channel2.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 		assert.False(t, member2.IsChannelMuted())
 
@@ -376,10 +375,10 @@ func TestUpdateSidebarCategories(t *testing.T) {
 		require.Nil(t, err)
 
 		// Confirm that the channels are still muted
-		member1, err = th.App.GetChannelMember(context.Background(), channel1.Id, th.BasicUser.Id)
+		member1, err = th.App.GetChannelMember(th.Context, channel1.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 		assert.True(t, member1.IsChannelMuted())
-		member2, err = th.App.GetChannelMember(context.Background(), channel2.Id, th.BasicUser.Id)
+		member2, err = th.App.GetChannelMember(th.Context, channel2.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 		assert.True(t, member2.IsChannelMuted())
 	})
@@ -437,10 +436,10 @@ func TestUpdateSidebarCategories(t *testing.T) {
 		require.Nil(t, err)
 
 		// Confirm that the channels are still unmuted
-		member1, err := th.App.GetChannelMember(context.Background(), channel1.Id, th.BasicUser.Id)
+		member1, err := th.App.GetChannelMember(th.Context, channel1.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 		assert.False(t, member1.IsChannelMuted())
-		member2, err := th.App.GetChannelMember(context.Background(), channel2.Id, th.BasicUser.Id)
+		member2, err := th.App.GetChannelMember(th.Context, channel2.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 		assert.False(t, member2.IsChannelMuted())
 
@@ -472,10 +471,10 @@ func TestUpdateSidebarCategories(t *testing.T) {
 		require.Nil(t, err)
 
 		// Confirm that the channels are still muted
-		member1, err = th.App.GetChannelMember(context.Background(), channel1.Id, th.BasicUser.Id)
+		member1, err = th.App.GetChannelMember(th.Context, channel1.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 		assert.True(t, member1.IsChannelMuted())
-		member2, err = th.App.GetChannelMember(context.Background(), channel2.Id, th.BasicUser.Id)
+		member2, err = th.App.GetChannelMember(th.Context, channel2.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 		assert.True(t, member2.IsChannelMuted())
 	})

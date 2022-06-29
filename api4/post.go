@@ -277,7 +277,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 	collapsedThreads := r.URL.Query().Get("collapsedThreads") == "true"
 	collapsedThreadsExtended := r.URL.Query().Get("collapsedThreadsExtended") == "true"
 
-	postList, err := c.App.GetPostsForChannelAroundLastUnread(channelId, userId, c.Params.LimitBefore, c.Params.LimitAfter, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
+	postList, err := c.App.GetPostsForChannelAroundLastUnread(c.AppContext, channelId, userId, c.Params.LimitBefore, c.Params.LimitAfter, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
 	if err != nil {
 		c.Err = err
 		return
