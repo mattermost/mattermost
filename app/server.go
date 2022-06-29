@@ -101,6 +101,7 @@ const (
 	BotKey           ServiceKey = "bot"
 	LogKey           ServiceKey = "log"
 	HooksKey         ServiceKey = "hooks"
+	KVStoreKey       ServiceKey = "kvstore"
 )
 
 type Server struct {
@@ -369,24 +370,12 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	s.filestore = backend
 
-	channelWrapper := &channelsWrapper{
-		srv: s,
-	}
-
 	s.licenseWrapper = &licenseWrapper{
 		srv: s,
 	}
 
 	s.clusterWrapper = &clusterWrapper{
 		srv: s,
-	}
-
-	fileInfoWrapper := &fileInfoWrapper{
-		srv: s,
-	}
-
-	cloudWrapper := &cloudWrapper{
-		cloud: s.Cloud,
 	}
 
 	s.teamService, err = teams.New(teams.ServiceConfig{
@@ -403,15 +392,16 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	serviceMap := map[ServiceKey]interface{}{
-		ChannelKey:       channelWrapper,
+		ChannelKey:       &channelsWrapper{srv: s},
 		ConfigKey:        s.configStore,
 		LicenseKey:       s.licenseWrapper,
 		FilestoreKey:     s.filestore,
-		FileInfoStoreKey: fileInfoWrapper,
+		FileInfoStoreKey: &fileInfoWrapper{srv: s},
 		ClusterKey:       s.clusterWrapper,
 		UserKey:          New(ServerConnector(s.Channels())),
 		LogKey:           s.GetLogger(),
-		CloudKey:         cloudWrapper,
+		CloudKey:         &cloudWrapper{cloud: s.Cloud},
+		KVStoreKey:       &kvStoreWrapper{srv: s},
 	}
 
 	// Step 8: Initialize products.
