@@ -807,6 +807,7 @@ type AppIface interface {
 	GetUsersInChannelMap(options *model.UserGetOptions, asAdmin bool) (map[string]*model.User, *model.AppError)
 	GetUsersInChannelPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
 	GetUsersInChannelPageByStatus(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
+	GetUsersInChannelPageByAdmin(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
 	GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError)
 	GetUsersInTeamEtag(teamID string, restrictionsHash string) string
 	GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
