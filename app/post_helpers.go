@@ -232,7 +232,7 @@ func (a *App) isInaccessiblePost(post *model.Post) (bool, *model.AppError) {
 func (a *App) getFilteredAccessiblePosts(posts []*model.Post, options filterPostOptions) ([]*model.Post, bool, *model.AppError) {
 	filteredPosts := []*model.Post{}
 	if len(posts) == 0 {
-		return filteredPosts, false, nil
+		return posts, false, nil
 	}
 
 	lastAccessiblePostTime, appErr := a.GetLastAccessiblePostTime()
@@ -240,7 +240,7 @@ func (a *App) getFilteredAccessiblePosts(posts []*model.Post, options filterPost
 		return filteredPosts, false, model.NewAppError("filterInaccessiblePostsSlice", "app.last_accessible_post.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	} else if lastAccessiblePostTime == 0 {
 		// No need to filter, all posts are accessible
-		return filteredPosts, false, nil
+		return posts, false, nil
 	}
 
 	if options.assumeSortedCreatedAt {
