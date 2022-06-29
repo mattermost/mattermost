@@ -620,6 +620,27 @@ func (_m *API) EnablePlugin(id string) *model.AppError {
 	return r0
 }
 
+// EnsureBotUser provides a mock function with given fields: bot
+func (_m *API) EnsureBotUser(bot *model.Bot) (string, error) {
+	ret := _m.Called(bot)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*model.Bot) string); ok {
+		r0 = rf(bot)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Bot) error); ok {
+		r1 = rf(bot)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ExecuteSlashCommand provides a mock function with given fields: commandArgs
 func (_m *API) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*model.CommandResponse, error) {
 	ret := _m.Called(commandArgs)

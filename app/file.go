@@ -47,12 +47,20 @@ const (
 	maxContentExtractionSize   = 1024 * 1024 // 1MB
 )
 
+type fileInfoWrapper struct {
+	srv *Server
+}
+
+func (f *fileInfoWrapper) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
+	return f.srv.getFileInfo(fileID)
+}
+
 func (a *App) FileBackend() filestore.FileBackend {
 	return a.ch.filestore
 }
 
 func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
-	fileBackendSettings := settings.ToFileBackendSettings(false)
+	fileBackendSettings := settings.ToFileBackendSettings(false, false)
 	err := fileBackendSettings.CheckMandatoryS3Fields()
 	if err != nil {
 		return model.NewAppError("CheckMandatoryS3Fields", "api.admin.test_s3.missing_s3_bucket", nil, err.Error(), http.StatusBadRequest)
@@ -81,7 +89,8 @@ func (a *App) TestFileStoreConnection() *model.AppError {
 
 func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError {
 	license := a.Srv().License()
-	backend, err := filestore.NewFileBackend(cfg.ToFileBackendSettings(license != nil && *license.Features.Compliance))
+	insecure := a.Config().ServiceSettings.EnableInsecureOutgoingConnections
+	backend, err := filestore.NewFileBackend(cfg.ToFileBackendSettings(license != nil && *license.Features.Compliance, insecure != nil && *insecure))
 	if err != nil {
 		return model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1124,8 +1133,8 @@ func (a *App) generateMiniPreviewForInfos(fileInfos []*model.FileInfo) {
 	wg.Wait()
 }
 
-func (a *App) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
-	fileInfo, err := a.Srv().Store.FileInfo().Get(fileID)
+func (s *Server) getFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
+	fileInfo, err := s.Store.FileInfo().Get(fileID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1135,9 +1144,15 @@ func (a *App) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
 			return nil, model.NewAppError("GetFileInfo", "app.file_info.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
-
-	a.generateMiniPreview(fileInfo)
 	return fileInfo, nil
+}
+
+func (a *App) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
+	fileInfo, err := a.Srv().getFileInfo(fileID)
+	if err == nil {
+		a.generateMiniPreview(fileInfo)
+	}
+	return fileInfo, err
 }
 
 func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {

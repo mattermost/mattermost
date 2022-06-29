@@ -9272,7 +9272,7 @@
   },
   {
     "id": "api.insights.feature_disabled",
-    "translation": " "
+    "translation": "Insights zit achter een functionaliteit die niet is ingeschakeld."
   },
   {
     "id": "api.getThreadsForUser.bad_only_params",
@@ -9300,7 +9300,7 @@
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "Jouw {{.WorkspaceName}} werkruimte is nu geüpgraded. Dit zal gefactureerd worden vanaf {{.TrialEnd}}"
+    "translation": "Jouw {{.WorkspaceName}} werkruimte is nu geüpgraded. Dit zal gefactureerd worden vanaf {{.Date}}"
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
@@ -9347,7 +9347,23 @@
     "translation": "Kan geen team aanmaken omdat de teamlimiet bereikt is"
   },
   {
-    "id": "api.cloud.cloud_free_feature_flag_off_error",
-    "translation": "CloudFree-functie flag is uit."
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "Kan de topdraadjes voor de gebruiker niet ophalen."
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "Kan de topdraadjes voor het team niet ophalen."
+  },
+  {
+    "id": "app.insights.feature_disabled",
+    "translation": "Insights-functionaliteit is uitgeschakeld."
+  },
+  {
+    "id": "api.license_error.professional_or_enterprise",
+    "translation": " "
+  },
+  {
+    "id": "api.insights.license_error",
+    "translation": "Jouw licentie ondersteunt deze Insights-functie niet."
   }
 ]

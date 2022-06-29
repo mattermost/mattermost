@@ -53,6 +53,13 @@ type Product struct {
 	BillingScheme     BillingScheme      `json:"billing_scheme"`
 }
 
+type UserFacingProduct struct {
+	ID           string  `json:"id"`
+	Name         string  `json:"name"`
+	SKU          string  `json:"sku"`
+	PricePerSeat float64 `json:"price_per_seat"`
+}
+
 // AddOn represents an addon to a product.
 type AddOn struct {
 	ID           string  `json:"id"`
@@ -82,6 +89,11 @@ type CloudCustomer struct {
 	BillingAddress *Address       `json:"billing_address"`
 	CompanyAddress *Address       `json:"company_address"`
 	PaymentMethod  *PaymentMethod `json:"payment_method"`
+}
+
+type StartCloudTrialRequest struct {
+	Email          string `json:"email"`
+	SubscriptionID string `json:"subscription_id"`
 }
 
 type ValidateBusinessEmailRequest struct {
