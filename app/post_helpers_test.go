@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_getTimeSortedPostAccessibleBounds(t *testing.T) {
-	var p = func(at int64) *model.Post {
+func TestGetTimeSortedPostAccessibleBounds(t *testing.T) {
+	var postFromCreateAt = func(at int64) *model.Post {
 		return &model.Post{CreateAt: at}
 	}
 
@@ -34,7 +34,7 @@ func Test_getTimeSortedPostAccessibleBounds(t *testing.T) {
 	t.Run("one accessible post returns all accessible posts", func(t *testing.T) {
 		pl := &model.PostList{
 			Posts: map[string]*model.Post{
-				"post_a": p(1),
+				"post_a": postFromCreateAt(1),
 			},
 			Order: []string{"post_a"},
 		}
@@ -45,7 +45,7 @@ func Test_getTimeSortedPostAccessibleBounds(t *testing.T) {
 	t.Run("one inaccessible post returns no accessible posts", func(t *testing.T) {
 		pl := &model.PostList{
 			Posts: map[string]*model.Post{
-				"post_a": p(0),
+				"post_a": postFromCreateAt(0),
 			},
 			Order: []string{"post_a"},
 		}
@@ -56,12 +56,12 @@ func Test_getTimeSortedPostAccessibleBounds(t *testing.T) {
 	t.Run("all accessible posts returns all accessible posts", func(t *testing.T) {
 		pl := &model.PostList{
 			Posts: map[string]*model.Post{
-				"post_a": p(1),
-				"post_b": p(2),
-				"post_c": p(3),
-				"post_d": p(4),
-				"post_e": p(5),
-				"post_f": p(6),
+				"post_a": postFromCreateAt(1),
+				"post_b": postFromCreateAt(2),
+				"post_c": postFromCreateAt(3),
+				"post_d": postFromCreateAt(4),
+				"post_e": postFromCreateAt(5),
+				"post_f": postFromCreateAt(6),
 			},
 			Order: []string{"post_a", "post_b", "post_c", "post_d", "post_e", "post_f"},
 		}
@@ -72,12 +72,12 @@ func Test_getTimeSortedPostAccessibleBounds(t *testing.T) {
 	t.Run("all inaccessible posts returns all inaccessible posts", func(t *testing.T) {
 		pl := &model.PostList{
 			Posts: map[string]*model.Post{
-				"post_a": p(1),
-				"post_b": p(2),
-				"post_c": p(3),
-				"post_d": p(4),
-				"post_e": p(5),
-				"post_f": p(6),
+				"post_a": postFromCreateAt(1),
+				"post_b": postFromCreateAt(2),
+				"post_c": postFromCreateAt(3),
+				"post_d": postFromCreateAt(4),
+				"post_e": postFromCreateAt(5),
+				"post_f": postFromCreateAt(6),
 			},
 			Order: []string{"post_a", "post_b", "post_c", "post_d", "post_e", "post_f"},
 		}
@@ -88,8 +88,8 @@ func Test_getTimeSortedPostAccessibleBounds(t *testing.T) {
 	t.Run("two posts, first accessible", func(t *testing.T) {
 		pl := &model.PostList{
 			Posts: map[string]*model.Post{
-				"post_a": p(1),
-				"post_b": p(0),
+				"post_a": postFromCreateAt(1),
+				"post_b": postFromCreateAt(0),
 			},
 			Order: []string{"post_a", "post_b"},
 		}
@@ -100,8 +100,8 @@ func Test_getTimeSortedPostAccessibleBounds(t *testing.T) {
 	t.Run("two posts, second accessible", func(t *testing.T) {
 		pl := &model.PostList{
 			Posts: map[string]*model.Post{
-				"post_a": p(0),
-				"post_b": p(1),
+				"post_a": postFromCreateAt(0),
+				"post_b": postFromCreateAt(1),
 			},
 			Order: []string{"post_a", "post_b"},
 		}
@@ -112,10 +112,10 @@ func Test_getTimeSortedPostAccessibleBounds(t *testing.T) {
 	t.Run("picks the right post for boundaries when there are time ties", func(t *testing.T) {
 		pl := &model.PostList{
 			Posts: map[string]*model.Post{
-				"post_a": p(0),
-				"post_b": p(1),
-				"post_c": p(1),
-				"post_d": p(2),
+				"post_a": postFromCreateAt(0),
+				"post_b": postFromCreateAt(1),
+				"post_c": postFromCreateAt(1),
+				"post_d": postFromCreateAt(2),
 			},
 			Order: []string{"post_a", "post_b", "post_c", "post_d"},
 		}
@@ -126,10 +126,10 @@ func Test_getTimeSortedPostAccessibleBounds(t *testing.T) {
 	t.Run("picks the right post for boundaries when there are time ties, reverse order", func(t *testing.T) {
 		pl := &model.PostList{
 			Posts: map[string]*model.Post{
-				"post_a": p(0),
-				"post_b": p(1),
-				"post_c": p(1),
-				"post_d": p(2),
+				"post_a": postFromCreateAt(0),
+				"post_b": postFromCreateAt(1),
+				"post_c": postFromCreateAt(1),
+				"post_d": postFromCreateAt(2),
 			},
 			Order: []string{"post_d", "post_c", "post_b", "post_a"},
 		}
@@ -140,11 +140,11 @@ func Test_getTimeSortedPostAccessibleBounds(t *testing.T) {
 	t.Run("odd number of posts and reverse time selects right boundaries", func(t *testing.T) {
 		pl := &model.PostList{
 			Posts: map[string]*model.Post{
-				"post_a": p(0),
-				"post_b": p(1),
-				"post_c": p(2),
-				"post_d": p(3),
-				"post_e": p(4),
+				"post_a": postFromCreateAt(0),
+				"post_b": postFromCreateAt(1),
+				"post_c": postFromCreateAt(2),
+				"post_d": postFromCreateAt(3),
+				"post_e": postFromCreateAt(4),
 			},
 			Order: []string{"post_e", "post_d", "post_c", "post_b", "post_a"},
 		}
@@ -153,14 +153,14 @@ func Test_getTimeSortedPostAccessibleBounds(t *testing.T) {
 	})
 
 	t.Run("posts-slice: odd number of posts and reverse time selects right boundaries", func(t *testing.T) {
-		posts := []*model.Post{p(4), p(3), p(2), p(1), p(0)}
+		posts := []*model.Post{postFromCreateAt(4), postFromCreateAt(3), postFromCreateAt(2), postFromCreateAt(1), postFromCreateAt(0)}
 		bounds := getTimeSortedPostAccessibleBounds(2, len(posts), func(i int) int64 { return posts[i].CreateAt })
 		require.Equal(t, postAccessibleBounds{accessible: 2, inaccessible: 3}, bounds)
 	})
 }
 
-func Test_filterInaccessiblePosts(t *testing.T) {
-	th := Setup(t).InitBasic()
+func TestFilterInaccessiblePosts(t *testing.T) {
+	th := Setup(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 	th.App.Srv().Store.System().Save(&model.System{
 		Name:  model.SystemLastAccessiblePostTime,
@@ -169,18 +169,18 @@ func Test_filterInaccessiblePosts(t *testing.T) {
 
 	defer th.TearDown()
 
-	var p = func(at int64) *model.Post {
+	var postFromCreateAt = func(at int64) *model.Post {
 		return &model.Post{CreateAt: at}
 	}
 
 	t.Run("ascending order returns correct posts", func(t *testing.T) {
 		postList := &model.PostList{
 			Posts: map[string]*model.Post{
-				"post_a": p(0),
-				"post_b": p(1),
-				"post_c": p(2),
-				"post_d": p(3),
-				"post_e": p(4),
+				"post_a": postFromCreateAt(0),
+				"post_b": postFromCreateAt(1),
+				"post_c": postFromCreateAt(2),
+				"post_d": postFromCreateAt(3),
+				"post_e": postFromCreateAt(4),
 			},
 			Order: []string{"post_a", "post_b", "post_c", "post_d", "post_e"},
 		}
@@ -189,9 +189,9 @@ func Test_filterInaccessiblePosts(t *testing.T) {
 		require.Nil(t, appErr)
 
 		assert.Equal(t, map[string]*model.Post{
-			"post_c": p(2),
-			"post_d": p(3),
-			"post_e": p(4),
+			"post_c": postFromCreateAt(2),
+			"post_d": postFromCreateAt(3),
+			"post_e": postFromCreateAt(4),
 		}, postList.Posts)
 
 		assert.Equal(t, []string{
@@ -204,11 +204,11 @@ func Test_filterInaccessiblePosts(t *testing.T) {
 	t.Run("descending order returns correct posts", func(t *testing.T) {
 		postList := &model.PostList{
 			Posts: map[string]*model.Post{
-				"post_a": p(0),
-				"post_b": p(1),
-				"post_c": p(2),
-				"post_d": p(3),
-				"post_e": p(4),
+				"post_a": postFromCreateAt(0),
+				"post_b": postFromCreateAt(1),
+				"post_c": postFromCreateAt(2),
+				"post_d": postFromCreateAt(3),
+				"post_e": postFromCreateAt(4),
 			},
 			Order: []string{"post_e", "post_d", "post_c", "post_b", "post_a"},
 		}
@@ -217,9 +217,9 @@ func Test_filterInaccessiblePosts(t *testing.T) {
 		require.Nil(t, appErr)
 
 		assert.Equal(t, map[string]*model.Post{
-			"post_c": p(2),
-			"post_d": p(3),
-			"post_e": p(4),
+			"post_c": postFromCreateAt(2),
+			"post_d": postFromCreateAt(3),
+			"post_e": postFromCreateAt(4),
 		}, postList.Posts)
 
 		assert.Equal(t, []string{
@@ -232,11 +232,11 @@ func Test_filterInaccessiblePosts(t *testing.T) {
 	t.Run("handles mixed create at ordering correctly if correct options given", func(t *testing.T) {
 		postList := &model.PostList{
 			Posts: map[string]*model.Post{
-				"post_a": p(0),
-				"post_b": p(1),
-				"post_c": p(2),
-				"post_d": p(3),
-				"post_e": p(4),
+				"post_a": postFromCreateAt(0),
+				"post_b": postFromCreateAt(1),
+				"post_c": postFromCreateAt(2),
+				"post_d": postFromCreateAt(3),
+				"post_e": postFromCreateAt(4),
 			},
 			Order: []string{"post_e", "post_b", "post_a", "post_d", "post_c"},
 		}
@@ -245,9 +245,9 @@ func Test_filterInaccessiblePosts(t *testing.T) {
 		require.Nil(t, appErr)
 
 		assert.Equal(t, map[string]*model.Post{
-			"post_c": p(2),
-			"post_d": p(3),
-			"post_e": p(4),
+			"post_c": postFromCreateAt(2),
+			"post_d": postFromCreateAt(3),
+			"post_e": postFromCreateAt(4),
 		}, postList.Posts)
 
 		assert.Equal(t, []string{
@@ -260,11 +260,11 @@ func Test_filterInaccessiblePosts(t *testing.T) {
 	t.Run("handles posts missing from order when doing linear search", func(t *testing.T) {
 		postList := &model.PostList{
 			Posts: map[string]*model.Post{
-				"post_a": p(0),
-				"post_b": p(1),
-				"post_c": p(1),
-				"post_d": p(3),
-				"post_e": p(4),
+				"post_a": postFromCreateAt(0),
+				"post_b": postFromCreateAt(1),
+				"post_c": postFromCreateAt(1),
+				"post_d": postFromCreateAt(3),
+				"post_e": postFromCreateAt(4),
 			},
 			Order: []string{"post_e", "post_a", "post_d", "post_b"},
 		}
@@ -273,8 +273,8 @@ func Test_filterInaccessiblePosts(t *testing.T) {
 		require.Nil(t, appErr)
 
 		assert.Equal(t, map[string]*model.Post{
-			"post_d": p(3),
-			"post_e": p(4),
+			"post_d": postFromCreateAt(3),
+			"post_e": postFromCreateAt(4),
 		}, postList.Posts)
 
 		assert.Equal(t, []string{
@@ -284,8 +284,8 @@ func Test_filterInaccessiblePosts(t *testing.T) {
 	})
 }
 
-func Test_getFilteredAccessiblePosts(t *testing.T) {
-	th := Setup(t).InitBasic()
+func TestGetFilteredAccessiblePosts(t *testing.T) {
+	th := Setup(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 	th.App.Srv().Store.System().Save(&model.System{
 		Name:  model.SystemLastAccessiblePostTime,
@@ -294,37 +294,37 @@ func Test_getFilteredAccessiblePosts(t *testing.T) {
 
 	defer th.TearDown()
 
-	var p = func(at int64) *model.Post {
+	var postFromCreateAt = func(at int64) *model.Post {
 		return &model.Post{CreateAt: at}
 	}
 
 	t.Run("ascending order returns correct posts", func(t *testing.T) {
-		posts := []*model.Post{p(0), p(1), p(2), p(3), p(4)}
+		posts := []*model.Post{postFromCreateAt(0), postFromCreateAt(1), postFromCreateAt(2), postFromCreateAt(3), postFromCreateAt(4)}
 		filteredPosts, _, appErr := th.App.getFilteredAccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true})
 
 		assert.Nil(t, appErr)
-		assert.Equal(t, []*model.Post{p(2), p(3), p(4)}, filteredPosts)
+		assert.Equal(t, []*model.Post{postFromCreateAt(2), postFromCreateAt(3), postFromCreateAt(4)}, filteredPosts)
 	})
 
 	t.Run("descending order returns correct posts", func(t *testing.T) {
-		posts := []*model.Post{p(4), p(3), p(2), p(1), p(0)}
+		posts := []*model.Post{postFromCreateAt(4), postFromCreateAt(3), postFromCreateAt(2), postFromCreateAt(1), postFromCreateAt(0)}
 		filteredPosts, _, appErr := th.App.getFilteredAccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true})
 
 		assert.Nil(t, appErr)
-		assert.Equal(t, []*model.Post{p(4), p(3), p(2)}, filteredPosts)
+		assert.Equal(t, []*model.Post{postFromCreateAt(4), postFromCreateAt(3), postFromCreateAt(2)}, filteredPosts)
 	})
 
 	t.Run("handles mixed create at ordering correctly if correct options given", func(t *testing.T) {
-		posts := []*model.Post{p(4), p(1), p(0), p(3), p(2)}
+		posts := []*model.Post{postFromCreateAt(4), postFromCreateAt(1), postFromCreateAt(0), postFromCreateAt(3), postFromCreateAt(2)}
 		filteredPosts, _, appErr := th.App.getFilteredAccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: false})
 
 		assert.Nil(t, appErr)
-		assert.Equal(t, []*model.Post{p(4), p(3), p(2)}, filteredPosts)
+		assert.Equal(t, []*model.Post{postFromCreateAt(4), postFromCreateAt(3), postFromCreateAt(2)}, filteredPosts)
 	})
 }
 
-func Test_isInaccessiblePost(t *testing.T) {
-	th := Setup(t).InitBasic()
+func TestIsInaccessiblePost(t *testing.T) {
+	th := Setup(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 	th.App.Srv().Store.System().Save(&model.System{
 		Name:  model.SystemLastAccessiblePostTime,
