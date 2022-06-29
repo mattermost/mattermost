@@ -5322,22 +5322,6 @@ func (s *TimerLayerPostStore) GetPostsByIds(postIds []string) ([]*model.Post, er
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostsByIdsNew(postIds []string) (*model.PostList, error) {
-	start := time.Now()
-
-	result, err := s.PostStore.GetPostsByIdsNew(postIds)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostsByIdsNew", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerPostStore) GetPostsCreatedAt(channelID string, timestamp int64) ([]*model.Post, error) {
 	start := time.Now()
 

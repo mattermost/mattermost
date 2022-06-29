@@ -2274,36 +2274,6 @@ func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, error) {
 	return posts, nil
 }
 
-func (s *SqlPostStore) GetPostsByIdsNew(postIds []string) (*model.PostList, error) {
-	baseQuery := s.getQueryBuilder().Select("p.*, (SELECT count(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount").
-		From("Posts p").
-		Where(sq.Eq{"p.Id": postIds}).
-		OrderBy("CreateAt DESC")
-
-	query, args, err := baseQuery.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "getPostsByIdsNew_tosql")
-	}
-	posts := []*model.Post{}
-
-	err = s.GetReplicaX().Select(&posts, query, args...)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to find Posts")
-	}
-	if len(posts) == 0 {
-		return nil, store.NewErrNotFound("Post", fmt.Sprintf("postIds=%v", postIds))
-	}
-
-	pl := model.NewPostList()
-
-	for i := range posts {
-		pl.AddPost(posts[i])
-		pl.AddOrder(posts[i].Id)
-	}
-
-	return pl, nil
-}
-
 func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, startPostID string, limit int) ([]*model.PostForIndexing, error) {
 	posts := []*model.PostForIndexing{}
 	table := "Posts"

@@ -555,29 +555,6 @@ func (_m *PostStore) GetPostsByIds(postIds []string) ([]*model.Post, error) {
 	return r0, r1
 }
 
-// GetPostsByIdsNew provides a mock function with given fields: postIds
-func (_m *PostStore) GetPostsByIdsNew(postIds []string) (*model.PostList, error) {
-	ret := _m.Called(postIds)
-
-	var r0 *model.PostList
-	if rf, ok := ret.Get(0).(func([]string) *model.PostList); ok {
-		r0 = rf(postIds)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.PostList)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func([]string) error); ok {
-		r1 = rf(postIds)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetPostsCreatedAt provides a mock function with given fields: channelID, timestamp
 func (_m *PostStore) GetPostsCreatedAt(channelID string, timestamp int64) ([]*model.Post, error) {
 	ret := _m.Called(channelID, timestamp)
