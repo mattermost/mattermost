@@ -46,6 +46,12 @@ var exportablePreferences = map[ComparablePreference]string{{
 }: "MessageDisplay", {
 	Category: model.PreferenceCategoryDisplaySettings,
 	Name:     "channel_display_mode",
+}: "CollapseConsecutive", {
+	Category: model.PreferenceCategoryDisplaySettings,
+	Name:     "collapse_consecutive_messages",
+}: "ColorizeUsernames", {
+	Category: model.PreferenceCategoryDisplaySettings,
+	Name:     "colorize_usernames",
 }: "ChannelDisplayMode", {
 	Category: model.PreferenceCategoryTutorialSteps,
 	Name:     "",

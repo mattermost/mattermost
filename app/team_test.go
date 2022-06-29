@@ -185,7 +185,7 @@ func TestAddUserToTeam(t *testing.T) {
 		_, _, err := th.App.AddUserToTeam(th.Context, team.Id, user.Id, "")
 		require.Nil(t, err)
 
-		res, err := th.App.GetSidebarCategories(user.Id, team.Id)
+		res, err := th.App.GetSidebarCategoriesForTeamForUser(user.Id, team.Id)
 		require.Nil(t, err)
 		assert.Len(t, res.Categories, 3)
 		assert.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
@@ -429,7 +429,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		_, _, err := th.App.AddUserToTeamByToken(th.Context, user.Id, token.Token)
 		require.Nil(t, err)
 
-		res, err := th.App.GetSidebarCategories(user.Id, team.Id)
+		res, err := th.App.GetSidebarCategoriesForTeamForUser(user.Id, team.Id)
 		require.Nil(t, err)
 		assert.Len(t, res.Categories, 3)
 		assert.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
