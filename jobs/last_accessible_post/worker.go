@@ -17,10 +17,10 @@ type AppIface interface {
 }
 
 func MakeWorker(jobServer *jobs.JobServer, license *model.License, app AppIface) model.Worker {
-	isEnabled := func(cfg *model.Config) bool {
+	isEnabled := func(_ *model.Config) bool {
 		return license != nil && *license.Features.Cloud
 	}
-	execute := func(job *model.Job) error {
+	execute := func(_ *model.Job) error {
 		return app.ComputeLastAccessiblePostTime()
 	}
 	worker := jobs.NewSimpleWorker(JobName, jobServer, execute, isEnabled)

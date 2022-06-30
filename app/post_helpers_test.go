@@ -28,7 +28,7 @@ func TestGetTimeSortedPostAccessibleBounds(t *testing.T) {
 			Order: []string{},
 		}
 		bounds := getTimeSortedPostAccessibleBounds(0, len(pl.Posts), getPostListCreateAtFunc(pl))
-		require.True(t, bounds.allAccessible())
+		require.True(t, bounds.allAccessible(len(pl.Posts)))
 	})
 
 	t.Run("one accessible post returns all accessible posts", func(t *testing.T) {
@@ -39,7 +39,7 @@ func TestGetTimeSortedPostAccessibleBounds(t *testing.T) {
 			Order: []string{"post_a"},
 		}
 		bounds := getTimeSortedPostAccessibleBounds(0, len(pl.Posts), getPostListCreateAtFunc(pl))
-		require.True(t, bounds.allAccessible())
+		require.True(t, bounds.allAccessible(len(pl.Posts)))
 	})
 
 	t.Run("one inaccessible post returns no accessible posts", func(t *testing.T) {
@@ -50,7 +50,7 @@ func TestGetTimeSortedPostAccessibleBounds(t *testing.T) {
 			Order: []string{"post_a"},
 		}
 		bounds := getTimeSortedPostAccessibleBounds(1, len(pl.Posts), getPostListCreateAtFunc(pl))
-		require.True(t, bounds.allInaccessible())
+		require.True(t, bounds.noAccessible())
 	})
 
 	t.Run("all accessible posts returns all accessible posts", func(t *testing.T) {
@@ -66,7 +66,7 @@ func TestGetTimeSortedPostAccessibleBounds(t *testing.T) {
 			Order: []string{"post_a", "post_b", "post_c", "post_d", "post_e", "post_f"},
 		}
 		bounds := getTimeSortedPostAccessibleBounds(0, len(pl.Posts), getPostListCreateAtFunc(pl))
-		require.True(t, bounds.allAccessible())
+		require.True(t, bounds.allAccessible(len(pl.Posts)))
 	})
 
 	t.Run("all inaccessible posts returns all inaccessible posts", func(t *testing.T) {
@@ -82,7 +82,39 @@ func TestGetTimeSortedPostAccessibleBounds(t *testing.T) {
 			Order: []string{"post_a", "post_b", "post_c", "post_d", "post_e", "post_f"},
 		}
 		bounds := getTimeSortedPostAccessibleBounds(7, len(pl.Posts), getPostListCreateAtFunc(pl))
-		require.True(t, bounds.allInaccessible())
+		require.True(t, bounds.noAccessible())
+	})
+
+	t.Run("all accessible posts returns all accessible posts, descending ordered", func(t *testing.T) {
+		pl := &model.PostList{
+			Posts: map[string]*model.Post{
+				"post_a": postFromCreateAt(1),
+				"post_b": postFromCreateAt(2),
+				"post_c": postFromCreateAt(3),
+				"post_d": postFromCreateAt(4),
+				"post_e": postFromCreateAt(5),
+				"post_f": postFromCreateAt(6),
+			},
+			Order: []string{"post_f", "post_e", "post_d", "post_c", "post_b", "post_a"},
+		}
+		bounds := getTimeSortedPostAccessibleBounds(0, len(pl.Posts), getPostListCreateAtFunc(pl))
+		require.True(t, bounds.allAccessible(len(pl.Posts)))
+	})
+
+	t.Run("all inaccessible posts returns all inaccessible posts, descending ordered", func(t *testing.T) {
+		pl := &model.PostList{
+			Posts: map[string]*model.Post{
+				"post_a": postFromCreateAt(1),
+				"post_b": postFromCreateAt(2),
+				"post_c": postFromCreateAt(3),
+				"post_d": postFromCreateAt(4),
+				"post_e": postFromCreateAt(5),
+				"post_f": postFromCreateAt(6),
+			},
+			Order: []string{"post_f", "post_e", "post_d", "post_c", "post_b", "post_a"},
+		}
+		bounds := getTimeSortedPostAccessibleBounds(7, len(pl.Posts), getPostListCreateAtFunc(pl))
+		require.True(t, bounds.noAccessible())
 	})
 
 	t.Run("two posts, first accessible", func(t *testing.T) {
@@ -94,7 +126,7 @@ func TestGetTimeSortedPostAccessibleBounds(t *testing.T) {
 			Order: []string{"post_a", "post_b"},
 		}
 		bounds := getTimeSortedPostAccessibleBounds(1, len(pl.Posts), getPostListCreateAtFunc(pl))
-		require.Equal(t, postAccessibleBounds{accessible: 0, inaccessible: 1}, bounds)
+		require.Equal(t, accessibleBounds{start: 0, end: 0}, bounds)
 	})
 
 	t.Run("two posts, second accessible", func(t *testing.T) {
@@ -106,10 +138,10 @@ func TestGetTimeSortedPostAccessibleBounds(t *testing.T) {
 			Order: []string{"post_a", "post_b"},
 		}
 		bounds := getTimeSortedPostAccessibleBounds(1, len(pl.Posts), getPostListCreateAtFunc(pl))
-		require.Equal(t, postAccessibleBounds{accessible: 1, inaccessible: 0}, bounds)
+		require.Equal(t, accessibleBounds{start: 1, end: 1}, bounds)
 	})
 
-	t.Run("picks the right post for boundaries when there are time ties", func(t *testing.T) {
+	t.Run("picks the left most post for boundaries when there are time ties", func(t *testing.T) {
 		pl := &model.PostList{
 			Posts: map[string]*model.Post{
 				"post_a": postFromCreateAt(0),
@@ -119,11 +151,11 @@ func TestGetTimeSortedPostAccessibleBounds(t *testing.T) {
 			},
 			Order: []string{"post_a", "post_b", "post_c", "post_d"},
 		}
-		bounds := getTimeSortedPostAccessibleBounds(2, len(pl.Posts), getPostListCreateAtFunc(pl))
-		require.Equal(t, postAccessibleBounds{accessible: 3, inaccessible: 2}, bounds)
+		bounds := getTimeSortedPostAccessibleBounds(1, len(pl.Posts), getPostListCreateAtFunc(pl))
+		require.Equal(t, accessibleBounds{start: 1, end: len(pl.Posts) - 1}, bounds)
 	})
 
-	t.Run("picks the right post for boundaries when there are time ties, reverse order", func(t *testing.T) {
+	t.Run("picks the right most post for boundaries when there are time ties, descending ordered", func(t *testing.T) {
 		pl := &model.PostList{
 			Posts: map[string]*model.Post{
 				"post_a": postFromCreateAt(0),
@@ -133,8 +165,8 @@ func TestGetTimeSortedPostAccessibleBounds(t *testing.T) {
 			},
 			Order: []string{"post_d", "post_c", "post_b", "post_a"},
 		}
-		bounds := getTimeSortedPostAccessibleBounds(2, len(pl.Posts), getPostListCreateAtFunc(pl))
-		require.Equal(t, postAccessibleBounds{accessible: 0, inaccessible: 1}, bounds)
+		bounds := getTimeSortedPostAccessibleBounds(1, len(pl.Posts), getPostListCreateAtFunc(pl))
+		require.Equal(t, accessibleBounds{start: 0, end: 2}, bounds)
 	})
 
 	t.Run("odd number of posts and reverse time selects right boundaries", func(t *testing.T) {
@@ -149,13 +181,13 @@ func TestGetTimeSortedPostAccessibleBounds(t *testing.T) {
 			Order: []string{"post_e", "post_d", "post_c", "post_b", "post_a"},
 		}
 		bounds := getTimeSortedPostAccessibleBounds(2, len(pl.Posts), getPostListCreateAtFunc(pl))
-		require.Equal(t, postAccessibleBounds{accessible: 2, inaccessible: 3}, bounds)
+		require.Equal(t, accessibleBounds{start: 0, end: 2}, bounds)
 	})
 
 	t.Run("posts-slice: odd number of posts and reverse time selects right boundaries", func(t *testing.T) {
 		posts := []*model.Post{postFromCreateAt(4), postFromCreateAt(3), postFromCreateAt(2), postFromCreateAt(1), postFromCreateAt(0)}
 		bounds := getTimeSortedPostAccessibleBounds(2, len(posts), func(i int) int64 { return posts[i].CreateAt })
-		require.Equal(t, postAccessibleBounds{accessible: 2, inaccessible: 3}, bounds)
+		require.Equal(t, accessibleBounds{start: 0, end: 2}, bounds)
 	})
 }
 

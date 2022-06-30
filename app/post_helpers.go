@@ -5,108 +5,75 @@ package app
 
 import (
 	"net/http"
+	"sort"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 )
-
-type postAccessibleBounds struct {
-	accessible   int
-	inaccessible int
-}
-
-func (p postAccessibleBounds) allAccessible() bool {
-	return p.accessible == allAccessiblePosts.accessible && p.inaccessible == allAccessiblePosts.inaccessible
-}
-
-func (p postAccessibleBounds) allInaccessible() bool {
-	return p.accessible == noAccessiblePosts.accessible && p.inaccessible == noAccessiblePosts.inaccessible
-}
-
-var noAccessiblePosts = postAccessibleBounds{accessible: -1, inaccessible: 0}
-var allAccessiblePosts = postAccessibleBounds{accessible: 0, inaccessible: -1}
-
-func getDistance(a, b int) int {
-	if a-b > 0 {
-		return a - b
-	}
-	return b - a
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-// getTimeSortedPostAccessibleBounds returns what the boundaries for accessible and inaccessible posts.
-// It assumes that CreateAt time for posts is monotonically increasing or decreasing.
-// It could be either because posts can be returned in ascending or descending time order.
-// Because it returns the boundaries, it is necessary to check whether the accessible or
-// inaccessible post index is greater, and do the filtering accordingly.
-// Special values (which can be checked with methods `allAccessible` and `allInaccessible`)
-// denote if all or none of the posts are accessible
-func getTimeSortedPostAccessibleBounds(earliestAccessibleTime int64, lenPosts int, getCreateAt func(int) int64) postAccessibleBounds {
-	if lenPosts == 0 {
-		return allAccessiblePosts
-	}
-
-	if lenPosts == 1 {
-		if getCreateAt(0) >= earliestAccessibleTime {
-			return allAccessiblePosts
-		}
-		return noAccessiblePosts
-	}
-
-	var firstAccessible = getCreateAt(0) >= earliestAccessibleTime
-	var lastAccessible = getCreateAt(lenPosts-1) >= earliestAccessibleTime
-
-	if firstAccessible == lastAccessible {
-		if firstAccessible {
-			return allAccessiblePosts
-		}
-		return noAccessiblePosts
-	}
-
-	var accessible = -1
-	var inaccessible = -1
-	if firstAccessible {
-		accessible = 0
-	} else {
-		inaccessible = 0
-	}
-	if lastAccessible {
-		accessible = lenPosts - 1
-	} else {
-		inaccessible = lenPosts - 1
-	}
-
-	for {
-		distance := getDistance(accessible, inaccessible)
-		if distance == 1 {
-			break
-		}
-		guess := min(accessible, inaccessible) + distance/2
-		guessIsAccessible := getCreateAt(guess) >= earliestAccessibleTime
-		if guessIsAccessible {
-			accessible = guess
-		} else {
-			inaccessible = guess
-		}
-	}
-
-	return postAccessibleBounds{
-		accessible:   accessible,
-		inaccessible: inaccessible,
-	}
-}
 
 type filterPostOptions struct {
 	assumeSortedCreatedAt bool
 }
 
+type accessibleBounds struct {
+	start int
+	end   int
+}
+
+func (b accessibleBounds) allAccessible(lenPosts int) bool {
+	return b.start == allAccessibleBounds(lenPosts).start && b.end == allAccessibleBounds(lenPosts).end
+}
+
+func (b accessibleBounds) noAccessible() bool {
+	return b.start == noAccessibleBounds.start && b.end == noAccessibleBounds.end
+}
+
+var noAccessibleBounds = accessibleBounds{start: -1, end: -1}
+var allAccessibleBounds = func(lenPosts int) accessibleBounds { return accessibleBounds{start: 0, end: lenPosts - 1} }
+
+// getTimeSortedPostAccessibleBounds returns what the boundaries are for accessible posts.
+// It assumes that CreateAt time for posts is monotonically increasing or decreasing.
+// It could be either because posts can be returned in ascending or descending time order.
+// Special values (which can be checked with methods `allAccessible` and `allInaccessible`)
+// denote if all or none of the posts are accessible.
+func getTimeSortedPostAccessibleBounds(earliestAccessibleTime int64, lenPosts int, getCreateAt func(int) int64) accessibleBounds {
+	if lenPosts == 0 {
+		return allAccessibleBounds(lenPosts)
+	}
+	if lenPosts == 1 {
+		if getCreateAt(0) >= earliestAccessibleTime {
+			return allAccessibleBounds(lenPosts)
+		}
+		return noAccessibleBounds
+	}
+
+	ascending := getCreateAt(0) < getCreateAt(lenPosts-1)
+
+	idx := sort.Search(lenPosts, func(i int) bool {
+		if ascending {
+			// Ascending order automatically picks the left most post(at idx),
+			// in case multiple posts at idx, idx+1, idx+2... have the same time.
+			return getCreateAt(i) >= earliestAccessibleTime
+		}
+		// Special case(subtracting 1) for descending order to include the right most post(at idx+k),
+		// in case multiple posts at idx, idx+1, idx+2...idx+k have the same time.
+		return getCreateAt(i) <= earliestAccessibleTime-1
+	})
+
+	if ascending {
+		if idx == lenPosts {
+			return noAccessibleBounds
+		}
+		return accessibleBounds{start: idx, end: lenPosts - 1}
+	}
+
+	if idx == 0 {
+		return noAccessibleBounds
+	}
+	return accessibleBounds{start: 0, end: idx - 1}
+}
+
 // linearFilterPostList make no assumptions about ordering, go through posts one by one
-// this is the slower fallback that is still safe if we we can not
+// this is the slower fallback that is still safe if we can not
 // assume posts are ordered by CreatedAt
 func linearFilterPostList(postList *model.PostList, earliestAccessibleTime int64) {
 	// filter Posts
@@ -136,7 +103,7 @@ func linearFilterPostList(postList *model.PostList, earliestAccessibleTime int64
 }
 
 // linearFilterPostsSlice make no assumptions about ordering, go through posts one by one
-// this is the slower fallback that is still safe if we we can not
+// this is the slower fallback that is still safe if we can not
 // assume posts are ordered by CreatedAt
 func linearFilterPostsSlice(posts []*model.Post, earliestAccessibleTime int64) (filteredPosts []*model.Post, hasInaccessiblePosts bool) {
 	filteredPosts = make([]*model.Post, 0, len(posts))
@@ -159,20 +126,23 @@ func (a *App) filterInaccessiblePosts(postList *model.PostList, options filterPo
 	lastAccessiblePostTime, appErr := a.GetLastAccessiblePostTime()
 	if appErr != nil {
 		return model.NewAppError("filterInaccessiblePosts", "app.last_accessible_post.app_error", nil, appErr.Error(), http.StatusInternalServerError)
-	} else if lastAccessiblePostTime == 0 {
+	}
+	if lastAccessiblePostTime == 0 {
 		// No need to filter, all posts are accessible
 		return nil
 	}
 
 	if len(postList.Posts) == len(postList.Order) && options.assumeSortedCreatedAt {
-		count := len(postList.Posts)
+		lenPosts := len(postList.Posts)
 		getCreateAt := func(i int) int64 { return postList.Posts[postList.Order[i]].CreateAt }
-		bounds := getTimeSortedPostAccessibleBounds(lastAccessiblePostTime, count, getCreateAt)
-		if bounds.allAccessible() {
+
+		bounds := getTimeSortedPostAccessibleBounds(lastAccessiblePostTime, lenPosts, getCreateAt)
+
+		if bounds.allAccessible(lenPosts) {
 			return nil
 		}
-		if bounds.allInaccessible() {
-			if count > 0 {
+		if bounds.noAccessible() {
+			if lenPosts > 0 {
 				postList.HasInaccessiblePosts = true
 			}
 			postList.Posts = map[string]*model.Post{}
@@ -181,33 +151,27 @@ func (a *App) filterInaccessiblePosts(postList *model.PostList, options filterPo
 		}
 		postList.HasInaccessiblePosts = true
 
-		var otherInaccessibleBound int
-		var otherAccessibleBound int
-		if bounds.accessible > bounds.inaccessible {
-			otherInaccessibleBound = 0
-			otherAccessibleBound = count - 1
-		} else {
-			otherInaccessibleBound = count - 1
-			otherAccessibleBound = 0
-		}
-
+		posts := postList.Posts
 		order := postList.Order
-		inaccessibleCount := maxInt(bounds.inaccessible, otherInaccessibleBound) - min(bounds.inaccessible, otherInaccessibleBound)
-		accessibleCount := maxInt(bounds.accessible, otherAccessibleBound) - min(bounds.accessible, otherAccessibleBound)
-		// Linearly cover shorter route
+		accessibleCount := bounds.end - bounds.start + 1
+		inaccessibleCount := lenPosts - accessibleCount
+		// Linearly cover shorter route to traverse posts map
 		if inaccessibleCount < accessibleCount {
-			for i := min(bounds.inaccessible, otherInaccessibleBound); i <= maxInt(bounds.inaccessible, otherInaccessibleBound); i++ {
-				delete(postList.Posts, order[i])
+			for i := 0; i < bounds.start; i++ {
+				delete(posts, order[i])
+			}
+			for i := bounds.end + 1; i < lenPosts; i++ {
+				delete(posts, order[i])
 			}
 		} else {
-			accessiblePosts := make(map[string]*model.Post, accessibleCount+1)
-			for i := min(bounds.accessible, otherAccessibleBound); i <= maxInt(bounds.accessible, otherAccessibleBound); i++ {
-				accessiblePosts[order[i]] = postList.Posts[order[i]]
+			accessiblePosts := make(map[string]*model.Post, accessibleCount)
+			for i := bounds.start; i <= bounds.end; i++ {
+				accessiblePosts[order[i]] = posts[order[i]]
 			}
 			postList.Posts = accessiblePosts
 		}
 
-		postList.Order = postList.Order[min(bounds.accessible, otherAccessibleBound) : maxInt(bounds.accessible, otherAccessibleBound)+1]
+		postList.Order = postList.Order[bounds.start : bounds.end+1]
 	} else {
 		linearFilterPostList(postList, lastAccessiblePostTime)
 	}
@@ -215,6 +179,7 @@ func (a *App) filterInaccessiblePosts(postList *model.PostList, options filterPo
 	return nil
 }
 
+// isInaccessiblePost indicates if the post is past the cloud plan's limit.
 func (a *App) isInaccessiblePost(post *model.Post) (bool, *model.AppError) {
 	if post == nil {
 		return false, nil
@@ -230,14 +195,14 @@ func (a *App) isInaccessiblePost(post *model.Post) (bool, *model.AppError) {
 
 // getFilteredAccessiblePosts returns accessible posts filtered as per the cloud plan's limit and also indicates if there were any inaccessible posts
 func (a *App) getFilteredAccessiblePosts(posts []*model.Post, options filterPostOptions) ([]*model.Post, bool, *model.AppError) {
-	filteredPosts := []*model.Post{}
 	if len(posts) == 0 {
 		return posts, false, nil
 	}
 
+	filteredPosts := []*model.Post{}
 	lastAccessiblePostTime, appErr := a.GetLastAccessiblePostTime()
 	if appErr != nil {
-		return filteredPosts, false, model.NewAppError("filterInaccessiblePostsSlice", "app.last_accessible_post.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return filteredPosts, false, model.NewAppError("getFilteredAccessiblePosts", "app.last_accessible_post.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	} else if lastAccessiblePostTime == 0 {
 		// No need to filter, all posts are accessible
 		return posts, false, nil
@@ -247,23 +212,17 @@ func (a *App) getFilteredAccessiblePosts(posts []*model.Post, options filterPost
 		lenPosts := len(posts)
 		getCreateAt := func(i int) int64 { return posts[i].CreateAt }
 		bounds := getTimeSortedPostAccessibleBounds(lastAccessiblePostTime, lenPosts, getCreateAt)
-		if bounds.allAccessible() {
+		if bounds.allAccessible(lenPosts) {
 			return posts, false, nil
 		}
-		if bounds.allInaccessible() {
+		if bounds.noAccessible() {
 			return filteredPosts, lenPosts > 0, nil
 		}
 
-		var otherAccessibleBound int
-		if bounds.accessible > bounds.inaccessible {
-			otherAccessibleBound = lenPosts - 1
-		} else {
-			otherAccessibleBound = 0
-		}
-
-		filteredPosts = posts[min(bounds.accessible, otherAccessibleBound) : maxInt(bounds.accessible, otherAccessibleBound)+1]
+		filteredPosts = posts[bounds.start : bounds.end+1]
 		return filteredPosts, true, nil
 	}
+
 	filteredPosts, hasInaccessiblePosts := linearFilterPostsSlice(posts, lastAccessiblePostTime)
 	return filteredPosts, hasInaccessiblePosts, nil
 }
