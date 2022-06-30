@@ -99,12 +99,13 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	th := &TestHelper{
 		App:               New(ServerConnector(s.Channels())),
-		Context:           &request.Context{},
+		Context:           request.EmptyContext(),
 		Server:            s,
 		LogBuffer:         buffer,
 		TestLogger:        testLogger,
 		IncludeCacheLayer: includeCacheLayer,
 	}
+	th.Context.SetLogger(testLogger)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.RateLimitSettings.Enable = false })
@@ -141,8 +142,6 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	if th.tempWorkspace == "" {
 		th.tempWorkspace = tempWorkspace
 	}
-
-	th.Context.SetLogger(testLogger)
 
 	return th
 }
