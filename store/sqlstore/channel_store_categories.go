@@ -16,7 +16,7 @@ import (
 
 // dbSelecter is an interface used to enable some internal store methods
 // using both transaction and normal queries.
-type dbSe anyface {
+type dbSelecter interface {
 	Select(i any, query string, args ...any) error
 }
 
