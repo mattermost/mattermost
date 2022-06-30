@@ -11,7 +11,7 @@ import (
 )
 
 func TestPrintMap(t *testing.T) {
-	inputCases := []interface{}{
+	inputCases := []any{
 		map[string]any{
 			"CustomerType": "A9",
 			"SmtpUsername": "",

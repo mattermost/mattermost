@@ -491,7 +491,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Props: map[string]any{
-				"attachments": []interface{}{
+				"attachments": []any{
 					map[string]any{
 						"text": "![icon](" + server.URL + "/test-image1.png)",
 					},

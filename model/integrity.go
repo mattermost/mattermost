@@ -38,7 +38,7 @@ func (r *IntegrityCheckResult) UnmarshalJSON(b []byte) error {
 		rdata.ChildName = m["child_name"].(string)
 		rdata.ParentIdAttr = m["parent_id_attr"].(string)
 		rdata.ChildIdAttr = m["child_id_attr"].(string)
-		for _, recData := range m["records"].([]interface{}) {
+		for _, recData := range m["records"].([]any) {
 			var record OrphanedRecord
 			m := recData.(map[string]any)
 			if val := m["parent_id"]; val != nil {

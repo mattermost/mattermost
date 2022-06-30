@@ -99,13 +99,13 @@ func isQuotedWord(s string) bool {
 // SET Col = JSON_SET(Col, `+argString+`)
 // WHERE Id=?`, args...)
 // after appending the Id param to the args slice.
-func constructMySQLJSONArgs(props map[string]string) ([]interface{}, string) {
+func constructMySQLJSONArgs(props map[string]string) ([]any, string) {
 	if len(props) == 0 {
 		return nil, ""
 	}
 
 	// Unpack the keys and values to pass to MySQL.
-	args := make([]interface{}, 0, len(props))
+	args := make([]any, 0, len(props))
 	for k, v := range props {
 		args = append(args, "$."+k, v)
 	}
@@ -118,17 +118,17 @@ func constructMySQLJSONArgs(props map[string]string) ([]interface{}, string) {
 	return args, argString
 }
 
-func makeStringArgs(params []string) []interface{} {
-	args := make([]interface{}, len(params))
+func makeStringArgs(params []string) []any {
+	args := make([]any, len(params))
 	for i, name := range params {
 		args[i] = name
 	}
 	return args
 }
 
-func constructArrayArgs(ids []string) (string, []interface{}) {
+func constructArrayArgs(ids []string) (string, []any) {
 	var placeholder strings.Builder
-	values := make([]interface{}, 0, len(ids))
+	values := make([]any, 0, len(ids))
 	for _, entry := range ids {
 		if placeholder.Len() > 0 {
 			placeholder.WriteString(",")

@@ -3120,11 +3120,11 @@ func TestGetPostStripActionIntegrations(t *testing.T) {
 
 	actualPost, _, err := client.GetPost(rpost.Id, "")
 	require.NoError(t, err)
-	attachments, _ := actualPost.Props["attachments"].([]interface{})
+	attachments, _ := actualPost.Props["attachments"].([]any)
 	require.Equal(t, 1, len(attachments))
 	att, _ := attachments[0].(map[string]any)
 	require.NotNil(t, att)
-	actions, _ := att["actions"].([]interface{})
+	actions, _ := att["actions"].([]any)
 	require.Equal(t, 1, len(actions))
 	action, _ := actions[0].(map[string]any)
 	require.NotNil(t, action)

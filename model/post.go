@@ -567,7 +567,7 @@ func (o *Post) Attachments() []*SlackAttachment {
 		return attachments
 	}
 	var ret []*SlackAttachment
-	if attachments, ok := o.GetProp("attachments").([]interface{}); ok {
+	if attachments, ok := o.GetProp("attachments").([]any); ok {
 		for _, attachment := range attachments {
 			if enc, err := json.Marshal(attachment); err == nil {
 				var decoded SlackAttachment

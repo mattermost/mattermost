@@ -56,11 +56,11 @@ type hooksPlugin struct {
 	log        *mlog.Logger
 }
 
-func (p *hooksPlugin) Server(b *plugin.MuxBroker) (interface{}, error) {
+func (p *hooksPlugin) Server(b *plugin.MuxBroker) (any, error) {
 	return &hooksRPCServer{impl: p.hooks, muxBroker: b}, nil
 }
 
-func (p *hooksPlugin) Client(b *plugin.MuxBroker, client *rpc.Client) (interface{}, error) {
+func (p *hooksPlugin) Client(b *plugin.MuxBroker, client *rpc.Client) (any, error) {
 	return &hooksRPCClient{client: client,
 		log:       p.log,
 		muxBroker: b,
@@ -158,7 +158,7 @@ func decodableError(err error) error {
 // Registering some types used by MM for encoding/gob used by rpc
 func init() {
 	gob.Register([]*model.SlackAttachment{})
-	gob.Register([]interface{}{})
+	gob.Register([]any{})
 	gob.Register(map[string]any{})
 	gob.Register(&model.AppError{})
 	gob.Register(&pq.Error{})
@@ -705,7 +705,7 @@ func (s *hooksRPCServer) MessageWillBeUpdated(args *Z_MessageWillBeUpdatedArgs, 
 
 type Z_LogDebugArgs struct {
 	A string
-	B []interface{}
+	B []any
 }
 
 type Z_LogDebugReturns struct {
@@ -734,7 +734,7 @@ func (s *apiRPCServer) LogDebug(args *Z_LogDebugArgs, returns *Z_LogDebugReturns
 
 type Z_LogInfoArgs struct {
 	A string
-	B []interface{}
+	B []any
 }
 
 type Z_LogInfoReturns struct {
@@ -763,7 +763,7 @@ func (s *apiRPCServer) LogInfo(args *Z_LogInfoArgs, returns *Z_LogInfoReturns) e
 
 type Z_LogWarnArgs struct {
 	A string
-	B []interface{}
+	B []any
 }
 
 type Z_LogWarnReturns struct {
@@ -792,7 +792,7 @@ func (s *apiRPCServer) LogWarn(args *Z_LogWarnArgs, returns *Z_LogWarnReturns) e
 
 type Z_LogErrorArgs struct {
 	A string
-	B []interface{}
+	B []any
 }
 
 type Z_LogErrorReturns struct {

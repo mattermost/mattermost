@@ -1468,7 +1468,7 @@ func (us SqlUserStore) SearchNotInGroup(groupID string, term string, options *mo
 func generateSearchQuery(query sq.SelectBuilder, terms []string, fields []string, isPostgreSQL bool) sq.SelectBuilder {
 	for _, term := range terms {
 		searchFields := []string{}
-		termArgs := []interface{}{}
+		termArgs := []any{}
 		for _, field := range fields {
 			if isPostgreSQL {
 				searchFields = append(searchFields, fmt.Sprintf("lower(%s) LIKE lower(?) escape '*' ", field))
@@ -1828,11 +1828,11 @@ func applyViewRestrictionsFilter(query sq.SelectBuilder, restrictions *model.Vie
 		return query.Where("1 = 0")
 	}
 
-	teams := make([]interface{}, len(restrictions.Teams))
+	teams := make([]any, len(restrictions.Teams))
 	for i, v := range restrictions.Teams {
 		teams[i] = v
 	}
-	channels := make([]interface{}, len(restrictions.Channels))
+	channels := make([]any, len(restrictions.Channels))
 	for i, v := range restrictions.Channels {
 		channels[i] = v
 	}

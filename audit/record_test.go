@@ -20,7 +20,7 @@ type wilted struct {
 	wilt1 string
 }
 
-func conv(val any) (interface{}, bool) {
+func conv(val any) (any, bool) {
 	switch v := val.(type) {
 	case *bloated:
 		return &wilted{wilt1: v.fld1}, true

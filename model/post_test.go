@@ -857,16 +857,16 @@ func TestPostAttachments(t *testing.T) {
 	}
 
 	t.Run("empty actions", func(t *testing.T) {
-		p.Props["attachments"] = []interface{}{
-			map[string]any{"actions": []interface{}{}},
+		p.Props["attachments"] = []any{
+			map[string]any{"actions": []any{}},
 		}
 		attachments := p.Attachments()
 		require.Empty(t, attachments[0].Actions)
 	})
 
 	t.Run("a couple of actions", func(t *testing.T) {
-		p.Props["attachments"] = []interface{}{
-			map[string]any{"actions": []interface{}{
+		p.Props["attachments"] = []any{
+			map[string]any{"actions": []any{
 				map[string]any{"id": "test1"}, map[string]any{"id": "test2"}},
 			},
 		}
@@ -878,8 +878,8 @@ func TestPostAttachments(t *testing.T) {
 	})
 
 	t.Run("should ignore null actions", func(t *testing.T) {
-		p.Props["attachments"] = []interface{}{
-			map[string]any{"actions": []interface{}{
+		p.Props["attachments"] = []any{
+			map[string]any{"actions": []any{
 				map[string]any{"id": "test1"}, nil, map[string]any{"id": "test2"}, nil, nil},
 			},
 		}
@@ -891,8 +891,8 @@ func TestPostAttachments(t *testing.T) {
 	})
 
 	t.Run("nil fields", func(t *testing.T) {
-		p.Props["attachments"] = []interface{}{
-			map[string]any{"fields": []interface{}{
+		p.Props["attachments"] = []any{
+			map[string]any{"fields": []any{
 				map[string]any{"value": ":emoji1:"},
 				nil,
 				map[string]any{"value": ":emoji2:"},

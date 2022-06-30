@@ -109,8 +109,8 @@ func channelMemberSliceColumns() []string {
 	return []string{"ChannelId", "UserId", "Roles", "LastViewedAt", "MsgCount", "MsgCountRoot", "MentionCount", "MentionCountRoot", "NotifyProps", "LastUpdateAt", "SchemeUser", "SchemeAdmin", "SchemeGuest"}
 }
 
-func channelMemberToSlice(member *model.ChannelMember) []interface{} {
-	resultSlice := []interface{}{}
+func channelMemberToSlice(member *model.ChannelMember) []any {
+	resultSlice := []any{}
 	resultSlice = append(resultSlice, member.ChannelId)
 	resultSlice = append(resultSlice, member.UserId)
 	resultSlice = append(resultSlice, member.ExplicitRoles)
@@ -3035,7 +3035,7 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamID string, userID strin
 	var (
 		channels = model.ChannelList{}
 		sql      string
-		args     []interface{}
+		args     []any
 	)
 
 	// build the like clause
@@ -3302,7 +3302,7 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 	if likeTerm != "" {
 		// Keep the number of likeTerms same as the number of columns
 		// (c.Name, c.DisplayName, c.Purpose, c.Id?)
-		likeTerms := make([]interface{}, len(strings.Split(likeFields, ",")))
+		likeTerms := make([]any, len(strings.Split(likeFields, ",")))
 		for i := 0; i < len(likeTerms); i++ {
 			likeTerms[i] = likeTerm
 		}
@@ -4157,7 +4157,7 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 // b) those that are public channels in the given team.
 func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopChannelList, error) {
 	channels := make([]*model.TopChannel, 0)
-	var args []interface{}
+	var args []any
 	postgresPropQuery := `AND (Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false')`
 	mySqlPropsQuery := `AND (JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false')`
 
@@ -4185,7 +4185,7 @@ func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string
 				Posts.DeleteAt = 0
 				AND Posts.CreateAt > ?
 				AND Posts.Type = ''`
-	args = []interface{}{since}
+	args = []any{since}
 
 	if s.DriverName() == model.DatabaseDriverMysql {
 		query += mySqlPropsQuery
@@ -4257,7 +4257,7 @@ func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string
 // after the given timestamp within the given team (or across the workspace if no team is given). Excludes DM and GM channels.
 func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopChannelList, error) {
 	channels := make([]*model.TopChannel, 0)
-	var args []interface{}
+	var args []any
 	var query string
 
 	query = `
@@ -4281,7 +4281,7 @@ func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string
 			AND (Channels.Type = 'O' OR Channels.Type = 'P') 
 			AND ChannelMembers.UserId = ?`
 
-	args = []interface{}{since, userID, userID}
+	args = []any{since, userID, userID}
 
 	if teamID != "" {
 		query += `

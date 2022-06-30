@@ -205,7 +205,7 @@ func isJSONMap(data string) bool {
 	return json.Unmarshal([]byte(data), &m) == nil
 }
 
-func GetValueByPath(path []string, obj any) (interface{}, bool) {
+func GetValueByPath(path []string, obj any) (any, bool) {
 	r := reflect.ValueOf(obj)
 	var val reflect.Value
 	if r.Kind() == reflect.Map {

@@ -394,7 +394,7 @@ func ArrayFromJSON(data io.Reader) []string {
 func ArrayFromInterface(data any) []string {
 	stringArray := []string{}
 
-	dataArray, ok := data.([]interface{})
+	dataArray, ok := data.([]any)
 	if !ok {
 		return stringArray
 	}

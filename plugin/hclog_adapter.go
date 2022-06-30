@@ -124,8 +124,8 @@ func (h *hclogAdapter) StandardWriter(opts *hclog.StandardLoggerOptions) io.Writ
 
 func (h *hclogAdapter) SetLevel(hclog.Level) {}
 
-func (h *hclogAdapter) ImpliedArgs() []interface{} {
-	return []interface{}{}
+func (h *hclogAdapter) ImpliedArgs() []any {
+	return []any{}
 }
 
 func (h *hclogAdapter) Name() string {

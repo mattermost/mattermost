@@ -36,7 +36,7 @@ func (w *StoreTestWrapper) DriverName() string {
 }
 
 type Builder interface {
-	ToSql() (string, []interface{}, error)
+	ToSql() (string, []any, error)
 }
 
 // sqlxExecutor exposes sqlx operations. It is used to enable some internal store methods to

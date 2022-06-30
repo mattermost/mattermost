@@ -88,7 +88,7 @@ func (_m *AppContextInterface) Session() *model.Session {
 
 // T provides a mock function with given fields: translationID, args
 func (_m *AppContextInterface) T(translationID string, args ...any) string {
-	var _ca []interface{}
+	var _ca []any
 	_ca = append(_ca, translationID)
 	_ca = append(_ca, args...)
 	ret := _m.Called(_ca...)

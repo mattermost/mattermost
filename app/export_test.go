@@ -545,8 +545,8 @@ func TestExportPostWithProps(t *testing.T) {
 	assert.Len(t, posts, 2)
 	assert.ElementsMatch(t, gmMembers, *posts[0].ChannelMembers)
 	assert.ElementsMatch(t, dmMembers, *posts[1].ChannelMembers)
-	assert.Contains(t, posts[0].Props["attachments"].([]interface{})[0], "footer")
-	assert.Contains(t, posts[1].Props["attachments"].([]interface{})[0], "footer")
+	assert.Contains(t, posts[0].Props["attachments"].([]any)[0], "footer")
+	assert.Contains(t, posts[1].Props["attachments"].([]any)[0], "footer")
 }
 
 func TestExportDMPostWithSelf(t *testing.T) {

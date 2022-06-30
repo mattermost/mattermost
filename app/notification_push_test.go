@@ -1441,7 +1441,7 @@ func TestPushNotificationRace(t *testing.T) {
 		filestore: &fmocks.FileBackend{},
 	}
 	s.configStore = &configWrapper{srv: s, Store: memoryStore}
-	serviceMap := map[ServiceKey]interface{}{
+	serviceMap := map[ServiceKey]any{
 		ConfigKey:    s.configStore,
 		LicenseKey:   &licenseWrapper{s},
 		FilestoreKey: s.filestore,

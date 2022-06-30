@@ -370,7 +370,7 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 					AND SidebarCategories.TeamId = ?`
 		}
 
-		args := []interface{}{userId}
+		args := []any{userId}
 		args = append(args, channelIdArgs...)
 		args = append(args, teamId)
 		_, err = transaction.Exec(deleteQuery, args...)

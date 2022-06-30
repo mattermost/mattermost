@@ -71,8 +71,8 @@ func postSliceColumnsWithTypes() []struct {
 	}
 }
 
-func postToSlice(post *model.Post) []interface{} {
-	return []interface{}{
+func postToSlice(post *model.Post) []any {
+	return []any{
 		post.Id,
 		post.CreateAt,
 		post.UpdateAt,
@@ -508,7 +508,7 @@ func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset 
             ORDER BY CreateAt DESC
             LIMIT ? OFFSET ?`
 
-	queryParams := []interface{}{userId, model.PreferenceCategoryFlaggedPost}
+	queryParams := []any{userId, model.PreferenceCategoryFlaggedPost}
 
 	var channelClause, teamClause string
 	channelClause, queryParams = s.buildFlaggedPostChannelFilterClause(channelId, queryParams)
@@ -533,7 +533,7 @@ func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset 
 	return pl, nil
 }
 
-func (s *SqlPostStore) buildFlaggedPostTeamFilterClause(teamId string, queryParams []interface{}) (string, []interface{}) {
+func (s *SqlPostStore) buildFlaggedPostTeamFilterClause(teamId string, queryParams []any) (string, []any) {
 	if teamId == "" {
 		return "", queryParams
 	}
@@ -541,7 +541,7 @@ func (s *SqlPostStore) buildFlaggedPostTeamFilterClause(teamId string, queryPara
 	return "AND B.TeamId = ? OR B.TeamId = ''", append(queryParams, teamId)
 }
 
-func (s *SqlPostStore) buildFlaggedPostChannelFilterClause(channelId string, queryParams []interface{}) (string, []interface{}) {
+func (s *SqlPostStore) buildFlaggedPostChannelFilterClause(channelId string, queryParams []any) (string, []any) {
 	if channelId == "" {
 		return "", queryParams
 	}
@@ -1250,7 +1250,7 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 		replyCountQuery2 = `, (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN cte.RootId = '' THEN cte.Id ELSE cte.RootId END) AND Posts.DeleteAt = 0) as ReplyCount`
 	}
 	var query string
-	var params []interface{}
+	var params []any
 
 	// union of IDs and then join to get full posts is faster in mysql
 	if s.DriverName() == model.DatabaseDriverMysql {
@@ -1282,7 +1282,7 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 			) j ON p1.Id = j.Id
           ORDER BY CreateAt ` + order
 
-		params = []interface{}{options.Time, options.ChannelId, options.Time, options.ChannelId}
+		params = []any{options.Time, options.ChannelId, options.Time, options.ChannelId}
 	} else if s.DriverName() == model.DatabaseDriverPostgres {
 		query = `WITH cte AS (SELECT
 		       *
@@ -1296,7 +1296,7 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 		(SELECT *` + replyCountQuery1 + ` FROM Posts p1 WHERE id in (SELECT rootid FROM cte))
 		ORDER BY CreateAt ` + order
 
-		params = []interface{}{options.Time, options.ChannelId}
+		params = []any{options.Time, options.ChannelId}
 	}
 	err := s.GetReplicaX().Select(&posts, query, params...)
 	if err != nil {
@@ -2029,7 +2029,7 @@ func removeMysqlStopWordsFromTerms(terms string) (string, error) {
 
 // TODO: convert to squirrel HW
 func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, error) {
-	var args []interface{}
+	var args []any
 	query :=
 		`SELECT DISTINCT
 		        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
@@ -2038,7 +2038,7 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 
 	if teamId != "" {
 		query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = ? AND"
-		args = []interface{}{teamId}
+		args = []any{teamId}
 	} else {
 		query += " WHERE"
 	}
@@ -2056,7 +2056,7 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 
 		if teamId != "" {
 			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = ? AND"
-			args = []interface{}{teamId}
+			args = []any{teamId}
 		} else {
 			query += " WHERE"
 		}
@@ -2085,7 +2085,7 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 // TODO: convert to squirrel HW
 func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, error) {
 
-	var args []interface{}
+	var args []any
 	query :=
 		`SELECT
 		        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
@@ -2098,7 +2098,7 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCoun
 
 	if options.TeamId != "" {
 		query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = ? AND"
-		args = []interface{}{options.TeamId}
+		args = []any{options.TeamId}
 	} else {
 		query += " WHERE"
 	}
@@ -2121,7 +2121,7 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCoun
 
 		if options.TeamId != "" {
 			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id  AND Channels.TeamId = ? AND"
-			args = []interface{}{options.TeamId}
+			args = []any{options.TeamId}
 		} else {
 			query += " WHERE"
 		}

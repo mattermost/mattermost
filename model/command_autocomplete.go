@@ -354,7 +354,7 @@ func (a *AutocompleteArg) UnmarshalJSON(b []byte) error {
 		if !ok {
 			return errors.Errorf("Wrong Data type in the StaticList argument %s", string(b))
 		}
-		list, ok := m["PossibleArguments"].([]interface{})
+		list, ok := m["PossibleArguments"].([]any)
 		if !ok {
 			return errors.Errorf("No field PossibleArguments in the StaticList argument %s", string(b))
 		}

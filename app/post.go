@@ -240,7 +240,7 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 	if attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment); ok {
 		jsonAttachments, err := json.Marshal(attachments)
 		if err == nil {
-			attachmentsInterface := []interface{}{}
+			attachmentsInterface := []any{}
 			err = json.Unmarshal(jsonAttachments, &attachmentsInterface)
 			post.AddProp("attachments", attachmentsInterface)
 		}
