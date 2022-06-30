@@ -203,9 +203,9 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec.AddEventResultState(cfg) // TODO we can do this too but do we want to? the config object is huge
+	//auditRec.AddEventResultState(cfg) // TODO we can do this too but do we want to? the config object is huge
 	auditRec.AddEventObjectType("config")
-	auditRec.Success() // TODO config object is quite large, do we really want to add it to the audit logs?
+	auditRec.Success()
 	c.LogAudit("updateConfig")
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
