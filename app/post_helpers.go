@@ -78,16 +78,19 @@ func getTimeSortedPostAccessibleBounds(earliestAccessibleTime int64, lenPosts in
 func linearFilterPostList(postList *model.PostList, earliestAccessibleTime int64) {
 	// filter Posts
 	posts := postList.Posts
+	order := postList.Order
 
-	newPostOrder := []string{}
-	for _, postId := range postList.Order {
-		if posts[postId].CreateAt < earliestAccessibleTime {
+	n := 0
+	for i, postId := range order {
+		if posts[postId].CreateAt >= earliestAccessibleTime {
+			order[n] = order[i]
+			n++
+		} else {
 			postList.HasInaccessiblePosts = true
 			delete(posts, postId)
-		} else {
-			newPostOrder = append(newPostOrder, postId)
 		}
 	}
+	postList.Order = order[:n]
 
 	// it can happen that some post list results don't have all posts in the Order field.
 	// for example GetPosts in the CollapsedThreads = false path, parents are not added
@@ -98,23 +101,23 @@ func linearFilterPostList(postList *model.PostList, earliestAccessibleTime int64
 			delete(posts, postId)
 		}
 	}
-
-	postList.Order = newPostOrder
 }
 
 // linearFilterPostsSlice make no assumptions about ordering, go through posts one by one
 // this is the slower fallback that is still safe if we can not
 // assume posts are ordered by CreatedAt
-func linearFilterPostsSlice(posts []*model.Post, earliestAccessibleTime int64) (filteredPosts []*model.Post, hasInaccessiblePosts bool) {
-	filteredPosts = make([]*model.Post, 0, len(posts))
+func linearFilterPostsSlice(posts []*model.Post, earliestAccessibleTime int64) ([]*model.Post, bool) {
+	hasInaccessiblePosts := false
+	n := 0
 	for i := range posts {
-		if posts[i].CreateAt < earliestAccessibleTime {
-			hasInaccessiblePosts = true
+		if posts[i].CreateAt >= earliestAccessibleTime {
+			posts[n] = posts[i]
+			n++
 		} else {
-			filteredPosts = append(filteredPosts, posts[i])
+			hasInaccessiblePosts = true
 		}
 	}
-	return
+	return posts[:n], hasInaccessiblePosts
 }
 
 // filterInaccessiblePosts filters out the posts, past the cloud limit
