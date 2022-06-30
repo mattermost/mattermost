@@ -103,10 +103,7 @@ const (
 	HooksKey         ServiceKey = "hooks"
 	KVStoreKey       ServiceKey = "kvstore"
 	StoreKey         ServiceKey = "storekey"
-<<<<<<< HEAD
 	SystemKey        ServiceKey = "systemkey"
-=======
->>>>>>> upstream/master
 )
 
 type Server struct {
