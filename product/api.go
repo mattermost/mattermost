@@ -4,6 +4,7 @@
 package product
 
 import (
+	"database/sql"
 	"io"
 
 	"github.com/gorilla/mux"
@@ -166,4 +167,11 @@ type KVStoreService interface {
 // The service shall be registered via app.LogKey service key.
 type LogService interface {
 	mlog.LoggerIFace
+}
+
+// StoreService is the API for accessing the Store service APIs.
+//
+// The service shall be registered via app.StoreKey service key.
+type StoreService interface {
+	GetMasterDB() *sql.DB
 }
