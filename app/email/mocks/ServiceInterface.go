@@ -125,34 +125,6 @@ func (_m *ServiceInterface) SendChangeUsernameEmail(newUsername string, _a1 stri
 	return r0
 }
 
-// SendCloudTrialEndWarningEmail provides a mock function with given fields: userEmail, name, trialEndDate, locale, siteURL
-func (_m *ServiceInterface) SendCloudTrialEndWarningEmail(userEmail string, name string, trialEndDate string, locale string, siteURL string) error {
-	ret := _m.Called(userEmail, name, trialEndDate, locale, siteURL)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, string, string, string) error); ok {
-		r0 = rf(userEmail, name, trialEndDate, locale, siteURL)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// SendCloudTrialEndedEmail provides a mock function with given fields: userEmail, name, locale, siteURL
-func (_m *ServiceInterface) SendCloudTrialEndedEmail(userEmail string, name string, locale string, siteURL string) error {
-	ret := _m.Called(userEmail, name, locale, siteURL)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, string, string) error); ok {
-		r0 = rf(userEmail, name, locale, siteURL)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // SendCloudUpgradeConfirmationEmail provides a mock function with given fields: userEmail, name, trialEndDate, locale, siteURL, workspaceName
 func (_m *ServiceInterface) SendCloudUpgradeConfirmationEmail(userEmail string, name string, trialEndDate string, locale string, siteURL string, workspaceName string) error {
 	ret := _m.Called(userEmail, name, trialEndDate, locale, siteURL, workspaceName)
