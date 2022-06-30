@@ -655,7 +655,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if sort != "" && sort != "last_activity_at" && sort != "create_at" && sort != "status" {
+	if sort != "" && sort != "last_activity_at" && sort != "create_at" && sort != "status" && sort != "admin" {
 		c.SetInvalidURLParam("sort")
 		return
 	}
@@ -667,6 +667,10 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if sort == "status" && inChannelId == "" {
+		c.SetInvalidURLParam("sort")
+		return
+	}
+	if sort == "admin" && inChannelId == "" {
 		c.SetInvalidURLParam("sort")
 		return
 	}
@@ -802,6 +806,8 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if sort == "status" {
 			profiles, err = c.App.GetUsersInChannelPageByStatus(userGetOptions, c.IsSystemAdmin())
+		} else if sort == "admin" {
+			profiles, err = c.App.GetUsersInChannelPageByAdmin(userGetOptions, c.IsSystemAdmin())
 		} else {
 			profiles, err = c.App.GetUsersInChannelPage(userGetOptions, c.IsSystemAdmin())
 		}

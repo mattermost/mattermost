@@ -530,6 +530,15 @@ func (a *App) GetUsersInChannelByStatus(options *model.UserGetOptions) ([]*model
 	return users, nil
 }
 
+func (a *App) GetUsersInChannelByAdmin(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	users, err := a.Srv().Store.User().GetProfilesInChannelByAdmin(options)
+	if err != nil {
+		return nil, model.NewAppError("GetUsersInChannelByAdmin", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return users, nil
+}
+
 func (a *App) GetUsersInChannelMap(options *model.UserGetOptions, asAdmin bool) (map[string]*model.User, *model.AppError) {
 	users, err := a.GetUsersInChannel(options)
 	if err != nil {
@@ -556,6 +565,14 @@ func (a *App) GetUsersInChannelPage(options *model.UserGetOptions, asAdmin bool)
 
 func (a *App) GetUsersInChannelPageByStatus(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
 	users, err := a.GetUsersInChannelByStatus(options)
+	if err != nil {
+		return nil, err
+	}
+	return a.sanitizeProfiles(users, asAdmin), nil
+}
+
+func (a *App) GetUsersInChannelPageByAdmin(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
+	users, err := a.GetUsersInChannelByAdmin(options)
 	if err != nil {
 		return nil, err
 	}
