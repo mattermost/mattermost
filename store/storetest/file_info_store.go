@@ -730,6 +730,11 @@ func testFileInfoStoreCountAll(t *testing.T, ss store.Store) {
 func testFileInfoGetStorageUsage(t *testing.T, ss store.Store) {
 	_, err := ss.FileInfo().PermanentDeleteBatch(model.GetMillis(), 100000)
 	require.NoError(t, err)
+
+	usage, err := ss.FileInfo().GetStorageUsage(false, false)
+	require.NoError(t, err)
+	require.Equal(t, int64(0), usage)
+
 	f1, err := ss.FileInfo().Save(&model.FileInfo{
 		PostId:    model.NewId(),
 		CreatorId: model.NewId(),
@@ -753,7 +758,7 @@ func testFileInfoGetStorageUsage(t *testing.T, ss store.Store) {
 	})
 	require.NoError(t, err)
 
-	usage, err := ss.FileInfo().GetStorageUsage(false, false)
+	usage, err = ss.FileInfo().GetStorageUsage(false, false)
 	require.NoError(t, err)
 	require.Equal(t, int64(30), usage)
 

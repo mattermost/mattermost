@@ -1948,10 +1948,6 @@
     "translation": "جستجوی الاستیک غیرفعال است."
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "اتصال به سرور جستجوی الاستیک انجام نشد."
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "جستجوی الاستیک از قبل متوقف شده است."
   },

@@ -18,20 +18,20 @@ type UserStore struct {
 	mock.Mock
 }
 
-// AnalyticsActiveCount provides a mock function with given fields: time, options
-func (_m *UserStore) AnalyticsActiveCount(time int64, options model.UserCountOptions) (int64, error) {
-	ret := _m.Called(time, options)
+// AnalyticsActiveCount provides a mock function with given fields: timestamp, options
+func (_m *UserStore) AnalyticsActiveCount(timestamp int64, options model.UserCountOptions) (int64, error) {
+	ret := _m.Called(timestamp, options)
 
 	var r0 int64
 	if rf, ok := ret.Get(0).(func(int64, model.UserCountOptions) int64); ok {
-		r0 = rf(time, options)
+		r0 = rf(timestamp, options)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(int64, model.UserCountOptions) error); ok {
-		r1 = rf(time, options)
+		r1 = rf(timestamp, options)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -755,6 +755,29 @@ func (_m *UserStore) GetProfilesByUsernames(usernames []string, viewRestrictions
 
 // GetProfilesInChannel provides a mock function with given fields: options
 func (_m *UserStore) GetProfilesInChannel(options *model.UserGetOptions) ([]*model.User, error) {
+	ret := _m.Called(options)
+
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func(*model.UserGetOptions) []*model.User); ok {
+		r0 = rf(options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.UserGetOptions) error); ok {
+		r1 = rf(options)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetProfilesInChannelByAdmin provides a mock function with given fields: options
+func (_m *UserStore) GetProfilesInChannelByAdmin(options *model.UserGetOptions) ([]*model.User, error) {
 	ret := _m.Called(options)
 
 	var r0 []*model.User

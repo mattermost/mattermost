@@ -9,26 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetStartUnixMilliForTimeRang(t *testing.T) {
-	tc := [3]string{"today", "7_day", "28_day"}
-
-	for _, timeRange := range tc {
-		t.Run(timeRange, func(t *testing.T) {
-			_, err := GetStartUnixMilliForTimeRange(timeRange)
-			assert.Nil(t, err)
-		})
-	}
-
-	invalidTimeRanges := [3]string{"", "1_day", "10_day"}
-
-	for _, timeRange := range invalidTimeRanges {
-		t.Run(timeRange, func(t *testing.T) {
-			_, err := GetStartUnixMilliForTimeRange(timeRange)
-			assert.NotNil(t, err)
-		})
-	}
-}
-
 func TestGetTopReactionListWithPagination(t *testing.T) {
 	reactions := []*TopReaction{
 		{EmojiName: "smile", Count: 200},
@@ -98,6 +78,44 @@ func TestGetTopChannelListWithPagination(t *testing.T) {
 	for _, test := range hasNextTC {
 		t.Run(test.Description, func(t *testing.T) {
 			actual := GetTopChannelListWithPagination(channels, test.Limit)
+			assert.Equal(t, test.Expected.HasNext, actual.HasNext)
+		})
+	}
+}
+
+func TestGetTopThreadListWithPagination(t *testing.T) {
+	threads := []*TopThread{
+		{PostId: NewId(), ReplyCount: 100},
+		{PostId: NewId(), ReplyCount: 80},
+		{PostId: NewId(), ReplyCount: 90},
+		{PostId: NewId(), ReplyCount: 76},
+		{PostId: NewId(), ReplyCount: 43},
+		{PostId: NewId(), ReplyCount: 2},
+		{PostId: NewId(), ReplyCount: 1},
+	}
+	hasNextTT := []struct {
+		Description string
+		Limit       int
+		Offset      int
+		Expected    *TopThreadList
+	}{
+		{
+			Description: "has one page",
+			Limit:       len(threads),
+			Offset:      0,
+			Expected:    &TopThreadList{InsightsListData: InsightsListData{HasNext: false}, Items: threads},
+		},
+		{
+			Description: "has more than one page",
+			Limit:       len(threads) - 1,
+			Offset:      0,
+			Expected:    &TopThreadList{InsightsListData: InsightsListData{HasNext: true}, Items: threads},
+		},
+	}
+
+	for _, test := range hasNextTT {
+		t.Run(test.Description, func(t *testing.T) {
+			actual := GetTopThreadListWithPagination(threads, test.Limit)
 			assert.Equal(t, test.Expected.HasNext, actual.HasNext)
 		})
 	}

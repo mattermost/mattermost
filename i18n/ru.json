@@ -3160,10 +3160,6 @@
     "translation": "Elasticsearch уже остановлен."
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Не удалось подключиться к серверу Elasticsearch."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch отключён."
   },
@@ -9250,10 +9246,6 @@
   {
     "id": "model.member.is_valid.channel.app_error",
     "translation": "Недопустимое название канала"
-  },
-  {
-    "id": "model.insights.time_range.app_error",
-    "translation": " "
   },
   {
     "id": "model.channel.is_valid.1_or_more.app_error",
