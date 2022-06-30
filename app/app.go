@@ -173,3 +173,12 @@ func (a *App) SetServer(srv *Server) {
 func (a *App) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 	return a.Srv().Store.Status().UpdateExpiredDNDStatuses()
 }
+
+// systemServiceAdapter provides a collection of system APIs for use by products.
+type systemServiceAdapter struct {
+	server *Server
+}
+
+func (ssa *systemServiceAdapter) GetDiagnosticId() string {
+	return ssa.server.TelemetryId()
+}

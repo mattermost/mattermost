@@ -82,6 +82,7 @@ type UserService interface {
 	UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError)
 	GetUserByEmail(email string) (*model.User, *model.AppError)
 	GetUserByUsername(username string) (*model.User, *model.AppError)
+	GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError)
 }
 
 // TeamService provides team related utilities.
@@ -174,4 +175,11 @@ type LogService interface {
 // The service shall be registered via app.StoreKey service key.
 type StoreService interface {
 	GetMasterDB() *sql.DB
+}
+
+// SystemService is the API for accessing the System service APIs.
+//
+// The service shall be registered via app.SystemKey service key.
+type SystemService interface {
+	GetDiagnosticId() string
 }
