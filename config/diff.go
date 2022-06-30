@@ -26,10 +26,10 @@ func (c *ConfigDiff) Auditable() map[string]interface{} {
 	}
 }
 
-func (c *ConfigDiffs) Auditable() map[string]interface{} {
+func (cd *ConfigDiffs) Auditable() map[string]interface{} {
 	var s []interface{}
-	for _, cd := range c.Sanitize() {
-		s = append(s, cd.Auditable())
+	for _, d := range cd.Sanitize() {
+		s = append(s, d.Auditable())
 	}
 	return map[string]interface{}{
 		"config_diffs": s,
