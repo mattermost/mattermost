@@ -112,8 +112,23 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 		return errors.Wrap(err, "unable to render the email notification template")
 	}
 
+	templateString := "<%s@mattermost.com>"
+	messageID := ""
+	inReplyTo := ""
+	references := ""
+
+	if post.Id != "" {
+		messageID = fmt.Sprintf(templateString, post.Id)
+	}
+
+	if post.RootId != "" {
+		referencesVal := fmt.Sprintf(templateString, post.RootId)
+		inReplyTo = referencesVal
+		references = referencesVal
+	}
+
 	a.Srv().Go(func() {
-		if nErr := a.Srv().EmailService.SendMailWithEmbeddedFiles(user.Email, html.UnescapeString(subjectText), bodyText, embeddedFiles); nErr != nil {
+		if nErr := a.Srv().EmailService.SendMailWithEmbeddedFiles(user.Email, html.UnescapeString(subjectText), bodyText, embeddedFiles, messageID, inReplyTo, references); nErr != nil {
 			mlog.Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(nErr))
 		}
 	})

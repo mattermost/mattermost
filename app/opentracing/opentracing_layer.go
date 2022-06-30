@@ -12280,6 +12280,28 @@ func (a *OpenTracingAppLayer) NotifySharedChannelUserUpdate(user *model.User) {
 	a.app.NotifySharedChannelUserUpdate(user)
 }
 
+func (a *OpenTracingAppLayer) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NotifySystemAdminsToUpgrade")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.NotifySystemAdminsToUpgrade(c, currentUserTeamID)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.OpenInteractiveDialog")
@@ -14855,50 +14877,6 @@ func (a *OpenTracingAppLayer) SendAutoResponseIfNecessary(c *request.Context, ch
 	}
 
 	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) SendCloudTrialEndWarningEmail(trialEndDate string, siteURL string) *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendCloudTrialEndWarningEmail")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.SendCloudTrialEndWarningEmail(trialEndDate, siteURL)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) SendCloudTrialEndedEmail() *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendCloudTrialEndedEmail")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.SendCloudTrialEndedEmail()
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) SendEmailVerification(user *model.User, newEmail string, redirect string) *model.AppError {

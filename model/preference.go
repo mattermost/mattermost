@@ -59,6 +59,7 @@ const (
 	PreferenceEmailIntervalFifteenAsSeconds  = "900"
 	PreferenceEmailIntervalHour              = "hour"
 	PreferenceEmailIntervalHourAsSeconds     = "3600"
+	PreferenceCloudUserEphemeralInfo         = "cloud_user_ephemeral_info"
 )
 
 type Preference struct {
