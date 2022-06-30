@@ -309,8 +309,9 @@ func (*resolver) ChannelMembers(ctx context.Context, args struct {
 
 // match with api4.getCategoriesForTeamForUser
 func (*resolver) SidebarCategories(ctx context.Context, args struct {
-	UserID string
-	TeamID string
+	UserID      string
+	TeamID      string
+	ExcludeTeam bool
 }) ([]*model.SidebarCategoryWithChannels, error) {
 	c, err := getCtx(ctx)
 	if err != nil {
@@ -335,7 +336,44 @@ func (*resolver) SidebarCategories(ctx context.Context, args struct {
 		args.UserID = c.AppContext.Session().UserId
 	}
 
-	return getSidebarCategories(c, args.UserID, args.TeamID)
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), args.UserID) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return nil, c.Err
+	}
+
+	// If it's only for a single team.
+	var categories *model.OrderedSidebarCategories
+	var appErr *model.AppError
+	if !args.ExcludeTeam {
+		categories, appErr = c.App.GetSidebarCategoriesForTeamForUser(args.UserID, args.TeamID)
+		if appErr != nil {
+			return nil, appErr
+		}
+	} else {
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      args.TeamID,
+			ExcludeTeam: args.ExcludeTeam,
+		}
+		categories, appErr = c.App.GetSidebarCategories(args.UserID, opts)
+		if appErr != nil {
+			return nil, appErr
+		}
+	}
+
+	// TODO: look into optimizing this.
+	// create map
+	orderMap := make(map[string]*model.SidebarCategoryWithChannels, len(categories.Categories))
+	for _, category := range categories.Categories {
+		orderMap[category.Id] = category
+	}
+
+	// create a new slice based on the order
+	res := make([]*model.SidebarCategoryWithChannels, 0, len(categories.Categories))
+	for _, categoryId := range categories.Order {
+		res = append(res, orderMap[categoryId])
+	}
+
+	return res, nil
 }
 
 // getCtx extracts web.Context out of the usual request context.

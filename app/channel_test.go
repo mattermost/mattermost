@@ -219,7 +219,7 @@ func TestMoveChannel(t *testing.T) {
 		assert.Equal(t, []string{}, updatedCategory.Channels)
 
 		// And it should be on the new team instead
-		categories, err := th.App.GetSidebarCategories(th.BasicUser.Id, targetTeam.Id)
+		categories, err := th.App.GetSidebarCategoriesForTeamForUser(th.BasicUser.Id, targetTeam.Id)
 		require.Nil(t, err)
 		require.Equal(t, model.SidebarCategoryChannels, categories.Categories[1].Type)
 		assert.Contains(t, categories.Categories[1].Channels, channel.Id)
