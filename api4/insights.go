@@ -45,16 +45,17 @@ func getTopReactionsForTeamSince(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	user, err := c.App.GetUser(c.AppContext.Session().UserId)
-	if err != nil {
-		c.Err = err
-		return
-	}
+	// user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	// if err != nil {
+	// 	c.Err = err
+	// 	return
+	// }
 
-	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+	// startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+	startTimeHard := 1587117237228
 
 	topReactionList, err := c.App.GetTopReactionsForTeamSince(c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
-		StartUnixMilli: startTime.UnixMilli(),
+		StartUnixMilli: int64(startTimeHard),
 		Page:           c.Params.Page,
 		PerPage:        c.Params.PerPage,
 	})
@@ -94,16 +95,17 @@ func getTopReactionsForUserSince(c *Context, w http.ResponseWriter, r *http.Requ
 		}
 	}
 
-	user, err := c.App.GetUser(c.AppContext.Session().UserId)
-	if err != nil {
-		c.Err = err
-		return
-	}
+	// user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	// if err != nil {
+	// 	c.Err = err
+	// 	return
+	// }
 
-	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+	// startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+	startTimeHard := 1587117237228
 
 	topReactionList, err := c.App.GetTopReactionsForUserSince(c.AppContext.Session().UserId, c.Params.TeamId, &model.InsightsOpts{
-		StartUnixMilli: startTime.UnixMilli(),
+		StartUnixMilli: int64(startTimeHard),
 		Page:           c.Params.Page,
 		PerPage:        c.Params.PerPage,
 	})
@@ -148,9 +150,10 @@ func getTopChannelsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reque
 
 	loc := user.GetTimezoneLocation()
 	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, loc)
+	startTimeHard := 1587117237228
 
 	topChannels, err := c.App.GetTopChannelsForTeamSince(c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
-		StartUnixMilli: startTime.UnixMilli(),
+		StartUnixMilli: int64(startTimeHard),
 		Page:           c.Params.Page,
 		PerPage:        c.Params.PerPage,
 	})
@@ -204,9 +207,10 @@ func getTopChannelsForUserSince(c *Context, w http.ResponseWriter, r *http.Reque
 
 	loc := user.GetTimezoneLocation()
 	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, loc)
+	startTimeHard := 1587117237228
 
 	topChannels, err := c.App.GetTopChannelsForUserSince(c.AppContext.Session().UserId, c.Params.TeamId, &model.InsightsOpts{
-		StartUnixMilli: startTime.UnixMilli(),
+		StartUnixMilli: int64(startTimeHard),
 		Page:           c.Params.Page,
 		PerPage:        c.Params.PerPage,
 	})
@@ -263,10 +267,11 @@ func getTopThreadsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+	// startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+	startTimeHard := 1587117237228
 
 	topThreads, err := c.App.GetTopThreadsForTeamSince(c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
-		StartUnixMilli: startTime.UnixMilli(),
+		StartUnixMilli: int64(startTimeHard),
 		Page:           c.Params.Page,
 		PerPage:        c.Params.PerPage,
 	})
@@ -319,10 +324,11 @@ func getTopThreadsForUserSince(c *Context, w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+	// startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+	startTimeHard := 1587117237228
 
 	topThreads, err := c.App.GetTopThreadsForUserSince(c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
-		StartUnixMilli: startTime.UnixMilli(),
+		StartUnixMilli: int64(startTimeHard),
 		Page:           c.Params.Page,
 		PerPage:        c.Params.PerPage,
 	})

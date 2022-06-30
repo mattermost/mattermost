@@ -52,6 +52,7 @@ func testReactionSave(t *testing.T, ss store.Store) {
 	assert.Equal(t, saved.PostId, reaction1.PostId, "should've saved reaction post_id and returned it")
 	assert.Equal(t, saved.EmojiName, reaction1.EmojiName, "should've saved reaction emoji_name and returned it")
 	assert.NotZero(t, saved.UpdateAt, "should've saved reaction update_at and returned it")
+	assert.Equal(t, saved.ChannelId, post.ChannelId, "should've saved reaction update_at and returned it")
 	assert.Zero(t, saved.DeleteAt, "should've saved reaction delete_at with zero value and returned it")
 
 	var secondUpdateAt int64
@@ -85,9 +86,16 @@ func testReactionSave(t *testing.T, ss store.Store) {
 	assert.NotEqual(t, postList.Posts[post.Id].UpdateAt, secondUpdateAt, "should've marked post as updated even if HasReactions doesn't change")
 
 	// different post
+	// create post1
+	post1, err := ss.Post().Save(&model.Post{
+		ChannelId: model.NewId(),
+		UserId:    model.NewId(),
+	})
+	require.NoError(t, err)
+
 	reaction3 := &model.Reaction{
 		UserId:    reaction1.UserId,
-		PostId:    model.NewId(),
+		PostId:    post1.Id,
 		EmojiName: reaction1.EmojiName,
 	}
 	_, nErr = ss.Reaction().Save(reaction3)
