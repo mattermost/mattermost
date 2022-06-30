@@ -1021,3 +1021,18 @@ type SidebarCategorySearchOpts struct {
 	TeamID      string
 	ExcludeTeam bool
 }
+
+// StoreServiceAdapter provides a simple Store wrapper for use with products.
+type StoreServiceAdapter struct {
+	store Store
+}
+
+func NewStoreServiceAdapter(store Store) *StoreServiceAdapter {
+	return &StoreServiceAdapter{
+		store: store,
+	}
+}
+
+func (a *StoreServiceAdapter) GetMasterDB() *sql.DB {
+	return a.store.GetInternalMasterDB()
+}
