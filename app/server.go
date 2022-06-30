@@ -102,6 +102,7 @@ const (
 	LogKey           ServiceKey = "log"
 	HooksKey         ServiceKey = "hooks"
 	KVStoreKey       ServiceKey = "kvstore"
+	StoreKey         ServiceKey = "storekey"
 )
 
 type Server struct {
@@ -402,6 +403,7 @@ func NewServer(options ...Option) (*Server, error) {
 		LogKey:           s.GetLogger(),
 		CloudKey:         &cloudWrapper{cloud: s.Cloud},
 		KVStoreKey:       &kvStoreWrapper{srv: s},
+		StoreKey:         store.NewStoreServiceAdapter(s.Store),
 	}
 
 	// Step 8: Initialize products.
