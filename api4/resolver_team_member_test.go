@@ -179,8 +179,8 @@ func TestGraphQLTeamMembers(t *testing.T) {
 		ch1 := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, myTeam.Id)
 		ch2 := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypePrivate, myTeam.Id)
 		th.LinkUserToTeam(th.BasicUser, myTeam)
-		th.App.AddUserToChannel(th.Context,th.BasicUser, ch1, false)
-		th.App.AddUserToChannel(th.Context,th.BasicUser, ch2, false)
+		th.App.AddUserToChannel(th.Context, th.BasicUser, ch1, false)
+		th.App.AddUserToChannel(th.Context, th.BasicUser, ch2, false)
 
 		input := graphQLInput{
 			OperationName: "teamMembers",
