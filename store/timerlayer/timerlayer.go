@@ -9653,6 +9653,22 @@ func (s *TimerLayerUserStore) GetProfilesInChannel(options *model.UserGetOptions
 	return result, err
 }
 
+func (s *TimerLayerUserStore) GetProfilesInChannelByAdmin(options *model.UserGetOptions) ([]*model.User, error) {
+	start := time.Now()
+
+	result, err := s.UserStore.GetProfilesInChannelByAdmin(options)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetProfilesInChannelByAdmin", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerUserStore) GetProfilesInChannelByStatus(options *model.UserGetOptions) ([]*model.User, error) {
 	start := time.Now()
 
