@@ -7915,6 +7915,22 @@ func (c *Client4) RequestCloudTrial(email *StartCloudTrialRequest) (*Subscriptio
 	return subscription, BuildResponse(r), nil
 }
 
+func (c *Client4) NotifyAdmin(nr *NotifyAdminToUpgradeRequest) int {
+	nrJSON, jsonErr := json.Marshal(nr)
+	if jsonErr != nil {
+		return 0
+	}
+
+	r, err := c.DoAPIPost(c.cloudRoute()+"/notify-admin-to-upgrade", string(nrJSON))
+	if err != nil {
+		return r.StatusCode
+	}
+
+	closeBody(r)
+
+	return r.StatusCode
+}
+
 func (c *Client4) ValidateBusinessEmail(email *ValidateBusinessEmailRequest) (*Response, error) {
 	payload, _ := json.Marshal(email)
 	r, err := c.DoAPIPostBytes(c.cloudRoute()+"/validate-business-email", payload)
