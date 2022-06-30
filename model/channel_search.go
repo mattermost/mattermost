@@ -16,6 +16,7 @@ type ChannelSearch struct {
 	Public                   bool     `json:"public"`
 	Private                  bool     `json:"private"`
 	IncludeDeleted           bool     `json:"include_deleted"`
+	IncludeSearchById        bool     `json:"include_search_by_id"`
 	Deleted                  bool     `json:"deleted"`
 	Page                     *int     `json:"page,omitempty"`
 	PerPage                  *int     `json:"per_page,omitempty"`

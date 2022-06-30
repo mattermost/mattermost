@@ -30,6 +30,18 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 )
 
+type teamServiceWrapper struct {
+	app AppIface
+}
+
+func (w *teamServiceWrapper) GetMember(teamID, userID string) (*model.TeamMember, error) {
+	return w.app.GetTeamMember(teamID, userID)
+}
+
+func (w *teamServiceWrapper) CreateMember(ctx *request.Context, teamID, userID string) (*model.TeamMember, error) {
+	return w.app.AddTeamMember(ctx, teamID, userID)
+}
+
 func (a *App) AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model.AppError {
 	maxActiveTeams := *teamLimits.Active
 	teams, appErr := a.GetAllTeams()
@@ -792,7 +804,11 @@ func (a *App) JoinUserToTeam(c *request.Context, team *model.Team, user *model.U
 		return nil, model.NewAppError("JoinUserToTeam", "app.user.update_update.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if _, err := a.createInitialSidebarCategories(user.Id, team.Id); err != nil {
+	opts := &store.SidebarCategorySearchOpts{
+		TeamID:      team.Id,
+		ExcludeTeam: false,
+	}
+	if _, err := a.createInitialSidebarCategories(user.Id, opts); err != nil {
 		mlog.Warn(
 			"Encountered an issue creating default sidebar categories.",
 			mlog.String("user_id", user.Id),

@@ -1853,7 +1853,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "投稿を確認する"
+    "translation": "Mattermostで返信する"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2640,10 +2640,6 @@
     "translation": "必須のリアクション設定値 User が存在しません。"
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "返信作成日時の設定値は親に当たる投稿の作成日時よりも大きくなくてはなりません。"
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "必須の返信設定値 create_at が存在しません。"
   },
@@ -3154,10 +3150,6 @@
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearchは既に停止されています。"
-  },
-  {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Elasticsearchサーバーへ接続できませんでした。"
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -7169,7 +7161,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "あなたのMattermostにはいくつかのチームが存在します。多くのチームは、チャンネルの作成方法や、誰が新しいチームメイトを招待できるか、また、どのように統合機能を管理するかなどのチーム運営について各々が好む方法を持っています。チーム上書きスキームにより、それぞれの要求を満たすようチームごとにユーザー権限設定をカスタマイズできます。\n\n詳しくは[高度な権限設定に関する説明](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)を参照してください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意し、製品に関する電子メールを受信するようになります。"
+    "translation": "あなたのMattermostにはいくつかのチームが存在します。多くのチームは、チャンネルの作成方法や、誰が新しいチームメイトを招待できるか、また、どのように統合機能を管理するかなどのチーム運営について各々が好む方法を持っています。チーム上書きスキームにより、それぞれの要求を満たすようチームごとにユーザー権限設定をカスタマイズできます。\n\n詳しくは[高度な権限設定に関する説明](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)を参照してください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意したことになり、製品に関する電子メールを受信するようになります。"
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.notification_title",
@@ -7189,7 +7181,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "あなたのMattermostシステムには非常に多くのメッセージがあります。Mattermostのデフォルトのデータベース検索は約250万投稿からパフォーマンスが劣化し始めます。500万投稿以上ある場合、Elasticsearchを導入することで、検索のタイムアウトなどの深刻なパフォーマンスの問題を回避することができます。Elasticsearchとの連携について詳しく知りたい場合や、何かサポートできることがないか私たちに問い合わせてください。\n\n詳しくは[パフォーマンス改善に関する説明](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意し、製品に関する電子メールを受信するようになります。"
+    "translation": "あなたのMattermostシステムには非常に多くのメッセージがあります。Mattermostのデフォルトのデータベース検索は約250万投稿からパフォーマンスが劣化し始めます。500万投稿以上ある場合、Elasticsearchを導入することで、検索のタイムアウトなどの深刻なパフォーマンスの問題を回避することができます。Elasticsearchとの連携について詳しく知りたい場合や、何かサポートできることがないか私たちに問い合わせてください。\n\n詳しくは[パフォーマンス改善に関する説明](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意したことになり、製品に関する電子メールを受信するようになります。"
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
@@ -7209,7 +7201,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "チャンネルはコミュニケーションの改善をサポートするものですが、Mattermost全体でチャンネルの作成や参加が多くなるにつれ、システムを整理されたものにし続けることが課題になってきます。高度な権限設定により、どのユーザー、もしくはどの役割の人が何のアクションを実行可能かを設定することができます。例えば、チャンネル設定やメンバーの管理や、@channel、@hereなどのタグによるグループへの発信、新たなウェブフックの作成などを制限できます。\n\n詳しくは[高度な権限設定の利用に関する説明](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意し、製品に関する電子メールを受信するようになります。"
+    "translation": "チャンネルはコミュニケーションの改善をサポートするものですが、Mattermost全体でチャンネルの作成や参加が多くなるにつれ、システムを整理されたものにし続けることが課題になってきます。高度な権限設定により、どのユーザー、もしくはどの役割の人が何のアクションを実行可能かを設定することができます。例えば、チャンネル設定やメンバーの管理や、@channel、@hereなどのタグによるグループへの発信、新たなウェブフックの作成などを制限できます。\n\n詳しくは[高度な権限設定の利用に関する説明](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意したことになり、製品に関する電子メールを受信するようになります。"
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
@@ -7229,7 +7221,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "500ユーザーを超える場合は、ユーザー管理やサーバーのクラスタリング、パフォーマンスモニタリング機能の利用を強く推奨します。詳細についてはお問い合わせください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意し、製品に関する電子メールを受信するようになります。"
+    "translation": "500ユーザーを超える場合は、ユーザー管理やサーバーのクラスタリング、パフォーマンスモニタリング機能の利用を強く推奨します。詳細についてはお問い合わせください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意したことになり、製品に関する電子メールを受信するようになります。"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
@@ -7245,7 +7237,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "Mattermost全体で多くの会話がなされている場合、どこに重要な情報があるかを知るのは難しいことかもしれません。多くのユーザーに対してメッセージを配信したい場合、誰でも参加可能だがチャンネル管理者しかメッセージの投稿ができないような閲覧専用の連絡チャンネルを立てることができます。\n\n詳しくは[閲覧専用の連絡チャンネルの作成に関する説明](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意し、製品に関する電子メールを受信するようになります。"
+    "translation": "Mattermost全体で多くの会話がなされている場合、どこに重要な情報があるかを知るのは難しいことかもしれません。多くのユーザーに対してメッセージを配信したい場合、誰でも参加可能だがチャンネル管理者しかメッセージの投稿ができないような閲覧専用の連絡チャンネルを立てることができます。\n\n詳しくは[閲覧専用の連絡チャンネルの作成に関する説明](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意したことになり、製品に関する電子メールを受信するようになります。"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
@@ -7261,7 +7253,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "あなたのMattermostには200ユーザーが登録しています。Mattermostをあなたの組織のシングルサインオンプロバイダーに接続することで、ユーザーは再度認証情報を入力することなくMattermostへアクセスできるようになります。MattermostサーバーをSAML 2.0プロバイダーと連携することをおすすめします。詳しくは[SAML2.0連携に関する説明](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)を参照してください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意し、製品に関する電子メールを受信するようになります。"
+    "translation": "あなたのMattermostには200ユーザーが登録しています。Mattermostをあなたの組織のシングルサインオンプロバイダーに接続することで、ユーザーは再度認証情報を入力することなくMattermostへアクセスできるようになります。MattermostサーバーをSAML 2.0プロバイダーと連携することをおすすめします。詳しくは[SAML2.0連携に関する説明](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)を参照してください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意したことになり、製品に関する電子メールを受信するようになります。"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
@@ -7273,7 +7265,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "あなたのMattermostには100名以上のユーザーがいます。ユーザー数が増加するにつれ、新しいアカウントの準備などは時間のかかる作業となっていく可能性があります。組織のActive Directory/LDAPと連携し、誰でも組織のアカウントでMattermostにアクセス可能となるよう設定することをおすすめします。\n\n詳しくは[AD/LDAP連携に関する説明](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/) に同意し、製品に関する電子メールを受信するようになります。"
+    "translation": "あなたのMattermostには100名以上のユーザーがいます。ユーザー数が増加するにつれ、新しいアカウントの準備などは時間のかかる作業となっていく可能性があります。組織のActive Directory/LDAPと連携し、誰でも組織のアカウントでMattermostにアクセス可能となるよう設定することをおすすめします。\n\n詳しくは[AD/LDAP連携に関する説明](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/) に同意したことになり、製品に関する電子メールを受信するようになります。"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
@@ -7293,7 +7285,7 @@
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "このMattermostでは多要素認証が有効になっており、ユーザーはパスワードとは別の認証を追加することで、アカウントをより安全にすることを選択できます。システム全体のセキュリティを改善するために、すべてのアカウントに対して多要素認証の利用を要求することもできます。\n\n詳しくは[多要素認証の強制についての説明](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)を参照してください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意し、製品に関する電子メールを受信するようになります。"
+    "translation": "このMattermostでは多要素認証が有効になっており、ユーザーはパスワードとは別の認証を追加することで、アカウントをより安全にすることを選択できます。システム全体のセキュリティを改善するために、すべてのアカウントに対して多要素認証の利用を要求することもできます。\n\n詳しくは[多要素認証の強制についての説明](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)を参照してください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意したことになり、製品に関する電子メールを受信するようになります。"
   },
   {
     "id": "api.server.warn_metric.mfa.notification_title",
@@ -7313,7 +7305,7 @@
   },
   {
     "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "プロジェクトには組織内、組織外の両方の人が参画することがあります。ゲストアカウント機能により、外部のパートナーをMattermostに参加させることができ、ゲストが閲覧可能な情報などの設定を行うことができます。\n\n詳しくは[ゲストアカウントに関する説明](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)を参照してください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/) に同意し、製品に関する電子メールを受信するようになります。"
+    "translation": "プロジェクトには組織内、組織外の両方の人が参画することがあります。ゲストアカウント機能により、外部のパートナーをMattermostに参加させることができ、ゲストが閲覧可能な情報などの設定を行うことができます。\n\n詳しくは[ゲストアカウントに関する説明](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)を参照してください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/) に同意したことになり、製品に関する電子メールを受信するようになります。"
   },
   {
     "id": "api.server.warn_metric.email_domain.notification_title",
@@ -7521,7 +7513,7 @@
   },
   {
     "id": "app.user.get_by_username.app_error",
-    "translation": "このチームにあなたのユーザー名と一致する既存のアカウントが見つかりません。このチームに参加するにはチームの所有者から招待を受ける必要があるかもしれません。"
+    "translation": "このチームにあなたのユーザー名と一致する既存のアカウントが見つかりません。このチームに参加するにはチームのオーナーから招待を受ける必要があるかもしれません。"
   },
   {
     "id": "app.user.get_by_auth.other.app_error",
@@ -7529,7 +7521,7 @@
   },
   {
     "id": "app.user.get_by_auth.missing_account.app_error",
-    "translation": "このチームにあなたの認証形式に一致する既存のアカウントが見つかりません。このチームに参加するには、チームの所有者から招待を受ける必要があるかもしれません。"
+    "translation": "このチームにあなたの認証形式に一致する既存のアカウントが見つかりません。このチームに参加するには、チームのオーナーから招待を受ける必要があるかもしれません。"
   },
   {
     "id": "app.user.get.app_error",
@@ -8217,7 +8209,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "ワークスペース{{.WorkSpace}} の14日間のトライアルの準備が整いました!"
+    "translation": "ワークスペースの準備が整いました!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -8673,15 +8665,15 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Mattermostの14日間のトライアルは、まもなく終了します"
+    "translation": "Mattermostの30日間のトライアルは、まもなく終了します"
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}} さん、あなたのMattermostの14日間のトライアルは3日後の{{.TrialEnd}}に終了します。お客様のチームが引き続きMattermost Cloudのメリットを享受できるよう、お支払い情報を追加してください。"
+    "translation": "{{.Name}} さん、あなたのMattermostの30日間のトライアルは3日後の{{.TrialEnd}}に終了します。お客様のチームが引き続きMattermost Cloudのメリットを享受できるよう、お支払い情報を追加してください。"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}、Mattermost Cloud Enterpriseの14日間の無料トライアルが {{.TodayDate}} に終了しました。我々の柔軟でセキュアなコラボレーションプラットフォームをお楽しみいただけましたでしょうか。引き続きMattermost上でコラボレーションを継続するには、支払い情報を追加してください。"
+    "translation": "{{.Name}}、Mattermost Cloud Enterpriseの30日間の無料トライアルが {{.TodayDate}} に終了しました。我々の柔軟でセキュアなコラボレーションプラットフォームをお楽しみいただけましたでしょうか。引き続きMattermost上でコラボレーションを継続するには、支払い情報を追加してください。"
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -8693,7 +8685,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Mattermostの14日間のトライアルは終了しました"
+    "translation": "Mattermostの30日間のトライアルは終了しました"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -9220,10 +9212,6 @@
     "translation": "チャンネル名が有効ではありません"
   },
   {
-    "id": "model.insights.time_range.app_error",
-    "translation": " "
-  },
-  {
     "id": "model.channel.is_valid.1_or_more.app_error",
     "translation": "名前は1文字以上の小文字の英数字にしてください。"
   },
@@ -9269,7 +9257,7 @@
   },
   {
     "id": "api.insights.feature_disabled",
-    "translation": " "
+    "translation": "インサイトは有効化されていない機能フラグに含まれる機能です。"
   },
   {
     "id": "api.getThreadsForUser.bad_only_params",
@@ -9297,7 +9285,7 @@
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "あなたの {{.WorkspaceName}} ワークスペースがアップグレードされました。課金開始は{{.TrialEnd}}となります"
+    "translation": "あなたの {{.WorkspaceName}} ワークスペースがアップグレードされました。{{.Date}}から課金されます"
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
@@ -9324,7 +9312,59 @@
     "translation": "ウェブフックからサブスクリプションを更新する際にエラーが発生しました。"
   },
   {
-    "id": "api.cloud.cloud_free_feature_flag_off_error",
-    "translation": "CloudFree フィーチャーフラグが off です。"
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "有効な統合機能数の上限 {{.NumIntegrations}} に達しました。無制限に統合機能をインストールするには、いずれかの有料プランにアップグレードしてください。"
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "デコーダーの並列数 {{.Value}} は不正です。正の数または-1であるべきです。"
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "ストレージ使用量の取得に失敗しました。"
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "チーム数を取得できませんでした"
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "チームの利用状況を取得できませんでした"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "チーム数の制限に達したため、チームを復元できませんでした"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "チーム数の制限に達したため、チームを作成できませんでした"
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "ユーザーのトップスレッドを取得できませんでした。"
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "チームのトップスレッドを取得できませんでした。"
+  },
+  {
+    "id": "app.insights.feature_disabled",
+    "translation": "インサイト機能は無効化されています。"
+  },
+  {
+    "id": "app.channel.get_post_count_by_day.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.license_error.professional_or_enterprise",
+    "translation": " "
+  },
+  {
+    "id": "api.insights.license_error",
+    "translation": "あなたのライセンスはインサイト機能をサポートしていません。"
+  },
+  {
+    "id": "api.authorization_error.guest",
+    "translation": " "
   }
 ]

@@ -14,6 +14,14 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
+type kvStoreWrapper struct {
+	srv *Server
+}
+
+func (k *kvStoreWrapper) SetPluginKeyWithOptions(pluginID string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
+	return k.srv.setPluginKeyWithOptions(pluginID, key, value, options)
+}
+
 func getKeyHash(key string) string {
 	hash := sha256.New()
 	hash.Write([]byte(key))

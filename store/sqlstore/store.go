@@ -64,6 +64,8 @@ const (
 	migrationsDirectionDown migrationDirection = "down"
 
 	replicaLagPrefix = "replica-lag"
+
+	RemoteClusterSiteURLUniqueIndex = "remote_clusters_site_url_unique"
 )
 
 var tablesToCheckForCollation = []string{"incomingwebhooks", "preferences", "users", "uploadsessions", "channels", "publicchannels"}
@@ -129,7 +131,8 @@ type SqlStore struct {
 	licenseMutex      sync.RWMutex
 	metrics           einterfaces.MetricsInterface
 
-	isBinaryParam bool
+	isBinaryParam             bool
+	pgDefaultTextSearchConfig string
 }
 
 func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlStore {
@@ -165,6 +168,11 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.isBinaryParam, err = store.computeBinaryParam()
 	if err != nil {
 		mlog.Fatal("Failed to compute binary param", mlog.Err(err))
+	}
+
+	store.pgDefaultTextSearchConfig, err = store.computeDefaultTextSearchConfig()
+	if err != nil {
+		mlog.Fatal("Failed to compute default text search config", mlog.Err(err))
 	}
 
 	store.stores.team = newSqlTeamStore(store)
@@ -204,11 +212,6 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.scheme = newSqlSchemeStore(store)
 	store.stores.group = newSqlGroupStore(store)
 	store.stores.productNotices = newSqlProductNoticesStore(store)
-
-	err = upgradeDatabase(store, model.CurrentVersion)
-	if err != nil {
-		mlog.Fatal("Failed to upgrade database.", mlog.Err(err))
-	}
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -340,14 +343,18 @@ func (ss *SqlStore) computeBinaryParam() (bool, error) {
 	return DSNHasBinaryParam(*ss.settings.DataSource)
 }
 
-func (ss *SqlStore) IsBinaryParamEnabled() bool {
-	return ss.isBinaryParam
+func (ss *SqlStore) computeDefaultTextSearchConfig() (string, error) {
+	if ss.DriverName() != model.DatabaseDriverPostgres {
+		return "", nil
+	}
+
+	var defaultTextSearchConfig string
+	err := ss.GetMasterX().Get(&defaultTextSearchConfig, `SHOW default_text_search_config`)
+	return defaultTextSearchConfig, err
 }
 
-func (ss *SqlStore) getCurrentSchemaVersion() (string, error) {
-	var version string
-	err := ss.GetMasterX().Get(&version, "SELECT Value FROM Systems WHERE Name='Version'")
-	return version, err
+func (ss *SqlStore) IsBinaryParamEnabled() bool {
+	return ss.isBinaryParam
 }
 
 // GetDbVersion returns the version of the database being used.
@@ -390,11 +397,12 @@ func (ss *SqlStore) SetMasterX(db *sql.DB) {
 	}
 }
 
+func (ss *SqlStore) GetInternalMasterDB() *sql.DB {
+	return ss.GetMasterX().DB.DB
+}
+
 func (ss *SqlStore) GetSearchReplicaX() *sqlxDBWrapper {
-	ss.licenseMutex.RLock()
-	license := ss.license
-	ss.licenseMutex.RUnlock()
-	if license == nil {
+	if !ss.hasLicense() {
 		return ss.GetMasterX()
 	}
 
@@ -407,15 +415,27 @@ func (ss *SqlStore) GetSearchReplicaX() *sqlxDBWrapper {
 }
 
 func (ss *SqlStore) GetReplicaX() *sqlxDBWrapper {
-	ss.licenseMutex.RLock()
-	license := ss.license
-	ss.licenseMutex.RUnlock()
-	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || license == nil {
+	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || !ss.hasLicense() {
 		return ss.GetMasterX()
 	}
 
 	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.ReplicaXs))
 	return ss.ReplicaXs[rrNum]
+}
+
+func (ss *SqlStore) GetInternalReplicaDBs() []*sql.DB {
+	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || !ss.hasLicense() {
+		return []*sql.DB{
+			ss.GetMasterX().DB.DB,
+		}
+	}
+
+	dbs := make([]*sql.DB, len(ss.ReplicaXs))
+	for i, rx := range ss.ReplicaXs {
+		dbs[i] = rx.DB.DB
+	}
+
+	return dbs
 }
 
 func (ss *SqlStore) TotalMasterDbConnections() int {
@@ -953,6 +973,14 @@ func (ss *SqlStore) UpdateLicense(license *model.License) {
 
 func (ss *SqlStore) GetLicense() *model.License {
 	return ss.license
+}
+
+func (ss *SqlStore) hasLicense() bool {
+	ss.licenseMutex.Lock()
+	hasLicense := ss.license != nil
+	ss.licenseMutex.Unlock()
+
+	return hasLicense
 }
 
 func (ss *SqlStore) migrate(direction migrationDirection) error {

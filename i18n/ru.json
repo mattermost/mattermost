@@ -2648,10 +2648,6 @@
     "translation": "Отсутствует необходимое значение для Reaction: User."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Значение CreateAt в Reply должно быть больше чем родительский CreateAt в Post."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Отсутствует необходимое значение для Reply: create_at."
   },
@@ -3162,10 +3158,6 @@
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch уже остановлен."
-  },
-  {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Не удалось подключиться к серверу Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -9254,10 +9246,6 @@
   {
     "id": "model.member.is_valid.channel.app_error",
     "translation": "Недопустимое название канала"
-  },
-  {
-    "id": "model.insights.time_range.app_error",
-    "translation": " "
   },
   {
     "id": "model.channel.is_valid.1_or_more.app_error",

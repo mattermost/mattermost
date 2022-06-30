@@ -1857,7 +1857,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Nachricht anzeigen"
+    "translation": "Antworte in Mattermost"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2644,10 +2644,6 @@
     "translation": "Fehlende erforderliche Reaktionseigenschaft: User."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Antworteigenschaft CreateAt muss größer als CreateAt der übergeordneten Nachricht sein."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Fehlende erforderliche Antworteigenschaft: create_at."
   },
@@ -3158,10 +3154,6 @@
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch ist bereits angehalten."
-  },
-  {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Verbindung zum Elasticsearch-Server fehlgeschlagen."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -7604,7 +7596,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Sitzung abgelaufen: Bitte anmelden um weiter Nachrichten zu erhalten. Sitzungen für {{.siteName}} sind vom System Adminstrator so konfiguriert, dass sie alle {{.hoursCount}} Stunden ablaufen."
+    "translation": "Sitzung abgelaufen: Bitte anmelden um weiter Nachrichten zu erhalten. Sitzungen für {{.siteName}} sind vom System Administrator so konfiguriert, dass sie alle {{.hoursCount}} Stunden ablaufen."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
@@ -7864,7 +7856,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Dein 14-Tage Test des {{.WorkSpace}} Arbeitsbereichs kann gestartet werden!"
+    "translation": "Dein Arbeitsbereichs kann gestartet werden!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -7932,11 +7924,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Dein 14-tägiger Test von Mattermost endet bald"
+    "translation": "Dein 30-tägiger Test von Mattermost endet bald"
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, dein 14-tägiger freier Test von Mattermost endet in 3 Tagen, am {{.TrialEnd}}. Bitte füge deine Bezahlinformationen hinzu, um sicherzustellen, dass dein Team weiterhin die Vorteile von Mattermost Cloud genießen kann."
+    "translation": "{{.Name}}, dein 30-tägiger freier Test von Mattermost endet in 3 Tagen, am {{.TrialEnd}}. Bitte füge deine Bezahlinformationen hinzu, um sicherzustellen, dass dein Team weiterhin die Vorteile von Mattermost Cloud genießen kann."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -7948,11 +7940,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Dein 14-tägiger Test von Mattermost ist beendet"
+    "translation": "Dein 30-tägiger Test von Mattermost ist beendet"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, dein 14-tägiger freier Test von Mattermost Cloud Enterprise endet am {{.TodayDate}}. Wir hoffen, dass dir unsere sichere und flexible Kollaborationsplattform gefallen hat. Bitte füge deine Zahlungsinformationen hinzu, damit dein Team weiter mit Mattermost zusammenarbeiten kann."
+    "translation": "{{.Name}}, dein 30-tägiger kostenloser Test von Mattermost Cloud Enterprise endet am {{.TodayDate}}. Wir hoffen, dass dir unsere sichere und flexible Kollaborationsplattform gefallen hat. Bitte füge deine Zahlungsinformationen hinzu, damit dein Team weiter mit Mattermost zusammenarbeiten kann."
   },
   {
     "id": "api.unable_to_read_file_from_backend",
@@ -9243,10 +9235,6 @@
     "translation": "Kanalname ist ungülitg"
   },
   {
-    "id": "model.insights.time_range.app_error",
-    "translation": " "
-  },
-  {
     "id": "model.channel.is_valid.1_or_more.app_error",
     "translation": "Name muss aus einem oder mehreren alphanummerischen Kleinbuchstaben bestehen."
   },
@@ -9288,7 +9276,7 @@
   },
   {
     "id": "api.insights.feature_disabled",
-    "translation": " "
+    "translation": "Hinter Insights verbirgt sich ein Feature-Flag, das nicht aktiviert ist."
   },
   {
     "id": "app.channel.get_top_for_user_since.app_error",
@@ -9304,7 +9292,7 @@
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "Dein {{.WorkspaceName}} Arbeitsbereich wurde jetzt aktualisiert. Die Abrechnung erfolgt ab dem {{.TrialEnd}}"
+    "translation": "Dein {{.WorkspaceName}} Arbeitsbereich wurde jetzt aktualisiert. Dein {{.WorkspaceName}} wird ab {{.Date}} abgerechnet"
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
@@ -9331,7 +9319,59 @@
     "translation": "Fehler beim Holen der letzten Suchen"
   },
   {
-    "id": "api.cloud.cloud_free_feature_flag_off_error",
-    "translation": "CloudFree Feature Flag ist ausgeschaltet."
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "Du hast das Maximum von {{.NumIntegrations}} aktivierten Integrationen erreicht. Um Integrationen ohne Beschränkungen zu installieren, upgrade auf ein bezahltes Abonnements."
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Kann Team-Zähler nicht abfragen"
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Kann Team-Verwendung nicht abfragen"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Kann Team nicht wiederherstellen, da das Team-Limit erreicht ist"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Kann kein Team erstellen, da das Team-Limit erreicht ist"
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "Fehler beim Ermitteln des Speicherverbrauchs."
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Ungültig Decoder Nebenläufigkeit {{.Value}}. Sollte eine positive Zahl oder -1 sein."
+  },
+  {
+    "id": "app.channel.get_post_count_by_day.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.license_error.professional_or_enterprise",
+    "translation": " "
+  },
+  {
+    "id": "api.authorization_error.guest",
+    "translation": " "
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "Es ist nicht möglich, die Top-Threads für einen Benutzer zu erhalten."
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "Es ist nicht möglich, Top-Threads für das Team zu erhalten."
+  },
+  {
+    "id": "app.insights.feature_disabled",
+    "translation": "Die Insights Funktion ist deaktiviert."
+  },
+  {
+    "id": "api.insights.license_error",
+    "translation": "Deine Lizenz unterstützt die Insights-Funktion nicht."
   }
 ]

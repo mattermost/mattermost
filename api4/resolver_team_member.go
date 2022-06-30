@@ -9,7 +9,6 @@ import (
 
 	"github.com/graph-gophers/dataloader/v6"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/web"
 )
 
 // teamMember is an internal graphQL wrapper struct to add resolver methods.
@@ -25,43 +24,6 @@ func (tm *teamMember) Team(ctx context.Context) (*model.Team, error) {
 // match with api4.getUser
 func (tm *teamMember) User(ctx context.Context) (*user, error) {
 	return getGraphQLUser(ctx, tm.UserId)
-}
-
-// match with api4.getCategoriesForTeamForUser
-func (tm *teamMember) SidebarCategories(ctx context.Context) ([]*model.SidebarCategoryWithChannels, error) {
-	c, err := getCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return getSidebarCategories(c, tm.UserId, tm.TeamId)
-}
-
-func getSidebarCategories(c *web.Context, userID, teamID string) ([]*model.SidebarCategoryWithChannels, error) {
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), userID) {
-		c.SetPermissionError(model.PermissionEditOtherUsers)
-		return nil, c.Err
-	}
-
-	categories, appErr := c.App.GetSidebarCategories(userID, teamID)
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	// TODO: look into optimizing this.
-	// create map
-	orderMap := make(map[string]*model.SidebarCategoryWithChannels, len(categories.Categories))
-	for _, category := range categories.Categories {
-		orderMap[category.Id] = category
-	}
-
-	// create a new slice based on the order
-	res := make([]*model.SidebarCategoryWithChannels, 0, len(categories.Categories))
-	for _, categoryId := range categories.Order {
-		res = append(res, orderMap[categoryId])
-	}
-
-	return res, nil
 }
 
 // match with api4.getRolesByNames

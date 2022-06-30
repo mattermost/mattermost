@@ -30,13 +30,18 @@ const (
 
 type LoggerIFace interface {
 	IsLevelEnabled(Level) bool
+	Trace(string, ...Field)
 	Debug(string, ...Field)
 	Info(string, ...Field)
 	Warn(string, ...Field)
 	Error(string, ...Field)
 	Critical(string, ...Field)
+	Fatal(string, ...Field)
 	Log(Level, string, ...Field)
 	LogM([]Level, string, ...Field)
+	With(fields ...Field) *Logger
+	Flush() error
+	StdLogger(level Level) *log.Logger
 }
 
 // Type and function aliases from Logr to limit the spread of dependencies.

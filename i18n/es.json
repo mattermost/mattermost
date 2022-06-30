@@ -2644,10 +2644,6 @@
     "translation": "Falta la propiedad obligatoria de la Reacción: User."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "La propiedad CreateAt debe ser mayor al CreateAt del mensaje padre."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Falta la propiedad de la respuesta: create_at."
   },
@@ -3158,10 +3154,6 @@
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch ya fue detenido."
-  },
-  {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "La conexión al servidor Elasticsearch no pudo establecer."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",

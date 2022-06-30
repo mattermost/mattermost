@@ -13,8 +13,8 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
-func (a *App) createInitialSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
-	categories, nErr := a.Srv().Store.Channel().CreateInitialSidebarCategories(userID, teamID)
+func (a *App) createInitialSidebarCategories(userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, *model.AppError) {
+	categories, nErr := a.Srv().Store.Channel().CreateInitialSidebarCategories(userID, opts)
 	if nErr != nil {
 		return nil, model.NewAppError("createInitialSidebarCategories", "app.channel.create_initial_sidebar_categories.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
@@ -22,12 +22,39 @@ func (a *App) createInitialSidebarCategories(userID, teamID string) (*model.Orde
 	return categories, nil
 }
 
-func (a *App) GetSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
+func (a *App) GetSidebarCategoriesForTeamForUser(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
 	var appErr *model.AppError
-	categories, err := a.Srv().Store.Channel().GetSidebarCategories(userID, teamID)
+	categories, err := a.Srv().Store.Channel().GetSidebarCategoriesForTeamForUser(userID, teamID)
 	if err == nil && len(categories.Categories) == 0 {
 		// A user must always have categories, so migration must not have happened yet, and we should run it ourselves
-		categories, appErr = a.createInitialSidebarCategories(userID, teamID)
+		categories, appErr = a.createInitialSidebarCategories(userID, &store.SidebarCategorySearchOpts{
+			TeamID:      teamID,
+			ExcludeTeam: false,
+		})
+		if appErr != nil {
+			return nil, appErr
+		}
+	}
+
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetSidebarCategoriesForTeamForUser", "app.channel.sidebar_categories.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetSidebarCategoriesForTeamForUser", "app.channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return categories, nil
+}
+
+func (a *App) GetSidebarCategories(userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, *model.AppError) {
+	var appErr *model.AppError
+	categories, err := a.Srv().Store.Channel().GetSidebarCategories(userID, opts)
+	if err == nil && len(categories.Categories) == 0 {
+		// A user must always have categories, so migration must not have happened yet, and we should run it ourselves
+		categories, appErr = a.createInitialSidebarCategories(userID, opts)
 		if appErr != nil {
 			return nil, appErr
 		}

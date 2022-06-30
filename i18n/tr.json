@@ -1857,7 +1857,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "İletiyi görüntüle"
+    "translation": "Mattermost içinde yanıtla"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2644,10 +2644,6 @@
     "translation": "Zorunlu tepki özelliği eksik: Kullanıcı."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Yanıt oluşturulma zamanı özelliği üst iletinin oluşturulma zamanından sonra olmalıdır."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Zorunlu yanıt özelliği eksik: olusturulma_zamani."
   },
@@ -3158,10 +3154,6 @@
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch zaten durdurulmuş."
-  },
-  {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Elasticsearch sunucusuna bağlanılamadı."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -4989,7 +4981,7 @@
   },
   {
     "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "zip dosyası oluşturulamadı"
+    "translation": "Zip dosyası oluşturulamadı"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
@@ -6545,15 +6537,15 @@
   },
   {
     "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
-    "translation": "Takım üye sayısı sınırına ulaşıldığından yeni takım üyeliği oluşturulamadı"
+    "translation": "Takım üye sayısı sınırına ulaşıldığından yeni takım üyeliği eklenemedi"
   },
   {
     "id": "app.team.join_user_to_team.save_member.conflict.app_error",
-    "translation": "Zaten var olduğundan yeni takım üyeliği oluşturulamadı"
+    "translation": "Zaten var olduğundan yeni takım üyeliği eklenemedi"
   },
   {
     "id": "app.team.join_user_to_team.save_member.app_error",
-    "translation": "Yeni takım üyeliği oluşturulamadı"
+    "translation": "Yeni takım üyeliği eklenemedi"
   },
   {
     "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
@@ -8189,7 +8181,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "14 gün süreyle kullanabileceğiniz {{.WorkSpace}} çalışma alanınız hazır!"
+    "translation": "Çalışma alanınız hazır!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -8517,11 +8509,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "14 günlük Mattermost deneme süreniz yakında sona erecek"
+    "translation": "30 günlük Mattermost deneme süreniz yakında sona erecek"
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, 14 günlük Mattermost deneme süreniz 3 gün sonra {{.TrialEnd}} tarihinde sona erecek. Ekibinizin Mattermost Cloud özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi ekleyebilirsiniz."
+    "translation": "{{.Name}}, 30 günlük Mattermost deneme süreniz 3 gün sonra {{.TrialEnd}} tarihinde sona erecek. Ekibinizin Mattermost Cloud özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi ekleyebilirsiniz."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -8705,11 +8697,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, 14 günlük Mattermost Cloud Enterprise ücretsiz deneme süreniz {{.TodayDate}} tarihinde sona erdi. Esnek ve güvenli iş birliği platformumuzu beğendiğinizi umarız. Takımınızın Cloud Enterprise özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi ekleyebilirsiniz."
+    "translation": "{{.Name}}, 30 günlük Mattermost Cloud Enterprise ücretsiz deneme süreniz {{.TodayDate}} tarihinde sona erdi. Esnek ve güvenli iş birliği platformumuzu beğendiğinizi umarız. Takımınızın Cloud Enterprise özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi ekleyebilirsiniz."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "14 günlük Mattermost deneme süreniz sona erdi"
+    "translation": "30 günlük Mattermost deneme süreniz sona erdi"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -9220,7 +9212,7 @@
   },
   {
     "id": "api.insights.feature_disabled",
-    "translation": " "
+    "translation": "İçgörtüler etkinleştirilmemiş bir özellik işaretinin arkasında."
   },
   {
     "id": "api.getThreadsForUser.bad_only_params",
@@ -9263,10 +9255,6 @@
     "translation": "Kanal adı geçersiz"
   },
   {
-    "id": "model.insights.time_range.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.user.update_thread_read_for_user_by_post.app_error",
     "translation": "Post_id geçersiz"
   },
@@ -9304,7 +9292,7 @@
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "{{.WorkspaceName}} çalışma alanınız yükseltildi. Faturanız {{.TrialEnd}} tarihinden başlayarak hesaplanacak"
+    "translation": "{{.WorkspaceName}} çalışma alanınız yükseltildi. Faturanız {{.Date}} tarihinden başlayarak hesaplanacak"
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
@@ -9323,15 +9311,67 @@
     "translation": "Abonelik web bağlantısından güncellenirken sorun çıktı."
   },
   {
-    "id": "api.cloud.cloud_free_feature_flag_off_error",
-    "translation": "CloudFree özelliği işareti kapatılmış."
-  },
-  {
     "id": "app.recent_searches.app_error",
     "translation": "Son aramalar alınırken sorun çıktı"
   },
   {
     "id": "api.file.cloud_upload.app_error",
     "translation": "Bir Bulut kopyasına mmctl ile yükleme desteklenmiyor. Lütfen şu makaleye bakın: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "Kullanabileceğiniz en fazla {{.NumIntegrations}} bütünleştirme sınırına ulaştınız. Sınırsız bütünleştirme için ücretli tarifelerimizden birine yükseltin."
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Takım sayısı alınamadı"
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Takımların kullanım bilgisi alınamadı"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Takım sayısı sınırına ulaşıldığından takım geri yüklenemedi"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Takım sayısı sınırına ulaşıldığından takım eklenemedi"
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "Depolama alanı kullanımı alınamadı."
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "{{.Value}} kod çözücü eşzamanlılığı geçersiz. Pozitif bir sayı ya da -1 olmalıdır."
+  },
+  {
+    "id": "app.channel.get_post_count_by_day.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.license_error.professional_or_enterprise",
+    "translation": " "
+  },
+  {
+    "id": "api.authorization_error.guest",
+    "translation": " "
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "Kullanıcının önde gelen konuları alınamadı."
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "Takımın önde gelen konuları alınamadı."
+  },
+  {
+    "id": "app.insights.feature_disabled",
+    "translation": "İçgörü özelliği devre dışı bırakılmış."
+  },
+  {
+    "id": "api.insights.license_error",
+    "translation": "Lisansınızda içgörü özelliği yok."
   }
 ]

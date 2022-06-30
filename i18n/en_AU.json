@@ -3284,10 +3284,6 @@
     "translation": "Elasticsearch is disabled."
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Connecting to Elasticsearch server failed."
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch is already stopped."
   },
@@ -4973,7 +4969,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Go To Post"
+    "translation": "Reply in Mattermost"
   },
   {
     "id": "api.templates.payment_failed_no_card.title",
@@ -5066,10 +5062,6 @@
   {
     "id": "ent.cluster.json_encode.error",
     "translation": "Error occurred while marshalling JSON request"
-  },
-  {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Reply CreateAt property must be greater than the parent post CreateAt."
   },
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
@@ -5273,7 +5265,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Your 14 day trial of the {{.WorkSpace}} workspace is ready to go!"
+    "translation": "Your workspace is ready to go!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -5341,11 +5333,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Your free 14-day trial of Mattermost is ending soon"
+    "translation": "Your free 30-day trial of Mattermost is ending soon"
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, your 14-day trial of Mattermost is ending in 3 days, on {{.TrialEnd}}. Please add your payment information to ensure your team can continue enjoying the benefits of Mattermost Cloud."
+    "translation": "{{.Name}}, your 30-day trial of Mattermost is ending in 3 days, on {{.TrialEnd}}. Please add your payment information to ensure your team can continue enjoying the benefits of Mattermost Cloud."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -5357,11 +5349,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Your 14-day free trial of Mattermost has ended"
+    "translation": "Your 30-day free trial of Mattermost has ended"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Enterprise ended on {{.TodayDate}}. We hope you’ve enjoyed our flexible and secure collaboration platform. Please add your payment information to ensure your team can continue collaborating with Mattermost."
+    "translation": "{{.Name}}, your 30-day free trial of Mattermost Cloud Enterprise ended on {{.TodayDate}}. We hope you’ve enjoyed our flexible and secure collaboration platform. Please add your payment information to ensure your team can continue collaborating with Mattermost."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -9240,7 +9232,7 @@
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "Your {{.WorkspaceName}} workspace has now been upgraded. You will be billed starting {{.TrialEnd}}"
+    "translation": "Your {{.WorkspaceName}} workspace has now been upgraded. You'll be billed from {{.Date}}"
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
@@ -9267,7 +9259,51 @@
     "translation": "Uploading via mmctl to a Cloud instance is not supported. Please check the documentation here: https://docs.mattermost.com/manage/cloud-data-export.html."
   },
   {
-    "id": "api.cloud.cloud_free_feature_flag_off_error",
-    "translation": "CloudFree feature flag is off."
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "You've reached the limit of {{.NumIntegrations}} enabled integrations. To install unlimited integrations, upgrade to one of the paid plans."
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "Failed to get storage usage."
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Unable to get team count"
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Unable to get teams usage"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Unable to restore team because teams limit has been reached"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Unable to create team because teams limit has been reached"
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Invalid decoder concurrency {{.Value}}. Should be a positive number or -1."
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "Unable to retrieve top threads for user."
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "Unable to retrieve top threads for team."
+  },
+  {
+    "id": "app.insights.feature_disabled",
+    "translation": "Insights feature is disabled."
+  },
+  {
+    "id": "api.insights.license_error",
+    "translation": "Your licence doesn't support the Insights feature."
+  },
+  {
+    "id": "api.insights.feature_disabled",
+    "translation": "Insights is behind a feature flag which is not enabled."
   }
 ]

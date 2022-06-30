@@ -5678,3 +5678,33 @@ func (s *apiRPCServer) GetCloudLimits(args *Z_GetCloudLimitsArgs, returns *Z_Get
 	}
 	return nil
 }
+
+type Z_EnsureBotUserArgs struct {
+	A *model.Bot
+}
+
+type Z_EnsureBotUserReturns struct {
+	A string
+	B error
+}
+
+func (g *apiRPCClient) EnsureBotUser(bot *model.Bot) (string, error) {
+	_args := &Z_EnsureBotUserArgs{bot}
+	_returns := &Z_EnsureBotUserReturns{}
+	if err := g.client.Call("Plugin.EnsureBotUser", _args, _returns); err != nil {
+		log.Printf("RPC call to EnsureBotUser API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) EnsureBotUser(args *Z_EnsureBotUserArgs, returns *Z_EnsureBotUserReturns) error {
+	if hook, ok := s.impl.(interface {
+		EnsureBotUser(bot *model.Bot) (string, error)
+	}); ok {
+		returns.A, returns.B = hook.EnsureBotUser(args.A)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API EnsureBotUser called but not implemented."))
+	}
+	return nil
+}

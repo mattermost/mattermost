@@ -2640,10 +2640,6 @@
     "translation": "缺少互动必须属性：User。"
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "回复 CreateAt 属性必须大于父消息 CreateAt。"
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "缺少回复必须属性：create_at。"
   },
@@ -3154,10 +3150,6 @@
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "ElasticSearch 已停止。"
-  },
-  {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "连接 Elasticsearch 服务器失败。"
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -8729,7 +8721,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "您的 Mattermost 14 天免费试用已结束"
+    "translation": "您的 Mattermost 30 天免费试用已结束"
   },
   {
     "id": "sharedchannel.permalink.not_found",
@@ -8881,7 +8873,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}，您的 Mattermost 企业云 14 天免费试用已于{{.TodayDate}}结束，。请添加您的付款信息，以确保您的团队可以继续享受企业云的好处。"
+    "translation": "{{.Name}}，您的 Mattermost 企业云 30天免费试用已于{{.TodayDate}}结束。我们希望您喜欢我们灵活、安全的协作平台。 请添加您的付款信息，以确保您的团队可以继续使用 Mattermost 进行合作。"
   },
   {
     "id": "api.license.upgrade_needed.app_error",
@@ -9033,7 +9025,7 @@
   },
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "Bleve  Bulk索引的的大小，不能小于{{.BatchSize}}."
+    "translation": "Bleve  Bulk索引的的大小不能小于{{.BatchSize}}."
   },
   {
     "id": "model.channel.is_valid.1_or_more.app_error",
@@ -9177,7 +9169,7 @@
   },
   {
     "id": "api.insights.feature_disabled",
-    "translation": " 禁用“观点”功能 "
+    "translation": "Insights 位于未启用的特性标志后面。"
   },
   {
     "id": "api.getThreadsForUser.bad_only_params",
@@ -9258,5 +9250,37 @@
   {
     "id": "app.recent_searches.app_error",
     "translation": "获取最近搜索错误"
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "无法获取团队使用情况"
+  },
+  {
+    "id": "app.insights.feature_disabled",
+    "translation": "Insights 功能已禁用。"
+  },
+  {
+    "id": "api.templates.server_inactivity_footer_disclaimer",
+    "translation": "您收到这封一次性电子邮件是因为您的 Mattermost 服务器处于非活动状态超过 {{.Hours}} 小时。 本电子邮件是由您的 Mattermost 服务器自动生成。"
+  },
+  {
+    "id": "api.insights.license_error",
+    "translation": "您的许可证不支持 Insights 功能。"
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "不支持通过 mmctl 上传到 Cloud 实例。 请在此处查看文档：https://docs.mattermost.com/manage/cloud-data-export.html。"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "无法恢复团队，因为已达到团队限制"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "无法创建团队，因为已达到团队限制"
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "从 webhook 更新订阅时出错。"
   }
 ]
