@@ -14,7 +14,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
@@ -245,59 +244,6 @@ func (es *Service) SendCloudUpgradeConfirmationEmail(userEmail, name, date, loca
 	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
 
 	body, err := es.templatesContainer.RenderToString("cloud_upgrade_confirmation", data)
-	if err != nil {
-		return err
-	}
-
-	if err := es.sendEmailWithCustomReplyTo(userEmail, subject, body, *es.config().SupportSettings.SupportEmail); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (es *Service) SendCloudTrialEndWarningEmail(userEmail, name, trialEndDate, locale, siteURL string) error {
-	T := i18n.GetUserTranslations(locale)
-	subject := T("api.templates.cloud_trial_ending_email.subject")
-
-	data := es.NewEmailTemplateData(locale)
-	data.Props["Title"] = T("api.templates.cloud_trial_ending_email.title")
-	data.Props["SubTitle"] = T("api.templates.cloud_trial_ending_email.subtitle", map[string]interface{}{"Name": name, "TrialEnd": trialEndDate})
-	data.Props["SiteURL"] = siteURL
-	data.Props["ButtonURL"] = fmt.Sprintf("%s/admin_console/billing/subscription?action=show_purchase_modal", siteURL)
-	data.Props["Button"] = T("api.templates.cloud_trial_ending_email.add_payment_method")
-	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
-	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
-
-	body, err := es.templatesContainer.RenderToString("cloud_trial_end_warning", data)
-	if err != nil {
-		return err
-	}
-
-	if err := es.sendEmailWithCustomReplyTo(userEmail, subject, body, *es.config().SupportSettings.SupportEmail); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (es *Service) SendCloudTrialEndedEmail(userEmail, name, locale, siteURL string) error {
-	T := i18n.GetUserTranslations(locale)
-	subject := T("api.templates.cloud_trial_ended_email.subject")
-
-	t := time.Now()
-	todayDate := fmt.Sprintf("%s %d, %d", t.Month(), t.Day(), t.Year())
-
-	data := es.NewEmailTemplateData(locale)
-	data.Props["Title"] = T("api.templates.cloud_trial_ended_email.title")
-	data.Props["SubTitle"] = T("api.templates.cloud_trial_ended_email.subtitle", map[string]interface{}{"Name": name, "TodayDate": todayDate})
-	data.Props["SiteURL"] = siteURL
-	data.Props["ButtonURL"] = fmt.Sprintf("%s/admin_console/billing/subscription", siteURL)
-	data.Props["Button"] = T("api.templates.cloud_trial_ended_email.start_subscription")
-	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
-	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
-
-	body, err := es.templatesContainer.RenderToString("cloud_trial_ended_email", data)
 	if err != nil {
 		return err
 	}
