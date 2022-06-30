@@ -159,7 +159,7 @@ func decodableError(err error) error {
 func init() {
 	gob.Register([]*model.SlackAttachment{})
 	gob.Register([]interface{}{})
-	gob.Register(map[string]interface{}{})
+	gob.Register(map[string]any{})
 	gob.Register(&model.AppError{})
 	gob.Register(&pq.Error{})
 	gob.Register(&mysql.MySQLError{})

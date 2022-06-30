@@ -41,7 +41,7 @@ func NewPluginAPI(a *App, c *request.Context, manifest *model.Manifest) *PluginA
 }
 
 func (api *PluginAPI) LoadPluginConfiguration(dest any) error {
-	finalConfig := make(map[string]interface{})
+	finalConfig := make(map[string]any)
 
 	// First set final config to defaults
 	if api.manifest.SettingsSchema != nil {
@@ -104,15 +104,15 @@ func (api *PluginAPI) SaveConfig(config *model.Config) *model.AppError {
 	return err
 }
 
-func (api *PluginAPI) GetPluginConfig() map[string]interface{} {
+func (api *PluginAPI) GetPluginConfig() map[string]any {
 	cfg := api.app.GetSanitizedConfig()
 	if pluginConfig, isOk := cfg.PluginSettings.Plugins[api.manifest.Id]; isOk {
 		return pluginConfig
 	}
-	return map[string]interface{}{}
+	return map[string]any{}
 }
 
-func (api *PluginAPI) SavePluginConfig(pluginConfig map[string]interface{}) *model.AppError {
+func (api *PluginAPI) SavePluginConfig(pluginConfig map[string]any) *model.AppError {
 	cfg := api.app.GetSanitizedConfig()
 	cfg.PluginSettings.Plugins[api.manifest.Id] = pluginConfig
 	_, _, err := api.app.SaveConfig(cfg, true)
@@ -908,7 +908,7 @@ func (api *PluginAPI) KVList(page, perPage int) ([]string, *model.AppError) {
 	return api.app.ListPluginKeys(api.id, page, perPage)
 }
 
-func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast) {
+func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]any, broadcast *model.WebsocketBroadcast) {
 	ev := model.NewWebSocketEvent(fmt.Sprintf("custom_%v_%v", api.id, event), "", "", "", nil)
 	ev = ev.SetBroadcast(broadcast).SetData(payload)
 	api.app.Publish(ev)

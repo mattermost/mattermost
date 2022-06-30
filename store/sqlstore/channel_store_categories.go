@@ -244,7 +244,7 @@ func (s SqlChannelStore) migrateFavoritesToSidebarT(transaction *sqlxTxWrapper, 
 
 // MigrateFavoritesToSidebarChannels populates the SidebarChannels table by analyzing existing user preferences for favorites
 // **IMPORTANT** This function should only be called from the migration task and shouldn't be used by itself
-func (s SqlChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string, runningOrder int64) (map[string]interface{}, error) {
+func (s SqlChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string, runningOrder int64) (map[string]any, error) {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return nil, err
@@ -280,7 +280,7 @@ func (s SqlChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string, ru
 		return nil, nil
 	}
 
-	data := make(map[string]interface{})
+	data := make(map[string]any)
 	data["UserId"] = userFavorites[len(userFavorites)-1].UserId
 	data["SortOrder"] = runningOrder
 	return data, nil

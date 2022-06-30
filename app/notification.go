@@ -386,7 +386,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				post.UserId,
 				&model.Post{
 					ChannelId: post.ChannelId,
-					Message:   T("api.post.disabled_here", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
+					Message:   T("api.post.disabled_here", map[string]any{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
 					CreateAt:  post.CreateAt + 1,
 				},
 			)
@@ -397,7 +397,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				post.UserId,
 				&model.Post{
 					ChannelId: post.ChannelId,
-					Message:   T("api.post.disabled_channel", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
+					Message:   T("api.post.disabled_channel", map[string]any{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
 					CreateAt:  post.CreateAt + 1,
 				},
 			)
@@ -408,7 +408,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				post.UserId,
 				&model.Post{
 					ChannelId: post.ChannelId,
-					Message:   T("api.post.disabled_all", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
+					Message:   T("api.post.disabled_all", map[string]any{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
 					CreateAt:  post.CreateAt + 1,
 				},
 			)
@@ -801,13 +801,13 @@ func makeOutOfChannelMentionPost(sender *model.User, post *model.Post, outOfChan
 	ephemeralPostId := model.NewId()
 	var message string
 	if len(outOfChannelUsers) == 1 {
-		message = T("api.post.check_for_out_of_channel_mentions.message.one", map[string]interface{}{
+		message = T("api.post.check_for_out_of_channel_mentions.message.one", map[string]any{
 			"Username": ocUsernames[0],
 		})
 	} else if len(outOfChannelUsers) > 1 {
 		preliminary, final := splitAtFinal(ocUsernames)
 
-		message = T("api.post.check_for_out_of_channel_mentions.message.multiple", map[string]interface{}{
+		message = T("api.post.check_for_out_of_channel_mentions.message.multiple", map[string]any{
 			"Usernames":    strings.Join(preliminary, ", @"),
 			"LastUsername": final,
 		})
@@ -818,7 +818,7 @@ func makeOutOfChannelMentionPost(sender *model.User, post *model.Post, outOfChan
 			message += "\n"
 		}
 
-		message += T("api.post.check_for_out_of_channel_groups_mentions.message.one", map[string]interface{}{
+		message += T("api.post.check_for_out_of_channel_groups_mentions.message.one", map[string]any{
 			"Username": ogUsernames[0],
 		})
 	} else if len(outOfGroupsUsers) > 1 {
@@ -828,7 +828,7 @@ func makeOutOfChannelMentionPost(sender *model.User, post *model.Post, outOfChan
 			message += "\n"
 		}
 
-		message += T("api.post.check_for_out_of_channel_groups_mentions.message.multiple", map[string]interface{}{
+		message += T("api.post.check_for_out_of_channel_groups_mentions.message.multiple", map[string]any{
 			"Usernames":    strings.Join(preliminary, ", @"),
 			"LastUsername": final,
 		})

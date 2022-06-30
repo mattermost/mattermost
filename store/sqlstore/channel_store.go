@@ -56,8 +56,8 @@ type channelMember struct {
 	MsgCountRoot     int64
 }
 
-func NewMapFromChannelMemberModel(cm *model.ChannelMember) map[string]interface{} {
-	return map[string]interface{}{
+func NewMapFromChannelMemberModel(cm *model.ChannelMember) map[string]any {
+	return map[string]any{
 		"ChannelId":        cm.ChannelId,
 		"UserId":           cm.UserId,
 		"Roles":            cm.ExplicitRoles,
@@ -504,7 +504,7 @@ func (s SqlChannelStore) upsertPublicChannelT(transaction *sqlxTxWrapper, channe
 		return nil
 	}
 
-	vals := map[string]interface{}{
+	vals := map[string]any{
 		"id":          publicChannel.Id,
 		"deleteat":    publicChannel.DeleteAt,
 		"teamid":      publicChannel.TeamId,
@@ -752,7 +752,7 @@ func (s SqlChannelStore) updateChannelT(transaction *sqlxTxWrapper, channel *mod
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "channels_name_teamid_key"}) {
 			dupChannel := model.Channel{}
-			s.GetReplicaX().Get(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name= :Name AND DeleteAt > 0", map[string]interface{}{"TeamId": channel.TeamId, "Name": channel.Name})
+			s.GetReplicaX().Get(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name= :Name AND DeleteAt > 0", map[string]any{"TeamId": channel.TeamId, "Name": channel.Name})
 			if dupChannel.DeleteAt > 0 {
 				return nil, store.NewErrInvalidInput("Channel", "Id", channel.Id)
 			}
@@ -1356,7 +1356,7 @@ func (s SqlChannelStore) GetPublicChannelsForTeam(teamId string, offset int, lim
 }
 
 func (s SqlChannelStore) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (model.ChannelList, error) {
-	props := make(map[string]interface{})
+	props := make(map[string]any)
 	props["teamId"] = teamId
 
 	idQuery := ""
@@ -2581,7 +2581,7 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID s
 		unreadRoot = 0
 	}
 
-	params := map[string]interface{}{
+	params := map[string]any{
 		"mentions":        mentionCount,
 		"mentionsroot":    mentionCountRoot,
 		"unreadcount":     unread,

@@ -147,7 +147,7 @@ func tfuncWithFallback(pref string) TranslateFunc {
 
 // TranslateAsHTML translates the translationID provided and return a
 // template.HTML object
-func TranslateAsHTML(t TranslateFunc, translationID string, args map[string]interface{}) template.HTML {
+func TranslateAsHTML(t TranslateFunc, translationID string, args map[string]any) template.HTML {
 	message := t(translationID, escapeForHTML(args))
 	message = strings.Replace(message, "[[", "<strong>", -1)
 	message = strings.Replace(message, "]]", "</strong>", -1)
@@ -160,8 +160,8 @@ func escapeForHTML(arg any) any {
 		return template.HTMLEscapeString(typedArg)
 	case *string:
 		return template.HTMLEscapeString(*typedArg)
-	case map[string]interface{}:
-		safeArg := make(map[string]interface{}, len(typedArg))
+	case map[string]any:
+		safeArg := make(map[string]any, len(typedArg))
 		for key, value := range typedArg {
 			safeArg[key] = escapeForHTML(value)
 		}

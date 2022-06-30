@@ -7337,7 +7337,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 		    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
 		VALUES
 		    (:id, :deleteat, :teamid, :displayname, :name, :header, :purpose);
-	`, map[string]interface{}{
+	`, map[string]any{
 		"id":          o3.Id,
 		"deleteat":    o3.DeleteAt,
 		"teamid":      o3.TeamId,
@@ -7355,7 +7355,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 		    Channels(Id, CreateAt, UpdateAt, DeleteAt, TeamId, Type, DisplayName, Name, Header, Purpose, LastPostAt, LastRootPostAt, TotalMsgCount, ExtraUpdateAt, CreatorId, TotalMsgCountRoot)
 		VALUES
 				(:id, :createat, :updateat, :deleteat, :teamid, :type, :displayname, :name, :header, :purpose, :lastpostat, :lastrootpostat, :totalmsgcount, :extraupdateat, :creatorid, 0);
-	`, map[string]interface{}{
+	`, map[string]any{
 		"id":             o3.Id,
 		"createat":       o3.CreateAt,
 		"updateat":       o3.UpdateAt,

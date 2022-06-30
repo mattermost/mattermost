@@ -1768,7 +1768,7 @@ func (s *SqlGroupStore) countTable(tableName string) (int64, error) {
 	return s.countTableWithSelectAndWhere("COUNT(*)", tableName, nil)
 }
 
-func (s *SqlGroupStore) countTableWithSelectAndWhere(selectStr, tableName string, whereStmt map[string]interface{}) (int64, error) {
+func (s *SqlGroupStore) countTableWithSelectAndWhere(selectStr, tableName string, whereStmt map[string]any) (int64, error) {
 	if whereStmt == nil {
 		whereStmt = sq.Eq{"DeleteAt": 0}
 	}

@@ -304,7 +304,7 @@ func (a *AutocompleteArg) Equals(arg *AutocompleteArg) bool {
 
 // UnmarshalJSON will unmarshal argument
 func (a *AutocompleteArg) UnmarshalJSON(b []byte) error {
-	var arg map[string]interface{}
+	var arg map[string]any
 	if err := json.Unmarshal(b, &arg); err != nil {
 		return errors.Wrapf(err, "Can't unmarshal argument %s", string(b))
 	}
@@ -336,7 +336,7 @@ func (a *AutocompleteArg) UnmarshalJSON(b []byte) error {
 	}
 
 	if a.Type == AutocompleteArgTypeText {
-		m, ok := data.(map[string]interface{})
+		m, ok := data.(map[string]any)
 		if !ok {
 			return errors.Errorf("Wrong Data type in the TextInput argument %s", string(b))
 		}
@@ -350,7 +350,7 @@ func (a *AutocompleteArg) UnmarshalJSON(b []byte) error {
 		}
 		a.Data = &AutocompleteTextArg{Hint: hint, Pattern: pattern}
 	} else if a.Type == AutocompleteArgTypeStaticList {
-		m, ok := data.(map[string]interface{})
+		m, ok := data.(map[string]any)
 		if !ok {
 			return errors.Errorf("Wrong Data type in the StaticList argument %s", string(b))
 		}
@@ -361,7 +361,7 @@ func (a *AutocompleteArg) UnmarshalJSON(b []byte) error {
 
 		possibleArguments := []AutocompleteListItem{}
 		for i := range list {
-			args, ok := list[i].(map[string]interface{})
+			args, ok := list[i].(map[string]any)
 			if !ok {
 				return errors.Errorf("Wrong AutocompleteStaticListItem type in the StaticList argument %s", string(b))
 			}
@@ -387,7 +387,7 @@ func (a *AutocompleteArg) UnmarshalJSON(b []byte) error {
 		}
 		a.Data = &AutocompleteStaticListArg{PossibleArguments: possibleArguments}
 	} else if a.Type == AutocompleteArgTypeDynamicList {
-		m, ok := data.(map[string]interface{})
+		m, ok := data.(map[string]any)
 		if !ok {
 			return errors.Errorf("Wrong type in the DynamicList argument %s", string(b))
 		}

@@ -77,14 +77,14 @@ func (api *apiTimerLayer) SaveConfig(config *model.Config) *model.AppError {
 	return _returnsA
 }
 
-func (api *apiTimerLayer) GetPluginConfig() map[string]interface{} {
+func (api *apiTimerLayer) GetPluginConfig() map[string]any {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.GetPluginConfig()
 	api.recordTime(startTime, "GetPluginConfig", true)
 	return _returnsA
 }
 
-func (api *apiTimerLayer) SavePluginConfig(config map[string]interface{}) *model.AppError {
+func (api *apiTimerLayer) SavePluginConfig(config map[string]any) *model.AppError {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.SavePluginConfig(config)
 	api.recordTime(startTime, "SavePluginConfig", _returnsA == nil)
@@ -1007,7 +1007,7 @@ func (api *apiTimerLayer) KVList(page, perPage int) ([]string, *model.AppError) 
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast) {
+func (api *apiTimerLayer) PublishWebSocketEvent(event string, payload map[string]any, broadcast *model.WebsocketBroadcast) {
 	startTime := timePkg.Now()
 	api.apiImpl.PublishWebSocketEvent(event, payload, broadcast)
 	api.recordTime(startTime, "PublishWebSocketEvent", true)

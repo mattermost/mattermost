@@ -66,13 +66,13 @@ type API interface {
 	//
 	// @tag Plugin
 	// Minimum server version: 5.6
-	GetPluginConfig() map[string]interface{}
+	GetPluginConfig() map[string]any
 
 	// SavePluginConfig sets the given config for plugin and persists the changes
 	//
 	// @tag Plugin
 	// Minimum server version: 5.6
-	SavePluginConfig(config map[string]interface{}) *model.AppError
+	SavePluginConfig(config map[string]any) *model.AppError
 
 	// GetBundlePath returns the absolute path where the plugin's bundle was unpacked.
 	//
@@ -938,7 +938,7 @@ type API interface {
 	// broadcast determines to which users to send the event.
 	//
 	// Minimum server version: 5.2
-	PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast)
+	PublishWebSocketEvent(event string, payload map[string]any, broadcast *model.WebsocketBroadcast)
 
 	// HasPermissionTo check if the user has the permission at system scope.
 	//

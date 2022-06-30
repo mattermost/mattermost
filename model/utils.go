@@ -36,7 +36,7 @@ const (
 	BinaryParamKey   = "MM_BINARY_PARAMETERS"
 )
 
-type StringInterface map[string]interface{}
+type StringInterface map[string]any
 type StringArray []string
 
 func (sa StringArray) Remove(input string) StringArray {
@@ -203,7 +203,7 @@ type AppError struct {
 	StatusCode    int    `json:"status_code,omitempty"` // The http status code
 	Where         string `json:"-"`                     // The function where it happened in the form of Struct.Func
 	IsOAuth       bool   `json:"is_oauth,omitempty"`    // Whether the error is OAuth specific
-	params        map[string]interface{}
+	params        map[string]any
 }
 
 func (er *AppError) Error() string {
@@ -254,7 +254,7 @@ func AppErrorFromJSON(data io.Reader) *AppError {
 	return &er
 }
 
-func NewAppError(where string, id string, params map[string]interface{}, details string, status int) *AppError {
+func NewAppError(where string, id string, params map[string]any, details string, status int) *AppError {
 	ap := &AppError{}
 	ap.Id = id
 	ap.params = params
@@ -408,17 +408,17 @@ func ArrayFromInterface(data any) []string {
 	return stringArray
 }
 
-func StringInterfaceToJSON(objmap map[string]interface{}) string {
+func StringInterfaceToJSON(objmap map[string]any) string {
 	b, _ := json.Marshal(objmap)
 	return string(b)
 }
 
-func StringInterfaceFromJSON(data io.Reader) map[string]interface{} {
+func StringInterfaceFromJSON(data io.Reader) map[string]any {
 	decoder := json.NewDecoder(data)
 
-	var objmap map[string]interface{}
+	var objmap map[string]any
 	if err := decoder.Decode(&objmap); err != nil {
-		return make(map[string]interface{})
+		return make(map[string]any)
 	}
 	return objmap
 }

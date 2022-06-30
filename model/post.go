@@ -411,7 +411,7 @@ func (o *Post) PreSave() {
 
 func (o *Post) PreCommit() {
 	if o.GetProps() == nil {
-		o.SetProps(make(map[string]interface{}))
+		o.SetProps(make(map[string]any))
 	}
 
 	if o.Filenames == nil {
@@ -430,14 +430,14 @@ func (o *Post) PreCommit() {
 
 func (o *Post) MakeNonNil() {
 	if o.GetProps() == nil {
-		o.SetProps(make(map[string]interface{}))
+		o.SetProps(make(map[string]any))
 	}
 }
 
 func (o *Post) DelProp(key string) {
 	o.propsMu.Lock()
 	defer o.propsMu.Unlock()
-	propsCopy := make(map[string]interface{}, len(o.Props)-1)
+	propsCopy := make(map[string]any, len(o.Props)-1)
 	for k, v := range o.Props {
 		propsCopy[k] = v
 	}
@@ -448,7 +448,7 @@ func (o *Post) DelProp(key string) {
 func (o *Post) AddProp(key string, value any) {
 	o.propsMu.Lock()
 	defer o.propsMu.Unlock()
-	propsCopy := make(map[string]interface{}, len(o.Props)+1)
+	propsCopy := make(map[string]any, len(o.Props)+1)
 	for k, v := range o.Props {
 		propsCopy[k] = v
 	}

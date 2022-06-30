@@ -901,7 +901,7 @@ func (us SqlUserStore) GetProfilesByUsernames(usernames []string, viewRestrictio
 	query = applyViewRestrictionsFilter(query, viewRestrictions, true)
 
 	query = query.
-		Where(map[string]interface{}{
+		Where(map[string]any{
 			"Username": usernames,
 		}).
 		OrderBy("u.Username ASC")
@@ -990,13 +990,13 @@ func (us SqlUserStore) GetProfileByIds(ctx context.Context, userIds []string, op
 
 	users := []*model.User{}
 	query := us.usersQuery.
-		Where(map[string]interface{}{
+		Where(map[string]any{
 			"u.Id": userIds,
 		}).
 		OrderBy("u.Username ASC")
 
 	if options.Since > 0 {
-		query = query.Where(sq.Gt(map[string]interface{}{
+		query = query.Where(sq.Gt(map[string]any{
 			"u.UpdateAt": options.Since,
 		}))
 	}

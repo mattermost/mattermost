@@ -35,7 +35,7 @@ func TestMapStringsToQueryParams(t *testing.T) {
 }
 
 var keys string
-var params map[string]interface{}
+var params map[string]any
 
 func BenchmarkMapStringsToQueryParams(b *testing.B) {
 	b.Run("one item", func(b *testing.B) {

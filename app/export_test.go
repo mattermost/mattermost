@@ -496,7 +496,7 @@ func TestExportPostWithProps(t *testing.T) {
 	p1 := &model.Post{
 		ChannelId: dmChannel.Id,
 		Message:   "aa" + model.NewId() + "a",
-		Props: map[string]interface{}{
+		Props: map[string]any{
 			"attachments": attachments,
 		},
 		UserId: th1.BasicUser.Id,
@@ -506,7 +506,7 @@ func TestExportPostWithProps(t *testing.T) {
 	p2 := &model.Post{
 		ChannelId: gmChannel.Id,
 		Message:   "dd" + model.NewId() + "a",
-		Props: map[string]interface{}{
+		Props: map[string]any{
 			"attachments": attachments,
 		},
 		UserId: th1.BasicUser.Id,

@@ -693,7 +693,7 @@ func upgradeToEnterprise(c *Context, w http.ResponseWriter, r *http.Request) {
 		var iaErr *upgrader.InvalidArch
 		switch {
 		case errors.As(err, &ipErr):
-			params := map[string]interface{}{
+			params := map[string]any{
 				"MattermostUsername": ipErr.MattermostUsername,
 				"FileUsername":       ipErr.FileUsername,
 				"Path":               ipErr.Path,
@@ -729,19 +729,19 @@ func upgradeToEnterpriseStatus(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 
 	percentage, err := c.App.Srv().UpgradeToE0Status()
-	var s map[string]interface{}
+	var s map[string]any
 	if err != nil {
 		var isErr *upgrader.InvalidSignature
 		switch {
 		case errors.As(err, &isErr):
 			appErr := model.NewAppError("upgradeToEnterpriseStatus", "api.upgrade_to_enterprise_status.app_error", nil, err.Error(), http.StatusBadRequest)
-			s = map[string]interface{}{"percentage": 0, "error": appErr.Message}
+			s = map[string]any{"percentage": 0, "error": appErr.Message}
 		default:
 			appErr := model.NewAppError("upgradeToEnterpriseStatus", "api.upgrade_to_enterprise_status.signature.app_error", nil, err.Error(), http.StatusBadRequest)
-			s = map[string]interface{}{"percentage": 0, "error": appErr.Message}
+			s = map[string]any{"percentage": 0, "error": appErr.Message}
 		}
 	} else {
-		s = map[string]interface{}{"percentage": percentage, "error": nil}
+		s = map[string]any{"percentage": percentage, "error": nil}
 	}
 
 	w.Write([]byte(model.StringInterfaceToJSON(s)))

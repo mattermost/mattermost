@@ -586,7 +586,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 			err := json.Unmarshal([]byte(event.GetData()["post"].(string)), &wpost)
 			require.NoError(t, err)
 
-			acm, ok := wpost.GetProp(model.PropsAddChannelMember).(map[string]interface{})
+			acm, ok := wpost.GetProp(model.PropsAddChannelMember).(map[string]any)
 			require.True(t, ok, "should have received ephemeral post with 'add_channel_member' in props")
 			require.True(t, acm["post_id"] != nil, "should not be nil")
 			require.True(t, acm["user_ids"] != nil, "should not be nil")
@@ -2857,7 +2857,7 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 		// test websocket event for marking post as unread
 		var caught bool
 		var exit bool
-		var data map[string]interface{}
+		var data map[string]any
 		for {
 			select {
 			case ev := <-userWSClient.EventChannel:
@@ -3105,7 +3105,7 @@ func TestGetPostStripActionIntegrations(t *testing.T) {
 					Name: "test-name",
 					Integration: &model.PostActionIntegration{
 						URL: "https://test.test/action",
-						Context: map[string]interface{}{
+						Context: map[string]any{
 							"test-ctx": "some-value",
 						},
 					},
@@ -3122,11 +3122,11 @@ func TestGetPostStripActionIntegrations(t *testing.T) {
 	require.NoError(t, err)
 	attachments, _ := actualPost.Props["attachments"].([]interface{})
 	require.Equal(t, 1, len(attachments))
-	att, _ := attachments[0].(map[string]interface{})
+	att, _ := attachments[0].(map[string]any)
 	require.NotNil(t, att)
 	actions, _ := att["actions"].([]interface{})
 	require.Equal(t, 1, len(actions))
-	action, _ := actions[0].(map[string]interface{})
+	action, _ := actions[0].(map[string]any)
 	require.NotNil(t, action)
 	// integration must be omitted
 	require.Nil(t, action["integration"])

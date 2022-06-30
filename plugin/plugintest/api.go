@@ -1524,15 +1524,15 @@ func (_m *API) GetOAuthApp(appID string) (*model.OAuthApp, *model.AppError) {
 }
 
 // GetPluginConfig provides a mock function with given fields:
-func (_m *API) GetPluginConfig() map[string]interface{} {
+func (_m *API) GetPluginConfig() map[string]any {
 	ret := _m.Called()
 
-	var r0 map[string]interface{}
-	if rf, ok := ret.Get(0).(func() map[string]interface{}); ok {
+	var r0 map[string]any
+	if rf, ok := ret.Get(0).(func() map[string]any); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]interface{})
+			r0 = ret.Get(0).(map[string]any)
 		}
 	}
 
@@ -2912,7 +2912,7 @@ func (_m *API) PublishUserTyping(userID string, channelId string, parentId strin
 }
 
 // PublishWebSocketEvent provides a mock function with given fields: event, payload, broadcast
-func (_m *API) PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast) {
+func (_m *API) PublishWebSocketEvent(event string, payload map[string]any, broadcast *model.WebsocketBroadcast) {
 	_m.Called(event, payload, broadcast)
 }
 
@@ -3098,11 +3098,11 @@ func (_m *API) SaveConfig(config *model.Config) *model.AppError {
 }
 
 // SavePluginConfig provides a mock function with given fields: config
-func (_m *API) SavePluginConfig(config map[string]interface{}) *model.AppError {
+func (_m *API) SavePluginConfig(config map[string]any) *model.AppError {
 	ret := _m.Called(config)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(map[string]interface{}) *model.AppError); ok {
+	if rf, ok := ret.Get(0).(func(map[string]any) *model.AppError); ok {
 		r0 = rf(config)
 	} else {
 		if ret.Get(0) != nil {

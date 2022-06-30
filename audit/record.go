@@ -4,7 +4,7 @@
 package audit
 
 // Meta represents metadata that can be added to a audit record as name/value pairs.
-type Meta map[string]interface{}
+type Meta map[string]any
 
 // FuncMetaTypeConv defines a function that can convert meta data types into something
 // that serializes well for audit records.

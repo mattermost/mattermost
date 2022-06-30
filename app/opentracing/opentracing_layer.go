@@ -3933,7 +3933,7 @@ func (a *OpenTracingAppLayer) EnsureBot(c *request.Context, productID string, bo
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) EnvironmentConfig(filter func(reflect.StructField) bool) map[string]interface{} {
+func (a *OpenTracingAppLayer) EnvironmentConfig(filter func(reflect.StructField) bool) map[string]any {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.EnvironmentConfig")
 
@@ -5865,7 +5865,7 @@ func (a *OpenTracingAppLayer) GetEmojiStaticURL(emojiName string) (string, *mode
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetEnvironmentConfig(filter func(reflect.StructField) bool) map[string]interface{} {
+func (a *OpenTracingAppLayer) GetEnvironmentConfig(filter func(reflect.StructField) bool) map[string]any {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetEnvironmentConfig")
 
@@ -9117,7 +9117,7 @@ func (a *OpenTracingAppLayer) GetStatusFromCache(userID string) *model.Status {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) GetStatusesByIds(userIDs []string) (map[string]interface{}, *model.AppError) {
+func (a *OpenTracingAppLayer) GetStatusesByIds(userIDs []string) (map[string]any, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetStatusesByIds")
 

@@ -456,7 +456,7 @@ func (a *App) UploadMultipartFiles(c *request.Context, teamID string, channelID 
 		file, fileErr := fileHeader.Open()
 		if fileErr != nil {
 			return nil, model.NewAppError("UploadFiles", "api.file.upload_file.read_request.app_error",
-				map[string]interface{}{"Filename": fileHeader.Filename}, fileErr.Error(), http.StatusBadRequest)
+				map[string]any{"Filename": fileHeader.Filename}, fileErr.Error(), http.StatusBadRequest)
 		}
 
 		// Will be closed after UploadFiles returns
@@ -523,7 +523,7 @@ func (a *App) UploadFile(c *request.Context, data []byte, channelID string, file
 	_, err := a.GetChannel(channelID)
 	if err != nil && channelID != "" {
 		return nil, model.NewAppError("UploadFile", "api.file.upload_file.incorrect_channelId.app_error",
-			map[string]interface{}{"channelId": channelID}, "", http.StatusBadRequest)
+			map[string]any{"channelId": channelID}, "", http.StatusBadRequest)
 	}
 
 	info, _, appError := a.DoUploadFileExpectModification(c, time.Now(), "noteam", channelID, "nouser", filename, data)
@@ -899,7 +899,7 @@ func (t UploadFileTask) pathPrefix() string {
 }
 
 func (t UploadFileTask) newAppError(id string, httpStatus int, extra ...any) *model.AppError {
-	params := map[string]interface{}{
+	params := map[string]any{
 		"Name":          t.Name,
 		"Filename":      t.Name,
 		"ChannelId":     t.ChannelId,
@@ -948,7 +948,7 @@ func (a *App) DoUploadFileExpectModification(c *request.Context, now time.Time, 
 
 	if info.IsImage() && !info.IsSvg() {
 		if limitErr := checkImageResolutionLimit(info.Width, info.Height, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
-			err := model.NewAppError("uploadFile", "api.file.upload_file.large_image.app_error", map[string]interface{}{"Filename": filename}, limitErr.Error(), http.StatusBadRequest)
+			err := model.NewAppError("uploadFile", "api.file.upload_file.large_image.app_error", map[string]any{"Filename": filename}, limitErr.Error(), http.StatusBadRequest)
 			return nil, data, err
 		}
 

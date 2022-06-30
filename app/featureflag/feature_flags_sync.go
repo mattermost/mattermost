@@ -22,7 +22,7 @@ type SyncParams struct {
 	SplitKey            string
 	SyncIntervalSeconds int
 	Log                 *mlog.Logger
-	Attributes          map[string]interface{}
+	Attributes          map[string]any
 }
 
 type Synchronizer struct {

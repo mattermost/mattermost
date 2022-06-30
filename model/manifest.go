@@ -183,7 +183,7 @@ type Manifest struct {
 	SettingsSchema *PluginSettingsSchema `json:"settings_schema,omitempty" yaml:"settings_schema,omitempty"`
 
 	// Plugins can store any kind of data in Props to allow other plugins to use it.
-	Props map[string]interface{} `json:"props,omitempty" yaml:"props,omitempty"`
+	Props map[string]any `json:"props,omitempty" yaml:"props,omitempty"`
 
 	// RequiredConfig defines any required server configuration fields for the plugin to function properly.
 	//

@@ -201,7 +201,7 @@ func stripPassword(dsn, schema string) string {
 }
 
 func isJSONMap(data string) bool {
-	var m map[string]interface{}
+	var m map[string]any
 	return json.Unmarshal([]byte(data), &m) == nil
 }
 

@@ -233,7 +233,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 				LastRootPostAt = GREATEST(:lastrootpostat, LastRootPostAt),
 				TotalMsgCount = TotalMsgCount + :count,
 				TotalMsgCountRoot = TotalMsgCountRoot + :countroot
-			WHERE Id = :channelid`, map[string]interface{}{
+			WHERE Id = :channelid`, map[string]any{
 			"lastpostat":     maxDateNewPosts[channelId],
 			"lastrootpostat": maxDateNewRootPosts[channelId],
 			"channelid":      channelId,
@@ -930,7 +930,7 @@ func (s *SqlPostStore) permanentDelete(postId string) error {
 		return errors.Wrapf(err, "failed to cleanup threads for Post with id=%s", postId)
 	}
 
-	if _, err = transaction.NamedExec("DELETE FROM Posts WHERE Id = :id OR RootId = :rootid", map[string]interface{}{"id": postId, "rootid": postId}); err != nil {
+	if _, err = transaction.NamedExec("DELETE FROM Posts WHERE Id = :id OR RootId = :rootid", map[string]any{"id": postId, "rootid": postId}); err != nil {
 		return errors.Wrapf(err, "failed to delete Post with id=%s", postId)
 	}
 

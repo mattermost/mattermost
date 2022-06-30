@@ -16,7 +16,7 @@ var htmlTestTranslationBundle *bundle.Bundle
 
 func init() {
 	htmlTestTranslationBundle = bundle.New()
-	fooBold, _ := translation.NewTranslation(map[string]interface{}{
+	fooBold, _ := translation.NewTranslation(map[string]any{
 		"id":          "foo.bold",
 		"translation": "<p>[[{{ .Foo }}]]</p>",
 	})
@@ -24,7 +24,7 @@ func init() {
 }
 
 func TestTranslateAsHTML(t *testing.T) {
-	assert.EqualValues(t, "<p><strong>&lt;i&gt;foo&lt;/i&gt;</strong></p>", TranslateAsHTML(TranslateFunc(htmlTestTranslationBundle.MustTfunc("en")), "foo.bold", map[string]interface{}{
+	assert.EqualValues(t, "<p><strong>&lt;i&gt;foo&lt;/i&gt;</strong></p>", TranslateAsHTML(TranslateFunc(htmlTestTranslationBundle.MustTfunc("en")), "foo.bold", map[string]any{
 		"Foo": "<i>foo</i>",
 	}))
 }
@@ -48,11 +48,11 @@ func TestEscapeForHTML(t *testing.T) {
 			Expected: "&lt;b&gt;abc&lt;/b&gt;",
 		},
 		"Map": {
-			In: map[string]interface{}{
+			In: map[string]any{
 				"abc": "abc",
 				"123": "<b>123</b>",
 			},
-			Expected: map[string]interface{}{
+			Expected: map[string]any{
 				"abc": "abc",
 				"123": "&lt;b&gt;123&lt;/b&gt;",
 			},
