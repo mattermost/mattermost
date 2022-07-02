@@ -82,7 +82,7 @@ type UserService interface {
 	UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError)
 	GetUserByEmail(email string) (*model.User, *model.AppError)
 	GetUserByUsername(username string) (*model.User, *model.AppError)
-	GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError)
+	GetUsersFromProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError)
 }
 
 // TeamService provides team related utilities.
