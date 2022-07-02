@@ -34,11 +34,11 @@ type teamServiceWrapper struct {
 	app AppIface
 }
 
-func (w *teamServiceWrapper) GetMember(teamID, userID string) (*model.TeamMember, error) {
+func (w *teamServiceWrapper) GetMember(teamID, userID string) (*model.TeamMember, *model.AppError) {
 	return w.app.GetTeamMember(teamID, userID)
 }
 
-func (w *teamServiceWrapper) CreateMember(ctx *request.Context, teamID, userID string) (*model.TeamMember, error) {
+func (w *teamServiceWrapper) CreateMember(ctx *request.Context, teamID, userID string) (*model.TeamMember, *model.AppError) {
 	return w.app.AddTeamMember(ctx, teamID, userID)
 }
 

@@ -89,8 +89,8 @@ type UserService interface {
 //
 // The service shall be registered via app.TeamKey service key.
 type TeamService interface {
-	GetMember(teamID, userID string) (*model.TeamMember, error)
-	CreateMember(ctx *request.Context, teamID, userID string) (*model.TeamMember, error)
+	GetMember(teamID, userID string) (*model.TeamMember, *model.AppError)
+	CreateMember(ctx *request.Context, teamID, userID string) (*model.TeamMember, *model.AppError)
 }
 
 // BotService is just a copy implementation of mattermost-plugin-api EnsureBot method.
