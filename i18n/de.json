@@ -9341,5 +9341,13 @@
   {
     "id": "api.insights.license_error",
     "translation": "Deine Lizenz unterstützt die Insights-Funktion nicht."
+  },
+  {
+    "id": "api.cloud.upgrade_plan_bot_message",
+    "translation": "Ein Mitglied von {{.TeamName}} hat dich benachrichtigt den Arbeitsbereich upzugraden."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Administrator schon benachrichtigt"
   }
 ]
