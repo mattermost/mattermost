@@ -9341,5 +9341,13 @@
   {
     "id": "api.insights.license_error",
     "translation": "Lisansınızda içgörü özelliği yok."
+  },
+  {
+    "id": "api.cloud.upgrade_plan_bot_message",
+    "translation": "{{.TeamName}} takımının bir üyesi bu çalışma alanını yükseltmesi için bilgilendirildi."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Yönetici zaten bilgilendirilmiş"
   }
 ]
