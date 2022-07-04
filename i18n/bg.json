@@ -8540,38 +8540,6 @@
     "translation": "Полето '{{.Field}}' трябва да бъде зададено чрез доставчика за удостоверяване на потребители."
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Безплатната Ви 14-дневна пробна версия на Mattermost приключва скоро"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, 14-дневният Ви безплатен пробен период на Mattermost Cloud Professional приключи след 3 дни, на {{.TrialEnd}}. Моля, добавете информация за плащане за да гарантирате, че екипът Ви може да продължи да се възползва от предимствата на Cloud Professional."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Приключва пробната версия на Mattermost cloud"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Добавяне на метод за плащане"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Безплатната ви 14-дневна пробна версия на Mattermost приключи днес"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, 14-дневният Ви безплатен пробен период на Mattermost Cloud Professional приключи днес, {{.TodayDate}}. Моля, добавете информация за плащане, за да гарантирате, че екипът Ви може да продължи да се възползва от предимствата на Cloud Professional."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Пробната версия на Mattermost cloud приключи"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Започни абонамент"
-  },
-  {
     "id": "api.remote_cluster.update_not_unique.app_error",
     "translation": "Вече съществува защитена връзка със същия url адрес."
   },

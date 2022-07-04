@@ -7972,38 +7972,6 @@
     "translation": "Ajouter des applications à votre espace de travail"
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Votre essai gratuit de 14 jours de Mattermost se termine bientôt"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, votre essai de 14 jours de Mattermost se termine dans 3 jours, le {{.TrialEnd}}. Veuillez ajouter vos informations de paiement pour que votre équipe puisse continuer à profiter des avantages de la version Mattermost Cloud."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Fin de la version d'essai de Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Ajouter une méthode de paiement"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Votre essai gratuit de 14 jours de Mattermost a pris fin aujourd'hui"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, votre essai gratuit de 14 jours de Mattermost Cloud Enterprise a pris fin aujourd'hui, {{.TodayDate}}. Veuillez ajouter vos informations de paiement pour que votre équipe puisse continuer à profiter des avantages de la version Cloud Enterprise. Si vous n'ajoutez pas vos informations de paiement dans les 30 jours, votre espace de travail Cloud sera supprimé définitivement et vous perdrez toutes les données associées."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "La version d'essai de Mattermost Cloud est terminée"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Démarrer l'abonnement"
-  },
-  {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
     "translation": "La vérification des limites de l'image a échoué. La résolution est trop élevée."
   },
