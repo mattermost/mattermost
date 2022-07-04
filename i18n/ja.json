@@ -9334,5 +9334,13 @@
   {
     "id": "api.authorization_error.guest",
     "translation": " "
+  },
+  {
+    "id": "api.cloud.upgrade_plan_bot_message",
+    "translation": "{{.TeamName}}のメンバーから、このワークスペースをアップグレードするように通知がありました。"
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "管理者に通知済み"
   }
 ]
