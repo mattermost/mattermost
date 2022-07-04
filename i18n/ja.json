@@ -8664,38 +8664,6 @@
     "translation": "ユーザーからの自動返信を送信できませんでした。"
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Mattermostの30日間のトライアルは、まもなく終了します"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}} さん、あなたのMattermostの30日間のトライアルは3日後の{{.TrialEnd}}に終了します。お客様のチームが引き続きMattermost Cloudのメリットを享受できるよう、お支払い情報を追加してください。"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}、Mattermost Cloud Enterpriseの30日間の無料トライアルが {{.TodayDate}} に終了しました。我々の柔軟でセキュアなコラボレーションプラットフォームをお楽しみいただけましたでしょうか。引き続きMattermost上でコラボレーションを継続するには、支払い情報を追加してください。"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Mattermost Cloudトライアルが終了しました"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "支払い方法を追加する"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Mattermostの30日間のトライアルは終了しました"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Mattermost Cloudのトライアルは終了しました"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "サブスクリプションを開始する"
-  },
-  {
     "id": "api.command_remote.displayname.hint",
     "translation": "安全な接続のための表示名"
   },

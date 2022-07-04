@@ -5664,22 +5664,6 @@
     "translation": "Adjon hozzá alkalmazásokat a munkaterületéhez"
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "A Mattermost 30 napos ingyenes próbaverziója hamarosan véget ér"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, a Mattermost 30 napos próbaverziója 3 nap múlva ér véget, {{.TrialEnd}} napon. Kérjük, adja hozzá a fizetési adatait, hogy csapata továbbra is élvezhesse a Mattermost Cloud előnyeit."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Mattermost cloud próbaidő vége"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Fizetési mód hozzáadása"
-  },
-  {
     "id": "api.team.update_team_scheme.scheme_scope.error",
     "translation": "Nem lehet beállítani a sémát a csapathoz, mert a megadott séma nem csapat séma."
   },
@@ -8686,22 +8670,6 @@
   {
     "id": "app.notification.body.dm.subTitle",
     "translation": "Amíg távol volt, {{.SenderName}} új közvetlen üzenetet küldött Önnek."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "A Mattermost 30 napos ingyenes próbaverziója lejárt"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, a Mattermost Cloud Enterprise 30 napos ingyenes próbaverziója {{.TodayDate}} napon lejárt. Reméljük, tetszett Önnek a rugalmas és biztonságos együttműködési platformunk. Kérjük, adja meg a fizetési adatait, hogy csapata továbbra is együtt dolgozhasson a Mattermost által."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Mattermost cloud próbaidőszak véget ért"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Előfizetés indítása"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subTitle",
