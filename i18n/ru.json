@@ -7017,7 +7017,7 @@
   },
   {
     "id": "app.channel.pinned_posts.app_error",
-    "translation": "Не удалось найти прикрепленные сообщения."
+    "translation": "Не удалось найти закрепленные сообщения."
   },
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
