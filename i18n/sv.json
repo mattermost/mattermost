@@ -9329,5 +9329,25 @@
   {
     "id": "api.insights.license_error",
     "translation": "Din licens stöder inte funktionen Insights."
+  },
+  {
+    "id": "api.authorization_error.guest",
+    "translation": " "
+  },
+  {
+    "id": "app.channel.get_post_count_by_day.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.license_error.professional_or_enterprise",
+    "translation": " "
+  },
+  {
+    "id": "api.cloud.upgrade_plan_bot_message",
+    "translation": "En medlem av {{.TeamName}} meddelar dig att uppgradera det här arbetsområdet."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Har redan notifierat systemadministratören"
   }
 ]
