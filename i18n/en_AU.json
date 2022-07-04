@@ -9273,5 +9273,13 @@
   {
     "id": "api.insights.feature_disabled",
     "translation": "Insights is behind a feature flag which is not enabled."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Already notified admin"
+  },
+  {
+    "id": "api.cloud.upgrade_plan_bot_message",
+    "translation": "A member of {{.TeamName}} has asked you to upgrade this workspace."
   }
 ]
