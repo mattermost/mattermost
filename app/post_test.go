@@ -2822,10 +2822,6 @@ func TestGetTopThreadsForTeamSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.Server.configStore.SetReadOnlyFF(false)
-	defer th.Server.configStore.SetReadOnlyFF(true)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
-
 	// create a public channel, a private channel
 	channelPublic := th.CreateChannel(th.BasicTeam)
 	channelPrivate := th.CreatePrivateChannel(th.BasicTeam)
@@ -2897,10 +2893,6 @@ func TestGetTopThreadsForTeamSince(t *testing.T) {
 func TestGetTopThreadsForUserSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-
-	th.Server.configStore.SetReadOnlyFF(false)
-	defer th.Server.configStore.SetReadOnlyFF(true)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 
 	// create a public channel, a private channel
 	channelPublic := th.CreateChannel(th.BasicTeam)
