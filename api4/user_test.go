@@ -6893,3 +6893,36 @@ func TestUserUpdateEvents(t *testing.T) {
 		})
 	})
 }
+
+func TestUserImageUpdateEvents(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	client := th.CreateClient()
+	th.LoginBasicWithClient(client)
+	WebSocketClient, err := th.CreateWebSocketClientWithClient(client)
+	require.NoError(t, err)
+	defer WebSocketClient.Close()
+	WebSocketClient.Listen()
+	resp := <-WebSocketClient.ResponseChannel
+	require.Equal(t, resp.Status, model.StatusOk)
+
+	time.Sleep(1000 * time.Millisecond)
+
+	t.Run("assert websocket events with unsanitized user emit afters user update", func(t *testing.T) {
+		// trigger image update for onlineUser
+		data, err := testutils.ReadTestFile("test.png")
+		require.NoError(t, err)
+		_, err = th.Client.SetProfileImage(th.BasicUser.Id, data)
+		require.NoError(t, err)
+
+		assertExpectedWebsocketEvent(t, WebSocketClient, model.WebsocketEventUserUpdated, func(event *model.WebSocketEvent) {
+			eventUser, ok := event.GetData()["user"].(*model.User)
+			require.True(t, ok, "expected user")
+			// assert eventUser.Id is same as th.BasicUser.Id
+			assert.Equal(t, eventUser.Id, th.BasicUser.Id)
+			// assert eventUser.NotifyProps isn't empty
+			require.NotEmpty(t, eventUser.NotifyProps, "user event for source user should not be sanitized")
+		})
+	})
+}
