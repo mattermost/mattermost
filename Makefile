@@ -390,6 +390,12 @@ email-mocks: ## Creates mocks for misc interfaces.
 pluginapi: ## Generates api and hooks glue code for plugins
 	$(GO) generate $(GOFLAGS) ./plugin
 
+mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks
+
+layers: app-layers store-layers pluginapi
+
+generated: mocks layers
+
 check-prereqs: ## Checks prerequisite software status.
 	./scripts/prereq-check.sh
 
