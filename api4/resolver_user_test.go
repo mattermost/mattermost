@@ -178,7 +178,7 @@ func TestGraphQLUser(t *testing.T) {
 	  }
 	}
 	`,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"id": th.BasicUser2.Id,
 			},
 		}
@@ -203,7 +203,7 @@ func TestGraphQLUser(t *testing.T) {
 	  }
 	}
 	`,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"id": id,
 			},
 		}

@@ -51,7 +51,7 @@ func (str jsonKeyPath) Value() (driver.Value, error) {
 
 type TraceOnAdapter struct{}
 
-func (t *TraceOnAdapter) Printf(format string, v ...interface{}) {
+func (t *TraceOnAdapter) Printf(format string, v ...any) {
 	originalString := fmt.Sprintf(format, v...)
 	newString := strings.ReplaceAll(originalString, "\n", " ")
 	newString = strings.ReplaceAll(newString, "\t", " ")

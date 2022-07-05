@@ -128,7 +128,7 @@ func doCommand(a *app.App, c *request.Context, args *model.CommandArgs, message 
 	if err != nil {
 		nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
 		return &model.CommandResponse{
-			Text: args.T("api.command_remove.user_not_in_channel", map[string]interface{}{
+			Text: args.T("api.command_remove.user_not_in_channel", map[string]any{
 				"Username": userProfile.GetDisplayName(nameFormat),
 			}),
 			ResponseType: model.CommandResponseTypeEphemeral,
@@ -140,7 +140,7 @@ func doCommand(a *app.App, c *request.Context, args *model.CommandArgs, message 
 		if err.Id == "api.channel.remove_members.denied" {
 			text = args.T("api.command_remove.group_constrained_user_denied")
 		} else {
-			text = args.T(err.Id, map[string]interface{}{
+			text = args.T(err.Id, map[string]any{
 				"Channel": model.DefaultChannelName,
 			})
 		}

@@ -72,7 +72,7 @@ type errNotFound interface {
 
 // errInvalidInput allows checking against Store.ErrInvalidInput errors without making Store a dependency.
 type errInvalidInput interface {
-	InvalidInputInfo() (entity string, field string, value interface{})
+	InvalidInputInfo() (entity string, field string, value any)
 }
 
 // Service provides shared channel synchronization.

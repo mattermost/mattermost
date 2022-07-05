@@ -79,7 +79,7 @@ type PluginSetting struct {
 	Placeholder string `json:"placeholder" yaml:"placeholder"`
 
 	// The default value of the setting.
-	Default interface{} `json:"default" yaml:"default"`
+	Default any `json:"default" yaml:"default"`
 
 	// For "radio" or "dropdown" settings, this is the list of pre-defined options that the user can choose
 	// from.
@@ -183,7 +183,7 @@ type Manifest struct {
 	SettingsSchema *PluginSettingsSchema `json:"settings_schema,omitempty" yaml:"settings_schema,omitempty"`
 
 	// Plugins can store any kind of data in Props to allow other plugins to use it.
-	Props map[string]interface{} `json:"props,omitempty" yaml:"props,omitempty"`
+	Props map[string]any `json:"props,omitempty" yaml:"props,omitempty"`
 
 	// RequiredConfig defines any required server configuration fields for the plugin to function properly.
 	//
