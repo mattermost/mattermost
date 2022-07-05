@@ -145,7 +145,7 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
  */
 func getDirectMessageNotificationEmailSubject(user *model.User, post *model.Post, translateFunc i18n.TranslateFunc, siteName string, senderName string, useMilitaryTime bool) string {
 	t := getFormattedPostTime(user, post, useMilitaryTime, translateFunc)
-	var subjectParameters = map[string]interface{}{
+	var subjectParameters = map[string]any{
 		"SiteName":          siteName,
 		"SenderDisplayName": senderName,
 		"Month":             t.Month,
@@ -160,7 +160,7 @@ func getDirectMessageNotificationEmailSubject(user *model.User, post *model.Post
  */
 func getNotificationEmailSubject(user *model.User, post *model.Post, translateFunc i18n.TranslateFunc, siteName string, teamName string, useMilitaryTime bool) string {
 	t := getFormattedPostTime(user, post, useMilitaryTime, translateFunc)
-	var subjectParameters = map[string]interface{}{
+	var subjectParameters = map[string]any{
 		"SiteName": siteName,
 		"TeamName": teamName,
 		"Month":    t.Month,
@@ -175,7 +175,7 @@ func getNotificationEmailSubject(user *model.User, post *model.Post, translateFu
  */
 func getGroupMessageNotificationEmailSubject(user *model.User, post *model.Post, translateFunc i18n.TranslateFunc, siteName string, channelName string, emailNotificationContentsType string, useMilitaryTime bool) string {
 	t := getFormattedPostTime(user, post, useMilitaryTime, translateFunc)
-	var subjectParameters = map[string]interface{}{
+	var subjectParameters = map[string]any{
 		"SiteName": siteName,
 		"Month":    t.Month,
 		"Day":      t.Day,
@@ -222,7 +222,7 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 	}
 
 	t := getFormattedPostTime(recipient, post, useMilitaryTime, translateFunc)
-	messageTime := map[string]interface{}{
+	messageTime := map[string]any{
 		"Hour":     t.Hour,
 		"Minute":   t.Minute,
 		"TimeZone": t.TimeZone,
@@ -262,36 +262,36 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 
 	if channel.Type == model.ChannelTypeDirect {
 		// Direct Messages
-		data.Props["Title"] = translateFunc("app.notification.body.dm.title", map[string]interface{}{"SenderName": senderName})
-		data.Props["SubTitle"] = translateFunc("app.notification.body.dm.subTitle", map[string]interface{}{"SenderName": senderName})
+		data.Props["Title"] = translateFunc("app.notification.body.dm.title", map[string]any{"SenderName": senderName})
+		data.Props["SubTitle"] = translateFunc("app.notification.body.dm.subTitle", map[string]any{"SenderName": senderName})
 	} else if channel.Type == model.ChannelTypeGroup {
 		// Group Messages
-		data.Props["Title"] = translateFunc("app.notification.body.group.title", map[string]interface{}{"SenderName": senderName})
-		data.Props["SubTitle"] = translateFunc("app.notification.body.group.subTitle", map[string]interface{}{"SenderName": senderName})
+		data.Props["Title"] = translateFunc("app.notification.body.group.title", map[string]any{"SenderName": senderName})
+		data.Props["SubTitle"] = translateFunc("app.notification.body.group.subTitle", map[string]any{"SenderName": senderName})
 	} else {
 		// mentions
-		data.Props["Title"] = translateFunc("app.notification.body.mention.title", map[string]interface{}{"SenderName": senderName})
-		data.Props["SubTitle"] = translateFunc("app.notification.body.mention.subTitle", map[string]interface{}{"SenderName": senderName, "ChannelName": channelName})
+		data.Props["Title"] = translateFunc("app.notification.body.mention.title", map[string]any{"SenderName": senderName})
+		data.Props["SubTitle"] = translateFunc("app.notification.body.mention.subTitle", map[string]any{"SenderName": senderName, "ChannelName": channelName})
 		pData.ChannelName = channelName
 	}
 
 	// Override title and subtile for replies with CRT enabled
 	if a.IsCRTEnabledForUser(recipient.Id) && post.RootId != "" {
 		// Title is the same in all cases
-		data.Props["Title"] = translateFunc("app.notification.body.thread.title", map[string]interface{}{"SenderName": senderName})
+		data.Props["Title"] = translateFunc("app.notification.body.thread.title", map[string]any{"SenderName": senderName})
 
 		if channel.Type == model.ChannelTypeDirect {
 			// Direct Reply
-			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_dm.subTitle", map[string]interface{}{"SenderName": senderName})
+			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_dm.subTitle", map[string]any{"SenderName": senderName})
 		} else if channel.Type == model.ChannelTypeGroup {
 			// Group Reply
-			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_gm.subTitle", map[string]interface{}{"SenderName": senderName})
+			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_gm.subTitle", map[string]any{"SenderName": senderName})
 		} else if emailNotificationContentsType == model.EmailNotificationContentsFull {
 			// Channel Reply with full content
-			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_channel_full.subTitle", map[string]interface{}{"SenderName": senderName, "ChannelName": channelName})
+			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_channel_full.subTitle", map[string]any{"SenderName": senderName, "ChannelName": channelName})
 		} else {
 			// Channel Reply with generic content
-			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_channel.subTitle", map[string]interface{}{"SenderName": senderName})
+			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_channel.subTitle", map[string]any{"SenderName": senderName})
 		}
 	}
 

@@ -1210,7 +1210,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if conflictField != "" {
 		c.Err = model.NewAppError(
 			"updateUser", "api.user.update_user.login_provider_attribute_set.app_error",
-			map[string]interface{}{"Field": conflictField}, "", http.StatusConflict)
+			map[string]any{"Field": conflictField}, "", http.StatusConflict)
 		return
 	}
 
@@ -1283,7 +1283,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if conflictField != "" {
 		c.Err = model.NewAppError(
 			"patchUser", "api.user.patch_user.login_provider_attribute_set.app_error",
-			map[string]interface{}{"Field": conflictField}, "", http.StatusConflict)
+			map[string]any{"Field": conflictField}, "", http.StatusConflict)
 		return
 	}
 
@@ -2933,7 +2933,7 @@ func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("auto")
 		return
 	}
-	matches, ok := props["matches"].(map[string]interface{})
+	matches, ok := props["matches"].(map[string]any)
 	if !ok {
 		c.SetInvalidParam("matches")
 		return

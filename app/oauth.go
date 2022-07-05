@@ -567,7 +567,7 @@ func (a *App) getSSOProvider(service string) (einterfaces.OAuthProvider, *model.
 	provider := einterfaces.GetOAuthProvider(providerType)
 	if provider == nil {
 		return nil, model.NewAppError("getSSOProvider", "api.user.login_by_oauth.not_available.app_error",
-			map[string]interface{}{"Service": strings.Title(service)}, "", http.StatusNotImplemented)
+			map[string]any{"Service": strings.Title(service)}, "", http.StatusNotImplemented)
 	}
 	return provider, nil
 }
@@ -581,18 +581,18 @@ func (a *App) LoginByOAuth(c *request.Context, service string, userData io.Reade
 	buf := bytes.Buffer{}
 	if _, err := buf.ReadFrom(userData); err != nil {
 		return nil, model.NewAppError("LoginByOAuth2", "api.user.login_by_oauth.parse.app_error",
-			map[string]interface{}{"Service": service}, "", http.StatusBadRequest)
+			map[string]any{"Service": service}, "", http.StatusBadRequest)
 	}
 
 	authUser, err1 := provider.GetUserFromJSON(bytes.NewReader(buf.Bytes()), tokenUser)
 	if err1 != nil {
 		return nil, model.NewAppError("LoginByOAuth", "api.user.login_by_oauth.parse.app_error",
-			map[string]interface{}{"Service": service}, err1.Error(), http.StatusBadRequest)
+			map[string]any{"Service": service}, err1.Error(), http.StatusBadRequest)
 	}
 
 	if *authUser.AuthData == "" {
 		return nil, model.NewAppError("LoginByOAuth3", "api.user.login_by_oauth.parse.app_error",
-			map[string]interface{}{"Service": service}, "", http.StatusBadRequest)
+			map[string]any{"Service": service}, "", http.StatusBadRequest)
 	}
 
 	user, err := a.GetUserByAuth(model.NewString(*authUser.AuthData), service)
@@ -638,12 +638,12 @@ func (a *App) CompleteSwitchWithOAuth(service string, userData io.Reader, email 
 	ssoUser, err1 := provider.GetUserFromJSON(userData, tokenUser)
 	if err1 != nil {
 		return nil, model.NewAppError("CompleteSwitchWithOAuth", "api.user.complete_switch_with_oauth.parse.app_error",
-			map[string]interface{}{"Service": service}, err1.Error(), http.StatusBadRequest)
+			map[string]any{"Service": service}, err1.Error(), http.StatusBadRequest)
 	}
 
 	if *ssoUser.AuthData == "" {
 		return nil, model.NewAppError("CompleteSwitchWithOAuth", "api.user.complete_switch_with_oauth.parse.app_error",
-			map[string]interface{}{"Service": service}, "", http.StatusBadRequest)
+			map[string]any{"Service": service}, "", http.StatusBadRequest)
 	}
 
 	user, nErr := a.Srv().Store.User().GetByEmail(email)
@@ -877,7 +877,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 
 	req, requestErr = http.NewRequest("GET", *sso.UserAPIEndpoint, strings.NewReader(""))
 	if requestErr != nil {
-		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error", map[string]interface{}{"Service": service}, requestErr.Error(), http.StatusInternalServerError)
+		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error", map[string]any{"Service": service}, requestErr.Error(), http.StatusInternalServerError)
 	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -886,7 +886,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 
 	resp, err = a.HTTPService().MakeClient(true).Do(req)
 	if err != nil {
-		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error", map[string]interface{}{"Service": service}, err.Error(), http.StatusInternalServerError)
+		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error", map[string]any{"Service": service}, err.Error(), http.StatusInternalServerError)
 	} else if resp.StatusCode != http.StatusOK {
 		defer resp.Body.Close()
 

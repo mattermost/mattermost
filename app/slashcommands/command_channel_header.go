@@ -97,7 +97,7 @@ func (*HeaderProvider) DoCommand(a *app.App, c *request.Context, args *model.Com
 	if err != nil {
 		text := args.T("api.command_channel_header.update_channel.app_error")
 		if err.Id == "model.channel.is_valid.header.app_error" {
-			text = args.T("api.command_channel_header.update_channel.max_length", map[string]interface{}{
+			text = args.T("api.command_channel_header.update_channel.max_length", map[string]any{
 				"MaxLength": model.ChannelHeaderMaxRunes,
 			})
 		}

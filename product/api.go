@@ -49,7 +49,7 @@ type PermissionService interface {
 // The service shall be registered via app.ClusterKey key.
 type ClusterService interface {
 	PublishPluginClusterEvent(productID string, ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error
-	PublishWebSocketEvent(productID string, event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast)
+	PublishWebSocketEvent(productID string, event string, payload map[string]any, broadcast *model.WebsocketBroadcast)
 }
 
 // ChannelService provides channel related API  The service implementation is provided by

@@ -63,22 +63,22 @@ func (L LRUStriped) Purge() error {
 }
 
 // Set does the same as LRU.Set
-func (L LRUStriped) Set(key string, value interface{}) error {
+func (L LRUStriped) Set(key string, value any) error {
 	return L.keyBucket(key).Set(key, value)
 }
 
 // SetWithDefaultExpiry does the same as LRU.SetWithDefaultExpiry
-func (L LRUStriped) SetWithDefaultExpiry(key string, value interface{}) error {
+func (L LRUStriped) SetWithDefaultExpiry(key string, value any) error {
 	return L.keyBucket(key).SetWithDefaultExpiry(key, value)
 }
 
 // SetWithExpiry does the same as LRU.SetWithExpiry
-func (L LRUStriped) SetWithExpiry(key string, value interface{}, ttl time.Duration) error {
+func (L LRUStriped) SetWithExpiry(key string, value any, ttl time.Duration) error {
 	return L.keyBucket(key).SetWithExpiry(key, value, ttl)
 }
 
 // Get does the same as LRU.Get
-func (L LRUStriped) Get(key string, value interface{}) error {
+func (L LRUStriped) Get(key string, value any) error {
 	return L.keyBucket(key).Get(key, value)
 }
 

@@ -143,7 +143,7 @@ func (o *ChannelMember) IsValid() *AppError {
 
 	if len(o.Roles) > UserRolesMaxLength {
 		return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.roles_limit.app_error",
-			map[string]interface{}{"Limit": UserRolesMaxLength}, "", http.StatusBadRequest)
+			map[string]any{"Limit": UserRolesMaxLength}, "", http.StatusBadRequest)
 	}
 
 	return nil

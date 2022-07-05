@@ -41,7 +41,7 @@ func TestSendNotifications(t *testing.T) {
 		ChannelId: th.BasicChannel.Id,
 		Message:   "@" + th.BasicUser2.Username,
 		Type:      model.PostTypeAddToChannel,
-		Props:     map[string]interface{}{model.PostPropsAddedUserId: "junk"},
+		Props:     map[string]any{model.PostPropsAddedUserId: "junk"},
 	}, true)
 	require.Nil(t, appErr)
 
@@ -181,7 +181,7 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 		ChannelId: th.BasicChannel.Id,
 		Message:   "@channel",
 		Type:      model.PostTypeAddToChannel,
-		Props:     map[string]interface{}{model.PostPropsAddedUserId: "junk"},
+		Props:     map[string]any{model.PostPropsAddedUserId: "junk"},
 	}, true)
 	require.Nil(t, appErr1)
 
@@ -201,7 +201,7 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 		ChannelId: th.BasicChannel.Id,
 		Message:   "@channel",
 		Type:      model.PostTypeAddToChannel,
-		Props:     map[string]interface{}{model.PostPropsAddedUserId: "junk"},
+		Props:     map[string]any{model.PostPropsAddedUserId: "junk"},
 	}, true)
 	require.Nil(t, appErr1)
 

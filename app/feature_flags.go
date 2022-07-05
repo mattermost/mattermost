@@ -61,7 +61,7 @@ func (s *Server) startFeatureFlagUpdateJob() error {
 		log = s.Log
 	}
 
-	attributes := map[string]interface{}{}
+	attributes := map[string]any{}
 
 	// if we are part of a cloud installation, add its installation and group id
 	if installationId := os.Getenv("MM_CLOUD_INSTALLATION_ID"); installationId != "" {

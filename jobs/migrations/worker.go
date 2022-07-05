@@ -167,7 +167,7 @@ func (worker *Worker) runMigration(key string, lastDone string) (bool, string, *
 	case model.MigrationKeyAdvancedPermissionsPhase2:
 		done, progress, err = worker.runAdvancedPermissionsPhase2Migration(lastDone)
 	default:
-		return false, "", model.NewAppError("MigrationsWorker.runMigration", "migrations.worker.run_migration.unknown_key", map[string]interface{}{"key": key}, "", http.StatusInternalServerError)
+		return false, "", model.NewAppError("MigrationsWorker.runMigration", "migrations.worker.run_migration.unknown_key", map[string]any{"key": key}, "", http.StatusInternalServerError)
 	}
 
 	if done {

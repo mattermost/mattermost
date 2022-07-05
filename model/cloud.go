@@ -175,13 +175,13 @@ type Invoice struct {
 
 // InvoiceLineItem model represents a cloud invoice lineitem tied to an invoice.
 type InvoiceLineItem struct {
-	PriceID      string                 `json:"price_id"`
-	Total        int64                  `json:"total"`
-	Quantity     float64                `json:"quantity"`
-	PricePerUnit int64                  `json:"price_per_unit"`
-	Description  string                 `json:"description"`
-	Type         string                 `json:"type"`
-	Metadata     map[string]interface{} `json:"metadata"`
+	PriceID      string         `json:"price_id"`
+	Total        int64          `json:"total"`
+	Quantity     float64        `json:"quantity"`
+	PricePerUnit int64          `json:"price_per_unit"`
+	Description  string         `json:"description"`
+	Type         string         `json:"type"`
+	Metadata     map[string]any `json:"metadata"`
 }
 
 type CWSWebhookPayload struct {

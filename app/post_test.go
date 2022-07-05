@@ -429,8 +429,8 @@ func TestPostChannelMentions(t *testing.T) {
 
 	post, err = th.App.CreatePostAsUser(th.Context, post, "", true)
 	require.Nil(t, err)
-	assert.Equal(t, map[string]interface{}{
-		"mention-test": map[string]interface{}{
+	assert.Equal(t, map[string]any{
+		"mention-test": map[string]any{
 			"display_name": "Mention Test",
 			"team_name":    th.BasicTeam.Name,
 		},
@@ -439,8 +439,8 @@ func TestPostChannelMentions(t *testing.T) {
 	post.Message = fmt.Sprintf("goodbye, ~%v!", channelToMention.Name)
 	result, err := th.App.UpdatePost(th.Context, post, false)
 	require.Nil(t, err)
-	assert.Equal(t, map[string]interface{}{
-		"mention-test": map[string]interface{}{
+	assert.Equal(t, map[string]any{
+		"mention-test": map[string]any{
 			"display_name": "Mention Test",
 			"team_name":    th.BasicTeam.Name,
 		},
@@ -858,7 +858,7 @@ func TestCreatePost(t *testing.T) {
 			Description string
 			Channel     *model.Channel
 			Author      string
-			Assert      func(t assert.TestingT, object interface{}, msgAndArgs ...interface{}) bool
+			Assert      func(t assert.TestingT, object any, msgAndArgs ...any) bool
 		}{
 			{
 				Description: "removes metadata from post for members who cannot read channel",
@@ -1345,7 +1345,7 @@ func TestUpdatePost(t *testing.T) {
 			Description string
 			Channel     *model.Channel
 			Author      string
-			Assert      func(t assert.TestingT, object interface{}, msgAndArgs ...interface{}) bool
+			Assert      func(t assert.TestingT, object any, msgAndArgs ...any) bool
 		}{
 			{
 				Description: "removes metadata from post for members who cannot read channel",
@@ -1879,7 +1879,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 			ChannelId: channel.Id,
 			Message:   "test",
 			Type:      model.PostTypeAddToChannel,
-			Props: map[string]interface{}{
+			Props: map[string]any{
 				model.PostPropsAddedUserId: model.NewId(),
 			},
 		}, channel, false, true)
@@ -1889,7 +1889,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 			ChannelId: channel.Id,
 			Message:   "test2",
 			Type:      model.PostTypeAddToChannel,
-			Props: map[string]interface{}{
+			Props: map[string]any{
 				model.PostPropsAddedUserId: user2.Id,
 			},
 		}, channel, false, true)
@@ -1899,7 +1899,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 			ChannelId: channel.Id,
 			Message:   "test3",
 			Type:      model.PostTypeAddToChannel,
-			Props: map[string]interface{}{
+			Props: map[string]any{
 				model.PostPropsAddedUserId: user2.Id,
 			},
 		}, channel, false, true)
@@ -2089,7 +2089,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 			UserId:    user2.Id,
 			ChannelId: channel.Id,
 			Message:   fmt.Sprintf("@%s", user2.Username),
-			Props: map[string]interface{}{
+			Props: map[string]any{
 				"from_webhook": "true",
 			},
 		}, channel, false, true)
