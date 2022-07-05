@@ -14,7 +14,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
@@ -245,59 +244,6 @@ func (es *Service) SendCloudUpgradeConfirmationEmail(userEmail, name, date, loca
 	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
 
 	body, err := es.templatesContainer.RenderToString("cloud_upgrade_confirmation", data)
-	if err != nil {
-		return err
-	}
-
-	if err := es.sendEmailWithCustomReplyTo(userEmail, subject, body, *es.config().SupportSettings.SupportEmail); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (es *Service) SendCloudTrialEndWarningEmail(userEmail, name, trialEndDate, locale, siteURL string) error {
-	T := i18n.GetUserTranslations(locale)
-	subject := T("api.templates.cloud_trial_ending_email.subject")
-
-	data := es.NewEmailTemplateData(locale)
-	data.Props["Title"] = T("api.templates.cloud_trial_ending_email.title")
-	data.Props["SubTitle"] = T("api.templates.cloud_trial_ending_email.subtitle", map[string]interface{}{"Name": name, "TrialEnd": trialEndDate})
-	data.Props["SiteURL"] = siteURL
-	data.Props["ButtonURL"] = fmt.Sprintf("%s/admin_console/billing/subscription?action=show_purchase_modal", siteURL)
-	data.Props["Button"] = T("api.templates.cloud_trial_ending_email.add_payment_method")
-	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
-	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
-
-	body, err := es.templatesContainer.RenderToString("cloud_trial_end_warning", data)
-	if err != nil {
-		return err
-	}
-
-	if err := es.sendEmailWithCustomReplyTo(userEmail, subject, body, *es.config().SupportSettings.SupportEmail); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (es *Service) SendCloudTrialEndedEmail(userEmail, name, locale, siteURL string) error {
-	T := i18n.GetUserTranslations(locale)
-	subject := T("api.templates.cloud_trial_ended_email.subject")
-
-	t := time.Now()
-	todayDate := fmt.Sprintf("%s %d, %d", t.Month(), t.Day(), t.Year())
-
-	data := es.NewEmailTemplateData(locale)
-	data.Props["Title"] = T("api.templates.cloud_trial_ended_email.title")
-	data.Props["SubTitle"] = T("api.templates.cloud_trial_ended_email.subtitle", map[string]interface{}{"Name": name, "TodayDate": todayDate})
-	data.Props["SiteURL"] = siteURL
-	data.Props["ButtonURL"] = fmt.Sprintf("%s/admin_console/billing/subscription", siteURL)
-	data.Props["Button"] = T("api.templates.cloud_trial_ended_email.start_subscription")
-	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
-	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
-
-	body, err := es.templatesContainer.RenderToString("cloud_trial_ended_email", data)
 	if err != nil {
 		return err
 	}
@@ -625,7 +571,7 @@ func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Cha
 				mlog.Error("Failed to send invite email successfully", mlog.Err(err))
 			}
 
-			if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, embeddedFiles); nErr != nil {
+			if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, embeddedFiles, "", "", ""); nErr != nil {
 				mlog.Error("Failed to send invite email successfully", mlog.Err(nErr))
 				if errorWhenNotSent {
 					return SendMailError
@@ -769,7 +715,7 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 			mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 		}
 
-		if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, embeddedFiles); nErr != nil {
+		if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, embeddedFiles, "", "", ""); nErr != nil {
 			mlog.Error("Failed to send invite email successfully", mlog.Err(nErr))
 			if errorWhenNotSent {
 				inviteWithError := &model.EmailInviteWithError{
@@ -832,7 +778,7 @@ func (es *Service) SendDeactivateAccountEmail(email string, locale, siteURL stri
 		return err
 	}
 
-	if err := es.sendMail(email, subject, body); err != nil {
+	if err := es.sendMail(email, subject, body); err != nil { // this needs to receive the header options
 		return err
 	}
 
@@ -854,21 +800,21 @@ func (es *Service) sendEmailWithCustomReplyTo(to, subject, htmlBody, replyToAddr
 	license := es.license()
 	mailConfig := es.mailServiceConfig(replyToAddress)
 
-	return mail.SendMailUsingConfig(to, subject, htmlBody, mailConfig, license != nil && *license.Features.Compliance, "")
+	return mail.SendMailUsingConfig(to, subject, htmlBody, mailConfig, license != nil && *license.Features.Compliance, "", "", "", "")
 }
 
 func (es *Service) sendMailWithCC(to, subject, htmlBody string, ccMail string) error {
 	license := es.license()
 	mailConfig := es.mailServiceConfig("")
 
-	return mail.SendMailUsingConfig(to, subject, htmlBody, mailConfig, license != nil && *license.Features.Compliance, ccMail)
+	return mail.SendMailUsingConfig(to, subject, htmlBody, mailConfig, license != nil && *license.Features.Compliance, "", "", "", ccMail)
 }
 
-func (es *Service) SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader) error {
+func (es *Service) SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, messageID string, inReplyTo string, references string) error {
 	license := es.license()
 	mailConfig := es.mailServiceConfig("")
 
-	return mail.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, mailConfig, license != nil && *license.Features.Compliance, "")
+	return mail.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, mailConfig, license != nil && *license.Features.Compliance, messageID, inReplyTo, references, "")
 }
 
 func (es *Service) InvalidateVerifyEmailTokensForUser(userID string) *model.AppError {

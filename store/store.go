@@ -262,8 +262,9 @@ type ChannelStore interface {
 	MigrateChannelMembers(fromChannelID string, fromUserID string) (map[string]string, error)
 	ResetAllChannelSchemes() error
 	ClearAllCustomRoleAssignments() error
-	CreateInitialSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, error)
-	GetSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, error)
+	CreateInitialSidebarCategories(userID string, opts *SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error)
+	GetSidebarCategoriesForTeamForUser(userID, teamID string) (*model.OrderedSidebarCategories, error)
+	GetSidebarCategories(userID string, opts *SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error)
 	GetSidebarCategory(categoryID string) (*model.SidebarCategoryWithChannels, error)
 	GetSidebarCategoryOrder(userID, teamID string) ([]string, error)
 	CreateSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error)
@@ -409,6 +410,7 @@ type UserStore interface {
 	InvalidateProfilesInChannelCache(channelID string)
 	GetProfilesInChannel(options *model.UserGetOptions) ([]*model.User, error)
 	GetProfilesInChannelByStatus(options *model.UserGetOptions) ([]*model.User, error)
+	GetProfilesInChannelByAdmin(options *model.UserGetOptions) ([]*model.User, error)
 	GetAllProfilesInChannel(ctx context.Context, channelID string, allowFromCache bool) (map[string]*model.User, error)
 	GetProfilesNotInChannel(teamID string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error)
 	GetProfilesWithoutTeam(options *model.UserGetOptions) ([]*model.User, error)
@@ -1024,4 +1026,25 @@ type PostReminderMetadata struct {
 	TeamName   string
 	UserLocale string
 	Username   string
+
+// SidebarCategorySearchOpts contains the options for a graphQL query
+// to get the sidebar categories.
+type SidebarCategorySearchOpts struct {
+	TeamID      string
+	ExcludeTeam bool
+}
+
+// StoreServiceAdapter provides a simple Store wrapper for use with products.
+type StoreServiceAdapter struct {
+	store Store
+}
+
+func NewStoreServiceAdapter(store Store) *StoreServiceAdapter {
+	return &StoreServiceAdapter{
+		store: store,
+	}
+}
+
+func (a *StoreServiceAdapter) GetMasterDB() *sql.DB {
+	return a.store.GetInternalMasterDB()
 }

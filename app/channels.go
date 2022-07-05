@@ -319,11 +319,10 @@ type hooksService struct {
 	ch *Channels
 }
 
-func (s *hooksService) RegisterHooks(productID string, hooks product.Hooks) error {
+func (s *hooksService) RegisterHooks(productID string, hooks any) error {
 	if s.ch.pluginsEnvironment == nil {
 		return errors.New("could not find plugins environment")
 	}
 
-	s.ch.pluginsEnvironment.AddProduct(productID, hooks)
-	return nil
+	return s.ch.pluginsEnvironment.AddProduct(productID, hooks)
 }
