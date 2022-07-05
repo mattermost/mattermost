@@ -17,7 +17,7 @@ import (
 // dbSelecter is an interface used to enable some internal store methods
 // using both transaction and normal queries.
 type dbSelecter interface {
-	Select(i interface{}, query string, args ...interface{}) error
+	Select(i any, query string, args ...any) error
 }
 
 func (s SqlChannelStore) CreateInitialSidebarCategories(userId string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
@@ -177,7 +177,7 @@ type userMembership struct {
 	CategoryId string
 }
 
-func (s SqlChannelStore) migrateMembershipToSidebar(transaction *sqlxTxWrapper, runningOrder *int64, sql string, args ...interface{}) ([]userMembership, error) {
+func (s SqlChannelStore) migrateMembershipToSidebar(transaction *sqlxTxWrapper, runningOrder *int64, sql string, args ...any) ([]userMembership, error) {
 	memberships := []userMembership{}
 	if err := transaction.Select(&memberships, sql, args...); err != nil {
 		return nil, err
@@ -244,7 +244,7 @@ func (s SqlChannelStore) migrateFavoritesToSidebarT(transaction *sqlxTxWrapper, 
 
 // MigrateFavoritesToSidebarChannels populates the SidebarChannels table by analyzing existing user preferences for favorites
 // **IMPORTANT** This function should only be called from the migration task and shouldn't be used by itself
-func (s SqlChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string, runningOrder int64) (map[string]interface{}, error) {
+func (s SqlChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string, runningOrder int64) (map[string]any, error) {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return nil, err
@@ -280,7 +280,7 @@ func (s SqlChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string, ru
 		return nil, nil
 	}
 
-	data := make(map[string]interface{})
+	data := make(map[string]any)
 	data["UserId"] = userFavorites[len(userFavorites)-1].UserId
 	data["SortOrder"] = runningOrder
 	return data, nil
@@ -370,7 +370,7 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 					AND SidebarCategories.TeamId = ?`
 		}
 
-		args := []interface{}{userId}
+		args := []any{userId}
 		args = append(args, channelIdArgs...)
 		args = append(args, teamId)
 		_, err = transaction.Exec(deleteQuery, args...)

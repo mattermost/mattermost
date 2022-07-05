@@ -425,7 +425,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(postIDs) > 1000 {
-		c.Err = model.NewAppError("getPostsByIds", "api.post.posts_by_ids.invalid_body.request_error", map[string]interface{}{"MaxLength": 1000}, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("getPostsByIds", "api.post.posts_by_ids.invalid_body.request_error", map[string]any{"MaxLength": 1000}, "", http.StatusBadRequest)
 		return
 	}
 

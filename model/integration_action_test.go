@@ -86,8 +86,8 @@ func TestPostActionIntegrationEquals(t *testing.T) {
 	t.Run("equal uncomparable types", func(t *testing.T) {
 		pa1 := &PostAction{
 			Integration: &PostActionIntegration{
-				Context: map[string]interface{}{
-					"a": map[string]interface{}{
+				Context: map[string]any{
+					"a": map[string]any{
 						"a": 0,
 					},
 				},
@@ -95,8 +95,8 @@ func TestPostActionIntegrationEquals(t *testing.T) {
 		}
 		pa2 := &PostAction{
 			Integration: &PostActionIntegration{
-				Context: map[string]interface{}{
-					"a": map[string]interface{}{
+				Context: map[string]any{
+					"a": map[string]any{
 						"a": 0,
 					},
 				},
@@ -108,14 +108,14 @@ func TestPostActionIntegrationEquals(t *testing.T) {
 	t.Run("equal comparable types", func(t *testing.T) {
 		pa1 := &PostAction{
 			Integration: &PostActionIntegration{
-				Context: map[string]interface{}{
+				Context: map[string]any{
 					"a": "test",
 				},
 			},
 		}
 		pa2 := &PostAction{
 			Integration: &PostActionIntegration{
-				Context: map[string]interface{}{
+				Context: map[string]any{
 					"a": "test",
 				},
 			},
@@ -126,8 +126,8 @@ func TestPostActionIntegrationEquals(t *testing.T) {
 	t.Run("non-equal types", func(t *testing.T) {
 		pa1 := &PostAction{
 			Integration: &PostActionIntegration{
-				Context: map[string]interface{}{
-					"a": map[string]interface{}{
+				Context: map[string]any{
+					"a": map[string]any{
 						"a": 0,
 					},
 				},
@@ -135,7 +135,7 @@ func TestPostActionIntegrationEquals(t *testing.T) {
 		}
 		pa2 := &PostAction{
 			Integration: &PostActionIntegration{
-				Context: map[string]interface{}{
+				Context: map[string]any{
 					"a": "test",
 				},
 			},

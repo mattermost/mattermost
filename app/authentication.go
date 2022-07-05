@@ -50,7 +50,7 @@ func (a *App) IsPasswordValid(password string) *model.AppError {
 		var invErr *users.ErrInvalidPassword
 		switch {
 		case errors.As(err, &invErr):
-			return model.NewAppError("User.IsValid", invErr.Id(), map[string]interface{}{"Min": *a.Config().PasswordSettings.MinimumLength}, "", http.StatusBadRequest)
+			return model.NewAppError("User.IsValid", invErr.Id(), map[string]any{"Min": *a.Config().PasswordSettings.MinimumLength}, "", http.StatusBadRequest)
 		default:
 			return model.NewAppError("User.IsValid", "app.valid_password_generic.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -266,7 +266,7 @@ func (a *App) authenticateUser(c *request.Context, user *model.User, password, m
 		if authService == model.UserAuthServiceSaml {
 			authService = strings.ToUpper(authService)
 		}
-		err := model.NewAppError("login", "api.user.login.use_auth_service.app_error", map[string]interface{}{"AuthService": authService}, "", http.StatusBadRequest)
+		err := model.NewAppError("login", "api.user.login.use_auth_service.app_error", map[string]any{"AuthService": authService}, "", http.StatusBadRequest)
 		return user, err
 	}
 
