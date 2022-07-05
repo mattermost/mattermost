@@ -472,12 +472,13 @@ func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offse
 
 // TODO: convert to squirrel HW
 func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset int, limit int) (*model.PostList, error) {
-	pl := model.NewPostList()
-
-	posts := []*model.Post{}
 	query := `
             SELECT
-                A.*, (SELECT count(*) FROM Posts WHERE Posts.RootId = (CASE WHEN A.RootId = '' THEN A.Id ELSE A.RootId END) AND Posts.DeleteAt = 0) as ReplyCount
+                A.*, 
+								COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount, 
+								COALESCE(Threads.LastReplyAt, 0) as LastReplyAt, 
+								COALESCE(Threads.Participants, '[]') as ThreadParticipants, 
+								ThreadMemberships.Following as IsFollowing
             FROM
                 (SELECT
                     *
@@ -499,9 +500,13 @@ func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset 
 					AND Posts.DeleteAt = 0
                 ) as A
             INNER JOIN Channels as B
-                ON B.Id = A.ChannelId
+              ON B.Id = A.ChannelId
+						LEFT JOIN Threads
+							ON Threads.PostId = A.Id
+						LEFT JOIN ThreadMemberships
+							ON ThreadMemberships.PostId = A.Id AND ThreadMemberships.UserId = ?
 			WHERE
-				ChannelId IN (
+				A.ChannelId IN (
 					SELECT
 						Id
 					FROM
@@ -512,7 +517,7 @@ func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset 
 						AND UserId = ?
 				)
 				TEAM_FILTER
-            ORDER BY CreateAt DESC
+            ORDER BY A.CreateAt DESC
             LIMIT ? OFFSET ?`
 
 	queryParams := []any{userId, model.PreferenceCategoryFlaggedPost}
@@ -522,22 +527,19 @@ func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset 
 	query = strings.Replace(query, "CHANNEL_FILTER", channelClause, 1)
 
 	queryParams = append(queryParams, userId)
+	queryParams = append(queryParams, userId)
 
 	teamClause, queryParams = s.buildFlaggedPostTeamFilterClause(teamId, queryParams)
 	query = strings.Replace(query, "TEAM_FILTER", teamClause, 1)
 
 	queryParams = append(queryParams, limit, offset)
 
+	var posts []*postWithExtra
 	if err := s.GetReplicaX().Select(&posts, query, queryParams...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
 
-	for _, post := range posts {
-		pl.AddPost(post)
-		pl.AddOrder(post.Id)
-	}
-
-	return pl, nil
+	return s.prepareThreadedResponse(posts, true, false, map[string]bool{})
 }
 
 func (s *SqlPostStore) buildFlaggedPostTeamFilterClause(teamId string, queryParams []any) (string, []any) {
