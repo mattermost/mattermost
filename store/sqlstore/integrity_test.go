@@ -681,14 +681,7 @@ func TestCheckPostsReactionsIntegrity(t *testing.T) {
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			postId := model.NewId()
-			reaction := &model.Reaction{
-				UserId:    model.NewId(),
-				PostId:    postId,
-				EmojiName: model.NewId(),
-				ChannelId: model.NewId(),
-			}
-			reaction, err := ss.Reaction().Save(reaction)
-			require.NoError(t, err)
+			reaction := createReaction(ss, model.NewId(), postId)
 			result := checkPostsReactionsIntegrity(store)
 			require.NoError(t, result.Err)
 			data := result.Data.(model.RelationalIntegrityCheckData)

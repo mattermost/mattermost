@@ -231,7 +231,7 @@ func testReactionGetForPost(t *testing.T, ss store.Store) {
 	}
 
 	for _, reaction := range reactions {
-		_, err := ss.Reaction().Save(reaction)
+		_, err = ss.Reaction().Save(reaction)
 		require.NoError(t, err)
 	}
 
