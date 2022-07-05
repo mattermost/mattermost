@@ -1026,6 +1026,7 @@ type PostReminderMetadata struct {
 	TeamName   string
 	UserLocale string
 	Username   string
+}
 
 // SidebarCategorySearchOpts contains the options for a graphQL query
 // to get the sidebar categories.

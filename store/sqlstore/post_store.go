@@ -2961,8 +2961,8 @@ func (s *SqlPostStore) SetPostReminder(reminder *model.PostReminder) error {
 	if err != nil {
 		return errors.Wrap(err, "setPostReminder_tosql")
 	}
-	if _, err := transaction.Exec(sql, args...); err != nil {
-		return errors.Wrap(err, "failed to insert post reminder")
+	if _, err2 := transaction.Exec(sql, args...); err2 != nil {
+		return errors.Wrap(err2, "failed to insert post reminder")
 	}
 	if err = transaction.Commit(); err != nil {
 		return errors.Wrap(err, "commit_transaction")
