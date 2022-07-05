@@ -2381,10 +2381,6 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.Server.configStore.SetReadOnlyFF(false)
-	defer th.Server.configStore.SetReadOnlyFF(true)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
-
 	channel2 := th.CreateChannel(th.BasicTeam)
 	channel3 := th.CreatePrivateChannel(th.BasicTeam)
 	channel4 := th.CreatePrivateChannel(th.BasicTeam)
@@ -2439,10 +2435,6 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.Server.configStore.SetReadOnlyFF(false)
-	defer th.Server.configStore.SetReadOnlyFF(true)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
-
 	channel2 := th.CreateChannel(th.BasicTeam)
 	channel3 := th.CreatePrivateChannel(th.BasicTeam)
 	channel4 := th.CreatePrivateChannel(th.BasicTeam)
@@ -2496,10 +2488,6 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 func TestPostCountsByDuration(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-
-	th.Server.configStore.SetReadOnlyFF(false)
-	defer th.Server.configStore.SetReadOnlyFF(true)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 
 	channel2 := th.CreateChannel(th.BasicTeam)
 	channel3 := th.CreatePrivateChannel(th.BasicTeam)
