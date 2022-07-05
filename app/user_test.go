@@ -254,16 +254,16 @@ func TestCreateUser(t *testing.T) {
 			[]string{
 				`
 			package main
-	
+
 			import (
 				"github.com/mattermost/mattermost-server/v6/plugin"
 				"github.com/mattermost/mattermost-server/v6/model"
 			)
-	
+
 			type MyPlugin struct {
 				plugin.MattermostPlugin
 			}
-	
+
 			func (p *MyPlugin) UserHasBeenCreated(c *plugin.Context, user *model.User) {
 				user.Nickname = "sanitized"
 				if len(user.Password) > 0 {
@@ -271,7 +271,7 @@ func TestCreateUser(t *testing.T) {
 				}
 				p.API.UpdateUser(user)
 			}
-	
+
 			func main() {
 				plugin.ClientMain(&MyPlugin{})
 			}
@@ -1729,9 +1729,6 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("successfully create a user with initial tutorial and recommended steps preferences", func(t *testing.T) {
-		th.Server.configStore.SetReadOnlyFF(false)
-		defer th.Server.configStore.SetReadOnlyFF(true)
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 		testUser := th.CreateUser()
 		defer th.App.PermanentDeleteUser(th.Context, testUser)
 
@@ -1755,6 +1752,7 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 		th.Server.configStore.SetReadOnlyFF(false)
 		defer th.Server.configStore.SetReadOnlyFF(true)
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 		testUser := th.CreateUser()
 		defer th.App.PermanentDeleteUser(th.Context, testUser)
 
