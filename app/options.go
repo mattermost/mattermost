@@ -20,7 +20,7 @@ type Option func(s *Server) error
 // construct an app with a different store.
 //
 // The override parameter must be either a store.Store or func(App) store.Store().
-func StoreOverride(override interface{}) Option {
+func StoreOverride(override any) Option {
 	return func(s *Server) error {
 		switch o := override.(type) {
 		case store.Store:

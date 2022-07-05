@@ -31,7 +31,7 @@ func (LogrusAdapter) Error(msg string) {
 }
 
 // Infof - logrus adapter for span info logging
-func (LogrusAdapter) Infof(msg string, args ...interface{}) {
+func (LogrusAdapter) Infof(msg string, args ...any) {
 	// we ignore Info messages from opentracing
 }
 

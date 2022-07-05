@@ -86,16 +86,24 @@ var SentryDSN = "placeholder_sentry_dsn"
 type ServiceKey string
 
 const (
-	ChannelKey     ServiceKey = "channel"
-	ConfigKey      ServiceKey = "config"
-	LicenseKey     ServiceKey = "license"
-	FilestoreKey   ServiceKey = "filestore"
-	ClusterKey     ServiceKey = "cluster"
-	PostKey        ServiceKey = "post"
-	TeamKey        ServiceKey = "team"
-	UserKey        ServiceKey = "user"
-	PermissionsKey ServiceKey = "permissions"
-	RouterKey      ServiceKey = "router"
+	ChannelKey       ServiceKey = "channel"
+	ConfigKey        ServiceKey = "config"
+	LicenseKey       ServiceKey = "license"
+	FilestoreKey     ServiceKey = "filestore"
+	FileInfoStoreKey ServiceKey = "fileinfostore"
+	ClusterKey       ServiceKey = "cluster"
+	CloudKey         ServiceKey = "cloud"
+	PostKey          ServiceKey = "post"
+	TeamKey          ServiceKey = "team"
+	UserKey          ServiceKey = "user"
+	PermissionsKey   ServiceKey = "permissions"
+	RouterKey        ServiceKey = "router"
+	BotKey           ServiceKey = "bot"
+	LogKey           ServiceKey = "log"
+	HooksKey         ServiceKey = "hooks"
+	KVStoreKey       ServiceKey = "kvstore"
+	StoreKey         ServiceKey = "storekey"
+	SystemKey        ServiceKey = "systemkey"
 )
 
 type Server struct {
@@ -356,16 +364,13 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	license := s.License()
+	insecure := s.Config().ServiceSettings.EnableInsecureOutgoingConnections
 	// Step 7: Initialize filestore
-	backend, err := filestore.NewFileBackend(s.Config().FileSettings.ToFileBackendSettings(license != nil && *license.Features.Compliance))
+	backend, err := filestore.NewFileBackend(s.Config().FileSettings.ToFileBackendSettings(license != nil && *license.Features.Compliance, insecure != nil && *insecure))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize filebackend")
 	}
 	s.filestore = backend
-
-	channelWrapper := &channelsWrapper{
-		srv: s,
-	}
 
 	s.licenseWrapper = &licenseWrapper{
 		srv: s,
@@ -388,14 +393,19 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to create teams service")
 	}
 
-	serviceMap := map[ServiceKey]interface{}{
-		ChannelKey:   channelWrapper,
-		ConfigKey:    s.configStore,
-		LicenseKey:   s.licenseWrapper,
-		FilestoreKey: s.filestore,
-		ClusterKey:   s.clusterWrapper,
-		TeamKey:      s.teamService,
-		UserKey:      s.userService,
+	serviceMap := map[ServiceKey]any{
+		ChannelKey:       &channelsWrapper{srv: s},
+		ConfigKey:        s.configStore,
+		LicenseKey:       s.licenseWrapper,
+		FilestoreKey:     s.filestore,
+		FileInfoStoreKey: &fileInfoWrapper{srv: s},
+		ClusterKey:       s.clusterWrapper,
+		UserKey:          New(ServerConnector(s.Channels())),
+		LogKey:           s.GetLogger(),
+		CloudKey:         &cloudWrapper{cloud: s.Cloud},
+		KVStoreKey:       &kvStoreWrapper{srv: s},
+		StoreKey:         store.NewStoreServiceAdapter(s.Store),
+		SystemKey:        &systemServiceAdapter{server: s},
 	}
 
 	// Step 8: Initialize products.
@@ -1174,7 +1184,15 @@ func stripPort(hostport string) string {
 func (s *Server) Start() error {
 	// Start products.
 	// This needs to happen before because products are dependent on the HTTP server.
+
+	// make sure channels starts first
+	if err := s.products["channels"].Start(); err != nil {
+		return errors.Wrap(err, "Unable to start channels")
+	}
 	for name, product := range s.products {
+		if name == "channels" {
+			continue
+		}
 		if err := product.Start(); err != nil {
 			return errors.Wrapf(err, "Unable to start %s", name)
 		}

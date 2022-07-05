@@ -327,7 +327,7 @@ func (scs *Service) notifyRemoteOffline(posts []*model.Post, rc *model.RemoteClu
 			T := scs.getUserTranslations(post.UserId)
 			ephemeral := &model.Post{
 				ChannelId: post.ChannelId,
-				Message:   T("sharedchannel.cannot_deliver_post", map[string]interface{}{"Remote": rc.DisplayName}),
+				Message:   T("sharedchannel.cannot_deliver_post", map[string]any{"Remote": rc.DisplayName}),
 				CreateAt:  post.CreateAt + 1,
 			}
 			scs.app.SendEphemeralPost(post.UserId, ephemeral)

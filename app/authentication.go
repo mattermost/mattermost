@@ -46,15 +46,11 @@ func (tl TokenLocation) String() string {
 
 func (a *App) IsPasswordValid(password string) *model.AppError {
 
-	if *a.Config().ServiceSettings.EnableDeveloper {
-		return nil
-	}
-
 	if err := users.IsPasswordValidWithSettings(password, &a.Config().PasswordSettings); err != nil {
 		var invErr *users.ErrInvalidPassword
 		switch {
 		case errors.As(err, &invErr):
-			return model.NewAppError("User.IsValid", invErr.Id(), map[string]interface{}{"Min": *a.Config().PasswordSettings.MinimumLength}, "", http.StatusBadRequest)
+			return model.NewAppError("User.IsValid", invErr.Id(), map[string]any{"Min": *a.Config().PasswordSettings.MinimumLength}, "", http.StatusBadRequest)
 		default:
 			return model.NewAppError("User.IsValid", "app.valid_password_generic.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -270,7 +266,7 @@ func (a *App) authenticateUser(c *request.Context, user *model.User, password, m
 		if authService == model.UserAuthServiceSaml {
 			authService = strings.ToUpper(authService)
 		}
-		err := model.NewAppError("login", "api.user.login.use_auth_service.app_error", map[string]interface{}{"AuthService": authService}, "", http.StatusBadRequest)
+		err := model.NewAppError("login", "api.user.login.use_auth_service.app_error", map[string]any{"AuthService": authService}, "", http.StatusBadRequest)
 		return user, err
 	}
 
@@ -282,7 +278,15 @@ func (a *App) authenticateUser(c *request.Context, user *model.User, password, m
 	return user, nil
 }
 
-func ParseAuthTokenFromRequest(r *http.Request) (string, TokenLocation) {
+func ParseAuthTokenFromRequest(r *http.Request) (token string, loc TokenLocation) {
+	defer func() {
+		// Stripping off tokens of large sizes
+		// to prevent logging a large string.
+		if len(token) > 50 {
+			token = token[:50]
+		}
+	}()
+
 	authHeader := r.Header.Get(model.HeaderAuth)
 
 	// Attempt to parse the token from the cookie

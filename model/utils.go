@@ -4,7 +4,6 @@
 package model
 
 import (
-	"bytes"
 	"crypto/rand"
 	"database/sql/driver"
 	"encoding/base32"
@@ -37,7 +36,7 @@ const (
 	BinaryParamKey   = "MM_BINARY_PARAMETERS"
 )
 
-type StringInterface map[string]interface{}
+type StringInterface map[string]any
 type StringArray []string
 
 func (sa StringArray) Remove(input string) StringArray {
@@ -87,7 +86,7 @@ func (sa StringArray) Value() (driver.Value, error) {
 }
 
 // Scan converts database column value to StringArray
-func (sa *StringArray) Scan(value interface{}) error {
+func (sa *StringArray) Scan(value any) error {
 	if value == nil {
 		return nil
 	}
@@ -106,7 +105,7 @@ func (sa *StringArray) Scan(value interface{}) error {
 }
 
 // Scan converts database column value to StringMap
-func (m *StringMap) Scan(value interface{}) error {
+func (m *StringMap) Scan(value any) error {
 	if value == nil {
 		return nil
 	}
@@ -149,7 +148,7 @@ func (m StringMap) MarshalJSON() ([]byte, error) {
 	return json.Marshal((map[string]string)(m))
 }
 
-func (m *StringMap) UnmarshalGraphQL(input interface{}) error {
+func (m *StringMap) UnmarshalGraphQL(input any) error {
 	json, ok := input.(map[string]string)
 	if !ok {
 		return errors.New("wrong type")
@@ -159,7 +158,7 @@ func (m *StringMap) UnmarshalGraphQL(input interface{}) error {
 	return nil
 }
 
-func (si *StringInterface) Scan(value interface{}) error {
+func (si *StringInterface) Scan(value any) error {
 	if value == nil {
 		return nil
 	}
@@ -204,7 +203,7 @@ type AppError struct {
 	StatusCode    int    `json:"status_code,omitempty"` // The http status code
 	Where         string `json:"-"`                     // The function where it happened in the form of Struct.Func
 	IsOAuth       bool   `json:"is_oauth,omitempty"`    // Whether the error is OAuth specific
-	params        map[string]interface{}
+	params        map[string]any
 }
 
 func (er *AppError) Error() string {
@@ -255,7 +254,7 @@ func AppErrorFromJSON(data io.Reader) *AppError {
 	return &er
 }
 
-func NewAppError(where string, id string, params map[string]interface{}, details string, status int) *AppError {
+func NewAppError(where string, id string, params map[string]any, details string, status int) *AppError {
 	ap := &AppError{}
 	ap.Id = id
 	ap.params = params
@@ -268,18 +267,13 @@ func NewAppError(where string, id string, params map[string]interface{}, details
 	return ap
 }
 
-var encoding = base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769")
+var encoding = base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769").WithPadding(base32.NoPadding)
 
 // NewId is a globally unique identifier.  It is a [A-Z0-9] string 26
 // characters long.  It is a UUID version 4 Guid that is zbased32 encoded
-// with the padding stripped off.
+// without the padding.
 func NewId() string {
-	var b bytes.Buffer
-	encoder := base32.NewEncoder(encoding, &b)
-	encoder.Write(uuid.NewRandom())
-	encoder.Close()
-	b.Truncate(26) // removes the '==' padding
-	return b.String()
+	return encoding.EncodeToString(uuid.NewRandom())
 }
 
 // NewRandomTeamName is a NewId that will be a valid team name.
@@ -397,10 +391,10 @@ func ArrayFromJSON(data io.Reader) []string {
 	return objmap
 }
 
-func ArrayFromInterface(data interface{}) []string {
+func ArrayFromInterface(data any) []string {
 	stringArray := []string{}
 
-	dataArray, ok := data.([]interface{})
+	dataArray, ok := data.([]any)
 	if !ok {
 		return stringArray
 	}
@@ -414,23 +408,23 @@ func ArrayFromInterface(data interface{}) []string {
 	return stringArray
 }
 
-func StringInterfaceToJSON(objmap map[string]interface{}) string {
+func StringInterfaceToJSON(objmap map[string]any) string {
 	b, _ := json.Marshal(objmap)
 	return string(b)
 }
 
-func StringInterfaceFromJSON(data io.Reader) map[string]interface{} {
+func StringInterfaceFromJSON(data io.Reader) map[string]any {
 	decoder := json.NewDecoder(data)
 
-	var objmap map[string]interface{}
+	var objmap map[string]any
 	if err := decoder.Decode(&objmap); err != nil {
-		return make(map[string]interface{})
+		return make(map[string]any)
 	}
 	return objmap
 }
 
 // ToJSON serializes an arbitrary data type to JSON, discarding the error.
-func ToJSON(v interface{}) []byte {
+func ToJSON(v any) []byte {
 	b, _ := json.Marshal(v)
 	return b
 }
@@ -537,7 +531,7 @@ func IsValidAlphaNumHyphenUnderscorePlus(s string) bool {
 	return validSimpleAlphaNumHyphenUnderscorePlus.MatchString(s)
 }
 
-func Etag(parts ...interface{}) string {
+func Etag(parts ...any) string {
 
 	etag := CurrentVersion
 

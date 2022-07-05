@@ -182,7 +182,7 @@ func TestGraphQLChannelMembers(t *testing.T) {
 	  }
 	}
 	`,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"user": model.NewId(),
 			},
 		}
@@ -211,7 +211,7 @@ func TestGraphQLChannelMembers(t *testing.T) {
 		input := graphQLInput{
 			OperationName: "channelMembers",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"first": 4,
 			},
 		}
@@ -225,7 +225,7 @@ func TestGraphQLChannelMembers(t *testing.T) {
 		input = graphQLInput{
 			OperationName: "channelMembers",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"first": 4,
 				"after": q.ChannelMembers[3].Cursor,
 			},
@@ -240,7 +240,7 @@ func TestGraphQLChannelMembers(t *testing.T) {
 		input = graphQLInput{
 			OperationName: "channelMembers",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"first": 4,
 				"after": q.ChannelMembers[3].Cursor,
 			},
@@ -265,7 +265,7 @@ func TestGraphQLChannelMembers(t *testing.T) {
 		input := graphQLInput{
 			OperationName: "channelMembers",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"channelId": ch1.Id,
 				"first":     4,
 			},
@@ -281,7 +281,7 @@ func TestGraphQLChannelMembers(t *testing.T) {
 		input = graphQLInput{
 			OperationName: "channelMembers",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"channelId": model.NewId(),
 				"first":     3,
 			},
@@ -304,7 +304,7 @@ func TestGraphQLChannelMembers(t *testing.T) {
 		input := graphQLInput{
 			OperationName: "channelMembers",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"teamId": th.BasicTeam.Id,
 			},
 		}
@@ -318,7 +318,7 @@ func TestGraphQLChannelMembers(t *testing.T) {
 		input = graphQLInput{
 			OperationName: "channelMembers",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"teamId":      th.BasicTeam.Id,
 				"excludeTeam": true,
 			},
@@ -347,7 +347,7 @@ func TestGraphQLChannelMembers(t *testing.T) {
 		input := graphQLInput{
 			OperationName: "channelMembers",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"first":        4,
 				"lastUpdateAt": float64(now),
 			},
@@ -365,7 +365,7 @@ func TestGraphQLChannelMembers(t *testing.T) {
 		input = graphQLInput{
 			OperationName: "channelMembers",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"first":        4,
 				"lastUpdateAt": float64(now),
 			},

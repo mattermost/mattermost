@@ -433,7 +433,7 @@ func (a *App) getFirstLinkAndImages(str string) (string, []string) {
 	firstLink := ""
 	images := []string{}
 
-	markdown.Inspect(str, func(blockOrInline interface{}) bool {
+	markdown.Inspect(str, func(blockOrInline any) bool {
 		switch v := blockOrInline.(type) {
 		case *markdown.Autolink:
 			if link := v.Destination(); firstLink == "" && a.isLinkAllowedForPreview(link) {

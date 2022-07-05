@@ -52,6 +52,7 @@ type FileBackendSettings struct {
 	AmazonS3SignV2          bool
 	AmazonS3SSE             bool
 	AmazonS3Trace           bool
+	SkipVerify              bool
 }
 
 func (settings *FileBackendSettings) CheckMandatoryS3Fields() error {

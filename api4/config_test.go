@@ -250,9 +250,8 @@ func TestUpdateConfig(t *testing.T) {
 	})
 
 	t.Run("Should not be able to save config if the new config exceeds Freemium limits", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
-		th.App.ReloadConfig()
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+		defer th.App.Srv().RemoveLicense()
 
 		cloud := &mocks.CloudInterface{}
 		cloudImpl := th.App.Srv().Cloud
@@ -596,7 +595,7 @@ func TestGetEnvironmentConfig(t *testing.T) {
 		serviceSettings, ok := envConfig["ServiceSettings"]
 		require.True(t, ok, "should've returned ServiceSettings")
 
-		serviceSettingsAsMap, ok := serviceSettings.(map[string]interface{})
+		serviceSettingsAsMap, ok := serviceSettings.(map[string]any)
 		require.True(t, ok, "should've returned ServiceSettings as a map")
 
 		siteURL, ok := serviceSettingsAsMap["SiteURL"]
@@ -853,9 +852,8 @@ func TestPatchConfig(t *testing.T) {
 	})
 
 	t.Run("Should not be able to save config if the new config exceeds Freemium limits", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
-		th.App.ReloadConfig()
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+		defer th.App.Srv().RemoveLicense()
 
 		cloud := &mocks.CloudInterface{}
 		cloudImpl := th.App.Srv().Cloud

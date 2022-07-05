@@ -885,7 +885,7 @@ func TestErrorString(t *testing.T) {
 			}
 
 			func (p *MyPlugin) OnActivate() error {
-				return model.NewAppError("where", "id", map[string]interface{}{"param": 1}, "details", 42)
+				return model.NewAppError("where", "id", map[string]any{"param": 1}, "details", 42)
 			}
 
 			func main() {

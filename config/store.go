@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/utils/jsonutils"
 )
 
@@ -136,13 +137,13 @@ func (s *Store) GetNoEnv() *model.Config {
 }
 
 // GetEnvironmentOverrides fetches the configuration fields overridden by environment variables.
-func (s *Store) GetEnvironmentOverrides() map[string]interface{} {
+func (s *Store) GetEnvironmentOverrides() map[string]any {
 	return generateEnvironmentMap(GetEnvironment(), nil)
 }
 
 // GetEnvironmentOverridesWithFilter fetches the configuration fields overridden by environment variables.
 // If filter is not nil and returns false for a struct field, that field will be omitted.
-func (s *Store) GetEnvironmentOverridesWithFilter(filter func(reflect.StructField) bool) map[string]interface{} {
+func (s *Store) GetEnvironmentOverridesWithFilter(filter func(reflect.StructField) bool) map[string]any {
 	return generateEnvironmentMap(GetEnvironment(), filter)
 }
 
@@ -293,8 +294,11 @@ func (s *Store) Load() error {
 
 	loadedCfg = applyEnvironmentMap(loadedCfg, GetEnvironment())
 	fixConfig(loadedCfg)
-	if err := loadedCfg.IsValid(); err != nil {
-		return errors.Wrap(err, "invalid config")
+	if appErr := loadedCfg.IsValid(); appErr != nil {
+		// Translating the error before displaying it in the console.
+		// Defaulting to english for server side language.
+		appErr.Translate(i18n.GetUserTranslations("en"))
+		return errors.Wrap(appErr, "invalid config")
 	}
 
 	// Backing up feature flags section in case we need to restore them later on.

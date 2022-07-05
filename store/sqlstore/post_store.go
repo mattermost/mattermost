@@ -71,8 +71,8 @@ func postSliceColumnsWithTypes() []struct {
 	}
 }
 
-func postToSlice(post *model.Post) []interface{} {
-	return []interface{}{
+func postToSlice(post *model.Post) []any {
+	return []any{
 		post.Id,
 		post.CreateAt,
 		post.UpdateAt,
@@ -233,7 +233,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 				LastRootPostAt = GREATEST(:lastrootpostat, LastRootPostAt),
 				TotalMsgCount = TotalMsgCount + :count,
 				TotalMsgCountRoot = TotalMsgCountRoot + :countroot
-			WHERE Id = :channelid`, map[string]interface{}{
+			WHERE Id = :channelid`, map[string]any{
 			"lastpostat":     maxDateNewPosts[channelId],
 			"lastrootpostat": maxDateNewRootPosts[channelId],
 			"channelid":      channelId,
@@ -508,7 +508,7 @@ func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset 
             ORDER BY CreateAt DESC
             LIMIT ? OFFSET ?`
 
-	queryParams := []interface{}{userId, model.PreferenceCategoryFlaggedPost}
+	queryParams := []any{userId, model.PreferenceCategoryFlaggedPost}
 
 	var channelClause, teamClause string
 	channelClause, queryParams = s.buildFlaggedPostChannelFilterClause(channelId, queryParams)
@@ -533,7 +533,7 @@ func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset 
 	return pl, nil
 }
 
-func (s *SqlPostStore) buildFlaggedPostTeamFilterClause(teamId string, queryParams []interface{}) (string, []interface{}) {
+func (s *SqlPostStore) buildFlaggedPostTeamFilterClause(teamId string, queryParams []any) (string, []any) {
 	if teamId == "" {
 		return "", queryParams
 	}
@@ -541,7 +541,7 @@ func (s *SqlPostStore) buildFlaggedPostTeamFilterClause(teamId string, queryPara
 	return "AND B.TeamId = ? OR B.TeamId = ''", append(queryParams, teamId)
 }
 
-func (s *SqlPostStore) buildFlaggedPostChannelFilterClause(channelId string, queryParams []interface{}) (string, []interface{}) {
+func (s *SqlPostStore) buildFlaggedPostChannelFilterClause(channelId string, queryParams []any) (string, []any) {
 	if channelId == "" {
 		return "", queryParams
 	}
@@ -549,7 +549,7 @@ func (s *SqlPostStore) buildFlaggedPostChannelFilterClause(channelId string, que
 	return "AND ChannelId = ?", append(queryParams, channelId)
 }
 
-func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model.GetPostsOptions) (*model.PostList, error) {
+func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	if id == "" {
 		return nil, store.NewErrInvalidInput("Post", "id", id)
 	}
@@ -659,7 +659,7 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 		posts = posts[:len(posts)-1]
 	}
 
-	list, err := s.prepareThreadedResponse([]*postWithExtra{&post}, opts.CollapsedThreadsExtended, false)
+	list, err := s.prepareThreadedResponse([]*postWithExtra{&post}, opts.CollapsedThreadsExtended, false, sanitizeOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -672,9 +672,9 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 	return list, nil
 }
 
-func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string) (*model.PostList, error) {
+func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	if opts.CollapsedThreads {
-		return s.getPostWithCollapsedThreads(id, userID, opts)
+		return s.getPostWithCollapsedThreads(id, userID, opts, sanitizeOptions)
 	}
 	pl := model.NewPostList()
 
@@ -930,7 +930,7 @@ func (s *SqlPostStore) permanentDelete(postId string) error {
 		return errors.Wrapf(err, "failed to cleanup threads for Post with id=%s", postId)
 	}
 
-	if _, err = transaction.NamedExec("DELETE FROM Posts WHERE Id = :id OR RootId = :rootid", map[string]interface{}{"id": postId, "rootid": postId}); err != nil {
+	if _, err = transaction.NamedExec("DELETE FROM Posts WHERE Id = :id OR RootId = :rootid", map[string]any{"id": postId, "rootid": postId}); err != nil {
 		return errors.Wrapf(err, "failed to delete Post with id=%s", postId)
 	}
 
@@ -1051,7 +1051,7 @@ func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) error {
 	return nil
 }
 
-func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended, reversed bool) (*model.PostList, error) {
+func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended, reversed bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	list := model.NewPostList()
 	var userIds []string
 	userIdMap := map[string]bool{}
@@ -1071,7 +1071,7 @@ func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended,
 			return nil, err
 		}
 		for _, user := range users {
-			user.SanitizeProfile(map[string]bool{})
+			user.SanitizeProfile(sanitizeOptions)
 			usersMap[user.Id] = user
 		}
 	} else {
@@ -1114,7 +1114,7 @@ func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended,
 	return list, nil
 }
 
-func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions) (*model.PostList, error) {
+func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	var columns []string
 	for _, c := range postSliceColumns() {
 		columns = append(columns, "Posts."+c)
@@ -1145,15 +1145,15 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions) (
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 	}
 
-	return s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, false)
+	return s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, false, sanitizeOptions)
 }
 
-func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool) (*model.PostList, error) {
+func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	if options.PerPage > 1000 {
 		return nil, store.NewErrInvalidInput("Post", "<options.PerPage>", options.PerPage)
 	}
 	if options.CollapsedThreads {
-		return s.getPostsCollapsedThreads(options)
+		return s.getPostsCollapsedThreads(options, sanitizeOptions)
 	}
 	offset := options.PerPage * options.Page
 
@@ -1199,7 +1199,7 @@ func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool) (*model.P
 	return list, nil
 }
 
-func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSinceOptions) (*model.PostList, error) {
+func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSinceOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	var columns []string
 	for _, c := range postSliceColumns() {
 		columns = append(columns, "Posts."+c)
@@ -1227,13 +1227,13 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 	}
-	return s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, false)
+	return s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, false, sanitizeOptions)
 }
 
 //nolint:unparam
-func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, error) {
+func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	if options.CollapsedThreads {
-		return s.getPostsSinceCollapsedThreads(options)
+		return s.getPostsSinceCollapsedThreads(options, sanitizeOptions)
 	}
 
 	posts := []*model.Post{}
@@ -1250,7 +1250,7 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 		replyCountQuery2 = `, (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN cte.RootId = '' THEN cte.Id ELSE cte.RootId END) AND Posts.DeleteAt = 0) as ReplyCount`
 	}
 	var query string
-	var params []interface{}
+	var params []any
 
 	// union of IDs and then join to get full posts is faster in mysql
 	if s.DriverName() == model.DatabaseDriverMysql {
@@ -1282,7 +1282,7 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 			) j ON p1.Id = j.Id
           ORDER BY CreateAt ` + order
 
-		params = []interface{}{options.Time, options.ChannelId, options.Time, options.ChannelId}
+		params = []any{options.Time, options.ChannelId, options.Time, options.ChannelId}
 	} else if s.DriverName() == model.DatabaseDriverPostgres {
 		query = `WITH cte AS (SELECT
 		       *
@@ -1296,7 +1296,7 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 		(SELECT *` + replyCountQuery1 + ` FROM Posts p1 WHERE id in (SELECT rootid FROM cte))
 		ORDER BY CreateAt ` + order
 
-		params = []interface{}{options.Time, options.ChannelId}
+		params = []any{options.Time, options.ChannelId}
 	}
 	err := s.GetReplicaX().Select(&posts, query, params...)
 	if err != nil {
@@ -1378,15 +1378,15 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 	return posts, cursor, nil
 }
 
-func (s *SqlPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error) {
-	return s.getPostsAround(true, options)
+func (s *SqlPostStore) GetPostsBefore(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
+	return s.getPostsAround(true, options, sanitizeOptions)
 }
 
-func (s *SqlPostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, error) {
-	return s.getPostsAround(false, options)
+func (s *SqlPostStore) GetPostsAfter(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
+	return s.getPostsAround(false, options, sanitizeOptions)
 }
 
-func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions) (*model.PostList, error) {
+func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	if options.Page < 0 {
 		return nil, store.NewErrInvalidInput("Post", "<options.Page>", options.Page)
 	}
@@ -1492,7 +1492,7 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		}
 	}
 
-	list, err := s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, !before)
+	list, err := s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, !before, sanitizeOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -1919,7 +1919,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			termsClause = "(" + strings.Join(strings.Fields(terms), " & ") + ")" + excludeClause
 		}
 
-		searchClause := fmt.Sprintf("to_tsvector('english', %s) @@  to_tsquery('english', ?)", searchType)
+		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  to_tsquery('%[1]s', ?)", s.pgDefaultTextSearchConfig, searchType)
 		baseQuery = baseQuery.Where(searchClause, termsClause)
 	} else if s.DriverName() == model.DatabaseDriverMysql {
 		if searchType == "Message" {
@@ -2029,7 +2029,7 @@ func removeMysqlStopWordsFromTerms(terms string) (string, error) {
 
 // TODO: convert to squirrel HW
 func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, error) {
-	var args []interface{}
+	var args []any
 	query :=
 		`SELECT DISTINCT
 		        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
@@ -2038,7 +2038,7 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 
 	if teamId != "" {
 		query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = ? AND"
-		args = []interface{}{teamId}
+		args = []any{teamId}
 	} else {
 		query += " WHERE"
 	}
@@ -2056,7 +2056,7 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 
 		if teamId != "" {
 			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = ? AND"
-			args = []interface{}{teamId}
+			args = []any{teamId}
 		} else {
 			query += " WHERE"
 		}
@@ -2085,7 +2085,7 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 // TODO: convert to squirrel HW
 func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, error) {
 
-	var args []interface{}
+	var args []any
 	query :=
 		`SELECT
 		        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
@@ -2098,7 +2098,7 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCoun
 
 	if options.TeamId != "" {
 		query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = ? AND"
-		args = []interface{}{options.TeamId}
+		args = []any{options.TeamId}
 	} else {
 		query += " WHERE"
 	}
@@ -2121,7 +2121,7 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCoun
 
 		if options.TeamId != "" {
 			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id  AND Channels.TeamId = ? AND"
-			args = []interface{}{options.TeamId}
+			args = []any{options.TeamId}
 		} else {
 			query += " WHERE"
 		}

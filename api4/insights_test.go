@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -18,9 +19,7 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.ConfigStore.SetReadOnlyFF(false)
-	defer th.ConfigStore.SetReadOnlyFF(true)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 	client := th.Client
 
@@ -243,9 +242,7 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.ConfigStore.SetReadOnlyFF(false)
-	defer th.ConfigStore.SetReadOnlyFF(true)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 	client := th.Client
 
@@ -434,9 +431,7 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.ConfigStore.SetReadOnlyFF(false)
-	defer th.ConfigStore.SetReadOnlyFF(true)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 	client := th.Client
 	userId := th.BasicUser.Id
@@ -485,6 +480,10 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, channel6.Id, topChannels.Items[0].ID)
 		assert.Equal(t, int64(1), topChannels.Items[0].MessageCount)
+
+		t.Run("has post count by day", func(t *testing.T) {
+			require.NotNil(t, topChannels.PostCountByDuration)
+		})
 	})
 
 	t.Run("get-top-channels-for-user-since exclude channels user is not member of", func(t *testing.T) {
@@ -528,9 +527,7 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.ConfigStore.SetReadOnlyFF(false)
-	defer th.ConfigStore.SetReadOnlyFF(true)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 	client := th.Client
 	userId := th.BasicUser.Id
@@ -579,6 +576,10 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, channel6.Id, topChannels.Items[0].ID)
 		assert.Equal(t, int64(1), topChannels.Items[0].MessageCount)
+
+		t.Run("has post count by day", func(t *testing.T) {
+			require.NotNil(t, topChannels.PostCountByDuration)
+		})
 	})
 
 	t.Run("get-top-channels-for-user-since invalid team id", func(t *testing.T) {
@@ -597,4 +598,221 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 		assert.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+}
+
+func TestGetTopThreadsForTeamSince(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	th.LoginBasic()
+	client := th.Client
+
+	// create a public channel, a private channel
+
+	channelPublic := th.BasicChannel
+	channelPrivate := th.BasicPrivateChannel
+	th.App.AddUserToChannel(th.BasicUser, channelPublic, false)
+	th.App.AddUserToChannel(th.BasicUser, channelPrivate, false)
+	th.App.AddUserToChannel(th.BasicUser2, channelPublic, false)
+	th.App.RemoveUserFromChannel(th.Context, th.BasicUser2.Id, th.BasicUser.Id, channelPrivate)
+
+	// create two threads: one in public channel, one in private
+	// post in public channel has both users interacting, post in private only has user1 interacting
+
+	rootPostPublicChannel, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channelPublic.Id,
+		Message:   "root post pub",
+	}, channelPublic, false, true)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser2.Id,
+		ChannelId: channelPublic.Id,
+		RootId:    rootPostPublicChannel.Id,
+		Message:   "reply post 1",
+	}, channelPublic, false, true)
+	require.Nil(t, appErr)
+
+	rootPostPrivateChannel, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channelPrivate.Id,
+		Message:   "root post priv",
+	}, channelPrivate, false, true)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channelPrivate.Id,
+		RootId:    rootPostPrivateChannel.Id,
+		Message:   "reply post 1",
+	}, channelPrivate, false, true)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channelPrivate.Id,
+		RootId:    rootPostPrivateChannel.Id,
+		Message:   "reply post 2",
+	}, channelPrivate, false, true)
+
+	require.Nil(t, appErr)
+
+	// get top threads for team, as user 1 and user 2
+	// user 1, 2 should see both threads
+
+	topTeamThreadsByUser1, _, _ := client.GetTopThreadsForTeamSince(th.BasicTeam.Id, model.TimeRangeToday, 0, 10)
+	require.Nil(t, appErr)
+	require.Len(t, topTeamThreadsByUser1.Items, 2)
+	require.Equal(t, topTeamThreadsByUser1.Items[0].Post.Id, rootPostPrivateChannel.Id)
+	require.Equal(t, topTeamThreadsByUser1.Items[1].Post.Id, rootPostPublicChannel.Id)
+
+	client.Logout()
+
+	th.LoginBasic2()
+
+	client = th.Client
+
+	topTeamThreadsByUser2, _, _ := client.GetTopThreadsForTeamSince(th.BasicTeam.Id, model.TimeRangeToday, 0, 10)
+	require.Nil(t, appErr)
+	require.Len(t, topTeamThreadsByUser2.Items, 1)
+	require.Equal(t, topTeamThreadsByUser2.Items[0].Post.Id, rootPostPublicChannel.Id)
+
+	// add user2 to private channel and it can see 2 top threads.
+	th.AddUserToChannel(th.BasicUser2, channelPrivate)
+	topTeamThreadsByUser2IncludingPrivate, _, _ := client.GetTopThreadsForTeamSince(th.BasicTeam.Id, model.TimeRangeToday, 0, 10)
+	require.Nil(t, appErr)
+	require.Len(t, topTeamThreadsByUser2IncludingPrivate.Items, 2)
+}
+
+func TestGetTopThreadsForUserSince(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	th.LoginBasic()
+	client := th.Client
+
+	// create a public channel, a private channel
+
+	channelPublic := th.BasicChannel
+	channelPrivate := th.BasicPrivateChannel
+	th.App.AddUserToChannel(th.BasicUser, channelPublic, false)
+	th.App.AddUserToChannel(th.BasicUser, channelPrivate, false)
+	th.App.AddUserToChannel(th.BasicUser2, channelPublic, false)
+
+	// create two threads: one in public channel, one in private
+	// post in public channel has both users interacting, post in private only has user1 interacting
+
+	rootPostPublicChannel, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channelPublic.Id,
+		Message:   "root post pub",
+	}, channelPublic, false, true)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser2.Id,
+		ChannelId: channelPublic.Id,
+		RootId:    rootPostPublicChannel.Id,
+		Message:   "reply post 1",
+	}, channelPublic, false, true)
+	require.Nil(t, appErr)
+
+	rootPostPrivateChannel, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channelPrivate.Id,
+		Message:   "root post priv",
+	}, channelPrivate, false, true)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channelPrivate.Id,
+		RootId:    rootPostPrivateChannel.Id,
+		Message:   "reply post 1",
+	}, channelPrivate, false, true)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channelPrivate.Id,
+		RootId:    rootPostPrivateChannel.Id,
+		Message:   "reply post 2",
+	}, channelPrivate, false, true)
+
+	require.Nil(t, appErr)
+
+	// get top threads for user, as user 1 and user 2
+	// user 1 should see both threads, while user 2 should see only thread in public channel
+	// (even if user2 is in the private channel it hasn't interacted with the thread there.)
+
+	topUser1Threads, _, _ := client.GetTopThreadsForUserSince(th.BasicTeam.Id, model.TimeRangeToday, 0, 10)
+	require.Nil(t, appErr)
+	require.Len(t, topUser1Threads.Items, 2)
+	require.Equal(t, topUser1Threads.Items[0].Post.Id, rootPostPrivateChannel.Id)
+	require.Equal(t, topUser1Threads.Items[0].Post.ReplyCount, int64(2))
+	require.Equal(t, topUser1Threads.Items[1].Post.Id, rootPostPublicChannel.Id)
+	require.Contains(t, topUser1Threads.Items[1].Participants, th.BasicUser2.Id)
+	require.Equal(t, topUser1Threads.Items[1].Post.ReplyCount, int64(1))
+
+	client.Logout()
+
+	th.LoginBasic2()
+
+	client = th.Client
+
+	topUser2Threads, _, _ := client.GetTopThreadsForUserSince(th.BasicTeam.Id, model.TimeRangeToday, 0, 10)
+	require.Nil(t, appErr)
+	require.Len(t, topUser2Threads.Items, 1)
+	require.Equal(t, topUser2Threads.Items[0].Post.Id, rootPostPublicChannel.Id)
+	require.Equal(t, topUser2Threads.Items[0].Post.ReplyCount, int64(1))
+
+	// deleting the root post results in the thread not making it to top threads list
+	_, appErr = th.App.DeletePost(rootPostPublicChannel.Id, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	client.Logout()
+
+	th.LoginBasic()
+
+	client = th.Client
+
+	topUser1ThreadsAfterPost1Delete, _, _ := client.GetTopThreadsForUserSince(th.BasicTeam.Id, model.TimeRangeToday, 0, 10)
+	require.Nil(t, appErr)
+	require.Len(t, topUser1ThreadsAfterPost1Delete.Items, 1)
+
+	client.Logout()
+
+	th.LoginBasic2()
+
+	client = th.Client
+
+	// reply with user2 in thread2. deleting that reply, shouldn't give any top thread for user2 if the user2 unsubscribes to the thread after deleting the comment
+	replyPostUser2InPrivate, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser2.Id,
+		ChannelId: channelPrivate.Id,
+		RootId:    rootPostPrivateChannel.Id,
+		Message:   "reply post 3",
+	}, channelPrivate, false, true)
+	require.Nil(t, appErr)
+
+	topUser2ThreadsAfterPrivateReply, _, _ := client.GetTopThreadsForUserSince(th.BasicTeam.Id, model.TimeRangeToday, 0, 10)
+	require.Nil(t, appErr)
+	require.Len(t, topUser2ThreadsAfterPrivateReply.Items, 1)
+
+	// deleting reply, and unfollowing thread
+	_, appErr = th.App.DeletePost(replyPostUser2InPrivate.Id, th.BasicUser2.Id)
+	require.Nil(t, appErr)
+	// unfollow thread
+	_, err := th.App.Srv().Store.Thread().MaintainMembership(th.BasicUser2.Id, rootPostPrivateChannel.Id, store.ThreadMembershipOpts{
+		Following:       false,
+		UpdateFollowing: true,
+	})
+	require.NoError(t, err)
+
+	topUser2ThreadsAfterPrivateReplyDelete, _, _ := client.GetTopThreadsForUserSince(th.BasicTeam.Id, model.TimeRangeToday, 0, 10)
+	require.Nil(t, appErr)
+	require.Len(t, topUser2ThreadsAfterPrivateReplyDelete.Items, 0)
 }

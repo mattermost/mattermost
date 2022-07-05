@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -25,17 +26,17 @@ type channelsWrapper struct {
 	srv *Server
 }
 
-func (s *channelsWrapper) GetDirectChannel(userID1, userID2 string) (*model.Channel, error) {
+func (s *channelsWrapper) GetDirectChannel(userID1, userID2 string) (*model.Channel, *model.AppError) {
 	return s.srv.getDirectChannel(userID1, userID2)
 }
 
 // GetChannelByID gets a Channel by its ID.
-func (s *channelsWrapper) GetChannelByID(channelID string) (*model.Channel, error) {
+func (s *channelsWrapper) GetChannelByID(channelID string) (*model.Channel, *model.AppError) {
 	return s.srv.getChannel(channelID)
 }
 
 // GetChannelMember gets a channel member by userID.
-func (s *channelsWrapper) GetChannelMember(channelID string, userID string) (*model.ChannelMember, error) {
+func (s *channelsWrapper) GetChannelMember(channelID string, userID string) (*model.ChannelMember, *model.AppError) {
 	return s.srv.getChannelMember(context.Background(), channelID, userID)
 }
 
@@ -187,7 +188,7 @@ func (a *App) CreateChannelWithUser(c *request.Context, channel *model.Channel, 
 	}
 
 	if int64(count+1) > *a.Config().TeamSettings.MaxChannelsPerTeam {
-		return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.max_channel_limit.app_error", map[string]interface{}{"MaxChannelsPerTeam": *a.Config().TeamSettings.MaxChannelsPerTeam}, "", http.StatusBadRequest)
+		return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.max_channel_limit.app_error", map[string]any{"MaxChannelsPerTeam": *a.Config().TeamSettings.MaxChannelsPerTeam}, "", http.StatusBadRequest)
 	}
 
 	channel.CreatorId = userID
@@ -798,7 +799,7 @@ func (a *App) RestoreChannel(c *request.Context, channel *model.Channel, userID 
 
 		post := &model.Post{
 			ChannelId: channel.Id,
-			Message:   T("api.channel.restore_channel.unarchived", map[string]interface{}{"Username": user.Username}),
+			Message:   T("api.channel.restore_channel.unarchived", map[string]any{"Username": user.Username}),
 			Type:      model.PostTypeChannelRestored,
 			UserId:    userID,
 			Props: model.StringInterface{
@@ -819,7 +820,7 @@ func (a *App) RestoreChannel(c *request.Context, channel *model.Channel, userID 
 
 			post := &model.Post{
 				ChannelId: channel.Id,
-				Message:   i18n.T("api.channel.restore_channel.unarchived", map[string]interface{}{"Username": systemBot.Username}),
+				Message:   i18n.T("api.channel.restore_channel.unarchived", map[string]any{"Username": systemBot.Username}),
 				Type:      model.PostTypeChannelRestored,
 				UserId:    systemBot.UserId,
 				Props: model.StringInterface{
@@ -1362,7 +1363,7 @@ func (a *App) DeleteChannel(c *request.Context, channel *model.Channel, userID s
 	}
 
 	if channel.Name == model.DefaultChannelName {
-		err := model.NewAppError("deleteChannel", "api.channel.delete_channel.cannot.app_error", map[string]interface{}{"Channel": model.DefaultChannelName}, "", http.StatusBadRequest)
+		err := model.NewAppError("deleteChannel", "api.channel.delete_channel.cannot.app_error", map[string]any{"Channel": model.DefaultChannelName}, "", http.StatusBadRequest)
 		return err
 	}
 
@@ -1456,7 +1457,7 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel) (*model
 			return nil, model.NewAppError("addUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusInternalServerError)
 		}
 		if len(nonMembers) > 0 {
-			return nil, model.NewAppError("addUserToChannel", "api.channel.add_members.user_denied", map[string]interface{}{"UserIDs": nonMembers}, "", http.StatusBadRequest)
+			return nil, model.NewAppError("addUserToChannel", "api.channel.add_members.user_denied", map[string]any{"UserIDs": nonMembers}, "", http.StatusBadRequest)
 		}
 	}
 
@@ -1593,7 +1594,7 @@ func (a *App) AddDirectChannels(teamID string, user *model.User) *model.AppError
 	options := &model.UserGetOptions{InTeamId: teamID, Page: 0, PerPage: 100}
 	profiles, err := a.Srv().Store.User().GetProfiles(options)
 	if err != nil {
-		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]interface{}{"UserId": user.Id, "TeamId": teamID, "Error": err.Error()}, "", http.StatusInternalServerError)
+		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]any{"UserId": user.Id, "TeamId": teamID, "Error": err.Error()}, "", http.StatusInternalServerError)
 	}
 
 	var preferences model.Preferences
@@ -1618,7 +1619,7 @@ func (a *App) AddDirectChannels(teamID string, user *model.User) *model.AppError
 	}
 
 	if err := a.Srv().Store.Preference().Save(preferences); err != nil {
-		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]interface{}{"UserId": user.Id, "TeamId": teamID, "Error": err.Error()}, "", http.StatusInternalServerError)
+		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]any{"UserId": user.Id, "TeamId": teamID, "Error": err.Error()}, "", http.StatusInternalServerError)
 	}
 
 	return nil
@@ -2403,7 +2404,7 @@ func (a *App) removeUserFromChannel(c *request.Context, userIDToRemove string, r
 
 	if channel.Name == model.DefaultChannelName {
 		if !isGuest {
-			return model.NewAppError("RemoveUserFromChannel", "api.channel.remove.default.app_error", map[string]interface{}{"Channel": model.DefaultChannelName}, "", http.StatusBadRequest)
+			return model.NewAppError("RemoveUserFromChannel", "api.channel.remove.default.app_error", map[string]any{"Channel": model.DefaultChannelName}, "", http.StatusBadRequest)
 		}
 	}
 
@@ -2413,7 +2414,7 @@ func (a *App) removeUserFromChannel(c *request.Context, userIDToRemove string, r
 			return model.NewAppError("removeUserFromChannel", "api.channel.remove_user_from_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 		if len(nonMembers) == 0 {
-			return model.NewAppError("removeUserFromChannel", "api.channel.remove_members.denied", map[string]interface{}{"UserIDs": nonMembers}, "", http.StatusBadRequest)
+			return model.NewAppError("removeUserFromChannel", "api.channel.remove_members.denied", map[string]any{"UserIDs": nonMembers}, "", http.StatusBadRequest)
 		}
 	}
 
@@ -2779,6 +2780,7 @@ func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (mode
 		ExcludeGroupConstrained:  opts.ExcludeGroupConstrained,
 		PolicyID:                 opts.PolicyID,
 		IncludePolicyID:          opts.IncludePolicyID,
+		IncludeSearchById:        opts.IncludeSearchById,
 		ExcludePolicyConstrained: opts.ExcludePolicyConstrained,
 		Public:                   opts.Public,
 		Private:                  opts.Private,
@@ -3300,11 +3302,11 @@ func (a *App) FillInChannelsProps(channelList model.ChannelList) *model.AppError
 			}
 
 			for _, channel := range channelList {
-				channelMentionsProp := make(map[string]interface{}, len(channelMentions[channel]))
+				channelMentionsProp := make(map[string]any, len(channelMentions[channel]))
 				for _, channelMention := range channelMentions[channel] {
 					if mentioned, ok := mentionedChannelsByName[channelMention]; ok {
 						if mentioned.Type == model.ChannelTypeOpen {
-							channelMentionsProp[mentioned.Name] = map[string]interface{}{
+							channelMentionsProp[mentioned.Name] = map[string]any{
 								"display_name": mentioned.DisplayName,
 							}
 						}
@@ -3416,4 +3418,20 @@ func (a *App) GetTopChannelsForUserSince(userID, teamID string, opts *model.Insi
 		return nil, model.NewAppError("GetTopChannelsForUserSince", "app.channel.get_top_for_user_since.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return topChannels, nil
+}
+
+// PostCountsByDuration returns the post counts for the given channels, grouped by day, starting at the given time.
+// Unless one is specifically itending to omit results from part of the calendar day, it will typically makes the most sense to
+// use a sinceUnixMillis parameter value as returned by model.GetStartOfDayMillis.
+//
+// WARNING: PostCountsByDuration PERFORMS NO AUTHORIZATION CHECKS ON THE GIVEN CHANNELS.
+func (a *App) PostCountsByDuration(channelIDs []string, sinceUnixMillis int64, userID *string, grouping model.PostCountGrouping, groupingLocation *time.Location) ([]*model.DurationPostCount, *model.AppError) {
+	if !a.Config().FeatureFlags.InsightsEnabled {
+		return nil, model.NewAppError("PostCountsByDuration", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
+	}
+	postCountByDay, err := a.Srv().Store.Channel().PostCountsByDuration(channelIDs, sinceUnixMillis, userID, grouping, groupingLocation)
+	if err != nil {
+		return nil, model.NewAppError("PostCountsByDuration", "app.channel.get_post_count_by_day.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return postCountByDay, nil
 }

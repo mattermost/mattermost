@@ -511,7 +511,7 @@ func TestDiffSanitized(t *testing.T) {
 			defaultConfigGen(),
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.PluginSettings.Plugins = map[string]map[string]interface{}{
+				cfg.PluginSettings.Plugins = map[string]map[string]any{
 					"com.mattermost.newplugin": {
 						"key": true,
 					},
@@ -915,7 +915,7 @@ func TestDiff(t *testing.T) {
 			"map type change",
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.PluginSettings.Plugins = map[string]map[string]interface{}{
+				cfg.PluginSettings.Plugins = map[string]map[string]any{
 					"com.mattermost.newplugin": {
 						"key": true,
 					},
@@ -924,7 +924,7 @@ func TestDiff(t *testing.T) {
 			}(),
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.PluginSettings.Plugins = map[string]map[string]interface{}{
+				cfg.PluginSettings.Plugins = map[string]map[string]any{
 					"com.mattermost.newplugin": {
 						"key": "string",
 					},
@@ -934,15 +934,15 @@ func TestDiff(t *testing.T) {
 			ConfigDiffs{
 				{
 					Path: "PluginSettings.Plugins",
-					BaseVal: func() interface{} {
-						return map[string]map[string]interface{}{
+					BaseVal: func() any {
+						return map[string]map[string]any{
 							"com.mattermost.newplugin": {
 								"key": true,
 							},
 						}
 					}(),
-					ActualVal: func() interface{} {
-						return map[string]map[string]interface{}{
+					ActualVal: func() any {
+						return map[string]map[string]any{
 							"com.mattermost.newplugin": {
 								"key": "string",
 							},
@@ -957,108 +957,6 @@ func TestDiff(t *testing.T) {
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
 			diffs, err := Diff(tc.base, tc.actual)
-			if tc.err != "" {
-				require.EqualError(t, err, tc.err)
-				require.Nil(t, diffs)
-			} else {
-				require.NoError(t, err)
-			}
-			require.Equal(t, tc.diffs, diffs)
-		})
-	}
-}
-
-func TestDiffTags(t *testing.T) {
-	tcs := []struct {
-		name   string
-		base   *model.Config
-		actual *model.Config
-		diffs  ConfigDiffs
-		tag    string
-		value  string
-		err    string
-	}{
-		{
-			name: "changed field is not in scope",
-			base: defaultConfigGen(),
-			actual: func() *model.Config {
-				cfg := defaultConfigGen()
-				cfg.ServiceSettings.EnableLinkPreviews = model.NewBool(false)
-				return cfg
-			}(),
-			diffs: nil,
-			tag:   "access",
-			value: "cloud_restrictable",
-			err:   "",
-		},
-		{
-			name: "changed field is in scope",
-			base: defaultConfigGen(),
-			actual: func() *model.Config {
-				cfg := defaultConfigGen()
-				cfg.ServiceSettings.ReadTimeout = model.NewInt(500)
-				return cfg
-			}(),
-			diffs: ConfigDiffs{
-				{
-					Path:      "ServiceSettings.ReadTimeout",
-					BaseVal:   300,
-					ActualVal: 500,
-				},
-			},
-			tag:   "access",
-			value: "cloud_restrictable",
-			err:   "",
-		},
-		{
-			name: "changed struct is in scope",
-			base: defaultConfigGen(),
-			actual: func() *model.Config {
-				cfg := defaultConfigGen()
-				cfg.BleveSettings.BatchSize = model.NewInt(500)
-				return cfg
-			}(),
-			diffs: ConfigDiffs{
-				{
-					Path:      "BleveSettings.BatchSize",
-					BaseVal:   10000,
-					ActualVal: 500,
-				},
-			},
-			tag:   "access",
-			value: "cloud_restrictable",
-			err:   "",
-		},
-		{
-			name: "changed struct is not in scope",
-			base: defaultConfigGen(),
-			actual: func() *model.Config {
-				cfg := defaultConfigGen()
-				cfg.LocalizationSettings.DefaultServerLocale = model.NewString("Elvish")
-				return cfg
-			}(),
-			diffs: nil,
-			tag:   "access",
-			value: "cloud_restrictable",
-			err:   "",
-		},
-		{
-			name: "changed field is not in scope due to its value but has the same tag",
-			base: defaultConfigGen(),
-			actual: func() *model.Config {
-				cfg := defaultConfigGen()
-				cfg.TeamSettings.SiteName = model.NewString("Mordor")
-				return cfg
-			}(),
-			diffs: nil,
-			tag:   "access",
-			value: "cloud_restrictable",
-			err:   "",
-		},
-	}
-	for _, tc := range tcs {
-		t.Run(tc.name, func(t *testing.T) {
-			diffs, err := DiffTags(tc.base, tc.actual, tc.tag, tc.value)
 			if tc.err != "" {
 				require.EqualError(t, err, tc.err)
 				require.Nil(t, diffs)

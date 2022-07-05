@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"golang.org/x/crypto/bcrypt"
@@ -334,7 +335,7 @@ func (u *User) IsValid() *AppError {
 
 	if len(u.Roles) > UserRolesMaxLength {
 		return NewAppError("User.IsValid", "model.user.is_valid.roles_limit.app_error",
-			map[string]interface{}{"Limit": UserRolesMaxLength}, "user_id="+u.Id, http.StatusBadRequest)
+			map[string]any{"Limit": UserRolesMaxLength}, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
 	return nil
@@ -780,6 +781,14 @@ func (u *User) IsSAMLUser() bool {
 
 func (u *User) GetPreferredTimezone() string {
 	return GetPreferredTimezone(u.Timezone)
+}
+
+func (u *User) GetTimezoneLocation() *time.Location {
+	loc, _ := time.LoadLocation(u.GetPreferredTimezone())
+	if loc == nil {
+		loc = time.Now().UTC().Location()
+	}
+	return loc
 }
 
 // IsRemote returns true if the user belongs to a remote cluster (has RemoteId).

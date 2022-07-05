@@ -429,8 +429,8 @@ func TestPostChannelMentions(t *testing.T) {
 
 	post, err = th.App.CreatePostAsUser(th.Context, post, "", true)
 	require.Nil(t, err)
-	assert.Equal(t, map[string]interface{}{
-		"mention-test": map[string]interface{}{
+	assert.Equal(t, map[string]any{
+		"mention-test": map[string]any{
 			"display_name": "Mention Test",
 			"team_name":    th.BasicTeam.Name,
 		},
@@ -439,8 +439,8 @@ func TestPostChannelMentions(t *testing.T) {
 	post.Message = fmt.Sprintf("goodbye, ~%v!", channelToMention.Name)
 	result, err := th.App.UpdatePost(th.Context, post, false)
 	require.Nil(t, err)
-	assert.Equal(t, map[string]interface{}{
-		"mention-test": map[string]interface{}{
+	assert.Equal(t, map[string]any{
+		"mention-test": map[string]any{
 			"display_name": "Mention Test",
 			"team_name":    th.BasicTeam.Name,
 		},
@@ -571,7 +571,6 @@ func TestImageProxy(t *testing.T) {
 }
 
 func TestMaxPostSize(t *testing.T) {
-	t.Skip("TODO: fix flaky test")
 	t.Parallel()
 
 	testCases := []struct {
@@ -599,8 +598,6 @@ func TestMaxPostSize(t *testing.T) {
 	for _, testCase := range testCases {
 		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
-			t.Parallel()
-
 			mockStore := &storetest.Store{}
 			defer mockStore.AssertExpectations(t)
 
@@ -861,7 +858,7 @@ func TestCreatePost(t *testing.T) {
 			Description string
 			Channel     *model.Channel
 			Author      string
-			Assert      func(t assert.TestingT, object interface{}, msgAndArgs ...interface{}) bool
+			Assert      func(t assert.TestingT, object any, msgAndArgs ...any) bool
 		}{
 			{
 				Description: "removes metadata from post for members who cannot read channel",
@@ -1111,7 +1108,6 @@ func TestCreatePostAsUser(t *testing.T) {
 	})
 
 	t.Run("logs warning for user not in channel", func(t *testing.T) {
-		t.Skip("MM-43871")
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		user := th.CreateUser()
@@ -1125,6 +1121,8 @@ func TestCreatePostAsUser(t *testing.T) {
 
 		_, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
+
+		require.NoError(t, th.TestLogger.Flush())
 
 		testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Failed to get membership")
 	})
@@ -1148,6 +1146,8 @@ func TestCreatePostAsUser(t *testing.T) {
 
 		_, appErr = th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
+
+		require.NoError(t, th.TestLogger.Flush())
 
 		testlib.AssertNoLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Failed to get membership")
 	})
@@ -1345,7 +1345,7 @@ func TestUpdatePost(t *testing.T) {
 			Description string
 			Channel     *model.Channel
 			Author      string
-			Assert      func(t assert.TestingT, object interface{}, msgAndArgs ...interface{}) bool
+			Assert      func(t assert.TestingT, object any, msgAndArgs ...any) bool
 		}{
 			{
 				Description: "removes metadata from post for members who cannot read channel",
@@ -1879,7 +1879,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 			ChannelId: channel.Id,
 			Message:   "test",
 			Type:      model.PostTypeAddToChannel,
-			Props: map[string]interface{}{
+			Props: map[string]any{
 				model.PostPropsAddedUserId: model.NewId(),
 			},
 		}, channel, false, true)
@@ -1889,7 +1889,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 			ChannelId: channel.Id,
 			Message:   "test2",
 			Type:      model.PostTypeAddToChannel,
-			Props: map[string]interface{}{
+			Props: map[string]any{
 				model.PostPropsAddedUserId: user2.Id,
 			},
 		}, channel, false, true)
@@ -1899,7 +1899,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 			ChannelId: channel.Id,
 			Message:   "test3",
 			Type:      model.PostTypeAddToChannel,
-			Props: map[string]interface{}{
+			Props: map[string]any{
 				model.PostPropsAddedUserId: user2.Id,
 			},
 		}, channel, false, true)
@@ -2089,7 +2089,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 			UserId:    user2.Id,
 			ChannelId: channel.Id,
 			Message:   fmt.Sprintf("@%s", user2.Username),
-			Props: map[string]interface{}{
+			Props: map[string]any{
 				"from_webhook": "true",
 			},
 		}, channel, false, true)
@@ -2816,4 +2816,185 @@ func TestShouldNotRefollowOnOthersReply(t *testing.T) {
 	m, err = th.App.GetThreadMembershipForUser(user2.Id, p1.Id)
 	require.Nil(t, err)
 	require.True(t, m.Following)
+}
+
+func TestGetTopThreadsForTeamSince(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// create a public channel, a private channel
+	channelPublic := th.CreateChannel(th.BasicTeam)
+	channelPrivate := th.CreatePrivateChannel(th.BasicTeam)
+	th.AddUserToChannel(th.BasicUser, channelPublic)
+	th.AddUserToChannel(th.BasicUser, channelPrivate)
+	th.AddUserToChannel(th.BasicUser2, channelPublic)
+
+	// create two threads: one in public channel, one in private with only basicUser1
+
+	rootPostPublicChannel, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channelPublic.Id,
+		Message:   "root post",
+	}, channelPublic, false, true)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser2.Id,
+		ChannelId: channelPublic.Id,
+		RootId:    rootPostPublicChannel.Id,
+		Message:   fmt.Sprintf("@%s", th.BasicUser2.Username),
+	}, channelPublic, false, true)
+	require.Nil(t, appErr)
+
+	rootPostPrivateChannel, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channelPrivate.Id,
+		Message:   "root post",
+	}, channelPrivate, false, true)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channelPrivate.Id,
+		RootId:    rootPostPrivateChannel.Id,
+		Message:   fmt.Sprintf("@%s", th.BasicUser2.Username),
+	}, channelPrivate, false, true)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channelPrivate.Id,
+		RootId:    rootPostPrivateChannel.Id,
+		Message:   fmt.Sprintf("@%s", th.BasicUser2.Username),
+	}, channelPrivate, false, true)
+
+	require.Nil(t, appErr)
+
+	// get top threads for team, as user 1 and user 2
+	// user 1 should see both threads, while user 2 should see only thread in public channel.
+
+	topTeamThreadsByUser1, appErr := th.App.GetTopThreadsForTeamSince(th.BasicTeam.Id, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
+	require.Nil(t, appErr)
+	require.Len(t, topTeamThreadsByUser1.Items, 2)
+	require.Equal(t, topTeamThreadsByUser1.Items[0].Post.Id, rootPostPrivateChannel.Id)
+	require.Equal(t, topTeamThreadsByUser1.Items[1].Post.Id, rootPostPublicChannel.Id)
+
+	topTeamThreadsByUser2, appErr := th.App.GetTopThreadsForTeamSince(th.BasicTeam.Id, th.BasicUser2.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
+	require.Nil(t, appErr)
+	require.Len(t, topTeamThreadsByUser2.Items, 1)
+	require.Equal(t, topTeamThreadsByUser2.Items[0].Post.Id, rootPostPublicChannel.Id)
+
+	// add user2 to private channel and it can see 2 top threads.
+	th.AddUserToChannel(th.BasicUser2, channelPrivate)
+	topTeamThreadsByUser2IncludingPrivate, appErr := th.App.GetTopThreadsForTeamSince(th.BasicTeam.Id, th.BasicUser2.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
+	require.Nil(t, appErr)
+	require.Len(t, topTeamThreadsByUser2IncludingPrivate.Items, 2)
+}
+func TestGetTopThreadsForUserSince(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// create a public channel, a private channel
+	channelPublic := th.CreateChannel(th.BasicTeam)
+	channelPrivate := th.CreatePrivateChannel(th.BasicTeam)
+	th.AddUserToChannel(th.BasicUser, channelPublic)
+	th.AddUserToChannel(th.BasicUser, channelPrivate)
+	th.AddUserToChannel(th.BasicUser2, channelPublic)
+	th.AddUserToChannel(th.BasicUser2, channelPrivate)
+
+	// create two threads: one in public channel, one in private
+	// post in public channel has both users interacting, post in private only has user1 interacting
+
+	rootPostPublicChannel, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channelPublic.Id,
+		Message:   "root post pub",
+	}, channelPublic, false, true)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser2.Id,
+		ChannelId: channelPublic.Id,
+		RootId:    rootPostPublicChannel.Id,
+		Message:   "reply post 1",
+	}, channelPublic, false, true)
+	require.Nil(t, appErr)
+
+	rootPostPrivateChannel, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channelPrivate.Id,
+		Message:   "root post priv",
+	}, channelPrivate, false, true)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channelPrivate.Id,
+		RootId:    rootPostPrivateChannel.Id,
+		Message:   "reply post 1",
+	}, channelPrivate, false, true)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channelPrivate.Id,
+		RootId:    rootPostPrivateChannel.Id,
+		Message:   "reply post 2",
+	}, channelPrivate, false, true)
+
+	require.Nil(t, appErr)
+
+	// get top threads for user, as user 1 and user 2
+	// user 1 should see both threads, while user 2 should see only thread in public channel
+	// (even if user2 is in the private channel it hasn't interacted with the thread there.)
+
+	topUser1Threads, appErr := th.App.GetTopThreadsForUserSince(th.BasicTeam.Id, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
+	require.Nil(t, appErr)
+	require.Len(t, topUser1Threads.Items, 2)
+	require.Equal(t, topUser1Threads.Items[0].Post.Id, rootPostPrivateChannel.Id)
+	require.Equal(t, topUser1Threads.Items[0].ReplyCount, int64(2))
+	require.Equal(t, topUser1Threads.Items[1].Post.Id, rootPostPublicChannel.Id)
+	require.Contains(t, topUser1Threads.Items[1].Participants, th.BasicUser2.Id)
+	require.Equal(t, topUser1Threads.Items[1].ReplyCount, int64(1))
+
+	topUser2Threads, appErr := th.App.GetTopThreadsForUserSince(th.BasicTeam.Id, th.BasicUser2.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
+	require.Nil(t, appErr)
+	require.Len(t, topUser2Threads.Items, 1)
+	require.Equal(t, topUser2Threads.Items[0].Post.Id, rootPostPublicChannel.Id)
+	require.Equal(t, topUser2Threads.Items[0].ReplyCount, int64(1))
+
+	// deleting the root post results in the thread not making it to top threads list
+	_, appErr = th.App.DeletePost(rootPostPublicChannel.Id, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	topUser1ThreadsAfterPost1Delete, appErr := th.App.GetTopThreadsForUserSince(th.BasicTeam.Id, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
+	require.Nil(t, appErr)
+	require.Len(t, topUser1ThreadsAfterPost1Delete.Items, 1)
+
+	// reply with user2 in thread2. deleting that reply, shouldn't give any top thread for user2 if the user2 unsubscribes to the thread after deleting the comment
+	replyPostUser2InPrivate, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser2.Id,
+		ChannelId: channelPrivate.Id,
+		RootId:    rootPostPrivateChannel.Id,
+		Message:   "reply post 3",
+	}, channelPrivate, false, true)
+	require.Nil(t, appErr)
+
+	topUser2ThreadsAfterPrivateReply, appErr := th.App.GetTopThreadsForUserSince(th.BasicTeam.Id, th.BasicUser2.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
+	require.Nil(t, appErr)
+	require.Len(t, topUser2ThreadsAfterPrivateReply.Items, 1)
+
+	// deleting reply, and unfollowing thread
+	_, appErr = th.App.DeletePost(replyPostUser2InPrivate.Id, th.BasicUser2.Id)
+	require.Nil(t, appErr)
+	// unfollow thread
+	_, err := th.App.Srv().Store.Thread().MaintainMembership(th.BasicUser2.Id, rootPostPrivateChannel.Id, store.ThreadMembershipOpts{
+		Following:       false,
+		UpdateFollowing: true,
+	})
+	require.NoError(t, err)
+
+	topUser2ThreadsAfterPrivateReplyDelete, appErr := th.App.GetTopThreadsForUserSince(th.BasicTeam.Id, th.BasicUser2.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
+	require.Nil(t, appErr)
+	require.Len(t, topUser2ThreadsAfterPrivateReplyDelete.Items, 0)
 }

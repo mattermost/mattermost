@@ -187,7 +187,7 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 
 	base := post.Clone()
 	base.Message = ""
-	base.SetProps(make(map[string]interface{}))
+	base.SetProps(make(map[string]any))
 	for k, v := range post.GetProps() {
 		if k != "attachments" {
 			base.AddProp(k, v)
@@ -195,7 +195,7 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 	}
 
 	if utf8.RuneCountInString(model.StringInterfaceToJSON(base.GetProps())) > model.PostPropsMaxUserRunes {
-		return nil, model.NewAppError("SplitWebhookPost", "web.incoming_webhook.split_props_length.app_error", map[string]interface{}{"Max": model.PostPropsMaxUserRunes}, "", http.StatusBadRequest)
+		return nil, model.NewAppError("SplitWebhookPost", "web.incoming_webhook.split_props_length.app_error", map[string]any{"Max": model.PostPropsMaxUserRunes}, "", http.StatusBadRequest)
 	}
 
 	for utf8.RuneCountInString(remainingText) > maxPostSize {
@@ -221,7 +221,7 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 		newAttachment := *attachment
 		for {
 			lastSplit := splits[len(splits)-1]
-			newProps := make(map[string]interface{})
+			newProps := make(map[string]any)
 			for k, v := range lastSplit.GetProps() {
 				newProps[k] = v
 			}
@@ -244,7 +244,7 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 			truncationNeeded := runeCount - model.PostPropsMaxUserRunes
 			textRuneCount := utf8.RuneCountInString(attachment.Text)
 			if textRuneCount < truncationNeeded {
-				return nil, model.NewAppError("SplitWebhookPost", "web.incoming_webhook.split_props_length.app_error", map[string]interface{}{"Max": model.PostPropsMaxUserRunes}, "", http.StatusBadRequest)
+				return nil, model.NewAppError("SplitWebhookPost", "web.incoming_webhook.split_props_length.app_error", map[string]any{"Max": model.PostPropsMaxUserRunes}, "", http.StatusBadRequest)
 			}
 			x := 0
 			for index := range attachment.Text {
@@ -271,7 +271,7 @@ func (a *App) CreateWebhookPost(c *request.Context, userID string, channel *mode
 	post.AddProp("from_webhook", "true")
 
 	if strings.HasPrefix(post.Type, model.PostSystemMessagePrefix) {
-		err := model.NewAppError("CreateWebhookPost", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.type"}, "", http.StatusBadRequest)
+		err := model.NewAppError("CreateWebhookPost", "api.context.invalid_param.app_error", map[string]any{"Name": "post.type"}, "", http.StatusBadRequest)
 		return nil, err
 	}
 
@@ -828,7 +828,7 @@ func (a *App) HandleCommandWebhook(c *request.Context, hookID string, response *
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.get.missing", map[string]interface{}{"hook_id": hookID}, nfErr.Error(), http.StatusNotFound)
+			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.get.missing", map[string]any{"hook_id": hookID}, nfErr.Error(), http.StatusNotFound)
 		default:
 			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.get.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
