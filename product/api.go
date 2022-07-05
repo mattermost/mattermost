@@ -82,14 +82,15 @@ type UserService interface {
 	UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError)
 	GetUserByEmail(email string) (*model.User, *model.AppError)
 	GetUserByUsername(username string) (*model.User, *model.AppError)
+	GetUsersFromProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError)
 }
 
 // TeamService provides team related utilities.
 //
 // The service shall be registered via app.TeamKey service key.
 type TeamService interface {
-	GetMember(teamID, userID string) (*model.TeamMember, error)
-	CreateMember(ctx *request.Context, teamID, userID string) (*model.TeamMember, error)
+	GetMember(teamID, userID string) (*model.TeamMember, *model.AppError)
+	CreateMember(ctx *request.Context, teamID, userID string) (*model.TeamMember, *model.AppError)
 }
 
 // BotService is just a copy implementation of mattermost-plugin-api EnsureBot method.
@@ -174,4 +175,11 @@ type LogService interface {
 // The service shall be registered via app.StoreKey service key.
 type StoreService interface {
 	GetMasterDB() *sql.DB
+}
+
+// SystemService is the API for accessing the System service APIs.
+//
+// The service shall be registered via app.SystemKey service key.
+type SystemService interface {
+	GetDiagnosticId() string
 }
