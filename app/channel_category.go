@@ -50,7 +50,7 @@ func (a *App) GetSidebarCategoriesForTeamForUser(c request.CTX, userID, teamID s
 	return categories, nil
 }
 
-func (a *App) GetSidebarCategories(userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, *model.AppError) {
+func (a *App) GetSidebarCategories(c request.CTX, userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, *model.AppError) {
 	var appErr *model.AppError
 	categories, err := a.Srv().Store.Channel().GetSidebarCategories(userID, opts)
 	if err == nil && len(categories.Categories) == 0 {

@@ -753,7 +753,7 @@ type AppIface interface {
 	GetSharedChannelRemotesStatus(channelID string) ([]*model.SharedChannelRemoteStatus, error)
 	GetSharedChannels(page int, perPage int, opts model.SharedChannelFilterOpts) ([]*model.SharedChannel, *model.AppError)
 	GetSharedChannelsCount(opts model.SharedChannelFilterOpts) (int64, error)
-	GetSidebarCategories(userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, *model.AppError)
+	GetSidebarCategories(c request.CTX, userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, *model.AppError)
 	GetSidebarCategoriesForTeamForUser(c request.CTX, userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError)
 	GetSidebarCategory(c request.CTX, categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError)
 	GetSidebarCategoryOrder(c request.CTX, userID, teamID string) ([]string, *model.AppError)

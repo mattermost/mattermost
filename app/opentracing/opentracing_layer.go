@@ -8995,7 +8995,7 @@ func (a *OpenTracingAppLayer) GetSharedChannelsCount(opts model.SharedChannelFil
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetSidebarCategories(userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, *model.AppError) {
+func (a *OpenTracingAppLayer) GetSidebarCategories(c request.CTX, userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSidebarCategories")
 
@@ -9007,7 +9007,7 @@ func (a *OpenTracingAppLayer) GetSidebarCategories(userID string, opts *store.Si
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetSidebarCategories(userID, opts)
+	resultVar0, resultVar1 := a.app.GetSidebarCategories(c, userID, opts)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

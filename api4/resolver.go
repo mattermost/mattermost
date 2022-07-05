@@ -356,7 +356,7 @@ func (*resolver) SidebarCategories(ctx context.Context, args struct {
 			TeamID:      args.TeamID,
 			ExcludeTeam: args.ExcludeTeam,
 		}
-		categories, appErr = c.App.GetSidebarCategories(args.UserID, opts)
+		categories, appErr = c.App.GetSidebarCategories(c.AppContext, args.UserID, opts)
 		if appErr != nil {
 			return nil, appErr
 		}
