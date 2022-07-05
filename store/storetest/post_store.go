@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -3760,11 +3761,20 @@ func testGetPostsSinceForSync(t *testing.T, ss store.Store, s SqlStore) {
 
 func testSetPostReminder(t *testing.T, ss store.Store, s SqlStore) {
 	// Basic
-	postID := NewTestId()
 	userID := NewTestId()
+
+	p1 := &model.Post{
+		UserId:    userID,
+		ChannelId: NewTestId(),
+		Message:   "hi there",
+		Type:      model.PostTypeDefault,
+	}
+	p1, err := ss.Post().Save(p1)
+	require.NoError(t, err)
+
 	reminder := &model.PostReminder{
 		TargetTime: 1234,
-		PostId:     postID,
+		PostId:     p1.Id,
 		UserId:     userID,
 	}
 
@@ -3774,10 +3784,15 @@ func testSetPostReminder(t *testing.T, ss store.Store, s SqlStore) {
 	require.NoError(t, s.GetMasterX().Get(&out, `SELECT PostId, UserId, TargetTime FROM PostReminders WHERE PostId=? AND UserId=?`, reminder.PostId, reminder.UserId))
 	assert.Equal(t, reminder, &out)
 
+	reminder.PostId = "notfound"
+	err = ss.Post().SetPostReminder(reminder)
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr))
+
 	// Upsert
 	reminder = &model.PostReminder{
 		TargetTime: 12345,
-		PostId:     postID,
+		PostId:     p1.Id,
 		UserId:     userID,
 	}
 
@@ -3789,11 +3804,20 @@ func testSetPostReminder(t *testing.T, ss store.Store, s SqlStore) {
 func testGetPostReminders(t *testing.T, ss store.Store, s SqlStore) {
 	times := []int64{100, 101, 102}
 	for _, tt := range times {
-		postID := NewTestId()
 		userID := NewTestId()
+
+		p1 := &model.Post{
+			UserId:    userID,
+			ChannelId: NewTestId(),
+			Message:   "hi there",
+			Type:      model.PostTypeDefault,
+		}
+		p1, err := ss.Post().Save(p1)
+		require.NoError(t, err)
+
 		reminder := &model.PostReminder{
 			TargetTime: tt,
-			PostId:     postID,
+			PostId:     p1.Id,
 			UserId:     userID,
 		}
 

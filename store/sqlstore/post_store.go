@@ -2930,6 +2930,22 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 }
 
 func (s *SqlPostStore) SetPostReminder(reminder *model.PostReminder) error {
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction)
+
+	sql := `SELECT EXISTS (SELECT 1 FROM Posts	WHERE Id=?)`
+	var exist bool
+	err = transaction.Get(&exist, sql, reminder.PostId)
+	if err != nil {
+		return errors.Wrap(err, "failed to check for post")
+	}
+	if !exist {
+		return store.NewErrNotFound("Post", reminder.PostId)
+	}
+
 	query := s.getQueryBuilder().
 		Insert("PostReminders").
 		Columns("PostId", "UserId", "TargetTime").
@@ -2945,8 +2961,11 @@ func (s *SqlPostStore) SetPostReminder(reminder *model.PostReminder) error {
 	if err != nil {
 		return errors.Wrap(err, "setPostReminder_tosql")
 	}
-	if _, err := s.GetMasterX().Exec(sql, args...); err != nil {
+	if _, err := transaction.Exec(sql, args...); err != nil {
 		return errors.Wrap(err, "failed to insert post reminder")
+	}
+	if err = transaction.Commit(); err != nil {
+		return errors.Wrap(err, "commit_transaction")
 	}
 	return nil
 }

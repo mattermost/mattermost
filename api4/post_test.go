@@ -3181,6 +3181,7 @@ func TestPostReminder(t *testing.T) {
 					require.Equal(t, th.BasicPost.Id, parsedPost.GetProp("post_id").(string))
 					require.Equal(t, user.Username, parsedPost.GetProp("username").(string))
 					require.Equal(t, th.BasicTeam.Name, parsedPost.GetProp("team_name").(string))
+					return
 				}
 			case <-time.After(1 * time.Second):
 				return
