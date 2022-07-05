@@ -1256,7 +1256,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("patchUser", audit.Fail)
-	auditRec.AddEventParameter("user_patch", patch)
+	auditRec.AddEventParameter("user_patch", patch.Auditable())
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {

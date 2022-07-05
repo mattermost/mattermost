@@ -316,7 +316,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("patchChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("channel_patch", patch)
+	auditRec.AddEventParameter("channel", patch)
 	auditRec.AddEventPriorState(oldChannel)
 
 	switch oldChannel.Type {
@@ -449,7 +449,7 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		otherUserId = userIds[1]
 	}
 
-	auditRec.AddEventParameter("other_user_id", otherUserId)
+	auditRec.AddEventParameter("user_id", otherUserId)
 
 	canSee, err := c.App.UserCanSeeOtherUser(c.AppContext.Session().UserId, otherUserId)
 	if err != nil {
@@ -471,7 +471,6 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(sc)
 	auditRec.AddEventObjectType("channel")
 	auditRec.Success()
-	auditRec.AddMeta("channel", sc)
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(sc); err != nil {
@@ -1225,7 +1224,7 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("deleteChannel", audit.Fail)
-	auditRec.AddEventParameter("channel_id", c.Params.ChannelId)
+	auditRec.AddEventParameter("id", c.Params.ChannelId)
 	auditRec.AddEventPriorState(channel)
 	defer c.LogAuditRec(auditRec)
 
@@ -1649,8 +1648,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO if channel is prior state and resulting state is a channel_member then types are kind of mismatched
-	//auditRec.AddEventPriorState(channel)
+	auditRec.AddEventParameter("channel_id", member.ChannelId)
 
 	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
 		c.Err = model.NewAppError("addUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
@@ -1735,7 +1733,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddEventResultState(cm) // TODO what about the channel object? what's prior and resulting state... and type?
+	auditRec.AddEventResultState(cm)
 	auditRec.AddEventObjectType("channel_member")
 	auditRec.AddMeta("add_user_id", cm.UserId)
 	c.LogAudit("name=" + channel.Name + " user_id=" + cm.UserId)
@@ -1767,7 +1765,7 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("removeChannelMember", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddEventParameter("channel_id", channel.Id)
-	auditRec.AddEventParameter("remove_user_id", user.Id)
+	auditRec.AddEventParameter("user_id", user.Id)
 
 	if !(channel.Type == model.ChannelTypeOpen || channel.Type == model.ChannelTypePrivate) {
 		c.Err = model.NewAppError("removeChannelMember", "api.channel.remove_channel_member.type.app_error", nil, "", http.StatusBadRequest)
@@ -1817,7 +1815,7 @@ func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("updateChannelScheme", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("new_scheme_id", *schemeID)
+	auditRec.AddEventParameter("scheme_id", *schemeID)
 
 	if c.App.Channels().License() == nil {
 		c.Err = model.NewAppError("Api4.UpdateChannelScheme", "api.channel.update_channel_scheme.license.error", nil, "", http.StatusNotImplemented)

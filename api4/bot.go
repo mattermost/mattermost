@@ -90,8 +90,8 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("patchBot", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("bot_id", botUserId)
-	auditRec.AddEventParameter("bot_patch", botPatch)
+	auditRec.AddEventParameter("id", botUserId)
+	auditRec.AddEventParameter("bot", botPatch)
 
 	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserId); err != nil {
 		c.Err = err
@@ -208,7 +208,7 @@ func updateBotActive(c *Context, w http.ResponseWriter, active bool) {
 
 	auditRec := c.MakeAuditRecord("updateBotActive", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("bot_id", botUserId)
+	auditRec.AddEventParameter("id", botUserId)
 	auditRec.AddEventParameter("enable", active)
 
 	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserId); err != nil {
@@ -242,8 +242,8 @@ func assignBot(c *Context, w http.ResponseWriter, _ *http.Request) {
 
 	auditRec := c.MakeAuditRecord("assignBot", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventParameter("bot_id", botUserId)
-	auditRec.AddEventParameter("assign_user_id", userId)
+	auditRec.AddEventParameter("id", botUserId)
+	auditRec.AddEventParameter("user_id", userId)
 
 	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserId); err != nil {
 		c.Err = err

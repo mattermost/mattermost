@@ -57,8 +57,17 @@ func (rec *Record) Fail() {
 }
 
 func (rec *Record) AddEventParameter(key string, val interface{}) {
-	rec.EventData.Parameters[key] = val
+	if rec.EventData.Parameters == nil {
+		rec.EventData.Parameters = make(map[string]interface{})
+	}
+
+	if auditableVal, ok := val.(Auditable); ok {
+		rec.EventData.Parameters[key] = auditableVal.Auditable()
+	} else {
+		rec.EventData.Parameters[key] = val
+	}
 }
+
 func (rec *Record) AddEventPriorState(object Auditable) {
 	rec.EventData.PriorState = object.Auditable()
 }
