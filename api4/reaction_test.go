@@ -326,6 +326,7 @@ func TestDeleteReaction(t *testing.T) {
 
 	t.Run("delete-reaction-when-post-has-multiple-reactions", func(t *testing.T) {
 		th.App.SaveReactionForPost(th.Context, r1)
+		r1.ChannelId = ""
 		th.App.SaveReactionForPost(th.Context, r2)
 		reactions, appErr := th.App.GetReactionsForPost(postId)
 		require.Nil(t, appErr)
