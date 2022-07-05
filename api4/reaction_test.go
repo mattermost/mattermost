@@ -556,6 +556,8 @@ func TestGetBulkReactions(t *testing.T) {
 	for _, userReaction := range userReactions {
 		reactions := expectedPostIdsReactionsMap[userReaction.PostId]
 		reaction, err := th.App.Srv().Store.Reaction().Save(userReaction)
+		// channel id is hidden in api response.
+		reaction.ChannelId = ""
 		require.NoError(t, err)
 		reactions = append(reactions, reaction)
 		expectedPostIdsReactionsMap[userReaction.PostId] = reactions
