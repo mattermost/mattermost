@@ -165,6 +165,22 @@ type UserPatch struct {
 	RemoteId    *string   `json:"remote_id"`
 }
 
+func (u *UserPatch) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"username":     u.Username,
+		"nickname":     u.Nickname,
+		"first_name":   u.FirstName,
+		"last_name":    u.LastName,
+		"position":     u.Position,
+		"email":        u.Email,
+		"props":        u.Props,
+		"notify_props": u.NotifyProps,
+		"locale":       u.Locale,
+		"timezone":     u.Timezone,
+		"remote_id":    u.RemoteId,
+	}
+}
+
 //msgp:ignore UserAuth
 type UserAuth struct {
 	Password    string  `json:"password,omitempty"` // DEPRECATED: It is not used.
