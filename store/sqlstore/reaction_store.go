@@ -26,12 +26,14 @@ func (s *SqlReactionStore) Save(reaction *model.Reaction) (*model.Reaction, erro
 	if err := reaction.IsValid(); err != nil {
 		return nil, err
 	}
-	// get channelId before beginning transaction
-	chIds, err := s.Post().GetPostsByIds([]string{reaction.PostId})
-	if err != nil {
-		return nil, err
+	if reaction.ChannelId == "" {
+		// get channelId before beginning transaction, if not already populated
+		chIds, err := s.Post().GetPostsByIds([]string{reaction.PostId})
+		if err != nil {
+			return nil, err
+		}
+		reaction.ChannelId = chIds[0].ChannelId
 	}
-	reaction.ChannelId = chIds[0].ChannelId
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")

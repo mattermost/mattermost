@@ -212,6 +212,7 @@ func createReaction(ss store.Store, userId, postId string) *model.Reaction {
 		UserId:    userId,
 		PostId:    postId,
 		EmojiName: model.NewId(),
+		ChannelId: model.NewId(),
 	}
 	reaction, _ = ss.Reaction().Save(reaction)
 	return reaction
@@ -680,7 +681,14 @@ func TestCheckPostsReactionsIntegrity(t *testing.T) {
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			postId := model.NewId()
-			reaction := createReaction(ss, model.NewId(), postId)
+			reaction := &model.Reaction{
+				UserId:    model.NewId(),
+				PostId:    postId,
+				EmojiName: model.NewId(),
+				ChannelId: model.NewId(),
+			}
+			reaction, err := ss.Reaction().Save(reaction)
+			require.NoError(t, err)
 			result := checkPostsReactionsIntegrity(store)
 			require.NoError(t, result.Err)
 			data := result.Data.(model.RelationalIntegrityCheckData)
