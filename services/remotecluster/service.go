@@ -79,7 +79,7 @@ type ConnectionStateListener func(rc *model.RemoteCluster, online bool)
 type Service struct {
 	server     ServerIface
 	httpClient *http.Client
-	send       []chan interface{}
+	send       []chan any
 
 	// everything below guarded by `mux`
 	mux                      sync.RWMutex
@@ -120,9 +120,9 @@ func NewRemoteClusterService(server ServerIface) (*Service, error) {
 		connectionStateListeners: make(map[string]ConnectionStateListener),
 	}
 
-	service.send = make([]chan interface{}, MaxConcurrentSends)
+	service.send = make([]chan any, MaxConcurrentSends)
 	for i := range service.send {
-		service.send[i] = make(chan interface{}, SendChanBuffer)
+		service.send[i] = make(chan any, SendChanBuffer)
 	}
 
 	return service, nil

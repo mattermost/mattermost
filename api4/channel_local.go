@@ -201,7 +201,7 @@ func localAddChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if len(nonMembers) > 0 {
-			c.Err = model.NewAppError("localAddChannelMember", "api.channel.add_members.user_denied", map[string]interface{}{"UserIDs": nonMembers}, "", http.StatusBadRequest)
+			c.Err = model.NewAppError("localAddChannelMember", "api.channel.add_members.user_denied", map[string]any{"UserIDs": nonMembers}, "", http.StatusBadRequest)
 			return
 		}
 	}

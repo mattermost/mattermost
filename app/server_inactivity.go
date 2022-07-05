@@ -75,7 +75,7 @@ func (s *Server) takeInactivityAction() {
 		mlog.Warn("No SiteURL configured")
 	}
 
-	properties := map[string]interface{}{
+	properties := map[string]any{
 		"SiteURL": siteURL,
 	}
 	s.GetTelemetryService().SendTelemetry("inactive_server", properties)

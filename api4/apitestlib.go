@@ -999,7 +999,7 @@ func CheckUserSanitization(tb testing.TB, user *model.User) {
 	require.Equal(tb, "", user.MfaSecret, "mfa secret wasn't blank")
 }
 
-func CheckEtag(tb testing.TB, data interface{}, resp *model.Response) {
+func CheckEtag(tb testing.TB, data any, resp *model.Response) {
 	tb.Helper()
 
 	require.Empty(tb, data)

@@ -392,7 +392,7 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to create teams service")
 	}
 
-	serviceMap := map[ServiceKey]interface{}{
+	serviceMap := map[ServiceKey]any{
 		ChannelKey:       &channelsWrapper{srv: s},
 		ConfigKey:        s.configStore,
 		LicenseKey:       s.licenseWrapper,

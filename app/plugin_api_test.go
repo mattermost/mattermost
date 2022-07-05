@@ -54,7 +54,7 @@ func getDefaultPluginSettingsSchema() string {
 
 func setDefaultPluginConfig(th *TestHelper, pluginID string) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.PluginSettings.Plugins[pluginID] = map[string]interface{}{
+		cfg.PluginSettings.Plugins[pluginID] = map[string]any{
 			"BasicChannelName":     th.BasicChannel.Name,
 			"BasicChannelId":       th.BasicChannel.Id,
 			"BasicTeamName":        th.BasicTeam.Name,
@@ -691,7 +691,7 @@ func TestPluginAPISavePluginConfig(t *testing.T) {
 
 	pluginConfigJsonString := `{"mystringsetting": "str", "MyIntSetting": 32, "myboolsetting": true}`
 
-	var pluginConfig map[string]interface{}
+	var pluginConfig map[string]any
 	err := json.Unmarshal([]byte(pluginConfigJsonString), &pluginConfig)
 	require.NoError(t, err)
 
@@ -733,7 +733,7 @@ func TestPluginAPIGetPluginConfig(t *testing.T) {
 	api := NewPluginAPI(th.App, th.Context, manifest)
 
 	pluginConfigJsonString := `{"mystringsetting": "str", "myintsetting": 32, "myboolsetting": true}`
-	var pluginConfig map[string]interface{}
+	var pluginConfig map[string]any
 
 	err := json.Unmarshal([]byte(pluginConfigJsonString), &pluginConfig)
 	require.NoError(t, err)
@@ -750,7 +750,7 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	var pluginJson map[string]interface{}
+	var pluginJson map[string]any
 	err := json.Unmarshal([]byte(`{"mystringsetting": "str", "MyIntSetting": 32, "myboolsetting": true}`), &pluginJson)
 	require.NoError(t, err)
 
@@ -785,7 +785,7 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	var pluginJson map[string]interface{}
+	var pluginJson map[string]any
 	err := json.Unmarshal([]byte(`{"mystringsetting": "override"}`), &pluginJson)
 	require.NoError(t, err)
 
@@ -967,7 +967,7 @@ func TestInstallPlugin(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
 		*cfg.PluginSettings.EnableUploads = true
-		cfg.PluginSettings.Plugins["testinstallplugin"] = map[string]interface{}{
+		cfg.PluginSettings.Plugins["testinstallplugin"] = map[string]any{
 			"DownloadURL": ts.URL + "/testplugin.tar.gz",
 		}
 	})
@@ -1789,7 +1789,7 @@ func TestPluginHTTPUpgradeWebSocket(t *testing.T) {
 	require.Equal(t, resp.Status, model.StatusOk)
 
 	for i := 0; i < 10; i++ {
-		wsc.SendMessage("custom_action", map[string]interface{}{"value": i})
+		wsc.SendMessage("custom_action", map[string]any{"value": i})
 		var resp *model.WebSocketResponse
 		select {
 		case resp = <-wsc.ResponseChannel:

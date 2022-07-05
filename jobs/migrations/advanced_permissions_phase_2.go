@@ -65,7 +65,7 @@ func (worker *Worker) runAdvancedPermissionsPhase2Migration(lastDone string) (bo
 	} else {
 		progress = AdvancedPermissionsPhase2ProgressFromJSON(strings.NewReader(lastDone))
 		if !progress.IsValid() {
-			return false, "", model.NewAppError("MigrationsWorker.runAdvancedPermissionsPhase2Migration", "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress", map[string]interface{}{"progress": progress.ToJSON()}, "", http.StatusInternalServerError)
+			return false, "", model.NewAppError("MigrationsWorker.runAdvancedPermissionsPhase2Migration", "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress", map[string]any{"progress": progress.ToJSON()}, "", http.StatusInternalServerError)
 		}
 	}
 
