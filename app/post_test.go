@@ -5,6 +5,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -15,6 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	eMocks "github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
@@ -2816,6 +2818,68 @@ func TestShouldNotRefollowOnOthersReply(t *testing.T) {
 	m, err = th.App.GetThreadMembershipForUser(user2.Id, p1.Id)
 	require.Nil(t, err)
 	require.True(t, m.Following)
+}
+
+func TestGetLastAccessiblePostTime(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	r, err := th.App.GetLastAccessiblePostTime()
+	assert.Nil(t, err)
+	assert.Equal(t, int64(0), r)
+
+	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+	mockStore := th.App.Srv().Store.(*storemocks.Store)
+
+	mockSystemStore := storemocks.SystemStore{}
+	mockStore.On("System").Return(&mockSystemStore)
+	mockSystemStore.On("GetByName", mock.Anything).Return(nil, store.NewErrNotFound("", ""))
+	r, err = th.App.GetLastAccessiblePostTime()
+	assert.Nil(t, err)
+	assert.Equal(t, int64(0), r)
+
+	mockSystemStore = storemocks.SystemStore{}
+	mockStore.On("System").Return(&mockSystemStore)
+	mockSystemStore.On("GetByName", mock.Anything).Return(nil, errors.New("test"))
+	_, err = th.App.GetLastAccessiblePostTime()
+	assert.NotNil(t, err)
+
+	mockSystemStore = storemocks.SystemStore{}
+	mockStore.On("System").Return(&mockSystemStore)
+	mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemLastAccessiblePostTime, Value: "10"}, nil)
+	r, err = th.App.GetLastAccessiblePostTime()
+	assert.Nil(t, err)
+	assert.Equal(t, int64(10), r)
+}
+
+func TestComputeLastAccessiblePostTime(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+	cloud := &eMocks.CloudInterface{}
+	th.App.Srv().Cloud = cloud
+
+	cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
+		Messages: &model.MessagesLimits{
+			History: model.NewInt(1),
+		},
+	}, nil)
+
+	mockStore := th.App.Srv().Store.(*storemocks.Store)
+	mockPostStore := storemocks.PostStore{}
+	mockPostStore.On("GetNthRecentPostTime", mock.Anything).Return(int64(1), nil)
+	mockSystemStore := storemocks.SystemStore{}
+	mockSystemStore.On("SaveOrUpdate", mock.Anything).Return(nil)
+	mockStore.On("Post").Return(&mockPostStore)
+	mockStore.On("System").Return(&mockSystemStore)
+
+	err := th.App.ComputeLastAccessiblePostTime()
+	assert.Nil(t, err)
+
+	mockSystemStore.AssertCalled(t, "SaveOrUpdate", mock.Anything)
 }
 
 func TestGetTopThreadsForTeamSince(t *testing.T) {

@@ -1735,6 +1735,41 @@ var specialSearchChar = []string{
 	":",
 }
 
+// GetNthRecentPostTime returns the CreateAt time of the nth most recent post.
+func (s *SqlPostStore) GetNthRecentPostTime(n int64) (int64, error) {
+	if n <= 0 {
+		return 0, errors.New("n can't be less than 1")
+	}
+
+	builder := s.getQueryBuilder().
+		Select("CreateAt").
+		From("Posts p").
+		// Consider users posts only for cloud limit
+		Where(sq.And{
+			sq.Eq{"p.Type": ""},
+			sq.Expr("p.UserId NOT IN (SELECT UserId FROM Bots)"),
+		}).
+		OrderBy("p.CreateAt DESC").
+		Limit(1).
+		Offset(uint64(n - 1))
+
+	query, queryArgs, err := builder.ToSql()
+	if err != nil {
+		return 0, errors.Wrap(err, "GetNthRecentPostTime_tosql")
+	}
+
+	var createAt int64
+	if err := s.GetMasterX().Get(&createAt, query, queryArgs...); err != nil {
+		if err == sql.ErrNoRows {
+			return 0, store.NewErrNotFound("Post", "none")
+		}
+
+		return 0, errors.Wrapf(err, "failed to get the Nth Post=%d", n)
+	}
+
+	return createAt, nil
+}
+
 func (s *SqlPostStore) buildCreateDateFilterClause(params *model.SearchParams, builder sq.SelectBuilder) sq.SelectBuilder {
 	// handle after: before: on: filters
 	if params.OnDate != "" {
