@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -809,6 +810,11 @@ func (a *App) GetPostsPage(options model.GetPostsOptions) (*model.PostList, *mod
 		}
 	}
 
+	// The postList is sorted as only rootPosts Order is included
+	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+		return nil, appErr
+	}
+
 	return postList, nil
 }
 
@@ -824,6 +830,10 @@ func (a *App) GetPosts(channelID string, offset int, limit int) (*model.PostList
 		}
 	}
 
+	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{}); appErr != nil {
+		return nil, appErr
+	}
+
 	return postList, nil
 }
 
@@ -835,6 +845,10 @@ func (a *App) GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList
 	postList, err := a.Srv().Store.Post().GetPostsSince(options, true, a.Config().GetSanitizeOptions())
 	if err != nil {
 		return nil, model.NewAppError("GetPostsSince", "app.post.get_posts_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+		return nil, appErr
 	}
 
 	return postList, nil
@@ -850,6 +864,14 @@ func (a *App) GetSinglePost(postID string, includeDeleted bool) (*model.Post, *m
 		default:
 			return nil, model.NewAppError("GetSinglePost", "app.post.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
+	}
+
+	isInaccessible, appErr := a.isInaccessiblePost(post)
+	if appErr != nil {
+		return nil, appErr
+	}
+	if isInaccessible {
+		return nil, model.NewAppError("GetSinglePost", "app.post.cloud.get.app_error", nil, "", http.StatusForbidden)
 	}
 
 	return post, nil
@@ -870,6 +892,18 @@ func (a *App) GetPostThread(postID string, opts model.GetPostsOptions, userID st
 		}
 	}
 
+	// Get inserts the requested post first in the list, then adds the sorted threadPosts.
+	// So, the whole postList.Order is not sorted.
+	// The fully sorted list comes only when the CollapsedThreads is true and the Directions is not empty.
+	filterOptions := filterPostOptions{}
+	if opts.CollapsedThreads && opts.Direction != "" {
+		filterOptions.assumeSortedCreatedAt = true
+	}
+
+	if appErr := a.filterInaccessiblePosts(posts, filterOptions); appErr != nil {
+		return nil, appErr
+	}
+
 	return posts, nil
 }
 
@@ -877,6 +911,10 @@ func (a *App) GetFlaggedPosts(userID string, offset int, limit int) (*model.Post
 	postList, err := a.Srv().Store.Post().GetFlaggedPosts(userID, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetFlaggedPosts", "app.post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+		return nil, appErr
 	}
 
 	return postList, nil
@@ -888,6 +926,10 @@ func (a *App) GetFlaggedPostsForTeam(userID, teamID string, offset int, limit in
 		return nil, model.NewAppError("GetFlaggedPostsForTeam", "app.post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+		return nil, appErr
+	}
+
 	return postList, nil
 }
 
@@ -895,6 +937,10 @@ func (a *App) GetFlaggedPostsForChannel(userID, channelID string, offset int, li
 	postList, err := a.Srv().Store.Post().GetFlaggedPostsForChannel(userID, channelID, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetFlaggedPostsForChannel", "app.post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+		return nil, appErr
 	}
 
 	return postList, nil
@@ -929,6 +975,10 @@ func (a *App) GetPermalinkPost(c *request.Context, postID string, userID string)
 		return nil, err
 	}
 
+	if appErr := a.filterInaccessiblePosts(list, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+		return nil, appErr
+	}
+
 	return list, nil
 }
 
@@ -944,6 +994,19 @@ func (a *App) GetPostsBeforePost(options model.GetPostsOptions) (*model.PostList
 		}
 	}
 
+	// GetPostsBefore orders by channel id and deleted at,
+	// before sorting based on created at.
+	// but the deleted at is only ever where deleted at = 0,
+	// and channel id may or may not be empty (all channels) or defined (single channel),
+	// so we can still optimize if the search is for a single channel
+	filterOptions := filterPostOptions{}
+	if options.ChannelId != "" {
+		filterOptions.assumeSortedCreatedAt = true
+	}
+	if appErr := a.filterInaccessiblePosts(postList, filterOptions); appErr != nil {
+		return nil, appErr
+	}
+
 	return postList, nil
 }
 
@@ -957,6 +1020,19 @@ func (a *App) GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList,
 		default:
 			return nil, model.NewAppError("GetPostsAfterPost", "app.post.get_posts_around.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
+	}
+
+	// GetPostsAfter orders by channel id and deleted at,
+	// before sorting based on created at.
+	// but the deleted at is only ever where deleted at = 0,
+	// and channel id may or may not be empty (all channels) or defined (single channel),
+	// so we can still optimize if the search is for a single channel
+	filterOptions := filterPostOptions{}
+	if options.ChannelId != "" {
+		filterOptions.assumeSortedCreatedAt = true
+	}
+	if appErr := a.filterInaccessiblePosts(postList, filterOptions); appErr != nil {
+		return nil, appErr
 	}
 
 	return postList, nil
@@ -980,6 +1056,19 @@ func (a *App) GetPostsAroundPost(before bool, options model.GetPostsOptions) (*m
 		default:
 			return nil, model.NewAppError("GetPostsAroundPost", "app.post.get_posts_around.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
+	}
+
+	// GetPostsBefore and GetPostsAfter order by channel id and deleted at,
+	// before sorting based on created at.
+	// but the deleted at is only ever where deleted at = 0,
+	// and channel id may or may not be empty (all channels) or defined (single channel),
+	// so we can still optimize if the search is for a single channel
+	filterOptions := filterPostOptions{}
+	if options.ChannelId != "" {
+		filterOptions.assumeSortedCreatedAt = true
+	}
+	if appErr := a.filterInaccessiblePosts(postList, filterOptions); appErr != nil {
+		return nil, appErr
 	}
 
 	return postList, nil
@@ -1270,6 +1359,9 @@ func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*mode
 	}
 
 	posts.SortByCreateAt()
+
+	a.filterInaccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true})
+
 	return posts, nil
 }
 
@@ -1297,10 +1389,85 @@ func (a *App) convertUserNameToUserIds(usernames []string) []string {
 	return usernames
 }
 
+// GetLastAccessiblePostTime returns CreateAt time(from cache) of the last accessible post as per the cloud limit
+func (a *App) GetLastAccessiblePostTime() (int64, *model.AppError) {
+	license := a.Srv().License()
+	if license == nil || !*license.Features.Cloud {
+		return 0, nil
+	}
+
+	system, err := a.Srv().Store.System().GetByName(model.SystemLastAccessiblePostTime)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			// All posts are accessible
+			return 0, nil
+		default:
+			return 0, model.NewAppError("GetLastAccessiblePostTime", "app.system.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	lastAccessiblePostTime, err := strconv.ParseInt(system.Value, 10, 64)
+	if err != nil {
+		return 0, model.NewAppError("GetLastAccessiblePostTime", "common.parse_error_int64", map[string]interface{}{"Value": system.Value}, err.Error(), http.StatusInternalServerError)
+	}
+
+	return lastAccessiblePostTime, nil
+}
+
+// ComputeLastAccessiblePostTime updates cache with CreateAt time of the last accessible post as per the cloud plan's limit.
+// Use GetLastAccessiblePostTime() to access the result.
+func (a *App) ComputeLastAccessiblePostTime() *model.AppError {
+	limit, appErr := a.getCloudMessagesHistoryLimit()
+	if appErr != nil {
+		return appErr
+	}
+
+	createdAt, err := a.Srv().GetStore().Post().GetNthRecentPostTime(limit)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		if !errors.As(err, &nfErr) {
+			return model.NewAppError("ComputeLastAccessiblePostTime", "app.last_accessible_post.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	// Update Cache
+	err = a.Srv().Store.System().SaveOrUpdate(&model.System{
+		Name:  model.SystemLastAccessiblePostTime,
+		Value: strconv.FormatInt(createdAt, 10),
+	})
+	if err != nil {
+		return model.NewAppError("ComputeLastAccessiblePostTime", "app.system.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+func (a *App) getCloudMessagesHistoryLimit() (int64, *model.AppError) {
+	license := a.Srv().License()
+	if license == nil || !*license.Features.Cloud {
+		return 0, nil
+	}
+
+	limits, err := a.Cloud().GetCloudLimits("")
+	if err != nil {
+		return 0, model.NewAppError("getCloudMessagesHistoryLimit", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if limits == nil || limits.Messages == nil || limits.Messages.History == nil {
+		// Cloud limit is not applicable
+		return 0, nil
+	}
+
+	return int64(*limits.Messages.History), nil
+}
+
 func (a *App) SearchPostsInTeam(teamID string, paramsList []*model.SearchParams) (*model.PostList, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnablePostSearch {
 		return nil, model.NewAppError("SearchPostsInTeam", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v", teamID), http.StatusNotImplemented)
 	}
+
 	return a.searchPostsInTeam(teamID, "", paramsList, func(params *model.SearchParams) {
 		params.SearchWithoutUserId = true
 	})
@@ -1352,6 +1519,10 @@ func (a *App) SearchPostsForUser(c *request.Context, terms string, userID string
 		default:
 			return nil, model.NewAppError("SearchPostsForUser", "app.post.search.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
+	}
+
+	if appErr := a.filterInaccessiblePosts(postSearchResults.PostList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+		return nil, appErr
 	}
 
 	return postSearchResults, nil
@@ -1703,19 +1874,25 @@ func (a *App) GetPostIfAuthorized(postID string, session *model.Session, include
 	return post, nil
 }
 
-func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, *model.AppError) {
+// GetPostsByIds response bool value indicates, if the post is inaccessible due to cloud plan's limit.
+func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, bool, *model.AppError) {
 	posts, err := a.Srv().Store.Post().GetPostsByIds(postIDs)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetPostsByIds", "app.post.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, false, model.NewAppError("GetPostsByIds", "app.post.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
 		default:
-			return nil, model.NewAppError("GetPostsByIds", "app.post.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, false, model.NewAppError("GetPostsByIds", "app.post.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
-	return posts, nil
+	posts, hasInaccessiblePosts, appErr := a.getFilteredAccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true})
+	if appErr != nil {
+		return nil, false, appErr
+	}
+
+	return posts, hasInaccessiblePosts, nil
 }
 
 func (a *App) GetTopThreadsForTeamSince(teamID, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError) {

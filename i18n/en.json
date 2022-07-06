@@ -5476,6 +5476,10 @@
     "translation": "Unable to update the job."
   },
   {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "Error fetching last accessible post"
+  },
+  {
     "id": "app.license.generate_renewal_token.app_error",
     "translation": "Failed to generate a new renewal token."
   },
@@ -5810,6 +5814,10 @@
   {
     "id": "app.post.analytics_user_counts_posts_by_day.app_error",
     "translation": "Unable to get user counts with posts."
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Can not fetch the post as it is past the cloud's plan limit."
   },
   {
     "id": "app.post.delete.app_error",
@@ -6894,6 +6902,10 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Unable to write the image file to your file storage. Please check your connection and try again."
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "Failed to parse the value:{{.Value}} to int64"
   },
   {
     "id": "ent.account_migration.get_all_failed",
