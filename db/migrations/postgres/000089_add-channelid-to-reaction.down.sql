@@ -1,1 +1,1 @@
-ALTER TABLE reactions drop column channelid;
+ALTER TABLE reactions DROP COLUMN IF EXISTS channelid;

@@ -26,19 +26,23 @@ func (s *SqlReactionStore) Save(reaction *model.Reaction) (*model.Reaction, erro
 	if err := reaction.IsValid(); err != nil {
 		return nil, err
 	}
-	if reaction.ChannelId == "" {
-		// get channelId before beginning transaction, if not already populated
-		chIds, err := s.Post().GetPostsByIds([]string{reaction.PostId})
-		if err != nil {
-			return nil, err
-		}
-		reaction.ChannelId = chIds[0].ChannelId
-	}
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransactionX(transaction)
+	if reaction.ChannelId == "" {
+		// get channelId, if not already populated
+		var channelIds []string
+		var args []interface{}
+		query := "SELECT ChannelId from Posts where Id = ?"
+		args = append(args, reaction.PostId)
+		err = transaction.Select(&channelIds, query, args...)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed while getting channelId from Posts")
+		}
+		reaction.ChannelId = channelIds[0]
+	}
 	err = s.saveReactionAndUpdatePost(transaction, reaction)
 	if err != nil {
 		// We don't consider duplicated save calls as an error
