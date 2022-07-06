@@ -94,7 +94,7 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("ResetLastPictureUpdate", func(t *testing.T) { testUserStoreResetLastPictureUpdate(t, ss) })
 	t.Run("GetKnownUsers", func(t *testing.T) { testGetKnownUsers(t, ss) })
 	t.Run("GetUsersWithInvalidEmails", func(t *testing.T) { testGetUsersWithInvalidEmails(t, ss) })
-	t.Run("SearchWithInDifferentLanguages", func(t *testing.T) { testUserStoreSearchUsersMultilingual(t, ss, s) })
+	t.Run("SearchMultilingual", func(t *testing.T) { testUserStoreSearchUsersMultilingual(t, ss, s) })
 }
 
 func testUserStoreSave(t *testing.T, ss store.Store) {
