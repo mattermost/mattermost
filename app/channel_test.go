@@ -2483,6 +2483,7 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 			"from_webhook": true,
 		},
 	})
+	require.NoError(t, err)
 
 	channel4 := th.CreatePrivateChannel(th.BasicTeam)
 	channel5 := th.CreateChannel(th.BasicTeam)
