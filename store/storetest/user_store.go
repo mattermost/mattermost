@@ -6026,9 +6026,8 @@ func testUserStoreSearchUsersMultilingual(t *testing.T, ss store.Store, s SqlSto
 
 	u2 := &model.User{
 		Username:  "test2" + model.NewId(),
-		FirstName: "Zinêdìne",
-		LastName:  "Zidane",
-		Nickname:  "Zizoù",
+		FirstName: "Zinëdìne",
+		LastName:  "Zidanë",
 		Email:     MakeEmail(),
 	}
 	_, err = ss.User().Save(u2)
@@ -6046,12 +6045,23 @@ func testUserStoreSearchUsersMultilingual(t *testing.T, ss store.Store, s SqlSto
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
 
+	u4 := &model.User{
+		Username:  "test4" + model.NewId(),
+		FirstName: "Jérémie ",
+		LastName:  "Jéry",
+		Email:     MakeEmail(),
+	}
+	_, err = ss.User().Save(u4)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u4.Id)) }()
+
 	// The users returned from the database will have AuthData as an empty string.
 	nilAuthData := new(string)
 	*nilAuthData = ""
 	u1.AuthData = nilAuthData
 	u2.AuthData = nilAuthData
 	u3.AuthData = nilAuthData
+	u4.AuthData = nilAuthData
 
 	testCases := []struct {
 		Description      string
@@ -6074,7 +6084,7 @@ func testUserStoreSearchUsersMultilingual(t *testing.T, ss store.Store, s SqlSto
 		},
 		{
 			"search test2 player",
-			"zizo",
+			"zin",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
 				Limit:          model.UserSearchDefaultLimit,
@@ -6085,7 +6095,7 @@ func testUserStoreSearchUsersMultilingual(t *testing.T, ss store.Store, s SqlSto
 		},
 		{
 			"search test2 player",
-			"zidan",
+			"zidane",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
 				Limit:          model.UserSearchDefaultLimit,
@@ -6116,13 +6126,34 @@ func testUserStoreSearchUsersMultilingual(t *testing.T, ss store.Store, s SqlSto
 			[]*model.User{u3},
 			"english",
 		},
+		{
+			"search test4 player",
+			"jere",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.UserSearchDefaultLimit,
+			},
+			[]*model.User{u4},
+			[]*model.User{u4},
+			"spanish",
+		},
+		{
+			"search test4 player",
+			"jere",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.UserSearchDefaultLimit,
+			},
+			[]*model.User{},
+			[]*model.User{u4},
+			"english",
+		},
 	}
 
 	for _, testCase := range testCases {
 		ss.SetPgDefaultTextSearchConfig(testCase.Language)
-		time.Sleep(2000)
+		time.Sleep(1000)
 		t.Run(testCase.Description, func(t *testing.T) {
-
 			users, err := ss.User().SearchWithoutTeam(
 				testCase.Term,
 				testCase.Options,
