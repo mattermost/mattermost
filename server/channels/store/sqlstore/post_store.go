@@ -555,7 +555,7 @@ func (s *SqlPostStore) buildFlaggedPostChannelFilterClause(channelId string, que
 		return "", queryParams
 	}
 
-	return "AND ChannelId = ?", append(queryParams, channelId)
+	return "AND Posts.ChannelId = ?", append(queryParams, channelId)
 }
 
 func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
@@ -1838,35 +1838,35 @@ func (s *SqlPostStore) buildCreateDateFilterClause(params *model.SearchParams, b
 	if params.OnDate != "" {
 		onDateStart, onDateEnd := params.GetOnDateMillis()
 		// between `on date` start of day and end of day
-		builder = builder.Where("CreateAt BETWEEN ? AND ?", onDateStart, onDateEnd)
+		builder = builder.Where("q2.CreateAt BETWEEN ? AND ?", onDateStart, onDateEnd)
 		return builder
 	}
 
 	if params.ExcludedDate != "" {
 		excludedDateStart, excludedDateEnd := params.GetExcludedDateMillis()
-		builder = builder.Where("CreateAt NOT BETWEEN ? AND ?", excludedDateStart, excludedDateEnd)
+		builder = builder.Where("q2.CreateAt NOT BETWEEN ? AND ?", excludedDateStart, excludedDateEnd)
 	}
 
 	if params.AfterDate != "" {
 		afterDate := params.GetAfterDateMillis()
 		// greater than `after date`
-		builder = builder.Where("CreateAt >= ?", afterDate)
+		builder = builder.Where("q2.CreateAt >= ?", afterDate)
 	}
 
 	if params.BeforeDate != "" {
 		beforeDate := params.GetBeforeDateMillis()
 		// less than `before date`
-		builder = builder.Where("CreateAt <= ?", beforeDate)
+		builder = builder.Where("q2.CreateAt <= ?", beforeDate)
 	}
 
 	if params.ExcludedAfterDate != "" {
 		afterDate := params.GetExcludedAfterDateMillis()
-		builder = builder.Where("CreateAt < ?", afterDate)
+		builder = builder.Where("q2.CreateAt < ?", afterDate)
 	}
 
 	if params.ExcludedBeforeDate != "" {
 		beforeDate := params.GetExcludedBeforeDateMillis()
-		builder = builder.Where("CreateAt > ?", beforeDate)
+		builder = builder.Where("q2.CreateAt > ?", beforeDate)
 	}
 
 	return builder
@@ -1943,7 +1943,7 @@ func (s *SqlPostStore) buildSearchPostFilterClause(teamID string, fromUsers []st
 	 * Squirrel does not support a sub-query in the WHERE condition.
 	 * https://github.com/Masterminds/squirrel/issues/299
 	 */
-	return builder.Where("UserId IN ("+subQuery+")", subQueryArgs...), nil
+	return builder.Where("q2.UserId IN ("+subQuery+")", subQueryArgs...), nil
 }
 
 func (s *SqlPostStore) Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, error) {
@@ -1960,9 +1960,14 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	}
 
 	baseQuery := s.getQueryBuilder().Select(
-		"*",
-		"(SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN q2.RootId = '' THEN q2.Id ELSE q2.RootId END) AND Posts.DeleteAt = 0) as ReplyCount",
+		"q2.*",
+		"COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount",
+		"COALESCE(Threads.LastReplyAt, 0) as LastReplyAt",
+		"COALESCE(Threads.Participants, '[]') as ThreadParticipants",
+		"ThreadMemberships.Following as IsFollowing",
 	).From("Posts q2").
+		LeftJoin("Threads ON Threads.PostId = q2.Id").
+		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = q2.Id AND ThreadMemberships.UserId = ?", userId).
 		Where("q2.DeleteAt = 0").
 		Where(fmt.Sprintf("q2.Type NOT LIKE '%s%%'", model.PostSystemMessagePrefix)).
 		OrderByClause("q2.CreateAt DESC").
@@ -2083,19 +2088,21 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		return nil, err
 	}
 
-	baseQuery = baseQuery.Where(fmt.Sprintf("ChannelId IN (%s)", inQueryClause), inQueryClauseArgs...)
+	baseQuery = baseQuery.Where(fmt.Sprintf("q2.ChannelId IN (%s)", inQueryClause), inQueryClauseArgs...)
 
 	searchQuery, searchQueryArgs, err := baseQuery.ToSql()
 	if err != nil {
 		return nil, err
 	}
 
-	var posts []*model.Post
+	var posts []*postWithExtra
 
 	if err := s.GetSearchReplicaX().Select(&posts, searchQuery, searchQueryArgs...); err != nil {
 		mlog.Warn("Query error searching posts.", mlog.String("error", trimInput(err.Error())))
 		// Don't return the error to the caller as it is of no use to the user. Instead return an empty set of search results.
 	} else {
+		// in-place filter posts
+		validIdx := 0
 		for _, p := range posts {
 			if searchType == "Hashtags" {
 				exactMatch := false
@@ -2109,8 +2116,12 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 					continue
 				}
 			}
-			list.AddPost(p)
-			list.AddOrder(p.Id)
+			posts[validIdx] = p
+			validIdx++
+		}
+		posts = posts[:validIdx]
+		if list, err = s.prepareThreadedResponse(posts, true, false, map[string]bool{}); err != nil {
+			return nil, err
 		}
 	}
 	list.MakeNonNil()
