@@ -4286,7 +4286,7 @@ func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string
 			AND Posts.UserID = ?
 			AND Channels.DeleteAt = 0
 			AND (Channels.Type = 'O' OR Channels.Type = 'P')
-			AND ChannelMembers.UserId = ?`
+			AND ChannelMembers.UserId = ? `
 
 	query += propsQuery
 
