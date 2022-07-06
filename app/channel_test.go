@@ -2382,7 +2382,31 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 	defer th.TearDown()
 
 	channel2 := th.CreateChannel(th.BasicTeam)
+
+	// add a bot post to ensure it's not counted
+	_, err := th.Server.Store.Post().Save(&model.Post{
+		Message:   "hello from a bot",
+		ChannelId: channel2.Id,
+		UserId:    th.BasicUser.Id,
+		Props: model.StringInterface{
+			"from_bot": true,
+		},
+	})
+	require.NoError(t, err)
+
 	channel3 := th.CreatePrivateChannel(th.BasicTeam)
+
+	// add a webhook post to ensure it's not counted
+	_, err = th.Server.Store.Post().Save(&model.Post{
+		Message:   "hello from a webhook",
+		ChannelId: channel3.Id,
+		UserId:    th.BasicUser.Id,
+		Props: model.StringInterface{
+			"from_webhook": true,
+		},
+	})
+	require.NoError(t, err)
+
 	channel4 := th.CreatePrivateChannel(th.BasicTeam)
 	channel5 := th.CreateChannel(th.BasicTeam)
 	channel6 := th.CreatePrivateChannel(th.BasicTeam)
@@ -2436,7 +2460,30 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 	defer th.TearDown()
 
 	channel2 := th.CreateChannel(th.BasicTeam)
+
+	// add a bot post to ensure it's not counted
+	_, err := th.Server.Store.Post().Save(&model.Post{
+		Message:   "hello from a bot",
+		ChannelId: channel2.Id,
+		UserId:    th.BasicUser.Id,
+		Props: model.StringInterface{
+			"from_bot": true,
+		},
+	})
+	require.NoError(t, err)
+
 	channel3 := th.CreatePrivateChannel(th.BasicTeam)
+
+	// add a webhook post to ensure it's not counted
+	_, err = th.Server.Store.Post().Save(&model.Post{
+		Message:   "hello from a webhook",
+		ChannelId: channel3.Id,
+		UserId:    th.BasicUser.Id,
+		Props: model.StringInterface{
+			"from_webhook": true,
+		},
+	})
+
 	channel4 := th.CreatePrivateChannel(th.BasicTeam)
 	channel5 := th.CreateChannel(th.BasicTeam)
 	channel6 := th.CreatePrivateChannel(th.BasicTeam)
