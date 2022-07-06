@@ -1502,7 +1502,7 @@ func generateSearchQuery(query sq.SelectBuilder, terms []string, fields []string
 		termArgs := []interface{}{}
 		for _, field := range fields {
 			if isPostgreSQL {
-				searchFields = append(searchFields, fmt.Sprintf("to_tsvector('%[1]s', lower(%[2]s)) @@ to_tsquery('%[1]s', concat( lower(?) ,':*'))", textSearchConfig, field))
+				searchFields = append(searchFields, fmt.Sprintf("to_tsvector('%[1]s', lower(%[2]s)) @@ to_tsquery('%[1]s', concat(lower(?),':*'))", textSearchConfig, field))
 			} else {
 				searchFields = append(searchFields, fmt.Sprintf("%s LIKE ? escape '*' ", field))
 			}

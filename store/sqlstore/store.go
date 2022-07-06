@@ -124,12 +124,13 @@ type SqlStore struct {
 
 	replicaLagHandles []*dbsql.DB
 	stores            SqlStoreStores
-	settings          *model.SqlSettings
-	lockedToMaster    bool
-	context           context.Context
-	license           *model.License
-	licenseMutex      sync.RWMutex
-	metrics           einterfaces.MetricsInterface
+
+	settings       *model.SqlSettings
+	lockedToMaster bool
+	context        context.Context
+	license        *model.License
+	licenseMutex   sync.RWMutex
+	metrics        einterfaces.MetricsInterface
 
 	isBinaryParam             bool
 	pgDefaultTextSearchConfig string
@@ -350,11 +351,26 @@ func (ss *SqlStore) computeDefaultTextSearchConfig() (string, error) {
 
 	var defaultTextSearchConfig string
 	err := ss.GetMasterX().Get(&defaultTextSearchConfig, `SHOW default_text_search_config`)
+
 	return defaultTextSearchConfig, err
 }
 
 func (ss *SqlStore) IsBinaryParamEnabled() bool {
 	return ss.isBinaryParam
+}
+
+func (ss *SqlStore) SetPgDefaultTextSearchConfig(defaultTextSearchConfig string) {
+	if ss.DriverName() != model.DatabaseDriverPostgres {
+		return
+	}
+	setString := "SET default_text_search_config TO'" + defaultTextSearchConfig + "'"
+
+	_, err := ss.GetMasterX().ExecRaw(setString)
+	if err != nil {
+		mlog.Fatal("Failed to modify the database default_text_search_config to: "+defaultTextSearchConfig, mlog.Err(err))
+	}
+
+	ss.pgDefaultTextSearchConfig = defaultTextSearchConfig
 }
 
 // GetDbVersion returns the version of the database being used.

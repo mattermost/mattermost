@@ -94,6 +94,7 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("ResetLastPictureUpdate", func(t *testing.T) { testUserStoreResetLastPictureUpdate(t, ss) })
 	t.Run("GetKnownUsers", func(t *testing.T) { testGetKnownUsers(t, ss) })
 	t.Run("GetUsersWithInvalidEmails", func(t *testing.T) { testGetUsersWithInvalidEmails(t, ss) })
+	t.Run("SearchWithInDifferentLanguages", func(t *testing.T) { testUserStoreSearchUsersMultilingual(t, ss, s) })
 }
 
 func testUserStoreSave(t *testing.T, ss store.Store) {
@@ -6009,4 +6010,132 @@ func testGetUsersWithInvalidEmails(t *testing.T, ss store.Store) {
 	users, err := ss.User().GetUsersWithInvalidEmails(0, 50, "localhost,simulator.amazonses.com")
 	require.NoError(t, err)
 	assert.Len(t, users, 1)
+}
+
+func testUserStoreSearchUsersMultilingual(t *testing.T, ss store.Store, s SqlStore) {
+	u1 := &model.User{
+		Username:  "test1" + model.NewId(),
+		FirstName: "Inígo",
+		LastName:  "Martínez",
+		Nickname:  "Berridi",
+		Email:     MakeEmail(),
+	}
+	_, err := ss.User().Save(u1)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
+
+	u2 := &model.User{
+		Username:  "test2" + model.NewId(),
+		FirstName: "Zinêdìne",
+		LastName:  "Zidane",
+		Nickname:  "Zizoù",
+		Email:     MakeEmail(),
+	}
+	_, err = ss.User().Save(u2)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
+
+	u3 := &model.User{
+		Username:  "test3" + model.NewId(),
+		FirstName: "Thomas ",
+		LastName:  "Müller",
+		Nickname:  "Fußballspieler",
+		Email:     MakeEmail(),
+	}
+	_, err = ss.User().Save(u3)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
+
+	// The users returned from the database will have AuthData as an empty string.
+	nilAuthData := new(string)
+	*nilAuthData = ""
+	u1.AuthData = nilAuthData
+	u2.AuthData = nilAuthData
+	u3.AuthData = nilAuthData
+
+	testCases := []struct {
+		Description      string
+		Term             string
+		Options          *model.UserSearchOptions
+		ExpectedPostgres []*model.User
+		ExpectedMysql    []*model.User
+		Language         string
+	}{
+		{
+			"search test1 player",
+			"inig",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.UserSearchDefaultLimit,
+			},
+			[]*model.User{u1},
+			[]*model.User{u1},
+			"spanish",
+		},
+		{
+			"search test2 player",
+			"zizo",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.UserSearchDefaultLimit,
+			},
+			[]*model.User{u2},
+			[]*model.User{u2},
+			"french",
+		},
+		{
+			"search test2 player",
+			"zidan",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.UserSearchDefaultLimit,
+			},
+			[]*model.User{u2},
+			[]*model.User{u2},
+			"french",
+		},
+		{
+			"search test3 player",
+			"muller",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.UserSearchDefaultLimit,
+			},
+			[]*model.User{u3},
+			[]*model.User{u3},
+			"german",
+		},
+		{
+			"search test3 player",
+			"muller",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.UserSearchDefaultLimit,
+			},
+			[]*model.User{},
+			[]*model.User{u3},
+			"english",
+		},
+	}
+
+	for _, testCase := range testCases {
+		ss.SetPgDefaultTextSearchConfig(testCase.Language)
+		time.Sleep(2000)
+		t.Run(testCase.Description, func(t *testing.T) {
+
+			users, err := ss.User().SearchWithoutTeam(
+				testCase.Term,
+				testCase.Options,
+			)
+
+			if s.DriverName() != model.DatabaseDriverPostgres {
+				require.NoError(t, err)
+				assertUsers(t, testCase.ExpectedMysql, users)
+			} else {
+				require.NoError(t, err)
+				assertUsers(t, testCase.ExpectedPostgres, users)
+			}
+
+		})
+	}
 }
