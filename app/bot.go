@@ -25,11 +25,15 @@ type botServiceWrapper struct {
 	app AppIface
 }
 
+func (w *botServiceWrapper) EnsureBot(c *request.Context, productID string, bot *model.Bot) (string, error) {
+	return w.app.EnsureBot(c, productID, bot)
+}
+
 // EnsureBot provides similar functionality with the plugin-api BotService. It doesn't accept
 // any ensureBotOptions hence it is not required for now.
 // TODO: Once the focalboard migration completed, we should add this logic to the app and
 // let plugin-api use the same code
-func (w *botServiceWrapper) EnsureBot(c *request.Context, productID string, bot *model.Bot) (string, error) {
+func (a *App) EnsureBot(c *request.Context, productID string, bot *model.Bot) (string, error) {
 	if bot == nil {
 		return "", errors.New("passed a nil bot")
 	}
@@ -38,7 +42,7 @@ func (w *botServiceWrapper) EnsureBot(c *request.Context, productID string, bot 
 		return "", errors.New("passed a bot with no username")
 	}
 
-	botIDBytes, err := w.app.GetPluginKey(productID, botUserKey)
+	botIDBytes, err := a.GetPluginKey(productID, botUserKey)
 	if err != nil {
 		return "", err
 	}
@@ -54,7 +58,7 @@ func (w *botServiceWrapper) EnsureBot(c *request.Context, productID string, bot 
 			Description: &bot.Description,
 		}
 
-		if _, err = w.app.PatchBot(botID, botPatch); err != nil {
+		if _, err = a.PatchBot(botID, botPatch); err != nil {
 			return "", fmt.Errorf("failed to patch bot: %w", err)
 		}
 
@@ -62,13 +66,13 @@ func (w *botServiceWrapper) EnsureBot(c *request.Context, productID string, bot 
 	}
 
 	// Check for an existing bot user with that username. If one exists, then use that.
-	if user, appErr := w.app.GetUserByUsername(bot.Username); appErr == nil && user != nil {
+	if user, appErr := a.GetUserByUsername(bot.Username); appErr == nil && user != nil {
 		if user.IsBot {
-			if appErr := w.app.SetPluginKey(productID, botUserKey, []byte(user.Id)); appErr != nil {
-				w.app.Srv().Log.Warn("Failed to set claimed bot user id.", mlog.String("userid", user.Id), mlog.Err(appErr))
+			if appErr := a.SetPluginKey(productID, botUserKey, []byte(user.Id)); appErr != nil {
+				return "", fmt.Errorf("failed to set plugin key: %w", err)
 			}
 		} else {
-			w.app.Srv().Log.Error("Product attempted to use an account that already exists. Convert user to a bot "+
+			a.Srv().Log.Error("Product attempted to use an account that already exists. Convert user to a bot "+
 				"account in the CLI by running 'mattermost user convert <username> --bot'. If the user is an "+
 				"existing user account you want to preserve, change its username and restart the Mattermost server, "+
 				"after which the plugin will create a bot account with that name. For more information about bot "+
@@ -81,13 +85,13 @@ func (w *botServiceWrapper) EnsureBot(c *request.Context, productID string, bot 
 		return user.Id, nil
 	}
 
-	createdBot, err := w.app.CreateBot(c, bot)
+	createdBot, err := a.CreateBot(c, bot)
 	if err != nil {
 		return "", fmt.Errorf("failed to create bot: %w", err)
 	}
 
-	if appErr := w.app.SetPluginKey(productID, botUserKey, []byte(createdBot.UserId)); appErr != nil {
-		w.app.Srv().Log.Warn("Failed to set created bot user id.", mlog.String("userid", createdBot.UserId), mlog.Err(appErr))
+	if appErr := a.SetPluginKey(productID, botUserKey, []byte(createdBot.UserId)); appErr != nil {
+		return "", fmt.Errorf("failed to set plugin key: %w", err)
 	}
 
 	return createdBot.UserId, nil
@@ -443,7 +447,7 @@ func (a *App) PermanentDeleteBot(botUserId string) *model.AppError {
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
-			return model.NewAppError("PermanentDeleteBot", "app.bot.permenent_delete.bad_id", map[string]interface{}{"user_id": invErr.Value}, invErr.Error(), http.StatusBadRequest)
+			return model.NewAppError("PermanentDeleteBot", "app.bot.permenent_delete.bad_id", map[string]any{"user_id": invErr.Value}, invErr.Error(), http.StatusBadRequest)
 		default: // last fallback in case it doesn't map to an existing app error.
 			return model.NewAppError("PatchBot", "app.bot.permanent_delete.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -622,7 +626,7 @@ func (a *App) getDisableBotSysadminMessage(user *model.User, userBots model.BotL
 
 	T := i18n.GetUserTranslations(user.Locale)
 	message = T("app.bot.get_disable_bot_sysadmin_message",
-		map[string]interface{}{
+		map[string]any{
 			"UserName":           user.Username,
 			"NumBots":            len(userBots),
 			"BotNames":           botList,

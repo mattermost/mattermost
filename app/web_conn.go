@@ -362,7 +362,7 @@ func (wc *WebConn) readPump() {
 		}
 
 		var decoder interface {
-			Decode(v interface{}) error
+			Decode(v any) error
 		}
 		if msgType == websocket.TextMessage {
 			decoder = json.NewDecoder(rd)

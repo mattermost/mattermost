@@ -39,10 +39,6 @@ func ComparePassword(hash string, password string) error {
 
 func (us *UserService) isPasswordValid(password string) error {
 
-	if *us.config().ServiceSettings.EnableDeveloper {
-		return nil
-	}
-
 	return IsPasswordValidWithSettings(password, &us.config().PasswordSettings)
 }
 

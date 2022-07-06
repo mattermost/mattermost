@@ -137,7 +137,7 @@ func (a *App) CreateUserWithInviteId(c *request.Context, user *model.User, invit
 	}
 
 	if !users.CheckUserDomain(user, team.AllowedDomains) {
-		return nil, model.NewAppError("CreateUserWithInviteId", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": team.AllowedDomains}, "", http.StatusForbidden)
+		return nil, model.NewAppError("CreateUserWithInviteId", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": team.AllowedDomains}, "", http.StatusForbidden)
 	}
 
 	user.EmailVerified = false
@@ -319,7 +319,7 @@ func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Re
 	}
 	user, err1 := provider.GetUserFromJSON(userData, tokenUser)
 	if err1 != nil {
-		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]interface{}{"Service": service}, err1.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]any{"Service": service}, err1.Error(), http.StatusInternalServerError)
 	}
 	if user.AuthService == "" {
 		user.AuthService = service
@@ -342,7 +342,7 @@ func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Re
 	userByEmail, _ := a.ch.srv.userService.GetUserByEmail(user.Email)
 	if userByEmail != nil {
 		if userByEmail.AuthService == "" {
-			return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]interface{}{"Service": service, "Auth": model.UserAuthServiceEmail}, "email="+user.Email, http.StatusBadRequest)
+			return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]any{"Service": service, "Auth": model.UserAuthServiceEmail}, "email="+user.Email, http.StatusBadRequest)
 		}
 		if provider.IsSameUser(userByEmail, user) {
 			if _, err := a.Srv().Store.User().UpdateAuthData(userByEmail.Id, user.AuthService, user.AuthData, "", false); err != nil {
@@ -351,7 +351,7 @@ func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Re
 			}
 			return userByEmail, nil
 		}
-		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]interface{}{"Service": service, "Auth": userByEmail.AuthService}, "email="+user.Email+" authData="+*user.AuthData, http.StatusBadRequest)
+		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]any{"Service": service, "Auth": userByEmail.AuthService}, "email="+user.Email+" authData="+*user.AuthData, http.StatusBadRequest)
 	}
 
 	user.EmailVerified = true
@@ -386,12 +386,6 @@ func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
 		default:
 			return nil, model.NewAppError("GetUser", "app.user.get_by_username.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
-	}
-
-	// Temporary check to diagnose a SET escalation; when GetUser is called by some plugins a nil,nil is returned.
-	if user == nil {
-		mlog.Error("Unexpected nil from GetUser", mlog.String("user_id", userID))
-		return nil, model.NewAppError("GetUser", "app.user.get.app_error", nil, "Unexpected nil fetching userid "+userID, http.StatusInternalServerError)
 	}
 
 	return user, nil
@@ -536,6 +530,15 @@ func (a *App) GetUsersInChannelByStatus(options *model.UserGetOptions) ([]*model
 	return users, nil
 }
 
+func (a *App) GetUsersInChannelByAdmin(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	users, err := a.Srv().Store.User().GetProfilesInChannelByAdmin(options)
+	if err != nil {
+		return nil, model.NewAppError("GetUsersInChannelByAdmin", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return users, nil
+}
+
 func (a *App) GetUsersInChannelMap(options *model.UserGetOptions, asAdmin bool) (map[string]*model.User, *model.AppError) {
 	users, err := a.GetUsersInChannel(options)
 	if err != nil {
@@ -562,6 +565,14 @@ func (a *App) GetUsersInChannelPage(options *model.UserGetOptions, asAdmin bool)
 
 func (a *App) GetUsersInChannelPageByStatus(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
 	users, err := a.GetUsersInChannelByStatus(options)
+	if err != nil {
+		return nil, err
+	}
+	return a.sanitizeProfiles(users, asAdmin), nil
+}
+
+func (a *App) GetUsersInChannelPageByAdmin(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
+	users, err := a.GetUsersInChannelByAdmin(options)
 	if err != nil {
 		return nil, err
 	}
@@ -1581,7 +1592,7 @@ func (a *App) PermanentDeleteUser(c *request.Context, user *model.User) *model.A
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
-			return model.NewAppError("PermanentDeleteUser", "app.bot.permenent_delete.bad_id", map[string]interface{}{"user_id": invErr.Value}, invErr.Error(), http.StatusBadRequest)
+			return model.NewAppError("PermanentDeleteUser", "app.bot.permenent_delete.bad_id", map[string]any{"user_id": invErr.Value}, invErr.Error(), http.StatusBadRequest)
 		default: // last fallback in case it doesn't map to an existing app error.
 			return model.NewAppError("PermanentDeleteUser", "app.bot.permanent_delete.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -1664,10 +1675,14 @@ func (a *App) SendEmailVerification(user *model.User, newEmail, redirect string)
 	}
 
 	if _, err := a.GetStatus(user.Id); err != nil {
+		if err.StatusCode != http.StatusNotFound {
+			return err
+		}
 		eErr := a.Srv().EmailService.SendVerifyEmail(newEmail, user.Locale, a.GetSiteURL(), token.Token, redirect)
 		if eErr != nil {
 			return model.NewAppError("SendVerifyEmail", "api.user.send_verify_email_and_forget.failed.error", nil, eErr.Error(), http.StatusInternalServerError)
 		}
+
 		return nil
 	}
 
@@ -1937,7 +1952,7 @@ func (a *App) AutocompleteUsersInTeam(teamID string, term string, options *model
 func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provider einterfaces.OAuthProvider, service string, tokenUser *model.User) *model.AppError {
 	oauthUser, err1 := provider.GetUserFromJSON(userData, tokenUser)
 	if err1 != nil {
-		return model.NewAppError("UpdateOAuthUserAttrs", "api.user.update_oauth_user_attrs.get_user.app_error", map[string]interface{}{"Service": service}, err1.Error(), http.StatusBadRequest)
+		return model.NewAppError("UpdateOAuthUserAttrs", "api.user.update_oauth_user_attrs.get_user.app_error", map[string]any{"Service": service}, err1.Error(), http.StatusBadRequest)
 	}
 
 	userAttrsChanged := false
@@ -2316,7 +2331,7 @@ func (a *App) ConvertBotToUser(bot *model.Bot, userPatch *model.UserPatch, sysad
 
 	appErr := a.Srv().Store.Bot().PermanentDelete(bot.UserId)
 	if appErr != nil {
-		return nil, model.NewAppError("ConvertBotToUser", "app.user.convert_bot_to_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("ConvertBotToUser", "app.user.convert_bot_to_user.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
 	return user, nil

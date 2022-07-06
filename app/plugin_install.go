@@ -46,7 +46,6 @@ import (
 	"path/filepath"
 
 	"github.com/blang/semver"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
@@ -199,8 +198,7 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 	if prepackagedPlugin != nil {
 		fileReader, err := os.Open(prepackagedPlugin.Path)
 		if err != nil {
-			err = errors.Wrapf(err, "failed to open prepackaged plugin %s", prepackagedPlugin.Path)
-			return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.install_marketplace_plugin.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.install_marketplace_plugin.app_error", nil, fmt.Sprintf("failed to open prepackaged plugin %s: %s", prepackagedPlugin.Path, err.Error()), http.StatusInternalServerError)
 		}
 		defer fileReader.Close()
 
@@ -322,7 +320,7 @@ func extractPlugin(pluginFile io.ReadSeeker, extractDir string) (*model.Manifest
 	}
 
 	if !model.IsValidPluginId(manifest.Id) {
-		return nil, "", model.NewAppError("installPluginLocally", "app.plugin.invalid_id.app_error", map[string]interface{}{"Min": model.MinIdLength, "Max": model.MaxIdLength, "Regex": model.ValidIdRegex}, "", http.StatusBadRequest)
+		return nil, "", model.NewAppError("installPluginLocally", "app.plugin.invalid_id.app_error", map[string]any{"Min": model.MinIdLength, "Max": model.MaxIdLength, "Regex": model.ValidIdRegex}, "", http.StatusBadRequest)
 	}
 
 	return manifest, extractDir, nil

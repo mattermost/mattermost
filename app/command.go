@@ -62,7 +62,7 @@ func (a *App) CreateCommandPost(c *request.Context, post *model.Post, teamID str
 	post.CreateAt = model.GetMillis()
 
 	if strings.HasPrefix(post.Type, model.PostSystemMessagePrefix) {
-		err := model.NewAppError("CreateCommandPost", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.type"}, "", http.StatusBadRequest)
+		err := model.NewAppError("CreateCommandPost", "api.context.invalid_param.app_error", map[string]any{"Name": "post.type"}, "", http.StatusBadRequest)
 		return nil, err
 	}
 
@@ -192,7 +192,7 @@ func (a *App) ExecuteCommand(c *request.Context, args *model.CommandArgs) (*mode
 	}
 	trigger = strings.ToLower(trigger)
 	if !strings.HasPrefix(trigger, "/") {
-		return nil, model.NewAppError("command", "api.command.execute_command.format.app_error", map[string]interface{}{"Trigger": trigger}, "", http.StatusBadRequest)
+		return nil, model.NewAppError("command", "api.command.execute_command.format.app_error", map[string]any{"Trigger": trigger}, "", http.StatusBadRequest)
 	}
 	trigger = strings.TrimPrefix(trigger, "/")
 
@@ -230,7 +230,7 @@ func (a *App) ExecuteCommand(c *request.Context, args *model.CommandArgs) (*mode
 		trigger = trigger[:maxTriggerLen]
 		trigger += "..."
 	}
-	return nil, model.NewAppError("command", "api.command.execute_command.not_found.app_error", map[string]interface{}{"Trigger": trigger}, "", http.StatusNotFound)
+	return nil, model.NewAppError("command", "api.command.execute_command.not_found.app_error", map[string]any{"Trigger": trigger}, "", http.StatusNotFound)
 }
 
 // MentionsToTeamMembers returns all the @ mentions found in message that
@@ -474,7 +474,7 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 
 	hook, appErr := a.CreateCommandWebhook(cmd.Id, args)
 	if appErr != nil {
-		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]interface{}{"Trigger": trigger}, appErr.Error(), http.StatusInternalServerError)
+		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]any{"Trigger": trigger}, appErr.Error(), http.StatusInternalServerError)
 	}
 	p.Set("response_url", args.SiteURL+"/hooks/commands/"+hook.Id)
 
@@ -492,7 +492,7 @@ func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command
 	}
 
 	if err != nil {
-		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]interface{}{"Trigger": cmd.Trigger}, err.Error(), http.StatusInternalServerError)
+		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]any{"Trigger": cmd.Trigger}, err.Error(), http.StatusInternalServerError)
 	}
 
 	if cmd.Method == model.CommandMethodGet {
@@ -511,7 +511,7 @@ func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command
 	// Send the request
 	resp, err := a.HTTPService().MakeClient(false).Do(req)
 	if err != nil {
-		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]interface{}{"Trigger": cmd.Trigger}, err.Error(), http.StatusInternalServerError)
+		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]any{"Trigger": cmd.Trigger}, err.Error(), http.StatusInternalServerError)
 	}
 
 	defer resp.Body.Close()
@@ -523,14 +523,14 @@ func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command
 		// Ignore the error below because the resulting string will just be the empty string if bodyBytes is nil
 		bodyBytes, _ := ioutil.ReadAll(body)
 
-		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed_resp.app_error", map[string]interface{}{"Trigger": cmd.Trigger, "Status": resp.Status}, string(bodyBytes), http.StatusInternalServerError)
+		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed_resp.app_error", map[string]any{"Trigger": cmd.Trigger, "Status": resp.Status}, string(bodyBytes), http.StatusInternalServerError)
 	}
 
 	response, err := model.CommandResponseFromHTTPBody(resp.Header.Get("Content-Type"), body)
 	if err != nil {
-		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]interface{}{"Trigger": cmd.Trigger}, err.Error(), http.StatusInternalServerError)
+		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]any{"Trigger": cmd.Trigger}, err.Error(), http.StatusInternalServerError)
 	} else if response == nil {
-		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed_empty.app_error", map[string]interface{}{"Trigger": cmd.Trigger}, "", http.StatusInternalServerError)
+		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed_empty.app_error", map[string]any{"Trigger": cmd.Trigger}, "", http.StatusInternalServerError)
 	}
 
 	return cmd, response, nil
@@ -564,7 +564,7 @@ func (a *App) HandleCommandResponse(c *request.Context, command *model.Command, 
 	}
 
 	if lastError != nil {
-		return response, model.NewAppError("command", "api.command.execute_command.create_post_failed.app_error", map[string]interface{}{"Trigger": trigger}, "", http.StatusInternalServerError)
+		return response, model.NewAppError("command", "api.command.execute_command.create_post_failed.app_error", map[string]any{"Trigger": trigger}, "", http.StatusInternalServerError)
 	}
 
 	return response, nil
@@ -681,7 +681,7 @@ func (a *App) GetCommand(commandID string) (*model.Command, *model.AppError) {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("SqlCommandStore.Get", "store.sql_command.get.missing.app_error", map[string]interface{}{"command_id": commandID}, "", http.StatusNotFound)
+			return nil, model.NewAppError("SqlCommandStore.Get", "store.sql_command.get.missing.app_error", map[string]any{"command_id": commandID}, "", http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("GetCommand", "app.command.getcommand.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -710,7 +710,7 @@ func (a *App) UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, 
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("SqlCommandStore.Update", "store.sql_command.update.missing.app_error", map[string]interface{}{"command_id": updatedCmd.Id}, "", http.StatusNotFound)
+			return nil, model.NewAppError("SqlCommandStore.Update", "store.sql_command.update.missing.app_error", map[string]any{"command_id": updatedCmd.Id}, "", http.StatusNotFound)
 		case errors.As(err, &appErr):
 			return nil, appErr
 		default:
@@ -730,7 +730,7 @@ func (a *App) MoveCommand(team *model.Team, command *model.Command) *model.AppEr
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &nfErr):
-			return model.NewAppError("SqlCommandStore.Update", "store.sql_command.update.missing.app_error", map[string]interface{}{"command_id": command.Id}, "", http.StatusNotFound)
+			return model.NewAppError("SqlCommandStore.Update", "store.sql_command.update.missing.app_error", map[string]any{"command_id": command.Id}, "", http.StatusNotFound)
 		case errors.As(err, &appErr):
 			return appErr
 		default:
@@ -754,7 +754,7 @@ func (a *App) RegenCommandToken(cmd *model.Command) (*model.Command, *model.AppE
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("SqlCommandStore.Update", "store.sql_command.update.missing.app_error", map[string]interface{}{"command_id": cmd.Id}, "", http.StatusNotFound)
+			return nil, model.NewAppError("SqlCommandStore.Update", "store.sql_command.update.missing.app_error", map[string]any{"command_id": cmd.Id}, "", http.StatusNotFound)
 		case errors.As(err, &appErr):
 			return nil, appErr
 		default:

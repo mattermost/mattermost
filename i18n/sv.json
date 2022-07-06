@@ -9256,7 +9256,7 @@
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "Din {{.WorkspaceName}}-arbetsyta har nu uppgraderats. Du kommer att faktureras från och med {{.TrialEnd}}"
+    "translation": "Din {{.WorkspaceName}}-arbetsyta har nu uppgraderats. Du kommer att faktureras från och med {{.Date}}"
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
@@ -9280,7 +9280,7 @@
   },
   {
     "id": "api.insights.feature_disabled",
-    "translation": " "
+    "translation": "Insights ligger bakom en funktionsflagga som inte är aktiverad."
   },
   {
     "id": "api.getThreadsForUser.bad_only_params",
@@ -9319,10 +9319,6 @@
     "translation": "Uppladdning via mmctl till en molninstans stöds inte. Se dokumentationen här: https://docs.mattermost.com/manage/cloud-data-export.html."
   },
   {
-    "id": "api.cloud.cloud_free_feature_flag_off_error",
-    "translation": "Flaggan för CloudFree-funktionen är avstängd."
-  },
-  {
     "id": "app.install_integration.reached_max_limit.error",
     "translation": "Du har nått maxgränsen {{.NumIntegrations}} aktiva integrationer. Om du vill installera obegränsat antal integrationer kan du uppgradera till en av våra betal-abonnemang."
   },
@@ -9349,5 +9345,21 @@
   {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",
     "translation": "Ogiltig värde {{.Value}} på antal samtidiga dekoder. Måste vara ett positivt tal eller -1."
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "Det går inte att få fram användarens topp-trådar."
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "Det går inte att få fram teamets topp-trådar."
+  },
+  {
+    "id": "app.insights.feature_disabled",
+    "translation": "Funktionen Insights är inaktiverad."
+  },
+  {
+    "id": "api.insights.license_error",
+    "translation": "Din licens stöder inte funktionen Insights."
   }
 ]

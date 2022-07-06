@@ -677,10 +677,10 @@ func (s *TimerLayerChannelStore) CreateDirectChannel(userID *model.User, otherUs
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) CreateInitialSidebarCategories(userID string, teamID string) (*model.OrderedSidebarCategories, error) {
+func (s *TimerLayerChannelStore) CreateInitialSidebarCategories(userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.CreateInitialSidebarCategories(userID, teamID)
+	result, err := s.ChannelStore.CreateInitialSidebarCategories(userID, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -1509,10 +1509,10 @@ func (s *TimerLayerChannelStore) GetPublicChannelsForTeam(teamID string, offset 
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetSidebarCategories(userID string, teamID string) (*model.OrderedSidebarCategories, error) {
+func (s *TimerLayerChannelStore) GetSidebarCategories(userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetSidebarCategories(userID, teamID)
+	result, err := s.ChannelStore.GetSidebarCategories(userID, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -1521,6 +1521,22 @@ func (s *TimerLayerChannelStore) GetSidebarCategories(userID string, teamID stri
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetSidebarCategories", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) GetSidebarCategoriesForTeamForUser(userID string, teamID string) (*model.OrderedSidebarCategories, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetSidebarCategoriesForTeamForUser(userID, teamID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetSidebarCategoriesForTeamForUser", success, elapsed)
 	}
 	return result, err
 }
@@ -5130,6 +5146,22 @@ func (s *TimerLayerPostStore) GetMaxPostSize() int {
 	return result
 }
 
+func (s *TimerLayerPostStore) GetNthRecentPostTime(n int64) (int64, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetNthRecentPostTime(n)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetNthRecentPostTime", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) GetOldest() (*model.Post, error) {
 	start := time.Now()
 
@@ -8679,6 +8711,38 @@ func (s *TimerLayerThreadStore) GetThreadsForUser(userId string, teamID string, 
 	return result, err
 }
 
+func (s *TimerLayerThreadStore) GetTopThreadsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopThreadList, error) {
+	start := time.Now()
+
+	result, err := s.ThreadStore.GetTopThreadsForTeamSince(teamID, userID, since, offset, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetTopThreadsForTeamSince", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) GetTopThreadsForUserSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopThreadList, error) {
+	start := time.Now()
+
+	result, err := s.ThreadStore.GetTopThreadsForUserSince(teamID, userID, since, offset, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetTopThreadsForUserSince", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerThreadStore) GetTotalThreads(userId string, teamID string, opts model.GetUserThreadsOpts) (int64, error) {
 	start := time.Now()
 
@@ -9601,6 +9665,22 @@ func (s *TimerLayerUserStore) GetProfilesInChannel(options *model.UserGetOptions
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetProfilesInChannel", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerUserStore) GetProfilesInChannelByAdmin(options *model.UserGetOptions) ([]*model.User, error) {
+	start := time.Now()
+
+	result, err := s.UserStore.GetProfilesInChannelByAdmin(options)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetProfilesInChannelByAdmin", success, elapsed)
 	}
 	return result, err
 }

@@ -23,7 +23,7 @@ func getCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	categories, err := c.App.GetSidebarCategories(c.Params.UserId, c.Params.TeamId)
+	categories, err := c.App.GetSidebarCategoriesForTeamForUser(c.Params.UserId, c.Params.TeamId)
 	if err != nil {
 		c.Err = err
 		return

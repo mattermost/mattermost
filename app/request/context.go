@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type Context struct {
@@ -18,6 +19,8 @@ type Context struct {
 	path           string
 	userAgent      string
 	acceptLanguage string
+	logger         mlog.LoggerIFace
+	err            *model.AppError
 
 	context context.Context
 }
@@ -42,7 +45,7 @@ func EmptyContext() *Context {
 	}
 }
 
-func (c *Context) T(translationID string, args ...interface{}) string {
+func (c *Context) T(translationID string, args ...any) string {
 	return c.t(translationID, args...)
 }
 func (c *Context) Session() *model.Session {
@@ -96,4 +99,20 @@ func (c *Context) SetContext(ctx context.Context) {
 
 func (c *Context) GetT() i18n.TranslateFunc {
 	return c.t
+}
+
+func (c *Context) SetLogger(logger mlog.LoggerIFace) {
+	c.logger = logger
+}
+
+func (c *Context) Logger() mlog.LoggerIFace {
+	return c.logger
+}
+
+func (c *Context) SetAppError(err *model.AppError) {
+	c.err = err
+}
+
+func (c *Context) AppError() *model.AppError {
+	return c.err
 }

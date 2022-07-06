@@ -219,7 +219,7 @@ func TestMoveChannel(t *testing.T) {
 		assert.Equal(t, []string{}, updatedCategory.Channels)
 
 		// And it should be on the new team instead
-		categories, err := th.App.GetSidebarCategories(th.BasicUser.Id, targetTeam.Id)
+		categories, err := th.App.GetSidebarCategoriesForTeamForUser(th.BasicUser.Id, targetTeam.Id)
 		require.Nil(t, err)
 		require.Equal(t, model.SidebarCategoryChannels, categories.Categories[1].Type)
 		assert.Contains(t, categories.Categories[1].Channels, channel.Id)
@@ -759,7 +759,7 @@ func TestFillInChannelProps(t *testing.T) {
 		testCases := []struct {
 			Description          string
 			Channel              *model.Channel
-			ExpectedChannelProps map[string]interface{}
+			ExpectedChannelProps map[string]any
 		}{
 			{
 				"channel on basic team without references",
@@ -777,9 +777,9 @@ func TestFillInChannelProps(t *testing.T) {
 					Header:  "~public1, ~private, ~other-team",
 					Purpose: "~public2, ~private, ~other-team",
 				},
-				map[string]interface{}{
-					"channel_mentions": map[string]interface{}{
-						"public1": map[string]interface{}{
+				map[string]any{
+					"channel_mentions": map[string]any{
+						"public1": map[string]any{
 							"display_name": "Public 1",
 						},
 					},
@@ -792,9 +792,9 @@ func TestFillInChannelProps(t *testing.T) {
 					Header:  "~public1, ~private, ~other-team",
 					Purpose: "~public2, ~private, ~other-team",
 				},
-				map[string]interface{}{
-					"channel_mentions": map[string]interface{}{
-						"other-team": map[string]interface{}{
+				map[string]any{
+					"channel_mentions": map[string]any{
+						"other-team": map[string]any{
 							"display_name": "Other Team Channel",
 						},
 					},
@@ -816,7 +816,7 @@ func TestFillInChannelProps(t *testing.T) {
 		testCases := []struct {
 			Description          string
 			Channels             model.ChannelList
-			ExpectedChannelProps map[string]interface{}
+			ExpectedChannelProps map[string]any
 		}{
 			{
 				"single channel on basic team",
@@ -828,10 +828,10 @@ func TestFillInChannelProps(t *testing.T) {
 						Purpose: "~public2, ~private, ~other-team",
 					},
 				},
-				map[string]interface{}{
-					"test": map[string]interface{}{
-						"channel_mentions": map[string]interface{}{
-							"public1": map[string]interface{}{
+				map[string]any{
+					"test": map[string]any{
+						"channel_mentions": map[string]any{
+							"public1": map[string]any{
 								"display_name": "Public 1",
 							},
 						},
@@ -860,16 +860,16 @@ func TestFillInChannelProps(t *testing.T) {
 						Purpose: "No references",
 					},
 				},
-				map[string]interface{}{
-					"test": map[string]interface{}{
-						"channel_mentions": map[string]interface{}{
-							"public1": map[string]interface{}{
+				map[string]any{
+					"test": map[string]any{
+						"channel_mentions": map[string]any{
+							"public1": map[string]any{
 								"display_name": "Public 1",
 							},
 						},
 					},
-					"test2": map[string]interface{}(nil),
-					"test3": map[string]interface{}(nil),
+					"test2": map[string]any(nil),
+					"test3": map[string]any(nil),
 				},
 			},
 			{
@@ -894,22 +894,22 @@ func TestFillInChannelProps(t *testing.T) {
 						Purpose: "No references",
 					},
 				},
-				map[string]interface{}{
-					"test": map[string]interface{}{
-						"channel_mentions": map[string]interface{}{
-							"public1": map[string]interface{}{
+				map[string]any{
+					"test": map[string]any{
+						"channel_mentions": map[string]any{
+							"public1": map[string]any{
 								"display_name": "Public 1",
 							},
 						},
 					},
-					"test2": map[string]interface{}{
-						"channel_mentions": map[string]interface{}{
-							"other-team": map[string]interface{}{
+					"test2": map[string]any{
+						"channel_mentions": map[string]any{
+							"other-team": map[string]any{
 								"display_name": "Other Team Channel",
 							},
 						},
 					},
-					"test3": map[string]interface{}(nil),
+					"test3": map[string]any(nil),
 				},
 			},
 		}
@@ -2381,10 +2381,6 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.Server.configStore.SetReadOnlyFF(false)
-	defer th.Server.configStore.SetReadOnlyFF(true)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
-
 	channel2 := th.CreateChannel(th.BasicTeam)
 	channel3 := th.CreatePrivateChannel(th.BasicTeam)
 	channel4 := th.CreatePrivateChannel(th.BasicTeam)
@@ -2439,10 +2435,6 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.Server.configStore.SetReadOnlyFF(false)
-	defer th.Server.configStore.SetReadOnlyFF(true)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
-
 	channel2 := th.CreateChannel(th.BasicTeam)
 	channel3 := th.CreatePrivateChannel(th.BasicTeam)
 	channel4 := th.CreatePrivateChannel(th.BasicTeam)
@@ -2496,10 +2488,6 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 func TestPostCountsByDuration(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-
-	th.Server.configStore.SetReadOnlyFF(false)
-	defer th.Server.configStore.SetReadOnlyFF(true)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 
 	channel2 := th.CreateChannel(th.BasicTeam)
 	channel3 := th.CreatePrivateChannel(th.BasicTeam)
