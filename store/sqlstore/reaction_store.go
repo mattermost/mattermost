@@ -78,7 +78,7 @@ func (s *SqlReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, er
 func (s *SqlReactionStore) GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, error) {
 	queryString, args, err := s.getQueryBuilder().
 		Select("UserId", "PostId", "EmojiName", "CreateAt", "COALESCE(UpdateAt, CreateAt) As UpdateAt",
-			"COALESCE(DeleteAt, 0) As DeleteAt", "RemoteId").
+			"COALESCE(DeleteAt, 0) As DeleteAt", "RemoteId", "ChannelId").
 		From("Reactions").
 		Where(sq.Eq{"PostId": postId}).
 		Where(sq.Eq{"COALESCE(DeleteAt, 0)": 0}).
@@ -139,7 +139,8 @@ func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction,
 				CreateAt,
 				COALESCE(UpdateAt, CreateAt) As UpdateAt,
 				COALESCE(DeleteAt, 0) As DeleteAt,
-				RemoteId
+				RemoteId,
+				ChannelId
 			FROM
 				Reactions
 			WHERE
