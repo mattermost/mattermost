@@ -176,7 +176,6 @@ func execAsRoot(settings *model.SqlSettings, sqlCommand string) error {
 		return errors.Wrapf(err, "failed to connect to %s database as root", driver)
 	}
 	defer db.Close()
-
 	if _, err := db.Exec(sqlCommand); err != nil {
 		return errors.Wrapf(err, "failed to execute `%s` against %s database as root", sqlCommand, driver)
 	}

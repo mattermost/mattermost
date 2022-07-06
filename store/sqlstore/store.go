@@ -124,13 +124,12 @@ type SqlStore struct {
 
 	replicaLagHandles []*dbsql.DB
 	stores            SqlStoreStores
-
-	settings       *model.SqlSettings
-	lockedToMaster bool
-	context        context.Context
-	license        *model.License
-	licenseMutex   sync.RWMutex
-	metrics        einterfaces.MetricsInterface
+	settings          *model.SqlSettings
+	lockedToMaster    bool
+	context           context.Context
+	license           *model.License
+	licenseMutex      sync.RWMutex
+	metrics           einterfaces.MetricsInterface
 
 	isBinaryParam             bool
 	pgDefaultTextSearchConfig string
@@ -351,7 +350,6 @@ func (ss *SqlStore) computeDefaultTextSearchConfig() (string, error) {
 
 	var defaultTextSearchConfig string
 	err := ss.GetMasterX().Get(&defaultTextSearchConfig, `SHOW default_text_search_config`)
-
 	return defaultTextSearchConfig, err
 }
 
