@@ -833,20 +833,27 @@ func (s SqlChannelStore) InvalidateChannelByName(teamId, name string) {
 }
 
 func (s SqlChannelStore) GetPinnedPosts(channelId string) (*model.PostList, error) {
-	query := `
-		SELECT p.*,   
-			COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount, 
-			COALESCE(Threads.LastReplyAt, 0) as LastReplyAt, 
-			COALESCE(Threads.Participants, '[]') as ThreadParticipants
-		FROM Posts p 
-		LEFT JOIN Threads
-			ON Threads.PostId = p.Id
-		WHERE p.IsPinned = true AND p.ChannelId = ? AND p.DeleteAt = 0 
-		ORDER BY p.CreateAt ASC
-	`
+	builder := s.getQueryBuilder().Select(
+		"p.*",
+		"COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount",
+		"COALESCE(Threads.LastReplyAt, 0) as LastReplyAt",
+		"COALESCE(Threads.Participants, '[]') as ThreadParticipants",
+	).From("Posts p").
+		LeftJoin("Threads ON Threads.PostId = p.Id").
+		Where(sq.Eq{
+			"p.IsPinned":  true,
+			"p.ChannelId": channelId,
+			"p.DeleteAt":  0,
+		}).
+		OrderBy("p.CreateAt ASC")
+
+	query, queryArgs, err := builder.ToSql()
+	if err != nil {
+		return nil, err
+	}
 
 	posts := []*model.PostWithExtra{}
-	if err := s.GetReplicaX().Select(&posts, query, channelId); err != nil {
+	if err := s.GetReplicaX().Select(&posts, query, queryArgs...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
 
