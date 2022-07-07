@@ -114,7 +114,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						ServerConfig: map[string]interface{}{"ServiceSettings.LetsEncryptCertificateCacheFile": "./config/letsencrypt.cache"},
+						ServerConfig: map[string]any{"ServiceSettings.LetsEncryptCertificateCacheFile": "./config/letsencrypt.cache"},
 					},
 				},
 			},
@@ -126,7 +126,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						ServerConfig: map[string]interface{}{"ServiceSettings.ZZ": "test"},
+						ServerConfig: map[string]any{"ServiceSettings.ZZ": "test"},
 					},
 				},
 			},
@@ -138,7 +138,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						UserConfig: map[string]interface{}{"Stuff": "test"},
+						UserConfig: map[string]any{"Stuff": "test"},
 					},
 				},
 			},
@@ -150,7 +150,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						UserConfig: map[string]interface{}{"Stuff.Data": "test"},
+						UserConfig: map[string]any{"Stuff.Data": "test"},
 					},
 				},
 			},
@@ -162,7 +162,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						UserConfig: map[string]interface{}{"Stuff.Data2": "test"},
+						UserConfig: map[string]any{"Stuff.Data2": "test"},
 					},
 				},
 			},
@@ -174,7 +174,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						UserConfig: map[string]interface{}{"Stuff.Data3": "stuff"},
+						UserConfig: map[string]any{"Stuff.Data3": "stuff"},
 					},
 				},
 			},

@@ -55,7 +55,7 @@ func (a *App) GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError) {
 			return nil, err
 		}
 	} else {
-		ae := model.NewAppError("GetLdapGroup", "ent.ldap.app_error", map[string]interface{}{"ldap_group_id": ldapGroupID}, "", http.StatusNotImplemented)
+		ae := model.NewAppError("GetLdapGroup", "ent.ldap.app_error", map[string]any{"ldap_group_id": ldapGroupID}, "", http.StatusNotImplemented)
 		return nil, ae
 	}
 
@@ -235,7 +235,7 @@ func (a *App) AddLdapPrivateCertificate(fileData *multipart.FileHeader) *model.A
 
 func (a *App) removeLdapFile(filename string) *model.AppError {
 	if err := a.Srv().configStore.RemoveFile(filename); err != nil {
-		return model.NewAppError("RemoveLdapFile", "api.admin.remove_certificate.delete.app_error", map[string]interface{}{"Filename": filename}, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("RemoveLdapFile", "api.admin.remove_certificate.delete.app_error", map[string]any{"Filename": filename}, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
 }

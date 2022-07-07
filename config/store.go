@@ -137,13 +137,13 @@ func (s *Store) GetNoEnv() *model.Config {
 }
 
 // GetEnvironmentOverrides fetches the configuration fields overridden by environment variables.
-func (s *Store) GetEnvironmentOverrides() map[string]interface{} {
+func (s *Store) GetEnvironmentOverrides() map[string]any {
 	return generateEnvironmentMap(GetEnvironment(), nil)
 }
 
 // GetEnvironmentOverridesWithFilter fetches the configuration fields overridden by environment variables.
 // If filter is not nil and returns false for a struct field, that field will be omitted.
-func (s *Store) GetEnvironmentOverridesWithFilter(filter func(reflect.StructField) bool) map[string]interface{} {
+func (s *Store) GetEnvironmentOverridesWithFilter(filter func(reflect.StructField) bool) map[string]any {
 	return generateEnvironmentMap(GetEnvironment(), filter)
 }
 
