@@ -1737,7 +1737,7 @@ func (a *OpenTracingAppLayer) CompleteSwitchWithOAuth(service string, userData i
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) ComputeLastAccessiblePostTime() *model.AppError {
+func (a *OpenTracingAppLayer) ComputeLastAccessiblePostTime() error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ComputeLastAccessiblePostTime")
 
