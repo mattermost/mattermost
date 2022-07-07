@@ -361,7 +361,7 @@ func (ss *SqlStore) SetPgDefaultTextSearchConfig(defaultTextSearchConfig string)
 	if ss.DriverName() != model.DatabaseDriverPostgres {
 		return
 	}
-	setString := "SET default_text_search_config TO'" + defaultTextSearchConfig + "'"
+	setString := "SET default_text_search_config TO '" + defaultTextSearchConfig + "'"
 
 	_, err := ss.GetMasterX().ExecRaw(setString)
 	if err != nil {
