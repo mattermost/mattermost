@@ -247,3 +247,67 @@ func TestRoundOffToZeroes(t *testing.T) {
 		})
 	}
 }
+
+func TestRoundOffToZeroesResolution(t *testing.T) {
+	testCases := []struct {
+		desc          string
+		n             float64
+		minResolution int
+		expected      int64
+	}{
+		{
+			desc:     "returns 0 when n is 0",
+			n:        0,
+			expected: 0,
+		},
+		{
+			desc:          "supports message usage granularity (1000s): 9 -> 0",
+			n:             9,
+			expected:      0,
+			minResolution: 3,
+		},
+		{
+			desc:          "supports message usage granularity (1000s): 123 -> 100",
+			n:             9,
+			expected:      0,
+			minResolution: 3,
+		},
+		{
+			desc:          "supports message usage granularity (1000s): 1234 -> 1000",
+			n:             1234,
+			expected:      1000,
+			minResolution: 3,
+		},
+		{
+			desc:          "supports message usage granularity (1000s): 1500 -> 1000",
+			n:             1500,
+			expected:      1000,
+			minResolution: 3,
+		},
+		{
+			desc:          "supports file storage usage granularity (~100s of MiB): 953.67MiB -> 1000MiB",
+			n:             1000000000,
+			expected:      1000,
+			minResolution: 7,
+		},
+		{
+			desc:          "supports file storage usage granularity (~100s of MiB): 953.67MiB -> 1000MiB",
+			n:             1 * 1024 * 1024 * 1024,
+			expected:      1000,
+			minResolution: 7,
+		},
+		{
+			desc:          "supports file storage usage granularity (~100s of MiB): 1049.04MiB -> 1000",
+			n:             1100000000,
+			expected:      1000,
+			minResolution: 7,
+		},
+	}
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.desc, func(t *testing.T) {
+			res := RoundOffToZeroesResolution(tc.n, tc.minResolution)
+			assert.Equal(t, tc.expected, res)
+		})
+	}
+}
