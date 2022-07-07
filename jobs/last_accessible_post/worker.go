@@ -13,7 +13,7 @@ const (
 )
 
 type AppIface interface {
-	ComputeLastAccessiblePostTime() *model.AppError
+	ComputeLastAccessiblePostTime() error
 }
 
 func MakeWorker(jobServer *jobs.JobServer, license *model.License, app AppIface) model.Worker {

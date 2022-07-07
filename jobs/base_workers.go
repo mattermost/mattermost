@@ -5,7 +5,6 @@ package jobs
 
 import (
 	"net/http"
-	"reflect"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -80,8 +79,7 @@ func (worker *SimpleWorker) DoJob(job *model.Job) {
 	}
 
 	err := worker.execute(job)
-	// reflect because need to support types of *AppError that have nil values
-	if err != nil && !reflect.ValueOf(err).IsNil() {
+	if err != nil {
 		mlog.Error("SimpleWorker: job execution error", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
 		worker.setJobError(job, model.NewAppError("DoJob", "app.user.get_total_users_count.app_error", nil, err.Error(), http.StatusInternalServerError))
 		return
