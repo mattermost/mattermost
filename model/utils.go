@@ -207,9 +207,6 @@ type AppError struct {
 }
 
 func (er *AppError) Error() string {
-	if er == nil {
-		return ""
-	}
 	return er.Where + ": " + er.Message + ", " + er.DetailedError
 }
 
