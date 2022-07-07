@@ -145,7 +145,7 @@ TEMPLATES_DIR=templates
 PLUGIN_PACKAGES ?= mattermost-plugin-antivirus-v0.1.2
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.2.2
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
-PLUGIN_PACKAGES += mattermost-plugin-calls-v0.6.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v0.7.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.1
@@ -389,6 +389,12 @@ email-mocks: ## Creates mocks for misc interfaces.
 
 pluginapi: ## Generates api and hooks glue code for plugins
 	$(GO) generate $(GOFLAGS) ./plugin
+
+mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks
+
+layers: app-layers store-layers pluginapi
+
+generated: mocks layers
 
 check-prereqs: ## Checks prerequisite software status.
 	./scripts/prereq-check.sh
