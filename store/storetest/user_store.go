@@ -6158,7 +6158,6 @@ func testUserStoreSearchUsersMultilingual(t *testing.T, ss store.Store, s SqlSto
 				testCase.Term,
 				testCase.Options,
 			)
-
 			if s.DriverName() != model.DatabaseDriverPostgres {
 				require.NoError(t, err)
 				assertUsers(t, testCase.ExpectedMysql, users)
@@ -6166,7 +6165,6 @@ func testUserStoreSearchUsersMultilingual(t *testing.T, ss store.Store, s SqlSto
 				require.NoError(t, err)
 				assertUsers(t, testCase.ExpectedPostgres, users)
 			}
-
 		})
 	}
 }
