@@ -17,7 +17,6 @@ import (
 	"fmt"
 	"image/color"
 	"io"
-	"io/ioutil"
 )
 
 var (
@@ -399,7 +398,7 @@ func (d *decoder) readImageDescriptor() error {
 	lzwr := lzw.NewReader(br, lzw.LSB, int(litWidth))
 	defer lzwr.Close()
 
-	if _, err := io.Copy(ioutil.Discard, lzwr); err != nil {
+	if _, err := io.Copy(io.Discard, lzwr); err != nil {
 		if err != io.ErrUnexpectedEOF {
 			return fmt.Errorf("gif: reading image data: %v", err)
 		}
