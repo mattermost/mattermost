@@ -6020,6 +6020,22 @@ func (s *TimerLayerPostStore) PermanentDeleteByUser(userID string) error {
 	return err
 }
 
+func (s *TimerLayerPostStore) PrepareThreadedResponse(posts []*model.PostWithExtra, extended bool, reversed bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.PrepareThreadedResponse(posts, extended, reversed, sanitizeOptions)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.PrepareThreadedResponse", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) Save(post *model.Post) (*model.Post, error) {
 	start := time.Now()
 

@@ -32,13 +32,6 @@ type SqlPostStore struct {
 	maxPostSizeCached int
 }
 
-type postWithExtra struct {
-	ThreadReplyCount   int64
-	IsFollowing        *bool
-	ThreadParticipants model.StringArray
-	model.Post
-}
-
 func (s *SqlPostStore) ClearCaches() {
 }
 
@@ -534,12 +527,12 @@ func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset 
 
 	queryParams = append(queryParams, limit, offset)
 
-	var posts []*postWithExtra
+	var posts []*model.PostWithExtra
 	if err := s.GetReplicaX().Select(&posts, query, queryParams...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
 
-	return s.prepareThreadedResponse(posts, true, false, map[string]bool{})
+	return s.PrepareThreadedResponse(posts, true, false, map[string]bool{})
 }
 
 func (s *SqlPostStore) buildFlaggedPostTeamFilterClause(teamId string, queryParams []any) (string, []any) {
@@ -573,7 +566,7 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 		"COALESCE(Threads.Participants, '[]') as ThreadParticipants",
 		"ThreadMemberships.Following as IsFollowing",
 	)
-	var post postWithExtra
+	var post model.PostWithExtra
 
 	postFetchQuery, args, err := s.getQueryBuilder().
 		Select(columns...).
@@ -671,7 +664,7 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 		posts = posts[:len(posts)-1]
 	}
 
-	list, err := s.prepareThreadedResponse([]*postWithExtra{&post}, opts.CollapsedThreadsExtended, false, sanitizeOptions)
+	list, err := s.PrepareThreadedResponse([]*model.PostWithExtra{&post}, opts.CollapsedThreadsExtended, false, sanitizeOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -1070,7 +1063,7 @@ func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) (err error) {
 	return nil
 }
 
-func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended, reversed bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
+func (s *SqlPostStore) PrepareThreadedResponse(posts []*model.PostWithExtra, extended, reversed bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	list := model.NewPostList()
 	var userIds []string
 	userIdMap := map[string]bool{}
@@ -1099,7 +1092,7 @@ func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended,
 		}
 	}
 
-	processPost := func(p *postWithExtra) error {
+	processPost := func(p *model.PostWithExtra) error {
 		p.Post.ReplyCount = p.ThreadReplyCount
 		if p.IsFollowing != nil {
 			p.Post.IsFollowing = model.NewBool(*p.IsFollowing)
@@ -1144,7 +1137,7 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions, s
 		"COALESCE(Threads.Participants, '[]') as ThreadParticipants",
 		"ThreadMemberships.Following as IsFollowing",
 	)
-	var posts []*postWithExtra
+	var posts []*model.PostWithExtra
 	offset := options.PerPage * options.Page
 
 	postFetchQuery, args, _ := s.getQueryBuilder().
@@ -1164,7 +1157,7 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions, s
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 	}
 
-	return s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, false, sanitizeOptions)
+	return s.PrepareThreadedResponse(posts, options.CollapsedThreadsExtended, false, sanitizeOptions)
 }
 
 func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
@@ -1229,7 +1222,7 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 		"COALESCE(Threads.Participants, '[]') as ThreadParticipants",
 		"ThreadMemberships.Following as IsFollowing",
 	)
-	var posts []*postWithExtra
+	var posts []*model.PostWithExtra
 
 	postFetchQuery, args, err := s.getQueryBuilder().
 		Select(columns...).
@@ -1251,7 +1244,7 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 	}
-	return s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, false, sanitizeOptions)
+	return s.PrepareThreadedResponse(posts, options.CollapsedThreadsExtended, false, sanitizeOptions)
 }
 
 //nolint:unparam
@@ -1437,7 +1430,7 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 	}
 
 	offset := options.Page * options.PerPage
-	posts := []*postWithExtra{}
+	posts := []*model.PostWithExtra{}
 	parents := []*model.Post{}
 
 	var direction string
@@ -1541,7 +1534,7 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		}
 	}
 
-	list, err := s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, !before, sanitizeOptions)
+	list, err := s.PrepareThreadedResponse(posts, options.CollapsedThreadsExtended, !before, sanitizeOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -2095,7 +2088,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		return nil, err
 	}
 
-	var posts []*postWithExtra
+	var posts []*model.PostWithExtra
 
 	if err := s.GetSearchReplicaX().Select(&posts, searchQuery, searchQueryArgs...); err != nil {
 		mlog.Warn("Query error searching posts.", mlog.String("error", trimInput(err.Error())))
@@ -2120,7 +2113,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			validIdx++
 		}
 		posts = posts[:validIdx]
-		if list, err = s.prepareThreadedResponse(posts, true, false, map[string]bool{}); err != nil {
+		if list, err = s.PrepareThreadedResponse(posts, true, false, map[string]bool{}); err != nil {
 			return nil, err
 		}
 	}

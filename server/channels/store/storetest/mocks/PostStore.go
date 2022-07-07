@@ -1077,6 +1077,29 @@ func (_m *PostStore) PermanentDeleteByUser(userID string) error {
 	return r0
 }
 
+// PrepareThreadedResponse provides a mock function with given fields: posts, extended, reversed, sanitizeOptions
+func (_m *PostStore) PrepareThreadedResponse(posts []*model.PostWithExtra, extended bool, reversed bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
+	ret := _m.Called(posts, extended, reversed, sanitizeOptions)
+
+	var r0 *model.PostList
+	if rf, ok := ret.Get(0).(func([]*model.PostWithExtra, bool, bool, map[string]bool) *model.PostList); ok {
+		r0 = rf(posts, extended, reversed, sanitizeOptions)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PostList)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]*model.PostWithExtra, bool, bool, map[string]bool) error); ok {
+		r1 = rf(posts, extended, reversed, sanitizeOptions)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Save provides a mock function with given fields: post
 func (_m *PostStore) Save(post *model.Post) (*model.Post, error) {
 	ret := _m.Called(post)

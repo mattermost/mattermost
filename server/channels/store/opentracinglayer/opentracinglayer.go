@@ -6651,6 +6651,24 @@ func (s *OpenTracingLayerPostStore) PermanentDeleteByUser(userID string) error {
 	return err
 }
 
+func (s *OpenTracingLayerPostStore) PrepareThreadedResponse(posts []*model.PostWithExtra, extended bool, reversed bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.PrepareThreadedResponse")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.PostStore.PrepareThreadedResponse(posts, extended, reversed, sanitizeOptions)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerPostStore) Save(post *model.Post) (*model.Post, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.Save")

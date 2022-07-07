@@ -6998,7 +6998,9 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 		}, -1)
 		require.NoError(t, err)
 
-		userId := model.NewId()
+		user, err := ss.User().Save(&model.User{Email: MakeEmail()})
+		require.NoError(t, err)
+		userId := user.Id
 
 		post1, err := ss.Post().Save(&model.Post{
 			ChannelId: channel.Id,
@@ -7031,9 +7033,9 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 		posts, err := ss.Channel().GetPinnedPosts(channel.Id)
 		require.NoError(t, err)
 		require.Len(t, posts.Posts, 3)
-		require.Equal(t, posts.Posts[post1.Id].ReplyCount, int64(1))
-		require.Equal(t, posts.Posts[post2.Id].ReplyCount, int64(0))
-		require.Equal(t, posts.Posts[post3.Id].ReplyCount, int64(1))
+		assert.Equal(t, int64(1), posts.Posts[post1.Id].ReplyCount)
+		assert.Equal(t, int64(0), posts.Posts[post2.Id].ReplyCount)
+		assert.Equal(t, int64(0), posts.Posts[post3.Id].ReplyCount)
 	})
 }
 

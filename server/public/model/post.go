@@ -148,6 +148,13 @@ type PostEphemeral struct {
 	Post   *Post  `json:"post"`
 }
 
+type PostWithExtra struct {
+	ThreadReplyCount   int64
+	IsFollowing        *bool
+	ThreadParticipants StringArray
+	Post
+}
+
 type PostPatch struct {
 	IsPinned     *bool            `json:"is_pinned"`
 	Message      *string          `json:"message"`
