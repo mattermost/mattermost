@@ -27,8 +27,8 @@ func (s *permissionsServiceWrapper) HasPermissionToTeam(userID string, teamID st
 	return s.app.HasPermissionToTeam(userID, teamID, permission)
 }
 
-func (s *permissionsServiceWrapper) HasPermissionToChannel(askingUserId string, channelID string, permission *model.Permission) bool {
-	return s.app.HasPermissionToChannel(askingUserId, channelID, permission)
+func (s *permissionsServiceWrapper) HasPermissionToChannel(askingUserID string, channelID string, permission *model.Permission) bool {
+	return s.app.HasPermissionToChannel(askingUserID, channelID, permission)
 }
 
 func (a *App) ResetPermissionsSystem() *model.AppError {

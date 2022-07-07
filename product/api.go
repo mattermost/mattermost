@@ -41,7 +41,7 @@ type PostService interface {
 // The service shall be registered via app.PermissionKey service key.
 type PermissionService interface {
 	HasPermissionToTeam(userID, teamID string, permission *model.Permission) bool
-	HasPermissionToChannel(askingUserId string, channelID string, permission *model.Permission) bool
+	HasPermissionToChannel(askingUserID string, channelID string, permission *model.Permission) bool
 }
 
 // ClusterService enables to publish cluster events. In addition to that, It's being used for
