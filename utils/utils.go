@@ -244,7 +244,7 @@ func max(a, b int) int {
 }
 
 // RoundOffToZeroesResolution truncates off at most minResolution zero places.
-// It implicity set the lowest minResolution to 0.
+// It implicitly sets the lowest minResolution to 0.
 // e.g. 0 reports 1s, 1 reports 10s, 2 reports 100s, 3 reports 1000s
 func RoundOffToZeroesResolution(n float64, minResolution int) int64 {
 	resolution := max(0, minResolution)
