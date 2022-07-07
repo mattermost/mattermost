@@ -15,7 +15,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"image/color"
 	"io"
 )
 
@@ -100,7 +99,7 @@ type decoder struct {
 	hasTransparentIndex bool
 
 	// Computed.
-	globalColorTable color.Palette
+	hasGlobalColorTable bool
 
 	// Used when decoding.
 	imageCount int
@@ -274,26 +273,22 @@ func (d *decoder) readHeaderAndScreenDescriptor() error {
 	if fields := d.tmp[10]; fields&fColorTable != 0 {
 		d.backgroundIndex = d.tmp[11]
 		// readColorTable overwrites the contents of d.tmp, but that's OK.
-		if d.globalColorTable, err = d.readColorTable(fields); err != nil {
+		if err = d.readColorTable(fields); err != nil {
 			return err
 		}
+		d.hasGlobalColorTable = true
 	}
 	// d.tmp[12] is the Pixel Aspect Ratio, which is ignored.
 	return nil
 }
 
-func (d *decoder) readColorTable(fields byte) (color.Palette, error) {
+func (d *decoder) readColorTable(fields byte) error {
 	n := 1 << (1 + uint(fields&fColorTableBitsMask))
 	err := readFull(d.r, d.tmp[:3*n])
 	if err != nil {
-		return nil, fmt.Errorf("gif: reading color table: %s", err)
+		return fmt.Errorf("gif: reading color table: %s", err)
 	}
-	j, p := 0, make(color.Palette, n)
-	for i := range p {
-		p[i] = color.RGBA{d.tmp[j+0], d.tmp[j+1], d.tmp[j+2], 0xFF}
-		j += 3
-	}
-	return p, nil
+	return nil
 }
 
 func (d *decoder) readExtension() error {
@@ -377,14 +372,11 @@ func (d *decoder) readImageDescriptor() error {
 	}
 	useLocalColorTable := d.imageFields&fColorTable != 0
 	if useLocalColorTable {
-		_, err = d.readColorTable(d.imageFields)
-		if err != nil {
+		if err = d.readColorTable(d.imageFields); err != nil {
 			return err
 		}
-	} else {
-		if d.globalColorTable == nil {
-			return errors.New("gif: no color table")
-		}
+	} else if !d.hasGlobalColorTable {
+		return errors.New("gif: no color table")
 	}
 	litWidth, err := readByte(d.r)
 	if err != nil {
