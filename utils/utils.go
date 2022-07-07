@@ -244,28 +244,20 @@ func max(a, b int) int {
 }
 
 // RoundOffToZeroesResolution truncates off at most minResolution zero places.
-// It implicity set the lowest minResolution to 1.
-// e.g. 1 reports 10s, 2 reports 100s, 3 reports 1000s
+// It implicity set the lowest minResolution to 0.
+// e.g. 0 reports 1s, 1 reports 10s, 2 reports 100s, 3 reports 1000s
 func RoundOffToZeroesResolution(n float64, minResolution int) int64 {
-	resolution := max(1, minResolution)
+	resolution := max(0, minResolution)
 	if n >= -9 && n <= 9 {
-		if resolution == 1 {
+		if resolution == 0 {
 			return int64(n)
 		}
 		return 0
 	}
 
-	resolution = min(int(math.Log10(math.Abs(n))), resolution)
+	zeroes := int(math.Log10(math.Abs(n)))
+	resolution = min(zeroes, resolution)
 	tens := int64(math.Pow10(resolution))
-	firstDigit := int64(n) / tens
-	return firstDigit * tens
+	significantDigits := int64(n) / tens
+	return significantDigits * tens
 }
-
-// Given that the backend stores bytes
-// and the front end interprets as bits and compared to the limit in GiB,
-// the minimum acceptable overage to being reporting an overage is XX bytes,
-// meaning places
-// bytes in one GiB
-// 1073741824
-// bits in one GiB
-// 8589934592

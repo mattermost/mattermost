@@ -249,6 +249,8 @@ func TestRoundOffToZeroes(t *testing.T) {
 }
 
 func TestRoundOffToZeroesResolution(t *testing.T) {
+	messageGranularity := 3
+	storageGranularity := 8
 	testCases := []struct {
 		desc          string
 		n             float64
@@ -264,43 +266,55 @@ func TestRoundOffToZeroesResolution(t *testing.T) {
 			desc:          "supports message usage granularity (1000s): 9 -> 0",
 			n:             9,
 			expected:      0,
-			minResolution: 3,
+			minResolution: messageGranularity,
 		},
 		{
 			desc:          "supports message usage granularity (1000s): 123 -> 100",
 			n:             9,
 			expected:      0,
-			minResolution: 3,
+			minResolution: messageGranularity,
 		},
 		{
 			desc:          "supports message usage granularity (1000s): 1234 -> 1000",
 			n:             1234,
 			expected:      1000,
-			minResolution: 3,
+			minResolution: messageGranularity,
 		},
 		{
 			desc:          "supports message usage granularity (1000s): 1500 -> 1000",
 			n:             1500,
 			expected:      1000,
-			minResolution: 3,
+			minResolution: messageGranularity,
 		},
 		{
-			desc:          "supports file storage usage granularity (~100s of MiB): 953.67MiB -> 1000MiB",
+			desc:          "supports file storage usage granularity (~100s of MiB): 953.67MiB -> 953.67MiB",
 			n:             1000000000,
-			expected:      1000,
-			minResolution: 7,
+			expected:      1000000000,
+			minResolution: storageGranularity,
 		},
 		{
-			desc:          "supports file storage usage granularity (~100s of MiB): 953.67MiB -> 1000MiB",
+			desc:          "supports file storage usage granularity (~100s of MiB): 1GiB -> 953.67GiB",
 			n:             1 * 1024 * 1024 * 1024,
-			expected:      1000,
-			minResolution: 7,
+			expected:      1000000000,
+			minResolution: storageGranularity,
 		},
 		{
-			desc:          "supports file storage usage granularity (~100s of MiB): 1049.04MiB -> 1000",
+			desc:          "supports file storage usage granularity (~100s of MiB): 1049.04MiB -> 1049.04MiB",
 			n:             1100000000,
-			expected:      1000,
-			minResolution: 7,
+			expected:      1100000000,
+			minResolution: storageGranularity,
+		},
+		{
+			desc:          "supports file storage usage granularity (smaller amounts): 104.904MiB -> 104.904MiB",
+			n:             100000000,
+			expected:      100000000,
+			minResolution: storageGranularity,
+		},
+		{
+			desc:          "supports file storage usage granularity (smaller amounts): 10.4904MiB -> 10.4904MiB",
+			n:             10000000,
+			expected:      10000000,
+			minResolution: storageGranularity,
 		},
 	}
 	for _, tc := range testCases {
