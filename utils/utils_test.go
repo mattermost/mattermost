@@ -329,6 +329,15 @@ func TestRoundOffToZeroesResolution(t *testing.T) {
 			minResolution: storageGranularity,
 		},
 		{
+			// first number at which limit reports as in excess of 10GiB.
+			// Evaluates to 10299.5992MiB
+			// Should be close enough for notifying of being over limit.
+			desc:          "supports file storage usage granularity (~100s of MiB): 10.0583GiB -> 9.965GiB",
+			n:             10.0583 * 1024 * 1024 * 1024,
+			expected:      10_800_000_000,
+			minResolution: storageGranularity,
+		},
+		{
 			desc:          "supports file storage usage granularity (~100s of MiB): 953.67MiB -> 953.67MiB",
 			n:             1_000_000_000,
 			expected:      1_000_000_000,
