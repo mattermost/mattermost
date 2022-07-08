@@ -77,7 +77,7 @@ func getGraphQLTeams(c *web.Context, teamIDs []string) ([]*model.Team, error) {
 	}
 
 	// The teams need to be in the exact same order as the input slice.
-	tmp := make(map[string]*model.Team)
+	tmp := make(map[string]*model.Team, len(teams))
 	for _, ch := range teams {
 		tmp[ch.Id] = ch
 	}
