@@ -184,7 +184,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if oldChannel.Name == model.DefaultChannelName {
 		if channel.Name != "" && channel.Name != oldChannel.Name {
-			c.Err = model.NewAppError("updateChannel", "api.channel.update_channel.tried.app_error", map[string]interface{}{"Channel": model.DefaultChannelName}, "", http.StatusBadRequest)
+			c.Err = model.NewAppError("updateChannel", "api.channel.update_channel.tried.app_error", map[string]any{"Channel": model.DefaultChannelName}, "", http.StatusBadRequest)
 			return
 		}
 	}
@@ -340,7 +340,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if oldChannel.Name == model.DefaultChannelName {
 		if patch.Name != nil && *patch.Name != oldChannel.Name {
-			c.Err = model.NewAppError("patchChannel", "api.channel.update_channel.tried.app_error", map[string]interface{}{"Channel": model.DefaultChannelName}, "", http.StatusBadRequest)
+			c.Err = model.NewAppError("patchChannel", "api.channel.update_channel.tried.app_error", map[string]any{"Channel": model.DefaultChannelName}, "", http.StatusBadRequest)
 			return
 		}
 	}
@@ -1694,7 +1694,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if len(nonMembers) > 0 {
-			c.Err = model.NewAppError("addChannelMember", "api.channel.add_members.user_denied", map[string]interface{}{"UserIDs": nonMembers}, "", http.StatusBadRequest)
+			c.Err = model.NewAppError("addChannelMember", "api.channel.add_members.user_denied", map[string]any{"UserIDs": nonMembers}, "", http.StatusBadRequest)
 			return
 		}
 	}

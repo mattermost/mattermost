@@ -254,11 +254,11 @@ func (c *Context) HandleEtag(etag string, routeName string, w http.ResponseWrite
 }
 
 func NewInvalidParamError(parameter string) *model.AppError {
-	err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]interface{}{"Name": parameter}, "", http.StatusBadRequest)
+	err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]any{"Name": parameter}, "", http.StatusBadRequest)
 	return err
 }
 func NewInvalidURLParamError(parameter string) *model.AppError {
-	err := model.NewAppError("Context", "api.context.invalid_url_param.app_error", map[string]interface{}{"Name": parameter}, "", http.StatusBadRequest)
+	err := model.NewAppError("Context", "api.context.invalid_url_param.app_error", map[string]any{"Name": parameter}, "", http.StatusBadRequest)
 	return err
 }
 func NewServerBusyError() *model.AppError {
@@ -267,7 +267,7 @@ func NewServerBusyError() *model.AppError {
 }
 
 func NewInvalidRemoteIdError(parameter string) *model.AppError {
-	err := model.NewAppError("Context", "api.context.remote_id_invalid.app_error", map[string]interface{}{"RemoteId": parameter}, "", http.StatusBadRequest)
+	err := model.NewAppError("Context", "api.context.remote_id_invalid.app_error", map[string]any{"RemoteId": parameter}, "", http.StatusBadRequest)
 	return err
 }
 

@@ -42,7 +42,7 @@ func (s *clusterWrapper) PublishPluginClusterEvent(productID string, ev model.Pl
 	return nil
 }
 
-func (s *clusterWrapper) PublishWebSocketEvent(productID string, event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast) {
+func (s *clusterWrapper) PublishWebSocketEvent(productID string, event string, payload map[string]any, broadcast *model.WebsocketBroadcast) {
 	ev := model.NewWebSocketEvent(fmt.Sprintf("custom_%v_%v", productID, event), "", "", "", nil)
 	ev = ev.SetBroadcast(broadcast).SetData(payload)
 	s.srv.Publish(ev)
@@ -85,7 +85,7 @@ func (s *Server) InvokeClusterLeaderChangedListeners() {
 	// Fixing this would require the changed event to pass the leader directly, but that
 	// requires a lot of work.
 	s.Go(func() {
-		s.clusterLeaderListeners.Range(func(_, listener interface{}) bool {
+		s.clusterLeaderListeners.Range(func(_, listener any) bool {
 			listener.(func())()
 			return true
 		})

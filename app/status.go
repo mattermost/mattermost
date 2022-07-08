@@ -51,12 +51,12 @@ func (a *App) GetAllStatuses() map[string]*model.Status {
 	return statusMap
 }
 
-func (a *App) GetStatusesByIds(userIDs []string) (map[string]interface{}, *model.AppError) {
+func (a *App) GetStatusesByIds(userIDs []string) (map[string]any, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
-		return map[string]interface{}{}, nil
+		return map[string]any{}, nil
 	}
 
-	statusMap := map[string]interface{}{}
+	statusMap := map[string]any{}
 	metrics := a.Metrics()
 
 	missingUserIds := []string{}

@@ -383,6 +383,7 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+// getPost also sets a header to indicate, if post is inaccessible due to the cloud plan's limit.
 func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePostId()
 	if c.Err != nil {
@@ -398,6 +399,12 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	post, err := c.App.GetPostIfAuthorized(c.Params.PostId, c.AppContext.Session(), includeDeleted)
 	if err != nil {
 		c.Err = err
+
+		// Post is inaccessible due to cloud plan's limit.
+		if err.Id == "app.post.cloud.get.app_error" {
+			w.Header().Set(model.HeaderHasInaccessiblePosts, "true")
+		}
+
 		return
 	}
 
@@ -418,6 +425,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// getPostsByIds also sets a header to indicate, if posts were truncated as per the cloud plan's limit.
 func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	postIDs := model.ArrayFromJSON(r.Body)
 
@@ -427,11 +435,11 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(postIDs) > 1000 {
-		c.Err = model.NewAppError("getPostsByIds", "api.post.posts_by_ids.invalid_body.request_error", map[string]interface{}{"MaxLength": 1000}, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("getPostsByIds", "api.post.posts_by_ids.invalid_body.request_error", map[string]any{"MaxLength": 1000}, "", http.StatusBadRequest)
 		return
 	}
 
-	postsList, err := c.App.GetPostsByIds(postIDs)
+	postsList, hasInaccessiblePosts, err := c.App.GetPostsByIds(postIDs)
 	if err != nil {
 		c.Err = err
 		return
@@ -463,6 +471,8 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		post.StripActionIntegrations()
 		posts = append(posts, post)
 	}
+
+	w.Header().Set(model.HeaderHasInaccessiblePosts, strconv.FormatBool(hasInaccessiblePosts))
 
 	if err := json.NewEncoder(w).Encode(posts); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))

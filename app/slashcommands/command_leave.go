@@ -49,7 +49,7 @@ func (*LeaveProvider) DoCommand(a *app.App, c *request.Context, args *model.Comm
 	err = a.LeaveChannel(c, args.ChannelId, args.UserId)
 	if err != nil {
 		if channel.Name == model.DefaultChannelName {
-			return &model.CommandResponse{Text: args.T("api.channel.leave.default.app_error", map[string]interface{}{"Channel": model.DefaultChannelName}), ResponseType: model.CommandResponseTypeEphemeral}
+			return &model.CommandResponse{Text: args.T("api.channel.leave.default.app_error", map[string]any{"Channel": model.DefaultChannelName}), ResponseType: model.CommandResponseTypeEphemeral}
 		}
 		return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}

@@ -68,8 +68,8 @@ func teamMemberSliceColumns() []string {
 	return []string{"TeamId", "UserId", "Roles", "DeleteAt", "SchemeUser", "SchemeAdmin", "SchemeGuest"}
 }
 
-func teamMemberToSlice(member *model.TeamMember) []interface{} {
-	resultSlice := []interface{}{}
+func teamMemberToSlice(member *model.TeamMember) []any {
+	resultSlice := []any{}
 	resultSlice = append(resultSlice, member.TeamId)
 	resultSlice = append(resultSlice, member.UserId)
 	resultSlice = append(resultSlice, member.ExplicitRoles)
@@ -1579,11 +1579,11 @@ func applyTeamMemberViewRestrictionsFilter(query sq.SelectBuilder, restrictions 
 		return query.Where("1 = 0")
 	}
 
-	teams := make([]interface{}, len(restrictions.Teams))
+	teams := make([]any, len(restrictions.Teams))
 	for i, v := range restrictions.Teams {
 		teams[i] = v
 	}
-	channels := make([]interface{}, len(restrictions.Channels))
+	channels := make([]any, len(restrictions.Channels))
 	for i, v := range restrictions.Channels {
 		channels[i] = v
 	}
@@ -1609,11 +1609,11 @@ func applyTeamMemberViewRestrictionsFilterForStats(query sq.SelectBuilder, restr
 		return query.Where("1 = 0")
 	}
 
-	teams := make([]interface{}, len(restrictions.Teams))
+	teams := make([]any, len(restrictions.Teams))
 	for i, v := range restrictions.Teams {
 		teams[i] = v
 	}
-	channels := make([]interface{}, len(restrictions.Channels))
+	channels := make([]any, len(restrictions.Channels))
 	for i, v := range restrictions.Channels {
 		channels[i] = v
 	}

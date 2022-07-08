@@ -14,7 +14,7 @@ import (
 )
 
 type StoreResult struct {
-	Data interface{}
+	Data any
 
 	// NErr a temporary field used by the new code for the AppError migration. This will later become Err when the entire store is migrated.
 	NErr error
@@ -388,6 +388,8 @@ type PostStore interface {
 	SetPostReminder(reminder *model.PostReminder) error
 	GetPostReminders(now int64) ([]*model.PostReminder, error)
 	GetPostReminderMetadata(postID string) (*PostReminderMetadata, error)
+	// GetNthRecentPostTime returns the CreateAt time of the nth most recent post.
+	GetNthRecentPostTime(n int64) (int64, error)
 }
 
 type UserStore interface {

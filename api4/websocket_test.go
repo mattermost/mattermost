@@ -267,7 +267,7 @@ func TestWebSocketSendBinary(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, model.StatusOnline, status)
 
-	WebSocketClient.SendBinaryMessage("get_statuses_by_ids", map[string]interface{}{
+	WebSocketClient.SendBinaryMessage("get_statuses_by_ids", map[string]any{
 		"user_ids": []string{th.BasicUser2.Id},
 	})
 	status, ok = resp.Data[th.BasicUser2.Id]

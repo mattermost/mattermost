@@ -419,7 +419,7 @@ func (o *Post) PreSave() {
 
 func (o *Post) PreCommit() {
 	if o.GetProps() == nil {
-		o.SetProps(make(map[string]interface{}))
+		o.SetProps(make(map[string]any))
 	}
 
 	if o.Filenames == nil {
@@ -438,14 +438,14 @@ func (o *Post) PreCommit() {
 
 func (o *Post) MakeNonNil() {
 	if o.GetProps() == nil {
-		o.SetProps(make(map[string]interface{}))
+		o.SetProps(make(map[string]any))
 	}
 }
 
 func (o *Post) DelProp(key string) {
 	o.propsMu.Lock()
 	defer o.propsMu.Unlock()
-	propsCopy := make(map[string]interface{}, len(o.Props)-1)
+	propsCopy := make(map[string]any, len(o.Props)-1)
 	for k, v := range o.Props {
 		propsCopy[k] = v
 	}
@@ -453,10 +453,10 @@ func (o *Post) DelProp(key string) {
 	o.Props = propsCopy
 }
 
-func (o *Post) AddProp(key string, value interface{}) {
+func (o *Post) AddProp(key string, value any) {
 	o.propsMu.Lock()
 	defer o.propsMu.Unlock()
-	propsCopy := make(map[string]interface{}, len(o.Props)+1)
+	propsCopy := make(map[string]any, len(o.Props)+1)
 	for k, v := range o.Props {
 		propsCopy[k] = v
 	}
@@ -476,7 +476,7 @@ func (o *Post) SetProps(props StringInterface) {
 	o.Props = props
 }
 
-func (o *Post) GetProp(key string) interface{} {
+func (o *Post) GetProp(key string) any {
 	o.propsMu.RLock()
 	defer o.propsMu.RUnlock()
 	return o.Props[key]
@@ -575,7 +575,7 @@ func (o *Post) Attachments() []*SlackAttachment {
 		return attachments
 	}
 	var ret []*SlackAttachment
-	if attachments, ok := o.GetProp("attachments").([]interface{}); ok {
+	if attachments, ok := o.GetProp("attachments").([]any); ok {
 		for _, attachment := range attachments {
 			if enc, err := json.Marshal(attachment); err == nil {
 				var decoded SlackAttachment
@@ -656,7 +656,7 @@ func RewriteImageURLs(message string, f func(string) string) string {
 
 	var ranges []markdown.Range
 
-	markdown.Inspect(message, func(blockOrInline interface{}) bool {
+	markdown.Inspect(message, func(blockOrInline any) bool {
 		switch v := blockOrInline.(type) {
 		case *markdown.ReferenceImage:
 			ranges = append(ranges, v.ReferenceDefinition.RawDestination)

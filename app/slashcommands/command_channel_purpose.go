@@ -82,7 +82,7 @@ func (*PurposeProvider) DoCommand(a *app.App, c *request.Context, args *model.Co
 	if err != nil {
 		text := args.T("api.command_channel_purpose.update_channel.app_error")
 		if err.Id == "model.channel.is_valid.purpose.app_error" {
-			text = args.T("api.command_channel_purpose.update_channel.max_length", map[string]interface{}{
+			text = args.T("api.command_channel_purpose.update_channel.max_length", map[string]any{
 				"MaxLength": model.ChannelPurposeMaxRunes,
 			})
 		}
