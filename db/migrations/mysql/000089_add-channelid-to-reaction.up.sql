@@ -14,7 +14,7 @@ EXECUTE addColumnIfNotExists;
 DEALLOCATE PREPARE addColumnIfNotExists;
 
 
-UPDATE Reactions SET ChannelId = (select ChannelId from Posts where Posts.Id = Reactions.PostId);
+UPDATE Reactions SET ChannelId = (select ChannelId from Posts where Posts.Id = Reactions.PostId) WHERE ChannelId="";
 
 
 SET @preparedStatement = (SELECT IF(
