@@ -81,6 +81,10 @@ func (o *ChannelMember) MentionCountRoot_() float64 {
 	return float64(o.MentionCountRoot)
 }
 
+func (o *ChannelMember) MsgCountRoot_() float64 {
+	return float64(o.MsgCountRoot)
+}
+
 func (o *ChannelMember) LastUpdateAt_() float64 {
 	return float64(o.LastUpdateAt)
 }
