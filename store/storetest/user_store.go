@@ -6152,14 +6152,14 @@ func testUserStoreSearchUsersMultilingual(t *testing.T, ss store.Store, s SqlSto
 
 	var initialDefaultTextSearchConfig string
 	if s.DriverName() == model.DatabaseDriverPostgres {
-		err := s.GetMasterX().Get(&initialDefaultTextSearchConfig, `SHOW default_text_search_config`)
-		require.NoError(t, err)
+		error := s.GetMasterX().Get(&initialDefaultTextSearchConfig, `SHOW default_text_search_config`)
+		require.NoError(t, error)
 	}
 
 	for _, testCase := range testCases {
 		if s.DriverName() == model.DatabaseDriverPostgres {
-			_, err = s.GetMasterX().Exec("SET default_text_search_config TO '" + testCase.Language + "'")
-			require.NoError(t, err)
+			_, error := s.GetMasterX().Exec("SET default_text_search_config TO '" + testCase.Language + "'")
+			require.NoError(t, error)
 		}
 		t.Run(testCase.Description, func(t *testing.T) {
 			users, err := ss.User().SearchWithoutTeam(
@@ -6178,7 +6178,7 @@ func testUserStoreSearchUsersMultilingual(t *testing.T, ss store.Store, s SqlSto
 	}
 
 	if s.DriverName() == model.DatabaseDriverPostgres {
-		_, err = s.GetMasterX().Exec("SET default_text_search_config TO '" + initialDefaultTextSearchConfig + "'")
-		require.NoError(t, err)
+		_, error := s.GetMasterX().Exec("SET default_text_search_config TO '" + initialDefaultTextSearchConfig + "'")
+		require.NoError(t, error)
 	}
 }
