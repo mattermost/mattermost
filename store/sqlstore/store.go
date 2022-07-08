@@ -108,6 +108,7 @@ type SqlStoreStores struct {
 	UserTermsOfService   store.UserTermsOfServiceStore
 	linkMetadata         store.LinkMetadataStore
 	sharedchannel        store.SharedChannelStore
+	draft                store.DraftStore
 }
 
 type SqlStore struct {
@@ -212,6 +213,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.scheme = newSqlSchemeStore(store)
 	store.stores.group = newSqlGroupStore(store)
 	store.stores.productNotices = newSqlProductNoticesStore(store)
+	store.stores.draft = newSqlDraftStore(store, metrics)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -916,6 +918,10 @@ func (ss *SqlStore) LinkMetadata() store.LinkMetadataStore {
 
 func (ss *SqlStore) SharedChannel() store.SharedChannelStore {
 	return ss.stores.sharedchannel
+}
+
+func (ss *SqlStore) Draft() store.DraftStore {
+	return ss.stores.draft
 }
 
 func (ss *SqlStore) DropAllTables() {
