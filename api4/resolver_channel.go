@@ -71,16 +71,16 @@ func parseChannelCursor(cursor string) (channelID string, ok bool) {
 		return "", false
 	}
 
-	parts := strings.Split(string(decoded), "-")
-	if len(parts) != 2 {
+	prefix, id, found := strings.Cut(string(decoded), "-")
+	if !found {
 		return "", false
 	}
 
-	if cursorPrefix(parts[0]) != channelCursorPrefix {
+	if cursorPrefix(prefix) != channelCursorPrefix {
 		return "", false
 	}
 
-	return parts[1], true
+	return id, true
 }
 
 func postProcessChannels(c *web.Context, channels []*model.Channel) ([]*channel, error) {
