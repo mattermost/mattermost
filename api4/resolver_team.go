@@ -66,14 +66,14 @@ func getGraphQLTeams(c *web.Context, teamIDs []string) ([]*model.Team, error) {
 
 	// We pre-calculate this so that it's not computed in separate goroutines outside
 	// the dataloader.
-	for i := range teams {
-		if (!teams[i].AllowOpenInvite || teams[i].Type != model.TeamOpen) &&
-			!c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teams[i].Id, model.PermissionViewTeam) {
+	for i, team := range teams {
+		if (!team.AllowOpenInvite || team.Type != model.TeamOpen) &&
+			!c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
 			c.SetPermissionError(model.PermissionViewTeam)
 			return nil, c.Err
 		}
 
-		teams[i] = c.App.SanitizeTeam(*c.AppContext.Session(), teams[i])
+		teams[i] = c.App.SanitizeTeam(*c.AppContext.Session(), team)
 	}
 
 	// The teams need to be in the exact same order as the input slice.
