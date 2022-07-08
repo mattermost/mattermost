@@ -420,7 +420,6 @@ func TestGetPrettyDNForUsers(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_GRAPHQL", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_GRAPHQL")
 	t.Run("nickname_full_name", func(t *testing.T) {
-		cache := make(map[string]string)
 		users := []*model.User{
 			{
 				Id:        "user1",
@@ -437,7 +436,7 @@ func TestGetPrettyDNForUsers(t *testing.T) {
 				LastName:  "last2",
 			},
 		}
-		assert.Equal(t, "nick2", getPrettyDNForUsers("nickname_full_name", users, "user1", cache))
+		assert.Equal(t, "nick2", getPrettyDNForUsers("nickname_full_name", users, "user1", map[string]string{}))
 
 		users = []*model.User{
 			{
@@ -453,11 +452,10 @@ func TestGetPrettyDNForUsers(t *testing.T) {
 				LastName:  "last2",
 			},
 		}
-		assert.Equal(t, "first2 last2", getPrettyDNForUsers("nickname_full_name", users, "user1", cache))
+		assert.Equal(t, "first2 last2", getPrettyDNForUsers("nickname_full_name", users, "user1", map[string]string{}))
 	})
 
 	t.Run("full_name", func(t *testing.T) {
-		cache := make(map[string]string)
 		users := []*model.User{
 			{
 				Id:        "user1",
@@ -474,7 +472,7 @@ func TestGetPrettyDNForUsers(t *testing.T) {
 				LastName:  "last2",
 			},
 		}
-		assert.Equal(t, "first2 last2", getPrettyDNForUsers("full_name", users, "user1", cache))
+		assert.Equal(t, "first2 last2", getPrettyDNForUsers("full_name", users, "user1", map[string]string{}))
 
 		users = []*model.User{
 			{
@@ -486,11 +484,10 @@ func TestGetPrettyDNForUsers(t *testing.T) {
 				Username: "user2",
 			},
 		}
-		assert.Equal(t, "user2", getPrettyDNForUsers("full_name", users, "user1", cache))
+		assert.Equal(t, "user2", getPrettyDNForUsers("full_name", users, "user1", map[string]string{}))
 	})
 
 	t.Run("username", func(t *testing.T) {
-		cache := make(map[string]string)
 		users := []*model.User{
 			{
 				Id:        "user1",
@@ -507,7 +504,7 @@ func TestGetPrettyDNForUsers(t *testing.T) {
 				LastName:  "last2",
 			},
 		}
-		assert.Equal(t, "user2", getPrettyDNForUsers("username", users, "user1", cache))
+		assert.Equal(t, "user2", getPrettyDNForUsers("username", users, "user1", map[string]string{}))
 	})
 }
 
