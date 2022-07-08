@@ -61,7 +61,7 @@ func getGraphQLTeams(c *web.Context, teamIDs []string) ([]*model.Team, error) {
 	}
 
 	if len(teams) != len(teamIDs) {
-		return nil, fmt.Errorf("All teams were not found. Requested %d; Found %d", len(teamIDs), len(teams))
+		return nil, fmt.Errorf("all teams were not found. Requested %d; Found %d", len(teamIDs), len(teams))
 	}
 
 	// We pre-calculate this so that it's not computed in separate goroutines outside
