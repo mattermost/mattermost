@@ -382,7 +382,14 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		if r.URL.Path != model.APIURLSuffix+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
-			c.App.Metrics().ObserveAPIEndpointDuration(h.HandlerName, r.Method, statusCode, elapsed)
+			var endpoint string
+			if strings.HasPrefix(r.URL.Path, model.APIURLSuffixV5) {
+				// It's a graphQL query, so use the operation name.
+				endpoint = c.GraphQLOperationName
+			} else {
+				endpoint = h.HandlerName
+			}
+			c.App.Metrics().ObserveAPIEndpointDuration(endpoint, r.Method, statusCode, elapsed)
 		}
 	}
 }

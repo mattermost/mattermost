@@ -49,6 +49,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/jobs/extract_content"
 	"github.com/mattermost/mattermost-server/v6/jobs/import_delete"
 	"github.com/mattermost/mattermost-server/v6/jobs/import_process"
+	"github.com/mattermost/mattermost-server/v6/jobs/last_accessible_post"
 	"github.com/mattermost/mattermost-server/v6/jobs/migrations"
 	"github.com/mattermost/mattermost-server/v6/jobs/product_notices"
 	"github.com/mattermost/mattermost-server/v6/jobs/resend_invitation_email"
@@ -2045,6 +2046,12 @@ func (s *Server) initJobs() {
 		model.JobTypeExtractContent,
 		extract_content.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store),
 		nil,
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeLastAccessiblePost,
+		last_accessible_post.MakeWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
+		last_accessible_post.MakeScheduler(s.Jobs, s.License()),
 	)
 }
 
