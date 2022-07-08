@@ -6084,7 +6084,7 @@ func testUserStoreSearchUsersMultilingual(t *testing.T, ss store.Store, s SqlSto
 		},
 		{
 			"search test2 player",
-			"zin",
+			"zine",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
 				Limit:          model.UserSearchDefaultLimit,
@@ -6150,14 +6150,22 @@ func testUserStoreSearchUsersMultilingual(t *testing.T, ss store.Store, s SqlSto
 		},
 	}
 
+	var initialDefaultTextSearchConfig string
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		s.GetMasterX().Get(&initialDefaultTextSearchConfig, `SHOW default_text_search_config`)
+	}
+
 	for _, testCase := range testCases {
-		ss.SetPgDefaultTextSearchConfig(testCase.Language)
-		time.Sleep(1000)
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			setString := "SET default_text_search_config TO '" + testCase.Language + "'"
+			s.GetMasterX().Exec(setString)
+		}
 		t.Run(testCase.Description, func(t *testing.T) {
 			users, err := ss.User().SearchWithoutTeam(
 				testCase.Term,
 				testCase.Options,
 			)
+
 			if s.DriverName() != model.DatabaseDriverPostgres {
 				require.NoError(t, err)
 				assertUsers(t, testCase.ExpectedMysql, users)
@@ -6166,5 +6174,10 @@ func testUserStoreSearchUsersMultilingual(t *testing.T, ss store.Store, s SqlSto
 				assertUsers(t, testCase.ExpectedPostgres, users)
 			}
 		})
+	}
+
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		setString := "SET default_text_search_config TO '" + initialDefaultTextSearchConfig + "'"
+		s.GetMasterX().Exec(setString)
 	}
 }
