@@ -1810,6 +1810,11 @@ func (a *App) CheckPostReminders() {
 		return
 	}
 
+	// This will return the reminders and also delete them from the DB.
+	// In case, any of the next steps fail, those reminders would be lost.
+	// Alternatively, if we delete those reminders _after_ it has been sent,
+	// then in case of any temporary failure, they would get sent in the next batch.
+	// MM-45595.
 	reminders, err := a.Srv().Store.Post().GetPostReminders(time.Now().UTC().Unix())
 	if err != nil {
 		mlog.Error("Failed to get post reminders", mlog.Err(err))
