@@ -609,11 +609,6 @@ func (_m *Store) SetContext(_a0 context.Context) {
 	_m.Called(_a0)
 }
 
-// SetPgDefaultTextSearchConfig provides a mock function with given fields: newTextSearchConfig
-func (_m *Store) SetPgDefaultTextSearchConfig(newTextSearchConfig string) {
-	_m.Called(newTextSearchConfig)
-}
-
 // SharedChannel provides a mock function with given fields:
 func (_m *Store) SharedChannel() store.SharedChannelStore {
 	ret := _m.Called()

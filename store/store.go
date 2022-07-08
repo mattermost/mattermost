@@ -82,7 +82,6 @@ type Store interface {
 	CheckIntegrity() <-chan model.IntegrityCheckResult
 	SetContext(context context.Context)
 	Context() context.Context
-	SetPgDefaultTextSearchConfig(newTextSearchConfig string)
 }
 
 type RetentionPolicyStore interface {
