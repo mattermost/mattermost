@@ -1225,6 +1225,28 @@ func TestGetPostsForChannel(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	}, "Should forbid to retrieve posts if the channel is archived and users are not allowed to view archived messages")
+
+	client.DeletePost(post10.Id)
+	client.DeletePost(post8.Id)
+
+	// include deleted posts for non-admin users.
+	_, resp, err = client.GetPostsForChannel(th.BasicChannel.Id, 0, 100, "", false, true)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		// include deleted posts for admin users.
+		posts, resp, err = c.GetPostsForChannel(th.BasicChannel.Id, 0, 100, "", false, true)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, posts.Order, 12, "expected 12 posts")
+
+		// not include deleted posts for admin users.
+		posts, resp, err = c.GetPostsForChannel(th.BasicChannel.Id, 0, 100, "", false, false)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, posts.Order, 10, "expected 10 posts")
+	})
 }
 
 func TestGetFlaggedPostsForUser(t *testing.T) {
@@ -1498,7 +1520,7 @@ func TestGetPostsBefore(t *testing.T) {
 	th.CreatePost() // post7
 	post8 := th.CreatePost()
 	post9 := th.CreatePost()
-	th.CreatePost() // post10
+	post10 := th.CreatePost() // post10
 
 	// similar to '/posts?before=post9'
 	posts, _, err = client.GetPostsBefore(th.BasicChannel.Id, post9.Id, 0, 60, "", false, false)
@@ -1566,6 +1588,28 @@ func TestGetPostsBefore(t *testing.T) {
 	require.Empty(t, posts.Order, "should return 0 post")
 	require.Equal(t, nonExistentPostId, posts.NextPostId, "should return nonExistentPostId as NextPostId")
 	require.Equal(t, "", posts.PrevPostId, "should return an empty PrevPostId")
+
+	client.DeletePost(post9.Id)
+	client.DeletePost(post8.Id)
+
+	// include deleted posts for non-admin users.
+	_, resp, err = client.GetPostsBefore(th.BasicChannel.Id, post9.Id, 0, 60, "", false, true)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		// include deleted posts for admin users.
+		posts, resp, err = c.GetPostsBefore(th.BasicChannel.Id, post10.Id, 0, 60, "", false, true)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, posts.Order, 11, "expected 11 posts")
+
+		// not include deleted posts for admin users.
+		posts, resp, err = c.GetPostsBefore(th.BasicChannel.Id, post10.Id, 0, 60, "", false, false)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, posts.Order, 9, "expected 9 posts")
+	})
 }
 
 func TestGetPostsAfter(t *testing.T) {
@@ -1690,6 +1734,28 @@ func TestGetPostsAfter(t *testing.T) {
 	require.Empty(t, posts.Order, "should return 0 post")
 	require.Equal(t, "", posts.NextPostId, "should return an empty NextPostId")
 	require.Equal(t, nonExistentPostId, posts.PrevPostId, "should return nonExistentPostId as PrevPostId")
+
+	client.DeletePost(post10.Id)
+	client.DeletePost(post9.Id)
+
+	// include deleted posts for non-admin users.
+	_, resp, err = client.GetPostsAfter(th.BasicChannel.Id, post1.Id, 0, 60, "", false, true)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		// include deleted posts for admin users.
+		posts, resp, err = c.GetPostsAfter(th.BasicChannel.Id, post1.Id, 0, 60, "", false, true)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, posts.Order, 9, "expected 9 posts")
+
+		// not include deleted posts for admin users.
+		posts, resp, err = c.GetPostsAfter(th.BasicChannel.Id, post1.Id, 0, 60, "", false, false)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, posts.Order, 7, "expected 7 posts")
+	})
 }
 
 func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
