@@ -43,6 +43,12 @@ type writeCounter struct {
 func (wc *writeCounter) Write(p []byte) (int, error) {
 	n := len(p)
 	wc.read += int64(n)
+
+	if wc.total <= 0 {
+		// skip the percentage calculation for invalid totals
+		return n, nil
+	}
+
 	percentage := (wc.read * 100) / wc.total
 	if percentage == 0 {
 		upgradePercentage = 1
