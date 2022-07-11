@@ -6,6 +6,7 @@ package app
 import (
 	"errors"
 	"io"
+	"mime"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -20,6 +21,23 @@ import (
 )
 
 const minFirstPartSize = 5 * 1024 * 1024 // 5MB
+
+func (a *App) genFileInfoFromReader(name string, file io.ReadSeeker, size int64) (*model.FileInfo, error) {
+	ext := strings.ToLower(filepath.Ext(name))
+	info := &model.FileInfo{
+		Name:     name,
+		MimeType: mime.TypeByExtension(ext),
+	}
+	if info.IsImage() {
+		config, _, err := a.ch.imgDecoder.DecodeConfig(file)
+		if err != nil {
+			return nil, err
+		}
+		info.Width = config.Width
+		info.Height = config.Height
+	}
+	return info, nil
+}
 
 func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.Reader) *model.AppError {
 	pluginsEnvironment := a.GetPluginsEnvironment()
@@ -244,10 +262,11 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 		return nil, model.NewAppError("UploadData", "app.upload.upload_data.read_file.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	info, err := model.GetInfoForBytes(us.Filename, file, int(us.FileSize))
+	// generate file info
+	info, genErr := a.genFileInfoFromReader(us.Filename, file, us.FileSize)
 	file.Close()
-	if err != nil {
-		return nil, err
+	if genErr != nil {
+		return nil, model.NewAppError("UploadData", "app.upload.upload_data.gen_info.app_error", nil, genErr.Error(), http.StatusInternalServerError)
 	}
 
 	info.CreatorId = us.UserId
