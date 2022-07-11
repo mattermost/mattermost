@@ -357,7 +357,7 @@ func (ts *TelemetryService) trackActivity() {
 		if usage, err := ts.dbStore.FileInfo().GetStorageUsage(true, false); err == nil {
 			tmpStorage = usage
 		}
-		activity["storage_bytes"] = utils.RoundOffToZeroes(float64(tmpStorage))
+		activity["storage_bytes"] = utils.RoundOffToZeroesResolution(float64(tmpStorage), 8)
 	}
 
 	ts.SendTelemetry(TrackActivity, activity)
