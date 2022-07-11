@@ -142,7 +142,9 @@ type Team {
 	id: String!
 	displayName    :    String!
 	name           :    String!
+	createAt       :    Float!
 	updateAt       :    Float!
+	deleteAt       :    Float!
 	description    :    String!
 	email          :    String!
 	type           :    String!
@@ -152,6 +154,9 @@ type Team {
 	lastTeamIconUpdate: Float!
 	groupConstrained:   Boolean
 	allowOpenInvite:    Boolean!
+	schemeId       :    String
+	policyId       :    String
+	cloudLimitsArchived: Boolean!
 }
 
 type TeamMember {
