@@ -52,7 +52,7 @@ func (wc *writeCounter) Write(p []byte) (int, error) {
 	percentage := (wc.read * 100) / wc.total
 	if percentage == 0 {
 		upgradePercentage = 1
-	} else if percentage == 100 {
+	} else if percentage >= 100 {
 		upgradePercentage = 99
 	} else {
 		upgradePercentage = percentage
