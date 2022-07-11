@@ -9361,5 +9361,9 @@
   {
     "id": "app.last_accessible_post.app_error",
     "translation": "Fehler beim Abrufen des letzten zugänglichen Beitrags"
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Fehlschlag bei Erstellen von Dateiinformationen aus hochgeladenen Daten."
   }
 ]
