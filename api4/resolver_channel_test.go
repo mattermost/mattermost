@@ -440,7 +440,7 @@ func TestGetPrettyDNForUsers(t *testing.T) {
 				LastName:  "last2",
 			},
 		}
-		assert.Equal(t, "nick2", getPrettyDNForUsers("nickname_full_name", users, "user1"))
+		assert.Equal(t, "nick2", getPrettyDNForUsers("nickname_full_name", users, "user1", map[string]string{}))
 
 		users = []*model.User{
 			{
@@ -456,7 +456,7 @@ func TestGetPrettyDNForUsers(t *testing.T) {
 				LastName:  "last2",
 			},
 		}
-		assert.Equal(t, "first2 last2", getPrettyDNForUsers("nickname_full_name", users, "user1"))
+		assert.Equal(t, "first2 last2", getPrettyDNForUsers("nickname_full_name", users, "user1", map[string]string{}))
 	})
 
 	t.Run("full_name", func(t *testing.T) {
@@ -476,7 +476,7 @@ func TestGetPrettyDNForUsers(t *testing.T) {
 				LastName:  "last2",
 			},
 		}
-		assert.Equal(t, "first2 last2", getPrettyDNForUsers("full_name", users, "user1"))
+		assert.Equal(t, "first2 last2", getPrettyDNForUsers("full_name", users, "user1", map[string]string{}))
 
 		users = []*model.User{
 			{
@@ -488,7 +488,7 @@ func TestGetPrettyDNForUsers(t *testing.T) {
 				Username: "user2",
 			},
 		}
-		assert.Equal(t, "user2", getPrettyDNForUsers("full_name", users, "user1"))
+		assert.Equal(t, "user2", getPrettyDNForUsers("full_name", users, "user1", map[string]string{}))
 	})
 
 	t.Run("username", func(t *testing.T) {
@@ -508,8 +508,33 @@ func TestGetPrettyDNForUsers(t *testing.T) {
 				LastName:  "last2",
 			},
 		}
-		assert.Equal(t, "user2", getPrettyDNForUsers("username", users, "user1"))
+		assert.Equal(t, "user2", getPrettyDNForUsers("username", users, "user1", map[string]string{}))
 	})
+
+	t.Run("cache", func(t *testing.T) {
+		users := []*model.User{
+			{
+				Id:        "user1",
+				Nickname:  "nick1",
+				Username:  "user1",
+				FirstName: "first1",
+				LastName:  "last1",
+			},
+			{
+				Id:        "user2",
+				Nickname:  "nick2",
+				Username:  "user2",
+				FirstName: "first2",
+				LastName:  "last2",
+			},
+		}
+
+		cache := map[string]string{}
+		assert.Equal(t, "first2 last2", getPrettyDNForUsers("full_name", users, "user1", cache))
+		cache["user2"] = "teststring!!"
+		assert.Equal(t, "teststring!!", getPrettyDNForUsers("full_name", users, "user1", cache))
+	})
+
 }
 
 func TestChannelCursor(t *testing.T) {
