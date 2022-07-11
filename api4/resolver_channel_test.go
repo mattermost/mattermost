@@ -40,6 +40,8 @@ func TestGraphQLChannels(t *testing.T) {
 			Header            string            `json:"header"`
 			Purpose           string            `json:"purpose"`
 			SchemeId          string            `json:"schemeId"`
+			TotalMsgCountRoot float64           `json:"totalMsgCountRoot"`
+			LastRootPostAt    float64           `json:"lastRootPostAt"`
 			Cursor            string            `json:"cursor"`
 			Team              struct {
 				ID          string `json:"id"`
@@ -70,6 +72,8 @@ func TestGraphQLChannels(t *testing.T) {
 	    header
 	    purpose
 	    schemeId
+		totalMsgCountRoot
+		lastRootPostAt
 	    cursor
 	  }
 	}
