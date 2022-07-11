@@ -36,14 +36,14 @@ var upgradeError error
 var upgrading int32
 
 type writeCounter struct {
-	total  int64
-	readed int64
+	total int64
+	read  int64
 }
 
 func (wc *writeCounter) Write(p []byte) (int, error) {
 	n := len(p)
-	wc.readed += int64(n)
-	percentage := (wc.readed * 100) / wc.total
+	wc.read += int64(n)
+	percentage := (wc.read * 100) / wc.total
 	if percentage == 0 {
 		upgradePercentage = 1
 	} else if percentage == 100 {
