@@ -40,8 +40,8 @@ func (s *channelsWrapper) GetChannelMember(c request.CTX, channelID string, user
 	return s.srv.getChannelMember(c, channelID, userID)
 }
 
-func (s *channelsWrapper) GetChannelsForTeamForUser(teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
-	return s.srv.getChannelsForTeamForUser(teamID, userID, opts)
+func (s *channelsWrapper) GetChannelsForTeamForUser(c request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
+	return s.srv.getChannelsForTeamForUser(c, teamID, userID, opts)
 }
 
 // DefaultChannelNames returns the list of system-wide default channel names.
