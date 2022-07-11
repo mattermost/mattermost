@@ -46,19 +46,28 @@ func (wc *writeCounter) Write(p []byte) (int, error) {
 
 	if wc.total <= 0 {
 		// skip the percentage calculation for invalid totals
-		upgradePercentage = 50
+		setUpgradePercentage(50)
 		return n, nil
 	}
 
 	percentage := (wc.read * 100) / wc.total
 	if percentage == 0 {
-		upgradePercentage = 1
+		percentage = 1
 	} else if percentage >= 100 {
-		upgradePercentage = 99
-	} else {
-		upgradePercentage = percentage
+		percentage = 99
 	}
+
+	setUpgradePercentage(percentage)
+
 	return n, nil
+}
+
+func getUpgradePercentage() int64 {
+	return atomic.LoadInt64(&upgradePercentage)
+}
+
+func setUpgradePercentage(to int64) {
+	atomic.StoreInt64(&upgradePercentage, to)
 }
 
 func getCurrentVersionTgzURL() string {
@@ -165,12 +174,12 @@ func UpgradeToE0() error {
 	}
 	defer atomic.CompareAndSwapInt32(&upgrading, 1, 0)
 
-	upgradePercentage = 1
+	setUpgradePercentage(1)
 	upgradeError = nil
 
 	executablePath, err := os.Executable()
 	if err != nil {
-		upgradePercentage = 0
+		setUpgradePercentage(0)
 		upgradeError = errors.New("error getting the executable path")
 		mlog.Error("Unable to get the path of the Mattermost executable", mlog.Err(err))
 		return err
@@ -181,9 +190,9 @@ func UpgradeToE0() error {
 		if filename != "" {
 			os.Remove(filename)
 		}
-		upgradeError = fmt.Errorf("error downloading the new Mattermost server binary file (percentage: %d)", upgradePercentage)
-		mlog.Error("Unable to download the Mattermost server binary file", mlog.Int64("percentage", upgradePercentage), mlog.String("url", getCurrentVersionTgzURL()), mlog.Err(err))
-		upgradePercentage = 0
+		upgradeError = fmt.Errorf("error downloading the new Mattermost server binary file (percentage: %d)", getUpgradePercentage())
+		mlog.Error("Unable to download the Mattermost server binary file", mlog.Int64("percentage", getUpgradePercentage()), mlog.String("url", getCurrentVersionTgzURL()), mlog.Err(err))
+		setUpgradePercentage(0)
 		return err
 	}
 	defer os.Remove(filename)
@@ -194,32 +203,33 @@ func UpgradeToE0() error {
 		}
 		upgradeError = errors.New("error downloading the signature file of the new server")
 		mlog.Error("Unable to download the signature file of the new Mattermost server", mlog.String("url", getCurrentVersionTgzURL()+".sig"), mlog.Err(err))
-		upgradePercentage = 0
+		setUpgradePercentage(0)
 		return err
 	}
 	defer os.Remove(sigfilename)
 
 	err = verifySignature(filename, sigfilename, mattermostBuildPublicKeys)
 	if err != nil {
-		upgradePercentage = 0
 		upgradeError = errors.New("unable to verify the signature of the downloaded file")
 		mlog.Error("Unable to verify the signature of the downloaded file", mlog.Err(err))
+		setUpgradePercentage(0)
 		return err
 	}
 
 	err = extractBinary(executablePath, filename)
 	if err != nil {
-		upgradePercentage = 0
 		upgradeError = err
 		mlog.Error("Unable to extract the binary from the downloaded file", mlog.Err(err))
+		setUpgradePercentage(0)
 		return err
 	}
-	upgradePercentage = 100
+
+	setUpgradePercentage(100)
 	return nil
 }
 
 func UpgradeToE0Status() (int64, error) {
-	return upgradePercentage, upgradeError
+	return getUpgradePercentage(), upgradeError
 }
 
 func download(url string, limit int64) (string, error) {
