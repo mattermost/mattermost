@@ -46,6 +46,7 @@ func (wc *writeCounter) Write(p []byte) (int, error) {
 
 	if wc.total <= 0 {
 		// skip the percentage calculation for invalid totals
+		upgradePercentage = 50
 		return n, nil
 	}
 
