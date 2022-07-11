@@ -7,6 +7,7 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
+	_ "embed"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -27,24 +28,8 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
-const mattermostBuildPublicKey = `-----BEGIN PGP PUBLIC KEY BLOCK-----
-
-mQENBFjZQxwBCAC6kNn3zDlq/aY83M9V7MHVPoK2jnZ3BfH7sA+ibQXsijCkPSR4
-5bCUJ9qVA4XKGK+cpO9vkolSNs10igCaaemaUZNB6ksu3gT737/SZcCAfRO+cLX7
-Q2la+jwTvu1YeT/M5xDZ1KHTFxsGskeIenz2rZHeuZwBl9qep34QszWtRX40eRts
-fl6WltLrepiExTp6NMZ50k+Em4JGM6CWBMo22ucy0jYjZXO5hEGb3o6NGiG+Dx2z
-b2J78LksCKGsSrn0F1rLJeA933bFL4g9ozv9asBlzmpgG77ESg6YE1N/Rh7WDzVA
-prIR0MuB5JjElASw5LDVxDV6RZsxEVQr7ETLABEBAAG0KU1hdHRlcm1vc3QgQnVp
-bGQgPGRldi1vcHNAbWF0dGVybW9zdC5jb20+iQFUBBMBCAA+AhsDBQsJCAcCBhUI
-CQoLAgQWAgMBAh4BAheAFiEEobMdRvDzoQsCzy1E+PLDF0R3SygFAmJOqWgFCQ03
-zUwACgkQ+PLDF0R3Syg/rQf8D5BgvVFnGuHDYNu2eiasZdfxmuhg1C7JGSLHqoCT
-SB/0SLLQyMeHsJLye/gbo3yhK8G9XYOm+obGF+NDxB0LtRaPv5Q6pIQYt88ZxOGA
-Kh6RG2DjYA5j410wYrN0mNzhudqnS2yZdyq215nEr7Z6l1T7L9OPcz0u0mF9RraQ
-nawzxbxc8mPuC5tMLTedViSkTYLgMY12TCSYhykseUIGrl/FBfMbmKwBHM52SZJh
-maBevuNymlFbODTciyE9Q7mJHkaamGKTXaa3Enlcf16oSoemawSBJuspaS0sZOW8
-dgi5l3V5YvfFvSk45axiZbnGYfN81G5mkSGAENSGSKVtMA==
-=kkvg
------END PGP PUBLIC KEY BLOCK-----`
+//go:embed pubkey.gpg
+var mattermostBuildPublicKeys []byte
 
 var upgradePercentage int64
 var upgradeError error
@@ -78,8 +63,8 @@ func getCurrentVersionTgzURL() string {
 	return "https://releases.mattermost.com/" + version + "/mattermost-" + version + "-linux-amd64.tar.gz"
 }
 
-func verifySignature(filename string, sigfilename string, publicKey string) error {
-	keyring, err := openpgp.ReadArmoredKeyRing(bytes.NewReader([]byte(publicKey)))
+func verifySignature(filename string, sigfilename string, publicKey []byte) error {
+	keyring, err := openpgp.ReadArmoredKeyRing(bytes.NewReader(publicKey))
 	if err != nil {
 		mlog.Debug("Unable to load the public key to verify the file signature", mlog.Err(err))
 		return NewInvalidSignature()
@@ -207,7 +192,7 @@ func UpgradeToE0() error {
 	}
 	defer os.Remove(sigfilename)
 
-	err = verifySignature(filename, sigfilename, mattermostBuildPublicKey)
+	err = verifySignature(filename, sigfilename, mattermostBuildPublicKeys)
 	if err != nil {
 		upgradePercentage = 0
 		upgradeError = errors.New("unable to verify the signature of the downloaded file")
