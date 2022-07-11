@@ -5,6 +5,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -15,6 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	eMocks "github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
@@ -429,8 +431,8 @@ func TestPostChannelMentions(t *testing.T) {
 
 	post, err = th.App.CreatePostAsUser(th.Context, post, "", true)
 	require.Nil(t, err)
-	assert.Equal(t, map[string]interface{}{
-		"mention-test": map[string]interface{}{
+	assert.Equal(t, map[string]any{
+		"mention-test": map[string]any{
 			"display_name": "Mention Test",
 			"team_name":    th.BasicTeam.Name,
 		},
@@ -439,8 +441,8 @@ func TestPostChannelMentions(t *testing.T) {
 	post.Message = fmt.Sprintf("goodbye, ~%v!", channelToMention.Name)
 	result, err := th.App.UpdatePost(th.Context, post, false)
 	require.Nil(t, err)
-	assert.Equal(t, map[string]interface{}{
-		"mention-test": map[string]interface{}{
+	assert.Equal(t, map[string]any{
+		"mention-test": map[string]any{
 			"display_name": "Mention Test",
 			"team_name":    th.BasicTeam.Name,
 		},
@@ -858,7 +860,7 @@ func TestCreatePost(t *testing.T) {
 			Description string
 			Channel     *model.Channel
 			Author      string
-			Assert      func(t assert.TestingT, object interface{}, msgAndArgs ...interface{}) bool
+			Assert      func(t assert.TestingT, object any, msgAndArgs ...any) bool
 		}{
 			{
 				Description: "removes metadata from post for members who cannot read channel",
@@ -1345,7 +1347,7 @@ func TestUpdatePost(t *testing.T) {
 			Description string
 			Channel     *model.Channel
 			Author      string
-			Assert      func(t assert.TestingT, object interface{}, msgAndArgs ...interface{}) bool
+			Assert      func(t assert.TestingT, object any, msgAndArgs ...any) bool
 		}{
 			{
 				Description: "removes metadata from post for members who cannot read channel",
@@ -1879,7 +1881,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 			ChannelId: channel.Id,
 			Message:   "test",
 			Type:      model.PostTypeAddToChannel,
-			Props: map[string]interface{}{
+			Props: map[string]any{
 				model.PostPropsAddedUserId: model.NewId(),
 			},
 		}, channel, false, true)
@@ -1889,7 +1891,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 			ChannelId: channel.Id,
 			Message:   "test2",
 			Type:      model.PostTypeAddToChannel,
-			Props: map[string]interface{}{
+			Props: map[string]any{
 				model.PostPropsAddedUserId: user2.Id,
 			},
 		}, channel, false, true)
@@ -1899,7 +1901,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 			ChannelId: channel.Id,
 			Message:   "test3",
 			Type:      model.PostTypeAddToChannel,
-			Props: map[string]interface{}{
+			Props: map[string]any{
 				model.PostPropsAddedUserId: user2.Id,
 			},
 		}, channel, false, true)
@@ -2089,7 +2091,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 			UserId:    user2.Id,
 			ChannelId: channel.Id,
 			Message:   fmt.Sprintf("@%s", user2.Username),
-			Props: map[string]interface{}{
+			Props: map[string]any{
 				"from_webhook": "true",
 			},
 		}, channel, false, true)
@@ -2818,13 +2820,71 @@ func TestShouldNotRefollowOnOthersReply(t *testing.T) {
 	require.True(t, m.Following)
 }
 
+func TestGetLastAccessiblePostTime(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	r, err := th.App.GetLastAccessiblePostTime()
+	assert.Nil(t, err)
+	assert.Equal(t, int64(0), r)
+
+	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+	mockStore := th.App.Srv().Store.(*storemocks.Store)
+
+	mockSystemStore := storemocks.SystemStore{}
+	mockStore.On("System").Return(&mockSystemStore)
+	mockSystemStore.On("GetByName", mock.Anything).Return(nil, store.NewErrNotFound("", ""))
+	r, err = th.App.GetLastAccessiblePostTime()
+	assert.Nil(t, err)
+	assert.Equal(t, int64(0), r)
+
+	mockSystemStore = storemocks.SystemStore{}
+	mockStore.On("System").Return(&mockSystemStore)
+	mockSystemStore.On("GetByName", mock.Anything).Return(nil, errors.New("test"))
+	_, err = th.App.GetLastAccessiblePostTime()
+	assert.NotNil(t, err)
+
+	mockSystemStore = storemocks.SystemStore{}
+	mockStore.On("System").Return(&mockSystemStore)
+	mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemLastAccessiblePostTime, Value: "10"}, nil)
+	r, err = th.App.GetLastAccessiblePostTime()
+	assert.Nil(t, err)
+	assert.Equal(t, int64(10), r)
+}
+
+func TestComputeLastAccessiblePostTime(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+	cloud := &eMocks.CloudInterface{}
+	th.App.Srv().Cloud = cloud
+
+	cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
+		Messages: &model.MessagesLimits{
+			History: model.NewInt(1),
+		},
+	}, nil)
+
+	mockStore := th.App.Srv().Store.(*storemocks.Store)
+	mockPostStore := storemocks.PostStore{}
+	mockPostStore.On("GetNthRecentPostTime", mock.Anything).Return(int64(1), nil)
+	mockSystemStore := storemocks.SystemStore{}
+	mockSystemStore.On("SaveOrUpdate", mock.Anything).Return(nil)
+	mockStore.On("Post").Return(&mockPostStore)
+	mockStore.On("System").Return(&mockSystemStore)
+
+	err := th.App.ComputeLastAccessiblePostTime()
+	assert.NoError(t, err)
+
+	mockSystemStore.AssertCalled(t, "SaveOrUpdate", mock.Anything)
+}
+
 func TestGetTopThreadsForTeamSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-
-	th.Server.configStore.SetReadOnlyFF(false)
-	defer th.Server.configStore.SetReadOnlyFF(true)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 
 	// create a public channel, a private channel
 	channelPublic := th.CreateChannel(th.BasicTeam)
@@ -2897,10 +2957,6 @@ func TestGetTopThreadsForTeamSince(t *testing.T) {
 func TestGetTopThreadsForUserSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-
-	th.Server.configStore.SetReadOnlyFF(false)
-	defer th.Server.configStore.SetReadOnlyFF(true)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 
 	// create a public channel, a private channel
 	channelPublic := th.CreateChannel(th.BasicTeam)

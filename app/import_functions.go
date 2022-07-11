@@ -45,7 +45,7 @@ func (a *App) importScheme(data *SchemeImportData, dryRun bool) *model.AppError 
 	if err != nil {
 		scheme = new(model.Scheme)
 	} else if scheme.Scope != *data.Scope {
-		return model.NewAppError("BulkImport", "app.import.import_scheme.scope_change.error", map[string]interface{}{"SchemeName": scheme.Name}, "", http.StatusBadRequest)
+		return model.NewAppError("BulkImport", "app.import.import_scheme.scope_change.error", map[string]any{"SchemeName": scheme.Name}, "", http.StatusBadRequest)
 	}
 
 	scheme.Name = *data.Name
@@ -239,7 +239,7 @@ func (a *App) importChannel(c *request.Context, data *ChannelImportData, dryRun 
 
 	team, err := a.Srv().Store.Team().GetByName(*data.Team)
 	if err != nil {
-		return model.NewAppError("BulkImport", "app.import.import_channel.team_not_found.error", map[string]interface{}{"TeamName": *data.Team}, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("BulkImport", "app.import.import_channel.team_not_found.error", map[string]any{"TeamName": *data.Team}, err.Error(), http.StatusBadRequest)
 	}
 
 	var channel *model.Channel
@@ -1068,7 +1068,7 @@ func (a *App) importReaction(data *ReactionImportData, post *model.Post) *model.
 	var user *model.User
 	var nErr error
 	if user, nErr = a.Srv().Store.User().GetByUsername(*data.User); nErr != nil {
-		return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": data.User}, nErr.Error(), http.StatusBadRequest)
+		return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]any{"Username": data.User}, nErr.Error(), http.StatusBadRequest)
 	}
 
 	reaction := &model.Reaction{
@@ -1200,7 +1200,7 @@ func (a *App) importAttachment(c *request.Context, data *AttachmentImportData, p
 	if data.Data != nil {
 		zipFile, err := data.Data.Open()
 		if err != nil {
-			return nil, model.NewAppError("BulkImport", "app.import.attachment.bad_file.error", map[string]interface{}{"FilePath": *data.Path}, err.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("BulkImport", "app.import.attachment.bad_file.error", map[string]any{"FilePath": *data.Path}, err.Error(), http.StatusBadRequest)
 		}
 		defer zipFile.Close()
 		name = data.Data.Name
@@ -1208,7 +1208,7 @@ func (a *App) importAttachment(c *request.Context, data *AttachmentImportData, p
 	} else {
 		realFile, err := os.Open(*data.Path)
 		if err != nil {
-			return nil, model.NewAppError("BulkImport", "app.import.attachment.bad_file.error", map[string]interface{}{"FilePath": *data.Path}, err.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("BulkImport", "app.import.attachment.bad_file.error", map[string]any{"FilePath": *data.Path}, err.Error(), http.StatusBadRequest)
 		}
 		defer realFile.Close()
 		name = realFile.Name()
@@ -1219,14 +1219,14 @@ func (a *App) importAttachment(c *request.Context, data *AttachmentImportData, p
 
 	fileData, err := ioutil.ReadAll(file)
 	if err != nil {
-		return nil, model.NewAppError("BulkImport", "app.import.attachment.read_file_data.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
+		return nil, model.NewAppError("BulkImport", "app.import.attachment.read_file_data.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest)
 	}
 
 	// Go over existing files in the post and see if there already exists a file with the same name, size and hash. If so - skip it
 	if post.Id != "" {
 		oldFiles, err := a.GetFileInfosForPost(post.Id, true)
 		if err != nil {
-			return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
+			return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest)
 		}
 		for _, oldFile := range oldFiles {
 			if oldFile.Name != path.Base(name) || oldFile.Size != int64(len(fileData)) {
@@ -1236,7 +1236,7 @@ func (a *App) importAttachment(c *request.Context, data *AttachmentImportData, p
 			newHash := sha1.Sum(fileData)
 			oldFileData, err := a.GetFile(oldFile.Id)
 			if err != nil {
-				return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
+				return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest)
 			}
 			oldHash := sha1.Sum(oldFileData)
 
@@ -1327,7 +1327,7 @@ func (a *App) getChannelsForPosts(teams map[string]*model.Team, data []*PostImpo
 			var err error
 			channel, err = a.Srv().Store.Channel().GetByName(teams[teamName].Id, *postData.Channel, true)
 			if err != nil {
-				return nil, model.NewAppError("BulkImport", "app.import.import_post.channel_not_found.error", map[string]interface{}{"ChannelName": *postData.Channel}, err.Error(), http.StatusBadRequest)
+				return nil, model.NewAppError("BulkImport", "app.import.import_post.channel_not_found.error", map[string]any{"ChannelName": *postData.Channel}, err.Error(), http.StatusBadRequest)
 			}
 			teamChannels[teamName][*postData.Channel] = channel
 		}
@@ -1881,7 +1881,7 @@ func (a *App) importEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
 		file, err = os.Open(*data.Image)
 	}
 	if err != nil {
-		return model.NewAppError("BulkImport", "app.import.emoji.bad_file.error", map[string]interface{}{"EmojiName": *data.Name}, "", http.StatusBadRequest)
+		return model.NewAppError("BulkImport", "app.import.emoji.bad_file.error", map[string]any{"EmojiName": *data.Name}, "", http.StatusBadRequest)
 	}
 	defer file.Close()
 

@@ -227,7 +227,7 @@ func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSynca
 		}
 		return nil
 	default:
-		return model.NewAppError("App.SyncSyncableRoles", "groups.unsupported_syncable_type", map[string]interface{}{"Value": syncableType}, "", http.StatusInternalServerError)
+		return model.NewAppError("App.SyncSyncableRoles", "groups.unsupported_syncable_type", map[string]any{"Value": syncableType}, "", http.StatusInternalServerError)
 	}
 }
 

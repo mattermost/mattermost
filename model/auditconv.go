@@ -10,7 +10,7 @@ import (
 )
 
 // AuditModelTypeConv converts key model types to something better suited for audit output.
-func AuditModelTypeConv(val interface{}) (newVal interface{}, converted bool) {
+func AuditModelTypeConv(val any) (newVal any, converted bool) {
 	if val == nil {
 		return nil, false
 	}

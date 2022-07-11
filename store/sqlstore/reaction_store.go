@@ -306,7 +306,7 @@ func (s *SqlReactionStore) GetTopForTeamSince(teamID string, userID string, sinc
 // b) those created by the given user in DM or group channels.
 func (s *SqlReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopReactionList, error) {
 	reactions := make([]*model.TopReaction, 0)
-	var args []interface{}
+	var args []any
 	var query string
 
 	if teamID != "" {
@@ -330,7 +330,7 @@ func (s *SqlReactionStore) GetTopForUserSince(userID string, teamID string, sinc
 			EmojiName ASC
 		LIMIT ?
 		OFFSET ?`
-		args = []interface{}{userID, teamID, since, limit + 1, offset}
+		args = []any{userID, teamID, since, limit + 1, offset}
 	} else {
 		query = `
 			SELECT
@@ -349,7 +349,7 @@ func (s *SqlReactionStore) GetTopForUserSince(userID string, teamID string, sinc
 				EmojiName ASC
 			LIMIT ?
 			OFFSET ?`
-		args = []interface{}{userID, since, limit + 1, offset}
+		args = []any{userID, since, limit + 1, offset}
 	}
 
 	if err := s.GetReplicaX().Select(&reactions, query, args...); err != nil {

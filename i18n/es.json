@@ -8108,10 +8108,6 @@
     "translation": "Agiliza tu trabajo con herramientas como Github, Jira y Zoom. Explora todas las integraciones que tenemos en nuestro"
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Tu prueba gratuita de 14 días de Mattermost finaliza pronto"
-  },
-  {
     "id": "api.command_share.unknown_action",
     "translation": "Acción desconocida `{{.Action}}`. Acciones disponibles: {{.Actions}}"
   },
@@ -8138,34 +8134,6 @@
   {
     "id": "api.command_remote.missing_command",
     "translation": "Falta el comando. Acciones disponibles: {{.Actions}}"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, su prueba de 14 días de Mattermost finaliza en 3 días, en {{.TrialEnd}}. Por favor, añada su información de pago para garantizar que su equipo pueda seguir disfrutando de los beneficios de Mattermost Cloud."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Fin de la prueba de la nube de Mattermost"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Añadir método de pago"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Su prueba gratuita de 14 días de Mattermost ha terminado hoy"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, su prueba gratuita de 14 días de Mattermost Cloud Enterprise ha terminado hoy, {{.TodayDate}}. Por favor, añada su información de pago para asegurarse de que su equipo pueda seguir disfrutando de los beneficios de Cloud Enterprise."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "La prueba en la nube de Mattermost ha terminado"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Iniciar la suscripción"
   },
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",

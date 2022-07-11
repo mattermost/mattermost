@@ -415,7 +415,7 @@ func testReactionGetForPostSince(t *testing.T, ss store.Store, s SqlStore) {
 }
 
 func forceUpdateAt(reaction *model.Reaction, updateAt int64, s SqlStore) error {
-	params := map[string]interface{}{
+	params := map[string]any{
 		"userid":    reaction.UserId,
 		"postid":    reaction.PostId,
 		"emojiname": reaction.EmojiName,

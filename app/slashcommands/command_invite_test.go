@@ -58,7 +58,7 @@ func TestInviteProvider(t *testing.T) {
 
 	InviteP := InviteProvider{}
 	args := &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: th.BasicChannel.Id,
 		TeamId:    th.BasicTeam.Id,
 		UserId:    th.BasicUser.Id,
@@ -195,7 +195,7 @@ func TestInviteGroup(t *testing.T) {
 
 	InviteP := InviteProvider{}
 	args := &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: th.BasicChannel.Id,
 		TeamId:    th.BasicTeam.Id,
 		UserId:    th.BasicUser.Id,

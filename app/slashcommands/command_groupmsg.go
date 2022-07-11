@@ -73,7 +73,7 @@ func (*groupmsgProvider) DoCommand(a *app.App, c *request.Context, args *model.C
 	}
 
 	if len(invalidUsernames) > 0 {
-		invalidUsersString := map[string]interface{}{
+		invalidUsersString := map[string]any{
 			"Users": "@" + strings.Join(invalidUsernames, ", @"),
 		}
 		return &model.CommandResponse{
@@ -87,7 +87,7 @@ func (*groupmsgProvider) DoCommand(a *app.App, c *request.Context, args *model.C
 	}
 
 	if len(targetUsersSlice) < model.ChannelGroupMinUsers {
-		minUsers := map[string]interface{}{
+		minUsers := map[string]any{
 			"MinUsers": model.ChannelGroupMinUsers - 1,
 		}
 		return &model.CommandResponse{
@@ -97,7 +97,7 @@ func (*groupmsgProvider) DoCommand(a *app.App, c *request.Context, args *model.C
 	}
 
 	if len(targetUsersSlice) > model.ChannelGroupMaxUsers {
-		maxUsers := map[string]interface{}{
+		maxUsers := map[string]any{
 			"MaxUsers": model.ChannelGroupMaxUsers - 1,
 		}
 		return &model.CommandResponse{

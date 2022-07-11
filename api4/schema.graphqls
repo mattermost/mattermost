@@ -58,6 +58,8 @@ type Channel {
 	shared: Boolean
 	lastPostAt: Float!
 	totalMsgCount: Float!
+	totalMsgCountRoot: Float!
+	lastRootPostAt: Float!
 	stats: ChannelStats
 	cursor: String
 }
@@ -70,6 +72,7 @@ type ChannelMember {
 	msgCount         : Float!
 	mentionCount     : Float!
 	mentionCountRoot : Float!
+	msgCountRoot     : Float!
 	notifyProps      : StringMap!
 	lastUpdateAt     : Float!
 	schemeGuest      : Boolean!

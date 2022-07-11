@@ -75,7 +75,7 @@ func TestGraphQLTeamMembers(t *testing.T) {
 	  }
 	}
 	`,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"userId": "me",
 			},
 		}
@@ -128,7 +128,7 @@ func TestGraphQLTeamMembers(t *testing.T) {
 	  }
 	}
 	`,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"userId": "me",
 				"teamId": th.BasicTeam.Id,
 			},
@@ -180,7 +180,7 @@ func TestGraphQLTeamMembers(t *testing.T) {
 	  }
 	}
 	`,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"userId": "me",
 			},
 		}
@@ -233,7 +233,7 @@ func TestGraphQLTeamMembers(t *testing.T) {
 	  }
 	}
 	`,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"userId": "me",
 				"teamId": th.BasicTeam.Id,
 			},
@@ -257,7 +257,7 @@ func TestGraphQLTeamMembers(t *testing.T) {
 	  }
 	}
 	`,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"userId": "me",
 			},
 		}

@@ -40,6 +40,8 @@ func TestGraphQLChannels(t *testing.T) {
 			Header            string            `json:"header"`
 			Purpose           string            `json:"purpose"`
 			SchemeId          string            `json:"schemeId"`
+			TotalMsgCountRoot float64           `json:"totalMsgCountRoot"`
+			LastRootPostAt    float64           `json:"lastRootPostAt"`
 			Cursor            string            `json:"cursor"`
 			Team              struct {
 				ID          string `json:"id"`
@@ -70,6 +72,8 @@ func TestGraphQLChannels(t *testing.T) {
 	    header
 	    purpose
 	    schemeId
+		totalMsgCountRoot
+		lastRootPostAt
 	    cursor
 	  }
 	}
@@ -128,7 +132,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input := graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"userId": u1.Id,
 			},
 		}
@@ -157,7 +161,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input := graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"first": 4,
 			},
 		}
@@ -171,7 +175,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input = graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"first": 4,
 				"after": q.Channels[3].Cursor,
 			},
@@ -186,7 +190,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input = graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"first": 4,
 				"after": q.Channels[3].Cursor,
 			},
@@ -209,7 +213,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input := graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"first":  10,
 				"teamId": myTeam.Id,
 			},
@@ -224,7 +228,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input = graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"first":  2,
 				"teamId": myTeam.Id,
 			},
@@ -251,7 +255,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input := graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"first":  2,
 				"teamId": myTeam.Id,
 			},
@@ -286,7 +290,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input := graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"includeDeleted": false,
 			},
 		}
@@ -301,7 +305,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input = graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"includeDeleted": true,
 				"lastUpdateAt":   float64(now),
 			},
@@ -318,7 +322,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input = graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"includeDeleted": true,
 				"lastUpdateAt":   float64(now),
 			},
@@ -339,7 +343,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input = graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"includeDeleted": false,
 			},
 		}
@@ -353,7 +357,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input = graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"includeDeleted": true,
 				"lastDeleteAt":   float64(model.GetMillis()),
 			},
@@ -368,7 +372,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input = graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"includeDeleted": true,
 				"lastDeleteAt":   float64(model.GetMillis()),
 				"first":          5,
@@ -396,7 +400,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input := graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"first":  10,
 				"teamId": myTeam.Id,
 			},

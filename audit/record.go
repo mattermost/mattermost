@@ -4,11 +4,11 @@
 package audit
 
 // Meta represents metadata that can be added to a audit record as name/value pairs.
-type Meta map[string]interface{}
+type Meta map[string]any
 
 // FuncMetaTypeConv defines a function that can convert meta data types into something
 // that serializes well for audit records.
-type FuncMetaTypeConv func(val interface{}) (newVal interface{}, converted bool)
+type FuncMetaTypeConv func(val any) (newVal any, converted bool)
 
 // Record provides a consistent set of fields used for all audit logging.
 type Record struct {
@@ -34,7 +34,7 @@ func (rec *Record) Fail() {
 }
 
 // AddMeta adds a single name/value pair to this audit record's metadata.
-func (rec *Record) AddMeta(name string, val interface{}) {
+func (rec *Record) AddMeta(name string, val any) {
 	if rec.Meta == nil {
 		rec.Meta = Meta{}
 	}
