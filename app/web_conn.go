@@ -580,7 +580,7 @@ func (wc *WebConn) isInDeadQueue(seq int64) (bool, int) {
 func (wc *WebConn) clearDeadQueue() {
 	for i := 0; i < deadQueueSize; i++ {
 		if wc.deadQueue[i] == nil {
-			return
+			break
 		}
 		wc.deadQueue[i] = nil
 	}
