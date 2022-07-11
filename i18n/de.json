@@ -9349,5 +9349,17 @@
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Administrator schon benachrichtigt"
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "Der Wert konnte nicht geparst werden: {{.Value}} nach int64"
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Der Beitrag kann nicht abgerufen werden, da er das Limit des Cloud-Plans überschreitet."
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "Fehler beim Abrufen des letzten zugänglichen Beitrags"
   }
 ]
