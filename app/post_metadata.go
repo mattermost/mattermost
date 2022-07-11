@@ -744,7 +744,7 @@ func parseImages(body io.Reader) (*model.PostImage, error) {
 
 	if format == "gif" {
 		// Decoding the config may have read some of the image data, so re-read the data that has already been read first
-		frameCount, err := imgutils.CountFrames(io.MultiReader(buf, body))
+		frameCount, err := imgutils.CountGIFFrames(io.MultiReader(buf, body))
 		if err != nil {
 			return nil, err
 		}

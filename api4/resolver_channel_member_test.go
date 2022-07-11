@@ -66,6 +66,7 @@ func TestGraphQLChannelMembers(t *testing.T) {
 			MsgCount         float64         `json:"msgCount"`
 			MentionCount     float64         `json:"mentionCount"`
 			MentionCountRoot float64         `json:"mentionCountRoot"`
+			MsgCountRoot     float64         `json:"msgCountRoot"`
 			NotifyProps      model.StringMap `json:"notifyProps"`
 			SchemeGuest      bool            `json:"schemeGuest"`
 			SchemeUser       bool            `json:"schemeUser"`
@@ -100,6 +101,7 @@ func TestGraphQLChannelMembers(t *testing.T) {
 	  	msgCount
 	  	mentionCount
 	  	mentionCountRoot
+		msgCountRoot
 	  	schemeGuest
 	  	schemeUser
 	  	schemeAdmin
