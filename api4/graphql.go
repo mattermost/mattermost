@@ -101,6 +101,8 @@ func (api *API) graphQL(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	c.GraphQLOperationName = params.OperationName
+
 	// Populate the context with required info.
 	reqCtx := r.Context()
 	reqCtx = context.WithValue(reqCtx, webCtx, c)
