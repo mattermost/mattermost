@@ -9290,5 +9290,29 @@
   {
     "id": "api.insights.license_error",
     "translation": "Az ön licence nem támogatja az áttekintések szolgáltatást."
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Nem lehetséges a bejegyzés lekérése, mivel a felhő csomagjának korlátján túl van."
+  },
+  {
+    "id": "api.insights.feature_disabled",
+    "translation": "Áttekintések egy olyan funkció jelölő mögött van, ami nincs engedélyezve."
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "Hiba történt a legutóbbi elérhető bejegyzés lekérése közben"
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "Nem sikerült értelmezni az értéket:{{.Value}} mint int64"
+  },
+  {
+    "id": "api.cloud.upgrade_plan_bot_message",
+    "translation": "A {{.TeamName}} csapat egy tagja értesítette Önt, hogy ezt a munkaterületet váltsa magasabb előfizetésre."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Már korábban értesítettük a rendszergazdát"
   }
 ]
