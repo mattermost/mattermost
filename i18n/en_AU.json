@@ -9281,5 +9281,17 @@
   {
     "id": "api.cloud.upgrade_plan_bot_message",
     "translation": "A member of {{.TeamName}} has asked you to upgrade this workspace."
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "Failed to parse the value:{{.Value}} to int64"
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Can't fetch the post as it is past the cloud's plan limit."
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "An error occurred while fetching the last accessible post"
   }
 ]

@@ -9333,5 +9333,33 @@
   {
     "id": "api.insights.license_error",
     "translation": "Jouw licentie ondersteunt deze Insights-functie niet."
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "Mislukt om de waarde te ontleden:{{.Waarde}} naar int64"
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Kan het bericht niet ophalen omdat het de limiet van het cloud plan overschreden is."
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "Fout bij ophalen van het laatste toegankelijke bericht"
+  },
+  {
+    "id": "app.channel.get_post_count_by_day.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.cloud.upgrade_plan_bot_message",
+    "translation": "Een lid van {{.TeamName}} verwittigde je om deze werkruimte te upgraden."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Reeds verwittigde admin"
+  },
+  {
+    "id": "api.authorization_error.guest",
+    "translation": " "
   }
 ]

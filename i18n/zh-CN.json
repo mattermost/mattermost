@@ -1853,7 +1853,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "查看消息"
+    "translation": "在 Mattermost 中回复"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -8157,7 +8157,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "您的{{.WorkSpace}}工作区的 14 天试用已准备就绪！"
+    "translation": "您工作区的 14 天试用已准备就绪！"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -9105,7 +9105,7 @@
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "您的“ {{.WorkspaceName}}” 工作空间现在已经升级。您将收到{{.TrialEnd}}的账单通知"
+    "translation": "您的“ {{.WorkspaceName}}”工作空间现在已经升级。您将从{{.TrialEnd}}开始收到账单通知"
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
@@ -9250,5 +9250,9 @@
   {
     "id": "api.cloud.subscription.update_error",
     "translation": "从 webhook 更新订阅时出错。"
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "已通知管理员"
   }
 ]
